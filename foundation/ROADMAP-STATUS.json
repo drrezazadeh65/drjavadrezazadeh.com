@@ -66,7 +66,9 @@
     "GT-017": "Free-to-routed-premium UX implemented; live conversion waits secure commerce.",
     "GT-018": "BAHAR workspace and persistence schema implemented; authenticated persistence pending.",
     "SEO-017": "Third-party webfont requests removed; final self-hosted font selection/integrity QA pending.",
-    "UX-010": "System-safe font stacks active; final self-hosted bilingual font package pending."
+    "UX-010": "System-safe font stacks active; final self-hosted bilingual font package pending.",
+    "GT-009": "Parent observation preview uses shared RCAS-O1 O-source evidence; verified relationship/consent/backend persistence pending.",
+    "GT-010": "Teacher observation preview uses shared RCAS-O1 O-source evidence; verified assignment/RBAC/backend persistence pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
