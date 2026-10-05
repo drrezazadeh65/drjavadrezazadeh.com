@@ -42,12 +42,15 @@
     "CONTENT-008": "2026-10-05",
     "SEO-013": "2026-10-05",
     "SEO-014": "2026-10-05",
-    "SEO-022": "2026-10-05"
+    "SEO-022": "2026-10-05",
+    "UX-009": "2026-10-05"
   },
   "in_progress": {
-    "SEO-007": "Core Persian service SERP review complete; repeat before each new major cluster."
+    "SEO-007": "Core Persian service SERP review complete; repeat before each new major cluster.",
+    "UX-013": "Visible focus/touch baseline implemented; keyboard, screen-reader and live-device QA pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
-  "seo_release_audit": "/foundation/SEO-RELEASE-AUDIT-2026-10-05.md"
+  "seo_release_audit": "/foundation/SEO-RELEASE-AUDIT-2026-10-05.md",
+  "design_system": "/foundation/DESIGN-SYSTEM.md"
 }
