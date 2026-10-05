@@ -90,6 +90,7 @@ function ensureMobileNav(){
     [u('fa/rahnamaha/'),'راهنماها'],
     [u('fa/tamas/'),'تماس'],
     [u('fa/harim-khosusi/'),'حریم خصوصی'],
+    [u('fa/jostojo/'),'جست‌وجو'],
     [u('publisher/'),'Rezazadeh Foundation Press'],
     [u('journal/'),'JHELA']
    ];
@@ -115,6 +116,7 @@ function ensureMobileNav(){
     [u('en/collaboration/'),'International Collaboration'],
     [u('en/news-insights/'),'News & Insights'],
     [u('en/contact/'),'Contact'],
+    [u('en/search/'),'Search'],
     [u('en/golden-talent/'),'Golden Talent'],
     [u('publisher/'),'Rezazadeh Foundation Press'],
     [u('journal/'),'JHELA'],
