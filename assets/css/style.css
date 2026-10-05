@@ -700,3 +700,9 @@ a,button{-webkit-tap-highlight-color:rgba(198,161,90,.12)}
   .onboarding-list article{grid-template-columns:46px minmax(0,1fr);padding:16px}
   .onboarding-list article>b{grid-column:2;text-align:start}
 }
+
+/* Network status toast v1 */
+.network-status{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top));transform:translate(-50%,-140%);z-index:120;width:min(520px,calc(100% - 24px));padding:11px 16px;border:1px solid #34302a;border-radius:14px;background:rgba(13,12,10,.97);color:#ddd6ca;font-size:12px;line-height:1.6;text-align:center;box-shadow:0 16px 44px rgba(0,0,0,.35);transition:transform .22s ease}
+.network-status.is-visible{transform:translate(-50%,0)}
+.network-status.offline{border-color:rgba(198,161,90,.42)}
+.network-status.online{border-color:rgba(110,180,130,.35)}
