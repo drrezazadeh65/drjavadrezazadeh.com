@@ -185,6 +185,7 @@ for(const file of htmlFiles){
   localDocs.set(canonical,{file,lang,alternates,route:routeFor(file)});
 }
 for(const [canonical,doc] of localDocs.entries()){
+  if(doc.route==='/') continue; // neutral x-default language gateway, not a localized counterpart
   for(const alt of doc.alternates){
     if(!['fa','en'].includes(alt.hreflang) || alt.href===canonical) continue;
     const target=localDocs.get(alt.href);
