@@ -66,7 +66,7 @@ This supersedes the earlier 5 October audit scope of 27 URLs.
 
 ## PWA item still intentionally open
 
-The PWA foundation is active, but the manifest still needs a final production icon package with explicit **192×192** and **512×512** raster icons plus maskable-icon QA. The project therefore remains **IN PROGRESS**, not DONE, for the full PWA roadmap item.
+The PWA foundation now includes exact **192×192** and **512×512** PNG launcher icons, and CI verifies the files, PNG signatures and IHDR dimensions. The project remains **IN PROGRESS**, not DONE, until maskable-icon validation and live installability testing are completed on the production delivery environment.
 
 ## Production-domain items still not certifiable
 
