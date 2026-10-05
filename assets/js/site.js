@@ -179,7 +179,7 @@ qa('.app-dock a').forEach(a=>{
   });
 
   let deferredPrompt=null;
-  const privatePath=/\/(?:fa\/app|app|fa\/login|login|fa\/register|register|fa\/assessments|assessments|fa\/shop|shop|en\/golden-talent\/(?:assessment|dashboard|observer|checkout))\//.test(location.pathname);
+  const privatePath=/\/(?:fa\/app|app|fa\/login|login|fa\/register|register|en\/login|en\/register|fa\/assessments|assessments|fa\/shop|shop|en\/golden-talent\/(?:assessment|dashboard|observer|checkout))\//.test(location.pathname);
 
   window.addEventListener('beforeinstallprompt',e=>{
     e.preventDefault();
