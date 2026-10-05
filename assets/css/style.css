@@ -616,3 +616,10 @@ a,button{-webkit-tap-highlight-color:rgba(198,161,90,.12)}
 .pwa-install-btn{flex:1;min-width:0;border:0;border-radius:13px;background:var(--gold);color:#090909;font:700 13px/1.2 inherit;padding:13px 16px;cursor:pointer}
 .pwa-install-close{width:48px;flex:0 0 48px;border:1px solid #30291f;border-radius:13px;background:#12100e;color:#d8d0c3;font-size:22px;cursor:pointer}
 @media(min-width:901px){.pwa-install{bottom:24px}}
+
+/* Student next action v1 */
+.student-next-action{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;align-items:center;margin:16px 0 20px;padding:22px 24px;border:1px solid rgba(198,161,90,.28);border-radius:20px;background:linear-gradient(135deg,rgba(198,161,90,.085),rgba(255,255,255,.012))}
+.student-next-action h2{margin:5px 0 8px;font-size:clamp(22px,3vw,31px);line-height:1.45}
+.student-next-action p{margin:0;color:#aaa398;line-height:1.8}
+.student-next-action .button{margin:0;white-space:normal;text-align:center;justify-content:center}
+@media(max-width:700px){.student-next-action{grid-template-columns:1fr;padding:18px;margin:12px 0 16px}.student-next-action h2{font-size:22px}.student-next-action .button{width:100%}}
