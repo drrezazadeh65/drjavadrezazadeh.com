@@ -197,6 +197,26 @@ paths:
           $ref: "#/components/responses/ValidationError"
         "401":
           $ref: "#/components/responses/Unauthorized"
+  /me/relationships:
+    get:
+      tags: [Identity]
+      summary: Return verified/scoped relationships visible to the authenticated user
+      description: >
+        Read-only account view of parent-student relationships and teacher-student
+        assignments. Creating or verifying relationships is intentionally excluded
+        until the production verification workflow is finalised.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Relationship and assignment summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RelationshipSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /consultation-requests:
     post:
       tags: [Consultation]
@@ -591,6 +611,65 @@ components:
     RateLimited:
       description: Too many requests
   schemas:
+    RelationshipSummary:
+      type: object
+      required: [parentRelationships, teacherAssignments]
+      properties:
+        parentRelationships:
+          type: array
+          items:
+            $ref: "#/components/schemas/ParentStudentRelationship"
+        teacherAssignments:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeacherStudentAssignment"
+    ParentStudentRelationship:
+      type: object
+      required: [id, status, requestedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        relationshipLabel:
+          type: [string, "null"]
+          maxLength: 120
+        status:
+          type: string
+          enum: [REQUESTED, PENDING_VERIFICATION, ACTIVE, REJECTED, REVOKED, EXPIRED]
+        requestedAt:
+          type: string
+          format: date-time
+        verifiedAt:
+          type: [string, "null"]
+          format: date-time
+        revokedAt:
+          type: [string, "null"]
+          format: date-time
+    TeacherStudentAssignment:
+      type: object
+      required: [id, status, startsAt, scope]
+      properties:
+        id:
+          type: string
+          format: uuid
+        institutionLabel:
+          type: [string, "null"]
+          maxLength: 160
+        classLabel:
+          type: [string, "null"]
+          maxLength: 160
+        scope:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [ACTIVE, SUSPENDED, ENDED]
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: [string, "null"]
+          format: date-time
     CurrentUser:
       type: object
       required: [id, roles]
