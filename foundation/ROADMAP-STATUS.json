@@ -22,6 +22,7 @@
   "current_priority_order": [
     "Permanent domain and one-time SEO migration",
     "Global visual/mobile consistency",
+    "Pre-release SEO validation, breadcrumbs and structured-data audit",
     "Consultation intake, booking and lawful payment",
     "Secure accounts/backend/database",
     "Commerce MVP",
@@ -34,5 +35,9 @@
     "founder_manuscript_handling": "Independent handling editor + at least two external reviewers + conflict disclosure + provenance statement.",
     "endogeny_operating_rule": "Keep editor/board/reviewer-authored research content below the recognised 25% ceiling, preferably lower.",
     "launch_frequency": "Start conservatively; increase frequency only after external pipeline and operations justify it."
+  },
+  "completed_milestones": {
+    "SEO-006": "2026-10-05",
+    "AUTH-012": "2026-10-05"
   }
 }
