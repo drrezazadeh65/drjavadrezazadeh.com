@@ -30,6 +30,8 @@ Status classes:
 
 - `/en/academic-profile/` — INDEX
 
+- `/en/student-guidance/` — INDEX
+
 ## INDEX — Persian
 - `/fa/` — INDEX
 - `/fa/darbare-man/` — INDEX
