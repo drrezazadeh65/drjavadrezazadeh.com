@@ -10,7 +10,7 @@ The ecosystem remains provider-neutral at the API and data-model level.
 - PostgreSQL/Auth/Storage may use a Supabase-compatible managed service;
 - private files use non-public object storage;
 - journal publishing stays on a separate OJS stack;
-- payments remain behind a replaceable gateway interface.
+- payments remain behind a replaceable gateway interface; **the first production payment adapters are Iranian, with IRR as the canonical transaction currency.**
 
 ## Fallback path
 If a managed provider is unavailable or unsuitable:
@@ -31,5 +31,18 @@ A provider is approved only after:
 - secrets remain outside Git;
 - migration/exit path is documented.
 
+## Payment-provider priority
+
+The launch market is primarily Iranian. Payment-provider evaluation therefore prioritises authorised Iranian payment gateways/payment-yar services.
+
+First comparison set:
+- ZarinPal
+- NextPay
+- Zibal
+
+International gateways are deferred and are not a launch dependency.
+
+See `/foundation/IRAN-PAYMENT-STRATEGY.md`.
+
 ## Current decision
-Proceed now with stable contracts and schemas. Bind them to a provider only after the approval gate.
+Proceed now with stable contracts and schemas. Bind hosting/auth/storage to a provider only after the approval gate. Bind commerce first to an approved Iranian gateway adapter after merchant eligibility and callback-verification testing are confirmed.
