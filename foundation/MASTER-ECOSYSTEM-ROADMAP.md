@@ -115,11 +115,11 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **UX-006 — RENEWED — Verified portrait asset and portrait integration after earlier wrong-image incident.**
 - [x] **UX-007 — RENEWED — Educational-philosophy visual asset replaced after broken-image incident.**
 - [ ] **UX-008 — IN PROGRESS — Global design consistency across every public page, journal page and foundation route.**
-- [ ] **UX-009 — PLANNED — Formal design tokens: typography, spacing, radii, shadows, components, motion and states.**
+- [x] **UX-009 — DONE — Formal design-system baseline documented with semantic tokens, typography, component families, image rules, interaction rules, mobile behaviour and design governance.**
 - [ ] **UX-010 — PLANNED — Fully self-hosted Persian/English fonts.**
 - [ ] **UX-011 — PLANNED — Mobile UX QA on small/medium/large devices and landscape orientation.**
 - [ ] **UX-012 — PLANNED — PWA icons, installability, offline shell and service worker.**
-- [ ] **UX-013 — PLANNED — Accessible focus states, keyboard navigation, screen-reader landmarks and reduced-motion QA.**
+- [ ] **UX-013 — IN PROGRESS — Accessible interaction baseline now includes visible focus states, minimum touch targets and existing reduced-motion support; full keyboard/screen-reader/live-device QA remains pending.**
 - [ ] **UX-014 — PLANNED — Native app considered only after PWA usage justifies it.**
 
 ---
