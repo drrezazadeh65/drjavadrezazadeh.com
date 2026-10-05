@@ -104,6 +104,7 @@ function ensureMobileNav(){
     [u('en/academic-engagements/'),'Academic Engagements'],
     [u('en/research/'),'Research'],
     [u('en/projects/'),'Public Projects'],
+    [u('en/collaboration/'),'International Collaboration'],
     [u('en/news-insights/'),'News & Insights'],
     [u('en/contact/'),'Contact'],
     [u('en/golden-talent/'),'Golden Talent'],
