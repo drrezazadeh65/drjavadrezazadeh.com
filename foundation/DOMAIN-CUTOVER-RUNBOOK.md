@@ -10,8 +10,9 @@ This runbook is intentionally prepared before domain purchase. Do not run the wr
 3. Configure HTTPS and verify certificate renewal.
 4. Configure hosting/CDN and a staging preview.
 5. Deploy and verify the repository `_headers` policy on Cloudflare Pages: global clickjacking/MIME/referrer/permissions protections, `noindex` on Pages preview hosts, and `no-store` + `X-Robots-Tag: noindex` on private/transactional shells.
-6. Verify that private/authenticated routes are not exposed as public static assets. Remember that `_headers` does not apply to future Pages Functions; server-generated responses must set their own security/cache headers.
-7. Keep payment credentials and backend secrets outside Git.
+6. Deploy and verify the repository `_redirects` registry. Confirm every frozen legacy English migration returns HTTP 301 to its approved `/en/` target. `_redirects` rules do not apply to future Pages Functions, so Function-handled routes must reproduce required redirect behaviour in server code.
+7. Verify that private/authenticated routes are not exposed as public static assets. Remember that `_headers` does not apply to future Pages Functions; server-generated responses must set their own security/cache headers.
+8. Keep payment credentials and backend secrets outside Git.
 
 ## Dry run
 ```bash
@@ -32,6 +33,8 @@ The cutover changes canonical URLs, hreflang targets, structured-data IDs/URLs, 
 - HTTPS 200 on root, /fa/ and /en/.
 - HTTP -> HTTPS 301.
 - www -> apex 301.
+- Every version-controlled legacy path in `_redirects` returns the expected 301 target.
+- After the custom domain is verified, redirect the public `*.pages.dev` hostname to the permanent domain using a Cloudflare zone/account-level redirect rather than a Pages path rule.
 - Root remains a neutral language gateway; no IP-forced language redirect.
 - Canonical self-reference is on the production domain.
 - Reciprocal hreflang is intact for genuine equivalents.
