@@ -70,14 +70,6 @@ for(const file of htmlFiles){
   if(isPrivate && isIndexable) failures.push(route+': private/transactional route must be noindex');
 
   if(isIndexable){
-    const confidentialTerms=[
-      new RegExp('\\b'+'human'+'ability'+'\\b','i'),
-      new RegExp('\\b'+'test'+'ly'+'\\b','i'),
-      new RegExp('\\b'+'teacher'+'\\s+'+'human'+'ization'+'\\b','i')
-    ];
-    for(const re of confidentialTerms){
-      if(re.test(html)) failures.push(route+': confidential pre-publication term exposed on indexable page');
-    }
     const descTag=(html.match(/<meta\b[^>]*name=["']description["'][^>]*>/i)||[''])[0];
     const desc=getAttr(descTag,'content');
     if(!desc || desc.length<40) failures.push(route+': indexable page missing substantive meta description');
@@ -499,8 +491,13 @@ for(const file of htmlFiles){
   }
 }
 
-// UNRELEASED RESEARCH FIREWALL — protected project names must not appear in public HTML.
-const protectedResearchTerms=['Humanability','TESTLY','Teacher Humanization'];
+// UNRELEASED RESEARCH FIREWALL — confidential project names are assembled at runtime
+// so current public source does not publish the protected names as literal strings.
+const protectedResearchPatterns=[
+  new RegExp('\\b'+'human'+'ability'+'\\b','i'),
+  new RegExp('\\b'+'test'+'ly'+'\\b','i'),
+  new RegExp('\\b'+'teacher'+'\\s+'+'human'+'ization'+'\\b','i')
+];
 for(const file of htmlFiles){
   const html=fs.readFileSync(file,'utf8');
   const route=routeFor(file);
@@ -508,9 +505,9 @@ for(const file of htmlFiles){
   const rc=getAttr(robots,'content')||'';
   const publicSurface=!/\bnoindex\b/i.test(rc);
   if(!publicSurface) continue;
-  for(const term of protectedResearchTerms){
-    if(html.toLowerCase().includes(term.toLowerCase())){
-      failures.push(route+': protected/unreleased research term leaked to indexable HTML: '+term);
+  for(const re of protectedResearchPatterns){
+    if(re.test(html)){
+      failures.push(route+': protected/unreleased research term leaked to indexable HTML');
     }
   }
 }
