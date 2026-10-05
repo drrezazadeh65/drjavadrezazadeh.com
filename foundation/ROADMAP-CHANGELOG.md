@@ -103,3 +103,6 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 ### Font dependency hardening
 - **SEO-017 | PLANNED → IN PROGRESS** — Removed third-party Inter/Vazirmatn webfont requests from the production stylesheet; final self-hosted font selection and integrity QA remain pending.
 - **UX-010 | PLANNED → IN PROGRESS** — Standardised current rendering on system-safe English/Persian fallback stacks until final self-hosted assets are approved.
+
+### High-stakes guidance trust metadata
+- **CONTENT-009 | PLANNED → IN PROGRESS** — Added visible author, publication date and last-content-review metadata to the first high-stakes Persian guidance pages and release enforcement for those fields. Independent reviewer attribution remains pending an actual reviewer workflow and is not fabricated.
