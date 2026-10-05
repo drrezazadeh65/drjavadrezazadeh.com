@@ -74,7 +74,8 @@
     "GT-011": "Private R/C school-performance/context intake plus E7 map implemented; authenticated persistence/provenance pending.",
     "UX-012": "Manifest, service worker, offline shell, install prompts, cache-version governance, private-route cache bypass, network-first CSS/JS delivery, exact 192x192/512x512 launcher icons and dedicated 512x512 maskable icon are implemented and source-validated; only live installability/device QA remains pending.",
     "SEO-022": "Whole-surface automated release QA now also enforces bilingual/private-route indexability, confidential pre-publication firewalls, Service Worker private-cache bypass, Cloudflare response-header privacy rules, and mobile/PWA source guardrails.",
-    "SERV-011": "Bilingual private appointment-state previews plus API contract implemented; live availability, timezone-aware slot selection, reschedule/cancel enforcement and authenticated persistence remain pending."
+    "SERV-011": "Bilingual private appointment-state previews plus API contract implemented; live availability, timezone-aware slot selection, reschedule/cancel enforcement and authenticated persistence remain pending.",
+    "ADMIN-004": "Version-controlled Cloudflare Pages _redirects registry and CI URL-integrity guard implemented for confirmed legacy migrations; CMS/admin redirect-management UI remains pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
