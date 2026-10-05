@@ -291,6 +291,48 @@ if(failures.length){
 }
 
 
+// MOBILE + PWA SOURCE GUARDRAILS — prevents known overflow/safe-area regressions.
+const cssPath=path.join(root,'assets','css','style.css');
+if(!fs.existsSync(cssPath)) failures.push('/assets/css/style.css: missing global stylesheet');
+else{
+  const css=fs.readFileSync(cssPath,'utf8');
+  if(/(?:^|[;{])\s*(?:width|min-width)\s*:\s*100vw\b/i.test(css)){
+    failures.push('/assets/css/style.css: width/min-width:100vw is prohibited because it can reintroduce mobile horizontal overflow');
+  }
+  if(!/html,body\{[^}]*overflow-x:(?:hidden|clip)/i.test(css)){
+    failures.push('/assets/css/style.css: missing global horizontal-overflow guard');
+  }
+  if(!css.includes('env(safe-area-inset-bottom)')) failures.push('/assets/css/style.css: missing bottom safe-area handling');
+  if(!css.includes('env(safe-area-inset-top)')) warnings.push('/assets/css/style.css: top safe-area handling not detected');
+}
+const manifestPath=path.join(root,'site.webmanifest');
+if(!fs.existsSync(manifestPath)) failures.push('/site.webmanifest: missing PWA manifest');
+else{
+  try{
+    const manifest=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
+    if(!manifest.name&&!manifest.short_name) failures.push('/site.webmanifest: name or short_name required');
+    if(!manifest.start_url) failures.push('/site.webmanifest: start_url required');
+    if(!manifest.display&&!manifest.display_override) failures.push('/site.webmanifest: display/display_override required');
+    if(manifest.prefer_related_applications===true) failures.push('/site.webmanifest: prefer_related_applications must not be true');
+    if(!Array.isArray(manifest.icons)||!manifest.icons.length) failures.push('/site.webmanifest: at least one icon required');
+    else{
+      const rasterAny=manifest.icons.filter(i=>i?.sizes==='any' && i?.type && !/svg\+xml/i.test(i.type));
+      if(rasterAny.length) warnings.push('/site.webmanifest: raster icon declares sizes="any"; add explicit 192x192 and 512x512 production icons');
+      const has192=manifest.icons.some(i=>/(^|\s)192x192(\s|$)/.test(i?.sizes||''));
+      const has512=manifest.icons.some(i=>/(^|\s)512x512(\s|$)/.test(i?.sizes||''));
+      if(!has192||!has512) warnings.push('/site.webmanifest: Chromium-grade 192x192 and 512x512 icon set is still pending');
+    }
+  }catch(e){
+    failures.push('/site.webmanifest: invalid JSON');
+  }
+}
+if(failures.length){
+  console.error('\nMobile/PWA guardrail failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // PERFORMANCE BUDGET — guardrails, not synthetic CWV claims.
 const budgets=[
   ['assets/css/style.css',120*1024],
