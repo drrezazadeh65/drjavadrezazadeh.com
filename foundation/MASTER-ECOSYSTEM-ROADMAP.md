@@ -193,7 +193,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **GT-008 — IN PROGRESS — Student self-report baseline is implemented in RCAS Start; deeper routed-module execution remains entitlement/backend dependent.**
 - [ ] **GT-009 — IN PROGRESS — Parent observation is implemented through the shared RCAS-O1 observation standard rather than a separate scored parent test; production persistence awaits verified parent–student relationship, consent/visibility rules and backend activation.**
 - [ ] **GT-010 — IN PROGRESS — Teacher observation is implemented through the shared RCAS-O1 standard rather than a separate scored teacher test; production persistence awaits verified teacher–student assignment, role-based access and backend activation.**
-- [ ] **GT-011 — PLANNED — School-performance and contextual evidence intake.**
+- [ ] **GT-011 — IN PROGRESS — Private school-performance/context intake now separates R-source performance evidence from C-source context and includes the E7 Constraint→Control→Support map; persistent intake remains pending authenticated backend/provenance controls.**
 - [ ] **GT-012 — IN PROGRESS — Student profile/dashboard UX, routed-state preview and provider-neutral persistence model exist; authenticated integrated profile remains pending backend activation.**
 - [ ] **GT-013 — IN PROGRESS — D5 Golden Path module, Evidence/Path Experiment structure and human-reviewed professional-report preview are implemented; production workflow remains pending.**
 - [ ] **GT-014 — IN PROGRESS — Free entry, routed Deep Module, Golden Path Professional and BAHAR Continuity product tiers/entitlements are designed; live pricing, payment and fulfilment remain pending.**
