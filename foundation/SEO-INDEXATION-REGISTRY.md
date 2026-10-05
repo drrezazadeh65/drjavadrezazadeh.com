@@ -45,6 +45,8 @@ Status classes:
 
 - `/fa/tamas/` — INDEX
 
+- `/fa/entesharat-elmi/` — INDEX
+
 ## INDEX — News
 - `/fa/akhbar/entekhab-reshteh-1405/` — INDEX
 - `/fa/akhbar/moshavere-tahsili-baraye-tasmim/` — INDEX
