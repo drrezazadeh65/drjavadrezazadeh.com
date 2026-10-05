@@ -11,8 +11,8 @@ Primary topical clusters are developed through substantive pages rather than key
 - educational consulting and academic guidance
 - university entrance examination counselling and field-of-study selection
 - applied linguistics and English language education
-- human-centred assessment, Humanability and TESTLY
-- teacher development and Teacher Humanization
+- human-centred assessment and responsible educational measurement
+- teacher education, professional learning and educational development
 
 ### Migration
 GitHub Pages is the temporary host. Paths and internal architecture are intended to remain stable when a custom domain is acquired. Canonical, Open Graph, schema, sitemap and robots URLs must be migrated together, followed by Search Console verification.
@@ -23,7 +23,11 @@ Academia.edu, Semantic Scholar, ORCID, Instagram and GitHub are linked. Google S
 © Dr. Javad Rezazadeh Yazdeli. All rights reserved.
 
 
-## Master Foundation v3.0
+## Master Foundation v4.0
+
+The frozen execution roadmap is maintained in `foundation/MASTER-ECOSYSTEM-ROADMAP.md`, with machine-readable status rules in `foundation/ROADMAP-STATUS.json`. Roadmap items are never silently removed; they move through explicit DONE / MODIFIED / RENEWED / IN PROGRESS / PLANNED / WAITING / DEFERRED / RETIRED states.
+
+## Master Foundation
 The repository now contains an explicit foundation layer under `/foundation/`. New application, assessment, research-lab and commerce namespaces are reserved as `noindex` routes until substantive content/data and an explicit SEO release decision exist.
 
 **Indexing is opt-in.** Public URLs are added to the XML sitemap only after an SEO release gate. Private/personal data will ultimately be protected by authentication; static foundation pages are placeholders only and contain no personal user data.
