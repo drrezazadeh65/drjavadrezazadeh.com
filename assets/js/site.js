@@ -268,3 +268,23 @@ qa('.app-dock a').forEach(a=>{
     document.body?.classList.add('standalone-app-body');
   }
 })();
+
+// IOS HOME SCREEN HINT v1
+(function(){
+  const ua=navigator.userAgent||'';
+  const ios=/iPhone|iPad|iPod/i.test(ua);
+  const standalone=window.navigator.standalone===true || window.matchMedia?.('(display-mode: standalone)').matches;
+  const privatePath=/\/(?:fa\/app|app|fa\/login|login|fa\/register|register|fa\/bazyabi-hesab|en\/login|en\/register|en\/recover|en\/account|fa\/assessments|assessments|fa\/shop|shop|en\/golden-talent\/(?:assessment|dashboard|observer|roles|student|checkout))\//.test(location.pathname);
+  if(!ios||standalone||privatePath||sessionStorage.getItem('ios-install-dismissed')==='1'||document.querySelector('.pwa-install')) return;
+  const isFa=document.documentElement.lang==='fa';
+  window.addEventListener('load',()=>{
+    setTimeout(()=>{
+      if(document.querySelector('.pwa-install')) return;
+      const wrap=document.createElement('div');
+      wrap.className='pwa-install';
+      wrap.innerHTML='<div class="pwa-install-btn" role="note">'+(isFa?'برای تجربه شبیه اپ: Share → Add to Home Screen':'For an app-like experience: Share → Add to Home Screen')+'</div><button type="button" class="pwa-install-close" aria-label="'+(isFa?'بستن':'Close')+'">×</button>';
+      document.body.appendChild(wrap);
+      wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>{sessionStorage.setItem('ios-install-dismissed','1');wrap.remove();});
+    },1800);
+  });
+})();
