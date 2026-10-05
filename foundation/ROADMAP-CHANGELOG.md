@@ -38,3 +38,7 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 ### Design-system and accessibility baseline
 - **UX-009 | PLANNED → DONE** — Frozen `foundation/DESIGN-SYSTEM.md` covering semantic tokens, typography, component families, mobile rules, image governance, interaction rules and release checks.
 - **UX-013 | PLANNED → IN PROGRESS** — Added global visible focus styles, minimum 44px touch targets, target scroll offsets and forced-colour focus fallback; full assistive-technology and live-device QA remains pending.
+
+### Production platform foundation
+- **INFRA-010 | PLANNED → IN PROGRESS** — Frozen a provider-neutral production architecture separating public SEO web, authenticated app and versioned API. Added consultation state machine, commerce/payment abstraction, Golden Talent assessment versioning, RBAC, private storage, CMS/admin, research-data and security boundaries.
+- **Core Data Model | NEW FROZEN FOUNDATION** — Added `foundation/CORE-DATA-MODEL.md` defining identity, educational record, consultation, assessment, Golden Talent, commerce, content/SEO, communication, consent, research and journal-recruitment domains without committing to a vendor before eligibility and hosting are confirmed.
