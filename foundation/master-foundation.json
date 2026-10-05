@@ -22,7 +22,8 @@
       "/fa/akhbar/",
       "/publisher/",
       "/journal/call-for-reviewers/",
-      "/journal/founding-collaborators/"
+      "/journal/founding-collaborators/",
+      "/fa/darbare-man/"
     ],
     "sitemap_rule": "Only approved indexable canonical URLs belong in sitemap.xml"
   },
@@ -39,7 +40,8 @@
       "/fa/akhbar/",
       "/publisher/",
       "/journal/call-for-reviewers/",
-      "/journal/founding-collaborators/"
+      "/journal/founding-collaborators/",
+      "/fa/darbare-man/"
     ],
     "reserved_noindex": [
       "/app/",
