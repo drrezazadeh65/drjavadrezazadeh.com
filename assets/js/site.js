@@ -97,6 +97,7 @@ function ensureMobileNav(){
    ];
    sheet=[
     [u('en/about/'),'About'],
+    [u('en/academic-profile/'),'Academic Profile'],
     [u('en/language-education/'),'Language Education'],
     [u('en/teacher-education/'),'Teacher Education'],
     [u('en/teaching/'),'University Teaching'],
