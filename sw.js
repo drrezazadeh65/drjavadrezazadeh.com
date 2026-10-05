@@ -15,7 +15,7 @@ const PRIVATE_PREFIXES=[
   '/fa/app/','/app/','/fa/login/','/login/','/fa/register/','/register/',
   '/fa/assessments/','/assessments/','/fa/shop/','/shop/',
   '/en/golden-talent/assessment/','/en/golden-talent/dashboard/',
-  '/en/golden-talent/observer/','/en/golden-talent/checkout/'
+  '/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/','/en/golden-talent/checkout/'
 ];
 
 self.addEventListener('install',event=>{
