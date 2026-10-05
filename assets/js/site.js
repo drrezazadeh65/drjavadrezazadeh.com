@@ -208,10 +208,14 @@ qa('.app-dock a').forEach(a=>{
     l.rel='manifest'; l.href=base+'site.webmanifest';
     document.head.appendChild(l);
   }
+  if(!document.querySelector('link[rel="apple-touch-icon"]')){
+    const i=document.createElement('link');i.rel='apple-touch-icon';i.href=base+'assets/images/javad-rezazadeh-yazdeli-portrait-2026.webp';document.head.appendChild(i);
+  }
   const metas=[
     ['apple-mobile-web-app-capable','yes'],
     ['apple-mobile-web-app-status-bar-style','black-translucent'],
-    ['mobile-web-app-capable','yes']
+    ['mobile-web-app-capable','yes'],
+    ['apple-mobile-web-app-title',document.documentElement.lang==='fa'?'جواد رضازاده':'Javad Yazdeli']
   ];
   for(const [name,content] of metas){
     if(!document.querySelector('meta[name="'+name+'"]')){
