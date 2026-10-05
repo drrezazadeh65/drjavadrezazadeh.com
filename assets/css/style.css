@@ -495,3 +495,16 @@ code,pre,.brand,.site-header nav a,.button,.profile,.service-card,.authority-car
 .related-cluster-grid b{font-size:15px;line-height:1.7;color:#e8dfd0}
 .related-cluster-grid span{margin-top:6px;font-size:12px;line-height:1.8;color:#90887c}
 @media(max-width:700px){.related-cluster{width:calc(100% - 20px);padding:22px;margin-bottom:54px}.related-cluster-grid{grid-template-columns:1fr}}
+
+/* 404 experience v1 */
+.error-page{min-height:100vh;display:grid;place-items:center;padding:28px}
+.error-shell{width:min(980px,100%)}
+.error-card{padding:clamp(28px,6vw,64px);border:1px solid rgba(198,161,90,.22);border-radius:36px;background:radial-gradient(600px 300px at 90% 0%,rgba(198,161,90,.1),transparent 60%),rgba(255,255,255,.014);box-shadow:var(--shadow)}
+.error-card h1{font-family:Georgia,serif;font-size:clamp(44px,7vw,82px);line-height:1;margin:10px 0 20px}
+.error-actions{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0}
+.error-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:28px}
+.error-grid a{display:block;padding:18px;border:1px solid #29241d;border-radius:16px;background:#0c0b0a;text-decoration:none}
+.error-grid b,.error-grid span{display:block}.error-grid span{margin-top:5px;color:#948c80;font-size:12px}
+.error-fa{margin-top:30px;padding-top:28px;border-top:1px solid #252119;font-family:Tahoma,"Segoe UI",Arial,sans-serif}
+.error-fa h2{font-size:28px;margin:0 0 8px}.error-fa p{color:#aaa398;line-height:2}
+@media(max-width:650px){.error-page{padding:10px}.error-card{padding:24px;border-radius:24px}.error-grid{grid-template-columns:1fr}.error-actions{display:grid}.error-actions .button{justify-content:center}}
