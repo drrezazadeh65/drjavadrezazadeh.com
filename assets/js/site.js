@@ -46,7 +46,7 @@ function ensureMobileNav(){
    links=[
     [appBase,isFa?'خانه':'Home','home'],
     [isFa?u('fa/golden-talent/'):u('golden-talent/'),isFa?'کشف':'Discover','star'],
-    [u('assessments/'),isFa?'آزمون‌ها':'Tests','test'],
+    [isFa?u('fa/assessments/'):u('assessments/'),isFa?'آزمون‌ها':'Tests','test'],
     [appBase,isFa?'مسیر من':'My Path','path']
    ];
    sheet=[
@@ -76,19 +76,24 @@ function ensureMobileNav(){
    ];
  }else{
    links=[
-    [u(''),'Home','home'],
-    [u('about/'),'About','user'],
-    [u('golden-talent/'),'Golden Talent','star'],
-    [u('research/'),'Research','book']
+    [u('en/'),'Home','home'],
+    [u('en/about/'),'About','user'],
+    [u('en/golden-talent/'),'Golden Talent','star'],
+    [u('en/research/'),'Research','book']
    ];
    sheet=[
-    [u('about/'),'About'],
-    [u('teaching/'),'University Teaching'],
-    [u('books/'),'Books'],
-    [u('publications/'),'Publications'],
-    [u('academic-engagements/'),'Academic Engagements'],
-    [u('research/'),'Research'],
-    [u('golden-talent/'),'Golden Talent'],
+    [u('en/about/'),'About'],
+    [u('en/language-education/'),'Language Education'],
+    [u('en/teacher-education/'),'Teacher Education'],
+    [u('en/teaching/'),'University Teaching'],
+    [u('en/books/'),'Books'],
+    [u('en/publications/'),'Publications'],
+    [u('en/academic-engagements/'),'Academic Engagements'],
+    [u('en/research/'),'Research'],
+    [u('en/projects/'),'Public Projects'],
+    [u('en/news-insights/'),'News & Insights'],
+    [u('en/contact/'),'Contact'],
+    [u('en/golden-talent/'),'Golden Talent'],
     [u('publisher/'),'Rezazadeh Foundation Press'],
     [u('journal/'),'JHELA'],
     [u('fa/'),'فارسی']
@@ -104,23 +109,42 @@ function ensureMobileNav(){
  }
 }
 ensureMobileNav();
-function setSheet(open){
- const sheet=q('#mobile-app-menu'),btn=q('[data-nav-toggle]');
+let lastMenuTrigger=null;
+function setSheet(open,trigger=null){
+ const sheet=q('#mobile-app-menu'),btn=trigger||q('[data-nav-toggle]');
  if(!sheet||!btn)return;
- sheet.hidden=!open;btn.setAttribute('aria-expanded',String(open));
+ if(open) lastMenuTrigger=btn;
+ sheet.hidden=!open;
+ qa('[data-nav-toggle]').forEach(x=>x.setAttribute('aria-expanded',String(open)));
+ sheet.setAttribute('aria-hidden',String(!open));
  document.documentElement.classList.toggle('nav-open',open);
- if(open){requestAnimationFrame(()=>sheet.classList.add('is-open'));const first=q('a,button',sheet);first&&first.focus()}
- else sheet.classList.remove('is-open');
+ if(open){
+   requestAnimationFrame(()=>sheet.classList.add('is-open'));
+   const first=q('a,button',sheet); first&&first.focus();
+ }else{
+   sheet.classList.remove('is-open');
+   if(lastMenuTrigger&&document.contains(lastMenuTrigger)) lastMenuTrigger.focus();
+ }
 }
 document.addEventListener('click',e=>{
  const t=e.target.closest('[data-nav-toggle]');
- if(t){e.preventDefault();setSheet(t.getAttribute('aria-expanded')!=='true');return}
+ if(t){e.preventDefault();setSheet(t.getAttribute('aria-expanded')!=='true',t);return}
  if(e.target.closest('[data-nav-close]')||e.target.classList.contains('mobile-app-sheet'))setSheet(false);
  const link=e.target.closest('#mobile-app-menu a');if(link)setSheet(false);
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape')setSheet(false)});
+document.addEventListener('keydown',e=>{
+ const sheet=q('#mobile-app-menu');
+ if(e.key==='Escape'&&sheet&&!sheet.hidden){setSheet(false);return}
+ if(e.key==='Tab'&&sheet&&!sheet.hidden){
+   const focusables=qa('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])',sheet).filter(x=>!x.hidden);
+   if(!focusables.length)return;
+   const first=focusables[0],last=focusables[focusables.length-1];
+   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+   else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+ }
+});
 const path=location.pathname.replace(/index\.html$/,'');
 qa('.app-dock a').forEach(a=>{
- try{const p=new URL(a.href,location.href).pathname.replace(/index\.html$/,'');if((p===base&&path===base)||(p!==base&&path.startsWith(p)))a.classList.add('is-active')}catch{}
+ try{const p=new URL(a.href,location.href).pathname.replace(/index\.html$/,'');if((p===base&&path===base)||(p!==base&&path.startsWith(p))){a.classList.add('is-active');a.setAttribute('aria-current','page')}}catch{}
 });
 })();
