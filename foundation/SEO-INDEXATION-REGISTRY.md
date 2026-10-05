@@ -28,6 +28,8 @@ Status classes:
 
 - `/en/collaboration/` — INDEX
 
+- `/en/academic-profile/` — INDEX
+
 ## INDEX — Persian
 - `/fa/` — INDEX
 - `/fa/darbare-man/` — INDEX
