@@ -176,7 +176,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **SERV-013 — PLANNED — Consultation notes, recommendations and follow-up record.**
 - [ ] **SERV-014 — PLANNED — Human-reviewed report generation.**
 - [ ] **SERV-015 — PLANNED — Institutional/school consulting packages.**
-- [ ] **SERV-016 — PLANNED — Clear service boundaries, cancellation/refund/no-show policy and consent.**
+- [ ] **SERV-016 — IN PROGRESS — Bilingual consultation policy now defines service scope, no-guarantee rule, professional boundaries and future booking/cancellation/refund disclosure requirements; final paid-service terms remain pending.**
 
 ---
 
@@ -211,12 +211,12 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **PORTAL-005 — FROZEN — One account may hold multiple roles.**
 - [ ] **PORTAL-006 — PLANNED — Production authentication and email verification.**
 - [ ] **PORTAL-007 — PLANNED — Password reset, session security and account recovery.**
-- [ ] **PORTAL-008 — PLANNED — Student dashboard.**
-- [ ] **PORTAL-009 — PLANNED — Parent dashboard with multiple-child relationships.**
-- [ ] **PORTAL-010 — PLANNED — Teacher dashboard with classes/students/observations.**
-- [ ] **PORTAL-011 — PLANNED — Consultant dashboard.**
-- [ ] **PORTAL-012 — PLANNED — User privacy, data export and deletion workflow.**
-- [ ] **PORTAL-013 — PLANNED — Secure document upload for report cards, certificates and records.**
+- [ ] **PORTAL-008 — IN PROGRESS — Persian student dashboard prototype published as NOINDEX; production auth/data integration remains pending.**
+- [ ] **PORTAL-009 — IN PROGRESS — Persian parent dashboard prototype and verified parent-child relationship model are implemented; production linkage remains pending.**
+- [ ] **PORTAL-010 — IN PROGRESS — Persian teacher dashboard prototype and scoped teacher-student assignment model are implemented; production assignment workflows remain pending.**
+- [ ] **PORTAL-011 — IN PROGRESS — Persian consultant dashboard prototype reflects triage, assigned cases, notes, review and follow-up; backend integration remains pending.**
+- [ ] **PORTAL-012 — IN PROGRESS — Privacy-request schema supports access, correction, export, deletion, restriction and consent withdrawal; authenticated user workflow remains pending.**
+- [ ] **PORTAL-013 — IN PROGRESS — Private-document metadata, malware-scan state and scoped access-grant schema are implemented; secure object storage and upload service remain pending.**
 
 ---
 
@@ -398,7 +398,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **SEC-006 — PLANNED — Encrypted transport and secure secrets management.**
 - [ ] **SEC-007 — PLANNED — File malware/type/size validation and private storage.**
 - [ ] **SEC-008 — PLANNED — Audit logs for administrative and sensitive-user actions.**
-- [ ] **SEC-009 — PLANNED — Privacy policy, terms, consent records and child/parent relationship rules.**
+- [ ] **SEC-009 — IN PROGRESS — Bilingual NOINDEX privacy/data-use notices, consultation policy, consent model, RBAC matrix and parent-child relationship rules are in place; jurisdiction-specific legal review remains pending.**
 - [ ] **SEC-010 — PLANNED — Data retention, deletion and export processes.**
 - [ ] **SEC-011 — PLANNED — Backup/restore tests and disaster-recovery plan.**
 - [ ] **SEC-012 — PLANNED — Incident response and vulnerability reporting.**
