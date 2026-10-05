@@ -168,3 +168,33 @@ qa('.app-dock a').forEach(a=>{
  try{const p=new URL(a.href,location.href).pathname.replace(/index\.html$/,'');if((p===base&&path===base)||(p!==base&&path.startsWith(p))){a.classList.add('is-active');a.setAttribute('aria-current','page')}}catch{}
 });
 })();
+
+// PWA INSTALL FLOW v1
+(function(){
+  if(!('serviceWorker' in navigator)) return;
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/drjavadrezazadeh.com/sw.js').catch(()=>{});
+  });
+
+  let deferredPrompt=null;
+  const privatePath=/\/(?:fa\/app|app|fa\/login|login|fa\/register|register|fa\/assessments|assessments|fa\/shop|shop|en\/golden-talent\/(?:assessment|dashboard|observer|checkout))\//.test(location.pathname);
+
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();
+    deferredPrompt=e;
+    if(privatePath || document.querySelector('.pwa-install')) return;
+    const isFa=document.documentElement.lang==='fa';
+    const wrap=document.createElement('div');
+    wrap.className='pwa-install';
+    wrap.innerHTML='<button type="button" class="pwa-install-btn">'+(isFa?'نصب نسخه اپ‌مانند':'Install app experience')+'</button><button type="button" class="pwa-install-close" aria-label="'+(isFa?'بستن':'Close')+'">×</button>';
+    document.body.appendChild(wrap);
+    wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>wrap.remove());
+    wrap.querySelector('.pwa-install-btn')?.addEventListener('click',async()=>{
+      if(!deferredPrompt) return;
+      deferredPrompt.prompt();
+      try{await deferredPrompt.userChoice;}catch(e){}
+      deferredPrompt=null;
+      wrap.remove();
+    });
+  });
+})();
