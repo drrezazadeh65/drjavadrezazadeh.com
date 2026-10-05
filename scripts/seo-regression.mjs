@@ -49,8 +49,9 @@ for(const file of htmlFiles){
   const robotContent=getAttr(robots,'content')||'';
   const isIndexable=!/\bnoindex\b/i.test(robotContent);
   const isPrivate=/^\/(?:fa\/)?(?:app|login|register|shop|assessments)(?:\/|$)/.test(route) ||
-    /^\/fa\/(?:darkhast-moshavere|harim-khosusi|siasat-moshavere)(?:\/|$)/.test(route) ||
-    /^\/(?:privacy|consultation-policy)(?:\/|$)/.test(route);
+    /^\/(?:student|parent|teacher|research-lab)(?:\/|$)/.test(route) ||
+    /^\/fa\/(?:darkhast-moshavere|harim-khosusi|siasat-moshavere|sharayet-estefade)(?:\/|$)/.test(route) ||
+    /^\/(?:privacy|terms|consultation-policy)(?:\/|$)/.test(route);
 
   if(!lang) failures.push(route+': missing html[lang]');
   if(lang==='fa' && dir!=='rtl') failures.push(route+': Persian page must use dir="rtl"');
