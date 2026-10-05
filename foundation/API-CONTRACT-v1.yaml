@@ -137,6 +137,23 @@ paths:
       responses:
         "200":
           description: Privacy request history
+  /me/onboarding:
+    get:
+      tags: [Identity]
+      summary: Return the server-authoritative onboarding and student-journey state
+      description: >
+        The response follows platform/onboarding-state-machine.json. Browser-local
+        progress may be shown as a preview, but role, consent, paid entitlement and
+        production assessment state are always resolved server-side.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Current onboarding state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingState"
   /me:
     get:
       tags: [Identity]
@@ -414,6 +431,38 @@ components:
           items:
             type: string
             enum: [STUDENT, PARENT, TEACHER, CONSULTANT, RESEARCHER, EDITOR, ADMIN, SUPER_ADMIN]
+    OnboardingState:
+      type: object
+      required: [state, nextActions]
+      properties:
+        state:
+          type: string
+          enum:
+            - VISITOR
+            - ACCOUNT_PENDING
+            - AUTHENTICATED
+            - ROLE_PENDING
+            - CONSENT_PENDING
+            - READY
+            - RCAS_IN_PROGRESS
+            - ROUTED
+            - DEEP_MODULE
+            - GOLDEN_PATH_REVIEW
+            - BAHAR_ACTIVE
+        nextActions:
+          type: array
+          items:
+            type: string
+        roleVerificationRequired:
+          type: boolean
+        requiredConsents:
+          type: array
+          items:
+            type: string
+        activeEntitlements:
+          type: array
+          items:
+            type: string
     SignInRequest:
       type: object
       additionalProperties: false
