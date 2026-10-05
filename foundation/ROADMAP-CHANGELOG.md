@@ -29,3 +29,8 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 
 ### First post-SERP editorial execution
 - **CONTENT-FS-01 | PLANNED → DONE** — Published «چه رشته‌ای برای من مناسب است؟ از پاسخ سریع تا تصمیم قابل دفاع» with a distinct informational intent, Article + FAQ structured data, original SEO visual, internal links to field-selection/talent/counselling services, and sitemap registration.
+
+### Source-level SEO release gate closure
+- **SEO-013 | PLANNED → DONE** — Added visible breadcrumbs and BreadcrumbList structured data across every current deep indexable public page.
+- **SEO-014 | PLANNED → DONE** — Audited the current indexable structured-data surface, repaired missing metadata and confirmed all JSON-LD blocks parse as valid JSON.
+- **SEO-022 | PLANNED → DONE** — Validated title/meta/robots/H1/canonical/schema/OG metadata across all 27 sitemap URLs, checked internal links against the repository tree with zero broken targets, and confirmed reciprocal hreflang on all six genuine bilingual pairs.
