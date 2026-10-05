@@ -522,6 +522,28 @@ paths:
       responses:
         "202":
           description: Session accepted for scoring/interpretation
+  /reports:
+    get:
+      tags: [Reports]
+      summary: List private report metadata visible to the authenticated user
+      description: >
+        Returns report metadata and current review state only. Superseded reports
+        remain visible in history when the caller is authorised; report content is
+        retrieved separately from /reports/{reportId}.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Authorised report history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReportSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /reports/{reportId}:
     get:
       tags: [Reports]
@@ -658,6 +680,31 @@ components:
     RateLimited:
       description: Too many requests
   schemas:
+    ReportSummary:
+      type: object
+      required: [id, reportType, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        reportType:
+          type: string
+          enum: [FREE_SNAPSHOT, STANDARD, PROFESSIONAL, INTEGRATED_TALENT_PROFILE, GOLDEN_PATH, HUMAN_REVIEWED]
+        status:
+          type: string
+          enum: [GENERATING, READY, SUPERSEDED, REVOKED]
+        assessmentSessionId:
+          type: [string, "null"]
+          format: uuid
+        generatedAt:
+          type: [string, "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        humanReviewStatus:
+          type: [string, "null"]
+          enum: [REQUESTED, IN_REVIEW, APPROVED, REVISED, DECLINED, null]
     PrivateDocumentSummary:
       type: object
       required: [id, documentType, originalFileName, mediaType, sizeBytes, malwareScanStatus, status, createdAt]
