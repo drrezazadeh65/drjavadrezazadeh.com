@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "instrument_id": "RCAS-O1",
+  "version": "1.1",
+  "title_fa": "مشاهده مکمل والد، معلم یا فرد همراه",
+  "purpose": "Collect specific observation evidence from another person without converting observation into a trait label or total score.",
+  "evidence_code": "O",
+  "evidence_language": "Observation by another person",
+  "respondent_roles": ["PARENT", "TEACHER", "COMPANION", "OTHER"],
+  "scoring": {
+    "enabled": false,
+    "total_score": false,
+    "normative_interpretation": false
+  },
+  "instruction_fa": "فقط آنچه را در موقعیت مشخص دیده‌اید بنویسید. به جای صفت کلی مانند تنبل یا بااستعداد، نمونه رفتار و شرایط آن را ثبت کنید. اختلاف نظر با یادگیرنده، موضوع گفت‌وگو و بررسی است.",
+  "fields": [
+    {
+      "code": "relationship_context",
+      "label_fa": "نسبت با یادگیرنده و موقعیت مشاهده",
+      "response_type": "TEXT"
+    },
+    {
+      "code": "observed_behaviour_conditions",
+      "label_fa": "رفتار مشاهده‌شده، زمان و شرایط آن",
+      "response_type": "TEXT"
+    },
+    {
+      "code": "strength_or_progress",
+      "label_fa": "نمونه قوت یا پیشرفت",
+      "response_type": "TEXT"
+    },
+    {
+      "code": "environmental_barrier_support",
+      "label_fa": "مانع محیطی و حمایت قابل ارائه",
+      "response_type": "TEXT"
+    },
+    {
+      "code": "unknown_or_needs_review",
+      "label_fa": "آنچه نمی‌دانم یا نیازمند بررسی است",
+      "response_type": "TEXT"
+    }
+  ],
+  "production_mapping": {
+    "assessment_session_respondent_roles": {
+      "PARENT": "PARENT",
+      "TEACHER": "TEACHER",
+      "COMPANION": "CONSULTANT_OR_APPROVED_OBSERVER"
+    },
+    "talent_evidence_source_type": {
+      "PARENT": "PARENT",
+      "TEACHER": "TEACHER"
+    },
+    "educational_observation": true,
+    "requires_verified_subject_relationship": true,
+    "requires_role_based_access": true,
+    "requires_consent_visibility_policy": true
+  },
+  "current_preview": {
+    "persistent_storage": false,
+    "network_submission": false,
+    "search_indexing": false
+  }
+}
