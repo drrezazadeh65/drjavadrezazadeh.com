@@ -32,7 +32,9 @@
       "/teaching/",
       "/fa/tadris/",
       "/academic-engagements/",
-      "/fa/faaliat-haye-elmi/"
+      "/fa/faaliat-haye-elmi/",
+      "/golden-talent/",
+      "/fa/golden-talent/"
     ],
     "sitemap_rule": "Only approved indexable canonical URLs belong in sitemap.xml"
   },
@@ -59,7 +61,9 @@
       "/teaching/",
       "/fa/tadris/",
       "/academic-engagements/",
-      "/fa/faaliat-haye-elmi/"
+      "/fa/faaliat-haye-elmi/",
+      "/golden-talent/",
+      "/fa/golden-talent/"
     ],
     "reserved_noindex": [
       "/app/",
@@ -235,5 +239,11 @@
     "parent_fa": "/fa/app/valed/",
     "teacher_fa": "/fa/app/moallem/",
     "consultant_fa": "/fa/app/moshaver/"
+  },
+  "golden_talent": {
+    "public_hub_en": "/golden-talent/",
+    "public_hub_fa": "/fa/golden-talent/",
+    "serp_review": "/foundation/SEO-SERP-REVIEW-GOLDEN-TALENT.md",
+    "status": "public-framework-live-private-assessment-pending"
   }
 }
