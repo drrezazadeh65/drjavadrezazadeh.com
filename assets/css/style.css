@@ -643,3 +643,14 @@ a,button{-webkit-tap-highlight-color:rgba(198,161,90,.12)}
 .consent-grid span{display:block;margin-top:10px;color:#81796e;font-size:10px}
 @media(max-width:850px){.consent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.consent-grid{grid-template-columns:1fr}.consent-grid article{padding:18px}}
+
+/* Standalone PWA shell v1 */
+@media (display-mode:standalone){
+  html{background:#070707}
+  body{padding-top:env(safe-area-inset-top);background:#070707}
+  .site-header{position:sticky;top:0;z-index:72;background:rgba(7,7,7,.92);backdrop-filter:blur(18px)}
+  .pwa-install{display:none!important}
+  .gt-mobile-dock,.app-dock{bottom:calc(8px + env(safe-area-inset-bottom))}
+  footer{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+}
+.standalone-app .pwa-install{display:none!important}
