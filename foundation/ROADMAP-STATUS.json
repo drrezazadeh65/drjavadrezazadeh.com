@@ -47,10 +47,13 @@
   },
   "in_progress": {
     "SEO-007": "Core Persian service SERP review complete; repeat before each new major cluster.",
-    "UX-013": "Visible focus/touch baseline implemented; keyboard, screen-reader and live-device QA pending."
+    "UX-013": "Visible focus/touch baseline implemented; keyboard, screen-reader and live-device QA pending.",
+    "INFRA-010": "Production architecture and logical data model frozen; provider selection/provisioning pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
   "seo_release_audit": "/foundation/SEO-RELEASE-AUDIT-2026-10-05.md",
-  "design_system": "/foundation/DESIGN-SYSTEM.md"
+  "design_system": "/foundation/DESIGN-SYSTEM.md",
+  "production_platform_architecture": "/foundation/PRODUCTION-PLATFORM-ARCHITECTURE.md",
+  "core_data_model": "/foundation/CORE-DATA-MODEL.md"
 }
