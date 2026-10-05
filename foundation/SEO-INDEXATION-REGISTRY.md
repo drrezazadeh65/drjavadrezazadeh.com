@@ -55,6 +55,8 @@ Status classes:
 
 - `/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/` — INDEX
 
+- `/fa/pajouhesh/` — INDEX
+
 ## INDEX — News
 - `/fa/akhbar/entekhab-reshteh-1405/` — INDEX
 - `/fa/akhbar/moshavere-tahsili-baraye-tasmim/` — INDEX
