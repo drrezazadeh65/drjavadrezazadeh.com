@@ -609,3 +609,9 @@ a,button{-webkit-tap-highlight-color:rgba(198,161,90,.12)}
   .gt-private-shell,.student-dash-shell,.premium-module-shell,.rcas-shell,.case-shell{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
   input,select,textarea{font-size:16px} /* prevents iOS focus zoom */
 }
+
+/* PWA install prompt v1 */
+.pwa-install{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:95;display:flex;align-items:center;gap:8px;width:min(520px,calc(100% - 24px));padding:8px;border:1px solid rgba(198,161,90,.34);border-radius:18px;background:rgba(10,10,10,.96);backdrop-filter:blur(18px);box-shadow:0 18px 55px rgba(0,0,0,.45)}
+.pwa-install-btn{flex:1;min-width:0;border:0;border-radius:13px;background:var(--gold);color:#090909;font:700 13px/1.2 inherit;padding:13px 16px;cursor:pointer}
+.pwa-install-close{width:48px;flex:0 0 48px;border:1px solid #30291f;border-radius:13px;background:#12100e;color:#d8d0c3;font-size:22px;cursor:pointer}
+@media(min-width:901px){.pwa-install{bottom:24px}}
