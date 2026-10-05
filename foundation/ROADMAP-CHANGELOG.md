@@ -75,3 +75,27 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 - **COM-009 | PLANNED → IN PROGRESS** — Launch payment strategy is now explicitly Iranian-first for Golden Talent, books, consultation and other domestic educational services. ZarinPal, NextPay and Zibal form the initial provider-comparison set. International payment is deferred.
 - **COM-010 | PLANNED → IN PROGRESS** — Payment architecture now explicitly requires server-side callback verification, idempotency and reconciliation for Iranian gateway adapters. Browser return alone never marks an order paid.
 - **Commerce currency rule | NEW FROZEN DECISION** — Domestic orders use integer IRR internally; the interface may display toman using the explicit 1 toman = 10 IRR conversion rule.
+
+
+### Bilingual architecture renewal, authority completion and Golden Talent implementation alignment
+- **GOV-003 | FROZEN → RENEWED** — Replaced the earlier root-English architecture with the frozen 2026 bilingual international standard: neutral root gateway, Persian under `/fa/`, English under `/en/`, and NOINDEX transition handling for legacy unprefixed English routes.
+- **SEO-015 | PLANNED → IN PROGRESS** — Added enforceable static performance budgets for core CSS/JS and large-image warnings; real-user LCP/INP/CLS remains a production-domain task.
+- **SEO-016 | PLANNED → IN PROGRESS** — Added source-level accessibility release guardrails plus skip navigation, visible focus, keyboard mobile-menu handling, touch-target and reduced-motion support; full assistive-technology/live-device QA remains pending.
+- **SEO-018 | MODIFIED → MODIFIED** — Rebuilt sitemap architecture as a sitemap index with separate core, Persian, English and news sitemaps and automated canonical/NOINDEX consistency checks.
+- **SEO-022 | DONE → MODIFIED** — Extended release regression to the full current surface with sitemap membership, hreflang reciprocity, metadata, accessibility, performance, entity/fact and release-firewall checks.
+- **INFRA-009 | PLANNED → IN PROGRESS** — Added atomic permanent-domain cutover tooling and runbook; execution waits for domain/DNS/HTTPS.
+- **AUTH-003 | RENEWED → RENEWED** — Corrected English doctoral degree representation to PhD in Education, Arak University, 2026; removed unsupported current-affiliation wording and connected About to the structured Academic Profile.
+- **AUTH-004 | RENEWED → RENEWED** — Corrected Persian doctoral degree representation, added Persian Research/Publications routes and removed unsupported current-affiliation wording.
+- **AUTH-016 | NEW → DONE** — Published a dedicated English Academic Profile with a distinct factual/navigational intent, structured data and verified scholarly identifiers.
+- **CONTENT-001 | RENEWED → RENEWED** — Split Persian time-sensitive News from evergreen Guides and constrained the news sitemap accordingly.
+- **CONTENT-006 | PLANNED → IN PROGRESS** — Launched the Persian evergreen Guides hub and migrated the first two non-news guidance articles into it.
+- **CONTENT-007 | PLANNED → IN PROGRESS** — Established English News & Insights, Language Education, Teacher Education, Projects and Collaboration communication hubs.
+- **GT-007 | PLANNED → DONE** — Implemented RCAS Start free screening as P0 + Core 28 + routing without a fabricated total score.
+- **GT-008 | PLANNED → IN PROGRESS** — Implemented the free student self-report baseline; deeper module execution awaits production entitlements/backend.
+- **GT-012 | PLANNED → IN PROGRESS** — Implemented student-profile/dashboard preview plus provider-neutral persistence model.
+- **GT-013 | PLANNED → IN PROGRESS** — Implemented Golden Path routed-module and professional-report preview.
+- **GT-014 | PLANNED → IN PROGRESS** — Implemented staged product/entitlement architecture for free entry, Deep Module, Golden Path Professional and BAHAR Continuity; live pricing/payment remains pending.
+- **GT-015 | PLANNED → IN PROGRESS** — Integrated RCAS Core, D1–D6 scope and E1–E10 evidence tasks from the Golden Talent toolkit into the digital product architecture.
+- **GT-017 | PLANNED → IN PROGRESS** — Implemented the non-manipulative free-to-routed-premium product journey; conversion remains inactive until secure payment/backend.
+- **GT-018 | NEW → IN PROGRESS** — Added BAHAR longitudinal-growth workspace and persistence schema; authenticated persistence remains pending.
+- **Trust/Entity governance | NEW** — Added Public Facts Registry, pre-domain launch audit, full-name/title guardrails, degree-fact consistency checks, JHELA title enforcement, JHELA indexation allowlist and protected-research firewall.
