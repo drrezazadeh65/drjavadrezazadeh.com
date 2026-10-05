@@ -13,3 +13,6 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 
 ### Foundation governance
 - **Master Foundation** — Registered `/books/`, `/fa/ketab-ha/`, `/teaching/` and `/fa/tadris/` as public indexable authority surfaces.
+
+### Reader-facing Books copy
+- **AUTH-010 | DONE → MODIFIED** — Removed internal publishing-policy language from the public Books pages. Replaced it with a concise reader-facing “Forthcoming works / آثار در دست انتشار” note, while retaining the verification rule internally in roadmap/publisher governance.
