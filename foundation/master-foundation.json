@@ -86,6 +86,9 @@
       "/fa/moshavere-tahsili/",
       "/fa/entekhab-reshteh/",
       "/fa/konkur/"
+    ],
+    "private": [
+      "/fa/darkhast-moshavere/"
     ]
   },
   "roles": [
@@ -211,6 +214,12 @@
     "architecture": "/foundation/PRODUCTION-PLATFORM-ARCHITECTURE.md",
     "core_data_model": "/foundation/CORE-DATA-MODEL.md",
     "status": "architecture-frozen-provider-selection-pending",
-    "public_private_boundary": "Public SEO web remains separate from authenticated private app/API."
+    "public_private_boundary": "Public SEO web remains separate from authenticated private app/API.",
+    "provider_matrix": "/foundation/PROVIDER-DECISION-MATRIX.md"
+  },
+  "consultation": {
+    "intake_route": "/fa/darkhast-moshavere/",
+    "api_contract": "/foundation/API-CONTRACT-v1.yaml",
+    "status": "frontend-gateway-ready-backend-pending"
   }
 }
