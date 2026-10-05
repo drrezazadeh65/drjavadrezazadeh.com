@@ -623,3 +623,14 @@ a,button{-webkit-tap-highlight-color:rgba(198,161,90,.12)}
 .student-next-action p{margin:0;color:#aaa398;line-height:1.8}
 .student-next-action .button{margin:0;white-space:normal;text-align:center;justify-content:center}
 @media(max-width:700px){.student-next-action{grid-template-columns:1fr;padding:18px;margin:12px 0 16px}.student-next-action h2{font-size:22px}.student-next-action .button{width:100%}}
+
+/* Account and privacy center v1 */
+.account-grid,.privacy-action-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:26px 0 42px}
+.account-grid article,.privacy-action-grid article{min-width:0;padding:22px;border:1px solid #29241d;border-radius:18px;background:#0c0b0a}
+.account-grid b,.privacy-action-grid b{display:block;color:var(--gold-2);font-size:12px;letter-spacing:.05em}
+.account-grid h2{margin:7px 0 10px;font-size:22px;line-height:1.45}
+.account-grid p,.privacy-action-grid p{color:#aaa398;line-height:1.8}
+.account-grid span{display:block;margin-top:10px;color:#81796e;font-size:10px}
+.account-grid a{display:inline-flex;min-height:44px;align-items:center;margin-top:8px;color:#e3ca8d;text-decoration:none}
+@media(max-width:850px){.account-grid,.privacy-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.account-grid,.privacy-action-grid{grid-template-columns:1fr}.account-grid article,.privacy-action-grid article{padding:18px}}
