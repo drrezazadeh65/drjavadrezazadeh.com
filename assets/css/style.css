@@ -654,3 +654,17 @@ a,button{-webkit-tap-highlight-color:rgba(198,161,90,.12)}
   footer{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
 }
 .standalone-app .pwa-install{display:none!important}
+
+/* Onboarding progress v1 */
+.onboarding-progress{margin:18px 0 24px;padding:22px;border:1px solid rgba(198,161,90,.18);border-radius:20px;background:rgba(255,255,255,.012)}
+.onboarding-progress-head h2{margin:5px 0 14px;font-size:clamp(22px,3vw,30px);line-height:1.45}
+.onboarding-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.onboarding-steps>div{min-width:0;padding:14px;border:1px solid #29241d;border-radius:14px;background:#0c0b0a}
+.onboarding-steps b,.onboarding-steps strong,.onboarding-steps span{display:block}
+.onboarding-steps b{color:#7f776d;font-size:10px}.onboarding-steps strong{margin:5px 0;color:#ded5c7;font-size:13px}.onboarding-steps span{color:#7e766c;font-size:9px;line-height:1.6}
+.onboarding-steps>div.is-complete{border-color:rgba(100,180,125,.32);background:rgba(100,180,125,.045)}
+.onboarding-steps>div.is-complete b,.onboarding-steps>div.is-complete strong{color:#bfe5c7}
+.onboarding-steps>div.is-current{border-color:rgba(198,161,90,.5);background:rgba(198,161,90,.08)}
+.onboarding-steps>div.is-current b,.onboarding-steps>div.is-current strong{color:#f0d48e}
+@media(max-width:760px){.onboarding-progress{padding:18px}.onboarding-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:430px){.onboarding-steps{grid-template-columns:1fr}}
