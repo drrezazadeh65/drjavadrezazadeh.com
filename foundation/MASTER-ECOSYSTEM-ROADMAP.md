@@ -41,7 +41,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 
 - [x] **GOV-001 — FROZEN — One ecosystem, multiple specialised surfaces.** The project is not a personal brochure site. It is a bilingual education, research, publishing, consulting, assessment and commerce ecosystem.
 - [x] **GOV-002 — FROZEN — Public knowledge / private personal data boundary.** Knowledge, articles, services and verified professional content may be public. Accounts, educational records, messages, assessments, reports, orders and research-participant data are private.
-- [x] **GOV-003 — FROZEN — Root English + /fa/ Persian.** English remains at the root; Persian lives under `/fa/`. No artificial `/en/` duplicate.
+- [x] **GOV-003 — RENEWED — Neutral root gateway + dedicated `/fa/` and `/en/` language namespaces.** The root is a neutral bilingual brand/language gateway; Persian lives under `/fa/` and English under `/en/`. Legacy unprefixed English routes remain NOINDEX transition routes. This renewal implements the FINAL MASTER SEO STANDARD — Bilingual International Edition frozen on 5 October 2026.
 - [x] **GOV-004 — FROZEN — Stable URLs.** URLs are treated as long-term assets and are not casually renamed after indexing.
 - [x] **GOV-005 — FROZEN — Verified claims only.** No invented affiliations, metrics, awards, indexing, editorial memberships, prices, dates, capacities, outcomes or scholarly claims.
 - [x] **GOV-006 — FROZEN — Human-centred educational positioning.** Services must support judgement and development rather than deterministic labelling or one-size-fits-all prescriptions.
@@ -71,16 +71,16 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SEO-012 — FROZEN — Public pages indexable only after substantive content exists.**
 - [x] **SEO-013 — DONE — Every current deep indexable public page now has visible breadcrumb navigation and BreadcrumbList structured data; homepage roots are intentionally exempt.**
 - [x] **SEO-014 — DONE — Current indexable surface completed a source-level structured-data audit; missing WebPage/BreadcrumbList metadata was repaired and every JSON-LD block parses successfully. Product/Offer remains prohibited until a real offer exists.**
-- [ ] **SEO-015 — PLANNED — Core Web Vitals optimisation: LCP, INP, CLS budgets.**
-- [ ] **SEO-016 — PLANNED — Accessibility audit as an SEO/UX quality gate.**
+- [ ] **SEO-015 — IN PROGRESS — Core Web Vitals optimisation.** Static CSS/JS/image performance budgets are enforced in regression; production-domain real-user LCP/INP/CLS validation remains pending.
+- [ ] **SEO-016 — IN PROGRESS — Accessibility audit as an SEO/UX quality gate.** Static guardrails now cover main landmarks, accessible interactive names, form-label warnings, skip navigation, visible focus, keyboard menu handling, touch targets and reduced motion; full screen-reader/live-device QA remains pending.
 - [ ] **SEO-017 — PLANNED — Self-hosted production fonts and removal of remaining external-font fragility.**
 
 ## SEO Gate C — immediately before release/indexing
-- [x] **SEO-018 — MODIFIED — XML sitemap controlled by approved canonical URLs.**
+- [x] **SEO-018 — MODIFIED — Sitemap-index architecture controls approved canonical URLs through separate core, Persian, English and news sitemaps; NOINDEX/private/legacy URLs are excluded and regression-enforced.**
 - [x] **SEO-019 — DONE — robots.txt allows crawling while page-level noindex controls unreleased routes.**
 - [ ] **SEO-020 — WAITING — Google Search Console on the permanent domain.**
 - [ ] **SEO-021 — WAITING — Bing Webmaster Tools on the permanent domain.**
-- [x] **SEO-022 — DONE — Source-level release QA completed across all 27 current sitemap URLs: metadata, one-H1 rule, canonical, schema syntax, OG image, breadcrumbs, internal links and reciprocal real hreflang pairs passed.**
+- [x] **SEO-022 — MODIFIED — Automated release QA now audits the entire current indexable surface on every push: metadata, H1, canonical, sitemap membership, schema/OG coverage, breadcrumbs/internal links, reciprocal genuine hreflang, accessibility baselines, performance budgets, entity/fact consistency and release firewalls.**
 - [ ] **SEO-023 — PLANNED — Post-release indexing and query monitoring dashboard.**
 - [ ] **SEO-024 — PLANNED — Content refresh/decay review every 90–180 days for high-value pages.**
 
@@ -96,7 +96,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **INFRA-006 — FROZEN — Publisher initially lives at `/publisher/`; `press.` is optional later.**
 - [ ] **INFRA-007 — WAITING — Purchase/activate permanent domain.**
 - [ ] **INFRA-008 — WAITING — DNS cutover and HTTPS for permanent domain.**
-- [ ] **INFRA-009 — PLANNED — One-time canonical/OG/schema/sitemap/robots migration from GitHub URL to permanent domain.**
+- [ ] **INFRA-009 — IN PROGRESS — One-time permanent-domain migration is engineered but not executed.** `scripts/domain-cutover.mjs` and the production cutover runbook cover canonical/OG/schema/sitemap/robots/security.txt migration; execution remains WAITING on domain/DNS/HTTPS.
 - [ ] **INFRA-010 — IN PROGRESS — Production platform architecture and logical data model are frozen; lawful/available hosting, auth, database, storage and email providers still need to be selected and provisioned.**
 - [ ] **INFRA-011 — PLANNED — Staging environment kept noindex.**
 - [ ] **INFRA-012 — PLANNED — Production database, private object storage and backup infrastructure.**
@@ -128,8 +128,8 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 
 - [x] **AUTH-001 — MODIFIED — English homepage with canonical scholarly identity.**
 - [x] **AUTH-002 — MODIFIED — Persian homepage.**
-- [x] **AUTH-003 — RENEWED — English About page expanded with public CV content and Applied Linguistics.**
-- [x] **AUTH-004 — RENEWED — Persian About page expanded with public CV content and Applied Linguistics.**
+- [x] **AUTH-003 — RENEWED — English About page carries the professional/biographical narrative, while recurrent degree claims are constrained by the Public Facts Registry and release guardrails.**
+- [x] **AUTH-004 — RENEWED — Persian About page carries the professional/biographical narrative with corrected PhD field/year, Persian Research/Publications pathways and Public Facts Registry discipline.**
 - [x] **AUTH-005 — MODIFIED — Public doctorate presentation protects the completion-year detail while retaining the agreed public timeline marker.**
 - [x] **AUTH-006 — MODIFIED — University-teaching record replaces unwanted LIMS/RIMS material on public About pages.**
 - [x] **AUTH-007 — DONE — Verified Publications page foundation.**
@@ -141,18 +141,19 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **AUTH-013 — PLANNED — Exact Google Scholar profile verification and sameAs update when confirmed.**
 - [ ] **AUTH-014 — PLANNED — Downloadable public CV version with privacy-safe fields.**
 - [ ] **AUTH-015 — PLANNED — Citation/download cards for publications and books.**
+- [x] **AUTH-016 — DONE — Dedicated `/en/academic-profile/` provides a concise factual dossier distinct from the narrative About page, using only frozen/defensible public facts and verified scholarly identifiers.**
 
 ---
 
 # 6. Content, news and knowledge engine
 
-- [x] **CONTENT-001 — RENEWED — Persian news/insights archive with visual editorial cards.**
+- [x] **CONTENT-001 — RENEWED — Persian content taxonomy now separates time-sensitive News/Announcements from evergreen Guides; the news sitemap contains only time-sensitive news URLs.**
 - [x] **CONTENT-002 — DONE — In-depth article: «مشاوره تحصیلی برای تصمیم، نه نسخه آماده».**
 - [x] **CONTENT-003 — MODIFIED — 1405 field-selection article expanded with analysis, internal links and multiple visuals.**
 - [x] **CONTENT-004 — MODIFIED — JHELA collaboration call expanded with governance detail and SEO visual.**
 - [x] **CONTENT-005 — DONE — Editorial image system for consulting, talent, decision-making and journal collaboration.**
-- [ ] **CONTENT-006 — PLANNED — Evergreen Persian knowledge clusters for counselling, field selection, entrance exam, parents, teachers and talent.**
-- [ ] **CONTENT-007 — PLANNED — English insights/research communication cluster.**
+- [ ] **CONTENT-006 — IN PROGRESS — Evergreen Persian knowledge system launched at `/fa/rahnamaha/` with the first field-selection and counselling guides; broader parent/teacher/talent clusters remain to be expanded deliberately.**
+- [ ] **CONTENT-007 — IN PROGRESS — English `/en/news-insights/`, Research, Language Education, Teacher Education, Projects and Collaboration hubs establish the communication architecture; substantive insight publishing remains ongoing.**
 - [x] **CONTENT-008 — DONE — 90-day editorial calendar created with publishing rhythm, intent ownership, internal-link targets, quality gates and review cycle.**
 - [ ] **CONTENT-009 — PLANNED — Author/reviewer/date/last-reviewed metadata for high-stakes educational guidance.**
 - [ ] **CONTENT-010 — PLANNED — Media library with SEO-safe alt/caption/licensing/provenance fields.**
@@ -188,17 +189,18 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **GT-004 — DONE — Educational philosophy bridge from «کشف مسیر طلایی استعداد».**
 - [x] **GT-005 — DONE — `/fa/golden-talent/` reserved as a controlled foundation route.**
 - [x] **GT-006 — DONE — Bilingual public Golden Talent hubs published with developmental/multi-source framework, limitations, role pathways, Golden Path concept and private-platform boundary.**
-- [ ] **GT-007 — PLANNED — Free screening level.**
-- [ ] **GT-008 — PLANNED — Student self-report instruments.**
+- [x] **GT-007 — DONE — RCAS Start free screening implemented as P0 + Core 28 + D1–D6 routing, with no fabricated total-talent score and no server storage of raw answers before backend activation.**
+- [ ] **GT-008 — IN PROGRESS — Student self-report baseline is implemented in RCAS Start; deeper routed-module execution remains entitlement/backend dependent.**
 - [ ] **GT-009 — PLANNED — Parent-report instruments.**
 - [ ] **GT-010 — PLANNED — Teacher Observation Instrument.**
 - [ ] **GT-011 — PLANNED — School-performance and contextual evidence intake.**
-- [ ] **GT-012 — PLANNED — Integrated Talent Profile.**
-- [ ] **GT-013 — PLANNED — Golden Path recommendations and developmental actions.**
-- [ ] **GT-014 — PLANNED — Free Snapshot, Standard, Professional, Integrated and Human-reviewed report tiers.**
-- [ ] **GT-015 — PLANNED — Book/workbook/toolkit integration.**
+- [ ] **GT-012 — IN PROGRESS — Student profile/dashboard UX, routed-state preview and provider-neutral persistence model exist; authenticated integrated profile remains pending backend activation.**
+- [ ] **GT-013 — IN PROGRESS — D5 Golden Path module, Evidence/Path Experiment structure and human-reviewed professional-report preview are implemented; production workflow remains pending.**
+- [ ] **GT-014 — IN PROGRESS — Free entry, routed Deep Module, Golden Path Professional and BAHAR Continuity product tiers/entitlements are designed; live pricing, payment and fulfilment remain pending.**
+- [ ] **GT-015 — IN PROGRESS — RCAS Core, D1–D6 scope and E1–E10 evidence-task architecture are integrated from the Golden Talent toolkit; full workbook/platform integration remains ongoing.**
 - [ ] **GT-016 — PLANNED — Parent and teacher resource hubs.**
-- [ ] **GT-017 — PLANNED — Referral from free screening to paid professional services without manipulative design.**
+- [ ] **GT-017 — IN PROGRESS — Free → routed module → professional synthesis → BAHAR funnel is implemented without fake urgency/pricing; real paid conversion remains pending secure payment/backend.**
+- [ ] **GT-018 — IN PROGRESS — BAHAR longitudinal-growth workspace and persistence schema cover Baseline Snapshot, Eight-Week Compass, weekly cycles, learning evidence and periodic review; authenticated persistence remains pending.**
 
 ---
 
