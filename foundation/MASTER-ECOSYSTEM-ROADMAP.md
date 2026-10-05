@@ -60,7 +60,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SEO-003 — FROZEN — Entity-first identity architecture for Javad Rezazadeh Yazdeli, Rezazadeh Foundation Press, Golden Talent and JHELA.**
 - [x] **SEO-004 — FROZEN — Keyword clusters, not keyword stuffing.**
 - [x] **SEO-005 — FROZEN — URL, language, canonical and content purpose decided before indexing.**
-- [ ] **SEO-006 — PLANNED — Formal keyword/intention map for every commercial and editorial cluster.**
+- [x] **SEO-006 — DONE — Formal canonical keyword/intention map created for identity, authority, services, Golden Talent, editorial, commerce, journal and private-platform clusters.**
 - [ ] **SEO-007 — PLANNED — Competitor/SERP review before each major public cluster is expanded.**
 
 ## SEO Gate B — during design and implementation
@@ -137,7 +137,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **AUTH-009 — DONE — Educational philosophy in Persian and English, explicitly linked to «کشف مسیر طلایی استعداد».**
 - [x] **AUTH-010 — DONE — Bilingual Books hub published with verified literary work, Golden Talent and publishing-status boundaries.**
 - [x] **AUTH-011 — DONE — Bilingual university-teaching portfolio published with verified institutions and teaching areas.**
-- [ ] **AUTH-012 — PLANNED — Public talks/webinars/conferences page with only verified entries.**
+- [x] **AUTH-012 — DONE — Bilingual public academic-engagements pages published with verified conferences, academic service, professional development and the confirmed 30 October 2026 MATSDA engagement.**
 - [ ] **AUTH-013 — PLANNED — Exact Google Scholar profile verification and sameAs update when confirmed.**
 - [ ] **AUTH-014 — PLANNED — Downloadable public CV version with privacy-safe fields.**
 - [ ] **AUTH-015 — PLANNED — Citation/download cards for publications and books.**
