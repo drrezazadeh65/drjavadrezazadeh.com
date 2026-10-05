@@ -290,3 +290,29 @@ qa('.app-dock a').forEach(a=>{
     },1800);
   });
 })();
+
+// NETWORK STATUS UX v1
+(function(){
+  let timer=null;
+  const isFa=document.documentElement.lang==='fa';
+  function show(online){
+    let el=document.querySelector('.network-status');
+    if(!el){
+      el=document.createElement('div');
+      el.className='network-status';
+      el.setAttribute('role','status');
+      el.setAttribute('aria-live','polite');
+      document.body.appendChild(el);
+    }
+    el.classList.toggle('offline',!online);
+    el.classList.toggle('online',online);
+    el.textContent=online
+      ? (isFa?'اتصال اینترنت برقرار شد.':'You’re back online.')
+      : (isFa?'آفلاین هستید؛ بخش‌های خصوصی تا اتصال مجدد در دسترس نیستند.':'You’re offline. Private areas require a connection.');
+    el.classList.add('is-visible');
+    clearTimeout(timer);
+    timer=setTimeout(()=>el.classList.remove('is-visible'),online?2200:5200);
+  }
+  window.addEventListener('online',()=>show(true));
+  window.addEventListener('offline',()=>show(false));
+})();
