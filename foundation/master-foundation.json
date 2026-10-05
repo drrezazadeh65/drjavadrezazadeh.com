@@ -221,5 +221,19 @@
     "intake_route": "/fa/darkhast-moshavere/",
     "api_contract": "/foundation/API-CONTRACT-v1.yaml",
     "status": "frontend-gateway-ready-backend-pending"
+  },
+  "security_governance": {
+    "rbac_matrix": "/foundation/RBAC-PERMISSION-MATRIX.md",
+    "privacy_governance": "/foundation/PRIVACY-DATA-GOVERNANCE.md",
+    "privacy_en": "/privacy/",
+    "privacy_fa": "/fa/harim-khosusi/",
+    "consultation_policy_en": "/consultation-policy/",
+    "consultation_policy_fa": "/fa/siasat-moshavere/"
+  },
+  "private_app_prototypes": {
+    "student_fa": "/fa/app/danesh-amooz/",
+    "parent_fa": "/fa/app/valed/",
+    "teacher_fa": "/fa/app/moallem/",
+    "consultant_fa": "/fa/app/moshaver/"
   }
 }
