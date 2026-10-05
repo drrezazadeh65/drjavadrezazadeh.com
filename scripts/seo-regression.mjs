@@ -688,7 +688,8 @@ const requiredPairs=[
   ['/en/golden-talent/methodology/','/fa/golden-talent/ravesh-shenasi/'],
   ['/en/educational-philosophy/','/fa/falsafe-amoozeshi/'],
   ['/en/language-education/','/fa/amoozesh-zaban/'],
-  ['/en/contact/','/fa/tamas/']
+  ['/en/contact/','/fa/tamas/'],
+  ['/en/services/','/fa/khadamat/']
 ];
 const canonicalForRoute=route=>sitePrefix+route;
 for(const [enRoute,faRoute] of requiredPairs){
