@@ -54,6 +54,34 @@ paths:
           schema: { type: string, format: uuid }
       responses:
         '200': { description: Submitted without fabricating a total talent score }
+  /v1/rcas/observer-sessions:
+    post:
+      summary: Start an authenticated RCAS-O1 observation session
+      description: >
+        Creates an RCAS-O1 session only after the server verifies that the authenticated
+        PARENT or TEACHER is authorised to submit observation evidence for the subject
+        student. A claimed relationship in the browser is never sufficient. RCAS-O1
+        produces O-source evidence and has no score, normative interpretation or total.
+      security: [{ sessionAuth: [] }]
+      responses:
+        '201': { description: Authorised observer session created }
+        '403': { description: Relationship, assignment or visibility permission not verified }
+  /v1/rcas/observer-sessions/{sessionId}/submit:
+    post:
+      summary: Submit RCAS-O1 as O-source observation evidence
+      description: >
+        Persists versioned free-text observation fields and links them to the subject's
+        evidence record without generating a talent score or trait label. Server-side
+        relationship/assignment and visibility policy are re-verified at submission.
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Observation evidence recorded }
+        '403': { description: Observer no longer authorised for the subject }
   /v1/rcas/sessions/{sessionId}/routes:
     get:
       summary: Return D1-D6 routing evidence and priority
