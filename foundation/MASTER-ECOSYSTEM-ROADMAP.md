@@ -61,7 +61,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SEO-004 — FROZEN — Keyword clusters, not keyword stuffing.**
 - [x] **SEO-005 — FROZEN — URL, language, canonical and content purpose decided before indexing.**
 - [x] **SEO-006 — DONE — Formal canonical keyword/intention map created for identity, authority, services, Golden Talent, editorial, commerce, journal and private-platform clusters.**
-- [ ] **SEO-007 — PLANNED — Competitor/SERP review before each major public cluster is expanded.**
+- [ ] **SEO-007 — IN PROGRESS — Live SERP review protocol is active; the core Persian service cluster has been reviewed, and each future major cluster requires its own review before expansion.**
 
 ## SEO Gate B — during design and implementation
 - [x] **SEO-008 — MODIFIED — Semantic heading hierarchy and one H1 per major public page.**
@@ -153,7 +153,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **CONTENT-005 — DONE — Editorial image system for consulting, talent, decision-making and journal collaboration.**
 - [ ] **CONTENT-006 — PLANNED — Evergreen Persian knowledge clusters for counselling, field selection, entrance exam, parents, teachers and talent.**
 - [ ] **CONTENT-007 — PLANNED — English insights/research communication cluster.**
-- [ ] **CONTENT-008 — PLANNED — Editorial calendar with priority, intent, owner, publication date, update date and internal-link targets.**
+- [x] **CONTENT-008 — DONE — 90-day editorial calendar created with publishing rhythm, intent ownership, internal-link targets, quality gates and review cycle.**
 - [ ] **CONTENT-009 — PLANNED — Author/reviewer/date/last-reviewed metadata for high-stakes educational guidance.**
 - [ ] **CONTENT-010 — PLANNED — Media library with SEO-safe alt/caption/licensing/provenance fields.**
 
