@@ -14,7 +14,7 @@ if(!/^https:\/\/[a-z0-9.-]+$/i.test(target)){
   console.error('Target must be a clean HTTPS origin, e.g. https://drjavadrezazadeh.com');
   process.exit(1);
 }
-const eligible=(name)=>name.endsWith('.html')||name.endsWith('.xml')||name==='robots.txt'||name==='site.webmanifest';
+const eligible=(name)=>name.endsWith('.html')||name.endsWith('.xml')||name==='robots.txt'||name==='security.txt'||name==='site.webmanifest';
 const files=[];
 function walk(dir){
   for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
@@ -35,4 +35,8 @@ for(const file of files){
   console.log((dryRun?'WOULD UPDATE ':'UPDATED ')+path.relative(root,file)+' ('+hits+')');
 }
 console.log('\nFiles: '+changed+'; URL replacements: '+replacements+'; mode: '+(dryRun?'dry-run':'write'));
+if(replacements===0){
+  console.error('No current-origin URLs were found. Refusing to treat this as a successful cutover.');
+  process.exit(2);
+}
 console.log('Next: run node scripts/seo-regression.mjs, inspect git diff, deploy, then submit the new sitemap in Search Console/Bing.');
