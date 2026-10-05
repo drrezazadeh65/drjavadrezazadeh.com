@@ -24,7 +24,7 @@ This audit separates work that is complete in the repository from tasks that **c
 - Metadata audit for indexable pages: title, description, Open Graph, JSON-LD and article dates.
 - Public Facts Registry and recurrent degree-fact release checks.
 - JHELA pre-launch indexation allowlist.
-- Protected-research firewall for Humanability, TESTLY and Teacher Humanization.
+- Protected-research firewall for confidential pre-publication research projects; protected project names are intentionally omitted from public-facing repository documentation.
 - Golden Talent public funnel and private/noindex RCAS / D1–D6 / Golden Path / BAHAR previews.
 - Provider-neutral platform, database and API foundations prepared for authentication, commerce and entitlements.
 
