@@ -68,7 +68,8 @@
     "SEO-017": "Third-party webfont requests removed; final self-hosted font selection/integrity QA pending.",
     "UX-010": "System-safe font stacks active; final self-hosted bilingual font package pending.",
     "GT-009": "Parent observation preview uses shared RCAS-O1 O-source evidence; verified relationship/consent/backend persistence pending.",
-    "GT-010": "Teacher observation preview uses shared RCAS-O1 O-source evidence; verified assignment/RBAC/backend persistence pending."
+    "GT-010": "Teacher observation preview uses shared RCAS-O1 O-source evidence; verified assignment/RBAC/backend persistence pending.",
+    "GT-011": "Private R-source academic record/document UX and data-model mapping implemented; secure ingestion/upload pending production storage/security."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
