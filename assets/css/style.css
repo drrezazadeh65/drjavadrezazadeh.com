@@ -387,3 +387,11 @@ code,pre,.brand,.site-header nav a,.button,.profile,.service-card,.authority-car
 .profile-grid .profile:focus-visible,.authority-card:focus-visible,.service-card:focus-visible{outline:3px solid var(--gold-2);outline-offset:3px}
 @media(max-width:850px){.authority-hero{grid-template-columns:1fr;gap:24px;padding-top:24px}.authority-visual{order:-1}.authority-grid,.authority-grid.three{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.authority-shell{width:calc(100% - 28px);padding-top:16px}.authority-grid,.authority-grid.three{grid-template-columns:1fr}.authority-card,.service-card{padding:20px}.authority-hero h1{font-size:40px}}
+
+/* Editorial trust metadata v1 */
+.article-meta{display:flex;gap:10px 18px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid rgba(198,161,90,.16);color:#9f978b;font-size:12px;line-height:1.8}
+.article-meta span{display:inline-flex;gap:5px;align-items:center}
+.article-meta a{color:#d9c080;text-decoration:none;text-underline-offset:3px}
+.article-meta a:hover{text-decoration:underline}
+.rtl .article-meta{font-family:Tahoma,"Segoe UI",Arial,sans-serif!important}
+@media(max-width:600px){.article-meta{display:grid;gap:5px}}
