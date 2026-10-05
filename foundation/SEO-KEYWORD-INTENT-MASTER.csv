@@ -1,0 +1,21 @@
+keyword,language,search_intent,primary_page,secondary_concepts,business_or_academic_value,search_demand,competition,current_rank,target_rank,page_status,cannibalization_risk,content_cluster
+انتخاب رشته,fa,Commercial investigation,/fa/entekhab-reshteh/,"انتخاب رشته کنکور; رشته دانشگاهی; اولویت انتخاب",High,TBD,TBD,TBD,TBD,INDEX,Low,انتخاب رشته
+انتخاب رشته کنکور ۱۴۰۵,fa,Informational,/fa/akhbar/entekhab-reshteh-1405/,"دفترچه; مهلت; انتخاب رشته",High,Seasonal,TBD,TBD,TBD,INDEX,Low,انتخاب رشته
+مشاوره تحصیلی,fa,Commercial investigation,/fa/moshavere-tahsili/,"هدایت تحصیلی; برنامه تحصیلی",High,TBD,TBD,TBD,TBD,INDEX,Low,مشاوره تحصیلی
+مشاوره کنکور,fa,Commercial investigation,/fa/moshavere-konkur/,"برنامه‌ریزی کنکور; تصمیم‌گیری",High,TBD,TBD,TBD,TBD,INDEX,Low,مشاوره تحصیلی
+استعدادیابی تحصیلی,fa,Commercial investigation,/fa/estedaadyabi/,"استعداد; علاقه; مسیر رشد",High,TBD,TBD,TBD,TBD,INDEX,Low,استعدادیابی
+Golden Talent,fa,Navigational,/fa/golden-talent/,"مسیر طلایی استعداد; RCAS; BAHAR",High,Brand,TBD,TBD,1,INDEX,Low,استعدادیابی
+رشد دانش آموز,fa,Informational,/fa/danesh-amoozan/,"پروفایل رشد; مسیر آموزشی",Medium,TBD,TBD,TBD,TBD,INDEX,Low,رشد دانش‌آموز
+آموزش زبان انگلیسی,fa,Informational,/fa/amoozesh-zaban/,"یادگیری زبان; مواد آموزشی; ارزشیابی",Medium,TBD,TBD,TBD,TBD,INDEX,Low,آموزش زبان انگلیسی
+دکتر جواد رضازاده یزدلی,fa,Navigational,/fa/,"جواد رضازاده; مدرس دانشگاه; مشاور آموزشی",High,Brand,Low,TBD,1,INDEX,Low,هویت
+کتاب کشف مسیر طلایی استعداد,fa,Navigational,/fa/ketab-ha/,"Golden Talent; کتاب استعداد",Medium,Brand,Low,TBD,TBD,INDEX,Low,کتاب‌ها و آثار
+Javad Rezazadeh Yazdeli,en,Navigational,/en/,"Dr Javad Rezazadeh; academic profile",High,Brand,Low,TBD,1,INDEX,Low,Academic Profile
+Javad Rezazadeh Yazdeli publications,en,Navigational,/en/publications/,"ORCID; Semantic Scholar; Applied Linguistics",High,Brand,Low,TBD,TBD,INDEX,Low,Publications
+Javad Rezazadeh Yazdeli research,en,Navigational,/en/research/,"Applied Linguistics; education research",High,Brand,Low,TBD,TBD,INDEX,Low,Research
+English language education,en,Informational,/en/language-education/,"Applied Linguistics; materials; assessment",Medium,TBD,TBD,TBD,TBD,INDEX,Medium,Language Education
+teacher education professional learning,en,Informational,/en/teacher-education/,"assessment literacy; materials literacy; AI",Medium,TBD,TBD,TBD,TBD,INDEX,Low,Teacher Education
+developmental talent identification,en,Informational,/en/golden-talent/,"multi-source evidence; educational pathway",High,TBD,TBD,TBD,TBD,INDEX,Low,Talent and Educational Development
+Golden Talent framework,en,Navigational,/en/golden-talent/,"RCAS; Golden Path; BAHAR",High,Brand,Low,TBD,TBD,INDEX,Low,Talent and Educational Development
+academic engagements Javad Rezazadeh,en,Navigational,/en/academic-engagements/,"conferences; academic service",Medium,Brand,Low,TBD,TBD,INDEX,Low,International Academic Engagement
+Javad Rezazadeh books,en,Navigational,/en/books/,"Golden Talent; poetry; educational books",Medium,Brand,Low,TBD,TBD,INDEX,Low,Books
+contact Javad Rezazadeh,en,Navigational,/en/contact/,"academic collaboration; professional enquiries",Medium,Brand,Low,TBD,TBD,INDEX,Low,Academic Profile
