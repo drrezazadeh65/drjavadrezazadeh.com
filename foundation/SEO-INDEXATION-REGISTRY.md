@@ -90,8 +90,10 @@ Status classes:
 ## NOINDEX — Student / transaction / utility surfaces
 - `/login/`, `/register/`
 - `/en/login/`, `/en/register/`
+- `/en/account/**`
 - `/fa/login/`, `/fa/register/`
 - `/app/**`, `/fa/app/**`
+- `/fa/app/account/**`
 - `/assessments/**`, `/fa/assessments/**`
 - `/shop/**`, `/fa/shop/**`
 - `/fa/darkhast-moshavere/`
