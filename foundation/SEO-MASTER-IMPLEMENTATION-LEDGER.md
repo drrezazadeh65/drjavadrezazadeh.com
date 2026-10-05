@@ -10,7 +10,7 @@ Status: PASS / PARTIAL / BLOCKED-BY-DOMAIN / POST-LAUNCH / ONGOING.
 | 02 | hreflang | PASS | Genuine FA/EN pairs implemented; reciprocal-local check added to regression. |
 | 03 | canonical governance | PASS (current host) | Self-canonical on indexables; domain-cutover script prepared for owned domain. |
 | 04 | indexation governance | PASS | Frozen INDEX/NOINDEX/PRIVATE registry exists. |
-| 05 | research firewall | PASS | Humanability, TESTLY and Teacher Humanization absent from public repo search. |
+| 05 | research firewall | PASS | Protected pre-publication research names are excluded from current public-facing repository documentation and indexable surfaces. |
 | 06 | technical indexability | PASS | Automated release regression validates core page requirements. |
 | 07 | robots.txt | PASS (current host) | Allows public crawl and declares sitemap index. |
 | 08 | XML sitemap system | PASS | sitemap index + core/fa/en/news; canonical/noindex consistency enforced. |
