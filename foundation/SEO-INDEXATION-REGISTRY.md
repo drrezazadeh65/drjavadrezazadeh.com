@@ -63,6 +63,8 @@ Status classes:
 
 - `/fa/pajouhesh/` — INDEX
 
+- `/fa/golden-talent/ravesh-shenasi/` — INDEX
+
 ## INDEX — News
 - `/fa/akhbar/entekhab-reshteh-1405/` — INDEX
 - `/fa/akhbar/moshavere-tahsili-baraye-tasmim/` — INDEX
