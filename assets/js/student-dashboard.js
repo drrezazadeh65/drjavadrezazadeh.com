@@ -20,6 +20,9 @@ const routeCode=String(s.routeCode||s.route||"").toUpperCase();
 const routeLabel=String(s.routeLabel||"");
 const hasValidRoute=allowedRoutes.has(routeCode);
 
+document.querySelector('[data-onboard="rcas"]')?.classList.add('is-complete');
+document.querySelector('[data-onboard="route"]')?.classList.add(hasValidRoute?'is-complete':'is-current');
+if(hasValidRoute)document.querySelector('[data-onboard="path"]')?.classList.add('is-current');
 if(stage)stage.textContent="RCAS Start تکمیل شد";
 if(progress)progress.textContent="۲۵٪";
 if(next)next.textContent=hasValidRoute ? routeCode+(routeLabel?" · "+routeLabel:"") : "نیازمند بازبینی Routing";
