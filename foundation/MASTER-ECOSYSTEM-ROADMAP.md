@@ -248,8 +248,8 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **COM-006 — PLANNED — Cart.**
 - [ ] **COM-007 — PLANNED — Checkout.**
 - [ ] **COM-008 — PLANNED — Order and invoice records.**
-- [ ] **COM-009 — PLANNED — Lawful payment-provider abstraction suitable for the actual publisher/business jurisdiction.**
-- [ ] **COM-010 — PLANNED — Payment callback/verification and reconciliation.**
+- [ ] **COM-009 — IN PROGRESS — Iranian-first payment-provider abstraction is frozen for launch; ZarinPal, NextPay and Zibal are the initial comparison set, with merchant eligibility and callback/settlement testing required before approval. International gateways are deferred.**
+- [ ] **COM-010 — IN PROGRESS — Server-verification, idempotency and reconciliation contracts are defined for Iranian gateway adapters; live sandbox/provider integration remains pending.**
 - [ ] **COM-011 — PLANNED — Refund/cancellation policy.**
 - [ ] **COM-012 — PLANNED — Coupons/discount rules only if commercially useful.**
 - [ ] **COM-013 — PLANNED — Digital delivery and entitlement management.**
