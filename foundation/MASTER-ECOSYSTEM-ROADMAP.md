@@ -135,8 +135,8 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **AUTH-007 — DONE — Verified Publications page foundation.**
 - [x] **AUTH-008 — DONE — Public research page foundation.**
 - [x] **AUTH-009 — DONE — Educational philosophy in Persian and English, explicitly linked to «کشف مسیر طلایی استعداد».**
-- [ ] **AUTH-010 — PLANNED — Books hub: academic books, Golden Talent, literary books and international editions.**
-- [ ] **AUTH-011 — PLANNED — Teaching portfolio page.**
+- [x] **AUTH-010 — DONE — Bilingual Books hub published with verified literary work, Golden Talent and publishing-status boundaries.**
+- [x] **AUTH-011 — DONE — Bilingual university-teaching portfolio published with verified institutions and teaching areas.**
 - [ ] **AUTH-012 — PLANNED — Public talks/webinars/conferences page with only verified entries.**
 - [ ] **AUTH-013 — PLANNED — Exact Google Scholar profile verification and sameAs update when confirmed.**
 - [ ] **AUTH-014 — PLANNED — Downloadable public CV version with privacy-safe fields.**
