@@ -79,7 +79,7 @@ No production backend is live yet. These files define stable contracts and provi
 
 ## API contract
 
-See `/foundation/API-CONTRACT-v1.yaml`.
+See `/foundation/API-CONTRACT-v1.yaml` and the Golden Talent-specific `/foundation/GOLDEN-TALENT-API-CONTRACT-v1.yaml`.
 
 ## Safety rules
 
