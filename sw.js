@@ -12,7 +12,7 @@ const CORE=[
   './en/golden-talent/'
 ];
 const PRIVATE_PREFIXES=[
-  '/fa/app/','/app/','/fa/login/','/login/','/fa/register/','/register/',
+  '/fa/app/','/app/','/fa/login/','/login/','/fa/register/','/register/','/en/login/','/en/register/',
   '/fa/assessments/','/assessments/','/fa/shop/','/shop/',
   '/en/golden-talent/assessment/','/en/golden-talent/dashboard/',
   '/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/','/en/golden-talent/checkout/'
