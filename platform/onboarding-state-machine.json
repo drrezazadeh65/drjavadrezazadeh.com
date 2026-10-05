@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Provider-neutral onboarding and student journey state model",
+  "states": [
+    {
+      "key": "VISITOR",
+      "label_en": "Visitor",
+      "label_fa": "بازدیدکننده"
+    },
+    {
+      "key": "ACCOUNT_PENDING",
+      "label_en": "Account pending",
+      "label_fa": "حساب در انتظار"
+    },
+    {
+      "key": "AUTHENTICATED",
+      "label_en": "Authenticated",
+      "label_fa": "وارد حساب"
+    },
+    {
+      "key": "ROLE_PENDING",
+      "label_en": "Role verification pending",
+      "label_fa": "تأیید نقش در انتظار"
+    },
+    {
+      "key": "CONSENT_PENDING",
+      "label_en": "Consent pending",
+      "label_fa": "رضایت در انتظار"
+    },
+    {
+      "key": "READY",
+      "label_en": "Ready for student journey",
+      "label_fa": "آماده شروع مسیر"
+    },
+    {
+      "key": "RCAS_IN_PROGRESS",
+      "label_en": "RCAS in progress",
+      "label_fa": "RCAS در حال انجام"
+    },
+    {
+      "key": "ROUTED",
+      "label_en": "Routing complete",
+      "label_fa": "Routing تکمیل"
+    },
+    {
+      "key": "DEEP_MODULE",
+      "label_en": "Deep module",
+      "label_fa": "ماژول عمیق"
+    },
+    {
+      "key": "GOLDEN_PATH_REVIEW",
+      "label_en": "Golden Path review",
+      "label_fa": "بازبینی Golden Path"
+    },
+    {
+      "key": "BAHAR_ACTIVE",
+      "label_en": "BAHAR active",
+      "label_fa": "BAHAR فعال"
+    }
+  ],
+  "transition_rules": [
+    "VISITOR -> ACCOUNT_PENDING when registration begins",
+    "ACCOUNT_PENDING -> AUTHENTICATED only after identity provider confirms account",
+    "AUTHENTICATED -> ROLE_PENDING when a relationship/role requires verification",
+    "AUTHENTICATED -> CONSENT_PENDING when no additional role verification is required",
+    "ROLE_PENDING -> CONSENT_PENDING only after server-side role/relationship verification",
+    "CONSENT_PENDING -> READY only after required service/privacy decisions are recorded",
+    "READY -> RCAS_IN_PROGRESS when an authenticated assessment session is created",
+    "RCAS_IN_PROGRESS -> ROUTED only after server-side submission/routing",
+    "ROUTED -> DEEP_MODULE only with server-verified entitlement where required",
+    "ROUTED or DEEP_MODULE -> GOLDEN_PATH_REVIEW only with human-review workflow",
+    "GOLDEN_PATH_REVIEW -> BAHAR_ACTIVE only with appropriate continuity entitlement"
+  ],
+  "invariant_rules": [
+    "Browser state never grants a role",
+    "Browser redirect never grants a paid entitlement",
+    "Private data is never required before authentication and purpose are established",
+    "Consent types remain independent and versioned",
+    "Student evidence and professional interpretation remain distinguishable",
+    "No total talent score is required to advance the journey"
+  ]
+}
