@@ -564,3 +564,40 @@ if(failures.length){
  failures.forEach(x=>console.error('✗ '+x));
  process.exit(1);
 }
+
+
+// GENERATED NAVIGATION ROUTES — validate local routes emitted by site.js
+const siteJsPath=path.join(root,'assets','js','site.js');
+if(fs.existsSync(siteJsPath)){
+  const js=fs.readFileSync(siteJsPath,'utf8');
+  const routes=[...js.matchAll(/u\('([^']+)'\)/g)].map(m=>m[1]).filter(Boolean);
+  for(const rel of new Set(routes)){
+    if(/^(?:https?:|mailto:|tel:|#)/i.test(rel)) continue;
+    let target=path.join(root,rel);
+    if(fs.existsSync(target) && fs.statSync(target).isDirectory()) target=path.join(target,'index.html');
+    else if(!path.extname(target)) target=path.join(target,'index.html');
+    if(!fs.existsSync(target)) failures.push('/assets/js/site.js: generated navigation route missing '+rel);
+  }
+}
+
+// ACCESSIBILITY BASELINE — source-level checks for public HTML.
+for(const file of htmlFiles){
+  const html=fs.readFileSync(file,'utf8');
+  const route=routeFor(file);
+  if(!/<main\b/i.test(html)) warnings.push(route+': missing main landmark');
+  for(const a of html.match(/<a\b[^>]*>[\s\S]*?<\/a>/gi)||[]){
+    const text=strip(a);
+    const aria=getAttr(a.match(/<a\b[^>]*>/i)?.[0]||'','aria-label');
+    if(!text && !aria) failures.push(route+': link has no accessible name');
+  }
+  for(const b of html.match(/<button\b[^>]*>[\s\S]*?<\/button>/gi)||[]){
+    const open=(b.match(/<button\b[^>]*>/i)||[''])[0];
+    const text=strip(b),aria=getAttr(open,'aria-label');
+    if(!text && !aria) failures.push(route+': button has no accessible name');
+  }
+}
+if(failures.length){
+  console.error('\nNavigation/accessibility failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
