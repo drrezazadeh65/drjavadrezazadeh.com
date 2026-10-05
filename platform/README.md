@@ -106,3 +106,5 @@ After a provider passes the decision gate:
 8. add payment sandbox;
 9. test backup/restore and audit logging;
 10. only then create production.
+
+- `011_profile_market_locale.sql` — optional ISO country context for account profile; never treated as proof of residence/identity/payment eligibility.
