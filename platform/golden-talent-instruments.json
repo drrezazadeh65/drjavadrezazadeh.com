@@ -6,7 +6,12 @@
   "purpose": "Collect specific observation evidence from another person without converting observation into a trait label or total score.",
   "evidence_code": "O",
   "evidence_language": "Observation by another person",
-  "respondent_roles": ["PARENT", "TEACHER", "COMPANION", "OTHER"],
+  "respondent_roles": [
+    "PARENT",
+    "TEACHER",
+    "COMPANION",
+    "OTHER"
+  ],
   "scoring": {
     "enabled": false,
     "total_score": false,
@@ -43,8 +48,7 @@
   "production_mapping": {
     "assessment_session_respondent_roles": {
       "PARENT": "PARENT",
-      "TEACHER": "TEACHER",
-      "COMPANION": "CONSULTANT_OR_APPROVED_OBSERVER"
+      "TEACHER": "TEACHER"
     },
     "talent_evidence_source_type": {
       "PARENT": "PARENT",
@@ -53,7 +57,8 @@
     "educational_observation": true,
     "requires_verified_subject_relationship": true,
     "requires_role_based_access": true,
-    "requires_consent_visibility_policy": true
+    "requires_consent_visibility_policy": true,
+    "companion_role_status": "PREVIEW_ONLY_UNTIL_AN_APPROVED_OBSERVER_ROLE_AND_RELATIONSHIP_POLICY_IS_DEFINED"
   },
   "current_preview": {
     "persistent_storage": false,
