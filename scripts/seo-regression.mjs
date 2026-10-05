@@ -110,7 +110,14 @@ if(failures.length) process.exit(1);
 // SITEMAP GOVERNANCE — Frozen SEO baseline
 const sitemapChildren=['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml'];
 const sitemapUrls=new Set();
-const sitePrefix='https://drrezazadeh65.github.io/drjavadrezazadeh.com';
+const sitemapIndexPath=path.join(root,'sitemap.xml');
+let sitePrefix='';
+if(fs.existsSync(sitemapIndexPath)){
+  const indexXml=fs.readFileSync(sitemapIndexPath,'utf8');
+  const firstLoc=(indexXml.match(/<loc>([^<]+)<\/loc>/i)||[])[1]||'';
+  sitePrefix=firstLoc.replace(/\/sitemap-(?:core|fa|en|news)\.xml$/,'');
+}
+if(!sitePrefix) failures.push('/sitemap.xml: could not derive canonical site prefix from sitemap index');
 for(const sm of sitemapChildren){
   const file=path.join(root,sm);
   if(!fs.existsSync(file)){failures.push('/'+sm+': missing child sitemap');continue;}
