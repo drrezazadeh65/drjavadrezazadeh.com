@@ -69,8 +69,8 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SEO-010 — MODIFIED — Canonical, robots, Open Graph and structured-data foundations.**
 - [x] **SEO-011 — MODIFIED — Image filenames, alt text, dimensions and image sitemap where relevant.**
 - [x] **SEO-012 — FROZEN — Public pages indexable only after substantive content exists.**
-- [ ] **SEO-013 — PLANNED — Breadcrumbs on every deep public page.**
-- [ ] **SEO-014 — PLANNED — Full structured-data audit: Person, ProfilePage, Article/NewsArticle, Book, Service, BreadcrumbList, Organization, Product/Offer only where valid.**
+- [x] **SEO-013 — DONE — Every current deep indexable public page now has visible breadcrumb navigation and BreadcrumbList structured data; homepage roots are intentionally exempt.**
+- [x] **SEO-014 — DONE — Current indexable surface completed a source-level structured-data audit; missing WebPage/BreadcrumbList metadata was repaired and every JSON-LD block parses successfully. Product/Offer remains prohibited until a real offer exists.**
 - [ ] **SEO-015 — PLANNED — Core Web Vitals optimisation: LCP, INP, CLS budgets.**
 - [ ] **SEO-016 — PLANNED — Accessibility audit as an SEO/UX quality gate.**
 - [ ] **SEO-017 — PLANNED — Self-hosted production fonts and removal of remaining external-font fragility.**
@@ -80,7 +80,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SEO-019 — DONE — robots.txt allows crawling while page-level noindex controls unreleased routes.**
 - [ ] **SEO-020 — WAITING — Google Search Console on the permanent domain.**
 - [ ] **SEO-021 — WAITING — Bing Webmaster Tools on the permanent domain.**
-- [ ] **SEO-022 — PLANNED — Pre-release broken-link, metadata, schema and hreflang validation.**
+- [x] **SEO-022 — DONE — Source-level release QA completed across all 27 current sitemap URLs: metadata, one-H1 rule, canonical, schema syntax, OG image, breadcrumbs, internal links and reciprocal real hreflang pairs passed.**
 - [ ] **SEO-023 — PLANNED — Post-release indexing and query monitoring dashboard.**
 - [ ] **SEO-024 — PLANNED — Content refresh/decay review every 90–180 days for high-value pages.**
 
