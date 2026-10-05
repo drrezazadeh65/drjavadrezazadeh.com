@@ -71,7 +71,9 @@
     "GT-009": "Parent observation preview uses shared RCAS-O1 O-source evidence; verified relationship/consent/backend persistence pending.",
     "GT-010": "Teacher observation preview uses shared RCAS-O1 O-source evidence; verified assignment/RBAC/backend persistence pending.",
     "GT-019": "Private R-source academic record/document UX and data-model mapping implemented; secure ingestion/upload pending production storage/security.",
-    "GT-011": "Private R/C school-performance/context intake plus E7 map implemented; authenticated persistence/provenance pending."
+    "GT-011": "Private R/C school-performance/context intake plus E7 map implemented; authenticated persistence/provenance pending.",
+    "UX-012": "Manifest, service worker, offline shell, install prompts, cache-version governance and private-route cache bypass implemented; explicit 192x192/512x512 and maskable production icons plus live installability QA pending.",
+    "SEO-022": "Whole-surface automated release QA now also enforces bilingual/private-route indexability, confidential pre-publication firewalls, Service Worker private-cache bypass, Cloudflare response-header privacy rules, and mobile/PWA source guardrails."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
