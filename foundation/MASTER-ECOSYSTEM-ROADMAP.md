@@ -201,6 +201,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **GT-016 — PLANNED — Parent and teacher resource hubs.**
 - [ ] **GT-017 — IN PROGRESS — Free → routed module → professional synthesis → BAHAR funnel is implemented without fake urgency/pricing; real paid conversion remains pending secure payment/backend.**
 - [ ] **GT-018 — IN PROGRESS — BAHAR longitudinal-growth workspace and persistence schema cover Baseline Snapshot, Eight-Week Compass, weekly cycles, learning evidence and periodic review; authenticated persistence remains pending.**
+- [ ] **GT-019 — IN PROGRESS — Private R-source academic history, grade and verified-document workspace is implemented and mapped to existing educational_record, grade_record and private_document architecture; secure ingestion/upload remains pending private storage, malware scan, retention and access-control infrastructure.**
 
 ---
 
