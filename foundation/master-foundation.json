@@ -1,5 +1,5 @@
 {
-  "version": "3.0",
+  "version": "3.1",
   "status": "foundation-active",
   "indexing_policy": {
     "default": "noindex",
@@ -12,14 +12,34 @@
     ],
     "currently_indexable": [
       "/",
-      "/fa/"
+      "/fa/",
+      "/about/",
+      "/research/",
+      "/publications/",
+      "/fa/estedaadyabi/",
+      "/fa/moshavere-tahsili/",
+      "/fa/danesh-amoozan/",
+      "/fa/akhbar/",
+      "/publisher/",
+      "/journal/call-for-reviewers/",
+      "/journal/founding-collaborators/"
     ],
     "sitemap_rule": "Only approved indexable canonical URLs belong in sitemap.xml"
   },
   "namespaces": {
     "public": [
       "/",
-      "/fa/"
+      "/fa/",
+      "/about/",
+      "/research/",
+      "/publications/",
+      "/fa/estedaadyabi/",
+      "/fa/moshavere-tahsili/",
+      "/fa/danesh-amoozan/",
+      "/fa/akhbar/",
+      "/publisher/",
+      "/journal/call-for-reviewers/",
+      "/journal/founding-collaborators/"
     ],
     "reserved_noindex": [
       "/app/",
@@ -36,10 +56,10 @@
       "/fa/shop/"
     ],
     "future_public": [
-      "/en/about/",
-      "/en/research/",
-      "/en/publications/",
-      "/en/books/",
+      "/about/",
+      "/research/",
+      "/publications/",
+      "/books/",
       "/fa/about/",
       "/fa/articles/",
       "/fa/estedaadyabi/",
@@ -90,5 +110,36 @@
     "backup and recovery",
     "observability",
     "staging noindex"
-  ]
+  ],
+  "publisher": {
+    "brand": "Rezazadeh Foundation Press",
+    "founder_publisher": "Dr. Javad Rezazadeh Yazdeli",
+    "status": "independent founding publisher",
+    "institutional_affiliation": "none claimed at founding stage",
+    "postal_address_status": "pending user-provided real publishable address"
+  },
+  "journal": {
+    "title": "Journal of Human-Centred Education, Learning and Assessment",
+    "abbreviation": "JHELA",
+    "editor_in_chief": "Dr. Javad Rezazadeh Yazdeli",
+    "status": "founding stage",
+    "temporary_path": "/journal/",
+    "permanent_url_target": "https://journal.drjavadrezazadeh.com",
+    "production_platform_target": "OJS",
+    "journal_core_indexing": "noindex until launch-ready",
+    "doi_primary_route": "mEDRA/Sinaweb eligibility and quotation",
+    "doi_secondary_route": "other DOI Registration Agency such as DataCite if legal/entity requirements are satisfied",
+    "issn_status": "pending permanent URL and real publisher address"
+  },
+  "domain_architecture": {
+    "main": "https://drjavadrezazadeh.com",
+    "journal": "https://journal.drjavadrezazadeh.com",
+    "publisher_page": "https://drjavadrezazadeh.com/publisher/",
+    "future_press_subdomain": "https://press.drjavadrezazadeh.com",
+    "future_app_subdomain": "https://app.drjavadrezazadeh.com"
+  },
+  "content_voice": {
+    "Persian": "Use Dr. Javad Rezazadeh Yazdeli's own Persian diction and argumentative style; avoid generic AI/promotional prose.",
+    "English": "Use the Javad Rezazadeh Integrated English Writing Style for all public and scholarly English writing."
+  }
 }
