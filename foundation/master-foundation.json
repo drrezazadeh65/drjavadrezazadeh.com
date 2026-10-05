@@ -245,5 +245,17 @@
     "public_hub_fa": "/fa/golden-talent/",
     "serp_review": "/foundation/SEO-SERP-REVIEW-GOLDEN-TALENT.md",
     "status": "public-framework-live-private-assessment-pending"
+  },
+  "commerce": {
+    "payment_strategy": "/foundation/IRAN-PAYMENT-STRATEGY.md",
+    "launch_market": "Iran",
+    "canonical_domestic_currency": "IRR",
+    "display_currency_note": "UI may display toman; backend stores integer rial values.",
+    "gateway_priority": [
+      "ZarinPal",
+      "NextPay",
+      "Zibal"
+    ],
+    "international_payments": "deferred"
   }
 }
