@@ -196,3 +196,17 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .site-header nav a,.app-dock a,.app-dock button{touch-action:manipulation}
 :target{scroll-margin-top:96px}
 @media (forced-colors:active){a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid CanvasText}}
+
+/* Private app prototype v1 */
+.app-prototype{width:min(1120px,calc(100% - 32px));margin:0 auto;padding-bottom:110px}
+.app-prototype .foundation-hero{padding:42px;border:1px solid rgba(198,161,90,.18);border-radius:30px;background:radial-gradient(440px 260px at 90% 0%,rgba(198,161,90,.08),transparent 62%),rgba(255,255,255,.015)}
+.app-prototype .foundation-hero h1{font-size:clamp(34px,5vw,58px);line-height:1.25;margin:8px 0 18px}.rtl .app-prototype .foundation-hero h1{line-height:1.65}
+.app-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:26px}
+.app-card{padding:24px;border:1px solid rgba(198,161,90,.16);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.024),rgba(255,255,255,.006))}
+.app-card h2{font-size:22px;margin:0 0 10px}.app-card p{margin:0;color:#aaa398;line-height:1.9}.app-card span{display:inline-block;margin-top:16px;color:#8e826f;font-size:11px;border:1px solid #2c261f;border-radius:999px;padding:6px 9px}
+.app-safety{margin-top:26px;padding:24px;border:1px dashed rgba(198,161,90,.22);border-radius:20px;color:#b7afa3}
+.app-safety h2{margin-top:0}.app-role-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:26px}
+.app-role-link{display:block;padding:24px;border:1px solid rgba(198,161,90,.18);border-radius:22px;background:#0c0b0a;text-decoration:none;color:inherit}
+.app-role-link:hover{border-color:rgba(198,161,90,.45);transform:translateY(-2px)}
+.app-role-link b{display:block;font-size:22px;margin-bottom:8px}.app-role-link span{color:#9e978a;line-height:1.8}
+@media(max-width:700px){.app-prototype{width:calc(100% - 20px)}.app-prototype .foundation-hero{padding:22px;border-radius:24px}.app-grid,.app-role-grid{grid-template-columns:1fr}.app-card,.app-role-link{padding:19px}}
