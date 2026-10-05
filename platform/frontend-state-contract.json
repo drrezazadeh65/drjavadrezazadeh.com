@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0",
+  "principles": [
+    "Never render fabricated production data while loading.",
+    "Empty is a valid product state and is not an error.",
+    "Offline private views never fall back to cached personal data.",
+    "Forbidden is distinct from not-found and unauthenticated.",
+    "Payment pending is distinct from payment success.",
+    "Every recoverable error exposes a next action.",
+    "Status changes must be announced accessibly without stealing focus."
+  ],
+  "states": {
+    "loading": {
+      "aria_busy": true,
+      "action": "skeleton_or_compact_progress",
+      "message": "Loading current server state"
+    },
+    "empty": {
+      "aria_busy": false,
+      "action": "explain_empty_state_and_primary_next_action"
+    },
+    "ready": {
+      "aria_busy": false,
+      "action": "render_server_authoritative_data"
+    },
+    "error": {
+      "aria_busy": false,
+      "action": "show_safe_error_retry_and_support_path"
+    },
+    "offline": {
+      "aria_busy": false,
+      "action": "show_connection_required_without_private_cache"
+    },
+    "unauthenticated": {
+      "aria_busy": false,
+      "action": "route_to_sign_in_with_safe_return_path"
+    },
+    "forbidden": {
+      "aria_busy": false,
+      "action": "explain_scope_without_revealing_hidden_record_details"
+    },
+    "stale": {
+      "aria_busy": false,
+      "action": "show_last_refresh_status_and_require_server_refresh_for_sensitive_actions"
+    }
+  },
+  "resources": {
+    "onboarding": {
+      "empty": "not_started",
+      "ready": "server_state"
+    },
+    "appointments": {
+      "empty": "no_upcoming_appointment",
+      "ready": "booking_list"
+    },
+    "inbox": {
+      "empty": "no_threads_or_notifications",
+      "ready": "authorized_threads_and_notifications"
+    },
+    "checkout": {
+      "empty": "no_order",
+      "ready": "server_created_order",
+      "extra": [
+        "pending",
+        "verified",
+        "failed",
+        "cancelled",
+        "refunded"
+      ]
+    },
+    "rcas": {
+      "empty": "not_started",
+      "ready": "versioned_session",
+      "extra": [
+        "draft",
+        "submitted",
+        "routed"
+      ]
+    },
+    "reports": {
+      "empty": "not_ready",
+      "ready": "versioned_report",
+      "extra": [
+        "pending_review",
+        "ready",
+        "superseded"
+      ]
+    },
+    "entitlements": {
+      "empty": "no_paid_access",
+      "ready": "server_verified_access"
+    }
+  }
+}
