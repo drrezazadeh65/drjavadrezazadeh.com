@@ -58,7 +58,7 @@ function ensureMobileNav(){
    links=[
     [appBase,isFa?'خانه':'Home','home'],
     [isFa?u('fa/golden-talent/'):u('golden-talent/'),isFa?'کشف':'Discover','star'],
-    [isFa?u('fa/assessments/'):u('assessments/'),isFa?'آزمون‌ها':'Tests','test'],
+    [isFa?u('fa/assessments/golden-talent/'):u('assessments/'),isFa?'آزمون‌ها':'Tests','test'],
     [appBase,isFa?'مسیر من':'My Path','path']
    ];
    sheet=[
@@ -78,13 +78,14 @@ function ensureMobileNav(){
     [u('fa/darbare-man/'),'درباره من'],
     [u('fa/tadris/'),'تدریس دانشگاهی'],
     [u('fa/ketab-ha/'),'کتاب‌ها'],
-    [u('fa/entesharat-elmi/'),'انتشارات علمی'],
-    [u('fa/pajouhesh/'),'پژوهش'],
+    [u('fa/amoozesh-zaban/'),'آموزش زبان انگلیسی'],
     [u('fa/faaliat-haye-elmi/'),'فعالیت‌های علمی'],
     [u('fa/entekhab-reshteh/'),'انتخاب رشته'],
     [u('fa/estedaadyabi/'),'استعدادیابی'],
     [u('fa/moshavere-konkur/'),'مشاوره کنکور'],
     [u('fa/danesh-amoozan/'),'دانش‌آموزان'],
+    [u('fa/tamas/'),'تماس'],
+    [u('fa/harim-khosusi/'),'حریم خصوصی'],
     [u('publisher/'),'Rezazadeh Foundation Press'],
     [u('journal/'),'JHELA']
    ];
@@ -97,7 +98,7 @@ function ensureMobileNav(){
    ];
    sheet=[
     [u('en/about/'),'About'],
-    [u('en/academic-profile/'),'Academic Profile'],
+    [u('en/about/'),'Academic Profile'],
     [u('en/language-education/'),'Language Education'],
     [u('en/teacher-education/'),'Teacher Education'],
     [u('en/teaching/'),'University Teaching'],
@@ -106,7 +107,7 @@ function ensureMobileNav(){
     [u('en/academic-engagements/'),'Academic Engagements'],
     [u('en/research/'),'Research'],
     [u('en/projects/'),'Public Projects'],
-    [u('en/collaboration/'),'International Collaboration'],
+    [u('en/contact/'),'International Collaboration'],
     [u('en/news-insights/'),'News & Insights'],
     [u('en/contact/'),'Contact'],
     [u('en/golden-talent/'),'Golden Talent'],
@@ -116,11 +117,11 @@ function ensureMobileNav(){
    ];
  }
  nav.innerHTML=links.map(([href,label,ic])=>'<a href="'+href+'">'+icon(ic)+'<span>'+label+'</span></a>').join('')+
- '<button class="dock-action" data-nav-toggle aria-controls="mobile-app-menu" aria-expanded="false">'+icon('menu')+'<span>'+(isFa?'منو':'Menu')+'</span></button>';
+ '<button type="button" class="dock-action" data-nav-toggle aria-controls="mobile-app-menu" aria-expanded="false">'+icon('menu')+'<span>'+(isFa?'منو':'Menu')+'</span></button>';
  document.body.appendChild(nav);
  if(!q('#mobile-app-menu')){
    const sheetEl=document.createElement('div');sheetEl.className='mobile-app-sheet';sheetEl.id='mobile-app-menu';sheetEl.hidden=true;
-   sheetEl.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong><button class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-grid">'+sheet.map(([href,label])=>'<a href="'+href+'"><b>'+label+'</b></a>').join('')+'</div></div>';
+   sheetEl.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-grid">'+sheet.map(([href,label])=>'<a href="'+href+'"><b>'+label+'</b></a>').join('')+'</div></div>';
    document.body.appendChild(sheetEl);
  }
 }
