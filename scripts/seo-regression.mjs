@@ -229,3 +229,43 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// ACCESSIBILITY BASELINE — static release guardrails, not a full WCAG conformance audit.
+for(const file of htmlFiles){
+  const html=fs.readFileSync(file,'utf8');
+  const route=routeFor(file);
+  const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+  const rc=getAttr(robots,'content')||'';
+  const indexable=!/\bnoindex\b/i.test(rc);
+
+  if(indexable && !/<main\b/i.test(html)) failures.push(route+': indexable page missing <main> landmark');
+
+  for(const tag of html.match(/<(?:a|button)\b[^>]*>[\s\S]*?<\/(?:a|button)>/gi)||[]){
+    const inner=strip(tag.replace(/^<[^>]+>/,'').replace(/<\/[^>]+>$/,''));
+    const aria=getAttr(tag,'aria-label');
+    const title=getAttr(tag,'title');
+    const hasImgAlt=/<img\b[^>]*alt=["'][^"']+["']/i.test(tag);
+    const hasTextSvg=/<svg\b[^>]*>[\s\S]*?<title\b/i.test(tag);
+    if(!inner&&!aria&&!title&&!hasImgAlt&&!hasTextSvg) failures.push(route+': empty interactive control without accessible name');
+  }
+
+  const controls=html.match(/<(?:input|select|textarea)\b[^>]*>/gi)||[];
+  for(const ctl of controls){
+    if(/type=["']hidden["']/i.test(ctl)) continue;
+    const aria=getAttr(ctl,'aria-label')||getAttr(ctl,'aria-labelledby');
+    if(aria) continue;
+    const idx=html.indexOf(ctl);
+    const before=html.slice(Math.max(0,idx-700),idx);
+    const after=html.slice(idx,Math.min(html.length,idx+700));
+    const wrapped=/<label\b[^>]*>[\s\S]*$/i.test(before)&&/<\/label>/i.test(after);
+    const id=getAttr(ctl,'id');
+    const explicit=id ? html.includes('for="'+id+'"') || html.includes("for='"+id+"'") : false;
+    if(!wrapped&&!explicit) warnings.push(route+': form control may lack an accessible label: '+ctl.slice(0,110));
+  }
+}
+if(failures.length){
+  console.error('\nAccessibility baseline failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
