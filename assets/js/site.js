@@ -380,6 +380,15 @@ qa('.app-dock a').forEach(a=>{
         await Promise.all(regs.map(r=>r.update().catch(()=>{})));
       }
     }catch(e){}
+    document.querySelectorAll('link[rel="stylesheet"]').forEach(link=>{
+      try{
+        const u=new URL(link.href,location.href);
+        if(u.pathname.includes('/assets/css/style.css')){
+          u.searchParams.set('fresh','jr-overflow-fix-v3');
+          link.href=u.href;
+        }
+      }catch(e){}
+    });
     finish();
   });
 })();
