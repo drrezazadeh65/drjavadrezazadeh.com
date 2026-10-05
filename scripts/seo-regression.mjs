@@ -770,3 +770,28 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// HORIZONTAL OVERFLOW REGRESSION GATE v2
+const layoutCssFile=path.join(root,'assets','css','style.css');
+if(fs.existsSync(layoutCssFile)){
+  const css=fs.readFileSync(layoutCssFile,'utf8');
+  if(/\.skip\s*\{[^}]*left\s*:\s*-\d{3,}px/i.test(css)){
+    failures.push('/assets/css/style.css: skip link must not be positioned thousands of pixels off-screen');
+  }
+  if(/\.rcas-privacy\s+strong\s*\{[^}]*white-space\s*:\s*nowrap/i.test(css) &&
+     !/@media\(max-width:800px\)[\s\S]*?\.rcas-privacy\s+strong\s*\{[^}]*white-space\s*:\s*normal/i.test(css)){
+    failures.push('/assets/css/style.css: RCAS privacy label nowrap lacks mobile override');
+  }
+  if(!/html,body\{[^}]*overflow-x\s*:\s*hidden!important/i.test(css)){
+    failures.push('/assets/css/style.css: iOS horizontal overflow hardening missing');
+  }
+  if(!/\.site-header\{[^}]*padding-inline:max\(20px,calc\(\(100% - var\(--max\)\)\/2\)\)/i.test(css)){
+    failures.push('/assets/css/style.css: site header must avoid viewport-width based horizontal sizing');
+  }
+}
+if(failures.length){
+  console.error('\nHorizontal overflow failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
