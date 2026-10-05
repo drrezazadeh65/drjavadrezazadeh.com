@@ -14,8 +14,8 @@ Status: PASS / PARTIAL / BLOCKED-BY-DOMAIN / POST-LAUNCH / ONGOING.
 | 06 | technical indexability | PASS | Automated release regression validates core page requirements. |
 | 07 | robots.txt | PASS (current host) | Allows public crawl and declares sitemap index. |
 | 08 | XML sitemap system | PASS | sitemap index + core/fa/en/news; canonical/noindex consistency enforced. |
-| 09 | site architecture | PASS / evolving | Persian commercial ecosystem and English academic ecosystem established. |
-| 10 | different language strategy | PASS | English is an international academic edition, not a translation mirror. |
+| 09 | site architecture | PASS | Persian commercial/educational ecosystem and English academic/international ecosystem are established, including collaboration, guides/news separation and authority hubs. |
+| 10 | different language strategy | PASS | English is an international academic edition with research, language education, teacher education, projects and collaboration; Persian prioritises students, families and educational services. |
 | 11 | keyword master | PASS baseline | Bilingual keyword/intent CSV created; demand/competition fields await measured research. |
 | 12 | search intent | PASS | Strategic pages assigned distinct informational/commercial/navigational roles. |
 | 13 | on-page SEO | PASS baseline | Titles, H1, descriptions, images, internal links, CTAs and schema on strategic pages. |
