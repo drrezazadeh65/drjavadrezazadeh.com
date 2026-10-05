@@ -73,7 +73,8 @@
     "GT-019": "Private R-source academic record/document UX and data-model mapping implemented; secure ingestion/upload pending production storage/security.",
     "GT-011": "Private R/C school-performance/context intake plus E7 map implemented; authenticated persistence/provenance pending.",
     "UX-012": "Manifest, service worker, offline shell, install prompts, cache-version governance, private-route cache bypass and network-first CSS/JS delivery implemented; explicit 192x192/512x512 and maskable production icons plus live installability QA pending.",
-    "SEO-022": "Whole-surface automated release QA now also enforces bilingual/private-route indexability, confidential pre-publication firewalls, Service Worker private-cache bypass, Cloudflare response-header privacy rules, and mobile/PWA source guardrails."
+    "SEO-022": "Whole-surface automated release QA now also enforces bilingual/private-route indexability, confidential pre-publication firewalls, Service Worker private-cache bypass, Cloudflare response-header privacy rules, and mobile/PWA source guardrails.",
+    "SERV-011": "Bilingual private appointment-state previews plus API contract implemented; live availability, timezone-aware slot selection, reschedule/cancel enforcement and authenticated persistence remain pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
