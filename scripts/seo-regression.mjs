@@ -650,3 +650,27 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// FORM ACCESSIBILITY RELEASE GATE
+for(const file of htmlFiles){
+  const html=fs.readFileSync(file,'utf8');
+  const route=routeFor(file);
+  for(const m of html.matchAll(/<(input|select|textarea)\b[^>]*>/gi)){
+    const tag=m[0],kind=m[1].toLowerCase();
+    if(kind==='input' && /\btype=["'](?:hidden|submit|button|reset|checkbox|radio)["']/i.test(tag)) continue;
+    const id=getAttr(tag,'id');
+    const aria=getAttr(tag,'aria-label')||getAttr(tag,'aria-labelledby');
+    const before=html.slice(0,m.index);
+    const lastOpen=before.lastIndexOf('<label');
+    const lastClose=before.lastIndexOf('</label>');
+    const nested=lastOpen>lastClose;
+    const linked=id ? (html.includes('for="'+id+'"') || html.includes("for='"+id+"'")) : false;
+    if(!nested && !linked && !aria) failures.push(route+': form control missing accessible label: '+tag.slice(0,120));
+  }
+}
+if(failures.length){
+  console.error('\nForm accessibility failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
