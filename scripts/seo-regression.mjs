@@ -240,6 +240,11 @@ else{
   if(!swSource.includes('CSS/JS: network-first')){
     failures.push('/sw.js: CSS/JS must remain network-first to prevent stale deploy assets');
   }
+  for(const iconPath of ['./assets/images/pwa-icon-192.png','./assets/images/pwa-icon-512.png']){
+    if(!swSource.includes("'"+iconPath+"'") && !swSource.includes('"'+iconPath+'"')){
+      failures.push('/sw.js: PWA launcher icon missing from core app-shell cache '+iconPath);
+    }
+  }
   if(!/const isCode\s*=\s*\/\\\.\(\?:css\|js\)\$\/i/.test(swSource) && !swSource.includes("const isCode=/\\.(?:css|js)$/i")){
     failures.push('/sw.js: CSS/JS asset classifier missing');
   }
@@ -321,10 +326,34 @@ else{
     if(!Array.isArray(manifest.icons)||!manifest.icons.length) failures.push('/site.webmanifest: at least one icon required');
     else{
       const rasterAny=manifest.icons.filter(i=>i?.sizes==='any' && i?.type && !/svg\+xml/i.test(i.type));
-      if(rasterAny.length) warnings.push('/site.webmanifest: raster icon declares sizes="any"; add explicit 192x192 and 512x512 production icons');
-      const has192=manifest.icons.some(i=>/(^|\s)192x192(\s|$)/.test(i?.sizes||''));
-      const has512=manifest.icons.some(i=>/(^|\s)512x512(\s|$)/.test(i?.sizes||''));
-      if(!has192||!has512) warnings.push('/site.webmanifest: Chromium-grade 192x192 and 512x512 icon set is still pending');
+      if(rasterAny.length) failures.push('/site.webmanifest: raster icon must declare exact pixel dimensions, not sizes="any"');
+      const icon192=manifest.icons.find(i=>/(^|\s)192x192(\s|$)/.test(i?.sizes||''));
+      const icon512=manifest.icons.find(i=>/(^|\s)512x512(\s|$)/.test(i?.sizes||''));
+      if(!icon192||!icon512) failures.push('/site.webmanifest: exact 192x192 and 512x512 production icons are required');
+      const verifyPngIcon=(icon,expected)=>{
+        if(!icon?.src) return;
+        const rel=icon.src.replace(/^\.\//,'').split('?')[0].split('#')[0];
+        const filePath=path.join(root,rel);
+        if(!fs.existsSync(filePath)){
+          failures.push('/site.webmanifest: icon file missing '+icon.src);
+          return;
+        }
+        if(icon.type!=='image/png') failures.push('/site.webmanifest: production launcher icon must declare image/png '+icon.src);
+        const buf=fs.readFileSync(filePath);
+        const pngSig=buf.length>=24 && buf[0]===0x89 && buf.slice(1,4).toString('ascii')==='PNG';
+        if(!pngSig){
+          failures.push('/site.webmanifest: launcher icon is not a valid PNG '+icon.src);
+          return;
+        }
+        const width=buf.readUInt32BE(16),height=buf.readUInt32BE(20);
+        if(width!==expected||height!==expected){
+          failures.push('/site.webmanifest: '+icon.src+' must be exactly '+expected+'x'+expected+' but is '+width+'x'+height);
+        }
+      };
+      verifyPngIcon(icon192,192);
+      verifyPngIcon(icon512,512);
+      const hasMaskable=manifest.icons.some(i=>/(^|\s)maskable(\s|$)/.test(i?.purpose||''));
+      if(!hasMaskable) warnings.push('/site.webmanifest: dedicated maskable-icon validation remains pending');
     }
   }catch(e){
     failures.push('/site.webmanifest: invalid JSON');
