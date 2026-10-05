@@ -363,3 +363,23 @@ qa('.app-dock a').forEach(a=>{
     location.reload();
   });
 })();
+
+// ONE-TIME SITE CACHE PURGE v3
+(function(){
+  const token='jr-site-cache-purge-v3-20261006';
+  if(localStorage.getItem(token)==='1') return;
+  const finish=()=>{try{localStorage.setItem(token,'1')}catch(e){}};
+  Promise.resolve().then(async()=>{
+    try{
+      if('caches' in window){
+        const keys=await caches.keys();
+        await Promise.all(keys.filter(k=>k.startsWith('jr-site-')).map(k=>caches.delete(k)));
+      }
+      if('serviceWorker' in navigator){
+        const regs=await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r=>r.update().catch(()=>{})));
+      }
+    }catch(e){}
+    finish();
+  });
+})();
