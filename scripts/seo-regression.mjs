@@ -617,3 +617,36 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// SOCIAL + STRUCTURED DATA RELEASE GATE
+for(const file of htmlFiles){
+  const html=fs.readFileSync(file,'utf8');
+  const route=routeFor(file);
+  const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+  const rc=getAttr(robots,'content')||'';
+  if(/\bnoindex\b/i.test(rc)) continue;
+
+  const canonicalTag=(html.match(/<link\b[^>]*rel=["']canonical["'][^>]*>/i)||[''])[0];
+  const canonical=getAttr(canonicalTag,'href');
+
+  const ogUrlTag=(html.match(/<meta\b[^>]*property=["']og:url["'][^>]*>/i)||[''])[0];
+  const ogUrl=getAttr(ogUrlTag,'content');
+  if(!ogUrl) failures.push(route+': indexable page missing og:url');
+  else if(canonical && ogUrl!==canonical) failures.push(route+': og:url must match canonical');
+
+  if(!/<meta\b[^>]*property=["']og:image["'][^>]*>/i.test(html)) failures.push(route+': indexable page missing og:image');
+  if(!/<meta\b[^>]*name=["']twitter:card["'][^>]*>/i.test(html)) failures.push(route+': indexable page missing twitter:card');
+  if(!/<script\b[^>]*type=["']application\/ld\+json["']/i.test(html)) failures.push(route+': indexable page missing JSON-LD structured data');
+
+  if(/"@type"\s*:\s*"NewsArticle"/.test(html)){
+    if(!/"datePublished"\s*:/.test(html)) failures.push(route+': NewsArticle missing datePublished');
+    if(!/"author"\s*:/.test(html)) failures.push(route+': NewsArticle missing author');
+    if(!/"mainEntityOfPage"\s*:/.test(html)) failures.push(route+': NewsArticle missing mainEntityOfPage');
+  }
+}
+if(failures.length){
+  console.error('\nSocial/structured-data failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
