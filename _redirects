@@ -1,0 +1,26 @@
+# Cloudflare Pages static redirect registry.
+# GitHub Pages ignores this file; Cloudflare Pages applies it after cutover.
+# Keep exact legacy migrations before any future dynamic/splat rules.
+
+/about /en/about/ 301
+/about/ /en/about/ 301
+/academic-engagements /en/academic-engagements/ 301
+/academic-engagements/ /en/academic-engagements/ 301
+/books /en/books/ 301
+/books/ /en/books/ 301
+/educational-philosophy /en/educational-philosophy/ 301
+/educational-philosophy/ /en/educational-philosophy/ 301
+/golden-talent /en/golden-talent/ 301
+/golden-talent/ /en/golden-talent/ 301
+/publications /en/publications/ 301
+/publications/ /en/publications/ 301
+/research /en/research/ 301
+/research/ /en/research/ 301
+/teaching /en/teaching/ 301
+/teaching/ /en/teaching/ 301
+
+# Transactional shell migrations.
+/login /en/login/ 301
+/login/ /en/login/ 301
+/register /en/register/ 301
+/register/ /en/register/ 301
