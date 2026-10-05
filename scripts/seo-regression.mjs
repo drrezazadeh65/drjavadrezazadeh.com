@@ -361,6 +361,68 @@ if(failures.length){
 }
 
 
+// MEDIA REGISTRY — every repository image asset must carry provenance, rights and bilingual accessibility metadata.
+const mediaRegistryPath=path.join(root,'assets','media-registry.json');
+if(!fs.existsSync(mediaRegistryPath)) failures.push('/assets/media-registry.json: missing media provenance registry');
+else{
+  try{
+    const mediaRegistry=JSON.parse(fs.readFileSync(mediaRegistryPath,'utf8'));
+    const entries=Array.isArray(mediaRegistry.assets)?mediaRegistry.assets:[];
+    if(!entries.length) failures.push('/assets/media-registry.json: assets array must not be empty');
+    const byPath=new Map();
+    const requiredFields=['kind','role','provenance','rights','alt_en','alt_fa','caption_en','caption_fa'];
+    for(const item of entries){
+      const p=item?.path;
+      if(!p || typeof p!=='string'){
+        failures.push('/assets/media-registry.json: every media record needs a path');
+        continue;
+      }
+      if(byPath.has(p)) failures.push('/assets/media-registry.json: duplicate media path '+p);
+      byPath.set(p,item);
+      if(!p.startsWith('assets/images/')) failures.push('/assets/media-registry.json: media path must stay under assets/images '+p);
+      const abs=path.join(root,p);
+      if(!fs.existsSync(abs)) failures.push('/assets/media-registry.json: registered file missing '+p);
+      for(const field of requiredFields){
+        if(typeof item[field]!=='string' || item[field].trim().length<2){
+          failures.push('/assets/media-registry.json: '+p+' missing '+field);
+        }
+      }
+    }
+
+    const imagesDir=path.join(root,'assets','images');
+    const imageFiles=fs.readdirSync(imagesDir,{withFileTypes:true})
+      .filter(ent=>ent.isFile() && /\.(?:png|jpe?g|webp|gif|svg|avif)$/i.test(ent.name))
+      .map(ent=>'assets/images/'+ent.name);
+    for(const p of imageFiles){
+      if(!byPath.has(p)) failures.push('/assets/media-registry.json: image asset is unregistered '+p);
+    }
+    for(const p of byPath.keys()){
+      if(!imageFiles.includes(p)) failures.push('/assets/media-registry.json: registry path is not a current image asset '+p);
+    }
+
+    for(const file of htmlFiles){
+      const html=fs.readFileSync(file,'utf8');
+      for(const img of html.match(/<img\b[^>]*>/gi)||[]){
+        const src=getAttr(img,'src');
+        if(!src || /^(?:https?:|data:|blob:|\/\/)/i.test(src)) continue;
+        const local=path.resolve(path.dirname(file),src.split('?')[0].split('#')[0]);
+        const rel=path.relative(root,local).replaceAll(path.sep,'/');
+        if(rel.startsWith('assets/images/') && !byPath.has(rel)){
+          failures.push(routeFor(file)+': image source missing media-registry record '+rel);
+        }
+      }
+    }
+  }catch(e){
+    failures.push('/assets/media-registry.json: invalid JSON or media-registry audit failure '+e.message);
+  }
+}
+if(failures.length){
+  console.error('\nMedia-registry failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // MOBILE + PWA SOURCE GUARDRAILS — prevents known overflow/safe-area regressions.
 const cssPath=path.join(root,'assets','css','style.css');
 if(!fs.existsSync(cssPath)) failures.push('/assets/css/style.css: missing global stylesheet');
