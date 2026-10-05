@@ -105,3 +105,60 @@ if(warnings.length){
 }
 console.log('\nAudited '+htmlFiles.length+' HTML files; '+canonicals.size+' indexable canonical URLs.');
 if(failures.length) process.exit(1);
+
+
+// SITEMAP GOVERNANCE — Frozen SEO baseline
+const sitemapChildren=['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml'];
+const sitemapUrls=new Set();
+const sitePrefix='https://drrezazadeh65.github.io/drjavadrezazadeh.com';
+for(const sm of sitemapChildren){
+  const file=path.join(root,sm);
+  if(!fs.existsSync(file)){failures.push('/'+sm+': missing child sitemap');continue;}
+  const xml=fs.readFileSync(file,'utf8');
+  for(const m of xml.matchAll(/<loc>([^<]+)<\/loc>/g)){
+    const url=m[1].trim();
+    if(sitemapUrls.has(url)) failures.push('/'+sm+': duplicate sitemap URL '+url);
+    sitemapUrls.add(url);
+    if(!url.startsWith(sitePrefix+'/') && url!==sitePrefix+'/'){
+      failures.push('/'+sm+': URL outside current canonical host '+url);
+      continue;
+    }
+    let route=url.slice(sitePrefix.length)||'/';
+    if(!route.startsWith('/')) route='/'+route;
+    let target=route==='/'?path.join(root,'index.html'):path.join(root,route,'index.html');
+    if(!fs.existsSync(target)){
+      failures.push('/'+sm+': sitemap URL has no local HTML target '+route);
+      continue;
+    }
+    const html=fs.readFileSync(target,'utf8');
+    const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+    const rc=getAttr(robots,'content')||'';
+    if(/\bnoindex\b/i.test(rc)) failures.push('/'+sm+': NOINDEX URL present in sitemap '+route);
+    const canonicalTag=(html.match(/<link\b[^>]*rel=["']canonical["'][^>]*>/i)||[''])[0];
+    const canonical=getAttr(canonicalTag,'href');
+    if(canonical!==url) failures.push('/'+sm+': sitemap/canonical mismatch '+route+' -> '+(canonical||'missing canonical'));
+  }
+}
+
+// Every indexable canonical must be represented in a child sitemap.
+for(const [canonical,route] of canonicals.entries()){
+  if(!sitemapUrls.has(canonical)) failures.push(route+': indexable canonical missing from sitemap system');
+}
+
+// Root sitemap must be a sitemap index containing every required child sitemap.
+const rootSitemap=path.join(root,'sitemap.xml');
+if(!fs.existsSync(rootSitemap)) failures.push('/sitemap.xml: missing sitemap index');
+else{
+  const xml=fs.readFileSync(rootSitemap,'utf8');
+  if(!/<sitemapindex\b/i.test(xml)) failures.push('/sitemap.xml: root sitemap must be a sitemapindex');
+  for(const sm of sitemapChildren){
+    const expected=sitePrefix+'/'+sm;
+    if(!xml.includes(expected)) failures.push('/sitemap.xml: missing child sitemap '+sm);
+  }
+}
+
+if(failures.length){
+  console.error('\nPost-sitemap SEO failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
