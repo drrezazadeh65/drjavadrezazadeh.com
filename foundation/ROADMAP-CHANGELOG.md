@@ -16,3 +16,9 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 
 ### Reader-facing Books copy
 - **AUTH-010 | DONE → MODIFIED** — Removed internal publishing-policy language from the public Books pages. Replaced it with a concise reader-facing “Forthcoming works / آثار در دست انتشار” note, while retaining the verification rule internally in roadmap/publisher governance.
+
+### SEO architecture and academic engagement expansion
+- **SEO-006 | PLANNED → DONE** — Frozen `foundation/SEO-INTENT-MAP.md` defining canonical ownership, cannibalisation rules, public/private index boundaries, service intent, Golden Talent, commerce and journal SEO architecture without invented search-volume claims.
+- **AUTH-012 | PLANNED → DONE** — Published bilingual academic-engagement pages at `/academic-engagements/` and `/fa/faaliat-haye-elmi/` using evidence-controlled conference, academic-service and professional-development records.
+- **SEO-009 | MODIFIED → MODIFIED** — Linked Academic Engagements from Home and About surfaces in both languages.
+- **SEO-018 | MODIFIED → MODIFIED** — Added both engagement URLs and the conference visual to the sitemap.
