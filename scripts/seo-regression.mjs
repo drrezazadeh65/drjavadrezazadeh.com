@@ -473,3 +473,33 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// RCAS-O1 OBSERVER GUARDRAIL — descriptive O evidence only, never public/scored by accident.
+{
+  const observerPath=path.join(root,'fa','assessments','golden-talent','observer','index.html');
+  const definitionPath=path.join(root,'platform','golden-talent-instruments.json');
+  if(!fs.existsSync(observerPath)) failures.push('/fa/assessments/golden-talent/observer/: RCAS-O1 page missing');
+  else{
+    const html=fs.readFileSync(observerPath,'utf8');
+    const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+    const rc=getAttr(robots,'content')||'';
+    if(!/\bnoindex\b/i.test(rc)) failures.push('/fa/assessments/golden-talent/observer/: RCAS-O1 must remain NOINDEX');
+    if(!html.includes('RCAS-O1')) failures.push('/fa/assessments/golden-talent/observer/: RCAS-O1 identifier missing');
+    if(!html.includes('O · Observation Evidence')) failures.push('/fa/assessments/golden-talent/observer/: O evidence identity missing');
+  }
+  if(!fs.existsSync(definitionPath)) failures.push('/platform/golden-talent-instruments.json: instrument registry missing');
+  else{
+    const def=JSON.parse(fs.readFileSync(definitionPath,'utf8'));
+    if(def.instrument_id!=='RCAS-O1') failures.push('/platform/golden-talent-instruments.json: wrong observer instrument id');
+    if(def.evidence_code!=='O') failures.push('/platform/golden-talent-instruments.json: RCAS-O1 must be O-source evidence');
+    if(def.scoring?.enabled!==false || def.scoring?.total_score!==false) failures.push('/platform/golden-talent-instruments.json: RCAS-O1 scoring must remain disabled');
+    const roles=def.production_mapping?.assessment_session_respondent_roles||{};
+    if(roles.PARENT!=='PARENT'||roles.TEACHER!=='TEACHER') failures.push('/platform/golden-talent-instruments.json: verified parent/teacher production mappings missing');
+  }
+}
+if(failures.length){
+  console.error('\nRCAS-O1 observer failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
