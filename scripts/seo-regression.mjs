@@ -220,6 +220,33 @@ if(failures.length){
 }
 
 
+// PRIVATE PWA CACHE FIREWALL — transactional/private routes must never be cached by the service worker.
+const swPath=path.join(root,'sw.js');
+if(!fs.existsSync(swPath)) failures.push('/sw.js: missing service worker');
+else{
+  const swSource=fs.readFileSync(swPath,'utf8');
+  const requiredPrivatePrefixes=[
+    '/fa/app/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/','/en/login/','/en/register/','/en/recover/','/en/account/',
+    '/fa/assessments/','/assessments/','/fa/shop/','/shop/',
+    '/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/','/en/golden-talent/checkout/','/en/golden-talent/plans/',
+    '/fa/darkhast-moshavere/','/en/request-consultation/'
+  ];
+  for(const prefix of requiredPrivatePrefixes){
+    if(!swSource.includes("'"+prefix+"'") && !swSource.includes('"'+prefix+'"')){
+      failures.push('/sw.js: private route missing from cache-bypass firewall '+prefix);
+    }
+  }
+  if(!/fetch\(req,\{cache:['"]no-store['"]\}\)/.test(swSource)){
+    failures.push('/sw.js: private-route network fetch must use cache:no-store');
+  }
+}
+if(failures.length){
+  console.error('\nPrivate PWA cache-firewall failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // PERFORMANCE BUDGET — guardrails, not synthetic CWV claims.
 const budgets=[
   ['assets/css/style.css',120*1024],
