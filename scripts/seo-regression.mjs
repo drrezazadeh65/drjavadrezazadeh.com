@@ -314,3 +314,30 @@ if(warnings.length){
   console.warn('\nFinal SEO audit warnings ('+warnings.length+')');
   [...new Set(warnings)].forEach(x=>console.warn('! '+x));
 }
+
+
+// PUBLIC FACT CONSISTENCY — narrow guardrails for recurrent degree claims.
+const publicFactChecks=[
+  {
+    file:'en/about/index.html',
+    required:['2026','PhD in Education · Arak University','M.A. · University of Tehran'],
+    forbidden:['<b>2020</b><span>Doctoral studies · Arak University</span>','PhD in English Language Education']
+  },
+  {
+    file:'fa/darbare-man/index.html',
+    required:['۲۰۲۶','دکتری آموزش · دانشگاه اراک','کارشناسی ارشد · دانشگاه تهران'],
+    forbidden:['<b>۲۰۲۰</b><span>تحصیلات دکتری · دانشگاه اراک</span>','دکتری آموزش زبان انگلیسی']
+  }
+];
+for(const check of publicFactChecks){
+  const p=path.join(root,check.file);
+  if(!fs.existsSync(p)){failures.push('/'+check.file+': public fact source page missing');continue;}
+  const html=fs.readFileSync(p,'utf8');
+  for(const phrase of check.required) if(!html.includes(phrase)) failures.push('/'+check.file+': required public fact missing: '+phrase);
+  for(const phrase of check.forbidden) if(html.includes(phrase)) failures.push('/'+check.file+': obsolete/conflicting public fact returned: '+phrase);
+}
+if(failures.length){
+  console.error('\nPublic-fact consistency failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
