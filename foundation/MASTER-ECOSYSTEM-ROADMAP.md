@@ -191,8 +191,8 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **GT-006 — DONE — Bilingual public Golden Talent hubs published with developmental/multi-source framework, limitations, role pathways, Golden Path concept and private-platform boundary.**
 - [x] **GT-007 — DONE — RCAS Start free screening implemented as P0 + Core 28 + D1–D6 routing, with no fabricated total-talent score and no server storage of raw answers before backend activation.**
 - [ ] **GT-008 — IN PROGRESS — Student self-report baseline is implemented in RCAS Start; deeper routed-module execution remains entitlement/backend dependent.**
-- [ ] **GT-009 — PLANNED — Parent-report instruments.**
-- [ ] **GT-010 — PLANNED — Teacher Observation Instrument.**
+- [ ] **GT-009 — IN PROGRESS — Parent observation is implemented through the shared RCAS-O1 observation standard rather than a separate scored parent test; production persistence awaits verified parent–student relationship, consent/visibility rules and backend activation.**
+- [ ] **GT-010 — IN PROGRESS — Teacher observation is implemented through the shared RCAS-O1 standard rather than a separate scored teacher test; production persistence awaits verified teacher–student assignment, role-based access and backend activation.**
 - [ ] **GT-011 — PLANNED — School-performance and contextual evidence intake.**
 - [ ] **GT-012 — IN PROGRESS — Student profile/dashboard UX, routed-state preview and provider-neutral persistence model exist; authenticated integrated profile remains pending backend activation.**
 - [ ] **GT-013 — IN PROGRESS — D5 Golden Path module, Evidence/Path Experiment structure and human-reviewed professional-report preview are implemented; production workflow remains pending.**
