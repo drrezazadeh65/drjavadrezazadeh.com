@@ -26,3 +26,6 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 ### Search-demand and editorial operating system
 - **SEO-007 | PLANNED → IN PROGRESS** — Completed a live SERP review for the core Persian counselling/field-selection/entrance-exam/talent cluster. Future major clusters must repeat this review before expansion.
 - **CONTENT-008 | PLANNED → DONE** — Created `foundation/EDITORIAL-CALENDAR-90D.md` with a 90-day publishing rhythm, page intent, internal-link targets, image requirements, quality gates and cycle-close audit.
+
+### First post-SERP editorial execution
+- **CONTENT-FS-01 | PLANNED → DONE** — Published «چه رشته‌ای برای من مناسب است؟ از پاسخ سریع تا تصمیم قابل دفاع» with a distinct informational intent, Article + FAQ structured data, original SEO visual, internal links to field-selection/talent/counselling services, and sitemap registration.
