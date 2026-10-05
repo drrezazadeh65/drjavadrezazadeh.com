@@ -1,4 +1,4 @@
-const CACHE_VERSION='jr-site-v5-20261006-network-first-code';
+const CACHE_VERSION='jr-site-v6-20261006-pwa-icons';
 const CACHE_FAMILY='jr-site-';
 const STATIC_CACHE=CACHE_VERSION+'-static';
 const PUBLIC_CACHE=CACHE_VERSION+'-public';
@@ -8,6 +8,8 @@ const CORE=[
   './site.webmanifest',
   './assets/css/style.css',
   './assets/js/site.js',
+  './assets/images/pwa-icon-192.png',
+  './assets/images/pwa-icon-512.png',
   './fa/',
   './en/',
   './en/golden-talent/'
