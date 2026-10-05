@@ -97,7 +97,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **INFRA-007 — WAITING — Purchase/activate permanent domain.**
 - [ ] **INFRA-008 — WAITING — DNS cutover and HTTPS for permanent domain.**
 - [ ] **INFRA-009 — PLANNED — One-time canonical/OG/schema/sitemap/robots migration from GitHub URL to permanent domain.**
-- [ ] **INFRA-010 — PLANNED — Production backend hosting separate from static GitHub Pages.**
+- [ ] **INFRA-010 — IN PROGRESS — Production platform architecture and logical data model are frozen; lawful/available hosting, auth, database, storage and email providers still need to be selected and provisioned.**
 - [ ] **INFRA-011 — PLANNED — Staging environment kept noindex.**
 - [ ] **INFRA-012 — PLANNED — Production database, private object storage and backup infrastructure.**
 - [ ] **INFRA-013 — PLANNED — Transactional email/domain mail infrastructure.**
