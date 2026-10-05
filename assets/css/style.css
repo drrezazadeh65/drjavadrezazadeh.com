@@ -395,3 +395,34 @@ code,pre,.brand,.site-header nav a,.button,.profile,.service-card,.authority-car
 .article-meta a:hover{text-decoration:underline}
 .rtl .article-meta{font-family:Tahoma,"Segoe UI",Arial,sans-serif!important}
 @media(max-width:600px){.article-meta{display:grid;gap:5px}}
+
+/* RCAS-O1 observer v1 */
+.observer-shell{width:min(1020px,calc(100% - 32px));margin:0 auto;padding:30px 0 120px}
+.observer-hero{display:grid;grid-template-columns:1.15fr .85fr;gap:22px;padding:38px;border:1px solid rgba(198,161,90,.2);border-radius:30px;background:radial-gradient(620px 320px at 90% 0%,rgba(198,161,90,.1),transparent 60%),rgba(255,255,255,.014)}
+.observer-hero h1{font-family:Tahoma,"Segoe UI",Arial,sans-serif!important;font-size:clamp(38px,5.5vw,60px);line-height:1.5;margin:8px 0 16px}
+.observer-principle{padding:24px;border:1px solid rgba(198,161,90,.28);border-radius:20px;background:#0b0a09}
+.observer-principle strong{display:block;font-size:24px;color:var(--gold-2);margin:14px 0 8px}
+.observer-principle p,.observer-privacy p,.observer-prompt{color:#9f978b;line-height:2}
+.observer-privacy{margin:18px 0 0;padding:20px 22px;border-right:3px solid var(--gold);border-radius:16px;background:rgba(198,161,90,.055)}
+.observer-privacy strong{color:var(--gold-2)}
+.observer-section{padding:44px 0;border-bottom:1px solid #1e1b17}
+.observer-section h2,.observer-review h2,.observer-preview h2,.observer-evidence-map h2{font-family:Tahoma,"Segoe UI",Arial,sans-serif!important;font-size:clamp(28px,4vw,42px);line-height:1.6;margin:8px 0 20px}
+.observer-grid{display:grid;grid-template-columns:.7fr 1.3fr;gap:14px}
+.observer-form label{display:grid;gap:8px;color:#d8d0c3;font-size:14px}
+.observer-form textarea,.observer-form select{width:100%;box-sizing:border-box;background:#0c0b0a;color:#eee6da;border:1px solid #302a22;border-radius:12px;padding:14px;font:inherit;line-height:1.9;resize:vertical}
+.observer-form textarea:focus,.observer-form select:focus{border-color:rgba(198,161,90,.7)}
+.observer-prompt{font-size:12px;margin:12px 0 0}
+.observer-review{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;margin:36px 0;padding:26px;border:1px dashed rgba(198,161,90,.26);border-radius:22px}
+.observer-review ul{color:#b9b1a5;line-height:2.1}
+.observer-actions{display:flex;flex-direction:column;gap:10px}
+.observer-preview{padding:28px;margin:30px 0;border:1px solid rgba(198,161,90,.38);border-radius:22px;background:radial-gradient(480px 220px at 90% 0%,rgba(198,161,90,.09),transparent 62%),#0c0b0a}
+.observer-preview-role{display:flex;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid #252119}.observer-preview-role span{color:var(--gold-2)}
+.observer-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+.observer-preview-grid article{padding:17px;border:1px solid #29241d;border-radius:14px;background:#0a0908}.observer-preview-grid article>span{font-size:10px;color:var(--gold-2)}.observer-preview-grid p{white-space:pre-wrap;color:#d2c9bc;line-height:1.9;margin:7px 0 0}
+.observer-evidence-map{padding:44px 0}
+.observer-source-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:20px}
+.observer-source-grid>div{padding:16px 9px;border:1px solid #29241d;border-radius:14px;text-align:center;background:#0c0b0a}.observer-source-grid b,.observer-source-grid span{display:block}.observer-source-grid b{font-size:24px;color:#827b70}.observer-source-grid span{font-size:10px;color:#8e877c;margin-top:6px}.observer-source-grid .active{border-color:rgba(198,161,90,.55);background:rgba(198,161,90,.08)}.observer-source-grid .active b{color:var(--gold-2)}
+.app-card-link{display:block;text-decoration:none;color:inherit;transition:transform .18s ease,border-color .18s ease}.app-card-link:hover{transform:translateY(-2px);border-color:rgba(198,161,90,.45)}
+.evidence-source-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
+@media(max-width:820px){.observer-hero,.observer-review{grid-template-columns:1fr}.observer-grid{grid-template-columns:1fr}.observer-actions{flex-direction:row}.observer-source-grid,.evidence-source-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.observer-shell{width:calc(100% - 20px)}.observer-hero{padding:22px}.observer-hero h1{font-size:34px}.observer-preview-grid{grid-template-columns:1fr}.observer-actions{display:grid}.observer-source-grid,.evidence-source-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
