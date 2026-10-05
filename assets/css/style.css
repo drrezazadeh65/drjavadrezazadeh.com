@@ -550,3 +550,12 @@ code,pre,.brand,.site-header nav a,.button,.profile,.service-card,.authority-car
 .role-boundary-grid strong{font-size:16px}.role-boundary-grid ul{margin:14px 0 0;padding-inline-start:20px;color:#a69e92;line-height:2}
 .role-boundary-note{padding:14px 16px;border-right:3px solid var(--gold);background:rgba(198,161,90,.05);border-radius:12px;color:#aaa398;line-height:1.9}
 @media(max-width:700px){.role-boundary-section{width:calc(100% - 20px);padding:20px}.role-boundary-grid{grid-template-columns:1fr}}
+
+/* Private role hub v1 */
+.app-role-scope,.app-activation-map{width:min(var(--max),calc(100% - 40px));margin:34px auto;padding:30px;border:1px solid rgba(198,161,90,.18);border-radius:24px;background:rgba(255,255,255,.012)}
+.app-role-scope h2,.app-activation-map h2{font-size:clamp(28px,4vw,42px);line-height:1.55}
+.app-role-table{display:grid;gap:6px;margin-top:20px}
+.app-role-row{display:grid;grid-template-columns:140px 1.2fr 1.2fr 90px;gap:10px;align-items:center;padding:14px 16px;border:1px solid #29241d;border-radius:12px;background:#0c0b0a}
+.app-role-row.head{background:transparent;border-style:dashed;color:#8f877b;font-size:10px}
+.app-role-row b{color:#e9dfcf}.app-role-row span{color:#a49c90;font-size:12px;line-height:1.7}.app-role-row em{font-style:normal;color:var(--gold-2);font-size:10px}
+@media(max-width:780px){.app-role-scope,.app-activation-map{width:calc(100% - 20px);padding:20px}.app-role-row,.app-role-row.head{grid-template-columns:1fr}.app-role-row.head{display:none}.app-role-row b{font-size:17px}.app-role-row em{margin-top:4px}}
