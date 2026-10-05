@@ -73,7 +73,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SEO-014 — DONE — Current indexable surface completed a source-level structured-data audit; missing WebPage/BreadcrumbList metadata was repaired and every JSON-LD block parses successfully. Product/Offer remains prohibited until a real offer exists.**
 - [ ] **SEO-015 — IN PROGRESS — Core Web Vitals optimisation.** Static CSS/JS/image performance budgets are enforced in regression; production-domain real-user LCP/INP/CLS validation remains pending.
 - [ ] **SEO-016 — IN PROGRESS — Accessibility audit as an SEO/UX quality gate.** Static guardrails now cover main landmarks, accessible interactive names, form-label warnings, skip navigation, visible focus, keyboard menu handling, touch targets and reduced motion; full screen-reader/live-device QA remains pending.
-- [ ] **SEO-017 — PLANNED — Self-hosted production fonts and removal of remaining external-font fragility.**
+- [ ] **SEO-017 — IN PROGRESS — Third-party webfont dependencies have been removed; final self-hosted production font selection/integrity QA remains pending.**
 
 ## SEO Gate C — immediately before release/indexing
 - [x] **SEO-018 — MODIFIED — Sitemap-index architecture controls approved canonical URLs through separate core, Persian, English and news sitemaps; NOINDEX/private/legacy URLs are excluded and regression-enforced.**
@@ -116,7 +116,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **UX-007 — RENEWED — Educational-philosophy visual asset replaced after broken-image incident.**
 - [ ] **UX-008 — IN PROGRESS — Global design consistency across every public page, journal page and foundation route.**
 - [x] **UX-009 — DONE — Formal design-system baseline documented with semantic tokens, typography, component families, image rules, interaction rules, mobile behaviour and design governance.**
-- [ ] **UX-010 — PLANNED — Fully self-hosted Persian/English fonts.**
+- [ ] **UX-010 — IN PROGRESS — Public UI now uses stable system-safe fallbacks with no third-party font requests; final self-hosted Persian/English font package remains pending font-integrity QA.**
 - [ ] **UX-011 — PLANNED — Mobile UX QA on small/medium/large devices and landscape orientation.**
 - [ ] **UX-012 — PLANNED — PWA icons, installability, offline shell and service worker.**
 - [ ] **UX-013 — IN PROGRESS — Accessible interaction baseline now includes visible focus states, minimum touch targets and existing reduced-motion support; full keyboard/screen-reader/live-device QA remains pending.**
