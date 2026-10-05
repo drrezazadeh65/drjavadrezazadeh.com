@@ -114,4 +114,4 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 - **Current preview boundary** — The RCAS-O1 webpage performs no network submission or persistent storage. Companion/mentor role remains preview-only until an approved production observer role and relationship policy exist.
 
 ### Academic-record evidence workspace
-- **GT-011 | PLANNED → IN PROGRESS** — Added the private/noindex R-source workspace for academic history, grades and verified documents. It maps to existing educational_record, grade_record and private_document models; real upload is intentionally disabled until private storage, malware scan, retention and access-control infrastructure are production-ready.
+- **GT-019 | NEW → IN PROGRESS** — Added the private/noindex R-source workspace for academic history, grades and verified documents. It maps to existing educational_record, grade_record and private_document models; real upload is intentionally disabled until private storage, malware scan, retention and access-control infrastructure are production-ready. GT-011 remains reserved for school-performance and contextual evidence intake.
