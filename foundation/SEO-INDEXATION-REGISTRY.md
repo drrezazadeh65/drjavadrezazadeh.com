@@ -96,6 +96,7 @@ Status classes:
 - `/fa/bazyabi-hesab/`
 - `/en/login/`, `/en/register/`, `/en/recover/`
 - `/en/account/**`
+- `/en/request-consultation/`
 - `/fa/login/`, `/fa/register/`
 - `/app/**`, `/fa/app/**`
 - `/fa/app/account/**`
