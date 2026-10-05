@@ -29,8 +29,17 @@ self.addEventListener('activate',event=>{
   );
 });
 
+function localPath(url){
+  const scopePath=new URL(self.registration.scope).pathname;
+  if(url.pathname.startsWith(scopePath)){
+    const rest=url.pathname.slice(scopePath.length);
+    return '/'+rest.replace(/^\/+/, '');
+  }
+  return url.pathname;
+}
 function isPrivate(url){
-  return PRIVATE_PREFIXES.some(p=>url.pathname.startsWith(p));
+  const path=localPath(url);
+  return PRIVATE_PREFIXES.some(p=>path.startsWith(p));
 }
 
 self.addEventListener('fetch',event=>{
