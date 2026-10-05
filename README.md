@@ -1,18 +1,23 @@
 # drjavadrezazadeh.com
+Official website of **Dr. Javad Rezazadeh Yazdeli**.
 
-Official academic website of **Dr. Javad Rezazadeh**.
+## Strategic architecture
+The site combines four connected identities without collapsing them into one page: academic scholarship, research programmes, educational/talent consulting, and a news/insights publishing layer.
 
-This repository is the canonical source for the personal academic website. It is designed to run on GitHub Pages now and migrate to the custom domain `drjavadrezazadeh.com` later without changing the information architecture.
+### Search themes
+Primary topical clusters are developed through substantive pages rather than keyword stuffing:
+- Dr. Javad Rezazadeh Yazdeli / Javad Rezazadeh
+- talent identification and talent development
+- educational consulting and academic guidance
+- university entrance examination counselling and field-of-study selection
+- applied linguistics and English language education
+- human-centred assessment, Humanability and TESTLY
+- teacher development and Teacher Humanization
 
-## Current architecture
-- Static semantic HTML/CSS
-- Responsive, mobile-first presentation
-- Search-engine metadata and Person structured data
-- `robots.txt` and XML sitemap
-- Web app manifest
-- Dependency-free deployment for speed and portability
+### Migration
+GitHub Pages is the temporary host. Paths and internal architecture are intended to remain stable when a custom domain is acquired. Canonical, Open Graph, schema, sitemap and robots URLs must be migrated together, followed by Search Console verification.
 
-## Domain migration
-When the custom domain is acquired, canonical, Open Graph, schema, sitemap and robots URLs will be updated together; the GitHub Pages custom domain and DNS will then be configured and verified in Google Search Console.
+### Verified identity links
+Academia.edu, Semantic Scholar, ORCID, Instagram and GitHub are linked. Google Scholar currently uses a name-specific Scholar search until the exact profile URL is verified. Facebook and X/Twitter are intentionally withheld until exact official profile URLs are verified.
 
-© Dr. Javad Rezazadeh. All rights reserved.
+© Dr. Javad Rezazadeh Yazdeli. All rights reserved.
