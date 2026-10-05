@@ -239,6 +239,12 @@ else{
   if(!/fetch\(req,\{cache:['"]no-store['"]\}\)/.test(swSource)){
     failures.push('/sw.js: private-route network fetch must use cache:no-store');
   }
+  if(!swSource.includes('CSS/JS: network-first')){
+    failures.push('/sw.js: CSS/JS must remain network-first to prevent stale deploy assets');
+  }
+  if(!/const isCode\s*=\s*\/\\\.\(\?:css\|js\)\$\/i/.test(swSource) && !swSource.includes("const isCode=/\\.(?:css|js)$/i")){
+    failures.push('/sw.js: CSS/JS asset classifier missing');
+  }
 }
 if(failures.length){
   console.error('\nPrivate PWA cache-firewall failures ('+failures.length+')');
