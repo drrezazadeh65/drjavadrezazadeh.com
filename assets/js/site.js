@@ -6,6 +6,7 @@ const base=rawPath.includes(gh)?gh:'/';
 const isFa=rawPath.startsWith(base+'fa/');
 const isJournal=rawPath.startsWith(base+'journal/');
 const isPrivateApp=rawPath.startsWith(base+'app/')||rawPath.startsWith(base+'fa/app/');
+const isPersianStudentApp=rawPath.startsWith(base+'fa/app/student/')||rawPath.startsWith(base+'fa/assessments/golden-talent/start/');
 const u=p=>base+p.replace(/^\//,'');
 function ensureSkipLink(){
  const main=q('main');
@@ -34,7 +35,7 @@ const icon=n=>{
  return '<svg class="app-icon" viewBox="0 0 24 24">'+(d[n]||d.menu)+'</svg>';
 };
 function ensureMobileNav(){
- if(q('.app-dock')) return;
+ if(q('.app-dock')||q('.gt-mobile-dock')||isPersianStudentApp) return;
  const nav=document.createElement('nav');nav.className='app-dock';nav.setAttribute('aria-label',isFa?'منوی موبایلی':'Mobile app navigation');
  let links=[],sheet=[];
  if(isJournal){
