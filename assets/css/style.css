@@ -539,3 +539,14 @@ code,pre,.brand,.site-header nav a,.button,.profile,.service-card,.authority-car
 .case-audit{margin-top:30px}
 @media(max-width:850px){.case-hero{grid-template-columns:1fr}.case-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.case-evidence-grid,.case-three{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.app-workflow-section,.case-shell{width:calc(100% - 20px)}.app-workflow-section{padding:20px}.case-hero{padding:22px}.case-hero h1{font-size:34px}.case-overview,.case-evidence-grid,.case-three{grid-template-columns:1fr}}
+
+/* Role access boundary v1 */
+.role-boundary-section{width:min(var(--max),calc(100% - 40px));margin:34px auto;padding:30px;border:1px solid rgba(198,161,90,.18);border-radius:24px;background:rgba(255,255,255,.012)}
+.role-boundary-section h2{font-size:clamp(28px,4vw,42px);line-height:1.55}
+.role-boundary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.role-boundary-grid article{padding:22px;border-radius:18px;background:#0c0b0a}
+.role-boundary-grid article.allowed{border:1px solid rgba(100,180,125,.28)}
+.role-boundary-grid article.restricted{border:1px solid rgba(190,120,100,.24)}
+.role-boundary-grid strong{font-size:16px}.role-boundary-grid ul{margin:14px 0 0;padding-inline-start:20px;color:#a69e92;line-height:2}
+.role-boundary-note{padding:14px 16px;border-right:3px solid var(--gold);background:rgba(198,161,90,.05);border-radius:12px;color:#aaa398;line-height:1.9}
+@media(max-width:700px){.role-boundary-section{width:calc(100% - 20px);padding:20px}.role-boundary-grid{grid-template-columns:1fr}}
