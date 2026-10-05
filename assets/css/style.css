@@ -583,3 +583,16 @@ input,select,textarea,button{max-width:100%}
   .mobilebar{grid-template-columns:repeat(4,minmax(0,1fr))}
   .mobilebar a{min-width:0;overflow-wrap:anywhere}
 }
+
+/* Golden Talent mobile app dock v1 */
+.gt-mobile-dock{display:none}
+.payment-rail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:24px 0 42px}
+.payment-rail-grid article{min-width:0;padding:22px;border:1px solid #29241d;border-radius:18px;background:#0c0b0a}
+.payment-rail-grid b{color:var(--gold-2);font-size:12px}.payment-rail-grid h2{margin:7px 0;font-size:24px}.payment-rail-grid p{color:#aaa398;line-height:1.8}.payment-rail-grid span{font-size:10px;color:#827a6f}
+@media(max-width:760px){
+  body:has(.gt-mobile-dock){padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+  .gt-mobile-dock{position:fixed;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));left:10px;right:10px;bottom:10px;z-index:80;padding:5px;padding-bottom:calc(5px + env(safe-area-inset-bottom));border:1px solid rgba(198,161,90,.3);border-radius:20px;background:rgba(9,9,9,.94);backdrop-filter:blur(18px);box-shadow:0 18px 50px rgba(0,0,0,.42)}
+  .gt-mobile-dock a{display:flex;min-width:0;min-height:48px;align-items:center;justify-content:center;padding:8px 4px;border-radius:14px;text-decoration:none;color:#c8c1b5;font-size:11px;text-align:center}
+  .gt-mobile-dock a:active,.gt-mobile-dock a:focus-visible{background:rgba(198,161,90,.12);color:#f2d995;outline:1px solid rgba(198,161,90,.45)}
+  .payment-rail-grid{grid-template-columns:1fr}
+}
