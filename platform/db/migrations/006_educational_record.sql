@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS interest_record (
   educational_record_id uuid NOT NULL REFERENCES educational_record(id) ON DELETE CASCADE,
   interest_key text NOT NULL,
   interest_label text NOT NULL,
-  strength self_rating_smallint,
+  strength smallint CHECK (strength IS NULL OR strength BETWEEN 1 AND 5),
   evidence_note text,
   source_type text NOT NULL
     CHECK (source_type IN ('STUDENT_SELF','PARENT','TEACHER','CONSULTANT','ASSESSMENT')),
@@ -88,12 +88,6 @@ CREATE TABLE IF NOT EXISTS interest_record (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Domain type implemented with a table-safe check rather than a custom enum
-ALTER TABLE interest_record
-  DROP COLUMN strength;
-
-ALTER TABLE interest_record
-  ADD COLUMN strength smallint CHECK (strength IS NULL OR strength BETWEEN 1 AND 5);
 
 CREATE TABLE IF NOT EXISTS educational_observation (
   id uuid PRIMARY KEY,
