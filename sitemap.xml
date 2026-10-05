@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 <url><loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/</loc><lastmod>2026-10-05</lastmod></url>
 <url><loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/about/</loc><lastmod>2026-10-05</lastmod></url>
 <url><loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/research/</loc><lastmod>2026-10-05</lastmod></url>
@@ -15,6 +15,6 @@
 <url><loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/journal/founding-collaborators/</loc><lastmod>2026-10-05</lastmod></url>
 <url><loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/fa/akhbar/farakhvan-jhela/</loc><lastmod>2026-10-05</lastmod></url>
 <url><loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/fa/darbare-man/</loc><lastmod>2026-10-05</lastmod></url>
-<url><loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/educational-philosophy/</loc><lastmod>2026-10-05</lastmod></url>
-<url><loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/fa/falsafe-amoozeshi/</loc><lastmod>2026-10-05</lastmod></url>
+<url><loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/educational-philosophy/</loc><lastmod>2026-10-05</lastmod><image:image><image:loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/assets/images/educational-philosophy-javad-rezazadeh.webp</image:loc><image:title>Educational philosophy of Dr. Javad Rezazadeh Yazdeli</image:title></image:image></url>
+<url><loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/fa/falsafe-amoozeshi/</loc><lastmod>2026-10-05</lastmod><image:image><image:loc>https://drrezazadeh65.github.io/drjavadrezazadeh.com/assets/images/educational-philosophy-javad-rezazadeh.webp</image:loc><image:title>فلسفه آموزشی دکتر جواد رضازاده</image:title></image:image></url>
 </urlset>
