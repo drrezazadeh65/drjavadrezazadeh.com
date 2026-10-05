@@ -34,6 +34,8 @@ Status classes:
 
 - `/en/golden-talent/methodology/` — INDEX
 
+- `/en/services/` — INDEX
+
 ## INDEX — Persian
 - `/fa/` — INDEX
 - `/fa/darbare-man/` — INDEX
@@ -64,6 +66,8 @@ Status classes:
 - `/fa/pajouhesh/` — INDEX
 
 - `/fa/golden-talent/ravesh-shenasi/` — INDEX
+
+- `/fa/khadamat/` — INDEX
 
 ## INDEX — News
 - `/fa/akhbar/entekhab-reshteh-1405/` — INDEX
