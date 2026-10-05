@@ -1,0 +1,464 @@
+openapi: 3.1.0
+info:
+  title: Dr. Javad Rezazadeh Yazdeli Ecosystem API
+  version: 1.0.0
+  description: >
+    Provider-neutral API contract for consultation, accounts, assessments,
+    reports, commerce and private educational records. This is a contract
+    document, not a live production endpoint.
+servers:
+  - url: https://app.drjavadrezazadeh.com/api/v1
+    description: Future production
+  - url: https://staging.app.drjavadrezazadeh.com/api/v1
+    description: Future staging
+tags:
+  - name: System
+  - name: Identity
+  - name: Consultation
+  - name: Appointments
+  - name: Commerce
+  - name: Assessments
+  - name: Reports
+  - name: Files
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      responses:
+        "200":
+          description: Service healthy
+  /me:
+    get:
+      tags: [Identity]
+      summary: Return the authenticated user profile and roles
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentUser"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /consultation-requests:
+    post:
+      tags: [Consultation]
+      summary: Create an initial consultation request
+      description: >
+        Accepts only the minimum information required for triage. Sensitive
+        documents are not uploaded at this stage.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsultationRequestCreate"
+      responses:
+        "201":
+          description: Request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsultationRequestReceipt"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /consultation-requests/{requestId}:
+    get:
+      tags: [Consultation]
+      summary: Read a consultation request visible to the authenticated user
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: Consultation request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsultationRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /appointments:
+    post:
+      tags: [Appointments]
+      summary: Create a booking for an eligible triaged request
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentCreate"
+      responses:
+        "201":
+          description: Appointment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+        "409":
+          description: Slot conflict or request not eligible
+  /payment-intents:
+    post:
+      tags: [Commerce]
+      summary: Create a provider-neutral payment intent
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentIntentCreate"
+      responses:
+        "201":
+          description: Payment intent created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentIntent"
+  /payments/callback/{provider}:
+    post:
+      tags: [Commerce]
+      summary: Receive and verify a gateway callback/webhook
+      description: >
+        The server verifies the provider signature/reference and never trusts
+        a browser redirect as proof of payment.
+      security: []
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Callback accepted
+        "400":
+          description: Invalid callback
+  /assessment-sessions:
+    post:
+      tags: [Assessments]
+      summary: Start a versioned assessment session
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssessmentSessionCreate"
+      responses:
+        "201":
+          description: Assessment session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssessmentSession"
+  /assessment-sessions/{sessionId}/responses:
+    patch:
+      tags: [Assessments]
+      summary: Autosave one or more assessment responses
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [responses]
+              properties:
+                responses:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/AssessmentResponseInput"
+      responses:
+        "200":
+          description: Responses saved
+  /assessment-sessions/{sessionId}/submit:
+    post:
+      tags: [Assessments]
+      summary: Submit a completed assessment session
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "202":
+          description: Session accepted for scoring/interpretation
+  /reports/{reportId}:
+    get:
+      tags: [Reports]
+      summary: Read a private report
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Report metadata/content
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /files/presign-upload:
+    post:
+      tags: [Files]
+      summary: Create a short-lived private upload instruction
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [purpose, fileName, mediaType, sizeBytes]
+              properties:
+                purpose:
+                  type: string
+                  enum: [REPORT_CARD, CERTIFICATE, CONSULTATION_DOCUMENT, OTHER_APPROVED]
+                fileName:
+                  type: string
+                  maxLength: 180
+                mediaType:
+                  type: string
+                sizeBytes:
+                  type: integer
+                  minimum: 1
+      responses:
+        "201":
+          description: Short-lived upload instruction
+components:
+  securitySchemes:
+    sessionAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque-session-or-jwt
+  parameters:
+    RequestId:
+      name: requestId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  responses:
+    Unauthorized:
+      description: Authentication required
+    Forbidden:
+      description: Authenticated but not authorised for this resource
+    NotFound:
+      description: Resource not found
+    ValidationError:
+      description: Validation failed
+    RateLimited:
+      description: Too many requests
+  schemas:
+    CurrentUser:
+      type: object
+      required: [id, roles]
+      properties:
+        id:
+          type: string
+          format: uuid
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [STUDENT, PARENT, TEACHER, CONSULTANT, RESEARCHER, EDITOR, ADMIN, SUPER_ADMIN]
+    ConsultationRequestCreate:
+      type: object
+      additionalProperties: false
+      required:
+        - serviceType
+        - educationStage
+        - primaryQuestion
+        - preferredLanguage
+        - contactEmail
+        - privacyAccepted
+      properties:
+        serviceType:
+          type: string
+          enum:
+            - ACADEMIC_COUNSELLING
+            - FIELD_SELECTION
+            - ENTRANCE_EXAM
+            - TALENT_IDENTIFICATION
+            - REPORT_CARD_ANALYSIS
+            - PARENT_COUNSELLING
+        educationStage:
+          type: string
+          maxLength: 80
+        primaryQuestion:
+          type: string
+          minLength: 20
+          maxLength: 2500
+        relevantDeadline:
+          type: string
+          format: date
+        preferredLanguage:
+          type: string
+          enum: [fa, en]
+        contactEmail:
+          type: string
+          format: email
+        contactName:
+          type: string
+          maxLength: 120
+        documentAvailability:
+          type: array
+          items:
+            type: string
+            enum: [REPORT_CARD, EXAM_RESULT, FIELD_LIST, PRIOR_ASSESSMENT, OTHER]
+        privacyAccepted:
+          type: boolean
+          const: true
+    ConsultationRequestReceipt:
+      type: object
+      required: [id, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [SUBMITTED]
+        createdAt:
+          type: string
+          format: date-time
+    ConsultationRequest:
+      allOf:
+        - $ref: "#/components/schemas/ConsultationRequestReceipt"
+        - type: object
+          properties:
+            serviceType:
+              type: string
+            educationStage:
+              type: string
+            primaryQuestion:
+              type: string
+    AppointmentCreate:
+      type: object
+      required: [consultationRequestId, startsAt, timezone]
+      properties:
+        consultationRequestId:
+          type: string
+          format: uuid
+        startsAt:
+          type: string
+          format: date-time
+        timezone:
+          type: string
+          example: Asia/Tehran
+    Appointment:
+      type: object
+      required: [id, status, startsAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [BOOKED, AWAITING_PAYMENT, CONFIRMED, CANCELLED, COMPLETED, NO_SHOW]
+        startsAt:
+          type: string
+          format: date-time
+    PaymentIntentCreate:
+      type: object
+      required: [orderId, amountMinor, currency]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        amountMinor:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+    PaymentIntent:
+      type: object
+      required: [id, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [CREATED, PENDING, PAID, FAILED, CANCELLED, REFUNDED]
+        redirectUrl:
+          type: string
+          format: uri
+    AssessmentSessionCreate:
+      type: object
+      required: [assessmentVersionId]
+      properties:
+        assessmentVersionId:
+          type: string
+          format: uuid
+        subjectProfileId:
+          type: string
+          format: uuid
+    AssessmentSession:
+      type: object
+      required: [id, assessmentVersionId, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        assessmentVersionId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [IN_PROGRESS, SUBMITTED, SCORING, COMPLETE, CANCELLED]
+    AssessmentResponseInput:
+      type: object
+      required: [itemId, value]
+      properties:
+        itemId:
+          type: string
+          format: uuid
+        value: {}
+        clientUpdatedAt:
+          type: string
+          format: date-time
