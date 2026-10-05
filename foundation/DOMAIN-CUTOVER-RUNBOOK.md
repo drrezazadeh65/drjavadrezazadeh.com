@@ -9,8 +9,8 @@ This runbook is intentionally prepared before domain purchase. Do not run the wr
 2. Decide the canonical host: apex `drjavadrezazadeh.com` is preferred; redirect `www` to apex with 301.
 3. Configure HTTPS and verify certificate renewal.
 4. Configure hosting/CDN and a staging preview.
-5. Configure production security headers at the hosting/CDN layer.
-6. Verify that private/authenticated routes are not exposed as public static assets.
+5. Deploy and verify the repository `_headers` policy on Cloudflare Pages: global clickjacking/MIME/referrer/permissions protections, `noindex` on Pages preview hosts, and `no-store` + `X-Robots-Tag: noindex` on private/transactional shells.
+6. Verify that private/authenticated routes are not exposed as public static assets. Remember that `_headers` does not apply to future Pages Functions; server-generated responses must set their own security/cache headers.
 7. Keep payment credentials and backend secrets outside Git.
 
 ## Dry run
@@ -44,6 +44,10 @@ The cutover changes canonical URLs, hreflang targets, structured-data IDs/URLs, 
 - Analytics configured with consent/privacy review.
 - Core Web Vitals measured on real production URLs.
 - Payment sandbox tested before live merchant credentials are enabled.
+- Cloudflare preview (`*.pages.dev`) responses carry `X-Robots-Tag: noindex`.
+- Private/account/assessment/checkout routes carry response-level `Cache-Control: no-store` and `X-Robots-Tag: noindex`.
+- Add HSTS only after production HTTPS and redirect behaviour are stable; do not preload prematurely.
+- Introduce an enforcing Content-Security-Policy only after inline-script/style dependencies are audited and tested.
 
 ## Payment gate
 Do not enable live payment solely from browser code. The production backend must create payment intents/orders and verify provider callbacks server-side before granting entitlements.
