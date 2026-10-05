@@ -140,3 +140,30 @@ linear-gradient(145deg,rgba(255,255,255,.025),rgba(255,255,255,.006));box-shadow
 .article-points{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:25px 0}.article-points>div{padding:22px;border:1px solid #252119;border-radius:18px;background:#0d0c0a}.article-points h3{font-size:20px;margin:0 0 9px}.article-points p{font-size:15px!important;margin:0!important;color:#aaa398!important}
 @media(max-width:1000px){.service-hero{grid-template-columns:1fr;padding:26px}.service-grid{grid-template-columns:1fr 1fr}.principle-grid{grid-template-columns:1fr 1fr}.process-grid{grid-template-columns:repeat(3,1fr)}.book-bridge{grid-template-columns:1fr}}
 @media(max-width:650px){.service-shell{width:calc(100% - 22px);padding-top:12px}.service-hero{padding:16px;border-radius:26px;gap:20px}.service-hero h1{font-size:39px}.service-grid,.principle-grid,.outcome-grid,.article-points{grid-template-columns:1fr}.process-grid{grid-template-columns:1fr 1fr}.service-section{padding:45px 4px}.service-section>p{font-size:17px}.book-bridge{padding:20px}.editorial-figure{border-radius:18px}}
+
+/* Font integrity fix v6 — remove corrupted external English glyph rendering */
+body:not(.rtl){font-family:Arial,"Helvetica Neue",Helvetica,sans-serif!important}
+body:not(.rtl) .site-header nav,
+body:not(.rtl) .eyebrow,
+body:not(.rtl) .kicker,
+body:not(.rtl) .tag,
+body:not(.rtl) .lead,
+body:not(.rtl) .intro,
+body:not(.rtl) .button,
+body:not(.rtl) .note,
+body:not(.rtl) footer,
+body:not(.rtl) .brand small,
+body:not(.rtl) .article-shell p,
+body:not(.rtl) .article-shell a,
+body:not(.rtl) .source-note,
+body:not(.rtl) figcaption{font-family:Arial,"Helvetica Neue",Helvetica,sans-serif!important}
+body:not(.rtl) .brand,
+body:not(.rtl) .article-hero h1,
+body:not(.rtl) .article-shell h2,
+body:not(.rtl) .hero h1,
+body:not(.rtl) .section h2,
+body:not(.rtl) .grid h3,
+body:not(.rtl) .profile b,
+body:not(.rtl) .hero-line{font-family:Georgia,"Times New Roman",serif!important}
+.rtl,.rtl .site-header nav,.rtl .brand,.rtl .brand small,.rtl .eyebrow,.rtl .kicker,.rtl .tag,.rtl .lead,.rtl .intro,.rtl .button,.rtl .note,.rtl footer,.rtl .article-shell p,.rtl .article-shell h1,.rtl .article-shell h2,.rtl figcaption{font-family:Tahoma,Arial,sans-serif!important}
+.philosophy-visual img{background:#0c1116}
