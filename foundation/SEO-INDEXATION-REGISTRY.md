@@ -108,9 +108,7 @@ Status classes:
 - `/en/search/`, `/fa/jostojo/` — NOINDEX internal search
 
 ## PRIVATE — mandatory firewall
-- Humanability
-- TESTLY
-- Teacher Humanization
+- protected pre-publication research projects
 - unpublished manuscripts
 - unreleased theoretical/IP material
 - individual student results and counselling records
