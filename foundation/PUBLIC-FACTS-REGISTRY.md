@@ -34,3 +34,18 @@ This is not a private biography database. Do not add family, health, identity-do
 
 ## Public/private boundary
 This registry must never be used to authorise publication of Humanability, TESTLY, Teacher Humanization, unpublished manuscripts, private student data or unreleased intellectual property.
+
+
+## Verification-required public claims
+The following claims may appear in historical/public biography text, but they are **not frozen as current public facts** until an independent public record or primary document is attached/verified:
+
+- Current institutional teaching affiliation at Tehran University of Medical Sciences.
+- Exact total years of professional/teaching experience beyond the conservative phrase **15+ years**.
+- Final bibliographic placement/publication status of the Brian Tomlinson/Douglas Bell edited-volume chapter with Bloomsbury.
+- Time-sensitive future/confirmed event participation after the event date passes, including MATSDA 30 October 2026.
+
+### Wording rule
+Until verified:
+- Prefer “teaching experience includes …” over “I currently teach at …”.
+- Keep accepted/forthcoming work explicitly labelled **accepted / placement pending / in preparation** as applicable.
+- Do not convert an invitation or scheduled event into a completed participation claim until it has occurred and can be documented.
