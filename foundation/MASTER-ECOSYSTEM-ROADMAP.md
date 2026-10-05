@@ -169,7 +169,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SERV-006 — DONE — Parent-consulting service section.**
 - [x] **SERV-007 — DONE — Seven-step consulting process published.**
 - [x] **SERV-008 — DONE — Consulting FAQ and Service structured data on the main hub.**
-- [ ] **SERV-009 — PLANNED — Secure intake questionnaire.**
+- [ ] **SERV-009 — IN PROGRESS — Central noindex intake gateway and v1 API contract are implemented; secure server-side submission is pending backend activation.**
 - [ ] **SERV-010 — PLANNED — Triage: service type, urgency, documents needed and advisor assignment.**
 - [ ] **SERV-011 — PLANNED — Appointment calendar and timezone-aware scheduling.**
 - [ ] **SERV-012 — PLANNED — Consultation payment before appointment where required.**
@@ -263,7 +263,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 # 12. CRM, booking and communication
 
 - [ ] **CRM-001 — PLANNED — Contact/lead record with source attribution.**
-- [ ] **CRM-002 — PLANNED — Consultation request → triage → booking → payment → session → follow-up pipeline.**
+- [ ] **CRM-002 — IN PROGRESS — Consultation pipeline, state model, noindex intake gateway and API contract are defined; production workflow awaits backend, booking and payment services.**
 - [ ] **CRM-003 — PLANNED — Transactional email templates.**
 - [ ] **CRM-004 — PLANNED — Appointment reminders and rescheduling.**
 - [ ] **CRM-005 — PLANNED — Secure client messaging distinct from general support.**
