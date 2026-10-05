@@ -166,3 +166,34 @@ At that point:
 7. create domain email;
 8. formalize reviewer/editorial invitations;
 9. prepare the founding issue pipeline.
+
+
+## 13. Founder-authored manuscripts and editorial independence
+
+The journal must not be used as a vehicle for publishing the entire backlog of the Editor-in-Chief's own research.
+
+A manuscript authored or co-authored by the Editor-in-Chief may be considered only under an independent process:
+- the Editor-in-Chief has no role in reviewer selection or the editorial decision;
+- an independent handling editor is assigned;
+- at least two external reviewers are used for research articles;
+- the conflict of interest is disclosed;
+- the published article includes a provenance/handling statement explaining the independent process.
+
+The operating endogeny target must remain below the recognised 25% ceiling for research papers authored by editors, editorial-board members or reviewers, and should be lower where practicable.
+
+The founding issue must contain genuine external scholarship. It must not consist mainly or entirely of the Editor-in-Chief's own research.
+
+## 14. Publication frequency
+
+Quality, regularity and editorial independence take priority over high frequency.
+
+Founding recommendation:
+- begin conservatively at two issues per year, or use a carefully governed continuous-publication model;
+- move to quarterly only after manuscript volume, external-author diversity, reviewer capacity and production reliability are demonstrated;
+- do not adopt a bimonthly schedule in the founding year merely to accommodate an internal manuscript backlog.
+
+## 15. DOI legal constraint — current position
+
+Crossref currently states that it cannot accept direct membership applications from organisations based in Iran because of sanctions compliance. Therefore direct Crossref membership is not a current route for an Iran-based Rezazadeh Foundation Press.
+
+The journal must pursue only a lawful DOI route through an eligible Registration Agency or sponsor, including investigation of the mEDRA/Sinaweb route previously identified. No false address, nominal foreign entity or other misrepresentation is permitted.
