@@ -726,3 +726,13 @@ a,button{-webkit-tap-highlight-color:rgba(198,161,90,.12)}
   .student-overview,.appointment-summary{grid-template-columns:1fr}
   .gt-mobile-dock a{font-size:10px;padding-inline:2px}
 }
+
+/* Account quick actions v1 */
+.account-quick{margin:18px 0 24px}
+.account-quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.account-quick-grid a{min-width:0;display:flex;flex-direction:column;justify-content:center;min-height:94px;padding:16px;border:1px solid rgba(198,161,90,.18);border-radius:16px;background:linear-gradient(145deg,rgba(198,161,90,.045),rgba(255,255,255,.006));text-decoration:none;color:inherit}
+.account-quick-grid b{color:#ead49a;font-size:14px;line-height:1.4}
+.account-quick-grid span{margin-top:6px;color:#8f877b;font-size:10px;line-height:1.55}
+.account-quick-grid a:focus-visible,.account-quick-grid a:active{outline:1px solid rgba(198,161,90,.48);background:rgba(198,161,90,.09)}
+@media(max-width:760px){.account-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.account-quick-grid a{min-height:82px;padding:14px}}
+@media(max-width:330px){.account-quick-grid{grid-template-columns:1fr}}
