@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="t d">
+<title id="t">Golden Talent multi-source developmental framework</title>
+<desc id="d">A conceptual visual of student, parent, teacher, academic evidence, assessment and context converging into an evolving talent profile and Golden Path.</desc>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#05090f"/><stop offset=".58" stop-color="#0a1d29"/><stop offset="1" stop-color="#1c1308"/></linearGradient>
+<radialGradient id="glow"><stop stop-color="#f3dda2" stop-opacity=".82"/><stop offset=".42" stop-color="#c99747" stop-opacity=".28"/><stop offset="1" stop-color="#c99747" stop-opacity="0"/></radialGradient>
+<linearGradient id="path" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#8e6630"/><stop offset=".45" stop-color="#d1a957"/><stop offset="1" stop-color="#f4dfa4"/></linearGradient>
+<filter id="s"><feDropShadow dy="14" stdDeviation="18" flood-opacity=".4"/></filter>
+</defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<circle cx="800" cy="420" r="320" fill="url(#glow)"/>
+<g stroke="#b98d48" stroke-width="5" fill="#0f1920" filter="url(#s)">
+  <circle cx="280" cy="190" r="72"/><circle cx="280" cy="450" r="72"/><circle cx="280" cy="710" r="72"/>
+  <circle cx="1320" cy="190" r="72"/><circle cx="1320" cy="450" r="72"/><circle cx="1320" cy="710" r="72"/>
+</g>
+<g fill="#d9b467">
+  <circle cx="280" cy="190" r="20"/><circle cx="280" cy="450" r="20"/><circle cx="280" cy="710" r="20"/>
+  <circle cx="1320" cy="190" r="20"/><circle cx="1320" cy="450" r="20"/><circle cx="1320" cy="710" r="20"/>
+</g>
+<g stroke="#d1a957" stroke-width="4" opacity=".7" fill="none">
+  <path d="M352 190C520 205 585 285 700 365"/>
+  <path d="M352 450C525 450 600 430 700 420"/>
+  <path d="M352 710C520 665 610 555 700 470"/>
+  <path d="M1248 190C1080 205 1015 285 900 365"/>
+  <path d="M1248 450C1075 450 1000 430 900 420"/>
+  <path d="M1248 710C1080 665 990 555 900 470"/>
+</g>
+<g filter="url(#s)">
+  <circle cx="800" cy="420" r="150" fill="#101a21" stroke="#e0bd72" stroke-width="9"/>
+  <circle cx="800" cy="420" r="98" fill="#17252e" stroke="#8b734c" stroke-width="4"/>
+  <path d="M800 330v180M710 420h180" stroke="#e3c579" stroke-width="5" opacity=".7"/>
+  <circle cx="800" cy="420" r="28" fill="#efd99b"/>
+</g>
+<path d="M800 570C805 650 870 700 980 735s220 28 360 0" fill="none" stroke="url(#path)" stroke-width="34" stroke-linecap="round" filter="url(#s)"/>
+<path d="M800 570C805 650 870 700 980 735s220 28 360 0" fill="none" stroke="#fff0bd" stroke-width="4" stroke-dasharray="18 28" opacity=".7"/>
+<g fill="#f0d995"><circle cx="955" cy="730" r="10"/><circle cx="1120" cy="755" r="10"/><circle cx="1285" cy="744" r="10"/></g>
+<g stroke="#c4994c" stroke-width="5" fill="none" opacity=".6">
+ <path d="M210 190h140M210 450h140M210 710h140M1250 190h140M1250 450h140M1250 710h140"/>
+</g>
+<rect x="1.5" y="1.5" width="1597" height="897" rx="28" fill="none" stroke="#d0a859" stroke-opacity=".24" stroke-width="3"/>
+</svg>
