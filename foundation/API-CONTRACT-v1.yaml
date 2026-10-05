@@ -170,6 +170,33 @@ paths:
                 $ref: "#/components/schemas/CurrentUser"
         "401":
           $ref: "#/components/responses/Unauthorized"
+    patch:
+      tags: [Identity]
+      summary: Update low-risk account profile preferences
+      description: >
+        Updates display/profile preferences only. Email, credentials, roles and
+        verified relationships require separate higher-security workflows.
+        countryCode is contextual metadata and is never proof of residence,
+        identity, tax status or payment-provider eligibility.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+      responses:
+        "200":
+          description: Updated current user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentUser"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /consultation-requests:
     post:
       tags: [Consultation]
@@ -571,11 +598,40 @@ components:
         id:
           type: string
           format: uuid
+        displayName:
+          type: [string, "null"]
+          maxLength: 120
+        preferredLanguage:
+          type: string
+          enum: [fa, en]
+        timezone:
+          type: [string, "null"]
+          maxLength: 80
+        countryCode:
+          type: [string, "null"]
+          pattern: "^[A-Z]{2}$"
         roles:
           type: array
           items:
             type: string
             enum: [STUDENT, PARENT, TEACHER, CONSULTANT, RESEARCHER, EDITOR, ADMIN, SUPER_ADMIN]
+    ProfileUpdate:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        displayName:
+          type: [string, "null"]
+          maxLength: 120
+        preferredLanguage:
+          type: string
+          enum: [fa, en]
+        timezone:
+          type: [string, "null"]
+          maxLength: 80
+        countryCode:
+          type: [string, "null"]
+          pattern: "^[A-Z]{2}$"
     OnboardingState:
       type: object
       required: [state, nextActions]
