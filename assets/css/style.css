@@ -688,3 +688,15 @@ a,button{-webkit-tap-highlight-color:rgba(198,161,90,.12)}
 .communication-pref-grid label{min-width:0;padding:14px;border:1px solid #29241d;border-radius:13px;background:#0c0b0a;color:#aaa398}
 @media(max-width:800px){.appointment-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.inbox-layout{grid-template-columns:1fr}}
 @media(max-width:600px){.appointment-summary{grid-template-columns:1fr}.appointment-card{grid-template-columns:1fr}.appointment-card .button{width:100%}.communication-pref-grid{grid-template-columns:1fr}}
+
+/* Progressive onboarding v1 */
+.onboarding-list{display:grid;gap:10px;margin:24px 0 36px}
+.onboarding-list article{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:16px;align-items:center;padding:18px 20px;border:1px solid #29241d;border-radius:17px;background:#0c0b0a}
+.onboarding-list article>span{display:grid;place-items:center;width:44px;height:44px;border:1px solid rgba(198,161,90,.28);border-radius:13px;color:var(--gold-2);font-weight:800}
+.onboarding-list h2{margin:0 0 5px;font-size:18px;line-height:1.45}
+.onboarding-list p{margin:0;color:#aaa398;line-height:1.75}
+.onboarding-list article>b{font-size:10px;color:#8f877b;text-align:end}
+@media(max-width:620px){
+  .onboarding-list article{grid-template-columns:46px minmax(0,1fr);padding:16px}
+  .onboarding-list article>b{grid-column:2;text-align:start}
+}
