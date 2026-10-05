@@ -7,6 +7,18 @@ const isFa=rawPath.startsWith(base+'fa/');
 const isJournal=rawPath.startsWith(base+'journal/');
 const isPrivateApp=rawPath.startsWith(base+'app/')||rawPath.startsWith(base+'fa/app/');
 const u=p=>base+p.replace(/^\//,'');
+function ensureSkipLink(){
+ const main=q('main');
+ if(!main)return;
+ if(!main.id)main.id='main';
+ if(!q('.skip')){
+   const a=document.createElement('a');
+   a.className='skip';a.href='#'+main.id;
+   a.textContent=isFa?'رفتن به محتوای اصلی':'Skip to content';
+   document.body.insertBefore(a,document.body.firstChild);
+ }
+}
+ensureSkipLink();
 const icon=n=>{
  const d={
   home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M9 20v-6h6v6"/>',
