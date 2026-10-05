@@ -24,8 +24,8 @@ const routeFor=file=>{
   return '/'+rel;
 };
 const getAttr=(tag,name)=>{
-  const m=tag.match(new RegExp('\\b'+name+'\\s*=\\s*["\']([^"\']*)["\']','i'));
-  return m?m[1]:null;
+  const m=tag.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`,'i'));
+  return m?m[2]:null;
 };
 const strip=(s='')=>s.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 const existsTarget=(file,href)=>{
