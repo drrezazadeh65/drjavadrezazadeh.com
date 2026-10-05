@@ -380,3 +380,27 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// GLOBAL PUBLIC FACT GUARDRAILS — prevent known obsolete degree claims on any indexable page.
+const globallyForbiddenPublicClaims=[
+  'PhD in English Language Education',
+  'Doctoral studies · Arak University</span>',
+  'دکتری آموزش زبان انگلیسی',
+  'تحصیلات دکتری · دانشگاه اراک</span>'
+];
+for(const file of htmlFiles){
+  const html=fs.readFileSync(file,'utf8');
+  const route=routeFor(file);
+  const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+  const rc=getAttr(robots,'content')||'';
+  if(/\bnoindex\b/i.test(rc)) continue;
+  for(const claim of globallyForbiddenPublicClaims){
+    if(html.includes(claim)) failures.push(route+': obsolete/conflicting degree claim detected: '+claim);
+  }
+}
+if(failures.length){
+  console.error('\nGlobal public-fact failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
