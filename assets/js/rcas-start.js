@@ -10,7 +10,7 @@ const groups=[
 {key:"G",title:"مسیر طلایی و حمایت",scale:"C",items:["برای یکی از توانایی‌های مهمی که به خودم نسبت می‌دهم، شاهد واقعی دارم.","دست‌کم یکی از مسیرهای موردعلاقه‌ام را با تجربه واقعی یا اطلاعات معتبر بررسی کرده‌ام.","برای یک مشکل تحصیلی مهم، می‌دانم از چه فردی و با چه سؤال مشخصی کمک بخواهم.","حمایتی که دریافت می‌کنم به من کمک می‌کند دفعه بعد بخش بیشتری از کار را خودم انجام دهم."]}
 ];
 const scaleLabels={B:["۰ · هرگز","۱ · به‌ندرت","۲ · گاهی","۳ · اغلب","۴ · تقریباً همیشه","NA"],C:["۰ · هنوز نمی‌توانم/روشن نیست","۱ · کم","۲ · تاحدی","۳ · خوب","۴ · روشن و همراه با شاهد","NA"]};
-const routeMap={A:["RCAS-D1","یادگیری و خودتنظیمی"],B:["RCAS-D1","یادگیری و خودتنظیمی"],C:["RCAS-D1","یادگیری و خودتنظیمی"],D:["RCAS-D1","یادگیری و خودتنظیمی"],E:["RCAS-D2","خودکارآمدی، فشار، انرژی و بازگشت"],F:["RCAS-D3","خودتنظیمی دیجیتال و AI"],G:["RCAS-D5","Golden Path؛ استعداد، رشته و مسیر آینده"]};
+const routeMap={D1:["RCAS-D1","Learning & Self-Regulation"],D2:["RCAS-D2","Self-Efficacy, Wellbeing & Recovery"],D3:["RCAS-D3","Digital & AI Self-Regulation"],D4:["RCAS-D4","Context, Access & Support Ecology"],D5:["RCAS-D5","Golden Path"],D6:["RCAS-D6","Critical Thinking & Decision Quality"]};
 const access=document.getElementById("rcasAccess");
 accessItems.forEach((x,i)=>{access.insertAdjacentHTML("beforeend",`<div class="rcas-access-row"><span>${x}</span><select name="access${i}"><option value="">انتخاب</option><option>در دسترس</option><option>محدود</option><option>فعلاً در دسترس نیست</option><option>نیاز ندارم</option></select></div>`)});
 const core=document.getElementById("rcasCore");
@@ -24,7 +24,7 @@ document.addEventListener("click",e=>{const n=e.target.dataset.next,b=e.target.d
 document.getElementById("showRoute").addEventListener("click",()=>{
  const d=document.getElementById("priorityDomain").value,res=document.getElementById("rcasResult");
  if(!d){res.hidden=false;res.innerHTML="<h3>یک حوزه اولویت را انتخاب کن.</h3><p>Routing در RCAS بدون انتخاب حوزه اولویت، مسیر عمیق‌تری تحمیل نمی‌کند.</p>";return}
- let code=routeMap[d]; if(d==="G"){code=["RCAS-D5","Golden Path؛ استعداد، رشته و مسیر آینده"]}
+ const code=routeMap[d]
  const why=document.getElementById("priorityWhy").value.trim();
  res.hidden=false;res.innerHTML=`<p class="kicker">مسیر پیشنهادی</p><h3>${code[0]} · ${code[1]}</h3><p>این پیشنهاد «تشخیص» یا حکم درباره تو نیست. فقط نشان می‌دهد در این مرحله، جمع‌آوری شواهد بیشتر در این حوزه می‌تواند تصمیم بعدی را بهتر کند.</p>${why?`<div class="rcas-user-note"><strong>دلیل انتخاب تو:</strong> ${why.replace(/[<>&]/g,"")}</div>`:""}<div class="actions"><a class="button primary" href="../">مشاهده مرحله پولی بعدی</a><a class="button" href="../../../danesh-amoozan/">بازگشت به پروفایل دانش‌آموز</a></div>`;
 });
