@@ -269,3 +269,20 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// NEWS SITEMAP TAXONOMY — evergreen guides must never leak back into news.
+const newsMapFile=path.join(root,'sitemap-news.xml');
+if(fs.existsSync(newsMapFile)){
+  const newsXml=fs.readFileSync(newsMapFile,'utf8');
+  for(const m of newsXml.matchAll(/<loc>([^<]+)<\/loc>/g)){
+    const url=m[1].trim();
+    if(url.includes('/fa/rahnamaha/')) failures.push('/sitemap-news.xml: evergreen guide found in news sitemap '+url);
+    if(!url.includes('/fa/akhbar/')) warnings.push('/sitemap-news.xml: review non-news URL '+url);
+  }
+}
+if(failures.length){
+  console.error('\nNews taxonomy failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
