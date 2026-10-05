@@ -173,7 +173,8 @@ qa('.app-dock a').forEach(a=>{
 (function(){
   if(!('serviceWorker' in navigator)) return;
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/drjavadrezazadeh.com/sw.js').catch(()=>{});
+    const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
+    navigator.serviceWorker.register(base+'sw.js').catch(()=>{});
   });
 
   let deferredPrompt=null;
@@ -197,4 +198,24 @@ qa('.app-dock a').forEach(a=>{
       wrap.remove();
     });
   });
+})();
+
+// PWA HEAD METADATA v1
+(function(){
+  const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
+  if(!document.querySelector('link[rel="manifest"]')){
+    const l=document.createElement('link');
+    l.rel='manifest'; l.href=base+'site.webmanifest';
+    document.head.appendChild(l);
+  }
+  const metas=[
+    ['apple-mobile-web-app-capable','yes'],
+    ['apple-mobile-web-app-status-bar-style','black-translucent'],
+    ['mobile-web-app-capable','yes']
+  ];
+  for(const [name,content] of metas){
+    if(!document.querySelector('meta[name="'+name+'"]')){
+      const m=document.createElement('meta');m.name=name;m.content=content;document.head.appendChild(m);
+    }
+  }
 })();
