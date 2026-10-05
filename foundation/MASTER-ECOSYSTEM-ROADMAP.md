@@ -118,7 +118,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **UX-009 — DONE — Formal design-system baseline documented with semantic tokens, typography, component families, image rules, interaction rules, mobile behaviour and design governance.**
 - [ ] **UX-010 — IN PROGRESS — Public UI now uses stable system-safe fallbacks with no third-party font requests; final self-hosted Persian/English font package remains pending font-integrity QA.**
 - [ ] **UX-011 — PLANNED — Mobile UX QA on small/medium/large devices and landscape orientation.**
-- [ ] **UX-012 — IN PROGRESS — PWA manifest, service worker, offline shell, install prompts, cache-version governance and private-route cache bypass are implemented; explicit 192×192 / 512×512 production icons, maskable-icon QA and live installability testing remain pending.**
+- [ ] **UX-012 — IN PROGRESS — PWA manifest, service worker, offline shell, install prompts, cache-version governance, private-route cache bypass, network-first code delivery and exact 192×192 / 512×512 launcher icons are implemented; maskable-icon validation and live installability testing remain pending.**
 - [ ] **UX-013 — IN PROGRESS — Accessible interaction baseline now includes visible focus states, minimum touch targets and existing reduced-motion support; full keyboard/screen-reader/live-device QA remains pending.**
 - [ ] **UX-014 — PLANNED — Native app considered only after PWA usage justifies it.**
 
