@@ -430,3 +430,24 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// JHELA ENTITY NAME CONSISTENCY — freeze the public journal title used across journal pages.
+const jhelaWrongVariants=[
+  'Journal of Human-centred Education & Language Advancement',
+  'Journal of Human-Centred Education & Language Advancement',
+  'Journal of Human-Centred Education, Language and Assessment'
+];
+for(const file of htmlFiles){
+  const route=routeFor(file);
+  if(!route.startsWith('/journal/')) continue;
+  const html=fs.readFileSync(file,'utf8');
+  for(const wrong of jhelaWrongVariants){
+    if(html.includes(wrong)) failures.push(route+': inconsistent JHELA title variant: '+wrong);
+  }
+}
+if(failures.length){
+  console.error('\nJHELA entity-name failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
