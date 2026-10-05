@@ -98,7 +98,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **INFRA-008 — WAITING — DNS cutover and HTTPS for permanent domain.**
 - [ ] **INFRA-009 — IN PROGRESS — One-time permanent-domain migration is engineered but not executed.** `scripts/domain-cutover.mjs` and the production cutover runbook cover canonical/OG/schema/sitemap/robots/security.txt migration; execution remains WAITING on domain/DNS/HTTPS.
 - [ ] **INFRA-010 — IN PROGRESS — Production platform architecture and logical data model are frozen; lawful/available hosting, auth, database, storage and email providers still need to be selected and provisioned.**
-- [ ] **INFRA-011 — PLANNED — Staging environment kept noindex.**
+- [ ] **INFRA-011 — IN PROGRESS — Staging/preview policy is frozen: Cloudflare preview hosts are response-level noindex, private routes remain no-store, synthetic data is mandatory, production secrets/payments are excluded, and release promotion is gated by CI; live Cloudflare staging/branch-preview verification remains pending hosting cutover.**
 - [ ] **INFRA-012 — PLANNED — Production database, private object storage and backup infrastructure.**
 - [ ] **INFRA-013 — PLANNED — Transactional email/domain mail infrastructure.**
 - [ ] **INFRA-014 — IN PROGRESS — Cloudflare Pages default ETag/revalidation behaviour is frozen as the public baseline while assets remain non-fingerprinted; private routes use explicit no-store, Service Worker code delivery is network-first, and long immutable caching is prohibited until a content-hashed asset pipeline exists. Production header/cache-rule verification remains pending cutover.**
