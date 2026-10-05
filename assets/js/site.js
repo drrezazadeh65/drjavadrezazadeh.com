@@ -318,3 +318,35 @@ qa('.app-dock a').forEach(a=>{
   window.addEventListener('online',()=>show(true));
   window.addEventListener('offline',()=>show(false));
 })();
+
+// APP STATE CONTROLLER v1
+(function(){
+  let live=document.querySelector('[data-app-live]');
+  if(!live){
+    live=document.createElement('div');
+    live.setAttribute('data-app-live','');
+    live.setAttribute('role','status');
+    live.setAttribute('aria-live','polite');
+    live.setAttribute('aria-atomic','true');
+    live.style.cssText='position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0';
+    document.body.appendChild(live);
+  }
+  const allowed=new Set(['loading','empty','ready','error','offline','unauthenticated','forbidden','stale','preview']);
+  window.JRAppState={
+    set(target,state,message){
+      const el=typeof target==='string'?document.querySelector(target):target;
+      if(!el||!allowed.has(state)) return false;
+      el.dataset.uiState=state;
+      el.setAttribute('aria-busy',state==='loading'?'true':'false');
+      if(message){
+        live.textContent='';
+        requestAnimationFrame(()=>{live.textContent=String(message)});
+      }
+      return true;
+    },
+    get(target){
+      const el=typeof target==='string'?document.querySelector(target):target;
+      return el?.dataset?.uiState||null;
+    }
+  };
+})();
