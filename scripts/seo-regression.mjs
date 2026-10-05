@@ -685,6 +685,7 @@ const requiredPairs=[
   ['/en/teaching/','/fa/tadris/'],
   ['/en/academic-engagements/','/fa/faaliat-haye-elmi/'],
   ['/en/golden-talent/','/fa/golden-talent/'],
+  ['/en/golden-talent/methodology/','/fa/golden-talent/ravesh-shenasi/'],
   ['/en/educational-philosophy/','/fa/falsafe-amoozeshi/'],
   ['/en/language-education/','/fa/amoozesh-zaban/'],
   ['/en/contact/','/fa/tamas/']
