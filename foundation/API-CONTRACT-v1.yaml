@@ -17,6 +17,7 @@ tags:
   - name: Privacy
   - name: Consultation
   - name: Appointments
+  - name: Messaging
   - name: Commerce
   - name: Assessments
   - name: Reports
@@ -216,6 +217,14 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
   /appointments:
+    get:
+      tags: [Appointments]
+      summary: List appointments visible to the authenticated user
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Appointment list
     post:
       tags: [Appointments]
       summary: Create a booking for an eligible triaged request
@@ -236,6 +245,142 @@ paths:
                 $ref: "#/components/schemas/Appointment"
         "409":
           description: Slot conflict or request not eligible
+  /appointments/{appointmentId}:
+    patch:
+      tags: [Appointments]
+      summary: Request an allowed appointment state change
+      description: >
+        Reschedule/cancel operations are validated against service policy,
+        current status, availability and actor permissions. Clients cannot set
+        arbitrary terminal states such as COMPLETED.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentChangeRequest"
+      responses:
+        "200":
+          description: Appointment updated or reschedule request accepted
+        "409":
+          description: Transition or requested slot not allowed
+  /notifications:
+    get:
+      tags: [Messaging]
+      summary: List private in-app notifications
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Notifications visible to the authenticated user
+  /notifications/{notificationId}:
+    patch:
+      tags: [Messaging]
+      summary: Mark a notification read or dismissed
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [READ, DISMISSED]
+      responses:
+        "204":
+          description: Notification state updated
+  /message-threads:
+    get:
+      tags: [Messaging]
+      summary: List secure message threads for the authenticated user
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Message thread list
+  /message-threads/{threadId}/messages:
+    get:
+      tags: [Messaging]
+      summary: Read messages in an authorised thread
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Messages visible to the authenticated participant
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags: [Messaging]
+      summary: Send a message to an authorised private thread
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [body]
+              properties:
+                body:
+                  type: string
+                  minLength: 1
+                  maxLength: 5000
+      responses:
+        "201":
+          description: Message created
+  /me/communication-preferences:
+    get:
+      tags: [Messaging]
+      summary: Return communication preferences
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Communication preferences
+    patch:
+      tags: [Messaging]
+      summary: Update optional communication preferences
+      description: Transactional communication required to deliver an active service is not silently converted into marketing consent.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunicationPreferencesUpdate"
+      responses:
+        "200":
+          description: Preferences updated
   /payment-intents:
     post:
       tags: [Commerce]
@@ -620,6 +765,35 @@ components:
         startsAt:
           type: string
           format: date-time
+    AppointmentChangeRequest:
+      type: object
+      additionalProperties: false
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [RESCHEDULE, CANCEL]
+        requestedStartsAt:
+          type: string
+          format: date-time
+        timezone:
+          type: string
+        reason:
+          type: string
+          maxLength: 500
+    CommunicationPreferencesUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        allowAppointmentReminders:
+          type: boolean
+        allowProductUpdates:
+          type: boolean
+        allowMarketing:
+          type: boolean
+        preferredChannel:
+          type: string
+          enum: [EMAIL, IN_APP]
     PaymentIntentCreate:
       type: object
       required: [orderId, amountMinor, currency]
