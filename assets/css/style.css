@@ -353,3 +353,14 @@ code,pre,.brand,.site-header nav a,.button,.profile,.service-card,.authority-car
 .gp-review-box p{color:#aaa398;line-height:2}
 @media(max-width:850px){.gp-report-hero,.gp-review-box{grid-template-columns:1fr}.gp-evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gp-hypothesis,.gp-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.gp-report-shell{width:calc(100% - 20px)}.gp-report-hero{padding:22px}.gp-report-hero h1{font-size:35px}.gp-evidence-grid,.gp-hypothesis,.gp-experiment-grid,.gp-decision-grid{grid-template-columns:1fr}}
+
+/* Accessibility polish v1 */
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid var(--gold-2);outline-offset:3px}
+.site-header nav a,.app-dock a,.app-dock button,.button,.profile,.app-sheet-grid a{touch-action:manipulation}
+@media(pointer:coarse){.site-header nav a,.button{min-height:44px}.app-sheet-grid a{min-height:56px}}
+.mobile-app-sheet[aria-hidden="true"]{pointer-events:none}
+.gateway-legal a,footer a{text-underline-offset:3px}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .grid article:hover,.profile:hover,.button:hover{transform:none}
+}
