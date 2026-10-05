@@ -72,7 +72,7 @@
     "GT-010": "Teacher observation preview uses shared RCAS-O1 O-source evidence; verified assignment/RBAC/backend persistence pending.",
     "GT-019": "Private R-source academic record/document UX and data-model mapping implemented; secure ingestion/upload pending production storage/security.",
     "GT-011": "Private R/C school-performance/context intake plus E7 map implemented; authenticated persistence/provenance pending.",
-    "UX-012": "Manifest, service worker, offline shell, install prompts, cache-version governance, private-route cache bypass, network-first CSS/JS delivery and exact 192x192/512x512 launcher icons implemented; maskable-icon validation and live installability QA pending.",
+    "UX-012": "Manifest, service worker, offline shell, install prompts, cache-version governance, private-route cache bypass, network-first CSS/JS delivery, exact 192x192/512x512 launcher icons and dedicated 512x512 maskable icon are implemented and source-validated; only live installability/device QA remains pending.",
     "SEO-022": "Whole-surface automated release QA now also enforces bilingual/private-route indexability, confidential pre-publication firewalls, Service Worker private-cache bypass, Cloudflare response-header privacy rules, and mobile/PWA source guardrails.",
     "SERV-011": "Bilingual private appointment-state previews plus API contract implemented; live availability, timezone-aware slot selection, reschedule/cancel enforcement and authenticated persistence remain pending."
   },
