@@ -1,4 +1,4 @@
-const CACHE_VERSION='jr-site-v3-20261006-force-purge';
+const CACHE_VERSION='jr-site-v4-20261006-private-firewall';
 const CACHE_FAMILY='jr-site-';
 const STATIC_CACHE=CACHE_VERSION+'-static';
 const PUBLIC_CACHE=CACHE_VERSION+'-public';
@@ -16,7 +16,8 @@ const PRIVATE_PREFIXES=[
   '/fa/app/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/','/en/login/','/en/register/','/en/recover/','/en/account/',
   '/fa/assessments/','/assessments/','/fa/shop/','/shop/',
   '/en/golden-talent/assessment/','/en/golden-talent/dashboard/',
-  '/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/','/en/golden-talent/checkout/'
+  '/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/','/en/golden-talent/checkout/','/en/golden-talent/plans/',
+  '/fa/darkhast-moshavere/','/en/request-consultation/'
 ];
 
 self.addEventListener('install',event=>{
