@@ -286,3 +286,24 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// STRATEGIC METADATA COVERAGE — warnings feed the pre-domain audit.
+for(const file of htmlFiles){
+  const html=fs.readFileSync(file,'utf8');
+  const route=routeFor(file);
+  const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+  const rc=getAttr(robots,'content')||'';
+  if(/\bnoindex\b/i.test(rc)) continue;
+
+  if(!/<meta\b[^>]*property=["']og:title["']/i.test(html)) warnings.push(route+': indexable page missing og:title');
+  if(!/<meta\b[^>]*property=["']og:description["']/i.test(html)) warnings.push(route+': indexable page missing og:description');
+  if(!/<meta\b[^>]*property=["']og:image["']/i.test(html)) warnings.push(route+': indexable page missing og:image');
+  if(!/<script\b[^>]*type=["']application\/ld\+json["']/i.test(html)) warnings.push(route+': indexable page missing JSON-LD');
+
+  const looksArticle=/<meta\b[^>]*property=["']og:type["'][^>]*content=["']article["']/i.test(html) || /"@type"\s*:\s*"(?:Article|NewsArticle|BlogPosting)"/i.test(html);
+  if(looksArticle){
+    if(!/"author"\s*:/i.test(html)) failures.push(route+': article-like page missing structured author');
+    if(!/"datePublished"\s*:/i.test(html)) warnings.push(route+': article-like page missing datePublished');
+  }
+}
