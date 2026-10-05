@@ -172,7 +172,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SERV-008 — DONE — Consulting FAQ and Service structured data on the main hub.**
 - [ ] **SERV-009 — IN PROGRESS — Central noindex intake gateway and v1 API contract are implemented; secure server-side submission is pending backend activation.**
 - [ ] **SERV-010 — PLANNED — Triage: service type, urgency, documents needed and advisor assignment.**
-- [ ] **SERV-011 — PLANNED — Appointment calendar and timezone-aware scheduling.**
+- [ ] **SERV-011 — IN PROGRESS — Bilingual private appointment-state previews and the provider-neutral appointment API contract are implemented; live availability, timezone-aware slot selection, rescheduling/cancellation policy enforcement and authenticated persistence remain pending backend/calendar activation.**
 - [ ] **SERV-012 — PLANNED — Consultation payment before appointment where required.**
 - [ ] **SERV-013 — PLANNED — Consultation notes, recommendations and follow-up record.**
 - [ ] **SERV-014 — PLANNED — Human-reviewed report generation.**
