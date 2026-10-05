@@ -674,3 +674,35 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// REQUIRED BILINGUAL PAIRS — genuine equivalents only.
+const requiredPairs=[
+  ['/en/about/','/fa/darbare-man/'],
+  ['/en/research/','/fa/pajouhesh/'],
+  ['/en/publications/','/fa/entesharat-elmi/'],
+  ['/en/books/','/fa/ketab-ha/'],
+  ['/en/teaching/','/fa/tadris/'],
+  ['/en/academic-engagements/','/fa/faaliat-haye-elmi/'],
+  ['/en/golden-talent/','/fa/golden-talent/'],
+  ['/en/educational-philosophy/','/fa/falsafe-amoozeshi/'],
+  ['/en/language-education/','/fa/amoozesh-zaban/'],
+  ['/en/contact/','/fa/tamas/']
+];
+const canonicalForRoute=route=>sitePrefix+route;
+for(const [enRoute,faRoute] of requiredPairs){
+  const enDoc=localDocs.get(canonicalForRoute(enRoute));
+  const faDoc=localDocs.get(canonicalForRoute(faRoute));
+  if(!enDoc){failures.push(enRoute+': required bilingual English page missing/indexability mismatch');continue;}
+  if(!faDoc){failures.push(faRoute+': required bilingual Persian page missing/indexability mismatch');continue;}
+  const enHasFa=enDoc.alternates.some(x=>x.hreflang==='fa'&&x.href===canonicalForRoute(faRoute));
+  const faHasEn=faDoc.alternates.some(x=>x.hreflang==='en'&&x.href===canonicalForRoute(enRoute));
+  const enSelf=enDoc.alternates.some(x=>x.hreflang==='en'&&x.href===canonicalForRoute(enRoute));
+  const faSelf=faDoc.alternates.some(x=>x.hreflang==='fa'&&x.href===canonicalForRoute(faRoute));
+  if(!enHasFa||!faHasEn||!enSelf||!faSelf) failures.push(enRoute+' ↔ '+faRoute+': required hreflang pair/self-reference incomplete');
+}
+if(failures.length){
+  console.error('\nRequired bilingual-pair failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
