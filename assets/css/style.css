@@ -210,3 +210,53 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .app-role-link:hover{border-color:rgba(198,161,90,.45);transform:translateY(-2px)}
 .app-role-link b{display:block;font-size:22px;margin-bottom:8px}.app-role-link span{color:#9e978a;line-height:1.8}
 @media(max-width:700px){.app-prototype{width:calc(100% - 20px)}.app-prototype .foundation-hero{padding:22px;border-radius:24px}.app-grid,.app-role-grid{grid-template-columns:1fr}.app-card,.app-role-link{padding:19px}}
+
+/* Mobile resilience layer v1 */
+html,body{max-width:100%;overflow-x:clip}
+img,video,iframe{max-width:100%;height:auto}
+pre{max-width:100%;overflow:auto}
+code,pre,.brand,.site-header nav a,.button,.profile,.service-card,.authority-card,.app-card,.app-role-link,.journal-grid article,.news-card,.outcome-card,.principle,.process-step{overflow-wrap:anywhere}
+.hero>*,.service-hero>*,.authority-hero>*,.profile-hero>*,.book-bridge>*,.news-card>*,.grid>*,.profile-grid>*,.service-grid>*,.authority-grid>*,.principle-grid>*,.process-grid>*,.outcome-grid>*,.journal-grid>*,.app-grid>*,.app-role-grid>*{min-width:0}
+.site-header .brand{min-width:0}
+@media(max-width:900px){
+  .site-header{padding:8px 14px;min-height:64px}
+  .site-header .brand{max-width:calc(100% - 12px)}
+  .site-header .brand small{white-space:normal;line-height:1.45}
+  .hero,.section,footer,.service-shell,.authority-shell,.journal-main,.journal-footer,.article-shell,.foundation-main,.profile-body{max-width:100%}
+  .service-hero,.authority-hero,.profile-hero,.book-bridge,.news-card{grid-template-columns:1fr!important}
+  .service-hero,.authority-hero{padding:22px;border-radius:28px}
+  .service-grid,.authority-grid,.authority-grid.three,.principle-grid,.outcome-grid,.article-points,.journal-grid,.app-grid,.app-role-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .process-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .journal-header{width:calc(100% - 24px);padding:18px 0}
+  .journal-main,.journal-footer{width:calc(100% - 24px)}
+  .journal-hero{padding:54px 0 42px}
+  .article-shell{width:calc(100% - 28px)}
+}
+@media(max-width:700px){
+  .hero,.section,footer,.service-shell,.authority-shell,.journal-main,.journal-footer,.article-shell,.foundation-main,.profile-body,.breadcrumbs{width:calc(100% - 20px)!important}
+  .service-hero,.authority-hero,.profile-hero,.book-bridge{padding:16px!important;border-radius:22px!important}
+  .service-grid,.authority-grid,.authority-grid.three,.principle-grid,.outcome-grid,.article-points,.journal-grid,.app-grid,.app-role-grid,.grid,.profile-grid{grid-template-columns:1fr!important}
+  .process-grid{grid-template-columns:1fr 1fr!important}
+  .service-section,.authority-section,.article-shell section,.journal-section,.journal-article{padding-left:0!important;padding-right:0!important}
+  .service-section>p,.authority-section>p,.article-shell p,.journal-section p,.journal-article p{font-size:16px!important}
+  .service-hero h1,.authority-hero h1,.article-hero h1,.journal-hero h1,.journal-article h1,.profile-hero h1,.foundation-hero h1{font-size:clamp(32px,10vw,44px)!important}
+  .rtl .service-hero h1,.rtl .authority-hero h1,.rtl .article-hero h1,.rtl .foundation-hero h1{line-height:1.6!important}
+  .service-section h2,.authority-section h2,.article-shell h2,.journal-section h2,.journal-article h2{font-size:clamp(27px,8vw,36px)!important}
+  .actions{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+  .actions .button{width:100%;justify-content:center;text-align:center;box-sizing:border-box}
+  .news-card{padding:16px!important;gap:16px!important}
+  .news-card img,.service-visual,.authority-visual,.editorial-figure{border-radius:16px!important}
+  .app-sheet-panel{left:10px!important;right:10px!important;bottom:max(86px,calc(78px + env(safe-area-inset-bottom)))!important;max-height:min(72vh,620px)!important;overflow:auto}
+  footer{padding-bottom:118px!important}
+}
+@media(max-width:480px){
+  .process-grid{grid-template-columns:1fr!important}
+  .stat-strip{grid-template-columns:1fr!important}
+  .app-dock{left:6px!important;right:6px!important;padding:5px!important;border-radius:20px!important}
+  .app-dock a,.app-dock button{font-size:9px!important;padding:6px 1px!important}
+  .app-icon{width:19px;height:19px}
+  .brand{font-size:14px}
+  .brand small{font-size:8.5px}
+  .service-card,.authority-card,.outcome-card,.principle,.app-card,.app-role-link,.journal-grid article{padding:18px!important}
+  .breadcrumbs{font-size:10px!important}
+}
