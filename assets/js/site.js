@@ -350,3 +350,16 @@ qa('.app-dock a').forEach(a=>{
     }
   };
 })();
+
+// SERVICE WORKER CACHE RESET RELOAD v1
+(function(){
+  if(!('serviceWorker' in navigator)) return;
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(refreshing) return;
+    if(sessionStorage.getItem('sw-cache-reset-reloaded')==='1') return;
+    refreshing=true;
+    sessionStorage.setItem('sw-cache-reset-reloaded','1');
+    location.reload();
+  });
+})();
