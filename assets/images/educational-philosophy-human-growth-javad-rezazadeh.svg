@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+<title id="title">Educational philosophy: human growth, learning and the Golden Path</title>
+<desc id="desc">A conceptual visual of an open book becoming a luminous path toward a growing tree, symbolising learning, talent, character, hope and human development.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#05080c"/><stop offset=".55" stop-color="#0b1822"/><stop offset="1" stop-color="#191108"/></linearGradient>
+  <radialGradient id="halo"><stop stop-color="#f6df9f" stop-opacity=".82"/><stop offset=".35" stop-color="#d4aa58" stop-opacity=".38"/><stop offset="1" stop-color="#d4aa58" stop-opacity="0"/></radialGradient>
+  <linearGradient id="path" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#8b632b"/><stop offset=".48" stop-color="#d1a954"/><stop offset="1" stop-color="#f1dda2"/></linearGradient>
+  <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f3ead9"/><stop offset="1" stop-color="#c8b99f"/></linearGradient>
+  <filter id="shadow"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".45"/></filter>
+</defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<circle cx="1160" cy="225" r="300" fill="url(#halo)"/>
+<path d="M0 610C260 525 430 620 650 545S1030 465 1600 575V900H0Z" fill="#09131a"/>
+<path d="M0 700C310 635 480 735 720 650S1120 575 1600 670V900H0Z" fill="#071016"/>
+<g filter="url(#shadow)" transform="translate(135 565)">
+  <path d="M0 70Q180 12 360 66V238Q182 196 0 246Z" fill="url(#paper)" stroke="#9e8a68" stroke-width="3"/>
+  <path d="M360 66Q540 12 720 70V246Q540 196 360 238Z" fill="url(#paper)" stroke="#9e8a68" stroke-width="3"/>
+  <path d="M360 68V235" stroke="#7a6d5a" stroke-width="4"/>
+  <path d="M48 112h245M48 148h210M48 184h255M425 112h245M425 148h210M425 184h255" stroke="#887b69" stroke-width="7" stroke-linecap="round" opacity=".35"/>
+</g>
+<path d="M495 705C620 655 700 628 770 560c70-68 84-154 155-213 78-66 160-84 235-112" fill="none" stroke="url(#path)" stroke-width="48" stroke-linecap="round" filter="url(#shadow)"/>
+<path d="M500 700C625 650 704 622 773 555c70-68 84-154 155-213 78-66 160-84 235-112" fill="none" stroke="#fff1bd" stroke-width="4" stroke-dasharray="18 28" opacity=".72"/>
+<g transform="translate(1145 105)" filter="url(#shadow)">
+  <path d="M0 420c-10-150 10-250 5-360" stroke="#8f6330" stroke-width="38" stroke-linecap="round"/>
+  <path d="M0 230c-90-55-145-108-195-175M5 208c92-55 160-108 210-185M2 150c-55-54-82-100-102-145M7 130c62-50 96-91 125-135" stroke="#8f6330" stroke-width="18" stroke-linecap="round"/>
+  <g fill="#75944d" stroke="#d7bb6e" stroke-width="3">
+    <ellipse cx="-200" cy="50" rx="100" ry="42" transform="rotate(28 -200 50)"/>
+    <ellipse cx="220" cy="22" rx="105" ry="44" transform="rotate(-25 220 22)"/>
+    <ellipse cx="-100" cy="5" rx="90" ry="38" transform="rotate(42 -100 5)"/>
+    <ellipse cx="135" cy="-8" rx="90" ry="38" transform="rotate(-40 135 -8)"/>
+    <ellipse cx="-145" cy="168" rx="105" ry="44" transform="rotate(12 -145 168)"/>
+    <ellipse cx="155" cy="155" rx="110" ry="44" transform="rotate(-12 155 155)"/>
+  </g>
+</g>
+<g fill="#e0bd70">
+  <circle cx="790" cy="550" r="9"/><circle cx="865" cy="455" r="9"/><circle cx="955" cy="355" r="9"/><circle cx="1050" cy="290" r="9"/>
+</g>
+<g stroke="#d5af61" stroke-width="3" opacity=".5">
+  <path d="M215 250C390 130 565 190 720 290"/><path d="M260 330C450 250 600 300 760 420"/>
+</g>
+<g fill="none" stroke="#d5af61" stroke-width="5" opacity=".82">
+  <circle cx="245" cy="235" r="72"/><path d="M245 178v114M188 235h114"/>
+  <circle cx="385" cy="330" r="58"/><path d="M357 330l20 20 42-48"/>
+</g>
+<rect x="1.5" y="1.5" width="1597" height="897" rx="28" fill="none" stroke="#d0a859" stroke-opacity=".24" stroke-width="3"/>
+</svg>
