@@ -1,6 +1,6 @@
 {
-  "version": "3.1",
-  "status": "foundation-active",
+  "version": "4.0",
+  "status": "master-roadmap-frozen",
   "indexing_policy": {
     "default": "noindex",
     "index_requires": [
@@ -137,7 +137,14 @@
     "journal_core_indexing": "noindex until launch-ready",
     "doi_primary_route": "mEDRA/Sinaweb eligibility and quotation",
     "doi_secondary_route": "other DOI Registration Agency such as DataCite if legal/entity requirements are satisfied",
-    "issn_status": "pending permanent URL and real publisher address"
+    "issn_status": "pending permanent URL and real publisher address",
+    "founder_authorship_policy": {
+      "whole_backlog_in_own_journal": false,
+      "handling": "independent handling editor, at least two external reviewers, conflict disclosure and provenance statement",
+      "endogeny_rule": "keep editor/board/reviewer-authored research papers below 25% ceiling and preferably lower",
+      "founding_issue": "must include external scholarship and must not consist mainly of Editor-in-Chief research"
+    },
+    "launch_frequency_policy": "Start conservatively; increase frequency only after external manuscript pipeline, reviewer capacity and production reliability justify it."
   },
   "domain_architecture": {
     "main": "https://drjavadrezazadeh.com",
@@ -157,5 +164,26 @@
     "entrance_exam_consulting": "/fa/moshavere-konkur/",
     "public_editorial_article": "/fa/akhbar/moshavere-tahsili-baraye-tasmim/",
     "principle": "Consulting is designed to support evidence-informed decision-making rather than provide one-size-fits-all prescriptions."
+  },
+  "roadmap": {
+    "source_of_truth": "/foundation/MASTER-ECOSYSTEM-ROADMAP.md",
+    "machine_status": "/foundation/ROADMAP-STATUS.json",
+    "frozen_on": "2026-10-05",
+    "status_vocabulary": [
+      "FROZEN",
+      "DONE",
+      "MODIFIED",
+      "RENEWED",
+      "IN PROGRESS",
+      "PLANNED",
+      "WAITING",
+      "DEFERRED",
+      "RETIRED"
+    ]
+  },
+  "seo_gates": {
+    "before_build": "intent + entity + URL + canonical/language decision",
+    "during_build": "content + semantic structure + links + schema + image SEO + performance + accessibility",
+    "release": "indexability + canonical/hreflang + sitemap + validation + monitoring"
   }
 }
