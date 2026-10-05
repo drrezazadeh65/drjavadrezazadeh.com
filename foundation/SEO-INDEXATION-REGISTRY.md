@@ -47,6 +47,12 @@ Status classes:
 
 - `/fa/entesharat-elmi/` — INDEX
 
+- `/fa/rahnamaha/` — INDEX
+
+- `/fa/rahnamaha/moshavere-tahsili-baraye-tasmim/` — INDEX
+
+- `/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/` — INDEX
+
 ## INDEX — News
 - `/fa/akhbar/entekhab-reshteh-1405/` — INDEX
 - `/fa/akhbar/moshavere-tahsili-baraye-tasmim/` — INDEX
@@ -90,3 +96,7 @@ Private material must not be added to the public repository as crawlable content
 
 ## Domain migration rule
 Until the owned production domain is active, public canonicals use the current GitHub Pages host. At domain cutover, canonical, hreflang, Open Graph URL, structured-data IDs, sitemap locations and robots sitemap declaration must migrate atomically to `https://drjavadrezazadeh.com/`.
+
+- `/fa/akhbar/moshavere-tahsili-baraye-tasmim/` — NOINDEX transition to evergreen guide
+
+- `/fa/akhbar/che-reshteyi-baraye-man-monaseb-ast/` — NOINDEX transition to evergreen guide
