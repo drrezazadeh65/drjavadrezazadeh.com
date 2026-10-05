@@ -518,6 +518,42 @@ if(failures.length){
 }
 
 
+// CURRENT-TREE CONFIDENTIALITY FIREWALL — NOINDEX is not security.
+// Scan all text-like repository files, not only public HTML, for protected literal project names.
+const protectedTextExtensions=/\.(?:html?|md|txt|json|ya?ml|csv|js|mjs|css|xml|sql|webmanifest)$/i;
+const protectedTextFiles=[];
+function collectProtectedTextFiles(dir){
+  for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+    if(ignoreDirs.has(ent.name)) continue;
+    const p=path.join(dir,ent.name);
+    if(ent.isDirectory()) collectProtectedTextFiles(p);
+    else if(ent.isFile()&&protectedTextExtensions.test(ent.name)) protectedTextFiles.push(p);
+  }
+}
+collectProtectedTextFiles(root);
+for(const file of protectedTextFiles){
+  const rel=path.relative(root,file).replaceAll(path.sep,'/');
+  for(const re of protectedResearchPatterns){
+    re.lastIndex=0;
+    if(re.test(rel)){
+      failures.push('/'+rel+': protected/unreleased research term exposed in repository path');
+      break;
+    }
+    re.lastIndex=0;
+    const source=fs.readFileSync(file,'utf8');
+    if(re.test(source)){
+      failures.push('/'+rel+': protected/unreleased research term exposed in current repository source');
+      break;
+    }
+  }
+}
+if(failures.length){
+  console.error('\nCurrent-tree confidentiality failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // GLOBAL PUBLIC FACT GUARDRAILS — prevent known obsolete degree claims on any indexable page.
 const globallyForbiddenPublicClaims=[
   'PhD in English Language Education',
