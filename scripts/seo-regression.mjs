@@ -601,3 +601,19 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// 404 RELEASE RULE
+const error404=path.join(root,'404.html');
+if(!fs.existsSync(error404)) failures.push('/404.html: custom 404 page missing');
+else{
+  const html=fs.readFileSync(error404,'utf8');
+  const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+  const rc=getAttr(robots,'content')||'';
+  if(!/\bnoindex\b/i.test(rc)) failures.push('/404.html: custom error page must be noindex');
+}
+if(failures.length){
+  console.error('\n404 release failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
