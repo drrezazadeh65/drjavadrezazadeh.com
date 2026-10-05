@@ -49,7 +49,9 @@ self.addEventListener('fetch',event=>{
   if(url.origin!==self.location.origin) return;
 
   if(isPrivate(url)){
-    event.respondWith(fetch(req,{cache:'no-store'}));
+    event.respondWith(
+      fetch(req,{cache:'no-store'}).catch(()=>caches.match('./offline.html'))
+    );
     return;
   }
 
