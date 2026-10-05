@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "product": "Golden Talent",
+  "currency": null,
+  "pricing_status": "not_published",
+  "free_entry": {
+    "id": "rcas_start",
+    "label_fa": "RCAS Start",
+    "price": 0,
+    "access": "public_session",
+    "components": ["RCAS-P0","RCAS-C1","RCAS-R1"],
+    "stores_sensitive_data": false
+  },
+  "premium": [
+    {"id":"deep_module","label_fa":"Deep Module Pass","entitlements":["D1","D2","D3","D4","D5","D6"],"unlock":"routing_plus_purchase","price":null},
+    {"id":"golden_path_professional","label_fa":"Golden Path Professional","entitlements":["RCAS-P1","Golden Path Evidence Card","Professional Report"],"unlock":"purchase_plus_professional_review","price":null},
+    {"id":"bahar_continuity","label_fa":"BAHAR Continuity","entitlements":["Baseline Snapshot","Eight-Week Compass","Weekly BAHAR Cycle","Learning Evidence Log","Four-Week Review","BAHAR 30-Day Starter"],"unlock":"purchase","price":null}
+  ],
+  "security_gates": {
+    "production_auth_required": true,
+    "server_side_entitlement_required": true,
+    "payment_webhook_verification_required": true,
+    "role_based_access_required": true,
+    "sensitive_answers_client_only_until_backend": true
+  }
+}
