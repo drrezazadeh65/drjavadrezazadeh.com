@@ -1,0 +1,108 @@
+openapi: 3.1.0
+info:
+  title: Golden Talent Platform API
+  version: 1.0.0
+  description: >
+    Provider-neutral contract for RCAS Start, routed deep modules, commerce,
+    entitlements, Golden Path professional review and BAHAR continuity.
+servers:
+  - url: https://api.example.invalid
+    description: Placeholder only; no production backend is live.
+paths:
+  /v1/golden-talent/catalog:
+    get:
+      summary: Return public product stages and currently published prices
+      responses:
+        '200': { description: Product catalog }
+  /v1/me:
+    get:
+      summary: Return authenticated profile and roles
+      security: [{ sessionAuth: [] }]
+      responses:
+        '200': { description: Current user }
+  /v1/me/entitlements:
+    get:
+      summary: Return server-verified Golden Talent feature access
+      security: [{ sessionAuth: [] }]
+      responses:
+        '200': { description: Active and pending entitlements }
+  /v1/rcas/sessions:
+    post:
+      summary: Start an authenticated RCAS assessment session
+      security: [{ sessionAuth: [] }]
+      responses:
+        '201': { description: Session created }
+  /v1/rcas/sessions/{sessionId}/responses:
+    put:
+      summary: Save versioned RCAS responses
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Saved }
+  /v1/rcas/sessions/{sessionId}/submit:
+    post:
+      summary: Submit RCAS Core for routing
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Submitted without fabricating a total talent score }
+  /v1/rcas/sessions/{sessionId}/routes:
+    get:
+      summary: Return D1-D6 routing evidence and priority
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Routing result }
+  /v1/checkout:
+    post:
+      summary: Create order and provider payment intent
+      description: Payment success must never be accepted from the browser alone.
+      security: [{ sessionAuth: [] }]
+      responses:
+        '201': { description: Server-created payment intent }
+  /v1/payments/webhook:
+    post:
+      summary: Verify provider callback and grant entitlements server-side
+      responses:
+        '204': { description: Verified and processed idempotently }
+  /v1/golden-path:
+    post:
+      summary: Request professional Golden Path synthesis
+      security: [{ sessionAuth: [] }]
+      responses:
+        '201': { description: Human-review workflow created }
+  /v1/bahar/portfolios:
+    post:
+      summary: Create BAHAR continuity portfolio for entitled user
+      security: [{ sessionAuth: [] }]
+      responses:
+        '201': { description: Portfolio created }
+  /v1/bahar/portfolios/{portfolioId}/weekly-cycles:
+    post:
+      summary: Add weekly BAHAR cycle
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: portfolioId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201': { description: Weekly cycle created }
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: __Host-session
