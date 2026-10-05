@@ -47,3 +47,10 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 - **SERV-009 | PLANNED → IN PROGRESS** — Added a central NOINDEX consultation gateway at `/fa/darkhast-moshavere/`; public counselling CTAs now converge on one transactional entry point. The current safe fallback uses email and explicitly avoids collecting sensitive documents on GitHub Pages.
 - **CRM-002 | PLANNED → IN PROGRESS** — Froze the consultation state model and published `foundation/API-CONTRACT-v1.yaml` covering consultation requests, appointments, payment intents/callbacks, assessment sessions, reports and private file uploads.
 - **INFRA-010 | IN PROGRESS → IN PROGRESS** — Added `foundation/PROVIDER-DECISION-MATRIX.md`; the platform remains provider-neutral until account/access and production suitability are verified.
+
+### Database implementation foundation
+- **COM-005 | PLANNED → IN PROGRESS** — Added provider-neutral PostgreSQL product, price, cart, order, payment-intent, verified-payment, refund, entitlement and invoice schema. No public product/Offer claim is enabled yet.
+- **DATA-007 | PLANNED → IN PROGRESS** — Added research-study registry/version and pseudonymous case schema.
+- **DATA-008 | PLANNED → IN PROGRESS** — Added separated identity-link and de-identification run/transformation-log schema; executable transformation logic remains pending.
+- **DATA-009 | PLANNED → IN PROGRESS** — Added codebook-version, dataset-freeze and research-export schema; actual research mart generation remains pending.
+- **Platform DB foundation** — Added four ordered migrations under `platform/db/migrations/` for identity/consultation, commerce, assessment/Golden Talent and research governance, plus `platform/README.md` documenting deployment gates.
