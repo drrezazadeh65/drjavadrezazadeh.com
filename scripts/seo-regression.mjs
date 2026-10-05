@@ -214,7 +214,8 @@ const budgets=[
   ['assets/css/style.css',120*1024],
   ['assets/js/site.js',25*1024],
   ['assets/js/rcas-start.js',30*1024],
-  ['assets/js/student-dashboard.js',15*1024]
+  ['assets/js/student-dashboard.js',15*1024],
+  ['assets/js/integrated-profile.js',25*1024]
 ];
 for(const [rel,max] of budgets){
   const p=path.join(root,rel);
@@ -540,6 +541,26 @@ if(failures.length){
 }
 if(failures.length){
  console.error('\nGT-011 context evidence failures ('+failures.length+')');
+ failures.forEach(x=>console.error('✗ '+x));
+ process.exit(1);
+}
+
+// INTEGRATED PROFILE GUARDRAIL — evidence states, not total-score theatre.
+{
+ const p=path.join(root,'fa','app','student','integrated-profile','index.html');
+ if(!fs.existsSync(p)) failures.push('/fa/app/student/integrated-profile/: integrated profile missing');
+ else{
+  const html=fs.readFileSync(p,'utf8');
+  const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+  if(!/\bnoindex\b/i.test(getAttr(robots,'content')||'')) failures.push('/fa/app/student/integrated-profile/: integrated profile must remain NOINDEX');
+  for(const required of ['همسو','متناقض','تک‌منبعی','ناکافی','S/P/R/O/C/T']){
+   if(!html.includes(required)) failures.push('/fa/app/student/integrated-profile/: missing evidence-profile concept '+required);
+  }
+  if(/(?:نمره|امتیاز)\s*(?:کل)?\s*(?:استعداد)?\s*[:=]\s*\d/i.test(html)) failures.push('/fa/app/student/integrated-profile/: total talent score pattern detected');
+ }
+}
+if(failures.length){
+ console.error('\nIntegrated profile failures ('+failures.length+')');
  failures.forEach(x=>console.error('✗ '+x));
  process.exit(1);
 }
