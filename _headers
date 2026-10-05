@@ -1,0 +1,114 @@
+# Cloudflare Pages response-header policy.
+# GitHub Pages ignores this file; Cloudflare Pages applies it after cutover.
+# Do not add production CSP here until every inline script/style dependency is audited.
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Keep Cloudflare preview hostnames out of search results.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex, noarchive
+
+https://:version.:project.pages.dev/*
+  X-Robots-Tag: noindex, noarchive
+
+# Private / transactional static shells: never browser-cache; never index.
+
+/fa/app/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/app/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/fa/login/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/login/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/fa/register/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/register/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/fa/bazyabi-hesab/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/login/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/register/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/recover/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/account/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/fa/assessments/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/assessments/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/fa/shop/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/shop/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/golden-talent/assessment/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/golden-talent/dashboard/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/golden-talent/observer/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/golden-talent/roles/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/golden-talent/student/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/golden-talent/checkout/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/golden-talent/plans/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/fa/darkhast-moshavere/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
+
+/en/request-consultation/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, noarchive
