@@ -112,3 +112,6 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 - **GT-010 | PLANNED → IN PROGRESS** — Teacher observation now uses the same RCAS-O1 evidence standard rather than a separate invented scored test.
 - **Architecture decision** — Parent and teacher observations are both O-source evidence. Production linkage requires verified parent–student or teacher–student relationship/assignment and server-side visibility controls.
 - **Current preview boundary** — The RCAS-O1 webpage performs no network submission or persistent storage. Companion/mentor role remains preview-only until an approved production observer role and relationship policy exist.
+
+### Academic-record evidence workspace
+- **GT-011 | PLANNED → IN PROGRESS** — Added the private/noindex R-source workspace for academic history, grades and verified documents. It maps to existing educational_record, grade_record and private_document models; real upload is intentionally disabled until private storage, malware scan, retention and access-control infrastructure are production-ready.
