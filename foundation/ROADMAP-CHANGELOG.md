@@ -22,3 +22,7 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 - **AUTH-012 | PLANNED → DONE** — Published bilingual academic-engagement pages at `/academic-engagements/` and `/fa/faaliat-haye-elmi/` using evidence-controlled conference, academic-service and professional-development records.
 - **SEO-009 | MODIFIED → MODIFIED** — Linked Academic Engagements from Home and About surfaces in both languages.
 - **SEO-018 | MODIFIED → MODIFIED** — Added both engagement URLs and the conference visual to the sitemap.
+
+### Search-demand and editorial operating system
+- **SEO-007 | PLANNED → IN PROGRESS** — Completed a live SERP review for the core Persian counselling/field-selection/entrance-exam/talent cluster. Future major clusters must repeat this review before expansion.
+- **CONTENT-008 | PLANNED → DONE** — Created `foundation/EDITORIAL-CALENDAR-90D.md` with a 90-day publishing rhythm, page intent, internal-link targets, image requirements, quality gates and cycle-close audit.
