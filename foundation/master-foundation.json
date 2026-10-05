@@ -206,5 +206,11 @@
     "academic_engagements_en": "/academic-engagements/",
     "academic_engagements_fa": "/fa/faaliat-haye-elmi/"
   },
-  "seo_intent_map": "/foundation/SEO-INTENT-MAP.md"
+  "seo_intent_map": "/foundation/SEO-INTENT-MAP.md",
+  "production_platform": {
+    "architecture": "/foundation/PRODUCTION-PLATFORM-ARCHITECTURE.md",
+    "core_data_model": "/foundation/CORE-DATA-MODEL.md",
+    "status": "architecture-frozen-provider-selection-pending",
+    "public_private_boundary": "Public SEO web remains separate from authenticated private app/API."
+  }
 }
