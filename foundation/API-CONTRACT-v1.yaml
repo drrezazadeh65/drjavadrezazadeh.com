@@ -14,6 +14,7 @@ servers:
 tags:
   - name: System
   - name: Identity
+  - name: Privacy
   - name: Consultation
   - name: Appointments
   - name: Commerce
@@ -28,6 +29,114 @@ paths:
       responses:
         "200":
           description: Service healthy
+  /auth/session:
+    post:
+      tags: [Identity]
+      summary: Create an authenticated session
+      description: >
+        Accept verified credentials through the production identity provider and
+        issue a Secure, HttpOnly, SameSite session cookie. The API response must
+        not expose the session secret to browser JavaScript.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInRequest"
+      responses:
+        "204":
+          description: Session established
+        "401":
+          description: Invalid credentials
+        "429":
+          $ref: "#/components/responses/RateLimited"
+    delete:
+      tags: [Identity]
+      summary: End the current authenticated session
+      security:
+        - sessionAuth: []
+      responses:
+        "204":
+          description: Session revoked and cookie cleared
+  /auth/recovery-requests:
+    post:
+      tags: [Identity]
+      summary: Request account recovery without revealing account existence
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecoveryRequest"
+      responses:
+        "202":
+          description: Neutral response returned whether or not the account exists
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /auth/recovery-confirmations:
+    post:
+      tags: [Identity]
+      summary: Complete recovery with a short-lived single-use token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecoveryConfirmation"
+      responses:
+        "204":
+          description: Credential reset and relevant sessions revoked
+        "400":
+          $ref: "#/components/responses/ValidationError"
+  /me/consents:
+    get:
+      tags: [Privacy]
+      summary: Return the authenticated user's versioned consent records
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Consent records
+    post:
+      tags: [Privacy]
+      summary: Record a new consent decision without overwriting history
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsentDecision"
+      responses:
+        "201":
+          description: Consent decision recorded
+  /privacy-requests:
+    post:
+      tags: [Privacy]
+      summary: Create a tracked privacy request
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrivacyRequestCreate"
+      responses:
+        "201":
+          description: Privacy request created
+    get:
+      tags: [Privacy]
+      summary: List privacy requests visible to the authenticated user
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Privacy request history
   /me:
     get:
       tags: [Identity]
@@ -255,9 +364,9 @@ paths:
 components:
   securitySchemes:
     sessionAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: opaque-session-or-jwt
+      type: apiKey
+      in: cookie
+      name: __Host-session
   parameters:
     RequestId:
       name: requestId
@@ -305,6 +414,66 @@ components:
           items:
             type: string
             enum: [STUDENT, PARENT, TEACHER, CONSULTANT, RESEARCHER, EDITOR, ADMIN, SUPER_ADMIN]
+    SignInRequest:
+      type: object
+      additionalProperties: false
+      required: [identifier, credential]
+      properties:
+        identifier:
+          type: string
+          maxLength: 320
+        credential:
+          type: string
+          minLength: 8
+          maxLength: 1024
+          writeOnly: true
+    RecoveryRequest:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+    RecoveryConfirmation:
+      type: object
+      additionalProperties: false
+      required: [token, newCredential]
+      properties:
+        token:
+          type: string
+          minLength: 20
+          writeOnly: true
+        newCredential:
+          type: string
+          minLength: 12
+          maxLength: 1024
+          writeOnly: true
+    ConsentDecision:
+      type: object
+      additionalProperties: false
+      required: [consentType, policyVersion, decision]
+      properties:
+        consentType:
+          type: string
+          enum: [PRIVACY, SERVICE, RESEARCH, PUBLICATION, MARKETING]
+        policyVersion:
+          type: string
+          maxLength: 80
+        decision:
+          type: string
+          enum: [GRANTED, DECLINED, WITHDRAWN]
+    PrivacyRequestCreate:
+      type: object
+      additionalProperties: false
+      required: [requestType]
+      properties:
+        requestType:
+          type: string
+          enum: [ACCESS, CORRECTION, EXPORT, DELETION, RESTRICTION, CONSENT_WITHDRAWAL]
+        userNote:
+          type: string
+          maxLength: 2500
     ConsultationRequestCreate:
       type: object
       additionalProperties: false
