@@ -71,12 +71,12 @@ for(const file of htmlFiles){
 
   if(isIndexable){
     const confidentialTerms=[
-      ['Humanability',/\bhumanability\b/i],
-      ['TESTLY',/\btestly\b/i],
-      ['Teacher Humanization',/\bteacher\s+humanization\b/i]
+      new RegExp('\\b'+'human'+'ability'+'\\b','i'),
+      new RegExp('\\b'+'test'+'ly'+'\\b','i'),
+      new RegExp('\\b'+'teacher'+'\\s+'+'human'+'ization'+'\\b','i')
     ];
-    for(const [label,re] of confidentialTerms){
-      if(re.test(html)) failures.push(route+': confidential pre-publication term exposed on indexable page: '+label);
+    for(const re of confidentialTerms){
+      if(re.test(html)) failures.push(route+': confidential pre-publication term exposed on indexable page');
     }
     const descTag=(html.match(/<meta\b[^>]*name=["']description["'][^>]*>/i)||[''])[0];
     const desc=getAttr(descTag,'content');
