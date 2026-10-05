@@ -30,7 +30,7 @@
 - [x] JHELA founding collaboration call improved.
 
 ### Week 2 — Field-selection authority
-- [ ] **CONTENT-FS-01** — «چه رشته‌ای برای من مناسب است؟ از پاسخ سریع تا تصمیم قابل دفاع»
+- [x] **CONTENT-FS-01** — «چه رشته‌ای برای من مناسب است؟ از پاسخ سریع تا تصمیم قابل دفاع»
   - intent: informational
   - target link: `/fa/entekhab-reshteh/`
   - supporting links: talent + counselling
