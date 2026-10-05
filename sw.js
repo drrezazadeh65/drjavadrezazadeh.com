@@ -1,4 +1,4 @@
-const CACHE_VERSION='jr-site-v1-20261006';
+const CACHE_VERSION='jr-site-v2-20261006-cache-reset';
 const STATIC_CACHE=CACHE_VERSION+'-static';
 const PUBLIC_CACHE=CACHE_VERSION+'-public';
 const CORE=[
