@@ -96,10 +96,32 @@ paths:
   /v1/checkout:
     post:
       summary: Create order and provider payment intent
-      description: Payment success must never be accepted from the browser alone.
+      description: >
+        Payment success must never be accepted from the browser alone. The client selects
+        a product and market, while the server resolves the active price, canonical currency,
+        eligible provider and idempotency key.
       security: [{ sessionAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [product_key, market]
+              additionalProperties: false
+              properties:
+                product_key:
+                  type: string
+                market:
+                  type: string
+                  enum: [IR, INTERNATIONAL]
+                return_path:
+                  type: string
+                  description: Relative application path only; server validates allow-list.
       responses:
-        '201': { description: Server-created payment intent }
+        '201': { description: Server-created order and payment intent }
+        '400': { description: Invalid product, market or return path }
+        '409': { description: Duplicate/idempotent checkout conflict }
   /v1/payments/webhook:
     post:
       summary: Verify provider callback and grant entitlements server-side
