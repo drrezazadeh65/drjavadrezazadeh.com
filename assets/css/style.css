@@ -321,3 +321,35 @@ code,pre,.brand,.site-header nav a,.button,.profile,.service-card,.authority-car
 .bahar-boundary p{color:#aaa398;line-height:2}
 @media(max-width:850px){.bahar-hero,.bahar-boundary{grid-template-columns:1fr}.bahar-grid{grid-template-columns:1fr}.bahar-boundary .actions{justify-content:start}}
 @media(max-width:600px){.bahar-shell{width:calc(100% - 20px)}.bahar-hero{padding:22px}.bahar-hero h1{font-size:35px}.bahar-card{padding:20px}}
+
+/* Golden Path professional report v1 */
+.gp-report-shell{width:min(1100px,calc(100% - 32px));margin:0 auto;padding:30px 0 120px}
+.gp-report-hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;padding:38px;border:1px solid rgba(198,161,90,.2);border-radius:30px;background:radial-gradient(620px 320px at 90% 0%,rgba(198,161,90,.1),transparent 60%),rgba(255,255,255,.014)}
+.gp-report-hero h1{font-size:clamp(38px,5.5vw,62px);line-height:1.55;margin:8px 0 16px}
+.gp-report-status{display:flex;flex-direction:column;justify-content:center;gap:8px;padding:24px;border:1px solid #29241d;border-radius:20px;background:#0b0a09}
+.gp-report-status b{font-size:34px;color:var(--gold-2)}
+.gp-report-status small{color:#8e867a;line-height:1.8}
+.gp-report-section{padding:52px 0;border-bottom:1px solid #1e1b17}
+.gp-report-section h2{font-size:clamp(30px,4vw,46px);line-height:1.55}
+.gp-hypothesis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:22px}
+.gp-hypothesis>div{padding:18px;border:1px solid #28231d;border-radius:16px;background:#0c0b0a}
+.gp-hypothesis span,.gp-hypothesis b{display:block}
+.gp-hypothesis span{font-size:10px;color:#81796e;margin-bottom:7px}
+.gp-hypothesis b{font-size:15px;line-height:1.7}
+.gp-evidence-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.gp-evidence-grid article{padding:22px;border:1px solid #29241d;border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.024),rgba(255,255,255,.006))}
+.gp-evidence-grid article>span{color:var(--gold-2);font-size:11px}
+.gp-evidence-grid h3{font-size:21px;margin:10px 0 8px}
+.gp-evidence-grid p{color:#9f978c;line-height:1.9}
+.gp-experiment-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:22px}
+.gp-experiment-grid>div{padding:19px;border:1px solid #28231d;border-radius:16px;background:#0c0b0a}
+.gp-experiment-grid span{color:var(--gold-2);font-size:11px}
+.gp-experiment-grid p{margin:7px 0 0;color:#aaa398;line-height:1.9}
+.gp-decision-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:22px}
+.gp-decision-grid span{padding:16px;border:1px solid rgba(198,161,90,.28);border-radius:14px;text-align:center;color:#d8c28f;background:rgba(198,161,90,.05)}
+.gp-note{color:#9e978c;line-height:2}
+.gp-review-box{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;margin-top:34px;padding:28px;border:1px dashed rgba(198,161,90,.24);border-radius:22px}
+.gp-review-box h2{font-size:30px;line-height:1.6}
+.gp-review-box p{color:#aaa398;line-height:2}
+@media(max-width:850px){.gp-report-hero,.gp-review-box{grid-template-columns:1fr}.gp-evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gp-hypothesis,.gp-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.gp-report-shell{width:calc(100% - 20px)}.gp-report-hero{padding:22px}.gp-report-hero h1{font-size:35px}.gp-evidence-grid,.gp-hypothesis,.gp-experiment-grid,.gp-decision-grid{grid-template-columns:1fr}}
