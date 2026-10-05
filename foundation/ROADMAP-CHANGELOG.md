@@ -99,3 +99,7 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 - **GT-017 | PLANNED → IN PROGRESS** — Implemented the non-manipulative free-to-routed-premium product journey; conversion remains inactive until secure payment/backend.
 - **GT-018 | NEW → IN PROGRESS** — Added BAHAR longitudinal-growth workspace and persistence schema; authenticated persistence remains pending.
 - **Trust/Entity governance | NEW** — Added Public Facts Registry, pre-domain launch audit, full-name/title guardrails, degree-fact consistency checks, JHELA title enforcement, JHELA indexation allowlist and protected-research firewall.
+
+### Font dependency hardening
+- **SEO-017 | PLANNED → IN PROGRESS** — Removed third-party Inter/Vazirmatn webfont requests from the production stylesheet; final self-hosted font selection and integrity QA remain pending.
+- **UX-010 | PLANNED → IN PROGRESS** — Standardised current rendering on system-safe English/Persian fallback stacks until final self-hosted assets are approved.
