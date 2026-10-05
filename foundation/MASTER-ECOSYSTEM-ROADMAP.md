@@ -101,7 +101,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **INFRA-011 — PLANNED — Staging environment kept noindex.**
 - [ ] **INFRA-012 — PLANNED — Production database, private object storage and backup infrastructure.**
 - [ ] **INFRA-013 — PLANNED — Transactional email/domain mail infrastructure.**
-- [ ] **INFRA-014 — PLANNED — CDN/cache strategy for public media and documents.**
+- [ ] **INFRA-014 — IN PROGRESS — Cloudflare Pages default ETag/revalidation behaviour is frozen as the public baseline while assets remain non-fingerprinted; private routes use explicit no-store, Service Worker code delivery is network-first, and long immutable caching is prohibited until a content-hashed asset pipeline exists. Production header/cache-rule verification remains pending cutover.**
 
 ---
 
