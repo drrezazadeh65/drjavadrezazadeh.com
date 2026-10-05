@@ -30,7 +30,9 @@
       "/books/",
       "/fa/ketab-ha/",
       "/teaching/",
-      "/fa/tadris/"
+      "/fa/tadris/",
+      "/academic-engagements/",
+      "/fa/faaliat-haye-elmi/"
     ],
     "sitemap_rule": "Only approved indexable canonical URLs belong in sitemap.xml"
   },
@@ -55,7 +57,9 @@
       "/books/",
       "/fa/ketab-ha/",
       "/teaching/",
-      "/fa/tadris/"
+      "/fa/tadris/",
+      "/academic-engagements/",
+      "/fa/faaliat-haye-elmi/"
     ],
     "reserved_noindex": [
       "/app/",
@@ -198,6 +202,9 @@
     "books_en": "/books/",
     "books_fa": "/fa/ketab-ha/",
     "teaching_en": "/teaching/",
-    "teaching_fa": "/fa/tadris/"
-  }
+    "teaching_fa": "/fa/tadris/",
+    "academic_engagements_en": "/academic-engagements/",
+    "academic_engagements_fa": "/fa/faaliat-haye-elmi/"
+  },
+  "seo_intent_map": "/foundation/SEO-INTENT-MAP.md"
 }
