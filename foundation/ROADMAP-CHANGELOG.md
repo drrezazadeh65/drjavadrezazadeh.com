@@ -42,3 +42,8 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 ### Production platform foundation
 - **INFRA-010 | PLANNED → IN PROGRESS** — Frozen a provider-neutral production architecture separating public SEO web, authenticated app and versioned API. Added consultation state machine, commerce/payment abstraction, Golden Talent assessment versioning, RBAC, private storage, CMS/admin, research-data and security boundaries.
 - **Core Data Model | NEW FROZEN FOUNDATION** — Added `foundation/CORE-DATA-MODEL.md` defining identity, educational record, consultation, assessment, Golden Talent, commerce, content/SEO, communication, consent, research and journal-recruitment domains without committing to a vendor before eligibility and hosting are confirmed.
+
+### Consultation intake and API contract
+- **SERV-009 | PLANNED → IN PROGRESS** — Added a central NOINDEX consultation gateway at `/fa/darkhast-moshavere/`; public counselling CTAs now converge on one transactional entry point. The current safe fallback uses email and explicitly avoids collecting sensitive documents on GitHub Pages.
+- **CRM-002 | PLANNED → IN PROGRESS** — Froze the consultation state model and published `foundation/API-CONTRACT-v1.yaml` covering consultation requests, appointments, payment intents/callbacks, assessment sessions, reports and private file uploads.
+- **INFRA-010 | IN PROGRESS → IN PROGRESS** — Added `foundation/PROVIDER-DECISION-MATRIX.md`; the platform remains provider-neutral until account/access and production suitability are verified.
