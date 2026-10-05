@@ -706,3 +706,35 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// MOBILE UX RELEASE GATE
+const cssFile=path.join(root,'assets','css','style.css');
+if(fs.existsSync(cssFile)){
+  const css=fs.readFileSync(cssFile,'utf8');
+  const requiredMobileRules=[
+    ['global horizontal containment','html,body{max-width:100%;overflow-x:clip}'],
+    ['grid/flex child containment','min-width:0'],
+    ['responsive media','img,svg,video,canvas,iframe{max-width:100%;height:auto}'],
+    ['iOS focus zoom prevention','input,select,textarea{font-size:16px}'],
+    ['dynamic viewport support','100dvh']
+  ];
+  for(const [label,needle] of requiredMobileRules){
+    if(!css.includes(needle)) failures.push('/assets/css/style.css: missing '+label);
+  }
+}
+for(const file of htmlFiles){
+  const html=fs.readFileSync(file,'utf8');
+  const route=routeFor(file);
+  if(!/<meta\b[^>]*name=["']viewport["'][^>]*content=["'][^"']*width=device-width/i.test(html)){
+    failures.push(route+': missing mobile viewport metadata');
+  }
+  if(/style=["'][^"']*(?:min-width\s*:\s*[4-9]\d{2}px|white-space\s*:\s*nowrap)/i.test(html)){
+    failures.push(route+': risky inline mobile overflow rule');
+  }
+}
+if(failures.length){
+  console.error('\nMobile UX failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
