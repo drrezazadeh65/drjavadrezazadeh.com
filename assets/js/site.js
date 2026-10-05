@@ -77,6 +77,7 @@ function ensureMobileNav(){
    ];
    sheet=[
     [u('fa/darbare-man/'),'درباره من'],
+    [u('fa/khadamat/'),'خدمات آموزشی'],
     [u('fa/tadris/'),'تدریس دانشگاهی'],
     [u('fa/ketab-ha/'),'کتاب‌ها'],
     [u('fa/amoozesh-zaban/'),'آموزش زبان انگلیسی'],
@@ -103,6 +104,7 @@ function ensureMobileNav(){
    ];
    sheet=[
     [u('en/about/'),'About'],
+    [u('en/services/'),'Services'],
     [u('en/academic-profile/'),'Academic Profile'],
     [u('en/language-education/'),'Language Education'],
     [u('en/student-guidance/'),'Student Guidance'],
