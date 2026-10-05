@@ -260,3 +260,14 @@ code,pre,.brand,.site-header nav a,.button,.profile,.service-card,.authority-car
   .service-card,.authority-card,.outcome-card,.principle,.app-card,.app-role-link,.journal-grid article{padding:18px!important}
   .breadcrumbs{font-size:10px!important}
 }
+
+/* Language gateway v1 */
+.language-gateway{min-height:100svh;background:radial-gradient(900px 520px at 72% 22%,rgba(198,161,90,.08),transparent 60%),#070707;color:var(--text)}
+.gateway-shell{min-height:100svh;width:min(1160px,calc(100% - 32px));margin:0 auto;display:grid;place-items:center;padding:40px 0}
+.gateway-card{width:100%;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:54px;align-items:center;padding:44px;border:1px solid rgba(198,161,90,.18);border-radius:34px;background:linear-gradient(145deg,rgba(255,255,255,.026),rgba(255,255,255,.006));box-shadow:var(--shadow)}
+.gateway-copy h1{font-size:clamp(46px,7vw,88px);line-height:.95;margin:12px 0 24px;letter-spacing:-.05em}
+.gateway-copy h1 em{font-family:Georgia,"Times New Roman",serif;font-weight:400;color:var(--gold-2)}
+.gateway-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.gateway-note{margin-top:18px;color:var(--muted);font-size:13px;max-width:55ch}
+.gateway-card .portrait-shell{justify-self:end;width:min(360px,100%)}
+@media(max-width:760px){.gateway-shell{width:calc(100% - 20px);padding:16px 0}.gateway-card{grid-template-columns:1fr;padding:22px;border-radius:26px;gap:26px}.gateway-copy h1{font-size:clamp(40px,13vw,58px)}.gateway-actions{display:grid;grid-template-columns:1fr}.gateway-actions .button{width:100%;justify-content:center}.gateway-card .portrait-shell{justify-self:center;width:min(300px,82vw)}}
