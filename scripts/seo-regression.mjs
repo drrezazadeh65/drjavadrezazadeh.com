@@ -740,3 +740,33 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// PUBLIC SEARCH GOVERNANCE — search index must contain public/indexable pages only.
+const searchIndexPath=path.join(root,'assets','search-index.json');
+if(!fs.existsSync(searchIndexPath)){
+  failures.push('/assets/search-index.json: public search index missing');
+}else{
+  let items=[];
+  try{items=JSON.parse(fs.readFileSync(searchIndexPath,'utf8'));}catch(e){failures.push('/assets/search-index.json: invalid JSON');}
+  const seen=new Set();
+  for(const item of Array.isArray(items)?items:[]){
+    if(!item||!item.path||!item.lang){failures.push('/assets/search-index.json: entry missing path/lang');continue;}
+    if(seen.has(item.path)) failures.push('/assets/search-index.json: duplicate path '+item.path);
+    seen.add(item.path);
+    const file=path.join(root,item.path,'index.html');
+    if(!fs.existsSync(file)){failures.push('/assets/search-index.json: missing target '+item.path);continue;}
+    const html=fs.readFileSync(file,'utf8');
+    const htmlTag=(html.match(/<html\b[^>]*>/i)||[''])[0];
+    const lang=getAttr(htmlTag,'lang')||'';
+    const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+    const rc=getAttr(robots,'content')||'';
+    if(/\bnoindex\b/i.test(rc)) failures.push('/assets/search-index.json: private/noindex target '+item.path);
+    if(lang && lang!==item.lang) failures.push('/assets/search-index.json: language mismatch '+item.path+' index='+item.lang+' html='+lang);
+  }
+}
+if(failures.length){
+  console.error('\nPublic-search governance failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
