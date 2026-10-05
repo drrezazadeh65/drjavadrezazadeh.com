@@ -76,7 +76,8 @@
     "SEO-022": "Whole-surface automated release QA now also enforces bilingual/private-route indexability, confidential pre-publication firewalls, Service Worker private-cache bypass, Cloudflare response-header privacy rules, and mobile/PWA source guardrails.",
     "SERV-011": "Bilingual private appointment-state previews plus API contract implemented; live availability, timezone-aware slot selection, reschedule/cancel enforcement and authenticated persistence remain pending.",
     "ADMIN-004": "Version-controlled Cloudflare Pages _redirects registry and CI URL-integrity guard implemented for confirmed legacy migrations; CMS/admin redirect-management UI remains pending.",
-    "INFRA-014": "Cloudflare Pages default public ETag/revalidation baseline frozen for current non-fingerprinted assets; private no-store and SW network-first code delivery enforced; immutable caching blocked until hashed-asset pipeline exists; production verification pending."
+    "INFRA-014": "Cloudflare Pages default public ETag/revalidation baseline frozen for current non-fingerprinted assets; private no-store and SW network-first code delivery enforced; immutable caching blocked until hashed-asset pipeline exists; production verification pending.",
+    "INFRA-011": "Staging/preview policy frozen: Cloudflare preview hosts noindex, private no-store, synthetic data only, production secrets/payments excluded and CI-gated promotion; live Cloudflare branch-preview verification pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
