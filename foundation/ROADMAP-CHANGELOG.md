@@ -118,3 +118,6 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 
 ### School-performance and contextual evidence intake
 - **GT-011 | PLANNED → IN PROGRESS** — Added private/noindex school-performance + contextual evidence intake. Performance evidence is kept distinct from context; E7 records real barrier, evidence, barrier type (direct/shared/structural), controllable part, support required, action owner and review time. No scoring or server persistence is active before authenticated provenance controls.
+
+### Parent and teacher resource hubs
+- **GT-016 | PLANNED → DONE** — Added separate private/noindex parent and teacher resource hubs. Parent resources focus on Support Ecology, autonomy-support and evidence-based observation; teacher resources focus on descriptive observation, feedback/error literacy, context and learner agency. Authentication/access activation remains a separate Portal/Security dependency.
