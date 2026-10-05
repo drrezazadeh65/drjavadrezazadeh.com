@@ -121,3 +121,6 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 
 ### Parent and teacher resource hubs
 - **GT-016 | PLANNED → DONE** — Added separate private/noindex parent and teacher resource hubs. Parent resources focus on Support Ecology, autonomy-support and evidence-based observation; teacher resources focus on descriptive observation, feedback/error literacy, context and learner agency. Authentication/access activation remains a separate Portal/Security dependency.
+
+### Integrated evidence profile
+- **GT-012 | IN PROGRESS → IN PROGRESS (substantial implementation)** — Added a private/noindex A–G evidence profile with S/P/R/O/C/T source selection, four descriptive evidence states (convergent/discrepant/single-source/insufficient), priority, next action, monitoring indicator and review time. It explicitly avoids total scores and statistical-confidence claims; production synthesis remains versioned/backend-dependent.
