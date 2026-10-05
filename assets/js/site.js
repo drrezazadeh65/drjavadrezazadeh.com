@@ -223,3 +223,21 @@ qa('.app-dock a').forEach(a=>{
     }
   }
 })();
+
+// PERSIAN GOLDEN TALENT DOCK v1
+(function(){
+  const p=location.pathname;
+  const isFaStudent=/\/fa\/app\/student(?:\/|$)/.test(p);
+  const isFaRcas=/\/fa\/assessments\/golden-talent\/start(?:\/|$)/.test(p);
+  if((!isFaStudent&&!isFaRcas)||document.querySelector('.gt-mobile-dock')) return;
+  const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
+  const nav=document.createElement('nav');
+  nav.className='gt-mobile-dock';
+  nav.setAttribute('aria-label','ناوبری موبایل Golden Talent');
+  nav.innerHTML=
+    '<a href="'+base+'fa/app/student/">خانه</a>'+
+    '<a href="'+base+'fa/assessments/golden-talent/start/">RCAS</a>'+
+    '<a href="'+base+'fa/app/student/integrated-profile/">شواهد</a>'+
+    '<a href="'+base+'fa/app/student/golden-path/">مسیر</a>';
+  document.body.appendChild(nav);
+})();
