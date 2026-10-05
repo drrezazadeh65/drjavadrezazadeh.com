@@ -353,7 +353,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **JRN-021 — PLANNED — Journal-domain email addresses.**
 - [ ] **JRN-022 — WAITING — Real publisher address on publisher/journal legal pages.**
 - [ ] **JRN-023 — PLANNED — ISSN application once title, permanent URL, publisher identity and required evidence are ready.**
-- [ ] **JRN-024 — WAITING — DOI registration route through a legally available Registration Agency/sponsor.**
+- [ ] **JRN-024 — WAITING — DOI registration route through a legally available Registration Agency/sponsor.** Under current Crossref sanctions rules, an Iran-based organisation cannot apply for direct Crossref membership; the first operational investigation remains a lawful sponsored/alternative Registration Agency route (including the previously identified mEDRA/Sinaweb route where eligible). No nominal foreign address or misrepresentation is permitted.
 - [ ] **JRN-025 — PLANNED — DOI landing-page and metadata workflow for every published article.**
 - [ ] **JRN-026 — PLANNED — Preservation: PKP PN/Internet Archive and/or another appropriate long-term archive.**
 - [ ] **JRN-027 — PLANNED — JATS XML or equivalently robust machine-readable article metadata.**
