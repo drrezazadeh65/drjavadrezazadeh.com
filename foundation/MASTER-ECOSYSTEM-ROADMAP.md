@@ -281,7 +281,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **ADMIN-001 — PLANNED — CMS for articles, news, books, services, products and SEO fields.**
 - [ ] **ADMIN-002 — PLANNED — Draft/review/publish workflow.**
 - [ ] **ADMIN-003 — PLANNED — SEO fields: title, description, slug, canonical, hreflang, index state, OG, schema, dates, author/reviewer.**
-- [ ] **ADMIN-004 — PLANNED — Redirect manager and URL-integrity guards.**
+- [ ] **ADMIN-004 — IN PROGRESS — Cloudflare Pages `_redirects` now provides a version-controlled registry for confirmed legacy migrations, and CI validates syntax, unique sources, target existence and permanent 301 status; a future CMS/admin UI for redirect creation and review remains pending.**
 - [ ] **ADMIN-005 — PLANNED — User/role management.**
 - [ ] **ADMIN-006 — PLANNED — Assessment management.**
 - [ ] **ADMIN-007 — PLANNED — Order/payment management.**
