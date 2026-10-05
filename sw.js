@@ -1,4 +1,5 @@
-const CACHE_VERSION='jr-site-v2-20261006-cache-reset';
+const CACHE_VERSION='jr-site-v3-20261006-force-purge';
+const CACHE_FAMILY='jr-site-';
 const STATIC_CACHE=CACHE_VERSION+'-static';
 const PUBLIC_CACHE=CACHE_VERSION+'-public';
 const CORE=[
@@ -19,12 +20,21 @@ const PRIVATE_PREFIXES=[
 ];
 
 self.addEventListener('install',event=>{
-  event.waitUntil(caches.open(STATIC_CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));
+  event.waitUntil((async()=>{
+    const cache=await caches.open(STATIC_CACHE);
+    await Promise.all(CORE.map(async url=>{
+      try{
+        const res=await fetch(url,{cache:'reload'});
+        if(res.ok) await cache.put(url,res.clone());
+      }catch(e){}
+    }));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate',event=>{
   event.waitUntil(
-    caches.keys().then(keys=>Promise.all(keys.filter(k=>!k.startsWith(CACHE_VERSION)).map(k=>caches.delete(k))))
+    caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith(CACHE_FAMILY)&&!k.startsWith(CACHE_VERSION)).map(k=>caches.delete(k))))
       .then(()=>self.clients.claim())
   );
 });
@@ -60,7 +70,7 @@ self.addEventListener('fetch',event=>{
     event.respondWith(
       caches.open(STATIC_CACHE).then(async cache=>{
         const hit=await cache.match(req,{ignoreSearch:true});
-        const network=fetch(req).then(res=>{
+        const network=fetch(req,{cache:'reload'}).then(res=>{
           if(res.ok) cache.put(req,res.clone());
           return res;
         }).catch(()=>hit);
@@ -72,7 +82,7 @@ self.addEventListener('fetch',event=>{
 
   if(req.mode==='navigate'){
     event.respondWith(
-      fetch(req).then(async res=>{
+      fetch(req,{cache:'reload'}).then(async res=>{
         if(res.ok){
           const cache=await caches.open(PUBLIC_CACHE);
           cache.put(req,res.clone());
