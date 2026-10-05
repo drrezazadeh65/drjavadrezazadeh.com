@@ -66,7 +66,7 @@ This supersedes the earlier 5 October audit scope of 27 URLs.
 
 ## PWA item still intentionally open
 
-The PWA foundation now includes exact **192×192** and **512×512** PNG launcher icons, and CI verifies the files, PNG signatures and IHDR dimensions. The project remains **IN PROGRESS**, not DONE, until maskable-icon validation and live installability testing are completed on the production delivery environment.
+The PWA foundation now includes exact **192×192** and **512×512** PNG launcher icons plus a dedicated **512×512 maskable** icon. CI verifies file presence, PNG signatures, IHDR dimensions, manifest purpose and Service Worker app-shell inclusion. The project remains **IN PROGRESS**, not DONE, only because live installability and device QA still require the production delivery environment.
 
 ## Production-domain items still not certifiable
 
