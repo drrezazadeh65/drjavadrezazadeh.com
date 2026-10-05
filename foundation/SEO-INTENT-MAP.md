@@ -87,7 +87,7 @@ The homepage owns the **person/entity** query. About owns **biographical/profile
 
 | URL | Primary intent | Role | State |
 |---|---|---|---|
-| `/fa/golden-talent/` | Golden Talent / مسیر طلایی استعداد | Public framework hub | RESERVED / NOINDEX until substantive release |
+| `/fa/golden-talent/` | Golden Talent / مسیر طلایی استعداد | Public framework hub | INDEX |
 | `/fa/estedaadyabi/` | استعدادیابی علمی | Public service entry | INDEX |
 | `/fa/falsafe-amoozeshi/` | فلسفه آموزشی | Thought-leadership foundation | INDEX |
 | future `/fa/golden-talent/for-parents/` | استعدادیابی برای والدین | Educational resource | PLANNED |
