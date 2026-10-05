@@ -28,12 +28,12 @@ Status: PASS / PARTIAL / BLOCKED-BY-DOMAIN / POST-LAUNCH / ONGOING.
 | 20 | internal linking | PASS baseline | Hubs, contextual links, breadcrumbs and crawlable HTML navigation. |
 | 21 | Core Web Vitals | PARTIAL | Static assets lightweight; production field CWV requires owned-domain deployment. |
 | 22 | mobile-first | PASS baseline | Responsive layouts and mobile navigation; production device testing still required. |
-| 23 | accessibility | PARTIAL | Semantic structure, labels/alt/skip links in main surfaces; full WCAG audit pending. |
+| 23 | accessibility | PASS baseline / manual audit pending | Static release guardrails, skip navigation, keyboard focus trap, focus-visible, touch targets and reduced-motion handling are implemented; full manual WCAG audit remains a production QA task. |
 | 24 | AI Search / GEO / AEO | PASS baseline | Core SEO + entity + original content strategy; no artificial AI hacks. |
 | 25 | llms.txt policy | PASS | Not treated as Google ranking mechanism. |
 | 26 | AI content policy | PASS | No scaled low-value pages; expert/site-specific public content only. |
 | 27 | content clusters | PASS baseline | Persian and English hubs established; supporting content grows over time. |
-| 28 | news system | PASS baseline | Persian news separated from evergreen content; English News & Insights hub added. |
+| 28 | news system | PASS | Persian time-sensitive news and evergreen guides are now separate hubs and sitemap classes; English News & Insights has no evergreen/news conflict yet. |
 | 29 | student area | PASS architecture | Public student landing indexable; operational/profile/test/shop areas noindex/private. |
 | 30 | backlinks / authority | ONGOING | Requires external scholarly/publisher/conference activity. |
 | 31 | spam-policy zero tolerance | PASS | Release architecture avoids doorway/scaled/fake-review patterns. |
@@ -41,7 +41,7 @@ Status: PASS / PARTIAL / BLOCKED-BY-DOMAIN / POST-LAUNCH / ONGOING.
 | 33 | Bing & IndexNow | BLOCKED-BY-DOMAIN | Configure after production domain/backend or worker exists. |
 | 34 | analytics & conversions | BLOCKED-BY-DOMAIN | Implement production analytics and conversion events with privacy review. |
 | 35 | content refresh | POST-LAUNCH | Annual admissions + declining pages + stale claims monitored after launch. |
-| 36 | redirects/errors | PARTIAL | Legacy static transition routes exist; true 301 consolidation at production host/CDN. |
+| 36 | redirects/errors | PASS baseline / production 301 pending | Branded bilingual 404 plus noindex transition routes are implemented; true HTTP 301 consolidation remains a production host/CDN task. |
 | 37 | security | PARTIAL | Security contact, privacy/terms and backend rules prepared; headers/auth/backups require production infra. |
 | 38 | release checklist | PASS automated baseline | SEO/GEO regression now checks indexability, links, sitemaps, hreflang and budgets. |
 | 39 | monthly SEO control | POST-LAUNCH | Starts after Search Console/Bing/analytics data exists. |
