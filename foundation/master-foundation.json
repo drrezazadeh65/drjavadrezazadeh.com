@@ -26,7 +26,11 @@
       "/fa/darbare-man/",
       "/fa/entekhab-reshteh/",
       "/fa/moshavere-konkur/",
-      "/fa/akhbar/moshavere-tahsili-baraye-tasmim/"
+      "/fa/akhbar/moshavere-tahsili-baraye-tasmim/",
+      "/books/",
+      "/fa/ketab-ha/",
+      "/teaching/",
+      "/fa/tadris/"
     ],
     "sitemap_rule": "Only approved indexable canonical URLs belong in sitemap.xml"
   },
@@ -47,7 +51,11 @@
       "/fa/darbare-man/",
       "/fa/entekhab-reshteh/",
       "/fa/moshavere-konkur/",
-      "/fa/akhbar/moshavere-tahsili-baraye-tasmim/"
+      "/fa/akhbar/moshavere-tahsili-baraye-tasmim/",
+      "/books/",
+      "/fa/ketab-ha/",
+      "/teaching/",
+      "/fa/tadris/"
     ],
     "reserved_noindex": [
       "/app/",
@@ -185,5 +193,11 @@
     "before_build": "intent + entity + URL + canonical/language decision",
     "during_build": "content + semantic structure + links + schema + image SEO + performance + accessibility",
     "release": "indexability + canonical/hreflang + sitemap + validation + monitoring"
+  },
+  "authority_surfaces": {
+    "books_en": "/books/",
+    "books_fa": "/fa/ketab-ha/",
+    "teaching_en": "/teaching/",
+    "teaching_fa": "/fa/tadris/"
   }
 }
