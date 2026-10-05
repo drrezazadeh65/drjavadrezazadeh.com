@@ -559,3 +559,27 @@ code,pre,.brand,.site-header nav a,.button,.profile,.service-card,.authority-car
 .app-role-row.head{background:transparent;border-style:dashed;color:#8f877b;font-size:10px}
 .app-role-row b{color:#e9dfcf}.app-role-row span{color:#a49c90;font-size:12px;line-height:1.7}.app-role-row em{font-style:normal;color:var(--gold-2);font-size:10px}
 @media(max-width:780px){.app-role-scope,.app-activation-map{width:calc(100% - 20px);padding:20px}.app-role-row,.app-role-row.head{grid-template-columns:1fr}.app-role-row.head{display:none}.app-role-row b{font-size:17px}.app-role-row em{margin-top:4px}}
+
+/* Mobile overflow containment v2 — solve causes, do not merely hide them */
+img,svg,video,canvas,iframe{max-width:100%;height:auto}
+main,section,article,aside,header,footer,nav,form,fieldset,div{min-width:0}
+:is(.grid,.profile-grid,.service-grid,.authority-grid,.principle-grid,.outcome-grid,.process-grid,.gt-stage-strip,.gt-pricing-grid,.gt-mini-grid,.gt-module-grid,.gt-package-grid,.student-overview,.student-journey-grid,.student-domain-grid,.student-two-col,.student-module-grid,.premium-area-grid,.rcas-field-grid,.rcas-long-grid,.rcas-priority,.observer-grid,.record-grid,.context-grid,.integrated-domain-grid,.integrated-preview-grid,.case-overview,.case-evidence-grid,.case-three,.role-boundary-grid)>*{min-width:0;max-width:100%}
+p,li,dd,dt,h1,h2,h3,h4,strong,b,span,a{overflow-wrap:anywhere}
+pre,code{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+table{max-width:100%}
+input,select,textarea,button{max-width:100%}
+@media(max-width:900px){
+  .site-header{padding-inline:14px;max-width:100%}
+  .brand{max-width:calc(100vw - 92px)}
+  .brand,.brand span,.brand small{overflow-wrap:anywhere}
+}
+@media(max-width:700px){
+  .consultant-flow{display:grid;grid-template-columns:1fr;overflow:visible}
+  .consultant-flow>div{min-width:0;width:100%}
+  .consultant-flow>i{transform:rotate(90deg);justify-self:center}
+  .actions>*{max-width:100%}
+}
+@media(max-width:480px){
+  .mobilebar{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .mobilebar a{min-width:0;overflow-wrap:anywhere}
+}
