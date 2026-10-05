@@ -34,3 +34,7 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 - **SEO-013 | PLANNED → DONE** — Added visible breadcrumbs and BreadcrumbList structured data across every current deep indexable public page.
 - **SEO-014 | PLANNED → DONE** — Audited the current indexable structured-data surface, repaired missing metadata and confirmed all JSON-LD blocks parse as valid JSON.
 - **SEO-022 | PLANNED → DONE** — Validated title/meta/robots/H1/canonical/schema/OG metadata across all 27 sitemap URLs, checked internal links against the repository tree with zero broken targets, and confirmed reciprocal hreflang on all six genuine bilingual pairs.
+
+### Design-system and accessibility baseline
+- **UX-009 | PLANNED → DONE** — Frozen `foundation/DESIGN-SYSTEM.md` covering semantic tokens, typography, component families, mobile rules, image governance, interaction rules and release checks.
+- **UX-013 | PLANNED → IN PROGRESS** — Added global visible focus styles, minimum 44px touch targets, target scroll offsets and forced-colour focus fallback; full assistive-technology and live-device QA remains pending.
