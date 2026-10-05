@@ -258,3 +258,12 @@ qa('.app-dock a').forEach(a=>{
     }catch(e){}
   });
 })();
+
+// STANDALONE APP MODE v1
+(function(){
+  const standalone=window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;
+  if(standalone){
+    document.documentElement.classList.add('standalone-app');
+    document.body?.classList.add('standalone-app-body');
+  }
+})();
