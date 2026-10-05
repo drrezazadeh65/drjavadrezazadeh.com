@@ -503,3 +503,23 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// PRIVATE RECORD EVIDENCE GUARDRAIL — R evidence is private and no upload before secure storage.
+{
+  const p=path.join(root,'fa','app','student','records','index.html');
+  if(!fs.existsSync(p)) failures.push('/fa/app/student/records/: R evidence workspace missing');
+  else{
+    const html=fs.readFileSync(p,'utf8');
+    const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+    const rc=getAttr(robots,'content')||'';
+    if(!/\bnoindex\b/i.test(rc)) failures.push('/fa/app/student/records/: private record workspace must remain NOINDEX');
+    if(/<input\b[^>]*type=["']file["']/i.test(html)) failures.push('/fa/app/student/records/: real file input must remain disabled until secure private storage is live');
+    if(!html.includes('R · Record / History Evidence')) failures.push('/fa/app/student/records/: R evidence identity missing');
+  }
+}
+if(failures.length){
+  console.error('\nPrivate record evidence failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
