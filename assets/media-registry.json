@@ -1,0 +1,226 @@
+{
+  "version": "2026-10-06",
+  "policy": "Every repository image asset must have one registry record. This registry authorises site use only; it is not a blanket licence for third-party redistribution.",
+  "assets": [
+    {
+      "path": "assets/images/academic-consulting-decision-guidance-javad-rezazadeh.svg",
+      "kind": "illustration",
+      "role": "academic-consulting",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of evidence-informed academic consulting and educational decision-making",
+      "alt_fa": "تصویری مفهومی از مشاوره تحصیلی و تصمیم‌گیری آموزشی بر پایه شواهد",
+      "caption_en": "Educational consultation begins with a clearly defined decision and the evidence relevant to it.",
+      "caption_fa": "مشاوره آموزشی از تعریف روشن مسئله و شواهد مرتبط با تصمیم آغاز می‌شود."
+    },
+    {
+      "path": "assets/images/academic-engagements-conferences-javad-rezazadeh.svg",
+      "kind": "illustration",
+      "role": "academic-engagements",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of academic engagements, conferences and scholarly collaboration",
+      "alt_fa": "تصویری مفهومی از فعالیت‌های علمی، همایش‌ها و همکاری دانشگاهی",
+      "caption_en": "Academic engagement is represented as participation, dialogue and scholarly collaboration.",
+      "caption_fa": "فعالیت علمی به‌صورت مشارکت، گفت‌وگو و همکاری دانشگاهی بازنمایی می‌شود."
+    },
+    {
+      "path": "assets/images/academic-guidance-decision-article-javad-rezazadeh.svg",
+      "kind": "illustration",
+      "role": "academic-guidance",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of academic guidance and major-selection decision-making",
+      "alt_fa": "تصویری مفهومی از هدایت تحصیلی و تصمیم‌گیری برای انتخاب رشته",
+      "caption_en": "Field selection is treated as a contextual decision rather than a single-score match.",
+      "caption_fa": "انتخاب رشته به‌عنوان تصمیمی زمینه‌مند دیده می‌شود، نه تطبیق مکانیکی با یک نمره."
+    },
+    {
+      "path": "assets/images/books-education-poetry-javad-rezazadeh.svg",
+      "kind": "illustration",
+      "role": "books",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of books in education, research and poetry",
+      "alt_fa": "تصویری مفهومی از کتاب‌ها در حوزه آموزش، پژوهش و شعر",
+      "caption_en": "Books and long-form work across education, research and literary writing.",
+      "caption_fa": "آثار و نوشته‌های بلند در حوزه آموزش، پژوهش و ادبیات."
+    },
+    {
+      "path": "assets/images/educational-philosophy-human-growth-javad-rezazadeh.svg",
+      "kind": "illustration",
+      "role": "educational-philosophy",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of educational philosophy and human development",
+      "alt_fa": "تصویری مفهومی از فلسفه آموزشی و رشد انسانی",
+      "caption_en": "Education is framed as a developmental and human-centred process.",
+      "caption_fa": "آموزش به‌عنوان فرایندی رشد‌محور و انسان‌مدار تصویر می‌شود."
+    },
+    {
+      "path": "assets/images/entekhab-reshteh-1405.svg",
+      "kind": "illustration",
+      "role": "news-field-selection-1405",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Illustration for the 1405 Iranian university major-selection guidance update",
+      "alt_fa": "تصویر خبر و راهنمای انتخاب رشته دانشگاهی ۱۴۰۵",
+      "caption_en": "Guidance content for the 1405 major-selection period.",
+      "caption_fa": "محتوای راهنما برای دوره انتخاب رشته ۱۴۰۵."
+    },
+    {
+      "path": "assets/images/golden-talent-multisource-developmental-framework.svg",
+      "kind": "illustration",
+      "role": "golden-talent-framework",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of the Golden Talent multisource developmental framework",
+      "alt_fa": "تصویری مفهومی از چارچوب چندمنبعی و رشد‌محور Golden Talent",
+      "caption_en": "Golden Talent integrates multiple evidence sources across a developmental pathway.",
+      "caption_fa": "Golden Talent چند منبع شواهد را در یک مسیر رشد تلفیق می‌کند."
+    },
+    {
+      "path": "assets/images/javad-rezazadeh-yazdeli-portrait-2026.webp",
+      "kind": "portrait",
+      "role": "primary-portrait",
+      "provenance": "existing project portrait asset",
+      "rights": "site-use-approved; external reuse not granted by this registry",
+      "alt_en": "Portrait of Dr. Javad Rezazadeh Yazdeli",
+      "alt_fa": "پرتره دکتر جواد رضازاده یزدلی",
+      "caption_en": "Dr. Javad Rezazadeh Yazdeli.",
+      "caption_fa": "دکتر جواد رضازاده یزدلی."
+    },
+    {
+      "path": "assets/images/javad-rezazadeh-yazdeli-portrait.webp",
+      "kind": "portrait",
+      "role": "high-resolution-source-portrait",
+      "provenance": "existing project portrait asset",
+      "rights": "site-use-approved; external reuse not granted by this registry",
+      "alt_en": "Portrait of Dr. Javad Rezazadeh Yazdeli",
+      "alt_fa": "پرتره دکتر جواد رضازاده یزدلی",
+      "caption_en": "Higher-resolution portrait source retained for site derivatives.",
+      "caption_fa": "نسخه با وضوح بالاتر پرتره برای مشتقات تصویری سایت."
+    },
+    {
+      "path": "assets/images/jhela-international-academic-collaboration.svg",
+      "kind": "illustration",
+      "role": "journal-collaboration",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of international academic collaboration for JHELA",
+      "alt_fa": "تصویری مفهومی از همکاری علمی بین‌المللی برای JHELA",
+      "caption_en": "International collaboration and reviewer/editorial participation.",
+      "caption_fa": "همکاری بین‌المللی و مشارکت داوران و اعضای علمی."
+    },
+    {
+      "path": "assets/images/publications-scholarly-record-javad-rezazadeh.svg",
+      "kind": "illustration",
+      "role": "publications",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of scholarly publications and academic record",
+      "alt_fa": "تصویری مفهومی از انتشارات علمی و سابقه پژوهشی",
+      "caption_en": "Scholarly outputs are presented as a verifiable academic record.",
+      "caption_fa": "آثار علمی به‌عنوان سابقه دانشگاهی قابل‌راستی‌آزمایی ارائه می‌شوند."
+    },
+    {
+      "path": "assets/images/pwa-icon-192.png",
+      "kind": "brand-icon",
+      "role": "pwa-launcher-192",
+      "provenance": "generated in-site brand asset, 2026-10-06",
+      "rights": "site-use-approved",
+      "alt_en": "JR black-and-gold brand icon",
+      "alt_fa": "آیکون برند مشکی و طلایی JR",
+      "caption_en": "PWA launcher icon.",
+      "caption_fa": "آیکون راه‌انداز PWA."
+    },
+    {
+      "path": "assets/images/pwa-icon-512.png",
+      "kind": "brand-icon",
+      "role": "pwa-launcher-512",
+      "provenance": "generated in-site brand asset, 2026-10-06",
+      "rights": "site-use-approved",
+      "alt_en": "JR black-and-gold brand icon",
+      "alt_fa": "آیکون برند مشکی و طلایی JR",
+      "caption_en": "High-resolution PWA launcher icon.",
+      "caption_fa": "آیکون راه‌انداز PWA با وضوح بالا."
+    },
+    {
+      "path": "assets/images/pwa-icon-maskable-512.png",
+      "kind": "brand-icon",
+      "role": "pwa-maskable-512",
+      "provenance": "generated in-site brand asset, 2026-10-06",
+      "rights": "site-use-approved",
+      "alt_en": "JR full-bleed black-and-gold maskable brand icon",
+      "alt_fa": "آیکون ماسک‌پذیر تمام‌سطح مشکی و طلایی JR",
+      "caption_en": "Maskable PWA launcher icon.",
+      "caption_fa": "آیکون ماسک‌پذیر راه‌انداز PWA."
+    },
+    {
+      "path": "assets/images/research-applied-linguistics-javad-rezazadeh.svg",
+      "kind": "illustration",
+      "role": "research",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of research in education and applied linguistics",
+      "alt_fa": "تصویری مفهومی از پژوهش در آموزش و زبان‌شناسی کاربردی",
+      "caption_en": "Research activity across education and applied linguistics.",
+      "caption_fa": "فعالیت پژوهشی در حوزه آموزش و زبان‌شناسی کاربردی."
+    },
+    {
+      "path": "assets/images/rezazadeh-foundation-press-publisher.svg",
+      "kind": "illustration",
+      "role": "publisher",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Brand illustration for Rezazadeh Foundation Press",
+      "alt_fa": "تصویر برند Rezazadeh Foundation Press",
+      "caption_en": "Publisher identity artwork.",
+      "caption_fa": "اثر تصویری هویت ناشر."
+    },
+    {
+      "path": "assets/images/student-education-services-javad-rezazadeh.svg",
+      "kind": "illustration",
+      "role": "student-services",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of student education and guidance services",
+      "alt_fa": "تصویری مفهومی از خدمات آموزشی و هدایت دانش‌آموز",
+      "caption_en": "Student-facing educational and guidance services.",
+      "caption_fa": "خدمات آموزشی و هدایت ویژه دانش‌آموزان."
+    },
+    {
+      "path": "assets/images/talent-identification-golden-path-javad-rezazadeh.svg",
+      "kind": "illustration",
+      "role": "talent-identification",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of talent identification and Golden Path development",
+      "alt_fa": "تصویری مفهومی از استعدادیابی و مسیر رشد Golden Path",
+      "caption_en": "Talent identification is linked to evidence, development and review.",
+      "caption_fa": "استعدادیابی با شواهد، رشد و بازبینی پیوند داده می‌شود."
+    },
+    {
+      "path": "assets/images/university-teaching-applied-linguistics-javad-rezazadeh.svg",
+      "kind": "illustration",
+      "role": "teaching-language-education",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration of university teaching and applied linguistics",
+      "alt_fa": "تصویری مفهومی از تدریس دانشگاهی و زبان‌شناسی کاربردی",
+      "caption_en": "University teaching and language-education work.",
+      "caption_fa": "تدریس دانشگاهی و فعالیت‌های آموزش زبان."
+    },
+    {
+      "path": "assets/images/which-field-fits-me-javad-rezazadeh.svg",
+      "kind": "illustration",
+      "role": "field-fit-guidance",
+      "provenance": "repository-native site illustration",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration for exploring which field of study may fit a student",
+      "alt_fa": "تصویری مفهومی برای بررسی تناسب رشته تحصیلی با دانش‌آموز",
+      "caption_en": "Exploring field fit through evidence, context and preferences.",
+      "caption_fa": "بررسی تناسب رشته با شواهد، زمینه و ترجیحات."
+    }
+  ]
+}
