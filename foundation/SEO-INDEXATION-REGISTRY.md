@@ -26,6 +26,8 @@ Status classes:
 
 - `/en/contact/` — INDEX
 
+- `/en/collaboration/` — INDEX
+
 ## INDEX — Persian
 - `/fa/` — INDEX
 - `/fa/darbare-man/` — INDEX
