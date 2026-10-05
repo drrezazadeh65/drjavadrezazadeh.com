@@ -523,3 +523,23 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// GT-011 CONTEXT EVIDENCE GUARDRAIL — private R/C evidence with E7; never scored/indexed.
+{
+ const p=path.join(root,'fa','app','student','context','index.html');
+ if(!fs.existsSync(p)) failures.push('/fa/app/student/context/: GT-011 context intake missing');
+ else{
+  const html=fs.readFileSync(p,'utf8');
+  const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+  if(!/\bnoindex\b/i.test(getAttr(robots,'content')||'')) failures.push('/fa/app/student/context/: context evidence must remain NOINDEX');
+  for(const required of ['RCAS-E7','مانع واقعی','شاهد','نوع مانع','بخش قابل‌کنترل','حمایت موردنیاز','مسئول اقدام','زمان بازبینی']){
+   if(!html.includes(required)) failures.push('/fa/app/student/context/: missing E7 field '+required);
+  }
+ }
+}
+if(failures.length){
+ console.error('\nGT-011 context evidence failures ('+failures.length+')');
+ failures.forEach(x=>console.error('✗ '+x));
+ process.exit(1);
+}
