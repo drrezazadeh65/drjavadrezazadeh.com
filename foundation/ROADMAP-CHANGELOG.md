@@ -115,3 +115,6 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 
 ### Academic-record evidence workspace
 - **GT-019 | NEW → IN PROGRESS** — Added the private/noindex R-source workspace for academic history, grades and verified documents. It maps to existing educational_record, grade_record and private_document models; real upload is intentionally disabled until private storage, malware scan, retention and access-control infrastructure are production-ready. GT-011 remains reserved for school-performance and contextual evidence intake.
+
+### School-performance and contextual evidence intake
+- **GT-011 | PLANNED → IN PROGRESS** — Added private/noindex school-performance + contextual evidence intake. Performance evidence is kept distinct from context; E7 records real barrier, evidence, barrier type (direct/shared/structural), controllable part, support required, action owner and review time. No scoring or server persistence is active before authenticated provenance controls.
