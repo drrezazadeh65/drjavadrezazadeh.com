@@ -64,3 +64,9 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 - **PORTAL-011 | PLANNED → IN PROGRESS** — Added Persian consultant dashboard prototype reflecting triage, assigned cases, notes and follow-up.
 - **PORTAL-012 | PLANNED → IN PROGRESS** — Added privacy-request schema for access/correction/export/deletion/restriction/consent-withdrawal.
 - **PORTAL-013 | PLANNED → IN PROGRESS** — Added private-document metadata, malware-scan state and scoped access-grant schema; private storage remains pending.
+
+### Golden Talent public framework launch
+- **GT-006 | PLANNED → DONE** — Published bilingual indexable Golden Talent hubs at `/golden-talent/` and `/fa/golden-talent/` after a dedicated SERP/positioning review. The framework explicitly distinguishes talent from interest, skill and achievement; uses multi-source evidence; preserves uncertainty; and keeps personal assessments/reports in the private app.
+- **SEO-007 | IN PROGRESS → IN PROGRESS** — Completed a second cluster-level live SERP review for Golden Talent/talent identification. The review remains an ongoing gate for future major clusters.
+- **SEO-009 | MODIFIED → MODIFIED** — Connected Golden Talent to Home, Books, Educational Philosophy and talent-identification surfaces.
+- **SEO-018 | MODIFIED → MODIFIED** — Added the bilingual Golden Talent URLs and framework image to the XML sitemap.
