@@ -87,6 +87,12 @@ for(const file of htmlFiles){
     if(alt===null) failures.push(route+': image missing alt attribute: '+img.slice(0,120));
     const width=getAttr(img,'width'),height=getAttr(img,'height');
     if(!width||!height) warnings.push(route+': image missing explicit width/height: '+(getAttr(img,'src')||'unknown'));
+    if(isIndexable){
+      const loading=(getAttr(img,'loading')||'').toLowerCase();
+      const priority=(getAttr(img,'fetchpriority')||'').toLowerCase();
+      if(loading==='lazy' && priority==='high') failures.push(route+': image cannot be both lazy and fetchpriority=high: '+(getAttr(img,'src')||'unknown'));
+      if(loading!=='lazy' && priority!=='high') failures.push(route+': indexable-page image must be classified as lazy or fetchpriority=high: '+(getAttr(img,'src')||'unknown'));
+    }
   }
 
   for(const a of html.match(/<a\b[^>]*>/gi)||[]){
