@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "status": "PRE_PRODUCTION",
+  "selection_rule": "SERVER_SIDE_ONLY",
+  "markets": {
+    "IR": {
+      "currency": "IRR",
+      "display_currency": "IRT",
+      "provider_mode": "domestic_gateway",
+      "provider_key": "pending_zarinpal_credentials",
+      "enabled": false,
+      "notes": [
+        "Final provider activation waits for merchant/API credentials.",
+        "Browser return is never proof of payment."
+      ]
+    },
+    "INTERNATIONAL": {
+      "currency": "USD",
+      "provider_mode": "international_card",
+      "provider_key": "pending_kyb_provider",
+      "enabled": false,
+      "optional_settlement": "stablecoin_only_if_legally_supported_by_selected_provider",
+      "notes": [
+        "Frontend must not select a provider directly.",
+        "Visa/Mastercard/wallet availability depends on the compliant provider and merchant eligibility."
+      ]
+    }
+  },
+  "checkout_contract": {
+    "client_sends": [
+      "product_key",
+      "market",
+      "return_path"
+    ],
+    "server_resolves": [
+      "price_id",
+      "currency",
+      "amount_minor",
+      "provider_key",
+      "idempotency_key"
+    ],
+    "server_returns": [
+      "order_id",
+      "payment_intent_id",
+      "redirect_url_or_client_token"
+    ],
+    "payment_truth": "server_verified_callback_or_webhook_only"
+  },
+  "security": [
+    "no provider secrets in Git",
+    "no raw card data stored",
+    "separate sandbox and production credentials",
+    "webhook verification",
+    "idempotent fulfillment",
+    "audit payment state transitions"
+  ]
+}
