@@ -11,7 +11,10 @@ const stage=el("dashStage"),
       meter=el("dashMeter"),
       route=el("dashRoute"),
       routeText=el("dashRouteText"),
-      startLink=el("dashStartLink");
+      startLink=el("dashStartLink"),
+      nextActionTitle=el("dashNextActionTitle"),
+      nextActionText=el("dashNextActionText"),
+      nextActionLink=el("dashNextActionLink");
 
 const routeCode=String(s.routeCode||s.route||"").toUpperCase();
 const routeLabel=String(s.routeLabel||"");
@@ -21,6 +24,16 @@ if(stage)stage.textContent="RCAS Start تکمیل شد";
 if(progress)progress.textContent="۲۵٪";
 if(next)next.textContent=hasValidRoute ? routeCode+(routeLabel?" · "+routeLabel:"") : "نیازمند بازبینی Routing";
 if(meter)meter.style.width="100%";
+if(nextActionTitle)nextActionTitle.textContent=hasValidRoute
+  ? "مرحله بعدی: "+routeCode+(routeLabel?" · "+routeLabel:"")
+  : "Routing را بازبینی کن تا مسیر بعدی معتبر مشخص شود.";
+if(nextActionText)nextActionText.textContent=hasValidRoute
+  ? "این پیشنهاد برچسب یا تشخیص نیست؛ فقط نشان می‌دهد تولید شواهد بیشتر در این حوزه می‌تواند تصمیم بعدی را بهتر کند."
+  : "RCAS تکمیل شده است، اما مسیر D1 تا D6 معتبر در این نشست پیدا نشد.";
+if(nextActionLink){
+  nextActionLink.href=hasValidRoute?"./modules/"+routeCode.toLowerCase()+"/":"../../assessments/golden-talent/start/";
+  nextActionLink.textContent=hasValidRoute?"بازکردن "+routeCode:"بازبینی RCAS";
+}
 
 if(route){
   route.hidden=false;
