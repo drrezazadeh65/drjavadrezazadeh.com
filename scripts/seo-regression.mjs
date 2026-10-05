@@ -341,3 +341,42 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// JOURNAL RELEASE FIREWALL — only explicitly approved JHELA routes may be indexed before journal launch.
+const journalIndexAllowlist=new Set([
+  '/journal/call-for-reviewers/',
+  '/journal/founding-collaborators/'
+]);
+for(const file of htmlFiles){
+  const route=routeFor(file);
+  if(!route.startsWith('/journal/')) continue;
+  const html=fs.readFileSync(file,'utf8');
+  const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+  const rc=getAttr(robots,'content')||'';
+  const indexable=!/\bnoindex\b/i.test(rc);
+  if(indexable && !journalIndexAllowlist.has(route)){
+    failures.push(route+': JHELA route is indexable before explicit journal release approval');
+  }
+}
+
+// UNRELEASED RESEARCH FIREWALL — protected project names must not appear in public HTML.
+const protectedResearchTerms=['Humanability','TESTLY','Teacher Humanization'];
+for(const file of htmlFiles){
+  const html=fs.readFileSync(file,'utf8');
+  const route=routeFor(file);
+  const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+  const rc=getAttr(robots,'content')||'';
+  const publicSurface=!/\bnoindex\b/i.test(rc);
+  if(!publicSurface) continue;
+  for(const term of protectedResearchTerms){
+    if(html.toLowerCase().includes(term.toLowerCase())){
+      failures.push(route+': protected/unreleased research term leaked to indexable HTML: '+term);
+    }
+  }
+}
+if(failures.length){
+  console.error('\nRelease-firewall failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
