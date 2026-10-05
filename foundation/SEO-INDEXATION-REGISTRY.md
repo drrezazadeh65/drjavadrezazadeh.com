@@ -32,6 +32,8 @@ Status classes:
 
 - `/en/student-guidance/` — INDEX
 
+- `/en/golden-talent/methodology/` — INDEX
+
 ## INDEX — Persian
 - `/fa/` — INDEX
 - `/fa/darbare-man/` — INDEX
