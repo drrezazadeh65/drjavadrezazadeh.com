@@ -103,6 +103,7 @@ function ensureMobileNav(){
     [u('en/about/'),'About'],
     [u('en/academic-profile/'),'Academic Profile'],
     [u('en/language-education/'),'Language Education'],
+    [u('en/student-guidance/'),'Student Guidance'],
     [u('en/teacher-education/'),'Teacher Education'],
     [u('en/teaching/'),'University Teaching'],
     [u('en/books/'),'Books'],
@@ -183,13 +184,13 @@ qa('.app-dock a').forEach(a=>{
   window.addEventListener('beforeinstallprompt',e=>{
     e.preventDefault();
     deferredPrompt=e;
-    if(privatePath || document.querySelector('.pwa-install')) return;
+    if(privatePath || document.querySelector('.pwa-install') || sessionStorage.getItem('pwa-install-dismissed')==='1') return;
     const isFa=document.documentElement.lang==='fa';
     const wrap=document.createElement('div');
     wrap.className='pwa-install';
     wrap.innerHTML='<button type="button" class="pwa-install-btn">'+(isFa?'نصب نسخه اپ‌مانند':'Install app experience')+'</button><button type="button" class="pwa-install-close" aria-label="'+(isFa?'بستن':'Close')+'">×</button>';
     document.body.appendChild(wrap);
-    wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>wrap.remove());
+    wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>{sessionStorage.setItem('pwa-install-dismissed','1');wrap.remove();});
     wrap.querySelector('.pwa-install-btn')?.addEventListener('click',async()=>{
       if(!deferredPrompt) return;
       deferredPrompt.prompt();
@@ -240,4 +241,20 @@ qa('.app-dock a').forEach(a=>{
     '<a href="'+base+'fa/app/student/integrated-profile/">شواهد</a>'+
     '<a href="'+base+'fa/app/student/golden-path/">مسیر</a>';
   document.body.appendChild(nav);
+})();
+
+// GOLDEN TALENT DOCK ACTIVE STATE v1
+(function(){
+  const current=location.pathname.replace(/index\.html$/,'');
+  document.querySelectorAll('.gt-mobile-dock a').forEach(a=>{
+    try{
+      const target=new URL(a.href,location.href).pathname.replace(/index\.html$/,'');
+      const exact=current===target;
+      const nested=target.endsWith('/dashboard/')&&current.startsWith(target);
+      if(exact||nested){
+        a.classList.add('is-active');
+        a.setAttribute('aria-current','page');
+      }
+    }catch(e){}
+  });
 })();
