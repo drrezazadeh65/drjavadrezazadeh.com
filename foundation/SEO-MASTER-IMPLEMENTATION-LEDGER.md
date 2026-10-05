@@ -21,8 +21,8 @@ Status: PASS / PARTIAL / BLOCKED-BY-DOMAIN / POST-LAUNCH / ONGOING.
 | 13 | on-page SEO | PASS baseline | Titles, H1, descriptions, images, internal links, CTAs and schema on strategic pages. |
 | 14 | no arbitrary word counts | PASS | Content length follows purpose and completeness. |
 | 15 | content quality | PASS baseline | Original frameworks, expert interpretation and project-specific material prioritised. |
-| 16 | E-E-A-T / trust | PASS baseline | About, research, publications, books, engagements, contact, privacy and terms. |
-| 17 | entity SEO | PASS baseline | Single Person entity and consistent identity across languages. |
+| 16 | E-E-A-T / trust | PASS baseline | About, structured Academic Profile, research, publications, books, engagements, collaboration, contact, privacy, terms and Public Facts Registry. |
+| 17 | entity SEO | PASS baseline | Single Person entity, full-name title guardrails, structured Academic Profile and Public Facts Registry reinforce one bilingual identity. |
 | 18 | structured data | PASS baseline | ProfilePage/WebPage/Article/CollectionPage/Breadcrumb/ContactPage where applicable. |
 | 19 | image SEO | PASS baseline | Descriptive assets, alt text and explicit dimensions; asset budget monitoring. |
 | 20 | internal linking | PASS baseline | Hubs, contextual links, breadcrumbs and crawlable HTML navigation. |
@@ -57,3 +57,13 @@ Status: PASS / PARTIAL / BLOCKED-BY-DOMAIN / POST-LAUNCH / ONGOING.
 7. Jurisdiction-specific final legal review before collecting private student data or payments.
 
 These are not reasons to stop design. Public-site design, SEO foundation, content architecture and private-platform foundations continue independently until cutover.
+
+
+## Current sitemap snapshot — 5 October 2026
+- Core: 4
+- Persian: 20
+- English: 16
+- News: 2
+- Total indexable sitemap URLs: 42
+
+This is an audit snapshot, not a permanent hard-coded target. Content expansion may change the count only when new URLs pass the normal release gates.
