@@ -48,9 +48,12 @@ for(const file of htmlFiles){
   const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
   const robotContent=getAttr(robots,'content')||'';
   const isIndexable=!/\bnoindex\b/i.test(robotContent);
-  const isPrivate=/^\/(?:fa\/)?(?:app|login|register|shop|assessments)(?:\/|$)/.test(route) ||
-    /^\/(?:student|parent|teacher|research-lab)(?:\/|$)/.test(route) ||
-    /^\/fa\/(?:darkhast-moshavere|harim-khosusi|siasat-moshavere|sharayet-estefade)(?:\/|$)/.test(route) ||
+  const isPrivate =
+    /^\/(?:fa|en)\/(?:app|login|register|recover|account|shop|assessments)(?:\/|$)/.test(route) ||
+    /^\/(?:app|login|register|shop|assessments|student|parent|teacher|research-lab)(?:\/|$)/.test(route) ||
+    /^\/fa\/(?:bazyabi-hesab|darkhast-moshavere|harim-khosusi|siasat-moshavere|sharayet-estefade)(?:\/|$)/.test(route) ||
+    /^\/en\/request-consultation(?:\/|$)/.test(route) ||
+    /^\/en\/golden-talent\/(?:assessment|checkout|dashboard|observer|plans|roles|student)(?:\/|$)/.test(route) ||
     /^\/(?:privacy|terms|consultation-policy)(?:\/|$)/.test(route);
 
   if(!lang) failures.push(route+': missing html[lang]');
@@ -67,6 +70,14 @@ for(const file of htmlFiles){
   if(isPrivate && isIndexable) failures.push(route+': private/transactional route must be noindex');
 
   if(isIndexable){
+    const confidentialTerms=[
+      ['Humanability',/\bhumanability\b/i],
+      ['TESTLY',/\btestly\b/i],
+      ['Teacher Humanization',/\bteacher\s+humanization\b/i]
+    ];
+    for(const [label,re] of confidentialTerms){
+      if(re.test(html)) failures.push(route+': confidential pre-publication term exposed on indexable page: '+label);
+    }
     const descTag=(html.match(/<meta\b[^>]*name=["']description["'][^>]*>/i)||[''])[0];
     const desc=getAttr(descTag,'content');
     if(!desc || desc.length<40) failures.push(route+': indexable page missing substantive meta description');
