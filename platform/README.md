@@ -42,6 +42,41 @@ No production backend is live yet. These files define stable contracts and provi
    - dataset freezes/exports
    - research access grants
 
+5. `005_relationships_documents_privacy.sql`
+   - verified parent–student relationships
+   - scoped teacher–student assignments
+   - private-document metadata
+   - document access grants
+   - privacy requests and retention events
+
+6. `006_educational_record.sql`
+   - educational record and academic history
+   - grades, goals and interests
+   - role-scoped educational observations
+   - recommendations
+   - developmental timeline
+
+7. `007_service_booking.sql`
+   - service catalogue
+   - consultant-service eligibility
+   - recurring availability rules
+   - availability exceptions
+   - appointment status history
+
+8. `008_communication_notifications.sql`
+   - secure message threads
+   - notifications
+   - communication preferences
+   - transactional email events
+
+9. `009_cms_seo_media.sql`
+   - content/revision workflow
+   - SEO records
+   - media provenance
+   - redirect governance
+   - publication events
+   - SEO release checks
+
 ## API contract
 
 See `/foundation/API-CONTRACT-v1.yaml`.
