@@ -198,7 +198,17 @@ Interface:
 
 No card credentials are stored by the ecosystem.
 
-Gateway selection remains WAITING until legal/jurisdiction/business eligibility is confirmed.
+### Iranian-first payment decision
+
+The first production payment layer targets Iranian users and Iranian gateways.
+
+- canonical backend currency for domestic orders: `IRR`;
+- UI may display toman while storing integer rial amounts;
+- first adapter candidates: ZarinPal, NextPay and Zibal;
+- payment success requires server-side gateway verification;
+- international payment is deferred and is not required for Golden Talent, books or consultation launch.
+
+Gateway selection remains gated by merchant eligibility, onboarding requirements, technical verification and settlement/reconciliation testing.
 
 ---
 
