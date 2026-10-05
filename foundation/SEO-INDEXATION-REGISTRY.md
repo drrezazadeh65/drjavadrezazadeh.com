@@ -16,6 +16,16 @@ Status classes:
 - `/en/golden-talent/` — INDEX
 - `/en/educational-philosophy/` — INDEX
 
+- `/en/language-education/` — INDEX
+
+- `/en/teacher-education/` — INDEX
+
+- `/en/projects/` — INDEX
+
+- `/en/news-insights/` — INDEX
+
+- `/en/contact/` — INDEX
+
 ## INDEX — Persian
 - `/fa/` — INDEX
 - `/fa/darbare-man/` — INDEX
@@ -30,6 +40,10 @@ Status classes:
 - `/fa/faaliat-haye-elmi/` — INDEX
 - `/fa/golden-talent/` — INDEX
 - `/fa/akhbar/` — INDEX
+
+- `/fa/amoozesh-zaban/` — INDEX
+
+- `/fa/tamas/` — INDEX
 
 ## INDEX — News
 - `/fa/akhbar/entekhab-reshteh-1405/` — INDEX
