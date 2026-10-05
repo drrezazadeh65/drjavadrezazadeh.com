@@ -247,6 +247,50 @@ if(failures.length){
 }
 
 
+// CLOUDFLARE RESPONSE-HEADER FIREWALL — prepared now, enforced after Pages cutover.
+const headersPath=path.join(root,'_headers');
+if(!fs.existsSync(headersPath)) failures.push('/_headers: missing Cloudflare Pages response-header policy');
+else{
+  const headersSource=fs.readFileSync(headersPath,'utf8');
+  const requiredGlobalHeaders=[
+    'X-Frame-Options: DENY',
+    'X-Content-Type-Options: nosniff',
+    'Referrer-Policy: strict-origin-when-cross-origin',
+    'Permissions-Policy:'
+  ];
+  for(const header of requiredGlobalHeaders){
+    if(!headersSource.includes(header)) failures.push('/_headers: missing global security header '+header);
+  }
+  if(!headersSource.includes('https://:project.pages.dev/*') || !headersSource.includes('X-Robots-Tag: noindex, noarchive')){
+    failures.push('/_headers: Cloudflare Pages preview hosts must be noindex');
+  }
+  const requiredNoStoreRoutes=[
+    '/fa/app/*','/app/*','/fa/login/*','/login/*','/fa/register/*','/register/*','/fa/bazyabi-hesab/*',
+    '/en/login/*','/en/register/*','/en/recover/*','/en/account/*',
+    '/fa/assessments/*','/assessments/*','/fa/shop/*','/shop/*',
+    '/en/golden-talent/assessment/*','/en/golden-talent/dashboard/*','/en/golden-talent/observer/*',
+    '/en/golden-talent/roles/*','/en/golden-talent/student/*','/en/golden-talent/checkout/*','/en/golden-talent/plans/*',
+    '/fa/darkhast-moshavere/*','/en/request-consultation/*'
+  ];
+  for(const route of requiredNoStoreRoutes){
+    const i=headersSource.indexOf('\n'+route+'\n');
+    if(i<0){
+      failures.push('/_headers: missing private route rule '+route);
+      continue;
+    }
+    const next=headersSource.indexOf('\n/',i+2);
+    const section=headersSource.slice(i,next<0?headersSource.length:next);
+    if(!/Cache-Control:\s*no-store/i.test(section)) failures.push('/_headers: private route missing no-store '+route);
+    if(!/X-Robots-Tag:\s*noindex/i.test(section)) failures.push('/_headers: private route missing X-Robots-Tag noindex '+route);
+  }
+}
+if(failures.length){
+  console.error('\nCloudflare header-firewall failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // PERFORMANCE BUDGET — guardrails, not synthetic CWV claims.
 const budgets=[
   ['assets/css/style.css',120*1024],
