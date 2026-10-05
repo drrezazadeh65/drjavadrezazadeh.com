@@ -199,3 +199,33 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// PERFORMANCE BUDGET — guardrails, not synthetic CWV claims.
+const budgets=[
+  ['assets/css/style.css',120*1024],
+  ['assets/js/site.js',25*1024],
+  ['assets/js/rcas-start.js',30*1024],
+  ['assets/js/student-dashboard.js',15*1024]
+];
+for(const [rel,max] of budgets){
+  const p=path.join(root,rel);
+  if(fs.existsSync(p)){
+    const size=fs.statSync(p).size;
+    if(size>max) failures.push('/'+rel+': performance budget exceeded ('+size+' > '+max+' bytes)');
+  }
+}
+const imageRoot=path.join(root,'assets','images');
+if(fs.existsSync(imageRoot)){
+  for(const ent of fs.readdirSync(imageRoot,{withFileTypes:true})){
+    if(!ent.isFile()) continue;
+    const p=path.join(imageRoot,ent.name);
+    const size=fs.statSync(p).size;
+    if(size>350*1024) warnings.push('/assets/images/'+ent.name+': large image asset '+size+' bytes; review compression/responsiveness');
+  }
+}
+if(failures.length){
+  console.error('\nPerformance-budget failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
