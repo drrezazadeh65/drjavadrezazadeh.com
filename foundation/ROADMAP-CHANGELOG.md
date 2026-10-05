@@ -70,3 +70,8 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 - **SEO-007 | IN PROGRESS → IN PROGRESS** — Completed a second cluster-level live SERP review for Golden Talent/talent identification. The review remains an ongoing gate for future major clusters.
 - **SEO-009 | MODIFIED → MODIFIED** — Connected Golden Talent to Home, Books, Educational Philosophy and talent-identification surfaces.
 - **SEO-018 | MODIFIED → MODIFIED** — Added the bilingual Golden Talent URLs and framework image to the XML sitemap.
+
+### Iranian-first payment strategy
+- **COM-009 | PLANNED → IN PROGRESS** — Launch payment strategy is now explicitly Iranian-first for Golden Talent, books, consultation and other domestic educational services. ZarinPal, NextPay and Zibal form the initial provider-comparison set. International payment is deferred.
+- **COM-010 | PLANNED → IN PROGRESS** — Payment architecture now explicitly requires server-side callback verification, idempotency and reconciliation for Iranian gateway adapters. Browser return alone never marks an order paid.
+- **Commerce currency rule | NEW FROZEN DECISION** — Domestic orders use integer IRR internally; the interface may display toman using the explicit 1 toman = 10 IRR conversion rule.
