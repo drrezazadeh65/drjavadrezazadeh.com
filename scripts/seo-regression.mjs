@@ -319,6 +319,9 @@ const headersPath=path.join(root,'_headers');
 if(!fs.existsSync(headersPath)) failures.push('/_headers: missing Cloudflare Pages response-header policy');
 else{
   const headersSource=fs.readFileSync(headersPath,'utf8');
+  if(/Cache-Control:\s*[^\n]*immutable/i.test(headersSource)){
+    failures.push('/_headers: immutable browser caching is prohibited until public asset filenames are content-fingerprinted');
+  }
   const requiredGlobalHeaders=[
     'X-Frame-Options: DENY',
     'X-Content-Type-Options: nosniff',
