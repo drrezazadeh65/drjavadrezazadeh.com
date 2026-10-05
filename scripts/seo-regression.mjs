@@ -321,12 +321,12 @@ const publicFactChecks=[
   {
     file:'en/about/index.html',
     required:['2026','PhD in Education · Arak University','M.A. · University of Tehran'],
-    forbidden:['<b>2020</b><span>Doctoral studies · Arak University</span>','PhD in English Language Education']
+    forbidden:['<b>2020</b><span>Doctoral studies · Arak University</span>','PhD in English Language Education','I currently teach at Tehran University of Medical Sciences']
   },
   {
     file:'fa/darbare-man/index.html',
     required:['۲۰۲۶','دکتری آموزش · دانشگاه اراک','کارشناسی ارشد · دانشگاه تهران'],
-    forbidden:['<b>۲۰۲۰</b><span>تحصیلات دکتری · دانشگاه اراک</span>','دکتری آموزش زبان انگلیسی']
+    forbidden:['<b>۲۰۲۰</b><span>تحصیلات دکتری · دانشگاه اراک</span>','دکتری آموزش زبان انگلیسی','در حال حاضر در دانشگاه علوم پزشکی تهران تدریس می‌کنم']
   }
 ];
 for(const check of publicFactChecks){
