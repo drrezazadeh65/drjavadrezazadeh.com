@@ -244,7 +244,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **COM-002 — FROZEN — One commerce identity for books, eBooks, workbooks, tests, reports, consultations, courses and toolkits.**
 - [x] **COM-003 — FROZEN — Product/Offer schema only when a genuine purchasable product with verified price and availability exists.**
 - [ ] **COM-004 — PLANNED — Public shop/category architecture.**
-- [ ] **COM-005 — PLANNED — Product model: physical, digital, service, assessment, report, course.**
+- [ ] **COM-005 — IN PROGRESS — Provider-neutral product/price/order/payment/entitlement schema is implemented; storefront/admin workflows and real offers remain pending.**
 - [ ] **COM-006 — PLANNED — Cart.**
 - [ ] **COM-007 — PLANNED — Checkout.**
 - [ ] **COM-008 — PLANNED — Order and invoice records.**
@@ -296,9 +296,9 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **DATA-004 — FROZEN — Identity separated from pseudonymous research identifiers.**
 - [x] **DATA-005 — FROZEN — Service/privacy/research/publication consents are distinct.**
 - [x] **DATA-006 — FROZEN — Instrument/scoring/interpretation/report versions retained.**
-- [ ] **DATA-007 — PLANNED — Research registry and study IDs.**
-- [ ] **DATA-008 — PLANNED — De-identification pipeline.**
-- [ ] **DATA-009 — PLANNED — Version-frozen research marts.**
+- [ ] **DATA-007 — IN PROGRESS — Research study registry, study versions and pseudonymous case IDs are defined in the production schema; application/admin workflows remain pending.**
+- [ ] **DATA-008 — IN PROGRESS — De-identification runs, transformation logging and separated identity-link tables are defined; executable transformation pipeline remains pending.**
+- [ ] **DATA-009 — IN PROGRESS — Dataset freeze, codebook version and export entities are defined; materialised research mart generation remains pending.**
 - [ ] **DATA-010 — PLANNED — SPSS-ready export + codebook.**
 - [ ] **DATA-011 — PLANNED — R/Python/CSV/XLSX exports.**
 - [ ] **DATA-012 — PLANNED — MAXQDA/NVivo-ready qualitative export package.**
