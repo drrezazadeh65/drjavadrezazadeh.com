@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "frozen_on": "2026-10-05",
+  "source_of_truth": "foundation/MASTER-ECOSYSTEM-ROADMAP.md",
+  "allowed_status": [
+    "FROZEN",
+    "DONE",
+    "MODIFIED",
+    "RENEWED",
+    "IN PROGRESS",
+    "PLANNED",
+    "WAITING",
+    "DEFERRED",
+    "RETIRED"
+  ],
+  "reporting_rule": "Always report roadmap item ID, previous status, new status, and dated change note.",
+  "seo_rule": {
+    "gate_a": "search intent/entity/URL before build",
+    "gate_b": "semantic content/internal links/schema/media/performance/accessibility during build",
+    "gate_c": "canonical/hreflang/indexability/sitemap/validation/monitoring before and after release"
+  },
+  "current_priority_order": [
+    "Permanent domain and one-time SEO migration",
+    "Global visual/mobile consistency",
+    "Consultation intake, booking and lawful payment",
+    "Secure accounts/backend/database",
+    "Commerce MVP",
+    "Golden Talent assessment/report engine",
+    "JHELA production infrastructure and independent editorial network",
+    "Research-ready exports and institutional scale"
+  ],
+  "journal_integrity": {
+    "founder_authored_backlog": "Do not publish the entire founder backlog in JHELA.",
+    "founder_manuscript_handling": "Independent handling editor + at least two external reviewers + conflict disclosure + provenance statement.",
+    "endogeny_operating_rule": "Keep editor/board/reviewer-authored research content below the recognised 25% ceiling, preferably lower.",
+    "launch_frequency": "Start conservatively; increase frequency only after external pipeline and operations justify it."
+  }
+}
