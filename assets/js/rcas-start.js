@@ -26,6 +26,6 @@ document.getElementById("showRoute").addEventListener("click",()=>{
  if(!d){res.hidden=false;res.innerHTML="<h3>یک حوزه اولویت را انتخاب کن.</h3><p>Routing در RCAS بدون انتخاب حوزه اولویت، مسیر عمیق‌تری تحمیل نمی‌کند.</p>";return}
  const code=routeMap[d]
  const why=document.getElementById("priorityWhy").value.trim();
- res.hidden=false;res.innerHTML=`<p class="kicker">مسیر پیشنهادی</p><h3>${code[0]} · ${code[1]}</h3><p>این پیشنهاد «تشخیص» یا حکم درباره تو نیست. فقط نشان می‌دهد در این مرحله، جمع‌آوری شواهد بیشتر در این حوزه می‌تواند تصمیم بعدی را بهتر کند.</p>${why?`<div class="rcas-user-note"><strong>دلیل انتخاب تو:</strong> ${why.replace(/[<>&]/g,"")}</div>`:""}<div class="actions"><a class="button primary" href="../">مشاهده مرحله پولی بعدی</a><a class="button" href="../../../danesh-amoozan/">بازگشت به پروفایل دانش‌آموز</a></div>`;
+ try{sessionStorage.setItem("gt_rcas_state",JSON.stringify({completed:true,route:d,routeCode:code[0],routeLabel:code[1],updatedAt:new Date().toISOString()}));}catch(e){} res.hidden=false;res.innerHTML=`<p class="kicker">مسیر پیشنهادی</p><h3>${code[0]} · ${code[1]}</h3><p>این پیشنهاد «تشخیص» یا حکم درباره تو نیست. فقط نشان می‌دهد در این مرحله، جمع‌آوری شواهد بیشتر در این حوزه می‌تواند تصمیم بعدی را بهتر کند.</p>${why?`<div class="rcas-user-note"><strong>دلیل انتخاب تو:</strong> ${why.replace(/[<>&]/g,"")}</div>`:""}<div class="actions"><a class="button primary" href="../">مشاهده مرحله پولی بعدی</a><a class="button" href="../../../danesh-amoozan/">بازگشت به پروفایل دانش‌آموز</a></div>`;
 });
 })();
