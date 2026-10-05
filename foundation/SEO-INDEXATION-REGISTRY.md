@@ -105,6 +105,8 @@ Status classes:
 - `/fa/darkhast-moshavere/`
 - privacy/policy utility pages where currently marked noindex
 
+- `/en/search/`, `/fa/jostojo/` — NOINDEX internal search
+
 ## PRIVATE — mandatory firewall
 - Humanability
 - TESTLY
