@@ -256,6 +256,64 @@ if(failures.length){
 }
 
 
+// CLOUDFLARE REDIRECT REGISTRY — exact legacy migrations must remain permanent and target valid local routes.
+const redirectsPath=path.join(root,'_redirects');
+if(!fs.existsSync(redirectsPath)) failures.push('/_redirects: missing Cloudflare Pages redirect registry');
+else{
+  const lines=fs.readFileSync(redirectsPath,'utf8').split(/\r?\n/).map(x=>x.trim()).filter(x=>x && !x.startsWith('#'));
+  const seen=new Set();
+  const map=new Map();
+  for(const line of lines){
+    const parts=line.split(/\s+/);
+    if(parts.length!==3){
+      failures.push('/_redirects: malformed rule '+line);
+      continue;
+    }
+    const [source,destination,code]=parts;
+    if(seen.has(source)) failures.push('/_redirects: duplicate source '+source);
+    seen.add(source);
+    map.set(source,{destination,code});
+    if(source===destination) failures.push('/_redirects: redirect loop '+source);
+    if(code!=='301') failures.push('/_redirects: legacy migration must use 301 '+source);
+    if(destination.startsWith('/')){
+      const clean=destination.split('?')[0].split('#')[0];
+      let target=path.join(root,clean);
+      if(fs.existsSync(target) && fs.statSync(target).isDirectory()) target=path.join(target,'index.html');
+      else if(!path.extname(target)) target=path.join(target,'index.html');
+      if(!fs.existsSync(target)) failures.push('/_redirects: local target missing '+source+' -> '+destination);
+    }
+  }
+  const requiredRedirects={
+    '/about/':'/en/about/',
+    '/academic-engagements/':'/en/academic-engagements/',
+    '/books/':'/en/books/',
+    '/educational-philosophy/':'/en/educational-philosophy/',
+    '/golden-talent/':'/en/golden-talent/',
+    '/publications/':'/en/publications/',
+    '/research/':'/en/research/',
+    '/teaching/':'/en/teaching/',
+    '/login/':'/en/login/',
+    '/register/':'/en/register/'
+  };
+  for(const [source,destination] of Object.entries(requiredRedirects)){
+    const rule=map.get(source);
+    if(!rule || rule.destination!==destination || rule.code!=='301'){
+      failures.push('/_redirects: required permanent migration missing '+source+' -> '+destination);
+    }
+    const noSlash=source.endsWith('/')?source.slice(0,-1):source;
+    const noSlashRule=map.get(noSlash);
+    if(!noSlashRule || noSlashRule.destination!==destination || noSlashRule.code!=='301'){
+      failures.push('/_redirects: slash-normalized permanent migration missing '+noSlash+' -> '+destination);
+    }
+  }
+}
+if(failures.length){
+  console.error('\nRedirect-registry failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // CLOUDFLARE RESPONSE-HEADER FIREWALL — prepared now, enforced after Pages cutover.
 const headersPath=path.join(root,'_headers');
 if(!fs.existsSync(headersPath)) failures.push('/_headers: missing Cloudflare Pages response-header policy');
