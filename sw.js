@@ -1,4 +1,4 @@
-const CACHE_VERSION='jr-site-v4-20261006-private-firewall';
+const CACHE_VERSION='jr-site-v5-20261006-network-first-code';
 const CACHE_FAMILY='jr-site-';
 const STATIC_CACHE=CACHE_VERSION+'-static';
 const PUBLIC_CACHE=CACHE_VERSION+'-public';
@@ -67,15 +67,31 @@ self.addEventListener('fetch',event=>{
   }
 
   const isAsset=url.pathname.startsWith('/assets/') || /\.(?:css|js|svg|webp|png|jpg|jpeg|woff2?)$/i.test(url.pathname);
+  const isCode=/\.(?:css|js)$/i.test(url.pathname);
   if(isAsset){
     event.respondWith(
       caches.open(STATIC_CACHE).then(async cache=>{
-        const hit=await cache.match(req,{ignoreSearch:true});
-        const network=fetch(req,{cache:'reload'}).then(res=>{
-          if(res.ok) cache.put(req,res.clone());
+        // CSS/JS: network-first so a successful deploy is not hidden behind stale app-shell assets.
+        if(isCode){
+          try{
+            const res=await fetch(req,{cache:'no-cache'});
+            if(res.ok) await cache.put(req,res.clone());
+            return res;
+          }catch(e){
+            return (await cache.match(req)) || (await cache.match(req,{ignoreSearch:true})) || Response.error();
+          }
+        }
+
+        // Images/fonts: cache-first is safe and reduces repeat transfer.
+        const hit=await cache.match(req);
+        if(hit) return hit;
+        try{
+          const res=await fetch(req);
+          if(res.ok) await cache.put(req,res.clone());
           return res;
-        }).catch(()=>hit);
-        return hit||network;
+        }catch(e){
+          return Response.error();
+        }
       })
     );
     return;
