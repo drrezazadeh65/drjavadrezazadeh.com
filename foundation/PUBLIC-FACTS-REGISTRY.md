@@ -33,7 +33,7 @@ This is not a private biography database. Do not add family, health, identity-do
 - No credential, rank, award, affiliation, citation count or professional title is inferred from search results or memory alone.
 
 ## Public/private boundary
-This registry must never be used to authorise publication of Humanability, TESTLY, Teacher Humanization, unpublished manuscripts, private student data or unreleased intellectual property.
+This registry must never be used to authorise publication of protected pre-publication research projects, unpublished manuscripts, private student data or unreleased intellectual property.
 
 
 ## Verification-required public claims
