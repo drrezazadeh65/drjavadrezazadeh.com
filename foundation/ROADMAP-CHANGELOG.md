@@ -54,3 +54,13 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 - **DATA-008 | PLANNED → IN PROGRESS** — Added separated identity-link and de-identification run/transformation-log schema; executable transformation logic remains pending.
 - **DATA-009 | PLANNED → IN PROGRESS** — Added codebook-version, dataset-freeze and research-export schema; actual research mart generation remains pending.
 - **Platform DB foundation** — Added four ordered migrations under `platform/db/migrations/` for identity/consultation, commerce, assessment/Golden Talent and research governance, plus `platform/README.md` documenting deployment gates.
+
+### Privacy, RBAC and private-app prototype expansion
+- **SEC-009 | PLANNED → IN PROGRESS** — Added bilingual NOINDEX privacy/data-use notices, consultation service policies, a frozen RBAC/relationship permission matrix and privacy governance baseline. Jurisdiction-specific legal review remains pending before production.
+- **SERV-016 | PLANNED → IN PROGRESS** — Defined educational-service scope, no-guarantee rule, professional boundaries and pre-payment disclosure requirements; final cancellation/refund/no-show terms await the real booking/payment model.
+- **PORTAL-008 | PLANNED → IN PROGRESS** — Added Persian student dashboard prototype.
+- **PORTAL-009 | PLANNED → IN PROGRESS** — Added Persian parent dashboard prototype and parent-child relationship schema.
+- **PORTAL-010 | PLANNED → IN PROGRESS** — Added Persian teacher dashboard prototype and scoped teacher-student assignment schema.
+- **PORTAL-011 | PLANNED → IN PROGRESS** — Added Persian consultant dashboard prototype reflecting triage, assigned cases, notes and follow-up.
+- **PORTAL-012 | PLANNED → IN PROGRESS** — Added privacy-request schema for access/correction/export/deletion/restriction/consent-withdrawal.
+- **PORTAL-013 | PLANNED → IN PROGRESS** — Added private-document metadata, malware-scan state and scoped access-grant schema; private storage remains pending.
