@@ -452,3 +452,24 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// HIGH-STAKES GUIDANCE TRUST METADATA — visible authorship/review date, not schema-only.
+const highStakesGuidanceRoutes=new Set([
+  '/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/',
+  '/fa/rahnamaha/moshavere-tahsili-baraye-tasmim/',
+  '/fa/akhbar/entekhab-reshteh-1405/'
+]);
+for(const file of htmlFiles){
+  const route=routeFor(file);
+  if(!highStakesGuidanceRoutes.has(route)) continue;
+  const html=fs.readFileSync(file,'utf8');
+  if(!/class=["'][^"']*article-meta/i.test(html)) failures.push(route+': high-stakes guidance missing visible article trust metadata');
+  if(!html.includes('دکتر جواد رضازاده یزدلی')) failures.push(route+': high-stakes guidance missing full visible author name');
+  if(!html.includes('آخرین بازبینی محتوایی')) failures.push(route+': high-stakes guidance missing visible last-reviewed label');
+}
+if(failures.length){
+  console.error('\nHigh-stakes guidance trust failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
