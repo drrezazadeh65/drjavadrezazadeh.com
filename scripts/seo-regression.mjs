@@ -162,3 +162,39 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// HREFLANG RECIPROCITY — check only genuine local alternates that are actually declared.
+const localDocs=new Map();
+for(const file of htmlFiles){
+  const html=fs.readFileSync(file,'utf8');
+  const htmlTag=(html.match(/<html\b[^>]*>/i)||[''])[0];
+  const lang=getAttr(htmlTag,'lang')||'';
+  const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+  const rc=getAttr(robots,'content')||'';
+  if(/\bnoindex\b/i.test(rc)) continue;
+  const canonicalTag=(html.match(/<link\b[^>]*rel=["']canonical["'][^>]*>/i)||[''])[0];
+  const canonical=getAttr(canonicalTag,'href');
+  if(!canonical) continue;
+  const alternates=[];
+  for(const tag of html.match(/<link\b[^>]*rel=["']alternate["'][^>]*>/gi)||[]){
+    const hreflang=getAttr(tag,'hreflang');
+    const href=getAttr(tag,'href');
+    if(hreflang&&href) alternates.push({hreflang,href});
+  }
+  localDocs.set(canonical,{file,lang,alternates,route:routeFor(file)});
+}
+for(const [canonical,doc] of localDocs.entries()){
+  for(const alt of doc.alternates){
+    if(!['fa','en'].includes(alt.hreflang) || alt.href===canonical) continue;
+    const target=localDocs.get(alt.href);
+    if(!target) continue; // external/nonlocal alternate is outside this static audit.
+    const reciprocal=target.alternates.some(x=>x.href===canonical && x.hreflang===doc.lang);
+    if(!reciprocal) failures.push(doc.route+': hreflang not reciprocal with '+target.route);
+  }
+}
+if(failures.length){
+  console.error('\nHreflang SEO failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
