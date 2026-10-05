@@ -43,14 +43,28 @@
     "SEO-013": "2026-10-05",
     "SEO-014": "2026-10-05",
     "SEO-022": "2026-10-05",
-    "UX-009": "2026-10-05"
+    "UX-009": "2026-10-05",
+    "AUTH-016": "2026-10-05",
+    "GT-007": "2026-10-05"
   },
   "in_progress": {
     "SEO-007": "Core Persian service SERP review complete; repeat before each new major cluster.",
     "UX-013": "Visible focus/touch baseline implemented; keyboard, screen-reader and live-device QA pending.",
     "INFRA-010": "Production architecture and logical data model frozen; provider selection/provisioning pending.",
     "COM-009": "Iranian-first gateway selection active; ZarinPal, NextPay and Zibal under comparison; international gateways deferred.",
-    "COM-010": "Server-side verification/reconciliation contract defined; provider sandbox integration pending."
+    "COM-010": "Server-side verification/reconciliation contract defined; provider sandbox integration pending.",
+    "SEO-015": "Static performance budgets enforced; real-user production CWV pending.",
+    "SEO-016": "Automated accessibility baseline and interaction polish implemented; screen-reader/live-device QA pending.",
+    "INFRA-009": "Domain migration tooling/runbook ready; execution waits for permanent domain/DNS/HTTPS.",
+    "CONTENT-006": "Persian evergreen Guides hub launched; cluster expansion ongoing.",
+    "CONTENT-007": "English research/insights communication hubs established; substantive publishing ongoing.",
+    "GT-008": "RCAS Start self-report baseline implemented; deeper module execution awaits backend.",
+    "GT-012": "Student profile/dashboard and persistence model implemented at preview/foundation level.",
+    "GT-013": "Golden Path module/report preview implemented; production human-review workflow pending.",
+    "GT-014": "Product tiers and entitlement architecture implemented; live payment/fulfilment pending.",
+    "GT-015": "RCAS/toolkit digital integration active; full workbook/platform integration ongoing.",
+    "GT-017": "Free-to-routed-premium UX implemented; live conversion waits secure commerce.",
+    "GT-018": "BAHAR workspace and persistence schema implemented; authenticated persistence pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
@@ -58,5 +72,11 @@
   "design_system": "/foundation/DESIGN-SYSTEM.md",
   "production_platform_architecture": "/foundation/PRODUCTION-PLATFORM-ARCHITECTURE.md",
   "core_data_model": "/foundation/CORE-DATA-MODEL.md",
-  "iran_payment_strategy": "/foundation/IRAN-PAYMENT-STRATEGY.md"
+  "iran_payment_strategy": "/foundation/IRAN-PAYMENT-STRATEGY.md",
+  "architecture_renewal": {
+    "date": "2026-10-05",
+    "id": "GOV-003",
+    "status": "RENEWED",
+    "decision": "Neutral root gateway with dedicated /fa/ and /en/ namespaces; legacy unprefixed English routes are NOINDEX transitions."
+  }
 }
