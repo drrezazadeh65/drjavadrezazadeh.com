@@ -263,6 +263,43 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /consultation-requests/{requestId}/triage:
+    put:
+      tags: [Consultation]
+      summary: Create or replace the professional triage decision for a consultation request
+      description: >
+        Consultant/admin-only triage. This classifies the educational service,
+        time pressure, evidence actually required and advisor assignment. It is
+        not a clinical diagnosis and must not be used to request sensitive
+        documents unless they are necessary for the defined service.
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsultationTriageUpdate"
+      responses:
+        "200":
+          description: Triage decision saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsultationTriage"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Request state does not allow triage
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
   /appointments:
     get:
       tags: [Appointments]
@@ -1043,6 +1080,76 @@ components:
               type: string
             primaryQuestion:
               type: string
+    ConsultationTriageUpdate:
+      type: object
+      additionalProperties: false
+      required:
+        - serviceType
+        - priority
+        - readiness
+        - requiredEvidence
+      properties:
+        serviceType:
+          type: string
+          enum:
+            - ACADEMIC_COUNSELLING
+            - FIELD_SELECTION
+            - ENTRANCE_EXAM
+            - TALENT_IDENTIFICATION
+            - REPORT_CARD_ANALYSIS
+            - PARENT_COUNSELLING
+        priority:
+          type: string
+          description: Educational/service time pressure; not a medical or crisis-severity label.
+          enum: [STANDARD, DEADLINE_SENSITIVE, HIGH_TIME_PRESSURE]
+        relevantDeadline:
+          type: [string, "null"]
+          format: date
+        readiness:
+          type: string
+          enum: [READY_TO_BOOK, NEEDS_CLARIFICATION, NEEDS_EVIDENCE, OUT_OF_SCOPE]
+        requiredEvidence:
+          type: array
+          uniqueItems: true
+          maxItems: 8
+          items:
+            type: string
+            enum:
+              - REPORT_CARD
+              - EXAM_RESULT
+              - FIELD_LIST
+              - PRIOR_ASSESSMENT
+              - GOAL_NOTES
+              - NONE_AT_TRIAGE
+              - OTHER
+        advisorUserId:
+          type: [string, "null"]
+          format: uuid
+        internalSummary:
+          type: [string, "null"]
+          maxLength: 1500
+        nextAction:
+          type: [string, "null"]
+          maxLength: 500
+    ConsultationTriage:
+      allOf:
+        - $ref: "#/components/schemas/ConsultationTriageUpdate"
+        - type: object
+          required: [requestId, triagedAt, triagedByUserId]
+          properties:
+            requestId:
+              type: string
+              format: uuid
+            triagedAt:
+              type: string
+              format: date-time
+            triagedByUserId:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              minimum: 1
+
     AppointmentCreate:
       type: object
       required: [consultationRequestId, startsAt, timezone]
