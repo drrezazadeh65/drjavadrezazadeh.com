@@ -187,7 +187,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **GT-003 — DONE — Public talent-identification service page.**
 - [x] **GT-004 — DONE — Educational philosophy bridge from «کشف مسیر طلایی استعداد».**
 - [x] **GT-005 — DONE — `/fa/golden-talent/` reserved as a controlled foundation route.**
-- [ ] **GT-006 — PLANNED — Public Golden Talent Hub with framework, limitations and user pathways.**
+- [x] **GT-006 — DONE — Bilingual public Golden Talent hubs published with developmental/multi-source framework, limitations, role pathways, Golden Path concept and private-platform boundary.**
 - [ ] **GT-007 — PLANNED — Free screening level.**
 - [ ] **GT-008 — PLANNED — Student self-report instruments.**
 - [ ] **GT-009 — PLANNED — Parent-report instruments.**
