@@ -542,6 +542,53 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /documents:
+    get:
+      tags: [Files]
+      summary: List private document metadata visible to the authenticated user
+      description: >
+        Returns metadata only for documents owned by the user or exposed through an
+        active document_access_grant. Storage keys and provider secrets are never returned.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Authorised private document metadata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrivateDocumentSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /documents/{documentId}/download:
+    post:
+      tags: [Files]
+      summary: Create a short-lived private download instruction
+      description: >
+        Allowed only when the document is ACTIVE, malware_scan_status is CLEAN and
+        the authenticated user has an active READ or DOWNLOAD grant (or is the owner).
+        The server returns a short-lived provider URL/instruction; it never exposes storage credentials.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Short-lived authorised download instruction
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Document not active/clean or otherwise unavailable
+
   /files/presign-upload:
     post:
       tags: [Files]
@@ -611,6 +658,40 @@ components:
     RateLimited:
       description: Too many requests
   schemas:
+    PrivateDocumentSummary:
+      type: object
+      required: [id, documentType, originalFileName, mediaType, sizeBytes, malwareScanStatus, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        documentType:
+          type: string
+          enum: [REPORT_CARD, CERTIFICATE, CONSULTATION_DOCUMENT, ASSESSMENT_ATTACHMENT, OTHER_APPROVED]
+        originalFileName:
+          type: string
+          maxLength: 180
+        mediaType:
+          type: string
+        sizeBytes:
+          type: integer
+          minimum: 1
+        malwareScanStatus:
+          type: string
+          enum: [PENDING, CLEAN, BLOCKED, FAILED]
+        retentionClass:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, QUARANTINED, DELETED, EXPIRED]
+        createdAt:
+          type: string
+          format: date-time
+        permissions:
+          type: array
+          items:
+            type: string
+            enum: [READ, DOWNLOAD, REVIEW]
     RelationshipSummary:
       type: object
       required: [parentRelationships, teacherAssignments]
