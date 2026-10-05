@@ -155,7 +155,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **CONTENT-006 — IN PROGRESS — Evergreen Persian knowledge system launched at `/fa/rahnamaha/` with the first field-selection and counselling guides; broader parent/teacher/talent clusters remain to be expanded deliberately.**
 - [ ] **CONTENT-007 — IN PROGRESS — English `/en/news-insights/`, Research, Language Education, Teacher Education, Projects and Collaboration hubs establish the communication architecture; substantive insight publishing remains ongoing.**
 - [x] **CONTENT-008 — DONE — 90-day editorial calendar created with publishing rhythm, intent ownership, internal-link targets, quality gates and review cycle.**
-- [ ] **CONTENT-009 — PLANNED — Author/reviewer/date/last-reviewed metadata for high-stakes educational guidance.**
+- [ ] **CONTENT-009 — IN PROGRESS — Visible author, publication date and last-content-review metadata is enforced on the first high-stakes Persian guidance pages; independent reviewer attribution remains pending a real reviewer workflow and will never be fabricated.**
 - [ ] **CONTENT-010 — PLANNED — Media library with SEO-safe alt/caption/licensing/provenance fields.**
 
 ---
