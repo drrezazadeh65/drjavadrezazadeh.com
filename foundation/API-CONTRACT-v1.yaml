@@ -137,7 +137,8 @@ paths:
       summary: Receive and verify a gateway callback/webhook
       description: >
         The server verifies the provider signature/reference and never trusts
-        a browser redirect as proof of payment.
+        a browser redirect as proof of payment. First production adapters target
+        approved Iranian payment gateways; international adapters are deferred.
       security: []
       parameters:
         - name: provider
@@ -415,6 +416,7 @@ components:
           type: string
           minLength: 3
           maxLength: 3
+          description: ISO-style currency code. Iranian launch uses IRR; UI may display toman while backend amounts remain integer rial.
     PaymentIntent:
       type: object
       required: [id, status]
