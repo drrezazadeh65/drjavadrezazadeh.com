@@ -189,3 +189,10 @@ body:not(.rtl) .hero-line{font-family:Georgia,"Times New Roman",serif!important}
 .breadcrumbs a{color:#b9b0a3;text-decoration:none}.breadcrumbs a:hover{color:var(--gold-2)}.breadcrumbs .sep{color:#5f594f}.breadcrumbs [aria-current="page"]{color:#d2c7b5}
 .rtl .breadcrumbs{font-family:Tahoma,Arial,sans-serif!important;line-height:1.9}
 @media(max-width:650px){.breadcrumbs{width:calc(100% - 24px);margin-top:12px;font-size:11px;gap:7px}}
+
+/* Accessibility interaction baseline v1 */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold-2);outline-offset:4px;border-radius:6px}
+.button,.mobile-menu-trigger,.dock-action,.app-sheet-close{min-height:44px}
+.site-header nav a,.app-dock a,.app-dock button{touch-action:manipulation}
+:target{scroll-margin-top:96px}
+@media (forced-colors:active){a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid CanvasText}}
