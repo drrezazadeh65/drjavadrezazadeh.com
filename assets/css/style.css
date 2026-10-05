@@ -596,3 +596,16 @@ input,select,textarea,button{max-width:100%}
   .gt-mobile-dock a:active,.gt-mobile-dock a:focus-visible{background:rgba(198,161,90,.12);color:#f2d995;outline:1px solid rgba(198,161,90,.45)}
   .payment-rail-grid{grid-template-columns:1fr}
 }
+
+/* Mobile application behavior v1 */
+html{overscroll-behavior-x:none;-webkit-text-size-adjust:100%}
+body{min-height:100dvh;overscroll-behavior-x:none}
+a,button,input,select,textarea{touch-action:manipulation}
+a,button{-webkit-tap-highlight-color:rgba(198,161,90,.12)}
+:where(.button,button,.gt-mobile-dock a,.mobilebar a){min-height:48px}
+:where(.gt-private-shell,.student-dash-shell,.premium-module-shell,.rcas-shell,.app-prototype,.case-shell){min-height:calc(100dvh - 70px)}
+@media(max-width:760px){
+  .site-header{padding-top:env(safe-area-inset-top)}
+  .gt-private-shell,.student-dash-shell,.premium-module-shell,.rcas-shell,.case-shell{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+  input,select,textarea{font-size:16px} /* prevents iOS focus zoom */
+}
