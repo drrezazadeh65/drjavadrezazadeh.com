@@ -428,6 +428,47 @@ paths:
       responses:
         "200":
           description: Preferences updated
+  /orders:
+    get:
+      tags: [Commerce]
+      summary: List orders owned by the authenticated user
+      description: >
+        Read-only order history. Clients cannot mutate order/payment status directly.
+        Monetary values are returned in integer minor units with the stored currency.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Order history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /orders/{orderId}:
+    get:
+      tags: [Commerce]
+      summary: Read one authorised order with payment/refund/entitlement summary
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Authorised order detail
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /payment-intents:
     post:
       tags: [Commerce]
@@ -1057,6 +1098,48 @@ components:
         preferredChannel:
           type: string
           enum: [EMAIL, IN_APP]
+    OrderSummary:
+      type: object
+      required: [id, status, currency, totalMinor, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PENDING, AWAITING_PAYMENT, PAID, FULFILLING, COMPLETED, CANCELLED, REFUNDED, PARTIALLY_REFUNDED]
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        subtotalMinor:
+          type: integer
+          minimum: 0
+        discountMinor:
+          type: integer
+          minimum: 0
+        totalMinor:
+          type: integer
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        latestPaymentStatus:
+          type: [string, "null"]
+          enum: [CREATED, PENDING, PAID, FAILED, CANCELLED, REFUNDED, null]
+        refundStatus:
+          type: [string, "null"]
+          enum: [REQUESTED, PENDING, COMPLETED, FAILED, CANCELLED, null]
+        invoiceNumber:
+          type: [string, "null"]
+        entitlementStatuses:
+          type: array
+          items:
+            type: string
+            enum: [ACTIVE, EXPIRED, REVOKED]
     PaymentIntentCreate:
       type: object
       required: [orderId, amountMinor, currency]
