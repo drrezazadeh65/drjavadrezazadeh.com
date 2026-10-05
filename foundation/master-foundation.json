@@ -1,0 +1,94 @@
+{
+  "version": "3.0",
+  "status": "foundation-active",
+  "indexing_policy": {
+    "default": "noindex",
+    "index_requires": [
+      "substantive public content",
+      "verified facts",
+      "unique search intent",
+      "canonical URL",
+      "SEO release approval"
+    ],
+    "currently_indexable": [
+      "/",
+      "/fa/"
+    ],
+    "sitemap_rule": "Only approved indexable canonical URLs belong in sitemap.xml"
+  },
+  "namespaces": {
+    "public": [
+      "/",
+      "/fa/"
+    ],
+    "reserved_noindex": [
+      "/app/",
+      "/login/",
+      "/register/",
+      "/student/",
+      "/parent/",
+      "/teacher/",
+      "/assessments/",
+      "/research-lab/",
+      "/shop/",
+      "/fa/app/",
+      "/fa/golden-talent/",
+      "/fa/shop/"
+    ],
+    "future_public": [
+      "/en/about/",
+      "/en/research/",
+      "/en/publications/",
+      "/en/books/",
+      "/fa/about/",
+      "/fa/articles/",
+      "/fa/estedaadyabi/",
+      "/fa/moshavere-tahsili/",
+      "/fa/entekhab-reshteh/",
+      "/fa/konkur/"
+    ]
+  },
+  "roles": [
+    "student",
+    "parent",
+    "teacher",
+    "consultant",
+    "researcher",
+    "editor",
+    "admin",
+    "super_admin"
+  ],
+  "data_principles": [
+    "raw responses immutable",
+    "all assessments versioned",
+    "all derived scores retain provenance",
+    "identity data separated from research IDs",
+    "research exports de-identified by default",
+    "consent version retained",
+    "qualitative and quantitative data retain source role and collection context",
+    "dataset freezes versioned for reproducibility"
+  ],
+  "research_exports": [
+    "CSV",
+    "XLSX",
+    "SPSS-ready codebook/data",
+    "R/Python-ready tabular data",
+    "MAXQDA/NVivo-ready qualitative exports"
+  ],
+  "future_integrations": [
+    "QTI-aware assessment portability",
+    "OneRoster-ready institutional exchange",
+    "LTI-ready LMS integration",
+    "payment provider abstraction",
+    "versioned API"
+  ],
+  "nonfunctional": [
+    "WCAG 2.2 AA target",
+    "OWASP ASVS Level 2 target",
+    "audit logging",
+    "private object storage",
+    "backup and recovery",
+    "observability",
+    "staging noindex"
+  ]
+}
