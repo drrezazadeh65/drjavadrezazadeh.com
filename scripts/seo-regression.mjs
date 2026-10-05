@@ -240,7 +240,7 @@ else{
   if(!swSource.includes('CSS/JS: network-first')){
     failures.push('/sw.js: CSS/JS must remain network-first to prevent stale deploy assets');
   }
-  for(const iconPath of ['./assets/images/pwa-icon-192.png','./assets/images/pwa-icon-512.png']){
+  for(const iconPath of ['./assets/images/pwa-icon-192.png','./assets/images/pwa-icon-512.png','./assets/images/pwa-icon-maskable-512.png']){
     if(!swSource.includes("'"+iconPath+"'") && !swSource.includes('"'+iconPath+'"')){
       failures.push('/sw.js: PWA launcher icon missing from core app-shell cache '+iconPath);
     }
@@ -352,8 +352,9 @@ else{
       };
       verifyPngIcon(icon192,192);
       verifyPngIcon(icon512,512);
-      const hasMaskable=manifest.icons.some(i=>/(^|\s)maskable(\s|$)/.test(i?.purpose||''));
-      if(!hasMaskable) warnings.push('/site.webmanifest: dedicated maskable-icon validation remains pending');
+      const maskable512=manifest.icons.find(i=>/(^|\s)maskable(\s|$)/.test(i?.purpose||'') && /(^|\s)512x512(\s|$)/.test(i?.sizes||''));
+      if(!maskable512) failures.push('/site.webmanifest: dedicated 512x512 maskable launcher icon is required');
+      else verifyPngIcon(maskable512,512);
     }
   }catch(e){
     failures.push('/site.webmanifest: invalid JSON');
