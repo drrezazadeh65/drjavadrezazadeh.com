@@ -106,3 +106,9 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 
 ### High-stakes guidance trust metadata
 - **CONTENT-009 | PLANNED → IN PROGRESS** — Added visible author, publication date and last-content-review metadata to the first high-stakes Persian guidance pages and release enforcement for those fields. Independent reviewer attribution remains pending an actual reviewer workflow and is not fabricated.
+
+### RCAS-O1 shared observer instrument
+- **GT-009 | PLANNED → IN PROGRESS** — Parent-report work is now grounded in RCAS-O1, a shared descriptive observation instrument. It records specific observed behaviour/context, strength/progress, environmental barriers/support and uncertainty without a score or talent label.
+- **GT-010 | PLANNED → IN PROGRESS** — Teacher observation now uses the same RCAS-O1 evidence standard rather than a separate invented scored test.
+- **Architecture decision** — Parent and teacher observations are both O-source evidence. Production linkage requires verified parent–student or teacher–student relationship/assignment and server-side visibility controls.
+- **Current preview boundary** — The RCAS-O1 webpage performs no network submission or persistent storage. Companion/mentor role remains preview-only until an approved production observer role and relationship policy exist.
