@@ -78,6 +78,7 @@ function ensureMobileNav(){
     [u('fa/darbare-man/'),'درباره من'],
     [u('fa/tadris/'),'تدریس دانشگاهی'],
     [u('fa/ketab-ha/'),'کتاب‌ها'],
+    [u('fa/entesharat-elmi/'),'انتشارات علمی'],
     [u('fa/faaliat-haye-elmi/'),'فعالیت‌های علمی'],
     [u('fa/entekhab-reshteh/'),'انتخاب رشته'],
     [u('fa/estedaadyabi/'),'استعدادیابی'],
