@@ -404,3 +404,22 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// ENTITY NAME TITLE CONSISTENCY — personal title references use the frozen public name.
+for(const file of htmlFiles){
+  const html=fs.readFileSync(file,'utf8');
+  const route=routeFor(file);
+  const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+  const rc=getAttr(robots,'content')||'';
+  if(/\bnoindex\b/i.test(rc)) continue;
+  const title=strip((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]||'');
+  if(title.includes('دکتر جواد رضازاده') && !title.includes('دکتر جواد رضازاده یزدلی')){
+    failures.push(route+': Persian personal title uses shortened public name');
+  }
+}
+if(failures.length){
+  console.error('\nEntity-title consistency failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
