@@ -17,3 +17,10 @@ body{font-family:"Inter","Segoe UI",Arial,sans-serif;font-kerning:normal;text-re
 .rtl .section h2{font-weight:700;line-height:1.55;letter-spacing:-.025em}
 .rtl .grid h3,.rtl .profile b{font-weight:650;line-height:1.65}
 .rtl .site-header nav a,.rtl .mobilebar a,.rtl .button{font-weight:550}
+
+/* Rendering hotfix: direct webfont files, no external font CSS */
+@font-face{font-family:"InterSite";src:url("https://rsms.me/inter/font-files/InterVariable.woff2?v=4.1") format("woff2");font-style:normal;font-weight:100 900;font-display:swap}
+@font-face{font-family:"VazirmatnSite";src:url("https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn%5Bwght%5D.woff2") format("woff2");font-style:normal;font-weight:100 900;font-display:swap}
+body{font-family:"InterSite","Helvetica Neue",Helvetica,Arial,sans-serif!important}
+.site-header nav,.eyebrow,.kicker,.tag,.lead,.intro,.section p,.button,.profile span,.note,footer,.mobilebar{font-family:"InterSite","Helvetica Neue",Helvetica,Arial,sans-serif!important}
+.rtl,.rtl .site-header nav,.rtl .eyebrow,.rtl .kicker,.rtl .tag,.rtl .lead,.rtl .intro,.rtl .section p,.rtl .button,.rtl .profile span,.rtl .note,.rtl footer,.rtl .mobilebar,.rtl .brand,.rtl .brand small,.rtl .hero h1,.rtl .section h2,.rtl .grid h3,.rtl .news-card h3,.rtl .profile b,.rtl .hero-line{font-family:"VazirmatnSite",Tahoma,Arial,sans-serif!important}
