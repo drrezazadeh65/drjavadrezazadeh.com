@@ -23,7 +23,10 @@
       "/publisher/",
       "/journal/call-for-reviewers/",
       "/journal/founding-collaborators/",
-      "/fa/darbare-man/"
+      "/fa/darbare-man/",
+      "/fa/entekhab-reshteh/",
+      "/fa/moshavere-konkur/",
+      "/fa/akhbar/moshavere-tahsili-baraye-tasmim/"
     ],
     "sitemap_rule": "Only approved indexable canonical URLs belong in sitemap.xml"
   },
@@ -41,7 +44,10 @@
       "/publisher/",
       "/journal/call-for-reviewers/",
       "/journal/founding-collaborators/",
-      "/fa/darbare-man/"
+      "/fa/darbare-man/",
+      "/fa/entekhab-reshteh/",
+      "/fa/moshavere-konkur/",
+      "/fa/akhbar/moshavere-tahsili-baraye-tasmim/"
     ],
     "reserved_noindex": [
       "/app/",
@@ -143,5 +149,13 @@
   "content_voice": {
     "Persian": "Use Dr. Javad Rezazadeh Yazdeli's own Persian diction and argumentative style; avoid generic AI/promotional prose.",
     "English": "Use the Javad Rezazadeh Integrated English Writing Style for all public and scholarly English writing."
+  },
+  "services": {
+    "public_hub": "/fa/moshavere-tahsili/",
+    "field_selection": "/fa/entekhab-reshteh/",
+    "talent_identification": "/fa/estedaadyabi/",
+    "entrance_exam_consulting": "/fa/moshavere-konkur/",
+    "public_editorial_article": "/fa/akhbar/moshavere-tahsili-baraye-tasmim/",
+    "principle": "Consulting is designed to support evidence-informed decision-making rather than provide one-size-fits-all prescriptions."
   }
 }
