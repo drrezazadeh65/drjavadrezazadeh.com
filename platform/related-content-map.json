@@ -1,0 +1,80 @@
+{
+  "version": "2026-10-07",
+  "policy": "Each indexable Persian evergreen guide must link to sibling knowledge content and at least one relevant public service. Its primary service must expose a reciprocal editorial link back to the guide.",
+  "guides": {
+    "/fa/rahnamaha/moshavere-tahsili-baraye-tasmim/": {
+      "cluster": "academic-guidance",
+      "siblings": [
+        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
+        "/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/",
+        "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/"
+      ],
+      "services": [
+        "/fa/moshavere-tahsili/",
+        "/fa/entekhab-reshteh/"
+      ],
+      "primaryService": "/fa/moshavere-tahsili/"
+    },
+    "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/": {
+      "cluster": "field-selection",
+      "siblings": [
+        "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/",
+        "/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/",
+        "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/"
+      ],
+      "services": [
+        "/fa/entekhab-reshteh/",
+        "/fa/estedaadyabi/"
+      ],
+      "primaryService": "/fa/entekhab-reshteh/"
+    },
+    "/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/": {
+      "cluster": "field-selection",
+      "siblings": [
+        "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/",
+        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
+        "/fa/rahnamaha/moshavere-tahsili-baraye-tasmim/"
+      ],
+      "services": [
+        "/fa/entekhab-reshteh/"
+      ],
+      "primaryService": "/fa/entekhab-reshteh/"
+    },
+    "/fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/": {
+      "cluster": "talent-evidence",
+      "siblings": [
+        "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/",
+        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
+        "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/"
+      ],
+      "services": [
+        "/fa/estedaadyabi/"
+      ],
+      "primaryService": "/fa/estedaadyabi/"
+    },
+    "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/": {
+      "cluster": "talent-evidence",
+      "siblings": [
+        "/fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/",
+        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
+        "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/"
+      ],
+      "services": [
+        "/fa/estedaadyabi/"
+      ],
+      "primaryService": "/fa/estedaadyabi/"
+    },
+    "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/": {
+      "cluster": "field-selection",
+      "siblings": [
+        "/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/",
+        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
+        "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/"
+      ],
+      "services": [
+        "/fa/entekhab-reshteh/"
+      ],
+      "primaryService": "/fa/entekhab-reshteh/"
+    }
+  }
+}

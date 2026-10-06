@@ -48,6 +48,10 @@ jobs:
         run: node scripts/news-trust-audit.mjs
       - name: Run evergreen guide trust audit
         run: node scripts/evergreen-guide-trust-audit.mjs
+      - name: Run related-content graph audit
+        run: node scripts/related-content-audit.mjs
+      - name: Run FAQ structured-content integrity audit
+        run: node scripts/faq-integrity-audit.mjs
       - name: Run RSS distribution audit
         run: node scripts/rss-audit.mjs
       - name: Run conversion path audit
