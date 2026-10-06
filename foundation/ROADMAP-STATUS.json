@@ -83,9 +83,9 @@
     "ASSESS-006": "Version-controlled item/session execution contract implemented with frozen response snapshots and response revisions.",
     "ASSESS-007": "Generic declared scoring executor implemented for explicitly published rules; Golden Talent scoring remains disabled pending empirical validation.",
     "ASSESS-008": "Versioned declared interpretation executor implemented; invented norms/cutoffs and automatic gifted labels prohibited.",
-    "ASSESS-009": "Report provenance persistence aligned to scoring/interpretation/template/source-response versions; rendering workflow remains pending.",
+    "ASSESS-009": "Versioned report assembly engine now binds template and source provenance and requires human review before READY; visual/PDF renderer remains pending.",
     "ASSESS-011": "Multi-source Golden Talent evidence linking is implemented through subject-scoped student/parent/teacher evidence bridges and authorization; live authenticated collection awaits backend.",
-    "ASSESS-013": "Append-only professional evidence review and explicit Golden Path release/audit architecture implemented; production reviewer workflow awaits backend.",
+    "ASSESS-013": "Human-reviewed report approval and non-destructive supersession are now executable in addition to evidence-review/Golden-Path release controls.",
     "SERV-010": "Consultation triage domain engine implemented with human decision, advisor assignment, assessment/payment flags and preparation requirements; persistence UI awaits backend.",
     "CRM-002": "Consultation pipeline now has executable transition/triage/booking domain logic in addition to schema/API contract; provider-backed runtime awaits backend.",
     "DATA-010": "SPSS export is represented in governed export planning with frozen dataset/codebook requirements; file materialisation remains pending.",
@@ -109,7 +109,10 @@
     "ADMIN-010": "Versioned content revision history with hashes, reviewer, supersession and publication timestamps implemented; CMS editing UI remains pending.",
     "PORTAL-006": "Provider-neutral production auth foundation now includes verified-email gate, hashed server sessions, email-verification tokens, server-authoritative roles and RLS; live identity provider/email delivery remains pending.",
     "PORTAL-007": "Single-use hashed recovery-token persistence, expiry checks and mandatory session revocation after successful recovery are implemented; live provider delivery/runtime remains pending.",
-    "ADMIN-005": "Audited role-change events and privilege-escalation rules are implemented; SUPER_ADMIN changes require SUPER_ADMIN authority and browser role claims are ignored; management UI remains pending."
+    "ADMIN-005": "Audited role-change events and privilege-escalation rules are implemented; SUPER_ADMIN changes require SUPER_ADMIN authority and browser role claims are ignored; management UI remains pending.",
+    "DATA-008": "Executable research policy now requires de-identification before dataset execution, excludes direct identity and prohibits future use of withdrawn cases; transformation runtime remains pending.",
+    "DATA-009": "Dataset execution policy now requires approved study/version, active eligible cases, frozen codebook, de-identification run, checksum and immutable freeze; materialisation runtime remains pending.",
+    "ASSESS-010": "Web/PDF report lifecycle model is implemented with immutable source provenance, approval and supersession history; renderer/output generation remains pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
