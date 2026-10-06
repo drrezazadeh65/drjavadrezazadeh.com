@@ -928,6 +928,53 @@ if(warnings.length){
 }
 
 
+// PUBLIC ENTITY REGISTRY — structured identity must be stable and verified.
+const publicEntityPath=path.join(root,'platform','public-entity-registry.json');
+if(!fs.existsSync(publicEntityPath)) failures.push('/platform/public-entity-registry.json: missing machine-readable entity registry');
+else{
+  try{
+    const entityRegistry=JSON.parse(fs.readFileSync(publicEntityPath,'utf8'));
+    const person=entityRegistry.person||{};
+    const expectedPersonId=sitePrefix+(person.entity_id_path||'/#person');
+    const approvedSameAs=new Set(person.approved_same_as||[]);
+    const visit=(node,fn)=>{
+      if(Array.isArray(node)){for(const x of node) visit(x,fn);return;}
+      if(node&&typeof node==='object'){fn(node);for(const v of Object.values(node)) visit(v,fn);}
+    };
+    for(const file of htmlFiles){
+      const html=fs.readFileSync(file,'utf8');
+      const route=routeFor(file);
+      const robots=getAttr((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0],'content')||'';
+      if(/\bnoindex\b/i.test(robots)) continue;
+      for(const m of html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
+        let data;try{data=JSON.parse(m[1]);}catch{continue;}
+        visit(data,obj=>{
+          const types=Array.isArray(obj['@type'])?obj['@type']:[obj['@type']];
+          if(types.includes('Person')){
+            if(obj.name&&obj.name!==person.structured_name) failures.push(route+': Person schema name drifts from public entity registry');
+            if(obj['@id']&&obj['@id']!==expectedPersonId) failures.push(route+': Person schema @id drifts from canonical entity id');
+            for(const url of obj.sameAs||[]) if(!approvedSameAs.has(url)) failures.push(route+': unverified Person sameAs URL '+url);
+          }
+          if(types.includes('ProfilePage')&&obj.mainEntity?.['@id']&&obj.mainEntity['@id']!==expectedPersonId){
+            failures.push(route+': ProfilePage mainEntity drifts from canonical person id');
+          }
+        });
+      }
+    }
+    if(person.structured_name!=='Javad Rezazadeh Yazdeli'||person.persian_public_name!=='دکتر جواد رضازاده یزدلی') failures.push('/platform/public-entity-registry.json: canonical public names drift');
+    const phd=(person.education||[]).find(x=>x.degree==='PhD');
+    if(!phd||phd.field!=='Education'||phd.institution!=='Arak University'||phd.completed_year!==2026) failures.push('/platform/public-entity-registry.json: frozen PhD fact drift');
+  }catch(e){
+    failures.push('/platform/public-entity-registry.json: invalid entity registry '+e.message);
+  }
+}
+if(failures.length){
+  console.error('\nPublic-entity registry failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // PUBLIC FACT CONSISTENCY — narrow guardrails for recurrent degree claims.
 const publicFactChecks=[
   {
