@@ -359,6 +359,32 @@ if(failures.length){
 }
 
 
+// ROUTE RUN SOURCE OF TRUTH — legacy assessment_route must not drive runtime.
+const routeSourceMigration=path.join(root,'platform/db/migrations/024_route_run_source_of_truth.sql');
+if(!fs.existsSync(routeSourceMigration)) failures.push('/platform/db/migrations/024_route_run_source_of_truth.sql: missing route source migration');
+else{
+  const sql=fs.readFileSync(routeSourceMigration,'utf8');
+  for(const token of ['route_version_key','assessment_route_projection','COMPATIBILITY table only']){
+    if(!sql.includes(token)) failures.push('/platform/db/migrations/024_route_run_source_of_truth.sql: source-of-truth control missing '+token);
+  }
+}
+const orchestrationPolicyPath=path.join(root,'platform/golden-talent-orchestration-policy.json');
+if(fs.existsSync(orchestrationPolicyPath)){
+  const p=JSON.parse(fs.readFileSync(orchestrationPolicyPath,'utf8'));
+  if(p?.route_source_of_truth?.legacy_assessment_route!=='COMPATIBILITY_ONLY_DO_NOT_WRITE') failures.push('/platform/golden-talent-orchestration-policy.json: legacy route write prohibition missing');
+}
+for(const file of fs.readdirSync(path.join(root,'platform')).filter(x=>x.endsWith('.mjs'))){
+  if(file==='golden-talent-orchestrator.mjs') continue;
+  const src=fs.readFileSync(path.join(root,'platform',file),'utf8');
+  if(/\bassessment_route\b/.test(src)) failures.push('/platform/'+file+': runtime references legacy assessment_route');
+}
+if(failures.length){
+  console.error('\nRoute source-of-truth failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // GOLDEN PATH RELEASE HISTORY — terminal transitions must be append-only and auditable.
 const releaseTransitionPath=path.join(root,'platform/db/migrations/023_golden_path_release_transition_history.sql');
 if(!fs.existsSync(releaseTransitionPath)) failures.push('/platform/db/migrations/023_golden_path_release_transition_history.sql: missing release transition migration');

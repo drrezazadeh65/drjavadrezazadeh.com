@@ -28,3 +28,18 @@ export function supersedeRouteRun(previous,newRun){
  if(!previous?.id||!newRun?.id||previous.id===newRun.id) throw new Error('Distinct route versions required');
  return {previous:{...previous,status:'SUPERSEDED'},current:{...newRun,status:newRun.status||'DRAFT'},history_preserved:true};
 }
+
+export function planRouteRunPersistence({profile_id,trigger_session_id=null,engine_version,evidence_revision,policy_snapshot={}}={}){
+ const route_version_key=routeRunVersion({profile_id,trigger_session_id,engine_version,evidence_revision});
+ return {
+  talent_profile_id:profile_id,
+  trigger_session_id,
+  engine_version,
+  evidence_revision,
+  route_version_key,
+  policy_snapshot,
+  source_of_truth:'TALENT_ROUTE_RUN',
+  legacy_assessment_route_write:false,
+  duplicate_policy:'RETURN_EXISTING_ROUTE_RUN'
+ };
+}
