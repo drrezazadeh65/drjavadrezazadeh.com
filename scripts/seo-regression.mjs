@@ -1296,3 +1296,16 @@ else{
  const ap=JSON.parse(fs.readFileSync(accessPath,'utf8'));
  if(ap.default!=='DENY'||ap.ui_hiding_is_authorization!==false||ap.rules?.researcher?.direct_identity_access!==false) failures.push('/platform/golden-talent-access-policy.json: unsafe access policy');
 }
+
+// Golden Talent privacy lifecycle guardrails.
+const gtpPath=path.join(root,'platform','golden-talent-privacy.mjs');
+const gtppPath=path.join(root,'platform','golden-talent-privacy-policy.json');
+if(!fs.existsSync(gtpPath)||!fs.existsSync(gtppPath)) failures.push('/platform: missing Golden Talent privacy lifecycle');
+else{
+ const ps=fs.readFileSync(gtpPath,'utf8');
+ for(const invariant of ["quality_state:'WITHDRAWN'","withdrawal_propagated:true","direct_identity_removed:true"]){
+  if(!ps.includes(invariant)) failures.push('/platform/golden-talent-privacy.mjs: missing invariant '+invariant);
+ }
+ const pp=JSON.parse(fs.readFileSync(gtppPath,'utf8'));
+ if(pp.consent?.versioned!==true||pp.consent?.purpose_specific!==true||pp.consent?.bundling_prohibited!==true||pp.withdrawal?.future_routing_excludes_withdrawn_evidence!==true||pp.retention?.hardcoded_durations!==false) failures.push('/platform/golden-talent-privacy-policy.json: unsafe privacy policy');
+}
