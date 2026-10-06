@@ -1706,3 +1706,49 @@
     width:min(325px,27vw);
   }
 }
+
+
+/* Homepage Golden Talent account access v1 — visible auth entry without header crowding */
+.public-home-page .home-account-strip{
+  width:min(1320px,calc(100% - 64px));
+  margin:18px auto 0;
+  padding:16px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  box-sizing:border-box;
+  border:1px solid rgba(199,163,91,.18);
+  border-radius:18px;
+  background:
+    radial-gradient(320px 120px at 92% 0%,rgba(199,163,91,.07),transparent 72%),
+    linear-gradient(155deg,#141416,#101012);
+}
+.public-home-page .home-account-copy{min-width:0}
+.public-home-page .home-account-copy>span{
+  display:block;color:#c7a35b;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase
+}
+.rtl.public-home-page .home-account-copy>span{letter-spacing:0;text-transform:none}
+.public-home-page .home-account-copy>strong{
+  display:block;margin-top:5px;color:#eee9df;font-size:15px;line-height:1.55
+}
+.public-home-page .home-account-copy>small{
+  display:block;margin-top:3px;color:#8f9299;font-size:10px;line-height:1.65
+}
+.public-home-page .home-account-actions{
+  display:flex;flex:0 0 auto;align-items:center;gap:8px
+}
+.public-home-page .home-account-actions .button{
+  min-height:40px;padding:9px 15px;white-space:nowrap
+}
+.public-home-page .home-account-actions .account-login{border-color:rgba(199,163,91,.26)}
+@media(max-width:700px){
+  .public-home-page .home-account-strip{
+    width:calc(100% - 20px);margin-top:10px;padding:14px;align-items:stretch;flex-direction:column;gap:12px;border-radius:16px
+  }
+  .public-home-page .home-account-actions{display:grid;grid-template-columns:1fr 1fr}
+  .public-home-page .home-account-actions .button{width:100%;justify-content:center}
+}
+@media(max-width:360px){
+  .public-home-page .home-account-actions{grid-template-columns:1fr}
+}
