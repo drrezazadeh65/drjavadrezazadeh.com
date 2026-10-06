@@ -359,6 +359,28 @@ if(failures.length){
 }
 
 
+// GOLDEN PATH RELEASE HISTORY — terminal transitions must be append-only and auditable.
+const releaseTransitionPath=path.join(root,'platform/db/migrations/023_golden_path_release_transition_history.sql');
+if(!fs.existsSync(releaseTransitionPath)) failures.push('/platform/db/migrations/023_golden_path_release_transition_history.sql: missing release transition migration');
+else{
+  const sql=fs.readFileSync(releaseTransitionPath,'utf8');
+  for(const token of ['golden_path_release_transition','golden_path_release_transition_evidence','golden_path_release_terminal_transition_uq','pending_route_run_id']){
+    if(!sql.includes(token)) failures.push('/platform/db/migrations/023_golden_path_release_transition_history.sql: release lifecycle persistence missing '+token);
+  }
+}
+const releaseLifecyclePath=path.join(root,'platform/golden-path-lifecycle.mjs');
+if(!fs.existsSync(releaseLifecyclePath)) failures.push('/platform/golden-path-lifecycle.mjs: missing release lifecycle runtime');
+else{
+  const runtime=fs.readFileSync(releaseLifecyclePath,'utf8');
+  if(!runtime.includes('validateReleaseTransitionForPersistence')||!runtime.includes('audit_origin_required_before_commit')) failures.push('/platform/golden-path-lifecycle.mjs: auditable transition persistence gate missing');
+}
+if(failures.length){
+  console.error('\nGolden Path release-history failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // BAHAR BASELINE HISTORY — longitudinal baselines are versioned and never silently overwritten.
 const baharHistoryPath=path.join(root,'platform/db/migrations/021_bahar_baseline_history.sql');
 if(!fs.existsSync(baharHistoryPath)) failures.push('/platform/db/migrations/021_bahar_baseline_history.sql: missing BAHAR baseline history migration');

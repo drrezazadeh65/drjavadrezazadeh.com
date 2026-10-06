@@ -26,6 +26,8 @@ jobs:
         run: node platform/ecosystem-governance.test.mjs
       - name: Run pathway reference contract tests
         run: node platform/pathway-reference.test.mjs
+      - name: Run Golden Path lifecycle tests
+        run: node platform/golden-path-lifecycle.test.mjs
       - name: Run Golden Talent engine unit tests
         run: node platform/golden-talent-engine.test.mjs
 
