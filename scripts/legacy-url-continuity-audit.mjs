@@ -13,6 +13,7 @@ if(!fs.existsSync(registryPath)){
 }
 const registry=JSON.parse(fs.readFileSync(registryPath,'utf8'));
 const legacy=(registry.exact_routes||[]).filter(x=>String(x.id||'').startsWith('legacy-'));
+const reservedPortalIds=new Set(['legacy-student','legacy-parent','legacy-teacher']);
 
 function routeToFile(route){
   if(route==='/') return path.join(root,'index.html');
@@ -55,6 +56,11 @@ for(const rec of legacy){
   const robotsMatch=robotsTag.match(/\bcontent\s*=\s*(["'])(.*?)\1/i);
   const robots=robotsMatch?robotsMatch[2]:'';
   if(!/\bnoindex\b/i.test(robots)) failures.push(rec.route+': legacy transition must remain noindex');
+  if(reservedPortalIds.has(rec.id)){
+    // These three legacy namespaces are deliberately retained as noindex portal placeholders, not moved-content redirect shims.
+    continue;
+  }
+
   const can=canonical(html);
   if(!can) failures.push(rec.route+': missing canonical destination');
   else if(!destinationExists(can)) failures.push(rec.route+': canonical destination missing/non-production '+can);
@@ -69,7 +75,7 @@ for(const rec of legacy){
   if(!/<a\b[^>]*href=["']https:\/\/drjavadrezazadeh\.com\//i.test(html)) warnings.push(rec.route+': no visible production-domain recovery link');
 }
 
-console.log('Legacy URL continuity audit: '+legacy.length+' preserved transition routes checked.');
+console.log('Legacy URL continuity audit: '+legacy.length+' legacy routes checked; '+reservedPortalIds.size+' reserved portal placeholders exempted from redirect-shim requirements.');
 if(warnings.length){
   console.warn('\nLegacy URL warnings ('+warnings.length+')');
   warnings.forEach(x=>console.warn('! '+x));
@@ -79,4 +85,4 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
-console.log('All frozen legacy transition routes remain present, noindex and aligned to live canonical destinations.');
+console.log('All frozen legacy routes remain present and noindex; moved-content transition routes remain aligned to live canonical destinations.');
