@@ -1322,3 +1322,16 @@ else{
  const o=JSON.parse(fs.readFileSync(obsPath,'utf8'));
  if(o.append_only!==true||o.server_generated!==true||o.sensitive_payload_prohibited!==true||o.client_supplied_audit_event_accepted!==false||o.audit_log_is_not_analytics_dataset!==true) failures.push('/platform/golden-talent-observability-policy.json: unsafe observability policy');
 }
+
+// Golden Talent resilience/failure-recovery guardrails.
+const recPath=path.join(root,'platform','golden-talent-recovery.mjs');
+const resPath=path.join(root,'platform','golden-talent-resilience-policy.json');
+if(!fs.existsSync(recPath)||!fs.existsSync(resPath)) failures.push('/platform: missing Golden Talent resilience layer');
+else{
+ const rec=fs.readFileSync(recPath,'utf8');
+ for(const invariant of ['grant_entitlement:false','release_golden_path:false','delete_evidence:false','create_duplicate:false','FAIL_CLOSED_OR_REVERIFY']){
+  if(!rec.includes(invariant)) failures.push('/platform/golden-talent-recovery.mjs: missing recovery invariant '+invariant);
+ }
+ const rp=JSON.parse(fs.readFileSync(resPath,'utf8'));
+ if(!rp.principles?.includes('FAIL_CLOSED')||rp.backup_restore?.restore_test_required!==true||rp.production_readiness?.status!=='BLOCKED_UNTIL_BACKEND_INFRASTRUCTURE_AND_RESTORE_DRILL_EXIST') failures.push('/platform/golden-talent-resilience-policy.json: unsafe resilience policy');
+}
