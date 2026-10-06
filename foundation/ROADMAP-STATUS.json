@@ -46,7 +46,8 @@
     "UX-009": "2026-10-05",
     "AUTH-016": "2026-10-05",
     "GT-007": "2026-10-05",
-    "GT-016": "2026-10-05"
+    "GT-016": "2026-10-05",
+    "BACKEND-SECURITY-FOUNDATION": "2026-10-06"
   },
   "in_progress": {
     "SEO-007": "Core Persian service SERP review complete; repeat before each new major cluster.",
@@ -77,7 +78,19 @@
     "SERV-011": "Bilingual private appointment-state previews plus API contract implemented; live availability, timezone-aware slot selection, reschedule/cancel enforcement and authenticated persistence remain pending.",
     "ADMIN-004": "Version-controlled Cloudflare Pages _redirects registry and CI URL-integrity guard implemented for confirmed legacy migrations; CMS/admin redirect-management UI remains pending.",
     "INFRA-014": "Cloudflare Pages default public ETag/revalidation baseline frozen for current non-fingerprinted assets; private no-store and SW network-first code delivery enforced; immutable caching blocked until hashed-asset pipeline exists; production verification pending.",
-    "INFRA-011": "Staging/preview policy frozen: Cloudflare preview hosts noindex, private no-store, synthetic data only, production secrets/payments excluded and CI-gated promotion; live Cloudflare branch-preview verification pending."
+    "INFRA-011": "Staging/preview policy frozen: Cloudflare preview hosts noindex, private no-store, synthetic data only, production secrets/payments excluded and CI-gated promotion; live Cloudflare branch-preview verification pending.",
+    "ASSESS-005": "Assessment authoring invariants implemented: immutable published versions, editable drafts and versioned item-bank contract; admin UI awaits backend activation.",
+    "ASSESS-006": "Version-controlled item/session execution contract implemented with frozen response snapshots and response revisions.",
+    "ASSESS-007": "Generic declared scoring executor implemented for explicitly published rules; Golden Talent scoring remains disabled pending empirical validation.",
+    "ASSESS-008": "Versioned declared interpretation executor implemented; invented norms/cutoffs and automatic gifted labels prohibited.",
+    "ASSESS-009": "Report provenance persistence aligned to scoring/interpretation/template/source-response versions; rendering workflow remains pending.",
+    "ASSESS-011": "Multi-source Golden Talent evidence linking is implemented through subject-scoped student/parent/teacher evidence bridges and authorization; live authenticated collection awaits backend.",
+    "ASSESS-013": "Append-only professional evidence review and explicit Golden Path release/audit architecture implemented; production reviewer workflow awaits backend.",
+    "SERV-010": "Consultation triage domain engine implemented with human decision, advisor assignment, assessment/payment flags and preparation requirements; persistence UI awaits backend.",
+    "CRM-002": "Consultation pipeline now has executable transition/triage/booking domain logic in addition to schema/API contract; provider-backed runtime awaits backend.",
+    "DATA-010": "SPSS export is represented in governed export planning with frozen dataset/codebook requirements; file materialisation remains pending.",
+    "DATA-011": "CSV/XLSX/R/Python export formats are represented in governed export planning; executable materialisation remains pending.",
+    "DATA-012": "Qualitative pseudonymous export package planner implemented with de-identified text/codebook provenance; archive materialisation remains pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
