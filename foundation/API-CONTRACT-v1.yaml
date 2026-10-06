@@ -30,6 +30,60 @@ paths:
       responses:
         "200":
           description: Service healthy
+  /auth/registrations:
+    post:
+      tags: [Identity]
+      summary: Create a pending account using email plus required mobile contact
+      description: >
+        Email is the only login identifier and the only account-verification channel.
+        Mobile is required contact data in E.164 format and cannot verify the account,
+        reset a password, grant a role or create a session.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegistrationRequest"
+      responses:
+        "202":
+          description: Pending account accepted and email verification initiated
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /auth/email-verifications:
+    post:
+      tags: [Identity]
+      summary: Verify email ownership with a short-lived single-use token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailVerification"
+      responses:
+        "204":
+          description: Email verified; account may become ACTIVE subject to role/onboarding rules
+        "400":
+          $ref: "#/components/responses/ValidationError"
+  /auth/email-verification-requests:
+    post:
+      tags: [Identity]
+      summary: Resend verification without revealing unnecessary account state
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecoveryRequest"
+      responses:
+        "202":
+          description: Neutral response
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /auth/session:
     post:
       tags: [Identity]
@@ -949,13 +1003,43 @@ components:
           type: array
           items:
             type: string
+    RegistrationRequest:
+      type: object
+      additionalProperties: false
+      required: [email, mobileE164, credential, role]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 320
+        mobileE164:
+          type: string
+          pattern: "^\\+[1-9][0-9]{7,14}$"
+        credential:
+          type: string
+          minLength: 12
+          maxLength: 1024
+          writeOnly: true
+        role:
+          type: string
+          enum: [STUDENT, PARENT, TEACHER, CONSULTANT]
+    EmailVerification:
+      type: object
+      additionalProperties: false
+      required: [token]
+      properties:
+        token:
+          type: string
+          minLength: 20
+          writeOnly: true
     SignInRequest:
       type: object
       additionalProperties: false
-      required: [identifier, credential]
+      required: [email, credential]
       properties:
-        identifier:
+        email:
           type: string
+          format: email
           maxLength: 320
         credential:
           type: string
