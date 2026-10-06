@@ -46,6 +46,8 @@ jobs:
         run: node scripts/trust-legal-audit.mjs
       - name: Run news trust and freshness audit
         run: node scripts/news-trust-audit.mjs
+      - name: Run sitemap lastmod consistency audit
+        run: node scripts/sitemap-lastmod-audit.mjs
       - name: Run evergreen guide trust audit
         run: node scripts/evergreen-guide-trust-audit.mjs
       - name: Run related-content graph audit
