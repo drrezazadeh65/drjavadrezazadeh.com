@@ -1,0 +1,34 @@
+{
+ "schema_version":"1.0",
+ "status":"PRE_PRODUCTION_LEGAL_REVIEW_REQUIRED",
+ "consent":{
+  "versioned":true,
+  "purpose_specific":true,
+  "purposes":["SERVICE_ASSESSMENT","PARENT_VISIBILITY","TEACHER_OBSERVATION","CONSULTANT_REVIEW","RESEARCH"],
+  "bundling_prohibited":true,
+  "withdrawal_effect":"NO_NEW_PROCESSING_FOR_WITHDRAWN_PURPOSE_EXCEPT_REQUIRED_RETENTION_OR_AUDIT"
+ },
+ "withdrawal":{
+  "future_routing_excludes_withdrawn_evidence":true,
+  "future_golden_path_excludes_withdrawn_evidence":true,
+  "historical_versions_preserved_under_retention_policy":true,
+  "new_route_run_required_after_material_withdrawal":true
+ },
+ "minimization":{
+  "collect_only_current_service_need":true,
+  "private_documents_on_demand_only":true,
+  "research_direct_identity_default":false
+ },
+ "privacy_requests":["ACCESS","CORRECTION","EXPORT","DELETION","RESTRICTION","CONSENT_WITHDRAWAL"],
+ "retention":{
+  "hardcoded_durations":false,
+  "legal_review_required":true,
+  "actions":["REVIEW","ARCHIVE","DELETE","ANONYMIZE","HOLD"],
+  "deletion_never_claimed_before_completion":true
+ },
+ "research":{
+  "approved_study_required":true,
+  "deidentification_required":true,
+  "frozen_dataset_provenance_required":true
+ }
+}
