@@ -1,0 +1,371 @@
+/* Public visual layer v2 — 2026-10-06
+   Premium academic/public interface. Presentation only; content, indexability and schema remain authoritative in page source. */
+
+:root{
+  --public-gold:#c7a35b;
+  --public-gold-soft:#e2c77d;
+  --public-ivory:#f3efe6;
+  --public-muted:#9b9ba0;
+  --public-card:#101012;
+  --public-card-2:#141416;
+  --public-line:rgba(255,255,255,.075);
+  --public-gold-line:rgba(199,163,91,.22);
+  --public-shadow:0 28px 90px rgba(0,0,0,.26);
+}
+
+.public-home-page,
+.public-content-page{
+  background:
+    radial-gradient(920px 560px at 88% -10%,rgba(199,163,91,.08),transparent 60%),
+    radial-gradient(760px 520px at -12% 28%,rgba(97,76,40,.055),transparent 60%),
+    #070707;
+}
+
+.public-home-page .site-header,
+.public-content-page .site-header{
+  position:sticky;
+  top:0;
+  z-index:90;
+  border-bottom:1px solid rgba(199,163,91,.10);
+  background:rgba(7,7,7,.84);
+  backdrop-filter:blur(18px);
+  box-shadow:0 12px 35px rgba(0,0,0,.14);
+}
+
+.public-home-page .site-header .brand,
+.public-content-page .site-header .brand{
+  min-width:max-content;
+}
+
+.public-home-page .site-header nav,
+.public-content-page .site-header nav{
+  gap:4px;
+}
+
+.public-home-page .site-header nav a,
+.public-content-page .site-header nav a{
+  padding:8px 9px;
+  border-radius:9px;
+  font-size:12px;
+  transition:background .18s ease,color .18s ease;
+}
+
+.public-home-page .site-header nav a:hover,
+.public-content-page .site-header nav a:hover{
+  background:rgba(199,163,91,.055);
+  color:var(--public-ivory);
+}
+
+.public-home-page main{
+  width:min(1380px,calc(100% - 44px));
+  margin:0 auto;
+}
+
+.public-home-page .hero{
+  min-height:min(760px,calc(100vh - 72px));
+  padding:88px 0 72px;
+  gap:64px;
+  align-items:center;
+  border-bottom:1px solid var(--public-line);
+}
+
+.public-home-page .hero-copy{
+  max-width:800px;
+}
+
+.public-home-page .hero .eyebrow{
+  margin-bottom:18px;
+  color:var(--public-gold-soft);
+  letter-spacing:.08em;
+}
+
+.rtl.public-home-page .hero .eyebrow{letter-spacing:0}
+
+.public-home-page .hero h1{
+  margin:0;
+  font-size:clamp(54px,7.5vw,96px);
+  line-height:.98;
+  letter-spacing:-.045em;
+}
+
+.rtl.public-home-page .hero h1{
+  line-height:1.32;
+  letter-spacing:0;
+}
+
+.public-home-page .hero h1 em{
+  color:var(--public-gold-soft);
+  font-style:normal;
+}
+
+.public-home-page .hero-line{
+  margin-top:26px;
+  max-width:720px;
+  color:#e8e3da;
+  font-size:clamp(20px,2vw,28px);
+  line-height:1.5;
+}
+
+.public-home-page .hero .lead{
+  max-width:720px;
+  color:#a8a8ad;
+  line-height:1.9;
+}
+
+.public-home-page .portrait-shell{
+  position:relative;
+  width:min(360px,32vw);
+  padding:13px;
+  border:1px solid var(--public-gold-line);
+  border-radius:30px;
+  background:
+    linear-gradient(145deg,rgba(199,163,91,.08),rgba(255,255,255,.018));
+  box-shadow:var(--public-shadow);
+}
+
+.public-home-page .portrait-shell::before{
+  content:"";
+  position:absolute;
+  inset:18px -22px -22px 18px;
+  border:1px solid rgba(199,163,91,.09);
+  border-radius:30px;
+  z-index:-1;
+}
+
+.public-home-page .hero-portrait{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:22px;
+}
+
+.public-home-page .hero .actions{
+  margin-top:30px;
+  gap:10px;
+}
+
+.public-home-page .button,
+.public-content-page .button{
+  min-height:44px;
+  border-radius:12px;
+}
+
+.public-home-page .section{
+  padding:78px 0;
+  border-bottom:1px solid var(--public-line);
+}
+
+.public-home-page .section>h2,
+.public-home-page .split h2{
+  max-width:860px;
+  font-size:clamp(34px,4vw,54px);
+  line-height:1.25;
+}
+
+.rtl.public-home-page .section>h2,
+.rtl.public-home-page .split h2{
+  line-height:1.55;
+}
+
+.public-home-page .split{
+  gap:70px;
+}
+
+.public-home-page .grid{
+  gap:14px;
+  margin-top:28px;
+}
+
+.public-home-page .grid article{
+  min-height:220px;
+  padding:28px;
+  border:1px solid var(--public-line);
+  border-radius:20px;
+  background:linear-gradient(155deg,var(--public-card-2),var(--public-card));
+  box-shadow:0 14px 36px rgba(0,0,0,.10);
+  transition:transform .18s ease,border-color .18s ease,background .18s ease;
+}
+
+.public-home-page .grid article:hover{
+  transform:translateY(-3px);
+  border-color:var(--public-gold-line);
+  background:linear-gradient(155deg,rgba(199,163,91,.045),var(--public-card));
+}
+
+.public-home-page .grid article h3{
+  font-size:21px;
+  line-height:1.45;
+}
+
+.public-home-page .grid article p{
+  color:#9d9fa5;
+  line-height:1.85;
+}
+
+.public-home-page .philosophy-home{
+  padding:54px;
+  margin:54px 0;
+  border:1px solid var(--public-gold-line);
+  border-radius:28px;
+  background:
+    radial-gradient(520px 220px at 92% 0%,rgba(199,163,91,.08),transparent 70%),
+    linear-gradient(150deg,#131315,#0e0e10);
+}
+
+.public-home-page footer{
+  width:min(1380px,calc(100% - 44px));
+  margin:0 auto;
+}
+
+/* Public authority/content pages */
+.public-content-page .breadcrumbs{
+  width:min(1160px,calc(100% - 40px));
+  margin:0 auto;
+  padding-top:24px;
+}
+
+.public-content-page .article-shell,
+.public-content-page .authority-shell{
+  width:min(1160px,calc(100% - 40px));
+  margin:0 auto;
+  padding-top:34px;
+}
+
+.public-content-page .article-hero,
+.public-content-page .authority-hero{
+  position:relative;
+  overflow:hidden;
+  padding:44px;
+  border:1px solid var(--public-gold-line);
+  border-radius:28px;
+  background:
+    radial-gradient(580px 280px at 92% 0%,rgba(199,163,91,.085),transparent 68%),
+    linear-gradient(150deg,#131315,#0e0e10);
+  box-shadow:0 24px 70px rgba(0,0,0,.18);
+}
+
+.public-content-page .article-hero h1,
+.public-content-page .authority-hero h1{
+  max-width:930px;
+  font-size:clamp(38px,5vw,64px);
+  line-height:1.2;
+}
+
+.rtl.public-content-page .article-hero h1,
+.rtl.public-content-page .authority-hero h1{
+  line-height:1.55;
+}
+
+.public-content-page .article-shell>section,
+.public-content-page .authority-section{
+  padding:54px 0;
+  border-bottom:1px solid var(--public-line);
+}
+
+.public-content-page .article-shell>section h2,
+.public-content-page .authority-section h2{
+  font-size:clamp(28px,3.4vw,42px);
+  line-height:1.35;
+}
+
+.rtl.public-content-page .article-shell>section h2,
+.rtl.public-content-page .authority-section h2{
+  line-height:1.65;
+}
+
+.public-content-page .news-card,
+.public-content-page .authority-card,
+.public-content-page .related-cluster-grid a{
+  border-color:var(--public-line);
+  background:linear-gradient(155deg,var(--public-card-2),var(--public-card));
+  border-radius:18px;
+  box-shadow:0 12px 32px rgba(0,0,0,.10);
+}
+
+.public-content-page .news-card{
+  overflow:hidden;
+}
+
+.public-content-page .news-card img{
+  border-radius:14px;
+}
+
+.public-content-page .authority-grid{
+  gap:14px;
+}
+
+.public-content-page .authority-card{
+  min-height:200px;
+  padding:26px;
+}
+
+.public-content-page .authority-visual{
+  padding:12px;
+  border:1px solid var(--public-line);
+  border-radius:20px;
+  background:#0d0d0f;
+}
+
+.public-content-page .authority-visual img{
+  border-radius:14px;
+}
+
+.public-content-page .related-cluster{
+  width:min(1160px,calc(100% - 40px));
+  margin:34px auto 80px;
+  padding:32px;
+  border:1px solid var(--public-line);
+  border-radius:22px;
+  background:rgba(255,255,255,.009);
+}
+
+@media(max-width:1050px){
+  .public-home-page .hero{
+    grid-template-columns:1fr minmax(250px,30vw);
+    gap:34px;
+  }
+  .public-home-page .site-header nav,
+  .public-content-page .site-header nav{
+    max-width:70vw;
+    overflow:auto;
+    scrollbar-width:none;
+  }
+  .public-home-page .site-header nav::-webkit-scrollbar,
+  .public-content-page .site-header nav::-webkit-scrollbar{display:none}
+}
+
+@media(max-width:800px){
+  .public-home-page main,
+  .public-home-page footer{width:calc(100% - 22px)}
+  .public-home-page .hero{
+    display:grid;
+    grid-template-columns:1fr;
+    min-height:auto;
+    padding:54px 0;
+  }
+  .public-home-page .portrait-shell{
+    width:min(330px,82vw);
+    margin-inline:auto;
+  }
+  .public-home-page .section{padding:54px 0}
+  .public-home-page .philosophy-home{padding:28px;margin:28px 0}
+  .public-home-page .site-header nav,
+  .public-content-page .site-header nav{max-width:none}
+  .public-content-page .article-shell,
+  .public-content-page .authority-shell,
+  .public-content-page .breadcrumbs,
+  .public-content-page .related-cluster{width:calc(100% - 20px)}
+  .public-content-page .article-hero,
+  .public-content-page .authority-hero{padding:28px;border-radius:22px}
+}
+
+@media(max-width:540px){
+  .public-home-page .hero h1{font-size:48px}
+  .rtl.public-home-page .hero h1{font-size:44px}
+  .public-content-page .article-hero h1,
+  .public-content-page .authority-hero h1{font-size:36px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .public-home-page .grid article{transition:none}
+}
