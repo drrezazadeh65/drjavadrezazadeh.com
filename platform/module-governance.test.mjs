@@ -5,6 +5,8 @@ assert.equal(graph.valid,true,graph.failures.join('\n'));
 assert(graph.module_count>=10);
 assert(dependencyClosure('bahar').includes('golden-talent-evidence'));
 assert(dependencyClosure('golden-talent-path').includes('consent'));
+assert(dependencyClosure('coaching').includes('commerce'));
+assert(dependencyClosure('coaching').includes('longitudinal-development'));
 assert.equal(canActivateModule('golden-talent-evidence',{release_gate_passed:true,feature_flag:'ON'}).allow,false);
 assert.equal(canActivateModule('identity',{release_gate_passed:false,feature_flag:'ON'}).reason,'RELEASE_GATE_REQUIRED');
 assert.equal(canActivateModule('identity',{release_gate_passed:true,feature_flag:'OFF'}).reason,'FEATURE_FLAG_OFF');
