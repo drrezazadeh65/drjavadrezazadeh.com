@@ -364,9 +364,10 @@ const routeSourceMigration=path.join(root,'platform/db/migrations/024_route_run_
 if(!fs.existsSync(routeSourceMigration)) failures.push('/platform/db/migrations/024_route_run_source_of_truth.sql: missing route source migration');
 else{
   const sql=fs.readFileSync(routeSourceMigration,'utf8');
-  for(const token of ['route_version_key','assessment_route_projection','COMPATIBILITY table only']){
+  for(const token of ['route_version_key','assessment_route_projection']){
     if(!sql.includes(token)) failures.push('/platform/db/migrations/024_route_run_source_of_truth.sql: source-of-truth control missing '+token);
   }
+  if(!/legacy\s+compatibility\s+table\s+only/i.test(sql)) failures.push('/platform/db/migrations/024_route_run_source_of_truth.sql: legacy compatibility boundary missing');
 }
 const orchestrationPolicyPath=path.join(root,'platform/golden-talent-orchestration-policy.json');
 if(fs.existsSync(orchestrationPolicyPath)){
