@@ -116,7 +116,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **UX-005 — DONE — Web manifest foundation.**
 - [x] **UX-006 — RENEWED — Verified portrait asset and portrait integration after earlier wrong-image incident.**
 - [x] **UX-007 — RENEWED — Educational-philosophy visual asset replaced after broken-image incident.**
-- [ ] **UX-008 — IN PROGRESS — Global design consistency across public, journal and foundation routes.** The JHELA founding surface now uses a unified responsive scholarly interface with consistent navigation/current-state treatment, and the bilingual private admin shell has been upgraded into a coherent operations console; final cross-device visual spot QA remains pending.
+- [ ] **UX-008 — IN PROGRESS — Global design consistency across public, journal and foundation routes.** The JHELA founding surface and bilingual admin console are now joined by a unified international-grade private application language spanning student dashboards, account/privacy centers and subpages, D1–D6 modules, parent/teacher/adviser workspaces, role resources/path views, consultant case workspaces and bilingual observer evidence surfaces; final live-device/cross-browser visual spot QA remains pending.
 - [x] **UX-009 — DONE — Formal design-system baseline documented with semantic tokens, typography, component families, image rules, interaction rules, mobile behaviour and design governance.**
 - [ ] **UX-010 — IN PROGRESS — Public UI now uses stable system-safe fallbacks with no third-party font requests; final self-hosted Persian/English font package remains pending font-integrity QA.**
 - [ ] **UX-011 — PLANNED — Mobile UX QA on small/medium/large devices and landscape orientation.**
@@ -216,10 +216,10 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **PORTAL-005 — FROZEN — One account may hold multiple roles.**
 - [ ] **PORTAL-006 — IN PROGRESS — Email-only login identity, required registration mobile contact, pending-account state and mandatory email verification are frozen in runtime/API/data contracts; live identity/email provider remains pending.**
 - [ ] **PORTAL-007 — IN PROGRESS — Password recovery is email-only with neutral account-existence responses, single-use time-limited tokens and session revocation; live delivery/runtime remains pending.**
-- [ ] **PORTAL-008 — IN PROGRESS — Persian student dashboard prototype published as NOINDEX; production auth/data integration remains pending.**
-- [ ] **PORTAL-009 — IN PROGRESS — Persian parent dashboard prototype and verified parent-child relationship model are implemented; production linkage remains pending.**
-- [ ] **PORTAL-010 — IN PROGRESS — Persian teacher dashboard prototype and scoped teacher-student assignment model are implemented; production assignment workflows remain pending.**
-- [ ] **PORTAL-011 — IN PROGRESS — Persian consultant dashboard prototype reflects triage, assigned cases, notes, review and follow-up; backend integration remains pending.**
+- [ ] **PORTAL-008 — IN PROGRESS — Persian student dashboard and its evidence, records, context, Golden Path, BAHAR, appointments and D1–D6 workspaces now share a unified international-grade NOINDEX application shell; production auth/data integration remains pending.**
+- [ ] **PORTAL-009 — IN PROGRESS — Persian parent dashboard, resources, My Path and shared RCAS-O1 observation surface now share a unified role-scoped application shell; the verified parent-child relationship model is implemented and production linkage remains pending.**
+- [ ] **PORTAL-010 — IN PROGRESS — Persian teacher dashboard, resources, My Path and shared RCAS-O1 observation surface now share a unified role-scoped application shell; the scoped teacher-student assignment model is implemented and production assignment workflows remain pending.**
+- [ ] **PORTAL-011 — IN PROGRESS — Persian consultant dashboard, My Path and case workspace now share a unified role-scoped operations shell reflecting triage, assigned cases, notes, review and follow-up; backend integration remains pending.**
 - [ ] **PORTAL-012 — IN PROGRESS — Privacy-request schema supports access, correction, export, deletion, restriction and consent withdrawal; authenticated user workflow remains pending.**
 - [ ] **PORTAL-013 — IN PROGRESS — Private-document metadata, malware-scan state and scoped access-grant schema are implemented; secure object storage and upload service remain pending.**
 
