@@ -1466,3 +1466,12 @@ if(observabilityPolicy.rules?.no_raw_assessment_answers_in_analytics!==true||obs
 const mp=JSON.parse(fs.readFileSync(path.join(root,'platform','media-library-policy.json'),'utf8'));
 if(!mp.media_asset?.required?.includes('licence_status')||!mp.media_asset?.required?.includes('provenance')) failures.push('/platform/media-library-policy.json: missing rights provenance');
 
+
+// Consultation, research access and scientific reference guards.
+for(const p of ['platform/consultation-record-engine.mjs','platform/research-access-retention.mjs','platform/norm-reference-policy.json']) if(!fs.existsSync(path.join(root,p))) failures.push('/'+p+': missing roadmap implementation');
+const cr=fs.readFileSync(path.join(root,'platform','consultation-record-engine.mjs'),'utf8');
+for(const x of ['append_only:true',"visibility:'ASSIGNED_PROFESSIONALS'",'automatic_release:false']) if(!cr.includes(x)) failures.push('/platform/consultation-record-engine.mjs: missing '+x);
+const ra=fs.readFileSync(path.join(root,'platform','research-access-retention.mjs'),'utf8');
+for(const x of ['direct_identity:false','Cannot expand requested scope','RETAIN_RESEARCH_ONLY','DELETE_OR_ANONYMISE']) if(!ra.includes(x)) failures.push('/platform/research-access-retention.mjs: missing '+x);
+const nr=JSON.parse(fs.readFileSync(path.join(root,'platform','norm-reference-policy.json'),'utf8'));
+if(nr.golden_talent?.norms_available!==false||nr.golden_talent?.gifted_cutoff_available!==false||nr.reference_metadata?.fairness_analysis_required!==true) failures.push('/platform/norm-reference-policy.json: unsafe norm/reference policy');
