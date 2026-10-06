@@ -214,8 +214,8 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **PORTAL-003 — DONE — Reserved student/parent/teacher/app routes as noindex foundations.**
 - [x] **PORTAL-004 — FROZEN — Roles: Student, Parent, Teacher, Consultant, Researcher, Editor, Admin, Super Admin.**
 - [x] **PORTAL-005 — FROZEN — One account may hold multiple roles.**
-- [ ] **PORTAL-006 — IN PROGRESS — Production authentication and email verification.**
-- [ ] **PORTAL-007 — IN PROGRESS — Password reset, session security and account recovery.**
+- [ ] **PORTAL-006 — IN PROGRESS — Email-only login identity, required registration mobile contact, pending-account state and mandatory email verification are frozen in runtime/API/data contracts; live identity/email provider remains pending.**
+- [ ] **PORTAL-007 — IN PROGRESS — Password recovery is email-only with neutral account-existence responses, single-use time-limited tokens and session revocation; live delivery/runtime remains pending.**
 - [ ] **PORTAL-008 — IN PROGRESS — Persian student dashboard prototype published as NOINDEX; production auth/data integration remains pending.**
 - [ ] **PORTAL-009 — IN PROGRESS — Persian parent dashboard prototype and verified parent-child relationship model are implemented; production linkage remains pending.**
 - [ ] **PORTAL-010 — IN PROGRESS — Persian teacher dashboard prototype and scoped teacher-student assignment model are implemented; production assignment workflows remain pending.**
@@ -248,17 +248,17 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **COM-001 — DONE — Shop namespace reserved as noindex foundation.**
 - [x] **COM-002 — FROZEN — One commerce identity for books, eBooks, workbooks, tests, reports, consultations, courses and toolkits.**
 - [x] **COM-003 — FROZEN — Product/Offer schema only when a genuine purchasable product with verified price and availability exists.**
-- [ ] **COM-004 — PLANNED — Public shop/category architecture.**
+- [x] **COM-004 — DONE — Bilingual book-storefront/category architecture is implemented under `/fa/shop/` and `/en/shop/`; it remains NOINDEX until genuine prices, formats, stock/fulfilment and purchase terms are verified.**
 - [ ] **COM-005 — IN PROGRESS — Provider-neutral product/price/order/payment/entitlement schema is implemented; storefront/admin workflows and real offers remain pending.**
-- [ ] **COM-006 — IN PROGRESS — Cart.**
-- [ ] **COM-007 — IN PROGRESS — Checkout.**
+- [ ] **COM-006 — IN PROGRESS — Bilingual browser cart shell is implemented as convenience state; production order creation and all pricing remain server-authoritative.**
+- [ ] **COM-007 — IN PROGRESS — Bilingual checkout shell is implemented and deliberately refuses client-side payment truth; live checkout awaits verified catalogue data, backend order creation and gateway activation.**
 - [ ] **COM-008 — IN PROGRESS — Order and invoice records.**
 - [ ] **COM-009 — IN PROGRESS — Iranian-first payment-provider abstraction is frozen for launch; ZarinPal, NextPay and Zibal are the initial comparison set, with merchant eligibility and callback/settlement testing required before approval. International gateways are deferred.**
 - [ ] **COM-010 — IN PROGRESS — Server-verification, idempotency and reconciliation contracts are defined for Iranian gateway adapters; live sandbox/provider integration remains pending.**
 - [ ] **COM-011 — IN PROGRESS — Refund/cancellation policy.**
 - [ ] **COM-012 — IN PROGRESS — Coupons/discount rules only if commercially useful.**
 - [ ] **COM-013 — IN PROGRESS — Digital delivery and entitlement management.**
-- [ ] **COM-014 — IN PROGRESS — Inventory/fulfilment for physical books if self-fulfilled.**
+- [ ] **COM-014 — IN PROGRESS — Book inventory, shipping-address, shipment and digital-delivery persistence plus fulfilment rules are implemented; real stock, carrier/shipping coverage and storage assets remain pending.**
 - [ ] **COM-015 — IN PROGRESS — Consultation payment connected to booking.**
 - [ ] **COM-016 — IN PROGRESS — School/institution invoice workflow.**
 - [ ] **COM-017 — FROZEN — Card/banking credentials are never stored by the site.**
@@ -267,7 +267,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 
 # 12. CRM, booking and communication
 
-- [ ] **CRM-001 — IN PROGRESS — Contact/lead record with source attribution.**
+- [ ] **CRM-001 — IN PROGRESS — Public AI assistant now has explicit-consent email/mobile lead capture, source/intent attribution, separate WhatsApp opt-in, SQLite Durable Object persistence and lead lifecycle states; Cloudflare Worker deployment is pending.**
 - [ ] **CRM-002 — IN PROGRESS — Consultation pipeline, state model, noindex intake gateway and API contract are defined; production workflow awaits backend, booking and payment services.**
 - [ ] **CRM-003 — IN PROGRESS — Transactional email templates.**
 - [ ] **CRM-004 — IN PROGRESS — Appointment reminders and rescheduling.**
@@ -280,14 +280,14 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 
 # 13. CMS and administration
 
-- [ ] **ADMIN-001 — PLANNED — CMS for articles, news, books, services, products and SEO fields.**
+- [ ] **ADMIN-001 — IN PROGRESS — Private bilingual admin-console information architecture and content-governance foundation now cover content, SEO, books, services, leads and operations; provider-backed CMS editing/persistence remains pending.**
 - [ ] **ADMIN-002 — IN PROGRESS — Draft/review/publish workflow.**
 - [ ] **ADMIN-003 — IN PROGRESS — SEO fields: title, description, slug, canonical, hreflang, index state, OG, schema, dates, author/reviewer.**
 - [ ] **ADMIN-004 — IN PROGRESS — Cloudflare Pages `_redirects` now provides a version-controlled registry for confirmed legacy migrations, and CI validates syntax, unique sources, target existence and permanent 301 status; a future CMS/admin UI for redirect creation and review remains pending.**
 - [ ] **ADMIN-005 — IN PROGRESS — User/role management.**
 - [ ] **ADMIN-006 — PLANNED — Assessment management.**
-- [ ] **ADMIN-007 — PLANNED — Order/payment management.**
-- [ ] **ADMIN-008 — PLANNED — Consultation management.**
+- [ ] **ADMIN-007 — IN PROGRESS — Order/payment/reconciliation administration is represented in the private admin console and commerce contracts; live operations await backend and gateway.**
+- [ ] **ADMIN-008 — IN PROGRESS — Consultation/triage/appointment administration is represented in the private admin console and domain contracts; live operations await backend/calendar activation.**
 - [ ] **ADMIN-009 — IN PROGRESS — Audit log for sensitive administrative changes.**
 - [ ] **ADMIN-010 — IN PROGRESS — Content revision history.**
 
