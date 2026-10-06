@@ -45,7 +45,13 @@ paths:
         '204': { description: Saved }
   /v1/rcas/sessions/{sessionId}/submit:
     post:
-      summary: Submit RCAS Core for routing
+      summary: Submit RCAS Core into the Golden Talent evidence engine
+      description: >
+        Server validates the persisted assessment session and its published instrument version,
+        converts eligible responses into UNREVIEWED provenance-linked evidence events, then
+        creates a versioned route run. Browser sessionStorage, a client-selected priority domain,
+        or a client-computed score is never accepted as routing truth. No total talent score,
+        normative label or automatic career prescription is produced.
       security: [{ sessionAuth: [] }]
       parameters:
         - in: path
@@ -53,7 +59,7 @@ paths:
           required: true
           schema: { type: string, format: uuid }
       responses:
-        '200': { description: Submitted without fabricating a total talent score }
+        '200': { description: Evidence events persisted and auditable route run created without a total talent score }
   /v1/rcas/observer-sessions:
     post:
       summary: Start an authenticated RCAS-O1 observation session
