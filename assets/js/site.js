@@ -22,6 +22,23 @@ const isJournal=relativePath.startsWith('/journal/');
 const isPrivateApp=JR_ROUTE_POLICY.app.some(prefix=>relativePath.startsWith(prefix));
 const isPersianStudentApp=relativePath.startsWith('/fa/app/student/')||relativePath.startsWith('/fa/assessments/golden-talent/start/');
 const u=p=>base+p.replace(/^\//,'');
+function ensurePwaHead(){
+ const head=document.head;
+ if(!head)return;
+ if(!q('link[rel="manifest"]',head)){
+   const link=document.createElement('link');link.rel='manifest';link.href=u('site.webmanifest');head.appendChild(link);
+ }
+ if(!q('link[rel="apple-touch-icon"]',head)){
+   const iconLink=document.createElement('link');iconLink.rel='apple-touch-icon';iconLink.href=u('assets/images/pwa-icon-192.png');head.appendChild(iconLink);
+ }
+ if(!q('meta[name="mobile-web-app-capable"]',head)){
+   const meta=document.createElement('meta');meta.name='mobile-web-app-capable';meta.content='yes';head.appendChild(meta);
+ }
+ if(!q('meta[name="color-scheme"]',head)){
+   const meta=document.createElement('meta');meta.name='color-scheme';meta.content='dark';head.appendChild(meta);
+ }
+}
+ensurePwaHead();
 function ensureSkipLink(){
  const main=q('main');
  if(!main)return;

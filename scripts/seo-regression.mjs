@@ -747,6 +747,23 @@ if(failures.length){
 }
 
 
+// PWA HEAD METADATA — every site.js surface can acquire install metadata without duplicating 179 page heads.
+{
+  const js=fs.readFileSync(path.join(root,'assets','js','site.js'),'utf8');
+  const rootHtml=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  for(const token of ['function ensurePwaHead()','site.webmanifest','pwa-icon-192.png','mobile-web-app-capable','color-scheme']){
+    if(!js.includes(token)) failures.push('/assets/js/site.js: shared PWA head metadata missing '+token);
+  }
+  if(!rootHtml.includes('href="./assets/images/pwa-icon-192.png"')) failures.push('/: Apple touch icon must use square PWA artwork');
+  if(!rootHtml.includes('name="color-scheme" content="dark"')) failures.push('/: root gateway color-scheme metadata missing');
+}
+if(failures.length){
+  console.error('\nPWA head-metadata failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // MOBILE + PWA SOURCE GUARDRAILS — prevents known overflow/safe-area regressions.
 const cssPath=path.join(root,'assets','css','style.css');
 if(!fs.existsSync(cssPath)) failures.push('/assets/css/style.css: missing global stylesheet');
