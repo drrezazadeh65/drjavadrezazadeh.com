@@ -1,0 +1,75 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
+const root=process.cwd();
+const ignored=new Set(['.git','node_modules']);
+const files=[];
+const failures=[];
+
+function walk(dir){
+  for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+    if(ignored.has(ent.name)) continue;
+    const full=path.join(dir,ent.name);
+    if(ent.isDirectory()) walk(full);
+    else if(ent.isFile()&&ent.name.endsWith('.html')) files.push(full);
+  }
+}
+walk(root);
+
+function flattenSchema(data){
+  if(Array.isArray(data)) return data.flatMap(flattenSchema);
+  if(!data||typeof data!=='object') return [];
+  if(Array.isArray(data['@graph'])) return data['@graph'].flatMap(flattenSchema);
+  return [data];
+}
+function hasType(obj,type){
+  const t=obj?.['@type'];
+  return Array.isArray(t)?t.includes(type):t===type;
+}
+
+let checked=0;
+for(const file of files){
+  const rel=path.relative(root,file).replaceAll(path.sep,'/');
+  const html=fs.readFileSync(file,'utf8');
+  if(/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html)) continue;
+  checked++;
+  const objs=[];
+  for(const m of html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
+    try{ objs.push(...flattenSchema(JSON.parse(m[1]))); }
+    catch{ continue; }
+  }
+  for(const obj of objs){
+    if(hasType(obj,'Offer')||hasType(obj,'AggregateOffer')){
+      failures.push(rel+': Offer/AggregateOffer schema is prohibited before a real sellable offer exists');
+    }
+    if(hasType(obj,'Product')&&('offers' in obj||'price' in obj||'priceCurrency' in obj||'availability' in obj)){
+      failures.push(rel+': Product schema contains commercial offer fields before gateway/offer activation');
+    }
+    for(const key of ['price','priceCurrency','priceValidUntil','availability','acceptedPaymentMethod']){
+      if(Object.prototype.hasOwnProperty.call(obj,key)){
+        failures.push(rel+': structured data exposes '+key+' before verified commerce activation');
+      }
+    }
+  }
+}
+
+const catalogPath=path.join(root,'platform','book-catalog.json');
+if(fs.existsSync(catalogPath)){
+  try{
+    const catalog=JSON.parse(fs.readFileSync(catalogPath,'utf8'));
+    const entries=Array.isArray(catalog)?catalog:(catalog.books||catalog.items||[]);
+    for(const item of entries){
+      if(item&&item.sellable===true) failures.push('platform/book-catalog.json: sellable=true before commerce activation');
+    }
+  }catch{
+    failures.push('platform/book-catalog.json: invalid JSON');
+  }
+}
+
+console.log('Commerce schema safety audit: '+checked+' indexable pages checked.');
+if(failures.length){
+  console.error('Commerce schema safety failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+console.log('No unverified Offer/Product pricing schema or premature sellable state detected.');

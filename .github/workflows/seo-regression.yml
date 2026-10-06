@@ -44,6 +44,8 @@ jobs:
         run: node scripts/news-trust-audit.mjs
       - name: Run conversion path audit
         run: node scripts/conversion-path-audit.mjs
+      - name: Run pre-gateway commerce schema safety audit
+        run: node scripts/commerce-schema-safety-audit.mjs
       - name: Validate IndexNow integration contract
         env:
           PROD_ORIGIN: https://drjavadrezazadeh.com
