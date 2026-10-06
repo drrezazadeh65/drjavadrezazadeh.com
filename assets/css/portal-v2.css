@@ -1,0 +1,388 @@
+/* Portal visual layer v2 — 2026-10-06
+   Purpose: unify public student gateway, secure-account previews and private Golden Talent workspaces.
+   This file contains presentation only; it does not activate authentication, persistence or payments. */
+
+:root{
+  --portal-gold:#c7a35b;
+  --portal-gold-soft:#dfc486;
+  --portal-ivory:#f4f0e7;
+  --portal-muted:#aaa398;
+  --portal-panel:#0d0c0a;
+  --portal-panel-2:#11100d;
+  --portal-line:rgba(199,163,91,.18);
+  --portal-line-strong:rgba(199,163,91,.42);
+  --portal-green:#8fc6a2;
+  --portal-shadow:0 28px 90px rgba(0,0,0,.28);
+}
+
+.student-gateway-page,
+.auth-page,
+.student-dashboard-page,
+.foundation-portal-page{
+  background:
+    radial-gradient(900px 520px at 88% -10%,rgba(199,163,91,.085),transparent 58%),
+    radial-gradient(760px 520px at -10% 24%,rgba(115,91,47,.07),transparent 58%),
+    #070707;
+}
+
+.student-gateway-page .site-header,
+.auth-page .site-header,
+.student-dashboard-page .site-header,
+.foundation-portal-page .site-header{
+  border-bottom-color:rgba(199,163,91,.10);
+  box-shadow:0 14px 40px rgba(0,0,0,.12);
+}
+
+.student-gateway-page .article-shell{
+  width:min(1120px,calc(100% - 40px));
+  padding-top:42px;
+}
+
+.student-gateway-page .article-hero{
+  position:relative;
+  overflow:hidden;
+  padding:48px;
+  border:1px solid var(--portal-line);
+  border-radius:32px;
+  background:
+    radial-gradient(620px 330px at 90% 0%,rgba(199,163,91,.13),transparent 62%),
+    linear-gradient(145deg,rgba(255,255,255,.026),rgba(255,255,255,.006));
+  box-shadow:var(--portal-shadow);
+}
+
+.student-gateway-page .article-hero::after{
+  content:"";
+  position:absolute;
+  inset:auto -42px -56px auto;
+  width:190px;
+  aspect-ratio:1;
+  border:1px solid rgba(199,163,91,.14);
+  border-radius:50%;
+  box-shadow:
+    0 0 0 26px rgba(199,163,91,.025),
+    0 0 0 56px rgba(199,163,91,.015);
+  pointer-events:none;
+}
+
+.student-gateway-page .article-hero h1{
+  max-width:850px;
+  margin-inline:0;
+  font-size:clamp(42px,6vw,70px);
+}
+
+.student-gateway-page .article-hero .lead{
+  max-width:760px;
+}
+
+.student-gateway-page .article-hero .actions{
+  position:relative;
+  z-index:1;
+}
+
+.student-gateway-page .article-shell>section{
+  padding-block:64px;
+}
+
+.student-gateway-page .gt-stage-strip{
+  position:relative;
+  gap:14px;
+  margin-top:34px;
+}
+
+.student-gateway-page .gt-stage-strip>div{
+  position:relative;
+  min-height:154px;
+  padding:22px;
+  border-color:var(--portal-line);
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.007)),
+    var(--portal-panel);
+  box-shadow:0 16px 40px rgba(0,0,0,.12);
+}
+
+.student-gateway-page .gt-stage-strip>div:first-child{
+  border-color:rgba(143,198,162,.33);
+  background:
+    radial-gradient(260px 150px at 80% 0%,rgba(92,163,117,.09),transparent 70%),
+    var(--portal-panel);
+}
+
+.student-gateway-page .gt-stage-strip>div::before{
+  content:"";
+  display:block;
+  width:34px;
+  height:4px;
+  margin-bottom:16px;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--portal-gold),rgba(199,163,91,.12));
+}
+
+.student-gateway-page .gt-stage-strip>div:first-child::before{
+  background:linear-gradient(90deg,var(--portal-green),rgba(143,198,162,.12));
+}
+
+.student-gateway-page .grid{
+  gap:16px;
+}
+
+.student-gateway-page .grid article{
+  position:relative;
+  overflow:hidden;
+  min-height:190px;
+  padding:30px;
+  border-color:rgba(199,163,91,.13);
+  background:linear-gradient(150deg,rgba(255,255,255,.026),rgba(255,255,255,.005));
+  transition:transform .2s ease,border-color .2s ease,background .2s ease;
+}
+
+.student-gateway-page .grid article::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:2px;
+  background:linear-gradient(180deg,transparent,var(--portal-gold),transparent);
+  opacity:.42;
+}
+
+.student-gateway-page .grid article:hover{
+  transform:translateY(-3px);
+  border-color:rgba(199,163,91,.34);
+  background:linear-gradient(150deg,rgba(199,163,91,.05),rgba(255,255,255,.006));
+}
+
+.student-gateway-page .callout{
+  margin-top:0;
+  padding:30px;
+  border-color:rgba(199,163,91,.30);
+  background:
+    radial-gradient(360px 160px at 100% 0%,rgba(199,163,91,.06),transparent 70%),
+    #0d0c0a;
+}
+
+.student-gateway-page .related-cluster{
+  width:min(1120px,calc(100% - 40px));
+  margin:0 auto 96px;
+  padding:48px;
+  border:1px solid rgba(199,163,91,.12);
+  border-radius:28px;
+  background:rgba(255,255,255,.008);
+}
+
+.student-gateway-page .related-cluster-grid a{
+  min-height:126px;
+  border-color:rgba(199,163,91,.13);
+  background:var(--portal-panel);
+}
+
+/* Auth previews */
+.auth-page .article-shell.auth-shell{
+  width:min(980px,calc(100% - 40px));
+  padding-top:44px;
+}
+
+.auth-page .article-hero{
+  padding:42px;
+  border:1px solid var(--portal-line);
+  border-radius:30px;
+  background:
+    radial-gradient(540px 280px at 90% 0%,rgba(199,163,91,.11),transparent 64%),
+    rgba(255,255,255,.012);
+  box-shadow:0 24px 70px rgba(0,0,0,.22);
+}
+
+.auth-page .article-hero h1{
+  font-size:clamp(40px,5.5vw,66px);
+}
+
+.auth-page .auth-form{
+  max-width:680px;
+  margin:0 auto;
+  padding:30px;
+  border:1px solid rgba(199,163,91,.16);
+  border-radius:24px;
+  background:linear-gradient(160deg,rgba(255,255,255,.026),rgba(255,255,255,.006));
+  box-shadow:0 18px 55px rgba(0,0,0,.18);
+}
+
+.auth-page .auth-form label{
+  color:#e1d8ca;
+  font-weight:650;
+}
+
+.auth-page .auth-form input,
+.auth-page .auth-form select{
+  min-height:52px;
+  border-color:rgba(199,163,91,.20);
+  background:#0a0908;
+}
+
+.auth-page .auth-form input:disabled,
+.auth-page .auth-form select:disabled,
+.auth-page .auth-form button:disabled{
+  opacity:.62;
+  cursor:not-allowed;
+}
+
+.auth-page .form-note{
+  margin:0;
+  padding:12px 14px;
+  border-right:2px solid rgba(199,163,91,.34);
+  border-radius:9px;
+  background:rgba(199,163,91,.035);
+}
+
+.auth-page .article-shell section>.actions{
+  justify-content:center;
+}
+
+.auth-page .principle-grid{
+  gap:12px;
+}
+
+.auth-page .principle{
+  min-height:132px;
+  padding:22px;
+  border-color:rgba(199,163,91,.13);
+  background:var(--portal-panel);
+}
+
+/* Private dashboard polish */
+.student-dashboard-page .student-dash-shell{
+  padding-top:38px;
+}
+
+.student-dashboard-page .student-dash-hero{
+  position:relative;
+  overflow:hidden;
+  border-color:rgba(199,163,91,.26);
+  box-shadow:var(--portal-shadow);
+}
+
+.student-dashboard-page .student-dash-hero::after{
+  content:"";
+  position:absolute;
+  width:240px;
+  height:240px;
+  left:-100px;
+  bottom:-130px;
+  border:1px solid rgba(199,163,91,.10);
+  border-radius:50%;
+  box-shadow:0 0 0 32px rgba(199,163,91,.018),0 0 0 70px rgba(199,163,91,.01);
+  pointer-events:none;
+}
+
+.student-dashboard-page .student-status-card{
+  border-color:rgba(199,163,91,.22);
+  background:
+    linear-gradient(150deg,rgba(199,163,91,.045),rgba(255,255,255,.004)),
+    #0b0a09;
+}
+
+.student-dashboard-page .student-overview article,
+.student-dashboard-page .student-product,
+.student-dashboard-page .student-report-card,
+.student-dashboard-page .student-domain-grid>div,
+.student-dashboard-page .student-module-grid a{
+  transition:transform .18s ease,border-color .18s ease,background .18s ease;
+}
+
+.student-dashboard-page .student-overview article:hover,
+.student-dashboard-page .student-product:hover,
+.student-dashboard-page .student-report-card:hover,
+.student-dashboard-page .student-domain-grid>div:hover,
+.student-dashboard-page .student-module-grid a:hover{
+  transform:translateY(-2px);
+  border-color:rgba(199,163,91,.34);
+}
+
+.student-dashboard-page .student-next-action{
+  border-color:rgba(143,198,162,.26);
+  background:
+    radial-gradient(420px 180px at 94% 0%,rgba(143,198,162,.08),transparent 70%),
+    rgba(255,255,255,.012);
+}
+
+.student-dashboard-page .onboarding-steps>div{
+  background:linear-gradient(150deg,rgba(255,255,255,.02),rgba(255,255,255,.004));
+}
+
+.student-dashboard-page .student-security{
+  border:1px solid rgba(199,163,91,.17);
+  border-right:3px solid var(--portal-gold);
+  background:
+    radial-gradient(400px 180px at 100% 0%,rgba(199,163,91,.06),transparent 70%),
+    rgba(199,163,91,.025);
+}
+
+/* Legacy/private role placeholders: keep them clearly preview-only, but visually coherent. */
+.foundation-portal-page .foundation-main{
+  width:min(1040px,calc(100% - 40px));
+}
+
+.foundation-portal-page .foundation-hero{
+  width:100%;
+  max-width:none;
+  padding:54px;
+  border:1px solid rgba(199,163,91,.17);
+  border-radius:32px;
+  background:
+    radial-gradient(620px 320px at 90% 0%,rgba(199,163,91,.10),transparent 62%),
+    linear-gradient(145deg,rgba(255,255,255,.022),rgba(255,255,255,.004));
+  box-shadow:var(--portal-shadow);
+}
+
+.foundation-portal-page .foundation-status span{
+  background:rgba(199,163,91,.045);
+}
+
+@media (max-width:800px){
+  .student-gateway-page .article-shell,
+  .student-gateway-page .related-cluster,
+  .auth-page .article-shell.auth-shell,
+  .foundation-portal-page .foundation-main{
+    width:calc(100% - 20px);
+  }
+  .student-gateway-page .article-hero,
+  .student-gateway-page .related-cluster,
+  .auth-page .article-hero,
+  .foundation-portal-page .foundation-hero{
+    padding:26px;
+    border-radius:24px;
+  }
+  .student-gateway-page .article-shell>section{padding-block:48px}
+  .auth-page .auth-form{padding:22px;border-radius:20px}
+}
+
+@media (max-width:520px){
+  .student-gateway-page .article-hero h1,
+  .auth-page .article-hero h1{
+    font-size:36px;
+  }
+  .student-gateway-page .gt-stage-strip{
+    grid-template-columns:1fr;
+  }
+  .student-gateway-page .gt-stage-strip>div{
+    min-height:auto;
+  }
+  .student-gateway-page .article-hero .actions,
+  .auth-page .article-shell section>.actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  .student-gateway-page .article-hero .actions .button,
+  .auth-page .article-shell section>.actions .button{
+    width:100%;
+    justify-content:center;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .student-gateway-page .grid article,
+  .student-dashboard-page .student-overview article,
+  .student-dashboard-page .student-product,
+  .student-dashboard-page .student-report-card,
+  .student-dashboard-page .student-domain-grid>div,
+  .student-dashboard-page .student-module-grid a{
+    transition:none;
+  }
+}
