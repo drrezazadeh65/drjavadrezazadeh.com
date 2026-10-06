@@ -1432,3 +1432,12 @@ const life=fs.readFileSync(path.join(root,'platform','content-lifecycle.mjs'),'u
 for(const x of ['Reviewed revision required','Indexable publication metadata required']) if(!life.includes(x)) failures.push('/platform/content-lifecycle.mjs: missing '+x);
 const ag=fs.readFileSync(path.join(root,'platform','db','migrations','019_admin_content_governance.sql'),'utf8');
 for(const x of ['admin_audit_event','content_revision','supersedes_revision_id','content_hash']) if(!ag.includes(x)) failures.push('/platform/db/migrations/019_admin_content_governance.sql: missing '+x);
+
+// Identity/session security guardrails.
+for(const p of ['platform/identity-security.mjs','platform/db/migrations/020_identity_session_security.sql','platform/db/rls/004_identity_security.sql']) if(!fs.existsSync(path.join(root,p))) failures.push('/'+p+': missing identity security implementation');
+const ids=fs.readFileSync(path.join(root,'platform','identity-security.mjs'),'utf8');
+for(const x of ['EMAIL_NOT_VERIFIED','SESSION_EXPIRED','client_role_claims_ignored:true','revoke_existing_sessions_on_success:true','Only SUPER_ADMIN may change SUPER_ADMIN','client_authoritative:false']) if(!ids.includes(x)) failures.push('/platform/identity-security.mjs: missing '+x);
+const ism=fs.readFileSync(path.join(root,'platform','db','migrations','020_identity_session_security.sql'),'utf8');
+for(const x of ['secret_hash','token_hash','EMAIL_VERIFICATION','PASSWORD_RECOVERY','role_change_event']) if(!ism.includes(x)) failures.push('/platform/db/migrations/020_identity_session_security.sql: missing '+x);
+const isr=fs.readFileSync(path.join(root,'platform','db','rls','004_identity_security.sql'),'utf8');
+for(const x of ['FORCE ROW LEVEL SECURITY','auth_session_own_read','account_token','role_change_event']) if(!isr.includes(x)) failures.push('/platform/db/rls/004_identity_security.sql: missing '+x);
