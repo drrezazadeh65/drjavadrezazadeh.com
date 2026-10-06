@@ -152,12 +152,14 @@
         "platform/golden-talent-review.mjs",
         "platform/golden-path-lifecycle.mjs",
         "platform/bahar-engine.mjs",
-        "platform/pathway-reference.mjs"
+        "platform/pathway-reference.mjs",
+        "platform/golden-talent-evidence-analytics.mjs"
       ],
       "next_actions": [
-        "Strengthen evidence/provenance workflows",
+        "Continue strengthening evidence coverage, discrepancy, provenance and longitudinal analytics without psychometric overclaiming",
+        "Connect persisted route runs/reviews to the analytics layer on the production backend",
         "Keep human review for high-consequence synthesis",
-        "Do not introduce total talent score or normative labels without validation"
+        "Do not introduce total talent score, normative labels or career-fit scores without validation"
       ]
     },
     {

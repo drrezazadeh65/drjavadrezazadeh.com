@@ -40,6 +40,8 @@ jobs:
         run: node platform/bahar-persistence.test.mjs
       - name: Run Golden Talent engine unit tests
         run: node platform/golden-talent-engine.test.mjs
+      - name: Run Golden Talent evidence analytics tests
+        run: node platform/golden-talent-evidence-analytics.test.mjs
 
       - name: Validate RCAS production bridge
         run: node -e "import('./platform/rcas-evidence-bridge.mjs').then(m=>{const e=m.rcasToEvidence({session_id:'ci',instrument_version:'1',responses:[{item_code:'A1',value:3},{item_code:'D1',value:2}]});if(!e.some(x=>x.domain_code==='D5')||!e.some(x=>x.domain_code==='D6')||e.some(x=>x.quality_state!=='UNREVIEWED'))process.exit(1);console.log('RCAS bridge passed')})"

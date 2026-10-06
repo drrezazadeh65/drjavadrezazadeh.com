@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "engine_id": "GOLDEN-TALENT-EVIDENCE-ROUTER",
   "engine_version": "0.2-prevalidation",
   "status": "PREVALIDATION",
@@ -61,5 +61,16 @@
     "tests": "platform/golden-talent-engine.test.mjs",
     "deterministic": true,
     "server_intended": true
+  },
+  "analysis_layer": {
+    "module": "platform/golden-talent-evidence-analytics.mjs",
+    "purpose": "Describe evidence coverage, source diversity, discrepancy, provenance gaps, context and operational freshness without scoring the person.",
+    "stale_evidence_is_not_negative": true,
+    "missing_evidence_is_not_negative": true,
+    "workflow_priority_is_not_talent_rank": true,
+    "automatic_module_unlock": false,
+    "total_score": false,
+    "career_fit_score": false,
+    "human_review_queue": true
   }
 }

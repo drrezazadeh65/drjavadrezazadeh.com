@@ -189,6 +189,24 @@ paths:
           schema: { type: string, format: uuid }
       responses:
         '200': { description: Auditable route run }
+  /v1/golden-talent/route-runs/{runId}/analysis:
+    get:
+      summary: Return non-scoring evidence analytics for a persisted route run
+      description: >
+        Returns evidence coverage, source diversity, discrepancy, provenance gaps,
+        context flags, operational freshness flags and next-evidence workflow needs.
+        The endpoint does not return a total talent score, talent rank, normative label,
+        career-fit score or automatic career prescription. Workflow priority is not a
+        ranking of the student and stale/missing evidence is not negative evidence.
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: runId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Human-review-oriented evidence analytics }
+
   /v1/golden-talent/route-runs/{runId}/review:
     post:
       summary: Record professional review of a Golden Talent routing run
