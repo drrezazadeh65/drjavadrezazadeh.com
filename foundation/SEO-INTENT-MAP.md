@@ -108,6 +108,7 @@ Informational resources explain limitations and development. Assessment/private-
 | `/fa/akhbar/` | اخبار و یادداشت‌های آموزشی دکتر رضازاده | Collection | INDEX |
 | `/fa/akhbar/moshavere-tahsili-baraye-tasmim/` | مشاوره تحصیلی برای تصمیم‌گیری | Educational/article intent | INDEX |
 | `/fa/akhbar/entekhab-reshteh-1405/` | انتخاب رشته ۱۴۰۵ | Year-sensitive guide | INDEX |
+| `/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/` | رتبه و تناسب در انتخاب رشته | Educational/decision intent | INDEX |
 | `/fa/akhbar/farakhvan-jhela/` | فراخوان همکاری علمی JHELA | Journal recruitment | INDEX |
 
 ### Planned evergreen clusters

@@ -35,7 +35,7 @@
   - target link: `/fa/entekhab-reshteh/`
   - supporting links: talent + counselling
   - image required
-- [ ] **CONTENT-FS-02** — «رتبه می‌گوید کجا ممکن است؛ تناسب می‌گوید کجا مناسب‌تر است»
+- [x] **CONTENT-FS-02** — «رتبه می‌گوید کجا ممکن است؛ تناسب می‌گوید کجا مناسب‌تر است»
   - intent: informational/decision
   - no annual admission numbers unless official-source verified
 
