@@ -47,3 +47,12 @@
 .store-notice{border-color:rgba(198,161,90,.2);border-radius:20px;background:linear-gradient(145deg,rgba(198,161,90,.05),rgba(255,255,255,.008))}
 @media(max-width:800px){.book-store-hero{padding:30px 24px;border-radius:26px}.store-principles{grid-template-columns:1fr}.book-product-card:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){.book-product-card{transition:none}.book-product-card:hover{transform:none}}
+
+
+/* Bookstore inner journey v2 */
+.book-store-shell>section:first-child:not(.book-store-hero){position:relative;padding:40px;border:1px solid rgba(198,161,90,.15);border-radius:28px;background:radial-gradient(520px 260px at 95% 0%,rgba(198,161,90,.07),transparent 62%),rgba(255,255,255,.015);box-shadow:0 22px 65px rgba(0,0,0,.2)}
+.book-store-shell>section:first-child:not(.book-store-hero)>h1,.book-detail-copy h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(38px,5.5vw,64px);line-height:1.05;letter-spacing:-.035em;margin:10px 0 22px}.rtl .book-store-shell>section:first-child:not(.book-store-hero)>h1,.rtl .book-detail-copy h1{font-family:Tahoma,"Segoe UI",Arial,sans-serif;line-height:1.5;letter-spacing:-.02em}
+.book-detail-layout{display:grid;grid-template-columns:minmax(240px,.7fr) minmax(0,1.3fr);gap:34px;align-items:start}.book-detail-layout .book-cover-placeholder{border:1px solid rgba(226,200,134,.24);border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,.28)}.book-detail-copy{padding-top:8px}.book-detail-copy .lead{max-width:690px}
+.cart-row{padding:18px;border:1px solid rgba(198,161,90,.1);border-radius:15px;background:rgba(255,255,255,.012);margin-top:10px}.cart-row+ .cart-row{margin-top:8px}.cart-summary{padding:24px;border-radius:20px;background:radial-gradient(360px 160px at 100% 0%,rgba(198,161,90,.07),transparent 62%),rgba(255,255,255,.014)}
+[data-book-checkout] .store-notice{margin-top:26px}
+@media(max-width:760px){.book-store-shell>section:first-child:not(.book-store-hero){padding:26px 20px;border-radius:23px}.book-detail-layout{grid-template-columns:1fr}.book-detail-layout .book-cover-placeholder{max-width:420px;width:100%;margin:0 auto}.book-detail-copy{padding-top:0}}
