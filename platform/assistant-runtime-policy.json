@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "status": "PUBLIC_CONCIERGE_FOUNDATION_READY",
+  "display_name": {
+    "fa": "دستیار دکتر رضازاده",
+    "en": "Dr. Rezazadeh Assistant"
+  },
+  "public_endpoint": "https://assistant.drjavadrezazadeh.com/v1/chat",
+  "runtime": "CLOUDFLARE_WORKER",
+  "default_model": "@cf/openai/gpt-oss-120b",
+  "upgrade_path": "Set ASSISTANT_MODEL to a supported OpenAI hosted model such as openai/gpt-5.6-sol only after AI Gateway Unified Billing or approved provider credentials are intentionally enabled.",
+  "knowledge_source": "assets/search-index.json public/indexable summaries only",
+  "storage": {
+    "server_conversation_persistence": false,
+    "browser_message_persistence": false,
+    "anonymous_rate_limit_id_local_storage": true
+  },
+  "visibility": {
+    "public_pages": true,
+    "private_app": false,
+    "assessment_routes": false,
+    "checkout_routes": false
+  },
+  "prohibitions": [
+    "No private student/account/payment data access",
+    "No unpublished or confidential project disclosure",
+    "No identity documents, medical records, passwords or payment data collection",
+    "No invented prices, credentials, affiliations, publication status or scientific validation",
+    "No total talent score, normative label, giftedness cutoff or automatic career prescription",
+    "No claim of being Dr. Rezazadeh or a human administrator"
+  ],
+  "escalation": {
+    "consultation_routes": {
+      "fa": "/fa/darkhast-moshavere/",
+      "en": "/en/request-consultation/"
+    },
+    "human_review_for_high_consequence": true
+  },
+  "abuse_controls": {
+    "requests_per_minute_per_anonymous_device": 12,
+    "max_user_message_chars": 1600,
+    "max_history_messages": 8,
+    "max_model_output_tokens": 650
+  }
+}

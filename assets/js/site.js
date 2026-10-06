@@ -467,3 +467,25 @@ markActiveDockItem();
     window.dispatchEvent(new CustomEvent('JR_CONVERSION_INTENT',{detail}));
   },{capture:true});
 })();
+
+
+// JR SITE ASSISTANT LOADER v1
+(function(){
+  if(document.querySelector('script[data-jr-assistant]')) return;
+  const scripts=[...document.scripts];
+  const siteScript=scripts.find(s=>/\/assets\/js\/site\.js(?:\?|$)/.test(s.src));
+  if(!siteScript?.src) return;
+  const cssHref=new URL('../css/assistant.css',siteScript.src).href;
+  if(!document.querySelector('link[data-jr-assistant-style]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=cssHref;
+    link.dataset.jrAssistantStyle='1';
+    document.head.appendChild(link);
+  }
+  const script=document.createElement('script');
+  script.src=new URL('assistant.js',siteScript.src).href;
+  script.defer=true;
+  script.dataset.jrAssistant='1';
+  document.head.appendChild(script);
+})();

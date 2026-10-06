@@ -226,6 +226,22 @@
         "audit-event",
         "operational-signal"
       ]
+    },
+    {
+      "id": "ai-concierge",
+      "kind": "PUBLIC_AI_SERVICE",
+      "state": "FOUNDATION_READY",
+      "authority": "SERVER_MODEL_WITH_PUBLIC_CONTEXT_ONLY",
+      "data_class": "PUBLIC_INTERACTION",
+      "depends_on": [
+        "public-web"
+      ],
+      "exposes": [
+        "public-question-answering",
+        "site-navigation",
+        "service-guidance",
+        "human-consultation-handoff"
+      ]
     }
   ],
   "invariants": {

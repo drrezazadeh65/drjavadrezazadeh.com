@@ -122,6 +122,29 @@
       ]
     },
     {
+      "id": "ai-concierge",
+      "production_state": "IN_PROGRESS",
+      "revenue_priority": "HIGH",
+      "external_blockers": [
+        "One-time Cloudflare Workers Git integration/deployment",
+        "Cloudflare zone/custom-domain certificate activation"
+      ],
+      "artifacts": [
+        "assets/js/assistant.js",
+        "assets/css/assistant.css",
+        "edge/assistant/src/index.js",
+        "edge/assistant/wrangler.jsonc",
+        "platform/assistant-runtime-policy.json",
+        "foundation/AI-ASSISTANT-ACTIVATION-RUNBOOK.md"
+      ],
+      "next_actions": [
+        "Connect the GitHub repository to Cloudflare Workers Builds with root directory edge/assistant",
+        "Deploy drjavadrezazadeh-assistant",
+        "Verify assistant.drjavadrezazadeh.com/health after the Cloudflare zone is active",
+        "Run bilingual public-page and private-route exclusion QA"
+      ]
+    },
+    {
       "id": "payments-ir",
       "production_state": "WAITING_EXTERNAL",
       "revenue_priority": "CRITICAL",
