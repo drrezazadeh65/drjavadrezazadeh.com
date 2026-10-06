@@ -1475,3 +1475,14 @@ const ra=fs.readFileSync(path.join(root,'platform','research-access-retention.mj
 for(const x of ['direct_identity:false','Cannot expand requested scope','RETAIN_RESEARCH_ONLY','DELETE_OR_ANONYMISE']) if(!ra.includes(x)) failures.push('/platform/research-access-retention.mjs: missing '+x);
 const nr=JSON.parse(fs.readFileSync(path.join(root,'platform','norm-reference-policy.json'),'utf8'));
 if(nr.golden_talent?.norms_available!==false||nr.golden_talent?.gifted_cutoff_available!==false||nr.reference_metadata?.fairness_analysis_required!==true) failures.push('/platform/norm-reference-policy.json: unsafe norm/reference policy');
+
+// CRM, commerce operations, institutional consulting and assessment-authoring guards.
+for(const p of ['platform/crm-engine.mjs','platform/commerce-operations-policy.json','platform/institutional-consulting-policy.json','platform/assessment-authoring-engine.mjs']) if(!fs.existsSync(path.join(root,p))) failures.push('/'+p+': missing roadmap implementation');
+const crmSource=fs.readFileSync(path.join(root,'platform','crm-engine.mjs'),'utf8');
+for(const x of ['raw_contact_in_analytics:false','consulting_crm_link:null','public_listing:false']) if(!crmSource.includes(x)) failures.push('/platform/crm-engine.mjs: missing '+x);
+const commerceOps=JSON.parse(fs.readFileSync(path.join(root,'platform','commerce-operations-policy.json'),'utf8'));
+if(commerceOps.discounts?.server_authoritative!==true||commerceOps.institutional_invoice?.payment_status_server_verified!==true||commerceOps.consultation_payment?.client_redirect_never_proves_payment!==true) failures.push('/platform/commerce-operations-policy.json: unsafe commerce operations');
+const institutionPolicy=JSON.parse(fs.readFileSync(path.join(root,'platform','institutional-consulting-policy.json'),'utf8'));
+if(institutionPolicy.institutional_consulting?.named_outcomes_are_targets_not_guarantees!==true||institutionPolicy.institutional_consulting?.child_data_requires_role_consent_and_minimisation!==true) failures.push('/platform/institutional-consulting-policy.json: unsafe institutional consulting policy');
+const assessmentAuthoring=fs.readFileSync(path.join(root,'platform','assessment-authoring-engine.mjs'),'utf8');
+for(const x of ['Reviewer required for publication','Published assessment must be immutable','Unique versioned item metadata required']) if(!assessmentAuthoring.includes(x)) failures.push('/platform/assessment-authoring-engine.mjs: missing '+x);
