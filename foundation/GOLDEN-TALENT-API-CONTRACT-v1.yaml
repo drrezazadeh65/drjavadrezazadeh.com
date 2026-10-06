@@ -284,6 +284,19 @@ paths:
       security: [{ sessionAuth: [] }]
       responses:
         '201': { description: Human-review workflow created }
+  /v1/golden-path/{goldenPathId}/release:
+    post:
+      summary: Professionally release a reviewed Golden Path version
+      description: >
+        Creates an immutable release record bound to the reviewed route run and synthesis
+        version. A pending synthesis is not a release. Only an explicitly RELEASED version
+        may seed BAHAR. Revocation or replacement creates state/history rather than silently
+        overwriting the release.
+      security: [{ sessionAuth: [] }]
+      responses:
+        '200': { description: Golden Path release persisted }
+        '403': { description: Qualified assigned reviewer required }
+        '409': { description: Route/synthesis version mismatch or unresolved review }
   /v1/bahar/portfolios:
     post:
       summary: Create BAHAR continuity portfolio from a professionally released Golden Path
