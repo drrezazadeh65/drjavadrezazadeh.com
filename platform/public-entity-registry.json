@@ -137,5 +137,18 @@
     "Talent Development",
     "Teacher Development",
     "Academic Consulting"
+  ],
+  "authority_support_surfaces": [
+    "en/research/index.html",
+    "fa/pajouhesh/index.html",
+    "en/publications/index.html",
+    "fa/entesharat-elmi/index.html",
+    "en/teaching/index.html",
+    "fa/tadris/index.html",
+    "en/academic-engagements/index.html",
+    "fa/faaliat-haye-elmi/index.html",
+    "en/language-education/index.html",
+    "fa/amoozesh-zaban/index.html",
+    "en/teacher-education/index.html"
   ]
 }

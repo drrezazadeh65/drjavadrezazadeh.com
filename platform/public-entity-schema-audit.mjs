@@ -46,6 +46,25 @@ for(const surface of registry.schema_surfaces||[]){
  }
 }
 
+for(const rel of registry.authority_support_surfaces||[]){
+ const p=path.join(root,rel);
+ if(!fs.existsSync(p)){failures.push(rel+': missing authority support surface');continue;}
+ const html=fs.readFileSync(p,'utf8');
+ const ns=nodes(jsonLd(html));
+ if(!JSON.stringify(ns).includes(entityId)) failures.push(rel+': canonical Person entity reference missing');
+ for(const n of ns){
+  const stack=[n];
+  while(stack.length){
+   const v=stack.pop();
+   if(!v||typeof v!=='object') continue;
+   if(v['@type']==='Person'&&v.name==='Javad Rezazadeh Yazdeli'&&v['@id']!==entityId){
+    failures.push(rel+': fragmented inline Person object without canonical @id');
+   }
+   for(const child of Object.values(v)) if(child&&typeof child==='object') stack.push(child);
+  }
+ }
+}
+
 const aboutEn=fs.readFileSync(path.join(root,'en','about','index.html'),'utf8');
 const aboutFa=fs.readFileSync(path.join(root,'fa','darbare-man','index.html'),'utf8');
 for(const [file,html] of [['en/about/index.html',aboutEn],['fa/darbare-man/index.html',aboutFa]]){
