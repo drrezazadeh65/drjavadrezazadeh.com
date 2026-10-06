@@ -72,6 +72,15 @@ for(const route of ['/fa/','/en/','/robots.txt','/sitemap.xml']){
   }
 }
 
+
+try{
+  const {res,text}=await getText(ORIGIN+'/5bea74dc73880cd2b2a1a35a649e62de.txt');
+  if(res.status!==200) failures.push('/5bea74dc73880cd2b2a1a35a649e62de.txt expected 200, got '+res.status);
+  else if(text.trim()!=='5bea74dc73880cd2b2a1a35a649e62de') failures.push('IndexNow public key mismatch on production origin');
+}catch(e){
+  failures.push('IndexNow public key probe failed: '+e.message);
+}
+
 const missing='/__health-intentional-404-'+Date.now()+'/';
 try{
   const res=await fetchWithTimeout(ORIGIN+missing);
