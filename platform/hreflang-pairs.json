@@ -80,6 +80,18 @@
       "en": "/en/golden-talent/methodology/",
       "fa": "/fa/golden-talent/ravesh-shenasi/",
       "x_default": "/en/golden-talent/methodology/"
+    },
+    {
+      "id": "academic-services",
+      "en": "/en/academic-services/",
+      "fa": "/fa/khadamat-pajouheshi/",
+      "x_default": "/en/academic-services/"
+    },
+    {
+      "id": "institutional-invite",
+      "en": "/en/invite/",
+      "fa": "/fa/hamkari-sazmani/",
+      "x_default": "/en/invite/"
     }
   ],
   "unpaired_public_routes_policy": "No hreflang counterpart is invented. Add a pair only after content equivalence is reviewed.",
