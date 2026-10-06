@@ -4,7 +4,7 @@ const JR_ROUTE_POLICY=Object.freeze({
     '/fa/app/','/app/','/en/account/',
     '/fa/login/','/login/','/en/login/','/fa/register/','/register/','/en/register/','/en/recover/','/fa/bazyabi-hesab/',
     '/fa/assessments/','/assessments/','/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/',
-    '/fa/shop/','/shop/','/en/golden-talent/checkout/','/en/golden-talent/plans/','/fa/darkhast-moshavere/','/en/request-consultation/'
+    '/fa/shop/','/en/shop/','/shop/','/en/golden-talent/checkout/','/en/golden-talent/plans/','/fa/darkhast-moshavere/','/en/request-consultation/'
   ]),
   app:Object.freeze([
     '/fa/app/','/app/','/en/account/','/fa/assessments/','/assessments/',
