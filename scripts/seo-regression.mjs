@@ -1528,12 +1528,12 @@ if(failures.length){
 
 
 // PUBLIC SEARCH GOVERNANCE — search index must contain public/indexable pages only.
-const searchIndexPath=path.join(root,'assets','search-index.json');
-if(!fs.existsSync(searchIndexPath)){
+const searchGovernanceIndexPath=path.join(root,'assets','search-index.json');
+if(!fs.existsSync(searchGovernanceIndexPath)){
   failures.push('/assets/search-index.json: public search index missing');
 }else{
   let items=[];
-  try{items=JSON.parse(fs.readFileSync(searchIndexPath,'utf8'));}catch(e){failures.push('/assets/search-index.json: invalid JSON');}
+  try{items=JSON.parse(fs.readFileSync(searchGovernanceIndexPath,'utf8'));}catch(e){failures.push('/assets/search-index.json: invalid JSON');}
   const seen=new Set();
   for(const item of Array.isArray(items)?items:[]){
     if(!item||!item.path||!item.lang){failures.push('/assets/search-index.json: entry missing path/lang');continue;}
