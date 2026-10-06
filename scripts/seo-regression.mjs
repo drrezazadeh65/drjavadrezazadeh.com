@@ -1227,3 +1227,11 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+// Golden Path must remain human-review gated.
+for(const p of ['platform/golden-talent-review.mjs','platform/rcas-observer-evidence-bridge.mjs']){
+ if(!fs.existsSync(path.join(root,p))) failures.push('/'+p+': missing Golden Talent review component');
+}
+const reviewSource=fs.readFileSync(path.join(root,'platform','golden-talent-review.mjs'),'utf8');
+if(!reviewSource.includes('requires_human_approval:true')) failures.push('/platform/golden-talent-review.mjs: human approval invariant missing');
+if(!reviewSource.includes("evidence_state==='DISCREPANT'")) failures.push('/platform/golden-talent-review.mjs: discrepancy gate missing');
