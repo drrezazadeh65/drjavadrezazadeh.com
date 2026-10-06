@@ -1,3 +1,4 @@
+document.documentElement.classList.add('js');
 const JR_ROUTE_POLICY=Object.freeze({
   noStore:Object.freeze([
     '/fa/app/','/app/','/en/account/',

@@ -556,6 +556,23 @@ if(failures.length){
 }
 
 
+// PROGRESSIVE MOBILE NAVIGATION — app-like enhancement must not erase navigation without JavaScript.
+const siteJsProgressivePath=path.join(root,'assets','js','site.js');
+const siteCssProgressivePath=path.join(root,'assets','css','style.css');
+if(fs.existsSync(siteJsProgressivePath)&&fs.existsSync(siteCssProgressivePath)){
+  const js=fs.readFileSync(siteJsProgressivePath,'utf8');
+  const css=fs.readFileSync(siteCssProgressivePath,'utf8');
+  if(!js.includes("document.documentElement.classList.add('js')")) failures.push('/assets/js/site.js: progressive enhancement js marker missing');
+  if(/(?<!\.js )\.site-header nav\{display:none\}/.test(css)) failures.push('/assets/css/style.css: mobile header navigation must not be hidden unconditionally');
+  if(!css.includes('html:not(.js) .site-header nav{')) failures.push('/assets/css/style.css: progressive mobile navigation fallback missing');
+}else failures.push('progressive mobile navigation assets missing');
+if(failures.length){
+  console.error('\nProgressive mobile navigation failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // MOBILE + PWA SOURCE GUARDRAILS — prevents known overflow/safe-area regressions.
 const cssPath=path.join(root,'assets','css','style.css');
 if(!fs.existsSync(cssPath)) failures.push('/assets/css/style.css: missing global stylesheet');
