@@ -2311,3 +2311,105 @@
   .dashboard-shell-page .case-section{padding:20px}
   .dashboard-shell-page .appointment-card{display:grid}
 }
+
+
+/* Decision intelligence snapshot v1 */
+.student-dashboard-page .decision-snapshot{
+  margin:18px 0;
+  padding:26px;
+  border:1px solid var(--dash-border-gold);
+  border-radius:22px;
+  background:
+    radial-gradient(520px 220px at 92% 0%,rgba(199,163,91,.065),transparent 70%),
+    linear-gradient(155deg,#141416,#101012);
+}
+.student-dashboard-page .decision-snapshot-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:18px;
+}
+.student-dashboard-page .decision-snapshot-head h2{margin:4px 0 0;font-size:24px}
+.student-dashboard-page .decision-snapshot-head p{margin:0;color:var(--dash-muted);font-size:11px;max-width:440px;line-height:1.7}
+.student-dashboard-page .decision-question-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:9px;
+}
+.student-dashboard-page .decision-question{
+  min-height:150px;
+  padding:18px;
+  border:1px solid var(--dash-border);
+  border-radius:15px;
+  background:rgba(0,0,0,.16);
+}
+.student-dashboard-page .decision-question small{
+  display:block;
+  color:#777b82;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+}
+.rtl.student-dashboard-page .decision-question small{text-transform:none;letter-spacing:0}
+.student-dashboard-page .decision-question strong{
+  display:block;
+  margin-top:10px;
+  color:#ece7de;
+  font-size:16px;
+  line-height:1.45;
+}
+.student-dashboard-page .decision-question span{
+  display:block;
+  margin-top:7px;
+  color:#85888f;
+  font-size:10px;
+  line-height:1.65;
+}
+.student-dashboard-page .decision-question.next{
+  border-color:rgba(143,198,162,.22);
+  background:rgba(143,198,162,.025);
+}
+.student-dashboard-page .trajectory-panel{
+  display:grid;
+  grid-template-columns:minmax(0,1.3fr) minmax(240px,.7fr);
+  gap:14px;
+  margin-top:14px;
+}
+.student-dashboard-page .trajectory-empty,
+.student-dashboard-page .trajectory-rules{
+  padding:22px;
+  border:1px solid var(--dash-border);
+  border-radius:17px;
+  background:linear-gradient(155deg,#141416,#101012);
+}
+.student-dashboard-page .trajectory-empty h3,
+.student-dashboard-page .trajectory-rules h3{margin:0 0 8px;font-size:18px}
+.student-dashboard-page .trajectory-empty p,
+.student-dashboard-page .trajectory-rules p{margin:0;color:#8c8f96;font-size:11px;line-height:1.75}
+.student-dashboard-page .trajectory-axis{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-top:20px;
+}
+.student-dashboard-page .trajectory-axis span{
+  display:block;
+  height:8px;
+  border-radius:999px;
+  background:#202025;
+  border:1px solid rgba(255,255,255,.02);
+}
+.student-dashboard-page .trajectory-rules ul{margin:12px 0 0;padding-inline-start:18px;color:#888b92;font-size:10px;line-height:1.8}
+@media(max-width:1050px){
+  .student-dashboard-page .decision-question-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .student-dashboard-page .decision-question:last-child{grid-column:1/-1}
+}
+@media(max-width:760px){
+  .student-dashboard-page .decision-snapshot{padding:20px}
+  .student-dashboard-page .decision-snapshot-head{display:block}
+  .student-dashboard-page .decision-snapshot-head p{margin-top:8px}
+  .student-dashboard-page .decision-question-grid,
+  .student-dashboard-page .trajectory-panel{grid-template-columns:1fr}
+  .student-dashboard-page .decision-question:last-child{grid-column:auto}
+}
