@@ -229,6 +229,35 @@ paths:
           schema: { type: string, format: uuid }
       responses:
         '201': { description: Weekly cycle created }
+  /v1/bahar/portfolios/{portfolioId}/reviews:
+    post:
+      summary: Record a human four-week, eight-week or ad-hoc BAHAR review
+      description: >
+        Review references observed weekly evidence and records CONTINUE, CHANGE, PAUSE,
+        STOP or INVESTIGATE with rationale. CHANGE or INVESTIGATE may request a new
+        Golden Talent route run but never rewrites or releases Golden Path automatically.
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: portfolioId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201': { description: Period review recorded }
+  /v1/bahar/portfolios/{portfolioId}/reassessment:
+    post:
+      summary: Request Golden Talent reassessment from longitudinal BAHAR evidence
+      description: >
+        Server creates a new evidence/routing workflow from traceable longitudinal evidence.
+        Historical Golden Path versions remain preserved and professional review is required.
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: portfolioId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201': { description: Reassessment workflow created }
 components:
   securitySchemes:
     sessionAuth:
