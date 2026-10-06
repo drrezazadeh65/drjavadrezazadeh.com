@@ -24,6 +24,16 @@ export function deepModuleCompletion(input,reviewedEvents=[]){
  const reflective=usable.filter(e=>['STUDENT_SELF','ASSESSMENT'].includes(e.source_type)).length;
  const contextual=usable.filter(e=>['CONTEXT','PARENT','TEACHER'].includes(e.source_type)).length;
  const professional=usable.some(e=>e.provenance?.reviewer_user_id||e.reviewer_user_id);
+ const contextPreserved=usable.some(e=>{
+  const v=e.evidence_value||{};
+  const p=e.provenance||{};
+  return e.source_type==='CONTEXT'||p.context_preserved===true||Boolean(v.constraint||v.support||v.context||v.structural_barrier);
+ });
+ const processEvidence=usable.some(e=>{
+  const v=e.evidence_value||{};
+  const p=e.provenance||{};
+  return p.process_evidence===true||Boolean(v.claim&&v.evidence&&v.decision)||Boolean(v.process_trace);
+ });
  const requirements={
   minimum_usable_events:(r.minimum_usable_events||0)<=usable.length,
   required_task_codes:(r.required_task_codes||[]).every(x=>taskCodes.has(x)),
@@ -32,7 +42,9 @@ export function deepModuleCompletion(input,reviewedEvents=[]){
   contextual:r.minimum_contextual_events==null||contextual>=r.minimum_contextual_events,
   professional_review:r.professional_review_required!==true||professional,
   paired_performance:r.paired_performance_required!==true||usable.filter(e=>e.source_type==='PERFORMANCE_SAMPLE').length>=2,
-  external_or_performance:r.external_or_performance_evidence_required!==true||usable.some(e=>['PERFORMANCE_SAMPLE','ACADEMIC_RECORD','CONSULTANT'].includes(e.source_type))
+  external_or_performance:r.external_or_performance_evidence_required!==true||usable.some(e=>['PERFORMANCE_SAMPLE','ACADEMIC_RECORD','CONSULTANT'].includes(e.source_type)),
+  context_preservation:r.context_preservation_required!==true||contextPreserved,
+  process_evidence:r.process_evidence_required!==true||processEvidence
  };
  const completed=Object.values(requirements).every(Boolean);
  return {domain:input.domain,task_code:input.task_code,contract_completion_rule:c.completion,requirements,evidence_count:usable.length,completed_for_workflow:completed,total_score:null,normative_label:null,requires_route_rerun:completed};
