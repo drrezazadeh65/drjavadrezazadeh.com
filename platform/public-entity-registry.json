@@ -74,5 +74,40 @@
     "Unverified current affiliation must not be asserted as current.",
     "Accepted/forthcoming work must not be called published before verification.",
     "Awards, ranks, metrics and identifiers must not be inferred."
-  ]
+  ],
+  "person": {
+    "entity_id_path": "/#person",
+    "structured_name": "Javad Rezazadeh Yazdeli",
+    "english_public_name": "Dr. Javad Rezazadeh Yazdeli",
+    "persian_public_name": "دکتر جواد رضازاده یزدلی",
+    "alternate_name": "دکتر جواد رضازاده یزدلی",
+    "roles": [
+      "University Lecturer",
+      "Education Researcher",
+      "Educational Consultant"
+    ],
+    "education": [
+      {
+        "degree": "PhD",
+        "field": "Education",
+        "institution": "Arak University",
+        "completed_year": 2026,
+        "claim_rule": "Research focus may mention English language education/Applied Linguistics but must not replace the degree field."
+      },
+      {
+        "degree": "MA",
+        "field": "English Language Teaching",
+        "institution": "University of Tehran",
+        "start_year": 2010,
+        "end_year": 2012
+      }
+    ],
+    "approved_same_as": [
+      "https://orcid.org/0009-0008-1198-8866",
+      "https://independent.academia.edu/JavadRezazadeh3",
+      "https://www.semanticscholar.org/author/Javad-Rezazadeh-Yazdeli/116313005",
+      "https://github.com/drrezazadeh65",
+      "https://www.instagram.com/dr.rezazadeh/"
+    ]
+  }
 }
