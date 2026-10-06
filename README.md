@@ -14,8 +14,10 @@ Primary topical clusters are developed through substantive pages rather than key
 - human-centred assessment and responsible educational measurement
 - teacher education, professional learning and educational development
 
-### Migration
-GitHub Pages is the temporary host. Paths and internal architecture are intended to remain stable when a custom domain is acquired. Canonical, Open Graph, schema, sitemap and robots URLs must be migrated together, followed by Search Console verification.
+### Production origin and URL stability
+GitHub Pages remains the current static host behind the owned production domain `https://drjavadrezazadeh.com`. The canonical-origin migration is complete: canonical, hreflang, Open Graph, structured-data URLs/IDs, sitemaps and robots now use the owned HTTPS domain.
+
+Public URL identity is treated as an SEO contract. Existing indexable paths are frozen in `platform/public-url-stability-manifest.json`; a path must not be renamed or removed without an intentional one-hop permanent redirect plan. CI blocks broken internal links, missing fragment targets, redirect chains, sitemap drift and canonical drift.
 
 ### Verified identity links
 Academia.edu, Semantic Scholar, ORCID, Instagram and GitHub are linked. Google Scholar currently uses a name-specific Scholar search until the exact profile URL is verified. Facebook and X/Twitter are intentionally withheld until exact official profile URLs are verified.
