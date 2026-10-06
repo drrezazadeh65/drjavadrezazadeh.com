@@ -1,0 +1,20 @@
+{
+ "schema_version":"1.0",
+ "publisher":{
+  "copyright_notice_required":true,
+  "licence_explicit_per_work":true,
+  "third_party_permissions_record_required":true,
+  "isbn":{"claim_only_after_assignment":true,"metadata_snapshot_required":true},
+  "preservation":{"master_file_required":true,"checksum_required":true,"redundant_copy_required":true},
+  "takedown":{"request_record_required":true,"identity_or_authority_check":true,"reason_required":true,"decision_audited":true}
+ },
+ "journal":{
+  "doi":{"claim_only_after_registration":true,"landing_page_required":true,"metadata_match_required":true},
+  "preservation":{"repository_or_preservation_network_required_before_maturity_claim":true},
+  "machine_metadata":{"jats_or_equivalent_target":true},
+  "orcid":{"verified_identifier_only":true},
+  "similarity":{"tool_availability_does_not_replace_editorial_judgement":true},
+  "reviewer_monitoring":{"turnaround":true,"quality":true,"conflict_history":true},
+  "annual_audit":["endogeny","author_geography","board_diversity","review_times","corrections","metadata","preservation","accessibility"]
+ }
+}
