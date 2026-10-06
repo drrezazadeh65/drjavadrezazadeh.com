@@ -40,6 +40,8 @@ jobs:
         run: node scripts/performance-source-audit.mjs
       - name: Run committed-secret exposure audit
         run: node scripts/public-secret-audit.mjs
+      - name: Run trust and legal metadata audit
+        run: node scripts/trust-legal-audit.mjs
       - name: Run news trust and freshness audit
         run: node scripts/news-trust-audit.mjs
       - name: Run conversion path audit
