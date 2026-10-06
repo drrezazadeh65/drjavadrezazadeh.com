@@ -6,67 +6,80 @@
     {
       "id": "home",
       "en": "/en/",
-      "fa": "/fa/"
+      "fa": "/fa/",
+      "x_default": "/"
     },
     {
       "id": "about",
       "en": "/en/about/",
-      "fa": "/fa/darbare-man/"
+      "fa": "/fa/darbare-man/",
+      "x_default": "/en/about/"
     },
     {
       "id": "research",
       "en": "/en/research/",
-      "fa": "/fa/pajouhesh/"
+      "fa": "/fa/pajouhesh/",
+      "x_default": "/en/research/"
     },
     {
       "id": "publications",
       "en": "/en/publications/",
-      "fa": "/fa/entesharat-elmi/"
+      "fa": "/fa/entesharat-elmi/",
+      "x_default": "/en/publications/"
     },
     {
       "id": "books",
       "en": "/en/books/",
-      "fa": "/fa/ketab-ha/"
+      "fa": "/fa/ketab-ha/",
+      "x_default": "/en/books/"
     },
     {
       "id": "teaching",
       "en": "/en/teaching/",
-      "fa": "/fa/tadris/"
+      "fa": "/fa/tadris/",
+      "x_default": "/en/teaching/"
     },
     {
       "id": "academic-engagements",
       "en": "/en/academic-engagements/",
-      "fa": "/fa/faaliat-haye-elmi/"
+      "fa": "/fa/faaliat-haye-elmi/",
+      "x_default": "/en/academic-engagements/"
     },
     {
       "id": "golden-talent",
       "en": "/en/golden-talent/",
-      "fa": "/fa/golden-talent/"
+      "fa": "/fa/golden-talent/",
+      "x_default": "/en/golden-talent/"
     },
     {
       "id": "educational-philosophy",
       "en": "/en/educational-philosophy/",
-      "fa": "/fa/falsafe-amoozeshi/"
+      "fa": "/fa/falsafe-amoozeshi/",
+      "x_default": "/en/educational-philosophy/"
     },
     {
       "id": "language-education",
       "en": "/en/language-education/",
-      "fa": "/fa/amoozesh-zaban/"
+      "fa": "/fa/amoozesh-zaban/",
+      "x_default": "/en/language-education/"
     },
     {
       "id": "contact",
       "en": "/en/contact/",
-      "fa": "/fa/tamas/"
+      "fa": "/fa/tamas/",
+      "x_default": "/en/contact/"
     },
     {
       "id": "services",
       "en": "/en/services/",
-      "fa": "/fa/khadamat/"
+      "fa": "/fa/khadamat/",
+      "x_default": "/en/services/"
     },
     {
       "id": "golden-talent-methodology",
       "en": "/en/golden-talent/methodology/",
-      "fa": "/fa/golden-talent/ravesh-shenasi/"
+      "fa": "/fa/golden-talent/ravesh-shenasi/",
+      "x_default": "/en/golden-talent/methodology/"
     }
   ],
   "unpaired_public_routes_policy": "No hreflang counterpart is invented. Add a pair only after content equivalence is reviewed.",
