@@ -117,6 +117,7 @@ function ensureMobileNav(){
    ];
    sheet=[
     [u('fa/darbare-man/'),'درباره من'],
+    [u('fa/rezome/'),'رزومه علمی'],
     [u('fa/khadamat/'),'خدمات آموزشی'],
     [u('fa/tadris/'),'تدریس دانشگاهی'],
     [u('fa/ketab-ha/'),'کتاب‌ها'],
@@ -145,6 +146,7 @@ function ensureMobileNav(){
    ];
    sheet=[
     [u('en/about/'),'About'],
+    [u('en/cv/'),'Public CV'],
     [u('en/services/'),'Services'],
     [u('en/academic-profile/'),'Academic Profile'],
     [u('en/language-education/'),'Language Education'],
@@ -514,4 +516,14 @@ markCurrentDesktopNavigation();
   script.defer=true;
   script.dataset.jrAssistant='1';
   document.head.appendChild(script);
+})();
+
+// PUBLIC CV PRINT ACTION v1
+(function(){
+  document.addEventListener('click',e=>{
+    const trigger=e.target.closest('[data-print-cv]');
+    if(!trigger)return;
+    e.preventDefault();
+    window.print();
+  });
 })();
