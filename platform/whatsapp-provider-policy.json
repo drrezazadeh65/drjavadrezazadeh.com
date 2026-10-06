@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "status": "OPTIONAL_SECONDARY_CHANNEL_NOT_LAUNCH_BLOCKER",
+  "provider_class": "META_WHATSAPP_BUSINESS_PLATFORM_CLOUD_API",
+  "purposes": [
+    "CONSULTATION_HANDOFF",
+    "LEAD_FOLLOW_UP",
+    "SERVICE_NOTIFICATIONS",
+    "HUMAN_SUPPORT"
+  ],
+  "prohibited_purposes": [
+    "PRIMARY_LOGIN",
+    "EMAIL_VERIFICATION_REPLACEMENT",
+    "PASSWORD_RECOVERY",
+    "ROLE_AUTHORIZATION",
+    "PAYMENT_VERIFICATION"
+  ],
+  "activation": {
+    "enabled": false,
+    "click_to_chat_can_activate_separately_when_business_number_is_confirmed": true
+  },
+  "consent": {
+    "proactive_business_messaging_requires_opt_in": true,
+    "contact_request_consent_is_not_marketing_consent": true
+  },
+  "architecture": {
+    "provider_adapter_required": true,
+    "webhook_server_side_only": true,
+    "tokens_runtime_secret_only": true,
+    "authentication_system_of_record": "EMAIL_IDENTITY_BACKEND"
+  }
+}
