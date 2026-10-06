@@ -585,6 +585,7 @@ else{
     failures.push('/assets/css/style.css: missing global horizontal-overflow guard');
   }
   if(!css.includes('env(safe-area-inset-bottom)')) failures.push('/assets/css/style.css: missing bottom safe-area handling');
+  if(!css.includes('@media(max-width:320px)')) failures.push('/assets/css/style.css: explicit 320px hard-floor QA rules missing');
   if(!css.includes('env(safe-area-inset-top)')) warnings.push('/assets/css/style.css: top safe-area handling not detected');
 }
 const manifestPath=path.join(root,'site.webmanifest');
