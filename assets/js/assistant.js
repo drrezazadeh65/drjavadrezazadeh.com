@@ -4,7 +4,7 @@
   const PRIVATE_PREFIXES=[
     '/fa/app/','/app/','/en/account/','/fa/assessments/','/assessments/',
     '/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/',
-    '/en/golden-talent/roles/','/en/golden-talent/student/','/fa/shop/','/shop/',
+    '/en/golden-talent/roles/','/en/golden-talent/student/','/fa/shop/','/en/shop/','/shop/',
     '/en/golden-talent/checkout/','/en/golden-talent/plans/'
   ];
   const rawPath=location.pathname.replace(/index\.html$/,'');
