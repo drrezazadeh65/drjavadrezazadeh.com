@@ -9,6 +9,26 @@ servers:
   - url: https://api.example.invalid
     description: Placeholder only; no production backend is live.
 paths:
+  /v1/me/consents/{purpose}:
+    put:
+      summary: Record a versioned purpose-specific consent decision
+      description: >
+        Service assessment, parent visibility, teacher observation, consultant review and
+        research consent remain separate. The server records consent version and decision;
+        consent bundling is not permitted.
+      security: [{ sessionAuth: [] }]
+      responses:
+        '200': { description: Consent decision recorded }
+  /v1/me/consents/{purpose}/withdraw:
+    post:
+      summary: Withdraw a specific consent purpose
+      description: >
+        Withdrawal blocks new processing for that purpose. Affected Golden Talent evidence
+        is excluded from future routing where applicable and a new route run is required
+        after material withdrawal. Historical records follow retention and legal-hold policy.
+      security: [{ sessionAuth: [] }]
+      responses:
+        '200': { description: Withdrawal propagated }
   /v1/golden-talent/catalog:
     get:
       summary: Return public product stages and currently published prices
