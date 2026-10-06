@@ -21,34 +21,49 @@ let indexableCount=0;
 let imageCount=0;
 
 function attr(tag,name){
-  const m=tag.match(new RegExp('\\\\b'+name+'\\\\s*=\\\\s*["\\\']([^"\\\']*)["\\\']','i'));
+  const re=new RegExp('\\b'+name+'\\s*=\\s*["\\\']([^"\\\']*)["\\\']','i');
+  const m=tag.match(re);
   return m?m[1]:null;
+}
+
+function isAbsoluteHttp(value){
+  return value.startsWith('http://')||value.startsWith('https://');
+}
+
+function isOwnOrigin(value){
+  if(!isAbsoluteHttp(value)) return false;
+  try{
+    const u=new URL(value);
+    return u.protocol==='https:' && (u.hostname==='drjavadrezazadeh.com'||u.hostname==='www.drjavadrezazadeh.com');
+  }catch{
+    return false;
+  }
 }
 
 for(const file of htmlFiles){
   const rel=path.relative(root,file).replaceAll(path.sep,'/');
   const html=fs.readFileSync(file,'utf8');
-  const noindex=/<meta\\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html);
+  const noindex=/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html);
   if(noindex) continue;
   indexableCount++;
 
-  if(!/<meta\\b[^>]*name=["']viewport["'][^>]*content=["'][^"']*width=device-width/i.test(html)){
+  if(!/<meta\b[^>]*name=["']viewport["'][^>]*content=["'][^"']*width=device-width/i.test(html)){
     failures.push(rel+': missing responsive viewport meta');
   }
 
-  if(/fonts\\.googleapis\\.com|fonts\\.gstatic\\.com/i.test(html)){
+  if(/fonts\.googleapis\.com|fonts\.gstatic\.com/i.test(html)){
     failures.push(rel+': third-party Google webfont dependency detected');
   }
 
-  const styleLinks=[...html.matchAll(/<link\\b[^>]*rel=["']stylesheet["'][^>]*>/gi)].map(m=>m[0]);
+  const styleLinks=[...html.matchAll(/<link\b[^>]*rel=["']stylesheet["'][^>]*>/gi)].map(m=>m[0]);
   for(const tag of styleLinks){
     const href=attr(tag,'href')||'';
-    if(/^https?:\\/\\//i.test(href) && !/^https:\\/\\/drjavadrezazadeh\\.com\\//i.test(href)){
+    if(isAbsoluteHttp(href)&&!isOwnOrigin(href)){
       failures.push(rel+': third-party render-blocking stylesheet '+href);
     }
   }
 
-  const images=[...html.matchAll(/<img\\b[^>]*>/gi)].map(m=>m[0]);
+  const images=[...html.matchAll(/<img\b[^>]*>/gi)].map(m=>m[0]);
   imageCount+=images.length;
   let highPriority=0;
   for(const tag of images){
@@ -60,23 +75,24 @@ for(const file of htmlFiles){
   }
   if(highPriority>1) warnings.push(rel+': more than one fetchpriority=high image ('+highPriority+')');
 
-  const scripts=[...html.matchAll(/<script\\b[^>]*src=["'][^"']+["'][^>]*>/gi)].map(m=>m[0]);
+  const scripts=[...html.matchAll(/<script\b[^>]*src=["'][^"']+["'][^>]*>/gi)].map(m=>m[0]);
   for(const tag of scripts){
     const src=attr(tag,'src')||'';
-    if(/^https?:\\/\\//i.test(src) && !/^https:\\/\\/drjavadrezazadeh\\.com\\//i.test(src)){
+    if(isAbsoluteHttp(src)&&!isOwnOrigin(src)){
       failures.push(rel+': third-party executable script '+src);
       continue;
     }
-    if(!/\\bdefer\\b/i.test(tag)&&!/\\basync\\b/i.test(tag)&&!/type=["']module["']/i.test(tag)){
+    if(!/\bdefer\b/i.test(tag)&&!/\basync\b/i.test(tag)&&!/type=["']module["']/i.test(tag)){
       failures.push(rel+': local script can block parsing '+src);
     }
   }
 
-  const inlineStyles=[...html.matchAll(/<style\\b[^>]*>([\\s\\S]*?)<\\/style>/gi)];
+  const inlineStyles=[...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)];
   const inlineBytes=inlineStyles.reduce((n,m)=>n+Buffer.byteLength(m[1]||'','utf8'),0);
   if(inlineBytes>32768) warnings.push(rel+': large inline CSS payload '+inlineBytes+' bytes');
 
-  if(Buffer.byteLength(html,'utf8')>350000) warnings.push(rel+': large HTML document '+Buffer.byteLength(html,'utf8')+' bytes');
+  const htmlBytes=Buffer.byteLength(html,'utf8');
+  if(htmlBytes>350000) warnings.push(rel+': large HTML document '+htmlBytes+' bytes');
 }
 
 console.log('Performance source audit: '+indexableCount+' indexable HTML pages, '+imageCount+' image tags checked.');
