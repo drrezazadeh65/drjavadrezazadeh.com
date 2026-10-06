@@ -46,10 +46,18 @@ paths:
   /v1/rcas/sessions/{sessionId}/submit:
     post:
       summary: Submit RCAS Core into the Golden Talent evidence engine
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string }
+          description: Server-validated key bound to session, instrument version and response revision.
       description: >
         Server validates the persisted assessment session and its published instrument version,
         converts eligible responses into UNREVIEWED provenance-linked evidence events, then
-        creates a versioned route run. Browser sessionStorage, a client-selected priority domain,
+        freezes an immutable response snapshot, inserts evidence once and creates a versioned
+        route run once within one server transaction. Safe retries return the existing result.
+        Browser sessionStorage, a client-selected priority domain,
         or a client-computed score is never accepted as routing truth. No total talent score,
         normative label or automatic career prescription is produced.
       security: [{ sessionAuth: [] }]
