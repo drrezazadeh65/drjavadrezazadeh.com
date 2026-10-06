@@ -121,11 +121,11 @@
   },
   {
     "lang": "en",
-    "title": "News & Insights",
+    "title": "Knowledge & Insights",
     "path": "en/news-insights/",
     "category": "News",
-    "summary": "Verified public academic and project updates.",
-    "keywords": "news insights academic updates"
+    "summary": "Evidence-informed knowledge across research, education, assessment, teacher development and student development.",
+    "keywords": "knowledge education research assessment teacher development academic writing student development"
   },
   {
     "lang": "en",
@@ -265,11 +265,11 @@
   },
   {
     "lang": "fa",
-    "title": "راهنماها",
+    "title": "دانش و راهنماهای آموزشی",
     "path": "fa/rahnamaha/",
     "category": "راهنما",
-    "summary": "راهنماهای evergreen برای تصمیم‌های آموزشی.",
-    "keywords": "راهنما مشاوره رشته تصمیم"
+    "summary": "مرکز دانش برای رشد دانش‌آموز، استعداد، انتخاب مسیر، پژوهش، سنجش و توسعه حرفه‌ای.",
+    "keywords": "دانش راهنما آموزش رشد استعداد انتخاب رشته پژوهش سنجش معلم"
   },
   {
     "lang": "fa",
@@ -297,19 +297,19 @@
   },
   {
     "lang": "en",
-    "title": "Educational & Student Services",
+    "title": "Academic, Educational & Professional Services",
     "path": "en/services/",
     "category": "Services",
-    "summary": "Student guidance, Golden Talent, language education and professional pathways.",
-    "keywords": "educational services student services guidance golden talent"
+    "summary": "Researcher support, student guidance, teacher development and institutional professional services.",
+    "keywords": "academic services research consultation manuscript review student guidance teacher development institutional consulting"
   },
   {
     "lang": "fa",
-    "title": "خدمات آموزشی و مشاوره",
+    "title": "خدمات آموزشی، پژوهشی و مشاوره",
     "path": "fa/khadamat/",
     "category": "خدمات",
-    "summary": "مشاوره تحصیلی، انتخاب رشته، استعدادیابی، کنکور و Golden Talent.",
-    "keywords": "خدمات آموزشی مشاوره استعدادیابی انتخاب رشته"
+    "summary": "خدمات برای دانش‌آموزان و والدین، پژوهشگران، معلمان و مؤسسات.",
+    "keywords": "خدمات آموزشی پژوهشی مشاوره مقاله پژوهش استعدادیابی انتخاب رشته"
   },
   {
     "lang": "en",
