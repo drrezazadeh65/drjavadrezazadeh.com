@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "status": "FOUNDATION_READY",
+  "route_fa": "/fa/app/admin/",
+  "route_en": "/en/account/admin/",
+  "access": {
+    "authentication_required": true,
+    "allowed_roles": [
+      "ADMIN",
+      "SUPER_ADMIN"
+    ],
+    "mfa_required": true,
+    "server_authorization_required": true,
+    "client_role_claims_ignored": true
+  },
+  "surfaces": [
+    {
+      "id": "assistant-leads",
+      "capabilities": [
+        "lead-inbox",
+        "lead-status",
+        "assistant-health"
+      ],
+      "authority": "SERVER_ONLY"
+    },
+    {
+      "id": "consultations",
+      "capabilities": [
+        "triage-queue",
+        "appointments",
+        "follow-up"
+      ],
+      "authority": "SERVER_ONLY"
+    },
+    {
+      "id": "commerce",
+      "capabilities": [
+        "catalogue",
+        "orders",
+        "payment-reconciliation",
+        "refunds",
+        "shipments"
+      ],
+      "authority": "SERVER_ONLY"
+    },
+    {
+      "id": "content-seo",
+      "capabilities": [
+        "draft-review-publish",
+        "seo-fields",
+        "redirects",
+        "media-rights"
+      ],
+      "authority": "EDITORIAL_SERVER"
+    },
+    {
+      "id": "identity",
+      "capabilities": [
+        "users",
+        "roles",
+        "relationships",
+        "consent"
+      ],
+      "authority": "SERVER_ONLY"
+    },
+    {
+      "id": "audit",
+      "capabilities": [
+        "sensitive-action-log",
+        "security-events"
+      ],
+      "authority": "APPEND_ONLY_SERVER"
+    }
+  ],
+  "safeguards": {
+    "noindex": true,
+    "no_store": true,
+    "no_public_navigation": true,
+    "destructive_actions_require_reauthentication": true,
+    "super_admin_changes_require_super_admin": true,
+    "secrets_never_rendered": true
+  }
+}
