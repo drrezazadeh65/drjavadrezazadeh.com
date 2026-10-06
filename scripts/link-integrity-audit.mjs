@@ -75,6 +75,17 @@ function hasFragment(file,hash){
   return new RegExp('(?:id|name)=["\\\']'+esc+'["\\\']','i').test(html);
 }
 
+// 404 depth-safety: GitHub Pages serves the same 404 document at arbitrary missing paths, so local recovery/assets must be root-absolute.
+const error404=htmlCache.get('404.html');
+if(error404){
+  if(!/<meta\s+name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(error404)) failures.push('/404.html: missing noindex robots directive');
+  for(const m of error404.matchAll(/\b(href|src)=["']([^"']+)["']/gi)){
+    const value=m[2].trim();
+    if(value.startsWith('./')||value.startsWith('../')) failures.push('/404.html: depth-unsafe relative '+m[1].toLowerCase()+' '+JSON.stringify(value));
+  }
+}
+// 404 depth-safety
+
 let checkedRefs=0;
 for(const [from,html] of htmlCache.entries()){
   const refs=[];
