@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0",
+  "default_expected": "DENY",
+  "cases": [
+    {
+      "id": "SELF_OWN",
+      "actor": "STUDENT",
+      "relationship": "SELF",
+      "visibility": "SUBJECT_PRIVATE",
+      "expected": "ALLOW"
+    },
+    {
+      "id": "SELF_OTHER",
+      "actor": "STUDENT",
+      "relationship": "NONE",
+      "visibility": "SUBJECT_PRIVATE",
+      "expected": "DENY"
+    },
+    {
+      "id": "PARENT_ACTIVE_ALLOWED",
+      "actor": "PARENT",
+      "relationship": "ACTIVE",
+      "visibility": "PARENT_ALLOWED",
+      "expected": "ALLOW"
+    },
+    {
+      "id": "PARENT_ACTIVE_PRIVATE",
+      "actor": "PARENT",
+      "relationship": "ACTIVE",
+      "visibility": "SUBJECT_PRIVATE",
+      "expected": "DENY"
+    },
+    {
+      "id": "PARENT_REVOKED",
+      "actor": "PARENT",
+      "relationship": "REVOKED",
+      "visibility": "PARENT_ALLOWED",
+      "expected": "DENY"
+    },
+    {
+      "id": "PARENT_OTHER_CHILD",
+      "actor": "PARENT",
+      "relationship": "ACTIVE_OTHER_SUBJECT",
+      "visibility": "PARENT_ALLOWED",
+      "expected": "DENY"
+    },
+    {
+      "id": "TEACHER_ACTIVE_SCOPE",
+      "actor": "TEACHER",
+      "assignment": "ACTIVE",
+      "scope": [
+        "VIEW_EVIDENCE"
+      ],
+      "visibility": "TEACHER_ALLOWED",
+      "expected": "ALLOW"
+    },
+    {
+      "id": "TEACHER_NO_SCOPE",
+      "actor": "TEACHER",
+      "assignment": "ACTIVE",
+      "scope": [],
+      "visibility": "TEACHER_ALLOWED",
+      "expected": "DENY"
+    },
+    {
+      "id": "TEACHER_ENDED",
+      "actor": "TEACHER",
+      "assignment": "ENDED",
+      "scope": [
+        "VIEW_EVIDENCE"
+      ],
+      "visibility": "TEACHER_ALLOWED",
+      "expected": "DENY"
+    },
+    {
+      "id": "CONSULTANT_OPEN_CASE",
+      "actor": "CONSULTANT",
+      "case": "OPEN",
+      "visibility": "ADVISER_ALLOWED",
+      "expected": "ALLOW"
+    },
+    {
+      "id": "CONSULTANT_CLOSED_CASE",
+      "actor": "CONSULTANT",
+      "case": "CLOSED",
+      "visibility": "ADVISER_ALLOWED",
+      "expected": "DENY"
+    },
+    {
+      "id": "CONSULTANT_OTHER_CASE",
+      "actor": "CONSULTANT",
+      "case": "OPEN_OTHER_SUBJECT",
+      "visibility": "REVIEW_TEAM",
+      "expected": "DENY"
+    },
+    {
+      "id": "ANONYMOUS",
+      "actor": "NONE",
+      "relationship": "NONE",
+      "visibility": "PARENT_ALLOWED",
+      "expected": "DENY"
+    }
+  ],
+  "required_external_checks": [
+    "CONSENT_PURPOSE_ACTIVE_AT_API_AND_TRANSACTION_BOUNDARY",
+    "AUDIT_DENIAL_WITHOUT_SENSITIVE_PAYLOAD"
+  ]
+}
