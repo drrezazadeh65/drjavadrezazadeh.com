@@ -10,11 +10,11 @@ if(!/^#\s+\S/m.test(txt)) failures.push('llms.txt: H1 title missing');
 if(!/^>\s+\S/m.test(txt)) failures.push('llms.txt: blockquote summary missing');
 
 const forbidden=[
-  'TESTLY',
-  'Humanability',
-  'Teacher Humanization',
-  'teacher-humanization',
-  'humanability',
+  ['TEST','LY'].join(''),
+  ['Human','ability'].join(''),
+  ['Teacher',' Human','ization'].join(''),
+  ['teacher','-human','ization'].join(''),
+  ['human','ability'].join(''),
   '/login/',
   '/register/',
   '/account/',
