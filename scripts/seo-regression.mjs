@@ -1441,3 +1441,10 @@ const ism=fs.readFileSync(path.join(root,'platform','db','migrations','020_ident
 for(const x of ['secret_hash','token_hash','EMAIL_VERIFICATION','PASSWORD_RECOVERY','role_change_event']) if(!ism.includes(x)) failures.push('/platform/db/migrations/020_identity_session_security.sql: missing '+x);
 const isr=fs.readFileSync(path.join(root,'platform','db','rls','004_identity_security.sql'),'utf8');
 for(const x of ['FORCE ROW LEVEL SECURITY','auth_session_own_read','account_token','role_change_event']) if(!isr.includes(x)) failures.push('/platform/db/rls/004_identity_security.sql: missing '+x);
+
+// Research/report execution guardrails.
+for(const p of ['platform/research-execution-policy.json','platform/report-engine.mjs']) if(!fs.existsSync(path.join(root,p))) failures.push('/'+p+': missing research/report execution component');
+const rp=JSON.parse(fs.readFileSync(path.join(root,'platform','research-execution-policy.json'),'utf8')).research_dataset_execution;
+if(rp.direct_identity_in_export!==false||rp.requires_deidentification_run!==true||rp.requires_frozen_codebook!==true||rp.withdrawn_case_future_use_prohibited!==true) failures.push('/platform/research-execution-policy.json: unsafe research execution policy');
+const rep=fs.readFileSync(path.join(root,'platform','report-engine.mjs'),'utf8');
+for(const x of ['immutable_source_provenance:true','Human report review required','SUPERSEDED','history_preserved:true']) if(!rep.includes(x)) failures.push('/platform/report-engine.mjs: missing '+x);
