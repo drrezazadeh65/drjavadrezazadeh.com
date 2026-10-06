@@ -1258,3 +1258,17 @@ else{
   if(!b.includes(decision)) failures.push('/platform/bahar-engine.mjs: missing review decision '+decision);
  }
 }
+
+// Golden Talent D1-D6 deep-module contract guardrails.
+const dmPath=path.join(root,'platform','golden-talent-deep-modules.json');
+const dmEnginePath=path.join(root,'platform','golden-talent-deep-module-engine.mjs');
+if(!fs.existsSync(dmPath)||!fs.existsSync(dmEnginePath)) failures.push('/platform: missing D1-D6 deep-module engine files');
+else{
+ const dm=JSON.parse(fs.readFileSync(dmPath,'utf8'));
+ for(const d of ['D1','D2','D3','D4','D5','D6']) if(!dm.modules?.[d]) failures.push('/platform/golden-talent-deep-modules.json: missing '+d);
+ if(dm.total_score!==false||dm.normative_cut_score!==false) failures.push('/platform/golden-talent-deep-modules.json: score/cut-score prohibition missing');
+ const src=fs.readFileSync(dmEnginePath,'utf8');
+ for(const invariant of ["quality_state:'UNREVIEWED'","direction:'CONTEXTUALISES'","total_score:null","normative_label:null","entitlement_verified"]){
+  if(!src.includes(invariant)) failures.push('/platform/golden-talent-deep-module-engine.mjs: missing invariant '+invariant);
+ }
+}
