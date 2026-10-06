@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0",
+  "status": "COMMERCE_DATA_PENDING",
+  "rule": "Public bibliographic status and commerce readiness are separate. A published book is not sellable until price, inventory or format, fulfilment, and return terms are verified.",
+  "books": [
+    {
+      "id": "roshanaei",
+      "slug": "roshanaei",
+      "title_fa": "روشنایی",
+      "english_reference_title": "Roshanayi",
+      "author": "Javad Rezazadeh Yazdeli",
+      "publication_status": "PUBLISHED",
+      "description_fa": "مجموعه شعر فارسی منتشرشده.",
+      "description_en": "A published Persian poetry collection.",
+      "bibliography": {
+        "isbn": null,
+        "publisher": null,
+        "publication_year": null,
+        "edition": null,
+        "cover_image": null
+      },
+      "commerce": {
+        "sellable": false,
+        "price": null,
+        "currency": null,
+        "inventory_state": "UNCONFIGURED",
+        "formats_confirmed": [],
+        "shipping_required": null,
+        "reason": "PRICE_FORMAT_STOCK_AND_FULFILMENT_NOT_VERIFIED"
+      }
+    },
+    {
+      "id": "tariki",
+      "slug": "tariki",
+      "title_fa": "تاریکی",
+      "english_reference_title": "Tariki",
+      "author": "Javad Rezazadeh Yazdeli",
+      "publication_status": "PUBLISHED",
+      "description_fa": "مجموعه شعر فارسی منتشرشده.",
+      "description_en": "A published Persian poetry collection.",
+      "bibliography": {
+        "isbn": null,
+        "publisher": null,
+        "publication_year": null,
+        "edition": null,
+        "cover_image": null
+      },
+      "commerce": {
+        "sellable": false,
+        "price": null,
+        "currency": null,
+        "inventory_state": "UNCONFIGURED",
+        "formats_confirmed": [],
+        "shipping_required": null,
+        "reason": "PRICE_FORMAT_STOCK_AND_FULFILMENT_NOT_VERIFIED"
+      }
+    },
+    {
+      "id": "bonbast",
+      "slug": "bonbast",
+      "title_fa": "بن‌بست",
+      "english_reference_title": "Bonbast",
+      "author": "Javad Rezazadeh Yazdeli",
+      "publication_status": "PUBLISHED",
+      "description_fa": "مجموعه شعر فارسی منتشرشده.",
+      "description_en": "A published Persian poetry collection.",
+      "bibliography": {
+        "isbn": null,
+        "publisher": null,
+        "publication_year": null,
+        "edition": null,
+        "cover_image": null
+      },
+      "commerce": {
+        "sellable": false,
+        "price": null,
+        "currency": null,
+        "inventory_state": "UNCONFIGURED",
+        "formats_confirmed": [],
+        "shipping_required": null,
+        "reason": "PRICE_FORMAT_STOCK_AND_FULFILMENT_NOT_VERIFIED"
+      }
+    }
+  ],
+  "forthcoming": [
+    {
+      "id": "golden-talent-book",
+      "title_fa": "کشف مسیر طلایی استعداد",
+      "publication_status": "IN_PREPARATION",
+      "sellable": false
+    },
+    {
+      "id": "ma-dar-rokh",
+      "title_fa": "ما در رخ او تو را می‌جستیم",
+      "publication_status": "IN_PREPARATION",
+      "sellable": false
+    }
+  ]
+}
