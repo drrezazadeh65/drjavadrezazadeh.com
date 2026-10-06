@@ -9,6 +9,16 @@ servers:
   - url: https://api.example.invalid
     description: Placeholder only; no production backend is live.
 paths:
+  /v1/me/audit-events:
+    get:
+      summary: Return the authenticated user's exposed audit history
+      description: >
+        Returns a privacy-minimised subset of account/service audit events. Sensitive
+        evidence payloads, secrets, private document contents and internal security detail
+        are never returned through this endpoint.
+      security: [{ sessionAuth: [] }]
+      responses:
+        '200': { description: Scoped audit history }
   /v1/me/consents/{purpose}:
     put:
       summary: Record a versioned purpose-specific consent decision
