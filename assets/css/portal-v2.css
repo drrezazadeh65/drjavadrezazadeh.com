@@ -741,3 +741,106 @@
   .evidence-readiness-row{grid-template-columns:34px 1fr auto}
   .evidence-readiness-row>i{grid-column:2/4}
 }
+
+
+/* Role dashboards v1 — parent, teacher, consultant */
+.role-dashboard-page .foundation-main.app-prototype{
+  width:min(1380px,calc(100% - 56px));
+  margin:0 auto;
+  padding:30px 0 90px;
+  display:block;
+  min-height:auto;
+}
+.role-dashboard-page .foundation-hero{
+  max-width:none;
+  padding:38px;
+  border:1px solid var(--dash-border);
+  border-radius:22px;
+  background:
+    radial-gradient(560px 240px at 92% 0%,rgba(199,163,91,.075),transparent 68%),
+    linear-gradient(160deg,#131315,#0e0e10);
+  box-shadow:none;
+}
+.role-dashboard-page .foundation-hero h1{
+  max-width:960px;
+  font-size:clamp(34px,4.6vw,56px);
+  line-height:1.35;
+}
+.rtl.role-dashboard-page .foundation-hero h1{line-height:1.65}
+.role-dashboard-page .foundation-hero .lead{max-width:880px}
+.role-dashboard-page .foundation-status{
+  margin-top:22px;
+}
+.role-dashboard-page .foundation-status span{
+  border-color:var(--dash-border-gold);
+  background:rgba(199,163,91,.045);
+  color:#d8c28d;
+}
+.role-dashboard-page .app-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:18px;
+}
+.role-dashboard-page .app-card{
+  min-height:170px;
+  padding:24px;
+  border:1px solid var(--dash-border);
+  border-radius:18px;
+  background:linear-gradient(160deg,#141416,#101012);
+  box-shadow:0 12px 32px rgba(0,0,0,.10);
+}
+.role-dashboard-page .app-card h2{font-size:20px;margin-top:0}
+.role-dashboard-page .app-card p{color:#9da0a7;line-height:1.9}
+.role-dashboard-page .app-card>span{color:#777b82;font-size:10px}
+.role-dashboard-page .app-card-link{
+  transition:transform .18s ease,border-color .18s ease,background .18s ease;
+}
+.role-dashboard-page .app-card-link:hover{
+  transform:translateY(-2px);
+  border-color:var(--dash-border-gold);
+  background:linear-gradient(160deg,rgba(199,163,91,.055),#101012);
+}
+.role-dashboard-page .role-boundary-section,
+.role-dashboard-page .app-workflow-section,
+.role-dashboard-page .app-safety{
+  margin-top:18px;
+  padding:28px;
+  border:1px solid var(--dash-border);
+  border-radius:18px;
+  background:linear-gradient(160deg,#121214,#0f0f11);
+}
+.role-dashboard-page .role-boundary-section h2,
+.role-dashboard-page .app-workflow-section h2,
+.role-dashboard-page .app-safety h2{
+  font-size:clamp(26px,3vw,38px);
+}
+.role-dashboard-page .role-boundary-grid{
+  gap:12px;
+  margin-top:20px;
+}
+.role-dashboard-page .role-boundary-grid article{
+  border-color:var(--dash-border);
+  background:#111113;
+}
+.role-dashboard-page .consultant-flow>div{
+  border-color:var(--dash-border);
+  background:#111113;
+}
+.role-dashboard-page footer{
+  width:min(1380px,calc(100% - 56px));
+}
+@media(max-width:1180px){
+  .role-dashboard-page .app-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:840px){
+  .role-dashboard-page .foundation-main.app-prototype,
+  .role-dashboard-page footer{width:calc(100% - 20px)}
+}
+@media(max-width:620px){
+  .role-dashboard-page .app-grid{grid-template-columns:1fr}
+  .role-dashboard-page .foundation-hero{padding:24px}
+  .role-dashboard-page .role-boundary-section,
+  .role-dashboard-page .app-workflow-section,
+  .role-dashboard-page .app-safety{padding:20px}
+}
