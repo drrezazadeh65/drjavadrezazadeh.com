@@ -49,6 +49,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **GOV-008 — FROZEN — Confidential pre-publication work stays off public surfaces.** Confidential research constructs/projects are not exposed in public pages, metadata, schema, sitemap or public repository descriptions until explicitly released.
 - [x] **GOV-009 — FROZEN — No false technical maturity.** A static placeholder is not described as a working login, payment system, journal submission platform or secure private database.
 - [x] **GOV-010 — FROZEN — Accessibility, security and research integrity are architecture requirements, not later add-ons.**
+- [x] **GOV-011 — DONE — Machine-readable extensibility governance.** A versioned ecosystem registry now defines route/data/auth/cache/index boundaries, expansion contracts, module separation, API/database evolution rules and mobile-app invariants; CI fails closed when critical governance drifts.
 
 ---
 
@@ -94,9 +95,9 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **INFRA-004 — FROZEN — Journal target: `journal.drjavadrezazadeh.com`.**
 - [x] **INFRA-005 — FROZEN — Future app target: `app.drjavadrezazadeh.com`.**
 - [x] **INFRA-006 — FROZEN — Publisher initially lives at `/publisher/`; `press.` is optional later.**
-- [ ] **INFRA-007 — WAITING — Purchase/activate permanent domain.**
-- [ ] **INFRA-008 — WAITING — DNS cutover and HTTPS for permanent domain.**
-- [ ] **INFRA-009 — IN PROGRESS — One-time permanent-domain migration is engineered but not executed.** `scripts/domain-cutover.mjs` and the production cutover runbook cover canonical/OG/schema/sitemap/robots/security.txt migration; execution remains WAITING on domain/DNS/HTTPS.
+- [x] **INFRA-007 — DONE — Permanent domain acquired and activated: `drjavadrezazadeh.com`.**
+- [ ] **INFRA-008 — IN PROGRESS — Permanent-domain DNS delegation is being cut over through Cloudflare; GitHub Pages custom-domain verification and TLS issuance remain pending propagation.**
+- [ ] **INFRA-009 — IN PROGRESS — One-time permanent-domain migration is engineered and deliberately gated.** `scripts/domain-cutover.mjs` and the production cutover runbook cover canonical/OG/schema/sitemap/robots/security.txt migration; write-mode execution remains blocked until production HTTPS succeeds, preventing premature canonical migration.
 - [ ] **INFRA-010 — IN PROGRESS — Production platform architecture and logical data model are frozen; lawful/available hosting, auth, database, storage and email providers still need to be selected and provisioned.**
 - [ ] **INFRA-011 — IN PROGRESS — Staging/preview policy is frozen: Cloudflare preview hosts are response-level noindex, private routes remain no-store, synthetic data is mandatory, production secrets/payments are excluded, and release promotion is gated by CI; live Cloudflare staging/branch-preview verification remains pending hosting cutover.**
 - [ ] **INFRA-012 — PLANNED — Production database, private object storage and backup infrastructure.**

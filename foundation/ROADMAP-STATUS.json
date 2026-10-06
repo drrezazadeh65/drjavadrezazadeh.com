@@ -47,7 +47,9 @@
     "AUTH-016": "2026-10-05",
     "GT-007": "2026-10-05",
     "GT-016": "2026-10-05",
-    "BACKEND-SECURITY-FOUNDATION": "2026-10-06"
+    "BACKEND-SECURITY-FOUNDATION": "2026-10-06",
+    "GOV-011": "2026-10-06",
+    "INFRA-007": "2026-10-06"
   },
   "in_progress": {
     "SEO-007": "Core Persian service SERP review complete; repeat before each new major cluster.",
@@ -57,7 +59,7 @@
     "COM-010": "Server-side verification/reconciliation contract defined; provider sandbox integration pending.",
     "SEO-015": "Static performance budgets, explicit public-image loading priority and network-first CSS/JS delivery are enforced; real-user production CWV remains pending.",
     "SEO-016": "Automated accessibility baseline and interaction polish implemented; screen-reader/live-device QA pending.",
-    "INFRA-009": "Domain migration tooling/runbook ready; execution waits for permanent domain/DNS/HTTPS.",
+    "INFRA-009": "Atomic canonical-origin migration tooling is ready; execution remains gated on successful production HTTPS.",
     "CONTENT-006": "Persian evergreen Guides hub launched; cluster expansion ongoing.",
     "CONTENT-007": "English research/insights communication hubs established; substantive publishing ongoing.",
     "GT-008": "RCAS Start self-report baseline implemented; deeper module execution awaits backend.",
@@ -147,7 +149,8 @@
     "SERV-015": "Institutional consulting lifecycle, scoped proposal, data-processing/child-data safeguards, versioned deliverables and acceptance record requirements defined; live contracting workflow pending.",
     "COM-012": "Discount governance is server-authoritative, non-stacking by default and disabled unless commercially activated; admin implementation pending.",
     "COM-014": "Physical inventory/fulfilment controls defined for optional self-fulfilled books, including oversell prevention and reservation expiry; activation remains optional.",
-    "COM-016": "Institutional quote/invoice workflow controls defined with legal entity, currency/tax clarity and verified-payment/approved-contract entitlement gate; accounting runtime pending."
+    "COM-016": "Institutional quote/invoice workflow controls defined with legal entity, currency/tax clarity and verified-payment/approved-contract entitlement gate; accounting runtime pending.",
+    "INFRA-008": "Permanent domain is delegated toward Cloudflare; GitHub Pages DNS verification and TLS issuance are awaiting propagation."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
@@ -161,5 +164,12 @@
     "id": "GOV-003",
     "status": "RENEWED",
     "decision": "Neutral root gateway with dedicated /fa/ and /en/ namespaces; legacy unprefixed English routes are NOINDEX transitions."
+  },
+  "extensibility_foundation": {
+    "version": "5.0",
+    "registry": "platform/ecosystem-registry.json",
+    "governance_test": "platform/ecosystem-governance.test.mjs",
+    "default_feature_state": "OFF",
+    "release_model": "contract-first-fail-closed"
   }
 }
