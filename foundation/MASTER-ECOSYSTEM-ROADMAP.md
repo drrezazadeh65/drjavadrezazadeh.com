@@ -116,7 +116,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **UX-005 — DONE — Web manifest foundation.**
 - [x] **UX-006 — RENEWED — Verified portrait asset and portrait integration after earlier wrong-image incident.**
 - [x] **UX-007 — RENEWED — Educational-philosophy visual asset replaced after broken-image incident.**
-- [ ] **UX-008 — IN PROGRESS — Global design consistency across every public page, journal page and foundation route.**
+- [ ] **UX-008 — IN PROGRESS — Global design consistency across public, journal and foundation routes.** The JHELA founding surface now uses a unified responsive scholarly interface with consistent navigation/current-state treatment, and the bilingual private admin shell has been upgraded into a coherent operations console; final cross-device visual spot QA remains pending.
 - [x] **UX-009 — DONE — Formal design-system baseline documented with semantic tokens, typography, component families, image rules, interaction rules, mobile behaviour and design governance.**
 - [ ] **UX-010 — IN PROGRESS — Public UI now uses stable system-safe fallbacks with no third-party font requests; final self-hosted Persian/English font package remains pending font-integrity QA.**
 - [ ] **UX-011 — PLANNED — Mobile UX QA on small/medium/large devices and landscape orientation.**
@@ -280,7 +280,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 
 # 13. CMS and administration
 
-- [ ] **ADMIN-001 — IN PROGRESS — Private bilingual admin-console information architecture and content-governance foundation now cover content, SEO, books, services, leads and operations; provider-backed CMS editing/persistence remains pending.**
+- [ ] **ADMIN-001 — IN PROGRESS — Private bilingual admin-console information architecture and visual operations console now cover content/SEO, assessment, commerce, consultation, assistant leads, identity/consent and security activation gates without exposing real data; provider-backed CMS editing/persistence remains pending.**
 - [ ] **ADMIN-002 — IN PROGRESS — Draft/review/publish workflow.**
 - [ ] **ADMIN-003 — IN PROGRESS — SEO fields: title, description, slug, canonical, hreflang, index state, OG, schema, dates, author/reviewer.**
 - [ ] **ADMIN-004 — IN PROGRESS — Cloudflare Pages `_redirects` now provides a version-controlled registry for confirmed legacy migrations, and CI validates syntax, unique sources, target existence and permanent 301 status; a future CMS/admin UI for redirect creation and review remains pending.**
