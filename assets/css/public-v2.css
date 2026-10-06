@@ -582,3 +582,75 @@
   .public-content-page .service-card:hover{transform:none}
   .public-content-page .consultation-preview-form{padding:20px}
 }
+
+
+/* Public navigation and footer polish v1 */
+.public-content-page .breadcrumbs{
+  color:#777a81;
+  font-size:11px;
+}
+.public-content-page .breadcrumbs a{
+  color:#a9a9ad;
+  text-decoration:none;
+}
+.public-content-page .breadcrumbs a:hover{color:var(--public-gold-soft)}
+.public-content-page .breadcrumbs .sep{
+  color:#4f5157;
+  padding-inline:7px;
+}
+.public-content-page footer,
+.public-home-page footer{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:28px;
+  padding:34px 0 52px;
+  border-top:1px solid var(--public-line);
+  color:#777a81;
+  font-size:11px;
+  line-height:1.8;
+}
+.public-content-page footer{
+  width:min(1160px,calc(100% - 40px));
+  margin:34px auto 0;
+}
+.public-content-page footer a,
+.public-home-page footer a{
+  color:#aaa8a2;
+  text-decoration:none;
+}
+.public-content-page footer a:hover,
+.public-home-page footer a:hover{color:var(--public-gold-soft)}
+.public-content-page :where(a,button,input,select,textarea):focus-visible,
+.public-home-page :where(a,button,input,select,textarea):focus-visible,
+.public-gateway-page :where(a,button,input,select,textarea):focus-visible{
+  outline:2px solid var(--public-gold-soft);
+  outline-offset:3px;
+}
+.public-content-page .button,
+.public-home-page .button,
+.public-gateway-page .button{
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,color .18s ease;
+}
+.public-content-page .button:hover,
+.public-home-page .button:hover,
+.public-gateway-page .button:hover{
+  transform:translateY(-1px);
+}
+@media(max-width:720px){
+  .public-content-page footer,
+  .public-home-page footer{
+    width:calc(100% - 20px);
+    display:grid;
+    gap:8px;
+    padding-bottom:38px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .public-content-page .button,
+  .public-home-page .button,
+  .public-gateway-page .button{transition:none}
+  .public-content-page .button:hover,
+  .public-home-page .button:hover,
+  .public-gateway-page .button:hover{transform:none}
+}
