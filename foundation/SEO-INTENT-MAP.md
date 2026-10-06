@@ -111,6 +111,13 @@ Informational resources explain limitations and development. Assessment/private-
 | `/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/` | رتبه و تناسب در انتخاب رشته | Educational/decision intent | INDEX |
 | `/fa/akhbar/farakhvan-jhela/` | فراخوان همکاری علمی JHELA | Journal recruitment | INDEX |
 
+### Published talent-literacy guides
+
+| Canonical URL | Primary intent | Relationship to service | State |
+|---|---|---|---|
+| `/fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/` | تفاوت استعداد، علاقه، مهارت و عملکرد تحصیلی | Educational support for talent identification | INDEX |
+| `/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/` | چرا یک تست برای استعدادیابی کافی نیست؟ | Assessment literacy supporting multi-source interpretation | INDEX |
+
 ### Planned evergreen clusters
 **Counselling:** how to choose a counsellor; when counselling helps; evidence needed for a decision; parent role; reading report cards.  
 **Field selection:** comparing fields; possible vs suitable; official information; family influence; uncertainty.  

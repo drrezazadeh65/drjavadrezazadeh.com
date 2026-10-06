@@ -40,8 +40,8 @@
   - no annual admission numbers unless official-source verified
 
 ### Week 3 — Talent literacy
-- [ ] **CONTENT-GT-01** — «تفاوت استعداد، علاقه، مهارت و عملکرد تحصیلی»
-- [ ] **CONTENT-GT-02** — «چرا یک تست برای استعدادیابی کافی نیست؟»
+- [x] **CONTENT-GT-01** — «تفاوت استعداد، علاقه، مهارت و عملکرد تحصیلی»
+- [x] **CONTENT-GT-02** — «چرا یک تست برای استعدادیابی کافی نیست؟»
 - [ ] Parent CTA to future resource hub; no deterministic claims.
 
 ### Week 4 — Entrance-exam planning
