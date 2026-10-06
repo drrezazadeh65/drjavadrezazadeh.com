@@ -1,12 +1,25 @@
+const JR_ROUTE_POLICY=Object.freeze({
+  noStore:Object.freeze([
+    '/fa/app/','/app/','/en/account/',
+    '/fa/login/','/login/','/en/login/','/fa/register/','/register/','/en/register/','/en/recover/','/fa/bazyabi-hesab/',
+    '/fa/assessments/','/assessments/','/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/',
+    '/fa/shop/','/shop/','/en/golden-talent/checkout/','/en/golden-talent/plans/','/fa/darkhast-moshavere/','/en/request-consultation/'
+  ]),
+  app:Object.freeze([
+    '/fa/app/','/app/','/en/account/','/fa/assessments/','/assessments/',
+    '/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/'
+  ])
+});
 (()=>{
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const rawPath=location.pathname.replace(/index\.html$/,'');
 const gh='/drjavadrezazadeh.com/';
 const base=rawPath.includes(gh)?gh:'/';
-const isFa=rawPath.startsWith(base+'fa/');
-const isJournal=rawPath.startsWith(base+'journal/');
-const isPrivateApp=rawPath.startsWith(base+'app/')||rawPath.startsWith(base+'fa/app/');
-const isPersianStudentApp=rawPath.startsWith(base+'fa/app/student/')||rawPath.startsWith(base+'fa/assessments/golden-talent/start/');
+const relativePath=base==='/'?rawPath:'/'+rawPath.slice(base.length);
+const isFa=relativePath.startsWith('/fa/');
+const isJournal=relativePath.startsWith('/journal/');
+const isPrivateApp=JR_ROUTE_POLICY.app.some(prefix=>relativePath.startsWith(prefix));
+const isPersianStudentApp=relativePath.startsWith('/fa/app/student/')||relativePath.startsWith('/fa/assessments/golden-talent/start/');
 const u=p=>base+p.replace(/^\//,'');
 function ensureSkipLink(){
  const main=q('main');
@@ -35,7 +48,7 @@ const icon=n=>{
  return '<svg class="app-icon" viewBox="0 0 24 24">'+(d[n]||d.menu)+'</svg>';
 };
 function ensureMobileNav(){
- if(q('.app-dock')||q('.gt-mobile-dock')||isPersianStudentApp) return;
+ if(q('.app-dock')||q('.gt-mobile-dock')) return;
  const nav=document.createElement('nav');nav.className='app-dock';nav.setAttribute('aria-label',isFa?'منوی موبایلی':'Mobile app navigation');
  let links=[],sheet=[];
  if(isJournal){
@@ -55,18 +68,19 @@ function ensureMobileNav(){
     [u('publisher/'),'Rezazadeh Foundation Press']
    ];
  }else if(isPrivateApp){
-   const appBase=isFa?u('fa/app/'):u('app/');
+   const appHome=isFa?u('fa/app/'):u('en/golden-talent/dashboard/');
+   const discover=isFa?u('fa/golden-talent/'):u('en/golden-talent/');
+   const tests=isFa?u('fa/assessments/golden-talent/'):u('en/golden-talent/assessment/');
+   const myPath=isFa
+     ?(relativePath.startsWith('/fa/app/student/')||relativePath.startsWith('/fa/assessments/')?u('fa/app/student/golden-path/'):appHome)
+     :u('en/golden-talent/dashboard/golden-path/');
+   const account=isFa?u('fa/app/account/'):u('en/account/');
    links=[
-    [appBase,isFa?'خانه':'Home','home'],
-    [isFa?u('fa/golden-talent/'):u('golden-talent/'),isFa?'کشف':'Discover','star'],
-    [isFa?u('fa/assessments/golden-talent/'):u('assessments/'),isFa?'آزمون‌ها':'Tests','test'],
-    [appBase,isFa?'مسیر من':'My Path','path']
-   ];
-   sheet=[
-    [appBase,isFa?'داشبورد':'Dashboard'],
-    [isFa?u('fa/harim-khosusi/'):u('privacy/'),isFa?'حریم خصوصی':'Privacy'],
-    [isFa?u('fa/darkhast-moshavere/'):u('fa/darkhast-moshavere/'),isFa?'مشاوره':'Consultation'],
-    [isFa?u('fa/golden-talent/'):u('golden-talent/'),'Golden Talent']
+    [appHome,isFa?'خانه':'Home','home'],
+    [discover,isFa?'کشف':'Discover','star'],
+    [tests,isFa?'آزمون‌ها':'Tests','test'],
+    [myPath,isFa?'مسیر من':'My Path','path'],
+    [account,isFa?'حساب':'Account','user']
    ];
  }else if(isFa){
    links=[
@@ -125,11 +139,12 @@ function ensureMobileNav(){
     [u('fa/'),'فارسی']
    ];
  }
- nav.innerHTML=links.map(([href,label,ic])=>'<a href="'+href+'">'+icon(ic)+'<span>'+label+'</span></a>').join('')+
- '<button type="button" class="dock-action" data-nav-toggle aria-controls="mobile-app-menu" aria-expanded="false">'+icon('menu')+'<span>'+(isFa?'منو':'Menu')+'</span></button>';
+ const menuButton=isPrivateApp?'':'<button type="button" class="dock-action" data-nav-toggle aria-controls="mobile-app-menu" aria-expanded="false">'+icon('menu')+'<span>'+(isFa?'منو':'Menu')+'</span></button>';
+ nav.innerHTML=links.map(([href,label,ic])=>'<a href="'+href+'">'+icon(ic)+'<span>'+label+'</span></a>').join('')+menuButton;
  document.body.appendChild(nav);
- if(!q('#mobile-app-menu')){
+ if(!isPrivateApp&&!q('#mobile-app-menu')){
    const sheetEl=document.createElement('div');sheetEl.className='mobile-app-sheet';sheetEl.id='mobile-app-menu';sheetEl.hidden=true;
+   sheetEl.setAttribute('role','dialog');sheetEl.setAttribute('aria-modal','true');sheetEl.setAttribute('aria-label',isFa?'دسترسی سریع':'Explore');
    sheetEl.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-grid">'+sheet.map(([href,label])=>'<a href="'+href+'"><b>'+label+'</b></a>').join('')+'</div></div>';
    document.body.appendChild(sheetEl);
  }
@@ -184,7 +199,11 @@ qa('.app-dock a').forEach(a=>{
   });
 
   let deferredPrompt=null;
-  const privatePath=/\/(?:fa\/app|app|fa\/login|login|fa\/register|register|fa\/bazyabi-hesab|en\/login|en\/register|en\/recover|en\/account|fa\/assessments|assessments|fa\/shop|shop|en\/golden-talent\/(?:assessment|dashboard|observer|roles|student|checkout))\//.test(location.pathname);
+  const raw=location.pathname.replace(/index\.html$/,'');
+  const gh='/drjavadrezazadeh.com/';
+  const base=raw.includes(gh)?gh:'/';
+  const relative=base==='/'?raw:'/'+raw.slice(base.length);
+  const privatePath=JR_ROUTE_POLICY.noStore.some(prefix=>relative.startsWith(prefix));
 
   window.addEventListener('beforeinstallprompt',e=>{
     e.preventDefault();
@@ -235,7 +254,7 @@ qa('.app-dock a').forEach(a=>{
   const p=location.pathname;
   const isFaStudent=/\/fa\/app\/student(?:\/|$)/.test(p);
   const isFaRcas=/\/fa\/assessments\/golden-talent\/start(?:\/|$)/.test(p);
-  if((!isFaStudent&&!isFaRcas)||document.querySelector('.gt-mobile-dock')) return;
+  if((!isFaStudent&&!isFaRcas)||document.querySelector('.gt-mobile-dock')||document.querySelector('.app-dock')) return;
   const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
   const nav=document.createElement('nav');
   nav.className='gt-mobile-dock';

@@ -447,8 +447,11 @@ else{
     const noStorePrefixes=families.filter(x=>policies[x.policy]?.cache==='NO_STORE').map(x=>x.prefix);
     if(!noStorePrefixes.length) failures.push('/platform/ecosystem-registry.json: no private/no-store route families declared');
     const swSource=fs.existsSync(swPath)?fs.readFileSync(swPath,'utf8'):'';
+    const siteJsPath=path.join(root,'assets','js','site.js');
+    const siteJsSource=fs.existsSync(siteJsPath)?fs.readFileSync(siteJsPath,'utf8'):'';
     for(const prefix of noStorePrefixes){
       if(!swSource.includes("'"+prefix+"'")&&!swSource.includes('"'+prefix+'"')) failures.push('/sw.js: ecosystem private prefix missing from cache firewall '+prefix);
+      if(!siteJsSource.includes("'"+prefix+"'")&&!siteJsSource.includes('"'+prefix+'"')) failures.push('/assets/js/site.js: private/no-store route missing from browser route policy '+prefix);
     }
     const extension=registry?.extension_contract||{};
     for(const field of ['stable_urls','stable_database_identifiers','backward_compatible_api_by_default','feature_flags_default_off','no_client_side_entitlement_authority','no_client_side_payment_success']){
