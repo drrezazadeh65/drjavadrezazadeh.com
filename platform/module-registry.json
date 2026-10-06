@@ -89,7 +89,8 @@
         "catalog",
         "order",
         "payment-intent",
-        "entitlement"
+        "entitlement",
+        "book-fulfilment"
       ]
     },
     {
@@ -258,6 +259,24 @@
         "password-recovery-email",
         "service-notifications",
         "optional-whatsapp-adapter"
+      ]
+    },
+    {
+      "id": "bookstore",
+      "kind": "DOMAIN",
+      "state": "FOUNDATION_READY",
+      "authority": "SERVER_CATALOG_AND_COMMERCE",
+      "data_class": "MIXED",
+      "depends_on": [
+        "commerce",
+        "publisher"
+      ],
+      "exposes": [
+        "book-catalog",
+        "cart-shell",
+        "book-order",
+        "physical-fulfilment",
+        "digital-delivery"
       ]
     }
   ],
