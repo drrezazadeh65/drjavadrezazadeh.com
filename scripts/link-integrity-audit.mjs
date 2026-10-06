@@ -54,12 +54,14 @@ function resolveInternal(fromFile,raw){
     const u=new URL(value,base);
     if(!['http:','https:'].includes(u.protocol)) return {kind:'external'};
     const isLegacy=u.href.startsWith(LEGACY);
-    const isProd=u.origin===PROD;
-    const isWww=u.origin===PROD_WWW;
-    if(!isLegacy&&!isProd&&!isWww) return {kind:'external'};
+    const prodHost=u.hostname==='drjavadrezazadeh.com';
+    const isWww=u.hostname==='www.drjavadrezazadeh.com';
+    const isProd=prodHost&&u.protocol==='https:';
+    const insecureProd=(prodHost||isWww)&&u.protocol!=='https:';
+    if(!isLegacy&&!prodHost&&!isWww) return {kind:'external'};
     let pathname=u.pathname;
     if(isLegacy&&pathname.startsWith('/drjavadrezazadeh.com/')) pathname=pathname.slice('/drjavadrezazadeh.com'.length);
-    return {kind:'internal',file:routeToFile(pathname),hash:u.hash,legacy:isLegacy,www:isWww,url:u.href};
+    return {kind:'internal',file:routeToFile(pathname),pathname,hash:u.hash,legacy:isLegacy,www:isWww,insecureProd,isProd,url:u.href};
   }catch{
     return {kind:'invalid',value};
   }
@@ -106,7 +108,16 @@ for(const [from,html] of htmlCache.entries()){
       failures.push('/'+from+': legacy GitHub Pages URL remains in '+ref.attr+' '+r.url);
     }
     if(r.www){
-      warnings.push('/'+from+': www absolute URL used; apex is canonical '+r.url);
+      failures.push('/'+from+': noncanonical www internal URL used; link directly to apex '+r.url);
+    }
+    if(r.insecureProd){
+      failures.push('/'+from+': insecure HTTP internal URL used '+r.url);
+    }
+    if(r.pathname&&/\/index\.html$/i.test(r.pathname)){
+      failures.push('/'+from+': internal link exposes index.html instead of canonical directory URL '+r.url);
+    }
+    if(r.file.endsWith('/index.html')&&r.pathname&&!r.pathname.endsWith('/')&&!/\/index\.html$/i.test(r.pathname)){
+      failures.push('/'+from+': internal directory link is missing canonical trailing slash '+r.url);
     }
     if(!fileSet.has(r.file)){
       failures.push('/'+from+': broken internal '+ref.attr+' '+JSON.stringify(ref.raw)+' -> /'+r.file);
