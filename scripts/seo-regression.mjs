@@ -261,6 +261,9 @@ else{
       const enUrl=canonicalHost+pair.en,faUrl=canonicalHost+pair.fa;
       if(enAlt.get('en')!==enUrl||enAlt.get('fa')!==faUrl) failures.push(pair.en+': registered hreflang pair drift '+pair.id);
       if(faAlt.get('en')!==enUrl||faAlt.get('fa')!==faUrl) failures.push(pair.fa+': registered hreflang pair drift '+pair.id);
+      const xDefaultUrl=canonicalHost+(pair.x_default||pair.en);
+      if(enAlt.get('x-default')!==xDefaultUrl) failures.push(pair.en+': x-default drift '+pair.id);
+      if(faAlt.get('x-default')!==xDefaultUrl) failures.push(pair.fa+': x-default drift '+pair.id);
     }
   }catch(e){
     failures.push('/platform/hreflang-pairs.json: invalid registry '+e.message);
