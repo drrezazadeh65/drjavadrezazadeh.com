@@ -25,14 +25,6 @@
   },
   {
     "lang": "en",
-    "title": "Public Academic CV",
-    "path": "en/cv/",
-    "category": "Profile",
-    "summary": "Print-ready public academic CV with verified education, teaching, research and publication records.",
-    "keywords": "cv curriculum vitae academic resume education publications teaching orcid"
-  },
-  {
-    "lang": "en",
     "title": "Research",
     "path": "en/research/",
     "category": "Research",
@@ -166,14 +158,6 @@
     "category": "هویت",
     "summary": "پروفایل علمی و حرفه‌ای دکتر جواد رضازاده یزدلی.",
     "keywords": "درباره جواد رضازاده سوابق تحصیلات"
-  },
-  {
-    "lang": "fa",
-    "title": "رزومه علمی عمومی",
-    "path": "fa/rezome/",
-    "category": "هویت",
-    "summary": "نسخه عمومی و آماده چاپ رزومه علمی با سوابق تحصیلی، تدریس، پژوهش و مقالات تأییدشده.",
-    "keywords": "رزومه علمی سوابق تحصیلات تدریس پژوهش مقالات"
   },
   {
     "lang": "fa",
