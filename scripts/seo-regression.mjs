@@ -1456,3 +1456,12 @@ const gtd=JSON.parse(fs.readFileSync(path.join(root,'platform','golden-talent-de
 for(const d of ['D1','D2','D3','D4','D5','D6']) if(!gtd.modules[d]?.completion_requirements) failures.push('/platform/golden-talent-deep-modules.json: '+d+' lacks machine-readable completion');
 const gte=fs.readFileSync(path.join(root,'platform','golden-talent-deep-module-engine.mjs'),'utf8');
 for(const x of ['completion_requirements','required_task_codes','professional_review','completed_for_workflow:completed','requires_route_rerun:completed']) if(!gte.includes(x)) failures.push('/platform/golden-talent-deep-module-engine.mjs: missing '+x);
+
+// Security, observability, publishing and media governance guards.
+for(const p of ['platform/security-production-policy.json','foundation/SECURITY-OPERATIONS-RUNBOOK.md','platform/observability-policy.json','platform/publishing-journal-governance.json','platform/media-library-policy.json']) if(!fs.existsSync(path.join(root,p))) failures.push('/'+p+': missing governance contract');
+const sp=JSON.parse(fs.readFileSync(path.join(root,'platform','security-production-policy.json'),'utf8'));
+if(sp.admin_mfa?.required!==true||sp.uploads?.quarantine_until_scan!==true||sp.backup?.restore_test_required!==true||sp.incident_response?.post_incident_review!==true) failures.push('/platform/security-production-policy.json: incomplete production security controls');
+const op=JSON.parse(fs.readFileSync(path.join(root,'platform','observability-policy.json'),'utf8'));
+if(op.rules?.no_raw_assessment_answers_in_analytics!==true||op.rules?.no_research_identity_links!==true||op.rules?.journal_metrics_must_not_claim_impact_factor_or_indexing_without_verification!==true) failures.push('/platform/observability-policy.json: unsafe observability policy');
+const mp=JSON.parse(fs.readFileSync(path.join(root,'platform','media-library-policy.json'),'utf8'));
+if(!mp.media_asset?.required?.includes('licence_status')||!mp.media_asset?.required?.includes('provenance')) failures.push('/platform/media-library-policy.json: missing rights provenance');
