@@ -759,6 +759,19 @@ if(failures.length){
 }
 
 
+// MOBILE DOCK ACTIVE STATE — only the most specific route is current.
+{
+  const js=fs.readFileSync(path.join(root,'assets','js','site.js'),'utf8');
+  if(!js.includes('function markActiveDockItem()')||!js.includes('const bestMatch=candidates[0].a')) failures.push('/assets/js/site.js: most-specific mobile dock active-state logic missing');
+  if(!js.includes("removeAttribute('aria-current')")) failures.push('/assets/js/site.js: stale aria-current cleanup missing');
+}
+if(failures.length){
+  console.error('\nMobile dock active-state failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // PROGRESSIVE MOBILE NAVIGATION — app-like enhancement must not erase navigation without JavaScript.
 const siteJsProgressivePath=path.join(root,'assets','js','site.js');
 const siteCssProgressivePath=path.join(root,'assets','css','style.css');

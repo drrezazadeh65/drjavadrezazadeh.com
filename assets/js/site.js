@@ -203,9 +203,22 @@ document.addEventListener('keydown',e=>{
  }
 });
 const path=location.pathname.replace(/index\.html$/,'');
-qa('.app-dock a').forEach(a=>{
- try{const p=new URL(a.href,location.href).pathname.replace(/index\.html$/,'');if((p===base&&path===base)||(p!==base&&path.startsWith(p))){a.classList.add('is-active');a.setAttribute('aria-current','page')}}catch{}
-});
+function markActiveDockItem(){
+ const candidates=qa('.app-dock a').map(a=>{
+  try{
+   const p=new URL(a.href,location.href).pathname.replace(/index\.html$/,'');
+   const exact=p===path;
+   const nested=!exact&&p!==base&&path.startsWith(p);
+   return (exact||nested)?{a,p,exact}:null;
+  }catch{return null}
+ }).filter(Boolean);
+ if(!candidates.length)return;
+ candidates.sort((x,y)=>(Number(y.exact)-Number(x.exact))||(y.p.length-x.p.length));
+ const bestMatch=candidates[0].a;
+ qa('.app-dock a').forEach(a=>{a.classList.remove('is-active');a.removeAttribute('aria-current')});
+ bestMatch.classList.add('is-active');bestMatch.setAttribute('aria-current','page');
+}
+markActiveDockItem();
 })();
 
 // PWA INSTALL FLOW v1
