@@ -2,7 +2,12 @@
 
 Target production origin: `https://drjavadrezazadeh.com`
 
-This runbook is intentionally prepared before domain purchase. Do not run the write-mode cutover until DNS, TLS and hosting are ready.
+## Current production state
+The canonical-origin cutover completed successfully on 6 October 2026. GitHub Pages is the current static host and the owned domain is the public canonical origin. This document is retained as an audit/rollback runbook rather than as an instruction to repeat the migration.
+
+**GitHub Pages note:** repository `_redirects` syntax is not relied upon as the active production redirect engine on GitHub Pages. Current SEO safety therefore prioritises stable path identities and CI-enforced zero broken links. If hosting later moves to a platform that supports `_redirects`, those rules must be revalidated before activation.
+
+This runbook was prepared before cutover; write-mode migration should not be repeated unless an intentional future origin migration is approved.
 
 ## Pre-cutover
 1. Acquire the domain.
