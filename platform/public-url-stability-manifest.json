@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "frozen_on": "2026-10-06",
+  "production_origin": "https://drjavadrezazadeh.com",
+  "policy": {
+    "route_identity_is_stable": true,
+    "rename_requires_permanent_redirect": true,
+    "deletion_without_redirect": false,
+    "redirect_chain_allowed": false,
+    "redirect_loop_allowed": false,
+    "preserve_query_fragments_at_destination_when_semantically_required": true
+  },
+  "frozen_indexable_routes": [],
+  "note": "These indexable public route identities are frozen for SEO continuity. A route may evolve in content/design without changing its path. Any future path migration requires an explicit permanent one-hop redirect and an intentional manifest update."
+}
