@@ -1,0 +1,261 @@
+{
+  "schema_version": "1.0",
+  "architecture_version": "5.1",
+  "rule": "Every capability is a bounded module with explicit dependencies, authority, data sensitivity and release state. New modules are disabled until registered and validated.",
+  "modules": [
+    {
+      "id": "public-web",
+      "kind": "SURFACE",
+      "state": "ACTIVE_STATIC",
+      "authority": "PUBLIC_CONTENT",
+      "data_class": "PUBLIC",
+      "depends_on": [],
+      "exposes": [
+        "localized-public-pages",
+        "public-search",
+        "pwa-shell"
+      ]
+    },
+    {
+      "id": "identity",
+      "kind": "CORE_SERVICE",
+      "state": "FOUNDATION_READY",
+      "authority": "SERVER_ONLY",
+      "data_class": "PRIVATE",
+      "depends_on": [],
+      "exposes": [
+        "session",
+        "profile",
+        "role"
+      ]
+    },
+    {
+      "id": "consent",
+      "kind": "CORE_SERVICE",
+      "state": "FOUNDATION_READY",
+      "authority": "SERVER_ONLY",
+      "data_class": "SENSITIVE",
+      "depends_on": [
+        "identity"
+      ],
+      "exposes": [
+        "purpose-consent",
+        "withdrawal"
+      ]
+    },
+    {
+      "id": "relationships",
+      "kind": "CORE_SERVICE",
+      "state": "FOUNDATION_READY",
+      "authority": "SERVER_ONLY",
+      "data_class": "SENSITIVE",
+      "depends_on": [
+        "identity",
+        "consent"
+      ],
+      "exposes": [
+        "parent-student",
+        "teacher-student",
+        "adviser-case"
+      ]
+    },
+    {
+      "id": "consultation",
+      "kind": "DOMAIN",
+      "state": "FOUNDATION_READY",
+      "authority": "SERVER_ONLY",
+      "data_class": "PRIVATE",
+      "depends_on": [
+        "identity",
+        "consent"
+      ],
+      "exposes": [
+        "intake",
+        "triage",
+        "appointments",
+        "notes"
+      ]
+    },
+    {
+      "id": "commerce",
+      "kind": "DOMAIN",
+      "state": "FOUNDATION_READY",
+      "authority": "SERVER_ONLY",
+      "data_class": "PRIVATE_TRANSACTIONAL",
+      "depends_on": [
+        "identity"
+      ],
+      "exposes": [
+        "catalog",
+        "order",
+        "payment-intent",
+        "entitlement"
+      ]
+    },
+    {
+      "id": "golden-talent-evidence",
+      "kind": "DOMAIN",
+      "state": "PREVALIDATION",
+      "authority": "SERVER_ONLY",
+      "data_class": "SENSITIVE_EDUCATIONAL",
+      "depends_on": [
+        "identity",
+        "consent",
+        "relationships"
+      ],
+      "exposes": [
+        "evidence-ledger",
+        "professional-review",
+        "route-run"
+      ]
+    },
+    {
+      "id": "golden-talent-path",
+      "kind": "DOMAIN",
+      "state": "PREVALIDATION",
+      "authority": "HUMAN_REVIEWED_SERVER",
+      "data_class": "SENSITIVE_EDUCATIONAL",
+      "depends_on": [
+        "golden-talent-evidence"
+      ],
+      "exposes": [
+        "golden-path",
+        "release-history"
+      ]
+    },
+    {
+      "id": "bahar",
+      "kind": "DOMAIN",
+      "state": "PREVALIDATION",
+      "authority": "HUMAN_REVIEWED_SERVER",
+      "data_class": "SENSITIVE_EDUCATIONAL",
+      "depends_on": [
+        "golden-talent-path"
+      ],
+      "exposes": [
+        "baseline",
+        "weekly-cycle",
+        "reassessment"
+      ]
+    },
+    {
+      "id": "pathway-reference",
+      "kind": "REFERENCE_ADAPTER",
+      "state": "PREINTEGRATION",
+      "authority": "SERVER_VERIFIED_REFERENCE",
+      "data_class": "PUBLIC_REFERENCE",
+      "depends_on": [
+        "golden-talent-path"
+      ],
+      "exposes": [
+        "career-reference",
+        "education-reference",
+        "pathway-hypothesis"
+      ]
+    },
+    {
+      "id": "cms",
+      "kind": "ADMIN",
+      "state": "FOUNDATION_READY",
+      "authority": "EDITORIAL_SERVER",
+      "data_class": "MIXED",
+      "depends_on": [
+        "identity"
+      ],
+      "exposes": [
+        "content-lifecycle",
+        "seo-fields",
+        "revision-history"
+      ]
+    },
+    {
+      "id": "journal",
+      "kind": "SCHOLARLY_PLATFORM",
+      "state": "STAGING",
+      "authority": "SCHOLARLY_WORKFLOW",
+      "data_class": "MIXED",
+      "depends_on": [
+        "public-web"
+      ],
+      "exposes": [
+        "policies",
+        "calls",
+        "future-ojs"
+      ]
+    },
+    {
+      "id": "publisher",
+      "kind": "PUBLIC_ENTITY",
+      "state": "PUBLIC_FOUNDATION",
+      "authority": "PUBLIC_CONTENT",
+      "data_class": "PUBLIC",
+      "depends_on": [
+        "public-web"
+      ],
+      "exposes": [
+        "imprint",
+        "books-metadata"
+      ]
+    },
+    {
+      "id": "research-export",
+      "kind": "RESEARCH",
+      "state": "FOUNDATION_READY",
+      "authority": "APPROVED_DEIDENTIFIED_EXPORT",
+      "data_class": "RESEARCH_CONTROLLED",
+      "depends_on": [
+        "identity",
+        "consent"
+      ],
+      "exposes": [
+        "dataset-freeze",
+        "codebook",
+        "export"
+      ]
+    },
+    {
+      "id": "audit-observability",
+      "kind": "CORE_SERVICE",
+      "state": "FOUNDATION_READY",
+      "authority": "SERVER_ONLY",
+      "data_class": "PRIVACY_MINIMISED",
+      "depends_on": [
+        "identity"
+      ],
+      "exposes": [
+        "audit-event",
+        "operational-signal"
+      ]
+    }
+  ],
+  "invariants": {
+    "cycles_prohibited": true,
+    "unknown_dependencies_prohibited": true,
+    "client_authority_for_private_modules_prohibited": true,
+    "private_module_indexing_prohibited": true,
+    "feature_flag_default": "OFF",
+    "removal_requires_dependency_review": true,
+    "production_activation_requires_release_gate": true
+  },
+  "extension_template": {
+    "required": [
+      "id",
+      "kind",
+      "state",
+      "authority",
+      "data_class",
+      "depends_on",
+      "exposes"
+    ],
+    "default_state": "PLANNED_OFF",
+    "required_docs": [
+      "purpose",
+      "data-flow",
+      "threat-boundary",
+      "privacy-impact",
+      "api-contract-or-none",
+      "rollback-plan",
+      "release-gate"
+    ]
+  }
+}

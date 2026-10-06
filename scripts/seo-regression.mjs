@@ -685,6 +685,37 @@ if(failures.length){
 }
 
 
+// MODULE ARCHITECTURE GRAPH — future capabilities must remain bounded and acyclic.
+const moduleRegistryPath=path.join(root,'platform','module-registry.json');
+if(!fs.existsSync(moduleRegistryPath)) failures.push('/platform/module-registry.json: missing bounded-module registry');
+else{
+  try{
+    const mr=JSON.parse(fs.readFileSync(moduleRegistryPath,'utf8'));
+    const mods=Array.isArray(mr.modules)?mr.modules:[];
+    const ids=new Set(mods.map(m=>m.id));
+    if(ids.size!==mods.length) failures.push('/platform/module-registry.json: duplicate module id');
+    for(const m of mods){
+      for(const d of m.depends_on||[]) if(!ids.has(d)) failures.push('/platform/module-registry.json: '+m.id+' has unknown dependency '+d);
+      if(m.authority==='BROWSER'&&!['PUBLIC','PUBLIC_REFERENCE'].includes(m.data_class)) failures.push('/platform/module-registry.json: private browser authority prohibited '+m.id);
+    }
+    const by=new Map(mods.map(m=>[m.id,m])),visiting=new Set(),done=new Set();
+    const visit=id=>{
+      if(done.has(id)) return;
+      if(visiting.has(id)){failures.push('/platform/module-registry.json: dependency cycle '+id);return;}
+      visiting.add(id);
+      for(const d of by.get(id)?.depends_on||[]) visit(d);
+      visiting.delete(id);done.add(id);
+    };
+    for(const id of ids) visit(id);
+  }catch(e){failures.push('/platform/module-registry.json: invalid module registry '+e.message);}
+}
+if(failures.length){
+  console.error('\nModule architecture failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // ECOSYSTEM REGISTRY — extensibility contract and fail-closed route governance.
 const ecosystemRegistryPath=path.join(root,'platform','ecosystem-registry.json');
 if(!fs.existsSync(ecosystemRegistryPath)) failures.push('/platform/ecosystem-registry.json: missing extensibility registry');

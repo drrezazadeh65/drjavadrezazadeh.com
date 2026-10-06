@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {registry,validateModuleGraph,dependencyClosure,canActivateModule} from './module-governance.mjs';
+const graph=validateModuleGraph();
+assert.equal(graph.valid,true,graph.failures.join('\n'));
+assert(graph.module_count>=10);
+assert(dependencyClosure('bahar').includes('golden-talent-evidence'));
+assert(dependencyClosure('golden-talent-path').includes('consent'));
+assert.equal(canActivateModule('golden-talent-evidence',{release_gate_passed:true,feature_flag:'ON'}).allow,false);
+assert.equal(canActivateModule('identity',{release_gate_passed:false,feature_flag:'ON'}).reason,'RELEASE_GATE_REQUIRED');
+assert.equal(canActivateModule('identity',{release_gate_passed:true,feature_flag:'OFF'}).reason,'FEATURE_FLAG_OFF');
+const broken=structuredClone(registry);
+broken.modules.push({id:'bad',kind:'DOMAIN',state:'PLANNED_OFF',authority:'SERVER_ONLY',data_class:'PRIVATE',depends_on:['missing'],exposes:[]});
+assert.equal(validateModuleGraph(broken).valid,false);
+console.log('Module architecture graph passed');
