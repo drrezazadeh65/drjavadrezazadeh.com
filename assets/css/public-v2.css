@@ -870,3 +870,21 @@
   .public-content-page .profile-grid{grid-template-columns:1fr}
   .public-content-page .gt-commercial{padding:24px}
 }
+
+
+/* Public current-navigation state v1 */
+.public-home-page .site-header nav a[aria-current="page"],
+.public-content-page .site-header nav a[aria-current="page"],
+.public-gateway-page .site-header nav a[aria-current="page"]{
+  color:var(--public-ivory);
+  background:rgba(199,163,91,.07);
+  box-shadow:inset 0 0 0 1px rgba(199,163,91,.10);
+}
+.public-home-page .site-header nav a[aria-current="page"]::after,
+.public-content-page .site-header nav a[aria-current="page"]::after{
+  content:"";
+  display:block;
+  height:1px;
+  margin-top:5px;
+  background:linear-gradient(90deg,transparent,var(--public-gold),transparent);
+}
