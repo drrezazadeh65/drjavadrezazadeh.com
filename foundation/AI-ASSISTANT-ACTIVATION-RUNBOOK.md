@@ -41,3 +41,18 @@ After deployment:
 - Verify private app/assessment/checkout pages do not show the public assistant.
 - Verify the assistant refuses private-record/payment access and does not invent prices or scientific scores.
 - Verify 429 is returned after the configured per-device rate limit is exceeded.
+
+
+## Lead bank
+
+The assistant includes a separate, consented contact-request form. A visitor may submit either an email address or an E.164 mobile number plus a high-level intent category. Chat messages are not copied into the lead bank.
+
+Lead records are stored in a SQLite-backed Cloudflare Durable Object. NEW leads are automatically pruned after 180 days unless their status has changed. The Worker does not store raw IP addresses, user-agent fingerprints, passwords, student assessment responses or payment data in the lead record.
+
+For protected export, create a runtime secret named `ADMIN_LEAD_EXPORT_TOKEN`. The endpoint `GET /v1/admin/leads` requires `Authorization: Bearer <token>`. Never place this token in GitHub, GitHub Pages JavaScript or public CI logs.
+
+WhatsApp consent is separate. A mobile lead can explicitly opt in to WhatsApp contact, but that consent does not activate WhatsApp by itself and is not marketing consent.
+
+## Authentication boundary
+
+The public assistant is not an authentication mechanism. Site account creation uses email as the only sign-in identifier and email verification as the account-activation authority. The required mobile number is contact data only. Password recovery remains email-only.
