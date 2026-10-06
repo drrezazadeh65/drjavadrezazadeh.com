@@ -276,7 +276,9 @@ paths:
       tags: [Consultation]
       summary: Create an initial consultation request
       description: >
-        Accepts only the minimum information required for triage. Sensitive
+        Accepts only the minimum information required to route educational,
+        academic, teacher or institutional professional-service requests.
+        Sensitive student records, confidential manuscripts and other private
         documents are not uploaded at this stage.
       security: []
       requestBody:
@@ -1098,7 +1100,6 @@ components:
       additionalProperties: false
       required:
         - serviceType
-        - educationStage
         - primaryQuestion
         - preferredLanguage
         - contactEmail
@@ -1113,15 +1114,33 @@ components:
             - TALENT_IDENTIFICATION
             - REPORT_CARD_ANALYSIS
             - PARENT_COUNSELLING
+            - ACADEMIC_ENGLISH_EDITING
+            - MANUSCRIPT_DIAGNOSTIC
+            - RESEARCH_CONSULTATION
+            - PUBLICATION_CONSULTATION
+            - REVIEWER_RESPONSE_SUPPORT
+            - ACADEMIC_CAREER_CONSULTATION
+            - TEACHER_MENTORING
+            - ASSESSMENT_CONSULTATION
+            - INSTITUTIONAL_CONSULTING
+            - SPEAKING_TRAINING
+        requesterContext:
+          type: [string, "null"]
+          enum: [STUDENT, PARENT, RESEARCHER, ACADEMIC, TEACHER, EDUCATOR, INSTITUTION, PROFESSIONAL, OTHER, null]
+        contextLabel:
+          type: [string, "null"]
+          maxLength: 160
+          description: Minimal routing context only; never use for confidential manuscript text, sensitive student records or secrets.
         educationStage:
-          type: string
+          type: [string, "null"]
           maxLength: 80
+          description: Optional and relevant mainly to student/parent educational services.
         primaryQuestion:
           type: string
           minLength: 20
           maxLength: 2500
         relevantDeadline:
-          type: string
+          type: [string, "null"]
           format: date
         preferredLanguage:
           type: string
@@ -1130,13 +1149,14 @@ components:
           type: string
           format: email
         contactName:
-          type: string
+          type: [string, "null"]
           maxLength: 120
         documentAvailability:
           type: array
+          description: Availability metadata only; the initial request does not accept sensitive file uploads.
           items:
             type: string
-            enum: [REPORT_CARD, EXAM_RESULT, FIELD_LIST, PRIOR_ASSESSMENT, OTHER]
+            enum: [REPORT_CARD, EXAM_RESULT, FIELD_LIST, PRIOR_ASSESSMENT, MANUSCRIPT_DRAFT, REVIEWER_COMMENTS, ACADEMIC_CV, OTHER]
         privacyAccepted:
           type: boolean
           const: true
@@ -1160,8 +1180,12 @@ components:
           properties:
             serviceType:
               type: string
+            requesterContext:
+              type: [string, "null"]
+            contextLabel:
+              type: [string, "null"]
             educationStage:
-              type: string
+              type: [string, "null"]
             primaryQuestion:
               type: string
     ConsultationTriageUpdate:
@@ -1182,6 +1206,16 @@ components:
             - TALENT_IDENTIFICATION
             - REPORT_CARD_ANALYSIS
             - PARENT_COUNSELLING
+            - ACADEMIC_ENGLISH_EDITING
+            - MANUSCRIPT_DIAGNOSTIC
+            - RESEARCH_CONSULTATION
+            - PUBLICATION_CONSULTATION
+            - REVIEWER_RESPONSE_SUPPORT
+            - ACADEMIC_CAREER_CONSULTATION
+            - TEACHER_MENTORING
+            - ASSESSMENT_CONSULTATION
+            - INSTITUTIONAL_CONSULTING
+            - SPEAKING_TRAINING
         priority:
           type: string
           description: Educational/service time pressure; not a medical or crisis-severity label.
