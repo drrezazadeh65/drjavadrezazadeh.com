@@ -1,31 +1,47 @@
 {
-  "schema_version":"1.0",
-  "engine_id":"GOLDEN-TALENT-EVIDENCE-ROUTER",
-  "engine_version":"0.1-prevalidation",
-  "status":"PREVALIDATION",
-  "purpose":"Convert versioned multi-source evidence into auditable D1-D6 evidence states and next-evidence recommendations without producing a total talent score or diagnostic label.",
-  "domains":["D1","D2","D3","D4","D5","D6"],
-  "accepted_sources":["STUDENT_SELF","PARENT","TEACHER","ACADEMIC_RECORD","ASSESSMENT","CONTEXT","CONSULTANT","PERFORMANCE_SAMPLE"],
-  "evidence_states":{
-    "INSUFFICIENT":"No usable evidence, or evidence does not meet the minimum source rule.",
-    "SINGLE_SOURCE":"Usable evidence exists but comes from only one independent source class.",
-    "CONVERGENT":"At least two independent usable source classes provide materially compatible evidence.",
-    "DISCREPANT":"At least two independent usable source classes provide materially conflicting evidence or context changes interpretation."
+  "schema_version": "1.0",
+  "engine_id": "GOLDEN-TALENT-EVIDENCE-ROUTER",
+  "engine_version": "0.2-prevalidation",
+  "status": "PREVALIDATION",
+  "purpose": "Convert versioned multi-source evidence into auditable D1-D6 evidence states and next-evidence recommendations without producing a total talent score or diagnostic label.",
+  "domains": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6"
+  ],
+  "accepted_sources": [
+    "STUDENT_SELF",
+    "PARENT",
+    "TEACHER",
+    "ACADEMIC_RECORD",
+    "ASSESSMENT",
+    "CONTEXT",
+    "CONSULTANT",
+    "PERFORMANCE_SAMPLE"
+  ],
+  "evidence_states": {
+    "INSUFFICIENT": "No usable evidence, or evidence does not meet the minimum source rule.",
+    "SINGLE_SOURCE": "Usable evidence exists but comes from only one independent source class.",
+    "CONVERGENT": "At least two independent usable source classes provide materially compatible evidence.",
+    "DISCREPANT": "At least two independent usable source classes provide materially conflicting evidence or context changes interpretation."
   },
-  "routing_policy":{
-    "total_score":false,
-    "normative_cut_score":false,
-    "automatic_gifted_label":false,
-    "automatic_career_prescription":false,
-    "minimum_independent_sources_for_convergence":2,
-    "self_report_alone_can_establish_convergence":false,
-    "observer_report_alone_can_establish_convergence":false,
-    "missing_evidence_is_not_negative_evidence":true,
-    "context_can_limit_interpretation":true,
-    "discrepancy_triggers_review":true,
-    "route_priority_is_next_evidence_priority_not_talent_rank":true
+  "routing_policy": {
+    "total_score": false,
+    "normative_cut_score": false,
+    "automatic_gifted_label": false,
+    "automatic_career_prescription": false,
+    "minimum_independent_sources_for_convergence": 2,
+    "self_report_alone_can_establish_convergence": false,
+    "observer_report_alone_can_establish_convergence": false,
+    "missing_evidence_is_not_negative_evidence": true,
+    "context_can_limit_interpretation": true,
+    "discrepancy_triggers_review": true,
+    "route_priority_is_next_evidence_priority_not_talent_rank": true
   },
-  "quality_rules":[
+  "quality_rules": [
     "WITHDRAWN evidence is excluded from routing.",
     "LIMITED evidence may contextualise a route but cannot independently establish convergence.",
     "CONFLICTING evidence must remain visible and cannot be averaged away.",
@@ -33,11 +49,17 @@
     "Every route run snapshots the engine policy and version.",
     "High-consequence Golden Path synthesis requires human review."
   ],
-  "release_gate":{
-    "empirical_validation_required_before_norms_or_cut_scores":true,
-    "fairness_analysis_required":true,
-    "measurement_invariance_review_required_where_applicable":true,
-    "cross_source_agreement_analysis_required":true,
-    "calibration_sample_required":true
+  "release_gate": {
+    "empirical_validation_required_before_norms_or_cut_scores": true,
+    "fairness_analysis_required": true,
+    "measurement_invariance_review_required_where_applicable": true,
+    "cross_source_agreement_analysis_required": true,
+    "calibration_sample_required": true
+  },
+  "runtime": {
+    "module": "platform/golden-talent-engine.mjs",
+    "tests": "platform/golden-talent-engine.test.mjs",
+    "deterministic": true,
+    "server_intended": true
   }
 }
