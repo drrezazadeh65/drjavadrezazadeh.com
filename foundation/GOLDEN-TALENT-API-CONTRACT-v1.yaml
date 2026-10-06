@@ -67,7 +67,9 @@ paths:
         Creates an RCAS-O1 session only after the server verifies that the authenticated
         PARENT or TEACHER is authorised to submit observation evidence for the subject
         student. A claimed relationship in the browser is never sufficient. RCAS-O1
-        produces O-source evidence and has no score, normative interpretation or total.
+        produces UNREVIEWED contextual O-source evidence and has no score, normative
+        interpretation or total. Free-text observation cannot establish convergence
+        until an authorised review classifies its evidential direction.
       security: [{ sessionAuth: [] }]
       responses:
         '201': { description: Authorised observer session created }
