@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.0",
+  "status": "PREVALIDATION",
+  "total_score": false,
+  "normative_cut_score": false,
+  "modules": {
+    "D1": {
+      "title": "Learning & Self-Regulation",
+      "tasks": [
+        "E1",
+        "E2",
+        "E4"
+      ],
+      "evidence": [
+        "PERFORMANCE_SAMPLE",
+        "ASSESSMENT",
+        "STUDENT_SELF"
+      ],
+      "completion": "At least one traceable performance sample plus reflective evidence; completion is not a talent judgement.",
+      "prohibitions": [
+        "fixed learning type",
+        "clinical diagnosis",
+        "total talent score"
+      ]
+    },
+    "D2": {
+      "title": "Self-Efficacy, Wellbeing & Recovery",
+      "tasks": [
+        "E5"
+      ],
+      "evidence": [
+        "STUDENT_SELF",
+        "CONTEXT",
+        "PARENT",
+        "TEACHER"
+      ],
+      "completion": "Contextual setback-recovery evidence reviewed without clinical inference.",
+      "prohibitions": [
+        "mental-health diagnosis",
+        "pathology label",
+        "total talent score"
+      ]
+    },
+    "D3": {
+      "title": "Digital & AI Self-Regulation",
+      "tasks": [
+        "E6"
+      ],
+      "evidence": [
+        "PERFORMANCE_SAMPLE",
+        "ASSESSMENT",
+        "STUDENT_SELF"
+      ],
+      "completion": "Paired assisted/independent performance evidence where feasible; tool use alone is not negative evidence.",
+      "prohibitions": [
+        "AI dependence diagnosis",
+        "moral label",
+        "total talent score"
+      ]
+    },
+    "D4": {
+      "title": "Context, Access & Support Ecology",
+      "tasks": [
+        "E7"
+      ],
+      "evidence": [
+        "CONTEXT",
+        "STUDENT_SELF",
+        "PARENT",
+        "TEACHER"
+      ],
+      "completion": "Constraint, control and support evidence with structural barriers preserved as context.",
+      "prohibitions": [
+        "blaming learner for structural constraint",
+        "deficit label",
+        "total talent score"
+      ]
+    },
+    "D5": {
+      "title": "Golden Path",
+      "tasks": [
+        "E3",
+        "E8"
+      ],
+      "evidence": [
+        "PERFORMANCE_SAMPLE",
+        "STUDENT_SELF",
+        "CONSULTANT",
+        "ACADEMIC_RECORD"
+      ],
+      "completion": "At least one pathway hypothesis tested against real experience or external evidence and professionally reviewed.",
+      "prohibitions": [
+        "automatic career prescription",
+        "destiny claim",
+        "total talent score"
+      ]
+    },
+    "D6": {
+      "title": "Critical Thinking & Decision Quality",
+      "tasks": [
+        "E9",
+        "E10"
+      ],
+      "evidence": [
+        "PERFORMANCE_SAMPLE",
+        "ASSESSMENT",
+        "STUDENT_SELF"
+      ],
+      "completion": "Traceable claim-evidence-decision process; outcome quality is not substituted for process quality.",
+      "prohibitions": [
+        "IQ inference",
+        "fixed critical-thinker label",
+        "total talent score"
+      ]
+    }
+  },
+  "common": {
+    "requires_entitlement": true,
+    "server_authoritative_completion": true,
+    "versioned_instrument": true,
+    "provenance_required": true,
+    "human_review_for_high_consequence": true,
+    "missing_evidence_is_not_negative": true,
+    "output": [
+      "evidence_events",
+      "quality_flags",
+      "uncertainty",
+      "next_evidence_need"
+    ]
+  }
+}
