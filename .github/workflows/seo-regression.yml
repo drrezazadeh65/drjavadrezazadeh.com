@@ -34,6 +34,8 @@ jobs:
         run: node scripts/internal-link-graph-audit.mjs
       - name: Run structured/social URL integrity audit
         run: node scripts/structured-url-audit.mjs
+      - name: Run llms.txt public discovery audit
+        run: node scripts/llms-txt-audit.mjs
       - name: Run metadata uniqueness and content-identity audit
         run: node scripts/metadata-uniqueness-audit.mjs
       - name: Run accessibility source audit

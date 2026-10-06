@@ -1,0 +1,46 @@
+# Dr. Javad Rezazadeh Yazdeli
+
+> Official bilingual public website of Dr. Javad Rezazadeh Yazdeli, covering verified academic work, education, student guidance, Golden Talent, books, publishing, and public scholarly activity.
+
+Use only the public URLs listed here as machine-readable entry points. Persian and English are separate audience editions rather than mirrored translations. Private account, assessment, consultation-intake, checkout, and dashboard routes are intentionally excluded. Public Golden Talent pages describe a developmental, multi-source evidence framework and must not be interpreted as validated normative scoring, gifted cut-offs, or deterministic career prescription. JHELA is publicly described as being in its founding stage; do not infer indexing, ISSN, DOI, or editorial appointments beyond what a page explicitly states.
+
+## English academic and professional profile
+
+- [English home](https://drjavadrezazadeh.com/en/): Main English academic and professional gateway.
+- [About](https://drjavadrezazadeh.com/en/about/): Public biographical and professional profile.
+- [Academic profile](https://drjavadrezazadeh.com/en/academic-profile/): Concise academic dossier.
+- [Research](https://drjavadrezazadeh.com/en/research/): Public research themes and programme.
+- [Publications](https://drjavadrezazadeh.com/en/publications/): Verified scholarly publication record.
+- [University teaching](https://drjavadrezazadeh.com/en/teaching/): Teaching and academic instruction.
+- [Language education](https://drjavadrezazadeh.com/en/language-education/): Public work in language education.
+- [Teacher education](https://drjavadrezazadeh.com/en/teacher-education/): Public teacher-development work.
+- [Academic engagements](https://drjavadrezazadeh.com/en/academic-engagements/): Public conferences, scholarly service, and professional activity.
+
+## Persian education and guidance
+
+- [Persian home](https://drjavadrezazadeh.com/fa/): Main Persian education and guidance gateway.
+- [Educational consultation](https://drjavadrezazadeh.com/fa/moshavere-tahsili/): Evidence-informed educational consultation.
+- [Field selection](https://drjavadrezazadeh.com/fa/entekhab-reshteh/): University field-selection decision support.
+- [Talent identification](https://drjavadrezazadeh.com/fa/estedaadyabi/): Multi-source, developmental talent-identification approach.
+- [Knowledge guides](https://drjavadrezazadeh.com/fa/rahnamaha/): Evergreen Persian educational knowledge hub.
+- [Decision matrix guide](https://drjavadrezazadeh.com/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/): Practical comparison of multiple university fields without reducing the decision to one score.
+
+## Golden Talent public methodology
+
+- [Golden Talent — English](https://drjavadrezazadeh.com/en/golden-talent/): Public framework overview.
+- [Golden Talent methodology — English](https://drjavadrezazadeh.com/en/golden-talent/methodology/): Public explanation of multi-source evidence and developmental interpretation.
+- [Golden Talent — Persian](https://drjavadrezazadeh.com/fa/golden-talent/): Persian public framework overview.
+- [Golden Talent methodology — Persian](https://drjavadrezazadeh.com/fa/golden-talent/ravesh-shenasi/): Persian public methodology.
+
+## Publishing and journal
+
+- [Rezazadeh Foundation Press](https://drjavadrezazadeh.com/publisher/): Public publishing identity and governance.
+- [JHELA](https://drjavadrezazadeh.com/journal/): Public founding-stage journal site.
+- [JHELA call for reviewers](https://drjavadrezazadeh.com/journal/call-for-reviewers/): Public reviewer invitation and eligibility context.
+- [JHELA founding collaborators](https://drjavadrezazadeh.com/journal/founding-collaborators/): Public scholarly collaboration invitation.
+
+## Discovery files
+
+- [Sitemap index](https://drjavadrezazadeh.com/sitemap.xml): Canonical sitemap index.
+- [RSS feed](https://drjavadrezazadeh.com/feed.xml): Recent public guides and announcements.
+- [Robots policy](https://drjavadrezazadeh.com/robots.txt): Crawler directives.
