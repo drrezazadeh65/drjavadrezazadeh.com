@@ -24,6 +24,8 @@ assert(client.includes('contact_consent'));
 assert(worker.includes('export class LeadStore'));
 assert(worker.includes("url.pathname==='/v1/leads'"));
 assert(worker.includes('ADMIN_LEAD_EXPORT_TOKEN'));
+assert(worker.includes("url.pathname==='/status'"));
+assert(worker.includes("url.pathname.startsWith('/v1/admin/leads/')"));
 assert(wrangler.includes('LEAD_STORE'));
 assert(wrangler.includes('"storage": "sqlite"'));
 assert(css.includes('@media(max-width:900px)'));

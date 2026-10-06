@@ -56,3 +56,8 @@ WhatsApp consent is separate. A mobile lead can explicitly opt in to WhatsApp co
 ## Authentication boundary
 
 The public assistant is not an authentication mechanism. Site account creation uses email as the only sign-in identifier and email verification as the account-activation authority. The required mobile number is contact data only. Password recovery remains email-only.
+
+
+## Lead lifecycle statuses
+
+The protected admin API can move a lead through `NEW → CONTACTED → QUALIFIED → CONVERTED/CLOSED`. This is a workflow status only; it does not create an account, entitlement, booking or payment state. The public assistant cannot change lead status.

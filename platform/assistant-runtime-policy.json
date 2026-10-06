@@ -64,6 +64,14 @@
     ],
     "whatsapp_opt_in_separate": true,
     "admin_export_endpoint": "/v1/admin/leads",
-    "admin_export_secret_name": "ADMIN_LEAD_EXPORT_TOKEN"
+    "admin_export_secret_name": "ADMIN_LEAD_EXPORT_TOKEN",
+    "statuses": [
+      "NEW",
+      "CONTACTED",
+      "QUALIFIED",
+      "CONVERTED",
+      "CLOSED"
+    ],
+    "admin_status_endpoint": "/v1/admin/leads/{leadId}"
   }
 }
