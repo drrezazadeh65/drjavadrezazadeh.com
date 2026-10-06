@@ -1,5 +1,7 @@
 const {test,expect}=require('@playwright/test');
 
+test.use({serviceWorkers:'block'});
+
 const base='http://127.0.0.1:4173';
 const viewports=[
   ['mobile-320',320,800],
@@ -20,7 +22,8 @@ for(const [label,width,height] of viewports){
     const errors=[];
     page.on('pageerror',e=>errors.push(String(e)));
     for(const route of coreRoutes){
-      await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      await page.goto(base+route,{waitUntil:'networkidle'});
+      await page.waitForTimeout(80);
       await expect(page.locator('h1')).toHaveCount(1);
       const overflow=await page.evaluate(()=>({
         viewport:window.innerWidth,
@@ -56,7 +59,8 @@ test('Persian public search v2 works without private leakage',async({page})=>{
 
 test('keyboard focus reaches primary public navigation',async({page})=>{
   await page.setViewportSize({width:1440,height:900});
-  await page.goto(base+'/en/',{waitUntil:'domcontentloaded'});
+  await page.goto(base+'/en/',{waitUntil:'networkidle'});
+  await page.waitForTimeout(80);
   await page.keyboard.press('Tab');
   const focused=await page.evaluate(()=>({
     tag:document.activeElement?.tagName,
