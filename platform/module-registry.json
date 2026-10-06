@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "architecture_version": "5.1",
+  "architecture_version": "5.2",
   "rule": "Every capability is a bounded module with explicit dependencies, authority, data sensitivity and release state. New modules are disabled until registered and validated.",
   "modules": [
     {
@@ -73,7 +73,8 @@
         "intake",
         "triage",
         "appointments",
-        "notes"
+        "notes",
+        "professional-service-intake"
       ]
     },
     {
@@ -91,6 +92,44 @@
         "payment-intent",
         "entitlement",
         "book-fulfilment"
+      ]
+    },
+    {
+      "id": "longitudinal-development",
+      "kind": "DOMAIN",
+      "state": "FOUNDATION_READY",
+      "authority": "HUMAN_REVIEWED_SERVER",
+      "data_class": "SENSITIVE_EDUCATIONAL",
+      "depends_on": [
+        "identity",
+        "consent"
+      ],
+      "exposes": [
+        "study-plan-versions",
+        "progress-measurements",
+        "decision-history",
+        "saved-pathway-options",
+        "decision-explanations"
+      ]
+    },
+    {
+      "id": "coaching",
+      "kind": "DOMAIN",
+      "state": "FOUNDATION_READY",
+      "authority": "HUMAN_REVIEWED_SERVER",
+      "data_class": "SENSITIVE_EDUCATIONAL",
+      "depends_on": [
+        "identity",
+        "consent",
+        "consultation",
+        "commerce",
+        "longitudinal-development"
+      ],
+      "exposes": [
+        "coaching-programmes",
+        "enrollments",
+        "periodic-reviews",
+        "adaptive-follow-up"
       ]
     },
     {
