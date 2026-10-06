@@ -2097,3 +2097,36 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// METADATA UNIQUENESS — prevent accidental title/description duplication and SERP cannibalisation.
+{
+  const titleOwners=new Map();
+  const descOwners=new Map();
+  for(const file of htmlFiles){
+    const html=fs.readFileSync(file,'utf8');
+    const route=routeFor(file);
+    const robots=getAttr((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0],'content')||'';
+    if(/\bnoindex\b/i.test(robots)) continue;
+    const title=strip((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]||'');
+    const desc=getAttr((html.match(/<meta\b[^>]*name=["']description["'][^>]*>/i)||[''])[0],'content')||'';
+    const tKey=title.replace(/\s+/g,' ').trim().toLocaleLowerCase();
+    const dKey=desc.replace(/\s+/g,' ').trim().toLocaleLowerCase();
+    if(tKey){
+      if(titleOwners.has(tKey)) failures.push(route+': duplicate indexable title also used by '+titleOwners.get(tKey));
+      else titleOwners.set(tKey,route);
+      if(title.length<18) warnings.push(route+': unusually short title ('+title.length+' chars)');
+      if(title.length>72) warnings.push(route+': long title may truncate in search ('+title.length+' chars)');
+    }
+    if(dKey){
+      if(descOwners.has(dKey)) failures.push(route+': duplicate indexable meta description also used by '+descOwners.get(dKey));
+      else descOwners.set(dKey,route);
+      if(desc.length>190) warnings.push(route+': long meta description may truncate in search ('+desc.length+' chars)');
+    }
+  }
+}
+if(failures.length){
+  console.error('\nMetadata uniqueness failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
