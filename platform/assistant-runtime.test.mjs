@@ -8,6 +8,8 @@ const css=fs.readFileSync(new URL('../assets/css/assistant.css',import.meta.url)
 const wrangler=fs.readFileSync(new URL('../edge/assistant/wrangler.jsonc',import.meta.url),'utf8');
 
 assert.equal(policy.storage.server_conversation_persistence,false);
+assert.equal(policy.storage.lead_bank,'CLOUDFLARE_DURABLE_OBJECT_SQLITE');
+assert.equal(policy.storage.conversation_text_written_to_lead_bank,false);
 assert.equal(policy.visibility.private_app,false);
 assert.equal(policy.abuse_controls.max_user_message_chars,1600);
 assert(worker.includes('ASSISTANT_RATE_LIMITER'));
@@ -17,6 +19,13 @@ assert(worker.includes('X-Robots-Tag'));
 assert(!worker.includes('OPENAI_API_KEY'));
 assert(client.includes('assistant.drjavadrezazadeh.com/v1/chat'));
 assert(client.includes('PRIVATE_PREFIXES'));
+assert(client.includes('/v1/leads'));
+assert(client.includes('contact_consent'));
+assert(worker.includes('export class LeadStore'));
+assert(worker.includes("url.pathname==='/v1/leads'"));
+assert(worker.includes('ADMIN_LEAD_EXPORT_TOKEN'));
+assert(wrangler.includes('LEAD_STORE'));
+assert(wrangler.includes('"storage": "sqlite"'));
 assert(css.includes('@media(max-width:900px)'));
 assert(wrangler.includes('@cf/openai/gpt-oss-120b'));
 assert(wrangler.includes('"custom_domain": true'));
