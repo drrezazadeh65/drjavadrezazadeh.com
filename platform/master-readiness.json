@@ -127,13 +127,16 @@
         "platform/payment-provider-policy.json",
         "platform/payment-state-machine.json",
         "foundation/PAYMENT-PROVIDER-ABSTRACTION-v1.md",
-        "platform/db/migrations/002_commerce_payments.sql"
+        "platform/db/migrations/002_commerce_payments.sql",
+        "platform/payment-provider-registry.json",
+        "platform/payment-provider-adapter.mjs",
+        "platform/db/migrations/026_payment_provider_event.sql"
       ],
       "next_actions": [
-        "Keep gateway disabled until credentials arrive",
-        "Implement exact provider adapter from official API contract",
-        "Sandbox callback verification",
-        "Reconciliation test before live switch"
+        "Receive exact approved gateway API documentation and credentials",
+        "Implement provider-specific adapter behind the frozen interface",
+        "Verify sandbox callback/webhook authenticity, idempotency and amount/currency match",
+        "Run reconciliation and failure/retry tests before live switch"
       ]
     },
     {

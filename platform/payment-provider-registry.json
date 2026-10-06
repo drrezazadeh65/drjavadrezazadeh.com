@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "status": "PRE_PRODUCTION",
+  "activation_rule": "A provider remains disabled until its exact official API contract, merchant credentials, callback origin and sandbox verification have passed.",
+  "providers": [
+    {
+      "key": "ir_primary",
+      "market": "IR",
+      "currency": "IRR",
+      "enabled": false,
+      "adapter_status": "AWAITING_SELECTED_PROVIDER_API",
+      "credentials_state": "MISSING",
+      "capabilities_required": [
+        "CREATE_INTENT",
+        "VERIFY_EVENT",
+        "QUERY_STATUS"
+      ],
+      "refund_capability": "VERIFY_WHEN_PROVIDER_SELECTED"
+    },
+    {
+      "key": "ir_secondary",
+      "market": "IR",
+      "currency": "IRR",
+      "enabled": false,
+      "adapter_status": "OPTIONAL_FALLBACK_SLOT",
+      "credentials_state": "MISSING",
+      "capabilities_required": [
+        "CREATE_INTENT",
+        "VERIFY_EVENT",
+        "QUERY_STATUS"
+      ],
+      "refund_capability": "VERIFY_WHEN_PROVIDER_SELECTED"
+    },
+    {
+      "key": "international_primary",
+      "market": "INTERNATIONAL",
+      "currency": "USD",
+      "enabled": false,
+      "adapter_status": "AWAITING_KYB_ELIGIBLE_PROVIDER",
+      "credentials_state": "MISSING",
+      "capabilities_required": [
+        "CREATE_INTENT",
+        "VERIFY_EVENT",
+        "QUERY_STATUS"
+      ],
+      "refund_capability": "VERIFY_WHEN_PROVIDER_SELECTED"
+    }
+  ],
+  "secrets": {
+    "repository_allowed": false,
+    "browser_allowed": false,
+    "log_allowed": false,
+    "runtime_secret_store_required": true
+  }
+}
