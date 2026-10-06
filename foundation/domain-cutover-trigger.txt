@@ -1,0 +1,5 @@
+Production domain cutover trigger
+Target: https://drjavadrezazadeh.com
+User-confirmed state: custom domain connected
+Triggered: 2026-10-06
+Invariant: preserve all existing path identities; change origin only.
