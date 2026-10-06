@@ -1262,3 +1262,44 @@
   .public-cv-page .portrait-shell{width:180px!important;box-shadow:none!important}
   .public-cv-page .cv-section{break-inside:avoid;page-break-inside:avoid}
 }
+
+
+/* Citation tools v1 */
+.public-content-page .citation-tools{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.045);
+}
+.public-content-page .citation-action{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:36px;
+  padding:8px 11px;
+  border:1px solid var(--public-line);
+  border-radius:999px;
+  background:#0f0f11;
+  color:#bbb9b4;
+  font:inherit;
+  font-size:10px;
+  text-decoration:none;
+  cursor:pointer;
+}
+.public-content-page .citation-action:hover,
+.public-content-page .citation-action:focus-visible{
+  border-color:var(--public-gold-line);
+  color:var(--public-gold-soft);
+}
+.public-content-page .citation-action.is-copied{
+  border-color:rgba(143,198,162,.26);
+  color:#b7d4c0;
+}
+.public-content-page .citation-status{
+  color:#74777e;
+  font-size:10px;
+  line-height:1.6;
+}
