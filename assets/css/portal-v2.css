@@ -1848,6 +1848,7 @@
 }
 
 /* Mobile dashboard dock v1 — sidebar becomes a horizontal app dock below 840px. */
+@media(max-width:840px){.dashboard-shell-page .gt-mobile-dock{display:none!important}}
 @media(max-width:520px){
   .dashboard-sidebar nav a{min-width:104px;font-size:11px}
   .dashboard-sidebar{padding-inline:6px}
