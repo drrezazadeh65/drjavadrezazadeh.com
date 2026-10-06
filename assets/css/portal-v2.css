@@ -1233,3 +1233,91 @@
   .role-dashboard-page .authority-grid{grid-template-columns:1fr}
   .role-dashboard-page .gt-private-hero{padding:24px}
 }
+
+
+/* Role subpages v1 — resources, scoped paths, observations and case workspaces */
+.role-subpage .role-resource-shell,
+.role-subpage .case-shell,
+.role-subpage .observer-shell,
+.role-subpage .foundation-main.app-prototype{
+  width:min(1240px,calc(100% - 56px));
+  margin:0 auto;
+  padding:30px 0 90px;
+}
+.role-subpage .role-resource-hero,
+.role-subpage .case-hero,
+.role-subpage .observer-hero,
+.role-subpage .foundation-hero{
+  max-width:none;
+  padding:36px;
+  border:1px solid var(--dash-border);
+  border-radius:22px;
+  background:
+    radial-gradient(520px 220px at 92% 0%,rgba(199,163,91,.07),transparent 68%),
+    linear-gradient(160deg,#131315,#0e0e10);
+  box-shadow:none;
+}
+.role-subpage .role-resource-hero h1,
+.role-subpage .case-hero h1,
+.role-subpage .observer-hero h1,
+.role-subpage .foundation-hero h1{
+  max-width:930px;
+  font-size:clamp(32px,4.2vw,52px);
+  line-height:1.3;
+}
+.rtl.role-subpage .role-resource-hero h1,
+.rtl.role-subpage .case-hero h1,
+.rtl.role-subpage .observer-hero h1,
+.rtl.role-subpage .foundation-hero h1{line-height:1.65}
+.role-subpage .role-resource-section,
+.role-subpage .case-section,
+.role-subpage .app-safety,
+.role-subpage .case-audit,
+.role-subpage .observer-form{
+  margin-top:18px;
+  padding:26px;
+  border:1px solid var(--dash-border);
+  border-radius:18px;
+  background:linear-gradient(160deg,#121214,#0f0f11);
+}
+.role-subpage .role-resource-grid,
+.role-subpage .authority-grid,
+.role-subpage .app-grid{
+  gap:12px;
+}
+.role-subpage .role-resource-grid article,
+.role-subpage .authority-grid article,
+.role-subpage .app-card,
+.role-subpage .observer-source-grid>div,
+.role-subpage .observer-role-grid>label{
+  border-color:var(--dash-border);
+  background:linear-gradient(160deg,#141416,#101012);
+  box-shadow:none;
+}
+.role-subpage .observer-form input,
+.role-subpage .observer-form select,
+.role-subpage .observer-form textarea{
+  border-color:var(--dash-border);
+  background:#0d0d0f;
+}
+.role-subpage footer{
+  width:min(1240px,calc(100% - 56px));
+}
+@media(max-width:840px){
+  .role-subpage .role-resource-shell,
+  .role-subpage .case-shell,
+  .role-subpage .observer-shell,
+  .role-subpage .foundation-main.app-prototype,
+  .role-subpage footer{width:calc(100% - 20px)}
+}
+@media(max-width:620px){
+  .role-subpage .role-resource-hero,
+  .role-subpage .case-hero,
+  .role-subpage .observer-hero,
+  .role-subpage .foundation-hero,
+  .role-subpage .role-resource-section,
+  .role-subpage .case-section,
+  .role-subpage .app-safety,
+  .role-subpage .case-audit,
+  .role-subpage .observer-form{padding:20px}
+}
