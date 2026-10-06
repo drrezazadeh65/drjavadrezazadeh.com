@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.0",
+  "as_of": "2026-10-06",
+  "rule": "Knowledge content is cluster-led and question-led. New URLs require distinct intent and substantive value; the registry does not authorise thin programmatic pages.",
+  "publishing_pattern": [
+    "PILLAR",
+    "SUPPORTING_ARTICLE",
+    "FAQ",
+    "TOOL",
+    "SERVICE_BRIDGE"
+  ],
+  "language_strategy": {
+    "fa": "Student/parent education, talent development, study, coaching, Iran pathways and researcher-facing academic guidance.",
+    "en": "International authority, research, educational thought, assessment, teacher development, academic consulting, institutional work and future international pathways."
+  },
+  "surfaces": [
+    {
+      "locale": "fa",
+      "route": "/fa/rahnamaha/",
+      "label": "دانش و راهنماهای آموزشی",
+      "role": "EVERGREEN_KNOWLEDGE_HUB"
+    },
+    {
+      "locale": "en",
+      "route": "/en/news-insights/",
+      "label": "Knowledge & Insights",
+      "role": "KNOWLEDGE_AND_VERIFIED_UPDATES"
+    }
+  ],
+  "clusters": [
+    {
+      "id": "talent-development",
+      "priority": "P0",
+      "fa": "رشد و استعدادیابی",
+      "en": "Talent Development",
+      "state": "FOUNDATION",
+      "service_bridge": {
+        "fa": "/fa/estedaadyabi/",
+        "en": "/en/golden-talent/"
+      }
+    },
+    {
+      "id": "student-development",
+      "priority": "P0",
+      "fa": "رشد دانش‌آموز",
+      "en": "Student Development",
+      "state": "FOUNDATION",
+      "service_bridge": {
+        "fa": "/fa/danesh-amoozan/",
+        "en": "/en/student-guidance/"
+      }
+    },
+    {
+      "id": "parents",
+      "priority": "P1",
+      "fa": "والدین",
+      "en": "Parents",
+      "state": "PLANNED",
+      "service_bridge": {
+        "fa": "/fa/khadamat/",
+        "en": "/en/student-guidance/"
+      }
+    },
+    {
+      "id": "educational-pathways",
+      "priority": "P0",
+      "fa": "مسیرهای آموزشی",
+      "en": "Educational Pathways",
+      "state": "FOUNDATION",
+      "service_bridge": {
+        "fa": "/fa/entekhab-reshteh/",
+        "en": "/en/student-guidance/"
+      }
+    },
+    {
+      "id": "academic-writing",
+      "priority": "P0",
+      "fa": "نگارش دانشگاهی",
+      "en": "Academic Writing",
+      "state": "PLANNED",
+      "service_bridge": {
+        "fa": "/fa/khadamat/#academic-services",
+        "en": "/en/services/#academic-services"
+      }
+    },
+    {
+      "id": "research",
+      "priority": "P0",
+      "fa": "پژوهش",
+      "en": "Research",
+      "state": "FOUNDATION",
+      "service_bridge": {
+        "fa": "/fa/pajouhesh/",
+        "en": "/en/research/"
+      }
+    },
+    {
+      "id": "assessment",
+      "priority": "P1",
+      "fa": "سنجش و تفسیر شواهد",
+      "en": "Assessment",
+      "state": "FOUNDATION",
+      "service_bridge": {
+        "fa": "/fa/khadamat/",
+        "en": "/en/services/"
+      }
+    },
+    {
+      "id": "teacher-development",
+      "priority": "P1",
+      "fa": "توسعه معلم",
+      "en": "Teacher Development",
+      "state": "FOUNDATION",
+      "service_bridge": {
+        "fa": "/fa/khadamat/",
+        "en": "/en/teacher-education/"
+      }
+    },
+    {
+      "id": "ai-education",
+      "priority": "P2",
+      "fa": "هوش مصنوعی و آموزش",
+      "en": "AI & Education",
+      "state": "PLANNED",
+      "service_bridge": {
+        "fa": "/fa/pajouhesh/",
+        "en": "/en/research/"
+      }
+    }
+  ],
+  "golden_talent_book_rule": {
+    "source_role": "INTELLECTUAL_INPUT",
+    "verbatim_republication": false,
+    "deplete_book_value": false,
+    "web_content_must_be_original": true,
+    "preferred_transform": "BOOK_CONCEPT_TO_USER_QUESTION_TO_ORIGINAL_WEB_CONTENT_TO_TOOL_OR_SERVICE"
+  },
+  "quality_gates": [
+    "DISTINCT_USER_QUESTION_OR_INTENT",
+    "SUBSTANTIVE_ORIGINAL_ANALYSIS",
+    "AUTHORSHIP_VISIBLE",
+    "DATE_AND_REVIEW_STATE_WHERE_HIGH_STAKES",
+    "EVIDENCE_OR_SOURCE_DISCIPLINE",
+    "INTERNAL_LINKS",
+    "SERVICE_OR_TOOL_BRIDGE_ONLY_WHERE_RELEVANT",
+    "NO_ARTIFICIAL_FRESHNESS",
+    "NO_FAKE_SEARCH_VOLUME"
+  ]
+}
