@@ -2413,3 +2413,70 @@
   .student-dashboard-page .trajectory-panel{grid-template-columns:1fr}
   .student-dashboard-page .decision-question:last-child{grid-column:auto}
 }
+
+
+/* Parent support dashboard v1 */
+.role-dashboard-page .parent-support-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:11px;
+  margin:18px 0;
+}
+.role-dashboard-page .parent-support-card{
+  min-height:168px;
+  padding:21px;
+  border:1px solid var(--dash-border);
+  border-radius:17px;
+  background:linear-gradient(155deg,#141416,#101012);
+}
+.role-dashboard-page .parent-support-card small{
+  display:block;
+  color:#767980;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+}
+.rtl.role-dashboard-page .parent-support-card small{text-transform:none;letter-spacing:0}
+.role-dashboard-page .parent-support-card strong{
+  display:block;
+  margin-top:10px;
+  color:#ece7de;
+  font-size:18px;
+  line-height:1.45;
+}
+.role-dashboard-page .parent-support-card span{
+  display:block;
+  margin-top:7px;
+  color:#8b8e95;
+  font-size:10px;
+  line-height:1.65;
+}
+.role-dashboard-page .parent-support-card.action{
+  border-color:rgba(143,198,162,.20);
+  background:
+    radial-gradient(240px 110px at 94% 0%,rgba(143,198,162,.045),transparent 70%),
+    linear-gradient(155deg,#141416,#101012);
+}
+.role-dashboard-page .family-session-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:11px;
+  margin-top:16px;
+}
+.role-dashboard-page .family-session-grid a{
+  padding:20px;
+  border:1px solid var(--dash-border);
+  border-radius:16px;
+  background:#111113;
+  text-decoration:none;
+}
+.role-dashboard-page .family-session-grid b{display:block;color:#ece7de}
+.role-dashboard-page .family-session-grid span{display:block;margin-top:6px;color:#85888f;font-size:10px;line-height:1.65}
+@media(max-width:900px){
+  .role-dashboard-page .parent-support-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .role-dashboard-page .parent-support-grid,
+  .role-dashboard-page .family-session-grid{grid-template-columns:1fr}
+  .role-dashboard-page .parent-support-card{min-height:auto}
+}
