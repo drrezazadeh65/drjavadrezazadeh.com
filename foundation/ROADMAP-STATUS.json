@@ -50,7 +50,8 @@
     "BACKEND-SECURITY-FOUNDATION": "2026-10-06",
     "GOV-011": "2026-10-06",
     "INFRA-007": "2026-10-06",
-    "COM-004": "2026-10-06"
+    "COM-004": "2026-10-06",
+    "SEO-DOMAIN-CUTOVER": "Canonical origin migration completed atomically to https://drjavadrezazadeh.com across canonical, hreflang, structured-data URLs/IDs, Open Graph, sitemaps and robots; regression and design audits passed in the cutover workflow."
   },
   "in_progress": {
     "SEO-007": "Core Persian service SERP review complete; repeat before each new major cluster.",
@@ -181,7 +182,8 @@
     "PORTAL-004": "Role architecture now includes Student, Parent, Teacher, Consultant/Counsellor, Researcher, Consultation Client, Institution, Editor, Admin and Super Admin; capability plus relationship/purpose remains authoritative.",
     "DATA-015": "Master-vision migration 029 adds longitudinal progress, adaptive study-plan revisions/tasks, saved pathway options, decision history/explainability and recurring coaching persistence, and broadens service intake/role/product vocabulary without activating production storage.",
     "REV-001": "Dedicated bilingual professional-service conversion architecture is now live for academic services and general consultation. Production booking/payment still awaits provider-backed activation.",
-    "REV-010": "Dedicated bilingual institutional/speaking pathway is implemented for workshops, training, consulting, speaking and research collaboration. Contracting/payment runtime remains pending."
+    "REV-010": "Dedicated bilingual institutional/speaking pathway is implemented for workshops, training, consulting, speaking and research collaboration. Contracting/payment runtime remains pending.",
+    "SEO-025": "SEO is now the release-blocking priority: every push runs source SEO/GEO regression, visual regression, zero-broken-internal-link/fragment/redirect-chain audit, and frozen-URL stability/canonical/sitemap continuity checks. Current audit covers 203 HTML files and 3,604 href/src/poster/action references with zero broken internal references after repair."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
