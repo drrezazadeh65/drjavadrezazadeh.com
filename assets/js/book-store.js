@@ -54,13 +54,12 @@
   const b=data.books.find(x=>x.id===id);
   if(!b){host.innerHTML='<h1>'+(isFa?'کتاب پیدا نشد':'Book not found')+'</h1>';return;}
   document.title=(isFa?b.title_fa:b.english_reference_title)+' | '+(isFa?'فروشگاه کتاب':'Bookstore');
-  host.innerHTML='<p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+b.title_fa+'</h1>'+
+  host.innerHTML='<div class="book-detail-layout"><div class="book-cover-placeholder" aria-label="'+(isFa?'تصویر جلد هنوز تأیید نشده':'Cover image awaiting verification')+'"><span>'+(isFa?'مجموعه شعر منتشرشده':'Published poetry collection')+'</span><strong lang="fa" dir="rtl">'+b.title_fa+'</strong><small>'+(isFa?'تصویر رسمی جلد پس از تأیید افزوده می‌شود':'Official cover image will appear after verification')+'</small></div><div class="book-detail-copy"><p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+b.title_fa+'</h1>'+
    '<p class="lead">'+(isFa?b.description_fa:b.description_en)+'</p>'+
    '<dl class="book-meta"><div><dt>'+(isFa?'نویسنده':'Author')+'</dt><dd>Javad Rezazadeh Yazdeli</dd></div>'+
    '<div><dt>ISBN</dt><dd>'+(b.bibliography.isbn||(isFa?'در انتظار اطلاعات تأییدشده':'Awaiting verified metadata'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قیمت':'Price')+'</dt><dd>'+money(b.commerce?.price,b.commerce?.currency)+'</dd></div></dl>'+
-   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+b.id+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<div class="store-notice">'+(isFa?'کتاب منتشر شده است، اما قیمت، قالب فروش، موجودی و شرایط ارسال هنوز تأیید نشده‌اند؛ خرید عمداً غیرفعال است.':'The book is published, but price, sale format, stock and fulfilment terms are not yet verified; purchase is intentionally disabled.')+'</div>');
-  host.addEventListener('click',e=>{if(e.target.closest('[data-detail-add]'))add(b);});
+   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+b.id+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<div class="store-notice">'+(isFa?'کتاب منتشر شده است، اما قیمت، قالب فروش، موجودی و شرایط ارسال هنوز تأیید نشده‌اند؛ خرید عمداً غیرفعال است.':'The book is published, but price, sale format, stock and fulfilment terms are not yet verified; purchase is intentionally disabled.')+'</div>')+'</div></div>';\n  host.addEventListener('click',e=>{if(e.target.closest('[data-detail-add]'))add(b);});
  }
  function renderCart(data){
   const host=document.querySelector('[data-book-cart]'); if(!host) return;
