@@ -99,8 +99,11 @@ for(const file of htmlFiles){
     if(publicRefs!==1) failures.push('/'+rel+': search experience must load exactly one public-v2 stylesheet');
     if(!html.includes('data-search-results')) failures.push('/'+rel+': search experience missing result region');
   }
-  if((rel==='fa/index.html'||rel==='en/index.html')&&!html.includes('home-focus-strip')){
-    failures.push('/'+rel+': public homepage focus pathways missing');
+  if(rel==='fa/index.html'||rel==='en/index.html'){
+    if(!html.includes('home-focus-strip')) failures.push('/'+rel+': public homepage focus pathways missing');
+    for(const token of ['hero-copy','portrait-shell','hero-portrait','audience-gates']){
+      if(!html.includes(token)) failures.push('/'+rel+': homepage must retain portrait and audience architecture token '+token);
+    }
   }
 
   const styles=(html.match(/<link\b[^>]*rel=["']stylesheet["'][^>]*>/gi)||[]).length;
