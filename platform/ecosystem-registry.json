@@ -8,7 +8,8 @@
     "production_target": "https://drjavadrezazadeh.com",
     "app_target": "https://app.drjavadrezazadeh.com",
     "journal_target": "https://journal.drjavadrezazadeh.com",
-    "press_target": "https://press.drjavadrezazadeh.com"
+    "press_target": "https://press.drjavadrezazadeh.com",
+    "api_target": "https://api.drjavadrezazadeh.com"
   },
   "locales": {
     "supported": [
@@ -448,5 +449,36 @@
       "route": "/journal/submission/",
       "policy": "PUBLIC_NO_INDEX"
     }
-  ]
+  ],
+  "origin_states": {
+    "github_pages_repo_origin": "CURRENT_CANONICAL_UNTIL_CUSTOM_HTTPS_CUTOVER",
+    "main_custom_domain": "DNS_TLS_PENDING",
+    "private_app_subdomain": "RESERVED_NOT_LIVE",
+    "api_subdomain": "RESERVED_NOT_LIVE",
+    "journal_subdomain": "RESERVED_NOT_LIVE",
+    "press_subdomain": "OPTIONAL_NOT_LIVE"
+  },
+  "origin_extraction": {
+    "rule": "A reserved origin is never used in canonical/schema/API production URLs until its state is explicitly LIVE in the same release.",
+    "private_app": {
+      "current_mount": "PATH_ON_PUBLIC_HOST_NOIDX_PROTOTYPE",
+      "future_origin_key": "app_target",
+      "preserve_locale_and_route_identity": true
+    },
+    "api": {
+      "current_state": "CONTRACT_ONLY",
+      "future_origin_key": "api_target",
+      "version_prefix": "/v1/"
+    },
+    "journal": {
+      "current_mount": "/journal/",
+      "future_origin_key": "journal_target",
+      "migration_requires": "OJS_READY_AND_DOMAIN_LIVE"
+    },
+    "press": {
+      "current_mount": "/publisher/",
+      "future_origin_key": "press_target",
+      "migration_optional": true
+    }
+  }
 }

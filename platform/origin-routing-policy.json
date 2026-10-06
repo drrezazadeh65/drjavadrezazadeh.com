@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "status": "FROZEN_PORTABLE_ORIGIN_ARCHITECTURE",
+  "contexts": [
+    {
+      "context": "PUBLIC_WEB",
+      "current": "current_public_origin",
+      "future": "production_target",
+      "state_key": "main_custom_domain",
+      "indexing": "PUBLIC_RELEASE_GATED"
+    },
+    {
+      "context": "PRIVATE_APP",
+      "current_path_families": [
+        "/fa/app/",
+        "/en/account/",
+        "/en/golden-talent/dashboard/"
+      ],
+      "future": "app_target",
+      "state_key": "private_app_subdomain",
+      "indexing": "NOINDEX"
+    },
+    {
+      "context": "API",
+      "current": "CONTRACT_ONLY",
+      "future": "api_target",
+      "state_key": "api_subdomain",
+      "indexing": "NOT_APPLICABLE"
+    },
+    {
+      "context": "JOURNAL",
+      "current_path": "/journal/",
+      "future": "journal_target",
+      "state_key": "journal_subdomain",
+      "indexing": "RELEASE_GATED"
+    },
+    {
+      "context": "PRESS",
+      "current_path": "/publisher/",
+      "future": "press_target",
+      "state_key": "press_subdomain",
+      "indexing": "OPTIONAL_MIGRATION"
+    }
+  ],
+  "cutover_invariants": [
+    "Never switch canonical origins before HTTPS is verified externally.",
+    "Move an origin state to LIVE in the same release that begins emitting that origin.",
+    "Keep private routes NOINDEX and NO_STORE before and after origin extraction.",
+    "Preserve route identity or install permanent redirects when an origin changes.",
+    "Do not make browser code depend on a provider-specific host.",
+    "API consumers target versioned contracts; provider implementation is replaceable."
+  ]
+}

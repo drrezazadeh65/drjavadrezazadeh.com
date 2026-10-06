@@ -624,6 +624,35 @@ if(failures.length){
 }
 
 
+// ORIGIN STATE FIREWALL — reserved subdomains must not leak before live cutover.
+{
+  const registry=JSON.parse(fs.readFileSync(path.join(root,'platform','ecosystem-registry.json'),'utf8'));
+  const states=registry.origin_states||{};
+  const reserved=[
+    ['main_custom_domain','production_target'],
+    ['private_app_subdomain','app_target'],
+    ['api_subdomain','api_target'],
+    ['journal_subdomain','journal_target'],
+    ['press_subdomain','press_target']
+  ];
+  for(const [stateKey,originKey] of reserved){
+    const origin=registry.origins?.[originKey];
+    if(!origin||states[stateKey]==='LIVE') continue;
+    for(const [canonical,route] of canonicals.entries()){
+      if(canonical.startsWith(origin+'/')||canonical===origin) failures.push(route+': reserved non-live origin leaked into canonical '+origin);
+    }
+  }
+  const cutoverSource=fs.readFileSync(path.join(root,'scripts','domain-cutover.mjs'),'utf8');
+  if(!cutoverSource.includes('--confirm-https-ready')) failures.push('/scripts/domain-cutover.mjs: write-mode HTTPS confirmation gate missing');
+  if(!cutoverSource.includes("main_custom_domain='LIVE'")) failures.push('/scripts/domain-cutover.mjs: atomic main-origin state transition missing');
+}
+if(failures.length){
+  console.error('\nOrigin-state firewall failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // ECOSYSTEM REGISTRY — extensibility contract and fail-closed route governance.
 const ecosystemRegistryPath=path.join(root,'platform','ecosystem-registry.json');
 if(!fs.existsSync(ecosystemRegistryPath)) failures.push('/platform/ecosystem-registry.json: missing extensibility registry');
