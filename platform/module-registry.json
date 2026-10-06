@@ -278,6 +278,28 @@
         "physical-fulfilment",
         "digital-delivery"
       ]
+    },
+    {
+      "id": "admin-console",
+      "kind": "ADMIN",
+      "state": "FOUNDATION_READY",
+      "authority": "MFA_SERVER_AUTHORIZED",
+      "data_class": "MIXED",
+      "depends_on": [
+        "identity",
+        "cms",
+        "commerce",
+        "consultation",
+        "audit-observability"
+      ],
+      "exposes": [
+        "lead-inbox",
+        "content-governance",
+        "order-operations",
+        "consultation-operations",
+        "role-management",
+        "audit-review"
+      ]
     }
   ],
   "invariants": {
