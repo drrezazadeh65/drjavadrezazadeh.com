@@ -333,6 +333,29 @@ if(failures.length){
 }
 
 
+// BAHAR BASELINE HISTORY — longitudinal baselines are versioned and never silently overwritten.
+const baharHistoryPath=path.join(root,'platform/db/migrations/021_bahar_baseline_history.sql');
+if(!fs.existsSync(baharHistoryPath)) failures.push('/platform/db/migrations/021_bahar_baseline_history.sql: missing BAHAR baseline history migration');
+else{
+  const baharHistory=fs.readFileSync(baharHistoryPath,'utf8');
+  for(const token of ['version_number','source_golden_path_release_id','supersedes_snapshot_id','bahar_baseline_snapshot_one_active_uq','weekly_cycle_id']){
+    if(!baharHistory.includes(token)) failures.push('/platform/db/migrations/021_bahar_baseline_history.sql: required lineage control missing '+token);
+  }
+}
+const gtApiPath=path.join(root,'foundation/GOLDEN-TALENT-API-CONTRACT-v1.yaml');
+if(fs.existsSync(gtApiPath)){
+  const gtApi=fs.readFileSync(gtApiPath,'utf8');
+  if(!gtApi.includes('/release/{releaseId}/revoke:')) failures.push('/foundation/GOLDEN-TALENT-API-CONTRACT-v1.yaml: release revocation contract missing');
+  if(!gtApi.includes('/baseline-transitions:')) failures.push('/foundation/GOLDEN-TALENT-API-CONTRACT-v1.yaml: BAHAR baseline transition contract missing');
+  if(!gtApi.includes('never overwritten')) failures.push('/foundation/GOLDEN-TALENT-API-CONTRACT-v1.yaml: immutable baseline-history boundary missing');
+}
+if(failures.length){
+  console.error('\nBAHAR lineage failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // CLOUDFLARE RESPONSE-HEADER FIREWALL — prepared now, enforced after Pages cutover.
 const headersPath=path.join(root,'_headers');
 if(!fs.existsSync(headersPath)) failures.push('/_headers: missing Cloudflare Pages response-header policy');
