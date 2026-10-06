@@ -46,6 +46,8 @@ jobs:
         run: node scripts/news-trust-audit.mjs
       - name: Run evergreen guide trust audit
         run: node scripts/evergreen-guide-trust-audit.mjs
+      - name: Run RSS distribution audit
+        run: node scripts/rss-audit.mjs
       - name: Run conversion path audit
         run: node scripts/conversion-path-audit.mjs
       - name: Run pre-gateway commerce schema safety audit
