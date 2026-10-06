@@ -369,3 +369,84 @@
 @media(prefers-reduced-motion:reduce){
   .public-home-page .grid article{transition:none}
 }
+
+
+/* Language gateway v2 */
+.public-gateway-page{
+  min-height:100vh;
+  background:
+    radial-gradient(900px 560px at 82% -10%,rgba(199,163,91,.10),transparent 60%),
+    radial-gradient(720px 480px at -12% 35%,rgba(97,76,40,.06),transparent 60%),
+    #070707;
+}
+.public-gateway-page .gateway-shell{
+  width:min(1180px,calc(100% - 40px));
+  min-height:calc(100vh - 86px);
+  margin:0 auto;
+  display:grid;
+  place-items:center;
+  padding:48px 0;
+}
+.public-gateway-page .gateway-card{
+  width:100%;
+  padding:54px;
+  border:1px solid var(--public-gold-line);
+  border-radius:32px;
+  background:
+    radial-gradient(620px 300px at 92% 0%,rgba(199,163,91,.10),transparent 68%),
+    linear-gradient(145deg,rgba(255,255,255,.026),rgba(255,255,255,.004));
+  box-shadow:var(--public-shadow);
+  gap:64px;
+}
+.public-gateway-page .gateway-copy h1{
+  font-size:clamp(54px,7vw,90px);
+  line-height:1;
+  letter-spacing:-.045em;
+}
+.public-gateway-page .gateway-copy h1 em{
+  color:var(--public-gold-soft);
+  font-style:normal;
+}
+.public-gateway-page .gateway-copy .lead{
+  max-width:680px;
+  color:#aaaab0;
+  font-size:clamp(17px,2vw,22px);
+  line-height:1.7;
+}
+.public-gateway-page .gateway-actions{
+  gap:10px;
+  margin-top:28px;
+}
+.public-gateway-page .gateway-actions .button{
+  min-height:48px;
+  border-radius:13px;
+}
+.public-gateway-page .gateway-note{
+  margin-top:18px;
+  color:#777a81;
+  font-size:11px;
+}
+.public-gateway-page .portrait-shell{
+  width:min(350px,32vw);
+  padding:13px;
+  border:1px solid var(--public-gold-line);
+  border-radius:28px;
+  background:linear-gradient(145deg,rgba(199,163,91,.08),rgba(255,255,255,.018));
+  box-shadow:var(--public-shadow);
+}
+.public-gateway-page .portrait-shell img{border-radius:20px}
+.public-gateway-page .gateway-legal{
+  width:min(1180px,calc(100% - 40px));
+  margin:0 auto;
+  padding:20px 0 28px;
+  border-top:1px solid var(--public-line);
+}
+@media(max-width:800px){
+  .public-gateway-page .gateway-shell,
+  .public-gateway-page .gateway-legal{width:calc(100% - 20px)}
+  .public-gateway-page .gateway-card{padding:30px;gap:30px}
+  .public-gateway-page .portrait-shell{width:min(320px,82vw);margin-inline:auto}
+}
+@media(max-width:520px){
+  .public-gateway-page .gateway-copy h1{font-size:48px}
+}
