@@ -1,0 +1,26 @@
+{
+ "schema_version":"1.0",
+ "default":"DENY",
+ "rules":{
+  "self":{"relationship_required":false,"subject_match_required":true},
+  "parent":{"role":"PARENT","relationship_status":"ACTIVE","consent_not_withdrawn":true},
+  "teacher":{"role":"TEACHER","assignment_status":"ACTIVE","capability_in_assignment_scope":true,"explicit_consent_required":true},
+  "consultant":{"role":"CONSULTANT","case_assignment_status":"ACTIVE","capability_in_case_scope":true},
+  "researcher":{"direct_identity_access":false,"deidentified_only_by_default":true}
+ },
+ "evidence_visibility":{
+  "SUBJECT_PRIVATE":["SELF"],
+  "PARENT_ALLOWED":["SELF","PARENT","CONSULTANT"],
+  "TEACHER_ALLOWED":["SELF","TEACHER","CONSULTANT"],
+  "ADVISER_ALLOWED":["SELF","CONSULTANT"],
+  "REVIEW_TEAM":["CONSULTANT"]
+ },
+ "sensitive_actions":{
+  "REVIEW_EVIDENCE":{"roles":["CONSULTANT"],"active_case_assignment":true},
+  "RELEASE_GOLDEN_PATH":{"roles":["CONSULTANT"],"active_case_assignment":true,"human_review":true},
+  "VIEW_PRIVATE_DOCUMENT":{"explicit_grant_or_scoped_case":true},
+  "EXPORT_DATA":{"purpose_and_scope_required":true}
+ },
+ "audit_denials":true,
+ "ui_hiding_is_authorization":false
+}
