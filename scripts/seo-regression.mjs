@@ -1384,3 +1384,12 @@ else{
  const gpr=fs.readFileSync(gprPath,'utf8');
  for(const x of ['golden_path_release','reviewer_user_id','route_run_id','synthesis_version',"RELEASED','REVOKED','SUPERSEDED"]) if(!gpr.includes(x)) failures.push('/platform/db/migrations/014_golden_path_release.sql: missing '+x);
 }
+
+// Golden Path lifecycle and persistence-alignment guardrails.
+for(const p of ['platform/golden-path-lifecycle.mjs','platform/db/migrations/015_orchestration_alignment.sql','platform/db/migrations/016_evidence_review_history.sql']) if(!fs.existsSync(path.join(root,p))) failures.push('/'+p+': missing lifecycle persistence component');
+const gl=fs.readFileSync(path.join(root,'platform','golden-path-lifecycle.mjs'),'utf8');
+for(const x of ['PAUSE_FOR_REASSESSMENT','automatically_release_replacement:false','REASSESSMENT_REQUIRED','Explicit replacement release required','automatic_baseline_replacement:false']) if(!gl.includes(x)) failures.push('/platform/golden-path-lifecycle.mjs: missing '+x);
+const oa=fs.readFileSync(path.join(root,'platform','db','migrations','015_orchestration_alignment.sql'),'utf8');
+for(const x of ["'ROUTING'","'REVIEW_REQUIRED'",'response_revision','submitted_snapshot','submission_idempotency_key','source_golden_path_release_id','reconciliation_status']) if(!oa.includes(x)) failures.push('/platform/db/migrations/015_orchestration_alignment.sql: missing '+x);
+const er=fs.readFileSync(path.join(root,'platform','db','migrations','016_evidence_review_history.sql'),'utf8');
+for(const x of ['talent_evidence_review','supersedes_review_id',"ACTIVE','SUPERSEDED','VOID",'reviewer_user_id']) if(!er.includes(x)) failures.push('/platform/db/migrations/016_evidence_review_history.sql: missing '+x);
