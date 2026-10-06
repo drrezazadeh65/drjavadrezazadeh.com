@@ -41,13 +41,16 @@
         "platform/deployment-topology.json",
         "platform/backend-deployment-policy.json",
         "foundation/PRODUCTION-PLATFORM-ARCHITECTURE.md",
-        "foundation/DEDICATED-MASTER-MIGRATION-v1.md"
+        "foundation/DEDICATED-MASTER-MIGRATION-v1.md",
+        "platform/runtime-health-contract.json",
+        "scripts/master-migration-preflight.mjs",
+        "foundation/DEDICATED-MASTER-CUTOVER-CHECKLIST-v1.md"
       ],
       "next_actions": [
         "Provision staging on chosen master",
-        "Run database migrations in staging",
-        "Connect private app/API behind TLS",
-        "Run backup/restore drill before production"
+        "Run repository preflight and then production-env preflight with runtime secrets",
+        "Run database migrations and implement health endpoints",
+        "Complete backup/restore drill before production traffic"
       ]
     },
     {

@@ -28,6 +28,8 @@ jobs:
         run: node platform/module-governance.test.mjs
       - name: Run platform readiness control
         run: node scripts/platform-readiness.mjs
+      - name: Run dedicated-master migration preflight
+        run: node scripts/master-migration-preflight.mjs
       - name: Run payment adapter contract tests
         run: node platform/payment-provider-adapter.test.mjs
       - name: Run pathway reference contract tests

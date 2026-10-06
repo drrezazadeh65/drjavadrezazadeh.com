@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "status": "FOUNDATION_READY",
+  "endpoints": {
+    "liveness": {
+      "path": "/health/live",
+      "auth": "NONE",
+      "indexing": "NOINDEX",
+      "purpose": "Process is running; must not query dependencies.",
+      "success_status": 200
+    },
+    "readiness": {
+      "path": "/health/ready",
+      "auth": "INTERNAL_OR_EDGE",
+      "indexing": "NOINDEX",
+      "purpose": "Safe to receive production traffic only when required dependencies and schema state pass.",
+      "success_status": 200,
+      "failure_status": 503
+    }
+  },
+  "readiness_checks": [
+    {
+      "id": "database_connectivity",
+      "required": true,
+      "timeout_ms": 1500,
+      "sensitive_detail_in_response": false
+    },
+    {
+      "id": "migration_head",
+      "required": true,
+      "expected_source": "highest repository migration",
+      "sensitive_detail_in_response": false
+    },
+    {
+      "id": "private_storage",
+      "required": true,
+      "timeout_ms": 1500,
+      "sensitive_detail_in_response": false
+    },
+    {
+      "id": "job_queue",
+      "required": true,
+      "timeout_ms": 1500,
+      "sensitive_detail_in_response": false
+    },
+    {
+      "id": "session_key_loaded",
+      "required": true,
+      "sensitive_detail_in_response": false
+    },
+    {
+      "id": "data_encryption_key_loaded",
+      "required": true,
+      "sensitive_detail_in_response": false
+    },
+    {
+      "id": "transactional_email",
+      "required_for": [
+        "IDENTITY_EMAIL_FEATURES"
+      ],
+      "timeout_ms": 2000,
+      "sensitive_detail_in_response": false
+    }
+  ],
+  "excluded_from_global_readiness": [
+    "payment_provider_availability_when_payment_feature_flag_is_off",
+    "analytics_provider",
+    "search_console",
+    "external_career_reference_provider"
+  ],
+  "response_policy": {
+    "public_body_allowlist": [
+      "status",
+      "release_id",
+      "timestamp"
+    ],
+    "dependency_names_public": false,
+    "error_details_public": false,
+    "secrets_public": false
+  },
+  "deployment_gate": {
+    "readiness_must_pass_before_traffic_switch": true,
+    "restore_test_must_pass_before_first_production_launch": true,
+    "migration_head_must_match_release": true,
+    "rollback_artifact_required": true
+  }
+}
