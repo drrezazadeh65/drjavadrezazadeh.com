@@ -36,6 +36,11 @@ jobs:
         run: node scripts/metadata-uniqueness-audit.mjs
       - name: Run accessibility source audit
         run: node scripts/accessibility-source-audit.mjs
+      - name: Validate IndexNow integration contract
+        env:
+          PROD_ORIGIN: https://drjavadrezazadeh.com
+          INDEXNOW_ENABLED: '0'
+        run: node scripts/indexnow-submit.mjs --all
       - name: Run legacy URL continuity audit
         run: node scripts/legacy-url-continuity-audit.mjs
       - name: Validate public JavaScript syntax
