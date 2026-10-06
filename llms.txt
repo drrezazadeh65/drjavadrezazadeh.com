@@ -35,7 +35,6 @@ Use only the public URLs listed here as machine-readable entry points. Persian a
 ## Publishing and journal
 
 - [Rezazadeh Foundation Press](https://drjavadrezazadeh.com/publisher/): Public publishing identity and governance.
-- [JHELA](https://drjavadrezazadeh.com/journal/): Public founding-stage journal site.
 - [JHELA call for reviewers](https://drjavadrezazadeh.com/journal/call-for-reviewers/): Public reviewer invitation and eligibility context.
 - [JHELA founding collaborators](https://drjavadrezazadeh.com/journal/founding-collaborators/): Public scholarly collaboration invitation.
 

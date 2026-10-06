@@ -36,6 +36,8 @@ jobs:
         run: node scripts/structured-url-audit.mjs
       - name: Run llms.txt public discovery audit
         run: node scripts/llms-txt-audit.mjs
+      - name: Run AI/search crawler policy audit
+        run: node scripts/ai-crawler-policy-audit.mjs
       - name: Run metadata uniqueness and content-identity audit
         run: node scripts/metadata-uniqueness-audit.mjs
       - name: Run accessibility source audit
