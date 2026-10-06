@@ -82,6 +82,13 @@ for(const file of htmlFiles){
       if(!html.includes(token)) failures.push('/'+rel+': dashboard shell missing '+token);
     }
   }
+  if(['student-gateway-page','auth-page','assessment-workspace-page','commerce-workspace-page'].some(cls=>html.includes(cls))){
+    if(portalRefs!==1) failures.push('/'+rel+': private/product experience must load exactly one portal-v2 stylesheet');
+  }
+  if(html.includes('book-store-shell')){
+    const storeRefs=(html.match(/store\.css/g)||[]).length;
+    if(storeRefs!==1) failures.push('/'+rel+': bookstore surface must load exactly one store.css stylesheet');
+  }
   if(html.includes('public-home-page')||html.includes('public-content-page')||html.includes('public-gateway-page')){
     if(publicRefs!==1) failures.push('/'+rel+': public v2 page must load exactly one public-v2 stylesheet');
   }
