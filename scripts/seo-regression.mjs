@@ -877,8 +877,8 @@ else{
   if(/(?:^|[;{])\s*(?:width|min-width)\s*:\s*100vw\b/i.test(css)){
     failures.push('/assets/css/style.css: width/min-width:100vw is prohibited because it can reintroduce mobile horizontal overflow');
   }
-  if(!/html,body\{[^}]*overflow-x:(?:hidden|clip)/i.test(css)){
-    failures.push('/assets/css/style.css: missing global horizontal-overflow guard');
+  if(/html,body\{[^}]*overflow-x\s*:\s*(?:hidden|clip)/i.test(css)){
+    failures.push('/assets/css/style.css: global overflow-x hiding is prohibited; fix the overflowing component instead');
   }
   if(!css.includes('env(safe-area-inset-bottom)')) failures.push('/assets/css/style.css: missing bottom safe-area handling');
   if(!css.includes('@media(max-width:320px)')) failures.push('/assets/css/style.css: explicit 320px hard-floor QA rules missing');
@@ -1674,9 +1674,12 @@ if(fs.existsSync(layoutCssFile)){
      !/@media\(max-width:800px\)[\s\S]*?\.rcas-privacy\s+strong\s*\{[^}]*white-space\s*:\s*normal/i.test(css)){
     failures.push('/assets/css/style.css: RCAS privacy label nowrap lacks mobile override');
   }
-  if(!/html,body\{[^}]*overflow-x\s*:\s*hidden!important/i.test(css)){
-    failures.push('/assets/css/style.css: iOS horizontal overflow hardening missing');
+  if(/html,body\{[^}]*overflow-x\s*:\s*(?:hidden|clip)/i.test(css)){
+    failures.push('/assets/css/style.css: root horizontal clipping is a prohibited overflow band-aid');
   }
+  if(/100d?vw\s*-\s*16px/i.test(css)) failures.push('/assets/css/style.css: fixed mobile UI must not rely on viewport-width subtraction');
+  if(!/\.pwa-install\{[^}]*left:8px!important;[^}]*right:8px!important;[^}]*transform:none!important/i.test(css)) failures.push('/assets/css/style.css: narrow PWA prompt must be inset without horizontal transform');
+  if(!/\.network-status\{[^}]*left:8px!important;[^}]*right:8px!important;[^}]*transform:translateY\(-140%\)/i.test(css)) failures.push('/assets/css/style.css: narrow network status must use vertical-only transform');
   if(!/\.site-header\{[^}]*padding-inline:max\(20px,calc\(\(100% - var\(--max\)\)\/2\)\)/i.test(css)){
     failures.push('/assets/css/style.css: site header must avoid viewport-width based horizontal sizing');
   }

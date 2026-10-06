@@ -90,7 +90,7 @@
         "platform/mobile-navigation-contract.json"
       ],
       "next_actions": [
-        "Validate the stable five-tab role navigation on 320/360/390/430px devices",
+        "Run physical/emulated 320/360/390/430px horizontal-overflow QA without root clipping",
         "Run VoiceOver/TalkBack and keyboard focus checks",
         "Validate installability on the permanent domain",
         "Re-test private no-store behavior after app deployment"

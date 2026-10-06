@@ -210,7 +210,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 @media(max-width:700px){.app-prototype{width:calc(100% - 20px)}.app-prototype .foundation-hero{padding:22px;border-radius:24px}.app-grid,.app-role-grid{grid-template-columns:1fr}.app-card,.app-role-link{padding:19px}}
 
 /* Mobile resilience layer v1 */
-html,body{max-width:100%;overflow-x:clip}
+html,body{max-width:100%}
 img,video,iframe{max-width:100%;height:auto}
 pre{max-width:100%;overflow:auto}
 code,pre,.brand,.site-header nav a,.button,.profile,.service-card,.authority-card,.app-card,.app-role-link,.journal-grid article,.news-card,.outcome-card,.principle,.process-step{overflow-wrap:anywhere}
@@ -738,7 +738,7 @@ a,button{-webkit-tap-highlight-color:rgba(198,161,90,.12)}
 @media(max-width:330px){.account-quick-grid{grid-template-columns:1fr}}
 
 /* Mobile horizontal scroll fix v3 — iOS/Safari hardening */
-html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+html,body{width:100%;max-width:100%}
 body{position:relative}
 .site-header{width:100%;max-width:100%;padding-inline:max(20px,calc((100% - var(--max))/2))}
 .site-header:after{left:max(20px,calc((100% - var(--max))/2));right:max(20px,calc((100% - var(--max))/2))}
@@ -762,13 +762,15 @@ legend{max-width:100%;overflow-wrap:anywhere}
 
 
 /* Narrow viewport containment v4 */
-@supports (overflow:clip){html,body{overflow-x:clip!important}}
 @media(max-width:420px){
   .site-header{padding-inline:10px;gap:8px}
   .site-header:after{left:10px;right:10px}
   .site-header nav{min-width:0;max-width:100%}
-  .gt-mobile-dock,.app-dock{max-width:calc(100dvw - 16px);left:8px;right:8px;margin-inline:auto}
-  .app-sheet-panel,.pwa-install,.network-status{box-sizing:border-box;width:auto!important;max-width:calc(100dvw - 16px)!important;left:8px!important;right:8px!important;margin-inline:auto}
+  .gt-mobile-dock,.app-dock{width:auto;max-width:none;left:8px;right:8px;margin-inline:auto}
+  .app-sheet-panel{box-sizing:border-box;width:auto!important;max-width:none!important;left:8px!important;right:8px!important;margin-inline:auto}
+  .pwa-install{box-sizing:border-box;width:auto!important;max-width:none!important;left:8px!important;right:8px!important;transform:none!important;margin-inline:auto}
+  .network-status{box-sizing:border-box;width:auto!important;max-width:none!important;left:8px!important;right:8px!important;transform:translateY(-140%);margin-inline:auto}
+  .network-status.is-visible{transform:translateY(0)}
   .gt-private-shell,.service-shell,.student-shell,.account-shell,.case-shell,.premium-module-shell,.rcas-shell{width:calc(100% - 20px);max-width:100%}
 }
 @media(max-width:360px){
