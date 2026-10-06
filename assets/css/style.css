@@ -799,3 +799,27 @@ legend{max-width:100%;overflow-wrap:anywhere}
   .pwa-install{width:calc(100% - 12px)}
   .service-card,.authority-card,.app-card,.principle,.process-step,.outcome-card{padding-inline:16px}
 }
+
+
+/* Keyboard skip navigation — public accessibility baseline */
+.skip-link{
+  position:fixed;
+  inset-inline-start:16px;
+  top:12px;
+  z-index:10000;
+  padding:10px 14px;
+  border:1px solid currentColor;
+  border-radius:10px;
+  background:#ffffff;
+  color:#111111;
+  font-weight:700;
+  text-decoration:none;
+  transform:translateY(-180%);
+  transition:transform .16s ease;
+}
+.skip-link:focus,.skip-link:focus-visible{
+  transform:translateY(0);
+  outline:3px solid currentColor;
+  outline-offset:3px;
+}
+@media(prefers-reduced-motion:reduce){.skip-link{transition:none}}
