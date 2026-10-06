@@ -1,0 +1,42 @@
+name: One-Time Production Domain Cutover
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - foundation/domain-cutover-trigger.txt
+
+permissions:
+  contents: write
+
+concurrency:
+  group: production-domain-cutover
+  cancel-in-progress: false
+
+jobs:
+  cutover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Cut canonical origin to owned HTTPS domain
+        run: node scripts/domain-cutover.mjs https://drjavadrezazadeh.com --confirm-https-ready
+      - name: Run SEO regression after cutover
+        run: node scripts/seo-regression.mjs
+      - name: Run design regression after cutover
+        run: node scripts/design-regression.mjs
+      - name: Commit atomic origin migration
+        run: |
+          if git diff --quiet; then
+            echo "No cutover changes detected."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "seo: cut canonical origin to drjavadrezazadeh.com"
+          git push origin HEAD:main
