@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {registrationPlan,loginIdentifier,recoveryRequestPlan,sessionDecision,recoveryTokenDecision} from './identity-security.mjs';
+const p=registrationPlan({email:'User@example.com',mobile_e164:'+989121234567',role:'STUDENT'});
+assert.equal(p.status,'PENDING');
+assert.equal(p.verification_channel,'EMAIL');
+assert.equal(p.mobile_purpose,'CONTACT_ONLY');
+assert.equal(p.whatsapp_login_allowed,false);
+assert.throws(()=>registrationPlan({email:'x@example.com',mobile_e164:'09121234567'}));
+assert.equal(loginIdentifier('user@example.com').type,'EMAIL');
+assert.throws(()=>loginIdentifier('+989121234567'));
+assert.equal(recoveryRequestPlan({email:'user@example.com'}).channel,'EMAIL');
+assert.equal(sessionDecision({user:{id:'u',status:'ACTIVE',email_verified_at:null},session:{expires_at:'2099-01-01T00:00:00Z'}}).authenticated,false);
+assert.equal(recoveryTokenDecision({token_record:{purpose:'PASSWORD_RECOVERY',expires_at:'2099-01-01T00:00:00Z',consumed_at:null}}).recovery_channel,'EMAIL');
+console.log('Identity email-only authentication policy passed');
