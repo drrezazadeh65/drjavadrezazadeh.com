@@ -109,6 +109,7 @@ Informational resources explain limitations and development. Assessment/private-
 | `/fa/akhbar/moshavere-tahsili-baraye-tasmim/` | مشاوره تحصیلی برای تصمیم‌گیری | Educational/article intent | INDEX |
 | `/fa/akhbar/entekhab-reshteh-1405/` | انتخاب رشته ۱۴۰۵ | Year-sensitive guide | INDEX |
 | `/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/` | رتبه و تناسب در انتخاب رشته | Educational/decision intent | INDEX |
+| `/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/` | مقایسه رشته‌ها با ماتریس تصمیم | Practical comparison / decision-support intent | INDEX |
 | `/fa/akhbar/farakhvan-jhela/` | فراخوان همکاری علمی JHELA | Journal recruitment | INDEX |
 
 ### Published talent-literacy guides
@@ -120,7 +121,7 @@ Informational resources explain limitations and development. Assessment/private-
 
 ### Planned evergreen clusters
 **Counselling:** how to choose a counsellor; when counselling helps; evidence needed for a decision; parent role; reading report cards.  
-**Field selection:** comparing fields; possible vs suitable; official information; family influence; uncertainty.  
+**Field selection:** comparing fields; possible vs suitable; official information; family influence; uncertainty. The published decision-matrix guide owns the practical multi-option comparison intent and must not be duplicated by thin “best field” pages.  
 **Entrance exam:** realistic planning; revision; study evidence; managing overload; post-exam decision.  
 **Talent:** talent vs interest vs skill; multi-source evidence; limitations of tests; growth and opportunity; parent/teacher observation.  
 **Teacher/parent education:** educational judgement, feedback, observation, communication.
