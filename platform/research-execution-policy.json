@@ -1,0 +1,15 @@
+{
+ "schema_version":"1.0",
+ "research_dataset_execution":{
+  "requires_approved_study":true,
+  "requires_approved_study_version":true,
+  "requires_active_case":true,
+  "requires_research_consent_or_documented_not_required":true,
+  "requires_frozen_codebook":true,
+  "requires_deidentification_run":true,
+  "direct_identity_in_export":false,
+  "checksum_before_freeze":true,
+  "frozen_dataset_immutable":true,
+  "withdrawn_case_future_use_prohibited":true
+ }
+}
