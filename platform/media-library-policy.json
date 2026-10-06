@@ -1,0 +1,11 @@
+{
+ "schema_version":"1.0",
+ "media_asset":{
+  "required":["asset_id","storage_key","mime_type","width","height","alt","licence_status","provenance","created_at"],
+  "optional":["caption","credit","source_reference","focal_point","language"],
+  "public_requires_licence_status":["OWNED","LICENSED","PUBLIC_DOMAIN","PERMISSION_GRANTED"],
+  "prohibited_public_status":["UNKNOWN","RESTRICTED"],
+  "seo":{"descriptive_filename":true,"dimensions_required":true,"alt_required_unless_decorative":true,"decorative_alt_empty":true}
+ },
+ "review":{"replacement_preserves_provenance":true,"rights_review_required":true}
+}
