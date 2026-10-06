@@ -111,6 +111,22 @@ paths:
       responses:
         '201': { description: Evidence event persisted }
         '403': { description: Subject relationship or evidence scope not authorised }
+  /v1/golden-talent/evidence/{evidenceId}/reviews:
+    post:
+      summary: Append a professional review decision to an evidence event
+      description: >
+        The original evidence payload remains immutable. An authorised reviewer records
+        quality, evidential direction and rationale. A review may classify evidence as
+        SUPPORTS, CONTRADICTS or CONTEXTUALISES; it does not create a total talent score.
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: evidenceId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201': { description: Append-only review decision recorded }
+        '403': { description: Reviewer is not authorised for this evidence scope }
   /v1/golden-talent/route-runs:
     post:
       summary: Create an auditable D1-D6 evidence-routing run
@@ -182,6 +198,10 @@ paths:
   /v1/golden-path:
     post:
       summary: Request professional Golden Path synthesis
+      description: >
+        Golden Path synthesis is a high-consequence human-reviewed workflow. The server
+        must use a persisted route run and its evidence provenance; unresolved discrepancy
+        cannot be silently averaged away. Browser state cannot approve synthesis.
       security: [{ sessionAuth: [] }]
       responses:
         '201': { description: Human-review workflow created }
