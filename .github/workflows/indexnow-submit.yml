@@ -1,0 +1,31 @@
+name: IndexNow Submission
+
+on:
+  workflow_dispatch:
+    inputs:
+      submit_all:
+        description: 'Submit all current sitemap URLs after production DNS/TLS verification'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  indexnow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate IndexNow integration without network submission
+        env:
+          PROD_ORIGIN: https://drjavadrezazadeh.com
+          INDEXNOW_ENABLED: '0'
+        run: node scripts/indexnow-submit.mjs --all
+      - name: Activation note
+        run: |
+          echo "The key file and submission client are ready."
+          echo "Network submission intentionally remains OFF until production DNS/TLS is independently verified."
