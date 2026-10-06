@@ -40,6 +40,8 @@ jobs:
         run: node scripts/performance-source-audit.mjs
       - name: Run news trust and freshness audit
         run: node scripts/news-trust-audit.mjs
+      - name: Run conversion path audit
+        run: node scripts/conversion-path-audit.mjs
       - name: Validate IndexNow integration contract
         env:
           PROD_ORIGIN: https://drjavadrezazadeh.com
