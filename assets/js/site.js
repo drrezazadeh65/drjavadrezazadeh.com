@@ -518,34 +518,4 @@ markCurrentDesktopNavigation();
   document.head.appendChild(script);
 })();
 
-// PUBLIC CV PRINT ACTION v1
-(function(){
-  document.addEventListener('click',e=>{
-    const trigger=e.target.closest('[data-print-cv]');
-    if(!trigger)return;
-    e.preventDefault();
-    window.print();
-  });
-})();
-
-// CITATION COPY ACTION v1
-(function(){
-  document.addEventListener('click',async e=>{
-    const btn=e.target.closest('[data-copy-citation]');
-    if(!btn)return;
-    e.preventDefault();
-    const value=btn.getAttribute('data-copy-citation')||'';
-    if(!value)return;
-    const original=btn.textContent;
-    try{
-      await navigator.clipboard.writeText(value);
-      btn.classList.add('is-copied');
-      btn.textContent=document.documentElement.lang==='fa'?'کپی شد':'Copied';
-      setTimeout(()=>{btn.classList.remove('is-copied');btn.textContent=original;},1800);
-    }catch(err){
-      const ta=document.createElement('textarea');ta.value=value;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
-      try{document.execCommand('copy');btn.textContent=document.documentElement.lang==='fa'?'کپی شد':'Copied';}catch(_e){}
-      ta.remove();setTimeout(()=>{btn.textContent=original;},1800);
-    }
-  });
-})();
+document.addEventListener('click',async e=>{const t=e.target.closest('[data-print-cv],[data-copy-citation]');if(!t)return;if(t.hasAttribute('data-print-cv')){e.preventDefault();return print()}const v=t.dataset.copyCitation;if(!v)return;e.preventDefault();const o=t.textContent,n=document.documentElement.lang==='fa'?'کپی شد':'Copied';try{await navigator.clipboard.writeText(v)}catch(_){const a=document.createElement('textarea');a.value=v;a.hidden=true;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_e){}a.remove()}t.classList.add('is-copied');t.textContent=n;setTimeout(()=>{t.classList.remove('is-copied');t.textContent=o},1800)});
