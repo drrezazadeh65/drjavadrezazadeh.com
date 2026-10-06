@@ -4,6 +4,19 @@
 -- Provider-neutral PostgreSQL baseline; not yet applied to production.
 BEGIN;
 
+-- Expand role vocabulary for the master ecosystem while preserving existing roles.
+-- Institution and counsellor authority still requires separate verification/RBAC;
+-- adding a role value does not itself grant access.
+ALTER TABLE user_role
+  DROP CONSTRAINT IF EXISTS user_role_role_check;
+
+ALTER TABLE user_role
+  ADD CONSTRAINT user_role_role_check
+  CHECK (role IN (
+    'STUDENT','PARENT','TEACHER','CONSULTANT','COUNSELLOR','RESEARCHER',
+    'CONSULTATION_CLIENT','INSTITUTION','EDITOR','ADMIN','SUPER_ADMIN'
+  ));
+
 -- Broaden one intake architecture beyond student counselling while preserving
 -- the same fail-closed triage, booking and payment lifecycle.
 ALTER TABLE consultation_request
