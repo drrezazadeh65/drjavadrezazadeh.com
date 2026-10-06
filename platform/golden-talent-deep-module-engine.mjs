@@ -17,7 +17,23 @@ export function deepSubmissionToEvidence(input){
  });
 }
 export function deepModuleCompletion(input,reviewedEvents=[]){
- const c=validateDeepSubmission(input);
+ const c=validateDeepSubmission(input),r=c.completion_requirements||{};
  const usable=reviewedEvents.filter(e=>e.domain_code===input.domain&&e.quality_state==='USABLE');
- return {domain:input.domain,task_code:input.task_code,contract_completion_rule:c.completion,evidence_count:usable.length,completed_for_workflow:usable.length>0,total_score:null,normative_label:null,requires_route_rerun:usable.length>0};
+ const taskCodes=new Set(usable.map(e=>e.provenance?.task_code||e.instrument_code));
+ const sourceTypes=new Set(usable.map(e=>e.source_type));
+ const reflective=usable.filter(e=>['STUDENT_SELF','ASSESSMENT'].includes(e.source_type)).length;
+ const contextual=usable.filter(e=>['CONTEXT','PARENT','TEACHER'].includes(e.source_type)).length;
+ const professional=usable.some(e=>e.provenance?.reviewer_user_id||e.reviewer_user_id);
+ const requirements={
+  minimum_usable_events:(r.minimum_usable_events||0)<=usable.length,
+  required_task_codes:(r.required_task_codes||[]).every(x=>taskCodes.has(x)),
+  required_source_types:(r.required_source_types||[]).every(x=>sourceTypes.has(x)),
+  reflective:r.minimum_reflective_events==null||reflective>=r.minimum_reflective_events,
+  contextual:r.minimum_contextual_events==null||contextual>=r.minimum_contextual_events,
+  professional_review:r.professional_review_required!==true||professional,
+  paired_performance:r.paired_performance_required!==true||usable.filter(e=>e.source_type==='PERFORMANCE_SAMPLE').length>=2,
+  external_or_performance:r.external_or_performance_evidence_required!==true||usable.some(e=>['PERFORMANCE_SAMPLE','ACADEMIC_RECORD','CONSULTANT'].includes(e.source_type))
+ };
+ const completed=Object.values(requirements).every(Boolean);
+ return {domain:input.domain,task_code:input.task_code,contract_completion_rule:c.completion,requirements,evidence_count:usable.length,completed_for_workflow:completed,total_score:null,normative_label:null,requires_route_rerun:completed};
 }
