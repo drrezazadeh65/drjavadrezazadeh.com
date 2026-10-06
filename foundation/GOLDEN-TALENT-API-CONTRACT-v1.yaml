@@ -297,6 +297,31 @@ paths:
         '200': { description: Golden Path release persisted }
         '403': { description: Qualified assigned reviewer required }
         '409': { description: Route/synthesis version mismatch or unresolved review }
+  /v1/golden-path/{goldenPathId}/release/{releaseId}/revoke:
+    post:
+      summary: Revoke or supersede a professionally released Golden Path
+      description: >
+        Appends a controlled release-state transition with rationale and reviewer provenance.
+        Historical release records remain preserved. Any BAHAR portfolio whose active baseline
+        derives from the affected release is paused for reassessment; no replacement Golden Path
+        or BAHAR baseline is activated automatically.
+      security: [{ sessionAuth: [] }]
+      responses:
+        '200': { description: Release transition persisted and dependent longitudinal workflow paused }
+        '403': { description: Qualified assigned reviewer required }
+        '409': { description: Release is not active or transition conflicts with current state }
+  /v1/bahar/portfolios/{portfolioId}/baseline-transitions:
+    post:
+      summary: Activate a replacement BAHAR baseline from an explicit Golden Path release
+      description: >
+        Creates a new immutable, versioned baseline snapshot only from an explicitly RELEASED
+        Golden Path after reassessment and human review. The prior baseline is marked SUPERSEDED,
+        never overwritten. Client state cannot activate a replacement baseline.
+      security: [{ sessionAuth: [] }]
+      responses:
+        '201': { description: Versioned replacement baseline activated }
+        '403': { description: Professional release or portfolio authority not verified }
+        '409': { description: Portfolio is not awaiting reconciliation or release lineage mismatches }
   /v1/bahar/portfolios:
     post:
       summary: Create BAHAR continuity portfolio from a professionally released Golden Path
