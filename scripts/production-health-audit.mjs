@@ -31,7 +31,7 @@ try{
   ];
   dnsReady=records.length>0;
   if(!dnsReady) warnings.push('No A/AAAA records resolved for '+host);
-  else console.log('DNS: '+records.length+' address record(s) resolved for '+host);
+  else console.log('DNS: '+records.length+' address record(s) resolved for '+host+' -> '+records.join(', '));
 }catch(e){
   warnings.push('DNS lookup failed: '+e.message);
 }
@@ -40,7 +40,8 @@ let root;
 try{
   root=await fetchWithTimeout(ORIGIN+'/');
 }catch(e){
-  const msg='Production origin unreachable: '+e.message;
+  const cause=e?.cause?.code||e?.cause?.message||e?.cause||'';
+  const msg='Production origin unreachable: '+e.message+(cause?' ['+cause+']':'');
   if(STRICT) failures.push(msg); else warnings.push(msg);
 }
 
@@ -68,7 +69,7 @@ for(const route of ['/fa/','/en/','/robots.txt','/sitemap.xml']){
       failures.push(route+': live canonical mismatch');
     }
   }catch(e){
-    failures.push(route+': fetch failed: '+e.message);
+    failures.push(route+': fetch failed: '+e.message+(e?.cause?.code?' ['+e.cause.code+']':''));
   }
 }
 
