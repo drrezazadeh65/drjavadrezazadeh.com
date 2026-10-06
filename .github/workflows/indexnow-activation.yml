@@ -1,0 +1,44 @@
+name: IndexNow Activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'dry-run validates locally; live first verifies production HTTPS/key then submits all sitemap URLs'
+        required: true
+        default: dry-run
+        type: choice
+        options:
+          - dry-run
+          - live
+
+permissions:
+  contents: read
+
+jobs:
+  indexnow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PROD_ORIGIN: https://drjavadrezazadeh.com
+      INDEXNOW_KEY: 5bea74dc73880cd2b2a1a35a649e62de
+      INDEXNOW_KEY_LOCATION: https://drjavadrezazadeh.com/5bea74dc73880cd2b2a1a35a649e62de.txt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate local IndexNow contract
+        env:
+          INDEXNOW_ENABLED: '0'
+        run: node scripts/indexnow-submit.mjs --all
+      - name: Verify production HTTPS and key
+        if: ${{ inputs.mode == 'live' }}
+        run: |
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 https://drjavadrezazadeh.com/ >/dev/null
+          test "$(curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 "$INDEXNOW_KEY_LOCATION" | tr -d '\r\n')" = "$INDEXNOW_KEY"
+      - name: Submit canonical sitemap URLs to IndexNow
+        if: ${{ inputs.mode == 'live' }}
+        env:
+          INDEXNOW_ENABLED: '1'
+        run: node scripts/indexnow-submit.mjs --all
