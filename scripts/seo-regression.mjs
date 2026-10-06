@@ -1404,3 +1404,11 @@ const ce=fs.readFileSync(path.join(root,'platform','consultation-engine.mjs'),'u
 for(const x of ['TRIAGED','AWAITING_BOOKING','Verified completed payment required']) if(!ce.includes(x)) failures.push('/platform/consultation-engine.mjs: incomplete consultation workflow');
 const re=fs.readFileSync(path.join(root,'platform','research-export-engine.mjs'),'utf8');
 for(const x of ['Approved research study required','Frozen dataset required','direct_identity:false','codebook_required:true']) if(!re.includes(x)) failures.push('/platform/research-export-engine.mjs: unsafe research export');
+
+// Assessment/report provenance guardrails.
+const arp=path.join(root,'platform','db','migrations','017_assessment_report_provenance.sql');
+if(!fs.existsSync(arp)) failures.push('/platform/db/migrations/017_assessment_report_provenance.sql: missing provenance alignment');
+else{
+ const a=fs.readFileSync(arp,'utf8');
+ for(const x of ['frozen_at','response_revision','scoring_version_id','interpretation_version_id','source_response_revision','supersedes_report_id']) if(!a.includes(x)) failures.push('/platform/db/migrations/017_assessment_report_provenance.sql: missing '+x);
+}
