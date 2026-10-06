@@ -1,0 +1,207 @@
+{
+  "schema_version": "1.0",
+  "as_of": "2026-10-06",
+  "north_star": "Authority + Education + Intelligence + Revenue Ecosystem",
+  "moats": [
+    "BRAND",
+    "PRODUCT_DATA",
+    "DISCOVERY"
+  ],
+  "public_audiences": [
+    {
+      "id": "students_parents",
+      "label_en": "Students & Parents",
+      "label_fa": "دانش‌آموزان و والدین",
+      "primary_routes": {
+        "en": "/en/student-guidance/",
+        "fa": "/fa/khadamat/"
+      },
+      "intent": [
+        "talent",
+        "study",
+        "coaching",
+        "pathways"
+      ]
+    },
+    {
+      "id": "researchers_academics",
+      "label_en": "Researchers & Academics",
+      "label_fa": "پژوهشگران و دانشگاهیان",
+      "primary_routes": {
+        "en": "/en/services/",
+        "fa": "/fa/khadamat/"
+      },
+      "intent": [
+        "research consultation",
+        "academic editing",
+        "publication",
+        "career"
+      ]
+    },
+    {
+      "id": "teachers_educators",
+      "label_en": "Teachers & Educators",
+      "label_fa": "معلمان و مربیان",
+      "primary_routes": {
+        "en": "/en/teacher-education/",
+        "fa": "/fa/khadamat/"
+      },
+      "intent": [
+        "development",
+        "assessment",
+        "mentoring"
+      ]
+    },
+    {
+      "id": "institutions",
+      "label_en": "Institutions",
+      "label_fa": "سازمان‌ها و مدارس",
+      "primary_routes": {
+        "en": "/en/collaboration/",
+        "fa": "/fa/tamas/"
+      },
+      "intent": [
+        "consulting",
+        "training",
+        "research",
+        "speaking"
+      ]
+    }
+  ],
+  "engines": {
+    "authority": [
+      "profile",
+      "research",
+      "publications",
+      "books",
+      "teaching",
+      "engagements",
+      "knowledge_hub"
+    ],
+    "revenue": [
+      "academic_services",
+      "student_parent_services",
+      "teacher_services",
+      "institutional_services",
+      "digital_products",
+      "reports",
+      "coaching"
+    ],
+    "golden_talent": {
+      "positioning": "Educational Development & Decision Intelligence Platform",
+      "journey": [
+        "DISCOVER",
+        "ASSESS",
+        "PLAN",
+        "COACH",
+        "TRACK",
+        "PREDICT",
+        "DECIDE",
+        "GROW"
+      ],
+      "core": "COUNTRY_AGNOSTIC",
+      "local_modules": [
+        "IRAN",
+        "FUTURE_IB",
+        "FUTURE_A_LEVEL",
+        "FUTURE_AP",
+        "FUTURE_GPA_BASED"
+      ]
+    },
+    "intelligence": {
+      "rule": "AI_ASSISTED_EVIDENCE_BASED_HUMAN_SUPERVISED",
+      "allowed_future_capabilities": [
+        "DOCUMENT_ANALYSIS",
+        "TREND_DETECTION",
+        "ADAPTIVE_PLANNING",
+        "ANOMALY_DETECTION",
+        "REPORT_DRAFTING",
+        "RECOMMENDATION_EXPLANATION",
+        "PATHWAY_SIMULATION"
+      ]
+    }
+  },
+  "revenue_priority": [
+    "ACADEMIC_SERVICES_CONSULTATION",
+    "STUDENT_PARENT_CONSULTATION_REPORT_ANALYSIS",
+    "RECURRING_COACHING",
+    "GOLDEN_TALENT_REPORTS",
+    "IRAN_SELECTION_INTELLIGENCE",
+    "INTERNATIONAL_PATHWAYS",
+    "INSTITUTIONAL_SCALE"
+  ],
+  "recurring_revenue": [
+    "MONTHLY_COACHING",
+    "QUARTERLY_REVIEW",
+    "ANNUAL_DEVELOPMENT_PROGRAMME",
+    "PREMIUM_LONG_TERM_COACHING"
+  ],
+  "feature_filter": [
+    "AUTHORITY",
+    "REVENUE_OR_CONVERSION",
+    "ACCUMULATED_USER_VALUE",
+    "LONG_TERM_MOAT",
+    "MATERIAL_UX",
+    "SCIENTIFIC_PROFESSIONAL_FIT"
+  ],
+  "do_not_build_now": [
+    "SOCIAL_NETWORK",
+    "HUGE_LMS",
+    "GENERIC_MARKETPLACE",
+    "UNVALIDATED_ASSESSMENT_CATALOGUE",
+    "THIN_PROGRAMMATIC_SEO",
+    "DECORATIVE_AI_CHATBOT",
+    "UNNECESSARY_GAMIFICATION",
+    "MASSIVE_COURSE_CATALOGUE"
+  ],
+  "current_execution": [
+    {
+      "id": "audience_gates",
+      "priority": "P0",
+      "state": "IN_PROGRESS"
+    },
+    {
+      "id": "academic_services_conversion",
+      "priority": "P0",
+      "state": "IN_PROGRESS"
+    },
+    {
+      "id": "invite_dr_rezazadeh",
+      "priority": "P0",
+      "state": "IN_PROGRESS"
+    },
+    {
+      "id": "student_parent_conversion",
+      "priority": "P0",
+      "state": "IN_PROGRESS"
+    },
+    {
+      "id": "knowledge_hub_clusters",
+      "priority": "P1",
+      "state": "PLANNED"
+    },
+    {
+      "id": "longitudinal_dashboard",
+      "priority": "P1",
+      "state": "IN_PROGRESS"
+    },
+    {
+      "id": "recurring_coaching_architecture",
+      "priority": "P1",
+      "state": "PLANNED"
+    },
+    {
+      "id": "institutional_journey",
+      "priority": "P1",
+      "state": "IN_PROGRESS"
+    }
+  ],
+  "invariants": [
+    "PERSIAN_ENGLISH_NOT_MECHANICAL_MIRRORS",
+    "NO_PRIVATE_RECORDS_ON_PUBLIC_WEB",
+    "NO_CLIENT_AUTHORITATIVE_PAYMENT_IDENTITY_ROLE_ENTITLEMENT",
+    "NO_UNVERIFIED_ANNUAL_EDUCATION_DATA",
+    "NO_GUARANTEED_ADMISSION_RANKING_AI_CITATION",
+    "CONFIDENTIAL_RESEARCH_IP_REQUIRES_EXPLICIT_RELEASE"
+  ]
+}
