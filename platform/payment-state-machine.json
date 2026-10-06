@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Provider-neutral payment, verification and entitlement lifecycle",
+  "states": [
+    {"key":"ORDER_PENDING","label_en":"Order pending","label_fa":"سفارش در انتظار"},
+    {"key":"AWAITING_PAYMENT","label_en":"Awaiting payment","label_fa":"در انتظار پرداخت"},
+    {"key":"PROVIDER_PENDING","label_en":"Provider pending","label_fa":"در انتظار درگاه"},
+    {"key":"VERIFICATION_PENDING","label_en":"Verification pending","label_fa":"در انتظار تأیید"},
+    {"key":"PAYMENT_VERIFIED","label_en":"Payment verified","label_fa":"پرداخت تأییدشده"},
+    {"key":"FULFILLING","label_en":"Fulfilling","label_fa":"در حال فعال‌سازی"},
+    {"key":"COMPLETED","label_en":"Completed","label_fa":"تکمیل‌شده"},
+    {"key":"FAILED","label_en":"Failed","label_fa":"ناموفق"},
+    {"key":"CANCELLED","label_en":"Cancelled","label_fa":"لغوشده"},
+    {"key":"REFUND_PENDING","label_en":"Refund pending","label_fa":"استرداد در انتظار"},
+    {"key":"REFUNDED","label_en":"Refunded","label_fa":"مستردشده"}
+  ],
+  "transition_rules": [
+    "ORDER_PENDING -> AWAITING_PAYMENT only after server resolves canonical product, active price, currency and amount",
+    "AWAITING_PAYMENT -> PROVIDER_PENDING only after server creates an idempotent payment intent",
+    "PROVIDER_PENDING -> VERIFICATION_PENDING when provider returns or sends a callback/webhook",
+    "VERIFICATION_PENDING -> PAYMENT_VERIFIED only after server independently verifies provider authenticity, reference, amount, currency and final payment status",
+    "PAYMENT_VERIFIED -> FULFILLING only from persisted verified payment state",
+    "FULFILLING -> COMPLETED only after the intended entitlement or service fulfillment is persisted",
+    "Any unpaid pre-verification state -> FAILED or CANCELLED without granting entitlement",
+    "PAYMENT_VERIFIED or COMPLETED -> REFUND_PENDING only through an authenticated server-side refund workflow",
+    "REFUND_PENDING -> REFUNDED only after provider/server refund confirmation and required entitlement reconciliation"
+  ],
+  "invariant_rules": [
+    "Browser redirect, query string, local storage and client JavaScript never establish payment truth",
+    "Client never supplies authoritative amount, currency, provider key, price id or entitlement",
+    "Provider selection is server-side and market-aware",
+    "Every payment intent has an idempotency key",
+    "Entitlement can be granted only from persisted PAYMENT_VERIFIED state",
+    "Webhook or callback processing is idempotent and auditable",
+    "Provider secrets and webhook secrets never enter Git or browser code",
+    "Refund and reversal processing must reconcile affected entitlement state"
+  ],
+  "markets": {
+    "IR": {"canonical_currency":"IRR","display_currency":"IRT","provider_status":"DISABLED_PENDING_CREDENTIALS"},
+    "INTERNATIONAL": {"canonical_currency":"USD","provider_status":"DISABLED_PENDING_KYB_PROVIDER"}
+  }
+}
