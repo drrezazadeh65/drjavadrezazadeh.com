@@ -6,6 +6,12 @@ const KEY_LOCATION=process.env.INDEXNOW_KEY_LOCATION||`${ORIGIN}/${KEY}.txt`;
 const ENABLED=process.env.INDEXNOW_ENABLED==='1';
 const ALL=process.argv.includes('--all');
 
+const localKeyFile=`${KEY}.txt`;
+if(!fs.existsSync(localKeyFile)) throw new Error('IndexNow local key file missing: '+localKeyFile);
+const localKey=fs.readFileSync(localKeyFile,'utf8').trim();
+if(localKey!==KEY) throw new Error('IndexNow local key file does not match configured key.');
+
+
 const canonicalFromHtml=file=>{
   if(!fs.existsSync(file)) return null;
   const html=fs.readFileSync(file,'utf8');
