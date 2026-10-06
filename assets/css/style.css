@@ -759,3 +759,22 @@ legend{max-width:100%;overflow-wrap:anywhere}
   .app-sheet-panel{max-width:calc(100% - 24px);margin-inline:auto}
   .pwa-install,.network-status{max-width:calc(100% - 24px)}
 }
+
+
+/* Narrow viewport containment v4 */
+@supports (overflow:clip){html,body{overflow-x:clip!important}}
+@media(max-width:420px){
+  .site-header{padding-inline:10px;gap:8px}
+  .site-header:after{left:10px;right:10px}
+  .site-header nav{min-width:0;max-width:100%}
+  .gt-mobile-dock,.app-dock{max-width:calc(100dvw - 16px);left:8px;right:8px;margin-inline:auto}
+  .app-sheet-panel,.pwa-install,.network-status{box-sizing:border-box;width:auto!important;max-width:calc(100dvw - 16px)!important;left:8px!important;right:8px!important;margin-inline:auto}
+  .gt-private-shell,.service-shell,.student-shell,.account-shell,.case-shell,.premium-module-shell,.rcas-shell{width:calc(100% - 20px);max-width:100%}
+}
+@media(max-width:360px){
+  .site-header{padding-inline:8px}
+  .site-header .brand small{white-space:normal}
+  .site-header nav a{padding-inline:7px}
+  .actions{align-items:stretch}
+  .actions .button{width:100%;max-width:100%}
+}
