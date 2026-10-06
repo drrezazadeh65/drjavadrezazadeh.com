@@ -132,5 +132,10 @@
     ],
     "connected_product": "Golden Talent",
     "rule": "Relationships must be supported by public work/services/projects; semantic markup must not invent affiliations, awards or expertise."
-  }
+  },
+  "required_knows_about": [
+    "Talent Development",
+    "Teacher Development",
+    "Academic Consulting"
+  ]
 }
