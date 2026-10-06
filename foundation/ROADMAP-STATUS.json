@@ -152,9 +152,10 @@
     "COM-014": "Book inventory, shipment, shipping-address and digital-delivery persistence implemented; real stock/carrier/storage activation pending.",
     "COM-016": "Institutional quote/invoice workflow controls defined with legal entity, currency/tax clarity and verified-payment/approved-contract entitlement gate; accounting runtime pending.",
     "INFRA-008": "Permanent domain is delegated toward Cloudflare; GitHub Pages DNS verification and TLS issuance are awaiting propagation.",
-    "ADMIN-001": "Private bilingual admin-console architecture plus content-governance foundation implemented; live CMS persistence/editor UI pending.",
+    "ADMIN-001": "Private bilingual admin console now has a production-aware operations UI for content/SEO, assessment, commerce, consultation, leads, identity/consent and security gates; live data/editing remains disabled until authenticated provider-backed services exist.",
     "ADMIN-007": "Order/payment admin surface and contracts implemented; live operational data awaits backend/gateway.",
-    "ADMIN-008": "Consultation administration surface and contracts implemented; live operational data awaits backend/calendar."
+    "ADMIN-008": "Consultation administration surface and contracts implemented; live operational data awaits backend/calendar.",
+    "UX-008": "JHELA founding routes now share a unified responsive scholarly design/navigation layer and the bilingual private admin shell is a coherent operations console; final whole-site visual spot QA remains pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
