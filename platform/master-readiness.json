@@ -147,6 +147,32 @@
       ]
     },
     {
+      "id": "bookstore",
+      "production_state": "FOUNDATION_STRONG",
+      "revenue_priority": "CRITICAL",
+      "external_blockers": [
+        "Verified prices and sellable formats for published books",
+        "Verified stock/fulfilment and return/shipping terms",
+        "Payment provider activation for real checkout"
+      ],
+      "artifacts": [
+        "platform/book-catalog.json",
+        "platform/book-commerce.mjs",
+        "platform/db/migrations/028_book_fulfilment.sql",
+        "fa/shop/index.html",
+        "en/shop/index.html",
+        "assets/js/book-store.js",
+        "foundation/BOOKSTORE-OPERATIONS-RUNBOOK.md"
+      ],
+      "next_actions": [
+        "Collect verified ISBN/publisher/edition data where applicable",
+        "Set real prices and physical/digital formats",
+        "Confirm stock, shipping coverage and return terms",
+        "Activate Product/Offer schema only after a genuine sellable offer exists",
+        "Connect checkout to verified server payment flow"
+      ]
+    },
+    {
       "id": "payments-ir",
       "production_state": "WAITING_EXTERNAL",
       "revenue_priority": "CRITICAL",
