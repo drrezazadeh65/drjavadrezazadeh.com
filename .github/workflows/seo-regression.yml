@@ -53,8 +53,11 @@ jobs:
         run: node scripts/indexnow-submit.mjs --all
       - name: Run legacy URL continuity audit
         run: node scripts/legacy-url-continuity-audit.mjs
-      - name: Validate public JavaScript syntax
-        run: node --check assets/js/site.js && node --check assets/js/assistant.js && node --check assets/js/book-store.js && node --check edge/assistant/src/index.js
+      - name: Validate JavaScript and MJS syntax across release code
+        run: |
+          for file in assets/js/*.js edge/assistant/src/*.js scripts/*.mjs platform/*.mjs; do
+            node --check "$file"
+          done
       - name: Run ecosystem governance contract tests
         run: node platform/ecosystem-governance.test.mjs
       - name: Run public AI assistant runtime tests
