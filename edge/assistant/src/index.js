@@ -1,3 +1,5 @@
+import { DurableObject } from "cloudflare:workers";
+
 const ALLOWED_ORIGINS=new Set([
   'https://drjavadrezazadeh.com',
   'https://www.drjavadrezazadeh.com',
@@ -74,6 +76,72 @@ function modelText(result){
   if(typeof choice==='string') return choice;
   if(Array.isArray(choice)) return choice.map(x=>x?.text||x?.content||'').join('');
   return '';
+}
+
+
+function normalizeLead(body={}){
+  const type=body.contact_type==='MOBILE'?'MOBILE':'EMAIL';
+  let value=compact(body.contact_value,180);
+  if(type==='EMAIL'){
+    value=value.toLowerCase();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) throw new Error('invalid_email');
+  }else{
+    value=value.replace(/[\s()-]/g,'');
+    if(!/^\+[1-9]\d{7,14}$/.test(value)) throw new Error('invalid_mobile');
+  }
+  const intents=new Set(['GENERAL','ACADEMIC_COUNSELLING','FIELD_SELECTION','GOLDEN_TALENT','LANGUAGE_EDUCATION','COLLABORATION']);
+  if(body.contact_consent!==true) throw new Error('contact_consent_required');
+  const intent=intents.has(body.intent)?body.intent:'GENERAL';
+  return {
+    id:crypto.randomUUID(),
+    contact_type:type,
+    contact_value:value,
+    intent,
+    locale:body.locale==='fa'?'fa':'en',
+    source_route:compact(body.source_route||'/',220),
+    whatsapp_opt_in:type==='MOBILE'&&body.whatsapp_opt_in===true,
+    consent_version:'lead-contact-v1',
+    created_at:new Date().toISOString(),
+    status:'NEW'
+  };
+}
+
+export class LeadStore extends DurableObject {
+  constructor(ctx,env){
+    super(ctx,env);
+    this.sql=ctx.storage.sql;
+    this.sql.exec(`CREATE TABLE IF NOT EXISTS lead (
+      id TEXT PRIMARY KEY,
+      contact_type TEXT NOT NULL,
+      contact_value TEXT NOT NULL,
+      intent TEXT NOT NULL,
+      locale TEXT NOT NULL,
+      source_route TEXT NOT NULL,
+      whatsapp_opt_in INTEGER NOT NULL DEFAULT 0,
+      consent_version TEXT NOT NULL,
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )`);
+    this.sql.exec('CREATE INDEX IF NOT EXISTS lead_created_idx ON lead(created_at DESC)');
+  }
+  async fetch(request){
+    const url=new URL(request.url);
+    if(request.method==='POST'&&url.pathname==='/create'){
+      const lead=await request.json();
+      this.sql.exec(`DELETE FROM lead WHERE status='NEW' AND created_at < datetime('now','-180 days')`);
+      this.sql.exec(
+        `INSERT INTO lead (id,contact_type,contact_value,intent,locale,source_route,whatsapp_opt_in,consent_version,status,created_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?)`,
+        lead.id,lead.contact_type,lead.contact_value,lead.intent,lead.locale,lead.source_route,lead.whatsapp_opt_in?1:0,lead.consent_version,lead.status,lead.created_at
+      );
+      return Response.json({saved:true,lead_id:lead.id});
+    }
+    if(request.method==='GET'&&url.pathname==='/list'){
+      const rows=[...this.sql.exec(`SELECT id,contact_type,contact_value,intent,locale,source_route,whatsapp_opt_in,consent_version,status,created_at FROM lead ORDER BY created_at DESC LIMIT 500`)];
+      return Response.json({leads:rows});
+    }
+    return new Response('Not found',{status:404});
+  }
 }
 
 export default {
