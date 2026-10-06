@@ -1303,3 +1303,172 @@
   font-size:10px;
   line-height:1.6;
 }
+
+
+/* Audience & revenue pathways v1 */
+.public-home-page .audience-gates,
+.public-content-page .audience-gates{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-top:22px;
+}
+.public-home-page .audience-gate,
+.public-content-page .audience-gate{
+  min-height:190px;
+  padding:23px;
+  border:1px solid var(--public-line);
+  border-radius:19px;
+  background:
+    radial-gradient(260px 120px at 100% 0%,rgba(199,163,91,.035),transparent 68%),
+    linear-gradient(155deg,#141416,#101012);
+  text-decoration:none;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease;
+}
+.public-home-page .audience-gate:hover,
+.public-content-page .audience-gate:hover{
+  transform:translateY(-2px);
+  border-color:var(--public-gold-line);
+  background:
+    radial-gradient(300px 140px at 100% 0%,rgba(199,163,91,.065),transparent 70%),
+    linear-gradient(155deg,#151412,#101012);
+}
+.public-home-page .audience-gate small,
+.public-content-page .audience-gate small{
+  display:block;
+  color:#777a81;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.rtl.public-home-page .audience-gate small,
+.rtl.public-content-page .audience-gate small{
+  text-transform:none;
+  letter-spacing:0;
+}
+.public-home-page .audience-gate strong,
+.public-content-page .audience-gate strong{
+  display:block;
+  margin-top:11px;
+  color:#eee9df;
+  font-size:20px;
+  line-height:1.4;
+}
+.public-home-page .audience-gate span,
+.public-content-page .audience-gate span{
+  display:block;
+  margin-top:8px;
+  color:#92959c;
+  font-size:11px;
+  line-height:1.75;
+}
+.public-content-page .service-offer-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-top:22px;
+}
+.public-content-page .service-offer{
+  padding:23px;
+  border:1px solid var(--public-line);
+  border-radius:18px;
+  background:linear-gradient(155deg,#141416,#101012);
+}
+.public-content-page .service-offer h3{
+  margin:0 0 8px;
+  color:#eee9df;
+  font-size:19px;
+}
+.public-content-page .service-offer p{
+  margin:0;
+  color:#989ba2;
+  line-height:1.8;
+}
+.public-content-page .service-offer .service-fit{
+  display:block;
+  margin-top:13px;
+  padding-top:12px;
+  border-top:1px solid rgba(255,255,255,.045);
+  color:#7f8289;
+  font-size:10px;
+  line-height:1.6;
+}
+.public-content-page .revenue-journey{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:9px;
+  margin-top:22px;
+}
+.public-content-page .revenue-journey>div{
+  min-height:128px;
+  padding:17px;
+  border:1px solid var(--public-line);
+  border-radius:15px;
+  background:#111113;
+}
+.public-content-page .revenue-journey b{
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  border:1px solid var(--public-gold-line);
+  border-radius:9px;
+  color:var(--public-gold-soft);
+  font-size:9px;
+}
+.public-content-page .revenue-journey strong{
+  display:block;
+  margin-top:13px;
+  color:#ece7de;
+  font-size:13px;
+}
+.public-content-page .revenue-journey span{
+  display:block;
+  margin-top:5px;
+  color:#85888f;
+  font-size:10px;
+  line-height:1.6;
+}
+.public-content-page .invite-panel{
+  margin-top:24px;
+  padding:30px;
+  border:1px solid var(--public-gold-line);
+  border-radius:22px;
+  background:
+    radial-gradient(460px 200px at 92% 0%,rgba(199,163,91,.07),transparent 70%),
+    linear-gradient(155deg,#141416,#101012);
+}
+.public-content-page .invite-panel .invite-types{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:16px 0 20px;
+}
+.public-content-page .invite-panel .invite-types span{
+  padding:7px 10px;
+  border:1px solid var(--public-line);
+  border-radius:999px;
+  color:#bdb9b0;
+  font-size:10px;
+  background:#0f0f11;
+}
+@media(max-width:980px){
+  .public-home-page .audience-gates,
+  .public-content-page .audience-gates{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .public-content-page .revenue-journey{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  .public-home-page .audience-gates,
+  .public-content-page .audience-gates,
+  .public-content-page .service-offer-grid{grid-template-columns:1fr}
+  .public-home-page .audience-gate,
+  .public-content-page .audience-gate{min-height:auto}
+  .public-content-page .revenue-journey{grid-template-columns:1fr 1fr}
+  .public-content-page .invite-panel{padding:22px}
+}
+@media(prefers-reduced-motion:reduce){
+  .public-home-page .audience-gate,
+  .public-content-page .audience-gate{transition:none}
+  .public-home-page .audience-gate:hover,
+  .public-content-page .audience-gate:hover{transform:none}
+}
