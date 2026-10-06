@@ -366,5 +366,21 @@
     "category": "اخبار",
     "summary": "فراخوان عمومی همکاری علمی و داوری برای JHELA.",
     "keywords": "فراخوان JHELA داوری همکاری علمی مجله"
+  },
+  {
+    "lang": "en",
+    "title": "Academic Services",
+    "path": "en/academic-services/",
+    "category": "Services",
+    "summary": "Academic English editing, manuscript diagnostics, research and publication consultation, reviewer-response support and academic career preparation.",
+    "keywords": "academic services editing manuscript diagnostic research consultation publication reviewer response academic cv interview"
+  },
+  {
+    "lang": "fa",
+    "title": "خدمات پژوهشی و دانشگاهی",
+    "path": "fa/khadamat-pajouheshi/",
+    "category": "خدمات",
+    "summary": "ویرایش انگلیسی دانشگاهی، بازبینی تشخیصی مقاله، مشاوره پژوهش و انتشار، پاسخ به داوران و مسیر دانشگاهی.",
+    "keywords": "خدمات پژوهشی ویرایش مقاله مشاوره پژوهش انتشار داوران رزومه مصاحبه علمی"
   }
 ]
