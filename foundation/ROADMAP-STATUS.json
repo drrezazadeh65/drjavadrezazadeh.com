@@ -166,7 +166,8 @@
     "SEO-023": "Private bilingual admin monitoring architecture is implemented for post-release Search Console, organic landing, field-CWV and content-decay signals without fabricated metrics. Live data binding remains pending permanent-domain analytics/search-provider activation.",
     "SEO-024": "A 90–180 day high-value content review cadence is now represented in the admin review calendar, alongside monthly technical QA and quarterly strategic review. Automated scheduling and production performance data remain pending.",
     "OBS-006": "Content-metric architecture now covers impressions, CTR, organic landing pages, assisted conversion and content-decay review in the private admin console; provider-backed collection remains pending.",
-    "OBS-008": "Monthly technical QA, 90–180 day content review and quarterly strategic review cadences are now represented in the bilingual admin console; automated scheduling/evidence capture remains pending production observability."
+    "OBS-008": "Monthly technical QA, 90–180 day content review and quarterly strategic review cadences are now represented in the bilingual admin console; automated scheduling/evidence capture remains pending production observability.",
+    "ADMIN-006": "Bilingual private admin-console assessment management architecture now covers instrument version lifecycle, item bank governance, declared scoring/interpretation rules, multi-source evidence provenance and human-approved report supersession. Live editing/persistence remains pending authenticated backend."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
