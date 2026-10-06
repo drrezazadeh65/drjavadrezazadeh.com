@@ -1,0 +1,27 @@
+{
+ "schema_version":"1.0",
+ "discounts":{
+  "default_enabled":false,
+  "server_authoritative":true,
+  "rules_require_start_end":true,
+  "stacking_default":false,
+  "negative_total_prohibited":true
+ },
+ "physical_inventory":{
+  "activate_only_if_self_fulfilled":true,
+  "oversell_prohibited":true,
+  "reservation_expiry_required":true,
+  "shipment_tracking_contains_no_sensitive_case_data":true
+ },
+ "institutional_invoice":{
+  "quote_before_invoice":true,
+  "legal_entity_details_required":true,
+  "currency_and_tax_treatment_explicit":true,
+  "payment_status_server_verified":true,
+  "entitlement_after_verified_payment_or_approved_contract":true
+ },
+ "consultation_payment":{
+  "when_required_before_confirmation":true,
+  "client_redirect_never_proves_payment":true
+ }
+}
