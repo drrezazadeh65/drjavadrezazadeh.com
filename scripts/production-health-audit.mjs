@@ -72,6 +72,34 @@ for(const route of ['/fa/','/en/','/robots.txt','/sitemap.xml']){
   }
 }
 
+const privateRoutes=[
+  '/fa/login/',
+  '/fa/register/',
+  '/fa/darkhast-moshavere/',
+  '/fa/shop/checkout/',
+  '/en/login/',
+  '/en/register/',
+  '/en/request-consultation/',
+  '/en/golden-talent/assessment/',
+  '/en/shop/checkout/'
+];
+for(const route of privateRoutes){
+  try{
+    const {res,text}=await getText(ORIGIN+route);
+    if(res.status!==200){
+      failures.push(route+' expected 200 private/transactional shell, got '+res.status);
+      continue;
+    }
+    if(/github\.io/i.test(text)) failures.push(route+': legacy github.io origin leaked into live private response');
+    if(!/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(text)){
+      failures.push(route+': private/transactional route lost noindex protection');
+    }
+  }catch(e){
+    failures.push(route+': private-route fetch failed: '+e.message);
+  }
+}
+console.log('Live private/noindex routes checked: '+privateRoutes.length);
+
 
 try{
   const {res,text}=await getText(ORIGIN+'/5bea74dc73880cd2b2a1a35a649e62de.txt');
@@ -126,6 +154,19 @@ try{
   console.log('Live sitemap targets checked: '+unique.length);
 }catch(e){
   failures.push('Live sitemap expansion failed: '+e.message);
+}
+
+try{
+  const httpOrigin=ORIGIN.replace(/^https:/,'http:');
+  const res=await fetchWithTimeout(httpOrigin+'/');
+  if(res.status>=300&&res.status<400){
+    const loc=res.headers.get('location')||'';
+    if(!loc.startsWith(ORIGIN)) warnings.push('HTTP apex redirect does not point directly to HTTPS canonical origin: '+loc);
+  }else{
+    warnings.push('HTTP apex did not redirect to HTTPS; status '+res.status);
+  }
+}catch(e){
+  warnings.push('HTTP-to-HTTPS redirect probe failed: '+e.message);
 }
 
 try{
