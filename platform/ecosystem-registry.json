@@ -1,0 +1,288 @@
+{
+  "schema_version": "1.0",
+  "architecture_version": "5.0",
+  "status": "FROZEN_EXTENSIBLE_BASELINE",
+  "purpose": "Machine-readable boundary contract for public web, private app, commerce, assessment, publishing, research and future ecosystem modules.",
+  "origins": {
+    "current_public_origin": "https://drrezazadeh65.github.io/drjavadrezazadeh.com",
+    "production_target": "https://drjavadrezazadeh.com",
+    "app_target": "https://app.drjavadrezazadeh.com",
+    "journal_target": "https://journal.drjavadrezazadeh.com",
+    "press_target": "https://press.drjavadrezazadeh.com"
+  },
+  "locales": {
+    "supported": [
+      "fa",
+      "en"
+    ],
+    "localized_namespaces": [
+      "/fa/",
+      "/en/"
+    ],
+    "root_gateway": "NEUTRAL_LANGUAGE_GATEWAY",
+    "automatic_ip_language_redirect": false,
+    "language_choice_user_controlled": true
+  },
+  "policies": {
+    "PUBLIC_CANDIDATE": {
+      "authentication": "NONE",
+      "data_class": "PUBLIC",
+      "indexing": "EXPLICIT_RELEASE_ONLY",
+      "sitemap": "EXPLICIT_RELEASE_ONLY",
+      "cache": "PUBLIC_REVALIDATE"
+    },
+    "AUTH_SHELL": {
+      "authentication": "REQUIRED_FOR_REAL_SERVICE",
+      "data_class": "PRIVATE",
+      "indexing": "NOINDEX",
+      "sitemap": "EXCLUDE",
+      "cache": "NO_STORE"
+    },
+    "PRIVATE_APP": {
+      "authentication": "REQUIRED",
+      "data_class": "PRIVATE",
+      "indexing": "NOINDEX",
+      "sitemap": "EXCLUDE",
+      "cache": "NO_STORE"
+    },
+    "PRIVATE_ASSESSMENT": {
+      "authentication": "REQUIRED",
+      "data_class": "SENSITIVE_EDUCATIONAL",
+      "indexing": "NOINDEX",
+      "sitemap": "EXCLUDE",
+      "cache": "NO_STORE"
+    },
+    "TRANSACTIONAL": {
+      "authentication": "SERVER_AUTHORITATIVE",
+      "data_class": "PRIVATE_TRANSACTIONAL",
+      "indexing": "NOINDEX",
+      "sitemap": "EXCLUDE",
+      "cache": "NO_STORE"
+    }
+  },
+  "route_families": [
+    {
+      "id": "fa-private-app",
+      "prefix": "/fa/app/",
+      "policy": "PRIVATE_APP"
+    },
+    {
+      "id": "legacy-private-app",
+      "prefix": "/app/",
+      "policy": "PRIVATE_APP"
+    },
+    {
+      "id": "en-account",
+      "prefix": "/en/account/",
+      "policy": "PRIVATE_APP"
+    },
+    {
+      "id": "fa-login",
+      "prefix": "/fa/login/",
+      "policy": "AUTH_SHELL"
+    },
+    {
+      "id": "legacy-login",
+      "prefix": "/login/",
+      "policy": "AUTH_SHELL"
+    },
+    {
+      "id": "en-login",
+      "prefix": "/en/login/",
+      "policy": "AUTH_SHELL"
+    },
+    {
+      "id": "fa-register",
+      "prefix": "/fa/register/",
+      "policy": "AUTH_SHELL"
+    },
+    {
+      "id": "legacy-register",
+      "prefix": "/register/",
+      "policy": "AUTH_SHELL"
+    },
+    {
+      "id": "en-register",
+      "prefix": "/en/register/",
+      "policy": "AUTH_SHELL"
+    },
+    {
+      "id": "en-recover",
+      "prefix": "/en/recover/",
+      "policy": "AUTH_SHELL"
+    },
+    {
+      "id": "fa-recover",
+      "prefix": "/fa/bazyabi-hesab/",
+      "policy": "AUTH_SHELL"
+    },
+    {
+      "id": "fa-assessments",
+      "prefix": "/fa/assessments/",
+      "policy": "PRIVATE_ASSESSMENT"
+    },
+    {
+      "id": "legacy-assessments",
+      "prefix": "/assessments/",
+      "policy": "PRIVATE_ASSESSMENT"
+    },
+    {
+      "id": "en-gt-assessment",
+      "prefix": "/en/golden-talent/assessment/",
+      "policy": "PRIVATE_ASSESSMENT"
+    },
+    {
+      "id": "en-gt-dashboard",
+      "prefix": "/en/golden-talent/dashboard/",
+      "policy": "PRIVATE_ASSESSMENT"
+    },
+    {
+      "id": "en-gt-observer",
+      "prefix": "/en/golden-talent/observer/",
+      "policy": "PRIVATE_ASSESSMENT"
+    },
+    {
+      "id": "en-gt-roles",
+      "prefix": "/en/golden-talent/roles/",
+      "policy": "PRIVATE_ASSESSMENT"
+    },
+    {
+      "id": "en-gt-student",
+      "prefix": "/en/golden-talent/student/",
+      "policy": "PRIVATE_ASSESSMENT"
+    },
+    {
+      "id": "fa-shop",
+      "prefix": "/fa/shop/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "legacy-shop",
+      "prefix": "/shop/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "en-gt-checkout",
+      "prefix": "/en/golden-talent/checkout/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "en-gt-plans",
+      "prefix": "/en/golden-talent/plans/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "fa-consultation-request",
+      "prefix": "/fa/darkhast-moshavere/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "en-consultation-request",
+      "prefix": "/en/request-consultation/",
+      "policy": "TRANSACTIONAL"
+    }
+  ],
+  "module_boundaries": {
+    "public_web": {
+      "may_call": [
+        "PUBLIC_API"
+      ],
+      "may_store": [
+        "PUBLIC_STATE_ONLY"
+      ],
+      "may_embed_secrets": false
+    },
+    "private_app": {
+      "may_call": [
+        "AUTHENTICATED_API"
+      ],
+      "may_store": [
+        "EPHEMERAL_UI_STATE"
+      ],
+      "private_persistence": "SERVER_ONLY"
+    },
+    "api": {
+      "versioning": "MAJOR_PATH_VERSION",
+      "current_major": "v1",
+      "browser_trust": "NONE"
+    },
+    "database": {
+      "migrations": "APPEND_ONLY_NUMBERED",
+      "destructive_change_requires": "EXPLICIT_MIGRATION_AND_ROLLBACK_PLAN"
+    },
+    "journal": {
+      "production_target": "OJS_OR_EQUIVALENT_SCHOLARLY_WORKFLOW",
+      "separate_from_education_records": true
+    },
+    "research": {
+      "source": "APPROVED_DEIDENTIFIED_EXPORT_ONLY",
+      "direct_identity_default": false
+    }
+  },
+  "extension_contract": {
+    "default_feature_state": "OFF",
+    "new_feature_requires": [
+      "feature_id",
+      "owner_surface",
+      "lifecycle_state",
+      "data_class",
+      "auth_policy",
+      "index_policy",
+      "cache_policy",
+      "locale_strategy",
+      "api_contract_or_none",
+      "observability_class",
+      "rollback_plan"
+    ],
+    "public_release_requires": [
+      "verified_facts",
+      "substantive_content",
+      "canonical",
+      "index_decision",
+      "schema_review",
+      "accessibility_review",
+      "performance_review",
+      "privacy_review",
+      "release_approval"
+    ],
+    "private_release_requires": [
+      "real_authentication",
+      "server_authorization",
+      "consent_if_required",
+      "auditability",
+      "no_store",
+      "noindex",
+      "failure_states",
+      "recovery_plan"
+    ],
+    "stable_urls": true,
+    "stable_database_identifiers": true,
+    "backward_compatible_api_by_default": true,
+    "feature_flags_default_off": true,
+    "no_client_side_entitlement_authority": true,
+    "no_client_side_payment_success": true
+  },
+  "confidentiality": {
+    "unpublished_project_names_in_public_registry": false,
+    "unpublished_project_metadata_in_public_html": false,
+    "unpublished_project_navigation": false,
+    "unpublished_project_schema": false,
+    "unpublished_project_sitemap": false,
+    "release_requires_explicit_owner_authorization": true
+  },
+  "mobile_application_shell": {
+    "strategy": "MOBILE_FIRST_PROGRESSIVE_WEB_APP",
+    "stable_primary_tabs": [
+      "HOME",
+      "DISCOVER",
+      "TESTS",
+      "MY_PATH",
+      "ACCOUNT"
+    ],
+    "safe_area_required": true,
+    "narrow_viewport_floor_px": 320,
+    "horizontal_overflow_prohibited": true,
+    "reduced_motion_supported": true,
+    "private_offline_cache": false
+  }
+}

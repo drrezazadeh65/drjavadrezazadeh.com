@@ -403,6 +403,39 @@ if(failures.length){
 }
 
 
+// ECOSYSTEM REGISTRY — extensibility contract and fail-closed route governance.
+const ecosystemRegistryPath=path.join(root,'platform','ecosystem-registry.json');
+if(!fs.existsSync(ecosystemRegistryPath)) failures.push('/platform/ecosystem-registry.json: missing extensibility registry');
+else{
+  try{
+    const registry=JSON.parse(fs.readFileSync(ecosystemRegistryPath,'utf8'));
+    if(registry?.origins?.production_target!=='https://drjavadrezazadeh.com') failures.push('/platform/ecosystem-registry.json: production origin drift');
+    if(JSON.stringify(registry?.locales?.supported)!==JSON.stringify(['fa','en'])) failures.push('/platform/ecosystem-registry.json: bilingual locale contract drift');
+    if(registry?.locales?.automatic_ip_language_redirect!==false) failures.push('/platform/ecosystem-registry.json: automatic IP language redirect is prohibited');
+    if(registry?.confidentiality?.unpublished_project_names_in_public_registry!==false) failures.push('/platform/ecosystem-registry.json: confidential project names must stay out of public registry');
+    const policies=registry?.policies||{};
+    const families=Array.isArray(registry?.route_families)?registry.route_families:[];
+    const noStorePrefixes=families.filter(x=>policies[x.policy]?.cache==='NO_STORE').map(x=>x.prefix);
+    if(!noStorePrefixes.length) failures.push('/platform/ecosystem-registry.json: no private/no-store route families declared');
+    const swSource=fs.existsSync(swPath)?fs.readFileSync(swPath,'utf8'):'';
+    for(const prefix of noStorePrefixes){
+      if(!swSource.includes("'"+prefix+"'")&&!swSource.includes('"'+prefix+'"')) failures.push('/sw.js: ecosystem private prefix missing from cache firewall '+prefix);
+    }
+    const extension=registry?.extension_contract||{};
+    for(const field of ['stable_urls','stable_database_identifiers','backward_compatible_api_by_default','feature_flags_default_off','no_client_side_entitlement_authority','no_client_side_payment_success']){
+      if(extension[field]!==true) failures.push('/platform/ecosystem-registry.json: required extensibility invariant disabled '+field);
+    }
+  }catch(e){
+    failures.push('/platform/ecosystem-registry.json: invalid registry '+e.message);
+  }
+}
+if(failures.length){
+  console.error('\nEcosystem-registry failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // MEDIA REGISTRY — every repository image asset must carry provenance, rights and bilingual accessibility metadata.
 const mediaRegistryPath=path.join(root,'assets','media-registry.json');
 if(!fs.existsSync(mediaRegistryPath)) failures.push('/assets/media-registry.json: missing media provenance registry');

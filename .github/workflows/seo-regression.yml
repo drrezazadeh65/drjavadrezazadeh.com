@@ -22,6 +22,8 @@ jobs:
           node-version: '22'
       - name: Run source SEO/GEO regression audit
         run: node scripts/seo-regression.mjs
+      - name: Run ecosystem governance contract tests
+        run: node platform/ecosystem-governance.test.mjs
       - name: Run Golden Talent engine unit tests
         run: node platform/golden-talent-engine.test.mjs
 
