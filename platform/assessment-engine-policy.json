@@ -1,0 +1,25 @@
+{
+ "schema_version":"1.0",
+ "golden_talent_scoring_status":"DISABLED_PENDING_EMPIRICAL_VALIDATION",
+ "authoring":{
+  "published_versions_immutable":true,
+  "draft_editable":true,
+  "retired_readable_for_history":true,
+  "item_bank_version_required":true
+ },
+ "execution":{
+  "autosave_resume_required":true,
+  "frozen_submission_snapshot_required":true,
+  "published_scoring_version_required":true,
+  "published_interpretation_version_required":true,
+  "missing_response_never_zero_by_default":true
+ },
+ "reports":{
+  "template_version_required":true,
+  "source_session_required":true,
+  "scoring_version_provenance_required":true,
+  "interpretation_version_provenance_required":true,
+  "human_review_event_separate":true
+ },
+ "prohibited":["silent_rescore_historical_report","client_authoritative_score","undeclared_weight","invented_norm","invented_cutoff","automatic_gifted_label"]
+}
