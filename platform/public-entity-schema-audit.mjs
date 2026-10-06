@@ -41,6 +41,8 @@ for(const surface of registry.schema_surfaces||[]){
   if(person.alternateName!==registry.public_names.fa_alternate) failures.push(surface.path+': Persian alternateName drift');
   const same=new Set(person.sameAs||[]);
   for(const url of requiredSameAs) if(!same.has(url)) failures.push(surface.path+': scholarly identifier missing '+url);
+  const knows=new Set(person.knowsAbout||[]);
+  for(const topic of registry.required_knows_about||[]) if(!knows.has(topic)) failures.push(surface.path+': required entity topic missing '+topic);
  }
 }
 
