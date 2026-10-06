@@ -112,13 +112,17 @@
         "platform/consultation-record-engine.mjs",
         "platform/db/migrations/007_service_booking.sql",
         "fa/darkhast-moshavere/index.html",
-        "en/request-consultation/index.html"
+        "en/request-consultation/index.html",
+        "en/services/index.html",
+        "fa/khadamat/index.html",
+        "platform/db/migrations/029_master_vision_longitudinal_revenue.sql"
       ],
       "next_actions": [
-        "Keep safe non-sensitive lead route usable now",
-        "Activate secure intake when backend is live",
-        "Connect booking",
-        "Connect verified payment only when required"
+        "Keep safe non-sensitive service lead routes usable now",
+        "Activate secure multi-audience intake when backend is live",
+        "Connect booking and role-aware account handoff",
+        "Connect verified payment only when required",
+        "Preserve scope-first handling for confidential academic/institutional work"
       ]
     },
     {
@@ -298,6 +302,77 @@
         "Bind lead/order/consultation/content views to server-authorized APIs",
         "Require reauthentication for destructive actions",
         "Keep secrets and private payloads out of browser logs"
+      ]
+    },
+    {
+      "id": "professional-services",
+      "production_state": "IN_PROGRESS",
+      "revenue_priority": "CRITICAL",
+      "external_blockers": [
+        "Secure backend service-case activation",
+        "Verified pricing/payment terms for paid offers"
+      ],
+      "artifacts": [
+        "foundation/MASTER-WEBSITE-EVOLUTION-ALIGNMENT-v1.md",
+        "en/services/index.html",
+        "fa/khadamat/index.html",
+        "en/request-consultation/index.html",
+        "fa/darkhast-moshavere/index.html",
+        "en/collaboration/index.html",
+        "en/contact/index.html",
+        "fa/tamas/index.html",
+        "platform/db/migrations/029_master_vision_longitudinal_revenue.sql"
+      ],
+      "next_actions": [
+        "Keep researcher/academic and student/parent service journeys visibly separate",
+        "Define real service scope/duration/price only from verified operational decisions",
+        "Activate secure confidential-material exchange after private storage is live",
+        "Connect institutional/speaking enquiries to scoped contracting workflow"
+      ]
+    },
+    {
+      "id": "longitudinal-development",
+      "production_state": "FOUNDATION_READY",
+      "revenue_priority": "HIGH",
+      "external_blockers": [
+        "Production authenticated database runtime",
+        "Real longitudinal student observations"
+      ],
+      "artifacts": [
+        "platform/db/migrations/006_educational_record.sql",
+        "platform/db/migrations/029_master_vision_longitudinal_revenue.sql",
+        "platform/development-coaching-policy.json",
+        "platform/development-coaching.mjs",
+        "en/golden-talent/dashboard/index.html",
+        "fa/app/student/index.html"
+      ],
+      "next_actions": [
+        "Persist comparable progress measurements with source/date/context",
+        "Render real trajectories only after at least two comparable observations exist",
+        "Connect versioned adaptive study plans to authenticated student accounts",
+        "Keep consequential interpretation human-reviewed and explainable"
+      ]
+    },
+    {
+      "id": "recurring-coaching",
+      "production_state": "FOUNDATION_READY",
+      "revenue_priority": "HIGH",
+      "external_blockers": [
+        "Production consultation/account runtime",
+        "Verified programme definitions and pricing",
+        "Payment/entitlement activation where required"
+      ],
+      "artifacts": [
+        "platform/db/migrations/029_master_vision_longitudinal_revenue.sql",
+        "platform/development-coaching-policy.json",
+        "platform/development-coaching.mjs",
+        "platform/development-coaching.test.mjs"
+      ],
+      "next_actions": [
+        "Define operational scope for monthly coaching and quarterly review",
+        "Keep programme entitlement separate from professional judgement",
+        "Connect periodic human review and next-action records",
+        "Add annual/premium programme offers only after real fulfilment capacity is confirmed"
       ]
     }
   ],
