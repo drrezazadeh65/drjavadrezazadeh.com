@@ -38,6 +38,8 @@ jobs:
         run: node scripts/accessibility-source-audit.mjs
       - name: Run performance source audit
         run: node scripts/performance-source-audit.mjs
+      - name: Run news trust and freshness audit
+        run: node scripts/news-trust-audit.mjs
       - name: Validate IndexNow integration contract
         env:
           PROD_ORIGIN: https://drjavadrezazadeh.com
