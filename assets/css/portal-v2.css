@@ -927,3 +927,104 @@
   .account-dashboard-page .account-quick-grid{grid-template-columns:1fr}
   .account-dashboard-page .gt-private-hero{padding:24px}
 }
+
+
+/* Account subpage workspace v1 */
+.account-subpage .case-shell,
+.account-subpage .gt-private-shell{
+  width:min(1240px,calc(100% - 56px));
+  margin:0 auto;
+  padding:30px 0 90px;
+}
+.account-subpage .case-hero,
+.account-subpage .gt-private-hero{
+  padding:36px;
+  border:1px solid var(--dash-border);
+  border-radius:22px;
+  background:
+    radial-gradient(520px 220px at 92% 0%,rgba(199,163,91,.07),transparent 68%),
+    linear-gradient(160deg,#131315,#0e0e10);
+  box-shadow:none;
+}
+.account-subpage .case-hero h1,
+.account-subpage .gt-private-hero h1{
+  max-width:900px;
+  font-size:clamp(32px,4vw,50px);
+  line-height:1.35;
+}
+.rtl.account-subpage .case-hero h1,
+.rtl.account-subpage .gt-private-hero h1{line-height:1.65}
+.account-subpage .case-hero .lead,
+.account-subpage .gt-private-hero .lead{max-width:840px}
+.account-subpage .case-section,
+.account-subpage .role-boundary-section{
+  margin-top:18px;
+  padding:26px;
+  border:1px solid var(--dash-border);
+  border-radius:18px;
+  background:linear-gradient(160deg,#121214,#0f0f11);
+}
+.account-subpage .case-section h2,
+.account-subpage .role-boundary-section h2{
+  font-size:clamp(24px,2.8vw,34px);
+}
+.account-subpage .auth-form{
+  max-width:760px;
+  margin:0;
+  padding:0;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+}
+.account-subpage .auth-form label{color:#dedee2}
+.account-subpage .auth-form input,
+.account-subpage .auth-form select{
+  border-color:var(--dash-border);
+  background:#0d0d0f;
+}
+.account-subpage .case-three,
+.account-subpage .consent-grid,
+.account-subpage .privacy-action-grid{
+  gap:12px;
+}
+.account-subpage .case-three>div,
+.account-subpage .consent-grid article,
+.account-subpage .privacy-action-grid article,
+.account-subpage .appointment-summary article{
+  border:1px solid var(--dash-border);
+  border-radius:16px;
+  background:linear-gradient(160deg,#141416,#101012);
+  box-shadow:none;
+}
+.account-subpage .consent-grid article,
+.account-subpage .privacy-action-grid article{min-height:150px;padding:22px}
+.account-subpage .consent-grid article>b,
+.account-subpage .privacy-action-grid article>b{color:#eee8dc}
+.account-subpage .consent-grid article p,
+.account-subpage .privacy-action-grid article p{color:#999da4;line-height:1.8}
+.account-subpage .appointment-summary{
+  gap:12px;
+  margin-top:18px;
+}
+.account-subpage .appointment-card{
+  border-color:var(--dash-border);
+  background:#111113;
+}
+.account-subpage .consultant-flow>div{
+  border-color:var(--dash-border);
+  background:#111113;
+}
+.account-subpage footer{
+  width:min(1240px,calc(100% - 56px));
+}
+@media(max-width:840px){
+  .account-subpage .case-shell,
+  .account-subpage .gt-private-shell,
+  .account-subpage footer{width:calc(100% - 20px)}
+}
+@media(max-width:620px){
+  .account-subpage .case-hero,
+  .account-subpage .gt-private-hero,
+  .account-subpage .case-section,
+  .account-subpage .role-boundary-section{padding:20px}
+}
