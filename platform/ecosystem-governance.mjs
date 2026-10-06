@@ -12,12 +12,13 @@ export function normalizeRoute(input='/'){
 
 export function classifyRoute(input='/'){
  const route=normalizeRoute(input);
+ const exact=(registry.exact_routes||[]).find(x=>normalizeRoute(x.route)===route);
  const families=[...(registry.route_families||[])].sort((a,b)=>b.prefix.length-a.prefix.length);
- const family=families.find(x=>route.startsWith(x.prefix));
- const policyName=family?.policy||'PUBLIC_CANDIDATE';
+ const family=exact?null:families.find(x=>route.startsWith(x.prefix));
+ const policyName=exact?.policy||family?.policy||'PUBLIC_CANDIDATE';
  const policy=registry.policies[policyName];
  if(!policy) throw new Error('Unknown route policy '+policyName);
- return {route,family_id:family?.id||'public-fallback',policy:policyName,...policy};
+ return {route,family_id:exact?.id||family?.id||'public-fallback',policy:policyName,...policy};
 }
 
 export function validateFeatureRegistration(feature={}){

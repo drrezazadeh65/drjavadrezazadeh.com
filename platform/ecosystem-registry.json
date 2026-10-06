@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "architecture_version": "5.0",
   "status": "FROZEN_EXTENSIBLE_BASELINE",
   "purpose": "Machine-readable boundary contract for public web, private app, commerce, assessment, publishing, research and future ecosystem modules.",
@@ -58,6 +58,13 @@
       "indexing": "NOINDEX",
       "sitemap": "EXCLUDE",
       "cache": "NO_STORE"
+    },
+    "PUBLIC_NO_INDEX": {
+      "authentication": "NONE",
+      "data_class": "PUBLIC_UTILITY",
+      "indexing": "NOINDEX",
+      "sitemap": "EXCLUDE",
+      "cache": "PUBLIC_REVALIDATE"
     }
   },
   "route_families": [
@@ -284,5 +291,162 @@
     "horizontal_overflow_prohibited": true,
     "reduced_motion_supported": true,
     "private_offline_cache": false
-  }
+  },
+  "exact_routes": [
+    {
+      "id": "legacy-about",
+      "route": "/about/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "legacy-academic-engagements",
+      "route": "/academic-engagements/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "legacy-books",
+      "route": "/books/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "legacy-educational-philosophy",
+      "route": "/educational-philosophy/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "legacy-golden-talent",
+      "route": "/golden-talent/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "legacy-publications",
+      "route": "/publications/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "legacy-research",
+      "route": "/research/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "legacy-teaching",
+      "route": "/teaching/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "legacy-student",
+      "route": "/student/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "legacy-parent",
+      "route": "/parent/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "legacy-teacher",
+      "route": "/teacher/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "research-lab-foundation",
+      "route": "/research-lab/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "privacy-en",
+      "route": "/privacy/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "terms-en",
+      "route": "/terms/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "consultation-policy-en",
+      "route": "/consultation-policy/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "privacy-fa",
+      "route": "/fa/harim-khosusi/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "terms-fa",
+      "route": "/fa/sharayet-estefade/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "consultation-policy-fa",
+      "route": "/fa/siasat-moshavere/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-home-staging",
+      "route": "/journal/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-aims-staging",
+      "route": "/journal/aims-scope/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-archive-staging",
+      "route": "/journal/archive/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-author-guidelines-staging",
+      "route": "/journal/author-guidelines/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-contact-staging",
+      "route": "/journal/contact/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-current-staging",
+      "route": "/journal/current/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-editorial-board-staging",
+      "route": "/journal/editorial-board/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-ethics-staging",
+      "route": "/journal/ethics/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-fees-staging",
+      "route": "/journal/fees/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-founding-checklist-staging",
+      "route": "/journal/founding-checklist/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-peer-review-staging",
+      "route": "/journal/peer-review/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-reviewer-registration-staging",
+      "route": "/journal/reviewer-registration/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "journal-submission-staging",
+      "route": "/journal/submission/",
+      "policy": "PUBLIC_NO_INDEX"
+    }
+  ]
 }

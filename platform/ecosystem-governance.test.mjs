@@ -9,6 +9,10 @@ assert.equal(classifyRoute('/en/account/reports/').cache,'NO_STORE');
 assert.equal(classifyRoute('/en/golden-talent/checkout/').policy,'TRANSACTIONAL');
 assert.equal(classifyRoute('/fa/golden-talent/').policy,'PUBLIC_CANDIDATE');
 assert.equal(classifyRoute('/future-module/').indexing,'EXPLICIT_RELEASE_ONLY');
+assert.equal(classifyRoute('/about/').indexing,'NOINDEX');
+assert.equal(classifyRoute('/privacy/').policy,'PUBLIC_NO_INDEX');
+assert.equal(classifyRoute('/journal/submission/').indexing,'NOINDEX');
+assert.equal(classifyRoute('/journal/call-for-reviewers/').indexing,'EXPLICIT_RELEASE_ONLY');
 assert(privatePrefixes().includes('/fa/app/'));
 assert.throws(()=>validateFeatureRegistration({feature_id:'x'}));
 assert.throws(()=>validateFeatureRegistration({

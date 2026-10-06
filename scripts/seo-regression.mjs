@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {classifyRoute} from '../platform/ecosystem-governance.mjs';
 
 const root=process.cwd();
 const ignoreDirs=new Set(['.git','node_modules']);
@@ -48,13 +49,8 @@ for(const file of htmlFiles){
   const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
   const robotContent=getAttr(robots,'content')||'';
   const isIndexable=!/\bnoindex\b/i.test(robotContent);
-  const isPrivate =
-    /^\/(?:fa|en)\/(?:app|login|register|recover|account|shop|assessments)(?:\/|$)/.test(route) ||
-    /^\/(?:app|login|register|shop|assessments|student|parent|teacher|research-lab)(?:\/|$)/.test(route) ||
-    /^\/fa\/(?:bazyabi-hesab|darkhast-moshavere|harim-khosusi|siasat-moshavere|sharayet-estefade)(?:\/|$)/.test(route) ||
-    /^\/en\/request-consultation(?:\/|$)/.test(route) ||
-    /^\/en\/golden-talent\/(?:assessment|checkout|dashboard|observer|plans|roles|student)(?:\/|$)/.test(route) ||
-    /^\/(?:privacy|terms|consultation-policy)(?:\/|$)/.test(route);
+  const routePolicy=classifyRoute(route);
+  const mustNoindex=routePolicy.indexing==='NOINDEX';
 
   if(!lang) failures.push(route+': missing html[lang]');
   if(lang==='fa' && dir!=='rtl') failures.push(route+': Persian page must use dir="rtl"');
@@ -67,7 +63,7 @@ for(const file of htmlFiles){
   const title=strip((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]||'');
   if(!title) failures.push(route+': missing title');
 
-  if(isPrivate && isIndexable) failures.push(route+': private/transactional route must be noindex');
+  if(mustNoindex && isIndexable) failures.push(route+': route policy requires noindex ('+routePolicy.policy+')');
 
   if(isIndexable){
     const descTag=(html.match(/<meta\b[^>]*name=["']description["'][^>]*>/i)||[''])[0];
@@ -541,6 +537,14 @@ else{
     if(registry?.confidentiality?.unpublished_project_names_in_public_registry!==false) failures.push('/platform/ecosystem-registry.json: confidential project names must stay out of public registry');
     const policies=registry?.policies||{};
     const families=Array.isArray(registry?.route_families)?registry.route_families:[];
+    const exactRoutes=Array.isArray(registry?.exact_routes)?registry.exact_routes:[];
+    const seenExact=new Set();
+    for(const item of exactRoutes){
+      if(!item?.id||!item?.route||!policies[item.policy]) failures.push('/platform/ecosystem-registry.json: invalid exact route policy '+(item?.id||'unknown'));
+      if(seenExact.has(item.route)) failures.push('/platform/ecosystem-registry.json: duplicate exact route '+item.route);
+      seenExact.add(item.route);
+      if(policies[item.policy]?.indexing==='NOINDEX'&&policies[item.policy]?.sitemap!=='EXCLUDE') failures.push('/platform/ecosystem-registry.json: NOINDEX exact route must be sitemap EXCLUDE '+item.route);
+    }
     const noStorePrefixes=families.filter(x=>policies[x.policy]?.cache==='NO_STORE').map(x=>x.prefix);
     if(!noStorePrefixes.length) failures.push('/platform/ecosystem-registry.json: no private/no-store route families declared');
     const swSource=fs.existsSync(swPath)?fs.readFileSync(swPath,'utf8'):'';
