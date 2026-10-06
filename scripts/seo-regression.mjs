@@ -1197,3 +1197,33 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// GOLDEN TALENT ENGINE GUARDRAILS — evidence-led, auditable, no fabricated total score.
+const gtPolicyPath=path.join(root,'platform','golden-talent-engine-policy.json');
+const gtMigrationPath=path.join(root,'platform','db','migrations','012_golden_talent_engine.sql');
+if(!fs.existsSync(gtPolicyPath)) failures.push('/platform/golden-talent-engine-policy.json: missing engine policy');
+else{
+  try{
+    const p=JSON.parse(fs.readFileSync(gtPolicyPath,'utf8'));
+    if(p.status!=='PREVALIDATION') failures.push('/platform/golden-talent-engine-policy.json: engine must remain PREVALIDATION until empirical validation');
+    if(p.routing_policy?.total_score!==false) failures.push('/platform/golden-talent-engine-policy.json: total talent score must remain disabled');
+    if(p.routing_policy?.normative_cut_score!==false) failures.push('/platform/golden-talent-engine-policy.json: normative cut score must remain disabled');
+    if(p.routing_policy?.automatic_gifted_label!==false) failures.push('/platform/golden-talent-engine-policy.json: automatic gifted label prohibited');
+    if(p.routing_policy?.missing_evidence_is_not_negative_evidence!==true) failures.push('/platform/golden-talent-engine-policy.json: missing evidence cannot be treated as negative evidence');
+    if(p.routing_policy?.discrepancy_triggers_review!==true) failures.push('/platform/golden-talent-engine-policy.json: discrepancy must trigger review');
+    if(p.release_gate?.empirical_validation_required_before_norms_or_cut_scores!==true) failures.push('/platform/golden-talent-engine-policy.json: empirical validation release gate missing');
+  }catch(e){failures.push('/platform/golden-talent-engine-policy.json: invalid JSON');}
+}
+if(!fs.existsSync(gtMigrationPath)) failures.push('/platform/db/migrations/012_golden_talent_engine.sql: missing engine schema');
+else{
+  const sql=fs.readFileSync(gtMigrationPath,'utf8');
+  for(const table of ['talent_evidence_event','talent_route_run','talent_route_evidence','talent_route_evidence_link','talent_engine_review']){
+    if(!sql.includes('CREATE TABLE IF NOT EXISTS '+table)) failures.push('/platform/db/migrations/012_golden_talent_engine.sql: missing '+table);
+  }
+}
+if(failures.length){
+  console.error('\nGolden Talent engine failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
