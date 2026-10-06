@@ -1245,3 +1245,16 @@ else{
   if(!gp.includes(invariant)) failures.push('/platform/golden-path-synthesis.mjs: missing invariant '+invariant);
  }
 }
+
+// BAHAR longitudinal engine guardrails.
+const baharPath=path.join(root,'platform','bahar-engine.mjs');
+if(!fs.existsSync(baharPath)) failures.push('/platform/bahar-engine.mjs: missing longitudinal engine');
+else{
+ const b=fs.readFileSync(baharPath,'utf8');
+ for(const invariant of ['automatic_golden_path_update:false','requires_new_route_run:true','requires_human_review:true','automatic_release:false']){
+  if(!b.includes(invariant)) failures.push('/platform/bahar-engine.mjs: missing invariant '+invariant);
+ }
+ for(const decision of ['CONTINUE','CHANGE','PAUSE','STOP','INVESTIGATE']){
+  if(!b.includes(decision)) failures.push('/platform/bahar-engine.mjs: missing review decision '+decision);
+ }
+}
