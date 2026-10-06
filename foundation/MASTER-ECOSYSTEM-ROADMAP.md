@@ -174,7 +174,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SERV-006 — DONE — Parent-consulting service section.**
 - [x] **SERV-007 — DONE — Seven-step consulting process published.**
 - [x] **SERV-008 — DONE — Consulting FAQ and Service structured data on the main hub.**
-- [ ] **SERV-009 — IN PROGRESS — Central noindex intake gateway and v1 API contract are implemented; secure server-side submission is pending backend activation.**
+- [ ] **SERV-009 — IN PROGRESS — Central bilingual NOINDEX intake gateway and v1 API contract now route student/parent, academic/researcher, teacher and institutional professional-service requests with minimum-data collection; secure server-side submission is pending backend activation.**
 - [ ] **SERV-010 — IN PROGRESS — Triage: service type, urgency, documents needed and advisor assignment.**
 - [ ] **SERV-011 — IN PROGRESS — Bilingual private appointment workspaces are now integrated into both student dashboards and account centers, with explicit availability, timezone, payment, confirmation, reschedule/cancel and status-history boundaries; the provider-neutral appointment API contract is implemented. Live availability, calendar provider, timezone-aware slot inventory and authenticated persistence remain pending backend/calendar activation.**
 - [ ] **SERV-012 — PLANNED — Consultation payment before appointment where required.**
@@ -182,6 +182,8 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **SERV-014 — IN PROGRESS — Human-reviewed report generation.**
 - [ ] **SERV-015 — IN PROGRESS — Institutional/school consulting packages.**
 - [ ] **SERV-016 — IN PROGRESS — Bilingual consultation policy now defines service scope, no-guarantee rule, professional boundaries and future booking/cancellation/refund disclosure requirements; final paid-service terms remain pending.**
+- [ ] **SERV-017 — IN PROGRESS — Academic and researcher professional services are now explicit on bilingual service hubs: academic English editing, manuscript diagnostic review, research/publication consultation, reviewer-response support and academic career/interview consultation. Confidential materials remain outside first-contact channels; pricing and fulfilment terms await verified operations.**
+- [ ] **SERV-018 — IN PROGRESS — Invite Dr. Rezazadeh / institutional pathway now supports scoped enquiries for keynote, webinar, panel, workshop, teacher training, consulting and research collaboration without premature contractual or availability claims.**
 
 ---
 
@@ -206,6 +208,8 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **GT-017 — IN PROGRESS — Free → routed module → professional synthesis → BAHAR funnel is implemented without fake urgency/pricing; real paid conversion remains pending secure payment/backend.**
 - [ ] **GT-018 — IN PROGRESS — BAHAR longitudinal-growth workspace and persistence schema cover Baseline Snapshot, Eight-Week Compass, weekly cycles, learning evidence and periodic review; authenticated persistence remains pending.**
 - [ ] **GT-019 — IN PROGRESS — Private R-source academic history, grade and verified-document workspace is implemented and mapped to existing educational_record, grade_record and private_document architecture; secure ingestion/upload remains pending private storage, malware scan, retention and access-control infrastructure.**
+- [ ] **GT-020 — IN PROGRESS — Country-agnostic longitudinal development foundation now covers comparable progress measurements, versioned study plans/tasks, saved pathway options, decision history and explainable decision-support records. Real trajectories remain disabled until authenticated comparable observations exist.**
+- [ ] **GT-021 — IN PROGRESS — Adaptive planning and trajectory governance is executable: plan changes remain proposed/reviewed versions, a single observation cannot become a trend, cross-measure synthetic progress scores are prohibited, and consequential recommendations preserve uncertainty/counterevidence with human review.**
 
 ---
 
@@ -214,7 +218,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **PORTAL-001 — DONE — Student portal public landing page.**
 - [x] **PORTAL-002 — DONE — Static student login/register UX shells with data submission disabled.**
 - [x] **PORTAL-003 — DONE — Reserved student/parent/teacher/app routes as noindex foundations.**
-- [x] **PORTAL-004 — FROZEN — Roles: Student, Parent, Teacher, Consultant, Researcher, Editor, Admin, Super Admin.**
+- [x] **PORTAL-004 — MODIFIED/FROZEN — Role architecture now includes Student, Parent, Teacher, Consultant/Counsellor, Researcher, Consultation Client, Institution, Editor, Admin and Super Admin. Role labels never grant record access by themselves; relationship/purpose/capability and server authorisation remain mandatory.**
 - [x] **PORTAL-005 — FROZEN — One account may hold multiple roles.**
 - [ ] **PORTAL-006 — IN PROGRESS — Email-only login identity, required registration mobile contact, pending-account state and mandatory email verification remain frozen in runtime/API/data contracts; bilingual login/registration/recovery previews now surface the intended production security states without collecting credentials or personal data. Live identity/email provider remains pending.**
 - [ ] **PORTAL-007 — IN PROGRESS — Password recovery is email-only with neutral account-existence responses, single-use time-limited tokens and session revocation; live delivery/runtime remains pending.**
@@ -443,7 +447,7 @@ The revenue model is diversified so no single product has to carry the ecosystem
 - [ ] **REV-012 — PLANNED — Journal APC only if later adopted transparently; never linked to acceptance and never charged at submission in the founding model.**
 - [x] **REV-013 — FROZEN — No manipulative scarcity, false guarantees or pay-for-acceptance logic.**
 - [ ] **REV-014 — IN PROGRESS — Academic and researcher services now have bilingual public service architecture covering academic English editing, manuscript diagnostic review, research/publication consultation, reviewer-response support and academic career/interview consultation. Scope is agreed before confidential material transfer; pricing/payment remain pending verified operations.**
-- [ ] **REV-015 — PLANNED — Recurring coaching architecture for monthly coaching, quarterly review, annual development programme and premium long-term support.**
+- [ ] **REV-015 — IN PROGRESS — Recurring coaching foundation now includes programme/enrolment/review persistence, adaptive planning governance and human-review rules for monthly coaching, quarterly review, annual development and premium long-term support. Real programme definitions, fulfilment capacity, pricing and runtime remain pending.**
 - [ ] **REV-016 — IN PROGRESS — Speaking, workshop, teacher-training and invitation conversion pathways are implemented publicly with explicit scope-first enquiry and no premature contractual/payment claims.**
 
 ---
@@ -455,7 +459,7 @@ The revenue model is diversified so no single product has to carry the ecosystem
 - [x] **ARCH-003 — FROZEN — Golden Talent positioning: Educational Development & Decision Intelligence Platform; country-agnostic core with jurisdiction adapters.**
 - [x] **ARCH-004 — FROZEN — AI principle: AI-assisted + evidence-based + human-supervised; no decorative AI feature justified by marketing alone.**
 - [x] **ARCH-005 — FROZEN — Product filter: authority, revenue/conversion, accumulated user value, long-term moat, material UX and professional/scientific fit.**
-- [ ] **ARCH-006 — IN PROGRESS — Master vision gap analysis and priority matrix are documented in foundation/MASTER-WEBSITE-EVOLUTION-ALIGNMENT-v1.md and machine-readable platform/master-vision-architecture.json; execution proceeds incrementally without rebuilding healthy foundations.**
+- [ ] **ARCH-006 — IN PROGRESS — Master vision gap analysis and priority matrix are documented in foundation/MASTER-WEBSITE-EVOLUTION-ALIGNMENT-v1.md and machine-readable platform/master-vision-architecture.json. The first P0 execution tranche is active: four-audience gates, academic/researcher services, broader secure intake, invitation/institution pathways and longitudinal dashboard/data foundations were added without rebuilding healthy foundations.**
 
 ---
 
