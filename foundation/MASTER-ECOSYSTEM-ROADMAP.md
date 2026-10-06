@@ -285,7 +285,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **ADMIN-003 — IN PROGRESS — SEO fields: title, description, slug, canonical, hreflang, index state, OG, schema, dates, author/reviewer.**
 - [ ] **ADMIN-004 — IN PROGRESS — Cloudflare Pages `_redirects` now provides a version-controlled registry for confirmed legacy migrations, and CI validates syntax, unique sources, target existence and permanent 301 status; a future CMS/admin UI for redirect creation and review remains pending.**
 - [ ] **ADMIN-005 — IN PROGRESS — User/role management.**
-- [ ] **ADMIN-006 — PLANNED — Assessment management.**
+- [ ] **ADMIN-006 — IN PROGRESS — Bilingual private assessment-management architecture now covers instrument version lifecycle, item-bank governance, declared scoring/interpretation rules, multi-source evidence provenance and human-approved report supersession. Live editing and persistence remain pending authenticated backend.**
 - [ ] **ADMIN-007 — IN PROGRESS — Order/payment/reconciliation administration is represented in the private admin console and commerce contracts; live operations await backend and gateway.**
 - [ ] **ADMIN-008 — IN PROGRESS — Consultation/triage/appointment administration is represented in the private admin console and domain contracts; live operations await backend/calendar activation.**
 - [ ] **ADMIN-009 — IN PROGRESS — Audit log for sensitive administrative changes.**
