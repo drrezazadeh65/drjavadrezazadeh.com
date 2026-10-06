@@ -30,6 +30,8 @@ jobs:
         run: node platform/golden-path-lifecycle.test.mjs
       - name: Run Golden Talent orchestrator tests
         run: node platform/golden-talent-orchestrator.test.mjs
+      - name: Run BAHAR persistence tests
+        run: node platform/bahar-persistence.test.mjs
       - name: Run Golden Talent engine unit tests
         run: node platform/golden-talent-engine.test.mjs
 

@@ -408,6 +408,28 @@ if(failures.length){
 }
 
 
+// BAHAR STRUCTURED PERSISTENCE — weekly text must not be the evidence source of truth.
+const baharPersistencePath=path.join(root,'platform/bahar-persistence.mjs');
+const baharPersistenceMigration=path.join(root,'platform/db/migrations/025_bahar_weekly_structured_persistence.sql');
+if(!fs.existsSync(baharPersistencePath)) failures.push('/platform/bahar-persistence.mjs: missing BAHAR persistence adapter');
+else{
+  const runtime=fs.readFileSync(baharPersistencePath,'utf8');
+  for(const token of ['bahar_learning_evidence','observed_evidence_legacy_write:false','hydrateWeeklyCycle','planWeeklyCycleReview']){
+    if(!runtime.includes(token)) failures.push('/platform/bahar-persistence.mjs: structured persistence invariant missing '+token);
+  }
+}
+if(!fs.existsSync(baharPersistenceMigration)) failures.push('/platform/db/migrations/025_bahar_weekly_structured_persistence.sql: missing BAHAR persistence migration');
+else{
+  const sql=fs.readFileSync(baharPersistenceMigration,'utf8');
+  if(!sql.includes('bahar_weekly_cycle_status_check')||!sql.includes('Structured observation source of truth is bahar_learning_evidence')) failures.push('/platform/db/migrations/025_bahar_weekly_structured_persistence.sql: BAHAR source-of-truth declaration missing');
+}
+if(failures.length){
+  console.error('\nBAHAR structured-persistence failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // BAHAR BASELINE HISTORY — longitudinal baselines are versioned and never silently overwritten.
 const baharHistoryPath=path.join(root,'platform/db/migrations/021_bahar_baseline_history.sql');
 if(!fs.existsSync(baharHistoryPath)) failures.push('/platform/db/migrations/021_bahar_baseline_history.sql: missing BAHAR baseline history migration');
