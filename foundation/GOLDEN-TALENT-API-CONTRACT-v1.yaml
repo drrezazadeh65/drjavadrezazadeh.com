@@ -201,13 +201,20 @@ paths:
       description: >
         Golden Path synthesis is a high-consequence human-reviewed workflow. The server
         must use a persisted route run and its evidence provenance; unresolved discrepancy
-        cannot be silently averaged away. Browser state cannot approve synthesis.
+        cannot be silently averaged away. Browser state cannot approve synthesis. The
+        structured output preserves strengths, counterevidence, uncertainty, context
+        constraints and evidence identifiers; it produces no total score, normative label
+        or automatic career prescription.
       security: [{ sessionAuth: [] }]
       responses:
         '201': { description: Human-review workflow created }
   /v1/bahar/portfolios:
     post:
-      summary: Create BAHAR continuity portfolio for entitled user
+      summary: Create BAHAR continuity portfolio from a professionally released Golden Path
+      description: >
+        Server copies the released synthesis into an immutable baseline snapshot. Goals,
+        success evidence and planned actions begin as human-authored DRAFT content; the
+        synthesis engine cannot silently prescribe them.
       security: [{ sessionAuth: [] }]
       responses:
         '201': { description: Portfolio created }
