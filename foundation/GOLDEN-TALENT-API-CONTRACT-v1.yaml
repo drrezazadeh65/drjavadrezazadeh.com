@@ -195,6 +195,40 @@ paths:
       summary: Verify provider callback and grant entitlements server-side
       responses:
         '204': { description: Verified and processed idempotently }
+  /v1/golden-talent/deep-modules/{domain}/sessions:
+    post:
+      summary: Start an entitled D1-D6 deep-module session
+      description: >
+        Server validates the module contract, published instrument version and active
+        entitlement. Client-side unlock state is not authoritative.
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: domain
+          required: true
+          schema: { type: string, enum: [D1,D2,D3,D4,D5,D6] }
+      responses:
+        '201': { description: Versioned deep-module session created }
+        '403': { description: Entitlement or role not verified }
+  /v1/golden-talent/deep-modules/{domain}/sessions/{sessionId}/submit:
+    post:
+      summary: Submit traceable deep-module evidence
+      description: >
+        Task evidence enters the common evidence ledger as UNREVIEWED contextual evidence.
+        Review is required before it can support or contradict a route. Submission never
+        returns a total talent score or normative label.
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: domain
+          required: true
+          schema: { type: string, enum: [D1,D2,D3,D4,D5,D6] }
+        - in: path
+          name: sessionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Evidence persisted and review workflow created }
   /v1/golden-path:
     post:
       summary: Request professional Golden Path synthesis
