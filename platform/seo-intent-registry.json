@@ -111,13 +111,17 @@
       "id": "services-en",
       "locale": "en",
       "owner": "/en/services/",
-      "intent_key": "education_services_en",
+      "intent_key": "academic_educational_professional_services_en",
       "primary_terms": [
-        "educational services for students"
+        "academic consultation services",
+        "educational consultation services"
       ],
       "supporting_terms": [
+        "manuscript diagnostic review",
+        "research consultation",
         "student guidance",
-        "talent assessment"
+        "teacher development",
+        "institutional educational consulting"
       ],
       "status": "INDEX"
     },
@@ -197,14 +201,17 @@
       "id": "services-fa",
       "locale": "fa",
       "owner": "/fa/khadamat/",
-      "intent_key": "education_services_fa",
+      "intent_key": "education_research_consulting_services_fa",
       "primary_terms": [
-        "خدمات آموزشی",
-        "خدمات مشاوره تحصیلی"
+        "خدمات آموزشی و پژوهشی",
+        "مشاوره تحصیلی و پژوهشی"
       ],
       "supporting_terms": [
+        "مشاوره پژوهش",
+        "ویرایش مقاله دانشگاهی",
         "انتخاب رشته",
-        "استعدادیابی"
+        "استعدادیابی",
+        "خدمات معلمان و مؤسسات"
       ],
       "status": "INDEX"
     },
@@ -212,14 +219,33 @@
       "id": "guides-fa",
       "locale": "fa",
       "owner": "/fa/rahnamaha/",
-      "intent_key": "education_guides_fa",
+      "intent_key": "knowledge_guides_fa",
       "primary_terms": [
-        "راهنماهای آموزشی"
+        "راهنماهای آموزشی",
+        "دانش و تصمیم آموزشی"
       ],
       "supporting_terms": [
-        "تصمیم آموزشی",
+        "رشد دانش آموز",
         "انتخاب رشته",
-        "مشاوره"
+        "استعدادیابی",
+        "پژوهش و نگارش دانشگاهی"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "knowledge-en",
+      "locale": "en",
+      "owner": "/en/news-insights/",
+      "intent_key": "knowledge_insights_en",
+      "primary_terms": [
+        "education research insights",
+        "educational knowledge"
+      ],
+      "supporting_terms": [
+        "assessment insights",
+        "teacher development",
+        "academic writing",
+        "student development"
       ],
       "status": "INDEX"
     }
@@ -229,6 +255,8 @@
     "Keyword variants do not justify new pages without distinct search intent.",
     "Commercial service pages and informational guides may support each other but cannot share the same primary intent.",
     "Golden Talent hub owns broad developmental talent language; student-guidance owns major/career decision support; methodology owns method/evidence queries.",
-    "Search demand and competition remain TBD until measured; do not fabricate volumes."
+    "Search demand and competition remain TBD until measured; do not fabricate volumes.",
+    "Knowledge hubs organise clusters; they do not automatically create a URL for every keyword or question.",
+    "Academic-service transactional intent remains owned by /en/services/ and /fa/khadamat/; informational knowledge content supports but does not duplicate those commercial intents."
   ]
 }
