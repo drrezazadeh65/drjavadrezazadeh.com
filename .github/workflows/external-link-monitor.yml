@@ -1,14 +1,14 @@
 name: External Link Monitor
 
 on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - scripts/external-link-audit.mjs
-      - .github/workflows/external-link-monitor.yml
-  schedule:
-    - cron: '17 4 * * 1'
-  workflow_dispatch:
+      - 'scripts/external-link-audit.mjs'
+      - '.github/workflows/external-link-monitor.yml'
 
 permissions:
   contents: read
@@ -18,12 +18,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  external-links:
+  monitor:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check public external links for hard 404/410 failures
+      - name: Check public external links
         run: node scripts/external-link-audit.mjs
