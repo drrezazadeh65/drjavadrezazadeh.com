@@ -177,6 +177,38 @@ if(failures.length){
 }
 
 
+// PUBLIC SEARCH INDEX — must mirror released public discovery surface without exposing private routes.
+const searchIndexPath=path.join(root,'assets','search-index.json');
+if(!fs.existsSync(searchIndexPath)) failures.push('/assets/search-index.json: missing public search index');
+else{
+  try{
+    const searchEntries=JSON.parse(fs.readFileSync(searchIndexPath,'utf8'));
+    const searchPaths=new Set();
+    for(const entry of searchEntries){
+      if(!['en','fa'].includes(entry.lang)||!entry.path||!entry.title||!entry.summary) failures.push('/assets/search-index.json: incomplete search entry '+(entry.path||'unknown'));
+      const route='/'+String(entry.path).replace(/^\/+|\/+$/g,'')+'/';
+      if(searchPaths.has(route)) failures.push('/assets/search-index.json: duplicate search path '+route);
+      searchPaths.add(route);
+      const policy=classifyRoute(route);
+      if(policy.indexing==='NOINDEX') failures.push('/assets/search-index.json: noindex/private route leaked into public search '+route);
+      if(!sitemapUrls.has(sitePrefix+route)) failures.push('/assets/search-index.json: search route is not released in sitemap '+route);
+    }
+    for(const url of sitemapUrls){
+      let route=url.slice(sitePrefix.length)||'/';
+      if(route==='/'||!/^\/(?:en|fa|publisher|journal)\//.test(route)) continue;
+      if(!searchPaths.has(route)) failures.push('/assets/search-index.json: released public route missing from search index '+route);
+    }
+  }catch(e){
+    failures.push('/assets/search-index.json: invalid search index '+e.message);
+  }
+}
+if(failures.length){
+  console.error('\nPublic-search index failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // STRATEGIC INTERNAL-LINK CONTRACT — intent clusters must remain connected.
 const internalLinkContractPath=path.join(root,'platform','internal-link-contract.json');
 if(!fs.existsSync(internalLinkContractPath)) failures.push('/platform/internal-link-contract.json: missing strategic link contract');
