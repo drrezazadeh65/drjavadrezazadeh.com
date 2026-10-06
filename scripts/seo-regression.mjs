@@ -1153,3 +1153,47 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// PAYMENT LIFECYCLE GUARDRAILS — client return can never create payment truth or entitlement.
+const paymentStatePath=path.join(root,'platform','payment-state-machine.json');
+const paymentPolicyPath=path.join(root,'platform','payment-provider-policy.json');
+if(!fs.existsSync(paymentStatePath)) failures.push('/platform/payment-state-machine.json: missing payment lifecycle');
+else{
+  try{
+    const model=JSON.parse(fs.readFileSync(paymentStatePath,'utf8'));
+    const states=new Set((model.states||[]).map(x=>x.key));
+    for(const state of ['AWAITING_PAYMENT','VERIFICATION_PENDING','PAYMENT_VERIFIED','FULFILLING','COMPLETED']){
+      if(!states.has(state)) failures.push('/platform/payment-state-machine.json: missing payment state '+state);
+    }
+    const transitions=(model.transition_rules||[]).join('\n');
+    if(!transitions.includes('VERIFICATION_PENDING -> PAYMENT_VERIFIED only after server independently verifies provider authenticity, reference, amount, currency and final payment status')){
+      failures.push('/platform/payment-state-machine.json: server verification gate missing');
+    }
+    if(!transitions.includes('PAYMENT_VERIFIED -> FULFILLING only from persisted verified payment state')){
+      failures.push('/platform/payment-state-machine.json: fulfillment must originate from persisted verified payment');
+    }
+    const invariants=(model.invariant_rules||[]).join('\n');
+    for(const rule of [
+      'Browser redirect, query string, local storage and client JavaScript never establish payment truth',
+      'Entitlement can be granted only from persisted PAYMENT_VERIFIED state',
+      'Provider secrets and webhook secrets never enter Git or browser code'
+    ]) if(!invariants.includes(rule)) failures.push('/platform/payment-state-machine.json: missing invariant '+rule);
+  }catch(e){ failures.push('/platform/payment-state-machine.json: invalid JSON'); }
+}
+if(!fs.existsSync(paymentPolicyPath)) failures.push('/platform/payment-provider-policy.json: missing provider policy');
+else{
+  try{
+    const policy=JSON.parse(fs.readFileSync(paymentPolicyPath,'utf8'));
+    if(policy.selection_rule!=='SERVER_SIDE_ONLY') failures.push('/platform/payment-provider-policy.json: provider selection must be SERVER_SIDE_ONLY');
+    if(policy.checkout_contract?.payment_truth!=='server_verified_callback_or_webhook_only') failures.push('/platform/payment-provider-policy.json: payment truth must require verified callback/webhook');
+    for(const market of ['IR','INTERNATIONAL']){
+      if(policy.markets?.[market]?.enabled!==false) warnings.push('/platform/payment-provider-policy.json: '+market+' provider is enabled; confirm production credentials/KYB before release');
+    }
+  }catch(e){ failures.push('/platform/payment-provider-policy.json: invalid JSON'); }
+}
+if(failures.length){
+  console.error('\nPayment lifecycle failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
