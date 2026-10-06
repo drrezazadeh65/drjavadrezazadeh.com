@@ -844,3 +844,86 @@
   .role-dashboard-page .app-workflow-section,
   .role-dashboard-page .app-safety{padding:20px}
 }
+
+
+/* Account center workspace v1 */
+.account-dashboard-page .gt-private-shell{
+  width:min(1380px,calc(100% - 56px));
+  margin:0 auto;
+  padding:30px 0 90px;
+}
+.account-dashboard-page .gt-private-hero{
+  padding:38px;
+  border:1px solid var(--dash-border);
+  border-radius:22px;
+  background:
+    radial-gradient(520px 220px at 92% 0%,rgba(199,163,91,.07),transparent 68%),
+    linear-gradient(160deg,#131315,#0e0e10);
+}
+.account-dashboard-page .gt-private-hero h1{
+  max-width:980px;
+  font-size:clamp(34px,4.5vw,54px);
+  line-height:1.32;
+}
+.rtl.account-dashboard-page .gt-private-hero h1{line-height:1.65}
+.account-dashboard-page .account-quick{
+  margin:18px 0;
+  padding:22px;
+  border:1px solid var(--dash-border);
+  border-radius:18px;
+  background:linear-gradient(160deg,#121214,#0f0f11);
+}
+.account-dashboard-page .account-quick-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+.account-dashboard-page .account-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:18px;
+}
+.account-dashboard-page .account-grid article{
+  min-height:190px;
+  padding:24px;
+  border:1px solid var(--dash-border);
+  border-radius:18px;
+  background:linear-gradient(160deg,#141416,#101012);
+  box-shadow:0 12px 32px rgba(0,0,0,.10);
+}
+.account-dashboard-page .account-grid article>b{
+  color:var(--portal-gold-soft);
+  font-size:10px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.rtl.account-dashboard-page .account-grid article>b{letter-spacing:0;text-transform:none}
+.account-dashboard-page .account-grid h2{font-size:21px;margin:8px 0}
+.account-dashboard-page .account-grid p{color:#9da0a7;line-height:1.9}
+.account-dashboard-page .account-grid a{
+  display:inline-block;
+  margin-top:7px;
+  color:#d8c28d;
+  text-decoration:none;
+  font-size:11px;
+}
+.account-dashboard-page .account-grid span{
+  display:inline-block;
+  margin-top:9px;
+  color:#73767d;
+  font-size:10px;
+}
+.account-dashboard-page footer{
+  width:min(1380px,calc(100% - 56px));
+}
+@media(max-width:1180px){
+  .account-dashboard-page .account-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:840px){
+  .account-dashboard-page .gt-private-shell,
+  .account-dashboard-page footer{width:calc(100% - 20px)}
+}
+@media(max-width:620px){
+  .account-dashboard-page .account-grid,
+  .account-dashboard-page .account-quick-grid{grid-template-columns:1fr}
+  .account-dashboard-page .gt-private-hero{padding:24px}
+}
