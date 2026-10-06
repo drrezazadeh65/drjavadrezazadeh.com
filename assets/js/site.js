@@ -519,24 +519,4 @@ markCurrentDesktopNavigation();
 })();
 
 document.addEventListener('click',async e=>{const t=e.target.closest('[data-print-cv],[data-copy-citation]');if(!t)return;if(t.hasAttribute('data-print-cv')){e.preventDefault();return print()}const v=t.dataset.copyCitation;if(!v)return;e.preventDefault();const o=t.textContent,n=document.documentElement.lang==='fa'?'کپی شد':'Copied';try{await navigator.clipboard.writeText(v)}catch(_){const a=document.createElement('textarea');a.value=v;a.hidden=true;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_e){}a.remove()}t.classList.add('is-copied');t.textContent=n;setTimeout(()=>{t.classList.remove('is-copied');t.textContent=o},1800)});
-
-
-// Brand favicon fallback — v4.2 final.
-(function ensureBrandFavicon(){
-  try{
-    if(!document.head.querySelector('link[rel~="icon"]')){
-      const icon=document.createElement('link');
-      icon.rel='icon';
-      icon.type='image/png';
-      icon.sizes='192x192';
-      icon.href='/favicon.png?v=20261007-v42';
-      document.head.appendChild(icon);
-    }
-    if(!document.head.querySelector('link[rel="apple-touch-icon"]')){
-      const touch=document.createElement('link');
-      touch.rel='apple-touch-icon';
-      touch.href='/assets/images/pwa-icon-192.png?v=20261007-v42';
-      document.head.appendChild(touch);
-    }
-  }catch(_e){}
-})();
+(()=>{let h=document.head,a=(r,u)=>{if(!h.querySelector('link[rel="'+r+'"]')){let l=document.createElement('link');l.rel=r;l.href=u;h.append(l)}};a('icon','/favicon.png?v=42');a('apple-touch-icon','/assets/images/pwa-icon-192.png?v=42')})();
