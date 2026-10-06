@@ -19,6 +19,9 @@ Safety and integrity:
 - Never invent prices, publication status, credentials, affiliations, scientific validation, test scores, talent rankings, giftedness labels, or career certainty.
 - Golden Talent is developmental and multi-source; do not produce a total talent score, normative label, deterministic major/career prescription, or clinical diagnosis.
 - For high-consequence personal decisions, explain the limitation and recommend human consultation where appropriate.
+Lead capture:
+- You may invite the visitor to use the separate contact-request form in the assistant UI.
+- Do not ask them to type contact details into chat itself.
 Navigation and conversion:
 - Be genuinely helpful before recommending a service.
 - When useful, point to a public page from the provided context.
@@ -31,7 +34,7 @@ function cors(origin){
   return {
     'Access-Control-Allow-Origin':allow,
     'Access-Control-Allow-Methods':'GET,POST,OPTIONS',
-    'Access-Control-Allow-Headers':'Content-Type,X-JR-Visitor',
+    'Access-Control-Allow-Headers':'Content-Type,X-JR-Visitor,Authorization',
     'Access-Control-Max-Age':'86400',
     'Vary':'Origin',
     'Cache-Control':'no-store',
@@ -152,8 +155,38 @@ export default {
     if(origin && !ALLOWED_ORIGINS.has(origin)) return json({error:'origin_not_allowed'},403,origin);
 
     if(request.method==='GET'&&url.pathname==='/health'){
-      return json({status:'ok',service:'site-assistant'},200,origin);
+      return json({status:'ok',service:'site-assistant',lead_store:Boolean(env.LEAD_STORE)},200,origin);
     }
+
+    if(request.method==='POST'&&url.pathname==='/v1/leads'){
+      let leadBody;
+      try{leadBody=await request.json();}catch(e){return json({error:'invalid_json'},400,origin);}
+      let lead;
+      try{lead=normalizeLead(leadBody);}catch(e){return json({error:e.message||'invalid_lead'},400,origin);}
+      const visitor=compact(request.headers.get('X-JR-Visitor')||'anonymous',100);
+      if(env.ASSISTANT_RATE_LIMITER){
+        const rate=await env.ASSISTANT_RATE_LIMITER.limit({key:'lead:'+visitor});
+        if(!rate.success) return json({error:'rate_limited'},429,origin);
+      }
+      if(!env.LEAD_STORE) return json({error:'lead_store_unavailable'},503,origin);
+      const id=env.LEAD_STORE.idFromName('public-leads-v1');
+      const stored=await env.LEAD_STORE.get(id).fetch('https://lead.internal/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lead)});
+      if(!stored.ok) return json({error:'lead_store_failed'},503,origin);
+      return json({saved:true,lead_id:lead.id},201,origin);
+    }
+
+    if(request.method==='GET'&&url.pathname==='/v1/admin/leads'){
+      const expected=String(env.ADMIN_LEAD_EXPORT_TOKEN||'');
+      if(!expected) return json({error:'not_found'},404,origin);
+      const provided=String(request.headers.get('Authorization')||'').replace(/^Bearer\s+/i,'');
+      if(!provided||provided!==expected) return json({error:'forbidden'},403,origin);
+      if(!env.LEAD_STORE) return json({error:'lead_store_unavailable'},503,origin);
+      const id=env.LEAD_STORE.idFromName('public-leads-v1');
+      const stored=await env.LEAD_STORE.get(id).fetch('https://lead.internal/list');
+      const payload=await stored.text();
+      return new Response(payload,{status:stored.status,headers:{...cors(origin),'Content-Type':'application/json; charset=utf-8'}});
+    }
+
     if(request.method!=='POST'||url.pathname!=='/v1/chat') return json({error:'not_found'},404,origin);
 
     let body;
