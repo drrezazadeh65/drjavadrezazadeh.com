@@ -114,7 +114,10 @@ paths:
       summary: Record a versioned Golden Talent evidence event
       description: >
         Server records provenance, source class, visibility scope and quality state.
-        Missing evidence is never converted into negative evidence.
+        Subject access is deny-by-default and requires the applicable active relationship,
+        assignment or case scope plus consent where required. Evidence visibility is checked
+        independently from relationship access. Missing evidence is never converted into
+        negative evidence.
       security: [{ sessionAuth: [] }]
       responses:
         '201': { description: Evidence event persisted }
@@ -123,7 +126,8 @@ paths:
     post:
       summary: Append a professional review decision to an evidence event
       description: >
-        The original evidence payload remains immutable. An authorised reviewer records
+        The original evidence payload remains immutable. Reviewer authorisation requires an
+        active subject-specific case assignment with REVIEW_EVIDENCE capability. An authorised reviewer records
         quality, evidential direction and rationale. A review may classify evidence as
         SUPPORTS, CONTRADICTS or CONTEXTUALISES; it does not create a total talent score.
       security: [{ sessionAuth: [] }]
