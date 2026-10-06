@@ -1363,3 +1363,12 @@ else{
  const denyIds=['SELF_OTHER','PARENT_REVOKED','PARENT_OTHER_CHILD','TEACHER_NO_SCOPE','TEACHER_ENDED','CONSULTANT_CLOSED_CASE','CONSULTANT_OTHER_CASE','ANONYMOUS'];
  for(const id of denyIds) if(nm.cases?.find(x=>x.id===id)?.expected!=='DENY') failures.push('/platform/security-negative-test-matrix.json: missing DENY '+id);
 }
+
+// Purpose-specific consent persistence/RLS guardrails.
+for(const p of ['platform/db/migrations/013_service_consent_decisions.sql','platform/db/rls/003_talent_evidence_consent.sql','platform/consent-withdrawal-orchestrator.mjs']) if(!fs.existsSync(path.join(root,p))) failures.push('/'+p+': missing consent enforcement component');
+const cm=fs.readFileSync(path.join(root,'platform','db','migrations','013_service_consent_decisions.sql'),'utf8');
+for(const x of ['service_consent_decision','supersedes_id','gt_has_active_consent','ORDER BY d.decided_at DESC']) if(!cm.includes(x)) failures.push('/platform/db/migrations/013_service_consent_decisions.sql: missing '+x);
+const cr=fs.readFileSync(path.join(root,'platform','db','rls','003_talent_evidence_consent.sql'),'utf8');
+for(const x of ["PARENT_VISIBILITY","TEACHER_OBSERVATION","CONSULTANT_REVIEW","subject_user_id=gt_actor_id()"]) if(!cr.includes(x)) failures.push('/platform/db/rls/003_talent_evidence_consent.sql: missing '+x);
+const cw=fs.readFileSync(path.join(root,'platform','consent-withdrawal-orchestrator.mjs'),'utf8');
+for(const x of ['append_WITHDRAWN_consent_decision','mark_dependent_evidence_WITHDRAWN','delete_historical_evidence:false','automatically_release_replacement:false']) if(!cw.includes(x)) failures.push('/platform/consent-withdrawal-orchestrator.mjs: missing '+x);
