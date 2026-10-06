@@ -1,0 +1,25 @@
+{
+ "schema_version":"1.0",
+ "append_only":true,
+ "server_generated":true,
+ "client_supplied_audit_event_accepted":false,
+ "required_fields":["action","resource_type","outcome","correlation_id","occurred_at"],
+ "sensitive_payload_prohibited":true,
+ "metadata_allowlist":["reason_code","role","capability","state_from","state_to","instrument_code","instrument_version","evidence_revision","route_run_id","consent_purpose"],
+ "events":["ACCESS_ALLOWED","ACCESS_DENIED","EVIDENCE_RECORDED","EVIDENCE_REVIEWED","CONSENT_CHANGED","PRIVACY_REQUEST","SESSION_TRANSITION","ROUTE_CREATED","ROUTE_REVIEWED","GOLDEN_PATH_RELEASED","BAHAR_REVIEWED","PAYMENT_VERIFIED","ENTITLEMENT_CHANGED"],
+ "correlation":{
+  "request_correlation_id":true,
+  "idempotency_key_recorded_by_reference_or_digest":true,
+  "raw_secret_or_token":false
+ },
+ "monitoring":{
+  "authorization_denial_rate":true,
+  "duplicate_submission_prevented":true,
+  "route_review_backlog":true,
+  "privacy_request_backlog":true,
+  "failed_payment_verification":true,
+  "unexpected_state_transition":true
+ },
+ "alerts_require_human_triage":true,
+ "audit_log_is_not_analytics_dataset":true
+}
