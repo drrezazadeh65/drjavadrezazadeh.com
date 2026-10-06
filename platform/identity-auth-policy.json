@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "status": "FROZEN_AUTHENTICATION_CHANNEL_POLICY",
+  "primary_login_identifier": "EMAIL",
+  "registration": {
+    "required_fields": [
+      "email",
+      "mobile_e164",
+      "role"
+    ],
+    "initial_status": "PENDING",
+    "activation_requires": "EMAIL_VERIFICATION",
+    "phone_is_authenticator": false
+  },
+  "login": {
+    "allowed_identifiers": [
+      "EMAIL"
+    ],
+    "username_login": false,
+    "mobile_login": false,
+    "whatsapp_login": false
+  },
+  "recovery": {
+    "channel": "EMAIL",
+    "generic_response": true,
+    "single_use_time_limited_token": true,
+    "revoke_existing_sessions_on_success": true
+  },
+  "mobile": {
+    "collection": "REQUIRED_AT_REGISTRATION",
+    "format": "E.164",
+    "purpose": "CONTACT_AND_SERVICE_COMMUNICATION",
+    "may_not_verify_account": true,
+    "may_not_reset_password": true,
+    "may_not_grant_role_or_entitlement": true,
+    "whatsapp_contact_requires_separate_opt_in": true
+  },
+  "future_mfa": {
+    "admin_required_before_production": true,
+    "end_user_mfa": "OPTIONAL_FUTURE_CAPABILITY"
+  }
+}
