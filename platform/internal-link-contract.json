@@ -4,6 +4,26 @@
   "rule": "Required links express search-intent and trust relationships, not keyword stuffing. Destination routes are stable route identities.",
   "pages": [
     {
+      "route": "/fa/",
+      "requires": [
+        "/fa/moshavere-tahsili/",
+        "/fa/estedaadyabi/",
+        "/fa/golden-talent/",
+        "/fa/pajouhesh/",
+        "/fa/rahnamaha/"
+      ]
+    },
+    {
+      "route": "/en/",
+      "requires": [
+        "/en/student-guidance/",
+        "/en/research/",
+        "/en/golden-talent/",
+        "/en/publications/",
+        "/en/language-education/"
+      ]
+    },
+    {
       "route": "/fa/estedaadyabi/",
       "requires": [
         "/fa/golden-talent/",
