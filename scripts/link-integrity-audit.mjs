@@ -21,6 +21,11 @@ const htmlFiles=files.filter(f=>f.endsWith('.html'));
 const htmlCache=new Map(htmlFiles.map(f=>[f,fs.readFileSync(path.join(root,f),'utf8')]));
 const failures=[];
 const warnings=[];
+const legacyRouteSet=new Set();
+try{
+  const reg=JSON.parse(fs.readFileSync(path.join(root,'platform','ecosystem-registry.json'),'utf8'));
+  for(const rec of reg.exact_routes||[]) if(String(rec.id||'').startsWith('legacy-')&&rec.route) legacyRouteSet.add(rec.route);
+}catch{}
 
 function routeForFile(file){
   if(file==='index.html') return '/';
@@ -122,6 +127,13 @@ for(const [from,html] of htmlCache.entries()){
     if(!fileSet.has(r.file)){
       failures.push('/'+from+': broken internal '+ref.attr+' '+JSON.stringify(ref.raw)+' -> /'+r.file);
       continue;
+    }
+    if(ref.attr==='href'){
+      const sourceRoute=routeForFile(from);
+      const targetRoute=routeForFile(r.file);
+      if(legacyRouteSet.has(targetRoute)&&!legacyRouteSet.has(sourceRoute)){
+        failures.push('/'+from+': non-legacy page links through legacy transition route '+targetRoute+'; link directly to the current canonical destination');
+      }
     }
     if(r.hash&&r.file.endsWith('.html')&&!hasFragment(r.file,r.hash)){
       failures.push('/'+from+': missing fragment target '+JSON.stringify(ref.raw)+' -> /'+r.file+r.hash);
