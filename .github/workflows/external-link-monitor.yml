@@ -1,0 +1,29 @@
+name: External Link Monitor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/external-link-audit.mjs
+      - .github/workflows/external-link-monitor.yml
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: external-link-monitor
+  cancel-in-progress: true
+
+jobs:
+  external-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check public external links for hard 404/410 failures
+        run: node scripts/external-link-audit.mjs
