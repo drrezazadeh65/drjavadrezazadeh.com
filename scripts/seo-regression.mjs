@@ -1369,7 +1369,7 @@ for(const p of ['platform/db/migrations/013_service_consent_decisions.sql','plat
 const cm=fs.readFileSync(path.join(root,'platform','db','migrations','013_service_consent_decisions.sql'),'utf8');
 for(const x of ['service_consent_decision','supersedes_id','gt_has_active_consent','ORDER BY d.decided_at DESC']) if(!cm.includes(x)) failures.push('/platform/db/migrations/013_service_consent_decisions.sql: missing '+x);
 const cr=fs.readFileSync(path.join(root,'platform','db','rls','003_talent_evidence_consent.sql'),'utf8');
-for(const x of ["PARENT_VISIBILITY","TEACHER_OBSERVATION","CONSULTANT_REVIEW","subject_user_id=gt_actor_id()"]) if(!consultationRecordSource.includes(x)) failures.push('/platform/db/rls/003_talent_evidence_consent.sql: missing '+x);
+for(const x of ["PARENT_VISIBILITY","TEACHER_OBSERVATION","CONSULTANT_REVIEW","subject_user_id=gt_actor_id()"]) if(!cr.includes(x)) failures.push('/platform/db/rls/003_talent_evidence_consent.sql: missing '+x);
 const cw=fs.readFileSync(path.join(root,'platform','consent-withdrawal-orchestrator.mjs'),'utf8');
 for(const x of ['append_WITHDRAWN_consent_decision','mark_dependent_evidence_WITHDRAWN','delete_historical_evidence:false','automatically_release_replacement:false']) if(!cw.includes(x)) failures.push('/platform/consent-withdrawal-orchestrator.mjs: missing '+x);
 
