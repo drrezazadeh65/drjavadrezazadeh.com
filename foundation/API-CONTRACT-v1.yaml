@@ -20,6 +20,8 @@ tags:
   - name: Messaging
   - name: Commerce
   - name: Assessments
+  - name: Development
+  - name: Coaching
   - name: Reports
   - name: Files
 paths:
@@ -656,6 +658,181 @@ paths:
       responses:
         "202":
           description: Session accepted for scoring/interpretation
+  /me/progress-measurements:
+    get:
+      tags: [Development]
+      summary: List authorised longitudinal progress observations for the current user
+      description: >
+        Observations remain source-labelled and comparable only within an explicit
+        comparability key. The API does not return a synthetic total progress score.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Longitudinal progress observations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProgressMeasurement"
+    post:
+      tags: [Development]
+      summary: Record an allowed self-tracked progress observation
+      description: >
+        Accepts low-risk self-tracked observations only. Institutional, assessment,
+        consultant or verified-record sources must be created through their
+        authoritative server workflows.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgressMeasurementCreate"
+      responses:
+        "201":
+          description: Observation recorded
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /study-plans:
+    get:
+      tags: [Development]
+      summary: List versioned study plans visible to the current user
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Study plan summaries
+    post:
+      tags: [Development]
+      summary: Create a draft study plan
+      description: >
+        Creating a plan does not make future AI or professional revisions
+        automatically active.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudyPlanCreate"
+      responses:
+        "201":
+          description: Draft study plan created
+
+  /study-plans/{planId}/revisions:
+    post:
+      tags: [Development]
+      summary: Propose a versioned adaptive study-plan revision
+      description: >
+        Revisions are appended, not overwritten. Trigger, rationale and proposed
+        capacity are retained. A proposal remains DRAFT until an authorised human
+        review/approval step activates it.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: planId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudyPlanRevisionProposal"
+      responses:
+        "201":
+          description: Draft revision proposed
+        "409":
+          description: Plan state does not permit a new revision
+
+  /study-plan-revisions/{revisionId}/review:
+    post:
+      tags: [Development]
+      summary: Human-review a proposed study-plan revision
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: revisionId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudyPlanRevisionReview"
+      responses:
+        "200":
+          description: Review recorded and revision state updated
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /decision-support-explanations/{explanationId}:
+    get:
+      tags: [Development]
+      summary: Read an authorised explanation for a consequential recommendation
+      description: >
+        Supports the "Why this recommendation?" requirement by preserving supporting
+        evidence, counterevidence, contextual constraints, uncertainty and review state.
+        It never represents an admission guarantee or automatic major/career prescription.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: explanationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Authorised decision-support explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionSupportExplanation"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /coaching-enrollments:
+    get:
+      tags: [Coaching]
+      summary: List recurring-development programmes visible to the current user
+      description: >
+        Payment/entitlement state and professional educational judgement are distinct.
+        The endpoint never infers progress merely from an active paid entitlement.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Authorised coaching enrolments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CoachingEnrollmentSummary"
+
+  /coaching-enrollments/{enrollmentId}/reviews:
+    get:
+      tags: [Coaching]
+      summary: List human-reviewed periodic development reviews
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: enrollmentId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Coaching review history
+
   /reports:
     get:
       tags: [Reports]
@@ -814,6 +991,170 @@ components:
     RateLimited:
       description: Too many requests
   schemas:
+    ProgressMeasurementCreate:
+      type: object
+      additionalProperties: false
+      required: [measureKey, measureLabel, valueNumeric, comparabilityKey, observedAt]
+      properties:
+        measureKey:
+          type: string
+          maxLength: 120
+        measureLabel:
+          type: string
+          maxLength: 180
+        valueNumeric:
+          type: number
+        unit:
+          type: [string, "null"]
+          maxLength: 40
+        scaleMin:
+          type: [number, "null"]
+        scaleMax:
+          type: [number, "null"]
+        comparabilityKey:
+          type: string
+          maxLength: 180
+        observedAt:
+          type: string
+          format: date-time
+        contextNote:
+          type: [string, "null"]
+          maxLength: 1000
+    ProgressMeasurement:
+      allOf:
+        - $ref: "#/components/schemas/ProgressMeasurementCreate"
+        - type: object
+          required: [id, sourceType, provenance, createdAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            sourceType:
+              type: string
+              enum: [GRADE_RECORD, MOCK_EXAM, STUDY_LOG, ASSESSMENT, PERFORMANCE_SAMPLE, TEACHER_RECORD, CONSULTANT_RECORD, SELF_TRACKED, INSTITUTION_IMPORT, OTHER]
+            provenance:
+              type: object
+              additionalProperties: true
+            createdAt:
+              type: string
+              format: date-time
+    StudyPlanCreate:
+      type: object
+      additionalProperties: false
+      required: [purpose]
+      properties:
+        purpose:
+          type: string
+          minLength: 10
+          maxLength: 1000
+        timezone:
+          type: [string, "null"]
+          maxLength: 80
+        startsOn:
+          type: [string, "null"]
+          format: date
+        endsOn:
+          type: [string, "null"]
+          format: date
+    StudyPlanRevisionProposal:
+      type: object
+      additionalProperties: false
+      required: [triggerType, rationale]
+      properties:
+        triggerType:
+          type: string
+          enum: [INITIAL, FELL_BEHIND, GRADE_CHANGE, NEW_EXAM, STUDY_HOURS_CHANGE, PRIORITY_CHANGE, TARGET_CHANGE, PROFESSIONAL_REVIEW, OTHER]
+        goalSnapshot:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        weeklyCapacityMinutes:
+          type: [integer, "null"]
+          minimum: 0
+        rationale:
+          type: string
+          minLength: 10
+          maxLength: 2500
+        aiAssisted:
+          type: boolean
+          default: false
+          description: AI assistance may propose a revision but cannot activate it.
+    StudyPlanRevisionReview:
+      type: object
+      additionalProperties: false
+      required: [decision, reviewNote]
+      properties:
+        decision:
+          type: string
+          enum: [APPROVE, RETURN, REJECT]
+        reviewNote:
+          type: string
+          minLength: 5
+          maxLength: 2500
+    DecisionSupportExplanation:
+      type: object
+      required: [id, recommendationType, supportingEvidence, counterevidence, contextualConstraints, explanation, uncertainty, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        recommendationType:
+          type: string
+        recommendationReference:
+          type: [string, "null"]
+        supportingEvidence:
+          type: array
+          items:
+            type: string
+        counterevidence:
+          type: array
+          items:
+            type: string
+        contextualConstraints:
+          type: array
+          items:
+            type: string
+        explanation:
+          type: string
+        uncertainty:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, REVIEW_REQUIRED, APPROVED, SUPERSEDED, VOID]
+        humanReviewed:
+          type: boolean
+        admissionGuarantee:
+          type: boolean
+          const: false
+        automaticMajorPrescription:
+          type: boolean
+          const: false
+        automaticCareerPrescription:
+          type: boolean
+          const: false
+    CoachingEnrollmentSummary:
+      type: object
+      required: [id, programmeType, status, startsAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        programmeType:
+          type: string
+          enum: [MONTHLY_COACHING, QUARTERLY_REVIEW, ANNUAL_DEVELOPMENT, PREMIUM_LONG_TERM]
+        status:
+          type: string
+          enum: [PENDING, ACTIVE, PAUSED, COMPLETED, CANCELLED, EXPIRED]
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: [string, "null"]
+          format: date-time
+        entitlementStatus:
+          type: [string, "null"]
+          description: Commercial access state only; never a judgement of educational progress.
     ReportSummary:
       type: object
       required: [id, reportType, status, createdAt]
