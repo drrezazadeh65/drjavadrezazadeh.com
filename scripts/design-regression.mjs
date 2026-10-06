@@ -95,6 +95,13 @@ for(const file of htmlFiles){
   if(html.includes('service-shell') && !html.includes('commerce-workspace-page')){
     if(publicRefs!==1) failures.push('/'+rel+': service-shell must use public-v2 for the shared consultation/service language');
   }
+  if(html.includes('data-site-search')){
+    if(publicRefs!==1) failures.push('/'+rel+': search experience must load exactly one public-v2 stylesheet');
+    if(!html.includes('data-search-results')) failures.push('/'+rel+': search experience missing result region');
+  }
+  if((rel==='fa/index.html'||rel==='en/index.html')&&!html.includes('home-focus-strip')){
+    failures.push('/'+rel+': public homepage focus pathways missing');
+  }
 
   const styles=(html.match(/<link\b[^>]*rel=["']stylesheet["'][^>]*>/gi)||[]).length;
   if(styles>3) warnings.push('/'+rel+': more than three stylesheets; review render-blocking cost');
