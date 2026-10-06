@@ -60,7 +60,7 @@ const rootHtml=await root.text();
 if(!rootHtml.includes(ORIGIN+'/')) failures.push('/: production origin not present in root document');
 if(/github\.io/i.test(rootHtml)) failures.push('/: legacy github.io origin leaked into production HTML');
 
-for(const route of ['/fa/','/en/','/robots.txt','/sitemap.xml']){
+for(const route of ['/fa/','/en/','/robots.txt','/sitemap.xml','/llms.txt']){
   try{
     const {res,text}=await getText(ORIGIN+route);
     if(res.status!==200) failures.push(route+' expected 200, got '+res.status);
@@ -71,6 +71,29 @@ for(const route of ['/fa/','/en/','/robots.txt','/sitemap.xml']){
   }catch(e){
     failures.push(route+': fetch failed: '+e.message+(e?.cause?.code?' ['+e.cause.code+']':''));
   }
+}
+
+try{
+  const {res,text}=await getText(ORIGIN+'/robots.txt');
+  if(res.status===200){
+    if(!/User-agent:\s*OAI-SearchBot[\s\S]*?Allow:\s*\//i.test(text)) failures.push('/robots.txt: OAI-SearchBot public allow rule missing');
+    if(!text.includes('Sitemap: '+ORIGIN+'/sitemap.xml')) failures.push('/robots.txt: canonical sitemap directive missing');
+  }
+}catch(e){
+  failures.push('/robots.txt discovery-policy validation failed: '+e.message);
+}
+
+try{
+  const {res,text}=await getText(ORIGIN+'/llms.txt');
+  if(res.status===200){
+    if(!/^#\s+Dr\. Javad Rezazadeh Yazdeli/m.test(text)) failures.push('/llms.txt: canonical entity heading missing');
+    if(!text.includes(ORIGIN+'/en/')||!text.includes(ORIGIN+'/fa/')) failures.push('/llms.txt: bilingual public entry points missing');
+    for(const token of ['/login/','/register/','/account/','/assessment/','/checkout/','/darkhast-moshavere/','/request-consultation/']){
+      if(text.includes(ORIGIN+token)) failures.push('/llms.txt: private/transactional route leaked '+token);
+    }
+  }
+}catch(e){
+  failures.push('/llms.txt discovery validation failed: '+e.message);
 }
 
 const privateRoutes=[
