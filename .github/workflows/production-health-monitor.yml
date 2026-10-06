@@ -2,6 +2,11 @@ name: Production SEO Health
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/production-health-audit.mjs
+      - .github/workflows/production-health-monitor.yml
   schedule:
     - cron: '17 5 * * *'
 
