@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {routeEvidence,classifyDomain} from './golden-talent-engine.mjs';
+const ev=(id,domain,source,quality='USABLE',direction='SUPPORTS')=>({id,domain_code:domain,source_type:source,quality_state:quality,provenance:{direction}});
+assert.equal(classifyDomain('D1',[]).evidence_state,'INSUFFICIENT');
+assert.equal(classifyDomain('D1',[ev('a','D1','STUDENT_SELF')]).evidence_state,'SINGLE_SOURCE');
+assert.equal(classifyDomain('D1',[ev('a','D1','STUDENT_SELF'),ev('b','D1','TEACHER')]).evidence_state,'CONVERGENT');
+assert.equal(classifyDomain('D1',[ev('a','D1','STUDENT_SELF'),ev('b','D1','TEACHER','USABLE','CONTRADICTS')]).evidence_state,'DISCREPANT');
+assert.equal(classifyDomain('D1',[ev('a','D1','STUDENT_SELF','WITHDRAWN'),ev('b','D1','TEACHER')]).evidence_state,'SINGLE_SOURCE');
+assert.equal(classifyDomain('D1',[ev('a','D1','STUDENT_SELF','LIMITED'),ev('b','D1','TEACHER')]).evidence_state,'SINGLE_SOURCE');
+const result=routeEvidence([ev('a','D2','STUDENT_SELF'),ev('b','D2','PARENT','USABLE','CONTRADICTS'),ev('c','D3','STUDENT_SELF')]);
+assert.equal(result.total_score,null);
+assert.equal(result.normative_label,null);
+assert.equal(result.human_review_required,true);
+assert.equal(result.next_evidence_priority[0],'D2');
+assert.equal(result.routes.find(x=>x.route_code==='D2').evidence_state,'DISCREPANT');
+assert.equal(result.routes.find(x=>x.route_code==='D3').evidence_state,'SINGLE_SOURCE');
+assert.throws(()=>classifyDomain('D7',[]));
+console.log('Golden Talent engine tests passed');
