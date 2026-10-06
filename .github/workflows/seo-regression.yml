@@ -56,6 +56,8 @@ jobs:
         run: node platform/golden-talent-evidence-analytics.test.mjs
       - name: Run development and coaching governance tests
         run: node platform/development-coaching.test.mjs
+      - name: Run master vision contract tests
+        run: node platform/master-vision-contract.test.mjs
 
       - name: Validate RCAS production bridge
         run: node -e "import('./platform/rcas-evidence-bridge.mjs').then(m=>{const e=m.rcasToEvidence({session_id:'ci',instrument_version:'1',responses:[{item_code:'A1',value:3},{item_code:'D1',value:2}]});if(!e.some(x=>x.domain_code==='D5')||!e.some(x=>x.domain_code==='D6')||e.some(x=>x.quality_state!=='UNREVIEWED'))process.exit(1);console.log('RCAS bridge passed')})"
