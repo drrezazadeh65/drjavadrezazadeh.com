@@ -98,8 +98,8 @@ for(const file of htmlFiles){
   if(!ogTitleTag) failures.push(route+': missing og:title');
   if(!ogDescTag) failures.push(route+': missing og:description');
   if(!ogUrlTag) failures.push(route+': missing og:url');
-  if(!ogImageTag) warnings.push(route+': no og:image');
-  if(!twitterCardTag) warnings.push(route+': no twitter:card');
+  if(!ogImageTag) failures.push(route+': missing og:image');
+  if(!twitterCardTag) failures.push(route+': missing twitter:card');
 
   const visibleText=strip((html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)||[])[1]||'');
   if(visibleText.length<180){
