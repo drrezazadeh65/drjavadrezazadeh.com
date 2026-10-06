@@ -136,7 +136,12 @@
     "JRN-028": "ORCID integration contract permits verified identifiers only; OJS/runtime integration pending.",
     "JRN-029": "Similarity workflow governance defined: tool availability never replaces editorial judgement; provider selection pending.",
     "JRN-036": "Reviewer monitoring dimensions frozen for turnaround, quality and conflict history; operational data awaits journal runtime.",
-    "JRN-049": "Annual audit dimensions frozen: endogeny, geography, board diversity, review time, corrections, metadata, preservation and accessibility."
+    "JRN-049": "Annual audit dimensions frozen: endogeny, geography, board diversity, review time, corrections, metadata, preservation and accessibility.",
+    "SERV-013": "Private append-only consultation notes and owned follow-up planning implemented; authenticated persistence/UI remains pending.",
+    "SERV-014": "Consultation report release now requires completed consultation and explicit human approve/return decision; report rendering/runtime remains pending.",
+    "DATA-013": "Purpose-bound, time-bound research access request/approval with non-expanding scopes and audit requirement implemented; persistence/admin UI remains pending.",
+    "DATA-014": "Operational/research retention decisions now distinguish active purpose, research-only basis, legal hold and delete/anonymise outcomes; scheduled execution remains pending.",
+    "ASSESS-012": "Scientific reference-metadata policy now defines validation provenance, fairness and invariance requirements; Golden Talent norms/cutoffs explicitly remain unavailable pending empirical validation."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
