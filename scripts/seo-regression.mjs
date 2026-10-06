@@ -1566,7 +1566,7 @@ const cssFile=path.join(root,'assets','css','style.css');
 if(fs.existsSync(cssFile)){
   const css=fs.readFileSync(cssFile,'utf8');
   const requiredMobileRules=[
-    ['global horizontal containment','html,body{max-width:100%;overflow-x:clip}'],
+    ['root width containment','html,body{width:100%;max-width:100%}'],
     ['grid/flex child containment','min-width:0'],
     ['responsive media','img,svg,video,canvas,iframe{max-width:100%;height:auto}'],
     ['iOS focus zoom prevention','input,select,textarea{font-size:16px}'],
