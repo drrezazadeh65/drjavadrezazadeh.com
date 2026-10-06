@@ -67,12 +67,10 @@
       "id": "golden-talent-methodology",
       "en": "/en/golden-talent/methodology/",
       "fa": "/fa/golden-talent/ravesh-shenasi/"
-    },
-    {
-      "id": "news-insights-hub",
-      "en": "/en/news-insights/",
-      "fa": "/fa/akhbar/"
     }
   ],
-  "unpaired_public_routes_policy": "No hreflang counterpart is invented. Add a pair only after content equivalence is reviewed."
+  "unpaired_public_routes_policy": "No hreflang counterpart is invented. Add a pair only after content equivalence is reviewed.",
+  "notes": [
+    "News/Insights and اخبار remain intentionally unpaired until collection-level content equivalence is reviewed; no hreflang relationship is invented."
+  ]
 }
