@@ -16,7 +16,7 @@ export function authorizeSubjectAccess({actor,subject_user_id,capability,relatio
  if(actor.user_id===subject_user_id) return {allow:true,reason:'SELF'};
  const roles=new Set(actor.roles||[]);
  if(roles.has('PARENT')&&relationship?.status==='ACTIVE'&&relationship.student_user_id===subject_user_id&&explicitConsent(consent,'PARENT_VISIBILITY')) return {allow:true,reason:'ACTIVE_PARENT_RELATIONSHIP'};
- if(roles.has('TEACHER')&&assignment?.status==='ACTIVE'&&assignment.student_user_id===subject_user_id&&hasCapability(assignment.scope,capability)&&explicitConsent(consent,'TEACHER_OBSERVATION')) return {allow:true,reason:'SCOPED_TEACHER_ASSIGNMENT'};
+ if(roles.has('TEACHER')&&assignment?.status==='ACTIVE'&&assignment.student_user_id===subject_user_id&&hasCapability(assignment?.scope,capability)&&explicitConsent(consent,'TEACHER_OBSERVATION')) return {allow:true,reason:'SCOPED_TEACHER_ASSIGNMENT'};
  if(roles.has('CONSULTANT')&&case_assignment?.status==='ACTIVE'&&case_assignment.subject_user_id===subject_user_id&&hasCapability(case_assignment.capabilities,capability)&&explicitConsent(consent,'CONSULTANT_REVIEW')) return {allow:true,reason:'ACTIVE_CASE_ASSIGNMENT'};
  return {allow:false,reason:'DENY_BY_DEFAULT'};
 }
