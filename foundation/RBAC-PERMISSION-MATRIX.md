@@ -9,7 +9,10 @@
 - PARENT
 - TEACHER
 - CONSULTANT
+- COUNSELLOR
 - RESEARCHER
+- CONSULTATION_CLIENT
+- INSTITUTION
 - EDITOR
 - ADMIN
 - SUPER_ADMIN
@@ -52,6 +55,22 @@ Role alone is never sufficient for access to a student's private record.
 | manage users/roles | — | — | — | — | — | — | limited | ✓ |
 | view audit logs | own events only where exposed | — | — | scoped | study scope | — | operational | ✓ |
 
+## 3.1 Master-vision role capability additions
+
+| Capability | Counsellor | Consultation Client | Institution |
+|---|---:|---:|---:|
+| view own profile | ✓ | ✓ | organisation-scoped |
+| create professional-service request | ✓ | ✓ | authorised representative |
+| view own request / booking / order | own or assigned | own | organisation-scoped |
+| triage professional service | assigned/authorised | — | — |
+| write professional note | assigned case | — | — |
+| view student educational evidence | assigned + purpose + scope | own only if subject | no default access |
+| receive released deliverable | assigned workflow | own | organisation-scoped |
+| manage institution members/contracts | — | — | explicit organisation capability |
+| access payment credentials | — | — | — |
+
+This extension does not weaken the original matrix: capability plus relationship/purpose remains mandatory.
+
 Legend:
 - **relationship** = validated parent-child link.
 - **assigned** = explicit current assignment.
@@ -90,6 +109,19 @@ Case assignment:
 - can be revoked;
 - is audited;
 - does not create permanent access after case closure unless policy explicitly requires it.
+
+## 6.1 Extended service and institution roles
+
+### COUNSELLOR
+COUNSELLOR is a verified professional-service role. It follows the same least-privilege rule as CONSULTANT and does not gain student-record access merely from the role label. Case assignment, purpose, consent where applicable and audit remain required.
+
+### CONSULTATION_CLIENT
+A consultation client may view and manage only that account's own service requests, appointments, permitted messages, invoices/orders and released deliverables. The role does not grant access to another person's educational record.
+
+### INSTITUTION
+INSTITUTION is an organisation-scoped role for future school/institution services, contracting, training and licensed programmes. It has no default access to individual student evidence. Any person-level access requires a separate lawful/authorised relationship, defined purpose, consent where applicable and a narrowly scoped capability.
+
+These roles remain deny-by-default until their server-side capability and relationship rules are explicitly activated.
 
 ## 7. Research separation
 
