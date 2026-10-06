@@ -92,6 +92,9 @@ for(const file of htmlFiles){
   if(html.includes('public-home-page')||html.includes('public-content-page')||html.includes('public-gateway-page')){
     if(publicRefs!==1) failures.push('/'+rel+': public v2 page must load exactly one public-v2 stylesheet');
   }
+  if(html.includes('service-shell') && !html.includes('commerce-workspace-page')){
+    if(publicRefs!==1) failures.push('/'+rel+': service-shell must use public-v2 for the shared consultation/service language');
+  }
 
   const styles=(html.match(/<link\b[^>]*rel=["']stylesheet["'][^>]*>/gi)||[]).length;
   if(styles>3) warnings.push('/'+rel+': more than three stylesheets; review render-blocking cost');
