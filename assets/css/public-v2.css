@@ -976,3 +976,57 @@
     width:min(300px,78vw);
   }
 }
+
+
+/* Public trust-status strip v1 */
+.public-content-page .role-status-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin:18px 0;
+}
+.public-content-page .role-status-card{
+  min-height:116px;
+  padding:18px 20px;
+  border:1px solid var(--public-line);
+  border-radius:16px;
+  background:linear-gradient(155deg,#151517,#101012);
+}
+.public-content-page .role-status-card small{
+  display:block;
+  color:#74777e;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.rtl.public-content-page .role-status-card small{
+  text-transform:none;
+  letter-spacing:0;
+}
+.public-content-page .role-status-card strong{
+  display:block;
+  margin-top:9px;
+  color:#eee9df;
+  font-size:16px;
+  line-height:1.45;
+}
+.public-content-page .role-status-card span{
+  display:block;
+  margin-top:6px;
+  color:#8f9299;
+  font-size:10px;
+  line-height:1.65;
+}
+.public-content-page .role-status-card.secure{
+  border-color:rgba(143,198,162,.18);
+  background:
+    radial-gradient(240px 100px at 92% 0%,rgba(143,198,162,.045),transparent 70%),
+    linear-gradient(155deg,#151517,#101012);
+}
+@media(max-width:960px){
+  .public-content-page .role-status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  .public-content-page .role-status-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .public-content-page .role-status-card{padding:14px;min-height:102px}
+}
