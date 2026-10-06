@@ -12,6 +12,9 @@ const payments=read('platform/payment-provider-registry.json');
 const nav=read('platform/mobile-navigation-contract.json');
 const gtPolicy=read('platform/golden-talent-engine-policy.json');
 const entityRegistry=read('platform/public-entity-registry.json');
+const authPolicy=read('platform/identity-auth-policy.json');
+const assistantPolicy=read('platform/assistant-runtime-policy.json');
+const bookCatalog=read('platform/book-catalog.json');
 
 const html=[];
 function walk(dir){
@@ -46,7 +49,9 @@ const summary={
  public_surface:{html_total:html.length,indexable,noindex,sitemap_urls:sitemapUrls.size,seo_intent_clusters:(intents.clusters||[]).length,hreflang_pairs:(hreflang.pairs||[]).length,entity_schema_surfaces:(entityRegistry.schema_surfaces||[]).length},
  platform:{modules:(modules.modules||[]).length,module_states:moduleStates,readiness_tracks:(readiness.tracks||[]).length,readiness_states:readyStates,db_migrations:migrations.length,last_migration:migrations.at(-1)||null},
  mobile:{stable_tabs:nav.stable_tabs,role_nav_profiles:Object.keys(nav.routes||{}).length},
- commerce:{payment_provider_slots:(payments.providers||[]).length,payment_providers_enabled:(payments.providers||[]).filter(x=>x.enabled).length},
+ commerce:{payment_provider_slots:(payments.providers||[]).length,payment_providers_enabled:(payments.providers||[]).filter(x=>x.enabled).length,published_books:(bookCatalog.books||[]).length,sellable_books:(bookCatalog.books||[]).filter(x=>x.commerce?.sellable===true).length},
+ identity:{primary_login_identifier:authPolicy.primary_login_identifier,activation_requires:authPolicy.registration?.activation_requires,mobile_is_authenticator:authPolicy.registration?.phone_is_authenticator===true,recovery_channel:authPolicy.recovery?.channel},
+ assistant:{lead_capture:assistantPolicy.lead_capture?.enabled===true,lead_bank:assistantPolicy.storage?.lead_bank,conversation_persisted:assistantPolicy.storage?.server_conversation_persistence===true},
  golden_talent:{status:gtPolicy.status,engine_version:gtPolicy.engine_version,total_score_enabled:gtPolicy.routing_policy?.total_score===true,career_prescription_enabled:gtPolicy.routing_policy?.automatic_career_prescription===true},
  next_actions:next.slice(0,8).map(x=>({track:x.id,priority:x.revenue_priority,state:x.production_state,blocked:(x.external_blockers||[]).length>0,next:x.next_actions?.[0]}))
 };
@@ -58,6 +63,10 @@ if(summary.golden_talent.total_score_enabled) failures.push('Golden Talent total
 if(summary.golden_talent.career_prescription_enabled) failures.push('Automatic career prescription unexpectedly enabled');
 if(JSON.stringify(summary.mobile.stable_tabs)!==JSON.stringify(['HOME','DISCOVER','TESTS','MY_PATH','ACCOUNT'])) failures.push('Private mobile five-tab contract drift');
 if((ecosystem.locales?.supported||[]).join(',')!=='fa,en') failures.push('Bilingual locale contract drift');
+if(summary.identity.primary_login_identifier!=='EMAIL'||summary.identity.activation_requires!=='EMAIL_VERIFICATION'||summary.identity.mobile_is_authenticator) failures.push('Email-only identity boundary drift');
+if(summary.identity.recovery_channel!=='EMAIL') failures.push('Password recovery must remain email-only');
+if(!summary.assistant.lead_capture||summary.assistant.lead_bank!=='CLOUDFLARE_DURABLE_OBJECT_SQLITE'||summary.assistant.conversation_persisted) failures.push('Assistant lead-bank/privacy boundary drift');
+if(summary.commerce.sellable_books!==0) failures.push('Bookstore contains sellable products before verified commercial data is supplied');
 
 const markdown=process.argv.includes('--markdown');
 if(markdown){
@@ -69,7 +78,9 @@ if(markdown){
  console.log('- Sitemap canonical URLs: **'+summary.public_surface.sitemap_urls+'** · SEO intent clusters: **'+summary.public_surface.seo_intent_clusters+'** · hreflang pairs: **'+summary.public_surface.hreflang_pairs+'** · entity schema surfaces: **'+summary.public_surface.entity_schema_surfaces+'**');
  console.log('- Platform modules: **'+summary.platform.modules+'** · DB migrations: **'+summary.platform.db_migrations+'** · latest: `'+summary.platform.last_migration+'`');
  console.log('- Mobile private navigation: **'+summary.mobile.stable_tabs.length+' stable tabs** across **'+summary.mobile.role_nav_profiles+' routing profiles**');
- console.log('- Payment adapters enabled: **'+summary.commerce.payment_providers_enabled+'** (expected 0 until credentials/reconciliation gate passes)');
+ console.log('- Payment adapters enabled: **'+summary.commerce.payment_providers_enabled+'** (expected 0 until credentials/reconciliation gate passes) · published books: **'+summary.commerce.published_books+'** · sellable now: **'+summary.commerce.sellable_books+'**');
+ console.log('- Identity: **email-only** sign-in/verification/recovery · mobile is contact-only');
+ console.log('- AI concierge: consented lead capture **'+(summary.assistant.lead_capture?'ON':'OFF')+'** · chat persistence **'+(summary.assistant.conversation_persisted?'ON':'OFF')+'**');
  console.log('- Golden Talent: **'+summary.golden_talent.status+'** · total score: **OFF** · automatic career prescription: **OFF**');
  console.log('');
  console.log('## Highest-priority next actions');
