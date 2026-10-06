@@ -1,0 +1,27 @@
+{
+ "schema_version":"1.0",
+ "principles":["FAIL_CLOSED","IDEMPOTENT_RETRY","PERSISTED_STATE_IS_TRUTH","NO_DESTRUCTIVE_ROLLBACK_OF_EVIDENCE","NO_CLIENT_RECOVERY_AUTHORITY"],
+ "recovery":{
+  "submission":"resume from frozen response snapshot or existing result",
+  "routing":"reuse existing route identity or rebuild from persisted evidence",
+  "review":"preserve review history and resume pending work",
+  "golden_path":"return existing synthesis or rebuild only from released reviewed route",
+  "payment":"reverify provider before fulfillment; never infer success from redirect",
+  "entitlement":"grant only after verified payment and persisted fulfillment"
+ },
+ "backup_restore":{
+  "required_before_private_data_launch":true,
+  "restore_test_required":true,
+  "point_in_time_recovery_preferred":true,
+  "encrypted_backups_required":true,
+  "restore_does_not_bypass_current_authorization":true
+ },
+ "incident":{
+  "correlation_id_required":true,
+  "audit_event_required":true,
+  "security_incident_path_required":true,
+  "privacy_incident_path_required":true,
+  "payment_reconciliation_required":true
+ },
+ "production_readiness":{"status":"BLOCKED_UNTIL_BACKEND_INFRASTRUCTURE_AND_RESTORE_DRILL_EXIST"}
+}
