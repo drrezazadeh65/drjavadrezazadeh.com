@@ -109,5 +109,28 @@
       "https://github.com/drrezazadeh65",
       "https://www.instagram.com/dr.rezazadeh/"
     ]
+  },
+  "semantic_topics": [
+    "Education",
+    "Applied Linguistics",
+    "English Language Education",
+    "Assessment",
+    "Talent Development",
+    "Teacher Development",
+    "Academic Consulting",
+    "AI in Education"
+  ],
+  "entity_relationship_goal": {
+    "person": "Dr. Javad Rezazadeh",
+    "connected_topics": [
+      "Education",
+      "Talent Development",
+      "Research",
+      "Assessment",
+      "Teacher Development",
+      "Academic Consulting"
+    ],
+    "connected_product": "Golden Talent",
+    "rule": "Relationships must be supported by public work/services/projects; semantic markup must not invent affiliations, awards or expertise."
   }
 }
