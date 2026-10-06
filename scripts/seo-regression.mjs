@@ -403,6 +403,35 @@ if(failures.length){
 }
 
 
+// SEO INTENT REGISTRY — canonical keyword ownership and anti-cannibalisation contract.
+const seoIntentRegistryPath=path.join(root,'platform','seo-intent-registry.json');
+if(!fs.existsSync(seoIntentRegistryPath)) failures.push('/platform/seo-intent-registry.json: missing keyword ownership registry');
+else{
+  try{
+    const intentRegistry=JSON.parse(fs.readFileSync(seoIntentRegistryPath,'utf8'));
+    const clusters=Array.isArray(intentRegistry.clusters)?intentRegistry.clusters:[];
+    const intentOwners=new Map();
+    for(const c of clusters){
+      if(!c.id||!c.locale||!c.owner||!c.intent_key||c.status!=='INDEX') failures.push('/platform/seo-intent-registry.json: incomplete INDEX cluster '+(c.id||'unknown'));
+      if(intentOwners.has(c.intent_key)) failures.push('/platform/seo-intent-registry.json: duplicate primary intent owner '+c.intent_key);
+      intentOwners.set(c.intent_key,c.owner);
+      if(c.locale==='en'&&!c.owner.startsWith('/en/')) failures.push('/platform/seo-intent-registry.json: English owner must live under /en/ '+c.id);
+      if(c.locale==='fa'&&!c.owner.startsWith('/fa/')) failures.push('/platform/seo-intent-registry.json: Persian owner must live under /fa/ '+c.id);
+      const absolute=sitePrefix+c.owner;
+      if(c.status==='INDEX'&&!sitemapUrls.has(absolute)) failures.push('/platform/seo-intent-registry.json: INDEX owner missing from sitemap '+c.owner);
+      if(!Array.isArray(c.primary_terms)||!c.primary_terms.length) failures.push('/platform/seo-intent-registry.json: primary terms missing '+c.id);
+    }
+  }catch(e){
+    failures.push('/platform/seo-intent-registry.json: invalid registry '+e.message);
+  }
+}
+if(failures.length){
+  console.error('\nSEO-intent registry failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // ECOSYSTEM REGISTRY — extensibility contract and fail-closed route governance.
 const ecosystemRegistryPath=path.join(root,'platform','ecosystem-registry.json');
 if(!fs.existsSync(ecosystemRegistryPath)) failures.push('/platform/ecosystem-registry.json: missing extensibility registry');

@@ -1,4 +1,4 @@
-# SEO INTENT & CANONICAL MAP — v1.0
+# SEO INTENT & CANONICAL MAP — v2.0
 
 **Project:** Dr. Javad Rezazadeh Yazdeli Digital Education & Research Ecosystem  
 **Date:** 2026-10-05  
@@ -11,7 +11,7 @@
 
 1. One primary search intent belongs to one canonical public page.
 2. A page may support secondary semantic terms, but it must not compete with another page for the same central intent.
-3. English lives at root; Persian lives under `/fa/`.
+3. Persian lives under `/fa/` and English under `/en/`; `/` is a neutral x-default language/brand gateway and does not replace either localized namespace.
 4. Hreflang is used only for genuine equivalents.
 5. Services, editorial articles, scholarly identity, products and private app routes are separate content types.
 6. Transactional pages do not masquerade as informational articles; articles should link users to relevant services without becoming doorway pages.
@@ -26,17 +26,17 @@
 
 | Canonical URL | Primary intent | Secondary semantic territory | Page role | Index state |
 |---|---|---|---|---|
-| `/` | Dr. Javad Rezazadeh Yazdeli | educator, researcher, author, consultant, Applied Linguistics | Entity/home | INDEX |
-| `/about/` | Javad Rezazadeh Yazdeli biography / academic profile | education, professional background, academic identity | Authority | INDEX |
-| `/teaching/` | Javad Rezazadeh Yazdeli university teaching | Applied Linguistics teaching, ELT, assessment, ESP/EAP | Authority | INDEX |
-| `/research/` | Javad Rezazadeh Yazdeli research | Applied Linguistics, language education, materials, assessment | Authority | INDEX |
-| `/publications/` | Javad Rezazadeh Yazdeli publications | DOI, papers, scholarly record | Authority | INDEX |
-| `/books/` | Javad Rezazadeh Yazdeli books | educational books, poetry, Golden Talent | Authority/bibliographic | INDEX |
-| `/academic-engagements/` | Javad Rezazadeh Yazdeli conferences and academic engagements | presentations, reviewer, conference service, professional development | Authority | INDEX |
-| `/educational-philosophy/` | educational philosophy of Javad Rezazadeh Yazdeli | human development, learning, talent, counselling | Thought leadership | INDEX |
+| `/en/` | Dr. Javad Rezazadeh Yazdeli | educator, researcher, author, consultant, Applied Linguistics | English entity/home | INDEX |
+| `/en/about/` | Javad Rezazadeh Yazdeli biography / academic profile | education, professional background, academic identity | Authority | INDEX |
+| `/en/teaching/` | Javad Rezazadeh Yazdeli university teaching | Applied Linguistics teaching, ELT, assessment, ESP/EAP | Authority | INDEX |
+| `/en/research/` | Javad Rezazadeh Yazdeli research | Applied Linguistics, language education, materials, assessment | Authority | INDEX |
+| `/en/publications/` | Javad Rezazadeh Yazdeli publications | DOI, papers, scholarly record | Authority | INDEX |
+| `/en/books/` | Javad Rezazadeh Yazdeli books | educational books, poetry, Golden Talent | Authority/bibliographic | INDEX |
+| `/en/academic-engagements/` | Javad Rezazadeh Yazdeli conferences and academic engagements | presentations, reviewer, conference service, professional development | Authority | INDEX |
+| `/en/educational-philosophy/` | educational philosophy of Javad Rezazadeh Yazdeli | human development, learning, talent, counselling | Thought leadership | INDEX |
 
 ### Cannibalisation rule
-The homepage owns the **person/entity** query. About owns **biographical/profile** intent. Teaching, Research, Publications, Books and Academic Engagements own their respective evidence domains. They should link to one another but not repeat full sections.
+The localized `/en/` homepage owns the English **person/entity** query, while `/fa/` owns the Persian entity query. The root `/` is a neutral gateway. About owns **biographical/profile** intent. Teaching, Research, Publications, Books and Academic Engagements own their respective evidence domains. They should link to one another but not repeat full sections.
 
 ---
 
@@ -97,7 +97,7 @@ The homepage owns the **person/entity** query. About owns **biographical/profile
 | future `/app/reports/` | private reports | Product/app | PRIVATE / NOINDEX |
 
 ### Golden Talent rule
-Informational resources explain limitations and development. Assessment/private-report pages never become search landing pages containing personal results.
+Informational resources explain limitations and development. Assessment/private-report pages never become search landing pages containing personal results. Search intent must distinguish **student strengths/talent understanding**, **major/career exploration**, and **methodology** so the public hub, student-guidance page and methodology page do not cannibalise one another.
 
 ---
 
@@ -166,16 +166,15 @@ When production JHELA launches on the permanent subdomain, temporary journal rou
 
 # 9. Private/platform namespaces — never SEO landing pages
 
-The following are private or transactional and remain NOINDEX:
-- `/app/`
-- `/login/`
-- `/register/`
-- `/student/`
-- `/parent/`
-- `/teacher/`
-- `/assessments/`
-- `/research-lab/`
-- future cart / checkout / account / orders / reports / messages / settings
+The following route families are private, authenticated, transactional or legacy shells and remain NOINDEX:
+- `/fa/app/`, `/app/`, `/en/account/`
+- `/fa/login/`, `/login/`, `/en/login/`
+- `/fa/register/`, `/register/`, `/en/register/`, `/en/recover/`, `/fa/bazyabi-hesab/`
+- `/fa/assessments/`, `/assessments/`, `/en/golden-talent/assessment/`, `/en/golden-talent/dashboard/`, `/en/golden-talent/observer/`, `/en/golden-talent/roles/`, `/en/golden-talent/student/`
+- `/fa/shop/`, `/shop/`, `/en/golden-talent/checkout/`, `/en/golden-talent/plans/`
+- `/fa/darkhast-moshavere/`, `/en/request-consultation/`
+
+The machine-readable source for these boundaries is `platform/ecosystem-registry.json`; this prose must not become a second independent policy.
 
 **Security rule:** noindex is not security. Production privacy requires real authentication/authorization.
 

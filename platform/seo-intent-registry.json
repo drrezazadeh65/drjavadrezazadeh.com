@@ -1,0 +1,234 @@
+{
+  "schema_version": "1.0",
+  "version": "2026-10-06",
+  "rule": "One primary intent owner per canonical public route; variants enrich a cluster and do not create pages by default.",
+  "clusters": [
+    {
+      "id": "identity-en",
+      "locale": "en",
+      "owner": "/en/",
+      "intent_key": "person_entity_en",
+      "primary_terms": [
+        "Javad Rezazadeh Yazdeli",
+        "Dr Javad Rezazadeh"
+      ],
+      "supporting_terms": [
+        "academic profile",
+        "educator",
+        "researcher"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "identity-fa",
+      "locale": "fa",
+      "owner": "/fa/",
+      "intent_key": "person_entity_fa",
+      "primary_terms": [
+        "دکتر جواد رضازاده یزدلی"
+      ],
+      "supporting_terms": [
+        "مدرس دانشگاه",
+        "پژوهشگر",
+        "مشاور آموزشی"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "research-en",
+      "locale": "en",
+      "owner": "/en/research/",
+      "intent_key": "research_record_en",
+      "primary_terms": [
+        "Javad Rezazadeh research"
+      ],
+      "supporting_terms": [
+        "Applied Linguistics",
+        "language education"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "publications-en",
+      "locale": "en",
+      "owner": "/en/publications/",
+      "intent_key": "publication_record_en",
+      "primary_terms": [
+        "Javad Rezazadeh publications"
+      ],
+      "supporting_terms": [
+        "papers",
+        "scholarly record"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "talent-en",
+      "locale": "en",
+      "owner": "/en/golden-talent/",
+      "intent_key": "developmental_talent_en",
+      "primary_terms": [
+        "developmental talent identification",
+        "student talent assessment"
+      ],
+      "supporting_terms": [
+        "student strengths assessment",
+        "multi-source evidence"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "talent-method-en",
+      "locale": "en",
+      "owner": "/en/golden-talent/methodology/",
+      "intent_key": "talent_methodology_en",
+      "primary_terms": [
+        "multi-source talent assessment",
+        "evidence-based talent identification"
+      ],
+      "supporting_terms": [
+        "developmental assessment methodology",
+        "human review"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "student-guidance-en",
+      "locale": "en",
+      "owner": "/en/student-guidance/",
+      "intent_key": "student_guidance_en",
+      "primary_terms": [
+        "student educational guidance",
+        "college major guidance for students"
+      ],
+      "supporting_terms": [
+        "career exploration for students",
+        "career pathway planning"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "services-en",
+      "locale": "en",
+      "owner": "/en/services/",
+      "intent_key": "education_services_en",
+      "primary_terms": [
+        "educational services for students"
+      ],
+      "supporting_terms": [
+        "student guidance",
+        "talent assessment"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "talent-fa",
+      "locale": "fa",
+      "owner": "/fa/estedaadyabi/",
+      "intent_key": "talent_service_fa",
+      "primary_terms": [
+        "استعدادیابی تحصیلی",
+        "استعدادیابی دانش آموز"
+      ],
+      "supporting_terms": [
+        "تست استعدادیابی دانش آموز",
+        "انتخاب رشته بر اساس استعداد"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "talent-method-fa",
+      "locale": "fa",
+      "owner": "/fa/golden-talent/ravesh-shenasi/",
+      "intent_key": "talent_methodology_fa",
+      "primary_terms": [
+        "روش استعدادیابی علمی",
+        "استعدادیابی چندمنبعی"
+      ],
+      "supporting_terms": [
+        "مدل شواهد استعدادیابی"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "counselling-fa",
+      "locale": "fa",
+      "owner": "/fa/moshavere-tahsili/",
+      "intent_key": "academic_counselling_fa",
+      "primary_terms": [
+        "مشاوره تحصیلی"
+      ],
+      "supporting_terms": [
+        "هدایت تحصیلی",
+        "برنامه تحصیلی"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "field-selection-fa",
+      "locale": "fa",
+      "owner": "/fa/entekhab-reshteh/",
+      "intent_key": "field_selection_fa",
+      "primary_terms": [
+        "انتخاب رشته",
+        "مشاوره انتخاب رشته کنکور"
+      ],
+      "supporting_terms": [
+        "انتخاب رشته دانشگاه",
+        "اولویت انتخاب"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "exam-counselling-fa",
+      "locale": "fa",
+      "owner": "/fa/moshavere-konkur/",
+      "intent_key": "exam_counselling_fa",
+      "primary_terms": [
+        "مشاوره کنکور"
+      ],
+      "supporting_terms": [
+        "برنامه‌ریزی کنکور",
+        "تصمیم‌گیری"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "services-fa",
+      "locale": "fa",
+      "owner": "/fa/khadamat/",
+      "intent_key": "education_services_fa",
+      "primary_terms": [
+        "خدمات آموزشی",
+        "خدمات مشاوره تحصیلی"
+      ],
+      "supporting_terms": [
+        "انتخاب رشته",
+        "استعدادیابی"
+      ],
+      "status": "INDEX"
+    },
+    {
+      "id": "guides-fa",
+      "locale": "fa",
+      "owner": "/fa/rahnamaha/",
+      "intent_key": "education_guides_fa",
+      "primary_terms": [
+        "راهنماهای آموزشی"
+      ],
+      "supporting_terms": [
+        "تصمیم آموزشی",
+        "انتخاب رشته",
+        "مشاوره"
+      ],
+      "status": "INDEX"
+    }
+  ],
+  "cannibalization_rules": [
+    "A primary intent_key has exactly one owner.",
+    "Keyword variants do not justify new pages without distinct search intent.",
+    "Commercial service pages and informational guides may support each other but cannot share the same primary intent.",
+    "Golden Talent hub owns broad developmental talent language; student-guidance owns major/career decision support; methodology owns method/evidence queries.",
+    "Search demand and competition remain TBD until measured; do not fabricate volumes."
+  ]
+}
