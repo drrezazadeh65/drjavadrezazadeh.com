@@ -1,0 +1,32 @@
+{
+  "schema_version":"1.0",
+  "server_authoritative":true,
+  "session_states":["IN_PROGRESS","SUBMITTED","ROUTING","REVIEW_REQUIRED","COMPLETE","CANCELLED"],
+  "idempotency":{
+    "submission_key":"session_id:instrument_version:response_revision",
+    "duplicate_policy":"RETURN_EXISTING_RESULT",
+    "evidence_insert":"ONCE_PER_FROZEN_RESPONSE_SNAPSHOT",
+    "route_run":"ONCE_PER_ENGINE_AND_EVIDENCE_REVISION"
+  },
+  "transaction":{
+    "isolation_goal":"SERIALIZABLE_OR_EQUIVALENT_CONCURRENCY_CONTROL",
+    "steps":["LOCK_SESSION","VERIFY_SUBJECT_ROLE_ENTITLEMENT_AND_VERSION","FREEZE_RESPONSE_SNAPSHOT","INSERT_EVIDENCE_ONCE","CREATE_ROUTE_RUN_ONCE","COMMIT_SESSION_STATE"],
+    "partial_success_visible":false
+  },
+  "immutability":{
+    "submitted_response_snapshot":true,
+    "evidence_event_payload":true,
+    "released_route_run":true,
+    "released_golden_path_version":true,
+    "correction_method":"APPEND_NEW_VERSION_AND_SUPERSEDE"
+  },
+  "audit":{
+    "record_actor":true,
+    "record_transition":true,
+    "record_idempotency_key":true,
+    "record_engine_version":true,
+    "record_policy_snapshot":true,
+    "record_evidence_revision":true
+  },
+  "client_may_not_set":["session_status","quality_state","route_state","route_priority","payment_state","entitlement","review_approval","golden_path_release"]
+}
