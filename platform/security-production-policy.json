@@ -1,0 +1,14 @@
+{
+ "schema_version":"1.0",
+ "purpose":"Repository-completable security controls; provider deployment remains external.",
+ "admin_mfa":{"required":true,"roles":["ADMIN","SUPER_ADMIN"],"enforcement":"server"},
+ "passwords":{"raw_password_persistence":false,"provider_must_use_memory_hard_or_equivalent_modern_hashing":true},
+ "sessions":{"server_authoritative":true,"hashed_session_secret":true,"rotation_required":true,"revoke_on_recovery":true},
+ "transport":{"https_required":true,"secrets_browser_exposure":false,"secrets_git_exposure":false},
+ "uploads":{"private_by_default":true,"allowlist_mime_types":true,"max_size_required":true,"malware_scan_required_before_available":true,"quarantine_until_scan":true},
+ "audit":{"admin_sensitive_actions":true,"security_events":true,"append_only":true},
+ "retention":{"purpose_specific":true,"legal_hold_supported":true,"deletion_workflow_required":true,"export_workflow_required":true},
+ "backup":{"encrypted":true,"restore_test_required":true,"rpo_rto_documented":true},
+ "incident_response":{"severity_model_required":true,"containment":true,"eradication":true,"recovery":true,"post_incident_review":true},
+ "vulnerability_reporting":{"security_contact_required":true,"no_public_secret_submission":true}
+}
