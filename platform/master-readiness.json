@@ -279,6 +279,26 @@
         "Use separate WhatsApp opt-in",
         "Never use WhatsApp for account verification or password recovery"
       ]
+    },
+    {
+      "id": "admin-console",
+      "production_state": "FOUNDATION_READY",
+      "revenue_priority": "MEDIUM",
+      "external_blockers": [
+        "Production identity/MFA/backend services"
+      ],
+      "artifacts": [
+        "platform/admin-console-policy.json",
+        "fa/app/admin/index.html",
+        "en/account/admin/index.html",
+        "platform/db/migrations/019_admin_content_governance.sql"
+      ],
+      "next_actions": [
+        "Activate only after production authentication and MFA",
+        "Bind lead/order/consultation/content views to server-authorized APIs",
+        "Require reauthentication for destructive actions",
+        "Keep secrets and private payloads out of browser logs"
+      ]
     }
   ],
   "prioritisation_rule": "External blockers do not pause internal foundation work. Work first on CRITICAL/HIGH tracks whose next step is not blocked, while preserving scientific, privacy, security and SEO release gates.",
