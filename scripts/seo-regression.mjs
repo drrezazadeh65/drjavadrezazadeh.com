@@ -1335,3 +1335,17 @@ else{
  const rp=JSON.parse(fs.readFileSync(resPath,'utf8'));
  if(!rp.principles?.includes('FAIL_CLOSED')||rp.backup_restore?.restore_test_required!==true||rp.production_readiness?.status!=='BLOCKED_UNTIL_BACKEND_INFRASTRUCTURE_AND_RESTORE_DRILL_EXIST') failures.push('/platform/golden-talent-resilience-policy.json: unsafe resilience policy');
 }
+
+// Backend deployment/secrets/RLS guardrails.
+const bdPath=path.join(root,'platform','backend-deployment-policy.json');
+const rlsPath=path.join(root,'platform','db','rls','001_talent_evidence_subject.sql');
+const bpPath=path.join(root,'foundation','GOLDEN-TALENT-BACKEND-BLUEPRINT.md');
+if(!fs.existsSync(bdPath)||!fs.existsSync(rlsPath)||!fs.existsSync(bpPath)) failures.push('/platform: missing backend deployment or RLS baseline');
+else{
+ const bd=JSON.parse(fs.readFileSync(bdPath,'utf8'));
+ if(bd.rules?.secrets_in_git!==false||bd.rules?.secrets_in_browser_bundle!==false||bd.runtime_superuser_prohibited!==true) failures.push('/platform/backend-deployment-policy.json: unsafe secret/runtime policy');
+ const rls=fs.readFileSync(rlsPath,'utf8');
+ for(const invariant of ['ENABLE ROW LEVEL SECURITY','FORCE ROW LEVEL SECURITY',"current_setting('app.user_id', true)","source_type = 'STUDENT_SELF'"]){
+  if(!rls.includes(invariant)) failures.push('/platform/db/rls/001_talent_evidence_subject.sql: missing RLS invariant '+invariant);
+ }
+}
