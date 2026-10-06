@@ -5,6 +5,8 @@ assert.equal(p.status,'PENDING');
 assert.equal(p.verification_channel,'EMAIL');
 assert.equal(p.mobile_purpose,'CONTACT_ONLY');
 assert.equal(p.whatsapp_login_allowed,false);
+assert.equal(registrationPlan({email:'researcher@example.com',mobile_e164:'+989121234568',role:'RESEARCHER'}).role,'RESEARCHER');
+assert.equal(registrationPlan({email:'client@example.com',mobile_e164:'+989121234569',role:'CONSULTATION_CLIENT'}).role,'CONSULTATION_CLIENT');
 assert.throws(()=>registrationPlan({email:'x@example.com',mobile_e164:'09121234567'}));
 assert.equal(loginIdentifier('user@example.com').type,'EMAIL');
 assert.throws(()=>loginIdentifier('+989121234567'));
