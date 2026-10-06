@@ -77,10 +77,10 @@
       "priority": "P0",
       "fa": "نگارش دانشگاهی",
       "en": "Academic Writing",
-      "state": "PLANNED",
+      "state": "FOUNDATION",
       "service_bridge": {
-        "fa": "/fa/khadamat/#academic-services",
-        "en": "/en/services/#academic-services"
+        "fa": "/fa/khadamat-pajouheshi/",
+        "en": "/en/academic-services/"
       }
     },
     {
@@ -92,6 +92,10 @@
       "service_bridge": {
         "fa": "/fa/pajouhesh/",
         "en": "/en/research/"
+      },
+      "secondary_service_bridge": {
+        "fa": "/fa/khadamat-pajouheshi/",
+        "en": "/en/academic-services/"
       }
     },
     {
