@@ -23,7 +23,7 @@ Review every file that would change.
 
 ## Atomic URL cutover
 ```bash
-node scripts/domain-cutover.mjs https://drjavadrezazadeh.com
+node scripts/domain-cutover.mjs https://drjavadrezazadeh.com --confirm-https-ready
 node scripts/seo-regression.mjs
 ```
 
