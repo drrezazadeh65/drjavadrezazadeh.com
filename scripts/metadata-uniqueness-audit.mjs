@@ -93,8 +93,13 @@ for(const file of htmlFiles){
 
   const ogTitleTag=(html.match(/<meta\b[^>]*property=["']og:title["'][^>]*>/i)||[''])[0];
   const ogDescTag=(html.match(/<meta\b[^>]*property=["']og:description["'][^>]*>/i)||[''])[0];
-  if(!ogTitleTag) warnings.push(route+': no og:title');
-  if(!ogDescTag) warnings.push(route+': no og:description');
+  const ogImageTag=(html.match(/<meta\b[^>]*property=["']og:image["'][^>]*>/i)||[''])[0];
+  const twitterCardTag=(html.match(/<meta\b[^>]*name=["']twitter:card["'][^>]*>/i)||[''])[0];
+  if(!ogTitleTag) failures.push(route+': missing og:title');
+  if(!ogDescTag) failures.push(route+': missing og:description');
+  if(!ogUrlTag) failures.push(route+': missing og:url');
+  if(!ogImageTag) warnings.push(route+': no og:image');
+  if(!twitterCardTag) warnings.push(route+': no twitter:card');
 
   const visibleText=strip((html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)||[])[1]||'');
   if(visibleText.length<180){
