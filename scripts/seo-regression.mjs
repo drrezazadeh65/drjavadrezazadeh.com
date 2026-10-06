@@ -314,6 +314,25 @@ if(failures.length){
 }
 
 
+// DEEP-MODULE COMPLETION SEMANTICS — registry requirements must be executable, not documentation-only.
+const deepEnginePath=path.join(root,'platform/golden-talent-deep-module-engine.mjs');
+if(!fs.existsSync(deepEnginePath)) failures.push('/platform/golden-talent-deep-module-engine.mjs: missing deep-module engine');
+else{
+  const deepEngine=fs.readFileSync(deepEnginePath,'utf8');
+  for(const token of ['context_preservation','process_evidence','paired_performance','professional_review','external_or_performance']){
+    if(!deepEngine.includes(token)) failures.push('/platform/golden-talent-deep-module-engine.mjs: completion requirement not enforced '+token);
+  }
+  if(!deepEngine.includes("total_score:null")||!deepEngine.includes("normative_label:null")){
+    failures.push('/platform/golden-talent-deep-module-engine.mjs: non-psychometric output boundary missing');
+  }
+}
+if(failures.length){
+  console.error('\nDeep-module semantic failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // CLOUDFLARE RESPONSE-HEADER FIREWALL — prepared now, enforced after Pages cutover.
 const headersPath=path.join(root,'_headers');
 if(!fs.existsSync(headersPath)) failures.push('/_headers: missing Cloudflare Pages response-header policy');
