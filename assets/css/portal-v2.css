@@ -1508,3 +1508,183 @@
   .auth-page .article-hero h1{font-size:36px}
   .auth-page .auth-form{padding:20px}
 }
+
+
+/* Assessment journey v2 */
+.assessment-workspace-page{
+  background:
+    radial-gradient(900px 520px at 88% -10%,rgba(199,163,91,.08),transparent 60%),
+    radial-gradient(760px 520px at -12% 28%,rgba(84,65,33,.05),transparent 60%),
+    #070707;
+}
+.assessment-workspace-page .site-header{
+  border-bottom-color:rgba(199,163,91,.10);
+  background:rgba(7,7,7,.88);
+  backdrop-filter:blur(16px);
+}
+.assessment-workspace-page .gt-private-shell,
+.assessment-workspace-page .rcas-shell{
+  width:min(1180px,calc(100% - 40px));
+  margin:0 auto;
+  padding:34px 0 94px;
+}
+.assessment-workspace-page .gt-private-hero,
+.assessment-workspace-page .rcas-hero{
+  padding:44px;
+  border:1px solid var(--dash-border-gold);
+  border-radius:28px;
+  background:
+    radial-gradient(600px 260px at 92% 0%,rgba(199,163,91,.09),transparent 68%),
+    linear-gradient(150deg,#131315,#0e0e10);
+  box-shadow:0 26px 82px rgba(0,0,0,.20);
+}
+.assessment-workspace-page .gt-private-hero h1,
+.assessment-workspace-page .rcas-hero h1{
+  max-width:930px;
+  font-size:clamp(38px,5vw,60px);
+  line-height:1.25;
+}
+.rtl.assessment-workspace-page .gt-private-hero h1,
+.rtl.assessment-workspace-page .rcas-hero h1{line-height:1.62}
+.assessment-workspace-page .gt-private-hero .lead,
+.assessment-workspace-page .rcas-hero .lead{
+  max-width:850px;
+  color:#a5a7ad;
+  line-height:1.9;
+}
+.assessment-workspace-page .gt-journey{
+  display:grid;
+  gap:14px;
+  margin-top:18px;
+}
+.assessment-workspace-page .gt-step{
+  display:grid;
+  grid-template-columns:72px minmax(0,1fr);
+  gap:24px;
+  padding:28px;
+  border:1px solid var(--dash-border);
+  border-radius:20px;
+  background:linear-gradient(160deg,#141416,#101012);
+  box-shadow:0 14px 34px rgba(0,0,0,.10);
+}
+.assessment-workspace-page .gt-step.active{
+  border-color:var(--dash-border-gold);
+  background:
+    linear-gradient(160deg,rgba(199,163,91,.045),#101012);
+}
+.assessment-workspace-page .gt-step-no{
+  display:grid;
+  place-items:center;
+  width:58px;
+  height:58px;
+  border:1px solid var(--dash-border-gold);
+  border-radius:16px;
+  color:var(--portal-gold-soft);
+  background:rgba(199,163,91,.045);
+  font-size:13px;
+}
+.assessment-workspace-page .gt-step h2{
+  margin-top:8px;
+  font-size:clamp(24px,2.8vw,34px);
+}
+.assessment-workspace-page .gt-step p{color:#9ca0a7;line-height:1.9}
+.assessment-workspace-page .gt-mini-grid,
+.assessment-workspace-page .gt-module-grid{
+  gap:10px;
+}
+.assessment-workspace-page .gt-mini-grid>*,
+.assessment-workspace-page .gt-module-grid>*{
+  border-color:var(--dash-border);
+  background:#0f0f11;
+}
+.assessment-workspace-page .gt-private-note{
+  margin-top:18px;
+  padding:28px;
+  border:1px solid var(--dash-border-gold);
+  border-radius:20px;
+  background:rgba(199,163,91,.035);
+}
+
+/* RCAS form surface */
+.assessment-workspace-page .rcas-privacy{
+  border:1px solid var(--dash-border-gold);
+  border-radius:16px;
+  background:rgba(199,163,91,.035);
+}
+.assessment-workspace-page .rcas-progress{
+  margin-top:24px;
+}
+.assessment-workspace-page .rcas-progress-track{
+  background:#171719;
+  border:1px solid var(--dash-border);
+  border-radius:999px;
+  overflow:hidden;
+}
+.assessment-workspace-page .rcas-progress-track i{
+  background:linear-gradient(90deg,#b28f49,#ddbf75);
+}
+.assessment-workspace-page .rcas-panel{
+  margin-top:18px;
+  padding:30px;
+  border:1px solid var(--dash-border);
+  border-radius:20px;
+  background:linear-gradient(160deg,#131315,#0f0f11);
+  box-shadow:0 14px 34px rgba(0,0,0,.10);
+}
+.assessment-workspace-page .rcas-panel-head{
+  padding-bottom:20px;
+  margin-bottom:22px;
+  border-bottom:1px solid var(--dash-border);
+}
+.assessment-workspace-page .rcas-panel-head h2{
+  font-size:clamp(26px,3vw,38px);
+}
+.assessment-workspace-page .rcas-field-grid,
+.assessment-workspace-page .rcas-long-grid,
+.assessment-workspace-page .rcas-priority{
+  gap:14px;
+}
+.assessment-workspace-page .rcas-panel label,
+.assessment-workspace-page .rcas-panel legend{
+  color:#e6e1d7;
+}
+.assessment-workspace-page .rcas-panel input,
+.assessment-workspace-page .rcas-panel select,
+.assessment-workspace-page .rcas-panel textarea{
+  border:1px solid var(--dash-border);
+  border-radius:12px;
+  background:#0c0c0e;
+}
+.assessment-workspace-page .rcas-checks,
+.assessment-workspace-page .rcas-access,
+.assessment-workspace-page .rcas-priority,
+.assessment-workspace-page .rcas-result{
+  border-color:var(--dash-border);
+  border-radius:16px;
+  background:#101012;
+}
+.assessment-workspace-page .rcas-actions{
+  padding-top:22px;
+  border-top:1px solid var(--dash-border);
+}
+.assessment-workspace-page footer{
+  width:min(1180px,calc(100% - 40px));
+  margin:0 auto;
+}
+@media(max-width:800px){
+  .assessment-workspace-page .gt-private-shell,
+  .assessment-workspace-page .rcas-shell,
+  .assessment-workspace-page footer{width:calc(100% - 20px)}
+  .assessment-workspace-page .gt-private-hero,
+  .assessment-workspace-page .rcas-hero,
+  .assessment-workspace-page .rcas-panel{padding:26px}
+}
+@media(max-width:620px){
+  .assessment-workspace-page .gt-step{
+    grid-template-columns:1fr;
+    padding:22px;
+  }
+  .assessment-workspace-page .gt-step-no{margin-bottom:2px}
+  .assessment-workspace-page .gt-private-hero h1,
+  .assessment-workspace-page .rcas-hero h1{font-size:36px}
+}
