@@ -1117,3 +1117,39 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+
+
+// ONBOARDING LIFECYCLE GUARDRAILS — role/relationship/consent gates must remain explicit.
+const onboardingPath=path.join(root,'platform','onboarding-state-machine.json');
+if(!fs.existsSync(onboardingPath)) failures.push('/platform/onboarding-state-machine.json: missing onboarding state machine');
+else{
+  try{
+    const model=JSON.parse(fs.readFileSync(onboardingPath,'utf8'));
+    const states=new Set((model.states||[]).map(x=>x.key));
+    for(const state of ['AUTHENTICATED','ROLE_PENDING','CONSENT_PENDING','READY']){
+      if(!states.has(state)) failures.push('/platform/onboarding-state-machine.json: missing lifecycle state '+state);
+    }
+    const transitions=(model.transition_rules||[]).join('\n');
+    if(!transitions.includes('ROLE_PENDING -> CONSENT_PENDING only after server-side role/relationship verification')){
+      failures.push('/platform/onboarding-state-machine.json: relationship verification must remain server-side before consent readiness');
+    }
+    if(!transitions.includes('CONSENT_PENDING -> READY only after required service/privacy decisions are recorded')){
+      failures.push('/platform/onboarding-state-machine.json: required consent/privacy decisions must gate READY');
+    }
+    const invariants=(model.invariant_rules||[]).join('\n');
+    if(!invariants.includes('Browser state never grants a role')) failures.push('/platform/onboarding-state-machine.json: browser role-grant prohibition missing');
+    if(!invariants.includes('Browser redirect never grants a paid entitlement')) failures.push('/platform/onboarding-state-machine.json: browser entitlement-grant prohibition missing');
+  }catch(e){ failures.push('/platform/onboarding-state-machine.json: invalid JSON'); }
+}
+for(const rel of ['fa/app/account/setup/index.html','en/account/setup/index.html']){
+  const file=path.join(root,rel);
+  if(!fs.existsSync(file)){ failures.push('/'+rel+': missing onboarding page'); continue; }
+  const html=fs.readFileSync(file,'utf8');
+  if(!html.includes('../relationships/')) failures.push('/'+rel+': onboarding must link relationship verification');
+  if(!html.includes('../consents/')) failures.push('/'+rel+': onboarding must link consent center');
+}
+if(failures.length){
+  console.error('\nOnboarding lifecycle failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
