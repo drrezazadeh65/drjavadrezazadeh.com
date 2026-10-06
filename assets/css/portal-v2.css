@@ -1688,3 +1688,113 @@
   .assessment-workspace-page .gt-private-hero h1,
   .assessment-workspace-page .rcas-hero h1{font-size:36px}
 }
+
+
+/* Golden Talent commerce v2 */
+.commerce-workspace-page{
+  background:
+    radial-gradient(900px 520px at 88% -10%,rgba(199,163,91,.085),transparent 60%),
+    radial-gradient(760px 520px at -12% 30%,rgba(86,67,35,.05),transparent 60%),
+    #070707;
+}
+.commerce-workspace-page .site-header{
+  border-bottom-color:rgba(199,163,91,.10);
+  background:rgba(7,7,7,.88);
+  backdrop-filter:blur(16px);
+}
+.commerce-workspace-page .gt-shop-shell,
+.commerce-workspace-page .gt-private-shell{
+  width:min(1180px,calc(100% - 40px));
+  margin:0 auto;
+  padding:34px 0 94px;
+}
+.commerce-workspace-page .gt-shop-hero,
+.commerce-workspace-page .gt-private-hero{
+  padding:44px;
+  border:1px solid var(--dash-border-gold);
+  border-radius:28px;
+  background:
+    radial-gradient(600px 260px at 92% 0%,rgba(199,163,91,.09),transparent 68%),
+    linear-gradient(150deg,#131315,#0e0e10);
+  box-shadow:0 26px 82px rgba(0,0,0,.20);
+}
+.commerce-workspace-page .gt-shop-hero h1,
+.commerce-workspace-page .gt-private-hero h1{
+  max-width:900px;
+  font-size:clamp(38px,5vw,60px);
+  line-height:1.24;
+}
+.rtl.commerce-workspace-page .gt-shop-hero h1,
+.rtl.commerce-workspace-page .gt-private-hero h1{line-height:1.62}
+.commerce-workspace-page .gt-shop-hero .lead,
+.commerce-workspace-page .gt-private-hero .lead{
+  max-width:840px;
+  color:#a5a7ad;
+  line-height:1.9;
+}
+.commerce-workspace-page .gt-plan-grid,
+.commerce-workspace-page .pricing-grid{
+  gap:14px;
+  margin-top:20px;
+}
+.commerce-workspace-page .gt-plan,
+.commerce-workspace-page .pricing-card{
+  position:relative;
+  min-height:330px;
+  padding:28px;
+  border:1px solid var(--dash-border);
+  border-radius:20px;
+  background:linear-gradient(160deg,#141416,#101012);
+  box-shadow:0 14px 36px rgba(0,0,0,.12);
+}
+.commerce-workspace-page .gt-plan.featured,
+.commerce-workspace-page .pricing-card.featured{
+  border-color:var(--dash-border-gold);
+  background:
+    radial-gradient(320px 180px at 100% 0%,rgba(199,163,91,.07),transparent 70%),
+    linear-gradient(160deg,#151412,#101012);
+}
+.commerce-workspace-page .gt-plan h2,
+.commerce-workspace-page .pricing-card h2{font-size:25px}
+.commerce-workspace-page .gt-plan p,
+.commerce-workspace-page .pricing-card p{color:#989ba2;line-height:1.85}
+.commerce-workspace-page .gt-plan ul,
+.commerce-workspace-page .pricing-card ul{color:#aaaeb4;line-height:1.9}
+.commerce-workspace-page .gt-shop-note,
+.commerce-workspace-page .case-section{
+  margin-top:18px;
+  padding:28px;
+  border:1px solid var(--dash-border);
+  border-radius:20px;
+  background:linear-gradient(160deg,#121214,#0f0f11);
+}
+.commerce-workspace-page .payment-preview,
+.commerce-workspace-page .checkout-panel{
+  margin-top:18px;
+  padding:28px;
+  border:1px solid var(--dash-border);
+  border-radius:20px;
+  background:#111113;
+}
+.commerce-workspace-page .payment-preview label,
+.commerce-workspace-page .checkout-panel label{
+  border-color:var(--dash-border);
+  background:#0f0f11;
+}
+.commerce-workspace-page footer{
+  width:min(1180px,calc(100% - 40px));
+  margin:0 auto;
+}
+@media(max-width:800px){
+  .commerce-workspace-page .gt-shop-shell,
+  .commerce-workspace-page .gt-private-shell,
+  .commerce-workspace-page footer{width:calc(100% - 20px)}
+  .commerce-workspace-page .gt-shop-hero,
+  .commerce-workspace-page .gt-private-hero{padding:28px}
+}
+@media(max-width:560px){
+  .commerce-workspace-page .gt-shop-hero h1,
+  .commerce-workspace-page .gt-private-hero h1{font-size:36px}
+  .commerce-workspace-page .gt-plan,
+  .commerce-workspace-page .pricing-card{min-height:auto;padding:22px}
+}
