@@ -2058,3 +2058,42 @@ const institutionPolicy=JSON.parse(fs.readFileSync(path.join(root,'platform','in
 if(institutionPolicy.institutional_consulting?.named_outcomes_are_targets_not_guarantees!==true||institutionPolicy.institutional_consulting?.child_data_requires_role_consent_and_minimisation!==true) failures.push('/platform/institutional-consulting-policy.json: unsafe institutional consulting policy');
 const assessmentAuthoring=fs.readFileSync(path.join(root,'platform','assessment-authoring-engine.mjs'),'utf8');
 for(const x of ['Reviewer required for publication','Published assessment must be immutable','Unique versioned item metadata required']) if(!assessmentAuthoring.includes(x)) failures.push('/platform/assessment-authoring-engine.mjs: missing '+x);
+
+
+// PRODUCTION ORIGIN CONSISTENCY — once custom domain is LIVE, legacy GitHub origin must disappear from public SEO-bearing files.
+const ecosystemRegistryFile=path.join(root,'platform','ecosystem-registry.json');
+if(fs.existsSync(ecosystemRegistryFile)){
+  try{
+    const registry=JSON.parse(fs.readFileSync(ecosystemRegistryFile,'utf8'));
+    const live=registry?.origin_states?.main_custom_domain==='LIVE';
+    const expected=registry?.origins?.current_public_origin;
+    const legacy='https://drrezazadeh65.github.io/drjavadrezazadeh.com';
+    if(live){
+      if(expected!=='https://drjavadrezazadeh.com') failures.push('/platform/ecosystem-registry.json: LIVE custom-domain state must use https://drjavadrezazadeh.com as current_public_origin');
+      const seoBearing=[];
+      function walkSeo(dir){
+        for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+          if(ignoreDirs.has(ent.name)) continue;
+          const p=path.join(dir,ent.name);
+          if(ent.isDirectory()) walkSeo(p);
+          else if(ent.isFile()&&(ent.name.endsWith('.html')||ent.name.endsWith('.xml')||['robots.txt','security.txt','site.webmanifest'].includes(ent.name))) seoBearing.push(p);
+        }
+      }
+      walkSeo(root);
+      for(const file of seoBearing){
+        const src=fs.readFileSync(file,'utf8');
+        if(src.includes(legacy)) failures.push('/'+path.relative(root,file).replaceAll(path.sep,'/')+': legacy GitHub Pages origin remains after LIVE custom-domain cutover');
+      }
+      for(const [canonical,route] of canonicals.entries()){
+        if(!canonical.startsWith(expected+'/')&&canonical!==expected+'/') failures.push(route+': canonical is outside LIVE production origin '+canonical);
+      }
+    }
+  }catch(e){
+    failures.push('/platform/ecosystem-registry.json: production-origin audit failed '+e.message);
+  }
+}
+if(failures.length){
+  console.error('\nProduction-origin SEO failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
