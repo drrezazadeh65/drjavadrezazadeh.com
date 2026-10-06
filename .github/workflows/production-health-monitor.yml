@@ -1,0 +1,32 @@
+name: Production SEO Health
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-seo-health
+  cancel-in-progress: true
+
+jobs:
+  live-health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit live production origin
+        env:
+          PROD_ORIGIN: https://drjavadrezazadeh.com
+          PRODUCTION_HEALTH_STRICT: '0'
+        run: node scripts/production-health-audit.mjs
+      - name: Explain enforcement state
+        if: always()
+        run: |
+          echo "Production health monitoring is active in WARN-UNTIL-VERIFIED mode."
+          echo "After DNS/TLS is independently verified stable, switch PRODUCTION_HEALTH_STRICT to 1."
