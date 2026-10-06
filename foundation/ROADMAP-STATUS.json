@@ -155,7 +155,7 @@
     "ADMIN-001": "Private bilingual admin console now has a production-aware operations UI for content/SEO, assessment, commerce, consultation, leads, identity/consent and security gates; live data/editing remains disabled until authenticated provider-backed services exist.",
     "ADMIN-007": "Order/payment admin surface and contracts implemented; live operational data awaits backend/gateway.",
     "ADMIN-008": "Consultation administration surface and contracts implemented; live operational data awaits backend/calendar.",
-    "UX-008": "JHELA founding routes now share a unified responsive scholarly design/navigation layer and the bilingual private admin shell is a coherent operations console; final whole-site visual spot QA remains pending."
+    "UX-008": "Global design consistency pass now covers the JHELA scholarly surface, bilingual admin console, Persian/international student gateways, account access previews, Golden Talent student dashboard and reserved student/parent/teacher portal shells through a shared portal visual layer; final whole-site cross-device visual spot QA remains pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
