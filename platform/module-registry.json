@@ -242,6 +242,23 @@
         "service-guidance",
         "human-consultation-handoff"
       ]
+    },
+    {
+      "id": "communications",
+      "kind": "DOMAIN",
+      "state": "FOUNDATION_READY",
+      "authority": "SERVER_ONLY",
+      "data_class": "PRIVATE",
+      "depends_on": [
+        "identity",
+        "consent"
+      ],
+      "exposes": [
+        "email-verification",
+        "password-recovery-email",
+        "service-notifications",
+        "optional-whatsapp-adapter"
+      ]
     }
   ],
   "invariants": {

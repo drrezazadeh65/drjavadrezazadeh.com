@@ -135,13 +135,15 @@
         "edge/assistant/src/index.js",
         "edge/assistant/wrangler.jsonc",
         "platform/assistant-runtime-policy.json",
-        "foundation/AI-ASSISTANT-ACTIVATION-RUNBOOK.md"
+        "foundation/AI-ASSISTANT-ACTIVATION-RUNBOOK.md",
+        "platform/whatsapp-provider-policy.json"
       ],
       "next_actions": [
         "Connect the GitHub repository to Cloudflare Workers Builds with root directory edge/assistant",
-        "Deploy drjavadrezazadeh-assistant",
-        "Verify assistant.drjavadrezazadeh.com/health after the Cloudflare zone is active",
-        "Run bilingual public-page and private-route exclusion QA"
+        "Deploy the Worker with its SQLite Durable Object lead store",
+        "Set the protected lead-export runtime secret",
+        "Verify bilingual assistant + consented lead capture",
+        "Optionally activate WhatsApp later without changing email-only authentication"
       ]
     },
     {
@@ -203,13 +205,16 @@
         "platform/backend-deployment-policy.json",
         "platform/identity-security.mjs",
         "foundation/PRIVACY-DATA-GOVERNANCE.md",
-        "foundation/RBAC-PERMISSION-MATRIX.md"
+        "foundation/RBAC-PERMISSION-MATRIX.md",
+        "platform/identity-auth-policy.json",
+        "platform/db/migrations/027_identity_email_auth_mobile_contact.sql"
       ],
       "next_actions": [
-        "Provision real auth/session backend",
-        "Apply RLS in staging",
-        "Enable admin MFA",
-        "Run restore and access-control tests"
+        "Provision real email/password auth/session backend",
+        "Require email verification before ACTIVE status",
+        "Collect mobile at registration as contact-only data",
+        "Keep recovery email-only with generic responses and single-use tokens",
+        "Apply RLS and enable admin MFA before production"
       ]
     },
     {
@@ -227,6 +232,26 @@
         "Connect privacy-safe operational events",
         "Add uptime/error monitoring",
         "Enable conversion measurement after consent/privacy review"
+      ]
+    },
+    {
+      "id": "whatsapp-business",
+      "production_state": "WAITING_EXTERNAL",
+      "revenue_priority": "MEDIUM",
+      "external_blockers": [
+        "Confirmed business number",
+        "Meta business/WABA setup",
+        "Cloud API token and webhook configuration"
+      ],
+      "artifacts": [
+        "platform/whatsapp-provider-policy.json"
+      ],
+      "next_actions": [
+        "Do not block launch on WhatsApp",
+        "Activate click-to-chat after business number confirmation",
+        "Connect Cloud API later behind the communications adapter",
+        "Use separate WhatsApp opt-in",
+        "Never use WhatsApp for account verification or password recovery"
       ]
     }
   ],
