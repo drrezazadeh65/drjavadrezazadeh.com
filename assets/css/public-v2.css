@@ -1472,3 +1472,127 @@
   .public-home-page .audience-gate:hover,
   .public-content-page .audience-gate:hover{transform:none}
 }
+
+
+/* Homepage desktop correction v3 — screenshot-led balance pass, 2026-10-06 */
+@media (min-width:1101px){
+  .public-home-page .site-header{
+    min-height:74px;
+    padding-inline:max(28px,calc((100% - 1380px)/2));
+    gap:34px;
+  }
+  .public-home-page .site-header .brand{
+    flex:0 0 auto;
+    line-height:1.35;
+  }
+  .public-home-page .site-header nav{
+    flex:1 1 auto;
+    justify-content:flex-start;
+    align-items:center;
+    gap:3px;
+  }
+  .rtl.public-home-page .site-header nav{
+    justify-content:flex-end;
+  }
+  .public-home-page main{
+    width:min(1380px,calc(100% - 56px));
+  }
+  .public-home-page .hero{
+    width:100%;
+    max-width:none;
+    min-height:650px;
+    box-sizing:border-box;
+    grid-template-columns:minmax(0,1.28fr) minmax(330px,.72fr);
+    gap:74px;
+    padding:64px 72px;
+    margin:24px 0 34px;
+    border:1px solid rgba(199,163,91,.16);
+    border-radius:34px;
+    background:
+      radial-gradient(720px 360px at 94% 12%,rgba(199,163,91,.075),transparent 66%),
+      linear-gradient(145deg,rgba(255,255,255,.018),rgba(255,255,255,.004));
+    box-shadow:0 28px 88px rgba(0,0,0,.22);
+    overflow:hidden;
+  }
+  .public-home-page .hero-copy{
+    max-width:735px;
+    width:100%;
+    align-self:center;
+  }
+  .rtl.public-home-page .hero-copy{
+    justify-self:end;
+  }
+  .public-home-page .hero .eyebrow{
+    margin:0 0 16px;
+    font-size:11px;
+  }
+  .rtl.public-home-page .hero h1{
+    max-width:720px;
+    font-size:clamp(58px,4.45vw,78px);
+    line-height:1.27;
+    margin:0 0 18px;
+  }
+  .public-home-page:not(.rtl) .hero h1{
+    max-width:760px;
+    font-size:clamp(58px,4.8vw,82px);
+    line-height:1.02;
+    margin:0 0 18px;
+  }
+  .public-home-page .hero-line{
+    max-width:690px;
+    margin:16px 0 8px;
+    font-size:clamp(20px,1.65vw,27px);
+    line-height:1.55;
+  }
+  .public-home-page .hero .lead{
+    max-width:690px;
+    margin-top:16px;
+    font-size:clamp(16px,1.12vw,19px);
+    line-height:2;
+  }
+  .public-home-page .hero .actions{
+    margin-top:24px;
+  }
+  .public-home-page .portrait-shell{
+    width:min(372px,27vw);
+    aspect-ratio:auto!important;
+    padding:10px!important;
+    overflow:visible!important;
+    justify-self:start;
+    align-self:center;
+    border-radius:28px;
+  }
+  .rtl.public-home-page .portrait-shell{
+    justify-self:start;
+  }
+  .public-home-page .hero-portrait{
+    display:block;
+    width:100%;
+    height:auto!important;
+    min-height:0!important;
+    aspect-ratio:4/5;
+    object-fit:cover;
+    object-position:center 28%;
+    border-radius:20px;
+  }
+  .public-home-page .portrait-shell::before{
+    inset:16px -16px -16px 16px;
+    border-radius:28px;
+  }
+  .public-home-page .home-focus-strip{
+    margin-top:0;
+  }
+}
+@media (min-width:1101px) and (max-width:1280px){
+  .public-home-page .hero{
+    grid-template-columns:minmax(0,1.15fr) minmax(300px,.72fr);
+    gap:44px;
+    padding:52px 46px;
+  }
+  .rtl.public-home-page .hero h1{
+    font-size:clamp(52px,5.2vw,68px);
+  }
+  .public-home-page .portrait-shell{
+    width:min(340px,28vw);
+  }
+}
