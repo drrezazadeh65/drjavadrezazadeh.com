@@ -27,3 +27,6 @@ jobs:
 
       - name: Validate RCAS production bridge
         run: node -e "import('./platform/rcas-evidence-bridge.mjs').then(m=>{const e=m.rcasToEvidence({session_id:'ci',instrument_version:'1',responses:[{item_code:'A1',value:3},{item_code:'D1',value:2}]});if(!e.some(x=>x.domain_code==='D5')||!e.some(x=>x.domain_code==='D6')||e.some(x=>x.quality_state!=='UNREVIEWED'))process.exit(1);console.log('RCAS bridge passed')})"
+
+      - name: Validate observer evidence gate
+        run: node -e "Promise.all([import('./platform/rcas-observer-evidence-bridge.mjs'),import('./platform/golden-talent-engine.mjs')]).then(([o,g])=>{const e=o.observerToEvidence({session_id:'ci',instrument_version:'1.1',subject_user_id:'subject',respondent_role:'PARENT',relationship_verified:true,visibility_authorised:true,fields:{environmental_barrier_support:'context'}});if(e.length!==1||e[0].quality_state!=='UNREVIEWED')process.exit(1);const r=g.routeEvidence(e);if(r.routes.find(x=>x.route_code==='D4').evidence_state!=='INSUFFICIENT')process.exit(1);console.log('Observer evidence gate passed')})"
