@@ -11,6 +11,7 @@ const hreflang=read('platform/hreflang-pairs.json');
 const payments=read('platform/payment-provider-registry.json');
 const nav=read('platform/mobile-navigation-contract.json');
 const gtPolicy=read('platform/golden-talent-engine-policy.json');
+const entityRegistry=read('platform/public-entity-registry.json');
 
 const html=[];
 function walk(dir){
@@ -42,7 +43,7 @@ for(const t of readiness.tracks||[]) readyStates[t.production_state]=(readyState
 const summary={
  as_of:readiness.as_of,
  commit:process.env.GITHUB_SHA||null,
- public_surface:{html_total:html.length,indexable,noindex,sitemap_urls:sitemapUrls.size,seo_intent_clusters:(intents.clusters||[]).length,hreflang_pairs:(hreflang.pairs||[]).length},
+ public_surface:{html_total:html.length,indexable,noindex,sitemap_urls:sitemapUrls.size,seo_intent_clusters:(intents.clusters||[]).length,hreflang_pairs:(hreflang.pairs||[]).length,entity_schema_surfaces:(entityRegistry.schema_surfaces||[]).length},
  platform:{modules:(modules.modules||[]).length,module_states:moduleStates,readiness_tracks:(readiness.tracks||[]).length,readiness_states:readyStates,db_migrations:migrations.length,last_migration:migrations.at(-1)||null},
  mobile:{stable_tabs:nav.stable_tabs,role_nav_profiles:Object.keys(nav.routes||{}).length},
  commerce:{payment_provider_slots:(payments.providers||[]).length,payment_providers_enabled:(payments.providers||[]).filter(x=>x.enabled).length},
@@ -65,7 +66,7 @@ if(markdown){
  console.log('- Audit date: `'+summary.as_of+'`');
  if(summary.commit) console.log('- Commit: `'+summary.commit+'`');
  console.log('- Public HTML: **'+summary.public_surface.html_total+'** · indexable: **'+summary.public_surface.indexable+'** · noindex/private/staging: **'+summary.public_surface.noindex+'**');
- console.log('- Sitemap canonical URLs: **'+summary.public_surface.sitemap_urls+'** · SEO intent clusters: **'+summary.public_surface.seo_intent_clusters+'** · hreflang pairs: **'+summary.public_surface.hreflang_pairs+'**');
+ console.log('- Sitemap canonical URLs: **'+summary.public_surface.sitemap_urls+'** · SEO intent clusters: **'+summary.public_surface.seo_intent_clusters+'** · hreflang pairs: **'+summary.public_surface.hreflang_pairs+'** · entity schema surfaces: **'+summary.public_surface.entity_schema_surfaces+'**');
  console.log('- Platform modules: **'+summary.platform.modules+'** · DB migrations: **'+summary.platform.db_migrations+'** · latest: `'+summary.platform.last_migration+'`');
  console.log('- Mobile private navigation: **'+summary.mobile.stable_tabs.length+' stable tabs** across **'+summary.mobile.role_nav_profiles+' routing profiles**');
  console.log('- Payment adapters enabled: **'+summary.commerce.payment_providers_enabled+'** (expected 0 until credentials/reconciliation gate passes)');

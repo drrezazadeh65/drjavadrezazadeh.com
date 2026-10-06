@@ -1,64 +1,78 @@
 {
   "schema_version": "1.0",
-  "status": "VERIFIED_PUBLIC_ONLY",
-  "person": {
-    "english_public_name": "Dr. Javad Rezazadeh Yazdeli",
-    "structured_name": "Javad Rezazadeh Yazdeli",
-    "persian_public_name": "دکتر جواد رضازاده یزدلی",
-    "entity_id_path": "/#person",
-    "approved_same_as": [
-      "https://orcid.org/0009-0008-1198-8866",
-      "https://independent.academia.edu/JavadRezazadeh3",
-      "https://www.semanticscholar.org/author/Javad-Rezazadeh-Yazdeli/116313005",
-      "https://github.com/drrezazadeh65",
-      "https://www.instagram.com/dr.rezazadeh/"
-    ],
-    "education": [
-      {
-        "degree": "PhD",
-        "field": "Education",
-        "institution": "Arak University",
-        "completed_year": 2026
-      },
-      {
-        "degree": "MA",
-        "field": "English Language Teaching",
-        "institution": "University of Tehran",
-        "start_year": 2010,
-        "end_year": 2012
-      }
-    ],
-    "public_roles": [
-      "University Lecturer",
-      "Education Researcher",
-      "Educational Consultant"
-    ],
-    "research_fields": [
-      "Applied Linguistics",
-      "English Language Education",
-      "Higher Education",
-      "Language Assessment",
-      "Curriculum and Materials Evaluation",
-      "Mixed-Methods Research",
-      "AI in Education",
-      "Talent Identification",
-      "Academic Guidance"
-    ]
+  "entity_key": "javad_rezazadeh_yazdeli",
+  "entity_id_path": "/#person",
+  "public_names": {
+    "schema_name": "Javad Rezazadeh Yazdeli",
+    "en_display": "Dr. Javad Rezazadeh Yazdeli",
+    "fa_display": "دکتر جواد رضازاده یزدلی",
+    "fa_alternate": "دکتر جواد رضازاده یزدلی"
   },
-  "claim_rules": {
-    "research_focus_is_not_degree_title": true,
-    "current_affiliation_requires_verification": true,
-    "accepted_is_not_published": true,
-    "scheduled_event_is_not_completed_event": true,
-    "citation_counts_not_inferred": true,
-    "unverified_profile_urls_not_same_as": true
+  "roles": [
+    "University Lecturer",
+    "Education Researcher",
+    "Educational Consultant"
+  ],
+  "education": [
+    {
+      "degree": "PhD",
+      "field": "Education",
+      "institution": "Arak University",
+      "completed_year": 2026,
+      "claim_rule": "Research focus may mention English language education/Applied Linguistics but must not replace the degree field."
+    },
+    {
+      "degree": "MA",
+      "field": "English Language Teaching",
+      "institution": "University of Tehran",
+      "start_year": 2010,
+      "end_year": 2012
+    }
+  ],
+  "scholarly_identifiers": [
+    {
+      "kind": "ORCID",
+      "url": "https://orcid.org/0009-0008-1198-8866"
+    },
+    {
+      "kind": "Academia",
+      "url": "https://independent.academia.edu/JavadRezazadeh3"
+    },
+    {
+      "kind": "SemanticScholar",
+      "url": "https://www.semanticscholar.org/author/Javad-Rezazadeh-Yazdeli/116313005"
+    }
+  ],
+  "public_contact": {
+    "email": "dr.rezazadeh65@gmail.com",
+    "instagram": "https://www.instagram.com/dr.rezazadeh/"
   },
-  "prohibited_private_categories": [
-    "family",
-    "health",
-    "identity_document",
-    "payment",
-    "student_personal_data",
-    "unreleased_intellectual_property"
+  "schema_surfaces": [
+    {
+      "path": "en/index.html",
+      "requires_person_object": true
+    },
+    {
+      "path": "fa/index.html",
+      "requires_person_object": true
+    },
+    {
+      "path": "en/about/index.html",
+      "requires_person_object": true
+    },
+    {
+      "path": "fa/darbare-man/index.html",
+      "requires_person_reference": true
+    },
+    {
+      "path": "en/academic-profile/index.html",
+      "requires_person_object": true
+    }
+  ],
+  "prohibitions": [
+    "Research focus must not be presented as the PhD degree title.",
+    "Unverified current affiliation must not be asserted as current.",
+    "Accepted/forthcoming work must not be called published before verification.",
+    "Awards, ranks, metrics and identifiers must not be inferred."
   ]
 }

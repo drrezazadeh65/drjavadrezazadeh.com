@@ -46,6 +46,8 @@ jobs:
       - name: Validate RCAS production bridge
         run: node -e "import('./platform/rcas-evidence-bridge.mjs').then(m=>{const e=m.rcasToEvidence({session_id:'ci',instrument_version:'1',responses:[{item_code:'A1',value:3},{item_code:'D1',value:2}]});if(!e.some(x=>x.domain_code==='D5')||!e.some(x=>x.domain_code==='D6')||e.some(x=>x.quality_state!=='UNREVIEWED'))process.exit(1);console.log('RCAS bridge passed')})"
 
+      - name: Run public entity schema audit
+        run: node platform/public-entity-schema-audit.mjs
       - name: Run master ecosystem audit
         run: node scripts/master-audit.mjs
       - name: Write master audit summary

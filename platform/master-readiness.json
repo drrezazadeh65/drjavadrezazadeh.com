@@ -63,7 +63,9 @@
         "scripts/seo-regression.mjs",
         "foundation/SEO-MASTER-IMPLEMENTATION-LEDGER.md",
         "platform/seo-intent-registry.json",
-        "platform/hreflang-pairs.json"
+        "platform/hreflang-pairs.json",
+        "platform/public-entity-registry.json",
+        "platform/public-entity-schema-audit.mjs"
       ],
       "next_actions": [
         "Preserve green CI",
