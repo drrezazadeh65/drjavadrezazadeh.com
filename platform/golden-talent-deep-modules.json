@@ -21,7 +21,14 @@
         "fixed learning type",
         "clinical diagnosis",
         "total talent score"
-      ]
+      ],
+      "completion_requirements": {
+        "minimum_usable_events": 2,
+        "required_source_types": [
+          "PERFORMANCE_SAMPLE"
+        ],
+        "minimum_reflective_events": 1
+      }
     },
     "D2": {
       "title": "Self-Efficacy, Wellbeing & Recovery",
@@ -39,7 +46,12 @@
         "mental-health diagnosis",
         "pathology label",
         "total talent score"
-      ]
+      ],
+      "completion_requirements": {
+        "minimum_usable_events": 1,
+        "minimum_contextual_events": 1,
+        "professional_review_required": true
+      }
     },
     "D3": {
       "title": "Digital & AI Self-Regulation",
@@ -56,7 +68,14 @@
         "AI dependence diagnosis",
         "moral label",
         "total talent score"
-      ]
+      ],
+      "completion_requirements": {
+        "minimum_usable_events": 2,
+        "required_task_codes": [
+          "E6"
+        ],
+        "paired_performance_required": true
+      }
     },
     "D4": {
       "title": "Context, Access & Support Ecology",
@@ -74,7 +93,14 @@
         "blaming learner for structural constraint",
         "deficit label",
         "total talent score"
-      ]
+      ],
+      "completion_requirements": {
+        "minimum_usable_events": 1,
+        "required_task_codes": [
+          "E7"
+        ],
+        "context_preservation_required": true
+      }
     },
     "D5": {
       "title": "Golden Path",
@@ -93,7 +119,15 @@
         "automatic career prescription",
         "destiny claim",
         "total talent score"
-      ]
+      ],
+      "completion_requirements": {
+        "minimum_usable_events": 2,
+        "required_task_codes": [
+          "E8"
+        ],
+        "professional_review_required": true,
+        "external_or_performance_evidence_required": true
+      }
     },
     "D6": {
       "title": "Critical Thinking & Decision Quality",
@@ -111,7 +145,15 @@
         "IQ inference",
         "fixed critical-thinker label",
         "total talent score"
-      ]
+      ],
+      "completion_requirements": {
+        "minimum_usable_events": 2,
+        "required_task_codes": [
+          "E9",
+          "E10"
+        ],
+        "process_evidence_required": true
+      }
     }
   },
   "common": {
