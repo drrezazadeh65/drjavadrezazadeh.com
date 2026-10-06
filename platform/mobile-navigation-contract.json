@@ -1,0 +1,145 @@
+{
+  "schema_version": "1.0",
+  "status": "FROZEN_PRIVATE_APP_MOBILE_NAV",
+  "stable_tabs": [
+    "HOME",
+    "DISCOVER",
+    "TESTS",
+    "MY_PATH",
+    "ACCOUNT"
+  ],
+  "routes": {
+    "fa_student": {
+      "match_prefixes": [
+        "/fa/app/student/",
+        "/fa/assessments/golden-talent/"
+      ],
+      "tabs": {
+        "HOME": "/fa/app/student/",
+        "DISCOVER": "/fa/golden-talent/",
+        "TESTS": "/fa/assessments/golden-talent/",
+        "MY_PATH": "/fa/app/student/golden-path/",
+        "ACCOUNT": "/fa/app/account/"
+      }
+    },
+    "fa_parent": {
+      "match_prefixes": [
+        "/fa/app/valed/"
+      ],
+      "tabs": {
+        "HOME": "/fa/app/valed/",
+        "DISCOVER": "/fa/app/valed/resources/",
+        "TESTS": "/fa/assessments/golden-talent/observer/?role=parent",
+        "MY_PATH": "/fa/app/valed/my-path/",
+        "ACCOUNT": "/fa/app/account/"
+      }
+    },
+    "fa_teacher": {
+      "match_prefixes": [
+        "/fa/app/moallem/"
+      ],
+      "tabs": {
+        "HOME": "/fa/app/moallem/",
+        "DISCOVER": "/fa/app/moallem/resources/",
+        "TESTS": "/fa/assessments/golden-talent/observer/?role=teacher",
+        "MY_PATH": "/fa/app/moallem/my-path/",
+        "ACCOUNT": "/fa/app/account/"
+      }
+    },
+    "fa_adviser": {
+      "match_prefixes": [
+        "/fa/app/moshaver/"
+      ],
+      "tabs": {
+        "HOME": "/fa/app/moshaver/",
+        "DISCOVER": "/fa/golden-talent/ravesh-shenasi/",
+        "TESTS": "/fa/app/moshaver/case-preview/",
+        "MY_PATH": "/fa/app/moshaver/my-path/",
+        "ACCOUNT": "/fa/app/account/"
+      }
+    },
+    "en_student": {
+      "match_prefixes": [
+        "/en/golden-talent/student/",
+        "/en/golden-talent/dashboard/",
+        "/en/golden-talent/assessment/"
+      ],
+      "tabs": {
+        "HOME": "/en/golden-talent/student/",
+        "DISCOVER": "/en/golden-talent/",
+        "TESTS": "/en/golden-talent/assessment/",
+        "MY_PATH": "/en/golden-talent/dashboard/golden-path/",
+        "ACCOUNT": "/en/account/"
+      }
+    },
+    "en_parent": {
+      "match_prefixes": [
+        "/en/golden-talent/roles/parent/"
+      ],
+      "tabs": {
+        "HOME": "/en/golden-talent/roles/parent/",
+        "DISCOVER": "/en/golden-talent/roles/parent/resources/",
+        "TESTS": "/en/golden-talent/observer/?role=parent",
+        "MY_PATH": "/en/golden-talent/roles/parent/my-path/",
+        "ACCOUNT": "/en/account/"
+      }
+    },
+    "en_teacher": {
+      "match_prefixes": [
+        "/en/golden-talent/roles/teacher/"
+      ],
+      "tabs": {
+        "HOME": "/en/golden-talent/roles/teacher/",
+        "DISCOVER": "/en/golden-talent/roles/teacher/resources/",
+        "TESTS": "/en/golden-talent/observer/?role=teacher",
+        "MY_PATH": "/en/golden-talent/roles/teacher/my-path/",
+        "ACCOUNT": "/en/account/"
+      }
+    },
+    "en_adviser": {
+      "match_prefixes": [
+        "/en/golden-talent/roles/adviser/"
+      ],
+      "tabs": {
+        "HOME": "/en/golden-talent/roles/adviser/",
+        "DISCOVER": "/en/golden-talent/methodology/",
+        "TESTS": "/en/golden-talent/roles/adviser/case-preview/",
+        "MY_PATH": "/en/golden-talent/roles/adviser/my-path/",
+        "ACCOUNT": "/en/account/"
+      }
+    },
+    "fa_generic": {
+      "match_prefixes": [
+        "/fa/app/"
+      ],
+      "tabs": {
+        "HOME": "/fa/app/",
+        "DISCOVER": "/fa/golden-talent/",
+        "TESTS": "/fa/assessments/golden-talent/",
+        "MY_PATH": "/fa/app/",
+        "ACCOUNT": "/fa/app/account/"
+      }
+    },
+    "en_generic": {
+      "match_prefixes": [
+        "/en/account/",
+        "/en/golden-talent/roles/",
+        "/en/golden-talent/observer/"
+      ],
+      "tabs": {
+        "HOME": "/en/account/",
+        "DISCOVER": "/en/golden-talent/",
+        "TESTS": "/en/golden-talent/assessment/",
+        "MY_PATH": "/en/golden-talent/dashboard/golden-path/",
+        "ACCOUNT": "/en/account/"
+      }
+    }
+  },
+  "invariants": {
+    "exactly_five_tabs": true,
+    "account_tab_stable": true,
+    "query_parameters_may_select_observer_role_but_not_authorize_it": true,
+    "navigation_never_grants_access": true,
+    "all_private_destinations_noindex": true
+  }
+}

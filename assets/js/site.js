@@ -66,7 +66,9 @@ const icon=n=>{
  return '<svg class="app-icon" viewBox="0 0 24 24">'+(d[n]||d.menu)+'</svg>';
 };
 function ensureMobileNav(){
- if(q('.app-dock')||q('.gt-mobile-dock')) return;
+ if(q('.app-dock')) return;
+ if(isPrivateApp) q('.gt-mobile-dock')?.remove();
+ else if(q('.gt-mobile-dock')) return;
  const nav=document.createElement('nav');nav.className='app-dock';nav.setAttribute('aria-label',isFa?'منوی موبایلی':'Mobile app navigation');
  let links=[],sheet=[];
  if(isJournal){
@@ -86,20 +88,22 @@ function ensureMobileNav(){
     [u('publisher/'),'Rezazadeh Foundation Press']
    ];
  }else if(isPrivateApp){
-   const appHome=isFa?u('fa/app/'):u('en/golden-talent/dashboard/');
-   const discover=isFa?u('fa/golden-talent/'):u('en/golden-talent/');
-   const tests=isFa?u('fa/assessments/golden-talent/'):u('en/golden-talent/assessment/');
-   const myPath=isFa
-     ?(relativePath.startsWith('/fa/app/student/')||relativePath.startsWith('/fa/assessments/')?u('fa/app/student/golden-path/'):appHome)
-     :u('en/golden-talent/dashboard/golden-path/');
-   const account=isFa?u('fa/app/account/'):u('en/account/');
-   links=[
-    [appHome,isFa?'خانه':'Home','home'],
-    [discover,isFa?'کشف':'Discover','star'],
-    [tests,isFa?'آزمون‌ها':'Tests','test'],
-    [myPath,isFa?'مسیر من':'My Path','path'],
-    [account,isFa?'حساب':'Account','user']
+   const privateNavConfigs=[
+    {prefixes:['/fa/app/student/','/fa/assessments/golden-talent/'],tabs:['fa/app/student/','fa/golden-talent/','fa/assessments/golden-talent/','fa/app/student/golden-path/','fa/app/account/']},
+    {prefixes:['/fa/app/valed/'],tabs:['fa/app/valed/','fa/app/valed/resources/','fa/assessments/golden-talent/observer/?role=parent','fa/app/valed/my-path/','fa/app/account/']},
+    {prefixes:['/fa/app/moallem/'],tabs:['fa/app/moallem/','fa/app/moallem/resources/','fa/assessments/golden-talent/observer/?role=teacher','fa/app/moallem/my-path/','fa/app/account/']},
+    {prefixes:['/fa/app/moshaver/'],tabs:['fa/app/moshaver/','fa/golden-talent/ravesh-shenasi/','fa/app/moshaver/case-preview/','fa/app/moshaver/my-path/','fa/app/account/']},
+    {prefixes:['/en/golden-talent/roles/parent/'],tabs:['en/golden-talent/roles/parent/','en/golden-talent/roles/parent/resources/','en/golden-talent/observer/?role=parent','en/golden-talent/roles/parent/my-path/','en/account/']},
+    {prefixes:['/en/golden-talent/roles/teacher/'],tabs:['en/golden-talent/roles/teacher/','en/golden-talent/roles/teacher/resources/','en/golden-talent/observer/?role=teacher','en/golden-talent/roles/teacher/my-path/','en/account/']},
+    {prefixes:['/en/golden-talent/roles/adviser/'],tabs:['en/golden-talent/roles/adviser/','en/golden-talent/methodology/','en/golden-talent/roles/adviser/case-preview/','en/golden-talent/roles/adviser/my-path/','en/account/']},
+    {prefixes:['/en/golden-talent/student/','/en/golden-talent/dashboard/','/en/golden-talent/assessment/'],tabs:['en/golden-talent/student/','en/golden-talent/','en/golden-talent/assessment/','en/golden-talent/dashboard/golden-path/','en/account/']},
+    {prefixes:['/fa/app/'],tabs:['fa/app/','fa/golden-talent/','fa/assessments/golden-talent/','fa/app/','fa/app/account/']},
+    {prefixes:['/en/account/','/en/golden-talent/roles/','/en/golden-talent/observer/'],tabs:['en/account/','en/golden-talent/','en/golden-talent/assessment/','en/golden-talent/dashboard/golden-path/','en/account/']}
    ];
+   const cfg=privateNavConfigs.find(c=>c.prefixes.some(p=>relativePath.startsWith(p)))||privateNavConfigs[privateNavConfigs.length-1];
+   const labels=isFa?['خانه','کشف','آزمون‌ها','مسیر من','حساب']:['Home','Discover','Tests','My Path','Account'];
+   const icons=['home','star','test','path','user'];
+   links=cfg.tabs.map((route,i)=>[u(route),labels[i],icons[i]]);
  }else if(isFa){
    links=[
     [u('fa/'),'خانه','home'],

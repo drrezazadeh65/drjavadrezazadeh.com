@@ -1526,6 +1526,41 @@ if(failures.length){
 }
 
 
+// PRIVATE MOBILE NAV CONTRACT — five stable tabs with role-scoped destinations.
+{
+  const navPath=path.join(root,'platform','mobile-navigation-contract.json');
+  if(!fs.existsSync(navPath)) failures.push('/platform/mobile-navigation-contract.json: missing private mobile navigation contract');
+  else{
+    const nav=JSON.parse(fs.readFileSync(navPath,'utf8'));
+    if(JSON.stringify(nav.stable_tabs)!==JSON.stringify(['HOME','DISCOVER','TESTS','MY_PATH','ACCOUNT'])) failures.push('/platform/mobile-navigation-contract.json: stable five-tab contract drift');
+    for(const [key,cfg] of Object.entries(nav.routes||{})){
+      const tabs=cfg.tabs||{};
+      if(Object.keys(tabs).length!==5) failures.push('/platform/mobile-navigation-contract.json: '+key+' must define five tabs');
+      for(const [tab,raw] of Object.entries(tabs)){
+        const route=String(raw).split('?')[0];
+        const target=route==='/'?path.join(root,'index.html'):path.join(root,route,'index.html');
+        if(!fs.existsSync(target)) failures.push('/platform/mobile-navigation-contract.json: '+key+' '+tab+' target missing '+route);
+        if(tab!=='DISCOVER'){
+          const html=fs.existsSync(target)?fs.readFileSync(target,'utf8'):'';
+          const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+          const rc=getAttr(robots,'content')||'';
+          if(!/\bnoindex\b/i.test(rc)&&!route.startsWith('/fa/golden-talent/')&&!route.startsWith('/en/golden-talent/')) failures.push('/platform/mobile-navigation-contract.json: private tab target must remain noindex '+route);
+        }
+      }
+    }
+    const js=fs.readFileSync(path.join(root,'assets','js','site.js'),'utf8');
+    for(const token of ['/fa/app/valed/my-path/','/fa/app/moallem/my-path/','/fa/app/moshaver/my-path/','/en/golden-talent/roles/parent/my-path/','/en/golden-talent/roles/teacher/my-path/','/en/golden-talent/roles/adviser/my-path/']){
+      if(!js.includes(token.slice(1))) failures.push('/assets/js/site.js: role-aware mobile path missing '+token);
+    }
+  }
+}
+if(failures.length){
+  console.error('\nPrivate mobile navigation failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // MOBILE UX RELEASE GATE
 const cssFile=path.join(root,'assets','css','style.css');
 if(fs.existsSync(cssFile)){
