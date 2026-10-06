@@ -143,6 +143,13 @@ export class LeadStore extends DurableObject {
       const rows=[...this.sql.exec(`SELECT id,contact_type,contact_value,intent,locale,source_route,whatsapp_opt_in,consent_version,status,created_at FROM lead ORDER BY created_at DESC LIMIT 500`)];
       return Response.json({leads:rows});
     }
+    if(request.method==='POST'&&url.pathname==='/status'){
+      const body=await request.json();
+      const allowed=new Set(['NEW','CONTACTED','QUALIFIED','CONVERTED','CLOSED']);
+      if(!body?.id||!allowed.has(body?.status)) return Response.json({error:'invalid_status'},{status:400});
+      this.sql.exec('UPDATE lead SET status=? WHERE id=?',body.status,body.id);
+      return Response.json({updated:true,id:body.id,status:body.status});
+    }
     return new Response('Not found',{status:404});
   }
 }
@@ -183,6 +190,20 @@ export default {
       if(!env.LEAD_STORE) return json({error:'lead_store_unavailable'},503,origin);
       const id=env.LEAD_STORE.idFromName('public-leads-v1');
       const stored=await env.LEAD_STORE.get(id).fetch('https://lead.internal/list');
+      const payload=await stored.text();
+      return new Response(payload,{status:stored.status,headers:{...cors(origin),'Content-Type':'application/json; charset=utf-8'}});
+    }
+
+    if(request.method==='PATCH'&&url.pathname.startsWith('/v1/admin/leads/')){
+      const expected=String(env.ADMIN_LEAD_EXPORT_TOKEN||'');
+      if(!expected) return json({error:'not_found'},404,origin);
+      const provided=String(request.headers.get('Authorization')||'').replace(/^Bearer\s+/i,'');
+      if(!provided||provided!==expected) return json({error:'forbidden'},403,origin);
+      if(!env.LEAD_STORE) return json({error:'lead_store_unavailable'},503,origin);
+      let body;try{body=await request.json();}catch(e){return json({error:'invalid_json'},400,origin);}
+      const leadId=decodeURIComponent(url.pathname.split('/').pop()||'');
+      const id=env.LEAD_STORE.idFromName('public-leads-v1');
+      const stored=await env.LEAD_STORE.get(id).fetch('https://lead.internal/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:leadId,status:body?.status})});
       const payload=await stored.text();
       return new Response(payload,{status:stored.status,headers:{...cors(origin),'Content-Type':'application/json; charset=utf-8'}});
     }
