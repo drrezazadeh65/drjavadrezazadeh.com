@@ -1465,3 +1465,4 @@ const op=JSON.parse(fs.readFileSync(path.join(root,'platform','observability-pol
 if(op.rules?.no_raw_assessment_answers_in_analytics!==true||op.rules?.no_research_identity_links!==true||op.rules?.journal_metrics_must_not_claim_impact_factor_or_indexing_without_verification!==true) failures.push('/platform/observability-policy.json: unsafe observability policy');
 const mp=JSON.parse(fs.readFileSync(path.join(root,'platform','media-library-policy.json'),'utf8'));
 if(!mp.media_asset?.required?.includes('licence_status')||!mp.media_asset?.required?.includes('provenance')) failures.push('/platform/media-library-policy.json: missing rights provenance');
+
