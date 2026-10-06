@@ -382,5 +382,21 @@
     "category": "خدمات",
     "summary": "ویرایش انگلیسی دانشگاهی، بازبینی تشخیصی مقاله، مشاوره پژوهش و انتشار، پاسخ به داوران و مسیر دانشگاهی.",
     "keywords": "خدمات پژوهشی ویرایش مقاله مشاوره پژوهش انتشار داوران رزومه مصاحبه علمی"
+  },
+  {
+    "lang": "en",
+    "title": "Invite Dr. Rezazadeh",
+    "path": "en/invite/",
+    "category": "Services",
+    "summary": "Speaking, training, institutional consulting and research collaboration pathway.",
+    "keywords": "invite keynote webinar panel workshop teacher training institutional consulting speaking"
+  },
+  {
+    "lang": "fa",
+    "title": "همکاری سازمانی، آموزش و سخنرانی",
+    "path": "fa/hamkari-sazmani/",
+    "category": "خدمات",
+    "summary": "مسیر همکاری برای سخنرانی، کارگاه، آموزش معلم، مشاوره سازمانی و پژوهش.",
+    "keywords": "همکاری سازمانی سخنرانی کارگاه آموزش معلم مشاوره سازمانی پژوهش"
   }
 ]
