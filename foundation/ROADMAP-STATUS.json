@@ -90,7 +90,14 @@
     "CRM-002": "Consultation pipeline now has executable transition/triage/booking domain logic in addition to schema/API contract; provider-backed runtime awaits backend.",
     "DATA-010": "SPSS export is represented in governed export planning with frozen dataset/codebook requirements; file materialisation remains pending.",
     "DATA-011": "CSV/XLSX/R/Python export formats are represented in governed export planning; executable materialisation remains pending.",
-    "DATA-012": "Qualitative pseudonymous export package planner implemented with de-identified text/codebook provenance; archive materialisation remains pending."
+    "DATA-012": "Qualitative pseudonymous export package planner implemented with de-identified text/codebook provenance; archive materialisation remains pending.",
+    "COM-005": "Provider-neutral schema now has server-authoritative pricing execution, immutable pricing snapshots, order idempotency and fulfilment provenance; real catalogue/admin runtime remains pending.",
+    "COM-006": "Cart schema exists and server-side order pricing validates canonical product/price/currency; interactive production cart remains pending backend.",
+    "COM-007": "Checkout foundations and server-resolved order pricing are implemented; provider redirect/runtime remains pending credentials.",
+    "COM-008": "Order, line-item, immutable price snapshot, invoice and idempotency persistence implemented; production invoice issuance remains pending.",
+    "COM-011": "Refund persistence and confirmed-refund entitlement reconciliation implemented; final customer-facing policy/provider refund adapter remains pending.",
+    "COM-013": "Entitlement fulfilment now requires persisted verified matching payment and records payment provenance; provider-backed activation remains pending.",
+    "COM-015": "Consultation workflow can require payment before confirmation and commerce core requires verified payment; runtime integration awaits backend/provider."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
