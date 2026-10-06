@@ -2,6 +2,25 @@ const {test,expect}=require('@playwright/test');
 
 test.use({serviceWorkers:'block'});
 
+async function stableOverflow(page){
+  let last;
+  for(let attempt=0;attempt<4;attempt++){
+    try{
+      return await page.evaluate(()=>({
+        viewport:window.innerWidth,
+        html:document.documentElement.scrollWidth,
+        body:document.body.scrollWidth
+      }));
+    }catch(error){
+      last=error;
+      if(!/Execution context was destroyed|navigation/i.test(String(error))||attempt===3) throw error;
+      await page.waitForLoadState('domcontentloaded').catch(()=>{});
+      await page.waitForTimeout(120);
+    }
+  }
+  throw last;
+}
+
 const base='http://127.0.0.1:4173';
 const viewports=[
   ['mobile-320',320,800],
@@ -22,14 +41,10 @@ for(const [label,width,height] of viewports){
     const errors=[];
     page.on('pageerror',e=>errors.push(String(e)));
     for(const route of coreRoutes){
-      await page.goto(base+route,{waitUntil:'networkidle'});
-      await page.waitForTimeout(80);
+      await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      await page.waitForTimeout(120);
       await expect(page.locator('h1')).toHaveCount(1);
-      const overflow=await page.evaluate(()=>({
-        viewport:window.innerWidth,
-        html:document.documentElement.scrollWidth,
-        body:document.body.scrollWidth
-      }));
+      const overflow=await stableOverflow(page);
       expect(Math.max(overflow.html,overflow.body),route+' horizontal overflow at '+label).toBeLessThanOrEqual(overflow.viewport+1);
       const main=page.locator('main').first();
       await expect(main).toBeVisible();
@@ -42,7 +57,8 @@ for(const [label,width,height] of viewports){
 
 test('Persian public search v2 works without private leakage',async({page})=>{
   await page.setViewportSize({width:390,height:844});
-  await page.goto(base+'/fa/jostojo/',{waitUntil:'networkidle'});
+  await page.goto(base+'/fa/jostojo/',{waitUntil:'domcontentloaded'});
+  await page.waitForTimeout(120);
   const input=page.locator('[data-site-search] input[type="search"]');
   await expect(input).toBeVisible();
   await input.fill('استعداد');
@@ -59,8 +75,8 @@ test('Persian public search v2 works without private leakage',async({page})=>{
 
 test('keyboard focus reaches primary public navigation',async({page})=>{
   await page.setViewportSize({width:1440,height:900});
-  await page.goto(base+'/en/',{waitUntil:'networkidle'});
-  await page.waitForTimeout(80);
+  await page.goto(base+'/en/',{waitUntil:'domcontentloaded'});
+  await page.waitForTimeout(120);
   await page.keyboard.press('Tab');
   const focused=await page.evaluate(()=>({
     tag:document.activeElement?.tagName,
@@ -75,7 +91,8 @@ for(const [route,name] of [['/fa/','fa-home'],['/en/','en-home'],['/fa/rahnamaha
   test('visual evidence '+name,async({page})=>{
     for(const [label,width,height] of [['mobile-390',390,844],['desktop-1440',1440,900]]){
       await page.setViewportSize({width,height});
-      await page.goto(base+route,{waitUntil:'networkidle'});
+      await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      await page.waitForTimeout(120);
       await page.screenshot({path:'test-results/screenshots/'+name+'-'+label+'.png',fullPage:true});
     }
   });
