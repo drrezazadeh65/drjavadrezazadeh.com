@@ -202,5 +202,21 @@
       ]
     }
   ],
-  "prioritisation_rule": "External blockers do not pause internal foundation work. Work first on CRITICAL/HIGH tracks whose next step is not blocked, while preserving scientific, privacy, security and SEO release gates."
+  "prioritisation_rule": "External blockers do not pause internal foundation work. Work first on CRITICAL/HIGH tracks whose next step is not blocked, while preserving scientific, privacy, security and SEO release gates.",
+  "audit": {
+    "script": "scripts/master-audit.mjs",
+    "workflow_summary": true,
+    "checks": [
+      "public_surface",
+      "seo_intents",
+      "hreflang",
+      "module_graph",
+      "readiness_tracks",
+      "mobile_navigation",
+      "payment_activation_gate",
+      "golden_talent_scientific_boundaries",
+      "database_migration_count"
+    ],
+    "rule": "Every material foundation change must remain visible in the machine-readable audit rather than relying on memory or prose status alone."
+  }
 }
