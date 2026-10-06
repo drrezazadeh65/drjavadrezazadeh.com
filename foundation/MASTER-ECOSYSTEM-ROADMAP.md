@@ -1,10 +1,11 @@
-# MASTER ECOSYSTEM ROADMAP — v1.0 FROZEN
+# MASTER ECOSYSTEM ROADMAP — v2.0 FROZEN
 
 **Owner:** Dr. Javad Rezazadeh Yazdeli  
 **Primary brand:** Dr. Javad Rezazadeh Yazdeli  
 **Publisher:** Rezazadeh Foundation Press  
 **Journal:** Journal of Human-Centred Education, Learning and Assessment (JHELA)  
 **Frozen on:** 2026-10-05  
+**Foundation alignment:** v5.0 extensibility baseline · reconciled 2026-10-06  
 **Status:** MASTER ROADMAP — SOURCE OF TRUTH
 
 > This file is the authoritative roadmap for the website, educational platform, Golden Talent ecosystem, commerce, research infrastructure, publisher, and journal. It should be updated by status change rather than replaced by a new plan unless a major architecture decision is deliberately renewed.
@@ -157,7 +158,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **CONTENT-007 — IN PROGRESS — English `/en/news-insights/`, Research, Language Education, Teacher Education, Projects and Collaboration hubs establish the communication architecture; substantive insight publishing remains ongoing.**
 - [x] **CONTENT-008 — DONE — 90-day editorial calendar created with publishing rhythm, intent ownership, internal-link targets, quality gates and review cycle.**
 - [ ] **CONTENT-009 — IN PROGRESS — Visible author, publication date and last-content-review metadata is enforced on the first high-stakes Persian guidance pages; independent reviewer attribution remains pending a real reviewer workflow and will never be fabricated.**
-- [ ] **CONTENT-010 — PLANNED — Media library with SEO-safe alt/caption/licensing/provenance fields.**
+- [ ] **CONTENT-010 — IN PROGRESS — Media library with SEO-safe alt/caption/licensing/provenance fields.**
 
 ---
 
@@ -172,12 +173,12 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SERV-007 — DONE — Seven-step consulting process published.**
 - [x] **SERV-008 — DONE — Consulting FAQ and Service structured data on the main hub.**
 - [ ] **SERV-009 — IN PROGRESS — Central noindex intake gateway and v1 API contract are implemented; secure server-side submission is pending backend activation.**
-- [ ] **SERV-010 — PLANNED — Triage: service type, urgency, documents needed and advisor assignment.**
+- [ ] **SERV-010 — IN PROGRESS — Triage: service type, urgency, documents needed and advisor assignment.**
 - [ ] **SERV-011 — IN PROGRESS — Bilingual private appointment-state previews and the provider-neutral appointment API contract are implemented; live availability, timezone-aware slot selection, rescheduling/cancellation policy enforcement and authenticated persistence remain pending backend/calendar activation.**
 - [ ] **SERV-012 — PLANNED — Consultation payment before appointment where required.**
-- [ ] **SERV-013 — PLANNED — Consultation notes, recommendations and follow-up record.**
-- [ ] **SERV-014 — PLANNED — Human-reviewed report generation.**
-- [ ] **SERV-015 — PLANNED — Institutional/school consulting packages.**
+- [ ] **SERV-013 — IN PROGRESS — Consultation notes, recommendations and follow-up record.**
+- [ ] **SERV-014 — IN PROGRESS — Human-reviewed report generation.**
+- [ ] **SERV-015 — IN PROGRESS — Institutional/school consulting packages.**
 - [ ] **SERV-016 — IN PROGRESS — Bilingual consultation policy now defines service scope, no-guarantee rule, professional boundaries and future booking/cancellation/refund disclosure requirements; final paid-service terms remain pending.**
 
 ---
@@ -213,8 +214,8 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **PORTAL-003 — DONE — Reserved student/parent/teacher/app routes as noindex foundations.**
 - [x] **PORTAL-004 — FROZEN — Roles: Student, Parent, Teacher, Consultant, Researcher, Editor, Admin, Super Admin.**
 - [x] **PORTAL-005 — FROZEN — One account may hold multiple roles.**
-- [ ] **PORTAL-006 — PLANNED — Production authentication and email verification.**
-- [ ] **PORTAL-007 — PLANNED — Password reset, session security and account recovery.**
+- [ ] **PORTAL-006 — IN PROGRESS — Production authentication and email verification.**
+- [ ] **PORTAL-007 — IN PROGRESS — Password reset, session security and account recovery.**
 - [ ] **PORTAL-008 — IN PROGRESS — Persian student dashboard prototype published as NOINDEX; production auth/data integration remains pending.**
 - [ ] **PORTAL-009 — IN PROGRESS — Persian parent dashboard prototype and verified parent-child relationship model are implemented; production linkage remains pending.**
 - [ ] **PORTAL-010 — IN PROGRESS — Persian teacher dashboard prototype and scoped teacher-student assignment model are implemented; production assignment workflows remain pending.**
@@ -230,15 +231,15 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **ASSESS-002 — FROZEN — Historical results never silently change under a new scoring model.**
 - [x] **ASSESS-003 — FROZEN — Autosave/resume/progress UX is required.**
 - [x] **ASSESS-004 — FROZEN — QTI-aware future portability.**
-- [ ] **ASSESS-005 — PLANNED — Assessment authoring/admin tools.**
-- [ ] **ASSESS-006 — PLANNED — Item bank with version control.**
-- [ ] **ASSESS-007 — PLANNED — Scoring engine.**
-- [ ] **ASSESS-008 — PLANNED — Interpretation-rule engine.**
-- [ ] **ASSESS-009 — PLANNED — Report template engine.**
-- [ ] **ASSESS-010 — PLANNED — PDF/web reports.**
-- [ ] **ASSESS-011 — PLANNED — Multi-respondent linking: student/parent/teacher.**
-- [ ] **ASSESS-012 — PLANNED — Norm/reference metadata where scientifically justified.**
-- [ ] **ASSESS-013 — PLANNED — Human review and override with audit trail.**
+- [ ] **ASSESS-005 — IN PROGRESS — Assessment authoring/admin tools.**
+- [ ] **ASSESS-006 — IN PROGRESS — Item bank with version control.**
+- [ ] **ASSESS-007 — IN PROGRESS — Scoring engine.**
+- [ ] **ASSESS-008 — IN PROGRESS — Interpretation-rule engine.**
+- [ ] **ASSESS-009 — IN PROGRESS — Report template engine.**
+- [ ] **ASSESS-010 — IN PROGRESS — PDF/web reports.**
+- [ ] **ASSESS-011 — IN PROGRESS — Multi-respondent linking: student/parent/teacher.**
+- [ ] **ASSESS-012 — IN PROGRESS — Norm/reference metadata where scientifically justified.**
+- [ ] **ASSESS-013 — IN PROGRESS — Human review and override with audit trail.**
 
 ---
 
@@ -249,46 +250,46 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **COM-003 — FROZEN — Product/Offer schema only when a genuine purchasable product with verified price and availability exists.**
 - [ ] **COM-004 — PLANNED — Public shop/category architecture.**
 - [ ] **COM-005 — IN PROGRESS — Provider-neutral product/price/order/payment/entitlement schema is implemented; storefront/admin workflows and real offers remain pending.**
-- [ ] **COM-006 — PLANNED — Cart.**
-- [ ] **COM-007 — PLANNED — Checkout.**
-- [ ] **COM-008 — PLANNED — Order and invoice records.**
+- [ ] **COM-006 — IN PROGRESS — Cart.**
+- [ ] **COM-007 — IN PROGRESS — Checkout.**
+- [ ] **COM-008 — IN PROGRESS — Order and invoice records.**
 - [ ] **COM-009 — IN PROGRESS — Iranian-first payment-provider abstraction is frozen for launch; ZarinPal, NextPay and Zibal are the initial comparison set, with merchant eligibility and callback/settlement testing required before approval. International gateways are deferred.**
 - [ ] **COM-010 — IN PROGRESS — Server-verification, idempotency and reconciliation contracts are defined for Iranian gateway adapters; live sandbox/provider integration remains pending.**
-- [ ] **COM-011 — PLANNED — Refund/cancellation policy.**
-- [ ] **COM-012 — PLANNED — Coupons/discount rules only if commercially useful.**
-- [ ] **COM-013 — PLANNED — Digital delivery and entitlement management.**
-- [ ] **COM-014 — PLANNED — Inventory/fulfilment for physical books if self-fulfilled.**
-- [ ] **COM-015 — PLANNED — Consultation payment connected to booking.**
-- [ ] **COM-016 — PLANNED — School/institution invoice workflow.**
+- [ ] **COM-011 — IN PROGRESS — Refund/cancellation policy.**
+- [ ] **COM-012 — IN PROGRESS — Coupons/discount rules only if commercially useful.**
+- [ ] **COM-013 — IN PROGRESS — Digital delivery and entitlement management.**
+- [ ] **COM-014 — IN PROGRESS — Inventory/fulfilment for physical books if self-fulfilled.**
+- [ ] **COM-015 — IN PROGRESS — Consultation payment connected to booking.**
+- [ ] **COM-016 — IN PROGRESS — School/institution invoice workflow.**
 - [ ] **COM-017 — FROZEN — Card/banking credentials are never stored by the site.**
 
 ---
 
 # 12. CRM, booking and communication
 
-- [ ] **CRM-001 — PLANNED — Contact/lead record with source attribution.**
+- [ ] **CRM-001 — IN PROGRESS — Contact/lead record with source attribution.**
 - [ ] **CRM-002 — IN PROGRESS — Consultation pipeline, state model, noindex intake gateway and API contract are defined; production workflow awaits backend, booking and payment services.**
-- [ ] **CRM-003 — PLANNED — Transactional email templates.**
-- [ ] **CRM-004 — PLANNED — Appointment reminders and rescheduling.**
-- [ ] **CRM-005 — PLANNED — Secure client messaging distinct from general support.**
-- [ ] **CRM-006 — PLANNED — Notification preferences.**
-- [ ] **CRM-007 — PLANNED — Consent-aware newsletter only after explicit opt-in.**
-- [ ] **CRM-008 — PLANNED — Reviewer/editorial recruitment pipeline for JHELA kept separate from consulting CRM roles.**
+- [ ] **CRM-003 — IN PROGRESS — Transactional email templates.**
+- [ ] **CRM-004 — IN PROGRESS — Appointment reminders and rescheduling.**
+- [ ] **CRM-005 — IN PROGRESS — Secure client messaging distinct from general support.**
+- [ ] **CRM-006 — IN PROGRESS — Notification preferences.**
+- [ ] **CRM-007 — IN PROGRESS — Consent-aware newsletter only after explicit opt-in.**
+- [ ] **CRM-008 — IN PROGRESS — Reviewer/editorial recruitment pipeline for JHELA kept separate from consulting CRM roles.**
 
 ---
 
 # 13. CMS and administration
 
 - [ ] **ADMIN-001 — PLANNED — CMS for articles, news, books, services, products and SEO fields.**
-- [ ] **ADMIN-002 — PLANNED — Draft/review/publish workflow.**
-- [ ] **ADMIN-003 — PLANNED — SEO fields: title, description, slug, canonical, hreflang, index state, OG, schema, dates, author/reviewer.**
+- [ ] **ADMIN-002 — IN PROGRESS — Draft/review/publish workflow.**
+- [ ] **ADMIN-003 — IN PROGRESS — SEO fields: title, description, slug, canonical, hreflang, index state, OG, schema, dates, author/reviewer.**
 - [ ] **ADMIN-004 — IN PROGRESS — Cloudflare Pages `_redirects` now provides a version-controlled registry for confirmed legacy migrations, and CI validates syntax, unique sources, target existence and permanent 301 status; a future CMS/admin UI for redirect creation and review remains pending.**
-- [ ] **ADMIN-005 — PLANNED — User/role management.**
+- [ ] **ADMIN-005 — IN PROGRESS — User/role management.**
 - [ ] **ADMIN-006 — PLANNED — Assessment management.**
 - [ ] **ADMIN-007 — PLANNED — Order/payment management.**
 - [ ] **ADMIN-008 — PLANNED — Consultation management.**
-- [ ] **ADMIN-009 — PLANNED — Audit log for sensitive administrative changes.**
-- [ ] **ADMIN-010 — PLANNED — Content revision history.**
+- [ ] **ADMIN-009 — IN PROGRESS — Audit log for sensitive administrative changes.**
+- [ ] **ADMIN-010 — IN PROGRESS — Content revision history.**
 
 ---
 
@@ -303,11 +304,11 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **DATA-007 — IN PROGRESS — Research study registry, study versions and pseudonymous case IDs are defined in the production schema; application/admin workflows remain pending.**
 - [ ] **DATA-008 — IN PROGRESS — De-identification runs, transformation logging and separated identity-link tables are defined; executable transformation pipeline remains pending.**
 - [ ] **DATA-009 — IN PROGRESS — Dataset freeze, codebook version and export entities are defined; materialised research mart generation remains pending.**
-- [ ] **DATA-010 — PLANNED — SPSS-ready export + codebook.**
-- [ ] **DATA-011 — PLANNED — R/Python/CSV/XLSX exports.**
-- [ ] **DATA-012 — PLANNED — MAXQDA/NVivo-ready qualitative export package.**
-- [ ] **DATA-013 — PLANNED — Research-data access approvals and audit trail.**
-- [ ] **DATA-014 — PLANNED — Retention/deletion rules that distinguish operational from research obligations.**
+- [ ] **DATA-010 — IN PROGRESS — SPSS-ready export + codebook.**
+- [ ] **DATA-011 — IN PROGRESS — R/Python/CSV/XLSX exports.**
+- [ ] **DATA-012 — IN PROGRESS — MAXQDA/NVivo-ready qualitative export package.**
+- [ ] **DATA-013 — IN PROGRESS — Research-data access approvals and audit trail.**
+- [ ] **DATA-014 — IN PROGRESS — Retention/deletion rules that distinguish operational from research obligations.**
 
 ---
 
@@ -320,10 +321,10 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **PRESS-005 — WAITING — Real publishable postal address.**
 - [ ] **PRESS-006 — WAITING — Permanent main domain.**
 - [ ] **PRESS-007 — PLANNED — Dedicated publisher-domain email.**
-- [ ] **PRESS-008 — PLANNED — Publisher imprint/copyright/licensing policy.**
-- [ ] **PRESS-009 — PLANNED — Book metadata/ISBN workflow where applicable.**
-- [ ] **PRESS-010 — PLANNED — Long-term preservation policy for publisher content.**
-- [ ] **PRESS-011 — PLANNED — Rights, permissions and takedown policy.**
+- [ ] **PRESS-008 — IN PROGRESS — Publisher imprint/copyright/licensing policy.**
+- [ ] **PRESS-009 — IN PROGRESS — Book metadata/ISBN workflow where applicable.**
+- [ ] **PRESS-010 — IN PROGRESS — Long-term preservation policy for publisher content.**
+- [ ] **PRESS-011 — IN PROGRESS — Rights, permissions and takedown policy.**
 
 ---
 
@@ -358,11 +359,11 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **JRN-022 — WAITING — Real publisher address on publisher/journal legal pages.**
 - [ ] **JRN-023 — PLANNED — ISSN application once title, permanent URL, publisher identity and required evidence are ready.**
 - [ ] **JRN-024 — WAITING — DOI registration route through a legally available Registration Agency/sponsor.** Under current Crossref sanctions rules, an Iran-based organisation cannot apply for direct Crossref membership; the first operational investigation remains a lawful sponsored/alternative Registration Agency route (including the previously identified mEDRA/Sinaweb route where eligible). No nominal foreign address or misrepresentation is permitted.
-- [ ] **JRN-025 — PLANNED — DOI landing-page and metadata workflow for every published article.**
-- [ ] **JRN-026 — PLANNED — Preservation: PKP PN/Internet Archive and/or another appropriate long-term archive.**
-- [ ] **JRN-027 — PLANNED — JATS XML or equivalently robust machine-readable article metadata.**
-- [ ] **JRN-028 — PLANNED — ORCID integration where technically available.**
-- [ ] **JRN-029 — PLANNED — Plagiarism/similarity workflow where lawfully and financially available.**
+- [ ] **JRN-025 — IN PROGRESS — DOI landing-page and metadata workflow for every published article.**
+- [ ] **JRN-026 — IN PROGRESS — Preservation: PKP PN/Internet Archive and/or another appropriate long-term archive.**
+- [ ] **JRN-027 — IN PROGRESS — JATS XML or equivalently robust machine-readable article metadata.**
+- [ ] **JRN-028 — IN PROGRESS — ORCID integration where technically available.**
+- [ ] **JRN-029 — IN PROGRESS — Plagiarism/similarity workflow where lawfully and financially available.**
 
 ## 16.4 Editorial board and review
 - [ ] **JRN-030 — IN PROGRESS — Recruit a genuinely international editorial board.**
@@ -371,7 +372,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **JRN-033 — PLANNED — At least five appropriately qualified editors before DOAJ application; avoid one-institution concentration.**
 - [ ] **JRN-034 — FROZEN — Research articles ordinarily receive at least two independent reviewers.**
 - [ ] **JRN-035 — FROZEN — Editor/board conflicts require independent handling editor.**
-- [ ] **JRN-036 — PLANNED — Reviewer performance/turnaround/quality monitoring.**
+- [ ] **JRN-036 — IN PROGRESS — Reviewer performance/turnaround/quality monitoring.**
 
 ## 16.5 Founder-authored papers — integrity rule
 - [x] **JRN-037 — FROZEN — JHELA is not a vehicle for publishing the entire backlog of the Editor-in-Chief's papers.**
@@ -388,7 +389,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **JRN-046 — PLANNED — Avoid bimonthly frequency in the founding year unless a genuine external manuscript pipeline exists.**
 - [ ] **JRN-047 — PLANNED — DOAJ application only after the journal is actively publishing and all current criteria are satisfied.**
 - [ ] **JRN-048 — PLANNED — Broader indexing applications are staged after publication stability, metadata quality, citation footprint and policy compliance are demonstrated.**
-- [ ] **JRN-049 — PLANNED — Annual journal audit: endogeny, author geography, board diversity, review times, corrections, metadata, preservation and accessibility.**
+- [ ] **JRN-049 — IN PROGRESS — Annual journal audit: endogeny, author geography, board diversity, review times, corrections, metadata, preservation and accessibility.**
 
 ---
 
@@ -397,15 +398,15 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SEC-001 — FROZEN — Private data is never placed in public static assets.**
 - [x] **SEC-002 — FROZEN — OWASP ASVS Level 2 is the production target.**
 - [x] **SEC-003 — FROZEN — Least privilege and role-based access.**
-- [ ] **SEC-004 — PLANNED — Admin MFA.**
-- [ ] **SEC-005 — PLANNED — Secure password hashing and session management.**
-- [ ] **SEC-006 — PLANNED — Encrypted transport and secure secrets management.**
-- [ ] **SEC-007 — PLANNED — File malware/type/size validation and private storage.**
-- [ ] **SEC-008 — PLANNED — Audit logs for administrative and sensitive-user actions.**
+- [ ] **SEC-004 — IN PROGRESS — Admin MFA.**
+- [ ] **SEC-005 — IN PROGRESS — Secure password hashing and session management.**
+- [ ] **SEC-006 — IN PROGRESS — Encrypted transport and secure secrets management.**
+- [ ] **SEC-007 — IN PROGRESS — File malware/type/size validation and private storage.**
+- [ ] **SEC-008 — IN PROGRESS — Audit logs for administrative and sensitive-user actions.**
 - [ ] **SEC-009 — IN PROGRESS — Bilingual NOINDEX privacy/data-use notices, consultation policy, consent model, RBAC matrix and parent-child relationship rules are in place; jurisdiction-specific legal review remains pending.**
-- [ ] **SEC-010 — PLANNED — Data retention, deletion and export processes.**
-- [ ] **SEC-011 — PLANNED — Backup/restore tests and disaster-recovery plan.**
-- [ ] **SEC-012 — PLANNED — Incident response and vulnerability reporting.**
+- [ ] **SEC-010 — IN PROGRESS — Data retention, deletion and export processes.**
+- [ ] **SEC-011 — IN PROGRESS — Backup/restore tests and disaster-recovery plan.**
+- [ ] **SEC-012 — IN PROGRESS — Incident response and vulnerability reporting.**
 
 ---
 
@@ -413,11 +414,11 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 
 - [ ] **OBS-001 — WAITING — Analytics on permanent domain with privacy-aware configuration.**
 - [ ] **OBS-002 — WAITING — Search Console and sitemap monitoring.**
-- [ ] **OBS-003 — PLANNED — Error logging and uptime monitoring.**
-- [ ] **OBS-004 — PLANNED — Performance monitoring and Core Web Vitals.**
-- [ ] **OBS-005 — PLANNED — Conversion events: consultation request, booking, checkout, assessment start/complete, report purchase.**
+- [ ] **OBS-003 — IN PROGRESS — Error logging and uptime monitoring.**
+- [ ] **OBS-004 — IN PROGRESS — Performance monitoring and Core Web Vitals.**
+- [ ] **OBS-005 — IN PROGRESS — Conversion events: consultation request, booking, checkout, assessment start/complete, report purchase.**
 - [ ] **OBS-006 — PLANNED — Content metrics: impressions, CTR, organic landing pages, assisted conversions, content decay.**
-- [ ] **OBS-007 — PLANNED — Journal operational metrics without vanity or fake impact claims.**
+- [ ] **OBS-007 — IN PROGRESS — Journal operational metrics without vanity or fake impact claims.**
 - [ ] **OBS-008 — PLANNED — Monthly technical QA and quarterly strategic review.**
 
 ---
@@ -443,6 +444,12 @@ The revenue model is diversified so no single product has to carry the ecosystem
 ---
 
 # 20. Phased delivery roadmap
+
+## Foundation state-reconciliation rule
+
+The prose roadmap and `foundation/ROADMAP-STATUS.json` describe the same programme at different levels. When an executable schema, policy, domain engine, migration, regression guard or API contract exists but provider-backed production execution is still pending, the roadmap status is **IN PROGRESS**, not **PLANNED** and not **DONE**. Production readiness remains governed by the release definition of done below. This rule prevents architecture work from being lost while also preventing prototypes/contracts from being misrepresented as live services.
+
+
 
 ## Phase 0 — Foundation freeze — NOW
 **Goal:** stop architectural drift and preserve the current build as a coherent baseline.
