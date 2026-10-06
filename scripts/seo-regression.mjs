@@ -1372,3 +1372,15 @@ const cr=fs.readFileSync(path.join(root,'platform','db','rls','003_talent_eviden
 for(const x of ["PARENT_VISIBILITY","TEACHER_OBSERVATION","CONSULTANT_REVIEW","subject_user_id=gt_actor_id()"]) if(!cr.includes(x)) failures.push('/platform/db/rls/003_talent_evidence_consent.sql: missing '+x);
 const cw=fs.readFileSync(path.join(root,'platform','consent-withdrawal-orchestrator.mjs'),'utf8');
 for(const x of ['append_WITHDRAWN_consent_decision','mark_dependent_evidence_WITHDRAWN','delete_historical_evidence:false','automatically_release_replacement:false']) if(!cw.includes(x)) failures.push('/platform/consent-withdrawal-orchestrator.mjs: missing '+x);
+
+// Explicit Golden Path release guardrails.
+const gps=fs.readFileSync(path.join(root,'platform','golden-path-synthesis.mjs'),'utf8');
+for(const x of ["release_status:'PENDING_PROFESSIONAL_RELEASE'","release_status:'RELEASED'","requires_professional_release:false","Explicitly released Golden Path required","source_release_id"]){
+ if(!gps.includes(x)) failures.push('/platform/golden-path-synthesis.mjs: missing release invariant '+x);
+}
+const gprPath=path.join(root,'platform','db','migrations','014_golden_path_release.sql');
+if(!fs.existsSync(gprPath)) failures.push('/platform/db/migrations/014_golden_path_release.sql: missing explicit release persistence');
+else{
+ const gpr=fs.readFileSync(gprPath,'utf8');
+ for(const x of ['golden_path_release','reviewer_user_id','route_run_id','synthesis_version',"RELEASED','REVOKED','SUPERSEDED"]) if(!gpr.includes(x)) failures.push('/platform/db/migrations/014_golden_path_release.sql: missing '+x);
+}
