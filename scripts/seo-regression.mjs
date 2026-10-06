@@ -1309,3 +1309,16 @@ else{
  const pp=JSON.parse(fs.readFileSync(gtppPath,'utf8'));
  if(pp.consent?.versioned!==true||pp.consent?.purpose_specific!==true||pp.consent?.bundling_prohibited!==true||pp.withdrawal?.future_routing_excludes_withdrawn_evidence!==true||pp.retention?.hardcoded_durations!==false) failures.push('/platform/golden-talent-privacy-policy.json: unsafe privacy policy');
 }
+
+// Golden Talent audit/observability guardrails.
+const auditPath=path.join(root,'platform','golden-talent-audit.mjs');
+const obsPath=path.join(root,'platform','golden-talent-observability-policy.json');
+if(!fs.existsSync(auditPath)||!fs.existsSync(obsPath)) failures.push('/platform: missing Golden Talent audit/observability layer');
+else{
+ const a=fs.readFileSync(auditPath,'utf8');
+ for(const invariant of ["ACCESS_DENIED","correlation_id","resource_id:null","evidence_value","consultation_notes","token"]){
+  if(!a.includes(invariant)) failures.push('/platform/golden-talent-audit.mjs: missing audit invariant '+invariant);
+ }
+ const o=JSON.parse(fs.readFileSync(obsPath,'utf8'));
+ if(o.append_only!==true||o.server_generated!==true||o.sensitive_payload_prohibited!==true||o.client_supplied_audit_event_accepted!==false||o.audit_log_is_not_analytics_dataset!==true) failures.push('/platform/golden-talent-observability-policy.json: unsafe observability policy');
+}
