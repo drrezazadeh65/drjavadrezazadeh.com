@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "status": "FOUNDATION_READY",
+  "purpose": "Govern adaptive study planning, longitudinal trend description and recurring coaching without converting sparse educational observations into deterministic labels.",
+  "study_plan": {
+    "allowed_revision_triggers": [
+      "INITIAL",
+      "FELL_BEHIND",
+      "GRADE_CHANGE",
+      "NEW_EXAM",
+      "STUDY_HOURS_CHANGE",
+      "PRIORITY_CHANGE",
+      "TARGET_CHANGE",
+      "PROFESSIONAL_REVIEW",
+      "OTHER"
+    ],
+    "revision_is_append_only": true,
+    "proposal_default_status": "DRAFT",
+    "automatic_activation": false,
+    "ai_may_propose": true,
+    "ai_may_activate": false,
+    "approval_required": true
+  },
+  "trajectory": {
+    "minimum_comparable_observations": 2,
+    "same_comparability_key_required": true,
+    "source_date_context_required": true,
+    "direction_only_by_default": true,
+    "improvement_claim_requires_interpretive_rule": true,
+    "one_observation_is_not_a_trend": true,
+    "no_cross_measure_aggregation_score": true
+  },
+  "decision_support": {
+    "supporting_evidence_required": true,
+    "counterevidence_preserved": true,
+    "contextual_constraints_preserved": true,
+    "uncertainty_required": true,
+    "human_review_required_for_consequential_recommendation": true,
+    "explainability_question": "Why this recommendation?",
+    "admission_guarantee": false,
+    "automatic_major_prescription": false,
+    "automatic_career_prescription": false
+  },
+  "coaching": {
+    "programme_types": [
+      "MONTHLY_COACHING",
+      "QUARTERLY_REVIEW",
+      "ANNUAL_DEVELOPMENT",
+      "PREMIUM_LONG_TERM"
+    ],
+    "review_decisions": [
+      "CONTINUE",
+      "ADAPT",
+      "PAUSE",
+      "COMPLETE",
+      "ESCALATE"
+    ],
+    "payment_state_separate_from_professional_judgement": true,
+    "review_requires_human_reviewer": true,
+    "next_action_required": true
+  },
+  "ai_rule": "AI_ASSISTED_EVIDENCE_BASED_HUMAN_SUPERVISED"
+}
