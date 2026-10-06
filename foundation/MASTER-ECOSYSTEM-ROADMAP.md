@@ -83,8 +83,8 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **SEO-020 — WAITING — Google Search Console on the permanent domain.**
 - [ ] **SEO-021 — WAITING — Bing Webmaster Tools on the permanent domain.**
 - [x] **SEO-022 — MODIFIED — Automated release QA now audits the entire current indexable surface on every push: metadata, H1, canonical, sitemap membership, schema/OG coverage, breadcrumbs/internal links, reciprocal genuine hreflang, accessibility baselines, performance budgets, entity/fact consistency and release firewalls.**
-- [ ] **SEO-023 — PLANNED — Post-release indexing and query monitoring dashboard.**
-- [ ] **SEO-024 — PLANNED — Content refresh/decay review every 90–180 days for high-value pages.**
+- [ ] **SEO-023 — IN PROGRESS — Private bilingual admin monitoring architecture now represents post-release Search Console, organic landing, field-CWV and content-decay signals without fabricated metrics; live data binding remains pending permanent-domain provider activation.**
+- [ ] **SEO-024 — IN PROGRESS — The admin review calendar now formalises a 90–180 day high-value content review cadence alongside monthly technical QA and quarterly strategic review; automated scheduling and production performance evidence remain pending.**
 
 ---
 
@@ -417,9 +417,9 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **OBS-003 — IN PROGRESS — Error logging and uptime monitoring.**
 - [ ] **OBS-004 — IN PROGRESS — Performance monitoring and Core Web Vitals.**
 - [ ] **OBS-005 — IN PROGRESS — Conversion events: consultation request, booking, checkout, assessment start/complete, report purchase.**
-- [ ] **OBS-006 — PLANNED — Content metrics: impressions, CTR, organic landing pages, assisted conversions, content decay.**
+- [ ] **OBS-006 — IN PROGRESS — Content-metric architecture now covers impressions, CTR, organic landing pages, assisted conversion and content-decay review in the private admin console; provider-backed collection remains pending.**
 - [ ] **OBS-007 — IN PROGRESS — Journal operational metrics without vanity or fake impact claims.**
-- [ ] **OBS-008 — PLANNED — Monthly technical QA and quarterly strategic review.**
+- [ ] **OBS-008 — IN PROGRESS — Monthly technical QA, 90–180 day content review and quarterly strategic review cadences are represented in the bilingual admin console; automated scheduling and evidence capture remain pending production observability.**
 
 ---
 
