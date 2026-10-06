@@ -21,7 +21,7 @@
     notice:'اطلاعات حساس، مدارک هویتی، پرونده پزشکی، رمز عبور یا اطلاعات پرداخت را در این گفتگو ارسال نکنید.',
     placeholder:'سؤال‌تان را بنویسید…',send:'ارسال',close:'بستن',thinking:'در حال بررسی…',
     error:'ارتباط زنده با دستیار هنوز برقرار نیست. می‌توانید از راهنماهای زیر استفاده کنید یا دوباره تلاش کنید.',
-    retry:'تلاش دوباره',offline:'راهنمای سریع',
+    retry:'تلاش دوباره',offline:'راهنمای سریع',leadOpen:'درخواست تماس',leadTitle:'اگر مایلید با شما تماس بگیریم',leadEmail:'ایمیل',leadMobile:'شماره موبایل',leadValue:'راه ارتباط',leadIntent:'موضوع اصلی',leadConsent:'با ذخیره این راه ارتباط برای پاسخ‌گویی به همین درخواست موافقم.',leadWhatsApp:'اگر واتس‌اپ بیزنس فعال شود، تماس در واتس‌اپ را هم می‌پذیرم.',leadSend:'ثبت درخواست تماس',leadSaved:'درخواست تماس ثبت شد.',leadError:'ثبت درخواست تماس انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.',
     chips:['برای انتخاب رشته از کجا شروع کنم؟','Golden Talent چیست؟','چطور مشاوره بگیرم؟']
   }:{
     open:'AI Assistant',title:'Dr. Rezazadeh Assistant',subtitle:'Smart site guide',
@@ -29,7 +29,7 @@
     notice:'Please do not share identity documents, medical records, passwords, payment details or other sensitive personal information here.',
     placeholder:'Ask a question…',send:'Send',close:'Close',thinking:'Checking…',
     error:'The live assistant is not connected yet. You can use the quick guidance below or try again.',
-    retry:'Try again',offline:'Quick guidance',
+    retry:'Try again',offline:'Quick guidance',leadOpen:'Request contact',leadTitle:'Would you like us to contact you?',leadEmail:'Email',leadMobile:'Mobile',leadValue:'Contact detail',leadIntent:'Main topic',leadConsent:'I agree that this contact detail may be stored to respond to this request.',leadWhatsApp:'If WhatsApp Business is activated, I also consent to contact through WhatsApp.',leadSend:'Save contact request',leadSaved:'Your contact request has been saved.',leadError:'The contact request could not be saved. Please try again later.',
     chips:['Which service fits my needs?','What is Golden Talent?','How do I request consultation?']
   };
 
@@ -91,6 +91,46 @@
   const chips=wrap.querySelector('.jr-assistant-chips');
   const form=wrap.querySelector('.jr-assistant-form');
   const input=wrap.querySelector('textarea');
+  const leadEndpoint=endpoint.replace(/\/v1\/chat(?:\?.*)?$/,'/v1/leads');
+  const leadBox=document.createElement('div');
+  leadBox.className='jr-assistant-lead';
+  leadBox.innerHTML='<button class="jr-assistant-lead-toggle" type="button">'+labels.leadOpen+'</button>'+
+    '<form class="jr-assistant-lead-form" hidden>'+
+      '<strong>'+labels.leadTitle+'</strong>'+
+      '<label>'+labels.leadValue+'<select name="contact_type"><option value="EMAIL">'+labels.leadEmail+'</option><option value="MOBILE">'+labels.leadMobile+'</option></select></label>'+
+      '<label><input name="contact_value" type="email" autocomplete="email" maxlength="180" required placeholder="name@example.com"></label>'+
+      '<label>'+labels.leadIntent+'<select name="intent"><option value="GENERAL">General</option><option value="ACADEMIC_COUNSELLING">Academic counselling</option><option value="FIELD_SELECTION">Field / major selection</option><option value="GOLDEN_TALENT">Golden Talent</option><option value="LANGUAGE_EDUCATION">Language education</option><option value="COLLABORATION">Academic collaboration</option></select></label>'+
+      '<label class="jr-assistant-check"><input name="contact_consent" type="checkbox" required><span>'+labels.leadConsent+'</span></label>'+
+      '<label class="jr-assistant-check jr-assistant-whatsapp" hidden><input name="whatsapp_opt_in" type="checkbox"><span>'+labels.leadWhatsApp+'</span></label>'+
+      '<button class="jr-assistant-lead-submit" type="submit">'+labels.leadSend+'</button>'+
+      '<small class="jr-assistant-lead-status" role="status" aria-live="polite"></small>'+
+    '</form>';
+  form.before(leadBox);
+  const leadToggle=leadBox.querySelector('.jr-assistant-lead-toggle');
+  const leadForm=leadBox.querySelector('.jr-assistant-lead-form');
+  const leadType=leadForm.elements.contact_type;
+  const leadValue=leadForm.elements.contact_value;
+  const whatsappRow=leadBox.querySelector('.jr-assistant-whatsapp');
+  const leadStatus=leadBox.querySelector('.jr-assistant-lead-status');
+  leadToggle.addEventListener('click',()=>{leadForm.hidden=!leadForm.hidden;if(!leadForm.hidden)leadValue.focus();});
+  leadType.addEventListener('change',()=>{
+    const mobile=leadType.value==='MOBILE';
+    leadValue.type=mobile?'tel':'email';leadValue.inputMode=mobile?'tel':'email';leadValue.autocomplete=mobile?'tel':'email';
+    leadValue.placeholder=mobile?'+98912…':'name@example.com';whatsappRow.hidden=!mobile;
+    if(!mobile) leadForm.elements.whatsapp_opt_in.checked=false;
+  });
+  leadForm.addEventListener('submit',async e=>{
+    e.preventDefault();leadStatus.textContent='';
+    const payload={contact_type:leadType.value,contact_value:String(leadValue.value||'').trim(),intent:leadForm.elements.intent.value,contact_consent:leadForm.elements.contact_consent.checked===true,whatsapp_opt_in:leadForm.elements.whatsapp_opt_in.checked===true,locale:isFa?'fa':'en',source_route:route||'/'};
+    const submit=leadBox.querySelector('.jr-assistant-lead-submit');submit.disabled=true;
+    try{
+      const res=await fetch(leadEndpoint,{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json','X-JR-Visitor':visitorId()},body:JSON.stringify(payload)});
+      if(!res.ok) throw new Error('lead '+res.status);
+      leadStatus.textContent=labels.leadSaved;leadForm.reset();leadType.dispatchEvent(new Event('change'));
+    }catch(err){leadStatus.textContent=labels.leadError;}
+    finally{submit.disabled=false;}
+  });
+  leadType.dispatchEvent(new Event('change'));
 
   function addMessage(role,text,links=[]){
     const item=document.createElement('div');
