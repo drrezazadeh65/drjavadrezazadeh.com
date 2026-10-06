@@ -1349,3 +1349,17 @@ else{
   if(!rls.includes(invariant)) failures.push('/platform/db/rls/001_talent_evidence_subject.sql: missing RLS invariant '+invariant);
  }
 }
+
+// Cross-subject RLS negative-security guardrails.
+const rls2Path=path.join(root,'platform','db','rls','002_talent_evidence_relationships.sql');
+const negPath=path.join(root,'platform','security-negative-test-matrix.json');
+if(!fs.existsSync(rls2Path)||!fs.existsSync(negPath)) failures.push('/platform: missing relationship RLS or negative security matrix');
+else{
+ const r2=fs.readFileSync(rls2Path,'utf8');
+ for(const invariant of ["r.status='ACTIVE'","a.status='ACTIVE'","VIEW_EVIDENCE","c.status IN ('OPEN','FOLLOW_UP')","visibility_scope='PARENT_ALLOWED'","visibility_scope='TEACHER_ALLOWED'"]){
+  if(!r2.includes(invariant)) failures.push('/platform/db/rls/002_talent_evidence_relationships.sql: missing scoped RLS invariant '+invariant);
+ }
+ const nm=JSON.parse(fs.readFileSync(negPath,'utf8'));
+ const denyIds=['SELF_OTHER','PARENT_REVOKED','PARENT_OTHER_CHILD','TEACHER_NO_SCOPE','TEACHER_ENDED','CONSULTANT_CLOSED_CASE','CONSULTANT_OTHER_CASE','ANONYMOUS'];
+ for(const id of denyIds) if(nm.cases?.find(x=>x.id===id)?.expected!=='DENY') failures.push('/platform/security-negative-test-matrix.json: missing DENY '+id);
+}
