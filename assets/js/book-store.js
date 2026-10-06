@@ -59,7 +59,8 @@
    '<dl class="book-meta"><div><dt>'+(isFa?'نویسنده':'Author')+'</dt><dd>Javad Rezazadeh Yazdeli</dd></div>'+
    '<div><dt>ISBN</dt><dd>'+(b.bibliography.isbn||(isFa?'در انتظار اطلاعات تأییدشده':'Awaiting verified metadata'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قیمت':'Price')+'</dt><dd>'+money(b.commerce?.price,b.commerce?.currency)+'</dd></div></dl>'+
-   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+b.id+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<div class="store-notice">'+(isFa?'کتاب منتشر شده است، اما قیمت، قالب فروش، موجودی و شرایط ارسال هنوز تأیید نشده‌اند؛ خرید عمداً غیرفعال است.':'The book is published, but price, sale format, stock and fulfilment terms are not yet verified; purchase is intentionally disabled.')+'</div>')+'</div></div>';\n  host.addEventListener('click',e=>{if(e.target.closest('[data-detail-add]'))add(b);});
+   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+b.id+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<div class="store-notice">'+(isFa?'کتاب منتشر شده است، اما قیمت، قالب فروش، موجودی و شرایط ارسال هنوز تأیید نشده‌اند؛ خرید عمداً غیرفعال است.':'The book is published, but price, sale format, stock and fulfilment terms are not yet verified; purchase is intentionally disabled.')+'</div>')+'</div></div>';
+  host.addEventListener('click',e=>{if(e.target.closest('[data-detail-add]'))add(b);});
  }
  function renderCart(data){
   const host=document.querySelector('[data-book-cart]'); if(!host) return;
