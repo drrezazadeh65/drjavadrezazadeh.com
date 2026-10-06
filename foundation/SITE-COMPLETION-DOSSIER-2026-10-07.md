@@ -28,7 +28,7 @@ No price, payment success, identity verification, private-data access, scientifi
 - Verified public scholarly identifiers remain the source of `sameAs` relationships; unsupported affiliations, metrics, awards and identifiers are prohibited.
 - `llms.txt` is a guarded public-only discovery map and excludes private/noindex/confidential areas.
 - `robots.txt` explicitly permits OAI-SearchBot, ChatGPT-User, bingbot and YandexBot on the public site.
-- Confidential TESTLY, Humanability and Teacher Humanization work remains outside public routes, navigation, schema, sitemap and machine-readable discovery.
+- Protected unreleased research projects remain outside public routes, navigation, schema, sitemap and machine-readable discovery; their names are intentionally not exposed in repository source.
 - The production-health monitor validates live robots/`llms.txt`/sitemap/IndexNow discovery integrity after the domain becomes reachable.
 
 ## Browser, responsive and accessibility evidence
