@@ -26,6 +26,8 @@ jobs:
         run: node scripts/design-regression.mjs
       - name: Run link-integrity audit
         run: node scripts/link-integrity-audit.mjs
+      - name: Run URL-stability audit
+        run: node scripts/url-stability-audit.mjs
       - name: Validate public JavaScript syntax
         run: node --check assets/js/site.js && node --check assets/js/assistant.js && node --check assets/js/book-store.js && node --check edge/assistant/src/index.js
       - name: Run ecosystem governance contract tests
