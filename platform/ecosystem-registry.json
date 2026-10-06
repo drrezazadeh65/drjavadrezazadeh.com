@@ -4,7 +4,7 @@
   "status": "FROZEN_EXTENSIBLE_BASELINE",
   "purpose": "Machine-readable boundary contract for public web, private app, commerce, assessment, publishing, research and future ecosystem modules.",
   "origins": {
-    "current_public_origin": "https://drrezazadeh65.github.io/drjavadrezazadeh.com",
+    "current_public_origin": "https://drjavadrezazadeh.com",
     "production_target": "https://drjavadrezazadeh.com",
     "app_target": "https://app.drjavadrezazadeh.com",
     "journal_target": "https://journal.drjavadrezazadeh.com",
@@ -456,8 +456,8 @@
     }
   ],
   "origin_states": {
-    "github_pages_repo_origin": "CURRENT_CANONICAL_UNTIL_CUSTOM_HTTPS_CUTOVER",
-    "main_custom_domain": "DNS_TLS_PENDING",
+    "github_pages_repo_origin": "LEGACY_REDIRECT_SOURCE",
+    "main_custom_domain": "LIVE",
     "private_app_subdomain": "RESERVED_NOT_LIVE",
     "api_subdomain": "RESERVED_NOT_LIVE",
     "journal_subdomain": "RESERVED_NOT_LIVE",

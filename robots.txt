@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://drrezazadeh65.github.io/drjavadrezazadeh.com/sitemap.xml
+Sitemap: https://drjavadrezazadeh.com/sitemap.xml
