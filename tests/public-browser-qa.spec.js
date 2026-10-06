@@ -97,3 +97,17 @@ for(const [route,name] of [['/fa/','fa-home'],['/en/','en-home'],['/fa/rahnamaha
     }
   });
 }
+
+
+test('homepage exposes visible account access in both languages',async({page})=>{
+  for(const route of ['/fa/','/en/']){
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    const strip=page.locator('.home-account-strip');
+    await expect(strip).toBeVisible();
+    await expect(strip.locator('a[href="./login/"]')).toBeVisible();
+    await expect(strip.locator('a[href="./register/"]')).toBeVisible();
+    const overflow=await stableOverflow(page);
+    expect(Math.max(overflow.html,overflow.body),route+' auth strip horizontal overflow').toBeLessThanOrEqual(overflow.viewport+1);
+  }
+});
