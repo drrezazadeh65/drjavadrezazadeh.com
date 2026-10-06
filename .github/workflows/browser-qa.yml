@@ -52,9 +52,13 @@ jobs:
       - name: Run responsive browser QA
         shell: bash
         run: |
-          mkdir -p test-results
+          set +e
           set -o pipefail
-          npx playwright test tests/public-browser-qa.spec.js --reporter=line 2>&1 | tee test-results/browser-qa.log
+          npx playwright test tests/public-browser-qa.spec.js --reporter=line 2>&1 | tee /tmp/browser-qa.log
+          status=${PIPESTATUS[0]}
+          mkdir -p test-results
+          cp /tmp/browser-qa.log test-results/browser-qa.log
+          exit "$status"
       - name: Upload browser QA evidence
         if: always()
         uses: actions/upload-artifact@v4
