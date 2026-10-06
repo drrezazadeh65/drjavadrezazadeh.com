@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "status": "PREINTEGRATION",
+  "purpose": "Provider-neutral reference layer for career, education-program, skill and qualification exploration without converting external taxonomies into automatic prescriptions.",
+  "reference_types": [
+    "CAREER",
+    "EDUCATION_PROGRAM",
+    "SKILL",
+    "QUALIFICATION",
+    "EXPERIENCE"
+  ],
+  "adapter_classes": [
+    "ONET",
+    "ESCO",
+    "NATIONAL_TAXONOMY",
+    "INSTITUTION_CATALOG",
+    "CUSTOM_VERIFIED"
+  ],
+  "adapter_rule": "All adapters are disabled until source eligibility, licence, jurisdiction, versioning and update process are verified.",
+  "required_provenance": [
+    "source_system",
+    "source_version",
+    "source_record_id",
+    "jurisdiction",
+    "locale",
+    "source_url",
+    "licence",
+    "retrieved_at"
+  ],
+  "hypothesis_rules": {
+    "human_review_required": true,
+    "supporting_evidence_required": true,
+    "counterevidence_preserved": true,
+    "uncertainty_required": true,
+    "real_world_experiment_required": true,
+    "automatic_ranking": false,
+    "automatic_major_recommendation": false,
+    "automatic_career_prescription": false,
+    "suitability_score": false,
+    "best_fit_claim": false
+  },
+  "internationalisation": {
+    "jurisdiction_aware": true,
+    "locale_aware": true,
+    "qualification_mapping_versioned": true,
+    "source_taxonomy_never_treated_as_universal": true
+  }
+}
