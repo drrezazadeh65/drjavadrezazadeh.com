@@ -229,6 +229,26 @@ function markActiveDockItem(){
  bestMatch.classList.add('is-active');bestMatch.setAttribute('aria-current','page');
 }
 markActiveDockItem();
+function markCurrentDesktopNavigation(){
+  const normalize=p=>{
+    let x=(p||'/').replace(/\/index\.html$/,'');
+    if(!x.endsWith('/')) x+='/';
+    return x;
+  };
+  const current=normalize(location.pathname);
+  const candidates=qa('.site-header nav a, .journal-header nav a').filter(a=>{
+    try{
+      const url=new URL(a.href,location.href);
+      return url.origin===location.origin && normalize(url.pathname)===current;
+    }catch{return false}
+  });
+  if(!candidates.length)return;
+  candidates.forEach(a=>{
+    if(!a.hasAttribute('aria-current')) a.setAttribute('aria-current','page');
+    a.classList.add('is-current');
+  });
+}
+markCurrentDesktopNavigation();
 })();
 
 // PWA INSTALL FLOW v1
