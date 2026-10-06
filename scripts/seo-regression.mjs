@@ -177,6 +177,54 @@ if(failures.length){
 }
 
 
+// STRATEGIC INTERNAL-LINK CONTRACT — intent clusters must remain connected.
+const internalLinkContractPath=path.join(root,'platform','internal-link-contract.json');
+if(!fs.existsSync(internalLinkContractPath)) failures.push('/platform/internal-link-contract.json: missing strategic link contract');
+else{
+  try{
+    const contract=JSON.parse(fs.readFileSync(internalLinkContractPath,'utf8'));
+    const normaliseHref=(sourceRoute,href)=>{
+      if(!href||href.startsWith('#')||/^(?:mailto:|tel:|javascript:)/i.test(href)) return null;
+      let pathname;
+      try{
+        if(/^https?:\/\//i.test(href)){
+          const u=new URL(href);
+          pathname=u.pathname;
+          const repoPrefix='/drjavadrezazadeh.com/';
+          if(pathname.startsWith(repoPrefix)) pathname='/'+pathname.slice(repoPrefix.length);
+        }else{
+          const baseUrl='https://example.invalid'+sourceRoute;
+          pathname=new URL(href,baseUrl).pathname;
+        }
+      }catch{return null;}
+      if(!pathname.endsWith('/')&&!path.extname(pathname)) pathname+='/';
+      return pathname.replace(/\/+/g,'/');
+    };
+    for(const page of contract.pages||[]){
+      const file=page.route==='/'?path.join(root,'index.html'):path.join(root,page.route,'index.html');
+      if(!fs.existsSync(file)){failures.push('/platform/internal-link-contract.json: source route missing '+page.route);continue;}
+      const html=fs.readFileSync(file,'utf8');
+      const links=new Set();
+      for(const tag of html.match(/<a\b[^>]*>/gi)||[]){
+        const href=getAttr(tag,'href');
+        const normalized=normaliseHref(page.route,href);
+        if(normalized) links.add(normalized);
+      }
+      for(const target of page.requires||[]){
+        if(!links.has(target)) failures.push(page.route+': strategic internal link missing '+target);
+      }
+    }
+  }catch(e){
+    failures.push('/platform/internal-link-contract.json: invalid link contract '+e.message);
+  }
+}
+if(failures.length){
+  console.error('\nStrategic internal-link failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // HREFLANG EQUIVALENCE REGISTRY — declared bilingual pairs are release contracts.
 const hreflangRegistryPath=path.join(root,'platform','hreflang-pairs.json');
 if(!fs.existsSync(hreflangRegistryPath)) failures.push('/platform/hreflang-pairs.json: missing bilingual equivalence registry');

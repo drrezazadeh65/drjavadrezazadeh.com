@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "status": "FROZEN_STRATEGIC_LINK_GRAPH",
+  "rule": "Required links express search-intent and trust relationships, not keyword stuffing. Destination routes are stable route identities.",
+  "pages": [
+    {
+      "route": "/fa/estedaadyabi/",
+      "requires": [
+        "/fa/golden-talent/",
+        "/fa/falsafe-amoozeshi/",
+        "/fa/danesh-amoozan/"
+      ]
+    },
+    {
+      "route": "/fa/entekhab-reshteh/",
+      "requires": [
+        "/fa/moshavere-tahsili/",
+        "/fa/estedaadyabi/",
+        "/fa/akhbar/entekhab-reshteh-1405/"
+      ]
+    },
+    {
+      "route": "/fa/moshavere-tahsili/",
+      "requires": [
+        "/fa/estedaadyabi/",
+        "/fa/entekhab-reshteh/",
+        "/fa/akhbar/moshavere-tahsili-baraye-tasmim/"
+      ]
+    },
+    {
+      "route": "/fa/khadamat/",
+      "requires": [
+        "/fa/moshavere-tahsili/",
+        "/fa/entekhab-reshteh/",
+        "/fa/estedaadyabi/",
+        "/fa/moshavere-konkur/"
+      ]
+    },
+    {
+      "route": "/en/golden-talent/",
+      "requires": [
+        "/en/golden-talent/methodology/",
+        "/en/golden-talent/student/",
+        "/en/educational-philosophy/"
+      ]
+    },
+    {
+      "route": "/en/student-guidance/",
+      "requires": [
+        "/en/golden-talent/",
+        "/en/language-education/",
+        "/en/request-consultation/",
+        "/en/educational-philosophy/"
+      ]
+    },
+    {
+      "route": "/en/research/",
+      "requires": [
+        "/en/publications/",
+        "/en/language-education/",
+        "/en/teacher-education/",
+        "/en/projects/"
+      ]
+    },
+    {
+      "route": "/en/publications/",
+      "requires": [
+        "/en/research/",
+        "/en/academic-engagements/",
+        "/en/books/"
+      ]
+    }
+  ],
+  "principles": [
+    "service_to_evidence_or_guide",
+    "guide_to_relevant_service",
+    "authority_mesh",
+    "talent_to_methodology_and_philosophy",
+    "descriptive_anchor_text",
+    "no_forced_exact_match_repetition"
+  ]
+}
