@@ -1272,3 +1272,14 @@ else{
   if(!src.includes(invariant)) failures.push('/platform/golden-talent-deep-module-engine.mjs: missing invariant '+invariant);
  }
 }
+
+// Golden Talent orchestration/idempotency guardrails.
+for(const p of ['platform/golden-talent-orchestrator.mjs','platform/golden-talent-orchestration-policy.json']){
+ if(!fs.existsSync(path.join(root,p))) failures.push('/'+p+': missing production orchestration component');
+}
+const orch=fs.readFileSync(path.join(root,'platform','golden-talent-orchestrator.mjs'),'utf8');
+for(const invariant of ["response_revision","idempotency_key","client_authoritative:false","history_preserved:true","status:'SUPERSEDED'"]){
+ if(!orch.includes(invariant)) failures.push('/platform/golden-talent-orchestrator.mjs: missing invariant '+invariant);
+}
+const op=JSON.parse(fs.readFileSync(path.join(root,'platform','golden-talent-orchestration-policy.json'),'utf8'));
+if(op.server_authoritative!==true||op.idempotency?.duplicate_policy!=='RETURN_EXISTING_RESULT'||op.immutability?.released_route_run!==true) failures.push('/platform/golden-talent-orchestration-policy.json: unsafe orchestration policy');
