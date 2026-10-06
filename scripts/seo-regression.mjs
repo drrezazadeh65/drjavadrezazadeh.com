@@ -1393,3 +1393,14 @@ const oa=fs.readFileSync(path.join(root,'platform','db','migrations','015_orches
 for(const x of ["'ROUTING'","'REVIEW_REQUIRED'",'response_revision','submitted_snapshot','submission_idempotency_key','source_golden_path_release_id','reconciliation_status']) if(!oa.includes(x)) failures.push('/platform/db/migrations/015_orchestration_alignment.sql: missing '+x);
 const er=fs.readFileSync(path.join(root,'platform','db','migrations','016_evidence_review_history.sql'),'utf8');
 for(const x of ['talent_evidence_review','supersedes_review_id',"ACTIVE','SUPERSEDED','VOID",'reviewer_user_id']) if(!er.includes(x)) failures.push('/platform/db/migrations/016_evidence_review_history.sql: missing '+x);
+
+// Roadmap low-maturity engine guardrails.
+for(const p of ['platform/assessment-engine.mjs','platform/assessment-engine-policy.json','platform/consultation-engine.mjs','platform/research-export-engine.mjs']) if(!fs.existsSync(path.join(root,p))) failures.push('/'+p+': missing roadmap engine');
+const ae=fs.readFileSync(path.join(root,'platform','assessment-engine.mjs'),'utf8');
+for(const x of ['Frozen response snapshot required','Published explicit scoring rules required','Published explicit interpretation rules required']) if(!ae.includes(x)) failures.push('/platform/assessment-engine.mjs: missing '+x);
+const ap=JSON.parse(fs.readFileSync(path.join(root,'platform','assessment-engine-policy.json'),'utf8'));
+if(ap.golden_talent_scoring_status!=='DISABLED_PENDING_EMPIRICAL_VALIDATION'||!ap.prohibited?.includes('invented_norm')||!ap.prohibited?.includes('automatic_gifted_label')) failures.push('/platform/assessment-engine-policy.json: unsafe Golden Talent scoring policy');
+const ce=fs.readFileSync(path.join(root,'platform','consultation-engine.mjs'),'utf8');
+for(const x of ['TRIAGED','AWAITING_BOOKING','Verified completed payment required']) if(!ce.includes(x)) failures.push('/platform/consultation-engine.mjs: incomplete consultation workflow');
+const re=fs.readFileSync(path.join(root,'platform','research-export-engine.mjs'),'utf8');
+for(const x of ['Approved research study required','Frozen dataset required','direct_identity:false','codebook_required:true']) if(!re.includes(x)) failures.push('/platform/research-export-engine.mjs: unsafe research export');
