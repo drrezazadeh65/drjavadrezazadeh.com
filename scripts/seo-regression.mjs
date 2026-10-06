@@ -1283,3 +1283,16 @@ for(const invariant of ["response_revision","idempotency_key","client_authoritat
 }
 const op=JSON.parse(fs.readFileSync(path.join(root,'platform','golden-talent-orchestration-policy.json'),'utf8'));
 if(op.server_authoritative!==true||op.idempotency?.duplicate_policy!=='RETURN_EXISTING_RESULT'||op.immutability?.released_route_run!==true) failures.push('/platform/golden-talent-orchestration-policy.json: unsafe orchestration policy');
+
+// Golden Talent deny-by-default authorisation guardrails.
+const authPath=path.join(root,'platform','golden-talent-authorization.mjs');
+const accessPath=path.join(root,'platform','golden-talent-access-policy.json');
+if(!fs.existsSync(authPath)||!fs.existsSync(accessPath)) failures.push('/platform: missing Golden Talent authorization layer');
+else{
+ const auth=fs.readFileSync(authPath,'utf8');
+ for(const invariant of ["DENY_BY_DEFAULT","VISIBILITY_SCOPE_DENIED","ACTIVE_CASE_REVIEW_ASSIGNMENT_REQUIRED","assignment?.scope","consent?.allows===true"]){
+  if(!auth.includes(invariant)) failures.push('/platform/golden-talent-authorization.mjs: missing invariant '+invariant);
+ }
+ const ap=JSON.parse(fs.readFileSync(accessPath,'utf8'));
+ if(ap.default!=='DENY'||ap.ui_hiding_is_authorization!==false||ap.rules?.researcher?.direct_identity_access!==false) failures.push('/platform/golden-talent-access-policy.json: unsafe access policy');
+}
