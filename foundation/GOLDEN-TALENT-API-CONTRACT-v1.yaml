@@ -93,6 +93,50 @@ paths:
           schema: { type: string, format: uuid }
       responses:
         '200': { description: Routing result }
+  /v1/golden-talent/evidence:
+    post:
+      summary: Record a versioned Golden Talent evidence event
+      description: >
+        Server records provenance, source class, visibility scope and quality state.
+        Missing evidence is never converted into negative evidence.
+      security: [{ sessionAuth: [] }]
+      responses:
+        '201': { description: Evidence event persisted }
+        '403': { description: Subject relationship or evidence scope not authorised }
+  /v1/golden-talent/route-runs:
+    post:
+      summary: Create an auditable D1-D6 evidence-routing run
+      description: >
+        Produces evidence states and next-evidence priorities only. It does not produce
+        a total talent score, normative gifted label or automatic career prescription.
+      security: [{ sessionAuth: [] }]
+      responses:
+        '201': { description: Versioned routing run created }
+  /v1/golden-talent/route-runs/{runId}:
+    get:
+      summary: Return route evidence with provenance links and review state
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: runId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Auditable route run }
+  /v1/golden-talent/route-runs/{runId}/review:
+    post:
+      summary: Record professional review of a Golden Talent routing run
+      description: >
+        Required for high-consequence synthesis. Reviewer may request more evidence,
+        accept routing, revise routing with rationale, or void the run.
+      security: [{ sessionAuth: [] }]
+      parameters:
+        - in: path
+          name: runId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201': { description: Human review event persisted }
   /v1/checkout:
     post:
       summary: Create order and provider payment intent
