@@ -1412,3 +1412,14 @@ else{
  const a=fs.readFileSync(arp,'utf8');
  for(const x of ['frozen_at','response_revision','scoring_version_id','interpretation_version_id','source_response_revision','supersedes_report_id']) if(!a.includes(x)) failures.push('/platform/db/migrations/017_assessment_report_provenance.sql: missing '+x);
 }
+
+// Commerce integrity guardrails.
+const commercePath=path.join(root,'platform','commerce-engine.mjs');
+const commerceMig=path.join(root,'platform','db','migrations','018_commerce_integrity.sql');
+if(!fs.existsSync(commercePath)||!fs.existsSync(commerceMig)) failures.push('/platform: missing commerce integrity implementation');
+else{
+ const ce=fs.readFileSync(commercePath,'utf8');
+ for(const x of ['client_amount_ignored:true','Persisted verified matching payment required','REFUND_RECONCILIATION']) if(!ce.includes(x)) failures.push('/platform/commerce-engine.mjs: missing '+x);
+ const cm=fs.readFileSync(commerceMig,'utf8');
+ for(const x of ['customer_order_idempotency_uq','pricing_snapshot','granted_from_payment_id','refund_idempotency_uq','customer_order_totals_valid']) if(!cm.includes(x)) failures.push('/platform/db/migrations/018_commerce_integrity.sql: missing '+x);
+}
