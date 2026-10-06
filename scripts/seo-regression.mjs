@@ -1235,3 +1235,13 @@ for(const p of ['platform/golden-talent-review.mjs','platform/rcas-observer-evid
 const reviewSource=fs.readFileSync(path.join(root,'platform','golden-talent-review.mjs'),'utf8');
 if(!reviewSource.includes('requires_human_approval:true')) failures.push('/platform/golden-talent-review.mjs: human approval invariant missing');
 if(!reviewSource.includes("evidence_state==='DISCREPANT'")) failures.push('/platform/golden-talent-review.mjs: discrepancy gate missing');
+
+// Golden Path synthesis and BAHAR handoff guardrails.
+const gpPath=path.join(root,'platform','golden-path-synthesis.mjs');
+if(!fs.existsSync(gpPath)) failures.push('/platform/golden-path-synthesis.mjs: missing synthesis engine');
+else{
+ const gp=fs.readFileSync(gpPath,'utf8');
+ for(const invariant of ["review_accepted!==true","evidence_state==='DISCREPANT'","total_score:null","automatic_career_prescription:null","requires_human_goal_setting:true"]){
+  if(!gp.includes(invariant)) failures.push('/platform/golden-path-synthesis.mjs: missing invariant '+invariant);
+ }
+}
