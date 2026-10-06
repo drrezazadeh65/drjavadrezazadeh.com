@@ -4,9 +4,10 @@ export const ENGINE_VERSION='0.2-prevalidation';
 export const DOMAINS=Object.freeze(['D1','D2','D3','D4','D5','D6']);
 const usable=new Set(['USABLE','CONFLICTING']);
 const independentSource=e=>String(e.source_type||'').trim();
-const routeEligible=e=>e.domain_code&&['SUPPORTS','CONTRADICTS'].includes(e.provenance?.direction ?? e.evidence_value?.direction);
+const routeEligible=e=>e.domain_code&&Boolean(e.provenance?.review_id)&&e.review_projection?.active===true&&['SUPPORTS','CONTRADICTS'].includes(e.provenance?.direction);
 const polarity=e=>{
-  const p=e.provenance?.direction ?? e.evidence_value?.direction ?? null;
+  if(!e?.provenance?.review_id||e.review_projection?.active!==true) return null;
+  const p=e.provenance?.direction ?? null;
   return ['SUPPORTS','CONTRADICTS','CONTEXTUALISES'].includes(p)?p:null;
 };
 export function classifyDomain(domain,events=[]){

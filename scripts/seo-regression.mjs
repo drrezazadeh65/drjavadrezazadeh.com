@@ -314,6 +314,32 @@ if(failures.length){
 }
 
 
+// EVIDENCE REVIEW PROJECTION — routing must not trust raw evidence direction.
+const reviewRuntimePath=path.join(root,'platform/golden-talent-review.mjs');
+const reviewUniquePath=path.join(root,'platform/db/migrations/022_evidence_review_active_uniqueness.sql');
+if(!fs.existsSync(reviewRuntimePath)) failures.push('/platform/golden-talent-review.mjs: missing review projection runtime');
+else{
+  const reviewRuntime=fs.readFileSync(reviewRuntimePath,'utf8');
+  for(const token of ['effectiveEvidenceView','projectEvidenceLedger','review_projection','Multiple ACTIVE reviews']){
+    if(!reviewRuntime.includes(token)) failures.push('/platform/golden-talent-review.mjs: persisted-review projection control missing '+token);
+  }
+}
+if(!fs.existsSync(reviewUniquePath)) failures.push('/platform/db/migrations/022_evidence_review_active_uniqueness.sql: missing ACTIVE review uniqueness migration');
+else{
+  const reviewSql=fs.readFileSync(reviewUniquePath,'utf8');
+  if(!reviewSql.includes('talent_evidence_review_one_active_uq')||!reviewSql.includes("WHERE review_status='ACTIVE'")) failures.push('/platform/db/migrations/022_evidence_review_active_uniqueness.sql: one-ACTIVE-review invariant missing');
+}
+const engineReviewGate=fs.readFileSync(path.join(root,'platform/golden-talent-engine.mjs'),'utf8');
+if(!engineReviewGate.includes('review_projection?.active===true')||!engineReviewGate.includes('provenance?.review_id')){
+  failures.push('/platform/golden-talent-engine.mjs: route eligibility must require persisted ACTIVE review projection');
+}
+if(failures.length){
+  console.error('\nEvidence-review projection failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // DEEP-MODULE COMPLETION SEMANTICS — registry requirements must be executable, not documentation-only.
 const deepEnginePath=path.join(root,'platform/golden-talent-deep-module-engine.mjs');
 if(!fs.existsSync(deepEnginePath)) failures.push('/platform/golden-talent-deep-module-engine.mjs: missing deep-module engine');
