@@ -97,7 +97,16 @@
     "COM-008": "Order, line-item, immutable price snapshot, invoice and idempotency persistence implemented; production invoice issuance remains pending.",
     "COM-011": "Refund persistence and confirmed-refund entitlement reconciliation implemented; final customer-facing policy/provider refund adapter remains pending.",
     "COM-013": "Entitlement fulfilment now requires persisted verified matching payment and records payment provenance; provider-backed activation remains pending.",
-    "COM-015": "Consultation workflow can require payment before confirmation and commerce core requires verified payment; runtime integration awaits backend/provider."
+    "COM-015": "Consultation workflow can require payment before confirmation and commerce core requires verified payment; runtime integration awaits backend/provider.",
+    "CRM-003": "Transactional communication planner implemented with template/category provenance; live email provider and final templates remain pending.",
+    "CRM-004": "Appointment reminder preference enforcement is implemented in communication planning; scheduler/provider delivery remains pending.",
+    "CRM-005": "Secure-thread authorization logic now requires active participation and open thread for sending; live messaging runtime remains pending.",
+    "CRM-006": "Communication preferences are persisted in schema and enforced by planner for reminders, transactional preferences and marketing.",
+    "CRM-007": "Marketing communication is fail-closed unless explicit allow_marketing is true; newsletter delivery remains pending.",
+    "ADMIN-002": "Draft → review → approve/reject → publish/supersede lifecycle implemented with reviewer requirement before publication; CMS UI remains pending.",
+    "ADMIN-003": "Indexable publication lifecycle requires canonical/title/description and existing SEO regression continues full metadata validation; CMS field UI remains pending.",
+    "ADMIN-009": "Append-only administrative audit-event persistence implemented; admin UI/query surface remains pending.",
+    "ADMIN-010": "Versioned content revision history with hashes, reviewer, supersession and publication timestamps implemented; CMS editing UI remains pending."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
