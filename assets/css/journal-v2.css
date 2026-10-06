@@ -71,3 +71,89 @@
   .journal-page .journal-status-grid{grid-template-columns:1fr}
   .journal-page .journal-status-card{min-height:auto}
 }
+
+
+/* Journal workflow components v1 */
+.journal-page .journal-process{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:9px;
+  margin-top:22px;
+}
+.journal-page .journal-process>div{
+  min-height:138px;
+  padding:17px;
+  border:1px solid var(--j-border);
+  border-radius:15px;
+  background:linear-gradient(145deg,rgba(255,255,255,.02),rgba(255,255,255,.005));
+}
+.journal-page .journal-process b{
+  display:grid;
+  place-items:center;
+  width:31px;
+  height:31px;
+  border:1px solid var(--j-border-strong);
+  border-radius:9px;
+  color:var(--gold-2);
+  font-size:9px;
+}
+.journal-page .journal-process strong{
+  display:block;
+  margin-top:15px;
+  color:#ece4d6;
+  font-size:13px;
+}
+.journal-page .journal-process span{
+  display:block;
+  margin-top:6px;
+  color:#8e877c;
+  font-size:10px;
+  line-height:1.6;
+}
+.journal-page .journal-empty-state{
+  margin-top:22px;
+  padding:30px;
+  border:1px dashed var(--j-border-strong);
+  border-radius:20px;
+  background:rgba(255,255,255,.008);
+}
+.journal-page .journal-empty-state strong{
+  display:block;
+  color:#ece4d6;
+  font-size:18px;
+}
+.journal-page .journal-empty-state p{
+  margin-bottom:0;
+  color:#918a7f;
+}
+.journal-page .journal-role-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:11px;
+  margin-top:22px;
+}
+.journal-page .journal-role-grid>article{
+  min-height:190px;
+  padding:22px;
+  border:1px solid var(--j-border);
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(255,255,255,.02),rgba(255,255,255,.006));
+}
+.journal-page .journal-role-grid h3{
+  margin:0 0 8px;
+  color:#eee6d8;
+  font-size:19px;
+}
+.journal-page .journal-role-grid p{
+  margin:0;
+  color:#958e82;
+  font-size:13px;
+  line-height:1.75;
+}
+@media(max-width:980px){
+  .journal-page .journal-process{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .journal-page .journal-role-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .journal-page .journal-process{grid-template-columns:1fr 1fr}
+}
