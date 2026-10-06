@@ -36,6 +36,8 @@ jobs:
         run: node scripts/master-migration-preflight.mjs
       - name: Run payment adapter contract tests
         run: node platform/payment-provider-adapter.test.mjs
+      - name: Run book commerce contract tests
+        run: node platform/book-commerce.test.mjs
       - name: Run pathway reference contract tests
         run: node platform/pathway-reference.test.mjs
       - name: Run Golden Path lifecycle tests
