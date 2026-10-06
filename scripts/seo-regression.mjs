@@ -1448,3 +1448,11 @@ const rp=JSON.parse(fs.readFileSync(path.join(root,'platform','research-executio
 if(rp.direct_identity_in_export!==false||rp.requires_deidentification_run!==true||rp.requires_frozen_codebook!==true||rp.withdrawn_case_future_use_prohibited!==true) failures.push('/platform/research-execution-policy.json: unsafe research execution policy');
 const rep=fs.readFileSync(path.join(root,'platform','report-engine.mjs'),'utf8');
 for(const x of ['immutable_source_provenance:true','Human report review required','SUPERSEDED','history_preserved:true']) if(!rep.includes(x)) failures.push('/platform/report-engine.mjs: missing '+x);
+
+// Golden Talent authorization/completion drift guards.
+const gta=fs.readFileSync(path.join(root,'platform','golden-talent-authorization.mjs'),'utf8');
+for(const x of ["explicitConsent(consent,'PARENT_VISIBILITY')","explicitConsent(consent,'TEACHER_OBSERVATION')","explicitConsent(consent,'CONSULTANT_REVIEW')","typeof scope==='object'"]) if(!gta.includes(x)) failures.push('/platform/golden-talent-authorization.mjs: missing '+x);
+const gtd=JSON.parse(fs.readFileSync(path.join(root,'platform','golden-talent-deep-modules.json'),'utf8'));
+for(const d of ['D1','D2','D3','D4','D5','D6']) if(!gtd.modules[d]?.completion_requirements) failures.push('/platform/golden-talent-deep-modules.json: '+d+' lacks machine-readable completion');
+const gte=fs.readFileSync(path.join(root,'platform','golden-talent-deep-module-engine.mjs'),'utf8');
+for(const x of ['completion_requirements','required_task_codes','professional_review','completed_for_workflow:completed','requires_route_rerun:completed']) if(!gte.includes(x)) failures.push('/platform/golden-talent-deep-module-engine.mjs: missing '+x);
