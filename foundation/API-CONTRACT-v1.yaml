@@ -955,7 +955,7 @@ components:
           type: array
           items:
             type: string
-            enum: [STUDENT, PARENT, TEACHER, CONSULTANT, RESEARCHER, EDITOR, ADMIN, SUPER_ADMIN]
+            enum: [STUDENT, PARENT, TEACHER, CONSULTANT, COUNSELLOR, RESEARCHER, CONSULTATION_CLIENT, INSTITUTION, EDITOR, ADMIN, SUPER_ADMIN]
     ProfileUpdate:
       type: object
       additionalProperties: false
@@ -1024,7 +1024,7 @@ components:
           writeOnly: true
         role:
           type: string
-          enum: [STUDENT, PARENT, TEACHER, CONSULTANT]
+          enum: [STUDENT, PARENT, TEACHER, CONSULTANT, RESEARCHER, CONSULTATION_CLIENT]
     EmailVerification:
       type: object
       additionalProperties: false
