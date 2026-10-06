@@ -626,8 +626,56 @@
   .dashboard-kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:840px){
-  .dashboard-sidebar{display:none}
-  .dashboard-workspace{margin-inline-start:0}
+  .dashboard-sidebar{
+    position:fixed;
+    inset:auto 0 0 0;
+    width:100%;
+    height:auto;
+    max-height:none;
+    padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+    border-inline-end:0;
+    border-top:1px solid var(--dash-border);
+    background:rgba(8,8,9,.94);
+    backdrop-filter:blur(18px);
+    overflow:hidden;
+    z-index:80;
+  }
+  .dashboard-sidebar .dash-brand,
+  .dashboard-sidebar .dash-side-foot{display:none}
+  .dashboard-sidebar nav{
+    display:flex;
+    gap:6px;
+    margin:0;
+    overflow-x:auto;
+    overscroll-behavior-inline:contain;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .dashboard-sidebar nav::-webkit-scrollbar{display:none}
+  .dashboard-sidebar nav a{
+    flex:0 0 auto;
+    min-width:118px;
+    min-height:48px;
+    padding:8px 10px;
+    justify-content:center;
+    gap:7px;
+    white-space:nowrap;
+    border-color:var(--dash-border);
+    background:#101012;
+  }
+  .dashboard-sidebar nav a[aria-current="page"]{
+    border-color:var(--dash-border-gold);
+    background:linear-gradient(180deg,rgba(199,163,91,.10),rgba(199,163,91,.035));
+  }
+  .dashboard-sidebar nav a span{
+    min-width:20px;
+    height:20px;
+    font-size:8px;
+  }
+  .dashboard-workspace{
+    margin-inline-start:0;
+    padding-bottom:76px;
+  }
   .dashboard-topbar{padding:12px 16px;min-height:64px}
   .dashboard-topbar .dash-actions .dash-pill:not(.primary){display:none}
   .dashboard-shell-page .student-dash-shell{width:calc(100% - 20px);padding-top:20px}
@@ -1797,4 +1845,11 @@
   .commerce-workspace-page .gt-private-hero h1{font-size:36px}
   .commerce-workspace-page .gt-plan,
   .commerce-workspace-page .pricing-card{min-height:auto;padding:22px}
+}
+
+/* Mobile dashboard dock v1 — sidebar becomes a horizontal app dock below 840px. */
+@media(max-width:520px){
+  .dashboard-sidebar nav a{min-width:104px;font-size:11px}
+  .dashboard-sidebar{padding-inline:6px}
+  .dashboard-workspace{padding-bottom:74px}
 }
