@@ -26,12 +26,12 @@ const getAttr=(tag,name)=>{
   return m?m[2]:null;
 };
 const strip=(s='')=>s
-  .replace(/<script[\\s\\S]*?<\\/script>/gi,' ')
-  .replace(/<style[\\s\\S]*?<\\/style>/gi,' ')
+  .replace(/<script[\s\S]*?<\/script>/gi,' ')
+  .replace(/<style[\s\S]*?<\/style>/gi,' ')
   .replace(/<[^>]+>/g,' ')
   .replace(/&nbsp;/gi,' ')
   .replace(/&amp;/gi,'&')
-  .replace(/\\s+/g,' ')
+  .replace(/\s+/g,' ')
   .trim();
 
 const failures=[];
@@ -41,23 +41,23 @@ const descriptions=new Map();
 const canonicals=new Map();
 let indexableCount=0;
 
-const bannedPlaceholder=/\\b(?:lorem ipsum|coming soon|placeholder|todo|tbd|example content|sample text)\\b/i;
+const bannedPlaceholder=/\b(?:lorem ipsum|coming soon|placeholder|todo|tbd|example content|sample text)\b/i;
 
 for(const file of htmlFiles){
   const html=fs.readFileSync(file,'utf8');
   const route=routeFor(file);
-  const robotsTag=(html.match(/<meta\\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0];
+  const robotsTag=(html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0];
   const robotContent=getAttr(robotsTag,'content')||'';
-  const isIndexable=!/\\bnoindex\\b/i.test(robotContent);
+  const isIndexable=!/\bnoindex\b/i.test(robotContent);
   if(!isIndexable) continue;
   indexableCount++;
 
-  const title=strip((html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)||[])[1]||'');
-  const descTag=(html.match(/<meta\\b[^>]*name=["']description["'][^>]*>/i)||[''])[0];
-  const description=(getAttr(descTag,'content')||'').replace(/\\s+/g,' ').trim();
-  const canonicalTag=(html.match(/<link\\b[^>]*rel=["']canonical["'][^>]*>/i)||[''])[0];
+  const title=strip((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]||'');
+  const descTag=(html.match(/<meta\b[^>]*name=["']description["'][^>]*>/i)||[''])[0];
+  const description=(getAttr(descTag,'content')||'').replace(/\s+/g,' ').trim();
+  const canonicalTag=(html.match(/<link\b[^>]*rel=["']canonical["'][^>]*>/i)||[''])[0];
   const canonical=(getAttr(canonicalTag,'href')||'').trim();
-  const h1Matches=[...html.matchAll(/<h1\\b[^>]*>([\\s\\S]*?)<\\/h1>/gi)];
+  const h1Matches=[...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)];
   const h1=h1Matches.length===1?strip(h1Matches[0][1]):'';
 
   if(!title) failures.push(route+': missing title');
@@ -87,28 +87,28 @@ for(const file of htmlFiles){
     }
   }
 
-  const ogUrlTag=(html.match(/<meta\\b[^>]*property=["']og:url["'][^>]*>/i)||[''])[0];
+  const ogUrlTag=(html.match(/<meta\b[^>]*property=["']og:url["'][^>]*>/i)||[''])[0];
   const ogUrl=(getAttr(ogUrlTag,'content')||'').trim();
   if(ogUrl && canonical && ogUrl!==canonical) failures.push(route+': og:url differs from canonical');
 
-  const ogTitleTag=(html.match(/<meta\\b[^>]*property=["']og:title["'][^>]*>/i)||[''])[0];
-  const ogDescTag=(html.match(/<meta\\b[^>]*property=["']og:description["'][^>]*>/i)||[''])[0];
+  const ogTitleTag=(html.match(/<meta\b[^>]*property=["']og:title["'][^>]*>/i)||[''])[0];
+  const ogDescTag=(html.match(/<meta\b[^>]*property=["']og:description["'][^>]*>/i)||[''])[0];
   if(!ogTitleTag) warnings.push(route+': no og:title');
   if(!ogDescTag) warnings.push(route+': no og:description');
 
-  const visibleText=strip((html.match(/<main\\b[^>]*>([\\s\\S]*?)<\\/main>/i)||[])[1]||'');
+  const visibleText=strip((html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)||[])[1]||'');
   if(visibleText.length<180){
     warnings.push(route+': very little visible main-content text; manually review intent completeness');
   }
 }
 
 if(failures.length){
-  console.error('\\nMetadata/content-identity failures ('+failures.length+')');
+  console.error('\nMetadata/content-identity failures ('+failures.length+')');
   failures.forEach(x=>console.error('✗ '+x));
 }
 if(warnings.length){
-  console.warn('\\nMetadata/content-identity warnings ('+warnings.length+')');
+  console.warn('\nMetadata/content-identity warnings ('+warnings.length+')');
   warnings.forEach(x=>console.warn('! '+x));
 }
-console.log('\\nMetadata uniqueness audit: '+indexableCount+' indexable pages, '+titles.size+' unique titles, '+descriptions.size+' unique descriptions.');
+console.log('\nMetadata uniqueness audit: '+indexableCount+' indexable pages, '+titles.size+' unique titles, '+descriptions.size+' unique descriptions.');
 if(failures.length) process.exit(1);
