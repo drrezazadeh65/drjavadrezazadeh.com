@@ -36,6 +36,8 @@ jobs:
         run: node scripts/metadata-uniqueness-audit.mjs
       - name: Run accessibility source audit
         run: node scripts/accessibility-source-audit.mjs
+      - name: Run performance source audit
+        run: node scripts/performance-source-audit.mjs
       - name: Validate IndexNow integration contract
         env:
           PROD_ORIGIN: https://drjavadrezazadeh.com
