@@ -1423,3 +1423,12 @@ else{
  const cm=fs.readFileSync(commerceMig,'utf8');
  for(const x of ['customer_order_idempotency_uq','pricing_snapshot','granted_from_payment_id','refund_idempotency_uq','customer_order_totals_valid']) if(!cm.includes(x)) failures.push('/platform/db/migrations/018_commerce_integrity.sql: missing '+x);
 }
+
+// Communication/admin governance guardrails.
+for(const p of ['platform/communication-engine.mjs','platform/content-lifecycle.mjs','platform/db/migrations/019_admin_content_governance.sql']) if(!fs.existsSync(path.join(root,p))) failures.push('/'+p+': missing governance implementation');
+const comm=fs.readFileSync(path.join(root,'platform','communication-engine.mjs'),'utf8');
+for(const x of ['MARKETING_OPT_IN_REQUIRED','marketing_consent_inferred:false','NOT_ACTIVE_PARTICIPANT','sensitive_payload:false']) if(!comm.includes(x)) failures.push('/platform/communication-engine.mjs: missing '+x);
+const life=fs.readFileSync(path.join(root,'platform','content-lifecycle.mjs'),'utf8');
+for(const x of ['Reviewed revision required','Indexable publication metadata required']) if(!life.includes(x)) failures.push('/platform/content-lifecycle.mjs: missing '+x);
+const ag=fs.readFileSync(path.join(root,'platform','db','migrations','019_admin_content_governance.sql'),'utf8');
+for(const x of ['admin_audit_event','content_revision','supersedes_revision_id','content_hash']) if(!ag.includes(x)) failures.push('/platform/db/migrations/019_admin_content_governance.sql: missing '+x);
