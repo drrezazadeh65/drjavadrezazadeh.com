@@ -1,0 +1,13 @@
+{
+ "schema_version":"1.0",
+ "institutional_consulting":{
+  "engagement_states":["INQUIRY","SCOPING","PROPOSAL","CONTRACT_REVIEW","ACTIVE","DELIVERED","CLOSED","DECLINED"],
+  "scope_required_before_proposal":true,
+  "named_outcomes_are_targets_not_guarantees":true,
+  "data_processing_terms_required_if_personal_data":true,
+  "child_data_requires_role_consent_and_minimisation":true,
+  "deliverables_versioned":true,
+  "acceptance_record_required":true,
+  "invoice_separate_from_consultation_consumer_checkout":true
+ }
+}
