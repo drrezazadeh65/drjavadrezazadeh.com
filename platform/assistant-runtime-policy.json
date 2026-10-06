@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "status": "PUBLIC_CONCIERGE_FOUNDATION_READY",
   "display_name": {
     "fa": "دستیار دکتر رضازاده",
@@ -13,7 +13,10 @@
   "storage": {
     "server_conversation_persistence": false,
     "browser_message_persistence": false,
-    "anonymous_rate_limit_id_local_storage": true
+    "anonymous_rate_limit_id_local_storage": true,
+    "lead_bank": "CLOUDFLARE_DURABLE_OBJECT_SQLITE",
+    "lead_retention_unconverted_days": 180,
+    "conversation_text_written_to_lead_bank": false
   },
   "visibility": {
     "public_pages": true,
@@ -27,7 +30,8 @@
     "No identity documents, medical records, passwords or payment data collection",
     "No invented prices, credentials, affiliations, publication status or scientific validation",
     "No total talent score, normative label, giftedness cutoff or automatic career prescription",
-    "No claim of being Dr. Rezazadeh or a human administrator"
+    "No claim of being Dr. Rezazadeh or a human administrator",
+    "Do not ask visitors to type contact details into chat; use the dedicated lead form"
   ],
   "escalation": {
     "consultation_routes": {
@@ -41,5 +45,25 @@
     "max_user_message_chars": 1600,
     "max_history_messages": 8,
     "max_model_output_tokens": 650
+  },
+  "lead_capture": {
+    "enabled": true,
+    "fields": [
+      "contact_type",
+      "contact_value",
+      "intent",
+      "locale",
+      "source_route",
+      "contact_consent",
+      "whatsapp_opt_in"
+    ],
+    "requires_explicit_contact_consent": true,
+    "contact_value_one_of": [
+      "EMAIL",
+      "MOBILE"
+    ],
+    "whatsapp_opt_in_separate": true,
+    "admin_export_endpoint": "/v1/admin/leads",
+    "admin_export_secret_name": "ADMIN_LEAD_EXPORT_TOKEN"
   }
 }
