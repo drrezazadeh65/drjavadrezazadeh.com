@@ -123,6 +123,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **UX-012 — IN PROGRESS — PWA manifest, service worker, offline shell, install prompts, cache-version governance, private-route cache bypass, network-first code delivery, exact 192×192 / 512×512 launcher icons and a dedicated 512×512 maskable icon are implemented and source-validated; only live installability/device QA remains pending.**
 - [ ] **UX-013 — IN PROGRESS — Accessible interaction baseline now extends visible focus, minimum touch targets and reduced-motion support across public-v2 and portal-v2, including dashboard navigation, pills, role cards, public buttons and service/auth controls; full keyboard/screen-reader/live-device QA remains pending.**
 - [ ] **UX-014 — PLANNED — Native app considered only after PWA usage justifies it.**
+- [ ] **UX-015 — IN PROGRESS — Four-audience public gateway architecture (Students & Parents, Researchers & Academics, Teachers & Educators, Institutions) is implemented on both homepages and bilingual service hubs without bloating primary navigation; deeper audience-specific journeys remain ongoing.**
 
 ---
 
@@ -159,6 +160,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **CONTENT-008 — DONE — 90-day editorial calendar created with publishing rhythm, intent ownership, internal-link targets, quality gates and review cycle.**
 - [ ] **CONTENT-009 — IN PROGRESS — Visible author, publication date and last-content-review metadata is enforced on the first high-stakes Persian guidance pages; independent reviewer attribution remains pending a real reviewer workflow and will never be fabricated.**
 - [ ] **CONTENT-010 — IN PROGRESS — Media library with SEO-safe alt/caption/licensing/provenance fields.**
+- [ ] **CONTENT-011 — IN PROGRESS — Knowledge Hub architecture is frozen around Pillar → Supporting Articles → FAQs → Tools → Services, with current Persian evergreen guides and English insights as foundations; full topical-cluster expansion remains ongoing.**
 
 ---
 
@@ -427,7 +429,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 
 The revenue model is diversified so no single product has to carry the ecosystem.
 
-- [ ] **REV-001 — PLANNED — One-to-one consultation.**
+- [ ] **REV-001 — IN PROGRESS — One-to-one consultation now has bilingual public discovery, minimal safe intake, triage/booking contracts and account appointment workspaces; live calendar, authenticated persistence and provider-backed payment remain pending.**
 - [ ] **REV-002 — PLANNED — Field-selection packages.**
 - [ ] **REV-003 — PLANNED — Entrance-exam planning/follow-up packages.**
 - [ ] **REV-004 — PLANNED — Paid assessments and reports.**
@@ -436,10 +438,24 @@ The revenue model is diversified so no single product has to carry the ecosystem
 - [ ] **REV-007 — PLANNED — Print books.**
 - [ ] **REV-008 — PLANNED — eBooks/workbooks/toolkits.**
 - [ ] **REV-009 — PLANNED — Courses/webinars where substantive value exists.**
-- [ ] **REV-010 — PLANNED — School/institution licences and consulting.**
+- [ ] **REV-010 — IN PROGRESS — Institutional consulting is now represented in the public audience architecture, bilingual service routing, institutional-consulting policy and invitation/contact pathways; live contracting, billing and institution-role runtime remain pending.**
 - [ ] **REV-011 — PLANNED — Teacher resources/observation tools.**
 - [ ] **REV-012 — PLANNED — Journal APC only if later adopted transparently; never linked to acceptance and never charged at submission in the founding model.**
 - [x] **REV-013 — FROZEN — No manipulative scarcity, false guarantees or pay-for-acceptance logic.**
+- [ ] **REV-014 — IN PROGRESS — Academic and researcher services now have bilingual public service architecture covering academic English editing, manuscript diagnostic review, research/publication consultation, reviewer-response support and academic career/interview consultation. Scope is agreed before confidential material transfer; pricing/payment remain pending verified operations.**
+- [ ] **REV-015 — PLANNED — Recurring coaching architecture for monthly coaching, quarterly review, annual development programme and premium long-term support.**
+- [ ] **REV-016 — IN PROGRESS — Speaking, workshop, teacher-training and invitation conversion pathways are implemented publicly with explicit scope-first enquiry and no premature contractual/payment claims.**
+
+---
+
+# 19.1 Master Website Evolution alignment
+
+- [x] **ARCH-001 — FROZEN — Master Website Evolution north star: Authority + Education + Intelligence + Revenue Ecosystem.**
+- [x] **ARCH-002 — FROZEN — Three moat model: Brand, Product & Data, Discovery.**
+- [x] **ARCH-003 — FROZEN — Golden Talent positioning: Educational Development & Decision Intelligence Platform; country-agnostic core with jurisdiction adapters.**
+- [x] **ARCH-004 — FROZEN — AI principle: AI-assisted + evidence-based + human-supervised; no decorative AI feature justified by marketing alone.**
+- [x] **ARCH-005 — FROZEN — Product filter: authority, revenue/conversion, accumulated user value, long-term moat, material UX and professional/scientific fit.**
+- [ ] **ARCH-006 — IN PROGRESS — Master vision gap analysis and priority matrix are documented in foundation/MASTER-WEBSITE-EVOLUTION-ALIGNMENT-v1.md and machine-readable platform/master-vision-architecture.json; execution proceeds incrementally without rebuilding healthy foundations.**
 
 ---
 
