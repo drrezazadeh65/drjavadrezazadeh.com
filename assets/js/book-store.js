@@ -34,7 +34,7 @@
  function card(book){
   const el=document.createElement('article');
   el.className='book-product-card';
-  el.innerHTML='<div class="book-cover-placeholder" aria-hidden="true"><span>BOOK</span></div>'+
+  el.innerHTML='<div class="book-cover-placeholder" aria-label="'+(isFa?'تصویر جلد هنوز تأیید نشده':'Cover image awaiting verification')+'"><span>'+(isFa?'مجموعه شعر منتشرشده':'Published poetry collection')+'</span><strong lang="fa" dir="rtl">'+book.title_fa+'</strong><small>'+(isFa?'تصویر رسمی جلد پس از تأیید افزوده می‌شود':'Official cover image will appear after verification')+'</small></div>'+
    '<div class="book-product-copy"><span class="status-chip">'+(isFa?'منتشرشده':'Published')+'</span>'+
    '<h2 dir="rtl" lang="fa">'+book.title_fa+'</h2><p>'+(isFa?book.description_fa:book.description_en)+'</p>'+
    '<div class="book-price">'+money(book.commerce?.price,book.commerce?.currency)+'</div>'+
