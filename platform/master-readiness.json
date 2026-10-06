@@ -314,8 +314,14 @@
       "mobile_navigation",
       "payment_activation_gate",
       "golden_talent_scientific_boundaries",
-      "database_migration_count"
+      "database_migration_count",
+      "identity_email_only",
+      "assistant_lead_bank_privacy",
+      "bookstore_activation_gate",
+      "admin_console_boundary",
+      "database_migration_sequence"
     ],
-    "rule": "Every material foundation change must remain visible in the machine-readable audit rather than relying on memory or prose status alone."
+    "rule": "Every material foundation change must remain visible in the machine-readable audit rather than relying on memory or prose status alone. A green audit proves repository consistency, not external provider activation.",
+    "completion_dossier": "foundation/SITE-COMPLETION-DOSSIER-2026-10-06.md"
   }
 }
