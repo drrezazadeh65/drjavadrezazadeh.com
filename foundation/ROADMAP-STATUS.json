@@ -162,7 +162,11 @@
     "PORTAL-011": "Persian consultant dashboard, My Path and case workspace now use the unified role-scoped operations shell; live triage/case persistence and professional review workflows remain backend dependent.",
     "UX-011": "Static responsive coverage has been materially expanded for public-v2, role dashboards, account/auth surfaces, service intake and student gateways across desktop, tablet and small-screen breakpoints; physical-device and landscape spot QA remain pending.",
     "AUTH-014": "Bilingual print-ready public CV pages are now implemented at /en/cv/ and /fa/rezome/, sourced only from already verified public-site facts and publication metadata. Browser print/save-PDF is available without inline-script dependency; a dedicated generated PDF artifact can be added later if operationally useful.",
-    "AUTH-015": "Verified publication citation cards now provide copyable citation text and DOI actions on the English and Persian scholarly record pages. Book citation/download cards remain intentionally deferred until title-level bibliographic metadata is verified rather than inferred."
+    "AUTH-015": "Verified publication citation cards now provide copyable citation text and DOI actions on the English and Persian scholarly record pages. Book citation/download cards remain intentionally deferred until title-level bibliographic metadata is verified rather than inferred.",
+    "SEO-023": "Private bilingual admin monitoring architecture is implemented for post-release Search Console, organic landing, field-CWV and content-decay signals without fabricated metrics. Live data binding remains pending permanent-domain analytics/search-provider activation.",
+    "SEO-024": "A 90–180 day high-value content review cadence is now represented in the admin review calendar, alongside monthly technical QA and quarterly strategic review. Automated scheduling and production performance data remain pending.",
+    "OBS-006": "Content-metric architecture now covers impressions, CTR, organic landing pages, assisted conversion and content-decay review in the private admin console; provider-backed collection remains pending.",
+    "OBS-008": "Monthly technical QA, 90–180 day content review and quarterly strategic review cadences are now represented in the bilingual admin console; automated scheduling/evidence capture remains pending production observability."
   },
   "editorial_calendar": "/foundation/EDITORIAL-CALENDAR-90D.md",
   "serp_review": "/foundation/SEO-SERP-REVIEW-CORE-SERVICES.md",
