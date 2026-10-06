@@ -1,0 +1,17 @@
+{
+ "schema_version":"1.0",
+ "environments":["LOCAL","DEVELOPMENT","STAGING","PRODUCTION"],
+ "public_config_allowlist":["APP_ENV","PUBLIC_ORIGIN","PUBLIC_APP_ORIGIN","INSTRUMENT_REGISTRY_VERSION","FEATURE_FLAGS"],
+ "secret_names":["DATABASE_URL","SESSION_SIGNING_KEY","OAUTH_CLIENT_SECRET","STORAGE_SIGNING_KEY","PAYMENT_PROVIDER_SECRET","PAYMENT_WEBHOOK_SECRET","EMAIL_PROVIDER_SECRET","DATA_ENCRYPTION_KEY"],
+ "rules":{
+  "secrets_in_git":false,
+  "secrets_in_browser_bundle":false,
+  "secrets_in_logs":false,
+  "secrets_in_audit_metadata":false,
+  "production_secret_reuse_in_lower_environments":false,
+  "runtime_secret_injection_required":true,
+  "rotation_procedure_required":true
+ },
+ "database_identities":["MIGRATION_OWNER","API_RUNTIME","BACKGROUND_WORKER","OPS_READONLY","RESEARCH_EXPORT"],
+ "runtime_superuser_prohibited":true
+}
