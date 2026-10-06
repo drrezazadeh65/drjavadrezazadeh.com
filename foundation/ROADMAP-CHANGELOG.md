@@ -124,3 +124,18 @@ This file records status transitions for the frozen Master Ecosystem Roadmap. It
 
 ### Integrated evidence profile
 - **GT-012 | IN PROGRESS → IN PROGRESS (substantial implementation)** — Added a private/noindex A–G evidence profile with S/P/R/O/C/T source selection, four descriptive evidence states (convergent/discrepant/single-source/insufficient), priority, next action, monitoring indicator and review time. It explicitly avoids total scores and statistical-confidence claims; production synthesis remains versioned/backend-dependent.
+
+
+## 2026-10-07
+
+### Search, AI discovery, entity authority and browser release closure
+- **SEARCH-V2 | DONE** — Upgraded bilingual public search with Persian normalization, synonym expansion, weighted ranking, category filters, zero-result recovery and private-route exclusion.
+- **RSS-001 | DONE** — Added a canonical public RSS feed with audited public-only item URLs and feed discovery on knowledge/news hubs.
+- **SEO-RELATED | DONE** — Formalised the Persian evergreen related-content graph, reciprocal guide/service links and a CI contract that prevents orphaned mapped guides.
+- **FAQ-INTEGRITY | DONE** — Made visible FAQ/schema equivalence release-blocking; structured questions and answers may not exist only in JSON-LD.
+- **AI-DISCOVERY | DONE** — Added a guarded public-only `llms.txt`, explicit OAI-SearchBot/ChatGPT-User/bingbot/YandexBot crawl policy and CI checks that prevent private, transactional, noindex or confidential routes from entering machine-readable discovery.
+- **ENTITY-AUTHORITY | DONE** — Unified authority surfaces on the canonical `https://drjavadrezazadeh.com/#person` identity and made fragmented Person objects a CI failure.
+- **INDEXNOW | PREPARED** — Public verification key, full-sitemap dry-run and guarded manual live activation workflow are complete. Network submission remains disabled until production HTTPS/key reachability is independently verified.
+- **BROWSER-QA | DONE (EMULATED)** — Added real Chromium release evidence across 320, 360, 390, 430, 1280, 1366, 1440, 1600 and 1920 px widths, including overflow checks, one-H1 checks, main-content visibility, Search v2 privacy checks, keyboard entry and screenshot artefacts. Physical-device/assistive-technology QA remains external.
+- **PRODUCTION-HEALTH | EXPANDED** — Live monitor now checks robots, sitemap, `llms.txt`, IndexNow key, intentional 404, private noindex shells, all sitemap targets, canonical self-identification, HTTP→HTTPS and www→apex behaviour. Strict enforcement remains off until DNS/TLS is independently stable.
+- **SITEMAP-SNAPSHOT | 55 INDEXABLE URLS** — Current release surface: core 4, Persian 28, English 21, news 2.

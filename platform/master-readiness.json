@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "as_of": "2026-10-06",
+  "as_of": "2026-10-07",
   "purpose": "Single machine-readable control plane for what is ready, what remains external, and what should be developed next without overstating production maturity.",
   "status_values": [
     "FOUNDATION_STRONG",
@@ -58,8 +58,8 @@
       "production_state": "FOUNDATION_STRONG",
       "revenue_priority": "CRITICAL",
       "external_blockers": [
-        "Permanent-domain cutover",
-        "Search Console/Bing verification",
+        "Permanent-domain DNS/TLS verification",
+        "Search Console HTTPS/domain-property verification and Bing/Yandex webmaster account activation",
         "Production field data"
       ],
       "artifacts": [
@@ -68,13 +68,18 @@
         "platform/seo-intent-registry.json",
         "platform/hreflang-pairs.json",
         "platform/public-entity-registry.json",
-        "platform/public-entity-schema-audit.mjs"
+        "platform/public-entity-schema-audit.mjs",
+        "llms.txt",
+        "scripts/ai-crawler-policy-audit.mjs",
+        ".github/workflows/indexnow-activation.yml",
+        "tests/public-browser-qa.spec.js",
+        ".github/workflows/browser-qa.yml"
       ],
       "next_actions": [
-        "Preserve green CI",
-        "Cut canonical origin once",
-        "Submit sitemap after domain launch",
-        "Measure real CWV/query data"
+        "Preserve green SEO/GEO and Chromium browser CI",
+        "After production HTTPS is independently stable, verify the HTTPS/domain property in Search Console and webmaster platforms",
+        "Run the guarded IndexNow live workflow after production HTTPS/key verification",
+        "Measure real Core Web Vitals, query, citation and indexation data"
       ]
     },
     {
@@ -82,7 +87,7 @@
       "production_state": "FOUNDATION_STRONG",
       "revenue_priority": "HIGH",
       "external_blockers": [
-        "Live-device matrix QA"
+        "Physical-device and assistive-technology QA on the permanent production domain"
       ],
       "artifacts": [
         "site.webmanifest",
@@ -90,13 +95,15 @@
         "assets/css/style.css",
         "assets/js/site.js",
         "platform/ecosystem-registry.json",
-        "platform/mobile-navigation-contract.json"
+        "platform/mobile-navigation-contract.json",
+        "tests/public-browser-qa.spec.js",
+        ".github/workflows/browser-qa.yml"
       ],
       "next_actions": [
-        "Run physical/emulated 320/360/390/430px horizontal-overflow QA without root clipping",
-        "Run VoiceOver/TalkBack and keyboard focus checks",
+        "Keep the automated Chromium 320/360/390/430 and desktop matrix green",
+        "Run physical-device VoiceOver/TalkBack checks on the permanent domain",
         "Validate installability on the permanent domain",
-        "Re-test private no-store behavior after app deployment"
+        "Re-test private no-store behavior after authenticated app deployment"
       ]
     },
     {
@@ -397,6 +404,6 @@
       "database_migration_sequence"
     ],
     "rule": "Every material foundation change must remain visible in the machine-readable audit rather than relying on memory or prose status alone. A green audit proves repository consistency, not external provider activation.",
-    "completion_dossier": "foundation/SITE-COMPLETION-DOSSIER-2026-10-06.md"
+    "completion_dossier": "foundation/SITE-COMPLETION-DOSSIER-2026-10-07.md"
   }
 }
