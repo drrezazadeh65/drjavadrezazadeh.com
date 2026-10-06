@@ -1,0 +1,17 @@
+{
+ "schema_version":"1.0",
+ "reference_metadata":{
+  "allowed_statuses":["DRAFT","PILOT","VALIDATED","RETIRED"],
+  "required_for_validated":["population_definition","sample_size","sampling_method","collection_period","instrument_version","scoring_version","analysis_method","limitations","approved_by","approved_at"],
+  "norm_claim_requires_validated_status":true,
+  "cutoff_requires_separate_empirical_justification":true,
+  "measurement_invariance_where_applicable":true,
+  "fairness_analysis_required":true,
+  "version_immutable_after_validation":true
+ },
+ "golden_talent":{
+  "norms_available":false,
+  "gifted_cutoff_available":false,
+  "automatic_label_allowed":false
+ }
+}
