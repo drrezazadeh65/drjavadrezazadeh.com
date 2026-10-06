@@ -2086,3 +2086,129 @@
   .student-gateway-page .gt-module-grid{grid-template-columns:1fr}
   .auth-page .auth-form{padding:20px}
 }
+
+
+/* Golden Talent commerce v3 — product tiers and checkout rails */
+.commerce-workspace-page .gt-package-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  margin-top:20px;
+}
+.commerce-workspace-page .gt-package{
+  position:relative;
+  min-height:390px;
+  padding:28px;
+  border:1px solid var(--dash-border);
+  border-radius:20px;
+  background:linear-gradient(160deg,#141416,#101012);
+  box-shadow:0 14px 36px rgba(0,0,0,.12);
+}
+.commerce-workspace-page .gt-package.featured{
+  border-color:var(--dash-border-gold);
+  background:
+    radial-gradient(360px 180px at 100% 0%,rgba(199,163,91,.075),transparent 70%),
+    linear-gradient(160deg,#151412,#101012);
+}
+.commerce-workspace-page .gt-package-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.commerce-workspace-page .gt-package h2{
+  margin:20px 0 8px;
+  color:#eee9df;
+  font-size:25px;
+}
+.commerce-workspace-page .gt-package p,
+.commerce-workspace-page .gt-package li{
+  color:#9a9da4;
+  line-height:1.8;
+}
+.commerce-workspace-page .gt-package ul{
+  margin:18px 0 24px;
+  padding-inline-start:20px;
+}
+.commerce-workspace-page .gt-price{
+  margin:14px 0 18px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--dash-border);
+}
+.commerce-workspace-page .gt-price b{
+  display:block;
+  color:#efe7d4;
+  font-size:22px;
+  line-height:1.25;
+}
+.commerce-workspace-page .gt-price span,
+.commerce-workspace-page .gt-price-state{
+  color:#777b82;
+  font-size:10px;
+}
+.commerce-workspace-page .payment-rail-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin:18px 0;
+}
+.commerce-workspace-page .payment-rail-grid article{
+  min-height:190px;
+  padding:22px;
+  border:1px solid var(--dash-border);
+  border-radius:18px;
+  background:linear-gradient(160deg,#141416,#101012);
+}
+.commerce-workspace-page .payment-rail-grid article>b{
+  display:grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  border:1px solid var(--dash-border-gold);
+  border-radius:10px;
+  color:var(--portal-gold-soft);
+  font-size:10px;
+}
+.commerce-workspace-page .payment-rail-grid h2{
+  margin:18px 0 8px;
+  font-size:20px;
+}
+.commerce-workspace-page .payment-rail-grid p{
+  color:#989ba2;
+  line-height:1.75;
+}
+.commerce-workspace-page .payment-rail-grid span{
+  display:block;
+  margin-top:10px;
+  color:#73767d;
+  font-size:10px;
+}
+.commerce-workspace-page .case-checklist{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:20px 0;
+}
+.commerce-workspace-page .case-checklist label{
+  min-height:48px;
+  padding:12px 14px;
+  border:1px solid var(--dash-border);
+  border-radius:12px;
+  background:#101012;
+  color:#b8bac0;
+  font-size:11px;
+}
+.commerce-workspace-page .case-checklist input{margin-inline-end:8px}
+.commerce-workspace-page :where(a,button):focus-visible{
+  outline:2px solid var(--portal-gold-soft);
+  outline-offset:3px;
+}
+@media(max-width:980px){
+  .commerce-workspace-page .gt-package-grid{grid-template-columns:1fr}
+  .commerce-workspace-page .gt-package{min-height:auto}
+  .commerce-workspace-page .payment-rail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  .commerce-workspace-page .payment-rail-grid,
+  .commerce-workspace-page .case-checklist{grid-template-columns:1fr}
+}
