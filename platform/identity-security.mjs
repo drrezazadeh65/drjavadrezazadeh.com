@@ -1,5 +1,5 @@
 // Server-side identity policy primitives. Raw tokens/session secrets must never be persisted.
-const ROLES=new Set(['STUDENT','PARENT','TEACHER','CONSULTANT','RESEARCHER','EDITOR','ADMIN','SUPER_ADMIN']);
+const ROLES=new Set(['STUDENT','PARENT','TEACHER','CONSULTANT','COUNSELLOR','RESEARCHER','CONSULTATION_CLIENT','INSTITUTION','EDITOR','ADMIN','SUPER_ADMIN']);
 const E164=/^\+[1-9]\d{7,14}$/;
 const cleanEmail=email=>String(email||'').trim().toLowerCase();
 export function registrationPlan({email,mobile_e164,role='STUDENT'}={}){
