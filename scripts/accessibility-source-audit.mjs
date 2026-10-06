@@ -94,7 +94,7 @@ for(const file of htmlFiles){
   }
 
   const skipLink=/class=["'][^"']*\bskip(?:-|_)link\b[^"']*["']/i.test(html) || /href=["']#(?:main|main-content|content)["'][^>]*>[^<]*(?:skip|پرش)/i.test(html);
-  if(!skipLink) warnings.push(route+': no explicit skip-to-content link detected');
+  if(!skipLink) failures.push(route+': missing required skip-to-content link');
 }
 
 if(failures.length){
