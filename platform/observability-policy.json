@@ -1,22 +1,68 @@
 {
- "schema_version":"1.0",
- "events":[
-  {"key":"consultation_request","data_class":"operational","requires_consent":false},
-  {"key":"booking_confirmed","data_class":"operational","requires_consent":false},
-  {"key":"checkout_started","data_class":"operational","requires_consent":false},
-  {"key":"payment_verified","data_class":"operational","requires_consent":false,"server_only":true},
-  {"key":"assessment_started","data_class":"product","requires_consent":false},
-  {"key":"assessment_completed","data_class":"product","requires_consent":false},
-  {"key":"report_ready","data_class":"product","requires_consent":false,"server_only":true}
- ],
- "rules":{
-  "no_raw_assessment_answers_in_analytics":true,
-  "no_message_bodies":true,
-  "no_document_names_or_contents":true,
-  "no_payment_credentials":true,
-  "no_research_identity_links":true,
-  "pseudonymous_user_identifier_only":true,
-  "marketing_tracking_requires_opt_in":true,
-  "journal_metrics_must_not_claim_impact_factor_or_indexing_without_verification":true
- }
+  "schema_version": "1.0",
+  "events": [
+    {
+      "key": "consultation_request",
+      "data_class": "operational",
+      "requires_consent": false
+    },
+    {
+      "key": "booking_confirmed",
+      "data_class": "operational",
+      "requires_consent": false
+    },
+    {
+      "key": "checkout_started",
+      "data_class": "operational",
+      "requires_consent": false
+    },
+    {
+      "key": "payment_verified",
+      "data_class": "operational",
+      "requires_consent": false,
+      "server_only": true
+    },
+    {
+      "key": "assessment_started",
+      "data_class": "product",
+      "requires_consent": false
+    },
+    {
+      "key": "assessment_completed",
+      "data_class": "product",
+      "requires_consent": false
+    },
+    {
+      "key": "report_ready",
+      "data_class": "product",
+      "requires_consent": false,
+      "server_only": true
+    },
+    {
+      "key": "consultation_intent",
+      "data_class": "aggregate_product",
+      "requires_consent": false,
+      "client_event": true,
+      "payload": "contract_allowlist_only"
+    },
+    {
+      "key": "consultation_email_intent",
+      "data_class": "aggregate_product",
+      "requires_consent": false,
+      "client_event": true,
+      "payload": "contract_allowlist_only"
+    }
+  ],
+  "rules": {
+    "no_raw_assessment_answers_in_analytics": true,
+    "no_message_bodies": true,
+    "no_document_names_or_contents": true,
+    "no_payment_credentials": true,
+    "no_research_identity_links": true,
+    "pseudonymous_user_identifier_only": true,
+    "marketing_tracking_requires_opt_in": true,
+    "journal_metrics_must_not_claim_impact_factor_or_indexing_without_verification": true,
+    "client_conversion_events_local_until_adapter_connected": true,
+    "raw_form_values_in_analytics": false
+  }
 }

@@ -328,7 +328,11 @@ markActiveDockItem();
   const ua=navigator.userAgent||'';
   const ios=/iPhone|iPad|iPod/i.test(ua);
   const standalone=window.navigator.standalone===true || window.matchMedia?.('(display-mode: standalone)').matches;
-  const privatePath=/\/(?:fa\/app|app|fa\/login|login|fa\/register|register|fa\/bazyabi-hesab|en\/login|en\/register|en\/recover|en\/account|fa\/assessments|assessments|fa\/shop|shop|en\/golden-talent\/(?:assessment|dashboard|observer|roles|student|checkout))\//.test(location.pathname);
+  const raw=location.pathname.replace(/index\.html$/,'');
+  const gh='/drjavadrezazadeh.com/';
+  const base=raw.includes(gh)?gh:'/';
+  const relative=base==='/'?raw:'/'+raw.slice(base.length);
+  const privatePath=JR_ROUTE_POLICY.noStore.some(prefix=>relative.startsWith(prefix));
   if(!ios||standalone||privatePath||sessionStorage.getItem('ios-install-dismissed')==='1'||document.querySelector('.pwa-install')) return;
   const isFa=document.documentElement.lang==='fa';
   window.addEventListener('load',()=>{
@@ -441,4 +445,21 @@ markActiveDockItem();
     });
     finish();
   });
+})();
+// PRIVACY-SAFE CONVERSION INTENT BUS v1
+(function(){
+  document.addEventListener('click',e=>{
+    const el=e.target.closest('[data-conversion-event]');
+    if(!el) return;
+    const event_key=String(el.dataset.conversionEvent||'').trim();
+    if(!event_key) return;
+    const detail={
+      event_key,
+      surface:String(el.dataset.conversionSurface||'unknown'),
+      locale:document.documentElement.lang||'und',
+      route:location.pathname,
+      target_kind:el.matches('a[href^="mailto:"]')?'EMAIL':(el.tagName==='A'?'LINK':'ACTION')
+    };
+    window.dispatchEvent(new CustomEvent('JR_CONVERSION_INTENT',{detail}));
+  },{capture:true});
 })();

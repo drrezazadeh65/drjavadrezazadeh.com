@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "status": "READY_FOR_PROVIDER_ADAPTER",
+  "transport": "NO_NETWORK_BY_DEFAULT",
+  "browser_event": "JR_CONVERSION_INTENT",
+  "allowed_fields": [
+    "event_key",
+    "surface",
+    "locale",
+    "route",
+    "target_kind"
+  ],
+  "prohibited_fields": [
+    "name",
+    "email",
+    "phone",
+    "assessment_response",
+    "message_body",
+    "document_name",
+    "payment_reference",
+    "user_id",
+    "raw_query_string"
+  ],
+  "events": [
+    {
+      "key": "consultation_intent",
+      "stage": "LEAD",
+      "purpose": "User chooses the consultation intake path"
+    },
+    {
+      "key": "consultation_email_intent",
+      "stage": "LEAD",
+      "purpose": "User opens the current safe email fallback"
+    },
+    {
+      "key": "golden_talent_private_preview",
+      "stage": "PRODUCT_INTEREST",
+      "purpose": "User opens a private Golden Talent preview"
+    }
+  ],
+  "rules": {
+    "local_custom_event_only_until_adapter_connected": true,
+    "marketing_tracking_requires_opt_in": true,
+    "no_raw_form_values": true,
+    "no_sensitive_student_data": true,
+    "no_payment_data": true,
+    "route_query_parameters_excluded": true
+  }
+}

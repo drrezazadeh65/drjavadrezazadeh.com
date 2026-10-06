@@ -1558,6 +1558,46 @@ if(failures.length){
 }
 
 
+// REVENUE CONVERSION SAFETY — high-intent routes need a real but privacy-safe lead path.
+{
+  const requiredLeadRoutes=[
+    ['fa/moshavere-tahsili/index.html','../darkhast-moshavere/'],
+    ['fa/entekhab-reshteh/index.html','../darkhast-moshavere/'],
+    ['fa/moshavere-konkur/index.html','../darkhast-moshavere/'],
+    ['fa/estedaadyabi/index.html','../darkhast-moshavere/'],
+    ['en/student-guidance/index.html','../request-consultation/'],
+    ['en/services/index.html','../request-consultation/'],
+    ['en/golden-talent/index.html','../request-consultation/']
+  ];
+  for(const [rel,target] of requiredLeadRoutes){
+    const p=path.join(root,rel);
+    if(!fs.existsSync(p)){failures.push('/'+rel+': high-intent conversion page missing');continue;}
+    const html=fs.readFileSync(p,'utf8');
+    if(!html.includes(target)) failures.push('/'+rel+': privacy-safe consultation path missing');
+  }
+  for(const rel of ['fa/darkhast-moshavere/index.html','en/request-consultation/index.html']){
+    const p=path.join(root,rel);
+    if(!fs.existsSync(p)){failures.push('/'+rel+': consultation gateway missing');continue;}
+    const html=fs.readFileSync(p,'utf8');
+    const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
+    const rc=getAttr(robots,'content')||'';
+    if(!/\bnoindex\b/i.test(rc)) failures.push('/'+rel+': consultation gateway must remain noindex');
+    if(!/mailto:dr\.rezazadeh65@gmail\.com/i.test(html)) failures.push('/'+rel+': interim safe email lead fallback missing');
+  }
+  const conversionContract=path.join(root,'platform','conversion-event-contract.json');
+  if(!fs.existsSync(conversionContract)) failures.push('/platform/conversion-event-contract.json: conversion privacy contract missing');
+  else{
+    const c=JSON.parse(fs.readFileSync(conversionContract,'utf8'));
+    if(c.transport!=='NO_NETWORK_BY_DEFAULT'||c.rules?.no_raw_form_values!==true||c.rules?.no_sensitive_student_data!==true) failures.push('/platform/conversion-event-contract.json: privacy-safe conversion defaults drift');
+  }
+}
+if(failures.length){
+  console.error('\nRevenue conversion safety failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // PUBLIC SEARCH GOVERNANCE — search index must contain public/indexable pages only.
 const searchGovernanceIndexPath=path.join(root,'assets','search-index.json');
 if(!fs.existsSync(searchGovernanceIndexPath)){
