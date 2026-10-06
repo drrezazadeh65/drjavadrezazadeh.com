@@ -24,6 +24,8 @@ jobs:
         run: node scripts/seo-regression.mjs
       - name: Run visual-system regression audit
         run: node scripts/design-regression.mjs
+      - name: Run responsive resilience source audit
+        run: node scripts/responsive-resilience-audit.mjs
       - name: Run link-integrity audit
         run: node scripts/link-integrity-audit.mjs
       - name: Run URL-stability audit
