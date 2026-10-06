@@ -26,6 +26,8 @@ jobs:
         run: node platform/ecosystem-governance.test.mjs
       - name: Run module architecture graph tests
         run: node platform/module-governance.test.mjs
+      - name: Run platform readiness control
+        run: node scripts/platform-readiness.mjs
       - name: Run pathway reference contract tests
         run: node platform/pathway-reference.test.mjs
       - name: Run Golden Path lifecycle tests

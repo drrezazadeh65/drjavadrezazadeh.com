@@ -1,0 +1,199 @@
+{
+  "schema_version": "1.0",
+  "as_of": "2026-10-06",
+  "purpose": "Single machine-readable control plane for what is ready, what remains external, and what should be developed next without overstating production maturity.",
+  "status_values": [
+    "FOUNDATION_STRONG",
+    "FOUNDATION_READY",
+    "IN_PROGRESS",
+    "WAITING_EXTERNAL",
+    "PREVALIDATION",
+    "STAGING",
+    "LIVE"
+  ],
+  "tracks": [
+    {
+      "id": "public-domain",
+      "production_state": "IN_PROGRESS",
+      "revenue_priority": "CRITICAL",
+      "external_blockers": [
+        "DNS/TLS final verification on permanent domain"
+      ],
+      "artifacts": [
+        "foundation/DOMAIN-CUTOVER-RUNBOOK.md",
+        "scripts/domain-cutover.mjs",
+        "platform/ecosystem-registry.json"
+      ],
+      "next_actions": [
+        "Complete GitHub custom-domain DNS check",
+        "Enable HTTPS after certificate issuance",
+        "Run atomic domain cutover only after HTTPS succeeds"
+      ]
+    },
+    {
+      "id": "dedicated-master-portability",
+      "production_state": "FOUNDATION_STRONG",
+      "revenue_priority": "HIGH",
+      "external_blockers": [
+        "Dedicated server/provider provisioning"
+      ],
+      "artifacts": [
+        "platform/deployment-topology.json",
+        "platform/backend-deployment-policy.json",
+        "foundation/PRODUCTION-PLATFORM-ARCHITECTURE.md",
+        "foundation/DEDICATED-MASTER-MIGRATION-v1.md"
+      ],
+      "next_actions": [
+        "Provision staging on chosen master",
+        "Run database migrations in staging",
+        "Connect private app/API behind TLS",
+        "Run backup/restore drill before production"
+      ]
+    },
+    {
+      "id": "seo-geo",
+      "production_state": "FOUNDATION_STRONG",
+      "revenue_priority": "CRITICAL",
+      "external_blockers": [
+        "Permanent-domain cutover",
+        "Search Console/Bing verification",
+        "Production field data"
+      ],
+      "artifacts": [
+        "scripts/seo-regression.mjs",
+        "foundation/SEO-MASTER-IMPLEMENTATION-LEDGER.md",
+        "platform/seo-intent-registry.json",
+        "platform/hreflang-pairs.json"
+      ],
+      "next_actions": [
+        "Preserve green CI",
+        "Cut canonical origin once",
+        "Submit sitemap after domain launch",
+        "Measure real CWV/query data"
+      ]
+    },
+    {
+      "id": "mobile-pwa",
+      "production_state": "FOUNDATION_STRONG",
+      "revenue_priority": "HIGH",
+      "external_blockers": [
+        "Live-device matrix QA"
+      ],
+      "artifacts": [
+        "site.webmanifest",
+        "sw.js",
+        "assets/css/style.css",
+        "assets/js/site.js",
+        "platform/ecosystem-registry.json"
+      ],
+      "next_actions": [
+        "Run 320/360/390/430px device QA",
+        "Validate installability on production domain",
+        "Re-test private no-store behavior after app deployment"
+      ]
+    },
+    {
+      "id": "consultation-revenue",
+      "production_state": "IN_PROGRESS",
+      "revenue_priority": "CRITICAL",
+      "external_blockers": [
+        "Secure backend booking activation",
+        "Payment activation for paid services"
+      ],
+      "artifacts": [
+        "platform/consultation-engine.mjs",
+        "platform/consultation-record-engine.mjs",
+        "platform/db/migrations/007_service_booking.sql",
+        "fa/darkhast-moshavere/index.html",
+        "en/request-consultation/index.html"
+      ],
+      "next_actions": [
+        "Keep safe non-sensitive lead route usable now",
+        "Activate secure intake when backend is live",
+        "Connect booking",
+        "Connect verified payment only when required"
+      ]
+    },
+    {
+      "id": "payments-ir",
+      "production_state": "WAITING_EXTERNAL",
+      "revenue_priority": "CRITICAL",
+      "external_blockers": [
+        "Merchant/eNAMAD readiness as applicable",
+        "Approved gateway API credentials",
+        "Production callback domain"
+      ],
+      "artifacts": [
+        "platform/payment-provider-policy.json",
+        "platform/payment-state-machine.json",
+        "foundation/PAYMENT-PROVIDER-ABSTRACTION-v1.md",
+        "platform/db/migrations/002_commerce_payments.sql"
+      ],
+      "next_actions": [
+        "Keep gateway disabled until credentials arrive",
+        "Implement exact provider adapter from official API contract",
+        "Sandbox callback verification",
+        "Reconciliation test before live switch"
+      ]
+    },
+    {
+      "id": "golden-talent-engine",
+      "production_state": "PREVALIDATION",
+      "revenue_priority": "HIGH",
+      "external_blockers": [
+        "Empirical validation for any future psychometric scoring",
+        "Production backend for private evidence workflows"
+      ],
+      "artifacts": [
+        "platform/golden-talent-engine.mjs",
+        "platform/golden-talent-review.mjs",
+        "platform/golden-path-lifecycle.mjs",
+        "platform/bahar-engine.mjs",
+        "platform/pathway-reference.mjs"
+      ],
+      "next_actions": [
+        "Strengthen evidence/provenance workflows",
+        "Keep human review for high-consequence synthesis",
+        "Do not introduce total talent score or normative labels without validation"
+      ]
+    },
+    {
+      "id": "identity-privacy-security",
+      "production_state": "FOUNDATION_READY",
+      "revenue_priority": "HIGH",
+      "external_blockers": [
+        "Production identity/database/storage providers"
+      ],
+      "artifacts": [
+        "platform/backend-deployment-policy.json",
+        "platform/identity-security.mjs",
+        "foundation/PRIVACY-DATA-GOVERNANCE.md",
+        "foundation/RBAC-PERMISSION-MATRIX.md"
+      ],
+      "next_actions": [
+        "Provision real auth/session backend",
+        "Apply RLS in staging",
+        "Enable admin MFA",
+        "Run restore and access-control tests"
+      ]
+    },
+    {
+      "id": "observability",
+      "production_state": "FOUNDATION_READY",
+      "revenue_priority": "MEDIUM",
+      "external_blockers": [
+        "Production monitoring/analytics provider selection"
+      ],
+      "artifacts": [
+        "platform/observability-policy.json",
+        "platform/golden-talent-observability-policy.json"
+      ],
+      "next_actions": [
+        "Connect privacy-safe operational events",
+        "Add uptime/error monitoring",
+        "Enable conversion measurement after consent/privacy review"
+      ]
+    }
+  ],
+  "prioritisation_rule": "External blockers do not pause internal foundation work. Work first on CRITICAL/HIGH tracks whose next step is not blocked, while preserving scientific, privacy, security and SEO release gates."
+}

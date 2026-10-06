@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.0",
+  "architecture_version": "5.2",
+  "target": "DEDICATED_MASTER_READY",
+  "principles": [
+    "provider_neutral_core",
+    "stateless_public_web",
+    "private_app_separated_from_public_web",
+    "versioned_api_boundary",
+    "postgresql_compatible_persistence",
+    "private_object_storage",
+    "background_jobs_outside_request_path",
+    "runtime_secret_injection",
+    "reproducible_deployment",
+    "backup_restore_before_production"
+  ],
+  "surfaces": {
+    "public_web": {
+      "origin": "https://drjavadrezazadeh.com",
+      "runtime": "STATIC_OR_SSR",
+      "public": true,
+      "indexable": true,
+      "secrets": false
+    },
+    "private_app": {
+      "origin": "https://app.drjavadrezazadeh.com",
+      "runtime": "SERVER_APP",
+      "public": false,
+      "indexable": false,
+      "secrets": false
+    },
+    "api": {
+      "origin": "https://app.drjavadrezazadeh.com/api/v1",
+      "runtime": "SERVER_API",
+      "public": false,
+      "indexable": false,
+      "secrets": true
+    },
+    "admin": {
+      "origin": "PRIVATE_APP_ADMIN_NAMESPACE",
+      "runtime": "SERVER_APP",
+      "public": false,
+      "indexable": false,
+      "secrets": false
+    }
+  },
+  "required_services": [
+    {
+      "id": "reverse_proxy_tls",
+      "class": "EDGE",
+      "provider_neutral": true,
+      "required_for": "PRODUCTION"
+    },
+    {
+      "id": "application_runtime",
+      "class": "COMPUTE",
+      "provider_neutral": true,
+      "required_for": "PRIVATE_APP_AND_API"
+    },
+    {
+      "id": "postgres",
+      "class": "DATABASE",
+      "provider_neutral": true,
+      "required_for": "PRIVATE_DATA"
+    },
+    {
+      "id": "private_object_storage",
+      "class": "OBJECT_STORAGE",
+      "provider_neutral": true,
+      "required_for": "PRIVATE_FILES"
+    },
+    {
+      "id": "background_worker",
+      "class": "COMPUTE",
+      "provider_neutral": true,
+      "required_for": "JOBS"
+    },
+    {
+      "id": "job_queue",
+      "class": "QUEUE",
+      "provider_neutral": true,
+      "required_for": "JOBS"
+    },
+    {
+      "id": "transactional_email",
+      "class": "EMAIL",
+      "provider_neutral": true,
+      "required_for": "IDENTITY_AND_SERVICE"
+    },
+    {
+      "id": "backup_target",
+      "class": "BACKUP",
+      "provider_neutral": true,
+      "required_for": "PRODUCTION"
+    },
+    {
+      "id": "monitoring",
+      "class": "OBSERVABILITY",
+      "provider_neutral": true,
+      "required_for": "PRODUCTION"
+    }
+  ],
+  "environment_contract": {
+    "required": [
+      "APP_ENV",
+      "PUBLIC_ORIGIN",
+      "PUBLIC_APP_ORIGIN",
+      "PUBLIC_API_ORIGIN",
+      "DATABASE_URL",
+      "SESSION_SIGNING_KEY",
+      "DATA_ENCRYPTION_KEY"
+    ],
+    "conditional": [
+      "STORAGE_ENDPOINT",
+      "STORAGE_BUCKET_PRIVATE",
+      "STORAGE_SIGNING_KEY",
+      "EMAIL_PROVIDER_SECRET",
+      "PAYMENT_PROVIDER_SECRET",
+      "PAYMENT_WEBHOOK_SECRET"
+    ],
+    "secret_delivery": "RUNTIME_ONLY",
+    "repository_secrets": false
+  },
+  "deployment_contract": {
+    "source_of_truth": "GITHUB_MAIN",
+    "immutable_build_artifact": true,
+    "migrations_before_app_promotion": true,
+    "health_check_required": true,
+    "rollback_artifact_required": true,
+    "staging_before_production": true,
+    "production_direct_edit_prohibited": true,
+    "root_process_prohibited": true,
+    "database_public_ingress_prohibited": true
+  },
+  "backup_recovery": {
+    "database_backup_required": true,
+    "private_file_backup_required": true,
+    "restore_test_required": true,
+    "rollback_runbook_required": true
+  },
+  "portability": {
+    "domain_logic_may_not_import_hosting_sdk": true,
+    "payment_gateway_logic_behind_adapter": true,
+    "email_logic_behind_adapter": true,
+    "object_storage_behind_adapter": true,
+    "analytics_logic_behind_adapter": true,
+    "provider_change_must_not_change_domain_state_machine": true
+  }
+}
