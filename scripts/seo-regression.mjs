@@ -177,6 +177,54 @@ if(failures.length){
 }
 
 
+// HREFLANG EQUIVALENCE REGISTRY — declared bilingual pairs are release contracts.
+const hreflangRegistryPath=path.join(root,'platform','hreflang-pairs.json');
+if(!fs.existsSync(hreflangRegistryPath)) failures.push('/platform/hreflang-pairs.json: missing bilingual equivalence registry');
+else{
+  try{
+    const registry=JSON.parse(fs.readFileSync(hreflangRegistryPath,'utf8'));
+    const pairs=Array.isArray(registry.pairs)?registry.pairs:[];
+    const routeToPair=new Map();
+    const canonicalHost=sitePrefix;
+    const htmlForRoute=route=>{
+      const p=route==='/'?path.join(root,'index.html'):path.join(root,route,'index.html');
+      return fs.existsSync(p)?fs.readFileSync(p,'utf8'):null;
+    };
+    const alternateMap=html=>{
+      const out=new Map();
+      for(const tag of html.match(/<link\b[^>]*rel=["']alternate["'][^>]*>/gi)||[]){
+        const lang=getAttr(tag,'hreflang'),href=getAttr(tag,'href');
+        if(lang&&href) out.set(lang,href);
+      }
+      return out;
+    };
+    for(const pair of pairs){
+      if(!pair?.id||!pair?.en||!pair?.fa) { failures.push('/platform/hreflang-pairs.json: invalid pair record'); continue; }
+      for(const route of [pair.en,pair.fa]){
+        if(routeToPair.has(route)) failures.push('/platform/hreflang-pairs.json: route appears in multiple equivalence pairs '+route);
+        routeToPair.set(route,pair.id);
+      }
+      const enHtml=htmlForRoute(pair.en),faHtml=htmlForRoute(pair.fa);
+      if(!enHtml||!faHtml){ failures.push('/platform/hreflang-pairs.json: pair target missing '+pair.id); continue; }
+      const enRobots=getAttr((enHtml.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0],'content')||'';
+      const faRobots=getAttr((faHtml.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0],'content')||'';
+      if(/\bnoindex\b/i.test(enRobots)||/\bnoindex\b/i.test(faRobots)) failures.push('/platform/hreflang-pairs.json: localized pair must be indexable '+pair.id);
+      const enAlt=alternateMap(enHtml),faAlt=alternateMap(faHtml);
+      const enUrl=canonicalHost+pair.en,faUrl=canonicalHost+pair.fa;
+      if(enAlt.get('en')!==enUrl||enAlt.get('fa')!==faUrl) failures.push(pair.en+': registered hreflang pair drift '+pair.id);
+      if(faAlt.get('en')!==enUrl||faAlt.get('fa')!==faUrl) failures.push(pair.fa+': registered hreflang pair drift '+pair.id);
+    }
+  }catch(e){
+    failures.push('/platform/hreflang-pairs.json: invalid registry '+e.message);
+  }
+}
+if(failures.length){
+  console.error('\nHreflang equivalence-registry failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+
 // HREFLANG RECIPROCITY — check only genuine local alternates that are actually declared.
 const localDocs=new Map();
 for(const file of htmlFiles){

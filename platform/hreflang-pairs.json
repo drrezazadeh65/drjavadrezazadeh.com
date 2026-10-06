@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "status": "FROZEN_EQUIVALENCE_MAP",
+  "rule": "Hreflang is declared only for genuine localized equivalents. A pair must be reciprocal, self-referencing and indexable on both sides.",
+  "pairs": [
+    {
+      "id": "home",
+      "en": "/en/",
+      "fa": "/fa/"
+    },
+    {
+      "id": "about",
+      "en": "/en/about/",
+      "fa": "/fa/darbare-man/"
+    },
+    {
+      "id": "research",
+      "en": "/en/research/",
+      "fa": "/fa/pajouhesh/"
+    },
+    {
+      "id": "publications",
+      "en": "/en/publications/",
+      "fa": "/fa/entesharat-elmi/"
+    },
+    {
+      "id": "books",
+      "en": "/en/books/",
+      "fa": "/fa/ketab-ha/"
+    },
+    {
+      "id": "teaching",
+      "en": "/en/teaching/",
+      "fa": "/fa/tadris/"
+    },
+    {
+      "id": "academic-engagements",
+      "en": "/en/academic-engagements/",
+      "fa": "/fa/faaliat-haye-elmi/"
+    },
+    {
+      "id": "golden-talent",
+      "en": "/en/golden-talent/",
+      "fa": "/fa/golden-talent/"
+    },
+    {
+      "id": "educational-philosophy",
+      "en": "/en/educational-philosophy/",
+      "fa": "/fa/falsafe-amoozeshi/"
+    },
+    {
+      "id": "language-education",
+      "en": "/en/language-education/",
+      "fa": "/fa/amoozesh-zaban/"
+    },
+    {
+      "id": "contact",
+      "en": "/en/contact/",
+      "fa": "/fa/tamas/"
+    },
+    {
+      "id": "services",
+      "en": "/en/services/",
+      "fa": "/fa/khadamat/"
+    },
+    {
+      "id": "golden-talent-methodology",
+      "en": "/en/golden-talent/methodology/",
+      "fa": "/fa/golden-talent/ravesh-shenasi/"
+    },
+    {
+      "id": "news-insights-hub",
+      "en": "/en/news-insights/",
+      "fa": "/fa/akhbar/"
+    }
+  ],
+  "unpaired_public_routes_policy": "No hreflang counterpart is invented. Add a pair only after content equivalence is reviewed."
+}
