@@ -837,3 +837,40 @@ test('Persian private role visual evidence',async({page})=>{
     await page.screenshot({path:'test-results/screenshots/'+name+'-mobile-390-first-screen.png',fullPage:false});
   }
 });
+
+test('auth previews keep trust evidence visible before the mobile dock',async({page})=>{
+  const routes=['/en/login/','/en/register/','/fa/login/','/fa/register/'];
+  for(const route of routes){
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(180);
+    const title=page.locator('.article-hero h1').first();
+    const status=page.locator('.role-status-card').first();
+    const dock=page.locator('.app-dock').first();
+    await expect(title).toBeVisible();
+    await expect(status).toBeVisible();
+    await expect(dock).toBeVisible();
+    const [tb,sb,db]=await Promise.all([title.boundingBox(),status.boundingBox(),dock.boundingBox()]);
+    for(const box of [tb,sb,db]) expect(box).not.toBeNull();
+    expect(parseFloat(await title.evaluate(el=>getComputedStyle(el).fontSize)),route+' auth title size').toBeLessThanOrEqual(34.5);
+    expect(tb.y+tb.height,route+' auth title should clear dock').toBeLessThan(db.y-18);
+    expect(sb.y,route+' first trust status should enter before dock').toBeLessThan(db.y-24);
+    const form=page.locator('.auth-form');
+    await expect(form.locator('input,select').first()).toBeDisabled();
+  }
+});
+
+test('auth mobile visual evidence',async({page})=>{
+  const surfaces=[
+    ['/en/login/','en-login'],
+    ['/en/register/','en-register'],
+    ['/fa/login/','fa-login'],
+    ['/fa/register/','fa-register']
+  ];
+  for(const [route,name] of surfaces){
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(180);
+    await page.screenshot({path:'test-results/screenshots/'+name+'-mobile-390-first-screen.png',fullPage:false});
+  }
+});

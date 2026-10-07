@@ -2831,3 +2831,53 @@ html[lang="en"] .student-gateway-page .site-header .brand small{
     line-height:1.55;
   }
 }
+
+@media(max-width:560px){
+  .auth-page{--auth-mobile-product-density:1}
+  .auth-page main{width:calc(100% - 20px)}
+  .auth-page .auth-shell{padding-top:18px}
+  .auth-page .article-hero{
+    padding:22px 20px 24px;
+    border-radius:22px;
+  }
+  .auth-page .article-hero .kicker{
+    font-size:10px;
+    line-height:1.6;
+  }
+  .auth-page .article-hero h1{
+    margin:9px 0 14px;
+    font-size:clamp(30px,8.2vw,34px)!important;
+    line-height:1.16!important;
+    letter-spacing:-.02em;
+    text-wrap:balance;
+  }
+  .rtl.auth-page .article-hero h1{
+    font-size:clamp(29px,7.9vw,33px)!important;
+    line-height:1.55!important;
+    letter-spacing:0;
+  }
+  .auth-page .article-hero .lead{
+    margin:0;
+    font-size:15px;
+    line-height:1.82;
+  }
+  .rtl.auth-page .article-hero .lead{line-height:2}
+  .auth-page .role-status-grid{
+    margin:10px 0 16px;
+    gap:8px;
+  }
+  .auth-page .role-status-card{
+    min-height:98px;
+    padding:13px 14px;
+    border-radius:14px;
+  }
+  .auth-page .role-status-card strong{
+    margin-top:6px;
+    font-size:13.5px;
+  }
+  .auth-page .role-status-card span{
+    margin-top:4px;
+    font-size:9.5px;
+    line-height:1.55;
+  }
+}
