@@ -93,7 +93,7 @@
   const valid=books.length>0&&books.every(x=>ready(x.book));
   host.innerHTML='<p class="kicker">'+(isFa?'تسویه امن':'Secure checkout')+'</p><h1>'+(isFa?'سفارش کتاب':'Book order')+'</h1>'+
    '<p class="lead">'+(isFa?'این صفحه هرگز موفقیت پرداخت را از مرورگر قبول نمی‌کند. سفارش واقعی باید توسط API ساخته و قیمت‌گذاری شود و فقط پس از تأیید درگاه نهایی گردد.':'This page never treats browser state as payment success. A real order must be created and priced by the API and completed only after provider verification.')+'</p>'+
-   '<div class="store-notice">'+(valid?(isFa?'کاتالوگ آماده است؛ اتصال backend و درگاه برای پرداخت واقعی لازم است.':'Catalogue is ready; backend and verified payment provider are still required.'):(isFa?'در حال حاضر محصول قیمت‌گذاری‌شده و قابل‌فروش در کاتالوگ فعال نیست.':'There is currently no verified priced and sellable book in the active catalogue.'))+'</div>'+
+   '<div class="store-notice">'+(valid?(isFa?'کاتالوگ و قیمت‌ها آماده‌اند؛ پرداخت بانکی پس از فعال‌سازی و تأیید درگاه معتبر در دسترس قرار می‌گیرد.':'The catalogue and prices are ready; bank payment becomes available after the verified payment gateway is activated.'):(isFa?'در حال حاضر محصول قیمت‌گذاری‌شده و قابل‌فروش در کاتالوگ فعال نیست.':'There is currently no verified priced and sellable book in the active catalogue.'))+'</div>'+
    '<div class="actions"><a class="button" href="'+root((isFa?'fa':'en')+'/shop/cart/')+'">'+(isFa?'بازگشت به سبد':'Back to cart')+'</a></div>';
  }
  load().then(data=>{renderCatalog(data);renderDetail(data);renderCart(data);renderCheckout(data);updateCartBadge();}).catch(()=>document.querySelectorAll('[data-store-error]').forEach(x=>x.hidden=false));
