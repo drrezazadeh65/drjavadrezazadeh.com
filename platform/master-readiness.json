@@ -70,12 +70,14 @@
         "scripts/ai-crawler-policy-audit.mjs",
         ".github/workflows/indexnow-activation.yml",
         "tests/public-browser-qa.spec.js",
-        ".github/workflows/browser-qa.yml"
+        ".github/workflows/browser-qa.yml",
+        ".github/workflows/indexnow-submit.yml",
+        "foundation/INDEXNOW-READINESS.md"
       ],
       "next_actions": [
         "Preserve green SEO/GEO, Chromium browser CI and strict live-production health",
-        "Preserve the verified canonical HTTPS Search Console property and activate Bing/Yandex webmaster properties",
-        "Run the guarded IndexNow live workflow now that production HTTPS/key verification can be performed",
+        "Preserve the verified canonical HTTPS Search Console property and keep live IndexNow change submission fail-closed behind HTTPS/key verification",
+        "Activate Bing/Yandex webmaster properties when account credentials are available",
         "Measure real Core Web Vitals, query, citation and indexation data"
       ]
     },
@@ -94,10 +96,12 @@
         "platform/ecosystem-registry.json",
         "platform/mobile-navigation-contract.json",
         "tests/public-browser-qa.spec.js",
-        ".github/workflows/browser-qa.yml"
+        ".github/workflows/browser-qa.yml",
+        "tests/full-route-responsive.spec.js",
+        ".github/workflows/full-route-responsive-certification.yml"
       ],
       "next_actions": [
-        "Keep the automated Chromium 320/360/390/430 and desktop matrix green, including five-tab touch-target, contrast, manifest and standalone-language gates",
+        "Keep representative Browser QA and the full-route 320/390/430/1440 certification green",
         "Run physical-device iOS Safari/Android Chrome plus VoiceOver/TalkBack checks on the permanent domain",
         "Validate actual Add-to-Home-Screen/install prompt behavior and standalone safe-area rendering on physical devices",
         "Re-test private no-store behavior after authenticated app deployment"
@@ -283,16 +287,18 @@
       "production_state": "FOUNDATION_READY",
       "revenue_priority": "MEDIUM",
       "external_blockers": [
-        "Production monitoring/analytics provider selection"
+        "Google Analytics scope/property connection is not granted to the connected GSC Wizard account",
+        "Production uptime/error monitoring provider activation"
       ],
       "artifacts": [
         "platform/observability-policy.json",
         "platform/golden-talent-observability-policy.json"
       ],
       "next_actions": [
-        "Connect privacy-safe operational events",
-        "Add uptime/error monitoring",
-        "Enable conversion measurement after consent/privacy review"
+        "Connect Google Analytics/GA4 scope and select the real property before adding any Measurement ID to production",
+        "Map the existing privacy-safe conversion event contract to the verified analytics property",
+        "Add uptime/error monitoring without private payload collection",
+        "Validate conversion measurement after consent/privacy review"
       ]
     },
     {
@@ -428,6 +434,8 @@
       "database_migration_sequence"
     ],
     "rule": "Every material foundation change must remain visible in the machine-readable audit rather than relying on memory or prose status alone. A green audit proves repository consistency, not external provider activation.",
-    "completion_dossier": "foundation/SITE-COMPLETION-DOSSIER-2026-10-07.md"
-  }
+    "completion_dossier": "foundation/SITE-COMPLETION-DOSSIER-v4.3.0.md"
+  },
+  "release_baseline": "v4.3.0",
+  "release_baseline_artifact": "foundation/V4.3.0-EXECUTION-BASELINE.md"
 }
