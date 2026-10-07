@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 430" role="img" aria-labelledby="t d">
+<title id="t">نماد اعتماد الکترونیکی</title><desc id="d">Electronic Trust Symbol - eNAMAD</desc>
+<rect width="360" height="430" rx="24" fill="#fff"/>
+<g transform="translate(35 38)">
+<path d="M46 207C78 156 116 104 160 57c25-27 55-49 80-48 23 1 31 21 20 42-19 38-66 77-115 100-21 10-38 20-51 30 38-13 78-23 116-28 22-3 43-3 61 2-31 7-57 20-79 39-29 25-49 55-64 82-12 21-31 33-49 27-17-6-21-26-12-46 7-17 20-34 37-51-20 8-39 17-58 28z" fill="#18589f"/>
+<path d="M230 143c15-11 28-20 40-27-5 17-13 31-25 42-11 10-23 13-33 9 3-9 9-17 18-24z" fill="#18589f"/>
+<rect x="260" y="74" width="33" height="33" rx="4" transform="rotate(45 276.5 90.5)" fill="#f7941d"/>
+</g>
+<text x="180" y="344" text-anchor="middle" direction="rtl" font-family="Tahoma,Arial,sans-serif" font-size="27" font-weight="700" fill="#173f77">نماد اعتماد الکترونیکی</text>
+<text x="180" y="386" text-anchor="middle" font-family="Arial,sans-serif" font-size="23" font-weight="700" fill="#173f77">eNAMAD</text>
+</svg>
