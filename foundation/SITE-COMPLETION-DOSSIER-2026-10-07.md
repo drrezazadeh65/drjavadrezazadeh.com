@@ -38,12 +38,12 @@ No price, payment success, identity verification, private-data access, scientifi
 - Mobile public navigation behaves as an app-like five-destination dock with safe-area handling, 44px+ touch targets, active-state semantics, accessible dialog/bottom-sheet navigation, focus transfer and Escape dismissal.
 - PWA cache versioning was advanced with the visual release so installed/returning users are not trapped on stale CSS.
 - Source-level responsive/accessibility guards remain release-blocking.
-- Real Chromium Browser QA is part of CI and currently runs **29 tests**, including mobile first-screen identity/action clearance, long-form editorial metadata/dock-safety, representative product-hero decision-control visibility and concierge/dock collision gates.
+- Real Chromium Browser QA is part of CI and currently runs **45 tests**. The suite now covers public first-screen identity/action clearance, long-form editorial metadata/dock safety, representative product journeys, private student five-tab navigation, auth privacy, PWA manifest/standalone behaviour, typography consistency, contrast and overlay collision gates.
 - Responsive matrix covers **320, 360, 390 and 430 px mobile widths** plus **1280, 1366, 1440, 1600 and 1920 px desktop widths**.
-- Core tests cover horizontal overflow, exactly one H1, visible main content, skip-link entry, uncaught page errors, Persian Search v2 privacy boundaries, keyboard focus entry, mobile touch targets, bottom-sheet interaction, palette contrast, home first-screen identity/action clearance, long-form editorial metadata/dock safety, product first-screen actions and the floating concierge clearance.
-- Screenshot evidence is retained by CI, including representative first-screen captures for Home, long-form guidance, Services, Academic Profile, Golden Talent and Consultation on mobile and desktop.
-- The current image system remains deliberately light and vector-led; the approved 2026 portrait is 400×400, so it is not artificially upscaled beyond the controlled display envelope. A genuinely higher-resolution approved source should replace it only when available.
-- Automated Chromium evidence is complete; physical-device iOS/Android, VoiceOver/TalkBack and final manual WCAG validation remain external/manual production work.
+- Core tests cover horizontal overflow, exactly one H1, visible main content, skip-link entry, uncaught page errors, Persian Search v2 privacy boundaries, keyboard focus entry, mobile touch targets, bottom-sheet interaction, public/private palette contrast, home/editorial/product first-screen clearance, the frozen five-tab private navigation contract, auth-route concierge suppression, PWA install metadata and saved-language standalone resume, system-native typography and overlay coordination.
+- Screenshot evidence is retained by CI, including representative first-screen captures for Home, root language gateway, long-form guidance, Services, Academic Profile, Golden Talent, Consultation, English/Persian student shells and English/Persian Login/Register on mobile and desktop.
+- The current image system remains deliberately light and vector-led; the approved 2026 portrait is 400×400, so it is not artificially upscaled beyond the controlled display envelope. A genuinely higher-resolution approved source should replace it only when available. No external webfont dependency was introduced; typography is governed by a system-native UI/editorial/Persian stack to protect rendering speed and privacy.
+- Automated Chromium evidence is complete. Public concierge UI is suppressed on authentication and private student routes, while remaining available on appropriate public discovery/service surfaces. Physical-device iOS/Android, VoiceOver/TalkBack, true Add-to-Home-Screen installation and final manual WCAG validation remain external/manual production work.
 
 ## Search-engine activation readiness
 
@@ -56,7 +56,7 @@ No price, payment success, identity verification, private-data access, scientifi
 - The automated Production SEO Health monitor checks DNS, root, Persian/English public pages, robots, sitemap, `llms.txt`, IndexNow key, intentional HTTP 404, private/noindex routes, all sitemap targets, canonical self-identification, HTTP→HTTPS and www→apex behaviour.
 - GitHub Pages reports the custom-domain DNS check successful and HTTPS enforcement enabled.
 - A fresh external runner resolved all four GitHub Pages apex addresses and completed the live audit across all **55 sitemap targets** without a TLS certificate error.
-- Production Health is therefore promoted to **STRICT** in this release; future DNS/TLS, redirect, canonical, sitemap or live-route failures are release-significant.
+- Production Health is therefore **STRICT** in this release; a fresh post-UI/UX rerun also passed after the latest auth/typography work. Future DNS/TLS, redirect, canonical, sitemap or live-route failures are release-significant.
 
 ## Commerce, consultation, identity and private application
 
