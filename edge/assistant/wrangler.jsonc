@@ -24,7 +24,7 @@
     }
   ],
   "vars": {
-    "PUBLIC_SITE_ORIGIN": "https://drrezazadeh65.github.io/drjavadrezazadeh.com",
+    "PUBLIC_SITE_ORIGIN": "https://drjavadrezazadeh.com",
     "ASSISTANT_MODEL": "@cf/openai/gpt-oss-120b",
     "AI_GATEWAY_ID": ""
   },
