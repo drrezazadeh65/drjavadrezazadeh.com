@@ -1,6 +1,16 @@
 name: Release Cache Reset
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.html'
+      - 'assets/**'
+      - 'platform/*.json'
+      - 'site.webmanifest'
+      - 'favicon.svg'
+      - 'favicon.png'
+      - 'favicon.ico'
   release:
     types: [published]
   workflow_dispatch:
@@ -34,9 +44,12 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           MANUAL_VERSION: ${{ inputs.release_version }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
           if [ "$EVENT_NAME" = "release" ]; then
             raw="$RELEASE_TAG"
+          elif [ "$EVENT_NAME" = "push" ]; then
+            raw="commit-${COMMIT_SHA:0:12}"
           else
             raw="$MANUAL_VERSION"
           fi
@@ -49,7 +62,11 @@ jobs:
 
           compact="$(printf '%s' "$clean" | tr -d '.')"
           stamp="$(date -u +%Y%m%d)"
-          cache_version="jr-site-${stamp}-v${compact}"
+          if [ "$EVENT_NAME" = "push" ]; then
+            cache_version="jr-site-${stamp}-${compact}"
+          else
+            cache_version="jr-site-${stamp}-v${compact}"
+          fi
 
           echo "release_version=$clean" >> "$GITHUB_OUTPUT"
           echo "cache_version=$cache_version" >> "$GITHUB_OUTPUT"
@@ -95,6 +112,7 @@ jobs:
         shell: bash
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.release_version }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           if git diff --quiet -- sw.js; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -105,7 +123,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add sw.js
-          git commit -m "chore(release): reset caches for v$RELEASE_VERSION"
+          if [ "$EVENT_NAME" = "push" ]; then
+            git commit -m "chore(cache): invalidate mutable-site caches after $RELEASE_VERSION"
+          else
+            git commit -m "chore(release): reset caches for v$RELEASE_VERSION"
+          fi
           git push origin HEAD:main
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
