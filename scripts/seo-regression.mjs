@@ -782,7 +782,8 @@ else{
       }
       if(byPath.has(p)) failures.push('/assets/media-registry.json: duplicate media path '+p);
       byPath.set(p,item);
-      if(!p.startsWith('assets/images/')) failures.push('/assets/media-registry.json: media path must stay under assets/images '+p);
+      const managedRoot=p.startsWith('assets/images/') || ['favicon.svg','favicon.png','favicon.ico'].includes(p);
+      if(!managedRoot) failures.push('/assets/media-registry.json: media path is outside managed roots '+p);
       const abs=path.join(root,p);
       if(!fs.existsSync(abs)) failures.push('/assets/media-registry.json: registered file missing '+p);
       for(const field of requiredFields){
@@ -792,10 +793,21 @@ else{
       }
     }
 
+    const imageFiles=[];
+    const collectImages=dir=>{
+      for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+        const full=path.join(dir,ent.name);
+        if(ent.isDirectory()) collectImages(full);
+        else if(ent.isFile() && /\.(?:png|jpe?g|webp|gif|svg|avif|ico)$/i.test(ent.name)){
+          imageFiles.push(path.relative(root,full).replaceAll(path.sep,'/'));
+        }
+      }
+    };
     const imagesDir=path.join(root,'assets','images');
-    const imageFiles=fs.readdirSync(imagesDir,{withFileTypes:true})
-      .filter(ent=>ent.isFile() && /\.(?:png|jpe?g|webp|gif|svg|avif)$/i.test(ent.name))
-      .map(ent=>'assets/images/'+ent.name);
+    collectImages(imagesDir);
+    for(const fav of ['favicon.svg','favicon.png','favicon.ico']){
+      if(fs.existsSync(path.join(root,fav))) imageFiles.push(fav);
+    }
     for(const p of imageFiles){
       if(!byPath.has(p)) failures.push('/assets/media-registry.json: image asset is unregistered '+p);
     }
