@@ -188,7 +188,6 @@
       "production_state": "FOUNDATION_STRONG",
       "revenue_priority": "CRITICAL",
       "external_blockers": [
-        "Verified prices and sellable formats for published books",
         "Verified stock/fulfilment and return/shipping terms",
         "Payment provider activation for real checkout"
       ],
@@ -202,11 +201,11 @@
         "foundation/BOOKSTORE-OPERATIONS-RUNBOOK.md"
       ],
       "next_actions": [
-        "Collect verified ISBN/publisher/edition data where applicable",
-        "Set real prices and physical/digital formats",
+        "Preserve the owner-confirmed retail price while keeping all published titles non-sellable until operational readiness is complete",
         "Confirm stock, shipping coverage and return terms",
-        "Activate Product/Offer schema only after a genuine sellable offer exists",
-        "Connect checkout to verified server payment flow"
+        "Collect verified ISBN/publisher/edition/cover metadata where applicable",
+        "Activate Product/Offer schema only after a genuine fulfilment-ready sellable offer exists",
+        "Connect checkout to the verified server payment flow only after merchant/provider activation"
       ]
     },
     {

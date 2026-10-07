@@ -38,9 +38,9 @@ No price, payment success, identity verification, private-data access, scientifi
 - Mobile public navigation behaves as an app-like five-destination dock with safe-area handling, 44px+ touch targets, active-state semantics, accessible dialog/bottom-sheet navigation, focus transfer and Escape dismissal.
 - PWA cache versioning was advanced with the visual release so installed/returning users are not trapped on stale CSS.
 - Source-level responsive/accessibility guards remain release-blocking.
-- Real Chromium Browser QA is part of CI and currently runs **49 tests**. The suite now covers public first-screen identity/action clearance, long-form editorial metadata/dock safety, representative product journeys, private student five-tab navigation, desktop/private-shell coexistence, auth privacy, PWA manifest/standalone behaviour, typography consistency, contrast and overlay collision gates.
+- Real Chromium Browser QA is part of CI and currently runs **61 tests**. The suite now covers public first-screen identity/action clearance, long-form editorial metadata/dock safety, representative product journeys, private student and role-based five-tab navigation, desktop/private-shell coexistence, two-by-two student-gateway actions, auth-preview trust evidence, PWA manifest/standalone behaviour, typography consistency, contrast and overlay collision gates.
 - Responsive matrix covers **320, 360, 390 and 430 px mobile widths** plus **1280, 1366, 1440, 1600 and 1920 px desktop widths**.
-- Core tests cover horizontal overflow, exactly one H1, visible main content, skip-link entry, uncaught page errors, Persian Search v2 privacy boundaries, keyboard focus entry, mobile touch targets, bottom-sheet interaction, public/private palette contrast, home/editorial/product first-screen clearance, the frozen five-tab private navigation contract, auth-route concierge suppression, PWA install metadata and saved-language standalone resume, system-native typography and overlay coordination.
+- Core tests cover horizontal overflow, exactly one H1, visible main content, skip-link entry, uncaught page errors, Persian Search v2 privacy boundaries, keyboard focus entry, mobile touch targets, bottom-sheet interaction, public/private palette contrast, home/editorial/product first-screen clearance, the frozen five-tab private navigation contract across student/parent/teacher/adviser shells, two-by-two student action layout, auth-route concierge suppression and trust-card visibility, PWA install metadata and saved-language standalone resume, system-native typography and overlay coordination.
 - Screenshot evidence is retained by CI, including representative first-screen captures for Home, root language gateway, long-form guidance, Services, Academic Profile, Golden Talent, Consultation, English/Persian student shells, English/Persian Login/Register, Bookstore, Publisher and JHELA on mobile and desktop.
 - The current image system remains deliberately light and vector-led; the approved 2026 portrait is 400×400, so it is not artificially upscaled beyond the controlled display envelope. A genuinely higher-resolution approved source should replace it only when available. No external webfont dependency was introduced; typography is governed by a system-native UI/editorial/Persian stack to protect rendering speed and privacy.
 - Automated Chromium evidence is complete. Public concierge UI is suppressed on authentication and private student routes, while remaining available on appropriate public discovery/service surfaces. Physical-device iOS/Android, VoiceOver/TalkBack, true Add-to-Home-Screen installation and final manual WCAG validation remain external/manual production work.
@@ -62,7 +62,7 @@ No price, payment success, identity verification, private-data access, scientifi
 
 - Consultation, commerce, identity, admin, student/parent/teacher/adviser and private-document foundations are implemented behind explicit public/private boundaries.
 - Payment adapters remain disabled until eNAMAD/merchant requirements, exact gateway API credentials and a verified callback origin exist.
-- Product/Offer schema and sellable-book states remain off until price, format, stock/fulfilment, shipping/return facts and payment activation are real.
+- The owner-confirmed retail price for the three published poetry collections may be displayed, while Product/Offer schema and sellable-book states remain OFF until stock/fulfilment, shipping/return terms and the production payment path are verified.
 - Email remains the account sign-in/verification/recovery authority; mobile is contact-only.
 - Real accounts, private student data, secure upload and admin access require production authentication, database, private storage, email delivery, RLS and MFA.
 
@@ -79,7 +79,7 @@ No price, payment success, identity verification, private-data access, scientifi
 3. Deploy the Cloudflare AI concierge/lead-bank Worker and runtime secrets.
 4. Provision production authentication, database, private storage, transactional email, RLS and admin MFA.
 5. Complete eNAMAD/merchant requirements and supply exact approved payment-gateway API credentials/documentation.
-6. Supply verified book price/format/stock/shipping/return information before enabling commerce offers.
+6. Confirm book stock/fulfilment, shipping/return terms and any remaining bibliographic metadata before enabling commerce offers; the recorded retail price is not sufficient by itself to make a title sellable.
 7. Connect real consultation booking/calendar and provider-backed persistence.
 8. Perform physical-device iOS/Android, VoiceOver/TalkBack/manual WCAG checks and collect real-user Core Web Vitals.
 9. Complete jurisdiction-specific legal review before collecting sensitive student/private/payment data.
