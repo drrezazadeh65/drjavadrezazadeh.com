@@ -11,6 +11,30 @@
     var copy = form.querySelector('[data-composer-copy]');
     var recipient = 'mailto:dr.rezazadeh65@gmail.com';
     var revision = 0;
+    async function applyRequestedService(){
+      if(!fa) return;
+      var requested=new URLSearchParams(location.search).get('service');
+      if(!requested) return;
+      try{
+        var response=await fetch('/platform/service-catalog.json',{cache:'reload'});
+        if(!response.ok) return;
+        var catalogue=await response.json();
+        var service=(catalogue.services||[]).find(function(item){return item.id===requested&&item.sellable===true;});
+        if(!service) return;
+        var select=form.elements.namedItem('service');
+        if(!select) return;
+        var option=Array.from(select.options).find(function(item){return item.value===service.title_fa;});
+        if(!option){
+          option=document.createElement('option');
+          option.value=service.title_fa;
+          option.textContent=service.title_fa;
+          option.dataset.serviceId=service.id;
+          select.appendChild(option);
+        }
+        select.value=option.value;
+        status.textContent='خدمت انتخاب‌شده از صفحه تعرفه در فرم قرار گرفت؛ لطفاً زمینه و سؤال اصلی را تکمیل کنید.';
+      }catch(_){ /* keep the normal manual selector available */ }
+    }
     function invalidate() {
       revision++;
       preview.hidden = true;
@@ -60,5 +84,6 @@
       }
     });
     window.addEventListener('pageshow', function (event) { if (event.persisted) form.reset(); });
+    applyRequestedService();
   });
 }());
