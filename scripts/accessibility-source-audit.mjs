@@ -80,6 +80,8 @@ for(const file of htmlFiles){
   }
 
   for(const tag of html.match(/<a\b[^>]*target=["']_blank["'][^>]*>/gi)||[]){
+    const isOfficialEnamadSeal=/trustseal\.enamad\.ir\/\?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1/i.test(tag);
+    if(isOfficialEnamadSeal) continue; // eNamad explicitly requires the issued link without rel mutation.
     const rel=(getAttr(tag,'rel')||'').toLowerCase().split(/\s+/);
     if(!rel.includes('noopener')) failures.push(route+': target="_blank" link missing rel="noopener"');
   }
