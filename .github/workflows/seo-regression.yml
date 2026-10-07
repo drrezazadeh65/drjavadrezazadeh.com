@@ -50,6 +50,8 @@ jobs:
         run: node scripts/frontend-copy-hygiene-audit.mjs
       - name: Run client-readable data hygiene audit
         run: node scripts/public-data-hygiene-audit.mjs
+      - name: Verify public data projections match canonical sources
+        run: node scripts/build-public-data.mjs --check
       - name: Run canonical media-library audit
         run: node scripts/media-library-audit.mjs
       - name: Run link-integrity audit
