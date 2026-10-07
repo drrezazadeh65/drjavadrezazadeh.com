@@ -430,3 +430,28 @@ test('private mobile heroes prioritize actions and compact evidence',async({page
   expect(parseFloat(await faTitle.evaluate(el=>getComputedStyle(el).fontSize))).toBeLessThanOrEqual(33.5);
   expect(fs.y+fs.height,'Persian dashboard status card should clear the app dock').toBeLessThan(fd.y-8);
 });
+
+function cssRgbToHex(css){
+  const nums=(String(css).match(/[\d.]+/g)||[]).slice(0,3).map(Number);
+  if(nums.length!==3) throw new Error('Expected rgb color, got '+css);
+  return '#'+nums.map(n=>Math.max(0,Math.min(255,Math.round(n))).toString(16).padStart(2,'0')).join('');
+}
+test('private dashboard muted labels maintain AA contrast',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/fa/app/student/',{waitUntil:'domcontentloaded'});
+  await page.waitForTimeout(160);
+  const selectors=[
+    '.dashboard-kpi span',
+    '.student-overview small',
+    '.decision-question small',
+    '.evidence-readiness-row>small',
+    '.student-domain-grid small'
+  ];
+  for(const sel of selectors){
+    const node=page.locator(sel).first();
+    await expect(node).toBeAttached();
+    const cssColor=await node.evaluate(el=>getComputedStyle(el).color);
+    const ratio=contrastRatio(cssRgbToHex(cssColor),'#151517');
+    expect(ratio,sel+' contrast on the lightest dashboard card surface').toBeGreaterThanOrEqual(4.5);
+  }
+});

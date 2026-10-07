@@ -554,7 +554,7 @@
 }
 .dashboard-shell-page .student-overview span{color:var(--dash-muted);font-size:11px}
 .dashboard-shell-page .student-overview b{font-size:24px;letter-spacing:-.02em}
-.dashboard-shell-page .student-overview small{color:#777b82}
+.dashboard-shell-page .student-overview small{color:#82868d}
 .dashboard-shell-page .student-dash-section{
   padding:42px 0;
   border-bottom-color:var(--dash-border);
@@ -610,7 +610,7 @@
 .dashboard-kpi small{display:block;color:var(--dash-muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em}
 .rtl .dashboard-kpi small{text-transform:none;letter-spacing:0}
 .dashboard-kpi strong{display:block;margin-top:10px;font-size:26px;font-weight:700}
-.dashboard-kpi span{display:block;margin-top:5px;color:#777b82;font-size:10px}
+.dashboard-kpi span{display:block;margin-top:5px;color:#82868d;font-size:10px}
 .dashboard-section-label{
   display:flex;
   align-items:center;
@@ -742,7 +742,7 @@
   border-radius:inherit;
   background:linear-gradient(90deg,var(--portal-gold),var(--portal-gold-soft));
 }
-.evidence-readiness-row>small{color:#71747b;font-size:9px;white-space:nowrap}
+.evidence-readiness-row>small{color:#82868d;font-size:9px;white-space:nowrap}
 .dash-activity{display:grid;gap:0;margin-top:18px}
 .dash-activity-item{
   position:relative;
@@ -771,13 +771,13 @@
   background:var(--dash-border);
 }
 .dash-activity-item strong{display:block;font-size:12px;color:#dedee1}
-.dash-activity-item span{display:block;margin-top:4px;color:#777b82;font-size:10px;line-height:1.55}
+.dash-activity-item span{display:block;margin-top:4px;color:#82868d;font-size:10px;line-height:1.55}
 .dash-panel .empty-state{
   margin-top:14px;
   padding:14px;
   border:1px dashed var(--dash-border);
   border-radius:12px;
-  color:#777b82;
+  color:#82868d;
   font-size:10px;
   line-height:1.7;
 }
@@ -840,7 +840,7 @@
 }
 .role-dashboard-page .app-card h2{font-size:20px;margin-top:0}
 .role-dashboard-page .app-card p{color:#9da0a7;line-height:1.9}
-.role-dashboard-page .app-card>span{color:#777b82;font-size:10px}
+.role-dashboard-page .app-card>span{color:#82868d;font-size:10px}
 .role-dashboard-page .app-card-link{
   transition:transform .18s ease,border-color .18s ease,background .18s ease;
 }
@@ -2143,7 +2143,7 @@
 }
 .commerce-workspace-page .gt-price span,
 .commerce-workspace-page .gt-price-state{
-  color:#777b82;
+  color:#82868d;
   font-size:10px;
 }
 .commerce-workspace-page .payment-rail-grid{
@@ -2346,7 +2346,7 @@
 }
 .student-dashboard-page .decision-question small{
   display:block;
-  color:#777b82;
+  color:#82868d;
   font-size:9px;
   text-transform:uppercase;
   letter-spacing:.07em;
@@ -2431,7 +2431,7 @@
 }
 .role-dashboard-page .parent-support-card small{
   display:block;
-  color:#767980;
+  color:#82868d;
   font-size:9px;
   text-transform:uppercase;
   letter-spacing:.07em;
@@ -2657,3 +2657,15 @@
   .dashboard-shell-page .student-status-card strong{font-size:20px}
   .dashboard-shell-page .student-status-card small{font-size:10px;line-height:1.65}
 }
+
+.dashboard-shell-page{--private-muted-aa:#82868d}
+.dashboard-shell-page :where(
+  .student-domain-grid small,
+  .student-product-top,
+  .dashboard-kpi span,
+  .student-overview small,
+  .evidence-readiness-row>small,
+  .dash-activity-item span,
+  .dash-panel .empty-state,
+  .decision-question small
+){color:var(--private-muted-aa)}
