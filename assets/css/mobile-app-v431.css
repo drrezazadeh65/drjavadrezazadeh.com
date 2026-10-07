@@ -1,0 +1,225 @@
+/* v4.3.1 Mobile App Shell — public/mobile experience only.
+   Preserves semantic HTML, URLs, crawlability and desktop layouts. */
+:root{
+  --v431-tab-bg:rgba(10,10,11,.92);
+  --v431-tab-line:rgba(240,214,148,.20);
+  --v431-tab-active:rgba(215,184,109,.10);
+  --v431-tab-text:#aaa79f;
+  --v431-tab-active-text:#f0d694;
+  --v431-surface:#101012;
+  --v431-radius:22px;
+}
+@media(max-width:900px){
+  html{
+    scroll-padding-top:82px;
+    scroll-padding-bottom:112px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  body{
+    min-height:100dvh;
+  }
+  .public-home-page,
+  .public-content-page,
+  .public-gateway-page{
+    padding-bottom:max(96px,calc(80px + env(safe-area-inset-bottom)));
+  }
+  .public-home-page .site-header,
+  .public-content-page .site-header,
+  .public-gateway-page .site-header{
+    top:0;
+    min-height:60px;
+    padding:calc(7px + env(safe-area-inset-top)) 12px 7px;
+    gap:10px;
+    background:linear-gradient(180deg,rgba(7,7,8,.97),rgba(7,7,8,.88));
+    -webkit-backdrop-filter:blur(24px) saturate(145%);
+    backdrop-filter:blur(24px) saturate(145%);
+    border-bottom:1px solid rgba(255,255,255,.045);
+    box-shadow:0 10px 34px rgba(0,0,0,.20);
+  }
+  .public-home-page .site-header::after,
+  .public-content-page .site-header::after,
+  .public-gateway-page .site-header::after{
+    opacity:.18;
+  }
+  .public-home-page .site-header .brand,
+  .public-content-page .site-header .brand,
+  .public-gateway-page .site-header .brand{
+    min-width:0;
+    max-width:calc(100% - 54px);
+    line-height:1.12;
+  }
+  .public-home-page .site-header .brand span,
+  .public-content-page .site-header .brand span,
+  .public-gateway-page .site-header .brand span{
+    font-size:clamp(14px,4vw,18px);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .public-home-page .site-header .brand small,
+  .public-content-page .site-header .brand small,
+  .public-gateway-page .site-header .brand small{
+    margin-top:2px;
+    font-size:8px;
+    opacity:.72;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .app-dock{
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    left:8px!important;
+    right:8px!important;
+    bottom:max(8px,env(safe-area-inset-bottom))!important;
+    width:auto!important;
+    min-height:70px;
+    padding:6px!important;
+    gap:2px;
+    border:1px solid var(--v431-tab-line)!important;
+    border-radius:24px!important;
+    background:var(--v431-tab-bg)!important;
+    -webkit-backdrop-filter:blur(28px) saturate(155%)!important;
+    backdrop-filter:blur(28px) saturate(155%)!important;
+    box-shadow:0 18px 54px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.035)!important;
+  }
+  .app-dock a,
+  .app-dock button{
+    min-width:0!important;
+    min-height:56px!important;
+    padding:6px 2px!important;
+    display:flex!important;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px!important;
+    border-radius:17px!important;
+    color:var(--v431-tab-text)!important;
+    background:transparent!important;
+    font-size:9px!important;
+    font-weight:650!important;
+    line-height:1.12!important;
+    letter-spacing:0!important;
+    touch-action:manipulation;
+    -webkit-user-select:none;
+    user-select:none;
+    transition:background .16s ease,color .16s ease,transform .12s ease!important;
+  }
+  .app-dock .app-icon{
+    width:22px!important;
+    height:22px!important;
+    stroke-width:1.8!important;
+  }
+  .app-dock a.is-active,
+  .app-dock a[aria-current="page"]{
+    color:var(--v431-tab-active-text)!important;
+    background:var(--v431-tab-active)!important;
+    box-shadow:inset 0 0 0 1px rgba(240,214,148,.08)!important;
+  }
+  .app-dock .dock-action{
+    color:#efe8d8!important;
+    background:rgba(255,255,255,.035)!important;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.035)!important;
+  }
+  .app-dock :where(a,button):active{
+    transform:scale(.95);
+  }
+
+  .mobile-app-sheet{
+    padding:12px 8px calc(12px + env(safe-area-inset-bottom))!important;
+    background:rgba(0,0,0,.67)!important;
+    -webkit-backdrop-filter:blur(18px)!important;
+    backdrop-filter:blur(18px)!important;
+    overscroll-behavior:contain;
+  }
+  .app-sheet-panel{
+    left:8px!important;
+    right:8px!important;
+    bottom:max(8px,env(safe-area-inset-bottom))!important;
+    max-height:min(78dvh,720px)!important;
+    padding:22px 14px 16px!important;
+    border-radius:30px!important;
+    border:1px solid rgba(240,214,148,.20)!important;
+    background:
+      radial-gradient(440px 180px at 86% 0%,rgba(215,184,109,.055),transparent 72%),
+      linear-gradient(180deg,rgba(22,21,20,.995),rgba(9,9,10,.995))!important;
+    box-shadow:0 34px 110px rgba(0,0,0,.68)!important;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  .app-sheet-panel::before{
+    content:"";
+    display:block;
+    width:38px;
+    height:4px;
+    margin:0 auto 13px;
+    border-radius:999px;
+    background:#56544f;
+  }
+  .app-sheet-head{
+    position:sticky;
+    top:-22px;
+    z-index:2;
+    margin:-4px -2px 10px;
+    padding:8px 2px 10px;
+    background:linear-gradient(180deg,rgba(22,21,20,.995) 72%,transparent);
+  }
+  .app-sheet-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+  .app-sheet-grid a{
+    min-height:58px!important;
+    display:flex;
+    align-items:center;
+    padding:12px 13px!important;
+    border-radius:16px!important;
+    background:rgba(255,255,255,.018)!important;
+  }
+
+  .pwa-install{
+    left:8px!important;
+    right:8px!important;
+    bottom:calc(88px + env(safe-area-inset-bottom))!important;
+    width:auto!important;
+    max-width:none!important;
+    transform:none!important;
+    border-radius:18px!important;
+  }
+}
+@media(max-width:390px){
+  .app-dock{
+    left:5px!important;
+    right:5px!important;
+    padding:5px!important;
+    border-radius:21px!important;
+  }
+  .app-dock a,
+  .app-dock button{
+    min-height:54px!important;
+    font-size:8.5px!important;
+  }
+  .app-dock .app-icon{
+    width:21px!important;
+    height:21px!important;
+  }
+  .app-sheet-grid{
+    grid-template-columns:1fr!important;
+  }
+}
+@media(display-mode:standalone) and (max-width:900px){
+  body{
+    overscroll-behavior-y:none;
+  }
+  .site-header{
+    padding-top:calc(7px + env(safe-area-inset-top))!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .app-dock a,
+  .app-dock button,
+  .mobile-app-sheet,
+  .app-sheet-panel{
+    transition:none!important;
+  }
+}
