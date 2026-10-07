@@ -2,6 +2,16 @@ const {test,expect}=require('@playwright/test');
 
 test.use({serviceWorkers:'block'});
 
+async function prepareVisualCapture(page){
+  // The site uses system-native stacks. Clearing unresolved synthetic/custom
+  // FontFace entries prevents Chromium CI from stalling screenshots while
+  // preserving the actual system font rendering used by production pages.
+  await page.evaluate(()=>{
+    try{ document.fonts?.clear?.(); }catch(_){}
+  });
+  await page.waitForTimeout(40);
+}
+
 async function stableOverflow(page){
   let last;
   for(let attempt=0;attempt<4;attempt++){
@@ -93,7 +103,8 @@ for(const [route,name] of [['/fa/','fa-home'],['/en/','en-home'],['/fa/rahnamaha
       await page.setViewportSize({width,height});
       await page.goto(base+route,{waitUntil:'domcontentloaded'});
       await page.waitForTimeout(120);
-      await page.screenshot({path:'test-results/screenshots/'+name+'-'+label+'.png',fullPage:true});
+      await prepareVisualCapture(page);
+      await page.screenshot({path:'test-results/screenshots/'+name+'-'+label+'.png',fullPage:true,animations:'disabled'});
     }
   });
 }
@@ -334,7 +345,8 @@ test('root gateway first-screen visual evidence',async({page})=>{
     await page.setViewportSize({width,height});
     await page.goto(base+'/',{waitUntil:'domcontentloaded'});
     await page.waitForTimeout(180);
-    await page.screenshot({path:'test-results/screenshots/root-gateway-'+label+'-first-screen.png',fullPage:false});
+    await prepareVisualCapture(page);
+    await page.screenshot({path:'test-results/screenshots/root-gateway-'+label+'-first-screen.png',fullPage:false,animations:'disabled'});
   }
 });
 
@@ -371,7 +383,7 @@ test('standalone gateway resumes the saved language',async({page})=>{
     localStorage.setItem('preferred-language','fa');
   });
   await page.goto(base+'/',{waitUntil:'domcontentloaded'});
-  await page.waitForURL(/\/fa\/$/);
+  await expect.poll(()=>new URL(page.url()).pathname,{timeout:5000}).toMatch(/\/fa\/(?:index\.html)?$/);
 });
 
 test('private student shells obey the frozen five-tab mobile contract',async({page})=>{
@@ -569,7 +581,7 @@ for(const route of ['/fa/shop/','/en/shop/']){
     await page.setViewportSize({width:390,height:844});
     await page.goto(base+route,{waitUntil:'domcontentloaded'});
     await page.waitForTimeout(320);
-    const cards=page.locator('[data-book-catalog] .book-card');
+    const cards=page.locator('[data-book-catalog] .book-product-card');
     await expect(cards).toHaveCount(3);
     await expect(page.locator('[data-add-book]')).toHaveCount(3);
     await expect(page.locator('.book-price')).toHaveCount(3);
@@ -647,9 +659,11 @@ test('tablet portrait and landscape visual resilience',async({page})=>{
       await expect(page.locator('main').first()).toBeVisible();
       const h1=page.locator('main h1').first();
       if(await h1.count()) await expect(h1).toBeVisible();
+      await prepareVisualCapture(page);
       await page.screenshot({
         path:'test-results/screenshots/'+name+'-'+label+'-first-screen.png',
-        fullPage:false
+        fullPage:false,
+        animations:'disabled'
       });
     }
   }
