@@ -45,7 +45,11 @@
     "crop_only_when_explicitly_designed": true,
     "strip_unnecessary_metadata_when_safe": true,
     "retina_quality_for_brand_critical_assets": true,
-    "deterministic_descriptive_filenames": true
+    "deterministic_descriptive_filenames": true,
+    "generator_requires_registered_source": true,
+    "block_upscaling_by_default": true,
+    "automatic_registry_update": true,
+    "record_sha256": true
   },
   "book_cover_profile": {
     "composition_locked": true,
@@ -56,5 +60,8 @@
     ],
     "source_rule": "Retain an approved master/source when available; otherwise record the approved production asset as the current source without pretending it is an original master."
   },
-  "audit": "scripts/media-library-audit.mjs"
+  "audit": "scripts/media-library-audit.mjs",
+  "generator": "scripts/media-derive.mjs",
+  "workflow": ".github/workflows/media-derivatives.yml",
+  "runbook": "foundation/MEDIA-LIBRARY-RUNBOOK-v4.3.md"
 }
