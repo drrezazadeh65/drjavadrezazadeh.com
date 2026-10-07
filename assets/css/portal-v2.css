@@ -2778,3 +2778,56 @@ html[lang="en"] .student-gateway-page .site-header .brand small{
   }
   .dashboard-shell-page .dashboard-kpi-row{margin:10px 0 14px}
 }
+
+@media(max-width:560px){
+  .rtl.role-dashboard-page{--private-role-mobile-density:1}
+  .rtl.role-dashboard-page .foundation-main.app-prototype{
+    padding-top:14px;
+    padding-bottom:calc(116px + env(safe-area-inset-bottom));
+  }
+  .rtl.role-dashboard-page .foundation-hero{
+    padding:19px 18px 21px;
+    border-radius:20px;
+  }
+  .rtl.role-dashboard-page .foundation-hero .kicker{
+    font-size:10px;
+    line-height:1.6;
+  }
+  .rtl.role-dashboard-page .foundation-hero h1{
+    margin:7px 0 11px;
+    font-size:clamp(29px,8vw,33px)!important;
+    line-height:1.55!important;
+    text-wrap:balance;
+  }
+  .rtl.role-dashboard-page .foundation-hero .lead{
+    margin:0;
+    font-size:14.5px;
+    line-height:1.95;
+  }
+  .rtl.role-dashboard-page .foundation-status{
+    margin-top:14px;
+    gap:7px;
+  }
+  .rtl.role-dashboard-page .foundation-status span{
+    min-height:34px;
+    padding:7px 10px;
+    font-size:9px;
+  }
+  .rtl.role-dashboard-page .role-status-grid{
+    margin-top:10px;
+  }
+  .rtl.role-dashboard-page .role-status-card{
+    min-height:96px;
+    padding:12px 13px;
+    border-radius:14px;
+  }
+  .rtl.role-dashboard-page .role-status-card strong{
+    margin-top:6px;
+    font-size:13.5px;
+  }
+  .rtl.role-dashboard-page .role-status-card span{
+    margin-top:4px;
+    font-size:9.5px;
+    line-height:1.55;
+  }
+}

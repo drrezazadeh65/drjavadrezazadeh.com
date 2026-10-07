@@ -800,3 +800,40 @@ test('English student gateway uses a two-by-two mobile action grid',async({page}
   expect(dock).not.toBeNull();
   expect(boxes[0].y+boxes[0].h).toBeLessThan(dock.y-10);
 });
+
+test('Persian role dashboards keep title and trust status above the app dock',async({page})=>{
+  const routes=['/fa/app/valed/','/fa/app/moallem/','/fa/app/moshaver/'];
+  for(const route of routes){
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(180);
+    const title=page.locator('.foundation-hero h1').first();
+    const firstStatus=page.locator('.role-status-card').first();
+    const dock=page.locator('.app-dock').first();
+    await expect(title).toBeVisible();
+    await expect(firstStatus).toBeVisible();
+    await expect(dock).toBeVisible();
+    const [tb,sb,db]=await Promise.all([title.boundingBox(),firstStatus.boundingBox(),dock.boundingBox()]);
+    for(const box of [tb,sb,db]) expect(box).not.toBeNull();
+    const size=parseFloat(await title.evaluate(el=>getComputedStyle(el).fontSize));
+    expect(size,route+' mobile role title size').toBeLessThanOrEqual(33.5);
+    expect(tb.y+tb.height,route+' title should clear dock').toBeLessThan(db.y-18);
+    expect(sb.y,route+' first trust card should begin before dock').toBeLessThan(db.y-24);
+    const links=page.locator('.app-dock a');
+    await expect(links).toHaveCount(5);
+  }
+});
+
+test('Persian private role visual evidence',async({page})=>{
+  const surfaces=[
+    ['/fa/app/valed/','fa-parent-app'],
+    ['/fa/app/moallem/','fa-teacher-app'],
+    ['/fa/app/moshaver/','fa-adviser-app']
+  ];
+  for(const [route,name] of surfaces){
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(180);
+    await page.screenshot({path:'test-results/screenshots/'+name+'-mobile-390-first-screen.png',fullPage:false});
+  }
+});
