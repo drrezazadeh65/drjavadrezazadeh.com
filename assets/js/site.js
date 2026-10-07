@@ -515,6 +515,6 @@ if(document.querySelector('a[href="https://trustseal.enamad.ir/?id=8075712&Code=
 const footer=document.querySelector('footer');
 if(!footer) return;
 const holder=document.createElement('div');
-holder.innerHTML="<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1' alt='' style='cursor:pointer' code='sealMJydDpzqNid1Ty82Y90Ef6SZLah1'></a>";
+holder.innerHTML="<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1'><img src='/assets/images/enamad-trust-symbol.svg' alt='نماد اعتماد الکترونیکی' style='cursor:pointer;max-width:110px;height:auto' code='sealMJydDpzqNid1Ty82Y90Ef6SZLah1'></a>";
 footer.appendChild(holder);
 })();
