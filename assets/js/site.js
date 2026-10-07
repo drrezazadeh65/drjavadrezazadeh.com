@@ -71,9 +71,33 @@ menu:'<path d="M5 7h14M5 12h14M5 17h14"/>',
 star:'<path d="m12 3 2.7 5.4 6 .9-4.3 4.2 1 6-5.4-2.8-5.4 2.8 1-6-4.3-4.2 6-.9z"/>',
 test:'<path d="M7 3h10v4H7z"/><path d="M6 7h12v14H6z"/><path d="m9 12 2 2 4-4"/>',
 path:'<path d="M5 18c3-6 5-7 8-7 2.5 0 3.5-2 6-6"/><circle cx="5" cy="18" r="1.5"/><circle cx="13" cy="11" r="1.5"/><circle cx="19" cy="5" r="1.5"/>',
-news:'<path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/>'
+news:'<path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+bag:'<path d="M5 8h14l-1 12H6z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/>',
+search:'<circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/>',
+graduation:'<path d="m3 9 9-5 9 5-9 5z"/><path d="M7 12v4c3 2 7 2 10 0v-4"/><path d="M21 9v6"/>',
+briefcase:'<rect x="4" y="7" width="16" height="12" rx="2"/><path d="M9 7V5h6v2M4 12h16"/>',
+globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>',
+lock:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+spark:'<path d="m12 3 1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="m18.5 15 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>',
+calendar:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>',
+chart:'<path d="M5 19V9M12 19V5M19 19v-7"/>'
 };
-return '<svg class="app-icon" viewBox="0 0 24 24">'+(d[n]||d.menu)+'</svg>';
+return '<svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(d[n]||d.menu)+'</svg>';
+};
+const iconForRoute=(href,label='')=>{
+const s=(href+' '+label).toLowerCase();
+if(/shop|bookstore|فروشگاه/.test(s)) return 'bag';
+if(/golden|talent|استعداد/.test(s)) return 'spark';
+if(/consult|مشاور|contact|تماس/.test(s)) return 'chat';
+if(/search|جست/.test(s)) return 'search';
+if(/privacy|حریم|secure|account|حساب/.test(s)) return 'lock';
+if(/research|پژوهش|publication|انتشار|journal|jhela/.test(s)) return 'book';
+if(/teach|student|education|تدریس|دانش|آموزش/.test(s)) return 'graduation';
+if(/collaboration|invite|همکاری/.test(s)) return 'briefcase';
+if(/news|اخبار|guide|راهنما/.test(s)) return 'news';
+if(/cv|resume|رزومه|about|درباره/.test(s)) return 'user';
+if(/international|english|فارسی|language|زبان/.test(s)) return 'globe';
+return 'path';
 };
 function ensureTabletMenuTrigger(){
  if(isPrivateApp||q('.tablet-menu-trigger')) return;
@@ -92,7 +116,9 @@ function ensureTabletMenuTrigger(){
 function ensureMobileNav(){
 if(document.body.classList.contains('dashboard-shell-page')) q('.gt-mobile-dock')?.remove();
 ensureTabletMenuTrigger();
-if(q('.app-dock')) return;
+if(q('.app-dock') && isPrivateApp) return;
+if(q('.app-dock')) q('.app-dock').remove();
+if(!isPrivateApp && q('#mobile-app-menu')) q('#mobile-app-menu').remove();
 if(isPrivateApp) q('.gt-mobile-dock')?.remove();
 else if(q('.gt-mobile-dock')) return;
 const nav=document.createElement('nav');nav.className='app-dock';nav.setAttribute('aria-label',isFa?'منوی موبایلی':'Mobile app navigation');
@@ -133,8 +159,8 @@ links=cfg.tabs.map((route,i)=>[u(route),labels[i],icons[i]]);
 }else if(isFa){
 links=[
 [u('fa/'),'خانه','home'],
-[u('fa/golden-talent/'),'استعداد','star'],
-[u('fa/shop/'),'فروشگاه','book'],
+[u('fa/golden-talent/'),'استعداد','spark'],
+[u('fa/shop/'),'فروشگاه','bag'],
 [u('fa/darkhast-moshavere/'),'مشاوره','chat']
 ];
 sheet=[
@@ -162,8 +188,8 @@ sheet=[
 }else{
 links=[
 [u('en/'),'Home','home'],
-[u('en/golden-talent/'),'Talent','star'],
-[u('en/shop/'),'Store','book'],
+[u('en/golden-talent/'),'Talent','spark'],
+[u('en/shop/'),'Store','bag'],
 [u('en/request-consultation/'),'Consult','chat']
 ];
 sheet=[
@@ -197,7 +223,7 @@ document.body.appendChild(nav);
 if(!isPrivateApp&&!q('#mobile-app-menu')){
 const sheetEl=document.createElement('div');sheetEl.className='mobile-app-sheet';sheetEl.id='mobile-app-menu';sheetEl.hidden=true;
 sheetEl.setAttribute('role','dialog');sheetEl.setAttribute('aria-modal','true');sheetEl.setAttribute('aria-label',isFa?'دسترسی سریع':'Explore');
-sheetEl.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-grid">'+sheet.map(([href,label])=>'<a href="'+href+'"><b>'+label+'</b></a>').join('')+'</div></div>';
+sheetEl.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><div><small>'+(isFa?'ناوبری اپ':'APP NAVIGATION')+'</small><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong></div><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-grid">'+sheet.map(([href,label])=>'<a href="'+href+'"><span class="sheet-icon">'+icon(iconForRoute(href,label))+'</span><b>'+label+'</b><span class="sheet-chevron" aria-hidden="true">›</span></a>').join('')+'</div></div>';
 document.body.appendChild(sheetEl);
 }
 }
