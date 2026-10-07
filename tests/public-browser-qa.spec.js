@@ -682,3 +682,21 @@ test('tablet public navigation avoids wrapped desktop menus',async({page})=>{
   await expect(page.locator('.tablet-menu-trigger')).toBeHidden();
   await expect(page.locator('.app-dock')).toBeHidden();
 });
+
+test('private student app first-screen visual evidence',async({page})=>{
+  const surfaces=[
+    ['/fa/app/student/','fa-student-dashboard'],
+    ['/en/golden-talent/student/','en-student-gateway']
+  ];
+  for(const [route,name] of surfaces){
+    for(const [label,width,height] of [['mobile-390',390,844],['desktop-1440',1440,900]]){
+      await page.setViewportSize({width,height});
+      await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      await page.waitForTimeout(220);
+      await expect(page.locator('main').first()).toBeVisible();
+      const overflow=await stableOverflow(page);
+      expect(Math.max(overflow.html,overflow.body),route+' private-app overflow').toBeLessThanOrEqual(overflow.viewport+1);
+      await page.screenshot({path:'test-results/screenshots/'+name+'-'+label+'-first-screen.png',fullPage:false});
+    }
+  }
+});
