@@ -957,7 +957,7 @@
 .account-dashboard-page .account-grid span{
   display:inline-block;
   margin-top:9px;
-  color:#73767d;
+  color:#82868d;
   font-size:10px;
 }
 .account-dashboard-page footer{
@@ -1872,7 +1872,7 @@
 }
 .role-status-card small{
   display:block;
-  color:#767981;
+  color:#82868d;
   font-size:9px;
   text-transform:uppercase;
   letter-spacing:.08em;
@@ -2180,7 +2180,7 @@
 .commerce-workspace-page .payment-rail-grid span{
   display:block;
   margin-top:10px;
-  color:#73767d;
+  color:#82868d;
   font-size:10px;
 }
 .commerce-workspace-page .case-checklist{
@@ -2498,7 +2498,7 @@
 }
 .progress-workspace-page .progress-snapshot-grid small{
   display:block;
-  color:#777a81;
+  color:#82868d;
   font-size:9px;
   text-transform:uppercase;
   letter-spacing:.07em;

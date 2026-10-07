@@ -268,6 +268,12 @@ markCurrentDesktopNavigation();
   window.addEventListener('beforeinstallprompt',e=>{
     e.preventDefault();
     deferredPrompt=e;
+    const openAssistantPanel=document.querySelector('#jr-assistant-panel');
+    const assistantLauncher=document.querySelector('.jr-assistant-launcher');
+    if(openAssistantPanel&&!openAssistantPanel.hidden){
+      openAssistantPanel.hidden=true;
+      assistantLauncher?.setAttribute('aria-expanded','false');
+    }
     if(privatePath || document.querySelector('.pwa-install') || sessionStorage.getItem('pwa-install-dismissed')==='1') return;
     const isFa=document.documentElement.lang==='fa';
     const wrap=document.createElement('div');

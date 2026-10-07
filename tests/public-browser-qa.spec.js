@@ -455,3 +455,19 @@ test('private dashboard muted labels maintain AA contrast',async({page})=>{
     expect(ratio,sel+' contrast on the lightest dashboard card surface').toBeGreaterThanOrEqual(4.5);
   }
 });
+
+test('PWA install affordance temporarily yields the bottom layer',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/en/',{waitUntil:'domcontentloaded'});
+  const launcher=page.locator('.jr-assistant-launcher');
+  await expect(launcher).toBeVisible();
+  await page.evaluate(()=>{
+    const wrap=document.createElement('div');
+    wrap.className='pwa-install';
+    wrap.innerHTML='<button class="pwa-install-btn">Install</button><button class="pwa-install-close">×</button>';
+    document.body.appendChild(wrap);
+  });
+  await expect(launcher).toBeHidden();
+  await page.locator('.pwa-install').evaluate(el=>el.remove());
+  await expect(launcher).toBeVisible();
+});
