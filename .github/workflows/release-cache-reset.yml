@@ -128,7 +128,20 @@ jobs:
           else
             git commit -m "chore(release): reset caches for v$RELEASE_VERSION"
           fi
-          git push origin HEAD:main
+          pushed=false
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              pushed=true
+              break
+            fi
+            echo "Main advanced while cache invalidation was running; rebasing cache bump (attempt $attempt)."
+            git fetch origin main
+            git rebase origin/main
+          done
+          if [ "$pushed" != "true" ]; then
+            echo "Unable to publish cache invalidation after retries."
+            exit 1
+          fi
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Publish summary
