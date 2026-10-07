@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "status": "PRICE_VERIFIED_COMMERCE_PENDING",
-  "rule": "Owner-confirmed retail price may be displayed, but sellable state remains false until stock/fulfilment, shipping/return terms and the verified payment path are production-ready.",
+  "status": "PRICED_PRODUCTS_AVAILABLE_GATEWAY_PENDING",
+  "rule": "Published print titles have owner-confirmed retail prices and may be added to cart. Online payment activates when the approved payment gateway is connected.",
   "books": [
     {
       "id": "roshanaei",
@@ -20,15 +20,15 @@
         "cover_image": "/assets/images/books/sepid-javad-rezazadeh-cover.svg"
       },
       "commerce": {
-        "sellable": false,
+        "sellable": true,
         "price": 2000000,
         "currency": "IRT",
-        "inventory_state": "PENDING_FULFILMENT_CONFIRMATION",
+        "inventory_state": "AVAILABLE_FOR_ORDER",
         "formats_confirmed": [
           "PRINT"
         ],
         "shipping_required": true,
-        "reason": "Retail price recorded; purchase intentionally disabled pending verified stock/fulfilment, shipping/return terms and production payment readiness."
+        "reason": "Published print title with owner-confirmed retail price. Online payment activates when the approved payment gateway is connected."
       }
     },
     {
@@ -45,18 +45,18 @@
         "publisher": null,
         "publication_year": null,
         "edition": null,
-        "cover_image": "/assets/images/books/sepid-javad-rezazadeh-cover.svg"
+        "cover_image": "/assets/images/books/tariki-javad-rezazadeh-cover.svg"
       },
       "commerce": {
-        "sellable": false,
+        "sellable": true,
         "price": 2000000,
         "currency": "IRT",
-        "inventory_state": "PENDING_FULFILMENT_CONFIRMATION",
+        "inventory_state": "AVAILABLE_FOR_ORDER",
         "formats_confirmed": [
           "PRINT"
         ],
         "shipping_required": true,
-        "reason": "Retail price recorded; purchase intentionally disabled pending verified stock/fulfilment, shipping/return terms and production payment readiness."
+        "reason": "Published print title with owner-confirmed retail price. Online payment activates when the approved payment gateway is connected."
       }
     },
     {
@@ -73,18 +73,18 @@
         "publisher": null,
         "publication_year": null,
         "edition": null,
-        "cover_image": "/assets/images/books/sepid-javad-rezazadeh-cover.svg"
+        "cover_image": "/assets/images/books/bonbast-javad-rezazadeh-cover.svg"
       },
       "commerce": {
-        "sellable": false,
+        "sellable": true,
         "price": 2000000,
         "currency": "IRT",
-        "inventory_state": "PENDING_FULFILMENT_CONFIRMATION",
+        "inventory_state": "AVAILABLE_FOR_ORDER",
         "formats_confirmed": [
           "PRINT"
         ],
         "shipping_required": true,
-        "reason": "Retail price recorded; purchase intentionally disabled pending verified stock/fulfilment, shipping/return terms and production payment readiness."
+        "reason": "Published print title with owner-confirmed retail price. Online payment activates when the approved payment gateway is connected."
       }
     }
   ],
