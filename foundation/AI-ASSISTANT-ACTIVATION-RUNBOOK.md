@@ -1,6 +1,6 @@
 # Public AI Assistant Activation — Cloudflare Worker
 
-The public assistant is designed to remain usable while the website itself continues on GitHub Pages. It runs as a separate Cloudflare Worker on `assistant.drjavadrezazadeh.com`.
+The public assistant runs as a separate Cloudflare Worker on `assistant.drjavadrezazadeh.com` while the public website remains on GitHub Pages behind the owned canonical domain.
 
 ## What is already in the repository
 
@@ -10,7 +10,7 @@ The public assistant is designed to remain usable while the website itself conti
 - Cloudflare Worker source at `edge/assistant/src/index.js`.
 - Workers AI binding with the default model `@cf/openai/gpt-oss-120b`.
 - Anonymous-device rate limiting.
-- CORS restricted to the owned domain and current GitHub Pages origin.
+- CORS restricted to the owned production domain (apex and controlled www form).
 - Retrieval over the public `assets/search-index.json`; no private data source is attached.
 - No message persistence on the server and no browser persistence of conversation text.
 - Private/account/assessment/checkout surfaces do not load the public concierge.
