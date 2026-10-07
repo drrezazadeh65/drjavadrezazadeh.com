@@ -2718,3 +2718,9 @@ html[lang="en"] .student-gateway-page .site-header .brand small{
   font-size:10px;
 }
 }
+
+@media(max-width:560px){
+.rtl.auth-page{--rtl-auth-brand-order:1}
+.rtl.auth-page .site-header .brand{direction:ltr}
+.rtl.auth-page .site-header .brand small{direction:rtl;unicode-bidi:isolate}
+}

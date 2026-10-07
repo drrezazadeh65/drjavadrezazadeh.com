@@ -534,3 +534,12 @@ test('system-native typography stacks stay unified without external font request
   const externalFonts=await page.evaluate(()=>[...document.styleSheets].map(s=>s.href).filter(Boolean).filter(h=>/fonts\.(?:googleapis|gstatic)|use\.typekit/i.test(h)));
   expect(externalFonts).toEqual([]);
 });
+
+test('Persian auth brand preserves Golden Talent word order',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/fa/login/',{waitUntil:'domcontentloaded'});
+  const brand=page.locator('.site-header .brand');
+  await expect(brand).toBeVisible();
+  expect(await brand.evaluate(el=>getComputedStyle(el).direction)).toBe('ltr');
+  expect((await brand.textContent()).replace(/\s+/g,' ').trim()).toMatch(/^Golden Talent/);
+});
