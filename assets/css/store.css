@@ -64,3 +64,82 @@
 
 /* Premium services shown publicly on the storefront */
 .service-price-section{margin:34px 0}.service-price-section h2{margin:0 0 8px;font-size:clamp(28px,4vw,42px)}.service-price-section>.lead{margin-bottom:18px}.service-price-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.service-price-card{padding:18px;border:1px solid rgba(198,161,90,.18);border-radius:18px;background:linear-gradient(145deg,rgba(198,161,90,.045),rgba(255,255,255,.01))}.service-price-card h3{margin:0 0 12px;font-size:15px;line-height:1.8}.service-price-card strong{display:block;color:#f0dfbf;font-size:18px}.service-price-card small{display:block;color:#8f8578;margin-top:7px}@media(max-width:800px){.service-price-grid{grid-template-columns:1fr}}
+
+
+/* Luxury unified cover presentation 20261007 */
+.book-product-card{
+  background:
+    radial-gradient(120% 75% at 50% -10%,rgba(216,181,112,.09),transparent 48%),
+    linear-gradient(180deg,#11100e 0%,#090908 58%,#070707 100%);
+  border-color:rgba(216,181,112,.24);
+  box-shadow:0 26px 72px rgba(0,0,0,.34);
+}
+.book-cover{
+  position:relative;
+  aspect-ratio:2/3;
+  display:grid;
+  place-items:center;
+  padding:28px 22px 32px;
+  overflow:hidden;
+  background:
+    radial-gradient(60% 42% at 50% 18%,rgba(231,203,145,.13),transparent 72%),
+    radial-gradient(72% 28% at 50% 100%,rgba(183,139,65,.08),transparent 72%),
+    linear-gradient(145deg,#17140f 0%,#0c0b09 50%,#060606 100%);
+  border-bottom:1px solid rgba(216,181,112,.20);
+  isolation:isolate;
+}
+.book-cover::before{
+  content:"";
+  position:absolute;
+  inset:15px;
+  border:1px solid rgba(226,200,134,.16);
+  border-radius:17px;
+  pointer-events:none;
+}
+.book-cover::after{
+  content:"";
+  position:absolute;
+  width:64%;
+  height:9%;
+  left:18%;
+  bottom:7%;
+  border-radius:50%;
+  background:rgba(0,0,0,.5);
+  filter:blur(18px);
+  pointer-events:none;
+}
+.book-cover img{
+  position:relative;
+  z-index:1;
+  display:block;
+  width:auto;
+  height:auto;
+  max-width:min(78%,300px);
+  max-height:86%;
+  object-fit:contain;
+  object-position:center;
+  background:transparent;
+  border-radius:5px;
+  box-shadow:0 28px 54px rgba(0,0,0,.52),0 8px 18px rgba(0,0,0,.34),0 0 0 1px rgba(255,255,255,.08);
+}
+.book-product-copy{padding:24px 24px 26px}
+.book-product-copy h2{font-size:28px;color:#f1e6d4}
+.book-product-copy p{color:#a49a8d}
+.book-price{color:#ead6ad;border-top-color:rgba(226,200,134,.10)}
+.book-detail-layout .book-cover{
+  aspect-ratio:2/3;
+  min-height:0;
+  padding:34px 26px;
+  background:
+    radial-gradient(58% 40% at 50% 18%,rgba(231,203,145,.12),transparent 72%),
+    linear-gradient(145deg,#17140f,#080807);
+}
+.book-detail-layout .book-cover img{max-width:min(82%,360px);max-height:88%}
+@media(max-width:800px){
+  .book-store-grid{gap:20px}
+  .book-product-card{border-radius:24px}
+  .book-cover{aspect-ratio:4/5;padding:24px 18px 28px}
+  .book-cover::before{inset:12px;border-radius:15px}
+  .book-cover img{max-width:min(72vw,300px);max-height:88%}
+  .book-product-copy{padding:21px 20px 24px}
+}
