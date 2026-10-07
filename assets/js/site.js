@@ -268,7 +268,7 @@ markCurrentDesktopNavigation();
 if(!('serviceWorker' in navigator)) return;
 window.addEventListener('load',()=>{
 const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
-navigator.serviceWorker.register(base+'sw.js?v=20261007-cache-v2',{updateViaCache:'none'}).then(reg=>{
+navigator.serviceWorker.register(base+'sw.js?v=20261007-cache-v3-enamad',{updateViaCache:'none'}).then(reg=>{
   reg.update().catch(()=>{});
   if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
   reg.addEventListener('updatefound',()=>{
