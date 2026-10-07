@@ -27,22 +27,18 @@ jobs:
       - name: Run responsive resilience source audit
         run: node scripts/responsive-resilience-audit.mjs
       - name: Diagnose frontend copy hygiene — core
-        continue-on-error: true
         env:
           COPY_HYGIENE_GROUP: core
         run: node scripts/frontend-copy-hygiene-audit.mjs
       - name: Diagnose frontend copy hygiene — editorial
-        continue-on-error: true
         env:
           COPY_HYGIENE_GROUP: editorial
         run: node scripts/frontend-copy-hygiene-audit.mjs
       - name: Diagnose frontend copy hygiene — implementation
-        continue-on-error: true
         env:
           COPY_HYGIENE_GROUP: implementation
         run: node scripts/frontend-copy-hygiene-audit.mjs
       - name: Diagnose frontend copy hygiene — Persian implementation language
-        continue-on-error: true
         env:
           COPY_HYGIENE_GROUP: persian
         run: node scripts/frontend-copy-hygiene-audit.mjs
