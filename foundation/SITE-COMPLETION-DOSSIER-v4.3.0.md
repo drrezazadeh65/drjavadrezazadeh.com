@@ -1,6 +1,6 @@
 # SITE COMPLETION DOSSIER — v4.3.0
 
-**Status:** ACTIVE EXECUTION DOSSIER  
+**Status:** REPOSITORY / PUBLIC-FOUNDATION COMPLETE — EXTERNAL ACTIVATIONS OPEN  
 **Date:** 7 October 2026  
 **Canonical production origin:** `https://drjavadrezazadeh.com`  
 **v4.2:** rollback/reference only  
@@ -150,4 +150,22 @@ Physical iOS/Android, actual PWA installation and VoiceOver/TalkBack remain manu
 
 v4.3.0 is not “final” merely because its code is committed. Applicable SEO, Browser QA, media, cache, responsive, commerce and live-production gates must be green; external dependencies must be explicitly classified rather than simulated.
 
-The next status update must be driven by verified CI/live evidence.
+## Final v4.3.0 internal release evidence
+
+The v4.3.0 repository/public-foundation release gates are green on the final public-surface line:
+
+- SEO GEO Regression: PASS.
+- Browser QA: PASS.
+- Full Route Responsive Certification: PASS across all 207 HTML routes at 320/390/430/1440.
+- Full Route Visual Crawl: PASS, producing complete four-viewport screenshot evidence for all 207 routes.
+- Sanitized Pages Artifact: PASS.
+- Jekyll Public Boundary Validation: PASS; engineering-only directories are excluded from branch-based Pages.
+- Release Cache Reset: PASS.
+- IndexNow Submission: PASS on the final public-surface change.
+- GitHub Pages deployment after the public-boundary activation: PASS.
+- Search Console inspection of key canonical pages: nine of ten sampled core URLs are PASS / Submitted and indexed; Persian Golden Talent is valid/indexable and currently awaiting crawl/indexing.
+- Search Console Indexing Tracker covers all 55 sitemap URLs with zero errors and zero warnings at the final check.
+
+Accordingly, v4.3.0 is internally complete as a repository/public-foundation release. It is not a claim that external provider-dependent systems—production payment, authenticated private data, GA4, Cloudflare assistant deployment, real booking/calendar persistence, verified fulfilment policy, or physical-device/assistive-technology certification—are live. Those gates remain explicitly open and must be completed only with real credentials, verified business data or real-device evidence.
+
+The next status update must be driven by verified external-provider or live-device evidence, not additional speculative frontend construction.
