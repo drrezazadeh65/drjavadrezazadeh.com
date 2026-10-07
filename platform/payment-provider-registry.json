@@ -8,8 +8,8 @@
       "market": "IR",
       "currency": "IRR",
       "enabled": false,
-      "adapter_status": "ADAPTER_READY_RUNTIME_AND_TEST_SECRET_PENDING",
-      "credentials_state": "TEST_API_AND_PRODUCTION_API_NOT_STORED",
+      "adapter_status": "SANDBOX_CREATE_GATEWAY_NEGATIVE_VERIFY_CALLBACK_INTEGRITY_PASSED",
+      "credentials_state": "PUBLIC_TEST_API_VALIDATED_PRODUCTION_API_NOT_STORED",
       "capabilities_required": [
         "CREATE_INTENT",
         "VERIFY_EVENT",
@@ -19,7 +19,20 @@
       "provider_name": "BitPay",
       "provider_key": "bitpay",
       "documentation_version": "2.2",
-      "callback_verification": "SERVER_SIDE_REQUIRED"
+      "callback_verification": "SERVER_SIDE_REQUIRED",
+      "sandbox_validation": {
+        "status": "PASSED_PARTIAL_ROUNDTRIP",
+        "verified_at": "2026-10-07",
+        "checks": [
+          "CREATE_REQUEST_ACCEPTED",
+          "PAYMENT_PAGE_HTTP_200",
+          "UNPAID_VERIFY_REJECTED",
+          "CALLBACK_AMOUNT_MATCH_ENFORCED",
+          "CALLBACK_FACTOR_MATCH_ENFORCED",
+          "IRT_TO_IRR_CONVERSION_ENFORCED"
+        ],
+        "remaining": "INTERACTIVE_SUCCESSFUL_TEST_PAYMENT_CALLBACK_AND_RUNTIME_WORKER_DEPLOYMENT"
+      }
     },
     {
       "key": "ir_secondary",
