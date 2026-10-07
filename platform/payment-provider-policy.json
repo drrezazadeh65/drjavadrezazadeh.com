@@ -1,17 +1,18 @@
 {
   "schema_version": "1.0",
-  "status": "PRE_PRODUCTION",
+  "status": "BITPAY_SELECTED_INTEGRATION_PENDING_RUNTIME",
   "selection_rule": "SERVER_SIDE_ONLY",
   "markets": {
     "IR": {
       "currency": "IRR",
       "display_currency": "IRT",
       "provider_mode": "domestic_gateway",
-      "provider_key": "pending_zarinpal_credentials",
+      "provider_key": "bitpay",
       "enabled": false,
       "notes": [
-        "Final provider activation waits for merchant/API credentials.",
-        "Browser return is never proof of payment."
+        "BitPay has approved the gateway and official integration documentation v2.2 is selected.",
+        "Production API secret must be injected only at server runtime.",
+        "Browser return is never proof of payment; verification must be server-side."
       ]
     },
     "INTERNATIONAL": {
@@ -42,7 +43,7 @@
     "server_returns": [
       "order_id",
       "payment_intent_id",
-      "redirect_url_or_client_token"
+      "redirect_url"
     ],
     "payment_truth": "server_verified_callback_or_webhook_only"
   },
@@ -52,6 +53,8 @@
     "separate sandbox and production credentials",
     "webhook verification",
     "idempotent fulfillment",
-    "audit payment state transitions"
+    "audit payment state transitions",
+    "BitPay API key runtime-secret only",
+    "verify BitPay callback server-side before marking order paid"
   ]
 }
