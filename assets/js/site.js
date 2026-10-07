@@ -253,7 +253,19 @@ markCurrentDesktopNavigation();
 if(!('serviceWorker' in navigator)) return;
 window.addEventListener('load',()=>{
 const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
-navigator.serviceWorker.register(base+'sw.js').catch(()=>{});
+navigator.serviceWorker.register(base+'sw.js?v=20261007-cache-v2',{updateViaCache:'none'}).then(reg=>{
+  reg.update().catch(()=>{});
+  if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+  reg.addEventListener('updatefound',()=>{
+    const worker=reg.installing;
+    if(!worker) return;
+    worker.addEventListener('statechange',()=>{
+      if(worker.state==='installed' && navigator.serviceWorker.controller){
+        worker.postMessage({type:'SKIP_WAITING'});
+      }
+    });
+  });
+}).catch(()=>{});
 });
 let deferredPrompt=null;
 const raw=location.pathname.replace(/index\.html$/,'');
@@ -425,38 +437,24 @@ return el?.dataset?.uiState||null;
 if(!('serviceWorker' in navigator)) return;
 let refreshing=false;
 navigator.serviceWorker.addEventListener('controllerchange',()=>{
-if(refreshing) return;
-if(sessionStorage.getItem('sw-cache-reset-reloaded')==='1') return;
-refreshing=true;
-sessionStorage.setItem('sw-cache-reset-reloaded','1');
-location.reload();
+  if(refreshing) return;
+  refreshing=true;
+  location.reload();
 });
 })();
 (function(){
-const token='jr-site-cache-purge-v3-20261006';
-if(localStorage.getItem(token)==='1') return;
-const finish=()=>{try{localStorage.setItem(token,'1')}catch(e){}};
-Promise.resolve().then(async()=>{
-try{
-if('caches' in window){
-const keys=await caches.keys();
-await Promise.all(keys.filter(k=>k.startsWith('jr-site-')).map(k=>caches.delete(k)));
-}
-if('serviceWorker' in navigator){
-const regs=await navigator.serviceWorker.getRegistrations();
-await Promise.all(regs.map(r=>r.update().catch(()=>{})));
-}
-}catch(e){}
-document.querySelectorAll('link[rel="stylesheet"]').forEach(link=>{
-try{
-const u=new URL(link.href,location.href);
-if(u.pathname.includes('/assets/css/style.css')){
-u.searchParams.set('fresh','jr-overflow-fix-v3');
-link.href=u.href;
-}
-}catch(e){}
-});
-finish();
+window.JRCacheControl=Object.freeze({
+  async refresh(){
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.filter(k=>k.startsWith('jr-site-') && k.endsWith('-runtime')).map(k=>caches.delete(k)));
+    }
+    if('serviceWorker' in navigator){
+      const reg=await navigator.serviceWorker.getRegistration();
+      await reg?.update().catch(()=>{});
+      navigator.serviceWorker.controller?.postMessage({type:'PURGE_RUNTIME'});
+    }
+  }
 });
 })();
 (function(){
