@@ -511,7 +511,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-prin
 (()=>{let h=document.head,a=(r,u)=>{if(!h.querySelector('link[rel="'+r+'"]')){let l=document.createElement('link');l.rel=r;l.href=u;h.append(l)}};a('icon','/favicon.png?v=42');a('apple-touch-icon','/assets/images/pwa-icon-192.png?v=42')})();
 
 (function(){
-if(document.querySelector('a[href="https://trustseal.enamad.ir/?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1"]')) return;
+if(document.querySelector('.enamad-visible-seal, a[href="https://trustseal.enamad.ir/?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1"]')) return;
 const footer=document.querySelector('footer');
 if(!footer) return;
 const holder=document.createElement('div');
