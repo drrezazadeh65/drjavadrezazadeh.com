@@ -2,8 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 
 const ALLOWED_ORIGINS=new Set([
   'https://drjavadrezazadeh.com',
-  'https://www.drjavadrezazadeh.com',
-  'https://drrezazadeh65.github.io'
+  'https://www.drjavadrezazadeh.com'
 ]);
 
 const SYSTEM_PROMPT=`You are the public AI concierge for Dr. Javad Rezazadeh Yazdeli's official website.
@@ -61,14 +60,14 @@ function rankDocs(query,docs,lang){
   }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,7).map(x=>x.d);
 }
 async function loadIndex(env){
-  const origin=(env.PUBLIC_SITE_ORIGIN||'https://drrezazadeh65.github.io/drjavadrezazadeh.com').replace(/\/$/,'');
+  const origin=(env.PUBLIC_SITE_ORIGIN||'https://drjavadrezazadeh.com').replace(/\/$/,'');
   const url=origin+'/assets/search-index.json';
   const res=await fetch(url,{cf:{cacheTtl:300,cacheEverything:true}});
   if(!res.ok) return [];
   try{return await res.json();}catch(e){return [];}
 }
 function linksFromDocs(docs,env){
-  const origin=(env.PUBLIC_SITE_ORIGIN||'https://drrezazadeh65.github.io/drjavadrezazadeh.com').replace(/\/$/,'');
+  const origin=(env.PUBLIC_SITE_ORIGIN||'https://drjavadrezazadeh.com').replace(/\/$/,'');
   return docs.slice(0,4).map(d=>({label:compact(d.title,80),url:origin+'/'+String(d.path||'').replace(/^\//,'')}));
 }
 function modelText(result){
