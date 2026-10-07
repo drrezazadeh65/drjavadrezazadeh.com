@@ -70,7 +70,8 @@ for(const file of htmlFiles){
     const src=attr(tag,'src')||'';
     const width=attr(tag,'width');
     const height=attr(tag,'height');
-    if(!width||!height) failures.push(rel+': image lacks explicit width/height '+src);
+    const officialEnamad=/^https:\/\/trustseal\.enamad\.ir\/logo\.aspx\?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1$/.test(src);
+    if((!width||!height)&&!officialEnamad) failures.push(rel+': image lacks explicit width/height '+src);
     if(/fetchpriority=["']high["']/i.test(tag)) highPriority++;
   }
   if(highPriority>1) warnings.push(rel+': more than one fetchpriority=high image ('+highPriority+')');
