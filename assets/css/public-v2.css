@@ -3172,3 +3172,11 @@ font-size:18px;
 footer{flex-wrap:wrap!important}
 footer>.enamad-footer-row{display:flex!important;visibility:visible!important;opacity:1!important;width:100%!important;flex-basis:100%!important;align-items:center!important;justify-content:center!important;order:-1!important;min-height:86px!important}
 footer>.enamad-footer-row .enamad-visible-seal,footer>.enamad-footer-row svg{display:block!important;visibility:visible!important;opacity:1!important}
+
+
+/* v4.3.0 — canonical service pricing */
+.public-content-page .service-pricing-card{display:flex;flex-direction:column;align-items:flex-start}
+.public-content-page .service-price-amount{font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.02em;color:var(--gold-2,#d6b36a);margin:.15rem 0 .7rem}
+.public-content-page .service-pricing-card .button{margin-top:auto}
+.public-content-page .service-pricing-note{margin-top:22px;padding:18px 20px;border:1px solid rgba(198,161,90,.18);border-radius:18px;background:rgba(255,255,255,.015)}
+.public-content-page .service-pricing-error{padding:20px;border:1px dashed rgba(198,161,90,.35);border-radius:18px}
