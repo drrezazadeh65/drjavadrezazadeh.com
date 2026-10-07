@@ -51,6 +51,41 @@
       "requires_consent": false,
       "client_event": true,
       "payload": "contract_allowlist_only"
+    },
+    {
+      "key": "academic_service_intent",
+      "data_class": "aggregate_product",
+      "requires_consent": false,
+      "client_event": true,
+      "payload": "contract_allowlist_only"
+    },
+    {
+      "key": "institution_invite_intent",
+      "data_class": "aggregate_product",
+      "requires_consent": false,
+      "client_event": true,
+      "payload": "contract_allowlist_only"
+    },
+    {
+      "key": "service_price_intent",
+      "data_class": "aggregate_product",
+      "requires_consent": false,
+      "client_event": true,
+      "payload": "contract_allowlist_only"
+    },
+    {
+      "key": "account_login_intent",
+      "data_class": "aggregate_product",
+      "requires_consent": false,
+      "client_event": true,
+      "payload": "contract_allowlist_only"
+    },
+    {
+      "key": "account_register_intent",
+      "data_class": "aggregate_product",
+      "requires_consent": false,
+      "client_event": true,
+      "payload": "contract_allowlist_only"
     }
   ],
   "rules": {
@@ -63,6 +98,8 @@
     "marketing_tracking_requires_opt_in": true,
     "journal_metrics_must_not_claim_impact_factor_or_indexing_without_verification": true,
     "client_conversion_events_local_until_adapter_connected": true,
-    "raw_form_values_in_analytics": false
+    "raw_form_values_in_analytics": false,
+    "analytics_adapter_fail_closed_until_verified_property": true,
+    "ga4_requires_explicit_local_consent": true
   }
 }
