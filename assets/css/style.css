@@ -822,3 +822,13 @@ legend{max-width:100%;overflow-wrap:anywhere}
 body:not(.rtl),body:not(.rtl) :where(button,input,select,textarea){font-family:var(--jr-font-ui)!important}
 body:not(.rtl) :where(h1,h2,h3,.brand,.hero-line){font-family:var(--jr-font-display)!important;font-kerning:normal}
 .rtl,.rtl :where(button,input,select,textarea,h1,h2,h3,.brand,.brand small,.hero-line){font-family:var(--jr-font-fa)!important;font-kerning:normal}
+
+@media(min-width:901px) and (max-width:1100px){
+.public-home-page,.public-content-page{--tablet-public-dock:1}
+.public-home-page .site-header nav,.public-content-page .site-header nav{display:none!important}
+.public-home-page .app-dock,.public-content-page .app-dock{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;left:50%;right:auto;bottom:14px;z-index:70;width:min(680px,calc(100% - 32px));padding:7px;transform:translateX(-50%);border:1px solid rgba(240,214,148,.24);border-radius:24px;background:rgba(11,11,12,.94);backdrop-filter:blur(26px) saturate(145%);box-shadow:0 20px 68px rgba(0,0,0,.5)}
+.public-home-page .app-dock a,.public-home-page .app-dock button,.public-content-page .app-dock a,.public-content-page .app-dock button{min-height:50px;border:0;border-radius:15px;background:transparent;color:#b5b1a8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;font-size:10px}
+.public-home-page .app-dock .dock-action,.public-content-page .app-dock .dock-action{color:#090806;background:linear-gradient(135deg,#f0d694,#cda557)}
+.public-home-page .app-dock a.is-active,.public-content-page .app-dock a.is-active{color:#f0d694;background:rgba(215,184,109,.08)}
+.public-home-page footer,.public-content-page footer{padding-bottom:104px}
+}

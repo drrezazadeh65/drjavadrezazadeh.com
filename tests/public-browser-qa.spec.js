@@ -654,3 +654,23 @@ test('tablet portrait and landscape visual resilience',async({page})=>{
     }
   }
 });
+
+test('tablet public navigation avoids wrapped desktop menus',async({page})=>{
+  for(const route of ['/en/','/fa/','/en/services/','/fa/golden-talent/']){
+    await page.setViewportSize({width:1024,height:768});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(160);
+    await expect(page.locator('.site-header nav')).toBeHidden();
+    const dock=page.locator('.app-dock');
+    await expect(dock).toBeVisible();
+    await expect(dock.locator('a,button')).toHaveCount(5);
+    const box=await dock.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.width).toBeLessThanOrEqual(682);
+  }
+  await page.setViewportSize({width:1101,height:800});
+  await page.goto(base+'/en/',{waitUntil:'domcontentloaded'});
+  await page.waitForTimeout(120);
+  await expect(page.locator('.site-header nav')).toBeVisible();
+  await expect(page.locator('.app-dock')).toBeHidden();
+});
