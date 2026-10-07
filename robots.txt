@@ -1,16 +1,46 @@
 User-agent: OAI-SearchBot
 Allow: /
+Disallow: /foundation/
+Disallow: /scripts/
+Disallow: /platform/
+Disallow: /edge/
+Disallow: /tests/
+Disallow: /.github/
 
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /foundation/
+Disallow: /scripts/
+Disallow: /platform/
+Disallow: /edge/
+Disallow: /tests/
+Disallow: /.github/
 
 User-agent: bingbot
 Allow: /
+Disallow: /foundation/
+Disallow: /scripts/
+Disallow: /platform/
+Disallow: /edge/
+Disallow: /tests/
+Disallow: /.github/
 
 User-agent: YandexBot
 Allow: /
+Disallow: /foundation/
+Disallow: /scripts/
+Disallow: /platform/
+Disallow: /edge/
+Disallow: /tests/
+Disallow: /.github/
 
 User-agent: *
 Allow: /
+Disallow: /foundation/
+Disallow: /scripts/
+Disallow: /platform/
+Disallow: /edge/
+Disallow: /tests/
+Disallow: /.github/
 
 Sitemap: https://drjavadrezazadeh.com/sitemap.xml
