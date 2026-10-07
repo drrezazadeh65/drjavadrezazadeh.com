@@ -58,6 +58,17 @@
       "caption_fa": "آموزش به‌عنوان فرایندی رشد‌محور و انسان‌مدار تصویر می‌شود."
     },
     {
+      "path": "assets/images/enamad-trust-symbol.svg",
+      "kind": "trust-symbol",
+      "role": "enamad-verification-display",
+      "provenance": "repository trust-symbol asset added for eNAMAD verification presentation; external authenticity/approval remains subject to the eNAMAD provider",
+      "rights": "site-use-pending-provider-verification; do not treat this registry entry as eNAMAD approval",
+      "alt_en": "Electronic Trust Symbol (eNAMAD) verification display",
+      "alt_fa": "نمایش نماد اعتماد الکترونیکی (اینماد) برای فرایند تأیید",
+      "caption_en": "eNAMAD verification display; provider approval must be independently confirmed.",
+      "caption_fa": "نمایش اینماد برای فرایند تأیید؛ تأیید نهایی باید از سوی ارائه‌دهنده اینماد احراز شود."
+    },
+    {
       "path": "assets/images/entekhab-reshteh-1405.svg",
       "kind": "illustration",
       "role": "news-field-selection-1405",
