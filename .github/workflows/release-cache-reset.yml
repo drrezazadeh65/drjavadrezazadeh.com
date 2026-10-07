@@ -1,0 +1,123 @@
+name: Release Cache Reset
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version, e.g. 4.3'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-cache-reset
+  cancel-in-progress: false
+
+jobs:
+  bump-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve release version
+        id: version
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          MANUAL_VERSION: ${{ inputs.release_version }}
+        run: |
+          if [ "$EVENT_NAME" = "release" ]; then
+            raw="$RELEASE_TAG"
+          else
+            raw="$MANUAL_VERSION"
+          fi
+
+          clean="$(printf '%s' "$raw" | sed -E 's/^[vV]//; s/[^0-9A-Za-z._-]+/-/g')"
+          if [ -z "$clean" ]; then
+            echo "Invalid empty release version."
+            exit 1
+          fi
+
+          compact="$(printf '%s' "$clean" | tr -d '.')"
+          stamp="$(date -u +%Y%m%d)"
+          cache_version="jr-site-${stamp}-v${compact}"
+
+          echo "release_version=$clean" >> "$GITHUB_OUTPUT"
+          echo "cache_version=$cache_version" >> "$GITHUB_OUTPUT"
+
+      - name: Bump service-worker cache version
+        env:
+          CACHE_VERSION: ${{ steps.version.outputs.cache_version }}
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os, re
+
+          path = Path("sw.js")
+          text = path.read_text(encoding="utf-8")
+          new_version = os.environ["CACHE_VERSION"]
+
+          updated, count = re.subn(
+              r"^const CACHE_VERSION='[^']+';",
+              f"const CACHE_VERSION='{new_version}';",
+              text,
+              count=1,
+              flags=re.M,
+          )
+          if count != 1:
+              raise SystemExit("Could not locate CACHE_VERSION in sw.js")
+
+          path.write_text(updated, encoding="utf-8")
+          print(f"Prepared cache version: {new_version}")
+          PY
+
+      - name: Validate cache-reset contract
+        run: |
+          node --check sw.js
+          grep -q "const CACHE_FAMILY='jr-site-';" sw.js
+          grep -q "caches.keys()" sw.js
+          grep -q "caches.delete" sw.js
+          grep -q "skipWaiting" sw.js
+          grep -q "clients.claim" sw.js
+          grep -q "cache:'reload'" sw.js
+
+      - name: Commit cache bump
+        id: commit
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.release_version }}
+        run: |
+          if git diff --quiet -- sw.js; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Cache version already matches this release."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js
+          git commit -m "chore(release): reset caches for v$RELEASE_VERSION"
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Publish summary
+        run: |
+          {
+            echo "## Release cache reset"
+            echo ""
+            echo "- Release: v${{ steps.version.outputs.release_version }}"
+            echo "- Cache version: \`${{ steps.version.outputs.cache_version }}\`"
+            echo "- Service Worker validation: passed"
+            echo "- Main branch updated: \`${{ steps.commit.outputs.changed }}\`"
+            echo ""
+            echo "The resulting push to main automatically triggers the existing Browser QA and SEO/GEO Regression workflows."
+          } >> "$GITHUB_STEP_SUMMARY"
