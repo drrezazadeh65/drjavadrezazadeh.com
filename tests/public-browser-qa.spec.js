@@ -111,3 +111,36 @@ test('homepage exposes visible account access in both languages',async({page})=>
     expect(Math.max(overflow.html,overflow.body),route+' auth strip horizontal overflow').toBeLessThanOrEqual(overflow.viewport+1);
   }
 });
+
+for (const route of ['/fa/darkhast-moshavere/', '/en/request-consultation/']) {
+  test('consultation draft stays local and invalidates edits: '+route, async ({page}) => {
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    const form=page.locator('[data-consultation-composer]');
+    await expect(form.locator('fieldset')).toBeVisible();
+    const outgoing=[];
+    page.on('request', request=>{if(request.method()!=='GET') outgoing.push(request.url());});
+    await form.locator('[name="service"]').selectOption({index:1});
+    await form.locator('[name="context"]').fill('Student / دانش‌آموز');
+    await form.locator('[name="question"]').fill('Compare A & B? <script>test</script>');
+    await form.locator('button[type="submit"]').click();
+    const preview=form.locator('[data-composer-preview]');
+    await expect(preview).toBeVisible();
+    const href=await form.locator('[data-composer-email]').getAttribute('href');
+    const url=new URL(href);
+    expect(url.protocol).toBe('mailto:');
+    expect(url.pathname).toBe('dr.rezazadeh65@gmail.com');
+    expect(url.searchParams.get('body')).toContain('Compare A & B? <script>test</script>');
+    await form.locator('[name="question"]').fill('Revised question');
+    await expect(preview).toBeHidden();
+    await expect(form.locator('[data-composer-draft]')).toHaveValue('');
+    await form.locator('button[type="submit"]').click();
+    expect(await form.locator('[data-composer-draft]').inputValue()).toContain('Revised question');
+    await form.locator('button[type="reset"]').click();
+    await expect(preview).toBeHidden();
+    await expect(form.locator('[name="question"]')).toHaveValue('');
+    expect(outgoing).toEqual([]);
+    const overflow=await stableOverflow(page);
+    expect(Math.max(overflow.html,overflow.body)).toBeLessThanOrEqual(overflow.viewport+1);
+  });
+}
