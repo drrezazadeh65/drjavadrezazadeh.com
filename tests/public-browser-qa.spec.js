@@ -144,3 +144,65 @@ for (const route of ['/fa/darkhast-moshavere/', '/en/request-consultation/']) {
     expect(Math.max(overflow.html,overflow.body)).toBeLessThanOrEqual(overflow.viewport+1);
   });
 }
+
+
+function hexChannel(v){
+  const n=parseInt(v,16)/255;
+  return n<=0.04045?n/12.92:Math.pow((n+0.055)/1.055,2.4);
+}
+function contrastRatio(a,b){
+  const norm=x=>x.trim().replace('#','');
+  const lum=x=>{
+    const h=norm(x);
+    if(!/^[0-9a-f]{6}$/i.test(h)) throw new Error('Expected six-digit hex colour, got '+x);
+    const r=hexChannel(h.slice(0,2)),g=hexChannel(h.slice(2,4)),bl=hexChannel(h.slice(4,6));
+    return 0.2126*r+0.7152*g+0.0722*bl;
+  };
+  const l1=lum(a),l2=lum(b),hi=Math.max(l1,l2),lo=Math.min(l1,l2);
+  return (hi+0.05)/(lo+0.05);
+}
+
+for(const route of ['/fa/','/en/']){
+  test('mobile luxury shell meets touch and dialog interaction gates: '+route,async({page})=>{
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(160);
+    const dock=page.locator('.app-dock');
+    await expect(dock).toBeVisible();
+    const items=dock.locator('a,button');
+    await expect(items).toHaveCount(5);
+    const boxes=await items.evaluateAll(nodes=>nodes.map(n=>{
+      const r=n.getBoundingClientRect();
+      return {w:r.width,h:r.height};
+    }));
+    for(const box of boxes){
+      expect(box.h,'mobile dock target height').toBeGreaterThanOrEqual(44);
+      expect(box.w,'mobile dock target width').toBeGreaterThanOrEqual(44);
+    }
+    await expect(dock.locator('[aria-current="page"]')).toHaveCount(1);
+    const menu=dock.locator('[data-nav-toggle]');
+    await menu.click();
+    const sheet=page.locator('#mobile-app-menu');
+    await expect(sheet).toBeVisible();
+    await expect(menu).toHaveAttribute('aria-expanded','true');
+    expect(await page.evaluate(()=>document.querySelector('#mobile-app-menu')?.contains(document.activeElement))).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(sheet).toBeHidden();
+    await expect(menu).toHaveAttribute('aria-expanded','false');
+  });
+
+  test('luxury palette keeps core text contrast above WCAG thresholds: '+route,async({page})=>{
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    const tokens=await page.evaluate(()=>{
+      const s=getComputedStyle(document.body);
+      return {
+        text:s.getPropertyValue('--ux-text').trim(),
+        muted:s.getPropertyValue('--ux-muted').trim(),
+        surface:s.getPropertyValue('--ux-surface').trim()
+      };
+    });
+    expect(contrastRatio(tokens.text,tokens.surface),'primary text contrast').toBeGreaterThanOrEqual(7);
+    expect(contrastRatio(tokens.muted,tokens.surface),'secondary text contrast').toBeGreaterThanOrEqual(4.5);
+  });
+}

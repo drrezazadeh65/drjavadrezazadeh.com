@@ -823,3 +823,63 @@ legend{max-width:100%;overflow-wrap:anywhere}
   outline-offset:3px;
 }
 @media(prefers-reduced-motion:reduce){.skip-link{transition:none}}
+
+
+/* =========================================================
+   PRIVATE APP LUXURY SHELL v5 — 2026-10-07
+   Mobile-first authenticated foundation visual language
+   ========================================================= */
+.app-prototype{
+  --app-text:#f7f1e7;
+  --app-muted:#b4b3b0;
+  --app-soft:#9b9da2;
+  --app-gold:#d7b86d;
+  --app-gold-hi:#f0d694;
+  --app-line:rgba(240,214,148,.18);
+  --app-surface:#101012;
+  color:var(--app-text);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+.app-prototype :where(.app-card,.app-role-link,.foundation-hero){
+  border-color:rgba(255,255,255,.085);
+  background:
+    radial-gradient(280px 130px at 100% 0%,rgba(215,184,109,.04),transparent 72%),
+    linear-gradient(150deg,#151517,#101012);
+  box-shadow:0 16px 48px rgba(0,0,0,.14);
+}
+.app-prototype :where(.app-card p,.app-role-link span,.app-safety){color:var(--app-muted)}
+@media(max-width:900px){
+  .app-prototype{padding-bottom:calc(126px + env(safe-area-inset-bottom))}
+  .app-prototype .foundation-hero{padding:24px 20px;border-radius:26px}
+  .app-dock{
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    left:8px!important;
+    right:8px!important;
+    bottom:max(8px,env(safe-area-inset-bottom))!important;
+    padding:7px!important;
+    border-radius:24px!important;
+    border:1px solid rgba(240,214,148,.25)!important;
+    background:rgba(11,11,12,.94)!important;
+    -webkit-backdrop-filter:blur(28px) saturate(150%);
+    backdrop-filter:blur(28px) saturate(150%);
+    box-shadow:0 22px 74px rgba(0,0,0,.54),inset 0 1px 0 rgba(255,255,255,.035)!important;
+  }
+  .app-dock a,.app-dock button{
+    min-height:54px!important;
+    border-radius:16px!important;
+    color:#b0ada6!important;
+    font-weight:650!important;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .app-dock a.is-active{
+    color:#f0d694!important;
+    background:rgba(215,184,109,.08)!important;
+    box-shadow:inset 0 0 0 1px rgba(215,184,109,.10);
+  }
+  .app-dock .dock-action{
+    color:#090806!important;
+    background:linear-gradient(135deg,#f0d694,#cda557)!important;
+  }
+}
