@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const CONFIG_URL='/platform/analytics-config.json';
+const CONFIG_URL='/assets/data/analytics-config.json';
 const state={config:null,ready:false,loaded:false};
 const safeToken=value=>String(value??'').slice(0,120);
 const consentGranted=config=>{
