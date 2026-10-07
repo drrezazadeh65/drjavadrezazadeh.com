@@ -38,27 +38,18 @@ No price, payment success, identity verification, private-data access, scientifi
 - Mobile public navigation behaves as an app-like five-destination dock with safe-area handling, 44px+ touch targets, active-state semantics, accessible dialog/bottom-sheet navigation, focus transfer and Escape dismissal.
 - PWA cache versioning was advanced with the visual release so installed/returning users are not trapped on stale CSS.
 - Source-level responsive/accessibility guards remain release-blocking.
-- Real Chromium Browser QA is part of CI and currently runs **26 tests**, including mobile first-screen identity/action clearance and long-form editorial metadata/dock-safety gates.
+- Real Chromium Browser QA is part of CI and currently runs **29 tests**, including mobile first-screen identity/action clearance, long-form editorial metadata/dock-safety, representative product-hero decision-control visibility and concierge/dock collision gates.
 - Responsive matrix covers **320, 360, 390 and 430 px mobile widths** plus **1280, 1366, 1440, 1600 and 1920 px desktop widths**.
-- Core tests cover horizontal overflow, exactly one H1, visible main content, skip-link entry, uncaught page errors, Persian Search v2 privacy boundaries, keyboard focus entry, mobile touch targets, bottom-sheet interaction, palette contrast, home first-screen identity/action clearance and long-form editorial metadata/dock safety.
-- Screenshot evidence is retained by CI.
+- Core tests cover horizontal overflow, exactly one H1, visible main content, skip-link entry, uncaught page errors, Persian Search v2 privacy boundaries, keyboard focus entry, mobile touch targets, bottom-sheet interaction, palette contrast, home first-screen identity/action clearance, long-form editorial metadata/dock safety, product first-screen actions and the floating concierge clearance.
+- Screenshot evidence is retained by CI, including representative first-screen captures for Home, long-form guidance, Services, Academic Profile, Golden Talent and Consultation on mobile and desktop.
+- The current image system remains deliberately light and vector-led; the approved 2026 portrait is 400×400, so it is not artificially upscaled beyond the controlled display envelope. A genuinely higher-resolution approved source should replace it only when available.
 - Automated Chromium evidence is complete; physical-device iOS/Android, VoiceOver/TalkBack and final manual WCAG validation remain external/manual production work.
-
-## Browser, responsive and accessibility evidence
-
-- Source-level responsive/accessibility guards remain release-blocking.
-- Real Chromium Browser QA is now part of CI.
-- Responsive matrix covers **320, 360, 390 and 430 px mobile widths** plus **1280, 1366, 1440, 1600 and 1920 px desktop widths**.
-- Core tests cover horizontal overflow, exactly one H1, visible main content, skip-link entry, uncaught page errors, Persian Search v2 privacy boundaries and keyboard focus entry.
-- Screenshot evidence is retained by CI.
-- Automated Chromium evidence is complete; physical-device VoiceOver/TalkBack and final manual WCAG validation remain external/manual production work.
 
 ## Search-engine activation readiness
 
-- Google Search Console connector currently exposes only the old `http://www.drjavadrezazadeh.com/` property; the canonical HTTPS/domain property is not yet available and therefore cannot honestly be called activated.
-- IndexNow has a committed public key, validated local dry-run and a guarded manual live workflow.
-- Live IndexNow submission first requires successful HTTPS root and public-key verification.
-- Bing/Yandex webmaster verification and live submission are post-HTTPS account actions, not repository gaps.
+- Google Search Console still requires adding/verifying the canonical HTTPS or Domain Property in the connected account; the old HTTP property must not be treated as the canonical production property.
+- IndexNow has a committed public key, validated local dry-run and a guarded manual live workflow; the production HTTPS prerequisite is now satisfied.
+- Bing/Yandex webmaster verification and live submission are account-activation tasks rather than repository or TLS blockers.
 
 ## Production-health state
 

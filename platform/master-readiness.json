@@ -117,13 +117,16 @@
         "assets/js/site.js",
         "site.webmanifest",
         "tests/public-browser-qa.spec.js",
-        ".github/workflows/browser-qa.yml"
+        ".github/workflows/browser-qa.yml",
+        "assets/css/assistant.css"
       ],
       "next_actions": [
-        "Preserve the unified Obsidian/Ivory/Muted-Gold luxury system and contrast-safe text tokens",
-        "Keep public mobile navigation app-like with five stable destinations, 44px+ touch targets, safe-area handling and accessible bottom-sheet behaviour",
-        "Review real-device screenshots before any major visual redesign",
-        "Keep visual changes URL-neutral and SEO-safe"
+        "Preserve the unified Obsidian/Ivory/Muted-Gold luxury system, controlled typography scale and contrast-safe text tokens",
+        "Keep public mobile navigation app-like with five stable destinations, 44px+ touch targets, safe-area handling, accessible bottom-sheet behaviour and a non-colliding concierge launcher",
+        "Keep the 29-test Chromium suite and representative first-screen screenshot evidence green before accepting visual changes",
+        "Run physical-device iOS Safari/Android Chrome visual QA plus VoiceOver/TalkBack review",
+        "Replace the 400×400 approved portrait only when a genuinely higher-resolution approved source is available; do not fabricate resolution",
+        "Keep visual changes URL-neutral, lightweight and SEO-safe"
       ]
     },
     {
