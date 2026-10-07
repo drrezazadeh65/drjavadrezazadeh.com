@@ -328,3 +328,12 @@ test('mobile concierge remains accessible without colliding with the app dock',a
   await expect(page.locator('#jr-assistant-panel')).toBeHidden();
   await expect(launcher).toHaveAttribute('aria-expanded','false');
 });
+
+test('root gateway first-screen visual evidence',async({page})=>{
+  for(const [label,width,height] of [['mobile-390',390,844],['desktop-1440',1440,900]]){
+    await page.setViewportSize({width,height});
+    await page.goto(base+'/',{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(180);
+    await page.screenshot({path:'test-results/screenshots/root-gateway-'+label+'-first-screen.png',fullPage:false});
+  }
+});
