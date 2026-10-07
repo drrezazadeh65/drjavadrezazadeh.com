@@ -66,3 +66,13 @@ document.addEventListener('click',e=>{
     },1800));
   }
 })();
+
+(function(){
+const footer=document.querySelector('footer');
+if(!footer||footer.querySelector('.enamad-footer-seal')) return;
+const wrap=document.createElement('div');
+wrap.className='enamad-footer-seal';
+wrap.setAttribute('aria-label','Electronic Trust Seal');
+wrap.innerHTML="<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1' alt='' style='cursor:pointer' code='sealMJydDpzqNid1Ty82Y90Ef6SZLah1'></a>";
+footer.appendChild(wrap);
+})();
