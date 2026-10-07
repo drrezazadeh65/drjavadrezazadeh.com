@@ -6,7 +6,7 @@
 
 ## Executive verdict
 
-All internally actionable work in the current repository/static-public-web scope has been converted into code, content, contracts, tests, CI gates or activation runbooks. The remaining open items require external DNS/TLS state, third-party account verification, production credentials/infrastructure, commercial facts, physical-device/manual accessibility evidence, real-user field data or empirical scientific validation.
+All internally actionable work in the current repository/static-public-web scope has been converted into code, content, contracts, tests, CI gates or activation runbooks. The remaining open items require third-party account verification, production credentials/infrastructure, commercial facts, physical-device/manual accessibility evidence, real-user field data or empirical scientific validation. The permanent-domain DNS/TLS gate is now closed.
 
 No price, payment success, identity verification, private-data access, scientific score, publication fact, ranking claim or provider capability is fabricated to make the project appear more complete.
 
@@ -31,6 +31,19 @@ No price, payment success, identity verification, private-data access, scientifi
 - Protected unreleased research projects remain outside public routes, navigation, schema, sitemap and machine-readable discovery; their names are intentionally not exposed in repository source.
 - The production-health monitor validates live robots/`llms.txt`/sitemap/IndexNow discovery integrity after the domain becomes reachable.
 
+## Visual system, mobile UX and accessibility evidence
+
+- A unified international luxury visual layer now governs the public English/Persian surfaces: Obsidian backgrounds, Ivory text, restrained muted-gold accents, consistent elevation, card radii and premium typography stacks without adding third-party font requests.
+- Core contrast tokens are CI-tested: primary text is held above a 7:1 target against the principal dark surface and secondary text above 4.5:1.
+- Mobile public navigation behaves as an app-like five-destination dock with safe-area handling, 44px+ touch targets, active-state semantics, accessible dialog/bottom-sheet navigation, focus transfer and Escape dismissal.
+- PWA cache versioning was advanced with the visual release so installed/returning users are not trapped on stale CSS.
+- Source-level responsive/accessibility guards remain release-blocking.
+- Real Chromium Browser QA is part of CI and currently runs **21 tests**.
+- Responsive matrix covers **320, 360, 390 and 430 px mobile widths** plus **1280, 1366, 1440, 1600 and 1920 px desktop widths**.
+- Core tests cover horizontal overflow, exactly one H1, visible main content, skip-link entry, uncaught page errors, Persian Search v2 privacy boundaries, keyboard focus entry, mobile touch targets, bottom-sheet interaction and palette contrast.
+- Screenshot evidence is retained by CI.
+- Automated Chromium evidence is complete; physical-device iOS/Android, VoiceOver/TalkBack and final manual WCAG validation remain external/manual production work.
+
 ## Browser, responsive and accessibility evidence
 
 - Source-level responsive/accessibility guards remain release-blocking.
@@ -50,8 +63,9 @@ No price, payment success, identity verification, private-data access, scientifi
 ## Production-health state
 
 - The automated Production SEO Health monitor checks DNS, root, Persian/English public pages, robots, sitemap, `llms.txt`, IndexNow key, intentional HTTP 404, private/noindex routes, all sitemap targets, canonical self-identification, HTTP→HTTPS and www→apex behaviour.
-- The monitor remains **WARN-UNTIL-VERIFIED**, not STRICT, because external access to the permanent HTTPS origin has not yet been independently proven stable.
-- Strict mode must not be enabled merely to make the dashboard look complete.
+- GitHub Pages reports the custom-domain DNS check successful and HTTPS enforcement enabled.
+- A fresh external runner resolved all four GitHub Pages apex addresses and completed the live audit across all **55 sitemap targets** without a TLS certificate error.
+- Production Health is therefore promoted to **STRICT** in this release; future DNS/TLS, redirect, canonical, sitemap or live-route failures are release-significant.
 
 ## Commerce, consultation, identity and private application
 
@@ -69,19 +83,18 @@ No price, payment success, identity verification, private-data access, scientifi
 
 ## External-only gates still open
 
-1. Independently verify stable DNS/TLS and HTTPS for the permanent domain, then move Production Health to STRICT only after evidence.
-2. Add/verify the canonical HTTPS or domain property in Google Search Console and activate Bing/Yandex webmaster properties.
-3. Run guarded live IndexNow submission after HTTPS/key verification.
-4. Deploy the Cloudflare AI concierge/lead-bank Worker and runtime secrets.
-5. Provision production authentication, database, private storage, transactional email, RLS and admin MFA.
-6. Complete eNAMAD/merchant requirements and supply exact approved payment-gateway API credentials/documentation.
-7. Supply verified book price/format/stock/shipping/return information before enabling commerce offers.
-8. Connect real consultation booking/calendar and provider-backed persistence.
-9. Perform physical-device VoiceOver/TalkBack/manual WCAG checks and collect real-user Core Web Vitals.
-10. Complete jurisdiction-specific legal review before collecting sensitive student/private/payment data.
-11. Provision a dedicated master later if selected, then run staging, migrations, access controls, backup and restore drill.
-12. Keep Golden Talent normative scoring disabled unless future empirical validation justifies it.
-13. WhatsApp Business remains optional and requires its own business/WABA/token/webhook setup if desired.
+1. Add/verify the canonical HTTPS or domain property in Google Search Console and activate Bing/Yandex webmaster properties.
+2. Run guarded live IndexNow submission against the now-stable HTTPS origin and public key.
+3. Deploy the Cloudflare AI concierge/lead-bank Worker and runtime secrets.
+4. Provision production authentication, database, private storage, transactional email, RLS and admin MFA.
+5. Complete eNAMAD/merchant requirements and supply exact approved payment-gateway API credentials/documentation.
+6. Supply verified book price/format/stock/shipping/return information before enabling commerce offers.
+7. Connect real consultation booking/calendar and provider-backed persistence.
+8. Perform physical-device iOS/Android, VoiceOver/TalkBack/manual WCAG checks and collect real-user Core Web Vitals.
+9. Complete jurisdiction-specific legal review before collecting sensitive student/private/payment data.
+10. Provision a dedicated master later if selected, then run staging, migrations, access controls, backup and restore drill.
+11. Keep Golden Talent normative scoring disabled unless future empirical validation justifies it.
+12. WhatsApp Business remains optional and requires its own business/WABA/token/webhook setup if desired.
 
 ## Release interpretation
 
@@ -89,9 +102,9 @@ No price, payment success, identity verification, private-data access, scientifi
 **SEO/GEO source gates:** GREEN.  
 **Chromium responsive Browser QA:** GREEN.  
 **GitHub Pages deployment:** GREEN.  
-**Permanent-domain production:** NOT YET independently proven HTTPS-stable.  
+**Permanent-domain production:** LIVE and independently HTTPS-verified; strict health monitoring enabled.  
 **Search Console canonical property:** NOT YET available through the connected account.  
-**IndexNow:** READY but live submission intentionally gated by HTTPS verification.  
+**IndexNow:** READY FOR LIVE ACTIVATION; HTTPS gate cleared.  
 **Payment/eNAMAD/private backend:** EXTERNAL dependencies, intentionally not faked.  
 **Golden Talent:** PREVALIDATION evidence engine, not a validated psychometric scoring service.
 

@@ -28,10 +28,10 @@ jobs:
       - name: Audit live production origin
         env:
           PROD_ORIGIN: https://drjavadrezazadeh.com
-          PRODUCTION_HEALTH_STRICT: '0'
+          PRODUCTION_HEALTH_STRICT: '1'
         run: node scripts/production-health-audit.mjs
-      - name: Explain enforcement state
+      - name: Explain strict production state
         if: always()
         run: |
-          echo "Production health monitoring is active in WARN-UNTIL-VERIFIED mode."
-          echo "After DNS/TLS is independently verified stable, switch PRODUCTION_HEALTH_STRICT to 1."
+          echo "Production health monitoring is active in STRICT mode."
+          echo "DNS, TLS and the permanent HTTPS origin were independently verified on 2026-10-07; failures are release-significant."

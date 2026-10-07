@@ -14,20 +14,18 @@
   "tracks": [
     {
       "id": "public-domain",
-      "production_state": "IN_PROGRESS",
+      "production_state": "LIVE",
       "revenue_priority": "CRITICAL",
-      "external_blockers": [
-        "DNS/TLS final verification on permanent domain"
-      ],
+      "external_blockers": [],
       "artifacts": [
         "foundation/DOMAIN-CUTOVER-RUNBOOK.md",
         "scripts/domain-cutover.mjs",
         "platform/ecosystem-registry.json"
       ],
       "next_actions": [
-        "Complete GitHub custom-domain DNS check",
-        "Enable HTTPS after certificate issuance",
-        "Run atomic domain cutover only after HTTPS succeeds"
+        "Preserve the current GitHub Pages custom domain and HTTPS enforcement; do not change DNS without an approved migration",
+        "Keep strict Production SEO Health green on the permanent HTTPS origin",
+        "Treat any future host or DNS change as a controlled migration with rollback evidence"
       ]
     },
     {
@@ -58,7 +56,6 @@
       "production_state": "FOUNDATION_STRONG",
       "revenue_priority": "CRITICAL",
       "external_blockers": [
-        "Permanent-domain DNS/TLS verification",
         "Search Console HTTPS/domain-property verification and Bing/Yandex webmaster account activation",
         "Production field data"
       ],
@@ -76,9 +73,9 @@
         ".github/workflows/browser-qa.yml"
       ],
       "next_actions": [
-        "Preserve green SEO/GEO and Chromium browser CI",
-        "After production HTTPS is independently stable, verify the HTTPS/domain property in Search Console and webmaster platforms",
-        "Run the guarded IndexNow live workflow after production HTTPS/key verification",
+        "Preserve green SEO/GEO, Chromium browser CI and strict live-production health",
+        "Verify the canonical HTTPS/domain property in Search Console and activate Bing/Yandex webmaster properties",
+        "Run the guarded IndexNow live workflow now that production HTTPS/key verification can be performed",
         "Measure real Core Web Vitals, query, citation and indexation data"
       ]
     },
@@ -100,10 +97,33 @@
         ".github/workflows/browser-qa.yml"
       ],
       "next_actions": [
-        "Keep the automated Chromium 320/360/390/430 and desktop matrix green",
-        "Run physical-device VoiceOver/TalkBack checks on the permanent domain",
-        "Validate installability on the permanent domain",
+        "Keep the automated Chromium 320/360/390/430 and desktop matrix green, including five-tab touch-target and contrast gates",
+        "Run physical-device iOS Safari/Android Chrome plus VoiceOver/TalkBack checks on the permanent domain",
+        "Validate installability and standalone-mode behaviour on the permanent domain",
         "Re-test private no-store behavior after authenticated app deployment"
+      ]
+    },
+    {
+      "id": "ui-ux-visual-system",
+      "production_state": "FOUNDATION_STRONG",
+      "revenue_priority": "HIGH",
+      "external_blockers": [
+        "Physical-device visual QA across iOS Safari and Android Chrome",
+        "Final manual assistive-technology/accessibility review"
+      ],
+      "artifacts": [
+        "assets/css/public-v2.css",
+        "assets/css/style.css",
+        "assets/js/site.js",
+        "site.webmanifest",
+        "tests/public-browser-qa.spec.js",
+        ".github/workflows/browser-qa.yml"
+      ],
+      "next_actions": [
+        "Preserve the unified Obsidian/Ivory/Muted-Gold luxury system and contrast-safe text tokens",
+        "Keep public mobile navigation app-like with five stable destinations, 44px+ touch targets, safe-area handling and accessible bottom-sheet behaviour",
+        "Review real-device screenshots before any major visual redesign",
+        "Keep visual changes URL-neutral and SEO-safe"
       ]
     },
     {

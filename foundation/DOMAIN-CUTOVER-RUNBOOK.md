@@ -3,7 +3,7 @@
 Target production origin: `https://drjavadrezazadeh.com`
 
 ## Current production state
-The canonical-origin cutover completed successfully on 6 October 2026. GitHub Pages is the current static host and the owned domain is the public canonical origin. This document is retained as an audit/rollback runbook rather than as an instruction to repeat the migration.
+The canonical-origin cutover completed successfully on 6 October 2026. On 7 October 2026 GitHub Pages reported **DNS check successful** and HTTPS enforcement was enabled through the Pages UI. A fresh external Actions runner then resolved the four GitHub Pages apex addresses and completed the production audit across all 55 sitemap targets without a TLS certificate error. GitHub Pages is the current static host and the owned domain is the public canonical origin. DNS/CNAME/nameserver settings are therefore frozen unless a future controlled migration is explicitly approved. This document is retained as an audit/rollback runbook rather than as an instruction to repeat the migration.
 
 **GitHub Pages note:** repository `_redirects` syntax is not relied upon as the active production redirect engine on GitHub Pages. Current SEO safety therefore prioritises stable path identities and CI-enforced zero broken links. If hosting later moves to a platform that supports `_redirects`, those rules must be revalidated before activation.
 
