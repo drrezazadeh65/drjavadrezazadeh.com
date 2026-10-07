@@ -228,6 +228,17 @@ document.body.appendChild(sheetEl);
 }
 }
 ensureMobileNav();
+function decorateMobileEntryCards(){
+qa('.home-focus-strip a,.audience-gate').forEach(a=>{
+if(a.querySelector('.app-card-icon')) return;
+const badge=document.createElement('span');
+badge.className='app-card-icon';
+badge.innerHTML=icon(iconForRoute(a.href,a.textContent||''));
+badge.setAttribute('aria-hidden','true');
+a.prepend(badge);
+});
+}
+decorateMobileEntryCards();
 let lastMenuTrigger=null;
 function setSheet(open,trigger=null){
 const sheet=q('#mobile-app-menu'),btn=trigger||q('[data-nav-toggle]');
