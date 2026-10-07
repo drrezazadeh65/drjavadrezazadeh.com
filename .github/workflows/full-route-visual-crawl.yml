@@ -45,7 +45,7 @@ jobs:
       - name: Capture complete route matrix
         run: |
           set -o pipefail
-          npx playwright test tests/full-route-visual-crawl.spec.js --workers=4 --reporter=line 2>&1 | tee test-results/full-route-visual-crawl.log
+          npx playwright test tests/full-route-visual-crawl.spec.js --workers=4 --reporter=line 2>&1 | tee full-route-visual-crawl.log
       - name: Write inventory
         if: always()
         run: |
@@ -59,6 +59,6 @@ jobs:
           path: |
             test-results/full-route-visual-crawl
             test-results/full-route-visual-crawl-inventory.txt
-            test-results/full-route-visual-crawl.log
+            full-route-visual-crawl.log
           if-no-files-found: warn
           retention-days: 14
