@@ -1,0 +1,35 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "drjavadrezazadeh-payments",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-07",
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "payments.drjavadrezazadeh.com",
+      "custom_domain": true
+    }
+  ],
+  "vars": {
+    "PUBLIC_SITE_ORIGIN": "https://drjavadrezazadeh.com",
+    "PAYMENTS_ORIGIN": "https://payments.drjavadrezazadeh.com",
+    "BITPAY_MODE": "test"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "PAYMENT_STORE",
+        "class_name": "PaymentStore"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["PaymentStore"]
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
