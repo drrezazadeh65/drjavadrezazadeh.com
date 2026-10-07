@@ -265,3 +265,36 @@ figure{margin:0}
 @media(forced-colors:active){
   a:focus-visible,button:focus-visible{outline:2px solid CanvasText}
 }
+
+/* Temporary Enamad verification hardening: preserve visible luxury title while exposing exact H1 code. */
+.enamad-verification-heading{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+.gateway-display-title{
+  margin:12px 0 24px;
+  color:#f2eee6;
+  font-family:var(--ux-font-display);
+  font-size:clamp(54px,7vw,90px);
+  font-weight:500;
+  line-height:1;
+  letter-spacing:-.045em;
+  text-wrap:balance;
+  text-shadow:0 2px 24px rgba(0,0,0,.18);
+}
+.gateway-display-title em{
+  color:var(--public-gold-soft);
+  font-family:Georgia,"Times New Roman",serif;
+  font-weight:400;
+  font-style:normal;
+}
+@media(max-width:520px){
+  .gateway-display-title{font-size:clamp(44px,13vw,58px)}
+}
