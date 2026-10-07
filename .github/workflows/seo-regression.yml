@@ -68,6 +68,8 @@ jobs:
         run: node scripts/rss-audit.mjs
       - name: Run conversion path audit
         run: node scripts/conversion-path-audit.mjs
+      - name: Run analytics activation/privacy contract audit
+        run: node scripts/analytics-contract-audit.mjs
       - name: Run pre-gateway commerce schema safety audit
         run: node scripts/commerce-schema-safety-audit.mjs
       - name: Validate IndexNow integration contract
