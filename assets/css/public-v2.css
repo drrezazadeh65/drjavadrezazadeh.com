@@ -3119,3 +3119,58 @@
     transform:none;
   }
 }
+
+
+/* =========================================================
+   MOBILE FIRST-SCREEN REFINEMENT v5.1 — 2026-10-07
+   Keep identity visible before the dock while preserving portrait prominence
+   ========================================================= */
+@media(max-width:560px){
+  .public-home-page .home-account-strip{
+    padding:12px 13px;
+    gap:9px;
+  }
+  .public-home-page .home-account-copy>span{
+    font-size:8.5px;
+  }
+  .public-home-page .home-account-copy>strong{
+    margin-top:3px;
+    font-size:14.5px;
+  }
+  .public-home-page .home-account-copy>small{
+    display:none;
+  }
+  .public-home-page .home-account-actions{
+    gap:7px;
+  }
+  .public-home-page .home-account-actions .button{
+    min-height:44px;
+    padding:8px 10px;
+  }
+  .public-home-page .portrait-shell{
+    width:min(236px,64vw)!important;
+    aspect-ratio:4/5!important;
+    border-radius:24px!important;
+  }
+  .public-home-page .hero{
+    gap:18px!important;
+    padding-top:22px!important;
+  }
+  .public-home-page .hero-copy{
+    padding-top:0!important;
+  }
+  .public-home-page .hero .eyebrow{
+    margin-bottom:8px;
+  }
+  .public-home-page .hero h1{
+    margin-top:10px!important;
+  }
+}
+@media(max-width:390px){
+  .public-home-page .home-account-strip{
+    margin-top:8px;
+  }
+  .public-home-page .portrait-shell{
+    width:min(224px,62vw)!important;
+  }
+}

@@ -206,3 +206,20 @@ for(const route of ['/fa/','/en/']){
     expect(contrastRatio(tokens.muted,tokens.surface),'secondary text contrast').toBeGreaterThanOrEqual(4.5);
   });
 }
+
+
+for(const route of ['/fa/','/en/']){
+  test('mobile home identity enters view before fixed dock: '+route,async({page})=>{
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(160);
+    const h1=page.locator('.hero h1').first();
+    const dock=page.locator('.app-dock').first();
+    await expect(h1).toBeVisible();
+    await expect(dock).toBeVisible();
+    const [hb,db]=await Promise.all([h1.boundingBox(),dock.boundingBox()]);
+    expect(hb).not.toBeNull();
+    expect(db).not.toBeNull();
+    expect(hb.y,'hero identity should begin before the fixed dock').toBeLessThan(db.y-24);
+  });
+}
