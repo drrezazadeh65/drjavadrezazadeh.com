@@ -10,21 +10,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install image runtime
+        run: python -m pip install --disable-pip-version-check pillow pillow-avif-plugin
       - name: Convert Bonbast AVIF to WebP
         run: |
           set -euo pipefail
-          src="assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.avif"
-          out="assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.webp"
-          if command -v magick >/dev/null 2>&1; then
-            magick "$src" -quality 90 "$out"
-          else
-            convert "$src" -quality 90 "$out"
-          fi
-          test -s "$out"
           python - <<'PY'
           import json
+          import pillow_avif
+          from PIL import Image
+
+          src="assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.avif"
+          out="assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.webp"
+
+          with Image.open(src) as im:
+              im.save(out, "WEBP", quality=95, method=6)
+
+          with Image.open(out) as check:
+              check.verify()
+
           p="platform/book-catalog.json"
-          with open(p,encoding="utf-8") as f:
+          with open(p, encoding="utf-8") as f:
               d=json.load(f)
           for b in d["books"]:
               if b["id"]=="bonbast":
