@@ -1,0 +1,54 @@
+name: Jekyll Public Boundary Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '_config.yml'
+      - '.github/workflows/jekyll-public-boundary-validation.yml'
+      - 'scripts/build-public-site.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Build exactly as GitHub Pages Jekyll would build
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Verify route preservation and engineering exclusion
+        run: |
+          count="$(find _site -type f -name '*.html' | wc -l | tr -d ' ')"
+          echo "Built HTML routes: $count"
+          test "$count" = "207"
+          test -f _site/index.html
+          test -f _site/CNAME
+          test -f _site/sitemap.xml
+          test -f _site/site.webmanifest
+          test -f _site/sw.js
+          test -f _site/assets/data/book-catalog.json
+          test -f _site/assets/data/service-catalog.json
+          test -f _site/assets/data/analytics-config.json
+          test ! -e _site/platform
+          test ! -e _site/foundation
+          test ! -e _site/scripts
+          test ! -e _site/tests
+          test ! -e _site/edge
+          test ! -e _site/docs
+          test ! -e _site/.github
+          test ! -e _site/assets/media-registry.json
+      - name: Upload validation build
+        uses: actions/upload-artifact@v4
+        with:
+          name: jekyll-public-boundary-validation
+          path: _site
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
