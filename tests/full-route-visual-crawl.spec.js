@@ -63,6 +63,9 @@ for(const route of routes){
           new Promise(resolve=>setTimeout(resolve,700))
         ]);
       }).catch(()=>{});
+      await page.evaluate(()=>{
+        try{ document.fonts?.clear?.(); }catch(_){}
+      });
       const target=fileFor(route,label);
       fs.mkdirSync(path.dirname(target),{recursive:true});
       await page.screenshot({path:target,type:'jpeg',quality:58,fullPage:true,animations:'disabled'});
