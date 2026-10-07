@@ -722,3 +722,42 @@ test('Persian student dashboard prioritizes next action before analytics',async(
   const size=parseFloat(await title.evaluate(el=>getComputedStyle(el).fontSize));
   expect(size,'mobile dashboard title should be product-scale').toBeLessThanOrEqual(32.5);
 });
+
+test('private role mobile shells obey the frozen five-tab contract',async({page})=>{
+  const cases=[
+    ['/fa/app/valed/',['/fa/app/valed/','/fa/app/valed/resources/','/fa/assessments/golden-talent/observer/','/fa/app/valed/my-path/','/fa/app/account/']],
+    ['/fa/app/moallem/',['/fa/app/moallem/','/fa/app/moallem/resources/','/fa/assessments/golden-talent/observer/','/fa/app/moallem/my-path/','/fa/app/account/']],
+    ['/fa/app/moshaver/',['/fa/app/moshaver/','/fa/golden-talent/ravesh-shenasi/','/fa/app/moshaver/case-preview/','/fa/app/moshaver/my-path/','/fa/app/account/']],
+    ['/en/golden-talent/roles/parent/',['/en/golden-talent/roles/parent/','/en/golden-talent/roles/parent/resources/','/en/golden-talent/observer/','/en/golden-talent/roles/parent/my-path/','/en/account/']],
+    ['/en/golden-talent/roles/teacher/',['/en/golden-talent/roles/teacher/','/en/golden-talent/roles/teacher/resources/','/en/golden-talent/observer/','/en/golden-talent/roles/teacher/my-path/','/en/account/']],
+    ['/en/golden-talent/roles/adviser/',['/en/golden-talent/roles/adviser/','/en/golden-talent/methodology/','/en/golden-talent/roles/adviser/case-preview/','/en/golden-talent/roles/adviser/my-path/','/en/account/']]
+  ];
+  for(const [route,expected] of cases){
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(180);
+    const dock=page.locator('.app-dock');
+    await expect(dock).toBeVisible();
+    const links=dock.locator('a');
+    await expect(links).toHaveCount(5);
+    const paths=await links.evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname));
+    expect(paths).toEqual(expected);
+    const robots=await page.locator('meta[name="robots"]').getAttribute('content');
+    expect(robots||'',route+' must remain noindex').toContain('noindex');
+    const overflow=await stableOverflow(page);
+    expect(Math.max(overflow.html,overflow.body),route+' private role overflow').toBeLessThanOrEqual(overflow.viewport+1);
+  }
+});
+
+test('representative private role first-screen visual evidence',async({page})=>{
+  const surfaces=[
+    ['/fa/app/valed/','fa-parent-app'],
+    ['/en/golden-talent/roles/adviser/','en-adviser-app']
+  ];
+  for(const [route,name] of surfaces){
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(200);
+    await page.screenshot({path:'test-results/screenshots/'+name+'-mobile-390-first-screen.png',fullPage:false});
+  }
+});
