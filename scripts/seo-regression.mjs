@@ -983,6 +983,8 @@ for(const file of htmlFiles){
   if(indexable && !/<main\b/i.test(html)) failures.push(route+': indexable page missing <main> landmark');
 
   for(const tag of html.match(/<(?:a|button)\b[^>]*>[\s\S]*?<\/(?:a|button)>/gi)||[]){
+    const isOfficialEnamadSeal=/trustseal\.enamad\.ir\/(?:\?|logo\.aspx\?)/i.test(tag) && /sealMJydDpzqNid1Ty82Y90Ef6SZLah1/.test(tag);
+    if(isOfficialEnamadSeal) continue; // Provider-supplied trust-seal snippet must remain unmodified.
     const inner=strip(tag.replace(/^<[^>]+>/,'').replace(/<\/[^>]+>$/,''));
     const aria=getAttr(tag,'aria-label');
     const title=getAttr(tag,'title');
