@@ -621,3 +621,36 @@ test('private student mobile shell uses the frozen five-tab contract',async({pag
   await expect(page.locator('.dashboard-sidebar nav a')).toHaveCount(11);
   await expect(page.locator('.app-dock')).toBeHidden();
 });
+
+test('tablet portrait and landscape visual resilience',async({page})=>{
+  const routes=[
+    ['/en/','en-home'],
+    ['/fa/','fa-home'],
+    ['/en/services/','en-services'],
+    ['/fa/golden-talent/','fa-golden-talent'],
+    ['/fa/app/student/','fa-student-dashboard'],
+    ['/en/golden-talent/student/','en-student-gateway']
+  ];
+  for(const [label,width,height] of [['tablet-portrait-768',768,1024],['tablet-landscape-1024',1024,768]]){
+    for(const [route,name] of routes){
+      await page.setViewportSize({width,height});
+      await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      await page.waitForTimeout(180);
+      const dims=await page.evaluate(()=>({
+        sw:document.documentElement.scrollWidth,
+        cw:document.documentElement.clientWidth,
+        body:document.body.scrollWidth,
+        inner:window.innerWidth
+      }));
+      expect(Math.max(dims.sw,dims.body),route+' '+label+' horizontal overflow')
+        .toBeLessThanOrEqual(dims.inner+1);
+      await expect(page.locator('main').first()).toBeVisible();
+      const h1=page.locator('main h1').first();
+      if(await h1.count()) await expect(h1).toBeVisible();
+      await page.screenshot({
+        path:'test-results/screenshots/'+name+'-'+label+'-first-screen.png',
+        fullPage:false
+      });
+    }
+  }
+});
