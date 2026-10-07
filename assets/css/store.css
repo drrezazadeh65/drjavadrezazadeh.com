@@ -58,6 +58,9 @@
 @media(max-width:760px){.book-store-shell>section:first-child:not(.book-store-hero){padding:26px 20px;border-radius:23px}.book-detail-layout{grid-template-columns:1fr}.book-detail-layout .book-cover-placeholder{max-width:420px;width:100%;margin:0 auto}.book-detail-copy{padding-top:0}}
 
 /* Real book covers */
-.book-cover{margin:0;aspect-ratio:2/3;background:#0c0c0c;overflow:hidden;border-bottom:1px solid rgba(198,161,90,.17)}
+.book-cover{margin:0;aspect-ratio:1/1;background:#0c0c0c;overflow:hidden;border-bottom:1px solid rgba(198,161,90,.17)}
 .book-cover img{display:block;width:100%;height:100%;object-fit:contain;background:#0c0c0c}
 .book-detail-layout .book-cover{border:1px solid rgba(226,200,134,.24);border-radius:22px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.28)}
+
+/* Premium services shown publicly on the storefront */
+.service-price-section{margin:34px 0}.service-price-section h2{margin:0 0 8px;font-size:clamp(28px,4vw,42px)}.service-price-section>.lead{margin-bottom:18px}.service-price-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.service-price-card{padding:18px;border:1px solid rgba(198,161,90,.18);border-radius:18px;background:linear-gradient(145deg,rgba(198,161,90,.045),rgba(255,255,255,.01))}.service-price-card h3{margin:0 0 12px;font-size:15px;line-height:1.8}.service-price-card strong{display:block;color:#f0dfbf;font-size:18px}.service-price-card small{display:block;color:#8f8578;margin-top:7px}@media(max-width:800px){.service-price-grid{grid-template-columns:1fr}}
