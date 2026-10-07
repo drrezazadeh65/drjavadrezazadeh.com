@@ -68,6 +68,13 @@ panel.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><div><
 document.body.appendChild(panel);
 const current=location.pathname.replace(/index\.html$/,'');
 const matches=qa('.app-dock a').map(a=>{try{const p=new URL(a.href,location.href).pathname.replace(/index\.html$/,'');const exact=p===current,nested=!exact&&p!=='/'&&current.startsWith(p);return exact||nested?{a,p,exact}:null}catch{return null}}).filter(Boolean).sort((a,b)=>(Number(b.exact)-Number(a.exact))||(b.p.length-a.p.length));
-if(matches[0]){matches[0].a.classList.add('is-active');matches[0].a.setAttribute('aria-current','page')}
+let active=matches[0]?.a||null;
+if(!active){
+ const cluster=isFa
+  ?(/\/fa\/(?:login|register|bazyabi-hesab)\//.test(current)?'/fa/login/':/\/fa\/(?:darkhast-moshavere|moshavere-tahsili|moshavere-konkur|entekhab-reshteh)\//.test(current)?'/fa/darkhast-moshavere/':null)
+  :(/\/en\/(?:login|register|recover)\//.test(current)?'/en/login/':/\/en\/(?:request-consultation|student-guidance)\//.test(current)?'/en/request-consultation/':null);
+ if(cluster)active=qa('.app-dock a').find(a=>new URL(a.href,location.href).pathname.replace(/index\.html$/,'')===cluster)||null;
+}
+if(active){active.classList.add('is-active');active.setAttribute('aria-current','page')}
 qa('.home-focus-strip a,.audience-gate').forEach(a=>{if(a.querySelector('.app-card-icon'))return;const s=document.createElement('span');s.className='app-card-icon';s.innerHTML=icon(iconFor(a.href,a.textContent||''));s.setAttribute('aria-hidden','true');a.prepend(s)});
 })();
