@@ -1,10 +1,18 @@
 name: IndexNow Submission
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.html'
+      - 'sitemap*.xml'
+      - 'assets/search-index.json'
+      - 'platform/service-catalog.json'
+      - '.github/workflows/indexnow-submit.yml'
   workflow_dispatch:
     inputs:
       submit_all:
-        description: 'Submit all current sitemap URLs after production DNS/TLS verification'
+        description: 'Submit all current sitemap URLs'
         required: true
         default: true
         type: boolean
@@ -12,20 +20,62 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: indexnow-live-main
+  cancel-in-progress: true
+
 jobs:
   indexnow:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PROD_ORIGIN: https://drjavadrezazadeh.com
+      INDEXNOW_KEY: 5bea74dc73880cd2b2a1a35a649e62de
+      INDEXNOW_KEY_LOCATION: https://drjavadrezazadeh.com/5bea74dc73880cd2b2a1a35a649e62de.txt
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate IndexNow integration without network submission
-        env:
-          PROD_ORIGIN: https://drjavadrezazadeh.com
-          INDEXNOW_ENABLED: '0'
-        run: node scripts/indexnow-submit.mjs --all
-      - name: Activation note
+
+      - name: Verify live HTTPS and IndexNow key
         run: |
-          echo "The key file and submission client are ready."
-          echo "Network submission intentionally remains OFF until production DNS/TLS is independently verified."
+          set -euo pipefail
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 "$PROD_ORIGIN/" >/dev/null
+          actual="$(curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 "$INDEXNOW_KEY_LOCATION" | tr -d '\r\n')"
+          test "$actual" = "$INDEXNOW_KEY"
+
+      - name: Resolve eligible changed files
+        id: changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            echo "submit_all=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" > /tmp/indexnow-changed.txt || true
+          cat /tmp/indexnow-changed.txt
+          if grep -Eq '^(sitemap.*\.xml|assets/search-index\.json|platform/service-catalog\.json|\.github/workflows/indexnow-submit\.yml)$' /tmp/indexnow-changed.txt; then
+            echo "submit_all=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "submit_all=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Submit all canonical sitemap URLs
+        if: ${{ steps.changes.outputs.submit_all == 'true' }}
+        env:
+          INDEXNOW_ENABLED: '1'
+        run: node scripts/indexnow-submit.mjs --all
+
+      - name: Submit changed indexable HTML URLs
+        if: ${{ steps.changes.outputs.submit_all != 'true' }}
+        env:
+          INDEXNOW_ENABLED: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export INDEXNOW_CHANGED_FILES="$(cat /tmp/indexnow-changed.txt)"
+          node scripts/indexnow-submit.mjs
