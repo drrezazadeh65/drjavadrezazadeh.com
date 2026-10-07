@@ -45,9 +45,9 @@ const iconFor=(href,label='')=>{
  return'path';
 };
 const tabs=isFa?[
- [u('fa/'),'خانه','home'],[u('fa/golden-talent/'),'استعداد','spark'],[u('fa/shop/'),'فروشگاه','bag'],[u('fa/darkhast-moshavere/'),'مشاوره','chat']
+ [u('fa/'),'خانه','home'],[u('fa/golden-talent/'),'استعداد','spark'],[u('fa/shop/'),'فروشگاه','bag'],[u('fa/darkhast-moshavere/'),'مشاوره','chat'],[u('fa/login/'),'حساب','user']
 ]:[
- [u('en/'),'Home','home'],[u('en/golden-talent/'),'Talent','spark'],[u('en/shop/'),'Store','bag'],[u('en/request-consultation/'),'Consult','chat']
+ [u('en/'),'Home','home'],[u('en/golden-talent/'),'Talent','spark'],[u('en/shop/'),'Shop','bag'],[u('en/request-consultation/'),'Consult','chat'],[u('en/login/'),'Account','user']
 ];
 const sheet=isFa?[
  [u('fa/darbare-man/'),'درباره من'],[u('fa/rezome/'),'رزومه علمی'],[u('fa/khadamat/'),'خدمات آموزشی'],[u('fa/tadris/'),'تدریس دانشگاهی'],[u('fa/ketab-ha/'),'کتاب‌ها'],[u('fa/shop/'),'فروشگاه کتاب'],[u('fa/amoozesh-zaban/'),'آموزش زبان انگلیسی'],[u('fa/pajouhesh/'),'پژوهش'],[u('fa/entesharat-elmi/'),'انتشارات علمی'],[u('fa/faaliat-haye-elmi/'),'فعالیت‌های علمی'],[u('fa/entekhab-reshteh/'),'انتخاب رشته'],[u('fa/estedaadyabi/'),'استعدادیابی'],[u('fa/moshavere-konkur/'),'مشاوره کنکور'],[u('fa/danesh-amoozan/'),'دانش‌آموزان'],[u('fa/rahnamaha/'),'راهنماها'],[u('fa/tamas/'),'تماس'],[u('fa/harim-khosusi/'),'حریم خصوصی'],[u('fa/jostojo/'),'جست‌وجو'],[u('publisher/'),'Rezazadeh Foundation Press'],[u('journal/'),'JHELA']
@@ -56,8 +56,12 @@ const sheet=isFa?[
 ];
 q('.app-dock')?.remove();
 q('#mobile-app-menu')?.remove();
+const header=q('.site-header');
+if(header&&!q('.mobile-menu-trigger',header)){
+ const trigger=document.createElement('button');trigger.type='button';trigger.className='mobile-menu-trigger';trigger.setAttribute('data-nav-toggle','');trigger.setAttribute('aria-controls','mobile-app-menu');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-label',isFa?'بازکردن منو':'Open menu');trigger.innerHTML=icon('menu');header.appendChild(trigger);
+}
 const nav=document.createElement('nav');nav.className='app-dock';nav.setAttribute('aria-label',isFa?'منوی اصلی اپ':'App navigation');
-nav.innerHTML=tabs.map(([h,l,i])=>'<a href="'+h+'">'+icon(i)+'<span>'+l+'</span></a>').join('')+'<button type="button" class="dock-action" data-nav-toggle aria-controls="mobile-app-menu" aria-expanded="false">'+icon('menu')+'<span>'+(isFa?'منو':'Menu')+'</span></button>';
+nav.innerHTML=tabs.map(([h,l,i])=>'<a href="'+h+'">'+icon(i)+'<span>'+l+'</span></a>').join('');
 document.body.appendChild(nav);
 const panel=document.createElement('div');panel.className='mobile-app-sheet';panel.id='mobile-app-menu';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label',isFa?'دسترسی سریع':'Explore');
 panel.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><div><small>'+(isFa?'ناوبری اپ':'APP NAVIGATION')+'</small><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong></div><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-grid">'+sheet.map(([h,l])=>'<a href="'+h+'"><span class="sheet-icon">'+icon(iconFor(h,l))+'</span><b>'+l+'</b><span class="sheet-chevron" aria-hidden="true">›</span></a>').join('')+'</div></div>';
