@@ -9,6 +9,7 @@
   --v431-surface:#101012;
   --v431-radius:22px;
 }
+.app-card-icon{display:none}
 @media(max-width:900px){
   html{
     scroll-padding-top:82px;
@@ -523,4 +524,31 @@
 @media(prefers-reduced-motion:reduce){
   .mobile-app-sheet,
   .app-sheet-panel{transition:none!important}
+}
+
+@media(max-width:900px){
+  .app-sheet-grid a .sheet-icon{
+    color:#dfc47d!important;
+    font-size:0!important;
+  }
+  .app-sheet-grid a .sheet-chevron{
+    color:#676761!important;
+    font-size:20px!important;
+  }
+  .app-card-icon{
+    display:grid;
+    place-items:center;
+    width:38px;
+    height:38px;
+    margin-bottom:12px;
+    border:1px solid rgba(240,214,148,.14);
+    border-radius:12px;
+    color:#dec37b;
+    background:rgba(215,184,109,.045);
+  }
+  .app-card-icon .app-icon{
+    width:19px;
+    height:19px;
+    stroke-width:1.75;
+  }
 }
