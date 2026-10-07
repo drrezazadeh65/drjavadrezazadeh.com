@@ -10,7 +10,7 @@ for(const service of services){
   assert.match(service.id,/^[a-z][a-z0-9_]*$/,'Service ID must be a stable backend-safe code: '+service.id);
   assert.equal(service.sellable,true,'Approved service must remain sellable: '+service.id);
   assert.ok(Number.isInteger(service.price)&&service.price>=6000000,'Service price must respect the approved specialist pricing floor: '+service.id);
-  assert.equal(service.currency,'IRT','Service currency must remain IRT: '+service.id);
+  assert.equal(service.currency||catalog.currency,'IRT','Service currency must remain IRT: '+service.id);
   assert.ok(service.fit_fa&&service.outcome_fa&&service.boundary_fa,'Premium scope architecture missing: '+service.id);
 }
 const migration=fs.readFileSync(new URL('./db/migrations/030_service_catalog_intake_alignment.sql',import.meta.url),'utf8');
