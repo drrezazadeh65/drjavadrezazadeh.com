@@ -1,0 +1,61 @@
+name: Full Route Visual Crawl
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.html'
+      - 'assets/css/**'
+      - 'assets/js/**'
+      - 'tests/full-route-visual-crawl.spec.js'
+      - '.github/workflows/full-route-visual-crawl.yml'
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-route-visual-crawl-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright runtime
+        run: npm install --no-save @playwright/test@1.56.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start local static site
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/drsite-http.log 2>&1 &
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/drsite-http.log
+          exit 1
+      - name: Capture complete route matrix
+        run: npx playwright test tests/full-route-visual-crawl.spec.js --workers=4 --reporter=line
+      - name: Write inventory
+        if: always()
+        run: |
+          count="$(find test-results/full-route-visual-crawl -type f -name '*.jpg' 2>/dev/null | wc -l | tr -d ' ')"
+          echo "Captured screenshots: $count" | tee test-results/full-route-visual-crawl-inventory.txt
+      - name: Upload visual certification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-route-visual-crawl
+          path: |
+            test-results/full-route-visual-crawl
+            test-results/full-route-visual-crawl-inventory.txt
+          if-no-files-found: warn
+          retention-days: 14
