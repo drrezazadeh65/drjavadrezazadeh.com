@@ -488,3 +488,16 @@ test('auth entry visual evidence',async({page})=>{
     }
   }
 });
+
+test('English student mobile masthead stays compact and single-line',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/en/golden-talent/student/',{waitUntil:'domcontentloaded'});
+  await page.waitForTimeout(160);
+  const brand=page.locator('.site-header .brand');
+  await expect(brand).toBeVisible();
+  const b=await brand.boundingBox();
+  expect(b).not.toBeNull();
+  expect(b.height,'mobile student brand should remain a compact masthead').toBeLessThanOrEqual(26);
+  const direction=await brand.evaluate(el=>getComputedStyle(el).flexDirection);
+  expect(direction).toBe('row');
+});
