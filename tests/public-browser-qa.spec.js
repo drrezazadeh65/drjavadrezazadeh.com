@@ -262,3 +262,21 @@ test('mobile editorial metadata clears the app dock',async({page})=>{
   const titleSize=parseFloat(await title.evaluate(el=>getComputedStyle(el).fontSize));
   expect(titleSize,'mobile editorial title should remain controlled').toBeLessThanOrEqual(35.5);
 });
+
+
+test('first-screen visual evidence for representative product surfaces',async({page})=>{
+  const surfaces=[
+    ['/en/services/','en-services'],
+    ['/en/academic-profile/','en-profile'],
+    ['/fa/golden-talent/','fa-golden-talent'],
+    ['/fa/darkhast-moshavere/','fa-consultation']
+  ];
+  for(const [route,name] of surfaces){
+    for(const [label,width,height] of [['mobile-390',390,844],['desktop-1440',1440,900]]){
+      await page.setViewportSize({width,height});
+      await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      await page.waitForTimeout(180);
+      await page.screenshot({path:'test-results/screenshots/'+name+'-'+label+'-first-screen.png',fullPage:false});
+    }
+  }
+});
