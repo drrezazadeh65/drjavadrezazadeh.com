@@ -138,8 +138,8 @@
 @media(max-width:800px){
   .book-store-grid{gap:20px}
   .book-product-card{border-radius:24px}
-  .book-cover{aspect-ratio:4/5;padding:24px 18px 28px}
+  .book-cover{aspect-ratio:2/3;padding:24px 18px 28px}
   .book-cover::before{inset:12px;border-radius:15px}
-  .book-cover img{max-width:min(72vw,300px);max-height:88%}
+  .book-cover img{max-width:min(78vw,300px);max-height:86%;object-fit:contain}
   .book-product-copy{padding:21px 20px 24px}
 }
