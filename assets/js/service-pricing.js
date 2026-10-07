@@ -13,7 +13,7 @@
 
   async function render(){
     try{
-      const res=await fetch('/platform/service-catalog.json',{cache:'reload'});
+      const res=await fetch('/assets/data/service-catalog.json',{cache:'reload'});
       if(!res.ok) throw new Error('catalogue unavailable');
       const data=await res.json();
       const services=(data.services||[]).filter(x=>x.sellable===true&&Number.isInteger(x.price));
