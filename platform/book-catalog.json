@@ -6,8 +6,8 @@
     {
       "id": "roshanaei",
       "slug": "roshanaei",
-      "title_fa": "روشنایی",
-      "english_reference_title": "Roshanayi",
+      "title_fa": "سپید",
+      "english_reference_title": "Sepid",
       "author": "Javad Rezazadeh Yazdeli",
       "publication_status": "PUBLISHED",
       "description_fa": "مجموعه شعر فارسی منتشرشده.",
@@ -17,7 +17,7 @@
         "publisher": null,
         "publication_year": null,
         "edition": null,
-        "cover_image": null
+        "cover_image": "/assets/images/books/sepid-javad-rezazadeh-cover.svg"
       },
       "commerce": {
         "sellable": false,
@@ -45,7 +45,7 @@
         "publisher": null,
         "publication_year": null,
         "edition": null,
-        "cover_image": null
+        "cover_image": "/assets/images/books/tariki-javad-rezazadeh-cover.svg"
       },
       "commerce": {
         "sellable": false,
@@ -73,7 +73,7 @@
         "publisher": null,
         "publication_year": null,
         "edition": null,
-        "cover_image": null
+        "cover_image": "/assets/images/books/bonbast-javad-rezazadeh-cover.svg"
       },
       "commerce": {
         "sellable": false,
