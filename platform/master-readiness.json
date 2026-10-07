@@ -56,7 +56,7 @@
       "production_state": "FOUNDATION_STRONG",
       "revenue_priority": "CRITICAL",
       "external_blockers": [
-        "Search Console HTTPS/domain-property verification and Bing/Yandex webmaster account activation",
+        "Bing/Yandex webmaster account activation",
         "Production field data"
       ],
       "artifacts": [
@@ -74,7 +74,7 @@
       ],
       "next_actions": [
         "Preserve green SEO/GEO, Chromium browser CI and strict live-production health",
-        "Verify the canonical HTTPS/domain property in Search Console and activate Bing/Yandex webmaster properties",
+        "Preserve the verified canonical HTTPS Search Console property and activate Bing/Yandex webmaster properties",
         "Run the guarded IndexNow live workflow now that production HTTPS/key verification can be performed",
         "Measure real Core Web Vitals, query, citation and indexation data"
       ]
@@ -201,7 +201,7 @@
         "foundation/BOOKSTORE-OPERATIONS-RUNBOOK.md"
       ],
       "next_actions": [
-        "Preserve the owner-confirmed retail price while keeping all published titles non-sellable until operational readiness is complete",
+        "Preserve the three owner-approved published print titles as sellable/in-stock in the catalogue while keeping live bank payment disabled until the production gateway is activated",
         "Confirm stock, shipping coverage and return terms",
         "Collect verified ISBN/publisher/edition/cover metadata where applicable",
         "Activate Product/Offer schema only after a genuine fulfilment-ready sellable offer exists",
@@ -213,9 +213,8 @@
       "production_state": "WAITING_EXTERNAL",
       "revenue_priority": "CRITICAL",
       "external_blockers": [
-        "Merchant/eNAMAD readiness as applicable",
-        "Approved gateway API credentials",
-        "Production callback domain"
+        "BitPay merchant review: registered postal code must match the tax-file postal code",
+        "Approved BitPay production API credentials"
       ],
       "artifacts": [
         "platform/payment-provider-policy.json",
@@ -227,10 +226,10 @@
         "platform/db/migrations/026_payment_provider_event.sql"
       ],
       "next_actions": [
-        "Receive exact approved gateway API documentation and credentials",
-        "Implement provider-specific adapter behind the frozen interface",
-        "Verify sandbox callback/webhook authenticity, idempotency and amount/currency match",
-        "Run reconciliation and failure/retry tests before live switch"
+        "Correct the BitPay merchant postal code to match the tax file and request re-review",
+        "Receive the approved production BitPay API credential and store it only in the production secret store",
+        "Preserve the completed sandbox create → payment page → callback → server verification roundtrip and amount/factor checks",
+        "Deploy the production payment worker, run a controlled live transaction, and verify reconciliation/failure/replay handling before general activation"
       ]
     },
     {
