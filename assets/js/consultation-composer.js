@@ -20,6 +20,8 @@
     }
     fields.disabled = false;
     fields.hidden = false;
+    fields.style.display = 'grid';
+    fields.style.gap = '1.25rem';
     form.addEventListener('input', invalidate);
     form.addEventListener('change', invalidate);
     form.addEventListener('reset', invalidate);
