@@ -529,6 +529,8 @@ for(const route of ['/en/login/','/en/register/','/fa/login/','/fa/register/']){
     expect(await brand.evaluate(el=>getComputedStyle(el).flexDirection)).toBe('row');
     const robots=await page.locator('meta[name="robots"]').getAttribute('content');
     expect(robots||'').toContain('noindex');
+    const activeTab=page.locator('.app-dock a[aria-current="page"] span');
+    await expect(activeTab).toHaveText(route.startsWith('/fa/')?'حساب':'Account');
   });
 }
 
