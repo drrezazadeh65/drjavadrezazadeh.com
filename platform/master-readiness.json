@@ -20,10 +20,15 @@
       "artifacts": [
         "foundation/DOMAIN-CUTOVER-RUNBOOK.md",
         "scripts/domain-cutover.mjs",
-        "platform/ecosystem-registry.json"
+        "platform/ecosystem-registry.json",
+        "_config.yml",
+        "scripts/build-public-site.mjs",
+        ".github/workflows/jekyll-public-boundary-validation.yml",
+        ".github/workflows/sanitized-pages-artifact.yml"
       ],
       "next_actions": [
         "Preserve the current GitHub Pages custom domain and HTTPS enforcement; do not change DNS without an approved migration",
+        "Keep the validated Jekyll exclusion boundary active so engineering-only repository directories are not published while all public URLs remain stable",
         "Keep strict Production SEO Health green on the permanent HTTPS origin",
         "Treat any future host or DNS change as a controlled migration with rollback evidence"
       ]
@@ -72,7 +77,11 @@
         "tests/public-browser-qa.spec.js",
         ".github/workflows/browser-qa.yml",
         ".github/workflows/indexnow-submit.yml",
-        "foundation/INDEXNOW-READINESS.md"
+        "foundation/INDEXNOW-READINESS.md",
+        "scripts/frontend-copy-hygiene-audit.mjs",
+        "scripts/public-data-hygiene-audit.mjs",
+        "scripts/build-public-data.mjs",
+        ".github/workflows/public-data-sync.yml"
       ],
       "next_actions": [
         "Preserve green SEO/GEO, Chromium browser CI and strict live-production health",
@@ -98,10 +107,12 @@
         "tests/public-browser-qa.spec.js",
         ".github/workflows/browser-qa.yml",
         "tests/full-route-responsive.spec.js",
-        ".github/workflows/full-route-responsive-certification.yml"
+        ".github/workflows/full-route-responsive-certification.yml",
+        "tests/full-route-visual-crawl.spec.js",
+        ".github/workflows/full-route-visual-crawl.yml"
       ],
       "next_actions": [
-        "Keep representative Browser QA and the full-route 320/390/430/1440 certification green",
+        "Keep representative Browser QA, full-route 320/390/430/1440 responsive certification and full-route screenshot evidence green",
         "Run physical-device iOS Safari/Android Chrome plus VoiceOver/TalkBack checks on the permanent domain",
         "Validate actual Add-to-Home-Screen/install prompt behavior and standalone safe-area rendering on physical devices",
         "Re-test private no-store behavior after authenticated app deployment"
@@ -152,12 +163,19 @@
         "en/request-consultation/index.html",
         "en/services/index.html",
         "fa/khadamat/index.html",
-        "platform/db/migrations/029_master_vision_longitudinal_revenue.sql"
+        "platform/db/migrations/029_master_vision_longitudinal_revenue.sql",
+        "platform/service-catalog.json",
+        "assets/data/service-catalog.json",
+        "platform/db/migrations/030_service_catalog_intake_alignment.sql",
+        "platform/service-catalog-contract.test.mjs",
+        "assets/js/service-pricing.js",
+        "assets/js/consultation-composer.js"
       ],
       "next_actions": [
-        "Keep safe non-sensitive service lead routes usable now",
+        "Keep the approved 21-service pricing/value architecture synchronized from the canonical service catalogue",
+        "Keep safe non-sensitive service lead routes usable now and preserve selected-service handoff from pricing to intake",
         "Activate secure multi-audience intake when backend is live",
-        "Connect booking and role-aware account handoff",
+        "Connect real booking/calendar availability and role-aware account handoff",
         "Connect verified payment only when required",
         "Preserve scope-first handling for confidential academic/institutional work"
       ]
@@ -167,7 +185,7 @@
       "production_state": "IN_PROGRESS",
       "revenue_priority": "HIGH",
       "external_blockers": [
-        "One-time Cloudflare Workers Git integration/deployment",
+        "Cloudflare production deployment credentials/secrets",
         "Cloudflare zone/custom-domain certificate activation"
       ],
       "artifacts": [
@@ -177,13 +195,14 @@
         "edge/assistant/wrangler.jsonc",
         "platform/assistant-runtime-policy.json",
         "foundation/AI-ASSISTANT-ACTIVATION-RUNBOOK.md",
-        "platform/whatsapp-provider-policy.json"
+        "platform/whatsapp-provider-policy.json",
+        ".github/workflows/assistant-worker-deploy.yml"
       ],
       "next_actions": [
-        "Connect the GitHub repository to Cloudflare Workers Builds with root directory edge/assistant",
-        "Deploy the Worker with its SQLite Durable Object lead store",
+        "Store CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID only in GitHub Actions secrets or an equivalent secure deployment context",
+        "Run the manual production deployment workflow for edge/assistant",
         "Set the protected lead-export runtime secret",
-        "Verify bilingual assistant + consented lead capture",
+        "Verify the custom-domain health endpoint and bilingual assistant + consented lead capture",
         "Optionally activate WhatsApp later without changing email-only authentication"
       ]
     },
@@ -202,7 +221,13 @@
         "fa/shop/index.html",
         "en/shop/index.html",
         "assets/js/book-store.js",
-        "foundation/BOOKSTORE-OPERATIONS-RUNBOOK.md"
+        "foundation/BOOKSTORE-OPERATIONS-RUNBOOK.md",
+        "assets/data/book-catalog.json",
+        "assets/media-registry.json",
+        "platform/media-library-policy.json",
+        "scripts/media-derive.mjs",
+        ".github/workflows/media-derivatives.yml",
+        "foundation/MEDIA-LIBRARY-RUNBOOK-v4.3.md"
       ],
       "next_actions": [
         "Preserve the three owner-approved published print titles as sellable/in-stock in the catalogue while keeping live bank payment disabled until the production gateway is activated",
@@ -277,7 +302,7 @@
       ],
       "next_actions": [
         "Provision real email/password auth/session backend",
-        "Use the verified Resend domain and published v4.3 verification/recovery templates only after a sending credential is stored directly in the secure runtime secret store",
+        "Create a restricted Resend sending credential only when it can be written directly to the secure runtime secret store; the verified domain and published v4.3 verification/recovery/order templates are already ready",
         "Require email verification before ACTIVE status",
         "Collect mobile at registration as contact-only data",
         "Keep recovery email-only with generic responses and single-use short-lived tokens",
@@ -349,7 +374,7 @@
       "revenue_priority": "CRITICAL",
       "external_blockers": [
         "Secure backend service-case activation",
-        "Verified pricing/payment terms for paid offers"
+        "Payment activation for paid offers"
       ],
       "artifacts": [
         "foundation/MASTER-WEBSITE-EVOLUTION-ALIGNMENT-v1.md",
@@ -360,12 +385,16 @@
         "en/collaboration/index.html",
         "en/contact/index.html",
         "fa/tamas/index.html",
-        "platform/db/migrations/029_master_vision_longitudinal_revenue.sql"
+        "platform/db/migrations/029_master_vision_longitudinal_revenue.sql",
+        "platform/service-catalog.json",
+        "assets/data/service-catalog.json",
+        "assets/js/service-pricing.js",
+        "platform/db/migrations/030_service_catalog_intake_alignment.sql"
       ],
       "next_actions": [
-        "Keep researcher/academic and student/parent service journeys visibly separate",
-        "Define real service scope/duration/price only from verified operational decisions",
+        "Preserve the approved 21-service pricing/value architecture and keep researcher/academic and student/parent journeys visibly distinct",
         "Activate secure confidential-material exchange after private storage is live",
+        "Connect booking/account persistence and payment only after the corresponding secure runtimes are active",
         "Connect institutional/speaking enquiries to scoped contracting workflow"
       ]
     },
