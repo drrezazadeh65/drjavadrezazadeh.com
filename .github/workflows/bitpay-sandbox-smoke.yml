@@ -9,6 +9,7 @@ on:
       - 'platform/bitpay-callback.mjs'
       - 'platform/bitpay-callback.test.mjs'
       - 'scripts/bitpay-sandbox-smoke.mjs'
+      - 'edge/payments/**'
       - '.github/workflows/bitpay-sandbox-smoke.yml'
   workflow_dispatch:
 
@@ -28,6 +29,8 @@ jobs:
         run: node platform/bitpay-adapter.test.mjs
       - name: Callback integrity contract
         run: node platform/bitpay-callback.test.mjs
+      - name: Payments worker syntax
+        run: node --check edge/payments/src/index.js
       - name: Official BitPay sandbox smoke
         env:
           BITPAY_TEST_REDIRECT: https://drjavadrezazadeh.com/fa/shop/checkout/?bitpay_test=1
