@@ -1,5 +1,5 @@
 /* JR Cache Standard v2.0 — fresh-by-default, offline-safe, privacy-safe */
-const CACHE_VERSION='jr-site-20261007-commit-17f1e93dd46f';
+const CACHE_VERSION='jr-site-20261007-commit-5d52ac2a99c5';
 const CACHE_FAMILY='jr-site-';
 const SHELL_CACHE=CACHE_VERSION+'-shell';
 const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
