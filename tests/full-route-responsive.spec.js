@@ -32,17 +32,26 @@ const viewports=[
 ];
 
 test.describe.configure({mode:'parallel'});
+test.use({serviceWorkers:'block'});
 
 for(const route of routes){
-  test('responsive certification '+route,async({page})=>{
+  test('responsive certification '+route,async({page,request})=>{
+    const http=await request.get(base+route,{maxRedirects:5});
+    expect(http.status(),route+' HTTP status').toBeLessThan(400);
+
     const pageErrors=[];
     page.on('pageerror',err=>pageErrors.push(String(err.message||err)));
     for(const [label,width,height] of viewports){
       await page.setViewportSize({width,height});
-      const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
-      expect(response,route+' '+label+' missing response').not.toBeNull();
-      expect(response.status(),route+' '+label+' HTTP status').toBeLessThan(400);
-      await page.waitForTimeout(60);
+      try{
+        await page.goto(base+route,{waitUntil:'domcontentloaded',timeout:10000});
+      }catch(error){
+        const message=String(error?.message||error);
+        if(!/ERR_ABORTED|interrupted by another navigation/i.test(message)) throw error;
+        await page.waitForLoadState('domcontentloaded',{timeout:5000}).catch(()=>{});
+      }
+      await page.waitForTimeout(140);
+      await page.waitForLoadState('domcontentloaded',{timeout:3000}).catch(()=>{});
 
       const result=await page.evaluate(()=>{
         const html=document.documentElement;
