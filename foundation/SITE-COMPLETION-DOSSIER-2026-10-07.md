@@ -38,9 +38,9 @@ No price, payment success, identity verification, private-data access, scientifi
 - Mobile public navigation behaves as an app-like five-destination dock with safe-area handling, 44px+ touch targets, active-state semantics, accessible dialog/bottom-sheet navigation, focus transfer and Escape dismissal.
 - PWA cache versioning was advanced with the visual release so installed/returning users are not trapped on stale CSS.
 - Source-level responsive/accessibility guards remain release-blocking.
-- Real Chromium Browser QA is part of CI and currently runs **21 tests**.
+- Real Chromium Browser QA is part of CI and currently runs **26 tests**, including mobile first-screen identity/action clearance and long-form editorial metadata/dock-safety gates.
 - Responsive matrix covers **320, 360, 390 and 430 px mobile widths** plus **1280, 1366, 1440, 1600 and 1920 px desktop widths**.
-- Core tests cover horizontal overflow, exactly one H1, visible main content, skip-link entry, uncaught page errors, Persian Search v2 privacy boundaries, keyboard focus entry, mobile touch targets, bottom-sheet interaction and palette contrast.
+- Core tests cover horizontal overflow, exactly one H1, visible main content, skip-link entry, uncaught page errors, Persian Search v2 privacy boundaries, keyboard focus entry, mobile touch targets, bottom-sheet interaction, palette contrast, home first-screen identity/action clearance and long-form editorial metadata/dock safety.
 - Screenshot evidence is retained by CI.
 - Automated Chromium evidence is complete; physical-device iOS/Android, VoiceOver/TalkBack and final manual WCAG validation remain external/manual production work.
 

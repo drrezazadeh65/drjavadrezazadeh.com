@@ -240,3 +240,25 @@ for(const route of ['/fa/','/en/']){
     expect(cb.y+cb.height,'primary hero CTA should finish before the fixed dock').toBeLessThan(db.y-12);
   });
 }
+
+
+test('mobile editorial metadata clears the app dock',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/',{waitUntil:'domcontentloaded'});
+  await page.waitForTimeout(180);
+  const hero=page.locator('.article-hero');
+  const title=hero.locator('h1');
+  const meta=hero.locator('.article-meta');
+  const lead=hero.locator('.lead');
+  const dock=page.locator('.app-dock').first();
+  await expect(title).toBeVisible();
+  await expect(meta).toBeVisible();
+  await expect(dock).toBeVisible();
+  const [tb,mb,lb,db]=await Promise.all([title.boundingBox(),meta.boundingBox(),lead.boundingBox(),dock.boundingBox()]);
+  for(const box of [tb,mb,lb,db]) expect(box).not.toBeNull();
+  expect(tb.y+tb.height,'article title should finish before dock').toBeLessThan(db.y-16);
+  expect(mb.y+mb.height,'trust metadata should finish before dock').toBeLessThan(db.y-10);
+  expect(mb.y,'metadata should precede long lead visually').toBeLessThan(lb.y);
+  const titleSize=parseFloat(await title.evaluate(el=>getComputedStyle(el).fontSize));
+  expect(titleSize,'mobile editorial title should remain controlled').toBeLessThanOrEqual(35.5);
+});
