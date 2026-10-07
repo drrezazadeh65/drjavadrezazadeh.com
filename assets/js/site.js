@@ -520,4 +520,4 @@ holder.innerHTML="<a referrerpolicy='origin' target='_blank' href='https://trust
 footer.appendChild(holder);
 })();
 
-import('/assets/js/mobile-app-v431.js?v=431c');
+import('/assets/js/mobile-app-v431.js?v=431d');
