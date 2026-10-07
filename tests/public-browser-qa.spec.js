@@ -543,3 +543,23 @@ test('Persian auth brand preserves Golden Talent word order',async({page})=>{
   expect(await brand.evaluate(el=>getComputedStyle(el).direction)).toBe('ltr');
   expect((await brand.textContent()).replace(/\s+/g,' ').trim()).toMatch(/^Golden Talent/);
 });
+
+test('commerce publishing first-screen visual evidence',async({page})=>{
+  const surfaces=[
+    ['/fa/shop/','fa-shop'],
+    ['/en/shop/','en-shop'],
+    ['/journal/','jhela-journal'],
+    ['/publisher/','publisher']
+  ];
+  for(const [route,name] of surfaces){
+    for(const [label,width,height] of [['mobile-390',390,844],['desktop-1440',1440,900]]){
+      await page.setViewportSize({width,height});
+      await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      await page.waitForTimeout(180);
+      await expect(page.locator('h1')).toHaveCount(1);
+      const overflow=await stableOverflow(page);
+      expect(Math.max(overflow.html,overflow.body),route+' commerce/publishing overflow').toBeLessThanOrEqual(overflow.viewport+1);
+      await page.screenshot({path:'test-results/screenshots/'+name+'-'+label+'-first-screen.png',fullPage:false});
+    }
+  }
+});
