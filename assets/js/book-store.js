@@ -17,7 +17,7 @@
  function writeCart(items){try{localStorage.setItem(CART_KEY,JSON.stringify(items.slice(0,20)))}catch(e){} updateCartBadge();}
  function updateCartBadge(){const n=readCart().reduce((s,x)=>s+(x.quantity||1),0);document.querySelectorAll('[data-cart-count]').forEach(x=>x.textContent=String(n));}
  async function load(){
-  const res=await fetch(root('platform/book-catalog.json'),{cache:'no-store'});
+  const res=await fetch(root('assets/data/book-catalog.json'),{cache:'no-store'});
   if(!res.ok) throw new Error('catalog');
   return res.json();
  }
