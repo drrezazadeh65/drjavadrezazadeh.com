@@ -280,3 +280,30 @@ test('first-screen visual evidence for representative product surfaces',async({p
     }
   }
 });
+
+test('mobile product heroes expose decision controls before the app dock',async({page})=>{
+  const cases=[
+    ['/en/services/','.service-hero .button.primary'],
+    ['/en/academic-profile/','.authority-hero .button.primary'],
+    ['/fa/golden-talent/','.service-hero .button.primary'],
+    ['/fa/darkhast-moshavere/','.service-hero .foundation-status']
+  ];
+  for(const [route,targetSel] of cases){
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(180);
+    const hero=page.locator('.service-hero,.authority-hero').first();
+    const title=hero.locator('h1').first();
+    const target=page.locator(targetSel).first();
+    const dock=page.locator('.app-dock').first();
+    await expect(title).toBeVisible();
+    await expect(target).toBeVisible();
+    await expect(dock).toBeVisible();
+    const [tb,xb,db]=await Promise.all([title.boundingBox(),target.boundingBox(),dock.boundingBox()]);
+    for(const box of [tb,xb,db]) expect(box).not.toBeNull();
+    expect(tb.y+tb.height,route+' title should finish before dock').toBeLessThan(db.y-14);
+    expect(xb.y+xb.height,route+' primary decision control should finish before dock').toBeLessThan(db.y-10);
+    const size=parseFloat(await title.evaluate(el=>getComputedStyle(el).fontSize));
+    expect(size,route+' title scale').toBeLessThanOrEqual(35.5);
+  }
+});
