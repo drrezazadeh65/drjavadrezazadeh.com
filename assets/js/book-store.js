@@ -35,7 +35,7 @@
  function card(book){
   const el=document.createElement('article');
   el.className='book-product-card';
-  const cover=book.bibliography?.cover_image?'<figure class="book-cover"><img src="'+root(book.bibliography.cover_image)+'" width="600" height="900" loading="lazy" decoding="async" alt="'+(isFa?'جلد کتاب «'+book.title_fa+'» اثر جواد رضازاده':'Cover of '+book.english_reference_title+' by Javad Rezazadeh')+'"></figure>':'<div class="book-cover-placeholder"><strong lang="fa" dir="rtl">'+book.title_fa+'</strong></div>';
+  const cover=book.bibliography?.cover_image?'<figure class="book-cover"><img src="'+root(book.bibliography.cover_image)+'" width="600" height="900" loading="lazy" decoding="async" alt="'+(isFa?'جلد کتاب «'+book.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+book.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong lang="fa" dir="rtl">'+book.title_fa+'</strong></div>';
   el.innerHTML=cover+
    '<div class="book-product-copy"><span class="status-chip">'+(isFa?'منتشرشده':'Published')+'</span>'+
    '<h2 dir="rtl" lang="fa">'+book.title_fa+'</h2><p>'+(isFa?book.description_fa:book.description_en)+'</p>'+
@@ -56,7 +56,7 @@
   const b=data.books.find(x=>x.id===id);
   if(!b){host.innerHTML='<h1>'+(isFa?'کتاب پیدا نشد':'Book not found')+'</h1>';return;}
   document.title=(isFa?b.title_fa:b.english_reference_title)+' | '+(isFa?'فروشگاه کتاب':'Bookstore');
-  const detailCover=b.bibliography?.cover_image?'<figure class="book-cover"><img src="'+root(b.bibliography.cover_image)+'" width="600" height="900" decoding="async" alt="'+(isFa?'جلد کتاب «'+b.title_fa+'» اثر جواد رضازاده':'Cover of '+b.english_reference_title+' by Javad Rezazadeh')+'"></figure>':'<div class="book-cover-placeholder"><strong>'+b.title_fa+'</strong></div>';
+  const detailCover=b.bibliography?.cover_image?'<figure class="book-cover"><img src="'+root(b.bibliography.cover_image)+'" width="600" height="900" decoding="async" alt="'+(isFa?'جلد کتاب «'+b.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+b.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong>'+b.title_fa+'</strong></div>';
   host.innerHTML='<div class="book-detail-layout">'+detailCover+'<div class="book-detail-copy"><p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+b.title_fa+'</h1>'+
    '<p class="lead">'+(isFa?b.description_fa:b.description_en)+'</p>'+
    '<dl class="book-meta"><div><dt>'+(isFa?'نویسنده':'Author')+'</dt><dd>Javad Rezazadeh Yazdeli</dd></div>'+
