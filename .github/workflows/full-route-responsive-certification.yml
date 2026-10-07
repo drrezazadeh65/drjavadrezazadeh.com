@@ -1,0 +1,62 @@
+name: Full Route Responsive Certification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.html'
+      - 'assets/css/**'
+      - 'assets/js/**'
+      - 'site.webmanifest'
+      - 'sw.js'
+      - 'tests/full-route-responsive.spec.js'
+      - '.github/workflows/full-route-responsive-certification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-route-responsive-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright runtime
+        run: npm install --no-save @playwright/test@1.56.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start local static site
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/drsite-http.log 2>&1 &
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/drsite-http.log
+          exit 1
+      - name: Certify every HTML route at four critical viewports
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          npx playwright test tests/full-route-responsive.spec.js --workers=4 --reporter=line 2>&1 | tee /tmp/full-route-responsive.log
+          status=${PIPESTATUS[0]}
+          mkdir -p test-results/full-route-responsive
+          cp /tmp/full-route-responsive.log test-results/full-route-responsive/
+          exit "$status"
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-route-responsive-evidence
+          path: test-results/full-route-responsive
+          if-no-files-found: ignore
+          retention-days: 14
