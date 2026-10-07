@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "status": "COMMERCE_ACTIVE",
-  "rule": "Published books listed as sellable have an owner-confirmed retail price. Payment activates after the approved gateway is connected.",
+  "status": "PRICE_VERIFIED_COMMERCE_PENDING",
+  "rule": "Owner-confirmed retail price may be displayed, but sellable state remains false until stock/fulfilment, shipping/return terms and the verified payment path are production-ready.",
   "books": [
     {
       "id": "roshanaei",
@@ -20,15 +20,15 @@
         "cover_image": null
       },
       "commerce": {
-        "sellable": true,
+        "sellable": false,
         "price": 2000000,
         "currency": "IRT",
-        "inventory_state": "AVAILABLE",
+        "inventory_state": "PENDING_FULFILMENT_CONFIRMATION",
         "formats_confirmed": [
           "PRINT"
         ],
         "shipping_required": true,
-        "reason": null
+        "reason": "Retail price recorded; purchase intentionally disabled pending verified stock/fulfilment, shipping/return terms and production payment readiness."
       }
     },
     {
@@ -48,15 +48,15 @@
         "cover_image": null
       },
       "commerce": {
-        "sellable": true,
+        "sellable": false,
         "price": 2000000,
         "currency": "IRT",
-        "inventory_state": "AVAILABLE",
+        "inventory_state": "PENDING_FULFILMENT_CONFIRMATION",
         "formats_confirmed": [
           "PRINT"
         ],
         "shipping_required": true,
-        "reason": null
+        "reason": "Retail price recorded; purchase intentionally disabled pending verified stock/fulfilment, shipping/return terms and production payment readiness."
       }
     },
     {
@@ -76,15 +76,15 @@
         "cover_image": null
       },
       "commerce": {
-        "sellable": true,
+        "sellable": false,
         "price": 2000000,
         "currency": "IRT",
-        "inventory_state": "AVAILABLE",
+        "inventory_state": "PENDING_FULFILMENT_CONFIRMATION",
         "formats_confirmed": [
           "PRINT"
         ],
         "shipping_required": true,
-        "reason": null
+        "reason": "Retail price recorded; purchase intentionally disabled pending verified stock/fulfilment, shipping/return terms and production payment readiness."
       }
     }
   ],

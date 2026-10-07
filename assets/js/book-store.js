@@ -40,7 +40,7 @@
    '<h2 dir="rtl" lang="fa">'+book.title_fa+'</h2><p>'+(isFa?book.description_fa:book.description_en)+'</p>'+
    '<div class="book-price">'+money(book.commerce?.price,book.commerce?.currency)+'</div>'+
    '<div class="actions"><a class="button" href="'+root((isFa?'fa':'en')+'/shop/book/?id='+encodeURIComponent(book.id))+'">'+(isFa?'جزئیات کتاب':'Book details')+'</a>'+
-   (ready(book)?'<button class="button primary" type="button" data-add-book="'+book.id+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<span class="book-pending">'+(isFa?'خرید پس از تأیید قیمت، موجودی و ارسال فعال می‌شود.':'Purchase activates after price, stock or format and fulfilment are verified.')+'</span>')+
+   (ready(book)?'<button class="button primary" type="button" data-add-book="'+book.id+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<span class="book-pending">'+(isFa?'قیمت ثبت شده است؛ خرید پس از تأیید موجودی، شرایط ارسال و درگاه معتبر فعال می‌شود.':'The price is recorded; purchase activates after stock, fulfilment terms and the verified payment path are ready.')+'</span>')+
    '</div></div>';
   return el;
  }
@@ -60,7 +60,7 @@
    '<dl class="book-meta"><div><dt>'+(isFa?'نویسنده':'Author')+'</dt><dd>Javad Rezazadeh Yazdeli</dd></div>'+
    '<div><dt>ISBN</dt><dd>'+(b.bibliography.isbn||(isFa?'در انتظار اطلاعات تأییدشده':'Awaiting verified metadata'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قیمت':'Price')+'</dt><dd>'+money(b.commerce?.price,b.commerce?.currency)+'</dd></div></dl>'+
-   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+b.id+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<div class="store-notice">'+(isFa?'کتاب منتشر شده است، اما قیمت، قالب فروش، موجودی و شرایط ارسال هنوز تأیید نشده‌اند؛ خرید عمداً غیرفعال است.':'The book is published, but price, sale format, stock and fulfilment terms are not yet verified; purchase is intentionally disabled.')+'</div>')+'</div></div>';
+   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+b.id+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<div class="store-notice">'+(isFa?'کتاب منتشر شده و قیمت ثبت شده است؛ اما موجودی، شرایط ارسال/بازگشت و مسیر پرداخت تولیدی هنوز کامل نشده‌اند، بنابراین خرید عمداً غیرفعال است.':'The book is published and its price is recorded, but stock, fulfilment/return terms and the production payment path are not yet complete; purchase is intentionally disabled.')+'</div>')+'</div></div>';
   host.addEventListener('click',e=>{if(e.target.closest('[data-detail-add]'))add(b);});
  }
  function renderCart(data){
