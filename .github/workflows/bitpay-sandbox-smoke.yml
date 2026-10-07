@@ -10,6 +10,7 @@ on:
       - 'platform/bitpay-callback.test.mjs'
       - 'scripts/bitpay-sandbox-smoke.mjs'
       - 'scripts/bitpay-form-probe.mjs'
+      - 'scripts/bitpay-positive-roundtrip.mjs'
       - 'edge/payments/**'
       - '.github/workflows/bitpay-sandbox-smoke.yml'
   workflow_dispatch:
@@ -34,6 +35,8 @@ jobs:
         run: node --check edge/payments/src/index.js
       - name: Sandbox callback form probe
         run: node scripts/bitpay-form-probe.mjs
+      - name: Positive sandbox roundtrip
+        run: node scripts/bitpay-positive-roundtrip.mjs
       - name: Official BitPay sandbox smoke
         env:
           BITPAY_TEST_REDIRECT: https://drjavadrezazadeh.com/fa/shop/checkout/?bitpay_test=1
