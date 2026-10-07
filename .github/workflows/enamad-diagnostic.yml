@@ -1,0 +1,49 @@
+name: Enamad External Diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/enamad-diagnostic.yml'
+      - 'index.html'
+      - '60347010.txt'
+      - 'CNAME'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: DNS and HTTP diagnostics
+        shell: bash
+        run: |
+          set +e
+          echo '=== DNS ==='
+          getent ahostsv4 drjavadrezazadeh.com || true
+          getent ahostsv4 www.drjavadrezazadeh.com || true
+          python3 - <<'PY'
+          import socket
+          for h in ['drjavadrezazadeh.com','www.drjavadrezazadeh.com']:
+              try:
+                  print(h, socket.getaddrinfo(h, 443, type=socket.SOCK_STREAM))
+              except Exception as e:
+                  print(h, 'ERROR', repr(e))
+          PY
+          echo '=== HTTP PROBES ==='
+          for u in             'http://drjavadrezazadeh.com/'             'https://drjavadrezazadeh.com/'             'http://www.drjavadrezazadeh.com/'             'https://www.drjavadrezazadeh.com/'             'http://drjavadrezazadeh.com/60347010.txt'             'https://drjavadrezazadeh.com/60347010.txt'
+          do
+            echo "### $u"
+            rm -f /tmp/h /tmp/b
+            curl -A 'Mozilla/5.0 (compatible; EnamadDiagnostic/1.0)' -sS -L               --connect-timeout 10 --max-time 30               -D /tmp/h -o /tmp/b "$u"
+            rc=$?
+            echo "curl_exit=$rc"
+            echo '-- headers --'
+            sed -n '1,80p' /tmp/h 2>/dev/null || true
+            echo '-- body markers --'
+            wc -c /tmp/b 2>/dev/null || true
+            grep -Eio '<title>[^<]*</title>|<meta[^>]+name=["'"'"']enamad["'"'"'][^>]*>|<h1[^>]*>[^<]*</h1>|60347010' /tmp/b 2>/dev/null | head -20 || true
+            echo
+          done
