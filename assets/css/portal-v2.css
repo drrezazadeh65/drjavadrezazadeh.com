@@ -2724,3 +2724,11 @@ html[lang="en"] .student-gateway-page .site-header .brand small{
 .rtl.auth-page .site-header .brand{direction:ltr}
 .rtl.auth-page .site-header .brand small{direction:rtl;unicode-bidi:isolate}
 }
+
+@media(max-width:840px){
+.dashboard-shell-page{--private-mobile-five-tab-nav:1}
+.dashboard-shell-page .dashboard-sidebar{display:none!important}
+.dashboard-shell-page .dashboard-workspace{margin-inline-start:0;padding-bottom:calc(104px + env(safe-area-inset-bottom))}
+.dashboard-shell-page .student-dash-shell{padding-bottom:calc(116px + env(safe-area-inset-bottom))}
+.dashboard-shell-page .dashboard-topbar{position:sticky;top:0}
+}

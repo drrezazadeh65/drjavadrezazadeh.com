@@ -578,3 +578,46 @@ for(const route of ['/fa/shop/','/en/shop/']){
     await expect(page.locator('.book-pending').first()).toBeVisible();
   });
 }
+
+test('private student mobile shell uses the frozen five-tab contract',async({page})=>{
+  const cases=[
+    ['/fa/app/student/','fa'],
+    ['/en/golden-talent/student/','en']
+  ];
+  for(const [route,locale] of cases){
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(180);
+    const dock=page.locator('.app-dock');
+    await expect(dock).toBeVisible();
+    const links=dock.locator('a');
+    await expect(links).toHaveCount(5);
+    const hrefs=await links.evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname));
+    if(locale==='fa'){
+      expect(hrefs).toEqual([
+        '/fa/app/student/',
+        '/fa/golden-talent/',
+        '/fa/assessments/golden-talent/',
+        '/fa/app/student/golden-path/',
+        '/fa/app/account/'
+      ]);
+      await expect(page.locator('.dashboard-sidebar')).toBeHidden();
+    }else{
+      expect(hrefs).toEqual([
+        '/en/golden-talent/student/',
+        '/en/golden-talent/',
+        '/en/golden-talent/assessment/',
+        '/en/golden-talent/dashboard/golden-path/',
+        '/en/account/'
+      ]);
+    }
+    const boxes=await links.evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {w:r.width,h:r.height}}));
+    for(const b of boxes){expect(b.w).toBeGreaterThanOrEqual(44);expect(b.h).toBeGreaterThanOrEqual(44)}
+  }
+
+  await page.setViewportSize({width:1440,height:900});
+  await page.goto(base+'/fa/app/student/',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('.dashboard-sidebar')).toBeVisible();
+  await expect(page.locator('.dashboard-sidebar nav a')).toHaveCount(11);
+  await expect(page.locator('.app-dock')).toBeHidden();
+});
