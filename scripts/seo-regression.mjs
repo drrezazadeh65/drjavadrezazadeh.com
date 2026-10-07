@@ -2056,7 +2056,9 @@ if(sp.admin_mfa?.required!==true||sp.uploads?.quarantine_until_scan!==true||sp.b
 const observabilityPolicy=JSON.parse(fs.readFileSync(path.join(root,'platform','observability-policy.json'),'utf8'));
 if(observabilityPolicy.rules?.no_raw_assessment_answers_in_analytics!==true||observabilityPolicy.rules?.no_research_identity_links!==true||observabilityPolicy.rules?.journal_metrics_must_not_claim_impact_factor_or_indexing_without_verification!==true) failures.push('/platform/observability-policy.json: unsafe observability policy');
 const mp=JSON.parse(fs.readFileSync(path.join(root,'platform','media-library-policy.json'),'utf8'));
-if(!mp.media_asset?.required?.includes('licence_status')||!mp.media_asset?.required?.includes('provenance')) failures.push('/platform/media-library-policy.json: missing rights provenance');
+const mediaRequired=Array.isArray(mp.record_required)?mp.record_required:(mp.media_asset?.required||[]);
+const hasRights=mediaRequired.includes('rights')||mediaRequired.includes('licence_status');
+if(!hasRights||!mediaRequired.includes('provenance')) failures.push('/platform/media-library-policy.json: missing rights provenance');
 
 
 // Consultation, research access and scientific reference guards.
