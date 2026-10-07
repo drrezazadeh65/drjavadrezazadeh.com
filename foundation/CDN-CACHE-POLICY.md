@@ -1,66 +1,78 @@
-# CDN / Cache Policy — Pre-Production Baseline
+# CDN / Cache Policy — JR Cache Standard v2.0 Companion
 
-Status: provider-ready, production verification pending.
+Status: active production policy companion.  
+Canonical source: `/CACHE_STANDARD.md`.
 
-## Principle
+## Current hosting reality
 
-The current public assets are **not content-fingerprinted**. Therefore the project must not apply long browser TTLs or `immutable` caching to the existing `/assets/**` tree. Cloudflare Pages' default static-asset behaviour is the safer baseline until a hashed-asset build pipeline exists.
+The public site currently runs on **GitHub Pages**. GitHub controls origin/edge HTTP cache headers and the repository cannot override those headers per route. Therefore freshness for mutable content is enforced primarily through:
+
+- Service Worker fresh-first routing;
+- Fetch `cache: "reload"` for public HTML, CSS, JavaScript, JSON, manifests and unversioned media;
+- `updateViaCache: "none"` for Service Worker update checks;
+- immediate Service Worker activation with `skipWaiting()` and `clients.claim()`;
+- versioned URLs whenever a resource is intentionally made cache-stable.
+
+The repository `_headers` file is a migration contract for any future hosting provider that supports custom response headers. It has no effect on GitHub Pages.
 
 ## Public static delivery
 
-For the current static site:
+The current public assets are not fully content-fingerprinted. Therefore:
 
-- keep Cloudflare Pages' deployment-aware CDN behaviour;
-- keep browser freshness governed by Pages' ETag/revalidation defaults;
-- do not add a Cache Rule that forces long Edge or Browser TTLs across HTML, CSS, JavaScript or the current non-hashed media tree;
-- do not use `Cache-Control: immutable` for non-fingerprinted files;
-- allow Brotli/Gzip and Cloudflare's normal static-asset optimisation;
-- preserve the Service Worker's network-first policy for CSS/JavaScript so a successful deploy is not masked by an older app-shell copy.
+- do not use year-long or `immutable` browser caching for existing non-hashed files;
+- do not cache-first public HTML, CSS or JavaScript;
+- do not precache mutable public documents or mutable code in the Service Worker;
+- allow public documents and code to use cached copies only as offline fallback;
+- treat unversioned images as fresh-first;
+- cache versioned/fingerprinted media and fonts only when their URL guarantees identity.
 
 ## Private / transactional surfaces
 
-Account, assessment, checkout, consultation-intake and other private/transactional static shells must remain:
+Account, authentication, assessment, checkout, consultation-intake and other personalized or transactional routes are network-only:
 
 ```
-Cache-Control: no-store, max-age=0
-X-Robots-Tag: noindex, noarchive
+Cache-Control: no-store
 ```
 
-The repository `_headers` policy defines these rules for Cloudflare Pages static responses. Any future Pages Function/API response must set its own cache/security headers because `_headers` does not govern Function-generated responses.
+They must never be persisted in Service Worker Cache Storage. On a future controllable origin/CDN they must also emit `X-Robots-Tag: noindex, noarchive` where appropriate.
 
-## PWA-specific delivery
+## PWA delivery
 
-- `sw.js` and `site.webmanifest` must remain deploy-fresh; do not introduce long browser TTLs for them.
-- CSS/JavaScript are network-first inside the Service Worker.
-- Images/fonts may use the Service Worker's cache-first strategy because a new Service Worker version controls app-shell updates.
-- PWA launcher icons are part of the versioned app shell.
+- `sw.js` is checked on every page load with `updateViaCache: "none"`.
+- new workers use `skipWaiting()` and `clients.claim()`;
+- old `jr-site-*` cache families are deleted during activation;
+- public HTML and mutable code are network-first;
+- offline HTML is fallback-only;
+- private routes are `no-store`;
+- no manual cache deletion is part of the release process.
 
-## Future hashed-asset phase
+## Future content-hashed asset phase
 
-Only after the build pipeline emits content-hashed filenames such as:
+Only after the build pipeline emits filenames such as:
 
-`app.4f29c1.js`
+`app.4f29c1.js`  
 `style.883a91.css`
 
-may those hashed assets use an aggressive browser policy such as:
+may those exact immutable assets use:
 
 ```
 Cache-Control: public, max-age=31536000, immutable
 ```
 
-HTML, service-worker scripts, manifests and mutable metadata must remain revalidatable even after that migration.
+HTML, Service Worker scripts, manifests, personalized responses and mutable metadata remain revalidatable or non-storable.
 
-## Production verification
+## Release verification
 
-At domain cutover, verify:
+Every release must verify:
 
-1. HTML and mutable assets are not trapped behind long browser TTLs.
-2. private/transactional responses are `no-store`.
-3. a normal deploy makes updated CSS/JS visible without manual cache purging.
-4. Cloudflare Cache Rules do not override the repository privacy/cache contract.
-5. Pages Functions, if introduced, reproduce the required private-response cache headers.
-6. Cloudflare's public delivery still emits expected ETag/compression behaviour.
+1. ordinary navigation reveals the latest deployed HTML and code without manual cache purging;
+2. private/transactional content is never written to Cache Storage;
+3. Service Worker updates bypass HTTP cache;
+4. old cache families are invalidated;
+5. Browser QA passes;
+6. SEO/GEO and PWA privacy audits pass;
+7. no future CDN/origin rule overrides the privacy/freshness contract.
 
-## Rollback rule
+## Rollback
 
-If any Cache Rule causes stale public code or caches a private response, disable that rule first and return to the Cloudflare Pages default public behaviour while retaining explicit `no-store` rules for private surfaces.
+If a future cache rule causes stale public code or persistence of private data, disable the offending rule and return to the canonical JR Cache Standard v2.0 behavior.
