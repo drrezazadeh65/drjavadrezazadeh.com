@@ -9,8 +9,9 @@
 
  function money(amount,currency){
   if(!Number.isInteger(amount)||!currency) return isFa?'قیمت هنوز اعلام نشده':'Price not yet published';
+  if(currency==='IRT') return new Intl.NumberFormat(isFa?'fa-IR':'en-US').format(amount)+(isFa?' تومان':' toman');
   try{return new Intl.NumberFormat(isFa?'fa-IR':'en-US',{style:'currency',currency}).format(amount/100);}
-  catch(e){return String(amount/100)+' '+currency;}
+  catch(e){return String(amount)+' '+currency;}
  }
  function readCart(){try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){return[]}}
  function writeCart(items){try{localStorage.setItem(CART_KEY,JSON.stringify(items.slice(0,20)))}catch(e){} updateCartBadge();}
