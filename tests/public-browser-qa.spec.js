@@ -307,3 +307,24 @@ test('mobile product heroes expose decision controls before the app dock',async(
     expect(size,route+' title scale').toBeLessThanOrEqual(35.5);
   }
 });
+
+test('mobile concierge remains accessible without colliding with the app dock',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/en/services/',{waitUntil:'domcontentloaded'});
+  const launcher=page.locator('.jr-assistant-launcher');
+  const dock=page.locator('.app-dock').first();
+  await expect(launcher).toBeVisible();
+  await expect(dock).toBeVisible();
+  const [lb,db]=await Promise.all([launcher.boundingBox(),dock.boundingBox()]);
+  expect(lb).not.toBeNull();expect(db).not.toBeNull();
+  expect(lb.width).toBeGreaterThanOrEqual(44);
+  expect(lb.height).toBeGreaterThanOrEqual(44);
+  expect(lb.width).toBeLessThanOrEqual(48);
+  expect(lb.y+lb.height,'assistant launcher should clear the app dock').toBeLessThanOrEqual(db.y-4);
+  await launcher.click();
+  await expect(launcher).toHaveAttribute('aria-expanded','true');
+  await expect(page.locator('#jr-assistant-panel')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#jr-assistant-panel')).toBeHidden();
+  await expect(launcher).toHaveAttribute('aria-expanded','false');
+});

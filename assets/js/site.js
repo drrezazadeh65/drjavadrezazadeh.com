@@ -503,7 +503,7 @@ markCurrentDesktopNavigation();
   const scripts=[...document.scripts];
   const siteScript=scripts.find(s=>/\/assets\/js\/site\.js(?:\?|$)/.test(s.src));
   if(!siteScript?.src) return;
-  const cssHref=new URL('../css/assistant.css?v=20261007-v42',siteScript.src).href;
+  const cssHref=new URL('../css/assistant.css?v=20261007-luxury-v56',siteScript.src).href;
   if(!document.querySelector('link[data-jr-assistant-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';

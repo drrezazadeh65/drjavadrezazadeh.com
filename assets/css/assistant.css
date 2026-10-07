@@ -88,3 +88,10 @@ html[dir="rtl"] .jr-assistant-panel{right:auto;left:0}
     border:0!important;
   }
 }
+
+@media(max-width:900px){
+.jr-assistant{--jr-mobile-launcher-size:46px;bottom:calc(82px + env(safe-area-inset-bottom))}
+.jr-assistant-launcher{width:var(--jr-mobile-launcher-size);height:var(--jr-mobile-launcher-size);min-height:var(--jr-mobile-launcher-size);border-color:rgba(226,200,134,.34);box-shadow:0 12px 34px rgba(0,0,0,.38),0 0 0 1px rgba(226,200,134,.04);opacity:.90}
+.jr-assistant-launcher:is(:hover,:focus-visible,[aria-expanded="true"]){opacity:1}
+.jr-assistant-spark{width:27px;height:27px;font-size:14px}
+}
