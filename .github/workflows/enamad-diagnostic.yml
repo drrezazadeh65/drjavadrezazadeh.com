@@ -74,6 +74,20 @@ jobs:
             echo "### $u"
             curl -A 'Mozilla/5.0 (compatible; PaymentGatewayReviewer/1.0)' -sS --connect-timeout 10 --max-time 30 "$u" | grep -Eo "https://trustseal\.enamad\.ir/[^'\"< >]+|sealMJydDpzqNid1Ty82Y90Ef6SZLah1" | head -8 || true
           done
+          echo '=== ENAMAD IMAGE ENDPOINT ==='
+          rm -f /tmp/enamad-logo /tmp/enamad-headers
+          curl -sS -L --connect-timeout 10 --max-time 30 \
+            -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/155 Safari/537.36' \
+            -e 'https://drjavadrezazadeh.com/' \
+            -D /tmp/enamad-headers \
+            -o /tmp/enamad-logo \
+            'https://trustseal.enamad.ir/logo.aspx?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1' || true
+          sed -n '1,100p' /tmp/enamad-headers 2>/dev/null || true
+          echo '-- bytes/type --'
+          wc -c /tmp/enamad-logo 2>/dev/null || true
+          file /tmp/enamad-logo 2>/dev/null || true
+          echo '-- magic --'
+          od -An -tx1 -N24 /tmp/enamad-logo 2>/dev/null || true
           echo '=== HTTP PROBES ==='
           for u in             'http://drjavadrezazadeh.com/'             'https://drjavadrezazadeh.com/'             'http://www.drjavadrezazadeh.com/'             'https://www.drjavadrezazadeh.com/'             'http://drjavadrezazadeh.com/60347010.txt'             'https://drjavadrezazadeh.com/60347010.txt'
           do
