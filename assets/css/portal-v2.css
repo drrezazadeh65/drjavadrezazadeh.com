@@ -2659,13 +2659,11 @@
 }
 
 .dashboard-shell-page{--private-muted-aa:#82868d}
-.dashboard-shell-page :where(
-  .student-domain-grid small,
-  .student-product-top,
-  .dashboard-kpi span,
-  .student-overview small,
-  .evidence-readiness-row>small,
-  .dash-activity-item span,
-  .dash-panel .empty-state,
-  .decision-question small
-){color:var(--private-muted-aa)}
+.dashboard-shell-page .student-domain-grid small,
+.dashboard-shell-page .student-product-top,
+.dashboard-shell-page .dashboard-kpi span,
+.dashboard-shell-page .student-overview small,
+.dashboard-shell-page .evidence-readiness-row>small,
+.dashboard-shell-page .dash-activity-item span,
+.dashboard-shell-page .dash-panel .empty-state,
+.dashboard-shell-page .decision-question small{color:var(--private-muted-aa)}
