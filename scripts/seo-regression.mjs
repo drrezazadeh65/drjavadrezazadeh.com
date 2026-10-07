@@ -80,14 +80,18 @@ for(const file of htmlFiles){
 
   for(const img of html.match(/<img\b[^>]*>/gi)||[]){
     const alt=getAttr(img,'alt');
+    const src=getAttr(img,'src')||'unknown';
+    const isOfficialEnamadSeal=/^https:\/\/trustseal\.enamad\.ir\/logo\.aspx\?/i.test(src);
     if(alt===null) failures.push(route+': image missing alt attribute: '+img.slice(0,120));
     const width=getAttr(img,'width'),height=getAttr(img,'height');
-    if(!width||!height) warnings.push(route+': image missing explicit width/height: '+(getAttr(img,'src')||'unknown'));
-    if(isIndexable){
+    // The official eNamad snippet must remain byte-faithful; its image tag omits
+    // width/height/loading and the provider warns against editing the supplied code.
+    if((!width||!height) && !isOfficialEnamadSeal) warnings.push(route+': image missing explicit width/height: '+src);
+    if(isIndexable && !isOfficialEnamadSeal){
       const loading=(getAttr(img,'loading')||'').toLowerCase();
       const priority=(getAttr(img,'fetchpriority')||'').toLowerCase();
-      if(loading==='lazy' && priority==='high') failures.push(route+': image cannot be both lazy and fetchpriority=high: '+(getAttr(img,'src')||'unknown'));
-      if(loading!=='lazy' && priority!=='high') failures.push(route+': indexable-page image must be classified as lazy or fetchpriority=high: '+(getAttr(img,'src')||'unknown'));
+      if(loading==='lazy' && priority==='high') failures.push(route+': image cannot be both lazy and fetchpriority=high: '+src);
+      if(loading!=='lazy' && priority!=='high') failures.push(route+': indexable-page image must be classified as lazy or fetchpriority=high: '+src);
     }
   }
 
