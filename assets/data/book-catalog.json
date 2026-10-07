@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0",
+  "books": [
+    {
+      "id": "roshanaei",
+      "slug": "roshanaei",
+      "title_fa": "سپید",
+      "english_reference_title": "Sepid",
+      "author": "Javad Rezazadeh Yazdeli",
+      "publication_status": "PUBLISHED",
+      "description_fa": "مجموعه شعر فارسی منتشرشده.",
+      "description_en": "A published Persian poetry collection.",
+      "bibliography": {
+        "isbn": null,
+        "publisher": null,
+        "publication_year": null,
+        "edition": null,
+        "cover_image": "/assets/images/books/sepid-javad-rezazadeh-yazdeli-book-cover-2026.avif"
+      },
+      "commerce": {
+        "sellable": true,
+        "price": 2000000,
+        "currency": "IRT",
+        "inventory_state": "IN_STOCK",
+        "formats_confirmed": [
+          "PRINT"
+        ],
+        "shipping_required": true
+      }
+    },
+    {
+      "id": "tariki",
+      "slug": "tariki",
+      "title_fa": "تاریکی",
+      "english_reference_title": "Tariki",
+      "author": "Javad Rezazadeh Yazdeli",
+      "publication_status": "PUBLISHED",
+      "description_fa": "مجموعه شعر فارسی منتشرشده.",
+      "description_en": "A published Persian poetry collection.",
+      "bibliography": {
+        "isbn": null,
+        "publisher": null,
+        "publication_year": null,
+        "edition": null,
+        "cover_image": "/assets/images/books/tariki-javad-rezazadeh-yazdeli-book-cover-2026.avif"
+      },
+      "commerce": {
+        "sellable": true,
+        "price": 2000000,
+        "currency": "IRT",
+        "inventory_state": "IN_STOCK",
+        "formats_confirmed": [
+          "PRINT"
+        ],
+        "shipping_required": true
+      }
+    },
+    {
+      "id": "bonbast",
+      "slug": "bonbast",
+      "title_fa": "بن‌بست",
+      "english_reference_title": "Bonbast",
+      "author": "Javad Rezazadeh Yazdeli",
+      "publication_status": "PUBLISHED",
+      "description_fa": "مجموعه شعر فارسی منتشرشده.",
+      "description_en": "A published Persian poetry collection.",
+      "bibliography": {
+        "isbn": null,
+        "publisher": null,
+        "publication_year": null,
+        "edition": null,
+        "cover_image": "/assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.webp"
+      },
+      "commerce": {
+        "sellable": true,
+        "price": 2000000,
+        "currency": "IRT",
+        "inventory_state": "IN_STOCK",
+        "formats_confirmed": [
+          "PRINT"
+        ],
+        "shipping_required": true
+      }
+    }
+  ]
+}
