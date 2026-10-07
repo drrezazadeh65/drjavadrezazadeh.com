@@ -31,6 +31,11 @@ jobs:
   chromium:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # The production site intentionally uses system-native font stacks.
+      # Playwright's internal document.fonts.ready wait can stall on Linux CI
+      # even when there are no external webfont requests.
+      PW_TEST_SCREENSHOT_NO_FONTS_READY: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
