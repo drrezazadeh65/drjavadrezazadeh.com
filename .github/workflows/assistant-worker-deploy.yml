@@ -1,0 +1,58 @@
+name: Assistant Worker Production Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      verify_after_deploy:
+        description: 'Verify production health endpoint after deploy'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: assistant-worker-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: edge/assistant
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Require production Cloudflare secrets
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }
+      - name: Install pinned dependencies
+        run: npm install --no-audit --no-fund
+      - name: Validate Worker source
+        run: |
+          node --check src/index.js
+          npx wrangler deploy --dry-run
+      - name: Deploy production Worker
+        run: npx wrangler deploy
+      - name: Verify production health
+        if: ${{ inputs.verify_after_deploy }}
+        working-directory: .
+        run: |
+          for i in {1..12}; do
+            body="$(curl --fail --silent --show-error --location --max-time 15 https://assistant.drjavadrezazadeh.com/health || true)"
+            if printf '%s' "$body" | grep -q '"status":"ok"'; then
+              printf '%s\n' "$body"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Assistant health verification failed."
+          exit 1
