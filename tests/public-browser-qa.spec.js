@@ -518,3 +518,19 @@ for(const route of ['/en/login/','/en/register/','/fa/login/','/fa/register/']){
     expect(robots||'').toContain('noindex');
   });
 }
+
+test('system-native typography stacks stay unified without external font requests',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/en/',{waitUntil:'domcontentloaded'});
+  const enBody=await page.locator('body').evaluate(el=>getComputedStyle(el).fontFamily);
+  const enH1=await page.locator('h1').first().evaluate(el=>getComputedStyle(el).fontFamily);
+  expect(enBody).toMatch(/Segoe UI|Helvetica Neue|Arial/);
+  expect(enH1).toMatch(/Iowan Old Style|Baskerville|Palatino|Georgia/);
+  await page.goto(base+'/fa/',{waitUntil:'domcontentloaded'});
+  const faBody=await page.locator('body').evaluate(el=>getComputedStyle(el).fontFamily);
+  const faH1=await page.locator('h1').first().evaluate(el=>getComputedStyle(el).fontFamily);
+  expect(faBody).toMatch(/Noto Sans Arabic|Segoe UI|Tahoma/);
+  expect(faH1).toMatch(/Noto Sans Arabic|Segoe UI|Tahoma/);
+  const externalFonts=await page.evaluate(()=>[...document.styleSheets].map(s=>s.href).filter(Boolean).filter(h=>/fonts\.(?:googleapis|gstatic)|use\.typekit/i.test(h)));
+  expect(externalFonts).toEqual([]);
+});
