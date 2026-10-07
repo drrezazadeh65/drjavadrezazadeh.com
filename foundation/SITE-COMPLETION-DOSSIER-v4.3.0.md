@@ -19,17 +19,24 @@ This dossier distinguishes repository completion, automated verification, live p
 - Master readiness now reflects the verified HTTPS Search Console property and the completed BitPay sandbox roundtrip.
 - The three approved book covers and root favicon assets are governed by the canonical media registry.
 - Media policy v2.0 establishes source/derivative, provenance, rights, composition-lock and optimization rules.
+- A deterministic media-derivative generator and GitHub workflow now create governed WebP/AVIF derivatives from registered sources, block unintended upscaling/cropping, and update registry hashes/dimensions automatically.
 - A release-blocking media-library audit verifies production image registration and book-cover catalogue references.
-- Frontend copy hygiene now covers both visible HTML and client-rendered JavaScript strings.
+- Frontend copy hygiene now covers visible HTML and client-rendered JavaScript strings, with separate diagnostic rule groups and a fail-closed aggregate gate.
+- Client-readable JSON/manifest surfaces now have an independent hygiene gate.
 - The known customer-facing “backend” wording in the shop was removed.
-- Professional service pricing is read from the central service catalogue on the Persian Services journey.
+- Professional service pricing is read from the central service catalogue on the Persian Services journey; all 21 approved services now expose explicit fit, expected outcome and professional boundary text from the same canonical data source.
+- Price-page service intent now carries the selected service into the consultation intake instead of forcing a second manual selection.
 - The hard-coded 21-service tariff section was removed from the bookstore.
 - English Language Education is explicitly presented as an expertise/content area rather than a current paid product.
 - The cache standard is upgraded to automatic change-driven invalidation: mutable content remains fresh-first and each relevant main-branch change triggers a Service Worker cache-family bump.
 - The cache workflow rebases its cache-bump commit if main advances during execution, preventing non-fast-forward loss.
-- A full-route responsive certification suite now covers every HTML route at 320, 390, 430 and 1440 pixels in addition to representative Browser QA.
+- A full-route responsive certification suite now covers every HTML route at 320, 390, 430 and 1440 pixels in addition to representative Browser QA. A detected 320px English-brand overflow on two routes was fixed and the full-route certification subsequently passed.
+- A separate full-route visual crawl captures screenshot evidence for every HTML route at the same four critical widths.
 - The public AI assistant Worker now uses the owned canonical production origin rather than the legacy GitHub Pages origin.
-- IndexNow has moved from dry-run readiness to live, fail-closed change submission: HTTPS and the public key are verified before network submission.
+- IndexNow has moved from dry-run readiness to live, fail-closed change submission: HTTPS and the public key are verified before network submission, and recent content commits have recorded successful submission runs.
+- Browser-consumed catalogue/config data has been separated from backend/foundation JSON through generated safe projections under `assets/data/` with drift checking and automatic sync.
+- A sanitized public-site artifact and a validated Jekyll exclusion policy now exclude engineering-only directories (`platform`, `foundation`, `scripts`, `tests`, `edge`, `docs`, `.github`) and the internal media registry while preserving all 207 HTML routes, CNAME, sitemaps, PWA files and public data projections.
+- The previous `.nojekyll` bypass has been removed after the Jekyll public-boundary validation passed, activating the exclusion boundary on branch-based GitHub Pages without changing public URLs or the custom domain.
 
 ## Search and SEO
 
@@ -96,7 +103,7 @@ The project records eNAMAD as obtained and the site contains the official trust-
 
 Login/register/recovery, Student, Parent, Teacher, Adviser and Admin surfaces remain advanced frontend/foundation work rather than production identity/data systems.
 
-Production activation still requires real identity runtime, email verification/recovery delivery, secure database/private storage, role authorization/RLS, sessions and Admin MFA. Mobile remains contact data only; email remains the authentication authority.
+Production activation still requires real identity runtime, secure database/private storage, role authorization/RLS, sessions and Admin MFA. The transactional-email provider foundation is now materially ready: `drjavadrezazadeh.com` is verified for sending in Resend and published v4.3 templates exist for email verification, password recovery and order confirmation. A sending credential is intentionally not created until a secure backend secret store exists. Mobile remains contact data only; email remains the authentication authority.
 
 No fake login or fake private persistence may be enabled to improve apparent completion.
 
@@ -113,7 +120,7 @@ No norms, cutoffs, giftedness labels or deterministic career claims may be intro
 
 The Worker source, Workers AI binding, rate limit, consented lead bank and Durable Object SQLite design exist. The canonical production origin has been corrected.
 
-Live completion still requires deployment on the connected Cloudflare account, runtime secret setup for protected lead export, custom-domain health verification and end-to-end bilingual tests. The public assistant is not an authentication or private-record interface.
+Live completion still requires deployment on the connected Cloudflare account, runtime secret setup for protected lead export, custom-domain health verification and end-to-end bilingual tests. A manual-dispatch production deployment workflow now performs Wrangler dry-run validation, deployment and optional health verification once the required Cloudflare secrets exist. The public assistant is not an authentication or private-record interface.
 
 ## Analytics and observability
 
@@ -132,9 +139,9 @@ Physical iOS/Android, actual PWA installation and VoiceOver/TalkBack remain manu
 1. Correct the BitPay merchant postal code and obtain the production API credential.
 2. Connect Google Analytics scope/property to the authenticated analytics account.
 3. Deploy/verify the Assistant Worker and protected runtime secret.
-4. Provision production authentication/database/private storage/transactional email/RLS/Admin MFA.
+4. Provision production authentication/database/private storage/RLS/Admin MFA and store a restricted Resend sending credential directly in that runtime; provider/domain/templates are already prepared.
 5. Define verified book shipping/return/fulfilment terms and remaining bibliographic metadata.
-6. Connect real booking/calendar availability and persistence.
+6. Connect real booking/calendar availability and persistence; the v4.3 database migration now aligns consultation intake with the canonical 21-service catalogue rather than the legacy broad service enum.
 7. Perform physical iOS/Android and assistive-technology validation.
 8. Activate Bing/Yandex webmaster integrations when the relevant accounts/credentials are available.
 9. Keep Golden Talent scoring/normative claims disabled until empirical validation.
