@@ -509,21 +509,3 @@ document.head.appendChild(script);
 })();
 document.addEventListener('click',async e=>{const t=e.target.closest('[data-print-cv],[data-copy-citation]');if(!t)return;if(t.hasAttribute('data-print-cv')){e.preventDefault();return print()}const v=t.dataset.copyCitation;if(!v)return;e.preventDefault();const o=t.textContent,n=document.documentElement.lang==='fa'?'کپی شد':'Copied';try{await navigator.clipboard.writeText(v)}catch(_){const a=document.createElement('textarea');a.value=v;a.hidden=true;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_e){}a.remove()}t.classList.add('is-copied');t.textContent=n;setTimeout(()=>{t.classList.remove('is-copied');t.textContent=o},1800)});
 (()=>{let h=document.head,a=(r,u)=>{if(!h.querySelector('link[rel="'+r+'"]')){let l=document.createElement('link');l.rel=r;l.href=u;h.append(l)}};a('icon','/favicon.png?v=42');a('apple-touch-icon','/assets/images/pwa-icon-192.png?v=42')})();
-
-(function(){
-const href='https://trustseal.enamad.ir/?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1';
-const src='https://trustseal.enamad.ir/logo.aspx?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1';
-if(!document.getElementById('jr-enamad-global-style')){
- const s=document.createElement('style'); s.id='jr-enamad-global-style';
- s.textContent='.enamad-footer-seal{position:fixed!important;right:18px!important;bottom:18px!important;z-index:2147483000!important;display:flex!important;align-items:center!important;justify-content:center!important;width:112px!important;height:112px!important;margin:0!important;padding:7px!important;border:1px solid rgba(226,200,134,.52)!important;border-radius:18px!important;background:#11100e!important;box-shadow:0 14px 44px rgba(0,0,0,.58)!important;overflow:hidden!important}.enamad-footer-seal a{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:100%!important;text-decoration:none!important}.enamad-footer-seal a:before{content:"اینماد\\A نماد اعتماد الکترونیکی";white-space:pre;text-align:center;color:#e2c886;font:700 13px/1.65 Tahoma,Arial,sans-serif;direction:rtl}.enamad-footer-seal img{position:absolute!important;inset:0!important;margin:auto!important;display:block!important;width:96px!important;max-width:96px!important;height:96px!important;max-height:96px!important;object-fit:contain!important}.enamad-footer-seal img.jr-seal-fallback{display:none!important}@media(max-width:760px){.enamad-footer-seal{right:10px!important;bottom:10px!important;width:92px!important;height:92px!important;padding:6px!important}.enamad-footer-seal a:before{font-size:11px}.enamad-footer-seal img{width:80px!important;height:80px!important}}';
- document.head.appendChild(s);
-}
-let wrap=document.querySelector('.enamad-footer-seal');
-if(!wrap){
- wrap=document.createElement('div'); wrap.className='enamad-footer-seal'; wrap.setAttribute('aria-label','نماد اعتماد الکترونیکی');
- wrap.innerHTML="<a referrerpolicy='origin' target='_blank' href='"+href+"'><img referrerpolicy='origin' src='"+src+"' alt='' style='cursor:pointer' code='sealMJydDpzqNid1Ty82Y90Ef6SZLah1'></a>";
- document.body.appendChild(wrap);
-}
-const a=wrap.querySelector('a'); if(a){a.href=href;a.target='_blank';a.removeAttribute('rel');a.setAttribute('referrerpolicy','origin');a.setAttribute('aria-label','مشاهده اعتبار نماد اعتماد الکترونیکی');}
-const img=wrap.querySelector('img'); if(img){img.addEventListener('error',()=>img.classList.add('jr-seal-fallback'),{once:true});}
-})();
