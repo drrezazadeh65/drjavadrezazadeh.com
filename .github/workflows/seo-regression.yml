@@ -102,6 +102,8 @@ jobs:
         run: node platform/payment-provider-adapter.test.mjs
       - name: Run book commerce contract tests
         run: node platform/book-commerce.test.mjs
+      - name: Run canonical service catalogue intake contract
+        run: node platform/service-catalog-contract.test.mjs
       - name: Run pathway reference contract tests
         run: node platform/pathway-reference.test.mjs
       - name: Run Golden Path lifecycle tests
