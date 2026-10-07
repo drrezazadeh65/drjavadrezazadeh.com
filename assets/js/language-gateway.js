@@ -29,7 +29,7 @@ document.addEventListener('click',e=>{
     if(document.querySelector('.pwa-install')||sessionStorage.getItem('pwa-install-dismissed')==='1') return;
     const wrap=document.createElement('div');
     wrap.className='pwa-install';
-    wrap.innerHTML='<button type="button" class="pwa-install-btn">Install app experience</button><button type="button" class="pwa-install-close" aria-label="Close">×</button>';
+    wrap.innerHTML='<button type="button" class="pwa-install-btn">Install app experience · نصب نسخه اپ‌مانند</button><button type="button" class="pwa-install-close" aria-label="Close">×</button>';
     document.body.appendChild(wrap);
     wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>{sessionStorage.setItem('pwa-install-dismissed','1');wrap.remove();});
     wrap.querySelector('.pwa-install-btn')?.addEventListener('click',async()=>{
@@ -46,7 +46,7 @@ document.addEventListener('click',e=>{
       if(document.querySelector('.pwa-install'))return;
       const wrap=document.createElement('div');
       wrap.className='pwa-install';
-      wrap.innerHTML='<div class="pwa-install-btn" role="note">For an app-like experience: Share → Add to Home Screen</div><button type="button" class="pwa-install-close" aria-label="Close">×</button>';
+      wrap.innerHTML='<div class="pwa-install-btn" role="note">Share → Add to Home Screen · در Safari: اشتراک‌گذاری ← افزودن به صفحه اصلی</div><button type="button" class="pwa-install-close" aria-label="Close">×</button>';
       document.body.appendChild(wrap);
       wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>{sessionStorage.setItem('ios-install-dismissed','1');wrap.remove();});
     },1800));

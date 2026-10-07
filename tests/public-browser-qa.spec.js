@@ -337,3 +337,39 @@ test('root gateway first-screen visual evidence',async({page})=>{
     await page.screenshot({path:'test-results/screenshots/root-gateway-'+label+'-first-screen.png',fullPage:false});
   }
 });
+
+test('PWA manifest stays installable without locking device orientation',async({request})=>{
+  const res=await request.get(base+'/site.webmanifest');
+  expect(res.ok()).toBeTruthy();
+  const m=await res.json();
+  expect(m.display).toBe('standalone');
+  expect(m.orientation).toBe('any');
+  expect(m.start_url).toBe('./');
+  expect(m.scope).toBe('./');
+  expect(m.icons.some(i=>i.sizes==='192x192'&&i.purpose==='any')).toBeTruthy();
+  expect(m.icons.some(i=>i.sizes==='512x512'&&i.purpose==='any')).toBeTruthy();
+  expect(m.icons.some(i=>i.sizes==='512x512'&&i.purpose==='maskable')).toBeTruthy();
+  expect(m.shortcuts.some(s=>s.url==='./en/')).toBeTruthy();
+  expect(m.shortcuts.some(s=>s.url==='./fa/')).toBeTruthy();
+});
+
+test('standalone gateway resumes the saved language',async({page})=>{
+  await page.addInitScript(()=>{
+    const native=window.matchMedia?.bind(window);
+    window.matchMedia=(query)=>{
+      if(query==='(display-mode: standalone)') return {
+        matches:true,media:query,onchange:null,
+        addListener(){},removeListener(){},addEventListener(){},removeEventListener(){},
+        dispatchEvent(){return false}
+      };
+      return native?native(query):{
+        matches:false,media:query,onchange:null,
+        addListener(){},removeListener(){},addEventListener(){},removeEventListener(){},
+        dispatchEvent(){return false}
+      };
+    };
+    localStorage.setItem('preferred-language','fa');
+  });
+  await page.goto(base+'/',{waitUntil:'domcontentloaded'});
+  await page.waitForURL(/\/fa\/$/);
+});
