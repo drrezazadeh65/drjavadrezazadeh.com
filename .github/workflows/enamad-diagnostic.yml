@@ -69,6 +69,11 @@ jobs:
           echo '=== TLS VERBOSE ==='
           curl -Iv --connect-timeout 10 --max-time 20 https://drjavadrezazadeh.com/ 2>&1 | sed -n '1,120p' || true
           curl -Iv --connect-timeout 10 --max-time 20 https://www.drjavadrezazadeh.com/ 2>&1 | sed -n '1,120p' || true
+          echo '=== LIVE ENAMAD SEAL ==='
+          for u in 'https://drjavadrezazadeh.com/' 'https://drjavadrezazadeh.com/fa/' 'https://drjavadrezazadeh.com/en/'; do
+            echo "### $u"
+            curl -A 'Mozilla/5.0 (compatible; PaymentGatewayReviewer/1.0)' -sS --connect-timeout 10 --max-time 30 "$u" | grep -Eo "https://trustseal\.enamad\.ir/[^'\"< >]+|sealMJydDpzqNid1Ty82Y90Ef6SZLah1" | head -8 || true
+          done
           echo '=== HTTP PROBES ==='
           for u in             'http://drjavadrezazadeh.com/'             'https://drjavadrezazadeh.com/'             'http://www.drjavadrezazadeh.com/'             'https://www.drjavadrezazadeh.com/'             'http://drjavadrezazadeh.com/60347010.txt'             'https://drjavadrezazadeh.com/60347010.txt'
           do
