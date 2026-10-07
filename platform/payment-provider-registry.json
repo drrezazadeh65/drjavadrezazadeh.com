@@ -8,7 +8,7 @@
       "market": "IR",
       "currency": "IRR",
       "enabled": false,
-      "adapter_status": "SANDBOX_CREATE_GATEWAY_NEGATIVE_VERIFY_CALLBACK_INTEGRITY_PASSED",
+      "adapter_status": "SANDBOX_FULL_POSITIVE_AND_NEGATIVE_ROUNDTRIP_PASSED_RUNTIME_DEPLOYMENT_PENDING",
       "credentials_state": "PUBLIC_TEST_API_VALIDATED_PRODUCTION_API_NOT_STORED",
       "capabilities_required": [
         "CREATE_INTENT",
@@ -21,17 +21,21 @@
       "documentation_version": "2.2",
       "callback_verification": "SERVER_SIDE_REQUIRED",
       "sandbox_validation": {
-        "status": "PASSED_PARTIAL_ROUNDTRIP",
+        "status": "PASSED_FULL_ROUNDTRIP",
         "verified_at": "2026-10-07",
         "checks": [
           "CREATE_REQUEST_ACCEPTED",
           "PAYMENT_PAGE_HTTP_200",
-          "UNPAID_VERIFY_REJECTED",
-          "CALLBACK_AMOUNT_MATCH_ENFORCED",
-          "CALLBACK_FACTOR_MATCH_ENFORCED",
-          "IRT_TO_IRR_CONVERSION_ENFORCED"
+          "OFFICIAL_SANDBOX_SUCCESS_FORM_SUBMITTED",
+          "CALLBACK_TRANS_ID_AND_ID_GET_RETURNED",
+          "SERVER_VERIFY_STATUS_1",
+          "VERIFIED_AMOUNT_MATCHED_20000000_IRR",
+          "VERIFIED_FACTOR_ID_MATCHED",
+          "UNPAID_VERIFY_REJECTED_STATUS_-4",
+          "IRT_TO_IRR_CONVERSION_ENFORCED",
+          "PAYMENTS_WORKER_SYNTAX_PASSED"
         ],
-        "remaining": "INTERACTIVE_SUCCESSFUL_TEST_PAYMENT_CALLBACK_AND_RUNTIME_WORKER_DEPLOYMENT"
+        "remaining": "DEPLOY_PAYMENT_WORKER_AND_INJECT_PRODUCTION_BITPAY_API_WHEN ISSUED"
       }
     },
     {
