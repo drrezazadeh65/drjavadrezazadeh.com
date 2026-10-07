@@ -14,7 +14,7 @@
   --ux-muted:#b4b3b0;
   --ux-soft:#9b9da2;
   --ux-focus:#f0d694;
-  --ux-font-ui:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ux-font-ui:"Segoe UI",Arial,Tahoma,"Helvetica Neue",sans-serif;
   --ux-font-display:"Iowan Old Style","Baskerville","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
 }
 *{box-sizing:border-box}
