@@ -39,6 +39,12 @@
       }
     ]
   },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["LeadStore"]
+    }
+  ],
   "exports": {
     "LeadStore": {
       "type": "durable-object",
