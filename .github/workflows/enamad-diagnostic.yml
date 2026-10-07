@@ -40,6 +40,25 @@ jobs:
           done
           echo '=== AUTHORITATIVE NS ==='
           dig drjavadrezazadeh.com NS +short || true
+          echo '=== FULL DNS MATRIX ==='
+          for resolver in 8.8.8.8 1.1.1.1 178.22.122.100; do
+            echo "### resolver $resolver A"
+            dig +time=4 +tries=1 @$resolver drjavadrezazadeh.com A +short || true
+            echo "### resolver $resolver AAAA"
+            dig +time=4 +tries=1 @$resolver drjavadrezazadeh.com AAAA +short || true
+            echo "### resolver $resolver CAA"
+            dig +time=4 +tries=1 @$resolver drjavadrezazadeh.com CAA +short || true
+            echo "### resolver $resolver WWW"
+            dig +time=4 +tries=1 @$resolver www.drjavadrezazadeh.com CNAME +short || true
+          done
+          echo '### authoritative ns1 A/AAAA/CAA'
+          dig +time=4 +tries=1 @ns1.desec.io drjavadrezazadeh.com A +short || true
+          dig +time=4 +tries=1 @ns1.desec.io drjavadrezazadeh.com AAAA +short || true
+          dig +time=4 +tries=1 @ns1.desec.io drjavadrezazadeh.com CAA +short || true
+          dig +time=4 +tries=1 @ns1.desec.io www.drjavadrezazadeh.com CNAME +short || true
+          echo '=== TLS VERBOSE ==='
+          curl -Iv --connect-timeout 10 --max-time 20 https://drjavadrezazadeh.com/ 2>&1 | sed -n '1,120p' || true
+          curl -Iv --connect-timeout 10 --max-time 20 https://www.drjavadrezazadeh.com/ 2>&1 | sed -n '1,120p' || true
           echo '=== HTTP PROBES ==='
           for u in             'http://drjavadrezazadeh.com/'             'https://drjavadrezazadeh.com/'             'http://www.drjavadrezazadeh.com/'             'https://www.drjavadrezazadeh.com/'             'http://drjavadrezazadeh.com/60347010.txt'             'https://drjavadrezazadeh.com/60347010.txt'
           do
