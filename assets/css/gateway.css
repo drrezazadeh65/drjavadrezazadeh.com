@@ -266,3 +266,8 @@ figure{margin:0}
   a:focus-visible,button:focus-visible{outline:2px solid CanvasText}
 }
 
+
+/* eNAMAD: dedicated visible footer row; verification link remains official. */
+footer{flex-wrap:wrap!important}
+footer>.enamad-footer-row{display:flex!important;visibility:visible!important;opacity:1!important;width:100%!important;flex-basis:100%!important;align-items:center!important;justify-content:center!important;order:-1!important;min-height:86px!important}
+footer>.enamad-footer-row .enamad-visible-seal,footer>.enamad-footer-row svg{display:block!important;visibility:visible!important;opacity:1!important}
