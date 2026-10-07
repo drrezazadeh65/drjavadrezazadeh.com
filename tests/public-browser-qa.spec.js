@@ -761,3 +761,24 @@ test('representative private role first-screen visual evidence',async({page})=>{
     await page.screenshot({path:'test-results/screenshots/'+name+'-mobile-390-first-screen.png',fullPage:false});
   }
 });
+
+test('Persian private role shells keep usable mobile content width',async({page})=>{
+  for(const route of ['/fa/app/valed/','/fa/app/moallem/','/fa/app/moshaver/']){
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(180);
+    const main=page.locator('main.foundation-main.app-prototype');
+    const hero=page.locator('.foundation-hero');
+    const h1=hero.locator('h1');
+    await expect(main).toBeVisible();
+    await expect(hero).toBeVisible();
+    await expect(h1).toBeVisible();
+    const [mb,hb,tb]=await Promise.all([main.boundingBox(),hero.boundingBox(),h1.boundingBox()]);
+    for(const box of [mb,hb,tb]) expect(box).not.toBeNull();
+    expect(mb.width,route+' app shell width').toBeGreaterThanOrEqual(350);
+    expect(hb.width,route+' hero width').toBeGreaterThanOrEqual(350);
+    expect(tb.width,route+' heading usable width').toBeGreaterThanOrEqual(280);
+    const direction=await h1.evaluate(el=>getComputedStyle(el).direction);
+    expect(direction).toBe('rtl');
+  }
+});
