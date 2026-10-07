@@ -66,10 +66,7 @@ const icon=n=>{
  return '<svg class="app-icon" viewBox="0 0 24 24">'+(d[n]||d.menu)+'</svg>';
 };
 function ensureMobileNav(){
- if(document.body.classList.contains('dashboard-shell-page')){
-   q('.gt-mobile-dock')?.remove();
-   return;
- }
+ if(document.body.classList.contains('dashboard-shell-page')) q('.gt-mobile-dock')?.remove();
  if(q('.app-dock')) return;
  if(isPrivateApp) q('.gt-mobile-dock')?.remove();
  else if(q('.gt-mobile-dock')) return;

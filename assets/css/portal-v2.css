@@ -2619,3 +2619,25 @@
   .progress-workspace-page .progress-chart-empty,
   .progress-workspace-page .progress-rule-panel{min-height:auto}
 }
+
+@media(max-width:840px){
+  .dashboard-shell-page{--mobile-dashboard-five-tab-contract:1}
+  .dashboard-shell-page .dashboard-sidebar{display:none!important}
+  .dashboard-shell-page .dashboard-workspace{
+    margin-inline-start:0;
+    padding-bottom:calc(106px + env(safe-area-inset-bottom));
+  }
+  .dashboard-shell-page .dashboard-topbar{
+    min-height:62px;
+    padding:10px 14px;
+    border-bottom-color:rgba(240,214,148,.12);
+    background:rgba(8,8,9,.92);
+    -webkit-backdrop-filter:blur(22px) saturate(135%);
+    backdrop-filter:blur(22px) saturate(135%);
+  }
+  .dashboard-shell-page .student-dash-shell{
+    width:calc(100% - 20px);
+    padding-top:16px;
+    padding-bottom:calc(116px + env(safe-area-inset-bottom));
+  }
+}

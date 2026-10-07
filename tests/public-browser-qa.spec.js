@@ -373,3 +373,39 @@ test('standalone gateway resumes the saved language',async({page})=>{
   await page.goto(base+'/',{waitUntil:'domcontentloaded'});
   await page.waitForURL(/\/fa\/$/);
 });
+
+test('private student shells obey the frozen five-tab mobile contract',async({page})=>{
+  const routes=['/fa/app/student/','/en/golden-talent/student/'];
+  for(const route of routes){
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(180);
+    const dock=page.locator('.app-dock');
+    await expect(dock).toBeVisible();
+    const links=dock.locator('a');
+    await expect(links).toHaveCount(5);
+    const labels=await links.locator('span').allTextContents();
+    expect(labels).toEqual(route.startsWith('/fa/')?['خانه','کشف','آزمون‌ها','مسیر من','حساب']:['Home','Discover','Tests','My Path','Account']);
+    const boxes=await links.evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {w:r.width,h:r.height}}));
+    for(const box of boxes){expect(box.w).toBeGreaterThanOrEqual(44);expect(box.h).toBeGreaterThanOrEqual(44)}
+    await expect(page.locator('.gt-mobile-dock')).toHaveCount(0);
+    if(route.startsWith('/fa/')) await expect(page.locator('.dashboard-sidebar')).toBeHidden();
+  }
+
+  await page.setViewportSize({width:1440,height:900});
+  await page.goto(base+'/fa/app/student/',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('.dashboard-sidebar')).toBeVisible();
+  await expect(page.locator('.app-dock')).toBeHidden();
+});
+
+test('private student app visual evidence',async({page})=>{
+  const surfaces=[['/fa/app/student/','fa-student-dashboard'],['/en/golden-talent/student/','en-student-gateway']];
+  for(const [route,name] of surfaces){
+    for(const [label,width,height] of [['mobile-390',390,844],['desktop-1440',1440,900]]){
+      await page.setViewportSize({width,height});
+      await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      await page.waitForTimeout(180);
+      await page.screenshot({path:'test-results/screenshots/'+name+'-'+label+'-first-screen.png',fullPage:false});
+    }
+  }
+});
