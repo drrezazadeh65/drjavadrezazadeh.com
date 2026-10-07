@@ -488,7 +488,7 @@ target_kind:el.matches('a[href^="mailto:"]')?'EMAIL':(el.tagName==='A'?'LINK':'A
 window.dispatchEvent(new CustomEvent('JR_CONVERSION_INTENT',{detail}));
 },{capture:true});
 })();
-(()=>{const s=document.createElement('script');s.src='/assets/js/analytics-adapter.js?v=20261007-v430';s.defer=true;s.dataset.jrAnalyticsAdapter='1';document.head.appendChild(s)})();
+(()=>{let s=document.createElement('script');s.src='/assets/js/analytics-adapter.js?v=430';document.head.append(s)})();
 (function(){
 if(document.querySelector('script[data-jr-assistant]')) return;
 const scripts=[...document.scripts];
