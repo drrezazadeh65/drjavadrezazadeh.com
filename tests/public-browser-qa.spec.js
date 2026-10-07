@@ -563,3 +563,18 @@ test('commerce publishing first-screen visual evidence',async({page})=>{
     }
   }
 });
+
+for(const route of ['/fa/shop/','/en/shop/']){
+  test('bookstore does not visually promote checkout before sellable inventory exists: '+route,async({page})=>{
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(220);
+    const nav=page.locator('.store-nav');
+    const primary=nav.locator('.button.primary');
+    await expect(primary).toHaveCount(1);
+    const href=await primary.getAttribute('href');
+    expect(href).not.toMatch(/\/cart\/$/);
+    await expect(page.locator('[data-add-book]')).toHaveCount(0);
+    await expect(page.locator('.book-pending').first()).toBeVisible();
+  });
+}
