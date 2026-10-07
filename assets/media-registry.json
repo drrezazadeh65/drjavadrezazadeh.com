@@ -287,7 +287,9 @@
       "alt_en": "JR site icon",
       "alt_fa": "آیکون سایت JR",
       "source_status": "canonical-vector-source",
-      "mime_type": "image/svg+xml"
+      "mime_type": "image/svg+xml",
+      "caption_en": "Canonical vector favicon for the JR website.",
+      "caption_fa": "فاوآیکون برداری اصلی وب‌سایت JR."
     },
     {
       "path": "favicon.png",
@@ -299,7 +301,9 @@
       "alt_fa": "آیکون سایت JR",
       "source_asset": "favicon.svg",
       "source_status": "production-derivative",
-      "mime_type": "image/png"
+      "mime_type": "image/png",
+      "caption_en": "PNG favicon compatibility derivative.",
+      "caption_fa": "نسخه PNG فاوآیکون برای سازگاری."
     },
     {
       "path": "favicon.ico",
@@ -311,7 +315,9 @@
       "alt_fa": "آیکون سایت JR",
       "source_asset": "favicon.svg",
       "source_status": "production-derivative",
-      "mime_type": "image/x-icon"
+      "mime_type": "image/x-icon",
+      "caption_en": "ICO favicon compatibility derivative.",
+      "caption_fa": "نسخه ICO فاوآیکون برای سازگاری."
     }
   ]
 }
