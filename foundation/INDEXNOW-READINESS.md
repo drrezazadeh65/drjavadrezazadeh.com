@@ -1,23 +1,22 @@
-# INDEXNOW READINESS
+# INDEXNOW — LIVE ACTIVATION CONTRACT
 
-**Status:** READY / NETWORK SUBMISSION GATED BY PRODUCTION DNS-TLS
+**Status:** LIVE AUTOMATION ENABLED / FAIL-CLOSED VERIFICATION  
+**Canonical origin:** `https://drjavadrezazadeh.com`
 
-The repository now contains a standards-based IndexNow integration prepared for the canonical production origin `https://drjavadrezazadeh.com`.
+The former DNS/TLS activation gate is closed. Production HTTPS is live and the repository contains the public IndexNow key file.
 
-## Implemented
+## Active behaviour
 
-- Public verification key file at `/5bea74dc73880cd2b2a1a35a649e62de.txt`.
-- `scripts/indexnow-submit.mjs` validates indexable canonical URLs and supports a full sitemap-derived initial submission.
-- `.github/workflows/indexnow-submit.yml` provides a manual dry-run workflow.
-- The integration is intentionally fail-closed: network submission is disabled until the production domain, HTTPS and key-file retrieval are independently verified.
-- Private and noindex HTML routes are excluded when changed-file submission mode is used.
+- Public verification key: `/5bea74dc73880cd2b2a1a35a649e62de.txt`.
+- `scripts/indexnow-submit.mjs` accepts only canonical URLs on the production origin.
+- Noindex/private pages are excluded from changed-file submission.
+- `.github/workflows/indexnow-submit.yml` now runs on relevant main-branch changes.
+- Before every live submission the workflow verifies:
+  1. the production origin is reachable over HTTPS; and
+  2. the live key file returns exactly the expected key.
+- Sitemap/search-index/catalogue structural changes submit the current canonical sitemap set.
+- Ordinary HTML changes submit only changed indexable canonical pages.
+- Manual full submission remains available.
+- Failure of HTTPS/key verification blocks submission rather than silently falling back.
 
-## Activation sequence
-
-1. Verify production apex DNS and HTTPS.
-2. Verify `https://drjavadrezazadeh.com/5bea74dc73880cd2b2a1a35a649e62de.txt` returns HTTP 200 and exactly the expected key.
-3. Run the production health audit in strict mode.
-4. Change `INDEXNOW_ENABLED` to `1` only after those checks pass.
-5. Submit the current sitemap URLs once, then automate only new/updated indexable URLs.
-
-IndexNow is a discovery notification mechanism, not an indexing or ranking guarantee.
+IndexNow is a discovery-notification mechanism. Acceptance by the IndexNow endpoint is not an indexing or ranking guarantee.
