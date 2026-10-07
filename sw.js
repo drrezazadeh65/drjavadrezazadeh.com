@@ -92,7 +92,7 @@ self.addEventListener('fetch',event=>{
         const hit=await cache.match(req);
         if(hit) return hit;
         try{
-          const res=await fetch(req);
+          const res=await fetch(req,{cache:'reload'});
           if(res.ok) await cache.put(req,res.clone());
           return res;
         }catch(e){
