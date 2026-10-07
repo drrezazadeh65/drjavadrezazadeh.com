@@ -823,12 +823,15 @@ body:not(.rtl),body:not(.rtl) :where(button,input,select,textarea){font-family:v
 body:not(.rtl) :where(h1,h2,h3,.brand,.hero-line){font-family:var(--jr-font-display)!important;font-kerning:normal}
 .rtl,.rtl :where(button,input,select,textarea,h1,h2,h3,.brand,.brand small,.hero-line){font-family:var(--jr-font-fa)!important;font-kerning:normal}
 
+
+
+.tablet-menu-trigger{display:none}
 @media(min-width:901px) and (max-width:1100px){
-.public-home-page,.public-content-page{--tablet-public-dock:1}
+.public-home-page,.public-content-page{--tablet-header-menu:1}
 .public-home-page .site-header nav,.public-content-page .site-header nav{display:none!important}
-.public-home-page .app-dock,.public-content-page .app-dock{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;left:50%;right:auto;bottom:14px;z-index:70;width:min(680px,calc(100% - 32px));padding:7px;transform:translateX(-50%);border:1px solid rgba(240,214,148,.24);border-radius:24px;background:rgba(11,11,12,.94);backdrop-filter:blur(26px) saturate(145%);box-shadow:0 20px 68px rgba(0,0,0,.5)}
-.public-home-page .app-dock a,.public-home-page .app-dock button,.public-content-page .app-dock a,.public-content-page .app-dock button{min-height:50px;border:0;border-radius:15px;background:transparent;color:#b5b1a8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;font-size:10px}
-.public-home-page .app-dock .dock-action,.public-content-page .app-dock .dock-action{color:#090806;background:linear-gradient(135deg,#f0d694,#cda557)}
-.public-home-page .app-dock a.is-active,.public-content-page .app-dock a.is-active{color:#f0d694;background:rgba(215,184,109,.08)}
-.public-home-page footer,.public-content-page footer{padding-bottom:104px}
+.public-home-page .app-dock,.public-content-page .app-dock{display:none!important}
+.public-home-page .tablet-menu-trigger,.public-content-page .tablet-menu-trigger{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:92px;min-height:44px;padding:9px 13px;border:1px solid rgba(240,214,148,.22);border-radius:14px;background:rgba(255,255,255,.018);color:#e9e4da;font:inherit;font-size:11px}
+.public-home-page .tablet-menu-trigger .app-icon,.public-content-page .tablet-menu-trigger .app-icon{width:19px;height:19px}
+.public-home-page .tablet-menu-trigger:focus-visible,.public-content-page .tablet-menu-trigger:focus-visible{outline:3px solid #f0d694;outline-offset:3px}
+.public-home-page footer,.public-content-page footer{padding-bottom:28px}
 }

@@ -175,6 +175,20 @@ sheetEl.setAttribute('role','dialog');sheetEl.setAttribute('aria-modal','true');
 sheetEl.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-grid">'+sheet.map(([href,label])=>'<a href="'+href+'"><b>'+label+'</b></a>').join('')+'</div></div>';
 document.body.appendChild(sheetEl);
 }
+if(!isPrivateApp&&!q('.tablet-menu-trigger')){
+  const header=q('.site-header');
+  if(header){
+    const tabletTrigger=document.createElement('button');
+    tabletTrigger.type='button';
+    tabletTrigger.className='tablet-menu-trigger';
+    tabletTrigger.setAttribute('data-nav-toggle','');
+    tabletTrigger.setAttribute('aria-controls','mobile-app-menu');
+    tabletTrigger.setAttribute('aria-expanded','false');
+    tabletTrigger.setAttribute('aria-label',isFa?'بازکردن منو':'Open menu');
+    tabletTrigger.innerHTML=icon('menu')+'<span>'+(isFa?'منو':'Menu')+'</span>';
+    header.appendChild(tabletTrigger);
+  }
+}
 }
 ensureMobileNav();
 let lastMenuTrigger=null;
