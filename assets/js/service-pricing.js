@@ -23,7 +23,11 @@
           '<h3>'+escapeHtml(service.title_fa)+'</h3>'+
           '<div class="service-price-amount">'+price(service.price)+'</div>'+
           '<span class="service-fit">'+duration(service.duration_minutes)+'</span>'+
-          '<p>دامنه دقیق، مدارک لازم، خروجی و مرزهای خدمت پیش از رزرو نهایی روشن می‌شود.</p>'+
+          '<div class="service-pricing-detail">'+
+            (service.fit_fa?'<p><strong>مناسب برای:</strong> '+escapeHtml(service.fit_fa)+'</p>':'')+
+            (service.outcome_fa?'<p><strong>خروجی مورد انتظار:</strong> '+escapeHtml(service.outcome_fa)+'</p>':'')+
+            (service.boundary_fa?'<p class="service-boundary"><strong>مرز خدمت:</strong> '+escapeHtml(service.boundary_fa)+'</p>':'')+
+          '</div>'+
           '<a class="button" data-conversion-event="service_price_intent" data-conversion-surface="fa_services_pricing" href="/fa/darkhast-moshavere/?service='+id+'">درخواست بررسی این خدمت</a>'+
         '</article>';
       }).join('');
