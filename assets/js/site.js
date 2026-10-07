@@ -489,6 +489,17 @@ window.dispatchEvent(new CustomEvent('JR_CONVERSION_INTENT',{detail}));
 },{capture:true});
 })();
 (function(){
+if(document.querySelector('script[data-jr-analytics-adapter]')) return;
+const scripts=[...document.scripts];
+const siteScript=scripts.find(s=>/\/assets\/js\/site\.js(?:\?|$)/.test(s.src));
+if(!siteScript?.src) return;
+const script=document.createElement('script');
+script.src=new URL('./analytics-adapter.js?v=20261007-v430',siteScript.src).href;
+script.defer=true;
+script.dataset.jrAnalyticsAdapter='1';
+document.head.appendChild(script);
+})();
+(function(){
 if(document.querySelector('script[data-jr-assistant]')) return;
 const scripts=[...document.scripts];
 const siteScript=scripts.find(s=>/\/assets\/js\/site\.js(?:\?|$)/.test(s.src));
