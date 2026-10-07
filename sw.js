@@ -5,7 +5,7 @@ const SHELL_CACHE=CACHE_VERSION+'-shell';
 const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
 const OFFLINE_URL='./offline.html';
 
-const PRECACHE=[
+const CORE=[
   OFFLINE_URL,
   './favicon.svg',
   './assets/images/pwa-icon-192.png',
@@ -26,7 +26,7 @@ const PRIVATE_PREFIXES=[
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{
     const cache=await caches.open(SHELL_CACHE);
-    await Promise.all(PRECACHE.map(async url=>{
+    await Promise.all(CORE.map(async url=>{
       try{
         const res=await fetch(url,{cache:'reload'});
         if(res.ok) await cache.put(url,res.clone());
@@ -147,14 +147,22 @@ self.addEventListener('fetch',event=>{
     return;
   }
 
+  const isCode=/\.(?:css|js)$/i.test(url.pathname);
+  const isAsset=isCode || isMutableCode(url) || isFont(url) || isImage(url);
+
   // Documents are always fresh while online. Cached copies are offline-only fallbacks.
-  if(req.mode==='navigate' || req.destination==='document'){
+  if(req.mode==='navigate'){
+    event.respondWith(freshNetwork(req,{fallback:OFFLINE_URL,store:true}));
+    return;
+  }
+  if(req.destination==='document'){
     event.respondWith(freshNetwork(req,{fallback:OFFLINE_URL,store:true}));
     return;
   }
 
-  // CSS/JS/manifests are mutable during development: never let browser HTTP cache hide a deploy.
-  if(isMutableCode(url)){
+  // CSS/JS: network-first so a successful deploy is never hidden behind stale app-shell assets.
+  // JSON/manifests follow the same mutable-code policy.
+  if(isAsset && isMutableCode(url)){
     event.respondWith(freshNetwork(req,{store:true}));
     return;
   }
