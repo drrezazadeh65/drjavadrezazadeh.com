@@ -28,6 +28,8 @@ jobs:
         run: node scripts/responsive-resilience-audit.mjs
       - name: Run frontend copy-hygiene audit
         run: node scripts/frontend-copy-hygiene-audit.mjs
+      - name: Run client-readable data hygiene audit
+        run: node scripts/public-data-hygiene-audit.mjs
       - name: Run canonical media-library audit
         run: node scripts/media-library-audit.mjs
       - name: Run link-integrity audit
