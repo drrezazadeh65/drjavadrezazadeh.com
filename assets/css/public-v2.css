@@ -1,5 +1,4 @@
-/* Public visual layer v2 — 2026-10-06
-   Premium academic/public interface. Presentation only; content, indexability and schema remain authoritative in page source. */
+
 
 :root{
   --public-gold:#c7a35b;
@@ -217,7 +216,6 @@
   margin:0 auto;
 }
 
-/* Public authority/content pages */
 .public-content-page .breadcrumbs{
   width:min(1160px,calc(100% - 40px));
   margin:0 auto;
@@ -370,8 +368,6 @@
   .public-home-page .grid article{transition:none}
 }
 
-
-/* Language gateway v2 */
 .public-gateway-page{
   min-height:100vh;
   background:
@@ -451,8 +447,6 @@
   .public-gateway-page .gateway-copy h1{font-size:48px}
 }
 
-
-/* Consultation intake v2 */
 .public-content-page .service-shell{
   width:min(1180px,calc(100% - 40px));
   margin:0 auto;
@@ -583,8 +577,6 @@
   .public-content-page .consultation-preview-form{padding:20px}
 }
 
-
-/* Public navigation and footer polish v1 */
 .public-content-page .breadcrumbs{
   color:#777a81;
   font-size:11px;
@@ -655,8 +647,6 @@
   .public-gateway-page .button:hover{transform:none}
 }
 
-
-/* Public scholarly components v1 */
 .public-content-page .teaching-timeline{
   display:grid;
   gap:12px;
@@ -871,8 +861,6 @@
   .public-content-page .gt-commercial{padding:24px}
 }
 
-
-/* Public current-navigation state v1 */
 .public-home-page .site-header nav a[aria-current="page"],
 .public-content-page .site-header nav a[aria-current="page"],
 .public-gateway-page .site-header nav a[aria-current="page"]{
@@ -889,8 +877,6 @@
   background:linear-gradient(90deg,transparent,var(--public-gold),transparent);
 }
 
-
-/* Homepage focus strip v1 */
 .public-home-page .home-focus-strip{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -951,8 +937,6 @@
   .public-home-page .home-focus-strip a:hover{transform:none}
 }
 
-
-/* Public profile portrait v1 */
 .public-content-page .authority-hero .portrait-shell,
 .public-content-page .article-hero .portrait-shell{
   width:min(320px,30vw);
@@ -977,8 +961,6 @@
   }
 }
 
-
-/* Public trust-status strip v1 */
 .public-content-page .role-status-grid{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -1031,8 +1013,6 @@
   .public-content-page .role-status-card{padding:14px;min-height:102px}
 }
 
-
-/* Public search v1 */
 .public-content-page [data-site-search]{
   display:grid;
   grid-template-columns:minmax(0,1fr) auto;
@@ -1103,8 +1083,6 @@
   }
 }
 
-
-/* Public CV v1 */
 .public-cv-page .cv-shell{width:min(1080px,calc(100% - 40px));margin:0 auto;padding:34px 0 90px}
 .public-cv-page .cv-hero{
   display:grid;
@@ -1263,8 +1241,6 @@
   .public-cv-page .cv-section{break-inside:avoid;page-break-inside:avoid}
 }
 
-
-/* Citation tools v1 */
 .public-content-page .citation-tools{
   display:flex;
   flex-wrap:wrap;
@@ -1304,8 +1280,6 @@
   line-height:1.6;
 }
 
-
-/* Audience & revenue pathways v1 */
 .public-home-page .audience-gates,
 .public-content-page .audience-gates{
   display:grid;
@@ -1473,8 +1447,6 @@
   .public-content-page .audience-gate:hover{transform:none}
 }
 
-
-/* Homepage desktop correction v3 — screenshot-led balance pass, 2026-10-06 */
 @media (min-width:1101px){
   .public-home-page .site-header{
     min-height:74px;
@@ -1597,8 +1569,6 @@
   }
 }
 
-
-/* Homepage desktop correction v4 — spacing, crop and RTL overflow discipline */
 @media (min-width:1101px){
   .public-home-page .site-header{
     min-height:80px;
@@ -1707,8 +1677,6 @@
   }
 }
 
-
-/* Homepage Golden Talent account access v1 — visible auth entry without header crowding */
 .public-home-page .home-account-strip{
   width:min(1320px,calc(100% - 64px));
   margin:18px auto 0;
@@ -1753,11 +1721,6 @@
   .public-home-page .home-account-actions{grid-template-columns:1fr}
 }
 
-
-/* =========================================================
-   FINAL VISUAL PASS 4.2 — 2026-10-07
-   Quiet luxury, stronger hierarchy, zero SEO/URL impact
-   ========================================================= */
 .public-home-page{
   --lux-gold:#c9a45d;
   --lux-gold-hi:#ead496;
@@ -2135,8 +2098,6 @@
   }
 }
 
-
-/* FINAL VISUAL PASS 4.2 — 2026-10-07 */
 .public-home-page{
   --lux-gold:#d0ad63;
   --lux-gold-bright:#f0d694;
@@ -2355,7 +2316,6 @@
   color:#aaa8a2;
 }
 
-/* Content-page luxury cohesion */
 .public-content-page .article-hero,
 .public-content-page .authority-hero,
 .public-content-page .service-hero{
@@ -2380,7 +2340,6 @@
   border-color:rgba(208,173,99,.24);
 }
 
-/* Responsive refinement */
 @media(max-width:900px){
   .public-home-page .site-header{
     min-height:68px;
@@ -2444,8 +2403,6 @@
   .public-home-page .site-header nav a::before{transition:none}
 }
 
-
-/* Luxury 404 v4.2 */
 .error-page{
   min-height:100vh;
   background:
@@ -2575,8 +2532,6 @@
   .error-page .error-grid a:hover{transform:none}
 }
 
-
-/* Gateway + mobile shell polish v4.2 */
 .public-gateway-page .gateway-card{
   position:relative;
   overflow:hidden;
@@ -2625,7 +2580,6 @@
   color:#87898f;
 }
 
-/* Mobile application shell */
 @media(max-width:900px){
   .public-home-page .mobile-menu-trigger,
   .public-content-page .mobile-menu-trigger{
@@ -2709,11 +2663,6 @@
   }
 }
 
-
-/* =========================================================
-   INTERNATIONAL LUXURY UI/UX v5 — 2026-10-07
-   Unified premium visual system · contrast-safe · app-like mobile
-   ========================================================= */
 .public-home-page,
 .public-content-page,
 .public-gateway-page{
@@ -3120,11 +3069,6 @@
   }
 }
 
-
-/* =========================================================
-   MOBILE FIRST-SCREEN REFINEMENT v5.1 — 2026-10-07
-   Keep identity visible before the dock while preserving portrait prominence
-   ========================================================= */
 @media(max-width:560px){
   .public-home-page .home-account-strip{
     padding:12px 13px;
@@ -3175,11 +3119,6 @@
   }
 }
 
-
-/* =========================================================
-   MOBILE HERO CONTENT-FIRST ORDER v5.2 — 2026-10-07
-   Keep identity and primary actions clear of the fixed app dock
-   ========================================================= */
 @media(max-width:560px){
   .public-home-page .hero-copy{
     order:-2!important;
@@ -3201,11 +3140,6 @@
   }
 }
 
-
-/* =========================================================
-   MOBILE PRIMARY ACTION PRIORITY v5.3 — 2026-10-07
-   Surface the next action before long explanatory copy
-   ========================================================= */
 @media(max-width:560px){
   .public-home-page .hero-copy{
     display:flex!important;
@@ -3225,11 +3159,6 @@
   }
 }
 
-
-/* =========================================================
-   MOBILE EDITORIAL READER v5.4 — 2026-10-07
-   Trust-first metadata · quieter title scale · dock-safe first screen
-   ========================================================= */
 @media(max-width:560px){
   .public-content-page .article-shell{
     padding-top:18px;
