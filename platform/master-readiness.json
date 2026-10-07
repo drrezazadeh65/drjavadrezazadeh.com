@@ -272,13 +272,15 @@
         "foundation/PRIVACY-DATA-GOVERNANCE.md",
         "foundation/RBAC-PERMISSION-MATRIX.md",
         "platform/identity-auth-policy.json",
-        "platform/db/migrations/027_identity_email_auth_mobile_contact.sql"
+        "platform/db/migrations/027_identity_email_auth_mobile_contact.sql",
+        "foundation/TRANSACTIONAL-EMAIL-ACTIVATION-v4.3.md"
       ],
       "next_actions": [
         "Provision real email/password auth/session backend",
+        "Use the verified Resend domain and published v4.3 verification/recovery templates only after a sending credential is stored directly in the secure runtime secret store",
         "Require email verification before ACTIVE status",
         "Collect mobile at registration as contact-only data",
-        "Keep recovery email-only with generic responses and single-use tokens",
+        "Keep recovery email-only with generic responses and single-use short-lived tokens",
         "Apply RLS and enable admin MFA before production"
       ]
     },
