@@ -268,7 +268,7 @@ markCurrentDesktopNavigation();
 if(!('serviceWorker' in navigator)) return;
 window.addEventListener('load',()=>{
 const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
-navigator.serviceWorker.register(base+'sw.js?v=20261008-v431',{updateViaCache:'none'}).then(reg=>{
+navigator.serviceWorker.register(base+'sw.js?v=431',{updateViaCache:'none'}).then(reg=>{
   reg.update().catch(()=>{});
   if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
   reg.addEventListener('updatefound',()=>{
@@ -494,7 +494,7 @@ if(document.querySelector('script[data-jr-assistant]')) return;
 const scripts=[...document.scripts];
 const siteScript=scripts.find(s=>/\/assets\/js\/site\.js(?:\?|$)/.test(s.src));
 if(!siteScript?.src) return;
-const cssHref=new URL('../css/assistant.css?v=20261007-luxury-v56',siteScript.src).href;
+const cssHref=new URL('../css/assistant.css?v=56',siteScript.src).href;
 if(!document.querySelector('link[data-jr-assistant-style]')){
 const link=document.createElement('link');
 link.rel='stylesheet';
@@ -503,7 +503,7 @@ link.dataset.jrAssistantStyle='1';
 document.head.appendChild(link);
 }
 const script=document.createElement('script');
-script.src=new URL('assistant.js?v=20261007-auth-privacy-v1',siteScript.src).href;
+script.src=new URL('assistant.js?v=1',siteScript.src).href;
 script.defer=true;
 script.dataset.jrAssistant='1';
 document.head.appendChild(script);
@@ -520,4 +520,4 @@ holder.innerHTML="<a referrerpolicy='origin' target='_blank' href='https://trust
 footer.appendChild(holder);
 })();
 
-(()=>{const p=[...document.scripts].find(x=>/\/assets\/js\/site\.js(?:\?|$)/.test(x.src));if(!p)return;const s=document.createElement('script');s.src=new URL('mobile-app-v431.js?v=431b',p.src).href;s.defer=true;document.head.appendChild(s)})();
+import('/assets/js/mobile-app-v431.js?v=431b');
