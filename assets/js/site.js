@@ -22,6 +22,16 @@ const isJournal=relativePath.startsWith('/journal/');
 const isPrivateApp=JR_ROUTE_POLICY.app.some(prefix=>relativePath.startsWith(prefix));
 const isPersianStudentApp=relativePath.startsWith('/fa/app/student/')||relativePath.startsWith('/fa/assessments/golden-talent/start/');
 const u=p=>base+p.replace(/^\//,'');
+function ensureV431MobileShell(){
+const head=document.head;
+if(!head||q('link[data-v431-mobile-shell]',head))return;
+const link=document.createElement('link');
+link.rel='stylesheet';
+link.href=u('assets/css/mobile-app-v431.css?v=431a');
+link.dataset.v431MobileShell='1';
+head.appendChild(link);
+}
+ensureV431MobileShell();
 function ensurePwaHead(){
 const head=document.head;
 if(!head)return;
@@ -123,9 +133,9 @@ links=cfg.tabs.map((route,i)=>[u(route),labels[i],icons[i]]);
 }else if(isFa){
 links=[
 [u('fa/'),'خانه','home'],
-[u('fa/moshavere-tahsili/'),'مشاوره','chat'],
-[u('fa/golden-talent/'),'Golden Talent','star'],
-[u('fa/akhbar/'),'مطالب','news']
+[u('fa/golden-talent/'),'استعداد','star'],
+[u('fa/shop/'),'فروشگاه','book'],
+[u('fa/darkhast-moshavere/'),'مشاوره','chat']
 ];
 sheet=[
 [u('fa/darbare-man/'),'درباره من'],
@@ -152,9 +162,9 @@ sheet=[
 }else{
 links=[
 [u('en/'),'Home','home'],
-[u('en/about/'),'About','user'],
-[u('en/golden-talent/'),'Golden Talent','star'],
-[u('en/research/'),'Research','book']
+[u('en/golden-talent/'),'Talent','star'],
+[u('en/shop/'),'Store','book'],
+[u('en/request-consultation/'),'Consult','chat']
 ];
 sheet=[
 [u('en/about/'),'About'],
