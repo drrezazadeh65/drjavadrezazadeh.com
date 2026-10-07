@@ -220,6 +220,6 @@ for(const route of ['/fa/','/en/']){
     const [hb,db]=await Promise.all([h1.boundingBox(),dock.boundingBox()]);
     expect(hb).not.toBeNull();
     expect(db).not.toBeNull();
-    expect(hb.y,'hero identity should begin before the fixed dock').toBeLessThan(db.y-24);
+    expect(hb.y+hb.height,'hero identity should finish before the fixed dock').toBeLessThan(db.y-20);
   });
 }

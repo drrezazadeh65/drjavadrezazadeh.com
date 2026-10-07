@@ -3174,3 +3174,29 @@
     width:min(224px,62vw)!important;
   }
 }
+
+
+/* =========================================================
+   MOBILE HERO CONTENT-FIRST ORDER v5.2 — 2026-10-07
+   Keep identity and primary actions clear of the fixed app dock
+   ========================================================= */
+@media(max-width:560px){
+  .public-home-page .hero-copy{
+    order:-2!important;
+  }
+  .public-home-page .portrait-shell{
+    order:-1!important;
+    width:min(260px,70vw)!important;
+    aspect-ratio:4/5!important;
+    margin-top:4px;
+  }
+  .public-home-page .hero{
+    gap:22px!important;
+  }
+  .public-home-page .hero h1{
+    margin-bottom:16px!important;
+  }
+  .public-home-page .hero .lead{
+    margin-bottom:0;
+  }
+}

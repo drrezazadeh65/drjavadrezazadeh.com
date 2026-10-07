@@ -1,4 +1,4 @@
-const CACHE_VERSION='jr-site-20261007-luxury-v51';
+const CACHE_VERSION='jr-site-20261007-luxury-v52';
 const CACHE_FAMILY='jr-site-';
 const STATIC_CACHE=CACHE_VERSION+'-static';
 const PUBLIC_CACHE=CACHE_VERSION+'-public';
