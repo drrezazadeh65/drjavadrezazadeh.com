@@ -24,6 +24,11 @@ jobs:
   capture:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      # The public UI intentionally uses system-native font stacks.
+      # Disable Playwright's internal document.fonts.ready wait in Linux CI
+      # so screenshot certification measures layout rather than runner font state.
+      PW_TEST_SCREENSHOT_NO_FONTS_READY: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
