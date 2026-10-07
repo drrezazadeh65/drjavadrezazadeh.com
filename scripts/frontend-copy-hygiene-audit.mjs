@@ -3,7 +3,8 @@ import path from 'node:path';
 
 const root=process.cwd();
 const failures=[];
-const forbidden=[
+const ruleGroups={
+  core:[
   {re:/\bbackend\b/i,label:'backend'},
   {re:/\bserver-authoritative\b/i,label:'server-authoritative'},
   {re:/\barchitecture only\b/i,label:'architecture only'},
@@ -13,6 +14,8 @@ const forbidden=[
   {re:/\bno payment processing\b/i,label:'no payment processing'},
   {re:/\bpreview only\b/i,label:'preview only'},
   {re:/\bnoindex\b/i,label:'visible noindex'},
+  ],
+  editorial:[
   {re:/\bTODO\b/i,label:'TODO'},
   {re:/\bFIXME\b/i,label:'FIXME'},
   {re:/\bChatGPT\b/i,label:'ChatGPT internal reference'},
@@ -21,6 +24,8 @@ const forbidden=[
   {re:/\bprevalidation\b/i,label:'prevalidation jargon'},
   {re:/\b(?:internal|developer) note\b/i,label:'internal/developer note'},
   {re:/\bplaceholder copy\b/i,label:'placeholder copy'},
+  ],
+  implementation:[
   {re:/\bbrowser state\b/i,label:'browser implementation jargon'},
   {re:/\bserver-side\b/i,label:'server implementation jargon'},
   {re:/\bprovider verification\b/i,label:'payment implementation jargon'},
@@ -29,8 +34,14 @@ const forbidden=[
   {re:/\bCloudflare Worker\b/i,label:'infrastructure jargon'},
   {re:/\bGitHub Pages\b/i,label:'hosting implementation jargon'},
   {re:/\bAPI\b/i,label:'API implementation jargon'},
+  ],
+  persian:[
   {re:/بک[\u200c\- ]?اند/i,label:'visible Persian backend jargon'}
-];
+  ]
+};
+const requestedGroup=String(process.env.COPY_HYGIENE_GROUP||'').trim();
+if(requestedGroup && !ruleGroups[requestedGroup]) throw new Error('Unknown COPY_HYGIENE_GROUP '+requestedGroup);
+const forbidden=requestedGroup?ruleGroups[requestedGroup]:Object.values(ruleGroups).flat();
 
 const files=[];
 function walk(dir){
@@ -103,4 +114,4 @@ if(failures.length){
   console.error('\nMove implementation notes to docs/code comments, or rewrite them in user-facing language.');
   process.exit(1);
 }
-console.log('Frontend copy hygiene passed: '+files.length+' HTML files + '+jsFiles.length+' client JS files checked; no internal implementation jargon leaked into visible UI.');
+console.log('Frontend copy hygiene passed'+(requestedGroup?' ['+requestedGroup+']':'')+': '+files.length+' HTML files + '+jsFiles.length+' client JS files checked; no internal implementation jargon leaked into visible UI.');
