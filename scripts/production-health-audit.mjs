@@ -1,4 +1,4 @@
-import dns from 'node:dns/promises';
+import { Resolver } from 'node:dns/promises';
 
 const ORIGIN=(process.env.PROD_ORIGIN||'https://drjavadrezazadeh.com').replace(/\/$/,'');
 const STRICT=process.argv.includes('--strict')||process.env.PRODUCTION_HEALTH_STRICT==='1';
@@ -24,7 +24,14 @@ const getText=async url=>{
 
 let dnsReady=false;
 try{
-  const [a,aaaa]=await Promise.allSettled([dns.resolve4(host),dns.resolve6(host)]);
+  const resolver=new Resolver({timeout:timeoutMs,tries:1});
+  const dnsTimer=setTimeout(()=>resolver.cancel(),timeoutMs);
+  let a,aaaa;
+  try{
+    [a,aaaa]=await Promise.allSettled([resolver.resolve4(host),resolver.resolve6(host)]);
+  }finally{
+    clearTimeout(dnsTimer);
+  }
   const records=[
     ...(a.status==='fulfilled'?a.value:[]),
     ...(aaaa.status==='fulfilled'?aaaa.value:[])
@@ -46,6 +53,10 @@ try{
 }
 
 if(!root){
+  if(failures.length){
+    console.error('\nProduction health failures ('+failures.length+')');
+    failures.forEach(x=>console.error('✗ '+x));
+  }
   if(warnings.length){
     console.warn('\nProduction health warnings ('+warnings.length+')');
     warnings.forEach(x=>console.warn('! '+x));
