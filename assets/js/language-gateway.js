@@ -66,15 +66,3 @@ document.addEventListener('click',e=>{
     },1800));
   }
 })();
-
-(function(){
-const href='https://trustseal.enamad.ir/?id=8075712&Code=sealMJydDpzqNid1Ty82Y90Ef6SZLah1';
-if(!document.getElementById('jr-enamad-gateway-style')){
- const s=document.createElement('style');s.id='jr-enamad-gateway-style';
- s.textContent='.enamad-footer-seal a{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:100%!important;text-decoration:none!important}.enamad-footer-seal a:before{content:"اینماد\\A نماد اعتماد الکترونیکی";white-space:pre;text-align:center;color:#e2c886;font:700 13px/1.65 Tahoma,Arial,sans-serif;direction:rtl}.enamad-footer-seal img{position:absolute!important;inset:0!important;margin:auto!important}.enamad-footer-seal img.jr-seal-fallback{display:none!important}';
- document.head.appendChild(s);
-}
-const wrap=document.querySelector('.enamad-footer-seal'); if(!wrap)return;
-const a=wrap.querySelector('a');if(a){a.href=href;a.target='_blank';a.removeAttribute('rel');a.setAttribute('aria-label','مشاهده اعتبار نماد اعتماد الکترونیکی');}
-const img=wrap.querySelector('img');if(img){img.addEventListener('error',()=>img.classList.add('jr-seal-fallback'),{once:true});}
-})();
