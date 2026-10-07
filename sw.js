@@ -1,4 +1,4 @@
-const CACHE_VERSION='jr-site-v8-20261006-bookstore';
+const CACHE_VERSION='jr-site-v9-20261007-v42';
 const CACHE_FAMILY='jr-site-';
 const STATIC_CACHE=CACHE_VERSION+'-static';
 const PUBLIC_CACHE=CACHE_VERSION+'-public';
@@ -7,7 +7,10 @@ const CORE=[
   './offline.html',
   './site.webmanifest',
   './assets/css/style.css',
+  './assets/css/public-v2.css',
   './assets/js/site.js',
+  './assets/js/language-gateway.js',
+  './favicon.svg',
   './assets/images/pwa-icon-192.png',
   './assets/images/pwa-icon-512.png',
   './assets/images/pwa-icon-maskable-512.png',
