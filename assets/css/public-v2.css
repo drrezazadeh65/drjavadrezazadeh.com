@@ -3208,3 +3208,19 @@ color:#85888f;
 .public-content-page .service-price-amount{font-size:27px}
 .public-content-page .service-pricing-detail p{font-size:11.5px;line-height:1.78}
 }
+
+
+/* v4.3.0 — 320px header resilience */
+@media(max-width:900px){
+.public-content-page .site-header .brand{
+min-width:0!important;
+max-width:calc(100% - 64px)!important;
+overflow-wrap:anywhere;
+}
+.public-content-page .site-header .brand span,
+.public-content-page .site-header .brand small{
+min-width:0;
+max-width:100%;
+overflow-wrap:anywhere;
+}
+}
