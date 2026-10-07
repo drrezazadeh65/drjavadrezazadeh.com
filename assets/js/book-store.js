@@ -81,7 +81,7 @@
   });
   const sum=document.createElement('div');sum.className='cart-summary';
   sum.innerHTML='<strong>'+(isFa?'جمع نمایشی':'Display total')+': '+money(valid?total:null,currency)+'</strong>'+
-    '<p>'+(isFa?'مبلغ نهایی فقط روی سرور و از کاتالوگ فعال تعیین می‌شود.':'Final amount is always resolved server-side from the active catalogue.')+'</p>'+
+    '<p>'+(isFa?'مبلغ نهایی هنگام ثبت سفارش بر اساس قیمت فعال فروشگاه دوباره بررسی می‌شود.':'The final amount is checked again against the active store price when the order is submitted.')+'</p>'+
     (valid?'<a class="button primary" href="'+root((isFa?'fa':'en')+'/shop/checkout/')+'">'+(isFa?'ادامه به تسویه':'Continue to checkout')+'</a>':'<span class="book-pending">'+(isFa?'تسویه تا فعال‌شدن اطلاعات واقعی فروش بسته است.':'Checkout remains closed until real commerce data is activated.')+'</span>');
   host.appendChild(sum);
   host.addEventListener('click',e=>{const btn=e.target.closest('[data-remove-book]');if(!btn)return;writeCart(readCart().filter(x=>x.book_id!==btn.dataset.removeBook));renderCart(data);});
@@ -92,7 +92,7 @@
   const books=cart.map(x=>({item:x,book:data.books.find(b=>b.id===x.book_id)})).filter(x=>x.book);
   const valid=books.length>0&&books.every(x=>ready(x.book));
   host.innerHTML='<p class="kicker">'+(isFa?'تسویه امن':'Secure checkout')+'</p><h1>'+(isFa?'سفارش کتاب':'Book order')+'</h1>'+
-   '<p class="lead">'+(isFa?'این صفحه هرگز موفقیت پرداخت را از مرورگر قبول نمی‌کند. سفارش واقعی باید توسط API ساخته و قیمت‌گذاری شود و فقط پس از تأیید درگاه نهایی گردد.':'This page never treats browser state as payment success. A real order must be created and priced by the API and completed only after provider verification.')+'</p>'+
+   '<p class="lead">'+(isFa?'اطلاعات سفارش و مبلغ نهایی پیش از انتقال به درگاه دوباره بررسی می‌شود و سفارش فقط پس از تأیید موفق پرداخت نهایی خواهد شد.':'Order details and the final amount are checked again before payment, and the order is completed only after successful payment confirmation.')+'</p>'+
    '<div class="store-notice">'+(valid?(isFa?'کاتالوگ و قیمت‌ها آماده‌اند؛ پرداخت بانکی پس از فعال‌سازی و تأیید درگاه معتبر در دسترس قرار می‌گیرد.':'The catalogue and prices are ready; bank payment becomes available after the verified payment gateway is activated.'):(isFa?'در حال حاضر محصول قیمت‌گذاری‌شده و قابل‌فروش در کاتالوگ فعال نیست.':'There is currently no verified priced and sellable book in the active catalogue.'))+'</div>'+
    '<div class="actions"><a class="button" href="'+root((isFa?'fa':'en')+'/shop/cart/')+'">'+(isFa?'بازگشت به سبد':'Back to cart')+'</a></div>';
  }
