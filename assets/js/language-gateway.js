@@ -19,7 +19,21 @@ document.addEventListener('click',e=>{
   const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
   const standalone=window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;
   if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>navigator.serviceWorker.register(base+'sw.js').catch(()=>{}));
+    window.addEventListener('load',()=>{
+      navigator.serviceWorker.register(base+'sw.js?v=20261007-cache-v2',{updateViaCache:'none'}).then(reg=>{
+        reg.update().catch(()=>{});
+        if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+        reg.addEventListener('updatefound',()=>{
+          const worker=reg.installing;
+          if(!worker) return;
+          worker.addEventListener('statechange',()=>{
+            if(worker.state==='installed' && navigator.serviceWorker.controller){
+              worker.postMessage({type:'SKIP_WAITING'});
+            }
+          });
+        });
+      }).catch(()=>{});
+    });
   }
   if(standalone) return;
   let deferredPrompt=null;
