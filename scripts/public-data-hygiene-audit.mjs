@@ -3,8 +3,9 @@ import path from 'node:path';
 
 const root=process.cwd();
 const publicData=[
-  'platform/book-catalog.json',
-  'platform/service-catalog.json',
+  'assets/data/book-catalog.json',
+  'assets/data/service-catalog.json',
+  'assets/data/analytics-config.json',
   'assets/search-index.json',
   'site.webmanifest'
 ].filter(p=>fs.existsSync(path.join(root,p)));
