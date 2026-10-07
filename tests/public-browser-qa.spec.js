@@ -409,3 +409,24 @@ test('private student app visual evidence',async({page})=>{
     }
   }
 });
+
+test('private mobile heroes prioritize actions and compact evidence',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/en/golden-talent/student/',{waitUntil:'domcontentloaded'});
+  await page.waitForTimeout(180);
+  const enHero=page.locator('.gt-private-hero');
+  const enTitle=enHero.locator('h1'), enActions=enHero.locator('.actions'), enLead=enHero.locator('.lead'), enDock=page.locator('.app-dock');
+  const [et,ea,el,ed]=await Promise.all([enTitle.boundingBox(),enActions.boundingBox(),enLead.boundingBox(),enDock.boundingBox()]);
+  for(const box of [et,ea,el,ed]) expect(box).not.toBeNull();
+  expect(parseFloat(await enTitle.evaluate(el=>getComputedStyle(el).fontSize))).toBeLessThanOrEqual(33.5);
+  expect(ea.y,'English student actions should precede explanatory copy').toBeLessThan(el.y);
+  expect(ea.y+ea.height,'English student actions should clear the app dock').toBeLessThan(ed.y-10);
+
+  await page.goto(base+'/fa/app/student/',{waitUntil:'domcontentloaded'});
+  await page.waitForTimeout(180);
+  const faTitle=page.locator('.student-dash-hero h1'), faStatus=page.locator('.student-status-card'), faDock=page.locator('.app-dock');
+  const [ft,fs,fd]=await Promise.all([faTitle.boundingBox(),faStatus.boundingBox(),faDock.boundingBox()]);
+  for(const box of [ft,fs,fd]) expect(box).not.toBeNull();
+  expect(parseFloat(await faTitle.evaluate(el=>getComputedStyle(el).fontSize))).toBeLessThanOrEqual(33.5);
+  expect(fs.y+fs.height,'Persian dashboard status card should clear the app dock').toBeLessThan(fd.y-8);
+});
