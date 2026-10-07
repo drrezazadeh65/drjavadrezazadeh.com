@@ -23,12 +23,12 @@
         "sellable": true,
         "price": 2000000,
         "currency": "IRT",
-        "inventory_state": "AVAILABLE_FOR_ORDER",
+        "inventory_state": "IN_STOCK",
         "formats_confirmed": [
           "PRINT"
         ],
         "shipping_required": true,
-        "reason": "Published print title with owner-confirmed retail price. Online payment activates when the approved payment gateway is connected."
+        "reason": "Published print title with owner-confirmed retail price; order can be created. Online payment activates through the approved BitPay gateway."
       }
     },
     {
@@ -51,12 +51,12 @@
         "sellable": true,
         "price": 2000000,
         "currency": "IRT",
-        "inventory_state": "AVAILABLE_FOR_ORDER",
+        "inventory_state": "IN_STOCK",
         "formats_confirmed": [
           "PRINT"
         ],
         "shipping_required": true,
-        "reason": "Published print title with owner-confirmed retail price. Online payment activates when the approved payment gateway is connected."
+        "reason": "Published print title with owner-confirmed retail price; order can be created. Online payment activates through the approved BitPay gateway."
       }
     },
     {
@@ -79,12 +79,12 @@
         "sellable": true,
         "price": 2000000,
         "currency": "IRT",
-        "inventory_state": "AVAILABLE_FOR_ORDER",
+        "inventory_state": "IN_STOCK",
         "formats_confirmed": [
           "PRINT"
         ],
         "shipping_required": true,
-        "reason": "Published print title with owner-confirmed retail price. Online payment activates when the approved payment gateway is connected."
+        "reason": "Published print title with owner-confirmed retail price; order can be created. Online payment activates through the approved BitPay gateway."
       }
     }
   ],
