@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "status": "COMMERCE_DATA_PENDING",
-  "rule": "Public bibliographic status and commerce readiness are separate. A published book is not sellable until price, inventory or format, fulfilment, and return terms are verified.",
+  "status": "COMMERCE_ACTIVE",
+  "rule": "Published books listed as sellable have an owner-confirmed retail price. Payment activates after the approved gateway is connected.",
   "books": [
     {
       "id": "roshanaei",
@@ -20,13 +20,15 @@
         "cover_image": null
       },
       "commerce": {
-        "sellable": false,
-        "price": null,
-        "currency": null,
-        "inventory_state": "UNCONFIGURED",
-        "formats_confirmed": [],
-        "shipping_required": null,
-        "reason": "PRICE_FORMAT_STOCK_AND_FULFILMENT_NOT_VERIFIED"
+        "sellable": true,
+        "price": 2000000,
+        "currency": "IRT",
+        "inventory_state": "AVAILABLE",
+        "formats_confirmed": [
+          "PRINT"
+        ],
+        "shipping_required": true,
+        "reason": null
       }
     },
     {
@@ -46,13 +48,15 @@
         "cover_image": null
       },
       "commerce": {
-        "sellable": false,
-        "price": null,
-        "currency": null,
-        "inventory_state": "UNCONFIGURED",
-        "formats_confirmed": [],
-        "shipping_required": null,
-        "reason": "PRICE_FORMAT_STOCK_AND_FULFILMENT_NOT_VERIFIED"
+        "sellable": true,
+        "price": 2000000,
+        "currency": "IRT",
+        "inventory_state": "AVAILABLE",
+        "formats_confirmed": [
+          "PRINT"
+        ],
+        "shipping_required": true,
+        "reason": null
       }
     },
     {
@@ -72,13 +76,15 @@
         "cover_image": null
       },
       "commerce": {
-        "sellable": false,
-        "price": null,
-        "currency": null,
-        "inventory_state": "UNCONFIGURED",
-        "formats_confirmed": [],
-        "shipping_required": null,
-        "reason": "PRICE_FORMAT_STOCK_AND_FULFILMENT_NOT_VERIFIED"
+        "sellable": true,
+        "price": 2000000,
+        "currency": "IRT",
+        "inventory_state": "AVAILABLE",
+        "formats_confirmed": [
+          "PRINT"
+        ],
+        "shipping_required": true,
+        "reason": null
       }
     }
   ],
