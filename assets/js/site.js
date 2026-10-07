@@ -81,6 +81,7 @@ function ensureTabletMenuTrigger(){
 }
 function ensureMobileNav(){
 if(document.body.classList.contains('dashboard-shell-page')) q('.gt-mobile-dock')?.remove();
+ensureTabletMenuTrigger();
 if(q('.app-dock')) return;
 if(isPrivateApp) q('.gt-mobile-dock')?.remove();
 else if(q('.gt-mobile-dock')) return;
@@ -189,7 +190,6 @@ sheetEl.setAttribute('role','dialog');sheetEl.setAttribute('aria-modal','true');
 sheetEl.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-grid">'+sheet.map(([href,label])=>'<a href="'+href+'"><b>'+label+'</b></a>').join('')+'</div></div>';
 document.body.appendChild(sheetEl);
 }
-ensureTabletMenuTrigger();
 }
 ensureMobileNav();
 let lastMenuTrigger=null;
