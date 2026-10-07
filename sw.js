@@ -1,49 +1,68 @@
-const CACHE_VERSION='jr-site-20261007-luxury-v58';
+/* JR Cache Standard v2.0 — fresh-by-default, offline-safe, privacy-safe */
+const CACHE_VERSION='jr-site-cache-v2-20261007';
 const CACHE_FAMILY='jr-site-';
-const STATIC_CACHE=CACHE_VERSION+'-static';
-const PUBLIC_CACHE=CACHE_VERSION+'-public';
-const CORE=[
-  './',
-  './offline.html',
-  './site.webmanifest',
-  './assets/css/style.css',
-  './assets/css/public-v2.css',
-  './assets/js/site.js',
-  './assets/js/language-gateway.js',
+const SHELL_CACHE=CACHE_VERSION+'-shell';
+const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
+const OFFLINE_URL='./offline.html';
+
+const PRECACHE=[
+  OFFLINE_URL,
   './favicon.svg',
   './assets/images/pwa-icon-192.png',
   './assets/images/pwa-icon-512.png',
-  './assets/images/pwa-icon-maskable-512.png',
-  './fa/',
-  './en/',
-  './en/golden-talent/'
+  './assets/images/pwa-icon-maskable-512.png'
 ];
+
 const PRIVATE_PREFIXES=[
-  '/fa/app/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/','/en/login/','/en/register/','/en/recover/','/en/account/',
+  '/fa/app/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/',
+  '/en/login/','/en/register/','/en/recover/','/en/account/',
   '/fa/assessments/','/assessments/','/fa/shop/','/en/shop/','/shop/',
   '/en/golden-talent/assessment/','/en/golden-talent/dashboard/',
-  '/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/','/en/golden-talent/checkout/','/en/golden-talent/plans/',
+  '/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/',
+  '/en/golden-talent/checkout/','/en/golden-talent/plans/',
   '/fa/darkhast-moshavere/','/en/request-consultation/'
 ];
 
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{
-    const cache=await caches.open(STATIC_CACHE);
-    await Promise.all(CORE.map(async url=>{
+    const cache=await caches.open(SHELL_CACHE);
+    await Promise.all(PRECACHE.map(async url=>{
       try{
         const res=await fetch(url,{cache:'reload'});
         if(res.ok) await cache.put(url,res.clone());
-      }catch(e){}
+      }catch(_){}
     }));
     await self.skipWaiting();
   })());
 });
 
 self.addEventListener('activate',event=>{
-  event.waitUntil(
-    caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith(CACHE_FAMILY)&&!k.startsWith(CACHE_VERSION)).map(k=>caches.delete(k))))
-      .then(()=>self.clients.claim())
-  );
+  event.waitUntil((async()=>{
+    const keys=await caches.keys();
+    await Promise.all(
+      keys
+        .filter(k=>k.startsWith(CACHE_FAMILY) && !k.startsWith(CACHE_VERSION))
+        .map(k=>caches.delete(k))
+    );
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('message',event=>{
+  const type=event.data && event.data.type;
+  if(type==='SKIP_WAITING'){
+    self.skipWaiting();
+    return;
+  }
+  if(type==='PURGE_RUNTIME'){
+    event.waitUntil(caches.delete(RUNTIME_CACHE));
+    return;
+  }
+  if(type==='PURGE_ALL'){
+    event.waitUntil(
+      caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith(CACHE_FAMILY)).map(k=>caches.delete(k))))
+    );
+  }
 });
 
 function localPath(url){
@@ -54,67 +73,101 @@ function localPath(url){
   }
   return url.pathname;
 }
+
 function isPrivate(url){
   const path=localPath(url);
-  return PRIVATE_PREFIXES.some(p=>path.startsWith(p));
+  return PRIVATE_PREFIXES.some(prefix=>path.startsWith(prefix));
+}
+
+function isMutableCode(url){
+  return /\.(?:css|js|mjs|json)$/i.test(url.pathname) ||
+    /(?:site\.webmanifest|manifest\.json)$/i.test(url.pathname);
+}
+
+function isFont(url){
+  return /\.(?:woff2?|ttf|otf)$/i.test(url.pathname);
+}
+
+function isImage(url){
+  return /\.(?:svg|webp|png|jpe?g|gif|avif|ico)$/i.test(url.pathname);
+}
+
+function isExplicitlyVersioned(url){
+  if(/[.-][a-f0-9]{8,}(?:\.|-)/i.test(url.pathname)) return true;
+  return ['v','ver','version','rev','hash'].some(k=>url.searchParams.has(k));
+}
+
+async function freshNetwork(req,{fallback=null,store=true}={}){
+  const cache=await caches.open(RUNTIME_CACHE);
+  try{
+    // "reload" bypasses the browser HTTP cache and forces revalidation/fresh transfer.
+    const res=await fetch(req,{cache:'reload'});
+    if(res.ok && store) await cache.put(req,res.clone());
+    return res;
+  }catch(_){
+    const hit=await cache.match(req);
+    if(hit) return hit;
+    if(fallback){
+      const shell=await caches.open(SHELL_CACHE);
+      const fb=await shell.match(fallback);
+      if(fb) return fb;
+    }
+    return Response.error();
+  }
+}
+
+async function cacheFirstImmutable(req){
+  const cache=await caches.open(RUNTIME_CACHE);
+  const hit=await cache.match(req);
+  if(hit) return hit;
+  try{
+    const res=await fetch(req,{cache:'reload'});
+    if(res.ok) await cache.put(req,res.clone());
+    return res;
+  }catch(_){
+    return Response.error();
+  }
 }
 
 self.addEventListener('fetch',event=>{
   const req=event.request;
   if(req.method!=='GET') return;
+
   const url=new URL(req.url);
   if(url.origin!==self.location.origin) return;
 
+  // Personalized / transactional surfaces must never be stored.
   if(isPrivate(url)){
     event.respondWith(
-      fetch(req,{cache:'no-store'}).catch(()=>caches.match('./offline.html'))
-    );
-    return;
-  }
-
-  const isAsset=url.pathname.startsWith('/assets/') || /\.(?:css|js|svg|webp|png|jpg|jpeg|woff2?)$/i.test(url.pathname);
-  const isCode=/\.(?:css|js)$/i.test(url.pathname);
-  if(isAsset){
-    event.respondWith(
-      caches.open(STATIC_CACHE).then(async cache=>{
-        // CSS/JS: network-first so a successful deploy is not hidden behind stale app-shell assets.
-        if(isCode){
-          try{
-            const res=await fetch(req,{cache:'no-cache'});
-            if(res.ok) await cache.put(req,res.clone());
-            return res;
-          }catch(e){
-            return (await cache.match(req)) || (await cache.match(req,{ignoreSearch:true})) || Response.error();
-          }
-        }
-
-        // Images/fonts: cache-first is safe and reduces repeat transfer.
-        const hit=await cache.match(req);
-        if(hit) return hit;
-        try{
-          const res=await fetch(req,{cache:'reload'});
-          if(res.ok) await cache.put(req,res.clone());
-          return res;
-        }catch(e){
-          return Response.error();
-        }
+      fetch(req,{cache:'no-store'}).catch(async()=>{
+        const shell=await caches.open(SHELL_CACHE);
+        return (await shell.match(OFFLINE_URL)) || Response.error();
       })
     );
     return;
   }
 
-  if(req.mode==='navigate'){
-    event.respondWith(
-      fetch(req,{cache:'reload'}).then(async res=>{
-        if(res.ok){
-          const cache=await caches.open(PUBLIC_CACHE);
-          cache.put(req,res.clone());
-        }
-        return res;
-      }).catch(async()=>{
-        const cache=await caches.open(PUBLIC_CACHE);
-        return (await cache.match(req)) || (await caches.match('./offline.html'));
-      })
-    );
+  // Documents are always fresh while online. Cached copies are offline-only fallbacks.
+  if(req.mode==='navigate' || req.destination==='document'){
+    event.respondWith(freshNetwork(req,{fallback:OFFLINE_URL,store:true}));
+    return;
+  }
+
+  // CSS/JS/manifests are mutable during development: never let browser HTTP cache hide a deploy.
+  if(isMutableCode(url)){
+    event.respondWith(freshNetwork(req,{store:true}));
+    return;
+  }
+
+  // Fingerprinted/versioned media and fonts are safe to cache aggressively inside Cache Storage.
+  if(isFont(url) || (isImage(url) && isExplicitlyVersioned(url))){
+    event.respondWith(cacheFirstImmutable(req));
+    return;
+  }
+
+  // Unversioned images remain fresh-first so replacing an image at the same URL is visible promptly.
+  if(isImage(url)){
+    event.respondWith(freshNetwork(req,{store:true}));
+    return;
   }
 });
