@@ -1,11 +1,60 @@
 {
- "schema_version":"1.0",
- "media_asset":{
-  "required":["asset_id","storage_key","mime_type","width","height","alt","licence_status","provenance","created_at"],
-  "optional":["caption","credit","source_reference","focal_point","language"],
-  "public_requires_licence_status":["OWNED","LICENSED","PUBLIC_DOMAIN","PERMISSION_GRANTED"],
-  "prohibited_public_status":["UNKNOWN","RESTRICTED"],
-  "seo":{"descriptive_filename":true,"dimensions_required":true,"alt_required_unless_decorative":true,"decorative_alt_empty":true}
- },
- "review":{"replacement_preserves_provenance":true,"rights_review_required":true}
+  "schema_version": "2.0",
+  "status": "ACTIVE_V4_3_0",
+  "canonical_registry": "assets/media-registry.json",
+  "managed_roots": [
+    "assets/images",
+    "favicon.svg",
+    "favicon.png",
+    "favicon.ico"
+  ],
+  "principles": [
+    "Every production image asset has exactly one canonical registry record.",
+    "Use the highest-quality approved source available; never repeatedly transcode an already compressed derivative when a better source exists.",
+    "Optimization must preserve approved composition. Book covers and identity assets are composition-locked.",
+    "Prefer SVG for native vectors, AVIF for high-quality photographic/cover delivery when compatibility is verified, and WebP as a robust raster alternative.",
+    "Do not invent or upscale missing source detail. A production derivative may temporarily serve as the approved source when the original master is not stored in the repository, but provenance must say so.",
+    "Replacing an unversioned image at the same URL remains fresh-first under the cache standard; immutable caching is allowed only for identity-stable versioned/fingerprinted URLs."
+  ],
+  "record_required": [
+    "path",
+    "kind",
+    "role",
+    "provenance",
+    "rights",
+    "alt_en",
+    "alt_fa"
+  ],
+  "record_optional": [
+    "caption_en",
+    "caption_fa",
+    "source_asset",
+    "source_status",
+    "mime_type",
+    "width",
+    "height",
+    "composition_locked",
+    "optimization_profile",
+    "approved_on"
+  ],
+  "public_rights_rule": "Public assets must have explicit site-use approval/provenance. UNKNOWN or RESTRICTED rights are prohibited.",
+  "derivative_rules": {
+    "keep_source_when_available": true,
+    "no_lossy_transcode_chain": true,
+    "preserve_aspect_ratio_by_default": true,
+    "crop_only_when_explicitly_designed": true,
+    "strip_unnecessary_metadata_when_safe": true,
+    "retina_quality_for_brand_critical_assets": true,
+    "deterministic_descriptive_filenames": true
+  },
+  "book_cover_profile": {
+    "composition_locked": true,
+    "visual_fidelity_priority": "HIGH",
+    "preferred_delivery": [
+      "AVIF",
+      "WEBP"
+    ],
+    "source_rule": "Retain an approved master/source when available; otherwise record the approved production asset as the current source without pretending it is an original master."
+  },
+  "audit": "scripts/media-library-audit.mjs"
 }
