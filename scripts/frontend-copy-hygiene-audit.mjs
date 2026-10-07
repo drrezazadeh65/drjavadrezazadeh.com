@@ -21,6 +21,14 @@ const forbidden=[
   {re:/\bprevalidation\b/i,label:'prevalidation jargon'},
   {re:/\b(?:internal|developer) note\b/i,label:'internal/developer note'},
   {re:/\bplaceholder copy\b/i,label:'placeholder copy'},
+  {re:/\bbrowser state\b/i,label:'browser implementation jargon'},
+  {re:/\bserver-side\b/i,label:'server implementation jargon'},
+  {re:/\bprovider verification\b/i,label:'payment implementation jargon'},
+  {re:/\bDurable Object\b/i,label:'infrastructure jargon'},
+  {re:/\bruntime secret\b/i,label:'secret-management jargon'},
+  {re:/\bCloudflare Worker\b/i,label:'infrastructure jargon'},
+  {re:/\bGitHub Pages\b/i,label:'hosting implementation jargon'},
+  {re:/\bAPI\b/i,label:'API implementation jargon'},
   {re:/بک[\u200c\- ]?اند/i,label:'visible Persian backend jargon'}
 ];
 
