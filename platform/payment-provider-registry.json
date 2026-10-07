@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "status": "PRE_PRODUCTION",
+  "status": "BITPAY_SELECTED_TEST_AND_PRODUCTION_SETUP",
   "activation_rule": "A provider remains disabled until its exact official API contract, merchant credentials, callback origin and sandbox verification have passed.",
   "providers": [
     {
@@ -8,14 +8,18 @@
       "market": "IR",
       "currency": "IRR",
       "enabled": false,
-      "adapter_status": "AWAITING_SELECTED_PROVIDER_API",
-      "credentials_state": "MISSING",
+      "adapter_status": "ADAPTER_READY_RUNTIME_AND_TEST_SECRET_PENDING",
+      "credentials_state": "TEST_API_AND_PRODUCTION_API_NOT_STORED",
       "capabilities_required": [
         "CREATE_INTENT",
         "VERIFY_EVENT",
         "QUERY_STATUS"
       ],
-      "refund_capability": "VERIFY_WHEN_PROVIDER_SELECTED"
+      "refund_capability": "VERIFY_WHEN_PROVIDER_SELECTED",
+      "provider_name": "BitPay",
+      "provider_key": "bitpay",
+      "documentation_version": "2.2",
+      "callback_verification": "SERVER_SIDE_REQUIRED"
     },
     {
       "key": "ir_secondary",
@@ -50,6 +54,8 @@
     "repository_allowed": false,
     "browser_allowed": false,
     "log_allowed": false,
-    "runtime_secret_store_required": true
+    "runtime_secret_store_required": true,
+    "bitpay_api_env": "BITPAY_API",
+    "bitpay_test_api_env": "BITPAY_TEST_API"
   }
 }
