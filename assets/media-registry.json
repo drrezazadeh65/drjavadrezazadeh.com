@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-06",
+  "version": "2026-10-07-v4.3.0",
   "policy": "Every repository image asset must have one registry record. This registry authorises site use only; it is not a blanket licence for third-party redistribution.",
   "assets": [
     {
@@ -232,6 +232,86 @@
       "alt_fa": "تصویری مفهومی برای بررسی تناسب رشته تحصیلی با دانش‌آموز",
       "caption_en": "Exploring field fit through evidence, context and preferences.",
       "caption_fa": "بررسی تناسب رشته با شواهد، زمینه و ترجیحات."
+    },
+    {
+      "path": "assets/images/books/sepid-javad-rezazadeh-yazdeli-book-cover-2026.avif",
+      "kind": "book-cover",
+      "role": "book-cover-sepid",
+      "provenance": "owner-approved production cover supplied for the published book Sepid; approved production raster retained as current repository source",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Cover of Sepid by Javad Rezazadeh Yazdeli",
+      "alt_fa": "جلد کتاب سپید اثر جواد رضازاده یزدلی",
+      "caption_en": "Published poetry collection Sepid.",
+      "caption_fa": "مجموعه شعر منتشرشده «سپید».",
+      "source_status": "approved-production-source",
+      "mime_type": "image/avif",
+      "composition_locked": true,
+      "optimization_profile": "book-cover-premium"
+    },
+    {
+      "path": "assets/images/books/tariki-javad-rezazadeh-yazdeli-book-cover-2026.avif",
+      "kind": "book-cover",
+      "role": "book-cover-tariki",
+      "provenance": "owner-approved production cover supplied for the published book Tariki; approved production raster retained as current repository source",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Cover of Tariki by Javad Rezazadeh Yazdeli",
+      "alt_fa": "جلد کتاب تاریکی اثر جواد رضازاده یزدلی",
+      "caption_en": "Published poetry collection Tariki.",
+      "caption_fa": "مجموعه شعر منتشرشده «تاریکی».",
+      "source_status": "approved-production-source",
+      "mime_type": "image/avif",
+      "composition_locked": true,
+      "optimization_profile": "book-cover-premium"
+    },
+    {
+      "path": "assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.webp",
+      "kind": "book-cover",
+      "role": "book-cover-bonbast",
+      "provenance": "owner-approved production cover supplied for the published book Bonbast and verified as a valid WebP during the 2026-10-07 repair workflow",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Cover of Bonbast by Javad Rezazadeh Yazdeli",
+      "alt_fa": "جلد کتاب بن‌بست اثر جواد رضازاده یزدلی",
+      "caption_en": "Published poetry collection Bonbast.",
+      "caption_fa": "مجموعه شعر منتشرشده «بن‌بست».",
+      "source_status": "approved-production-source",
+      "mime_type": "image/webp",
+      "composition_locked": true,
+      "optimization_profile": "book-cover-premium"
+    },
+    {
+      "path": "favicon.svg",
+      "kind": "brand-icon",
+      "role": "favicon-vector",
+      "provenance": "repository-native JR site identity asset",
+      "rights": "site-use-approved",
+      "alt_en": "JR site icon",
+      "alt_fa": "آیکون سایت JR",
+      "source_status": "canonical-vector-source",
+      "mime_type": "image/svg+xml"
+    },
+    {
+      "path": "favicon.png",
+      "kind": "brand-icon",
+      "role": "favicon-png",
+      "provenance": "repository-native JR site identity derivative",
+      "rights": "site-use-approved",
+      "alt_en": "JR site icon",
+      "alt_fa": "آیکون سایت JR",
+      "source_asset": "favicon.svg",
+      "source_status": "production-derivative",
+      "mime_type": "image/png"
+    },
+    {
+      "path": "favicon.ico",
+      "kind": "brand-icon",
+      "role": "favicon-ico",
+      "provenance": "repository-native JR site identity compatibility derivative",
+      "rights": "site-use-approved",
+      "alt_en": "JR site icon",
+      "alt_fa": "آیکون سایت JR",
+      "source_asset": "favicon.svg",
+      "source_status": "production-derivative",
+      "mime_type": "image/x-icon"
     }
   ]
 }
