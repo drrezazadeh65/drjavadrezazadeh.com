@@ -1,4 +1,4 @@
-# JR Cache Standard v2.0
+# JR Cache Standard v2.1
 
 Status: production cache contract  
 Scope: browser HTTP cache, GitHub Pages edge cache, Service Worker/Cache Storage, PWA, future CDN/origin hosting
@@ -13,7 +13,7 @@ Scope: browser HTTP cache, GitHub Pages edge cache, Service Worker/Cache Storage
 6. **Service Worker updates bypass the HTTP cache.** Registration uses `updateViaCache: "none"`, checks for updates on every page load, calls `skipWaiting()`, and claims clients immediately.
 7. **A new Service Worker cache family invalidates all old JR caches.** Old `jr-site-*` caches are deleted during activation.
 8. **Members receive app-like speed without caching personal data.** Shared shell assets may be cached; authenticated/private responses remain `no-store`.
-9. **No manual cache clearing is part of the normal release process.** A successful deploy must become visible through ordinary navigation/reload.
+9. **No manual cache clearing is part of the normal release process.** A successful deploy must become visible through ordinary navigation/reload. Every main-branch change to HTML, public assets, platform JSON or the manifest triggers an automatic Service Worker cache-family bump; the cache-bump commit itself does not retrigger that workflow.
 10. **GitHub Pages limitation is explicit.** GitHub Pages controls its own HTTP response cache headers. The Service Worker therefore bypasses the browser HTTP cache for mutable resources. The repository `_headers` file is the canonical policy for a future host/CDN that supports custom response headers.
 
 ## Policy matrix
@@ -29,6 +29,12 @@ Scope: browser HTTP cache, GitHub Pages edge cache, Service Worker/Cache Storage
 | Checkout/payment | Network only, `cache:"no-store"` | No | `Cache-Control: no-store` |
 | Service Worker | Update check on every load, `updateViaCache:"none"` | Browser-managed SW store | `Cache-Control: no-cache` |
 | Offline shell | Precached | Yes | Versioned with SW cache family |
+
+## Automatic invalidation
+
+The `release-cache-reset.yml` workflow runs after every relevant main-branch site change and on formal releases. It updates `CACHE_VERSION` in `sw.js`; activation deletes prior `jr-site-*` cache families. Browser HTTP cache is still bypassed for mutable resources through `cache: "reload"`, so freshness does not depend on the Service Worker update alone.
+
+This mechanism cannot remotely erase arbitrary browser storage outside the site's own controlled Cache Storage, and it must never delete authentication state or user preferences. The contract is therefore cache obsolescence and revalidation, not destructive client storage clearing.
 
 ## Release invariants
 
