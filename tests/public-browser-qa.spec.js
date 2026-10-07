@@ -471,3 +471,20 @@ test('PWA install affordance temporarily yields the bottom layer',async({page})=
   await page.locator('.pwa-install').evaluate(el=>el.remove());
   await expect(launcher).toBeVisible();
 });
+
+test('auth entry visual evidence',async({page})=>{
+  const surfaces=[
+    ['/fa/login/','fa-login'],
+    ['/fa/register/','fa-register'],
+    ['/en/login/','en-login'],
+    ['/en/register/','en-register']
+  ];
+  for(const [route,name] of surfaces){
+    for(const [label,width,height] of [['mobile-390',390,844],['desktop-1440',1440,900]]){
+      await page.setViewportSize({width,height});
+      await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      await page.waitForTimeout(180);
+      await page.screenshot({path:'test-results/screenshots/'+name+'-'+label+'-first-screen.png',fullPage:false});
+    }
+  }
+});
