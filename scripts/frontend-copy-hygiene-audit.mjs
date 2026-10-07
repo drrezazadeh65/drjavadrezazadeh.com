@@ -17,6 +17,7 @@ const forbidden=[
   {re:/\bFIXME\b/i,label:'FIXME'},
   {re:/\bChatGPT\b/i,label:'ChatGPT internal reference'},
   {re:/\bstaging\b/i,label:'staging jargon'},
+  {re:/\breadiness\b/i,label:'internal readiness jargon'},
   {re:/\bprevalidation\b/i,label:'prevalidation jargon'},
   {re:/\b(?:internal|developer) note\b/i,label:'internal/developer note'},
   {re:/\bplaceholder copy\b/i,label:'placeholder copy'},
