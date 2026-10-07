@@ -1,0 +1,160 @@
+{
+  "schema_version": "1.0",
+  "status": "ACTIVE_PREMIUM_PRICING_1405",
+  "currency": "IRT",
+  "pricing_principle": "No specialist one-hour consultation is priced below 6000000 IRT.",
+  "public_notes": [
+    "Prices are fixed for the defined scope; additional scope requires a separate order.",
+    "Language education remains an expertise/content area but is not offered as a paid product.",
+    "Payment activation remains contingent on server-side verified BitPay flow."
+  ],
+  "services": [
+    {
+      "id": "academic_consult_60",
+      "title_fa": "مشاوره تخصصی تحصیلی",
+      "duration_minutes": 60,
+      "price": 6000000,
+      "sellable": true
+    },
+    {
+      "id": "student_parent_90",
+      "title_fa": "جلسه دانش‌آموز و والد",
+      "duration_minutes": 90,
+      "price": 9000000,
+      "sellable": true
+    },
+    {
+      "id": "konkur_consult_60",
+      "title_fa": "مشاوره تخصصی کنکور",
+      "duration_minutes": 60,
+      "price": 6000000,
+      "sellable": true
+    },
+    {
+      "id": "konkur_month",
+      "title_fa": "برنامه مشاوره کنکور یک‌ماهه",
+      "duration_minutes": null,
+      "price": 24000000,
+      "sellable": true
+    },
+    {
+      "id": "transcript_analysis",
+      "title_fa": "تحلیل کارنامه و تصمیم تحصیلی",
+      "duration_minutes": null,
+      "price": 7500000,
+      "sellable": true
+    },
+    {
+      "id": "field_selection_standard",
+      "title_fa": "انتخاب رشته دانشگاهی استاندارد",
+      "duration_minutes": null,
+      "price": 12000000,
+      "sellable": true
+    },
+    {
+      "id": "field_selection_comprehensive",
+      "title_fa": "انتخاب رشته جامع و اولویت‌بندی نهایی",
+      "duration_minutes": null,
+      "price": 18000000,
+      "sellable": true
+    },
+    {
+      "id": "talent_initial",
+      "title_fa": "استعدادیابی تخصصی اولیه",
+      "duration_minutes": null,
+      "price": 12000000,
+      "sellable": true
+    },
+    {
+      "id": "golden_talent_comprehensive",
+      "title_fa": "Golden Talent — ارزیابی جامع و مسیر پیشنهادی",
+      "duration_minutes": null,
+      "price": 24000000,
+      "sellable": true
+    },
+    {
+      "id": "golden_talent_premium",
+      "title_fa": "Golden Talent — ارزیابی جامع + جلسه والدین + گزارش مسیر",
+      "duration_minutes": null,
+      "price": 36000000,
+      "sellable": true
+    },
+    {
+      "id": "teacher_consult_60",
+      "title_fa": "مشاوره تخصصی معلم، مواد آموزشی و سنجش",
+      "duration_minutes": 60,
+      "price": 8000000,
+      "sellable": true
+    },
+    {
+      "id": "teacher_dev_90",
+      "title_fa": "جلسه توسعه حرفه‌ای مدرس",
+      "duration_minutes": 90,
+      "price": 12000000,
+      "sellable": true
+    },
+    {
+      "id": "manuscript_diagnostic",
+      "title_fa": "بازبینی تشخیصی مقاله تا ۷۰۰۰ کلمه + گزارش",
+      "duration_minutes": null,
+      "price": 12000000,
+      "sellable": true
+    },
+    {
+      "id": "academic_editing",
+      "title_fa": "ویرایش انگلیسی دانشگاهی تا ۵۰۰۰ کلمه",
+      "duration_minutes": null,
+      "price": 15000000,
+      "sellable": true
+    },
+    {
+      "id": "research_consult_60",
+      "title_fa": "مشاوره پژوهش",
+      "duration_minutes": 60,
+      "price": 7000000,
+      "sellable": true
+    },
+    {
+      "id": "journal_strategy",
+      "title_fa": "مشاوره انتخاب مجله و راهبرد انتشار",
+      "duration_minutes": null,
+      "price": 9000000,
+      "sellable": true
+    },
+    {
+      "id": "reviewer_response",
+      "title_fa": "پشتیبانی پاسخ به داوران تا ۲۰ کامنت",
+      "duration_minutes": null,
+      "price": 15000000,
+      "sellable": true
+    },
+    {
+      "id": "academic_cv",
+      "title_fa": "رزومه دانشگاهی و مسیر اپلای/شغلی",
+      "duration_minutes": null,
+      "price": 12000000,
+      "sellable": true
+    },
+    {
+      "id": "academic_interview_90",
+      "title_fa": "آمادگی مصاحبه علمی یا هیئت علمی",
+      "duration_minutes": 90,
+      "price": 12000000,
+      "sellable": true
+    },
+    {
+      "id": "organization_consult_90",
+      "title_fa": "مشاوره سازمانی یا مدرسه",
+      "duration_minutes": 90,
+      "price": 15000000,
+      "sellable": true
+    },
+    {
+      "id": "specialist_workshop_120",
+      "title_fa": "کارگاه تخصصی آنلاین تا ۲ ساعت",
+      "duration_minutes": 120,
+      "price": 30000000,
+      "sellable": true
+    }
+  ]
+}
