@@ -489,7 +489,7 @@ link.dataset.jrAssistantStyle='1';
 document.head.appendChild(link);
 }
 const script=document.createElement('script');
-script.src=new URL('assistant.js',siteScript.src).href;
+script.src=new URL('assistant.js?v=20261007-auth-privacy-v1',siteScript.src).href;
 script.defer=true;
 script.dataset.jrAssistant='1';
 document.head.appendChild(script);

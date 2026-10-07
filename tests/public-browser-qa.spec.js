@@ -501,3 +501,20 @@ test('English student mobile masthead stays compact and single-line',async({page
   const direction=await brand.evaluate(el=>getComputedStyle(el).flexDirection);
   expect(direction).toBe('row');
 });
+
+for(const route of ['/en/login/','/en/register/','/fa/login/','/fa/register/']){
+  test('auth routes suppress the public concierge and keep a compact masthead: '+route,async({page})=>{
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(350);
+    await expect(page.locator('.jr-assistant')).toHaveCount(0);
+    const brand=page.locator('.site-header .brand');
+    await expect(brand).toBeVisible();
+    const b=await brand.boundingBox();
+    expect(b).not.toBeNull();
+    expect(b.height,route+' auth masthead height').toBeLessThanOrEqual(34);
+    expect(await brand.evaluate(el=>getComputedStyle(el).flexDirection)).toBe('row');
+    const robots=await page.locator('meta[name="robots"]').getAttribute('content');
+    expect(robots||'').toContain('noindex');
+  });
+}
