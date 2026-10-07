@@ -97,7 +97,7 @@ The remaining external merchant blocker is the BitPay postal-code mismatch with 
 
 ## eNAMAD
 
-The project records eNAMAD as obtained and the site contains the official trust-link/code. The exact provider-supported seal rendering must remain a governance item: do not fabricate an “official snippet” from memory. If the provider supplies a canonical snippet, use it byte-faithfully subject to security review.
+The project records eNAMAD as obtained. The provider-supplied official trust-seal link/code is now surfaced across the Persian bookstore, book-detail, cart and checkout journey. The seal remains a trust surface only; it does not imply that bank-gateway production activation, fulfilment terms or payment reconciliation are complete.
 
 ## Authentication and private applications
 
@@ -169,3 +169,78 @@ The v4.3.0 repository/public-foundation release gates are green on the final pub
 Accordingly, v4.3.0 is internally complete as a repository/public-foundation release. It is not a claim that external provider-dependent systems—production payment, authenticated private data, GA4, Cloudflare assistant deployment, real booking/calendar persistence, verified fulfilment policy, or physical-device/assistive-technology certification—are live. Those gates remain explicitly open and must be completed only with real credentials, verified business data or real-device evidence.
 
 The next status update must be driven by verified external-provider or live-device evidence, not additional speculative frontend construction.
+
+
+## Completion classification
+
+### Implemented and verified
+
+- Bilingual public authority layer, audience-led services routing, Invite/Institutional pathways and public Golden Talent/methodology surfaces.
+- Frozen canonical URL, hreflang, sitemap, schema and noindex governance under the 2026 bilingual SEO baseline.
+- Jekyll public/private publication boundary with engineering-only directories excluded from GitHub Pages while preserving public routes.
+- Browser-safe public data projections for service, book and analytics configuration, with drift enforcement.
+- Canonical media registry/policy, composition-locked book covers and deterministic derivative generation.
+- Three-book Persian bookstore catalogue with owner-approved pricing and official eNAMAD trust-seal rendering.
+- Canonical 21-service catalogue, fit/outcome/boundary copy and selected-service handoff into consultation intake.
+- Audience-specific student/parent/teacher/adviser/admin frontend foundations and mobile/PWA shell.
+- Longitudinal development, study-plan revision, explainable decision-support and recurring-coaching domain architecture.
+- Live IndexNow automation, Search Console integration, release-cache invalidation and fail-closed SEO/copy/data sanitation checks.
+- Automated Browser QA, all-route responsive certification and all-route four-viewport visual evidence.
+
+### Partially implemented
+
+- Bookstore commerce: catalogue, cart, checkout UX and trust surface are present; production payment and verified fulfilment remain gated.
+- Professional services: discovery, pricing/value architecture and intake routing exist; secure case persistence, confidential file exchange, booking and paid fulfilment are not yet live.
+- Golden Talent: RCAS/D1–D6/Golden Path/BAHAR and longitudinal evidence architecture are substantial, while validated scoring/normative interpretation and real private persistence remain intentionally disabled.
+- AI concierge: Worker code, safety boundaries and deployment workflow exist; production Cloudflare deployment and live secret-backed lead export remain unverified.
+- Private application: role-specific UX and contracts exist; production authentication, authorization, database and private storage are not active.
+- Observability: Search Console and repository event contracts are active; GA4 and production uptime/error monitoring remain unconnected.
+
+### Deferred by design
+
+- Any speculative page expansion that does not represent distinct search/user intent.
+- Automatic career or major prescription.
+- Total Talent Score, giftedness labels, normative cut-offs or psychometric claims without empirical validation.
+- Iran-specific annual selection intelligence without official versioned source data.
+- International pathway datasets until source eligibility, licence, jurisdiction, versioning and provenance are verified.
+- WhatsApp Business API integration until business/WABA credentials exist; it is not a launch dependency.
+
+### Backend-dependent
+
+- Email/password authentication, sessions, email verification and recovery execution.
+- PostgreSQL/private-object-storage persistence, RLS and Admin MFA.
+- Real booking/calendar availability and case persistence.
+- Payment-provider production execution, webhook verification and reconciliation.
+- Secure confidential academic/student document exchange.
+- Real longitudinal student data and authenticated dashboard hydration.
+- Production AI assistant secrets, lead export and custom-domain runtime health.
+
+### Scientific-validation dependent
+
+- Golden Talent scoring calibration, norms, cut-offs and any population-referenced interpretation.
+- Claims that a measured direction constitutes meaningful improvement without validated interpretive rules.
+- Consequential pathway/career recommendations beyond evidence-labelled, human-reviewed hypotheses.
+- Any future automated classification whose validity, reliability, fairness and human-review requirements have not been empirically established.
+
+### Owner/business-input dependent
+
+- Verified shipping geography, fulfilment method, return/refund rules and operational stock process.
+- Remaining ISBN, publisher, edition and bibliographic metadata where applicable.
+- Final operational definitions, capacity and pricing for recurring coaching programmes beyond the currently approved service catalogue.
+- Merchant-account corrections/approvals required by BitPay.
+- Selection of the real GA4 property and approval of its production measurement scope.
+
+### External blockers
+
+- BitPay merchant re-review and production API credential.
+- Production identity/database/private-storage runtime.
+- Cloudflare production credentials/secrets and assistant custom-domain verification.
+- GA4 account/property scope.
+- Real booking/calendar provider/runtime.
+- Physical iOS/Android and VoiceOver/TalkBack certification.
+- Bing Webmaster API activation; current connected property has no Bing API key configured.
+- Golden Talent empirical validation for any future normative or psychometric claim.
+
+### Release boundary
+
+Repository/public-foundation completion does not mean every external service is operational. v4.3.0 is considered complete only for the code, public website, architecture, governance and automated evidence that can legitimately be completed without fabricating credentials, business rules, private data, scientific validation or provider approval.
