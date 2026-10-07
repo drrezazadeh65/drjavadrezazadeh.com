@@ -15,15 +15,18 @@ The public assistant runs as a separate Cloudflare Worker on `assistant.drjavadr
 - No message persistence on the server and no browser persistence of conversation text.
 - Private/account/assessment/checkout surfaces do not load the public concierge.
 
-## One-time Cloudflare activation
+## Production deployment
 
-In Cloudflare **Workers & Pages → Create application → Import a repository**:
+The canonical repeatable deployment path is `.github/workflows/assistant-worker-deploy.yml`.
 
-1. Connect GitHub and choose `drrezazadeh65/drjavadrezazadeh.com`.
-2. Set the Worker/project name to exactly `drjavadrezazadeh-assistant`.
-3. Set the root directory to `edge/assistant`.
-4. Keep deploy command `npx wrangler deploy`.
-5. Save and Deploy.
+Required GitHub Actions secrets:
+
+- `CLOUDFLARE_API_TOKEN` with the minimum Worker deployment permissions required for this account;
+- `CLOUDFLARE_ACCOUNT_ID`.
+
+The workflow validates the Worker with a Wrangler dry run, deploys it, and can verify `https://assistant.drjavadrezazadeh.com/health`. It is manual-dispatch only so missing external credentials cannot make ordinary website commits fail.
+
+If repository-to-Cloudflare deployment is configured directly in Cloudflare instead, keep `edge/assistant` as the project root and `npx wrangler deploy` as the deploy command. Do not maintain two competing automatic deployment paths.
 
 The Wrangler configuration declares the AI binding and the custom domain `assistant.drjavadrezazadeh.com`. Cloudflare can issue the subdomain certificate and DNS record after the zone is active.
 
