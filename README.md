@@ -25,9 +25,9 @@ Academia.edu, Semantic Scholar, ORCID, Instagram and GitHub are linked. Google S
 © Dr. Javad Rezazadeh Yazdeli. All rights reserved.
 
 
-## Master Foundation v4.0
+## Master Foundation v4.3.0
 
-The frozen execution roadmap is maintained in `foundation/MASTER-ECOSYSTEM-ROADMAP.md`, with machine-readable status rules in `foundation/ROADMAP-STATUS.json`. Roadmap items are never silently removed; they move through explicit DONE / MODIFIED / RENEWED / IN PROGRESS / PLANNED / WAITING / DEFERRED / RETIRED states.
+The active completion baseline is `foundation/V4.3.0-EXECUTION-BASELINE.md`. The frozen ecosystem roadmap remains in `foundation/MASTER-ECOSYSTEM-ROADMAP.md`, with machine-readable status rules in `foundation/ROADMAP-STATUS.json`. Roadmap items are never silently removed; they move through explicit DONE / MODIFIED / RENEWED / IN PROGRESS / PLANNED / WAITING / DEFERRED / RETIRED states.
 
 ## Master Foundation
 The repository now contains an explicit foundation layer under `/foundation/`. New application, assessment, research-lab and commerce namespaces are reserved as `noindex` routes until substantive content/data and an explicit SEO release decision exist.
