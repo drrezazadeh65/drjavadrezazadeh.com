@@ -1,0 +1,42 @@
+name: One-time Bonbast WebP Fix
+on:
+  push:
+    paths:
+      - ".github/workflows/bonbast-webp-fix.yml"
+permissions:
+  contents: write
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Convert Bonbast AVIF to WebP
+        run: |
+          set -euo pipefail
+          src="assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.avif"
+          out="assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.webp"
+          if command -v magick >/dev/null 2>&1; then
+            magick "$src" -quality 90 "$out"
+          else
+            convert "$src" -quality 90 "$out"
+          fi
+          test -s "$out"
+          python - <<'PY'
+          import json
+          p="platform/book-catalog.json"
+          with open(p,encoding="utf-8") as f:
+              d=json.load(f)
+          for b in d["books"]:
+              if b["id"]=="bonbast":
+                  b["bibliography"]["cover_image"]="/assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.webp"
+          with open(p,"w",encoding="utf-8") as f:
+              json.dump(d,f,ensure_ascii=False,indent=2)
+              f.write("\n")
+          PY
+      - name: Commit WebP fallback
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.webp platform/book-catalog.json
+          git commit -m "Use WebP fallback for Bonbast cover"
+          git push
