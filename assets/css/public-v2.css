@@ -3200,3 +3200,27 @@
     margin-bottom:0;
   }
 }
+
+
+/* =========================================================
+   MOBILE PRIMARY ACTION PRIORITY v5.3 — 2026-10-07
+   Surface the next action before long explanatory copy
+   ========================================================= */
+@media(max-width:560px){
+  .public-home-page .hero-copy{
+    display:flex!important;
+    flex-direction:column;
+  }
+  .public-home-page .hero-copy>.eyebrow{order:1}
+  .public-home-page .hero-copy>h1{order:2}
+  .public-home-page .hero-copy>.hero-line{order:3}
+  .public-home-page .hero-copy>.actions{
+    order:4;
+    margin-top:18px;
+    margin-bottom:17px;
+  }
+  .public-home-page .hero-copy>.lead{
+    order:5;
+    margin-top:0;
+  }
+}

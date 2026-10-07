@@ -223,3 +223,20 @@ for(const route of ['/fa/','/en/']){
     expect(hb.y+hb.height,'hero identity should finish before the fixed dock').toBeLessThan(db.y-20);
   });
 }
+
+
+for(const route of ['/fa/','/en/']){
+  test('mobile primary home action is available above the fixed dock: '+route,async({page})=>{
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.waitForTimeout(160);
+    const cta=page.locator('.hero .actions .button.primary').first();
+    const dock=page.locator('.app-dock').first();
+    await expect(cta).toBeVisible();
+    await expect(dock).toBeVisible();
+    const [cb,db]=await Promise.all([cta.boundingBox(),dock.boundingBox()]);
+    expect(cb).not.toBeNull();
+    expect(db).not.toBeNull();
+    expect(cb.y+cb.height,'primary hero CTA should finish before the fixed dock').toBeLessThan(db.y-12);
+  });
+}
