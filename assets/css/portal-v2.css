@@ -2732,3 +2732,49 @@ html[lang="en"] .student-gateway-page .site-header .brand small{
 .dashboard-shell-page .student-dash-shell{padding-bottom:calc(116px + env(safe-area-inset-bottom))}
 .dashboard-shell-page .dashboard-topbar{position:sticky;top:0}
 }
+
+@media(max-width:560px){
+  .student-dashboard-page{--private-student-mobile-density:1}
+  .dashboard-shell-page .student-dash-shell{padding-top:14px}
+  .dashboard-shell-page .student-dash-hero{
+    padding:19px 18px;
+    gap:14px;
+    border-radius:19px;
+  }
+  .dashboard-shell-page .student-dash-hero h1{
+    margin:6px 0 10px;
+    font-size:clamp(29px,8vw,32px);
+    line-height:1.45;
+  }
+  .dashboard-shell-page .student-dash-hero .lead{
+    margin:0;
+    font-size:14.5px;
+    line-height:1.95;
+  }
+  .dashboard-shell-page .student-status-card{
+    gap:7px;
+    padding:16px;
+    border-radius:15px;
+  }
+  .dashboard-shell-page .student-status-card strong{font-size:20px}
+  .dashboard-shell-page .student-status-card small{font-size:10px;line-height:1.65}
+  .dashboard-shell-page .student-next-action{
+    margin:10px 0 12px;
+    padding:17px;
+    border-radius:16px;
+  }
+  .dashboard-shell-page .student-next-action h2{
+    margin:4px 0 6px;
+    font-size:20px;
+    line-height:1.55;
+  }
+  .dashboard-shell-page .student-next-action p{
+    font-size:12px;
+    line-height:1.75;
+  }
+  .dashboard-shell-page .student-next-action .button{
+    min-height:46px;
+    margin-top:2px;
+  }
+  .dashboard-shell-page .dashboard-kpi-row{margin:10px 0 14px}
+}

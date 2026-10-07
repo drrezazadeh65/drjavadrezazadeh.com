@@ -700,3 +700,25 @@ test('private student app first-screen visual evidence',async({page})=>{
     }
   }
 });
+
+test('Persian student dashboard prioritizes next action before analytics',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/fa/app/student/',{waitUntil:'domcontentloaded'});
+  await page.waitForTimeout(180);
+  const hero=page.locator('.student-dash-hero');
+  const next=page.locator('.student-next-action');
+  const kpi=page.locator('.dashboard-kpi-row');
+  const dock=page.locator('.app-dock');
+  await expect(hero).toBeVisible();
+  await expect(next).toBeVisible();
+  await expect(kpi).toBeVisible();
+  await expect(dock).toBeVisible();
+  const [hb,nb,kb,db]=await Promise.all([hero.boundingBox(),next.boundingBox(),kpi.boundingBox(),dock.boundingBox()]);
+  for(const box of [hb,nb,kb,db]) expect(box).not.toBeNull();
+  expect(nb.y,'next action must follow hero').toBeGreaterThanOrEqual(hb.y+hb.height-2);
+  expect(kb.y,'analytics should follow the actionable next step').toBeGreaterThanOrEqual(nb.y+nb.height-2);
+  expect(nb.y+Math.min(nb.height,46),'next action should enter the first app viewport before the dock').toBeLessThan(db.y-8);
+  const title=hero.locator('h1');
+  const size=parseFloat(await title.evaluate(el=>getComputedStyle(el).fontSize));
+  expect(size,'mobile dashboard title should be product-scale').toBeLessThanOrEqual(32.5);
+});
