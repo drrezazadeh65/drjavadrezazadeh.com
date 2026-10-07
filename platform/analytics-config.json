@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "status": "DISABLED_UNTIL_VERIFIED_GA4_PROPERTY",
+  "provider": "GA4",
+  "enabled": false,
+  "measurement_id": null,
+  "activation_rule": "Enable only after the real GA4 property is readable from the connected Google account and the exact Measurement ID is verified.",
+  "consent": {
+    "required": true,
+    "storage_key": "jr-analytics-consent-v1",
+    "granted_value": "granted",
+    "denied_value": "denied"
+  },
+  "allowed_client_events": [
+    "consultation_intent",
+    "consultation_email_intent",
+    "academic_service_intent",
+    "institution_invite_intent",
+    "service_price_intent",
+    "account_login_intent",
+    "account_register_intent"
+  ],
+  "payload_allowlist": [
+    "event_key",
+    "surface",
+    "locale",
+    "route",
+    "target_kind"
+  ],
+  "prohibited_payload": [
+    "form field values",
+    "email addresses",
+    "phone numbers",
+    "message bodies",
+    "assessment answers",
+    "document names or contents",
+    "payment credentials",
+    "private account identifiers"
+  ]
+}
