@@ -16,7 +16,7 @@
       var requested=new URLSearchParams(location.search).get('service');
       if(!requested) return;
       try{
-        var response=await fetch('/platform/service-catalog.json',{cache:'reload'});
+        var response=await fetch('/assets/data/service-catalog.json',{cache:'reload'});
         if(!response.ok) return;
         var catalogue=await response.json();
         var service=(catalogue.services||[]).find(function(item){return item.id===requested&&item.sellable===true;});
