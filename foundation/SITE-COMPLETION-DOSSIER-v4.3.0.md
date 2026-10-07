@@ -244,3 +244,10 @@ The next status update must be driven by verified external-provider or live-devi
 ### Release boundary
 
 Repository/public-foundation completion does not mean every external service is operational. v4.3.0 is considered complete only for the code, public website, architecture, governance and automated evidence that can legitimately be completed without fabricating credentials, business rules, private data, scientific validation or provider approval.
+
+
+## Frozen release reference
+
+The final public-surface evidence line is commit `7a19f1700f303c73bc7286f6c39b38937f28e981`. On that exact public surface, SEO GEO Regression 1964, Browser QA 368, Full Route Responsive Certification 53, Full Route Visual Crawl 43, Sanitized Pages Artifact 12 and Release Cache Reset 61 all completed successfully. The subsequent automatic cache-bump deployment also completed successfully.
+
+No further public-surface changes belong to v4.3.0 unless they are required to repair a verified regression. Provider activations are tracked separately and do not reopen the frozen public-foundation baseline.
