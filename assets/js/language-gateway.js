@@ -20,7 +20,7 @@ document.addEventListener('click',e=>{
   const standalone=window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;
   if('serviceWorker' in navigator){
     window.addEventListener('load',()=>{
-      navigator.serviceWorker.register(base+'sw.js?v=20261007-cache-v2',{updateViaCache:'none'}).then(reg=>{
+      navigator.serviceWorker.register(base+'sw.js?v=20261007-cache-v3-enamad',{updateViaCache:'none'}).then(reg=>{
         reg.update().catch(()=>{});
         if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
         reg.addEventListener('updatefound',()=>{
