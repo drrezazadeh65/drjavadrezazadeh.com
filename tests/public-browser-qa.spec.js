@@ -782,3 +782,21 @@ test('Persian private role shells keep usable mobile content width',async({page}
     expect(direction).toBe('rtl');
   }
 });
+
+test('English student gateway uses a two-by-two mobile action grid',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/en/golden-talent/student/',{waitUntil:'domcontentloaded'});
+  await page.waitForTimeout(180);
+  const actions=page.locator('.gt-private-hero>.actions .button');
+  await expect(actions).toHaveCount(4);
+  const boxes=await actions.evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height}}));
+  const eps=3;
+  expect(Math.abs(boxes[0].y-boxes[1].y)).toBeLessThanOrEqual(eps);
+  expect(Math.abs(boxes[2].y-boxes[3].y)).toBeLessThanOrEqual(eps);
+  expect(boxes[1].x).toBeGreaterThan(boxes[0].x+20);
+  expect(boxes[3].x).toBeGreaterThan(boxes[2].x+20);
+  expect(boxes[2].y).toBeGreaterThan(boxes[0].y+boxes[0].h-2);
+  const dock=await page.locator('.app-dock').boundingBox();
+  expect(dock).not.toBeNull();
+  expect(boxes[0].y+boxes[0].h).toBeLessThan(dock.y-10);
+});
