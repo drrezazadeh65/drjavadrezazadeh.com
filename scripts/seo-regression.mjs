@@ -1098,8 +1098,15 @@ else{
             if(obj['@id']&&obj['@id']!==expectedPersonId) failures.push(route+': Person schema @id drifts from canonical entity id');
             for(const url of obj.sameAs||[]) if(!approvedSameAs.has(url)) failures.push(route+': unverified Person sameAs URL '+url);
           }
-          if(types.includes('ProfilePage')&&obj.mainEntity?.['@id']&&obj.mainEntity['@id']!==expectedPersonId){
-            failures.push(route+': ProfilePage mainEntity drifts from canonical person id');
+          if(types.includes('ProfilePage')){
+            const main=obj.mainEntity;
+            const mainTypes=Array.isArray(main?.['@type'])?main['@type']:[main?.['@type']];
+            if(!main||!mainTypes.some(type=>type==='Person'||type==='Organization'))
+              failures.push(route+': ProfilePage mainEntity must directly declare Person or Organization type (Google eligibility)');
+            if(!main?.name&&!main?.alternateName)
+              failures.push(route+': ProfilePage mainEntity missing required person/organization name');
+            if(main?.['@id']!==expectedPersonId)
+              failures.push(route+': ProfilePage mainEntity drifts from canonical person id');
           }
         });
       }
