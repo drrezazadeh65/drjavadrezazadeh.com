@@ -35,7 +35,7 @@ function mount(host,kind,items){
   const button=document.createElement('button');button.type='button';button.className='commerce-pay';button.textContent='پرداخت امن این خدمت';
   const live=document.createElement('p');live.className='commerce-feedback';live.setAttribute('aria-live','polite');
   button.addEventListener('click',()=>pay([{sku:kind+':'+item.id,quantity:1}],button,live,emailInput.value.trim()));
-  const details=document.createElement('a');details.href='/fa/services/detail/?service='+encodeURIComponent(item.id);details.textContent='معرفی کامل، شرایط و جزئیات خدمت';details.className='commerce-details';details.style.cssText='display:block;margin:12px 0;color:inherit;text-decoration:underline;text-underline-offset:5px';card.append(title,price,details,emailInput,button,live);host.append(card);
+  const details=document.createElement('a');details.href='/fa/services/'+encodeURIComponent(item.id)+'/';details.textContent='معرفی کامل، شرایط و جزئیات خدمت';details.className='commerce-details';details.style.cssText='display:block;margin:12px 0;color:inherit;text-decoration:underline;text-underline-offset:5px';card.append(title,price,details,emailInput,button,live);host.append(card);
  }
  const contact=document.createElement('div');contact.className='commerce-contact';
  const email=document.createElement('a');email.href='mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('هماهنگی خدمات دکتر رضازاده');email.textContent='ارتباط از طریق ایمیل';
