@@ -460,9 +460,27 @@ async function commerceAdmin(request,env,path,u,origin){
   await env.DB.prepare("INSERT INTO commerce_fulfilment_events(order_id,actor_email,previous_state,next_state,tracking_code) VALUES(?,?,?,?,?)").bind(b.order,actor.email,order.fulfilment_state,b.to,tracking||null).run();
   return reply({ok:true,order:b.order,state:b.to});
  }
+ if(path==="/commerce/admin/refunds"&&request.method==="GET"){
+  const results=await env.DB.prepare("SELECT id,order_id,reason,state,created_at,updated_at,reviewed_by FROM commerce_refund_requests ORDER BY created_at DESC LIMIT 100").all();
+  return reply({ok:true,requests:results.results||[],note:"Refund requests are not evidence of money returned."});
+ }
+ if(path==="/commerce/admin/refunds/update"&&request.method==="POST"){
+  if(!allowedOrigin(request))return fail("origin_forbidden",403);
+  let input;try{input=await request.json()}catch{return fail("invalid_json")}
+  const states={requested:["reviewing","declined"],reviewing:["approved_pending_disbursement","declined"]};
+  if(!uuid(input?.request)||typeof input?.to!=="string")return fail("invalid_refund_request");
+  const row=await env.DB.prepare("SELECT state FROM commerce_refund_requests WHERE id=?").bind(input.request).first();
+  if(!row)return fail("refund_not_found",404);
+  if(!(states[row.state]||[]).includes(input.to))return fail("invalid_refund_transition",409);
+  const note=field(input.note,500);
+  if(note.length<8)return fail("refund_review_note_required");
+  const changed=await env.DB.prepare("UPDATE commerce_refund_requests SET state=?,reviewed_by=?,review_note=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND state=?")
+   .bind(input.to,actor.email,note,input.request,row.state).run();
+  return changed.meta.changes===1?reply({ok:true,state:input.to,money_returned:false}):fail("refund_concurrent_update",409);
+ }
  if(path==="/commerce/admin/summary"&&request.method==="GET"){
-  const rows=await env.DB.prepare("SELECT state,COUNT(*) AS orders,SUM(amount_toman) AS total_toman FROM commerce_orders GROUP BY state").all();
-  return reply({ok:true,groups:rows.results||[],currency:"IRT",note:"Revenue only includes server-verified paid orders."});
+  const rows=await env.DB.prepare("SELECT state,COUNT(*) AS orders,SUM(CASE WHEN state='paid' THEN amount_toman ELSE 0 END) AS total_toman FROM commerce_orders GROUP BY state").all();
+  return reply({ok:true,groups:rows.results||[],currency:"IRT",note:"Gross verified sales only; refunds require separate confirmed reconciliation."});
  }
  return fail("admin_route_not_found",404);
 }
@@ -505,7 +523,7 @@ function returnPage(state,id){const u=new URL(SITE+"/fa/shop/payment-result/");u
 async function commerce(request,env){
  const u=new URL(request.url),path=u.pathname;
  if(!path.startsWith("/commerce/"))return null;
- if(request.method==="OPTIONS"&&(["/commerce/create","/commerce/receipt","/commerce/receipt/resend","/commerce/admin/fulfilment","/commerce/admin/orders","/commerce/admin/summary"].includes(path)))
+ if(request.method==="OPTIONS"&&(["/commerce/create","/commerce/receipt","/commerce/receipt/resend","/commerce/refund/request","/commerce/admin/refunds/update","/commerce/admin/fulfilment","/commerce/admin/orders","/commerce/admin/summary"].includes(path)))
   return new Response(null,{status:204,headers:{...cors,"Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization"}});
  if(!env.DB)return fail("database_unconfigured",503);
  if(path.startsWith("/commerce/admin/"))return commerceAdmin(request,env,path,u,origin);
@@ -567,6 +585,32 @@ async function commerce(request,env){
    await env.DB.prepare("UPDATE commerce_orders SET state='pending',provider_id_get=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND state='created'").bind(raw,order).run();
    return reply({ok:true,orderId:order,receiptAccessToken:accessToken,totalToman:total,shippingToman:0,currency:"IRT",paymentUrl:SITE+"/fa/shop/payment-start/?gateway="+encodeURIComponent(API+"gateway-"+raw+"-get")});
   }catch{return fail("order_creation_failed",502)}
+ }
+ if(path==="/commerce/refund/request"&&request.method==="POST"){
+  if(!allowedOrigin(request))return fail("origin_forbidden",403);
+  if(!(request.headers.get("Content-Type")||"").startsWith("application/json"))return fail("content_type",415);
+  let input;try{input=await request.json()}catch{return fail("invalid_json")}
+  if(!uuid(input?.order))return fail("invalid_order");
+  const row=await env.DB.prepare("SELECT * FROM commerce_orders WHERE id=?").bind(input.order).first();
+  if(!await authorisedReceipt(request,row))return fail("order_not_authorised",403);
+  if(row.state!=="paid")return fail("refund_requires_paid_order",409);
+  const reason=field(input.reason,500);
+  if(reason.length<20)return fail("refund_reason_too_short",400);
+  const caseId=crypto.randomUUID();
+  try{
+   await env.DB.prepare("INSERT OR IGNORE INTO commerce_refund_requests(id,order_id,reason) VALUES(?,?,?)")
+    .bind(caseId,input.order,reason).run();
+   const result=await env.DB.prepare("SELECT id,state,created_at FROM commerce_refund_requests WHERE order_id=?").bind(input.order).first();
+   return reply({ok:true,request:result,money_returned:false,notice:"A review request does not constitute a refund."});
+  }catch{return fail("refund_request_unavailable",503)}
+ }
+ if(path==="/commerce/refund/status"&&request.method==="GET"){
+  const order=u.searchParams.get("order");
+  if(!uuid(order))return fail("invalid_order");
+  const row=await env.DB.prepare("SELECT * FROM commerce_orders WHERE id=?").bind(order).first();
+  if(!await authorisedReceipt(request,row))return fail("order_not_authorised",403);
+  const request=await env.DB.prepare("SELECT id,state,created_at,updated_at FROM commerce_refund_requests WHERE order_id=?").bind(order).first();
+  return reply({ok:true,request:request||null,money_returned:false});
  }
  if(path==="/commerce/order"&&request.method==="GET"){
   const id=u.searchParams.get("order");
