@@ -1,0 +1,30 @@
+/* Evidence-led decision worksheet. Scoped to one published guide. */
+.knowledge-article-page .decision-matrix{background:linear-gradient(150deg,#171a1c,#0d1014);border:1px solid rgba(237,203,132,.52);border-radius:20px;padding:clamp(18px,3vw,28px);margin:30px 0;box-shadow:0 12px 35px rgba(0,0,0,.18)}
+.knowledge-article-page .decision-matrix>h3{margin-top:0!important;color:#f4d68f}
+.knowledge-article-page .decision-matrix .dm-privacy{font-size:14px!important;line-height:1.95!important;border-right:3px solid #c6a061;padding:8px 13px;background:rgba(237,203,132,.06)}
+.knowledge-article-page .decision-matrix [hidden]{display:none!important}
+.knowledge-article-page .dm-option-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0}
+.knowledge-article-page .dm-option{min-width:0;border:1px solid rgba(237,203,132,.28);background:#1b1e20;border-radius:12px}
+.knowledge-article-page .dm-option>summary{cursor:pointer;min-height:48px;padding:14px;color:#f2dcae;font-size:15px;font-weight:750}
+.knowledge-article-page .dm-option[open]>summary{border-bottom:1px solid rgba(237,203,132,.25)}
+.knowledge-article-page .dm-fields{padding:13px;display:grid;gap:12px}
+.knowledge-article-page .dm-field{min-width:0;display:grid;gap:6px;color:#f3eadd;font-size:13px;line-height:1.8}
+.knowledge-article-page .dm-field>span{font-weight:700}
+.knowledge-article-page .dm-field>small{font-size:11px;color:#c3bdaf;line-height:1.75}
+.knowledge-article-page .dm-field :is(input,select,textarea){width:100%;min-width:0;box-sizing:border-box;display:block;border:1px solid #897b66;border-radius:8px;background:#0d1115;color:#f8f3e7;font:inherit;font-size:16px;line-height:1.8;padding:10px;direction:rtl;resize:vertical}
+.knowledge-article-page .dm-field :is(input,select,textarea):focus-visible,.knowledge-article-page .dm-actions button:focus-visible{outline:3px solid #f2d38c;outline-offset:2px}
+.knowledge-article-page .dm-field textarea{min-height:70px}
+.knowledge-article-page .dm-actions{display:flex;flex-wrap:wrap;gap:10px}
+.knowledge-article-page .dm-actions button{cursor:pointer;min-height:46px;border-radius:10px;border:1px solid #d9bb79;background:#222327;color:#f7e2b0;padding:10px 14px;font:inherit;font-size:14px}
+.knowledge-article-page .dm-actions button:first-child{background:#e6c47f;color:#15120d;font-weight:750}
+.knowledge-article-page .dm-status{min-height:24px;color:#f2d793!important;font-size:13px!important;margin-top:12px!important}
+.knowledge-article-page .dm-result{margin-top:23px;border-top:1px solid rgba(237,203,132,.24);padding-top:18px}
+.knowledge-article-page .dm-result h4{font-size:18px;line-height:1.7;color:#f4deb1}
+.knowledge-article-page .dm-table-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain}
+.knowledge-article-page .dm-table-scroll table{display:table;min-width:610px;border-collapse:collapse;width:100%;table-layout:fixed}
+.knowledge-article-page .dm-table-scroll :is(td,th){overflow-wrap:anywhere;white-space:pre-wrap;vertical-align:top;padding:10px;border:1px solid rgba(237,203,132,.3);font-size:13px;line-height:1.85;color:#f3e9d8}
+.knowledge-article-page .dm-table-scroll th{background:rgba(237,203,132,.12);color:#f1d89d;text-align:right}
+.knowledge-article-page .dm-table-scroll caption{font-size:12px;color:#e0d6c3;margin-bottom:9px;text-align:right}
+@media(max-width:1080px){.knowledge-article-page .dm-option-grid{grid-template-columns:1fr}}
+@media(max-width:620px){.knowledge-article-page .decision-matrix{padding:16px 12px;border-radius:13px}.knowledge-article-page .dm-actions button{flex:1 1 160px}.knowledge-article-page .dm-option>summary{font-size:14px}}
+@media print{.knowledge-article-page .decision-matrix{background:#fff!important;color:#111!important;border:1px solid #bbb!important;break-before:page;box-shadow:none!important}.knowledge-article-page .dm-option-grid,.knowledge-article-page .dm-actions,.knowledge-article-page .dm-privacy,.knowledge-article-page .dm-status{display:none!important}.knowledge-article-page .dm-result[hidden]{display:none!important}.knowledge-article-page .dm-result,.knowledge-article-page .dm-table-scroll{display:block!important}.knowledge-article-page .dm-table-scroll table{display:table!important;min-width:0!important;width:100%!important}.knowledge-article-page .dm-table-scroll :is(td,th,caption){color:#111!important;border-color:#777!important;background:#fff!important}}

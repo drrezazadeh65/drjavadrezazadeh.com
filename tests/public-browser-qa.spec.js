@@ -1001,3 +1001,48 @@ test('international service example remains explicitly hypothetical and accessib
     expect(Math.max(dims.html,dims.body),'English services overflow '+width).toBeLessThanOrEqual(dims.viewport+1);
   }
 });
+
+
+test('decision matrix compares documented evidence privately and exports safe CSV',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  const outbound=[];
+  page.on('request',req=>{if(req.method()!=='GET')outbound.push(req.url())});
+  await page.goto(base+'/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/',{waitUntil:'domcontentloaded'});
+  const tool=page.locator('[data-decision-matrix]');
+  await expect(tool).toBeVisible();
+  const form=tool.locator('[data-dm-form]');
+  await expect(form).toBeVisible();
+  await form.locator('[data-dm-render]').click();
+  await expect(form.locator('[data-dm-status]')).toContainText('حداقل دو رشته');
+
+  const options=tool.locator('.dm-option');
+  await options.nth(0).locator('[data-dm-name]').fill('رشته الف');
+  await options.nth(0).locator('[data-dm-key="interest"]').fill('علاقه به پژوهش');
+  await options.nth(1).locator('summary').click();
+  await options.nth(1).locator('[data-dm-name]').fill('رشته ب');
+  await options.nth(1).locator('[data-dm-key="questions"]').fill('بررسی سرفصل رسمی');
+  await form.locator('[data-dm-render]').click();
+  await expect(tool.locator('[data-dm-result]')).toBeVisible();
+  const table=tool.locator('[data-dm-table]');
+  await expect(table.locator('thead th')).toHaveCount(3);
+  await expect(table).toContainText('علاقه به پژوهش');
+  await expect(table).toContainText('بررسی سرفصل رسمی');
+
+  const downloadPromise=page.waitForEvent('download');
+  await form.locator('[data-dm-export]').click();
+  const download=await downloadPromise;
+  expect(download.suggestedFilename()).toBe('comparison-of-study-paths.csv');
+  expect(outbound).toEqual([]);
+
+  await form.locator('[data-dm-reset]').click();
+  await expect(tool.locator('[data-dm-result]')).toBeHidden();
+  await expect(options.nth(0).locator('[data-dm-name]')).toHaveValue('');
+  const overflow=await stableOverflow(page);
+  expect(Math.max(overflow.html,overflow.body)).toBeLessThanOrEqual(overflow.viewport+1);
+
+  await page.setViewportSize({width:1440,height:900});
+  await page.reload({waitUntil:'domcontentloaded'});
+  await expect(page.locator('[data-dm-form]')).toBeVisible();
+  const desktopOverflow=await stableOverflow(page);
+  expect(Math.max(desktopOverflow.html,desktopOverflow.body)).toBeLessThanOrEqual(desktopOverflow.viewport+1);
+});

@@ -31,6 +31,110 @@
 <div><h3>گزینه C</h3><p>شناخت و علاقه بالا، اما شواهد توانایی هنوز محدود است. سؤال بعدی: آیا تجربه کوتاه، پروژه یا گفت‌وگو با فرد متخصص می‌تواند این بخش را روشن‌تر کند؟</p></div>
 </div><p>در این حالت، حتی اگر هنوز انتخاب نهایی مشخص نباشد، تصمیم یک قدم جلو رفته است؛ چون ابهام از حالت کلی خارج شده و به سؤال‌های قابل پیگیری تبدیل شده است.</p></section>
 
+
+<div class="decision-matrix" id="decision-matrix-tool" data-decision-matrix aria-labelledby="decision-matrix-heading">
+  <h3 id="decision-matrix-heading">کاربرگ تعاملی مقایسه رشته‌ها؛ شواهد خودتان را کنار هم قرار دهید</h3>
+  <p>برای دو یا سه رشته، وضعیت هر معیار را جداگانه بنویسید و سپس جدول قابل چاپ یا فایل CSV بگیرید. برخلاف ابزارهای امتیازدهی ساده، این کاربرگ هیچ «رشته برنده» یا رتبه خودکاری نمی‌سازد؛ دلیل تصمیم و ابهام‌های آن را آشکار می‌کند.</p>
+  <p class="dm-privacy" id="dm-privacy-note"><strong>حریم خصوصی:</strong> داده‌های این کاربرگ فقط در حافظه همین صفحه پردازش می‌شوند؛ به سایت ارسال یا به‌صورت خودکار ذخیره نمی‌شوند. برای حفظ نسخه خود از خروجی CSV استفاده کنید. نام، شماره تماس، رتبه فردی یا اطلاعات حساس وارد نکنید.</p>
+  <form data-dm-form hidden aria-describedby="dm-privacy-note">
+    <div class="dm-option-grid"><details class="dm-option" open><summary>گزینه اول: ثبت شواهد</summary><div class="dm-fields">
+    <label class="dm-field" for="dm-a-name"><span>نام رشته یا رشته‌محل اول</span><small>برای حفظ حریم خصوصی فقط نام رشته را وارد کنید؛ اطلاعات شخصی ننویسید.</small><input id="dm-a-name" data-dm-name maxlength="90" autocomplete="off" placeholder="مثلاً نام رشته و دانشگاه"></label>
+  <label class="dm-field" for="dm-a-feasibility"><span>امکان و ضوابط پذیرش</span><small>وضعیت را فقط با دفترچه و منبع رسمی تأیید کنید.</small>
+    <select id="dm-a-feasibility" data-dm-key="feasibility">
+      <option value="">هنوز مشخص نیست</option>
+      <option>نیازمند استعلام رسمی</option><option>در محدوده بررسی قرار دارد</option>
+      <option>بر اساس منابع رسمی امکان‌پذیر نیست</option>
+    </select>
+  </label>
+  <label class="dm-field" for="dm-a-knowledge"><span>شناخت از رشته</span><small>چه شواهدی درباره درس‌ها و فعالیت‌های واقعی رشته دارید؟</small>
+    <textarea id="dm-a-knowledge" data-dm-key="knowledge" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-a-interest"><span>علاقه و معنا</span><small>دلیل علاقه به فعالیت‌های رشته، نه صرفاً عنوان آن، چیست؟</small>
+    <textarea id="dm-a-interest" data-dm-key="interest" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-a-strengths"><span>شواهد توانایی و رشد</span><small>نمونه فعالیت، یادگیری یا پیشرفت مرتبط را ثبت کنید.</small>
+    <textarea id="dm-a-strengths" data-dm-key="strengths" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-a-conditions"><span>شرایط زندگی</span><small>هزینه، شهر، رفت‌وآمد، خانواده و محدودیت‌های واقعی چیست؟</small>
+    <textarea id="dm-a-conditions" data-dm-key="conditions" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-a-flexibility"><span>انعطاف مسیر</span><small>چه فرصت‌هایی برای رشد، ادامه تحصیل یا تغییر جهت وجود دارد؟</small>
+    <textarea id="dm-a-flexibility" data-dm-key="flexibility" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-a-questions"><span>ابهام و پرسش بعدی</span><small>برای تصمیم بهتر، هنوز چه اطلاعاتی باید جمع شود؟</small>
+    <textarea id="dm-a-questions" data-dm-key="questions" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  </div></details><details class="dm-option"><summary>گزینه دوم: ثبت شواهد</summary><div class="dm-fields">
+    <label class="dm-field" for="dm-b-name"><span>نام رشته یا رشته‌محل دوم</span><small>برای حفظ حریم خصوصی فقط نام رشته را وارد کنید؛ اطلاعات شخصی ننویسید.</small><input id="dm-b-name" data-dm-name maxlength="90" autocomplete="off" placeholder="مثلاً نام رشته و دانشگاه"></label>
+  <label class="dm-field" for="dm-b-feasibility"><span>امکان و ضوابط پذیرش</span><small>وضعیت را فقط با دفترچه و منبع رسمی تأیید کنید.</small>
+    <select id="dm-b-feasibility" data-dm-key="feasibility">
+      <option value="">هنوز مشخص نیست</option>
+      <option>نیازمند استعلام رسمی</option><option>در محدوده بررسی قرار دارد</option>
+      <option>بر اساس منابع رسمی امکان‌پذیر نیست</option>
+    </select>
+  </label>
+  <label class="dm-field" for="dm-b-knowledge"><span>شناخت از رشته</span><small>چه شواهدی درباره درس‌ها و فعالیت‌های واقعی رشته دارید؟</small>
+    <textarea id="dm-b-knowledge" data-dm-key="knowledge" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-b-interest"><span>علاقه و معنا</span><small>دلیل علاقه به فعالیت‌های رشته، نه صرفاً عنوان آن، چیست؟</small>
+    <textarea id="dm-b-interest" data-dm-key="interest" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-b-strengths"><span>شواهد توانایی و رشد</span><small>نمونه فعالیت، یادگیری یا پیشرفت مرتبط را ثبت کنید.</small>
+    <textarea id="dm-b-strengths" data-dm-key="strengths" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-b-conditions"><span>شرایط زندگی</span><small>هزینه، شهر، رفت‌وآمد، خانواده و محدودیت‌های واقعی چیست؟</small>
+    <textarea id="dm-b-conditions" data-dm-key="conditions" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-b-flexibility"><span>انعطاف مسیر</span><small>چه فرصت‌هایی برای رشد، ادامه تحصیل یا تغییر جهت وجود دارد؟</small>
+    <textarea id="dm-b-flexibility" data-dm-key="flexibility" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-b-questions"><span>ابهام و پرسش بعدی</span><small>برای تصمیم بهتر، هنوز چه اطلاعاتی باید جمع شود؟</small>
+    <textarea id="dm-b-questions" data-dm-key="questions" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  </div></details><details class="dm-option"><summary>گزینه سوم: ثبت شواهد</summary><div class="dm-fields">
+    <label class="dm-field" for="dm-c-name"><span>نام رشته یا رشته‌محل سوم</span><small>برای حفظ حریم خصوصی فقط نام رشته را وارد کنید؛ اطلاعات شخصی ننویسید.</small><input id="dm-c-name" data-dm-name maxlength="90" autocomplete="off" placeholder="مثلاً نام رشته و دانشگاه"></label>
+  <label class="dm-field" for="dm-c-feasibility"><span>امکان و ضوابط پذیرش</span><small>وضعیت را فقط با دفترچه و منبع رسمی تأیید کنید.</small>
+    <select id="dm-c-feasibility" data-dm-key="feasibility">
+      <option value="">هنوز مشخص نیست</option>
+      <option>نیازمند استعلام رسمی</option><option>در محدوده بررسی قرار دارد</option>
+      <option>بر اساس منابع رسمی امکان‌پذیر نیست</option>
+    </select>
+  </label>
+  <label class="dm-field" for="dm-c-knowledge"><span>شناخت از رشته</span><small>چه شواهدی درباره درس‌ها و فعالیت‌های واقعی رشته دارید؟</small>
+    <textarea id="dm-c-knowledge" data-dm-key="knowledge" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-c-interest"><span>علاقه و معنا</span><small>دلیل علاقه به فعالیت‌های رشته، نه صرفاً عنوان آن، چیست؟</small>
+    <textarea id="dm-c-interest" data-dm-key="interest" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-c-strengths"><span>شواهد توانایی و رشد</span><small>نمونه فعالیت، یادگیری یا پیشرفت مرتبط را ثبت کنید.</small>
+    <textarea id="dm-c-strengths" data-dm-key="strengths" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-c-conditions"><span>شرایط زندگی</span><small>هزینه، شهر، رفت‌وآمد، خانواده و محدودیت‌های واقعی چیست؟</small>
+    <textarea id="dm-c-conditions" data-dm-key="conditions" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-c-flexibility"><span>انعطاف مسیر</span><small>چه فرصت‌هایی برای رشد، ادامه تحصیل یا تغییر جهت وجود دارد؟</small>
+    <textarea id="dm-c-flexibility" data-dm-key="flexibility" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  <label class="dm-field" for="dm-c-questions"><span>ابهام و پرسش بعدی</span><small>برای تصمیم بهتر، هنوز چه اطلاعاتی باید جمع شود؟</small>
+    <textarea id="dm-c-questions" data-dm-key="questions" rows="2" maxlength="500" placeholder="شواهد و پرسش‌های خود را بنویسید"></textarea>
+  </label>
+  </div></details></div>
+    <div class="dm-actions">
+      <button type="button" data-dm-render>نمایش جدول مقایسه</button>
+      <button type="button" data-dm-export>دریافت فایل CSV</button>
+      <button type="reset" data-dm-reset>پاک‌کردن داده‌های کاربرگ</button>
+    </div>
+    <p class="dm-status" data-dm-status role="status" aria-live="polite" aria-atomic="true"></p>
+  </form>
+  <noscript><p>برای تکمیل تعاملی کاربرگ، جاوااسکریپت مرورگر باید فعال باشد. تمام محتوای راهنما بدون جاوااسکریپت نیز قابل مطالعه است.</p></noscript>
+  <div class="dm-result" data-dm-result hidden aria-labelledby="dm-result-heading">
+    <h4 id="dm-result-heading">خلاصه شواهد و سؤال‌های باز</h4>
+    <div class="dm-table-scroll" tabindex="0" role="region" aria-label="جدول قابل پیمایش مقایسه رشته‌ها">
+      <table data-dm-table></table>
+    </div>
+    <p>این جدول جایگزین بررسی ضوابط رسمی پذیرش یا قضاوت خود داوطلب نیست. گزینه‌های نامطمئن را پیش از تصمیم نهایی با منبع رسمی بررسی کنید.</p>
+  </div>
+</div>
 <section><h2 id="ka-section-06">وزن معیارها برای همه یکسان نیست</h2><p>برای یک دانش‌آموز، امکان جابه‌جایی ممکن است محدودیت اصلی باشد؛ برای دیگری، نوع محیط یادگیری یا هزینه اهمیت بیشتری داشته باشد. به همین دلیل، یک جدول ثابت با وزن‌های از پیش تعیین‌شده برای همه افراد می‌تواند گمراه‌کننده باشد.</p><p>وزن هر معیار باید از شرایط واقعی فرد بیرون بیاید. حتی همین وزن‌ها نیز بهتر است مطلق تلقی نشوند. گاهی اطلاعات تازه نشان می‌دهد عاملی که در ابتدا مهم به نظر می‌رسید، در عمل قابل مدیریت است؛ یا برعکس، محدودیتی که کوچک دیده می‌شد اثر جدی بر انتخاب دارد.</p></section>
 
 <section><h2 id="ka-section-07">خانواده چگونه وارد ماتریس شود؟</h2><p>خانواده معمولاً درباره هزینه، جابه‌جایی، سابقه علاقه‌ها، واکنش فرد به فشار و واقعیت‌های اجرایی اطلاعات ارزشمندی دارد. این اطلاعات باید وارد جدول شود، اما بهتر است به‌صورت «شواهد و محدودیت» ثبت شود، نه به‌صورت «انتخاب نهایی خانواده».</p><p>اگر والد و دانش‌آموز درباره یک معیار اختلاف دارند، اختلاف را پنهان نکنید. مثلاً ممکن است دانش‌آموز هزینه را کم‌اهمیت بداند و خانواده آن را تعیین‌کننده ببیند. ثبت همین تفاوت، زمینه گفت‌وگوی دقیق‌تر را فراهم می‌کند.</p></section>
