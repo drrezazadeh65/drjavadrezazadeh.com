@@ -11,17 +11,26 @@ const vip={id:"academic-direction",title_fa:"برنامه راهبری تحصی�
 const buyer={full_name:"خریدار نمونه آزمون",mobile:"09121234567",email:"buyer@example.com",
  province:"تهران",city:"تهران",address:"خیابان نمونه، کوچه دوم، پلاک ۱۰",postal_code:"1234567890",
  terms_accepted:true};
-const orders=new Map();
+const orders=new Map(),refunds=new Map();
 let gatewayId=123456,verifyMismatch=false,callbackAttempts=0;
 function db(){
  return {prepare(sql){let vals=[];
   return {bind(...args){vals=args;return this},
    async first(){
+    if(sql.includes("FROM commerce_refund_requests")){
+     if(sql.includes("WHERE order_id=?"))return [...refunds.values()].find(x=>x.order_id===vals[0])||null;
+     if(sql.includes("WHERE id=?"))return refunds.get(vals[0])||null;
+    }
     if(sql.includes("WHERE idempotency_key="))return [...orders.values()].find(x=>x.idempotency_key===vals[0])||null;
     if(sql.includes("WHERE id=?"))return orders.get(vals[0])||null;
     return null;
    },
    async run(){
+    if(sql.startsWith("INSERT OR IGNORE INTO commerce_refund_requests")){
+     const [id,order_id,reason]=vals;
+     if(![...refunds.values()].some(x=>x.order_id===order_id))refunds.set(id,{id,order_id,reason,state:"requested",created_at:new Date().toISOString()});
+     return {meta:{changes:1}};
+    }
     if(sql.startsWith("INSERT INTO commerce_orders")){
      const [id,factor_id,amount_toman,provider_amount,currency,items_json,state,customer_json,receipt_token_sha256,idempotency_key,fulfilment_state,receipt_token_wrapped,request_fingerprint]=vals;
      assert.ok(![...orders.values()].some(x=>x.idempotency_key===idempotency_key),"unique idempotency");
@@ -99,6 +108,8 @@ test("server-side price, secure receipt, idempotency, verified callback and free
  assert.equal(noToken.status,403);
  const before=await call("/commerce/receipt?order="+data.orderId,{headers:{Authorization:"Bearer "+data.receiptAccessToken}});
  assert.equal((await before.json()).invoice,null);
+ const cannotRefund=await call("/commerce/refund/request",{method:"POST",origin:SITE,headers:{Authorization:"Bearer "+data.receiptAccessToken},body:{order:data.orderId,reason:"Test refund request before bank verification"}});
+ assert.equal(cannotRefund.status,409);
  const cb=await call("/commerce/callback?order="+data.orderId+"&id_get="+saved.provider_id_get+"&trans_id=77777");
  assert.equal(cb.status,303);assert.match(cb.headers.get("Location"),/state=paid/);
  const receipt=await call("/commerce/receipt?order="+data.orderId,{headers:{Authorization:"Bearer "+data.receiptAccessToken}});
@@ -111,6 +122,16 @@ test("server-side price, secure receipt, idempotency, verified callback and free
  const view=(await tracked.json()).order;
  assert.equal(view.payment_state,"paid");assert.equal(view.invoice_available,true);
  assert.equal(view.fulfilment_state,"preparing_shipment");assert.equal(view.amount_toman,4000000);
+ const refundBody={order:data.orderId,reason:"Physical delivery could not be coordinated; request a manual review."};
+ const requested=await call("/commerce/refund/request",{method:"POST",origin:SITE,headers:{Authorization:"Bearer "+data.receiptAccessToken},body:refundBody});
+ assert.equal(requested.status,200);
+ const requestData=await requested.json();assert.equal(requestData.money_returned,false);
+ const againRefund=await call("/commerce/refund/request",{method:"POST",origin:SITE,headers:{Authorization:"Bearer "+data.receiptAccessToken},body:refundBody});
+ assert.equal((await againRefund.json()).request.id,requestData.request.id,"review request is idempotent");
+ const protectedStatus=await call("/commerce/refund/status?order="+data.orderId);
+ assert.equal(protectedStatus.status,403);
+ const checked=await call("/commerce/refund/status?order="+data.orderId,{headers:{Authorization:"Bearer "+data.receiptAccessToken}});
+ assert.equal((await checked.json()).request.state,"requested");
  const replay=await call("/commerce/callback?order="+data.orderId+"&id_get="+saved.provider_id_get+"&trans_id=77777");
  assert.equal(replay.status,303);assert.equal(callbackAttempts,1,"no duplicate verification");
 });
