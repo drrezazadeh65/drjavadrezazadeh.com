@@ -182,7 +182,7 @@
     },
     {
       "id": "ai-concierge",
-      "production_state": "STATIC_FALLBACK_ACTIVE",
+      "production_state": "FOUNDATION_READY",
       "revenue_priority": "HIGH",
       "external_blockers": [
         "No secure server-side assistant runtime is currently provisioned"
@@ -234,7 +234,7 @@
     },
     {
       "id": "payments-ir",
-      "production_state": "WAITING_RUNTIME",
+      "production_state": "WAITING_EXTERNAL",
       "revenue_priority": "CRITICAL",
       "external_blockers": [
         "No secure server-side payment runtime is currently provisioned",
