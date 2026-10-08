@@ -22,7 +22,7 @@
   heading.textContent="بازگشت از درگاه بانکی";
   const id=p.get("id_get");
   const trans=p.get("trans_id");
-  if(!/^[0-9a-f-]{36}$/i.test(order||"")||!/^[0-9]+$/.test(id||"")||!/^[0-9]+$/.test(trans||"")){
+  if(!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(order||"")||!/^[0-9]+$/.test(id||"")||!/^[0-9]+$/.test(trans||"")){
     msg.textContent="اطلاعات بازگشت ناقص است. اگر وجهی پرداخت کرده‌اید، دوباره پرداخت نکنید و از بخش تماس سایت پیگیری کنید.";
     return;
   }
