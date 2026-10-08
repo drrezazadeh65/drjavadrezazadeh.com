@@ -250,8 +250,13 @@ export async function commerce(request,env){
   if(validated.error)return fail(validated.error,400);
   const idem=String(input.idempotency_key||"");
   if(!uuid(idem))return fail("idempotency_key_required");
-  const existing=await env.DB.prepare("SELECT id,state,provider_id_get,amount_toman FROM commerce_orders WHERE idempotency_key=?").bind(idem).first();
+  const fingerprint=await hashAccess(JSON.stringify({
+   lines:lines.map(x=>[x.sku,x.quantity,x.price]).sort((a,b)=>a[0].localeCompare(b[0])),
+   customer:validated.customer,amount_toman:total
+  }));
+  const existing=await env.DB.prepare("SELECT id,state,provider_id_get,amount_toman,request_fingerprint FROM commerce_orders WHERE idempotency_key=?").bind(idem).first();
   if(existing){
+   if(existing.request_fingerprint!==fingerprint)return fail("idempotency_payload_mismatch",409);
    if(existing.state==="pending"&&existing.provider_id_get)return reply({ok:true,orderId:existing.id,totalToman:existing.amount_toman,currency:"IRT",
     paymentUrl:SITE+"/fa/shop/payment-start/?gateway="+encodeURIComponent(API+"gateway-"+existing.provider_id_get+"-get"),requiresExistingAccessToken:true});
    return fail("order_already_exists",409);
@@ -262,8 +267,8 @@ export async function commerce(request,env){
   if(!Number.isSafeInteger(amount))return fail("provider_amount_overflow");
   let wrapped;try{wrapped=await wrapReceiptToken(accessToken,order,env)}catch{return fail("receipt_encryption_unavailable",503)}
   try{
-   await env.DB.prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,items_json,state,customer_json,receipt_token_sha256,idempotency_key,fulfilment_state,receipt_token_wrapped) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)")
-    .bind(order,factor,total,amount,"IRT",JSON.stringify(lines),"created",JSON.stringify(validated.customer),accessHash,idem,"awaiting_payment",wrapped).run();
+   await env.DB.prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,items_json,state,customer_json,receipt_token_sha256,idempotency_key,fulfilment_state,receipt_token_wrapped,request_fingerprint) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)")
+    .bind(order,factor,total,amount,"IRT",JSON.stringify(lines),"created",JSON.stringify(validated.customer),accessHash,idem,"awaiting_payment",wrapped,fingerprint).run();
    const callback=SITE+"/fa/shop/payment-return/?order="+encodeURIComponent(order)+"&kind=commerce";
    const raw=await gateway("gateway-send",{amount:String(amount),redirect:callback,factorId:factor,description:"Order "+order},env.BITPAY_API_KEY);
    if(!num(raw)){await env.DB.prepare("UPDATE commerce_orders SET state='failed',updated_at=CURRENT_TIMESTAMP WHERE id=? AND state='created'").bind(order).run();return fail("gateway_rejected",502)}
