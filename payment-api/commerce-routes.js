@@ -9,7 +9,7 @@
 const SITE="https://drjavadrezazadeh.com";
 const RAW="https://raw.githubusercontent.com/drrezazadeh65/drjavadrezazadeh.com/main/";
 const API="https://bitpay.ir/payment/";
-const cors={"Access-Control-Allow-Origin":SITE,"Vary":"Origin","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"};
+const cors={"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Credentials":"true","Vary":"Origin","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"};
 const reply=(obj,status=200)=>Response.json(obj,{status,headers:cors});
 const uuid=s=>/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(s||"");
 const num=s=>/^[1-9][0-9]*$/.test(String(s||""));
@@ -147,7 +147,7 @@ async function commerceAdmin(request,env,path,u,origin){
  const actor=await adminIdentity(request,env);
  if(actor.error)return fail(actor.error,actor.status);
  if(path==="/commerce/admin/orders"&&request.method==="GET"){
-  const limit=Math.min(100,Math.max(1,Number(u.searchParams.get("limit"))||30));
+  const limit=Math.trunc(Math.min(100,Math.max(1,Number(u.searchParams.get("limit"))||30)));
   const result=await env.DB.prepare("SELECT id,amount_toman,items_json,customer_json,state,fulfilment_state,tracking_code,created_at,paid_at,provider_trans_id FROM commerce_orders ORDER BY created_at DESC LIMIT ?").bind(limit).all();
   const orders=(result.results||[]).map(o=>({...o,items:JSON.parse(o.items_json||"[]"),customer:JSON.parse(o.customer_json||"{}"),items_json:undefined,customer_json:undefined}));
   return reply({ok:true,orders});
