@@ -6,7 +6,11 @@ on:
       - 'fa/rahnamaha/**'
       - 'assets/images/knowledge/**'
       - 'sitemap-fa.xml'
+      - 'assets/css/knowledge-hub.css'
+      - 'assets/js/knowledge-hub.js'
+      - 'assets/css/public-v2.css'
       - 'tests/knowledge-hub-seo.mjs'
+      - 'tests/knowledge-hub-browser.mjs'
       - '.github/workflows/knowledge-hub-seo.yml'
   workflow_dispatch:
 permissions:
@@ -22,3 +26,31 @@ jobs:
           node-version: '22'
       - name: Verify 45 guides, featured images, SEO and local links
         run: node tests/knowledge-hub-seo.mjs
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start local static server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/jr-knowledge-server.log 2>&1 &
+          sleep 3
+          curl --fail http://127.0.0.1:8765/fa/rahnamaha/ > /dev/null
+      - name: Run Chromium responsive navigation and filter tests
+        run: node tests/knowledge-hub-browser.mjs
+      - name: Preserve visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowledge-hub-desktop-mobile-evidence
+          path: test-results/knowledge-hub/
+          retention-days: 14
+          if-no-files-found: ignore
