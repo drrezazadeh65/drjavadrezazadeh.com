@@ -10,11 +10,12 @@ const errors=[];
 function assert(ok,msg){if(!ok)errors.push(msg)}
 assert(main.includes(domain+'/sitemap-services.xml'),'Main sitemap does not reference services sitemap');
 const found=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(x=>x[1]);
+const sitemapImages=[...sitemap.matchAll(/<image:loc>([^<]+)<\/image:loc>/g)].map(x=>x[1]);
 assert(new Set(found).size===found.length,'Duplicate <loc> in services sitemap');
 for(const service of catalog){
  const id=service.id,uri=domain+'/fa/services/'+id+'/',file='fa/services/'+id+'/index.html',image='assets/images/services/'+id+'.svg';
  assert(found.includes(uri),'Missing sitemap URL: '+uri);
- assert(found.includes(domain+'/'+image),'Missing sitemap image URL: '+image);
+ assert(sitemapImages.includes(domain+'/'+image),'Missing sitemap image URL: '+image);
  if(!fs.existsSync(path.join(root,file))){errors.push('Missing HTML: '+file);continue}
  const html=read(file);
  assert(/<html[^>]+lang="fa"/i.test(html),'Missing lang fa: '+file);
