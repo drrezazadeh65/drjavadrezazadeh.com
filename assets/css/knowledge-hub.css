@@ -22,7 +22,10 @@
 .knowledge-hub-page .knowledge-quicklinks a{color:#edd69f;text-underline-offset:4px;font-size:14px}
 .knowledge-hub-page .related-cluster{scroll-margin-top:96px;margin-bottom:36px}
 .knowledge-hub-page .related-cluster-grid a{overflow-wrap:anywhere;min-height:100%}
-.knowledge-hub-page .related-cluster-grid .knowledge-card-thumbnail{content-visibility:auto;contain-intrinsic-size:360px 203px}
+/* Replaced images must paint immediately when visible. Native loading="lazy" already
+   defers network work; content-visibility:auto on <img> created blank card thumbnails
+   in responsive Chromium screenshots even after the file had loaded. */
+.knowledge-hub-page .related-cluster-grid img.knowledge-card-thumbnail{content-visibility:visible;contain-intrinsic-size:auto;}
 .knowledge-hub-page .related-cluster-grid span{font-size:14px;line-height:1.9;color:#c7c6c4}
 .knowledge-hub-page .related-cluster-grid b{color:#faf5ea}
 .knowledge-hub-page .site-header nav a{font-size:14px;min-height:44px;display:inline-flex;align-items:center}
