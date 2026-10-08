@@ -191,6 +191,55 @@ try{
   failures.push('Live sitemap expansion failed: '+e.message);
 }
 
+// Live Knowledge Hub WebP image probes: a committed file is NOT proof of public delivery.
+// The sitemap is requested from production so stale deploys and CDN 404s are reported.
+try{
+  const {res,text:xml}=await getText(ORIGIN+'/sitemap-fa.xml');
+  if(res.status!==200) failures.push('Live photographic audit: /sitemap-fa.xml returned '+res.status);
+  else{
+    const slugs=[...xml.matchAll(/<loc>https:\/\/drjavadrezazadeh\.com\/fa\/rahnamaha\/([a-z0-9-]+)\/<\/loc>/g)].map(x=>x[1]);
+    if(slugs.length!==45||new Set(slugs).size!==45)
+      failures.push('Live photographic audit: expected 45 unique article slugs; found '+slugs.length);
+    else{
+      const media=slugs.flatMap(slug=>[
+        '/assets/images/knowledge/'+slug+'-featured.webp',
+        '/assets/images/knowledge/'+slug+'-og.webp'
+      ]);
+      let next=0,verified=0;
+      const check=async()=>{
+        while(next<media.length){
+          const resource=media[next++];
+          try{
+            const response=await fetchWithTimeout(ORIGIN+resource);
+            if(response.status!==200){
+              failures.push('Live WebP '+resource+': expected 200, got '+response.status);
+              continue;
+            }
+            const type=(response.headers.get('content-type')||'').split(';')[0].trim().toLowerCase();
+            if(type!=='image/webp'){
+              failures.push('Live WebP '+resource+': unexpected content-type '+(type||'(missing)'));
+              continue;
+            }
+            const bytes=new Uint8Array(await response.arrayBuffer());
+            const marker=String.fromCharCode(...bytes.slice(0,4))+' '+String.fromCharCode(...bytes.slice(8,12));
+            if(bytes.length<2000||marker!=='RIFF WEBP'){
+              failures.push('Live WebP '+resource+': non-WebP body or truncated asset, bytes='+bytes.length);
+              continue;
+            }
+            verified++;
+          }catch(e){
+            failures.push('Live WebP '+resource+': '+e.message);
+          }
+        }
+      };
+      await Promise.all(Array.from({length:6},check));
+      console.log('Live Knowledge Hub media checked: '+verified+'/'+media.length+' valid WebP files (45 featured + 45 OG).');
+    }
+  }
+}catch(e){
+  failures.push('Live Knowledge Hub WebP audit failed: '+e.message);
+}
+
 try{
   const httpOrigin=ORIGIN.replace(/^https:/,'http:');
   const res=await fetchWithTimeout(httpOrigin+'/');

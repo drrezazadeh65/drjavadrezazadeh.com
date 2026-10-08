@@ -42,8 +42,11 @@ for(const slug of guideSlugs){
   if(!fs.existsSync(path.join(root,file))){fail(slug+': missing HTML');continue;}
   const photo='assets/images/knowledge/'+slug+'-featured.webp';
   const hasPhoto=fs.existsSync(path.join(root,photo));
-  const img=hasPhoto?photo:'assets/images/knowledge/'+slug+'-featured.svg';
-  const og=hasPhoto?'assets/images/knowledge/'+slug+'-og.webp':img;
+  // The owner-approved WebP set is the active production baseline.
+  // Retain SVGs as rollback assets, not an accepted silent publishing fallback.
+  if(!hasPhoto)fail(slug+': required featured WebP missing — no SVG fallback for published guide');
+  const img=photo;
+  const og='assets/images/knowledge/'+slug+'-og.webp';
   const html=read(file),canonical=domain+'/fa/rahnamaha/'+slug+'/';
   const title=html.match(/<title>([^<]+)<\/title>/i)?.[1]||'';
   if(!title)fail(slug+': missing title');
