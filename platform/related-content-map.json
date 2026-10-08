@@ -1,51 +1,155 @@
 {
-  "version": "2026-10-07",
-  "policy": "Each indexable Persian evergreen guide must link to sibling knowledge content and at least one relevant public service. Its primary service must expose a reciprocal editorial link back to the guide.",
+  "version": "2026-10-08-v4.3.1",
+  "policy": "Each indexable Persian evergreen guide links to two semantically adjacent guides and at least one relevant public service. The primary service exposes reciprocal editorial links back to all guides in its cluster.",
   "guides": {
     "/fa/rahnamaha/moshavere-tahsili-baraye-tasmim/": {
-      "cluster": "academic-guidance",
+      "cluster": "guidance",
       "siblings": [
-        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
-        "/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/",
-        "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/"
+        "/fa/rahnamaha/moshavere-konkur-herfei/",
+        "/fa/rahnamaha/moshavere-tahsili-takhasosi-chist/"
       ],
       "services": [
-        "/fa/moshavere-tahsili/",
-        "/fa/entekhab-reshteh/"
+        "/fa/moshavere-tahsili/"
+      ],
+      "primaryService": "/fa/moshavere-tahsili/"
+    },
+    "/fa/rahnamaha/moshavere-tahsili-takhasosi-chist/": {
+      "cluster": "guidance",
+      "siblings": [
+        "/fa/rahnamaha/moshavere-tahsili-baraye-tasmim/",
+        "/fa/rahnamaha/jalase-moshtarak-valed-danesh-amooz/"
+      ],
+      "services": [
+        "/fa/moshavere-tahsili/"
+      ],
+      "primaryService": "/fa/moshavere-tahsili/"
+    },
+    "/fa/rahnamaha/jalase-moshtarak-valed-danesh-amooz/": {
+      "cluster": "guidance",
+      "siblings": [
+        "/fa/rahnamaha/moshavere-tahsili-takhasosi-chist/",
+        "/fa/rahnamaha/tahlil-karname-tahsili/"
+      ],
+      "services": [
+        "/fa/moshavere-tahsili/"
+      ],
+      "primaryService": "/fa/moshavere-tahsili/"
+    },
+    "/fa/rahnamaha/tahlil-karname-tahsili/": {
+      "cluster": "guidance",
+      "siblings": [
+        "/fa/rahnamaha/jalase-moshtarak-valed-danesh-amooz/",
+        "/fa/rahnamaha/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand/"
+      ],
+      "services": [
+        "/fa/moshavere-tahsili/"
+      ],
+      "primaryService": "/fa/moshavere-tahsili/"
+    },
+    "/fa/rahnamaha/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand/": {
+      "cluster": "guidance",
+      "siblings": [
+        "/fa/rahnamaha/tahlil-karname-tahsili/",
+        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/"
+      ],
+      "services": [
+        "/fa/moshavere-tahsili/"
       ],
       "primaryService": "/fa/moshavere-tahsili/"
     },
     "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/": {
-      "cluster": "field-selection",
+      "cluster": "guidance",
       "siblings": [
-        "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/",
-        "/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/",
-        "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/"
+        "/fa/rahnamaha/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand/",
+        "/fa/rahnamaha/entekhab-reshteh-jame/"
       ],
       "services": [
-        "/fa/entekhab-reshteh/",
-        "/fa/estedaadyabi/"
+        "/fa/moshavere-tahsili/"
       ],
-      "primaryService": "/fa/entekhab-reshteh/"
+      "primaryService": "/fa/moshavere-tahsili/"
+    },
+    "/fa/rahnamaha/entekhab-reshteh-jame/": {
+      "cluster": "guidance",
+      "siblings": [
+        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
+        "/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/"
+      ],
+      "services": [
+        "/fa/moshavere-tahsili/"
+      ],
+      "primaryService": "/fa/moshavere-tahsili/"
     },
     "/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/": {
-      "cluster": "field-selection",
+      "cluster": "guidance",
+      "siblings": [
+        "/fa/rahnamaha/entekhab-reshteh-jame/",
+        "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/"
+      ],
+      "services": [
+        "/fa/moshavere-tahsili/"
+      ],
+      "primaryService": "/fa/moshavere-tahsili/"
+    },
+    "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/": {
+      "cluster": "guidance",
+      "siblings": [
+        "/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/",
+        "/fa/rahnamaha/estedaad-alaghe-bazaar-kar/"
+      ],
+      "services": [
+        "/fa/moshavere-tahsili/"
+      ],
+      "primaryService": "/fa/moshavere-tahsili/"
+    },
+    "/fa/rahnamaha/estedaad-alaghe-bazaar-kar/": {
+      "cluster": "guidance",
       "siblings": [
         "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/",
-        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
+        "/fa/rahnamaha/bazaar-kar-dar-entekhab-reshteh/"
+      ],
+      "services": [
+        "/fa/moshavere-tahsili/"
+      ],
+      "primaryService": "/fa/moshavere-tahsili/"
+    },
+    "/fa/rahnamaha/bazaar-kar-dar-entekhab-reshteh/": {
+      "cluster": "guidance",
+      "siblings": [
+        "/fa/rahnamaha/estedaad-alaghe-bazaar-kar/",
+        "/fa/rahnamaha/barname-yek-mahe-konkur/"
+      ],
+      "services": [
+        "/fa/moshavere-tahsili/"
+      ],
+      "primaryService": "/fa/moshavere-tahsili/"
+    },
+    "/fa/rahnamaha/barname-yek-mahe-konkur/": {
+      "cluster": "guidance",
+      "siblings": [
+        "/fa/rahnamaha/bazaar-kar-dar-entekhab-reshteh/",
+        "/fa/rahnamaha/moshavere-konkur-herfei/"
+      ],
+      "services": [
+        "/fa/moshavere-tahsili/"
+      ],
+      "primaryService": "/fa/moshavere-tahsili/"
+    },
+    "/fa/rahnamaha/moshavere-konkur-herfei/": {
+      "cluster": "guidance",
+      "siblings": [
+        "/fa/rahnamaha/barname-yek-mahe-konkur/",
         "/fa/rahnamaha/moshavere-tahsili-baraye-tasmim/"
       ],
       "services": [
-        "/fa/entekhab-reshteh/"
+        "/fa/moshavere-tahsili/"
       ],
-      "primaryService": "/fa/entekhab-reshteh/"
+      "primaryService": "/fa/moshavere-tahsili/"
     },
     "/fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/": {
-      "cluster": "talent-evidence",
+      "cluster": "talent",
       "siblings": [
-        "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/",
-        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
-        "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/"
+        "/fa/rahnamaha/gozaresh-estedaad-va-masir-roshd/",
+        "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/"
       ],
       "services": [
         "/fa/estedaadyabi/"
@@ -53,28 +157,345 @@
       "primaryService": "/fa/estedaadyabi/"
     },
     "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/": {
-      "cluster": "talent-evidence",
+      "cluster": "talent",
       "siblings": [
         "/fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/",
-        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
-        "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/"
+        "/fa/rahnamaha/golden-talent-chist/"
       ],
       "services": [
         "/fa/estedaadyabi/"
       ],
       "primaryService": "/fa/estedaadyabi/"
     },
-    "/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/": {
-      "cluster": "field-selection",
+    "/fa/rahnamaha/golden-talent-chist/": {
+      "cluster": "talent",
       "siblings": [
-        "/fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/",
-        "/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
-        "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/"
+        "/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/",
+        "/fa/rahnamaha/chegoone-estedaad-vaghei-farzand-ra-beshenasim/"
       ],
       "services": [
-        "/fa/entekhab-reshteh/"
+        "/fa/estedaadyabi/"
       ],
-      "primaryService": "/fa/entekhab-reshteh/"
+      "primaryService": "/fa/estedaadyabi/"
+    },
+    "/fa/rahnamaha/chegoone-estedaad-vaghei-farzand-ra-beshenasim/": {
+      "cluster": "talent",
+      "siblings": [
+        "/fa/rahnamaha/golden-talent-chist/",
+        "/fa/rahnamaha/behtarin-sen-estedaadyabi/"
+      ],
+      "services": [
+        "/fa/estedaadyabi/"
+      ],
+      "primaryService": "/fa/estedaadyabi/"
+    },
+    "/fa/rahnamaha/behtarin-sen-estedaadyabi/": {
+      "cluster": "talent",
+      "siblings": [
+        "/fa/rahnamaha/chegoone-estedaad-vaghei-farzand-ra-beshenasim/",
+        "/fa/rahnamaha/alaghe-tahsili-vaghei-ya-movaghat/"
+      ],
+      "services": [
+        "/fa/estedaadyabi/"
+      ],
+      "primaryService": "/fa/estedaadyabi/"
+    },
+    "/fa/rahnamaha/alaghe-tahsili-vaghei-ya-movaghat/": {
+      "cluster": "talent",
+      "siblings": [
+        "/fa/rahnamaha/behtarin-sen-estedaadyabi/",
+        "/fa/rahnamaha/alaghe-va-estedaad-motafavet/"
+      ],
+      "services": [
+        "/fa/estedaadyabi/"
+      ],
+      "primaryService": "/fa/estedaadyabi/"
+    },
+    "/fa/rahnamaha/alaghe-va-estedaad-motafavet/": {
+      "cluster": "talent",
+      "siblings": [
+        "/fa/rahnamaha/alaghe-tahsili-vaghei-ya-movaghat/",
+        "/fa/rahnamaha/aya-nomre-bala-yani-estedaad/"
+      ],
+      "services": [
+        "/fa/estedaadyabi/"
+      ],
+      "primaryService": "/fa/estedaadyabi/"
+    },
+    "/fa/rahnamaha/aya-nomre-bala-yani-estedaad/": {
+      "cluster": "talent",
+      "siblings": [
+        "/fa/rahnamaha/alaghe-va-estedaad-motafavet/",
+        "/fa/rahnamaha/chera-danesh-amooz-baestedaad-bi-angizhe-ast/"
+      ],
+      "services": [
+        "/fa/estedaadyabi/"
+      ],
+      "primaryService": "/fa/estedaadyabi/"
+    },
+    "/fa/rahnamaha/chera-danesh-amooz-baestedaad-bi-angizhe-ast/": {
+      "cluster": "talent",
+      "siblings": [
+        "/fa/rahnamaha/aya-nomre-bala-yani-estedaad/",
+        "/fa/rahnamaha/naghsh-valedein-dar-masir-estedaad/"
+      ],
+      "services": [
+        "/fa/estedaadyabi/"
+      ],
+      "primaryService": "/fa/estedaadyabi/"
+    },
+    "/fa/rahnamaha/naghsh-valedein-dar-masir-estedaad/": {
+      "cluster": "talent",
+      "siblings": [
+        "/fa/rahnamaha/chera-danesh-amooz-baestedaad-bi-angizhe-ast/",
+        "/fa/rahnamaha/gozaresh-estedaad-va-masir-roshd/"
+      ],
+      "services": [
+        "/fa/estedaadyabi/"
+      ],
+      "primaryService": "/fa/estedaadyabi/"
+    },
+    "/fa/rahnamaha/gozaresh-estedaad-va-masir-roshd/": {
+      "cluster": "talent",
+      "siblings": [
+        "/fa/rahnamaha/naghsh-valedein-dar-masir-estedaad/",
+        "/fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/"
+      ],
+      "services": [
+        "/fa/estedaadyabi/"
+      ],
+      "primaryService": "/fa/estedaadyabi/"
+    },
+    "/fa/rahnamaha/chera-maghale-amade-ersal-nist/": {
+      "cluster": "research",
+      "siblings": [
+        "/fa/rahnamaha/moshavere-pajouheshi-che-zamani-lazem-ast/",
+        "/fa/rahnamaha/ghabl-az-submit-maghale/"
+      ],
+      "services": [
+        "/fa/khadamat-pajouheshi/"
+      ],
+      "primaryService": "/fa/khadamat-pajouheshi/"
+    },
+    "/fa/rahnamaha/ghabl-az-submit-maghale/": {
+      "cluster": "research",
+      "siblings": [
+        "/fa/rahnamaha/chera-maghale-amade-ersal-nist/",
+        "/fa/rahnamaha/desk-rejection-chist/"
+      ],
+      "services": [
+        "/fa/khadamat-pajouheshi/"
+      ],
+      "primaryService": "/fa/khadamat-pajouheshi/"
+    },
+    "/fa/rahnamaha/desk-rejection-chist/": {
+      "cluster": "research",
+      "siblings": [
+        "/fa/rahnamaha/ghabl-az-submit-maghale/",
+        "/fa/rahnamaha/entekhab-majale-monaseb/"
+      ],
+      "services": [
+        "/fa/khadamat-pajouheshi/"
+      ],
+      "primaryService": "/fa/khadamat-pajouheshi/"
+    },
+    "/fa/rahnamaha/entekhab-majale-monaseb/": {
+      "cluster": "research",
+      "siblings": [
+        "/fa/rahnamaha/desk-rejection-chist/",
+        "/fa/rahnamaha/major-revision-az-koja-shoroo-konim/"
+      ],
+      "services": [
+        "/fa/khadamat-pajouheshi/"
+      ],
+      "primaryService": "/fa/khadamat-pajouheshi/"
+    },
+    "/fa/rahnamaha/major-revision-az-koja-shoroo-konim/": {
+      "cluster": "research",
+      "siblings": [
+        "/fa/rahnamaha/entekhab-majale-monaseb/",
+        "/fa/rahnamaha/pasokh-be-davaran/"
+      ],
+      "services": [
+        "/fa/khadamat-pajouheshi/"
+      ],
+      "primaryService": "/fa/khadamat-pajouheshi/"
+    },
+    "/fa/rahnamaha/pasokh-be-davaran/": {
+      "cluster": "research",
+      "siblings": [
+        "/fa/rahnamaha/major-revision-az-koja-shoroo-konim/",
+        "/fa/rahnamaha/academic-editing-vs-grammar-correction/"
+      ],
+      "services": [
+        "/fa/khadamat-pajouheshi/"
+      ],
+      "primaryService": "/fa/khadamat-pajouheshi/"
+    },
+    "/fa/rahnamaha/academic-editing-vs-grammar-correction/": {
+      "cluster": "research",
+      "siblings": [
+        "/fa/rahnamaha/pasokh-be-davaran/",
+        "/fa/rahnamaha/proofreading-editing-manuscript-review/"
+      ],
+      "services": [
+        "/fa/khadamat-pajouheshi/"
+      ],
+      "primaryService": "/fa/khadamat-pajouheshi/"
+    },
+    "/fa/rahnamaha/proofreading-editing-manuscript-review/": {
+      "cluster": "research",
+      "siblings": [
+        "/fa/rahnamaha/academic-editing-vs-grammar-correction/",
+        "/fa/rahnamaha/academic-cv-professional/"
+      ],
+      "services": [
+        "/fa/khadamat-pajouheshi/"
+      ],
+      "primaryService": "/fa/khadamat-pajouheshi/"
+    },
+    "/fa/rahnamaha/academic-cv-professional/": {
+      "cluster": "research",
+      "siblings": [
+        "/fa/rahnamaha/proofreading-editing-manuscript-review/",
+        "/fa/rahnamaha/mosahabe-heyat-elmi/"
+      ],
+      "services": [
+        "/fa/khadamat-pajouheshi/"
+      ],
+      "primaryService": "/fa/khadamat-pajouheshi/"
+    },
+    "/fa/rahnamaha/mosahabe-heyat-elmi/": {
+      "cluster": "research",
+      "siblings": [
+        "/fa/rahnamaha/academic-cv-professional/",
+        "/fa/rahnamaha/moshavere-pajouheshi-che-zamani-lazem-ast/"
+      ],
+      "services": [
+        "/fa/khadamat-pajouheshi/"
+      ],
+      "primaryService": "/fa/khadamat-pajouheshi/"
+    },
+    "/fa/rahnamaha/moshavere-pajouheshi-che-zamani-lazem-ast/": {
+      "cluster": "research",
+      "siblings": [
+        "/fa/rahnamaha/mosahabe-heyat-elmi/",
+        "/fa/rahnamaha/chera-maghale-amade-ersal-nist/"
+      ],
+      "services": [
+        "/fa/khadamat-pajouheshi/"
+      ],
+      "primaryService": "/fa/khadamat-pajouheshi/"
+    },
+    "/fa/rahnamaha/arzyabi-mavad-amoozeshi/": {
+      "cluster": "teacher",
+      "siblings": [
+        "/fa/rahnamaha/khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh/",
+        "/fa/rahnamaha/azmoon-khoob-vijegiha/"
+      ],
+      "services": [
+        "/fa/hamkari-sazmani/"
+      ],
+      "primaryService": "/fa/hamkari-sazmani/"
+    },
+    "/fa/rahnamaha/azmoon-khoob-vijegiha/": {
+      "cluster": "teacher",
+      "siblings": [
+        "/fa/rahnamaha/arzyabi-mavad-amoozeshi/",
+        "/fa/rahnamaha/ai-dar-tadris/"
+      ],
+      "services": [
+        "/fa/hamkari-sazmani/"
+      ],
+      "primaryService": "/fa/hamkari-sazmani/"
+    },
+    "/fa/rahnamaha/ai-dar-tadris/": {
+      "cluster": "teacher",
+      "siblings": [
+        "/fa/rahnamaha/azmoon-khoob-vijegiha/",
+        "/fa/rahnamaha/tosee-herfei-moalleman/"
+      ],
+      "services": [
+        "/fa/hamkari-sazmani/"
+      ],
+      "primaryService": "/fa/hamkari-sazmani/"
+    },
+    "/fa/rahnamaha/tosee-herfei-moalleman/": {
+      "cluster": "teacher",
+      "siblings": [
+        "/fa/rahnamaha/ai-dar-tadris/",
+        "/fa/rahnamaha/moshavere-moallem-mavad-sanjessh/"
+      ],
+      "services": [
+        "/fa/hamkari-sazmani/"
+      ],
+      "primaryService": "/fa/hamkari-sazmani/"
+    },
+    "/fa/rahnamaha/moshavere-moallem-mavad-sanjessh/": {
+      "cluster": "teacher",
+      "siblings": [
+        "/fa/rahnamaha/tosee-herfei-moalleman/",
+        "/fa/rahnamaha/kargah-amoozeshi-asarbakhsh/"
+      ],
+      "services": [
+        "/fa/hamkari-sazmani/"
+      ],
+      "primaryService": "/fa/hamkari-sazmani/"
+    },
+    "/fa/rahnamaha/kargah-amoozeshi-asarbakhsh/": {
+      "cluster": "teacher",
+      "siblings": [
+        "/fa/rahnamaha/moshavere-moallem-mavad-sanjessh/",
+        "/fa/rahnamaha/madarese-che-zamani-moshaver-amoozeshi/"
+      ],
+      "services": [
+        "/fa/hamkari-sazmani/"
+      ],
+      "primaryService": "/fa/hamkari-sazmani/"
+    },
+    "/fa/rahnamaha/madarese-che-zamani-moshaver-amoozeshi/": {
+      "cluster": "teacher",
+      "siblings": [
+        "/fa/rahnamaha/kargah-amoozeshi-asarbakhsh/",
+        "/fa/rahnamaha/az-arzyabi-ta-barname-roshd-danesh-amooz/"
+      ],
+      "services": [
+        "/fa/hamkari-sazmani/"
+      ],
+      "primaryService": "/fa/hamkari-sazmani/"
+    },
+    "/fa/rahnamaha/az-arzyabi-ta-barname-roshd-danesh-amooz/": {
+      "cluster": "teacher",
+      "siblings": [
+        "/fa/rahnamaha/madarese-che-zamani-moshaver-amoozeshi/",
+        "/fa/rahnamaha/madarese-system-estedaadyabi/"
+      ],
+      "services": [
+        "/fa/hamkari-sazmani/"
+      ],
+      "primaryService": "/fa/hamkari-sazmani/"
+    },
+    "/fa/rahnamaha/madarese-system-estedaadyabi/": {
+      "cluster": "teacher",
+      "siblings": [
+        "/fa/rahnamaha/az-arzyabi-ta-barname-roshd-danesh-amooz/",
+        "/fa/rahnamaha/khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh/"
+      ],
+      "services": [
+        "/fa/hamkari-sazmani/"
+      ],
+      "primaryService": "/fa/hamkari-sazmani/"
+    },
+    "/fa/rahnamaha/khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh/": {
+      "cluster": "teacher",
+      "siblings": [
+        "/fa/rahnamaha/madarese-system-estedaadyabi/",
+        "/fa/rahnamaha/arzyabi-mavad-amoozeshi/"
+      ],
+      "services": [
+        "/fa/hamkari-sazmani/"
+      ],
+      "primaryService": "/fa/hamkari-sazmani/"
     }
   }
 }
