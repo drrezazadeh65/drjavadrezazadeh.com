@@ -1,0 +1,24 @@
+name: Knowledge Hub SEO & Media Integrity
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fa/rahnamaha/**'
+      - 'assets/images/knowledge/**'
+      - 'sitemap-fa.xml'
+      - 'tests/knowledge-hub-seo.mjs'
+      - '.github/workflows/knowledge-hub-seo.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify 45 guides, featured images, SEO and local links
+        run: node tests/knowledge-hub-seo.mjs
