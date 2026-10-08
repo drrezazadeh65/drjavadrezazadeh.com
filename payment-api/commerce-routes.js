@@ -103,6 +103,78 @@ async function sendInvoiceEmail(row,token,env){
  await env.DB.prepare("UPDATE commerce_orders SET receipt_email_sent_at=CURRENT_TIMESTAMP WHERE id=? AND receipt_email_sent_at IS NULL").bind(row.id).run();
 }
 
+
+function jwtBytes(text){
+ if(!/^[A-Za-z0-9_-]+$/.test(text))throw Error("invalid_jwt_encoding");
+ const raw=text.replace(/-/g,"+").replace(/_/g,"/");
+ const bytes=atob(raw.padEnd(Math.ceil(raw.length/4)*4,"="));
+ return Uint8Array.from(bytes,c=>c.charCodeAt(0));
+}
+async function adminIdentity(request,env){
+ const domain=String(env.CF_ACCESS_TEAM_DOMAIN||"").toLowerCase();
+ const audience=String(env.CF_ACCESS_AUDIENCE||"");
+ const allowed=String(env.COMMERCE_ADMIN_EMAILS||"").toLowerCase().split(",").map(x=>x.trim()).filter(Boolean);
+ if(!/^[a-z0-9-]+\.cloudflareaccess\.com$/.test(domain)||!audience||!allowed.length)return {error:"admin_access_unconfigured",status:503};
+ const bearer=request.headers.get("Cf-Access-Jwt-Assertion")||"";
+ const parts=bearer.split(".");
+ if(parts.length!==3)return {error:"admin_not_authenticated",status:401};
+ try{
+  const head=JSON.parse(new TextDecoder().decode(jwtBytes(parts[0])));
+  const body=JSON.parse(new TextDecoder().decode(jwtBytes(parts[1])));
+  const now=Math.floor(Date.now()/1000);
+  if(head.alg!=="RS256"||typeof head.kid!=="string"||head.kid.length>200)return {error:"admin_invalid_token",status:401};
+  if(body.iss!=="https://"+domain||!(Array.isArray(body.aud)?body.aud.includes(audience):body.aud===audience)
+   ||typeof body.exp!=="number"||body.exp<=now||typeof body.nbf==="number"&&body.nbf>now)
+   return {error:"admin_invalid_claims",status:401};
+  const response=await fetch("https://"+domain+"/cdn-cgi/access/certs",{cf:{cacheTtl:300},redirect:"error"});
+  if(!response.ok)return {error:"admin_identity_unavailable",status:503};
+  const set=await response.json(),jwk=(set.keys||[]).find(k=>k.kid===head.kid&&k.kty==="RSA");
+  if(!jwk)return {error:"admin_unknown_key",status:401};
+  const key=await crypto.subtle.importKey("jwk",jwk,{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["verify"]);
+  const valid=await crypto.subtle.verify("RSASSA-PKCS1-v1_5",key,jwtBytes(parts[2]),new TextEncoder().encode(parts[0]+"."+parts[1]));
+  if(!valid)return {error:"admin_invalid_signature",status:401};
+  const email=String(body.email||"").trim().toLowerCase();
+  if(!email||!allowed.includes(email))return {error:"admin_forbidden",status:403};
+  return {email};
+ }catch{return {error:"admin_invalid_token",status:401}}
+}
+const FULFILMENT_NEXT={
+ preparing_shipment:["shipped","cancelled"],shipped:["delivered"],delivered:["completed"],
+ awaiting_service_coordination:["scheduled","cancelled"],scheduled:["completed","cancelled"],
+ cancelled:[],completed:[]
+};
+async function commerceAdmin(request,env,path,u,origin){
+ const actor=await adminIdentity(request,env);
+ if(actor.error)return fail(actor.error,actor.status);
+ if(path==="/commerce/admin/orders"&&request.method==="GET"){
+  const limit=Math.min(100,Math.max(1,Number(u.searchParams.get("limit"))||30));
+  const result=await env.DB.prepare("SELECT id,amount_toman,items_json,customer_json,state,fulfilment_state,tracking_code,created_at,paid_at,provider_trans_id FROM commerce_orders ORDER BY created_at DESC LIMIT ?").bind(limit).all();
+  const orders=(result.results||[]).map(o=>({...o,items:JSON.parse(o.items_json||"[]"),customer:JSON.parse(o.customer_json||"{}"),items_json:undefined,customer_json:undefined}));
+  return reply({ok:true,orders});
+ }
+ if(path==="/commerce/admin/fulfilment"&&request.method==="POST"){
+  if(!allowedOrigin(request))return fail("origin_forbidden",403);
+  let b;try{b=await request.json()}catch{return fail("invalid_json")}
+  if(!uuid(b?.order)||typeof b?.to!=="string")return fail("invalid_fulfilment_request");
+  const order=await env.DB.prepare("SELECT state,fulfilment_state FROM commerce_orders WHERE id=?").bind(b.order).first();
+  if(!order)return fail("order_not_found",404);
+  if(order.state!=="paid")return fail("order_not_paid",409);
+  if(!(FULFILMENT_NEXT[order.fulfilment_state]||[]).includes(b.to))return fail("invalid_fulfilment_transition",409);
+  const tracking=field(b.tracking_code,90);
+  if(b.to==="shipped"&&tracking.length<4)return fail("tracking_code_required");
+  const changed=await env.DB.prepare("UPDATE commerce_orders SET fulfilment_state=?,tracking_code=CASE WHEN ? != '' THEN ? ELSE tracking_code END,updated_at=CURRENT_TIMESTAMP WHERE id=? AND state='paid' AND fulfilment_state=?").bind(b.to,tracking,tracking,b.order,order.fulfilment_state).run();
+  if(changed.meta.changes!==1)return fail("order_state_conflict",409);
+  // The actor is Access-verified; never accept browser-supplied roles or audit identity.
+  await env.DB.prepare("INSERT INTO commerce_fulfilment_events(order_id,actor_email,previous_state,next_state,tracking_code) VALUES(?,?,?,?,?)").bind(b.order,actor.email,order.fulfilment_state,b.to,tracking||null).run();
+  return reply({ok:true,order:b.order,state:b.to});
+ }
+ if(path==="/commerce/admin/summary"&&request.method==="GET"){
+  const rows=await env.DB.prepare("SELECT state,COUNT(*) AS orders,SUM(amount_toman) AS total_toman FROM commerce_orders GROUP BY state").all();
+  return reply({ok:true,groups:rows.results||[],currency:"IRT",note:"Revenue only includes server-verified paid orders."});
+ }
+ return fail("admin_route_not_found",404);
+}
+
 async function catalog(path){
  const res=await fetch(RAW+path,{headers:{"Accept":"application/json"},cf:{cacheTtl:0,cacheEverything:false},signal:AbortSignal.timeout(10000)});
  if(!res.ok)throw Error("catalog_unavailable");
@@ -141,9 +213,10 @@ function returnPage(state,id){const u=new URL(SITE+"/fa/shop/payment-result/");u
 export async function commerce(request,env){
  const u=new URL(request.url),path=u.pathname;
  if(!path.startsWith("/commerce/"))return null;
- if(request.method==="OPTIONS"&&["/commerce/create","/commerce/receipt","/commerce/receipt/resend"].includes(path))
+ if(request.method==="OPTIONS"&&(["/commerce/create","/commerce/receipt","/commerce/receipt/resend","/commerce/admin/fulfilment","/commerce/admin/orders","/commerce/admin/summary"].includes(path)))
   return new Response(null,{status:204,headers:{...cors,"Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization"}});
  if(!env.DB)return fail("database_unconfigured",503);
+ if(path.startsWith("/commerce/admin/"))return commerceAdmin(request,env,path,u,origin);
  if(path==="/commerce/health"&&request.method==="GET")
   return reply({ok:true,service:"commerce",checkout:env.COMMERCE_ENABLED==="true"});
  if(path==="/commerce/create"&&request.method==="POST"){
