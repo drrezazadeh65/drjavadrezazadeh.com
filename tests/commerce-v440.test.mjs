@@ -23,9 +23,9 @@ function db(){
    },
    async run(){
     if(sql.startsWith("INSERT INTO commerce_orders")){
-     const [id,factor_id,amount_toman,provider_amount,currency,items_json,state,customer_json,receipt_token_sha256,idempotency_key,fulfilment_state,receipt_token_wrapped]=vals;
+     const [id,factor_id,amount_toman,provider_amount,currency,items_json,state,customer_json,receipt_token_sha256,idempotency_key,fulfilment_state,receipt_token_wrapped,request_fingerprint]=vals;
      assert.ok(![...orders.values()].some(x=>x.idempotency_key===idempotency_key),"unique idempotency");
-     orders.set(id,{id,factor_id,amount_toman,provider_amount,currency,items_json,state,customer_json,receipt_token_sha256,idempotency_key,fulfilment_state,receipt_token_wrapped,provider_id_get:null,provider_trans_id:null,paid_at:null});
+     orders.set(id,{id,factor_id,amount_toman,provider_amount,currency,items_json,state,customer_json,receipt_token_sha256,idempotency_key,fulfilment_state,receipt_token_wrapped,request_fingerprint,provider_id_get:null,provider_trans_id:null,paid_at:null});
      return {meta:{changes:1}};
     }
     if(sql.includes("SET state='pending'")){
@@ -86,6 +86,9 @@ test("server-side price, secure receipt, idempotency, verified callback and free
  assert.match(data.receiptAccessToken,/^[a-f0-9]{64}$/);
  const saved=orders.get(data.orderId);assert.equal(saved.provider_amount,40000000);
  assert.ok(!JSON.stringify(saved).includes(data.receiptAccessToken),"capability must not be stored in plaintext");
+ const mismatched=await call("/commerce/create",{method:"POST",origin:SITE,body:{...body,customer:{...buyer,address:"Different address, number 22; must never inherit previous order"}}});
+ assert.equal(mismatched.status,409);
+ assert.equal((await mismatched.json()).error,"idempotency_payload_mismatch");
  const again=await call("/commerce/create",{method:"POST",origin:SITE,body});
  assert.equal(again.status,200);assert.equal((await again.json()).requiresExistingAccessToken,true);
  const deniedOrder=await call("/commerce/order?order="+data.orderId);
