@@ -114,7 +114,7 @@
     row.innerHTML='<div><strong lang="fa" dir="rtl">'+b.title_fa+'</strong><small>'+
       (isFa?'تعداد':'Qty')+': '+item.quantity+'</small></div>'+
       '<div>'+money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency)+'</div>'+
-      '<button type="button" data-remove-book="'+b.id+'">'+(isFa?'حذف':'Remove')+'</button>';
+      '<div class="cart-quantity-controls" aria-label="تغییر تعداد کتاب"><button type="button" data-decrease-book="'+b.id+'" aria-label="کاهش تعداد '+b.title_fa+'">−</button><span aria-live="polite">'+item.quantity+'</span><button type="button" data-increase-book="'+b.id+'" aria-label="افزایش تعداد '+b.title_fa+'">+</button></div><button type="button" data-remove-book="'+b.id+'">'+(isFa?'حذف':'Remove')+'</button>';
     host.appendChild(row);
   }
   const summary=document.createElement('div');
@@ -162,6 +162,14 @@
   summary.appendChild(status);
   host.appendChild(summary);
   host.onclick=async e=>{
+   const increase=e.target.closest('[data-increase-book]');
+   const decrease=e.target.closest('[data-decrease-book]');
+   if(increase||decrease){
+     const id=(increase||decrease).dataset[increase?'increaseBook':'decreaseBook'];
+     const next=readCart();const row=next.find(x=>x.book_id===id);
+     if(row){row.quantity=Math.max(0,Math.min(20,row.quantity+(increase?1:-1)));writeCart(next.filter(x=>x.quantity>0));renderCart(data)}
+     return;
+   }
    const remove=e.target.closest('[data-remove-book]');
    if(remove){
      writeCart(readCart().filter(x=>x.book_id!==remove.dataset.removeBook));
