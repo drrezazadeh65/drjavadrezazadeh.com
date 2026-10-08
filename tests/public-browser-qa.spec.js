@@ -1088,3 +1088,25 @@ test('practical CV and assessment guides offer verifiable examples at mobile and
     }
   }
 });
+
+
+test('evidence-led practical classroom and manuscript guides retain responsive SEO',async({page})=>{
+ const guides=[
+ ['/fa/rahnamaha/barname-yek-mahe-konkur/','برگه بازبینی پایان ماه'],
+ ['/fa/rahnamaha/ai-dar-tadris/','یک فعالیت کلاسی با AI'],
+ ['/fa/rahnamaha/arzyabi-mavad-amoozeshi/','کاربرگ مشاهده پس از تدریس'],
+ ['/fa/rahnamaha/ghabl-az-submit-maghale/','پرونده آماده ارسال']
+ ];
+ for(const [route,needle] of guides){
+  for(const [width,height] of [[390,844],[1440,900]]){
+   await page.setViewportSize({width,height});
+   const resp=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(resp.status(),route).toBe(200);
+   await expect(page.locator('.knowledge-article-content')).toContainText(needle);
+   await expect(page.locator('.knowledge-article-content h2[id]').first()).toBeVisible();
+   expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe('https://drjavadrezazadeh.com'+route);
+   const overflow=await stableOverflow(page);
+   expect(Math.max(overflow.html,overflow.body),route+' horizontal overflow '+width).toBeLessThanOrEqual(overflow.viewport+1);
+  }
+ }
+});
