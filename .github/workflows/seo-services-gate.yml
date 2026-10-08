@@ -1,0 +1,33 @@
+name: SEO service release gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fa/services/**'
+      - 'assets/images/services/**'
+      - 'assets/data/service-catalog.json'
+      - 'sitemap-services.xml'
+      - 'sitemap.xml'
+      - 'scripts/seo-services-gate.cjs'
+      - '.github/workflows/seo-services-gate.yml'
+  pull_request:
+    paths:
+      - 'fa/services/**'
+      - 'assets/images/services/**'
+      - 'assets/data/service-catalog.json'
+      - 'sitemap-services.xml'
+      - 'sitemap.xml'
+      - 'scripts/seo-services-gate.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-service-seo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate 21 service URLs, canonical tags, sitemap, schema, and image files
+        run: node scripts/seo-services-gate.cjs
