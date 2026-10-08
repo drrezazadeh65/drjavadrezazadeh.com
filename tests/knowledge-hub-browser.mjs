@@ -36,8 +36,27 @@ try {
     } else {
       assert(await page.locator('#knowledge-search').count()===1,name+': mobile search remains accessible');
     }
-    const count = await page.locator('.related-cluster-grid > a').count();
-    assert(count===45,name+': all 45 links in the DOM');
+    let count = await page.locator('.related-cluster-grid > a').count();
+    if (count !== 45) {
+      // DOM content must be present; allow late browser rendering but never
+      // relax the exact-card-count release requirement.
+      await page.waitForFunction(
+        () => document.querySelectorAll('.related-cluster-grid > a').length === 45,
+        null,{timeout:9000}
+      ).catch(async () => {
+        const diag = await page.evaluate(() => ({
+          url:location.href,readyState:document.readyState,
+          cards:document.querySelectorAll('.related-cluster-grid > a').length,
+          clusters:document.querySelectorAll('.related-cluster').length,
+          htmlLength:document.documentElement.outerHTML.length,
+          h1:document.querySelector('h1')?.textContent,
+          pageErrors:performance.getEntriesByType('resource').filter(x=>x.responseStatus>=400).slice(0,8).map(x=>[x.name,x.responseStatus])
+        }));
+        console.error('KNOWLEDGE_HUB_CARD_DIAGNOSTIC',name,JSON.stringify(diag));
+      });
+      count = await page.locator('.related-cluster-grid > a').count();
+    }
+    assert(count===45,name+': all 45 links in the DOM (observed '+count+')');
     const allImages = await page.locator('.knowledge-card-thumbnail').count();
     if (allImages !== 45) {
       const diagnostic = await page.evaluate(() => ({
