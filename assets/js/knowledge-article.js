@@ -81,6 +81,7 @@
   if (toolsBar) {
     const title = root.querySelector('h1')?.textContent?.trim() || document.title;
     const canonical = document.querySelector('link[rel="canonical"]')?.href || location.href.split('#')[0].split('?')[0];
+    const bookmarkUrl = location.origin + new URL(canonical,location.href).pathname;
     const bookmarkKey = 'jr-knowledge-bookmarks-v1';
     const statusNode = toolsBar.querySelector('.knowledge-article-copy-status');
     const insert = element => toolsBar.insertBefore(element, statusNode || null);
@@ -135,7 +136,7 @@
     bookmarkMenu.append(bookmarkHeading,bookmarkList);
     function refreshBookmarks() {
       const saved = readBookmarks();
-      const selected = saved.some(item => item.url === canonical);
+      const selected = saved.some(item => item.url === bookmarkUrl);
       bookmarkButton.setAttribute('aria-pressed',String(selected));
       bookmarkButton.textContent = selected ? '★ ذخیره‌شده' : '☆ ذخیره مقاله';
       bookmarkHeading.textContent = 'ذخیره‌شده‌ها (' + new Intl.NumberFormat('fa-IR').format(saved.length) + ')';
@@ -155,9 +156,9 @@
     }
     bookmarkButton.addEventListener('click',() => {
       const items = readBookmarks();
-      const selected = items.some(item => item.url === canonical);
-      const next = selected ? items.filter(item => item.url !== canonical) :
-        [{url:canonical,title},...items].slice(0,40);
+      const selected = items.some(item => item.url === bookmarkUrl);
+      const next = selected ? items.filter(item => item.url !== bookmarkUrl) :
+        [{url:bookmarkUrl,title},...items].slice(0,40);
       try {
         localStorage.setItem(bookmarkKey,JSON.stringify(next));
         refreshBookmarks();
