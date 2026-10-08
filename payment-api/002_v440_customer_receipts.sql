@@ -23,3 +23,17 @@ CREATE TABLE IF NOT EXISTS commerce_fulfilment_events (
  changed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS commerce_fulfilment_events_order ON commerce_fulfilment_events(order_id,changed_at);
+
+-- Refund workflow records review requests only. It never makes or certifies a bank refund.
+CREATE TABLE IF NOT EXISTS commerce_refund_requests (
+ id TEXT PRIMARY KEY,
+ order_id TEXT NOT NULL UNIQUE REFERENCES commerce_orders(id),
+ reason TEXT NOT NULL CHECK(length(reason) BETWEEN 20 AND 500),
+ state TEXT NOT NULL DEFAULT 'requested'
+  CHECK(state IN ('requested','reviewing','declined','approved_pending_disbursement')),
+ created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ reviewed_by TEXT,
+ review_note TEXT
+);
+CREATE INDEX IF NOT EXISTS commerce_refund_requests_state ON commerce_refund_requests(state,created_at);
