@@ -54,6 +54,7 @@ for(const slug of guideSlugs){
   if(!html.includes('/assets/images/knowledge/'+slug+'-featured.svg'))fail(slug+': absent featured image');
   if(!cards.has(slug))fail(slug+': missing index card');
   if(cards.get(slug)!=='../../'+img)fail(slug+': hub image path mismatch');
+  if(!sitemap.includes('<image:loc>'+domain+'/'+img+'</image:loc>'))fail(slug+': absent image sitemap entry');
   if(!fs.existsSync(path.join(root,img)))fail(slug+': absent SVG file');
   else {
     const svg=read(img);
