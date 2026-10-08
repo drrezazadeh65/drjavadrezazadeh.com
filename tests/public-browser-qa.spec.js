@@ -180,7 +180,7 @@ for(const route of ['/fa/','/en/']){
     await page.waitForTimeout(160);
     const dock=page.locator('.app-dock');
     await expect(dock).toBeVisible();
-    const items=dock.locator('a,button');
+    const items=dock.locator('a');
     await expect(items).toHaveCount(5);
     const boxes=await items.evaluateAll(nodes=>nodes.map(n=>{
       const r=n.getBoundingClientRect();
@@ -191,7 +191,8 @@ for(const route of ['/fa/','/en/']){
       expect(box.w,'mobile dock target width').toBeGreaterThanOrEqual(44);
     }
     await expect(dock.locator('[aria-current="page"]')).toHaveCount(1);
-    const menu=dock.locator('[data-nav-toggle]');
+    const menu=page.locator('.site-header .mobile-menu-trigger[data-nav-toggle]').first();
+    await expect(menu).toBeVisible();
     await menu.click();
     const sheet=page.locator('#mobile-app-menu');
     await expect(sheet).toBeVisible();
@@ -528,6 +529,8 @@ for(const route of ['/en/login/','/en/register/','/fa/login/','/fa/register/']){
     expect(await brand.evaluate(el=>getComputedStyle(el).flexDirection)).toBe('row');
     const robots=await page.locator('meta[name="robots"]').getAttribute('content');
     expect(robots||'').toContain('noindex');
+    const activeTab=page.locator('.app-dock a[aria-current="page"] span');
+    await expect(activeTab).toHaveText(route.startsWith('/fa/')?'حساب':'Account');
   });
 }
 
