@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/knowledge-articles-premium-upgrade.yml'
+      - 'tests/knowledge-article-responsive.spec.js'
+      - 'scripts/upgrade_knowledge_articles.py'
+      - 'assets/css/knowledge-article.css'
+      - 'assets/js/knowledge-article.js'
   workflow_dispatch:
 
 permissions:
