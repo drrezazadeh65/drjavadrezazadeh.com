@@ -8,6 +8,7 @@ The full archive is validated BEFORE any public page is modified.
 Never substitutes a placeholder or imports unapproved image files.
 """
 import argparse
+import csv
 import json
 import re
 import struct
@@ -47,6 +48,11 @@ def slugs():
 
 def install(archive, check_only=False):
     ids = slugs()
+    manifest = ROOT / "assets/data/knowledge-image-seo-manifest.csv"
+    with manifest.open(encoding="utf-8-sig", newline="") as fp:
+        image_rows = {row["slug"]: row for row in csv.DictReader(fp)}
+    if set(image_rows) != set(ids):
+        raise ValueError("Image manifest must match exactly the 45 published article slugs")
     binary = {}
     with ZipFile(archive) as z:
         names=z.namelist()
@@ -55,7 +61,7 @@ def install(archive, check_only=False):
                 ("featured-1600x900", "featured", (1600,900)),
                 ("og-1200x630", "og", (1200,630)),
             ):
-                wanted=f"{group}/{slug}-{suffix}.webp"
+                wanted=image_rows[slug]["featured_file" if suffix=="featured" else "og_file"]
                 matches=[n for n in names if n==wanted or n.endswith("/"+wanted)]
                 if len(matches)!=1:
                     raise ValueError(f"Expected exactly one {wanted}, got {len(matches)}")
@@ -115,7 +121,7 @@ def install(archive, check_only=False):
                     "width":width,"height":height, "source_status":"production-source",
                     "provenance":"Original owner-approved 45-image web-ready archive (2026-10-08)",
                     "rights":"site-use-approved by owner",
-                    "alt_fa":"تصویر مفهومی اختصاصی مقاله "+slug,
+                    "alt_fa":image_rows[slug]["alt_fa"],
                     "optimization_profile":"knowledge-"+kind
                 })
                 present.add(p)
