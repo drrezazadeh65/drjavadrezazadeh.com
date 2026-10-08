@@ -64,8 +64,7 @@ if(!fs.existsSync(relayPath)) {
   failures.push('Approved noindex payment-return relay missing: '+paymentRelay);
 }else{
   const relay=fs.readFileSync(relayPath,'utf8');
-  if(!/<meta\\s+name="robots"\\s+content="noindex,nofollow"\\s*\\/>?/.test(relay) &&
-     !/<meta\\s+name="robots"\\s+content="noindex,nofollow"\\s*>/.test(relay)){
+  if(!relay.includes('<meta name="robots" content="noindex,nofollow">')){
     failures.push('Payment-return relay must remain noindex,nofollow');
   }
   for(const sitemap of ['sitemap.xml','sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml']){
