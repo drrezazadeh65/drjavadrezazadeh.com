@@ -184,9 +184,9 @@
     questionLink.textContent = 'پرسش از نویسنده با ایمیل';
     questionLink.href = 'mailto:dr.rezazadeh65@gmail.com?subject=' +
       encodeURIComponent('پرسش درباره مقاله: ' + articleTitle) + '&body=' +
-      encodeURIComponent('موضوع مقاله: ' + articleTitle + '\\n' +
-        'پیوند مقاله: ' + articleUrl + '\\n\\n' +
-        'پرسش من: \\n\\n' +
+      encodeURIComponent('موضوع مقاله: ' + articleTitle + '\n' +
+        'پیوند مقاله: ' + articleUrl + '\n\n' +
+        'پرسش من: \n\n' +
         'لطفاً اطلاعات حساس یا جزئیات خصوصی دانش‌آموز را از طریق ایمیل عمومی ارسال نکنید.');
     questionLink.setAttribute('aria-label','طرح پرسش خصوصی با باز کردن برنامه ایمیل');
     readerBar.insertBefore(questionLink,readerBar.querySelector('.knowledge-article-copy-status'));
