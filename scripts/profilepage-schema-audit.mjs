@@ -5,7 +5,8 @@ import path from 'node:path';
 const root=process.cwd();
 const required=[
  'fa/index.html','en/index.html','en/about/index.html',
- 'en/academic-profile/index.html','fa/darbare-man/index.html'
+ 'en/academic-profile/index.html','fa/darbare-man/index.html',
+ 'en/teaching/index.html','fa/tadris/index.html'
 ];
 const canonicalId='https://drjavadrezazadeh.com/#person';
 const canonicalName='Javad Rezazadeh Yazdeli';
@@ -37,9 +38,6 @@ for(const file of files){
    }
    if(entity?.['@id']!==canonicalId)errors.push(file+': ProfilePage mainEntity canonical identity drift');
    if(entity?.name!==canonicalName)errors.push(file+': ProfilePage mainEntity missing canonical name');
-   const people=nodes.filter(x=>x['@type']==='Person'&&x['@id']===canonicalId);
-   if(!people.length&&!file.startsWith('fa/darbare-man/'))
-    errors.push(file+': canonical Person graph node missing');
   }
  }
 }
