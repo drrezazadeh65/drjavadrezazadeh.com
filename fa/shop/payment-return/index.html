@@ -17,16 +17,20 @@
 (function(){
   const p=new URLSearchParams(location.search);
   const order=p.get("order");
+  const msg=document.getElementById("message");
+  const heading=document.querySelector("h1");
+  heading.textContent="بازگشت از درگاه بانکی";
   const id=p.get("id_get");
   const trans=p.get("trans_id");
   if(!/^[0-9a-f-]{36}$/i.test(order||"")||!/^[0-9]+$/.test(id||"")||!/^[0-9]+$/.test(trans||"")){
-    document.getElementById("message").textContent="اطلاعات بازگشت ناقص است. اگر وجهی پرداخت کرده‌اید، دوباره پرداخت نکنید و با پشتیبانی تماس بگیرید.";
+    msg.textContent="اطلاعات بازگشت ناقص است. اگر وجهی پرداخت کرده‌اید، دوباره پرداخت نکنید و از بخش تماس سایت پیگیری کنید.";
     return;
   }
   const dest=new URL("https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/callback");
   dest.searchParams.set("order",order);
   dest.searchParams.set("id_get",id);
   dest.searchParams.set("trans_id",trans);
+  msg.textContent="در حال انتقال به سامانه استعلام بانکی. اگر نتیجه نمایش داده نشد، دوباره پرداخت نکنید و از بخش تماس سایت پیگیری کنید.";
   location.replace(dest.href);
 })();
 </script>
