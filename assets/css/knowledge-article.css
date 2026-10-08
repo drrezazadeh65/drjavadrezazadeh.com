@@ -263,3 +263,74 @@
 @media(print){
  .knowledge-article-page .knowledge-article-actionmenu{display:none!important}
 }
+
+
+/* Reader comfort controls and usable article print. Shared across all 45 guides. */
+.knowledge-article-page .knowledge-article-tools .knowledge-article-private-question{
+  display:inline-flex;align-items:center;justify-content:center;min-height:44px;
+  padding:9px 16px;border:1px solid rgba(237,203,132,.42);border-radius:11px;
+  background:#26231e;color:#f6e6c2;text-decoration:none;font-size:13px;
+  line-height:1.65;text-align:center;
+}
+.knowledge-article-page .knowledge-article-tools .knowledge-article-private-question:hover{
+  background:#393023;border-color:#edcb84;
+}
+.knowledge-article-page .article-shell.knowledge-article-large-text .knowledge-article-content :is(p,li,blockquote){
+  font-size:clamp(18px,1.48vw,20px)!important;line-height:2.2!important;
+}
+.knowledge-article-page .article-shell.knowledge-article-large-text .knowledge-article-content :is(a,button){
+  text-underline-offset:5px;
+}
+@media(max-width:620px){
+ .knowledge-article-page .knowledge-article-tools .knowledge-article-private-question{
+   font-size:12px;padding:9px 12px;
+ }
+ .knowledge-article-page .article-shell.knowledge-article-large-text .knowledge-article-content :is(p,li,blockquote){
+   font-size:18px!important;line-height:2.15!important;
+ }
+}
+@media print {
+ @page { margin:16mm; }
+ html:has(body.knowledge-article-page),body.knowledge-article-page{
+   background:#fff!important;color:#111!important;
+   font:12pt/1.65 Tahoma,Arial,sans-serif!important;
+ }
+ .knowledge-article-page :is(.site-header,.breadcrumbs,.app-dock,.jr-assistant-launcher,.jr-assistant-panel,
+   .knowledge-article-progress,.knowledge-article-backtop,.knowledge-article-tools,
+   .knowledge-article-sidebar,.knowledge-article-mobiletoc,.knowledge-article-sidebar-note,
+   .knowledge-article-copy-status,footer,.site-footer,.related-cluster-grid){
+   display:none!important;
+ }
+ .knowledge-article-page :is(main,.article-shell,.knowledge-article-layout,.knowledge-article-content){
+   display:block!important;width:100%!important;max-width:100%!important;
+   padding:0!important;margin:0!important;box-shadow:none!important;border:0!important;
+   background:#fff!important;color:#111!important;
+ }
+ .knowledge-article-page .article-hero{
+   padding:0 0 12mm!important;margin:0 0 8mm!important;border:0!important;
+   border-bottom:1px solid #999!important;box-shadow:none!important;background:#fff!important;
+ }
+ .knowledge-article-page .article-hero :is(.kicker,h1,.lead,.article-meta,.article-meta a),
+ .knowledge-article-page .knowledge-article-content :is(h2,h3,p,li,blockquote,a){
+   color:#111!important;text-shadow:none!important;
+ }
+ .knowledge-article-page .article-hero h1{font-size:22pt!important;line-height:1.55!important}
+ .knowledge-article-page .article-hero .lead{font-size:12pt!important;line-height:1.85!important}
+ .knowledge-article-page .article-hero .article-meta{border:0!important;padding:0!important}
+ .knowledge-article-page .knowledge-article-content :is(p,li,blockquote){
+   font-size:11pt!important;line-height:1.9!important;
+ }
+ .knowledge-article-page .knowledge-article-content h2{
+   font-size:16pt!important;line-height:1.6!important;
+ }
+ .knowledge-article-page .knowledge-article-content>section{
+   border-bottom:1px solid #ccc!important;break-inside:auto;
+ }
+ .knowledge-article-page .knowledge-article-content :is(h2,h3){break-after:avoid}
+ .knowledge-article-page .editorial-figure{box-shadow:none!important;border:0!important}
+ .knowledge-article-page .editorial-figure img{max-height:85mm;object-fit:contain}
+ .knowledge-article-page .editorial-figure figcaption{
+   color:#333!important;background:#fff!important;font-size:10pt!important;
+ }
+ .knowledge-article-page a[href^="http"]::after{content:none!important}
+}
