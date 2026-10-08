@@ -23,6 +23,7 @@ for(const slug of slugs){
   const headings=[...html.matchAll(/<h2\b[^>]*id="([^"]+)"[^>]*>[\s\S]*?<\/h2>/g)].map(x=>x[1]);
   if(headings.length<5||new Set(headings).size!==headings.length)fail.push(slug+': heading anchor coverage');
   for(const id of headings)if(!html.includes('href="#'+id+'"'))fail.push(slug+': broken TOC anchor #'+id);
+  if(/class="knowledge-related-thumbnail"[^>]*alt=""/.test(html))fail.push(slug+': related image ALT missing');
   const firstImg='assets/images/knowledge/'+slug+'-featured.webp';
   if(!fs.existsSync(path.join(root,firstImg))||!html.includes(firstImg))fail.push(slug+': missing article photo');
   for(const img of html.matchAll(/src="\.\.\/\.\.\/\.\.\/(assets\/images\/knowledge\/[^"]+\.webp)"/g)){

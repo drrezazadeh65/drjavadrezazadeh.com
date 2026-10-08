@@ -57,6 +57,8 @@ for(const slug of slugs) {
       if(['golden-talent-chist','moghayese-reshteha-ba-matris-tasmim'].includes(slug)){
         const out='test-results/article-responsive/'+label;
         fs.mkdirSync(out,{recursive:true});
+        await page.evaluate(() => { document.activeElement?.blur?.(); window.scrollTo({top:0,behavior:'instant'}); });
+        await page.waitForTimeout(170);
         await page.screenshot({path:path.join(out,slug+'.jpg'),type:'jpeg',quality:66,fullPage:true,animations:'disabled'});
       }
     }

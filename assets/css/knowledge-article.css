@@ -207,3 +207,13 @@
  .knowledge-article-page .knowledge-article-tools button,
  .knowledge-article-page .knowledge-article-content .related-cluster-grid>a{transition:none}
 }
+
+/* v4.3.0 mobile editorial hierarchy */
+@media(max-width:850px){
+ .knowledge-article-page .article-hero{display:flex!important;flex-direction:column}
+ .knowledge-article-page .article-hero>.kicker{order:1}
+ .knowledge-article-page .article-hero>h1{order:2}
+ .knowledge-article-page .article-hero>.lead{order:3}
+ .knowledge-article-page .article-hero>.article-meta{order:4}
+ .knowledge-article-page .article-hero>.knowledge-article-tools{order:5}
+}

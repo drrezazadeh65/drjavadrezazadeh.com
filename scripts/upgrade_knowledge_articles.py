@@ -7,6 +7,7 @@ a lightweight reading progress affordance, and Article schema consistency.
 """
 from __future__ import annotations
 import argparse
+import csv
 import html
 import json
 import re
@@ -15,6 +16,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SITEMAP = ROOT / "sitemap-fa.xml"
 DOMAIN = "https://drjavadrezazadeh.com"
+def load_alt_manifest():
+    source = ROOT / "assets/data/knowledge-image-seo-manifest.csv"
+    with source.open(encoding="utf-8-sig", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    result = {row["slug"]: row["alt_fa"] for row in rows}
+    if len(rows) != 45 or len(result) != 45 or any(not val for val in result.values()):
+        raise ValueError("Media manifest must have 45 distinct nonempty image ALTs")
+    return result
+
 
 def validate_slugs():
     data = SITEMAP.read_text(encoding="utf-8")
@@ -23,11 +33,24 @@ def validate_slugs():
         raise ValueError("Expected exactly 45 distinct published article slugs")
     return slugs
 
-def upgrade(old: str, slug: str, slugs: set[str]):
+def upgrade(old: str, slug: str, slugs: set[str], alts: dict[str,str]):
     if 'knowledge-article-page' in old:
         if 'knowledge-article-layout' not in old:
             raise ValueError(f"Partially upgraded {slug}")
-        return old, False, 0
+        def repair_img(m):
+            target = m.group(2)
+            if target not in alts:
+                raise ValueError(f"Missing ALT for related article {target}")
+            return m.group(1) + 'alt="' + html.escape(alts[target], quote=True) + '"'
+        updated = re.sub(
+            r'(<img class="knowledge-related-thumbnail" src="\.\./\.\./\.\./assets/images/knowledge/([a-z0-9-]+)-featured\.webp" )alt=""',
+            repair_img, old
+        )
+        updated = updated.replace('knowledge-article.css?v=20261008-premium-v1',
+                                  'knowledge-article.css?v=20261008-premium-v2')
+        if re.search(r'class="knowledge-related-thumbnail"[^>]*alt=""', updated):
+            raise ValueError(f"Unlabeled article image still present in {slug}")
+        return updated, updated != old, 0
     if old.count('<article class="article-shell">') != 1:
         raise ValueError(f"Article container count differs for {slug}")
     canonical = f"{DOMAIN}/fa/rahnamaha/{slug}/"
@@ -76,7 +99,7 @@ def upgrade(old: str, slug: str, slugs: set[str]):
             return m.group(0)
         return (prefix + f'<img class="knowledge-related-thumbnail" '
                 f'src="../../../assets/images/knowledge/{target}-featured.webp" '
-                f'alt="" width="1600" height="900" loading="lazy" decoding="async">')
+                f'alt="{html.escape(alts[target], quote=True)}" width="1600" height="900" loading="lazy" decoding="async">')
 
     content = re.sub(
         r'(<a\b[^>]*\bhref="\.\.\/([a-z0-9-]+)\/"[^>]*>)(?=\s*<b>)',
@@ -177,12 +200,15 @@ def main():
     args = parser.parse_args()
     entries = validate_slugs()
     result = {}
+    alts = load_alt_manifest()
+    if set(alts) != set(entries):
+        raise ValueError("Image manifest and public sitemap slug lists differ")
     heading_count = 0
     changes = 0
     for slug in entries:
         path = ROOT / 'fa' / 'rahnamaha' / slug / 'index.html'
         source = path.read_text(encoding='utf-8')
-        updated, changed, num_headings = upgrade(source, slug, set(entries))
+        updated, changed, num_headings = upgrade(source, slug, set(entries), alts)
         result[path] = updated
         changes += int(changed)
         heading_count += num_headings
