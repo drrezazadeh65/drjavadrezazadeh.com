@@ -1295,3 +1295,51 @@ test('three newly discovered or pending-index guides provide actionable value wi
   }
  }
 });
+
+
+test('bilingual bookstore cart sends enquiries, never fictitious payment or orders',async({page})=>{
+ for(const [route,locale] of [['/fa/shop/cart/','fa'],['/en/shop/cart/','en']]){
+  await page.addInitScript(()=>{
+   localStorage.setItem('jr-book-cart-v1',JSON.stringify([
+    {book_id:'roshanaei',quantity:2},{book_id:'tariki',quantity:1},
+    {book_id:'nonexistent',quantity:4}
+   ]));
+  });
+  for(const [width,height] of [[390,844],[1440,900]]){
+   await page.setViewportSize({width,height});
+   const resp=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(resp.status()).toBe(200);
+   const cart=page.locator('[data-book-cart]');
+   await expect(cart.locator('.cart-row')).toHaveCount(2);
+   await expect(cart.locator('.cart-summary strong')).toContainText(locale==='fa'?'۶٬۰۰۰٬۰۰۰':'6,000,000');
+   await expect(cart.locator('a[data-book-inquiry]')).toBeVisible();
+   const href=await cart.locator('[data-book-inquiry]').getAttribute('href');
+   expect(href).toMatch(/^mailto:dr\.rezazadeh65@gmail\.com\?subject=/);
+   expect(decodeURIComponent(href)).toContain('Sepid');
+   expect(decodeURIComponent(href)).toContain('Tariki');
+   await expect(cart.locator('[data-book-copy]')).toBeVisible();
+   await expect(cart.locator('a[href*="/checkout/"]')).toHaveCount(0);
+   const overflow=await stableOverflow(page);
+   expect(Math.max(overflow.html,overflow.body),route+' '+width).toBeLessThanOrEqual(overflow.viewport+1);
+   await cart.locator('[data-remove-book]').first().click();
+   await expect(cart.locator('.cart-row')).toHaveCount(1);
+  }
+ }
+});
+
+test('book selection rejects corrupt or excessive device-only quantities',async({page})=>{
+ await page.addInitScript(()=>{
+  localStorage.setItem('jr-book-cart-v1',JSON.stringify([
+   {book_id:'roshanaei',quantity:999},{book_id:'roshanaei',quantity:5},
+   {book_id:'tariki',quantity:-2},{book_id:'oops',quantity:'12'}
+  ]));
+ });
+ await page.setViewportSize({width:320,height:800});
+ await page.goto(base+'/fa/shop/cart/',{waitUntil:'domcontentloaded'});
+ const cart=page.locator('[data-book-cart]');
+ await expect(cart.locator('.cart-row')).toHaveCount(1);
+ await expect(cart.locator('.cart-row small')).toContainText('20');
+ await expect(cart.locator('.cart-summary strong')).toContainText('۴۰٬۰۰۰٬۰۰۰');
+ await expect(cart.locator('[data-book-inquiry]')).toHaveAttribute('href',/^mailto:/);
+ await expect(cart.locator('a[href*="/checkout/"]')).toHaveCount(0);
+});

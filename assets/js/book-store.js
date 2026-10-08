@@ -13,8 +13,25 @@
   try{return new Intl.NumberFormat(isFa?'fa-IR':'en-US',{style:'currency',currency}).format(amount/100);}
   catch(e){return String(amount)+' '+currency;}
  }
- function readCart(){try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){return[]}}
- function writeCart(items){try{localStorage.setItem(CART_KEY,JSON.stringify(items.slice(0,20)))}catch(e){} updateCartBadge();}
+ function cleanCart(input){
+  if(!Array.isArray(input))return [];
+  const items=[];
+  for(const row of input.slice(0,60)){
+   if(!row||typeof row.book_id!=='string'||!/^[a-z0-9-]{1,40}$/.test(row.book_id))continue;
+   if(!Number.isInteger(row.quantity)||row.quantity<1)continue;
+   const qty=Math.min(20,row.quantity);
+   const prev=items.find(x=>x.book_id===row.book_id);
+   if(prev){prev.quantity=Math.min(20,prev.quantity+qty);continue}
+   if(items.length>=20)break;
+   items.push({book_id:row.book_id,quantity:qty});
+  }
+  return items;
+ }
+ function readCart(){
+  try{return cleanCart(JSON.parse(localStorage.getItem(CART_KEY)||'[]'))}
+  catch(e){return[]}
+ }
+ function writeCart(items){try{localStorage.setItem(CART_KEY,JSON.stringify(cleanCart(items)))}catch(e){} updateCartBadge();}
  function updateCartBadge(){const n=readCart().reduce((s,x)=>s+(x.quantity||1),0);document.querySelectorAll('[data-cart-count]').forEach(x=>x.textContent=String(n));}
  async function load(){
   const res=await fetch(root('assets/data/book-catalog.json'),{cache:'no-store'});
@@ -66,25 +83,101 @@
   host.addEventListener('click',e=>{if(e.target.closest('[data-detail-add]'))add(b);});
  }
  function renderCart(data){
-  const host=document.querySelector('[data-book-cart]'); if(!host) return;
-  const cart=readCart(); host.innerHTML='';
-  if(!cart.length){host.innerHTML='<p class="lead">'+(isFa?'سبد خرید خالی است.':'Your cart is empty.')+'</p>';return;}
+  const host=document.querySelector('[data-book-cart]'); if(!host)return;
+  const cart=readCart();
+  const books=cart.map(item=>({item,book:data.books.find(b=>b.id===item.book_id)})).filter(row=>row.book);
+  host.replaceChildren();
+  if(!books.length){
+   host.innerHTML='<p class="lead">'+(isFa?'سبد انتخاب کتاب خالی است.':'Your book selection is empty.')+'</p>';
+   host.onclick=null;
+   return;
+  }
   let total=0,currency=null,valid=true;
-  cart.forEach(item=>{
-    const b=data.books.find(x=>x.id===item.book_id); if(!b)return;
-    if(!ready(b)) valid=false; else {currency=currency||b.commerce.currency;if(currency!==b.commerce.currency)valid=false;total+=b.commerce.price*(item.quantity||1);}
-    const row=document.createElement('div'); row.className='cart-row';
-    row.innerHTML='<div><strong lang="fa" dir="rtl">'+b.title_fa+'</strong><small>'+(isFa?'تعداد':'Qty')+': '+(item.quantity||1)+'</small></div>'+
-      '<div>'+money(ready(b)?b.commerce.price*(item.quantity||1):null,b.commerce?.currency)+'</div>'+
+  for(const {item,book:b} of books){
+    if(!ready(b)){valid=false}
+    else {
+      currency=currency||b.commerce.currency;
+      if(currency!==b.commerce.currency)valid=false;
+      total+=b.commerce.price*item.quantity;
+    }
+    const row=document.createElement('div');
+    row.className='cart-row';
+    row.innerHTML='<div><strong lang="fa" dir="rtl">'+b.title_fa+'</strong><small>'+
+      (isFa?'تعداد':'Qty')+': '+item.quantity+'</small></div>'+
+      '<div>'+money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency)+'</div>'+
       '<button type="button" data-remove-book="'+b.id+'">'+(isFa?'حذف':'Remove')+'</button>';
     host.appendChild(row);
-  });
-  const sum=document.createElement('div');sum.className='cart-summary';
-  sum.innerHTML='<strong>'+(isFa?'جمع نمایشی':'Display total')+': '+money(valid?total:null,currency)+'</strong>'+
-    '<p>'+(isFa?'مبلغ نهایی هنگام ثبت سفارش بر اساس قیمت فعال فروشگاه دوباره بررسی می‌شود.':'The final amount is checked again against the active store price when the order is submitted.')+'</p>'+
-    (valid?'<a class="button primary" href="'+root((isFa?'fa':'en')+'/shop/checkout/')+'">'+(isFa?'ادامه به تسویه':'Continue to checkout')+'</a>':'<span class="book-pending">'+(isFa?'تسویه تا فعال‌شدن اطلاعات واقعی فروش بسته است.':'Checkout remains closed until real commerce data is activated.')+'</span>');
-  host.appendChild(sum);
-  host.addEventListener('click',e=>{const btn=e.target.closest('[data-remove-book]');if(!btn)return;writeCart(readCart().filter(x=>x.book_id!==btn.dataset.removeBook));renderCart(data);});
+  }
+  const summary=document.createElement('div');
+  summary.className='cart-summary';
+  const amount=valid?money(total,currency):(isFa?'نیازمند بررسی':'Requires confirmation');
+  const formattedLines=books.map(({item,book:b})=>
+    '- '+b.title_fa+' ('+b.english_reference_title+') × '+item.quantity+
+    ' | '+money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency)
+  );
+  const disclosure=isFa?
+    'این فهرست فقط برای استعلام است. هیچ سفارش یا پرداختی انجام نشده است. قیمت و موجودی هنگام پاسخ بررسی می‌شوند؛ هزینه و شرایط ارسال هنوز نهایی نشده‌اند.':
+    'This is an availability enquiry only. No order or payment has been placed. Prices and availability require confirmation; shipping costs and terms are not final.';
+  const mailBody=(isFa?
+    ['درخواست استعلام موجودی و شرایط خرید کتاب','',...formattedLines,'',
+     'جمع نمایشی: '+amount,'','لطفاً موجودی واقعی، هزینه و شرایط ارسال، شیوه بازگشت و امکان سفارش را پیش از هر پرداخت اعلام کنید.',
+     '','این پیام ثبت سفارش یا تأیید پرداخت نیست.']:
+    ['Book availability and fulfilment enquiry','',...formattedLines,'',
+     'Illustrative subtotal: '+amount,'','Please confirm actual stock, delivery cost and terms, return policy, and whether ordering is available before any payment.',
+     '','This enquiry is not an order or payment confirmation.']).join('\n');
+  summary.innerHTML='<strong>'+(isFa?'جمع نمایشی انتخاب‌ها':'Illustrative selection subtotal')+
+    ': '+amount+'</strong><p>'+disclosure+'</p>';
+  const actions=document.createElement('div');
+  actions.className='actions';
+  const inquiry=document.createElement('a');
+  inquiry.className='button primary';
+  inquiry.dataset.bookInquiry='';
+  inquiry.href='mailto:dr.rezazadeh65@gmail.com?subject='+
+    encodeURIComponent(isFa?'استعلام موجودی و شرایط خرید کتاب':'Book availability and delivery enquiry')+
+    '&body='+encodeURIComponent(mailBody);
+  inquiry.textContent=isFa?'استعلام موجودی و شرایط با ایمیل':'Enquire about stock and shipping';
+  inquiry.setAttribute('aria-label',isFa?'باز کردن برنامه ایمیل برای استعلام، بدون ثبت سفارش':'Open email client to enquire; no order is placed');
+  actions.appendChild(inquiry);
+  const copy=document.createElement('button');
+  copy.type='button';
+  copy.className='button';
+  copy.dataset.bookCopy='';
+  copy.textContent=isFa?'کپی خلاصه انتخاب‌ها':'Copy selection summary';
+  actions.appendChild(copy);
+  const status=document.createElement('p');
+  status.dataset.bookCopyStatus='';
+  status.setAttribute('role','status');
+  status.setAttribute('aria-live','polite');
+  status.className='book-pending';
+  summary.appendChild(actions);
+  summary.appendChild(status);
+  host.appendChild(summary);
+  host.onclick=async e=>{
+   const remove=e.target.closest('[data-remove-book]');
+   if(remove){
+     writeCart(readCart().filter(x=>x.book_id!==remove.dataset.removeBook));
+     renderCart(data);
+     return;
+   }
+   if(!e.target.closest('[data-book-copy]'))return;
+   try{
+     if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(mailBody);
+     else{
+       const field=document.createElement('textarea');
+       field.value=mailBody;
+       field.setAttribute('readonly','');
+       field.style.cssText='position:fixed;top:-100px;opacity:0';
+       document.body.appendChild(field);
+       field.select();
+       const copied=document.execCommand('copy');
+       field.remove();
+       if(!copied)throw Error('copy denied');
+     }
+     status.textContent=isFa?'خلاصه انتخاب‌ها کپی شد؛ هنوز سفارشی ثبت نشده است.':'Selection copied. No order has been placed.';
+   }catch(_){
+     status.textContent=isFa?'کپی خودکار ممکن نشد؛ از گزینه ایمیل استفاده کنید.':'Automatic copy unavailable; use the email enquiry option.';
+   }
+  };
  }
  function renderCheckout(data){
   const host=document.querySelector('[data-book-checkout]'); if(!host) return;
