@@ -1,0 +1,15 @@
+// Cloudflare Worker integration guide: preserve the current Worker routes.
+// 1. In the Cloudflare editor use Modules format (ESM).
+// 2. Add commerce-routes.js as a second module using the source from payment-api/commerce-routes.js.
+// 3. At the top of the existing entrypoint add:
+// import { commerce } from "./commerce-routes.js";
+// 4. At the beginning of async fetch(request, env), before existing env checks, add:
+// const commerceResponse = await commerce(request, env);
+// if (commerceResponse) return commerceResponse;
+// 5. D1 commerce_orders table is already created.
+// 6. Do not enable COMMERCE_ENABLED until the site frontend has been wired and payment unit verified.
+// 7. Required: BITPAY_AMOUNT_MULTIPLIER (1 or 10 only after verification).
+// 8. Enable book payments only after shipping rules confirmed.
+// 9. Keep VIP checkout_enabled:false in assets/data/vip-catalog.json.
+// 10. Test /commerce/health and POST /commerce/create with Origin https://drjavadrezazadeh.com.
+// Note: This is an integration guide, NOT a drop-in replacement for the existing entrypoint.
