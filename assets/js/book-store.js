@@ -125,16 +125,16 @@
     ' | '+money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency)
   );
   const disclosure=isFa?
-    'این فهرست فقط برای استعلام است. هیچ سفارش یا پرداختی انجام نشده است. قیمت و موجودی هنگام پاسخ بررسی می‌شوند؛ هزینه و شرایط ارسال هنوز نهایی نشده‌اند.':
-    'This is an availability enquiry only. No order or payment has been placed. Prices and availability require confirmation; shipping costs and terms are not final.';
+    'این فهرست فقط برای استعلام است. هیچ سفارش یا پرداختی انجام نشده است. قیمت و موجودی هنگام پاسخ بررسی می‌شوند؛ ارسال کتاب رایگان است و هزینه آن بر عهده فروشگاه است.':
+    'This is an availability enquiry only. No order or payment has been placed. Prices and availability require confirmation; book shipping is free and paid by the store.';
   const mailBody=(isFa?
     ['درخواست استعلام موجودی و شرایط خرید کتاب','',...formattedLines,'',
-     'جمع نمایشی: '+amount,'','لطفاً موجودی واقعی، هزینه و شرایط ارسال، شیوه بازگشت و امکان سفارش را پیش از هر پرداخت اعلام کنید.',
+     'جمع نمایشی: '+amount,'','لطفاً موجودی واقعی، ارسال رایگان، شیوه بازگشت و امکان سفارش را پیش از هر پرداخت اعلام کنید.',
      '','این پیام ثبت سفارش یا تأیید پرداخت نیست.']:
     ['Book availability and fulfilment enquiry','',...formattedLines,'',
-     'Illustrative subtotal: '+amount,'','Please confirm actual stock, delivery cost and terms, return policy, and whether ordering is available before any payment.',
+     'Illustrative subtotal: '+amount,'','Please confirm actual stock, free shipping, return policy, and whether ordering is available before any payment.',
      '','This enquiry is not an order or payment confirmation.']).join('\n');
-  summary.innerHTML='<strong>'+(isFa?'جمع نمایشی انتخاب‌ها':'Illustrative selection subtotal')+
+  summary.innerHTML='<p class="store-notice">'+(isFa?'هزینه ارسال: رایگان (بر عهده فروشگاه)':'Shipping: free (paid by the store)')+'</p><strong>'+(isFa?'جمع نمایشی انتخاب‌ها':'Illustrative selection subtotal')+
     ': '+amount+'</strong><p>'+disclosure+'</p>';
   const actions=document.createElement('div');
   actions.className='actions';
