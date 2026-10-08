@@ -15,6 +15,22 @@ try {
     await page.goto(base + '/fa/rahnamaha/', { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.locator('#knowledge-result-count').waitFor();
     await page.waitForFunction(() => document.querySelector('#knowledge-result-count')?.textContent?.includes('۴۵'), { timeout: 12000 });
+    const hero = page.locator('header.knowledge-hero');
+    assert(await hero.count()===1,name+': redesigned Knowledge Hub hero is present');
+    const heroStats = await page.evaluate(() => {
+      const section=document.querySelector('header.knowledge-hero');
+      const title=section?.querySelector('h1');
+      const copy=section?.querySelector('.knowledge-hero-copy');
+      const panel=section?.querySelector('.knowledge-hero-panel');
+      const box=section?.getBoundingClientRect();
+      return {height:box?.height,width:box?.width,titleSize:title?parseFloat(getComputedStyle(title).fontSize):0,titleText:title?.textContent?.trim(),copyWidth:copy?.getBoundingClientRect()?.width,panelWidth:panel?.getBoundingClientRect()?.width,display:section?getComputedStyle(section).display:'none'};
+    });
+    assert(heroStats.titleSize>=26&&heroStats.titleSize<=44,name+': legible controlled H1 typography ('+heroStats.titleSize+'px)');
+    assert(heroStats.titleText==='راهنماهای علمی برای تصمیم‌های آگاهانه',name+': concise scientific guide heading');
+    assert(heroStats.display==='grid',name+': hero uses responsive grid');
+    assert(heroStats.height<((width>=950)?520:(width>=690)?650:950),name+': hero not excessively tall ('+heroStats.height+'px)');
+    assert(heroStats.copyWidth>=210&&heroStats.panelWidth>=150,name+': copy and editorial panel are visible at '+width+'px');
+    assert(await page.locator('.knowledge-hero-actions a[href="#knowledge-toolbar-title"]').count()===1,name+': search jump target is linked');
     const count = await page.locator('.related-cluster-grid > a').count();
     assert(count===45,name+': all 45 links in the DOM');
     const allImages = await page.locator('.knowledge-card-thumbnail').count();
