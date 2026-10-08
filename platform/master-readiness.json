@@ -182,28 +182,23 @@
     },
     {
       "id": "ai-concierge",
-      "production_state": "IN_PROGRESS",
+      "production_state": "STATIC_FALLBACK_ACTIVE",
       "revenue_priority": "HIGH",
       "external_blockers": [
-        "Cloudflare production deployment credentials/secrets",
-        "Cloudflare zone/custom-domain certificate activation"
+        "No secure server-side assistant runtime is currently provisioned"
       ],
       "artifacts": [
         "assets/js/assistant.js",
         "assets/css/assistant.css",
-        "edge/assistant/src/index.js",
-        "edge/assistant/wrangler.jsonc",
         "platform/assistant-runtime-policy.json",
         "foundation/AI-ASSISTANT-ACTIVATION-RUNBOOK.md",
-        "platform/whatsapp-provider-policy.json",
-        ".github/workflows/assistant-worker-deploy.yml"
+        "platform/whatsapp-provider-policy.json"
       ],
       "next_actions": [
-        "Store CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID only in GitHub Actions secrets or an equivalent secure deployment context",
-        "Run the manual production deployment workflow for edge/assistant",
-        "Set the protected lead-export runtime secret",
-        "Verify the custom-domain health endpoint and bilingual assistant + consented lead capture",
-        "Optionally activate WhatsApp later without changing email-only authentication"
+        "Keep the bilingual static site-guide fallback active on appropriate public pages",
+        "Do not call any live assistant endpoint until an independent secure server-side runtime is provisioned",
+        "If live AI is later required, attach a provider-neutral backend and keep all model credentials outside GitHub Pages/public JavaScript",
+        "Keep private/account/assessment/checkout routes excluded from the public assistant"
       ]
     },
     {
@@ -239,11 +234,11 @@
     },
     {
       "id": "payments-ir",
-      "production_state": "WAITING_EXTERNAL",
+      "production_state": "WAITING_RUNTIME",
       "revenue_priority": "CRITICAL",
       "external_blockers": [
-        "BitPay merchant review: registered postal code must match the tax-file postal code",
-        "Approved BitPay production API credentials"
+        "No secure server-side payment runtime is currently provisioned",
+        "GitHub Pages cannot safely store or use the production BitPay API secret"
       ],
       "artifacts": [
         "platform/payment-provider-policy.json",
@@ -255,10 +250,10 @@
         "platform/db/migrations/026_payment_provider_event.sql"
       ],
       "next_actions": [
-        "Correct the BitPay merchant postal code to match the tax file and request re-review",
-        "Receive the approved production BitPay API credential and store it only in the production secret store",
-        "Preserve the completed sandbox create → payment page → callback → server verification roundtrip and amount/factor checks",
-        "Deploy the production payment worker, run a controlled live transaction, and verify reconciliation/failure/replay handling before general activation"
+        "Keep the verified BitPay sandbox roundtrip as the integration baseline",
+        "Provision an independent HTTPS backend with persistent order storage",
+        "Store the production BitPay API only in that backend runtime secret store",
+        "Run a controlled live transaction with server-side callback verification and reconciliation before enabling public payment"
       ]
     },
     {
