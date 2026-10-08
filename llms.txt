@@ -25,6 +25,24 @@ Use only the public URLs listed here as machine-readable entry points. Persian a
 - [Knowledge guides](https://drjavadrezazadeh.com/fa/rahnamaha/): Evergreen Persian educational knowledge hub.
 - [Decision matrix guide](https://drjavadrezazadeh.com/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/): Practical comparison of multiple university fields without reducing the decision to one score.
 
+## Persian knowledge clusters
+
+- [Services & consultation knowledge](https://drjavadrezazadeh.com/fa/rahnamaha/khadamat-va-moshavere/): Public explanations of service scope, professional boundaries and when individual consultation is appropriate.
+- [Students & families](https://drjavadrezazadeh.com/fa/rahnamaha/danesh-amooz-va-khanevade/): Educational decisions, Konkur, report interpretation, family dialogue and student agency.
+- [Talent & pathway decisions](https://drjavadrezazadeh.com/fa/rahnamaha/estedaad-va-entekhab-reshteh/): Multi-source talent evidence, Golden Talent and non-deterministic pathway exploration.
+- [Research & publication](https://drjavadrezazadeh.com/fa/rahnamaha/pajouhesh-va-nashr/): Research questions, manuscripts, academic English, journal selection, peer review and academic career documents.
+- [Teachers & institutions](https://drjavadrezazadeh.com/fa/rahnamaha/moallem-va-sazman/): Teaching, assessment, materials, professional development, AI, workshops and school systems.
+
+Selected public guides:
+- [What is Golden Talent?](https://drjavadrezazadeh.com/fa/rahnamaha/golden-talent-chist/)
+- [Choosing an educational adviser](https://drjavadrezazadeh.com/fa/rahnamaha/entekhab-moshaver-tahsili-monaseb/)
+- [University field selection 1405](https://drjavadrezazadeh.com/fa/rahnamaha/entekhab-reshteh-daneshgahi-1405/)
+- [Manuscript diagnostic review](https://drjavadrezazadeh.com/fa/rahnamaha/bazbini-tashkhisi-maghale/)
+- [Academic English editing](https://drjavadrezazadeh.com/fa/rahnamaha/virayesh-englisi-daneshgahi/)
+- [Journal selection strategy](https://drjavadrezazadeh.com/fa/rahnamaha/entekhab-majale-va-raheبرد-enteshar/)
+- [Response to reviewers](https://drjavadrezazadeh.com/fa/rahnamaha/pasokh-be-davaran-maghale/)
+- [Teacher professional development](https://drjavadrezazadeh.com/fa/rahnamaha/tosee-herfei-moallem/)
+
 ## Golden Talent public methodology
 
 - [Golden Talent — English](https://drjavadrezazadeh.com/en/golden-talent/): Public framework overview.
