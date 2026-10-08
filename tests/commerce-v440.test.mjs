@@ -88,6 +88,10 @@ test("server-side price, secure receipt, idempotency, verified callback and free
  assert.ok(!JSON.stringify(saved).includes(data.receiptAccessToken),"capability must not be stored in plaintext");
  const again=await call("/commerce/create",{method:"POST",origin:SITE,body});
  assert.equal(again.status,200);assert.equal((await again.json()).requiresExistingAccessToken,true);
+ const deniedOrder=await call("/commerce/order?order="+data.orderId);
+ assert.equal(deniedOrder.status,403,"private tracking denies missing capability");
+ const trackingBefore=await call("/commerce/order?order="+data.orderId,{headers:{Authorization:"Bearer "+data.receiptAccessToken}});
+ assert.equal(trackingBefore.status,200);assert.equal((await trackingBefore.json()).order.payment_state,"pending");
  const noToken=await call("/commerce/receipt?order="+data.orderId);
  assert.equal(noToken.status,403);
  const before=await call("/commerce/receipt?order="+data.orderId,{headers:{Authorization:"Bearer "+data.receiptAccessToken}});
@@ -100,6 +104,10 @@ test("server-side price, secure receipt, idempotency, verified callback and free
  assert.equal(d.payment_state,"paid");assert.equal(d.total_toman,4000000);
  assert.equal(d.shipping_toman,0);assert.equal(d.customer.postal_code,buyer.postal_code);
  assert.equal(d.fulfilment_state,"preparing_shipment");assert.match(d.invoice_number,/^JR-REC-/);
+ const tracked=await call("/commerce/order?order="+data.orderId,{headers:{Authorization:"Bearer "+data.receiptAccessToken}});
+ const view=(await tracked.json()).order;
+ assert.equal(view.payment_state,"paid");assert.equal(view.invoice_available,true);
+ assert.equal(view.fulfilment_state,"preparing_shipment");assert.equal(view.amount_toman,4000000);
  const replay=await call("/commerce/callback?order="+data.orderId+"&id_get="+saved.provider_id_get+"&trans_id=77777");
  assert.equal(replay.status,303);assert.equal(callbackAttempts,1,"no duplicate verification");
 });
