@@ -21,3 +21,26 @@ html[lang="en"] [data-book-checkout]{direction:ltr}
 [data-book-checkout] .button:not(.primary):hover{border-color:var(--pay-gold);color:var(--pay-gold)}
 [data-book-checkout] .store-notice{overflow-wrap:anywhere}
 @media(max-width:640px){[data-book-checkout] .actions{display:grid}}
+
+
+/* v4.4: shipping and contact fields, consistent with the premium navy/gold system */
+[data-book-checkout] .commerce-order-summary{background:#ffffff08;border:1px solid #7c6b4b;border-radius:18px;padding:clamp(16px,3vw,28px);margin:24px 0}
+[data-book-checkout] h2{font-size:clamp(18px,2.5vw,24px);color:#f7e4bc;line-height:1.6}
+[data-book-checkout] .commerce-line{display:flex;justify-content:space-between;align-items:flex-start;gap:22px;border-bottom:1px solid #ffffff26;padding:12px 0;margin:0}
+[data-book-checkout] .commerce-line span{overflow-wrap:anywhere}
+[data-book-checkout] .commerce-line strong{white-space:nowrap;color:#ffe3a7}
+[data-book-checkout] .commerce-total{font-size:clamp(17px,2vw,23px);border-bottom:0}
+[data-book-checkout] .commerce-customer-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 20px}
+[data-book-checkout] .commerce-customer-form h2,[data-book-checkout] .commerce-customer-form .commerce-consent,[data-book-checkout] .commerce-policies,[data-book-checkout] .commerce-submit,[data-book-checkout] .commerce-feedback,[data-book-checkout] .commerce-support{grid-column:1/-1}
+[data-book-checkout] .commerce-field{display:flex;flex-direction:column;min-width:0;gap:7px;color:#f7efe2;font-size:14px}
+[data-book-checkout] .commerce-field input,[data-book-checkout] .commerce-field textarea{width:100%;padding:13px 15px;border:2px solid #7f8da0;border-radius:11px;background:#fff;color:#152d4a;font:16px/1.7 Tahoma,Arial,sans-serif;direction:inherit}
+[data-book-checkout] .commerce-field input:focus,[data-book-checkout] .commerce-field textarea:focus{outline:3px solid #e4bd71;outline-offset:2px;border-color:#253d5c}
+[data-book-checkout] .commerce-consent{display:flex;align-items:flex-start;gap:13px;border-radius:12px;border:1px solid #72644c;padding:15px;color:#f7f0e5}
+[data-book-checkout] .commerce-consent input{margin-top:9px;width:20px;height:20px;flex-shrink:0;accent-color:#e5bf77}
+[data-book-checkout] .commerce-policies{margin:0}
+[data-book-checkout] .commerce-policies a{color:#ffdc9c;text-decoration:underline;text-underline-offset:4px}
+[data-book-checkout] .commerce-submit{cursor:pointer;justify-self:stretch;font-size:17px;min-height:55px}
+[data-book-checkout] .commerce-submit:disabled{opacity:.6;cursor:progress}
+[data-book-checkout] .commerce-feedback{color:#fbe1ab;font-weight:700;min-height:1.5em}
+[data-book-checkout] .commerce-support{color:#d6e0e9;font-size:13px;overflow-wrap:anywhere}
+@media(max-width:670px){[data-book-checkout] .commerce-customer-form{grid-template-columns:1fr}[data-book-checkout] .commerce-line strong{white-space:normal}[data-book-checkout] .commerce-order-summary{padding:15px}}
