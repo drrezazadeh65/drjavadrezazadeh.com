@@ -52,7 +52,7 @@ for(const slug of slugs) {
       expect(geometry.contentWidth,slug+' '+label+' content width').toBeGreaterThan(250);
       if(width<=850)expect(geometry.mobileVisible,slug+' '+label+' mobile/tablet contents hidden').toBe(true);
       else expect(geometry.tocVisible,slug+' '+label+' desktop/landscape TOC hidden').toBe(true);
-      await page.locator('.editorial-figure img').scrollIntoViewIfNeeded();
+      await page.locator('.editorial-figure img').first().scrollIntoViewIfNeeded();
       await page.waitForFunction(() => {const i=document.querySelector('.editorial-figure img');return i&&i.complete&&i.naturalWidth>0},{timeout:15000});
       if(['golden-talent-chist','moghayese-reshteha-ba-matris-tasmim'].includes(slug)){
         const out='test-results/article-responsive/'+label;
