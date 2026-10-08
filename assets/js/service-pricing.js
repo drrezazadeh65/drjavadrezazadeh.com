@@ -26,6 +26,36 @@
         .normalize('NFKC').replace(/[\u064b-\u065f\u0670\u0640]/g,'')
         .replace(/[يى]/g,'ی').replace(/ك/g,'ک')
         .replace(/[\u200c\u200d]/g,' ').replace(/\s+/g,' ').trim();
+      // Client-only comparison. All prices and scopes come from the same verified
+      // catalogue as the cards; selections do not create orders or persist data.
+      const comparison=document.querySelector('[data-service-comparison]');
+      const comparisonTable=document.querySelector('[data-service-comparison-table]');
+      const compareStatus=document.querySelector('[data-service-comparison-status]');
+      const compareClear=document.querySelector('[data-service-comparison-clear]');
+      const selectedIds=new Set();
+      const serviceMap=new Map(services.map(x=>[x.id,x]));
+      const compareRows=[
+        ['تعرفه ثبت‌شده',service=>price(service.price)],
+        ['زمان یا دامنه',service=>duration(service.duration_minutes)],
+        ['مناسب برای',service=>service.fit_fa||'نیازمند توافق درباره دامنه'],
+        ['خروجی مورد انتظار',service=>service.outcome_fa||'نیازمند توافق درباره خروجی'],
+        ['مرز و محدودیت خدمت',service=>service.boundary_fa||'نیازمند شفاف‌سازی پیش از درخواست']
+      ];
+      function renderComparison(){
+        if(!comparison||!comparisonTable)return;
+        const choices=[...selectedIds].map(id=>serviceMap.get(id)).filter(Boolean);
+        comparison.hidden=choices.length===0;
+        if(!choices.length){comparisonTable.replaceChildren();return;}
+        comparisonTable.innerHTML='<caption>مقایسه '+faDigits(choices.length)+' خدمت بر اساس کاتالوگ رسمی</caption>'+
+          '<thead><tr><th scope="col">معیار</th>'+
+          choices.map(s=>'<th scope="col">'+escapeHtml(s.title_fa)+'</th>').join('')+
+          '</tr></thead><tbody>'+
+          compareRows.map(([label,fn])=>'<tr><th scope="row">'+label+'</th>'+
+            choices.map(s=>'<td>'+escapeHtml(fn(s))+'</td>').join('')+'</tr>').join('')+
+          '</tbody>';
+        if(compareStatus)compareStatus.textContent=
+          faDigits(choices.length)+' خدمت انتخاب شده است. حداکثر سه خدمت را می‌توانید هم‌زمان مقایسه کنید.';
+      }
       const prepared=services.map((service,index)=>({
         service,index,text:normalize([service.title_fa,service.fit_fa,service.outcome_fa,service.boundary_fa].join(' '))
       }));
@@ -48,6 +78,8 @@
             (service.outcome_fa?'<p><strong>خروجی مورد انتظار:</strong> '+escapeHtml(service.outcome_fa)+'</p>':'')+
             (service.boundary_fa?'<p class="service-boundary"><strong>مرز خدمت:</strong> '+escapeHtml(service.boundary_fa)+'</p>':'')+
           '</div>'+
+          '<label class="service-compare-option"><input type="checkbox" data-service-compare="'+escapeHtml(service.id)+'" '+(selectedIds.has(service.id)?'checked':'')+'><span>افزودن به مقایسه</span></label>'+ 
+
           '<a class="button" data-conversion-event="service_price_intent" data-conversion-surface="fa_services_pricing" href="/fa/darkhast-moshavere/?service='+id+'">درخواست بررسی این خدمت</a>'+
         '</article>';
         }).join('');
@@ -59,6 +91,26 @@
       if(count) count.textContent=faDigits(services.length);
       if(search) search.addEventListener('input',renderCards);
       if(sort) sort.addEventListener('change',renderCards);
+      host.addEventListener('change',event=>{
+        const control=event.target.closest('[data-service-compare]');
+        if(!control)return;
+        const id=control.getAttribute('data-service-compare');
+        if(!serviceMap.has(id))return;
+        if(control.checked){
+          if(selectedIds.size>=3&&!selectedIds.has(id)){
+            control.checked=false;
+            if(compareStatus)compareStatus.textContent='حداکثر سه خدمت قابل مقایسه است؛ برای افزودن مورد تازه ابتدا یکی را حذف کنید.';
+            return;
+          }
+          selectedIds.add(id);
+        }else selectedIds.delete(id);
+        renderComparison();
+      });
+      if(compareClear)compareClear.addEventListener('click',()=>{
+        selectedIds.clear();
+        host.querySelectorAll('[data-service-compare]').forEach(input=>{input.checked=false});
+        renderComparison();
+      });
       if(clear) clear.addEventListener('click',()=>{
         if(search) search.value='';
         if(sort) sort.value='default';

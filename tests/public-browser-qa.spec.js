@@ -1368,3 +1368,38 @@ test('bilingual book detail retains verified identity and explicitly flags missi
  await expect(published).toContainText('سپید');
  await expect(published).not.toContainText('روشنایی');
 });
+
+
+test('premium service catalogue compares three offers without changing prices or booking state',async({page})=>{
+ for(const [width,height] of [[390,844],[1440,900]]){
+  await page.setViewportSize({width,height});
+  const response=await page.goto(base+'/fa/khadamat/',{waitUntil:'domcontentloaded'});
+  expect(response.status()).toBe(200);
+  const cards=page.locator('[data-service-pricing] .service-pricing-card');
+  await expect(cards).toHaveCount(21);
+  const choices=cards.locator('[data-service-compare]');
+  await expect(choices).toHaveCount(21);
+  await choices.nth(0).check();
+  await choices.nth(1).check();
+  await choices.nth(2).check();
+  const comparison=page.locator('[data-service-comparison]');
+  await expect(comparison).toBeVisible();
+  const table=comparison.locator('[data-service-comparison-table]');
+  await expect(table.locator('thead th')).toHaveCount(4);
+  await expect(table.locator('tbody tr')).toHaveCount(5);
+  await expect(table).toContainText('۶٬۰۰۰٬۰۰۰');
+  await choices.nth(3).check();
+  await expect(choices.nth(3)).not.toBeChecked();
+  await expect(comparison.locator('[data-service-comparison-status]')).toContainText('حداکثر سه');
+  const search=page.locator('[data-service-search]');
+  await search.fill('جستجوی ناموجود آزمایشی');
+  await expect(cards).toHaveCount(0);
+  await expect(comparison).toBeVisible();
+  await comparison.locator('[data-service-comparison-clear]').click();
+  await expect(comparison).toBeHidden();
+  await search.fill('');
+  await expect(cards).toHaveCount(21);
+  const overflow=await stableOverflow(page);
+  expect(Math.max(overflow.html,overflow.body),'service compare '+width).toBeLessThanOrEqual(overflow.viewport+1);
+ }
+});
