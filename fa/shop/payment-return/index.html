@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>بازگشت از درگاه پرداخت | دکتر جواد رضازاده</title>
+<style>body{font-family:Tahoma,Arial,sans-serif;max-width:640px;margin:12vh auto;padding:24px;line-height:2;color:#172a44}main{border:1px solid #ddd;border-radius:14px;padding:25px}a{color:#165b9c}</style>
+</head>
+<body>
+<main>
+<h1>در حال بررسی نتیجه پرداخت</h1>
+<p id="message">لطفاً منتظر بمانید. نتیجه فقط پس از استعلام از درگاه مشخص می‌شود.</p>
+<p><a href="/fa/shop/">بازگشت به فروشگاه</a></p>
+</main>
+<script>
+(function(){
+  const p=new URLSearchParams(location.search);
+  const order=p.get("order");
+  const id=p.get("id_get");
+  const trans=p.get("trans_id");
+  if(!/^[0-9a-f-]{36}$/i.test(order||"")||!/^[0-9]+$/.test(id||"")||!/^[0-9]+$/.test(trans||"")){
+    document.getElementById("message").textContent="اطلاعات بازگشت ناقص است. اگر وجهی پرداخت کرده‌اید، دوباره پرداخت نکنید و با پشتیبانی تماس بگیرید.";
+    return;
+  }
+  const dest=new URL("https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/callback");
+  dest.searchParams.set("order",order);
+  dest.searchParams.set("id_get",id);
+  dest.searchParams.set("trans_id",trans);
+  location.replace(dest.href);
+})();
+</script>
+</body></html>
