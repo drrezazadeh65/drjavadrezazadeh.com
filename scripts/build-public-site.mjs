@@ -52,7 +52,7 @@ function walk(dir){
 }
 walk(out);
 const html=all.filter(p=>p.endsWith('.html'));
-if(html.length!==207) failures.push('Expected 207 public HTML routes in sanitized artifact, found '+html.length);
+if(html.length!==246) failures.push('Expected 246 public HTML routes in sanitized artifact, found '+html.length);
 
 const textExt=/\.(?:html|js|css|json|xml|txt|webmanifest)$/i;
 for(const file of all.filter(p=>textExt.test(p))){
