@@ -1170,3 +1170,25 @@ test('manuscript editing revision and reviewer response guides contain traceable
   }
  }
 });
+
+
+test('premium service selection guides explain decisions and boundaries on mobile and desktop',async({page})=>{
+ const articles=[
+  ['/fa/rahnamaha/khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh/','پیش از خرید، پنج سؤال'],
+  ['/fa/rahnamaha/moshavere-tahsili-takhasosi-chist/','نمونه ساختار خروجی جلسه'],
+  ['/fa/rahnamaha/tahlil-karname-tahsili/','از مشاهده تا اقدام'],
+  ['/fa/rahnamaha/moshavere-konkur-herfei/','داشبورد کاغذی کوتاه']
+ ];
+ for(const [route,snippet] of articles){
+  for(const [width,height] of [[390,844],[1440,900]]){
+   await page.setViewportSize({width,height});
+   const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(response.status()).toBe(200);
+   await expect(page.locator('.knowledge-article-content')).toContainText(snippet);
+   await expect(page.locator('.knowledge-article-layout')).toHaveCount(1);
+   expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe('https://drjavadrezazadeh.com'+route);
+   const overflow=await stableOverflow(page);
+   expect(Math.max(overflow.html,overflow.body),route+' '+width).toBeLessThanOrEqual(overflow.viewport+1);
+  }
+ }
+});
