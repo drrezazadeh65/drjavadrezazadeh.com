@@ -1049,3 +1049,19 @@ test('decision matrix compares documented evidence privately and exports safe CS
   const desktopOverflow=await stableOverflow(page);
   expect(Math.max(desktopOverflow.html,desktopOverflow.body)).toBeLessThanOrEqual(desktopOverflow.viewport+1);
 });
+
+
+test('new service worker activation does not discard in-progress matrix input',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/',{waitUntil:'domcontentloaded'});
+  const input=page.locator('.dm-option').first().locator('[data-dm-name]');
+  await expect(input).toBeVisible();
+  await input.fill('رشته نمونه ثبت‌نشده');
+  const navigation=[];
+  page.on('framenavigated',frame=>{if(frame===page.mainFrame())navigation.push(frame.url())});
+  const hasSW=await page.evaluate(()=>!!navigator.serviceWorker);
+  if(hasSW) await page.evaluate(()=>navigator.serviceWorker.dispatchEvent(new Event('controllerchange')));
+  await page.waitForTimeout(240);
+  await expect(input).toHaveValue('رشته نمونه ثبت‌نشده');
+  expect(navigation).toEqual([]);
+});

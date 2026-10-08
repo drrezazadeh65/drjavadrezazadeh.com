@@ -9,7 +9,7 @@ const browser = await chromium.launch({ headless: true });
 fs.mkdirSync('test-results/knowledge-hub', { recursive: true });
 try {
   for (const [name,width,height] of [['desktop',1440,900],['mobile',390,844],['small-mobile',320,640]]) {
-    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1, locale:'fa-IR' });
+    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1, locale:'fa-IR', serviceWorkers:'block' });
     const errors = [];
     page.on('pageerror', err => errors.push(err.message));
     await page.goto(base + '/fa/rahnamaha/', { waitUntil: 'domcontentloaded', timeout: 45000 });

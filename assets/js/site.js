@@ -448,15 +448,9 @@ return el?.dataset?.uiState||null;
 }
 };
 })();
-(function(){
-if(!('serviceWorker' in navigator)) return;
-let refreshing=false;
-navigator.serviceWorker.addEventListener('controllerchange',()=>{
-  if(refreshing) return;
-  refreshing=true;
-  location.reload();
-});
-})();
+/* Never force-reload a reader or student mid-form when the service worker
+   controller updates. The network-first cache contract serves fresh mutable
+   resources on ordinary navigation/reload without discarding in-progress data. */
 (function(){
 window.JRCacheControl=Object.freeze({
   async refresh(){
