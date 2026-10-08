@@ -563,6 +563,23 @@ async function commerce(request,env){
    return reply({ok:true,orderId:order,receiptAccessToken:accessToken,totalToman:total,shippingToman:0,currency:"IRT",paymentUrl:SITE+"/fa/shop/payment-start/?gateway="+encodeURIComponent(API+"gateway-"+raw+"-get")});
   }catch{return fail("order_creation_failed",502)}
  }
+ if(path==="/commerce/order"&&request.method==="GET"){
+  const id=u.searchParams.get("order");
+  if(!uuid(id))return fail("invalid_order");
+  const row=await env.DB.prepare("SELECT * FROM commerce_orders WHERE id=?").bind(id).first();
+  if(!await authorisedReceipt(request,row))return fail("order_not_authorised",403);
+  const customer=JSON.parse(row.customer_json||"{}");
+  const order={
+   id:row.id,created_at:row.created_at,payment_state:row.state,
+   fulfilment_state:row.fulfilment_state||"awaiting_payment",
+   paid_at:row.paid_at,items:JSON.parse(row.items_json||"[]"),
+   amount_toman:row.amount_toman,shipping_toman:0,
+   recipient_name:customer.recipient_name||customer.full_name||null,
+   tracking_code:row.tracking_code||null,invoice_available:row.state==="paid",
+   support_email:"dr.rezazadeh65@gmail.com",support_eitaa:"https://eitaa.com/DrRezazadeh65"
+  };
+  return reply({ok:true,order});
+ }
  if(path==="/commerce/receipt"&&request.method==="GET"){
   const id=u.searchParams.get("order");
   if(!uuid(id))return fail("invalid_order");
