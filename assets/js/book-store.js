@@ -138,6 +138,15 @@
     ': '+amount+'</strong><p>'+disclosure+'</p>';
   const actions=document.createElement('div');
   actions.className='actions';
+  const checkout=document.createElement('button');
+  checkout.type='button';
+  checkout.className='button primary';
+  checkout.dataset.bookPayment='';
+  checkout.textContent=isFa?'پرداخت آنلاین کتاب‌ها':'Pay for books online';
+  checkout.disabled=true;
+  checkout.title=isFa?'پرداخت پس از تأیید آزمون‌های درگاه فعال می‌شود':'Payment opens after gateway verification';
+  actions.appendChild(checkout);
+
   const inquiry=document.createElement('a');
   inquiry.className='button primary';
   inquiry.dataset.bookInquiry='';
