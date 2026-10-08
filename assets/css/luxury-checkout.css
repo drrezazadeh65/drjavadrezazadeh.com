@@ -11,3 +11,13 @@ body:has([data-book-checkout]){background:radial-gradient(ellipse at 85% 0%,#263
 [data-book-checkout] .button:focus-visible{outline:3px solid #fff;outline-offset:3px}
 @media(max-width:640px){[data-book-checkout]{margin:1rem .5rem;padding:1.25rem;border-radius:16px}[data-book-checkout] .actions{display:grid;gap:.75rem}[data-book-checkout] .button{width:100%;text-align:center}}
 @media(prefers-reduced-motion:reduce){[data-book-checkout] *{transition:none!important;animation:none!important}}
+
+/* Language-aware layout and trust hierarchy */
+html[lang="en"] [data-book-checkout]{direction:ltr}
+[data-book-checkout]::before{content:"✦";display:block;color:var(--pay-gold);font-size:1.7rem;margin-bottom:1rem}
+[data-book-checkout] .actions{display:flex;flex-wrap:wrap;gap:.85rem;margin-top:1.5rem}
+[data-book-checkout] .button{display:inline-flex;align-items:center;justify-content:center;padding:.75rem 1.4rem;text-decoration:none}
+[data-book-checkout] .button:not(.primary){border:1px solid #858c98;color:var(--pay-text);background:transparent}
+[data-book-checkout] .button:not(.primary):hover{border-color:var(--pay-gold);color:var(--pay-gold)}
+[data-book-checkout] .store-notice{overflow-wrap:anywhere}
+@media(max-width:640px){[data-book-checkout] .actions{display:grid}}
