@@ -66,6 +66,29 @@ function asReceipt(row){
   fulfilment_state:row.fulfilment_state||"awaiting_payment",
   tracking_code:row.tracking_code||null,transaction_reference:row.provider_trans_id||null};
 }
+
+async function cryptKey(env){
+ const raw=String(env.RECEIPT_ENCRYPTION_KEY||"");
+ if(!raw)return null;
+ if(!/^[a-f0-9]{64}$/i.test(raw))throw Error("invalid_receipt_encryption_key");
+ return crypto.subtle.importKey("raw",new Uint8Array(raw.match(/../g).map(x=>parseInt(x,16))),"AES-GCM",false,["encrypt","decrypt"]);
+}
+async function wrapReceiptToken(token,order,env){
+ const key=await cryptKey(env);if(!key)return null;
+ const iv=crypto.getRandomValues(new Uint8Array(12));
+ const cipher=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv,additionalData:new TextEncoder().encode(order)},key,new TextEncoder().encode(token)));
+ return [...iv].map(b=>b.toString(16).padStart(2,"0")).join("")+":"+
+  [...cipher].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function unwrapReceiptToken(wrapped,order,env){
+ const key=await cryptKey(env);if(!key||!wrapped)return null;
+ const [ivHex,dataHex]=wrapped.split(":");
+ if(!/^[a-f0-9]{24}$/.test(ivHex||"")||!/^[a-f0-9]+$/.test(dataHex||""))throw Error("invalid_receipt_ciphertext");
+ const bytes=hex=>new Uint8Array(hex.match(/../g).map(v=>parseInt(v,16)));
+ return new TextDecoder().decode(await crypto.subtle.decrypt(
+  {name:"AES-GCM",iv:bytes(ivHex),additionalData:new TextEncoder().encode(order)},key,bytes(dataHex)));
+}
+
 async function sendInvoiceEmail(row,token,env){
  if(!row?.customer_json||!env.RESEND_API_KEY||!env.INVOICE_FROM_EMAIL)return;
  const email=JSON.parse(row.customer_json).email;
@@ -164,9 +187,10 @@ export async function commerce(request,env){
   const order=crypto.randomUUID(),factor=crypto.randomUUID().replace(/-/g,"").slice(0,28);
   const amount=total*mul;
   if(!Number.isSafeInteger(amount))return fail("provider_amount_overflow");
+  let wrapped;try{wrapped=await wrapReceiptToken(accessToken,order,env)}catch{return fail("receipt_encryption_unavailable",503)}
   try{
-   await env.DB.prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,items_json,state,customer_json,receipt_token_sha256,idempotency_key,fulfilment_state) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
-    .bind(order,factor,total,amount,"IRT",JSON.stringify(lines),"created",JSON.stringify(validated.customer),accessHash,idem,"awaiting_payment").run();
+   await env.DB.prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,items_json,state,customer_json,receipt_token_sha256,idempotency_key,fulfilment_state,receipt_token_wrapped) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)")
+    .bind(order,factor,total,amount,"IRT",JSON.stringify(lines),"created",JSON.stringify(validated.customer),accessHash,idem,"awaiting_payment",wrapped).run();
    const callback=SITE+"/fa/shop/payment-return/?order="+encodeURIComponent(order)+"&kind=commerce";
    const raw=await gateway("gateway-send",{amount:String(amount),redirect:callback,factorId:factor,description:"Order "+order},env.BITPAY_API_KEY);
    if(!num(raw)){await env.DB.prepare("UPDATE commerce_orders SET state='failed',updated_at=CURRENT_TIMESTAMP WHERE id=? AND state='created'").bind(order).run();return fail("gateway_rejected",502)}
@@ -223,6 +247,14 @@ export async function commerce(request,env){
    const result=await env.DB.prepare("UPDATE commerce_orders SET state='paid',fulfilment_state=?,provider_trans_id=?,paid_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=? AND state='pending' AND provider_id_get=?")
     .bind(fulfil,trans,order,idGet).run();
    if(result.meta.changes!==1)return fail("concurrent_update",409);
+   // Verified provider event is the ONLY trigger for automated email. Failures never revert a paid transaction.
+   if(row.receipt_token_wrapped&&env.RESEND_API_KEY&&env.INVOICE_FROM_EMAIL){
+    try{
+     const verifiedOrder=await env.DB.prepare("SELECT * FROM commerce_orders WHERE id=?").bind(order).first();
+     const privateToken=await unwrapReceiptToken(row.receipt_token_wrapped,order,env);
+     if(privateToken)await sendInvoiceEmail(verifiedOrder,privateToken,env);
+    }catch{/* The customer may retry from the protected receipt page. */}
+   }
    return returnPage("paid",order);
   }catch{return fail("verification_unavailable",502)}
  }
