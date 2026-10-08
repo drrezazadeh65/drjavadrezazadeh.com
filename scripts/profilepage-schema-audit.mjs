@@ -28,7 +28,7 @@ for(const file of files){
   let obj;try{obj=JSON.parse(match[1]);}catch{errors.push(file+': invalid JSON-LD');continue;}
   const nodes=obj['@graph']||[obj];
   for(const node of nodes){
-   if(node['@type']!=='ProfilePage'&&!Array.isArray(node['@type'])?.includes?.('ProfilePage'))continue;
+   if(node['@type']!=='ProfilePage'&&!(Array.isArray(node['@type'])&&node['@type'].includes('ProfilePage')))continue;
    found.add(file);
    const entity=node.mainEntity;
    const types=Array.isArray(entity?.['@type'])?entity['@type']:[entity?.['@type']];
