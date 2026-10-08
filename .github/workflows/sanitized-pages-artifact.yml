@@ -38,6 +38,7 @@ jobs:
         run: node scripts/build-public-site.mjs
       - name: Verify no engineering directories are published
         run: |
+          test ! -e .public-site/payment-backend
           test ! -e .public-site/platform
           test ! -e .public-site/foundation
           test ! -e .public-site/scripts

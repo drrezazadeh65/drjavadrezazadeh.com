@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const root=process.cwd();
 const out=path.join(root,'.public-site');
-const excludedTop=new Set(['.git','.github','docs','edge','foundation','node_modules','platform','scripts','tests','test-results','.public-site']);
+const excludedTop=new Set(['.git','.github','docs','edge','foundation','node_modules','payment-backend','platform','scripts','tests','test-results','.public-site']);
 const excludedRoot=new Set(['README.md','CACHE_STANDARD.md']);
 const excludedExact=new Set(['assets/media-registry.json']);
 
