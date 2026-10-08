@@ -1403,3 +1403,27 @@ test('premium service catalogue compares three offers without changing prices or
   expect(Math.max(overflow.html,overflow.body),'service compare '+width).toBeLessThanOrEqual(overflow.viewport+1);
  }
 });
+
+
+test('bilingual student identity shells remain honestly disabled until real authentication exists',async({page})=>{
+ const pages=[
+  ['/fa/login/','هنوز فعال نشده'],
+  ['/en/login/','Not yet active'],
+  ['/fa/register/','ثبت‌نام آنلاین به‌زودی'],
+  ['/en/register/','Registration coming soon']
+ ];
+ for(const [route,status] of pages){
+  for(const [width,height] of [[390,844],[1440,900]]){
+   await page.setViewportSize({width,height});
+   const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(response.status(),route).toBe(200);
+   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
+   await expect(page.locator('main')).toContainText(status);
+   await expect(page.locator('form input:not([disabled])')).toHaveCount(0);
+   await expect(page.locator('form select:not([disabled])')).toHaveCount(0);
+   await expect(page.locator('form button:not([disabled])')).toHaveCount(0);
+   const o=await stableOverflow(page);
+   expect(Math.max(o.html,o.body),route+' overflow at '+width).toBeLessThanOrEqual(o.viewport+1);
+  }
+ }
+});
