@@ -22,7 +22,7 @@ async function catalog(path){
  return data;
 }
 async function inventory(){
- const [books,services]=await Promise.all([catalog("assets/data/book-catalog.json"),catalog("assets/data/service-catalog.json")]);
+ const [books,services,vip]=await Promise.all([catalog("assets/data/book-catalog.json"),catalog("assets/data/service-catalog.json"),catalog("assets/data/vip-catalog.json")]);
  const items=new Map();
  for(const b of books.books||[]){
   const c=b.commerce||{};
@@ -33,6 +33,11 @@ async function inventory(){
  for(const s of services.services||[]){
   if(s.sellable===true&&Number.isSafeInteger(s.price)&&s.price>0&&s.price<=1000000000&&/^[a-z0-9_\-]{1,70}$/.test(s.id))
    items.set("service:"+s.id,{sku:"service:"+s.id,title:safeText(s.title_fa),price:s.price,kind:"service"});
+ }
+ if(vip.currency!=="IRT")throw Error("invalid_vip_currency");
+ for(const v of vip.services||[]){
+  if(v.sellable===true&&v.checkout_enabled===true&&Number.isSafeInteger(v.price)&&v.price>0&&v.price<=1000000000&&/^[a-z0-9-]{1,70}$/.test(v.id))
+   items.set("vip:"+v.id,{sku:"vip:"+v.id,title:safeText(v.title_fa),price:v.price,kind:"vip"});
  }
  return items;
 }
@@ -71,7 +76,7 @@ export async function commerce(request,env){
   for(const [sku,quantity] of count){
    const item=available.get(sku);if(!item)return fail("unavailable_product",409);
    // Services are quantity-one appointments; capacity and terms must be confirmed separately.
-   if(item.kind==="service"&&quantity!==1)return fail("service_quantity_invalid");
+   if(item.kind!=="book"&&quantity!==1)return fail("service_quantity_invalid");
    lines.push({...item,quantity,subtotal:item.price*quantity});
    total+=item.price*quantity;
   }
@@ -80,6 +85,7 @@ export async function commerce(request,env){
   if(lines.some(x=>x.kind==="book")&&env.BOOK_SHIPPING_CONFIRMED!=="true")return fail("book_shipping_not_configured",503);
   // Services require agreed scope/capacity; no automatic charge until explicitly enabled.
   if(lines.some(x=>x.kind==="service")&&env.SERVICE_BOOKING_CONFIRMED!=="true")return fail("service_booking_not_configured",503);
+  if(lines.some(x=>x.kind==="vip")&&env.VIP_BOOKING_CONFIRMED!=="true")return fail("vip_booking_not_configured",503);
   const order=crypto.randomUUID(),factor=crypto.randomUUID().replace(/-/g,"").slice(0,28);
   const amount=total*mul;
   if(!Number.isSafeInteger(amount))return fail("provider_amount_overflow");
