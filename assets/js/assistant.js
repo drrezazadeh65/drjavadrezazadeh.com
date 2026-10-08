@@ -14,7 +14,7 @@
   if(PRIVATE_PREFIXES.some(p=>route.startsWith(p))) return;
 
   const isFa=document.documentElement.lang==='fa';
-  const endpoint=document.querySelector('meta[name="jr-assistant-endpoint"]')?.content?.trim()||'https://assistant.drjavadrezazadeh.com/v1/chat';
+  const endpoint=document.querySelector('meta[name="jr-assistant-endpoint"]')?.content?.trim()||'';
   const labels=isFa?{
     open:'دستیار هوشمند',title:'دستیار دکتر رضازاده',subtitle:'راهنمای هوشمند سایت',
     greeting:'سلام. من دستیار هوشمند سایت دکتر رضازاده هستم. درباره خدمات، Golden Talent، انتخاب رشته، پژوهش‌ها و مسیرهای سایت می‌توانم راهنمایی‌تان کنم.',
@@ -91,7 +91,7 @@
   const chips=wrap.querySelector('.jr-assistant-chips');
   const form=wrap.querySelector('.jr-assistant-form');
   const input=wrap.querySelector('textarea');
-  const leadEndpoint=endpoint.replace(/\/v1\/chat(?:\?.*)?$/,'/v1/leads');
+  const leadEndpoint=endpoint?endpoint.replace(/\/v1\/chat(?:\?.*)?$/,'/v1/leads'):'';
   const leadBox=document.createElement('div');
   leadBox.className='jr-assistant-lead';
   leadBox.innerHTML='<button class="jr-assistant-lead-toggle" type="button">'+labels.leadOpen+'</button>'+
@@ -106,6 +106,7 @@
       '<small class="jr-assistant-lead-status" role="status" aria-live="polite"></small>'+
     '</form>';
   form.before(leadBox);
+  if(!endpoint) leadBox.hidden=true;
   const leadToggle=leadBox.querySelector('.jr-assistant-lead-toggle');
   const leadForm=leadBox.querySelector('.jr-assistant-lead-form');
   const leadType=leadForm.elements.contact_type;
@@ -170,6 +171,12 @@
 
   async function ask(message){
     if(busy||!message.trim()) return;
+    if(!endpoint){
+      addMessage('user',message.trim());
+      const local=fallback(message.trim());
+      addMessage('assistant',local.answer,local.links);
+      return;
+    }
     busy=true;lastQuery=message.trim();
     input.disabled=true;
     form.querySelector('button').disabled=true;

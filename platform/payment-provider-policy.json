@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "status": "BITPAY_SELECTED_INTEGRATION_PENDING_RUNTIME",
+  "status": "BITPAY_SELECTED_PRODUCTION_CREDENTIAL_OBTAINED_RUNTIME_PENDING",
   "selection_rule": "SERVER_SIDE_ONLY",
   "markets": {
     "IR": {
@@ -10,8 +10,9 @@
       "provider_key": "bitpay",
       "enabled": false,
       "notes": [
-        "BitPay has approved the gateway and official integration documentation v2.2 is selected.",
-        "Production API secret must be injected only at server runtime.",
+        "BitPay is the selected domestic gateway and the sandbox roundtrip has been verified.",
+        "The production API credential has been obtained but is not stored in the repository or browser.",
+        "Production activation requires an independent secure server-side runtime with persistent order state.",
         "Browser return is never proof of payment; verification must be server-side."
       ]
     },

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "status": "BITPAY_SELECTED_TEST_AND_PRODUCTION_SETUP",
+  "status": "BITPAY_SELECTED_PRODUCTION_CREDENTIAL_OBTAINED_RUNTIME_PENDING",
   "activation_rule": "A provider remains disabled until its exact official API contract, merchant credentials, callback origin and sandbox verification have passed.",
   "providers": [
     {
@@ -8,8 +8,8 @@
       "market": "IR",
       "currency": "IRR",
       "enabled": false,
-      "adapter_status": "SANDBOX_FULL_POSITIVE_AND_NEGATIVE_ROUNDTRIP_PASSED_RUNTIME_DEPLOYMENT_PENDING",
-      "credentials_state": "PUBLIC_TEST_API_VALIDATED_PRODUCTION_API_NOT_STORED",
+      "adapter_status": "SANDBOX_FULL_POSITIVE_AND_NEGATIVE_ROUNDTRIP_PASSED_PRODUCTION_RUNTIME_PENDING",
+      "credentials_state": "PRODUCTION_API_OBTAINED_NOT_STORED",
       "capabilities_required": [
         "CREATE_INTENT",
         "VERIFY_EVENT",
@@ -35,7 +35,7 @@
           "IRT_TO_IRR_CONVERSION_ENFORCED",
           "PAYMENTS_WORKER_SYNTAX_PASSED"
         ],
-        "remaining": "DEPLOY_PAYMENT_WORKER_AND_INJECT_PRODUCTION_BITPAY_API_WHEN ISSUED"
+        "remaining": "DEPLOY_INDEPENDENT_SERVER_RUNTIME_AND_INJECT_PRODUCTION_BITPAY_API_SECURELY"
       }
     },
     {
