@@ -960,3 +960,27 @@ test('knowledge reader private enquiry, font controls and print presentation',as
   const layout=await stableOverflow(page);
   expect(Math.max(layout.html,layout.body)).toBeLessThanOrEqual(layout.viewport+1);
 });
+
+
+test('service diagnostic example is honest, usable and responsive',async({page,request})=>{
+  for(const [width,height] of [[390,844],[1440,900]]){
+    await page.setViewportSize({width,height});
+    await page.goto(base+'/fa/khadamat/',{waitUntil:'domcontentloaded'});
+    const sample=page.locator('#sample-diagnostic-report');
+    await expect(sample).toBeVisible();
+    await expect(sample.locator('h2')).toContainText('نمونه ساختار گزارش');
+    await expect(sample).toContainText('کاملاً فرضی');
+    await expect(sample).toContainText('تضمین پذیرش مقاله نیست');
+    await expect(sample.locator('.service-offer')).toHaveCount(3);
+    const requestLink=sample.locator('a[href*="darkhast-moshavere/"]');
+    await expect(requestLink).toHaveAttribute('href',/\?service=manuscript_diagnostic$/);
+    const guide=sample.locator('a[href*="chera-maghale-amade-ersal-nist/"]');
+    const destination=new URL(await guide.getAttribute('href'),page.url());
+    expect(destination.pathname).toBe('/fa/rahnamaha/chera-maghale-amade-ersal-nist/');
+    const layout=await stableOverflow(page);
+    expect(Math.max(layout.html,layout.body),'services horizontal overflow '+width)
+      .toBeLessThanOrEqual(layout.viewport+1);
+  }
+  const target=await request.get(base+'/fa/rahnamaha/chera-maghale-amade-ersal-nist/');
+  expect(target.ok()).toBe(true);
+});
