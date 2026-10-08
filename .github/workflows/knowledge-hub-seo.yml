@@ -6,6 +6,8 @@ on:
       - 'fa/rahnamaha/**'
       - 'assets/images/knowledge/**'
       - 'sitemap-fa.xml'
+      - 'assets/data/knowledge-image-seo-manifest.csv'
+      - 'scripts/install-knowledge-webp.py'
       - 'assets/css/knowledge-hub.css'
       - 'assets/js/knowledge-hub.js'
       - 'assets/css/public-v2.css'
@@ -24,6 +26,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate original image importer syntax
+        run: python3 -m py_compile scripts/install-knowledge-webp.py
+      - name: Check 45-image manifest against all published guides
+        run: |
+          python3 - <<'PY'
+          import csv, re
+          from pathlib import Path
+          m=list(csv.DictReader(Path('assets/data/knowledge-image-seo-manifest.csv').open(encoding='utf-8')))
+          xml=Path('sitemap-fa.xml').read_text(encoding='utf-8')
+          slugs=re.findall(r'<loc>https://drjavadrezazadeh\.com/fa/rahnamaha/([a-z0-9-]+)/</loc>',xml)
+          assert len(m)==len(slugs)==45 and {r['slug'] for r in m}==set(slugs)
+          assert all(r['featured_file']==f"featured-1600x900/{r['slug']}-featured.webp" for r in m)
+          assert all(r['og_file']==f"og-1200x630/{r['slug']}-og.webp" for r in m)
+          print('Manifest, slugs and expected photographic formats: PASS')
+          PY
       - name: Verify 45 guides, featured images, SEO and local links
         run: node tests/knowledge-hub-seo.mjs
 
