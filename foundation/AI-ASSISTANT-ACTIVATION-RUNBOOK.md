@@ -1,66 +1,42 @@
-# Public AI Assistant Activation — Cloudflare Worker
+# Public Site Guide — Runtime-Neutral Activation Runbook
 
-The public assistant runs as a separate Cloudflare Worker on `assistant.drjavadrezazadeh.com` while the public website remains on GitHub Pages behind the owned canonical domain.
+The public website is hosted on GitHub Pages. No live server-side AI runtime is currently part of production.
 
-## What is already in the repository
+## Current production behaviour
 
-- Public floating assistant UI loaded automatically by `assets/js/site.js`.
-- Persian/English app-like assistant sheet.
-- Safe local fallback navigation if the AI endpoint is temporarily unavailable.
-- Cloudflare Worker source at `edge/assistant/src/index.js`.
-- Workers AI binding with the default model `@cf/openai/gpt-oss-120b`.
-- Anonymous-device rate limiting.
-- CORS restricted to the owned production domain (apex and controlled www form).
-- Retrieval over the public `assets/search-index.json`; no private data source is attached.
-- No message persistence on the server and no browser persistence of conversation text.
-- Private/account/assessment/checkout surfaces do not load the public concierge.
+- The bilingual floating site guide remains available on appropriate public pages.
+- It uses local, deterministic guidance and links when no secure runtime endpoint is configured.
+- It does not read private student/account/payment records.
+- Conversation text is not persisted.
+- Lead capture through the assistant is disabled until a secure server-side runtime exists.
+- Auth, private student, assessment and checkout surfaces remain excluded from the public guide.
 
-## Production deployment
+## Runtime boundary
 
-The canonical repeatable deployment path is `.github/workflows/assistant-worker-deploy.yml`.
+GitHub Pages is static hosting. Model credentials, admin tokens, contact records and private data must never be placed in repository files, public JavaScript, URLs or browser storage.
 
-Required GitHub Actions secrets:
+A future live assistant may be activated only after an independent HTTPS backend is deliberately provisioned. The backend must provide:
 
-- `CLOUDFLARE_API_TOKEN` with the minimum Worker deployment permissions required for this account;
-- `CLOUDFLARE_ACCOUNT_ID`.
+1. server-side secret storage;
+2. rate limiting and abuse controls;
+3. a privacy-safe request boundary;
+4. explicit consent for any contact-record storage;
+5. protected administrative access;
+6. health monitoring and rollback;
+7. strict separation from private assessment, account and payment data.
 
-The workflow validates the Worker with a Wrangler dry run, deploys it, and can verify `https://assistant.drjavadrezazadeh.com/health`. It is manual-dispatch only so missing external credentials cannot make ordinary website commits fail.
+## Activation contract
 
-If repository-to-Cloudflare deployment is configured directly in Cloudflare instead, keep `edge/assistant` as the project root and `npx wrangler deploy` as the deploy command. Do not maintain two competing automatic deployment paths.
+When a secure runtime is chosen:
 
-The Wrangler configuration declares the AI binding and the custom domain `assistant.drjavadrezazadeh.com`. Cloudflare can issue the subdomain certificate and DNS record after the zone is active.
+- expose a single production chat endpoint through a page-level `jr-assistant-endpoint` meta tag;
+- keep the frontend fallback operational when the endpoint is unavailable;
+- enable lead capture only after a real protected lead store exists;
+- verify CORS against the canonical site origin;
+- test Persian and English behaviour;
+- verify that private routes do not load the public guide;
+- verify that the assistant does not invent prices, affiliations, publication status or scientific validation.
 
-No OpenAI API key is required for the default Workers AI model. Workers AI includes a daily free allocation on the Workers Free plan; excess use requires an intentional billing change.
+## Current status
 
-## Later optional model upgrade
-
-The runtime is model-adapter based. To use OpenAI-hosted GPT-5.6 Sol later, intentionally enable Cloudflare AI Gateway Unified Billing (or another approved provider credential path), then change `ASSISTANT_MODEL` to `openai/gpt-5.6-sol` and set an AI Gateway ID. Do not put provider API keys in GitHub Pages JavaScript.
-
-## Production verification
-
-After deployment:
-- `GET https://assistant.drjavadrezazadeh.com/health` must return status `ok`.
-- Open a public Persian and English page and send a test question.
-- Verify private app/assessment/checkout pages do not show the public assistant.
-- Verify the assistant refuses private-record/payment access and does not invent prices or scientific scores.
-- Verify 429 is returned after the configured per-device rate limit is exceeded.
-
-
-## Lead bank
-
-The assistant includes a separate, consented contact-request form. A visitor may submit either an email address or an E.164 mobile number plus a high-level intent category. Chat messages are not copied into the lead bank.
-
-Lead records are stored in a SQLite-backed Cloudflare Durable Object. NEW leads are automatically pruned after 180 days unless their status has changed. The Worker does not store raw IP addresses, user-agent fingerprints, passwords, student assessment responses or payment data in the lead record.
-
-For protected export, create a runtime secret named `ADMIN_LEAD_EXPORT_TOKEN`. The endpoint `GET /v1/admin/leads` requires `Authorization: Bearer <token>`. Never place this token in GitHub, GitHub Pages JavaScript or public CI logs.
-
-WhatsApp consent is separate. A mobile lead can explicitly opt in to WhatsApp contact, but that consent does not activate WhatsApp by itself and is not marketing consent.
-
-## Authentication boundary
-
-The public assistant is not an authentication mechanism. Site account creation uses email as the only sign-in identifier and email verification as the account-activation authority. The required mobile number is contact data only. Password recovery remains email-only.
-
-
-## Lead lifecycle statuses
-
-The protected admin API can move a lead through `NEW → CONTACTED → QUALIFIED → CONVERTED/CLOSED`. This is a workflow status only; it does not create an account, entitlement, booking or payment state. The public assistant cannot change lead status.
+The static bilingual guide is the production-safe mode. Live AI and assistant-side lead capture are intentionally deferred rather than falsely presented as active.
