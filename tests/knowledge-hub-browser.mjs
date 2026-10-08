@@ -39,7 +39,19 @@ try {
     const count = await page.locator('.related-cluster-grid > a').count();
     assert(count===45,name+': all 45 links in the DOM');
     const allImages = await page.locator('.knowledge-card-thumbnail').count();
-    assert(allImages===45,name+': all featured image tags exist');
+    if (allImages !== 45) {
+      const diagnostic = await page.evaluate(() => ({
+        domImages: document.querySelectorAll('img.knowledge-card-thumbnail').length,
+        relatedImages: document.querySelectorAll('.related-cluster-grid img').length,
+        totalImg: document.images.length,
+        cards: document.querySelectorAll('.related-cluster-grid > a').length,
+        readyState: document.readyState,
+        htmlSample: document.querySelector('.related-cluster-grid > a')?.outerHTML.slice(0,450),
+        missingImageCards: [...document.querySelectorAll('.related-cluster-grid > a')].filter(a=>!a.querySelector('img.knowledge-card-thumbnail')).slice(0,5).map(a=>a.outerHTML.slice(0,250))
+      }));
+      console.error('MOBILE_IMAGE_DEBUG',name,JSON.stringify(diagnostic));
+    }
+    assert(allImages===45,name+': all featured image tags exist ('+allImages+'/45)');
     const widthCheck = await page.evaluate(() => ({body:document.documentElement.scrollWidth,viewport:innerWidth}));
     assert(widthCheck.body <= widthCheck.viewport+3,name+': no document-wide horizontal overflow ('+JSON.stringify(widthCheck)+')');
     const textbox=page.locator('#knowledge-search');
