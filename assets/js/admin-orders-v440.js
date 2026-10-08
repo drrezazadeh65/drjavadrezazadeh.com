@@ -5,6 +5,7 @@ const API="https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev",states={
  cancelled:[],completed:[]
 }, labels={preparing_shipment:"آماده‌سازی ارسال",shipped:"ارسال‌شده",delivered:"تحویل‌شده",completed:"تکمیل‌شده",awaiting_service_coordination:"در انتظار هماهنگی",scheduled:"زمان‌بندی‌شده",cancelled:"لغوشده",refunded:"بازپرداخت‌شده",awaiting_payment:"پرداخت‌نشده"};
 const status=document.getElementById("admin-status"),ordersEl=document.getElementById("admin-orders"),stats=document.getElementById("admin-stats"),dashboard=document.getElementById("admin-dashboard"),refresh=document.getElementById("refresh");
+const refundPanel=document.getElementById("admin-refunds"),refundList=document.getElementById("admin-refund-list");
 const fmt=n=>new Intl.NumberFormat("fa-IR").format(Number(n||0))+" تومان";
 const el=(parent,tag,txt,cls)=>{let n=document.createElement(tag);if(txt!==undefined)n.textContent=txt;if(cls)n.className=cls;parent.append(n);return n};
 async function api(path,opts={}){
@@ -44,10 +45,41 @@ function renderOrder(order){
   catch(error){feedback.textContent="خطا: "+error.message;}finally{button.disabled=false;}
  });
 }
+function renderRefundRequest(request){
+ const card=el(refundList,"article",undefined,"admin-order");
+ el(card,"h3","درخواست بررسی "+request.id);
+ details(card,"سفارش",request.order_id);
+ details(card,"ثبت",request.created_at);
+ const stateLabels={requested:"در انتظار بررسی",reviewing:"در دست بررسی",declined:"ردشده",approved_pending_disbursement:"موافقت مشروط؛ بازگشت وجه هنوز تأیید نشده"};
+ details(card,"وضعیت",stateLabels[request.state]||request.state);
+ details(card,"شرح مشتری",request.reason);
+ const next=request.state==="requested"?["reviewing","declined"]:request.state==="reviewing"?["approved_pending_disbursement","declined"]:[];
+ if(!next.length)return;
+ const form=el(card,"form",undefined,"admin-form");
+ const choice=el(form,"label","تصمیم بررسی"),select=el(choice,"select");
+ for(const state of next){const opt=el(select,"option",stateLabels[state]);opt.value=state;}
+ const label=el(form,"label","یادداشت مستند تصمیم"),note=el(label,"input");
+ note.required=true;note.maxLength=500;note.minLength=8;
+ const button=el(form,"button","ثبت تصمیم (بدون انتقال وجه)");button.type="submit";
+ const feedback=el(form,"p","", "admin-feedback");feedback.setAttribute("role","status");
+ form.addEventListener("submit",async event=>{
+  event.preventDefault();
+  if(!form.reportValidity())return;
+  if(!confirm("این فقط ثبت تصمیم بررسی است و هیچ وجهی بازگردانده نمی‌شود. تأیید می‌کنید؟"))return;
+  button.disabled=true;feedback.textContent="در حال ثبت تصمیم...";
+  try{
+   const r=await api("/commerce/admin/refunds/update",{method:"POST",body:{request:request.id,to:select.value,note:note.value.trim()}});
+   if(r.money_returned!==false)throw Error("unexpected_state");
+   feedback.textContent="تصمیم ثبت شد؛ بازگشت واقعی وجه نیازمند اقدام مستقل مالی است.";
+   await load();
+  }catch(error){feedback.textContent="ثبت تصمیم انجام نشد: "+error.message}
+  finally{button.disabled=false}
+ });
+}
 async function load(){
  refresh.disabled=true;status.textContent="در حال اعتبارسنجی نشست مدیریتی...";
  try{
-  const [orders,summary]=await Promise.all([api("/commerce/admin/orders?limit=30"),api("/commerce/admin/summary")]);
+  const [orders,summary,refunds]=await Promise.all([api("/commerce/admin/orders?limit=30"),api("/commerce/admin/summary"),api("/commerce/admin/refunds").catch(()=>({requests:[],unavailable:true}))]);
   dashboard.hidden=false;ordersEl.replaceChildren();stats.replaceChildren();
   for(const x of summary.groups||[]){
    const block=el(stats,"div",undefined,"admin-stat");el(block,"strong",x.state+" · "+x.orders+" سفارش");
@@ -55,9 +87,13 @@ async function load(){
   }
   for(const x of orders.orders||[])renderOrder(x);
   if(!orders.orders?.length)el(ordersEl,"p","سفارشی ثبت نشده است.");
+  refundPanel.hidden=false;refundList.replaceChildren();
+  for(const request of refunds.requests||[])renderRefundRequest(request);
+  if(refunds.unavailable)el(refundList,"p","دسترسی به صف بررسی بازپرداخت در حال حاضر برقرار نیست.");
+  else if(!refunds.requests?.length)el(refundList,"p","درخواست بررسی بازپرداختی ثبت نشده است.");
   status.textContent="ورود مدیر با سرور تأیید شد؛ نتایج از پایگاه‌داده خوانده می‌شوند.";
  }catch(error){
-  dashboard.hidden=true;ordersEl.replaceChildren();stats.replaceChildren();
+  dashboard.hidden=true;refundPanel.hidden=true;ordersEl.replaceChildren();stats.replaceChildren();refundList.replaceChildren();
   status.textContent="دسترسی سفارش‌ها برقرار نشد ("+error.message+"). اتصال Cloudflare Access و مجوز مدیریتی باید تأیید شوند؛ هیچ اطلاعات خصوصی نمایش داده نمی‌شود.";
  }finally{refresh.disabled=false;}
 }
