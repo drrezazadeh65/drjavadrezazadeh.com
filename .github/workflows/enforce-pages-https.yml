@@ -1,4 +1,5 @@
 name: Verify GitHub Pages HTTPS
+# Live production-origin smoke test.
 
 on:
   push:
