@@ -317,8 +317,8 @@ export async function commerce(request,env){
   if(!uuid(order))return fail("invalid_order");
   const row=await env.DB.prepare("SELECT * FROM commerce_orders WHERE id=?").bind(order).first();
   if(!await authorisedReceipt(request,row))return fail("order_not_authorised",403);
-  const request=await env.DB.prepare("SELECT id,state,created_at,updated_at FROM commerce_refund_requests WHERE order_id=?").bind(order).first();
-  return reply({ok:true,request:request||null,money_returned:false});
+  const refundCase=await env.DB.prepare("SELECT id,state,created_at,updated_at FROM commerce_refund_requests WHERE order_id=?").bind(order).first();
+  return reply({ok:true,request:refundCase||null,money_returned:false});
  }
  if(path==="/commerce/order"&&request.method==="GET"){
   const id=u.searchParams.get("order");
