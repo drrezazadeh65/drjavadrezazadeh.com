@@ -74,4 +74,99 @@
       catch(err){if(err?.name !== 'AbortError') await copyLink()}
     } else {await copyLink()}
   });
+
+  /* Reader sharing destinations and device-only bookmarks. No backend,
+     accounts, cookies, third-party scripts or background network requests. */
+  const toolsBar = root.querySelector('.knowledge-article-tools');
+  if (toolsBar) {
+    const title = root.querySelector('h1')?.textContent?.trim() || document.title;
+    const canonical = document.querySelector('link[rel="canonical"]')?.href || location.href.split('#')[0].split('?')[0];
+    const bookmarkKey = 'jr-knowledge-bookmarks-v1';
+    const statusNode = toolsBar.querySelector('.knowledge-article-copy-status');
+    const insert = element => toolsBar.insertBefore(element, statusNode || null);
+
+    const shareMenu = document.createElement('details');
+    shareMenu.className = 'knowledge-article-actionmenu';
+    const shareHeading = document.createElement('summary');
+    shareHeading.textContent = 'ارسال به...';
+    const shareTargets = document.createElement('div');
+    const destinations = [
+      ['واتساپ', 'https://wa.me/?text=' + encodeURIComponent(title + '\\n' + canonical)],
+      ['تلگرام', 'https://t.me/share/url?url=' + encodeURIComponent(canonical) + '&text=' + encodeURIComponent(title)],
+      ['ایمیل', 'mailto:?subject=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(canonical)]
+    ];
+    for (const [label, url] of destinations) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.textContent = label;
+      link.setAttribute('aria-label','اشتراک مقاله در ' + label);
+      if (!url.startsWith('mailto:')) {
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+      }
+      shareTargets.appendChild(link);
+    }
+    shareMenu.append(shareHeading, shareTargets);
+    insert(shareMenu);
+
+    function readBookmarks() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(bookmarkKey) || '[]');
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter(entry => {
+          if (!entry || typeof entry.title !== 'string' || typeof entry.url !== 'string') return false;
+          try {
+            const address = new URL(entry.url);
+            return address.origin === location.origin &&
+              /^\\/fa\\/rahnamaha\\/[a-z0-9-]+\\/$/.test(address.pathname);
+          } catch (_) { return false; }
+        }).slice(0,40);
+      } catch (_) { return []; }
+    }
+    const bookmarkButton = document.createElement('button');
+    bookmarkButton.type = 'button';
+    bookmarkButton.setAttribute('data-article-bookmark','');
+    const bookmarkMenu = document.createElement('details');
+    bookmarkMenu.className = 'knowledge-article-actionmenu';
+    const bookmarkHeading = document.createElement('summary');
+    const bookmarkList = document.createElement('div');
+    bookmarkMenu.append(bookmarkHeading,bookmarkList);
+    function refreshBookmarks() {
+      const saved = readBookmarks();
+      const selected = saved.some(item => item.url === canonical);
+      bookmarkButton.setAttribute('aria-pressed',String(selected));
+      bookmarkButton.textContent = selected ? '★ ذخیره‌شده' : '☆ ذخیره مقاله';
+      bookmarkHeading.textContent = 'ذخیره‌شده‌ها (' + new Intl.NumberFormat('fa-IR').format(saved.length) + ')';
+      bookmarkList.replaceChildren();
+      if (!saved.length) {
+        const empty = document.createElement('span');
+        empty.textContent = 'هنوز مقاله‌ای ذخیره نشده است. ذخیره فقط روی همین مرورگر انجام می‌شود.';
+        empty.style.cssText = 'font-size:12px;line-height:1.9;color:#d9d0c1';
+        bookmarkList.appendChild(empty);
+      }
+      for (const entry of saved) {
+        const a = document.createElement('a');
+        a.href = entry.url;
+        a.textContent = entry.title;
+        bookmarkList.appendChild(a);
+      }
+    }
+    bookmarkButton.addEventListener('click',() => {
+      const items = readBookmarks();
+      const selected = items.some(item => item.url === canonical);
+      const next = selected ? items.filter(item => item.url !== canonical) :
+        [{url:canonical,title},...items].slice(0,40);
+      try {
+        localStorage.setItem(bookmarkKey,JSON.stringify(next));
+        refreshBookmarks();
+        announce(selected ? 'مقاله از فهرست ذخیره‌شده‌ها حذف شد.' :
+          'مقاله فقط در این مرورگر ذخیره شد. برای دیدن آن، فهرست ذخیره‌شده‌ها را باز کنید.');
+      } catch (_) {
+        announce('ذخیره در تنظیمات این مرورگر مجاز نیست؛ از کپی لینک مقاله استفاده کنید.');
+      }
+    });
+    insert(bookmarkButton);
+    insert(bookmarkMenu);
+    refreshBookmarks();
+  }
 })();
