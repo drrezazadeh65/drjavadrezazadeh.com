@@ -118,7 +118,7 @@ if(failures.length) process.exit(1);
 
 
 // SITEMAP GOVERNANCE — Frozen SEO baseline
-const sitemapChildren=['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml'];
+const sitemapChildren=['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml'];
 const sitemapUrls=new Set();
 const sitemapIndexPath=path.join(root,'sitemap.xml');
 let sitePrefix='';
