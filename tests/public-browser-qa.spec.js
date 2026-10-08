@@ -1150,3 +1150,23 @@ test('institutional advisory and teacher training guides supply practical, cauti
    }
   }
 });
+
+
+test('manuscript editing revision and reviewer response guides contain traceable worked examples',async({page})=>{
+ const guides=[
+ ['/fa/rahnamaha/proofreading-editing-manuscript-review/','نمونه فرضی: چگونه ادعای بیش‌ازحد قاطع'],
+ ['/fa/rahnamaha/major-revision-az-koja-shoroo-konim/','نمونه ماتریس مدیریت بازنگری'],
+ ['/fa/rahnamaha/pasokh-be-davaran/','نمونه پاسخ انگلیسیِ فرضی']
+ ];
+ for(const [route,needle] of guides){
+  for(const [width,height] of [[390,844],[1440,900]]){
+   await page.setViewportSize({width,height});
+   const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(response.status()).toBe(200);
+   await expect(page.locator('.knowledge-article-content')).toContainText(needle);
+   expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe('https://drjavadrezazadeh.com'+route);
+   const widthData=await stableOverflow(page);
+   expect(Math.max(widthData.html,widthData.body),route+' overflow '+width).toBeLessThanOrEqual(widthData.viewport+1);
+  }
+ }
+});
