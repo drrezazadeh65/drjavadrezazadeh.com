@@ -143,8 +143,8 @@
   checkout.className='button primary';
   checkout.dataset.bookPayment='';
   checkout.textContent=isFa?'پرداخت آنلاین کتاب‌ها':'Pay for books online';
-  checkout.disabled=true;
-  checkout.title=isFa?'پرداخت پس از تأیید آزمون‌های درگاه فعال می‌شود':'Payment opens after gateway verification';
+  checkout.disabled=false;
+  checkout.title=isFa?'درخواست پرداخت؛ فعال‌سازی پس از آزمون درگاه':'Request checkout; activation follows gateway verification';
   actions.appendChild(checkout);
 
   const inquiry=document.createElement('a');
@@ -183,6 +183,28 @@
    if(remove){
      writeCart(readCart().filter(x=>x.book_id!==remove.dataset.removeBook));
      renderCart(data);
+     return;
+   }
+   if(e.target.closest('[data-book-payment]')){
+     const button=e.target.closest('[data-book-payment]');
+     button.disabled=true;
+     status.textContent=isFa?'در حال بررسی ایمن سفارش...':'Checking order securely...';
+     try{
+       const response=await fetch('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/commerce/create',{
+         method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},
+         body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity}))})
+       });
+       const result=await response.json();
+       if(response.ok&&result.ok&&typeof result.paymentUrl==='string'){
+         const link=new URL(result.paymentUrl);
+         if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/')throw Error('unsafe_payment_url');
+         location.assign(link.href);return;
+       }
+       if(result.error==='checkout_disabled'){
+         status.textContent=isFa?'پرداخت آنلاین هنوز در حال آزمون است؛ هیچ وجهی برداشت نشده است.':'Checkout is undergoing testing; no charge was made.';
+       }else status.textContent=isFa?'ایجاد سفارش ناموفق بود؛ وجهی پرداخت نکنید.':'Could not create the order; do not pay.';
+     }catch(_){status.textContent=isFa?'اتصال به درگاه برقرار نشد؛ پرداختی انجام نشده است.':'Payment connection unavailable; no charge was made.'}
+     finally{button.disabled=false}
      return;
    }
    if(!e.target.closest('[data-book-copy]'))return;
