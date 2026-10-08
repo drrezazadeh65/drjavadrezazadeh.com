@@ -28,7 +28,7 @@ function walk(dir){
 walk(root);
 const noindex=html.filter(p=>/name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(fs.readFileSync(p,'utf8'))).length;
 const indexable=html.length-noindex;
-const sitemapFiles=['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml'];
+const sitemapFiles=['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml'];
 const sitemapUrls=new Set();
 for(const f of sitemapFiles){
  const p=path.join(root,f); if(!fs.existsSync(p)) continue;

@@ -453,6 +453,11 @@
       "id": "journal-submission-staging",
       "route": "/journal/submission/",
       "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "fa-shop-public-storefront",
+      "route": "/fa/shop/",
+      "policy": "PUBLIC_CANDIDATE"
     }
   ],
   "origin_states": {
