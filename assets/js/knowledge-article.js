@@ -7,7 +7,7 @@
   const progress = document.querySelector('.knowledge-article-progress');
   const bar = progress?.querySelector('span');
   const top = document.querySelector('.knowledge-article-backtop');
-  const sections = [...root.querySelectorAll('.knowledge-article-content section[id]')];
+  const sections = [...root.querySelectorAll('.knowledge-article-content h2[id]')];
   const desktopLinks = [...root.querySelectorAll('.knowledge-article-toc a[href^="#"]')];
   const mobileToc = root.querySelector('.knowledge-article-mobiletoc');
   const status = root.querySelector('.knowledge-article-copy-status');
