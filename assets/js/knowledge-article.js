@@ -172,4 +172,49 @@
     insert(bookmarkMenu);
     refreshBookmarks();
   }
+
+  /* Article reading accessibility and private author enquiry.
+     This mailto link opens the reader's mail app; it does not submit a public comment. */
+  if (toolsBar) {
+    const articleTitle = root.querySelector('h1')?.textContent?.trim() || document.title;
+    const articleUrl = document.querySelector('link[rel="canonical"]')?.href || location.href.split('#')[0];
+    const questionLink = document.createElement('a');
+    questionLink.className = 'knowledge-article-private-question';
+    questionLink.textContent = 'پرسش از نویسنده با ایمیل';
+    questionLink.href = 'mailto:dr.rezazadeh65@gmail.com?subject=' +
+      encodeURIComponent('پرسش درباره مقاله: ' + articleTitle) + '&body=' +
+      encodeURIComponent('موضوع مقاله: ' + articleTitle + '\\n' +
+        'پیوند مقاله: ' + articleUrl + '\\n\\n' +
+        'پرسش من: \\n\\n' +
+        'لطفاً اطلاعات حساس یا جزئیات خصوصی دانش‌آموز را از طریق ایمیل عمومی ارسال نکنید.');
+    questionLink.setAttribute('aria-label','طرح پرسش خصوصی با باز کردن برنامه ایمیل');
+    toolsBar.insertBefore(questionLink,toolsBar.querySelector('.knowledge-article-copy-status'));
+
+    const fontButton = document.createElement('button');
+    fontButton.type = 'button';
+    fontButton.dataset.readerFont = '';
+    const fontKey = 'jr-knowledge-large-text-v1';
+    let largeText = false;
+    try { largeText = localStorage.getItem(fontKey) === '1'; } catch (_) {}
+    function syncFont() {
+      root.classList.toggle('knowledge-article-large-text',largeText);
+      fontButton.setAttribute('aria-pressed',String(largeText));
+      fontButton.textContent = largeText ? 'اندازه متن: معمولی' : 'درشت‌تر کردن متن';
+    }
+    fontButton.addEventListener('click',() => {
+      largeText = !largeText;
+      syncFont();
+      try { localStorage.setItem(fontKey,largeText?'1':'0'); } catch (_) {}
+      announce(largeText ? 'اندازه متن مقاله بزرگ‌تر شد.' : 'اندازه متن به حالت معمولی بازگشت.');
+    });
+    toolsBar.insertBefore(fontButton,toolsBar.querySelector('.knowledge-article-copy-status'));
+    syncFont();
+
+    const printButton = document.createElement('button');
+    printButton.type = 'button';
+    printButton.dataset.readerPrint = '';
+    printButton.textContent = 'چاپ یا ذخیره PDF';
+    printButton.addEventListener('click',() => window.print());
+    toolsBar.insertBefore(printButton,toolsBar.querySelector('.knowledge-article-copy-status'));
+  }
 })();
