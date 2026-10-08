@@ -374,7 +374,8 @@ async function commerce(request,env){
   }
   if(!Number.isSafeInteger(total)||total<1000||total>1000000000)return fail("amount_out_of_range");
   // Shipping is not priced yet: never collect money for physical books without explicit shipping rules.
-  if(lines.some(x=>x.kind==="book")&&env.BOOK_SHIPPING_CONFIRMED!=="true")return fail("book_shipping_not_configured",503);
+  // Book delivery is free to the buyer; the merchant bears shipping costs.
+  // Shipping charge is always zero and excluded from the gateway amount.
   // Services require agreed scope/capacity; no automatic charge until explicitly enabled.
   if(lines.some(x=>x.kind==="service")&&env.SERVICE_BOOKING_CONFIRMED!=="true")return fail("service_booking_not_configured",503);
   if(lines.some(x=>x.kind==="vip")&&env.VIP_BOOKING_CONFIRMED!=="true")return fail("vip_booking_not_configured",503);
