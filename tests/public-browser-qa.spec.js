@@ -1192,3 +1192,27 @@ test('premium service selection guides explain decisions and boundaries on mobil
   }
  }
 });
+
+
+test('bilingual intake, service pages and shops disclose real booking and payment state',async({page})=>{
+  const cases=[
+    ['/fa/darkhast-moshavere/','رزرو آنلاین فعلاً غیرفعال','پرداخت آنلاین فعلاً غیرفعال'],
+    ['/en/request-consultation/','Online booking not active','Online payment not active'],
+    ['/fa/khadamat/','رزرو و پرداخت آنلاین در این مرحله فعال نیستند','درخواست اولیه، خرید نیست'],
+    ['/en/services/','Live appointment booking is not currently available','Online payments are not yet enabled'],
+    ['/fa/shop/','تسویه آنلاین غیرفعال','هیچ سفارش یا پرداخت اینترنتی'],
+    ['/en/shop/','Checkout not yet active','No online order or payment'],
+    ['/fa/shop/checkout/','تسویه فعلاً غیرفعال','ثبت نهایی سفارش انجام نمی‌شود']
+  ];
+  for(const [route,first,second] of cases){
+    for(const [width,height] of [[390,844],[1440,900]]){
+      await page.setViewportSize({width,height});
+      const res=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      expect(res.status(),route).toBe(200);
+      await expect(page.locator('body')).toContainText(first);
+      await expect(page.locator('body')).toContainText(second);
+      const d=await stableOverflow(page);
+      expect(Math.max(d.html,d.body),route+' overflow at '+width).toBeLessThanOrEqual(d.viewport+1);
+    }
+  }
+});
