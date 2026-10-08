@@ -28,6 +28,9 @@ const viewports=[
   ['mobile-320',320,800],
   ['mobile-390',390,844],
   ['mobile-430',430,932],
+  ['tablet-768',768,1024],
+  ['tablet-820',820,1180],
+  ['tablet-landscape-1024',1024,768],
   ['desktop-1440',1440,900]
 ];
 
