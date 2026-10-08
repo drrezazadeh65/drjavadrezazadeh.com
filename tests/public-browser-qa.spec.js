@@ -891,3 +891,36 @@ test('auth mobile visual evidence',async({page})=>{
     await page.screenshot({path:'test-results/screenshots/'+name+'-mobile-390-first-screen.png',fullPage:false});
   }
 });
+
+
+test('knowledge article explicit sharing and on-device bookmarks',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  const route='/fa/rahnamaha/golden-talent-chist/';
+  await page.goto(base+route,{waitUntil:'domcontentloaded'});
+  const bookmark=page.locator('[data-article-bookmark]');
+  await expect(bookmark).toBeVisible();
+  await expect(bookmark).toHaveAttribute('aria-pressed','false');
+
+  const menus=page.locator('.knowledge-article-actionmenu');
+  await expect(menus).toHaveCount(2);
+  await menus.first().locator('summary').click();
+  const links=menus.first().locator('a');
+  await expect(links).toHaveCount(3);
+  expect(await links.nth(0).getAttribute('href')).toMatch(/^https:\/\/wa\.me\/\?text=/);
+  expect(await links.nth(1).getAttribute('href')).toMatch(/^https:\/\/t\.me\/share\/url\?/);
+  expect(await links.nth(2).getAttribute('href')).toMatch(/^mailto:\?subject=/);
+
+  await bookmark.click();
+  await expect(bookmark).toHaveAttribute('aria-pressed','true');
+  await menus.nth(1).locator('summary').click();
+  await expect(menus.nth(1).locator('a[href$="'+route+'"]')).toHaveCount(1);
+
+  await page.reload({waitUntil:'domcontentloaded'});
+  const persisted=page.locator('[data-article-bookmark]');
+  await expect(persisted).toHaveAttribute('aria-pressed','true');
+  await persisted.click();
+  await expect(persisted).toHaveAttribute('aria-pressed','false');
+
+  const overflow=await stableOverflow(page);
+  expect(Math.max(overflow.html,overflow.body)).toBeLessThanOrEqual(overflow.viewport+1);
+});
