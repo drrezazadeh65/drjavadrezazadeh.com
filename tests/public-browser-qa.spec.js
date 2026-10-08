@@ -1130,3 +1130,23 @@ test('talent report, higher-ed selection and student development articles includ
     }
   }
 });
+
+
+test('institutional advisory and teacher training guides supply practical, cautious examples',async({page})=>{
+  const pages=[
+   ['/fa/rahnamaha/madarese-system-estedaadyabi/','طرح آزمایشی کوچک پیش از گسترش'],
+   ['/fa/rahnamaha/madarese-che-zamani-moshaver-amoozeshi/','چه چیزهایی باید در شرح خدمات نوشته شود'],
+   ['/fa/rahnamaha/kargah-amoozeshi-asarbakhsh/','نمونه طراحی یک جلسه ۹۰دقیقه‌ای']
+  ];
+  for(const [route,required] of pages){
+   for(const [width,height] of [[390,844],[1440,900]]){
+    await page.setViewportSize({width,height});
+    const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    expect(response.status()).toBe(200);
+    await expect(page.locator('.knowledge-article-content')).toContainText(required);
+    expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe('https://drjavadrezazadeh.com'+route);
+    const geo=await stableOverflow(page);
+    expect(Math.max(geo.html,geo.body),route+' overflow at '+width).toBeLessThanOrEqual(geo.viewport+1);
+   }
+  }
+});
