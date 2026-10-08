@@ -382,7 +382,7 @@ async function unwrapReceiptToken(wrapped,order,env){
 }
 
 async function sendInvoiceEmail(row,token,env){
- if(!row?.customer_json||!env.RESEND_API_KEY||!env.INVOICE_FROM_EMAIL)return;
+ if(!row?.customer_json||env.INVOICE_EMAIL_ENABLED!=="true"||!env.RESEND_API_KEY||!env.INVOICE_FROM_EMAIL)return;
  const email=JSON.parse(row.customer_json).email;
  if(!email||row.receipt_email_sent_at)return;
  const link=SITE+"/fa/shop/invoice/?order="+encodeURIComponent(row.id)+"#access="+encodeURIComponent(token);
@@ -644,7 +644,7 @@ async function commerce(request,env){
   const row=await env.DB.prepare("SELECT * FROM commerce_orders WHERE id=?").bind(input.order).first();
   if(!await authorisedReceipt(request,row))return fail("receipt_not_authorised",403);
   if(row.state!=="paid")return fail("payment_not_verified",409);
-  if(!env.RESEND_API_KEY||!env.INVOICE_FROM_EMAIL)return fail("email_not_configured",503);
+  if(env.INVOICE_EMAIL_ENABLED!=="true"||!env.RESEND_API_KEY||!env.INVOICE_FROM_EMAIL)return fail("email_not_configured",503);
   try{await sendInvoiceEmail(row,request.headers.get("Authorization").slice(7),env);return reply({ok:true,delivered:!!(row.receipt_email_sent_at||JSON.parse(row.customer_json).email)});}
   catch{return fail("email_delivery_unavailable",503)}
  }
@@ -679,7 +679,7 @@ async function commerce(request,env){
     .bind(fulfil,trans,order,idGet).run();
    if(result.meta.changes!==1)return fail("concurrent_update",409);
    // Verified provider event is the ONLY trigger for automated email. Failures never revert a paid transaction.
-   if(row.receipt_token_wrapped&&env.RESEND_API_KEY&&env.INVOICE_FROM_EMAIL){
+   if(row.receipt_token_wrapped&&env.INVOICE_EMAIL_ENABLED==="true"&&env.RESEND_API_KEY&&env.INVOICE_FROM_EMAIL){
     try{
      const verifiedOrder=await env.DB.prepare("SELECT * FROM commerce_orders WHERE id=?").bind(order).first();
      const privateToken=await unwrapReceiptToken(row.receipt_token_wrapped,order,env);
