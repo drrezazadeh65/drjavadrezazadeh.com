@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Install the already-approved 45-article photo set without changing URLs.
 
-Usage: python3 scripts/install-knowledge-webp.py /path/to/featured_images_FINAL_45_CLEAN_web_ready.zip
-       python3 scripts/install-knowledge-webp.py /path/to/archive.zip --check-only
+Usage: python3 scripts/install-knowledge-webp.py /path/to/individual-images-directory
+       python3 scripts/install-knowledge-webp.py /path/to/featured_images_FINAL_45_CLEAN_web_ready.zip
+       python3 scripts/install-knowledge-webp.py /path/to/individual-images-directory --check-only
 
-The full archive is validated BEFORE any public page is modified.
+All 90 images are validated BEFORE any public page is modified.
 Never substitutes a placeholder or imports unapproved image files.
 """
 import argparse
@@ -46,32 +47,48 @@ def slugs():
         raise ValueError(f"Expected 45 distinct article URLs, got {len(ids)}")
     return ids
 
-def install(archive, check_only=False):
+def install(source, check_only=False):
     ids = slugs()
     manifest = ROOT / "assets/data/knowledge-image-seo-manifest.csv"
     with manifest.open(encoding="utf-8-sig", newline="") as fp:
         image_rows = {row["slug"]: row for row in csv.DictReader(fp)}
     if set(image_rows) != set(ids):
         raise ValueError("Image manifest must match exactly the 45 published article slugs")
+    # A directory of individual files is the preferred no-ZIP path.
+    # Accept either the manifest's two subdirectories or 90 flat filenames.
     binary = {}
-    with ZipFile(archive) as z:
-        names=z.namelist()
+    if source.is_dir():
+        def read_asset(wanted):
+            relative = Path(wanted)
+            if relative.is_absolute() or ".." in relative.parts:
+                raise ValueError(f"Unsafe manifest filename: {wanted}")
+            candidates = [source / relative, source / relative.name]
+            matches = [p for p in candidates if p.is_file()]
+            if len(matches) != 1:
+                raise ValueError(f"Expected exactly one loose image {wanted}; found {len(matches)}")
+            return matches[0].read_bytes()
+        source_files = None
+    else:
+        source_files = ZipFile(source)
+        names = source_files.namelist()
+        def read_asset(wanted):
+            matches = [n for n in names if n == wanted or n.endswith("/" + wanted)]
+            if len(matches) != 1:
+                raise ValueError(f"Expected exactly one archive image {wanted}; found {len(matches)}")
+            return source_files.read(matches[0])
+    try:
         for slug in ids:
-            for group, suffix, dimensions in (
-                ("featured-1600x900", "featured", (1600,900)),
-                ("og-1200x630", "og", (1200,630)),
-            ):
-                wanted=image_rows[slug]["featured_file" if suffix=="featured" else "og_file"]
-                matches=[n for n in names if n==wanted or n.endswith("/"+wanted)]
-                if len(matches)!=1:
-                    raise ValueError(f"Expected exactly one {wanted}, got {len(matches)}")
-                member=z.getinfo(matches[0])
-                if member.file_size>6_000_000 or member.file_size<2_000:
+            for suffix, dimensions in (("featured", (1600, 900)), ("og", (1200, 630))):
+                wanted = image_rows[slug]["featured_file" if suffix == "featured" else "og_file"]
+                data = read_asset(wanted)
+                if not 2_000 <= len(data) <= 6_000_000:
                     raise ValueError(f"Suspicious image byte length: {wanted}")
-                data=z.read(member)
-                if len(data)!=member.file_size or webp_size(data)!=dimensions:
+                if webp_size(data) != dimensions:
                     raise ValueError(f"Invalid WebP dimensions: {wanted}; expected {dimensions}")
-                binary[f"{slug}-{suffix}.webp"]=data
+                binary[f"{slug}-{suffix}.webp"] = data
+    finally:
+        if source_files is not None:
+            source_files.close()
 
     if len(binary)!=90:
         raise AssertionError("All 90 WebP variants must be present")
@@ -142,13 +159,13 @@ def install(archive, check_only=False):
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
-    p.add_argument("archive", type=Path)
+    p.add_argument("source", type=Path, help="Directory of 90 individual WebP files, or original ZIP")
     p.add_argument("--check-only",action="store_true")
     args=p.parse_args()
-    if not args.archive.is_file():
-        p.error(f"Cannot access original ZIP: {args.archive}")
+    if not args.source.exists() or not (args.source.is_dir() or args.source.is_file()):
+        p.error(f"Cannot access image directory or ZIP: {args.source}")
     try:
-        install(args.archive,args.check_only)
+        install(args.source,args.check_only)
     except (OSError, ValueError, BadZipFile) as exc:
         print(f"SAFE ABORT: {exc}",file=sys.stderr)
         sys.exit(2)
