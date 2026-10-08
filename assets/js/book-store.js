@@ -144,7 +144,7 @@
   checkout.dataset.bookPayment='';
   checkout.textContent=isFa?'پرداخت آنلاین کتاب‌ها':'Pay for books online';
   checkout.disabled=false;
-  checkout.title=isFa?'درخواست پرداخت؛ فعال‌سازی پس از آزمون درگاه':'Request checkout; activation follows gateway verification';
+  checkout.title=isFa?'ثبت سفارش و انتقال به درگاه امن':'Create order and proceed to secure payment';
   actions.appendChild(checkout);
 
   const inquiry=document.createElement('a');
@@ -234,8 +234,21 @@
   const valid=books.length>0&&books.every(x=>ready(x.book));
   host.innerHTML='<p class="kicker">'+(isFa?'تسویه امن':'Secure checkout')+'</p><h1>'+(isFa?'سفارش کتاب':'Book order')+'</h1>'+
    '<p class="lead">'+(isFa?'اطلاعات سفارش و مبلغ نهایی پیش از انتقال به درگاه دوباره بررسی می‌شود و سفارش فقط پس از تأیید موفق پرداخت نهایی خواهد شد.':'Order details and the final amount are checked again before payment, and the order is completed only after successful payment confirmation.')+'</p>'+
-   '<div class="store-notice">'+(valid?(isFa?'کاتالوگ و قیمت‌ها آماده‌اند؛ تکمیل سفارش و پرداخت پس از نهایی‌شدن شرایط ارسال/بازگشت و فعال‌شدن درگاه معتبر در دسترس قرار می‌گیرد.':'The catalogue and prices are ready; order completion and payment become available after fulfilment/return terms are confirmed and the verified payment gateway is activated.'):(isFa?'در حال حاضر محصول قیمت‌گذاری‌شده و قابل‌فروش در کاتالوگ فعال نیست.':'There is currently no verified priced and sellable book in the active catalogue.'))+'</div>'+
+   '<div class="store-notice">'+(valid?(isFa?'ارسال کتاب رایگان است. مبلغ نهایی در سرور محاسبه می‌شود و پس از تأیید بانکی رسید صادر خواهد شد.':'The catalogue and prices are ready; order completion and payment become available after fulfilment/return terms are confirmed and the verified payment gateway is activated.'):(isFa?'در حال حاضر محصول قیمت‌گذاری‌شده و قابل‌فروش در کاتالوگ فعال نیست.':'There is currently no verified priced and sellable book in the active catalogue.'))+'</div>'+
    '<div class="actions"><a class="button" href="'+root((isFa?'fa':'en')+'/shop/cart/')+'">'+(isFa?'بازگشت به سبد':'Back to cart')+'</a></div>';
+  if(valid){
+   const btn=document.createElement('button');btn.type='button';btn.className='button primary';btn.textContent=isFa?'پرداخت امن سفارش':'Secure checkout';
+   const feedback=document.createElement('p');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
+   btn.onclick=async()=>{btn.disabled=true;feedback.textContent=isFa?'در حال ایجاد سفارش...':'Creating order...';try{
+    const response=await fetch('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/commerce/create',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity}))})});
+    const result=await response.json();
+    if(!response.ok||!result.ok)throw Error(result.error||'order_failed');
+    const url=new URL(result.paymentUrl);
+    if(url.origin!==location.origin||url.pathname!=='/fa/shop/payment-start/'||url.searchParams.size!==1||!url.searchParams.has('gateway'))throw Error('unsafe_url');
+    location.assign(url.href);
+   }catch(e){feedback.textContent=isFa?'ثبت سفارش ممکن نشد؛ در صورت برداشت وجه مجدداً پرداخت نکنید.':'Order could not be created; do not pay again if charged.';btn.disabled=false}};
+   host.querySelector('.actions').appendChild(btn);host.appendChild(feedback);
+  }
  }
  load().then(data=>{renderCatalog(data);renderDetail(data);renderCart(data);renderCheckout(data);updateCartBadge();}).catch(()=>document.querySelectorAll('[data-store-error]').forEach(x=>x.hidden=false));
  updateCartBadge();
