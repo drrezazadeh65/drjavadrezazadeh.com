@@ -52,7 +52,29 @@ function walk(dir){
 }
 walk(out);
 const html=all.filter(p=>p.endsWith('.html'));
-if(html.length!==246) failures.push('Expected 246 public HTML routes in sanitized artifact, found '+html.length);
+// The additional public HTML route is a strictly noindex payment-return relay.
+// Keep a fixed route count as a guard against accidentally publishing engineering files.
+const approvedPublicHtmlRoutes=247;
+if(html.length!==approvedPublicHtmlRoutes) failures.push(
+  'Expected '+approvedPublicHtmlRoutes+' public HTML routes in sanitized artifact, found '+html.length
+);
+const paymentRelay='fa/shop/payment-return/index.html';
+const relayPath=path.join(out,paymentRelay);
+if(!fs.existsSync(relayPath)) {
+  failures.push('Approved noindex payment-return relay missing: '+paymentRelay);
+}else{
+  const relay=fs.readFileSync(relayPath,'utf8');
+  if(!/<meta\\s+name="robots"\\s+content="noindex,nofollow"\\s*\\/>?/.test(relay) &&
+     !/<meta\\s+name="robots"\\s+content="noindex,nofollow"\\s*>/.test(relay)){
+    failures.push('Payment-return relay must remain noindex,nofollow');
+  }
+  for(const sitemap of ['sitemap.xml','sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml']){
+    if(fs.existsSync(path.join(out,sitemap)) &&
+       fs.readFileSync(path.join(out,sitemap),'utf8').includes('/fa/shop/payment-return/')){
+      failures.push('Noindex payment-return relay must not enter '+sitemap);
+    }
+  }
+}
 
 const textExt=/\.(?:html|js|css|json|xml|txt|webmanifest)$/i;
 for(const file of all.filter(p=>textExt.test(p))){
