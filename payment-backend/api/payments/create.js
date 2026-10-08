@@ -8,11 +8,10 @@ export default async function handler(req,res){
  if(req.method!=='POST') return res.status(405).json({error:'method_not_allowed'});
  if(process.env.BITPAY_SANDBOX_ENABLED!=='true'||!process.env.BITPAY_SANDBOX_API_KEY||!process.env.DATABASE_URL) return res.status(503).json({error:'sandbox_not_configured'});
  const origin=req.headers.origin;
- if(origin&&origin!=='https://drjavadrezazadeh.com') return res.status(403).json({error:'origin_denied'});
+ if(origin!=='https://drjavadrezazadeh.com') return res.status(403).json({error:'origin_denied'});
  if(!req.headers['content-type']?.startsWith('application/json')) return res.status(415).json({error:'json_required'});
  try{
-  const items=req.body?.items;
-  const order=await createOrder(items);
+  const order=await createOrder(req.body?.items);
   const redirect='https://drjavadrezazadeh-payment-api.vercel.app/api/payments/callback?order_id='+encodeURIComponent(order.id);
   const intent=await requestIntent({api:process.env.BITPAY_SANDBOX_API_KEY,amountRial:Number(order.amount_rial),factorId:order.factor_id,redirect});
   const sql=neon(process.env.DATABASE_URL);
