@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "currency": "IRT",
+  "version": "2026-10-08",
+  "services": [
+    {
+      "id": "academic-direction",
+      "title_fa": "راهبری اختصاصی مسیر تحصیلی",
+      "price": 24000000,
+      "sellable": true,
+      "checkout_enabled": false,
+      "booking_required": true,
+      "quantity_limit": 1,
+      "detail_url": "/fa/vip/academic-direction/"
+    },
+    {
+      "id": "university-selection",
+      "title_fa": "انتخاب رشته اختصاصی VIP",
+      "price": 36000000,
+      "sellable": true,
+      "checkout_enabled": false,
+      "booking_required": true,
+      "quantity_limit": 1,
+      "detail_url": "/fa/vip/university-selection/"
+    },
+    {
+      "id": "golden-talent-signature",
+      "title_fa": "استعدادیابی اختصاصی Golden Talent",
+      "price": 60000000,
+      "sellable": true,
+      "checkout_enabled": false,
+      "booking_required": true,
+      "quantity_limit": 1,
+      "detail_url": "/fa/vip/golden-talent-signature/"
+    },
+    {
+      "id": "research-publication",
+      "title_fa": "راهبری پژوهش و انتشار علمی",
+      "price": 48000000,
+      "sellable": true,
+      "checkout_enabled": false,
+      "booking_required": true,
+      "quantity_limit": 1,
+      "detail_url": "/fa/vip/research-publication/"
+    },
+    {
+      "id": "educator-development",
+      "title_fa": "توسعه حرفه‌ای اختصاصی مدرس",
+      "price": 36000000,
+      "sellable": true,
+      "checkout_enabled": false,
+      "booking_required": true,
+      "quantity_limit": 1,
+      "detail_url": "/fa/vip/educator-development/"
+    },
+    {
+      "id": "institutional-advisory",
+      "title_fa": "مشاوره راهبردی سازمانی",
+      "price": 90000000,
+      "sellable": true,
+      "checkout_enabled": false,
+      "booking_required": true,
+      "quantity_limit": 1,
+      "detail_url": "/fa/vip/institutional-advisory/"
+    }
+  ]
+}
