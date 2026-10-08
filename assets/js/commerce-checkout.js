@@ -1,6 +1,8 @@
 /* Unified payment initiation. Server-side catalog and D1 remain authoritative. */
 (()=>{'use strict';
 const API='https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev';
+const CONTACT_EMAIL='dr.rezazadeh65@gmail.com';
+const EITAA_URL='https://eitaa.com/DrRezazadeh65';
 const fmt=n=>new Intl.NumberFormat('fa-IR').format(n)+' تومان';
 const status=(el,msg)=>{if(el){el.textContent=msg;el.setAttribute('role','status');el.setAttribute('aria-live','polite')}};
 async function pay(items,button,message){
@@ -33,7 +35,11 @@ function mount(host,kind,items){
   button.addEventListener('click',()=>pay([{sku:kind+':'+item.id,quantity:1}],button,live));
   card.append(title,price,button,live);host.append(card);
  }
- host.prepend(message);
+ const contact=document.createElement('div');contact.className='commerce-contact';
+ const email=document.createElement('a');email.href='mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('هماهنگی خدمات دکتر رضازاده');email.textContent='ارتباط از طریق ایمیل';
+ const eitaa=document.createElement('a');eitaa.href=EITAA_URL;eitaa.target='_blank';eitaa.rel='noopener noreferrer';eitaa.textContent='پیام در ایتا: @DrRezazadeh65';
+ const note=document.createElement('p');note.textContent='برای هماهنگی پیش از خرید یا پیگیری زمان ارائه خدمت می‌توانید از ایمیل یا ایتا استفاده کنید. برای ثبت و پیگیری رسمی سفارش، نشانی ایمیل معتبر ضروری است.';
+ contact.append(note,email,document.createTextNode('  ·  '),eitaa);host.prepend(contact);host.prepend(message);
 }
 async function start(){
  const vip=document.querySelector('[data-commerce-vip]');
