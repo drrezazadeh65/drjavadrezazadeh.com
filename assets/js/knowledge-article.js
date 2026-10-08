@@ -175,7 +175,8 @@
 
   /* Article reading accessibility and private author enquiry.
      This mailto link opens the reader's mail app; it does not submit a public comment. */
-  if (toolsBar) {
+  const readerBar = root.querySelector('.knowledge-article-tools');
+  if (readerBar) {
     const articleTitle = root.querySelector('h1')?.textContent?.trim() || document.title;
     const articleUrl = document.querySelector('link[rel="canonical"]')?.href || location.href.split('#')[0];
     const questionLink = document.createElement('a');
@@ -188,7 +189,7 @@
         'پرسش من: \\n\\n' +
         'لطفاً اطلاعات حساس یا جزئیات خصوصی دانش‌آموز را از طریق ایمیل عمومی ارسال نکنید.');
     questionLink.setAttribute('aria-label','طرح پرسش خصوصی با باز کردن برنامه ایمیل');
-    toolsBar.insertBefore(questionLink,toolsBar.querySelector('.knowledge-article-copy-status'));
+    readerBar.insertBefore(questionLink,readerBar.querySelector('.knowledge-article-copy-status'));
 
     const fontButton = document.createElement('button');
     fontButton.type = 'button';
@@ -207,7 +208,7 @@
       try { localStorage.setItem(fontKey,largeText?'1':'0'); } catch (_) {}
       announce(largeText ? 'اندازه متن مقاله بزرگ‌تر شد.' : 'اندازه متن به حالت معمولی بازگشت.');
     });
-    toolsBar.insertBefore(fontButton,toolsBar.querySelector('.knowledge-article-copy-status'));
+    readerBar.insertBefore(fontButton,readerBar.querySelector('.knowledge-article-copy-status'));
     syncFont();
 
     const printButton = document.createElement('button');
@@ -215,6 +216,6 @@
     printButton.dataset.readerPrint = '';
     printButton.textContent = 'چاپ یا ذخیره PDF';
     printButton.addEventListener('click',() => window.print());
-    toolsBar.insertBefore(printButton,toolsBar.querySelector('.knowledge-article-copy-status'));
+    readerBar.insertBefore(printButton,readerBar.querySelector('.knowledge-article-copy-status'));
   }
 })();
