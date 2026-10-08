@@ -1274,3 +1274,24 @@ test('mobile above-the-fold typography keeps shop and service entry actions visi
     }
   }
 });
+
+
+test('three newly discovered or pending-index guides provide actionable value with stable canonicals',async({page})=>{
+ const guides=[
+ ['/fa/rahnamaha/bazaar-kar-dar-entekhab-reshteh/','کاربرگ چهارستونی'],
+ ['/fa/rahnamaha/entekhab-reshteh-jame/','چک‌لیست پایانی برای جلوگیری از خطای رشته‌محل'],
+ ['/fa/rahnamaha/golden-talent-chist/','از فرضیه تا تجربه آموزشی کوتاه']
+ ];
+ for(const [route,example] of guides){
+  for(const [width,height] of [[390,844],[1440,900]]){
+   await page.setViewportSize({width,height});
+   const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(response.status(),route).toBe(200);
+   await expect(page.locator('.knowledge-article-content')).toContainText(example);
+   expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe('https://drjavadrezazadeh.com'+route);
+   await expect(page.locator('.knowledge-article-content img').first()).toHaveAttribute('src',/featured\.webp$/);
+   const overflow=await stableOverflow(page);
+   expect(Math.max(overflow.html,overflow.body)).toBeLessThanOrEqual(overflow.viewport+1);
+  }
+ }
+});
