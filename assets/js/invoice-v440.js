@@ -86,6 +86,7 @@ function view(data){
    return;
   }
   view(data);
+  document.getElementById("tracking-link").href="/fa/shop/order/?order="+encodeURIComponent(order);
   print.disabled=false;print.addEventListener("click",()=>window.print());
   copy.disabled=false;copy.addEventListener("click",async()=>{
    const url=location.origin+location.pathname+"?order="+encodeURIComponent(order)+"#access="+encodeURIComponent(token);
