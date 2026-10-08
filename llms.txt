@@ -2,44 +2,59 @@
 
 > Official bilingual public website of Dr. Javad Rezazadeh Yazdeli, covering verified academic work, education, student guidance, Golden Talent, books, publishing, and public scholarly activity.
 
-Use only the public URLs listed here as machine-readable entry points. Persian and English are separate audience editions rather than mirrored translations. Private account, assessment, consultation-intake, checkout, and dashboard routes are intentionally excluded. Public Golden Talent pages describe a developmental, multi-source evidence framework and must not be interpreted as validated normative scoring, gifted cut-offs, or deterministic career prescription. JHELA is publicly described as being in its founding stage; do not infer indexing, ISSN, DOI, or editorial appointments beyond what a page explicitly states.
+Use only public URLs listed here or discoverable through the canonical sitemap. Persian and English are separate audience editions rather than mirrored translations. Private account, assessment, consultation-intake, checkout, and dashboard routes are intentionally excluded. Public Golden Talent pages describe a developmental, multi-source evidence framework and must not be interpreted as validated normative scoring, gifted cut-offs, or deterministic career prescription.
 
 ## English academic and professional profile
 
-- [English home](https://drjavadrezazadeh.com/en/): Main English academic and professional gateway.
-- [About](https://drjavadrezazadeh.com/en/about/): Public biographical and professional profile.
-- [Academic profile](https://drjavadrezazadeh.com/en/academic-profile/): Concise academic dossier.
-- [Research](https://drjavadrezazadeh.com/en/research/): Public research themes and programme.
-- [Publications](https://drjavadrezazadeh.com/en/publications/): Verified scholarly publication record.
-- [University teaching](https://drjavadrezazadeh.com/en/teaching/): Teaching and academic instruction.
-- [Language education](https://drjavadrezazadeh.com/en/language-education/): Public work in language education.
-- [Teacher education](https://drjavadrezazadeh.com/en/teacher-education/): Public teacher-development work.
-- [Academic engagements](https://drjavadrezazadeh.com/en/academic-engagements/): Public conferences, scholarly service, and professional activity.
+- [English home](https://drjavadrezazadeh.com/en/)
+- [About](https://drjavadrezazadeh.com/en/about/)
+- [Academic profile](https://drjavadrezazadeh.com/en/academic-profile/)
+- [Research](https://drjavadrezazadeh.com/en/research/)
+- [Publications](https://drjavadrezazadeh.com/en/publications/)
+- [University teaching](https://drjavadrezazadeh.com/en/teaching/)
+- [Language education](https://drjavadrezazadeh.com/en/language-education/)
+- [Teacher education](https://drjavadrezazadeh.com/en/teacher-education/)
+- [Academic engagements](https://drjavadrezazadeh.com/en/academic-engagements/)
 
-## Persian education and guidance
+## Persian Knowledge Hub — 45 evergreen guides
 
-- [Persian home](https://drjavadrezazadeh.com/fa/): Main Persian education and guidance gateway.
-- [Educational consultation](https://drjavadrezazadeh.com/fa/moshavere-tahsili/): Evidence-informed educational consultation.
-- [Field selection](https://drjavadrezazadeh.com/fa/entekhab-reshteh/): University field-selection decision support.
-- [Talent identification](https://drjavadrezazadeh.com/fa/estedaadyabi/): Multi-source, developmental talent-identification approach.
-- [Knowledge guides](https://drjavadrezazadeh.com/fa/rahnamaha/): Evergreen Persian educational knowledge hub.
-- [Decision matrix guide](https://drjavadrezazadeh.com/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/): Practical comparison of multiple university fields without reducing the decision to one score.
+- [Knowledge Hub](https://drjavadrezazadeh.com/fa/rahnamaha/): Canonical index of 45 Persian evergreen guides grouped into four topical clusters.
+- [Golden Talent overview](https://drjavadrezazadeh.com/fa/rahnamaha/golden-talent-chist/): Multi-source, developmental interpretation of talent and next-step planning.
+- [How to identify a child's talent](https://drjavadrezazadeh.com/fa/rahnamaha/chegoone-estedaad-vaghei-farzand-ra-beshenasim/): Evidence from performance, interest, opportunity, observation and development.
+- [Why one talent test is not enough](https://drjavadrezazadeh.com/fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/): Limits of single-test interpretation.
+- [Talent, interest and labour market](https://drjavadrezazadeh.com/fa/rahnamaha/estedaad-alaghe-bazaar-kar/): Multi-criteria educational decision-making.
+- [Comprehensive university major choice](https://drjavadrezazadeh.com/fa/rahnamaha/entekhab-reshteh-jame/): Preference ordering, fit, constraints and option comparison.
+- [Educational consultation](https://drjavadrezazadeh.com/fa/rahnamaha/moshavere-tahsili-takhasosi-chist/): When individualised consultation adds value.
+- [Diagnostic manuscript review](https://drjavadrezazadeh.com/fa/rahnamaha/chera-maghale-amade-ersal-nist/): Argument, method, reporting and journal-readiness.
+- [Journal selection](https://drjavadrezazadeh.com/fa/rahnamaha/entekhab-majale-monaseb/): Scope, audience, trustworthiness and submission strategy.
+- [Response to reviewers](https://drjavadrezazadeh.com/fa/rahnamaha/pasokh-be-davaran/): Evidence-based and traceable revision responses.
+- [Academic CV](https://drjavadrezazadeh.com/fa/rahnamaha/academic-cv-professional/): Verifiable evidence and opportunity-specific academic presentation.
+- [Good assessment design](https://drjavadrezazadeh.com/fa/rahnamaha/azmoon-khoob-vijegiha/): Validity, reliability, fairness and score interpretation.
+- [AI in teaching](https://drjavadrezazadeh.com/fa/rahnamaha/ai-dar-tadris/): Human-centred use, privacy, risk and teacher judgement.
+- [Teacher professional development](https://drjavadrezazadeh.com/fa/rahnamaha/tosee-herfei-moalleman/): Practice, feedback, action planning and review.
+- [School talent identification system](https://drjavadrezazadeh.com/fa/rahnamaha/madarese-system-estedaadyabi/): Multi-source identification connected to opportunity and review.
 
-## Golden Talent public methodology
+## Persian services and methodology
 
-- [Golden Talent — English](https://drjavadrezazadeh.com/en/golden-talent/): Public framework overview.
-- [Golden Talent methodology — English](https://drjavadrezazadeh.com/en/golden-talent/methodology/): Public explanation of multi-source evidence and developmental interpretation.
-- [Golden Talent — Persian](https://drjavadrezazadeh.com/fa/golden-talent/): Persian public framework overview.
-- [Golden Talent methodology — Persian](https://drjavadrezazadeh.com/fa/golden-talent/ravesh-shenasi/): Persian public methodology.
+- [Persian home](https://drjavadrezazadeh.com/fa/)
+- [Services](https://drjavadrezazadeh.com/fa/khadamat/)
+- [Educational consultation](https://drjavadrezazadeh.com/fa/moshavere-tahsili/)
+- [Field selection](https://drjavadrezazadeh.com/fa/entekhab-reshteh/)
+- [Talent identification](https://drjavadrezazadeh.com/fa/estedaadyabi/)
+- [Research services](https://drjavadrezazadeh.com/fa/khadamat-pajouheshi/)
+- [Institutional collaboration](https://drjavadrezazadeh.com/fa/hamkari-sazmani/)
+- [Golden Talent — Persian](https://drjavadrezazadeh.com/fa/golden-talent/)
+- [Golden Talent methodology — Persian](https://drjavadrezazadeh.com/fa/golden-talent/ravesh-shenasi/)
 
 ## Publishing and journal
 
-- [Rezazadeh Foundation Press](https://drjavadrezazadeh.com/publisher/): Public publishing identity and governance.
-- [JHELA call for reviewers](https://drjavadrezazadeh.com/journal/call-for-reviewers/): Public reviewer invitation and eligibility context.
-- [JHELA founding collaborators](https://drjavadrezazadeh.com/journal/founding-collaborators/): Public scholarly collaboration invitation.
+- [Rezazadeh Foundation Press](https://drjavadrezazadeh.com/publisher/)
+- [JHELA call for reviewers](https://drjavadrezazadeh.com/journal/call-for-reviewers/)
+- [JHELA founding collaborators](https://drjavadrezazadeh.com/journal/founding-collaborators/)
 
 ## Discovery files
 
-- [Sitemap index](https://drjavadrezazadeh.com/sitemap.xml): Canonical sitemap index.
-- [RSS feed](https://drjavadrezazadeh.com/feed.xml): Recent public guides and announcements.
-- [Robots policy](https://drjavadrezazadeh.com/robots.txt): Crawler directives.
+- [Sitemap index](https://drjavadrezazadeh.com/sitemap.xml)
+- [Persian sitemap](https://drjavadrezazadeh.com/sitemap-fa.xml)
+- [RSS feed](https://drjavadrezazadeh.com/feed.xml)
+- [Robots policy](https://drjavadrezazadeh.com/robots.txt)
