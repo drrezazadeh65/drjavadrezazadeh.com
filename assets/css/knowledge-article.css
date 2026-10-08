@@ -217,3 +217,49 @@
  .knowledge-article-page .article-hero>.lead{order:4}
  .knowledge-article-page .article-hero>.knowledge-article-tools{order:5}
 }
+
+
+/* Article reader: additional accessible sharing and local bookmark controls. */
+.knowledge-article-page .knowledge-article-tools .knowledge-article-actionmenu{
+  position:relative;min-width:0;max-width:100%;color:var(--ka-text);
+}
+.knowledge-article-page .knowledge-article-actionmenu>summary{
+  display:flex;align-items:center;justify-content:center;min-height:44px;
+  padding:9px 16px;border:1px solid rgba(237,203,132,.36);border-radius:11px;
+  background:rgba(237,203,132,.085);color:#f6e5bc;cursor:pointer;
+  font-size:13px;line-height:1.65;list-style:none;user-select:none;
+}
+.knowledge-article-page .knowledge-article-actionmenu>summary::-webkit-details-marker{display:none}
+.knowledge-article-page .knowledge-article-actionmenu>summary::after{
+  content:"⌄";font-size:17px;margin-right:9px;line-height:1;
+}
+.knowledge-article-page .knowledge-article-actionmenu[open]>summary::after{content:"⌃"}
+.knowledge-article-page .knowledge-article-actionmenu>summary:hover{
+  border-color:var(--ka-gold);background:rgba(237,203,132,.17);
+}
+.knowledge-article-page .knowledge-article-actionmenu>div{
+  display:flex;flex-direction:column;gap:7px;position:absolute;z-index:35;
+  inset:calc(100% + 8px) 0 auto auto;min-width:210px;max-width:min(300px,86vw);
+  padding:11px;border:1px solid var(--ka-line);border-radius:14px;
+  background:#202124;box-shadow:0 14px 42px rgba(0,0,0,.45);
+}
+.knowledge-article-page .knowledge-article-actionmenu a{
+  display:block;min-height:40px;padding:9px 10px;border-radius:8px;
+  font-size:13px;line-height:1.7;text-decoration:none;color:#f3e5c7;
+  overflow-wrap:anywhere;
+}
+.knowledge-article-page .knowledge-article-actionmenu a:hover{
+  background:rgba(237,203,132,.13);
+}
+.knowledge-article-page .knowledge-article-tools button[aria-pressed="true"]{
+  color:#15110a;background:#efd18b;border-color:#efd18b;font-weight:700;
+}
+@media(max-width:620px){
+ .knowledge-article-page .knowledge-article-actionmenu>div{
+   position:static;margin-top:9px;min-width:0;max-width:100%;
+ }
+ .knowledge-article-page .knowledge-article-actionmenu>summary{font-size:12px;padding:9px 12px}
+}
+@media(print){
+ .knowledge-article-page .knowledge-article-actionmenu{display:none!important}
+}
