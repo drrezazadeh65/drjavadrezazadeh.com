@@ -4,6 +4,7 @@
 ALTER TABLE commerce_orders ADD COLUMN customer_json TEXT;
 ALTER TABLE commerce_orders ADD COLUMN receipt_token_sha256 TEXT;
 ALTER TABLE commerce_orders ADD COLUMN idempotency_key TEXT;
+ALTER TABLE commerce_orders ADD COLUMN request_fingerprint TEXT;
 ALTER TABLE commerce_orders ADD COLUMN fulfilment_state TEXT NOT NULL DEFAULT 'awaiting_payment';
 ALTER TABLE commerce_orders ADD COLUMN tracking_code TEXT;
 ALTER TABLE commerce_orders ADD COLUMN receipt_email_sent_at TEXT;
