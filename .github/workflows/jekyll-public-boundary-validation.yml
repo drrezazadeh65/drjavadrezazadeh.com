@@ -27,7 +27,7 @@ jobs:
         run: |
           count="$(find _site -type f -name '*.html' | wc -l | tr -d ' ')"
           echo "Built HTML routes: $count"
-          test "$count" = "207"
+          test "$count" = "246"
           test -f _site/index.html
           test -f _site/CNAME
           test -f _site/sitemap.xml
