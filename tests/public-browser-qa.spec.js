@@ -1343,3 +1343,28 @@ test('book selection rejects corrupt or excessive device-only quantities',async(
  await expect(cart.locator('[data-book-inquiry]')).toHaveAttribute('href',/^mailto:/);
  await expect(cart.locator('a[href*="/checkout/"]')).toHaveCount(0);
 });
+
+
+test('bilingual book detail retains verified identity and explicitly flags missing publishing data',async({page})=>{
+ for(const [route,language] of [['/fa/shop/book/?id=roshanaei','fa'],['/en/shop/book/?id=roshanaei','en']]){
+  for(const [width,height] of [[390,844],[1440,900]]){
+   await page.setViewportSize({width,height});
+   const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(response.status()).toBe(200);
+   const main=page.locator('[data-book-detail]');
+   await expect(main.locator('h1')).toContainText('سپید');
+   await expect(main.locator('.book-meta')).toContainText(language==='fa'?'هنوز تأیید نشده':'Not yet verified');
+   await expect(main.locator('.book-meta')).toContainText(language==='fa'?'ناشر':'Publisher');
+   await expect(main.locator('.book-meta')).toContainText(language==='fa'?'نوبت چاپ':'Edition');
+   await expect(main.locator('[data-book-info-request]')).toHaveAttribute('href',/^mailto:/);
+   await expect(main.locator('[data-detail-add]')).toBeVisible();
+   const o=await stableOverflow(page);
+   expect(Math.max(o.html,o.body)).toBeLessThanOrEqual(o.viewport+1);
+  }
+ }
+ const route='/en/books/';
+ await page.goto(base+route,{waitUntil:'domcontentloaded'});
+ const published=page.locator('.authority-section').first();
+ await expect(published).toContainText('سپید');
+ await expect(published).not.toContainText('روشنایی');
+});

@@ -77,9 +77,18 @@
   host.innerHTML='<div class="book-detail-layout">'+detailCover+'<div class="book-detail-copy"><p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+b.title_fa+'</h1>'+
    '<p class="lead">'+(isFa?b.description_fa:b.description_en)+'</p>'+
    '<dl class="book-meta"><div><dt>'+(isFa?'نویسنده':'Author')+'</dt><dd>Javad Rezazadeh Yazdeli</dd></div>'+
-   '<div><dt>ISBN</dt><dd>'+(b.bibliography.isbn||(isFa?'در انتظار اطلاعات تأییدشده':'Awaiting verified metadata'))+'</dd></div>'+
-   '<div><dt>'+(isFa?'قیمت':'Price')+'</dt><dd>'+money(b.commerce?.price,b.commerce?.currency)+'</dd></div></dl>'+
-   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+b.id+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<div class="store-notice">'+(isFa?'کتاب منتشر شده و قیمت ثبت شده است؛ اما موجودی، شرایط ارسال/بازگشت و مسیر پرداخت تولیدی هنوز کامل نشده‌اند، بنابراین خرید عمداً غیرفعال است.':'The book is published and its price is recorded, but stock, fulfilment/return terms and the production payment path are not yet complete; purchase is intentionally disabled.')+'</div>')+'</div></div>';
+   '<div><dt>ISBN</dt><dd>'+(b.bibliography.isbn||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'ناشر':'Publisher')+'</dt><dd>'+(b.bibliography.publisher||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'سال انتشار':'Publication year')+'</dt><dd>'+(b.bibliography.publication_year||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'نوبت چاپ':'Edition')+'</dt><dd>'+(b.bibliography.edition||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'قالب':'Format')+'</dt><dd>'+(b.commerce?.formats_confirmed?.includes('PRINT')?(isFa?'چاپی':'Print'):(isFa?'نیازمند تأیید':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'قیمت ثبت‌شده':'Listed price')+'</dt><dd>'+money(b.commerce?.price,b.commerce?.currency)+'</dd></div></dl>'+
+   '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. سفارش و پرداخت اینترنتی هنوز فعال نیست.':'Unverified bibliographic fields are deliberately marked as such. Online orders and payment are not yet active.')+'</p>'+
+   '<div class="actions">'+
+   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+b.id+'">'+(isFa?'افزودن به فهرست انتخاب‌ها':'Add to selection')+'</button>':'')+
+   '<a class="button" data-book-info-request href="mailto:dr.rezazadeh65@gmail.com?subject='+encodeURIComponent((isFa?'درخواست اطلاعات کتاب: ':'Book information enquiry: ')+b.title_fa)+
+   '&body='+encodeURIComponent((isFa?'لطفاً اطلاعات تأییدشده کتاب، جزئیات نشر، نحوه تهیه و شرایط ارسال را اعلام کنید: ':'Please share verified publication metadata, availability, and delivery terms for: ')+b.title_fa)+'">'+
+   (isFa?'درخواست اطلاعات تکمیلی':'Request verified book details')+'</a></div></div></div>';
   host.addEventListener('click',e=>{if(e.target.closest('[data-detail-add]'))add(b);});
  }
  function renderCart(data){
