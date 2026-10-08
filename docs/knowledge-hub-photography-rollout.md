@@ -22,5 +22,5 @@ A separate visual editorial acceptance step remains necessary to compare represe
 1. Preserve all 45 article and canonical URLs, schema, topical Persian alt text and the bilingual architecture.
 2. Keep the original **45 SVG fallback files** until production checks, search image discovery and visual approval are all satisfactory.
 3. The committed image-seo manifest `assets/data/knowledge-image-seo-manifest.csv` and `scripts/install-knowledge-webp.py` remain reproducibility and disaster-recovery tools; do not rerun installation merely because historical notes described the import as pending.
-4. Never expose unreleased Humanability, TESTLY or Teacher Humanization content in public assets or metadata.
+4. Never expose unpublished or embargoed work in public assets, metadata, documentation or repository history.
 5. Indexing of any image is at the search engine's discretion and is **never guaranteed** by submission, sitemap validity or HTTP 200.
