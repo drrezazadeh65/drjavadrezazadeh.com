@@ -1388,7 +1388,7 @@ test('premium service catalogue compares three offers without changing prices or
   await expect(table.locator('thead th')).toHaveCount(4);
   await expect(table.locator('tbody tr')).toHaveCount(5);
   await expect(table).toContainText('۶٬۰۰۰٬۰۰۰');
-  await choices.nth(3).check();
+  await choices.nth(3).click(); // click, not check(): the 3-item limit deliberately reverts selection
   await expect(choices.nth(3)).not.toBeChecked();
   await expect(comparison.locator('[data-service-comparison-status]')).toContainText('حداکثر سه');
   const search=page.locator('[data-service-search]');
