@@ -43,12 +43,15 @@ for(const slug of guideSlugs){
   const html=read(file),canonical=domain+'/fa/rahnamaha/'+slug+'/',img='assets/images/knowledge/'+slug+'-featured.svg';
   const title=html.match(/<title>([^<]+)<\/title>/i)?.[1]||'';
   if(!title)fail(slug+': missing title');
+  if(title.length>60)fail(slug+': long SEO title ('+title.length+')');
   if(seenTitles.has(title))fail(slug+': duplicate title'); seenTitles.add(title);
   if(!/<html[^>]*lang="fa"/i.test(html))fail(slug+': lang != fa');
   if((html.match(/<h1\b/gi)||[]).length!==1)fail(slug+': expected one H1');
   if((html.match(/<h2\b/gi)||[]).length<2)fail(slug+': too few H2');
   if(html.length<5000)fail(slug+': unusually short HTML');
-  if(!/<meta name="description" content="[^"]{30,}"/.test(html))fail(slug+': missing meta description');
+  const metaDescription=html.match(/<meta name="description" content="([^"]*)"/)?.[1]||'';
+  if(metaDescription.length<30)fail(slug+': missing meta description');
+  if(metaDescription.replace(/&amp;/g,'&').length>160)fail(slug+': long meta description');
   if(!html.includes('rel="canonical" href="'+canonical+'"'))fail(slug+': canonical mismatch');
   if(!html.includes('property="og:image" content="'+domain+'/'+img+'"'))fail(slug+': OG image mismatch');
   if(!html.includes('/assets/images/knowledge/'+slug+'-featured.svg'))fail(slug+': absent featured image');
