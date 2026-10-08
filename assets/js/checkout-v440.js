@@ -91,7 +91,7 @@ function draw(items){
  const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.required=true;checkbox.name="terms_accepted";consent.append(checkbox);
  put(consent,"span","",t("اطلاعات خود و سفارش را تأیید می‌کنم و شرایط خرید، ارسال و حریم خصوصی سایت را می‌پذیرم.","I confirm the order details and accept the purchase, delivery, and privacy terms."));
  const policies=put(form,"p","commerce-policies");
- const links=[["/terms/",t("شرایط خرید","Terms")],["/privacy/",t("حریم خصوصی","Privacy")]];
+ const links=[[(fa?"/fa/shop/policies/":"/en/shop/policies/"),t("شرایط خرید، ارسال و بازپرداخت","Purchase, delivery and refunds")],["/terms/",t("شرایط عمومی سایت","General terms")],["/privacy/",t("حریم خصوصی","Privacy")]];
  for(const [href,label] of links){const a=put(policies,"a","",label);a.href=href;policies.append(" · ");}
  const button=put(form,"button","button primary commerce-submit",t("تأیید و ورود به پرداخت امن","Confirm and pay securely"));
  button.type="submit";
