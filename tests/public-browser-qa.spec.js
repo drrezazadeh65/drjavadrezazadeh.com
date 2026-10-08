@@ -1249,3 +1249,28 @@ test('official Persian service catalogue supports search and price sorting witho
   expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe('https://drjavadrezazadeh.com/fa/khadamat/');
  }
 });
+
+
+test('mobile above-the-fold typography keeps shop and service entry actions visible',async({page})=>{
+  for(const width of [320,390,430]){
+    const height=844;
+    await page.setViewportSize({width,height});
+    for(const route of ['/fa/shop/','/fa/darkhast-moshavere/','/en/services/']){
+      const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      expect(response.status()).toBe(200);
+      const h1=page.locator('main h1').first();
+      await expect(h1).toBeVisible();
+      const fontSize=await h1.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+      expect(fontSize,route+' at '+width+' too large').toBeLessThanOrEqual(34);
+      expect(fontSize,route+' at '+width+' too small').toBeGreaterThanOrEqual(27);
+      const metrics=await stableOverflow(page);
+      expect(Math.max(metrics.html,metrics.body),route+' at '+width+' overflow').toBeLessThanOrEqual(metrics.viewport+1);
+      if(route==='/fa/shop/'){
+        const links=page.locator('.book-store-hero .store-nav a');
+        await expect(links).toHaveCount(2);
+        const rects=await links.evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().toJSON()));
+        expect(Math.abs(rects[0].top-rects[1].top)).toBeLessThanOrEqual(3);
+      }
+    }
+  }
+});
