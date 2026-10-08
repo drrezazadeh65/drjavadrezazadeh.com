@@ -1427,3 +1427,25 @@ test('bilingual student identity shells remain honestly disabled until real auth
   }
  }
 });
+
+test('three evidence-led guidance upgrades preserve canonical links and responsive reading',async({page})=>{
+ const guides=[
+  ['/fa/rahnamaha/mosahabe-heyat-elmi/','الگوی سه‌لایه برای روایت پژوهشی','تمرین پاسخ به نقد روش‌شناختی'],
+  ['/fa/rahnamaha/tahlil-karname-tahsili/','مقایسه منصفانه دو درس','چگونه بفهمیم اقدام آموزشی اثر داشته است؟'],
+  ['/fa/rahnamaha/moshavere-konkur-herfei/','مسیر بازگشت پس از یک هفته دشوار','نمونه چرخه بازنگری دو‌هفته‌ای']
+ ];
+ for(const [route,first,second] of guides){
+  for(const [width,height] of [[320,800],[390,844],[820,1024],[1440,900]]){
+   await page.setViewportSize({width,height});
+   const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(response.status(),route).toBe(200);
+   const article=page.locator('.knowledge-article-content');
+   await expect(article).toContainText(first);
+   await expect(article).toContainText(second);
+   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://drjavadrezazadeh.com'+route);
+   expect(await page.locator('.knowledge-article-content h2[id]').count()).toBeGreaterThanOrEqual(7);
+   const size=await stableOverflow(page);
+   expect(Math.max(size.html,size.body),route+' overflow at '+width).toBeLessThanOrEqual(size.viewport+1);
+  }
+ }
+});
