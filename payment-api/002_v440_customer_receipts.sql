@@ -11,3 +11,14 @@ ALTER TABLE commerce_orders ADD COLUMN receipt_token_wrapped TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS commerce_orders_idempotency ON commerce_orders(idempotency_key);
 CREATE INDEX IF NOT EXISTS commerce_orders_fulfilment ON commerce_orders(fulfilment_state,created_at);
 -- Do NOT include customer addresses or receipt tokens in analytics or access logs.
+
+CREATE TABLE IF NOT EXISTS commerce_fulfilment_events (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ order_id TEXT NOT NULL REFERENCES commerce_orders(id),
+ actor_email TEXT NOT NULL,
+ previous_state TEXT NOT NULL,
+ next_state TEXT NOT NULL,
+ tracking_code TEXT,
+ changed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS commerce_fulfilment_events_order ON commerce_fulfilment_events(order_id,changed_at);
