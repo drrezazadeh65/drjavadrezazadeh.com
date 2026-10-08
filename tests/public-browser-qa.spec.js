@@ -1110,3 +1110,23 @@ test('evidence-led practical classroom and manuscript guides retain responsive S
   }
  }
 });
+
+
+test('talent report, higher-ed selection and student development articles include usable evidence examples',async({page})=>{
+  const guides=[
+   ['/fa/rahnamaha/gozaresh-estedaad-va-masir-roshd/','نمونه چرخه رشد ۱۴روزه'],
+   ['/fa/rahnamaha/entekhab-reshteh-jame/','کاربرگ توجیه اولویت'],
+   ['/fa/rahnamaha/az-arzyabi-ta-barname-roshd-danesh-amooz/','نمونه چرخه دوهفته‌ای رشد']
+  ];
+  for(const [route,required] of guides){
+    for(const [width,height] of [[390,844],[1440,900]]){
+      await page.setViewportSize({width,height});
+      const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      expect(response.status(),route).toBe(200);
+      await expect(page.locator('.knowledge-article-content')).toContainText(required);
+      expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe('https://drjavadrezazadeh.com'+route);
+      const rects=await stableOverflow(page);
+      expect(Math.max(rects.html,rects.body),route+' viewport '+width).toBeLessThanOrEqual(rects.viewport+1);
+    }
+  }
+});
