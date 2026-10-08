@@ -1138,7 +1138,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating professional academic CVs",
+      "alt_fa": "تصویر مفهومی رزومه آکادمیک حرفه‌ای، سوابق دانشگاهی و مسیر رشد علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to professional academic CVs.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «رزومه آکادمیک حرفه‌ای»."
     },
     {
       "path": "assets/images/knowledge/academic-cv-professional-og.webp",
@@ -1149,7 +1154,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating professional academic CVs",
+      "alt_fa": "تصویر مفهومی رزومه آکادمیک حرفه‌ای، سوابق دانشگاهی و مسیر رشد علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to professional academic CVs.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «رزومه آکادمیک حرفه‌ای»."
     },
     {
       "path": "assets/images/knowledge/academic-editing-vs-grammar-correction-featured.webp",
@@ -1160,7 +1170,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating academic editing and grammar correction",
+      "alt_fa": "تصویر مفهومی ویرایش آکادمیک، بازبینی زبان و اصلاح نگارش مقاله علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to academic editing and grammar correction.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «Academic Editing در برابر Grammar Correction»."
     },
     {
       "path": "assets/images/knowledge/academic-editing-vs-grammar-correction-og.webp",
@@ -1171,7 +1186,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating academic editing and grammar correction",
+      "alt_fa": "تصویر مفهومی ویرایش آکادمیک، بازبینی زبان و اصلاح نگارش مقاله علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to academic editing and grammar correction.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «Academic Editing در برابر Grammar Correction»."
     },
     {
       "path": "assets/images/knowledge/ai-dar-tadris-featured.webp",
@@ -1182,7 +1202,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating artificial intelligence in teaching",
+      "alt_fa": "تصویر مفهومی کاربرد هوش مصنوعی در تدریس و یادگیری حرفه‌ای",
+      "caption_en": "Editorial image for the evidence-informed guide to artificial intelligence in teaching.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «هوش مصنوعی در تدریس»."
     },
     {
       "path": "assets/images/knowledge/ai-dar-tadris-og.webp",
@@ -1193,7 +1218,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating artificial intelligence in teaching",
+      "alt_fa": "تصویر مفهومی کاربرد هوش مصنوعی در تدریس و یادگیری حرفه‌ای",
+      "caption_en": "Editorial image for the evidence-informed guide to artificial intelligence in teaching.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «هوش مصنوعی در تدریس»."
     },
     {
       "path": "assets/images/knowledge/alaghe-tahsili-vaghei-ya-movaghat-featured.webp",
@@ -1204,7 +1234,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating lasting and temporary academic interests",
+      "alt_fa": "تصویر مفهومی سنجش علاقه تحصیلی پایدار و تمایز آن از علاقه موقت",
+      "caption_en": "Editorial image for the evidence-informed guide to lasting and temporary academic interests.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «علاقه تحصیلی واقعی یا موقت»."
     },
     {
       "path": "assets/images/knowledge/alaghe-tahsili-vaghei-ya-movaghat-og.webp",
@@ -1215,7 +1250,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating lasting and temporary academic interests",
+      "alt_fa": "تصویر مفهومی سنجش علاقه تحصیلی پایدار و تمایز آن از علاقه موقت",
+      "caption_en": "Editorial image for the evidence-informed guide to lasting and temporary academic interests.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «علاقه تحصیلی واقعی یا موقت»."
     },
     {
       "path": "assets/images/knowledge/alaghe-va-estedaad-motafavet-featured.webp",
@@ -1226,7 +1266,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating differences between interest and talent",
+      "alt_fa": "تصویر مفهومی تفاوت علاقه، استعداد و توانایی در تصمیم‌گیری تحصیلی",
+      "caption_en": "Editorial image for the evidence-informed guide to differences between interest and talent.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «تفاوت علاقه و استعداد»."
     },
     {
       "path": "assets/images/knowledge/alaghe-va-estedaad-motafavet-og.webp",
@@ -1237,7 +1282,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating differences between interest and talent",
+      "alt_fa": "تصویر مفهومی تفاوت علاقه، استعداد و توانایی در تصمیم‌گیری تحصیلی",
+      "caption_en": "Editorial image for the evidence-informed guide to differences between interest and talent.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «تفاوت علاقه و استعداد»."
     },
     {
       "path": "assets/images/knowledge/arzyabi-mavad-amoozeshi-featured.webp",
@@ -1248,7 +1298,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating educational materials evaluation",
+      "alt_fa": "تصویر مفهومی ارزیابی کتاب، محتوای آموزشی و کیفیت مواد یادگیری",
+      "caption_en": "Editorial image for the evidence-informed guide to educational materials evaluation.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «ارزیابی مواد آموزشی»."
     },
     {
       "path": "assets/images/knowledge/arzyabi-mavad-amoozeshi-og.webp",
@@ -1259,7 +1314,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating educational materials evaluation",
+      "alt_fa": "تصویر مفهومی ارزیابی کتاب، محتوای آموزشی و کیفیت مواد یادگیری",
+      "caption_en": "Editorial image for the evidence-informed guide to educational materials evaluation.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «ارزیابی مواد آموزشی»."
     },
     {
       "path": "assets/images/knowledge/aya-nomre-bala-yani-estedaad-featured.webp",
@@ -1270,7 +1330,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating high grades and talent",
+      "alt_fa": "تصویر مفهومی رابطه نمره، عملکرد تحصیلی و استعداد واقعی",
+      "caption_en": "Editorial image for the evidence-informed guide to high grades and talent.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «آیا نمره بالا یعنی استعداد؟»."
     },
     {
       "path": "assets/images/knowledge/aya-nomre-bala-yani-estedaad-og.webp",
@@ -1281,7 +1346,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating high grades and talent",
+      "alt_fa": "تصویر مفهومی رابطه نمره، عملکرد تحصیلی و استعداد واقعی",
+      "caption_en": "Editorial image for the evidence-informed guide to high grades and talent.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «آیا نمره بالا یعنی استعداد؟»."
     },
     {
       "path": "assets/images/knowledge/az-arzyabi-ta-barname-roshd-danesh-amooz-featured.webp",
@@ -1292,7 +1362,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating student assessment and growth planning",
+      "alt_fa": "تصویر مفهومی تبدیل ارزیابی دانش‌آموز به برنامه رشد و اقدام",
+      "caption_en": "Editorial image for the evidence-informed guide to student assessment and growth planning.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «از ارزیابی تا برنامه رشد دانش‌آموز»."
     },
     {
       "path": "assets/images/knowledge/az-arzyabi-ta-barname-roshd-danesh-amooz-og.webp",
@@ -1303,7 +1378,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating student assessment and growth planning",
+      "alt_fa": "تصویر مفهومی تبدیل ارزیابی دانش‌آموز به برنامه رشد و اقدام",
+      "caption_en": "Editorial image for the evidence-informed guide to student assessment and growth planning.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «از ارزیابی تا برنامه رشد دانش‌آموز»."
     },
     {
       "path": "assets/images/knowledge/azmoon-khoob-vijegiha-featured.webp",
@@ -1314,7 +1394,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating characteristics of high-quality tests",
+      "alt_fa": "تصویر مفهومی آزمون استاندارد، سنجش معتبر و تحلیل پاسخ‌ها",
+      "caption_en": "Editorial image for the evidence-informed guide to characteristics of high-quality tests.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «یک آزمون خوب چه ویژگی‌هایی دارد؟»."
     },
     {
       "path": "assets/images/knowledge/azmoon-khoob-vijegiha-og.webp",
@@ -1325,7 +1410,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating characteristics of high-quality tests",
+      "alt_fa": "تصویر مفهومی آزمون استاندارد، سنجش معتبر و تحلیل پاسخ‌ها",
+      "caption_en": "Editorial image for the evidence-informed guide to characteristics of high-quality tests.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «یک آزمون خوب چه ویژگی‌هایی دارد؟»."
     },
     {
       "path": "assets/images/knowledge/barname-yek-mahe-konkur-featured.webp",
@@ -1336,7 +1426,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating one-month entrance exam study planning",
+      "alt_fa": "تصویر مفهومی برنامه‌ریزی فشرده یک‌ماهه کنکور و مدیریت زمان",
+      "caption_en": "Editorial image for the evidence-informed guide to one-month entrance exam study planning.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «برنامه یک‌ماهه کنکور»."
     },
     {
       "path": "assets/images/knowledge/barname-yek-mahe-konkur-og.webp",
@@ -1347,7 +1442,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating one-month entrance exam study planning",
+      "alt_fa": "تصویر مفهومی برنامه‌ریزی فشرده یک‌ماهه کنکور و مدیریت زمان",
+      "caption_en": "Editorial image for the evidence-informed guide to one-month entrance exam study planning.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «برنامه یک‌ماهه کنکور»."
     },
     {
       "path": "assets/images/knowledge/bazaar-kar-dar-entekhab-reshteh-featured.webp",
@@ -1358,7 +1458,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating labour markets in university major selection",
+      "alt_fa": "تصویر مفهومی بازار کار، آینده شغلی و انتخاب رشته آگاهانه",
+      "caption_en": "Editorial image for the evidence-informed guide to labour markets in university major selection.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «نقش بازار کار در انتخاب رشته»."
     },
     {
       "path": "assets/images/knowledge/bazaar-kar-dar-entekhab-reshteh-og.webp",
@@ -1369,7 +1474,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating labour markets in university major selection",
+      "alt_fa": "تصویر مفهومی بازار کار، آینده شغلی و انتخاب رشته آگاهانه",
+      "caption_en": "Editorial image for the evidence-informed guide to labour markets in university major selection.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «نقش بازار کار در انتخاب رشته»."
     },
     {
       "path": "assets/images/knowledge/behtarin-sen-estedaadyabi-featured.webp",
@@ -1380,7 +1490,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating appropriate ages for identifying talent",
+      "alt_fa": "تصویر مفهومی رشد تدریجی استعداد و زمان مناسب شناسایی توانایی‌ها",
+      "caption_en": "Editorial image for the evidence-informed guide to appropriate ages for identifying talent.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «بهترین سن استعدادیابی»."
     },
     {
       "path": "assets/images/knowledge/behtarin-sen-estedaadyabi-og.webp",
@@ -1391,7 +1506,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating appropriate ages for identifying talent",
+      "alt_fa": "تصویر مفهومی رشد تدریجی استعداد و زمان مناسب شناسایی توانایی‌ها",
+      "caption_en": "Editorial image for the evidence-informed guide to appropriate ages for identifying talent.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «بهترین سن استعدادیابی»."
     },
     {
       "path": "assets/images/knowledge/che-reshteyi-baraye-man-monaseb-ast-featured.webp",
@@ -1402,7 +1522,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating choosing a suitable university major",
+      "alt_fa": "تصویر مفهومی انتخاب مسیر تحصیلی متناسب با ویژگی‌های فردی",
+      "caption_en": "Editorial image for the evidence-informed guide to choosing a suitable university major.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چه رشته‌ای برای من مناسب است؟»."
     },
     {
       "path": "assets/images/knowledge/che-reshteyi-baraye-man-monaseb-ast-og.webp",
@@ -1413,7 +1538,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating choosing a suitable university major",
+      "alt_fa": "تصویر مفهومی انتخاب مسیر تحصیلی متناسب با ویژگی‌های فردی",
+      "caption_en": "Editorial image for the evidence-informed guide to choosing a suitable university major.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چه رشته‌ای برای من مناسب است؟»."
     },
     {
       "path": "assets/images/knowledge/chegoone-estedaad-vaghei-farzand-ra-beshenasim-featured.webp",
@@ -1424,7 +1554,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating recognising children's individual talents",
+      "alt_fa": "تصویر مفهومی شناسایی استعداد واقعی کودک با مشاهده چندمنبعی",
+      "caption_en": "Editorial image for the evidence-informed guide to recognising children's individual talents.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چگونه استعداد واقعی فرزند را بشناسیم؟»."
     },
     {
       "path": "assets/images/knowledge/chegoone-estedaad-vaghei-farzand-ra-beshenasim-og.webp",
@@ -1435,7 +1570,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating recognising children's individual talents",
+      "alt_fa": "تصویر مفهومی شناسایی استعداد واقعی کودک با مشاهده چندمنبعی",
+      "caption_en": "Editorial image for the evidence-informed guide to recognising children's individual talents.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چگونه استعداد واقعی فرزند را بشناسیم؟»."
     },
     {
       "path": "assets/images/knowledge/chera-danesh-amooz-baestedaad-bi-angizhe-ast-featured.webp",
@@ -1446,7 +1586,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating motivation among talented learners",
+      "alt_fa": "تصویر مفهومی استعداد بالا، افت انگیزه و نیاز به مسیر رشد مناسب",
+      "caption_en": "Editorial image for the evidence-informed guide to motivation among talented learners.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چرا دانش‌آموز بااستعداد بی‌انگیزه است؟»."
     },
     {
       "path": "assets/images/knowledge/chera-danesh-amooz-baestedaad-bi-angizhe-ast-og.webp",
@@ -1457,7 +1602,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating motivation among talented learners",
+      "alt_fa": "تصویر مفهومی استعداد بالا، افت انگیزه و نیاز به مسیر رشد مناسب",
+      "caption_en": "Editorial image for the evidence-informed guide to motivation among talented learners.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چرا دانش‌آموز بااستعداد بی‌انگیزه است؟»."
     },
     {
       "path": "assets/images/knowledge/chera-maghale-amade-ersal-nist-featured.webp",
@@ -1468,7 +1618,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating manuscript readiness before journal submission",
+      "alt_fa": "تصویر مفهومی بازبینی مقاله علمی پیش از ارسال به مجله",
+      "caption_en": "Editorial image for the evidence-informed guide to manuscript readiness before journal submission.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چرا مقاله آماده ارسال نیست؟»."
     },
     {
       "path": "assets/images/knowledge/chera-maghale-amade-ersal-nist-og.webp",
@@ -1479,7 +1634,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating manuscript readiness before journal submission",
+      "alt_fa": "تصویر مفهومی بازبینی مقاله علمی پیش از ارسال به مجله",
+      "caption_en": "Editorial image for the evidence-informed guide to manuscript readiness before journal submission.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چرا مقاله آماده ارسال نیست؟»."
     },
     {
       "path": "assets/images/knowledge/chera-yek-test-baraye-estedaadyabi-kafi-nist-featured.webp",
@@ -1490,7 +1650,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating limitations of one-test talent identification",
+      "alt_fa": "تصویر مفهومی استعدادیابی چندمنبعی و محدودیت یک آزمون منفرد",
+      "caption_en": "Editorial image for the evidence-informed guide to limitations of one-test talent identification.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چرا یک تست برای استعدادیابی کافی نیست؟»."
     },
     {
       "path": "assets/images/knowledge/chera-yek-test-baraye-estedaadyabi-kafi-nist-og.webp",
@@ -1501,7 +1666,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating limitations of one-test talent identification",
+      "alt_fa": "تصویر مفهومی استعدادیابی چندمنبعی و محدودیت یک آزمون منفرد",
+      "caption_en": "Editorial image for the evidence-informed guide to limitations of one-test talent identification.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چرا یک تست برای استعدادیابی کافی نیست؟»."
     },
     {
       "path": "assets/images/knowledge/desk-rejection-chist-featured.webp",
@@ -1512,7 +1682,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating academic manuscript desk rejection",
+      "alt_fa": "تصویر مفهومی رد اولیه مقاله و ارزیابی تناسب با مجله علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to academic manuscript desk rejection.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «Desk Rejection چیست؟»."
     },
     {
       "path": "assets/images/knowledge/desk-rejection-chist-og.webp",
@@ -1523,7 +1698,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating academic manuscript desk rejection",
+      "alt_fa": "تصویر مفهومی رد اولیه مقاله و ارزیابی تناسب با مجله علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to academic manuscript desk rejection.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «Desk Rejection چیست؟»."
     },
     {
       "path": "assets/images/knowledge/entekhab-majale-monaseb-featured.webp",
@@ -1534,7 +1714,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating selecting suitable scholarly journals",
+      "alt_fa": "تصویر مفهومی انتخاب ژورنال علمی متناسب با موضوع و دامنه مقاله",
+      "caption_en": "Editorial image for the evidence-informed guide to selecting suitable scholarly journals.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «انتخاب مجله مناسب»."
     },
     {
       "path": "assets/images/knowledge/entekhab-majale-monaseb-og.webp",
@@ -1545,7 +1730,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating selecting suitable scholarly journals",
+      "alt_fa": "تصویر مفهومی انتخاب ژورنال علمی متناسب با موضوع و دامنه مقاله",
+      "caption_en": "Editorial image for the evidence-informed guide to selecting suitable scholarly journals.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «انتخاب مجله مناسب»."
     },
     {
       "path": "assets/images/knowledge/entekhab-reshteh-jame-featured.webp",
@@ -1556,7 +1746,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating comprehensive university major selection",
+      "alt_fa": "تصویر مفهومی انتخاب رشته جامع بر پایه مسیر، شواهد و اولویت‌ها",
+      "caption_en": "Editorial image for the evidence-informed guide to comprehensive university major selection.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «راهنمای جامع انتخاب رشته»."
     },
     {
       "path": "assets/images/knowledge/entekhab-reshteh-jame-og.webp",
@@ -1567,7 +1762,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating comprehensive university major selection",
+      "alt_fa": "تصویر مفهومی انتخاب رشته جامع بر پایه مسیر، شواهد و اولویت‌ها",
+      "caption_en": "Editorial image for the evidence-informed guide to comprehensive university major selection.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «راهنمای جامع انتخاب رشته»."
     },
     {
       "path": "assets/images/knowledge/estedaad-alaghe-bazaar-kar-featured.webp",
@@ -1578,7 +1778,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating talent interests and labour market considerations",
+      "alt_fa": "تصویر مفهومی پیوند استعداد، علاقه و آینده شغلی در تصمیم تحصیلی",
+      "caption_en": "Editorial image for the evidence-informed guide to talent interests and labour market considerations.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «استعداد، علاقه و بازار کار»."
     },
     {
       "path": "assets/images/knowledge/estedaad-alaghe-bazaar-kar-og.webp",
@@ -1589,7 +1794,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating talent interests and labour market considerations",
+      "alt_fa": "تصویر مفهومی پیوند استعداد، علاقه و آینده شغلی در تصمیم تحصیلی",
+      "caption_en": "Editorial image for the evidence-informed guide to talent interests and labour market considerations.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «استعداد، علاقه و بازار کار»."
     },
     {
       "path": "assets/images/knowledge/ghabl-az-submit-maghale-featured.webp",
@@ -1600,7 +1810,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating academic manuscript submission readiness",
+      "alt_fa": "تصویر مفهومی چک‌لیست نهایی مقاله پیش از سابمیت به مجله",
+      "caption_en": "Editorial image for the evidence-informed guide to academic manuscript submission readiness.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «قبل از Submit مقاله»."
     },
     {
       "path": "assets/images/knowledge/ghabl-az-submit-maghale-og.webp",
@@ -1611,7 +1826,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating academic manuscript submission readiness",
+      "alt_fa": "تصویر مفهومی چک‌لیست نهایی مقاله پیش از سابمیت به مجله",
+      "caption_en": "Editorial image for the evidence-informed guide to academic manuscript submission readiness.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «قبل از Submit مقاله»."
     },
     {
       "path": "assets/images/knowledge/golden-talent-chist-featured.webp",
@@ -1622,7 +1842,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating the Golden Talent developmental approach",
+      "alt_fa": "تصویر مفهومی کشف استعداد، رشد توانایی و مسیر طلایی فردی",
+      "caption_en": "Editorial image for the evidence-informed guide to the Golden Talent developmental approach.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «Golden Talent چیست؟»."
     },
     {
       "path": "assets/images/knowledge/golden-talent-chist-og.webp",
@@ -1633,7 +1858,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating the Golden Talent developmental approach",
+      "alt_fa": "تصویر مفهومی کشف استعداد، رشد توانایی و مسیر طلایی فردی",
+      "caption_en": "Editorial image for the evidence-informed guide to the Golden Talent developmental approach.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «Golden Talent چیست؟»."
     },
     {
       "path": "assets/images/knowledge/gozaresh-estedaad-va-masir-roshd-featured.webp",
@@ -1644,7 +1874,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating talent reporting and developmental pathways",
+      "alt_fa": "تصویر مفهومی گزارش استعداد و تبدیل یافته‌ها به مسیر رشد",
+      "caption_en": "Editorial image for the evidence-informed guide to talent reporting and developmental pathways.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «گزارش استعداد و مسیر رشد»."
     },
     {
       "path": "assets/images/knowledge/gozaresh-estedaad-va-masir-roshd-og.webp",
@@ -1655,7 +1890,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating talent reporting and developmental pathways",
+      "alt_fa": "تصویر مفهومی گزارش استعداد و تبدیل یافته‌ها به مسیر رشد",
+      "caption_en": "Editorial image for the evidence-informed guide to talent reporting and developmental pathways.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «گزارش استعداد و مسیر رشد»."
     },
     {
       "path": "assets/images/knowledge/jalase-moshtarak-valed-danesh-amooz-featured.webp",
@@ -1666,7 +1906,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating parent and student joint counselling",
+      "alt_fa": "تصویر مفهومی گفت‌وگوی مشترک والد، دانش‌آموز و مشاور",
+      "caption_en": "Editorial image for the evidence-informed guide to parent and student joint counselling.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «جلسه مشترک والد و دانش‌آموز»."
     },
     {
       "path": "assets/images/knowledge/jalase-moshtarak-valed-danesh-amooz-og.webp",
@@ -1677,7 +1922,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating parent and student joint counselling",
+      "alt_fa": "تصویر مفهومی گفت‌وگوی مشترک والد، دانش‌آموز و مشاور",
+      "caption_en": "Editorial image for the evidence-informed guide to parent and student joint counselling.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «جلسه مشترک والد و دانش‌آموز»."
     },
     {
       "path": "assets/images/knowledge/kargah-amoozeshi-asarbakhsh-featured.webp",
@@ -1688,7 +1938,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating effective educational workshop design",
+      "alt_fa": "تصویر مفهومی کارگاه آموزشی تعاملی و یادگیری مبتنی بر عمل",
+      "caption_en": "Editorial image for the evidence-informed guide to effective educational workshop design.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «کارگاه آموزشی اثربخش»."
     },
     {
       "path": "assets/images/knowledge/kargah-amoozeshi-asarbakhsh-og.webp",
@@ -1699,7 +1954,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating effective educational workshop design",
+      "alt_fa": "تصویر مفهومی کارگاه آموزشی تعاملی و یادگیری مبتنی بر عمل",
+      "caption_en": "Editorial image for the evidence-informed guide to effective educational workshop design.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «کارگاه آموزشی اثربخش»."
     },
     {
       "path": "assets/images/knowledge/khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh-featured.webp",
@@ -1710,7 +1970,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating educational and research consultation services",
+      "alt_fa": "تصویر مفهومی مجموعه خدمات آموزشی، پژوهشی و مشاوره‌ای تخصصی",
+      "caption_en": "Editorial image for the evidence-informed guide to educational and research consultation services.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «خدمات آموزشی، پژوهشی و مشاوره‌ای»."
     },
     {
       "path": "assets/images/knowledge/khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh-og.webp",
@@ -1721,7 +1986,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating educational and research consultation services",
+      "alt_fa": "تصویر مفهومی مجموعه خدمات آموزشی، پژوهشی و مشاوره‌ای تخصصی",
+      "caption_en": "Editorial image for the evidence-informed guide to educational and research consultation services.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «خدمات آموزشی، پژوهشی و مشاوره‌ای»."
     },
     {
       "path": "assets/images/knowledge/madarese-che-zamani-moshaver-amoozeshi-featured.webp",
@@ -1732,7 +2002,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating educational consultation for schools",
+      "alt_fa": "تصویر مفهومی مدرسه، تصمیم آموزشی و نقش مشاور تخصصی",
+      "caption_en": "Editorial image for the evidence-informed guide to educational consultation for schools.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مدارس چه زمانی به مشاور آموزشی نیاز دارند؟»."
     },
     {
       "path": "assets/images/knowledge/madarese-che-zamani-moshaver-amoozeshi-og.webp",
@@ -1743,7 +2018,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating educational consultation for schools",
+      "alt_fa": "تصویر مفهومی مدرسه، تصمیم آموزشی و نقش مشاور تخصصی",
+      "caption_en": "Editorial image for the evidence-informed guide to educational consultation for schools.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مدارس چه زمانی به مشاور آموزشی نیاز دارند؟»."
     },
     {
       "path": "assets/images/knowledge/madarese-system-estedaadyabi-featured.webp",
@@ -1754,7 +2034,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating school-based talent identification systems",
+      "alt_fa": "تصویر مفهومی نظام استعدادیابی مدرسه و پایش رشد دانش‌آموزان",
+      "caption_en": "Editorial image for the evidence-informed guide to school-based talent identification systems.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «سیستم استعدادیابی در مدارس»."
     },
     {
       "path": "assets/images/knowledge/madarese-system-estedaadyabi-og.webp",
@@ -1765,7 +2050,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating school-based talent identification systems",
+      "alt_fa": "تصویر مفهومی نظام استعدادیابی مدرسه و پایش رشد دانش‌آموزان",
+      "caption_en": "Editorial image for the evidence-informed guide to school-based talent identification systems.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «سیستم استعدادیابی در مدارس»."
     },
     {
       "path": "assets/images/knowledge/major-revision-az-koja-shoroo-konim-featured.webp",
@@ -1776,7 +2066,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating major revisions to research manuscripts",
+      "alt_fa": "تصویر مفهومی برنامه‌ریزی اصلاحات مقاله پس از Major Revision",
+      "caption_en": "Editorial image for the evidence-informed guide to major revisions to research manuscripts.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «Major Revision؛ از کجا شروع کنیم؟»."
     },
     {
       "path": "assets/images/knowledge/major-revision-az-koja-shoroo-konim-og.webp",
@@ -1787,7 +2082,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating major revisions to research manuscripts",
+      "alt_fa": "تصویر مفهومی برنامه‌ریزی اصلاحات مقاله پس از Major Revision",
+      "caption_en": "Editorial image for the evidence-informed guide to major revisions to research manuscripts.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «Major Revision؛ از کجا شروع کنیم؟»."
     },
     {
       "path": "assets/images/knowledge/moghayese-reshteha-ba-matris-tasmim-featured.webp",
@@ -1798,7 +2098,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating decision matrices for comparing university majors",
+      "alt_fa": "تصویر مفهومی مقایسه چندمعیاره رشته‌های تحصیلی و ماتریس تصمیم",
+      "caption_en": "Editorial image for the evidence-informed guide to decision matrices for comparing university majors.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مقایسه رشته‌ها با ماتریس تصمیم»."
     },
     {
       "path": "assets/images/knowledge/moghayese-reshteha-ba-matris-tasmim-og.webp",
@@ -1809,7 +2114,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating decision matrices for comparing university majors",
+      "alt_fa": "تصویر مفهومی مقایسه چندمعیاره رشته‌های تحصیلی و ماتریس تصمیم",
+      "caption_en": "Editorial image for the evidence-informed guide to decision matrices for comparing university majors.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مقایسه رشته‌ها با ماتریس تصمیم»."
     },
     {
       "path": "assets/images/knowledge/mosahabe-heyat-elmi-featured.webp",
@@ -1820,7 +2130,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating faculty recruitment interview preparation",
+      "alt_fa": "تصویر مفهومی آمادگی برای مصاحبه دانشگاهی و مسیر هیئت علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to faculty recruitment interview preparation.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مصاحبه هیئت علمی»."
     },
     {
       "path": "assets/images/knowledge/mosahabe-heyat-elmi-og.webp",
@@ -1831,7 +2146,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating faculty recruitment interview preparation",
+      "alt_fa": "تصویر مفهومی آمادگی برای مصاحبه دانشگاهی و مسیر هیئت علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to faculty recruitment interview preparation.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مصاحبه هیئت علمی»."
     },
     {
       "path": "assets/images/knowledge/moshavere-konkur-herfei-featured.webp",
@@ -1842,7 +2162,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating professional entrance examination counselling",
+      "alt_fa": "تصویر مفهومی مشاوره کنکور، هدف‌گذاری و پایش عملکرد",
+      "caption_en": "Editorial image for the evidence-informed guide to professional entrance examination counselling.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مشاوره کنکور حرفه‌ای»."
     },
     {
       "path": "assets/images/knowledge/moshavere-konkur-herfei-og.webp",
@@ -1853,7 +2178,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating professional entrance examination counselling",
+      "alt_fa": "تصویر مفهومی مشاوره کنکور، هدف‌گذاری و پایش عملکرد",
+      "caption_en": "Editorial image for the evidence-informed guide to professional entrance examination counselling.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مشاوره کنکور حرفه‌ای»."
     },
     {
       "path": "assets/images/knowledge/moshavere-moallem-mavad-sanjessh-featured.webp",
@@ -1864,7 +2194,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating teacher support in materials and assessment",
+      "alt_fa": "تصویر مفهومی پیوند تدریس، مواد آموزشی، سنجش و بازخورد",
+      "caption_en": "Editorial image for the evidence-informed guide to teacher support in materials and assessment.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مشاوره معلم، مواد آموزشی و سنجش»."
     },
     {
       "path": "assets/images/knowledge/moshavere-moallem-mavad-sanjessh-og.webp",
@@ -1875,7 +2210,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating teacher support in materials and assessment",
+      "alt_fa": "تصویر مفهومی پیوند تدریس، مواد آموزشی، سنجش و بازخورد",
+      "caption_en": "Editorial image for the evidence-informed guide to teacher support in materials and assessment.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مشاوره معلم، مواد آموزشی و سنجش»."
     },
     {
       "path": "assets/images/knowledge/moshavere-pajouheshi-che-zamani-lazem-ast-featured.webp",
@@ -1886,7 +2226,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating when research consultation is appropriate",
+      "alt_fa": "تصویر مفهومی مشاوره پژوهشی برای روش، تحلیل و انتشار علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to when research consultation is appropriate.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چه زمانی مشاوره پژوهشی لازم است؟»."
     },
     {
       "path": "assets/images/knowledge/moshavere-pajouheshi-che-zamani-lazem-ast-og.webp",
@@ -1897,7 +2242,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating when research consultation is appropriate",
+      "alt_fa": "تصویر مفهومی مشاوره پژوهشی برای روش، تحلیل و انتشار علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to when research consultation is appropriate.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چه زمانی مشاوره پژوهشی لازم است؟»."
     },
     {
       "path": "assets/images/knowledge/moshavere-tahsili-baraye-tasmim-featured.webp",
@@ -1908,7 +2258,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating educational counselling for informed decisions",
+      "alt_fa": "تصویر مفهومی مشاوره تحصیلی و تصمیم‌گیری مبتنی بر شواهد",
+      "caption_en": "Editorial image for the evidence-informed guide to educational counselling for informed decisions.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مشاوره تحصیلی برای تصمیم»."
     },
     {
       "path": "assets/images/knowledge/moshavere-tahsili-baraye-tasmim-og.webp",
@@ -1919,7 +2274,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating educational counselling for informed decisions",
+      "alt_fa": "تصویر مفهومی مشاوره تحصیلی و تصمیم‌گیری مبتنی بر شواهد",
+      "caption_en": "Editorial image for the evidence-informed guide to educational counselling for informed decisions.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مشاوره تحصیلی برای تصمیم»."
     },
     {
       "path": "assets/images/knowledge/moshavere-tahsili-takhasosi-chist-featured.webp",
@@ -1930,7 +2290,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating specialist educational counselling",
+      "alt_fa": "تصویر مفهومی مشاوره تحصیلی تخصصی، تحلیل شواهد و انتخاب مسیر",
+      "caption_en": "Editorial image for the evidence-informed guide to specialist educational counselling.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مشاوره تحصیلی تخصصی چیست؟»."
     },
     {
       "path": "assets/images/knowledge/moshavere-tahsili-takhasosi-chist-og.webp",
@@ -1941,7 +2306,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating specialist educational counselling",
+      "alt_fa": "تصویر مفهومی مشاوره تحصیلی تخصصی، تحلیل شواهد و انتخاب مسیر",
+      "caption_en": "Editorial image for the evidence-informed guide to specialist educational counselling.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «مشاوره تحصیلی تخصصی چیست؟»."
     },
     {
       "path": "assets/images/knowledge/naghsh-valedein-dar-masir-estedaad-featured.webp",
@@ -1952,7 +2322,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating parental roles in talent development",
+      "alt_fa": "تصویر مفهومی حمایت والدین از کشف و رشد استعداد فرزند",
+      "caption_en": "Editorial image for the evidence-informed guide to parental roles in talent development.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «نقش والدین در مسیر استعداد»."
     },
     {
       "path": "assets/images/knowledge/naghsh-valedein-dar-masir-estedaad-og.webp",
@@ -1963,7 +2338,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating parental roles in talent development",
+      "alt_fa": "تصویر مفهومی حمایت والدین از کشف و رشد استعداد فرزند",
+      "caption_en": "Editorial image for the evidence-informed guide to parental roles in talent development.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «نقش والدین در مسیر استعداد»."
     },
     {
       "path": "assets/images/knowledge/pasokh-be-davaran-featured.webp",
@@ -1974,7 +2354,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating responding to academic peer reviewers",
+      "alt_fa": "تصویر مفهومی پاسخ حرفه‌ای به داوران و اصلاح مقاله علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to responding to academic peer reviewers.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چگونه به داوران مقاله پاسخ دهیم؟»."
     },
     {
       "path": "assets/images/knowledge/pasokh-be-davaran-og.webp",
@@ -1985,7 +2370,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating responding to academic peer reviewers",
+      "alt_fa": "تصویر مفهومی پاسخ حرفه‌ای به داوران و اصلاح مقاله علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to responding to academic peer reviewers.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «چگونه به داوران مقاله پاسخ دهیم؟»."
     },
     {
       "path": "assets/images/knowledge/proofreading-editing-manuscript-review-featured.webp",
@@ -1996,7 +2386,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating proofreading editing and manuscript review",
+      "alt_fa": "تصویر مفهومی سه سطح بازبینی، ویرایش و ارزیابی مقاله علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to proofreading editing and manuscript review.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «Proofreading، Academic Editing و Manuscript Review»."
     },
     {
       "path": "assets/images/knowledge/proofreading-editing-manuscript-review-og.webp",
@@ -2007,7 +2402,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating proofreading editing and manuscript review",
+      "alt_fa": "تصویر مفهومی سه سطح بازبینی، ویرایش و ارزیابی مقاله علمی",
+      "caption_en": "Editorial image for the evidence-informed guide to proofreading editing and manuscript review.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «Proofreading، Academic Editing و Manuscript Review»."
     },
     {
       "path": "assets/images/knowledge/rotbe-va-tanasob-dar-entekhab-reshteh-featured.webp",
@@ -2018,7 +2418,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating entrance exam rank and university major fit",
+      "alt_fa": "تصویر مفهومی رتبه، تناسب فردی و تصمیم آگاهانه در انتخاب رشته",
+      "caption_en": "Editorial image for the evidence-informed guide to entrance exam rank and university major fit.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «رتبه و تناسب در انتخاب رشته»."
     },
     {
       "path": "assets/images/knowledge/rotbe-va-tanasob-dar-entekhab-reshteh-og.webp",
@@ -2029,7 +2434,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating entrance exam rank and university major fit",
+      "alt_fa": "تصویر مفهومی رتبه، تناسب فردی و تصمیم آگاهانه در انتخاب رشته",
+      "caption_en": "Editorial image for the evidence-informed guide to entrance exam rank and university major fit.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «رتبه و تناسب در انتخاب رشته»."
     },
     {
       "path": "assets/images/knowledge/tafavot-estedaad-alaghe-maharat-amalkard-featured.webp",
@@ -2040,7 +2450,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating talent interests skills and performance",
+      "alt_fa": "تصویر مفهومی تفاوت استعداد، علاقه، مهارت و عملکرد قابل مشاهده",
+      "caption_en": "Editorial image for the evidence-informed guide to talent interests skills and performance.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «تفاوت استعداد، علاقه، مهارت و عملکرد»."
     },
     {
       "path": "assets/images/knowledge/tafavot-estedaad-alaghe-maharat-amalkard-og.webp",
@@ -2051,7 +2466,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating talent interests skills and performance",
+      "alt_fa": "تصویر مفهومی تفاوت استعداد، علاقه، مهارت و عملکرد قابل مشاهده",
+      "caption_en": "Editorial image for the evidence-informed guide to talent interests skills and performance.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «تفاوت استعداد، علاقه، مهارت و عملکرد»."
     },
     {
       "path": "assets/images/knowledge/tahlil-karname-tahsili-featured.webp",
@@ -2062,7 +2482,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating educational transcript analysis",
+      "alt_fa": "تصویر مفهومی تحلیل روند نمرات، عملکرد و تصمیم آموزشی",
+      "caption_en": "Editorial image for the evidence-informed guide to educational transcript analysis.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «تحلیل کارنامه تحصیلی»."
     },
     {
       "path": "assets/images/knowledge/tahlil-karname-tahsili-og.webp",
@@ -2073,7 +2498,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating educational transcript analysis",
+      "alt_fa": "تصویر مفهومی تحلیل روند نمرات، عملکرد و تصمیم آموزشی",
+      "caption_en": "Editorial image for the evidence-informed guide to educational transcript analysis.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «تحلیل کارنامه تحصیلی»."
     },
     {
       "path": "assets/images/knowledge/tosee-herfei-moalleman-featured.webp",
@@ -2084,7 +2514,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating teachers' professional development",
+      "alt_fa": "تصویر مفهومی رشد حرفه‌ای معلم، بازخورد، تمرین و یادگیری مستمر",
+      "caption_en": "Editorial image for the evidence-informed guide to teachers' professional development.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «توسعه حرفه‌ای معلمان»."
     },
     {
       "path": "assets/images/knowledge/tosee-herfei-moalleman-og.webp",
@@ -2095,7 +2530,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating teachers' professional development",
+      "alt_fa": "تصویر مفهومی رشد حرفه‌ای معلم، بازخورد، تمرین و یادگیری مستمر",
+      "caption_en": "Editorial image for the evidence-informed guide to teachers' professional development.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «توسعه حرفه‌ای معلمان»."
     },
     {
       "path": "assets/images/knowledge/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand-featured.webp",
@@ -2106,7 +2546,12 @@
       "height": 900,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-featured"
+      "optimization_profile": "knowledge-featured",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating parental involvement in university major selection",
+      "alt_fa": "تصویر مفهومی نقش متعادل والدین در انتخاب رشته دانش‌آموز",
+      "caption_en": "Editorial image for the evidence-informed guide to parental involvement in university major selection.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «والدین در انتخاب رشته چقدر دخالت کنند؟»."
     },
     {
       "path": "assets/images/knowledge/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand-og.webp",
@@ -2117,7 +2562,12 @@
       "height": 630,
       "source_status": "production-source",
       "provenance": "Owner-approved 45-image collection 2026-10-08",
-      "optimization_profile": "knowledge-og"
+      "optimization_profile": "knowledge-og",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Conceptual image illustrating parental involvement in university major selection",
+      "alt_fa": "تصویر مفهومی نقش متعادل والدین در انتخاب رشته دانش‌آموز",
+      "caption_en": "Editorial image for the evidence-informed guide to parental involvement in university major selection.",
+      "caption_fa": "تصویر مفهومی مرتبط با راهنمای «والدین در انتخاب رشته چقدر دخالت کنند؟»."
     }
   ]
 }
