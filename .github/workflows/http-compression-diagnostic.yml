@@ -1,0 +1,36 @@
+name: Production HTTP Compression Diagnostic
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/http-compression-diagnostic.yml
+permissions:
+  contents: read
+jobs:
+  verify-encoding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check Brotli and Gzip delivered by production CDN
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --version | head -n 2
+          for path in / /fa/rahnamaha/ /assets/css/knowledge-hub.css /assets/js/knowledge-hub.js; do
+            for encoding in br gzip identity 'br, gzip'; do
+              echo "::group::PATH=$path REQUEST_ACCEPT_ENCODING=$encoding"
+              header_file="$(mktemp)"
+              curl -fsSL --max-time 25 --connect-timeout 10 \
+                -H "Accept-Encoding: $encoding" \
+                -H 'User-Agent: Mozilla/5.0 (compatible; JRCompressionAudit/1.0)' \
+                -D "$header_file" -o /dev/null \
+                "https://drjavadrezazadeh.com$path"
+              tr -d '\r' < "$header_file" | grep -Ei '^(HTTP/|content-type:|content-encoding:|vary:|content-length:|server:|cf-cache-status:|cache-control:)' || true
+              if ! grep -qi '^content-encoding:' "$header_file"; then
+                echo 'ACTUAL_CONTENT_ENCODING=none'
+              fi
+              rm -f "$header_file"
+              echo "::endgroup::"
+            done
+          done
