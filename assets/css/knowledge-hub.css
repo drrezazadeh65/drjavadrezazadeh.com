@@ -39,3 +39,73 @@
 }
 @media(max-width:350px){.knowledge-hub-page .knowledge-filters{grid-template-columns:1fr}.knowledge-hub-page .knowledge-filters [data-knowledge-filter="all"]{grid-column:auto}}
 @media(prefers-reduced-motion:reduce){.knowledge-hub-page .related-cluster-grid a{scroll-behavior:auto;transition:none}}
+
+
+/* Knowledge Hub hero v4.3.0 — editorial hierarchy, balanced desktop, compact mobile */
+.rtl.knowledge-hub-page .article-shell{padding-top:clamp(12px,1.8vw,24px)}
+.rtl.knowledge-hub-page header.knowledge-hero{
+  display:grid!important;grid-template-columns:minmax(0,1.3fr) minmax(250px,.7fr);
+  align-items:center;gap:clamp(22px,3vw,50px);width:100%;
+  min-height:0!important;margin:0;padding:clamp(26px,3.5vw,46px)!important;
+  border-radius:22px;overflow:hidden;
+  background:radial-gradient(470px 280px at 6% 28%,rgba(206,167,90,.085),transparent 80%),linear-gradient(145deg,#17181b 0%,#101115 72%,#0a1016 100%);
+  box-shadow:0 18px 54px rgba(0,0,0,.18);
+}
+.rtl.knowledge-hub-page .knowledge-hero-copy{min-width:0;max-width:660px;text-align:right}
+.rtl.knowledge-hub-page .knowledge-hero-copy>.kicker{color:#e9c982;font-size:clamp(12px,1.25vw,15px)!important;line-height:1.8!important;font-weight:650;letter-spacing:0;margin:0 0 12px!important}
+.rtl.knowledge-hub-page .knowledge-hero-copy>h1{
+  font-family:Tahoma,"Segoe UI",Arial,sans-serif!important;
+  font-size:clamp(29px,3.4vw,42px)!important;line-height:1.55!important;
+  font-weight:750!important;letter-spacing:0!important;max-width:18ch;
+  text-wrap:balance;overflow-wrap:normal;margin:0 0 16px!important;color:#f9f6ed;
+}
+.rtl.knowledge-hub-page .knowledge-hero-copy>.lead{
+  font-size:clamp(15.5px,1.3vw,17.5px)!important;line-height:2.05!important;
+  color:#d2cec6!important;margin:0!important;max-width:63ch;text-align:right;
+}
+.rtl.knowledge-hub-page .knowledge-hero-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:25px 0 0}
+.rtl.knowledge-hub-page .knowledge-hero-actions>a{min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:12px;font-size:14px!important;line-height:1.7!important;text-decoration:none!important}
+.rtl.knowledge-hub-page .knowledge-hero-actions>a:first-child{background:#e6c77e;color:#17130a;border:1px solid #e6c77e;font-weight:750}
+.rtl.knowledge-hub-page .knowledge-hero-actions>.knowledge-hero-secondary{background:rgba(255,255,255,.035);border:1px solid rgba(235,214,174,.4);color:#f3e7cc}
+.rtl.knowledge-hub-page .knowledge-hero-actions>a:hover{filter:brightness(1.1)}
+.rtl.knowledge-hub-page .knowledge-hero-actions>a:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.rtl.knowledge-hub-page .knowledge-hero-panel{
+  position:relative;min-width:0;align-self:stretch;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;gap:14px;
+  border:1px solid rgba(225,188,113,.23);border-radius:20px;
+  background:radial-gradient(220px 160px at 50% 18%,rgba(205,163,81,.13),transparent 85%),rgba(255,255,255,.015);
+  padding:clamp(18px,2.4vw,30px);
+}
+.rtl.knowledge-hub-page .knowledge-hero-symbol{color:#dec184;opacity:.9;height:88px;display:flex;align-items:center;justify-content:center}
+.rtl.knowledge-hub-page .knowledge-hero-symbol svg{height:90px;width:auto;max-width:100%}
+.rtl.knowledge-hub-page .knowledge-hero-count{display:grid;gap:0;justify-items:center;color:#f5eedf}
+.rtl.knowledge-hub-page .knowledge-hero-count strong{font:750 clamp(40px,4vw,57px)/1.25 Tahoma,Arial,sans-serif;color:#f1d391;font-variant-numeric:tabular-nums}
+.rtl.knowledge-hub-page .knowledge-hero-count span{font-size:13px;line-height:1.8;color:#dbd5c7}
+.rtl.knowledge-hub-page .knowledge-hero-topics{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-top:4px}
+.rtl.knowledge-hub-page .knowledge-hero-topics span{font-size:12px;color:#e5d5b6;padding:5px 9px;border-radius:99px;border:1px solid rgba(223,187,111,.25);background:rgba(223,187,111,.04);line-height:1.6}
+@media(max-width:950px){
+ .rtl.knowledge-hub-page header.knowledge-hero{grid-template-columns:minmax(0,1fr) minmax(215px,.65fr);gap:22px}
+ .rtl.knowledge-hub-page .knowledge-hero-copy>h1{font-size:clamp(27px,3.3vw,34px)!important;line-height:1.52!important}
+ .rtl.knowledge-hub-page .knowledge-hero-panel{padding:20px 14px}
+ .rtl.knowledge-hub-page .knowledge-hero-symbol{height:64px}
+ .rtl.knowledge-hub-page .knowledge-hero-symbol svg{height:66px}
+}
+@media(max-width:690px){
+ .rtl.knowledge-hub-page header.knowledge-hero{display:grid!important;grid-template-columns:minmax(0,1fr);gap:19px;padding:24px 18px!important;border-radius:18px}
+ .rtl.knowledge-hub-page .knowledge-hero-copy>h1{font-size:clamp(27px,7.5vw,34px)!important;line-height:1.55!important;max-width:100%;margin-bottom:12px!important}
+ .rtl.knowledge-hub-page .knowledge-hero-copy>.lead{font-size:15.5px!important;line-height:1.95!important}
+ .rtl.knowledge-hub-page .knowledge-hero-actions{margin-top:18px;gap:9px}
+ .rtl.knowledge-hub-page .knowledge-hero-actions>a{flex:1 1 145px;padding:10px 11px}
+ .rtl.knowledge-hub-page .knowledge-hero-panel{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;align-items:center;text-align:right;padding:14px 16px;justify-content:initial}
+ .rtl.knowledge-hub-page .knowledge-hero-symbol{display:none}
+ .rtl.knowledge-hub-page .knowledge-hero-count{grid-column:1;grid-row:1 / span 2;justify-items:center;padding-left:14px;border-left:1px solid rgba(225,188,113,.27)}
+ .rtl.knowledge-hub-page .knowledge-hero-count strong{font-size:38px}
+ .rtl.knowledge-hub-page .knowledge-hero-count span{font-size:11px;max-width:80px}
+ .rtl.knowledge-hub-page .knowledge-hero-topics{grid-column:2;grid-row:1 / span 2;justify-content:flex-start;gap:6px}
+ .rtl.knowledge-hub-page .knowledge-hero-topics span{font-size:11px;padding:5px 7px}
+}
+@media(max-width:350px){
+ .rtl.knowledge-hub-page header.knowledge-hero{padding:19px 14px!important}
+ .rtl.knowledge-hub-page .knowledge-hero-copy>h1{font-size:27px!important;line-height:1.55!important}
+ .rtl.knowledge-hub-page .knowledge-hero-panel{gap:8px;padding:12px}
+}
