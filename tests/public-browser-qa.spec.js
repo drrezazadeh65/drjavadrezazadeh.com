@@ -1014,6 +1014,9 @@ test('decision matrix compares documented evidence privately and exports safe CS
   await expect(form).toBeVisible();
   await form.locator('[data-dm-render]').click();
   await expect(form.locator('[data-dm-status]')).toContainText('حداقل دو رشته');
+  const routeBefore=page.url();
+  await form.locator('.dm-option').first().locator('[data-dm-name]').press('Enter');
+  expect(page.url()).toBe(routeBefore);
 
   const options=tool.locator('.dm-option');
   await options.nth(0).locator('[data-dm-name]').fill('رشته الف');

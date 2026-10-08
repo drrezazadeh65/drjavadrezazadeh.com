@@ -67,6 +67,8 @@
     output.hidden=false;
     announce('مقایسه '+new Intl.NumberFormat('fa-IR').format(options.length)+' رشته آماده شد. جدول در همین صفحه نمایش داده شده است.');
   }
+  // Never let Enter submit worksheet values to the hosting origin or put them in a URL.
+  form.addEventListener('submit',event=>{event.preventDefault();const options=ready();if(options)render(options)});
   form.querySelector('[data-dm-render]').addEventListener('click',()=>{
     const options=ready();
     if(options)render(options);
