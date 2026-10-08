@@ -91,7 +91,7 @@
     shareHeading.textContent = 'ارسال به...';
     const shareTargets = document.createElement('div');
     const destinations = [
-      ['واتساپ', 'https://wa.me/?text=' + encodeURIComponent(title + '\\n' + canonical)],
+      ['واتساپ', 'https://wa.me/?text=' + encodeURIComponent(title + ' — ' + canonical)],
       ['تلگرام', 'https://t.me/share/url?url=' + encodeURIComponent(canonical) + '&text=' + encodeURIComponent(title)],
       ['ایمیل', 'mailto:?subject=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(canonical)]
     ];
@@ -118,7 +118,9 @@
           try {
             const address = new URL(entry.url);
             return address.origin === location.origin &&
-              /^\\/fa\\/rahnamaha\\/[a-z0-9-]+\\/$/.test(address.pathname);
+              address.pathname.startsWith('/fa/rahnamaha/') &&
+              address.pathname.split('/').length === 5 &&
+              /^[a-z0-9-]+$/.test(address.pathname.split('/')[3]);
           } catch (_) { return false; }
         }).slice(0,40);
       } catch (_) { return []; }
