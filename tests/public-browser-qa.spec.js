@@ -924,3 +924,39 @@ test('knowledge article explicit sharing and on-device bookmarks',async({page})=
   const overflow=await stableOverflow(page);
   expect(Math.max(overflow.html,overflow.body)).toBeLessThanOrEqual(overflow.viewport+1);
 });
+
+
+test('knowledge reader private enquiry, font controls and print presentation',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/fa/rahnamaha/golden-talent-chist/',{waitUntil:'domcontentloaded'});
+  const enquire=page.locator('.knowledge-article-private-question');
+  await expect(enquire).toBeVisible();
+  const href=await enquire.getAttribute('href');
+  expect(href).toMatch(/^mailto:dr\.rezazadeh65@gmail\.com\?subject=/);
+  const email=new URL(href);
+  expect(email.searchParams.get('subject')).toContain('Golden Talent');
+  expect(email.searchParams.get('body')).toContain('https://drjavadrezazadeh.com/fa/rahnamaha/golden-talent-chist/');
+  expect(email.searchParams.get('body')).toContain('\n');
+
+  const font=page.locator('[data-reader-font]');
+  await expect(font).toBeVisible();
+  await expect(font).toHaveAttribute('aria-pressed','false');
+  const paragraph=page.locator('.knowledge-article-content p').first();
+  const original=await paragraph.evaluate(node=>parseFloat(getComputedStyle(node).fontSize));
+  await font.click();
+  await expect(font).toHaveAttribute('aria-pressed','true');
+  const enlarged=await paragraph.evaluate(node=>parseFloat(getComputedStyle(node).fontSize));
+  expect(enlarged).toBeGreaterThan(original);
+  await page.reload({waitUntil:'domcontentloaded'});
+  await expect(page.locator('[data-reader-font]')).toHaveAttribute('aria-pressed','true');
+
+  await page.evaluate(()=>{window.__printTriggered=false;window.print=()=>{window.__printTriggered=true}});
+  await page.locator('[data-reader-print]').click();
+  expect(await page.evaluate(()=>window.__printTriggered)).toBe(true);
+  await page.emulateMedia({media:'print'});
+  await expect(page.locator('.knowledge-article-tools')).toBeHidden();
+  await expect(page.locator('.knowledge-article-content h2').first()).toBeVisible();
+  await page.emulateMedia({media:'screen'});
+  const layout=await stableOverflow(page);
+  expect(Math.max(layout.html,layout.body)).toBeLessThanOrEqual(layout.viewport+1);
+});
