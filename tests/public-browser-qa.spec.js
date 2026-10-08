@@ -1216,3 +1216,36 @@ test('bilingual intake, service pages and shops disclose real booking and paymen
     }
   }
 });
+
+
+test('official Persian service catalogue supports search and price sorting without altering fees',async({page})=>{
+ for(const [width,height] of [[390,844],[1440,900]]){
+  await page.setViewportSize({width,height});
+  const response=await page.goto(base+'/fa/khadamat/',{waitUntil:'domcontentloaded'});
+  expect(response.status()).toBe(200);
+  const cards=page.locator('[data-service-pricing] .service-pricing-card');
+  await expect(cards).toHaveCount(21);
+  const search=page.locator('[data-service-search]');
+  const sort=page.locator('[data-service-sort]');
+  await expect(search).toBeVisible();
+  await search.fill('پشتیبانی پاسخ به داوران');
+  await expect(cards).toHaveCount(1);
+  await expect(page.locator('[data-service-filter-count]')).toContainText('۱ خدمت از ۲۱ خدمت');
+  await search.fill('عبارت ناموجود مثال');
+  await expect(cards).toHaveCount(0);
+  await expect(page.locator('[data-service-empty]')).toBeVisible();
+  await page.locator('[data-service-clear]').click();
+  await expect(cards).toHaveCount(21);
+  await sort.selectOption('asc');
+  const prices=await cards.evaluateAll(nodes=>nodes.map(n=>Number(n.dataset.servicePrice)));
+  expect(prices).toEqual([...prices].sort((a,b)=>a-b));
+  await sort.selectOption('desc');
+  const desc=await cards.evaluateAll(nodes=>nodes.map(n=>Number(n.dataset.servicePrice)));
+  expect(desc).toEqual([...desc].sort((a,b)=>b-a));
+  await page.locator('[data-service-clear]').click();
+  await expect(cards).toHaveCount(21);
+  const overflow=await stableOverflow(page);
+  expect(Math.max(overflow.html,overflow.body)).toBeLessThanOrEqual(overflow.viewport+1);
+  expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe('https://drjavadrezazadeh.com/fa/khadamat/');
+ }
+});

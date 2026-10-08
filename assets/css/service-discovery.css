@@ -1,0 +1,13 @@
+/* Responsive discovery controls for the public 21-service catalogue. */
+#tarife .service-filter-bar{display:grid;grid-template-columns:minmax(0,2fr) minmax(190px,1fr) auto;align-items:end;gap:13px;margin:20px 0 10px;padding:18px;border:1px solid rgba(221,194,143,.3);border-radius:16px;background:rgba(32,30,27,.64)}
+#tarife .service-filter-input{display:grid;gap:8px;min-width:0;font-size:13px;color:#f2e5c7;font-weight:650;line-height:1.8}
+#tarife .service-filter-input :is(input,select){width:100%;box-sizing:border-box;min-width:0;min-height:46px;padding:10px 12px;color:#fff6e3;background:#181b20;border:1px solid #b5a486;border-radius:10px;font-family:inherit;font-size:16px;line-height:1.5}
+#tarife .service-filter-input :is(input,select):focus-visible,#tarife .service-filter-clear:focus-visible{outline:3px solid #f3d497;outline-offset:2px}
+#tarife .service-filter-clear{border:1px solid #dec28a;background:transparent;color:#f8e6b9;min-height:46px;border-radius:10px;padding:11px 12px;cursor:pointer;font-family:inherit}
+#tarife [hidden]{display:none!important}
+#tarife .service-filter-count{font-size:14px;line-height:1.7;color:#eddbb3;margin:12px 0}
+#tarife .service-filter-empty{background:rgba(232,196,122,.09);padding:20px;border:1px solid rgba(232,196,122,.4);border-radius:12px;color:#f7e8c4}
+#tarife .service-pricing-card{min-width:0;overflow-wrap:anywhere}
+@media(max-width:850px){#tarife .service-filter-bar{grid-template-columns:minmax(0,1fr) minmax(180px,1fr)}#tarife .service-filter-clear{grid-column:1/-1}}
+@media(max-width:580px){#tarife .service-filter-bar{display:grid;grid-template-columns:1fr;padding:13px;gap:12px}#tarife .service-filter-clear{grid-column:auto}}
+@media print{#tarife .service-filter-bar,#tarife .service-filter-count,#tarife .service-filter-empty{display:none!important}}
