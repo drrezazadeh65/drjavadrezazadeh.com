@@ -1065,3 +1065,26 @@ test('new service worker activation does not discard in-progress matrix input',a
   await expect(input).toHaveValue('رشته نمونه ثبت‌نشده');
   expect(navigation).toEqual([]);
 });
+
+
+test('practical CV and assessment guides offer verifiable examples at mobile and desktop',async({page})=>{
+  const guides=[
+    ['/fa/rahnamaha/academic-cv-professional/','چک‌لیست هفت‌گانه پیش از ارسال CV',0],
+    ['/fa/rahnamaha/azmoon-khoob-vijegiha/','نمونه فرضی جدول مشخصات برای یک آزمون کلاسی',1]
+  ];
+  for(const [route,heading,hasTable] of guides){
+    for(const [width,height] of [[390,844],[1440,900]]){
+      await page.setViewportSize({width,height});
+      const resp=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      expect(resp.status()).toBe(200);
+      const content=page.locator('.knowledge-article-content');
+      await expect(content).toContainText(heading);
+      await expect(content).toContainText('صرفاً');
+      if(hasTable)await expect(content.locator('table tbody tr')).toHaveCount(3);
+      const overflow=await stableOverflow(page);
+      expect(Math.max(overflow.html,overflow.body),'guide overflow '+route+' '+width)
+        .toBeLessThanOrEqual(overflow.viewport+1);
+      expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe('https://drjavadrezazadeh.com'+route);
+    }
+  }
+});
