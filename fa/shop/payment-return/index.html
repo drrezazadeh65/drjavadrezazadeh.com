@@ -26,7 +26,9 @@
     msg.textContent="اطلاعات بازگشت ناقص است. اگر وجهی پرداخت کرده‌اید، دوباره پرداخت نکنید و از بخش تماس سایت پیگیری کنید.";
     return;
   }
-  const dest=new URL("https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/callback");
+  const kind=p.get("kind");
+  const route=kind==="commerce"?"/commerce/callback":"/callback";
+  const dest=new URL("https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev"+route);
   dest.searchParams.set("order",order);
   dest.searchParams.set("id_get",id);
   dest.searchParams.set("trans_id",trans);
