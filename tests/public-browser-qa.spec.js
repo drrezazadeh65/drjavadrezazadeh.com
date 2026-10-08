@@ -984,3 +984,20 @@ test('service diagnostic example is honest, usable and responsive',async({page,r
   const target=await request.get(base+'/fa/rahnamaha/chera-maghale-amade-ersal-nist/');
   expect(target.ok()).toBe(true);
 });
+
+
+test('international service example remains explicitly hypothetical and accessible',async({page})=>{
+  for(const [width,height] of [[390,844],[1440,900]]){
+    await page.setViewportSize({width,height});
+    await page.goto(base+'/en/services/',{waitUntil:'domcontentloaded'});
+    const sample=page.locator('#sample-diagnostic-report');
+    await expect(sample).toBeVisible();
+    await expect(sample.locator('h2')).toContainText('manuscript diagnostic review');
+    await expect(sample).toContainText('hypothetical');
+    await expect(sample).toContainText('not a client case');
+    await expect(sample.locator('.service-offer')).toHaveCount(3);
+    await expect(sample.locator('a[href="../request-consultation/"]')).toHaveCount(1);
+    const dims=await stableOverflow(page);
+    expect(Math.max(dims.html,dims.body),'English services overflow '+width).toBeLessThanOrEqual(dims.viewport+1);
+  }
+});
