@@ -169,8 +169,8 @@ async function commerceAdmin(request,env,path,u,origin){
   return reply({ok:true,order:b.order,state:b.to});
  }
  if(path==="/commerce/admin/summary"&&request.method==="GET"){
-  const rows=await env.DB.prepare("SELECT state,COUNT(*) AS orders,SUM(amount_toman) AS total_toman FROM commerce_orders GROUP BY state").all();
-  return reply({ok:true,groups:rows.results||[],currency:"IRT",note:"Revenue only includes server-verified paid orders."});
+  const rows=await env.DB.prepare("SELECT state,COUNT(*) AS orders,SUM(CASE WHEN state='paid' THEN amount_toman ELSE 0 END) AS total_toman FROM commerce_orders GROUP BY state").all();
+  return reply({ok:true,groups:rows.results||[],currency:"IRT",note:"Gross verified sales only; refunds require separate confirmed reconciliation."});
  }
  return fail("admin_route_not_found",404);
 }
