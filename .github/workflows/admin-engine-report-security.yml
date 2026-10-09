@@ -4,6 +4,8 @@ on:
     paths:
       - 'platform/admin-engine-report.mjs'
       - 'platform/admin-engine-report.test.mjs'
+      - 'platform/admin-engine-report-client.mjs'
+      - 'platform/admin-engine-report-client.test.mjs'
       - 'platform/engine-registry.mjs'
       - '.github/workflows/admin-engine-report-security.yml'
   pull_request:
@@ -23,4 +25,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test platform/admin-engine-report.test.mjs
+      - run: node --test platform/admin-engine-report.test.mjs platform/admin-engine-report-client.test.mjs
