@@ -44,9 +44,9 @@ for(const [kind,catalog,expected] of [["service",service,21],["vip",vip,6]]){
    const html=page(route.slice(1)+"index.html");
    const canonical='href="https://drjavadrezazadeh.com'+route+'"';
    assert.ok(html.includes(canonical),route+" canonical mismatch");
-   assert.equal((html.match(/<h1\\b/gi)||[]).length,1,route+" must have exactly one H1");
-   assert.ok(/<img\\b/i.test(html),route+" requires at least one image");
-   assert.ok(/<img\\b[^>]*\\balt=["'][^"']*["']/i.test(html),route+" image needs alt");
+   assert.equal((html.match(/<h1\b/gi)||[]).length,1,route+" must have exactly one H1");
+   assert.ok(/<img\b/i.test(html),route+" requires at least one image");
+   assert.ok(/<img\b[^>]*\balt=["'][^"']*["']/i.test(html),route+" image needs alt");
    const checkout="/fa/shop/checkout/?sku="+kind+"%3A"+item.id;
    assert.ok(html.includes(checkout),route+" checkout action absent");
    assert.ok(/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*index/i.test(html),route+" index status must be explicit");
