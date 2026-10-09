@@ -10,6 +10,7 @@ on:
       - 'fa/vip/**'
       - 'scripts/catalog-integrity.mjs'
       - 'assets/js/commerce-checkout.js'
+      - 'assets/js/book-store.js'
       - '.github/workflows/catalog-integrity.yml'
   pull_request:
     paths:
@@ -19,6 +20,7 @@ on:
       - 'fa/vip/**'
       - 'scripts/catalog-integrity.mjs'
       - 'assets/js/commerce-checkout.js'
+      - 'assets/js/book-store.js'
       - '.github/workflows/catalog-integrity.yml'
   workflow_dispatch:
 permissions:
@@ -35,5 +37,6 @@ jobs:
         run: |
           node --check scripts/catalog-integrity.mjs
           node --check assets/js/commerce-checkout.js
+          node --check assets/js/book-store.js
       - name: Validate service, VIP and bookstore catalogs
         run: node scripts/catalog-integrity.mjs
