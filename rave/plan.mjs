@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';
+import {prioritize} from './core/opportunities.mjs';
+const input=process.argv[2]||'rave/fixtures/opportunities.json';
+const output=process.argv[3]||'rave/reports/opportunity-plan.json';
+const source=JSON.parse(await fs.readFile(input,'utf8'));
+if(!Array.isArray(source))throw new Error('Expected opportunity array');
+const plan={schema:'rave.plan.v1',generatedAt:new Date().toISOString(),mode:'observe',source:input,items:prioritize(source)};
+await fs.mkdir(new URL('../reports/',import.meta.url),{recursive:true});
+await fs.writeFile(output,JSON.stringify(plan,null,2)+'\n');
+console.log('RAVE: planned '+plan.items.length+' review-only opportunities');
