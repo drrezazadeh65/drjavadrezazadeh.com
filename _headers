@@ -91,15 +91,64 @@ https://:version.:project.pages.dev/*
   Cache-Control: no-store
   X-Robots-Tag: noindex, noarchive
 
-/fa/shop/*
+# Public book catalogues remain indexable. Only transaction or account routes are private.
+/fa/shop/cart/*
   Cache-Control: no-store
   X-Robots-Tag: noindex, noarchive
 
-/en/shop/*
+/fa/shop/checkout/*
   Cache-Control: no-store
   X-Robots-Tag: noindex, noarchive
 
-/shop/*
+/fa/shop/invoice/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/fa/shop/order/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/fa/shop/payment-start/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/fa/shop/payment-return/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/fa/shop/payment-result/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/en/shop/cart/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/en/shop/checkout/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/en/shop/invoice/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/en/shop/order/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/shop/cart/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/shop/checkout/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/shop/invoice/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, noarchive
+
+/shop/order/*
   Cache-Control: no-store
   X-Robots-Tag: noindex, noarchive
 
