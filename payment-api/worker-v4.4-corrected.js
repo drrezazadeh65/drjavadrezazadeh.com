@@ -409,7 +409,8 @@ async function commerce(request,env){
   for(const [sku,quantity] of count){
 
    const item=available.get(sku);
-   if(item&&!commerceChannelReady(env,item.kind))return fail("fulfilment_unconfirmed",503);if(!item)return fail("unavailable_product",409);
+   if(!item)return fail("unavailable_product",409);
+   if(!commerceChannelReady(env,item.kind))return fail("fulfilment_unconfirmed",503);
 // Services are quantity-one appointments; capacity and terms must be confirmed separately.*
 
    if(item.kind!=="book"&&quantity!==1)return fail("service_quantity_invalid");
@@ -426,10 +427,6 @@ async function commerce(request,env){
 // Shipping charge is always zero and excluded from the gateway amount.*
 // Services require agreed scope/capacity; no automatic charge until explicitly enabled.*
 
-  if(lines.some(x=>x.kind==="book")&&env.BOOK_SHIPPING_CONFIRMED!=="true")return fail("book_fulfilment_not_configured",503);
-  if(lines.some(x=>x.kind==="service")&&env.SERVICE_BOOKING_CONFIRMED!=="true")return fail("service_booking_not_configured",503);
-
-  if(lines.some(x=>x.kind==="vip")&&env.VIP_BOOKING_CONFIRMED!=="true")return fail("vip_booking_not_configured",503);
 
   const order=crypto.randomUUID(),factor=crypto.randomUUID().replace(/-/g,"").slice(0,28);
 
