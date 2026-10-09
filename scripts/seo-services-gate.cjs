@@ -52,6 +52,13 @@ for(const v of vip){
  assert(html.includes('<link rel="canonical" href="'+uri+'">'),'VIP canonical mismatch: '+file);
  assert(html.includes('/'+image),'Missing VIP image reference: '+file);
  assert(html.includes('دکتر جواد رضازاده یزدلی'),'Missing academic author in VIP service: '+file);
+ const schemas=[...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(x=>{try{return JSON.parse(x[1])}catch{errors.push('Invalid VIP JSON-LD: '+file);return null}}).filter(Boolean);
+ const nodes=schemas.flatMap(x=>x['@graph']||[x]);
+ const serviceNode=nodes.find(x=>x['@type']==='Service');
+ assert(!!serviceNode && serviceNode.url===uri,'Missing canonical VIP Service JSON-LD: '+file);
+ assert(!!serviceNode && serviceNode.image===domain+'/'+image,'Wrong VIP Service schema image: '+file);
+ assert(!!serviceNode && serviceNode.provider?.['@id']===domain+'/#person','VIP schema must reference academic Person: '+file);
+ assert(nodes.some(x=>x['@type']==='BreadcrumbList'),'VIP breadcrumb schema missing: '+file);
  for(const link of ['/fa/darbare-man/','/fa/pajouhesh/','/fa/entesharat-elmi/'])
   assert(html.includes('href="'+link+'"'),'Missing VIP academic link '+link+': '+file);
  assert(!/https?:\/\/(?:www\.)?eitaa\.com\/|@DrRezazadeh65/i.test(html),'Public VIP Eitaa contact leaked: '+file);
@@ -71,6 +78,10 @@ for(const s of catalog){
 }
 assert(found.includes(domain+'/fa/vip/'),'Missing VIP hub in services sitemap');
 const vipHub=read('fa/vip/index.html');
+const hubSchemaScripts=[...vipHub.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
+const hubNodes=hubSchemaScripts.flatMap(x=>{try{const z=JSON.parse(x[1]);return z['@graph']||[z]}catch{errors.push('Invalid VIP hub JSON-LD');return []}});
+const hubList=hubNodes.find(x=>x['@type']==='ItemList');
+assert(hubList?.itemListElement?.length===vip.length,'VIP hub ItemList must include six services');
 for(const v of vip){
  assert(vipHub.includes('/assets/images/vip-'+v.id+'.svg'),'Missing illustrated VIP card: '+v.id);
  assert(vipHub.includes('./'+v.id+'/'),'Missing VIP offer in hub: '+v.id);
