@@ -16,11 +16,12 @@ function walk(dir){
 }
 walk(root);
 
+// Inspect the complete JSON-LD object tree, not just top-level @graph nodes.
+// A nested Service.offers object is still a public commercial claim.
 function flattenSchema(data){
   if(Array.isArray(data)) return data.flatMap(flattenSchema);
   if(!data||typeof data!=='object') return [];
-  if(Array.isArray(data['@graph'])) return data['@graph'].flatMap(flattenSchema);
-  return [data];
+  return [data,...Object.values(data).flatMap(flattenSchema)];
 }
 function hasType(obj,type){
   const t=obj?.['@type'];
@@ -41,6 +42,9 @@ for(const file of files){
   for(const obj of objs){
     if(hasType(obj,'Offer')||hasType(obj,'AggregateOffer')){
       failures.push(rel+': Offer/AggregateOffer schema is prohibited before a real sellable offer exists');
+    }
+    if(hasType(obj,'Service')&&Object.prototype.hasOwnProperty.call(obj,'offers')){
+      failures.push(rel+': Service.offers is prohibited until service booking and payment are independently verified');
     }
     if(hasType(obj,'Product')&&('offers' in obj||'price' in obj||'priceCurrency' in obj||'availability' in obj)){
       failures.push(rel+': Product schema contains commercial offer fields before gateway/offer activation');
