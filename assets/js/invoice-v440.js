@@ -100,9 +100,13 @@ function view(data){
     try{
      const res=await fetch(API+"/commerce/receipt/resend",{method:"POST",credentials:"omit",
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({order})});
-     if(!res.ok)throw Error("email_unavailable");
-     feedback.textContent="درخواست ارسال رسید به ایمیل ثبت‌شده با موفقیت انجام شد.";
-    }catch{feedback.textContent="سرویس ارسال ایمیل تأییدشده هنوز در دسترس نیست؛ رسید را چاپ یا لینک خصوصی آن را نگهداری کنید.";}
+     if(res.status===429)throw Error("email_cooldown");
+     const result=await res.json();
+     if(!res.ok||result.accepted_for_delivery!==true)throw Error("email_unavailable");
+     feedback.textContent="درخواست ارسال مجدد به سرویس ایمیل پذیرفته شد. تحویل به صندوق دریافت ممکن است با تأخیر انجام شود.";
+    }catch(error){feedback.textContent=error.message==="email_cooldown"?
+      "برای جلوگیری از ارسال تکراری، بین دو درخواست ایمیل دست‌کم ۱۰ دقیقه فاصله لازم است.":
+      "سرویس ارسال ایمیل در دسترس نیست؛ رسید را چاپ یا لینک خصوصی آن را نگهداری کنید.";}
     finally{email.disabled=false;}
    });
   }
