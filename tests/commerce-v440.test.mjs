@@ -163,3 +163,24 @@ test("admin routes fail closed without Cloudflare Access configuration",async()=
  assert.equal(body.ok,false);
  assert.equal(body.error,"admin_access_unconfigured");
 });
+
+test("CORS permits protected browser GET preflights and admin reads",async()=>{
+ const paths=[
+  "/commerce/order?order="+crypto.randomUUID(),
+  "/commerce/receipt?order="+crypto.randomUUID(),
+  "/commerce/refund/status?order="+crypto.randomUUID(),
+  "/commerce/admin/orders",
+  "/commerce/admin/refunds",
+  "/commerce/admin/summary"
+ ];
+ for(const p of paths){
+  const response=await call(p,{method:"OPTIONS",origin:SITE,headers:{
+   "Access-Control-Request-Method":"GET",
+   "Access-Control-Request-Headers":"authorization"
+  }});
+  assert.equal(response.status,204,"preflight for "+p);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"),SITE);
+  assert.ok(response.headers.get("Access-Control-Allow-Methods").split(",").includes("GET"));
+  assert.ok(response.headers.get("Access-Control-Allow-Headers").toLowerCase().includes("authorization"));
+ }
+});
