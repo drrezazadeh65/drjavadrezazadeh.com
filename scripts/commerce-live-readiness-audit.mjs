@@ -1,0 +1,26 @@
+// Non-mutating Cloudflare commerce diagnostic. Never creates payment intents or exposes secrets.
+import fs from 'node:fs';
+
+const frontend=fs.readFileSync('assets/js/commerce-checkout.js','utf8');
+const match=frontend.match(/const API='(https:\/\/[^']+)'/);
+if(!match)throw new Error('checkout_api_origin_not_found');
+const origin=match[1];
+const url=new URL('/commerce/health',origin);
+const controller=new AbortController();
+const timeout=setTimeout(()=>controller.abort(),12000);
+let response,health;
+try{
+ response=await fetch(url,{method:'GET',redirect:'manual',cache:'no-store',signal:controller.signal,headers:{Accept:'application/json'}});
+ if(!response.ok)throw new Error('commerce_health_http_'+response.status);
+ health=await response.json();
+}finally{clearTimeout(timeout)}
+if(health?.ok!==true||health.service!=='commerce'||typeof health.checkout!=='boolean')
+ throw new Error('commerce_health_contract_missing_or_stale');
+for(const key of ['services','vip','books']){
+ if(typeof health.capabilities?.[key]!=='boolean')throw new Error('commerce_capability_missing_'+key);
+ if(health.capabilities[key]===true&&health.checkout!==true)throw new Error('capability_enabled_without_checkout_'+key);
+}
+console.log('Cloudflare commerce health contract: reachable, structurally valid.');
+console.log('Checkout enabled:',health.checkout,'; category readiness:',JSON.stringify(health.capabilities));
+if(!health.checkout)console.log('Public checkout remains intentionally disabled; this is NOT production payment certification.');
+console.log('This read-only check does not prove D1 persistence, email receipts, entitlement authorization or BitPay settlement.');
