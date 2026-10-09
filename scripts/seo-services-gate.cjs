@@ -93,6 +93,9 @@ assert(checkoutClient.includes("'/commerce/health'"),'Checkout must verify live 
 assert(checkoutClient.includes('button.disabled=true'),'Checkout buttons must default to disabled');
 assert(checkoutClient.includes('health?.capabilities?.[kind]'),'Checkout must respect service-specific readiness');
 assert(checkoutClient.includes('channel===true'),'Absent service capability must fail closed');
+assert(checkoutClient.includes("image.src=kind==='service'"),'Service and VIP checkout cards must show owned per-service artwork');
+assert(checkoutClient.includes('card.append(image,title,fit,price,details,button,live)'),'Checkout cards must display the individual illustration and service fit');
+assert(checkoutClient.includes("item.fit_fa"),'Checkout must explain which student/researcher each standard service fits');
 assert(!checkoutClient.includes('channel===undefined'),'Unspecified capability cannot authorize checkout');
 
 for(const backend of ['payment-api/commerce-routes.js','payment-api/worker-single-file-candidate.js']){
