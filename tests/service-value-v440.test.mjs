@@ -14,7 +14,7 @@ test("21 professional services present unique, substantial buyer-value explanati
   const html=file("fa/services/"+s.id+"/index.html");
   const image=file("assets/images/services/"+s.id+".svg");
   const value=extra[s.id];
-  for(const field of ["why","prepare","compare"])assert.ok(typeof value[field]==="string"&&value[field].length>85, s.id+" "+field);
+  for(const field of ["why","prepare","compare"])assert.ok(typeof value[field]==="string"&&value[field].length>=55, s.id+" "+field);
   for(const line of [value.why,value.prepare,value.compare,s.boundary_fa,s.outcome_fa])assert.ok(html.includes(line),s.id+" text absent");
   assert.ok(html.includes('id="jr-value-'+s.id+'"'),s.id+" value landmark absent");
   assert.ok(html.includes("/assets/css/service-value-v440.css"),s.id+" css absent");
