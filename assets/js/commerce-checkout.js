@@ -12,14 +12,14 @@ async function pay(items,button,message){
   const res=await fetch(API+'/commerce/create',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items})});
   const data=await res.json();
   if(!res.ok||!data?.ok){
-   status(message,data?.error==='checkout_disabled'?'پرداخت آنلاین در مرحله آزمون نهایی است؛ وجهی برداشت نشده است.':'ثبت سفارش امکان‌پذیر نشد؛ وجهی پرداخت نکنید.');return;
+   status(message,data?.error==='checkout_disabled'?'پرداخت آنلاین این خدمت فعال نیست؛ از اقدام به پرداخت خودداری کنید.':'ثبت سفارش تأیید نشد؛ پیش از تلاش مجدد، وضعیت سفارش را از طریق ایمیل رسمی پیگیری کنید.');return;
   }
   if(typeof data.paymentUrl!=='string')throw Error('missing_gateway_link');
   const link=new URL(data.paymentUrl,location.origin);
   if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/'||link.searchParams.size!==1||!link.searchParams.get('gateway'))throw Error('unsafe_gateway_link');
   button.dataset.redirecting='true';
   location.assign(link.href);
- }catch(e){status(message,'اتصال به سامانه پرداخت برقرار نشد. وجهی پرداخت نشده است.')}
+ }catch(e){status(message,'وضعیت درخواست پرداخت نامشخص است. پیش از تلاش مجدد، وضعیت سفارش را از طریق ایمیل رسمی بررسی کنید.')}
  finally{if(!button.dataset.redirecting){button.disabled=false;button.textContent='تلاش مجدد برای پرداخت امن';}}
 }
 function mount(host,kind,items){
