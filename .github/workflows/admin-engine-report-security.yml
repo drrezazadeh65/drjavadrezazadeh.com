@@ -19,6 +19,8 @@ on:
       - 'platform/admin-engine-status-controller.test.mjs'
       - 'platform/admin-engine-status-mount.mjs'
       - 'platform/admin-engine-status-mount.test.mjs'
+      - 'platform/admin-engine-deployment-gate.mjs'
+      - 'platform/admin-engine-deployment-gate.test.mjs'
       - 'platform/engine-registry.mjs'
       - '.github/workflows/admin-engine-report-security.yml'
   pull_request:
@@ -40,6 +42,8 @@ on:
       - 'platform/admin-engine-status-controller.test.mjs'
       - 'platform/admin-engine-status-mount.mjs'
       - 'platform/admin-engine-status-mount.test.mjs'
+      - 'platform/admin-engine-deployment-gate.mjs'
+      - 'platform/admin-engine-deployment-gate.test.mjs'
       - 'platform/engine-registry.mjs'
       - '.github/workflows/admin-engine-report-security.yml'
   workflow_dispatch:
@@ -53,4 +57,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test platform/admin-engine-report.test.mjs platform/admin-engine-report-staleness.test.mjs platform/admin-engine-report-client.test.mjs platform/admin-engine-report-handler.test.mjs platform/admin-engine-dashboard-view.test.mjs platform/admin-engine-status-table.test.mjs platform/admin-engine-report-worker.test.mjs platform/admin-engine-status-controller.test.mjs platform/admin-engine-status-mount.test.mjs
+      - run: node --test platform/admin-engine-report.test.mjs platform/admin-engine-report-staleness.test.mjs platform/admin-engine-report-client.test.mjs platform/admin-engine-report-handler.test.mjs platform/admin-engine-dashboard-view.test.mjs platform/admin-engine-status-table.test.mjs platform/admin-engine-report-worker.test.mjs platform/admin-engine-status-controller.test.mjs platform/admin-engine-status-mount.test.mjs platform/admin-engine-deployment-gate.test.mjs
