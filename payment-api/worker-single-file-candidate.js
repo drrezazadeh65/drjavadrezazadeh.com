@@ -404,8 +404,27 @@ async function commerce(request,env){
  }
  if(path==="/commerce/status"&&request.method==="GET"){
   const id=u.searchParams.get("order");if(!uuid(id))return fail("invalid_order");
-  const row=await env.DB.prepare("SELECT state FROM commerce_orders WHERE id=?").bind(id).first();
-  return row?reply({ok:true,state:row.state}):fail("order_not_found",404);
+  const row=await env.DB.prepare("SELECT state,amount_toman,currency,items_json,paid_at,provider_id_get,provider_trans_id FROM commerce_orders WHERE id=?").bind(id).first();
+  if(!row)return fail("order_not_found",404);
+  // A public order UUID is a bearer-like reference: NEVER expose buyer data here.
+  // The printable payment receipt is released only after server-side settlement.
+  if(row.state!=="paid")return reply({ok:true,state:row.state});
+  if(!row.paid_at||!row.provider_id_get||!row.provider_trans_id||row.currency!=="IRT")
+   return fail("receipt_not_verified",409);
+  let items;try{items=JSON.parse(row.items_json)}catch{return fail("receipt_unavailable",503)}
+  if(!Array.isArray(items)||!items.length||items.length>20)return fail("receipt_unavailable",503);
+  let total=0;
+  const lines=[];
+  for(const x of items){
+   if(!x||typeof x.sku!=="string"||typeof x.title!=="string"||
+      !Number.isSafeInteger(x.price)||x.price<1||!Number.isSafeInteger(x.quantity)||
+      x.quantity<1||x.quantity>20||x.subtotal!==x.price*x.quantity)
+    return fail("receipt_unavailable",503);
+   total+=x.subtotal;
+   lines.push({sku:x.sku,title:safeText(x.title),quantity:x.quantity,unitToman:x.price,subtotalToman:x.subtotal});
+  }
+  if(!Number.isSafeInteger(total)||total!==row.amount_toman)return fail("receipt_amount_mismatch",409);
+  return reply({ok:true,state:"paid",receipt:{orderId:id,currency:"IRT",amountToman:total,paidAt:String(row.paid_at),items:lines,kind:"payment_confirmation_not_tax_invoice"}});
  }
  if(path==="/commerce/callback"&&["GET","POST"].includes(request.method)){
   const order=u.searchParams.get("order");if(!uuid(order))return fail("invalid_order");
