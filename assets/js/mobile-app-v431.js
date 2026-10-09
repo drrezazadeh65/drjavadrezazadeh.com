@@ -61,7 +61,7 @@ if(header&&!q('.mobile-menu-trigger',header)){
  const trigger=document.createElement('button');trigger.type='button';trigger.className='mobile-menu-trigger';trigger.setAttribute('data-nav-toggle','');trigger.setAttribute('aria-controls','mobile-app-menu');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-label',isFa?'بازکردن منو':'Open menu');trigger.innerHTML=icon('menu');header.appendChild(trigger);
 }
 const nav=document.createElement('nav');nav.className='app-dock';nav.setAttribute('aria-label',isFa?'منوی اصلی اپ':'App navigation');
-nav.innerHTML=tabs.map(([h,l,i])=>'<a href="'+h+'">'+icon(i)+'<span>'+l+'</span></a>').join('');
+nav.innerHTML=tabs.map(([h,l,i])=>'<a href="'+h+'" data-app-tab="'+i+'">'+icon(i)+'<span>'+l+'</span>'+(i==='bag'?'<b class="app-cart-badge" data-app-cart-count hidden>0</b>':'')+'</a>').join('');
 document.body.appendChild(nav);
 const panel=document.createElement('div');panel.className='mobile-app-sheet';panel.id='mobile-app-menu';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label',isFa?'دسترسی سریع':'Explore');
 panel.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><div><small>'+(isFa?'ناوبری اپ':'APP NAVIGATION')+'</small><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong></div><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-grid">'+sheet.map(([h,l])=>'<a href="'+h+'"><span class="sheet-icon">'+icon(iconFor(h,l))+'</span><b>'+l+'</b><span class="sheet-chevron" aria-hidden="true">›</span></a>').join('')+'</div></div>';
@@ -77,6 +77,17 @@ if(!active){
  active=qa('.app-dock a').find(a=>new URL(a.href,location.href).pathname.replace(/index\.html$/,'')===cluster)||null;
 }
 if(active){active.classList.add('is-active');active.setAttribute('aria-current','page')}
+const syncCartBadge=()=>{
+ let n=0;
+ try{
+  const rows=JSON.parse(localStorage.getItem('jr-book-cart-v1')||'[]');
+  if(Array.isArray(rows))n=rows.reduce((sum,row)=>sum+(Number.isInteger(row?.quantity)&&row.quantity>0?Math.min(20,row.quantity):0),0);
+ }catch(_){}
+ qa('[data-app-cart-count]').forEach(b=>{b.textContent=String(n);b.hidden=n<1;b.setAttribute('aria-label',isFa?('تعداد کتاب در سبد: '+n):('Books in cart: '+n))});
+};
+syncCartBadge();
+window.addEventListener('jr:cart-change',syncCartBadge);
+window.addEventListener('storage',e=>{if(e.key==='jr-book-cart-v1')syncCartBadge()});
 qa('.home-focus-strip a,.audience-gate').forEach(a=>{if(a.querySelector('.app-card-icon'))return;const s=document.createElement('span');s.className='app-card-icon';s.innerHTML=icon(iconFor(a.href,a.textContent||''));s.setAttribute('aria-hidden','true');a.prepend(s)});
 
 /* v4.4.1 mobile sheet controller — accessible, back-button aware, app-like */
