@@ -17,7 +17,7 @@ async function pay(items,button,message){
   if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/'||link.searchParams.size!==1||!link.searchParams.has('gateway'))throw Error('unsafe_gateway_link');
   location.assign(link.href);
  }catch(e){status(message,'اتصال به سامانه پرداخت برقرار نشد. وجهی پرداخت نشده است.')}
- finally{button.disabled=true;button.textContent='برای تلاش مجدد، وضعیت درگاه را با تازه‌سازی صفحه بررسی کنید';}
+ finally{button.disabled=false;button.textContent='تلاش مجدد برای پرداخت امن';}
 }
 function mount(host,kind,items){
  if(!host)return;
@@ -56,7 +56,7 @@ async function start(){
    vip?fetch('/assets/data/vip-catalog.json',{cache:'no-store'}).then(x=>{if(!x.ok)throw Error('catalog');return x.json()}):Promise.resolve(null),
    services?fetch('/assets/data/service-catalog.json',{cache:'no-store'}).then(x=>{if(!x.ok)throw Error('catalog');return x.json()}):Promise.resolve(null)
   ]);
-  if(vip)mount(vip,'vip',v.services.filter(x=>x.checkout_enabled===true));
+  if(vip)mount(vip,'vip',v.services);
   if(services)mount(services,'service',s.services);
   // A public catalogue does not prove that payment and fulfilment are available.
   let health=null;
