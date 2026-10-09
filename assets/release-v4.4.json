@@ -1,5 +1,5 @@
 {
-  "version": "4.4.0",
+  "version": "4.4.1",
   "date": "2026-10-09",
   "site": "https://drjavadrezazadeh.com",
   "repository": "drrezazadeh65/drjavadrezazadeh.com",
@@ -24,5 +24,5 @@
   "payment_worker_deployed_from_git": false,
   "commerce_checkout_live_confirmed": false,
   "donations_checkout_live_confirmed": false,
-  "notes": "Content release on main; Cloudflare Worker source requires separate operator deployment. No public payment activation implied."
+  "notes": "v4.4.1 source release in progress on main. Cloudflare Worker source requires separate operator deployment. Commerce, donation and authentication live status remain evidence-gated; no public payment activation implied."
 }
