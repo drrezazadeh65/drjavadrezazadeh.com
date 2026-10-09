@@ -25,14 +25,22 @@ function mount(host,kind,items){
  host.innerHTML='';
  const message=document.createElement('p');message.className='commerce-notice';message.textContent='مبلغ نهایی در سرور بررسی می‌شود. برای پیگیری، شناسه سفارش را نگه دارید و فقط از طریق ایمیل رسمی مکاتبه کنید.';
  for(const item of items){
-  if(item.sellable!==true||!Number.isSafeInteger(item.price)||item.price<1)continue;
+  if(item.sellable!==true||!Number.isSafeInteger(item.price)||item.price<1||
+     typeof item.id!=='string'||!/^[a-z0-9_-]{1,70}$/.test(item.id))continue;
   const card=document.createElement('article');card.className='commerce-card';
+  const image=document.createElement('img');
+  image.src=kind==='service'?'/assets/images/services/'+encodeURIComponent(item.id)+'.svg':'/assets/images/vip-'+encodeURIComponent(item.id)+'.svg';
+  image.alt='تصویر اختصاصی '+String(item.title_fa||'خدمت تخصصی');
+  image.loading='lazy';image.decoding='async';image.width=1200;image.height=675;
+  image.style.cssText='display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:14px;border:1px solid #b6a37d;margin:0 0 16px';
   const title=document.createElement('h3');title.textContent=item.title_fa;
+  const fit=document.createElement('p');fit.className='commerce-fit';
+  fit.textContent=kind==='service'?String(item.fit_fa||'برای آگاهی از دامنه این خدمت، معرفی کامل آن را بخوانید.'):'دامنه، خروجی و شرایط بسته اختصاصی را پیش از تصمیم بررسی کنید.';
   const price=document.createElement('p');price.className='commerce-price';price.textContent=fmt(item.price);
   const button=document.createElement('button');button.type='button';button.className='commerce-pay';button.textContent='در حال بررسی وضعیت درگاه';button.disabled=true;
   const live=document.createElement('p');live.className='commerce-feedback';live.setAttribute('aria-live','polite');
   button.addEventListener('click',()=>pay([{sku:kind+':'+item.id,quantity:1}],button,live));
-  const details=document.createElement('a');details.href=kind==='service'?'/fa/services/'+encodeURIComponent(item.id)+'/':'/fa/vip/'+encodeURIComponent(item.id)+'/';details.textContent=kind==='service'?'معرفی کامل، شرایط و جزئیات خدمت':'مشاهده معرفی بسته‌های VIP';details.className='commerce-details';details.style.cssText='display:block;margin:12px 0;color:inherit;text-decoration:underline;text-underline-offset:5px';card.append(title,price,details,button,live);host.append(card);
+  const details=document.createElement('a');details.href=kind==='service'?'/fa/services/'+encodeURIComponent(item.id)+'/':'/fa/vip/'+encodeURIComponent(item.id)+'/';details.textContent=kind==='service'?'معرفی کامل، شرایط و جزئیات خدمت':'مشاهده معرفی بسته‌های VIP';details.className='commerce-details';details.style.cssText='display:block;margin:12px 0;color:inherit;text-decoration:underline;text-underline-offset:5px';card.append(image,title,fit,price,details,button,live);host.append(card);
  }
  const contact=document.createElement('div');contact.className='commerce-contact';
  const email=document.createElement('a');email.href='mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('هماهنگی خدمات دکتر رضازاده');email.textContent='ارتباط از طریق ایمیل';
