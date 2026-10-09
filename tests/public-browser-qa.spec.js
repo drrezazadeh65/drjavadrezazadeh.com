@@ -1449,3 +1449,44 @@ test('three evidence-led guidance upgrades preserve canonical links and responsi
   }
  }
 });
+
+
+test('book payments remain disabled when legacy Worker omits category readiness',async({page})=>{
+  await page.addInitScript(()=>{
+    localStorage.setItem('jr-book-cart-v1',JSON.stringify([{book_id:'roshanaei',quantity:1}]));
+  });
+  await page.route('**/commerce/health',route=>route.fulfill({
+    status:200,contentType:'application/json',
+    body:JSON.stringify({ok:true,service:'commerce',checkout:true})
+  }));
+  for(const route of ['/fa/shop/cart/','/fa/shop/checkout/']){
+    const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    expect(response.status(),route).toBe(200);
+    const button=route.includes('/cart/')?
+      page.locator('[data-book-cart] [data-book-payment]'):
+      page.locator('[data-book-checkout] button.primary');
+    await expect(button).toBeVisible();
+    await expect(button).toBeDisabled();
+    await expect(button).toContainText('هنوز فعال نیست');
+  }
+});
+
+test('all 27 service checkout cards have owned illustrations and no premature payment',async({page})=>{
+  await page.route('**/commerce/health',route=>route.fulfill({
+    status:200,contentType:'application/json',
+    body:JSON.stringify({ok:true,service:'commerce',checkout:true})
+  }));
+  for(const [route,selector,count] of [
+    ['/fa/services/checkout/','[data-commerce-services]',21],
+    ['/fa/vip/','[data-commerce-vip]',6]
+  ]){
+    const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    expect(response.status(),route).toBe(200);
+    const host=page.locator(selector);
+    await expect(host.locator('.commerce-card')).toHaveCount(count);
+    await expect(host.locator('.commerce-card img')).toHaveCount(count);
+    await expect(host.locator('.commerce-card .commerce-fit')).toHaveCount(count);
+    await expect(host.locator('.commerce-pay:enabled')).toHaveCount(0);
+    await expect(host.locator('.commerce-pay')).toHaveCount(count);
+  }
+});
