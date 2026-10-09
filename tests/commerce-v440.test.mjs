@@ -139,7 +139,7 @@ test("server-side price, secure receipt, idempotency, verified callback and free
 test("rejects forged provider factor and does not mark order as paid",async()=>{
  const create=await call("/commerce/create",{method:"POST",origin:SITE,body:{
   items:[{sku:"service:academic_consult_60",quantity:1}],
-  customer:{full_name:"Test Buyer",mobile:"09121234567",terms_accepted:true},
+  customer:{full_name:"Test Buyer",mobile:"09121234567",email:"test-buyer@example.com",terms_accepted:true},
   idempotency_key:crypto.randomUUID()
  }});
  assert.equal(create.status,200);
