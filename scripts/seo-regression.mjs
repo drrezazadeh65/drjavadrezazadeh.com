@@ -607,11 +607,21 @@ else{
   const requiredNoStoreRoutes=[
     '/fa/app/*','/app/*','/fa/login/*','/login/*','/fa/register/*','/register/*','/fa/bazyabi-hesab/*',
     '/en/login/*','/en/register/*','/en/recover/*','/en/account/*',
-    '/fa/assessments/*','/assessments/*','/fa/shop/*','/shop/*',
+    '/fa/assessments/*','/assessments/*',
+    '/fa/shop/cart/*','/fa/shop/checkout/*','/fa/shop/invoice/*','/fa/shop/order/*',
+    '/fa/shop/payment-start/*','/fa/shop/payment-return/*','/fa/shop/payment-result/*',
+    '/en/shop/cart/*','/en/shop/checkout/*','/en/shop/invoice/*','/en/shop/order/*',
+    '/shop/cart/*','/shop/checkout/*','/shop/invoice/*','/shop/order/*',
     '/en/golden-talent/assessment/*','/en/golden-talent/dashboard/*','/en/golden-talent/observer/*',
     '/en/golden-talent/roles/*','/en/golden-talent/student/*','/en/golden-talent/checkout/*','/en/golden-talent/plans/*',
     '/fa/darkhast-moshavere/*','/en/request-consultation/*'
   ];
+  // Public storefront catalogue pages are legitimate search landing pages.
+  // A broad private header rule would suppress their indexing after CDN migration.
+  for(const publicRoot of ['/fa/shop/*','/en/shop/*','/shop/*']){
+    if(headersSource.includes('\n'+publicRoot+'\n'))
+      failures.push('/_headers: public bookstore must not have a blanket noindex rule '+publicRoot);
+  }
   for(const route of requiredNoStoreRoutes){
     const i=headersSource.indexOf('\n'+route+'\n');
     if(i<0){
