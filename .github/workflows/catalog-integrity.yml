@@ -11,6 +11,8 @@ on:
       - 'scripts/catalog-integrity.mjs'
       - 'assets/js/commerce-checkout.js'
       - 'assets/js/book-store.js'
+      - 'fa/shop/checkout/index.html'
+      - 'fa/shop/payment-start/index.html'
       - '.github/workflows/catalog-integrity.yml'
   pull_request:
     paths:
