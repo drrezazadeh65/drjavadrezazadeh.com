@@ -49,7 +49,11 @@
   try{return cleanCart(JSON.parse(localStorage.getItem(CART_KEY)||'[]'))}
   catch(e){return[]}
  }
- function writeCart(items){try{localStorage.setItem(CART_KEY,JSON.stringify(cleanCart(items)))}catch(e){} updateCartBadge();}
+ function writeCart(items){
+  try{localStorage.setItem(CART_KEY,JSON.stringify(cleanCart(items)))}catch(e){}
+  updateCartBadge();
+  try{window.dispatchEvent(new CustomEvent('jr:cart-change',{detail:{count:readCart().reduce((s,x)=>s+(x.quantity||1),0)}}))}catch(e){}
+}
  function updateCartBadge(){const n=readCart().reduce((s,x)=>s+(x.quantity||1),0);document.querySelectorAll('[data-cart-count]').forEach(x=>x.textContent=String(n));}
  async function load(){
   const res=await fetch(root('assets/data/book-catalog.json'),{cache:'no-store'});
@@ -117,7 +121,7 @@
   const books=cart.map(item=>({item,book:data.books.find(b=>b.id===item.book_id)})).filter(row=>row.book);
   host.replaceChildren();
   if(!books.length){
-   host.innerHTML='<p class="lead">'+(isFa?'سبد انتخاب کتاب خالی است.':'Your book selection is empty.')+'</p>';
+   host.innerHTML='<div class="cart-empty-state" role="status"><strong>'+(isFa?'سبد شما هنوز خالی است':'Your cart is empty')+'</strong><p>'+(isFa?'کتاب‌ها را در فروشگاه مرور کنید و انتخابتان را به همین سبد اضافه کنید.':'Browse the bookstore and add your selection to this cart.')+'</p><a class="button primary" href="'+root((isFa?'fa':'en')+'/shop/')+'">'+(isFa?'رفتن به فروشگاه':'Browse books')+'</a></div>';
    host.onclick=null;
    return;
   }
@@ -255,6 +259,10 @@
   const books=cart.map(x=>({item:x,book:data.books.find(b=>b.id===x.book_id)})).filter(x=>x.book);
   const valid=books.length>0&&books.every(x=>ready(x.book));
   const deliveryCaptureReady=false; // No secure order-linked shipping persistence is deployed.
+  if(!books.length){
+   host.innerHTML='<div class="checkout-empty-state" role="status"><p class="kicker">'+(isFa?'تسویه':'Checkout')+'</p><h2>'+(isFa?'سبد شما خالی است':'Your cart is empty')+'</h2><p>'+(isFa?'برای ادامه، ابتدا کتاب موردنظر را از فروشگاه به سبد اضافه کنید.':'Add a book from the bookstore before continuing to checkout.')+'</p><div class="actions"><a class="button primary" href="'+root((isFa?'fa':'en')+'/shop/')+'">'+(isFa?'مرور کتاب‌ها':'Browse books')+'</a><a class="button" href="'+root((isFa?'fa':'en')+'/shop/cart/')+'">'+(isFa?'بازگشت به سبد':'Back to cart')+'</a></div></div>';
+   return;
+  }
   host.innerHTML='<p class="kicker">'+(isFa?'تسویه امن':'Secure checkout')+'</p><h1>'+(isFa?'سفارش کتاب':'Book order')+'</h1>'+
    '<p class="lead">'+(isFa?'اطلاعات سفارش و مبلغ نهایی پیش از انتقال به درگاه دوباره بررسی می‌شود و سفارش فقط پس از تأیید موفق پرداخت نهایی خواهد شد.':'Order details and the final amount are checked again before payment, and the order is completed only after successful payment confirmation.')+'</p>'+
    '<div class="store-notice">'+(valid?(isFa?'ارسال کتاب رایگان است. مبلغ نهایی در سرور محاسبه می‌شود و پس از تأیید بانکی رسید صادر خواهد شد.':'The catalogue and prices are ready; order completion and payment become available after fulfilment/return terms are confirmed and the verified payment gateway is activated.'):(isFa?'در حال حاضر محصول قیمت‌گذاری‌شده و قابل‌فروش در کاتالوگ فعال نیست.':'There is currently no verified priced and sellable book in the active catalogue.'))+'</div>'+
@@ -276,11 +284,20 @@
    host.querySelector('.actions').appendChild(btn);host.appendChild(feedback);
   }
  }
+ document.querySelectorAll('[data-book-cart],[data-book-checkout],[data-book-catalog],[data-book-detail]').forEach(host=>{
+  if(host.children.length)return;
+  host.innerHTML='<div class="store-loading" role="status" aria-live="polite"><span class="store-loading-dot" aria-hidden="true"></span><span>'+(isFa?'در حال آماده‌سازی فروشگاه…':'Preparing the store…')+'</span></div>';
+ });
  load().then(async data=>{
   renderCatalog(data);renderDetail(data);renderCart(data);renderCheckout(data);updateCartBadge();
   bookPaymentReady=await verifyBookPaymentCapability();
   // Re-render after a fresh explicit readiness check; controls remain disabled on uncertainty.
   renderCart(data);renderCheckout(data);
- }).catch(()=>document.querySelectorAll('[data-store-error]').forEach(x=>x.hidden=false));
+ }).catch(()=>document.querySelectorAll('[data-store-error]').forEach(x=>{
+   x.hidden=false;
+   x.setAttribute('role','alert');
+   x.innerHTML=(isFa?'اطلاعات فروشگاه موقتاً در دسترس نیست. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.':'Store information is temporarily unavailable. Check your connection and try again.')+' <button type="button" class="button" data-store-retry>'+(isFa?'تلاش دوباره':'Try again')+'</button>';
+  }));
+ document.addEventListener('click',e=>{if(e.target.closest('[data-store-retry]'))location.reload()});
  updateCartBadge();
 })();
