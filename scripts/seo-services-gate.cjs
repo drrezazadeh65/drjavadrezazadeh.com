@@ -83,6 +83,16 @@ assert(checkoutClient.includes('health?.capabilities?.[kind]'),'Checkout must re
 assert(checkoutClient.includes('channel===true'),'Absent service capability must fail closed');
 assert(!checkoutClient.includes('channel===undefined'),'Unspecified capability cannot authorize checkout');
 
+for(const backend of ['payment-api/commerce-routes.js','payment-api/worker-single-file-candidate.js']){
+ const source=read(backend);
+ assert(source.includes('env.ORDER_EMAIL_FULFILMENT_CONFIRMED==="true"'),backend+': health must require order-linked email readiness');
+ assert(source.includes('if(env.ORDER_EMAIL_FULFILMENT_CONFIRMED!=="true")return fail("order_email_not_configured",503);'),backend+': create must reject unconfigured email fulfilment');
+ for(const [kind,flag] of [['book','BOOK_SHIPPING_CONFIRMED'],['service','SERVICE_BOOKING_CONFIRMED'],['vip','VIP_BOOKING_CONFIRMED']]){
+  assert(source.includes('if(lines.some(x=>x.kind==="'+kind+'")&&env.'+flag+'!=="true")'),backend+': create must enforce '+kind+' operational readiness server-side');
+ }
+}
+
+
 assert(checkoutClient.includes("'/fa/vip/'+encodeURIComponent(item.id)"),'VIP purchase card must link to its specific detail page');
 const auth=JSON.parse(read('platform/identity-auth-policy.json'));
 assert(auth.primary_login_identifier==='EMAIL' && auth.registration.activation_requires==='EMAIL_VERIFICATION' && auth.registration.phone_is_authenticator===false && auth.recovery.channel==='EMAIL', 'Email-only identity and verification policy was altered');
