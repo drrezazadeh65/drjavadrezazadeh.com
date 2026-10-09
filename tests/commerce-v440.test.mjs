@@ -12,7 +12,7 @@ const buyer={full_name:"خریدار نمونه آزمون",mobile:"09121234567"
  province:"تهران",city:"تهران",address:"خیابان نمونه، کوچه دوم، پلاک ۱۰",postal_code:"1234567890",
  terms_accepted:true};
 const orders=new Map(),refunds=new Map();
-let gatewayId=123456,verifyMismatch=false,callbackAttempts=0;
+let gatewayId=123456,verifyMismatch=false,callbackAttempts=0,emailRequests=0;
 function db(){
  return {prepare(sql){let vals=[];
   return {bind(...args){vals=args;return this},
@@ -49,7 +49,7 @@ function db(){
      Object.assign(o,{state:"paid",fulfilment_state:fulfil,provider_trans_id:trans,paid_at:new Date().toISOString()});
      return {meta:{changes:1}};
     }
-    if(sql.includes("receipt_email_sent_at"))return {meta:{changes:1}};
+    if(sql.includes("receipt_email_sent_at")){const o=orders.get(vals[0]);if(o)o.receipt_email_sent_at=new Date().toISOString();return {meta:{changes:1}};}
     throw new Error("Unexpected D1 SQL: "+sql);
    }
   };
@@ -62,6 +62,7 @@ globalThis.fetch=async (input,init={})=>{
  if(u.endsWith("assets/data/book-catalog.json"))return Response.json({books:[book]});
  if(u.endsWith("assets/data/service-catalog.json"))return Response.json({currency:"IRT",services:[service]});
  if(u.endsWith("assets/data/vip-catalog.json"))return Response.json({currency:"IRT",services:[vip]});
+ if(u==="https://api.resend.com/emails"){emailRequests++;return Response.json({id:"mock-email-"+emailRequests});}
  if(u.endsWith("/gateway-send"))return new Response(String(gatewayId++),{status:200});
  if(u.endsWith("/gateway-result-second")){
   callbackAttempts++;
@@ -182,5 +183,30 @@ test("CORS permits protected browser GET preflights and admin reads",async()=>{
   assert.equal(response.headers.get("Access-Control-Allow-Origin"),SITE);
   assert.ok(response.headers.get("Access-Control-Allow-Methods").split(",").includes("GET"));
   assert.ok(response.headers.get("Access-Control-Allow-Headers").toLowerCase().includes("authorization"));
+ }
+});
+
+test("protected receipt resend is real, rate-limited and never claims inbox delivery",async()=>{
+ const body={items:[{sku:"book:roshanaei",quantity:1}],customer:buyer,idempotency_key:crypto.randomUUID()};
+ const created=await call("/commerce/create",{method:"POST",origin:SITE,body});
+ assert.equal(created.status,200);
+ const {orderId,receiptAccessToken}=await created.json(),order=orders.get(orderId);
+ const callback=await call("/commerce/callback?order="+orderId+"&id_get="+order.provider_id_get+"&trans_id=314159");
+ assert.equal(callback.status,303);
+ Object.assign(env,{INVOICE_EMAIL_ENABLED:"true",RESEND_API_KEY:"mock-resend-not-live",INVOICE_FROM_EMAIL:"receipts@example.com"});
+ const request=()=>call("/commerce/receipt/resend",{method:"POST",origin:SITE,
+  headers:{Authorization:"Bearer "+receiptAccessToken},body:{order:orderId}});
+ try{
+  const first=await request();assert.equal(first.status,200);
+  const one=await first.json();assert.equal(one.accepted_for_delivery,true);
+  assert.equal(one.delivered,false,"an accepted email is not proof of final delivery");
+  assert.equal(emailRequests,1);
+  const tooSoon=await request();assert.equal(tooSoon.status,429);
+  assert.equal(emailRequests,1,"cooldown prevents duplicate email requests");
+  orders.get(orderId).receipt_email_sent_at=new Date(Date.now()-11*60*1000).toISOString();
+  const later=await request();assert.equal(later.status,200);
+  assert.equal(emailRequests,2,"actual resend after cooldown");
+ }finally{
+  delete env.INVOICE_EMAIL_ENABLED;delete env.RESEND_API_KEY;delete env.INVOICE_FROM_EMAIL;
  }
 });
