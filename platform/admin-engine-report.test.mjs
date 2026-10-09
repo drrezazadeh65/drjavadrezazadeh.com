@@ -14,7 +14,7 @@ test('no signal means unverified rather than fabricated production health',()=>{
  assert.ok(report.engines.every(x=>x.status==='UNVERIFIED'&&x.metrics.requests_24h===null));
 });
 test('only explicitly server-verified signal can be shown as active',()=>{
- const report=buildAdminEngineReport({authorization:admin,signals:{
+ const report=buildAdminEngineReport({authorization:admin,as_of:'2026-10-09T20:05:00Z',signals:{
   commerce:{server_verified:true,status:'ACTIVE',last_verified_at:'2026-10-09T20:00:00Z',requests_24h:25,errors_24h:0},
   crm:{server_verified:false,status:'ACTIVE',last_verified_at:'2026-10-09T20:00:00Z',requests_24h:900}
  }});
@@ -22,7 +22,7 @@ test('only explicitly server-verified signal can be shown as active',()=>{
  assert.equal(report.engines.find(x=>x.id==='crm').status,'UNVERIFIED');
 });
 test('untrusted metrics and raw signal payload are never copied to report',()=>{
- const report=buildAdminEngineReport({authorization:admin,signals:{
+ const report=buildAdminEngineReport({authorization:admin,as_of:'2026-10-09T20:05:00Z',signals:{
   commerce:{server_verified:true,status:'DEGRADED',last_verified_at:'2026-10-09T20:00:00Z',requests_24h:-1,errors_24h:2,secret:'do-not-leak',email:'private@example.com'}
  }});
  const item=report.engines.find(x=>x.id==='commerce');
