@@ -155,3 +155,11 @@ test("rejects cross-origin and invalid service quantities",async()=>{
   items:[{sku:"service:academic_consult_60",quantity:2}],customer:buyer,idempotency_key:crypto.randomUUID()}});
  assert.equal(invalidQty.status,400);
 });
+
+test("admin routes fail closed without Cloudflare Access configuration",async()=>{
+ const response=await call("/commerce/admin/orders");
+ assert.equal(response.status,503);
+ const body=await response.json();
+ assert.equal(body.ok,false);
+ assert.equal(body.error,"admin_access_unconfigured");
+});
