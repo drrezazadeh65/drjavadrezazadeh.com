@@ -16,6 +16,13 @@ export function createAdminEngineReportWorker({verifySession,collectSignals,cloc
     'Content-Type':'application/json; charset=utf-8','Cache-Control':'private, no-store, max-age=0',
     'X-Robots-Tag':'noindex, nofollow','X-Content-Type-Options':'nosniff','Vary':'Origin'
    }});
+  // Reject explicit cross-site fetch metadata even when Origin is absent.
+  const site=request.headers.get('Sec-Fetch-Site');
+  if(site&&site!=='same-origin'&&site!=='none')
+   return new Response(JSON.stringify({error:'CROSS_SITE_FORBIDDEN'}),{status:403,headers:{
+    'Content-Type':'application/json; charset=utf-8','Cache-Control':'private, no-store, max-age=0',
+    'X-Robots-Tag':'noindex, nofollow','X-Content-Type-Options':'nosniff','Vary':'Sec-Fetch-Site'
+   }});
   const report=await handleAdminEngineReport({
    request,authenticate:req=>verifySession({request:req,env,ctx}),
    collectSignals:args=>collectSignals({...args,env,ctx}),clock
