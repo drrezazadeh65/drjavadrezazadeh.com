@@ -8,7 +8,6 @@ exclude:
   - foundation
   - node_modules
   - platform
-  - payment-backend
   - scripts
   - tests
   - test-results
