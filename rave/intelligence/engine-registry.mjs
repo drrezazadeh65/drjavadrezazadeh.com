@@ -1,5 +1,6 @@
 /** Standalone engine catalog. No site or third-party connections. */
 export const ENGINES=Object.freeze([
+{id:'ai',titleFa:'هوش مصنوعی',titleEn:'AI Engine',capabilities:['providerRouting','consent','privacy','taskPlanning','sourceGrounding','humanReview']},
 {id:'seo',titleFa:'مستر سئو',titleEn:'Master SEO',capabilities:['technicalAudit','indexation','bilingualHreflang','schema','contentQuality','searchConsole']},
 {id:'rave',titleFa:'راو',titleEn:'RAVE',capabilities:['acquisition','engagement','conversion','retention','attribution','reports']},
 {id:'golden-talent',titleFa:'گلدن تلنت',titleEn:'Golden Talent',capabilities:['instruments','assessment','scoring','pathways','reports','consent']},
