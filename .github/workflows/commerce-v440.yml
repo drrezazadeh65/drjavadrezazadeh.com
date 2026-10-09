@@ -11,6 +11,8 @@ on:
       - "assets/data/service-catalog.json"
       - "assets/data/vip-catalog.json"
       - "fa/services/**"
+      - "assets/images/services/**"
+      - "tests/service-image-v440.test.mjs"
       - "tests/service-finder-v440.test.mjs"
       - "fa/vip/**"
       - ".github/workflows/commerce-v440.yml"
@@ -32,4 +34,4 @@ jobs:
           node --check assets/js/checkout-v440.js
           node --check assets/js/invoice-v440.js
       - name: Test invoice authorization and payment lifecycle with mocked gateway (no real charge)
-        run: node --test tests/commerce-v440.test.mjs tests/commerce-catalog-v440.test.mjs tests/service-finder-v440.test.mjs
+        run: node --test tests/commerce-v440.test.mjs tests/commerce-catalog-v440.test.mjs tests/service-finder-v440.test.mjs tests/service-image-v440.test.mjs
