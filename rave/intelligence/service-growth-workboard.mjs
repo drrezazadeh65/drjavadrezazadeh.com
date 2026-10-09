@@ -1,10 +1,15 @@
 /** Turn ranked growth blockers into an offline, reviewable execution board. */
 import {prioritizeServiceGrowthFixes} from './service-growth-priority-planner.mjs';
 const validId=id=>typeof id==='string'&&id.trim().length>0;
+const stableTaskId=task=>'growth-'+[task.serviceId,task.source,task.locale,task.code].map(v=>encodeURIComponent(String(v??'unknown'))).join('~');
 export function buildServiceGrowthWorkboard(services=[]){
  const result=prioritizeServiceGrowthFixes(services);
- const tasks=result.tasks.map((task,index)=>({
-  id:'growth-'+String(index+1).padStart(4,'0'),
+ const seen=new Map();
+ const tasks=result.tasks.map(task=>{
+  const base=stableTaskId(task);
+  const count=(seen.get(base)??0)+1;seen.set(base,count);
+  return {
+  id:count===1?base:base+'~'+count,
   serviceId:task.serviceId,
   source:task.source,
   locale:task.locale,
@@ -15,7 +20,7 @@ export function buildServiceGrowthWorkboard(services=[]){
   reviewerRequired:true,
   evidence:[],
   approved:false
- }));
+ };});
  return {tasks,summary:{servicesReviewed:result.servicesReviewed,totalTasks:tasks.length,blocked:tasks.length,approved:0},autoDeploy:false,productionTouched:false};
 }
 export function submitGrowthEvidence(board,taskId,{references=[],reviewer}={}){
