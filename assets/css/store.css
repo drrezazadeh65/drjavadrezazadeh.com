@@ -143,3 +143,22 @@
   .book-cover img{max-width:min(78vw,300px);max-height:86%;object-fit:contain}
   .book-product-copy{padding:21px 20px 24px}
 }
+
+/* v4.4.1 mobile commerce states */
+.store-loading,.cart-empty-state,.checkout-empty-state{border:1px solid rgba(199,163,96,.32);border-radius:18px;padding:20px;background:rgba(255,255,255,.025)}
+.store-loading{display:flex;align-items:center;gap:12px;min-height:76px;color:var(--muted,#c8c2b6)}
+.store-loading-dot{width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:store-spin .8s linear infinite}
+.cart-empty-state strong,.checkout-empty-state h2{display:block;margin:0 0 8px}
+.cart-empty-state p,.checkout-empty-state p{margin:0 0 16px}
+@keyframes store-spin{to{transform:rotate(360deg)}}
+@media(max-width:700px){
+ .store-loading,.cart-empty-state,.checkout-empty-state{padding:18px;border-radius:20px}
+ .cart-empty-state .button,.checkout-empty-state .button,[data-store-retry]{width:100%;min-height:50px;display:flex;align-items:center;justify-content:center}
+ .cart-row{padding:16px!important;border-radius:18px!important}
+ .cart-row>div:first-child{flex:1 1 100%}
+ .cart-row>div:nth-child(2){font-weight:800}
+ .cart-summary{position:relative;border-radius:20px!important;padding:18px!important}
+ .cart-summary .actions{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+ .cart-summary .actions :where(a,button){width:100%;min-height:50px;justify-content:center}
+}
+@media(prefers-reduced-motion:reduce){.store-loading-dot{animation:none}}
