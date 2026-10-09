@@ -296,7 +296,8 @@ export async function commerce(request,env){
   try{
    await env.DB.prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,items_json,state,customer_json,receipt_token_sha256,idempotency_key,fulfilment_state,receipt_token_wrapped,request_fingerprint) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)")
     .bind(order,factor,total,amount,"IRT",JSON.stringify(lines),"created",JSON.stringify(validated.customer),accessHash,idem,"awaiting_payment",wrapped,fingerprint).run();
-   const callback=SITE+"/fa/shop/payment-return/?order="+encodeURIComponent(order)+"&kind=commerce";
+   // Direct Worker callback handles both GET and POST; static GitHub Pages cannot accept POST callbacks.
+   const callback="https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/commerce/callback?order="+encodeURIComponent(order);
    const raw=await gateway("gateway-send",{amount:String(amount),redirect:callback,factorId:factor,description:"Order "+order},env.BITPAY_API_KEY);
    if(!num(raw)){await env.DB.prepare("UPDATE commerce_orders SET state='failed',updated_at=CURRENT_TIMESTAMP WHERE id=? AND state='created'").bind(order).run();return fail("gateway_rejected",502)}
    await env.DB.prepare("UPDATE commerce_orders SET state='pending',provider_id_get=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND state='created'").bind(raw,order).run();
