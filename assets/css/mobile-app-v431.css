@@ -584,3 +584,16 @@
 @media(display-mode:standalone) and (max-width:900px){
   .app-dock{bottom:max(6px,env(safe-area-inset-bottom))!important}
 }
+
+/* v4.4.1 persistent cart state in app dock */
+@media(max-width:900px){
+ .app-dock a[data-app-tab="bag"]{position:relative}
+ .app-cart-badge{
+  position:absolute;top:4px;inset-inline-end:calc(50% - 24px);
+  min-width:18px;height:18px;padding:0 5px;border-radius:999px;
+  display:grid;place-items:center;background:#f0d694;color:#16130d;
+  border:2px solid rgba(10,10,11,.95);font-size:10px;font-weight:900;line-height:1;
+  box-shadow:0 4px 12px rgba(0,0,0,.35)
+ }
+ .app-cart-badge[hidden]{display:none!important}
+}
