@@ -5,6 +5,7 @@ exclude:
   - .github
   - docs
   - edge
+  - payment-api
   - foundation
   - node_modules
   - platform
