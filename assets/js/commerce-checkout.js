@@ -17,7 +17,7 @@ async function pay(items,button,message){
   if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/'||link.searchParams.size!==1||!link.searchParams.has('gateway'))throw Error('unsafe_gateway_link');
   location.assign(link.href);
  }catch(e){status(message,'اتصال به سامانه پرداخت برقرار نشد. وجهی پرداخت نشده است.')}
- finally{button.disabled=false}
+ finally{button.disabled=true;button.textContent='برای تلاش مجدد، وضعیت درگاه را با تازه‌سازی صفحه بررسی کنید';}
 }
 function mount(host,kind,items){
  if(!host)return;
@@ -59,7 +59,7 @@ async function start(){
   for(const [host,kind] of [[vip,'vip'],[services,'services']]){
    if(!host)continue;
    const channel=health?.capabilities?.[kind];
-   const ready=health?.checkout===true && (channel===undefined || channel===true);
+   const ready=health?.checkout===true && channel===true;
    for(const button of host.querySelectorAll('.commerce-pay')){
     button.disabled=!ready;
     button.textContent=ready?'پرداخت امن این خدمت':'درگاه این خدمت هنوز آماده نیست';
