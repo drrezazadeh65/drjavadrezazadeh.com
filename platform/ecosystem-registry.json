@@ -453,6 +453,41 @@
       "id": "journal-submission-staging",
       "route": "/journal/submission/",
       "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "fa-shop-public-landing",
+      "route": "/fa/shop/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "fa-shop-public-customer-policy-",
+      "route": "/fa/shop/customer-policy/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "fa-shop-public-purchase-guide-",
+      "route": "/fa/shop/purchase-guide/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "en-shop-public-landing",
+      "route": "/en/shop/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "en-shop-public-customer-policy-",
+      "route": "/en/shop/customer-policy/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "en-shop-public-purchase-guide-",
+      "route": "/en/shop/purchase-guide/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "fa-shop-receipt-information",
+      "route": "/fa/shop/receipt/",
+      "policy": "PUBLIC_CANDIDATE"
     }
   ],
   "origin_states": {
