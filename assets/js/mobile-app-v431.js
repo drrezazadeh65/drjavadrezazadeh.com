@@ -78,4 +78,41 @@ if(!active){
 }
 if(active){active.classList.add('is-active');active.setAttribute('aria-current','page')}
 qa('.home-focus-strip a,.audience-gate').forEach(a=>{if(a.querySelector('.app-card-icon'))return;const s=document.createElement('span');s.className='app-card-icon';s.innerHTML=icon(iconFor(a.href,a.textContent||''));s.setAttribute('aria-hidden','true');a.prepend(s)});
+
+/* v4.4.1 mobile sheet controller — accessible, back-button aware, app-like */
+const menuTrigger=q('[data-nav-toggle]');
+const menuClose=q('[data-nav-close]');
+let lastFocus=null;
+const focusables=()=>qa('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',panel).filter(el=>!el.hidden);
+const setMenu=(open,{history=true}={})=>{
+ if(open){
+   lastFocus=document.activeElement;
+   panel.hidden=false;
+   requestAnimationFrame(()=>panel.classList.add('is-open'));
+   document.documentElement.classList.add('nav-open');
+   menuTrigger?.setAttribute('aria-expanded','true');
+   if(history && history!==false && !history.state?.mobileAppMenu) window.history.pushState({...history.state,mobileAppMenu:true},'');
+   requestAnimationFrame(()=>menuClose?.focus({preventScroll:true}));
+ }else{
+   panel.classList.remove('is-open');
+   document.documentElement.classList.remove('nav-open');
+   menuTrigger?.setAttribute('aria-expanded','false');
+   window.setTimeout(()=>{panel.hidden=true},220);
+   if(lastFocus&&document.contains(lastFocus)) lastFocus.focus({preventScroll:true});
+ }
+};
+menuTrigger?.addEventListener('click',()=>setMenu(panel.hidden||!panel.classList.contains('is-open')));
+menuClose?.addEventListener('click',()=>setMenu(false));
+panel.addEventListener('click',e=>{if(e.target===panel)setMenu(false)});
+panel.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){e.preventDefault();setMenu(false);return}
+ if(e.key!=='Tab')return;
+ const f=focusables();if(!f.length)return;
+ const first=f[0],last=f[f.length-1];
+ if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+ else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+});
+window.addEventListener('popstate',()=>{if(panel.classList.contains('is-open'))setMenu(false,{history:false})});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&panel.classList.contains('is-open'))setMenu(false,{history:false})});
+
 })();
