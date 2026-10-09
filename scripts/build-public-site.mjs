@@ -55,10 +55,12 @@ walk(out);
 const html=all.filter(p=>p.endsWith('.html'));
 // The additional public HTML route is a strictly noindex payment-return relay.
 // Keep a fixed route count as a guard against accidentally publishing engineering files.
-const approvedPublicHtmlRoutes=286;
+const approvedPublicHtmlRoutes=287;
 if(html.length!==approvedPublicHtmlRoutes) failures.push(
   'Expected '+approvedPublicHtmlRoutes+' public HTML routes in sanitized artifact, found '+html.length
 );
+const engineStatus='fa/app/engine-status/index.html';
+if(!fs.existsSync(path.join(out,engineStatus))) failures.push('Public engine dashboard missing: '+engineStatus);
 const paymentRelay='fa/shop/payment-return/index.html';
 const relayPath=path.join(out,paymentRelay);
 if(!fs.existsSync(relayPath)) {
