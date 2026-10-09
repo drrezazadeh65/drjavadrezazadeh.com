@@ -31,11 +31,11 @@ for(const b of books.books){
   check(b.publication_status==='PUBLISHED','book: unexpected publication status '+b.id);
   check(b.commerce?.currency==='IRT' && b.commerce?.price===2000000,'book: price or currency mismatch '+b.id);
   const cover=b.bibliography?.cover_image;
-  check(typeof cover==='string' && cover.startsWith('/assets/images/books/') && existsSync(join(root,cover||'')),'book: missing approved cover asset '+b.id);
+  check(typeof cover==='string' && cover.startsWith('/assets/images/books/') && existsSync(join(root,(cover||'').replace(/^\//,''))),'book: missing approved cover asset '+b.id);
 }
 for(const s of vip.services){
   check(s.detail_url===`/fa/vip/${s.id}/`,'VIP: noncanonical detail URL '+s.id);
-  check(existsSync(join(root,s.detail_url||'', 'index.html')),'VIP: detail page missing '+s.id);
+  check(existsSync(join(root,(s.detail_url||'').replace(/^\//,''), 'index.html')),'VIP: detail page missing '+s.id);
 }
 for(const s of standard.services){
   check(existsSync(join(root,'fa/services',s.id,'index.html')),'standard: detail page missing '+s.id);
