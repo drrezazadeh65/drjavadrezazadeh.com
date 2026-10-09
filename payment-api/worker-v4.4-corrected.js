@@ -458,9 +458,31 @@ async function commerce(request,env){
 
   const id=u.searchParams.get("order");if(!uuid(id))return fail("invalid_order");
 
-  const row=await env.DB.prepare("SELECT state FROM commerce_orders WHERE id=?").bind(id).first();
+  const row=await env.DB.prepare("SELECT state,amount_toman,currency,items_json,paid_at,provider_trans_id FROM commerce_orders WHERE id=?").bind(id).first();
 
-  return row?reply({ok:true,state:row.state}):fail("order_not_found",404);
+  if(!row)return fail("order_not_found",404);
+  if(row.state!=="paid")return reply({ok:true,state:row.state});
+  if(!row.paid_at||!row.provider_trans_id||row.currency!=="IRT"||!Number.isSafeInteger(row.amount_toman)||row.amount_toman<1)
+   return fail("receipt_unverified",409);
+
+  let stored;try{stored=JSON.parse(row.items_json)}catch{return fail("receipt_unverified",409)}
+  if(!Array.isArray(stored)||stored.length<1||stored.length>20)return fail("receipt_unverified",409);
+
+  const receiptItems=[];let receiptTotal=0;
+  for(const item of stored){
+   if(!item||!["book","service","vip"].includes(item.kind)||typeof item.sku!=="string"||
+      !/^(?:book|service|vip):[a-z0-9_-]{1,70}$/.test(item.sku)||typeof item.title!=="string"||
+      item.title.length<1||item.title.length>150||!Number.isSafeInteger(item.price)||item.price<1||
+      !Number.isSafeInteger(item.quantity)||item.quantity<1||item.quantity>20||
+      !Number.isSafeInteger(item.subtotal)||item.subtotal!==item.price*item.quantity)
+    return fail("receipt_unverified",409);
+   receiptTotal+=item.subtotal;
+   if(!Number.isSafeInteger(receiptTotal))return fail("receipt_unverified",409);
+   receiptItems.push({sku:item.sku,kind:item.kind,title:safeText(item.title),quantity:item.quantity,unitToman:item.price,subtotalToman:item.subtotal});
+  }
+  if(receiptTotal!==row.amount_toman)return fail("receipt_unverified",409);
+
+  return reply({ok:true,state:"paid",receipt:{orderId:id,currency:"IRT",amountToman:row.amount_toman,items:receiptItems,paidAt:row.paid_at}});
 
  }
 
