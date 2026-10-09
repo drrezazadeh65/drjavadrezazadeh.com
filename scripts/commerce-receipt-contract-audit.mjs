@@ -3,6 +3,14 @@ import fs from 'node:fs';
 const worker=fs.readFileSync('payment-api/worker-v4.4-corrected.js','utf8');
 const page=fs.readFileSync('fa/shop/payment-result/index.html','utf8');
 const failures=[];
+const checkout=fs.readFileSync('assets/js/book-store.js','utf8');
+const checkoutPage=fs.readFileSync('fa/shop/checkout/index.html','utf8');
+const paymentStart=fs.readFileSync('fa/shop/payment-start/index.html','utf8');
+if(!checkout.includes('const deliveryCaptureReady=false'))failures.push('book checkout must fail closed until shipping persistence is implemented');
+if(!checkout.includes('btn.disabled=!(bookPaymentReady&&deliveryCaptureReady)'))failures.push('book checkout payment button must require delivery readiness');
+if(!checkoutPage.includes('<section data-book-checkout></section>'))failures.push('dynamic checkout host must not contain shipping form');
+if(!paymentStart.includes('btn.setAttribute("rel","noopener noreferrer")'))failures.push('payment handoff must retain noreferrer');
+if(!paymentStart.includes('params.getAll("gateway").length!==1'))failures.push('payment handoff must reject duplicate gateway parameters');
 
 for(const needle of [
  'SELECT state,amount_toman,currency,items_json,paid_at,provider_trans_id FROM commerce_orders',
