@@ -5,6 +5,7 @@ const CONTACT_EMAIL='dr.rezazadeh65@gmail.com';
 const fmt=n=>new Intl.NumberFormat('fa-IR').format(n)+' تومان';
 const status=(el,msg)=>{if(el){el.textContent=msg;el.setAttribute('role','status');el.setAttribute('aria-live','polite')}};
 async function pay(items,button,message){
+ if(button.disabled)return;
  if(!Array.isArray(items)||!items.length)return status(message,'هیچ محصولی انتخاب نشده است.');
  button.disabled=true;status(message,'در حال ایجاد سفارش امن...');
  try{
@@ -15,10 +16,11 @@ async function pay(items,button,message){
   }
   if(typeof data.paymentUrl!=='string')throw Error('missing_gateway_link');
   const link=new URL(data.paymentUrl,location.origin);
-  if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/'||link.searchParams.size!==1||!link.searchParams.has('gateway'))throw Error('unsafe_gateway_link');
+  if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/'||link.searchParams.size!==1||!link.searchParams.get('gateway'))throw Error('unsafe_gateway_link');
+  button.dataset.redirecting='true';
   location.assign(link.href);
  }catch(e){status(message,'اتصال به سامانه پرداخت برقرار نشد. وجهی پرداخت نشده است.')}
- finally{button.disabled=false;button.textContent='تلاش مجدد برای پرداخت امن';}
+ finally{if(!button.dataset.redirecting){button.disabled=false;button.textContent='تلاش مجدد برای پرداخت امن';}}
 }
 function mount(host,kind,items){
  if(!host)return;
