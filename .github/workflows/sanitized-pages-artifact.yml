@@ -48,6 +48,7 @@ jobs:
           test ! -e .public-site/docs
           test ! -e .public-site/.github
           test ! -e .public-site/assets/media-registry.json
+          test ! -e .public-site/assets/release-v4.4.json
       - name: Upload sanitized public artifact
         uses: actions/upload-artifact@v4
         with:
