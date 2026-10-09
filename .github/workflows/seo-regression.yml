@@ -110,6 +110,8 @@ jobs:
         run: node platform/assistant-runtime.test.mjs
       - name: Run identity authentication policy tests
         run: node platform/identity-auth-policy.test.mjs
+      - name: Run purchaser-only student support authorization tests
+        run: node platform/paid-student-support.test.mjs
       - name: Run module architecture graph tests
         run: node platform/module-governance.test.mjs
       - name: Run platform readiness control
