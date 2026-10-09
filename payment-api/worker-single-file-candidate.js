@@ -347,12 +347,18 @@ async function authorisedReceipt(request,row){
  let mismatch=0;for(let i=0;i<64;i++)mismatch|=digest.charCodeAt(i)^row.receipt_token_sha256.charCodeAt(i);
  return mismatch===0;
 }
+const STUDENT_SUPPORT_SKUS=new Set(["service:academic_consult_60","service:student_parent_90","service:konkur_consult_60","service:konkur_month","service:transcript_analysis","service:field_selection_standard","service:field_selection_comprehensive","service:talent_initial","service:golden_talent_comprehensive","service:golden_talent_premium","vip:academic-direction","vip:university-selection","vip:golden-talent-signature"]);
+function studentEitaaEligible(row){
+ if(row?.state!=="paid"||!row.provider_trans_id||!row.paid_at)return false;
+ try{return JSON.parse(row.items_json||"[]").some(item=>STUDENT_SUPPORT_SKUS.has(item.sku)&&Number(item.quantity)>0)}
+ catch{return false}
+}
+
 function asReceipt(row){
  const customer=JSON.parse(row.customer_json||"{}"),items=JSON.parse(row.items_json||"[]");
  return {invoice_number:"JR-REC-"+row.id.replace(/-/g,"").toUpperCase(),
   order_number:row.id,receipt_date:row.paid_at,kind:"payment_receipt_not_tax_invoice",
   business:"Dr. Javad Rezazadeh Yazdeli",contact_email:"dr.rezazadeh65@gmail.com",
-  contact_eitaa:"https://eitaa.com/DrRezazadeh65",
   customer,items,subtotal_toman:row.amount_toman,shipping_toman:0,discount_toman:0,
   total_toman:row.amount_toman,currency:"IRT",payment_state:row.state,
   fulfilment_state:row.fulfilment_state||"awaiting_payment",
@@ -635,7 +641,7 @@ async function commerce(request,env){
    amount_toman:row.amount_toman,shipping_toman:0,
    recipient_name:customer.recipient_name||customer.full_name||null,
    tracking_code:row.tracking_code||null,invoice_available:row.state==="paid",
-   support_email:"dr.rezazadeh65@gmail.com",support_eitaa:"https://eitaa.com/DrRezazadeh65"
+   support_email:"dr.rezazadeh65@gmail.com",...(studentEitaaEligible(row)?{student_support_eitaa:"https://eitaa.com/DrRezazadeh65"}:{})
   };
   return reply({ok:true,order});
  }

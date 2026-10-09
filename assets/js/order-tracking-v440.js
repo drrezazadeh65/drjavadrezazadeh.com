@@ -33,6 +33,13 @@ async function load(){
   section(status,"وضعیت انجام",fulfil[o.fulfilment_state]||o.fulfilment_state);
   section(status,"شناسه پیگیری مرسوله",o.tracking_code);
   if(o.invoice_available){link.hidden=false;link.href="/fa/shop/invoice/?order="+encodeURIComponent(id);}
+  const studentSupport=document.getElementById("student-support-gate"),studentLink=document.getElementById("student-support-link");
+  studentSupport.hidden=true;studentLink.replaceChildren();
+  if(o.payment_state==="paid"&&o.student_support_eitaa==="https://eitaa.com/DrRezazadeh65"){
+   const a=document.createElement("a");a.href=o.student_support_eitaa;a.target="_blank";a.rel="noopener noreferrer";
+   a.textContent="ورود به پشتیبانی ایتا ویژه خدمات دانش‌آموزی";
+   studentLink.append(a);studentSupport.hidden=false;
+  }
   detail.hidden=false;
   refundBlock.hidden=o.payment_state!=="paid";
   if(o.payment_state==="paid")await getRefundStatus();
