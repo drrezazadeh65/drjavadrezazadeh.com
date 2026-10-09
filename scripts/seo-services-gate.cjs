@@ -70,6 +70,14 @@ assert(index.includes('/fa/pajouhesh/') && index.includes('/fa/entesharat-elmi/'
 const en=read('en/services/index.html');
 assert(en.includes('../academic-profile/') && en.includes('../publications/'),'English services must lead to academic record');
 assert(!/https?:\/\/(?:www\.)?eitaa\.com\/|@DrRezazadeh65/i.test(en),'Public Eitaa ID in English services');
+// Client JavaScript is world-readable: buyer-only support IDs must not ship in it.
+for(const filename of fs.readdirSync(path.join(root,'assets/js')).filter(n=>n.endsWith('.js'))){
+ const script=read('assets/js/'+filename);
+ assert(!/https?:\/\/(?:www\.)?eitaa\.com\/|@DrRezazadeh65/i.test(script),'Public Eitaa contact leaked in JavaScript: '+filename);
+}
+const checkoutClient=read('assets/js/commerce-checkout.js');
+assert(!checkoutClient.includes('customerEmail'),'Checkout must not request an email field ignored by the server');
+assert(checkoutClient.includes("'/fa/vip/'+encodeURIComponent(item.id)"),'VIP purchase card must link to its specific detail page');
 const auth=JSON.parse(read('platform/identity-auth-policy.json'));
 assert(auth.primary_login_identifier==='EMAIL' && auth.registration.activation_requires==='EMAIL_VERIFICATION' && auth.registration.phone_is_authenticator===false && auth.recovery.channel==='EMAIL', 'Email-only identity and verification policy was altered');
 for(const s of catalog){
