@@ -77,6 +77,9 @@ for(const filename of fs.readdirSync(path.join(root,'assets/js')).filter(n=>n.en
 }
 const checkoutClient=read('assets/js/commerce-checkout.js');
 assert(!checkoutClient.includes('customerEmail'),'Checkout must not request an email field ignored by the server');
+assert(checkoutClient.includes("'/commerce/health'"),'Checkout must verify live readiness before enabling payment');
+assert(checkoutClient.includes('button.disabled=true'),'Checkout buttons must default to disabled');
+assert(checkoutClient.includes('health?.capabilities?.[kind]'),'Checkout must respect service-specific readiness');
 assert(checkoutClient.includes("'/fa/vip/'+encodeURIComponent(item.id)"),'VIP purchase card must link to its specific detail page');
 const auth=JSON.parse(read('platform/identity-auth-policy.json'));
 assert(auth.primary_login_identifier==='EMAIL' && auth.registration.activation_requires==='EMAIL_VERIFICATION' && auth.registration.phone_is_authenticator===false && auth.recovery.channel==='EMAIL', 'Email-only identity and verification policy was altered');
