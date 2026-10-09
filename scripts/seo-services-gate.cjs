@@ -47,6 +47,7 @@ for(const service of catalog){
    }catch(e){errors.push('Invalid JSON-LD: '+file)}
   }
   assert(html.includes('class="service-booking-disclosure"'),'Service must disclose unverified booking/payment readiness: '+file);
+  assert(html.includes('مبنای تعرفه و ارزش خدمت'),'Each service must justify its fee through its defined scope and deliverables: '+file);
   assert(!html.includes('انتخاب خدمت و پرداخت'),'Service must not imply live checkout: '+file);
   assert(fs.existsSync(path.join(root,image)),'Missing service image: '+image);
 }
