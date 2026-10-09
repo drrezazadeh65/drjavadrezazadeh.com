@@ -629,7 +629,7 @@ export default {
 
           livePayments: false,
 
-          checkoutReady: true
+          checkoutReady: env.LEGACY_PAYMENT_TEST_ENABLED === "true"
 
         });
 
@@ -655,11 +655,11 @@ export default {
 
       return page(
 
-        "آزمون پرداخت ۱۰٬۰۰۰ تومانی",
+        env.LEGACY_PAYMENT_TEST_ENABLED === "true" ? "آزمون پرداخت ۱۰٬۰۰۰ تومانی" : "پرداخت آزمایشی غیرفعال است.",
 
         "",
 
-        true
+        env.LEGACY_PAYMENT_TEST_ENABLED === "true"
 
       );
 
@@ -690,8 +690,6 @@ export default {
       if (
 
         origin &&
-
-        origin !== "null" &&
 
         !allowedOrigins.has(origin)
 
