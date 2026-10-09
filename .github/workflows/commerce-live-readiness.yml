@@ -1,0 +1,30 @@
+name: Cloudflare Commerce Runtime Readiness
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/commerce-live-readiness-audit.mjs'
+      - 'payment-api/commerce-routes.js'
+      - 'payment-api/worker-single-file-candidate.js'
+      - 'assets/js/commerce-checkout.js'
+      - '.github/workflows/commerce-live-readiness.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commerce-runtime-readiness
+  cancel-in-progress: true
+
+jobs:
+  read-only-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify deployed Cloudflare commerce contract without initiating payment
+        run: node scripts/commerce-live-readiness-audit.mjs
