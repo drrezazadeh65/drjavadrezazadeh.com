@@ -974,5 +974,61 @@
     "category": "خدمات",
     "summary": "معرفی بسته مشاوره راهبردی مدارس و مؤسسات؛ برای بررسی شرایط رزرو و پرداخت با ما تماس بگیرید.",
     "keywords": "مشاوره راهبردی سازمانی خدمت VIP دکتر جواد رضازاده یزدلی"
+  },
+  {
+    "lang": "fa",
+    "title": "فروشگاه کتاب",
+    "path": "fa/shop/",
+    "category": "کتاب",
+    "summary": "فروشگاه رسمی کتاب‌های منتشرشده.",
+    "keywords": "فروشگاه کتاب سپید تاریکی بن‌بست"
+  },
+  {
+    "lang": "fa",
+    "title": "سیاست مشتری",
+    "path": "fa/shop/customer-policy/",
+    "category": "فروشگاه",
+    "summary": "اطلاعات حقوق و شرایط مشتری فروشگاه.",
+    "keywords": "سیاست مشتری خرید کتاب"
+  },
+  {
+    "lang": "fa",
+    "title": "راهنمای خرید",
+    "path": "fa/shop/purchase-guide/",
+    "category": "فروشگاه",
+    "summary": "راهنمای انتخاب و خرید کتاب از فروشگاه رسمی.",
+    "keywords": "راهنمای خرید کتاب"
+  },
+  {
+    "lang": "fa",
+    "title": "اطلاعات رسید",
+    "path": "fa/shop/receipt/",
+    "category": "فروشگاه",
+    "summary": "راهنمای رسید و پیگیری سفارش کتاب.",
+    "keywords": "رسید سفارش کتاب"
+  },
+  {
+    "lang": "en",
+    "title": "Bookstore",
+    "path": "en/shop/",
+    "category": "Books",
+    "summary": "Official bookstore for published books.",
+    "keywords": "bookstore published books"
+  },
+  {
+    "lang": "en",
+    "title": "Customer Policy",
+    "path": "en/shop/customer-policy/",
+    "category": "Store",
+    "summary": "Customer and purchase policy information.",
+    "keywords": "customer policy bookstore"
+  },
+  {
+    "lang": "en",
+    "title": "Purchase Guide",
+    "path": "en/shop/purchase-guide/",
+    "category": "Store",
+    "summary": "Guide to selecting and purchasing published books.",
+    "keywords": "purchase guide books"
   }
 ]
