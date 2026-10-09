@@ -212,3 +212,40 @@ test("protected receipt resend is real, rate-limited and never claims inbox deli
   delete env.INVOICE_EMAIL_ENABLED;delete env.RESEND_API_KEY;delete env.INVOICE_FROM_EMAIL;
  }
 });
+
+
+test("paid student-service buyers alone receive private Eitaa support entitlement",async()=>{
+ const sample={full_name:"Sample Student Buyer",email:"student-buyer@example.com",mobile:"09121234567",terms_accepted:true};
+ const created=await call("/commerce/create",{method:"POST",origin:SITE,body:{
+  items:[{sku:"service:academic_consult_60",quantity:1}],customer:sample,idempotency_key:crypto.randomUUID()
+ }});
+ assert.equal(created.status,200);
+ const {orderId,receiptAccessToken}=await created.json(),order=orders.get(orderId);
+ const route="/commerce/order?order="+orderId;
+ assert.equal((await call(route)).status,403,"unauthorised users never see the private order");
+ const headers={Authorization:"Bearer "+receiptAccessToken};
+ const pending=await call(route,{headers});const pendingBody=await pending.json();
+ assert.equal(pendingBody.order.student_support_eitaa,undefined,"pending payments never grant Eitaa access");
+ const failToken=await call(route,{headers:{Authorization:"Bearer "+ "a".repeat(64)}});
+ assert.equal(failToken.status,403,"wrong capability always denied");
+ const cb=await call("/commerce/callback?order="+orderId+"&id_get="+order.provider_id_get+"&trans_id=88001");
+ assert.equal(cb.status,303,"only bank-verified result marks a service paid");
+ const paid=await call(route,{headers});const paidBody=await paid.json();
+ assert.equal(paidBody.order.student_support_eitaa,"https://eitaa.com/DrRezazadeh65");
+ const unrelated=await call("/commerce/order?order="+orderId,{headers:{Authorization:"Bearer "+"b".repeat(64)}});
+ assert.equal(unrelated.status,403);
+});
+test("paid book-only orders never disclose student Eitaa support",async()=>{
+ const created=await call("/commerce/create",{method:"POST",origin:SITE,body:{
+  items:[{sku:"book:roshanaei",quantity:1}],customer:buyer,idempotency_key:crypto.randomUUID()
+ }});
+ assert.equal(created.status,200);
+ const {orderId,receiptAccessToken}=await created.json(),order=orders.get(orderId);
+ const cb=await call("/commerce/callback?order="+orderId+"&id_get="+order.provider_id_get+"&trans_id=88002");
+ assert.equal(cb.status,303);
+ const secret={Authorization:"Bearer "+receiptAccessToken};
+ const d=(await (await call("/commerce/order?order="+orderId,{headers:secret})).json()).order;
+ assert.equal(d.student_support_eitaa,undefined);
+ const receipt=(await (await call("/commerce/receipt?order="+orderId,{headers:secret})).json()).invoice;
+ assert.equal(receipt.contact_eitaa,undefined,"invoices do not expose a shared Eitaa ID");
+});
