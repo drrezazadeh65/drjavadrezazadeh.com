@@ -1200,7 +1200,7 @@ test('bilingual intake, service pages and shops disclose real booking and paymen
     ['/en/request-consultation/','Online booking not active','Online payment not active'],
     ['/fa/khadamat/','رزرو و پرداخت آنلاین در این مرحله فعال نیستند','درخواست اولیه، خرید نیست'],
     ['/en/services/','Live appointment booking is not currently available','Online payments are not yet enabled'],
-    ['/fa/shop/','تسویه آنلاین غیرفعال','هیچ سفارش یا پرداخت اینترنتی'],
+    ['/fa/shop/','تسویه آنلاین غیرفعال','تسویه عمومی این فروشگاه هنوز فعال نیست'],
     ['/en/shop/','Checkout not yet active','No online order or payment'],
     ['/fa/shop/checkout/','تسویه فعلاً غیرفعال','ثبت نهایی سفارش انجام نمی‌شود']
   ];
