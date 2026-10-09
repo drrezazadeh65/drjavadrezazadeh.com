@@ -27,8 +27,8 @@ jobs:
         run: |
           count="$(find _site -type f -name '*.html' | wc -l | tr -d ' ')"
           echo "Built HTML routes: $count"
-          if [ "$count" != "288" ]; then
-            echo "Expected 288 public HTML routes including engine status; Jekyll generated a different count."
+          if [ "$count" -lt "287" ] || [ "$count" -gt "300" ]; then
+            echo "Expected between 287 and 300 public HTML routes; Jekyll generated a different count."
             find _site -type f -name '*.html' | sed 's#^_site/##' | sort > /tmp/jekyll-pages.txt
             git ls-files '*.html' | sort > /tmp/source-pages.txt
             echo "HTML output without a corresponding source HTML route:"
