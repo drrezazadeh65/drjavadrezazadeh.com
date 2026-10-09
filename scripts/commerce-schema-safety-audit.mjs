@@ -70,6 +70,25 @@ if(fs.existsSync(catalogPath)){
   }
 }
 
+// Browser cart, book checkout and service/VIP purchase buttons must all fail closed.
+// The deployed Worker may advertise a legacy generic checkout flag without category readiness.
+const bookClient=fs.readFileSync(path.join(root,'assets/js/book-store.js'),'utf8');
+for(const [needle,why] of [
+ ['health.capabilities?.books===true','missing explicit live book-payment capability'],
+ ['checkout.disabled=!bookPaymentReady','book cart payment must start disabled'],
+ ['btn.disabled=!bookPaymentReady','book checkout payment must start disabled'],
+ ['bookPaymentReady=await verifyBookPaymentCapability()','book controls must wait for a fresh readiness check'],
+ ['bookCoverUrl(book)','book cover source must be constrained to owned media paths'],
+ ['escapeHtml(book.title_fa)','dynamic book title must be HTML-escaped']
+]){
+ if(!bookClient.includes(needle))failures.push('assets/js/book-store.js: '+why);
+}
+if(bookClient.includes('checkout.disabled=false')||bookClient.includes('finally{button.disabled=false}'))
+ failures.push('assets/js/book-store.js: unverified or failed payment may not re-enable controls');
+const serviceClient=fs.readFileSync(path.join(root,'assets/js/commerce-checkout.js'),'utf8');
+if(!serviceClient.includes('channel===true')||serviceClient.includes('channel===undefined'))
+ failures.push('assets/js/commerce-checkout.js: missing service-specific fail-closed checkout capability');
+
 console.log('Commerce schema safety audit: '+checked+' indexable pages checked.');
 if(failures.length){
   console.error('Commerce schema safety failures ('+failures.length+')');
