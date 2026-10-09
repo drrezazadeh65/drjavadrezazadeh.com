@@ -14,6 +14,7 @@ on:
       - "assets/images/services/**"
       - "tests/service-image-v440.test.mjs"
       - "tests/service-value-v440.test.mjs"
+      - "tests/student-eitaa-entitlement-v440.test.mjs"
       - "assets/data/service-value-v440.json"
       - "assets/css/service-value-v440.css"
       - "assets/css/vip-value-v440.css"
@@ -38,4 +39,4 @@ jobs:
           node --check assets/js/checkout-v440.js
           node --check assets/js/invoice-v440.js
       - name: Test invoice authorization and payment lifecycle with mocked gateway (no real charge)
-        run: node --test tests/commerce-v440.test.mjs tests/commerce-catalog-v440.test.mjs tests/service-finder-v440.test.mjs tests/service-image-v440.test.mjs tests/service-value-v440.test.mjs
+        run: node --test tests/commerce-v440.test.mjs tests/commerce-catalog-v440.test.mjs tests/service-finder-v440.test.mjs tests/service-image-v440.test.mjs tests/service-value-v440.test.mjs tests/student-eitaa-entitlement-v440.test.mjs
