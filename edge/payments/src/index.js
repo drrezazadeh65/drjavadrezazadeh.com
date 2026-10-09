@@ -1,4 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
+import {verifyProviderResponse} from "./verification.mjs";
 
 const ALLOWED_ORIGINS=new Set([
   'https://drjavadrezazadeh.com',
@@ -56,18 +57,6 @@ async function providerPost(url,data){
   const res=await fetch(url,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:form(data),redirect:'manual'});
   return {status:res.status,text:(await res.text()).trim()};
 }
-function parseVerify(text){
-  let obj=null;
-  try{obj=JSON.parse(text);}catch(e){}
-  const status=String(obj?.status??text).trim();
-  return {
-    verified:status==='1'||status==='11',
-    status,
-    amount:Number.isInteger(Number(obj?.amount))?Number(obj.amount):null,
-    factorId:obj?.factorId!==undefined&&obj?.factorId!==null?String(obj.factorId):null,
-    cardNum:obj?.cardNum?String(obj.cardNum):null
-  };
-}
 
 export class PaymentStore extends DurableObject {
   constructor(ctx,env){
@@ -117,10 +106,11 @@ export class PaymentStore extends DurableObject {
       const x=await request.json();
       this.sql.exec(`UPDATE payment_intent
         SET status=?,provider_status=?,trans_id=?,card_masked=?,verified_at=?
-        WHERE order_id=?`,
+        WHERE order_id=? AND status='PROVIDER_PENDING'`,
         x.status,x.provider_status,x.trans_id||null,x.card_masked||null,x.verified_at||null,x.order_id
       );
-      return Response.json({ok:true});
+      const stored=[...this.sql.exec('SELECT status,trans_id FROM payment_intent WHERE order_id=? LIMIT 1',x.order_id)][0];
+      return Response.json({ok:!!stored,applied:stored?.status===x.status&&stored?.trans_id===(x.trans_id||null)});
     }
     return new Response('Not found',{status:404});
   }
@@ -144,11 +134,17 @@ async function loadBook(env,bookId){
 async function createIntent(request,env,mode,origin){
   let body;
   try{body=await request.json();}catch(e){return json({error:'invalid_json'},400,origin);}
-  const quantity=Math.min(20,Math.max(1,Math.trunc(Number(body.quantity)||1)));
+  const quantity=body.quantity===undefined?1:body.quantity;
+  if(!Number.isSafeInteger(quantity)||quantity<1||quantity>20)return json({error:'invalid_quantity'},400,origin);
+  // A real payment must never be accepted before shipping and email fulfilment exist.
+  if(mode==='production'&&(env.BOOK_SHIPPING_CONFIRMED!=='true'||env.BOOK_ORDER_EMAIL_CONFIRMED!=='true'))
+    return json({error:'fulfilment_not_configured'},503,origin);
   let book;
   try{book=await loadBook(env,String(body.book_id||''));}catch(e){return json({error:e.message},400,origin);}
   const displayAmountToman=book.commerce.price*quantity;
   const amountRial=displayAmountToman*10;
+  if(!Number.isSafeInteger(displayAmountToman)||displayAmountToman<1000||!Number.isSafeInteger(amountRial)||amountRial<=0)
+    return json({error:'invalid_amount'},409,origin);
   const orderId=crypto.randomUUID();
   const fId=factorId();
   const returnPath=safePath(body.return_path);
@@ -194,14 +190,17 @@ async function callback(request,env){
   const storedRes=await store(env,'/by-id-get?id_get='+encodeURIComponent(idGet),{method:'GET'});
   const stored=(await storedRes.json()).intent;
   if(!stored||stored.mode!==mode) return Response.redirect(site+'/fa/shop/checkout/?payment=unknown',303);
+  // Payment outcomes are terminal: replay or altered callbacks cannot overturn them.
+  if(stored.status!=='PROVIDER_PENDING'){
+    const sameVerified=stored.status==='PAYMENT_VERIFIED'&&stored.trans_id===transId;
+    return Response.redirect(site+'/fa/shop/checkout/?payment='+(sameVerified?'verified':'already-processed'),303);
+  }
 
   const cfg=providerConfig(env,mode);
   const verifiedRes=await providerPost(cfg.verify,{api:cfg.api,trans_id:transId,id_get:idGet,json:1});
-  const v=parseVerify(verifiedRes.text);
-  const amountOk=v.amount===null||v.amount===stored.amount_rial;
-  const factorOk=v.factorId===null||v.factorId===stored.factor_id;
-  const ok=v.verified&&amountOk&&factorOk;
-  await store(env,'/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+  const v=verifyProviderResponse(verifiedRes.status,verifiedRes.text,stored);
+  const ok=v.verified;
+  const saveRes=await store(env,'/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     order_id:stored.order_id,
     status:ok?'PAYMENT_VERIFIED':'FAILED',
     provider_status:v.status,
@@ -209,9 +208,13 @@ async function callback(request,env){
     card_masked:v.cardNum,
     verified_at:ok?new Date().toISOString():null
   })});
+  const saved=saveRes.ok?await saveRes.json():{applied:false};
+  const persistenceRes=await store(env,'/by-order?order_id='+encodeURIComponent(stored.order_id),{method:'GET'});
+  const persisted=persistenceRes.ok?(await persistenceRes.json()).intent:null;
+  const confirmed=ok&&saved.applied===true&&persisted?.status==='PAYMENT_VERIFIED'&&persisted?.trans_id===transId;
   const target=site+stored.return_path+
     (stored.return_path.includes('?')?'&':'?')+
-    'order_id='+encodeURIComponent(stored.order_id)+'&payment='+(ok?'verified':'failed');
+    'order_id='+encodeURIComponent(stored.order_id)+'&payment='+(confirmed?'verified':'failed');
   return Response.redirect(target,303);
 }
 
