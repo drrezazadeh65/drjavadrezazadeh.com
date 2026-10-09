@@ -9,7 +9,9 @@ export const ENGINES=Object.freeze([
 {id:'content',titleFa:'محتوا',titleEn:'Content',capabilities:['pages','translations','drafts','review','revisions','publication']},
 {id:'media',titleFa:'رسانه',titleEn:'Media',capabilities:['library','metadata','optimization','derivatives','usage','rights']},
 {id:'design',titleFa:'استودیوی طراحی',titleEn:'Design',capabilities:['tokens','themes','typography','layouts','preview','accessibility']},
-{id:'operations',titleFa:'عملیات',titleEn:'Operations',capabilities:['roles','audit','backups','cache','release','security']}
+{id:'operations',titleFa:'عملیات و امنیت',titleEn:'Operations & Security',capabilities:['roles','audit','backups','cache','release','security']},
+{id:'magazine',titleFa:'مجله علمی',titleEn:'Scientific Magazine',capabilities:[]},
+{id:'admin-orchestration',titleFa:'مدیریت یکپارچه داشبورد',titleEn:'Admin Orchestration',capabilities:[]}
 ]);
 export function engineById(id){return ENGINES.find(e=>e.id===id)??null}
 export function engineReadiness(id,evidence={}){
