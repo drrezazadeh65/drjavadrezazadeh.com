@@ -57,8 +57,8 @@ async function start(){
    vip?fetch('/assets/data/vip-catalog.json',{cache:'no-store'}).then(x=>{if(!x.ok)throw Error('catalog');return x.json()}):Promise.resolve(null),
    services?fetch('/assets/data/service-catalog.json',{cache:'no-store'}).then(x=>{if(!x.ok)throw Error('catalog');return x.json()}):Promise.resolve(null)
   ]);
-  if(vip)mount(vip,'vip',v.services);
-  if(services)mount(services,'service',s.services);
+  if(vip)mount(vip,'vip',Array.isArray(v?.services)?v.services:[]);
+  if(services)mount(services,'service',Array.isArray(s?.services)?s.services:[]);
   // A public catalogue does not prove that payment and fulfilment are available.
   let health=null;
   try{
