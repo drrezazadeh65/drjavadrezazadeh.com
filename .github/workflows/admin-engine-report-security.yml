@@ -14,6 +14,10 @@ on:
     paths:
       - 'platform/admin-engine-report.mjs'
       - 'platform/admin-engine-report.test.mjs'
+      - 'platform/admin-engine-report-client.mjs'
+      - 'platform/admin-engine-report-client.test.mjs'
+      - 'platform/admin-engine-report-handler.mjs'
+      - 'platform/admin-engine-report-handler.test.mjs'
       - 'platform/engine-registry.mjs'
       - '.github/workflows/admin-engine-report-security.yml'
   workflow_dispatch:
