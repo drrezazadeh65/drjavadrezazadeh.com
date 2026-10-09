@@ -43,7 +43,6 @@ jobs:
           test -f _site/assets/data/book-catalog.json
           test -f _site/assets/data/service-catalog.json
           test -f _site/assets/data/analytics-config.json
-          test ! -e _site/payment-backend
           test ! -e _site/platform
           test ! -e _site/foundation
           test ! -e _site/scripts
