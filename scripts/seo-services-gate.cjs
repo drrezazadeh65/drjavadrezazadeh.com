@@ -37,6 +37,21 @@ for(const service of catalog){
  for(const [,json] of jsonld){try{const obj=JSON.parse(json);assert(JSON.stringify(obj).includes(uri),'Schema URL mismatch: '+file)}catch(e){errors.push('Invalid JSON-LD: '+file)}}
  assert(fs.existsSync(path.join(root,image)),'Missing service image: '+image);
 }
+// The six distinct VIP offers complete the 27-offer public catalogue.
+const vip=JSON.parse(read('assets/data/vip-catalog.json')).services;
+assert(catalog.length===21 && vip.length===6,'Expected 21 standard and six VIP offers');
+for(const v of vip){
+ const id=v.id,file='fa/vip/'+id+'/index.html',image='assets/images/vip-'+id+'.svg',uri=domain+'/fa/vip/'+id+'/';
+ if(!fs.existsSync(path.join(root,file))){errors.push('Missing VIP page: '+file);continue}
+ const html=read(file);
+ assert(fs.existsSync(path.join(root,image)),'Missing VIP illustration: '+image);
+ assert(html.includes('<link rel="canonical" href="'+uri+'">'),'VIP canonical mismatch: '+file);
+ assert(html.includes('/'+image),'Missing VIP image reference: '+file);
+ assert(html.includes('دکتر جواد رضازاده یزدلی'),'Missing academic author in VIP service: '+file);
+ for(const link of ['/fa/darbare-man/','/fa/pajouhesh/','/fa/entesharat-elmi/'])
+  assert(html.includes('href="'+link+'"'),'Missing VIP academic link '+link+': '+file);
+ assert(!/https?:\/\/(?:www\.)?eitaa\.com\/|@DrRezazadeh65/i.test(html),'Public VIP Eitaa contact leaked: '+file);
+}
 assert(found.includes(domain+'/fa/services/'),'Missing services index in sitemap');
 const index=read('fa/services/index.html');
 assert(!/https?:\/\/(?:www\.)?eitaa\.com\/|@DrRezazadeh65/i.test(index),'Public Eitaa ID in services index');
@@ -48,4 +63,4 @@ const auth=JSON.parse(read('platform/identity-auth-policy.json'));
 assert(auth.primary_login_identifier==='EMAIL' && auth.registration.activation_requires==='EMAIL_VERIFICATION' && auth.registration.phone_is_authenticator===false && auth.recovery.channel==='EMAIL', 'Email-only identity and verification policy was altered');
 for(const s of catalog)assert(index.includes('/fa/services/'+s.id+'/'),'Missing hub internal link: '+s.id);
 if(errors.length){console.error('SEO GATE FAILED: '+errors.length+' issue(s)\n'+errors.map(x=>' - '+x).join('\n'));process.exit(1)}
-console.log('SEO GATE PASSED: '+catalog.length+' service pages, canonical URLs, images, schema and internal links');
+console.log('SEO GATE PASSED: '+catalog.length+' standard and '+vip.length+' VIP service pages, academic provenance, canonical URLs, images, schema and internal links');
