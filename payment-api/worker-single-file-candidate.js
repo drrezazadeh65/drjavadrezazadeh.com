@@ -523,8 +523,8 @@ function returnPage(state,id){const u=new URL(SITE+"/fa/shop/payment-result/");u
 async function commerce(request,env){
  const u=new URL(request.url),path=u.pathname;
  if(!path.startsWith("/commerce/"))return null;
- if(request.method==="OPTIONS"&&(["/commerce/create","/commerce/receipt","/commerce/receipt/resend","/commerce/refund/request","/commerce/admin/refunds/update","/commerce/admin/fulfilment","/commerce/admin/orders","/commerce/admin/summary"].includes(path)))
-  return new Response(null,{status:204,headers:{...cors,"Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization"}});
+ if(request.method==="OPTIONS"&&(["/commerce/create","/commerce/order","/commerce/status","/commerce/receipt","/commerce/receipt/resend","/commerce/refund/request","/commerce/refund/status","/commerce/admin/refunds/update","/commerce/admin/fulfilment","/commerce/admin/orders","/commerce/admin/summary","/commerce/admin/refunds"].includes(path)))
+  return new Response(null,{status:204,headers:{...cors,"Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization"}});
  if(!env.DB)return fail("database_unconfigured",503);
  if(path.startsWith("/commerce/admin/"))return commerceAdmin(request,env,path,u);
  if(path==="/commerce/health"&&request.method==="GET")
