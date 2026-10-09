@@ -18,6 +18,7 @@ on:
       - 'fa/services/**'
       - 'fa/vip/**'
       - 'scripts/catalog-integrity.mjs'
+      - 'assets/js/commerce-checkout.js'
       - '.github/workflows/catalog-integrity.yml'
   workflow_dispatch:
 permissions:
