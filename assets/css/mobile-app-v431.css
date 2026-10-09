@@ -552,3 +552,35 @@
     stroke-width:1.75;
   }
 }
+
+/* v4.4.1 app-like interaction hardening */
+@media(max-width:900px){
+  .mobile-menu-trigger,.app-sheet-close{
+    min-width:48px!important;
+    min-height:48px!important;
+    touch-action:manipulation;
+  }
+  .app-sheet-close{
+    display:grid!important;
+    place-items:center;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;
+    color:#f2ede4;
+    background:rgba(255,255,255,.035);
+    font-size:28px;
+    line-height:1;
+  }
+  :where(.app-dock,.mobile-app-sheet) :where(a,button):focus-visible{
+    outline:2px solid var(--v431-tab-active-text)!important;
+    outline-offset:2px!important;
+  }
+  .app-sheet-panel{
+    padding-bottom:max(16px,calc(12px + env(safe-area-inset-bottom)))!important;
+  }
+  @supports(height:100svh){
+    .app-sheet-panel{max-height:min(78svh,720px)!important}
+  }
+}
+@media(display-mode:standalone) and (max-width:900px){
+  .app-dock{bottom:max(6px,env(safe-area-inset-bottom))!important}
+}
