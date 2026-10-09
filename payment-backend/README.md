@@ -1,9 +1,9 @@
-# Dedicated Vercel payment API — safe scaffold
+# RETIRED ARCHIVE — Historical payment-backend scaffold
 
-This directory is intentionally separate from the GitHub Pages website. In Vercel import settings, choose **Root Directory: payment-backend** and **Framework Preset: Other**. Do not attach the website's production domain to this project.
+**Status: DECOMMISSIONED / NOT DEPLOYED / NOT PART OF THE ACTIVE PRODUCTION ARCHITECTURE**
 
-Implemented: no-store health endpoint at /api/health; POST-only fail-closed /api/payments/create and /api/payments/verify. **No live BitPay transactions are possible yet.** No secrets are included.
+This directory contains a historical serverless payment-backend experiment formerly prepared for a hosting provider that the owner has completely removed. Its configuration files (including `vercel.json`), serverless handlers, tests, and environment examples are retained only for source-history traceability. They are **not** an active website, gateway, API, deployment target, fallback payment processor or production readiness signal.
 
-Before enabling payment: verify BitPay's official API contract and network reachability from Vercel; add a durable order store with unique transaction IDs and atomic settlement; derive prices server-side; protect against replay, forged callbacks, CSRF/abuse and double fulfillment; configure production secrets in Vercel Environment Variables; restrict CORS to the website; run end-to-end test transactions and reconcile with BitPay dashboard. Never accept a redirect alone as confirmation.
+Do not connect or deploy this directory, assign secrets, or assume that a successful test or third-party commit status proves the production payment service is healthy. The current website uses **GitHub Pages** for static hosting and **Cloudflare** for DNS/edge and the Worker-based payment architecture; see `../foundation/ACTIVE-INFRASTRUCTURE-POLICY-2026-10-09.md` for the authoritative topology.
 
-Keep GitHub Pages, canonical URLs, /fa/, /en/, sitemaps and public DNS unchanged. Do not deploy this branch as the public GitHub Pages source.
+Any future archival deletion is a separate repository cleanup operation. The safe alternative is to keep this source isolated and ensure live links, CI release checks and operational instructions point only to the active infrastructure.
