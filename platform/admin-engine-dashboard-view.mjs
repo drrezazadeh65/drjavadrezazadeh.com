@@ -11,7 +11,9 @@ export function buildEngineDashboardView(payload,{now=new Date(),stale_after_min
   const stamp=row.last_verified_at?Date.parse(row.last_verified_at):NaN;
   const fresh=Number.isFinite(stamp)&&stamp<=current&&(current-stamp)<=stale_after_minutes*60000;
   const status=row.status==='ACTIVE'&&!fresh?'UNVERIFIED':row.status;
-  return {...row,status,stale:!fresh};
+  return {...row,status,stale:!fresh,
+   requests_24h:fresh&&status!=='UNVERIFIED'?row.requests_24h:null,
+   errors_24h:fresh&&status!=='UNVERIFIED'?row.errors_24h:null};
  }).sort((a,b)=>ORDER.indexOf(a.status)-ORDER.indexOf(b.status)||a.id.localeCompare(b.id));
  const totals=Object.fromEntries(ORDER.map(status=>[status,engines.filter(e=>e.status===status).length]));
  return {as_of:report.as_of,engines,totals,engine_count:engines.length,live_verified:engines.filter(e=>e.status==='ACTIVE'&&!e.stale).length};
