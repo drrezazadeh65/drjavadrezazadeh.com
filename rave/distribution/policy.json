@@ -1,0 +1,21 @@
+{
+  "schema": "rave.distribution.policy.v1",
+  "defaultMode": "dry_run",
+  "timezone": "Asia/Tehran",
+  "dailyPerChannelLimit": 2,
+  "minHoursBetweenSameArticle": 168,
+  "allowedChannels": [
+    "x",
+    "facebook",
+    "linkedin",
+    "youtube",
+    "aparat"
+  ],
+  "requireApprovedContent": true,
+  "requireOfficialApi": true,
+  "requireOptInForOutreach": true,
+  "autoSpend": false,
+  "autoBuyBacklinks": false,
+  "autoComment": false,
+  "autoDirectMessage": false
+}
