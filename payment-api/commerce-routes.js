@@ -89,20 +89,28 @@ async function unwrapReceiptToken(wrapped,order,env){
   {name:"AES-GCM",iv:bytes(ivHex),additionalData:new TextEncoder().encode(order)},key,bytes(dataHex)));
 }
 
-async function sendInvoiceEmail(row,token,env){
- if(!row?.customer_json||env.INVOICE_EMAIL_ENABLED!=="true"||!env.RESEND_API_KEY||!env.INVOICE_FROM_EMAIL)return;
+async function sendInvoiceEmail(row,token,env,{resend=false}={}){
+ if(!row?.customer_json||env.INVOICE_EMAIL_ENABLED!=="true"||!env.RESEND_API_KEY||!env.INVOICE_FROM_EMAIL)return {status:"unconfigured"};
  const email=JSON.parse(row.customer_json).email;
- if(!email||row.receipt_email_sent_at)return;
+ if(!email)return {status:"missing_email"};
+ if(row.receipt_email_sent_at){
+  if(!resend)return {status:"already_sent"};
+  // Private receipt link holders may request a repeat, but never flood the customer.
+  const raw=String(row.receipt_email_sent_at);
+  const sentAt=Date.parse(raw.includes("T")?raw:(raw.replace(" ","T")+"Z"));
+  if(!Number.isFinite(sentAt)||Date.now()-sentAt<10*60*1000)return {status:"cooldown"};
+ }
  const link=SITE+"/fa/shop/invoice/?order="+encodeURIComponent(row.id)+"#access="+encodeURIComponent(token);
  const response=await fetch("https://api.resend.com/emails",{
   method:"POST",headers:{"Authorization":"Bearer "+env.RESEND_API_KEY,"Content-Type":"application/json"},
   body:JSON.stringify({from:env.INVOICE_FROM_EMAIL,to:[email],subject:"رسید پرداخت سفارش "+row.id,
-   text:"پرداخت سفارش شما تأیید شد. این لینک خصوصی رسید شماست؛ آن را در اختیار دیگران قرار ندهید.\n"+link+"\nپشتیبانی: dr.rezazadeh65@gmail.com"})
+   text:"پرداخت سفارش شما تأیید شد. این لینک خصوصی رسید شماست؛ آن را در اختیار دیگران قرار ندهید.\\n"+link+"\\nپشتیبانی: dr.rezazadeh65@gmail.com"})
  });
- if(!response.ok)throw Error("email_delivery_failed");
- await env.DB.prepare("UPDATE commerce_orders SET receipt_email_sent_at=CURRENT_TIMESTAMP WHERE id=? AND receipt_email_sent_at IS NULL").bind(row.id).run();
+ if(!response.ok)throw Error("email_provider_rejected");
+ // Provider acceptance is not proof of inbox delivery.
+ await env.DB.prepare("UPDATE commerce_orders SET receipt_email_sent_at=CURRENT_TIMESTAMP WHERE id=?").bind(row.id).run();
+ return {status:"accepted_by_provider"};
 }
-
 
 function jwtBytes(text){
  if(!/^[A-Za-z0-9_-]+$/.test(text))throw Error("invalid_jwt_encoding");
@@ -353,7 +361,7 @@ export async function commerce(request,env){
   if(!await authorisedReceipt(request,row))return fail("receipt_not_authorised",403);
   if(row.state!=="paid")return fail("payment_not_verified",409);
   if(env.INVOICE_EMAIL_ENABLED!=="true"||!env.RESEND_API_KEY||!env.INVOICE_FROM_EMAIL)return fail("email_not_configured",503);
-  try{await sendInvoiceEmail(row,request.headers.get("Authorization").slice(7),env);return reply({ok:true,delivered:!!(row.receipt_email_sent_at||JSON.parse(row.customer_json).email)});}
+  try{const receipt=await sendInvoiceEmail(row,request.headers.get("Authorization").slice(7),env,{resend:true});if(receipt.status==="cooldown")return fail("email_rate_limited",429);if(receipt.status==="missing_email")return fail("email_not_provided",409);if(receipt.status!=="accepted_by_provider")return fail("email_not_configured",503);return reply({ok:true,accepted_for_delivery:true,delivered:false});}
   catch{return fail("email_delivery_unavailable",503)}
  }
  if(path==="/commerce/status"&&request.method==="GET"){
