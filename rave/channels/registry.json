@@ -1,0 +1,310 @@
+{
+  "schema": "rave.channels.v1",
+  "status": "research_candidates_not_live",
+  "channels": [
+    {
+      "id": "instagram",
+      "category": "social",
+      "format": "image_video",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "threads",
+      "category": "social",
+      "format": "text_image_video",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "facebook",
+      "category": "social",
+      "format": "text_image_video",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "x",
+      "category": "social",
+      "format": "text_image_video",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "linkedin",
+      "category": "professional",
+      "format": "text_image_video",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "bluesky",
+      "category": "social",
+      "format": "text_image",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "mastodon",
+      "category": "social",
+      "format": "text_image",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "tiktok",
+      "category": "video",
+      "format": "video",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "youtube",
+      "category": "video",
+      "format": "video",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "youtube_shorts",
+      "category": "video",
+      "format": "short_video",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "aparat",
+      "category": "video",
+      "format": "video",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "vimeo",
+      "category": "video",
+      "format": "video",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "pinterest",
+      "category": "visual",
+      "format": "image_video",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "eitaa",
+      "category": "regional",
+      "format": "conditional",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "rubika",
+      "category": "regional",
+      "format": "conditional",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "bale",
+      "category": "regional",
+      "format": "conditional",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "virasty",
+      "category": "regional",
+      "format": "conditional",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "telegram",
+      "category": "messaging",
+      "format": "conditional",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "reddit",
+      "category": "community",
+      "format": "discussion",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "quora",
+      "category": "community",
+      "format": "answers",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "stack_exchange",
+      "category": "community",
+      "format": "answers",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "medium",
+      "category": "publishing",
+      "format": "article",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "substack",
+      "category": "publishing",
+      "format": "newsletter",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "wordpress",
+      "category": "publishing",
+      "format": "article",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "blogger",
+      "category": "publishing",
+      "format": "article",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "researchgate",
+      "category": "academic",
+      "format": "profile",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "academia",
+      "category": "academic",
+      "format": "profile",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "orcid",
+      "category": "academic",
+      "format": "metadata",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "zenodo",
+      "category": "repository",
+      "format": "deposit",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "rss",
+      "category": "syndication",
+      "format": "feed",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "email_newsletter",
+      "category": "email",
+      "format": "opt_in",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "google_search",
+      "category": "search",
+      "format": "index_discovery",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "bing_search",
+      "category": "search",
+      "format": "index_discovery",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "chatgpt",
+      "category": "ai_discovery",
+      "format": "monitor",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "gemini",
+      "category": "ai_discovery",
+      "format": "monitor",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "perplexity",
+      "category": "ai_discovery",
+      "format": "monitor",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "copilot",
+      "category": "ai_discovery",
+      "format": "monitor",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    },
+    {
+      "id": "claude",
+      "category": "ai_discovery",
+      "format": "monitor",
+      "adapterStatus": "not_implemented",
+      "publicationPermission": "unverified",
+      "autoPublish": false
+    }
+  ]
+}
