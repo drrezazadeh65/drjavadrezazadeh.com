@@ -354,6 +354,12 @@ function allowedOrigin(req){return req.headers.get("Origin")===SITE}
 function returnPage(state,id){const u=new URL(SITE+"/fa/shop/payment-result/");u.searchParams.set("state",state);u.searchParams.set("order",id);return Response.redirect(u.toString(),303)}
 
 function commerceReady(env){return env.COMMERCE_ENABLED==="true"&&!!env.BITPAY_API_KEY&&["1","10"].includes(String(env.BITPAY_AMOUNT_MULTIPLIER||""))&&env.ORDER_EMAIL_FULFILMENT_CONFIRMED==="true"}
+function commerceChannelReady(env,kind){
+ if(kind==="book")return env.BOOK_SHIPPING_CONFIRMED==="true";
+ if(kind==="service")return env.SERVICE_BOOKING_CONFIRMED==="true";
+ if(kind==="vip")return env.VIP_BOOKING_CONFIRMED==="true";
+ return false;
+}
 async function commerce(request,env){
 
  const u=new URL(request.url),path=u.pathname;
@@ -402,7 +408,8 @@ async function commerce(request,env){
 
   for(const [sku,quantity] of count){
 
-   const item=available.get(sku);if(!item)return fail("unavailable_product",409);
+   const item=available.get(sku);
+   if(item&&!commerceChannelReady(env,item.kind))return fail("fulfilment_unconfirmed",503);if(!item)return fail("unavailable_product",409);
 // Services are quantity-one appointments; capacity and terms must be confirmed separately.*
 
    if(item.kind!=="book"&&quantity!==1)return fail("service_quantity_invalid");
