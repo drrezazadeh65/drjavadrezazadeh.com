@@ -33,6 +33,8 @@ jobs:
         run: node platform/bitpay-callback.test.mjs
       - name: Payments worker syntax
         run: node --check edge/payments/src/index.js
+      - name: Verify payment callback integrity against tampered provider responses
+        run: node --test edge/payments/src/verification.test.mjs
       - name: Sandbox callback form probe
         run: node scripts/bitpay-form-probe.mjs
       - name: Positive sandbox roundtrip
