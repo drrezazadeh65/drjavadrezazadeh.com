@@ -6,10 +6,11 @@
 // 4. At the beginning of async fetch(request, env), before existing env checks, add:
 // const commerceResponse = await commerce(request, env);
 // if (commerceResponse) return commerceResponse;
-// 5. D1 commerce_orders table is already created.
+// 5. Verify commerce_orders exists in the actual production D1 binding; source SQL alone does not prove deployment.
 // 6. Do not enable COMMERCE_ENABLED until the site frontend has been wired and payment unit verified.
 // 7. Required: BITPAY_AMOUNT_MULTIPLIER (1 or 10 only after verification).
-// 8. Enable book payments only after shipping rules confirmed.
-// 9. Keep VIP checkout_enabled:false in assets/data/vip-catalog.json.
+// 8. Require BOOK_SHIPPING_CONFIRMED for physical-book payments, even if buyer shipping is free.
+// 8a. ORDER_EMAIL_FULFILMENT_CONFIRMED must remain false until verified customer-email linkage, persisted order, secure receipt delivery and operational support are implemented and tested; both health and create fail closed without it.
+// 9. VIP catalogue visibility is not payment permission; VIP_BOOKING_CONFIRMED must be true only after capacity and terms are actually confirmed.
 // 10. Test /commerce/health and POST /commerce/create with Origin https://drjavadrezazadeh.com.
 // Note: This is an integration guide, NOT a drop-in replacement for the existing entrypoint.
