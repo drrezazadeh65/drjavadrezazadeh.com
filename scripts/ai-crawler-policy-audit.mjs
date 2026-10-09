@@ -44,6 +44,11 @@ for(const agent of ['OAI-SearchBot','ChatGPT-User','bingbot','YandexBot']){
 }
 if(!robots.includes('Sitemap: https://drjavadrezazadeh.com/sitemap.xml')) failures.push('robots.txt canonical sitemap directive missing');
 
+const wildcardRules=effectiveRules('UnlistedCrawler');
+for(const privatePath of ['/fa/login/','/fa/register/','/fa/bazyabi-hesab/','/fa/shop/checkout/','/fa/shop/payment-start/','/fa/shop/payment-return/','/fa/shop/payment-result/','/en/account/','/en/login/','/en/register/']){
+  if(!wildcardRules.some(r=>r.type==='disallow'&&r.path===privatePath)) failures.push('robots.txt wildcard policy must disallow private route '+privatePath);
+}
+
 for(const token of ['/login/','/register/','/account/','/assessment/','/checkout/','/darkhast-moshavere/','/request-consultation/']){
   if(llms.includes('https://drjavadrezazadeh.com'+token)) failures.push('llms.txt exposes private/transactional route '+token);
 }
