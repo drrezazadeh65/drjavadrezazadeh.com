@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS commerce_orders (
  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
  paid_at TEXT,
  refunded_at TEXT,
- CHECK(state!='paid' OR (provider_id_get IS NOT NULL AND provider_trans_id IS NOT NULL AND paid_at IS NOT NULL))
+ CHECK(state!='paid' OR (provider_id_get IS NOT NULL AND provider_trans_id IS NOT NULL AND paid_at IS NOT NULL)),
+ CHECK(state!='refunded' OR refunded_at IS NOT NULL)
 );
 CREATE INDEX IF NOT EXISTS commerce_orders_state_created ON commerce_orders(state,created_at);
