@@ -6,6 +6,12 @@
  const root=p=>(base==='/'?'/':base)+String(p||'').replace(/^\/+/, '');
  const isFa=document.documentElement.lang==='fa';
  const CART_KEY='jr-book-cart-v1';
+ const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+ function bookCoverUrl(book){
+  const path=String(book?.bibliography?.cover_image||'');
+  return /^\/assets\/images\/books\/[a-z0-9][a-z0-9._-]*\.(?:avif|webp|png|jpe?g)$/i.test(path)?root(path):null;
+ }
+
  const API='https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev';
  // Catalogue prices never authorise payment. The live Worker must explicitly permit books.
  let bookPaymentReady=false;
@@ -64,13 +70,14 @@
  function card(book){
   const el=document.createElement('article');
   el.className='book-product-card';
-  const cover=book.bibliography?.cover_image?'<figure class="book-cover"><img src="'+root(book.bibliography.cover_image)+'" width="600" height="900" loading="lazy" decoding="async" alt="'+(isFa?'جلد کتاب «'+book.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+book.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong lang="fa" dir="rtl">'+book.title_fa+'</strong></div>';
+  const coverSrc=bookCoverUrl(book);
+  const cover=coverSrc?'<figure class="book-cover"><img src="'+escapeHtml(coverSrc)+'" width="600" height="900" loading="lazy" decoding="async" alt="'+escapeHtml(isFa?'جلد کتاب «'+escapeHtml(book.title_fa)+'» اثر جواد رضازاده یزدلی':'Cover of '+book.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong lang="fa" dir="rtl">'+escapeHtml(book.title_fa)+'</strong></div>';
   el.innerHTML=cover+
    '<div class="book-product-copy"><span class="status-chip">'+(isFa?'منتشرشده':'Published')+'</span>'+
-   '<h2 dir="rtl" lang="fa">'+book.title_fa+'</h2><p>'+(isFa?book.description_fa:book.description_en)+'</p>'+
-   '<div class="book-price">'+money(book.commerce?.price,book.commerce?.currency)+'</div>'+
+   '<h2 dir="rtl" lang="fa">'+escapeHtml(book.title_fa)+'</h2><p>'+escapeHtml(isFa?book.description_fa:book.description_en)+'</p>'+
+   '<div class="book-price">'+escapeHtml(money(book.commerce?.price,book.commerce?.currency))+'</div>'+
    '<div class="actions"><a class="button" href="'+root((isFa?'fa':'en')+'/shop/book/?id='+encodeURIComponent(book.id))+'">'+(isFa?'جزئیات کتاب':'Book details')+'</a>'+
-   (ready(book)?'<button class="button primary" type="button" data-add-book="'+book.id+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<span class="book-pending">'+(isFa?'قیمت ثبت شده است؛ خرید پس از تأیید موجودی، شرایط ارسال و درگاه معتبر فعال می‌شود.':'The price is recorded; purchase activates after stock, fulfilment terms and the verified payment path are ready.')+'</span>')+
+   (ready(book)?'<button class="button primary" type="button" data-add-book="'+escapeHtml(book.id)+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<span class="book-pending">'+(isFa?'قیمت ثبت شده است؛ خرید پس از تأیید موجودی، شرایط ارسال و درگاه معتبر فعال می‌شود.':'The price is recorded; purchase activates after stock, fulfilment terms and the verified payment path are ready.')+'</span>')+
    '</div></div>';
   return el;
  }
@@ -85,19 +92,20 @@
   const b=data.books.find(x=>x.id===id);
   if(!b){host.innerHTML='<h1>'+(isFa?'کتاب پیدا نشد':'Book not found')+'</h1>';return;}
   document.title=(isFa?b.title_fa:b.english_reference_title)+' | '+(isFa?'فروشگاه کتاب':'Bookstore');
-  const detailCover=b.bibliography?.cover_image?'<figure class="book-cover"><img src="'+root(b.bibliography.cover_image)+'" width="600" height="900" decoding="async" alt="'+(isFa?'جلد کتاب «'+b.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+b.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong>'+b.title_fa+'</strong></div>';
-  host.innerHTML='<div class="book-detail-layout">'+detailCover+'<div class="book-detail-copy"><p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+b.title_fa+'</h1>'+
-   '<p class="lead">'+(isFa?b.description_fa:b.description_en)+'</p>'+
+  const detailCoverSrc=bookCoverUrl(b);
+  const detailCover=detailCoverSrc?'<figure class="book-cover"><img src="'+escapeHtml(detailCoverSrc)+'" width="600" height="900" decoding="async" alt="'+escapeHtml(isFa?'جلد کتاب «'+escapeHtml(b.title_fa)+'» اثر جواد رضازاده یزدلی':'Cover of '+b.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong>'+escapeHtml(b.title_fa)+'</strong></div>';
+  host.innerHTML='<div class="book-detail-layout">'+detailCover+'<div class="book-detail-copy"><p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+escapeHtml(b.title_fa)+'</h1>'+
+   '<p class="lead">'+escapeHtml(isFa?b.description_fa:b.description_en)+'</p>'+
    '<dl class="book-meta"><div><dt>'+(isFa?'نویسنده':'Author')+'</dt><dd>Javad Rezazadeh Yazdeli</dd></div>'+
-   '<div><dt>ISBN</dt><dd>'+(b.bibliography.isbn||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
-   '<div><dt>'+(isFa?'ناشر':'Publisher')+'</dt><dd>'+(b.bibliography.publisher||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
-   '<div><dt>'+(isFa?'سال انتشار':'Publication year')+'</dt><dd>'+(b.bibliography.publication_year||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
-   '<div><dt>'+(isFa?'نوبت چاپ':'Edition')+'</dt><dd>'+(b.bibliography.edition||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>ISBN</dt><dd>'+escapeHtml(b.bibliography.isbn||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'ناشر':'Publisher')+'</dt><dd>'+escapeHtml(b.bibliography.publisher||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'سال انتشار':'Publication year')+'</dt><dd>'+escapeHtml(b.bibliography.publication_year||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'نوبت چاپ':'Edition')+'</dt><dd>'+escapeHtml(b.bibliography.edition||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قالب':'Format')+'</dt><dd>'+(b.commerce?.formats_confirmed?.includes('PRINT')?(isFa?'چاپی':'Print'):(isFa?'نیازمند تأیید':'Not yet verified'))+'</dd></div>'+
-   '<div><dt>'+(isFa?'قیمت ثبت‌شده':'Listed price')+'</dt><dd>'+money(b.commerce?.price,b.commerce?.currency)+'</dd></div></dl>'+
+   '<div><dt>'+(isFa?'قیمت ثبت‌شده':'Listed price')+'</dt><dd>'+escapeHtml(money(b.commerce?.price,b.commerce?.currency))+'</dd></div></dl>'+
    '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. سفارش و پرداخت اینترنتی هنوز فعال نیست.':'Unverified bibliographic fields are deliberately marked as such. Online orders and payment are not yet active.')+'</p>'+
    '<div class="actions">'+
-   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+b.id+'">'+(isFa?'افزودن به فهرست انتخاب‌ها':'Add to selection')+'</button>':'')+
+   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+escapeHtml(b.id)+'">'+(isFa?'افزودن به فهرست انتخاب‌ها':'Add to selection')+'</button>':'')+
    '<a class="button" data-book-info-request href="mailto:dr.rezazadeh65@gmail.com?subject='+encodeURIComponent((isFa?'درخواست اطلاعات کتاب: ':'Book information enquiry: ')+b.title_fa)+
    '&body='+encodeURIComponent((isFa?'لطفاً اطلاعات تأییدشده کتاب، جزئیات نشر، نحوه تهیه و شرایط ارسال را اعلام کنید: ':'Please share verified publication metadata, availability, and delivery terms for: ')+b.title_fa)+'">'+
    (isFa?'درخواست اطلاعات تکمیلی':'Request verified book details')+'</a></div></div></div>';
@@ -123,17 +131,17 @@
     }
     const row=document.createElement('div');
     row.className='cart-row';
-    row.innerHTML='<div><strong lang="fa" dir="rtl">'+b.title_fa+'</strong><small>'+
+    row.innerHTML='<div><strong lang="fa" dir="rtl">'+escapeHtml(b.title_fa)+'</strong><small>'+
       (isFa?'تعداد':'Qty')+': '+item.quantity+'</small></div>'+
-      '<div>'+money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency)+'</div>'+
-      '<div class="cart-quantity-controls" aria-label="تغییر تعداد کتاب"><button type="button" data-decrease-book="'+b.id+'" aria-label="کاهش تعداد '+b.title_fa+'">−</button><span aria-live="polite">'+item.quantity+'</span><button type="button" data-increase-book="'+b.id+'" aria-label="افزایش تعداد '+b.title_fa+'">+</button></div><button type="button" data-remove-book="'+b.id+'">'+(isFa?'حذف':'Remove')+'</button>';
+      '<div>'+escapeHtml(money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency))+'</div>'+
+      '<div class="cart-quantity-controls" aria-label="تغییر تعداد کتاب"><button type="button" data-decrease-book="'+escapeHtml(b.id)+'" aria-label="کاهش تعداد '+escapeHtml(b.title_fa)+'">−</button><span aria-live="polite">'+item.quantity+'</span><button type="button" data-increase-book="'+escapeHtml(b.id)+'" aria-label="افزایش تعداد '+escapeHtml(b.title_fa)+'">+</button></div><button type="button" data-remove-book="'+escapeHtml(b.id)+'">'+(isFa?'حذف':'Remove')+'</button>';
     host.appendChild(row);
   }
   const summary=document.createElement('div');
   summary.className='cart-summary';
   const amount=valid?money(total,currency):(isFa?'نیازمند بررسی':'Requires confirmation');
   const formattedLines=books.map(({item,book:b})=>
-    '- '+b.title_fa+' ('+b.english_reference_title+') × '+item.quantity+
+    '- '+escapeHtml(b.title_fa)+' ('+b.english_reference_title+') × '+item.quantity+
     ' | '+money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency)
   );
   const disclosure=isFa?
@@ -147,7 +155,7 @@
      'Illustrative subtotal: '+amount,'','Please confirm actual stock, free shipping, return policy, and whether ordering is available before any payment.',
      '','This enquiry is not an order or payment confirmation.']).join('\n');
   summary.innerHTML='<p class="store-notice">'+(isFa?'هزینه ارسال: رایگان (بر عهده فروشگاه)':'Shipping: free (paid by the store)')+'</p><strong>'+(isFa?'جمع نمایشی انتخاب‌ها':'Illustrative selection subtotal')+
-    ': '+amount+'</strong><p>'+disclosure+'</p>';
+    ': '+escapeHtml(amount)+'</strong><p>'+disclosure+'</p>';
   const actions=document.createElement('div');
   actions.className='actions';
   const checkout=document.createElement('button');
