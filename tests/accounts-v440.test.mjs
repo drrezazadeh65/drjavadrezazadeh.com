@@ -38,7 +38,7 @@ async all(){
  if(sql.includes("FROM commerce_orders WHERE lower(json_extract"))return {results:orders.filter(o=>o.customer.email===bind[0]).map(o=>({id:o.id,paid_at:o.paid_at,created_at:o.created_at,amount_toman:o.amount_toman,state:o.state,fulfilment_state:o.fulfilment_state,tracking_code:o.tracking_code,items_json:JSON.stringify(o.items)}))};
  throw Error("Unexpected all SQL "+sql)
 }
-}}}};
+}}};
 }
 const env={DB:D1(),ACCOUNT_ENABLED:"true",ACCOUNT_EMAIL_ENABLED:"true",ACCOUNT_FROM_EMAIL:"noreply@drjavadrezazadeh.com",RESEND_API_KEY:"mock-resend",VIP_DIRECT_PHONE:"+989123456789"};
 globalThis.fetch=async (url,opts)=>{if(url!=="https://api.resend.com/emails")throw Error("unexpected external fetch "+url);const body=JSON.parse(opts.body);outbox.push(body);return Response.json({id:"accepted-"+outbox.length})};
