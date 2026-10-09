@@ -29,7 +29,7 @@ function mount(host,kind,items){
   const card=document.createElement('article');card.className='commerce-card';
   const title=document.createElement('h3');title.textContent=item.title_fa;
   const price=document.createElement('p');price.className='commerce-price';price.textContent=fmt(item.price);
-  const button=document.createElement('button');button.type='button';button.className='commerce-pay';button.textContent='پرداخت امن این خدمت';
+  const button=document.createElement('button');button.type='button';button.className='commerce-pay';button.textContent='در حال بررسی وضعیت درگاه';button.disabled=true;
   const live=document.createElement('p');live.className='commerce-feedback';live.setAttribute('aria-live','polite');
   button.addEventListener('click',()=>pay([{sku:kind+':'+item.id,quantity:1}],button,live));
   const details=document.createElement('a');details.href=kind==='service'?'/fa/services/'+encodeURIComponent(item.id)+'/':'/fa/vip/'+encodeURIComponent(item.id)+'/';details.textContent=kind==='service'?'معرفی کامل، شرایط و جزئیات خدمت':'مشاهده معرفی بسته‌های VIP';details.className='commerce-details';details.style.cssText='display:block;margin:12px 0;color:inherit;text-decoration:underline;text-underline-offset:5px';card.append(title,price,details,button,live);host.append(card);
@@ -50,6 +50,23 @@ async function start(){
   ]);
   if(vip)mount(vip,'vip',v.services.filter(x=>x.checkout_enabled===true));
   if(services)mount(services,'service',s.services);
+  // A public catalogue does not prove that payment and fulfilment are available.
+  let health=null;
+  try{
+   const r=await fetch(API+'/commerce/health',{cache:'no-store',credentials:'omit'});
+   if(r.ok){const data=await r.json();if(data?.ok===true)health=data}
+  }catch(_){}
+  for(const [host,kind] of [[vip,'vip'],[services,'services']]){
+   if(!host)continue;
+   const channel=health?.capabilities?.[kind];
+   const ready=health?.checkout===true && (channel===undefined || channel===true);
+   for(const button of host.querySelectorAll('.commerce-pay')){
+    button.disabled=!ready;
+    button.textContent=ready?'پرداخت امن این خدمت':'درگاه این خدمت هنوز آماده نیست';
+   }
+   const message=host.querySelector('.commerce-notice');
+   if(message && !ready)message.textContent='رزرو و پرداخت آنلاین این خدمت هنوز آماده نیست. برای پرسش پیش از خرید، فقط از ایمیل رسمی استفاده کنید؛ در این صفحه وجهی دریافت نمی‌شود.';
+  }
  }catch(e){for(const el of [vip,services])if(el)el.textContent='فهرست خدمات موقتاً در دسترس نیست.'}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
