@@ -85,6 +85,14 @@ for(const [needle,why] of [
 }
 if(bookClient.includes('checkout.disabled=false')||bookClient.includes('finally{button.disabled=false}'))
  failures.push('assets/js/book-store.js: unverified or failed payment may not re-enable controls');
+const donationPage=fs.readFileSync(path.join(root,'fa','support-talented-students','index.html'),'utf8');
+if(!/<meta\\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(donationPage))
+ failures.push('fa/support-talented-students/index.html: donation preview must remain noindex until independently approved');
+if(!/button[^>]*disabled/i.test(donationPage))
+ failures.push('fa/support-talented-students/index.html: donation payment control must remain disabled before launch evidence');
+if(/\/donations\/create/.test(donationPage))
+ failures.push('fa/support-talented-students/index.html: preview must not call donation creation API before launch evidence');
+
 const serviceClient=fs.readFileSync(path.join(root,'assets/js/commerce-checkout.js'),'utf8');
 if(!serviceClient.includes('channel===true')||serviceClient.includes('channel===undefined'))
  failures.push('assets/js/commerce-checkout.js: missing service-specific fail-closed checkout capability');
