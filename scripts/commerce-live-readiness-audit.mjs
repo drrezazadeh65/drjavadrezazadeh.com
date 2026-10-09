@@ -16,6 +16,8 @@ try{
 }finally{clearTimeout(timeout)}
 if(health?.ok!==true||health.service!=='commerce'||typeof health.checkout!=='boolean')
  throw new Error('commerce_health_contract_missing_or_stale');
+console.log('Deployed health keys:',Object.keys(health).sort().join(', '));
+console.log('Advertised checkout:',health.checkout);
 for(const key of ['services','vip','books']){
  if(typeof health.capabilities?.[key]!=='boolean')throw new Error('commerce_capability_missing_'+key);
  if(health.capabilities[key]===true&&health.checkout!==true)throw new Error('capability_enabled_without_checkout_'+key);
