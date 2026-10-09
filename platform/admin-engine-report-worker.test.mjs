@@ -27,3 +27,11 @@ test('unrelated routes are not exposed by the admin worker',async()=>{
  const worker=createAdminEngineReportWorker({verifySession:async()=>null,collectSignals:async()=>({})});
  assert.equal((await worker.fetch(new Request('https://drjavadrezazadeh.com/'))).status,404);
 });
+
+test('rejects cross-origin requests before identity or telemetry access',async()=>{
+ let verified=0,probed=0;
+ const worker=createAdminEngineReportWorker({verifySession:async()=>{verified++;return null},collectSignals:async()=>{probed++;return {}}});
+ const response=await worker.fetch(new Request(endpoint,{headers:{Origin:'https://malicious.example'}}));
+ assert.equal(response.status,403);assert.equal(verified,0);assert.equal(probed,0);
+ assert.equal(response.headers.get('Cache-Control'),'private, no-store, max-age=0');
+});
