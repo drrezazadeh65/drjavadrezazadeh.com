@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "currency": "IRT",
-  "version": "2026-10-08",
+  "version": "2026-10-09",
   "services": [
     {
       "id": "academic-direction",
@@ -11,7 +11,17 @@
       "checkout_enabled": true,
       "booking_required": true,
       "quantity_limit": 1,
-      "detail_url": "/fa/vip/academic-direction/"
+      "detail_url": "/fa/vip/academic-direction/",
+      "membership": {
+        "type": "vip_annual",
+        "duration_days": 365,
+        "unlimited_coaching_requests": true,
+        "coaching_scope": "within_purchased_package",
+        "direct_phone": "only_after_verified_vip_payment_in_private_order",
+        "in_person_meetings": "by_appointment",
+        "official_communication": "email",
+        "transferable": false
+      }
     },
     {
       "id": "university-selection",
@@ -21,7 +31,17 @@
       "checkout_enabled": true,
       "booking_required": true,
       "quantity_limit": 1,
-      "detail_url": "/fa/vip/university-selection/"
+      "detail_url": "/fa/vip/university-selection/",
+      "membership": {
+        "type": "vip_annual",
+        "duration_days": 365,
+        "unlimited_coaching_requests": true,
+        "coaching_scope": "within_purchased_package",
+        "direct_phone": "only_after_verified_vip_payment_in_private_order",
+        "in_person_meetings": "by_appointment",
+        "official_communication": "email",
+        "transferable": false
+      }
     },
     {
       "id": "golden-talent-signature",
@@ -31,7 +51,17 @@
       "checkout_enabled": true,
       "booking_required": true,
       "quantity_limit": 1,
-      "detail_url": "/fa/vip/golden-talent-signature/"
+      "detail_url": "/fa/vip/golden-talent-signature/",
+      "membership": {
+        "type": "vip_annual",
+        "duration_days": 365,
+        "unlimited_coaching_requests": true,
+        "coaching_scope": "within_purchased_package",
+        "direct_phone": "only_after_verified_vip_payment_in_private_order",
+        "in_person_meetings": "by_appointment",
+        "official_communication": "email",
+        "transferable": false
+      }
     },
     {
       "id": "research-publication",
@@ -41,7 +71,17 @@
       "checkout_enabled": true,
       "booking_required": true,
       "quantity_limit": 1,
-      "detail_url": "/fa/vip/research-publication/"
+      "detail_url": "/fa/vip/research-publication/",
+      "membership": {
+        "type": "vip_annual",
+        "duration_days": 365,
+        "unlimited_coaching_requests": true,
+        "coaching_scope": "within_purchased_package",
+        "direct_phone": "only_after_verified_vip_payment_in_private_order",
+        "in_person_meetings": "by_appointment",
+        "official_communication": "email",
+        "transferable": false
+      }
     },
     {
       "id": "educator-development",
@@ -51,7 +91,17 @@
       "checkout_enabled": true,
       "booking_required": true,
       "quantity_limit": 1,
-      "detail_url": "/fa/vip/educator-development/"
+      "detail_url": "/fa/vip/educator-development/",
+      "membership": {
+        "type": "vip_annual",
+        "duration_days": 365,
+        "unlimited_coaching_requests": true,
+        "coaching_scope": "within_purchased_package",
+        "direct_phone": "only_after_verified_vip_payment_in_private_order",
+        "in_person_meetings": "by_appointment",
+        "official_communication": "email",
+        "transferable": false
+      }
     },
     {
       "id": "institutional-advisory",
@@ -61,7 +111,17 @@
       "checkout_enabled": true,
       "booking_required": true,
       "quantity_limit": 1,
-      "detail_url": "/fa/vip/institutional-advisory/"
+      "detail_url": "/fa/vip/institutional-advisory/",
+      "membership": {
+        "type": "vip_annual",
+        "duration_days": 365,
+        "unlimited_coaching_requests": true,
+        "coaching_scope": "within_purchased_package",
+        "direct_phone": "only_after_verified_vip_payment_in_private_order",
+        "in_person_meetings": "by_appointment",
+        "official_communication": "email",
+        "transferable": false
+      }
     }
   ]
 }
