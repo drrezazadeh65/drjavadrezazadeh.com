@@ -9,6 +9,13 @@ export function createAdminEngineReportWorker({verifySession,collectSignals,cloc
   const url=new URL(request.url);
   if(url.pathname!=='/api/v1/admin/engine-status')
    return new Response('Not found',{status:404,headers:{'Cache-Control':'no-store','X-Robots-Tag':'noindex, nofollow'}});
+  // Reject cross-site browser origins; this is defense in depth, not authentication.
+  const origin=request.headers.get('Origin');
+  if(origin&&origin!==url.origin)
+   return new Response(JSON.stringify({error:'CROSS_ORIGIN_FORBIDDEN'}),{status:403,headers:{
+    'Content-Type':'application/json; charset=utf-8','Cache-Control':'private, no-store, max-age=0',
+    'X-Robots-Tag':'noindex, nofollow','X-Content-Type-Options':'nosniff','Vary':'Origin'
+   }});
   const report=await handleAdminEngineReport({
    request,authenticate:req=>verifySession({request:req,env,ctx}),
    collectSignals:args=>collectSignals({...args,env,ctx}),clock
