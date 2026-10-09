@@ -6,6 +6,18 @@
  const root=p=>(base==='/'?'/':base)+String(p||'').replace(/^\/+/, '');
  const isFa=document.documentElement.lang==='fa';
  const CART_KEY='jr-book-cart-v1';
+ const API='https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev';
+ // Catalogue prices never authorise payment. The live Worker must explicitly permit books.
+ let bookPaymentReady=false;
+ async function verifyBookPaymentCapability(){
+  try{
+   const response=await fetch(API+'/commerce/health',{cache:'no-store',credentials:'omit'});
+   if(!response.ok)return false;
+   const health=await response.json();
+   return health?.ok===true&&health.service==='commerce'&&
+    health.checkout===true&&health.capabilities?.books===true;
+  }catch(_){return false}
+ }
 
  function money(amount,currency){
   if(!Number.isInteger(amount)||!currency) return isFa?'قیمت هنوز اعلام نشده':'Price not yet published';
@@ -143,8 +155,9 @@
   checkout.className='button primary';
   checkout.dataset.bookPayment='';
   checkout.textContent=isFa?'پرداخت آنلاین کتاب‌ها':'Pay for books online';
-  checkout.disabled=false;
-  checkout.title=isFa?'ثبت سفارش و انتقال به درگاه امن':'Create order and proceed to secure payment';
+  checkout.disabled=!bookPaymentReady;
+  checkout.textContent=bookPaymentReady?(isFa?'پرداخت آنلاین کتاب‌ها':'Pay for books online'):(isFa?'پرداخت آنلاین کتاب هنوز فعال نیست':'Book checkout not yet available');
+  checkout.title=bookPaymentReady?(isFa?'ثبت سفارش و انتقال به درگاه امن':'Create order and proceed to secure payment'):(isFa?'تا تأیید آمادگی سرور، وجهی دریافت نمی‌شود':'Payment remains disabled until server readiness is verified');
   actions.appendChild(checkout);
 
   const inquiry=document.createElement('a');
@@ -186,6 +199,7 @@
      return;
    }
    if(e.target.closest('[data-book-payment]')){
+     if(!bookPaymentReady){status.textContent=isFa?'پرداخت کتاب هنوز فعال نیست؛ از گزینه استعلام ایمیلی استفاده کنید.':'Book checkout is not active; use the email enquiry.';return}
      const button=e.target.closest('[data-book-payment]');
      button.disabled=true;
      status.textContent=isFa?'در حال بررسی ایمن سفارش...':'Checking order securely...';
@@ -204,7 +218,7 @@
          status.textContent=isFa?'پرداخت آنلاین هنوز در حال آزمون است؛ هیچ وجهی برداشت نشده است.':'Checkout is undergoing testing; no charge was made.';
        }else status.textContent=isFa?'ایجاد سفارش ناموفق بود؛ وجهی پرداخت نکنید.':'Could not create the order; do not pay.';
      }catch(_){status.textContent=isFa?'اتصال به درگاه برقرار نشد؛ پرداختی انجام نشده است.':'Payment connection unavailable; no charge was made.'}
-     finally{button.disabled=false}
+     finally{button.disabled=true;button.textContent=isFa?'برای بررسی مجدد درگاه صفحه را تازه‌سازی کنید':'Refresh to recheck payment readiness';}
      return;
    }
    if(!e.target.closest('[data-book-copy]'))return;
@@ -237,19 +251,26 @@
    '<div class="store-notice">'+(valid?(isFa?'ارسال کتاب رایگان است. مبلغ نهایی در سرور محاسبه می‌شود و پس از تأیید بانکی رسید صادر خواهد شد.':'The catalogue and prices are ready; order completion and payment become available after fulfilment/return terms are confirmed and the verified payment gateway is activated.'):(isFa?'در حال حاضر محصول قیمت‌گذاری‌شده و قابل‌فروش در کاتالوگ فعال نیست.':'There is currently no verified priced and sellable book in the active catalogue.'))+'</div>'+
    '<div class="actions"><a class="button" href="'+root((isFa?'fa':'en')+'/shop/cart/')+'">'+(isFa?'بازگشت به سبد':'Back to cart')+'</a></div>';
   if(valid){
-   const btn=document.createElement('button');btn.type='button';btn.className='button primary';btn.textContent=isFa?'پرداخت امن سفارش':'Secure checkout';
+   const btn=document.createElement('button');btn.type='button';btn.className='button primary';
+   btn.disabled=!bookPaymentReady;
+   btn.textContent=bookPaymentReady?(isFa?'پرداخت امن سفارش':'Secure checkout'):(isFa?'پرداخت کتاب هنوز فعال نیست':'Book checkout not yet available');
    const feedback=document.createElement('p');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
-   btn.onclick=async()=>{btn.disabled=true;feedback.textContent=isFa?'در حال ایجاد سفارش...':'Creating order...';try{
+   btn.onclick=async()=>{if(!bookPaymentReady){feedback.textContent=isFa?'پرداخت آنلاین کتاب هنوز فعال نیست.':'Book checkout is not active.';return}btn.disabled=true;feedback.textContent=isFa?'در حال ایجاد سفارش...':'Creating order...';try{
     const response=await fetch('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/commerce/create',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity}))})});
     const result=await response.json();
     if(!response.ok||!result.ok)throw Error(result.error||'order_failed');
     const url=new URL(result.paymentUrl);
     if(url.origin!==location.origin||url.pathname!=='/fa/shop/payment-start/'||url.searchParams.size!==1||!url.searchParams.has('gateway'))throw Error('unsafe_url');
     location.assign(url.href);
-   }catch(e){feedback.textContent=isFa?'ثبت سفارش ممکن نشد؛ در صورت برداشت وجه مجدداً پرداخت نکنید.':'Order could not be created; do not pay again if charged.';btn.disabled=false}};
+   }catch(e){feedback.textContent=isFa?'ثبت سفارش ممکن نشد؛ در صورت برداشت وجه مجدداً پرداخت نکنید.':'Order could not be created; do not pay again if charged.';btn.disabled=true;btn.textContent=isFa?'برای بررسی مجدد صفحه را تازه‌سازی کنید':'Refresh to recheck payment readiness'}};
    host.querySelector('.actions').appendChild(btn);host.appendChild(feedback);
   }
  }
- load().then(data=>{renderCatalog(data);renderDetail(data);renderCart(data);renderCheckout(data);updateCartBadge();}).catch(()=>document.querySelectorAll('[data-store-error]').forEach(x=>x.hidden=false));
+ load().then(async data=>{
+  renderCatalog(data);renderDetail(data);renderCart(data);renderCheckout(data);updateCartBadge();
+  bookPaymentReady=await verifyBookPaymentCapability();
+  // Re-render after a fresh explicit readiness check; controls remain disabled on uncertainty.
+  renderCart(data);renderCheckout(data);
+ }).catch(()=>document.querySelectorAll('[data-store-error]').forEach(x=>x.hidden=false));
  updateCartBadge();
 })();
