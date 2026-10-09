@@ -3,6 +3,15 @@ on:
   pull_request:
     paths:
       - "payment-api/**"
+      - "assets/js/account-v440.js"
+      - "assets/css/account-v440.css"
+      - "fa/account/**"
+      - "fa/login/**"
+      - "fa/register/**"
+      - "fa/app/account/**"
+      - "en/login/**"
+      - "en/register/**"
+      - "tests/accounts-v440.test.mjs"
       - "assets/js/checkout-v440.js"
       - "assets/js/invoice-v440.js"
       - "tests/commerce-v440.test.mjs"
@@ -34,9 +43,11 @@ jobs:
           node-version: "22"
       - name: Check syntax of new browser and Worker modules
         run: |
+          node --check payment-api/account-routes.js
+          node --check assets/js/account-v440.js
           node --check payment-api/commerce-routes.js
           node --check payment-api/worker-single-file-candidate.js
           node --check assets/js/checkout-v440.js
           node --check assets/js/invoice-v440.js
       - name: Test invoice authorization and payment lifecycle with mocked gateway (no real charge)
-        run: node --test tests/commerce-v440.test.mjs tests/commerce-catalog-v440.test.mjs tests/service-finder-v440.test.mjs tests/service-image-v440.test.mjs tests/service-value-v440.test.mjs tests/student-eitaa-entitlement-v440.test.mjs
+        run: node --test tests/commerce-v440.test.mjs tests/commerce-catalog-v440.test.mjs tests/service-finder-v440.test.mjs tests/service-image-v440.test.mjs tests/service-value-v440.test.mjs tests/student-eitaa-entitlement-v440.test.mjs tests/accounts-v440.test.mjs
