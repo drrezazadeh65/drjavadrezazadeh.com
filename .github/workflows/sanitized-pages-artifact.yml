@@ -13,6 +13,7 @@ on:
       - 'sitemap*.xml'
       - 'feed.xml'
       - 'CNAME'
+      - '_config.yml'
       - 'scripts/build-public-site.mjs'
       - '.github/workflows/sanitized-pages-artifact.yml'
   workflow_dispatch:
@@ -43,6 +44,7 @@ jobs:
           test ! -e .public-site/scripts
           test ! -e .public-site/tests
           test ! -e .public-site/edge
+          test ! -e .public-site/payment-api
           test ! -e .public-site/docs
           test ! -e .public-site/.github
           test ! -e .public-site/assets/media-registry.json
