@@ -12,7 +12,7 @@ const put=(parent,tag,cls,value)=>{const el=document.createElement(tag);if(cls)e
 const inputs=[
   {key:"full_name",fa:"نام و نام خانوادگی",en:"Full name",required:true,max:90,auto:"name"},
   {key:"mobile",fa:"شماره همراه",en:"Mobile phone",required:true,max:22,auto:"tel",type:"tel"},
-  {key:"email",fa:"ایمیل (اختیاری)",en:"Email (optional)",max:254,auto:"email",type:"email"},
+  {key:"email",fa:"ایمیل برای دریافت رسید و بازیابی سفارش",en:"Email for receipts and order recovery",required:true,max:254,auto:"email",type:"email"},
   {key:"province",fa:"استان",en:"Province",shipping:true,required:true,max:90,auto:"address-level1"},
   {key:"city",fa:"شهر",en:"City",shipping:true,required:true,max:90,auto:"address-level2"},
   {key:"address",fa:"نشانی کامل پستی",en:"Complete postal address",shipping:true,required:true,max:450,auto:"street-address"},
