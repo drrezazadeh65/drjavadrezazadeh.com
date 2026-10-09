@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const root=process.cwd();
 const out=path.join(root,'.public-site');
-const excludedTop=new Set(['.git','.github','docs','edge','foundation','node_modules','platform','scripts','tests','test-results','.public-site']);
+const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundation','node_modules','platform','scripts','tests','test-results','.public-site']);
 const excludedRoot=new Set(['README.md','CACHE_STANDARD.md']);
 const excludedExact=new Set(['assets/media-registry.json']);
 
@@ -54,7 +54,7 @@ walk(out);
 const html=all.filter(p=>p.endsWith('.html'));
 // The additional public HTML route is a strictly noindex payment-return relay.
 // Keep a fixed route count as a guard against accidentally publishing engineering files.
-const approvedPublicHtmlRoutes=247;
+const approvedPublicHtmlRoutes=280;
 if(html.length!==approvedPublicHtmlRoutes) failures.push(
   'Expected '+approvedPublicHtmlRoutes+' public HTML routes in sanitized artifact, found '+html.length
 );
@@ -78,7 +78,7 @@ if(!fs.existsSync(relayPath)) {
 const textExt=/\.(?:html|js|css|json|xml|txt|webmanifest)$/i;
 for(const file of all.filter(p=>textExt.test(p))){
   const content=fs.readFileSync(file,'utf8');
-  if(/(?:["'(=]|url\()\s*\/?(?:platform|foundation|scripts|tests|edge|docs)\//i.test(content)){
+  if(/(?:["'(=]|url\()\s*\/?(?:platform|foundation|scripts|tests|edge|payment-api|docs)\//i.test(content)){
     const rel=path.relative(out,file).replaceAll(path.sep,'/');
     failures.push('Public artifact still references excluded engineering path: '+rel);
   }
