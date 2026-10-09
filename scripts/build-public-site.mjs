@@ -5,7 +5,7 @@ const root=process.cwd();
 const out=path.join(root,'.public-site');
 const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundation','node_modules','platform','scripts','tests','test-results','.public-site']);
 const excludedRoot=new Set(['README.md','CACHE_STANDARD.md']);
-const excludedExact=new Set(['assets/media-registry.json']);
+const excludedExact=new Set(['assets/media-registry.json','assets/release-v4.4.json']);
 
 fs.rmSync(out,{recursive:true,force:true});
 fs.mkdirSync(out,{recursive:true});
@@ -42,6 +42,7 @@ for(const blocked of [...excludedTop]){
   if(fs.existsSync(path.join(out,blocked))) failures.push('Internal top-level directory leaked into artifact: '+blocked);
 }
 if(fs.existsSync(path.join(out,'assets/media-registry.json'))) failures.push('Internal media registry leaked into artifact');
+if(fs.existsSync(path.join(out,'assets/release-v4.4.json'))) failures.push('Internal release manifest leaked into artifact');
 
 const all=[];
 function walk(dir){
@@ -54,7 +55,7 @@ walk(out);
 const html=all.filter(p=>p.endsWith('.html'));
 // The additional public HTML route is a strictly noindex payment-return relay.
 // Keep a fixed route count as a guard against accidentally publishing engineering files.
-const approvedPublicHtmlRoutes=280;
+const approvedPublicHtmlRoutes=286;
 if(html.length!==approvedPublicHtmlRoutes) failures.push(
   'Expected '+approvedPublicHtmlRoutes+' public HTML routes in sanitized artifact, found '+html.length
 );
