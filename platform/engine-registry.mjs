@@ -1,6 +1,6 @@
 // Canonical inventory of existing domain engines. Metadata only: no engine is activated by this file.
 // Keep the registry private; never infer production readiness from a source path.
-export const ENGINE_REGISTRY_VERSION = '2026-10-09.1';
+export const ENGINE_REGISTRY_VERSION = '2026-10-09.2';
 export const ENGINE_REGISTRY = Object.freeze([
   {id:'crm',module:'./crm-engine.mjs',domain:'relationships',capabilities:['lead-intake','qualification']},
   {id:'consultation',module:'./consultation-engine.mjs',domain:'consultations',capabilities:['triage','booking-workflow']},
@@ -26,4 +26,25 @@ export function validateEngineRegistry(registry=ENGINE_REGISTRY) {
     ids.add(engine.id);paths.add(engine.module);
   }
   return true;
+}
+
+// Bridge to the pre-existing governed module registry. A source engine is not a new
+// independent service: its owner is one of the established domain modules.
+export const ENGINE_MODULE_OWNERS = Object.freeze({
+  crm:'relationships',consultation:'consultation','consultation-record':'consultation',
+  commerce:'commerce',communication:'communications',assessment:'golden-talent-evidence',
+  'assessment-authoring':'golden-talent-evidence',report:'golden-talent-evidence',
+  'research-export':'research-export','golden-talent':'golden-talent-evidence',
+  'golden-talent-deep':'golden-talent-evidence','golden-talent-analytics':'golden-talent-evidence',
+  bahar:'bahar'
+});
+export function validateEngineOwnership(moduleRegistry) {
+  const known=new Set((moduleRegistry?.modules||[]).map(m=>m.id));
+  const failures=[];
+  for(const engine of ENGINE_REGISTRY){
+    const owner=ENGINE_MODULE_OWNERS[engine.id];
+    if(!owner||!known.has(owner)) failures.push(engine.id+': missing module owner '+owner);
+  }
+  for(const id of Object.keys(ENGINE_MODULE_OWNERS)) if(!getEngine(id)) failures.push(id+': orphan owner mapping');
+  return {valid:failures.length===0,failures,engine_count:ENGINE_REGISTRY.length};
 }
