@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import {ENGINE_REGISTRY,getEngine,listEngineDomains,validateEngineRegistry} from './engine-registry.mjs';
+import {ENGINE_REGISTRY,getEngine,listEngineDomains,validateEngineRegistry,validateEngineOwnership} from './engine-registry.mjs';
 test('registry has unique engine ownership and source files',()=>{
  assert.equal(validateEngineRegistry(),true);
  assert.equal(ENGINE_REGISTRY.length,13);
@@ -16,3 +16,6 @@ test('engine lookups are deterministic',()=>{
 test('duplicate source registration is rejected',()=>{
  assert.throws(()=>validateEngineRegistry([ENGINE_REGISTRY[0],ENGINE_REGISTRY[0]]),/Duplicate/);
 });
+
+import moduleRegistry from './module-registry.json' with {type:'json'};
+test('all engines belong to a governed module',()=>{assert.deepEqual(validateEngineOwnership(moduleRegistry).failures,[]);});
