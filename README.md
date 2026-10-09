@@ -20,7 +20,7 @@ GitHub Pages is the public static host for the owned production domain `https://
 Public URL identity is treated as an SEO contract. Existing indexable paths are frozen in `platform/public-url-stability-manifest.json`; a path must not be renamed or removed without an intentional one-hop permanent redirect plan. CI blocks broken internal links, missing fragment targets, redirect chains, sitemap drift and canonical drift.
 
 ### Verified identity links
-Academia.edu, Semantic Scholar, ORCID, Instagram and GitHub are linked. Google Scholar currently uses a name-specific Scholar search until the exact profile URL is verified. Facebook and X/Twitter are intentionally withheld until exact official profile URLs are verified.
+Academia.edu, Semantic Scholar, ORCID, Instagram, GitHub, X/Twitter (`https://x.com/J_Rezazadeh`), and Facebook (`https://m.facebook.com/DrJavadRezazadeh/`) are linked on both About pages and in their canonical Person `sameAs` schema. Google Scholar currently uses a name-specific Scholar search until the exact profile URL is verified. The GitHub Pages publication and live domain must be independently checked after each source change.
 
 © Dr. Javad Rezazadeh Yazdeli. All rights reserved.
 
