@@ -17,5 +17,5 @@ export function engineById(id){return ENGINES.find(e=>e.id===id)??null}
 export function engineReadiness(id,evidence={}){
  const engine=engineById(id);if(!engine)throw new Error('Unknown engine');
  const capabilities=engine.capabilities.map(name=>({name,implemented:evidence[name]?.implemented===true,verified:evidence[name]?.verified===true,connected:evidence[name]?.connected===true}));
- return Object.freeze({id,ready:capabilities.every(c=>c.implemented&&c.verified),connected:capabilities.every(c=>c.connected),capabilities});
+ return Object.freeze({id,ready:capabilities.length>0&&capabilities.every(c=>c.implemented&&c.verified),connected:capabilities.length>0&&capabilities.every(c=>c.connected),capabilities});
 }
