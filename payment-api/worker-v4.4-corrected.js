@@ -998,3 +998,105 @@ export default {
           result = JSON.parse(raw);
 
         } catch {
+
+          return page(
+
+            "پاسخ تأیید درگاه قابل بررسی نیست."
+
+          );
+
+        }
+
+        const status =
+
+          String(result.status ?? "");
+
+        const amount =
+
+          Number(result.amount);
+
+        const factorId =
+
+          String(result.factorId ?? "");
+
+        if (
+
+          !["1", "11"].includes(status) ||
+
+          amount !== order.amount_rial ||
+
+          factorId !== order.factor_id
+
+        ) {
+
+          return page(
+
+            "تأیید نهایی انجام نشد؛ مبلغی را دوباره پرداخت نکنید."
+
+          );
+
+        }
+
+        const updated = await env.DB.prepare(`
+
+          UPDATE payment_orders
+
+          SET state='paid',
+
+              provider_trans_id=?,
+
+              paid_at=CURRENT_TIMESTAMP,
+
+              updated_at=CURRENT_TIMESTAMP
+
+          WHERE id=?
+
+            AND state='pending'
+
+            AND provider_id_get=?
+
+        `).bind(
+
+          transId,
+
+          orderId,
+
+          idGet
+
+        ).run();
+
+        return updated.meta.changes === 1
+
+          ? page(
+
+              "پرداخت با موفقیت تأیید و ثبت شد."
+
+            )
+
+          : page(
+
+              "وضعیت سفارش نیازمند بررسی است."
+
+            );
+
+      } catch {
+
+        return page(
+
+          "استعلام پرداخت ناموفق بود؛ دوباره پرداخت نکنید."
+
+        );
+
+      }
+
+    }
+
+    return json({
+
+      error: "not_found"
+
+    }, 404);
+
+  }
+
+};
