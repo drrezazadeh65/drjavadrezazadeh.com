@@ -351,7 +351,8 @@ async function commerce(request,env){
  if(path==="/commerce/health"&&request.method==="GET"){
   // A valid gateway unit is required for checkout to create a provider payment.
   const gatewayReady=env.COMMERCE_ENABLED==="true" && !!env.BITPAY_API_KEY &&
-   ["1","10"].includes(String(env.BITPAY_AMOUNT_MULTIPLIER||""));
+   ["1","10"].includes(String(env.BITPAY_AMOUNT_MULTIPLIER||"")) &&
+   env.ORDER_EMAIL_FULFILMENT_CONFIRMED==="true";
   return reply({ok:true,service:"commerce",
    checkout:gatewayReady,
    capabilities:{
@@ -364,6 +365,8 @@ async function commerce(request,env){
   if(!allowedOrigin(request))return fail("origin_forbidden",403);
   if(env.COMMERCE_ENABLED!=="true")return fail("checkout_disabled",503);
   if(!env.BITPAY_API_KEY)return fail("gateway_unconfigured",503);
+  // Never charge a customer until durable order-linked email receipts are operational.
+  if(env.ORDER_EMAIL_FULFILMENT_CONFIRMED!=="true")return fail("order_email_not_configured",503);
   if(!(request.headers.get("Content-Type")||"").startsWith("application/json"))return fail("content_type",415);
   let input;try{input=await request.json()}catch{return fail("invalid_json")}
   if(!Array.isArray(input?.items)||input.items.length<1||input.items.length>20)return fail("invalid_items");
@@ -506,7 +509,7 @@ export default {
 
           livePayments: false,
 
-          checkoutReady: true
+          checkoutReady: false
 
         });
 
