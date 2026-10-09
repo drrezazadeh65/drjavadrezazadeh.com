@@ -218,14 +218,14 @@
        });
        const result=await response.json();
        if(response.ok&&result.ok&&typeof result.paymentUrl==='string'){
-         const link=new URL(result.paymentUrl);
-         if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/')throw Error('unsafe_payment_url');
+         const link=new URL(result.paymentUrl,location.origin);
+         if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/'||link.hash||link.username||link.password||link.searchParams.size!==1||!link.searchParams.get('gateway'))throw Error('unsafe_payment_url');
          location.assign(link.href);return;
        }
        if(result.error==='checkout_disabled'){
-         status.textContent=isFa?'پرداخت آنلاین هنوز در حال آزمون است؛ هیچ وجهی برداشت نشده است.':'Checkout is undergoing testing; no charge was made.';
-       }else status.textContent=isFa?'ایجاد سفارش ناموفق بود؛ وجهی پرداخت نکنید.':'Could not create the order; do not pay.';
-     }catch(_){status.textContent=isFa?'اتصال به درگاه برقرار نشد؛ پرداختی انجام نشده است.':'Payment connection unavailable; no charge was made.'}
+         status.textContent=isFa?'پرداخت آنلاین هنوز فعال نیست؛ پیش از تلاش مجدد وضعیت سفارش را از طریق ایمیل رسمی پیگیری کنید.':'Checkout is not active; verify the order status through the official email before retrying.';
+       }else status.textContent=isFa?'ثبت سفارش تأیید نشد؛ پیش از تلاش مجدد وضعیت را از طریق ایمیل رسمی پیگیری کنید.':'Order creation was not confirmed; verify its status through the official email before retrying.';
+     }catch(_){status.textContent=isFa?'وضعیت درخواست پرداخت نامشخص است؛ از پرداخت مجدد خودداری کنید و از طریق ایمیل رسمی پیگیری نمایید.':'Payment-request status is unknown; do not retry payment until you verify the order through the official email.'}
      finally{button.disabled=true;button.textContent=isFa?'برای بررسی مجدد درگاه صفحه را تازه‌سازی کنید':'Refresh to recheck payment readiness';}
      return;
    }
