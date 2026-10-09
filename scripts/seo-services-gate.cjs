@@ -42,6 +42,8 @@ const vip=JSON.parse(read('assets/data/vip-catalog.json')).services;
 assert(catalog.length===21 && vip.length===6,'Expected 21 standard and six VIP offers');
 for(const v of vip){
  const id=v.id,file='fa/vip/'+id+'/index.html',image='assets/images/vip-'+id+'.svg',uri=domain+'/fa/vip/'+id+'/';
+ assert(found.includes(uri),'Missing VIP sitemap URL: '+uri);
+ assert(found.includes(domain+'/'+image),'Missing VIP sitemap image URL: '+image);
  if(!fs.existsSync(path.join(root,file))){errors.push('Missing VIP page: '+file);continue}
  const html=read(file);
  assert(fs.existsSync(path.join(root,image)),'Missing VIP illustration: '+image);
@@ -65,6 +67,7 @@ for(const s of catalog){
  assert(index.includes('/fa/services/'+s.id+'/'),'Missing hub internal link: '+s.id);
  assert(index.includes('/assets/images/services/'+s.id+'.svg'),'Missing illustrated service card: '+s.id);
 }
+assert(found.includes(domain+'/fa/vip/'),'Missing VIP hub in services sitemap');
 const vipHub=read('fa/vip/index.html');
 for(const v of vip){
  assert(vipHub.includes('/assets/images/vip-'+v.id+'.svg'),'Missing illustrated VIP card: '+v.id);
