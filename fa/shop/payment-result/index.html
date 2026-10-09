@@ -1,6 +1,121 @@
 <!doctype html>
-<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><title>نتیجه پرداخت | فروشگاه دکتر جواد رضازاده</title><style>
-:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 20% 10%,#d8e7ed,transparent 48%),linear-gradient(145deg,#f8fafc,#e7edf5);font-family:Tahoma,Arial,sans-serif;color:#13233c;display:grid;place-items:center;padding:22px}main{width:min(100%,660px);padding:clamp(24px,5vw,52px);background:#fff;border:1px solid #d5deea;border-radius:28px;box-shadow:0 22px 70px #14243a1a}h1{font-size:clamp(24px,4vw,34px);line-height:1.5;margin:0 0 14px}p{line-height:2;color:#475569}small{color:#64748b}a{display:inline-block;background:#173e69;color:white;text-decoration:none;border-radius:12px;padding:13px 20px;margin-top:20px}button{background:#e8c78d;color:#1b2d43;border:0;border-radius:12px;padding:13px 20px;font:700 14px Tahoma;cursor:pointer;margin:20px 8px 0 0}.receipt{margin-top:24px;border:1px solid #d9e2ed;border-radius:18px;padding:22px;background:#f8fafc}.receipt strong{display:block;margin-bottom:8px}.receipt-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #e1e7ee;padding:9px 0}.receipt-row:last-child{border:0}@media print{body{background:white;padding:0}main{box-shadow:none;border:0;max-width:100%;padding:15px}.no-print{display:none!important}}code{direction:ltr;unicode-bidi:isolate;display:inline-block;overflow-wrap:anywhere;font-size:13px}.eyebrow{font-weight:bold;letter-spacing:.1em;color:#9a7238;margin-bottom:18px}.status{border-right:4px solid #c99b52;padding-right:16px}
-</style></head><body><main><div class="eyebrow">SECURE PAYMENT · DR. REZAZADEH</div><h1 id="title">در حال بررسی وضعیت پرداخت</h1><p class="status" id="status" role="status" aria-live="polite">نتیجه پرداخت فقط پس از تأیید سرور معتبر است.</p><p id="order" hidden>شناسه سفارش: <code></code></p><small>در صورت نامشخص بودن وضعیت، دوباره پرداخت نکنید. از بخش تماس سایت پیگیری کنید.</small><section class="receipt" id="receipt" hidden aria-label="رسید سفارش"><strong>رسید ثبت پرداخت · Dr. Rezazadeh</strong><div class="receipt-row"><span>شناسه سفارش</span><code id="receipt-id"></code></div><div class="receipt-row"><span>وضعیت</span><span>تأییدشده</span></div><div class="receipt-row"><span>مرجع اعتبار</span><span>سامانه سفارش‌ها (D1)</span></div><small>این رسید نمایش وضعیت ثبت‌شده سفارش است و جایگزین رسید بانکی نیست.</small></section><div class="no-print"><button type="button" id="print" hidden>چاپ / ذخیره PDF رسید</button></div><div><a href="/fa/shop/">بازگشت به فروشگاه</a></div></main><script>
-(async function(){const p=new URLSearchParams(location.search),id=p.get('order'),title=document.getElementById('title'),status=document.getElementById('status');if(!/^[a-f0-9-]{36}$/i.test(id||'')){title.textContent='شناسه سفارش نامعتبر است';status.textContent='برای پیگیری از بخش تماس سایت استفاده کنید.';return}document.querySelector('#order').hidden=false;document.querySelector('#order code').textContent=id;try{const r=await fetch('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/commerce/status?order='+encodeURIComponent(id),{cache:'no-store'}),d=await r.json();if(!r.ok||!d.ok)throw Error('status');if(d.state==='paid'){title.textContent='پرداخت با موفقیت تأیید شد';status.textContent='تراکنش در سامانه سفارش‌ها ثبت شده است.';document.getElementById('receipt-id').textContent=id;document.getElementById('receipt').hidden=false;const print=document.getElementById('print');print.hidden=false;print.onclick=()=>window.print()}else if(d.state==='pending'||d.state==='created'){title.textContent='پرداخت در انتظار تأیید است';status.textContent='تا زمان تأیید بانکی دوباره پرداخت نکنید.'}else{title.textContent='پرداخت تأیید نشده است';status.textContent='وضعیت سفارش: '+String(d.state)}}catch(e){title.textContent='استعلام وضعیت ممکن نشد';status.textContent='در صورت برداشت وجه، مجدداً پرداخت نکنید و با پشتیبانی تماس بگیرید.'}})();
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#10233c">
+<title>رسید و وضعیت پرداخت | دکتر جواد رضازاده یزدلی</title>
+<style>
+:root{color-scheme:light;--ink:#142640;--gold:#aa7c35;--line:#dce2ea}
+*{box-sizing:border-box}
+body{font:15px/1.9 Tahoma,Arial,sans-serif;margin:0;padding:clamp(14px,4vw,54px);color:var(--ink);background:linear-gradient(130deg,#f0f2f7,#faf8f2);min-height:100vh}
+main{max-width:860px;margin:auto;padding:clamp(20px,4vw,54px);background:#fff;border:1px solid var(--line);border-radius:26px;box-shadow:0 16px 54px #19294515}
+.kicker{letter-spacing:.18em;color:#9d7437;font-weight:700;font:11px Arial,sans-serif;direction:ltr;text-align:right}
+h1{font-size:clamp(24px,4vw,34px);line-height:1.5;margin:20px 0 12px}
+p{line-height:2;color:#45556b}
+.status{border-right:4px solid var(--gold);padding:8px 18px;margin:18px 0}
+.receipt{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:30px}
+.receipt-head{background:#142640;color:#fff;padding:24px 28px}
+.receipt-head strong{font-size:19px;display:block}
+.receipt-head small{color:#e9d6ae;font-size:12px}
+.receipt-body{padding:24px}
+.meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.meta>div{padding:10px 0;border-bottom:1px solid var(--line)}
+.meta span{display:block;color:#617087;font-size:12px}
+.meta strong{font-size:14px}
+table{border-collapse:collapse;width:100%;text-align:right;font-size:14px}
+th{font-size:12px;background:#edf2f7;color:#243b56}
+th,td{padding:12px 10px;border-bottom:1px solid var(--line)}
+th:last-child,td:last-child{text-align:left}
+tfoot td{font-weight:700;font-size:16px;background:#f7f5ee}
+code{font:13px/1.7 ui-monospace,monospace;direction:ltr;unicode-bidi:isolate;overflow-wrap:anywhere}
+button,a.action{font:700 14px Tahoma;cursor:pointer;display:inline-block;text-decoration:none;padding:12px 18px;border-radius:9px;margin:12px 6px 0 0}
+button{background:#aa7c35;border:0;color:#fff}a.action{background:#17385c;color:#fff}
+.note{font-size:12px;margin-top:20px;color:#516076}
+button:focus-visible,a:focus-visible{outline:3px solid #c99d46;outline-offset:3px}
+[hidden]{display:none!important}
+@media(max-width:620px){.meta{grid-template-columns:1fr}th,td{padding:9px 5px;font-size:12px}.receipt-body{padding:14px}main{border-radius:14px}}
+@media print{@page{size:A4;margin:14mm}body{background:#fff;padding:0;color:#000}main{border:0;padding:0;box-shadow:none;max-width:none}.no-print{display:none!important}.receipt{break-inside:avoid}.receipt-head{-webkit-print-color-adjust:exact;print-color-adjust:exact}th{background:#eef2f7!important}}
+</style>
+</head>
+<body><main>
+<div class="kicker">DR. JAVAD REZAZADEH YAZDELI · PAYMENT STATUS</div>
+<h1 id="title">در حال استعلام وضعیت پرداخت</h1>
+<p id="status" class="status" role="status" aria-live="polite">پرداخت فقط پس از تأیید بانکی و ثبت قطعی در سرور معتبر است.</p>
+<section id="receipt" class="receipt" hidden aria-label="رسید پرداخت تأییدشده">
+<div class="receipt-head"><strong>رسید پرداخت تأییدشده</strong><small>DR. REZAZADEH · VERIFIED PAYMENT RECORD</small></div>
+<div class="receipt-body">
+<div class="meta">
+<div><span>شناسه سفارش</span><strong><code id="receipt-id"></code></strong></div>
+<div><span>تاریخ ثبت پرداخت</span><strong id="receipt-date"></strong></div>
+<div><span>ارز / واحد مبالغ</span><strong>تومان (IRT)</strong></div>
+<div><span>وضعیت تأیید</span><strong>پرداخت‌شده و ثبت‌شده در سرور</strong></div>
+</div>
+<div style="overflow-x:auto"><table><thead><tr><th scope="col">شرح مورد پرداخت</th><th scope="col">تعداد</th><th scope="col">بهای واحد</th><th scope="col">مبلغ</th></tr></thead>
+<tbody id="receipt-lines"></tbody>
+<tfoot><tr><td colspan="3">جمع پرداخت‌شده</td><td id="receipt-total"></td></tr></tfoot></table></div>
+<p class="note">این سند صرفاً رسید نمایش پرداخت تأییدشده در سامانه است؛ فاکتور رسمی مالیاتی، سند تحویل کالا، قرارداد خدمت یا جایگزین رسید بانکی نیست. اطلاعات مشتری، نشانی و کدپستی بدون فرایند احراز هویت ایمن نمایش داده نمی‌شوند.</p>
+</div></section>
+<div class="no-print">
+<button type="button" id="print" hidden>چاپ یا ذخیره PDF رسید</button>
+<a class="action" href="/fa/shop/">بازگشت به فروشگاه</a>
+<a class="action" href="mailto:dr.rezazadeh65@gmail.com?subject=%D9%BE%DB%8C%DA%AF%DB%8C%D8%B1%DB%8C%20%D8%B3%D9%81%D8%A7%D8%B1%D8%B4">پیگیری از طریق ایمیل</a>
+</div>
+<p class="note">اگر مبلغی از حساب شما کسر شده اما وضعیت قطعی نیست، از پرداخت دوباره خودداری کنید.</p>
+</main>
+<script>
+(async function(){
+ const params=new URLSearchParams(location.search),id=params.get('order');
+ const title=document.getElementById('title'),status=document.getElementById('status');
+ const fmt=n=>new Intl.NumberFormat('fa-IR').format(n)+' تومان';
+ if(!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(id||'')){
+  title.textContent='شناسه سفارش نامعتبر است';status.textContent='برای پیگیری، از ایمیل رسمی سایت استفاده کنید.';return;
+ }
+ try{
+  const res=await fetch('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/commerce/status?order='+encodeURIComponent(id),{cache:'no-store',credentials:'omit'});
+  const data=await res.json();
+  if(!res.ok||data.ok!==true)throw Error('status_unavailable');
+  if(data.state==='pending'||data.state==='created'){
+   title.textContent='پرداخت هنوز تأیید نشده است';
+   status.textContent='تا دریافت نتیجه قطعی از پرداخت مجدد خودداری کنید.';return;
+  }
+  if(data.state!=='paid'){
+   title.textContent='پرداخت تأیید نشده است';
+   status.textContent='وضعیت ثبت‌شده: '+String(data.state||'نامشخص');return;
+  }
+  title.textContent='پرداخت در سامانه ثبت شده است';
+  const receipt=data.receipt;
+  if(!receipt||receipt.orderId!==id||receipt.currency!=='IRT'||!Number.isSafeInteger(receipt.amountToman)||
+     receipt.amountToman<1||!Array.isArray(receipt.items)||!receipt.items.length){
+   status.textContent='وضعیت پرداخت ثبت‌شده است؛ اطلاعات جزئیات رسید هنوز از سرور تأیید نشده است. برای دریافت فاکتور، از طریق ایمیل پیگیری کنید.';return;
+  }
+  let total=0;
+  for(const item of receipt.items){
+   if(typeof item.title!=='string'||!Number.isSafeInteger(item.quantity)||item.quantity<1||
+      !Number.isSafeInteger(item.unitToman)||item.unitToman<1||
+      item.subtotalToman!==item.quantity*item.unitToman)throw Error('invalid_receipt_line');
+   total+=item.subtotalToman;
+  }
+  if(total!==receipt.amountToman)throw Error('receipt_total_mismatch');
+  const tbody=document.getElementById('receipt-lines');
+  for(const item of receipt.items){
+   const tr=document.createElement('tr');
+   for(const value of [item.title,String(item.quantity),fmt(item.unitToman),fmt(item.subtotalToman)]){
+    const td=document.createElement('td');td.textContent=value;tr.append(td);
+   }
+   tbody.append(tr);
+  }
+  document.getElementById('receipt-id').textContent=id;
+  const paid=new Date(String(receipt.paidAt||'').replace(' ','T')+'Z');
+  document.getElementById('receipt-date').textContent=Number.isFinite(paid.getTime())?
+   new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Tehran',dateStyle:'medium',timeStyle:'short'}).format(paid):'در سرور ثبت شده';
+  document.getElementById('receipt-total').textContent=fmt(total);
+  document.getElementById('receipt').hidden=false;
+  status.textContent='جزئیات زیر مستقیماً از سفارش پرداخت‌شده در سرور خوانده شده است.';
+  const button=document.getElementById('print');button.hidden=false;button.onclick=()=>window.print();
+ }catch(e){
+  title.textContent='بررسی رسید کامل نشد';
+  status.textContent='تا تأیید دوباره وضعیت سفارش، از هر پرداخت مجدد خودداری کنید و از طریق ایمیل پیگیری نمایید.';
+ }
+})();
 </script></body></html>
