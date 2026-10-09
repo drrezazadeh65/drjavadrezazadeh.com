@@ -12,7 +12,7 @@ const buyer={full_name:"خریدار نمونه آزمون",mobile:"09121234567"
  province:"تهران",city:"تهران",address:"خیابان نمونه، کوچه دوم، پلاک ۱۰",postal_code:"1234567890",
  terms_accepted:true};
 const orders=new Map(),refunds=new Map();
-let gatewayId=123456,verifyMismatch=false,callbackAttempts=0,emailRequests=0;
+let gatewayId=123456,verifyMismatch=false,callbackAttempts=0,emailRequests=0,gatewayCallback="";
 function db(){
  return {prepare(sql){let vals=[];
   return {bind(...args){vals=args;return this},
@@ -63,7 +63,7 @@ globalThis.fetch=async (input,init={})=>{
  if(u.endsWith("assets/data/service-catalog.json"))return Response.json({currency:"IRT",services:[service]});
  if(u.endsWith("assets/data/vip-catalog.json"))return Response.json({currency:"IRT",services:[vip]});
  if(u==="https://api.resend.com/emails"){emailRequests++;return Response.json({id:"mock-email-"+emailRequests});}
- if(u.endsWith("/gateway-send"))return new Response(String(gatewayId++),{status:200});
+ if(u.endsWith("/gateway-send")){gatewayCallback=new URLSearchParams(init.body).get("redirect")||"";return new Response(String(gatewayId++),{status:200});}
  if(u.endsWith("/gateway-result-second")){
   callbackAttempts++;
   const form=new URLSearchParams(init.body),idGet=form.get("id_get");
@@ -93,6 +93,8 @@ test("server-side price, secure receipt, idempotency, verified callback and free
  assert.equal(create.status,200);
  const data=await create.json();
  assert.equal(data.totalToman,4000000);assert.equal(data.shippingToman,0);
+ assert.equal(new URL(gatewayCallback).origin,BASE,"gateway must return directly to the verified Worker host");
+ assert.equal(new URL(gatewayCallback).pathname,"/commerce/callback","GET and POST callbacks belong to the server, not static Pages");
  assert.match(data.receiptAccessToken,/^[a-f0-9]{64}$/);
  const saved=orders.get(data.orderId);assert.equal(saved.provider_amount,40000000);
  assert.ok(!JSON.stringify(saved).includes(data.receiptAccessToken),"capability must not be stored in plaintext");
