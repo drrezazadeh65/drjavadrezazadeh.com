@@ -36,8 +36,19 @@ for(const service of catalog){
  assert(html.includes(service.title_fa),'Wrong service title: '+file);
  const jsonld=[...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
  assert(jsonld.length>0,'Missing JSON-LD: '+file);
- for(const [,json] of jsonld){try{const obj=JSON.parse(json);assert(JSON.stringify(obj).includes(uri),'Schema URL mismatch: '+file)}catch(e){errors.push('Invalid JSON-LD: '+file)}}
- assert(fs.existsSync(path.join(root,image)),'Missing service image: '+image);
+ for(const [,json] of jsonld){
+   try{
+    const obj=JSON.parse(json),nodes=obj['@graph']||[obj];
+    assert(JSON.stringify(obj).includes(uri),'Schema URL mismatch: '+file);
+    const serviceNode=nodes.find(n=>n['@type']==='Service');
+    assert(serviceNode?.url===uri,'Service schema canonical URL mismatch: '+file);
+    assert(serviceNode?.image===domain+'/'+image,'Service schema image missing or incorrect: '+file);
+    assert(!serviceNode||!Object.prototype.hasOwnProperty.call(serviceNode,'offers'),'Unverified commercial Offer in service schema: '+file);
+   }catch(e){errors.push('Invalid JSON-LD: '+file)}
+  }
+  assert(html.includes('class="service-booking-disclosure"'),'Service must disclose unverified booking/payment readiness: '+file);
+  assert(!html.includes('انتخاب خدمت و پرداخت'),'Service must not imply live checkout: '+file);
+  assert(fs.existsSync(path.join(root,image)),'Missing service image: '+image);
 }
 // The six distinct VIP offers complete the 27-offer public catalogue.
 const vip=JSON.parse(read('assets/data/vip-catalog.json')).services;
@@ -57,6 +68,7 @@ for(const v of vip){
  const serviceNode=nodes.find(x=>x['@type']==='Service');
  assert(!!serviceNode && serviceNode.url===uri,'Missing canonical VIP Service JSON-LD: '+file);
  assert(!!serviceNode && serviceNode.image===domain+'/'+image,'Wrong VIP Service schema image: '+file);
+  assert(!serviceNode||!Object.prototype.hasOwnProperty.call(serviceNode,'offers'),'Unverified commercial Offer in VIP schema: '+file);
  assert(!!serviceNode && serviceNode.provider?.['@id']===domain+'/#person','VIP schema must reference academic Person: '+file);
  assert(nodes.some(x=>x['@type']==='BreadcrumbList'),'VIP breadcrumb schema missing: '+file);
  for(const link of ['/fa/darbare-man/','/fa/pajouhesh/','/fa/entesharat-elmi/'])
