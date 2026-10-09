@@ -10,11 +10,13 @@ const errors=[];
 function assert(ok,msg){if(!ok)errors.push(msg)}
 assert(main.includes(domain+'/sitemap-services.xml'),'Main sitemap does not reference services sitemap');
 const found=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(x=>x[1]);
+const imageFound=[...sitemap.matchAll(/<image:loc>([^<]+)<\/image:loc>/g)].map(x=>x[1]);
 assert(new Set(found).size===found.length,'Duplicate <loc> in services sitemap');
+assert(new Set(imageFound).size===imageFound.length,'Duplicate <image:loc> in services sitemap');
 for(const service of catalog){
  const id=service.id,uri=domain+'/fa/services/'+id+'/',file='fa/services/'+id+'/index.html',image='assets/images/services/'+id+'.svg';
  assert(found.includes(uri),'Missing sitemap URL: '+uri);
- assert(found.includes(domain+'/'+image),'Missing sitemap image URL: '+image);
+ assert(imageFound.includes(domain+'/'+image),'Missing sitemap image URL: '+image);
  if(!fs.existsSync(path.join(root,file))){errors.push('Missing HTML: '+file);continue}
  const html=read(file);
  // Public service pages may describe paid support, but must never expose its Eitaa ID.
@@ -43,7 +45,7 @@ assert(catalog.length===21 && vip.length===6,'Expected 21 standard and six VIP o
 for(const v of vip){
  const id=v.id,file='fa/vip/'+id+'/index.html',image='assets/images/vip-'+id+'.svg',uri=domain+'/fa/vip/'+id+'/';
  assert(found.includes(uri),'Missing VIP sitemap URL: '+uri);
- assert(found.includes(domain+'/'+image),'Missing VIP sitemap image URL: '+image);
+ assert(imageFound.includes(domain+'/'+image),'Missing VIP sitemap image URL: '+image);
  if(!fs.existsSync(path.join(root,file))){errors.push('Missing VIP page: '+file);continue}
  const html=read(file);
  assert(fs.existsSync(path.join(root,image)),'Missing VIP illustration: '+image);
