@@ -118,14 +118,14 @@ if(failures.length) process.exit(1);
 
 
 // SITEMAP GOVERNANCE — Frozen SEO baseline
-const sitemapChildren=['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml'];
+const sitemapChildren=['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml'];
 const sitemapUrls=new Set();
 const sitemapIndexPath=path.join(root,'sitemap.xml');
 let sitePrefix='';
 if(fs.existsSync(sitemapIndexPath)){
   const indexXml=fs.readFileSync(sitemapIndexPath,'utf8');
   const firstLoc=(indexXml.match(/<loc>([^<]+)<\/loc>/i)||[])[1]||'';
-  sitePrefix=firstLoc.replace(/\/sitemap-(?:core|fa|en|news)\.xml$/,'');
+  sitePrefix=firstLoc.replace(/\/sitemap-(?:core|fa|en|news|services)\.xml$/,'');
 }
 if(!sitePrefix) failures.push('/sitemap.xml: could not derive canonical site prefix from sitemap index');
 for(const sm of sitemapChildren){
