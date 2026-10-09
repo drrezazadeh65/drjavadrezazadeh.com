@@ -1,0 +1,29 @@
+name: Engine architecture integrity
+on:
+  push:
+    paths:
+      - 'platform/engine-registry.mjs'
+      - 'platform/engine-registry.test.mjs'
+      - 'platform/module-registry.json'
+      - 'platform/module-governance.mjs'
+      - '.github/workflows/engine-architecture-integrity.yml'
+  pull_request:
+    paths:
+      - 'platform/engine-registry.mjs'
+      - 'platform/engine-registry.test.mjs'
+      - 'platform/module-registry.json'
+      - 'platform/module-governance.mjs'
+      - '.github/workflows/engine-architecture-integrity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check platform/engine-registry.mjs
+      - run: node --test platform/engine-registry.test.mjs platform/module-governance.test.mjs
