@@ -8,6 +8,8 @@ on:
       - 'platform/admin-engine-report-client.test.mjs'
       - 'platform/admin-engine-report-handler.mjs'
       - 'platform/admin-engine-report-handler.test.mjs'
+      - 'platform/admin-engine-dashboard-view.mjs'
+      - 'platform/admin-engine-dashboard-view.test.mjs'
       - 'platform/engine-registry.mjs'
       - '.github/workflows/admin-engine-report-security.yml'
   pull_request:
@@ -18,6 +20,8 @@ on:
       - 'platform/admin-engine-report-client.test.mjs'
       - 'platform/admin-engine-report-handler.mjs'
       - 'platform/admin-engine-report-handler.test.mjs'
+      - 'platform/admin-engine-dashboard-view.mjs'
+      - 'platform/admin-engine-dashboard-view.test.mjs'
       - 'platform/engine-registry.mjs'
       - '.github/workflows/admin-engine-report-security.yml'
   workflow_dispatch:
@@ -31,4 +35,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test platform/admin-engine-report.test.mjs platform/admin-engine-report-client.test.mjs platform/admin-engine-report-handler.test.mjs
+      - run: node --test platform/admin-engine-report.test.mjs platform/admin-engine-report-client.test.mjs platform/admin-engine-report-handler.test.mjs platform/admin-engine-dashboard-view.test.mjs
