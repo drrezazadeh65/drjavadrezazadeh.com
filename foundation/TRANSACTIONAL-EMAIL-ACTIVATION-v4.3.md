@@ -1,18 +1,21 @@
 # Transactional Email Activation — v4.3.0
 
-Status: PROVIDER FOUNDATION READY / RUNTIME INTEGRATION PENDING  
+Status: EMAIL PROVIDER PARTIALLY FAILED (RECHECKED 2026-10-09) / RUNTIME INTEGRATION PENDING  
 Provider: Resend  
 Domain: `drjavadrezazadeh.com`
 
 ## Verified state
 
-- The sending domain is verified in Resend.
+- An earlier activation check recorded sending readiness, but the live Resend audit on 2026-10-09 now reports **partially_failed**; do not treat sending as verified end-to-end.
 - Sending capability is enabled.
 - Receiving capability remains enabled.
 - Open tracking is disabled.
 - Click tracking is disabled.
 - No production API key is stored in this repository.
 - No transactional email was sent during this activation work.
+- Latest provider DNS check: DKIM verified and inbound MX verified; sending SPF MX, SPF TXT and sending-path CNAME reported failed. Sending/receiving capability switches are enabled, but those switches do not resolve the DNS failures.
+- Do not replace the existing inbound MX with Cloudflare Email Routing without first selecting one provider to own inbound delivery; see `foundation/V4.4-EXECUTION-AND-EMAIL-CLOSURE-2026-10-09.md`.
+
 
 ## Published templates
 
