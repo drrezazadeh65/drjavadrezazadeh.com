@@ -45,7 +45,9 @@
   ],
   "public_contact": {
     "email": "dr.rezazadeh65@gmail.com",
-    "instagram": "https://www.instagram.com/dr.rezazadeh/"
+    "instagram": "https://www.instagram.com/dr.rezazadeh/",
+    "x": "https://x.com/J_Rezazadeh",
+    "facebook": "https://m.facebook.com/DrJavadRezazadeh/"
   },
   "schema_surfaces": [
     {
@@ -107,7 +109,9 @@
       "https://independent.academia.edu/JavadRezazadeh3",
       "https://www.semanticscholar.org/author/Javad-Rezazadeh-Yazdeli/116313005",
       "https://github.com/drrezazadeh65",
-      "https://www.instagram.com/dr.rezazadeh/"
+      "https://www.instagram.com/dr.rezazadeh/",
+      "https://x.com/J_Rezazadeh",
+      "https://m.facebook.com/DrJavadRezazadeh/"
     ]
   },
   "semantic_topics": [
