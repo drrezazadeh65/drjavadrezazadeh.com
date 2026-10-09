@@ -348,14 +348,18 @@ async function commerce(request,env){
  if(request.method==="OPTIONS"&&path==="/commerce/create")
   return new Response(null,{status:204,headers:{...cors,"Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type"}});
  if(!env.DB)return fail("database_unconfigured",503);
- if(path==="/commerce/health"&&request.method==="GET")
+ if(path==="/commerce/health"&&request.method==="GET"){
+  // A valid gateway unit is required for checkout to create a provider payment.
+  const gatewayReady=env.COMMERCE_ENABLED==="true" && !!env.BITPAY_API_KEY &&
+   ["1","10"].includes(String(env.BITPAY_AMOUNT_MULTIPLIER||""));
   return reply({ok:true,service:"commerce",
-   checkout:env.COMMERCE_ENABLED==="true" && !!env.BITPAY_API_KEY,
+   checkout:gatewayReady,
    capabilities:{
-    services:env.COMMERCE_ENABLED==="true" && !!env.BITPAY_API_KEY && env.SERVICE_BOOKING_CONFIRMED==="true",
-    vip:env.COMMERCE_ENABLED==="true" && !!env.BITPAY_API_KEY && env.VIP_BOOKING_CONFIRMED==="true",
-    books:env.COMMERCE_ENABLED==="true" && !!env.BITPAY_API_KEY && env.BOOK_SHIPPING_CONFIRMED==="true"
+    services:gatewayReady && env.SERVICE_BOOKING_CONFIRMED==="true",
+    vip:gatewayReady && env.VIP_BOOKING_CONFIRMED==="true",
+    books:gatewayReady && env.BOOK_SHIPPING_CONFIRMED==="true"
    }});
+ }
  if(path==="/commerce/create"&&request.method==="POST"){
   if(!allowedOrigin(request))return fail("origin_forbidden",403);
   if(env.COMMERCE_ENABLED!=="true")return fail("checkout_disabled",503);
