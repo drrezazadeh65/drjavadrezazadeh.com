@@ -9,6 +9,7 @@ on:
       - 'fa/services/**'
       - 'fa/vip/**'
       - 'scripts/catalog-integrity.mjs'
+      - 'assets/js/commerce-checkout.js'
       - '.github/workflows/catalog-integrity.yml'
   pull_request:
     paths:
@@ -29,5 +30,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check scripts/catalog-integrity.mjs
+          node --check assets/js/commerce-checkout.js
       - name: Validate service, VIP and bookstore catalogs
         run: node scripts/catalog-integrity.mjs
