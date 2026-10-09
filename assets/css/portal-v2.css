@@ -2881,3 +2881,73 @@ html[lang="en"] .student-gateway-page .site-header .brand small{
     line-height:1.55;
   }
 }
+
+/* v4.4.1 orders/billing mobile app hardening */
+@media(max-width:840px){
+  .account-subpage .case-shell{
+    width:calc(100% - 18px);
+    margin-inline:auto;
+    padding-top:14px;
+    padding-bottom:calc(116px + env(safe-area-inset-bottom));
+  }
+  .account-subpage .case-hero{
+    padding:20px 18px;
+    border-radius:20px;
+  }
+  .account-subpage .appointment-summary{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+  .account-subpage .appointment-summary article{
+    min-width:0;
+    padding:14px 12px;
+    border-radius:15px;
+  }
+  .account-subpage .case-section{
+    padding:18px;
+    border-radius:18px;
+  }
+  .account-subpage .appointment-card{
+    gap:14px;
+    align-items:flex-start;
+  }
+  .account-subpage .appointment-card .button{
+    min-height:48px;
+  }
+  .account-subpage .consultant-flow{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .account-subpage .consultant-flow>div{
+    min-height:72px;
+    padding:13px 14px;
+    border-radius:14px;
+  }
+  .account-subpage .consultant-flow>i{
+    transform:rotate(90deg);
+    justify-self:center;
+    line-height:1;
+  }
+  .rtl.account-subpage .consultant-flow>i{transform:rotate(-90deg)}
+  .account-subpage .role-boundary-section{
+    padding:18px;
+    border-radius:18px;
+  }
+  .account-subpage .gt-mobile-dock a{
+    min-height:52px;
+    display:grid;
+    place-items:center;
+    touch-action:manipulation;
+  }
+}
+@media(max-width:430px){
+  .account-subpage .dashboard-topbar{
+    align-items:flex-start;
+    gap:8px;
+  }
+  .account-subpage .dash-actions{gap:6px}
+  .account-subpage .dash-pill{min-height:44px;padding:8px 10px}
+  .account-subpage .appointment-summary{grid-template-columns:1fr 1fr}
+}
