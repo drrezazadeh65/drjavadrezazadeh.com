@@ -435,7 +435,7 @@ const FULFILMENT_NEXT={
  awaiting_service_coordination:["scheduled","cancelled"],scheduled:["completed","cancelled"],
  cancelled:[],completed:[]
 };
-async function commerceAdmin(request,env,path,u,origin){
+async function commerceAdmin(request,env,path,u){
  const actor=await adminIdentity(request,env);
  if(actor.error)return fail(actor.error,actor.status);
  if(path==="/commerce/admin/orders"&&request.method==="GET"){
@@ -526,7 +526,7 @@ async function commerce(request,env){
  if(request.method==="OPTIONS"&&(["/commerce/create","/commerce/receipt","/commerce/receipt/resend","/commerce/refund/request","/commerce/admin/refunds/update","/commerce/admin/fulfilment","/commerce/admin/orders","/commerce/admin/summary"].includes(path)))
   return new Response(null,{status:204,headers:{...cors,"Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization"}});
  if(!env.DB)return fail("database_unconfigured",503);
- if(path.startsWith("/commerce/admin/"))return commerceAdmin(request,env,path,u,origin);
+ if(path.startsWith("/commerce/admin/"))return commerceAdmin(request,env,path,u);
  if(path==="/commerce/health"&&request.method==="GET")
   return reply({ok:true,service:"commerce",checkout:env.COMMERCE_ENABLED==="true"});
  if(path==="/commerce/create"&&request.method==="POST"){
