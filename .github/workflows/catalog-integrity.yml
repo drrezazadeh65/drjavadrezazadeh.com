@@ -1,0 +1,33 @@
+name: Catalog integrity (v4.4.1)
+on:
+  push:
+    paths:
+      - 'assets/data/service-catalog.json'
+      - 'assets/data/vip-catalog.json'
+      - 'assets/data/book-catalog.json'
+      - 'assets/images/books/**'
+      - 'fa/services/**'
+      - 'fa/vip/**'
+      - 'scripts/catalog-integrity.mjs'
+      - '.github/workflows/catalog-integrity.yml'
+  pull_request:
+    paths:
+      - 'assets/data/**'
+      - 'assets/images/books/**'
+      - 'fa/services/**'
+      - 'fa/vip/**'
+      - 'scripts/catalog-integrity.mjs'
+      - '.github/workflows/catalog-integrity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  catalog-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate service, VIP and bookstore catalogs
+        run: node scripts/catalog-integrity.mjs
