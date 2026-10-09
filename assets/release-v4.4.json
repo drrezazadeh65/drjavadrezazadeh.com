@@ -1,0 +1,28 @@
+{
+  "version": "4.4.0",
+  "date": "2026-10-09",
+  "site": "https://drjavadrezazadeh.com",
+  "repository": "drrezazadeh65/drjavadrezazadeh.com",
+  "deployment_target": "GitHub Pages",
+  "infrastructure": [
+    "GitHub Pages",
+    "Cloudflare Workers",
+    "Cloudflare D1"
+  ],
+  "public_pages": [
+    "/fa/shop/",
+    "/en/shop/",
+    "/fa/shop/purchase-guide/",
+    "/fa/shop/customer-policy/",
+    "/fa/shop/receipt/",
+    "/en/shop/purchase-guide/",
+    "/en/shop/customer-policy/",
+    "/fa/services/",
+    "/fa/vip/"
+  ],
+  "payment_worker_source": "payment-api/worker-v4.4-corrected.js",
+  "payment_worker_deployed_from_git": false,
+  "commerce_checkout_live_confirmed": false,
+  "donations_checkout_live_confirmed": false,
+  "notes": "Content release on main; Cloudflare Worker source requires separate operator deployment. No public payment activation implied."
+}
