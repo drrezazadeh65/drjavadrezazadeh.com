@@ -13,7 +13,9 @@ export function buildAdminEngineReport({authorization,signals={},as_of=new Date(
  return Object.freeze({as_of:observedAt,source:'SERVER_VERIFIED_SIGNALS',engine_count:ENGINE_REGISTRY.length,
  engines:ENGINE_REGISTRY.map(engine=>{
   const signal=signals[engine.id];
-  const trusted=signal?.server_verified===true&&safeTimestamp(signal?.last_verified_at);
+  const verifiedAt=safeTimestamp(signal?.last_verified_at);
+  const age=verifiedAt?Date.parse(observedAt)-Date.parse(verifiedAt):NaN;
+  const trusted=signal?.server_verified===true&&verifiedAt!==null&&age>=0&&age<=15*60*1000;
   const status=trusted&&STATES.has(signal.status)?signal.status:'UNVERIFIED';
   return {id:engine.id,owner_module:ENGINE_MODULE_OWNERS[engine.id],
    status,status_reason:status==='UNVERIFIED'?'NO_VERIFIED_SIGNAL':String(signal.reason_code||'UNSPECIFIED').slice(0,80),
