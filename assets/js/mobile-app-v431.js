@@ -9,7 +9,7 @@ const isFa=path.startsWith('/fa/');
 const privatePrefixes=['/fa/app/','/app/','/en/account/','/fa/assessments/','/assessments/','/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/'];
 if(privatePrefixes.some(p=>path.startsWith(p))||path.startsWith('/journal/'))return;
 const u=p=>base+p.replace(/^\//,'');
-if(!q('link[data-v431-mobile-shell]')){
+if(!q('link[data-v431-mobile-shell],link[href*="mobile-app-v431.css"]')){
  const l=document.createElement('link');l.rel='stylesheet';l.href=u('assets/css/mobile-app-v431.css?v=431b');l.dataset.v431MobileShell='1';document.head.appendChild(l);
 }
 const paths={
