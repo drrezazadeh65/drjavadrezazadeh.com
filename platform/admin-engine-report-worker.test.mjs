@@ -35,3 +35,10 @@ test('rejects cross-origin requests before identity or telemetry access',async()
  assert.equal(response.status,403);assert.equal(verified,0);assert.equal(probed,0);
  assert.equal(response.headers.get('Cache-Control'),'private, no-store, max-age=0');
 });
+
+test('rejects cross-site fetch metadata without calling authentication',async()=>{
+ let calls=0;
+ const worker=createAdminEngineReportWorker({verifySession:async()=>{calls++;return null},collectSignals:async()=>({})});
+ const response=await worker.fetch(new Request(endpoint,{headers:{'Sec-Fetch-Site':'cross-site'}}));
+ assert.equal(response.status,403);assert.equal(calls,0);
+});
