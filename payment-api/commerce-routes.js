@@ -25,7 +25,7 @@ function normalizeCustomer(input,shipping){
  const email=field(input.email,254).toLowerCase();
  if(name.length<3||name.length>90)return {error:"invalid_customer_name"};
  if(!/^\+?[0-9]{8,15}$/.test(mobile))return {error:"invalid_mobile"};
- if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return {error:"invalid_email"};
+ if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return {error:"invalid_email"};
  if(input.terms_accepted!==true)return {error:"terms_not_accepted"};
  const customer={full_name:name,mobile,email};
  if(shipping){
@@ -292,6 +292,7 @@ export async function commerce(request,env){
   const amount=total*mul;
   if(!Number.isSafeInteger(amount))return fail("provider_amount_overflow");
   let wrapped;try{wrapped=await wrapReceiptToken(accessToken,order,env)}catch{return fail("receipt_encryption_unavailable",503)}
+  if(env.INVOICE_EMAIL_ENABLED==="true"&&(!wrapped||!env.RESEND_API_KEY||!env.INVOICE_FROM_EMAIL))return fail("receipt_email_unconfigured",503);
   try{
    await env.DB.prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,items_json,state,customer_json,receipt_token_sha256,idempotency_key,fulfilment_state,receipt_token_wrapped,request_fingerprint) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)")
     .bind(order,factor,total,amount,"IRT",JSON.stringify(lines),"created",JSON.stringify(validated.customer),accessHash,idem,"awaiting_payment",wrapped,fingerprint).run();
