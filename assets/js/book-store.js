@@ -83,7 +83,7 @@
    '<div><dt>'+(isFa?'نوبت چاپ':'Edition')+'</dt><dd>'+(b.bibliography.edition||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قالب':'Format')+'</dt><dd>'+(b.commerce?.formats_confirmed?.includes('PRINT')?(isFa?'چاپی':'Print'):(isFa?'نیازمند تأیید':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قیمت ثبت‌شده':'Listed price')+'</dt><dd>'+money(b.commerce?.price,b.commerce?.currency)+'</dd></div></dl>'+
-   '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. سفارش و پرداخت اینترنتی هنوز فعال نیست.':'Unverified bibliographic fields are deliberately marked as such. Online orders and payment are not yet active.')+'</p>'+
+   '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. تکمیل سفارش و پرداخت، منوط به آماده‌بودن درگاه، تأیید موجودی و اعتبارسنجی سرور است. تا زمان تأیید نهایی وجهی پرداخت نکنید.':'Unverified bibliographic fields are deliberately marked as such. Checkout can be completed only after gateway readiness, stock checks and server-side payment verification.')+'</p>'+
    '<div class="actions">'+
    (ready(b)?'<button class="button primary" type="button" data-detail-add="'+b.id+'">'+(isFa?'افزودن به فهرست انتخاب‌ها':'Add to selection')+'</button>':'')+
    '<a class="button" data-book-info-request href="mailto:dr.rezazadeh65@gmail.com?subject='+encodeURIComponent((isFa?'درخواست اطلاعات کتاب: ':'Book information enquiry: ')+b.title_fa)+
@@ -125,8 +125,8 @@
     ' | '+money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency)
   );
   const disclosure=isFa?
-    'این فهرست فقط برای استعلام است. هیچ سفارش یا پرداختی انجام نشده است. قیمت و موجودی هنگام پاسخ بررسی می‌شوند؛ ارسال کتاب رایگان است و هزینه آن بر عهده فروشگاه است.':
-    'This is an availability enquiry only. No order or payment has been placed. Prices and availability require confirmation; book shipping is free and paid by the store.';
+    'این سبد به‌تنهایی ثبت سفارش نیست. می‌توانید فرم امن مشخصات خریدار را باز کنید؛ دریافت وجه منوط به فعال بودن درگاه و تأیید سرور است. اگر هنوز آماده نبود، از استعلام ایمیلی استفاده کنید. ارسال کتاب برای خریدار رایگان است.':
+    'The cart itself is not an order. You may proceed to the buyer form; payment requires an enabled gateway and server verification. Otherwise, use the email enquiry option. Book shipping is free to the buyer.';
   const mailBody=(isFa?
     ['درخواست استعلام موجودی و شرایط خرید کتاب','',...formattedLines,'',
      'جمع نمایشی: '+amount,'','لطفاً موجودی واقعی، ارسال رایگان، شیوه بازگشت و امکان سفارش را پیش از هر پرداخت اعلام کنید.',
@@ -142,9 +142,9 @@
   checkout.type='button';
   checkout.className='button primary';
   checkout.dataset.bookPayment='';
-  checkout.textContent=isFa?'پرداخت آنلاین کتاب‌ها':'Pay for books online';
+  checkout.textContent=isFa?'ادامه به ثبت مشخصات و پرداخت':'Continue to details and payment';
   checkout.disabled=false;
-  checkout.title=isFa?'ثبت سفارش و انتقال به درگاه امن':'Create order and proceed to secure payment';
+  checkout.title=isFa?'ورود به فرم امن خریدار':'Review buyer details before payment';
   actions.appendChild(checkout);
 
   const inquiry=document.createElement('a');
@@ -186,25 +186,8 @@
      return;
    }
    if(e.target.closest('[data-book-payment]')){
-     const button=e.target.closest('[data-book-payment]');
-     button.disabled=true;
-     status.textContent=isFa?'در حال بررسی ایمن سفارش...':'Checking order securely...';
-     try{
-       const response=await fetch('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/commerce/create',{
-         method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},
-         body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity}))})
-       });
-       const result=await response.json();
-       if(response.ok&&result.ok&&typeof result.paymentUrl==='string'){
-         const link=new URL(result.paymentUrl);
-         if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/')throw Error('unsafe_payment_url');
-         location.assign(link.href);return;
-       }
-       if(result.error==='checkout_disabled'){
-         status.textContent=isFa?'پرداخت آنلاین هنوز در حال آزمون است؛ هیچ وجهی برداشت نشده است.':'Checkout is undergoing testing; no charge was made.';
-       }else status.textContent=isFa?'ایجاد سفارش ناموفق بود؛ وجهی پرداخت نکنید.':'Could not create the order; do not pay.';
-     }catch(_){status.textContent=isFa?'اتصال به درگاه برقرار نشد؛ پرداختی انجام نشده است.':'Payment connection unavailable; no charge was made.'}
-     finally{button.disabled=false}
+     if(!valid){status.textContent=isFa?'سبد خرید معتبر نیست.':'Please correct the cart.';return;}
+     location.assign(root((isFa?'fa':'en')+'/shop/checkout/'));
      return;
    }
    if(!e.target.closest('[data-book-copy]'))return;

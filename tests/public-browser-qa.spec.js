@@ -1200,9 +1200,9 @@ test('bilingual intake, service pages and shops disclose real booking and paymen
     ['/en/request-consultation/','Online booking not active','Online payment not active'],
     ['/fa/khadamat/','رزرو و پرداخت آنلاین در این مرحله فعال نیستند','درخواست اولیه، خرید نیست'],
     ['/en/services/','Live appointment booking is not currently available','Online payments are not yet enabled'],
-    ['/fa/shop/','تسویه آنلاین غیرفعال','هیچ سفارش یا پرداخت اینترنتی'],
+    ['/fa/shop/','تسویه آنلاین غیرفعال','درگاه بانکی در آزمون'],
     ['/en/shop/','Checkout not yet active','No online order or payment'],
-    ['/fa/shop/checkout/','تسویه فعلاً غیرفعال','ثبت نهایی سفارش انجام نمی‌شود']
+
   ];
   for(const [route,first,second] of cases){
     for(const [width,height] of [[390,844],[1440,900]]){
@@ -1217,6 +1217,34 @@ test('bilingual intake, service pages and shops disclose real booking and paymen
   }
 });
 
+
+
+test('v4.4-alpha checkout requests buyer and shipping fields before any gateway navigation',async({page})=>{
+ const requests=[];
+ page.on('request',r=>{if(r.url().includes('/commerce/create'))requests.push(r.url())});
+ await page.addInitScript(()=>{
+  localStorage.setItem('jr-book-cart-v1',JSON.stringify([{book_id:'roshanaei',quantity:1}]));
+ });
+ for(const route of ['/fa/shop/checkout/','/en/shop/checkout/']){
+  for(const [width,height] of [[390,844],[1440,900]]){
+   await page.setViewportSize({width,height});
+   const res=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(res.status()).toBe(200);
+   const region=page.locator('[data-book-checkout]');
+   await expect(region.locator('h1')).toHaveCount(1);
+   await expect(region.locator('input[name="full_name"]')).toBeVisible();
+   await expect(region.locator('input[name="mobile"]')).toBeVisible();
+   await expect(region.locator('input[name="postal_code"]')).toBeVisible();
+   await expect(region.locator('textarea[name="address"]')).toBeVisible();
+   await expect(region.locator('input[name="terms_accepted"]')).toHaveCount(1);
+   await expect(region.locator('.commerce-submit')).toBeVisible();
+   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
+   const overflow=await stableOverflow(page);
+   expect(Math.max(overflow.html,overflow.body),route+' '+width).toBeLessThanOrEqual(overflow.viewport+1);
+  }
+ }
+ expect(requests,'no order or charge before form confirmation').toEqual([]);
+});
 
 test('official Persian service catalogue supports search and price sorting without altering fees',async({page})=>{
  for(const [width,height] of [[390,844],[1440,900]]){

@@ -1,0 +1,30 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+const read = p => readFileSync(new URL("../" + p, import.meta.url), "utf8");
+const guide = read("fa/services/guide/index.html");
+const serviceHub = read("fa/services/index.html");
+const regular = JSON.parse(read("assets/data/service-catalog.json")).services;
+const vip = JSON.parse(read("assets/data/vip-catalog.json")).services;
+test("needs-based service guide links to verified 21+6 catalogue without inventing price", () => {
+  assert.equal(regular.length, 21);
+  assert.equal(vip.length, 6);
+  assert.match(guide, /fetch\("\/assets\/data\/service-catalog\.json"/);
+  assert.match(guide, /fetch\("\/assets\/data\/vip-catalog\.json"/);
+  assert.match(guide, /\/fa\/shop\/checkout\/\?sku=/);
+  assert.match(guide, /Number\.isSafeInteger\(x\.price\)/);
+  assert.match(guide, /encodeURIComponent\(item\.type\+":"\+item\.id\)/);
+  assert.match(guide, /textContent=txt/);
+  assert.match(serviceHub, /href="\/fa\/services\/guide\/"/);
+});
+test("service finder is public SEO-safe, minimal-data and mobile accessible", () => {
+  assert.match(guide, /rel="canonical" href="https:\/\/drjavadrezazadeh\.com\/fa\/services\/guide\/"/);
+  assert.match(guide, /<meta name="robots" content="index,follow/);
+  assert.match(guide, /aria-pressed=/);
+  assert.match(guide, /aria-live="polite"/);
+  assert.match(guide, /env\(safe-area-inset-bottom\)/);
+  assert.match(guide, /prefers-reduced-motion/);
+  assert.doesNotMatch(guide, /localStorage|sessionStorage|password|fakeReview|fakeRating/);
+  assert.match(guide, /عدم دسترسی موقت/);
+  assert.match(guide, /\/fa\/services\/"/);
+});
