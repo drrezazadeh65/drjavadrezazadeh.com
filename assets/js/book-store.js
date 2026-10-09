@@ -71,7 +71,7 @@
   const el=document.createElement('article');
   el.className='book-product-card';
   const coverSrc=bookCoverUrl(book);
-  const cover=coverSrc?'<figure class="book-cover"><img src="'+escapeHtml(coverSrc)+'" width="600" height="900" loading="lazy" decoding="async" alt="'+escapeHtml(isFa?'جلد کتاب «'+escapeHtml(book.title_fa)+'» اثر جواد رضازاده یزدلی':'Cover of '+book.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong lang="fa" dir="rtl">'+escapeHtml(book.title_fa)+'</strong></div>';
+  const cover=coverSrc?'<figure class="book-cover"><img src="'+escapeHtml(coverSrc)+'" width="600" height="900" loading="lazy" decoding="async" alt="'+escapeHtml(isFa?'جلد کتاب «'+book.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+book.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong lang="fa" dir="rtl">'+escapeHtml(book.title_fa)+'</strong></div>';
   el.innerHTML=cover+
    '<div class="book-product-copy"><span class="status-chip">'+(isFa?'منتشرشده':'Published')+'</span>'+
    '<h2 dir="rtl" lang="fa">'+escapeHtml(book.title_fa)+'</h2><p>'+escapeHtml(isFa?book.description_fa:book.description_en)+'</p>'+
@@ -93,7 +93,7 @@
   if(!b){host.innerHTML='<h1>'+(isFa?'کتاب پیدا نشد':'Book not found')+'</h1>';return;}
   document.title=(isFa?b.title_fa:b.english_reference_title)+' | '+(isFa?'فروشگاه کتاب':'Bookstore');
   const detailCoverSrc=bookCoverUrl(b);
-  const detailCover=detailCoverSrc?'<figure class="book-cover"><img src="'+escapeHtml(detailCoverSrc)+'" width="600" height="900" decoding="async" alt="'+escapeHtml(isFa?'جلد کتاب «'+escapeHtml(b.title_fa)+'» اثر جواد رضازاده یزدلی':'Cover of '+b.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong>'+escapeHtml(b.title_fa)+'</strong></div>';
+  const detailCover=detailCoverSrc?'<figure class="book-cover"><img src="'+escapeHtml(detailCoverSrc)+'" width="600" height="900" decoding="async" alt="'+escapeHtml(isFa?'جلد کتاب «'+b.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+b.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong>'+escapeHtml(b.title_fa)+'</strong></div>';
   host.innerHTML='<div class="book-detail-layout">'+detailCover+'<div class="book-detail-copy"><p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+escapeHtml(b.title_fa)+'</h1>'+
    '<p class="lead">'+escapeHtml(isFa?b.description_fa:b.description_en)+'</p>'+
    '<dl class="book-meta"><div><dt>'+(isFa?'نویسنده':'Author')+'</dt><dd>Javad Rezazadeh Yazdeli</dd></div>'+
@@ -141,7 +141,7 @@
   summary.className='cart-summary';
   const amount=valid?money(total,currency):(isFa?'نیازمند بررسی':'Requires confirmation');
   const formattedLines=books.map(({item,book:b})=>
-    '- '+escapeHtml(b.title_fa)+' ('+b.english_reference_title+') × '+item.quantity+
+    '- '+b.title_fa+' ('+b.english_reference_title+') × '+item.quantity+
     ' | '+money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency)
   );
   const disclosure=isFa?
