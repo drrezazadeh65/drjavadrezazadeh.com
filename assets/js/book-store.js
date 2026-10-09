@@ -261,7 +261,8 @@
    '<div class="actions"><a class="button" href="'+root((isFa?'fa':'en')+'/shop/cart/')+'">'+(isFa?'بازگشت به سبد':'Back to cart')+'</a></div>';
   if(valid){
    const btn=document.createElement('button');btn.type='button';btn.className='button primary';
-   btn.disabled=!(bookPaymentReady&&deliveryCaptureReady);
+   btn.disabled=!bookPaymentReady;
+   if(!deliveryCaptureReady)btn.disabled=true;
    btn.textContent=(bookPaymentReady&&deliveryCaptureReady)?(isFa?'پرداخت امن سفارش':'Secure checkout'):(isFa?'پرداخت کتاب هنوز فعال نیست':'Book checkout not yet available');
    const feedback=document.createElement('p');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
    btn.onclick=async()=>{if(!bookPaymentReady||!deliveryCaptureReady){feedback.textContent=isFa?'پرداخت آنلاین کتاب هنوز فعال نیست.':'Book checkout is not active.';return}btn.disabled=true;feedback.textContent=isFa?'در حال ایجاد سفارش...':'Creating order...';try{
