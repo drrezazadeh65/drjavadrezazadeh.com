@@ -83,7 +83,7 @@
    '<div><dt>'+(isFa?'نوبت چاپ':'Edition')+'</dt><dd>'+(b.bibliography.edition||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قالب':'Format')+'</dt><dd>'+(b.commerce?.formats_confirmed?.includes('PRINT')?(isFa?'چاپی':'Print'):(isFa?'نیازمند تأیید':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قیمت ثبت‌شده':'Listed price')+'</dt><dd>'+money(b.commerce?.price,b.commerce?.currency)+'</dd></div></dl>'+
-   '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. سفارش و پرداخت اینترنتی هنوز فعال نیست.':'Unverified bibliographic fields are deliberately marked as such. Online orders and payment are not yet active.')+'</p>'+
+   '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. تکمیل سفارش و پرداخت، منوط به آماده‌بودن درگاه، تأیید موجودی و اعتبارسنجی سرور است. تا زمان تأیید نهایی وجهی پرداخت نکنید.':'Unverified bibliographic fields are deliberately marked as such. Checkout can be completed only after gateway readiness, stock checks and server-side payment verification.')+'</p>'+
    '<div class="actions">'+
    (ready(b)?'<button class="button primary" type="button" data-detail-add="'+b.id+'">'+(isFa?'افزودن به فهرست انتخاب‌ها':'Add to selection')+'</button>':'')+
    '<a class="button" data-book-info-request href="mailto:dr.rezazadeh65@gmail.com?subject='+encodeURIComponent((isFa?'درخواست اطلاعات کتاب: ':'Book information enquiry: ')+b.title_fa)+
@@ -125,8 +125,8 @@
     ' | '+money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency)
   );
   const disclosure=isFa?
-    'این فهرست فقط برای استعلام است. هیچ سفارش یا پرداختی انجام نشده است. قیمت و موجودی هنگام پاسخ بررسی می‌شوند؛ ارسال کتاب رایگان است و هزینه آن بر عهده فروشگاه است.':
-    'This is an availability enquiry only. No order or payment has been placed. Prices and availability require confirmation; book shipping is free and paid by the store.';
+    'این سبد به‌تنهایی ثبت سفارش نیست. می‌توانید فرم امن مشخصات خریدار را باز کنید؛ دریافت وجه منوط به فعال بودن درگاه و تأیید سرور است. اگر هنوز آماده نبود، از استعلام ایمیلی استفاده کنید. ارسال کتاب برای خریدار رایگان است.':
+    'The cart itself is not an order. You may proceed to the buyer form; payment requires an enabled gateway and server verification. Otherwise, use the email enquiry option. Book shipping is free to the buyer.';
   const mailBody=(isFa?
     ['درخواست استعلام موجودی و شرایط خرید کتاب','',...formattedLines,'',
      'جمع نمایشی: '+amount,'','لطفاً موجودی واقعی، ارسال رایگان، شیوه بازگشت و امکان سفارش را پیش از هر پرداخت اعلام کنید.',
