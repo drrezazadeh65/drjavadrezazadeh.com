@@ -57,7 +57,13 @@ export async function commerce(request,env){
   return new Response(null,{status:204,headers:{...cors,"Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type"}});
  if(!env.DB)return fail("database_unconfigured",503);
  if(path==="/commerce/health"&&request.method==="GET")
-  return reply({ok:true,service:"commerce",checkout:env.COMMERCE_ENABLED==="true"});
+  return reply({ok:true,service:"commerce",
+   checkout:env.COMMERCE_ENABLED==="true" && !!env.BITPAY_API_KEY,
+   capabilities:{
+    services:env.COMMERCE_ENABLED==="true" && !!env.BITPAY_API_KEY && env.SERVICE_BOOKING_CONFIRMED==="true",
+    vip:env.COMMERCE_ENABLED==="true" && !!env.BITPAY_API_KEY && env.VIP_BOOKING_CONFIRMED==="true",
+    books:env.COMMERCE_ENABLED==="true" && !!env.BITPAY_API_KEY && env.BOOK_SHIPPING_CONFIRMED==="true"
+   }});
  if(path==="/commerce/create"&&request.method==="POST"){
   if(!allowedOrigin(request))return fail("origin_forbidden",403);
   if(env.COMMERCE_ENABLED!=="true")return fail("checkout_disabled",503);
