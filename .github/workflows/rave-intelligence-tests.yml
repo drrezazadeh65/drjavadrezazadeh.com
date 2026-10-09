@@ -1,0 +1,21 @@
+name: Standalone RAVE intelligence tests
+on:
+  push:
+    branches:
+      - feature/standalone-admin-studio
+    paths:
+      - 'rave/intelligence/**'
+      - '.github/workflows/rave-intelligence-tests.yml'
+  workflow_dispatch:
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run offline intelligence tests
+        run: node --test rave/intelligence/*.test.mjs
