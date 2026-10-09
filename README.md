@@ -15,7 +15,7 @@ Primary topical clusters are developed through substantive pages rather than key
 - teacher education, professional learning and educational development
 
 ### Production origin and URL stability
-GitHub Pages remains the current static host behind the owned production domain `https://drjavadrezazadeh.com`. The canonical-origin migration is complete: canonical, hreflang, Open Graph, structured-data URLs/IDs, sitemaps and robots now use the owned HTTPS domain.
+GitHub Pages is the public static host for the owned production domain `https://drjavadrezazadeh.com`; Cloudflare is used for DNS, edge delivery and the payment/commerce Worker architecture. GitHub `main` remains the source-of-truth repository. The canonical-origin migration is complete: canonical, hreflang, Open Graph, structured-data URLs/IDs, sitemaps and robots use the owned HTTPS domain. Vercel has been decommissioned by the owner and is **not** an active deployment, API, payment, monitoring or authentication dependency. Do not invoke Vercel integrations, assume Vercel CI statuses certify production, or reconnect it without a new explicit owner decision. Other explicitly retired integrations likewise must not be restored.
 
 Public URL identity is treated as an SEO contract. Existing indexable paths are frozen in `platform/public-url-stability-manifest.json`; a path must not be renamed or removed without an intentional one-hop permanent redirect plan. CI blocks broken internal links, missing fragment targets, redirect chains, sitemap drift and canonical drift.
 
@@ -25,9 +25,9 @@ Academia.edu, Semantic Scholar, ORCID, Instagram and GitHub are linked. Google S
 © Dr. Javad Rezazadeh Yazdeli. All rights reserved.
 
 
-## Master Foundation v4.3.0
+## Active delivery baseline — v4.4 (2026-10-09)
 
-The active completion baseline is `foundation/V4.3.0-EXECUTION-BASELINE.md`. The frozen ecosystem roadmap remains in `foundation/MASTER-ECOSYSTEM-ROADMAP.md`, with machine-readable status rules in `foundation/ROADMAP-STATUS.json`. Roadmap items are never silently removed; they move through explicit DONE / MODIFIED / RENEWED / IN PROGRESS / PLANNED / WAITING / DEFERRED / RETIRED states.
+The current v4.4 progress checkpoint is `foundation/V4.4-ACADEMIC-COMMERCE-SEO-CHECKPOINT-2026-10-09.md`; the earlier v4.3 baseline `foundation/V4.3.0-EXECUTION-BASELINE.md` remains historical context. The authoritative runtime policy is `foundation/ACTIVE-INFRASTRUCTURE-POLICY-2026-10-09.md`. The frozen ecosystem roadmap remains in `foundation/MASTER-ECOSYSTEM-ROADMAP.md`, with machine-readable status rules in `foundation/ROADMAP-STATUS.json`. Roadmap items are never silently removed; they move through explicit DONE / MODIFIED / RENEWED / IN PROGRESS / PLANNED / WAITING / DEFERRED / RETIRED states.
 
 ## Master Foundation
 The repository now contains an explicit foundation layer under `/foundation/`. New application, assessment, research-lab and commerce namespaces are reserved as `noindex` routes until substantive content/data and an explicit SEO release decision exist.
