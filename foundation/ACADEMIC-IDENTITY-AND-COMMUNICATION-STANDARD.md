@@ -14,7 +14,7 @@ The Persian and English sites must retain the full personal name consistently. D
 
 A visitor considering any paid service should be able to understand its intended audience, prerequisites, methodological rationale, expected deliverable, timing, price, exclusions and professional limitations. Service pages must provide navigable connections to the public academic profile, research fields and publication record so that professional claims can be evaluated. Research-backed guidance is not a promise of admission, examination rank, clinical diagnosis, journal acceptance or employment.
 
-The public programme presently has **21 published priced service records**. The broader 27-service target remains a planning goal, not a licence to fabricate six services or advertise them as ready for sale. Additions require approved specifications, distinctive media, a defensible price, functioning transaction pathways, privacy handling and a corresponding SEO review.
+The current programme contains **21 standard service records and six separate VIP listings: 27 defined offers in total**. The VIP entries have distinct pages and illustrations, but their proposed prices and conditional booking arrangements must not be misrepresented as fully operational payment and fulfilment. Preserve this differentiation while auditing all 27 for scope, images, professional justification, pricing, privacy and transaction readiness. Future additions require approved specifications and a corresponding SEO review.
 
 ## 3. Communication and entitlement boundaries
 
