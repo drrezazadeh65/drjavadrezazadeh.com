@@ -14,3 +14,11 @@ test('problem states appear before healthy states and unknown data is unverified
  const v=buildEngineDashboardView({as_of:at,engines:[{id:'crm',status:'ACTIVE',last_verified_at:at},{id:'commerce',status:'BLOCKED',last_verified_at:at},{id:'assessment',status:'BROKEN'}]},{now:new Date(at)});
  assert.deepEqual(v.engines.map(e=>e.status),['BLOCKED','UNVERIFIED','ACTIVE']);
 });
+
+test('suppresses metrics when verification is stale or status is unverified',()=>{
+ const v=buildEngineDashboardView({as_of:at,engines:[
+  {id:'crm',status:'ACTIVE',last_verified_at:'2026-10-09T19:00:00Z',metrics:{requests_24h:80,errors_24h:4}},
+  {id:'commerce',status:'UNVERIFIED',last_verified_at:at,metrics:{requests_24h:50,errors_24h:1}}
+ ]},{now:new Date(at)});
+ assert.ok(v.engines.every(e=>e.requests_24h===null&&e.errors_24h===null));
+});
