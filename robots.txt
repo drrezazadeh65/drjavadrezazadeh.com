@@ -36,6 +36,16 @@ Disallow: /.github/
 
 User-agent: *
 Allow: /
+Disallow: /en/register/
+Disallow: /en/login/
+Disallow: /en/account/
+Disallow: /fa/shop/payment-result/
+Disallow: /fa/shop/payment-return/
+Disallow: /fa/shop/payment-start/
+Disallow: /fa/shop/checkout/
+Disallow: /fa/bazyabi-hesab/
+Disallow: /fa/register/
+Disallow: /fa/login/
 Disallow: /foundation/
 Disallow: /scripts/
 Disallow: /platform/
