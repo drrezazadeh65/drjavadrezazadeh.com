@@ -13,6 +13,7 @@ async function pay(items,button,message){
   if(!res.ok||!data.ok){
    status(message,data.error==='checkout_disabled'?'پرداخت آنلاین در مرحله آزمون نهایی است؛ وجهی برداشت نشده است.':'ثبت سفارش امکان‌پذیر نشد؛ وجهی پرداخت نکنید.');return;
   }
+  if(typeof data.paymentUrl!=='string')throw Error('missing_gateway_link');
   const link=new URL(data.paymentUrl);
   if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/'||link.searchParams.size!==1||!link.searchParams.has('gateway'))throw Error('unsafe_gateway_link');
   location.assign(link.href);
