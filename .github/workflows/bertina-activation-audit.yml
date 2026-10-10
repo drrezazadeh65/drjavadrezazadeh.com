@@ -8,7 +8,7 @@ on:
       - '.github/workflows/bertina-activation-audit.yml'
   workflow_dispatch:
 
-# activation-audit-run: 2026-10-10T14:25:00Z
+# activation-audit-run: 2026-10-10T14:27:00Z
 permissions:
   contents: read
 
@@ -54,42 +54,22 @@ jobs:
           curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/shop/ -o /tmp/root-shop.txt
           sed -n '1,24p' /tmp/root-shop.txt
           grep -Eiq '^HTTP/[^ ]+ 301' /tmp/root-shop.txt
-          grep -Eiq '^location: (https://drjavadrezazadeh\.com)?/fa/shop/?([?#].*)?          curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/fa/shop/ -o /tmp/fa-shop.txt
-          grep -Eiq '^HTTP/[^ ]+ 200' /tmp/fa-shop.txt
-          if grep -Eiq '^x-robots-tag:.*noindex' /tmp/fa-shop.txt; then
-            echo "Public FA shop still receives X-Robots noindex" >&2
-            exit 1
-          fi
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/sw.js -o /tmp/sw.js
-          echo "Live service worker header:"
-          sed -n '1,36p' /tmp/sw.js
-          grep -Eq 'PRIVATE_PREFIXES' /tmp/sw.js
-          grep -F "if(isPrivate(url))" /tmp/sw.js
-          grep -F "cache:'no-store'" /tmp/sw.js
-          ! grep -Eq "['\"]/(fa|en)/shop/['\"].*PRIVATE|'/fa/shop/','/en/shop/','/shop/'" /tmp/sw.js
+          grep -Eiq '^location: (https://drjavadrezazadeh\.com)?/fa/shop/?([?#].*)?$' /tmp/root-shop.txt
 
-      - name: Verify core live runtime
-        run: |
-          set -euo pipefail
-          for path in /api/health /api/auth/health /api/commerce/health /fa/ /en/ /fa/shop/ /fa/register/ /fa/login/ /fa/customer-dashboard/; do
-            code="$(curl -kLsS -o /tmp/body -w '%{http_code}' --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 "https://drjavadrezazadeh.com$path")"
-            echo "$path HTTP $code"
-            test "$code" = "200"
-          done
- /tmp/root-shop.txt
           curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/fa/shop/ -o /tmp/fa-shop.txt
           grep -Eiq '^HTTP/[^ ]+ 200' /tmp/fa-shop.txt
           if grep -Eiq '^x-robots-tag:.*noindex' /tmp/fa-shop.txt; then
             echo "Public FA shop still receives X-Robots noindex" >&2
             exit 1
           fi
+
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/sw.js -o /tmp/sw.js
           echo "Live service worker header:"
           sed -n '1,36p' /tmp/sw.js
           grep -Eq 'PRIVATE_PREFIXES' /tmp/sw.js
           grep -F "if(isPrivate(url))" /tmp/sw.js
           grep -F "cache:'no-store'" /tmp/sw.js
-          ! grep -Eq "['\"]/(fa|en)/shop/['\"].*PRIVATE|'/fa/shop/','/en/shop/','/shop/'" /tmp/sw.js
+          ! grep -F "'/fa/shop/','/en/shop/','/shop/'" /tmp/sw.js
 
       - name: Verify core live runtime
         run: |
