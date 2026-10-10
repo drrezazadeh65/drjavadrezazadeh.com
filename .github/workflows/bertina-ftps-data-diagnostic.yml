@@ -13,20 +13,11 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
 
-      - name: Force FTP hostname to IPv4
-        env:
-          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
+      - name: Pin Bertina FTP service to IPv4
         run: |
           set -euo pipefail
-          FTP_NAME="${FTP_HOST#ftp://}"
-          FTP_NAME="${FTP_NAME#ftps://}"
-          FTP_NAME="${FTP_NAME%%/*}"
-          FTP_NAME="${FTP_NAME%%:*}"
-          test -n "$FTP_NAME"
-          FTP_IP="$(getent ahostsv4 "$FTP_NAME" | awk 'NR==1{print $1}')"
-          test -n "$FTP_IP"
-          echo "$FTP_IP $FTP_NAME" | sudo tee -a /etc/hosts >/dev/null
-          echo "FTP hostname normalized and pinned to IPv4 for this runner."
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          echo "Bertina FTP service pinned to known origin IPv4 for this runner."
 
       - name: Test protected PASV without EPSV
         id: pasv
@@ -39,8 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           printf 'bertina-ftps-test\n' > /tmp/probe.txt
-          timeout 60s FTP_NAME="${FTP_HOST#ftp://}"; FTP_NAME="${FTP_NAME#ftps://}"; FTP_NAME="${FTP_NAME%%/*}"; FTP_NAME="${FTP_NAME%%:*}"
-          lftp -d -u "$FTP_USER","$FTP_PASSWORD" "ftp://$FTP_NAME" <<LFTP
+          timeout 60s lftp -d -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
           set ssl:verify-certificate yes
@@ -66,8 +56,7 @@ jobs:
         run: |
           set -euo pipefail
           printf 'bertina-ftps-test\n' > /tmp/probe.txt
-          timeout 60s FTP_NAME="${FTP_HOST#ftp://}"; FTP_NAME="${FTP_NAME#ftps://}"; FTP_NAME="${FTP_NAME%%/*}"; FTP_NAME="${FTP_NAME%%:*}"
-          lftp -d -u "$FTP_USER","$FTP_PASSWORD" "ftp://$FTP_NAME" <<LFTP
+          timeout 60s lftp -d -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
           set ssl:verify-certificate yes
