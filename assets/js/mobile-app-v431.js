@@ -91,7 +91,7 @@ window.addEventListener('storage',e=>{if(e.key==='jr-book-cart-v1')syncCartBadge
 qa('.home-focus-strip a,.audience-gate').forEach(a=>{if(a.querySelector('.app-card-icon'))return;const s=document.createElement('span');s.className='app-card-icon';s.innerHTML=icon(iconFor(a.href,a.textContent||''));s.setAttribute('aria-hidden','true');a.prepend(s)});
 
 /* v4.4.1 mobile sheet controller — accessible, back-button aware, app-like */
-const menuTrigger=q('[data-nav-toggle]');
+const menuTriggers=qa('[data-nav-toggle]');
 const menuClose=q('[data-nav-close]');
 let lastFocus=null;
 const focusables=()=>qa('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',panel).filter(el=>!el.hidden);
@@ -101,22 +101,22 @@ const setMenu=(open,{history=true}={})=>{
    panel.hidden=false;
    requestAnimationFrame(()=>panel.classList.add('is-open'));
    document.documentElement.classList.add('nav-open');
-   menuTrigger?.setAttribute('aria-expanded','true');
+   menuTriggers.forEach(t=>t.setAttribute('aria-expanded','true'));
    if(history && history!==false && !history.state?.mobileAppMenu) window.history.pushState({...history.state,mobileAppMenu:true},'');
    requestAnimationFrame(()=>menuClose?.focus({preventScroll:true}));
  }else{
    panel.classList.remove('is-open');
    document.documentElement.classList.remove('nav-open');
-   menuTrigger?.setAttribute('aria-expanded','false');
+   menuTriggers.forEach(t=>t.setAttribute('aria-expanded','false'));
    window.setTimeout(()=>{panel.hidden=true},220);
    if(lastFocus&&document.contains(lastFocus)) lastFocus.focus({preventScroll:true});
  }
 };
-menuTrigger?.addEventListener('click',event=>{event.stopPropagation();setMenu(panel.hidden||!panel.classList.contains('is-open'))});
-menuClose?.addEventListener('click',()=>setMenu(false));
-panel.addEventListener('click',e=>{if(e.target===panel)setMenu(false)});
+menuTriggers.forEach(t=>t.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();setMenu(panel.hidden||!panel.classList.contains('is-open'))}));
+menuClose?.addEventListener('click',event=>{event.stopPropagation();setMenu(false)});
+panel.addEventListener('click',e=>{if(e.target===panel){e.stopPropagation();setMenu(false)}});
 panel.addEventListener('keydown',e=>{
- if(e.key==='Escape'){e.preventDefault();setMenu(false);return}
+ if(e.key==='Escape'){e.preventDefault();e.stopPropagation();setMenu(false);return}
  if(e.key!=='Tab')return;
  const f=focusables();if(!f.length)return;
  const first=f[0],last=f[f.length-1];
