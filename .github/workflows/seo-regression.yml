@@ -103,9 +103,10 @@ jobs:
         run: node scripts/legacy-url-continuity-audit.mjs
       - name: Validate JavaScript and MJS syntax across release code
         run: |
-          for file in assets/js/*.js edge/assistant/src/*.js scripts/*.mjs platform/*.mjs; do
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
             node --check "$file"
-          done
+          done < <(find assets/js scripts platform -type f \( -name '*.js' -o -name '*.mjs' \) -print0)
       - name: Run ecosystem governance contract tests
         run: node platform/ecosystem-governance.test.mjs
       - name: Run public AI assistant runtime tests
