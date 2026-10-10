@@ -445,3 +445,27 @@ body.customer-dashboard.rtl{font-family:Tahoma,Arial,sans-serif}
   .cd-grade-row span:nth-child(4){display:none}
 }
 @media(max-width:360px){.cd-academic-snapshot{grid-template-columns:1fr}}
+
+
+/* Evidence-based progress trajectory */
+.cd-progress-chart-shell{overflow:hidden}
+.cd-progress-chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.cd-progress-chart-head small{display:block;color:var(--cd-gold);font-size:8px;letter-spacing:.12em;margin-bottom:5px}
+.cd-progress-chart-head h3{margin:0 0 5px;font-size:15px}
+.cd-progress-chart-head p{max-width:720px;margin:0;color:var(--cd-muted);font-size:9px;line-height:1.8}
+.cd-progress-chart-empty{position:relative;min-height:270px;margin-top:16px;border:1px solid var(--cd-line);border-radius:18px;background:linear-gradient(180deg,#0b1118,#090d13);overflow:hidden;display:grid;place-items:center}
+.cd-chart-grid{position:absolute;inset:0;display:grid;grid-template-rows:repeat(4,1fr);opacity:.62}
+.cd-chart-grid i{border-top:1px solid rgba(255,255,255,.045)}
+.cd-chart-grid::before,.cd-chart-grid::after{content:"";position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.035)}
+.cd-chart-grid::before{left:33.333%}.cd-chart-grid::after{left:66.666%}
+.cd-chart-message{position:relative;z-index:1;max-width:520px;padding:24px;text-align:center}
+.cd-chart-message strong{display:block;font-size:12px;margin-bottom:7px}
+.cd-chart-message span{display:block;color:var(--cd-muted);font-size:9px;line-height:1.8}
+.cd-progress-evidence-row{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:12px;color:#909aa5;font-size:9px}
+.cd-progress-evidence-row b{color:var(--cd-gold)}
+@media(max-width:620px){
+  .cd-progress-chart-head{display:grid}
+  .cd-progress-chart-head .cd-state{width:max-content}
+  .cd-progress-chart-empty{min-height:230px}
+  .cd-progress-evidence-row{justify-content:flex-start;gap:6px}
+}
