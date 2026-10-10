@@ -1,0 +1,64 @@
+<?php
+declare(strict_types=1);
+/**
+ * Proposal-only, read-only operations evidence API.
+ * Integrate with the site's EXISTING Bertina admin session / RBAC before production.
+ * Never expose this endpoint unauthenticated or copy it into a public static folder.
+ */
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: private, no-store, max-age=0');
+header('X-Content-Type-Options: nosniff');
+header('X-Robots-Tag: noindex, nofollow');
+header('Referrer-Policy: no-referrer');
+header('Vary: Cookie');
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
+    header('Allow: GET');
+    http_response_code(405);
+    echo json_encode(['error' => 'method_not_allowed']);
+    exit;
+}
+// INTEGRATION REQUIRED: replace with the existing site's trusted admin authorization.
+// No fallback to an environment variable, shared URL token or generic login cookie.
+if (!function_exists('bertina_require_admin') || bertina_require_admin() !== true) {
+    http_response_code(403);
+    echo json_encode(['error' => 'admin_authorization_required']);
+    exit;
+}
+$path = getenv('BERTINA_OPERATIONS_EVIDENCE_FILE') ?: '';
+if ($path === '' || !is_file($path) || !is_readable($path)) {
+    http_response_code(503);
+    echo json_encode(['error' => 'evidence_source_not_configured']);
+    exit;
+}
+$raw = file_get_contents($path);
+if ($raw === false || strlen($raw) > 1048576) {
+    http_response_code(503);
+    echo json_encode(['error' => 'evidence_unavailable']);
+    exit;
+}
+$data = json_decode($raw, true);
+if (!is_array($data) || ($data['schema'] ?? '') !== 'operations-evidence-v1' || !isset($data['records']) || !is_array($data['records'])) {
+    http_response_code(503);
+    echo json_encode(['error' => 'invalid_evidence_schema']);
+    exit;
+}
+$allowed = ['not_started', 'in_progress', 'blocked', 'ready_for_verification', 'verified_complete', 'regressed'];
+$records = [];
+foreach (array_slice($data['records'], 0, 36) as $r) {
+    if (!is_array($r) || !preg_match('/^OP-\\d{2}$/', (string)($r['id'] ?? '')) || !in_array($r['status'] ?? '', $allowed, true)) {
+        continue;
+    }
+    // Imported evidence cannot self-certify. Verified closure must be issued by trusted server workflow.
+    $verified = ($r['verified'] ?? false) === true && ($r['verificationSource'] ?? '') === 'trusted-server-gate';
+    $status = $r['status'] === 'verified_complete' && !$verified ? 'ready_for_verification' : $r['status'];
+    $records[] = [
+        'id' => $r['id'],
+        'status' => $status,
+        'verified' => $verified,
+        'checkedAt' => substr((string)($r['checkedAt'] ?? ''), 0, 40),
+        'test' => substr((string)($r['test'] ?? ''), 0, 160),
+        'environment' => substr((string)($r['environment'] ?? ''), 0, 30),
+        'url' => filter_var($r['url'] ?? '', FILTER_VALIDATE_URL) ? (string)$r['url'] : '',
+    ];
+}
+echo json_encode(['schema' => 'operations-evidence-v1', 'generatedAt' => gmdate('c'), 'source' => 'bertina-server-readonly', 'records' => $records], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
