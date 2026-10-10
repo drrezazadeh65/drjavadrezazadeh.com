@@ -81,6 +81,8 @@ jobs:
             --exclude-glob "cgi-bin/**" \
             --exclude-glob ".user.ini" \
             --exclude-glob "php.ini" \
+            --exclude-glob "api/config.local.php" \
+            --exclude-glob "api/storage/**" \
             .public-site/ "$FTP_REMOTE_DIR"
           bye
           LFTP
