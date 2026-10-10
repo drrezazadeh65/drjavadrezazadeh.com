@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   verify:
+    # mail readiness probe
     runs-on: ubuntu-latest
     steps:
       - name: Verify Bertina origin directly
