@@ -1,5 +1,11 @@
 {
   "schema_version": "1.0",
+  "website_history": {
+    "domain": "drjavadrezazadeh.com",
+    "established_date": "2022-11-18",
+    "meaning": "Historical website/domain origin date. Do not replace with a later re-registration date after a lapse.",
+    "evidence_class": "historical registrar-transfer, renewal-cycle and pre-transfer live-site records"
+  },
   "entity_key": "javad_rezazadeh_yazdeli",
   "entity_id_path": "/#person",
   "public_names": {
