@@ -1,0 +1,173 @@
+{
+  "schema_version": "1.0",
+  "status": "ACTIVE_RECOVERY_CONTROL",
+  "production_origin": "https://drjavadrezazadeh.com",
+  "historical_origin_date": "2022-11-18",
+  "policy": {
+    "preserve_relevant_historical_authority": true,
+    "redirect_status": 301,
+    "one_hop_only": true,
+    "catch_all_to_homepage_forbidden": true,
+    "private_destination_forbidden": true,
+    "noindex_destination_forbidden": true,
+    "semantic_mismatch_redirect_forbidden": true,
+    "unknown_legacy_url_default": "404_REVIEW",
+    "verified_spam_or_hacked_url": "410_GONE",
+    "high_value_missing_content": "RESTORE_OR_CLOSEST_SEMANTIC_301"
+  },
+  "host_consolidation": {
+    "canonical_host": "drjavadrezazadeh.com",
+    "aliases": [
+      "www.drjavadrezazadeh.com"
+    ],
+    "http_to_https": "DEFER_UNTIL_TRUSTED_PUBLIC_TLS",
+    "www_to_apex": "DEFER_UNTIL_TRUSTED_PUBLIC_TLS",
+    "target_behavior_after_tls": "ONE_HOP_TO_CANONICAL_PATH"
+  },
+  "priority_surfaces": [
+    {
+      "id": "historical-home",
+      "source_family": "homepage",
+      "canonical_target": "/",
+      "action": "PRESERVE_CANONICAL",
+      "priority": "P0",
+      "reason": "Homepage is a primary historical backlink destination; do not add an unnecessary redirect on the canonical host."
+    },
+    {
+      "id": "historical-shop",
+      "source_family": "shop-root",
+      "canonical_target": "/fa/shop/",
+      "action": "PERMANENT_REDIRECT",
+      "priority": "P0",
+      "reason": "Historical /shop/ authority is consolidated into the current public Persian storefront."
+    }
+  ],
+  "authority_redirects": [
+    {
+      "source": "/about/",
+      "target": "/en/about/",
+      "status": 301,
+      "evidence": "existing approved legacy migration"
+    },
+    {
+      "source": "/academic-engagements/",
+      "target": "/en/academic-engagements/",
+      "status": 301,
+      "evidence": "existing approved legacy migration"
+    },
+    {
+      "source": "/books/",
+      "target": "/en/books/",
+      "status": 301,
+      "evidence": "existing approved legacy migration"
+    },
+    {
+      "source": "/educational-philosophy/",
+      "target": "/en/educational-philosophy/",
+      "status": 301,
+      "evidence": "existing approved legacy migration"
+    },
+    {
+      "source": "/golden-talent/",
+      "target": "/en/golden-talent/",
+      "status": 301,
+      "evidence": "existing approved legacy migration"
+    },
+    {
+      "source": "/publications/",
+      "target": "/en/publications/",
+      "status": 301,
+      "evidence": "existing approved legacy migration plus historical Google Search Console impressions"
+    },
+    {
+      "source": "/research/",
+      "target": "/en/research/",
+      "status": 301,
+      "evidence": "existing approved legacy migration"
+    },
+    {
+      "source": "/teaching/",
+      "target": "/en/teaching/",
+      "status": 301,
+      "evidence": "existing approved legacy migration"
+    },
+    {
+      "source": "/shop/",
+      "target": "/fa/shop/",
+      "status": 301,
+      "evidence": "existing production redirect; user-confirmed major historical backlink destination"
+    }
+  ],
+  "historical_candidates": [
+    {
+      "path": "/product/خرید-فرش-ماشینی-کد-2-7801-8833/",
+      "decision": "GONE",
+      "http_status": 410,
+      "confidence": "HIGH",
+      "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
+      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+    },
+    {
+      "path": "/product/خرید-فرش-ماشینی-کد-2-7801-9735/",
+      "decision": "GONE",
+      "http_status": 410,
+      "confidence": "HIGH",
+      "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
+      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+    },
+    {
+      "path": "/product/خرید-فرش-ماشینی-کد-4301-4917/",
+      "decision": "GONE",
+      "http_status": 410,
+      "confidence": "HIGH",
+      "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
+      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+    },
+    {
+      "path": "/product/خرید-فرش-ماشینی-کد-4301-5021/",
+      "decision": "GONE",
+      "http_status": 410,
+      "confidence": "HIGH",
+      "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
+      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+    },
+    {
+      "path": "/product/خرید-گبه-ماشینی-کد-1009-2/",
+      "decision": "GONE",
+      "http_status": 410,
+      "confidence": "HIGH",
+      "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
+      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+    },
+    {
+      "path": "/product/خرید-گبه-ماشینی-کد-3001-3283/",
+      "decision": "GONE",
+      "http_status": 410,
+      "confidence": "HIGH",
+      "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
+      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+    },
+    {
+      "path": "/wp-content/uploads/2022/12/مقاله-اول.pdf",
+      "decision": "REVIEW",
+      "confidence": "MEDIUM",
+      "evidence": "Google Search Console historical page data showed 7 impressions before expiry",
+      "reason": "Historical PDF may be legitimate scholarly content. Restore the original file or map to a verified equivalent only after content identity is confirmed."
+    }
+  ],
+  "evidence_sources": [
+    "Ahrefs Backlinks export with Target URL",
+    "Google Search Console historical page performance",
+    "Google URL Inspection",
+    "Bertina/Apache access and 404 logs",
+    "Internet Archive snapshots",
+    "old WordPress backups and sitemaps",
+    "Bing Webmaster inbound-link data when connected"
+  ],
+  "review_priority": {
+    "P0": "Homepage and shop-root authority; preserve immediately.",
+    "P1": "Legacy URLs with multiple referring domains, strong DR, dofollow links, branded or scholarly context.",
+    "P2": "Single-domain or low-authority but topically relevant legacy URLs.",
+    "P3": "Unknown, low-value, spam, hacked or semantically unrelated URLs."
+  }
+}
