@@ -1,5 +1,5 @@
 /* JR Cache Standard v2.0 — fresh-by-default, offline-safe, privacy-safe */
-const CACHE_VERSION='jr-site-20261010-storefront-recovery-v3';
+const CACHE_VERSION='jr-site-20261010-bertina-cache-v4';
 const CACHE_FAMILY='jr-site-';
 const SHELL_CACHE=CACHE_VERSION+'-shell';
 const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
@@ -10,9 +10,7 @@ const CORE=[
   '/favicon.svg',
   '/assets/images/pwa-icon-192.png',
   '/assets/images/pwa-icon-512.png',
-  '/assets/images/pwa-icon-maskable-512.png',
-  '/fa/shop/',
-  '/en/shop/'
+  '/assets/images/pwa-icon-maskable-512.png'
 ];
 
 const PRIVATE_PREFIXES=[
@@ -140,27 +138,26 @@ self.addEventListener('fetch',event=>{
   const url=new URL(req.url);
   if(url.origin!==self.location.origin) return;
 
-  // Personalized / transactional surfaces must never be stored.
+  // Personalized / transactional surfaces are always network-only.
+  // Never replace them with a generic offline document, because that can make
+  // an online production route appear falsely unavailable.
   if(isPrivate(url)){
-    event.respondWith(
-      fetch(req,{cache:'no-store'}).catch(async()=>{
-        const shell=await caches.open(SHELL_CACHE);
-        return (await shell.match(OFFLINE_URL)) || Response.error();
-      })
-    );
+    event.respondWith(fetch(req,{cache:'no-store'}));
     return;
   }
 
   const isCode=/\.(?:css|js)$/i.test(url.pathname);
   const isAsset=isCode || isMutableCode(url) || isFont(url) || isImage(url);
 
-  // Documents are always fresh while online. Cached copies are offline-only fallbacks.
+  // Documents are network-first. If a previous copy of the exact public page
+  // exists it may be used only after a real network failure; never substitute
+  // the generic offline page for a production URL.
   if(req.mode==='navigate'){
-    event.respondWith(freshNetwork(req,{fallback:OFFLINE_URL,store:true}));
+    event.respondWith(freshNetwork(req,{store:true}));
     return;
   }
   if(req.destination==='document'){
-    event.respondWith(freshNetwork(req,{fallback:OFFLINE_URL,store:true}));
+    event.respondWith(freshNetwork(req,{store:true}));
     return;
   }
 
