@@ -1,12 +1,11 @@
-name: Cloudflare Commerce Runtime Readiness
+name: Bertina Commerce Runtime Readiness
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
       - 'scripts/commerce-live-readiness-audit.mjs'
-      - 'payment-api/commerce-routes.js'
-      - 'payment-api/worker-single-file-candidate.js'
+      - 'api/**'
       - 'assets/js/commerce-checkout.js'
       - '.github/workflows/commerce-live-readiness.yml'
 
@@ -26,5 +25,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify deployed Cloudflare commerce contract without initiating payment
+      - name: Verify deployed Bertina commerce contract without initiating payment
         run: node scripts/commerce-live-readiness-audit.mjs
