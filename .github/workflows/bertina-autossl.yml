@@ -8,6 +8,7 @@ on:
       - '.github/workflows/bertina-autossl.yml'
   workflow_dispatch:
 
+# activation-run: 2026-10-10T14:18:00Z
 permissions:
   contents: read
 
