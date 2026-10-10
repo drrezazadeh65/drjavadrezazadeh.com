@@ -1,0 +1,30 @@
+name: Customer Auth Live Readiness
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'payment-api/auth-routes.js'
+      - 'payment-api/migrations/v4.4.1-customer-auth.sql'
+      - 'assets/js/customer-auth.js'
+      - 'fa/register/**'
+      - 'fa/login/**'
+      - 'fa/bazyabi-hesab/**'
+      - 'en/register/**'
+      - 'en/login/**'
+      - 'en/recover/**'
+      - 'scripts/auth-live-readiness-audit.mjs'
+      - '.github/workflows/auth-live-readiness.yml'
+permissions:
+  contents: read
+jobs:
+  live-auth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify deployed unified customer auth runtime
+        run: node scripts/auth-live-readiness-audit.mjs
