@@ -18,10 +18,15 @@ jobs:
           FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
         run: |
           set -euo pipefail
-          FTP_IP="$(getent ahostsv4 "$FTP_HOST" | awk 'NR==1{print $1}')"
+          FTP_NAME="${FTP_HOST#ftp://}"
+          FTP_NAME="${FTP_NAME#ftps://}"
+          FTP_NAME="${FTP_NAME%%/*}"
+          FTP_NAME="${FTP_NAME%%:*}"
+          test -n "$FTP_NAME"
+          FTP_IP="$(getent ahostsv4 "$FTP_NAME" | awk 'NR==1{print $1}')"
           test -n "$FTP_IP"
-          echo "$FTP_IP $FTP_HOST" | sudo tee -a /etc/hosts >/dev/null
-          echo "FTP hostname pinned to IPv4 for this runner."
+          echo "$FTP_IP $FTP_NAME" | sudo tee -a /etc/hosts >/dev/null
+          echo "FTP hostname normalized and pinned to IPv4 for this runner."
 
       - name: Test protected PASV without EPSV
         id: pasv
@@ -34,7 +39,8 @@ jobs:
         run: |
           set -euo pipefail
           printf 'bertina-ftps-test\n' > /tmp/probe.txt
-          timeout 60s lftp -d -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
+          timeout 60s FTP_NAME="${FTP_HOST#ftp://}"; FTP_NAME="${FTP_NAME#ftps://}"; FTP_NAME="${FTP_NAME%%/*}"; FTP_NAME="${FTP_NAME%%:*}"
+          lftp -d -u "$FTP_USER","$FTP_PASSWORD" "ftp://$FTP_NAME" <<LFTP
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
           set ssl:verify-certificate yes
@@ -60,7 +66,8 @@ jobs:
         run: |
           set -euo pipefail
           printf 'bertina-ftps-test\n' > /tmp/probe.txt
-          timeout 60s lftp -d -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
+          timeout 60s FTP_NAME="${FTP_HOST#ftp://}"; FTP_NAME="${FTP_NAME#ftps://}"; FTP_NAME="${FTP_NAME%%/*}"; FTP_NAME="${FTP_NAME%%:*}"
+          lftp -d -u "$FTP_USER","$FTP_PASSWORD" "ftp://$FTP_NAME" <<LFTP
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
           set ssl:verify-certificate yes
