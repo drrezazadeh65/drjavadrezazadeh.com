@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const API='https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev';
+const API='/api';
 const lang=document.documentElement.lang==='en'?'en':'fa';
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
