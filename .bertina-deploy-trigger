@@ -1,4 +1,4 @@
-deploy=2026-10-10T14:21:00Z
+deploy=2026-10-10T14:31:00Z
 source=migration/bertina-linux6
 mode=bertina-only
-scope=customer-dashboard-runtime-selector-fix
+scope=canonical-shop-redirect-auth-copy-release-status
