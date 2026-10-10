@@ -100,7 +100,6 @@ jobs:
 
           cat > "/tmp/$SCRIPT_NAME" <<PHP
           <?php
-          declare(strict_types=1);
           header('Content-Type: application/json; charset=utf-8');
           header('Cache-Control: no-store');
           header('X-Robots-Tag: noindex, noarchive');
@@ -113,7 +112,7 @@ jobs:
           }
           \$zipPath = __DIR__ . '/$ZIP_NAME';
           \$manifestPath = __DIR__ . '/bertina-deploy-manifest.json';
-          \$cleanup = static function() use (\$zipPath, \$manifestPath): void {
+          \$cleanup = static function() use (\$zipPath, \$manifestPath) {
               @unlink(\$zipPath);
               @unlink(\$manifestPath);
               @unlink(__FILE__);
@@ -133,7 +132,7 @@ jobs:
           }
           for (\$i=0; \$i<\$zip->numFiles; \$i++) {
               \$name = (string)\$zip->getNameIndex(\$i);
-              if (\$name === '' || str_starts_with(\$name, '/') || str_contains(\$name, "\0") ||
+              if (\$name === '' || (isset(\$name[0]) && \$name[0] === '/') || strpos(\$name, "\0") !== false ||
                   preg_match('#(^|/)\.\.(/|$)#', \$name)) {
                   \$zip->close();
                   http_response_code(400);
@@ -162,7 +161,7 @@ jobs:
           \$checked = 0;
           foreach (\$manifest['files'] as \$relative => \$expected) {
               \$relative = str_replace('\\\\', '/', (string)\$relative);
-              if (\$relative === '' || str_starts_with(\$relative, '/') || preg_match('#(^|/)\.\.(/|$)#', \$relative)) {
+              if (\$relative === '' || (isset(\$relative[0]) && \$relative[0] === '/') || preg_match('#(^|/)\.\.(/|$)#', \$relative)) {
                   \$mismatch[] = \$relative;
                   continue;
               }
@@ -212,8 +211,14 @@ jobs:
         run: |
           set -euo pipefail
           ORIGIN_IP="188.40.203.218"
-          RESPONSE="$(curl -kfsS --max-time 180             --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             -H "X-Deploy-Token: $DEPLOY_TOKEN"             "https://drjavadrezazadeh.com/$DEPLOY_SCRIPT")"
-          printf '%s' "$RESPONSE" > /tmp/deploy-response.json
+          HTTP_CODE="$(curl -ksS --max-time 180 -o /tmp/deploy-response.json -w '%{http_code}'             --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             -H "X-Deploy-Token: $DEPLOY_TOKEN"             "https://drjavadrezazadeh.com/$DEPLOY_SCRIPT")"
+          echo "Bertina deploy endpoint HTTP status: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Bertina deploy endpoint response:"
+            cat /tmp/deploy-response.json || true
+            echo
+            exit 1
+          fi
           node - <<'NODE'
           const fs=require('fs');
           const d=JSON.parse(fs.readFileSync('/tmp/deploy-response.json','utf8'));
