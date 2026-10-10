@@ -19,6 +19,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v4
@@ -69,13 +70,18 @@ jobs:
           FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
           FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
         run: |
-          lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
+          set -euo pipefail
+
+          deploy_once() {
+            timeout 900s lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
           set ssl:verify-certificate yes
-          set net:max-retries 2
-          set net:timeout 25
-          mirror -R --delete --parallel=4 --verbose \
+          set net:max-retries 1
+          set net:timeout 20
+          set net:reconnect-interval-base 2
+          set net:reconnect-interval-max 8
+          mirror -R --delete --continue --parallel=2 --verbose \
             --exclude-glob ".well-known/**" \
             --exclude-glob "cgi-bin/**" \
             --exclude-glob ".user.ini" \
@@ -85,6 +91,13 @@ jobs:
             .public-site/ "$FTP_REMOTE_DIR"
           bye
           LFTP
+          }
+
+          if ! deploy_once; then
+            echo "First FTPS mirror attempt did not complete; retrying once from transferred state."
+            sleep 5
+            deploy_once
+          fi
 
       - name: Verify Bertina origin directly
         if: steps.credentials.outputs.ready == 'true'
