@@ -1,0 +1,62 @@
+name: Bertina-Only Provider Guard
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'api/**'
+      - 'assets/**'
+      - 'fa/**'
+      - 'en/**'
+      - 'app/**'
+      - 'shop/**'
+      - 'login/**'
+      - 'register/**'
+      - 'assessments/**'
+      - 'student/**'
+      - 'teacher/**'
+      - 'journal/**'
+      - 'publisher/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.github/workflows/**'
+      - '.htaccess'
+      - 'README.md'
+      - 'docs/BERTINA_MIGRATION.md'
+      - 'foundation/ACTIVE-INFRASTRUCTURE-POLICY-2026-10-09.md'
+      - 'foundation/PROVIDER-DECISION-MATRIX.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Reject retired provider runtime references
+        run: |
+          set -euo pipefail
+          targets=(api assets fa en app shop login register assessments student teacher journal publisher scripts tests .github/workflows README.md docs/BERTINA_MIGRATION.md foundation/ACTIVE-INFRASTRUCTURE-POLICY-2026-10-09.md foundation/PROVIDER-DECISION-MATRIX.md)
+          pattern='workers\.dev|api\.resend\.com|RESEND_API_KEY|wrangler|cloudflare:workers|challenges\.cloudflare\.com|Cloudflare Pages|Cloudflare Worker|Resend'
+          if grep -RInEi             --exclude='bertina-provider-guard.yml'             --exclude='cloudflare-detach-audit.yml'             --exclude-dir=.git             --exclude-dir=node_modules             "$pattern" "${targets[@]}"; then
+            echo "Retired provider dependency detected."
+            exit 1
+          fi
+          echo "Bertina-only runtime guard passed."
+
+      - name: Lint Bertina PHP runtime
+        run: php -l api/index.php && php -l api/config.example.php
+
+      - name: Build sanitized Bertina artifact
+        run: node scripts/build-public-site.mjs
+
+      - name: Run account and commerce contract test
+        run: node --test tests/account-commerce-consistency.test.mjs
