@@ -1,4 +1,4 @@
-name: Cloudflare Detach Audit
+name: Provider Detach Audit
 
 on:
   push:
@@ -16,12 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Locate Cloudflare dependencies
+      - name: Inventory retired-provider references
         run: |
           set +e
-          echo "=== Cloudflare/provider references in deployable/public source ==="
-          grep -RInE             --exclude-dir=.git             --exclude-dir=node_modules             --exclude-dir=.public-site             --exclude='*.md'             --exclude='*.sql'             '(workers\.dev|cloudflare|wrangler|@cf/|payments\.drjavadrezazadeh\.com|assistant\.drjavadrezazadeh\.com)'             assets fa en app shop login register assessments student teacher journal publisher 2>/dev/null || true
-
-          echo "=== Cloudflare/provider references in operational config/code ==="
-          grep -RInE             --exclude-dir=.git             --exclude-dir=node_modules             '(workers\.dev|cloudflare|wrangler|@cf/|payments\.drjavadrezazadeh\.com|assistant\.drjavadrezazadeh\.com)'             .github edge payment-api platform scripts package.json 2>/dev/null || true
+          grep -RInEi             --exclude-dir=.git             --exclude-dir=node_modules             --exclude-dir=.public-site             --exclude='cloudflare-detach-audit.yml'             '(workers\.dev|cloudflare|wrangler|resend)' . || true
