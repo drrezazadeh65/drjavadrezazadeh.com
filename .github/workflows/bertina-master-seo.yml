@@ -59,6 +59,7 @@ jobs:
           run_audit "Structured/social URLs" node scripts/structured-url-audit.mjs
           run_audit "llms.txt discovery" node scripts/llms-txt-audit.mjs
           run_audit "AI crawler policy" node scripts/ai-crawler-policy-audit.mjs
+          run_audit "AI discovery privacy regressions" node --test tests/ai-discovery-privacy.test.mjs
           run_audit "Metadata uniqueness" node scripts/metadata-uniqueness-audit.mjs
           run_audit "Accessibility source" node scripts/accessibility-source-audit.mjs
           run_audit "Performance source" node scripts/performance-source-audit.mjs
