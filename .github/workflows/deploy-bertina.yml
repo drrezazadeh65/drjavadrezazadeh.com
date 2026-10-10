@@ -104,7 +104,7 @@ jobs:
           header('Cache-Control: no-store');
           header('X-Robots-Tag: noindex, noarchive');
           \$expectedHash = '$TOKEN_HASH';
-          \$provided = isset(\$_SERVER['HTTP_X_DEPLOY_TOKEN']) ? (string)\$_SERVER['HTTP_X_DEPLOY_TOKEN'] : '';
+          \$provided = isset(\$_SERVER['HTTP_X_DEPLOY_TOKEN']) ? (string) \$_SERVER['HTTP_X_DEPLOY_TOKEN'] : '';
           \$providedHash = hash('sha256', \$provided);
           \$tokenOk = function_exists('hash_equals') ? hash_equals(\$expectedHash, \$providedHash) : (\$expectedHash === \$providedHash);
           if (!\$tokenOk) {
@@ -114,7 +114,7 @@ jobs:
           }
           \$zipPath = __DIR__ . '/$ZIP_NAME';
           \$manifestPath = __DIR__ . '/bertina-deploy-manifest.json';
-          \$cleanup = static function() use (\$zipPath, \$manifestPath) {
+          \$cleanup = function() use (\$zipPath, \$manifestPath) {
               @unlink(\$zipPath);
               @unlink(\$manifestPath);
               @unlink(__FILE__);
