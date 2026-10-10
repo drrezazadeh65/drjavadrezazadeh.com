@@ -19,3 +19,9 @@ test('legacy routes redirect to canonical account paths',()=>{
  assert.match(read('register/index.html'),/\.\.\/en\/register\//);
  assert.match(read('login/index.html'),/\.\.\/en\/login\//);
 });
+
+test('book cart enquiries use the official support mailbox',()=>{
+ const js=read('assets/js/book-store.js');
+ assert.match(js,/mailto:info@drjavadrezazadeh\\.com/);
+ assert.doesNotMatch(js,/mailto:dr\\.rezazadeh65@gmail\\.com/);
+});
