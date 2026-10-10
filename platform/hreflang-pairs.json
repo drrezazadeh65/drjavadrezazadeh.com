@@ -92,6 +92,24 @@
       "en": "/en/invite/",
       "fa": "/fa/hamkari-sazmani/",
       "x_default": "/en/invite/"
+    },
+    {
+      "id": "bookstore",
+      "en": "/en/shop/",
+      "fa": "/fa/shop/",
+      "x_default": "/en/shop/"
+    },
+    {
+      "id": "shop-customer-policy",
+      "en": "/en/shop/customer-policy/",
+      "fa": "/fa/shop/customer-policy/",
+      "x_default": "/en/shop/customer-policy/"
+    },
+    {
+      "id": "shop-purchase-guide",
+      "en": "/en/shop/purchase-guide/",
+      "fa": "/fa/shop/purchase-guide/",
+      "x_default": "/en/shop/purchase-guide/"
     }
   ],
   "unpaired_public_routes_policy": "No hreflang counterpart is invented. Add a pair only after content equivalence is reviewed.",

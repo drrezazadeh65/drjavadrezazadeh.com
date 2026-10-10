@@ -40,7 +40,7 @@ for(const raw of urls){
   if(u.search||u.hash) failures.push('llms.txt: tracking/query/hash not allowed '+raw);
 
   const route=u.pathname;
-  const staticAllowed=new Set(['/sitemap.xml','/sitemap-fa.xml','/sitemap-en.xml','/sitemap-core.xml','/sitemap-news.xml','/feed.xml','/robots.txt']);
+  const staticAllowed=new Set(['/sitemap.xml','/sitemap-fa.xml','/sitemap-en.xml','/sitemap-core.xml','/sitemap-news.xml','/sitemap-services.xml','/feed.xml','/robots.txt']);
   if(staticAllowed.has(route)) continue;
 
   const rel=route==='/'?'index.html':route.replace(/^\/+/,'').replace(/\/$/,'')+'/index.html';
