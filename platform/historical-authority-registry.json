@@ -21,9 +21,11 @@
     "aliases": [
       "www.drjavadrezazadeh.com"
     ],
-    "http_to_https": "DEFER_UNTIL_TRUSTED_PUBLIC_TLS",
-    "www_to_apex": "DEFER_UNTIL_TRUSTED_PUBLIC_TLS",
-    "target_behavior_after_tls": "ONE_HOP_TO_CANONICAL_PATH"
+    "http_to_https": "ACTIVE_CANONICAL_301",
+    "www_to_apex": "ACTIVE_CANONICAL_301",
+    "target_behavior_after_tls": "ONE_HOP_TO_HTTPS_APEX_CANONICAL_PATH",
+    "tls_state": "CERTUM_DV_ISSUED_AND_INSTALLED_BY_BERTINA",
+    "evidence": "Bertina support confirmed certificate issuance/installation on 2026-10-11; production branch includes one-hop canonical transport redirect."
   },
   "priority_surfaces": [
     {
