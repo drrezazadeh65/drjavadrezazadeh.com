@@ -1,6 +1,12 @@
 name: Historical Authority Live Verify
 
 on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.bertina-deploy-trigger'
+      - '.github/workflows/historical-authority-live-verify.yml'
   workflow_run:
     workflows:
       - Deploy to Bertina
@@ -15,7 +21,7 @@ permissions:
 
 jobs:
   verify:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
