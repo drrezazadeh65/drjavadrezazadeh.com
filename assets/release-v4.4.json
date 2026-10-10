@@ -11,5 +11,5 @@
     "Bertina domain mail"
   ],
   "retired_runtime_dependencies": [],
-  "notes": "Production runtime is Bertina-only. Browser endpoints use same-origin /api. Authentication, commerce and transactional mail remain fail-closed until Bertina MySQL/mail/TLS configuration is independently verified."
+  "notes": "Production runtime is Bertina-only and browser endpoints use same-origin /api. Direct-origin checks confirm Bertina MySQL, commerce schema/order capture, SMTP configuration and the account runtime are present. Public TLS currently presents a self-signed certificate while the paid CA certificate is under Bertina validation/issuance, so public auth/email certification and monetary checkout remain fail-closed. Commerce checkout stays disabled until the server-side gateway key, amount contract and fulfilment/booking gates are verified."
 }
