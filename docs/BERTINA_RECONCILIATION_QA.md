@@ -59,9 +59,14 @@ probe. The complete, unmocked GitHub browser/responsive/visual runs above passed
 the duplicate local runs were stopped after that evidence became available.
 Neither a placeholder nor a local-origin CI run certifies the live trust seal.
 
-The final formatting follow-up removes only the generator's redundant trailing
+The bundle formatting follow-up removes only the generator's redundant trailing
 newline and updates content-hash stylesheet URLs. All original CSS bytes remain
-present. Final-head CI is visible on the PR and must be reviewed before merge.
+present. A later visual crawl exposed the offline shell's intentional online
+recovery reload destroying the document during font preparation. The capture
+helper now retries only specific document-navigation errors, at most four times;
+unrelated and final errors still fail the test. Ten local repetitions of the
+actual offline route passed. No product behavior or QA assertion changed.
+Final-head CI is visible on the PR and must be reviewed before merge.
 
 ## Preserved production gates
 

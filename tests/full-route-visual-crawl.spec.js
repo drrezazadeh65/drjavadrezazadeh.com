@@ -28,6 +28,24 @@ function fileFor(route,label){
   return path.join(outRoot,label,safe+'.jpg');
 }
 
+async function captureStableDocument(page,target){
+  // The offline shell can reload once during online recovery. Retry only a
+  // destroyed/navigating document; screenshot and unrelated errors still fail.
+  for(let attempt=0;attempt<4;attempt++){
+    try{
+      await page.evaluate(()=>{
+        try{ document.fonts?.clear?.(); }catch(_){}
+      });
+      await page.screenshot({path:target,type:'jpeg',quality:58,fullPage:true,animations:'disabled'});
+      return;
+    }catch(error){
+      if(attempt===3 || !/Execution context was destroyed|interrupted by another navigation|Cannot take a screenshot while page is navigating/i.test(String(error?.message||error))) throw error;
+      await page.waitForLoadState('domcontentloaded',{timeout:5000});
+      await page.waitForTimeout(120);
+    }
+  }
+}
+
 const routes=html.map(routeFor).sort();
 const viewports=[
   ['320',320,800],
@@ -63,12 +81,9 @@ for(const route of routes){
           new Promise(resolve=>setTimeout(resolve,700))
         ]);
       }).catch(()=>{});
-      await page.evaluate(()=>{
-        try{ document.fonts?.clear?.(); }catch(_){}
-      });
       const target=fileFor(route,label);
       fs.mkdirSync(path.dirname(target),{recursive:true});
-      await page.screenshot({path:target,type:'jpeg',quality:58,fullPage:true,animations:'disabled'});
+      await captureStableDocument(page,target);
     }
   });
 }
