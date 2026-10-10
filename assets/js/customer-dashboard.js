@@ -5,7 +5,7 @@ const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const copy={
  fa:{
-  guest:'پیش‌نمایش امن',signed:'حساب تأییدشده',authOff:'سامانه حساب هنوز روی سرور زنده فعال نشده است',
+  guest:'پیش‌نمایش امن',signed:'حساب تأییدشده',authOff:'اتصال امن به سامانه حساب در دسترس نیست',
   empty:'پس از ورود، اطلاعات واقعی حساب و دسترسی‌های شما در همین داشبورد نمایش داده می‌شود.',
   checking:'در حال بررسی اتصال…',connected:'اتصال امن برقرار است',offline:'اینترنت قطع است',
   commerceReady:'آماده',commerceWaiting:'در انتظار فعال‌سازی',commerceCopyReady:'درگاه و خرید مستقیم آماده‌اند',
@@ -16,7 +16,7 @@ const copy={
   offlineBanner:'اتصال اینترنت قطع است؛ داده خصوصی از حافظه محلی جایگزین نمی‌شود.'
  },
  en:{
-  guest:'Secure preview',signed:'Verified account',authOff:'The live account service is not enabled yet',
+  guest:'Secure preview',signed:'Verified account',authOff:'A secure connection to the account service is unavailable',
   empty:'After sign-in, your real account data and entitlements will appear in this dashboard.',
   checking:'Checking connection…',connected:'Secure connection ready',offline:'You are offline',
   commerceReady:'Ready',commerceWaiting:'Awaiting activation',commerceCopyReady:'Gateway and direct checkout are ready',
