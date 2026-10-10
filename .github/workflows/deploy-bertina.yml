@@ -79,12 +79,37 @@ jobs:
           mirror -R --delete --parallel=4 --verbose \
             --exclude-glob ".well-known/**" \
             --exclude-glob "cgi-bin/**" \
+            --exclude-glob ".user.ini" \
+            --exclude-glob "php.ini" \
             .public-site/ "$FTP_REMOTE_DIR"
           bye
           LFTP
 
+      - name: Verify Bertina origin directly
+        if: steps.credentials.outputs.ready == 'true'
+        env:
+          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
+        run: |
+          ORIGIN_IP="$(getent ahostsv4 "$FTP_HOST" | awk 'NR==1{print $1}')"
+          test -n "$ORIGIN_IP"
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/fa/ -o /tmp/fa.html
+          grep -F '<html lang="fa" dir="rtl">' /tmp/fa.html
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/en/ -o /tmp/en.html
+          grep -F '<html lang="en"' /tmp/en.html
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/fa/customer-dashboard/ -o /tmp/dashboard.html
+          grep -F '<meta name="robots" content="noindex,nofollow">' /tmp/dashboard.html
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/robots.txt -o /tmp/robots.txt
+          test -s /tmp/robots.txt
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/sitemap.xml -o /tmp/sitemap.xml
+          grep -F 'drjavadrezazadeh.com' /tmp/sitemap.xml
+
       - name: Deployment summary
         if: steps.credentials.outputs.ready == 'true'
         run: |
-          echo "Bertina deployment completed from commit ${GITHUB_SHA}."
-          echo "DNS cutover remains separate and must happen only after host-side validation."
+          echo "Bertina deployment and direct-origin verification completed from commit ${GITHUB_SHA}."
+          echo "Public DNS/SSL propagation can now be verified independently."
