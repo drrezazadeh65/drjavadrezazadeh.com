@@ -230,7 +230,7 @@ function gatewayPost(string $endpoint,array $fields): string {
 $path=route();$verb=method();
 
 if ($path==='/health' && $verb==='GET') {
-    respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?'bertina-local':'not-configured','auth'=>authReady(),'commerce'=>commerceReady()]);
+    $hc=cfg(); respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?'bertina-local':'not-configured','mailConfigEnabled'=>$hc['mail_enabled']===true,'mailFunctionAvailable'=>function_exists('mail'),'mailFromValid'=>filter_var((string)$hc['mail_from'], FILTER_VALIDATE_EMAIL)!==false,'auth'=>authReady(),'commerce'=>commerceReady()]);
 }
 
 if ($path==='/auth/health' && $verb==='GET') {
