@@ -932,7 +932,7 @@ test('knowledge reader private enquiry, font controls and print presentation',as
   const enquire=page.locator('.knowledge-article-private-question');
   await expect(enquire).toBeVisible();
   const href=await enquire.getAttribute('href');
-  expect(href).toMatch(/^mailto:dr\.rezazadeh65@gmail\.com\?subject=/);
+  expect(href).toMatch(/^mailto:info@drjavadrezazadeh\.com\?subject=/);
   const email=new URL(href);
   expect(email.searchParams.get('subject')).toContain('Golden Talent');
   expect(email.searchParams.get('body')).toContain('https://drjavadrezazadeh.com/fa/rahnamaha/golden-talent-chist/');
