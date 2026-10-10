@@ -30,13 +30,13 @@ jobs:
           TOKEN_HASH="$(printf '%s' "$TOKEN" | sha256sum | awk '{print $1}')"
           NONCE="$(openssl rand -hex 10)"
           SCRIPT_NAME="commerce-schema-${NONCE}.php"
-          cat > "/tmp/${SCRIPT_NAME}" <<PHP
+          cat > "/tmp/${SCRIPT_NAME}" <<'PHP'
           <?php
           declare(strict_types=1);
           header('Content-Type: application/json; charset=utf-8');
           header('Cache-Control: no-store');
           header('X-Robots-Tag: noindex, noarchive');
-          $expected='${TOKEN_HASH}';
+          $expected='__TOKEN_HASH__';
           $provided=(string)($_SERVER['HTTP_X_MIGRATION_TOKEN']??'');
           if(!hash_equals($expected,hash('sha256',$provided))){http_response_code(403);echo json_encode(['ok'=>false,'error'=>'forbidden']);exit;}
           $self=__FILE__;
@@ -69,6 +69,7 @@ jobs:
               @unlink($self);
           }
           PHP
+          sed -i "s/__TOKEN_HASH__/$TOKEN_HASH/" "/tmp/$SCRIPT_NAME"
           {
             echo "token=$TOKEN"
             echo "script_name=$SCRIPT_NAME"
