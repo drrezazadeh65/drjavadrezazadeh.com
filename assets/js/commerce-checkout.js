@@ -1,7 +1,7 @@
 /* Unified payment initiation. Server-side catalog and D1 remain authoritative. */
 (()=>{'use strict';
 const API='https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev';
-const CONTACT_EMAIL='dr.rezazadeh65@gmail.com';
+const CONTACT_EMAIL='info@drjavadrezazadeh.com';
 const fmt=n=>new Intl.NumberFormat('fa-IR').format(n)+' تومان';
 const status=(el,msg)=>{if(el){el.textContent=msg;el.setAttribute('role','status');el.setAttribute('aria-live','polite')}};
 async function pay(items,button,message){
@@ -27,7 +27,9 @@ function mount(host,kind,items){
  host.classList.add('commerce-grid');
  host.innerHTML='';
  const message=document.createElement('p');message.className='commerce-notice';message.textContent='مبلغ نهایی در سرور بررسی می‌شود. برای پیگیری، شناسه سفارش را نگه دارید و فقط از طریق ایمیل رسمی مکاتبه کنید.';
+ const selected=new URLSearchParams(location.search).get(kind==='service'?'service':'vip');
  for(const item of items){
+  if(selected && item.id!==selected)continue;
   if(item.sellable!==true||!Number.isSafeInteger(item.price)||item.price<1||
      typeof item.id!=='string'||!/^[a-z0-9_-]{1,70}$/.test(item.id))continue;
   const card=document.createElement('article');card.className='commerce-card';
