@@ -1,0 +1,47 @@
+# Bertina Linux/cPanel deployment policy
+# Generated from the frozen migration baseline. Keep public URLs unchanged.
+
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# Preserve approved legacy migrations.
+RewriteRule ^about/?$ /en/about/ [R=301,L,NE]
+RewriteRule ^academic-engagements/?$ /en/academic-engagements/ [R=301,L,NE]
+RewriteRule ^books/?$ /en/books/ [R=301,L,NE]
+RewriteRule ^educational-philosophy/?$ /en/educational-philosophy/ [R=301,L,NE]
+RewriteRule ^golden-talent/?$ /en/golden-talent/ [R=301,L,NE]
+RewriteRule ^publications/?$ /en/publications/ [R=301,L,NE]
+RewriteRule ^research/?$ /en/research/ [R=301,L,NE]
+RewriteRule ^teaching/?$ /en/teaching/ [R=301,L,NE]
+RewriteRule ^login/?$ /en/login/ [R=301,L,NE]
+RewriteRule ^register/?$ /en/register/ [R=301,L,NE]
+</IfModule>
+
+<IfModule mod_setenvif.c>
+SetEnvIf Request_URI "^/(fa/app|app|fa/login|login|fa/register|register|fa/bazyabi-hesab|en/login|en/register|en/recover|en/account|fa/assessments|assessments|fa/shop|en/shop|shop|en/golden-talent/(assessment|dashboard|observer|roles|student|checkout|plans)|fa/darkhast-moshavere|en/request-consultation)(/|$)" PRIVATE_ROUTE=1
+</IfModule>
+
+<IfModule mod_headers.c>
+Header always set X-Frame-Options "DENY"
+Header always set X-Content-Type-Options "nosniff"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+<FilesMatch "\.(?:html?|xml|json|webmanifest|css|js|txt)$">
+Header always set Cache-Control "no-cache"
+</FilesMatch>
+
+<FilesMatch "\.(?:png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf)$">
+Header always set Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+</FilesMatch>
+
+Header always set Cache-Control "no-store" env=PRIVATE_ROUTE
+Header always set X-Robots-Tag "noindex, noarchive" env=PRIVATE_ROUTE
+</IfModule>
+
+<IfModule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json application/xml image/svg+xml
+</IfModule>
