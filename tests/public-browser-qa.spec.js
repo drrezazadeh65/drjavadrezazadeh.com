@@ -861,7 +861,7 @@ test('Persian private role visual evidence',async({page})=>{
 test('unified auth keeps identity, status and primary action visible on mobile',async({page})=>{
   const routes=['/en/login/','/en/register/','/fa/login/','/fa/register/'];
   for(const route of routes){
-    await page.route('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,service:'auth',ready:false,database:false,email:true,passwordKdf:false})}));
+    await page.route('https://drjavadrezazadeh.com/api/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,service:'auth',ready:false,database:false,email:true,passwordKdf:false})}));
     await page.setViewportSize({width:390,height:844});
     await page.goto(base+route,{waitUntil:'domcontentloaded'});
     await page.waitForTimeout(180);
@@ -1419,7 +1419,7 @@ test('bilingual unified account forms fail closed until live auth health is read
   ];
   for(const [route,status] of pages){
     for(const [width,height] of [[390,844],[1440,900]]){
-      await page.route('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,service:'auth',ready:false,database:false,email:true,passwordKdf:false})}));
+      await page.route('https://drjavadrezazadeh.com/api/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,service:'auth',ready:false,database:false,email:true,passwordKdf:false})}));
       await page.setViewportSize({width,height});
       const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
       expect(response.status(),route).toBe(200);
