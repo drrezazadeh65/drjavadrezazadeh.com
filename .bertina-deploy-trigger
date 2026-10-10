@@ -1,4 +1,4 @@
-deploy=2026-10-10T15:26:00Z
+deploy=2026-10-10T15:40:00Z
 source=migration/bertina-linux6
 mode=bertina-only
-scope=storefront-copy-hygiene-v6-final-seo
+scope=release-state-storefront-operational-payment-gated
