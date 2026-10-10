@@ -12,7 +12,7 @@
   return /^\/assets\/images\/books\/[a-z0-9][a-z0-9._-]*\.(?:avif|webp|png|jpe?g)$/i.test(path)?root(path):null;
  }
 
- const API='https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev';
+ const API='/api';
  // Catalogue prices never authorise payment. The live Worker must explicitly permit books.
  let bookPaymentReady=false;
  async function verifyBookPaymentCapability(){
@@ -216,7 +216,7 @@
      button.disabled=true;
      status.textContent=isFa?'در حال بررسی ایمن سفارش...':'Checking order securely...';
      try{
-       const response=await fetch('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/commerce/create',{
+       const response=await fetch('/api/commerce/create',{
          method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},
          body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity}))})
        });
@@ -274,7 +274,7 @@
    btn.textContent=(bookPaymentReady&&deliveryCaptureReady)?(isFa?'پرداخت امن سفارش':'Secure checkout'):(isFa?'پرداخت کتاب هنوز فعال نیست':'Book checkout not yet available');
    const feedback=document.createElement('p');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
    btn.onclick=async()=>{if(!bookPaymentReady||!deliveryCaptureReady){feedback.textContent=isFa?'پرداخت آنلاین کتاب هنوز فعال نیست.':'Book checkout is not active.';return}btn.disabled=true;feedback.textContent=isFa?'در حال ایجاد سفارش...':'Creating order...';try{
-    const response=await fetch('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/commerce/create',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity}))})});
+    const response=await fetch('/api/commerce/create',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity}))})});
     const result=await response.json();
     if(!response.ok||!result.ok)throw Error(result.error||'order_failed');
     const url=new URL(result.paymentUrl);
