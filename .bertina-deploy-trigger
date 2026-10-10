@@ -1,4 +1,4 @@
-deploy=2026-10-10T14:03:00Z
+deploy=2026-10-10T14:08:00Z
 source=migration/bertina-linux6
 mode=bertina-only
-scope=cache-performance-and-seo-fixes
+scope=private-cache-precedence-and-seo-budget
