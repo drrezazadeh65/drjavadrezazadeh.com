@@ -46,12 +46,11 @@ jobs:
       - name: Check Bertina repository secrets
         id: credentials
         env:
-          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
           FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
           FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
         run: |
-          if [ -n "$FTP_HOST" ] && [ -n "$FTP_USER" ] && [ -n "$FTP_PASSWORD" ] && [ -n "$FTP_REMOTE_DIR" ]; then
+          if [ -n "$FTP_USER" ] && [ -n "$FTP_PASSWORD" ] && [ -n "$FTP_REMOTE_DIR" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
             echo "Bertina deployment credentials are configured." >> "$GITHUB_STEP_SUMMARY"
           else
@@ -88,7 +87,6 @@ jobs:
         if: steps.credentials.outputs.ready == 'true'
         id: package
         env:
-          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
           FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
           FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
@@ -185,10 +183,13 @@ jobs:
           echo json_encode(\$response, JSON_UNESCAPED_SLASHES);
           PHP
 
-          timeout 180s lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 180s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
           set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
           set net:max-retries 1
           set net:timeout 20
           cd "$FTP_REMOTE_DIR"
@@ -206,13 +207,11 @@ jobs:
       - name: Extract and checksum every managed file on Bertina
         if: steps.credentials.outputs.ready == 'true'
         env:
-          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
           DEPLOY_TOKEN: ${{ steps.package.outputs.token }}
           DEPLOY_SCRIPT: ${{ steps.package.outputs.script_name }}
         run: |
           set -euo pipefail
-          ORIGIN_IP="$(getent ahostsv4 "$FTP_HOST" | awk 'NR==1{print $1}')"
-          test -n "$ORIGIN_IP"
+          ORIGIN_IP="188.40.203.218"
           RESPONSE="$(curl -kfsS --max-time 180             --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             -H "X-Deploy-Token: $DEPLOY_TOKEN"             "https://drjavadrezazadeh.com/$DEPLOY_SCRIPT")"
           printf '%s' "$RESPONSE" > /tmp/deploy-response.json
           node - <<'NODE'
@@ -226,12 +225,9 @@ jobs:
 
       - name: Verify Bertina origin directly
         if: steps.credentials.outputs.ready == 'true'
-        env:
-          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
         run: |
           set -euo pipefail
-          ORIGIN_IP="$(getent ahostsv4 "$FTP_HOST" | awk 'NR==1{print $1}')"
-          test -n "$ORIGIN_IP"
+          ORIGIN_IP="188.40.203.218"
 
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/fa/ -o /tmp/fa.html
           grep -F '<html lang="fa" dir="rtl">' /tmp/fa.html
