@@ -61,9 +61,12 @@ jobs:
             exit 1
           fi
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/sw.js -o /tmp/sw.js
-          grep -F "JR Cache Standard v2.0" /tmp/sw.js
-          grep -F "const PRIVATE_PREFIXES=[" /tmp/sw.js
-          ! grep -F "'/fa/shop/','/en/shop/','/shop/'" /tmp/sw.js
+          echo "Live service worker header:"
+          sed -n '1,36p' /tmp/sw.js
+          grep -Eq 'PRIVATE_PREFIXES' /tmp/sw.js
+          grep -F "if(isPrivate(url))" /tmp/sw.js
+          grep -F "cache:'no-store'" /tmp/sw.js
+          ! grep -Eq "['\"]/(fa|en)/shop/['\"].*PRIVATE|'/fa/shop/','/en/shop/','/shop/'" /tmp/sw.js
 
       - name: Verify core live runtime
         run: |
