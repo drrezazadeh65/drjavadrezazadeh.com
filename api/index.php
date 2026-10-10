@@ -436,6 +436,32 @@ if($path==='/commerce/health'&&$verb==='GET'){
         'books'=>$ready&&$c['book_shipping_confirmed']===true,
     ]]);
 }
+if($path==='/commerce/prepare'&&$verb==='POST'){
+    requirePostOrigin();$pdo=db();if(!$pdo||!commerceSchemaReady())fail('order_capture_unavailable',503);
+    $b=jsonBody();$items=$b['items']??null;if(!is_array($items)||count($items)<1||count($items)>20)fail('invalid_items');
+    $inventory=localCatalog();$counts=[];
+    foreach($items as $item){$sku=(string)($item['sku']??'');$q=$item['quantity']??null;if(!isset($inventory[$sku])||!is_int($q)||$q<1||$q>20)fail('invalid_item');$counts[$sku]=($counts[$sku]??0)+$q;}
+    $lines=[];$total=0;
+    foreach($counts as $sku=>$q){$x=$inventory[$sku];if(($x['kind']??'')!=='book')fail('book_order_only');$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
+    if($total<1000||$total>1000000000)fail('amount_out_of_range');
+    $customer=normalizedCustomer($b['customer']??null);$customerEmail=$customer['email'];
+    if(!rateAllowed($pdo,'commerce_prepare',$customerEmail,5,3600))fail('rate_limited',429);
+    $customerJson=json_encode($customer,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);if(!is_string($customerJson))fail('customer_encoding_failed',500);
+    $itemsJson=json_encode($lines,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);if(!is_string($itemsJson))fail('items_encoding_failed',500);
+    $cfg=cfg();$mul=in_array((string)$cfg['bitpay_amount_multiplier'],['1','10'],true)?(int)$cfg['bitpay_amount_multiplier']:10;
+    $providerAmount=$total*$mul;$order=uuidv4();$factor=preg_replace('/[^0-9]/','',(string)hrtime(true));$factor=substr($factor,0,28);
+    $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,NOW(),NOW())")
+        ->execute([$order,$factor,$total,$providerAmount,'IRT',$customerEmail,$customerJson,$itemsJson,'created']);
+    $summary=[];foreach($lines as $x){$summary[]='- '.(string)$x['title'].' × '.(int)$x['quantity'].' | '.number_format((int)$x['subtotal']).' تومان';}
+    $bodyCustomer="درخواست سفارش کتاب شما در سرور ثبت شد. هنوز هیچ پرداختی انجام نشده است.\n\nشناسه سفارش: ".$order."\n\n".implode("\n",$summary)."\n\nجمع سفارش: ".number_format($total)." تومان\n\nپرداخت فقط پس از فعال‌شدن مسیر امن پرداخت و با اقدام صریح شما انجام خواهد شد.";
+    $customerMail=mailReady()?sendLocalMail($customerEmail,'ثبت درخواست سفارش کتاب '.$order,$bodyCustomer):false;
+    $admin=(string)($cfg['mail_from']??'');
+    if(validEmail($admin)&&$admin!==$customerEmail&&mailReady()){
+        $bodyAdmin="درخواست سفارش کتاب جدید ثبت شد.\n\nشناسه سفارش: ".$order."\nایمیل مشتری: ".$customerEmail."\nنام گیرنده: ".$customer['name']."\nکد پستی: ".$customer['postal']."\nنشانی: ".$customer['address']."\n\n".implode("\n",$summary)."\n\nجمع: ".number_format($total)." تومان\n\nوضعیت: ثبت اولیه؛ بدون پرداخت.";
+        sendLocalMail($admin,'درخواست سفارش کتاب '.$order,$bodyAdmin);
+    }
+    respond(['ok'=>true,'orderId'=>$order,'state'=>'created','totalToman'=>$total,'currency'=>'IRT','paymentStarted'=>false,'emailSent'=>$customerMail],201);
+}
 if($path==='/commerce/create'&&$verb==='POST'){
     requirePostOrigin();if(!commerceReady())fail('checkout_disabled',503);$pdo=db();if(!$pdo)fail('database_unconfigured',503);
     $b=jsonBody();$items=$b['items']??null;if(!is_array($items)||count($items)<1||count($items)>20)fail('invalid_items');
