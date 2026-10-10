@@ -25,6 +25,8 @@ return [
 
     // Payment remains fail-closed until every switch below is explicitly verified.
     'commerce_enabled' => false,
+    // Set true only after external CA-trusted HTTPS verification passes for apex + www.
+    'public_tls_confirmed' => false,
     'bitpay_api_key' => '',
     'bitpay_amount_multiplier' => '',
     'order_email_fulfilment_confirmed' => false,
