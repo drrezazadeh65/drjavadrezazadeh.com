@@ -28,7 +28,7 @@
   }
   const kind=p.get("kind");
   const route=kind==="commerce"?"/commerce/callback":"/callback";
-  const dest=new URL("https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev"+route);
+  const dest=new URL("/api"+route,location.origin);
   dest.searchParams.set("order",order);
   dest.searchParams.set("id_get",id);
   dest.searchParams.set("trans_id",trans);
