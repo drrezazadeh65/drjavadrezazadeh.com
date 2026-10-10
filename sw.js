@@ -1,22 +1,26 @@
 /* JR Cache Standard v2.0 — fresh-by-default, offline-safe, privacy-safe */
-const CACHE_VERSION='jr-site-20261010-commit-1728158ac152';
+const CACHE_VERSION='jr-site-20261010-storefront-recovery-v3';
 const CACHE_FAMILY='jr-site-';
 const SHELL_CACHE=CACHE_VERSION+'-shell';
 const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
-const OFFLINE_URL='./offline.html';
+const OFFLINE_URL='/offline.html';
 
 const CORE=[
   OFFLINE_URL,
-  './favicon.svg',
-  './assets/images/pwa-icon-192.png',
-  './assets/images/pwa-icon-512.png',
-  './assets/images/pwa-icon-maskable-512.png'
+  '/favicon.svg',
+  '/assets/images/pwa-icon-192.png',
+  '/assets/images/pwa-icon-512.png',
+  '/assets/images/pwa-icon-maskable-512.png',
+  '/fa/shop/',
+  '/en/shop/'
 ];
 
 const PRIVATE_PREFIXES=[
   '/fa/app/','/fa/customer-dashboard/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/',
   '/en/login/','/en/register/','/en/recover/','/en/account/',
-  '/fa/assessments/','/assessments/','/fa/shop/','/en/shop/','/shop/',
+  '/fa/assessments/','/assessments/',
+  '/fa/shop/cart/','/fa/shop/checkout/','/fa/shop/payment-start/','/fa/shop/payment-return/','/fa/shop/payment-result/',
+  '/en/shop/cart/','/en/shop/checkout/',
   '/en/golden-talent/assessment/','/en/golden-talent/dashboard/',
   '/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/',
   '/en/golden-talent/checkout/','/en/golden-talent/plans/',
