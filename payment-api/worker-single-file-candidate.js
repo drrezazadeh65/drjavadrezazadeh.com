@@ -1,3 +1,4 @@
+import { auth } from './auth-routes.js';
 
 
 const AMOUNT_RIAL = 100000;
@@ -462,6 +463,9 @@ async function commerce(request,env){
 export default {
 
   async fetch(request, env) {
+    const authResponse = await auth(request, env);
+    if (authResponse) return authResponse;
+
     const commerceResponse = await commerce(request, env);
     if (commerceResponse) return commerceResponse;
 
