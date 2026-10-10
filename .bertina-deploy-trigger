@@ -1,5 +1,5 @@
-deploy=historical-authority-recovery-pr33
+deploy=historical-authority-pr34
 source=migration/bertina-linux6
-source_commit=882f6635e66ad597bd0e9a0caa3bf63253189b82
+source_commit=04f55c4e1d65860ff8e8d90e4f5eba0466aba91e
 mode=bertina-only
-scope=historical-authority-backlink-recovery-legacy-shop-tls-canonical
+scope=one-hop-historical-redirects-strict-release-verification
