@@ -1,4 +1,5 @@
 name: Bertina Full Tree Audit
+# Temporary migration audit; remove after a clean scan.
 on:
   push:
     branches: [migration/bertina-linux6]
