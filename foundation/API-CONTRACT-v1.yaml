@@ -73,7 +73,7 @@ paths:
   /auth/email-verification-requests:
     post:
       tags: [Identity]
-      summary: Resend verification without revealing unnecessary account state
+      summary: Email verification without revealing unnecessary account state
       security: []
       requestBody:
         required: true
