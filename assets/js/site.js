@@ -4,7 +4,8 @@ noStore:Object.freeze([
 '/fa/app/','/fa/customer-dashboard/','/app/','/en/account/',
 '/fa/login/','/login/','/en/login/','/fa/register/','/register/','/en/register/','/en/recover/','/fa/bazyabi-hesab/',
 '/fa/assessments/','/assessments/','/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/',
-'/fa/shop/','/en/shop/','/shop/','/en/golden-talent/checkout/','/en/golden-talent/plans/','/fa/darkhast-moshavere/','/en/request-consultation/'
+'/fa/shop/cart/','/fa/shop/checkout/','/fa/shop/payment-start/','/fa/shop/payment-return/','/fa/shop/payment-result/',
+'/en/shop/cart/','/en/shop/checkout/','/en/golden-talent/checkout/','/en/golden-talent/plans/','/fa/darkhast-moshavere/','/en/request-consultation/'
 ]),
 app:Object.freeze([
 '/fa/app/','/fa/customer-dashboard/','/app/','/en/account/','/fa/assessments/','/assessments/',
