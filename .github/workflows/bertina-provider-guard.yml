@@ -26,6 +26,9 @@ on:
       - 'docs/BERTINA_MIGRATION.md'
       - 'foundation/ACTIVE-INFRASTRUCTURE-POLICY-2026-10-09.md'
       - 'foundation/PROVIDER-DECISION-MATRIX.md'
+  pull_request:
+    branches:
+      - migration/bertina-linux6
   workflow_dispatch:
 
 permissions:
