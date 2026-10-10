@@ -33,3 +33,8 @@ jobs:
 
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP             https://drjavadrezazadeh.com/sitemap.xml -o /tmp/sitemap.xml
           grep -F 'drjavadrezazadeh.com' /tmp/sitemap.xml
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP             https://drjavadrezazadeh.com/api/health -o /tmp/api-health.json
+          cat /tmp/api-health.json
+          grep -F '"hosting":"bertina"' /tmp/api-health.json
+          grep -F '"database":true' /tmp/api-health.json
