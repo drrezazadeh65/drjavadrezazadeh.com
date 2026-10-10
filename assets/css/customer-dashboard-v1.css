@@ -241,3 +241,132 @@ body.customer-dashboard.rtl{font-family:Tahoma,Arial,sans-serif}
   .cd-top-actions .cd-action.primary{display:none}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.cd-module{transition:none!important}}
+
+
+/* Mobile-first priority pass — the phone experience is the primary dashboard product. */
+@media(max-width:920px){
+  body.customer-dashboard{
+    background:
+      radial-gradient(520px 280px at 92% -4%,rgba(200,169,103,.105),transparent 70%),
+      linear-gradient(180deg,#080b10,#06080c 72%);
+    overscroll-behavior-y:none;
+  }
+  .cd-stage{
+    min-height:100dvh;
+    padding:0 10px calc(102px + env(safe-area-inset-bottom));
+  }
+  .cd-topbar{
+    min-height:64px;
+    padding:calc(7px + env(safe-area-inset-top)) 2px 7px;
+    background:linear-gradient(180deg,rgba(7,9,13,.985),rgba(7,9,13,.90) 82%,transparent);
+    -webkit-backdrop-filter:blur(26px) saturate(150%);
+    backdrop-filter:blur(26px) saturate(150%);
+  }
+  .cd-page-title{max-width:calc(100vw - 126px)}
+  .cd-page-title strong,.cd-page-title span{
+    overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  }
+  .cd-content{gap:16px}
+  .cd-hero{
+    min-height:250px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:24px 18px 19px;
+    border-radius:27px;
+    box-shadow:0 22px 64px rgba(0,0,0,.34);
+  }
+  .cd-hero h1{font-size:clamp(27px,8.8vw,41px);line-height:1.27}
+  .rtl .cd-hero h1{line-height:1.55}
+  .cd-hero p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .cd-hero-actions{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none;
+    margin-inline:-2px;
+    padding:1px 2px 3px;
+  }
+  .cd-hero-actions::-webkit-scrollbar{display:none}
+  .cd-hero-actions .cd-btn{
+    flex:0 0 auto;
+    min-height:44px;
+    scroll-snap-align:start;
+  }
+  .cd-statusbar{margin-inline:-1px}
+  .cd-stat{
+    flex-basis:min(76vw,270px);
+    border-radius:20px;
+    box-shadow:0 12px 34px rgba(0,0,0,.16);
+  }
+  .cd-notice{border-radius:18px;padding:12px 13px}
+  .cd-section{scroll-margin-top:74px}
+  .cd-section-head{margin:2px 2px 10px;align-items:center}
+  .cd-section-head p{display:none}
+  .cd-section-link{white-space:nowrap}
+  .cd-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .cd-module{
+    min-height:178px;
+    border-radius:21px;
+    padding:14px;
+    box-shadow:0 14px 36px rgba(0,0,0,.16);
+  }
+  .cd-module.featured{grid-column:span 2;min-height:205px}
+  .cd-module-icon{width:39px;height:39px;border-radius:13px}
+  .cd-module p{
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    margin-bottom:46px;
+  }
+  .cd-module-foot{left:14px;right:14px;bottom:13px}
+  .rtl .cd-module-foot{left:14px;right:14px}
+  .cd-state{max-width:72%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .cd-panel{border-radius:22px}
+  .cd-account-grid{gap:8px}
+  .cd-account-card{min-height:126px;border-radius:19px}
+  .cd-account-card:active,.cd-module:active,.cd-btn:active{transform:scale(.985)}
+  .cd-mobile-dock{
+    left:7px;right:7px;bottom:max(7px,env(safe-area-inset-bottom));
+    min-height:72px;
+    padding:6px;
+    border-radius:25px;
+    -webkit-backdrop-filter:blur(30px) saturate(160%);
+    backdrop-filter:blur(30px) saturate(160%);
+  }
+  .cd-mobile-dock a,.cd-mobile-dock button{
+    min-height:58px;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .cd-mobile-dock .ico{font-size:19px}
+  .cd-sheet{padding:10px 8px calc(10px + env(safe-area-inset-bottom))}
+  .cd-sheet-card{
+    max-height:min(82dvh,760px);
+    border-radius:30px;
+    padding:9px 12px 16px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .cd-sheet-grid a{min-height:68px;touch-action:manipulation}
+}
+@media(max-width:420px){
+  .cd-stage{padding-inline:8px}
+  .cd-top-actions .cd-action{display:none!important}
+  .cd-hero{min-height:242px;padding-inline:16px}
+  .cd-grid{gap:7px}
+  .cd-module{min-height:174px;padding:13px}
+  .cd-module.featured{min-height:196px}
+  .cd-module h3{font-size:11.5px}
+  .cd-module p{font-size:8.8px}
+  .cd-module-foot{left:13px;right:13px}
+  .cd-mobile-dock{left:5px;right:5px}
+}
+@media(max-width:340px){
+  .cd-grid{grid-template-columns:1fr}
+  .cd-module.featured{grid-column:span 1}
+}
+@media(hover:none) and (pointer:coarse){
+  .cd-module:hover{transform:none}
+}
