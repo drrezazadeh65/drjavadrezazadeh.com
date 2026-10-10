@@ -1,2 +1,4 @@
-deploy=2026-10-10T07:33:00Z
-source=freeze/host-migration-2026-10-10
+deploy=2026-10-10T08:58:00Z
+source=migration/bertina-linux6
+mode=bertina-only
+scope=latest-complete-public-site-and-api
