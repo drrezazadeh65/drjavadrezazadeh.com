@@ -1,0 +1,357 @@
+<?php
+declare(strict_types=1);
+
+const SITE_ORIGIN = 'https://drjavadrezazadeh.com';
+const SESSION_COOKIE = 'drjr_session';
+const SESSION_TTL = 604800;
+const TOKEN_TTL = 900;
+
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Pragma: no-cache');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: no-referrer');
+header('X-Robots-Tag: noindex, noarchive, nosnippet');
+
+function respond(array $data, int $status = 200): never {
+    http_response_code($status);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+function fail(string $code, int $status = 400): never {
+    respond(['ok' => false, 'error' => $code], $status);
+}
+function cfg(): array {
+    static $cfg = null;
+    if (is_array($cfg)) return $cfg;
+    $cfg = [
+        'db_dsn' => (string)(getenv('JR_DB_DSN') ?: ''),
+        'db_user' => (string)(getenv('JR_DB_USER') ?: ''),
+        'db_password' => (string)(getenv('JR_DB_PASSWORD') ?: ''),
+        'auth_pepper' => (string)(getenv('JR_AUTH_PEPPER') ?: ''),
+        'mail_enabled' => getenv('JR_MAIL_ENABLED') === 'true',
+        'mail_from' => (string)(getenv('JR_MAIL_FROM') ?: 'accounts@drjavadrezazadeh.com'),
+        'mail_reply_to' => (string)(getenv('JR_MAIL_REPLY_TO') ?: 'info@drjavadrezazadeh.com'),
+        'commerce_enabled' => getenv('JR_COMMERCE_ENABLED') === 'true',
+        'bitpay_api_key' => (string)(getenv('JR_BITPAY_API_KEY') ?: ''),
+        'bitpay_amount_multiplier' => (string)(getenv('JR_BITPAY_AMOUNT_MULTIPLIER') ?: ''),
+        'order_email_fulfilment_confirmed' => getenv('JR_ORDER_EMAIL_FULFILMENT_CONFIRMED') === 'true',
+        'service_booking_confirmed' => getenv('JR_SERVICE_BOOKING_CONFIRMED') === 'true',
+        'vip_booking_confirmed' => getenv('JR_VIP_BOOKING_CONFIRMED') === 'true',
+        'book_shipping_confirmed' => getenv('JR_BOOK_SHIPPING_CONFIRMED') === 'true',
+    ];
+    $local = __DIR__ . '/config.local.php';
+    if (is_file($local)) {
+        $loaded = require $local;
+        if (is_array($loaded)) $cfg = array_replace($cfg, $loaded);
+    }
+    return $cfg;
+}
+function db(): ?PDO {
+    static $pdo = false;
+    if ($pdo instanceof PDO) return $pdo;
+    if ($pdo === null) return null;
+    $c = cfg();
+    if ($c['db_dsn'] === '' || $c['db_user'] === '') { $pdo = null; return null; }
+    try {
+        $pdo = new PDO($c['db_dsn'], $c['db_user'], $c['db_password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
+        return $pdo;
+    } catch (Throwable $e) {
+        $pdo = null;
+        return null;
+    }
+}
+function dbReady(): bool {
+    $pdo = db();
+    if (!$pdo) return false;
+    try { $pdo->query('SELECT 1'); return true; } catch (Throwable $e) { return false; }
+}
+function mailReady(): bool {
+    $c = cfg();
+    return $c['mail_enabled'] === true && function_exists('mail') && filter_var($c['mail_from'], FILTER_VALIDATE_EMAIL);
+}
+function sendLocalMail(string $to, string $subject, string $body): bool {
+    if (!mailReady() || !filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
+    $c = cfg();
+    $headers = [
+        'From: Dr. Javad Rezazadeh <'.$c['mail_from'].'>',
+        'Reply-To: '.$c['mail_reply_to'],
+        'MIME-Version: 1.0',
+        'Content-Type: text/plain; charset=UTF-8',
+        'X-Mailer: Bertina-PHP',
+    ];
+    $encodedSubject = '=?UTF-8?B?'.base64_encode($subject).'?=';
+    return @mail($to, $encodedSubject, $body, implode("\r\n", $headers));
+}
+function route(): string {
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/api/', PHP_URL_PATH) ?: '/api/';
+    $path = preg_replace('#^/api/?#', '/', $path);
+    return '/'.ltrim((string)$path, '/');
+}
+function method(): string { return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'); }
+function jsonBody(): array {
+    $type = strtolower((string)($_SERVER['CONTENT_TYPE'] ?? ''));
+    if (!str_starts_with($type, 'application/json')) fail('content_type', 415);
+    $raw = file_get_contents('php://input');
+    if ($raw === false || strlen($raw) > 65536) fail('invalid_body', 413);
+    $data = json_decode($raw, true);
+    if (!is_array($data)) fail('invalid_json');
+    return $data;
+}
+function originOK(): bool {
+    $origin = (string)($_SERVER['HTTP_ORIGIN'] ?? '');
+    return $origin === '' || $origin === SITE_ORIGIN;
+}
+function requirePostOrigin(): void {
+    if (!originOK()) fail('origin_forbidden', 403);
+}
+function emailNorm(mixed $v): string { return strtolower(trim((string)$v)); }
+function validEmail(string $v): bool { return strlen($v) <= 254 && filter_var($v, FILTER_VALIDATE_EMAIL) !== false; }
+function validPassword(mixed $v): bool { return is_string($v) && strlen($v) >= 12 && strlen($v) <= 128; }
+function token(int $bytes = 32): string { return rtrim(strtr(base64_encode(random_bytes($bytes)), '+/', '-_'), '='); }
+function tokenHash(string $raw): string { return hash('sha256', $raw); }
+function nowTs(): int { return time(); }
+function passwordDigest(string $password): string {
+    $pepper = (string)(cfg()['auth_pepper'] ?? '');
+    if (strlen($pepper) < 32) throw new RuntimeException('pepper_missing');
+    $algo = defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_BCRYPT;
+    $hash = password_hash($password."\0".$pepper, $algo);
+    if (!is_string($hash)) throw new RuntimeException('hash_failed');
+    return $hash;
+}
+function passwordMatches(string $password, string $stored): bool {
+    $pepper = (string)(cfg()['auth_pepper'] ?? '');
+    return strlen($pepper) >= 32 && password_verify($password."\0".$pepper, $stored);
+}
+function authReady(): bool {
+    $c = cfg();
+    return dbReady() && mailReady() && strlen((string)$c['auth_pepper']) >= 32;
+}
+function cookieSet(string $raw, int $age): void {
+    setcookie(SESSION_COOKIE, $raw, [
+        'expires' => time() + $age,
+        'path' => '/',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+function cookieClear(): void {
+    setcookie(SESSION_COOKIE, '', [
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+function accountByEmail(PDO $pdo, string $email): ?array {
+    $s=$pdo->prepare('SELECT * FROM customer_accounts WHERE email_normalized=? LIMIT 1');$s->execute([$email]);
+    $r=$s->fetch(); return is_array($r)?$r:null;
+}
+function accountById(PDO $pdo, string $id): ?array {
+    $s=$pdo->prepare('SELECT * FROM customer_accounts WHERE id=? LIMIT 1');$s->execute([$id]);
+    $r=$s->fetch(); return is_array($r)?$r:null;
+}
+function issueToken(PDO $pdo, string $accountId, string $purpose): string {
+    $raw=token();$digest=tokenHash($raw);$now=nowTs();
+    $pdo->prepare('UPDATE customer_auth_tokens SET consumed_at=? WHERE account_id=? AND purpose=? AND consumed_at IS NULL')
+        ->execute([$now,$accountId,$purpose]);
+    $pdo->prepare('INSERT INTO customer_auth_tokens(token_hash,account_id,purpose,expires_at,created_at) VALUES(?,?,?,?,?)')
+        ->execute([$digest,$accountId,$purpose,$now+TOKEN_TTL,$now]);
+    return $raw;
+}
+function consumeToken(PDO $pdo, string $raw, string $purpose): ?string {
+    if (strlen($raw)<30 || strlen($raw)>120) return null;
+    $digest=tokenHash($raw);$now=nowTs();
+    $pdo->beginTransaction();
+    try {
+        $s=$pdo->prepare('SELECT account_id FROM customer_auth_tokens WHERE token_hash=? AND purpose=? AND consumed_at IS NULL AND expires_at>? FOR UPDATE');
+        $s->execute([$digest,$purpose,$now]);$row=$s->fetch();
+        if (!$row) { $pdo->rollBack(); return null; }
+        $pdo->prepare('UPDATE customer_auth_tokens SET consumed_at=? WHERE token_hash=? AND consumed_at IS NULL')->execute([$now,$digest]);
+        $pdo->commit(); return (string)$row['account_id'];
+    } catch(Throwable $e) { if($pdo->inTransaction())$pdo->rollBack(); return null; }
+}
+function sessionAccount(PDO $pdo): ?array {
+    $raw=(string)($_COOKIE[SESSION_COOKIE]??''); if($raw==='')return null;
+    $s=$pdo->prepare('SELECT account_id FROM customer_auth_sessions WHERE token_hash=? AND revoked_at IS NULL AND expires_at>? LIMIT 1');
+    $s->execute([tokenHash($raw),nowTs()]);$row=$s->fetch();
+    return $row?accountById($pdo,(string)$row['account_id']):null;
+}
+function uuidv4(): string {
+    $d=random_bytes(16);$d[6]=chr((ord($d[6])&0x0f)|0x40);$d[8]=chr((ord($d[8])&0x3f)|0x80);
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s',str_split(bin2hex($d),4));
+}
+function validUuid(string $v): bool { return preg_match('/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i',$v)===1; }
+function clientIp(): string { return substr((string)($_SERVER['REMOTE_ADDR']??'unknown'),0,64); }
+function rateAllowed(PDO $pdo,string $action,string $identity,int $max,int $window): bool {
+    $bucket=hash('sha256',$action.'|'.$identity.'|'.clientIp());$now=nowTs();$reset=$now+$window;
+    $pdo->beginTransaction();
+    try{
+        $s=$pdo->prepare('SELECT count,reset_at FROM customer_auth_rate_limits WHERE bucket=? FOR UPDATE');$s->execute([$bucket]);$row=$s->fetch();
+        if(!$row){$pdo->prepare('INSERT INTO customer_auth_rate_limits(bucket,count,reset_at) VALUES(?,?,?)')->execute([$bucket,1,$reset]);$count=1;}
+        elseif((int)$row['reset_at'] <= $now){$pdo->prepare('UPDATE customer_auth_rate_limits SET count=1,reset_at=? WHERE bucket=?')->execute([$reset,$bucket]);$count=1;}
+        else{$count=(int)$row['count']+1;$pdo->prepare('UPDATE customer_auth_rate_limits SET count=? WHERE bucket=?')->execute([$count,$bucket]);}
+        $pdo->commit();return $count<=$max;
+    }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();return false;}
+}
+function localCatalog(): array {
+    $base=dirname(__DIR__).'/assets/data/';
+    $read=function(string $file)use($base){$raw=@file_get_contents($base.$file);$d=$raw?json_decode($raw,true):null;return is_array($d)?$d:[];};
+    $books=$read('book-catalog.json');$services=$read('service-catalog.json');$vip=$read('vip-catalog.json');
+    $items=[];
+    foreach(($books['books']??[]) as $b){$c=$b['commerce']??[];if(($c['sellable']??false)===true&&($c['inventory_state']??'')==='IN_STOCK'&&($c['currency']??'')==='IRT'&&is_int($c['price']??null)&&$c['price']>0){$items['book:'.$b['id']]=['sku'=>'book:'.$b['id'],'title'=>(string)($b['title_fa']??$b['id']),'price'=>$c['price'],'kind'=>'book'];}}
+    foreach(($services['services']??[]) as $s){if(($s['sellable']??false)===true&&is_int($s['price']??null)&&$s['price']>0){$items['service:'.$s['id']]=['sku'=>'service:'.$s['id'],'title'=>(string)($s['title_fa']??$s['id']),'price'=>$s['price'],'kind'=>'service'];}}
+    foreach(($vip['services']??[]) as $v){if(($v['sellable']??false)===true&&($v['checkout_enabled']??false)===true&&is_int($v['price']??null)&&$v['price']>0){$items['vip:'.$v['id']]=['sku'=>'vip:'.$v['id'],'title'=>(string)($v['title_fa']??$v['id']),'price'=>$v['price'],'kind'=>'vip'];}}
+    return $items;
+}
+function commerceReady(): bool {
+    $c=cfg();
+    return dbReady() && $c['commerce_enabled']===true && $c['bitpay_api_key']!=='' &&
+        in_array((string)$c['bitpay_amount_multiplier'],['1','10'],true) &&
+        $c['order_email_fulfilment_confirmed']===true;
+}
+function gatewayPost(string $endpoint,array $fields): string {
+    $c=cfg(); if($c['bitpay_api_key']==='')throw new RuntimeException('gateway_unconfigured');
+    if(!function_exists('curl_init'))throw new RuntimeException('curl_unavailable');
+    $fields['api']=$c['bitpay_api_key'];
+    $ch=curl_init('https://bitpay.ir/payment/'.$endpoint);
+    curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>http_build_query($fields),CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>15,CURLOPT_FOLLOWLOCATION=>false]);
+    $out=curl_exec($ch);$code=(int)curl_getinfo($ch,CURLINFO_RESPONSE_CODE);curl_close($ch);
+    if(!is_string($out)||$code<200||$code>=300)throw new RuntimeException('gateway_http');
+    return trim($out);
+}
+
+$path=route();$verb=method();
+
+if ($path==='/health' && $verb==='GET') {
+    respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?'bertina-local':'not-configured','auth'=>authReady(),'commerce'=>commerceReady()]);
+}
+
+if ($path==='/auth/health' && $verb==='GET') {
+    respond(['ok'=>true,'service'=>'auth','ready'=>authReady(),'database'=>dbReady(),'email'=>mailReady(),'passwordKdf'=>strlen((string)(cfg()['auth_pepper']??''))>=32]);
+}
+if (str_starts_with($path,'/auth/')) {
+    if(!authReady())fail('auth_unavailable',503);
+    $pdo=db(); if(!$pdo)fail('auth_unavailable',503);
+
+    if($path==='/auth/register'&&$verb==='POST'){
+        requirePostOrigin();$b=jsonBody();$email=emailNorm($b['email']??'');$password=$b['password']??null;$mobile=trim((string)($b['mobile']??''));$locale=($b['locale']??'')==='en'?'en':'fa';
+        if(!validEmail($email)||!validPassword($password)||($mobile!==''&&!preg_match('/^\+[1-9][0-9]{7,14}$/',$mobile)))fail('invalid_registration');
+        if(!rateAllowed($pdo,'register',$email,5,3600))fail('rate_limited',429);
+        $a=accountByEmail($pdo,$email);
+        if(!$a){
+            $id=uuidv4();$now=nowTs();$hash=passwordDigest($password);
+            $pdo->prepare('INSERT INTO customer_accounts(id,email_normalized,password_hash,mobile_e164,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?)')
+                ->execute([$id,$email,$hash,$mobile!==''?$mobile:null,'pending',$now,$now]);
+            $a=accountById($pdo,$id);
+        }
+        if($a&&empty($a['email_verified_at'])&&($a['status']??'')!=='disabled'){
+            $raw=issueToken($pdo,(string)$a['id'],'verify_email');
+            $url=SITE_ORIGIN.($locale==='en'?'/en/login/':'/fa/login/').'?verify='.rawurlencode($raw);
+            if(!sendLocalMail($email,$locale==='en'?'Verify your account':'تأیید حساب کاربری',"Verification link / لینک تأیید:\n".$url."\n\nThis link expires in 15 minutes."))fail('verification_email_failed',502);
+        }
+        respond(['ok'=>true,'message'=>'verification_if_applicable_sent'],202);
+    }
+    if($path==='/auth/verify-email'&&$verb==='POST'){
+        requirePostOrigin();$b=jsonBody();$id=consumeToken($pdo,(string)($b['token']??''),'verify_email');if(!$id)fail('invalid_or_expired_token');
+        $now=nowTs();$pdo->prepare("UPDATE customer_accounts SET email_verified_at=COALESCE(email_verified_at,?),status='active',updated_at=? WHERE id=? AND status!='disabled'")->execute([$now,$now,$id]);
+        respond(['ok'=>true,'verified'=>true]);
+    }
+    if($path==='/auth/login'&&$verb==='POST'){
+        requirePostOrigin();$b=jsonBody();$email=emailNorm($b['email']??'');$password=(string)($b['password']??'');
+        if(!validEmail($email)||!rateAllowed($pdo,'login',$email,10,900))fail('invalid_credentials',401);
+        $a=accountByEmail($pdo,$email);$valid=$a&&($a['status']??'')==='active'&&!empty($a['email_verified_at'])&&passwordMatches($password,(string)$a['password_hash']);
+        if(!$valid)fail('invalid_credentials',401);
+        $raw=token();$now=nowTs();$pdo->prepare('INSERT INTO customer_auth_sessions(token_hash,account_id,expires_at,created_at) VALUES(?,?,?,?)')->execute([tokenHash($raw),$a['id'],$now+SESSION_TTL,$now]);
+        cookieSet($raw,SESSION_TTL);respond(['ok'=>true,'authenticated'=>true]);
+    }
+    if($path==='/auth/forgot-password'&&$verb==='POST'){
+        requirePostOrigin();$b=jsonBody();$email=emailNorm($b['email']??'');$locale=($b['locale']??'')==='en'?'en':'fa';
+        if(validEmail($email)&&rateAllowed($pdo,'recovery',$email,5,3600)){
+            $a=accountByEmail($pdo,$email);
+            if($a&&($a['status']??'')==='active'&&!empty($a['email_verified_at'])){
+                $raw=issueToken($pdo,(string)$a['id'],'reset_password');$url=SITE_ORIGIN.($locale==='en'?'/en/recover/':'/fa/bazyabi-hesab/').'?token='.rawurlencode($raw);
+                sendLocalMail($email,$locale==='en'?'Reset your password':'بازیابی رمز عبور',"Reset link / لینک بازیابی:\n".$url."\n\nThis link expires in 15 minutes.");
+            }
+        }
+        respond(['ok'=>true,'message'=>'recovery_if_account_exists_sent'],202);
+    }
+    if($path==='/auth/reset-password'&&$verb==='POST'){
+        requirePostOrigin();$b=jsonBody();if(!validPassword($b['password']??null))fail('invalid_password');
+        $id=consumeToken($pdo,(string)($b['token']??''),'reset_password');if(!$id)fail('invalid_or_expired_token');
+        $now=nowTs();$pdo->prepare('UPDATE customer_accounts SET password_hash=?,updated_at=? WHERE id=?')->execute([passwordDigest((string)$b['password']),$now,$id]);
+        $pdo->prepare('UPDATE customer_auth_sessions SET revoked_at=? WHERE account_id=? AND revoked_at IS NULL')->execute([$now,$id]);cookieClear();respond(['ok'=>true,'passwordReset'=>true]);
+    }
+    if($path==='/auth/me'&&$verb==='GET'){
+        $a=sessionAccount($pdo);if(!$a)fail('unauthorized',401);respond(['ok'=>true,'user'=>['id'=>$a['id'],'email'=>$a['email_normalized'],'mobile'=>$a['mobile_e164']??null,'emailVerified'=>true]]);
+    }
+    if($path==='/auth/logout'&&$verb==='POST'){
+        requirePostOrigin();$raw=(string)($_COOKIE[SESSION_COOKIE]??'');if($raw!=='')$pdo->prepare('UPDATE customer_auth_sessions SET revoked_at=? WHERE token_hash=? AND revoked_at IS NULL')->execute([nowTs(),tokenHash($raw)]);
+        cookieClear();respond(['ok'=>true]);
+    }
+    fail('not_found',404);
+}
+
+if($path==='/commerce/health'&&$verb==='GET'){
+    $c=cfg();$ready=commerceReady();
+    respond(['ok'=>true,'service'=>'commerce','checkout'=>$ready,'capabilities'=>[
+        'services'=>$ready&&$c['service_booking_confirmed']===true,
+        'vip'=>$ready&&$c['vip_booking_confirmed']===true,
+        'books'=>$ready&&$c['book_shipping_confirmed']===true,
+    ]]);
+}
+if($path==='/commerce/create'&&$verb==='POST'){
+    requirePostOrigin();if(!commerceReady())fail('checkout_disabled',503);$pdo=db();if(!$pdo)fail('database_unconfigured',503);
+    $b=jsonBody();$items=$b['items']??null;if(!is_array($items)||count($items)<1||count($items)>20)fail('invalid_items');
+    $inventory=localCatalog();$counts=[];
+    foreach($items as $item){$sku=(string)($item['sku']??'');$q=$item['quantity']??null;if(!isset($inventory[$sku])||!is_int($q)||$q<1||$q>20)fail('invalid_item');$counts[$sku]=($counts[$sku]??0)+$q;}
+    $lines=[];$total=0;$c=cfg();
+    foreach($counts as $sku=>$q){$x=$inventory[$sku];if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'&&$c['book_shipping_confirmed']!==true)fail('book_shipping_not_configured',503);if($x['kind']==='service'&&$c['service_booking_confirmed']!==true)fail('service_booking_not_configured',503);if($x['kind']==='vip'&&$c['vip_booking_confirmed']!==true)fail('vip_booking_not_configured',503);$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
+    if($total<1000||$total>1000000000)fail('amount_out_of_range');
+    $mul=(int)$c['bitpay_amount_multiplier'];$providerAmount=$total*$mul;$order=uuidv4();$factor=preg_replace('/[^0-9]/','',(string)hrtime(true));$factor=substr($factor,0,28);
+    $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,? ,NOW(),NOW())")
+        ->execute([$order,$factor,$total,$providerAmount,'IRT',json_encode($lines,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),'created']);
+    try{
+        $callback=SITE_ORIGIN.'/api/commerce/callback?order='.rawurlencode($order);
+        $raw=gatewayPost('gateway-send',['amount'=>(string)$providerAmount,'redirect'=>$callback,'factorId'=>$factor,'description'=>'Order '.$order]);
+        if(!preg_match('/^[1-9][0-9]*$/',$raw))throw new RuntimeException('gateway_rejected');
+        $pdo->prepare("UPDATE commerce_orders SET state='pending',provider_id_get=?,updated_at=NOW() WHERE id=? AND state='created'")->execute([$raw,$order]);
+        respond(['ok'=>true,'orderId'=>$order,'totalToman'=>$total,'currency'=>'IRT','paymentUrl'=>SITE_ORIGIN.'/fa/shop/payment-start/?gateway='.rawurlencode('https://bitpay.ir/payment/gateway-'.$raw.'-get')]);
+    }catch(Throwable $e){$pdo->prepare("UPDATE commerce_orders SET state='failed',updated_at=NOW() WHERE id=? AND state='created'")->execute([$order]);fail('gateway_rejected',502);}
+}
+if($path==='/commerce/status'&&$verb==='GET'){
+    $id=(string)($_GET['order']??'');if(!validUuid($id))fail('invalid_order');$pdo=db();if(!$pdo)fail('database_unconfigured',503);
+    $s=$pdo->prepare('SELECT state,amount_toman,currency,items_json,paid_at,provider_id_get,provider_trans_id FROM commerce_orders WHERE id=?');$s->execute([$id]);$row=$s->fetch();if(!$row)fail('order_not_found',404);
+    if($row['state']!=='paid')respond(['ok'=>true,'state'=>$row['state']]);
+    $items=json_decode((string)$row['items_json'],true);if(!is_array($items))fail('receipt_unavailable',503);
+    $lines=[];$total=0;foreach($items as $x){$q=(int)$x['quantity'];$price=(int)$x['price'];$sub=(int)$x['subtotal'];if($q<1||$price<1||$sub!==$q*$price)fail('receipt_unavailable',503);$total+=$sub;$lines[]=['sku'=>$x['sku'],'title'=>$x['title'],'quantity'=>$q,'unitToman'=>$price,'subtotalToman'=>$sub];}
+    if($total!==(int)$row['amount_toman'])fail('receipt_amount_mismatch',409);
+    respond(['ok'=>true,'state'=>'paid','receipt'=>['orderId'=>$id,'currency'=>'IRT','amountToman'=>$total,'paidAt'=>$row['paid_at'],'items'=>$lines,'kind'=>'payment_confirmation_not_tax_invoice']]);
+}
+if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
+    $id=(string)($_GET['order']??'');if(!validUuid($id))fail('invalid_order');$pdo=db();if(!$pdo)fail('database_unconfigured',503);
+    $s=$pdo->prepare('SELECT * FROM commerce_orders WHERE id=?');$s->execute([$id]);$row=$s->fetch();if(!$row)fail('order_not_found',404);
+    if($row['state']==='paid'){header('Location: '.SITE_ORIGIN.'/fa/shop/payment-result/?state=paid&order='.rawurlencode($id),true,303);exit;}
+    if($row['state']!=='pending')fail('order_not_pending',409);
+    $params=$_GET;if($verb==='POST')$params=array_merge($params,$_POST);$idGet=(string)($params['id_get']??'');$trans=(string)($params['trans_id']??'');
+    if($idGet!==(string)$row['provider_id_get']||!preg_match('/^[1-9][0-9]*$/',$trans))fail('callback_mismatch');
+    try{$raw=gatewayPost('gateway-result-second',['trans_id'=>$trans,'id_get'=>$idGet,'json'=>'1']);$d=json_decode($raw,true);if(!is_array($d)||!in_array((string)($d['status']??''),['1','11'],true)||(int)($d['amount']??0)!==(int)$row['provider_amount']||(string)($d['factorId']??'')!==(string)$row['factor_id'])fail('verification_mismatch',409);
+        $u=$pdo->prepare("UPDATE commerce_orders SET state='paid',provider_trans_id=?,paid_at=NOW(),updated_at=NOW() WHERE id=? AND state='pending' AND provider_id_get=?");$u->execute([$trans,$id,$idGet]);if($u->rowCount()!==1)fail('concurrent_update',409);
+        header('Location: '.SITE_ORIGIN.'/fa/shop/payment-result/?state=paid&order='.rawurlencode($id),true,303);exit;
+    }catch(Throwable $e){fail('verification_unavailable',502);}
+}
+
+if($path==='/donations/health'&&$verb==='GET')respond(['ok'=>true,'service'=>'donations','checkout'=>false]);
+if(str_starts_with($path,'/donations/'))fail('donations_disabled',503);
+if($path==='/assistant/v1/chat'&&$verb==='POST')fail('assistant_local_fallback',503);
+if($path==='/assistant/v1/leads'&&$verb==='POST')fail('lead_capture_not_configured',503);
+if($path==='/register-request'&&$verb==='POST')fail('registration_intake_not_configured',503);
+if($path==='/callback')fail('legacy_payment_route_disabled',503);
+
+fail('not_found',404);
