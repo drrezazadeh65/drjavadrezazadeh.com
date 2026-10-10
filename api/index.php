@@ -444,14 +444,18 @@ if($path==='/commerce/prepare'&&$verb==='POST'){
     $lines=[];$total=0;
     foreach($counts as $sku=>$q){$x=$inventory[$sku];if(($x['kind']??'')!=='book')fail('book_order_only');$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
     if($total<1000||$total>1000000000)fail('amount_out_of_range');
-    $customer=normalizedCustomer($b['customer']??null);$customerEmail=$customer['email'];
-    if(!rateAllowed($pdo,'commerce_prepare',$customerEmail,5,3600))fail('rate_limited',429);
+    $customer=normalizedCustomer($b['customer']??null);$customerEmail=$customer['email'];$dryRun=($b['dryRun']??false)===true;
+    if(!$dryRun&&!rateAllowed($pdo,'commerce_prepare',$customerEmail,5,3600))fail('rate_limited',429);
     $customerJson=json_encode($customer,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);if(!is_string($customerJson))fail('customer_encoding_failed',500);
     $itemsJson=json_encode($lines,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);if(!is_string($itemsJson))fail('items_encoding_failed',500);
     $cfg=cfg();$mul=in_array((string)$cfg['bitpay_amount_multiplier'],['1','10'],true)?(int)$cfg['bitpay_amount_multiplier']:10;
     $providerAmount=$total*$mul;$order=uuidv4();$factor=preg_replace('/[^0-9]/','',(string)hrtime(true));$factor=substr($factor,0,28);
-    $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,NOW(),NOW())")
-        ->execute([$order,$factor,$total,$providerAmount,'IRT',$customerEmail,$customerJson,$itemsJson,'created']);
+    if($dryRun)$pdo->beginTransaction();
+    try{
+        $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,NOW(),NOW())")
+            ->execute([$order,$factor,$total,$providerAmount,'IRT',$customerEmail,$customerJson,$itemsJson,'created']);
+        if($dryRun){$pdo->rollBack();respond(['ok'=>true,'dryRun'=>true,'orderCapture'=>true,'totalToman'=>$total,'currency'=>'IRT','paymentStarted'=>false]);}
+    }catch(Throwable $e){if($dryRun&&$pdo->inTransaction())$pdo->rollBack();throw $e;}
     $summary=[];foreach($lines as $x){$summary[]='- '.(string)$x['title'].' × '.(int)$x['quantity'].' | '.number_format((int)$x['subtotal']).' تومان';}
     $bodyCustomer="درخواست سفارش کتاب شما در سرور ثبت شد. هنوز هیچ پرداختی انجام نشده است.\n\nشناسه سفارش: ".$order."\n\n".implode("\n",$summary)."\n\nجمع سفارش: ".number_format($total)." تومان\n\nپرداخت فقط پس از فعال‌شدن مسیر امن پرداخت و با اقدام صریح شما انجام خواهد شد.";
     $customerMail=mailReady()?sendLocalMail($customerEmail,'ثبت درخواست سفارش کتاب '.$order,$bodyCustomer):false;
