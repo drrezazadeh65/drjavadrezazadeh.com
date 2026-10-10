@@ -11,7 +11,7 @@ const copy={
   commerceReady:'آماده',commerceWaiting:'در انتظار فعال‌سازی',commerceCopyReady:'درگاه و خرید مستقیم آماده‌اند',
   commerceCopyWaiting:'کاتالوگ فعال است؛ خرید مستقیم هنوز فعال نشده',
   authReady:'سامانه حساب آماده',authGuest:'وارد حساب نشده‌اید',authSigned:'ورود امن تأیید شد',
-  networkReady:'آنلاین',networkOffline:'آفلاین',privateMode:'خصوصی / noindex',
+  networkReady:'آنلاین',networkOffline:'آفلاین',privateMode:'حالت خصوصی',
   lastSync:'آخرین بررسی',noCommand:'میانبر مرتبطی پیدا نشد.',
   offlineBanner:'اتصال اینترنت قطع است؛ داده خصوصی از حافظه محلی جایگزین نمی‌شود.'
  },
@@ -22,7 +22,7 @@ const copy={
   commerceReady:'Ready',commerceWaiting:'Awaiting activation',commerceCopyReady:'Gateway and direct checkout are ready',
   commerceCopyWaiting:'Catalogue is available; direct checkout is not live yet',
   authReady:'Account service ready',authGuest:'Not signed in',authSigned:'Secure sign-in verified',
-  networkReady:'Online',networkOffline:'Offline',privateMode:'Private / noindex',
+  networkReady:'Online',networkOffline:'Offline',privateMode:'Private mode',
   lastSync:'Last checked',noCommand:'No matching shortcut found.',
   offlineBanner:'Internet connection is unavailable; private data will not fall back to local cache.'
  }
