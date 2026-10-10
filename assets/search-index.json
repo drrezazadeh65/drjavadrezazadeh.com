@@ -1000,14 +1000,6 @@
     "keywords": "راهنمای خرید کتاب"
   },
   {
-    "lang": "fa",
-    "title": "اطلاعات رسید",
-    "path": "fa/shop/receipt/",
-    "category": "فروشگاه",
-    "summary": "راهنمای رسید و پیگیری سفارش کتاب.",
-    "keywords": "رسید سفارش کتاب"
-  },
-  {
     "lang": "en",
     "title": "Bookstore",
     "path": "en/shop/",
