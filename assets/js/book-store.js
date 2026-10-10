@@ -110,7 +110,7 @@
    '<div><dt>'+(isFa?'نوبت چاپ':'Edition')+'</dt><dd>'+escapeHtml(b.bibliography.edition||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قالب':'Format')+'</dt><dd>'+(b.commerce?.formats_confirmed?.includes('PRINT')?(isFa?'چاپی':'Print'):(isFa?'نیازمند تأیید':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قیمت ثبت‌شده':'Listed price')+'</dt><dd>'+escapeHtml(money(b.commerce?.price,b.commerce?.currency))+'</dd></div></dl>'+
-   '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. سفارش و پرداخت اینترنتی هنوز فعال نیست.':'Unverified bibliographic fields are deliberately marked as such. Online orders and payment are not yet active.')+'</p>'+
+   '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. ثبت سفارش از مسیر سبد فعال است؛ پرداخت آنلاین فقط پس از تأیید مسیر امن درگاه فعال می‌شود.':'Unverified bibliographic fields are deliberately marked as such. Server-side order capture is active; online payment remains gated until the trusted gateway is verified.')+'</p>'+
    '<div class="actions">'+
    (ready(b)?'<button class="button primary" type="button" data-detail-add="'+escapeHtml(b.id)+'">'+(isFa?'افزودن به فهرست انتخاب‌ها':'Add to selection')+'</button>':'')+
    '<a class="button" data-book-info-request href="mailto:info@drjavadrezazadeh.com?subject='+encodeURIComponent((isFa?'درخواست اطلاعات کتاب: ':'Book information enquiry: ')+b.title_fa)+
@@ -152,8 +152,8 @@
     ' | '+money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency)
   );
   const disclosure=isFa?
-    'این فهرست فقط برای استعلام است. هیچ سفارش یا پرداختی انجام نشده است. قیمت و موجودی هنگام پاسخ بررسی می‌شوند؛ ارسال کتاب رایگان است و هزینه آن بر عهده فروشگاه است.':
-    'This is an availability enquiry only. No order or payment has been placed. Prices and availability require confirmation; book shipping is free and paid by the store.';
+    'این سبد پیش از ثبت نهایی فقط فهرست انتخاب‌هاست. با ادامه می‌توانید سفارش را روی سرور ثبت و شناسه پیگیری دریافت کنید؛ تا فعال‌شدن درگاه هیچ وجهی برداشت نمی‌شود. ارسال کتاب رایگان است و هزینه آن بر عهده فروشگاه است.':
+    'This cart is a selection until you submit the order. You can continue to record the order on the server and receive an order ID; no payment is taken until the gateway is activated. Book shipping is free and paid by the store.';
   const mailBody=(isFa?
     ['درخواست استعلام موجودی و شرایط خرید کتاب','',...formattedLines,'',
      'جمع نمایشی: '+amount,'','لطفاً موجودی واقعی، ارسال رایگان، شیوه بازگشت و امکان سفارش را پیش از هر پرداخت اعلام کنید.',
