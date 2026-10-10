@@ -356,7 +356,9 @@ else{
   const swSource=fs.readFileSync(swPath,'utf8');
   const requiredPrivatePrefixes=[
     '/fa/app/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/','/en/login/','/en/register/','/en/recover/','/en/account/',
-    '/fa/assessments/','/assessments/','/fa/shop/','/shop/',
+    '/fa/assessments/','/assessments/',
+    '/fa/shop/cart/','/fa/shop/checkout/','/fa/shop/payment-start/','/fa/shop/payment-return/','/fa/shop/payment-result/',
+    '/en/shop/cart/','/en/shop/checkout/',
     '/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/','/en/golden-talent/checkout/','/en/golden-talent/plans/',
     '/fa/darkhast-moshavere/','/en/request-consultation/'
   ];
@@ -371,7 +373,7 @@ else{
   if(!swSource.includes('CSS/JS: network-first')){
     failures.push('/sw.js: CSS/JS must remain network-first to prevent stale deploy assets');
   }
-  for(const iconPath of ['./assets/images/pwa-icon-192.png','./assets/images/pwa-icon-512.png','./assets/images/pwa-icon-maskable-512.png']){
+  for(const iconPath of ['/assets/images/pwa-icon-192.png','/assets/images/pwa-icon-512.png','/assets/images/pwa-icon-maskable-512.png']){
     if(!swSource.includes("'"+iconPath+"'") && !swSource.includes('"'+iconPath+'"')){
       failures.push('/sw.js: PWA launcher icon missing from core app-shell cache '+iconPath);
     }
