@@ -1,4 +1,4 @@
-deploy=2026-10-10T13:44:00Z
+deploy=2026-10-10T13:50:00Z
 source=migration/bertina-linux6
 mode=bertina-only
-scope=commerce-readiness-diagnostic-v2
+scope=storefront-offline-recovery
