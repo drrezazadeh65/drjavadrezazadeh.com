@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 
-# live config probe alias-cache-diagnostic-2026-10-10T14:46:00Z
+# live config probe corrected-header-diagnostic-2026-10-10T14:50:00Z
 jobs:
   verify:
     # mail readiness probe
@@ -60,18 +60,18 @@ jobs:
           curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
             -H 'Cache-Control: no-cache' \
             https://drjavadrezazadeh.com/shop/ -o /tmp/shop-normal.txt
-          tr -d '\\r' < /tmp/shop-normal.txt | sed -n '1,30p'
+          tr -d '\015' < /tmp/shop-normal.txt | sed -n '1,30p'
 
           echo "=== ROOT ALIAS CACHE-BUSTED ==="
           curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
             -H 'Cache-Control: no-cache' \
             "https://drjavadrezazadeh.com/shop/?_origin_probe=${GITHUB_RUN_ID}" -o /tmp/shop-busted.txt
-          tr -d '\\r' < /tmp/shop-busted.txt | sed -n '1,30p'
+          tr -d '\015' < /tmp/shop-busted.txt | sed -n '1,30p'
 
           echo "=== OTHER ROOT ALIASES ==="
           for p in about books login register; do
             curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
               -H 'Cache-Control: no-cache' "https://drjavadrezazadeh.com/$p/" -o "/tmp/$p.txt"
             echo "-- $p --"
-            tr -d '\\r' < "/tmp/$p.txt" | sed -n '1,16p' | grep -Ei '^(HTTP/|location:|x-litespeed-cache:|cache-control:)' || true
+            tr -d '\015' < "/tmp/$p.txt" | sed -n '1,16p' | grep -Ei '^(HTTP/|location:|x-litespeed-cache:|cache-control:)' || true
           done
