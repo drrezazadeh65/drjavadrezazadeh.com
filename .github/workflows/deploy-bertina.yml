@@ -221,7 +221,7 @@ jobs:
         run: |
           set -euo pipefail
           ORIGIN_IP="188.40.203.218"
-          HTTP_CODE="$(curl -ksS --max-time 180 -o /tmp/deploy-response.json -w '%{http_code}'             --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             -H "X-Deploy-Token: $DEPLOY_TOKEN"             "https://drjavadrezazadeh.com/$DEPLOY_SCRIPT")"
+          HTTP_CODE="$(curl -sS --max-time 180 -o /tmp/deploy-response.json -w '%{http_code}'             --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             -H "X-Deploy-Token: $DEPLOY_TOKEN"             "https://drjavadrezazadeh.com/$DEPLOY_SCRIPT")"
           echo "Bertina deploy endpoint HTTP status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
             echo "Bertina deploy endpoint response:"
@@ -286,7 +286,7 @@ jobs:
             echo "No readable parent .htaccess through the deployment account."
           fi
 
-      - name: Verify Bertina origin directly
+      - name: Diagnostic Bertina origin smoke (not public TLS certification)
         if: steps.credentials.outputs.ready == 'true'
         run: |
           set -euo pipefail
@@ -317,7 +317,20 @@ jobs:
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/api/health -o /tmp/api-health.json
           grep -F '"hosting":"bertina"' /tmp/api-health.json
 
+      - name: Verify every registered historical URL with trusted public TLS
+        if: steps.credentials.outputs.ready == 'true'
+        run: node scripts/historical-authority-live-verify.mjs /tmp/historical-authority-live.json
+
+      - name: Retain strict historical release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bertina-historical-authority-${{ github.sha }}
+          path: /tmp/historical-authority-live.json
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Deployment summary
         if: steps.credentials.outputs.ready == 'true'
         run: |
-          echo "Bertina package deployment, server-side checksum verification, and direct-origin smoke tests completed for commit $GITHUB_SHA."
+          echo "Bertina package deployment, server-side checksums, origin smoke and strict public historical URL verification completed for commit $GITHUB_SHA."

@@ -152,7 +152,7 @@
     "COM-012": "Discount governance is server-authoritative, non-stacking by default and disabled unless commercially activated; admin implementation pending.",
     "COM-014": "Book inventory, shipment, shipping-address and digital-delivery persistence implemented; real stock/carrier/storage activation pending.",
     "COM-016": "Institutional quote/invoice workflow controls defined with legal entity, currency/tax clarity and verified-payment/approved-contract entitlement gate; accounting runtime pending.",
-    "INFRA-008": "Permanent domain is delegated to Bertina; TLS installation is the remaining public-origin prerequisite.",
+    "INFRA-008": "Permanent domain is delegated to Bertina; Bertina reports Certum DV installed and strict proxy-mediated transport checks pass. Independent origin-certificate and historical redirect certification remain pending.",
     "ADMIN-001": "Private bilingual admin console now has a production-aware operations UI for content/SEO, assessment, commerce, consultation, leads, identity/consent and security gates; live data/editing remains disabled until authenticated provider-backed services exist.",
     "ADMIN-007": "Order/payment admin surface and contracts implemented; live operational data awaits backend/gateway.",
     "ADMIN-008": "Consultation administration surface and contracts implemented; live operational data awaits backend/calendar.",

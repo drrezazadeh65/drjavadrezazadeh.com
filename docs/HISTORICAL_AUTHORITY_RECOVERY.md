@@ -3,7 +3,7 @@
 Status: Active recovery control  
 Canonical origin: https://drjavadrezazadeh.com  
 Historical website origin date: 2022-11-18  
-TLS status: Certum DV issued and installed by Bertina; canonical HTTPS/apex consolidation active.
+TLS observation: Bertina reported Certum DV installed on 2026-10-11 at 00:42 Asia/Tehran; strict proxy-mediated apex/www transport requests pass. Independent origin-certificate and complete historical redirect certification remain pending.
 
 ## Objective
 
@@ -19,7 +19,7 @@ Recover legitimate historical authority from previous versions of this same doma
 6. Unverified old URLs remain 404/review candidates until evidence exists.
 7. Verified hacked/spam URLs use 410 rather than borrowing current authority.
 8. Former book-product URLs should map to the exact current book page when identity is proven; do not send them to the carpet/gabeh archive.
-9. HTTPS/www host consolidation is now active as a one-hop canonical 301 after Bertina confirmed trusted Certum DV issuance and installation.
+9. Preserve active canonical HTTPS/apex consolidation. Exact public historical mappings must run first, so HTTP/HTTPS, apex/www and slash/slashless forms reach the verified destination in one 301.
 
 ## Current evidence
 
@@ -29,6 +29,14 @@ Historical Google Search Console data recovered eight old URLs from the pre-expi
 - `/wp-content/uploads/2022/12/مقاله-اول.pdf` — review-only until the original document or a verified equivalent is recovered.
 
 The owner has also confirmed that the previous shop sold books and carpet/kilim/gabeh products. Unknown product URLs remain unmapped until backlink or archive evidence identifies them.
+
+The registry contains 15 authority redirects and seven historical candidates. The six-product archive is a truthful discontinued-catalog consolidation; it does not reconstruct the original detailed product pages.
+
+The supplied Ahrefs overview shows 359 referring domains for the domain scope and four for the www scope, with DR 0 and zero reported organic traffic/keywords. These are differently scoped summaries, not a target-URL inventory or proof of ranking recovery. The supplied Referring Domains link is inaccessible from this execution environment; Backlinks/Best by links target-URL evidence is still required to identify additional destinations.
+
+Verified release evidence: PR #31 merged at `90d889c6`, the historical-date PR #32 at `724fcece`, and PR #33 at `882f6635`. Bertina deploy [38087632105](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38087632105) verified 553 managed files for `30b1dfc1`. Audited production base `c3a2fbb9` differed from that deployed commit only in excluded workflow YAML. Historical live run [38087711342](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38087711342) checked two former products, `/shop/` and the archive using certificate-bypassed origin requests; it did not certify all URLs or public TLS.
+
+A strict proxy-mediated GET matrix against that deployed release completed 137 checks: 46 passed; 90 HTTP/www historical slash/slashless variants and one query check failed the direct-destination assertion because transport consolidation ran first. The source correction requires a new release and strict independent-runner verification before claiming the live chain is repaired. No merge or deployment is performed by this reconciliation.
 
 ## Data sources, highest confidence first
 
@@ -62,6 +70,14 @@ Prioritize URLs with external referrers, multiple referring domains, human-like 
     node --test tests/historical-authority-recovery.test.mjs
 
 The Bertina Master SEO workflow runs both automatically.
+
+After an authorized deployment, `.github/workflows/deploy-bertina.yml` runs:
+
+    node scripts/historical-authority-live-verify.mjs historical-live-report.json
+
+This script uses normal CA/hostname verification without certificate bypass, DNS overrides or redirect following. Its 137 GET checks cover all 15 registered mappings over four origins and both slash forms, each unique indexable/self-canonical 200 destination, canonical root behavior, a shop tracking query, and genuine 404 responses for an unknown product and the unresolved PDF. JSON evidence records the checked source SHA and network context; technical indexability is not proof of search-engine indexing.
+
+Verification runs within the deployed release job after checksum/origin checks, avoiding a separate push race. The standalone workflow is read-only and manual with an active-branch guard, but dispatch discovery requires its definition on GitHub's default branch. Since `main` remains the older baseline and untouched, do not rely on `workflow_run` or independent manual discovery for a migration-only file.
 
 ## Current historical commerce consolidation
 

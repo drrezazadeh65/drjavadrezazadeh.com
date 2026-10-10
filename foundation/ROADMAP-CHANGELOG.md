@@ -1,5 +1,10 @@
 # ROADMAP CHANGELOG
 
+## 2026-10-11 — Historical authority and TLS observations
+
+- `INFRA-008`: `IN PROGRESS` → `IN PROGRESS` — Bertina support reports Certum DV installed; strict proxy-mediated apex/www transport checks pass. Independent origin-certificate and full historical redirect certification remain pending. TLS/payment activation flags remain false.
+- Historical authority — Retain all 15 evidence-backed destinations; resolve exact public legacy mappings before transport consolidation. Add registry-driven strict verification to the deploy job rather than a push-triggered check that can inspect the previous release. Unknown products and the unresolved historical PDF remain review-only.
+
 ## 2026-10-10 — Bertina source reconciliation
 
 Source base: `655bea2f`; recorded content deployment: `dfdd624a`. Existing PHP/MySQL/SMTP, email-only auth, book-only order capture and payment/receipt source are retained. Recorded health and transactional rollback evidence do not certify trusted public TLS, actual email delivery or live payment.

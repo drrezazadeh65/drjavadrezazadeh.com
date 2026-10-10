@@ -1,19 +1,9 @@
 name: Historical Authority Live Verify
 
+# Post-deploy verification runs inside deploy-bertina.yml at its exact release SHA.
+# A migration-only workflow cannot rely on workflow_run/workflow_dispatch discovery
+# while the older main branch remains GitHub's default. No live checks on PRs/pushes.
 on:
-  push:
-    branches:
-      - migration/bertina-linux6
-    paths:
-      - '.bertina-deploy-trigger'
-      - '.github/workflows/historical-authority-live-verify.yml'
-  workflow_run:
-    workflows:
-      - Deploy to Bertina
-    types:
-      - completed
-    branches:
-      - migration/bertina-linux6
   workflow_dispatch:
 
 permissions:
@@ -21,38 +11,23 @@ permissions:
 
 jobs:
   verify:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Verify historical authority on Bertina origin
-        run: |
-          set -euo pipefail
-          ORIGIN_IP="188.40.203.218"
-
-          archive_code="$(curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             -o /tmp/legacy-shop.html -w '%{http_code}'             https://drjavadrezazadeh.com/fa/archive/legacy-shop/)"
-          test "$archive_code" = "200"
-          grep -F 'آرشیو تاریخی فروشگاه پیشین' /tmp/legacy-shop.html
-
-          python3 - <<'PY' > /tmp/historical-paths.txt
-          from urllib.parse import quote
-          for p in [
-              '/product/خرید-فرش-ماشینی-کد-2-7801-9735/',
-              '/product/خرید-گبه-ماشینی-کد-1009-2/',
-          ]:
-              print(quote(p,safe='/'))
-          PY
-
-          while IFS= read -r old_path; do
-            code="$(curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"               -o /tmp/historical-headers -w '%{http_code}'               "https://drjavadrezazadeh.com$old_path")"
-            test "$code" = "301"
-            tr -d '\r' < /tmp/historical-headers > /tmp/historical-headers-clean
-            grep -Fi 'location: https://drjavadrezazadeh.com/fa/archive/legacy-shop/' /tmp/historical-headers-clean
-          done < /tmp/historical-paths.txt
-
-          shop_code="$(curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             -o /tmp/shop-headers -w '%{http_code}'             https://drjavadrezazadeh.com/shop/)"
-          test "$shop_code" = "301"
-          tr -d '\r' < /tmp/shop-headers > /tmp/shop-headers-clean
-          grep -Fi 'location: https://drjavadrezazadeh.com/fa/shop/' /tmp/shop-headers-clean
-
-          echo "Historical authority live verification PASS."
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify registered historical URLs with trusted public TLS
+        run: node scripts/historical-authority-live-verify.mjs /tmp/historical-authority-live.json
+      - name: Retain strict verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-authority-strict-live
+          path: /tmp/historical-authority-live.json
+          if-no-files-found: ignore
+          retention-days: 14
