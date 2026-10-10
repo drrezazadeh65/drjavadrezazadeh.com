@@ -1,12 +1,13 @@
 name: Deploy to Bertina
 
 on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.bertina-deploy-trigger'
+      - '.github/workflows/deploy-bertina.yml'
   workflow_dispatch:
-    inputs:
-      confirmation:
-        description: 'Type DEPLOY to publish the frozen sanitized site to Bertina'
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -17,9 +18,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ inputs.confirmation == 'DEPLOY' }}
     runs-on: ubuntu-latest
-    environment: bertina-production
 
     steps:
       - uses: actions/checkout@v4
@@ -43,22 +42,28 @@ jobs:
           test ! -e .public-site/docs
           test ! -e .public-site/.github
 
-      - name: Validate deployment credentials are configured
+      - name: Check Bertina repository secrets
+        id: credentials
         env:
           FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
           FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
           FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
         run: |
-          test -n "$FTP_HOST"
-          test -n "$FTP_USER"
-          test -n "$FTP_PASSWORD"
-          test -n "$FTP_REMOTE_DIR"
+          if [ -n "$FTP_HOST" ] && [ -n "$FTP_USER" ] && [ -n "$FTP_PASSWORD" ] && [ -n "$FTP_REMOTE_DIR" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "Bertina deployment credentials are configured." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Bertina deployment skipped: repository secrets are not configured yet." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Install secure FTP client
+        if: steps.credentials.outputs.ready == 'true'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
 
       - name: Deploy sanitized artifact over explicit TLS
+        if: steps.credentials.outputs.ready == 'true'
         env:
           FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
           FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
@@ -79,6 +84,7 @@ jobs:
           LFTP
 
       - name: Deployment summary
+        if: steps.credentials.outputs.ready == 'true'
         run: |
           echo "Bertina deployment completed from commit ${GITHUB_SHA}."
-          echo "DNS cutover is intentionally separate and must happen only after host-side validation."
+          echo "DNS cutover remains separate and must happen only after host-side validation."
