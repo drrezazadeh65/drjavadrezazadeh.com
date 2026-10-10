@@ -2,7 +2,8 @@
 
 Status: Active recovery control  
 Canonical origin: https://drjavadrezazadeh.com  
-Historical website origin date: 2022-11-18
+Historical website origin date: 2022-11-18  
+TLS status: Certum DV issued and installed by Bertina; canonical HTTPS/apex consolidation active.
 
 ## Objective
 
@@ -18,7 +19,7 @@ Recover legitimate historical authority from previous versions of this same doma
 6. Unverified old URLs remain 404/review candidates until evidence exists.
 7. Verified hacked/spam URLs use 410 rather than borrowing current authority.
 8. Former book-product URLs should map to the exact current book page when identity is proven; do not send them to the carpet/gabeh archive.
-9. HTTPS/www host consolidation stays deferred until a publicly trusted certificate is installed and strictly verified.
+9. HTTPS/www host consolidation is now active as a one-hop canonical 301 after Bertina confirmed trusted Certum DV issuance and installation.
 
 ## Current evidence
 
