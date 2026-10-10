@@ -1,4 +1,4 @@
-import { randomBytes, scryptSync, timingSafeEqual, createHash } from 'node:crypto';
+import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
 
 // Server-side reference implementation. Never import into browser bundles or Cloudflare Workers.
 // Cloudflare production implementation must use Web Crypto and durable, atomic storage.
