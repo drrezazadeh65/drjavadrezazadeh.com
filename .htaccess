@@ -33,17 +33,17 @@ Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 
 # Public documents must revalidate so SEO/indexing changes are visible immediately.
 <FilesMatch "\.(?:html?|xml|json|webmanifest|txt)$">
-Header always set Cache-Control "public, no-cache, must-revalidate"
+Header always set Cache-Control "public, no-cache, must-revalidate" env=!PRIVATE_ROUTE
 </FilesMatch>
 
 # Versioned CSS/JS assets are revalidated daily; deployed URLs commonly carry ?v=.
 <FilesMatch "\.(?:css|js|mjs)$">
-Header always set Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+Header always set Cache-Control "public, max-age=86400, stale-while-revalidate=604800" env=!PRIVATE_ROUTE
 </FilesMatch>
 
 # Media/fonts are stable and expensive to transfer, so keep them longer.
 <FilesMatch "\.(?:png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf)$">
-Header always set Cache-Control "public, max-age=2592000, stale-while-revalidate=604800"
+Header always set Cache-Control "public, max-age=2592000, stale-while-revalidate=604800" env=!PRIVATE_ROUTE
 </FilesMatch>
 
 # Private, authenticated, API and payment routes override every public cache rule.
