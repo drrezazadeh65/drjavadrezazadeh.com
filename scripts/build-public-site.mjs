@@ -53,12 +53,18 @@ function walk(dir){
 }
 walk(out);
 const html=all.filter(p=>p.endsWith('.html'));
-// Route count includes the public engine-status page and approved noindex commerce relays.
+// Route count includes the public engine-status page, the approved noindex customer dashboard, and approved noindex commerce relays.
 // Keep a fixed route count as a guard against accidentally publishing engineering files.
-const approvedPublicHtmlRoutes=288;
+const approvedPublicHtmlRoutes=289;
 if(html.length!==approvedPublicHtmlRoutes) failures.push(
   'Expected '+approvedPublicHtmlRoutes+' public HTML routes in sanitized artifact, found '+html.length
 );
+const customerDashboard='fa/customer-dashboard/index.html';
+if(!fs.existsSync(path.join(out,customerDashboard))) failures.push('Approved noindex customer dashboard missing: '+customerDashboard);
+else{
+  const dashboard=fs.readFileSync(path.join(out,customerDashboard),'utf8');
+  if(!dashboard.includes('<meta name="robots" content="noindex,nofollow">')) failures.push('Customer dashboard must remain noindex,nofollow');
+}
 const engineStatus='fa/app/engine-status/index.html';
 if(!fs.existsSync(path.join(out,engineStatus))) failures.push('Public engine dashboard missing: '+engineStatus);
 const paymentRelay='fa/shop/payment-return/index.html';
