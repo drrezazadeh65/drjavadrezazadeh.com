@@ -1,6 +1,6 @@
 /* Unified payment initiation. Server-side catalog and D1 remain authoritative. */
 (()=>{'use strict';
-const API='https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev';
+const API='/api';
 const CONTACT_EMAIL='info@drjavadrezazadeh.com';
 const fmt=n=>new Intl.NumberFormat('fa-IR').format(n)+' تومان';
 const status=(el,msg)=>{if(el){el.textContent=msg;el.setAttribute('role','status');el.setAttribute('aria-live','polite')}};
