@@ -1,0 +1,1438 @@
+{
+  "schema": "operations-registry-v2",
+  "release": "4.4.1-bertina",
+  "createdAt": "2026-10-11",
+  "environment": "proposal",
+  "disclaimer": "All percentages are estimates from previous audits, not computed production metrics. None of the 36 workstreams is marked complete without trusted evidence.",
+  "reports": [
+    {
+      "id": "OP-01",
+      "title": "Technical SEO",
+      "engine": "SEO",
+      "priority": "P0",
+      "estimatedProgress": 95,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Re-run strict production crawl; compare frozen URL manifest",
+      "acceptance": "Canonical, hreflang, sitemap and link checks 100%",
+      "evidenceSource": "Bertina Master SEO Audit",
+      "titleFa": "سئوی فنی",
+      "historicalClaims": "Canonical, hreflang, sitemaps, structured metadata and internal-link source gates reported green",
+      "dependencies": [
+        "OP-02",
+        "OP-03"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Canonical, hreflang, sitemap and link checks 100%",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-02",
+      "title": "Production branch governance",
+      "engine": "GitHub",
+      "priority": "P0",
+      "estimatedProgress": 55,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Audit branch protection, default branch workflows and release ownership",
+      "acceptance": "No obsolete deploy workflow can publish; Bertina-only provider guard and retired runtime decommissioning verified",
+      "evidenceSource": "GitHub branches and issue 28",
+      "titleFa": "کنترل شاخهٔ Production",
+      "historicalClaims": "Production migration branch diverged from default main; Codex writer lock active",
+      "dependencies": [],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: No obsolete deploy workflow can publish",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-03",
+      "title": "SSL/TLS certification",
+      "engine": "Infrastructure",
+      "priority": "P0",
+      "estimatedProgress": 80,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Verify independent CA chain, hostname, expiration and HSTS",
+      "acceptance": "Apex and www pass strict TLS matrix",
+      "evidenceSource": "Bertina support and strict runner",
+      "titleFa": "گواهی SSL و TLS",
+      "historicalClaims": "Bertina reported Certum DV installation; strict external redirects passed",
+      "dependencies": [],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Apex and www pass strict TLS matrix",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-04",
+      "title": "Compression and caching",
+      "engine": "Performance",
+      "priority": "P0",
+      "estimatedProgress": 75,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Repeat post-SSL gzip/brotli and cache privacy probes",
+      "acceptance": "Compression valid and private no-store enforced",
+      "evidenceSource": "HTTP Compression Diagnostic",
+      "titleFa": "فشرده‌سازی و کش",
+      "historicalClaims": "LiteSpeed PHP OPcache and zlib reported enabled; SW false-offline corrected",
+      "dependencies": [
+        "OP-03"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Compression valid and private no-store enforced",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-05",
+      "title": "Email registration verification",
+      "engine": "Identity",
+      "priority": "P0",
+      "estimatedProgress": 65,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Controlled production register and delivered verification link test",
+      "acceptance": "Registration email received and token redeemed once",
+      "evidenceSource": "Bertina auth readiness",
+      "titleFa": "ثبت‌نام و تأیید ایمیل",
+      "historicalClaims": "Bertina SMTP configured and auth readiness green",
+      "dependencies": [
+        "OP-03"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Registration email received and token redeemed once",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-06",
+      "title": "Login and password recovery",
+      "engine": "Identity",
+      "priority": "P0",
+      "estimatedProgress": 65,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Complete real login logout recovery and session expiry E2E",
+      "acceptance": "Verified identity lifecycle without leakage",
+      "evidenceSource": "Customer Auth Readiness",
+      "titleFa": "ورود و بازیابی رمز",
+      "historicalClaims": "Auth database and password KDF readiness green",
+      "dependencies": [
+        "OP-05"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Verified identity lifecycle without leakage",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-07",
+      "title": "Gateway configuration",
+      "engine": "Commerce",
+      "priority": "P0",
+      "estimatedProgress": 35,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Configure approved gateway key privately and amount multiplier",
+      "acceptance": "Production gateway sandbox and amount conversion pass; official Enamad merchant/provider status verified independently",
+      "evidenceSource": "Commerce Runtime Readiness",
+      "titleFa": "آمادگی درگاه و اینماد",
+      "historicalClaims": "Monetary commerce remains intentionally fail-closed",
+      "dependencies": [
+        "OP-03"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون درگاه، تبدیل مبلغ ×۱۰ و اعتبار مستقل اینماد",
+        "production": "درگاه و نماد رسمی همان پذیرنده در production تأیید شده‌اند",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "کلید خصوصی درگاه، تبدیل ×۱۰، اعتبار زندهٔ اینماد و تنظیمات تحویل باید تأیید شوند."
+    },
+    {
+      "id": "OP-08",
+      "title": "Payment callback and receipts",
+      "engine": "Commerce",
+      "priority": "P0",
+      "estimatedProgress": 30,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Test signed callback idempotency receipt and order reconciliation",
+      "acceptance": "No double-charge or duplicate fulfilment",
+      "evidenceSource": "Payment contract",
+      "titleFa": "Callback و رسید پرداخت",
+      "historicalClaims": "Checkout gated; callback not certified",
+      "dependencies": [
+        "OP-07"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: No double-charge or duplicate fulfilment",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-09",
+      "title": "Low-value real payment",
+      "engine": "Commerce",
+      "priority": "P0",
+      "estimatedProgress": 10,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "After gates, run owner-approved small live payment and reconciliation",
+      "acceptance": "Provider and MySQL ledger match",
+      "evidenceSource": "Payment provider evidence",
+      "titleFa": "پرداخت واقعی کنترل‌شده",
+      "historicalClaims": "No authorized real charge recorded",
+      "dependencies": [
+        "OP-07",
+        "OP-08",
+        "OP-11"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Provider and MySQL ledger match",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-10",
+      "title": "Bookstore public catalogue",
+      "engine": "Storefront",
+      "priority": "P0",
+      "estimatedProgress": 95,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Verify product detail and mobile purchase journey",
+      "acceptance": "Public catalogue works with no false offline",
+      "evidenceSource": "Catalog Integrity",
+      "titleFa": "کاتالوگ فروشگاه",
+      "historicalClaims": "FA/EN public shop indexable; /shop redirects to /fa/shop",
+      "dependencies": [
+        "OP-03"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Public catalogue works with no false offline",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-11",
+      "title": "Inventory shipping and fulfilment",
+      "engine": "Storefront",
+      "priority": "P1",
+      "estimatedProgress": 55,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Verify stock, shipping, refund and delivery terms",
+      "acceptance": "End-to-end fulfilled order certified",
+      "evidenceSource": "Bookshop issue 21",
+      "titleFa": "موجودی و ارسال و تحویل",
+      "historicalClaims": "Non-monetary MySQL order capture dry run passed",
+      "dependencies": [],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: End-to-end fulfilled order certified",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-12",
+      "title": "Historical URL redirects",
+      "engine": "Authority",
+      "priority": "P1",
+      "estimatedProgress": 85,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Monitor real 404 logs and unresolved historical PDF",
+      "acceptance": "All confirmed valuable targets mapped correctly",
+      "evidenceSource": "Historical Authority QA",
+      "titleFa": "ریدایرکت‌های تاریخی",
+      "historicalClaims": "137/137 strict redirect variants passed; 15 mappings tracked",
+      "dependencies": [
+        "OP-03"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: All confirmed valuable targets mapped correctly",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-13",
+      "title": "Backlink target audit",
+      "engine": "Authority",
+      "priority": "P1",
+      "estimatedProgress": 50,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Import Ahrefs target URL export and classify referring targets",
+      "acceptance": "Every valuable target reviewed",
+      "evidenceSource": "Historical Authority Recovery",
+      "titleFa": "ممیزی مقصد بک‌لینک‌ها",
+      "historicalClaims": "Historical shop/carpets mapped to truthful archive; backlink domain screenshot exists",
+      "dependencies": [],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Every valuable target reviewed",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-14",
+      "title": "Google Search Console indexation",
+      "engine": "SEO",
+      "priority": "P1",
+      "estimatedProgress": 60,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Fetch verified GSC coverage and URL inspection data",
+      "acceptance": "Indexed and submitted ratios reported separately",
+      "evidenceSource": "GSC verified property",
+      "titleFa": "ایندکس Google Search Console",
+      "historicalClaims": "Sitemap and source indexability gates reported green",
+      "dependencies": [
+        "OP-01"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Indexed and submitted ratios reported separately",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-15",
+      "title": "Bing and IndexNow",
+      "engine": "GEO",
+      "priority": "P1",
+      "estimatedProgress": 55,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Verify Bing property, submissions and indexed coverage",
+      "acceptance": "Submission acknowledgements and indexing reported",
+      "evidenceSource": "Bing Webmaster",
+      "titleFa": "Bing و IndexNow",
+      "historicalClaims": "Bilingual discovery architecture specified",
+      "dependencies": [
+        "OP-01"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Submission acknowledgements and indexing reported",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "کلید Bing در GSC Wizard تنظیم نشده است؛ تأیید IndexNow مستقل است."
+    },
+    {
+      "id": "OP-16",
+      "title": "Mobile first PWA UX",
+      "engine": "UX",
+      "priority": "P1",
+      "estimatedProgress": 94,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Test representative real devices and offline recovery",
+      "acceptance": "Mobile flows pass without private caching",
+      "evidenceSource": "Responsive Certification",
+      "titleFa": "موبایل و PWA",
+      "historicalClaims": "Responsive and visual crawl suites reported green",
+      "dependencies": [
+        "OP-03"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Mobile flows pass without private caching",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-17",
+      "title": "Field Core Web Vitals",
+      "engine": "Performance",
+      "priority": "P1",
+      "estimatedProgress": 55,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Collect CrUX/GSC field LCP INP CLS coverage",
+      "acceptance": "Good-URL coverage and p75 reported",
+      "evidenceSource": "CrUX and GSC",
+      "titleFa": "Core Web Vitals میدانی",
+      "historicalClaims": "Source performance QA exists",
+      "dependencies": [
+        "OP-03"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Good-URL coverage and p75 reported",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "دادهٔ میدانی با پوشش کافی لازم است؛ امتیاز آزمایشگاهی جایگزین آن نیست."
+    },
+    {
+      "id": "OP-18",
+      "title": "Accessibility",
+      "engine": "UX",
+      "priority": "P1",
+      "estimatedProgress": 70,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Run keyboard screen reader contrast and WCAG audit",
+      "acceptance": "Critical accessibility issues zero",
+      "evidenceSource": "Accessibility audit",
+      "titleFa": "دسترس‌پذیری",
+      "historicalClaims": "Responsive layouts tested; accessibility certification not established",
+      "dependencies": [],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Critical accessibility issues zero",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-19",
+      "title": "Customer OS dashboard",
+      "engine": "Customer OS",
+      "priority": "P1",
+      "estimatedProgress": 92,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Certify authenticated live user workflows",
+      "acceptance": "Account pages correct under real identity",
+      "evidenceSource": "PR30",
+      "titleFa": "داشبورد مشتری",
+      "historicalClaims": "Unified dashboard PR30 merged with multiple service panels",
+      "dependencies": [
+        "OP-06",
+        "OP-20"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Account pages correct under real identity",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-20",
+      "title": "Privacy consent RBAC",
+      "engine": "Security",
+      "priority": "P1",
+      "estimatedProgress": 80,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Verify live RBAC, CSRF, session and audit trails",
+      "acceptance": "No cross-account access or caching",
+      "evidenceSource": "PR31",
+      "titleFa": "حریم خصوصی و نقش‌ها",
+      "historicalClaims": "33 private route families and no-store privacy gates tested",
+      "dependencies": [
+        "OP-06"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: No cross-account access or caching",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-21",
+      "title": "Golden Talent",
+      "engine": "Golden Talent",
+      "priority": "P1",
+      "estimatedProgress": 80,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Certify real consent roles assessments and persistence",
+      "acceptance": "Complete parent/student/teacher journeys",
+      "evidenceSource": "Golden Talent",
+      "titleFa": "Golden Talent",
+      "historicalClaims": "Role and Golden Path foundations implemented",
+      "dependencies": [
+        "OP-06",
+        "OP-20"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Complete parent/student/teacher journeys",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-22",
+      "title": "Consultation booking",
+      "engine": "Services",
+      "priority": "P1",
+      "estimatedProgress": 60,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Certify booking slots, notifications and staff operations",
+      "acceptance": "Real booking confirmed without collision",
+      "evidenceSource": "Service booking",
+      "titleFa": "رزرو مشاوره",
+      "historicalClaims": "Service UX exists; fulfilment flags gated",
+      "dependencies": [
+        "OP-06",
+        "OP-20"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Real booking confirmed without collision",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-23",
+      "title": "Service checkout",
+      "engine": "Commerce",
+      "priority": "P1",
+      "estimatedProgress": 35,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Connect approved gateway and booking fulfilment",
+      "acceptance": "Paid service order reconciled",
+      "evidenceSource": "Commerce readiness",
+      "titleFa": "خرید خدمات",
+      "historicalClaims": "Private checkout protected but monetary gate closed",
+      "dependencies": [
+        "OP-08",
+        "OP-09",
+        "OP-22"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Paid service order reconciled",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-24",
+      "title": "Donations",
+      "engine": "Commerce",
+      "priority": "P2",
+      "estimatedProgress": 5,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Separate legal and provider authorization",
+      "acceptance": "Explicitly approved and tested flow",
+      "evidenceSource": "Donation gate",
+      "titleFa": "کمک مالی",
+      "historicalClaims": "Donation payments intentionally disabled",
+      "dependencies": [
+        "OP-07",
+        "OP-08"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Explicitly approved and tested flow",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "فعال‌سازی مستقل قانونی و تجاری لازم است."
+    },
+    {
+      "id": "OP-25",
+      "title": "Persian article editorial audit",
+      "engine": "Content",
+      "priority": "P1",
+      "estimatedProgress": 75,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Claim-source review for each article",
+      "acceptance": "45/45 signed off with references",
+      "evidenceSource": "Content issue 19",
+      "titleFa": "ممیزی علمی مقالات فارسی",
+      "historicalClaims": "45 Persian articles reported published; audit incomplete",
+      "dependencies": [],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: 45/45 signed off with references",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-26",
+      "title": "English article editorial audit",
+      "engine": "Content",
+      "priority": "P1",
+      "estimatedProgress": 80,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Review references and academic tone page by page",
+      "acceptance": "All eligible articles editorially certified",
+      "evidenceSource": "Editorial ledger",
+      "titleFa": "ممیزی علمی صفحات انگلیسی",
+      "historicalClaims": "English enrichment reported; factual review pending",
+      "dependencies": [],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: All eligible articles editorially certified",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-27",
+      "title": "Academic identity and EEAT",
+      "engine": "SEO",
+      "priority": "P1",
+      "estimatedProgress": 85,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Validate live scholarly links author bios credentials",
+      "acceptance": "Verified profile and citations",
+      "evidenceSource": "About pages",
+      "titleFa": "هویت علمی و EEAT",
+      "historicalClaims": "Person sameAs and academic identity present",
+      "dependencies": [],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Verified profile and citations",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-28",
+      "title": "AI discovery GEO",
+      "engine": "GEO",
+      "priority": "P1",
+      "estimatedProgress": 85,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Measure crawler access citations and AI visibility",
+      "acceptance": "Provider-specific observed signals reported",
+      "evidenceSource": "GEO regression",
+      "titleFa": "مشاهده‌پذیری جست‌وجوی AI",
+      "historicalClaims": "AI discovery and structured-data source gates green",
+      "dependencies": [
+        "OP-01",
+        "OP-27"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Provider-specific observed signals reported",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-29",
+      "title": "Structured data quality",
+      "engine": "SEO",
+      "priority": "P1",
+      "estimatedProgress": 90,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Validate live rich result templates and identity graphs",
+      "acceptance": "No critical schema errors",
+      "evidenceSource": "ProfilePage gate",
+      "titleFa": "داده‌های ساختاریافته",
+      "historicalClaims": "Schema source gate reported green",
+      "dependencies": [
+        "OP-01"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: No critical schema errors",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-30",
+      "title": "Moderated comments",
+      "engine": "Community",
+      "priority": "P2",
+      "estimatedProgress": 25,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Build anti-spam moderation privacy and persistence",
+      "acceptance": "Moderation E2E secure",
+      "evidenceSource": "Issue 18",
+      "titleFa": "نظرهای مدیریت‌شده",
+      "historicalClaims": "Persistent moderated comments backend not certified",
+      "dependencies": [
+        "OP-06",
+        "OP-20"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Moderation E2E secure",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-31",
+      "title": "Social sharing",
+      "engine": "Growth",
+      "priority": "P2",
+      "estimatedProgress": 70,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Test share cards mobile and campaign tracking",
+      "acceptance": "Correct previews across platforms",
+      "evidenceSource": "Social previews",
+      "titleFa": "اشتراک‌گذاری اجتماعی",
+      "historicalClaims": "Social and OG metadata reported present",
+      "dependencies": [],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Correct previews across platforms",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-32",
+      "title": "RAVE analytics",
+      "engine": "Analytics",
+      "priority": "P1",
+      "estimatedProgress": 48,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Port compatible privacy-safe analytics to Bertina",
+      "acceptance": "Event and funnel data reliable",
+      "evidenceSource": "PR25",
+      "titleFa": "تحلیل RAVE",
+      "historicalClaims": "RAVE foundation PR25 draft on old main",
+      "dependencies": [
+        "OP-20"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Event and funnel data reliable",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-33",
+      "title": "AI assistant and lead storage",
+      "engine": "AI assistant",
+      "priority": "P2",
+      "estimatedProgress": 30,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Implement private consent-safe conversation storage",
+      "acceptance": "Secure answer and lead workflow",
+      "evidenceSource": "AI assistant readiness",
+      "titleFa": "دستیار و ذخیرهٔ لید",
+      "historicalClaims": "Live persisted assistant service not certified",
+      "dependencies": [
+        "OP-20"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Secure answer and lead workflow",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-34",
+      "title": "Email lead nurturing",
+      "engine": "Growth",
+      "priority": "P2",
+      "estimatedProgress": 30,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Build consented list unsubscribe and suppression",
+      "acceptance": "Opt-in and unsubscribe E2E",
+      "evidenceSource": "Mail transport",
+      "titleFa": "ایمیل با رضایت مخاطب",
+      "historicalClaims": "Bertina domain SMTP configured",
+      "dependencies": [
+        "OP-05",
+        "OP-20"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Opt-in and unsubscribe E2E",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-35",
+      "title": "Backups and security monitoring",
+      "engine": "Security",
+      "priority": "P1",
+      "estimatedProgress": 70,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Test encrypted backups restore and alerting",
+      "acceptance": "Successful restore drill and response runbook",
+      "evidenceSource": "Bertina operations",
+      "titleFa": "نسخهٔ پشتیبان و پایش امنیت",
+      "historicalClaims": "Provider and private route guards exist",
+      "dependencies": [],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Successful restore drill and response runbook",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    },
+    {
+      "id": "OP-36",
+      "title": "Release QA and rollback",
+      "engine": "Operations",
+      "priority": "P0",
+      "estimatedProgress": 85,
+      "estimateType": "historical-expert-estimate-not-live-measurement",
+      "remaining": "Reconcile release branch and rehearse rollback",
+      "acceptance": "Deterministic deployment and rollback",
+      "evidenceSource": "GitHub Actions deployment",
+      "titleFa": "آزمون انتشار و بازگشت",
+      "historicalClaims": "553 managed files checksum passed and 137 redirects strict PASS",
+      "dependencies": [
+        "OP-02"
+      ],
+      "gates": {
+        "code": "کد مربوط به معیار پذیرش در نسخهٔ منتشرشده",
+        "tests": "آزمون کامل معیار پذیرش: Deterministic deployment and rollback",
+        "production": "تأیید رفتار واقعی در محیط عملیاتی",
+        "evidence": "ثبت و بازبینی شواهد معتبر و تاریخ‌دار"
+      },
+      "blocker": "شواهد کامل عملیاتی هنوز ثبت نشده‌اند."
+    }
+  ],
+  "dashboard": {
+    "id": "ADM-01",
+    "title": "Master Operations Dashboard",
+    "titleFa": "پنل مدیریت عملیات",
+    "engine": "Operations",
+    "priority": "P0",
+    "estimatedProgress": null,
+    "estimateType": "not-estimated",
+    "historicalClaims": "پوستهٔ مدیریتی پیشین و پیش‌نویس PR35 موجودند.",
+    "remaining": "نقش مدیر و TOTP خصوصی، دادهٔ معتبر و تأیید کامل production",
+    "acceptance": "دسترسی مدیر، ذخیرهٔ شواهد، صفحات موتور، تاریخچه و گزارش واقعی با آزمون امنیتی",
+    "evidenceSource": "GitHub CI + Bertina MySQL",
+    "dependencies": [],
+    "gates": {
+      "code": "کد پنل و API امن منتشر شده",
+      "tests": "آزمون امنیت و مرورگر و کیفیت انتشار موفق",
+      "production": "ورود واقعی مدیر با MFA و مشاهدهٔ گزارش production",
+      "evidence": "شواهد و تاریخچه در MySQL با منبع تأییدشده ثبت شده"
+    },
+    "blocker": "نقش مدیر و کلید TOTP باید در تنظیمات خصوصی Bertina provision شوند."
+  },
+  "sourceSections": [
+    {
+      "number": 1,
+      "title": "خلاصه مدیریتی",
+      "operations": [
+        "OP-01",
+        "OP-02",
+        "OP-03",
+        "OP-04",
+        "OP-05",
+        "OP-06",
+        "OP-07",
+        "OP-08",
+        "OP-09",
+        "OP-10",
+        "OP-11",
+        "OP-12",
+        "OP-13",
+        "OP-14",
+        "OP-15",
+        "OP-16",
+        "OP-17",
+        "OP-18",
+        "OP-19",
+        "OP-20",
+        "OP-21",
+        "OP-22",
+        "OP-23",
+        "OP-24",
+        "OP-25",
+        "OP-26",
+        "OP-27",
+        "OP-28",
+        "OP-29",
+        "OP-30",
+        "OP-31",
+        "OP-32",
+        "OP-33",
+        "OP-34",
+        "OP-35",
+        "OP-36"
+      ],
+      "includesAdmin": true
+    },
+    {
+      "number": 2,
+      "title": "GitHub — مهم‌ترین مسئلهٔ مدیریتی فعلی",
+      "operations": [
+        "OP-02",
+        "OP-36"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 3,
+      "title": "آخرین Deployment واقعی",
+      "operations": [
+        "OP-36"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 4,
+      "title": "وضعیت Bertina",
+      "operations": [
+        "OP-03",
+        "OP-04",
+        "OP-05",
+        "OP-06",
+        "OP-07",
+        "OP-35",
+        "OP-36"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 5,
+      "title": "Vercel، Neon، Cloudflare و Resend",
+      "operations": [
+        "OP-02",
+        "OP-36"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 6,
+      "title": "SSL / HTTPS",
+      "operations": [
+        "OP-03"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 7,
+      "title": "SEO — مهم‌ترین بخش پروژه",
+      "operations": [
+        "OP-01",
+        "OP-14",
+        "OP-15",
+        "OP-17",
+        "OP-25",
+        "OP-26",
+        "OP-29"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 8,
+      "title": "بازیابی بک‌لینک‌های قدیمی",
+      "operations": [
+        "OP-12",
+        "OP-13"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 9,
+      "title": "فروشگاه",
+      "operations": [
+        "OP-10",
+        "OP-11"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 10,
+      "title": "پرداخت",
+      "operations": [
+        "OP-07",
+        "OP-08",
+        "OP-09",
+        "OP-23",
+        "OP-24"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 11,
+      "title": "Auth / Registration / Login",
+      "operations": [
+        "OP-05",
+        "OP-06"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 12,
+      "title": "Email",
+      "operations": [
+        "OP-05",
+        "OP-06",
+        "OP-08",
+        "OP-34"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 13,
+      "title": "Customer Dashboard — Client OS v2",
+      "operations": [
+        "OP-19",
+        "OP-20"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 14,
+      "title": "Mobile / PWA / App-like",
+      "operations": [
+        "OP-16",
+        "OP-18"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 15,
+      "title": "Performance / Cache",
+      "operations": [
+        "OP-04",
+        "OP-17"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 16,
+      "title": "مقالات فارسی",
+      "operations": [
+        "OP-25"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 17,
+      "title": "صفحات انگلیسی",
+      "operations": [
+        "OP-26"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 18,
+      "title": "Structured Data و Academic Identity",
+      "operations": [
+        "OP-27",
+        "OP-29"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 19,
+      "title": "AI / GEO / Search Visibility",
+      "operations": [
+        "OP-15",
+        "OP-28",
+        "OP-32"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 20,
+      "title": "Live AI Assistant / Lead Engine",
+      "operations": [
+        "OP-33"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 21,
+      "title": "Golden Talent",
+      "operations": [
+        "OP-21"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 22,
+      "title": "Service ecosystem",
+      "operations": [
+        "OP-22",
+        "OP-23"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 23,
+      "title": "Enamad",
+      "operations": [
+        "OP-07",
+        "OP-10"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 24,
+      "title": "Ahrefs",
+      "operations": [
+        "OP-13"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 25,
+      "title": "Search Console / Bing / IndexNow",
+      "operations": [
+        "OP-14",
+        "OP-15"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 26,
+      "title": "What Codex actually completed",
+      "operations": [
+        "OP-01",
+        "OP-12",
+        "OP-16",
+        "OP-19",
+        "OP-20",
+        "OP-36"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 27,
+      "title": "کارهایی که در چت‌های دیگر انجام شده‌اند",
+      "operations": [
+        "OP-01",
+        "OP-02",
+        "OP-03",
+        "OP-04",
+        "OP-05",
+        "OP-06",
+        "OP-07",
+        "OP-08",
+        "OP-09",
+        "OP-10",
+        "OP-11",
+        "OP-12",
+        "OP-13",
+        "OP-14",
+        "OP-15",
+        "OP-16",
+        "OP-17",
+        "OP-18",
+        "OP-19",
+        "OP-20",
+        "OP-21",
+        "OP-22",
+        "OP-23",
+        "OP-24",
+        "OP-25",
+        "OP-26",
+        "OP-27",
+        "OP-28",
+        "OP-29",
+        "OP-30",
+        "OP-31",
+        "OP-32",
+        "OP-33",
+        "OP-34",
+        "OP-35",
+        "OP-36"
+      ],
+      "includesAdmin": true
+    },
+    {
+      "number": 28,
+      "title": "PRهای باز فعلی",
+      "operations": [
+        "OP-02",
+        "OP-32"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 29,
+      "title": "Issues باز",
+      "operations": [
+        "OP-02",
+        "OP-05",
+        "OP-06",
+        "OP-10",
+        "OP-11",
+        "OP-25",
+        "OP-30"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 30,
+      "title": "چیزهایی که واقعاً تمام شده‌اند",
+      "operations": [
+        "OP-01",
+        "OP-02",
+        "OP-03",
+        "OP-04",
+        "OP-05",
+        "OP-06",
+        "OP-07",
+        "OP-08",
+        "OP-09",
+        "OP-10",
+        "OP-11",
+        "OP-12",
+        "OP-13",
+        "OP-14",
+        "OP-15",
+        "OP-16",
+        "OP-17",
+        "OP-18",
+        "OP-19",
+        "OP-20",
+        "OP-21",
+        "OP-22",
+        "OP-23",
+        "OP-24",
+        "OP-25",
+        "OP-26",
+        "OP-27",
+        "OP-28",
+        "OP-29",
+        "OP-30",
+        "OP-31",
+        "OP-32",
+        "OP-33",
+        "OP-34",
+        "OP-35",
+        "OP-36"
+      ],
+      "includesAdmin": true
+    },
+    {
+      "number": 31,
+      "title": "چیزهایی که هنوز نباید Done اعلام شوند",
+      "operations": [
+        "OP-01",
+        "OP-02",
+        "OP-03",
+        "OP-04",
+        "OP-05",
+        "OP-06",
+        "OP-07",
+        "OP-08",
+        "OP-09",
+        "OP-10",
+        "OP-11",
+        "OP-12",
+        "OP-13",
+        "OP-14",
+        "OP-15",
+        "OP-16",
+        "OP-17",
+        "OP-18",
+        "OP-19",
+        "OP-20",
+        "OP-21",
+        "OP-22",
+        "OP-23",
+        "OP-24",
+        "OP-25",
+        "OP-26",
+        "OP-27",
+        "OP-28",
+        "OP-29",
+        "OP-30",
+        "OP-31",
+        "OP-32",
+        "OP-33",
+        "OP-34",
+        "OP-35",
+        "OP-36"
+      ],
+      "includesAdmin": true
+    },
+    {
+      "number": 32,
+      "title": "بزرگ‌ترین خطر فعلی",
+      "operations": [
+        "OP-02"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 33,
+      "title": "اولویت واقعی ما از همین لحظه",
+      "operations": [
+        "OP-01",
+        "OP-02",
+        "OP-03",
+        "OP-04",
+        "OP-05",
+        "OP-06",
+        "OP-07",
+        "OP-08",
+        "OP-09",
+        "OP-10",
+        "OP-11",
+        "OP-12",
+        "OP-13",
+        "OP-14",
+        "OP-15",
+        "OP-16",
+        "OP-17",
+        "OP-18",
+        "OP-19",
+        "OP-20",
+        "OP-21",
+        "OP-22",
+        "OP-23",
+        "OP-24",
+        "OP-25",
+        "OP-26",
+        "OP-27",
+        "OP-28",
+        "OP-29",
+        "OP-30",
+        "OP-31",
+        "OP-32",
+        "OP-33",
+        "OP-34",
+        "OP-35",
+        "OP-36"
+      ],
+      "includesAdmin": true
+    },
+    {
+      "number": 34,
+      "title": "مرحله بعد SEO",
+      "operations": [
+        "OP-01",
+        "OP-12",
+        "OP-13",
+        "OP-14",
+        "OP-15",
+        "OP-17",
+        "OP-25",
+        "OP-26",
+        "OP-28"
+      ],
+      "includesAdmin": false
+    },
+    {
+      "number": 35,
+      "title": "وضعیت نهایی به زبان بسیار ساده",
+      "operations": [
+        "OP-01",
+        "OP-02",
+        "OP-03",
+        "OP-04",
+        "OP-05",
+        "OP-06",
+        "OP-07",
+        "OP-08",
+        "OP-09",
+        "OP-10",
+        "OP-11",
+        "OP-12",
+        "OP-13",
+        "OP-14",
+        "OP-15",
+        "OP-16",
+        "OP-17",
+        "OP-18",
+        "OP-19",
+        "OP-20",
+        "OP-21",
+        "OP-22",
+        "OP-23",
+        "OP-24",
+        "OP-25",
+        "OP-26",
+        "OP-27",
+        "OP-28",
+        "OP-29",
+        "OP-30",
+        "OP-31",
+        "OP-32",
+        "OP-33",
+        "OP-34",
+        "OP-35",
+        "OP-36"
+      ],
+      "includesAdmin": true
+    },
+    {
+      "number": 36,
+      "title": "حکم نهایی وضعیت پروژه",
+      "operations": [
+        "OP-01",
+        "OP-02",
+        "OP-03",
+        "OP-04",
+        "OP-05",
+        "OP-06",
+        "OP-07",
+        "OP-08",
+        "OP-09",
+        "OP-10",
+        "OP-11",
+        "OP-12",
+        "OP-13",
+        "OP-14",
+        "OP-15",
+        "OP-16",
+        "OP-17",
+        "OP-18",
+        "OP-19",
+        "OP-20",
+        "OP-21",
+        "OP-22",
+        "OP-23",
+        "OP-24",
+        "OP-25",
+        "OP-26",
+        "OP-27",
+        "OP-28",
+        "OP-29",
+        "OP-30",
+        "OP-31",
+        "OP-32",
+        "OP-33",
+        "OP-34",
+        "OP-35",
+        "OP-36"
+      ],
+      "includesAdmin": true
+    }
+  ]
+}

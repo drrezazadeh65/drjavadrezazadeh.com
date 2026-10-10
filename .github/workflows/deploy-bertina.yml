@@ -13,13 +13,23 @@ permissions:
 
 concurrency:
   group: bertina-production-deploy
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
     if: github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password
+          MYSQL_DATABASE: operations_fixture
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pfixture-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
 
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +37,41 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: Verify operations registry, security and real MySQL
+        env:
+          OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
+          OPERATIONS_TEST_USER: root
+          OPERATIONS_TEST_PASSWORD: fixture-password
+        run: |
+          node scripts/operations-registry-audit.mjs
+          for file in api/*.php; do php -l "$file"; done
+          php tests/operations-security.php
+          php tests/operations-mysql.php
+          php tests/bertina-receipt-contract.php
+
+      - name: Verify operations browser behavior before release
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/operations-http.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          npx playwright test tests/operations-browser.spec.js --reporter=line
+
+      - name: Independently certify apex and www TLS
+        run: node scripts/operations-tls-certify.mjs /tmp/operations-tls.json
+
+      - name: Retain independent certificate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: operations-tls-${{ github.sha }}
+          path: /tmp/operations-tls.json
+          if-no-files-found: ignore
+          retention-days: 30
 
       - name: Build and verify sanitized public site
         run: |
@@ -63,6 +108,7 @@ jobs:
         if: steps.credentials.outputs.ready == 'true'
         run: |
           set -euo pipefail
+          OPERATIONS_TESTS_PASSED=true node scripts/operations-release-evidence.mjs
           python3 - <<'PY'
           import hashlib, json, os, pathlib, zipfile
           root=pathlib.Path('.public-site')
@@ -99,6 +145,7 @@ jobs:
         run: |
           set -euo pipefail
           TOKEN="$(openssl rand -hex 32)"
+          echo "::add-mask::$TOKEN"
           TOKEN_HASH="$(printf '%s' "$TOKEN" | sha256sum | awk '{print $1}')"
           NONCE="$(openssl rand -hex 10)"
           ZIP_NAME="bertina-release-$NONCE.zip"
@@ -116,6 +163,15 @@ jobs:
           if (!\$tokenOk) {
               http_response_code(403);
               echo json_encode(['ok'=>false,'error'=>'forbidden']);
+              exit;
+          }
+          ignore_user_abort(true);
+          \$deployLock = @fopen(sys_get_temp_dir() . '/drjr-bertina-deploy-' . hash('sha256', __DIR__) . '.lock', 'c');
+          if (!\$deployLock || !flock(\$deployLock, LOCK_EX | LOCK_NB)) {
+              @unlink(__DIR__ . '/$ZIP_NAME');
+              @unlink(__FILE__);
+              http_response_code(409);
+              echo json_encode(['ok'=>false,'error'=>'deployment_in_progress']);
               exit;
           }
           \$zipPath = __DIR__ . '/$ZIP_NAME';
@@ -186,7 +242,26 @@ jobs:
           }
           \$commit = isset(\$manifest['commit']) ? (string)\$manifest['commit'] : '';
           \$ok = count(\$mismatch) === 0 && \$commit === '$GITHUB_SHA';
-          \$response = ['ok'=>\$ok,'commit'=>\$commit,'checked'=>\$checked,'mismatch'=>array_slice(\$mismatch,0,20)];
+          \$operations = ['ready'=>false];
+          if (\$ok) {
+              try {
+                  \$private = require __DIR__ . '/api/config.local.php';
+                  if (!is_array(\$private)) throw new RuntimeException('private_config_missing');
+                  \$pdo = new PDO((string)(\$private['db_dsn']??''),(string)(\$private['db_user']??''),(string)(\$private['db_password']??''),[
+                      PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false
+                  ]);
+                  define('BERTINA_API_BOOTSTRAPPED',true);
+                  require_once __DIR__.'/api/operations.php';
+                  require_once __DIR__.'/api/operations-schema.php';
+                  operationsInstall(\$pdo);
+                  \$batch=json_decode((string)file_get_contents(__DIR__.'/api/internal/operations-release.json'),true);
+                  \$imported=operationsImportRelease(\$pdo,\$batch,'$GITHUB_SHA',\$private,'$GITHUB_RUN_ID');
+                  \$operations=['ready'=>true,'imported'=>\$imported,'schema'=>'operations-v1'];
+              } catch (Throwable \$e) {
+                  \$ok=false;\$operations=['ready'=>false,'error'=>'operations_install_or_import_failed'];
+              }
+          }
+          \$response = ['ok'=>\$ok,'commit'=>\$commit,'checked'=>\$checked,'mismatch'=>array_slice(\$mismatch,0,20),'operations'=>\$operations];
           \$cleanup();
           if (!\$ok) http_response_code(500);
           echo json_encode(\$response, JSON_UNESCAPED_SLASHES);
@@ -220,6 +295,8 @@ jobs:
           DEPLOY_SCRIPT: ${{ steps.package.outputs.script_name }}
         run: |
           set -euo pipefail
+          current="$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)"
+          test "$current" = "$GITHUB_SHA"
           ORIGIN_IP="188.40.203.218"
           HTTP_CODE="$(curl -sS --max-time 180 -o /tmp/deploy-response.json -w '%{http_code}'             --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             -H "X-Deploy-Token: $DEPLOY_TOKEN"             "https://drjavadrezazadeh.com/$DEPLOY_SCRIPT")"
           echo "Bertina deploy endpoint HTTP status: $HTTP_CODE"
@@ -236,6 +313,7 @@ jobs:
           if(d.commit!==process.env.GITHUB_SHA) throw new Error('Bertina commit mismatch');
           if(!Number.isInteger(d.checked) || d.checked < 500) throw new Error('Unexpected deployed file count: '+d.checked);
           console.log('Bertina server-side checksum verification PASS:',d.checked,'files; commit',d.commit);
+          if(d.operations?.ready!==true) throw new Error('Operations schema and scoped evidence import failed');
           NODE
 
       - name: Inspect deployed rewrite hierarchy

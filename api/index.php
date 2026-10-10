@@ -47,6 +47,8 @@ function cfg(): array {
         'service_booking_confirmed' => getenv('JR_SERVICE_BOOKING_CONFIRMED') === 'true',
         'vip_booking_confirmed' => getenv('JR_VIP_BOOKING_CONFIRMED') === 'true',
         'book_shipping_confirmed' => getenv('JR_BOOK_SHIPPING_CONFIRMED') === 'true',
+        // Account UUID => ['role'=>'ADMIN', 'totp_secret'=>'...']; private provisioning only.
+        'operations_admins' => [],
     ];
     $local = __DIR__ . '/config.local.php';
     if (is_file($local)) {
@@ -348,7 +350,10 @@ function gatewayPost(string $endpoint,array $fields): string {
     return trim($out);
 }
 
+define('BERTINA_API_BOOTSTRAPPED', true);
+require_once __DIR__.'/operations.php';
 $path=route();$verb=method();
+if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
 
 if ($path==='/health' && $verb==='GET') {
     $hc=cfg(); respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?(smtpConfigured($hc)?'bertina-smtp':'bertina-local'):'not-configured','mailConfigEnabled'=>$hc['mail_enabled']===true,'smtpConfigured'=>smtpConfigured($hc),'mailFunctionAvailable'=>function_exists('mail'),'mailFromValid'=>filter_var((string)$hc['mail_from'], FILTER_VALIDATE_EMAIL)!==false,'auth'=>authReady(),'commerce'=>commerceReady()]);
