@@ -61,7 +61,8 @@ jobs:
             exit 1
           fi
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/sw.js -o /tmp/sw.js
-          grep -F "storefront-recovery-v3" /tmp/sw.js
+          grep -F "JR Cache Standard v2.0" /tmp/sw.js
+          grep -F "const PRIVATE_PREFIXES=[" /tmp/sw.js
           ! grep -F "'/fa/shop/','/en/shop/','/shop/'" /tmp/sw.js
 
       - name: Verify core live runtime
