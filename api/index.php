@@ -208,6 +208,30 @@ function requirePostOrigin(): void {
 function emailNorm(mixed $v): string { return strtolower(trim((string)$v)); }
 function validEmail(string $v): bool { return strlen($v) <= 254 && filter_var($v, FILTER_VALIDATE_EMAIL) !== false; }
 function validPassword(mixed $v): bool { return is_string($v) && strlen($v) >= 12 && strlen($v) <= 128; }
+function textLen(string $v): int { return function_exists('mb_strlen') ? mb_strlen($v, 'UTF-8') : strlen($v); }
+function commerceSchemaReady(): bool {
+    $pdo=db(); if(!$pdo)return false;
+    try{
+        $need=['customer_email'=>false,'customer_json'=>false,'receipt_email_sent_at'=>false];
+        $q=$pdo->query("SHOW COLUMNS FROM commerce_orders");
+        foreach($q->fetchAll() as $row){$field=(string)($row['Field']??'');if(array_key_exists($field,$need))$need[$field]=true;}
+        return !in_array(false,$need,true);
+    }catch(Throwable $e){return false;}
+}
+function normalizedCustomer(mixed $input): array {
+    if(!is_array($input))fail('customer_required');
+    $name=trim((string)($input['name']??''));
+    $email=emailNorm($input['email']??'');
+    $address=trim((string)($input['address']??''));
+    $postal=trim((string)($input['postal']??''));
+    $phone=trim((string)($input['phone']??''));
+    if(textLen($name)<2||textLen($name)>100)fail('invalid_customer_name');
+    if(!validEmail($email))fail('invalid_customer_email');
+    if(textLen($address)<10||textLen($address)>500)fail('invalid_delivery_address');
+    if(!preg_match('/^[A-Za-z0-9۰-۹٠-٩\\- ]{4,20}$/u',$postal))fail('invalid_postal_code');
+    if($phone!==''&&!preg_match('/^[0-9۰-۹٠-٩+() .\\-]{5,30}$/u',$phone))fail('invalid_delivery_phone');
+    return ['name'=>$name,'email'=>$email,'address'=>$address,'postal'=>$postal,'phone'=>$phone];
+}
 function token(int $bytes = 32): string { return rtrim(strtr(base64_encode(random_bytes($bytes)), '+/', '-_'), '='); }
 function tokenHash(string $raw): string { return hash('sha256', $raw); }
 function nowTs(): int { return time(); }
@@ -308,7 +332,7 @@ function localCatalog(): array {
 }
 function commerceReady(): bool {
     $c=cfg();
-    return dbReady() && $c['commerce_enabled']===true && $c['bitpay_api_key']!=='' &&
+    return dbReady() && commerceSchemaReady() && $c['commerce_enabled']===true && $c['bitpay_api_key']!=='' &&
         in_array((string)$c['bitpay_amount_multiplier'],['1','10'],true) &&
         $c['order_email_fulfilment_confirmed']===true;
 }
@@ -396,7 +420,7 @@ if (str_starts_with($path,'/auth/')) {
 
 if($path==='/commerce/health'&&$verb==='GET'){
     $c=cfg();$ready=commerceReady();
-    respond(['ok'=>true,'service'=>'commerce','checkout'=>$ready,'capabilities'=>[
+    respond(['ok'=>true,'service'=>'commerce','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'capabilities'=>[
         'services'=>$ready&&$c['service_booking_confirmed']===true,
         'vip'=>$ready&&$c['vip_booking_confirmed']===true,
         'books'=>$ready&&$c['book_shipping_confirmed']===true,
@@ -407,12 +431,14 @@ if($path==='/commerce/create'&&$verb==='POST'){
     $b=jsonBody();$items=$b['items']??null;if(!is_array($items)||count($items)<1||count($items)>20)fail('invalid_items');
     $inventory=localCatalog();$counts=[];
     foreach($items as $item){$sku=(string)($item['sku']??'');$q=$item['quantity']??null;if(!isset($inventory[$sku])||!is_int($q)||$q<1||$q>20)fail('invalid_item');$counts[$sku]=($counts[$sku]??0)+$q;}
-    $lines=[];$total=0;$c=cfg();
-    foreach($counts as $sku=>$q){$x=$inventory[$sku];if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'&&$c['book_shipping_confirmed']!==true)fail('book_shipping_not_configured',503);if($x['kind']==='service'&&$c['service_booking_confirmed']!==true)fail('service_booking_not_configured',503);if($x['kind']==='vip'&&$c['vip_booking_confirmed']!==true)fail('vip_booking_not_configured',503);$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
+    $lines=[];$total=0;$c=cfg();$hasBook=false;
+    foreach($counts as $sku=>$q){$x=$inventory[$sku];if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'){$hasBook=true;if($c['book_shipping_confirmed']!==true)fail('book_shipping_not_configured',503);}if($x['kind']==='service'&&$c['service_booking_confirmed']!==true)fail('service_booking_not_configured',503);if($x['kind']==='vip'&&$c['vip_booking_confirmed']!==true)fail('vip_booking_not_configured',503);$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
     if($total<1000||$total>1000000000)fail('amount_out_of_range');
+    $customer=null;$customerEmail=null;$customerJson=null;
+    if($hasBook){$customer=normalizedCustomer($b['customer']??null);$customerEmail=$customer['email'];$customerJson=json_encode($customer,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);if(!is_string($customerJson))fail('customer_encoding_failed',500);}
     $mul=(int)$c['bitpay_amount_multiplier'];$providerAmount=$total*$mul;$order=uuidv4();$factor=preg_replace('/[^0-9]/','',(string)hrtime(true));$factor=substr($factor,0,28);
-    $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,? ,NOW(),NOW())")
-        ->execute([$order,$factor,$total,$providerAmount,'IRT',json_encode($lines,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),'created']);
+    $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,? ,NOW(),NOW())")
+        ->execute([$order,$factor,$total,$providerAmount,'IRT',$customerEmail,$customerJson,json_encode($lines,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),'created']);
     try{
         $callback=SITE_ORIGIN.'/api/commerce/callback?order='.rawurlencode($order);
         $raw=gatewayPost('gateway-send',['amount'=>(string)$providerAmount,'redirect'=>$callback,'factorId'=>$factor,'description'=>'Order '.$order]);
@@ -439,6 +465,13 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
     if($idGet!==(string)$row['provider_id_get']||!preg_match('/^[1-9][0-9]*$/',$trans))fail('callback_mismatch');
     try{$raw=gatewayPost('gateway-result-second',['trans_id'=>$trans,'id_get'=>$idGet,'json'=>'1']);$d=json_decode($raw,true);if(!is_array($d)||!in_array((string)($d['status']??''),['1','11'],true)||(int)($d['amount']??0)!==(int)$row['provider_amount']||(string)($d['factorId']??'')!==(string)$row['factor_id'])fail('verification_mismatch',409);
         $u=$pdo->prepare("UPDATE commerce_orders SET state='paid',provider_trans_id=?,paid_at=NOW(),updated_at=NOW() WHERE id=? AND state='pending' AND provider_id_get=?");$u->execute([$trans,$id,$idGet]);if($u->rowCount()!==1)fail('concurrent_update',409);
+        $customerEmail=(string)($row['customer_email']??'');
+        if(validEmail($customerEmail)&&mailReady()){
+            $items=json_decode((string)$row['items_json'],true);$summary=[];$sum=0;
+            if(is_array($items)){foreach($items as $x){$qty=(int)($x['quantity']??0);$sub=(int)($x['subtotal']??0);$sum+=$sub;$summary[]='- '.(string)($x['title']??$x['sku']??'item').' × '.$qty.' | '.number_format($sub).' تومان';}}
+            $body="سفارش شما با موفقیت پرداخت و در سرور ثبت شد.\n\nشناسه سفارش: ".$id."\n\n".implode("\n",$summary)."\n\nجمع پرداخت: ".number_format($sum)." تومان\n\nاین پیام تأیید پرداخت است و جایگزین فاکتور رسمی مالیاتی نیست.";
+            if(sendLocalMail($customerEmail,'تأیید پرداخت سفارش '.$id,$body)){$pdo->prepare("UPDATE commerce_orders SET receipt_email_sent_at=NOW() WHERE id=?")->execute([$id]);}
+        }
         header('Location: '.SITE_ORIGIN.'/fa/shop/payment-result/?state=paid&order='.rawurlencode($id),true,303);exit;
     }catch(Throwable $e){fail('verification_unavailable',502);}
 }
