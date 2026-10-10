@@ -169,10 +169,10 @@
   checkout.type='button';
   checkout.className='button primary';
   checkout.dataset.bookPayment='';
-  checkout.textContent=isFa?'پرداخت آنلاین کتاب‌ها':'Pay for books online';
-  checkout.disabled=!bookPaymentReady;
-  checkout.textContent=bookPaymentReady?(isFa?'پرداخت آنلاین کتاب‌ها':'Pay for books online'):(isFa?'پرداخت آنلاین کتاب هنوز فعال نیست':'Book checkout not yet available');
-  checkout.title=bookPaymentReady?(isFa?'ثبت سفارش و انتقال به درگاه امن':'Create order and proceed to secure payment'):(isFa?'تا تأیید آمادگی سرور، وجهی دریافت نمی‌شود':'Payment remains disabled until server readiness is verified');
+  checkout.textContent=isFa?'ادامه به تسویه':'Continue to checkout';
+  checkout.disabled=!(bookPaymentReady&&deliveryCaptureReady);
+  checkout.textContent=(bookPaymentReady&&deliveryCaptureReady)?(isFa?'ادامه به تسویه امن':'Continue to secure checkout'):(isFa?'تسویه آنلاین کتاب هنوز فعال نیست':'Book checkout not yet available');
+  checkout.title=(bookPaymentReady&&deliveryCaptureReady)?(isFa?'ورود اطلاعات تحویل و سپس انتقال به درگاه امن':'Enter delivery details, then proceed to secure payment'):(isFa?'تا تأیید کامل ثبت سفارش و درگاه، وجهی دریافت نمی‌شود':'Payment remains disabled until order capture and gateway readiness are verified');
   actions.appendChild(checkout);
 
   const inquiry=document.createElement('a');
