@@ -1,0 +1,133 @@
+name: Bertina Commerce Schema Migration
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/bertina-commerce-schema-migrate.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bertina-commerce-schema-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Install FTPS client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Create one-time migration script
+        id: prep
+        run: |
+          set -euo pipefail
+          TOKEN="$(openssl rand -hex 32)"
+          TOKEN_HASH="$(printf '%s' "$TOKEN" | sha256sum | awk '{print $1}')"
+          NONCE="$(openssl rand -hex 10)"
+          SCRIPT_NAME="commerce-schema-${NONCE}.php"
+          cat > "/tmp/${SCRIPT_NAME}" <<PHP
+          <?php
+          declare(strict_types=1);
+          header('Content-Type: application/json; charset=utf-8');
+          header('Cache-Control: no-store');
+          header('X-Robots-Tag: noindex, noarchive');
+          $expected='${TOKEN_HASH}';
+          $provided=(string)($_SERVER['HTTP_X_MIGRATION_TOKEN']??'');
+          if(!hash_equals($expected,hash('sha256',$provided))){http_response_code(403);echo json_encode(['ok'=>false,'error'=>'forbidden']);exit;}
+          $self=__FILE__;
+          try{
+              $cfg=require __DIR__.'/config.local.php';
+              if(!is_array($cfg))throw new RuntimeException('config_invalid');
+              $pdo=new PDO((string)($cfg['db_dsn']??''),(string)($cfg['db_user']??''),(string)($cfg['db_password']??''),[
+                  PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+                  PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,
+                  PDO::ATTR_EMULATE_PREPARES=>false,
+              ]);
+              $existing=[];
+              foreach($pdo->query("SHOW COLUMNS FROM commerce_orders")->fetchAll() as $row){$existing[(string)$row['Field']]=true;}
+              $changes=[];
+              if(!isset($existing['customer_email'])){$pdo->exec("ALTER TABLE commerce_orders ADD COLUMN customer_email VARCHAR(254) NULL AFTER currency");$changes[]='customer_email';}
+              if(!isset($existing['customer_json'])){$pdo->exec("ALTER TABLE commerce_orders ADD COLUMN customer_json LONGTEXT NULL AFTER customer_email");$changes[]='customer_json';}
+              if(!isset($existing['receipt_email_sent_at'])){$pdo->exec("ALTER TABLE commerce_orders ADD COLUMN receipt_email_sent_at DATETIME NULL AFTER paid_at");$changes[]='receipt_email_sent_at';}
+              $indexes=[];
+              foreach($pdo->query("SHOW INDEX FROM commerce_orders")->fetchAll() as $row){$indexes[(string)$row['Key_name']]=true;}
+              if(!isset($indexes['idx_commerce_customer_email'])){$pdo->exec("CREATE INDEX idx_commerce_customer_email ON commerce_orders(customer_email)");$changes[]='idx_commerce_customer_email';}
+              $check=[];
+              foreach($pdo->query("SHOW COLUMNS FROM commerce_orders")->fetchAll() as $row){$check[]=(string)$row['Field'];}
+              $ok=in_array('customer_email',$check,true)&&in_array('customer_json',$check,true)&&in_array('receipt_email_sent_at',$check,true);
+              echo json_encode(['ok'=>$ok,'changes'=>$changes,'schema'=>'commerce-v2'],JSON_UNESCAPED_SLASHES);
+              if(!$ok)http_response_code(500);
+          }catch(Throwable $e){
+              http_response_code(500);
+              echo json_encode(['ok'=>false,'error'=>'migration_failed']);
+          }finally{
+              @unlink($self);
+          }
+          PHP
+          {
+            echo "token=$TOKEN"
+            echo "script_name=$SCRIPT_NAME"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload migration over protected FTPS
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+          SCRIPT_NAME: ${{ steps.prep.outputs.script_name }}
+        run: |
+          set -euo pipefail
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 20
+          cd "$FTP_REMOTE_DIR/api"
+          put "/tmp/$SCRIPT_NAME" -o "$SCRIPT_NAME"
+          bye
+          LFTP
+
+      - name: Run and verify migration
+        env:
+          TOKEN: ${{ steps.prep.outputs.token }}
+          SCRIPT_NAME: ${{ steps.prep.outputs.script_name }}
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl -kfsS --max-time 60             --resolve drjavadrezazadeh.com:443:188.40.203.218             -H "X-Migration-Token: $TOKEN"             "https://drjavadrezazadeh.com/api/$SCRIPT_NAME")"
+          printf '%s' "$RESPONSE" > /tmp/migration.json
+          node - <<'NODE'
+          const fs=require('fs');
+          const d=JSON.parse(fs.readFileSync('/tmp/migration.json','utf8'));
+          if(d.ok!==true||d.schema!=='commerce-v2') throw new Error('Commerce schema migration failed');
+          console.log('Commerce schema migration PASS:', JSON.stringify(d.changes||[]));
+          NODE
+
+      - name: Cleanup temporary script if still present
+        if: always()
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+          SCRIPT_NAME: ${{ steps.prep.outputs.script_name }}
+        run: |
+          test -n "$SCRIPT_NAME" || exit 0
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 60s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP || true
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          cd "$FTP_REMOTE_DIR/api"
+          rm -f "$SCRIPT_NAME"
+          bye
+          LFTP
