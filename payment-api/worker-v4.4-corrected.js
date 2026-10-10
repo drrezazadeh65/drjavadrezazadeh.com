@@ -1,3 +1,4 @@
+import { auth } from './auth-routes.js';
 
 
 const AMOUNT_RIAL = 100000;
