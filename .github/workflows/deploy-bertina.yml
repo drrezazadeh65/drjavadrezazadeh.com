@@ -104,8 +104,10 @@ jobs:
           header('Cache-Control: no-store');
           header('X-Robots-Tag: noindex, noarchive');
           \$expectedHash = '$TOKEN_HASH';
-          \$provided = (string)(\$_SERVER['HTTP_X_DEPLOY_TOKEN'] ?? '');
-          if (!hash_equals(\$expectedHash, hash('sha256', \$provided))) {
+          \$provided = isset(\$_SERVER['HTTP_X_DEPLOY_TOKEN']) ? (string)\$_SERVER['HTTP_X_DEPLOY_TOKEN'] : '';
+          \$providedHash = hash('sha256', \$provided);
+          \$tokenOk = function_exists('hash_equals') ? hash_equals(\$expectedHash, \$providedHash) : (\$expectedHash === \$providedHash);
+          if (!\$tokenOk) {
               http_response_code(403);
               echo json_encode(['ok'=>false,'error'=>'forbidden']);
               exit;
@@ -166,7 +168,9 @@ jobs:
                   continue;
               }
               \$target = __DIR__ . '/' . \$relative;
-              if (!is_file(\$target) || !hash_equals((string)\$expected, (string)@hash_file('sha256', \$target))) {
+              \$actual = is_file(\$target) ? (string)@hash_file('sha256', \$target) : '';
+              \$same = function_exists('hash_equals') ? hash_equals((string)\$expected, \$actual) : ((string)\$expected === \$actual);
+              if (!is_file(\$target) || !\$same) {
                   \$mismatch[] = \$relative;
               }
               \$checked++;
@@ -174,7 +178,7 @@ jobs:
           foreach (['CNAME','_headers','_redirects','_config.yml'] as \$retired) {
               @unlink(__DIR__ . '/' . \$retired);
           }
-          \$commit = (string)(\$manifest['commit'] ?? '');
+          \$commit = isset(\$manifest['commit']) ? (string)\$manifest['commit'] : '';
           \$ok = count(\$mismatch) === 0 && \$commit === '$GITHUB_SHA';
           \$response = ['ok'=>\$ok,'commit'=>\$commit,'checked'=>\$checked,'mismatch'=>array_slice(\$mismatch,0,20)];
           \$cleanup();
