@@ -11,6 +11,8 @@ on:
 permissions:
   contents: read
 
+# audit-run: 2026-10-10T14:04:00Z
+
 concurrency:
   group: bertina-master-seo
   cancel-in-progress: true
