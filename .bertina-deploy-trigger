@@ -1,5 +1,5 @@
-deploy=customer-dashboard-client-os-v2
+deploy=bertina-production-reconciliation-pr31
 source=migration/bertina-linux6
-source_commit=44744a76d365a72296849683b31233b231ff02ac
+source_commit=90d889c62ee03612eb2dfbad22d2934a34399b46
 mode=bertina-only
-scope=unified-customer-dashboard-ui-ux-private-seo-ecosystem-wiring
+scope=privacy-cache-workflow-performance-dashboard-readiness-reconciliation
