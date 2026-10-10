@@ -30,8 +30,15 @@ function cfg(): array {
         'db_password' => (string)(getenv('JR_DB_PASSWORD') ?: ''),
         'auth_pepper' => (string)(getenv('JR_AUTH_PEPPER') ?: ''),
         'mail_enabled' => getenv('JR_MAIL_ENABLED') === 'true',
-        'mail_from' => (string)(getenv('JR_MAIL_FROM') ?: 'accounts@drjavadrezazadeh.com'),
-        'mail_reply_to' => (string)(getenv('JR_MAIL_REPLY_TO') ?: 'info@drjavadrezazadeh.com'),
+        'mail_from' => (string)(getenv('JR_MAIL_FROM') ?: 'admin@drjavadrezazadeh.com'),
+        'mail_reply_to' => (string)(getenv('JR_MAIL_REPLY_TO') ?: 'admin@drjavadrezazadeh.com'),
+        'smtp_enabled' => getenv('JR_SMTP_ENABLED') === 'true',
+        'smtp_host' => (string)(getenv('JR_SMTP_HOST') ?: ''),
+        'smtp_port' => (int)(getenv('JR_SMTP_PORT') ?: 0),
+        'smtp_security' => strtolower((string)(getenv('JR_SMTP_SECURITY') ?: '')),
+        'smtp_user' => (string)(getenv('JR_SMTP_USER') ?: ''),
+        'smtp_password' => (string)(getenv('JR_SMTP_PASSWORD') ?: ''),
+        'smtp_verify_peer' => getenv('JR_SMTP_VERIFY_PEER') !== 'false',
         'commerce_enabled' => getenv('JR_COMMERCE_ENABLED') === 'true',
         'bitpay_api_key' => (string)(getenv('JR_BITPAY_API_KEY') ?: ''),
         'bitpay_amount_multiplier' => (string)(getenv('JR_BITPAY_AMOUNT_MULTIPLIER') ?: ''),
@@ -70,13 +77,102 @@ function dbReady(): bool {
     if (!$pdo) return false;
     try { $pdo->query('SELECT 1'); return true; } catch (Throwable $e) { return false; }
 }
+function smtpConfigured(array $c): bool {
+    return ($c['smtp_enabled'] ?? false) === true
+        && is_string($c['smtp_host'] ?? null) && trim((string)$c['smtp_host']) !== ''
+        && is_int($c['smtp_port'] ?? null) && (int)$c['smtp_port'] > 0 && (int)$c['smtp_port'] <= 65535
+        && in_array((string)($c['smtp_security'] ?? ''), ['ssl','tls','none'], true)
+        && filter_var((string)($c['mail_from'] ?? ''), FILTER_VALIDATE_EMAIL) !== false
+        && function_exists('stream_socket_client');
+}
 function mailReady(): bool {
     $c = cfg();
-    return $c['mail_enabled'] === true && function_exists('mail') && filter_var($c['mail_from'], FILTER_VALIDATE_EMAIL);
+    if (($c['mail_enabled'] ?? false) !== true) return false;
+    if (smtpConfigured($c)) return true;
+    return function_exists('mail') && filter_var((string)$c['mail_from'], FILTER_VALIDATE_EMAIL) !== false;
+}
+function smtpRead($fp): array {
+    $lines=[];$code=0;
+    while (($line=fgets($fp, 2048)) !== false) {
+        $lines[]=$line;
+        if (preg_match('/^(\\d{3})([ -])/', $line, $m)) {
+            $code=(int)$m[1];
+            if ($m[2]===' ') break;
+        }
+    }
+    return [$code, implode('', $lines)];
+}
+function smtpCmd($fp, string $command, array $expected): bool {
+    if ($command !== '') {
+        if (@fwrite($fp, $command."\r\n") === false) return false;
+    }
+    [$code,] = smtpRead($fp);
+    return in_array($code, $expected, true);
+}
+function smtpSend(string $to, string $subject, string $body): bool {
+    $c=cfg();
+    if (!smtpConfigured($c) || !filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
+    $host=trim((string)$c['smtp_host']);$port=(int)$c['smtp_port'];$security=(string)$c['smtp_security'];
+    $verify=($c['smtp_verify_peer'] ?? true) === true;
+    $context=stream_context_create(['ssl'=>[
+        'verify_peer'=>$verify,
+        'verify_peer_name'=>$verify,
+        'allow_self_signed'=>!$verify,
+        'peer_name'=>$host,
+        'SNI_enabled'=>true,
+    ]]);
+    $remote=($security==='ssl'?'ssl://':'tcp://').$host.':'.$port;
+    $errno=0;$errstr='';
+    $fp=@stream_socket_client($remote,$errno,$errstr,15,STREAM_CLIENT_CONNECT,$context);
+    if(!is_resource($fp))return false;
+    stream_set_timeout($fp,15);
+    try{
+        if(!smtpCmd($fp,'',[220]))return false;
+        $hello=preg_replace('/[^A-Za-z0-9.-]/','',parse_url(SITE_ORIGIN,PHP_URL_HOST) ?: 'localhost');
+        if(!smtpCmd($fp,'EHLO '.$hello,[250]))return false;
+        if($security==='tls'){
+            if(!smtpCmd($fp,'STARTTLS',[220]))return false;
+            if(!@stream_socket_enable_crypto($fp,true,STREAM_CRYPTO_METHOD_TLS_CLIENT))return false;
+            if(!smtpCmd($fp,'EHLO '.$hello,[250]))return false;
+        }
+        $user=(string)($c['smtp_user']??'');$pass=(string)($c['smtp_password']??'');
+        if($user!==''||$pass!==''){
+            if($user===''||$pass==='')return false;
+            if(!smtpCmd($fp,'AUTH LOGIN',[334]))return false;
+            if(!smtpCmd($fp,base64_encode($user),[334]))return false;
+            if(!smtpCmd($fp,base64_encode($pass),[235]))return false;
+        }
+        $from=(string)$c['mail_from'];
+        if(!smtpCmd($fp,'MAIL FROM:<'.$from.'>',[250]))return false;
+        if(!smtpCmd($fp,'RCPT TO:<'.$to.'>',[250,251]))return false;
+        if(!smtpCmd($fp,'DATA',[354]))return false;
+        $encodedSubject='=?UTF-8?B?'.base64_encode($subject).'?=';
+        $reply=(string)($c['mail_reply_to']??$from);
+        $message="From: Dr. Javad Rezazadeh <".$from.">\r\n".
+            "Reply-To: ".$reply."\r\n".
+            "To: <".$to.">\r\n".
+            "Subject: ".$encodedSubject."\r\n".
+            "MIME-Version: 1.0\r\n".
+            "Content-Type: text/plain; charset=UTF-8\r\n".
+            "Content-Transfer-Encoding: 8bit\r\n".
+            "Date: ".gmdate('D, d M Y H:i:s').' +0000'."\r\n".
+            "Message-ID: <".bin2hex(random_bytes(12))."@drjavadrezazadeh.com>\r\n\r\n".
+            str_replace(["\r\n","\r"],"\n",$body);
+        $message=str_replace("\n","\r\n",$message);
+        $message=preg_replace('/(?m)^\\./','..',$message);
+        if(@fwrite($fp,$message."\r\n.\r\n")===false)return false;
+        [$code,]=smtpRead($fp);
+        if($code!==250)return false;
+        @fwrite($fp,"QUIT\r\n");
+        return true;
+    } finally {
+        @fclose($fp);
+    }
 }
 function sendLocalMail(string $to, string $subject, string $body): bool {
     if (!mailReady() || !filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
     $c = cfg();
+    if (smtpConfigured($c)) return smtpSend($to,$subject,$body);
     $headers = [
         'From: Dr. Javad Rezazadeh <'.$c['mail_from'].'>',
         'Reply-To: '.$c['mail_reply_to'],
@@ -230,7 +326,7 @@ function gatewayPost(string $endpoint,array $fields): string {
 $path=route();$verb=method();
 
 if ($path==='/health' && $verb==='GET') {
-    $hc=cfg(); respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?'bertina-local':'not-configured','mailConfigEnabled'=>$hc['mail_enabled']===true,'mailFunctionAvailable'=>function_exists('mail'),'mailFromValid'=>filter_var((string)$hc['mail_from'], FILTER_VALIDATE_EMAIL)!==false,'auth'=>authReady(),'commerce'=>commerceReady()]);
+    $hc=cfg(); respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?(smtpConfigured($hc)?'bertina-smtp':'bertina-local'):'not-configured','mailConfigEnabled'=>$hc['mail_enabled']===true,'smtpConfigured'=>smtpConfigured($hc),'mailFunctionAvailable'=>function_exists('mail'),'mailFromValid'=>filter_var((string)$hc['mail_from'], FILTER_VALIDATE_EMAIL)!==false,'auth'=>authReady(),'commerce'=>commerceReady()]);
 }
 
 if ($path==='/auth/health' && $verb==='GET') {
