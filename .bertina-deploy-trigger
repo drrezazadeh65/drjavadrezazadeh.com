@@ -1,5 +1,6 @@
-deploy=historical-authority-pr34
+deploy=operations-control-center-pr36
 source=migration/bertina-linux6
-source_commit=04f55c4e1d65860ff8e8d90e4f5eba0466aba91e
+source_commit=74753db4570279c7797aef2f68bc4c84626750b2
 mode=bertina-only
-scope=one-hop-historical-redirects-strict-release-verification
+scope=secure-admin-scoped-evidence-and-independent-tls-gate
+requested_at=2026-10-10 23:21:35 UTC
