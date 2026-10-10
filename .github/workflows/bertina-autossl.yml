@@ -1,0 +1,98 @@
+name: Bertina AutoSSL Activate
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/bertina-autossl.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  autossl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check cPanel AutoSSL feature
+        env:
+          CPANEL_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          CPANEL_PASS: ${{ secrets.BERTINA_FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          api() {
+            curl --fail-with-body --silent --show-error               --user "$CPANEL_USER:$CPANEL_PASS"               "https://server388.bertina.biz:2083/execute/$1"
+          }
+          api "Features/has_feature?name=autossl" > /tmp/feature.json
+          jq -e '.result.status == 1' /tmp/feature.json >/dev/null
+          echo "AutoSSL feature API is available."
+
+      - name: Include primary domains in AutoSSL
+        env:
+          CPANEL_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          CPANEL_PASS: ${{ secrets.BERTINA_FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error             --user "$CPANEL_USER:$CPANEL_PASS"             "https://server388.bertina.biz:2083/execute/SSL/remove_autossl_excluded_domains?domains=drjavadrezazadeh.com%2Cwww.drjavadrezazadeh.com"             > /tmp/include.json
+          jq -e '.result.status == 1' /tmp/include.json >/dev/null
+          echo "Primary domain and www are included in AutoSSL."
+
+      - name: Start AutoSSL
+        env:
+          CPANEL_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          CPANEL_PASS: ${{ secrets.BERTINA_FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error             --user "$CPANEL_USER:$CPANEL_PASS"             "https://server388.bertina.biz:2083/execute/SSL/start_autossl_check"             > /tmp/start.json
+          jq -e '.result.status == 1' /tmp/start.json >/dev/null
+          echo "AutoSSL started."
+
+      - name: Wait for AutoSSL completion
+        env:
+          CPANEL_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          CPANEL_PASS: ${{ secrets.BERTINA_FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 36); do
+            curl --fail-with-body --silent --show-error               --user "$CPANEL_USER:$CPANEL_PASS"               "https://server388.bertina.biz:2083/execute/SSL/is_autossl_check_in_progress"               > /tmp/progress.json
+            status="$(jq -r '.result.status' /tmp/progress.json)"
+            test "$status" = "1"
+            inprogress="$(jq -r '.result.data' /tmp/progress.json)"
+            echo "AutoSSL poll $i: in_progress=$inprogress"
+            if [ "$inprogress" = "0" ] || [ "$inprogress" = "false" ] || [ "$inprogress" = "null" ]; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "AutoSSL did not finish within six minutes."
+          exit 1
+
+      - name: Check AutoSSL renewal status
+        env:
+          CPANEL_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          CPANEL_PASS: ${{ secrets.BERTINA_FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for d in drjavadrezazadeh.com www.drjavadrezazadeh.com; do
+            curl --fail-with-body --silent --show-error               --user "$CPANEL_USER:$CPANEL_PASS"               "https://server388.bertina.biz:2083/execute/SSL/get_autossl_renewal_status?domain=$d"               > "/tmp/status-$d.json"
+            jq -e '.result.status == 1' "/tmp/status-$d.json" >/dev/null
+            echo "$d AutoSSL status API: OK"
+          done
+
+      - name: Verify public TLS certificate
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 12); do
+            if curl -fsSI --max-time 20 https://drjavadrezazadeh.com/ >/tmp/https-head 2>/tmp/https-err; then
+              echo "HTTPS handshake succeeds."
+              break
+            fi
+            echo "Waiting for public certificate installation ($i/12)..."
+            sleep 10
+          done
+          curl -fsSI --max-time 30 https://drjavadrezazadeh.com/ >/tmp/https-head
+          echo | openssl s_client -connect drjavadrezazadeh.com:443 -servername drjavadrezazadeh.com -verify_return_error 2>/tmp/tls.err |             openssl x509 -noout -subject -issuer -dates -ext subjectAltName >/tmp/cert.txt
+          cat /tmp/cert.txt
+          grep -Eq 'DNS:drjavadrezazadeh\.com' /tmp/cert.txt
+          grep -Eq 'DNS:www\.drjavadrezazadeh\.com' /tmp/cert.txt
