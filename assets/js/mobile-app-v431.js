@@ -103,7 +103,7 @@ const setMenu=(open,{history=true}={})=>{
    document.documentElement.classList.add('nav-open');
    menuTriggers.forEach(t=>t.setAttribute('aria-expanded','true'));
    if(history && history!==false && !history.state?.mobileAppMenu) window.history.pushState({...history.state,mobileAppMenu:true},'');
-   requestAnimationFrame(()=>menuClose?.focus({preventScroll:true}));
+   menuClose?.focus({preventScroll:true});
  }else{
    panel.classList.remove('is-open');
    document.documentElement.classList.remove('nav-open');
