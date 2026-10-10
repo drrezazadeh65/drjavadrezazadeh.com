@@ -1,11 +1,10 @@
-name: Customer Auth Live Readiness
+name: Bertina Customer Auth Readiness
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
-      - 'payment-api/auth-routes.js'
-      - 'payment-api/migrations/v4.4.1-customer-auth.sql'
+      - 'api/**'
       - 'assets/js/customer-auth.js'
       - 'fa/register/**'
       - 'fa/login/**'
@@ -26,5 +25,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify deployed unified customer auth runtime
+      - name: Verify deployed Bertina unified customer auth runtime
         run: node scripts/auth-live-readiness-audit.mjs
