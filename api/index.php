@@ -421,7 +421,7 @@ if (str_starts_with($path,'/auth/')) {
 
 if($path==='/commerce/health'&&$verb==='GET'){
     $c=cfg();$ready=commerceReady();
-    respond(['ok'=>true,'service'=>'commerce','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'requirements'=>[
+    respond(['ok'=>true,'service'=>'commerce','hardeningRevision'=>'tls-gate-v1','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'requirements'=>[
         'database'=>dbReady(),
         'schema'=>commerceSchemaReady(),
         'publicTlsConfirmed'=>$c['public_tls_confirmed']===true,
