@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 
-# live config probe 2026-10-10T13:34:43.895Z
+# live config probe secure-checkout-v2
 jobs:
   verify:
     # mail readiness probe
@@ -40,3 +40,9 @@ jobs:
           cat /tmp/api-health.json
           grep -F '"hosting":"bertina"' /tmp/api-health.json
           grep -F '"database":true' /tmp/api-health.json
+          grep -F '"mailTransport":"bertina-smtp"' /tmp/api-health.json
+          grep -F '"auth":true' /tmp/api-health.json
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP             https://drjavadrezazadeh.com/api/commerce/health -o /tmp/commerce-health.json
+          cat /tmp/commerce-health.json
+          grep -F '"orderCapture":true' /tmp/commerce-health.json
