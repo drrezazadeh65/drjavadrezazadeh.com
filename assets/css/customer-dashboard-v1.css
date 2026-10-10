@@ -370,3 +370,33 @@ body.customer-dashboard.rtl{font-family:Tahoma,Arial,sans-serif}
 @media(hover:none) and (pointer:coarse){
   .cd-module:hover{transform:none}
 }
+
+
+/* Dashboard service marketplace */
+.cd-market-tools{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:12px}
+.cd-market-search{display:grid;gap:6px;min-width:min(440px,100%);color:var(--cd-muted);font-size:9px}
+.cd-market-search input{width:100%;min-height:46px;padding:10px 13px;border:1px solid var(--cd-line);border-radius:14px;background:#0c1219;color:var(--cd-ink);outline:none}
+.cd-market-search input::placeholder{color:#687583}
+.cd-market-search input:focus{border-color:var(--cd-line-strong);box-shadow:0 0 0 3px rgba(232,207,152,.055)}
+.cd-market-status{margin:0 0 10px;color:var(--cd-muted);font-size:9px}
+.cd-service-market{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cd-service-card{position:relative;min-height:230px;padding:17px;border:1px solid var(--cd-line);border-radius:21px;background:linear-gradient(155deg,#141d29,#0d131b);overflow:hidden}
+.cd-service-card h3{margin:0 0 8px;font-size:12px;line-height:1.7}
+.cd-service-price{color:var(--cd-gold);font-size:15px;font-weight:900}
+.cd-service-duration{display:block;margin-top:3px;color:#7f8a96;font-size:8px}
+.cd-service-fit{margin:11px 0 58px;color:var(--cd-muted);font-size:9px;line-height:1.8;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cd-service-actions{position:absolute;left:17px;right:17px;bottom:16px;display:flex;align-items:center;gap:7px}
+.rtl .cd-service-actions{left:17px;right:17px}
+.cd-service-buy{flex:1;min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:12px;background:linear-gradient(135deg,#e8cf98,#bea060);color:#141515;font-size:9px;font-weight:900}
+.cd-service-more{min-width:40px;min-height:40px;display:grid;place-items:center;border:1px solid var(--cd-line);border-radius:12px;color:var(--cd-gold);font-size:13px}
+.cd-service-card[data-purchase-ready="false"] .cd-service-buy{background:#17202a;color:#c7d0d9;border:1px solid var(--cd-line)}
+.cd-service-empty{grid-column:1/-1;padding:26px;border:1px dashed var(--cd-line-strong);border-radius:20px;text-align:center;color:var(--cd-muted);font-size:10px}
+@media(max-width:1100px){.cd-service-market{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:920px){
+  .cd-market-tools{align-items:stretch;flex-direction:column}
+  .cd-market-tools .cd-btn{width:100%}
+  .cd-service-market{display:flex;gap:9px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;margin-inline:-2px;padding:2px 2px 6px}
+  .cd-service-market::-webkit-scrollbar{display:none}
+  .cd-service-card{flex:0 0 min(78vw,300px);min-height:224px;scroll-snap-align:start}
+}
+@media(max-width:420px){.cd-service-card{flex-basis:82vw}}
