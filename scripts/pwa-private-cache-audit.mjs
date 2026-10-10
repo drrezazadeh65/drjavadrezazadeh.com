@@ -3,6 +3,10 @@ import fs from 'node:fs';
 const failures=[];
 const site=fs.readFileSync('assets/js/site.js','utf8');
 const sw=fs.readFileSync('sw.js','utf8');
+const ecosystem=JSON.parse(fs.readFileSync('platform/ecosystem-registry.json','utf8'));
+const registry=ecosystem.route_families.filter(route=>ecosystem.policies[route.policy]?.cache==='NO_STORE').map(route=>route.prefix);
+const apache=fs.readFileSync('.htaccess','utf8').match(/SetEnvIf Request_URI "([^"]+)" PRIVATE_ROUTE=1/);
+const apachePolicy=apache&&new RegExp(apache[1]);
 
 function quotedList(source,labelPattern){
   const m=source.match(labelPattern);
@@ -25,6 +29,15 @@ if(sitePrivate&&swPrivate){
   const missingInSite=b.filter(x=>!a.includes(x));
   if(missingInSw.length) failures.push('sw.js missing no-store prefixes: '+missingInSw.join(', '));
   if(missingInSite.length) failures.push('site.js missing SW private prefixes: '+missingInSite.join(', '));
+  if(JSON.stringify(a)!==JSON.stringify([...new Set(registry)].sort())) failures.push('Browser private prefixes drift from ecosystem route families');
+  for(const prefix of registry){
+    for(const route of [prefix.slice(0,-1),prefix,prefix+'index.html',prefix+'nested/record']){
+      if(!apachePolicy?.test(route)) failures.push('Apache private policy missing '+route);
+    }
+  }
+  for(const route of ['/fa/services/','/fa/shop/','/fa/shop/golden-talent/','/en/golden-talent/','/fa/services/checkout-help/']){
+    if(apachePolicy?.test(route)) failures.push('Apache private policy captures public '+route);
+  }
 }
 
 if(swPrivate&&core){

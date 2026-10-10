@@ -1,25 +1,19 @@
-name: Registration Intake Checks
+name: Retired Intake Reference Check
+
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'edge/intake/**'
-      - '.github/workflows/registration-intake-check.yml'
-  pull_request:
-    paths:
-      - 'edge/intake/**'
-      - '.github/workflows/registration-intake-check.yml'
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
-  syntax:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check Worker syntax
-        working-directory: edge/intake
-        run: npm run check
+      - name: Validate source without publishing changes
+        run: |
+          echo 'The retired intake reference is replaced by same-origin Bertina identity checks in auth-reference-check.yml.'

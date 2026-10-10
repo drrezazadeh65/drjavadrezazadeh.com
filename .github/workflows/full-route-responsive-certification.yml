@@ -2,7 +2,7 @@ name: Full Route Responsive Certification
 
 on:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
       - '**/*.html'
       - 'assets/css/**'
@@ -11,6 +11,8 @@ on:
       - 'sw.js'
       - 'tests/full-route-responsive.spec.js'
       - '.github/workflows/full-route-responsive-certification.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
   workflow_dispatch:
 
 permissions:

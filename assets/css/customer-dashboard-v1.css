@@ -563,7 +563,7 @@ body.customer-dashboard.rtl{font-family:Tahoma,Arial,sans-serif}
 .cd-stat strong[data-commerce-status]{font-size:13px}
 html[data-customer-authenticated="true"] .cd-module .cd-state.locked[data-auth-lock]{color:var(--cd-ok);border-color:rgba(159,215,182,.22);background:rgba(159,215,182,.04)}
 @media(max-width:1100px){
-  .cd-command-center{grid-template-columns:1fr}
+  .cd-command-center{grid-template-columns:minmax(0,1fr)}
   .cd-runtime-panel{grid-template-columns:minmax(0,1fr);padding:16px}
 }
 @media(max-width:920px){

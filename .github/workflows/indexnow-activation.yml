@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   indexnow:
+    if: inputs.mode != 'live' || github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:

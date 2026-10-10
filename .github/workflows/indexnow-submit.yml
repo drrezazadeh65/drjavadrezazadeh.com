@@ -1,14 +1,6 @@
 name: IndexNow Submission
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '**/*.html'
-      - 'sitemap*.xml'
-      - 'assets/search-index.json'
-      - 'platform/service-catalog.json'
-      - '.github/workflows/indexnow-submit.yml'
   workflow_dispatch:
     inputs:
       submit_all:
@@ -21,11 +13,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: indexnow-live-main
+  group: indexnow-live-bertina
   cancel-in-progress: true
 
 jobs:
   indexnow:
+    if: github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:

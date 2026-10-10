@@ -1,5 +1,5 @@
 /* JR Cache Standard v2.0 — fresh-by-default, offline-safe, privacy-safe */
-const CACHE_VERSION='jr-site-20261010-bertina-cache-v4';
+const CACHE_VERSION='jr-site-20261010-bertina-cache-v5';
 const CACHE_FAMILY='jr-site-';
 const SHELL_CACHE=CACHE_VERSION+'-shell';
 const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
@@ -14,6 +14,7 @@ const CORE=[
 ];
 
 const PRIVATE_PREFIXES=[
+  '/api/','/fa/services/checkout/','/fa/shop/golden-talent/checkout/',
   '/fa/app/','/fa/customer-dashboard/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/',
   '/en/login/','/en/register/','/en/recover/','/en/account/',
   '/fa/assessments/','/assessments/',
@@ -31,7 +32,7 @@ self.addEventListener('install',event=>{
     await Promise.all(CORE.map(async url=>{
       try{
         const res=await fetch(url,{cache:'reload'});
-        if(res.ok) await cache.put(url,res.clone());
+        if(isCacheableResponse(res)) await cache.put(url,res.clone());
       }catch(_){}
     }));
     await self.skipWaiting();
@@ -78,7 +79,18 @@ function localPath(url){
 
 function isPrivate(url){
   const path=localPath(url);
-  return PRIVATE_PREFIXES.some(prefix=>path.startsWith(prefix));
+  return PRIVATE_PREFIXES.some(prefix=>path===prefix.slice(0,-1) || path.startsWith(prefix));
+}
+
+function isCacheableResponse(res){
+  if(!res.ok) return false;
+  const control=res.headers.get('Cache-Control')||'';
+  if(/(?:^|,)\s*(?:no-store|private)(?:\s*(?:=|,)|\s*$)/i.test(control)) return false;
+  if(res.url){
+    const finalUrl=new URL(res.url);
+    if(finalUrl.origin!==self.location.origin || isPrivate(finalUrl)) return false;
+  }
+  return true;
 }
 
 function isMutableCode(url){
@@ -104,15 +116,18 @@ async function freshNetwork(req,{fallback=null,store=true}={}){
   try{
     // "reload" bypasses the browser HTTP cache and forces revalidation/fresh transfer.
     const res=await fetch(req,{cache:'reload'});
-    if(res.ok && store) await cache.put(req,res.clone());
+    if(isCacheableResponse(res) && store) await cache.put(req,res.clone());
+    else if(res.ok) await cache.delete(req);
     return res;
   }catch(_){
     const hit=await cache.match(req);
-    if(hit) return hit;
+    if(hit && isCacheableResponse(hit)) return hit;
+    if(hit) await cache.delete(req);
     if(fallback){
       const shell=await caches.open(SHELL_CACHE);
       const fb=await shell.match(fallback);
-      if(fb) return fb;
+      if(fb && isCacheableResponse(fb)) return fb;
+      if(fb) await shell.delete(fallback);
     }
     return Response.error();
   }
@@ -121,10 +136,12 @@ async function freshNetwork(req,{fallback=null,store=true}={}){
 async function cacheFirstImmutable(req){
   const cache=await caches.open(RUNTIME_CACHE);
   const hit=await cache.match(req);
-  if(hit) return hit;
+  if(hit && isCacheableResponse(hit)) return hit;
+  if(hit) await cache.delete(req);
   try{
     const res=await fetch(req,{cache:'reload'});
-    if(res.ok) await cache.put(req,res.clone());
+    if(isCacheableResponse(res)) await cache.put(req,res.clone());
+    else if(res.ok) await cache.delete(req);
     return res;
   }catch(_){
     return Response.error();

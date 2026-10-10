@@ -12,7 +12,7 @@
       "notes": [
         "BitPay is the selected domestic gateway and the sandbox roundtrip has been verified.",
         "The production API credential has been obtained but is not stored in the repository or browser.",
-        "Production activation requires an independent secure server-side runtime with persistent order state.",
+        "Production activation uses the existing Bertina PHP/MySQL runtime and requires trusted public TLS, private gateway configuration and controlled reconciliation certification.",
         "Browser return is never proof of payment; verification must be server-side."
       ]
     },

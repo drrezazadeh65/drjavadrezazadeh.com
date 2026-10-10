@@ -213,6 +213,26 @@
       "id": "en-consultation-request",
       "prefix": "/en/request-consultation/",
       "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "same-origin-api",
+      "prefix": "/api/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "fa-customer-dashboard",
+      "prefix": "/fa/customer-dashboard/",
+      "policy": "PRIVATE_APP"
+    },
+    {
+      "id": "fa-services-checkout",
+      "prefix": "/fa/services/checkout/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "fa-gt-checkout",
+      "prefix": "/fa/shop/golden-talent/checkout/",
+      "policy": "TRANSACTIONAL"
     }
   ],
   "module_boundaries": {

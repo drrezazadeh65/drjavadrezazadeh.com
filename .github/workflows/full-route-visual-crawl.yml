@@ -2,13 +2,15 @@ name: Full Route Visual Crawl
 
 on:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
       - '**/*.html'
       - 'assets/css/**'
       - 'assets/js/**'
       - 'tests/full-route-visual-crawl.spec.js'
       - '.github/workflows/full-route-visual-crawl.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
   workflow_dispatch:
   release:
     types: [published]

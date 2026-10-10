@@ -18,6 +18,7 @@ function runPolicy(robotsText,discoveryText=llms){
     fs:{readFileSync(file){
       if(path.basename(file)==='robots.txt') return robotsText;
       if(path.basename(file)==='llms.txt') return discoveryText;
+      if(path.basename(file)==='ecosystem-registry.json') return fs.readFileSync(file,'utf8');
       throw new Error('Unexpected audit input: '+file);
     }},
     path,URL,
@@ -48,6 +49,13 @@ test('a specific private allow cannot override crawler exclusions',()=>{
   const result=runPolicy(changed);
   assert.notEqual(result.status,0);
   assert.match(result.output,/bingbot policy overrides private exclusion/);
+});
+
+test('Persian Golden Talent checkout remains excluded for every named crawler',()=>{
+  const changed=robots.replace('Disallow: /fa/shop/golden-talent/checkout/\n','');
+  const result=runPolicy(changed);
+  assert.notEqual(result.status,0);
+  assert.match(result.output,/OAI-SearchBot policy must disallow private route \/fa\/shop\/golden-talent\/checkout\//);
 });
 
 for(const privateUrl of [

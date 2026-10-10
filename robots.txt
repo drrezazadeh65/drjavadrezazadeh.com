@@ -9,6 +9,7 @@ Disallow: /fa/shop/payment-return/
 Disallow: /fa/shop/payment-start/
 Disallow: /fa/shop/checkout/
 Disallow: /fa/services/checkout/
+Disallow: /fa/shop/golden-talent/checkout/
 Disallow: /fa/bazyabi-hesab/
 Disallow: /fa/register/
 Disallow: /fa/login/
@@ -50,6 +51,7 @@ Disallow: /fa/shop/payment-return/
 Disallow: /fa/shop/payment-start/
 Disallow: /fa/shop/checkout/
 Disallow: /fa/services/checkout/
+Disallow: /fa/shop/golden-talent/checkout/
 Disallow: /fa/bazyabi-hesab/
 Disallow: /fa/register/
 Disallow: /fa/login/
@@ -91,6 +93,7 @@ Disallow: /fa/shop/payment-return/
 Disallow: /fa/shop/payment-start/
 Disallow: /fa/shop/checkout/
 Disallow: /fa/services/checkout/
+Disallow: /fa/shop/golden-talent/checkout/
 Disallow: /fa/bazyabi-hesab/
 Disallow: /fa/register/
 Disallow: /fa/login/
@@ -132,6 +135,7 @@ Disallow: /fa/shop/payment-return/
 Disallow: /fa/shop/payment-start/
 Disallow: /fa/shop/checkout/
 Disallow: /fa/services/checkout/
+Disallow: /fa/shop/golden-talent/checkout/
 Disallow: /fa/bazyabi-hesab/
 Disallow: /fa/register/
 Disallow: /fa/login/
@@ -173,6 +177,7 @@ Disallow: /fa/shop/payment-return/
 Disallow: /fa/shop/payment-start/
 Disallow: /fa/shop/checkout/
 Disallow: /fa/services/checkout/
+Disallow: /fa/shop/golden-talent/checkout/
 Disallow: /fa/bazyabi-hesab/
 Disallow: /fa/register/
 Disallow: /fa/login/

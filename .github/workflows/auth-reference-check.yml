@@ -1,26 +1,37 @@
-name: Auth Reference Checks
+name: Bertina Identity Source Checks
+
 on:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
-      - 'edge/auth/**'
+      - 'api/**'
+      - 'assets/js/customer-auth.js'
+      - 'platform/identity-auth-policy*'
+      - 'tests/account-commerce-consistency.test.mjs'
       - '.github/workflows/auth-reference-check.yml'
   pull_request:
+    branches: [migration/bertina-linux6]
     paths:
-      - 'edge/auth/**'
+      - 'api/**'
+      - 'assets/js/customer-auth.js'
+      - 'platform/identity-auth-policy*'
+      - 'tests/account-commerce-consistency.test.mjs'
       - '.github/workflows/auth-reference-check.yml'
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
-  verify:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Run token policy tests
-        run: node --test edge/auth/tests/*.test.mjs
-      - name: Validate reference module syntax
-        run: node --check edge/auth/reference/token-policy.mjs
+      - name: Validate source without publishing changes
+        run: |
+          php -l api/index.php
+          php -l api/config.example.php
+          node --test platform/identity-auth-policy.test.mjs tests/account-commerce-consistency.test.mjs

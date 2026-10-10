@@ -1,8 +1,8 @@
-name: Production HTTP Compression Diagnostic
+name: Bertina HTTP Compression Diagnostic
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
       - .github/workflows/http-compression-diagnostic.yml
 permissions:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Check Brotli and Gzip delivered by production CDN
+      - name: Check Brotli and Gzip delivered by Bertina
         shell: bash
         run: |
           set -euo pipefail
@@ -26,7 +26,7 @@ jobs:
                 -H 'User-Agent: Mozilla/5.0 (compatible; JRCompressionAudit/1.0)' \
                 -D "$header_file" -o /dev/null \
                 "https://drjavadrezazadeh.com$path"
-              tr -d '\r' < "$header_file" | grep -Ei '^(HTTP/|content-type:|content-encoding:|vary:|content-length:|server:|cf-cache-status:|cache-control:)' || true
+              tr -d '\r' < "$header_file" | grep -Ei '^(HTTP/|content-type:|content-encoding:|vary:|content-length:|server:|cache-control:)' || true
               if ! grep -qi '^content-encoding:' "$header_file"; then
                 echo 'ACTUAL_CONTENT_ENCODING=none'
               fi

@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "rule": "Concatenate adjacent optional styles in original cascade order. Keep primary public/private layers separate. Run node scripts/stylesheet-bundles.mjs after editing a source; use --check in gates.",
+  "bundles": [
+    {
+      "output": "consultation-mobile.bundle.css",
+      "sources": [
+        "mobile-app-v431.css",
+        "first-fold-mobile-v43.css"
+      ],
+      "pages": [
+        "en/services/index.html",
+        "fa/darkhast-moshavere/index.html"
+      ]
+    },
+    {
+      "output": "service-discovery-mobile.bundle.css",
+      "sources": [
+        "mobile-app-v431.css",
+        "service-discovery.css",
+        "premium-commerce-v432.css"
+      ],
+      "pages": [
+        "fa/khadamat/index.html"
+      ]
+    },
+    {
+      "output": "knowledge-hub-mobile.bundle.css",
+      "sources": [
+        "knowledge-hub.css",
+        "mobile-app-v431.css"
+      ],
+      "pages": [
+        "fa/rahnamaha/index.html"
+      ]
+    },
+    {
+      "output": "decision-guide.bundle.css",
+      "sources": [
+        "knowledge-article.css",
+        "decision-matrix.css"
+      ],
+      "pages": [
+        "fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/index.html"
+      ]
+    },
+    {
+      "output": "cart-mobile.bundle.css",
+      "sources": [
+        "mobile-app-v431.css",
+        "premium-commerce-v432.css"
+      ],
+      "pages": [
+        "fa/shop/cart/index.html"
+      ]
+    },
+    {
+      "output": "checkout-mobile.bundle.css",
+      "sources": [
+        "luxury-checkout.css",
+        "mobile-app-v431.css"
+      ],
+      "pages": [
+        "fa/shop/checkout/index.html",
+        "en/shop/checkout/index.html"
+      ]
+    },
+    {
+      "output": "store-mobile.bundle.css",
+      "sources": [
+        "store.css",
+        "mobile-app-v431.css"
+      ],
+      "pages": [
+        "en/shop/index.html"
+      ]
+    },
+    {
+      "output": "store-premium-mobile.bundle.css",
+      "sources": [
+        "store.css",
+        "mobile-app-v431.css",
+        "first-fold-mobile-v43.css",
+        "premium-commerce-v432.css"
+      ],
+      "pages": [
+        "fa/shop/index.html"
+      ]
+    }
+  ]
+}

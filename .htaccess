@@ -22,7 +22,9 @@ RewriteRule ^shop/?$ https://drjavadrezazadeh.com/fa/shop/ [R=301,L,NE]
 </IfModule>
 
 <IfModule mod_setenvif.c>
-SetEnvIf Request_URI "^/(api|fa/app|app|fa/login|login|fa/register|register|fa/bazyabi-hesab|en/login|en/register|en/recover|en/account|fa/assessments|assessments|fa/shop/(cart|checkout|payment-start|payment-return|payment-result)|en/shop/(cart|checkout)|en/golden-talent/(assessment|dashboard|observer|roles|student|checkout|plans)|fa/darkhast-moshavere|en/request-consultation)(/|$)" PRIVATE_ROUTE=1
+SetEnvIf Request_URI "^/(api|fa/customer-dashboard|fa/services/checkout|fa/shop/golden-talent/checkout|fa/app|app|fa/login|login|fa/register|register|fa/bazyabi-hesab|en/login|en/register|en/recover|en/account|fa/assessments|assessments|fa/shop/(cart|checkout|payment-start|payment-return|payment-result)|en/shop/(cart|checkout)|en/golden-talent/(assessment|dashboard|observer|roles|student|checkout|plans)|fa/darkhast-moshavere|en/request-consultation)(/|$)" PRIVATE_ROUTE=1
+# ErrorDocument redirects rename request environment flags; preserve private 404 headers.
+SetEnvIfExpr "reqenv('REDIRECT_PRIVATE_ROUTE') == '1'" PRIVATE_ROUTE=1
 </IfModule>
 
 <IfModule mod_headers.c>

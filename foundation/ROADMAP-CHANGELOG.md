@@ -1,6 +1,26 @@
 # ROADMAP CHANGELOG
 
+## 2026-10-10 — Bertina source reconciliation
+
+Source base: `655bea2f`; recorded content deployment: `dfdd624a`. Existing PHP/MySQL/SMTP, email-only auth, book-only order capture and payment/receipt source are retained. Recorded health and transactional rollback evidence do not certify trusted public TLS, actual email delivery or live payment.
+
+- `INFRA-010`: `IN PROGRESS` → `IN PROGRESS` — Bertina Linux/Apache/PHP/MySQL/domain-mail production architecture is selected and implemented. Recorded release evidence reports database, auth and SMTP configuration readiness; trusted public TLS, certified delivery and private operational bindings remain pending.
+- `INFRA-009`: `IN PROGRESS` → `IN PROGRESS` — Canonical-origin migration to https://drjavadrezazadeh.com is recorded as completed; preserve frozen URLs and independently certify strict public-origin TLS and redirect behavior before any HTTPS activation.
+- `COM-009`: `IN PROGRESS` → `IN PROGRESS` — BitPay is the selected domestic gateway; existing policy records its sandbox baseline. Public monetary checkout remains disabled pending trusted TLS, private Bertina credential/configuration review and separate controlled activation. International provider activation remains deferred.
+- `COM-010`: `IN PROGRESS` → `IN PROGRESS` — Bertina PHP server-side callback/status and receipt contracts are implemented; controlled production callback, receipt, reconciliation and settlement certification remain pending.
+- `COM-007`: `IN PROGRESS` → `IN PROGRESS` — Bilingual checkout shells and book-only PHP/MySQL order capture are implemented. Recorded transactional dry-run validated server-priced INSERT followed by rollback without starting payment; public monetary checkout remains fail-closed.
+- `CRM-003`: `IN PROGRESS` → `IN PROGRESS` — Bertina SMTP transport and account/order message source are implemented; recorded release health reports configuration readiness. Controlled verification/recovery delivery, monitored reply handling and final transactional templates remain pending.
+- `PORTAL-006`: `IN PROGRESS` → `IN PROGRESS` — Email-only registration, verification, login and session APIs and browser wiring are implemented; phone remains optional contact-only. Public register/email/verify/login certification awaits CA-trusted TLS and controlled delivery checks.
+- `PORTAL-007`: `IN PROGRESS` → `IN PROGRESS` — Email-only recovery/reset endpoints, single-use tokens and session revocation are implemented; public recovery delivery and end-to-end certification remain pending.
+- `SEC-005`: `IN PROGRESS` → `IN PROGRESS` — Bertina PHP password hashing, pepper requirement, hashed sessions and recovery revocation are implemented. Recorded auth-health readiness does not certify public authentication or actual password hashing/delivery end to end.
+
+
 This file records status transitions for the frozen Master Ecosystem Roadmap. Items are never silently removed.
+
+- `INFRA-008`: `IN PROGRESS` → `IN PROGRESS` — Permanent domain is delegated to Bertina; TLS installation is the remaining public-origin prerequisite.
+- `INFRA-011`: `IN PROGRESS` → `IN PROGRESS` — Staging/preview policy frozen: non-production previews remain noindex, private no-store, synthetic-data only, with production secrets/payments excluded and CI-gated promotion.
+- `CRM-001`: `IN PROGRESS` → `IN PROGRESS` — Public AI assistant retains the bilingual local guidance fallback. Consent-based lead capture and live AI are disabled until a Bertina-hosted server-side persistence/runtime is implemented and verified.
+- `COM-004`: `DONE` → `DONE` — Bilingual book-storefront/category architecture is implemented under /fa/shop/ and /en/shop/; current public storefronts are indexable, while cart, checkout and payment routes remain private/noindex/no-store. Monetary checkout remains fail-closed.
 
 ## 2026-10-05
 

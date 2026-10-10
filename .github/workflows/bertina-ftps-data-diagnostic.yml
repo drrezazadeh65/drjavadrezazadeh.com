@@ -1,12 +1,12 @@
 name: Bertina FTPS Data Channel Diagnostic
 on:
-  push:
-    branches: [migration/bertina-linux6]
-    paths: ['.github/workflows/bertina-ftps-data-diagnostic.yml']
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:
   diagnose:
+    if: github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:

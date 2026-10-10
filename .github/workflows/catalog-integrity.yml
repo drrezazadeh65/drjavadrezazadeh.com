@@ -15,6 +15,7 @@ on:
       - 'fa/shop/payment-start/index.html'
       - '.github/workflows/catalog-integrity.yml'
   pull_request:
+    branches: [migration/bertina-linux6]
     paths:
       - 'assets/data/**'
       - 'assets/images/books/**'

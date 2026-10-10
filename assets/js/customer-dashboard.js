@@ -87,6 +87,11 @@ function commercialReady(r){return !!(r?.ok&&r.data?.checkout===true)}
 
 async function hydrate(preloadedAuth){
  const status=$('[data-account-status]'),email=$('[data-account-email]'),avatar=$('[data-account-avatar]'),dot=$('[data-live-dot]');
+ delete document.documentElement.dataset.customerAuthenticated;
+ dot?.classList.remove('ready');
+ if(status)status.textContent=copy.guest;
+ if(email)email.textContent=copy.empty;
+ if(avatar)avatar.textContent='JR';
  const auth=preloadedAuth||await jsonRequest(API+'/auth/health',{credentials:'include'});
  if(!auth.ok||auth.data?.ready!==true){
   if(status)status.textContent=copy.authOff;
@@ -179,7 +184,7 @@ function network(){
   runtimeRow('network',online?'ready':'error',online?copy.networkReady:copy.networkOffline,online?copy.connected:copy.offline);
   if(!online)livePill('offline',copy.offline);
  };
- addEventListener('online',()=>{update();operationalStatus().then(x=>hydrate(x.auth)).catch(()=>{})});
+ addEventListener('online',()=>{update();refresh().catch(()=>{})});
  addEventListener('offline',update);
  update();
 }
@@ -214,7 +219,7 @@ function serviceMarketplace(runtime,authenticated){
   if(status)status.textContent=lang==='fa'?'فهرست خدمات موقتاً در دسترس نیست.':'Service catalogue is temporarily unavailable.';
   host.innerHTML='<div class="cd-service-empty">'+(lang==='fa'?'بارگذاری خدمات انجام نشد. از کاتالوگ رسمی خدمات استفاده کنید.':'Services could not be loaded. Use the official catalogue.')+'</div>';
  });
- search?.addEventListener('input',render);
+ if(search)search.oninput=render;
 }
 
 function authNavigation(authenticated){
@@ -227,12 +232,12 @@ function authNavigation(authenticated){
   else{primary.setAttribute('href',login);primary.textContent=lang==='en'?'Sign in':'ورود به حساب'}
  }
  const selectors=lang==='en'?'a[href^="/en/account/"],[data-private-route]':'a[href^="/fa/app/account/"],[data-private-route]';
- $(selectors).forEach(a=>{
+ $$(selectors).forEach(a=>{
   if(!a.dataset.privateHref)a.dataset.privateHref=a.getAttribute('href')||'';
   if(authenticated&&a.dataset.privateHref){a.setAttribute('href',a.dataset.privateHref);a.removeAttribute('aria-disabled');a.dataset.access='authenticated'}
   else if(!authenticated){a.setAttribute('href',login);a.setAttribute('aria-disabled','true');a.dataset.access='signin-required'}
  });
- $('[data-auth-state-copy]').forEach(el=>{el.textContent=authenticated?(lang==='fa'?'ورود امن تأیید شده؛ مسیرهای خصوصی حساب باز هستند.':'Secure sign-in verified; private account routes are available.'):(lang==='fa'?'برای مشاهده پرونده‌ها، اسناد و مسیرهای خصوصی وارد حساب شوید.':'Sign in to access private records, documents and workspaces.')});
+ $$('[data-auth-state-copy]').forEach(el=>{el.textContent=authenticated?(lang==='fa'?'ورود امن تأیید شده؛ مسیرهای خصوصی حساب باز هستند.':'Secure sign-in verified; private account routes are available.'):(lang==='fa'?'برای مشاهده پرونده‌ها، اسناد و مسیرهای خصوصی وارد حساب شوید.':'Sign in to access private records, documents and workspaces.')});
 }
 
 function logout(){
@@ -243,11 +248,15 @@ function logout(){
  }));
 }
 
-document.addEventListener('DOMContentLoaded',async()=>{
- network();nav();sheet();commandCenter();logout();
+async function refresh(){
  const runtime=await operationalStatus();
  const authenticated=await hydrate(runtime.auth);
  authNavigation(authenticated);
  serviceMarketplace(runtime,authenticated);
+}
+
+document.addEventListener('DOMContentLoaded',async()=>{
+ network();nav();sheet();commandCenter();logout();
+ await refresh();
 });
 })();

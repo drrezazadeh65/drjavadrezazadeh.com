@@ -1,7 +1,7 @@
 name: SEO service release gate
 on:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
       - 'fa/services/**'
       - 'fa/vip/**'
@@ -9,8 +9,8 @@ on:
       - 'assets/images/vip-*.svg'
       - 'assets/data/vip-catalog.json'
       - 'assets/js/commerce-checkout.js'
-      - 'payment-api/commerce-routes.js'
-      - 'payment-api/worker-single-file-candidate.js'
+      - 'api/index.php'
+      - 'api/config.example.php'
       - 'platform/paid-student-support*'
       - 'platform/identity-auth-policy.json'
       - 'assets/images/services/**'
@@ -20,6 +20,7 @@ on:
       - 'scripts/seo-services-gate.cjs'
       - '.github/workflows/seo-services-gate.yml'
   pull_request:
+    branches: [migration/bertina-linux6]
     paths:
       - 'fa/services/**'
       - 'fa/vip/**'
@@ -27,8 +28,8 @@ on:
       - 'assets/images/vip-*.svg'
       - 'assets/data/vip-catalog.json'
       - 'assets/js/commerce-checkout.js'
-      - 'payment-api/commerce-routes.js'
-      - 'payment-api/worker-single-file-candidate.js'
+      - 'api/index.php'
+      - 'api/config.example.php'
       - 'platform/paid-student-support*'
       - 'platform/identity-auth-policy.json'
       - 'assets/images/services/**'

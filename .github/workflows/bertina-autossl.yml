@@ -1,11 +1,6 @@
 name: Bertina AutoSSL Activate
 
 on:
-  push:
-    branches:
-      - migration/bertina-linux6
-    paths:
-      - '.github/workflows/bertina-autossl.yml'
   workflow_dispatch:
 
 # activation-run: 2026-10-10T14:18:00Z
@@ -14,6 +9,7 @@ permissions:
 
 jobs:
   autossl:
+    if: github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: ubuntu-latest
     steps:
       - name: Check cPanel AutoSSL feature

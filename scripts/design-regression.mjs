@@ -1,5 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {stylesheetSources,checkStylesheetBundles} from './stylesheet-bundles.mjs';
+
+checkStylesheetBundles();
 
 const root=process.cwd();
 const failures=[];
@@ -86,7 +89,7 @@ for(const file of htmlFiles){
     if(portalRefs!==1) failures.push('/'+rel+': private/product experience must load exactly one portal-v2 stylesheet');
   }
   if(html.includes('book-store-shell')){
-    const storeRefs=(html.match(/store\.css/g)||[]).length;
+    const storeRefs=stylesheetSources(html).filter(source=>source==='store.css').length;
     if(storeRefs!==1) failures.push('/'+rel+': bookstore surface must load exactly one store.css stylesheet');
   }
   if(html.includes('public-home-page')||html.includes('public-content-page')||html.includes('public-gateway-page')){

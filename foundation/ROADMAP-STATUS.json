@@ -56,12 +56,12 @@
   "in_progress": {
     "SEO-007": "Core Persian service SERP review complete; repeat before each new major cluster.",
     "UX-013": "Visible focus, minimum touch-target and reduced-motion baselines extend across public-v2, portal-v2 and journal-v2, including desktop navigation, dashboard rails/pills, forms, search, service/auth controls and journal calls. Full keyboard/screen-reader/live-device QA remains pending.",
-    "INFRA-010": "Production architecture and logical data model frozen; provider selection/provisioning pending.",
-    "COM-009": "Iranian-first gateway selection remains active; checkout surfaces now communicate provider-pending and server-verification states without implying an active gateway. International gateway activation remains deferred until a legally available merchant/provider arrangement is verified.",
-    "COM-010": "Server-side verification/reconciliation contract defined; provider sandbox integration pending.",
+    "INFRA-010": "Bertina Linux/Apache/PHP/MySQL/domain-mail production architecture is selected and implemented. Recorded release evidence reports database, auth and SMTP configuration readiness; trusted public TLS, certified delivery and private operational bindings remain pending.",
+    "COM-009": "BitPay is the selected domestic gateway; existing policy records its sandbox baseline. Public monetary checkout remains disabled pending trusted TLS, private Bertina credential/configuration review and separate controlled activation. International provider activation remains deferred.",
+    "COM-010": "Bertina PHP server-side callback/status and receipt contracts are implemented; controlled production callback, receipt, reconciliation and settlement certification remain pending.",
     "SEO-015": "Static performance budgets, explicit public-image loading priority and network-first CSS/JS delivery are enforced; real-user production CWV remains pending.",
     "SEO-016": "Automated accessibility baseline and interaction polish implemented; screen-reader/live-device QA pending.",
-    "INFRA-009": "Atomic canonical-origin migration tooling is ready; execution remains gated on successful production HTTPS.",
+    "INFRA-009": "Canonical-origin migration to https://drjavadrezazadeh.com is recorded as completed; preserve frozen URLs and independently certify strict public-origin TLS and redirect behavior before any HTTPS activation.",
     "CONTENT-006": "Persian Knowledge Hub now connects academic-writing/research content to a dedicated researcher-services route; broader cluster expansion remains ongoing.",
     "CONTENT-007": "English Knowledge & Insights is now connected to a dedicated academic-services conversion route; substantive cluster expansion remains ongoing.",
     "GT-008": "RCAS Start self-report baseline implemented; deeper module execution awaits backend.",
@@ -97,12 +97,12 @@
     "DATA-012": "Qualitative pseudonymous export package planner implemented with de-identified text/codebook provenance; archive materialisation remains pending.",
     "COM-005": "Provider-neutral schema now has server-authoritative pricing execution, immutable pricing snapshots, order idempotency and fulfilment provenance; real catalogue/admin runtime remains pending.",
     "COM-006": "Bilingual browser cart shell implemented; production order creation and price validation remain server-authoritative.",
-    "COM-007": "Bilingual checkout shells are implemented and visually aligned with the commerce system; unapproved international test prices were removed so no live-price claim appears before verified service scope, tax, refund and provider data exist. Real order/payment activation still awaits backend and gateway.",
+    "COM-007": "Bilingual checkout shells and book-only PHP/MySQL order capture are implemented. Recorded transactional dry-run validated server-priced INSERT followed by rollback without starting payment; public monetary checkout remains fail-closed.",
     "COM-008": "Order, line-item, immutable price snapshot, invoice and idempotency persistence implemented; production invoice issuance remains pending.",
     "COM-011": "Refund persistence and confirmed-refund entitlement reconciliation implemented; final customer-facing policy/provider refund adapter remains pending.",
     "COM-013": "Entitlement fulfilment now requires persisted verified matching payment and records payment provenance; provider-backed activation remains pending.",
     "COM-015": "Consultation workflow can require payment before confirmation and commerce core requires verified payment; runtime integration awaits backend/provider.",
-    "CRM-003": "Transactional communication planner implemented with template/category provenance; live email provider and final templates remain pending.",
+    "CRM-003": "Bertina SMTP transport and account/order message source are implemented; recorded release health reports configuration readiness. Controlled verification/recovery delivery, monitored reply handling and final transactional templates remain pending.",
     "CRM-004": "Appointment reminder preference enforcement is implemented in communication planning; scheduler/provider delivery remains pending.",
     "CRM-005": "Secure-thread authorization logic now requires active participation and open thread for sending; live messaging runtime remains pending.",
     "CRM-006": "Communication preferences are persisted in schema and enforced by planner for reminders, transactional preferences and marketing.",
@@ -111,15 +111,15 @@
     "ADMIN-003": "Indexable publication lifecycle requires canonical/title/description and existing SEO regression continues full metadata validation; CMS field UI remains pending.",
     "ADMIN-009": "Append-only administrative audit-event persistence implemented; admin UI/query surface remains pending.",
     "ADMIN-010": "Versioned content revision history with hashes, reviewer, supersession and publication timestamps implemented; CMS editing UI remains pending.",
-    "PORTAL-006": "Email-only login/verification policy plus required service-contact mobile remains frozen; bilingual login/registration/recovery previews now present production security states explicitly without collecting credentials or personal data. Live provider delivery remains pending.",
-    "PORTAL-007": "Email-only single-use recovery flow and session revocation policy implemented; live delivery/runtime pending.",
+    "PORTAL-006": "Email-only registration, verification, login and session APIs and browser wiring are implemented; phone remains optional contact-only. Public register/email/verify/login certification awaits CA-trusted TLS and controlled delivery checks.",
+    "PORTAL-007": "Email-only recovery/reset endpoints, single-use tokens and session revocation are implemented; public recovery delivery and end-to-end certification remain pending.",
     "ADMIN-005": "Audited role-change events and privilege-escalation rules are implemented; SUPER_ADMIN changes require SUPER_ADMIN authority and browser role claims are ignored; management UI remains pending.",
     "DATA-008": "Executable research policy now requires de-identification before dataset execution, excludes direct identity and prohibits future use of withdrawn cases; transformation runtime remains pending.",
     "DATA-009": "Dataset execution policy now requires approved study/version, active eligible cases, frozen codebook, de-identification run, checksum and immutable freeze; materialisation runtime remains pending.",
     "ASSESS-010": "Web/PDF report lifecycle model is implemented with immutable source provenance, approval and supersession history; renderer/output generation remains pending.",
     "CONTENT-010": "Rights-aware media-library contract now requires alt/dimensions/licence/provenance and blocks unknown/restricted rights from public use; CMS UI/storage integration pending.",
     "SEC-004": "Production security policy requires MFA for ADMIN/SUPER_ADMIN; provider enforcement awaits production identity service.",
-    "SEC-005": "Modern password/session requirements are frozen; hashed server sessions and recovery revocation already implemented; provider runtime pending.",
+    "SEC-005": "Bertina PHP password hashing, pepper requirement, hashed sessions and recovery revocation are implemented. Recorded auth-health readiness does not certify public authentication or actual password hashing/delivery end to end.",
     "SEC-006": "HTTPS and no-browser/no-Git secret exposure are explicit production gates; live infrastructure verification pending.",
     "SEC-007": "Private upload allow-list, size gate, malware scan and quarantine-before-availability are frozen; scanner/object storage provisioning pending.",
     "SEC-008": "Administrative and sensitive security actions require append-only audit; persistence foundations exist; production runtime pending.",
@@ -146,7 +146,7 @@
     "DATA-013": "Purpose-bound, time-bound research access request/approval with non-expanding scopes and audit requirement implemented; persistence/admin UI remains pending.",
     "DATA-014": "Operational/research retention decisions now distinguish active purpose, research-only basis, legal hold and delete/anonymise outcomes; scheduled execution remains pending.",
     "ASSESS-012": "Scientific reference-metadata policy now defines validation provenance, fairness and invariance requirements; Golden Talent norms/cutoffs explicitly remain unavailable pending empirical validation.",
-    "CRM-001": "Consented AI-assistant lead bank with email/mobile contact, source/intent, separate WhatsApp opt-in and lead lifecycle implemented; Worker deployment pending.",
+    "CRM-001": "Public AI assistant retains the bilingual local guidance fallback. Consent-based lead capture and live AI are disabled until a Bertina-hosted server-side persistence/runtime is implemented and verified.",
     "CRM-008": "Editorial/reviewer candidate pipeline is explicitly separated from consulting CRM, is non-public by default and requires expertise metadata; journal admin workflow pending.",
     "SERV-015": "Institutional consulting lifecycle, scoped proposal, data-processing/child-data safeguards, versioned deliverables and acceptance record requirements defined; live contracting workflow pending.",
     "COM-012": "Discount governance is server-authoritative, non-stacking by default and disabled unless commercially activated; admin implementation pending.",
@@ -205,7 +205,7 @@
     "default_feature_state": "OFF",
     "release_model": "contract-first-fail-closed"
   },
-  "reconciled_on": "2026-10-06",
+  "reconciled_on": "2026-10-10",
   "reconciliation_rule": "Executable architecture/schema/policy/runtime foundations are IN PROGRESS until provider-backed production release gates are satisfied; prose roadmap and machine status must not contradict each other.",
   "master_roadmap_status_sync": {
     "date": "2026-10-06",
@@ -275,6 +275,103 @@
       "COM-012",
       "COM-014",
       "COM-016"
+    ]
+  },
+  "bertina_reconciliation": {
+    "base_commit": "655bea2fae9349b22a9356ab86ccbc6a2c99608e",
+    "evidence": "Existing API source, docs/V4.4.1-BLOCKERS.md and assets/release-v4.4.json; public TLS/payment/auth delivery are not recertified by source tests.",
+    "changes": [
+      {
+        "id": "INFRA-010",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "Bertina Linux/Apache/PHP/MySQL/domain-mail production architecture is selected and implemented. Recorded release evidence reports database, auth and SMTP configuration readiness; trusted public TLS, certified delivery and private operational bindings remain pending."
+      },
+      {
+        "id": "INFRA-009",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "Canonical-origin migration to https://drjavadrezazadeh.com is recorded as completed; preserve frozen URLs and independently certify strict public-origin TLS and redirect behavior before any HTTPS activation."
+      },
+      {
+        "id": "COM-009",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "BitPay is the selected domestic gateway; existing policy records its sandbox baseline. Public monetary checkout remains disabled pending trusted TLS, private Bertina credential/configuration review and separate controlled activation. International provider activation remains deferred."
+      },
+      {
+        "id": "COM-010",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "Bertina PHP server-side callback/status and receipt contracts are implemented; controlled production callback, receipt, reconciliation and settlement certification remain pending."
+      },
+      {
+        "id": "COM-007",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "Bilingual checkout shells and book-only PHP/MySQL order capture are implemented. Recorded transactional dry-run validated server-priced INSERT followed by rollback without starting payment; public monetary checkout remains fail-closed."
+      },
+      {
+        "id": "CRM-003",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "Bertina SMTP transport and account/order message source are implemented; recorded release health reports configuration readiness. Controlled verification/recovery delivery, monitored reply handling and final transactional templates remain pending."
+      },
+      {
+        "id": "PORTAL-006",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "Email-only registration, verification, login and session APIs and browser wiring are implemented; phone remains optional contact-only. Public register/email/verify/login certification awaits CA-trusted TLS and controlled delivery checks."
+      },
+      {
+        "id": "PORTAL-007",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "Email-only recovery/reset endpoints, single-use tokens and session revocation are implemented; public recovery delivery and end-to-end certification remain pending."
+      },
+      {
+        "id": "SEC-005",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "Bertina PHP password hashing, pepper requirement, hashed sessions and recovery revocation are implemented. Recorded auth-health readiness does not certify public authentication or actual password hashing/delivery end to end."
+      },
+      {
+        "id": "INFRA-008",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "Permanent domain is delegated to Bertina; TLS installation is the remaining public-origin prerequisite."
+      },
+      {
+        "id": "INFRA-011",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "Staging/preview policy frozen: non-production previews remain noindex, private no-store, synthetic-data only, with production secrets/payments excluded and CI-gated promotion."
+      },
+      {
+        "id": "CRM-001",
+        "previous_status": "IN PROGRESS",
+        "new_status": "IN PROGRESS",
+        "date": "2026-10-10",
+        "note": "Public AI assistant retains the bilingual local guidance fallback. Consent-based lead capture and live AI are disabled until a Bertina-hosted server-side persistence/runtime is implemented and verified."
+      },
+      {
+        "id": "COM-004",
+        "previous_status": "DONE",
+        "new_status": "DONE",
+        "date": "2026-10-10",
+        "note": "Bilingual book-storefront/category architecture is implemented under /fa/shop/ and /en/shop/; current public storefronts are indexable, while cart, checkout and payment routes remain private/noindex/no-store. Monetary checkout remains fail-closed."
+      }
     ]
   }
 }

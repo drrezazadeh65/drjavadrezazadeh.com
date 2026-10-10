@@ -5,7 +5,7 @@ on:
     - cron: '17 5 * * *'
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
       - 'scripts/external-link-audit.mjs'
       - '.github/workflows/external-link-monitor.yml'
@@ -23,6 +23,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'schedule' && 'migration/bertina-linux6' || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

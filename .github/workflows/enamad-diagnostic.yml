@@ -2,7 +2,7 @@ name: Enamad External Diagnostic
 
 on:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
       - '.github/workflows/enamad-diagnostic.yml'
       - 'index.html'

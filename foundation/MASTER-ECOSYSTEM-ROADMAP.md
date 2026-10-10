@@ -5,7 +5,7 @@
 **Publisher:** Rezazadeh Foundation Press  
 **Journal:** Journal of Human-Centred Education, Learning and Assessment (JHELA)  
 **Frozen on:** 2026-10-05  
-**Foundation alignment:** v5.0 extensibility baseline · reconciled 2026-10-06  
+**Foundation alignment:** v5.0 extensibility baseline · reconciled 2026-10-10
 **Status:** MASTER ROADMAP — SOURCE OF TRUTH
 
 > This file is the authoritative roadmap for the website, educational platform, Golden Talent ecosystem, commerce, research infrastructure, publisher, and journal. It should be updated by status change rather than replaced by a new plan unless a major architecture decision is deliberately renewed.
@@ -97,10 +97,10 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **INFRA-005 — FROZEN — Future app target: `app.drjavadrezazadeh.com`.**
 - [x] **INFRA-006 — FROZEN — Publisher initially lives at `/publisher/`; `press.` is optional later.**
 - [x] **INFRA-007 — DONE — Permanent domain acquired and activated: `drjavadrezazadeh.com`.**
-- [ ] **INFRA-008 — IN PROGRESS — Permanent-domain DNS delegation is being cut over through Cloudflare; GitHub Pages custom-domain verification and TLS issuance remain pending propagation.**
-- [ ] **INFRA-009 — IN PROGRESS — One-time permanent-domain migration is engineered and deliberately gated.** `scripts/domain-cutover.mjs` and the production cutover runbook cover canonical/OG/schema/sitemap/robots/security.txt migration; write-mode execution remains blocked until production HTTPS succeeds, preventing premature canonical migration.
-- [ ] **INFRA-010 — IN PROGRESS — Production platform architecture and logical data model are frozen; lawful/available hosting, auth, database, storage and email providers still need to be selected and provisioned.**
-- [ ] **INFRA-011 — IN PROGRESS — Staging/preview policy is frozen: Cloudflare preview hosts are response-level noindex, private routes remain no-store, synthetic data is mandatory, production secrets/payments are excluded, and release promotion is gated by CI; live Cloudflare staging/branch-preview verification remains pending hosting cutover.**
+- [ ] **INFRA-008 — IN PROGRESS — Permanent domain is delegated to Bertina; TLS installation is the remaining public-origin prerequisite.**
+- [ ] **INFRA-009 — IN PROGRESS — Canonical-origin migration to https://drjavadrezazadeh.com is recorded as completed; preserve frozen URLs and independently certify strict public-origin TLS and redirect behavior before any HTTPS activation.**
+- [ ] **INFRA-010 — IN PROGRESS — Bertina Linux/Apache/PHP/MySQL/domain-mail production architecture is selected and implemented. Recorded release evidence reports database, auth and SMTP configuration readiness; trusted public TLS, certified delivery and private operational bindings remain pending.**
+- [ ] **INFRA-011 — IN PROGRESS — Staging/preview policy frozen: non-production previews remain noindex, private no-store, synthetic-data only, with production secrets/payments excluded and CI-gated promotion.**
 - [ ] **INFRA-012 — PLANNED — Production database, private object storage and backup infrastructure.**
 - [ ] **INFRA-013 — PLANNED — Transactional email/domain mail infrastructure.**
 - [ ] **INFRA-014 — IN PROGRESS — Bertina Apache cache/revalidation behaviour is the public baseline while assets remain non-fingerprinted; private routes use explicit no-store, Service Worker code delivery is network-first, and long immutable caching is prohibited until a content-hashed asset pipeline exists. Production header/cache verification remains part of Bertina release QA.**
@@ -220,8 +220,8 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **PORTAL-003 — DONE — Reserved student/parent/teacher/app routes as noindex foundations.**
 - [x] **PORTAL-004 — MODIFIED/FROZEN — Role architecture now includes Student, Parent, Teacher, Consultant/Counsellor, Researcher, Consultation Client, Institution, Editor, Admin and Super Admin. Role labels never grant record access by themselves; relationship/purpose/capability and server authorisation remain mandatory.**
 - [x] **PORTAL-005 — FROZEN — One account may hold multiple roles.**
-- [ ] **PORTAL-006 — IN PROGRESS — Email-only login identity, required registration mobile contact, pending-account state and mandatory email verification remain frozen in runtime/API/data contracts; bilingual login/registration/recovery previews now surface the intended production security states without collecting credentials or personal data. Live identity/email provider remains pending.**
-- [ ] **PORTAL-007 — IN PROGRESS — Password recovery is email-only with neutral account-existence responses, single-use time-limited tokens and session revocation; live delivery/runtime remains pending.**
+- [ ] **PORTAL-006 — IN PROGRESS — Email-only registration, verification, login and session APIs and browser wiring are implemented; phone remains optional contact-only. Public register/email/verify/login certification awaits CA-trusted TLS and controlled delivery checks.**
+- [ ] **PORTAL-007 — IN PROGRESS — Email-only recovery/reset endpoints, single-use tokens and session revocation are implemented; public recovery delivery and end-to-end certification remain pending.**
 - [ ] **PORTAL-008 — IN PROGRESS — Persian student dashboard and its evidence, records, context, appointments, Golden Path, BAHAR and D1–D6 workspaces share a unified international-grade NOINDEX application shell; the international dashboard now has matching appointment-navigation/workspace parity. Production auth/data integration remains pending.**
 - [ ] **PORTAL-009 — IN PROGRESS — Persian parent dashboard, resources, My Path and shared RCAS-O1 observation surface now share a unified role-scoped application shell; the verified parent-child relationship model is implemented and production linkage remains pending.**
 - [ ] **PORTAL-010 — IN PROGRESS — Persian teacher dashboard, resources, My Path and shared RCAS-O1 observation surface now share a unified role-scoped application shell; the scoped teacher-student assignment model is implemented and production assignment workflows remain pending.**
@@ -254,13 +254,13 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **COM-001 — DONE — Shop namespace reserved as noindex foundation.**
 - [x] **COM-002 — FROZEN — One commerce identity for books, eBooks, workbooks, tests, reports, consultations, courses and toolkits.**
 - [x] **COM-003 — FROZEN — Product/Offer schema only when a genuine purchasable product with verified price and availability exists.**
-- [x] **COM-004 — DONE — Bilingual book-storefront/category architecture is implemented under `/fa/shop/` and `/en/shop/`; it remains NOINDEX until genuine prices, formats, stock/fulfilment and purchase terms are verified.**
+- [x] **COM-004 — DONE — Bilingual book-storefront/category architecture is implemented under /fa/shop/ and /en/shop/; current public storefronts are indexable, while cart, checkout and payment routes remain private/noindex/no-store. Monetary checkout remains fail-closed.**
 - [ ] **COM-005 — IN PROGRESS — Provider-neutral product/price/order/payment/entitlement schema is implemented; storefront/admin workflows and real offers remain pending.**
 - [ ] **COM-006 — IN PROGRESS — Bilingual browser cart shell is implemented as convenience state; production order creation and all pricing remain server-authoritative.**
-- [ ] **COM-007 — IN PROGRESS — Bilingual checkout shells are implemented and deliberately refuse client-side payment truth; unapproved international test prices have been removed so no live-price claim appears before verified service scope, tax, refund and provider data exist. Live checkout awaits verified catalogue data, backend order creation and gateway activation.**
+- [ ] **COM-007 — IN PROGRESS — Bilingual checkout shells and book-only PHP/MySQL order capture are implemented. Recorded transactional dry-run validated server-priced INSERT followed by rollback without starting payment; public monetary checkout remains fail-closed.**
 - [ ] **COM-008 — IN PROGRESS — Order and invoice records.**
-- [ ] **COM-009 — IN PROGRESS — Iranian-first payment-provider abstraction is frozen for launch; ZarinPal, NextPay and Zibal remain the initial comparison set, with merchant eligibility and callback/settlement testing required before approval. Checkout surfaces communicate provider-pending/server-verification states without implying an active gateway; international gateways remain deferred.**
-- [ ] **COM-010 — IN PROGRESS — Server-verification, idempotency and reconciliation contracts are defined for Iranian gateway adapters; live sandbox/provider integration remains pending.**
+- [ ] **COM-009 — IN PROGRESS — BitPay is the selected domestic gateway; existing policy records its sandbox baseline. Public monetary checkout remains disabled pending trusted TLS, private Bertina credential/configuration review and separate controlled activation. International provider activation remains deferred.**
+- [ ] **COM-010 — IN PROGRESS — Bertina PHP server-side callback/status and receipt contracts are implemented; controlled production callback, receipt, reconciliation and settlement certification remain pending.**
 - [ ] **COM-011 — IN PROGRESS — Refund/cancellation policy.**
 - [ ] **COM-012 — IN PROGRESS — Coupons/discount rules only if commercially useful.**
 - [ ] **COM-013 — IN PROGRESS — Digital delivery and entitlement management.**
@@ -275,7 +275,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 
 - [ ] **CRM-001 — IN PROGRESS — Public AI assistant retains the bilingual local guidance fallback. Consent-based lead capture and live AI are disabled until a Bertina-hosted server-side persistence/runtime is implemented and verified.**
 - [ ] **CRM-002 — IN PROGRESS — Consultation pipeline, state model, noindex intake gateway and API contract are defined; production workflow awaits backend, booking and payment services.**
-- [ ] **CRM-003 — IN PROGRESS — Transactional email templates.**
+- [ ] **CRM-003 — IN PROGRESS — Bertina SMTP transport and account/order message source are implemented; recorded release health reports configuration readiness. Controlled verification/recovery delivery, monitored reply handling and final transactional templates remain pending.**
 - [ ] **CRM-004 — IN PROGRESS — Appointment reminders and rescheduling.**
 - [ ] **CRM-005 — IN PROGRESS — Secure client messaging distinct from general support.**
 - [ ] **CRM-006 — IN PROGRESS — Notification preferences.**
@@ -405,7 +405,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **SEC-002 — FROZEN — OWASP ASVS Level 2 is the production target.**
 - [x] **SEC-003 — FROZEN — Least privilege and role-based access.**
 - [ ] **SEC-004 — IN PROGRESS — Admin MFA.**
-- [ ] **SEC-005 — IN PROGRESS — Secure password hashing and session management.**
+- [ ] **SEC-005 — IN PROGRESS — Bertina PHP password hashing, pepper requirement, hashed sessions and recovery revocation are implemented. Recorded auth-health readiness does not certify public authentication or actual password hashing/delivery end to end.**
 - [ ] **SEC-006 — IN PROGRESS — Encrypted transport and secure secrets management.**
 - [ ] **SEC-007 — IN PROGRESS — File malware/type/size validation and private storage.**
 - [ ] **SEC-008 — IN PROGRESS — Audit logs for administrative and sensitive-user actions.**
@@ -487,20 +487,20 @@ The prose roadmap and `foundation/ROADMAP-STATUS.json` describe the same program
 ## Phase 1 — Permanent identity and public-site maturity — NEXT
 **Exit condition:** permanent domain, visual consistency, clean crawl/indexing baseline and trustworthy conversion paths.
 
-- [ ] Buy/connect main domain.
-- [ ] Migrate canonicals/schema/sitemap once.
+- [ ] Verify Bertina permanent-domain TLS and redirects.
+- [ ] Preserve completed canonical/schema/sitemap migration and certify production behavior.
 - [ ] Configure Search Console/Bing.
 - [ ] Finish global design-system consistency and mobile QA.
 - [ ] Self-host fonts.
 - [ ] Build books hub.
 - [ ] Expand high-intent Persian service/knowledge clusters.
 - [ ] Add safe consultation intake and booking architecture.
-- [ ] Create domain email.
+- [ ] Certify existing Bertina domain-email verification/recovery delivery.
 
 ## Phase 2 — Revenue MVP and account platform
 **Exit condition:** user can register securely, book/pay lawfully, receive a service/product and see a private record.
 
-- [ ] Backend/auth/database.
+- [ ] Certify existing Bertina auth/MySQL and implement remaining private operational bindings.
 - [ ] Student/parent accounts.
 - [ ] Booking.
 - [ ] Payment abstraction.
