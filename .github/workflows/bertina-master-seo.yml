@@ -55,6 +55,8 @@ jobs:
           run_audit "Canonical media library" node scripts/media-library-audit.mjs
           run_audit "Link integrity" node scripts/link-integrity-audit.mjs
           run_audit "URL stability" node scripts/url-stability-audit.mjs
+          run_audit "Historical authority recovery" node scripts/historical-authority-audit.mjs
+          run_audit "Historical authority tests" node --test tests/historical-authority-recovery.test.mjs
           run_audit "Internal link graph" node scripts/internal-link-graph-audit.mjs
           run_audit "Structured/social URLs" node scripts/structured-url-audit.mjs
           run_audit "llms.txt discovery" node scripts/llms-txt-audit.mjs

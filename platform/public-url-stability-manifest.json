@@ -102,6 +102,7 @@
     "/fa/rahnamaha/tahlil-karname-tahsili/",
     "/fa/rahnamaha/tosee-herfei-moalleman/",
     "/fa/rahnamaha/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand/",
+    "/fa/archive/legacy-shop/",
     "/fa/shop/",
     "/fa/shop/customer-policy/",
     "/fa/shop/purchase-guide/",
@@ -111,5 +112,5 @@
     "/journal/founding-collaborators/",
     "/publisher/"
   ],
-  "note": "These indexable public route identities are frozen for SEO continuity. Content/design may evolve without changing the path. Newly released public bookstore routes are included. Any future path migration requires an explicit permanent one-hop redirect and an intentional manifest update."
+  "note": "These indexable public route identities are frozen for SEO continuity. Content/design may evolve without changing the path. The historical shop archive is preserved as a truthful consolidation target for verified former commerce URLs; future path migrations require explicit permanent one-hop redirects."
 }

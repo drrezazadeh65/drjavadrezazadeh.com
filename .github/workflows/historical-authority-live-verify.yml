@@ -1,0 +1,52 @@
+name: Historical Authority Live Verify
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy to Bertina
+    types:
+      - completed
+    branches:
+      - migration/bertina-linux6
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify historical authority on Bertina origin
+        run: |
+          set -euo pipefail
+          ORIGIN_IP="188.40.203.218"
+
+          archive_code="$(curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             -o /tmp/legacy-shop.html -w '%{http_code}'             https://drjavadrezazadeh.com/fa/archive/legacy-shop/)"
+          test "$archive_code" = "200"
+          grep -F 'آرشیو تاریخی فروشگاه پیشین' /tmp/legacy-shop.html
+
+          python3 - <<'PY' > /tmp/historical-paths.txt
+          from urllib.parse import quote
+          for p in [
+              '/product/خرید-فرش-ماشینی-کد-2-7801-9735/',
+              '/product/خرید-گبه-ماشینی-کد-1009-2/',
+          ]:
+              print(quote(p,safe='/'))
+          PY
+
+          while IFS= read -r old_path; do
+            code="$(curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"               -o /tmp/historical-headers -w '%{http_code}'               "https://drjavadrezazadeh.com$old_path")"
+            test "$code" = "301"
+            tr -d '\r' < /tmp/historical-headers > /tmp/historical-headers-clean
+            grep -Fi 'location: https://drjavadrezazadeh.com/fa/archive/legacy-shop/' /tmp/historical-headers-clean
+          done < /tmp/historical-paths.txt
+
+          shop_code="$(curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             -o /tmp/shop-headers -w '%{http_code}'             https://drjavadrezazadeh.com/shop/)"
+          test "$shop_code" = "301"
+          tr -d '\r' < /tmp/shop-headers > /tmp/shop-headers-clean
+          grep -Fi 'location: https://drjavadrezazadeh.com/fa/shop/' /tmp/shop-headers-clean
+
+          echo "Historical authority live verification PASS."

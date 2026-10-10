@@ -24,6 +24,14 @@ RewriteRule ^teaching/?$ https://drjavadrezazadeh.com/en/teaching/ [R=301,L,NE]
 RewriteRule ^login/?$ https://drjavadrezazadeh.com/en/login/ [R=301,L,NE]
 RewriteRule ^register/?$ https://drjavadrezazadeh.com/en/register/ [R=301,L,NE]
 RewriteRule ^shop/?$ https://drjavadrezazadeh.com/fa/shop/ [R=301,L,NE]
+
+# Historical commerce authority recovery: only evidence-backed former product URLs.
+RewriteRule ^product/خرید-فرش-ماشینی-کد-2-7801-8833/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
+RewriteRule ^product/خرید-فرش-ماشینی-کد-2-7801-9735/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
+RewriteRule ^product/خرید-فرش-ماشینی-کد-4301-4917/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
+RewriteRule ^product/خرید-فرش-ماشینی-کد-4301-5021/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
+RewriteRule ^product/خرید-گبه-ماشینی-کد-1009-2/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
+RewriteRule ^product/خرید-گبه-ماشینی-کد-3001-3283/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
 </IfModule>
 
 <IfModule mod_setenvif.c>
