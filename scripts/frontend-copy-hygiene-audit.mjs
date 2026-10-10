@@ -31,7 +31,7 @@ const ruleGroups={
   {re:/\bprovider verification\b/i,label:'payment implementation jargon'},
   {re:/\bDurable Object\b/i,label:'infrastructure jargon'},
   {re:/\bruntime secret\b/i,label:'secret-management jargon'},
-  {re:/\bCloudflare Worker\b/i,label:'infrastructure jargon'},
+  {re:/\bprovider-specific backend\b/i,label:'infrastructure jargon'},
   {re:/\bGitHub Pages\b/i,label:'hosting implementation jargon'},
   {re:/\bAPI\b/i,label:'API implementation jargon'},
   ],
