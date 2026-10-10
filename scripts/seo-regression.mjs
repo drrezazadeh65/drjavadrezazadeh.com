@@ -408,7 +408,8 @@ else{
   };
   for(const [source,destination] of Object.entries(requiredRedirects)){
     const escaped=source.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    const rule=new RegExp('RewriteRule \\^'+escaped+'\\/\\?\\$ '+destination.replaceAll('/','\\/')+' \\[R=301,L,NE\\]');
+    const destinationPattern='(?:https:\\/\\/drjavadrezazadeh\\.com)?'+destination.replaceAll('/','\\/');
+    const rule=new RegExp('RewriteRule \\^'+escaped+'\\/\\?\\$ '+destinationPattern+' \\[R=301,L,NE\\]');
     if(!rule.test(ht)) failures.push('/.htaccess: required permanent migration missing '+source+' -> '+destination);
   }
 }
