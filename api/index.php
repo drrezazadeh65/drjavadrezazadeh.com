@@ -420,7 +420,17 @@ if (str_starts_with($path,'/auth/')) {
 
 if($path==='/commerce/health'&&$verb==='GET'){
     $c=cfg();$ready=commerceReady();
-    respond(['ok'=>true,'service'=>'commerce','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'capabilities'=>[
+    respond(['ok'=>true,'service'=>'commerce','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'requirements'=>[
+        'database'=>dbReady(),
+        'schema'=>commerceSchemaReady(),
+        'commerceEnabled'=>$c['commerce_enabled']===true,
+        'gatewayKeyConfigured'=>(string)$c['bitpay_api_key']!=='',
+        'amountMultiplierValid'=>in_array((string)$c['bitpay_amount_multiplier'],['1','10'],true),
+        'orderEmailFulfilmentConfirmed'=>$c['order_email_fulfilment_confirmed']===true,
+        'bookShippingConfirmed'=>$c['book_shipping_confirmed']===true,
+        'serviceBookingConfirmed'=>$c['service_booking_confirmed']===true,
+        'vipBookingConfirmed'=>$c['vip_booking_confirmed']===true,
+    ],'capabilities'=>[
         'services'=>$ready&&$c['service_booking_confirmed']===true,
         'vip'=>$ready&&$c['vip_booking_confirmed']===true,
         'books'=>$ready&&$c['book_shipping_confirmed']===true,
