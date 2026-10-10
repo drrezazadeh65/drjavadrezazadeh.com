@@ -3,7 +3,7 @@ const API='/api';
 const lang=document.documentElement.lang==='en'?'en':'fa';
 const text={
  fa:{
-  unavailable:'سامانه ورود هنوز روی سرور زنده فعال نشده است.',
+  unavailable:'اتصال امن به سامانه حساب برقرار نشد. لطفاً پس از برقراری HTTPS معتبر دوباره تلاش کنید.',
   checking:'در حال بررسی اتصال امن حساب…',
   ready:'سامانه حساب آماده است.',
   sending:'در حال ارسال…',
@@ -18,7 +18,7 @@ const text={
   passwordRule:'رمز باید حداقل ۱۲ نویسه داشته باشد.'
  },
  en:{
-  unavailable:'The live account service is not enabled yet.',
+  unavailable:'A secure connection to the account service could not be established. Please try again after trusted HTTPS is available.',
   checking:'Checking secure account connection…',
   ready:'Account service is ready.',
   sending:'Sending…',
