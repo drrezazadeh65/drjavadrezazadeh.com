@@ -7,6 +7,7 @@ The browser never holds a gateway secret. Orders are created, stored and verifie
 
 ## Activation gates
 1. Trusted HTTPS must be valid on the public domain.
+   - Keep `JR_PUBLIC_TLS_CONFIRMED=false` until an external verifier accepts the CA chain and hostname for both apex and www; only then set it to `true`.
 2. Bertina MySQL schema must be installed and tested.
 3. Gateway API credential must exist only in `api/config.local.php` or equivalent private runtime configuration.
 4. Confirm the provider amount unit before setting the multiplier.
