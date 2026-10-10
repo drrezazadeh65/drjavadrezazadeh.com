@@ -1,0 +1,122 @@
+name: Bertina PHP Cache Diagnostic
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/bertina-php-cache-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Install FTPS client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Create one-time diagnostic
+        id: prep
+        run: |
+          set -euo pipefail
+          TOKEN="$(openssl rand -hex 32)"
+          TOKEN_HASH="$(printf '%s' "$TOKEN" | sha256sum | awk '{print $1}')"
+          NONCE="$(openssl rand -hex 10)"
+          SCRIPT_NAME="php-cache-${NONCE}.php"
+          cat > "/tmp/${SCRIPT_NAME}" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          header('Content-Type: application/json; charset=utf-8');
+          header('Cache-Control: no-store');
+          header('X-Robots-Tag: noindex, noarchive');
+          $expected='__TOKEN_HASH__';
+          $provided=(string)($_SERVER['HTTP_X_DIAG_TOKEN']??'');
+          if(!hash_equals($expected,hash('sha256',$provided))){http_response_code(403);echo '{"ok":false}';exit;}
+          $keys=[
+            'opcache.enable','opcache.enable_cli','opcache.validate_timestamps','opcache.revalidate_freq',
+            'opcache.memory_consumption','opcache.interned_strings_buffer','opcache.max_accelerated_files',
+            'opcache.jit','realpath_cache_size','realpath_cache_ttl','memory_limit','max_execution_time',
+            'zlib.output_compression'
+          ];
+          $ini=[];
+          foreach($keys as $k){$ini[$k]=ini_get($k);}
+          $mods=[
+            'Zend OPcache'=>extension_loaded('Zend OPcache'),
+            'zlib'=>extension_loaded('zlib'),
+            'brotli'=>extension_loaded('brotli'),
+            'pdo_mysql'=>extension_loaded('pdo_mysql'),
+            'curl'=>extension_loaded('curl')
+          ];
+          echo json_encode([
+            'ok'=>true,
+            'php'=>PHP_VERSION,
+            'sapi'=>PHP_SAPI,
+            'extensions'=>$mods,
+            'ini'=>$ini
+          ],JSON_UNESCAPED_SLASHES);
+          @unlink(__FILE__);
+          PHP
+          sed -i "s/__TOKEN_HASH__/$TOKEN_HASH/" "/tmp/$SCRIPT_NAME"
+          {
+            echo "token=$TOKEN"
+            echo "script_name=$SCRIPT_NAME"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload diagnostic
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+          SCRIPT_NAME: ${{ steps.prep.outputs.script_name }}
+        run: |
+          set -euo pipefail
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          cd "$FTP_REMOTE_DIR/api"
+          put "/tmp/$SCRIPT_NAME" -o "$SCRIPT_NAME"
+          bye
+          LFTP
+
+      - name: Read PHP cache/runtime state
+        env:
+          TOKEN: ${{ steps.prep.outputs.token }}
+          SCRIPT_NAME: ${{ steps.prep.outputs.script_name }}
+        run: |
+          set -euo pipefail
+          curl -kfsS --max-time 45             --resolve drjavadrezazadeh.com:443:188.40.203.218             -H "X-Diag-Token: $TOKEN"             "https://drjavadrezazadeh.com/api/$SCRIPT_NAME" | tee /tmp/php-cache.json
+          node - <<'NODE'
+          const fs=require('fs');
+          const d=JSON.parse(fs.readFileSync('/tmp/php-cache.json','utf8'));
+          if(d.ok!==true) throw new Error('diagnostic failed');
+          console.log('PHP cache diagnostic:',JSON.stringify(d));
+          NODE
+
+      - name: Cleanup if needed
+        if: always()
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+          SCRIPT_NAME: ${{ steps.prep.outputs.script_name }}
+        run: |
+          test -n "$SCRIPT_NAME" || exit 0
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 60s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP || true
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          cd "$FTP_REMOTE_DIR/api"
+          rm -f "$SCRIPT_NAME"
+          bye
+          LFTP
