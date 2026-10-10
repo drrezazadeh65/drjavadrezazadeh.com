@@ -1,0 +1,27 @@
+name: Cloudflare Detach Audit
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/cloudflare-detach-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Locate Cloudflare dependencies
+        run: |
+          set +e
+          echo "=== Cloudflare/provider references in deployable/public source ==="
+          grep -RInE             --exclude-dir=.git             --exclude-dir=node_modules             --exclude-dir=.public-site             --exclude='*.md'             --exclude='*.sql'             '(workers\.dev|cloudflare|wrangler|@cf/|payments\.drjavadrezazadeh\.com|assistant\.drjavadrezazadeh\.com)'             assets fa en app shop login register assessments student teacher journal publisher 2>/dev/null || true
+
+          echo "=== Cloudflare/provider references in operational config/code ==="
+          grep -RInE             --exclude-dir=.git             --exclude-dir=node_modules             '(workers\.dev|cloudflare|wrangler|@cf/|payments\.drjavadrezazadeh\.com|assistant\.drjavadrezazadeh\.com)'             .github edge payment-api platform scripts package.json 2>/dev/null || true
