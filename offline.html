@@ -1,1 +1,24 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Offline | Dr. Javad Rezazadeh Yazdeli</title><meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#070707"><link rel="stylesheet" href="/assets/css/style.css"></head><body class="error-page"><main class="error-shell"><section class="error-card"><p class="kicker">Offline</p><h1>You’re temporarily offline.</h1><p class="lead">Public pages you have already visited may still be available. Private student, assessment, account and payment pages are intentionally not stored offline.</p><div class="error-actions"><a class="button primary" href="/en/">English home</a><a class="button" href="/fa/" lang="fa" dir="rtl">خانه فارسی</a></div><div class="error-fa" lang="fa" dir="rtl"><h2>اتصال اینترنت برقرار نیست.</h2><p>صفحات خصوصی دانش‌آموز، آزمون، حساب کاربری و پرداخت به‌طور عمدی در حافظه آفلاین ذخیره نمی‌شوند.</p></div></section></main></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Offline | Dr. Javad Rezazadeh Yazdeli</title><meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#070707"><link rel="stylesheet" href="/assets/css/style.css"></head><body class="error-page"><main class="error-shell"><section class="error-card"><p class="kicker">Offline</p><h1>You’re temporarily offline.</h1><p class="lead">Public pages you have already visited may still be available. Private student, assessment, account and payment pages are intentionally not stored offline.</p><div class="error-actions"><button class="button primary" type="button" id="retry-online">Retry online</button><a class="button" href="/en/">English home</a><a class="button" href="/fa/" lang="fa" dir="rtl">خانه فارسی</a></div><div class="error-fa" lang="fa" dir="rtl"><h2>اتصال اینترنت برقرار نیست.</h2><p>صفحات خصوصی دانش‌آموز، آزمون، حساب کاربری و پرداخت به‌طور عمدی در حافظه آفلاین ذخیره نمی‌شوند.</p></div></section></main><script>
+(async()=>{
+  const retry=async()=>{
+    try{
+      if('caches' in window){
+        const keys=await caches.keys();
+        await Promise.all(keys.filter(k=>k.startsWith('jr-site-')).map(k=>caches.delete(k)));
+      }
+      if('serviceWorker' in navigator){
+        const regs=await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r=>r.update().catch(()=>{})));
+      }
+    }catch(_){}
+    location.reload();
+  };
+  document.getElementById('retry-online')?.addEventListener('click',retry);
+  if(navigator.onLine && sessionStorage.getItem('jr-offline-recovery')!=='1'){
+    sessionStorage.setItem('jr-offline-recovery','1');
+    setTimeout(retry,250);
+  }else if(!navigator.onLine){
+    sessionStorage.removeItem('jr-offline-recovery');
+  }
+})();
+</script></body></html>
