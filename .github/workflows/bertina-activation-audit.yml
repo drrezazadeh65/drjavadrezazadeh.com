@@ -51,7 +51,8 @@ jobs:
       - name: Verify storefront recovery
         run: |
           set -euo pipefail
-          curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/shop/ -o /tmp/root-shop.txt
+          curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/shop/ -o /tmp/root-shop.raw
+          tr -d '\\r' < /tmp/root-shop.raw > /tmp/root-shop.txt
           sed -n '1,24p' /tmp/root-shop.txt
           grep -Eiq '^HTTP/[^ ]+ 301' /tmp/root-shop.txt
           grep -Eiq '^location: (https://drjavadrezazadeh\.com)?/fa/shop/?([?#].*)?$' /tmp/root-shop.txt
