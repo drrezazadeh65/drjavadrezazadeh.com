@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 
-# audit-run: 2026-10-10T14:04:00Z
+# audit-run: 2026-10-10T14:06:00Z
 
 concurrency:
   group: bertina-master-seo
@@ -87,9 +87,13 @@ jobs:
           done
 
           curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/fa/ -o /tmp/public-head
+          echo "----- PUBLIC /fa/ HEADERS -----"
+          sed -n '1,/^\r$/p' /tmp/public-head
           grep -Eiq '^cache-control:.*(no-cache|must-revalidate)' /tmp/public-head
 
           curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/fa/shop/checkout/ -o /tmp/private-head
+          echo "----- PRIVATE CHECKOUT HEADERS -----"
+          sed -n '1,/^\r$/p' /tmp/private-head
           grep -Eiq '^cache-control:.*no-store' /tmp/private-head
           grep -Eiq '^x-robots-tag:.*noindex' /tmp/private-head
 
