@@ -1,0 +1,75 @@
+name: Bertina FTPS Data Channel Diagnostic
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths: ['.github/workflows/bertina-ftps-data-diagnostic.yml']
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Test protected PASV without EPSV
+        id: pasv
+        continue-on-error: true
+        env:
+          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          printf 'bertina-ftps-test\n' > /tmp/probe.txt
+          timeout 60s lftp -d -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 15
+          cd "$FTP_REMOTE_DIR"
+          put /tmp/probe.txt -o bertina-ftps-probe.txt
+          rm -f bertina-ftps-probe.txt
+          bye
+          LFTP
+
+      - name: Test protected active mode
+        id: active
+        if: steps.pasv.outcome != 'success'
+        continue-on-error: true
+        env:
+          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          printf 'bertina-ftps-test\n' > /tmp/probe.txt
+          timeout 60s lftp -d -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode false
+          set net:max-retries 1
+          set net:timeout 15
+          cd "$FTP_REMOTE_DIR"
+          put /tmp/probe.txt -o bertina-ftps-probe.txt
+          rm -f bertina-ftps-probe.txt
+          bye
+          LFTP
+
+      - name: Require a secure FTPS data path
+        env:
+          PASV_OUTCOME: ${{ steps.pasv.outcome }}
+          ACTIVE_OUTCOME: ${{ steps.active.outcome }}
+        run: |
+          echo "protected_pasv=$PASV_OUTCOME protected_active=$ACTIVE_OUTCOME"
+          if [ "$PASV_OUTCOME" != "success" ] && [ "$ACTIVE_OUTCOME" != "success" ]; then
+            echo "No protected FTPS data-channel mode succeeded."
+            exit 1
+          fi
