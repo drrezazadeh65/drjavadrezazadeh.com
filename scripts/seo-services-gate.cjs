@@ -31,7 +31,7 @@ for(const service of catalog){
  assert(!/name="robots"[^>]*noindex/i.test(html),'Noindex on indexable service: '+file);
  assert(/<title>[^<]+<\/title>/i.test(html),'Missing title: '+file);
  assert(/name="description" content="[^"]+"/i.test(html),'Missing description: '+file);
- assert(html.includes('href="/fa/services/checkout/"'),'Missing checkout link: '+file);
+ assert(/href="\/fa\/services\/checkout\/(?:\?[^"]*)?"/.test(html),'Missing checkout link: '+file);
  assert(html.includes('/'+image),'Missing hero image reference: '+file);
  assert(html.includes(service.title_fa),'Wrong service title: '+file);
  const jsonld=[...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
