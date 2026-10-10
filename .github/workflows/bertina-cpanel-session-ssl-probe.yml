@@ -7,7 +7,7 @@ on:
     paths:
       - '.github/workflows/bertina-cpanel-session-ssl-probe.yml'
 
-# probe-run: 2026-10-10T14:17:00Z
+# probe-run: 2026-10-10T14:38:00Z
 permissions:
   contents: read
 
@@ -15,13 +15,17 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Login to cPanel session and inspect SSL features
+      - name: Login to cPanel session and inspect domain, redirect, and SSL state
         env:
           USER: ${{ secrets.BERTINA_FTP_USERNAME }}
           PASS: ${{ secrets.BERTINA_FTP_PASSWORD }}
         run: |
           set -euo pipefail
-          curl -ksS -c /tmp/cookies.txt             --data-urlencode "user=$USER"             --data-urlencode "pass=$PASS"             "https://server388.bertina.biz:2083/login/?login_only=1"             > /tmp/login.json
+          curl -ksS -c /tmp/cookies.txt \
+            --data-urlencode "user=$USER" \
+            --data-urlencode "pass=$PASS" \
+            "https://server388.bertina.biz:2083/login/?login_only=1" \
+            > /tmp/login.json
 
           status="$(jq -r '.status // 0' /tmp/login.json)"
           test "$status" = "1"
@@ -29,13 +33,38 @@ jobs:
           test -n "$token"
           echo "cPanel session login succeeded."
 
+          curl -ksS -b /tmp/cookies.txt \
+            "https://server388.bertina.biz:2083${token}/execute/DomainInfo/domains_data?format=list&return_https_redirects_status=1" \
+            > /tmp/domains.json
+          jq -e '.result.status == 1' /tmp/domains.json >/dev/null
+          echo "=== DOMAIN DATA ==="
+          jq -c '.result.data' /tmp/domains.json
+
+          curl -ksS -b /tmp/cookies.txt \
+            "https://server388.bertina.biz:2083${token}/execute/Mime/list_redirects" \
+            > /tmp/redirects.json
+          jq -e '.result.status == 1' /tmp/redirects.json >/dev/null
+          echo "=== CPANEL REDIRECTS ==="
+          jq -c '.result.data' /tmp/redirects.json
+
           for feature in sslinstall autossl; do
-            curl -ksS -b /tmp/cookies.txt               "https://server388.bertina.biz:2083${token}/execute/Features/has_feature?name=${feature}"               > "/tmp/${feature}.json"
-            jq -e '.result.status == 1' "/tmp/${feature}.json" >/dev/null
-            enabled="$(jq -r '.result.data // empty' "/tmp/${feature}.json")"
-            echo "${feature}=${enabled}"
+            curl -ksS -b /tmp/cookies.txt \
+              "https://server388.bertina.biz:2083${token}/execute/Features/has_feature?name=${feature}" \
+              > "/tmp/${feature}.json"
+            if jq -e '.result.status == 1' "/tmp/${feature}.json" >/dev/null 2>&1; then
+              enabled="$(jq -r '.result.data // empty' "/tmp/${feature}.json")"
+              echo "${feature}=${enabled}"
+            else
+              echo "${feature}=probe-unavailable"
+            fi
           done
 
-          curl -ksS -b /tmp/cookies.txt             "https://server388.bertina.biz:2083${token}/execute/SSL/list_certs"             > /tmp/certs.json
-          jq -e '.result.status == 1' /tmp/certs.json >/dev/null
-          echo "SSL certificate management API is reachable through session auth."
+          curl -ksS -b /tmp/cookies.txt \
+            "https://server388.bertina.biz:2083${token}/execute/SSL/list_certs" \
+            > /tmp/certs.json
+          if jq -e '.result.status == 1' /tmp/certs.json >/dev/null 2>&1; then
+            echo "=== CERTIFICATE INVENTORY ==="
+            jq -c '.result.data | map({domain:(.domains // .domain // null),issuer:(.issuer // null),not_after:(.not_after // .notafter // null)})' /tmp/certs.json
+          else
+            echo "SSL certificate inventory API unavailable through this account."
+          fi
