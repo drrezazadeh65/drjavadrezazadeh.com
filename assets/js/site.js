@@ -449,9 +449,6 @@ return el?.dataset?.uiState||null;
 }
 };
 })();
-/* Never force-reload a reader or student mid-form when the service worker
-   controller updates. The network-first cache contract serves fresh mutable
-   resources on ordinary navigation/reload without discarding in-progress data. */
 (function(){
 window.JRCacheControl=Object.freeze({
   async refresh(){
