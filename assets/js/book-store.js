@@ -170,9 +170,13 @@
   checkout.className='button primary';
   checkout.dataset.bookPayment='';
   checkout.textContent=isFa?'ادامه به تسویه':'Continue to checkout';
-  checkout.disabled=!(bookPaymentReady&&deliveryCaptureReady);
-  checkout.textContent=(bookPaymentReady&&deliveryCaptureReady)?(isFa?'ادامه به تسویه امن':'Continue to secure checkout'):(isFa?'تسویه آنلاین کتاب هنوز فعال نیست':'Book checkout not yet available');
-  checkout.title=(bookPaymentReady&&deliveryCaptureReady)?(isFa?'ورود اطلاعات تحویل و سپس انتقال به درگاه امن':'Enter delivery details, then proceed to secure payment'):(isFa?'تا تأیید کامل ثبت سفارش و درگاه، وجهی دریافت نمی‌شود':'Payment remains disabled until order capture and gateway readiness are verified');
+  checkout.disabled=!deliveryCaptureReady;
+  checkout.textContent=(bookPaymentReady&&deliveryCaptureReady)
+    ?(isFa?'ادامه به تسویه امن':'Continue to secure checkout')
+    :(deliveryCaptureReady?(isFa?'ادامه و ثبت سفارش':'Continue and place order'):(isFa?'ثبت سفارش موقتاً در دسترس نیست':'Order capture temporarily unavailable'));
+  checkout.title=(bookPaymentReady&&deliveryCaptureReady)
+    ?(isFa?'ورود اطلاعات تحویل و سپس انتقال به درگاه امن':'Enter delivery details, then proceed to secure payment')
+    :(deliveryCaptureReady?(isFa?'اطلاعات تحویل را وارد کنید؛ سفارش بدون برداشت وجه ثبت می‌شود':'Enter delivery details; the order will be recorded without charging you'):(isFa?'ثبت سفارش سمت سرور در دسترس نیست':'Server-side order capture is unavailable'));
   actions.appendChild(checkout);
 
   const inquiry=document.createElement('a');
@@ -214,7 +218,7 @@
      return;
    }
    if(e.target.closest('[data-book-payment]')){
-     if(!bookPaymentReady||!deliveryCaptureReady){status.textContent=isFa?'تسویه آنلاین هنوز فعال نیست؛ از گزینه استعلام ایمیلی استفاده کنید.':'Checkout is not active yet; use the email enquiry.';return}
+     if(!deliveryCaptureReady){status.textContent=isFa?'ثبت سفارش موقتاً در دسترس نیست؛ لطفاً دوباره تلاش کنید.':'Order capture is temporarily unavailable; please try again.';return}
      location.assign(root((isFa?'fa':'en')+'/shop/checkout/'));
      return;
    }
@@ -246,37 +250,59 @@
   const form=document.getElementById('shipping-details');
   const fieldset=form?.querySelector('fieldset');
   const note=document.getElementById('shipping-disabled-note');
-  const canCheckout=bookPaymentReady&&deliveryCaptureReady;
-  if(fieldset)fieldset.disabled=!canCheckout;
-  if(note)note.textContent=canCheckout?
-   (isFa?'اطلاعات تحویل فقط برای اجرای همین سفارش ثبت می‌شود و برای احراز هویت تلفنی استفاده نمی‌شود.':'Delivery details are stored only to fulfil this order and are not used for phone verification.'):
-   (isFa?'ورود اطلاعات تحویل تا زمان تأیید کامل مسیر پرداخت و ثبت امن سفارش غیرفعال است.':'Delivery details remain disabled until secure order capture and payment are both verified.');
+  const canCapture=deliveryCaptureReady;
+  if(fieldset)fieldset.disabled=!canCapture;
+  if(note)note.textContent=canCapture
+   ?(isFa?'اطلاعات تحویل فقط برای اجرای همین سفارش ثبت می‌شود و برای احراز هویت تلفنی استفاده نمی‌شود.':'Delivery details are stored only to fulfil this order and are not used for phone verification.')
+   :(isFa?'ثبت امن سفارش موقتاً در دسترس نیست؛ هیچ اطلاعات تحویلی ارسال نمی‌شود.':'Secure order capture is temporarily unavailable; no delivery data will be submitted.');
   if(!books.length){
    host.innerHTML='<div class="checkout-empty-state" role="status"><p class="kicker">'+(isFa?'تسویه':'Checkout')+'</p><h2>'+(isFa?'سبد شما خالی است':'Your cart is empty')+'</h2><p>'+(isFa?'برای ادامه، ابتدا کتاب موردنظر را از فروشگاه به سبد اضافه کنید.':'Add a book from the bookstore before continuing to checkout.')+'</p><div class="actions"><a class="button primary" href="'+root((isFa?'fa':'en')+'/shop/')+'">'+(isFa?'مرور کتاب‌ها':'Browse books')+'</a><a class="button" href="'+root((isFa?'fa':'en')+'/shop/cart/')+'">'+(isFa?'بازگشت به سبد':'Back to cart')+'</a></div></div>';
    return;
   }
-  host.innerHTML='<p class="kicker">'+(isFa?'تسویه امن':'Secure checkout')+'</p><h1>'+(isFa?'سفارش کتاب':'Book order')+'</h1>'+
-   '<p class="lead">'+(isFa?'اطلاعات سفارش و مبلغ نهایی پیش از انتقال به درگاه دوباره بررسی می‌شود و سفارش فقط پس از تأیید موفق پرداخت نهایی خواهد شد.':'Order details and the final amount are checked again before payment, and the order is completed only after successful payment confirmation.')+'</p>'+
-   '<div class="store-notice">'+(valid?(isFa?'ارسال کتاب رایگان است. مبلغ نهایی در سرور محاسبه می‌شود و پس از تأیید بانکی رسید صادر خواهد شد.':'The catalogue and prices are ready; order completion and payment become available after fulfilment/return terms are confirmed and the verified payment gateway is activated.'):(isFa?'در حال حاضر محصول قیمت‌گذاری‌شده و قابل‌فروش در کاتالوگ فعال نیست.':'There is currently no verified priced and sellable book in the active catalogue.'))+'</div>'+
+  host.innerHTML='<p class="kicker">'+(isFa?'ثبت سفارش':'Order')+'</p><h1>'+(isFa?'سفارش کتاب':'Book order')+'</h1>'+
+   '<p class="lead">'+(bookPaymentReady
+     ?(isFa?'اطلاعات سفارش و مبلغ نهایی پیش از انتقال به درگاه دوباره در سرور بررسی می‌شود.':'Order details and the final amount are checked again on the server before payment.')
+     :(isFa?'ثبت سفارش سمت سرور فعال است. در وضعیت فعلی سفارش بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Server-side order capture is active. For now, the order is recorded without charging you and you receive a tracking ID.'))+'</p>'+
+   '<div class="store-notice">'+(valid
+     ?(bookPaymentReady
+       ?(isFa?'ارسال کتاب رایگان است. مبلغ نهایی در سرور محاسبه می‌شود و فقط پرداخت تأییدشده سفارش را قطعی می‌کند.':'Book shipping is free. The final total is calculated on the server and only a verified payment completes the order.')
+       :(isFa?'ارسال کتاب رایگان است. با ثبت این فرم، درخواست سفارش در سرور ذخیره می‌شود؛ هیچ وجهی برداشت نمی‌شود.':'Book shipping is free. Submitting this form records the order request on the server; no payment is taken.'))
+     :(isFa?'در حال حاضر محصول قیمت‌گذاری‌شده و قابل‌فروش در کاتالوگ فعال نیست.':'There is currently no verified priced and sellable book in the active catalogue.'))+'</div>'+
    '<div class="actions"><a class="button" href="'+root((isFa?'fa':'en')+'/shop/cart/')+'">'+(isFa?'بازگشت به سبد':'Back to cart')+'</a></div>';
   if(valid){
-   const btn=document.createElement('button');btn.type='button';btn.className='button primary';
-   btn.disabled=!bookPaymentReady;
-   if(!deliveryCaptureReady)btn.disabled=true;
-   btn.textContent=(bookPaymentReady&&deliveryCaptureReady)?(isFa?'پرداخت امن سفارش':'Secure checkout'):(isFa?'پرداخت کتاب هنوز فعال نیست':'Book checkout not yet available');
+   const btn=document.createElement('button');btn.type='button';btn.className='button primary';btn.disabled=!canCapture;
+   btn.textContent=canCapture
+     ?(bookPaymentReady?(isFa?'پرداخت امن سفارش':'Secure checkout'):(isFa?'ثبت سفارش بدون پرداخت':'Place order without payment'))
+     :(isFa?'ثبت سفارش موقتاً در دسترس نیست':'Order capture temporarily unavailable');
    const feedback=document.createElement('p');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
-   btn.onclick=async()=>{if(!bookPaymentReady||!deliveryCaptureReady){feedback.textContent=isFa?'پرداخت آنلاین کتاب هنوز فعال نیست.':'Book checkout is not active.';return}
+   btn.onclick=async()=>{
+    if(!canCapture){feedback.textContent=isFa?'ثبت سفارش موقتاً در دسترس نیست.':'Order capture is temporarily unavailable.';return}
     if(!form||!form.reportValidity()){feedback.textContent=isFa?'اطلاعات تحویل را کامل و صحیح وارد کنید.':'Please complete the delivery details correctly.';return}
     const fd=new FormData(form);
     const customer={name:String(fd.get('name')||'').trim(),email:String(fd.get('email')||'').trim(),address:String(fd.get('address')||'').trim(),postal:String(fd.get('postal')||'').trim(),phone:String(fd.get('tel')||'').trim()};
-    btn.disabled=true;feedback.textContent=isFa?'در حال ایجاد سفارش امن...':'Creating secure order...';try{
-    const response=await fetch('/api/commerce/create',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity})),customer})});
-    const result=await response.json();
-    if(!response.ok||!result.ok)throw Error(result.error||'order_failed');
-    const url=new URL(result.paymentUrl);
-    if(url.origin!==location.origin||url.pathname!=='/fa/shop/payment-start/'||url.searchParams.size!==1||!url.searchParams.has('gateway'))throw Error('unsafe_url');
-    location.assign(url.href);
-   }catch(e){feedback.textContent=isFa?'ثبت سفارش ممکن نشد؛ در صورت برداشت وجه مجدداً پرداخت نکنید.':'Order could not be created; do not pay again if charged.';btn.disabled=true;btn.textContent=isFa?'برای بررسی مجدد صفحه را تازه‌سازی کنید':'Refresh to recheck payment readiness'}};
+    btn.disabled=true;
+    feedback.textContent=bookPaymentReady?(isFa?'در حال ایجاد سفارش امن...':'Creating secure order...'):(isFa?'در حال ثبت سفارش...':'Recording your order...');
+    try{
+      const endpoint=bookPaymentReady?'/api/commerce/create':'/api/commerce/prepare';
+      const response=await fetch(endpoint,{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity})),customer})});
+      const result=await response.json();
+      if(!response.ok||!result.ok)throw Error(result.error||'order_failed');
+      if(bookPaymentReady){
+        const url=new URL(result.paymentUrl);
+        if(url.origin!==location.origin||url.pathname!=='/fa/shop/payment-start/'||url.searchParams.size!==1||!url.searchParams.has('gateway'))throw Error('unsafe_url');
+        location.assign(url.href);
+        return;
+      }
+      writeCart([]);
+      const orderId=escapeHtml(String(result.orderId||''));
+      host.innerHTML='<div class="store-notice" role="status"><strong>'+(isFa?'سفارش با موفقیت ثبت شد':'Order recorded successfully')+'</strong><p>'+(isFa?'هیچ وجهی از شما دریافت نشده است. شناسه پیگیری سفارش: ':'No payment has been taken. Order tracking ID: ')+'<code>'+orderId+'</code></p><p>'+(result.emailSent?(isFa?'یک ایمیل تأیید نیز برای شما ارسال شد.':'A confirmation email was also sent.'):(isFa?'شناسه سفارش را نگه دارید؛ وضعیت پرداخت هنوز بسته است.':'Keep the order ID; payment is still gated.'))+'</p><div class="actions"><a class="button primary" href="'+root((isFa?'fa':'en')+'/shop/')+'">'+(isFa?'بازگشت به فروشگاه':'Back to bookstore')+'</a></div></div>';
+      form?.reset();
+      if(fieldset)fieldset.disabled=true;
+    }catch(e){
+      feedback.textContent=isFa?'ثبت سفارش انجام نشد؛ هیچ پرداختی انجام نشده است. لطفاً دوباره تلاش کنید.':'The order was not recorded; no payment was taken. Please try again.';
+      btn.disabled=false;
+    }
+   };
    host.querySelector('.actions').appendChild(btn);host.appendChild(feedback);
   }
  }
