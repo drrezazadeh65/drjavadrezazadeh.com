@@ -18,7 +18,7 @@ RewriteRule ^research/?$ /en/research/ [R=301,L,NE]
 RewriteRule ^teaching/?$ /en/teaching/ [R=301,L,NE]
 RewriteRule ^login/?$ /en/login/ [R=301,L,NE]
 RewriteRule ^register/?$ /en/register/ [R=301,L,NE]
-RewriteRule ^shop/?$ /fa/shop/ [R=301,L,NE]
+RewriteRule ^shop/?$ https://drjavadrezazadeh.com/fa/shop/ [R=301,L,NE]
 </IfModule>
 
 <IfModule mod_setenvif.c>
