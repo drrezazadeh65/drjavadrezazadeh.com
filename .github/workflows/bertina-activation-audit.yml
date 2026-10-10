@@ -47,6 +47,22 @@ jobs:
           print('ACTIVATION_MATCHES',len(rows))
           for row in rows[:700]: print(f'{row[0]}:{row[1]}: {row[2]}')
           PY
+      - name: Verify storefront recovery
+        run: |
+          set -euo pipefail
+          curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/shop/ -o /tmp/root-shop.txt
+          grep -Eiq '^HTTP/[^ ]+ 301' /tmp/root-shop.txt
+          grep -Eiq '^location: /fa/shop/' /tmp/root-shop.txt
+          curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/fa/shop/ -o /tmp/fa-shop.txt
+          grep -Eiq '^HTTP/[^ ]+ 200' /tmp/fa-shop.txt
+          if grep -Eiq '^x-robots-tag:.*noindex' /tmp/fa-shop.txt; then
+            echo "Public FA shop still receives X-Robots noindex" >&2
+            exit 1
+          fi
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/sw.js -o /tmp/sw.js
+          grep -F "storefront-recovery-v3" /tmp/sw.js
+          ! grep -F "'/fa/shop/','/en/shop/','/shop/'" /tmp/sw.js
+
       - name: Verify core live runtime
         run: |
           set -euo pipefail
