@@ -4,7 +4,7 @@ import path from 'node:path';
 const root=process.cwd();
 const out=path.join(root,'.public-site');
 const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundation','node_modules','platform','scripts','tests','test-results','.public-site']);
-const excludedRoot=new Set(['README.md','CACHE_STANDARD.md']);
+const excludedRoot=new Set(['README.md','CACHE_STANDARD.md','CNAME','_headers','_redirects','_config.yml']);
 const excludedExact=new Set(['assets/media-registry.json','assets/release-v4.4.json']);
 
 fs.rmSync(out,{recursive:true,force:true});
@@ -32,7 +32,7 @@ copy();
 
 const failures=[];
 const required=[
-  'index.html','404.html','offline.html','CNAME','robots.txt','llms.txt','site.webmanifest','sw.js',
+  'index.html','404.html','offline.html','robots.txt','llms.txt','site.webmanifest','sw.js',
   'sitemap.xml','sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml',
   'assets/data/book-catalog.json','assets/data/service-catalog.json','assets/data/analytics-config.json'
 ];
@@ -92,8 +92,6 @@ for(const file of all.filter(p=>textExt.test(p))){
     failures.push('Public artifact still references excluded engineering path: '+rel);
   }
 }
-const cname=fs.readFileSync(path.join(out,'CNAME'),'utf8').trim();
-if(cname!=='drjavadrezazadeh.com') failures.push('CNAME drift: '+cname);
 
 if(failures.length){
   console.error('Sanitized public-site build failed ('+failures.length+')');
