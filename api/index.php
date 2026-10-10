@@ -40,6 +40,7 @@ function cfg(): array {
         'smtp_password' => (string)(getenv('JR_SMTP_PASSWORD') ?: ''),
         'smtp_verify_peer' => getenv('JR_SMTP_VERIFY_PEER') !== 'false',
         'commerce_enabled' => getenv('JR_COMMERCE_ENABLED') === 'true',
+        'public_tls_confirmed' => getenv('JR_PUBLIC_TLS_CONFIRMED') === 'true',
         'bitpay_api_key' => (string)(getenv('JR_BITPAY_API_KEY') ?: ''),
         'bitpay_amount_multiplier' => (string)(getenv('JR_BITPAY_AMOUNT_MULTIPLIER') ?: ''),
         'order_email_fulfilment_confirmed' => getenv('JR_ORDER_EMAIL_FULFILMENT_CONFIRMED') === 'true',
@@ -332,7 +333,7 @@ function localCatalog(): array {
 }
 function commerceReady(): bool {
     $c=cfg();
-    return dbReady() && commerceSchemaReady() && $c['commerce_enabled']===true && $c['bitpay_api_key']!=='' &&
+    return dbReady() && commerceSchemaReady() && $c['public_tls_confirmed']===true && $c['commerce_enabled']===true && $c['bitpay_api_key']!=='' &&
         in_array((string)$c['bitpay_amount_multiplier'],['1','10'],true) &&
         $c['order_email_fulfilment_confirmed']===true;
 }
@@ -341,7 +342,7 @@ function gatewayPost(string $endpoint,array $fields): string {
     if(!function_exists('curl_init'))throw new RuntimeException('curl_unavailable');
     $fields['api']=$c['bitpay_api_key'];
     $ch=curl_init('https://bitpay.ir/payment/'.$endpoint);
-    curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>http_build_query($fields),CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>15,CURLOPT_FOLLOWLOCATION=>false]);
+    curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>http_build_query($fields),CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>15,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2]);
     $out=curl_exec($ch);$code=(int)curl_getinfo($ch,CURLINFO_RESPONSE_CODE);curl_close($ch);
     if(!is_string($out)||$code<200||$code>=300)throw new RuntimeException('gateway_http');
     return trim($out);
@@ -423,6 +424,7 @@ if($path==='/commerce/health'&&$verb==='GET'){
     respond(['ok'=>true,'service'=>'commerce','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'requirements'=>[
         'database'=>dbReady(),
         'schema'=>commerceSchemaReady(),
+        'publicTlsConfirmed'=>$c['public_tls_confirmed']===true,
         'commerceEnabled'=>$c['commerce_enabled']===true,
         'gatewayKeyConfigured'=>(string)$c['bitpay_api_key']!=='',
         'amountMultiplierValid'=>in_array((string)$c['bitpay_amount_multiplier'],['1','10'],true),
@@ -476,6 +478,7 @@ if($path==='/commerce/create'&&$verb==='POST'){
     if($total<1000||$total>1000000000)fail('amount_out_of_range');
     $customer=null;$customerEmail=null;$customerJson=null;
     if($hasBook){$customer=normalizedCustomer($b['customer']??null);$customerEmail=$customer['email'];$customerJson=json_encode($customer,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);if(!is_string($customerJson))fail('customer_encoding_failed',500);}
+    $rateIdentity=$customerEmail?:implode(',',array_keys($counts));if(!rateAllowed($pdo,'commerce_create',$rateIdentity,5,900))fail('rate_limited',429);
     $mul=(int)$c['bitpay_amount_multiplier'];$providerAmount=$total*$mul;$order=uuidv4();$factor=preg_replace('/[^0-9]/','',(string)hrtime(true));$factor=substr($factor,0,28);
     $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,? ,NOW(),NOW())")
         ->execute([$order,$factor,$total,$providerAmount,'IRT',$customerEmail,$customerJson,json_encode($lines,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),'created']);
