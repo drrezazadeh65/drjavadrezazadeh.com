@@ -15,14 +15,17 @@
  const API='/api';
  // Catalogue prices never authorise payment. The live Worker must explicitly permit books.
  let bookPaymentReady=false;
+ let deliveryCaptureReady=false;
  async function verifyBookPaymentCapability(){
   try{
    const response=await fetch(API+'/commerce/health',{cache:'no-store',credentials:'omit'});
-   if(!response.ok)return false;
+   if(!response.ok)return {payment:false,capture:false};
    const health=await response.json();
-   return health?.ok===true&&health.service==='commerce'&&
-    health.checkout===true&&health.capabilities?.books===true;
-  }catch(_){return false}
+   return {
+    payment:health?.ok===true&&health.service==='commerce'&&health.checkout===true&&health.capabilities?.books===true,
+    capture:health?.ok===true&&health.service==='commerce'&&health.orderCapture===true
+   };
+  }catch(_){return {payment:false,capture:false}}
  }
 
  function money(amount,currency){
@@ -211,26 +214,8 @@
      return;
    }
    if(e.target.closest('[data-book-payment]')){
-     if(!bookPaymentReady){status.textContent=isFa?'پرداخت کتاب هنوز فعال نیست؛ از گزینه استعلام ایمیلی استفاده کنید.':'Book checkout is not active; use the email enquiry.';return}
-     const button=e.target.closest('[data-book-payment]');
-     button.disabled=true;
-     status.textContent=isFa?'در حال بررسی ایمن سفارش...':'Checking order securely...';
-     try{
-       const response=await fetch('/api/commerce/create',{
-         method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},
-         body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity}))})
-       });
-       const result=await response.json();
-       if(response.ok&&result.ok&&typeof result.paymentUrl==='string'){
-         const link=new URL(result.paymentUrl,location.origin);
-         if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/'||link.hash||link.username||link.password||link.searchParams.size!==1||!link.searchParams.get('gateway'))throw Error('unsafe_payment_url');
-         location.assign(link.href);return;
-       }
-       if(result.error==='checkout_disabled'){
-         status.textContent=isFa?'پرداخت آنلاین هنوز فعال نیست؛ پیش از تلاش مجدد وضعیت سفارش را از طریق ایمیل رسمی پیگیری کنید.':'Checkout is not active; verify the order status through the official email before retrying.';
-       }else status.textContent=isFa?'ثبت سفارش تأیید نشد؛ پیش از تلاش مجدد وضعیت را از طریق ایمیل رسمی پیگیری کنید.':'Order creation was not confirmed; verify its status through the official email before retrying.';
-     }catch(_){status.textContent=isFa?'وضعیت درخواست پرداخت نامشخص است؛ از پرداخت مجدد خودداری کنید و از طریق ایمیل رسمی پیگیری نمایید.':'Payment-request status is unknown; do not retry payment until you verify the order through the official email.'}
-     finally{button.disabled=true;button.textContent=isFa?'برای بررسی مجدد درگاه صفحه را تازه‌سازی کنید':'Refresh to recheck payment readiness';}
+     if(!bookPaymentReady||!deliveryCaptureReady){status.textContent=isFa?'تسویه آنلاین هنوز فعال نیست؛ از گزینه استعلام ایمیلی استفاده کنید.':'Checkout is not active yet; use the email enquiry.';return}
+     location.assign(root((isFa?'fa':'en')+'/shop/checkout/'));
      return;
    }
    if(!e.target.closest('[data-book-copy]'))return;
@@ -258,7 +243,14 @@
   const cart=readCart();
   const books=cart.map(x=>({item:x,book:data.books.find(b=>b.id===x.book_id)})).filter(x=>x.book);
   const valid=books.length>0&&books.every(x=>ready(x.book));
-  const deliveryCaptureReady=false; // No secure order-linked shipping persistence is deployed.
+  const form=document.getElementById('shipping-details');
+  const fieldset=form?.querySelector('fieldset');
+  const note=document.getElementById('shipping-disabled-note');
+  const canCheckout=bookPaymentReady&&deliveryCaptureReady;
+  if(fieldset)fieldset.disabled=!canCheckout;
+  if(note)note.textContent=canCheckout?
+   (isFa?'اطلاعات تحویل فقط برای اجرای همین سفارش ثبت می‌شود و برای احراز هویت تلفنی استفاده نمی‌شود.':'Delivery details are stored only to fulfil this order and are not used for phone verification.'):
+   (isFa?'ورود اطلاعات تحویل تا زمان تأیید کامل مسیر پرداخت و ثبت امن سفارش غیرفعال است.':'Delivery details remain disabled until secure order capture and payment are both verified.');
   if(!books.length){
    host.innerHTML='<div class="checkout-empty-state" role="status"><p class="kicker">'+(isFa?'تسویه':'Checkout')+'</p><h2>'+(isFa?'سبد شما خالی است':'Your cart is empty')+'</h2><p>'+(isFa?'برای ادامه، ابتدا کتاب موردنظر را از فروشگاه به سبد اضافه کنید.':'Add a book from the bookstore before continuing to checkout.')+'</p><div class="actions"><a class="button primary" href="'+root((isFa?'fa':'en')+'/shop/')+'">'+(isFa?'مرور کتاب‌ها':'Browse books')+'</a><a class="button" href="'+root((isFa?'fa':'en')+'/shop/cart/')+'">'+(isFa?'بازگشت به سبد':'Back to cart')+'</a></div></div>';
    return;
@@ -273,8 +265,12 @@
    if(!deliveryCaptureReady)btn.disabled=true;
    btn.textContent=(bookPaymentReady&&deliveryCaptureReady)?(isFa?'پرداخت امن سفارش':'Secure checkout'):(isFa?'پرداخت کتاب هنوز فعال نیست':'Book checkout not yet available');
    const feedback=document.createElement('p');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
-   btn.onclick=async()=>{if(!bookPaymentReady||!deliveryCaptureReady){feedback.textContent=isFa?'پرداخت آنلاین کتاب هنوز فعال نیست.':'Book checkout is not active.';return}btn.disabled=true;feedback.textContent=isFa?'در حال ایجاد سفارش...':'Creating order...';try{
-    const response=await fetch('/api/commerce/create',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity}))})});
+   btn.onclick=async()=>{if(!bookPaymentReady||!deliveryCaptureReady){feedback.textContent=isFa?'پرداخت آنلاین کتاب هنوز فعال نیست.':'Book checkout is not active.';return}
+    if(!form||!form.reportValidity()){feedback.textContent=isFa?'اطلاعات تحویل را کامل و صحیح وارد کنید.':'Please complete the delivery details correctly.';return}
+    const fd=new FormData(form);
+    const customer={name:String(fd.get('name')||'').trim(),email:String(fd.get('email')||'').trim(),address:String(fd.get('address')||'').trim(),postal:String(fd.get('postal')||'').trim(),phone:String(fd.get('tel')||'').trim()};
+    btn.disabled=true;feedback.textContent=isFa?'در حال ایجاد سفارش امن...':'Creating secure order...';try{
+    const response=await fetch('/api/commerce/create',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity})),customer})});
     const result=await response.json();
     if(!response.ok||!result.ok)throw Error(result.error||'order_failed');
     const url=new URL(result.paymentUrl);
@@ -290,7 +286,9 @@
  });
  load().then(async data=>{
   renderCatalog(data);renderDetail(data);renderCart(data);renderCheckout(data);updateCartBadge();
-  bookPaymentReady=await verifyBookPaymentCapability();
+  const capability=await verifyBookPaymentCapability();
+  bookPaymentReady=capability.payment;
+  deliveryCaptureReady=capability.capture;
   // Re-render after a fresh explicit readiness check; controls remain disabled on uncertainty.
   renderCart(data);renderCheckout(data);
  }).catch(()=>document.querySelectorAll('[data-store-error]').forEach(x=>{
