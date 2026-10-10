@@ -1,0 +1,38 @@
+name: Bertina TLS Diagnostic
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/bertina-tls-diagnostic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect current TLS service
+        run: |
+          set -o pipefail
+          echo | timeout 20 openssl s_client             -connect drjavadrezazadeh.com:443             -servername drjavadrezazadeh.com             -showcerts > /tmp/sclient.txt 2>&1 || true
+          sed -n '1,120p' /tmp/sclient.txt
+
+          awk '/BEGIN CERTIFICATE/{flag=1} flag{print} /END CERTIFICATE/{exit}' /tmp/sclient.txt > /tmp/leaf.pem || true
+          if grep -q 'BEGIN CERTIFICATE' /tmp/leaf.pem; then
+            echo "=== Leaf certificate ==="
+            openssl x509 -in /tmp/leaf.pem -noout -subject -issuer -dates -ext subjectAltName
+            openssl x509 -in /tmp/leaf.pem -noout -checkhost drjavadrezazadeh.com || true
+            openssl x509 -in /tmp/leaf.pem -noout -checkhost www.drjavadrezazadeh.com || true
+          else
+            echo "NO_CERTIFICATE_PRESENTED"
+          fi
+
+          echo "=== HTTPS with verification ==="
+          curl -vIsS --max-time 20 https://drjavadrezazadeh.com/ 2>&1 || true
+          echo "=== HTTPS ignoring verification ==="
+          curl -kIsS --max-time 20 https://drjavadrezazadeh.com/ || true
+          echo "=== HTTP ==="
+          curl -IsS --max-time 20 http://drjavadrezazadeh.com/ || true
