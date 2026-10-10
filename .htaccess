@@ -21,7 +21,7 @@ RewriteRule ^register/?$ /en/register/ [R=301,L,NE]
 </IfModule>
 
 <IfModule mod_setenvif.c>
-SetEnvIf Request_URI "^/(fa/app|app|fa/login|login|fa/register|register|fa/bazyabi-hesab|en/login|en/register|en/recover|en/account|fa/assessments|assessments|fa/shop|en/shop|shop|en/golden-talent/(assessment|dashboard|observer|roles|student|checkout|plans)|fa/darkhast-moshavere|en/request-consultation)(/|$)" PRIVATE_ROUTE=1
+SetEnvIf Request_URI "^/(api|fa/app|app|fa/login|login|fa/register|register|fa/bazyabi-hesab|en/login|en/register|en/recover|en/account|fa/assessments|assessments|fa/shop|en/shop|shop|en/golden-talent/(assessment|dashboard|observer|roles|student|checkout|plans)|fa/darkhast-moshavere|en/request-consultation)(/|$)" PRIVATE_ROUTE=1
 </IfModule>
 
 <IfModule mod_headers.c>
