@@ -1,4 +1,4 @@
-deploy=2026-10-10T13:24:00Z
+deploy=2026-10-10T13:29:00Z
 source=migration/bertina-linux6
 mode=bertina-only
-scope=mail-readiness-diagnostic
+scope=smtp-transport-support
