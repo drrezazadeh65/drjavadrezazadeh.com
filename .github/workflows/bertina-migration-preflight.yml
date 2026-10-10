@@ -68,7 +68,7 @@ jobs:
           test -f .public-site/fa/customer-dashboard/index.html
           test -f .public-site/robots.txt
           test -f .public-site/sitemap.xml
-          grep -F '<meta name="robots" content="noindex,nofollow">' .public-site/fa/customer-dashboard/index.html
+          grep -Eiq '<meta name="robots" content="[^"]*noindex[^"]*nofollow' .public-site/fa/customer-dashboard/index.html
 
       - name: Build migration archive
         run: |
