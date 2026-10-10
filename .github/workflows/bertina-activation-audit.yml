@@ -8,7 +8,7 @@ on:
       - '.github/workflows/bertina-activation-audit.yml'
   workflow_dispatch:
 
-# activation-audit-run: 2026-10-10T14:35:00Z
+# activation-audit-run: 2026-10-10T14:50:00Z
 permissions:
   contents: read
 
@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/shop/ -o /tmp/root-shop.raw
-          tr -d '\\r' < /tmp/root-shop.raw > /tmp/root-shop.txt
+          tr -d '\015' < /tmp/root-shop.raw > /tmp/root-shop.txt
           sed -n '1,24p' /tmp/root-shop.txt
           grep -Eiq '^HTTP/[^ ]+ 301' /tmp/root-shop.txt
           grep -Eiq '^location: (https://drjavadrezazadeh\.com)?/fa/shop/?([?#].*)?$' /tmp/root-shop.txt
