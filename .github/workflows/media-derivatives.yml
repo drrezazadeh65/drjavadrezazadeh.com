@@ -1,73 +1,20 @@
-name: Media Derivative Pipeline
+name: Retired Automatic Media Writer
 
 on:
   workflow_dispatch:
-    inputs:
-      source:
-        description: 'Registered source asset, e.g. assets/images/books/sepid-...avif'
-        required: true
-        type: string
-      widths:
-        description: 'Comma-separated widths; no upscaling, e.g. 640,960,1280'
-        required: true
-        default: '640,960'
-        type: string
-      formats:
-        description: 'Comma-separated: webp,avif,jpeg,png'
-        required: true
-        default: 'webp,avif'
-        type: string
-      quality:
-        description: '50-100'
-        required: true
-        default: '88'
-        type: string
-      output_dir:
-        description: 'Repository output directory'
-        required: true
-        default: 'assets/images/derived'
-        type: string
 
 permissions:
-  contents: write
-
-concurrency:
-  group: media-derivative-pipeline
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  derive:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install deterministic image runtime
-        run: npm install --no-save sharp@0.34.4
-      - name: Generate registered derivatives
-        env:
-          SOURCE: ${{ inputs.source }}
-          WIDTHS: ${{ inputs.widths }}
-          FORMATS: ${{ inputs.formats }}
-          QUALITY: ${{ inputs.quality }}
-          OUT_DIR: ${{ inputs.output_dir }}
+      - name: Validate source without publishing changes
         run: |
-          node scripts/media-derive.mjs             --input "$SOURCE"             --widths "$WIDTHS"             --formats "$FORMATS"             --quality "$QUALITY"             --out-dir "$OUT_DIR"
-      - name: Audit media registry
-        run: node scripts/media-library-audit.mjs
-      - name: Commit generated assets and registry
-        run: |
-          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
-            echo "No media changes generated."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/media-registry.json assets/images/
-          git commit -m "media: generate governed responsive derivatives"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          node scripts/media-library-audit.mjs
+          echo 'Generate derivatives locally from approved sources and submit them through a reviewed PR.'

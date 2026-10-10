@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - migration/bertina-linux6
-      - main
     paths:
       - 'fa/customer-dashboard/**'
       - 'en/account/**'
@@ -16,6 +15,7 @@ on:
       - 'scripts/customer-dashboard-audit.mjs'
       - '.github/workflows/customer-dashboard-audit.yml'
   pull_request:
+    branches: [migration/bertina-linux6]
     paths:
       - 'fa/customer-dashboard/**'
       - 'en/account/**'

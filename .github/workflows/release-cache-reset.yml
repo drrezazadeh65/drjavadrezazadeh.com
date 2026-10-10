@@ -1,158 +1,21 @@
-name: Release Cache Reset
+name: Retired Automatic Cache Writer
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '**/*.html'
-      - 'assets/**'
-      - 'platform/*.json'
-      - 'site.webmanifest'
-      - 'favicon.svg'
-      - 'favicon.png'
-      - 'favicon.ico'
-  release:
-    types: [published]
   workflow_dispatch:
-    inputs:
-      release_version:
-        description: 'Release version, e.g. 4.3'
-        required: true
-        type: string
 
 permissions:
-  contents: write
-
-concurrency:
-  group: release-cache-reset
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  bump-cache:
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out main
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          ref: main
-          fetch-depth: 0
-
-      - name: Resolve release version
-        id: version
-        shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-          MANUAL_VERSION: ${{ inputs.release_version }}
-          COMMIT_SHA: ${{ github.sha }}
-        run: |
-          if [ "$EVENT_NAME" = "release" ]; then
-            raw="$RELEASE_TAG"
-          elif [ "$EVENT_NAME" = "push" ]; then
-            raw="commit-${COMMIT_SHA:0:12}"
-          else
-            raw="$MANUAL_VERSION"
-          fi
-
-          clean="$(printf '%s' "$raw" | sed -E 's/^[vV]//; s/[^0-9A-Za-z._-]+/-/g')"
-          if [ -z "$clean" ]; then
-            echo "Invalid empty release version."
-            exit 1
-          fi
-
-          compact="$(printf '%s' "$clean" | tr -d '.')"
-          stamp="$(date -u +%Y%m%d)"
-          if [ "$EVENT_NAME" = "push" ]; then
-            cache_version="jr-site-${stamp}-${compact}"
-          else
-            cache_version="jr-site-${stamp}-v${compact}"
-          fi
-
-          echo "release_version=$clean" >> "$GITHUB_OUTPUT"
-          echo "cache_version=$cache_version" >> "$GITHUB_OUTPUT"
-
-      - name: Bump service-worker cache version
-        env:
-          CACHE_VERSION: ${{ steps.version.outputs.cache_version }}
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import os, re
-
-          path = Path("sw.js")
-          text = path.read_text(encoding="utf-8")
-          new_version = os.environ["CACHE_VERSION"]
-
-          updated, count = re.subn(
-              r"^const CACHE_VERSION='[^']+';",
-              f"const CACHE_VERSION='{new_version}';",
-              text,
-              count=1,
-              flags=re.M,
-          )
-          if count != 1:
-              raise SystemExit("Could not locate CACHE_VERSION in sw.js")
-
-          path.write_text(updated, encoding="utf-8")
-          print(f"Prepared cache version: {new_version}")
-          PY
-
-      - name: Validate cache-reset contract
+          node-version: '22'
+      - name: Validate source without publishing changes
         run: |
           node --check sw.js
-          grep -q "const CACHE_FAMILY='jr-site-';" sw.js
-          grep -q "caches.keys()" sw.js
-          grep -q "caches.delete" sw.js
-          grep -q "skipWaiting" sw.js
-          grep -q "clients.claim" sw.js
-          grep -q "cache:'reload'" sw.js
-
-      - name: Commit cache bump
-        id: commit
-        shell: bash
-        env:
-          RELEASE_VERSION: ${{ steps.version.outputs.release_version }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          if git diff --quiet -- sw.js; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "Cache version already matches this release."
-            exit 0
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add sw.js
-          if [ "$EVENT_NAME" = "push" ]; then
-            git commit -m "chore(cache): invalidate mutable-site caches after $RELEASE_VERSION"
-          else
-            git commit -m "chore(release): reset caches for v$RELEASE_VERSION"
-          fi
-          pushed=false
-          for attempt in 1 2 3; do
-            if git push origin HEAD:main; then
-              pushed=true
-              break
-            fi
-            echo "Main advanced while cache invalidation was running; rebasing cache bump (attempt $attempt)."
-            git fetch origin main
-            git rebase origin/main
-          done
-          if [ "$pushed" != "true" ]; then
-            echo "Unable to publish cache invalidation after retries."
-            exit 1
-          fi
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-
-      - name: Publish summary
-        run: |
-          {
-            echo "## Release cache reset"
-            echo ""
-            echo "- Release: v${{ steps.version.outputs.release_version }}"
-            echo "- Cache version: \`${{ steps.version.outputs.cache_version }}\`"
-            echo "- Service Worker validation: passed"
-            echo "- Main branch updated: \`${{ steps.commit.outputs.changed }}\`"
-            echo ""
-            echo "The resulting push to main automatically triggers the existing Browser QA and SEO/GEO Regression workflows."
-          } >> "$GITHUB_STEP_SUMMARY"
+          node scripts/pwa-private-cache-audit.mjs
+          echo 'Automatic cache commits are retired. Update CACHE_VERSION in a reviewed PR when changing cache policy.'

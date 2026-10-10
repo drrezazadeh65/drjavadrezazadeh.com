@@ -1,5 +1,8 @@
 // Published Knowledge Articles — structural release gate
 import fs from 'node:fs';
+import {stylesheetSources,checkStylesheetBundles} from '../scripts/stylesheet-bundles.mjs';
+
+checkStylesheetBundles();
 import path from 'node:path';
 
 const root=process.cwd();
@@ -14,7 +17,7 @@ for(const slug of slugs){
   const html=get(p);
   const canonical=domain+'/fa/rahnamaha/'+slug+'/';
   if(!html.includes('<body class="rtl content-page public-content-page knowledge-article-page"'))fail.push(slug+': missing article body class');
-  if(!html.includes('assets/css/knowledge-article.css')||!html.includes('assets/js/knowledge-article.js'))fail.push(slug+': premium CSS/JS missing');
+  if(!stylesheetSources(html).includes('knowledge-article.css')||!html.includes('assets/js/knowledge-article.js'))fail.push(slug+': premium CSS/JS missing');
   if(!html.includes('class="knowledge-article-layout"')||!html.includes('class="knowledge-article-content"'))fail.push(slug+': semantic editorial layout missing');
   if(!html.includes('class="knowledge-article-toc"')||!html.includes('class="knowledge-article-mobiletoc"'))fail.push(slug+': desktop/tablet/mobile navigation missing');
   if(!html.includes('data-article-copy')||!html.includes('data-article-share'))fail.push(slug+': no accessible sharing');

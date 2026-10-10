@@ -99,13 +99,15 @@ assert(checkoutClient.includes('card.append(image,title,fit,price,details,button
 assert(checkoutClient.includes("item.fit_fa"),'Checkout must explain which student/researcher each standard service fits');
 assert(!checkoutClient.includes('channel===undefined'),'Unspecified capability cannot authorize checkout');
 
-for(const backend of ['payment-api/commerce-routes.js','payment-api/worker-single-file-candidate.js']){
- const source=read(backend);
- assert(source.includes('env.ORDER_EMAIL_FULFILMENT_CONFIRMED==="true"'),backend+': health must require order-linked email readiness');
- assert(source.includes('if(env.ORDER_EMAIL_FULFILMENT_CONFIRMED!=="true")return fail("order_email_not_configured",503);'),backend+': create must reject unconfigured email fulfilment');
- for(const [kind,flag] of [['book','BOOK_SHIPPING_CONFIRMED'],['service','SERVICE_BOOKING_CONFIRMED'],['vip','VIP_BOOKING_CONFIRMED']]){
-  assert(source.includes('if(lines.some(x=>x.kind==="'+kind+'")&&env.'+flag+'!=="true")'),backend+': create must enforce '+kind+' operational readiness server-side');
- }
+const backend=read('api/index.php');
+const readiness=backend.match(/function commerceReady\(\): bool \{([\s\S]*?)\n\}/)?.[1]||'';
+for(const flag of ['public_tls_confirmed','commerce_enabled','order_email_fulfilment_confirmed']){
+ assert(readiness.includes("$c['"+flag+"']===true"),'Bertina health must enforce '+flag);
+ assert(read('api/config.example.php').includes("'"+flag+"' => false"),'Bertina '+flag+' must default to false');
+}
+assert(backend.includes("if(!commerceReady())fail('checkout_disabled',503)"),'Bertina create must reject unavailable commerce');
+for(const [kind,flag] of [['book','book_shipping_confirmed'],['service','service_booking_confirmed'],['vip','vip_booking_confirmed']]){
+ assert(backend.includes("$c['"+flag+"']!==true)fail('"+(kind==='book'?'book_shipping':kind+'_booking')+"_not_configured',503)"),'Bertina create must enforce '+kind+' operational readiness');
 }
 
 

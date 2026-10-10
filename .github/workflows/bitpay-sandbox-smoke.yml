@@ -1,17 +1,19 @@
-name: BitPay Sandbox Smoke
+name: BitPay Source Contracts
 
 on:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
-      - 'platform/bitpay-adapter.mjs'
-      - 'platform/bitpay-adapter.test.mjs'
-      - 'platform/bitpay-callback.mjs'
-      - 'platform/bitpay-callback.test.mjs'
-      - 'scripts/bitpay-sandbox-smoke.mjs'
-      - 'scripts/bitpay-form-probe.mjs'
-      - 'scripts/bitpay-positive-roundtrip.mjs'
-      - 'edge/payments/**'
+      - 'api/**'
+      - 'platform/bitpay-*'
+      - 'tests/bertina-receipt-contract.php'
+      - '.github/workflows/bitpay-sandbox-smoke.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'api/**'
+      - 'platform/bitpay-*'
+      - 'tests/bertina-receipt-contract.php'
       - '.github/workflows/bitpay-sandbox-smoke.yml'
   workflow_dispatch:
 
@@ -19,27 +21,16 @@ permissions:
   contents: read
 
 jobs:
-  sandbox:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Adapter contract
-        run: node platform/bitpay-adapter.test.mjs
-      - name: Callback integrity contract
-        run: node platform/bitpay-callback.test.mjs
-      - name: Payments worker syntax
-        run: node --check edge/payments/src/index.js
-      - name: Verify payment callback integrity against tampered provider responses
-        run: node --test edge/payments/src/verification.test.mjs
-      - name: Sandbox callback form probe
-        run: node scripts/bitpay-form-probe.mjs
-      - name: Positive sandbox roundtrip
-        run: node scripts/bitpay-positive-roundtrip.mjs
-      - name: Official BitPay sandbox smoke
-        env:
-          BITPAY_TEST_REDIRECT: https://drjavadrezazadeh.com/fa/shop/checkout/?bitpay_test=1
-        run: node scripts/bitpay-sandbox-smoke.mjs
+      - name: Validate source without publishing changes
+        run: |
+          node platform/bitpay-adapter.test.mjs
+          node platform/bitpay-callback.test.mjs
+          php tests/bertina-receipt-contract.php
+          echo 'External gateway roundtrips remain a separate controlled activation task after trusted TLS.'

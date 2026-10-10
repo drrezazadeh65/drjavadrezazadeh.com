@@ -1,5 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {checkStylesheetBundles} from './stylesheet-bundles.mjs';
+
+checkStylesheetBundles();
 
 const root=process.cwd();
 const out=path.join(root,'.public-site');

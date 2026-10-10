@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "as_of": "2026-10-07",
+  "as_of": "2026-10-10",
   "purpose": "Single machine-readable control plane for what is ready, what remains external, and what should be developed next without overstating production maturity.",
   "status_values": [
     "FOUNDATION_STRONG",
@@ -17,7 +17,7 @@
       "production_state": "WAITING_EXTERNAL",
       "revenue_priority": "CRITICAL",
       "external_blockers": [
-        "Independent strict HTTPS verification for apex and www is still required; repository release records identify Bertina CA certificate installation as an external gate, and this session cannot reach the public origin."
+        "Recorded Bertina release evidence reports a self-signed apex/www certificate; independent strict CA-trusted HTTPS verification remains required."
       ],
       "artifacts": [
         "docs/BERTINA_MIGRATION.md",
@@ -39,7 +39,7 @@
       "production_state": "FOUNDATION_STRONG",
       "revenue_priority": "HIGH",
       "external_blockers": [
-        "Dedicated server/provider provisioning"
+        "Any future infrastructure migration requires a separately reviewed plan; Bertina remains the sole production provider."
       ],
       "artifacts": [
         "platform/deployment-topology.json",
@@ -51,10 +51,10 @@
         "foundation/DEDICATED-MASTER-CUTOVER-CHECKLIST-v1.md"
       ],
       "next_actions": [
-        "Provision staging on chosen master",
-        "Run repository preflight and then production-env preflight with runtime secrets",
-        "Run database migrations and implement health endpoints",
-        "Complete backup/restore drill before production traffic"
+        "Retain portability contracts as future reference; provision no additional production provider in this reconciliation",
+        "Keep repository portability preflight separate from current Bertina release certification",
+        "Preserve existing Bertina PHP/MySQL schemas and health endpoints; identify only unimplemented operational, storage and backup bindings",
+        "Require a verified backup/restore drill before any separately approved future traffic migration"
       ]
     },
     {
@@ -85,7 +85,7 @@
         ".github/workflows/public-data-sync.yml"
       ],
       "next_actions": [
-        "Preserve green SEO/GEO, Chromium browser CI and strict live-production health",
+        "Preserve source SEO/GEO and Chromium browser gates; certify strict public-origin health after CA-trusted TLS is verified.",
         "Preserve the verified canonical HTTPS Search Console property and keep live IndexNow change submission fail-closed behind HTTPS/key verification",
         "Activate Bing/Yandex webmaster properties when account credentials are available",
         "Measure real Core Web Vitals, query, citation and indexation data"
@@ -140,7 +140,7 @@
       ],
       "next_actions": [
         "Preserve the unified Obsidian/Ivory/Muted-Gold quality standard while allowing Golden Talent, Rezazadeh Foundation Press and JHELA to retain distinct product/editorial identities",
-        "Keep the 49-test Chromium suite green before accepting visual or interaction changes",
+        "Keep the current Chromium Browser QA suite green before accepting visual or interaction changes.",
         "Preserve five-tab private mobile navigation, 44px+ touch targets, safe-area handling and non-colliding overlays while retaining the richer desktop dashboard sidebar",
         "Keep the public concierge suppressed on auth/private student routes while retaining it on appropriate public surfaces",
         "Run physical-device iOS Safari/Android Chrome visual QA plus VoiceOver/TalkBack review",
@@ -186,7 +186,7 @@
       "production_state": "FOUNDATION_READY",
       "revenue_priority": "HIGH",
       "external_blockers": [
-        "No secure server-side assistant runtime is currently provisioned"
+        "Live model adapter and private persisted lead service are unimplemented; existing PHP endpoints intentionally return local-fallback/not-configured responses."
       ],
       "artifacts": [
         "assets/js/assistant.js",
@@ -197,7 +197,7 @@
       ],
       "next_actions": [
         "Keep the bilingual static site-guide fallback active on appropriate public pages",
-        "Do not call any live assistant endpoint until an independent secure server-side runtime is provisioned",
+        "Keep live AI calls and lead capture disabled until a provider-neutral adapter and private persistence are implemented and verified in the existing Bertina runtime.",
         "If live AI is later required, attach a provider-neutral server-side adapter on Bertina and keep all model credentials outside public JavaScript",
         "Keep private/account/assessment/checkout routes excluded from the public assistant"
       ]
@@ -223,9 +223,15 @@
         "platform/media-library-policy.json",
         "scripts/media-derive.mjs",
         ".github/workflows/media-derivatives.yml",
-        "foundation/MEDIA-LIBRARY-RUNBOOK-v4.3.md"
+        "foundation/MEDIA-LIBRARY-RUNBOOK-v4.3.md",
+        "api/index.php",
+        "api/config.example.php",
+        "docs/BERTINA_MYSQL_SCHEMA.sql",
+        "docs/V4.4.1-BLOCKERS.md",
+        "assets/release-v4.4.json"
       ],
       "next_actions": [
+        "Preserve implemented book-only /api/commerce/prepare order capture and server-authoritative prices; recorded MySQL dry-run did not start payment.",
         "Preserve the three owner-approved published print titles as sellable/in-stock in the catalogue while keeping live bank payment disabled until the production gateway is activated",
         "Confirm stock, shipping coverage and return terms",
         "Collect verified ISBN/publisher/edition/cover metadata where applicable",
@@ -238,7 +244,7 @@
       "production_state": "WAITING_EXTERNAL",
       "revenue_priority": "CRITICAL",
       "external_blockers": [
-        "No secure server-side payment runtime is currently provisioned",
+        "Trusted public TLS, private Bertina production BitPay configuration, verified currency conversion and fulfilment flags, and controlled callback/receipt/reconciliation certification.",
         "Production payment secrets must be stored only in the Bertina server-side runtime"
       ],
       "artifacts": [
@@ -248,12 +254,17 @@
         "platform/db/migrations/002_commerce_payments.sql",
         "platform/payment-provider-registry.json",
         "platform/payment-provider-adapter.mjs",
-        "platform/db/migrations/026_payment_provider_event.sql"
+        "platform/db/migrations/026_payment_provider_event.sql",
+        "api/index.php",
+        "api/config.example.php",
+        "docs/BERTINA_MYSQL_SCHEMA.sql",
+        "docs/V4.4.1-BLOCKERS.md",
+        "assets/release-v4.4.json"
       ],
       "next_actions": [
         "Keep the verified BitPay sandbox roundtrip as the integration baseline",
-        "Provision an independent HTTPS backend with persistent order storage",
-        "Store the production BitPay API only in that backend runtime secret store",
+        "Preserve the implemented Bertina PHP/MySQL order-capture runtime; revalidate its deployed health and persistence before payment activation.",
+        "Install production BitPay credentials only in Bertina private runtime configuration after the external activation gates are reviewed.",
         "Run a controlled live transaction with server-side callback verification and reconciliation before enabling public payment"
       ]
     },
@@ -263,7 +274,7 @@
       "revenue_priority": "HIGH",
       "external_blockers": [
         "Empirical validation for any future psychometric scoring",
-        "Production backend for private evidence workflows"
+        "Bertina authenticated evidence persistence, relationship authorization and human-review bindings."
       ],
       "artifacts": [
         "platform/golden-talent-engine.mjs",
@@ -285,7 +296,7 @@
       "production_state": "FOUNDATION_READY",
       "revenue_priority": "HIGH",
       "external_blockers": [
-        "Production identity/database/storage providers"
+        "Trusted public TLS and controlled verification/recovery delivery certification; private storage and admin MFA enforcement remain unverified."
       ],
       "artifacts": [
         "platform/backend-deployment-policy.json",
@@ -294,15 +305,20 @@
         "foundation/RBAC-PERMISSION-MATRIX.md",
         "platform/identity-auth-policy.json",
         "platform/db/migrations/027_identity_email_auth_mobile_contact.sql",
-        "foundation/TRANSACTIONAL-EMAIL-ACTIVATION-v4.3.md"
+        "foundation/TRANSACTIONAL-EMAIL-ACTIVATION-v4.3.md",
+        "api/index.php",
+        "api/config.example.php",
+        "docs/BERTINA_MYSQL_SCHEMA.sql",
+        "docs/V4.4.1-BLOCKERS.md",
+        "assets/release-v4.4.json"
       ],
       "next_actions": [
-        "Provision real email/password auth/session backend",
-        "Configure and verify Bertina domain mail for verification, recovery and transactional messages; no external transactional-email runtime is required",
+        "Preserve the implemented email/password/session PHP backend; certify register → email → verify → login → recovery after trusted public TLS.",
+        "Preserve Bertina domain-mail transport; recorded release health reports SMTP configured, while actual verification/recovery delivery still requires controlled certification.",
         "Require email verification before ACTIVE status",
-        "Collect mobile at registration as contact-only data",
+        "Keep phone optional and contact-only; never use it for account verification or login.",
         "Keep recovery email-only with generic responses and single-use short-lived tokens",
-        "Apply RLS and enable admin MFA before production"
+        "Enforce record authorization and admin MFA before activating private operational APIs."
       ]
     },
     {
@@ -349,7 +365,7 @@
       "production_state": "FOUNDATION_READY",
       "revenue_priority": "MEDIUM",
       "external_blockers": [
-        "Production identity/MFA/backend services"
+        "Certified public authentication, enforced admin MFA and server-authorized operational APIs."
       ],
       "artifacts": [
         "platform/admin-console-policy.json",
@@ -399,7 +415,7 @@
       "production_state": "FOUNDATION_READY",
       "revenue_priority": "HIGH",
       "external_blockers": [
-        "Production authenticated database runtime",
+        "Authenticated longitudinal-data persistence and authorization bindings in the existing Bertina runtime.",
         "Real longitudinal student observations"
       ],
       "artifacts": [
@@ -464,5 +480,14 @@
     "completion_dossier": "foundation/SITE-COMPLETION-DOSSIER-v4.3.0.md"
   },
   "release_baseline": "v4.3.0",
-  "release_baseline_artifact": "foundation/V4.3.0-EXECUTION-BASELINE.md"
+  "release_baseline_artifact": "foundation/V4.3.0-EXECUTION-BASELINE.md",
+  "reconciliation_evidence": {
+    "source_base": "655bea2fae9349b22a9356ab86ccbc6a2c99608e",
+    "recorded_deploy": "dfdd624aa28c2bd77f50044bc0150d8321899672",
+    "rule": "Source implementation and recorded release evidence are distinct from independently rerun production certification. No production state is promoted by this reconciliation.",
+    "implemented": "Bertina PHP/MySQL email-only identity/session API, SMTP transport, book-only order capture, and receipt/payment contracts.",
+    "pending": "Trusted TLS, public auth/email delivery, live payment, Golden Talent persistence, account records/documents/appointments, admin operations, live AI and consented analytics.",
+    "deployment_evidence": "Deployment SHA is recorded in the user-supplied audit report; this reconciliation performs no deployment or production recertification."
+  },
+  "current_release_record": "assets/release-v4.4.json"
 }

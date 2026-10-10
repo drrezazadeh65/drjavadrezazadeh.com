@@ -1,98 +1,37 @@
-name: Publish Premium Knowledge Article UX
+name: Knowledge Article UX Validation
 
 on:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
-      - '.github/workflows/knowledge-articles-premium-upgrade.yml'
-      - 'tests/knowledge-article-responsive.spec.js'
-      - 'scripts/upgrade_knowledge_articles.py'
-      - 'assets/css/knowledge-article.css'
+      - 'fa/rahnamaha/**'
+      - 'assets/css/**'
       - 'assets/js/knowledge-article.js'
+      - 'tests/knowledge-articles-premium.mjs'
+      - '.github/workflows/knowledge-articles-premium-upgrade.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'fa/rahnamaha/**'
+      - 'assets/css/**'
+      - 'assets/js/knowledge-article.js'
+      - 'tests/knowledge-articles-premium.mjs'
+      - '.github/workflows/knowledge-articles-premium-upgrade.yml'
   workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: publish-premium-articles
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  publish:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: true
-
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-
-      - name: Validate migration syntax and all 45 article sources
+      - name: Validate source without publishing changes
         run: |
-          python3 -m py_compile scripts/upgrade_knowledge_articles.py
           python3 scripts/upgrade_knowledge_articles.py --check-only
-
-      - name: Upgrade all 45 guides in one controlled migration
-        run: python3 scripts/upgrade_knowledge_articles.py
-
-      - name: Validate full SEO inventory and new article schema/navigation
-        run: |
-          node tests/knowledge-hub-seo.mjs
           node tests/knowledge-articles-premium.mjs
-          python3 scripts/upgrade_knowledge_articles.py --check-only
-
-      - name: Install pinned Playwright browser runtime
-        run: |
-          npm install --no-save --no-package-lock @playwright/test@1.56.0
-          npx playwright install --with-deps chromium
-
-      - name: Start local production-equivalent static server
-        run: |
-          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/knowledge-article-static.log 2>&1 &
-          for i in {1..20}; do
-            if curl -fsS http://127.0.0.1:4173/fa/rahnamaha/golden-talent-chist/ >/dev/null; then exit 0; fi
-            sleep 1
-          done
-          cat /tmp/knowledge-article-static.log
-          exit 1
-
-      - name: Certify all 45 guides at mobile, tablet portrait, landscape and desktop widths
-        run: npx playwright test tests/knowledge-article-responsive.spec.js --workers=4 --reporter=line
-
-      - name: Upload tablet/mobile visual evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: 45-article-premium-responsive-evidence
-          path: test-results/article-responsive/
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Commit and deploy only after all release gates pass
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add fa/rahnamaha/
-          if git diff --cached --quiet; then
-            echo "No article changes remain; release is already applied."
-            exit 0
-          fi
-          git commit -m "Release premium bilingual-ready article reader for all 45 published guides"
-          for attempt in 1 2 3 4; do
-            git pull --rebase origin main
-            if git push origin HEAD:main; then
-              echo "All 45 pages were committed and pushed to main."
-              exit 0
-            fi
-            echo "Push conflicted; retrying with latest remote head."
-            sleep 4
-          done
-          echo "ABORT: safe publish could not fast-forward main" >&2
-          exit 1
+          node tests/knowledge-hub-seo.mjs

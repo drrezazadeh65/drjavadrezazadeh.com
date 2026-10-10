@@ -2,8 +2,9 @@ name: SEO GEO Regression
 
 on:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
   pull_request:
+    branches: [migration/bertina-linux6]
 
 permissions:
   contents: read

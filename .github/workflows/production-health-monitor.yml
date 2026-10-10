@@ -3,12 +3,12 @@ name: Production SEO Health
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
       - scripts/production-health-audit.mjs
       - foundation/V4.4-EXECUTION-AND-EMAIL-CLOSURE-2026-10-09.md
-      - payment-api/commerce-routes.js
-      - payment-api/worker-single-file-candidate.js
+      - api/index.php
+      - api/config.example.php
       - .github/workflows/production-health-monitor.yml
   schedule:
     - cron: '17 5 * * *'
@@ -25,6 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'schedule' && 'migration/bertina-linux6' || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -37,4 +39,4 @@ jobs:
         if: always()
         run: |
           echo "Production health monitoring is active in STRICT mode."
-          echo "DNS, TLS and the permanent HTTPS origin were independently verified on 2026-10-07; failures are release-significant."
+          echo "Bertina public CA-trusted TLS remains an external gate. This monitor keeps strict TLS verification; a source pass is not public certification."

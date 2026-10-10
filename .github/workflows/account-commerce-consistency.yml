@@ -1,7 +1,7 @@
 name: Account Commerce Consistency
 on:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
       - 'fa/register/**'
       - 'en/register/**'
@@ -14,6 +14,7 @@ on:
       - 'tests/account-commerce-consistency.test.mjs'
       - '.github/workflows/account-commerce-consistency.yml'
   pull_request:
+    branches: [migration/bertina-linux6]
     paths:
       - 'fa/register/**'
       - 'en/register/**'

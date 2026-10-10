@@ -1,7 +1,7 @@
 name: Knowledge Hub SEO & Media Integrity
 on:
   push:
-    branches: [main]
+    branches: [migration/bertina-linux6]
     paths:
       - 'fa/rahnamaha/**'
       - 'assets/images/knowledge/**'
@@ -14,6 +14,8 @@ on:
       - 'tests/knowledge-hub-seo.mjs'
       - 'tests/knowledge-hub-browser.mjs'
       - '.github/workflows/knowledge-hub-seo.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
   workflow_dispatch:
 permissions:
   contents: read

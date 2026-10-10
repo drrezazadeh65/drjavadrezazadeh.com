@@ -65,6 +65,10 @@ jobs:
           run_audit "Performance source" node scripts/performance-source-audit.mjs
           run_audit "Public secret exposure" node scripts/public-secret-audit.mjs
           run_audit "PWA private cache" node scripts/pwa-private-cache-audit.mjs
+          run_audit "Private cache behavior" node --test tests/private-cache-behavior.test.mjs
+          run_audit "Ordered stylesheet bundles" node scripts/stylesheet-bundles.mjs --check
+          run_audit "Service SEO and Bertina commerce gates" node scripts/seo-services-gate.cjs
+          run_audit "Workflow governance" node scripts/workflow-governance-audit.mjs
           run_audit "Trust/legal" node scripts/trust-legal-audit.mjs
           run_audit "News trust/freshness" node scripts/news-trust-audit.mjs
           run_audit "Sitemap lastmod" node scripts/sitemap-lastmod-audit.mjs

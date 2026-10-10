@@ -20,6 +20,8 @@ on:
       - 'scripts/build-public-site.mjs'
       - '.github/workflows/bertina-migration-preflight.yml'
       - '.github/workflows/deploy-bertina.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
   workflow_dispatch:
 
 permissions:

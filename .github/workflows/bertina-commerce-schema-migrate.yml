@@ -1,11 +1,7 @@
 name: Bertina Commerce Schema Migration
 
 on:
-  push:
-    branches:
-      - migration/bertina-linux6
-    paths:
-      - '.github/workflows/bertina-commerce-schema-migrate.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,6 +12,7 @@ concurrency:
 
 jobs:
   migrate:
+    if: github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:

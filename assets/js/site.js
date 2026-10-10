@@ -1,17 +1,6 @@
 document.documentElement.classList.add('js');
 const JR_ROUTE_POLICY=Object.freeze({
-noStore:Object.freeze([
-'/fa/app/','/fa/customer-dashboard/','/app/','/en/account/',
-'/fa/login/','/login/','/en/login/','/fa/register/','/register/','/en/register/','/en/recover/','/fa/bazyabi-hesab/',
-'/fa/assessments/','/assessments/','/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/',
-'/fa/shop/cart/','/fa/shop/checkout/','/fa/shop/payment-start/','/fa/shop/payment-return/','/fa/shop/payment-result/',
-'/en/shop/cart/','/en/shop/checkout/','/en/golden-talent/checkout/','/en/golden-talent/plans/','/fa/darkhast-moshavere/','/en/request-consultation/'
-]),
-app:Object.freeze([
-'/fa/app/','/fa/customer-dashboard/','/app/','/en/account/','/fa/assessments/','/assessments/',
-'/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/'
-])
-});
+noStore:Object.freeze(['/api/','/fa/services/checkout/','/fa/shop/golden-talent/checkout/','/fa/app/','/fa/customer-dashboard/','/app/','/en/account/','/fa/login/','/login/','/en/login/','/fa/register/','/register/','/en/register/','/en/recover/','/fa/bazyabi-hesab/','/fa/assessments/','/assessments/','/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/','/fa/shop/cart/','/fa/shop/checkout/','/fa/shop/payment-start/','/fa/shop/payment-return/','/fa/shop/payment-result/','/en/shop/cart/','/en/shop/checkout/','/en/golden-talent/checkout/','/en/golden-talent/plans/','/fa/darkhast-moshavere/','/en/request-consultation/']),app:Object.freeze(['/fa/app/','/fa/customer-dashboard/','/app/','/en/account/','/fa/assessments/','/assessments/','/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/'])});const JR_PRIV=p=>JR_ROUTE_POLICY.noStore.some(s=>p+'/'===s||p.startsWith(s));
 (()=>{
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const rawPath=location.pathname.replace(/index\.html$/,'');
@@ -288,7 +277,7 @@ const raw=location.pathname.replace(/index\.html$/,'');
 const gh='/drjavadrezazadeh.com/';
 const base=raw.includes(gh)?gh:'/';
 const relative=base==='/'?raw:'/'+raw.slice(base.length);
-const privatePath=JR_ROUTE_POLICY.noStore.some(prefix=>relative.startsWith(prefix));
+const privatePath=JR_PRIV(relative);
 window.addEventListener('beforeinstallprompt',e=>{
 e.preventDefault();
 deferredPrompt=e;
@@ -381,7 +370,7 @@ const raw=location.pathname.replace(/index\.html$/,'');
 const gh='/drjavadrezazadeh.com/';
 const base=raw.includes(gh)?gh:'/';
 const relative=base==='/'?raw:'/'+raw.slice(base.length);
-const privatePath=JR_ROUTE_POLICY.noStore.some(prefix=>relative.startsWith(prefix));
+const privatePath=JR_PRIV(relative);
 if(!ios||standalone||privatePath||sessionStorage.getItem('ios-install-dismissed')==='1'||document.querySelector('.pwa-install')) return;
 const isFa=document.documentElement.lang==='fa';
 window.addEventListener('load',()=>{

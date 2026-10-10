@@ -1,11 +1,6 @@
 name: Bertina PHP Cache Diagnostic
 
 on:
-  push:
-    branches:
-      - migration/bertina-linux6
-    paths:
-      - '.github/workflows/bertina-php-cache-diagnostic.yml'
   workflow_dispatch:
 
 permissions:
@@ -13,6 +8,7 @@ permissions:
 
 jobs:
   diagnose:
+    if: github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
