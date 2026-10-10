@@ -8,6 +8,7 @@ on:
       - '.github/workflows/bertina-activation-audit.yml'
   workflow_dispatch:
 
+# activation-audit-run: 2026-10-10T14:25:00Z
 permissions:
   contents: read
 
