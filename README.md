@@ -2,9 +2,19 @@
 Official website of **Dr. Javad Rezazadeh Yazdeli**.
 
 ## Strategic architecture
-The site combines four connected identities without collapsing them into one page: academic scholarship, research programmes, educational/talent consulting, and a news/insights publishing layer.
+The site combines academic scholarship, research programmes, educational/talent consulting, commerce, and a bilingual news/insights layer while preserving a single canonical public identity.
 
-### Search themes
+## Production architecture — Bertina only
+GitHub remains the source-control and CI repository. **Bertina is the only production hosting, DNS, PHP, MySQL and domain-mail infrastructure for the website.** The public origin is `https://drjavadrezazadeh.com`.
+
+The live browser must use same-origin application endpoints under `/api/`. Provider-specific edge runtimes, retired Worker hosts and third-party transactional-email runtimes are not part of the active architecture and must not be reintroduced without a new explicit owner decision.
+
+Public URL identity remains an SEO contract. Existing indexable paths are frozen in `platform/public-url-stability-manifest.json`; paths may not be renamed or removed without a deliberate one-hop permanent redirect. Canonical, hreflang, Open Graph, structured-data URLs/IDs, sitemaps and robots remain on the owned HTTPS domain.
+
+## Security and private services
+Private/account/payment routes are fail-closed until the corresponding Bertina service is configured and verified. Authentication is email-only. The Bertina PHP API stores private state in MySQL and uses domain email on the Bertina host for verification/recovery/transactional delivery after mailbox and transport testing. Secrets must remain outside Git.
+
+## Search themes
 Primary topical clusters are developed through substantive pages rather than keyword stuffing:
 - Dr. Javad Rezazadeh Yazdeli / Javad Rezazadeh
 - talent identification and talent development
@@ -14,24 +24,7 @@ Primary topical clusters are developed through substantive pages rather than key
 - human-centred assessment and responsible educational measurement
 - teacher education, professional learning and educational development
 
-### Production origin and URL stability
-GitHub Pages is the public static host for the owned production domain `https://drjavadrezazadeh.com`; Cloudflare is used for DNS, edge delivery and the payment/commerce Worker architecture. GitHub `main` remains the source-of-truth repository. The canonical-origin migration is complete: canonical, hreflang, Open Graph, structured-data URLs/IDs, sitemaps and robots use the owned HTTPS domain. Retired providers and disconnected integrations must not be restored or treated as operational evidence without a new explicit owner decision.
-
-Public URL identity is treated as an SEO contract. Existing indexable paths are frozen in `platform/public-url-stability-manifest.json`; a path must not be renamed or removed without an intentional one-hop permanent redirect plan. CI blocks broken internal links, missing fragment targets, redirect chains, sitemap drift and canonical drift.
-
-### Verified identity links
-Academia.edu, Semantic Scholar, ORCID, Instagram, GitHub, X/Twitter (`https://x.com/J_Rezazadeh`), and Facebook (`https://m.facebook.com/DrJavadRezazadeh/`) are linked on both About pages and in their canonical Person `sameAs` schema. Google Scholar currently uses a name-specific Scholar search until the exact profile URL is verified. The GitHub Pages publication and live domain must be independently checked after each source change.
+## Verified identity links
+Academia.edu, Semantic Scholar, ORCID, Instagram, GitHub, X/Twitter and Facebook are linked on the bilingual About pages and in Person `sameAs` schema. Production publication and live-domain behaviour are verified independently after deployment.
 
 © Dr. Javad Rezazadeh Yazdeli. All rights reserved.
-
-
-## Active delivery baseline — v4.4 (2026-10-09)
-
-The latest non-email implementation evidence and explicitly unresolved live-release gates are documented in `foundation/V4.4-NON-EMAIL-IMPLEMENTATION-REPORT-2026-10-09.md`. The current v4.4 progress checkpoint is `foundation/V4.4-ACADEMIC-COMMERCE-SEO-CHECKPOINT-2026-10-09.md`; the earlier v4.3 baseline `foundation/V4.3.0-EXECUTION-BASELINE.md` remains historical context. The authoritative runtime policy is `foundation/ACTIVE-INFRASTRUCTURE-POLICY-2026-10-09.md`. The frozen ecosystem roadmap remains in `foundation/MASTER-ECOSYSTEM-ROADMAP.md`, with machine-readable status rules in `foundation/ROADMAP-STATUS.json`. Roadmap items are never silently removed; they move through explicit DONE / MODIFIED / RENEWED / IN PROGRESS / PLANNED / WAITING / DEFERRED / RETIRED states.
-
-## Master Foundation
-The repository now contains an explicit foundation layer under `/foundation/`. New application, assessment, research-lab and commerce namespaces are reserved as `noindex` routes until substantive content/data and an explicit SEO release decision exist.
-
-**Indexing is opt-in.** Public URLs are added to the XML sitemap only after an SEO release gate. Private/personal data will ultimately be protected by authentication; static foundation pages are placeholders only and contain no personal user data.
-
-Research data architecture is defined before data collection so assessment, parent, teacher, educational-record and qualitative data can later be exported reproducibly for SPSS/R/Python and qualitative analysis environments without treating the operational database as the research dataset.
