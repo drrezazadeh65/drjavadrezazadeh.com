@@ -56,5 +56,8 @@ Use only public URLs listed here or discoverable through the canonical sitemap. 
 
 - [Sitemap index](https://drjavadrezazadeh.com/sitemap.xml)
 - [Persian sitemap](https://drjavadrezazadeh.com/sitemap-fa.xml)
+- [English sitemap](https://drjavadrezazadeh.com/sitemap-en.xml)
+- [Services sitemap](https://drjavadrezazadeh.com/sitemap-services.xml)
+- [News sitemap](https://drjavadrezazadeh.com/sitemap-news.xml)
 - [RSS feed](https://drjavadrezazadeh.com/feed.xml)
 - [Robots policy](https://drjavadrezazadeh.com/robots.txt)
