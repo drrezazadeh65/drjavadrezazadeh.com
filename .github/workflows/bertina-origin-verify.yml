@@ -11,6 +11,7 @@ on:
 permissions:
   contents: read
 
+# live config probe 2026-10-10T13:34:43.895Z
 jobs:
   verify:
     # mail readiness probe
