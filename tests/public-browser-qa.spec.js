@@ -550,14 +550,17 @@ test('system-native typography stacks stay unified without external font request
   expect(externalFonts).toEqual([]);
 });
 
-test('Persian auth brand preserves Golden Talent word order',async({page})=>{
+test('Persian auth brand uses the unified site account identity',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await page.goto(base+'/fa/login/',{waitUntil:'domcontentloaded'});
   const brand=page.locator('.site-header .brand');
   await expect(brand).toBeVisible();
-  expect(await brand.evaluate(el=>getComputedStyle(el).direction)).toBe('ltr');
-  expect((await brand.textContent()).replace(/\s+/g,' ').trim()).toMatch(/^Golden Talent/);
+  const text=(await brand.textContent()).replace(/\s+/g,' ').trim();
+  expect(text).toContain('Dr. Javad Rezazadeh');
+  expect(text).toContain('حساب واحد مشتری');
+  expect(text).not.toMatch(/Golden\s+Talent/i);
 });
+
 
 test('commerce publishing first-screen visual evidence',async({page})=>{
   const surfaces=[
@@ -855,27 +858,29 @@ test('Persian private role visual evidence',async({page})=>{
   }
 });
 
-test('auth previews keep trust evidence visible before the mobile dock',async({page})=>{
+test('unified auth keeps identity, status and primary action visible on mobile',async({page})=>{
   const routes=['/en/login/','/en/register/','/fa/login/','/fa/register/'];
   for(const route of routes){
+    await page.route('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,service:'auth',ready:false,database:false,email:true,passwordKdf:false})}));
     await page.setViewportSize({width:390,height:844});
     await page.goto(base+route,{waitUntil:'domcontentloaded'});
     await page.waitForTimeout(180);
     const title=page.locator('.article-hero h1').first();
-    const status=page.locator('.role-status-card').first();
-    const dock=page.locator('.app-dock').first();
+    const status=page.locator('[data-auth-status]').first();
+    const form=page.locator('.auth-form').first();
     await expect(title).toBeVisible();
     await expect(status).toBeVisible();
-    await expect(dock).toBeVisible();
-    const [tb,sb,db]=await Promise.all([title.boundingBox(),status.boundingBox(),dock.boundingBox()]);
-    for(const box of [tb,sb,db]) expect(box).not.toBeNull();
+    await expect(form).toBeVisible();
+    const [tb,sb,fb]=await Promise.all([title.boundingBox(),status.boundingBox(),form.boundingBox()]);
+    for(const box of [tb,sb,fb]) expect(box).not.toBeNull();
     expect(parseFloat(await title.evaluate(el=>getComputedStyle(el).fontSize)),route+' auth title size').toBeLessThanOrEqual(34.5);
-    expect(tb.y+tb.height,route+' auth title should clear dock').toBeLessThan(db.y-18);
-    expect(sb.y,route+' first trust status should enter before dock').toBeLessThan(db.y-24);
-    const form=page.locator('.auth-form');
+    expect(tb.y+tb.height,route+' title should appear above form').toBeLessThan(fb.y+4);
+    expect(sb.y,route+' auth status should be visible inside the primary form').toBeLessThan(844);
     await expect(form.locator('input,select').first()).toBeDisabled();
+    await page.unrouteAll({behavior:'ignoreErrors'});
   }
 });
+
 
 test('auth mobile visual evidence',async({page})=>{
   const surfaces=[
@@ -1405,28 +1410,31 @@ test('premium service catalogue compares three offers without changing prices or
 });
 
 
-test('bilingual student identity shells remain honestly disabled until real authentication exists',async({page})=>{
- const pages=[
-  ['/fa/login/','هنوز فعال نشده'],
-  ['/en/login/','Not yet active'],
-  ['/fa/register/','ثبت‌نام آنلاین به‌زودی'],
-  ['/en/register/','Registration coming soon']
- ];
- for(const [route,status] of pages){
-  for(const [width,height] of [[390,844],[1440,900]]){
-   await page.setViewportSize({width,height});
-   const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
-   expect(response.status(),route).toBe(200);
-   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
-   await expect(page.locator('main')).toContainText(status);
-   await expect(page.locator('form input:not([disabled])')).toHaveCount(0);
-   await expect(page.locator('form select:not([disabled])')).toHaveCount(0);
-   await expect(page.locator('form button:not([disabled])')).toHaveCount(0);
-   const o=await stableOverflow(page);
-   expect(Math.max(o.html,o.body),route+' overflow at '+width).toBeLessThanOrEqual(o.viewport+1);
+test('bilingual unified account forms fail closed until live auth health is ready',async({page})=>{
+  const pages=[
+    ['/fa/login/','سامانه ورود هنوز روی سرور زنده فعال نشده است.'],
+    ['/en/login/','The live account service is not enabled yet.'],
+    ['/fa/register/','سامانه ورود هنوز روی سرور زنده فعال نشده است.'],
+    ['/en/register/','The live account service is not enabled yet.']
+  ];
+  for(const [route,status] of pages){
+    for(const [width,height] of [[390,844],[1440,900]]){
+      await page.route('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,service:'auth',ready:false,database:false,email:true,passwordKdf:false})}));
+      await page.setViewportSize({width,height});
+      const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      expect(response.status(),route).toBe(200);
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
+      await expect(page.locator('[data-auth-status]')).toContainText(status);
+      await expect(page.locator('form input:not([disabled])')).toHaveCount(0);
+      await expect(page.locator('form select:not([disabled])')).toHaveCount(0);
+      await expect(page.locator('form button:not([disabled])')).toHaveCount(0);
+      const o=await stableOverflow(page);
+      expect(Math.max(o.html,o.body),route+' overflow at '+width).toBeLessThanOrEqual(o.viewport+1);
+      await page.unrouteAll({behavior:'ignoreErrors'});
+    }
   }
- }
 });
+
 
 test('three evidence-led guidance upgrades preserve canonical links and responsive reading',async({page})=>{
  const guides=[
