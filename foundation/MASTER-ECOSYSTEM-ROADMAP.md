@@ -97,7 +97,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [x] **INFRA-005 — FROZEN — Future app target: `app.drjavadrezazadeh.com`.**
 - [x] **INFRA-006 — FROZEN — Publisher initially lives at `/publisher/`; `press.` is optional later.**
 - [x] **INFRA-007 — DONE — Permanent domain acquired and activated: `drjavadrezazadeh.com`.**
-- [ ] **INFRA-008 — IN PROGRESS — Permanent domain is delegated to Bertina; TLS installation is the remaining public-origin prerequisite.**
+- [ ] **INFRA-008 — IN PROGRESS — Permanent domain is delegated to Bertina; Bertina reports Certum DV installed and strict proxy-mediated transport checks pass. Independent origin-certificate and historical redirect certification remain pending.**
 - [ ] **INFRA-009 — IN PROGRESS — Canonical-origin migration to https://drjavadrezazadeh.com is recorded as completed; preserve frozen URLs and independently certify strict public-origin TLS and redirect behavior before any HTTPS activation.**
 - [ ] **INFRA-010 — IN PROGRESS — Bertina Linux/Apache/PHP/MySQL/domain-mail production architecture is selected and implemented. Recorded release evidence reports database, auth and SMTP configuration readiness; trusted public TLS, certified delivery and private operational bindings remain pending.**
 - [ ] **INFRA-011 — IN PROGRESS — Staging/preview policy frozen: non-production previews remain noindex, private no-store, synthetic-data only, with production secrets/payments excluded and CI-gated promotion.**

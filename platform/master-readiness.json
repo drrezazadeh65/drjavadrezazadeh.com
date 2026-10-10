@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "as_of": "2026-10-10",
+  "as_of": "2026-10-11",
   "purpose": "Single machine-readable control plane for what is ready, what remains external, and what should be developed next without overstating production maturity.",
   "status_values": [
     "FOUNDATION_STRONG",
@@ -17,7 +17,7 @@
       "production_state": "WAITING_EXTERNAL",
       "revenue_priority": "CRITICAL",
       "external_blockers": [
-        "Recorded Bertina release evidence reports a self-signed apex/www certificate; independent strict CA-trusted HTTPS verification remains required."
+        "Bertina reports Certum DV installed; strict proxy-mediated apex/www transport checks pass. Independent origin-certificate and complete historical redirect certification remain pending."
       ],
       "artifacts": [
         "docs/BERTINA_MIGRATION.md",
@@ -29,7 +29,7 @@
       ],
       "next_actions": [
         "Preserve all approved canonical URLs on Bertina; revalidate the deployed commit before any release",
-        "Confirm Bertina public CA certificate installation and verify apex and www with strict TLS",
+        "Independently verify the installed certificate for apex and www with strict TLS, then verify canonical/historical redirects without certificate bypass",
         "Verify sanitized public artifact, server-side checksums, SEO and private cache boundaries on the canonical origin",
         "Treat source tests as repository evidence; require independent production verification before marking this track LIVE"
       ]
@@ -489,5 +489,15 @@
     "pending": "Trusted TLS, public auth/email delivery, live payment, Golden Talent persistence, account records/documents/appointments, admin operations, live AI and consented analytics.",
     "deployment_evidence": "Deployment SHA is recorded in the user-supplied audit report; this reconciliation performs no deployment or production recertification."
   },
-  "current_release_record": "assets/release-v4.4.json"
+  "current_release_record": "assets/release-v4.4.json",
+  "tls_observation": {
+    "provider_installation_reported_at": "2026-10-11T00:42:18+03:30",
+    "provider_report": "Bertina support confirmed Certum DV installed; Certum issuance email states expiry 2027-04-27 23:10 UTC+2",
+    "strict_proxy_transport": "APEX_FA_200_WWW_FA_301_VERIFY_RESULT_0",
+    "independent_origin_certificate_certification": "PENDING",
+    "historical_live_matrix_before_fix": "46 of 137 checks passed; 90 historical host/protocol variants take an extra transport hop and one shop query check also fails",
+    "public_tls_confirmed": false,
+    "commerce_enabled": false,
+    "evidence_limit": "Proxy-mediated requests do not independently identify the origin certificate. Historical dated reconciliation evidence is retained; no authentication, email delivery or payment certification is claimed."
+  }
 }

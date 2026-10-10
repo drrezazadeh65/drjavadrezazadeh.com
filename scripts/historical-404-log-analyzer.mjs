@@ -8,6 +8,7 @@ if(!input){
 }
 const out=process.argv[3]||'';
 const registry=loadHistoricalAuthorityRegistry();
+const siteHost=new URL(registry.production_origin).hostname.toLowerCase().replace(/\.$/,'');
 const lines=fs.readFileSync(input,'utf8').split(/\r?\n/).filter(Boolean);
 const groups=new Map();
 let parsed=0,matched=0;
@@ -27,10 +28,13 @@ for(const line of lines){
   const g=groups.get(p);
   g.hits++;g.ips.add(remote);g.statuses.add(status);
   if(referrer&&referrer!=='-'){
-    g.referrers.add(referrer);
     try{
-      const h=new URL(referrer).hostname.toLowerCase();
-      if(h&&!/drjavadrezazadeh\.com$/i.test(h)) g.referringDomains.add(h);
+      const u=new URL(referrer);
+      const h=u.hostname.toLowerCase().replace(/\.$/,'');
+      if(['http:','https:'].includes(u.protocol)&&h&&h!==siteHost&&!h.endsWith('.'+siteHost)){
+        g.referrers.add(referrer);
+        g.referringDomains.add(h);
+      }
     }catch{}
   }
   if(/bot|crawler|spider|slurp|bingpreview|googleother|googlebot|ahrefs|semrush|yandex/i.test(ua)) g.bots++;

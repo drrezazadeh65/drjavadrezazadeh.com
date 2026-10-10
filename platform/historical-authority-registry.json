@@ -25,7 +25,7 @@
     "www_to_apex": "ACTIVE_CANONICAL_301",
     "target_behavior_after_tls": "ONE_HOP_TO_HTTPS_APEX_CANONICAL_PATH",
     "tls_state": "CERTUM_DV_ISSUED_AND_INSTALLED_BY_BERTINA",
-    "evidence": "Bertina support confirmed certificate issuance/installation on 2026-10-11; production branch includes one-hop canonical transport redirect."
+    "evidence": "Bertina support reported Certum DV installation on 2026-10-11 at 00:42 Asia/Tehran. Strict proxy-mediated apex/www transport requests pass. The deployed transport-first hierarchy still chains historical HTTP/www URLs; source correction precedes transport consolidation, with independent runner certification required after deployment."
   },
   "priority_surfaces": [
     {
