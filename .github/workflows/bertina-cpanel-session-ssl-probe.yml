@@ -1,0 +1,40 @@
+name: Bertina cPanel Session SSL Probe
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/bertina-cpanel-session-ssl-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to cPanel session and inspect SSL features
+        env:
+          USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          PASS: ${{ secrets.BERTINA_FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          curl -ksS -c /tmp/cookies.txt             --data-urlencode "user=$USER"             --data-urlencode "pass=$PASS"             "https://server388.bertina.biz:2083/login/?login_only=1"             > /tmp/login.json
+
+          status="$(jq -r '.status // 0' /tmp/login.json)"
+          test "$status" = "1"
+          token="$(jq -r '.security_token' /tmp/login.json)"
+          test -n "$token"
+          echo "cPanel session login succeeded."
+
+          for feature in sslinstall autossl; do
+            curl -ksS -b /tmp/cookies.txt               "https://server388.bertina.biz:2083${token}/execute/Features/has_feature?name=${feature}"               > "/tmp/${feature}.json"
+            jq -e '.result.status == 1' "/tmp/${feature}.json" >/dev/null
+            enabled="$(jq -r '.result.data // empty' "/tmp/${feature}.json")"
+            echo "${feature}=${enabled}"
+          done
+
+          curl -ksS -b /tmp/cookies.txt             "https://server388.bertina.biz:2083${token}/execute/SSL/list_certs"             > /tmp/certs.json
+          jq -e '.result.status == 1' /tmp/certs.json >/dev/null
+          echo "SSL certificate management API is reachable through session auth."
