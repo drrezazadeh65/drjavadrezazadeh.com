@@ -1,0 +1,74 @@
+name: Bertina Public Cutover Verify
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/bertina-public-cutover-verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: DNS nameserver verification
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq dnsutils
+          echo "Authoritative NS:"
+          dig +short NS drjavadrezazadeh.com
+          dig +short NS drjavadrezazadeh.com | grep -Eqi 'ns388\.phtco\.com\.?'
+          dig +short NS drjavadrezazadeh.com | grep -Eqi 'ns389\.phtco\.com\.?'
+          echo "A records:"
+          dig +short A drjavadrezazadeh.com
+          dig +short A www.drjavadrezazadeh.com
+
+      - name: TLS certificate and hostname verification
+        run: |
+          echo | openssl s_client -connect drjavadrezazadeh.com:443 -servername drjavadrezazadeh.com -verify_return_error 2>/tmp/tls.err |             openssl x509 -noout -subject -issuer -dates -ext subjectAltName
+          echo | openssl s_client -connect drjavadrezazadeh.com:443 -servername drjavadrezazadeh.com -verify_return_error 2>/tmp/tls.err |             openssl x509 -noout -checkhost drjavadrezazadeh.com
+          echo | openssl s_client -connect www.drjavadrezazadeh.com:443 -servername www.drjavadrezazadeh.com -verify_return_error 2>/tmp/tls-www.err |             openssl x509 -noout -checkhost www.drjavadrezazadeh.com
+
+      - name: HTTP to HTTPS redirect
+        run: |
+          curl -fsSI --max-time 30 http://drjavadrezazadeh.com/ -o /tmp/http-head
+          cat /tmp/http-head
+          grep -Ei '^location: https://(www\.)?drjavadrezazadeh\.com/' /tmp/http-head
+
+      - name: HTTPS public smoke test
+        run: |
+          curl -fsS --max-time 30 https://drjavadrezazadeh.com/fa/ -o /tmp/fa.html
+          grep -F '<html lang="fa" dir="rtl">' /tmp/fa.html
+          grep -F 'https://drjavadrezazadeh.com/fa/' /tmp/fa.html
+
+          curl -fsS --max-time 30 https://drjavadrezazadeh.com/en/ -o /tmp/en.html
+          grep -F '<html lang="en"' /tmp/en.html
+          grep -F 'https://drjavadrezazadeh.com/en/' /tmp/en.html
+
+          curl -fsS --max-time 30 https://drjavadrezazadeh.com/fa/customer-dashboard/ -o /tmp/dashboard.html
+          grep -F '<meta name="robots" content="noindex,nofollow">' /tmp/dashboard.html
+
+          curl -fsS --max-time 30 https://drjavadrezazadeh.com/robots.txt -o /tmp/robots.txt
+          test -s /tmp/robots.txt
+
+          curl -fsS --max-time 30 https://drjavadrezazadeh.com/sitemap.xml -o /tmp/sitemap.xml
+          grep -F 'https://drjavadrezazadeh.com/' /tmp/sitemap.xml
+
+      - name: Security and caching headers
+        run: |
+          curl -fsSI --max-time 30 https://drjavadrezazadeh.com/fa/ -o /tmp/headers
+          cat /tmp/headers
+          grep -Eqi '^x-content-type-options: *nosniff' /tmp/headers
+          grep -Eqi '^x-frame-options: *DENY' /tmp/headers
+          grep -Eqi '^referrer-policy: *strict-origin-when-cross-origin' /tmp/headers
+
+      - name: Custom 404
+        run: |
+          code="$(curl -sS -o /tmp/404.html -w '%{http_code}' --max-time 30 https://drjavadrezazadeh.com/__bertina-cutover-probe-not-found__)"
+          echo "404 probe status: $code"
+          test "$code" = "404"
+          test -s /tmp/404.html
