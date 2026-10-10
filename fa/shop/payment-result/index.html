@@ -72,7 +72,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #c99d46;outline-offset:3p
   title.textContent='شناسه سفارش نامعتبر است';status.textContent='برای پیگیری، از ایمیل رسمی سایت استفاده کنید.';return;
  }
  try{
-  const res=await fetch('https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev/commerce/status?order='+encodeURIComponent(id),{cache:'no-store',credentials:'omit'});
+  const res=await fetch('/api/commerce/status?order='+encodeURIComponent(id),{cache:'no-store',credentials:'omit'});
   const data=await res.json();
   if(!res.ok||data.ok!==true)throw Error('status_unavailable');
   if(data.state==='pending'||data.state==='created'){
