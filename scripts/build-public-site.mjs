@@ -66,7 +66,7 @@ const customerDashboard='fa/customer-dashboard/index.html';
 if(!fs.existsSync(path.join(out,customerDashboard))) failures.push('Approved noindex customer dashboard missing: '+customerDashboard);
 else{
   const dashboard=fs.readFileSync(path.join(out,customerDashboard),'utf8');
-  if(!dashboard.includes('<meta name="robots" content="noindex,nofollow">')) failures.push('Customer dashboard must remain noindex,nofollow');
+  if(!/<meta name="robots" content="[^"]*noindex[^"]*nofollow/i.test(dashboard)) failures.push('Customer dashboard must remain noindex,nofollow');
 }
 const engineStatus='fa/app/engine-status/index.html';
 if(!fs.existsSync(path.join(out,engineStatus))) failures.push('Public engine dashboard missing: '+engineStatus);

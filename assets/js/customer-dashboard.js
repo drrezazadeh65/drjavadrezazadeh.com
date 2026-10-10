@@ -184,7 +184,7 @@ function network(){
  update();
 }
 
-function serviceMarketplace(runtime){
+function serviceMarketplace(runtime,authenticated){
  const host=$('[data-dashboard-services]'),search=$('[data-dashboard-service-search]'),count=$('[data-dashboard-service-count]'),status=$('[data-dashboard-service-status]');
  if(!host)return;
  const money=n=>localNumber(n)+(lang==='fa'?' تومان':' IRT');
@@ -196,13 +196,16 @@ function serviceMarketplace(runtime){
   host.innerHTML=rows.length?rows.map(s=>{
     const id=encodeURIComponent(s.id);
     const duration=Number.isInteger(s.duration_minutes)?localNumber(s.duration_minutes)+(lang==='fa'?' دقیقه':' min'):(lang==='fa'?'دامنه اختصاصی خدمت':'Service-specific scope');
-    const label=purchaseReady?(lang==='fa'?'خرید و افزودن به داشبورد':'Purchase & add'):(lang==='fa'?'مشاهده شرایط خرید':'View purchase terms');
-    return '<article class="cd-service-card" data-purchase-ready="'+purchaseReady+'"><h3>'+esc(s.title_fa)+'</h3><div class="cd-service-price">'+money(s.price)+'</div><span class="cd-service-duration">'+duration+'</span><p class="cd-service-fit">'+esc(s.fit_fa||'')+'</p><div class="cd-service-actions"><a class="cd-service-buy" href="/fa/services/checkout/?service='+id+'">'+label+'</a><a class="cd-service-more" href="/fa/services/?service='+id+'" aria-label="'+(lang==='fa'?'معرفی بیشتر':'More information')+'">↗</a></div></article>';
+    const label=purchaseReady?(lang==='fa'?'خرید و افزودن به داشبورد':'Purchase & add'):(authenticated?(lang==='fa'?'مشاهده شرایط خرید':'View purchase terms'):(lang==='fa'?'ورود و ادامه':'Sign in to continue'));
+    const checkoutHref=authenticated?('/fa/services/checkout/?service='+id):(lang==='fa'?'/fa/login/':'/en/login/');
+    const outcome=s.outcome_fa?'<p class="cd-service-outcome"><b>'+(lang==='fa'?'خروجی روشن:':'Defined outcome:')+'</b> '+esc(s.outcome_fa)+'</p>':'';
+    const boundary=s.boundary_fa?'<details class="cd-service-boundary"><summary>'+(lang==='fa'?'دامنه و مرز خدمت':'Scope & boundary')+'</summary><p>'+esc(s.boundary_fa)+'</p></details>':'';
+    return '<article class="cd-service-card" data-purchase-ready="'+purchaseReady+'"><h3>'+esc(s.title_fa)+'</h3><div class="cd-service-price">'+money(s.price)+'</div><span class="cd-service-duration">'+duration+'</span><p class="cd-service-fit">'+esc(s.fit_fa||'')+'</p>'+outcome+boundary+'<div class="cd-service-actions"><a class="cd-service-buy" href="'+checkoutHref+'">'+label+'</a><a class="cd-service-more" href="/fa/services/'+id+'/" aria-label="'+(lang==='fa'?'معرفی بیشتر':'More information')+'">↗</a></div></article>';
   }).join(''):'<div class="cd-service-empty">'+(lang==='fa'?'خدمتی با این عبارت پیدا نشد.':'No matching service found.')+'</div>';
  };
  const apply=data=>{
   services=(data?.services||[]).filter(s=>s.sellable===true&&Number.isSafeInteger(s.price)&&typeof s.id==='string');
-  purchaseReady=runtime?.commerceReady===true&&runtime?.auth?.data?.ready===true;
+  purchaseReady=runtime?.commerceReady===true&&authenticated===true;
   if(status)status.textContent=purchaseReady?(lang==='fa'?'خرید مستقیم از همین داشبورد آماده است؛ پس از خرید تأییدشده، دسترسی خدمت به حساب شما متصل می‌شود.':'Direct checkout is ready; verified purchases attach to this account.'):(lang==='fa'?'همه خدمات قابل مشاهده‌اند؛ خرید امن پس از آماده‌شدن کامل حساب و درگاه از همین مسیر انجام می‌شود.':'The catalogue is visible; secure checkout activates when account and gateway readiness are confirmed.');
   render();
  };
@@ -223,12 +226,13 @@ function authNavigation(authenticated){
   if(authenticated){primary.setAttribute('href',primary.dataset.defaultHref);primary.textContent=primary.dataset.defaultText}
   else{primary.setAttribute('href',login);primary.textContent=lang==='en'?'Sign in':'ورود به حساب'}
  }
- const selectors=lang==='en'?'a[href^="/en/account/"]':'a[href^="/fa/app/account/"]';
- $$(selectors).forEach(a=>{
+ const selectors=lang==='en'?'a[href^="/en/account/"],[data-private-route]':'a[href^="/fa/app/account/"],[data-private-route]';
+ $(selectors).forEach(a=>{
   if(!a.dataset.privateHref)a.dataset.privateHref=a.getAttribute('href')||'';
-  if(authenticated&&a.dataset.privateHref)a.setAttribute('href',a.dataset.privateHref);
-  else if(!authenticated)a.setAttribute('href',login);
+  if(authenticated&&a.dataset.privateHref){a.setAttribute('href',a.dataset.privateHref);a.removeAttribute('aria-disabled');a.dataset.access='authenticated'}
+  else if(!authenticated){a.setAttribute('href',login);a.setAttribute('aria-disabled','true');a.dataset.access='signin-required'}
  });
+ $('[data-auth-state-copy]').forEach(el=>{el.textContent=authenticated?(lang==='fa'?'ورود امن تأیید شده؛ مسیرهای خصوصی حساب باز هستند.':'Secure sign-in verified; private account routes are available.'):(lang==='fa'?'برای مشاهده پرونده‌ها، اسناد و مسیرهای خصوصی وارد حساب شوید.':'Sign in to access private records, documents and workspaces.')});
 }
 
 function logout(){
@@ -244,6 +248,6 @@ document.addEventListener('DOMContentLoaded',async()=>{
  const runtime=await operationalStatus();
  const authenticated=await hydrate(runtime.auth);
  authNavigation(authenticated);
- serviceMarketplace(runtime);
+ serviceMarketplace(runtime,authenticated);
 });
 })();
