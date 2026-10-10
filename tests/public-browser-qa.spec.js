@@ -1314,7 +1314,7 @@ test('bilingual bookstore cart sends enquiries, never fictitious payment or orde
    await expect(cart.locator('.cart-summary strong')).toContainText(locale==='fa'?'۶٬۰۰۰٬۰۰۰':'6,000,000');
    await expect(cart.locator('a[data-book-inquiry]')).toBeVisible();
    const href=await cart.locator('[data-book-inquiry]').getAttribute('href');
-   expect(href).toMatch(/^mailto:dr\.rezazadeh65@gmail\.com\?subject=/);
+   expect(href).toMatch(/^mailto:info@drjavadrezazadeh\.com\?subject=/);
    expect(decodeURIComponent(href)).toContain('Sepid');
    expect(decodeURIComponent(href)).toContain('Tariki');
    await expect(cart.locator('[data-book-copy]')).toBeVisible();
