@@ -1,0 +1,35 @@
+name: Bertina Origin Verify
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/bertina-origin-verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Bertina origin directly
+        run: |
+          ORIGIN_IP="188.40.203.218"
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP             https://drjavadrezazadeh.com/fa/ -o /tmp/fa.html
+          grep -F '<html lang="fa" dir="rtl">' /tmp/fa.html
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP             https://drjavadrezazadeh.com/en/ -o /tmp/en.html
+          grep -F '<html lang="en"' /tmp/en.html
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP             https://drjavadrezazadeh.com/fa/customer-dashboard/ -o /tmp/dashboard.html
+          grep -F '<meta name="robots" content="noindex,nofollow">' /tmp/dashboard.html
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP             https://drjavadrezazadeh.com/robots.txt -o /tmp/robots.txt
+          test -s /tmp/robots.txt
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP             https://drjavadrezazadeh.com/sitemap.xml -o /tmp/sitemap.xml
+          grep -F 'drjavadrezazadeh.com' /tmp/sitemap.xml
