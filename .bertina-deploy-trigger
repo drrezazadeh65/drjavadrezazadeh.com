@@ -1,5 +1,5 @@
-deploy=bertina-production-reconciliation-pr31
+deploy=historical-authority-recovery-pr33
 source=migration/bertina-linux6
-source_commit=90d889c62ee03612eb2dfbad22d2934a34399b46
+source_commit=882f6635e66ad597bd0e9a0caa3bf63253189b82
 mode=bertina-only
-scope=privacy-cache-workflow-performance-dashboard-readiness-reconciliation
+scope=historical-authority-backlink-recovery-legacy-shop-tls-canonical
