@@ -1,9 +1,0 @@
-{
-  "$schema": "../../node_modules/wrangler/config-schema.json",
-  "name": "drjavadrezazadeh-registration-intake",
-  "main": "src/index.js",
-  "compatibility_date": "2026-10-09",
-  "workers_dev": false,
-  "observability": {"enabled": true},
-  "services": [{"binding":"EMAIL_SERVICE","service":"drjavadrezazadeh-email"}]
-}
