@@ -1,4 +1,4 @@
-deploy=payment-hardening-tls-gate-v1
+deploy=payment-hardening-tls-gate-v2
 source=migration/bertina-linux6
 mode=bertina-only
-scope=storefront-operational-payment-fail-closed-tls-gate
+scope=storefront-payment-fail-closed-tls-gate-origin-evidence
