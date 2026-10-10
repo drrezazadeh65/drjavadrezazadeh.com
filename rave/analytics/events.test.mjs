@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validateEvent,aggregateEvents} from './events.mjs';
+const sample={schema:'rave.event.v1',event_id:'evt_001',event_name:'service_view',occurred_at:'2026-10-09T12:00:00Z',source_system:'web',consent:'granted',locale:'fa',page_path:'/fa/services/',service_id:'service_01',channel:'organic'};
+test('accepts minimal valid event',()=>assert.equal(validateEvent(sample).event_name,'service_view'));
+test('rejects PII',()=>assert.throws(()=>validateEvent({...sample,email:'private@example.org'})));
+test('rejects query strings',()=>assert.throws(()=>validateEvent({...sample,page_path:'/fa/?email=x'})));
+test('rejects untrusted purchase',()=>assert.throws(()=>validateEvent({...sample,event_name:'payment_verified',value_minor:1000})));
+test('deduplicates and suppresses small cohorts',()=>assert.equal(aggregateEvents([sample,sample]).length,0));
+test('allows trusted financial event',()=>assert.equal(validateEvent({...sample,event_name:'payment_verified',value_minor:1000,currency:'IRR'},{trustedServer:true}).value_minor,1000));
