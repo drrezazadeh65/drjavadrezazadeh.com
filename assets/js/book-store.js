@@ -110,7 +110,7 @@
    '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. سفارش و پرداخت اینترنتی هنوز فعال نیست.':'Unverified bibliographic fields are deliberately marked as such. Online orders and payment are not yet active.')+'</p>'+
    '<div class="actions">'+
    (ready(b)?'<button class="button primary" type="button" data-detail-add="'+escapeHtml(b.id)+'">'+(isFa?'افزودن به فهرست انتخاب‌ها':'Add to selection')+'</button>':'')+
-   '<a class="button" data-book-info-request href="mailto:dr.rezazadeh65@gmail.com?subject='+encodeURIComponent((isFa?'درخواست اطلاعات کتاب: ':'Book information enquiry: ')+b.title_fa)+
+   '<a class="button" data-book-info-request href="mailto:info@drjavadrezazadeh.com?subject='+encodeURIComponent((isFa?'درخواست اطلاعات کتاب: ':'Book information enquiry: ')+b.title_fa)+
    '&body='+encodeURIComponent((isFa?'لطفاً اطلاعات تأییدشده کتاب، جزئیات نشر، نحوه تهیه و شرایط ارسال را اعلام کنید: ':'Please share verified publication metadata, availability, and delivery terms for: ')+b.title_fa)+'">'+
    (isFa?'درخواست اطلاعات تکمیلی':'Request verified book details')+'</a></div></div></div>';
   host.addEventListener('click',e=>{if(e.target.closest('[data-detail-add]'))add(b);});
@@ -175,7 +175,7 @@
   const inquiry=document.createElement('a');
   inquiry.className='button primary';
   inquiry.dataset.bookInquiry='';
-  inquiry.href='mailto:dr.rezazadeh65@gmail.com?subject='+
+  inquiry.href='mailto:info@drjavadrezazadeh.com?subject='+
     encodeURIComponent(isFa?'استعلام موجودی و شرایط خرید کتاب':'Book availability and delivery enquiry')+
     '&body='+encodeURIComponent(mailBody);
   inquiry.textContent=isFa?'استعلام موجودی و شرایط با ایمیل':'Enquire about stock and shipping';
