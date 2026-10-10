@@ -43,3 +43,11 @@ test('Written reports use current evidence and render untrusted strings as text'
  const download=page.waitForEvent('download');await page.locator('#ops-report').click();expect((await download).suggestedFilename()).toBe('operations-all.txt');
  await page.keyboard.press('Tab');expect(await page.evaluate(()=>document.activeElement.tagName)).not.toBe('BODY');
 });
+for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])test(lang+' engine observations distinguish false, zero and stale from completion',async({page})=>{
+ const data=fixture(),at=Math.floor(Date.now()/1000),record=data.reports.find(r=>r.id==='OP-07');
+ record.signals=[{id:'gateway_configured',labelFa:'وجود کلید خصوصی درگاه',labelEn:'Private gateway key configured',value:false,source:'Bertina runtime',limitation:'Configuration does not prove payment.',checkedAt:at,expiresAt:at+60},{id:'captured',labelFa:'تعداد سفارش ثبت‌شده',labelEn:'Captured order count',value:0,source:'Bertina MySQL',limitation:'No real transaction certified.',checkedAt:at-600,expiresAt:at-1}];
+ await page.setViewportSize({width:320,height:900});await authorized(page,{data});await page.goto(base+path);await page.locator('#ops-search').fill('OP-07');await page.locator('#ops-cards button').click();
+ const signals=page.locator('#ops-detail .ops-signals');await expect(signals.locator('article')).toHaveCount(2);await expect(signals).toContainText(lang==='en'?'No':'خیر');await expect(signals).toContainText('0');await expect(signals).toContainText(lang==='en'?'Stale':'قدیمی');await expect(page.locator('#ops-admin-score')).toHaveText(lang==='en'?'Unknown':'نامشخص');
+ expect(await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth)).toBeLessThanOrEqual(1);
+ const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:lang==='en'?'Download written report':'دریافت گزارش مکتوب',exact:true}).click();const download=await downloadEvent;const fs=require('node:fs');const text=fs.readFileSync(await download.path(),'utf8');expect(text).toContain(lang==='en'?'Private gateway key configured: No':'وجود کلید خصوصی درگاه: خیر');expect(text).toContain('Configuration does not prove payment.');
+});
