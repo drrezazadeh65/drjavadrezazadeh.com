@@ -13,6 +13,16 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
 
+      - name: Force FTP hostname to IPv4
+        env:
+          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
+        run: |
+          set -euo pipefail
+          FTP_IP="$(getent ahostsv4 "$FTP_HOST" | awk 'NR==1{print $1}')"
+          test -n "$FTP_IP"
+          echo "$FTP_IP $FTP_HOST" | sudo tee -a /etc/hosts >/dev/null
+          echo "FTP hostname pinned to IPv4 for this runner."
+
       - name: Test protected PASV without EPSV
         id: pasv
         continue-on-error: true
