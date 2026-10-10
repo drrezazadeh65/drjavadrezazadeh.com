@@ -110,7 +110,7 @@
    '<div><dt>'+(isFa?'نوبت چاپ':'Edition')+'</dt><dd>'+escapeHtml(b.bibliography.edition||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قالب':'Format')+'</dt><dd>'+(b.commerce?.formats_confirmed?.includes('PRINT')?(isFa?'چاپی':'Print'):(isFa?'نیازمند تأیید':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قیمت ثبت‌شده':'Listed price')+'</dt><dd>'+escapeHtml(money(b.commerce?.price,b.commerce?.currency))+'</dd></div></dl>'+
-   '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. ثبت سفارش از مسیر سبد فعال است؛ پرداخت آنلاین فقط پس از تأیید مسیر امن درگاه فعال می‌شود.':'Unverified bibliographic fields are deliberately marked as such. Server-side order capture is active; online payment remains gated until the trusted gateway is verified.')+'</p>'+
+   '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. ثبت سفارش از مسیر سبد فعال است؛ پرداخت آنلاین فقط پس از تأیید مسیر امن درگاه فعال می‌شود.':'Unverified bibliographic fields are deliberately marked as such. Order submission is active; online payment remains gated until the trusted gateway is verified.')+'</p>'+
    '<div class="actions">'+
    (ready(b)?'<button class="button primary" type="button" data-detail-add="'+escapeHtml(b.id)+'">'+(isFa?'افزودن به فهرست انتخاب‌ها':'Add to selection')+'</button>':'')+
    '<a class="button" data-book-info-request href="mailto:info@drjavadrezazadeh.com?subject='+encodeURIComponent((isFa?'درخواست اطلاعات کتاب: ':'Book information enquiry: ')+b.title_fa)+
@@ -153,7 +153,7 @@
   );
   const disclosure=isFa?
     'این سبد پیش از ثبت نهایی فقط فهرست انتخاب‌هاست. با ادامه می‌توانید سفارش را روی سرور ثبت و شناسه پیگیری دریافت کنید؛ تا فعال‌شدن درگاه هیچ وجهی برداشت نمی‌شود. ارسال کتاب رایگان است و هزینه آن بر عهده فروشگاه است.':
-    'This cart is a selection until you submit the order. You can continue to record the order on the server and receive an order ID; no payment is taken until the gateway is activated. Book shipping is free and paid by the store.';
+    'This cart is a selection until you submit the order. You can continue to submit the order and receive an order ID; no payment is taken until the gateway is activated. Book shipping is free and paid by the store.';
   const mailBody=(isFa?
     ['درخواست استعلام موجودی و شرایط خرید کتاب','',...formattedLines,'',
      'جمع نمایشی: '+amount,'','لطفاً موجودی واقعی، ارسال رایگان، شیوه بازگشت و امکان سفارش را پیش از هر پرداخت اعلام کنید.',
@@ -176,7 +176,7 @@
     :(deliveryCaptureReady?(isFa?'ادامه و ثبت سفارش':'Continue and place order'):(isFa?'ثبت سفارش موقتاً در دسترس نیست':'Order capture temporarily unavailable'));
   checkout.title=(bookPaymentReady&&deliveryCaptureReady)
     ?(isFa?'ورود اطلاعات تحویل و سپس انتقال به درگاه امن':'Enter delivery details, then proceed to secure payment')
-    :(deliveryCaptureReady?(isFa?'اطلاعات تحویل را وارد کنید؛ سفارش بدون برداشت وجه ثبت می‌شود':'Enter delivery details; the order will be recorded without charging you'):(isFa?'ثبت سفارش سمت سرور در دسترس نیست':'Server-side order capture is unavailable'));
+    :(deliveryCaptureReady?(isFa?'اطلاعات تحویل را وارد کنید؛ سفارش بدون برداشت وجه ثبت می‌شود':'Enter delivery details; the order will be recorded without charging you'):(isFa?'ثبت سفارش سمت سرور در دسترس نیست':'Order submission is unavailable'));
   actions.appendChild(checkout);
 
   const inquiry=document.createElement('a');
@@ -262,7 +262,7 @@
   host.innerHTML='<p class="kicker">'+(isFa?'ثبت سفارش':'Order')+'</p><h1>'+(isFa?'سفارش کتاب':'Book order')+'</h1>'+
    '<p class="lead">'+(bookPaymentReady
      ?(isFa?'اطلاعات سفارش و مبلغ نهایی پیش از انتقال به درگاه دوباره در سرور بررسی می‌شود.':'Order details and the final amount are checked again on the server before payment.')
-     :(isFa?'ثبت سفارش سمت سرور فعال است. در وضعیت فعلی سفارش بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Server-side order capture is active. For now, the order is recorded without charging you and you receive a tracking ID.'))+'</p>'+
+     :(isFa?'ثبت سفارش سمت سرور فعال است. در وضعیت فعلی سفارش بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Order submission is active. For now, the order is recorded without charging you and you receive a tracking ID.'))+'</p>'+
    '<div class="store-notice">'+(valid
      ?(bookPaymentReady
        ?(isFa?'ارسال کتاب رایگان است. مبلغ نهایی در سرور محاسبه می‌شود و فقط پرداخت تأییدشده سفارش را قطعی می‌کند.':'Book shipping is free. The final total is calculated on the server and only a verified payment completes the order.')
