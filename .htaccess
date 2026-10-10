@@ -8,16 +8,16 @@ ErrorDocument 404 /404.html
 RewriteEngine On
 
 # Preserve approved legacy migrations.
-RewriteRule ^about/?$ /en/about/ [R=301,L,NE]
-RewriteRule ^academic-engagements/?$ /en/academic-engagements/ [R=301,L,NE]
-RewriteRule ^books/?$ /en/books/ [R=301,L,NE]
-RewriteRule ^educational-philosophy/?$ /en/educational-philosophy/ [R=301,L,NE]
-RewriteRule ^golden-talent/?$ /en/golden-talent/ [R=301,L,NE]
-RewriteRule ^publications/?$ /en/publications/ [R=301,L,NE]
-RewriteRule ^research/?$ /en/research/ [R=301,L,NE]
-RewriteRule ^teaching/?$ /en/teaching/ [R=301,L,NE]
-RewriteRule ^login/?$ /en/login/ [R=301,L,NE]
-RewriteRule ^register/?$ /en/register/ [R=301,L,NE]
+RewriteRule ^about/?$ https://drjavadrezazadeh.com/en/about/ [R=301,L,NE]
+RewriteRule ^academic-engagements/?$ https://drjavadrezazadeh.com/en/academic-engagements/ [R=301,L,NE]
+RewriteRule ^books/?$ https://drjavadrezazadeh.com/en/books/ [R=301,L,NE]
+RewriteRule ^educational-philosophy/?$ https://drjavadrezazadeh.com/en/educational-philosophy/ [R=301,L,NE]
+RewriteRule ^golden-talent/?$ https://drjavadrezazadeh.com/en/golden-talent/ [R=301,L,NE]
+RewriteRule ^publications/?$ https://drjavadrezazadeh.com/en/publications/ [R=301,L,NE]
+RewriteRule ^research/?$ https://drjavadrezazadeh.com/en/research/ [R=301,L,NE]
+RewriteRule ^teaching/?$ https://drjavadrezazadeh.com/en/teaching/ [R=301,L,NE]
+RewriteRule ^login/?$ https://drjavadrezazadeh.com/en/login/ [R=301,L,NE]
+RewriteRule ^register/?$ https://drjavadrezazadeh.com/en/register/ [R=301,L,NE]
 RewriteRule ^shop/?$ https://drjavadrezazadeh.com/fa/shop/ [R=301,L,NE]
 </IfModule>
 
