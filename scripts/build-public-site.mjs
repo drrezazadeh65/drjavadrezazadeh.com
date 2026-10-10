@@ -53,9 +53,9 @@ function walk(dir){
 }
 walk(out);
 const html=all.filter(p=>p.endsWith('.html'));
-// The additional public HTML route is a strictly noindex payment-return relay.
+// Route count includes the public engine-status page and approved noindex commerce relays.
 // Keep a fixed route count as a guard against accidentally publishing engineering files.
-const approvedPublicHtmlRoutes=287;
+const approvedPublicHtmlRoutes=288;
 if(html.length!==approvedPublicHtmlRoutes) failures.push(
   'Expected '+approvedPublicHtmlRoutes+' public HTML routes in sanitized artifact, found '+html.length
 );
