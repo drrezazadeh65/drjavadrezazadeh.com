@@ -19,7 +19,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +30,7 @@ jobs:
 
       - name: Build and verify sanitized public site
         run: |
+          set -euo pipefail
           node scripts/build-public-data.mjs --check
           node scripts/build-public-site.mjs
           test -f .public-site/.htaccess
@@ -55,15 +56,37 @@ jobs:
             echo "Bertina deployment credentials are configured." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "Bertina deployment skipped: repository secrets are not configured yet." >> "$GITHUB_STEP_SUMMARY"
+            echo "Bertina deployment blocked: repository secrets are not configured." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
+
+      - name: Package exact public release
+        if: steps.credentials.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, zipfile
+          root=pathlib.Path('.public-site')
+          files={}
+          for p in sorted(x for x in root.rglob('*') if x.is_file()):
+              rel=p.relative_to(root).as_posix()
+              files[rel]=hashlib.sha256(p.read_bytes()).hexdigest()
+          manifest={'commit':os.environ['GITHUB_SHA'],'fileCount':len(files),'files':files}
+          (root/'bertina-deploy-manifest.json').write_text(json.dumps(manifest,separators=(',',':')),encoding='utf-8')
+          with zipfile.ZipFile('/tmp/bertina-site.zip','w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+              for p in sorted(x for x in root.rglob('*') if x.is_file()):
+                  z.write(p,p.relative_to(root).as_posix())
+          (root/'bertina-deploy-manifest.json').unlink()
+          print(f"Packaged {len(files)} managed files.")
+          PY
 
       - name: Install secure FTP client
         if: steps.credentials.outputs.ready == 'true'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
 
-      - name: Deploy sanitized artifact over explicit TLS
+      - name: Upload one release package over explicit TLS
         if: steps.credentials.outputs.ready == 'true'
+        id: package
         env:
           FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
           FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
@@ -71,39 +94,142 @@ jobs:
           FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
         run: |
           set -euo pipefail
+          TOKEN="$(openssl rand -hex 32)"
+          TOKEN_HASH="$(printf '%s' "$TOKEN" | sha256sum | awk '{print $1}')"
+          NONCE="$(openssl rand -hex 10)"
+          ZIP_NAME="bertina-release-$NONCE.zip"
+          SCRIPT_NAME="bertina-deploy-$NONCE.php"
 
-          deploy_once() {
-            timeout 900s lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
+          cat > "/tmp/$SCRIPT_NAME" <<PHP
+          <?php
+          declare(strict_types=1);
+          header('Content-Type: application/json; charset=utf-8');
+          header('Cache-Control: no-store');
+          header('X-Robots-Tag: noindex, noarchive');
+          \$expectedHash = '$TOKEN_HASH';
+          \$provided = (string)(\$_SERVER['HTTP_X_DEPLOY_TOKEN'] ?? '');
+          if (!hash_equals(\$expectedHash, hash('sha256', \$provided))) {
+              http_response_code(403);
+              echo json_encode(['ok'=>false,'error'=>'forbidden']);
+              exit;
+          }
+          \$zipPath = __DIR__ . '/$ZIP_NAME';
+          \$manifestPath = __DIR__ . '/bertina-deploy-manifest.json';
+          \$cleanup = static function() use (\$zipPath, \$manifestPath): void {
+              @unlink(\$zipPath);
+              @unlink(\$manifestPath);
+              @unlink(__FILE__);
+          };
+          if (!class_exists('ZipArchive')) {
+              http_response_code(500);
+              echo json_encode(['ok'=>false,'error'=>'zip_extension_unavailable']);
+              @unlink(__FILE__);
+              exit;
+          }
+          \$zip = new ZipArchive();
+          if (\$zip->open(\$zipPath) !== true) {
+              http_response_code(500);
+              echo json_encode(['ok'=>false,'error'=>'package_open_failed']);
+              @unlink(__FILE__);
+              exit;
+          }
+          for (\$i=0; \$i<\$zip->numFiles; \$i++) {
+              \$name = (string)\$zip->getNameIndex(\$i);
+              if (\$name === '' || str_starts_with(\$name, '/') || str_contains(\$name, "\0") ||
+                  preg_match('#(^|/)\.\.(/|$)#', \$name)) {
+                  \$zip->close();
+                  http_response_code(400);
+                  echo json_encode(['ok'=>false,'error'=>'unsafe_archive_path']);
+                  \$cleanup();
+                  exit;
+              }
+          }
+          if (!\$zip->extractTo(__DIR__)) {
+              \$zip->close();
+              http_response_code(500);
+              echo json_encode(['ok'=>false,'error'=>'extract_failed']);
+              \$cleanup();
+              exit;
+          }
+          \$zip->close();
+          \$raw = @file_get_contents(\$manifestPath);
+          \$manifest = is_string(\$raw) ? json_decode(\$raw, true) : null;
+          if (!is_array(\$manifest) || !isset(\$manifest['files']) || !is_array(\$manifest['files'])) {
+              http_response_code(500);
+              echo json_encode(['ok'=>false,'error'=>'manifest_missing']);
+              \$cleanup();
+              exit;
+          }
+          \$mismatch = [];
+          \$checked = 0;
+          foreach (\$manifest['files'] as \$relative => \$expected) {
+              \$relative = str_replace('\\\\', '/', (string)\$relative);
+              if (\$relative === '' || str_starts_with(\$relative, '/') || preg_match('#(^|/)\.\.(/|$)#', \$relative)) {
+                  \$mismatch[] = \$relative;
+                  continue;
+              }
+              \$target = __DIR__ . '/' . \$relative;
+              if (!is_file(\$target) || !hash_equals((string)\$expected, (string)@hash_file('sha256', \$target))) {
+                  \$mismatch[] = \$relative;
+              }
+              \$checked++;
+          }
+          foreach (['CNAME','_headers','_redirects','_config.yml'] as \$retired) {
+              @unlink(__DIR__ . '/' . \$retired);
+          }
+          \$commit = (string)(\$manifest['commit'] ?? '');
+          \$ok = count(\$mismatch) === 0 && \$commit === '$GITHUB_SHA';
+          \$response = ['ok'=>\$ok,'commit'=>\$commit,'checked'=>\$checked,'mismatch'=>array_slice(\$mismatch,0,20)];
+          \$cleanup();
+          if (!\$ok) http_response_code(500);
+          echo json_encode(\$response, JSON_UNESCAPED_SLASHES);
+          PHP
+
+          timeout 180s lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
           set ssl:verify-certificate yes
           set net:max-retries 1
           set net:timeout 20
-          set net:reconnect-interval-base 2
-          set net:reconnect-interval-max 8
-          mirror -R --delete --continue --parallel=2 --verbose \
-            --exclude-glob ".well-known/**" \
-            --exclude-glob "cgi-bin/**" \
-            --exclude-glob ".user.ini" \
-            --exclude-glob "php.ini" \
-            --exclude-glob "api/config.local.php" \
-            --exclude-glob "api/storage/**" \
-            .public-site/ "$FTP_REMOTE_DIR"
+          cd "$FTP_REMOTE_DIR"
+          put /tmp/bertina-site.zip -o "$ZIP_NAME"
+          put "/tmp/$SCRIPT_NAME" -o "$SCRIPT_NAME"
           bye
           LFTP
-          }
 
-          if ! deploy_once; then
-            echo "First FTPS mirror attempt did not complete; retrying once from transferred state."
-            sleep 5
-            deploy_once
-          fi
+          {
+            echo "token=$TOKEN"
+            echo "zip_name=$ZIP_NAME"
+            echo "script_name=$SCRIPT_NAME"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Extract and checksum every managed file on Bertina
+        if: steps.credentials.outputs.ready == 'true'
+        env:
+          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
+          DEPLOY_TOKEN: ${{ steps.package.outputs.token }}
+          DEPLOY_SCRIPT: ${{ steps.package.outputs.script_name }}
+        run: |
+          set -euo pipefail
+          ORIGIN_IP="$(getent ahostsv4 "$FTP_HOST" | awk 'NR==1{print $1}')"
+          test -n "$ORIGIN_IP"
+          RESPONSE="$(curl -kfsS --max-time 180             --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             -H "X-Deploy-Token: $DEPLOY_TOKEN"             "https://drjavadrezazadeh.com/$DEPLOY_SCRIPT")"
+          printf '%s' "$RESPONSE" > /tmp/deploy-response.json
+          node - <<'NODE'
+          const fs=require('fs');
+          const d=JSON.parse(fs.readFileSync('/tmp/deploy-response.json','utf8'));
+          if(d.ok!==true) throw new Error('Bertina extraction/checksum verification failed: '+JSON.stringify(d));
+          if(d.commit!==process.env.GITHUB_SHA) throw new Error('Bertina commit mismatch');
+          if(!Number.isInteger(d.checked) || d.checked < 500) throw new Error('Unexpected deployed file count: '+d.checked);
+          console.log('Bertina server-side checksum verification PASS:',d.checked,'files; commit',d.commit);
+          NODE
 
       - name: Verify Bertina origin directly
         if: steps.credentials.outputs.ready == 'true'
         env:
           FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
         run: |
+          set -euo pipefail
           ORIGIN_IP="$(getent ahostsv4 "$FTP_HOST" | awk 'NR==1{print $1}')"
           test -n "$ORIGIN_IP"
 
@@ -122,24 +248,10 @@ jobs:
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/sitemap.xml -o /tmp/sitemap.xml
           grep -F 'drjavadrezazadeh.com' /tmp/sitemap.xml
 
-          echo "Verifying every deployed HTML file against the exact sanitized build..."
-          checked=0
-          while IFS= read -r file; do
-            rel="${file#.public-site}"
-            tmp="$(mktemp)"
-            curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"               "https://drjavadrezazadeh.com${rel}" -o "$tmp"
-            if ! cmp -s "$file" "$tmp"; then
-              echo "Remote HTML mismatch: ${rel}"
-              rm -f "$tmp"
-              exit 1
-            fi
-            rm -f "$tmp"
-            checked=$((checked + 1))
-          done < <(find .public-site -type f -name '*.html' | sort)
-          echo "Exact HTML verification passed for ${checked} pages."
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/api/health -o /tmp/api-health.json
+          grep -F '"hosting":"bertina"' /tmp/api-health.json
 
       - name: Deployment summary
         if: steps.credentials.outputs.ready == 'true'
         run: |
-          echo "Bertina deployment and direct-origin verification completed from commit ${GITHUB_SHA}."
-          echo "Public DNS/SSL propagation can now be verified independently."
+          echo "Bertina package deployment, server-side checksum verification, and direct-origin smoke tests completed for commit $GITHUB_SHA."
