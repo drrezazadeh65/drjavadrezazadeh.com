@@ -300,7 +300,7 @@ jobs:
           grep -F '<html lang="en"' /tmp/en.html
 
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/fa/customer-dashboard/ -o /tmp/dashboard.html
-          grep -F '<meta name="robots" content="noindex,nofollow">' /tmp/dashboard.html
+          grep -Eiq '<meta name="robots" content="[^"]*noindex[^"]*nofollow' /tmp/dashboard.html
 
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/robots.txt -o /tmp/robots.txt
           test -s /tmp/robots.txt
