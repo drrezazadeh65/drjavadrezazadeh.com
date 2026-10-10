@@ -1,9 +1,7 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
+import { validateIntake } from './validation.js';
 
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','access-control-allow-origin':'https://drjavadrezazadeh.com','vary':'Origin'}});
-const emailOk=value=>typeof value==='string' && value.length<=254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-const allowedRoles=new Set(['student','parent','teacher','adviser','book']);
-const escape=value=>String(value).replace(/[\r\n\t]/g,' ').trim();
 export default class RegistrationIntake extends WorkerEntrypoint {
   async fetch(request) {
     const url=new URL(request.url);
@@ -13,8 +11,9 @@ export default class RegistrationIntake extends WorkerEntrypoint {
     if(Number(request.headers.get('content-length')||0)>4096) return json({error:'too_large'},413);
     let data;try {const raw=await request.text();if(raw.length>4096)return json({error:'too_large'},413);data=JSON.parse(raw);}catch{return json({error:'invalid_json'},400);}
     if(data?.website) return json({accepted:true});
-    const name=escape(data?.name||''),email=escape(data?.email||''),role=data?.role;
-    if(name.length<2||name.length>100||!emailOk(email)||!allowedRoles.has(role)) return json({error:'invalid_fields'},400);
+    const fields=validateIntake(data);
+    if(!fields) return json({error:'invalid_fields'},400);
+    const {name,email,role}=fields;
     if(!this.env.TURNSTILE_SECRET || !this.env.EMAIL_SERVICE) return json({error:'service_unavailable'},503);
     const challenge=String(data?.turnstileToken||'');
     if(!challenge||challenge.length>2048) return json({error:'verification_required'},400);
