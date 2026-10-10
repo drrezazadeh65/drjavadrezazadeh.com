@@ -13,7 +13,8 @@
     "semantic_mismatch_redirect_forbidden": true,
     "unknown_legacy_url_default": "404_REVIEW",
     "verified_spam_or_hacked_url": "410_GONE",
-    "high_value_missing_content": "RESTORE_OR_CLOSEST_SEMANTIC_301"
+    "high_value_missing_content": "RESTORE_EXACT_CONTENT_OR_CLOSEST_SEMANTIC_301",
+    "legitimate_discontinued_commerce": "CONSOLIDATE_TO_TRUTHFUL_HISTORICAL_ARCHIVE"
   },
   "host_consolidation": {
     "canonical_host": "drjavadrezazadeh.com",
@@ -96,56 +97,98 @@
       "target": "/fa/shop/",
       "status": 301,
       "evidence": "existing production redirect; user-confirmed major historical backlink destination"
+    },
+    {
+      "source": "/product/خرید-فرش-ماشینی-کد-2-7801-8833/",
+      "target": "/fa/archive/legacy-shop/",
+      "status": 301,
+      "evidence": "Google Search Console historical page data plus owner confirmation of legitimate former shop inventory"
+    },
+    {
+      "source": "/product/خرید-فرش-ماشینی-کد-2-7801-9735/",
+      "target": "/fa/archive/legacy-shop/",
+      "status": 301,
+      "evidence": "Google Search Console historical page data plus owner confirmation of legitimate former shop inventory"
+    },
+    {
+      "source": "/product/خرید-فرش-ماشینی-کد-4301-4917/",
+      "target": "/fa/archive/legacy-shop/",
+      "status": 301,
+      "evidence": "Google Search Console historical page data plus owner confirmation of legitimate former shop inventory"
+    },
+    {
+      "source": "/product/خرید-فرش-ماشینی-کد-4301-5021/",
+      "target": "/fa/archive/legacy-shop/",
+      "status": 301,
+      "evidence": "Google Search Console historical page data plus owner confirmation of legitimate former shop inventory"
+    },
+    {
+      "source": "/product/خرید-گبه-ماشینی-کد-1009-2/",
+      "target": "/fa/archive/legacy-shop/",
+      "status": 301,
+      "evidence": "Google Search Console historical page data plus owner confirmation of legitimate former shop inventory"
+    },
+    {
+      "source": "/product/خرید-گبه-ماشینی-کد-3001-3283/",
+      "target": "/fa/archive/legacy-shop/",
+      "status": 301,
+      "evidence": "Google Search Console historical page data plus owner confirmation of legitimate former shop inventory"
     }
   ],
   "historical_candidates": [
     {
       "path": "/product/خرید-فرش-ماشینی-کد-2-7801-8833/",
-      "decision": "GONE",
-      "http_status": 410,
+      "decision": "CONSOLIDATED_ARCHIVE",
+      "http_status": 301,
       "confidence": "HIGH",
       "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
-      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+      "reason": "Confirmed legitimate products from the site's former commerce period. Consolidate into a truthful historical shop archive rather than redirecting to an unrelated current offer.",
+      "target": "/fa/archive/legacy-shop/"
     },
     {
       "path": "/product/خرید-فرش-ماشینی-کد-2-7801-9735/",
-      "decision": "GONE",
-      "http_status": 410,
+      "decision": "CONSOLIDATED_ARCHIVE",
+      "http_status": 301,
       "confidence": "HIGH",
       "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
-      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+      "reason": "Confirmed legitimate products from the site's former commerce period. Consolidate into a truthful historical shop archive rather than redirecting to an unrelated current offer.",
+      "target": "/fa/archive/legacy-shop/"
     },
     {
       "path": "/product/خرید-فرش-ماشینی-کد-4301-4917/",
-      "decision": "GONE",
-      "http_status": 410,
+      "decision": "CONSOLIDATED_ARCHIVE",
+      "http_status": 301,
       "confidence": "HIGH",
       "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
-      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+      "reason": "Confirmed legitimate products from the site's former commerce period. Consolidate into a truthful historical shop archive rather than redirecting to an unrelated current offer.",
+      "target": "/fa/archive/legacy-shop/"
     },
     {
       "path": "/product/خرید-فرش-ماشینی-کد-4301-5021/",
-      "decision": "GONE",
-      "http_status": 410,
+      "decision": "CONSOLIDATED_ARCHIVE",
+      "http_status": 301,
       "confidence": "HIGH",
       "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
-      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+      "reason": "Confirmed legitimate products from the site's former commerce period. Consolidate into a truthful historical shop archive rather than redirecting to an unrelated current offer.",
+      "target": "/fa/archive/legacy-shop/"
     },
     {
       "path": "/product/خرید-گبه-ماشینی-کد-1009-2/",
-      "decision": "GONE",
-      "http_status": 410,
+      "decision": "CONSOLIDATED_ARCHIVE",
+      "http_status": 301,
       "confidence": "HIGH",
       "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
-      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+      "reason": "Confirmed legitimate products from the site's former commerce period. Consolidate into a truthful historical shop archive rather than redirecting to an unrelated current offer.",
+      "target": "/fa/archive/legacy-shop/"
     },
     {
       "path": "/product/خرید-گبه-ماشینی-کد-3001-3283/",
-      "decision": "GONE",
-      "http_status": 410,
+      "decision": "CONSOLIDATED_ARCHIVE",
+      "http_status": 301,
       "confidence": "HIGH",
       "evidence": "Google Search Console historical page data, 2025-06-01 to 2025-11-18",
-      "reason": "Unrelated carpet-product inventory is not semantically compatible with the current academic/bookstore identity; never redirect it to the current shop."
+      "reason": "Confirmed legitimate products from the site's former commerce period. Consolidate into a truthful historical shop archive rather than redirecting to an unrelated current offer.",
+      "target": "/fa/archive/legacy-shop/"
     },
     {
       "path": "/wp-content/uploads/2022/12/مقاله-اول.pdf",
