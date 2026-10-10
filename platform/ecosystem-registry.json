@@ -160,18 +160,38 @@
       "policy": "PRIVATE_ASSESSMENT"
     },
     {
-      "id": "fa-shop",
-      "prefix": "/fa/shop/",
+      "id": "fa-shop-cart",
+      "prefix": "/fa/shop/cart/",
       "policy": "TRANSACTIONAL"
     },
     {
-      "id": "en-shop",
-      "prefix": "/en/shop/",
+      "id": "fa-shop-checkout",
+      "prefix": "/fa/shop/checkout/",
       "policy": "TRANSACTIONAL"
     },
     {
-      "id": "legacy-shop",
-      "prefix": "/shop/",
+      "id": "fa-shop-payment-start",
+      "prefix": "/fa/shop/payment-start/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "fa-shop-payment-return",
+      "prefix": "/fa/shop/payment-return/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "fa-shop-payment-result",
+      "prefix": "/fa/shop/payment-result/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "en-shop-cart",
+      "prefix": "/en/shop/cart/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "en-shop-checkout",
+      "prefix": "/en/shop/checkout/",
       "policy": "TRANSACTIONAL"
     },
     {
