@@ -1,0 +1,38 @@
+name: Account Commerce Consistency
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fa/register/**'
+      - 'en/register/**'
+      - 'fa/login/**'
+      - 'en/login/**'
+      - 'register/**'
+      - 'login/**'
+      - 'en/shop/**'
+      - 'tests/account-commerce-consistency.test.mjs'
+      - '.github/workflows/account-commerce-consistency.yml'
+  pull_request:
+    paths:
+      - 'fa/register/**'
+      - 'en/register/**'
+      - 'fa/login/**'
+      - 'en/login/**'
+      - 'register/**'
+      - 'login/**'
+      - 'en/shop/**'
+      - 'tests/account-commerce-consistency.test.mjs'
+      - '.github/workflows/account-commerce-consistency.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify account and shop links
+        run: node --test tests/account-commerce-consistency.test.mjs
