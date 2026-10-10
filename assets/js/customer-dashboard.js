@@ -214,8 +214,24 @@ function serviceMarketplace(runtime){
  search?.addEventListener('input',render);
 }
 
+function authNavigation(authenticated){
+ const login=lang==='en'?'/en/login/':'/fa/login/';
+ const primary=$('[data-dashboard-primary]');
+ if(primary){
+  if(!primary.dataset.defaultHref){primary.dataset.defaultHref=primary.getAttribute('href')||'#ecosystem';primary.dataset.defaultText=primary.textContent||''}
+  if(authenticated){primary.setAttribute('href',primary.dataset.defaultHref);primary.textContent=primary.dataset.defaultText}
+  else{primary.setAttribute('href',login);primary.textContent=lang==='en'?'Sign in':'ورود به حساب'}
+ }
+ const selectors=lang==='en'?'a[href^="/en/account/"]':'a[href^="/fa/app/account/"]';
+ $(selectors).forEach(a=>{
+  if(!a.dataset.privateHref)a.dataset.privateHref=a.getAttribute('href')||'';
+  if(authenticated&&a.dataset.privateHref)a.setAttribute('href',a.dataset.privateHref);
+  else if(!authenticated)a.setAttribute('href',login);
+ });
+}
+
 function logout(){
- $$('[data-dashboard-logout]').forEach(b=>b.addEventListener('click',async()=>{
+ $('[data-dashboard-logout]').forEach(b=>b.addEventListener('click',async()=>{
   b.disabled=true;
   await jsonRequest(API+'/auth/logout',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:'{}'});
   location.assign(lang==='en'?'/en/login/':'/fa/login/');
@@ -225,7 +241,8 @@ function logout(){
 document.addEventListener('DOMContentLoaded',async()=>{
  network();nav();sheet();commandCenter();logout();
  const runtime=await operationalStatus();
- await hydrate(runtime.auth);
+ const authenticated=await hydrate(runtime.auth);
+ authNavigation(authenticated);
  serviceMarketplace(runtime);
 });
 })();
