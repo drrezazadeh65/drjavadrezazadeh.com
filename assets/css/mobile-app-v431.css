@@ -517,7 +517,8 @@
 
 @media(max-width:390px){
   .store-nav{grid-template-columns:1fr}
-  .auth-page .role-status-grid{grid-template-columns:1fr!important}
+  .auth-page .role-status-grid{grid-template-columns:1fr 1fr!important}
+  .auth-page .role-status-card{min-height:100px!important;padding:12px!important}
   .public-home-page .home-focus-strip a{flex-basis:84vw}
 }
 
