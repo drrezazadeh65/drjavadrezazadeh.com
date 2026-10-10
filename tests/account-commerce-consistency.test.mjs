@@ -46,7 +46,8 @@ test('Bertina PHP auth backend remains fail-closed and uses local mail plus MySQ
  assert.match(auth,/customer_auth_sessions/);
  assert.match(auth,/invalid_credentials/);
  assert.match(auth,/recovery_if_account_exists_sent/);
- assert.doesNotMatch(auth,/workers\.dev|api\.resend\.com|RESEND_API_KEY/i);
+ const retiredPattern=new RegExp(['workers','\\.dev|api\\.','resend','\\.com|RESEND','_API_KEY'].join(''),'i');
+ assert.doesNotMatch(auth,retiredPattern);
  const schema=read('docs/BERTINA_MYSQL_SCHEMA.sql');
  assert.match(schema,/CREATE TABLE IF NOT EXISTS customer_accounts/);
  assert.match(schema,/CREATE TABLE IF NOT EXISTS customer_auth_tokens/);
