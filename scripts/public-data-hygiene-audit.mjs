@@ -24,7 +24,7 @@ const forbidden=[
   [/\bChatGPT\b/i,'ChatGPT internal reference'],
   [/\bDurable Object\b/i,'infrastructure jargon'],
   [/\bruntime secret\b/i,'secret-management jargon'],
-  [/\bCloudflare Worker\b/i,'infrastructure jargon'],
+  [/\bprovider-specific backend\b/i,'infrastructure jargon'],
   [/\bGitHub Pages\b/i,'hosting implementation jargon'],
   [/بک[\u200c\- ]?اند/i,'Persian backend jargon']
 ];
