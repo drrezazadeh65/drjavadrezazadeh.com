@@ -106,6 +106,62 @@ function operationsEvaluate(array $record, array $events, string $release, int $
     return array_merge($record, ['measuredProgress'=>$score,'status'=>$status,'closed'=>$complete,'verifiedGates'=>$gates,
         'openWork'=>array_column($openGates,'label'),'currentBlocker'=>$complete?null:($blocked?$record['blocker']:null)]);
 }
+/** Read-only engine observations. Readiness is deliberately separate from acceptance gates. */
+function operationsSignals(PDO $pdo, array $configuration, string $release, int $at): array {
+    $signals=[];
+    $add=function(array $ids,string $id,string $fa,string $en,mixed $value,string $source,string $limit,bool $blocking=false,?int $checked=null,?int $expires=null)use(&$signals,$at):void{
+        foreach($ids as $section)$signals[$section][]=['id'=>$id,'labelFa'=>$fa,'labelEn'=>$en,'value'=>$value,'source'=>$source,'limitation'=>$limit,'blocking'=>$blocking&&$value===false,'checkedAt'=>$checked??$at,'expiresAt'=>$expires??($at+60)];
+    };
+    $flag=fn(string $key)=>array_key_exists($key,$configuration)?$configuration[$key]===true:null;
+    $identityLimit='Runtime configuration is not proof of delivery, verification, recovery or real customer login.';
+    $auth=function_exists('authReady')?authReady():null;
+    $email=function_exists('mailReady')?mailReady():null;
+    $add(['OP-05','OP-06'],'auth_runtime','آمادگی فنی ورود ایمیلی','Email authentication runtime ready',$auth,'Bertina auth readiness',$identityLimit,true);
+    $add(['OP-05','OP-06'],'email_transport','آمادگی فنی ارسال ایمیل','Email transport configuration ready',$email,'Bertina SMTP readiness',$identityLimit,true);
+    $commerceLimit='Configuration does not certify provider approval, successful callbacks, real money or fulfilment.';
+    foreach([
+        ['public_tls_confirmed',['OP-07','OP-09'],'تأیید TLS در تنظیمات پرداخت','Payment TLS switch confirmed'],
+        ['commerce_enabled',['OP-07','OP-09','OP-23','OP-24'],'فعال‌بودن مجوز پرداخت','Payment activation switch enabled'],
+        ['order_email_fulfilment_confirmed',['OP-08','OP-11'],'تأیید تنظیمات رسید ایمیلی','Receipt email fulfilment confirmed'],
+        ['book_shipping_confirmed',['OP-11'],'تأیید تنظیمات ارسال کتاب','Book shipping configuration confirmed'],
+        ['service_booking_confirmed',['OP-22','OP-23'],'تأیید تنظیمات رزرو خدمت','Service booking configuration confirmed']
+    ] as [$key,$ids,$fa,$en])$add($ids,$key,$fa,$en,$flag($key),'Bertina effective private configuration',$commerceLimit,true);
+    $gateway=array_key_exists('bitpay_api_key',$configuration)?(string)$configuration['bitpay_api_key']!=='':null;
+    $multiplier=array_key_exists('bitpay_amount_multiplier',$configuration)?in_array((string)$configuration['bitpay_amount_multiplier'],['1','10'],true):null;
+    $add(['OP-07'],'gateway_configured','وجود کلید خصوصی درگاه','Private gateway key configured',$gateway,'Bertina effective private configuration',$commerceLimit,true);
+    $add(['OP-07'],'amount_conversion','معتبر بودن تنظیم تبدیل مبلغ','Amount conversion configuration valid',$multiplier,'Bertina effective private configuration',$commerceLimit,true);
+    $ready=function_exists('commerceReady')?commerceReady():null;
+    $add(['OP-07','OP-09'],'checkout_runtime','آمادگی فنی پرداخت','Checkout runtime ready',$ready,'Bertina commerce readiness',$commerceLimit,true);
+    if(function_exists('localCatalog')){
+        $items=localCatalog();$books=count(array_filter($items,fn($item)=>$item['kind']==='book'));
+        $add(['OP-10','OP-11'],'sellable_books','کتاب‌های دارای قیمت و موجودی معتبر در کاتالوگ','Catalogue books with valid prices and stock',$books,'Server-authoritative catalogue','Catalogue stock is not warehouse reconciliation or delivery confirmation.');
+    }
+    try{
+        $counts=$pdo->query("SELECT COUNT(*) AS captured,COALESCE(SUM(state='pending'),0) AS pending,COALESCE(SUM(state='paid' AND currency='IRT' AND paid_at IS NOT NULL AND provider_trans_id IS NOT NULL AND provider_trans_id<>'' AND provider_id_get IS NOT NULL AND provider_id_get<>''),0) AS paid_records FROM (SELECT state,currency,paid_at,provider_trans_id,provider_id_get FROM commerce_orders FORCE INDEX (PRIMARY) ORDER BY id DESC LIMIT 1000) AS indexed_sample")->fetch();
+        foreach(['captured'=>['تعداد سفارش در نمونهٔ حداکثر هزار ردیف','Order count in sample of at most 1000 rows'],'pending'=>['سفارش‌های معلق در نمونه','Pending orders in sample'],'paid_records'=>['ردیف‌های پرداخت‌شده دارای فیلدهای callback در نمونه','Paid-state rows with callback fields in sample']] as $key=>[$fa,$en])$add(['OP-08','OP-09','OP-11'],$key,$fa,$en,(int)$counts[$key],'Read-only Bertina MySQL indexed sample','Deterministic UUID-indexed sample of at most 1000 rows, not chronological or all-time totals, independent reconciliation or a new real transaction.');
+    }catch(Throwable $e){
+        $add(['OP-08','OP-09'],'order_metrics','دسترسی به شاخص سفارش‌ها','Order metrics available',null,'Bertina MySQL aggregate','Metrics unavailable; no records or completion inferred.');
+    }
+    $add(['OP-02'],'current_release','شناسهٔ نسخهٔ ثبت‌شده در سرور','Server-recorded release SHA',$release?:null,'Bertina operations_release','This does not verify default-branch rulesets or retired provider decommissioning.');
+    $raw=@file_get_contents(__DIR__.'/internal/operations-tls.json');$tls=is_string($raw)?json_decode($raw,true):null;
+    if(is_array($tls)&&operationsProductionContext($_SERVER,$tls,$release,$at)){
+        $expires=min($tls['checkedAt']+604800,min(array_column($tls['certificates'],'expiresAt'))-86400);
+        $add(['OP-03'],'independent_tls','اعتبار شواهد مستقل TLS برای دامنه و www','Independent apex/www TLS proof valid',true,'Independent GitHub direct-TCP/public-DNS observer','Contacted addresses only; this observation does not activate payments or certify every DNS address.',false,$tls['checkedAt'],$expires);
+    }
+    $raw=@file_get_contents(__DIR__.'/internal/operations-gsc-observation.json');$gsc=is_string($raw)?json_decode($raw,true):null;
+    if(is_array($gsc)&&($gsc['schema']??'')==='operations-gsc-observation-v1'&&($gsc['property']??'')==='https://drjavadrezazadeh.com/'&&is_array($gsc['results']??null)&&count($gsc['results'])>0&&count($gsc['results'])<=25){
+        $checked=strtotime((string)($gsc['inspectedAtUtc']??''));$rows=$gsc['results'];
+        $valid=$checked!==false&&$checked<=$at;
+        foreach($rows as $row)if(!is_array($row)||!str_starts_with((string)($row['url']??''),'https://drjavadrezazadeh.com/'))$valid=false;
+        if($valid){
+            $indexed=count(array_filter($rows,fn($row)=>($row['verdict']??'')==='PASS'&&($row['coverageState']??'')==='Submitted and indexed'));
+            $unknown=count(array_filter($rows,fn($row)=>($row['coverageState']??'')==='URL is unknown to Google'));
+            $limit='Saved Google inspection sample, not a live GSC connection, whole-property coverage or current-release indexation proof.';
+            foreach(['sample_size'=>[count($rows),'تعداد صفحات نمونهٔ بررسی گوگل','Google inspection sample size'],'indexed_sample'=>[$indexed,'صفحات ایندکس‌شده در نمونه','Indexed pages in sample'],'unknown_sample'=>[$unknown,'صفحات ناشناختهٔ گوگل در نمونه','Unknown-to-Google pages in sample']] as $id=>[$value,$fa,$en])$add(['OP-14'],$id,$fa,$en,$value,'Google URL Inspection API',$limit,false,$checked,$checked+259200);
+        }
+    }
+    return $signals;
+}
 function operationsSnapshot(PDO $pdo, int $at): array {
     $registry = operationsRegistry();
     $releaseRow = $pdo->query('SELECT release_sha,published_at FROM operations_release WHERE singleton_id=1')->fetch();
@@ -113,8 +169,18 @@ function operationsSnapshot(PDO $pdo, int $at): array {
     $events = $pdo->query('SELECT * FROM operations_evidence ORDER BY sequence_id DESC LIMIT 5000')->fetchAll();
     // Audit actor IDs and account details are deliberately absent from the reporting payload.
     foreach ($events as &$event) { $event['details'] = json_decode($event['details_json'],true); unset($event['details_json']); } unset($event);
-    $byId = [];
-    foreach (array_merge($registry['reports'],[$registry['dashboard']]) as $record) $byId[$record['id']] = operationsEvaluate($record,$events,$release,$at);
+    $byId = [];$signals=operationsSignals($pdo,cfg(),$release,$at);
+    foreach (array_merge($registry['reports'],[$registry['dashboard']]) as $record){
+        $evaluated=operationsEvaluate($record,$events,$release,$at);$evaluated['signals']=$signals[$record['id']]??[];
+        $blockers=array_values(array_filter($evaluated['signals'],fn($signal)=>$signal['blocking']&&$signal['expiresAt']>$at));
+        $evaluated['observedBlockers']=array_column($blockers,'labelFa');
+        if($blockers){
+            $evaluated['closed']=false;$evaluated['status']=$evaluated['status']==='regressed'?'regressed':'blocked';
+            if($evaluated['measuredProgress']===100)$evaluated['measuredProgress']=99;
+            $evaluated['currentBlocker']=implode('؛ ',$evaluated['observedBlockers']);
+        }
+        $byId[$record['id']]=$evaluated;
+    }
     // Evaluate transitive dependencies, retaining unknown as unknown rather than manufacturing zeroes.
     for ($iteration=0; $iteration<count($byId); $iteration++) {
         $changed = false;
