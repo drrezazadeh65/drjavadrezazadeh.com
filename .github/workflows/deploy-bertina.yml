@@ -296,76 +296,7 @@ jobs:
             https://drjavadrezazadeh.com/shop/ -o /tmp/shop-redirect.raw
           tr -d '\r' < /tmp/shop-redirect.raw > /tmp/shop-redirect.txt
           grep -Eiq '^HTTP/[^ ]+ 301' /tmp/shop-redirect.txt
-          grep -Eiq '^location: (https://drjavadrezazadeh\.com)?/fa/shop/?([?#].*)?
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
-            https://drjavadrezazadeh.com/fa/ -o /tmp/fa.html
-          grep -F '<html lang="fa" dir="rtl">' /tmp/fa.html
-
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/en/ -o /tmp/en.html
-          grep -F '<html lang="en"' /tmp/en.html
-
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/fa/customer-dashboard/ -o /tmp/dashboard.html
-          grep -Eiq '<meta name="robots" content="[^"]*noindex[^"]*nofollow' /tmp/dashboard.html
-
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/robots.txt -o /tmp/robots.txt
-          test -s /tmp/robots.txt
-
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/sitemap.xml -o /tmp/sitemap.xml
-          grep -F 'drjavadrezazadeh.com' /tmp/sitemap.xml
-
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/api/health -o /tmp/api-health.json
-          grep -F '"hosting":"bertina"' /tmp/api-health.json
-
-      - name: Deployment summary
-        if: steps.credentials.outputs.ready == 'true'
-        run: |
-          echo "Bertina package deployment, server-side checksum verification, and direct-origin smoke tests completed for commit $GITHUB_SHA."
- /tmp/shop-redirect.txt
-
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
-            https://drjavadrezazadeh.com/fa/archive/legacy-shop/ -o /tmp/legacy-shop.html
-          grep -F 'آرشیو تاریخی فروشگاه پیشین' /tmp/legacy-shop.html
-
-          python3 - <<'PY' > /tmp/historical-paths.txt
-          from urllib.parse import quote
-          paths=[
-              '/product/خرید-فرش-ماشینی-کد-2-7801-9735/',
-              '/product/خرید-گبه-ماشینی-کد-1009-2/',
-          ]
-          for p in paths:
-              print(quote(p,safe='/'))
-          PY
-          while IFS= read -r old_path; do
-            curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
-              "https://drjavadrezazadeh.com$old_path" -o /tmp/historical-redirect.raw
-            tr -d '\r' < /tmp/historical-redirect.raw > /tmp/historical-redirect.txt
-            grep -Eiq '^HTTP/[^ ]+ 301' /tmp/historical-redirect.txt
-            grep -Eiq '^location: (https://drjavadrezazadeh\.com)?/fa/archive/legacy-shop/?([?#].*)?
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
-            https://drjavadrezazadeh.com/fa/ -o /tmp/fa.html
-          grep -F '<html lang="fa" dir="rtl">' /tmp/fa.html
-
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/en/ -o /tmp/en.html
-          grep -F '<html lang="en"' /tmp/en.html
-
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/fa/customer-dashboard/ -o /tmp/dashboard.html
-          grep -Eiq '<meta name="robots" content="[^"]*noindex[^"]*nofollow' /tmp/dashboard.html
-
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/robots.txt -o /tmp/robots.txt
-          test -s /tmp/robots.txt
-
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/sitemap.xml -o /tmp/sitemap.xml
-          grep -F 'drjavadrezazadeh.com' /tmp/sitemap.xml
-
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/api/health -o /tmp/api-health.json
-          grep -F '"hosting":"bertina"' /tmp/api-health.json
-
-      - name: Deployment summary
-        if: steps.credentials.outputs.ready == 'true'
-        run: |
-          echo "Bertina package deployment, server-side checksum verification, and direct-origin smoke tests completed for commit $GITHUB_SHA."
- /tmp/historical-redirect.txt
-          done < /tmp/historical-paths.txt
+          grep -Eiq '^location: (https://drjavadrezazadeh\.com)?/fa/shop/?([?#].*)?$' /tmp/shop-redirect.txt
 
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
             https://drjavadrezazadeh.com/fa/ -o /tmp/fa.html
