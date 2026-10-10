@@ -1,4 +1,4 @@
-const ORIGIN='https://drjavadrezazadeh-payment.dr-rezazadeh65.workers.dev';
+const ORIGIN='https://drjavadrezazadeh.com/api';
 const controller=new AbortController();
 const timeout=setTimeout(()=>controller.abort(),12000);
 let response,data;
@@ -13,4 +13,4 @@ if(data.ready!==true)throw new Error('auth_runtime_not_ready');
 if(data.database!==true)throw new Error('auth_database_not_ready');
 if(data.email!==true)throw new Error('auth_email_not_ready');
 if(data.passwordKdf!==true)throw new Error('auth_password_kdf_not_ready');
-console.log('Unified customer auth runtime is ready for controlled registration testing.');
+console.log('Bertina same-origin customer auth runtime is ready for controlled registration testing.');
