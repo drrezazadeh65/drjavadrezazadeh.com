@@ -21,7 +21,7 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-cache-reset
@@ -29,6 +29,8 @@ concurrency:
 
 jobs:
   bump-cache:
+    # Retired main baseline: Codex/Bertina production owns releases and indexing.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out main

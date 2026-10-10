@@ -29,7 +29,7 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: media-derivative-pipeline
@@ -37,6 +37,8 @@ concurrency:
 
 jobs:
   derive:
+    # Retired main baseline: Codex/Bertina production owns releases and indexing.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

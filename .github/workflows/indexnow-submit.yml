@@ -26,6 +26,8 @@ concurrency:
 
 jobs:
   indexnow:
+    # Retired main baseline: Codex/Bertina production owns releases and indexing.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:

@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: publish-premium-articles
@@ -20,6 +20,8 @@ concurrency:
 
 jobs:
   publish:
+    # Retired main baseline: Codex/Bertina production owns releases and indexing.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
