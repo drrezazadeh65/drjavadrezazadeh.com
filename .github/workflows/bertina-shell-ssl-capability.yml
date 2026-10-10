@@ -1,0 +1,27 @@
+name: Bertina Shell SSL Capability
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/bertina-shell-ssl-capability.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test SSH shell and cPanel UAPI availability
+        env:
+          HOST: ${{ secrets.BERTINA_FTP_HOST }}
+          USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          PASS: ${{ secrets.BERTINA_FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq sshpass
+          export SSHPASS="$PASS"
+          sshpass -e ssh             -o StrictHostKeyChecking=no             -o UserKnownHostsFile=/dev/null             -o ConnectTimeout=15             "$USER@$HOST"             'printf "USER="; whoami; printf "HOME="; printf "%s\n" "$HOME"; command -v uapi || true; command -v curl || true; command -v openssl || true'
