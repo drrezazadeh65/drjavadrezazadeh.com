@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateMessage } from '../src/index.js';
+import { validateMessage } from '../src/validation.js';
 
 const valid={
   type:'registration_verification',
