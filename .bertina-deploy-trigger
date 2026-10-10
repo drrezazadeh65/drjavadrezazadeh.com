@@ -1,4 +1,4 @@
-deploy=2026-10-10T15:40:00Z
+deploy=payment-hardening-tls-gate-v1
 source=migration/bertina-linux6
 mode=bertina-only
-scope=release-state-storefront-operational-payment-gated
+scope=storefront-operational-payment-fail-closed-tls-gate
