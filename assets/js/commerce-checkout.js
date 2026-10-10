@@ -28,10 +28,12 @@ function mount(host,kind,items){
  host.innerHTML='';
  const message=document.createElement('p');message.className='commerce-notice';message.textContent='مبلغ نهایی در سرور بررسی می‌شود. برای پیگیری، شناسه سفارش را نگه دارید و فقط از طریق ایمیل رسمی مکاتبه کنید.';
  const selected=new URLSearchParams(location.search).get(kind==='service'?'service':'vip');
+ let visible=0;
  for(const item of items){
   if(selected && item.id!==selected)continue;
   if(item.sellable!==true||!Number.isSafeInteger(item.price)||item.price<1||
      typeof item.id!=='string'||!/^[a-z0-9_-]{1,70}$/.test(item.id))continue;
+  visible++;
   const card=document.createElement('article');card.className='commerce-card';
   const image=document.createElement('img');
   image.src=kind==='service'?'/assets/images/services/'+encodeURIComponent(item.id)+'.svg':'/assets/images/vip-'+encodeURIComponent(item.id)+'.svg';
@@ -47,6 +49,7 @@ function mount(host,kind,items){
   button.addEventListener('click',()=>pay([{sku:kind+':'+item.id,quantity:1}],button,live));
   const details=document.createElement('a');details.href=kind==='service'?'/fa/services/'+encodeURIComponent(item.id)+'/':'/fa/vip/'+encodeURIComponent(item.id)+'/';details.textContent=kind==='service'?'معرفی کامل، شرایط و جزئیات خدمت':'مشاهده معرفی بسته‌های VIP';details.className='commerce-details';details.style.cssText='display:block;margin:12px 0;color:inherit;text-decoration:underline;text-underline-offset:5px';card.append(image,title,fit,price,details,button,live);host.append(card);
  }
+ if(!visible){const empty=document.createElement('p');empty.className='commerce-notice';empty.textContent='خدمت انتخاب‌شده در فهرست فروش یافت نشد. لطفاً از فهرست رسمی یک خدمت را انتخاب کنید.';const back=document.createElement('a');back.href=kind==='service'?'/fa/services/':'/fa/vip/';back.textContent='بازگشت به فهرست خدمات';empty.append(document.createElement('br'),back);host.append(empty);}
  const contact=document.createElement('div');contact.className='commerce-contact';
  const email=document.createElement('a');email.href='mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('هماهنگی خدمات دکتر رضازاده');email.textContent='ارتباط از طریق ایمیل';
  const note=document.createElement('p');note.textContent='پرسش‌های پیش از خرید و پیگیری سفارش فقط از طریق ایمیل رسمی انجام می‌شود. پشتیبانی ایتا برای دانش‌آموزان دارای خدمت خریداری‌شده و دسترسی تأییدشده است.';
