@@ -52,11 +52,46 @@ function sheet(){
  sheet.addEventListener('click',e=>{if(e.target===sheet)shut()});
  addEventListener('keydown',e=>{if(e.key==='Escape'&&sheet.classList.contains('is-open'))shut()});
 }
+
+function serviceMarketplace(){
+ const host=$('[data-dashboard-services]'),search=$('[data-dashboard-service-search]'),count=$('[data-dashboard-service-count]'),status=$('[data-dashboard-service-status]');
+ if(!host)return;
+ const faNum=n=>new Intl.NumberFormat('fa-IR').format(n);
+ const money=n=>faNum(n)+' تومان';
+ const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+ let services=[],purchaseReady=false;
+ const render=()=>{
+  const q=String(search?.value||'').trim().toLocaleLowerCase('fa').normalize('NFKC').replace(/[يى]/g,'ی').replace(/ك/g,'ک');
+  const rows=services.filter(s=>[s.title_fa,s.fit_fa,s.outcome_fa].join(' ').toLocaleLowerCase('fa').normalize('NFKC').replace(/[يى]/g,'ی').replace(/ك/g,'ک').includes(q));
+  if(count)count.textContent=faNum(services.length);
+  host.innerHTML=rows.length?rows.map(s=>{
+    const id=encodeURIComponent(s.id);
+    const duration=Number.isInteger(s.duration_minutes)?faNum(s.duration_minutes)+' دقیقه':'دامنه اختصاصی خدمت';
+    const label=purchaseReady?'خرید و افزودن به داشبورد':'مشاهده شرایط خرید';
+    return '<article class="cd-service-card" data-purchase-ready="'+purchaseReady+'"><h3>'+esc(s.title_fa)+'</h3><div class="cd-service-price">'+money(s.price)+'</div><span class="cd-service-duration">'+duration+'</span><p class="cd-service-fit">'+esc(s.fit_fa||'شرح کامل خدمت را پیش از انتخاب بررسی کنید.')+'</p><div class="cd-service-actions"><a class="cd-service-buy" href="/fa/services/checkout/?service='+id+'">'+label+'</a><a class="cd-service-more" href="/fa/services/?service='+id+'" aria-label="معرفی بیشتر">↗</a></div></article>';
+  }).join(''):'<div class="cd-service-empty">خدمتی با این عبارت پیدا نشد.</div>';
+ };
+ Promise.all([
+  fetch('/assets/data/service-catalog.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('catalog');return r.json()}),
+  fetch(API+'/commerce/health',{cache:'no-store',credentials:'omit'}).then(r=>r.ok?r.json():null).catch(()=>null),
+  fetch(API+'/auth/health',{cache:'no-store',credentials:'include'}).then(r=>r.ok?r.json():null).catch(()=>null)
+ ]).then(([catalog,commerce,authHealth])=>{
+   services=(catalog?.services||[]).filter(s=>s.sellable===true&&Number.isSafeInteger(s.price)&&typeof s.id==='string');
+   purchaseReady=commerce?.checkout===true&&commerce?.capabilities?.services===true&&authHealth?.ready===true;
+   if(status)status.textContent=purchaseReady?'خرید مستقیم از همین داشبورد آماده است؛ پس از خرید تأییدشده، دسترسی خدمت به حساب شما متصل می‌شود.':'همه خدمات قابل مشاهده‌اند؛ خرید امن پس از آماده‌شدن کامل حساب و درگاه از همین مسیر انجام می‌شود.';
+   render();
+ }).catch(()=>{
+   if(status)status.textContent='فهرست خدمات موقتاً در دسترس نیست.';
+   host.innerHTML='<div class="cd-service-empty">بارگذاری خدمات انجام نشد. از کاتالوگ رسمی خدمات استفاده کنید.</div>';
+ });
+ search?.addEventListener('input',render);
+}
+
 function logout(){
  $$('[data-dashboard-logout]').forEach(b=>b.addEventListener('click',async()=>{
   try{await fetch(API+'/auth/logout',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:'{}'})}catch{}
   location.assign(lang==='en'?'/en/login/':'/fa/login/');
  }));
 }
-document.addEventListener('DOMContentLoaded',()=>{hydrate();nav();sheet();logout()});
+document.addEventListener('DOMContentLoaded',()=>{hydrate();nav();sheet();serviceMarketplace();logout()});
 })();
