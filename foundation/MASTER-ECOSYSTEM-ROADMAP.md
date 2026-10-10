@@ -103,7 +103,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **INFRA-011 — IN PROGRESS — Staging/preview policy is frozen: Cloudflare preview hosts are response-level noindex, private routes remain no-store, synthetic data is mandatory, production secrets/payments are excluded, and release promotion is gated by CI; live Cloudflare staging/branch-preview verification remains pending hosting cutover.**
 - [ ] **INFRA-012 — PLANNED — Production database, private object storage and backup infrastructure.**
 - [ ] **INFRA-013 — PLANNED — Transactional email/domain mail infrastructure.**
-- [ ] **INFRA-014 — IN PROGRESS — Cloudflare Pages default ETag/revalidation behaviour is frozen as the public baseline while assets remain non-fingerprinted; private routes use explicit no-store, Service Worker code delivery is network-first, and long immutable caching is prohibited until a content-hashed asset pipeline exists. Production header/cache-rule verification remains pending cutover.**
+- [ ] **INFRA-014 — IN PROGRESS — Bertina Apache cache/revalidation behaviour is the public baseline while assets remain non-fingerprinted; private routes use explicit no-store, Service Worker code delivery is network-first, and long immutable caching is prohibited until a content-hashed asset pipeline exists. Production header/cache verification remains part of Bertina release QA.**
 
 ---
 
@@ -273,7 +273,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 
 # 12. CRM, booking and communication
 
-- [ ] **CRM-001 — IN PROGRESS — Public AI assistant now has explicit-consent email/mobile lead capture, source/intent attribution, separate WhatsApp opt-in, SQLite Durable Object persistence and lead lifecycle states; Cloudflare Worker deployment is pending.**
+- [ ] **CRM-001 — IN PROGRESS — Public AI assistant retains the bilingual local guidance fallback. Consent-based lead capture and live AI are disabled until a Bertina-hosted server-side persistence/runtime is implemented and verified.**
 - [ ] **CRM-002 — IN PROGRESS — Consultation pipeline, state model, noindex intake gateway and API contract are defined; production workflow awaits backend, booking and payment services.**
 - [ ] **CRM-003 — IN PROGRESS — Transactional email templates.**
 - [ ] **CRM-004 — IN PROGRESS — Appointment reminders and rescheduling.**
@@ -289,7 +289,7 @@ No item is silently removed. If the strategy changes, the item is marked **MODIF
 - [ ] **ADMIN-001 — IN PROGRESS — Private bilingual admin-console information architecture and visual operations console now cover content/SEO, assessment, commerce, consultation, assistant leads, identity/consent and security activation gates without exposing real data; provider-backed CMS editing/persistence remains pending.**
 - [ ] **ADMIN-002 — IN PROGRESS — Draft/review/publish workflow.**
 - [ ] **ADMIN-003 — IN PROGRESS — SEO fields: title, description, slug, canonical, hreflang, index state, OG, schema, dates, author/reviewer.**
-- [ ] **ADMIN-004 — IN PROGRESS — Cloudflare Pages `_redirects` now provides a version-controlled registry for confirmed legacy migrations, and CI validates syntax, unique sources, target existence and permanent 301 status; a future CMS/admin UI for redirect creation and review remains pending.**
+- [ ] **ADMIN-004 — IN PROGRESS — Bertina Apache `.htaccess` provides the version-controlled registry for confirmed legacy migrations, and CI validates required permanent redirects; a future CMS/admin UI for redirect creation and review remains pending.**
 - [ ] **ADMIN-005 — IN PROGRESS — User/role management.**
 - [ ] **ADMIN-006 — IN PROGRESS — Bilingual private assessment-management architecture now covers instrument version lifecycle, item-bank governance, declared scoring/interpretation rules, multi-source evidence provenance and human-approved report supersession. Live editing and persistence remain pending authenticated backend.**
 - [ ] **ADMIN-007 — IN PROGRESS — Order/payment/reconciliation administration is represented in the private admin console and commerce contracts; live operations await backend and gateway.**
