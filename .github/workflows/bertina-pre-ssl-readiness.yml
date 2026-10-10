@@ -1,0 +1,67 @@
+name: Bertina Pre-SSL Readiness
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/bertina-pre-ssl-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build sanitized public site
+        run: node scripts/build-public-site.mjs
+
+      - name: Scan for mixed-content risks
+        run: |
+          set -euo pipefail
+          echo "Scanning HTML/CSS/JS/JSON/XML for insecure absolute HTTP references..."
+          if grep -RInE --include='*.html' --include='*.css' --include='*.js' --include='*.json' --include='*.xml'             'http://drjavadrezazadeh\.com|http://www\.drjavadrezazadeh\.com' .public-site; then
+            echo "Found insecure same-site absolute links."
+            exit 1
+          fi
+
+          if grep -RInE --include='*.html' --include='*.css' --include='*.js'             '(src|href|action)=["'\'' ]*http://' .public-site; then
+            echo "Found potentially active mixed-content references."
+            exit 1
+          fi
+
+          echo "No active same-site HTTP or obvious mixed-content references found."
+
+      - name: Validate canonical HTTPS URLs
+        run: |
+          set -euo pipefail
+          test "$(grep -RIl 'rel="canonical"' .public-site --include='*.html' | wc -l)" -gt 0
+          if grep -RInE --include='*.html' 'rel="canonical"[^>]*href="http://' .public-site; then
+            echo "HTTP canonical detected."
+            exit 1
+          fi
+          echo "Canonical URLs are HTTPS-safe."
+
+      - name: Pre-SSL origin smoke test over HTTP
+        run: |
+          set -euo pipefail
+          for path in / /fa/ /en/ /fa/customer-dashboard/ /robots.txt /sitemap.xml; do
+            code="$(curl -sS -o /tmp/body -w '%{http_code}' --max-time 30 "http://drjavadrezazadeh.com$path")"
+            echo "$path -> $code"
+            test "$code" = "200"
+          done
+
+      - name: Verify legacy redirects remain intact
+        run: |
+          set -euo pipefail
+          location="$(curl -sSI --max-time 30 http://drjavadrezazadeh.com/about | tr -d '\r' | awk -F': ' 'tolower($1)=="location"{print $2; exit}')"
+          echo "/about -> $location"
+          test "$location" = "/en/about/" || test "$location" = "http://drjavadrezazadeh.com/en/about/" || test "$location" = "https://drjavadrezazadeh.com/en/about/"
