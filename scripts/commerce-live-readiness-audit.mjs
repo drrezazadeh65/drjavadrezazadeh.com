@@ -1,11 +1,5 @@
-// Non-mutating Cloudflare commerce diagnostic. Never creates payment intents or exposes secrets.
-import fs from 'node:fs';
-
-const frontend=fs.readFileSync('assets/js/commerce-checkout.js','utf8');
-const match=frontend.match(/const API='(https:\/\/[^']+)'/);
-if(!match)throw new Error('checkout_api_origin_not_found');
-const origin=match[1];
-const url=new URL('/commerce/health',origin);
+// Non-mutating Bertina commerce diagnostic. Never creates payment intents or exposes secrets.
+const url=new URL('/api/commerce/health','https://drjavadrezazadeh.com');
 const controller=new AbortController();
 const timeout=setTimeout(()=>controller.abort(),12000);
 let response,health;
@@ -22,7 +16,7 @@ for(const key of ['services','vip','books']){
  if(typeof health.capabilities?.[key]!=='boolean')throw new Error('commerce_capability_missing_'+key);
  if(health.capabilities[key]===true&&health.checkout!==true)throw new Error('capability_enabled_without_checkout_'+key);
 }
-console.log('Cloudflare commerce health contract: reachable, structurally valid.');
+console.log('Bertina commerce health contract: reachable, structurally valid.');
 console.log('Checkout enabled:',health.checkout,'; category readiness:',JSON.stringify(health.capabilities));
 if(!health.checkout)console.log('Public checkout remains intentionally disabled; this is NOT production payment certification.');
-console.log('This read-only check does not prove D1 persistence, email receipts, entitlement authorization or BitPay settlement.');
+console.log('This read-only check does not prove MySQL persistence, local-mail receipts, entitlement authorization or gateway settlement.');
