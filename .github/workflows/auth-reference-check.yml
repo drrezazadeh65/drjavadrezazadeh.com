@@ -1,0 +1,26 @@
+name: Auth Reference Checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'edge/auth/**'
+      - '.github/workflows/auth-reference-check.yml'
+  pull_request:
+    paths:
+      - 'edge/auth/**'
+      - '.github/workflows/auth-reference-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run token policy tests
+        run: node --test edge/auth/tests/*.test.mjs
+      - name: Validate reference module syntax
+        run: node --check edge/auth/reference/token-policy.mjs
