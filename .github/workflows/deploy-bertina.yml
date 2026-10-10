@@ -1,0 +1,84 @@
+name: Deploy to Bertina
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type DEPLOY to publish the frozen sanitized site to Bertina'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bertina-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ inputs.confirmation == 'DEPLOY' }}
+    runs-on: ubuntu-latest
+    environment: bertina-production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build and verify sanitized public site
+        run: |
+          node scripts/build-public-data.mjs --check
+          node scripts/build-public-site.mjs
+          test -f .public-site/.htaccess
+          rm -f .public-site/CNAME .public-site/_headers .public-site/_redirects
+          test ! -e .public-site/platform
+          test ! -e .public-site/foundation
+          test ! -e .public-site/scripts
+          test ! -e .public-site/tests
+          test ! -e .public-site/edge
+          test ! -e .public-site/payment-api
+          test ! -e .public-site/docs
+          test ! -e .public-site/.github
+
+      - name: Validate deployment credentials are configured
+        env:
+          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: |
+          test -n "$FTP_HOST"
+          test -n "$FTP_USER"
+          test -n "$FTP_PASSWORD"
+          test -n "$FTP_REMOTE_DIR"
+
+      - name: Install secure FTP client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Deploy sanitized artifact over explicit TLS
+        env:
+          FTP_HOST: ${{ secrets.BERTINA_FTP_HOST }}
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: |
+          lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set net:max-retries 2
+          set net:timeout 25
+          mirror -R --delete --parallel=4 --verbose \
+            --exclude-glob ".well-known/**" \
+            --exclude-glob "cgi-bin/**" \
+            .public-site/ "$FTP_REMOTE_DIR"
+          bye
+          LFTP
+
+      - name: Deployment summary
+        run: |
+          echo "Bertina deployment completed from commit ${GITHUB_SHA}."
+          echo "DNS cutover is intentionally separate and must happen only after host-side validation."
