@@ -10,6 +10,7 @@ on:
       - 'register/**'
       - 'login/**'
       - 'en/shop/**'
+      - 'assets/js/book-store.js'
       - 'tests/account-commerce-consistency.test.mjs'
       - '.github/workflows/account-commerce-consistency.yml'
   pull_request:
