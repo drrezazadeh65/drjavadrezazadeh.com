@@ -1,28 +1,18 @@
-# BitPay production activation — Cloudflare only
+# BitPay Production Activation — Bertina backend
 
-Status: NOT CERTIFIED FOR PUBLIC PAYMENT (2026-10-09). This checklist applies exclusively to the approved GitHub Pages + Cloudflare Worker/D1 architecture; no retired hosting or database integrations are permitted.
+Status: NOT CERTIFIED FOR PUBLIC PAYMENT until the controlled live-payment gate is completed.
 
-The public website is hosted on GitHub Pages. A GitHub Actions secret does not create a deployed payment backend or an authenticated customer account.
+## Required architecture
+The browser never holds a gateway secret. Orders are created, stored and verified through the same-origin Bertina PHP API backed by Bertina MySQL.
 
-## Production release sequence
+## Activation gates
+1. Trusted HTTPS must be valid on the public domain.
+2. Bertina MySQL schema must be installed and tested.
+3. Gateway API credential must exist only in `api/config.local.php` or equivalent private runtime configuration.
+4. Confirm the provider amount unit before setting the multiplier.
+5. Confirm server-side order creation and persistent state transitions.
+6. Confirm callback identity, provider transaction ID, amount and factor/order linkage.
+7. Confirm transactional email/fulfilment readiness before enabling checkout.
+8. Run one controlled low-value live transaction, then reconcile the provider record with the MySQL order before enabling public checkout.
 
-1. Identify the authoritative deployed Cloudflare Worker entrypoint and confirm that it serves the public checkout origin. The repository contains both `payment-api/` D1 commerce modules and `edge/payments/` Durable Object book-payment code; do not mistake either source tree for proof of deployment.
-2. Verify actual Cloudflare Worker secrets, D1/DO bindings, production routes, TLS, CORS and callback URLs without publishing credentials.
-3. Apply and verify the commerce database schema in the correct D1 environment; confirm order persistence, uniqueness constraints, immutable amount and provider transaction IDs.
-4. Use only the server-authoritative product catalog for prices and stock; do not trust client-supplied amounts or completion states.
-5. Verify merchant-book fulfilment, returns, service booking capacity and VIP scope. Free shipping to the buyer does not remove the requirement to confirm dispatch and returns.
-6. Enable the commerce `ORDER_EMAIL_FULFILMENT_CONFIRMED` gate only after server-verified email identity, durable order/customer linkage and actual transactional receipt delivery work. No SMS/phone verification. The connected Resend domain is currently `partially_failed`; repair DNS and verify delivery before enabling.
-7. For purchased student services, release Eitaa support only from a server-verified paid order, email-authenticated student session and active non-refunded entitlement; never embed the handle in public HTML/JS.
-8. Independently verify the BitPay callback response amount, factor, status and transaction identifiers against the stored order. Test duplicate and forged callbacks, failure paths and refund reconciliation.
-9. Complete a controlled low-value live transaction with explicit owner authorization, a verified persisted payment, delivered receipt and print-ready invoice before enabling public payments.
-10. Confirm 27 service pages, the bookstore, bilingual canonical paths, the frozen SEO standard, accessibility, mobile navigation, sitemap, images and all GitHub Actions gates on the final deployed commit.
-
-## Fail-closed rules
-
-- `COMMERCE_ENABLED` is not by itself proof of readiness. The commerce backend additionally requires a configured gateway amount multiplier, order-linked email fulfilment and the appropriate category flag.
-- `/commerce/health` must expose explicit boolean category capabilities; the frontend must never treat an absent flag as permission to collect payment.
-- `/commerce/create` must reject unconfirmed book fulfilment, service capacity and VIP booking even if a client bypasses the frontend.
-- The 10,000-toman test flow is not a substitute for a production sale and does not certify customer records, receipts or fulfilment.
-- Never claim a production release is complete from code commits or green source-level CI alone; obtain live Cloudflare and email-provider evidence.
-
-See `foundation/V4.4-EXECUTION-AND-EMAIL-CLOSURE-2026-10-09.md` and `foundation/ACTIVE-INFRASTRUCTURE-POLICY-2026-10-09.md`.
+All commerce switches remain fail-closed by default.
