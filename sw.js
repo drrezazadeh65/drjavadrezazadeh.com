@@ -14,7 +14,7 @@ const CORE=[
 ];
 
 const PRIVATE_PREFIXES=[
-  '/fa/app/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/',
+  '/fa/app/','/fa/customer-dashboard/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/',
   '/en/login/','/en/register/','/en/recover/','/en/account/',
   '/fa/assessments/','/assessments/','/fa/shop/','/en/shop/','/shop/',
   '/en/golden-talent/assessment/','/en/golden-talent/dashboard/',
