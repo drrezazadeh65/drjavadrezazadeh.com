@@ -7,11 +7,11 @@ const escape=value=>String(value).replace(/[\r\n\t]/g,' ').trim();
 export default class RegistrationIntake extends WorkerEntrypoint {
   async fetch(request) {
     const url=new URL(request.url);
-    if(url.pathname!=='/register-request' || request.method!=='POST') return json({error:'not_found'},404);
+    if(!['/register-request','/api/register-request'].includes(url.pathname) || request.method!=='POST') return json({error:'not_found'},404);
     if(request.headers.get('origin')!=='https://drjavadrezazadeh.com') return json({error:'forbidden_origin'},403);
     if(!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) return json({error:'unsupported_media_type'},415);
     if(Number(request.headers.get('content-length')||0)>4096) return json({error:'too_large'},413);
-    let data;try {data=await request.json();}catch{return json({error:'invalid_json'},400);}
+    let data;try {const raw=await request.text();if(raw.length>4096)return json({error:'too_large'},413);data=JSON.parse(raw);}catch{return json({error:'invalid_json'},400);}
     if(data?.website) return json({accepted:true});
     const name=escape(data?.name||''),email=escape(data?.email||''),role=data?.role;
     if(name.length<2||name.length>100||!emailOk(email)||!allowedRoles.has(role)) return json({error:'invalid_fields'},400);
