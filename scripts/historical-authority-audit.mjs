@@ -30,8 +30,8 @@ if(registry.production_origin!=='https://drjavadrezazadeh.com') failures.push('P
 if(registry.policy?.catch_all_to_homepage_forbidden!==true) failures.push('Catch-all homepage redirects must remain forbidden');
 if(registry.policy?.one_hop_only!==true) failures.push('Historical redirects must remain one-hop');
 if(registry.policy?.semantic_mismatch_redirect_forbidden!==true) failures.push('Semantic mismatch redirects must remain forbidden');
-if(registry.host_consolidation?.http_to_https!=='DEFER_UNTIL_TRUSTED_PUBLIC_TLS') failures.push('HTTP→HTTPS consolidation must remain deferred until trusted TLS');
-if(registry.host_consolidation?.www_to_apex!=='DEFER_UNTIL_TRUSTED_PUBLIC_TLS') failures.push('www→apex consolidation must remain deferred until trusted TLS');
+if(registry.host_consolidation?.http_to_https!=='ACTIVE_CANONICAL_301') failures.push('HTTP→HTTPS canonical consolidation must remain active after trusted TLS issuance');
+if(registry.host_consolidation?.www_to_apex!=='ACTIVE_CANONICAL_301') failures.push('www→apex canonical consolidation must remain active after trusted TLS issuance');
 
 const {redirects,candidates}=historicalAuthorityMaps(registry);
 const sources=new Set(redirects.keys());
