@@ -21,4 +21,5 @@ jobs:
         with:
           node-version: '22'
       - name: Check Worker syntax
-        run: node --check edge/intake/src/index.js
+        working-directory: edge/intake
+        run: npm run check
