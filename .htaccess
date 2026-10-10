@@ -18,10 +18,11 @@ RewriteRule ^research/?$ /en/research/ [R=301,L,NE]
 RewriteRule ^teaching/?$ /en/teaching/ [R=301,L,NE]
 RewriteRule ^login/?$ /en/login/ [R=301,L,NE]
 RewriteRule ^register/?$ /en/register/ [R=301,L,NE]
+RewriteRule ^shop/?$ /fa/shop/ [R=301,L,NE]
 </IfModule>
 
 <IfModule mod_setenvif.c>
-SetEnvIf Request_URI "^/(api|fa/app|app|fa/login|login|fa/register|register|fa/bazyabi-hesab|en/login|en/register|en/recover|en/account|fa/assessments|assessments|fa/shop|en/shop|shop|en/golden-talent/(assessment|dashboard|observer|roles|student|checkout|plans)|fa/darkhast-moshavere|en/request-consultation)(/|$)" PRIVATE_ROUTE=1
+SetEnvIf Request_URI "^/(api|fa/app|app|fa/login|login|fa/register|register|fa/bazyabi-hesab|en/login|en/register|en/recover|en/account|fa/assessments|assessments|fa/shop/(cart|checkout|payment-start|payment-return|payment-result)|en/shop/(cart|checkout)|en/golden-talent/(assessment|dashboard|observer|roles|student|checkout|plans)|fa/darkhast-moshavere|en/request-consultation)(/|$)" PRIVATE_ROUTE=1
 </IfModule>
 
 <IfModule mod_headers.c>
