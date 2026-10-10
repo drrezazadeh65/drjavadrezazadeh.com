@@ -80,3 +80,18 @@ jobs:
             echo "$path HTTP $code"
             test "$code" = "200"
           done
+
+      - name: Verify payment hardening at Bertina origin
+        run: |
+          set -euo pipefail
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 \
+            https://drjavadrezazadeh.com/api/commerce/health -o /tmp/commerce-health.json
+          node - <<'NODE'
+          const fs=require('fs');
+          const h=JSON.parse(fs.readFileSync('/tmp/commerce-health.json','utf8'));
+          if(h?.ok!==true || h.service!=='commerce') throw new Error('commerce_health_invalid');
+          if(h.hardeningRevision!=='tls-gate-v1') throw new Error('payment_hardening_revision_not_deployed');
+          if(typeof h.requirements?.publicTlsConfirmed!=='boolean') throw new Error('public_tls_gate_missing');
+          if(h.checkout===true && h.requirements.publicTlsConfirmed!==true) throw new Error('checkout_without_tls_confirmation');
+          console.log('Direct-origin payment hardening PASS:',h.hardeningRevision,'checkout=',h.checkout,'tlsConfirmed=',h.requirements.publicTlsConfirmed);
+          NODE
