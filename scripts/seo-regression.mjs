@@ -387,59 +387,31 @@ if(failures.length){
 }
 
 
-// CLOUDFLARE REDIRECT REGISTRY — exact legacy migrations must remain permanent and target valid local routes.
-const redirectsPath=path.join(root,'_redirects');
-if(!fs.existsSync(redirectsPath)) failures.push('/_redirects: missing Cloudflare Pages redirect registry');
+// BERTINA APACHE REDIRECT REGISTRY — exact legacy migrations must remain permanent and local.
+const htaccessPath=path.join(root,'.htaccess');
+if(!fs.existsSync(htaccessPath)) failures.push('/.htaccess: missing Bertina Apache policy');
 else{
-  const lines=fs.readFileSync(redirectsPath,'utf8').split(/\r?\n/).map(x=>x.trim()).filter(x=>x && !x.startsWith('#'));
-  const seen=new Set();
-  const map=new Map();
-  for(const line of lines){
-    const parts=line.split(/\s+/);
-    if(parts.length!==3){
-      failures.push('/_redirects: malformed rule '+line);
-      continue;
-    }
-    const [source,destination,code]=parts;
-    if(seen.has(source)) failures.push('/_redirects: duplicate source '+source);
-    seen.add(source);
-    map.set(source,{destination,code});
-    if(source===destination) failures.push('/_redirects: redirect loop '+source);
-    if(code!=='301') failures.push('/_redirects: legacy migration must use 301 '+source);
-    if(destination.startsWith('/')){
-      const clean=destination.split('?')[0].split('#')[0];
-      let target=path.join(root,clean);
-      if(fs.existsSync(target) && fs.statSync(target).isDirectory()) target=path.join(target,'index.html');
-      else if(!path.extname(target)) target=path.join(target,'index.html');
-      if(!fs.existsSync(target)) failures.push('/_redirects: local target missing '+source+' -> '+destination);
-    }
-  }
+  const ht=fs.readFileSync(htaccessPath,'utf8');
   const requiredRedirects={
-    '/about/':'/en/about/',
-    '/academic-engagements/':'/en/academic-engagements/',
-    '/books/':'/en/books/',
-    '/educational-philosophy/':'/en/educational-philosophy/',
-    '/golden-talent/':'/en/golden-talent/',
-    '/publications/':'/en/publications/',
-    '/research/':'/en/research/',
-    '/teaching/':'/en/teaching/',
-    '/login/':'/en/login/',
-    '/register/':'/en/register/'
+    'about':'/en/about/',
+    'academic-engagements':'/en/academic-engagements/',
+    'books':'/en/books/',
+    'educational-philosophy':'/en/educational-philosophy/',
+    'golden-talent':'/en/golden-talent/',
+    'publications':'/en/publications/',
+    'research':'/en/research/',
+    'teaching':'/en/teaching/',
+    'login':'/en/login/',
+    'register':'/en/register/'
   };
   for(const [source,destination] of Object.entries(requiredRedirects)){
-    const rule=map.get(source);
-    if(!rule || rule.destination!==destination || rule.code!=='301'){
-      failures.push('/_redirects: required permanent migration missing '+source+' -> '+destination);
-    }
-    const noSlash=source.endsWith('/')?source.slice(0,-1):source;
-    const noSlashRule=map.get(noSlash);
-    if(!noSlashRule || noSlashRule.destination!==destination || noSlashRule.code!=='301'){
-      failures.push('/_redirects: slash-normalized permanent migration missing '+noSlash+' -> '+destination);
-    }
+    const escaped=source.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const rule=new RegExp('RewriteRule \\^'+escaped+'\\/\\?\\$ '+destination.replaceAll('/','\\/')+' \\[R=301,L,NE\\]');
+    if(!rule.test(ht)) failures.push('/.htaccess: required permanent migration missing '+source+' -> '+destination);
   }
 }
 if(failures.length){
-  console.error('\nRedirect-registry failures ('+failures.length+')');
+  console.error('\nBertina redirect-policy failures ('+failures.length+')');
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
@@ -584,48 +556,25 @@ if(failures.length){
 }
 
 
-// CLOUDFLARE RESPONSE-HEADER FIREWALL — prepared now, enforced after Pages cutover.
-const headersPath=path.join(root,'_headers');
-if(!fs.existsSync(headersPath)) failures.push('/_headers: missing Cloudflare Pages response-header policy');
+// BERTINA APACHE RESPONSE-HEADER FIREWALL — production policy lives in .htaccess.
+if(!fs.existsSync(htaccessPath)) failures.push('/.htaccess: missing Bertina Apache security policy');
 else{
-  const headersSource=fs.readFileSync(headersPath,'utf8');
-  if(/Cache-Control:\s*[^\n]*immutable/i.test(headersSource)){
-    failures.push('/_headers: immutable browser caching is prohibited until public asset filenames are content-fingerprinted');
-  }
+  const ht=fs.readFileSync(htaccessPath,'utf8');
   const requiredGlobalHeaders=[
-    'X-Frame-Options: DENY',
-    'X-Content-Type-Options: nosniff',
-    'Referrer-Policy: strict-origin-when-cross-origin',
-    'Permissions-Policy:'
+    'X-Frame-Options "DENY"',
+    'X-Content-Type-Options "nosniff"',
+    'Referrer-Policy "strict-origin-when-cross-origin"',
+    'Permissions-Policy "camera=(), microphone=(), geolocation=()"'
   ];
   for(const header of requiredGlobalHeaders){
-    if(!headersSource.includes(header)) failures.push('/_headers: missing global security header '+header);
+    if(!ht.includes(header)) failures.push('/.htaccess: missing global security header '+header);
   }
-  if(!headersSource.includes('https://:project.pages.dev/*') || !headersSource.includes('X-Robots-Tag: noindex, noarchive')){
-    failures.push('/_headers: Cloudflare Pages preview hosts must be noindex');
-  }
-  const requiredNoStoreRoutes=[
-    '/fa/app/*','/app/*','/fa/login/*','/login/*','/fa/register/*','/register/*','/fa/bazyabi-hesab/*',
-    '/en/login/*','/en/register/*','/en/recover/*','/en/account/*',
-    '/fa/assessments/*','/assessments/*','/fa/shop/*','/shop/*',
-    '/en/golden-talent/assessment/*','/en/golden-talent/dashboard/*','/en/golden-talent/observer/*',
-    '/en/golden-talent/roles/*','/en/golden-talent/student/*','/en/golden-talent/checkout/*','/en/golden-talent/plans/*',
-    '/fa/darkhast-moshavere/*','/en/request-consultation/*'
-  ];
-  for(const route of requiredNoStoreRoutes){
-    const i=headersSource.indexOf('\n'+route+'\n');
-    if(i<0){
-      failures.push('/_headers: missing private route rule '+route);
-      continue;
-    }
-    const next=headersSource.indexOf('\n/',i+2);
-    const section=headersSource.slice(i,next<0?headersSource.length:next);
-    if(!/Cache-Control:\s*no-store/i.test(section)) failures.push('/_headers: private route missing no-store '+route);
-    if(!/X-Robots-Tag:\s*noindex/i.test(section)) failures.push('/_headers: private route missing X-Robots-Tag noindex '+route);
-  }
+  if(!ht.includes('Header always set Cache-Control "no-store" env=PRIVATE_ROUTE')) failures.push('/.htaccess: private routes must be no-store');
+  if(!ht.includes('Header always set X-Robots-Tag "noindex, noarchive" env=PRIVATE_ROUTE')) failures.push('/.htaccess: private routes must be noindex');
+  if(!/SetEnvIf Request_URI "\^\/\(api\|/.test(ht)) failures.push('/.htaccess: /api must be included in private no-store/noindex routing');
 }
 if(failures.length){
-  console.error('\nCloudflare header-firewall failures ('+failures.length+')');
+  console.error('\nBertina header-firewall failures ('+failures.length+')');
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
