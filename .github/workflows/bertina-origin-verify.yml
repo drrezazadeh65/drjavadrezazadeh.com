@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 
-# live config probe secure-checkout-v2
+# live config probe commerce-requirements-v2
 jobs:
   verify:
     # mail readiness probe
