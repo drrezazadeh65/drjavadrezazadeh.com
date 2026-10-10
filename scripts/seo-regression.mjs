@@ -571,7 +571,7 @@ else{
   for(const header of requiredGlobalHeaders){
     if(!ht.includes(header)) failures.push('/.htaccess: missing global security header '+header);
   }
-  if(!ht.includes('Header always set Cache-Control "no-store" env=PRIVATE_ROUTE')) failures.push('/.htaccess: private routes must be no-store');
+  if(!/Header always set Cache-Control "no-store(?:,[^"]*)?" env=PRIVATE_ROUTE/.test(ht)) failures.push('/.htaccess: private routes must be no-store');
   if(!ht.includes('Header always set X-Robots-Tag "noindex, noarchive" env=PRIVATE_ROUTE')) failures.push('/.htaccess: private routes must be noindex');
   if(!/SetEnvIf Request_URI "\^\/\(api\|/.test(ht)) failures.push('/.htaccess: /api must be included in private no-store/noindex routing');
 }
