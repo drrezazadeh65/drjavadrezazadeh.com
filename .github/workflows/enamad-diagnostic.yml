@@ -61,11 +61,9 @@ jobs:
             echo "### resolver $resolver MX"
             dig +time=4 +tries=1 @$resolver drjavadrezazadeh.com MX +short || true
             echo "### resolver $resolver DKIM"
-            dig +time=4 +tries=1 @$resolver resend._domainkey.drjavadrezazadeh.com TXT +short || true
           done
           echo '### authoritative deSEC MX/DKIM'
           dig +time=4 +tries=1 @ns1.desec.io drjavadrezazadeh.com MX +short || true
-          dig +time=4 +tries=1 @ns1.desec.io resend._domainkey.drjavadrezazadeh.com TXT +short || true
           echo '=== TLS VERBOSE ==='
           curl -Iv --connect-timeout 10 --max-time 20 https://drjavadrezazadeh.com/ 2>&1 | sed -n '1,120p' || true
           curl -Iv --connect-timeout 10 --max-time 20 https://www.drjavadrezazadeh.com/ 2>&1 | sed -n '1,120p' || true
