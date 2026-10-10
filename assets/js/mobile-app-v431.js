@@ -112,7 +112,7 @@ const setMenu=(open,{history=true}={})=>{
    if(lastFocus&&document.contains(lastFocus)) lastFocus.focus({preventScroll:true});
  }
 };
-menuTrigger?.addEventListener('click',()=>setMenu(panel.hidden||!panel.classList.contains('is-open')));
+menuTrigger?.addEventListener('click',event=>{event.stopPropagation();setMenu(panel.hidden||!panel.classList.contains('is-open'))});
 menuClose?.addEventListener('click',()=>setMenu(false));
 panel.addEventListener('click',e=>{if(e.target===panel)setMenu(false)});
 panel.addEventListener('keydown',e=>{
