@@ -625,4 +625,3 @@
 .store-value-proposition a{color:#f1d49a;text-underline-offset:5px}
 @media(max-width:800px){.store-value-grid{grid-template-columns:1fr}.book-store-hero h1{max-width:none}.cart-row{grid-template-columns:minmax(0,1fr) auto}.book-store-shell{width:calc(100% - 24px)}}
 @media(prefers-reduced-motion:reduce){.book-product-card{transition:none}}
-

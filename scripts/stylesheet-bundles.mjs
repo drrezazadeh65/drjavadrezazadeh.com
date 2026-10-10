@@ -6,7 +6,7 @@ import {pathToFileURL} from 'node:url';
 const root=process.cwd();
 export const bundles=JSON.parse(fs.readFileSync(path.join(root,'platform/stylesheet-bundles.json'),'utf8')).bundles;
 const read=rel=>fs.readFileSync(path.join(root,rel),'utf8');
-const content=bundle=>bundle.sources.map(source=>'/* Source: '+source+' */\n'+read('assets/css/'+source)).join('\n')+'\n';
+const content=bundle=>bundle.sources.map(source=>'/* Source: '+source+' */\n'+read('assets/css/'+source)).join('\n');
 const href=(bundle,bytes)=>'/assets/css/'+bundle.output+'?v='+crypto.createHash('sha256').update(bytes).digest('hex').slice(0,12);
 
 export function stylesheetSources(html){
