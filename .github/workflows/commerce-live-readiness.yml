@@ -9,7 +9,7 @@ on:
       - 'assets/js/commerce-checkout.js'
       - '.github/workflows/commerce-live-readiness.yml'
 
-# readiness-run: 2026-10-10T14:15:00Z
+# readiness-run: 2026-10-10T15:02:00Z
 permissions:
   contents: read
 
@@ -26,5 +26,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate commerce source syntax
+        run: |
+          php -l api/index.php
+          node --check assets/js/book-store.js
       - name: Verify deployed Bertina commerce contract without initiating payment
         run: node scripts/commerce-live-readiness-audit.mjs
