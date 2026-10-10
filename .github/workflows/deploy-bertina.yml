@@ -32,7 +32,6 @@ jobs:
           node scripts/build-public-data.mjs --check
           node scripts/build-public-site.mjs
           test -f .public-site/.htaccess
-          rm -f .public-site/CNAME .public-site/_headers .public-site/_redirects
           test ! -e .public-site/platform
           test ! -e .public-site/foundation
           test ! -e .public-site/scripts
