@@ -1,0 +1,98 @@
+name: Bertina Master SEO Audit
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/bertina-master-seo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bertina-master-seo
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run complete source SEO quality matrix
+        run: |
+          set +e
+          failed=0
+          run_audit() {
+            echo
+            echo "===== $1 ====="
+            shift
+            "$@"
+            code=$?
+            if [ "$code" -ne 0 ]; then
+              echo "::error::FAILED: $1"
+              failed=1
+            else
+              echo "PASS"
+            fi
+          }
+          run_audit "Public data projection" node scripts/build-public-data.mjs --check
+          run_audit "SEO/GEO regression" node scripts/seo-regression.mjs
+          run_audit "Design regression" node scripts/design-regression.mjs
+          run_audit "Responsive resilience" node scripts/responsive-resilience-audit.mjs
+          run_audit "Frontend copy hygiene" node scripts/frontend-copy-hygiene-audit.mjs
+          run_audit "Public data hygiene" node scripts/public-data-hygiene-audit.mjs
+          run_audit "Canonical media library" node scripts/media-library-audit.mjs
+          run_audit "Link integrity" node scripts/link-integrity-audit.mjs
+          run_audit "URL stability" node scripts/url-stability-audit.mjs
+          run_audit "Internal link graph" node scripts/internal-link-graph-audit.mjs
+          run_audit "Structured/social URLs" node scripts/structured-url-audit.mjs
+          run_audit "llms.txt discovery" node scripts/llms-txt-audit.mjs
+          run_audit "AI crawler policy" node scripts/ai-crawler-policy-audit.mjs
+          run_audit "Metadata uniqueness" node scripts/metadata-uniqueness-audit.mjs
+          run_audit "Accessibility source" node scripts/accessibility-source-audit.mjs
+          run_audit "Performance source" node scripts/performance-source-audit.mjs
+          run_audit "Public secret exposure" node scripts/public-secret-audit.mjs
+          run_audit "PWA private cache" node scripts/pwa-private-cache-audit.mjs
+          run_audit "Trust/legal" node scripts/trust-legal-audit.mjs
+          run_audit "News trust/freshness" node scripts/news-trust-audit.mjs
+          run_audit "Sitemap lastmod" node scripts/sitemap-lastmod-audit.mjs
+          run_audit "Evergreen guide trust" node scripts/evergreen-guide-trust-audit.mjs
+          run_audit "Related content graph" node scripts/related-content-audit.mjs
+          run_audit "FAQ integrity" node scripts/faq-integrity-audit.mjs
+          run_audit "RSS distribution" node scripts/rss-audit.mjs
+          run_audit "Conversion paths" node scripts/conversion-path-audit.mjs
+          run_audit "Analytics/privacy contract" node scripts/analytics-contract-audit.mjs
+          run_audit "Public entity schema" node platform/public-entity-schema-audit.mjs
+          run_audit "Sanitized public build" node scripts/build-public-site.mjs
+          exit "$failed"
+
+      - name: Audit live Bertina SEO/cache surface
+        if: always()
+        run: |
+          set -euo pipefail
+          ORIGIN_IP=188.40.203.218
+          for path in /fa/ /en/ /fa/shop/ /en/shop/ /fa/khadamat/ /en/services/ /robots.txt /sitemap.xml /llms.txt; do
+            code="$(curl -kLsS -o /tmp/body -w '%{http_code}' --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP "https://drjavadrezazadeh.com$path")"
+            echo "$path HTTP $code"
+            test "$code" = "200"
+          done
+
+          curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/fa/ -o /tmp/public-head
+          grep -Eiq '^cache-control:.*(no-cache|must-revalidate)' /tmp/public-head
+
+          curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/fa/shop/checkout/ -o /tmp/private-head
+          grep -Eiq '^cache-control:.*no-store' /tmp/private-head
+          grep -Eiq '^x-robots-tag:.*noindex' /tmp/private-head
+
+          curl -kfsS --compressed --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/fa/ -o /tmp/compressed.html
+          grep -F '<html lang="fa" dir="rtl">' /tmp/compressed.html
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/robots.txt | grep -F 'Sitemap: https://drjavadrezazadeh.com/sitemap.xml'
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/sitemap.xml | grep -F 'sitemap-fa.xml'
