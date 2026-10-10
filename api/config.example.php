@@ -8,10 +8,20 @@ return [
     // Long random secret used as an additional server-side password pepper.
     'auth_pepper' => '',
 
-    // Bertina local mail transport. Keep false until the domain mailbox is created and tested.
+    // Mail is a final safety gate. Keep false until the configured transport is tested end-to-end.
     'mail_enabled' => false,
-    'mail_from' => 'accounts@drjavadrezazadeh.com',
-    'mail_reply_to' => 'info@drjavadrezazadeh.com',
+    'mail_from' => 'admin@drjavadrezazadeh.com',
+    'mail_reply_to' => 'admin@drjavadrezazadeh.com',
+
+    // Bertina SMTP transport. Use the exact values shown by cPanel > Email Accounts > Connect Devices.
+    // Never commit the real mailbox password.
+    'smtp_enabled' => false,
+    'smtp_host' => 'mail.drjavadrezazadeh.com',
+    'smtp_port' => 465,
+    'smtp_security' => 'ssl', // ssl, tls, or none
+    'smtp_user' => 'admin@drjavadrezazadeh.com',
+    'smtp_password' => '',
+    'smtp_verify_peer' => true,
 
     // Payment remains fail-closed until every switch below is explicitly verified.
     'commerce_enabled' => false,
