@@ -7,7 +7,7 @@ on:
     paths:
       - '.github/workflows/bertina-tls-diagnostic.yml'
 
-# probe-run: 2026-10-10T14:17:00Z
+# probe-run: 2026-10-10T14:35:00Z
 permissions:
   contents: read
 
