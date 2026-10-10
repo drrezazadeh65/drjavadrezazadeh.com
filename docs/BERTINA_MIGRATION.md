@@ -11,21 +11,21 @@ Working migration branch: `migration/bertina-linux6`
 - Existing public URLs, `/fa/` and `/en/` architecture, sitemaps, canonicals and noindex contracts remain unchanged.
 - Cloudflare/Resend removal is a later backend migration step, not part of the first static-host cutover.
 
-## GitHub environment/secrets required for deployment
-Create an environment named `bertina-production`, then add:
+## GitHub repository secrets required for deployment
+In the repository, open Settings → Secrets and variables → Actions and add:
 - `BERTINA_FTP_HOST`
 - `BERTINA_FTP_USERNAME`
 - `BERTINA_FTP_PASSWORD`
 - `BERTINA_FTP_REMOTE_DIR`
 
-Do not commit credentials to the repository.
+Do not commit credentials to the repository or paste them into source files.
 
 The expected remote directory for a normal cPanel primary-domain account is typically `/public_html/`; confirm it in cPanel before the first deploy.
 
 ## Cutover order
-1. Run Bertina Migration Preflight.
-2. Configure the four GitHub secrets.
-3. Run Deploy to Bertina with confirmation `DEPLOY`.
+1. Bertina Migration Preflight must pass.
+2. Configure the four repository secrets.
+3. Update/create `.bertina-deploy-trigger` on `migration/bertina-linux6` to start the deployment.
 4. Validate the Bertina copy before DNS cutover.
 5. Enable/verify SSL for the domain on Bertina.
 6. Change nameservers only after validation.
