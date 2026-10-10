@@ -16,6 +16,8 @@ for(const key of ['services','vip','books']){
  if(typeof health.capabilities?.[key]!=='boolean')throw new Error('commerce_capability_missing_'+key);
  if(health.capabilities[key]===true&&health.checkout!==true)throw new Error('capability_enabled_without_checkout_'+key);
 }
+if(typeof health.requirements?.publicTlsConfirmed!=='boolean')throw new Error('public_tls_confirmation_missing');
+if(health.checkout===true&&health.requirements.publicTlsConfirmed!==true)throw new Error('checkout_enabled_without_trusted_tls_gate');
 console.log('Bertina commerce health contract: reachable, structurally valid.');
 console.log('Checkout enabled:',health.checkout,'; category readiness:',JSON.stringify(health.capabilities));
 if(!health.checkout)console.log('Public checkout remains intentionally disabled; this is NOT production payment certification.');
