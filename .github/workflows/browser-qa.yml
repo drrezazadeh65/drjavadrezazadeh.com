@@ -2,7 +2,7 @@ name: Browser QA
 
 on:
   push:
-    branches: [main]
+    branches: [main, migration/bertina-linux6]
     paths:
       - '**/*.html'
       - 'assets/**'

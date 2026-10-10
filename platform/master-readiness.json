@@ -14,23 +14,24 @@
   "tracks": [
     {
       "id": "public-domain",
-      "production_state": "LIVE",
+      "production_state": "WAITING_EXTERNAL",
       "revenue_priority": "CRITICAL",
-      "external_blockers": [],
+      "external_blockers": [
+        "Independent strict HTTPS verification for apex and www is still required; repository release records identify Bertina CA certificate installation as an external gate, and this session cannot reach the public origin."
+      ],
       "artifacts": [
-        "foundation/DOMAIN-CUTOVER-RUNBOOK.md",
-        "scripts/domain-cutover.mjs",
-        "platform/ecosystem-registry.json",
-        "_config.yml",
+        "docs/BERTINA_MIGRATION.md",
+        ".htaccess",
         "scripts/build-public-site.mjs",
-        ".github/workflows/jekyll-public-boundary-validation.yml",
-        ".github/workflows/sanitized-pages-artifact.yml"
+        ".github/workflows/deploy-bertina.yml",
+        ".github/workflows/bertina-master-seo.yml",
+        ".github/workflows/bertina-provider-guard.yml"
       ],
       "next_actions": [
-        "Preserve the Bertina production domain, DNS delegation and HTTPS policy; treat future host or DNS changes as controlled migrations",
-        "Keep the validated Jekyll exclusion boundary active so engineering-only repository directories are not published while all public URLs remain stable",
-        "Keep strict Production SEO Health green on the permanent HTTPS origin",
-        "Treat any future host or DNS change as a controlled migration with rollback evidence"
+        "Preserve all approved canonical URLs on Bertina; revalidate the deployed commit before any release",
+        "Confirm Bertina public CA certificate installation and verify apex and www with strict TLS",
+        "Verify sanitized public artifact, server-side checksums, SEO and private cache boundaries on the canonical origin",
+        "Treat source tests as repository evidence; require independent production verification before marking this track LIVE"
       ]
     },
     {

@@ -26,6 +26,9 @@ on:
       - 'docs/BERTINA_MIGRATION.md'
       - 'foundation/ACTIVE-INFRASTRUCTURE-POLICY-2026-10-09.md'
       - 'foundation/PROVIDER-DECISION-MATRIX.md'
+  pull_request:
+    branches:
+      - migration/bertina-linux6
   workflow_dispatch:
 
 permissions:
@@ -54,6 +57,9 @@ jobs:
 
       - name: Lint Bertina PHP runtime
         run: php -l api/index.php && php -l api/config.example.php
+
+      - name: Test isolated Bertina receipt route
+        run: php tests/bertina-receipt-contract.php
 
       - name: Build sanitized Bertina artifact
         run: node scripts/build-public-site.mjs

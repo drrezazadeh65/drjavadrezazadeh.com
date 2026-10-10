@@ -44,13 +44,59 @@ for(const agent of ['OAI-SearchBot','ChatGPT-User','bingbot','YandexBot']){
 }
 if(!robots.includes('Sitemap: https://drjavadrezazadeh.com/sitemap.xml')) failures.push('robots.txt canonical sitemap directive missing');
 
-const wildcardRules=effectiveRules('UnlistedCrawler');
-for(const privatePath of ['/fa/login/','/fa/register/','/fa/bazyabi-hesab/','/fa/shop/checkout/','/fa/shop/payment-start/','/fa/shop/payment-return/','/fa/shop/payment-result/','/en/account/','/en/login/','/en/register/']){
-  if(!wildcardRules.some(r=>r.type==='disallow'&&r.path===privatePath)) failures.push('robots.txt wildcard policy must disallow private route '+privatePath);
+const privatePaths=[
+  "/api/",
+  "/fa/app/",
+  "/fa/customer-dashboard/",
+  "/app/",
+  "/en/account/",
+  "/fa/login/",
+  "/login/",
+  "/en/login/",
+  "/fa/register/",
+  "/register/",
+  "/en/register/",
+  "/en/recover/",
+  "/fa/bazyabi-hesab/",
+  "/fa/assessments/",
+  "/assessments/",
+  "/en/golden-talent/assessment/",
+  "/en/golden-talent/dashboard/",
+  "/en/golden-talent/observer/",
+  "/en/golden-talent/roles/",
+  "/en/golden-talent/student/",
+  "/fa/shop/cart/",
+  "/fa/shop/checkout/",
+  "/fa/shop/payment-start/",
+  "/fa/shop/payment-return/",
+  "/fa/shop/payment-result/",
+  "/en/shop/cart/",
+  "/en/shop/checkout/",
+  "/en/golden-talent/checkout/",
+  "/en/golden-talent/plans/",
+  "/fa/darkhast-moshavere/",
+  "/en/request-consultation/",
+  "/fa/services/checkout/"
+];
+
+// Named robots groups replace wildcard rules; check each effective policy.
+for(const agent of ['UnlistedCrawler','OAI-SearchBot','ChatGPT-User','bingbot','YandexBot']){
+  const rules=effectiveRules(agent);
+  for(const privatePath of privatePaths){
+    if(!rules.some(r=>r.type==='disallow'&&r.path&&privatePath.startsWith(r.path))){
+      failures.push('robots.txt '+agent+' policy must disallow private route '+privatePath);
+    }
+    if(rules.some(r=>r.type==='allow'&&r.path!=='/'&&r.path.startsWith(privatePath))){
+      failures.push('robots.txt '+agent+' policy overrides private exclusion '+privatePath);
+    }
+  }
 }
 
-for(const token of ['/login/','/register/','/account/','/assessment/','/checkout/','/darkhast-moshavere/','/request-consultation/']){
-  if(llms.includes('https://drjavadrezazadeh.com'+token)) failures.push('llms.txt exposes private/transactional route '+token);
+for(const match of llms.matchAll(/https:\/\/drjavadrezazadeh\.com[^\s)<>]*/g)){
+  const pathname=new URL(match[0]).pathname;
+  if(privatePaths.some(prefix=>pathname===prefix.slice(0,-1)||pathname.startsWith(prefix))){
+    failures.push('llms.txt exposes private/transactional route '+pathname);
+  }
 }
 if(llms.includes('(https://drjavadrezazadeh.com/journal/)')) failures.push('llms.txt exposes noindex journal root');
 

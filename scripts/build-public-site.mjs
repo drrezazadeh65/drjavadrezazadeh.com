@@ -4,7 +4,7 @@ import path from 'node:path';
 const root=process.cwd();
 const out=path.join(root,'.public-site');
 const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundation','node_modules','platform','scripts','tests','test-results','.public-site']);
-const excludedRoot=new Set(['README.md','CACHE_STANDARD.md','CNAME','_headers','_redirects','_config.yml']);
+const excludedRoot=new Set(['README.md','AGENTS.md','.bertina-deploy-trigger','CACHE_STANDARD.md','CNAME','_headers','_redirects','_config.yml']);
 const excludedExact=new Set(['assets/media-registry.json','assets/release-v4.4.json']);
 
 fs.rmSync(out,{recursive:true,force:true});
@@ -40,6 +40,9 @@ for(const rel of required) if(!fs.existsSync(path.join(out,rel))) failures.push(
 
 for(const blocked of [...excludedTop]){
   if(fs.existsSync(path.join(out,blocked))) failures.push('Internal top-level directory leaked into artifact: '+blocked);
+}
+for(const blocked of excludedRoot){
+  if(fs.existsSync(path.join(out,blocked))) failures.push('Internal root file leaked into artifact: '+blocked);
 }
 if(fs.existsSync(path.join(out,'assets/media-registry.json'))) failures.push('Internal media registry leaked into artifact');
 if(fs.existsSync(path.join(out,'assets/release-v4.4.json'))) failures.push('Internal release manifest leaked into artifact');

@@ -494,8 +494,12 @@ if($path==='/commerce/status'&&$verb==='GET'){
     $id=(string)($_GET['order']??'');if(!validUuid($id))fail('invalid_order');$pdo=db();if(!$pdo)fail('database_unconfigured',503);
     $s=$pdo->prepare('SELECT state,amount_toman,currency,items_json,paid_at,provider_id_get,provider_trans_id FROM commerce_orders WHERE id=?');$s->execute([$id]);$row=$s->fetch();if(!$row)fail('order_not_found',404);
     if($row['state']!=='paid')respond(['ok'=>true,'state'=>$row['state']]);
+    // A paid label alone is not verified receipt evidence.
+    if(($row['currency']??null)!=='IRT'||!is_string($row['paid_at']??null)||strtotime($row['paid_at'])===false||
+        !preg_match('/^[1-9][0-9]*$/D',(string)($row['provider_id_get']??''))||
+        !preg_match('/^[1-9][0-9]*$/D',(string)($row['provider_trans_id']??'')))fail('receipt_unverified',409);
     $items=json_decode((string)$row['items_json'],true);if(!is_array($items))fail('receipt_unavailable',503);
-    $lines=[];$total=0;foreach($items as $x){$q=(int)$x['quantity'];$price=(int)$x['price'];$sub=(int)$x['subtotal'];if($q<1||$price<1||$sub!==$q*$price)fail('receipt_unavailable',503);$total+=$sub;$lines[]=['sku'=>$x['sku'],'title'=>$x['title'],'quantity'=>$q,'unitToman'=>$price,'subtotalToman'=>$sub];}
+    $lines=[];$total=0;foreach($items as $x){if(!is_array($x)||!is_int($x['quantity']??null)||!is_int($x['price']??null)||!is_int($x['subtotal']??null))fail('receipt_unverified',409);$q=(int)$x['quantity'];$price=(int)$x['price'];$sub=(int)$x['subtotal'];if($q<1||$price<1||$sub!==$q*$price)fail('receipt_unavailable',503);$total+=$sub;$lines[]=['sku'=>$x['sku'],'title'=>$x['title'],'quantity'=>$q,'unitToman'=>$price,'subtotalToman'=>$sub];}
     if($total!==(int)$row['amount_toman'])fail('receipt_amount_mismatch',409);
     respond(['ok'=>true,'state'=>'paid','receipt'=>['orderId'=>$id,'currency'=>'IRT','amountToman'=>$total,'paidAt'=>$row['paid_at'],'items'=>$lines,'kind'=>'payment_confirmation_not_tax_invoice']]);
 }

@@ -4,8 +4,9 @@ on:
   push:
     branches:
       - migration/bertina-linux6
-    paths:
-      - '.github/workflows/bertina-master-seo.yml'
+  pull_request:
+    branches:
+      - migration/bertina-linux6
   workflow_dispatch:
 
 permissions:
@@ -14,7 +15,7 @@ permissions:
 # audit-run: 2026-10-10T15:45:00Z
 
 concurrency:
-  group: bertina-master-seo
+  group: bertina-master-seo-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -34,11 +35,12 @@ jobs:
           run_audit() {
             echo
             echo "===== $1 ====="
+            label="$1"
             shift
             "$@"
             code=$?
             if [ "$code" -ne 0 ]; then
-              echo "::error::FAILED: $1"
+              echo "::error::FAILED: $label"
               failed=1
             else
               echo "PASS"
@@ -57,6 +59,7 @@ jobs:
           run_audit "Structured/social URLs" node scripts/structured-url-audit.mjs
           run_audit "llms.txt discovery" node scripts/llms-txt-audit.mjs
           run_audit "AI crawler policy" node scripts/ai-crawler-policy-audit.mjs
+          run_audit "AI discovery privacy regressions" node --test tests/ai-discovery-privacy.test.mjs
           run_audit "Metadata uniqueness" node scripts/metadata-uniqueness-audit.mjs
           run_audit "Accessibility source" node scripts/accessibility-source-audit.mjs
           run_audit "Performance source" node scripts/performance-source-audit.mjs
@@ -71,12 +74,14 @@ jobs:
           run_audit "RSS distribution" node scripts/rss-audit.mjs
           run_audit "Conversion paths" node scripts/conversion-path-audit.mjs
           run_audit "Analytics/privacy contract" node scripts/analytics-contract-audit.mjs
+          run_audit "Commerce fail-closed schema" node scripts/commerce-schema-safety-audit.mjs
+          run_audit "Bertina receipt integrity" node scripts/commerce-receipt-contract-audit.mjs
           run_audit "Public entity schema" node platform/public-entity-schema-audit.mjs
           run_audit "Sanitized public build" node scripts/build-public-site.mjs
           exit "$failed"
 
-      - name: Audit live Bertina SEO/cache surface
-        if: always()
+      - name: Diagnostic live Bertina SEO/cache surface (TLS trust not certified)
+        if: always() && github.event_name != 'pull_request'
         run: |
           set -euo pipefail
           ORIGIN_IP=188.40.203.218

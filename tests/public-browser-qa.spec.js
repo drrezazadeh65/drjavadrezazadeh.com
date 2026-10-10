@@ -861,7 +861,7 @@ test('Persian private role visual evidence',async({page})=>{
 test('unified auth keeps identity, status and primary action visible on mobile',async({page})=>{
   const routes=['/en/login/','/en/register/','/fa/login/','/fa/register/'];
   for(const route of routes){
-    await page.route('https://drjavadrezazadeh.com/api/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,service:'auth',ready:false,database:false,email:true,passwordKdf:false})}));
+    await page.route('**/api/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,service:'auth',ready:false,database:false,email:true,passwordKdf:false})}));
     await page.setViewportSize({width:390,height:844});
     await page.goto(base+route,{waitUntil:'domcontentloaded'});
     await page.waitForTimeout(180);
@@ -1205,9 +1205,9 @@ test('bilingual intake, service pages and shops disclose real booking and paymen
     ['/en/request-consultation/','Online booking not active','Online payment not active'],
     ['/fa/khadamat/','رزرو و پرداخت آنلاین در این مرحله فعال نیستند','درخواست اولیه، خرید نیست'],
     ['/en/services/','Live appointment booking is not currently available','Online payments are not yet enabled'],
-    ['/fa/shop/','تسویه آنلاین غیرفعال','تسویه عمومی این فروشگاه هنوز فعال نیست'],
-    ['/en/shop/','Checkout not yet active','No online order or payment'],
-    ['/fa/shop/checkout/','تسویه فعلاً غیرفعال','ثبت نهایی سفارش انجام نمی‌شود']
+    ['/fa/shop/','ثبت سفارش فعال','پرداخت آنلاین فقط پس از تأیید کامل TLS و درگاه تولیدی فعال خواهد شد'],
+    ['/en/shop/','Order capture active','Payment remains disabled until the trusted production payment path is verified'],
+    ['/fa/shop/checkout/','ثبت سفارش فعال؛ پرداخت مستقل و ایمن','پرداخت آنلاین فقط پس از فعال‌شدن مسیر معتبر درگاه انجام خواهد شد']
   ];
   for(const [route,first,second] of cases){
     for(const [width,height] of [[390,844],[1440,900]]){
@@ -1412,14 +1412,14 @@ test('premium service catalogue compares three offers without changing prices or
 
 test('bilingual unified account forms fail closed until live auth health is ready',async({page})=>{
   const pages=[
-    ['/fa/login/','سامانه ورود هنوز روی سرور زنده فعال نشده است.'],
-    ['/en/login/','The live account service is not enabled yet.'],
-    ['/fa/register/','سامانه ورود هنوز روی سرور زنده فعال نشده است.'],
-    ['/en/register/','The live account service is not enabled yet.']
+    ['/fa/login/','اتصال امن به سامانه حساب برقرار نشد.'],
+    ['/en/login/','A secure connection to the account service could not be established.'],
+    ['/fa/register/','اتصال امن به سامانه حساب برقرار نشد.'],
+    ['/en/register/','A secure connection to the account service could not be established.']
   ];
   for(const [route,status] of pages){
     for(const [width,height] of [[390,844],[1440,900]]){
-      await page.route('https://drjavadrezazadeh.com/api/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,service:'auth',ready:false,database:false,email:true,passwordKdf:false})}));
+      await page.route('**/api/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,service:'auth',ready:false,database:false,email:true,passwordKdf:false})}));
       await page.setViewportSize({width,height});
       const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
       expect(response.status(),route).toBe(200);
@@ -1459,7 +1459,7 @@ test('three evidence-led guidance upgrades preserve canonical links and responsi
 });
 
 
-test('book payments remain disabled when legacy Worker omits category readiness',async({page})=>{
+test('book order controls fail closed when API omits category and capture readiness',async({page})=>{
   await page.addInitScript(()=>{
     localStorage.setItem('jr-book-cart-v1',JSON.stringify([{book_id:'roshanaei',quantity:1}]));
   });
@@ -1475,7 +1475,7 @@ test('book payments remain disabled when legacy Worker omits category readiness'
       page.locator('[data-book-checkout] button.primary');
     await expect(button).toBeVisible();
     await expect(button).toBeDisabled();
-    await expect(button).toContainText('هنوز فعال نیست');
+    await expect(button).toContainText('ثبت سفارش موقتاً در دسترس نیست');
   }
 });
 
