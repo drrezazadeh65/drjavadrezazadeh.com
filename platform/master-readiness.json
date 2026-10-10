@@ -27,7 +27,7 @@
         ".github/workflows/sanitized-pages-artifact.yml"
       ],
       "next_actions": [
-        "Preserve the current GitHub Pages custom domain and HTTPS enforcement; do not change DNS without an approved migration",
+        "Preserve the Bertina production domain, DNS delegation and HTTPS policy; treat future host or DNS changes as controlled migrations",
         "Keep the validated Jekyll exclusion boundary active so engineering-only repository directories are not published while all public URLs remain stable",
         "Keep strict Production SEO Health green on the permanent HTTPS origin",
         "Treat any future host or DNS change as a controlled migration with rollback evidence"
@@ -197,7 +197,7 @@
       "next_actions": [
         "Keep the bilingual static site-guide fallback active on appropriate public pages",
         "Do not call any live assistant endpoint until an independent secure server-side runtime is provisioned",
-        "If live AI is later required, attach a provider-neutral backend and keep all model credentials outside GitHub Pages/public JavaScript",
+        "If live AI is later required, attach a provider-neutral server-side adapter on Bertina and keep all model credentials outside public JavaScript",
         "Keep private/account/assessment/checkout routes excluded from the public assistant"
       ]
     },
@@ -238,7 +238,7 @@
       "revenue_priority": "CRITICAL",
       "external_blockers": [
         "No secure server-side payment runtime is currently provisioned",
-        "GitHub Pages cannot safely store or use the production BitPay API secret"
+        "Production payment secrets must be stored only in the Bertina server-side runtime"
       ],
       "artifacts": [
         "platform/payment-provider-policy.json",
@@ -297,7 +297,7 @@
       ],
       "next_actions": [
         "Provision real email/password auth/session backend",
-        "Create a restricted Resend sending credential only when it can be written directly to the secure runtime secret store; the verified domain and published v4.3 verification/recovery/order templates are already ready",
+        "Configure and verify Bertina domain mail for verification, recovery and transactional messages; no external transactional-email runtime is required",
         "Require email verification before ACTIVE status",
         "Collect mobile at registration as contact-only data",
         "Keep recovery email-only with generic responses and single-use short-lived tokens",
