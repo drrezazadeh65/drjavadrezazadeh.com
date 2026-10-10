@@ -1,0 +1,45 @@
+name: Customer Dashboard Audit
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+      - main
+    paths:
+      - 'fa/customer-dashboard/**'
+      - 'en/account/**'
+      - 'assets/css/customer-dashboard-v1.css'
+      - 'assets/js/customer-dashboard.js'
+      - 'assets/js/site.js'
+      - 'sw.js'
+      - 'site.webmanifest'
+      - 'scripts/customer-dashboard-audit.mjs'
+      - '.github/workflows/customer-dashboard-audit.yml'
+  pull_request:
+    paths:
+      - 'fa/customer-dashboard/**'
+      - 'en/account/**'
+      - 'assets/css/customer-dashboard-v1.css'
+      - 'assets/js/customer-dashboard.js'
+      - 'assets/js/site.js'
+      - 'sw.js'
+      - 'site.webmanifest'
+      - 'scripts/customer-dashboard-audit.mjs'
+      - '.github/workflows/customer-dashboard-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit customer dashboard
+        run: node scripts/customer-dashboard-audit.mjs
+      - name: Audit private PWA cache policy
+        run: node scripts/pwa-private-cache-audit.mjs
