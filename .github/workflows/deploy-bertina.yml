@@ -232,11 +232,86 @@ jobs:
           console.log('Bertina server-side checksum verification PASS:',d.checked,'files; commit',d.commit);
           NODE
 
+      - name: Inspect deployed rewrite hierarchy
+        if: steps.credentials.outputs.ready == 'true'
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 60s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 15
+          cd "$FTP_REMOTE_DIR"
+          get .htaccess -o /tmp/remote-root.htaccess
+          bye
+          LFTP
+          echo "Managed document-root .htaccess SHA256:"
+          sha256sum /tmp/remote-root.htaccess
+          echo "Managed redirect lines:"
+          grep -En 'RewriteRule.*shop|djavadezazadeh|RewriteCond.*HTTP_HOST|Redirect' /tmp/remote-root.htaccess || true
+
+          set +e
+          timeout 60s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 15
+          cd "$FTP_REMOTE_DIR"
+          get ../.htaccess -o /tmp/remote-parent.htaccess
+          bye
+          LFTP
+          parent_rc=$?
+          set -e
+          if [ "$parent_rc" -eq 0 ] && [ -s /tmp/remote-parent.htaccess ]; then
+            echo "Parent .htaccess redirect-related lines:"
+            grep -En 'RewriteRule.*shop|djavadezazadeh|RewriteCond.*HTTP_HOST|Redirect' /tmp/remote-parent.htaccess || true
+          else
+            echo "No readable parent .htaccess through the deployment account."
+          fi
+
       - name: Verify Bertina origin directly
         if: steps.credentials.outputs.ready == 'true'
         run: |
           set -euo pipefail
           ORIGIN_IP="188.40.203.218"
+
+          curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+            https://drjavadrezazadeh.com/shop/ -o /tmp/shop-redirect.raw
+          tr -d '\r' < /tmp/shop-redirect.raw > /tmp/shop-redirect.txt
+          grep -Eiq '^HTTP/[^ ]+ 301' /tmp/shop-redirect.txt
+          grep -Eiq '^location: (https://drjavadrezazadeh\.com)?/fa/shop/?([?#].*)?          grep -F '<html lang="fa" dir="rtl">' /tmp/fa.html
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/en/ -o /tmp/en.html
+          grep -F '<html lang="en"' /tmp/en.html
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/fa/customer-dashboard/ -o /tmp/dashboard.html
+          grep -F '<meta name="robots" content="noindex,nofollow">' /tmp/dashboard.html
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/robots.txt -o /tmp/robots.txt
+          test -s /tmp/robots.txt
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/sitemap.xml -o /tmp/sitemap.xml
+          grep -F 'drjavadrezazadeh.com' /tmp/sitemap.xml
+
+          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/api/health -o /tmp/api-health.json
+          grep -F '"hosting":"bertina"' /tmp/api-health.json
+
+      - name: Deployment summary
+        if: steps.credentials.outputs.ready == 'true'
+        run: |
+          echo "Bertina package deployment, server-side checksum verification, and direct-origin smoke tests completed for commit $GITHUB_SHA."
+ /tmp/shop-redirect.txt
 
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/fa/ -o /tmp/fa.html
           grep -F '<html lang="fa" dir="rtl">' /tmp/fa.html
