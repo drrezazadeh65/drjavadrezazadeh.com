@@ -182,7 +182,7 @@
     const questionLink = document.createElement('a');
     questionLink.className = 'knowledge-article-private-question';
     questionLink.textContent = 'پرسش از نویسنده با ایمیل';
-    questionLink.href = 'mailto:dr.rezazadeh65@gmail.com?subject=' +
+    questionLink.href = 'mailto:info@drjavadrezazadeh.com?subject=' +
       encodeURIComponent('پرسش درباره مقاله: ' + articleTitle) + '&body=' +
       encodeURIComponent('موضوع مقاله: ' + articleTitle + '\n' +
         'پیوند مقاله: ' + articleUrl + '\n\n' +
