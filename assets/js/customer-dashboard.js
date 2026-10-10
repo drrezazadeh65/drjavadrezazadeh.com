@@ -216,6 +216,7 @@ function serviceMarketplace(runtime){
 
 function authNavigation(authenticated){
  const login=lang==='en'?'/en/login/':'/fa/login/';
+ $('[data-dashboard-logout]').forEach(b=>{b.hidden=!authenticated});
  const primary=$('[data-dashboard-primary]');
  if(primary){
   if(!primary.dataset.defaultHref){primary.dataset.defaultHref=primary.getAttribute('href')||'#ecosystem';primary.dataset.defaultText=primary.textContent||''}
