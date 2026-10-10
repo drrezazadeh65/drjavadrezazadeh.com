@@ -1,0 +1,67 @@
+name: Operations Control Center QA
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: operations-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password
+          MYSQL_DATABASE: operations_fixture
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pfixture-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify private registry and PHP security
+        run: |
+          node scripts/operations-registry-audit.mjs
+          for file in api/*.php; do php -l "$file"; done
+          php tests/operations-security.php
+          php tests/bertina-receipt-contract.php
+      - name: Verify real MySQL evidence and administrator boundaries
+        env:
+          OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
+          OPERATIONS_TEST_USER: root
+          OPERATIONS_TEST_PASSWORD: fixture-password
+        run: php tests/operations-mysql.php
+      - name: Install pinned browser runtime
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Verify administrator UI in Persian and English
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/operations-http.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          npx playwright test tests/operations-browser.spec.js --reporter=line
+      - name: Retain failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: operations-qa-failures
+          path: test-results
+          retention-days: 14

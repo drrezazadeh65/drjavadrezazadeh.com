@@ -6,7 +6,7 @@ checkStylesheetBundles();
 
 const root=process.cwd();
 const out=path.join(root,'.public-site');
-const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundation','node_modules','platform','scripts','tests','test-results','.public-site']);
+const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundation','node_modules','platform','scripts','tests','test-results','proposals','work','.public-site']);
 const excludedRoot=new Set(['README.md','AGENTS.md','.bertina-deploy-trigger','CACHE_STANDARD.md','CNAME','_headers','_redirects','_config.yml']);
 const excludedExact=new Set(['assets/media-registry.json','assets/release-v4.4.json']);
 

@@ -3,7 +3,7 @@ import path from 'node:path';
 import {classifyRoute} from '../platform/ecosystem-governance.mjs';
 
 const root=process.cwd();
-const ignoreDirs=new Set(['.git','node_modules']);
+const ignoreDirs=new Set(['.git','node_modules','.public-site','proposals','work','test-results']);
 const htmlFiles=[];
 function walk(dir){
   for(const ent of fs.readdirSync(dir,{withFileTypes:true})){

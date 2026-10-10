@@ -18,3 +18,7 @@ Header always set Referrer-Policy "no-referrer"
 <FilesMatch "^config\..*\.php$">
 Require all denied
 </FilesMatch>
+
+<FilesMatch "^(operations|operations-schema)\.php$">
+Require all denied
+</FilesMatch>

@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+const sha=process.env.GITHUB_SHA,run=process.env.GITHUB_RUN_ID;
+if(!/^[a-f0-9]{40}$/.test(sha||'')||!/^\d+$/.test(run||'')||process.env.GITHUB_REF!=='refs/heads/migration/bertina-linux6'||process.env.OPERATIONS_TESTS_PASSED!=='true')throw Error('Trusted release context and completed operations tests required.');
+const now=Math.floor(Date.now()/1000),sourceUrl='https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/'+run;
+const expectedChecks=['drjavadrezazadeh.com','www.drjavadrezazadeh.com'].flatMap(host=>[host+' origin CA-chain hostname and expiry',...['origin','public'].map(target=>host+' '+target+' HTTPS status and canonical destination')]);
+const tls=JSON.parse(fs.readFileSync('/tmp/operations-tls.json','utf8'));
+if(tls.schema!=='operations-tls-v1'||tls.commit!==sha||tls.runId!==run||tls.ok!==true||tls.observer!=='independent-runner-direct-tcp-and-public-dns'||!Number.isInteger(tls.checkedAt)||tls.checkedAt>now||tls.checkedAt<now-3600||tls.checks?.length!==6||tls.checks.some(x=>x.passed!==true||!expectedChecks.includes(x.name))||new Set(tls.checks.map(x=>x.name)).size!==6||tls.certificates?.length!==2||new Set(tls.certificates.map(c=>c.host)).size!==2||tls.certificates.some(c=>!['drjavadrezazadeh.com','www.drjavadrezazadeh.com'].includes(c.host)||!Number.isInteger(c.expiresAt)||c.expiresAt<=now+604800))throw Error('Independent apex/www certificate proof required for this exact release/run.');
+fs.writeFileSync('.public-site/api/internal/operations-tls.json',JSON.stringify(tls)+'\n');
+const events=[['code','admin_release_checksum','Exact published admin API and shell checksums'],['tests','admin_security_and_browser_suite','Administrator security, MySQL and responsive browser suites']].map(([gateId,scope,testName])=>({sectionId:'ADM-01',gateId,result:'pass',source:'github_actions',sourceUrl,testName,environment:'ci',checkedAt:now,expiresAt:now+604800,details:{scope}}));
+const batch={schema:'operations-release-v1',releaseSha:sha,runId:run,branch:'migration/bertina-linux6',workflow:'Deploy to Bertina',events};
+fs.writeFileSync('.public-site/api/internal/operations-release.json',JSON.stringify(batch)+'\n');
+console.log('Prepared scoped administrator release evidence; no identity, financial or search-engine completion asserted.');
