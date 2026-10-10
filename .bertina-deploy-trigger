@@ -1,4 +1,5 @@
-deploy=payment-hardening-tls-gate-v2
+deploy=customer-dashboard-client-os-v2
 source=migration/bertina-linux6
+source_commit=44744a76d365a72296849683b31233b231ff02ac
 mode=bertina-only
-scope=storefront-payment-fail-closed-tls-gate-origin-evidence
+scope=unified-customer-dashboard-ui-ux-private-seo-ecosystem-wiring
