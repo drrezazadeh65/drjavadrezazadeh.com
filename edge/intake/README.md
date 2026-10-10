@@ -6,7 +6,7 @@ The Worker accepts JSON POST `/register-request` from `https://drjavadrezazadeh.
 
 Deployment prerequisites:
 - Create a Cloudflare Turnstile widget for `drjavadrezazadeh.com` and store its **secret** on the intake Worker as `TURNSTILE_SECRET` (never in GitHub).
-- Deploy the intake Worker and configure a route, e.g. `drjavadrezazadeh.com/api/register-request` (update handler path accordingly) or a dedicated custom hostname. Never bind it to payment routes.
+- Deploy the intake Worker and configure a route, e.g. `drjavadrezazadeh.com/api/register-request` (the handler already accepts this path) or a dedicated custom hostname. Never bind it to payment routes.
 - Wire the bilingual form with the public Turnstile site key and the exact deployed URL, after testing the request and receipt end-to-end.
 - Ensure inbound replies to `info@drjavadrezazadeh.com` actually reach a monitored inbox. Resend outbound sending alone does not create an inbox.
 - Add Cloudflare rate limiting/WAF rule to intake route before enabling public traffic; Turnstile alone is not sufficient for abuse control.
