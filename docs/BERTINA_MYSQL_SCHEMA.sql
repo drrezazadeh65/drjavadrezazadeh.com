@@ -48,13 +48,17 @@ CREATE TABLE IF NOT EXISTS commerce_orders (
   amount_toman BIGINT UNSIGNED NOT NULL,
   provider_amount BIGINT UNSIGNED NOT NULL,
   currency CHAR(3) NOT NULL DEFAULT 'IRT',
+  customer_email VARCHAR(254) NULL,
+  customer_json LONGTEXT NULL,
   items_json LONGTEXT NOT NULL,
   state ENUM('created','pending','paid','failed','cancelled') NOT NULL,
   provider_id_get VARCHAR(80) NULL,
   provider_trans_id VARCHAR(80) NULL,
   paid_at DATETIME NULL,
+  receipt_email_sent_at DATETIME NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_commerce_state (state),
-  INDEX idx_commerce_provider (provider_id_get)
+  INDEX idx_commerce_provider (provider_id_get),
+  INDEX idx_commerce_customer_email (customer_email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
