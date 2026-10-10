@@ -1,28 +1,15 @@
 {
-  "version": "4.4.1",
-  "date": "2026-10-09",
-  "site": "https://drjavadrezazadeh.com",
-  "repository": "drrezazadeh65/drjavadrezazadeh.com",
-  "deployment_target": "GitHub Pages",
-  "infrastructure": [
-    "GitHub Pages",
-    "Cloudflare Workers",
-    "Cloudflare D1"
+  "version": "4.4.1-bertina",
+  "status": "BERTINA_MIGRATION_ACTIVE",
+  "production_origin": "https://drjavadrezazadeh.com",
+  "source_control": "GitHub",
+  "production_stack": [
+    "Bertina Linux hosting",
+    "Apache/.htaccess",
+    "PHP same-origin API",
+    "Bertina MySQL",
+    "Bertina domain mail"
   ],
-  "public_pages": [
-    "/fa/shop/",
-    "/en/shop/",
-    "/fa/shop/purchase-guide/",
-    "/fa/shop/customer-policy/",
-    "/fa/shop/receipt/",
-    "/en/shop/purchase-guide/",
-    "/en/shop/customer-policy/",
-    "/fa/services/",
-    "/fa/vip/"
-  ],
-  "payment_worker_source": "payment-api/worker-v4.4-corrected.js",
-  "payment_worker_deployed_from_git": false,
-  "commerce_checkout_live_confirmed": false,
-  "donations_checkout_live_confirmed": false,
-  "notes": "v4.4.1 source release in progress on main. Cloudflare Worker source requires separate operator deployment. Commerce, donation and authentication live status remain evidence-gated; no public payment activation implied."
+  "retired_runtime_dependencies": [],
+  "notes": "Production runtime is Bertina-only. Browser endpoints use same-origin /api. Authentication, commerce and transactional mail remain fail-closed until Bertina MySQL/mail/TLS configuration is independently verified."
 }
