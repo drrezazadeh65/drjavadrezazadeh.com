@@ -25,4 +25,4 @@ jobs:
       - name: Verify syntax
         run: node --check platform/social-distribution/engine.mjs
       - name: Run safety and scheduling tests
-        run: node --test platform/social-distribution/engine.test.mjs
+        run: node --test platform/social-distribution/*.test.mjs
