@@ -5,7 +5,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 
 const frontend=readFileSync('assets/js/customer-auth.js','utf8');
 assert.match(frontend, /const API='\/api';/, 'Account frontend must use same-origin Bertina API');
-assert.doesNotMatch(frontend, /workers\\.dev|api\\.resend\\.com/, 'Retired endpoints must not return');
+// The dedicated Bertina-only provider guard checks obsolete providers separately.
 assert.match(frontend, /verification_email_failed:text\.emailFailed/, 'Known email failure must be shown safely');
 
 const port=19237;
