@@ -14,3 +14,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 verify commerce route origin with non-financial API probes.
 
 2026-10-11 deploy validated BitPay gateway automatic continuation.
+
+2026-10-11 test BitPay automatic redirect and malicious URL rejection.
