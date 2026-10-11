@@ -3,7 +3,7 @@
 
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
-ErrorDocument 410 /404.html
+ErrorDocument 410 "This content is permanently unavailable. Visit the current bookstore through the main website."
 
 <IfModule mod_rewrite.c>
 RewriteEngine On
