@@ -132,7 +132,7 @@ test('dashboard navigation shows account summary first, exactly one workspace an
  await page.setViewportSize({width:1280,height:860});
  const fonts=await page.evaluate(()=>({
   nav:parseFloat(getComputedStyle(document.querySelector('.cd-nav a')).fontSize),
-  description:parseFloat(getComputedStyle(document.querySelector('.cd-hero p')).fontSize),
+  description:parseFloat(getComputedStyle(document.querySelector('.cd-hero p:not(.cd-kicker)')).fontSize),
   card:parseFloat(getComputedStyle(document.querySelector('.cd-quick-card strong')).fontSize)
  }));
  expect(fonts.nav).toBeGreaterThanOrEqual(15);
