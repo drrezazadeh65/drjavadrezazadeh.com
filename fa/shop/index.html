@@ -5,10 +5,12 @@
 <form data-support-form>
 <label for="support-amount">مبلغ حمایت به تومان · امکان درج مبلغ دلخواه از ۱٬۰۰۰ تا ۱۰٬۰۰۰٬۰۰۰ تومان</label>
 <div class="support-presets" role="group" aria-label="مبالغ پیشنهادی">
-<button type="button" data-support-amount="1000">۱٬۰۰۰ تومان</button>
-<button type="button" data-support-amount="5000">۵٬۰۰۰ تومان</button>
-<button type="button" data-support-amount="10000">۱۰٬۰۰۰ تومان</button>
-<button type="button" data-support-amount="20000">۲۰٬۰۰۰ تومان</button>
+<button type="button" data-support-amount="200000" aria-pressed="false">۲۰۰ هزار تومان</button>
+<button type="button" data-support-amount="500000" aria-pressed="true">۵۰۰ هزار تومان</button>
+<button type="button" data-support-amount="1000000" aria-pressed="false">۱ میلیون تومان</button>
+<button type="button" data-support-amount="2000000" aria-pressed="false">۲ میلیون تومان</button>
+<button type="button" data-support-amount="5000000" aria-pressed="false">۵ میلیون تومان</button>
+<button type="button" data-support-amount="10000000" aria-pressed="false">۱۰ میلیون تومان</button>
 </div>
 <input id="support-amount" name="amountToman" type="number" inputmode="numeric" min="1000" max="10000000" step="1000" value="500000" required aria-describedby="support-preview">
 <p id="support-preview" class="support-preview" data-support-preview aria-live="polite"></p>
