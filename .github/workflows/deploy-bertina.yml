@@ -45,6 +45,9 @@ jobs:
           OPERATIONS_TEST_PASSWORD: fixture-password
         run: |
           node scripts/operations-registry-audit.mjs
+          python3 scripts/operations-canonical-registry.py api/internal/operations-registry.json --validate-only --identity-manifest api/internal/operations-action-identities-v1.json
+          python3 tests/operations-canonical-registry.py
+          php tests/operations-reporting.php
           for file in api/*.php; do php -l "$file"; done
           php tests/operations-security.php
           php tests/operations-mysql.php
@@ -63,7 +66,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/operations-browser.spec.js tests/bookstore-checkout-browser.spec.js --reporter=line
+          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js --reporter=line
 
       - name: Independently certify apex and www TLS
         run: node scripts/operations-tls-certify.mjs /tmp/operations-tls.json
@@ -406,6 +409,19 @@ jobs:
           if(x.ready!==true)console.log('NOTE: verified-email registration remains safely gated; private cases must not be represented as active');
           NODE
 
+      - name: Verify canonical operations live privacy and exact assets
+        if: steps.credentials.outputs.ready == 'true'
+        run: node scripts/operations-live-private-verify.mjs /tmp/operations-live-private.json
+
+      - name: Retain canonical operations live privacy evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: operations-live-private-${{ github.sha }}
+          path: /tmp/operations-live-private.json
+          if-no-files-found: ignore
+          retention-days: 30
+
       - name: Inspect deployed rewrite hierarchy
         if: steps.credentials.outputs.ready == 'true'
         env:
@@ -460,29 +476,29 @@ jobs:
           set -euo pipefail
           ORIGIN_IP="188.40.203.218"
 
-          curl -kisS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+          curl -isS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
             https://drjavadrezazadeh.com/shop/ -o /tmp/shop-redirect.raw
           tr -d '\r' < /tmp/shop-redirect.raw > /tmp/shop-redirect.txt
           grep -Eiq '^HTTP/[^ ]+ 301' /tmp/shop-redirect.txt
           grep -Eiq '^location: (https://drjavadrezazadeh\.com)?/fa/shop/?([?#].*)?$' /tmp/shop-redirect.txt
 
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+          curl -fsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
             https://drjavadrezazadeh.com/fa/ -o /tmp/fa.html
           grep -F '<html lang="fa" dir="rtl">' /tmp/fa.html
 
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/en/ -o /tmp/en.html
+          curl -fsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/en/ -o /tmp/en.html
           grep -F '<html lang="en"' /tmp/en.html
 
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/fa/customer-dashboard/ -o /tmp/dashboard.html
+          curl -fsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/fa/customer-dashboard/ -o /tmp/dashboard.html
           grep -Eiq '<meta name="robots" content="[^"]*noindex[^"]*nofollow' /tmp/dashboard.html
 
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/robots.txt -o /tmp/robots.txt
+          curl -fsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/robots.txt -o /tmp/robots.txt
           test -s /tmp/robots.txt
 
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/sitemap.xml -o /tmp/sitemap.xml
+          curl -fsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/sitemap.xml -o /tmp/sitemap.xml
           grep -F 'drjavadrezazadeh.com' /tmp/sitemap.xml
 
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/api/health -o /tmp/api-health.json
+          curl -fsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/api/health -o /tmp/api-health.json
           grep -F '"hosting":"bertina"' /tmp/api-health.json
 
       - name: Verify deployed commerce API routing without creating an order
@@ -490,10 +506,10 @@ jobs:
           set -euo pipefail
           ORIGIN_IP="188.40.203.218"
           HOST="https://drjavadrezazadeh.com"
-          curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+          curl -sS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
             "$HOST/api/commerce/health" -o /tmp/commerce-health.json
           node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/commerce-health.json","utf8"));if(x.ok!==true||x.service!=="commerce")process.exit(1);console.log("Commerce route:",x.service,"checkout:",x.checkout,"books:",x.capabilities?.books)'
-          code=$(curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+          code=$(curl -sS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
             -X POST -H 'Content-Type: application/json' -H 'Origin: https://drjavadrezazadeh.com' \
             --data '{"items":[]}' -o /tmp/commerce-create-probe.json -w '%{http_code}' \
             "$HOST/api/commerce/create")
@@ -506,10 +522,10 @@ jobs:
           set -euo pipefail
           ORIGIN_IP="188.40.203.218"
           HOST="https://drjavadrezazadeh.com"
-          curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+          curl -sS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
             "$HOST/api/donations/health" -o /tmp/donations-health.json
-          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/donations-health.json","utf8"));if(x.ok!==true||x.service!=="donations"||x.checkout!==true||x.minToman!==1000||x.maxToman!==10000000||x.currency!=="IRT"){console.error("Donation checkout not live-ready");process.exit(1)}console.log("Voluntary support live-ready:",x.minToman,"to",x.maxToman,"toman")'
-          code=$(curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/donations-health.json","utf8"));if(x.ok!==true||x.service!=="donations"||x.checkout!==true||x.minToman!==1000||x.maxToman!==10000000||x.defaultToman!==500000||x.currency!=="IRT"){console.error("Donation checkout not live-ready");process.exit(1)}console.log("Voluntary support live-ready:",x.minToman,"to",x.maxToman,"toman")'
+          code=$(curl -sS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
             -X POST -H 'Content-Type: application/json' -H 'Origin: https://drjavadrezazadeh.com' \
             --data '{"amountToman":999}' -o /tmp/donations-invalid-probe.json -w '%{http_code}' \
             "$HOST/api/donations/create")
@@ -521,14 +537,14 @@ jobs:
           set -euo pipefail
           ORIGIN_IP="188.40.203.218"
           HOST="https://drjavadrezazadeh.com"
-          curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+          curl -sS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
             "$HOST/api/student-support/health" -o /tmp/student-support-health.json
           node -e 'const fs=require("fs");const h=JSON.parse(fs.readFileSync("/tmp/student-support-health.json","utf8"));if(h.ok!==true||h.service!=="student-support"||h.studentIdentityPublic!==false||h.directSponsorStudentContact!==false){console.error("Safeguarding public API failed");process.exit(1)}console.log("Student support public health: guestGiving",h.guestGiving,"caseSchemaReady",h.caseSchemaReady,"privatePortal",h.privatePortal)'
-          code=$(curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+          code=$(curl -sS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
             -o /tmp/student-support-denied.json -w '%{http_code}' "$HOST/api/student-support/portal")
           test "$code" = "401"
           node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/student-support-denied.json","utf8"));if(x.error!=="unauthorized")process.exit(1);console.log("Anonymous student dashboard access safely denied")'
-          code=$(curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+          code=$(curl -sS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
             -o /tmp/student-contributions-denied.json -w '%{http_code}' "$HOST/api/student-support/my-contributions")
           test "$code" = "401"
           node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/student-contributions-denied.json","utf8"));if(x.ok!==false||x.error!=="unauthorized"||"items" in x){console.error("Guest accessed contributor records");process.exit(1)}console.log("Anonymous contribution history inaccessible; private financial ledger remains protected")'

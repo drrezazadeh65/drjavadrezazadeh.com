@@ -1,0 +1,372 @@
+{
+  "schema": "immutable-action-identities-v1",
+  "createdAt": "2026-10-11",
+  "engines": {
+    "ENG-01": "Master SEO Engine",
+    "ENG-02": "AI Discovery & GEO Engine",
+    "ENG-03": "RAVE Intelligence Engine",
+    "ENG-04": "Real Golden Talent Engine",
+    "ENG-05": "Commerce & Finance Engine",
+    "ENG-06": "Scientific Journal Engine",
+    "ENG-07": "CRM & Customer Experience Engine",
+    "ENG-08": "Content Management Engine",
+    "ENG-09": "Media & Image Engine",
+    "ENG-10": "Design & Identity Engine",
+    "ENG-11": "Operations & Security Engine",
+    "ENG-12": "Unified Administration Engine",
+    "ENG-13": "Reporting, Audit & Intelligence Engine"
+  },
+  "actions": {
+    "ENG-01.ACT-001": {
+      "canonicalName": "Validate canonical URLs",
+      "responsibleEngine": "ENG-01",
+      "identityKey": "granular:ENG-01.ACT-001",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-01.ACT-002": {
+      "canonicalName": "Audit hreflang reciprocity",
+      "responsibleEngine": "ENG-01",
+      "identityKey": "granular:ENG-01.ACT-002",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-01.ACT-003": {
+      "canonicalName": "Verify internal links",
+      "responsibleEngine": "ENG-01",
+      "identityKey": "granular:ENG-01.ACT-003",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-01.ACT-004": {
+      "canonicalName": "Certify Technical SEO",
+      "responsibleEngine": "ENG-01",
+      "identityKey": "legacy-full-acceptance:OP-01",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-01.ACT-005": {
+      "canonicalName": "Certify Historical URL redirects",
+      "responsibleEngine": "ENG-01",
+      "identityKey": "legacy-full-acceptance:OP-12",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-01.ACT-006": {
+      "canonicalName": "Certify Backlink target audit",
+      "responsibleEngine": "ENG-01",
+      "identityKey": "legacy-full-acceptance:OP-13",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-01.ACT-007": {
+      "canonicalName": "Certify Google Search Console indexation",
+      "responsibleEngine": "ENG-01",
+      "identityKey": "legacy-full-acceptance:OP-14",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-01.ACT-008": {
+      "canonicalName": "Certify Academic identity and EEAT",
+      "responsibleEngine": "ENG-01",
+      "identityKey": "legacy-full-acceptance:OP-27",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-01.ACT-009": {
+      "canonicalName": "Certify Structured data quality",
+      "responsibleEngine": "ENG-01",
+      "identityKey": "legacy-full-acceptance:OP-29",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-01.ACT-010": {
+      "canonicalName": "Certify Bing and IndexNow",
+      "responsibleEngine": "ENG-01",
+      "identityKey": "legacy-full-acceptance:OP-15",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-01.ACT-011": {
+      "canonicalName": "Read saved Google inspection observations",
+      "responsibleEngine": "ENG-01",
+      "identityKey": "existing-observation:ENG-01.ACT-011",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-02.ACT-001": {
+      "canonicalName": "Audit AI crawler accessibility",
+      "responsibleEngine": "ENG-02",
+      "identityKey": "granular:ENG-02.ACT-001",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-02.ACT-002": {
+      "canonicalName": "Certify AI discovery GEO",
+      "responsibleEngine": "ENG-02",
+      "identityKey": "legacy-full-acceptance:OP-28",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-03.ACT-001": {
+      "canonicalName": "Generate analytics performance assessment",
+      "responsibleEngine": "ENG-03",
+      "identityKey": "legacy-full-acceptance:OP-32",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-04.ACT-001": {
+      "canonicalName": "Validate talent assessment instrument",
+      "responsibleEngine": "ENG-04",
+      "identityKey": "granular:ENG-04.ACT-001",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-04.ACT-002": {
+      "canonicalName": "Certify Golden Talent",
+      "responsibleEngine": "ENG-04",
+      "identityKey": "legacy-full-acceptance:OP-21",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-05.ACT-001": {
+      "canonicalName": "Verify checkout readiness",
+      "responsibleEngine": "ENG-05",
+      "identityKey": "legacy-full-acceptance:OP-07",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-05.ACT-002": {
+      "canonicalName": "Certify Payment callback and receipts",
+      "responsibleEngine": "ENG-05",
+      "identityKey": "legacy-full-acceptance:OP-08",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-05.ACT-003": {
+      "canonicalName": "Certify Low-value real payment",
+      "responsibleEngine": "ENG-05",
+      "identityKey": "legacy-full-acceptance:OP-09",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-05.ACT-004": {
+      "canonicalName": "Certify Bookstore public catalogue",
+      "responsibleEngine": "ENG-05",
+      "identityKey": "legacy-full-acceptance:OP-10",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-05.ACT-005": {
+      "canonicalName": "Certify Inventory shipping and fulfilment",
+      "responsibleEngine": "ENG-05",
+      "identityKey": "legacy-full-acceptance:OP-11",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-05.ACT-006": {
+      "canonicalName": "Certify Service checkout",
+      "responsibleEngine": "ENG-05",
+      "identityKey": "legacy-full-acceptance:OP-23",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-05.ACT-007": {
+      "canonicalName": "Certify Donations",
+      "responsibleEngine": "ENG-05",
+      "identityKey": "legacy-full-acceptance:OP-24",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-05.ACT-008": {
+      "canonicalName": "Read effective commerce readiness",
+      "responsibleEngine": "ENG-05",
+      "identityKey": "existing-observation:ENG-05.ACT-008",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-05.ACT-009": {
+      "canonicalName": "Read bounded order-state observations",
+      "responsibleEngine": "ENG-05",
+      "identityKey": "existing-observation:ENG-05.ACT-009",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-05.ACT-010": {
+      "canonicalName": "Read catalogue and fulfilment readiness",
+      "responsibleEngine": "ENG-05",
+      "identityKey": "existing-observation:ENG-05.ACT-010",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-06.ACT-001": {
+      "canonicalName": "Validate scientific journal publishing governance",
+      "responsibleEngine": "ENG-06",
+      "identityKey": "journal:publishing-governance-certification",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-07.ACT-001": {
+      "canonicalName": "Certify Email registration verification",
+      "responsibleEngine": "ENG-07",
+      "identityKey": "legacy-full-acceptance:OP-05",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-07.ACT-002": {
+      "canonicalName": "Certify Login and password recovery",
+      "responsibleEngine": "ENG-07",
+      "identityKey": "legacy-full-acceptance:OP-06",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-07.ACT-003": {
+      "canonicalName": "Certify Customer OS dashboard",
+      "responsibleEngine": "ENG-07",
+      "identityKey": "legacy-full-acceptance:OP-19",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-07.ACT-004": {
+      "canonicalName": "Certify Consultation booking",
+      "responsibleEngine": "ENG-07",
+      "identityKey": "legacy-full-acceptance:OP-22",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-07.ACT-005": {
+      "canonicalName": "Certify AI assistant and lead storage",
+      "responsibleEngine": "ENG-07",
+      "identityKey": "legacy-full-acceptance:OP-33",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-07.ACT-006": {
+      "canonicalName": "Certify Email lead nurturing",
+      "responsibleEngine": "ENG-07",
+      "identityKey": "legacy-full-acceptance:OP-34",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-07.ACT-007": {
+      "canonicalName": "Read authentication and email runtime readiness",
+      "responsibleEngine": "ENG-07",
+      "identityKey": "existing-observation:ENG-07.ACT-007",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-08.ACT-001": {
+      "canonicalName": "Certify Persian article editorial audit",
+      "responsibleEngine": "ENG-08",
+      "identityKey": "legacy-full-acceptance:OP-25",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-08.ACT-002": {
+      "canonicalName": "Certify English article editorial audit",
+      "responsibleEngine": "ENG-08",
+      "identityKey": "legacy-full-acceptance:OP-26",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-08.ACT-003": {
+      "canonicalName": "Certify Moderated comments",
+      "responsibleEngine": "ENG-08",
+      "identityKey": "legacy-full-acceptance:OP-30",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-08.ACT-004": {
+      "canonicalName": "Certify Social sharing",
+      "responsibleEngine": "ENG-08",
+      "identityKey": "legacy-full-acceptance:OP-31",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-09.ACT-001": {
+      "canonicalName": "Validate canonical media library",
+      "responsibleEngine": "ENG-09",
+      "identityKey": "media:canonical-library-certification",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-10.ACT-001": {
+      "canonicalName": "Certify Mobile first PWA UX",
+      "responsibleEngine": "ENG-10",
+      "identityKey": "legacy-full-acceptance:OP-16",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-10.ACT-002": {
+      "canonicalName": "Certify Accessibility",
+      "responsibleEngine": "ENG-10",
+      "identityKey": "legacy-full-acceptance:OP-18",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-11.ACT-001": {
+      "canonicalName": "Validate production TLS",
+      "responsibleEngine": "ENG-11",
+      "identityKey": "legacy-full-acceptance:OP-03",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-11.ACT-002": {
+      "canonicalName": "Certify Production branch governance",
+      "responsibleEngine": "ENG-11",
+      "identityKey": "legacy-full-acceptance:OP-02",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-11.ACT-003": {
+      "canonicalName": "Certify Compression and caching",
+      "responsibleEngine": "ENG-11",
+      "identityKey": "legacy-full-acceptance:OP-04",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-11.ACT-004": {
+      "canonicalName": "Certify Privacy consent RBAC",
+      "responsibleEngine": "ENG-11",
+      "identityKey": "legacy-full-acceptance:OP-20",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-11.ACT-005": {
+      "canonicalName": "Certify Backups and security monitoring",
+      "responsibleEngine": "ENG-11",
+      "identityKey": "legacy-full-acceptance:OP-35",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-11.ACT-006": {
+      "canonicalName": "Certify Release QA and rollback",
+      "responsibleEngine": "ENG-11",
+      "identityKey": "legacy-full-acceptance:OP-36",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-11.ACT-007": {
+      "canonicalName": "Certify Field Core Web Vitals",
+      "responsibleEngine": "ENG-11",
+      "identityKey": "legacy-full-acceptance:OP-17",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-11.ACT-008": {
+      "canonicalName": "Read independent TLS proof freshness",
+      "responsibleEngine": "ENG-11",
+      "identityKey": "existing-observation:ENG-11.ACT-008",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-11.ACT-009": {
+      "canonicalName": "Read server-recorded release identity",
+      "responsibleEngine": "ENG-11",
+      "identityKey": "existing-observation:ENG-11.ACT-009",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-12.ACT-001": {
+      "canonicalName": "Certify Master Operations Dashboard",
+      "responsibleEngine": "ENG-12",
+      "identityKey": "legacy-full-acceptance:ADM-01",
+      "createdInVersion": "1.0.0"
+    },
+    "ENG-13.ACT-001": {
+      "canonicalName": "Generate consolidated executive report",
+      "responsibleEngine": "ENG-13",
+      "identityKey": "reporting:consolidated-executive-generation",
+      "createdInVersion": "1.0.0"
+    }
+  },
+  "reportActionIds": {
+    "OP-01": "ENG-01.ACT-004",
+    "OP-02": "ENG-11.ACT-002",
+    "OP-03": "ENG-11.ACT-001",
+    "OP-04": "ENG-11.ACT-003",
+    "OP-05": "ENG-07.ACT-001",
+    "OP-06": "ENG-07.ACT-002",
+    "OP-07": "ENG-05.ACT-001",
+    "OP-08": "ENG-05.ACT-002",
+    "OP-09": "ENG-05.ACT-003",
+    "OP-10": "ENG-05.ACT-004",
+    "OP-11": "ENG-05.ACT-005",
+    "OP-12": "ENG-01.ACT-005",
+    "OP-13": "ENG-01.ACT-006",
+    "OP-14": "ENG-01.ACT-007",
+    "OP-15": "ENG-01.ACT-010",
+    "OP-16": "ENG-10.ACT-001",
+    "OP-17": "ENG-11.ACT-007",
+    "OP-18": "ENG-10.ACT-002",
+    "OP-19": "ENG-07.ACT-003",
+    "OP-20": "ENG-11.ACT-004",
+    "OP-21": "ENG-04.ACT-002",
+    "OP-22": "ENG-07.ACT-004",
+    "OP-23": "ENG-05.ACT-006",
+    "OP-24": "ENG-05.ACT-007",
+    "OP-25": "ENG-08.ACT-001",
+    "OP-26": "ENG-08.ACT-002",
+    "OP-27": "ENG-01.ACT-008",
+    "OP-28": "ENG-02.ACT-002",
+    "OP-29": "ENG-01.ACT-009",
+    "OP-30": "ENG-08.ACT-003",
+    "OP-31": "ENG-08.ACT-004",
+    "OP-32": "ENG-03.ACT-001",
+    "OP-33": "ENG-07.ACT-005",
+    "OP-34": "ENG-07.ACT-006",
+    "OP-35": "ENG-11.ACT-005",
+    "OP-36": "ENG-11.ACT-006",
+    "ADM-01": "ENG-12.ACT-001"
+  }
+}

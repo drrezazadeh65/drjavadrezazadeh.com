@@ -967,5 +967,25 @@
     "observed_at": "2026-10-11T09:35:55Z",
     "native_gone_source_fix": "present_in_newer_production_source",
     "live_certification": "pending_latest_release"
+  },
+  "canonical_reporting_increment": {
+    "sourceBase": "49ce0805aa8ea70dabf168609f356a7f88e4d195",
+    "engineCount": 13,
+    "permanentActionCount": 52,
+    "originalOperationalReports": 36,
+    "adminReportSeparate": true,
+    "awoseDomainViewCount": 36,
+    "durableJobs": "not_implemented",
+    "persistedLearning": "not_implemented",
+    "paymentMutation": false,
+    "schemaMigration": false,
+    "localValidation": {
+      "registryContract": 28,
+      "phpReporting": 25,
+      "authorizationBoundaries": 77,
+      "phpHttpMysql": 54,
+      "browser": 64
+    },
+    "productionAcceptance": "requires_successful_increment_release_and_owner_mfa_verification"
   }
 }

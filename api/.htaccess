@@ -19,6 +19,6 @@ Header always set Referrer-Policy "no-referrer"
 Require all denied
 </FilesMatch>
 
-<FilesMatch "^(operations|operations-schema)\.php$">
+<FilesMatch "^(operations|operations-schema|operations-reporting)\.php$">
 Require all denied
 </FilesMatch>
