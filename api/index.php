@@ -95,6 +95,19 @@ function smtpConfigured(array $c): bool {
         && is_string($c['smtp_password'] ?? null) && (string)$c['smtp_password'] !== ''
         && function_exists('stream_socket_client');
 }
+// Diagnostic parity with Bertina ticket t833905 (2026-10-11).
+// Only an aggregate boolean is exposed through health endpoints; do not
+// disclose SMTP credentials or mailbox settings in public JSON responses.
+function smtpProviderSettingsMatch(array $c): bool {
+    $host = strtolower(trim((string)($c['smtp_host'] ?? '')));
+    $port = (int)($c['smtp_port'] ?? 0);
+    $security = strtolower((string)($c['smtp_security'] ?? ''));
+    $user = strtolower((string)($c['smtp_user'] ?? ''));
+    return $host === 'drjavadrezazadeh.com'
+        && (($port === 465 && $security === 'ssl') || ($port === 587 && $security === 'tls'))
+        && $user === 'admin@drjavadrezazadeh.com'
+        && ($c['smtp_verify_peer'] ?? true) === true;
+}
 function mailReady(): bool {
     $c = cfg();
     if (($c['mail_enabled'] ?? false) !== true) return false;
@@ -376,11 +389,11 @@ $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
 
 if ($path==='/health' && $verb==='GET') {
-    $hc=cfg(); respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?(smtpConfigured($hc)?'bertina-smtp':'bertina-local'):'not-configured','mailConfigEnabled'=>$hc['mail_enabled']===true,'smtpConfigured'=>smtpConfigured($hc),'mailFunctionAvailable'=>function_exists('mail'),'mailFromValid'=>filter_var((string)$hc['mail_from'], FILTER_VALIDATE_EMAIL)!==false,'auth'=>authReady(),'registration'=>registrationReady(),'commerce'=>commerceReady()]);
+    $hc=cfg(); respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?(smtpConfigured($hc)?'bertina-smtp':'bertina-local'):'not-configured','mailConfigEnabled'=>$hc['mail_enabled']===true,'smtpConfigured'=>smtpConfigured($hc),'smtpProviderSettingsMatch'=>smtpProviderSettingsMatch($hc),'mailFunctionAvailable'=>function_exists('mail'),'mailFromValid'=>filter_var((string)$hc['mail_from'], FILTER_VALIDATE_EMAIL)!==false,'auth'=>authReady(),'registration'=>registrationReady(),'commerce'=>commerceReady()]);
 }
 
 if ($path==='/auth/health' && $verb==='GET') {
-    respond(['ok'=>true,'service'=>'auth','ready'=>authReady(),'registrationReady'=>registrationReady(),'database'=>dbReady(),'schemaReady'=>authSchemaReady(),'email'=>mailReady(),'passwordKdf'=>strlen((string)(cfg()['auth_pepper']??''))>=32]);
+    respond(['ok'=>true,'service'=>'auth','ready'=>authReady(),'registrationReady'=>registrationReady(),'database'=>dbReady(),'schemaReady'=>authSchemaReady(),'email'=>mailReady(),'smtpProviderSettingsMatch'=>smtpProviderSettingsMatch(cfg()),'passwordKdf'=>strlen((string)(cfg()['auth_pepper']??''))>=32]);
 }
 if (str_starts_with($path,'/auth/')) {
     if(!authReady())fail('auth_unavailable',503);
