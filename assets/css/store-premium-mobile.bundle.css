@@ -164,6 +164,19 @@
 }
 @media(prefers-reduced-motion:reduce){.store-loading-dot{animation:none}}
 
+/* Checkout delivery form: explicit block layout, independent of global label/input rules. */
+#shipping-details{display:block;margin-block:24px}
+#shipping-details fieldset{display:block!important;min-width:0;margin:0;padding:clamp(16px,3vw,28px);border:1px solid #b8a47c;border-radius:16px}
+#shipping-details legend{display:table;max-width:100%;padding:0 10px;font-weight:700;white-space:normal}
+#shipping-details label{display:block!important;width:100%!important;float:none!important;clear:both!important;margin:16px 0 6px!important;padding:0!important;line-height:1.8;overflow-wrap:anywhere}
+#shipping-details input,#shipping-details textarea{display:block!important;box-sizing:border-box!important;width:100%!important;max-width:100%!important;min-width:0!important;min-height:48px!important;margin:0!important;padding:12px 14px!important;border:1px solid #88795d;border-radius:10px;background:#181b24;color:#fff;font:inherit;line-height:1.6;float:none!important;position:static!important}
+#shipping-details textarea{min-height:112px!important;resize:vertical}
+[dir=rtl] #shipping-details input:not([type=email]),[dir=rtl] #shipping-details textarea{direction:rtl;text-align:right}
+#shipping-details input[type=email]{direction:ltr;text-align:left}
+#shipping-details fieldset:disabled{opacity:.75}
+#shipping-details input:focus-visible,#shipping-details textarea:focus-visible{outline:2px solid #d6af65;outline-offset:2px}
+@media(max-width:640px){#shipping-details fieldset{padding:16px}#shipping-details input,#shipping-details textarea{font-size:16px!important}}
+
 /* Source: mobile-app-v431.css */
 /* v4.3.1 Mobile App Shell — public/mobile experience only.
    Preserves semantic HTML, URLs, crawlability and desktop layouts. */
