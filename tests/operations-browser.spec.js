@@ -68,7 +68,7 @@ test('Bertina unified dashboard preserves all modules and makes path switching p
  await page.locator('[data-command-path="sponsorship"]').click();
  await expect(page.locator('[data-command-path="sponsorship"]')).toHaveAttribute('aria-pressed','true');
  await expect(page.locator('[data-command-item][href="#student-support"]')).toBeVisible();
- await expect(page.locator('[data-command-item][data-command-group="learning"]')).toBeHidden();
+ await expect(page.locator('[data-command-item][data-command-group="learning"]:visible')).toHaveCount(0);
  await expect(page.locator('#ecosystem')).toBeVisible();
  await expect(page.locator('[data-live-dot].ready')).toHaveCount(0);
  await page.locator('[data-command-path="all"]').click();
