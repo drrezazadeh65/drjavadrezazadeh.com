@@ -47,3 +47,11 @@
 @media(max-width:950px){.launch-service-sidebar .launch-shop-unit{grid-column:auto}}
 @media(max-width:720px){.launch-service-sidebar section{padding:16px}.launch-service-sidebar .launch-shop-unit{padding:0}.launch-article-page .article-shell .article-hero h1{font-size:clamp(27px,6vw,36px)!important;line-height:1.6!important;max-width:none}.launch-article-page .article-hero .lead{font-size:clamp(15px,4vw,17px)!important;line-height:2!important}}
 @media(prefers-reduced-motion:reduce){.launch-news-collection .launch-news-grid .news-card{transition:none;transform:none!important}}
+
+/* Narrow editorial reading contract: sidebar always follows the complete article. */
+@media(max-width:950px){
+ .launch-article-page .article-shell{display:flex;flex-direction:column;align-items:stretch}
+ .launch-article-page .article-shell>.article-hero{width:100%;flex:0 0 auto}
+ .launch-article-page .launch-article-main{width:100%;min-width:0;order:1;flex:0 0 auto}
+ .launch-article-page .launch-service-sidebar{width:100%;min-width:0;order:2;position:static;top:auto;max-height:none;overflow:visible;align-self:stretch}
+}
