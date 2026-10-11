@@ -3,7 +3,8 @@
 
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
-ErrorDocument 410 /404.html
+# Native Gone response avoids an ErrorDocument subrequest being redirected by host/TLS rules.
+ErrorDocument 410 default
 
 <IfModule mod_rewrite.c>
 RewriteEngine On
