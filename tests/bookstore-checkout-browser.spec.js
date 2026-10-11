@@ -247,7 +247,7 @@ test('Voluntary support creates mocked low-value payment and reaches BitPay with
   await page.locator('[data-support-form] [type="submit"]').click();
   await expect(page).toHaveURL(gateway);
   await expect(page.getByText('Mock low-value gateway')).toBeVisible();
-  expect(requests).toEqual([{amountToman:10000,email:'support@example.test'}]);
+  expect(requests).toEqual([{amountToman:10000,email:'support@example.test',focus:'general'}]);
 });
 test('Donation UI refuses charges while the live gateway is disabled',async({page})=>{
   let creates=0;
@@ -302,4 +302,34 @@ test('Verified small voluntary support displays a distinct noncharitable donatio
   await expect(page.locator('#receipt-total')).toContainText('۱۰٬۰۰۰');
   await expect(page.locator('#receipt .note')).toContainText('فاکتور رسمی مالیاتی محسوب نمی‌شود');
   await expect(page.locator('#print')).toBeVisible();
+});
+
+test('Verified new talented-student contribution displays student support receipt without personal data',async({page})=>{
+ const orderId='11111111-1111-4111-8111-111111111119';
+ await page.route('**/api/commerce/status?order=*',route=>route.fulfill({status:200,json:{
+   ok:true,state:'paid',receipt:{orderId,currency:'IRT',amountToman:1000,paidAt:'2026-10-11 11:00:00',
+    items:[{sku:'support:students',title:'حمایت از دانش‌آموزان مستعد کم‌بضاعت — کتاب و لوازم آموزشی',quantity:1,unitToman:1000,subtotalToman:1000}]}
+ }}));
+ await page.goto(base+'/fa/shop/payment-result/?from=gateway&order='+orderId,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#receipt')).toBeVisible();
+ await expect(page.locator('#title')).toContainText('دانش‌آموزان');
+ await expect(page.locator('#receipt-total')).toContainText('۱٬۰۰۰');
+ await expect(page.locator('#receipt .note')).toContainText('مستندسازی هزینه');
+ await expect(page.locator('#receipt .note')).toContainText('هیچ هویت دانش‌آموزی افشا نمی‌شود');
+});
+test('Student fund contributions are guest-accessible and reject invalid beneficiary targeting',async({page})=>{
+ let creates=0,received=null;
+ await page.route('**/api/donations/health',route=>route.fulfill({status:200,json:{ok:true,service:'donations',
+  checkout:true,minToman:1000,maxToman:500000,defaultToman:10000,currency:'IRT'}}));
+ await page.route('**/api/donations/create',route=>{
+  creates+=1;received=route.request().postDataJSON();
+  return route.fulfill({status:400,json:{ok:false,error:'invalid_support_focus'}});
+ });
+ await page.goto(base+'/fa/shop/',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('[data-support-form] [type="submit"]')).toBeEnabled();
+ await page.locator('[name="focus"]').selectOption('scholarship');
+ await page.locator('[data-support-form] [type="submit"]').click();
+ await expect.poll(()=>creates).toBe(1);
+ expect(received).toEqual({amountToman:10000,email:'',focus:'scholarship'});
+ await expect(page.locator('[data-support-status]')).toContainText('اصلاح');
 });
