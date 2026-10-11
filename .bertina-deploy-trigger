@@ -148,3 +148,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11: release merged PR 59 service and VIP guest buyer contact validation and persistence; preserve SEO/privacy/payment; verify Bertina origin and exact checksums.
 
 2026-10-11 final editorial accessibility release: 13 WebP article images, repaired article/sidebar nesting, intrinsic image dimensions, mobile-first layout, cache-busted CSS, GSC tracked URLs; pass SEO and independent Playwright responsive checks.
+
+2026-10-11 approved editorial images PRODUCTION RELEASE: 10 verified 1672x941 WebP images installed on 10 launch articles plus image registry and news cards, release ONLY after passing SEO, responsive and Bertina checks.
