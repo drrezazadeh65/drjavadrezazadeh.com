@@ -1207,7 +1207,7 @@ test('bilingual intake, service pages and shops disclose real booking and paymen
     ['/en/services/','Live appointment booking is not currently available','Online payments are not yet enabled'],
     ['/fa/shop/','ثبت سفارش فعال','پرداخت آنلاین با کنترل مبلغ و تأیید نتیجهٔ بانک در سرور انجام می‌شود'],
     ['/en/shop/','Order capture active','Payment is initiated through the verified provider and finalized only after server confirmation'],
-    ['/fa/shop/checkout/','ثبت سفارش فعال؛ پرداخت مستقل و ایمن','پرداخت آنلاین فقط پس از فعال‌شدن مسیر معتبر درگاه انجام خواهد شد']
+    ['/fa/shop/checkout/','وضعیت پرداخت مستقیماً از سرور بررسی می‌شود','فقط پرداخت تأییدشده توسط سرور سفارش را قطعی می‌کند']
   ];
   for(const [route,first,second] of cases){
     for(const [width,height] of [[390,844],[1440,900]]){
