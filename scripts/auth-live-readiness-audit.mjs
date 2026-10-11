@@ -14,4 +14,5 @@ if(data.database!==true)throw new Error('auth_database_not_ready');
 if(data.schemaReady!==true)throw new Error('auth_mysql_schema_not_verified_in_live_runtime');
 if(data.email!==true)throw new Error('auth_email_not_ready');
 if(data.passwordKdf!==true)throw new Error('auth_password_kdf_not_ready');
+if(data.smtpProviderSettingsMatch!==true)console.warn('WARNING: live private SMTP host/security/user do not match the Bertina-confirmed settings in ticket t833905; inspect the private server configuration.');
 console.log('Bertina auth runtime and required MySQL tables are ready. Email transport configuration is reported healthy but end-to-end delivery remains a separate test.');
