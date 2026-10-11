@@ -23,6 +23,8 @@ jobs:
           node-version: '22'
       - name: Run source SEO/GEO regression audit
         run: node scripts/seo-regression.mjs
+      - name: Verify all 13 academic launch articles and media references
+        run: node scripts/audit-13-articles.mjs
       - name: Run visual-system regression audit
         run: node scripts/design-regression.mjs
       - name: Run responsive resilience source audit
