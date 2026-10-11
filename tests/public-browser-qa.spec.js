@@ -1557,9 +1557,52 @@ test('bilingual bookstore mobile hero exposes shop and sponsorship, and help lin
  await page.setViewportSize({width:390,height:844});
  await page.goto(base+'/en/shop/',{waitUntil:'domcontentloaded'});
  const help=page.locator('.store-customer-guidance nav a');
- await expect(help).toHaveCount(4);
+ await expect(help).toHaveCount(5);
  for(const anchor of await help.all()){
   const box=await anchor.boundingBox();
   expect(box.height).toBeGreaterThanOrEqual(44);
+ }
+});
+
+
+test('bookstore FAQ offers 16 grounded, accessible answers per language without mobile overflow',async({page})=>{
+ for(const lang of ['fa','en']){
+  for(const width of [320,390,430,1440]){
+   await page.setViewportSize({width,height:844});
+   const route='/'+lang+'/shop/';
+   const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(response.status()).toBe(200);
+   const faq=page.locator('#shop-faq');
+   await expect(faq).toHaveCount(1);
+   await expect(faq.locator('.store-faq-group')).toHaveCount(2);
+   const items=faq.locator('details.store-faq-item');
+   await expect(items).toHaveCount(16);
+   await expect(page.locator('a[href="#shop-faq"]')).toHaveCount(1);
+   const first=items.first();
+   await first.locator('summary').click();
+   await expect(first).toHaveAttribute('open','');
+   await expect(first.locator('p')).toBeVisible();
+   await first.locator('summary').press('Enter');
+   await expect(first).not.toHaveAttribute('open','');
+   const bounds=await stableOverflow(page);
+   expect(Math.max(bounds.html,bounds.body),route+' FAQ overflow at '+width).toBeLessThanOrEqual(bounds.viewport+1);
+  }
+ }
+});
+test('bilingual student support FAQ retains four original answers and eight new mobile-readable answers',async({page})=>{
+ for(const lang of ['fa','en']){
+  for(const width of [320,390,430]){
+   await page.setViewportSize({width,height:844});
+   const route='/'+lang+'/support-talented-students/';
+   const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(response.status()).toBe(200);
+   const faq=page.locator('#support-faq');
+   const details=faq.locator('details');
+   await expect(details).toHaveCount(12);
+   await details.first().locator('summary').click();
+   await expect(details.first()).toHaveAttribute('open','');
+   const bounds=await stableOverflow(page);
+   expect(Math.max(bounds.html,bounds.body),route+' FAQ overflow at '+width).toBeLessThanOrEqual(bounds.viewport+1);
+  }
  }
 });
