@@ -4,13 +4,18 @@ on:
   pull_request:
     paths:
       - 'payment-api/auth-routes.js'
+      - 'payment-api/worker-v4.4-corrected.js'
+      - 'payment-api/worker-single-file-candidate.js'
       - 'assets/js/customer-auth.js'
       - 'tests/auth-registration-readiness.test.mjs'
+      - 'tests/auth-worker-routing.test.mjs'
       - '.github/workflows/auth-live-readiness.yml'
   push:
     branches: [main]
     paths:
       - 'payment-api/auth-routes.js'
+      - 'payment-api/worker-v4.4-corrected.js'
+      - 'payment-api/worker-single-file-candidate.js'
       - 'payment-api/migrations/v4.4.1-customer-auth.sql'
       - 'assets/js/customer-auth.js'
       - 'fa/register/**'
@@ -21,6 +26,7 @@ on:
       - 'en/recover/**'
       - 'scripts/auth-live-readiness-audit.mjs'
       - 'tests/auth-registration-readiness.test.mjs'
+      - 'tests/auth-worker-routing.test.mjs'
       - '.github/workflows/auth-live-readiness.yml'
 permissions:
   contents: read
@@ -36,8 +42,11 @@ jobs:
       - name: Verify source syntax and offline registration safety
         run: |
           node --check payment-api/auth-routes.js
+          node --check payment-api/worker-v4.4-corrected.js
+          node --check payment-api/worker-single-file-candidate.js
           node --check assets/js/customer-auth.js
           node tests/auth-registration-readiness.test.mjs
+          node tests/auth-worker-routing.test.mjs
       - name: Verify deployed unified customer auth runtime
         if: github.event_name != 'pull_request'
         run: node scripts/auth-live-readiness-audit.mjs
