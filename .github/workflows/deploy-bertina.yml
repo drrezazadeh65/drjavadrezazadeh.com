@@ -414,6 +414,21 @@ jobs:
           node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/commerce-create-probe.json","utf8"));if(x.error==="not_found"){console.error("Commerce create route is missing");process.exit(1)}console.log("Commerce create route response:",x.error||"ok")'
           test "$code" = "400" || test "$code" = "503"
 
+      - name: Verify production voluntary-support readiness without creating a payment
+        run: |
+          set -euo pipefail
+          ORIGIN_IP="188.40.203.218"
+          HOST="https://drjavadrezazadeh.com"
+          curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+            "$HOST/api/donations/health" -o /tmp/donations-health.json
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/donations-health.json","utf8"));if(x.ok!==true||x.service!=="donations"||x.checkout!==true||x.minToman!==1000||x.maxToman!==500000||x.currency!=="IRT"){console.error("Donation checkout not live-ready");process.exit(1)}console.log("Voluntary support live-ready:",x.minToman,"to",x.maxToman,"toman")'
+          code=$(curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+            -X POST -H 'Content-Type: application/json' -H 'Origin: https://drjavadrezazadeh.com' \
+            --data '{"amountToman":999}' -o /tmp/donations-invalid-probe.json -w '%{http_code}' \
+            "$HOST/api/donations/create")
+          test "$code" = "400"
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/donations-invalid-probe.json","utf8"));if(x.ok!==false||x.error!=="invalid_donation_amount")process.exit(1);console.log("Invalid low amount rejected before initiating payment")'
+
       - name: Verify every registered historical URL with trusted public TLS
         if: steps.credentials.outputs.ready == 'true'
         run: node scripts/historical-authority-live-verify.mjs /tmp/historical-authority-live.json
