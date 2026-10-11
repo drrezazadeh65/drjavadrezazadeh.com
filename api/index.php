@@ -127,6 +127,7 @@ function smtpCmd($fp, string $command, array $expected): bool {
     return in_array($code, $expected, true);
 }
 function smtpSend(string $to, string $subject, string $body): bool {
+    require_once __DIR__.'/smtp-body.php';
     $c=cfg();
     if (!smtpConfigured($c) || !filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
     $host=trim((string)$c['smtp_host']);$port=(int)$c['smtp_port'];$security=(string)$c['smtp_security'];
@@ -164,8 +165,7 @@ function smtpSend(string $to, string $subject, string $body): bool {
         $reply=(string)($c['mail_reply_to']??$from);
         // Only normalize the body. Header lines are already CRLF-terminated;
         // applying LF->CRLF to the whole message produces invalid CRCRLF.
-        $normalizedBody=str_replace(["\r\n","\r"],"\n",$body);
-        $normalizedBody=str_replace("\n","\r\n",$normalizedBody);
+        $normalizedBody=bertinaNormalizeSmtpBody($body);
         $message="From: Dr. Javad Rezazadeh <".$from.">\r\n".
             "Reply-To: ".$reply."\r\n".
             "To: <".$to.">\r\n".
@@ -176,7 +176,6 @@ function smtpSend(string $to, string $subject, string $body): bool {
             "Date: ".gmdate('D, d M Y H:i:s').' +0000'."\r\n".
             "Message-ID: <".bin2hex(random_bytes(12))."@drjavadrezazadeh.com>\r\n\r\n".
             $normalizedBody;
-        $message=preg_replace('/(?m)^\\./','..',$message);
         if(@fwrite($fp,$message."\r\n.\r\n")===false)return smtpFail('data_write');
         [$code,]=smtpRead($fp);
         if($code!==250)return smtpFail('data_accept');
