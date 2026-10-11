@@ -6,6 +6,7 @@
  const isFa=document.documentElement.lang==='fa';
  const input=form.querySelector('[name="amountToman"]');
  const email=form.querySelector('[name="email"]');
+ const focus=form.querySelector('[name="focus"]');
  const submit=form.querySelector('[type="submit"]');
  const status=document.querySelector('[data-support-status]');
  const preview=document.querySelector('[data-support-preview]');
@@ -56,13 +57,16 @@
   if(email.value&&!email.checkValidity()){
    show(isFa?'ایمیل اختیاری واردشده معتبر نیست.':'The optional email is not valid.');return;
   }
+  if(!focus||!['general','scholarship','books','services','essentials'].includes(focus.value)){
+   show(isFa?'زمینه حمایت نامعتبر است.':'Invalid support category.');return;
+  }
   submitted=true;submit.disabled=true;
   show(isFa?'در حال ایجاد پرداخت امن؛ لطفاً دوباره کلیک نکنید.':'Initiating secure payment; please do not submit again.');
   try{
    const response=await fetch('/api/donations/create',{
     method:'POST',mode:'cors',credentials:'omit',cache:'no-store',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({amountToman:amount,email:email.value.trim()})
+    body:JSON.stringify({amountToman:amount,email:email.value.trim(),focus:focus.value})
    });
    const result=await response.json();
    if(!response.ok||result?.ok!==true)throw Error(String(result?.error||'payment_unconfirmed'));
@@ -79,7 +83,7 @@
    location.assign(target.href);
   }catch(error){
    const code=String(error?.message||'');
-   const retryable=code==='invalid_donation_amount'||code==='invalid_donation_email';
+   const retryable=['invalid_donation_amount','invalid_donation_email','invalid_support_focus'].includes(code);
    if(retryable){
     submitted=false;submit.disabled=false;
     show(isFa?'مبلغ یا ایمیل را اصلاح و سپس دوباره ارسال کنید.':'Correct the amount or email and resubmit.');
