@@ -21,6 +21,7 @@ const text={
   retryPending:'اگر حساب تأییدنشده‌ای با این ایمیل وجود داشته باشد، درخواست ارسال مجدد پردازش شد. دریافت پیام را در پوشه‌های ورودی و هرزنامه بررسی کنید.',
   retryEmailRequired:'ابتدا ایمیل حساب خود را به‌درستی وارد کنید.',
   authUnavailable:'سرویس ثبت‌نام موقتاً آماده نیست. لطفاً بعداً مراجعه کنید.',
+  emailTransportUnavailable:'ارسال ایمیل تأیید هنوز آماده نیست. ورود به حساب‌های فعال همچنان امکان‌پذیر است.',
   passwordRule:'رمز باید حداقل ۱۲ نویسه داشته باشد.'
  },
  en:{
@@ -42,6 +43,7 @@ const text={
   retryPending:'If an unverified account exists for this email, the request has been processed. Check your inbox and spam folder.',
   retryEmailRequired:'Please enter a valid account email address first.',
   authUnavailable:'Registration is temporarily unavailable. Please try again later.',
+  emailTransportUnavailable:'Email verification delivery is not ready yet. Existing users can still sign in.',
   passwordRule:'Password must contain at least 12 characters.'
  }
 }[lang];
@@ -60,8 +62,14 @@ async function health(){
   const d=await r.json();
   if(!r.ok||d?.ready!==true)throw new Error('not_ready');
   document.documentElement.dataset.authReady='true';
-  document.querySelectorAll('[data-auth-live-control]').forEach(el=>el.disabled=false);
-  setStatus(text.ready,'ready');
+  const registrationReady=d?.registrationReady===true;
+  document.documentElement.dataset.authRegistrationReady=String(registrationReady);
+  const registrationForm=$('[data-auth-form="register"]');
+  document.querySelectorAll('[data-auth-live-control]').forEach(el=>{
+    if(registrationForm?.contains(el)&&!registrationReady)return;
+    el.disabled=false;
+  });
+  setStatus(registrationForm&&!registrationReady?text.emailTransportUnavailable:text.ready,registrationForm&&!registrationReady?'unavailable':'ready');
   return true;
  }catch{
   document.documentElement.dataset.authReady='false';
@@ -84,6 +92,8 @@ function bindRegister(){
  const form=$('[data-auth-form="register"]');if(!form)return;
  form.addEventListener('submit',async e=>{
   e.preventDefault();
+  if(document.documentElement.dataset.authRegistrationReady!=='true')
+   return setStatus(text.emailTransportUnavailable,'unavailable');
   const fd=new FormData(form),password=String(fd.get('password')||'');
   if(password.length<12)return setStatus(text.passwordRule,'error');
   setStatus(text.sending,'checking');
@@ -98,7 +108,8 @@ function bindRegister(){
     invalid_password:text.invalidRegistration,
     rate_limited:text.rateLimited,
     verification_email_failed:text.emailFailed,
-    auth_unavailable:text.authUnavailable
+    auth_unavailable:text.authUnavailable,
+    verification_email_unavailable:text.emailTransportUnavailable
    };
    setStatus(safeMessages[error?.message]||text.generic,'error');
   }
@@ -110,6 +121,8 @@ function bindRetry(){
  const form=$('[data-auth-form="register"]');
  if(!button||!form)return;
  button.addEventListener('click',async()=>{
+  if(document.documentElement.dataset.authRegistrationReady!=='true')
+   return setStatus(text.emailTransportUnavailable,'unavailable');
   const emailField=form.querySelector('input[name="email"]');
   if(!emailField||!emailField.checkValidity())return setStatus(text.retryEmailRequired,'error');
   button.disabled=true;
