@@ -1498,3 +1498,35 @@ test('all 27 service checkout cards have owned illustrations and no premature pa
     await expect(host.locator('.commerce-pay')).toHaveCount(count);
   }
 });
+
+
+test('mobile-first educational support keeps six preset amounts, an editable amount and an accessible checkout gate',async({page})=>{
+  await page.route('**/api/donations/health',route=>route.fulfill({
+    status:200,contentType:'application/json',
+    body:JSON.stringify({ok:true,service:'donations',checkout:true,currency:'IRT',minToman:1000,maxToman:10000000,defaultToman:500000})
+  }));
+  for(const width of [320,390,430]){
+    await page.setViewportSize({width,height:844});
+    const response=await page.goto(base+'/fa/shop/',{waitUntil:'domcontentloaded'});
+    expect(response.status()).toBe(200);
+    const options=page.locator('.support-presets [data-support-amount]');
+    await expect(options).toHaveCount(6);
+    const input=page.locator('#support-amount');
+    const submit=page.locator('.support-submit');
+    await expect(input).toHaveValue('500000');
+    await expect(submit).toBeEnabled();
+    await page.locator('[data-support-amount="10000000"]').click();
+    await expect(input).toHaveValue('10000000');
+    await expect(page.locator('[data-support-amount="10000000"]')).toHaveAttribute('aria-pressed','true');
+    await input.fill('10000001');
+    await expect(input).toHaveAttribute('aria-invalid','true');
+    await expect(submit).toBeDisabled();
+    await input.fill('1257');
+    await expect(input).toHaveAttribute('aria-invalid','false');
+    await expect(submit).toBeEnabled();
+    expect(await input.getAttribute('step')).toBe('1');
+    const overflow=await stableOverflow(page);
+    expect(Math.max(overflow.html,overflow.body),'donation width '+width).toBeLessThanOrEqual(overflow.viewport+1);
+    await expect(page.locator('.book-store-hero .store-nav a:visible')).toHaveCount(2);
+  }
+});
