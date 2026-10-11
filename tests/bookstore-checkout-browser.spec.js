@@ -344,8 +344,9 @@ for(const [lang,path] of [['fa','/fa/support-talented-students/'],['en','/en/sup
     await expect(page.locator('[data-support-form]')).toBeVisible();
     await expect(page.locator('[data-support-form] [type="submit"]')).toBeEnabled();
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://drjavadrezazadeh.com'+path);
-    await expect(page.locator('link[rel="alternate"][hreflang="fa"]')).toHaveCount(1);
-    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveCount(1);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
+    await expect(page.locator('link[rel="alternate"][hreflang="fa"]')).toHaveCount(0);
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveCount(0);
     await expect(page.locator('[name="focus"]')).toBeVisible();
     const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
