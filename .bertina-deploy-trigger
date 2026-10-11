@@ -78,3 +78,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 APPROVED ORIGINAL HERO RELEASE: publish exact source PNG 1935x813 plus optimized photographic WebP 1935x813 and real mobile crop; remove substituted vector art; preserve interactive CTA, SEO, student support, no retired retail content; validate origin, versioned caches, accessibility.
 
 2026-10-11 APPROVED OWNER CINEMATIC HERO FINAL: exact 1935x813 original PNG and WebP optimized image published in FA, original image crop in EN/mobile. Source-side SEO and master SEO passed; release after synchronizing image tests. Preserve original artwork, semantic HTML, buttons, student support and legacy 410 policy.
+
+2026-10-11 exact owner-approved cinematic storefront released after automated source and Master SEO PASS: verify byte-identical PNG SHA256 24a7ec84..., optimized WebP 4d2405..., mobile derived crop and 3D visual replacement on Bertina origin before success.
