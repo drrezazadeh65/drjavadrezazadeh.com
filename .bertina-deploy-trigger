@@ -22,3 +22,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 fix hidden invalid BitPay link CSS regression.
 
 2026-10-11 run mocked full checkout-to-gateway tests and bilingual payment readiness copy.
+
+2026-10-11 rerun full checkout tests with precise blocked-redirect URL assertion.
