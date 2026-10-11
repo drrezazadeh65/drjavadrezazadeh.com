@@ -541,8 +541,10 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
         if(validEmail($customerEmail)&&mailReady()){
             $items=json_decode((string)$row['items_json'],true);$summary=[];$sum=0;
             if(is_array($items)){foreach($items as $x){$qty=(int)($x['quantity']??0);$sub=(int)($x['subtotal']??0);$sum+=$sub;$summary[]='- '.(string)($x['title']??$x['sku']??'item').' × '.$qty.' | '.number_format($sub).' تومان';}}
-            $body="سفارش شما با موفقیت پرداخت و در سرور ثبت شد.\n\nشناسه سفارش: ".$id."\n\n".implode("\n",$summary)."\n\nجمع پرداخت: ".number_format($sum)." تومان\n\nاین پیام تأیید پرداخت است و جایگزین فاکتور رسمی مالیاتی نیست.";
-            if(sendLocalMail($customerEmail,'تأیید پرداخت سفارش '.$id,$body)){$pdo->prepare("UPDATE commerce_orders SET receipt_email_sent_at=NOW() WHERE id=?")->execute([$id]);}
+            $support=is_array($items)&&count($items)===1&&($items[0]['sku']??'')==='support:voluntary';
+            $subject=($support?'تأیید حمایت مالی داوطلبانه ':'تأیید پرداخت سفارش ').$id;
+            $body=($support?"حمایت مالی داوطلبانه شما پس از استعلام بانکی در سرور تأیید شد.":"سفارش شما با موفقیت پرداخت و در سرور ثبت شد.")."\n\nشناسه پرداخت: ".$id."\n\n".implode("\n",$summary)."\n\nجمع پرداخت: ".number_format($sum)." تومان\n\nاین رسید تأیید پرداخت است؛ فاکتور رسمی مالیاتی یا گواهی کمک خیریه نیست.";
+            if(sendLocalMail($customerEmail,$subject,$body)){$pdo->prepare("UPDATE commerce_orders SET receipt_email_sent_at=NOW() WHERE id=?")->execute([$id]);}
         }
         commerceReturnToResult($id);
     }catch(Throwable $e){
