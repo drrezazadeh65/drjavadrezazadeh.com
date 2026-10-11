@@ -1,0 +1,40 @@
+name: Temporary Approved Editorial Media Verification
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths: ['.github/workflows/editorial-media-verify-temporary.yml']
+permissions:
+  contents: read
+jobs:
+  verify-media:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["professional-services-decisions-20261011.webp","evidence-informed-guidance-20261011.webp","scholarly-bookstore-library-20261011.webp","talented-student-support-20261011.webp","academic-ecosystem-network-20261011.webp","golden-talent-growth-path-20261011.webp","academic-research-editing-20261011.webp","humanability-educational-assessment-20261011.webp","international-research-collaboration-20261011.webp","unified-customer-dashboard-20261011.webp"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify original archive, approved image hash and print public editorial media for reviewed manual commit
+        env:
+          MEDIA_FILE: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          ZIP='work/academic_articles_10_original_webp_20261011 (1).zip'
+          printf '%s  %s\n' 01c3fb620c303abc79407af973a6610a9c22a795fdb7ae01ecd6656c10e2d479 "$ZIP" | sha256sum --check --status
+          python3 - <<'PY'
+          import zipfile,hashlib,json,os
+          z=zipfile.ZipFile('work/academic_articles_10_original_webp_20261011 (1).zip')
+          name=os.environ['MEDIA_FILE']
+          record=next((e for e in json.loads(z.read('manifest.json'))['images'] if e['featured_image']==name),None)
+          if not record:raise SystemExit('Missing record: '+name)
+          body=z.read('assets/images/editorial-launch/'+name)
+          if hashlib.sha256(body).hexdigest()!=record['sha256']:raise SystemExit('Image integrity fail: '+name)
+          if record['width']!=1672 or record['height']!=941:raise SystemExit('Unexpected dimensions: '+name)
+          open('/tmp/editorial-approved.webp','wb').write(body)
+          print('VERIFIED_IMAGE '+name+' '+str(len(body)))
+          PY
+          echo "BEGIN_VERIFIED_WEBP:$MEDIA_FILE"
+          base64 -w 4096 /tmp/editorial-approved.webp
+          echo
+          echo "END_VERIFIED_WEBP:$MEDIA_FILE"
