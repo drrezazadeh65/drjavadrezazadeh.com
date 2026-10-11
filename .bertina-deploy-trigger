@@ -8,3 +8,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 regenerate store CSS bundles and deploy with CI checks.
 
 2026-10-11 enforce bilingual checkout browser tests before commerce release.
+
+2026-10-11 checkout test stabilization and safe BitPay error diagnosis.
