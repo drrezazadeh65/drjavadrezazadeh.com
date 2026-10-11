@@ -1498,3 +1498,46 @@ test('all 27 service checkout cards have owned illustrations and no premature pa
     await expect(host.locator('.commerce-pay')).toHaveCount(count);
   }
 });
+
+
+test('unified account dashboard retains all workspaces and keeps account-view selection presentation-only',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.route('**/auth/health',route=>route.fulfill({
+    status:200,contentType:'application/json',
+    headers:{'Access-Control-Allow-Origin':'http://127.0.0.1:4173','Access-Control-Allow-Credentials':'true'},
+    body:JSON.stringify({ok:true,ready:true,registrationReady:false,emailDeliveryVerified:false})
+  }));
+  await page.route('**/auth/me',route=>route.fulfill({
+    status:401,contentType:'application/json',
+    headers:{'Access-Control-Allow-Origin':'http://127.0.0.1:4173','Access-Control-Allow-Credentials':'true'},
+    body:JSON.stringify({ok:false,error:'unauthorized'})
+  }));
+  const response=await page.goto(base+'/fa/customer-dashboard/',{waitUntil:'domcontentloaded'});
+  expect(response.status()).toBe(200);
+  expect(await page.locator('meta[name="robots"]').getAttribute('content')).toContain('noindex');
+  for(const id of ['ecosystem','service-market','student-support','account-workspaces','academic-profile','progress','consultations','records','account']){
+    await expect(page.locator('#'+id)).toHaveCount(1);
+  }
+  await expect(page.locator('[data-entry-mode]')).toHaveCount(4);
+  await expect(page.locator('[data-entry-links="all"]')).toBeVisible();
+  await page.locator('[data-entry-mode="sponsorship"]').click();
+  await expect(page.locator('[data-entry-mode="sponsorship"]')).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('[data-entry-links="sponsorship"]')).toBeVisible();
+  await expect(page.locator('[data-entry-links="all"]')).toBeHidden();
+  await expect(page.locator('#ecosystem')).toBeVisible();
+  await expect(page.locator('#academic-profile [data-private-record-control]:enabled')).toHaveCount(0);
+  await page.locator('[data-entry-mode="shopping"]').click();
+  await expect(page.locator('[data-entry-links="shopping"]')).toBeVisible();
+  await expect(page.locator('[data-entry-links="sponsorship"]')).toBeHidden();
+  await expect(page.locator('[data-live-dot].ready')).toHaveCount(0);
+  await page.locator('[data-dashboard-more]').click();
+  await expect(page.locator('[data-dashboard-sheet]')).toHaveClass(/is-open/);
+  await page.locator('[data-dashboard-sheet] a[href="#student-support"]').click();
+  await expect(page.locator('[data-dashboard-sheet]')).not.toHaveClass(/is-open/);
+  await expect(page.locator('[data-dashboard-more]')).toHaveAttribute('aria-expanded','false');
+  for(const width of [320,390]){
+    await page.setViewportSize({width,height:844});
+    const w=await stableOverflow(page);
+    expect(Math.max(w.html,w.body),'unified dashboard horizontal overflow at '+width).toBeLessThanOrEqual(w.viewport+1);
+  }
+});
