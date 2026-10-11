@@ -20,16 +20,17 @@
  });
  function update(){
   const n=Number(normal(input.value));
-  preview.textContent=Number.isSafeInteger(n)&&n>=1000&&n<=500000
+  preview.textContent=Number.isSafeInteger(n)&&n>=1000&&n<=10000000
    ?(isFa?'مبلغ پرداخت: '+fmt(n)+' تومان':'Payment amount: '+fmt(n)+' toman')
-   :(isFa?'مبلغ مجاز: ۱٬۰۰۰ تا ۵۰۰٬۰۰۰ تومان':'Allowed amount: 1,000–500,000 toman');
+   :(isFa?'مبلغ مجاز: ۱٬۰۰۰ تا ۱۰٬۰۰۰٬۰۰۰ تومان':'Allowed amount: 1,000–10,000,000 toman');
  }
  presets.forEach(button=>button.addEventListener('click',()=>{
   if(submitted)return;
   input.value=button.dataset.supportAmount;
+  presets.forEach(p=>p.setAttribute('aria-pressed',String(p===button)));
   update();input.focus();
  }));
- input.addEventListener('input',update);
+ input.addEventListener('input',()=>{presets.forEach(p=>p.setAttribute('aria-pressed',String(Number(p.dataset.supportAmount)===Number(normal(input.value)))));update();});
  update();
  submit.disabled=true;
  show(isFa?'در حال بررسی آمادگی درگاه...':'Checking gateway readiness...');
@@ -39,7 +40,7 @@
    if(!response.ok)throw Error('unavailable');
    const data=await response.json();
    if(data?.ok!==true||data.service!=='donations'||data.checkout!==true||
-      data.currency!=='IRT'||data.minToman!==1000||data.maxToman!==500000)throw Error('unavailable');
+      data.currency!=='IRT'||data.minToman!==1000||data.maxToman!==10000000)throw Error('unavailable');
    ready=true;submit.disabled=false;
    show(isFa?'درگاه آماده است. پیش از پرداخت، مبلغ را بررسی کنید.':'Gateway is ready. Check the amount before payment.');
   }catch(_){
@@ -51,8 +52,8 @@
   event.preventDefault();
   if(!ready||submitted)return;
   const amount=Number(normal(input.value));
-  if(!Number.isSafeInteger(amount)||amount<1000||amount>500000){
-   show(isFa?'مبلغ صحیح بین ۱٬۰۰۰ تا ۵۰۰٬۰۰۰ تومان وارد کنید.':'Enter a whole amount between 1,000 and 500,000 toman.');return;
+  if(!Number.isSafeInteger(amount)||amount<1000||amount>10000000){
+   show(isFa?'مبلغ صحیح بین ۱٬۰۰۰ تا ۱۰٬۰۰۰٬۰۰۰ تومان وارد کنید.':'Enter a whole amount between 1,000 and 10,000,000 toman.');return;
   }
   if(email.value&&!email.checkValidity()){
    show(isFa?'ایمیل اختیاری واردشده معتبر نیست.':'The optional email is not valid.');return;
