@@ -1205,9 +1205,9 @@ test('bilingual intake, service pages and shops disclose real booking and paymen
     ['/en/request-consultation/','Online booking not active','Online payment not active'],
     ['/fa/khadamat/','رزرو و پرداخت آنلاین در این مرحله فعال نیستند','درخواست اولیه، خرید نیست'],
     ['/en/services/','Live appointment booking is not currently available','Online payments are not yet enabled'],
-    ['/fa/shop/','ثبت سفارش فعال','پرداخت آنلاین فقط پس از تأیید کامل TLS و درگاه تولیدی فعال خواهد شد'],
-    ['/en/shop/','Order capture active','Payment remains disabled until the trusted production payment path is verified'],
-    ['/fa/shop/checkout/','ثبت سفارش فعال؛ پرداخت مستقل و ایمن','پرداخت آنلاین فقط پس از فعال‌شدن مسیر معتبر درگاه انجام خواهد شد']
+    ['/fa/shop/','ثبت سفارش فعال','بر اساس آمادگی لحظه‌ای سرور فعال‌اند'],
+    ['/en/shop/','Order capture active','Payment is never considered final until the bank result is verified by the server'],
+    ['/fa/shop/checkout/','مسیر ثبت سفارش و پرداخت امن','فقط پرداخت تأییدشده توسط سرور سفارش را قطعی می‌کند']
   ];
   for(const [route,first,second] of cases){
     for(const [width,height] of [[390,844],[1440,900]]){
@@ -1272,9 +1272,10 @@ test('mobile above-the-fold typography keeps shop and service entry actions visi
       expect(Math.max(metrics.html,metrics.body),route+' at '+width+' overflow').toBeLessThanOrEqual(metrics.viewport+1);
       if(route==='/fa/shop/'){
         const links=page.locator('.book-store-hero .store-nav a');
-        await expect(links).toHaveCount(2);
+        await expect(links).toHaveCount(4);
+        expect(await links.evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))).toEqual(['#book-catalog','#publish-for-talent','#support','./cart/']);
         const rects=await links.evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().toJSON()));
-        expect(Math.abs(rects[0].top-rects[1].top)).toBeLessThanOrEqual(3);
+        for(const rect of rects){expect(rect.left).toBeGreaterThanOrEqual(0);expect(rect.right).toBeLessThanOrEqual(width+1);expect(rect.bottom).toBeLessThanOrEqual(height);expect(rect.height).toBeGreaterThanOrEqual(32);}
       }
     }
   }
