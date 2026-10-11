@@ -49,6 +49,7 @@ jobs:
           php tests/operations-security.php
           php tests/operations-mysql.php
           php tests/bertina-receipt-contract.php
+          php tests/bertina-commerce-callback-contract.php
 
       - name: Verify operations browser behavior before release
         run: |
