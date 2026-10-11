@@ -69,7 +69,7 @@ test('Bertina unified dashboard preserves all modules and makes path switching p
  await expect(page.locator('[data-command-path="sponsorship"]')).toHaveAttribute('aria-pressed','true');
  await expect(page.locator('[data-command-item][href="#student-support"]')).toBeVisible();
  await expect(page.locator('[data-command-item][data-command-group="learning"]:visible')).toHaveCount(0);
- await expect(page.locator('#ecosystem')).toBeVisible();
+ await expect(page.locator('#ecosystem')).toBeHidden();
  await expect(page.locator('[data-live-dot].ready')).toHaveCount(0);
  await page.locator('[data-command-path="all"]').click();
  await expect(page.locator('[data-command-item]:visible')).toHaveCount(12);
@@ -82,4 +82,61 @@ test('Bertina unified dashboard preserves all modules and makes path switching p
   const widths=await page.evaluate(()=>[document.documentElement.scrollWidth,document.body.scrollWidth,innerWidth]);
   expect(Math.max(widths[0],widths[1]),'dashboard horizontal overflow at '+width).toBeLessThanOrEqual(widths[2]+1);
  }
+});
+
+
+test('dashboard navigation shows account summary first, exactly one workspace and supports mobile deep links',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.setViewportSize({width:390,height:844});
+ await page.goto(base+'/fa/customer-dashboard/',{waitUntil:'domcontentloaded'});
+ const shown=()=>page.locator('[data-dashboard-panel]:visible').evaluateAll(nodes=>[...new Set(nodes.map(n=>n.dataset.dashboardPanel))]);
+ await expect(page.locator('.cd-statusbar')).toBeVisible();
+ await expect(page.locator('#overview')).toBeVisible();
+ await expect(page.locator('#command-center')).toBeVisible();
+ await expect(page.locator('#student-support')).toBeHidden();
+ await expect(page.locator('#academic-profile')).toBeHidden();
+ expect(await shown()).toEqual(['overview']);
+ const summaryPosition=await page.locator('.cd-statusbar').evaluate(el=>el.compareDocumentPosition(document.querySelector('#overview'))&Node.DOCUMENT_POSITION_FOLLOWING);
+ expect(summaryPosition).toBeTruthy();
+ await page.locator('.cd-mobile-dock a[href="#academic-profile"]').click();
+ await expect(page.locator('#academic-profile')).toBeVisible();
+ await expect(page.locator('.cd-statusbar')).toBeHidden();
+ await expect(page.locator('#journey')).toBeHidden();
+ expect(await shown()).toEqual(['academic-profile']);
+ await page.locator('.cd-mobile-dock a[href="#progress"]').click();
+ await expect(page.locator('#progress')).toBeVisible();
+ await expect(page.locator('#academic-profile')).toBeHidden();
+ expect(await shown()).toEqual(['progress']);
+ await page.goBack();
+ await expect(page.locator('#academic-profile')).toBeVisible();
+ await page.goto(base+'/fa/customer-dashboard/#service-market',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#ecosystem')).toBeVisible();
+ await expect(page.locator('#service-market')).toBeVisible();
+ await expect(page.locator('#student-support')).toBeHidden();
+ expect(await shown()).toEqual(['ecosystem']);
+ await page.goto(base+'/fa/customer-dashboard/#student-support',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#student-support')).toBeVisible();
+ await expect(page.locator('#ecosystem')).toBeHidden();
+ expect(await shown()).toEqual(['student-support']);
+ await page.locator('[data-dashboard-more]').click();
+ await expect(page.locator('[data-dashboard-sheet]')).toHaveClass(/is-open/);
+ await page.locator('[data-dashboard-sheet] a[href="#command-center"]').click();
+ await expect(page.locator('[data-dashboard-sheet]')).not.toHaveClass(/is-open/);
+ await expect(page.locator('#command-center')).toBeVisible();
+ expect(await shown()).toEqual(['overview']);
+ for(const width of [320,390,768,1280]){
+  await page.setViewportSize({width,height:860});
+  const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+  expect(overflow,'horizontal overflow at '+width).toBeLessThanOrEqual(1);
+ }
+ await page.setViewportSize({width:1280,height:860});
+ const fonts=await page.evaluate(()=>({
+  nav:parseFloat(getComputedStyle(document.querySelector('.cd-nav a')).fontSize),
+  description:parseFloat(getComputedStyle(document.querySelector('.cd-hero p')).fontSize),
+  card:parseFloat(getComputedStyle(document.querySelector('.cd-quick-card strong')).fontSize)
+ }));
+ expect(fonts.nav).toBeGreaterThanOrEqual(15);
+ expect(fonts.description).toBeGreaterThanOrEqual(16);
+ expect(fonts.card).toBeGreaterThanOrEqual(15);
+ expect(errors).toEqual([]);
 });
