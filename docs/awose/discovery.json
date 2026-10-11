@@ -939,7 +939,7 @@
     {
       "id": "AWOSE-BLK-001",
       "state": "TESTING_REQUIRED",
-      "reason": "Noncanonical retired routes return410withLocation to404 due ErrorDocument subrequest; preserve Gone policy and verify exact responses."
+      "reason": "Older deployment failed strict410checks. Newer production already has inline native410and a safety regression; verify the current exact release rather than duplicating or reverting its fix."
     },
     {
       "id": "AWOSE-BLK-002",
@@ -961,5 +961,11 @@
       "state": "PERMISSION_REQUIRED",
       "reason": "Hosting GitHub workflow dispatch credentials and cron provisioning are not observed; no autonomous production writer is assumed."
     }
-  ]
+  ],
+  "reconciliation_update": {
+    "source_sha": "0d444b180ebe9d0d61b995b82e8988f7a4f73eb4",
+    "observed_at": "2026-10-11T09:35:55Z",
+    "native_gone_source_fix": "present_in_newer_production_source",
+    "live_certification": "pending_latest_release"
+  }
 }

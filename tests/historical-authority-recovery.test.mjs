@@ -185,3 +185,12 @@ test('404 intelligence counts only valid external HTTP referrers, including suff
     assert.equal(result.rows[0].action,'REVIEW');
   }finally{fs.rmSync(dir,{recursive:true,force:true})}
 });
+
+
+test('retired-product ErrorDocument cannot trigger a secondary redirect or leak retired inventory',()=>{
+  const ht=fs.readFileSync('.htaccess','utf8');
+  const handler=ht.match(/^ErrorDocument\s+410\s+(.+)$/m)?.[1]?.trim();
+  assert.ok(handler&&handler.startsWith('"'), '410 response must use a native inline error document');
+  assert.ok(!/^ErrorDocument\s+410\s+https?:/mi.test(ht),'410 must not redirect to another host');
+  assert.ok(!/\bErrorDocument\s+410\s+\/404\.html\b/m.test(ht),'retired product must not use the 404 error-page redirect handler');
+});

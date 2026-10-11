@@ -3,8 +3,7 @@
 
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
-# Native Gone response avoids an ErrorDocument subrequest being redirected by host/TLS rules.
-ErrorDocument 410 default
+ErrorDocument 410 "This content is permanently unavailable. Visit the current bookstore through the main website."
 
 <IfModule mod_rewrite.c>
 RewriteEngine On
