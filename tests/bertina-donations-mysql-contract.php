@@ -95,8 +95,8 @@ try {
     assertDonation($response->data['paymentUrl']===$expected,'strict_bitpay_redirect');
     $stmt=$pdo->prepare('SELECT state,amount_toman,provider_amount,provider_id_get,items_json,customer_email,customer_json FROM commerce_orders WHERE id=?');
     $stmt->execute([$id]);$row=$stmt->fetch();
-    assertDonation(is_array($row)&&$row['state']==='pending'&&$row['amount_toman']==='10000'&&
-        $row['provider_amount']==='100000'&&$row['provider_id_get']==='789123','correct_real_mysql_order_and_currency_conversion');
+    assertDonation(is_array($row)&&$row['state']==='pending'&&(int)$row['amount_toman']===10000&&
+        (int)$row['provider_amount']===100000&&$row['provider_id_get']==='789123','correct_real_mysql_order_and_currency_conversion');
     $lines=json_decode($row['items_json'],true);
     assertDonation($lines[0]['kind']==='donation'&&$lines[0]['sku']==='support:voluntary'&&
         $lines[0]['quantity']===1&&$lines[0]['subtotal']===10000,'distinct_support_line_no_book_sale');
