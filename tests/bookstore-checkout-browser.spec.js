@@ -87,6 +87,6 @@ test('Persian checkout blocks a forged payment destination in mocked response',a
   await page.locator('#buyer-address').fill('123 Test Street, Test City');
   await page.locator('#buyer-postal').fill('1234567890');
   await page.locator('[data-book-checkout] button.primary').click();
-  await expect(page).toHaveURL(url=>url.pathname==='/fa/shop/checkout/');
+  await expect(page).toHaveURL(base+'/fa/shop/checkout/');
   await expect(page.locator('[data-book-checkout] [role="status"]')).toContainText('نشانی بازگشت درگاه معتبر نبود');
 });
