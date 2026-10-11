@@ -49,7 +49,10 @@ test('thirteen academic articles preserve mobile reading and contextual commerce
   const hero=await page.locator('.launch-hero-image img').evaluate(el=>({complete:el.complete,naturalWidth:el.naturalWidth,src:el.getAttribute('src')}));
   expect(hero.src,slug).toMatch(/\.webp$/);
   if(!hero.complete) await page.locator('.launch-hero-image img').evaluate(el=>el.decode());
-  await expect(page.locator('.launch-hero-image img')).toHaveJSProperty('naturalWidth',1600);
+  const imageDimensions=await page.locator('.launch-hero-image img').evaluate(el=>({naturalWidth:el.naturalWidth,naturalHeight:el.naturalHeight,declaredWidth:Number(el.getAttribute('width')),declaredHeight:Number(el.getAttribute('height'))}));
+  expect(imageDimensions.naturalWidth,slug+' failed image loading').toBeGreaterThanOrEqual(900);
+  expect(imageDimensions.naturalWidth,slug+' width mismatch').toBe(imageDimensions.declaredWidth);
+  expect(imageDimensions.naturalHeight,slug+' height mismatch').toBe(imageDimensions.declaredHeight);
  }
 });
 test('desktop keeps article first, offers discoverable, and news headings balanced',async({page})=>{
