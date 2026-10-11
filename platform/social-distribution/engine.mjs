@@ -221,6 +221,7 @@ export async function runCLI(args=process.argv.slice(2)){
   // Filesystem lock protects against parallel cron invocations.
   let lock=null;
   if(publish){
+    await fs.mkdir(path.dirname(cfg.statePath),{recursive:true,mode:0o700});
     const lockPath=cfg.statePath+'.lock';
     try{await fs.mkdir(lockPath,{recursive:false,mode:0o700});lock=lockPath;}
     catch(e){if(e.code==='EEXIST')throw Error('Another publisher invocation is running');throw e;}
