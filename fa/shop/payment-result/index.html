@@ -58,6 +58,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #c99d46;outline-offset:3p
 </div></section>
 <div class="no-print">
 <button type="button" id="print" hidden>چاپ یا ذخیره PDF رسید</button>
+<button type="button" id="recheck-payment-status" hidden>استعلام دوباره وضعیت (بدون پرداخت)</button>
 <a class="action" href="/fa/shop/">بازگشت به فروشگاه</a>
 <a class="action" href="mailto:dr.rezazadeh65@gmail.com?subject=%D9%BE%DB%8C%DA%AF%DB%8C%D8%B1%DB%8C%20%D8%B3%D9%81%D8%A7%D8%B1%D8%B4">پیگیری از طریق ایمیل</a>
 </div>
@@ -67,10 +68,13 @@ button:focus-visible,a:focus-visible{outline:3px solid #c99d46;outline-offset:3p
 (async function(){
  const params=new URLSearchParams(location.search),id=params.get('order');
  const title=document.getElementById('title'),status=document.getElementById('status');
+ const recheck=document.getElementById('recheck-payment-status');
  const fmt=n=>new Intl.NumberFormat('fa-IR').format(n)+' تومان';
  if(!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(id||'')){
   title.textContent='شناسه سفارش نامعتبر است';status.textContent='برای پیگیری، از ایمیل رسمی سایت استفاده کنید.';return;
  }
+ recheck.hidden=false;
+ recheck.onclick=()=>location.reload(); // Read-only GET of the existing order; never starts a new payment.
  try{
   const res=await fetch('/api/commerce/status?order='+encodeURIComponent(id),{cache:'no-store',credentials:'omit'});
   const data=await res.json();
@@ -114,6 +118,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #c99d46;outline-offset:3p
    new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Tehran',dateStyle:'medium',timeStyle:'short'}).format(paid):'در سرور ثبت شده';
   document.getElementById('receipt-total').textContent=fmt(total);
   document.getElementById('receipt').hidden=false;
+  recheck.hidden=true;
   status.textContent='جزئیات زیر مستقیماً از سفارش پرداخت‌شده در سرور خوانده شده است.';
   const button=document.getElementById('print');button.hidden=false;button.onclick=()=>window.print();
  }catch(e){
