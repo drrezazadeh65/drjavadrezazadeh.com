@@ -5,7 +5,6 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import os from 'node:os';
 
 export const ORIGIN = 'https://drjavadrezazadeh.com';
 export const FEED = ORIGIN + '/feed.xml';
@@ -22,7 +21,6 @@ export const CHANNELS = Object.freeze({
   threads: {label:'تردز', limit:500, transport:null, media:['text','photo']},
   youtube: {label:'یوتیوب', limit:null, transport:null, media:['video','short']},
 });
-const allowedTypes = new Set(['article','news','guide']);
 const decode = value => String(value||'').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,'$1')
   .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
   .replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'")
@@ -85,6 +83,11 @@ const configFromEnv = () => ({
   maxPostsPerDay:Number(process.env.SOCIAL_POSTS_PER_DAY||1),
   campaign:process.env.SOCIAL_CAMPAIGN||'editorial'
 });
+function hasProviderConfig(channel){
+  if(channel==='telegram')return Boolean(process.env.SOCIAL_TELEGRAM_BOT_TOKEN && process.env.SOCIAL_TELEGRAM_CHAT_ID);
+  if(channel==='eitaa')return Boolean(process.env.SOCIAL_EITAA_TOKEN && process.env.SOCIAL_EITAA_CHAT_ID);
+  return false;
+}
 async function loadState(file){
   try{return JSON.parse(await fs.readFile(file,'utf8'));}
   catch(e){if(e.code==='ENOENT')return {version:1,sent:{},uncertain:{},days:{}};throw e;}
@@ -145,6 +148,9 @@ export async function runCycle({dryRun=true,forcePreview=false,now=new Date(),
     return {status:'publishing_disabled',time:clock,preview:[]};
   const channels=cfg.channels.filter(x=>CHANNELS[x]);
   if(!channels.length)return {status:'no_channels_enabled',time:clock,preview:[]};
+  cfg.maxPostsPerDay=Math.max(1,Math.min(6,Math.floor(cfg.maxPostsPerDay)||1));
+  if(!dryRun && !channels.some(hasProviderConfig))
+    return {status:'no_authorized_providers',time:clock,preview:[]};
   if(!dryRun && (!cfg.statePath || !path.isAbsolute(cfg.statePath)))
     throw Error('SOCIAL_STATE_PATH must be an absolute persistent private path');
   const xml=feedXml ?? await (async()=>{
@@ -157,7 +163,15 @@ export async function runCycle({dryRun=true,forcePreview=false,now=new Date(),
   const selected=[];
   for(const item of items){
     if(selected.length>=cfg.maxPostsPerDay)break;
-    if(!dryRun && !(await inspectArticle(item.url,fetcher)))continue;
+    if(!dryRun){
+      // Continue past already-distributed items so the queue advances every day.
+      // An unconnected channel must not hold every other channel hostage.
+      const needed=channels.some(ch=>hasProviderConfig(ch) &&
+        !state.sent[ch+'|'+canonical(item.url)] &&
+        !state.uncertain[ch+'|'+canonical(item.url)]);
+      if(!needed)continue;
+      if(!(await inspectArticle(item.url,fetcher)))continue;
+    }
     selected.push(item);
   }
   const posts=[],results=[];
@@ -173,7 +187,7 @@ export async function runCycle({dryRun=true,forcePreview=false,now=new Date(),
       if((state.days[dayKey]||0)>=cfg.maxPostsPerDay){
         results.push({channel,url:item.url,status:'daily_limit'});continue;
       }
-      if(!CHANNELS[channel].transport){
+      if(!CHANNELS[channel].transport || !hasProviderConfig(channel)){
         results.push({channel,url:item.url,status:'provider_connection_required'});continue;
       }
       // Commit uncertain state BEFORE external IO to prevent duplicate cross-run posting.
