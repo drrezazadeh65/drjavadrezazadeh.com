@@ -333,3 +333,32 @@ test('Student fund contributions are guest-accessible and reject invalid benefic
  expect(received).toEqual({amountToman:10000,email:'',focus:'scholarship'});
  await expect(page.locator('[data-support-status]')).toContainText('اصلاح');
 });
+
+for(const [lang,path] of [['fa','/fa/support-talented-students/'],['en','/en/support-talented-students/']]){
+  test('Safeguarded public student support landing is bilingual guest-first '+lang,async({page})=>{
+    await page.setViewportSize({width:390,height:820});
+    await page.route('**/api/donations/health',route=>route.fulfill({status:200,json:{ok:true,service:'donations',
+      checkout:true,minToman:1000,maxToman:500000,defaultToman:10000,currency:'IRT'}}));
+    await page.goto(base+path,{waitUntil:'domcontentloaded'});
+    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('[data-support-form]')).toBeVisible();
+    await expect(page.locator('[data-support-form] [type="submit"]')).toBeEnabled();
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://drjavadrezazadeh.com'+path);
+    await expect(page.locator('link[rel="alternate"][hreflang="fa"]')).toHaveCount(1);
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveCount(1);
+    await expect(page.locator('[name="focus"]')).toBeVisible();
+    const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await expect(page.getByText(/no direct|بدون تماس مستقیم/i).first()).toBeVisible();
+  });
+}
+test('Sponsor workspace declares consent and does not fabricate student profiles without an authenticated backend',async({page})=>{
+ await page.route('**/api/student-support/health',route=>route.fulfill({status:200,json:{
+  ok:true,service:'student-support',guestGiving:true,caseSchemaReady:false,privatePortal:false,
+  studentIdentityPublic:false,directSponsorStudentContact:false}}));
+ await page.goto(base+'/fa/customer-dashboard/#student-support',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#student-support')).toBeVisible();
+ await expect(page.locator('[data-support-portal-status]')).toContainText('پایگاه دادهٔ حمایت');
+ await expect(page.locator('[data-support-cases]')).toBeHidden();
+ await expect(page.locator('[data-support-need-form]')).toBeHidden();
+});
