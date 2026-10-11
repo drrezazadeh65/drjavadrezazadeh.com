@@ -120,7 +120,23 @@
       "source_status": "owner-approved-production-source",
       "mime_type": "image/webp",
       "composition_locked": true,
-      "optimization_profile": "hero-webp-full-1935x813"
+      "optimization_profile": "hero-webp-full-1935x813",
+      "source_asset": "assets/images/bookstore-talent-cinematic-approved-original-20261011.png"
+    },
+    {
+      "path": "assets/images/bookstore-talent-cinematic-approved-original-20261011.png",
+      "kind": "illustration",
+      "role": "bookstore-owner-approved-exact-original-master",
+      "provenance": "exact unmodified 1935×813 source PNG generated and explicitly approved by website owner in conversation on 2026-10-11; SHA256 24a7ec84fe17f2a3ca8fcf0f22a0cd6fc01e4ca312e7b136ca1bed9349e4b00e",
+      "rights": "website-owner-approved site use",
+      "alt_en": "Original cinematic bookshop illustration with illuminated book, students, mountains and golden opportunity path",
+      "alt_fa": "تصویر سینمایی اصلی و مورد تأیید فروشگاه، کتاب گشوده نورانی و مسیر طلایی شکوفایی استعداد",
+      "caption_en": "Original owner-approved Persian bookstore hero banner, preserved byte-for-byte",
+      "caption_fa": "نسخه اصلی و بدون تغییر بنر تأییدشده فروشگاه کتاب",
+      "source_status": "owner-approved-canonical-original",
+      "mime_type": "image/png",
+      "composition_locked": true,
+      "optimization_profile": "canonical-master-unmodified"
     },
     {
       "path": "assets/images/educational-philosophy-human-growth-javad-rezazadeh.svg",
