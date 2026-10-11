@@ -34,3 +34,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 verify server-backed paid receipt and prevent URL-only paid receipt spoofing.
 
 2026-10-11 verify real MySQL payment state and receipt with mocked gateway, replay checks.
+
+2026-10-11 release Bertina-only customer registration readiness fix (PR #41); schema validation, SMTP fail-closed and bilingual error UX. Preserve payment gates.
