@@ -5,7 +5,7 @@ html{scroll-behavior:smooth}
 body.ss-body{margin:0;min-height:100vh;font-family:Tahoma,Arial,sans-serif;color:var(--ss-ink);background:var(--ss-bg);line-height:1.95}
 .ss-body a{color:inherit}
 .ss-body a:focus-visible,.ss-body button:focus-visible,.ss-body input:focus-visible,.ss-body select:focus-visible{outline:3px solid #ac792d;outline-offset:3px}
-.ss-skip{position:absolute;left:-9999px;top:8px;background:#fff;color:#111;padding:10px;z-index:12}.ss-skip:focus{left:10px}
+.ss-skip{position:fixed;inset-inline-start:12px;top:8px;transform:translateY(-200%);background:#fff;color:#111;padding:10px;z-index:12}.ss-skip:focus{transform:translateY(0)}
 .ss-header{background:#0c2038;color:#f6f7fa;border-bottom:1px solid #34445a;position:relative;z-index:2}
 .ss-nav{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:76px;padding:10px 24px;flex-wrap:wrap}
 .ss-brand{display:flex;flex-direction:column;text-decoration:none;line-height:1.35;font-weight:800;letter-spacing:.01em}
