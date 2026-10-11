@@ -96,3 +96,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 release retry after correcting support browser test syntax; verified PR45 SMTP account changes remain included.
 
 2026-10-11 release after repairing syntax-checked mobile donor Playwright assertions, validating all bilingual student support pages, live Bertina source, and premium v3 CSS.
+
+2026-10-11 final deployment verification: live Bertina shop must use approved original cinematic image, current v3 CSS, cleared cache fingerprint, and all four capped donor forms.
