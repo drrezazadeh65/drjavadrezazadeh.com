@@ -6,6 +6,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {mergeNews} from './discovery.mjs';
+import {planPost} from './composer.mjs';
 
 export const ORIGIN = 'https://drjavadrezazadeh.com';
 export const FEED = ORIGIN + '/feed.xml';
@@ -50,19 +51,13 @@ export function shorten(text, max){
   return Array.from(text).slice(0,Math.max(0,max-1)).join('').trimEnd()+'…';
 }
 export function variant(item,channel,campaign='editorial'){
-  const limit=CHANNELS[channel]?.limit;
-  if(!CHANNELS[channel]) throw Error('Unknown channel');
-  const u=new URL(canonical(item.url));
-  u.searchParams.set('utm_source',channel);
-  u.searchParams.set('utm_medium','social');
-  u.searchParams.set('utm_campaign',campaign);
-  const link=u.toString();
-  const intro=channel==='x' ? item.title : item.title+'\n\n'+strip(item.description);
-  const available=limit ? Math.max(25,limit-Array.from(link).length-3) : null;
-  return {channel,title:item.title,url:item.url,trackingUrl:link,
-    text:shorten(intro,available)+'\n\n'+link,media:null,
-    mode:'text',status:'draft',humanReview:false};
+  if(!CHANNELS[channel])throw Error('Unknown channel');
+  const post=planPost(item,channel,{campaign});
+  return {channel,title:post.title,url:post.source,trackingUrl:post.trackingUrl,
+    text:post.body,hashtags:post.hashtags,media:null,mode:post.format,
+    status:'draft',humanReview:true,warnings:post.warnings};
 }
+
 export function iranClock(date=new Date()){
   const parts=new Intl.DateTimeFormat('en-GB',{
     timeZone:ZONE,year:'numeric',month:'2-digit',day:'2-digit',
