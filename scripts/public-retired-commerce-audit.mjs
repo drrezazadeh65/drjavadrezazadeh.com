@@ -30,7 +30,7 @@ for(const [lang,html] of [['fa',fa],['en',en]]){
  if(lang==='en' && !html.includes('bookstore-talent-approved-scene-20261011.webp'))errors.push('English approved scene crop missing');
  if(html.includes('talent-bookstore-hero-3d.svg'))errors.push(lang+' rejected vector image is still referenced');
 }
-for(const asset of ['bookstore-talent-cinematic-approved-20261011.webp','bookstore-talent-approved-scene-20261011.webp']){
+for(const asset of ['bookstore-talent-cinematic-approved-original-20261011.png','bookstore-talent-cinematic-approved-20261011.webp','bookstore-talent-approved-scene-20261011.webp']){
  if(!fs.existsSync(path.join(root,'assets/images',asset)))errors.push('Owner-approved image omitted: '+asset);
 }
 if(fs.existsSync(path.join(root,'assets/images/talent-bookstore-hero-3d.svg')))errors.push('Rejected SVG must not be published');
