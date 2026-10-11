@@ -61,7 +61,7 @@ walk(out);
 const html=all.filter(p=>p.endsWith('.html'));
 // Route count includes the public engine-status page, the approved noindex customer dashboard, and approved noindex commerce relays.
 // Keep a fixed route count as a guard against accidentally publishing engineering files.
-const approvedPublicHtmlRoutes=290;
+const approvedPublicHtmlRoutes=291;
 if(html.length!==approvedPublicHtmlRoutes) failures.push(
   'Expected '+approvedPublicHtmlRoutes+' public HTML routes in sanitized artifact, found '+html.length
 );
@@ -73,6 +73,16 @@ else{
 }
 const engineStatus='fa/app/engine-status/index.html';
 if(!fs.existsSync(path.join(out,engineStatus))) failures.push('Public engine dashboard missing: '+engineStatus);
+for(const rel of ['fa/support-talented-students/index.html','en/support-talented-students/index.html']){
+  const page=path.join(out,rel);
+  if(!fs.existsSync(page))failures.push('Missing bilingual student support landing: '+rel);
+  else{
+    const html=fs.readFileSync(page,'utf8');
+    if(!html.includes('<meta name="robots" content="index,follow')||!html.includes('data-support-form')){
+      failures.push('Student support landing must be indexable and include guest giving form: '+rel);
+    }
+  }
+}
 const paymentRelay='fa/shop/payment-return/index.html';
 const relayPath=path.join(out,paymentRelay);
 if(!fs.existsSync(relayPath)) {
