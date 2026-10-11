@@ -75,6 +75,8 @@ try {
         assertDonation($result->status===400&&$result->data['error']==='invalid_donation_amount',
             'reject_invalid_amount_'.json_encode($invalid));
     }
+    $badFocus=donationRequest($route,'/donations/create','POST',['amountToman'=>10000,'focus'=>'student-id-or-url']);
+    assertDonation($badFocus->status===400&&$badFocus->data['error']==='invalid_support_focus','reject_unverified_student_target');
     $badEmail=donationRequest($route,'/donations/create','POST',['amountToman'=>10000,'email'=>'not-an-email']);
     assertDonation($badEmail->status===400&&$badEmail->data['error']==='invalid_donation_email','reject_invalid_optional_email');
     assertDonation($GLOBALS['gatewayCalls']===0,'invalid_payloads_never_contact_gateway');
@@ -87,7 +89,7 @@ try {
 
     $pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$id]);
     $GLOBALS['gatewayMode']='ok';
-    $response=donationRequest($route,'/donations/create','POST',['amountToman'=>10000,'email'=>'donor@example.test']);
+    $response=donationRequest($route,'/donations/create','POST',['amountToman'=>10000,'email'=>'donor@example.test','focus'=>'books']);
     assertDonation($response->status===200&&($response->data['ok']??false)===true&&
         $response->data['orderId']===$id&&$response->data['amountToman']===10000&&
         $response->data['currency']==='IRT','minimum_purchase_free_test_payment_created');
@@ -98,7 +100,9 @@ try {
     assertDonation(is_array($row)&&$row['state']==='pending'&&(int)$row['amount_toman']===10000&&
         (int)$row['provider_amount']===100000&&$row['provider_id_get']==='789123','correct_real_mysql_order_and_currency_conversion');
     $lines=json_decode($row['items_json'],true);
-    assertDonation($lines[0]['kind']==='donation'&&$lines[0]['sku']==='support:voluntary'&&
+    assertDonation($lines[0]['kind']==='donation'&&$lines[0]['sku']==='support:students'&&
+        $lines[0]['program']==='talented-students-v1'&&$lines[0]['focus']==='books'&&
+        $lines[0]['allocation']==='pending_verified_need'&&
         $lines[0]['quantity']===1&&$lines[0]['subtotal']===10000,'distinct_support_line_no_book_sale');
     assertDonation($row['customer_email']==='donor@example.test'&&$row['customer_json']===null,'optional_email_without_shipping_details');
     assertDonation($GLOBALS['originChecks']>=2&&$GLOBALS['gatewayCalls']===2,'csrf_origin_gate_and_provider_init_once_per_valid_request');
