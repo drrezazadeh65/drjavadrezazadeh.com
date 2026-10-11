@@ -602,6 +602,10 @@ if($path==='/donations/create'&&$verb==='POST'){
         'paymentUrl'=>SITE_ORIGIN.'/fa/shop/payment-start/?gateway='.rawurlencode('https://bitpay.ir/payment/gateway-'.$gatewayId.'-get')]);
 }
 if(str_starts_with($path,'/donations/'))fail('not_found',404);
+if(str_starts_with($path,'/student-support/')){
+    require_once __DIR__.'/student-support.php';
+    studentSupportRoute($path,$verb);
+}
 if($path==='/assistant/v1/chat'&&$verb==='POST')fail('assistant_local_fallback',503);
 if($path==='/assistant/v1/leads'&&$verb==='POST')fail('lead_capture_not_configured',503);
 if($path==='/register-request'&&$verb==='POST')fail('registration_intake_not_configured',503);
