@@ -124,3 +124,45 @@ test('Bank return allows read-only recheck of the same pending order, with no ne
   await expect(page.locator('#print')).toBeHidden();
   expect(createCalls).toBe(0);
 });
+
+for(const {label,error,shouldRetry} of [
+  {label:'ambiguous network failure',error:null,shouldRetry:false},
+  {label:'input-validation rejection',error:'invalid_customer_email',shouldRetry:true},
+  {label:'gateway rejection',error:'gateway_rejected',shouldRetry:false}
+]){
+  test('Paid checkout handles '+label+' without duplicate attempts',async({page})=>{
+    let creates=0;
+    await page.addInitScript(()=>localStorage.setItem('jr-book-cart-v1',JSON.stringify([{book_id:'roshanaei',quantity:1}])));
+    await page.route('**/api/commerce/health',route=>route.fulfill({json:{ok:true,service:'commerce',checkout:true,orderCapture:true,capabilities:{books:true}}}));
+    await page.route('**/api/commerce/create',route=>{
+      creates+=1;
+      return error?route.fulfill({status:error==='gateway_rejected'?502:400,json:{ok:false,error}}):route.abort('failed');
+    });
+    await page.goto(base+'/fa/shop/checkout/',{waitUntil:'domcontentloaded'});
+    const button=page.locator('[data-book-checkout] button.primary');
+    await expect(button).toBeEnabled();
+    await page.locator('#buyer-name').fill('Test Customer');
+    await page.locator('#buyer-email').fill('checkout-example@example.org');
+    await page.locator('#buyer-address').fill('123 Test Street, Test City');
+    await page.locator('#buyer-postal').fill('1234567890');
+    await button.click();
+    await expect(page.locator('[data-book-checkout] [role="status"]')).not.toContainText('در حال ایجاد سفارش امن');
+    if(shouldRetry)await expect(button).toBeEnabled();
+    else await expect(button).toBeDisabled();
+    expect(creates).toBe(1);
+  });
+}
+
+test('Forged paid status with mismatched receipt cannot show a payment receipt',async({page})=>{
+  const orderId='11111111-1111-4111-8111-111111111111';
+  await page.route('**/api/commerce/status?order=*',route=>route.fulfill({status:200,json:{
+    ok:true,state:'paid',receipt:{
+      orderId,currency:'IRT',amountToman:2000000,paidAt:'2026-10-11 10:00:00',
+      items:[{title:'Test book',quantity:1,unitToman:1000000,subtotalToman:1000000}]
+    }
+  }}));
+  await page.goto(base+'/fa/shop/payment-result/?state=paid&order='+orderId,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#title')).toContainText('بررسی رسید کامل نشد');
+  await expect(page.locator('#receipt')).toBeHidden();
+  await expect(page.locator('#print')).toBeHidden();
+});
