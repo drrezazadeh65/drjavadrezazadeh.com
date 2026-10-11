@@ -54,7 +54,7 @@ footer{margin-top:25px;color:var(--muted);font-size:.85rem}
 </section>
 <section class="panel" id="composer" role="tabpanel" aria-labelledby="tab-composer" hidden>
 <h2 class="sectiontitle">ساخت پیش‌نویس از خبر واقعی سایت</h2>
-<label for="article">مقاله از RSS سایت</label><select id="article"><option value="">برای دریافت مقالات، بارگذاری را بزنید</option></select>
+<label for="article">مقاله از RSS سایت</label><select id="article"><option value="0">نمونه تأییدشده از سایت: یک آزمون خوب چه ویژگی‌هایی دارد؟</option></select>
 <div class="actions"><button class="secondary" id="load" type="button">بارگذاری RSS سایت</button></div>
 <label for="network">قالب شبکه</label><select id="network"><option value="telegram">تلگرام</option><option value="eitaa">ایتا</option><option value="x">ایکس</option><option value="instagram">اینستاگرام</option><option value="facebook">فیس‌بوک</option></select>
 <div class="actions"><button class="primary" id="compose" type="button">ساخت پیش‌نمایش</button><button class="secondary" id="copy" type="button">کپی متن</button></div><p id="feed-status" class="small" role="status"></p>
@@ -119,7 +119,7 @@ document.getElementById('export').addEventListener('click',()=>{
  const u=URL.createObjectURL(new Blob([json],{type:'application/json'}));
  const a=document.createElement('a');a.href=u;a.download='awose-social-draft-policy.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
 });
-let items=[];let draft='';
+let items=[{title:'یک آزمون خوب چه ویژگی‌هایی دارد؟',description:'راهنمای عملی روایی، پایایی، انصاف و استفاده مسئولانه از نمره.',link:'https://drjavadrezazadeh.com/fa/rahnamaha/azmoon-khoob-vijegiha/'}];let draft='';
 document.getElementById('load').addEventListener('click',async()=>{
  const status=document.getElementById('feed-status');status.textContent='در حال خواندن منبع عمومی RSS...';
  try{const res=await fetch('https://drjavadrezazadeh.com/feed.xml',{cache:'no-store'});if(!res.ok)throw Error('RSS HTTP '+res.status);
@@ -136,7 +136,7 @@ document.getElementById('compose').addEventListener('click',()=>{
  if(!item){document.getElementById('feed-status').textContent='ابتدا RSS را دریافت کنید.';return;}
  const network=document.getElementById('network').value;
  const u=new URL(item.link);u.searchParams.set('utm_source',network);u.searchParams.set('utm_medium','social');u.searchParams.set('utm_campaign','editorial');
- const max=network==='x'?280:network==='instagram'?2200:network==='telegram'?4096:3000;
+ const max=network==='x'?240:network==='instagram'?1500:network==='telegram'?1800:1700;
  const intro=network==='x'?item.title:item.title+'\n\n'+item.description;
  const available=Math.max(20,max-Array.from(u.href).length-3);
  const text=Array.from(intro).length>available?Array.from(intro).slice(0,available-1).join('')+'…':intro;
@@ -144,7 +144,7 @@ document.getElementById('compose').addEventListener('click',()=>{
 });
 document.getElementById('copy').addEventListener('click',async()=>{
  if(!draft)return;
- try{await navigator.clipboard.writeText(draft);document.getElementById('feed-status').textContent='متن پیش‌نویس کپی شد.';}
+ try{await navigator.clipboard.writeText(document.getElementById('preview').textContent);document.getElementById('feed-status').textContent='متن پیش‌نویس کپی شد.';}
  catch{document.getElementById('feed-status').textContent='کپی خودکار مجاز نیست؛ متن پیش‌نویس را دستی انتخاب کنید.';}
 });
 </script>
