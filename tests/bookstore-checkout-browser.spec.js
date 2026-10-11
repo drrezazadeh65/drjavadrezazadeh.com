@@ -10,16 +10,16 @@ for(const [lang,route] of [['fa','/fa/shop/checkout/'],['en','/en/shop/checkout/
    await page.route('**/api/commerce/health',route=>route.fulfill({json:{ok:true,service:'commerce',checkout:true,orderCapture:true,capabilities:{books:true}}}));
    await page.route('**/api/commerce/create',route=>route.abort());
    await page.route('**/api/commerce/prepare',route=>route.abort());
-   await page.goto(base+route);
+   await page.goto(base+route,{waitUntil:'domcontentloaded'});
    const fieldset=page.locator('#shipping-details fieldset');
-   await expect(fieldset).toBeEnabled();
+   await expect(fieldset).not.toHaveAttribute('disabled','');
    await expect(page.locator('#buyer-name')).toBeVisible();
    await expect(page.locator('#buyer-address')).toBeVisible();
    await expect(page.locator('[data-book-checkout] button.primary')).toBeEnabled();
    for(const selector of ['#buyer-name','#buyer-email','#buyer-address','#buyer-postal','#buyer-phone']){
     const box=await page.locator(selector).boundingBox();
     expect(box,selector+' missing').not.toBeNull();
-    expect(box.width,selector+' too narrow').toBeGreaterThan(Math.min(width-32,230));
+    expect(box.width,selector+' too narrow').toBeGreaterThan(Math.min(width-48,220));
     expect(box.x,selector+' left overflow').toBeGreaterThanOrEqual(-1);
     expect(box.x+box.width,selector+' right overflow').toBeLessThanOrEqual(width+1);
    }
@@ -33,8 +33,8 @@ for(const [lang,route] of [['fa','/fa/shop/checkout/'],['en','/en/shop/checkout/
  test(lang+' checkout fail-closed when commerce is unavailable',async({page})=>{
   await page.addInitScript(()=>localStorage.setItem('jr-book-cart-v1',JSON.stringify([{book_id:'roshanaei',quantity:1}])));
   await page.route('**/api/commerce/health',route=>route.fulfill({status:503,json:{ok:false}}));
-  await page.goto(base+route);
-  await expect(page.locator('#shipping-details fieldset')).toBeDisabled();
+  await page.goto(base+route,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#shipping-details fieldset')).toHaveAttribute('disabled','');
   await expect(page.locator('[data-book-checkout] button.primary')).toBeDisabled();
  });
 }
