@@ -84,6 +84,7 @@ jobs:
           run_audit "Bertina receipt integrity" node scripts/commerce-receipt-contract-audit.mjs
           run_audit "Public entity schema" node platform/public-entity-schema-audit.mjs
           run_audit "Sanitized public build" node scripts/build-public-site.mjs
+          run_audit "Retired commerce and bookstore hero" node scripts/public-retired-commerce-audit.mjs
           exit "$failed"
 
       - name: Diagnostic live Bertina SEO/cache surface (TLS trust not certified)
