@@ -88,7 +88,15 @@ export async function verifyHistoricalAuthority(registry,{request=trustedPublicR
           // Canonical HTTPS must terminate immediately. HTTP and www can
           // perform their existing transport consolidation, but may not
           // redirect the discontinued product to any semantically unrelated page.
-          if(response.status===410&&!response.headers.location)return;
+          if(response.status===410){
+            // LiteSpeed may attach the internal ErrorDocument location while
+            // retaining terminal HTTP 410. A non-3xx Location is not a redirect.
+            const hint=response.headers.location;
+            if(hint&&new URL(hint,url).href!==canonical.origin+'/404.html'){
+              throw new Error('410 Gone carries an unexpected Location header');
+            }
+            return;
+          }
           if(new URL(url).origin===canonical.origin)throw new Error('canonical retired product must return 410 directly');
           if(response.status!==301||!response.headers.location)throw new Error('retired product must return 410 or one canonical transport redirect; received '+response.status+' Location='+(response.headers.location||'(none)'));
           const destination=new URL(response.headers.location,url);
@@ -100,7 +108,7 @@ export async function verifyHistoricalAuthority(registry,{request=trustedPublicR
             throw new Error('historical source must preserve exact discontinued path during transport consolidation');
           }
           const final=await request(destination.href);
-          if(final.status!==410||final.headers.location)throw new Error('canonical retired product must terminate at 410 Gone');
+          if(final.status!==410 || (final.headers.location&&new URL(final.headers.location,destination.href).href!==canonical.origin+'/404.html'))throw new Error('canonical retired product must terminate at 410 Gone');
         });
       }
     }
