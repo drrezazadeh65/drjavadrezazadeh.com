@@ -124,3 +124,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 final integrated FAQs + dashboard test compatibility release: bilingual storefront 16 FAQ each, child-safeguarded programme 12 FAQ each, premium responsive design, SEO/GEO, correct exclusive-tab test, unchanged financial safeguards.
 
 2026-10-11 Bertina support t833905 confirmed SMTP endpoint and secure port; release provider-configuration diagnostics without exposing private mail settings.
+
+2026-10-11 Bertina SMTP ticket t833905 self-reconciliation release: use documented TLS 465 settings while preserving private mailbox password; verify live email transport after release.
