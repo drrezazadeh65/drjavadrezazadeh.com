@@ -50,6 +50,7 @@ jobs:
           php tests/operations-mysql.php
           php tests/bertina-receipt-contract.php
           php tests/bertina-commerce-callback-contract.php
+          php tests/bertina-commerce-mysql-contract.php
 
       - name: Verify operations browser behavior before release
         run: |
