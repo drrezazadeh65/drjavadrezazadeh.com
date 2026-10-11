@@ -1,6 +1,12 @@
 name: Customer Auth Live Readiness
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'payment-api/auth-routes.js'
+      - 'assets/js/customer-auth.js'
+      - 'tests/auth-registration-readiness.test.mjs'
+      - '.github/workflows/auth-live-readiness.yml'
   push:
     branches: [main]
     paths:
@@ -14,6 +20,7 @@ on:
       - 'en/login/**'
       - 'en/recover/**'
       - 'scripts/auth-live-readiness-audit.mjs'
+      - 'tests/auth-registration-readiness.test.mjs'
       - '.github/workflows/auth-live-readiness.yml'
 permissions:
   contents: read
@@ -26,5 +33,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify source syntax and offline registration safety
+        run: |
+          node --check payment-api/auth-routes.js
+          node --check assets/js/customer-auth.js
+          node tests/auth-registration-readiness.test.mjs
       - name: Verify deployed unified customer auth runtime
+        if: github.event_name != 'pull_request'
         run: node scripts/auth-live-readiness-audit.mjs
