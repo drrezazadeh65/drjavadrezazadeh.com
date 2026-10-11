@@ -140,3 +140,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11: publish post-launch SEO refinement for 13 separate academic/news search intents; each public news card now carries an original subject-matched summary; keep release firewall, URL stability, child protection, and commerce invariants unchanged.
 
 2026-10-11 controlled release: deploy audited 13 academic launch articles with improved social image metadata; preserve canonical URLs, privacy gates and existing media until approved replacements are validated.
+
+2026-10-11 release editorial scholarly-commerce upgrade: responsive Persian news cards, 13 topic-linked service/shop article rails; preserve canonical, privacy and payment protections.
