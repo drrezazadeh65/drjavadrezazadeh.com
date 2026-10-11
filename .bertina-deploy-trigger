@@ -52,3 +52,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 student support programme safe release: fix mobile RTL offscreen skip and historical receipt regression assertions.
 
 2026-10-11 verified-email-only donor ledger with isolated ownership tests; publish gated student-support dashboard transaction history.
+
+2026-10-11 corrected explicit-deployment governance; publish donor ledger and verify no contact/child privacy.
