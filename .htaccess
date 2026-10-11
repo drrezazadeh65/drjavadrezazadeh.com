@@ -3,6 +3,7 @@
 
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
+ErrorDocument 410 /404.html
 
 <IfModule mod_rewrite.c>
 RewriteEngine On
@@ -19,13 +20,15 @@ RewriteRule ^research/?$ https://drjavadrezazadeh.com/en/research/ [R=301,L,NE]
 RewriteRule ^teaching/?$ https://drjavadrezazadeh.com/en/teaching/ [R=301,L,NE]
 RewriteRule ^shop/?$ https://drjavadrezazadeh.com/fa/shop/ [R=301,L,NE]
 
-# Historical commerce authority recovery: only evidence-backed former product URLs.
-RewriteRule ^product/خرید-فرش-ماشینی-کد-2-7801-8833/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
-RewriteRule ^product/خرید-فرش-ماشینی-کد-2-7801-9735/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
-RewriteRule ^product/خرید-فرش-ماشینی-کد-4301-4917/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
-RewriteRule ^product/خرید-فرش-ماشینی-کد-4301-5021/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
-RewriteRule ^product/خرید-گبه-ماشینی-کد-1009-2/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
-RewriteRule ^product/خرید-گبه-ماشینی-کد-3001-3283/?$ https://drjavadrezazadeh.com/fa/archive/legacy-shop/ [R=301,L,NE]
+# Permanently retired former-product URLs return HTTP 410 without a misleading redirect.
+RewriteRule ^fa/archive/legacy-shop(?:/index\.html)?/?$ - [G,L]
+# Historical product paths remain as non-indexable routing signatures only.
+RewriteRule ^product/خرید-فرش-ماشینی-کد-2-7801-8833/?$ - [G,L]
+RewriteRule ^product/خرید-فرش-ماشینی-کد-2-7801-9735/?$ - [G,L]
+RewriteRule ^product/خرید-فرش-ماشینی-کد-4301-4917/?$ - [G,L]
+RewriteRule ^product/خرید-فرش-ماشینی-کد-4301-5021/?$ - [G,L]
+RewriteRule ^product/خرید-گبه-ماشینی-کد-1009-2/?$ - [G,L]
+RewriteRule ^product/خرید-گبه-ماشینی-کد-3001-3283/?$ - [G,L]
 
 # Canonical transport for current and unknown paths; preserve the request path.
 RewriteCond %{HTTPS} !=on [OR]
