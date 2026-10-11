@@ -50,6 +50,21 @@ for (const slug of slugs) {
  check(ogImage===host+image,'OG and displayed image mismatch');
  if(/\.svg(?:$|\?)/.test(image)) warnings.push(slug+': SVG featured image; use original photographic WebP for social previews');
  if(!/\balt="[^"]{10,}"/.test(html))warnings.push(slug+': image alt needs review');
+ const rail = html.match(/<aside class="launch-service-sidebar"[\s\S]*?<\/aside>/)?.[0] || '';
+ check(rail.length>200,'missing scholarly-commerce sidebar');
+ check((rail.match(/<section\b/g)||[]).length===3,'sidebar must contain service, bookstore and related reading');
+ check(rail.includes('launch-offer') && rail.includes('launch-shop-unit') && rail.includes('launch-related-reading'),'sidebar missing structured offer/shop/reading cards');
+ check(html.includes('editorial-launch-2026.css?v=20261011-commerce-v3'),'stylesheet cache key not updated');
+ for(const [,href] of rail.matchAll(/href="([^"]+)"/g)){
+   if(!href.startsWith('/')) {check(false,'unexpected sidebar URL: '+href);continue;}
+   const local = path.join(root,href.slice(1));
+   check(fs.existsSync(local) || fs.existsSync(path.join(local,'index.html')),'unresolved contextual link: '+href);
+   check(href!=='/fa/akhbar/'+slug+'/','self-reference in contextual recommendations');
+ }
+ for(const [,src] of rail.matchAll(/<img[^>]+src="([^"]+)"/g)){
+   check(src.startsWith('/assets/images/'),'non-local sidebar media');
+   if(src.startsWith('/')) check(fs.existsSync(path.join(root,src.slice(1))),'missing sidebar asset: '+src);
+ }
  console.log('CHECKED',slug);
 }
 console.log('ARTICLE COUNT',slugs.length,'ERRORS',fails,'WARNINGS',warnings.length);
