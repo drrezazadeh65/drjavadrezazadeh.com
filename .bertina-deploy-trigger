@@ -16,3 +16,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 deploy validated BitPay gateway automatic continuation.
 
 2026-10-11 test BitPay automatic redirect and malicious URL rejection.
+
+2026-10-11 rerun corrected BitPay Playwright test syntax.
