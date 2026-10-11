@@ -24,3 +24,26 @@
 .launch-service-sidebar a:focus-visible,.launch-market-links a:focus-visible{outline:3px solid #f0cf94;outline-offset:3px}
 @media(max-width:950px){.launch-article-page .article-shell{grid-template-columns:minmax(0,1fr)}.launch-article-page .article-shell>.article-hero,.launch-article-main,.launch-service-sidebar{grid-column:1}.launch-service-sidebar{grid-row:auto;position:static;max-height:none;overflow:visible;grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.launch-news-collection{padding:13px}.launch-news-collection .launch-news-grid .news-card h2{font-size:clamp(18px,5vw,22px)!important;line-height:1.65!important}.launch-news-collection .launch-news-grid .news-card img{max-height:none}.launch-market-links{grid-template-columns:1fr;gap:9px}.launch-market-links a{min-height:65px}.launch-service-sidebar{grid-template-columns:1fr}.launch-article-page .article-shell{width:calc(100% - 24px)}}
+
+/* Editorial discovery rail v3: educational relevance before commerce. */
+.launch-service-sidebar .launch-sidebar-eyebrow{font-size:12px;font-weight:700;color:#ebc784;margin:0 0 7px}
+.launch-service-sidebar .launch-offer{display:flex;gap:12px;align-items:flex-start;text-decoration:none;min-width:0}
+.launch-service-sidebar .launch-offer img{flex:0 0 60px;width:60px;height:60px;border-radius:10px;background:#29251e;object-fit:contain;padding:7px}
+.launch-service-sidebar .launch-offer span{min-width:0}
+.launch-service-sidebar .launch-offer strong{display:block;color:#f4dfb5;font-size:14px;line-height:1.7}
+.launch-service-sidebar .launch-offer small{display:block;color:#d0c6b4;font-weight:400;font-size:12px;line-height:1.85;margin-top:4px}
+.launch-service-sidebar .launch-shop-unit{overflow:hidden;padding:0}
+.launch-service-sidebar .launch-shop-unit>img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.launch-service-sidebar .launch-shop-unit>.launch-shop-copy{padding:16px 18px 18px}
+.launch-service-sidebar .launch-shop-unit .launch-sidebar-eyebrow{margin-top:0}
+.launch-service-sidebar .launch-shop-unit h2{margin-bottom:8px}
+.launch-service-sidebar .launch-shop-unit a{border-color:#c9a56b;background:#2e281e;font-weight:700;min-height:44px}
+.launch-service-sidebar .launch-related-reading a{font-size:13px}
+.launch-service-sidebar .launch-related-reading a[aria-current="page"]{display:none}
+.launch-article-page .launch-service-sidebar img{max-width:100%}
+.launch-news-collection .launch-news-grid .news-card{transition:border-color .18s ease,transform .18s ease}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){.launch-news-collection .launch-news-grid .news-card:hover{transform:translateY(-2px)}}
+@media(min-width:951px){.launch-article-page .article-shell{grid-template-columns:minmax(0,1fr) minmax(250px,290px)}.launch-service-sidebar{max-height:calc(100vh - 44px)}}
+@media(max-width:950px){.launch-service-sidebar .launch-shop-unit{grid-column:auto}}
+@media(max-width:720px){.launch-service-sidebar section{padding:16px}.launch-service-sidebar .launch-shop-unit{padding:0}.launch-article-page .article-shell .article-hero h1{font-size:clamp(27px,6vw,36px)!important;line-height:1.6!important;max-width:none}.launch-article-page .article-hero .lead{font-size:clamp(15px,4vw,17px)!important;line-height:2!important}}
+@media(prefers-reduced-motion:reduce){.launch-news-collection .launch-news-grid .news-card{transition:none;transform:none!important}}
