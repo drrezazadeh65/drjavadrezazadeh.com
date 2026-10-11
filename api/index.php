@@ -266,7 +266,11 @@ function authSchemaReady(): bool {
 }
 function authReady(): bool {
     $c = cfg();
-    return authSchemaReady() && mailReady() && strlen((string)$c['auth_pepper']) >= 32;
+    // Existing users must remain able to sign in when SMTP is unavailable.
+    return authSchemaReady() && strlen((string)$c['auth_pepper']) >= 32;
+}
+function registrationReady(): bool {
+    return authReady() && mailReady();
 }
 function cookieSet(string $raw, int $age): void {
     setcookie(SESSION_COOKIE, $raw, [
@@ -370,17 +374,18 @@ $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
 
 if ($path==='/health' && $verb==='GET') {
-    $hc=cfg(); respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?(smtpConfigured($hc)?'bertina-smtp':'bertina-local'):'not-configured','mailConfigEnabled'=>$hc['mail_enabled']===true,'smtpConfigured'=>smtpConfigured($hc),'mailFunctionAvailable'=>function_exists('mail'),'mailFromValid'=>filter_var((string)$hc['mail_from'], FILTER_VALIDATE_EMAIL)!==false,'auth'=>authReady(),'commerce'=>commerceReady()]);
+    $hc=cfg(); respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?(smtpConfigured($hc)?'bertina-smtp':'bertina-local'):'not-configured','mailConfigEnabled'=>$hc['mail_enabled']===true,'smtpConfigured'=>smtpConfigured($hc),'mailFunctionAvailable'=>function_exists('mail'),'mailFromValid'=>filter_var((string)$hc['mail_from'], FILTER_VALIDATE_EMAIL)!==false,'auth'=>authReady(),'registration'=>registrationReady(),'commerce'=>commerceReady()]);
 }
 
 if ($path==='/auth/health' && $verb==='GET') {
-    respond(['ok'=>true,'service'=>'auth','ready'=>authReady(),'database'=>dbReady(),'schemaReady'=>authSchemaReady(),'email'=>mailReady(),'passwordKdf'=>strlen((string)(cfg()['auth_pepper']??''))>=32]);
+    respond(['ok'=>true,'service'=>'auth','ready'=>authReady(),'registrationReady'=>registrationReady(),'database'=>dbReady(),'schemaReady'=>authSchemaReady(),'email'=>mailReady(),'passwordKdf'=>strlen((string)(cfg()['auth_pepper']??''))>=32]);
 }
 if (str_starts_with($path,'/auth/')) {
     if(!authReady())fail('auth_unavailable',503);
     $pdo=db(); if(!$pdo)fail('auth_unavailable',503);
 
     if($path==='/auth/register'&&$verb==='POST'){
+        if(!registrationReady())fail('verification_email_unavailable',503);
         requirePostOrigin();$b=jsonBody();$email=emailNorm($b['email']??'');$password=$b['password']??null;$mobile=trim((string)($b['mobile']??''));$locale=($b['locale']??'')==='en'?'en':'fa';
         if(!validEmail($email)||!validPassword($password)||($mobile!==''&&!preg_match('/^\+[1-9][0-9]{7,14}$/',$mobile)))fail('invalid_registration');
         if(!rateAllowed($pdo,'register',$email,5,3600))fail('rate_limited',429);
@@ -402,6 +407,7 @@ if (str_starts_with($path,'/auth/')) {
     // re-registering or submitting their password. Uniform response prevents
     // account enumeration; the existing rate-limit table controls abuse.
     if($path==='/auth/retry-verification'&&$verb==='POST'){
+        if(!registrationReady())fail('verification_email_unavailable',503);
         requirePostOrigin();$b=jsonBody();$email=emailNorm($b['email']??'');
         if(validEmail($email) && rateAllowed($pdo,'retry-verification',$email,3,3600)){
             $a=accountByEmail($pdo,$email);
