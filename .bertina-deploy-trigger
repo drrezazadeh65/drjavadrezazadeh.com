@@ -1,6 +1,4 @@
-deploy=operations-control-center-pr36
-source=migration/bertina-linux6
-source_commit=74753db4570279c7797aef2f68bc4c84626750b2
-mode=bertina-only
-scope=secure-admin-scoped-evidence-and-independent-tls-gate
-requested_at=2026-10-10 23:21:35 UTC
+operations-runtime-signals release
+merged source: 9f743ab4eabc19c8b235d4b3a156a6e110f3febd
+CI: 11 successful workflows on9868de701b74336e5527a0dd66da28841344cfbe
+Preserve payment fail-closed configuration and private admin MFA provisioning.
