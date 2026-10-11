@@ -121,10 +121,13 @@ async function dispatch(channel,post){
     const token=process.env.SOCIAL_EITAA_TOKEN;
     const chat_id=process.env.SOCIAL_EITAA_CHAT_ID;
     if(!token || !chat_id)throw Error('Eitaa is not connected');
-    const data=await apiPost('https://eitaayar.ir/api/'+encodeURIComponent(token)+'/sendMessage',
-      {chat_id,text:post.text});
-    if(data.ok===false || data.error)throw Error('Eitaa provider rejected the post');
-    return {providerId:String(data.result?.message_id||data.message_id||'confirmed')};
+    // Official Eitaa developer documentation: /api/app/sendMessage with token in JSON body.
+    // A success marker is NOT a post ID; never invent one.
+    const data=await apiPost('https://eitaayar.ir/api/app/sendMessage',
+      {token,chat_id,text:post.text});
+    if(data.ok!==true || data.result!=='success')
+      throw Error('Eitaa did not confirm success');
+    return {providerId:null,confirmedBy:'eitaayar_success'};
   }
   throw Error(channel+' adapter is awaiting an approved official API connection');
 }
