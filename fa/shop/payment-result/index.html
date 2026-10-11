@@ -104,11 +104,16 @@ button:focus-visible,a:focus-visible{outline:3px solid #c99d46;outline-offset:3p
    total+=item.subtotalToman;
   }
   if(total!==receipt.amountToman)throw Error('receipt_total_mismatch');
-  const support=receipt.items.length===1&&receipt.items[0].sku==='support:voluntary';
-  if(support){
+  const studentSupport=receipt.items.length===1&&receipt.items[0].sku==='support:students';
+  const legacySupport=receipt.items.length===1&&receipt.items[0].sku==='support:voluntary';
+  if(studentSupport){
+   title.textContent='حمایت از دانش‌آموزان بااستعداد کم‌بضاعت ثبت شد';
+   document.querySelector('#receipt .receipt-head strong').textContent='رسید حمایت تحصیلی تأییدشده';
+   document.querySelector('#receipt .note').textContent='این سند تأیید دریافت وجه برای برنامه حمایت از دانش‌آموزان مستعد کم‌بضاعت است. انتخاب و تخصیص به نیازهای دانش‌آموزان تنها پس از احراز نیاز، مستندسازی هزینه و تأیید مسئول برنامه انجام می‌شود. رسید خیریه رسمی یا فاکتور مالیاتی نیست؛ هیچ هویت دانش‌آموزی افشا نمی‌شود.';
+  }else if(legacySupport){
    title.textContent='حمایت مالی داوطلبانه در سامانه ثبت شد';
    document.querySelector('#receipt .receipt-head strong').textContent='رسید حمایت مالی تأییدشده';
-   document.querySelector('#receipt .note').textContent='این رسید تنها تأیید پرداخت حمایت داوطلبانه است؛ خرید کالا، ارائه خدمت، سند خیریه یا فاکتور رسمی مالیاتی محسوب نمی‌شود. اطلاعات شخصی و بانکی نمایش داده نمی‌شوند.';
+   document.querySelector('#receipt .note').textContent='این رسید مربوط به حمایت داوطلبانه قبلی است و بدون ثبت تخصیص جدید، به هیچ پرونده دانش‌آموزی منسوب نمی‌شود. این سند خرید کالا، رسید خیریه یا فاکتور مالیاتی نیست.';
   }
   const tbody=document.getElementById('receipt-lines');
   for(const item of receipt.items){
