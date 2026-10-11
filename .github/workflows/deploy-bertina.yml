@@ -430,6 +430,19 @@ jobs:
           test "$code" = "400"
           node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/donations-invalid-probe.json","utf8"));if(x.ok!==false||x.error!=="invalid_donation_amount")process.exit(1);console.log("Invalid low amount rejected before initiating payment")'
 
+      - name: Verify student support public API fail-closed on Bertina
+        run: |
+          set -euo pipefail
+          ORIGIN_IP="188.40.203.218"
+          HOST="https://drjavadrezazadeh.com"
+          curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+            "$HOST/api/student-support/health" -o /tmp/student-support-health.json
+          node -e 'const fs=require("fs");const h=JSON.parse(fs.readFileSync("/tmp/student-support-health.json","utf8"));if(h.ok!==true||h.service!=="student-support"||h.studentIdentityPublic!==false||h.directSponsorStudentContact!==false){console.error("Safeguarding public API failed");process.exit(1)}console.log("Student support public health: guestGiving",h.guestGiving,"caseSchemaReady",h.caseSchemaReady,"privatePortal",h.privatePortal)'
+          code=$(curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+            -o /tmp/student-support-denied.json -w '%{http_code}' "$HOST/api/student-support/portal")
+          test "$code" = "401"
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/student-support-denied.json","utf8"));if(x.error!=="unauthorized")process.exit(1);console.log("Anonymous student dashboard access safely denied")'
+
       - name: Verify every registered historical URL with trusted public TLS
         if: steps.credentials.outputs.ready == 'true'
         run: node scripts/historical-authority-live-verify.mjs /tmp/historical-authority-live.json
