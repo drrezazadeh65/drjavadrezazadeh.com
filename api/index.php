@@ -541,9 +541,11 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
         if(validEmail($customerEmail)&&mailReady()){
             $items=json_decode((string)$row['items_json'],true);$summary=[];$sum=0;
             if(is_array($items)){foreach($items as $x){$qty=(int)($x['quantity']??0);$sub=(int)($x['subtotal']??0);$sum+=$sub;$summary[]='- '.(string)($x['title']??$x['sku']??'item').' × '.$qty.' | '.number_format($sub).' تومان';}}
-            $support=is_array($items)&&count($items)===1&&($items[0]['sku']??'')==='support:voluntary';
-            $subject=($support?'تأیید حمایت مالی داوطلبانه ':'تأیید پرداخت سفارش ').$id;
-            $body=($support?"حمایت مالی داوطلبانه شما پس از استعلام بانکی در سرور تأیید شد.":"سفارش شما با موفقیت پرداخت و در سرور ثبت شد.")."\n\nشناسه پرداخت: ".$id."\n\n".implode("\n",$summary)."\n\nجمع پرداخت: ".number_format($sum)." تومان\n\nاین رسید تأیید پرداخت است؛ فاکتور رسمی مالیاتی یا گواهی کمک خیریه نیست.";
+            $studentSupport=is_array($items)&&count($items)===1&&($items[0]['sku']??'')==='support:students';
+            $legacySupport=is_array($items)&&count($items)===1&&($items[0]['sku']??'')==='support:voluntary';
+            $support=$studentSupport||$legacySupport;
+            $subject=($studentSupport?'تأیید حمایت از دانش‌آموزان مستعد کم‌بضاعت ':($legacySupport?'تأیید حمایت مالی داوطلبانه ':'تأیید پرداخت سفارش ')).$id;
+            $body=($studentSupport?"حمایت مالی شما برای برنامه دانش‌آموزان مستعد کم‌بضاعت ثبت شد. تخصیص به نیاز مشخص پس از راستی‌آزمایی و مستندسازی انجام می‌شود.":($legacySupport?"حمایت مالی داوطلبانه شما پس از استعلام بانکی در سرور تأیید شد.":"سفارش شما با موفقیت پرداخت و در سرور ثبت شد."))."\n\nشناسه پرداخت: ".$id."\n\n".implode("\n",$summary)."\n\nجمع پرداخت: ".number_format($sum)." تومان\n\nاین رسید تأیید پرداخت است؛ فاکتور رسمی مالیاتی یا گواهی کمک خیریه نیست.";
             if(sendLocalMail($customerEmail,$subject,$body)){$pdo->prepare("UPDATE commerce_orders SET receipt_email_sent_at=NOW() WHERE id=?")->execute([$id]);}
         }
         commerceReturnToResult($id);
@@ -569,11 +571,17 @@ if($path==='/donations/create'&&$verb==='POST'){
     if(!is_int($amount)||$amount<1000||$amount>500000)fail('invalid_donation_amount');
     $email=trim((string)($input['email']??''));
     if($email!==''&&!validEmail($email))fail('invalid_donation_email');
+    $focus=(string)($input['focus']??'general');
+    $allowedFocus=['general'=>'صندوق عمومی حمایت تحصیلی','scholarship'=>'بورسیه و شهریه','books'=>'کتاب و لوازم آموزشی',
+        'services'=>'خدمات آموزشی','essentials'=>'پوشاک و نیازهای ضروری'];
+    if(!array_key_exists($focus,$allowedFocus))fail('invalid_support_focus');
     if(!rateAllowed($pdo,'donations_create',$email!==''?$email:'anonymous',5,900))fail('rate_limited',429);
     $c=cfg();$providerAmount=$amount*(int)$c['bitpay_amount_multiplier'];
     $order=uuidv4();$factor=substr(preg_replace('/[^0-9]/','',(string)hrtime(true)),0,28);
-    $items=[['sku'=>'support:voluntary','title'=>'حمایت مالی داوطلبانه از محتوای آموزشی',
-        'kind'=>'donation','quantity'=>1,'price'=>$amount,'subtotal'=>$amount]];
+    // Historical support:voluntary orders stay untouched. Only NEW payments belong to this student fund.
+    $items=[['sku'=>'support:students','title'=>'حمایت از دانش‌آموزان مستعد کم‌بضاعت — '.$allowedFocus[$focus],
+        'kind'=>'donation','program'=>'talented-students-v1','focus'=>$focus,
+        'allocation'=>'pending_verified_need','quantity'=>1,'price'=>$amount,'subtotal'=>$amount]];
     $itemsJson=json_encode($items,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     if(!is_string($itemsJson))fail('donation_encoding_failed',500);
     $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,NOW(),NOW())")
@@ -581,7 +589,7 @@ if($path==='/donations/create'&&$verb==='POST'){
     try{
         $callback=SITE_ORIGIN.'/api/commerce/callback?order='.rawurlencode($order);
         $gatewayId=gatewayPost('gateway-send',['amount'=>(string)$providerAmount,
-            'redirect'=>$callback,'factorId'=>$factor,'description'=>'Voluntary support '.$order]);
+            'redirect'=>$callback,'factorId'=>$factor,'description'=>'Talented student educational support '.$order]);
         if(!preg_match('/^[1-9][0-9]*$/D',$gatewayId))throw new RuntimeException('gateway_rejected');
         $pdo->prepare("UPDATE commerce_orders SET state='pending',provider_id_get=?,updated_at=NOW() WHERE id=? AND state='created'")
             ->execute([$gatewayId,$order]);
