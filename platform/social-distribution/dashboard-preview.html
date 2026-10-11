@@ -27,7 +27,7 @@ footer{margin-top:25px;color:var(--muted);font-size:.85rem}
 <header class="top"><div><div class="eyebrow">AWOSE · SOCIAL DISTRIBUTION ENGINE</div><h1>مرکز هوشمند انتشار و توسعه رسانه‌ای</h1><p class="intro">طراحی اولیه یکی از موتورهای داشبورد مدیریت سایت، با اولویت موبایل، انتشار محتوا از سایت و حفظ هویت علمی و حرفه‌ای.</p></div><div class="mark" aria-label="وضعیت">پیش‌نمایش غیرمتصل</div></header>
 <div class="warning" role="status"><strong>انتشار غیرفعال است.</strong> این صفحه فقط پیش‌نمایش قابلیت‌هاست، نه داشبورد امن و متصل به حساب‌ها. اتصال حساب و انتشار واقعی باید از طریق پنل مدیریت احراز هویت‌شده و سرور انجام شود.</div>
 <div class="stats">
-<div class="panel stat"><b>۱۰</b><span>شبکه در نقشه توسعه</span></div>
+<div class="panel stat"><b>۱۶</b><span>شبکه در نقشه توسعه</span></div>
 <div class="panel stat"><b>۲</b><span>آداپتور ارسال متن در کد</span></div>
 <div class="panel stat"><b>۲۱:۰۰</b><span>پیش‌فرض ساعت انتشار ایران</span></div>
 <div class="panel stat"><b>۰</b><span>انتشار تأییدشده در این پیش‌نمایش</span></div>
@@ -69,7 +69,20 @@ footer{margin-top:25px;color:var(--muted);font-size:.85rem}
 </div><p class="small">وضعیت این بخش: طراحی؛ تولید و بارگذاری خودکار ویدئو/استوری هنوز به سرور متصل نشده است.</p>
 </section>
 <section class="panel" id="accounts" role="tabpanel" aria-labelledby="tab-accounts" hidden>
-<h2 class="sectiontitle">اتصال حساب‌ها</h2><p class="empty">هیچ حسابی در این پیش‌نمایش به سرویس ارسال متصل نشده است. اتصال حساب‌ها باید با احراز هویت، کمترین مجوز لازم و ذخیره محرمانه توکن‌ها روی سرور انجام شود؛ این صفحه گذرواژه یا توکن نمی‌پذیرد.</p>
+<h2 class="sectiontitle">حساب‌های من و مراحل اتصال</h2>
+<p class="small">در این نمونه می‌توانید شناسه عمومی هر صفحه یا کانال را ثبت و پیش‌نویس مخصوص آن را امتحان کنید. هیچ حسابی به‌صورت واقعی وارد یا متصل نمی‌شود. رمز، کد یک‌بارمصرف و کلید ربات را اینجا وارد نکنید.</p>
+<div class="grid">
+<div>
+<label for="account-network">انتخاب شبکه</label><select id="account-network"></select>
+<label for="account-handle">شناسه عمومی صفحه یا کانال (بدون رمز)</label><input id="account-handle" autocomplete="off" placeholder="مثلاً dr.rezazadeh">
+<div class="actions"><button type="button" class="primary" id="account-add">ثبت حساب برای آزمایش</button><button type="button" class="secondary" id="account-clear">پاک‌کردن فهرست این مرورگر</button></div>
+<p id="account-feedback" class="small" role="status" aria-live="polite"></p>
+</div>
+<div class="metric"><strong>راهنمای اتصال انتخاب‌شده</strong><p id="account-guide"></p><a id="account-official" target="_blank" rel="noopener noreferrer" href="https://core.telegram.org/bots/tutorial">مراجعه به راهنمای رسمی شبکه</a></div>
+</div>
+<h3>حساب‌های ثبت‌شده برای پیش‌نمایش</h3>
+<div id="account-list" class="grid"></div>
+<p class="small">در این نسخه فقط نام عمومی حساب در همین مرورگر شما نگهداری می‌شود. برای اتصال واقعی باید سامانه مدیریت حفاظت‌شده و مجوز انتشار رسمی هر شبکه فعال شود.</p>
 </section>
 <section class="panel" id="analytics" role="tabpanel" aria-labelledby="tab-analytics" hidden>
 <h2 class="sectiontitle">تحلیل و ممیزی</h2><p class="empty">هنوز داده واقعی تأییدشده‌ای از ارسال، نمایش، کلیک، لید یا فروش وارد نشده است. پس از اتصال رسمی شبکه‌ها، داشبورد تنها داده‌های موجود با منبع، تاریخ و روش محاسبه مشخص را نمایش می‌دهد.</p>
@@ -133,5 +146,127 @@ document.getElementById('copy').addEventListener('click',async()=>{
  if(!draft)return;
  try{await navigator.clipboard.writeText(draft);document.getElementById('feed-status').textContent='متن پیش‌نویس کپی شد.';}
  catch{document.getElementById('feed-status').textContent='کپی خودکار مجاز نیست؛ متن پیش‌نویس را دستی انتخاب کنید.';}
+});
+</script>
+<script type="module">
+const guides={
+ instagram:['اینستاگرام','حساب حرفه‌ای و صفحه مرتبط؛ اتصال با تأیید رسمی Meta','https://developers.facebook.com/apps/'],
+ facebook:['فیس‌بوک','انتخاب صفحه مدیریتی و تأیید رسمی Meta','https://developers.facebook.com/apps/'],
+ x:['ایکس','مجوز نوشتن از برنامه توسعه‌دهنده و تأیید حساب','https://developer.x.com/'],
+ telegram:['تلگرام','ساخت ربات با BotFather و اعطای حق انتشار کانال','https://core.telegram.org/bots/tutorial'],
+ eitaa:['ایتا','ایجاد برنامه ارسال در ایتایار و اجازه مقصد','https://eitaayar.ir/'],
+ aparat:['آپارات','ورود به آپارات و آزمون روش مجاز بارگذاری ویدئو','https://support.aparat.com/kb/articles/article-94'],
+ whatsapp:['واتس‌اپ بیزینس','ثبت کسب‌وکار و استفاده فقط برای مخاطبان رضایت‌داده','https://business.facebook.com/'],
+ youtube:['یوتیوب','تأیید مجوز کانال از Google Cloud و بارگذاری ویدئو','https://console.cloud.google.com/'],
+ linkedin:['لینکدین','ثبت برنامه و دریافت مجوز انتشار عضو یا صفحه','https://www.linkedin.com/developers/'],
+ threads:['تردز','اتصال برنامه واجد شرایط Meta','https://developers.facebook.com/'],
+ bluesky:['بلواسکای','مجوز برنامه؛ رمز اصلی حساب را به سایت ندهید','https://docs.bsky.app/'],
+ pinterest:['پینترست','مجوز انتشار پین روی حساب و بورد','https://developers.pinterest.com/'],
+ tiktok:['تیک‌تاک','مجوز رسمی بارگذاری ویدئو','https://developers.tiktok.com/'],
+ mastodon:['ماستودون','اجازه انتشار از سرور ماستودون منتخب','https://docs.joinmastodon.org/client/intro/'],
+ discord:['دیسکورد','اجازه کانال و آدرس محرمانه اتصال فقط روی سرور','https://discord.com/developers/docs/resources/webhook'],
+ googlebusiness:['پروفایل کسب‌وکار گوگل','ابتدا بررسی امکان انتشار و مجوزهای فعلی','https://business.google.com/']
+};
+const accountNetwork=document.getElementById('account-network');
+const publicationNetwork=document.getElementById('network');
+for(const [id,g] of Object.entries(guides)){
+ const o=document.createElement('option');o.value=id;o.textContent=g[0];accountNetwork.append(o);
+ if(![...publicationNetwork.options].some(x=>x.value===id)){
+   const q=document.createElement('option');q.value=id;q.textContent=g[0];publicationNetwork.append(q);
+ }
+}
+function displayGuide(){
+ const guide=guides[accountNetwork.value];
+ document.getElementById('account-guide').textContent=guide[1];
+ const a=document.getElementById('account-official');a.href=guide[2];a.textContent='راهنمای رسمی '+guide[0];
+}
+accountNetwork.addEventListener('change',displayGuide);displayGuide();
+const KEY='awose_public_account_preview_v1';
+let accounts=[];
+try{
+ const loaded=JSON.parse(localStorage.getItem(KEY)||'[]');
+ if(Array.isArray(loaded))accounts=loaded.filter(x=>guides[x.network]&&/^[^\s<>\"'\u0000-\u001f]{2,100}$/.test(x.handle)).slice(0,100);
+}catch{}
+function renderAccounts(){
+ const list=document.getElementById('account-list');list.replaceChildren();
+ if(!accounts.length){const p=document.createElement('p');p.className='empty';p.textContent='هنوز شناسه حسابی برای پیش‌نمایش ثبت نکرده‌اید.';list.append(p);return;}
+ for(const a of accounts){
+  const item=document.createElement('div');item.className='channel';
+  const info=document.createElement('div');const b=document.createElement('b');b.textContent=guides[a.network][0]+' · @'+a.handle;
+  const sub=document.createElement('div');sub.className='small';sub.textContent='ثبت برای پیش‌نمایش؛ هنوز متصل نشده';info.append(b,sub);
+  const test=document.createElement('button');test.className='secondary';test.type='button';test.textContent='ساخت پست آزمایشی';
+  test.addEventListener('click',()=>{
+   document.getElementById('tab-composer').click();
+   publicationNetwork.value=a.network;
+   document.getElementById('feed-status').textContent='حساب @'+a.handle+' انتخاب شد؛ مقاله را بارگذاری و پیش‌نویس را بسازید.';
+  });
+  item.append(info,test);list.append(item);
+ }
+}
+function keep(){
+ localStorage.setItem(KEY,JSON.stringify(accounts));
+ renderAccounts();
+}
+document.getElementById('account-add').addEventListener('click',()=>{
+ const network=accountNetwork.value;
+ const handle=document.getElementById('account-handle').value.trim().replace(/^@/,'');
+ const feedback=document.getElementById('account-feedback');
+ if(!/^[^\s<>\"'\u0000-\u001f]{2,100}$/.test(handle)){feedback.textContent='شناسه عمومی معتبر وارد کنید؛ رمز عبور وارد نکنید.';return;}
+ if(accounts.some(x=>x.network===network&&x.handle===handle)){feedback.textContent='این شناسه قبلاً ثبت شده است.';return;}
+ if(accounts.length>=100){feedback.textContent='ظرفیت نمونه آزمایشی تکمیل است.';return;}
+ accounts.push({network,handle});keep();
+ document.getElementById('account-handle').value='';
+ feedback.textContent='شناسه عمومی ثبت شد؛ هنوز مجوز اتصال واقعی نداریم.';
+});
+document.getElementById('account-clear').addEventListener('click',()=>{
+ accounts=[];localStorage.removeItem(KEY);renderAccounts();
+ document.getElementById('account-feedback').textContent='فهرست نمونه از همین مرورگر پاک شد.';
+});
+renderAccounts();
+const first=Object.entries(guides).map(([id,g])=>[g[0],g[1]]);
+const grid=document.getElementById('channel-grid');
+grid.replaceChildren(...first.map(([name,detail])=>{
+ const div=document.createElement('div');div.className='channel';
+ const info=document.createElement('div');const b=document.createElement('b');b.textContent=name;
+ const small=document.createElement('span');small.className='small';small.textContent=detail;
+ info.append(b,small);const mark=document.createElement('span');mark.className='mark';mark.textContent='آماده‌سازی';
+ div.append(info,mark);return div;
+}));
+// Improve the preview independently of actual publication: no external AI claims.
+const topics=[
+ [/استعداد|talent/i,'#استعدادیابی'],
+ [/آموزش|معلم|teacher|education/i,'#آموزش'],
+ [/سنجش|آزمون|ارزیاب|assessment/i,'#سنجش_آموزشی'],
+ [/پژوهش|مقاله|research/i,'#پژوهش'],
+ [/مشاور|رشته|guidance/i,'#مشاوره_تحصیلی'],
+ [/کتاب|book/i,'#کتاب'],
+ [/زبان|language/i,'#آموزش_زبان']
+];
+document.getElementById('compose').addEventListener('click',()=>{
+ const preview=document.getElementById('preview');
+ const old=preview.textContent;
+ if(!old||old==='پیش‌نویس هنوز تولید نشده است.')return;
+ const network=publicationNetwork.value;
+ const isVideo=['aparat','youtube','tiktok'].includes(network);
+ if(isVideo){
+  preview.textContent=old+'\n\n[توجه: برای این شبکه انتشار فقط پس از تهیه ویدئوی واقعیِ دارای مجوز و اتصال رسمی امکان‌پذیر است.]';
+ }
+ if(network==='whatsapp'){
+  preview.textContent=old+'\n\n[توجه: این متن قابل ارسال همگانی خودکار نیست؛ رضایت مخاطب و الگوی تجاری تأییدشده ضروری است.]';
+ }
+ if(network==='instagram'){
+  preview.textContent=old+'\n\n[لینک کپشن معمولاً قابل کلیک نیست؛ برای مراجعه مستقیم، لینک بیو یا استوری واجد شرایط را تنظیم کنید.]';
+ }
+ const text=preview.textContent;const tags=topics.filter(([re])=>re.test(text)).map(([,tag])=>tag);
+ const max=network==='x'?2:network==='instagram'?5:3;
+ if(network!=='whatsapp'&&tags.length)preview.textContent+='\n\n'+[...new Set(tags)].slice(0,max).join(' ');
+ if(network==='x'){
+  const p=preview.textContent;
+  if(Array.from(p).length>280){
+   const url=(p.match(/https:\/\/drjavadrezazadeh\.com\/\S+/)||[])[0]||'';
+   const reserved=Array.from(url).length+3;
+   preview.textContent=Array.from(p.split('\n')[0]).slice(0,Math.max(0,280-reserved)).join('')+'\n\n'+url;
+  }
+ }
 });
 </script></body></html>
