@@ -21,6 +21,11 @@ function respond(array $data, int $status = 200): never {
 function fail(string $code, int $status = 400): never {
     respond(['ok' => false, 'error' => $code], $status);
 }
+// The callback is a browser navigation, not a JSON API client. Never infer a successful payment from URL parameters.
+function commerceReturnToResult(string $orderId): never {
+    header('Location: '.SITE_ORIGIN.'/fa/shop/payment-result/?order='.rawurlencode($orderId), true, 303);
+    exit;
+}
 function cfg(): array {
     static $cfg = null;
     if (is_array($cfg)) return $cfg;
@@ -512,11 +517,11 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
     $id=(string)($_GET['order']??'');if(!validUuid($id))fail('invalid_order');$pdo=db();if(!$pdo)fail('database_unconfigured',503);
     $s=$pdo->prepare('SELECT * FROM commerce_orders WHERE id=?');$s->execute([$id]);$row=$s->fetch();if(!$row)fail('order_not_found',404);
     if($row['state']==='paid'){header('Location: '.SITE_ORIGIN.'/fa/shop/payment-result/?state=paid&order='.rawurlencode($id),true,303);exit;}
-    if($row['state']!=='pending')fail('order_not_pending',409);
+    if($row['state']!=='pending')commerceReturnToResult($id);
     $params=$_GET;if($verb==='POST')$params=array_merge($params,$_POST);$idGet=(string)($params['id_get']??'');$trans=(string)($params['trans_id']??'');
-    if($idGet!==(string)$row['provider_id_get']||!preg_match('/^[1-9][0-9]*$/',$trans))fail('callback_mismatch');
-    try{$raw=gatewayPost('gateway-result-second',['trans_id'=>$trans,'id_get'=>$idGet,'json'=>'1']);$d=json_decode($raw,true);if(!is_array($d)||!in_array((string)($d['status']??''),['1','11'],true)||(int)($d['amount']??0)!==(int)$row['provider_amount']||(string)($d['factorId']??'')!==(string)$row['factor_id'])fail('verification_mismatch',409);
-        $u=$pdo->prepare("UPDATE commerce_orders SET state='paid',provider_trans_id=?,paid_at=NOW(),updated_at=NOW() WHERE id=? AND state='pending' AND provider_id_get=?");$u->execute([$trans,$id,$idGet]);if($u->rowCount()!==1)fail('concurrent_update',409);
+    if($idGet!==(string)$row['provider_id_get']||!preg_match('/^[1-9][0-9]*$/',$trans))commerceReturnToResult($id);
+    try{$raw=gatewayPost('gateway-result-second',['trans_id'=>$trans,'id_get'=>$idGet,'json'=>'1']);$d=json_decode($raw,true);if(!is_array($d)||!in_array((string)($d['status']??''),['1','11'],true)||(int)($d['amount']??0)!==(int)$row['provider_amount']||(string)($d['factorId']??'')!==(string)$row['factor_id'])commerceReturnToResult($id);
+        $u=$pdo->prepare("UPDATE commerce_orders SET state='paid',provider_trans_id=?,paid_at=NOW(),updated_at=NOW() WHERE id=? AND state='pending' AND provider_id_get=?");$u->execute([$trans,$id,$idGet]);if($u->rowCount()!==1)commerceReturnToResult($id);
         $customerEmail=(string)($row['customer_email']??'');
         if(validEmail($customerEmail)&&mailReady()){
             $items=json_decode((string)$row['items_json'],true);$summary=[];$sum=0;
@@ -525,7 +530,11 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
             if(sendLocalMail($customerEmail,'تأیید پرداخت سفارش '.$id,$body)){$pdo->prepare("UPDATE commerce_orders SET receipt_email_sent_at=NOW() WHERE id=?")->execute([$id]);}
         }
         header('Location: '.SITE_ORIGIN.'/fa/shop/payment-result/?state=paid&order='.rawurlencode($id),true,303);exit;
-    }catch(Throwable $e){fail('verification_unavailable',502);}
+    }catch(Throwable $e){
+        // Preserve the pending/verified DB state; never manufacture a paid receipt on a callback failure.
+        error_log('Commerce payment callback could not complete: '.get_class($e));
+        commerceReturnToResult($id);
+    }
 }
 
 if($path==='/donations/health'&&$verb==='GET')respond(['ok'=>true,'service'=>'donations','checkout'=>false]);
