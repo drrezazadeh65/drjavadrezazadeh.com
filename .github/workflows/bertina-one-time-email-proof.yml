@@ -1,0 +1,112 @@
+name: Bertina One-Time SMTP Delivery Proof
+on:
+  workflow_dispatch:
+  push:
+    branches: [migration/bertina-linux6]
+    paths: ['.bertina-mail-smoke-trigger']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bertina-smtp-delivery-proof
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify one-shot PHP test syntax and internal-only hook
+        run: |
+          php -l scripts/bertina-mail-smoke-template.php
+          php -l api/index.php
+          php -r 'define("BERTINA_MAIL_SMOKE_CONTEXT",true); require "api/index.php"; if(!function_exists("sendLocalMail"))exit(1); echo "Internal mailer available.\n";'
+
+      - name: Install protected FTP client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Prepare a one-use capability and probe
+        run: |
+          set -euo pipefail
+          TOKEN="$(openssl rand -hex 32)"
+          echo "::add-mask::$TOKEN"
+          HASH="$(printf '%s' "$TOKEN" | sha256sum | awk '{print $1}')"
+          NAME="bertina-mail-smoke-$(openssl rand -hex 16).php"
+          sed "s/__TOKEN_SHA256__/$HASH/g" scripts/bertina-mail-smoke-template.php > "/tmp/$NAME"
+          php -l "/tmp/$NAME"
+          {
+            echo "SMOKE_TOKEN=$TOKEN"
+            echo "SMOKE_SCRIPT=$NAME"
+          } >> "$GITHUB_ENV"
+
+      - name: Upload transient email proof over authenticated FTPS
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          test -n "$FTP_USER" && test -n "$FTP_PASSWORD" && test -n "$FTP_REMOTE_DIR"
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts > /dev/null
+          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 20
+          cd "$FTP_REMOTE_DIR"
+          put "/tmp/$SMOKE_SCRIPT" -o "$SMOKE_SCRIPT"
+          bye
+          LFTP
+
+      - name: Send exactly one non-sensitive account-mail test
+        run: |
+          set -euo pipefail
+          STATUS="$(curl -sS --max-time 55 --resolve drjavadrezazadeh.com:443:188.40.203.218 \
+            -H "X-Bertina-Mail-Smoke: $SMOKE_TOKEN" \
+            -o /tmp/bertina-mail-smoke-result.json -w '%{http_code}' \
+            "https://drjavadrezazadeh.com/$SMOKE_SCRIPT")"
+          PROBE_STATUS="$STATUS" node - <<'NODE'
+          const fs=require('fs');
+          let value;
+          try {value=JSON.parse(fs.readFileSync('/tmp/bertina-mail-smoke-result.json','utf8'))}
+          catch {console.error('SMTP_PROBE_RESULT: invalid server response');process.exit(1)}
+          const status=Number(process.env.PROBE_STATUS);
+          const allowed=['transport_not_configured','connect','greeting','ehlo','starttls','tls_handshake','ehlo_after_tls','auth_login','auth_user','auth_password','mail_from','recipient','data_begin','data_write','data_accept','server_exception','mail_delivery_not_accepted'];
+          if(status===200&&value.ok===true&&value.smtpAccepted===true){
+            console.log('SMTP_PROBE_ACCEPTED: Bertina SMTP accepted one non-sensitive message for delivery.');
+            console.log('Inbox receipt still requires a separate check in the connected Gmail mailbox.');
+          } else {
+            const stage=allowed.includes(value.failureStage)?value.failureStage:'unknown_stage';
+            console.error('SMTP_PROBE_FAILED: HTTP '+status+' stage='+stage);
+            process.exit(1);
+          }
+          NODE
+
+      - name: Remove transient script even when the test fails
+        if: always()
+        continue-on-error: true
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: |
+          if [ -z "${SMOKE_SCRIPT:-}" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then exit 0; fi
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts > /dev/null
+          timeout 60s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 15
+          cd "$FTP_REMOTE_DIR"
+          rm -f "$SMOKE_SCRIPT"
+          bye
+          LFTP
