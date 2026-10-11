@@ -401,9 +401,9 @@ if (str_starts_with($path,'/auth/')) {
     // A pending customer can request another verification email without
     // re-registering or submitting their password. Uniform response prevents
     // account enumeration; the existing rate-limit table controls abuse.
-    if($path==='/auth/resend-verification'&&$verb==='POST'){
+    if($path==='/auth/retry-verification'&&$verb==='POST'){
         requirePostOrigin();$b=jsonBody();$email=emailNorm($b['email']??'');
-        if(validEmail($email) && rateAllowed($pdo,'resend-verification',$email,3,3600)){
+        if(validEmail($email) && rateAllowed($pdo,'retry-verification',$email,3,3600)){
             $a=accountByEmail($pdo,$email);
             if($a && empty($a['email_verified_at']) && ($a['status']??'')==='pending'){
                 $locale=($b['locale']??'')==='en'?'en':'fa';
