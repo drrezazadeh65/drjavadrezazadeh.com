@@ -51,3 +51,35 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])t
  expect(await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth)).toBeLessThanOrEqual(1);
  const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:lang==='en'?'Download written report':'دریافت گزارش مکتوب',exact:true}).click();const download=await downloadEvent;const fs=require('node:fs');const text=fs.readFileSync(await download.path(),'utf8');expect(text).toContain(lang==='en'?'Private gateway key configured: No':'وجود کلید خصوصی درگاه: خیر');expect(text).toContain('Configuration does not prove payment.');
 });
+
+
+test('Bertina unified dashboard preserves all modules and makes path switching presentation-only',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.route('**/api/auth/health',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,ready:true,registrationReady:false,emailDeliveryVerified:false})}));
+ await page.route('**/api/auth/me',route=>route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({ok:false,error:'unauthorized'})}));
+ const response=await page.goto(base+'/fa/customer-dashboard/',{waitUntil:'domcontentloaded'});
+ expect(response.status()).toBe(200);
+ expect(await page.locator('meta[name="robots"]').getAttribute('content')).toContain('noindex');
+ for(const id of ['overview','journey','command-center','student-support','ecosystem','academic-profile','progress','consultations','records','account']){
+  await expect(page.locator('#'+id)).toHaveCount(1);
+ }
+ await expect(page.locator('[data-command-item]')).toHaveCount(12);
+ await expect(page.locator('[data-command-path]')).toHaveCount(4);
+ await page.locator('[data-command-path="sponsorship"]').click();
+ await expect(page.locator('[data-command-path="sponsorship"]')).toHaveAttribute('aria-pressed','true');
+ await expect(page.locator('[data-command-item][href="#student-support"]')).toBeVisible();
+ await expect(page.locator('[data-command-item][data-command-group="learning"]')).toBeHidden();
+ await expect(page.locator('#ecosystem')).toBeVisible();
+ await expect(page.locator('[data-live-dot].ready')).toHaveCount(0);
+ await page.locator('[data-command-path="all"]').click();
+ await expect(page.locator('[data-command-item]:visible')).toHaveCount(12);
+ await page.locator('[data-dashboard-more]').click();
+ await expect(page.locator('[data-dashboard-sheet]')).toHaveClass(/is-open/);
+ await page.locator('[data-dashboard-sheet] a[href="#command-center"]').click();
+ await expect(page.locator('[data-dashboard-sheet]')).not.toHaveClass(/is-open/);
+ for(const width of [320,390]){
+  await page.setViewportSize({width,height:844});
+  const widths=await page.evaluate(()=>[document.documentElement.scrollWidth,document.body.scrollWidth,innerWidth]);
+  expect(Math.max(widths[0],widths[1]),'dashboard horizontal overflow at '+width).toBeLessThanOrEqual(widths[2]+1);
+ }
+});
