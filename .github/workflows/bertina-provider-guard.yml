@@ -71,6 +71,7 @@ jobs:
           node --check assets/js/customer-auth.js
           node tests/bertina-auth-readiness-regression.mjs
           node tests/bertina-smtp-contract.mjs
+          node tests/guest-book-checkout-independence.test.mjs
 
       - name: Build sanitized Bertina artifact
         run: node scripts/build-public-site.mjs
