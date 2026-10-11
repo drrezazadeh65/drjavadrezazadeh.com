@@ -18,3 +18,8 @@
 .support-panel .support-status{min-height:2.4em;font-weight:600;margin:12px 0}
 .support-panel .support-footer{border-top:1px solid #dfd6c6;padding-top:15px;margin-top:22px}
 @media(max-width:650px){.support-panel{margin:18px 10px;padding:18px 15px;border-radius:16px}.support-panel .support-presets{grid-template-columns:repeat(2,minmax(0,1fr))}.support-panel .support-submit{width:100%;min-width:0}.support-panel input{font-size:16px}}
+
+.support-panel select{display:block;width:100%;min-height:52px;padding:12px 15px;background:#fff;color:#172b40;border:1.5px solid #9d9b91;border-radius:11px;font:inherit;line-height:1.45}
+.support-panel select:focus-visible{outline:3px solid #b07925;outline-offset:3px}
+.support-panel a{color:#145779;text-decoration:underline;text-underline-offset:3px}
+.support-panel a:focus-visible{outline:3px solid #b07925;outline-offset:3px}
