@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive"><title>AWOSE — پیش‌نمایش موتور انتشار اجتماعی</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0e16;--card:#151b29;--line:#323849;--main:#f3d79c;--text:#f7f5f0;--muted:#afbbd0}*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 10% 10%,#252131,#0b0e16 54%);color:var(--text);font-family:system-ui,"Segoe UI",Tahoma,sans-serif;line-height:1.8}button,input,select{font:inherit}
+a{color:var(--main)}button:focus-visible,input:focus-visible{outline:3px solid #f3d79c;outline-offset:3px}
+main{max-width:1440px;margin:auto;padding:22px 18px 70px}.top{display:flex;gap:14px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.eyebrow{color:var(--main);font-size:.83rem;letter-spacing:.08em}h1{font-size:clamp(1.55rem,3vw,2.35rem);line-height:1.5;margin:.1em 0}.intro{color:var(--muted);max-width:85ch}
+.warning{border:1px solid #766343;border-radius:16px;background:#302719;padding:12px 16px;margin:20px 0;font-size:.9rem;color:#f2e2b6}
+.panel{border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,#1b2130,#10151f);padding:18px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:22px 0}.stat b{font-size:1.5rem;color:var(--main);display:block}.stat span{color:var(--muted)}
+.tabs{display:flex;gap:8px;overflow:auto;scrollbar-width:thin;padding:5px 0 13px;margin-bottom:12px}.tabs button{white-space:nowrap;border-radius:999px;border:1px solid var(--line);background:#171d2b;color:var(--text);padding:9px 17px;cursor:pointer;min-height:44px}.tabs button[aria-selected="true"]{background:var(--main);color:#21180a;border-color:var(--main);font-weight:750}
+[role="tabpanel"][hidden]{display:none!important}.sectiontitle{font-size:1.23rem;margin:0 0 15px}
+.grid{display:grid;gap:12px}.channel{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:15px;padding:14px;background:#0f1522}
+.channel b{display:block}.small{font-size:.84rem;color:var(--muted)}.mark{font-size:.75rem;color:#f5d4a0;border:1px solid #705b3d;border-radius:999px;padding:3px 9px;white-space:nowrap}
+label{display:block;color:var(--muted);margin:12px 0 5px}input,select{max-width:100%;background:#0b111d;color:var(--text);border:1px solid #626b79;border-radius:11px;padding:11px 12px;min-height:44px}
+.primary{background:var(--main);color:#15171d;border:0;border-radius:12px;padding:10px 17px;cursor:pointer;font-weight:750;min-height:44px}.secondary{background:#263044;border:1px solid var(--line);color:var(--text);border-radius:12px;padding:10px 17px;cursor:pointer;min-height:44px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}.preview{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b111d;border:1px solid var(--line);padding:17px;border-radius:14px;min-height:130px}
+.metric{border-radius:14px;background:#101828;padding:14px}.metric strong{color:var(--main)}.empty{color:var(--muted);padding:15px;border:1px dashed #555e6d;border-radius:14px}
+footer{margin-top:25px;color:var(--muted);font-size:.85rem}
+@media(min-width:850px){main{padding:36px 42px}.stats{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.channelgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body><main>
+<header class="top"><div><div class="eyebrow">AWOSE · SOCIAL DISTRIBUTION ENGINE</div><h1>مرکز هوشمند انتشار و توسعه رسانه‌ای</h1><p class="intro">طراحی اولیه یکی از موتورهای داشبورد مدیریت سایت، با اولویت موبایل، انتشار محتوا از سایت و حفظ هویت علمی و حرفه‌ای.</p></div><div class="mark" aria-label="وضعیت">پیش‌نمایش غیرمتصل</div></header>
+<div class="warning" role="status"><strong>انتشار غیرفعال است.</strong> این صفحه فقط پیش‌نمایش قابلیت‌هاست، نه داشبورد امن و متصل به حساب‌ها. اتصال حساب و انتشار واقعی باید از طریق پنل مدیریت احراز هویت‌شده و سرور انجام شود.</div>
+<div class="stats">
+<div class="panel stat"><b>۱۰</b><span>شبکه در نقشه توسعه</span></div>
+<div class="panel stat"><b>۲</b><span>آداپتور ارسال متن در کد</span></div>
+<div class="panel stat"><b>۲۱:۰۰</b><span>پیش‌فرض ساعت انتشار ایران</span></div>
+<div class="panel stat"><b>۰</b><span>انتشار تأییدشده در این پیش‌نمایش</span></div>
+</div>
+<nav class="tabs" role="tablist" aria-label="بخش‌های موتور">
+<button role="tab" aria-controls="overview" aria-selected="true" id="tab-overview">نمای کلی</button>
+<button role="tab" aria-controls="calendar" aria-selected="false" id="tab-calendar">تقویم و زمان‌بندی</button>
+<button role="tab" aria-controls="composer" aria-selected="false" id="tab-composer">ساخت و بازبینی پست</button>
+<button role="tab" aria-controls="story" aria-selected="false" id="tab-story">استوری و رسانه</button>
+<button role="tab" aria-controls="accounts" aria-selected="false" id="tab-accounts">حساب‌ها</button>
+<button role="tab" aria-controls="analytics" aria-selected="false" id="tab-analytics">آمار و ممیزی</button>
+</nav>
+<section class="panel" id="overview" role="tabpanel" aria-labelledby="tab-overview">
+<h2 class="sectiontitle">وضعیت شبکه‌ها</h2><div class="grid channelgrid" id="channel-grid"></div>
+<p class="small">اتصال فنی بالقوه با فعال‌بودن یک حساب در شبکه تفاوت دارد؛ وضعیت فعال فقط با پاسخ رسمی API و شناسه پست تأیید می‌شود.</p>
+</section>
+<section class="panel" id="calendar" role="tabpanel" aria-labelledby="tab-calendar" hidden>
+<h2 class="sectiontitle">سیاست زمان‌بندی پیشنهادی</h2>
+<div class="grid"><div><label for="time">زمان محلی ایران</label><input id="time" type="time" value="21:00"></div>
+<div><label for="daily">حداکثر مطلب جدید در روز</label><input id="daily" type="number" value="1" min="1" max="6"></div></div>
+<p class="small" id="schedule-summary">هر روز ساعت ۲۱:۰۰ به وقت ایران؛ حداکثر ۱ مقاله.</p>
+<div class="actions"><button class="secondary" id="export" type="button">دریافت تنظیمات آزمایشی JSON</button></div>
+<p class="small">این تنظیمات روی سرور ذخیره نمی‌شوند؛ ذخیره واقعی باید پس از اتصال به بک‌اند امن انجام شود.</p>
+</section>
+<section class="panel" id="composer" role="tabpanel" aria-labelledby="tab-composer" hidden>
+<h2 class="sectiontitle">ساخت پیش‌نویس از خبر واقعی سایت</h2>
+<label for="article">مقاله از RSS سایت</label><select id="article"><option value="">برای دریافت مقالات، بارگذاری را بزنید</option></select>
+<div class="actions"><button class="secondary" id="load" type="button">بارگذاری RSS سایت</button></div>
+<label for="network">قالب شبکه</label><select id="network"><option value="telegram">تلگرام</option><option value="eitaa">ایتا</option><option value="x">ایکس</option><option value="instagram">اینستاگرام</option><option value="facebook">فیس‌بوک</option></select>
+<div class="actions"><button class="primary" id="compose" type="button">ساخت پیش‌نمایش</button><button class="secondary" id="copy" type="button">کپی متن</button></div><p id="feed-status" class="small" role="status"></p>
+<h3>متن پیشنهادی</h3><div class="preview" id="preview" aria-live="polite">پیش‌نویس هنوز تولید نشده است.</div>
+</section>
+<section class="panel" id="story" role="tabpanel" aria-labelledby="tab-story" hidden>
+<h2 class="sectiontitle">کارخانه محتوای چندرسانه‌ای</h2><div class="grid">
+<div class="metric"><strong>تصویر ۱:۱ و ۴:۵</strong><p>کاور شبکه‌ای و کاروسل با قالب بصری برند و متن جایگزین، پس از آماده‌سازی پردازش رسانه.</p></div>
+<div class="metric"><strong>استوری ۹:۱۶</strong><p>تولید سناریو، چند فریم، طرح جلد، دکمه اقدام و فرایند انتشار فقط در شبکه‌های واجد شرایط API.</p></div>
+<div class="metric"><strong>ویدئو و ریلز</strong><p>فرمت عمودی، زیرنویس، معرفی کتاب و خدمت و نسخه‌های کوتاه از سخنرانی‌های عمومی.</p></div>
+<div class="metric"><strong>حقوق و اصالت</strong><p>کنترل منشأ تصویر، رضایت، محرمانگی پژوهش و داده دانش‌آموزان پیش از انتشار.</p></div>
+</div><p class="small">وضعیت این بخش: طراحی؛ تولید و بارگذاری خودکار ویدئو/استوری هنوز به سرور متصل نشده است.</p>
+</section>
+<section class="panel" id="accounts" role="tabpanel" aria-labelledby="tab-accounts" hidden>
+<h2 class="sectiontitle">اتصال حساب‌ها</h2><p class="empty">هیچ حسابی در این پیش‌نمایش به سرویس ارسال متصل نشده است. اتصال حساب‌ها باید با احراز هویت، کمترین مجوز لازم و ذخیره محرمانه توکن‌ها روی سرور انجام شود؛ این صفحه گذرواژه یا توکن نمی‌پذیرد.</p>
+</section>
+<section class="panel" id="analytics" role="tabpanel" aria-labelledby="tab-analytics" hidden>
+<h2 class="sectiontitle">تحلیل و ممیزی</h2><p class="empty">هنوز داده واقعی تأییدشده‌ای از ارسال، نمایش، کلیک، لید یا فروش وارد نشده است. پس از اتصال رسمی شبکه‌ها، داشبورد تنها داده‌های موجود با منبع، تاریخ و روش محاسبه مشخص را نمایش می‌دهد.</p>
+</section>
+<footer>AWOSE · آزمایشی · هیچ محتوایی از این پیش‌نمایش منتشر نمی‌شود. اطلاعات دانش‌آموزان، حامیان و پرونده‌های خصوصی هرگز به صف تبلیغات وارد نمی‌شود.</footer>
+</main>
+<script type="module">
+const channels=[
+ ['تلگرام','آداپتور متن آماده؛ اتصال حساب لازم است'],
+ ['ایتا','آداپتور متن آماده؛ اتصال حساب لازم است'],
+ ['اینستاگرام','اتصال رسمی Meta و مجوز استوری لازم است'],
+ ['فیس‌بوک','اتصال رسمی صفحه لازم است'],['ایکس','احراز هویت API و هزینه انتشار'],
+ ['واتس‌اپ','فقط ارتباط تجاری با رضایت و قالب تأییدشده'],
+ ['آپارات','مجوز معتبر بارگذاری ویدئو'],['لینکدین','اتصال و مجوز حرفه‌ای'],
+ ['تردز','اتصال رسمی شبکه'],['یوتیوب','مجوز ویدئو و سهمیه API']
+];
+document.querySelector('#channel-grid').replaceChildren(...channels.map(([name,detail])=>{
+ const div=document.createElement('div');div.className='channel';
+ const info=document.createElement('div');const label=document.createElement('b');label.textContent=name;
+ const sub=document.createElement('span');sub.className='small';sub.textContent=detail;
+ info.append(label,sub);const mark=document.createElement('span');mark.className='mark';mark.textContent='در انتظار';
+ div.append(info,mark);return div;
+}));
+const tabs=[...document.querySelectorAll('[role="tab"]')];
+tabs.forEach(tab=>tab.addEventListener('click',()=>{
+ tabs.forEach(t=>{const yes=t===tab;t.setAttribute('aria-selected',String(yes));document.getElementById(t.getAttribute('aria-controls')).hidden=!yes;});
+ tab.focus();
+}));
+const time=document.getElementById('time'),daily=document.getElementById('daily');
+function summary(){document.getElementById('schedule-summary').textContent='هر روز ساعت '+time.value+' به وقت ایران؛ حداکثر '+daily.value+' مقاله.';}
+time.addEventListener('change',summary);daily.addEventListener('input',summary);
+document.getElementById('export').addEventListener('click',()=>{
+ const json=JSON.stringify({timezone:'Asia/Tehran',time:time.value,maxPostsPerDay:Number(daily.value),publishingEnabled:false},null,2);
+ const u=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+ const a=document.createElement('a');a.href=u;a.download='awose-social-draft-policy.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+});
+let items=[];let draft='';
+document.getElementById('load').addEventListener('click',async()=>{
+ const status=document.getElementById('feed-status');status.textContent='در حال خواندن منبع عمومی RSS...';
+ try{const res=await fetch('https://drjavadrezazadeh.com/feed.xml',{cache:'no-store'});if(!res.ok)throw Error('RSS HTTP '+res.status);
+ const doc=new DOMParser().parseFromString(await res.text(),'application/xml');
+ if(doc.querySelector('parsererror'))throw Error('RSS نامعتبر');
+ items=[...doc.querySelectorAll('item')].map(e=>({title:e.querySelector('title')?.textContent||'',description:e.querySelector('description')?.textContent||'',link:e.querySelector('link')?.textContent||''}))
+ .filter(e=>e.link.startsWith('https://drjavadrezazadeh.com/fa/')||e.link.startsWith('https://drjavadrezazadeh.com/en/'));
+ const select=document.getElementById('article');select.replaceChildren(...items.map((e,i)=>{const o=document.createElement('option');o.value=i;o.textContent=e.title;return o;}));
+ status.textContent=items.length+' مطلب عمومی از RSS بارگذاری شد. این کار هیچ مطلبی را منتشر نمی‌کند.';
+ }catch(e){status.textContent='دریافت RSS انجام نشد: '+e.message;}
+});
+document.getElementById('compose').addEventListener('click',()=>{
+ const item=items[Number(document.getElementById('article').value)];
+ if(!item){document.getElementById('feed-status').textContent='ابتدا RSS را دریافت کنید.';return;}
+ const network=document.getElementById('network').value;
+ const u=new URL(item.link);u.searchParams.set('utm_source',network);u.searchParams.set('utm_medium','social');u.searchParams.set('utm_campaign','editorial');
+ const max=network==='x'?280:network==='instagram'?2200:network==='telegram'?4096:3000;
+ const intro=network==='x'?item.title:item.title+'\n\n'+item.description;
+ const available=Math.max(20,max-Array.from(u.href).length-3);
+ const text=Array.from(intro).length>available?Array.from(intro).slice(0,available-1).join('')+'…':intro;
+ draft=text+'\n\n'+u.href;document.getElementById('preview').textContent=draft;
+});
+document.getElementById('copy').addEventListener('click',async()=>{
+ if(!draft)return;
+ try{await navigator.clipboard.writeText(draft);document.getElementById('feed-status').textContent='متن پیش‌نویس کپی شد.';}
+ catch{document.getElementById('feed-status').textContent='کپی خودکار مجاز نیست؛ متن پیش‌نویس را دستی انتخاب کنید.';}
+});
+</script></body></html>
