@@ -460,6 +460,11 @@ jobs:
             -o /tmp/student-support-denied.json -w '%{http_code}' "$HOST/api/student-support/portal")
           test "$code" = "401"
           node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/student-support-denied.json","utf8"));if(x.error!=="unauthorized")process.exit(1);console.log("Anonymous student dashboard access safely denied")'
+          code=$(curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+            -o /tmp/student-contributions-denied.json -w '%{http_code}' "$HOST/api/student-support/my-contributions")
+          test "$code" = "401"
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/student-contributions-denied.json","utf8"));if(x.ok!==false||x.error!=="unauthorized"||"items" in x){console.error("Guest accessed contributor records");process.exit(1)}console.log("Anonymous contribution history inaccessible; private financial ledger remains protected")'
+
 
       - name: Verify every registered historical URL with trusted public TLS
         if: steps.credentials.outputs.ready == 'true'
