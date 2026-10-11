@@ -288,3 +288,18 @@ test('Support payment refuses forged BitPay URL before redirect',async({page})=>
   await expect(page.locator('[data-support-form] [type="submit"]')).toBeDisabled();
   await expect(page.locator('[data-support-status]')).toContainText('دوباره ثبت نکنید');
 });
+
+test('Verified small voluntary support displays a distinct noncharitable donation receipt',async({page})=>{
+  const orderId='11111111-1111-4111-8111-111111111118';
+  await page.route('**/api/commerce/status?order=*',route=>route.fulfill({status:200,json:{
+    ok:true,state:'paid',receipt:{orderId,currency:'IRT',amountToman:10000,paidAt:'2026-10-11 10:30:00',
+      items:[{sku:'support:voluntary',title:'حمایت مالی داوطلبانه از محتوای آموزشی',quantity:1,unitToman:10000,subtotalToman:10000}]}
+  }}));
+  await page.goto(base+'/fa/shop/payment-result/?from=gateway&order='+orderId,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#receipt')).toBeVisible();
+  await expect(page.locator('#title')).toContainText('حمایت مالی داوطلبانه');
+  await expect(page.locator('#receipt .receipt-head strong')).toContainText('رسید حمایت مالی');
+  await expect(page.locator('#receipt-total')).toContainText('۱۰٬۰۰۰');
+  await expect(page.locator('#receipt .note')).toContainText('فاکتور رسمی مالیاتی محسوب نمی‌شود');
+  await expect(page.locator('#print')).toBeVisible();
+});
