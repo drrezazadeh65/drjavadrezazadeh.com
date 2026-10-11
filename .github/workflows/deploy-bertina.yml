@@ -339,6 +339,55 @@ jobs:
           grep -q "jr-site-bertina-$GITHUB_SHA" /tmp/bookstore-sw.js
           echo "Service Worker cache invalidation version verified on Bertina"
 
+      - name: Verify deployed unified dashboard, private headers and same-origin runtime
+        run: |
+          set -euo pipefail
+          ORIGIN_IP="188.40.203.218"
+          HOST="https://drjavadrezazadeh.com"
+          code="$(curl -sS --compressed --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
+            -D /tmp/bertina-dashboard.headers -o /tmp/bertina-dashboard.html -w '%{http_code}' \
+            "$HOST/fa/customer-dashboard/")"
+          test "$code" = "200"
+          curl -fsS --compressed --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
+            "$HOST/assets/js/customer-dashboard.js" -o /tmp/bertina-dashboard.js
+          curl -fsS --compressed --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
+            "$HOST/assets/js/student-sponsorship-dashboard.js" -o /tmp/bertina-sponsor.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('/tmp/bertina-dashboard.html','utf8');
+          const headers=fs.readFileSync('/tmp/bertina-dashboard.headers','utf8');
+          const runtime=fs.readFileSync('/tmp/bertina-dashboard.js','utf8');
+          const sponsor=fs.readFileSync('/tmp/bertina-sponsor.js','utf8');
+          const required=['id="overview"','id="student-support"','id="command-center"','id="ecosystem"',
+            'id="academic-profile"','id="progress"','id="consultations"','id="records"','id="account"',
+            'data-student-support-workspace','data-command-path="all"','data-command-path="learning"',
+            'data-command-path="shopping"','data-command-path="sponsorship"'];
+          for(const x of required)if(!html.includes(x))throw Error('Live unified dashboard missing '+x);
+          if(!/meta\s+name="robots"\s+content="[^"]*noindex[^"]*nofollow/i.test(html))
+            throw Error('Private dashboard must be noindex,nofollow');
+          if(!/^cache-control:[^\r\n]*no-store/im.test(headers))
+            throw Error('Private dashboard response lacks no-store');
+          if(!/^x-robots-tag:[^\r\n]*noindex/im.test(headers))
+            throw Error('Private dashboard missing server noindex header');
+          if(!runtime.includes("const API='/api'"))
+            throw Error('Dashboard must use Bertina same-origin API only');
+          if(!sponsor.includes("fetch('/api/student-support/portal'"))
+            throw Error('Sponsor workspace lacks guarded same-origin API');
+          console.log('Bertina unified dashboard live: route, module retention, 4 account paths, private no-store/noindex and same-origin auth/sponsor JS verified');
+          NODE
+          curl -fsS --max-time 25 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
+            "$HOST/api/auth/health" -o /tmp/bertina-dashboard-auth.json
+          node - <<'NODE'
+          const x=JSON.parse(require('fs').readFileSync('/tmp/bertina-dashboard-auth.json','utf8'));
+          if(x.ok!==true||x.service!=='auth')throw Error('Live auth health contract missing');
+          console.log('Bertina auth readiness gates:',JSON.stringify({
+            runtimeReady:x.ready===true,databaseReady:x.database===true,
+            schemaReady:x.schemaReady===true,mailConfigurationReady:x.email===true,
+            pepperReady:x.passwordKdf===true
+          }));
+          if(x.ready!==true)console.log('NOTE: verified-email registration remains safely gated; private cases must not be represented as active');
+          NODE
+
       - name: Inspect deployed rewrite hierarchy
         if: steps.credentials.outputs.ready == 'true'
         env:
