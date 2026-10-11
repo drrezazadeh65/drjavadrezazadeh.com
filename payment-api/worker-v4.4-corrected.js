@@ -612,6 +612,11 @@ export default {
 
   async fetch(request, env) {
 
+    // Account routes must execute before the commerce/payment configuration gate.
+    // Otherwise a valid /auth/health request falls through to legacy 404 routing.
+    const authResponse = await auth(request,env);
+    if(authResponse)return authResponse;
+
     const donationResponse = await donations(request,env);
     if(donationResponse)return donationResponse;
     const commerceResponse = await commerce(request, env);
