@@ -76,8 +76,11 @@ button:focus-visible,a:focus-visible{outline:3px solid #c99d46;outline-offset:3p
   const data=await res.json();
   if(!res.ok||data.ok!==true)throw Error('status_unavailable');
   if(data.state==='pending'||data.state==='created'){
-   title.textContent='پرداخت هنوز تأیید نشده است';
-   status.textContent='تا دریافت نتیجه قطعی از پرداخت مجدد خودداری کنید.';return;
+   const returned=params.get('from')==='gateway';
+   title.textContent=returned?'بازگشت از درگاه؛ پرداخت تأیید نشده است':'پرداخت هنوز تأیید نشده است';
+   status.textContent=returned
+    ?'از درگاه بانکی بازگشته‌اید، اما هیچ پرداخت موفقی برای این سفارش در سرور تأیید نشده است. اگر انصراف داده‌اید، سفارش قطعی نیست. پیش از تلاش دوباره وضعیت سفارش را از پشتیبانی پیگیری کنید.'
+    :'تا دریافت نتیجه قطعی از پرداخت مجدد خودداری کنید.';return;
   }
   if(data.state!=='paid'){
    title.textContent='پرداخت تأیید نشده است';
