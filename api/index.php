@@ -162,6 +162,10 @@ function smtpSend(string $to, string $subject, string $body): bool {
         if(!smtpCmd($fp,'DATA',[354]))return smtpFail('data_begin');
         $encodedSubject='=?UTF-8?B?'.base64_encode($subject).'?=';
         $reply=(string)($c['mail_reply_to']??$from);
+        // Only normalize the body. Header lines are already CRLF-terminated;
+        // applying LF->CRLF to the whole message produces invalid CRCRLF.
+        $normalizedBody=str_replace(["\r\n","\r"],"\n",$body);
+        $normalizedBody=str_replace("\n","\r\n",$normalizedBody);
         $message="From: Dr. Javad Rezazadeh <".$from.">\r\n".
             "Reply-To: ".$reply."\r\n".
             "To: <".$to.">\r\n".
@@ -171,8 +175,7 @@ function smtpSend(string $to, string $subject, string $body): bool {
             "Content-Transfer-Encoding: 8bit\r\n".
             "Date: ".gmdate('D, d M Y H:i:s').' +0000'."\r\n".
             "Message-ID: <".bin2hex(random_bytes(12))."@drjavadrezazadeh.com>\r\n\r\n".
-            str_replace(["\r\n","\r"],"\n",$body);
-        $message=str_replace("\n","\r\n",$message);
+            $normalizedBody;
         $message=preg_replace('/(?m)^\\./','..',$message);
         if(@fwrite($fp,$message."\r\n.\r\n")===false)return smtpFail('data_write');
         [$code,]=smtpRead($fp);
