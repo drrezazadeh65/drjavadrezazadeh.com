@@ -6,7 +6,7 @@ for(const [locale,title,cta] of required){
  for(const root of ['','.public-site/']){
   const p=root+locale+'/shop/index.html';
   const html=fs.readFileSync(p,'utf8');
-  for(const marker of [title,cta,'id="store-mission-title"','id="publish-for-talent"','id="book-catalog"','href="#book-catalog"','href="#publish-for-talent"','store-mission.css?v=approved-original-20261011-v3','mailto:info@drjavadrezazadeh.com']){
+  for(const marker of [title,cta,'id="store-mission-title"','id="publish-for-talent"','id="book-catalog"','href="#book-catalog"','href="#publish-for-talent"','store-mission.css?v=approved-original-20261011-v4','mailto:info@drjavadrezazadeh.com']){
    if(!html.includes(marker))throw Error('Missing '+marker+' from '+p);
   }
   if(!html.includes('rel="canonical" href="https://drjavadrezazadeh.com/'+locale+'/shop/"'))throw Error('Canonical mismatch '+p);

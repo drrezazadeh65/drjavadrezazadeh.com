@@ -332,7 +332,7 @@ jobs:
           ORIGIN_IP="188.40.203.218"
           for route in /fa/shop/ /en/shop/; do
             curl -fsSL --compressed --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP "https://drjavadrezazadeh.com$route" -o /tmp/bookstore-live.html
-            grep -q 'store-mission.css?v=approved-original-20261011-v3' /tmp/bookstore-live.html
+            grep -q 'store-mission.css?v=approved-original-20261011-v4' /tmp/bookstore-live.html
             if [ "$route" = "/fa/shop/" ]; then
               grep -q 'cinema-original-hero' /tmp/bookstore-live.html
               grep -q 'bookstore-talent-cinematic-approved-original-20261011.png' /tmp/bookstore-live.html
