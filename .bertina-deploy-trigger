@@ -104,3 +104,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 release canonical13 operations control center after all13 PR44 checks passed. Preserve current49 mobile bookstore, exact owner-approved image and all four support forms. No gateway/configuration/schema changes. Require source, MySQL, browser, SEO, trusted TLS, exact managed checksums and anonymous live private-boundary verification before successful certification.
 
 2026-10-11 mobile-first bilingual shop improvements: approve v4 presentation with direct support action on English mobile, help navigation parity and strict whole-toman entry; preserve original cinematic image, all financial and SEO safeguards.
+
+2026-10-11 SMTP body framing correction release; verify exact deployed revision, authenticated email pathway and no SEO regression.
