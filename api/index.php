@@ -552,8 +552,45 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
     }
 }
 
-if($path==='/donations/health'&&$verb==='GET')respond(['ok'=>true,'service'=>'donations','checkout'=>false]);
-if(str_starts_with($path,'/donations/'))fail('donations_disabled',503);
+// A voluntary support payment is a separate, non-purchase commerce order.
+// Existing verified bank callback and receipt processing remain authoritative.
+if($path==='/donations/health'&&$verb==='GET'){
+    respond(['ok'=>true,'service'=>'donations','checkout'=>commerceReady(),
+        'minToman'=>1000,'maxToman'=>500000,'defaultToman'=>10000,'currency'=>'IRT']);
+}
+if($path==='/donations/create'&&$verb==='POST'){
+    requirePostOrigin();
+    if(!commerceReady())fail('donations_disabled',503);
+    $pdo=db();if(!$pdo)fail('database_unconfigured',503);
+    $input=jsonBody();$amount=$input['amountToman']??null;
+    // Only JSON integers may initiate money movement: no floats, numeric strings or negatives.
+    if(!is_int($amount)||$amount<1000||$amount>500000)fail('invalid_donation_amount');
+    $email=trim((string)($input['email']??''));
+    if($email!==''&&!validEmail($email))fail('invalid_donation_email');
+    if(!rateAllowed($pdo,'donations_create',$email!==''?$email:'anonymous',5,900))fail('rate_limited',429);
+    $c=cfg();$providerAmount=$amount*(int)$c['bitpay_amount_multiplier'];
+    $order=uuidv4();$factor=substr(preg_replace('/[^0-9]/','',(string)hrtime(true)),0,28);
+    $items=[['sku'=>'support:voluntary','title'=>'حمایت مالی داوطلبانه از محتوای آموزشی',
+        'kind'=>'donation','quantity'=>1,'price'=>$amount,'subtotal'=>$amount]];
+    $itemsJson=json_encode($items,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+    if(!is_string($itemsJson))fail('donation_encoding_failed',500);
+    $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,NOW(),NOW())")
+        ->execute([$order,$factor,$amount,$providerAmount,'IRT',$email!==''?$email:null,null,$itemsJson,'created']);
+    try{
+        $callback=SITE_ORIGIN.'/api/commerce/callback?order='.rawurlencode($order);
+        $gatewayId=gatewayPost('gateway-send',['amount'=>(string)$providerAmount,
+            'redirect'=>$callback,'factorId'=>$factor,'description'=>'Voluntary support '.$order]);
+        if(!preg_match('/^[1-9][0-9]*$/D',$gatewayId))throw new RuntimeException('gateway_rejected');
+        $pdo->prepare("UPDATE commerce_orders SET state='pending',provider_id_get=?,updated_at=NOW() WHERE id=? AND state='created'")
+            ->execute([$gatewayId,$order]);
+        respond(['ok'=>true,'orderId'=>$order,'amountToman'=>$amount,'currency'=>'IRT',
+            'paymentUrl'=>SITE_ORIGIN.'/fa/shop/payment-start/?gateway='.rawurlencode('https://bitpay.ir/payment/gateway-'.$gatewayId.'-get')]);
+    }catch(Throwable $e){
+        $pdo->prepare("UPDATE commerce_orders SET state='failed',updated_at=NOW() WHERE id=? AND state='created'")->execute([$order]);
+        fail('gateway_rejected',502);
+    }
+}
+if(str_starts_with($path,'/donations/'))fail('not_found',404);
 if($path==='/assistant/v1/chat'&&$verb==='POST')fail('assistant_local_fallback',503);
 if($path==='/assistant/v1/leads'&&$verb==='POST')fail('lead_capture_not_configured',503);
 if($path==='/register-request'&&$verb==='POST')fail('registration_intake_not_configured',503);
