@@ -11,6 +11,7 @@ if(data?.ok!==true||data?.service!=='auth')throw new Error('auth_health_contract
 console.log('Auth health:',JSON.stringify(data));
 if(data.ready!==true)throw new Error('auth_runtime_not_ready');
 if(data.database!==true)throw new Error('auth_database_not_ready');
+if(data.schemaReady!==true)throw new Error('auth_mysql_schema_not_verified_in_live_runtime');
 if(data.email!==true)throw new Error('auth_email_not_ready');
 if(data.passwordKdf!==true)throw new Error('auth_password_kdf_not_ready');
-console.log('Bertina same-origin customer auth runtime is ready for controlled registration testing.');
+console.log('Bertina auth runtime and required MySQL tables are ready. Email transport configuration is reported healthy but end-to-end delivery remains a separate test.');
