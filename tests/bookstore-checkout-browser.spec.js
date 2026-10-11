@@ -47,7 +47,7 @@ test('Persian payment-start automatically continues only to a validated BitPay U
 });
 test('Persian payment-start rejects a non-BitPay redirect',async({page})=>{
   await page.goto(base+'/fa/shop/payment-start/?gateway='+encodeURIComponent('https://bitpay.ir.evil.example/payment/gateway-123456-get'),{waitUntil:'domcontentloaded'});
-  await expect(page).toHaveURL(/\\/fa\\/shop\\/payment-start\\//);
+  await expect(page).toHaveURL(url=>url.pathname==='/fa/shop/payment-start/');
   await expect(page.locator('#pay')).toBeHidden();
   await expect(page.locator('#status')).toContainText('نامعتبر');
 });
