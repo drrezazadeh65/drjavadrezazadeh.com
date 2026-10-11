@@ -132,3 +132,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 — certify final mobile dashboard: support in primary bottom navigation, progress available under More, bilingual exclusive workspaces, authenticated next action, accessibility, no removed modules; run all operations browser/security/SEO and deploy current head only.
 
 2026-10-11 — restore readable English dashboard typography on Windows: remove first-choice local Inter risk, switch to Segoe UI/Arial stack, bust dashboard CSS cache, verify bilingual account tabs, protect production SEO and deploy current fully audited head.
+
+2026-10-11 release: account-independent guest book checkout UI and restricted SMTP delivery proof; retain payment and SEO gates.
