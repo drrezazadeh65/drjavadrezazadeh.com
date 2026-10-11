@@ -24,7 +24,7 @@
 html{scroll-behavior:smooth;background:var(--cd-bg)}
 body.customer-dashboard{
   margin:0;min-height:100dvh;color:var(--cd-ink);
-  font-family:Inter,Tahoma,Arial,sans-serif;
+  font-family:"Segoe UI",Arial,"Helvetica Neue",Helvetica,sans-serif;
   background:
     radial-gradient(900px 480px at 85% -8%,rgba(193,159,91,.10),transparent 68%),
     radial-gradient(760px 460px at 0% 28%,rgba(66,104,151,.09),transparent 72%),
@@ -631,7 +631,7 @@ html[data-customer-authenticated="true"] .cd-auth-state::before{background:var(-
   background:rgba(255,255,255,.018);transition:transform .18s ease,border-color .18s ease,background .18s ease
 }
 .cd-journey-step:hover{transform:translateY(-2px);border-color:var(--cd-line-strong);background:rgba(232,207,152,.035)}
-.cd-journey-step b{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--cd-line-strong);border-radius:10px;color:var(--cd-gold);font:800 10px/1 Inter,Arial,sans-serif}
+.cd-journey-step b{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--cd-line-strong);border-radius:10px;color:var(--cd-gold);font:800 10px/1 "Segoe UI",Arial,sans-serif}
 .cd-journey-step strong{display:block;margin:14px 0 6px;font-size:12px}
 .cd-journey-step p{margin:0;color:var(--cd-muted);font-size:10px;line-height:1.8}
 .cd-journey-step span{display:block;margin-top:11px;color:#d8dfE7;font-size:9px;line-height:1.6}
@@ -846,3 +846,7 @@ html[data-customer-authenticated="true"] .cd-auth-state::before{background:var(-
 @media(prefers-reduced-motion:reduce){
   .cd-home-priority,.cd-support-intro{scroll-behavior:auto}
 }
+
+/* Windows-safe dashboard typography: avoid dependence on a locally installed Inter font whose glyph cmap may be corrupted or overridden. */
+body.customer-dashboard:not(.rtl){font-family:"Segoe UI",Arial,"Helvetica Neue",Helvetica,sans-serif}
+body.customer-dashboard:not(.rtl) :is(button,input,select,textarea){font-family:inherit}
