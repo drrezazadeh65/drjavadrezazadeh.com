@@ -55,3 +55,24 @@ body.ss-body{margin:0;min-height:100vh;font-family:Tahoma,Arial,sans-serif;color
 .ss-body .support-panel a{color:#145779}
 @media(max-width:920px){.ss-hero-inner{grid-template-columns:1fr;gap:26px}.ss-hero-art{max-width:550px}.ss-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ss-process{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.ss-wrap{padding:0 15px}.ss-hero-inner{padding:38px 16px}.ss-nav{padding:12px 16px}.ss-nav-links{gap:10px}.ss-nav-links a{font-size:.8rem}.ss-grid,.ss-process,.ss-privacy{grid-template-columns:1fr}.ss-hero h1{font-size:2rem}.ss-actions .ss-button{flex:1;min-width:140px}.ss-section{padding:35px 0}.ss-card{border-radius:16px}.ss-donate-wrap{padding-bottom:30px}}
+
+
+/* Student-support FAQs: accessible navy and gold cards with mobile-first reading layout. */
+.ss-body .ss-faq{background:radial-gradient(ellipse at 90% 0,rgba(202,165,102,.17),transparent 55%),#e8edf2}
+.ss-body .ss-faq-intro{max-width:90ch;margin:0 0 25px}
+.ss-body .ss-faq-kicker{font-size:12px;font-weight:800;color:#84602a;letter-spacing:.03em;margin:0 0 8px}
+.ss-body .ss-faq-intro>p:last-child{font-size:clamp(14px,1.45vw,16px);color:#46586d;line-height:1.95;margin:0}
+.ss-body .ss-faq-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;align-items:start}
+.ss-body .ss-faq-grid details{margin:0;padding:0;min-width:0;border:1px solid #cad4de;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 8px 28px rgba(25,43,68,.055)}
+.ss-body .ss-faq-grid details[open]{border-color:#c49c62;box-shadow:0 12px 30px rgba(25,43,68,.085)}
+.ss-body .ss-faq-grid summary{list-style:none;display:flex;align-items:center;gap:12px;min-height:62px;padding:15px 16px;font-size:clamp(14px,1.4vw,16px);font-weight:750;line-height:1.8;color:#1b314d;touch-action:manipulation}
+.ss-body .ss-faq-grid summary::-webkit-details-marker{display:none}
+.ss-body .ss-faq-grid summary::after{content:"+";margin-inline-start:auto;flex:0 0 29px;height:29px;border-radius:9px;border:1px solid #d6c097;background:#f6f0e5;display:grid;place-items:center;color:#785727;font:500 20px/1 system-ui,sans-serif}
+.ss-body .ss-faq-grid details[open] summary::after{content:"−"}
+.ss-body .ss-faq-grid summary:focus-visible{outline:3px solid #b58c4b;outline-offset:-4px}
+.ss-body .ss-faq-grid details p{margin:0;padding:5px 16px 18px;color:#43586e;font-size:14px;line-height:2;overflow-wrap:anywhere}
+.ss-body .ss-faq-outro{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-top:25px;padding:20px 22px;border-radius:18px;background:#132a43;color:#f7e8cc}
+.ss-body .ss-faq-outro strong{font-size:17px}
+.ss-body .ss-faq-outro a{min-height:49px;border-radius:11px;background:#e2c186;color:#18283b;text-decoration:none;padding:10px 18px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;text-align:center}
+.ss-body .ss-faq-outro a:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media(max-width:720px){.ss-body .ss-faq-grid{grid-template-columns:1fr}.ss-body .ss-faq-outro{flex-direction:column;align-items:stretch}.ss-body .ss-faq-outro a{width:100%}.ss-body .ss-faq-grid summary{min-height:59px;padding:15px 12px}.ss-body .ss-faq-grid details p{padding:4px 12px 16px}}
