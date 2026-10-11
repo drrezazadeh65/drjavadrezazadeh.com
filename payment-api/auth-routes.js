@@ -107,15 +107,31 @@ export async function auth(request,env){
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
 
   if(path==='/auth/health'&&request.method==='GET'){
+    // Do not report registration as ready when one of the required D1 tables is missing.
     let database=false;
-    try{if(env.DB){await env.DB.prepare('SELECT 1 FROM customer_accounts LIMIT 1').first();database=true}}catch{}
-    const ready=database&&!!env.RESEND_API_KEY&&!!env.AUTH_PEPPER;
-    return reply({ok:true,service:'auth',ready,database,email:!!env.RESEND_API_KEY,passwordKdf:!!env.AUTH_PEPPER});
+    try{
+      if(env.DB){
+        for(const table of ['customer_accounts','customer_auth_tokens','customer_auth_sessions','customer_auth_rate_limits']){
+          await env.DB.prepare('SELECT 1 FROM '+table+' LIMIT 1').first();
+        }
+        database=true;
+      }
+    }catch{}
+    const passwordKdf=!!env.AUTH_PEPPER;
+    const email=!!env.RESEND_API_KEY;
+    const emailDeliveryVerified=env.AUTH_EMAIL_DELIVERY_VERIFIED==='true';
+    const ready=database&&passwordKdf&&email;
+    // This flag is set only after the domain is verified and a controlled email
+    // delivery test succeeds; a configured API key alone is insufficient.
+    const registrationReady=ready&&emailDeliveryVerified;
+    return reply({ok:true,service:'auth',ready,registrationReady,database,email,passwordKdf,emailDeliveryVerified});
   }
   if(!env.DB||!env.RESEND_API_KEY||!env.AUTH_PEPPER)return fail('auth_unavailable',503);
   if(request.method==='POST'&&!originOK(request))return fail('origin_forbidden',403);
 
   if(path==='/auth/register'&&request.method==='POST'){
+    // Fail closed while the sending domain or delivery path remains unverified.
+    if(env.AUTH_EMAIL_DELIVERY_VERIFIED!=='true')return fail('verification_email_unavailable',503);
     if(!jsonType(request))return fail('content_type',415);
     let b;try{b=await request.json()}catch{return fail('invalid_json')}
     const e=email(b?.email),mobile=String(b?.mobile||'').trim(),password=b?.password,locale=b?.locale==='en'?'en':'fa';
