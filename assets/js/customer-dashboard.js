@@ -171,7 +171,14 @@ function nav(){
   if(scroll){
    const destination=active==='overview'&&targetId==='overview'
      ?$('.cd-view-context'):(target&&target.closest('[data-dashboard-panel]')?target:document.querySelector('[data-dashboard-panel="'+active+'"]'));
-   requestAnimationFrame(()=>destination?.scrollIntoView({behavior:'instant',block:'start'}));
+   requestAnimationFrame(()=>{
+    destination?.scrollIntoView({behavior:'instant',block:'start'});
+    const focused=document.activeElement;
+    if(focused?.closest?.('.cd-sheet')||focused?.closest?.('[data-dashboard-panel][hidden]')){
+     const focusTarget=target?.closest('[data-dashboard-panel]')===document.querySelector('[data-dashboard-panel="'+active+'"]')?target:destination;
+     if(focusTarget){focusTarget.setAttribute('tabindex','-1');focusTarget.focus({preventScroll:true})}
+    }
+   });
   }
  };
  // Intercept only same-page anchors. External account, commerce and help links
