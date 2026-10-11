@@ -64,7 +64,7 @@ try {
   $pdo->prepare("INSERT INTO customer_accounts
     (id,email_normalized,password_hash,status,email_verified_at,created_at,updated_at)
     VALUES(?,?,'fixture-only','active',?,?,?)")
-   ->execute([$id,substr($id,0,8).'@example.invalid',time(),time(),time()]);
+   ->execute([$id,str_replace('-','',$id).'@example.invalid',time(),time(),time()]);
  }
  $pdo->prepare("INSERT INTO student_support_cases
    (id,public_code,pseudonym,guardian_account_id,student_account_id,state,eligible_at)
