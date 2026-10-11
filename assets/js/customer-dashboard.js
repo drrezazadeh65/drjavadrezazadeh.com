@@ -128,18 +128,32 @@ function nav(){
  const panels=$$('[data-dashboard-panel]');
  const label=$('[data-dashboard-active-label]');
  const caption=$('.cd-view-context-caption');
- const meta={
-  overview:['نمای کلی','وضعیت حساب، خدمات و مسیرهای سریع شما در یک نگاه'],
-  'student-support':['حمایت تحصیلی و حامیان','اطلاعات خصوصی فقط با رضایت و دسترسی تأییدشده'],
-  ecosystem:['اکوسیستم من','خدمات، امکانات و مسیرهای در دسترس حساب'],
-  journey:['مسیر خدمت','شفافیت خدمات، مراحل اجرا و ضوابط اعتماد'],
-  'academic-profile':['پرونده تحصیلی','اطلاعات و شواهد آموزشی متناسب با مجوز حساب'],
-  progress:['رشد و پیشرفت','گزارش‌های واقعی، نقاط عطف و برنامه توسعه'],
-  consultations:['مشاوره‌ها','درخواست‌ها، نوبت‌ها و مسیر پیگیری'],
-  records:['گزارش‌ها و اسناد','سوابق تأییدشده و اسناد اختصاصی حساب'],
-  account:['حساب و حریم خصوصی','مشخصات، رضایت‌ها و تنظیمات دسترسی']
+ const labels={
+  fa:{
+   overview:['نمای کلی','وضعیت حساب، خدمات و مسیرهای سریع شما در یک نگاه'],
+   'student-support':['حمایت تحصیلی و حامیان','اطلاعات خصوصی فقط با رضایت و دسترسی تأییدشده'],
+   ecosystem:['اکوسیستم من','خدمات و مسیرهای در دسترس حساب'],
+   journey:['مسیر خدمت','شفافیت خدمات، مراحل اجرا و ضوابط اعتماد'],
+   'academic-profile':['پرونده تحصیلی','سوابق آموزشی فقط با مجوز معتبر'],
+   progress:['رشد و پیشرفت','گزارش‌های واقعی و نقاط عطف'],
+   consultations:['مشاوره‌ها','درخواست‌ها، نوبت‌ها و پیگیری'],
+   records:['گزارش‌ها و اسناد','سوابق معتبر اختصاصی حساب'],
+   account:['حساب و حریم خصوصی','مشخصات، رضایت‌ها و دسترسی']
+  },
+  en:{
+   overview:['Overview','Your account, service status and next action'],
+   'student-support':['Student support','Safeguarded giving, consent and approved access'],
+   ecosystem:['My ecosystem','Services and features connected to your account'],
+   journey:['Service journey','Delivery, accountability and transparent outcomes'],
+   'academic-profile':['Academic profile','Evidence-led records with verified permission'],
+   progress:['Development','Evidence-based progress and milestones'],
+   consultations:['Consultations','Cases, appointments and follow-up'],
+   records:['Reports & records','Your verified documents and order history'],
+   account:['Account & privacy','Profile, consents and access preferences']
+  }
  };
- const current=()=>decodeURIComponent((location.hash||'#overview').slice(1));
+ const meta=labels[lang];
+ const current=()=>{try{return decodeURIComponent((location.hash||'#overview').slice(1))}catch{return 'overview'}};
  const activate=(targetId,scroll=false)=>{
   const target=document.getElementById(targetId);
   const section=target?.closest('[data-dashboard-panel]');
@@ -178,6 +192,13 @@ function nav(){
    target?.setAttribute('tabindex','-1');
    target?.focus({preventScroll:true});
   }
+ });
+ document.addEventListener('dashboard:open',event=>{
+  const id=event.detail?.id;
+  if(typeof id!=='string'||!document.getElementById(id))return;
+  const hash='#'+encodeURIComponent(id);
+  if(location.hash!==hash)history.pushState(null,'',hash);
+  activate(id,true);
  });
  addEventListener('popstate',()=>activate(current(),true));
  addEventListener('hashchange',()=>activate(current(),true));
@@ -235,7 +256,7 @@ function commandCenter(){
  input.addEventListener('input',render);
  addEventListener('keydown',e=>{
   const tag=(document.activeElement?.tagName||'').toLowerCase();
-  if(e.key==='/'&&!['input','textarea','select'].includes(tag)){e.preventDefault();input.focus();input.select()}
+  if(e.key==='/'&&!['input','textarea','select'].includes(tag)){e.preventDefault();if(input.closest('[data-dashboard-panel]')?.hidden)document.dispatchEvent(new CustomEvent('dashboard:open',{detail:{id:'command-center'}}));requestAnimationFrame(()=>{input.focus();input.select()})}
   if(e.key==='Escape'&&document.activeElement===input&&input.value){input.value='';render()}
  });
  render();
@@ -305,9 +326,22 @@ function authNavigation(authenticated){
  $$(selectors).forEach(a=>{
   if(!a.dataset.privateHref)a.dataset.privateHref=a.getAttribute('href')||'';
   if(authenticated&&a.dataset.privateHref){a.setAttribute('href',a.dataset.privateHref);a.removeAttribute('aria-disabled');a.dataset.access='authenticated'}
-  else if(!authenticated){a.setAttribute('href',login);a.setAttribute('aria-disabled','true');a.dataset.access='signin-required'}
+  else if(!authenticated){a.setAttribute('href',login);a.removeAttribute('aria-disabled');a.dataset.access='signin-required'}
  });
  $$('[data-auth-state-copy]').forEach(el=>{el.textContent=authenticated?(lang==='fa'?'ورود امن تأیید شده؛ مسیرهای خصوصی حساب باز هستند.':'Secure sign-in verified; private account routes are available.'):(lang==='fa'?'برای مشاهده پرونده‌ها، اسناد و مسیرهای خصوصی وارد حساب شوید.':'Sign in to access private records, documents and workspaces.')});
+ const homeTitle=$('[data-home-heading]'),homeCopy=$('[data-home-copy]'),homeAction=$('[data-home-action]');
+ if(homeTitle&&homeCopy&&homeAction){
+  if(authenticated){
+   homeTitle.textContent=lang==='en'?'Your verified account is connected.':'حساب تأییدشده شما متصل است.';
+   homeCopy.textContent=lang==='en'?'Choose an area to review services and authorised records. If a service has no confirmed record yet, it remains clearly marked as unavailable.':'برای مشاهده خدمات و سوابق مجاز، بخش موردنظر را انتخاب کنید. نبود داده معتبر به‌صورت شفاف نمایش داده می‌شود.';
+   homeAction.href='#ecosystem';homeAction.textContent=lang==='en'?'Open my services':'مشاهده خدمات من';
+  }else{
+   homeTitle.textContent=lang==='en'?'Sign in to view your personal status.':'برای مشاهده وضعیت شخصی، وارد حساب شوید.';
+   homeCopy.textContent=lang==='en'?'No private records, activity counts or entitlements are inferred for a guest.':'برای مهمان، هیچ سابقه، آمار فعالیت یا دسترسی خصوصی به‌صورت فرضی نمایش داده نمی‌شود.';
+   homeAction.href=login;homeAction.textContent=lang==='en'?'Sign in':'ورود به حساب';
+  }
+ }
+
 }
 
 function logout(){
@@ -321,11 +355,28 @@ function logout(){
  }));
 }
 
+
+async function supportEnglishHealth(authenticated){
+ const status=$('[data-support-english-state]');
+ if(!status)return;
+ const health=await jsonRequest(API+'/student-support/health',{credentials:'include'});
+ if(!health.ok||health.data?.ok!==true){
+  status.textContent='Student support readiness could not be verified. No private records are displayed.';
+ }else if(health.data.caseSchemaReady!==true||health.data.privatePortal!==true){
+  status.textContent='Public contributions may be available. The private sponsorship workspace is not active until the case database, safeguarding approvals and access rules are ready.';
+ }else if(!authenticated){
+  status.textContent='Private student records require a verified account and an explicitly approved, consent-based relationship.';
+ }else{
+  status.textContent='Your account is connected. Student information is available only through the authorised private sponsorship process; no records are displayed here without a verified case grant.';
+ }
+}
+
 async function refresh(){
  const runtime=await operationalStatus();
  const authenticated=await hydrate(runtime.auth);
  authNavigation(authenticated);
  serviceMarketplace(runtime,authenticated);
+ await supportEnglishHealth(authenticated);
 }
 
 document.addEventListener('DOMContentLoaded',async()=>{
