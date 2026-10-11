@@ -104,6 +104,12 @@ button:focus-visible,a:focus-visible{outline:3px solid #c99d46;outline-offset:3p
    total+=item.subtotalToman;
   }
   if(total!==receipt.amountToman)throw Error('receipt_total_mismatch');
+  const support=receipt.items.length===1&&receipt.items[0].sku==='support:voluntary';
+  if(support){
+   title.textContent='حمایت مالی داوطلبانه در سامانه ثبت شد';
+   document.querySelector('#receipt .receipt-head strong').textContent='رسید حمایت مالی تأییدشده';
+   document.querySelector('#receipt .note').textContent='این رسید تنها تأیید پرداخت حمایت داوطلبانه است؛ خرید کالا، ارائه خدمت، سند خیریه یا فاکتور رسمی مالیاتی محسوب نمی‌شود. اطلاعات شخصی و بانکی نمایش داده نمی‌شوند.';
+  }
   const tbody=document.getElementById('receipt-lines');
   for(const item of receipt.items){
    const tr=document.createElement('tr');
