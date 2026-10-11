@@ -41,8 +41,14 @@ function gatewayPost(string $endpoint,array $fields): string {
     if($GLOBALS['case']==='gateway_unavailable')throw new RuntimeException('provider unavailable');
     if($GLOBALS['case']==='invalid_gateway_json')return '{invalid-json';
     $value=[
-      'status'=>$GLOBALS['case']==='cancelled'?-4:1,
-      'amount'=>$GLOBALS['case']==='wrong_amount'?19999999:20000000,
+      'status'=>$GLOBALS['case']==='cancelled'?-4:($GLOBALS['case']==='already_verified_response'?11:($GLOBALS['case']==='provider_failed'?0:1)),
+      'amount'=>match($GLOBALS['case']){
+        'wrong_amount'=>19999999,
+        'fractional_amount'=>20000000.5,
+        'text_amount'=>'20000000extra',
+        'negative_amount'=>-20000000,
+        default=>20000000,
+      },
       'factorId'=>$GLOBALS['case']==='wrong_factor'?'not-our-factor':'987654321',
     ];
     return json_encode($value,JSON_THROW_ON_ERROR);
@@ -61,6 +67,11 @@ $id='11111111-1111-4111-8111-111111111111';
 $scenarios=[
   'cancelled'=>['state'=>'pending','writes'=>0,'calls'=>1],
   'wrong_amount'=>['state'=>'pending','writes'=>0,'calls'=>1],
+  'fractional_amount'=>['state'=>'pending','writes'=>0,'calls'=>1],
+  'text_amount'=>['state'=>'pending','writes'=>0,'calls'=>1],
+  'negative_amount'=>['state'=>'pending','writes'=>0,'calls'=>1],
+  'provider_failed'=>['state'=>'pending','writes'=>0,'calls'=>1],
+  'already_verified_response'=>['state'=>'paid','writes'=>1,'calls'=>1],
   'wrong_factor'=>['state'=>'pending','writes'=>0,'calls'=>1],
   'invalid_gateway_json'=>['state'=>'pending','writes'=>0,'calls'=>1],
   'gateway_unavailable'=>['state'=>'pending','writes'=>0,'calls'=>1],
