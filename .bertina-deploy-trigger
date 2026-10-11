@@ -38,3 +38,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 release Bertina-only customer registration readiness fix (PR #41); schema validation, SMTP fail-closed and bilingual error UX. Preserve payment gates.
 
 2026-10-11 activate small voluntary support payments in bilingual bookshop through BitPay with MySQL and browser tests.
+
+2026-10-11 confirm live voluntary support readiness and labeled payment receipts with no-charge amount probe.
