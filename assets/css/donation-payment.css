@@ -1,0 +1,20 @@
+/* Accessible mobile-first voluntary support checkout. Independent from the book basket. */
+.support-panel{max-width:1100px;margin:30px auto;padding:clamp(18px,4vw,36px);background:#f8f6f0;color:#182c40;border:1px solid #c3ac80;border-radius:22px;box-shadow:0 12px 35px rgba(0,0,0,.10);line-height:1.9}
+.support-panel *{box-sizing:border-box}
+.support-panel h2{color:#192e44;margin:.15em 0 .3em;font-size:clamp(1.5rem,3vw,2.1rem);line-height:1.45}
+.support-panel p{color:#31495f;margin:9px 0}
+.support-panel .support-eyebrow{font-weight:700;letter-spacing:.04em;color:#715b32}
+.support-panel .support-note{font-size:.93rem;color:#40566a}
+.support-panel form{max-width:740px;margin-top:22px}
+.support-panel label{display:block;font-weight:700;margin:16px 0 7px}
+.support-panel input{display:block;width:100%;min-height:52px;padding:12px 15px;background:#fff;color:#172b40;border:1.5px solid #9d9b91;border-radius:11px;font:inherit;line-height:1.45}
+.support-panel input:focus-visible,.support-panel button:focus-visible{outline:3px solid #b07925;outline-offset:3px}
+.support-panel .support-presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:15px 0}
+.support-panel .support-presets button{min-height:47px;padding:8px 6px;border:1px solid #a88b59;border-radius:11px;background:#fff;color:#233a51;cursor:pointer;font:700 .95rem/1.45 inherit}
+.support-panel .support-presets button:hover{background:#eae3d2}
+.support-panel .support-preview{font-weight:700;margin:12px 0;min-height:28px}
+.support-panel .support-submit{min-height:52px;min-width:min(100%,300px);background:#18395a;color:#fff;font:700 1rem/1.5 inherit;border:0;border-radius:12px;padding:12px 22px;cursor:pointer}
+.support-panel .support-submit:disabled{opacity:.63;cursor:not-allowed}
+.support-panel .support-status{min-height:2.4em;font-weight:600;margin:12px 0}
+.support-panel .support-footer{border-top:1px solid #dfd6c6;padding-top:15px;margin-top:22px}
+@media(max-width:650px){.support-panel{margin:18px 10px;padding:18px 15px;border-radius:16px}.support-panel .support-presets{grid-template-columns:repeat(2,minmax(0,1fr))}.support-panel .support-submit{width:100%;min-width:0}.support-panel input{font-size:16px}}
