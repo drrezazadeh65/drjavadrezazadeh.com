@@ -311,11 +311,19 @@
        book_shipping_not_configured:['تنظیمات ارسال کتاب هنوز تأیید نشده است.','Book shipping settings are not confirmed.'],
        service_booking_not_configured:['رزرو خدمت هنوز آماده نیست.','Service booking is not ready.'],
        vip_booking_not_configured:['رزرو ویژه هنوز آماده نیست.','VIP booking is not ready.'],
-       unsafe_url:['نشانی بازگشت درگاه معتبر نبود؛ انتقال متوقف شد.','Unsafe payment redirect was blocked.']
+       unsafe_url:['نشانی بازگشت درگاه معتبر نبود؛ انتقال متوقف شد.','Unsafe payment redirect was blocked.'],
+       invalid_customer_name:['نام و نام خانوادگی گیرنده را اصلاح کنید.','Please correct the recipient name.'],
+       invalid_customer_email:['نشانی ایمیل را اصلاح کنید.','Please correct the email address.'],
+       invalid_delivery_address:['نشانی تحویل باید دست‌کم ده نویسه داشته باشد.','Delivery address must be at least ten characters.'],
+       invalid_postal_code:['کد پستی را اصلاح کنید.','Please correct the postal code.'],
+       invalid_delivery_phone:['شماره تماس اختیاری را اصلاح یا خالی کنید.','Please correct or clear the optional delivery phone.']
       };
       const msg=messages[code];
       feedback.textContent=msg?msg[isFa?0:1]:(isFa?'شروع پرداخت تأیید نشد. برای جلوگیری از سفارش تکراری، پیش از تلاش دوباره وضعیت سفارش را از پشتیبانی پیگیری کنید.':'Payment initiation was not confirmed. Check your order status with support before retrying.');
-      btn.disabled=false;
+      // An ambiguous response can arrive after the order was accepted. Never enable a second paid attempt automatically.
+      // Only clearly rejected input may be corrected and resubmitted in this page session.
+      const correctable=new Set(['invalid_customer_name','invalid_customer_email','invalid_delivery_address','invalid_postal_code','invalid_delivery_phone']);
+      btn.disabled=!correctable.has(code);
     }
    };
    host.querySelector('.actions').appendChild(btn);host.appendChild(feedback);
