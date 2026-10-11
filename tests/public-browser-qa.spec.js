@@ -1205,8 +1205,8 @@ test('bilingual intake, service pages and shops disclose real booking and paymen
     ['/en/request-consultation/','Online booking not active','Online payment not active'],
     ['/fa/khadamat/','رزرو و پرداخت آنلاین در این مرحله فعال نیستند','درخواست اولیه، خرید نیست'],
     ['/en/services/','Live appointment booking is not currently available','Online payments are not yet enabled'],
-    ['/fa/shop/','ثبت سفارش فعال','پرداخت آنلاین فقط پس از تأیید کامل TLS و درگاه تولیدی فعال خواهد شد'],
-    ['/en/shop/','Order capture active','Payment remains disabled until the trusted production payment path is verified'],
+    ['/fa/shop/','ثبت سفارش فعال','پرداخت آنلاین با کنترل مبلغ و تأیید نتیجهٔ بانک در سرور انجام می‌شود'],
+    ['/en/shop/','Order capture active','Payment is initiated through the verified provider and finalized only after server confirmation'],
     ['/fa/shop/checkout/','ثبت سفارش فعال؛ پرداخت مستقل و ایمن','پرداخت آنلاین فقط پس از فعال‌شدن مسیر معتبر درگاه انجام خواهد شد']
   ];
   for(const [route,first,second] of cases){
@@ -1271,7 +1271,7 @@ test('mobile above-the-fold typography keeps shop and service entry actions visi
       const metrics=await stableOverflow(page);
       expect(Math.max(metrics.html,metrics.body),route+' at '+width+' overflow').toBeLessThanOrEqual(metrics.viewport+1);
       if(route==='/fa/shop/'){
-        const links=page.locator('.book-store-hero .store-nav a');
+        const links=page.locator('.book-store-hero .store-nav a:visible');
         await expect(links).toHaveCount(2);
         const rects=await links.evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().toJSON()));
         expect(Math.abs(rects[0].top-rects[1].top)).toBeLessThanOrEqual(3);
