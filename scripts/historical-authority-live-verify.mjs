@@ -95,7 +95,7 @@ export async function verifyHistoricalAuthority(registry,{request=trustedPublicR
           const original=new URL(url);
           let oldPath=original.pathname,newPath=destination.pathname;
           try{oldPath=decodeURIComponent(oldPath);newPath=decodeURIComponent(newPath);}catch{}
-          if(destination.origin!==canonical.origin || oldPath.replace(/\\/$/,'')!==newPath.replace(/\\/$/,'') ||
+          if(destination.origin!==canonical.origin || (oldPath.endsWith('/')?oldPath.slice(0,-1):oldPath)!==(newPath.endsWith('/')?newPath.slice(0,-1):newPath) ||
              destination.search!==original.search){
             throw new Error('historical source must preserve exact discontinued path during transport consolidation');
           }
