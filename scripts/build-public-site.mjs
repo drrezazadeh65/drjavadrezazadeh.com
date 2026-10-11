@@ -78,8 +78,8 @@ for(const rel of ['fa/support-talented-students/index.html','en/support-talented
   if(!fs.existsSync(page))failures.push('Missing bilingual student support landing: '+rel);
   else{
     const html=fs.readFileSync(page,'utf8');
-    if(!html.includes('<meta name="robots" content="index,follow')||!html.includes('data-support-form')){
-      failures.push('Student support landing must be indexable and include guest giving form: '+rel);
+    if(!html.includes('<meta name="robots" content="noindex,follow')||!html.includes('data-support-form')){
+      failures.push('Student support landing must remain noindex until safeguarding approval and include guest giving form: '+rel);
     }
   }
 }
