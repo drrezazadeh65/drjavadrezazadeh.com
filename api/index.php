@@ -516,7 +516,7 @@ if($path==='/commerce/status'&&$verb==='GET'){
 if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
     $id=(string)($_GET['order']??'');if(!validUuid($id))fail('invalid_order');$pdo=db();if(!$pdo)fail('database_unconfigured',503);
     $s=$pdo->prepare('SELECT * FROM commerce_orders WHERE id=?');$s->execute([$id]);$row=$s->fetch();if(!$row)fail('order_not_found',404);
-    if($row['state']==='paid'){header('Location: '.SITE_ORIGIN.'/fa/shop/payment-result/?state=paid&order='.rawurlencode($id),true,303);exit;}
+    if($row['state']==='paid')commerceReturnToResult($id);
     if($row['state']!=='pending')commerceReturnToResult($id);
     $params=$_GET;if($verb==='POST')$params=array_merge($params,$_POST);$idGet=(string)($params['id_get']??'');$trans=(string)($params['trans_id']??'');
     if($idGet!==(string)$row['provider_id_get']||!preg_match('/^[1-9][0-9]*$/',$trans))commerceReturnToResult($id);
@@ -529,7 +529,7 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
             $body="سفارش شما با موفقیت پرداخت و در سرور ثبت شد.\n\nشناسه سفارش: ".$id."\n\n".implode("\n",$summary)."\n\nجمع پرداخت: ".number_format($sum)." تومان\n\nاین پیام تأیید پرداخت است و جایگزین فاکتور رسمی مالیاتی نیست.";
             if(sendLocalMail($customerEmail,'تأیید پرداخت سفارش '.$id,$body)){$pdo->prepare("UPDATE commerce_orders SET receipt_email_sent_at=NOW() WHERE id=?")->execute([$id]);}
         }
-        header('Location: '.SITE_ORIGIN.'/fa/shop/payment-result/?state=paid&order='.rawurlencode($id),true,303);exit;
+        commerceReturnToResult($id);
     }catch(Throwable $e){
         // Preserve the pending/verified DB state; never manufacture a paid receipt on a callback failure.
         error_log('Commerce payment callback could not complete: '.get_class($e));
