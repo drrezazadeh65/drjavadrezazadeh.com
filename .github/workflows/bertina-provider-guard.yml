@@ -67,6 +67,7 @@ jobs:
           php -l api/smtp-body.php
           php tests/bertina-smtp-body-contract.php
           php tests/bertina-smtp-provider-parity.php
+          php tests/bertina-smtp-runtime-resolution.php
           node --check assets/js/customer-auth.js
           node tests/bertina-auth-readiness-regression.mjs
           node tests/bertina-smtp-contract.mjs
