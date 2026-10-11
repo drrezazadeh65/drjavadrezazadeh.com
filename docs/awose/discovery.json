@@ -1,0 +1,971 @@
+{
+  "schema": "awose-discovery-v1",
+  "observed_at": "2026-10-11T09:26:31Z",
+  "source_sha": "1cfeb14e5eb07cae5e2261ccf6540a39a2fa7e9b",
+  "production_origin": "https://drjavadrezazadeh.com",
+  "production_branch": "migration/bertina-linux6",
+  "authoritative_hosting": "Bertina PHP/MySQL/LiteSpeed",
+  "prompt_contract": {
+    "canonical_engine_ids": "ENG-01..ENG-13",
+    "legacy_reports": 36,
+    "new_domain_views": {
+      "domains": 12,
+      "views_per_domain": [
+        "diagnostic_health",
+        "execution_recovery",
+        "learning_improvement"
+      ]
+    },
+    "report_levels": [
+      "executive",
+      "engine",
+      "action",
+      "master"
+    ],
+    "action_identity": "ENG-XX.ACT-NNN",
+    "lifecycle": [
+      "DISCOVER",
+      "DIAGNOSE",
+      "RECALL",
+      "PLAN",
+      "AUTHORIZE",
+      "EXECUTE",
+      "VERIFY",
+      "LEARN",
+      "MONITOR"
+    ]
+  },
+  "engines": [
+    {
+      "id": "ENG-01",
+      "name": "Master SEO Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-02",
+      "name": "AI Discovery & GEO Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-03",
+      "name": "RAVE Intelligence Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-04",
+      "name": "Real Golden Talent Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-05",
+      "name": "Commerce & Finance Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-06",
+      "name": "Scientific Journal Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-07",
+      "name": "CRM & Customer Experience Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-08",
+      "name": "Content Management Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-09",
+      "name": "Media & Image Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-10",
+      "name": "Design & Identity Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-11",
+      "name": "Operations & Security Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-12",
+      "name": "Unified Administration Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    },
+    {
+      "id": "ENG-13",
+      "name": "Reporting, Audit & Intelligence Engine",
+      "canonical_integration": "FOUNDATION_ONLY"
+    }
+  ],
+  "diagnostic_scripts": [
+    {
+      "path": "scripts/accessibility-source-audit.mjs",
+      "sha256": "177a7c18381c95dd95d57b40819d95e3c31bd81eef1020702b6632c4709d5a7c",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/ai-crawler-policy-audit.mjs",
+      "sha256": "de200eb147b81426f681f8cc6b2f054ef289950f8a39b3abbcc285c61c7b135f",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/analytics-contract-audit.mjs",
+      "sha256": "a14e96e52ebbca48ce87f22448cfcacf0186d1a2317e5d5ccdde8aa4edeb3c7a",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/auth-live-readiness-audit.mjs",
+      "sha256": "d6ad565de5b96741356282c4caa7dde8ff17e3497876e26d0370d1c72facf08f",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/bitpay-form-probe.mjs",
+      "sha256": "8500d90d79af8121a6afabb1e7cae64471fbc4164b6f88b6b91c9fce67da88fe",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/bitpay-positive-roundtrip.mjs",
+      "sha256": "79cfcd7570929969dada573f6474ff05eff923375993ee16a4b3c98d9e4e7e0e",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/bitpay-sandbox-smoke.mjs",
+      "sha256": "54637ef448c738cc3775af34b366b3ef25b2f4a198b1718459635f466a4d10a3",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/bookstore-release-audit.mjs",
+      "sha256": "a401f516ffe75d291a4723fe4aa52a87223fdbd462c62293a054cef6e0e329fd",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/build-public-data.mjs",
+      "sha256": "e1cb78b2c528c6c7d4a3f9951248a57abbf7d4e3aabe06e947ba61af639c6911",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/build-public-site.mjs",
+      "sha256": "84697bb0c9a64a8ffd4da299f35dcb891b8aa3538fabf75f8b95a1e53d3a3ebe",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/catalog-integrity.mjs",
+      "sha256": "5dd34c6c7314a3cc01646667514aebcd029bcde03b83f82ee82ed4da5fe4bee7",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/commerce-live-readiness-audit.mjs",
+      "sha256": "6723c250f31abe20b20d33f8c1b4ef9074af12db476171d8831beef22fc972cf",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/commerce-receipt-contract-audit.mjs",
+      "sha256": "197ef1b55dc5caf4e7d85fd55f2b5210870da56c5490713a0d67336e6bcec51a",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/commerce-schema-safety-audit.mjs",
+      "sha256": "1447738c18b71a77a2bbfd798ff072271d9699d8ce10726e877ad8340d722047",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/conversion-path-audit.mjs",
+      "sha256": "c4901a3cf13ac47f8c385f8cb84efb3d120f1e1cb3f7135882e01bdb12e82a4f",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/customer-dashboard-audit.mjs",
+      "sha256": "abbce9687557c5d8af0615f9fd4fe5a2e69268acc9be635da93f9c066c2f66e6",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/design-regression.mjs",
+      "sha256": "6efb81789113fa52d6b2ffac966c7f0ec8ce9cddf6e995ec2168be0c348723b0",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/domain-cutover.mjs",
+      "sha256": "15fcbdad505ad98bfcbde0e2920adacec1635a062bfe54e1a3960ce3e01de007",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/evergreen-guide-trust-audit.mjs",
+      "sha256": "2d410b307d5cbe7dbee7ddc79bf860c3496dc4da1af94c267d4877b4ba8ebaa5",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/external-link-audit.mjs",
+      "sha256": "e90aad0ba7c268c7f990e132f7273ba3f1bdcceaa246c8d0fd86806e61c13d1c",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/faq-integrity-audit.mjs",
+      "sha256": "133835af8bf49c0fdd17c962f63e9587ca5adf7a3c0e1fb2e9eb53dbe84f13eb",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/frontend-copy-hygiene-audit.mjs",
+      "sha256": "667e40b88709490165a28c07362dceb9a7e8ea1da17ab10f2c9b16d3378aef0b",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/historical-404-log-analyzer.mjs",
+      "sha256": "1ea5053e5276e019184bf82b33d301c2692e68e7c4b5ada3381cd0a461032b4c",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/historical-authority-audit.mjs",
+      "sha256": "855ae1d8176b81f3256a0b314147fb917db05a768eb76f64e61e5f6b4e8617b4",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/historical-authority-live-verify.mjs",
+      "sha256": "e1f5f337d83eb46cc44b51b2cab28e68f4a9a3dd49e7696ee4af340df1e69175",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/historical-backlink-import.mjs",
+      "sha256": "a6a9519efd3dae075bd9571fc22d9c7eadf214c41647fdea0dc41171e0a72cfa",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/indexnow-submit.mjs",
+      "sha256": "ea8db053ea9770e5155e10424908be35f1eb66d8f45b5a5c4df43eab8e47e18a",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/install-knowledge-webp.py",
+      "sha256": "91b5072102ab75d3dc267697bd9f335ddc22f2d359f8938c74c650c15f4ffc1a",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/internal-link-graph-audit.mjs",
+      "sha256": "32158197e74a569b4b9408c8bcd3ba721de9730f3fd9f83cacab805f2dde5c09",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/legacy-url-continuity-audit.mjs",
+      "sha256": "70c7a0beb2fc9601b3489e54189878435f64cddced0b660ed5d3e4bd8326ca49",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/link-integrity-audit.mjs",
+      "sha256": "df52f0778226df34c18588f6e5693706c782087f062d588b26fef7eb12fe53c7",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/llms-txt-audit.mjs",
+      "sha256": "58a066e0251894f08ab493428a4354ed03682ddc13656fde95be552c91dac917",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/master-audit.mjs",
+      "sha256": "4f057bcda2e0b1451d34da85b4847484e4f605f333ea7f88289368b20fa3977a",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/master-migration-preflight.mjs",
+      "sha256": "187be9edc3c6f31de0735561035ecad40652f35c545e108ad80e85f61073e963",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/media-derive.mjs",
+      "sha256": "f654867f41b04c60ba712df90eb1ded6f1fa2fe41da64be00092a24029786a68",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/media-library-audit.mjs",
+      "sha256": "3cfc3e43977bcacf50155d862b95827c1b4f6f4742bbd87e9745b12f4e76426a",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/metadata-uniqueness-audit.mjs",
+      "sha256": "08b32ce6e61aac5bba1e7897f76f282d53b695060b083aa8927ad4da3795bc75",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/news-trust-audit.mjs",
+      "sha256": "a74e2809213fb25e750e8a85cd0ee4344561d804fec12aa4d0ca41bd757b6c7c",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/operations-registry-audit.mjs",
+      "sha256": "1cb0b60018c0c6f1f3bdb8a7d9c16a8fddfe05758bb446de61ead99ae2538ea4",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/operations-release-evidence.mjs",
+      "sha256": "ad3eaa8a77ef88c687fe69229c06b0ee6b2dab8cd081de88a1b386affeb47f95",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/operations-tls-certify.mjs",
+      "sha256": "7cb4233fe125f51914e9c2242ec452179c10b36419f91d4ee55c09aa2f86ae73",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/performance-source-audit.mjs",
+      "sha256": "c728ad7675525be103950da4a364350cabf906aeeefbcf8110e25bb589e823e5",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/platform-readiness.mjs",
+      "sha256": "dca0af947b9253ce258e6495aee52a096d67f594f050a6d55268eec837d3a7d5",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/private-route-http-audit.mjs",
+      "sha256": "bc05c3688f847814fdc79f38e9fe3ddc134821123f243c3760e41b097be2f4e6",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/production-health-audit.mjs",
+      "sha256": "6964f201f180abe385cf24645417e58120c7be365f48aa0bbce591d403484831",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/profilepage-schema-audit.mjs",
+      "sha256": "b87d3ef334d715713fa581fdbfa169b7140e8538bad390cae01c305ee72e7d64",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/public-data-hygiene-audit.mjs",
+      "sha256": "4de483b2a361bee7c57de1b9ae100e820eb16f421f25a48ded34b7e556db3ad9",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/public-retired-commerce-audit.mjs",
+      "sha256": "4505febb8279b0142c3d15835fdbc442b319a3005a3d63d7679711c8cd5c51bf",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/public-secret-audit.mjs",
+      "sha256": "f6832b317e0b1e98ff12fe22c465925a469e1b348c8e8f1f7115aab99887347a",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/pwa-private-cache-audit.mjs",
+      "sha256": "7da4bf34bd9d95dc42cd19b2d478e1dbec17372634399c55de82fb707c8c7c0b",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/related-content-audit.mjs",
+      "sha256": "b8aa5918c3e67586b95a49fccceb2e21489d55abc7e31c632cb0369948ef93e2",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/responsive-resilience-audit.mjs",
+      "sha256": "90e6b7d1bfe8c53b3a9cdefea2e3a33bed757ae28fcf20fb675b4218bcf19c8d",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/rss-audit.mjs",
+      "sha256": "fc411eaafd0f8924f5a0e5ddfd5f603ba3698996681fc85726a93a2eafa2e7de",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/seo-regression.mjs",
+      "sha256": "82cacae84165476baf4397fa90cbe4fc1731deea5f08a435b46616242668945f",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/seo-services-gate.cjs",
+      "sha256": "d793d40bf775b10a79754aaeee819198743af06d5de856cd576a1f6f990a3cfe",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/sitemap-lastmod-audit.mjs",
+      "sha256": "51a79a8c30639079904563957e2ebc4d8feff4372c4dea41543b58f3214b7d27",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/stamp-bertina-release.mjs",
+      "sha256": "c5557ddc51f8e2403229b1663f4ecb384df9fc22edcec41ba1f525c54d89b975",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/structured-url-audit.mjs",
+      "sha256": "6e3a95dc68b153bdd40f37e92fa9b2b12c9cddd130f6d557fb182f561da3595c",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/stylesheet-bundles.mjs",
+      "sha256": "6ffdf7a2cedae5d435c616f9bf9745d321a5f40a58b12b5991efca61025196fa",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/trust-legal-audit.mjs",
+      "sha256": "ee9c739a002033fa1162bc300dcfdefa656931e7833551b3bb798fb87ee49c63",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/upgrade_knowledge_articles.py",
+      "sha256": "5a5107a9a1295c2d75c76db430ebbce16e3953b40b1471f177700844cf995251",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/url-stability-audit.mjs",
+      "sha256": "ac781c7287951bc50d2ba360ae02ff4c68a18486ca8348d294879551b5bbc8ff",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    },
+    {
+      "path": "scripts/workflow-governance-audit.mjs",
+      "sha256": "339a3a1e5af2f2d4faec5a2d3c7e985e1eef6016dc781c9acc0075a95883dde1",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Presence only; execution/live correctness require action-specific evidence."
+    }
+  ],
+  "workflows": [
+    {
+      "path": ".github/workflows/account-commerce-consistency.yml",
+      "sha256": "d4cd60cb1847d378238f589f13857a6081b0b8bd38dcef7c4ae5d224b3bdcffb",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/auth-live-readiness.yml",
+      "sha256": "a504b83fcdcd1e8a36f47216776003402cc05b8f4cd59f0b93073fa43141c13c",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/auth-reference-check.yml",
+      "sha256": "24ceeed2238e8617239766fdd803a89a32dcea8a8663a0591a2c3573b886ebc4",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-activation-audit.yml",
+      "sha256": "3bb7a42417f74a8c9b2fb7dede357d05e1311de3f034aec69a6f8a6e3842aff3",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-autossl.yml",
+      "sha256": "47f043d86da35aa28842c335dd3020a7f5461b1b40182a7e71ff56941baabf25",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-commerce-schema-migrate.yml",
+      "sha256": "5e9dc0d6e5e0906178ec9d9efaf6f7bb2067641d0e3c56975e93a3d78b913627",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-cpanel-session-ssl-probe.yml",
+      "sha256": "f896e59e3237ecfeb0a6188cca60557af9080f57a3b228263d49d6d69b117347",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-ftps-data-diagnostic.yml",
+      "sha256": "a5c1468f4acf005475da9f62815c0fbb0b501de470f18f309a006ff5e53b97fe",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-master-seo.yml",
+      "sha256": "ed323e05b6ad36ee0b144ec09a209d6112f1cd0371168e772be18b6926a0853e",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-migration-preflight.yml",
+      "sha256": "84717208b990df8275ac4b5282e36d4de187eeef0d8949cd35fb78fa821a2e82",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-origin-verify.yml",
+      "sha256": "a1c97905162f629d836aecc35f376b7fe6c84cf55cdb6f1e8c80cd8d5ac1594c",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-php-cache-diagnostic.yml",
+      "sha256": "1db5cdd835762c7ce4b6c94775702dadf7a0ec1a932c272ddf7aebed90fa5737",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-pre-ssl-readiness.yml",
+      "sha256": "ac857bbfdab85ea9f80578d4a4275675a5c60fb6fdead284421a0a589ac42aa3",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-provider-guard.yml",
+      "sha256": "f96d117d91125f642d95c5bb5b8fd3332ec137c316e65d4bd41a0afa257d2af9",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-public-cutover-verify.yml",
+      "sha256": "161e13e6f5a9e83adca96155ba5135bef26d825bb32b633a95e8b1e18d1b937f",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-shell-ssl-capability.yml",
+      "sha256": "226f38e5fd4544b5c24bc0872989513dc238151cbd1f250fe82e92ef53e37037",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bertina-tls-diagnostic.yml",
+      "sha256": "988fbf69e186707cef8be867417212144ae172eca98f103254485398a4177281",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/bitpay-sandbox-smoke.yml",
+      "sha256": "520a6b89932d9bc64a71835e533df600c01fd126cb87b9aee1bb11a4bdfa0e97",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/browser-qa.yml",
+      "sha256": "357f65ee3583bf46a1a4850e61a136297810fe75137b23ed773b9b1f855d2b63",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/catalog-integrity.yml",
+      "sha256": "956b9cb30af04e92bf20d7b4579a9d970ee753b42cda1c0ff7c843f739a979c4",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/commerce-live-readiness.yml",
+      "sha256": "a0af0b64251bb5818a824fa7ad297c6cb2960a21e11a612c67609151ba8fdb95",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/customer-dashboard-audit.yml",
+      "sha256": "ea04ffc8ca7d4605b2033c933af27b47697aacb6e9d7660918fae748bd136091",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/deploy-bertina.yml",
+      "sha256": "8938baaca936cbfa4e17cf6afb00fc2e0f2f9d831b8a941e8e994070f2c371f0",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/enamad-diagnostic.yml",
+      "sha256": "e8e4e70beab67ccd37cabc3c140813713110069711008389ed00458c515a32a9",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/external-link-monitor.yml",
+      "sha256": "7f053ab9dd0a8b753ffb495257b93e9e09a59059db9178fb032526a89e704e61",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/full-route-responsive-certification.yml",
+      "sha256": "bf5cc9dc299c06338f2d1bf7ebe688bb7fe2a7dd80016d009520ed28e7b2bd5b",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/full-route-visual-crawl.yml",
+      "sha256": "53b9e55c417d5d89158bcd9548cc0ea9eec6af1bf91291be546f0457e7385b79",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/historical-authority-live-verify.yml",
+      "sha256": "b588a18c413bf0a31498508fac6b66e83f97d7d19dabc9d76191045b1475c3ea",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/http-compression-diagnostic.yml",
+      "sha256": "6061ab553aefbde5f6ad22fb6c600aea190c5efec1cabe677be0f6f437e58247",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/indexnow-activation.yml",
+      "sha256": "d69b1fdbe948d5b8ff599fdd30119393f9206379d45c23d8a5358bbdf4e0e47d",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/indexnow-submit.yml",
+      "sha256": "e57f2568e3fac40c4f6add82f9b2cb789fe8e710e0ec232f4a06fc17391d70ff",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/knowledge-articles-premium-upgrade.yml",
+      "sha256": "7430517982dd980c4590a27edd70183cc63280ac538c2087ef25d20fafa7328b",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/knowledge-hub-seo.yml",
+      "sha256": "00f1d87874932891bc48fa1a67173fb0615a4e8e6774d1ea6b226aac6cc6aa5b",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/media-derivatives.yml",
+      "sha256": "bbcca701047a14d95a1b767ffdc61a0765edf8570ad5f7947489ff505683a771",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/operations-control-center.yml",
+      "sha256": "7af9ac4d6811b5b5358f4aac6aee572bfd71c3156cc9973f6b6026e69c9be7cd",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/production-health-monitor.yml",
+      "sha256": "03a13bd3efef66d4beccf8dcf2c45466bf3029dc736965a4691000b16b02a55a",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/profilepage-structured-data.yml",
+      "sha256": "88fb1d38320115fa8708d7f57a67123138631c5c78d435d5afff20cb3b0fc958",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/public-data-sync.yml",
+      "sha256": "c1af45cbad09ab2888ce4e3b0c89ec1af73c063beec8a9610e426f8ec8aad5e1",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/registration-intake-check.yml",
+      "sha256": "7973d7a89140c90d01ee3cf4f1f845c4c9c4fbecdf316fea2a263d9b5c48d988",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/release-cache-reset.yml",
+      "sha256": "fb3c2dc4833e28efa1a67c36cd891d384d9499d08570aed3178bfebcde1f6f5e",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/seo-regression.yml",
+      "sha256": "2daef171015bc97a42379a735ecbcebeafb2a9b61086d776847fef1405dc9686",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    },
+    {
+      "path": ".github/workflows/seo-services-gate.yml",
+      "sha256": "69951e6ce08f8552e794c1875f2a686a3865d4096e7340a9f8cab2df594feac8",
+      "state": "EXECUTABLE_UNVERIFIED",
+      "note": "Definitions do not prove schedule/provider authority or recent successful execution."
+    }
+  ],
+  "api_routes": [
+    {
+      "path": "/api/assistant/v1/chat",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/assistant/v1/leads",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/auth/forgot-password",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/auth/health",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/auth/login",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/auth/logout",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/auth/me",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/auth/register",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/auth/reset-password",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/auth/verify-email",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/callback",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/commerce/callback",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/commerce/create",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/commerce/health",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/commerce/prepare",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/commerce/status",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/donations/create",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/donations/health",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/health",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/register-request",
+      "source": "api/index.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/admin/operations",
+      "source": "api/operations.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/admin/operations/mfa",
+      "source": "api/operations.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/admin/operations/session",
+      "source": "api/operations.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/student-support/health",
+      "source": "api/student-support.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/student-support/my-contributions",
+      "source": "api/student-support.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/student-support/needs",
+      "source": "api/student-support.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/student-support/portal",
+      "source": "api/student-support.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    },
+    {
+      "path": "/api/student-support/revoke-sponsor",
+      "source": "api/student-support.php",
+      "state": "EXECUTABLE_UNVERIFIED"
+    }
+  ],
+  "management_routes": [
+    "fa/app/admin/index.html",
+    "en/account/admin/index.html"
+  ],
+  "existing_backend": {
+    "operations_evidence": "LIVE_VERIFIED",
+    "admin_unauthenticated_gate": "TESTED",
+    "owner_admin_mfa": "EXECUTABLE_UNVERIFIED",
+    "php_mysql_runtime": "LIVE_VERIFIED",
+    "auth_mail_delivery": "EXECUTABLE_UNVERIFIED",
+    "book_checkout_configuration": "LIVE_VERIFIED",
+    "independent_real_payment": "EXECUTABLE_UNVERIFIED",
+    "persistent_job_queue": "NOT_IMPLEMENTED",
+    "persistent_experience_memory": "NOT_IMPLEMENTED",
+    "approved_playbook_execution": "NOT_IMPLEMENTED",
+    "runtime_scheduler": "NOT_IMPLEMENTED",
+    "restore_recovery_drill": "NOT_IMPLEMENTED"
+  },
+  "evidence": [
+    {
+      "kind": "live_source_stamp",
+      "sha": "1cfeb14e5eb07cae5e2261ccf6540a39a2fa7e9b",
+      "routes": [
+        "/fa/shop/",
+        "/en/shop/"
+      ]
+    },
+    {
+      "kind": "live_browser",
+      "viewports": [
+        320,
+        390,
+        430,
+        768,
+        1440
+      ],
+      "languages": [
+        "fa",
+        "en"
+      ],
+      "observed_overflow": 0,
+      "javascript_errors": 0,
+      "method_scope": "GET/HEAD only; no financial/identity mutation"
+    },
+    {
+      "kind": "github_deployment",
+      "run_id": 38128216094,
+      "release_sha": "73cdbf8a6fc540e961dc304c363bfcc9f8e4463e",
+      "managed_checksums_verified": 570,
+      "tls_checks_passed": 6,
+      "browser_tests_passed": 55,
+      "overall_result": "failed",
+      "failed_gate": "historical URL strict live verification",
+      "historical_checks_passed": 112,
+      "historical_checks_total": 137
+    }
+  ],
+  "blockers": [
+    {
+      "id": "AWOSE-BLK-001",
+      "state": "TESTING_REQUIRED",
+      "reason": "Older deployment failed strict410checks. Newer production already has inline native410and a safety regression; verify the current exact release rather than duplicating or reverting its fix."
+    },
+    {
+      "id": "AWOSE-BLK-002",
+      "state": "IMPLEMENTATION_PENDING",
+      "reason": "Canonical13engine/action registry and AWOSE durable execution/memory are not yet integrated into production."
+    },
+    {
+      "id": "AWOSE-BLK-003",
+      "state": "TESTING_REQUIRED",
+      "reason": "Health booleans do not independently prove mailbox delivery, real bank settlement, inventory reconciliation or dispatch."
+    },
+    {
+      "id": "AWOSE-BLK-004",
+      "state": "TESTING_REQUIRED",
+      "reason": "Production schema changes require compatible backup/readback and a tested recovery plan; no restore evidence has been inspected."
+    },
+    {
+      "id": "AWOSE-BLK-005",
+      "state": "PERMISSION_REQUIRED",
+      "reason": "Hosting GitHub workflow dispatch credentials and cron provisioning are not observed; no autonomous production writer is assumed."
+    }
+  ],
+  "reconciliation_update": {
+    "source_sha": "0d444b180ebe9d0d61b995b82e8988f7a4f73eb4",
+    "observed_at": "2026-10-11T09:35:55Z",
+    "native_gone_source_fix": "present_in_newer_production_source",
+    "live_certification": "pending_latest_release"
+  }
+}
