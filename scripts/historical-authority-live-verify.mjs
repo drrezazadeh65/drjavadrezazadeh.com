@@ -78,6 +78,22 @@ export async function verifyHistoricalAuthority(registry,{request=trustedPublicR
       });
     }
   }
+  // Retired products are gone; preserve neither content nor misleading redirects.
+  for(const rec of registry.historical_candidates||[]){
+    if(rec.decision!=='GONE') continue;
+    for(const origin of origins){
+      for(const route of new Set([rec.path,rec.path.replace(/\/$/,'')])){
+        const url=new URL(route,origin).href;
+        add('gone '+url,url,response=>{
+          if(response.status!==410||response.headers.location)throw new Error('discontinued product must be 410 Gone');
+        });
+      }
+    }
+  }
+  const oldArchive=new URL('/fa/archive/legacy-shop/',canonical).href;
+  add('retired archive',oldArchive,response=>{
+    if(response.status!==410||response.headers.location)throw new Error('retired archive must be 410 Gone');
+  });
   for(const target of targets) add(`public target ${target}`,target,response=>assertPublicDestination(response,target));
   for(const origin of origins){
     const url=origin+'/';
