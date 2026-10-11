@@ -114,3 +114,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 — retest legible account-first dashboard and exclusive tab navigation after fixing test selector to measure hero body text rather than kicker; keep every module and all privacy/SEO gates.
 
 2026-10-11 current Bertina release synchronization.
+
+2026-10-11 — unified release: retain latest bookstore/support FAQ changes and certify customer dashboard exclusive tab navigation, 320/390/768/1280 responsive typography and status-first overview; never overwrite with an older commit.
