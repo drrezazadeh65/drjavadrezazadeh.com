@@ -1124,7 +1124,7 @@ for(const file of htmlFiles){
 // UNRELEASED RESEARCH FIREWALL — confidential project names are assembled at runtime
 // so current public source does not publish the protected names as literal strings.
 const protectedResearchPatterns=[
-  new RegExp('\\b'+'human'+'ability'+'\\b','i'),
+  // Human-centered assessment proposal explicitly authorized for public release on 2026-10-11; other research projects stay protected.
   new RegExp('\\b'+'test'+'ly'+'\\b','i'),
   new RegExp('\\b'+'teacher'+'\\s+'+'human'+'ization'+'\\b','i')
 ];
