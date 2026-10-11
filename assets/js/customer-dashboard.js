@@ -99,7 +99,6 @@ async function hydrate(preloadedAuth){
   runtimeRow('auth','warning',copy.authOff,copy.empty);
   return false;
  }
- dot?.classList.add('ready');
  if(status)status.textContent=copy.guest;
  if(email)email.textContent=copy.empty;
  const me=await jsonRequest(API+'/auth/me',{credentials:'include'});
@@ -112,6 +111,7 @@ async function hydrate(preloadedAuth){
   return false;
  }
  const user=me.data.user||{};
+ dot?.classList.add('ready');
  if(status)status.textContent=copy.signed;
  if(email)email.textContent=user.email||copy.signed;
  if(avatar)avatar.textContent=initial(user.email);
@@ -140,10 +140,10 @@ function sheet(){
  if(!sheet||!open||!close)return;
  let previous=null;
  const focusables=()=>$$('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled])',sheet).filter(x=>!x.hidden);
- const shut=()=>{sheet.classList.remove('is-open');open.setAttribute('aria-expanded','false');document.documentElement.style.overflow='';previous?.focus?.()};
+ const shut=(restoreFocus=true)=>{sheet.classList.remove('is-open');open.setAttribute('aria-expanded','false');document.documentElement.style.overflow='';if(restoreFocus)previous?.focus?.()};
  const show=()=>{previous=document.activeElement;sheet.classList.add('is-open');open.setAttribute('aria-expanded','true');document.documentElement.style.overflow='hidden';close.focus()};
  open.addEventListener('click',show);close.addEventListener('click',shut);
- sheet.addEventListener('click',e=>{if(e.target===sheet)shut()});
+ sheet.addEventListener('click',e=>{if(e.target===sheet)shut();else if(e.target.closest('a[href]'))shut(false)});
  sheet.addEventListener('keydown',e=>{
   if(e.key==='Escape'){shut();return}
   if(e.key!=='Tab')return;
@@ -156,19 +156,40 @@ function sheet(){
 
 function commandCenter(){
  const input=$('[data-dashboard-command-search]'),cards=$$('[data-command-item]'),empty=$('[data-command-empty]');
+ const modes=$$('[data-command-path]'),note=$('[data-command-path-note]');
  if(!input||!cards.length)return;
+ let active='all';
+ const messages={
+  all:'این انتخاب فقط میانبرها را تنظیم می‌کند و به معنی اعطای نقش یا دسترسی نیست.',
+  learning:'مسیر دانش‌آموز و یادگیری انتخاب شد؛ پرونده خصوصی همچنان نیازمند مجوز سمت سرور است.',
+  shopping:'مسیر خرید و خدمات انتخاب شد؛ سفارش و پرداخت باید مستقل از سمت سرور تأیید شوند.',
+  sponsorship:'مسیر حامیان انتخاب شد؛ نمایش هویت و نیازها به رضایت و مجوز معتبر وابسته است.'
+ };
  const render=()=>{
   const q=normalize(input.value);let shown=0;
-  cards.forEach(card=>{const hit=!q||normalize(card.textContent).includes(q);card.hidden=!hit;if(hit)shown++});
+  cards.forEach(card=>{
+   const groups=(card.dataset.commandGroup||'learning shopping sponsorship').split(/\s+/);
+   const hit=(active==='all'||groups.includes(active))&&(!q||normalize(card.textContent).includes(q));
+   card.hidden=!hit;if(hit)shown++;
+  });
   empty?.classList.toggle('is-visible',shown===0);
   if(empty)empty.textContent=copy.noCommand;
  };
+ modes.forEach(b=>b.addEventListener('click',()=>{
+  const requested=b.dataset.commandPath;
+  if(!Object.prototype.hasOwnProperty.call(messages,requested))return;
+  active=requested;
+  modes.forEach(item=>item.setAttribute('aria-pressed',String(item===b)));
+  if(note)note.textContent=messages[active];
+  render();
+ }));
  input.addEventListener('input',render);
  addEventListener('keydown',e=>{
   const tag=(document.activeElement?.tagName||'').toLowerCase();
   if(e.key==='/'&&!['input','textarea','select'].includes(tag)){e.preventDefault();input.focus();input.select()}
   if(e.key==='Escape'&&document.activeElement===input&&input.value){input.value='';render()}
  });
+ render();
 }
 
 function network(){
@@ -243,8 +264,11 @@ function authNavigation(authenticated){
 function logout(){
  $$('[data-dashboard-logout]').forEach(b=>b.addEventListener('click',async()=>{
   b.disabled=true;
-  await jsonRequest(API+'/auth/logout',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:'{}'});
-  location.assign(lang==='en'?'/en/login/':'/fa/login/');
+  const result=await jsonRequest(API+'/auth/logout',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:'{}'});
+  if(result.ok){location.assign(lang==='en'?'/en/login/':'/fa/login/');return}
+  b.disabled=false;
+  const notice=$('[data-auth-state-copy]');
+  if(notice)notice.textContent=lang==='fa'?'خروج امن تأیید نشد. اتصال را بررسی کنید و دوباره تلاش کنید.':'Sign-out was not confirmed. Check your connection and retry.';
  }));
 }
 
