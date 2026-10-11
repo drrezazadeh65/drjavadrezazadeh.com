@@ -89,17 +89,18 @@ function smtpConfigured(array $c): bool {
     return ($c['smtp_enabled'] ?? false) === true
         && is_string($c['smtp_host'] ?? null) && trim((string)$c['smtp_host']) !== ''
         && is_int($c['smtp_port'] ?? null) && (int)$c['smtp_port'] > 0 && (int)$c['smtp_port'] <= 65535
-        && in_array((string)($c['smtp_security'] ?? ''), ['ssl','tls','none'], true)
+        && in_array((string)($c['smtp_security'] ?? ''), ['ssl','tls'], true)
         && filter_var((string)($c['mail_from'] ?? ''), FILTER_VALIDATE_EMAIL) !== false
+        && filter_var((string)($c['smtp_user'] ?? ''), FILTER_VALIDATE_EMAIL) !== false
+        && is_string($c['smtp_password'] ?? null) && (string)$c['smtp_password'] !== ''
         && function_exists('stream_socket_client');
 }
 function mailReady(): bool {
     $c = cfg();
     if (($c['mail_enabled'] ?? false) !== true) return false;
-    // If SMTP was explicitly selected, never silently switch to PHP mail().
-    // This could otherwise make readiness appear healthy with broken credentials.
-    if (($c['smtp_enabled'] ?? false) === true) return smtpConfigured($c);
-    return function_exists('mail') && filter_var((string)$c['mail_from'], FILTER_VALIDATE_EMAIL) !== false;
+    // Bertina shared hosting restricts mail(). Registration mail must always
+    // use authenticated SMTP, with TLS and server-side credentials.
+    return smtpConfigured($c);
 }
 function smtpRead($fp): array {
     $lines=[];$code=0;
@@ -111,6 +112,12 @@ function smtpRead($fp): array {
         }
     }
     return [$code, implode('', $lines)];
+}
+function smtpFail(string $stage): bool {
+    // Only the protocol stage is logged; never log credentials, recipient,
+    // subject, verification tokens, or provider responses containing PII.
+    error_log('BERTINA_SMTP_FAIL stage='.$stage);
+    return false;
 }
 function smtpCmd($fp, string $command, array $expected): bool {
     if ($command !== '') {
@@ -134,28 +141,25 @@ function smtpSend(string $to, string $subject, string $body): bool {
     $remote=($security==='ssl'?'ssl://':'tcp://').$host.':'.$port;
     $errno=0;$errstr='';
     $fp=@stream_socket_client($remote,$errno,$errstr,15,STREAM_CLIENT_CONNECT,$context);
-    if(!is_resource($fp))return false;
+    if(!is_resource($fp))return smtpFail('connect');
     stream_set_timeout($fp,15);
     try{
-        if(!smtpCmd($fp,'',[220]))return false;
+        if(!smtpCmd($fp,'',[220]))return smtpFail('greeting');
         $hello=preg_replace('/[^A-Za-z0-9.-]/','',parse_url(SITE_ORIGIN,PHP_URL_HOST) ?: 'localhost');
-        if(!smtpCmd($fp,'EHLO '.$hello,[250]))return false;
+        if(!smtpCmd($fp,'EHLO '.$hello,[250]))return smtpFail('ehlo');
         if($security==='tls'){
-            if(!smtpCmd($fp,'STARTTLS',[220]))return false;
-            if(!@stream_socket_enable_crypto($fp,true,STREAM_CRYPTO_METHOD_TLS_CLIENT))return false;
-            if(!smtpCmd($fp,'EHLO '.$hello,[250]))return false;
+            if(!smtpCmd($fp,'STARTTLS',[220]))return smtpFail('starttls');
+            if(!@stream_socket_enable_crypto($fp,true,STREAM_CRYPTO_METHOD_TLS_CLIENT))return smtpFail('tls_handshake');
+            if(!smtpCmd($fp,'EHLO '.$hello,[250]))return smtpFail('ehlo_after_tls');
         }
-        $user=(string)($c['smtp_user']??'');$pass=(string)($c['smtp_password']??'');
-        if($user!==''||$pass!==''){
-            if($user===''||$pass==='')return false;
-            if(!smtpCmd($fp,'AUTH LOGIN',[334]))return false;
-            if(!smtpCmd($fp,base64_encode($user),[334]))return false;
-            if(!smtpCmd($fp,base64_encode($pass),[235]))return false;
-        }
+        $user=(string)$c['smtp_user'];$pass=(string)$c['smtp_password'];
+        if(!smtpCmd($fp,'AUTH LOGIN',[334]))return smtpFail('auth_login');
+        if(!smtpCmd($fp,base64_encode($user),[334]))return smtpFail('auth_user');
+        if(!smtpCmd($fp,base64_encode($pass),[235]))return smtpFail('auth_password');
         $from=(string)$c['mail_from'];
-        if(!smtpCmd($fp,'MAIL FROM:<'.$from.'>',[250]))return false;
-        if(!smtpCmd($fp,'RCPT TO:<'.$to.'>',[250,251]))return false;
-        if(!smtpCmd($fp,'DATA',[354]))return false;
+        if(!smtpCmd($fp,'MAIL FROM:<'.$from.'>',[250]))return smtpFail('mail_from');
+        if(!smtpCmd($fp,'RCPT TO:<'.$to.'>',[250,251]))return smtpFail('recipient');
+        if(!smtpCmd($fp,'DATA',[354]))return smtpFail('data_begin');
         $encodedSubject='=?UTF-8?B?'.base64_encode($subject).'?=';
         $reply=(string)($c['mail_reply_to']??$from);
         $message="From: Dr. Javad Rezazadeh <".$from.">\r\n".
@@ -170,9 +174,9 @@ function smtpSend(string $to, string $subject, string $body): bool {
             str_replace(["\r\n","\r"],"\n",$body);
         $message=str_replace("\n","\r\n",$message);
         $message=preg_replace('/(?m)^\\./','..',$message);
-        if(@fwrite($fp,$message."\r\n.\r\n")===false)return false;
+        if(@fwrite($fp,$message."\r\n.\r\n")===false)return smtpFail('data_write');
         [$code,]=smtpRead($fp);
-        if($code!==250)return false;
+        if($code!==250)return smtpFail('data_accept');
         @fwrite($fp,"QUIT\r\n");
         return true;
     } finally {
@@ -181,17 +185,7 @@ function smtpSend(string $to, string $subject, string $body): bool {
 }
 function sendLocalMail(string $to, string $subject, string $body): bool {
     if (!mailReady() || !filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
-    $c = cfg();
-    if (smtpConfigured($c)) return smtpSend($to,$subject,$body);
-    $headers = [
-        'From: Dr. Javad Rezazadeh <'.$c['mail_from'].'>',
-        'Reply-To: '.$c['mail_reply_to'],
-        'MIME-Version: 1.0',
-        'Content-Type: text/plain; charset=UTF-8',
-        'X-Mailer: Bertina-PHP',
-    ];
-    $encodedSubject = '=?UTF-8?B?'.base64_encode($subject).'?=';
-    return @mail($to, $encodedSubject, $body, implode("\r\n", $headers));
+    return smtpSend($to, $subject, $body);
 }
 function route(): string {
     $path = parse_url($_SERVER['REQUEST_URI'] ?? '/api/', PHP_URL_PATH) ?: '/api/';
