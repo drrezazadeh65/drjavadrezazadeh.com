@@ -8,8 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  actions: write
+  contents: read
 
 concurrency:
   group: approved-editorial-image-install
@@ -90,23 +89,26 @@ jobs:
           done
           npx playwright test tests/editorial-13-responsive.spec.js --workers=1 --reporter=line
 
-      - name: Commit verified changes and remove temporary archive
+      - name: Package validated files for reviewed installation
         run: |
           set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/media-registry.json assets/images/editorial-launch/ fa/akhbar/
-          git rm -f -- work/academic_articles_10_original_webp_20261011.zip
-          git diff --cached --check
-          git commit -m 'media(editorial): install ten approved original images in 13-article launch'
-          git push origin HEAD:migration/bertina-linux6
+          mkdir -p /tmp/editorial-release
+          cp -a assets/images/editorial-launch /tmp/editorial-release/
+          cp assets/media-registry.json /tmp/editorial-release/media-registry.json
+          cp -a fa/akhbar /tmp/editorial-release/akhbar
+          git diff -- fa/akhbar/ assets/media-registry.json > /tmp/editorial-release/editorial-changes.patch
+          echo 'Approval gate: automated source writing and deployment are prohibited by the repository governance policy.' > /tmp/editorial-release/REVIEW-FIRST.txt
+          echo 'Install the verified package using Codex or a reviewed PR, run checks, then manually initiate Bertina deployment.' >> /tmp/editorial-release/REVIEW-FIRST.txt
 
-      - name: Dispatch verified Bertina production deployment
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run deploy-bertina.yml --ref migration/bertina-linux6
+      - name: Upload editorial reviewed-install artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-editorial-image-install
+          path: /tmp/editorial-release
+          retention-days: 30
+          if-no-files-found: error
 
-      - name: Release summary
+      - name: Report approval required
         run: |
-          echo 'Ten approved images installed in repository; production deployment requested.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Verify Deploy to Bertina workflow reaches completed/success before marking media live.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Approved ten-image package verified and tested, but repository policy forbids Actions from pushing source or deploying automatically.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Retrieve verified-editorial-image-install artifact for reviewed installation and manual production release.' >> "$GITHUB_STEP_SUMMARY"
