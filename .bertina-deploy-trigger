@@ -144,3 +144,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 release editorial scholarly-commerce upgrade: responsive Persian news cards, 13 topic-linked service/shop article rails; preserve canonical, privacy and payment protections.
 
 2026-10-11 production release: academic-commerce editorial v3 across all 13 Persian articles; topic-specific service cards, related research links, bookstore discovery, responsive news typography, stable URLs and SEO guard.
+
+2026-10-11: release merged PR 59 service and VIP guest buyer contact validation and persistence; preserve SEO/privacy/payment; verify Bertina origin and exact checksums.
