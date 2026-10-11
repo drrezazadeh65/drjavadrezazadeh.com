@@ -122,17 +122,66 @@ async function hydrate(preloadedAuth){
 }
 
 function nav(){
+ // One active workspace at a time; the original modules remain in the DOM.
+ // Tab choice is navigation only, never proof of role, entitlement or identity.
  const links=$$('.cd-nav a[data-section],.cd-mobile-dock a[data-section]');
- const sections=[...new Set(links.map(a=>document.getElementById(a.dataset.section)).filter(Boolean))];
- const select=id=>links.forEach(a=>a.classList.toggle('is-active',a.dataset.section===id));
- if('IntersectionObserver'in window){
-  const o=new IntersectionObserver(entries=>{
-   const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
-   if(visible)select(visible.target.id);
-  },{rootMargin:'-20% 0px -65%',threshold:[.08,.24,.5]});
-  sections.forEach(s=>o.observe(s));
- }
- links.forEach(a=>a.addEventListener('click',()=>select(a.dataset.section)));
+ const panels=$$('[data-dashboard-panel]');
+ const label=$('[data-dashboard-active-label]');
+ const caption=$('.cd-view-context-caption');
+ const meta={
+  overview:['نمای کلی','وضعیت حساب، خدمات و مسیرهای سریع شما در یک نگاه'],
+  'student-support':['حمایت تحصیلی و حامیان','اطلاعات خصوصی فقط با رضایت و دسترسی تأییدشده'],
+  ecosystem:['اکوسیستم من','خدمات، امکانات و مسیرهای در دسترس حساب'],
+  journey:['مسیر خدمت','شفافیت خدمات، مراحل اجرا و ضوابط اعتماد'],
+  'academic-profile':['پرونده تحصیلی','اطلاعات و شواهد آموزشی متناسب با مجوز حساب'],
+  progress:['رشد و پیشرفت','گزارش‌های واقعی، نقاط عطف و برنامه توسعه'],
+  consultations:['مشاوره‌ها','درخواست‌ها، نوبت‌ها و مسیر پیگیری'],
+  records:['گزارش‌ها و اسناد','سوابق تأییدشده و اسناد اختصاصی حساب'],
+  account:['حساب و حریم خصوصی','مشخصات، رضایت‌ها و تنظیمات دسترسی']
+ };
+ const current=()=>decodeURIComponent((location.hash||'#overview').slice(1));
+ const activate=(targetId,scroll=false)=>{
+  const target=document.getElementById(targetId);
+  const section=target?.closest('[data-dashboard-panel]');
+  const view=section?.dataset.dashboardPanel||'overview';
+  const active=Object.prototype.hasOwnProperty.call(meta,view)?view:'overview';
+  panels.forEach(p=>{p.hidden=p.dataset.dashboardPanel!==active});
+  links.forEach(a=>{
+   const on=a.dataset.section===active;
+   a.classList.toggle('is-active',on);
+   if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
+  });
+  document.documentElement.dataset.dashboardActiveView=active;
+  if(label)label.textContent=meta[active][0];
+  if(caption)caption.textContent=meta[active][1];
+  if(scroll){
+   const destination=active==='overview'&&targetId==='overview'
+     ?$('.cd-view-context'):(target&&target.closest('[data-dashboard-panel]')?target:document.querySelector('[data-dashboard-panel="'+active+'"]'));
+   requestAnimationFrame(()=>destination?.scrollIntoView({behavior:'instant',block:'start'}));
+  }
+ };
+ // Intercept only same-page anchors. External account, commerce and help links
+ // continue navigating normally, without changing their destination.
+ document.addEventListener('click',e=>{
+  const a=e.target.closest('a[href^="#"]');
+  if(!a||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+  const hash=a.getAttribute('href');
+  if(!hash||hash==='#')return;
+  let id;
+  try{id=decodeURIComponent(hash.slice(1))}catch{return}
+  if(!document.getElementById(id))return;
+  e.preventDefault();
+  if(location.hash!==hash)history.pushState(null,'',hash);
+  activate(id,true);
+  if(a.classList.contains('cd-skip')){
+   const target=document.getElementById(id);
+   target?.setAttribute('tabindex','-1');
+   target?.focus({preventScroll:true});
+  }
+ });
+ addEventListener('popstate',()=>activate(current(),true));
+ addEventListener('hashchange',()=>activate(current(),true));
+ activate(current(),Boolean(location.hash));
 }
 
 function sheet(){
