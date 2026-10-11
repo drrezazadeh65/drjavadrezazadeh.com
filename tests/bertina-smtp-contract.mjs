@@ -7,11 +7,11 @@ assert.match(php,/function smtpFail/);
 assert.match(php,/function sendLocalMail/);
 assert.doesNotMatch(php,/@mail\s*\(/);
 assert.match(php,/smtpSend\(\$to,\s*\$subject,\s*\$body\)/);
-assert.match(php,/auth\/resend-verification/);
+assert.match(php,/auth\/retry-verification/);
 assert.match(php,/verification_if_pending_sent/);
-assert.match(ui,/bindResend\(\)/);
+assert.match(ui,/bindRetry\(\)/);
 for (const lang of ['fa','en']) {
  const html=fs.readFileSync(lang+'/register/index.html','utf8');
- assert.match(html,/data-auth-resend/);
+ assert.match(html,/data-auth-retry/);
 }
 console.log('PASS: SMTP-only auth mail and account verification recovery');
