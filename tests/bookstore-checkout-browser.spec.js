@@ -210,19 +210,20 @@ test('Declined bank result cannot render a paid receipt even when URL claims pai
 });
 
 for(const [lang,route] of [['fa','/fa/shop/'],['en','/en/shop/']]){
-  test(lang+' voluntary support shows small payment form and presets on mobile',async({page})=>{
+  test(lang+' voluntary support shows six configurable payment presets on mobile',async({page})=>{
     await page.setViewportSize({width:390,height:850});
     const errors=[];page.on('pageerror',e=>errors.push(String(e)));
     await page.route('**/api/donations/health',route=>route.fulfill({status:200,json:{
-      ok:true,service:'donations',checkout:true,minToman:1000,maxToman:500000,defaultToman:10000,currency:'IRT'
+      ok:true,service:'donations',checkout:true,minToman:1000,maxToman:10000000,defaultToman:500000,currency:'IRT'
     }}));
     await page.goto(base+route,{waitUntil:'domcontentloaded'});
     await expect(page.locator('[data-support-form]')).toBeVisible();
     const amount=page.locator('[data-support-form] [name="amountToman"]');
-    await expect(amount).toHaveValue('10000');
+    await expect(amount).toHaveValue('500000');
     await expect(page.locator('[data-support-form] [type="submit"]')).toBeEnabled();
-    await page.locator('[data-support-amount="5000"]').click();
-    await expect(amount).toHaveValue('5000');
+    await expect(page.locator('[data-support-amount]')).toHaveCount(6);
+    await page.locator('[data-support-amount="200000"]').click();
+    await expect(amount).toHaveValue('200000');
     const form=await page.locator('[data-support-form]').boundingBox();
     expect(form.x).toBeGreaterThanOrEqual(-1);
     expect(form.x+form.width).toBeLessThanOrEqual(391);
@@ -233,7 +234,7 @@ test('Voluntary support creates mocked low-value payment and reaches BitPay with
   const gateway='https://bitpay.ir/payment/gateway-789123-get';
   const requests=[];
   await page.route('**/api/donations/health',route=>route.fulfill({status:200,json:{
-    ok:true,service:'donations',checkout:true,minToman:1000,maxToman:500000,defaultToman:10000,currency:'IRT'
+    ok:true,service:'donations',checkout:true,minToman:1000,maxToman:10000000,defaultToman:500000,currency:'IRT'
   }}));
   await page.route('**/api/donations/create',route=>{
     requests.push(route.request().postDataJSON());
@@ -243,6 +244,7 @@ test('Voluntary support creates mocked low-value payment and reaches BitPay with
   await page.route(gateway,route=>route.fulfill({status:200,contentType:'text/html',body:'<html><body><h1>Mock low-value gateway</h1></body></html>'}));
   await page.goto(base+'/fa/shop/',{waitUntil:'domcontentloaded'});
   await expect(page.locator('[data-support-form] [type="submit"]')).toBeEnabled();
+  await page.locator('[data-support-form] [name="amountToman"]').fill('10000');
   await page.locator('[data-support-form] [name="email"]').fill('support@example.test');
   await page.locator('[data-support-form] [type="submit"]').click();
   await expect(page).toHaveURL(gateway);
@@ -252,7 +254,7 @@ test('Voluntary support creates mocked low-value payment and reaches BitPay with
 test('Donation UI refuses charges while the live gateway is disabled',async({page})=>{
   let creates=0;
   await page.route('**/api/donations/health',route=>route.fulfill({status:200,json:{
-    ok:true,service:'donations',checkout:false,minToman:1000,maxToman:500000,defaultToman:10000,currency:'IRT'
+    ok:true,service:'donations',checkout:false,minToman:1000,maxToman:10000000,defaultToman:500000,currency:'IRT'
   }}));
   await page.route('**/api/donations/create',route=>{creates++;return route.abort()});
   await page.goto(base+'/fa/shop/',{waitUntil:'domcontentloaded'});
@@ -263,7 +265,7 @@ test('Donation UI refuses charges while the live gateway is disabled',async({pag
 test('Support payment cannot retry after an ambiguous gateway initiation',async({page})=>{
   let creates=0;
   await page.route('**/api/donations/health',route=>route.fulfill({status:200,json:{
-    ok:true,service:'donations',checkout:true,minToman:1000,maxToman:500000,defaultToman:10000,currency:'IRT'
+    ok:true,service:'donations',checkout:true,minToman:1000,maxToman:10000000,defaultToman:500000,currency:'IRT'
   }}));
   await page.route('**/api/donations/create',route=>{creates++;return route.abort('failed')});
   await page.goto(base+'/fa/shop/',{waitUntil:'domcontentloaded'});
@@ -276,13 +278,14 @@ test('Support payment cannot retry after an ambiguous gateway initiation',async(
 });
 test('Support payment refuses forged BitPay URL before redirect',async({page})=>{
   await page.route('**/api/donations/health',route=>route.fulfill({status:200,json:{
-    ok:true,service:'donations',checkout:true,minToman:1000,maxToman:500000,defaultToman:10000,currency:'IRT'
+    ok:true,service:'donations',checkout:true,minToman:1000,maxToman:10000000,defaultToman:500000,currency:'IRT'
   }}));
   await page.route('**/api/donations/create',route=>route.fulfill({status:200,json:{
     ok:true,orderId:'11111111-1111-4111-8111-111111111118',amountToman:10000,currency:'IRT',
     paymentUrl:base+'/fa/shop/payment-start/?gateway='+encodeURIComponent('https://bitpay.ir.evil.example/payment/gateway-123-get')
   }}));
   await page.goto(base+'/fa/shop/',{waitUntil:'domcontentloaded'});
+  await page.locator('[data-support-form] [name="amountToman"]').fill('10000');
   await page.locator('[data-support-form] [type="submit"]').click();
   await expect(page).toHaveURL(base+'/fa/shop/');
   await expect(page.locator('[data-support-form] [type="submit"]')).toBeDisabled();
@@ -320,13 +323,14 @@ test('Verified new talented-student contribution displays student support receip
 test('Student fund contributions are guest-accessible and reject invalid beneficiary targeting',async({page})=>{
  let creates=0,received=null;
  await page.route('**/api/donations/health',route=>route.fulfill({status:200,json:{ok:true,service:'donations',
-  checkout:true,minToman:1000,maxToman:500000,defaultToman:10000,currency:'IRT'}}));
+  checkout:true,minToman:1000,maxToman:10000000,defaultToman:500000,currency:'IRT'}}));
  await page.route('**/api/donations/create',route=>{
   creates+=1;received=route.request().postDataJSON();
   return route.fulfill({status:400,json:{ok:false,error:'invalid_support_focus'}});
  });
  await page.goto(base+'/fa/shop/',{waitUntil:'domcontentloaded'});
  await expect(page.locator('[data-support-form] [type="submit"]')).toBeEnabled();
+ await page.locator('[data-support-form] [name="amountToman"]').fill('10000');
  await page.locator('[name="focus"]').selectOption('scholarship');
  await page.locator('[data-support-form] [type="submit"]').click();
  await expect.poll(()=>creates).toBe(1);
@@ -338,7 +342,7 @@ for(const [lang,path] of [['fa','/fa/support-talented-students/'],['en','/en/sup
   test('Safeguarded public student support landing is bilingual guest-first '+lang,async({page})=>{
     await page.setViewportSize({width:390,height:820});
     await page.route('**/api/donations/health',route=>route.fulfill({status:200,json:{ok:true,service:'donations',
-      checkout:true,minToman:1000,maxToman:500000,defaultToman:10000,currency:'IRT'}}));
+      checkout:true,minToman:1000,maxToman:10000000,defaultToman:500000,currency:'IRT'}}));
     await page.goto(base+path,{waitUntil:'domcontentloaded'});
     await expect(page.locator('h1')).toBeVisible();
     await expect(page.locator('[data-support-form]')).toBeVisible();

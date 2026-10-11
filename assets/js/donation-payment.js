@@ -20,16 +20,21 @@
  });
  function update(){
   const n=Number(normal(input.value));
-  preview.textContent=Number.isSafeInteger(n)&&n>=1000&&n<=500000
+  const valid=Number.isSafeInteger(n)&&n>=1000&&n<=10000000;
+  input.setAttribute('aria-invalid',String(!valid));
+  preview.dataset.valid=String(valid);
+  submit.disabled=!ready||submitted||!valid;
+  preview.textContent=valid
    ?(isFa?'مبلغ پرداخت: '+fmt(n)+' تومان':'Payment amount: '+fmt(n)+' toman')
-   :(isFa?'مبلغ مجاز: ۱٬۰۰۰ تا ۵۰۰٬۰۰۰ تومان':'Allowed amount: 1,000–500,000 toman');
+   :(isFa?'مبلغ مجاز: ۱٬۰۰۰ تا ۱۰٬۰۰۰٬۰۰۰ تومان':'Allowed amount: 1,000–10,000,000 toman');
  }
  presets.forEach(button=>button.addEventListener('click',()=>{
   if(submitted)return;
   input.value=button.dataset.supportAmount;
-  update();input.focus();
+  presets.forEach(p=>p.setAttribute('aria-pressed',String(p===button)));
+  update();
  }));
- input.addEventListener('input',update);
+ input.addEventListener('input',()=>{presets.forEach(p=>p.setAttribute('aria-pressed',String(Number(p.dataset.supportAmount)===Number(normal(input.value)))));update();});
  update();
  submit.disabled=true;
  show(isFa?'در حال بررسی آمادگی درگاه...':'Checking gateway readiness...');
@@ -39,10 +44,11 @@
    if(!response.ok)throw Error('unavailable');
    const data=await response.json();
    if(data?.ok!==true||data.service!=='donations'||data.checkout!==true||
-      data.currency!=='IRT'||data.minToman!==1000||data.maxToman!==500000)throw Error('unavailable');
-   ready=true;submit.disabled=false;
+      data.currency!=='IRT'||data.minToman!==1000||data.maxToman!==10000000)throw Error('unavailable');
+   ready=true;update();
    show(isFa?'درگاه آماده است. پیش از پرداخت، مبلغ را بررسی کنید.':'Gateway is ready. Check the amount before payment.');
   }catch(_){
+   ready=false;update();
    show(isFa?'پرداخت حمایت مالی فعلاً در دسترس نیست؛ هیچ وجهی دریافت نمی‌شود.':'Support payment is currently unavailable. Nothing will be charged.');
   }
  }
@@ -51,8 +57,8 @@
   event.preventDefault();
   if(!ready||submitted)return;
   const amount=Number(normal(input.value));
-  if(!Number.isSafeInteger(amount)||amount<1000||amount>500000){
-   show(isFa?'مبلغ صحیح بین ۱٬۰۰۰ تا ۵۰۰٬۰۰۰ تومان وارد کنید.':'Enter a whole amount between 1,000 and 500,000 toman.');return;
+  if(!Number.isSafeInteger(amount)||amount<1000||amount>10000000){
+   show(isFa?'مبلغ صحیح بین ۱٬۰۰۰ تا ۱۰٬۰۰۰٬۰۰۰ تومان وارد کنید.':'Enter a whole amount between 1,000 and 10,000,000 toman.');return;
   }
   if(email.value&&!email.checkValidity()){
    show(isFa?'ایمیل اختیاری واردشده معتبر نیست.':'The optional email is not valid.');return;
@@ -85,7 +91,7 @@
    const code=String(error?.message||'');
    const retryable=['invalid_donation_amount','invalid_donation_email','invalid_support_focus'].includes(code);
    if(retryable){
-    submitted=false;submit.disabled=false;
+    submitted=false;update();
     show(isFa?'مبلغ یا ایمیل را اصلاح و سپس دوباره ارسال کنید.':'Correct the amount or email and resubmit.');
    }else{
     show(isFa?

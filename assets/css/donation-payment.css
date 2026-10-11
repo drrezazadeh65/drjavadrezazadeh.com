@@ -23,3 +23,45 @@
 .support-panel select:focus-visible{outline:3px solid #b07925;outline-offset:3px}
 .support-panel a{color:#145779;text-decoration:underline;text-underline-offset:3px}
 .support-panel a:focus-visible{outline:3px solid #b07925;outline-offset:3px}
+
+/* Editorial harmonization: gold/ink palette and accessible amount choices */
+.support-panel{background:radial-gradient(ellipse at 90% 0%,rgba(213,174,95,.12),transparent 65%),linear-gradient(145deg,#191714,#0c0c0d);color:#f1e7d4;border-color:rgba(217,183,112,.45);box-shadow:0 20px 68px rgba(0,0,0,.28);scroll-margin-top:80px}
+.support-panel h2{color:#f5dfb4;letter-spacing:0;line-height:1.55}
+.support-panel p,.support-panel .support-note{color:#d3cab9;line-height:2}
+.support-panel .support-eyebrow{color:#eac98f}
+.support-panel label{color:#f0e0c2}
+.support-panel input,.support-panel select{background:#fdfaf3;color:#1c2630;border-color:#bca77e;border-radius:14px;min-height:54px}
+.support-panel form{max-width:850px}
+.support-panel .support-presets{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
+.support-panel .support-presets button{min-height:58px;padding:12px;background:#211d18;color:#f1ddba;border:1px solid rgba(225,189,122,.42);border-radius:14px;transition:background .15s,border-color .15s,transform .15s;font-size:clamp(.88rem,1.3vw,1.02rem)}
+.support-panel .support-presets button:hover{background:#332b20;border-color:#e9c887;transform:translateY(-1px)}
+.support-panel .support-presets button[aria-pressed="true"]{background:#e6c184;color:#191512;border-color:#f9dba2;box-shadow:0 0 0 2px rgba(230,193,132,.15)}
+.support-panel .support-preview{color:#f5d391;font-size:1.1rem}
+.support-panel .support-submit{background:linear-gradient(110deg,#e8c789,#bd8e3f);color:#1b150e;border-radius:14px;min-height:56px;box-shadow:0 6px 24px rgba(181,138,58,.19)}
+.support-panel .support-status{color:#e8d2a9}
+.support-panel .support-footer{border-color:rgba(230,199,146,.25)}
+.support-panel a{color:#f2d196}
+@media(max-width:650px){.support-panel{margin:18px 0;padding:22px 16px}.support-panel .support-presets{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.support-panel .support-presets button{min-height:58px}.support-panel input,.support-panel select{font-size:16px}}
+@media(max-width:350px){.support-panel .support-presets{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.support-panel .support-presets button{transition:none;transform:none!important}}
+
+/* Mobile-first states and typographic clarity, 2026-10-11 */
+.support-panel{font-family:inherit;min-width:0}
+.support-panel :where(h2,label,button,select,input){font-family:inherit;letter-spacing:normal}
+.support-panel label{line-height:1.75;font-size:clamp(14px,1.4vw,16px)}
+.support-panel input[aria-invalid="true"]:not(:focus){border-color:#bf7962}
+.support-panel .support-preview[data-valid="false"]{color:#ffb8a0}
+.support-panel .support-status{overflow-wrap:anywhere;line-height:1.9}
+.support-panel .support-presets button{touch-action:manipulation;white-space:normal;text-wrap:balance}
+.support-panel button:focus-visible,.support-panel :is(select,input):focus-visible{outline:3px solid #f1c677;outline-offset:3px}
+.support-panel #support-email{direction:ltr;text-align:left}
+@media(max-width:700px){
+ .support-panel{padding:24px 16px!important;border-radius:22px;margin:18px 0 24px}
+ .support-panel h2{font-size:clamp(23px,6.6vw,29px);line-height:1.55}
+ .support-panel p{font-size:14px;line-height:1.95}
+ .support-panel label{margin:18px 0 8px;font-size:14px}
+ .support-panel .support-presets{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0 18px}
+ .support-panel .support-presets button{font-size:clamp(13px,3.7vw,15px);padding:11px 6px;min-height:58px;line-height:1.6}
+ .support-panel .support-preview{font-size:16px}
+ .support-panel .support-submit{width:100%;min-width:0;font-size:16px}
+}

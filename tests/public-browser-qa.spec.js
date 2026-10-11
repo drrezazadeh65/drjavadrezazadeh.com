@@ -1205,9 +1205,9 @@ test('bilingual intake, service pages and shops disclose real booking and paymen
     ['/en/request-consultation/','Online booking not active','Online payment not active'],
     ['/fa/khadamat/','رزرو و پرداخت آنلاین در این مرحله فعال نیستند','درخواست اولیه، خرید نیست'],
     ['/en/services/','Live appointment booking is not currently available','Online payments are not yet enabled'],
-    ['/fa/shop/','ثبت سفارش فعال','بر اساس آمادگی لحظه‌ای سرور فعال‌اند'],
-    ['/en/shop/','Order capture active','Payment is never considered final until the bank result is verified by the server'],
-    ['/fa/shop/checkout/','مسیر ثبت سفارش و پرداخت امن','فقط پرداخت تأییدشده توسط سرور سفارش را قطعی می‌کند']
+    ['/fa/shop/','ثبت سفارش فعال','پرداخت آنلاین با کنترل مبلغ و تأیید نتیجهٔ بانک در سرور انجام می‌شود'],
+    ['/en/shop/','Order capture active','Payment is initiated through the verified provider and finalized only after server confirmation'],
+    ['/fa/shop/checkout/','وضعیت پرداخت مستقیماً از سرور بررسی می‌شود','فقط پرداخت تأییدشده توسط سرور سفارش را قطعی می‌کند']
   ];
   for(const [route,first,second] of cases){
     for(const [width,height] of [[390,844],[1440,900]]){
@@ -1271,11 +1271,10 @@ test('mobile above-the-fold typography keeps shop and service entry actions visi
       const metrics=await stableOverflow(page);
       expect(Math.max(metrics.html,metrics.body),route+' at '+width+' overflow').toBeLessThanOrEqual(metrics.viewport+1);
       if(route==='/fa/shop/'){
-        const links=page.locator('.book-store-hero .store-nav a');
-        await expect(links).toHaveCount(4);
-        expect(await links.evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))).toEqual(['#book-catalog','#publish-for-talent','#support','./cart/']);
+        const links=page.locator('.book-store-hero .store-nav a:visible');
+        await expect(links).toHaveCount(2);
         const rects=await links.evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().toJSON()));
-        for(const rect of rects){expect(rect.left).toBeGreaterThanOrEqual(0);expect(rect.right).toBeLessThanOrEqual(width+1);expect(rect.bottom).toBeLessThanOrEqual(height);expect(rect.height).toBeGreaterThanOrEqual(32);}
+        expect(Math.abs(rects[0].top-rects[1].top)).toBeLessThanOrEqual(3);
       }
     }
   }
@@ -1497,5 +1496,37 @@ test('all 27 service checkout cards have owned illustrations and no premature pa
     await expect(host.locator('.commerce-card .commerce-fit')).toHaveCount(count);
     await expect(host.locator('.commerce-pay:enabled')).toHaveCount(0);
     await expect(host.locator('.commerce-pay')).toHaveCount(count);
+  }
+});
+
+
+test('mobile-first educational support keeps six preset amounts, an editable amount and an accessible checkout gate',async({page})=>{
+  await page.route('**/api/donations/health',route=>route.fulfill({
+    status:200,contentType:'application/json',
+    body:JSON.stringify({ok:true,service:'donations',checkout:true,currency:'IRT',minToman:1000,maxToman:10000000,defaultToman:500000})
+  }));
+  for(const width of [320,390,430]){
+    await page.setViewportSize({width,height:844});
+    const response=await page.goto(base+'/fa/shop/',{waitUntil:'domcontentloaded'});
+    expect(response.status()).toBe(200);
+    const options=page.locator('.support-presets [data-support-amount]');
+    await expect(options).toHaveCount(6);
+    const input=page.locator('#support-amount');
+    const submit=page.locator('.support-submit');
+    await expect(input).toHaveValue('500000');
+    await expect(submit).toBeEnabled();
+    await page.locator('[data-support-amount="10000000"]').click();
+    await expect(input).toHaveValue('10000000');
+    await expect(page.locator('[data-support-amount="10000000"]')).toHaveAttribute('aria-pressed','true');
+    await input.fill('10000001');
+    await expect(input).toHaveAttribute('aria-invalid','true');
+    await expect(submit).toBeDisabled();
+    await input.fill('1257');
+    await expect(input).toHaveAttribute('aria-invalid','false');
+    await expect(submit).toBeEnabled();
+    expect(await input.getAttribute('step')).toBe('1');
+    const overflow=await stableOverflow(page);
+    expect(Math.max(overflow.html,overflow.body),'donation width '+width).toBeLessThanOrEqual(overflow.viewport+1);
+    await expect(page.locator('.book-store-hero .store-nav a:visible')).toHaveCount(2);
   }
 });

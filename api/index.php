@@ -560,7 +560,7 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
 // Existing verified bank callback and receipt processing remain authoritative.
 if($path==='/donations/health'&&$verb==='GET'){
     respond(['ok'=>true,'service'=>'donations','checkout'=>commerceReady(),
-        'minToman'=>1000,'maxToman'=>500000,'defaultToman'=>10000,'currency'=>'IRT']);
+        'minToman'=>1000,'maxToman'=>10000000,'defaultToman'=>500000,'currency'=>'IRT']);
 }
 if($path==='/donations/create'&&$verb==='POST'){
     requirePostOrigin();
@@ -568,7 +568,7 @@ if($path==='/donations/create'&&$verb==='POST'){
     $pdo=db();if(!$pdo)fail('database_unconfigured',503);
     $input=jsonBody();$amount=$input['amountToman']??null;
     // Only JSON integers may initiate money movement: no floats, numeric strings or negatives.
-    if(!is_int($amount)||$amount<1000||$amount>500000)fail('invalid_donation_amount');
+    if(!is_int($amount)||$amount<1000||$amount>10000000)fail('invalid_donation_amount');
     $email=trim((string)($input['email']??''));
     if($email!==''&&!validEmail($email))fail('invalid_donation_email');
     $focus=(string)($input['focus']??'general');

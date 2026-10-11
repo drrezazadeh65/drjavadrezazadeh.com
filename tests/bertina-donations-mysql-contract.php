@@ -30,7 +30,7 @@ function cfg(): array { return ['bitpay_amount_multiplier'=>'10']; }
 function uuidv4(): string { return '11111111-1111-4111-8111-111111111118'; }
 function gatewayPost(string $endpoint,array $fields): string {
     $GLOBALS['gatewayCalls']++;
-    if($endpoint!=='gateway-send'||$fields['amount']!=='100000'||
+    if($endpoint!=='gateway-send'||$fields['amount']!==(string)(($GLOBALS['expectedToman']??10000)*10)||
        $fields['redirect']!==SITE_ORIGIN.'/api/commerce/callback?order='.uuidv4()) {
        throw new RuntimeException('incorrect_gateway_arguments');
     }
@@ -68,9 +68,9 @@ try {
     $GLOBALS['ready']=true;
     $healthy=donationRequest($route,'/donations/health','GET');
     assertDonation($healthy->status===200&&$healthy->data['checkout']===true&&
-      $healthy->data['minToman']===1000&&$healthy->data['maxToman']===500000,'health_amount_limits_and_readiness');
+      $healthy->data['minToman']===1000&&$healthy->data['maxToman']===10000000,'health_amount_limits_and_readiness');
 
-    foreach([999,500001,10000.25,'10000',-10000,null] as $invalid){
+    foreach([999,10000001,10000.25,'10000',-10000,null] as $invalid){
         $result=donationRequest($route,'/donations/create','POST',['amountToman'=>$invalid]);
         assertDonation($result->status===400&&$result->data['error']==='invalid_donation_amount',
             'reject_invalid_amount_'.json_encode($invalid));
@@ -106,6 +106,18 @@ try {
         $lines[0]['quantity']===1&&$lines[0]['subtotal']===10000,'distinct_support_line_no_book_sale');
     assertDonation($row['customer_email']==='donor@example.test'&&$row['customer_json']===null,'optional_email_without_shipping_details');
     assertDonation($GLOBALS['originChecks']>=2&&$GLOBALS['gatewayCalls']===2,'csrf_origin_gate_and_provider_init_once_per_valid_request');
+    // The 10,000,000-toman upper boundary must survive provider conversion and storage.
+    $pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$id]);
+    $GLOBALS['expectedToman']=10000000;
+    $upper=donationRequest($route,'/donations/create','POST',['amountToman'=>10000000,'focus'=>'scholarship']);
+    assertDonation($upper->status===200&&($upper->data['amountToman']??null)===10000000,'upper_limit_is_accepted_without_real_payment');
+    $upperQuery=$pdo->prepare('SELECT amount_toman,provider_amount,state,items_json FROM commerce_orders WHERE id=?');
+    $upperQuery->execute([$id]);$upperRow=$upperQuery->fetch();
+    $upperLines=json_decode((string)($upperRow['items_json']??''),true);
+    assertDonation(is_array($upperRow)&&(int)$upperRow['amount_toman']===10000000&&
+        (int)$upperRow['provider_amount']===100000000&&$upperRow['state']==='pending'&&
+        $upperLines[0]['focus']==='scholarship'&&$upperLines[0]['subtotal']===10000000,
+        'upper_limit_currency_and_allocation_integrity');
     echo "Bertina voluntary support contract passed with isolated MySQL and mocked BitPay.\n";
 }finally{
     $pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$id]);
