@@ -24,11 +24,11 @@ test('approved legacy routes map one hop to live public destinations',()=>{
   assert.equal(pubs.status,301);
 });
 
-test('confirmed historical carpet product maps to truthful archive',()=>{
+test('removed historical product remains Gone with no unrelated redirection',()=>{
   const p=classifyHistoricalTarget('/product/%D8%AE%D8%B1%DB%8C%D8%AF-%D9%81%D8%B1%D8%B4-%D9%85%D8%A7%D8%B4%DB%8C%D9%86%DB%8C-%DA%A9%D8%AF-2-7801-9735/',registry);
-  assert.equal(p.action,'ALREADY_MAPPED');
-  assert.equal(p.target,'/fa/archive/legacy-shop/');
-  assert.equal(p.status,301);
+  assert.equal(p.action,'QUARANTINE_GONE');
+  assert.equal(p.status,410);
+  assert.equal(p.target,undefined);
 });
 
 test('unknown legacy URL stays in review instead of redirecting to homepage',()=>{
@@ -60,6 +60,7 @@ function liveFixture(url){
   const path=normalizeHistoricalPath(u.pathname);
   const mapping=registry.authority_redirects.find(r=>r.source===path);
   if(mapping) return {status:301,headers:{location:registry.production_origin+mapping.target+u.search},body:''};
+  if(path==='/fa/archive/legacy-shop/'||registry.historical_candidates.some(r=>r.decision==='GONE'&&r.path===path))return {status:410,headers:{},body:''};
   const targets=new Set(registry.authority_redirects.map(r=>r.target));
   if(u.origin===registry.production_origin&&(path==='/'||targets.has(path))){
     return {status:200,headers:{'cache-control':'public, no-cache, must-revalidate'},body:`<meta name="robots" content="index,follow"><link rel="canonical" href="${registry.production_origin+path}">`};
@@ -73,7 +74,7 @@ test('strict live matrix covers every registered redirect, transport and slash f
   const result=await verifyHistoricalAuthority(registry,{request:async url=>{requested.push(url);return liveFixture(url)}});
   assert.equal(result.failed,0);
   assert.equal(result.checks,137);
-  assert.equal(result.authority_redirects,15);
+  assert.equal(result.authority_redirects,9);
   for(const mapping of registry.authority_redirects){
     for(const origin of result.origins){
       assert.ok(requested.includes(new URL(mapping.source,origin).href));
@@ -102,7 +103,7 @@ test('strict live verification rejects temporary and incorrect authority destina
 });
 
 test('strict live verification rejects non-public or noncanonical final pages',async()=>{
-  const target=registry.production_origin+'/fa/archive/legacy-shop/';
+  const target=registry.production_origin+'/en/publications/';
   const variants=[
     {status:301}, {status:404},
     {headers:{'x-robots-tag':'googlebot: noindex'}},
