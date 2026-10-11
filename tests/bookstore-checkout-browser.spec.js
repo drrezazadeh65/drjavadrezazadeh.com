@@ -300,7 +300,7 @@ test('Verified small voluntary support displays a distinct noncharitable donatio
   await expect(page.locator('#title')).toContainText('حمایت مالی داوطلبانه');
   await expect(page.locator('#receipt .receipt-head strong')).toContainText('رسید حمایت مالی');
   await expect(page.locator('#receipt-total')).toContainText('۱۰٬۰۰۰');
-  await expect(page.locator('#receipt .note')).toContainText('فاکتور رسمی مالیاتی محسوب نمی‌شود');
+  await expect(page.locator('#receipt .note')).toContainText('بدون ثبت تخصیص جدید');
   await expect(page.locator('#print')).toBeVisible();
 });
 
