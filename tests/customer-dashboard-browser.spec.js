@@ -57,3 +57,25 @@ for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/'
     });
   }
 }
+
+
+test('English dashboard uses a safe, unambiguous Latin font stack on desktop and mobile',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ for(const width of [390,1280]){
+  await page.setViewportSize({width,height:850});
+  await page.goto(base+'/en/account/',{waitUntil:'domcontentloaded'});
+  const details=await page.evaluate(()=>{
+    const fontOf=el=>getComputedStyle(el).fontFamily;
+    const heading=document.querySelector('#overview h1');
+    return {body:fontOf(document.body),heading:fontOf(heading),
+      label:heading?.textContent||'',brand:document.querySelector('.cd-brand-copy strong')?.textContent||'',
+      stylesheet:[...document.querySelectorAll('link[rel="stylesheet"]')].map(x=>x.href)};
+  });
+  expect(details.body.startsWith('"Segoe UI"')||details.body.startsWith('Segoe UI')).toBe(true);
+  expect(details.heading).not.toMatch(/(^|,)\\s*Inter\\s*(,|$)/);
+  expect(details.label).toMatch(/[A-Za-z]/);
+  expect(details.brand).toMatch(/Rezazadeh/);
+  expect(details.stylesheet.some(x=>x.includes('customer-dashboard-v1.css?v=20261011-fontsafe-4'))).toBe(true);
+ }
+ expect(errors).toEqual([]);
+});
