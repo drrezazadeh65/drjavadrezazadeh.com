@@ -61,6 +61,12 @@ jobs:
       - name: Test isolated Bertina receipt route
         run: php tests/bertina-receipt-contract.php
 
+      - name: Test Bertina registration health and selected SMTP safety
+        run: |
+          php -l api/index.php
+          node --check assets/js/customer-auth.js
+          node tests/bertina-auth-readiness-regression.mjs
+
       - name: Build sanitized Bertina artifact
         run: node scripts/build-public-site.mjs
 

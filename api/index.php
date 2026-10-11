@@ -96,7 +96,9 @@ function smtpConfigured(array $c): bool {
 function mailReady(): bool {
     $c = cfg();
     if (($c['mail_enabled'] ?? false) !== true) return false;
-    if (smtpConfigured($c)) return true;
+    // If SMTP was explicitly selected, never silently switch to PHP mail().
+    // This could otherwise make readiness appear healthy with broken credentials.
+    if (($c['smtp_enabled'] ?? false) === true) return smtpConfigured($c);
     return function_exists('mail') && filter_var((string)$c['mail_from'], FILTER_VALIDATE_EMAIL) !== false;
 }
 function smtpRead($fp): array {
@@ -255,9 +257,22 @@ function passwordMatches(string $password, string $stored): bool {
     $pepper = (string)(cfg()['auth_pepper'] ?? '');
     return strlen($pepper) >= 32 && password_verify($password."\0".$pepper, $stored);
 }
+function authSchemaReady(): bool {
+    static $ready = null;
+    if ($ready !== null) return $ready;
+    $pdo = db();
+    if (!$pdo) return $ready = false;
+    // The presence of a MySQL connection alone does not prove registration works.
+    // Table names are a fixed internal allowlist, never request parameters.
+    foreach (['customer_accounts','customer_auth_tokens','customer_auth_sessions','customer_auth_rate_limits'] as $table) {
+        try { $pdo->query('SELECT 1 FROM '.$table.' LIMIT 1'); }
+        catch (Throwable $e) { return $ready = false; }
+    }
+    return $ready = true;
+}
 function authReady(): bool {
     $c = cfg();
-    return dbReady() && mailReady() && strlen((string)$c['auth_pepper']) >= 32;
+    return authSchemaReady() && mailReady() && strlen((string)$c['auth_pepper']) >= 32;
 }
 function cookieSet(string $raw, int $age): void {
     setcookie(SESSION_COOKIE, $raw, [
@@ -365,7 +380,7 @@ if ($path==='/health' && $verb==='GET') {
 }
 
 if ($path==='/auth/health' && $verb==='GET') {
-    respond(['ok'=>true,'service'=>'auth','ready'=>authReady(),'database'=>dbReady(),'email'=>mailReady(),'passwordKdf'=>strlen((string)(cfg()['auth_pepper']??''))>=32]);
+    respond(['ok'=>true,'service'=>'auth','ready'=>authReady(),'database'=>dbReady(),'schemaReady'=>authSchemaReady(),'email'=>mailReady(),'passwordKdf'=>strlen((string)(cfg()['auth_pepper']??''))>=32]);
 }
 if (str_starts_with($path,'/auth/')) {
     if(!authReady())fail('auth_unavailable',503);

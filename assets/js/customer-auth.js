@@ -14,7 +14,11 @@ const text={
   verifyBad:'لینک تأیید نامعتبر یا منقضی شده است.',
   recoveryOk:'اگر این ایمیل حساب فعالی داشته باشد، لینک بازیابی ارسال شد.',
   resetOk:'رمز جدید ثبت شد. اکنون با رمز جدید وارد شوید.',
-  generic:'درخواست تکمیل نشد. لطفاً دوباره تلاش کنید.',
+  generic:'درخواست کامل نشد. لطفاً کمی بعد دوباره تلاش کنید.',
+  invalidRegistration:'شماره موبایل را با کد کشور مانند +98 وارد کنید و رمز عبور را بررسی کنید.',
+  rateLimited:'تعداد تلاش‌ها بیش از حد مجاز است. لطفاً بعداً دوباره تلاش کنید.',
+  emailFailed:'حساب ممکن است در انتظار تأیید ثبت شده باشد، اما ایمیل ارسال نشد. لطفاً فعلاً درخواست تکراری نفرستید.',
+  authUnavailable:'سرویس ثبت‌نام موقتاً آماده نیست. لطفاً بعداً مراجعه کنید.',
   passwordRule:'رمز باید حداقل ۱۲ نویسه داشته باشد.'
  },
  en:{
@@ -29,7 +33,11 @@ const text={
   verifyBad:'The verification link is invalid or expired.',
   recoveryOk:'If this email has an active account, a recovery link has been sent.',
   resetOk:'Your new password has been saved. Sign in with it now.',
-  generic:'The request could not be completed. Please try again.',
+  generic:'The request could not be completed. Please try again later.',
+  invalidRegistration:'Check the mobile number in international format (for example +98) and the password.',
+  rateLimited:'Too many attempts. Please wait before trying again.',
+  emailFailed:'Your account may be pending verification, but the email could not be sent. Please avoid repeated submissions.',
+  authUnavailable:'Registration is temporarily unavailable. Please try again later.',
   passwordRule:'Password must contain at least 12 characters.'
  }
 }[lang];
@@ -80,7 +88,16 @@ function bindRegister(){
    const {r,d}=await call('/auth/register',{email:fd.get('email'),mobile:fd.get('mobile')||'',password,locale:lang});
    if(!r.ok)throw new Error(d?.error||'failed');
    form.reset();setStatus(text.registerOk,'success');
-  }catch{setStatus(text.generic,'error')}
+  }catch(error){
+   const safeMessages={
+    invalid_registration:text.invalidRegistration,
+    invalid_password:text.invalidRegistration,
+    rate_limited:text.rateLimited,
+    verification_email_failed:text.emailFailed,
+    auth_unavailable:text.authUnavailable
+   };
+   setStatus(safeMessages[error?.message]||text.generic,'error');
+  }
   finally{form.querySelectorAll('[data-auth-live-control]').forEach(x=>x.disabled=false)}
  });
 }
