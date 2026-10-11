@@ -11,7 +11,7 @@ $pdo->exec((string)file_get_contents(__DIR__.'/../docs/BERTINA_MYSQL_SCHEMA.sql'
 $pdo->exec((string)file_get_contents(__DIR__.'/../docs/BERTINA_STUDENT_SUPPORT_SCHEMA.sql'));
 
 final class SupportResponse extends RuntimeException {
- public function __construct(public array $payload,public int $code){parent::__construct('response');}
+ public function __construct(public array $payload,public int $httpStatus){parent::__construct('response');}
 }
 function respond(array $value,int $code=200): never {throw new SupportResponse($value,$code);}
 function fail(string $code,int $status=400): never {respond(['ok'=>false,'error'=>$code],$status);}
@@ -83,14 +83,14 @@ try {
   VALUES(?,?,?,'requested','حامی نمونه','نام محفوظ دانش‌آموز',DATE_ADD(NOW(), INTERVAL 30 DAY))")
   ->execute([$link,$case,$sponsor]);
  actor(null);
- assertSupport(callSupport('/student-support/health')->code===200,'anonymous_can_read_programme_health');
- assertSupport(callSupport('/student-support/portal')->code===401,'anonymous_cannot_read_student_cases');
+ assertSupport(callSupport('/student-support/health')->httpStatus===200,'anonymous_can_read_programme_health');
+ assertSupport(callSupport('/student-support/portal')->httpStatus===401,'anonymous_cannot_read_student_cases');
  actor($other);
  $result=callSupport('/student-support/portal');
- assertSupport($result->code===200&&count($result->payload['cases'])===0,'stranger_has_no_student_case');
+ assertSupport($result->httpStatus===200&&count($result->payload['cases'])===0,'stranger_has_no_student_case');
  assertSupport(callSupport('/student-support/needs','POST',[
     'caseId'=>$case,'category'=>'books','summary'=>'private book request not authorised','amountToman'=>5000
-  ])->code===403,'stranger_cannot_propose_student_need');
+  ])->httpStatus===403,'stranger_cannot_propose_student_need');
  actor($sponsor);
  assertSupport(count(callSupport('/student-support/portal')->payload['cases'])===0,'sponsor_without_consent_sees_no_case');
  $pdo->prepare("UPDATE student_support_sponsorships SET state='approved',
@@ -106,7 +106,7 @@ try {
  assertSupport($data['cases'][0]['studentName']==='نام محفوظ دانش‌آموز','identity_only_after_specific_opt_in');
  assertSupport(callSupport('/student-support/needs','POST',[
     'caseId'=>$case,'category'=>'books','summary'=>'another book need without consent','amountToman'=>5000
-  ])->code===403,'sponsor_cannot_edit_student_needs');
+  ])->httpStatus===403,'sponsor_cannot_edit_student_needs');
  actor($guardian);
  $data=callSupport('/student-support/portal')->payload;
  assertSupport(count($data['cases'][0]['needs'])===2,'guardian_sees_own_pending_and_verified_needs');
@@ -115,15 +115,15 @@ try {
  assertSupport($data['cases'][0]['sponsors']===['حامی نمونه'],'guardian_sees_sponsor_name_only_after_opt_in');
  $bad=callSupport('/student-support/needs','POST',[
   'caseId'=>$case,'category'=>'books','summary'=>'تماس با 09123456789 بگیرید','amountToman'=>5000]);
- assertSupport($bad->code===400,'reject_phone_number_in_child_need');
+ assertSupport($bad->httpStatus===400,'reject_phone_number_in_child_need');
  $create=callSupport('/student-support/needs','POST',[
   'caseId'=>$case,'category'=>'essentials','summary'=>'پوشاک ضروری برای حضور در برنامه آموزشی','amountToman'=>5000]);
- assertSupport($create->code===202&&$create->payload['visibility']==='staff_only','guardian_need_is_private_pending_review');
+ assertSupport($create->httpStatus===202&&$create->payload['visibility']==='staff_only','guardian_need_is_private_pending_review');
  $q=$pdo->prepare('SELECT status,visible_to_sponsor FROM student_support_needs WHERE id=?');$q->execute([$create->payload['needId']]);
  $added=$q->fetch();assertSupport($added['status']==='proposed'&&(int)$added['visible_to_sponsor']===0,'new_need_not_visible_to_sponsor');
  actor($sponsor);
  $revoke=callSupport('/student-support/revoke-sponsor','POST',['sponsorshipId'=>$link]);
- assertSupport($revoke->code===200,'sponsor_can_revoke_privileged_link');
+ assertSupport($revoke->httpStatus===200,'sponsor_can_revoke_privileged_link');
  assertSupport(count(callSupport('/student-support/portal')->payload['cases'])===0,'revoked_access_is_immediately_removed');
  assertSupport($GLOBALS['originChecks']>=4,'private_mutations_have_origin_gate');
  echo "Student sponsor privacy, approvals, need moderation and revocation passed in isolated MySQL.\n";
