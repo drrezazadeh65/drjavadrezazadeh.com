@@ -1022,5 +1022,61 @@
     "category": "Store",
     "summary": "Guide to selecting and purchasing published books.",
     "keywords": "purchase guide books"
+  },
+  {
+    "lang": "fa",
+    "title": "از پژوهش و آموزش تا پرورش استعداد؛ نقشه اکوسیستم علمی و آموزشی",
+    "path": "fa/akhbar/ecosystem-education-research-2026/",
+    "category": "اخبار",
+    "summary": "معرفی و تحلیل اکوسیستم علمی شامل پژوهش، آموزش، خدمات تخصصی، استعدادیابی، کتاب و حمایت تحصیلی.",
+    "keywords": "اکوسیستم علمی پژوهش آموزش Golden Talent خدمات تخصصی"
+  },
+  {
+    "lang": "fa",
+    "title": "راهنمای خدمات تخصصی پژوهش، مشاوره و آموزش",
+    "path": "fa/akhbar/professional-services-public-guide-2026/",
+    "category": "اخبار",
+    "summary": "معرفی دامنه و شرایط خدمات دانشگاهی، مشاوره، پژوهش، آموزش و همکاری سازمانی.",
+    "keywords": "خدمات پژوهشی مشاوره علمی آموزش انتخاب آگاهانه"
+  },
+  {
+    "lang": "fa",
+    "title": "Golden Talent؛ چارچوب رشدگرا برای شناخت و پرورش استعداد",
+    "path": "fa/akhbar/golden-talent-developmental-framework-2026/",
+    "category": "اخبار",
+    "summary": "نگاه چندمنبعی به شناسایی استعداد بر پایه شواهد، فرصت‌های یادگیری و برنامه‌های رشد قابل بازنگری.",
+    "keywords": "Golden Talent استعداد شواهد رشد یادگیری"
+  },
+  {
+    "lang": "fa",
+    "title": "فرصت برابر برای استعدادها؛ برنامه حمایت تحصیلی",
+    "path": "fa/akhbar/support-talented-students-opportunity-2026/",
+    "category": "اخبار",
+    "summary": "توضیح حمایت مسئولانه و محرمانه از دانش‌آموزان کم‌برخوردار، بورسیه، کتاب و هزینه‌های ضروری.",
+    "keywords": "حمایت تحصیلی دانش‌آموزان مستعد بورسیه محرمانگی"
+  },
+  {
+    "lang": "fa",
+    "title": "کتاب، دانایی و مسئولیت اجتماعی؛ فروشگاه کتاب",
+    "path": "fa/akhbar/bookstore-books-and-student-support-2026/",
+    "category": "اخبار",
+    "summary": "راهنمای تجربه فروشگاه، سفارش امن، حقوق نشر و مشارکت داوطلبانه نویسندگان و ناشران.",
+    "keywords": "کتاب فروشگاه کتاب حمایت تحصیلی خرید امن"
+  },
+  {
+    "lang": "fa",
+    "title": "یک حساب و مسیرهای متعدد؛ داشبورد یکپارچه کاربران",
+    "path": "fa/akhbar/customer-dashboard-one-account-2026/",
+    "category": "اخبار",
+    "summary": "معرفی داشبورد موبایل‌فرست با بخش‌های خدمات، سوابق، پیشرفت و حمایت تحصیلی بر پایه دسترسی نقش‌محور.",
+    "keywords": "داشبورد مشتری حساب یکپارچه موبایل خدمات خصوصی"
+  },
+  {
+    "lang": "fa",
+    "title": "مشاوره تحصیلی مبتنی بر شواهد برای تصمیم مسئولانه",
+    "path": "fa/akhbar/educational-guidance-evidence-based-2026/",
+    "category": "اخبار",
+    "summary": "معرفی مشاوره تحصیلی بر مبنای توانایی، علاقه، ظرفیت رشد و شرایط واقعی دانش‌آموز.",
+    "keywords": "مشاوره تحصیلی شواهد استعداد تصمیم مسئولانه"
   }
 ]
