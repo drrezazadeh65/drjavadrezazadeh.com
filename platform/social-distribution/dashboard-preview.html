@@ -42,7 +42,7 @@ footer{margin-top:25px;color:var(--muted);font-size:.85rem}
 </nav>
 <section class="panel" id="overview" role="tabpanel" aria-labelledby="tab-overview">
 <h2 class="sectiontitle">وضعیت شبکه‌ها</h2><div class="grid channelgrid" id="channel-grid"></div>
-<p class="small">اتصال فنی بالقوه با فعال‌بودن یک حساب در شبکه تفاوت دارد؛ وضعیت فعال فقط با پاسخ رسمی API و شناسه پست تأیید می‌شود.</p>
+<p class="small">اتصال فنی بالقوه با فعال‌بودن یک حساب در شبکه تفاوت دارد؛ وضعیت فعال فقط با تأیید مستقیم همان شبکه و شناسه پست تأیید می‌شود.</p>
 </section>
 <section class="panel" id="calendar" role="tabpanel" aria-labelledby="tab-calendar" hidden>
 <h2 class="sectiontitle">سیاست زمان‌بندی پیشنهادی</h2>
@@ -63,7 +63,7 @@ footer{margin-top:25px;color:var(--muted);font-size:.85rem}
 <section class="panel" id="story" role="tabpanel" aria-labelledby="tab-story" hidden>
 <h2 class="sectiontitle">کارخانه محتوای چندرسانه‌ای</h2><div class="grid">
 <div class="metric"><strong>تصویر ۱:۱ و ۴:۵</strong><p>کاور شبکه‌ای و کاروسل با قالب بصری برند و متن جایگزین، پس از آماده‌سازی پردازش رسانه.</p></div>
-<div class="metric"><strong>استوری ۹:۱۶</strong><p>تولید سناریو، چند فریم، طرح جلد، دکمه اقدام و فرایند انتشار فقط در شبکه‌های واجد شرایط API.</p></div>
+<div class="metric"><strong>استوری ۹:۱۶</strong><p>تولید سناریو، چند فریم، طرح جلد، دکمه اقدام و فرایند انتشار فقط در شبکه‌های دارای مجوز انتشار خودکار.</p></div>
 <div class="metric"><strong>ویدئو و ریلز</strong><p>فرمت عمودی، زیرنویس، معرفی کتاب و خدمت و نسخه‌های کوتاه از سخنرانی‌های عمومی.</p></div>
 <div class="metric"><strong>حقوق و اصالت</strong><p>کنترل منشأ تصویر، رضایت، محرمانگی پژوهش و داده دانش‌آموزان پیش از انتشار.</p></div>
 </div><p class="small">وضعیت این بخش: طراحی؛ تولید و بارگذاری خودکار ویدئو/استوری هنوز به سرور متصل نشده است.</p>
@@ -81,10 +81,10 @@ const channels=[
  ['تلگرام','آداپتور متن آماده؛ اتصال حساب لازم است'],
  ['ایتا','آداپتور متن آماده؛ اتصال حساب لازم است'],
  ['اینستاگرام','اتصال رسمی Meta و مجوز استوری لازم است'],
- ['فیس‌بوک','اتصال رسمی صفحه لازم است'],['ایکس','احراز هویت API و هزینه انتشار'],
+ ['فیس‌بوک','اتصال رسمی صفحه لازم است'],['ایکس','اتصال رسمی و هزینه انتشار'],
  ['واتس‌اپ','فقط ارتباط تجاری با رضایت و قالب تأییدشده'],
  ['آپارات','مجوز معتبر بارگذاری ویدئو'],['لینکدین','اتصال و مجوز حرفه‌ای'],
- ['تردز','اتصال رسمی شبکه'],['یوتیوب','مجوز ویدئو و سهمیه API']
+ ['تردز','اتصال رسمی شبکه'],['یوتیوب','مجوز ویدئو و سهمیه اتصال رسمی']
 ];
 document.querySelector('#channel-grid').replaceChildren(...channels.map(([name,detail])=>{
  const div=document.createElement('div');div.className='channel';
