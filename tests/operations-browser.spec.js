@@ -103,7 +103,9 @@ test('dashboard navigation shows account summary first, exactly one workspace an
  await expect(page.locator('.cd-statusbar')).toBeHidden();
  await expect(page.locator('#journey')).toBeHidden();
  expect(await shown()).toEqual(['academic-profile']);
- await page.locator('.cd-mobile-dock a[href="#progress"]').click();
+ await page.locator('[data-dashboard-more]').click();
+ await expect(page.locator('[data-dashboard-sheet]')).toHaveClass(/is-open/);
+ await page.locator('[data-dashboard-sheet] a[href="#progress"]').click();
  await expect(page.locator('#progress')).toBeVisible();
  await expect(page.locator('#academic-profile')).toBeHidden();
  expect(await shown()).toEqual(['progress']);
