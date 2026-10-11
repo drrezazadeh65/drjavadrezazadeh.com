@@ -40,6 +40,39 @@ function studentSupportRoute(string $path,string $verb): never {
     }
     $pdo=db();if(!$pdo)fail('database_unconfigured',503);
     $actor=studentSupportActor($pdo);
+    // The contributor ledger depends only on the verified account and existing paid commerce
+    // orders. It must remain available even if the separate child-case schema is unprovisioned.
+    if($path==='/student-support/my-contributions'&&$verb==='GET'){
+        if(!commerceSchemaReady())fail('donation_ledger_unavailable',503);
+        $email=strtolower(trim((string)$actor['email_normalized']));
+        if($email===''||!validEmail($email))fail('verified_email_required',403);
+        $s=$pdo->prepare("SELECT id,amount_toman,currency,items_json,paid_at,provider_id_get,provider_trans_id
+            FROM commerce_orders WHERE customer_email=? AND state='paid'
+            ORDER BY paid_at DESC LIMIT 100");
+        $s->execute([$email]);$items=[];
+        foreach($s->fetchAll() as $row){
+            $lines=json_decode((string)$row['items_json'],true);
+            if(!is_array($lines)||count($lines)!==1||!is_array($lines[0]))continue;
+            $sku=(string)($lines[0]['sku']??'');
+            if(!in_array($sku,['support:students','support:voluntary'],true))continue;
+            if((string)$row['currency']!=='IRT'||!is_numeric($row['amount_toman'])||
+                (int)$row['amount_toman']<1000||!is_string($row['paid_at'])||
+                strtotime((string)$row['paid_at'])===false||
+                !preg_match('/^[1-9][0-9]*$/D',(string)$row['provider_id_get'])||
+                !preg_match('/^[1-9][0-9]*$/D',(string)$row['provider_trans_id']))continue;
+            $new=$sku==='support:students'&&($lines[0]['program']??'')==='talented-students-v1';
+            if($sku==='support:students'&&!$new)continue;
+            $focus=(string)($lines[0]['focus']??'general');
+            if(!in_array($focus,['general','scholarship','books','services','essentials'],true))$focus='general';
+            $items[]=['orderId'=>(string)$row['id'],'amountToman'=>(int)$row['amount_toman'],
+                'paidAt'=>(string)$row['paid_at'],'programme'=>$new?'talented-students-v1':'legacy-voluntary',
+                'focus'=>$new?$focus:null,
+                'allocationState'=>$new?'pending_verified_need':null];
+        }
+        respond(['ok'=>true,'service'=>'student-support','authenticated'=>true,
+            'matching'=>'verified_account_email_only','noStudentIdentity'=>true,
+            'items'=>$items,'count'=>count($items)]);
+    }
     if(!studentSupportSchemaReady($pdo))fail('student_support_not_provisioned',503);
     $accountId=(string)$actor['id'];
 
