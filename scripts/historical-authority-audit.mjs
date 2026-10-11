@@ -57,25 +57,19 @@ if(/RewriteRule\s+\^(?:\.\*|\(\.\*\))\$\s+https:\/\/drjavadrezazadeh\.com\/?\s+\
   failures.push('Catch-all redirect to homepage detected');
 }
 
-const archive='/fa/archive/legacy-shop/';
-const consolidated=[...candidates.values()].filter(x=>x.decision==='CONSOLIDATED_ARCHIVE');
-if(consolidated.length!==6) failures.push('Expected six evidence-backed former product URLs consolidated into the historical archive; found '+consolidated.length);
-for(const rec of consolidated){
-  if(normalizeHistoricalPath(rec.target,registry.production_origin)!==archive) failures.push('Former product must consolidate to historical archive '+rec.path);
-  const mapped=redirects.get(normalizeHistoricalPath(rec.path,registry.production_origin));
-  if(!mapped||mapped.target!==archive) failures.push('Former product missing archive 301 '+rec.path);
+// Permanently retired historical product routes intentionally provide no content.
+const retired=[...candidates.values()].filter(x=>x.decision==='GONE');
+if(retired.length!==6) failures.push('Expected six discontinued products to be retired');
+for(const rec of retired){
+ if(rec.http_status!==410) failures.push('Incorrect retired product status '+rec.path);
+ if(redirects.has(normalizeHistoricalPath(rec.path,registry.production_origin))) failures.push('Retired product still redirected '+rec.path);
+ const slug=rec.path.replace(/^\/+|\/+$/g,'');
+ if(!htaccess.includes('RewriteRule ^'+slug+'/?$ - [G,L]')) failures.push('Missing 410 rule '+rec.path);
 }
-if(!fs.existsSync(routeToFile(archive))) failures.push('Historical shop archive page missing');
-else{
-  const visible=fs.readFileSync(routeToFile(archive),'utf8').split(/<body\b[^>]*>/i)[1]?.replace(/<script\b[\s\S]*?<\/script>/gi,'').replace(/<[^>]*>/g,'')||'';
-  for(const rec of consolidated){
-    const code=rec.path.split('-کد-')[1]?.replace(/\/$/,'');
-    if(!code||!visible.includes(code)) failures.push('Archive must visibly retain the verified former product identifier '+rec.path);
-  }
-}
-const archiveRobots=robotsFor(archive);
-if(!archiveRobots||!/^index,follow/i.test(archiveRobots)) failures.push('Historical archive must remain a public indexable consolidation destination');
-
+const formerArchive='/fa/archive/legacy-shop/';
+if(fs.existsSync(routeToFile(formerArchive))) failures.push('Retired public archive must be deleted from source');
+if(fs.readFileSync(path.join(root,'sitemap-fa.xml'),'utf8').includes(formerArchive)) failures.push('Retired archive must not appear in sitemap');
+if(!htaccess.includes('RewriteRule ^fa/archive/legacy-shop(?:/index\\.html)?/?$ - [G,L]')) failures.push('Retired archive must return 410');
 for(const [p,rec] of candidates){
   if(rec.decision==='GONE'){
     if(rec.http_status!==410) failures.push('GONE candidate must use 410 policy '+p);
@@ -89,11 +83,11 @@ if(!shop||shop.target!=='/fa/shop/') failures.push('Historical /shop/ authority 
 if(!fs.existsSync(path.join(root,'index.html'))) failures.push('Canonical homepage missing');
 if(!htaccess.includes('RewriteRule ^shop/?$ https://drjavadrezazadeh.com/fa/shop/ [R=301,L,NE]')) failures.push('Historical /shop/ production redirect missing');
 
-console.log('Historical authority recovery audit: '+redirects.size+' one-hop authority redirects; '+candidates.size+' evidence-backed historical candidates; '+consolidated.length+' legitimate former products consolidated.');
+console.log('Historical authority recovery audit: '+redirects.size+' one-hop authority redirects; '+candidates.size+' evidence-backed historical candidates; '+retired.length+' discontinued historical products retired.');
 if(warnings.length) warnings.forEach(x=>console.warn('! '+x));
 if(failures.length){
   console.error('Historical authority failures ('+failures.length+')');
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
-console.log('Historical authority PASS: homepage/shop authority preserved, legitimate former commerce consolidated truthfully, unknown URLs stay reviewable, and irrelevant catch-all redirects are forbidden.');
+console.log('Historical authority PASS: homepage/shop authority preserved, discontinued commerce is no longer publicly served, unknown URLs stay reviewable, and irrelevant catch-all redirects are forbidden.');
