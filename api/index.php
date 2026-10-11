@@ -23,7 +23,7 @@ function fail(string $code, int $status = 400): never {
 }
 // The callback is a browser navigation, not a JSON API client. Never infer a successful payment from URL parameters.
 function commerceReturnToResult(string $orderId): never {
-    header('Location: '.SITE_ORIGIN.'/fa/shop/payment-result/?order='.rawurlencode($orderId), true, 303);
+    header('Location: '.SITE_ORIGIN.'/fa/shop/payment-result/?from=gateway&order='.rawurlencode($orderId), true, 303);
     exit;
 }
 function cfg(): array {
