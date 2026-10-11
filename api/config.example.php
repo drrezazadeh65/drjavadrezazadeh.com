@@ -13,12 +13,14 @@ return [
     'mail_from' => 'admin@drjavadrezazadeh.com',
     'mail_reply_to' => 'admin@drjavadrezazadeh.com',
 
-    // Bertina SMTP transport. Use the exact values shown by cPanel > Email Accounts > Connect Devices.
+    // Confirmed by Bertina support ticket t833905 on 2026-10-11:
+    // drjavadrezazadeh.com:465 SSL/TLS, alternatively :587 STARTTLS.
+    // Use the real mailbox password only in the private Bertina config.local.php.
     // Never commit the real mailbox password.
     'smtp_enabled' => false,
-    'smtp_host' => 'mail.drjavadrezazadeh.com',
+    'smtp_host' => 'drjavadrezazadeh.com',
     'smtp_port' => 465,
-    'smtp_security' => 'ssl', // ssl, tls, or none
+    'smtp_security' => 'ssl', // ssl on port 465; use tls on port 587
     'smtp_user' => 'admin@drjavadrezazadeh.com',
     'smtp_password' => '',
     'smtp_verify_peer' => true,
