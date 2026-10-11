@@ -112,3 +112,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 — dashboard responsive tab UX: user account status first, preserve all feature modules in exclusive active workspace, improve desktop Persian type scale and mobile navigation; require full Bertina browser, SEO, privacy and TLS gates.
 
 2026-10-11 — retest legible account-first dashboard and exclusive tab navigation after fixing test selector to measure hero body text rather than kicker; keep every module and all privacy/SEO gates.
+
+2026-10-11 current Bertina release synchronization.
