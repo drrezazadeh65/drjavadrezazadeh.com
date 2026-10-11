@@ -140,3 +140,56 @@ test('dashboard navigation shows account summary first, exactly one workspace an
  expect(fonts.card).toBeGreaterThanOrEqual(15);
  expect(errors).toEqual([]);
 });
+
+
+test('FA/EN account-first dashboard keeps every workspace and shows one at a time',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const states=async()=>page.locator('[data-dashboard-panel]:visible').evaluateAll(nodes=>[...new Set(nodes.map(n=>n.dataset.dashboardPanel))]);
+ for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/']]){
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+route,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('.cd-statusbar')).toBeVisible();
+  await expect(page.locator('.cd-home-priority')).toBeVisible();
+  await expect(page.locator('[data-home-action]')).toHaveAttribute('href','/'+lang+'/login/');
+  await expect(page.locator('#overview')).toBeVisible();
+  expect(await states()).toEqual(['overview']);
+  const order=await page.locator('.cd-statusbar').evaluate(el=>Boolean(el.compareDocumentPosition(document.querySelector('#overview'))&Node.DOCUMENT_POSITION_FOLLOWING));
+  expect(order).toBe(true);
+  const sections=await page.locator('main [data-dashboard-panel][id]').evaluateAll(nodes=>nodes.map(n=>n.id));
+  for(const required of ['journey','command-center','student-support','ecosystem','academic-profile','progress','consultations','records','account']){
+   expect(sections,lang+' missing module '+required).toContain(required);
+  }
+  await page.locator('.cd-mobile-dock a[href="#student-support"]').click();
+  await expect(page.locator('#student-support')).toBeVisible();
+  await expect(page.locator('#overview')).toBeHidden();
+  expect(await states()).toEqual(['student-support']);
+  await page.locator('.cd-mobile-dock a[href="#ecosystem"]').click();
+  await expect(page.locator('#ecosystem')).toBeVisible();
+  expect(await states()).toEqual(['ecosystem']);
+  await page.keyboard.press('/');
+  await expect(page.locator('#command-center')).toBeVisible();
+  await expect(page.locator('[data-dashboard-command-search]')).toBeFocused();
+  expect(await states()).toEqual(['overview']);
+  await page.goBack();
+  await expect(page.locator('#ecosystem')).toBeVisible();
+  for(const width of [320,390,768,1280]){
+   await page.setViewportSize({width,height:850});
+   const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+   expect(overflow,lang+' horizontal overflow at '+width).toBeLessThanOrEqual(1);
+  }
+ }
+ expect(errors).toEqual([]);
+});
+
+test('authenticated accounts receive only a verified personal greeting in both languages',async({page})=>{
+ await page.route('**/api/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,ready:true})}));
+ await page.route('**/api/auth/me',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,user:{email:'member@example.test'}})}));
+ for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/']]){
+  await page.goto(base+route,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('[data-account-email]')).toHaveText('member@example.test');
+  await expect(page.locator('[data-home-action]')).toHaveAttribute('href','#ecosystem');
+  await expect(page.locator('html')).toHaveAttribute('data-customer-authenticated','true');
+  await expect(page.locator('#student-support')).toBeHidden();
+  await expect(page.locator('[data-home-heading]')).not.toContainText(lang==='en'?'Sign in':'وارد حساب شوید');
+ }
+});
