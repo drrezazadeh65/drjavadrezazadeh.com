@@ -6,7 +6,7 @@
 <link rel="canonical" href="https://drjavadrezazadeh.com/en/support-talented-students/">
 <link rel="stylesheet" href="/assets/css/public-v2.css?v=20261009-v441">
 <link rel="stylesheet" href="/assets/css/student-support-program.css?v=20261011-v1">
-<link rel="stylesheet" href="/assets/css/donation-payment.css?v=20261011-student-v2">
+<link rel="stylesheet" href="/assets/css/donation-payment.css?v=20261011-mobile-v3">
 <link rel="manifest" href="/site.webmanifest">
 <meta property="og:type" content="website"><meta property="og:title" content="Support Talented Students Facing Financial Hardship">
 <meta property="og:description" content="Educational opportunities through documented support, optional anonymity and safeguarding.">
@@ -62,14 +62,16 @@
 <h2 id="support-heading">Contribute to the talented students support programme</h2>
 <p>Select a contribution amount and intended area. Your payment enters the programme's records; assigning it to a specific student's need requires separate verification and documented approval.</p>
 <form data-support-form>
-<label for="support-amount">Support amount (toman)</label>
+<label for="support-amount">Contribution amount (toman) · choose any amount from 1,000 to 10,000,000</label>
 <div class="support-presets" role="group" aria-label="Suggested amounts">
-<button type="button" data-support-amount="1000">1,000 toman</button>
-<button type="button" data-support-amount="5000">5,000 toman</button>
-<button type="button" data-support-amount="10000">10,000 toman</button>
-<button type="button" data-support-amount="20000">20,000 toman</button>
+<button type="button" data-support-amount="200000" aria-pressed="false">200,000 toman</button>
+<button type="button" data-support-amount="500000" aria-pressed="true">500,000 toman</button>
+<button type="button" data-support-amount="1000000" aria-pressed="false">1 million toman</button>
+<button type="button" data-support-amount="2000000" aria-pressed="false">2 million toman</button>
+<button type="button" data-support-amount="5000000" aria-pressed="false">5 million toman</button>
+<button type="button" data-support-amount="10000000" aria-pressed="false">10 million toman</button>
 </div>
-<input id="support-amount" name="amountToman" type="number" inputmode="numeric" min="1000" max="500000" step="1000" value="10000" required aria-describedby="support-preview">
+<input id="support-amount" name="amountToman" type="number" inputmode="numeric" min="1000" max="10000000" step="1" value="500000" required aria-describedby="support-preview">
 <p id="support-preview" class="support-preview" data-support-preview aria-live="polite"></p>
 <label for="support-focus">Support area (optional)</label><select id="support-focus" name="focus"><option value="general">General equal-opportunity fund</option><option value="scholarship">Scholarships and tuition</option><option value="books">Books and supplies</option><option value="services">Educational services</option><option value="essentials">Clothing and essentials</option></select><p class="support-note">Selecting an area does not identify a particular student. Allocations require screening and expense records.</p><label for="support-email">Email for payment confirmation (optional)</label>
 <input id="support-email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com">
@@ -87,5 +89,5 @@
 <details><summary>Is a payment receipt proof that money has already been allocated?</summary><p>No. Verified payment and recorded expenditure are distinct processes; case allocation requires further checks.</p></details>
 </div></section>
 </main><footer class="ss-footer">© 2026 Dr. Javad Rezazadeh Yazdeli · Safeguarded educational opportunity programme · <a href="/fa/harim-khosusi/">Privacy</a></footer>
-<script src="/assets/js/donation-payment.js?v=20261011-students-v2" defer></script>
+<script src="/assets/js/donation-payment.js?v=20261011-mobile-v3" defer></script>
 </body></html>

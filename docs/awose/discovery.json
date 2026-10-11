@@ -969,7 +969,7 @@
     "live_certification": "pending_latest_release"
   },
   "canonical_reporting_increment": {
-    "sourceBase": "c0a2cf0e986c683f18cdf9c6d9834b598c9e5840",
+    "sourceBase": "551864b5b51dfd1345c2cd2478dda1d6ad9f7fd6",
     "engineCount": 13,
     "permanentActionCount": 52,
     "originalOperationalReports": 36,

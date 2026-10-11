@@ -82,7 +82,7 @@ try {
  check($data['reporting']['executiveReport']['metrics']['measuredCompletion']===null,'unknown operational progress fabricated');
  $reports=array_column($data['reports'],null,'id');
  $identitySignals=array_column($reports['OP-05']['signals'],null,'id');
- check($identitySignals['auth_runtime']['value']===false&&$identitySignals['email_transport']['value']===false,'disabled fixture email incorrectly ready');
+ check($identitySignals['auth_runtime']['value']===true&&$identitySignals['email_transport']['value']===false,'existing auth must remain available while email transport is blocked');
  check($reports['OP-05']['status']==='blocked'&&$reports['OP-05']['closed']===false,'missing email transport did not block identity');
  check($reports['OP-07']['status']==='blocked'&&$reports['OP-07']['closed']===false,'unconfigured checkout did not block commerce');
  $storeSignals=array_column($reports['OP-10']['signals'],null,'id');

@@ -87,4 +87,14 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 
 2026-10-11 definitive mobile-first support checkout release: synchronize Playwright payment mocks with the 10,000,000-toman API ceiling and preserve 10,000-toman legacy gateway security tests, with fail-closed controls.
 
-2026-10-11 canonical control center: 13 stable engines, 52 versioned action definitions, preserved 36 acceptance reports, 12x3 AWOSE views, four scoped reporting levels and MFA race/privacy fixes. Keep current owner-approved original bookstore image, checkout, donations and student/sponsor flows. No gateway/configuration change or new database migration. Require all source, MySQL, browser, SEO, strict TLS and live release gates.
+2026-10-11 production parity final: mobile-first bookstore PLUS both dedicated student-support pages share six donation presets, arbitrary 1..10,000,000-toman limit above a 1,000-toman minimum, refreshed assets, checkout regression suite and fail-closed safeguards.
+
+2026-10-11 source release: GitHub PR 45 integrated, execute approved deployment verification.
+
+2026-10-11 release gate alignment: approved cinematic v3 shop stylesheet, six consistent donation tiers across four bilingual entry pages, MySQL upper-bound contract, mobile Playwright and historical SEO guards.
+
+2026-10-11 release retry after correcting support browser test syntax; verified PR45 SMTP account changes remain included.
+
+2026-10-11 release after repairing syntax-checked mobile donor Playwright assertions, validating all bilingual student support pages, live Bertina source, and premium v3 CSS.
+
+2026-10-11 canonical control center: 13 stable engines, 52 versioned action definitions, preserved 36 acceptance reports, 12x3 AWOSE views, four scoped reporting levels and MFA race/privacy fixes. Preserve latest mobile storefront, approved original cinematic image, six support tiers and current SMTP-only account recovery. No gateway/configuration change or new database migration. Require source, MySQL, browser, SEO, strict TLS and live release gates.
