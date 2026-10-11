@@ -48,3 +48,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 rerun after fixing PHP test exception collision and sitemap lastmod.
 
 2026-10-11 rerun after repairing unique fixture emails for child-safeguarding MySQL integration.
+
+2026-10-11 student support programme safe release: fix mobile RTL offscreen skip and historical receipt regression assertions.
