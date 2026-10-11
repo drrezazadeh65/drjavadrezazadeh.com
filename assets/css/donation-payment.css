@@ -10,10 +10,10 @@
 .support-panel input{display:block;width:100%;min-height:52px;padding:12px 15px;background:#fff;color:#172b40;border:1.5px solid #9d9b91;border-radius:11px;font:inherit;line-height:1.45}
 .support-panel input:focus-visible,.support-panel button:focus-visible{outline:3px solid #b07925;outline-offset:3px}
 .support-panel .support-presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:15px 0}
-.support-panel .support-presets button{min-height:47px;padding:8px 6px;border:1px solid #a88b59;border-radius:11px;background:#fff;color:#233a51;cursor:pointer;font:700 .95rem/1.45 inherit}
+.support-panel .support-presets button{min-height:47px;padding:8px 6px;border:1px solid #a88b59;border-radius:11px;background:#fff;color:#233a51;cursor:pointer;font-family:inherit;font-weight:700;font-size:.95rem;line-height:1.45}
 .support-panel .support-presets button:hover{background:#eae3d2}
 .support-panel .support-preview{font-weight:700;margin:12px 0;min-height:28px}
-.support-panel .support-submit{min-height:52px;min-width:min(100%,300px);background:#18395a;color:#fff;font:700 1rem/1.5 inherit;border:0;border-radius:12px;padding:12px 22px;cursor:pointer}
+.support-panel .support-submit{min-height:52px;min-width:min(100%,300px);background:#18395a;color:#fff;font-family:inherit;font-weight:700;font-size:1rem;line-height:1.5;border:0;border-radius:12px;padding:12px 22px;cursor:pointer}
 .support-panel .support-submit:disabled{opacity:.63;cursor:not-allowed}
 .support-panel .support-status{min-height:2.4em;font-weight:600;margin:12px 0}
 .support-panel .support-footer{border-top:1px solid #dfd6c6;padding-top:15px;margin-top:22px}
