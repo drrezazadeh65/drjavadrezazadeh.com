@@ -36,13 +36,18 @@ if(!donationClient.includes('data.maxToman!==10000000')||!donationApi.includes("
 for(const lang of ['fa','en']) {
  for(const root of ['','.public-site/']) {
   const shop=fs.readFileSync(root+lang+'/shop/index.html','utf8');
-  const faq=shop.match(/<section id="shop-faq"[\\s\\S]*?<\\/section>/);
-  if(!faq)throw Error('No bookstore FAQ for '+lang);
-  if((faq[0].match(/<details class="store-faq-item">/g)||[]).length!==16)throw Error('Bookstore FAQ count mismatch for '+lang);
+  const faqStart=shop.indexOf('<section id="shop-faq"');
+  const faqEnd=shop.indexOf('</section>',faqStart);
+  if(faqStart<0||faqEnd<0)throw Error('No bookstore FAQ for '+lang);
+  const faq=shop.slice(faqStart,faqEnd+10);
+  if((faq.match(/<details class="store-faq-item">/g)||[]).length!==16)throw Error('Bookstore FAQ count mismatch for '+lang);
   if(!shop.includes('href="#shop-faq"'))throw Error('Bookstore FAQ discovery link missing '+lang);
   const support=fs.readFileSync(root+lang+'/support-talented-students/index.html','utf8');
-  const supportFaq=support.match(/<section id="support-faq"[\\s\\S]*?<\\/section>/);
-  if(!supportFaq||(supportFaq[0].match(/<details>/g)||[]).length!==12)throw Error('Student support FAQ mismatch for '+lang);
+  const supportStart=support.indexOf('<section id="support-faq"');
+  const supportEnd=support.indexOf('</section>',supportStart);
+  if(supportStart<0||supportEnd<0)throw Error('No student-support FAQ for '+lang);
+  const supportFaq=support.slice(supportStart,supportEnd+10);
+  if((supportFaq.match(/<details>/g)||[]).length!==12)throw Error('Student support FAQ mismatch for '+lang);
  }
 }
 console.log('Bilingual bookstore FAQ (16 each), student support FAQ (12 each) and SEO: PASS');
