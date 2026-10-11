@@ -5,6 +5,7 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {mergeNews} from './discovery.mjs';
 
 export const ORIGIN = 'https://drjavadrezazadeh.com';
 export const FEED = ORIGIN + '/feed.xml';
@@ -159,7 +160,8 @@ export async function runCycle({dryRun=true,forcePreview=false,now=new Date(),
     return r.text();
   })();
   const state=dryRun ? {sent:{},uncertain:{},days:{}} : await loadState(cfg.statePath);
-  const items=parseFeed(xml);
+  const rssItems=parseFeed(xml);
+  const items=feedXml===null ? await mergeNews(rssItems,fetcher) : rssItems;
   const selected=[];
   for(const item of items){
     if(selected.length>=cfg.maxPostsPerDay)break;
