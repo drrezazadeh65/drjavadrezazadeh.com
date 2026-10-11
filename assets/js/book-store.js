@@ -303,7 +303,18 @@
       form?.reset();
       if(fieldset)fieldset.disabled=true;
     }catch(e){
-      feedback.textContent=isFa?'ثبت سفارش انجام نشد؛ هیچ پرداختی انجام نشده است. لطفاً دوباره تلاش کنید.':'The order was not recorded; no payment was taken. Please try again.';
+      const code=String(e?.message||'').slice(0,80);
+      const messages={
+       gateway_rejected:[ 'درگاه بیت‌پی درخواست پرداخت را نپذیرفت. سفارش را دوباره پرداخت نکنید؛ با پشتیبانی تماس بگیرید.','BitPay rejected payment initialization. Do not retry payment; contact support.'],
+       database_unconfigured:['سامانه ثبت سفارش موقتاً در دسترس نیست.','Order database is temporarily unavailable.'],
+       checkout_disabled:['پرداخت آنلاین در حال حاضر غیرفعال است.','Online payment is currently unavailable.'],
+       book_shipping_not_configured:['تنظیمات ارسال کتاب هنوز تأیید نشده است.','Book shipping settings are not confirmed.'],
+       service_booking_not_configured:['رزرو خدمت هنوز آماده نیست.','Service booking is not ready.'],
+       vip_booking_not_configured:['رزرو ویژه هنوز آماده نیست.','VIP booking is not ready.'],
+       unsafe_url:['نشانی بازگشت درگاه معتبر نبود؛ انتقال متوقف شد.','Unsafe payment redirect was blocked.']
+      };
+      const msg=messages[code];
+      feedback.textContent=msg?msg[isFa?0:1]:(isFa?'شروع پرداخت تأیید نشد. برای جلوگیری از سفارش تکراری، پیش از تلاش دوباره وضعیت سفارش را از پشتیبانی پیگیری کنید.':'Payment initiation was not confirmed. Check your order status with support before retrying.');
       btn.disabled=false;
     }
    };
