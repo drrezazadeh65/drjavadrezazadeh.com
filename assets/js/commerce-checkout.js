@@ -4,12 +4,13 @@ const API='/api';
 const CONTACT_EMAIL='info@drjavadrezazadeh.com';
 const fmt=n=>new Intl.NumberFormat('fa-IR').format(n)+' تومان';
 const status=(el,msg)=>{if(el){el.textContent=msg;el.setAttribute('role','status');el.setAttribute('aria-live','polite')}};
-async function pay(items,button,message){
+async function pay(items,button,message,customer){
  if(button.disabled)return;
  if(!Array.isArray(items)||!items.length)return status(message,'هیچ محصولی انتخاب نشده است.');
+ if(!customer||typeof customer.name!=='string'||typeof customer.email!=='string')return status(message,'نام و ایمیل خریدار برای هماهنگی ارائه خدمت لازم است.');
  button.disabled=true;status(message,'در حال ایجاد سفارش امن...');
  try{
-  const res=await fetch(API+'/commerce/create',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items})});
+  const res=await fetch(API+'/commerce/create',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,customer})});
   const data=await res.json();
   if(!res.ok||data?.ok!==true){
    status(message,data?.error==='checkout_disabled'?'پرداخت آنلاین این خدمت فعال نیست؛ از اقدام به پرداخت خودداری کنید.':'ثبت سفارش تأیید نشد؛ پیش از تلاش مجدد، وضعیت سفارش را از طریق ایمیل رسمی پیگیری کنید.');return;
@@ -27,6 +28,38 @@ function mount(host,kind,items){
  host.classList.add('commerce-grid');
  host.innerHTML='';
  const message=document.createElement('p');message.className='commerce-notice';message.textContent='مبلغ نهایی در سرور بررسی می‌شود. برای پیگیری، شناسه سفارش را نگه دارید و فقط از طریق ایمیل رسمی مکاتبه کنید.';
+ const buyer=document.createElement('div');
+ buyer.className='commerce-buyer-fields';
+ buyer.style.cssText='grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;background:#fff;border:1px solid #c6d2de;border-radius:16px;padding:18px;';
+ const fields={};
+ for(const field of [
+  {name:'name',label:'نام و نام خانوادگی خریدار',type:'text',max:100},
+  {name:'email',label:'ایمیل برای هماهنگی و پیگیری خدمت',type:'email',max:254},
+  {name:'phone',label:'شماره تماس (اختیاری)',type:'tel',max:30}
+ ]){
+  const label=document.createElement('label');
+  label.style.cssText='display:flex;flex-direction:column;gap:7px;font-weight:600;color:#19344c;font-size:14px;';
+  label.textContent=field.label;
+  const input=document.createElement('input');
+  input.name=field.name;input.type=field.type;input.maxLength=field.max;
+  input.autocomplete=field.name==='name'?'name':field.name==='email'?'email':'tel';
+  input.required=field.name!=='phone';
+  input.style.cssText='font:inherit;min-height:46px;border:1px solid #a9b9c8;border-radius:8px;padding:8px 12px;min-width:0;';
+  label.append(input);buyer.append(label);fields[field.name]=input;
+ }
+ const guidance=document.createElement('p');
+ guidance.style.cssText='grid-column:1/-1;margin:0;font-size:13px;line-height:1.8;color:#41576b;';
+ guidance.textContent='خرید خدمات بدون ثبت‌نام امکان‌پذیر است. نام و ایمیل صرفاً برای ثبت سفارش و هماهنگی ارائه خدمت دریافت می‌شود. تا زمان رفع مشکل ایمیل خودکار، شناسه سفارش را نگه دارید.';
+ buyer.append(guidance);
+ const buyerContact=()=>{
+  for(const input of [fields.name,fields.email]){
+   if(!input.reportValidity())return null;
+  }
+  if(fields.name.value.trim().length<2){fields.name.setCustomValidity('حداقل دو حرف وارد کنید.');fields.name.reportValidity();fields.name.setCustomValidity('');return null;}
+  if(fields.phone.value&&!fields.phone.checkValidity()){fields.phone.reportValidity();return null;}
+  return {name:fields.name.value.trim(),email:fields.email.value.trim(),phone:fields.phone.value.trim()};
+ };
+ host.append(buyer);
  const selected=new URLSearchParams(location.search).get(kind==='service'?'service':'vip');
  let visible=0;
  for(const item of items){
@@ -46,7 +79,11 @@ function mount(host,kind,items){
   const price=document.createElement('p');price.className='commerce-price';price.textContent=fmt(item.price);
   const button=document.createElement('button');button.type='button';button.className='commerce-pay';button.textContent='در حال بررسی وضعیت درگاه';button.disabled=true;
   const live=document.createElement('p');live.className='commerce-feedback';live.setAttribute('aria-live','polite');
-  button.addEventListener('click',()=>pay([{sku:kind+':'+item.id,quantity:1}],button,live));
+  button.addEventListener('click',()=>{
+   const customer=buyerContact();
+   if(!customer)return status(live,'پیش از پرداخت، نام و ایمیل معتبر وارد کنید.');
+   return pay([{sku:kind+':'+item.id,quantity:1}],button,live,customer);
+  });
   const details=document.createElement('a');details.href=kind==='service'?'/fa/services/'+encodeURIComponent(item.id)+'/':'/fa/vip/'+encodeURIComponent(item.id)+'/';details.textContent=kind==='service'?'معرفی کامل، شرایط و جزئیات خدمت':'مشاهده معرفی بسته‌های VIP';details.className='commerce-details';details.style.cssText='display:block;margin:12px 0;color:inherit;text-decoration:underline;text-underline-offset:5px';card.append(image,title,fit,price,details,button,live);host.append(card);
  }
  if(!visible){const empty=document.createElement('p');empty.className='commerce-notice';empty.textContent='خدمت انتخاب‌شده در فهرست فروش یافت نشد. لطفاً از فهرست رسمی یک خدمت را انتخاب کنید.';const back=document.createElement('a');back.href=kind==='service'?'/fa/services/':'/fa/vip/';back.textContent='بازگشت به فهرست خدمات';empty.append(document.createElement('br'),back);host.append(empty);}
