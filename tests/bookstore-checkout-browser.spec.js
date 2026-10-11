@@ -166,3 +166,45 @@ test('Forged paid status with mismatched receipt cannot show a payment receipt',
   await expect(page.locator('#receipt')).toBeHidden();
   await expect(page.locator('#print')).toBeHidden();
 });
+
+test('Server-verified paid order renders exact receipt totals and print action',async({page})=>{
+  const orderId='11111111-1111-4111-8111-111111111111';
+  const title='Test Book <script>alert(1)</script>';
+  let statusCalls=0;
+  let paymentCreates=0;
+  await page.route('**/api/commerce/create',route=>{
+    paymentCreates+=1;
+    return route.abort();
+  });
+  await page.route('**/api/commerce/status?order=*',route=>{
+    statusCalls+=1;
+    return route.fulfill({status:200,json:{ok:true,state:'paid',receipt:{
+      orderId,currency:'IRT',amountToman:2000000,paidAt:'2026-10-11 10:00:00',
+      items:[{title,quantity:1,unitToman:2000000,subtotalToman:2000000}]
+    }}});
+  });
+  const errors=[];
+  page.on('pageerror',e=>errors.push(String(e)));
+  await page.goto(base+'/fa/shop/payment-result/?from=gateway&order='+orderId,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#receipt')).toBeVisible();
+  await expect(page.locator('#receipt-id')).toHaveText(orderId);
+  await expect(page.locator('#receipt-total')).toContainText('۲٬۰۰۰٬۰۰۰');
+  await expect(page.locator('#receipt-lines tr')).toHaveCount(1);
+  await expect(page.locator('#receipt-lines td').first()).toHaveText(title);
+  await expect(page.locator('#receipt-lines script')).toHaveCount(0);
+  await expect(page.locator('#print')).toBeVisible();
+  await expect(page.locator('#recheck-payment-status')).toBeHidden();
+  expect(statusCalls).toBe(1);
+  expect(paymentCreates).toBe(0);
+  expect(errors).toEqual([]);
+});
+
+test('Declined bank result cannot render a paid receipt even when URL claims paid',async({page})=>{
+  const orderId='11111111-1111-4111-8111-111111111111';
+  await page.route('**/api/commerce/status?order=*',route=>route.fulfill({status:200,json:{ok:true,state:'failed'}}));
+  await page.goto(base+'/fa/shop/payment-result/?state=paid&order='+orderId,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#title')).toContainText('پرداخت تأیید نشده است');
+  await expect(page.locator('#receipt')).toBeHidden();
+  await expect(page.locator('#print')).toBeHidden();
+  await expect(page.locator('#recheck-payment-status')).toBeVisible();
+});
