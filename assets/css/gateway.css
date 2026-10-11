@@ -1,3 +1,18 @@
+/* Self-hosted Inter Latin, OFL-1.1 — pinned font assets, no local() font substitution. */
+@font-face {
+  font-family:"JR Gateway Inter";
+  src:url("../fonts/inter-latin-400-v20.woff2") format("woff2");
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+}
+@font-face {
+  font-family:"JR Gateway Inter";
+  src:url("../fonts/inter-latin-700-v20.woff2") format("woff2");
+  font-style:normal;
+  font-weight:700;
+  font-display:swap;
+}
 :root{
   --bg:#060606;
   --text:#f6f1e8;
@@ -271,3 +286,15 @@ figure{margin:0}
 footer{flex-wrap:wrap!important}
 footer>.enamad-footer-row{display:flex!important;visibility:visible!important;opacity:1!important;width:100%!important;flex-basis:100%!important;align-items:center!important;justify-content:center!important;order:-1!important;min-height:86px!important}
 footer>.enamad-footer-row .enamad-visible-seal,footer>.enamad-footer-row svg{display:block!important;visibility:visible!important;opacity:1!important}
+
+/* Isolated landing-page typography: do not depend on locally installed sans fonts. */
+body.language-gateway.public-gateway-page {
+  --ux-font-ui:"JR Gateway Inter",Georgia,"Times New Roman",serif;
+}
+body.language-gateway.public-gateway-page .gateway-actions [lang="fa"] {
+  font-family:Tahoma,Arial,sans-serif!important;
+}
+body.language-gateway.public-gateway-page .gateway-note {
+  font-size:13px;
+  line-height:1.65;
+}
