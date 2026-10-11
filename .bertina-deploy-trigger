@@ -126,3 +126,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 Bertina support t833905 confirmed SMTP endpoint and secure port; release provider-configuration diagnostics without exposing private mail settings.
 
 2026-10-11 Bertina SMTP ticket t833905 self-reconciliation release: use documented TLS 465 settings while preserving private mailbox password; verify live email transport after release.
+
+2026-10-11 — final dashboard-only completion: bilingual account-first home, exclusive workspaces, Persian/English mobile support tab, preserved progress, accessible focus, font and swipe improvements, role/auth fail-closed states. Verify mobile and desktop Playwright, privacy noindex/no-store, checkout untouched, Bertina live release and SEO. Do NOT activate unfinished services.
