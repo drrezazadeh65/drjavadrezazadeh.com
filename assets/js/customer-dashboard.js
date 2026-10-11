@@ -14,12 +14,12 @@ async function hydrate(){
   const h=await fetch(API+'/auth/health',{cache:'no-store',credentials:'include'});
   const hd=await h.json();
   if(!h.ok||hd?.ready!==true)throw new Error('not_ready');
-  dot?.classList.add('ready');
   status.textContent=copy.guest;
   const r=await fetch(API+'/auth/me',{cache:'no-store',credentials:'include'});
   if(r.status===401){email.textContent=copy.empty;return}
   const d=await r.json();
   if(!r.ok||d?.ok!==true)throw new Error('me_failed');
+  dot?.classList.add('ready');
   status.textContent=copy.signed;
   email.textContent=d.user.email;
   avatar.textContent=initial(d.user.email);
@@ -49,8 +49,40 @@ function sheet(){
  const shut=()=>{sheet.classList.remove('is-open');open.setAttribute('aria-expanded','false');document.documentElement.style.overflow=''};
  const show=()=>{sheet.classList.add('is-open');open.setAttribute('aria-expanded','true');document.documentElement.style.overflow='hidden';close.focus()};
  open.addEventListener('click',show);close.addEventListener('click',shut);
- sheet.addEventListener('click',e=>{if(e.target===sheet)shut()});
- addEventListener('keydown',e=>{if(e.key==='Escape'&&sheet.classList.contains('is-open'))shut()});
+ sheet.addEventListener('click',e=>{
+  if(e.target===sheet)shut();
+  if(e.target.closest('a[href]'))shut();
+ });
+ addEventListener('keydown',e=>{
+  if(!sheet.classList.contains('is-open'))return;
+  if(e.key==='Escape'){shut();open.focus();return}
+  if(e.key!=='Tab')return;
+  const focusable=[...sheet.querySelectorAll('button:not([disabled]),a[href]')].filter(e=>e.getClientRects().length);
+  if(!focusable.length)return;
+  const first=focusable[0],last=focusable[focusable.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+ });
+}
+
+
+function entryChooser(){
+ const root=$('[data-dashboard-entry]');if(!root)return;
+ const modes=$('[data-entry-mode]',root),panes=$('[data-entry-links]',root),feedback=$('[data-entry-feedback]',root);
+ const messages={
+  all:'همه امکانات همچنان در داشبورد موجود است. این انتخاب فقط میانبرها را تنظیم می‌کند.',
+  learning:'میانبرهای مسیر یادگیری نمایش داده شدند؛ این انتخاب نقش یا دسترسی ایجاد نمی‌کند.',
+  shopping:'میانبرهای خرید و خدمات نمایش داده شدند؛ سوابق واقعی فقط پس از ورود امن نمایش داده می‌شوند.',
+  sponsorship:'میانبرهای حمایت تحصیلی نمایش داده شدند؛ پرونده واقعی فقط با رضایت و مجوز معتبر قابل مشاهده است.'
+ };
+ const activate=mode=>{
+  if(!Object.prototype.hasOwnProperty.call(messages,mode))return;
+  modes.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.entryMode===mode)));
+  panes.forEach(p=>{p.hidden=p.dataset.entryLinks!==mode});
+  if(feedback)feedback.textContent=messages[mode];
+ };
+ modes.forEach(b=>b.addEventListener('click',()=>activate(b.dataset.entryMode)));
+ activate('all');
 }
 
 function serviceMarketplace(){
@@ -93,5 +125,5 @@ function logout(){
   location.assign(lang==='en'?'/en/login/':'/fa/login/');
  }));
 }
-document.addEventListener('DOMContentLoaded',()=>{hydrate();nav();sheet();serviceMarketplace();logout()});
+document.addEventListener('DOMContentLoaded',()=>{hydrate();nav();sheet();entryChooser();serviceMarketplace();logout()});
 })();
