@@ -84,6 +84,19 @@ test('strict live matrix covers every registered redirect, transport and slash f
   assert.ok(requested.some(u=>u.includes('/product/%D8%')));
 });
 
+test('retired product variants may canonicalize transport exactly once before a verified 410',async()=>{
+  const result=await verifyHistoricalAuthority(registry,{request:async url=>{
+    const u=new URL(url);
+    const source=normalizeHistoricalPath(u.pathname);
+    const retired=registry.historical_candidates.some(x=>x.decision==='GONE'&&x.path===source);
+    if(retired&&u.origin!==registry.production_origin){
+      return {status:301,headers:{location:registry.production_origin+u.pathname},body:''};
+    }
+    return liveFixture(url);
+  }});
+  assert.equal(result.failed,0);
+});
+
 test('strict live verification rejects an HTTP/www transport-first redirect chain',async()=>{
   const result=await verifyHistoricalAuthority(registry,{request:async url=>url==='http://www.drjavadrezazadeh.com/shop/'?
     {status:301,headers:{location:registry.production_origin+'/shop/'},body:''}:liveFixture(url)});
