@@ -4,3 +4,5 @@ CI: 11 successful workflows on9868de701b74336e5527a0dd66da28841344cfbe
 Preserve payment fail-closed configuration and private admin MFA provisioning.
 
 2026-10-11 checkout layout + cart feedback release; retain fail-closed payment verification.
+
+2026-10-11 regenerate store CSS bundles and deploy with CI checks.
