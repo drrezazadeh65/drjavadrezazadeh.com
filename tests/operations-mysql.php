@@ -31,7 +31,7 @@ $fake=$batch;$fake['events'][0]['sectionId']='OP-09';$fake['events'][0]['gateId'
 try{operationsImportRelease($pdo,$fake,$sha,$configuration,$run);throw new RuntimeException('CI certified a real payment');}catch(RuntimeException $e){check($e->getMessage()==='invalid_evidence_event','wrong forged-payment error');}
 $wrong=$batch;$wrong['runId']='654321';try{operationsImportRelease($pdo,$wrong,$sha,$configuration,$run);throw new RuntimeException('wrong run accepted');}catch(RuntimeException $e){check($e->getMessage()==='invalid_release_evidence','wrong run error');}
 $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=$work.'/operations-http-'.bin2hex(random_bytes(5));mkdir($folder,0700);mkdir($folder.'/api',0700);mkdir($folder.'/api/internal',0700);
-foreach(['index.php','operations.php','operations-schema.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
+foreach(['index.php','operations.php','operations-schema.php','operations-reporting.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
 copy(__DIR__.'/../api/internal/operations-registry.json',$folder.'/api/internal/operations-registry.json');
 copy(__DIR__.'/../api/internal/operations-gsc-observation.json',$folder.'/api/internal/operations-gsc-observation.json');
 mkdir($folder.'/assets',0700);mkdir($folder.'/assets/data',0700);
@@ -71,6 +71,15 @@ try {
  $headers['X-CSRF-Token']=$elevatedSession['csrfToken'];
  request('/api/admin/operations/mfa',403,'POST',['code'=>$code],$headers);
  $data=request('/api/admin/operations',200);check($data['dashboard']['measuredProgress']===75,'unexpected admin score');check($data['dashboard']['closed']===false,'unverified production admin closed');check(count($data['reports'])===36,'report count changed');
+ check(count($data['reporting']['engines'])===13,'canonical engine count changed');
+ check(count($data['reporting']['actionReports'])===52,'action inventory changed');
+ check(count($data['reporting']['awoseDomainViews'])===36,'AWOSE domain views missing');
+ check($data['reporting']['masterReport']['reportCount']===36,'administrative report double counted');
+ $canonicalEngines=array_column($data['reporting']['engines'],null,'id');
+ check($canonicalEngines['ENG-13']['reportIds']===[],'reporting engine acquired operational ownership');
+ check($canonicalEngines['ENG-12']['metrics']['totalReports']===1,'admin report lost its owner');
+ check($data['reporting']['masterReport']['ownerByReportId']['OP-07']==='ENG-05','commerce ownership mismatch');
+ check($data['reporting']['executiveReport']['metrics']['measuredCompletion']===null,'unknown operational progress fabricated');
  $reports=array_column($data['reports'],null,'id');
  $identitySignals=array_column($reports['OP-05']['signals'],null,'id');
  check($identitySignals['auth_runtime']['value']===false&&$identitySignals['email_transport']['value']===false,'disabled fixture email incorrectly ready');
