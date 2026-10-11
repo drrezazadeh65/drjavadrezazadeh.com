@@ -1530,3 +1530,36 @@ test('mobile-first educational support keeps six preset amounts, an editable amo
     await expect(page.locator('.book-store-hero .store-nav a:visible')).toHaveCount(2);
   }
 });
+
+
+test('bilingual bookstore mobile hero exposes shop and sponsorship, and help links are touch-sized',async({page})=>{
+ for(const lang of ['fa','en']){
+  for(const width of [320,390,430]){
+   await page.setViewportSize({width,height:844});
+   const route='/'+lang+'/shop/';
+   const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   expect(response.status()).toBe(200);
+   const nav=page.locator('.book-store-hero .store-nav');
+   const visibleLinks=nav.locator('a:visible');
+   await expect(visibleLinks).toHaveCount(2);
+   for(const anchor of ['#book-catalog','#support']){
+    const link=nav.locator('a[href="'+anchor+'"]');
+    await expect(link).toBeVisible();
+    const rect=await link.boundingBox();
+    expect(rect.width,route+' '+anchor+' width').toBeGreaterThanOrEqual(44);
+    expect(rect.height,route+' '+anchor+' height').toBeGreaterThanOrEqual(44);
+    await expect(page.locator(anchor)).toHaveCount(1);
+   }
+   const bounds=await stableOverflow(page);
+   expect(Math.max(bounds.html,bounds.body),route+' overflow '+width).toBeLessThanOrEqual(bounds.viewport+1);
+  }
+ }
+ await page.setViewportSize({width:390,height:844});
+ await page.goto(base+'/en/shop/',{waitUntil:'domcontentloaded'});
+ const help=page.locator('.store-customer-guidance nav a');
+ await expect(help).toHaveCount(4);
+ for(const anchor of await help.all()){
+  const box=await anchor.boundingBox();
+  expect(box.height).toBeGreaterThanOrEqual(44);
+ }
+});

@@ -19,8 +19,10 @@
   return String(n>=0?n:'٠١٢٣٤٥٦٧٨٩'.indexOf(ch));
  });
  function update(){
-  const n=Number(normal(input.value));
-  const valid=Number.isSafeInteger(n)&&n>=1000&&n<=10000000;
+  const normalized=normal(input.value);
+  const n=Number(normalized);
+  // Reject scientific notation, signs and decimals: donor must see precisely the whole-toman amount paid.
+  const valid=/^[0-9]+$/.test(normalized)&&Number.isSafeInteger(n)&&n>=1000&&n<=10000000;
   input.setAttribute('aria-invalid',String(!valid));
   preview.dataset.valid=String(valid);
   submit.disabled=!ready||submitted||!valid;
@@ -56,8 +58,9 @@
  form.addEventListener('submit',async event=>{
   event.preventDefault();
   if(!ready||submitted)return;
-  const amount=Number(normal(input.value));
-  if(!Number.isSafeInteger(amount)||amount<1000||amount>10000000){
+  const normalizedAmount=normal(input.value);
+  const amount=Number(normalizedAmount);
+  if(!/^[0-9]+$/.test(normalizedAmount)||!Number.isSafeInteger(amount)||amount<1000||amount>10000000){
    show(isFa?'مبلغ صحیح بین ۱٬۰۰۰ تا ۱۰٬۰۰۰٬۰۰۰ تومان وارد کنید.':'Enter a whole amount between 1,000 and 10,000,000 toman.');return;
   }
   if(email.value&&!email.checkValidity()){

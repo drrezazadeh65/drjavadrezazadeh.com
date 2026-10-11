@@ -108,3 +108,24 @@
 }
 @media(max-width:350px){body .book-store-shell .cinema-original-hero .cinema-hero-nav>a{font-size:12px!important;padding-inline:5px!important}}
 @media(prefers-reduced-motion:reduce){.book-store-shell :where(a,button){transition:none!important}}
+
+/* Bookstore bilingual mobile journey: keep primary reading and sponsorship actions easy to reach. */
+@media(max-width:700px){
+ body .book-store-shell .talent-hero:not(.cinema-original-hero) .store-nav{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;align-items:stretch!important;width:100%;
+ }
+ body .book-store-shell .talent-hero:not(.cinema-original-hero) .store-nav a{
+  min-height:50px!important;min-width:0;display:inline-flex;justify-content:center;
+  align-items:center;text-align:center;line-height:1.45!important;white-space:normal;
+  padding:10px 8px!important;font-size:clamp(12px,3.6vw,15px)!important;
+ }
+ body .book-store-shell .talent-hero:not(.cinema-original-hero) .store-nav a[href="#publish-for-talent"],
+ body .book-store-shell .talent-hero:not(.cinema-original-hero) .store-nav a[href="./cart/"]{display:none!important}
+ body .book-store-shell .talent-hero:not(.cinema-original-hero) .store-nav a[href="#book-catalog"],
+ body .book-store-shell .talent-hero:not(.cinema-original-hero) .store-nav a[href="#support"]{display:inline-flex!important}
+ .book-store-shell .store-customer-guidance nav a{min-width:0;line-height:1.6;text-align:center}
+}
+@media(max-width:350px){
+ body .book-store-shell .talent-hero:not(.cinema-original-hero) .store-nav a{padding-inline:5px!important}
+}
