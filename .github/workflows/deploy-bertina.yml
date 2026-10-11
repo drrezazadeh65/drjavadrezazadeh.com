@@ -6,17 +6,6 @@ on:
       - migration/bertina-linux6
     paths:
       - '.bertina-deploy-trigger'
-      # Automatically publish edited pages, assets and freshness rules from the production branch.
-      - '**/*.html'
-      - 'assets/**'
-      - '.htaccess'
-      - 'sw.js'
-      - 'site.webmanifest'
-      - 'robots.txt'
-      - 'sitemap*.xml'
-      - 'scripts/stamp-bertina-release.mjs'
-      - 'scripts/bookstore-release-audit.mjs'
-      - '.github/workflows/deploy-bertina.yml'
   workflow_dispatch:
 
 permissions:
