@@ -347,7 +347,13 @@ for(const [lang,path] of [['fa','/fa/support-talented-students/'],['en','/en/sup
     await expect(page.locator('h1')).toBeVisible();
     await expect(page.locator('[data-support-form]')).toBeVisible();
     await expect(page.locator('[data-support-form] [type="submit"]')).toBeEnabled();
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://drjavadrezazadeh.com'+path);
+    await expect(page.locator('.support-presets [data-support-amount]')).toHaveCount(6);
+    await expect(page.locator('#support-amount')).toHaveValue('500000');
+    await expect(page.locator('#support-amount')).toHaveAttribute('max','10000000');
+    await expect(page.locator('#support-amount')).toHaveAttribute('step','1');
+    await page.locator('[data-support-amount="10000000"]').click();
+    await expect(page.locator('#support-amount')).toHaveValue('10000000');
+    await expect(page.locator('link[rel="canonical"]').toHaveAttribute('href','https://drjavadrezazadeh.com'+path);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
     await expect(page.locator('link[rel="alternate"][hreflang="fa"]')).toHaveCount(0);
     await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveCount(0);
