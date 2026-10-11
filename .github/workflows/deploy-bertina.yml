@@ -395,6 +395,22 @@ jobs:
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP"             https://drjavadrezazadeh.com/api/health -o /tmp/api-health.json
           grep -F '"hosting":"bertina"' /tmp/api-health.json
 
+      - name: Verify deployed commerce API routing without creating an order
+        run: |
+          set -euo pipefail
+          ORIGIN_IP="188.40.203.218"
+          HOST="https://drjavadrezazadeh.com"
+          curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+            "$HOST/api/commerce/health" -o /tmp/commerce-health.json
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/commerce-health.json","utf8"));if(x.ok!==true||x.service!=="commerce")process.exit(1);console.log("Commerce route:",x.service,"checkout:",x.checkout,"books:",x.capabilities?.books)'
+          code=$(curl -ksS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+            -X POST -H 'Content-Type: application/json' -H 'Origin: https://drjavadrezazadeh.com' \
+            --data '{"items":[]}' -o /tmp/commerce-create-probe.json -w '%{http_code}' \
+            "$HOST/api/commerce/create")
+          echo "Commerce create validation status: $code"
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/commerce-create-probe.json","utf8"));if(x.error==="not_found"){console.error("Commerce create route is missing");process.exit(1)}console.log("Commerce create route response:",x.error||"ok")'
+          test "$code" = "400" || test "$code" = "503"
+
       - name: Verify every registered historical URL with trusted public TLS
         if: steps.credentials.outputs.ready == 'true'
         run: node scripts/historical-authority-live-verify.mjs /tmp/historical-authority-live.json
