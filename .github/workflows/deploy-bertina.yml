@@ -6,6 +6,17 @@ on:
       - migration/bertina-linux6
     paths:
       - '.bertina-deploy-trigger'
+      # Automatically publish edited pages, assets and freshness rules from the production branch.
+      - '**/*.html'
+      - 'assets/**'
+      - '.htaccess'
+      - 'sw.js'
+      - 'site.webmanifest'
+      - 'robots.txt'
+      - 'sitemap*.xml'
+      - 'scripts/stamp-bertina-release.mjs'
+      - 'scripts/bookstore-release-audit.mjs'
+      - '.github/workflows/deploy-bertina.yml'
   workflow_dispatch:
 
 permissions:
@@ -82,6 +93,8 @@ jobs:
           set -euo pipefail
           node scripts/build-public-data.mjs --check
           node scripts/build-public-site.mjs
+          node scripts/bookstore-release-audit.mjs
+          node scripts/stamp-bertina-release.mjs
           test -f .public-site/.htaccess
           test ! -e .public-site/platform
           test ! -e .public-site/foundation
@@ -319,6 +332,22 @@ jobs:
           console.log('Bertina server-side checksum verification PASS:',d.checked,'files; commit',d.commit);
           if(d.operations?.ready!==true) throw new Error('Operations schema and scoped evidence import failed');
           NODE
+
+      - name: Verify live bookstore release and cache fingerprint
+        run: |
+          set -euo pipefail
+          ORIGIN_IP="188.40.203.218"
+          for route in /fa/shop/ /en/shop/; do
+            curl -fsSL --compressed --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP "https://drjavadrezazadeh.com$route" -o /tmp/bookstore-live.html
+            grep -q 'store-mission.css?v=talent-20261011-v1' /tmp/bookstore-live.html
+            grep -q 'id="publish-for-talent"' /tmp/bookstore-live.html
+            grep -q 'id="store-mission-title"' /tmp/bookstore-live.html
+            grep -q "$GITHUB_SHA" /tmp/bookstore-live.html
+            echo "$route fresh bookstore release verified"
+          done
+          curl -fsSL --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/sw.js -o /tmp/bookstore-sw.js
+          grep -q "jr-site-bertina-$GITHUB_SHA" /tmp/bookstore-sw.js
+          echo "Service Worker cache invalidation version verified on Bertina"
 
       - name: Inspect deployed rewrite hierarchy
         if: steps.credentials.outputs.ready == 'true'

@@ -53,14 +53,10 @@ Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 # Keep this at directory scope so a private route can override it reliably.
 Header always set Cache-Control "public, no-cache, must-revalidate" env=!PRIVATE_ROUTE
 
-# Versioned CSS/JS assets are revalidated daily; deployed URLs commonly carry ?v=.
-<FilesMatch "\.(?:css|js|mjs)$">
-Header always set Cache-Control "public, max-age=86400, stale-while-revalidate=604800" env=!PRIVATE_ROUTE
-</FilesMatch>
-
-# Media/fonts are stable and expensive to transfer, so keep them longer.
-<FilesMatch "\.(?:png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf)$">
-Header always set Cache-Control "public, max-age=2592000, stale-while-revalidate=604800" env=!PRIVATE_ROUTE
+# Mutable CSS, JavaScript, JSON and media require revalidation on ordinary navigation.
+# Conditional requests still use ETag / Last-Modified; no month-old cover or stale script.
+<FilesMatch "\.(?:css|js|mjs|json|webmanifest|png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf)$">
+Header always set Cache-Control "public, no-cache, must-revalidate" env=!PRIVATE_ROUTE
 </FilesMatch>
 
 # Private, authenticated, API and payment routes override every public cache rule.
@@ -73,15 +69,15 @@ Header always merge Vary "Accept-Encoding"
 <IfModule mod_expires.c>
 ExpiresActive On
 ExpiresByType text/html "access plus 0 seconds"
-ExpiresByType text/css "access plus 1 day"
-ExpiresByType application/javascript "access plus 1 day"
+ExpiresByType text/css "access plus 0 seconds"
+ExpiresByType application/javascript "access plus 0 seconds"
 ExpiresByType application/json "access plus 0 seconds"
-ExpiresByType image/avif "access plus 30 days"
-ExpiresByType image/webp "access plus 30 days"
-ExpiresByType image/png "access plus 30 days"
-ExpiresByType image/jpeg "access plus 30 days"
-ExpiresByType image/svg+xml "access plus 30 days"
-ExpiresByType font/woff2 "access plus 30 days"
+ExpiresByType image/avif "access plus 0 seconds"
+ExpiresByType image/webp "access plus 0 seconds"
+ExpiresByType image/png "access plus 0 seconds"
+ExpiresByType image/jpeg "access plus 0 seconds"
+ExpiresByType image/svg+xml "access plus 0 seconds"
+ExpiresByType font/woff2 "access plus 0 seconds"
 </IfModule>
 
 # Prefer Brotli when Apache provides it; otherwise use gzip/deflate.
