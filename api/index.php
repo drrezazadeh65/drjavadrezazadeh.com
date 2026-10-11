@@ -145,6 +145,7 @@ function smtpRead($fp): array {
 function smtpFail(string $stage): bool {
     // Only the protocol stage is logged; never log credentials, recipient,
     // subject, verification tokens, or provider responses containing PII.
+    $GLOBALS['bertina_smtp_last_failure_stage']=$stage;
     error_log('BERTINA_SMTP_FAIL stage='.$stage);
     return false;
 }
@@ -398,6 +399,10 @@ function gatewayPost(string $endpoint,array $fields): string {
     if(!is_string($out)||$code<200||$code>=300)throw new RuntimeException('gateway_http');
     return trim($out);
 }
+
+// CLI / internal PHP inclusion only. HTTP clients cannot set PHP constants.
+ // Enables an authenticated, one-time SMTP test without adding a public mail endpoint.
+if (defined('BERTINA_MAIL_SMOKE_CONTEXT') && BERTINA_MAIL_SMOKE_CONTEXT === true) return;
 
 define('BERTINA_API_BOOTSTRAPPED', true);
 require_once __DIR__.'/operations.php';
