@@ -68,9 +68,9 @@ try {
     $GLOBALS['ready']=true;
     $healthy=donationRequest($route,'/donations/health','GET');
     assertDonation($healthy->status===200&&$healthy->data['checkout']===true&&
-      $healthy->data['minToman']===1000&&$healthy->data['maxToman']===500000,'health_amount_limits_and_readiness');
+      $healthy->data['minToman']===1000&&$healthy->data['maxToman']===10000000,'health_amount_limits_and_readiness');
 
-    foreach([999,500001,10000.25,'10000',-10000,null] as $invalid){
+    foreach([999,10000001,10000.25,'10000',-10000,null] as $invalid){
         $result=donationRequest($route,'/donations/create','POST',['amountToman'=>$invalid]);
         assertDonation($result->status===400&&$result->data['error']==='invalid_donation_amount',
             'reject_invalid_amount_'.json_encode($invalid));
