@@ -48,7 +48,9 @@ for (const slug of slugs) {
  check(image.startsWith('/assets/'),'missing/local featured image');
  if(image.startsWith('/')) check(fs.existsSync(path.join(root,image.slice(1))),'featured image absent');
  check(ogImage===host+image,'OG and displayed image mismatch');
- if(/\.svg(?:$|\?)/.test(image)) warnings.push(slug+': SVG featured image; use original photographic WebP for social previews');
+ check(/\.webp$/i.test(image),'featured image must be an approved WebP asset');
+ check(/\.webp$/i.test(ogImage),'Open Graph article image must be WebP');
+ check(html.includes('og:image:alt'),'missing OG image alt');
  if(!/\balt="[^"]{10,}"/.test(html))warnings.push(slug+': image alt needs review');
  const rail = html.match(/<aside class="launch-service-sidebar"[\s\S]*?<\/aside>/)?.[0] || '';
  check(rail.length>200,'missing scholarly-commerce sidebar');
@@ -66,6 +68,12 @@ for (const slug of slugs) {
    if(src.startsWith('/')) check(fs.existsSync(path.join(root,src.slice(1))),'missing sidebar asset: '+src);
  }
  console.log('CHECKED',slug);
+}
+ const indexHtml=fs.readFileSync(path.join(root,'fa','akhbar','index.html'),'utf8');
+for(const slug of slugs){
+ const card=indexHtml.match(new RegExp('<a class="news-card" href="\\./'+slug+'/">([\\s\\S]*?)<\\/a>'))?.[1]||'';
+ if(!card) {console.error('FAIL news index missing card',slug);fails++;continue;}
+ if(!/\.webp"/.test(card)){console.error('FAIL news card not WebP',slug);fails++;}
 }
 console.log('ARTICLE COUNT',slugs.length,'ERRORS',fails,'WARNINGS',warnings.length);
 for(const w of warnings)console.warn('REVIEW',w);
