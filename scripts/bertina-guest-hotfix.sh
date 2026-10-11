@@ -43,7 +43,7 @@ rollback() {
     echo 'Guest checkout hotfix was not verified; restoring the six original pages.'
     local cmds=''
     for path in "${paths[@]}"; do
-      cmds+="put \"$root/original/$path\" -o \"$path\""$(printf '\n')
+      cmds+="put \"$root/original/$path\" -o \"$path\""
       cmds+="rm -f \"$path.guest-$nonce\""$(printf '\n')
     done
     ftp_exec "$cmds" || echo 'WARNING: rollback could not be fully verified; manual inspection of the six pages is required.'
@@ -82,6 +82,201 @@ echo 'Independently reading back the six deployed files over FTPS.'
 cmds=''
 for path in "${paths[@]}"; do
   cmds+="get \"$path\" -o \"$root/verified/$path\""$(printf '\n')
+done
+ftp_exec "$cmds"
+for path in "${paths[@]}"; do
+  cmp --silent "$path" "$root/verified/$path" || {
+    echo "Checksum mismatch for $path"
+    exit 1
+  }
+done
+
+# Public API, PHP, MySQL, payment settings and research articles are untouched.
+published=true
+echo 'GUEST_BOOK_CHECKOUT_HOTFIX_PASS: six public pages replaced and verified, with originals available for this job rollback.'
+\n'
+      cmds+="rm -f \"$path.guest-$nonce\""
+    done
+    ftp_exec "$cmds" || echo 'WARNING: rollback could not be fully verified; manual inspection of the six pages is required.'
+  fi
+  rm -rf "$root"
+  exit "$exit_status"
+}
+trap rollback EXIT
+
+echo 'Backing up exactly six existing public HTML pages from Bertina.'
+cmds=''
+for path in "${paths[@]}"; do
+  cmds+="get \"$path\" -o \"$root/original/$path\""$(printf '\n')
+done
+ftp_exec "$cmds"
+backup_done=true
+
+# Do not publish code from a stale or concurrently superseded source tree.
+actual="$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)"
+if [ "$actual" != "$GITHUB_SHA" ]; then
+  echo 'The live branch changed; refusing a stale guest-checkout patch.'
+  exit 1
+fi
+
+echo 'Uploading only the six pre-approved public pages via FTPS.'
+cmds=''
+for path in "${paths[@]}"; do
+  cmds+="put \"$path\" -o \"$path.guest-$nonce\""$(printf '\n')
+done
+for path in "${paths[@]}"; do
+  cmds+="mv \"$path.guest-$nonce\" \"$path\""$(printf '\n')
+done
+ftp_exec "$cmds"
+
+echo 'Independently reading back the six deployed files over FTPS.'
+cmds=''
+for path in "${paths[@]}"; do
+  cmds+="get \"$path\" -o \"$root/verified/$path\""$(printf '\n')
+done
+ftp_exec "$cmds"
+for path in "${paths[@]}"; do
+  cmp --silent "$path" "$root/verified/$path" || {
+    echo "Checksum mismatch for $path"
+    exit 1
+  }
+done
+
+# Public API, PHP, MySQL, payment settings and research articles are untouched.
+published=true
+echo 'GUEST_BOOK_CHECKOUT_HOTFIX_PASS: six public pages replaced and verified, with originals available for this job rollback.'
+\n'
+    done
+    ftp_exec "$cmds" || echo 'WARNING: rollback could not be fully verified; manual inspection of the six pages is required.'
+  fi
+  rm -rf "$root"
+  exit "$exit_status"
+}
+trap rollback EXIT
+
+echo 'Backing up exactly six existing public HTML pages from Bertina.'
+cmds=''
+for path in "${paths[@]}"; do
+  cmds+="get \"$path\" -o \"$root/original/$path\""
+done
+ftp_exec "$cmds"
+backup_done=true
+
+# Do not publish code from a stale or concurrently superseded source tree.
+actual="$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)"
+if [ "$actual" != "$GITHUB_SHA" ]; then
+  echo 'The live branch changed; refusing a stale guest-checkout patch.'
+  exit 1
+fi
+
+echo 'Uploading only the six pre-approved public pages via FTPS.'
+cmds=''
+for path in "${paths[@]}"; do
+  cmds+="put \"$path\" -o \"$path.guest-$nonce\""$(printf '\n')
+done
+for path in "${paths[@]}"; do
+  cmds+="mv \"$path.guest-$nonce\" \"$path\""$(printf '\n')
+done
+ftp_exec "$cmds"
+
+echo 'Independently reading back the six deployed files over FTPS.'
+cmds=''
+for path in "${paths[@]}"; do
+  cmds+="get \"$path\" -o \"$root/verified/$path\""$(printf '\n')
+done
+ftp_exec "$cmds"
+for path in "${paths[@]}"; do
+  cmp --silent "$path" "$root/verified/$path" || {
+    echo "Checksum mismatch for $path"
+    exit 1
+  }
+done
+
+# Public API, PHP, MySQL, payment settings and research articles are untouched.
+published=true
+echo 'GUEST_BOOK_CHECKOUT_HOTFIX_PASS: six public pages replaced and verified, with originals available for this job rollback.'
+\n'
+done
+ftp_exec "$cmds"
+backup_done=true
+
+# Do not publish code from a stale or concurrently superseded source tree.
+actual="$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)"
+if [ "$actual" != "$GITHUB_SHA" ]; then
+  echo 'The live branch changed; refusing a stale guest-checkout patch.'
+  exit 1
+fi
+
+echo 'Uploading only the six pre-approved public pages via FTPS.'
+cmds=''
+for path in "${paths[@]}"; do
+  cmds+="put \"$path\" -o \"$path.guest-$nonce\""
+done
+for path in "${paths[@]}"; do
+  cmds+="mv \"$path.guest-$nonce\" \"$path\""$(printf '\n')
+done
+ftp_exec "$cmds"
+
+echo 'Independently reading back the six deployed files over FTPS.'
+cmds=''
+for path in "${paths[@]}"; do
+  cmds+="get \"$path\" -o \"$root/verified/$path\""$(printf '\n')
+done
+ftp_exec "$cmds"
+for path in "${paths[@]}"; do
+  cmp --silent "$path" "$root/verified/$path" || {
+    echo "Checksum mismatch for $path"
+    exit 1
+  }
+done
+
+# Public API, PHP, MySQL, payment settings and research articles are untouched.
+published=true
+echo 'GUEST_BOOK_CHECKOUT_HOTFIX_PASS: six public pages replaced and verified, with originals available for this job rollback.'
+\n'
+done
+for path in "${paths[@]}"; do
+  cmds+="mv \"$path.guest-$nonce\" \"$path\""
+done
+ftp_exec "$cmds"
+
+echo 'Independently reading back the six deployed files over FTPS.'
+cmds=''
+for path in "${paths[@]}"; do
+  cmds+="get \"$path\" -o \"$root/verified/$path\""$(printf '\n')
+done
+ftp_exec "$cmds"
+for path in "${paths[@]}"; do
+  cmp --silent "$path" "$root/verified/$path" || {
+    echo "Checksum mismatch for $path"
+    exit 1
+  }
+done
+
+# Public API, PHP, MySQL, payment settings and research articles are untouched.
+published=true
+echo 'GUEST_BOOK_CHECKOUT_HOTFIX_PASS: six public pages replaced and verified, with originals available for this job rollback.'
+\n'
+done
+ftp_exec "$cmds"
+
+echo 'Independently reading back the six deployed files over FTPS.'
+cmds=''
+for path in "${paths[@]}"; do
+  cmds+="get \"$path\" -o \"$root/verified/$path\""
+done
+ftp_exec "$cmds"
+for path in "${paths[@]}"; do
+  cmp --silent "$path" "$root/verified/$path" || {
+    echo "Checksum mismatch for $path"
+    exit 1
+  }
+done
+
+# Public API, PHP, MySQL, payment settings and research articles are untouched.
+published=true
+echo 'GUEST_BOOK_CHECKOUT_HOTFIX_PASS: six public pages replaced and verified, with originals available for this job rollback.'
+\n'
 done
 ftp_exec "$cmds"
 for path in "${paths[@]}"; do
