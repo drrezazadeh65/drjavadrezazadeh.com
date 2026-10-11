@@ -73,6 +73,8 @@
   if(found) found.quantity=Math.min(20,(found.quantity||1)+1);
   else cart.push({book_id:book.id,quantity:1});
   writeCart(cart);
+  const selector='[data-add-book="'+book.id+'"],[data-detail-add="'+book.id+'"]';
+  document.querySelectorAll(selector).forEach(btn=>{btn.textContent=isFa?'✓ به سبد افزوده شد':'✓ Added to cart';btn.setAttribute('aria-live','polite');});
  }
  function card(book){
   const el=document.createElement('article');
@@ -252,6 +254,8 @@
   const note=document.getElementById('shipping-disabled-note');
   const canCapture=deliveryCaptureReady;
   if(fieldset)fieldset.disabled=!canCapture;
+  const legend=fieldset?.querySelector('legend');
+  if(legend)legend.textContent=isFa?'اطلاعات تحویل':'Delivery details';
   if(note)note.textContent=canCapture
    ?(isFa?'اطلاعات تحویل فقط برای اجرای همین سفارش ثبت می‌شود و برای احراز هویت تلفنی استفاده نمی‌شود.':'Delivery details are stored only to fulfil this order and are not used for phone verification.')
    :(isFa?'ثبت امن سفارش موقتاً در دسترس نیست؛ هیچ اطلاعات تحویلی ارسال نمی‌شود.':'Secure order capture is temporarily unavailable; no delivery data will be submitted.');
