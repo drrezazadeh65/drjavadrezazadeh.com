@@ -398,6 +398,22 @@ if (str_starts_with($path,'/auth/')) {
         }
         respond(['ok'=>true,'message'=>'verification_if_applicable_sent'],202);
     }
+    // A pending customer can request another verification email without
+    // re-registering or submitting their password. Uniform response prevents
+    // account enumeration; the existing rate-limit table controls abuse.
+    if($path==='/auth/resend-verification'&&$verb==='POST'){
+        requirePostOrigin();$b=jsonBody();$email=emailNorm($b['email']??'');
+        if(validEmail($email) && rateAllowed($pdo,'resend-verification',$email,3,3600)){
+            $a=accountByEmail($pdo,$email);
+            if($a && empty($a['email_verified_at']) && ($a['status']??'')==='pending'){
+                $locale=($b['locale']??'')==='en'?'en':'fa';
+                $raw=issueToken($pdo,(string)$a['id'],'verify_email');
+                $url=SITE_ORIGIN.($locale==='en'?'/en/login/':'/fa/login/').'?verify='.rawurlencode($raw);
+                sendLocalMail($email,$locale==='en'?'Verify your account':'تأیید حساب کاربری',"Verification link / لینک تأیید:\n".$url."\n\nThis link expires in 15 minutes.");
+            }
+        }
+        respond(['ok'=>true,'message'=>'verification_if_pending_sent'],202);
+    }
     if($path==='/auth/verify-email'&&$verb==='POST'){
         requirePostOrigin();$b=jsonBody();$id=consumeToken($pdo,(string)($b['token']??''),'verify_email');if(!$id)fail('invalid_or_expired_token');
         $now=nowTs();$pdo->prepare("UPDATE customer_accounts SET email_verified_at=COALESCE(email_verified_at,?),status='active',updated_at=? WHERE id=? AND status!='disabled'")->execute([$now,$now,$id]);
