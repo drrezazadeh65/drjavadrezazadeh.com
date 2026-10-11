@@ -1,0 +1,63 @@
+name: Gateway Font Live Verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'assets/css/gateway.css'
+      - 'assets/fonts/**'
+      - '.github/workflows/gateway-font-live-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare-live-and-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect public origin and bundled fonts
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request, urllib.error, socket, hashlib
+          base = 'https://drjavadrezazadeh.com'
+          cases = [
+              ('root', '/', b'selfhosted-font-v2', 'text/html'),
+              ('gateway_stylesheet', '/assets/css/gateway.css?v=20261012-selfhosted-font-v2', b'JR Gateway Inter', 'text/css'),
+              ('latin_regular', '/assets/fonts/inter-latin-400-v20.woff2', b'wOF2', 'font/woff2'),
+              ('latin_bold', '/assets/fonts/inter-latin-700-v20.woff2', b'wOF2', 'font/woff2'),
+          ]
+          print('DOMAIN',base)
+          try: print('DNS',socket.getaddrinfo('drjavadrezazadeh.com',443,proto=socket.IPPROTO_TCP)[0][4])
+          except Exception as e: print('DNS_ERROR',repr(e))
+          results = []
+          for name,path,marker,mime in cases:
+              url=base+path
+              try:
+                  req=urllib.request.Request(url,headers={'User-Agent':'JR-Gateway-Font-Verification/1.0','Cache-Control':'no-cache'})
+                  with urllib.request.urlopen(req,timeout=18) as resp:
+                      data=resp.read()
+                      status=resp.status
+                      ctype=resp.headers.get('content-type','')
+                      final=resp.url
+                      server=resp.headers.get('server','')
+                      cache=resp.headers.get('cache-control','')
+                      etag=resp.headers.get('etag','')
+                      found=data.startswith(marker) if name.startswith('latin_') else marker in data
+                      results.append(status==200 and found)
+                      print('RESULT',name,'status=',status,'type=',ctype,'bytes=',len(data),'marker=',found,'url=',final,'server=',server,'cache=',cache,'etag=',etag,'sha256=',hashlib.sha256(data).hexdigest()[:16])
+                      if name=='root':
+                          for needle in (b'selfhosted-font-v2',b'selfhosted-font-v1',b'gateway-isolated-v1',b'--ux-font-ui:Arial'):
+                              print('ROOT_MARKER',needle.decode('ascii'),needle in data)
+                      if name=='gateway_stylesheet':
+                          for needle in (b'@font-face',b'JR Gateway Inter'):
+                              print('CSS_MARKER',needle.decode('ascii'),needle in data)
+              except Exception as e:
+                  results.append(False)
+                  print('RESULT',name,'ERROR',repr(e))
+          print('LIVE_GATEWAY_FONT_READY',all(results))
+          # Diagnostic only: missing live promotion must not replace SEO deployment gates.
+          PY
