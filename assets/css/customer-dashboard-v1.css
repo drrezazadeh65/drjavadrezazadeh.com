@@ -711,3 +711,13 @@ html[data-customer-authenticated="true"] .cd-auth-state::before{background:var(-
 @media(prefers-reduced-motion:reduce){
   .cd-journey-step,.cd-access-card{transition:none!important}
 }
+
+/* Progressive role-aware navigation inside the existing Bertina command center.
+   Presentation only; server-side identity and authorization remain authoritative. */
+.cd-command-paths{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 7px}
+.cd-command-paths button{min-height:43px;padding:10px 15px;border:1px solid var(--cd-line);border-radius:12px;background:var(--cd-panel2);color:var(--cd-soft);font-family:inherit;font-size:12px;font-weight:750;cursor:pointer;transition:background .15s,border-color .15s}
+.cd-command-paths button[aria-pressed="true"]{background:rgba(232,207,152,.13);color:var(--cd-gold);border-color:var(--cd-gold-2)}
+.cd-command-paths button:focus-visible{outline:3px solid var(--cd-gold);outline-offset:3px}
+.cd-command-path-note{color:var(--cd-muted);font-size:11px;line-height:1.8;margin:0 0 13px}
+.cd-quick-card[hidden]{display:none!important}
+@media(max-width:650px){.cd-command-paths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cd-command-paths button{min-width:0;padding:9px 7px;line-height:1.5;font-size:11px}.cd-command-path-note{font-size:10px}}
