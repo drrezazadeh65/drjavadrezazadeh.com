@@ -268,6 +268,18 @@ function normalizedCustomer(mixed $input): array {
     if($phone!==''&&!preg_match('/^[0-9۰-۹٠-٩+() .\\-]{5,30}$/u',$phone))fail('invalid_delivery_phone');
     return ['name'=>$name,'email'=>$email,'address'=>$address,'postal'=>$postal,'phone'=>$phone];
 }
+// Service and VIP fulfilment requires a verified-format buyer contact record.
+// A guest checkout never pretends that the email address is account-verified.
+function normalizedServiceBuyer(mixed $input): array {
+    if(!is_array($input))fail('customer_required');
+    $name=trim((string)($input['name']??''));
+    $email=emailNorm($input['email']??'');
+    $phone=trim((string)($input['phone']??''));
+    if(textLen($name)<2||textLen($name)>100)fail('invalid_customer_name');
+    if(!validEmail($email))fail('invalid_customer_email');
+    if($phone!==''&&!preg_match('/^[0-9۰-۹٠-٩+() .\\-]{5,30}$/u',$phone))fail('invalid_delivery_phone');
+    return ['name'=>$name,'email'=>$email,'phone'=>$phone];
+}
 function token(int $bytes = 32): string { return rtrim(strtr(base64_encode(random_bytes($bytes)), '+/', '-_'), '='); }
 function tokenHash(string $raw): string { return hash('sha256', $raw); }
 function nowTs(): int { return time(); }
@@ -554,7 +566,11 @@ if($path==='/commerce/create'&&$verb==='POST'){
     foreach($counts as $sku=>$q){$x=$inventory[$sku];if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'){$hasBook=true;if($c['book_shipping_confirmed']!==true)fail('book_shipping_not_configured',503);}if($x['kind']==='service'&&$c['service_booking_confirmed']!==true)fail('service_booking_not_configured',503);if($x['kind']==='vip'&&$c['vip_booking_confirmed']!==true)fail('vip_booking_not_configured',503);$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
     if($total<1000||$total>1000000000)fail('amount_out_of_range');
     $customer=null;$customerEmail=null;$customerJson=null;
-    if($hasBook){$customer=normalizedCustomer($b['customer']??null);$customerEmail=$customer['email'];$customerJson=json_encode($customer,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);if(!is_string($customerJson))fail('customer_encoding_failed',500);}
+    if($hasBook){$customer=normalizedCustomer($b['customer']??null);}
+    else {$customer=normalizedServiceBuyer($b['customer']??null);}
+    $customerEmail=$customer['email'];
+    $customerJson=json_encode($customer,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+    if(!is_string($customerJson))fail('customer_encoding_failed',500);
     $rateIdentity=$customerEmail?:implode(',',array_keys($counts));if(!rateAllowed($pdo,'commerce_create',$rateIdentity,5,900))fail('rate_limited',429);
     $mul=(int)$c['bitpay_amount_multiplier'];$providerAmount=$total*$mul;$order=uuidv4();$factor=preg_replace('/[^0-9]/','',(string)hrtime(true));$factor=substr($factor,0,28);
     $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,? ,NOW(),NOW())")
