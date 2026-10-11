@@ -90,7 +90,7 @@ export async function verifyHistoricalAuthority(registry,{request=trustedPublicR
           // redirect the discontinued product to any semantically unrelated page.
           if(response.status===410&&!response.headers.location)return;
           if(new URL(url).origin===canonical.origin)throw new Error('canonical retired product must return 410 directly');
-          if(response.status!==301||!response.headers.location)throw new Error('retired product must return 410 or one canonical transport redirect');
+          if(response.status!==301||!response.headers.location)throw new Error('retired product must return 410 or one canonical transport redirect; received '+response.status+' Location='+(response.headers.location||'(none)'));
           const destination=new URL(response.headers.location,url);
           const original=new URL(url);
           let oldPath=original.pathname,newPath=destination.pathname;
