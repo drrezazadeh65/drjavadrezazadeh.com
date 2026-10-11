@@ -363,3 +363,35 @@ test('Sponsor workspace declares consent and does not fabricate student profiles
  await expect(page.locator('[data-support-cases]')).toBeHidden();
  await expect(page.locator('[data-support-need-form]')).toBeHidden();
 });
+
+test('Donor dashboard shows only verified contributions while student case schema remains offline',async({page})=>{
+ await page.route('**/api/student-support/health',route=>route.fulfill({status:200,json:{
+  ok:true,service:'student-support',guestGiving:true,caseSchemaReady:false,privatePortal:false,
+  studentIdentityPublic:false,directSponsorStudentContact:false
+ }}));
+ await page.route('**/api/student-support/my-contributions',route=>route.fulfill({status:200,json:{
+  ok:true,service:'student-support',authenticated:true,noStudentIdentity:true,count:2,
+  items:[{orderId:'88888888-8888-4888-8888-888888888880',amountToman:1000,paidAt:'2026-10-11 10:00:00',
+   programme:'talented-students-v1',focus:'books',allocationState:'pending_verified_need'},
+   {orderId:'88888888-8888-4888-8888-888888888881',amountToman:5000,paidAt:'2026-10-11 09:00:00',
+   programme:'legacy-voluntary',focus:null,allocationState:null}]
+ }}));
+ await page.goto(base+'/fa/customer-dashboard/#student-support',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('[data-contributions-list]')).toBeVisible();
+ await expect(page.locator('.cd-donor-ledger-item')).toHaveCount(2);
+ await expect(page.locator('[data-contributions-status]')).toContainText('۶٬۰۰۰');
+ await expect(page.locator('[data-contributions-list]')).toContainText('بدون انتساب خودکار به دانش‌آموز');
+ await expect(page.locator('[data-support-cases]')).toBeHidden();
+ await expect(page.locator('[data-support-need-form]')).toBeHidden();
+});
+test('Donor history is not visible to guest without verified login',async({page})=>{
+ await page.route('**/api/student-support/health',route=>route.fulfill({status:200,json:{
+  ok:true,service:'student-support',guestGiving:true,caseSchemaReady:false,privatePortal:false,
+  studentIdentityPublic:false,directSponsorStudentContact:false
+ }}));
+ await page.route('**/api/student-support/my-contributions',route=>route.fulfill({status:401,json:{ok:false,error:'unauthorized'}}));
+ await page.goto(base+'/fa/customer-dashboard/#student-support',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('[data-contributions-status]')).toContainText('ایمیل تأییدشده');
+ await expect(page.locator('[data-contributions-list]')).toBeHidden();
+ await expect(page.locator('[data-support-cases]')).toBeHidden();
+});
