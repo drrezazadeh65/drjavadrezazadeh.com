@@ -8,10 +8,12 @@
 <form data-support-form>
 <label for="support-amount">Support amount (toman)</label>
 <div class="support-presets" role="group" aria-label="Suggested amounts">
-<button type="button" data-support-amount="1000">1,000 toman</button>
-<button type="button" data-support-amount="5000">5,000 toman</button>
-<button type="button" data-support-amount="10000">10,000 toman</button>
-<button type="button" data-support-amount="20000">20,000 toman</button>
+<button type="button" data-support-amount="200000" aria-pressed="false">200,000 toman</button>
+<button type="button" data-support-amount="500000" aria-pressed="true">500,000 toman</button>
+<button type="button" data-support-amount="1000000" aria-pressed="false">1 million toman</button>
+<button type="button" data-support-amount="2000000" aria-pressed="false">2 million toman</button>
+<button type="button" data-support-amount="5000000" aria-pressed="false">5 million toman</button>
+<button type="button" data-support-amount="10000000" aria-pressed="false">10 million toman</button>
 </div>
 <input id="support-amount" name="amountToman" type="number" inputmode="numeric" min="1000" max="10000000" step="1000" value="500000" required aria-describedby="support-preview">
 <p id="support-preview" class="support-preview" data-support-preview aria-live="polite"></p>
