@@ -60,7 +60,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js --reporter=line
+          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/operations-public-preview-browser.spec.js --reporter=line
       - name: Retain failure evidence
         if: failure()
         uses: actions/upload-artifact@v4

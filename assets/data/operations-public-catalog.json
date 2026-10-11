@@ -1,0 +1,363 @@
+{
+  "schema": "operations-public-catalog-v1",
+  "definitionSha": "d051dcc1ba8890c29fa04dc1b3c77efc8c35337a",
+  "engines": [
+    {
+      "id": "ENG-01",
+      "title": "موتور اصلی سئو",
+      "name": "Master SEO Engine",
+      "reports": [
+        "OP-01",
+        "OP-12",
+        "OP-13",
+        "OP-14",
+        "OP-15",
+        "OP-27",
+        "OP-29"
+      ],
+      "actions": 11
+    },
+    {
+      "id": "ENG-02",
+      "title": "موتور کشف هوش مصنوعی و GEO",
+      "name": "AI Discovery & GEO Engine",
+      "reports": [
+        "OP-28"
+      ],
+      "actions": 2
+    },
+    {
+      "id": "ENG-03",
+      "title": "موتور هوشمندی RAVE",
+      "name": "RAVE Intelligence Engine",
+      "reports": [
+        "OP-32"
+      ],
+      "actions": 1
+    },
+    {
+      "id": "ENG-04",
+      "title": "موتور Golden Talent",
+      "name": "Real Golden Talent Engine",
+      "reports": [
+        "OP-21"
+      ],
+      "actions": 2
+    },
+    {
+      "id": "ENG-05",
+      "title": "موتور تجارت و مالی",
+      "name": "Commerce & Finance Engine",
+      "reports": [
+        "OP-07",
+        "OP-08",
+        "OP-09",
+        "OP-10",
+        "OP-11",
+        "OP-23",
+        "OP-24"
+      ],
+      "actions": 10
+    },
+    {
+      "id": "ENG-06",
+      "title": "موتور نشریه علمی",
+      "name": "Scientific Journal Engine",
+      "reports": [],
+      "actions": 1
+    },
+    {
+      "id": "ENG-07",
+      "title": "موتور ارتباط و تجربه مشتری",
+      "name": "CRM & Customer Experience Engine",
+      "reports": [
+        "OP-05",
+        "OP-06",
+        "OP-19",
+        "OP-22",
+        "OP-33",
+        "OP-34"
+      ],
+      "actions": 7
+    },
+    {
+      "id": "ENG-08",
+      "title": "موتور مدیریت محتوا",
+      "name": "Content Management Engine",
+      "reports": [
+        "OP-25",
+        "OP-26",
+        "OP-30",
+        "OP-31"
+      ],
+      "actions": 4
+    },
+    {
+      "id": "ENG-09",
+      "title": "موتور رسانه و تصویر",
+      "name": "Media & Image Engine",
+      "reports": [],
+      "actions": 1
+    },
+    {
+      "id": "ENG-10",
+      "title": "موتور طراحی و هویت",
+      "name": "Design & Identity Engine",
+      "reports": [
+        "OP-16",
+        "OP-18"
+      ],
+      "actions": 2
+    },
+    {
+      "id": "ENG-11",
+      "title": "موتور عملیات و امنیت",
+      "name": "Operations & Security Engine",
+      "reports": [
+        "OP-02",
+        "OP-03",
+        "OP-04",
+        "OP-17",
+        "OP-20",
+        "OP-35",
+        "OP-36"
+      ],
+      "actions": 9
+    },
+    {
+      "id": "ENG-12",
+      "title": "موتور مدیریت یکپارچه",
+      "name": "Unified Administration Engine",
+      "reports": [
+        "ADM-01"
+      ],
+      "actions": 1
+    },
+    {
+      "id": "ENG-13",
+      "title": "موتور گزارش، ممیزی و هوشمندی",
+      "name": "Reporting, Audit & Intelligence Engine",
+      "reports": [],
+      "actions": 1
+    }
+  ],
+  "reports": [
+    {
+      "id": "OP-01",
+      "title": "سئوی فنی",
+      "engineId": "ENG-01",
+      "priority": "P0"
+    },
+    {
+      "id": "OP-02",
+      "title": "کنترل شاخهٔ Production",
+      "engineId": "ENG-11",
+      "priority": "P0"
+    },
+    {
+      "id": "OP-03",
+      "title": "گواهی SSL و TLS",
+      "engineId": "ENG-11",
+      "priority": "P0"
+    },
+    {
+      "id": "OP-04",
+      "title": "فشرده‌سازی و کش",
+      "engineId": "ENG-11",
+      "priority": "P0"
+    },
+    {
+      "id": "OP-05",
+      "title": "ثبت‌نام و تأیید ایمیل",
+      "engineId": "ENG-07",
+      "priority": "P0"
+    },
+    {
+      "id": "OP-06",
+      "title": "ورود و بازیابی رمز",
+      "engineId": "ENG-07",
+      "priority": "P0"
+    },
+    {
+      "id": "OP-07",
+      "title": "آمادگی درگاه و اینماد",
+      "engineId": "ENG-05",
+      "priority": "P0"
+    },
+    {
+      "id": "OP-08",
+      "title": "Callback و رسید پرداخت",
+      "engineId": "ENG-05",
+      "priority": "P0"
+    },
+    {
+      "id": "OP-09",
+      "title": "پرداخت واقعی کنترل‌شده",
+      "engineId": "ENG-05",
+      "priority": "P0"
+    },
+    {
+      "id": "OP-10",
+      "title": "کاتالوگ فروشگاه",
+      "engineId": "ENG-05",
+      "priority": "P0"
+    },
+    {
+      "id": "OP-11",
+      "title": "موجودی و ارسال و تحویل",
+      "engineId": "ENG-05",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-12",
+      "title": "ریدایرکت‌های تاریخی",
+      "engineId": "ENG-01",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-13",
+      "title": "ممیزی مقصد بک‌لینک‌ها",
+      "engineId": "ENG-01",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-14",
+      "title": "ایندکس Google Search Console",
+      "engineId": "ENG-01",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-15",
+      "title": "Bing و IndexNow",
+      "engineId": "ENG-01",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-16",
+      "title": "موبایل و PWA",
+      "engineId": "ENG-10",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-17",
+      "title": "Core Web Vitals میدانی",
+      "engineId": "ENG-11",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-18",
+      "title": "دسترس‌پذیری",
+      "engineId": "ENG-10",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-19",
+      "title": "داشبورد مشتری",
+      "engineId": "ENG-07",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-20",
+      "title": "حریم خصوصی و نقش‌ها",
+      "engineId": "ENG-11",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-21",
+      "title": "Golden Talent",
+      "engineId": "ENG-04",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-22",
+      "title": "رزرو مشاوره",
+      "engineId": "ENG-07",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-23",
+      "title": "خرید خدمات",
+      "engineId": "ENG-05",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-24",
+      "title": "کمک مالی",
+      "engineId": "ENG-05",
+      "priority": "P2"
+    },
+    {
+      "id": "OP-25",
+      "title": "ممیزی علمی مقالات فارسی",
+      "engineId": "ENG-08",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-26",
+      "title": "ممیزی علمی صفحات انگلیسی",
+      "engineId": "ENG-08",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-27",
+      "title": "هویت علمی و EEAT",
+      "engineId": "ENG-01",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-28",
+      "title": "مشاهده‌پذیری جست‌وجوی AI",
+      "engineId": "ENG-02",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-29",
+      "title": "داده‌های ساختاریافته",
+      "engineId": "ENG-01",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-30",
+      "title": "نظرهای مدیریت‌شده",
+      "engineId": "ENG-08",
+      "priority": "P2"
+    },
+    {
+      "id": "OP-31",
+      "title": "اشتراک‌گذاری اجتماعی",
+      "engineId": "ENG-08",
+      "priority": "P2"
+    },
+    {
+      "id": "OP-32",
+      "title": "تحلیل RAVE",
+      "engineId": "ENG-03",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-33",
+      "title": "دستیار و ذخیرهٔ لید",
+      "engineId": "ENG-07",
+      "priority": "P2"
+    },
+    {
+      "id": "OP-34",
+      "title": "ایمیل با رضایت مخاطب",
+      "engineId": "ENG-07",
+      "priority": "P2"
+    },
+    {
+      "id": "OP-35",
+      "title": "نسخهٔ پشتیبان و پایش امنیت",
+      "engineId": "ENG-11",
+      "priority": "P1"
+    },
+    {
+      "id": "OP-36",
+      "title": "آزمون انتشار و بازگشت",
+      "engineId": "ENG-11",
+      "priority": "P0"
+    }
+  ],
+  "actionCount": 52
+}

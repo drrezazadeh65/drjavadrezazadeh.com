@@ -1,29 +1,25 @@
-/* Public-safe engineering status only. Never load personal, financial or admin data here. */
+/* Public read-only projection. No administrative API, cookies, storage or mutations. */
 (()=>{'use strict';
  const root=document.getElementById('engine-control-dashboard');if(!root)return;
- const data=[
- ['crm','CRM و مخاطبان','relationships'],['consultation','مشاوره و رزرو','consultations'],['consultation-record','پرونده مشاوره','consultations'],
- ['commerce','تجارت و سفارش','commerce'],['communication','ارتباطات ایمیلی','communications'],['assessment','اجرای ارزیابی','assessment'],
- ['assessment-authoring','تألیف ابزار ارزیابی','assessment'],['report','گزارش‌سازی','reports'],['research-export','خروجی پژوهشی','research'],
- ['golden-talent','شواهد استعداد طلایی','talent'],['golden-talent-deep','ماژول‌های عمیق استعداد','talent'],
- ['golden-talent-analytics','تحلیل شواهد استعداد','talent'],['bahar','توسعه طولی بهار','talent']
- ];
- const list=root.querySelector('[data-engine-list]'),search=root.querySelector('[data-engine-search]'),filter=root.querySelector('[data-engine-domain]');
- const count=root.querySelector('[data-engine-count]'),empty=root.querySelector('[data-engine-empty]');
- const domains=[...new Set(data.map(x=>x[2]))];
- for(const domain of domains){const option=document.createElement('option');option.value=domain;option.textContent=domain;filter.append(option);}
- const render=()=>{
-  const term=search.value.trim().toLocaleLowerCase(),domain=filter.value;
-  const visible=data.filter(([id,title,group])=>(!domain||domain===group)&&(!term||(id+' '+title+' '+group).toLocaleLowerCase().includes(term)));
-  list.replaceChildren();count.textContent=String(visible.length);empty.hidden=visible.length!==0;
-  for(const [id,title,group] of visible){
-   const card=document.createElement('article');card.className='engine-control__card';
-   const heading=document.createElement('h3');heading.textContent=title;
-   const code=document.createElement('code');code.textContent=id;
-   const meta=document.createElement('p');meta.textContent='حوزه: '+group;
-   const state=document.createElement('span');state.className='engine-control__state';state.textContent='کد شناسایی‌شده · وضعیت عملیاتی تأیید نشده';
-   card.append(heading,code,meta,state);list.append(card);
-  }
- };
- search.addEventListener('input',render);filter.addEventListener('change',render);render();
+ const $=s=>document.querySelector(s),list=$('[data-engine-list]'),search=$('[data-engine-search]'),filter=$('[data-engine-domain]'),count=$('[data-engine-count]'),empty=$('[data-engine-empty]');
+ let catalog=null,view='engines',checking=false,health=[],checkedAt=null;
+ const node=(tag,text,className)=>{const el=document.createElement(tag);el.textContent=text;if(className)el.className=className;return el;};
+ function card(title,id,lines){const el=node('article','','engine-control__card');el.append(node('h3',title),node('code',id));for(const line of lines)el.append(node('p',line));return el;}
+ function render(){if(!catalog)return;list.replaceChildren();const term=search.value.trim().toLocaleLowerCase(),engine=filter.value;
+  let rows=view==='engines'?catalog.engines:view==='reports'?catalog.reports:[{id:'release',title:'انتشار و کنترل کیفیت',engineId:'',url:'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/deploy-bertina.yml'},{id:'control',title:'تغییرات مرکز کنترل',engineId:'',url:'https://github.com/drrezazadeh65/drjavadrezazadeh.com/pull/44'}];
+  rows=rows.filter(x=>(!engine||(view==='engines'?x.id:x.engineId)===engine)&&(!term||(x.id+' '+x.title+' '+(x.name||'')).toLocaleLowerCase().includes(term)));count.textContent=String(rows.length);empty.hidden=rows.length!==0;
+  for(const row of rows){const lines=view==='engines'?[row.name,'گزارش‌های مرتبط: '+row.reports.length+' · اقدامات تعریف‌شده: '+row.actions]:view==='reports'?['اولویت '+row.priority+' · '+row.engineId,'تکمیل: نیازمند شواهد همان بخش']:['نتایج آزمون و زمان انتشار در GitHub قابل بررسی‌اند.'];const el=card(row.title,row.id,lines);if(row.url){const link=node('a','مشاهدهٔ شواهد ↗');link.href=row.url;link.target='_blank';link.rel='noopener noreferrer';el.append(link);}list.append(el);}
+ }
+ async function read(path){const r=await fetch(path,{method:'GET',credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('unavailable');return r.json();}
+ async function refresh(){if(checking)return;checking=true;$('[data-health-refresh]').disabled=true;$('[data-health-time]').textContent='در حال بررسی…';
+  const results=await Promise.allSettled([read('/api/auth/health'),read('/api/commerce/health'),read('/api/donations/health')]);
+  const auth=results[0].status==='fulfilled'?results[0].value:null,commerce=results[1].status==='fulfilled'?results[1].value:null,donation=results[2].status==='fulfilled'?results[2].value:null;
+  const state=(d,ready)=>!d?'پاسخ معتبر دریافت نشد':ready?'آمادگی تنظیمات سرور تأیید شد':'آمادگی کامل تأیید نشد';
+  health=[{id:'auth',title:'حساب و ثبت‌نام',state:state(auth,auth?.ready===true&&auth?.registrationReady===true),note:'ورود و ثبت‌نام؛ دریافت ایمیل جداگانه تأیید می‌شود.'},{id:'commerce',title:'فروشگاه و خرید',state:state(commerce,commerce?.checkout===true&&commerce?.capabilities?.books===true),note:'مبلغ نهایی و نتیجهٔ بانک باید در سرور تأیید شوند.'},{id:'donations',title:'حمایت از استعدادها',state:state(donation,donation?.checkout===true),note:donation&&Number.isSafeInteger(donation.minToman)&&Number.isSafeInteger(donation.maxToman)?'بازهٔ اعلام‌شده: '+donation.minToman.toLocaleString('fa-IR')+' تا '+donation.maxToman.toLocaleString('fa-IR')+' تومان':'بازهٔ مبلغ در دسترس نیست.'}];
+  const host=$('[data-health-list]');host.replaceChildren();for(const x of health)host.append(card(x.title,x.id,[x.state,x.note]));checkedAt=new Date().toISOString();$('[data-health-time]').textContent='زمان این بررسی: '+new Intl.DateTimeFormat('fa-IR',{dateStyle:'short',timeStyle:'medium',timeZone:'Asia/Tehran'}).format(new Date(checkedAt));checking=false;$('[data-health-refresh]').disabled=false;
+ }
+ for(const button of document.querySelectorAll('[data-view]'))button.addEventListener('click',()=>{view=button.dataset.view;for(const b of document.querySelectorAll('[data-view]'))b.setAttribute('aria-pressed',String(b===button));render();});
+ search.addEventListener('input',render);filter.addEventListener('change',render);$('[data-health-refresh]').addEventListener('click',refresh);
+ $('[data-public-report]').addEventListener('click',()=>{if(!catalog)return;const text=['گزارش نمای عمومی مرکز کنترل','زمان بررسی: '+(checkedAt||'بررسی نشده'),'موتورها: '+catalog.engines.length,'گزارش‌ها: '+catalog.reports.length,'شناسه‌های اقدام: '+catalog.actionCount,...health.map(x=>x.title+': '+x.state+' — '+x.note),'درصد تکمیل خصوصی و تراکنش یا دریافت ایمیل با این نما تأیید نمی‌شود.'].join('\n');const url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='operations-public-report.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+ read('/assets/data/operations-public-catalog.json').then(d=>{if(d.schema!=='operations-public-catalog-v1'||d.engines.length!==13||d.reports.length!==36)throw Error('invalid_catalog');catalog=d;$('[data-engine-total]').textContent=String(d.engines.length);$('[data-report-total]').textContent=String(d.reports.length);$('[data-action-total]').textContent=String(d.actionCount);for(const e of d.engines){const o=node('option',e.title);o.value=e.id;filter.append(o);}render();}).catch(()=>{list.replaceChildren(node('p','فهرست موتور‌ها موقتاً در دسترس نیست.'));});refresh();
 })();
