@@ -3,7 +3,7 @@ declare(strict_types=1);
 // Actual HTTP requests against the production PHP router with an isolated CI MySQL database.
 // This test never uses Bertina credentials, SMTP or a payment provider.
 $dsn=(string)getenv('OPERATIONS_TEST_DSN');
-if(!str_contains($dsn,'dbname=operations_fixture'))throw new RuntimeException('isolated_fixture_database_required');
+if(!preg_match('/(?:^|;)dbname=operations_fixture(?:;|$)/',$dsn))throw new RuntimeException('isolated_fixture_database_required');
 $user=(string)getenv('OPERATIONS_TEST_USER');$password=(string)getenv('OPERATIONS_TEST_PASSWORD');
 $pdo=new PDO($dsn,$user,$password,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
 $pdo->exec(file_get_contents(__DIR__.'/../docs/BERTINA_MYSQL_SCHEMA.sql'));
@@ -33,6 +33,9 @@ $wrong=$batch;$wrong['runId']='654321';try{operationsImportRelease($pdo,$wrong,$
 $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=$work.'/operations-http-'.bin2hex(random_bytes(5));mkdir($folder,0700);mkdir($folder.'/api',0700);mkdir($folder.'/api/internal',0700);
 foreach(['index.php','operations.php','operations-schema.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
 copy(__DIR__.'/../api/internal/operations-registry.json',$folder.'/api/internal/operations-registry.json');
+copy(__DIR__.'/../api/internal/operations-gsc-observation.json',$folder.'/api/internal/operations-gsc-observation.json');
+mkdir($folder.'/assets',0700);mkdir($folder.'/assets/data',0700);
+foreach(['book-catalog.json','service-catalog.json','vip-catalog.json'] as $catalog)copy(__DIR__.'/../assets/data/'.$catalog,$folder.'/assets/data/'.$catalog);
 function writeConfig():void {file_put_contents($GLOBALS['folder'].'/api/config.local.php','<?php return '.var_export($GLOBALS['configuration'],true).';');}
 writeConfig();file_put_contents($folder.'/router.php','<?php $p=parse_url($_SERVER["REQUEST_URI"],PHP_URL_PATH);if(is_file(__DIR__.$p))return false;require __DIR__."/api/index.php";');
 $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$err);if(!$socket)throw new RuntimeException('test_socket_unavailable');$address=stream_socket_get_name($socket,false);fclose($socket);$port=(int)substr(strrchr($address,':'),1);
@@ -68,6 +71,17 @@ try {
  $headers['X-CSRF-Token']=$elevatedSession['csrfToken'];
  request('/api/admin/operations/mfa',403,'POST',['code'=>$code],$headers);
  $data=request('/api/admin/operations',200);check($data['dashboard']['measuredProgress']===75,'unexpected admin score');check($data['dashboard']['closed']===false,'unverified production admin closed');check(count($data['reports'])===36,'report count changed');
+ $reports=array_column($data['reports'],null,'id');
+ $identitySignals=array_column($reports['OP-05']['signals'],null,'id');
+ check($identitySignals['auth_runtime']['value']===false&&$identitySignals['email_transport']['value']===false,'disabled fixture email incorrectly ready');
+ check($reports['OP-05']['status']==='blocked'&&$reports['OP-05']['closed']===false,'missing email transport did not block identity');
+ check($reports['OP-07']['status']==='blocked'&&$reports['OP-07']['closed']===false,'unconfigured checkout did not block commerce');
+ $storeSignals=array_column($reports['OP-10']['signals'],null,'id');
+ check($storeSignals['sellable_books']['value']===3,'server-authoritative book catalogue not connected');
+ $gscSignals=array_column($reports['OP-14']['signals'],null,'id');
+ check($gscSignals['sample_size']['value']===10&&$gscSignals['indexed_sample']['value']===8&&$gscSignals['unknown_sample']['value']===2,'Google sample incorrectly represented');
+ check($reports['OP-14']['measuredProgress']===null&&$reports['OP-14']['closed']===false,'Google sample certified overall indexation');
+ check(!str_contains(json_encode($data),$password)&&!str_contains(json_encode($data),$secret)&&!str_contains(json_encode($data),str_repeat('p',32)),'private configuration leaked through metrics');
  $remaining=request('/api/admin/operations/session',200);check($remaining['mfaExpiresIn']>0&&$remaining['mfaExpiresIn']<=600,'incorrect MFA expiry');
  $configuration['operations_admins'][$id]['totp_secret']=str_repeat('J',32);writeConfig();request('/api/admin/operations',403);
  $configuration['operations_admins'][$id]['totp_secret']=$secret;writeConfig();

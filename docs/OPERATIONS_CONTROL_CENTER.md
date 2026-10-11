@@ -25,3 +25,11 @@ The remaining 36 section collectors are explicitly pending unless supported by t
 Local verification passed 77 security assertions, 39 real PHP HTTP/MySQL-protocol assertions against isolated MariaDB11.8.8, 14 Chromium browser cases at320–1440px in both languages, and the existing11 receipt cases. The public artifact retains290 HTML routes; SEO and workflow governance passed. These are local observations, not production certification. GitHub CI additionally runs the isolated database suite on MySQL8 and uses standard Playwright Chromium.
 
 Production deployment remains on `migration/bertina-linux6` only. It rejects stale HEAD immediately before extraction, queues concurrent GitHub runs and holds a persistent host-side deployment lock through extraction, checksums and evidence import. Extraction is in-place rather than atomic; the lock serializes cooperating deployment writers and does not freeze ordinary readers or a non-cooperating old helper. Payment activation switches and credentials are not changed by this feature.
+
+## Observed engine signals
+
+A separate read-only signal layer reads effective Auth/SMTP and commerce readiness, boolean gateway/fulfilment requirements, approved catalogue counts and MySQL order states in an explicitly bounded, deterministic UUID-indexed sample of at most1000 rows. Missing runtime prerequisites block the related engine even when imported gates previously passed. Configuration values and customer/order identities are not returned; gateway presence is a boolean. Paid-state rows with callback fields are labeled database observations, not independently reconciled transactions.
+
+OP14 additionally displays the actual ten-URL Google inspection snapshot collected2026-10-10:8 indexed,2 unknown. The source/time and a72-hour observation expiry remain visible. This is a saved sample, not an ongoing GSC integration, complete coverage or evidence that Google indexed the newest release. Observations do not close acceptance gates or manufacture progress.
+
+The signal extension passes46 actual HTTP/MySQL-protocol assertions locally, including disabled-mail/checkout blockers, absence of private credential values and separation of the Google sample from overall completion. Browser checks include false versus zero and expired observation labeling in FA/EN at320px.
