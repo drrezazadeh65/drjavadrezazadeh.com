@@ -6,7 +6,7 @@ for(const [locale,title,cta] of required){
  for(const root of ['','.public-site/']){
   const p=root+locale+'/shop/index.html';
   const html=fs.readFileSync(p,'utf8');
-  for(const marker of [title,cta,'id="store-mission-title"','id="publish-for-talent"','id="book-catalog"','href="#book-catalog"','href="#publish-for-talent"','store-mission.css?v=approved-original-20261011-v4','mailto:info@drjavadrezazadeh.com']){
+  for(const marker of [title,cta,'id="store-mission-title"','id="publish-for-talent"','id="book-catalog"','href="#book-catalog"','href="#publish-for-talent"','store-mission.css?v=approved-original-20261011-v5','mailto:info@drjavadrezazadeh.com']){
    if(!html.includes(marker))throw Error('Missing '+marker+' from '+p);
   }
   if(!html.includes('rel="canonical" href="https://drjavadrezazadeh.com/'+locale+'/shop/"'))throw Error('Canonical mismatch '+p);
@@ -33,4 +33,17 @@ for(const route of ['fa/shop/index.html','en/shop/index.html','fa/support-talent
 const donationClient=fs.readFileSync('assets/js/donation-payment.js','utf8');
 const donationApi=fs.readFileSync('api/index.php','utf8');
 if(!donationClient.includes('data.maxToman!==10000000')||!donationApi.includes("'maxToman'=>10000000"))throw Error('Server/browser donation limit drift');
+for(const lang of ['fa','en']) {
+ for(const root of ['','.public-site/']) {
+  const shop=fs.readFileSync(root+lang+'/shop/index.html','utf8');
+  const faq=shop.match(/<section id="shop-faq"[\\s\\S]*?<\\/section>/);
+  if(!faq)throw Error('No bookstore FAQ for '+lang);
+  if((faq[0].match(/<details class="store-faq-item">/g)||[]).length!==16)throw Error('Bookstore FAQ count mismatch for '+lang);
+  if(!shop.includes('href="#shop-faq"'))throw Error('Bookstore FAQ discovery link missing '+lang);
+  const support=fs.readFileSync(root+lang+'/support-talented-students/index.html','utf8');
+  const supportFaq=support.match(/<section id="support-faq"[\\s\\S]*?<\\/section>/);
+  if(!supportFaq||(supportFaq[0].match(/<details>/g)||[]).length!==12)throw Error('Student support FAQ mismatch for '+lang);
+ }
+}
+console.log('Bilingual bookstore FAQ (16 each), student support FAQ (12 each) and SEO: PASS');
 console.log('Store mission, mobile-first donation contracts, collaboration, anchor links and SEO: PASS');
