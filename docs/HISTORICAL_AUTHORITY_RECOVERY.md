@@ -15,7 +15,7 @@ Recover legitimate historical authority from previous versions of this same doma
 2. Never redirect historical public authority into private/noindex routes.
 3. Use one-hop 301 redirects only when the destination is genuinely equivalent or a truthful consolidation page.
 4. Preserve `/` directly and consolidate historical `/shop/` to `/fa/shop/`.
-5. Legitimate former commerce that no longer exists may be consolidated into `/fa/archive/legacy-shop/` only when the archive explicitly contains the former material.
+5. **Owner-directed removal (2026-10-11):** six historical non-book product URLs and the retired archive now return 410 Gone. No public page, archive, internal link, or sitemap promotes the discontinued product category. Do not redirect its backlinks to unrelated academic services or books.
 6. Unverified old URLs remain 404/review candidates until evidence exists.
 7. Verified hacked/spam URLs use 410 rather than borrowing current authority.
 8. Former book-product URLs should map to the exact current book page when identity is proven; do not send them to the carpet/gabeh archive.
@@ -25,14 +25,14 @@ Recover legitimate historical authority from previous versions of this same doma
 
 Historical Google Search Console data recovered eight old URLs from the pre-expiry site:
 - `/publications/` — already maps one-hop to `/en/publications/`.
-- Six former carpet/gabeh product URLs — confirmed by the owner as legitimate old store inventory and consolidated to the historical shop archive.
+- Six confirmed non-book historical commerce URLs — now deliberately retired with 410 Gone after the owner's explicit instruction to remove their public representation.
 - `/wp-content/uploads/2022/12/مقاله-اول.pdf` — review-only until the original document or a verified equivalent is recovered.
 
 The owner has also confirmed that the previous shop sold books and carpet/kilim/gabeh products. Unknown product URLs remain unmapped until backlink or archive evidence identifies them.
 
-The registry contains 15 authority redirects and seven historical candidates. The six-product archive is a truthful discontinued-catalog consolidation; it does not reconstruct the original detailed product pages.
+The active registry now contains nine semantic 301 redirects, six retired 410 product candidates and one unresolved historical PDF for review. The removed archive is no longer indexable or included in the public sitemap.
 
-The supplied Ahrefs overview shows 359 referring domains for the domain scope and four for the www scope, with DR 0 and zero reported organic traffic/keywords. These are differently scoped summaries, not a target-URL inventory or proof of ranking recovery. The supplied Referring Domains link is inaccessible from this execution environment; Backlinks/Best by links target-URL evidence is still required to identify additional destinations.
+The supplied Ahrefs overview shows 359 referring domains for the domain scope and four for the www scope, with DR 0 and zero reported organic traffic/keywords. These are differently scoped summaries, not a target-URL inventory or proof of ranking recovery. The source summaries do not contain a target URL for each backlink. A Backlinks/Best by links export with Target URL, Source URL, source domain, follow/nofollow and DR is required before making additional URL-specific decisions. No new redirect may be generated merely to recover an impressive raw domain count.
 
 Verified release evidence: PR #31 merged at `90d889c6`, the historical-date PR #32 at `724fcece`, and PR #33 at `882f6635`. Bertina deploy [38087632105](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38087632105) verified 553 managed files for `30b1dfc1`. Audited production base `c3a2fbb9` differed from that deployed commit only in excluded workflow YAML. Historical live run [38087711342](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38087711342) checked two former products, `/shop/` and the archive using certificate-bypassed origin requests; it did not certify all URLs or public TLS.
 
@@ -75,21 +75,17 @@ After an authorized deployment, `.github/workflows/deploy-bertina.yml` runs:
 
     node scripts/historical-authority-live-verify.mjs historical-live-report.json
 
-This script uses normal CA/hostname verification without certificate bypass, DNS overrides or redirect following. Its 137 GET checks cover all 15 registered mappings over four origins and both slash forms, each unique indexable/self-canonical 200 destination, canonical root behavior, a shop tracking query, and genuine 404 responses for an unknown product and the unresolved PDF. JSON evidence records the checked source SHA and network context; technical indexability is not proof of search-engine indexing.
+This script uses normal CA/hostname verification without certificate bypass, DNS overrides or redirect following. Its live GET checks cover nine registered semantic 301 mappings, the retired 410 routes over four origins and both slash forms, each unique indexable/self-canonical 200 destination, canonical root behavior, a shop tracking query, and genuine 404 responses for an unknown product and the unresolved PDF. JSON evidence records the checked source SHA and network context; technical indexability is not proof of search-engine indexing.
 
 Verification runs within the deployed release job after checksum/origin checks, avoiding a separate push race. The standalone workflow is read-only and manual with an active-branch guard, but dispatch discovery requires its definition on GitHub's default branch. Since `main` remains the older baseline and untouched, do not rely on `workflow_run` or independent manual discovery for a migration-only file.
 
-## Current historical commerce consolidation
+## Current retired-commerce boundary (2026-10-11)
 
-The following verified former products consolidate one hop into `/fa/archive/legacy-shop/`:
-- فرش ماشینی کد 2-7801-8833
-- فرش ماشینی کد 2-7801-9735
-- فرش ماشینی کد 4301-4917
-- فرش ماشینی کد 4301-5021
-- گبه ماشینی کد 1009-2
-- گبه ماشینی کد 3001-3283
+The six previously recognised non-book product URLs are retained only as internal historical identifiers for exact 410 Gone rules. The old public archive HTML has been deleted, its sitemap listing removed and its former public route now also returns 410. For URLs genuinely withdrawn by the owner, SEO authority is not assumed transferable to unrelated pages.
 
-The archive carries no current price, stock, offer or checkout claims.
+The former root `/shop/` is a different case: it remains a one-hop 301 redirect to `/fa/shop/`, the active bookshop. Former book and scholarly URLs must be assessed individually and mapped to an equivalent current route only when the identity and intent are supported by evidence.
+
+A release must pass `scripts/public-retired-commerce-audit.mjs`, the historical-authority tests and a trusted-TLS live response matrix. A 410 rule is a deliberate removal signal, not an assurance that all previously earned link equity is recoverable.
 
 ## Future decisions
 
