@@ -20,6 +20,8 @@ RewriteRule ^research/?$ https://drjavadrezazadeh.com/en/research/ [R=301,L,NE]
 RewriteRule ^teaching/?$ https://drjavadrezazadeh.com/en/teaching/ [R=301,L,NE]
 RewriteRule ^shop/?$ https://drjavadrezazadeh.com/fa/shop/ [R=301,L,NE]
 
+# Replace the rejected old vector illustration with the owner's approved original banner.
+RewriteRule ^assets/images/talent-bookstore-hero-3d\\.svg$ /assets/images/bookstore-talent-cinematic-approved-20261011.webp [R=301,L,NE]
 # Permanently retired former-product URLs return HTTP 410 without a misleading redirect.
 RewriteRule ^fa/archive/legacy-shop(?:/index\.html)?/?$ - [G,L]
 # Historical product paths remain as non-indexable routing signatures only.

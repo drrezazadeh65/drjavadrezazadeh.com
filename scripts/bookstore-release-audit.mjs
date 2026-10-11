@@ -14,5 +14,8 @@ for(const [locale,title,cta] of required){
   if(!data)throw Error('JSON-LD missing '+p);JSON.parse(data[1]);
  }
 }
+const approved=fs.readFileSync('.public-site/fa/shop/index.html','utf8');
+if(!approved.includes('cinema-original-hero')||!approved.includes('bookstore-talent-cinematic-approved-20261011.webp'))throw Error('Approved original photograph missing from FA storefront');
+if(approved.includes('talent-bookstore-hero-3d.svg'))throw Error('Rejected SVG still rendered in storefront');
 if(!fs.existsSync('.public-site/assets/css/store-mission.css'))throw Error('CSS omitted from release');
 console.log('Store mission bilingual contract, legal collaboration, anchor links and SEO: PASS');

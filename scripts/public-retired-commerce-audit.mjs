@@ -26,8 +26,13 @@ if(fs.existsSync(path.join(root,'fa/archive/legacy-shop/index.html')))errors.pus
 const fa=fs.readFileSync(path.join(root,'fa/shop/index.html'),'utf8');
 const en=fs.readFileSync(path.join(root,'en/shop/index.html'),'utf8');
 for(const [lang,html] of [['fa',fa],['en',en]]){
- if(!html.includes('bookstore-hero-art')||!html.includes('talent-bookstore-hero-3d.svg'))errors.push(lang+' missing accessible cinematic hero');
+ if(lang==='fa' && (!html.includes('cinema-original-hero')||!html.includes('bookstore-talent-cinematic-approved-20261011.webp')))errors.push('FA owner-approved cinematic banner missing');
+ if(lang==='en' && !html.includes('bookstore-talent-approved-scene-20261011.webp'))errors.push('English approved scene crop missing');
+ if(html.includes('talent-bookstore-hero-3d.svg'))errors.push(lang+' rejected vector image is still referenced');
 }
-if(!fs.existsSync(path.join(root,'assets/images/talent-bookstore-hero-3d.svg')))errors.push('Hero illustration omitted from release');
+for(const asset of ['bookstore-talent-cinematic-approved-20261011.webp','bookstore-talent-approved-scene-20261011.webp']){
+ if(!fs.existsSync(path.join(root,'assets/images',asset)))errors.push('Owner-approved image omitted: '+asset);
+}
+if(fs.existsSync(path.join(root,'assets/images/talent-bookstore-hero-3d.svg')))errors.push('Rejected SVG must not be published');
 if(errors.length){console.error(errors.join('\n'));process.exit(1);}
 console.log('Public site free of removed textile shop; bilingual 3D bookstore artwork present.');

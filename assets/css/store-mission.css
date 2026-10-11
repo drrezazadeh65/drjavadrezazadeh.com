@@ -32,3 +32,31 @@
 .talent-hero .store-nav>*{flex:1 1 auto;text-align:center;min-height:44px;align-content:center}
 @media(max-width:850px){.book-store-hero.talent-hero{grid-template-columns:1fr;gap:22px;padding:22px}.talent-hero h1{font-size:clamp(28px,7vw,45px)}.bookstore-hero-art{aspect-ratio:16/10;min-height:170px}.talent-hero .store-nav>*{flex:1 1 calc(50% - 10px)}}
 @media(max-width:520px){.book-store-hero.talent-hero{padding:18px;border-radius:20px}.bookstore-hero-art{min-height:155px;border-radius:15px}.talent-hero .store-nav>*{flex-basis:100%;font-size:14px}}
+
+/* 2026-10-11: owner-approved photographic cinematic banner replaces rejected SVG. */
+.book-store-hero.talent-hero.cinema-original-hero{display:block;position:relative;overflow:hidden;margin-inline:auto;padding:0;gap:0;width:100%;border:1px solid rgba(209,169,96,.38);border-radius:26px;background:#080807}
+.cinema-original-hero .cinema-hero-picture{display:block;margin:0;position:relative;overflow:hidden;width:100%;aspect-ratio:1935/813;background:#130e0a}
+.cinema-original-hero .cinema-hero-picture picture,.cinema-original-hero .cinema-hero-full{display:block;width:100%;height:100%;object-fit:contain}
+.cinema-hero-sr{position:absolute;width:1px;height:1px;overflow:hidden;white-space:nowrap;clip-path:inset(50%)}
+.cinema-original-hero .cinema-hero-hotspot{position:absolute;z-index:2;display:block;border-radius:12px;cursor:pointer;text-decoration:none;background:transparent}
+.cinema-original-hero .cinema-hero-hotspot.authors{left:58%;top:63%;width:20%;height:10.7%}
+.cinema-original-hero .cinema-hero-hotspot.books{left:78.3%;top:62.7%;width:16.1%;height:11%}
+.cinema-original-hero .cinema-hero-hotspot:focus-visible{outline:3px solid #ffe0a0;outline-offset:3px;background:rgba(246,187,93,.13)}
+.cinema-original-hero .cinema-hero-copy{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.cinema-original-hero .cinema-hero-nav{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:9px 20px 14px;position:relative;background:#0a0908}
+.cinema-original-hero .cinema-hero-nav>a{flex:0 1 auto;min-height:40px}
+.cinema-original-hero .cinema-hero-nav>a[href="#book-catalog"],.cinema-original-hero .cinema-hero-nav>a[href="#publish-for-talent"]{display:none}
+@media(max-width:700px){
+ .book-store-hero.talent-hero.cinema-original-hero{border-radius:18px;padding:0}
+ .cinema-original-hero .cinema-hero-picture{aspect-ratio:1090/640}
+ .cinema-original-hero .cinema-hero-full{object-fit:cover}
+ .cinema-original-hero .cinema-hero-hotspot{display:none}
+ .cinema-original-hero .cinema-hero-copy{position:static;width:auto;height:auto;padding:20px 18px 3px;margin:0;clip-path:none;white-space:normal}
+ .cinema-original-hero .cinema-hero-copy h1{font-size:clamp(27px,7vw,38px);line-height:1.45;margin:5px 0 10px;max-width:none}
+ .cinema-original-hero .cinema-hero-copy p{line-height:1.9;font-size:14px}
+ .cinema-original-hero .cinema-hero-nav{padding:15px 18px 22px}
+ .cinema-original-hero .cinema-hero-nav>a{flex:1 1 calc(50% - 10px);min-height:44px}
+ .cinema-original-hero .cinema-hero-nav>a[href="#book-catalog"],.cinema-original-hero .cinema-hero-nav>a[href="#publish-for-talent"]{display:inline-flex}
+}
+@media(max-width:400px){.cinema-original-hero .cinema-hero-nav>a{flex-basis:100%}}
+@media(prefers-reduced-motion:reduce){.cinema-original-hero *{animation:none!important;transition:none!important}}

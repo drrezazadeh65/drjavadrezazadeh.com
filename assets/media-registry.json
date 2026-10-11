@@ -92,6 +92,37 @@
       "optimization_profile": "book-cover-premium"
     },
     {
+      "path": "assets/images/bookstore-talent-approved-scene-20261011.webp",
+      "kind": "illustration",
+      "role": "bookstore-approved-image-mobile-crop",
+      "provenance": "precise crop (x0,y0,x1090,y640) of the owner's approved original cinematic image without any new generated content",
+      "rights": "website-owner-approved site use",
+      "alt_en": "Students following a golden path beyond a glowing open book",
+      "alt_fa": "کتاب نورانی و دانش‌آموزان در مسیر طلایی آینده",
+      "caption_en": "Mobile and English-language image excerpt from the original approved bookstore banner",
+      "caption_fa": "بُرش سازگار با موبایل از تصویر اصلی تأییدشده فروشگاه",
+      "source_status": "owner-approved-derivative",
+      "mime_type": "image/webp",
+      "composition_locked": true,
+      "source_asset": "assets/images/bookstore-talent-cinematic-approved-20261011.webp",
+      "optimization_profile": "mobile-hero-crop-1090x640"
+    },
+    {
+      "path": "assets/images/bookstore-talent-cinematic-approved-20261011.webp",
+      "kind": "illustration",
+      "role": "bookstore-owner-approved-cinematic-banner",
+      "provenance": "exact original visual approved by website owner on 2026-10-11, optimized without altering design from 1935x813 PNG",
+      "rights": "website-owner-approved site use",
+      "alt_en": "Bookstore banner showing a radiant open book and students on a golden path towards education",
+      "alt_fa": "بنر سینمایی فروشگاه کتاب، کتاب نورانی و دانش‌آموزان در مسیر شکوفایی استعداد",
+      "caption_en": "Books that support talented students in need; owner-approved original cinematic banner",
+      "caption_fa": "کتاب‌هایی برای روشن‌ماندن چراغ استعداد؛ تصویر سینمایی اصلی مورد تأیید",
+      "source_status": "owner-approved-production-source",
+      "mime_type": "image/webp",
+      "composition_locked": true,
+      "optimization_profile": "hero-webp-full-1935x813"
+    },
+    {
       "path": "assets/images/educational-philosophy-human-growth-javad-rezazadeh.svg",
       "kind": "illustration",
       "role": "educational-philosophy",
@@ -2725,21 +2756,6 @@
       "alt_fa": "تصویری مفهومی از خدمات آموزشی و هدایت دانش‌آموز",
       "caption_en": "Student-facing educational and guidance services.",
       "caption_fa": "خدمات آموزشی و هدایت ویژه دانش‌آموزان."
-    },
-    {
-      "path": "assets/images/talent-bookstore-hero-3d.svg",
-      "kind": "illustration",
-      "role": "talent-bookstore-hero-cinematic-3d",
-      "provenance": "original commissioned AI-assisted SVG illustration, authored for the bookstore on 2026-10-11",
-      "rights": "site-use-approved by owner in conversation; original visual, no external copyrighted artwork",
-      "alt_en": "An open illuminated book leading by a golden path to educational opportunities for talented students",
-      "alt_fa": "کتاب گشوده در نور طلایی، با مسیری روشن به سوی آینده تحصیلی دانش‌آموزان مستعد",
-      "caption_en": "Bookstore mission: educational opportunity for talented students in financial need.",
-      "caption_fa": "کتاب و حمایت از استعدادهای کم‌برخوردار؛ پلی از دانایی تا فرصت‌های آموزشی.",
-      "source_status": "site-original-vector-illustration",
-      "mime_type": "image/svg+xml",
-      "optimization_profile": "responsive-hero-vector",
-      "composition_locked": false
     },
     {
       "path": "assets/images/talent-identification-golden-path-javad-rezazadeh.svg",
