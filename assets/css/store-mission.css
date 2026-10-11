@@ -60,3 +60,51 @@
 }
 @media(max-width:400px){.cinema-original-hero .cinema-hero-nav>a{flex-basis:100%}}
 @media(prefers-reduced-motion:reduce){.cinema-original-hero *{animation:none!important;transition:none!important}}
+
+/* Unified editorial bookstore design — mobile-first, maintains approved hero image and existing content. */
+.book-store-shell{max-width:1200px}
+.book-store-shell :where(.store-mission,.support-panel,.store-collaboration,.store-value-proposition,.store-notice,.store-customer-guidance){box-sizing:border-box;max-width:100%;overflow-wrap:anywhere}
+.book-store-shell :where(.store-mission,.store-collaboration,.store-value-proposition,.store-customer-guidance){border-radius:24px;border:1px solid rgba(209,177,110,.32);box-shadow:0 16px 45px rgba(0,0,0,.20)}
+.book-store-shell :where(.store-mission,.store-collaboration,.store-value-proposition,.store-customer-guidance) h2{color:#f2dfb6;line-height:1.5;letter-spacing:normal}
+.book-store-shell :where(.store-mission,.store-collaboration,.store-value-proposition,.store-customer-guidance) p{color:#d1c5b3;line-height:2;max-width:85ch}
+.book-store-shell :where(.store-mission,.store-collaboration,.store-value-proposition) .kicker,.store-catalog-heading .kicker{font-size:12px;font-weight:700;color:#dfbd7f;letter-spacing:normal}
+.book-store-shell :where(.store-notice,.store-customer-guidance){margin:22px 0;padding:clamp(20px,3.5vw,34px);background:radial-gradient(ellipse at 80% 0%,rgba(208,166,90,.085),transparent 62%),linear-gradient(150deg,#191613,#0f0f10);color:#e8dfd0;border:1px solid rgba(209,177,110,.29);border-radius:22px}
+.book-store-shell .store-notice strong{color:#f0d49c;font-size:17px}
+.book-store-shell .store-notice p{color:#cbc0ad;line-height:1.95}
+.book-store-shell .store-customer-guidance h2{font-size:clamp(22px,3vw,31px);margin:0 0 12px}
+.book-store-shell .store-customer-guidance nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.book-store-shell .store-customer-guidance nav a{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:8px 14px;border-radius:12px;border:1px solid rgba(228,194,123,.37);color:#f3d59e;text-decoration:none;background:rgba(235,197,127,.055)}
+.book-store-shell .store-customer-guidance nav a:hover{background:rgba(235,197,127,.14)}
+.book-store-shell .store-catalog-heading{margin:0 0 20px;padding-inline:2px}
+.book-store-shell .store-catalog-heading h2{color:#f5dfb7;font-size:clamp(25px,3.2vw,37px);line-height:1.48;margin:7px 0 10px}
+.book-store-shell .store-catalog-heading p{color:#d0c5b2;line-height:1.95;margin:0}
+.book-store-shell .store-principles article{border-color:rgba(219,181,108,.26);background:#191713}
+.book-store-shell .store-principles b{color:#efcd92;font-size:15px}
+.book-store-shell .store-principles span{color:#d4c6af;font-size:13px;line-height:1.85}
+.book-store-shell #book-catalog{scroll-margin-top:82px;margin:32px 0}
+.book-store-shell :where(a,button){-webkit-tap-highlight-color:transparent}
+.book-store-shell a:focus-visible{outline:3px solid #f2ce86;outline-offset:3px}
+@media(max-width:700px){
+ body .book-store-shell{width:calc(100% - 24px);padding-top:14px;min-width:0}
+ body .book-store-shell .book-store-hero.cinema-original-hero{padding:0!important;margin-bottom:16px!important;border-radius:20px!important}
+ .book-store-shell .cinema-original-hero .cinema-hero-picture{width:100%;margin:0;aspect-ratio:1090/640}
+ .book-store-shell .cinema-original-hero .cinema-hero-copy{padding:18px 16px 3px!important}
+ body.rtl .book-store-shell .cinema-original-hero .cinema-hero-copy h1{font-size:clamp(28px,7.7vw,34px)!important;line-height:1.4!important;margin:5px 0 12px!important}
+ .book-store-shell .cinema-original-hero .cinema-hero-copy .lead{color:#d8c9b2}
+ body .book-store-shell .cinema-original-hero .cinema-hero-nav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;padding:14px 16px 20px!important;margin:0!important}
+ body .book-store-shell .cinema-original-hero .cinema-hero-nav>a{min-width:0;min-height:50px!important;white-space:normal;justify-content:center;align-items:center;line-height:1.45!important}
+ body .book-store-shell .cinema-original-hero .cinema-hero-nav>a[href="#publish-for-talent"],body .book-store-shell .cinema-original-hero .cinema-hero-nav>a[href="./cart/"]{display:none!important}
+ body .book-store-shell .cinema-original-hero .cinema-hero-nav>a[href="#book-catalog"],body .book-store-shell .cinema-original-hero .cinema-hero-nav>a[href="#support"]{display:inline-flex!important}
+ .book-store-shell :where(.store-mission,.store-collaboration,.store-value-proposition,.store-customer-guidance){padding:22px 16px;border-radius:20px;margin:16px 0}
+ .book-store-shell :where(.store-mission,.store-collaboration,.store-value-proposition,.store-customer-guidance) h2{font-size:clamp(23px,6.3vw,29px)}
+ .book-store-shell :where(.store-mission,.store-collaboration,.store-value-proposition,.store-customer-guidance) p{font-size:14px;line-height:1.95}
+ .book-store-shell .store-principles{display:grid!important;grid-template-columns:1fr!important;gap:10px!important;overflow:visible!important;margin:20px 0!important}
+ .book-store-shell .store-principles article{min-width:0;flex:auto!important;padding:16px 17px}
+ .book-store-shell .store-customer-guidance nav{display:grid;grid-template-columns:1fr;gap:9px}
+ .book-store-shell .store-customer-guidance nav a{width:100%;min-height:50px}
+ .book-store-shell .store-catalog-heading{padding:0 4px}
+ .book-store-shell .store-catalog-heading h2{font-size:clamp(23px,6.6vw,30px)}
+ .book-store-shell #book-catalog{margin:24px 0}
+}
+@media(max-width:350px){body .book-store-shell .cinema-original-hero .cinema-hero-nav>a{font-size:12px!important;padding-inline:5px!important}}
+@media(prefers-reduced-motion:reduce){.book-store-shell :where(a,button){transition:none!important}}
