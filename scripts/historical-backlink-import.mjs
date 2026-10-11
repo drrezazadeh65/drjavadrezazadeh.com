@@ -75,6 +75,9 @@ for(const raw of lines){
   g.backlinks+=Number.isFinite(bc)&&bc>0?bc:1;
 }
 
+// Aggregate referral data by verified source domain before assigning URL-level actions.
+const uniqueDomains=new Set([...groups.values()].flatMap(g=>[...g.referringDomains]));
+const overallBacklinks=[...groups.values()].reduce((sum,g)=>sum+g.backlinks,0);
 const targets=[...groups.values()].map(g=>{
   const classification=classifyHistoricalTarget(g.path,registry);
   const metrics={
@@ -91,6 +94,10 @@ const targets=[...groups.values()].map(g=>{
     score,
     priority:priorityFromScore(score),
     action:classification.action,
+    // Source authority never grants permission for a semantically unrelated redirect.
+    redirect_allowed:classification.action==='ALREADY_MAPPED'||classification.action==='PRESERVE_SHOP',
+    intent_verification_required:classification.action==='REVIEW',
+    permanently_retired:classification.action==='QUARANTINE_GONE',
     target:classification.target||null,
     status:classification.status||null,
     reason:classification.reason||null
@@ -104,6 +111,9 @@ const result={
   accepted_rows:accepted,
   ignored_rows:ignored,
   target_count:targets.length,
+  unique_referring_domains:uniqueDomains.size,
+  total_reported_backlinks:Math.round(overallBacklinks),
+  priority_target_urls:targets.filter(t=>t.priority==='P0'&&!t.permanently_retired).slice(0,20).map(t=>t.path),
   summary:{
     preserve_home:targets.filter(x=>x.action==='PRESERVE_HOME').length,
     preserve_shop:targets.filter(x=>x.action==='PRESERVE_SHOP').length,
