@@ -2727,6 +2727,21 @@
       "caption_fa": "خدمات آموزشی و هدایت ویژه دانش‌آموزان."
     },
     {
+      "path": "assets/images/talent-bookstore-hero-3d.svg",
+      "kind": "illustration",
+      "role": "talent-bookstore-hero-cinematic-3d",
+      "provenance": "original commissioned AI-assisted SVG illustration, authored for the bookstore on 2026-10-11",
+      "rights": "site-use-approved by owner in conversation; original visual, no external copyrighted artwork",
+      "alt_en": "An open illuminated book leading by a golden path to educational opportunities for talented students",
+      "alt_fa": "کتاب گشوده در نور طلایی، با مسیری روشن به سوی آینده تحصیلی دانش‌آموزان مستعد",
+      "caption_en": "Bookstore mission: educational opportunity for talented students in financial need.",
+      "caption_fa": "کتاب و حمایت از استعدادهای کم‌برخوردار؛ پلی از دانایی تا فرصت‌های آموزشی.",
+      "source_status": "site-original-vector-illustration",
+      "mime_type": "image/svg+xml",
+      "optimization_profile": "responsive-hero-vector",
+      "composition_locked": false
+    },
+    {
       "path": "assets/images/talent-identification-golden-path-javad-rezazadeh.svg",
       "kind": "illustration",
       "role": "talent-identification",
