@@ -1,5 +1,5 @@
 /* JR Cache Standard v2.0 — fresh-by-default, offline-safe, privacy-safe */
-const CACHE_VERSION='jr-site-20261010-commit-1728158ac152';
+const CACHE_VERSION='jr-site-20261011-private-dashboard-01';
 const CACHE_FAMILY='jr-site-';
 const SHELL_CACHE=CACHE_VERSION+'-shell';
 const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
@@ -14,7 +14,7 @@ const CORE=[
 ];
 
 const PRIVATE_PREFIXES=[
-  '/fa/app/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/',
+  '/fa/customer-dashboard/','/en/customer-dashboard/','/fa/app/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/',
   '/en/login/','/en/register/','/en/recover/','/en/account/',
   '/fa/assessments/','/assessments/','/fa/shop/','/en/shop/','/shop/',
   '/en/golden-talent/assessment/','/en/golden-talent/dashboard/',
