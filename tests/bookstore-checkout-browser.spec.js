@@ -100,3 +100,27 @@ test('Cancelled BitPay return displays an unverified server status and never a r
   await expect(page.locator('#receipt')).toBeHidden();
   await expect(page.locator('#print')).toBeHidden();
 });
+
+test('Bank return allows read-only recheck of the same pending order, with no new payment',async({page})=>{
+  const orderId='11111111-1111-4111-8111-111111111111';
+  let statusCalls=0;
+  let createCalls=0;
+  await page.route('**/api/commerce/status?order=*',route=>{
+    statusCalls+=1;
+    return route.fulfill({status:200,json:{ok:true,state:'pending'}});
+  });
+  await page.route('**/api/commerce/create',route=>{
+    createCalls+=1;
+    return route.abort();
+  });
+  await page.goto(base+'/fa/shop/payment-result/?from=gateway&order='+orderId,{waitUntil:'domcontentloaded'});
+  const refresh=page.locator('#recheck-payment-status');
+  await expect(refresh).toBeVisible();
+  await expect(page.locator('#title')).toContainText('پرداخت تأیید نشده است');
+  await expect.poll(()=>statusCalls).toBe(1);
+  await refresh.click();
+  await expect.poll(()=>statusCalls).toBe(2);
+  await expect(page.locator('#receipt')).toBeHidden();
+  await expect(page.locator('#print')).toBeHidden();
+  expect(createCalls).toBe(0);
+});
