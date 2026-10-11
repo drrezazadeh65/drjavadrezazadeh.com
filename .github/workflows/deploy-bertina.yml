@@ -50,6 +50,7 @@ jobs:
           php tests/operations-reporting.php
           for file in api/*.php; do php -l "$file"; done
           php tests/bertina-smtp-body-contract.php
+          node tests/guest-book-checkout-independence.test.mjs
           php tests/operations-security.php
           php tests/operations-mysql.php
           php tests/bertina-receipt-contract.php
