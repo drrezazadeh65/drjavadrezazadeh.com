@@ -118,3 +118,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 — unified release: retain latest bookstore/support FAQ changes and certify customer dashboard exclusive tab navigation, 320/390/768/1280 responsive typography and status-first overview; never overwrite with an older commit.
 
 2026-10-11 — publish consolidated FAQ and dashboard UX from current Bertina head; mobile tab-only navigation, account status initial, restored readable desktop fonts, full SEO/security/privacy and browser gates.
+
+2026-10-11 expanded mobile-first bookstore FAQs: 16 accessible questions in each shop language, 12 safeguarded questions on each student-support page, premium ink-gold and navy-gold design, reader-friendly copy, native disclosure, current SEO and payment gates. Publish latest HEAD only after tests.
