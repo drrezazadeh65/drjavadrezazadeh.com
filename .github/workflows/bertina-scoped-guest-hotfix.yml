@@ -1,0 +1,45 @@
+name: Bertina Scoped Guest Checkout Hotfix
+on:
+  workflow_dispatch:
+  push:
+    branches: [migration/bertina-linux6]
+    paths: ['.bertina-guest-hotfix-trigger']
+permissions:
+  contents: read
+concurrency:
+  group: bertina-scoped-guest-pages
+  cancel-in-progress: false
+jobs:
+  scoped-guest-pages:
+    if: github.ref == 'refs/heads/migration/bertina-linux6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate guest pages and stable canonical routes
+        run: |
+          node scripts/bertina-guest-hotfix-contract.mjs
+          bash -n scripts/bertina-guest-hotfix.sh
+      - name: Install protected FTPS client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      - name: Pin trusted Bertina FTPS endpoint
+        run: echo '188.40.203.218 server388.bertina.biz' | sudo tee -a /etc/hosts >/dev/null
+      - name: Back up, publish and verify only six HTML guest checkout pages
+        env:
+          BERTINA_FTP_USERNAME: ${{ secrets.BERTINA_FTP_USERNAME }}
+          BERTINA_FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          BERTINA_FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: bash scripts/bertina-guest-hotfix.sh
+      - name: Verify public purchase guidance is visible at Bertina origin
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 25 --resolve drjavadrezazadeh.com:443:188.40.203.218 -H 'Cache-Control: no-cache' \
+            'https://drjavadrezazadeh.com/fa/register/?guest-hotfix=1' |
+            grep -q 'data-guest-checkout-note'
+          curl -fsS --max-time 25 --resolve drjavadrezazadeh.com:443:188.40.203.218 -H 'Cache-Control: no-cache' \
+            'https://drjavadrezazadeh.com/fa/shop/checkout/?guest-hotfix=1' |
+            grep -q 'خرید بدون ثبت‌نام'
+          echo 'BERTINA_GUEST_CHECKOUT_PUBLIC_PASS'
