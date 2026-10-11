@@ -108,12 +108,28 @@ function smtpProviderSettingsMatch(array $c): bool {
         && $user === 'admin@drjavadrezazadeh.com'
         && ($c['smtp_verify_peer'] ?? true) === true;
 }
+/**
+ * Resolve the non-secret transport coordinates documented by Bertina in
+ * ticket t833905. The private mailbox password and explicit enable switches
+ * remain authoritative and are never copied into logs or source control.
+ * Avoid attempting several accounts/passwords to prevent mailbox lockouts.
+ */
+function smtpResolvedConfig(array $c): array {
+    if (($c['smtp_enabled'] ?? false) !== true) return $c;
+    $c['smtp_host'] = 'drjavadrezazadeh.com';
+    $c['smtp_port'] = 465;
+    $c['smtp_security'] = 'ssl';
+    $c['smtp_user'] = 'admin@drjavadrezazadeh.com';
+    $c['mail_from'] = 'admin@drjavadrezazadeh.com';
+    $c['smtp_verify_peer'] = true;
+    return $c;
+}
 function mailReady(): bool {
     $c = cfg();
     if (($c['mail_enabled'] ?? false) !== true) return false;
     // Bertina shared hosting restricts mail(). Registration mail must always
     // use authenticated SMTP, with TLS and server-side credentials.
-    return smtpConfigured($c);
+    return smtpConfigured(smtpResolvedConfig($c));
 }
 function smtpRead($fp): array {
     $lines=[];$code=0;
@@ -141,7 +157,7 @@ function smtpCmd($fp, string $command, array $expected): bool {
 }
 function smtpSend(string $to, string $subject, string $body): bool {
     require_once __DIR__.'/smtp-body.php';
-    $c=cfg();
+    $c=smtpResolvedConfig(cfg());
     if (!smtpConfigured($c) || !filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
     $host=trim((string)$c['smtp_host']);$port=(int)$c['smtp_port'];$security=(string)$c['smtp_security'];
     $verify=($c['smtp_verify_peer'] ?? true) === true;
@@ -389,11 +405,11 @@ $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
 
 if ($path==='/health' && $verb==='GET') {
-    $hc=cfg(); respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?(smtpConfigured($hc)?'bertina-smtp':'bertina-local'):'not-configured','mailConfigEnabled'=>$hc['mail_enabled']===true,'smtpConfigured'=>smtpConfigured($hc),'smtpProviderSettingsMatch'=>smtpProviderSettingsMatch($hc),'mailFunctionAvailable'=>function_exists('mail'),'mailFromValid'=>filter_var((string)$hc['mail_from'], FILTER_VALIDATE_EMAIL)!==false,'auth'=>authReady(),'registration'=>registrationReady(),'commerce'=>commerceReady()]);
+    $hc=cfg(); respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?(smtpConfigured($hc)?'bertina-smtp':'bertina-local'):'not-configured','mailConfigEnabled'=>$hc['mail_enabled']===true,'smtpConfigured'=>smtpConfigured($hc),'smtpProviderSettingsMatch'=>smtpProviderSettingsMatch($hc),'smtpEffectiveProviderSettingsMatch'=>smtpProviderSettingsMatch(smtpResolvedConfig($hc)),'mailFunctionAvailable'=>function_exists('mail'),'mailFromValid'=>filter_var((string)$hc['mail_from'], FILTER_VALIDATE_EMAIL)!==false,'auth'=>authReady(),'registration'=>registrationReady(),'commerce'=>commerceReady()]);
 }
 
 if ($path==='/auth/health' && $verb==='GET') {
-    respond(['ok'=>true,'service'=>'auth','ready'=>authReady(),'registrationReady'=>registrationReady(),'database'=>dbReady(),'schemaReady'=>authSchemaReady(),'email'=>mailReady(),'smtpProviderSettingsMatch'=>smtpProviderSettingsMatch(cfg()),'passwordKdf'=>strlen((string)(cfg()['auth_pepper']??''))>=32]);
+    respond(['ok'=>true,'service'=>'auth','ready'=>authReady(),'registrationReady'=>registrationReady(),'database'=>dbReady(),'schemaReady'=>authSchemaReady(),'email'=>mailReady(),'smtpProviderSettingsMatch'=>smtpProviderSettingsMatch(cfg()),'smtpEffectiveProviderSettingsMatch'=>smtpProviderSettingsMatch(smtpResolvedConfig(cfg())),'passwordKdf'=>strlen((string)(cfg()['auth_pepper']??''))>=32]);
 }
 if (str_starts_with($path,'/auth/')) {
     if(!authReady())fail('auth_unavailable',503);
