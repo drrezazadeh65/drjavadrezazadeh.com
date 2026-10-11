@@ -583,12 +583,13 @@ if($path==='/donations/create'&&$verb==='POST'){
         if(!preg_match('/^[1-9][0-9]*$/D',$gatewayId))throw new RuntimeException('gateway_rejected');
         $pdo->prepare("UPDATE commerce_orders SET state='pending',provider_id_get=?,updated_at=NOW() WHERE id=? AND state='created'")
             ->execute([$gatewayId,$order]);
-        respond(['ok'=>true,'orderId'=>$order,'amountToman'=>$amount,'currency'=>'IRT',
-            'paymentUrl'=>SITE_ORIGIN.'/fa/shop/payment-start/?gateway='.rawurlencode('https://bitpay.ir/payment/gateway-'.$gatewayId.'-get')]);
     }catch(Throwable $e){
         $pdo->prepare("UPDATE commerce_orders SET state='failed',updated_at=NOW() WHERE id=? AND state='created'")->execute([$order]);
         fail('gateway_rejected',502);
     }
+    // The completed pending order is not invalidated if the HTTP response exits normally.
+    respond(['ok'=>true,'orderId'=>$order,'amountToman'=>$amount,'currency'=>'IRT',
+        'paymentUrl'=>SITE_ORIGIN.'/fa/shop/payment-start/?gateway='.rawurlencode('https://bitpay.ir/payment/gateway-'.$gatewayId.'-get')]);
 }
 if(str_starts_with($path,'/donations/'))fail('not_found',404);
 if($path==='/assistant/v1/chat'&&$verb==='POST')fail('assistant_local_fallback',503);
