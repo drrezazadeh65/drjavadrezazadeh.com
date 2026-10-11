@@ -43,6 +43,9 @@ for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/'
         if(lang==='fa')await expect(cards.first().locator('.cd-service-buy')).toHaveAttribute('href','/'+lang+'/login/');
       }
       if(lang==='fa'){
+        // The dashboard has exclusive panels: open the ecosystem before searching its catalogue.
+        await page.locator('.cd-mobile-dock a[data-section="ecosystem"]').click();
+        await expect(page.locator('[data-dashboard-service-search]')).toBeVisible();
         await page.locator('[data-dashboard-service-search]').fill('no-matching-service');
         await expect(cards).toHaveCount(0);
         await page.locator('[data-dashboard-service-search]').fill('');
