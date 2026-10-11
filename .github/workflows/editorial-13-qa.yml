@@ -1,0 +1,62 @@
+name: 13 Article Editorial Responsive QA
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'fa/akhbar/**'
+      - 'assets/css/editorial-launch-2026.css'
+      - 'assets/images/knowledge/**'
+      - 'tests/editorial-13-responsive.spec.js'
+      - '.github/workflows/editorial-13-qa.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'fa/akhbar/**'
+      - 'assets/css/editorial-launch-2026.css'
+      - 'assets/images/knowledge/**'
+      - 'tests/editorial-13-responsive.spec.js'
+      - '.github/workflows/editorial-13-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: editorial-13-responsive-production
+  cancel-in-progress: true
+
+jobs:
+  article-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PW_TEST_SCREENSHOT_NO_FONTS_READY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser testing runtime
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Start local public website
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/editorial-http.log 2>&1 &
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/editorial-http.log
+          exit 1
+      - name: Test mobile and desktop academic commerce editorial pages
+        run: npx playwright test tests/editorial-13-responsive.spec.js --workers=1 --reporter=line
+      - name: Keep failed test evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editorial-13-browser-failures
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 14
