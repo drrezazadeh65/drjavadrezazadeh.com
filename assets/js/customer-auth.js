@@ -18,8 +18,8 @@ const text={
   invalidRegistration:'شماره موبایل را با کد کشور مانند +98 وارد کنید و رمز عبور را بررسی کنید.',
   rateLimited:'تعداد تلاش‌ها بیش از حد مجاز است. لطفاً بعداً دوباره تلاش کنید.',
   emailFailed:'حساب ممکن است ثبت شده باشد، اما ایمیل تأیید ارسال نشد. پس از رفع مشکل ارسال، از گزینه «ارسال مجدد ایمیل تأیید» استفاده کنید.',
-  resendPending:'اگر حساب تأییدنشده‌ای با این ایمیل وجود داشته باشد، درخواست ارسال مجدد پردازش شد. دریافت پیام را در پوشه‌های ورودی و هرزنامه بررسی کنید.',
-  resendEmailRequired:'ابتدا ایمیل حساب خود را به‌درستی وارد کنید.',
+  retryPending:'اگر حساب تأییدنشده‌ای با این ایمیل وجود داشته باشد، درخواست ارسال مجدد پردازش شد. دریافت پیام را در پوشه‌های ورودی و هرزنامه بررسی کنید.',
+  retryEmailRequired:'ابتدا ایمیل حساب خود را به‌درستی وارد کنید.',
   authUnavailable:'سرویس ثبت‌نام موقتاً آماده نیست. لطفاً بعداً مراجعه کنید.',
   passwordRule:'رمز باید حداقل ۱۲ نویسه داشته باشد.'
  },
@@ -38,9 +38,9 @@ const text={
   generic:'The request could not be completed. Please try again later.',
   invalidRegistration:'Check the mobile number in international format (for example +98) and the password.',
   rateLimited:'Too many attempts. Please wait before trying again.',
-  emailFailed:'Your account may be pending verification, but email delivery failed. After the mail service is restored, use Resend verification email.',
-  resendPending:'If an unverified account exists for this email, the request has been processed. Check your inbox and spam folder.',
-  resendEmailRequired:'Please enter a valid account email address first.',
+  emailFailed:'Your account may be pending verification, but email delivery failed. After the mail service is restored, use Retry verification email.',
+  retryPending:'If an unverified account exists for this email, the request has been processed. Check your inbox and spam folder.',
+  retryEmailRequired:'Please enter a valid account email address first.',
   authUnavailable:'Registration is temporarily unavailable. Please try again later.',
   passwordRule:'Password must contain at least 12 characters.'
  }
@@ -105,19 +105,19 @@ function bindRegister(){
   finally{form.querySelectorAll('[data-auth-live-control]').forEach(x=>x.disabled=false)}
  });
 }
-function bindResend(){
- const button=$('[data-auth-resend]');
+function bindRetry(){
+ const button=$('[data-auth-retry]');
  const form=$('[data-auth-form="register"]');
  if(!button||!form)return;
  button.addEventListener('click',async()=>{
   const emailField=form.querySelector('input[name="email"]');
-  if(!emailField||!emailField.checkValidity())return setStatus(text.resendEmailRequired,'error');
+  if(!emailField||!emailField.checkValidity())return setStatus(text.retryEmailRequired,'error');
   button.disabled=true;
   setStatus(text.sending,'checking');
   try{
-   await call('/auth/resend-verification',{email:emailField.value,locale:lang});
+   await call('/auth/retry-verification',{email:emailField.value,locale:lang});
    // Use the same result for existing/nonexisting addresses to prevent enumeration.
-   setStatus(text.resendPending,'success');
+   setStatus(text.retryPending,'success');
   }catch{setStatus(text.generic,'error')}
   finally{button.disabled=false}
  });
@@ -165,6 +165,6 @@ document.addEventListener('DOMContentLoaded',async()=>{
  const ok=await health();
  if(!ok)return;
  await verifyFromUrl();
- bindRegister();bindResend();bindLogin();bindRecovery();
+ bindRegister();bindRetry();bindLogin();bindRecovery();
 });
 })();
