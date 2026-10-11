@@ -90,3 +90,13 @@ test('Persian checkout blocks a forged payment destination in mocked response',a
   await expect(page).toHaveURL(base+'/fa/shop/checkout/');
   await expect(page.locator('[data-book-checkout] [role="status"]')).toContainText('نشانی بازگشت درگاه معتبر نبود');
 });
+
+test('Cancelled BitPay return displays an unverified server status and never a receipt',async({page})=>{
+  const orderId='11111111-1111-4111-8111-111111111111';
+  await page.route('**/api/commerce/status?order=*',route=>route.fulfill({status:200,json:{ok:true,state:'pending'}}));
+  await page.goto(base+'/fa/shop/payment-result/?from=gateway&order='+orderId,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#title')).toContainText('پرداخت تأیید نشده است');
+  await expect(page.locator('#status')).toContainText('هیچ پرداخت موفقی');
+  await expect(page.locator('#receipt')).toBeHidden();
+  await expect(page.locator('#print')).toBeHidden();
+});
