@@ -1,0 +1,100 @@
+/* Safeguarded private sponsor workspace: never infer entitlement from a receipt, URL or local storage. */
+(()=>{
+ 'use strict';
+ const shell=document.querySelector('[data-student-support-workspace]');
+ if(!shell)return;
+ const status=shell.querySelector('[data-support-portal-status]');
+ const list=shell.querySelector('[data-support-cases]');
+ const form=shell.querySelector('[data-support-need-form]');
+ const select=form.querySelector('[name="caseId"]');
+ const submit=form.querySelector('button[type="submit"]');
+ const formStatus=shell.querySelector('[data-support-need-status]');
+ const root=(window.location.pathname.startsWith('/en/'))?'/en/':'/fa/';
+ const say=(text,state='')=>{status.textContent=text;status.dataset.state=state};
+ const node=(tag,text,cls)=>{const el=document.createElement(tag);if(cls)el.className=cls;el.textContent=String(text??'');return el};
+ const parseInteger=s=>Number.isSafeInteger(Number(s))?Number(s):NaN;
+ const formatAmount=n=>Number.isFinite(Number(n))?new Intl.NumberFormat('fa-IR').format(Number(n))+' تومان':'';
+ function drawCase(record){
+   const card=node('article','','cd-sponsor-case');
+   card.append(node('div',record.role==='approved_sponsor'?'حامی تأییدشده':'دانش‌آموز / سرپرست','cd-sponsor-case-meta'));
+   card.append(node('h3',record.studentName||record.alias||'پروندهٔ حمایتی'));
+   card.append(node('p','شناسه پرونده: '+String(record.code||'—')));
+   const needs=node('h4','نیازهای مجاز و تأییدشده');card.append(needs);
+   if(Array.isArray(record.needs)&&record.needs.length){
+      const ul=document.createElement('ul');
+      for(const item of record.needs){
+        ul.append(node('li',String(item.safe_summary||'')+' · '+formatAmount(item.amount_toman)+' · '+String(item.status||'')));
+      }
+      card.append(ul);
+   }else card.append(node('p','هنوز نیازی برای نمایش این نقش تأیید نشده است.','cd-sponsor-empty'));
+   const updates=node('h4','روند پیگیری');updates.style.marginTop='14px';card.append(updates);
+   if(Array.isArray(record.progress)&&record.progress.length){
+     const ul=document.createElement('ul');
+     for(const step of record.progress)ul.append(node('li',step.safe_summary||''));
+     card.append(ul);
+   }else card.append(node('p','گزارش پیشرفت تأییدشده‌ای برای نمایش وجود ندارد.','cd-sponsor-empty'));
+   if(Array.isArray(record.sponsors)&&record.sponsors.length&&record.role==='student_or_guardian'){
+     card.append(node('p','حامیانی که نمایش نامشان را پذیرفته‌اند: '+record.sponsors.join('، ')));
+   }
+   card.append(node('p','هیچ شماره تماس، نشانی یا پیام مستقیم در این فضا ردوبدل نمی‌شود.','cd-sponsor-case-meta'));
+   return card;
+ }
+ async function load(){
+  say('در حال بررسی دسترسی امن و مجوزهای حمایت تحصیلی…');
+  try{
+    const h=await fetch('/api/student-support/health',{credentials:'include',cache:'no-store'});
+    if(!h.ok)throw Error('unavailable');
+    const health=await h.json();
+    if(!health.ok||health.service!=='student-support')throw Error('unavailable');
+    if(!health.caseSchemaReady){
+      say('حمایت مالی مهمان در فروشگاه در دسترس است. پرونده‌های خصوصی تا نصب پایگاه دادهٔ حمایت، تأیید سرپرست و تکمیل کنترل‌های دسترسی فعال نمی‌شوند.','waiting');return;
+    }
+    const r=await fetch('/api/student-support/portal',{credentials:'include',cache:'no-store'});
+    if(r.status===401){say('برای مشاهدهٔ پرونده‌های خصوصی، با ایمیل تأییدشده وارد شوید. پرداخت حمایت بدون ثبت‌نام امکان‌پذیر است.','waiting');return}
+    if(!r.ok)throw Error('unavailable');
+    const data=await r.json();
+    if(!data.ok||!Array.isArray(data.cases)||data.private!==true)throw Error('unavailable');
+    list.replaceChildren();
+    if(!data.cases.length){
+      say('حساب شما فعال است، اما هنوز هیچ پروندهٔ دانش‌آموزی با مجوز معتبر به شما اختصاص نیافته است. اطلاعات دیگران نمایش داده نمی‌شود.','ready');return;
+    }
+    for(const record of data.cases){list.append(drawCase(record))}
+    list.hidden=false;
+    say('فقط پرونده‌هایی نمایش داده می‌شوند که برای این حساب و با رضایت‌های معتبر مجازند.','ready');
+    const own=data.cases.filter(x=>x.role==='student_or_guardian');
+    if(own.length){
+      select.replaceChildren(node('option','انتخاب پروندهٔ مرتبط'));
+      select.firstChild.value='';
+      for(const c of own){const opt=node('option',(c.alias||'پرونده')+' · '+c.code);opt.value=c.caseId;select.append(opt)}
+      form.hidden=false;
+    }
+  }catch(_){say('بازیابی دادهٔ خصوصی در دسترس نیست؛ هیچ اطلاعات محلی یا ساختگی جایگزین نمی‌شود.','error')}
+ }
+ form.addEventListener('submit',async e=>{
+   e.preventDefault();
+   const caseId=select.value;
+   const category=form.querySelector('[name="category"]').value;
+   const summary=form.querySelector('[name="summary"]').value.trim();
+   const amountToman=parseInteger(form.querySelector('[name="amountToman"]').value);
+   if(!caseId||summary.length<12||summary.length>320||!Number.isSafeInteger(amountToman)||amountToman<1000||amountToman>100000000){
+     formStatus.textContent='شناسه پرونده، شرح نیاز (۱۲ تا ۳۲۰ نویسه) و مبلغ معتبر را بررسی کنید.';return;
+   }
+   submit.disabled=true;
+   formStatus.textContent='در حال ثبت خصوصی برای بازبینی تیم مسئول…';
+   try{
+     const r=await fetch('/api/student-support/needs',{
+       method:'POST',credentials:'include',cache:'no-store',
+       headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({caseId,category,summary,amountToman})
+     });
+     const data=await r.json();
+     if(!r.ok||data.ok!==true||data.state!=='proposed')throw Error('unverified');
+     form.querySelector('[name="summary"]').value='';
+     formStatus.textContent='درخواست با وضعیت «در انتظار بررسی» ثبت شد و برای حامی قابل مشاهده نیست.';
+   }catch(_){
+     formStatus.textContent='ثبت نیاز تأیید نشد؛ برای جلوگیری از تکرار درخواست با پشتیبانی پیگیری کنید.';
+   }
+   // Ambiguous response may already have committed. Prevent double submission.
+ });
+ load();
+})();
