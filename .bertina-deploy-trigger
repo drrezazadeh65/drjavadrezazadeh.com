@@ -56,3 +56,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 corrected explicit-deployment governance; publish donor ledger and verify no contact/child privacy.
 
 2026-10-11 final security assertion: production donor transaction history must reject anonymous access.
+
+2026-10-11 13:00 IRST — approved unified dashboard continuation: preserve existing Bertina student-support runtime; add accessible student/buyer/sponsor command-center views, secure mobile drawer, honest email session indicator and automated browser guards. Run full Bertina release gates; fail closed if any check fails.
