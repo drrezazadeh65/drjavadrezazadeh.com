@@ -39,8 +39,50 @@
    card.append(node('p','هیچ شماره تماس، نشانی یا پیام مستقیم در این فضا ردوبدل نمی‌شود.','cd-sponsor-case-meta'));
    return card;
  }
+ const ledgerList=shell.querySelector('[data-contributions-list]');
+ const ledgerStatus=shell.querySelector('[data-contributions-status]');
+ const focusName={general:'صندوق عمومی فرصت برابر',scholarship:'بورسیه و شهریه',books:'کتاب و لوازم آموزشی',
+   services:'خدمات آموزشی',essentials:'پوشاک و نیازهای ضروری'};
+ async function loadContributions(){
+  if(!ledgerList||!ledgerStatus)return;
+  try{
+   const r=await fetch('/api/student-support/my-contributions',{credentials:'include',cache:'no-store'});
+   if(r.status===401){
+     ledgerStatus.textContent='برای مشاهدهٔ پرداخت‌های متعلق به خود، با ایمیل تأییدشده وارد شوید. حمایت مالی بدون ثبت‌نام همچنان آزاد است.';
+     return;
+   }
+   if(!r.ok)throw Error('ledger_unavailable');
+   const data=await r.json();
+   if(data.ok!==true||data.authenticated!==true||data.noStudentIdentity!==true||!Array.isArray(data.items))throw Error('invalid_ledger');
+   ledgerList.replaceChildren();
+   if(!data.items.length){
+     ledgerStatus.textContent='هیچ پرداخت تأییدشده‌ای به ایمیل حساب فعلی مرتبط نیست. کمک‌های بدون ایمیل به‌طور خودکار به این حساب متصل نمی‌شوند.';
+     return;
+   }
+   let total=0;
+   for(const item of data.items){
+    if(!item||!Number.isSafeInteger(item.amountToman)||item.amountToman<1000||
+      !['legacy-voluntary','talented-students-v1'].includes(item.programme))continue;
+    const row=node('article','','cd-donor-ledger-item');
+    row.append(node('strong',item.programme==='talented-students-v1'
+      ?'حمایت از دانش‌آموزان مستعد کم‌بضاعت':'حمایت داوطلبانهٔ گذشته'));
+    row.append(node('span',formatAmount(item.amountToman),'cd-donor-ledger-money'));
+    const subtitle=item.programme==='talented-students-v1'
+      ?(focusName[item.focus]||focusName.general)+' · تخصیص در انتظار تأیید نیاز'
+      :'پرداخت تاریخی؛ بدون انتساب خودکار به دانش‌آموز';
+    row.append(node('small',subtitle));
+    row.append(node('small','شناسه: '+String(item.orderId||'').slice(0,8)+'… · '+String(item.paidAt||'')));
+    ledgerList.append(row);
+    total+=item.amountToman;
+   }
+   if(!ledgerList.children.length){ledgerStatus.textContent='اطلاعات قابل‌تأییدی برای نمایش موجود نیست.';return}
+   ledgerList.hidden=false;
+   ledgerStatus.textContent='تعداد '+ledgerList.children.length.toLocaleString('fa-IR')+' حمایتِ پرداخت‌شده · مجموع '+formatAmount(total)+'؛ هیچ پرداختی بدون سند به دانش‌آموز خاصی تخصیص داده نشده است.';
+  }catch(_){ledgerStatus.textContent='سابقهٔ پرداخت شخصی موقتاً در دسترس نیست؛ هیچ سابقه‌ای از حافظهٔ محلی یا داده ساختگی ساخته نمی‌شود.'}
+ }
  async function load(){
   say('در حال بررسی دسترسی امن و مجوزهای حمایت تحصیلی…');
+  await loadContributions();
   try{
     const h=await fetch('/api/student-support/health',{credentials:'include',cache:'no-store'});
     if(!h.ok)throw Error('unavailable');
