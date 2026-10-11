@@ -1,1 +1,94 @@
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>حمایت از استعدادهای کم‌برخوردار | دکتر جواد رضازاده یزدلی</title><meta name="description" content="برنامه حمایت تحصیلی از دانش‌آموزان مستعد کم‌برخوردار؛ آشنایی با اهداف، اصول شفافیت و مراحل راه‌اندازی کمک مالی."><meta name="robots" content="noindex,follow"><link rel="canonical" href="https://drjavadrezazadeh.com/fa/support-talented-students/"><style>body{font-family:Tahoma,Arial,sans-serif;background:#f7f8fa;color:#182534;margin:0;line-height:2}main{max-width:780px;margin:5vh auto;padding:28px;background:white;border-radius:18px;box-shadow:0 6px 30px #14253a12}h1{line-height:1.6;color:#173958}label{display:block;margin-top:22px;font-weight:bold}input{padding:14px;width:100%;max-width:380px;box-sizing:border-box;border:1px solid #9ca8b6;border-radius:9px;font-size:18px}button{margin:12px 0 0 8px;padding:12px 18px;border-radius:9px;border:1px solid #173958;background:white;color:#173958;cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #c18b32}button[disabled]{opacity:.55;cursor:not-allowed}.notice{background:#fff4df;padding:16px;border-radius:10px}a{color:#173958}</style></head><body><main><p><a href="/fa/">بازگشت به صفحه اصلی</a></p><h1>حمایت از استعدادهای فردا</h1><p>این برنامه برای پشتیبانی آموزشی از دانش‌آموزان مستعدی طراحی شده است که محدودیت مالی می‌تواند فرصت رشد آنان را کاهش دهد. حمایت‌ها ممکن است برای کتاب، لوازم آموزشی، هزینه ثبت‌نام و فرصت‌های یادگیری به کار رود؛ تخصیص هر کمک باید با بررسی نیاز، مستندات هزینه و حفظ محرمانگی اطلاعات دانش‌آموز همراه باشد.</p><p class="notice" role="status">پرداخت تنها در صورت تأیید زنده سامانه کمک مالی فعال می‌شود. مبلغ پرداخت‌شده پس از تأیید سروری درگاه معتبر خواهد بود.</p><h2>انتخاب مبلغ کمک</h2><p>مبلغ دلخواه را به تومان وارد کنید. در صورت آمادگی سامانه، مبلغ انتخابی برای آغاز پرداخت به درگاه امن ارسال می‌شود.</p><div><button type="button" data-amount="1000">۱٬۰۰۰ تومان</button><button type="button" data-amount="50000">۵۰٬۰۰۰ تومان</button><button type="button" data-amount="100000">۱۰۰٬۰۰۰ تومان</button></div><label for="amount">مبلغ دلخواه (تومان)</label><input id="amount" type="number" min="1000" step="1000" inputmode="numeric" value="1000" autocomplete="off"><p id="summary" aria-live="polite"></p><button id="donate-submit" type="button" disabled aria-describedby="payment-note">در حال بررسی اتصال امن درگاه…</button><p id="payment-note" role="status" aria-live="polite">در حال بررسی آمادگی سامانه پرداخت مستقل کمک مالی…</p><h2>اصول شفافیت</h2><p>کمک‌های این برنامه باید جدا از فروش کتاب و خدمات ثبت شوند. رسید پرداخت، گزارش‌های تجمیعی مصرف، سازوکار رسیدگی به اشتباه در پرداخت و حفظ محرمانگی دانش‌آموزان پیش از دریافت وجه باید آماده باشد. هیچ موفقیت تحصیلی یا نتیجه خاصی تضمین نمی‌شود.</p></main><script>const amount=document.getElementById('amount'),summary=document.getElementById('summary');function render(){const n=Number(amount.value);summary.textContent=Number.isSafeInteger(n)&&n>=1000?'مبلغ انتخاب‌شده: '+n.toLocaleString('fa-IR')+' تومان — بدون برداشت وجه':'مبلغ معتبر حداقل ۱٬۰۰۰ تومان است.'}document.querySelectorAll('[data-amount]').forEach(b=>b.addEventListener('click',()=>{amount.value=b.dataset.amount;render()}));amount.addEventListener('input',render);render();const API='/api',submit=document.getElementById('donate-submit'),note=document.getElementById('payment-note');let ready=false;const launchEvidence=false;async function health(){try{const r=await fetch(API+'/donations/health',{cache:'no-store',credentials:'omit'});const d=await r.json();ready=launchEvidence&&r.ok&&d.ok===true&&d.service==='donations'&&d.checkout===true}catch{ready=false}submit.disabled=!ready;submit.textContent=ready?'ادامه به پرداخت امن':'پرداخت فعلاً در دسترس نیست';note.textContent=ready?'درگاه آماده است. پس از پرداخت، تأیید سروری تراکنش ضروری است.':'سامانه دریافت کمک مالی هنوز آمادگی پرداخت واقعی را تأیید نکرده است؛ هیچ وجهی دریافت نمی‌شود.'}submit.addEventListener('click',()=>{note.textContent='پرداخت کمک مالی هنوز فعال نشده است؛ هیچ وجهی دریافت نمی‌شود.'});const order=new URLSearchParams(location.search).get('order');if(order&&/^[0-9a-f-]{36}$/i.test(order)){const p=document.createElement('p');p.className='notice';p.textContent='برای بررسی نتیجه پرداخت، وضعیت تراکنش از سامانه امن استعلام می‌شود…';document.querySelector('main').append(p);fetch(API+'/donations/status?order='+encodeURIComponent(order),{cache:'no-store',credentials:'omit'}).then(r=>r.json()).then(d=>{p.textContent=d.ok===true&&d.state==='paid'&&d.receipt?'کمک مالی شما با تأیید سروری ثبت شد. شناسه سفارش: '+order:'تأیید پرداخت هنوز دریافت نشده است. از تکرار پرداخت تا روشن شدن وضعیت خودداری کنید.'}).catch(()=>{p.textContent='استعلام پرداخت در دسترس نیست؛ لطفاً با پشتیبانی تماس بگیرید.'})}health();</script></body></html>
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>حمایت از دانش‌آموزان بااستعداد کم‌بضاعت | بورسیه، کتاب و نیازهای ضروری</title>
+<meta name="description" content="برنامه حمایت از دانش‌آموزان مستعد کم‌بضاعت: بورسیه تحصیلی، کتاب، خدمات آموزشی و نیازهای ضروری؛ کمک بدون ثبت‌نام، محرمانگی دانش‌آموز، پیگیری و گزارش‌های تأییدشده.">
+<meta name="robots" content="index,follow,max-image-preview:large"><meta name="theme-color" content="#12283e">
+<link rel="canonical" href="https://drjavadrezazadeh.com/fa/support-talented-students/">
+<link rel="alternate" hreflang="fa" href="https://drjavadrezazadeh.com/fa/support-talented-students/">
+<link rel="alternate" hreflang="en" href="https://drjavadrezazadeh.com/en/support-talented-students/">
+<link rel="alternate" hreflang="x-default" href="https://drjavadrezazadeh.com/en/support-talented-students/">
+<link rel="stylesheet" href="/assets/css/student-support-program.css?v=20261011-v1">
+<link rel="stylesheet" href="/assets/css/donation-payment.css?v=20261011-student-v2">
+<link rel="manifest" href="/site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:title" content="حمایت از دانش‌آموزان بااستعداد کم‌بضاعت"><meta property="og:description" content="فرصت برابر برای رشد استعداد؛ بورسیه، کتاب، آموزش و پوشاک با حفاظت از حریم خصوصی کودکان.">
+<meta property="og:url" content="https://drjavadrezazadeh.com/fa/support-talented-students/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"حمایت از دانش‌آموزان بااستعداد کم‌بضاعت","url":"https://drjavadrezazadeh.com/fa/support-talented-students/","inLanguage":"fa","description":"برنامه حمایت تحصیلی با پرداخت اختیاری و چارچوب حفاظت از کودک."}</script>
+</head>
+<body class="ss-body">
+<a class="ss-skip" href="#main">پرش به محتوای اصلی</a>
+<header class="ss-header"><nav class="ss-nav" aria-label="ناوبری برنامه">
+<a href="/fa/" class="ss-brand">Dr. Javad Rezazadeh<small>دانش، فرصت، آینده</small></a>
+<div class="ss-nav-links"><a href="/fa/shop/">فروشگاه</a><a href="/fa/danesh-amoozan/">دانش‌آموزان</a><a href="#mechanism">سازوکار</a><a href="#privacy">حریم خصوصی</a><a class="ss-nav-cta" href="#contribute">مشارکت مالی</a></div>
+</nav></header>
+<main id="main">
+<section class="ss-hero"><div class="ss-hero-inner">
+<div><span class="ss-eyebrow">EQUAL OPPORTUNITY · TALENTED STUDENTS</span>
+<h1>استعداد نباید پشت محدودیت مالی متوقف شود.</h1>
+<p>برنامهٔ «حمایت از دانش‌آموزان بااستعداد کم‌بضاعت» برای پیوند دادن حمایت مسئولانه با نیازهای واقعی تحصیلی شکل می‌گیرد؛ از تأمین کتاب و شهریه تا آموزش تخصصی، ابزار یادگیری و پوشاک ضروری. در این برنامه شأن دانش‌آموز و حفاظت از اطلاعات او از هر چیز مهم‌تر است.</p>
+<div class="ss-actions"><a class="ss-button primary" href="#contribute">حمایت مالی بدون ثبت‌نام</a><a class="ss-button ghost" href="#mechanism">آشنایی با مراحل حمایت</a></div>
+</div>
+<aside class="ss-hero-art" aria-label="اصول بنیادین"><span class="ss-flag">حمایت هدفمند · بدون تماس مستقیم</span>
+<div class="ss-stat">فرصت برابر</div><p>تأیید نیاز، انتخاب کمک متناسب، ثبت هزینه و گزارش روند؛ بدون انتشار هویت کودکان.</p>
+<div class="ss-art-rule"></div><strong>حمایت مالی آزاد · دسترسی به پرونده فقط با رضایت و مجوز</strong></aside>
+</div></section>
+<section class="ss-section"><div class="ss-wrap"><p class="ss-eyebrow">AREAS OF SUPPORT</p><h2 class="ss-title">حمایت‌ها چه نیازهایی را پوشش می‌دهند؟</h2><p class="ss-desc">کمک‌ها به دسته‌های مشخص تقسیم می‌شوند تا امکان ثبت، بررسی و ارائه گزارش هزینه فراهم باشد. صرف انتخاب یک دسته، به معنای اختصاص خودکار وجه به یک دانش‌آموز خاص نیست.</p>
+<div class="ss-grid">
+<article class="ss-card"><div class="ss-card-icon" aria-hidden="true">✦</div><h3>بورسیه و هزینه تحصیل</h3><p>شهریه، ثبت‌نام، دوره‌های ضروری و فرصت‌های آموزشی که پس از ارزیابی نیاز تأیید می‌شوند.</p></article>
+<article class="ss-card"><div class="ss-card-icon" aria-hidden="true">▤</div><h3>کتاب و لوازم آموزشی</h3><p>کتاب درسی یا کمک‌آموزشی، لوازم تحریر و ابزار متناسب با نیاز واقعی دانش‌آموز.</p></article>
+<article class="ss-card"><div class="ss-card-icon" aria-hidden="true">◈</div><h3>آموزش و خدمات تخصصی</h3><p>آموزش، مشاوره تحصیلی، ارزیابی استعداد و پیگیری مسیر یادگیری در صورت احراز تناسب خدمت.</p></article>
+<article class="ss-card"><div class="ss-card-icon" aria-hidden="true">◇</div><h3>پوشاک و نیازهای ضروری</h3><p>لباس مدرسه و اقلام ضروری‌ای که محرومیت از آن‌ها مانع حضور و پیشرفت آموزشی می‌شود.</p></article>
+<article class="ss-card"><div class="ss-card-icon" aria-hidden="true">↗</div><h3>پیگیری و رشد</h3><p>برنامهٔ پیشرفت مرحله‌ای؛ سنجش نیاز و نتیجه با مشارکت تیم مسئول و سرپرست قانونی.</p></article>
+<article class="ss-card"><div class="ss-card-icon" aria-hidden="true">◎</div><h3>صندوق عمومی فرصت برابر</h3><p>کمک بدون انتخاب نیاز خاص برای موارد احراز‌شده و اولویت‌دار؛ همراه با ردیابی تخصیص.</p></article>
+</div></div></section>
+<section class="ss-section ss-band" id="mechanism"><div class="ss-wrap"><h2 class="ss-title">از ثبت نیاز تا ارائه گزارش</h2><p class="ss-desc">هر مرحله باید مستند و قابل ممیزی باشد. تا زمان تأیید کامل پرونده‌ها و مجوزهای دسترسی، هیچ مشخصات شخصی یا پیشرفت فرضی منتشر نمی‌شود.</p>
+<div class="ss-process">
+<div class="ss-step"><b>01</b><strong>معرفی و احراز نیاز</strong><p>دانش‌آموز و سرپرست قانونی، نیاز را در فضای خصوصی ثبت می‌کنند. تیم مسئول، مدارک و شرایط را بررسی می‌کند.</p></div>
+<div class="ss-step"><b>02</b><strong>حمایت و ثبت پرداخت</strong><p>حامی می‌تواند بدون حساب کمک کند؛ مبلغ پرداخت‌شده با شناسه جدا از خرید کتاب ثبت می‌شود.</p></div>
+<div class="ss-step"><b>03</b><strong>تخصیص و تأمین</strong><p>هر هزینه فقط با پروندهٔ بررسی‌شده، تأیید مسئول و سند تأمین یا رسید معتبر تخصیص می‌یابد.</p></div>
+<div class="ss-step"><b>04</b><strong>گزارش بدون افشای هویت</strong><p>پیشرفت و نتیجه، مطابق مجوز مشاهده هر نقش، ثبت و گزارش می‌شود؛ نه با وعدهٔ نتیجه تضمینی.</p></div>
+</div></div></section>
+<section class="ss-section" id="privacy"><div class="ss-wrap"><h2 class="ss-title">آشنایی اختیاری، حمایت امن</h2><p class="ss-desc">«حامی شدن» به معنای داشتن حق مشاهدهٔ نام، تصویر، نشانی، مدرسه، شماره تماس یا پیام‌رسان دانش‌آموز نیست.</p>
+<div class="ss-privacy">
+<article><h3>حق انتخاب دانش‌آموز و سرپرست</h3><p>دانش‌آموز می‌تواند درخواست آشنایی با هویت حامی را مطرح کند؛ تنها در صورت رضایت حامی و تأیید تیم حفاظت از کودک، اطلاعات محدودِ مجاز نمایش داده می‌شود. رضایت قابل پس‌گرفتن است.</p><ul><li>مجوز سرپرست قانونی و موافقت متناسب با سن دانش‌آموز</li><li>نمایش حداقلی اطلاعات، بدون اطلاعات تماس یا نشانی</li><li>امکان لغو دسترسی و ثبت سوابق تصمیم‌ها</li></ul></article>
+<article><h3>حق انتخاب حامی</h3><p>حامیِ دارای حساب تأییدشده می‌تواند پس از موافقت دانش‌آموز و سرپرست و تأیید مسئول برنامه، نمایی محدود از نیازهای بررسی‌شده و روند کمک را مشاهده کند؛ بدون تماس مستقیم یا دسترسی به اطلاعات حساس.</p><ul><li>امکان حمایت با نام مستعار یا بدون نمایش هویت</li><li>بدون چت خصوصی، تماس، تبادل شماره یا آدرس</li><li>نیازها را دانش‌آموز/سرپرست اعلام و مسئول برنامه تأیید می‌کند</li></ul></article>
+</div></div></section>
+<section class="ss-section"><div class="ss-wrap"><h2 class="ss-title">فضای حامی و داشبورد دانش‌آموز</h2><p class="ss-desc">امکانات خصوصی بر اساس نقش، رضایت، تأیید پرونده و حساب ایمیلی فعال می‌شوند. تا برقراری کامل تأیید ایمیل و فرایند ارزیابی، دسترسی به اطلاعات واقعی دانش‌آموزان فعال نخواهد شد.</p>
+<div class="ss-grid">
+<article class="ss-card"><h3>حامی</h3><p>پیگیری کمک‌های ثبت‌شده، مشاهده نیازهای تأییدشده، مراحل تأمین و گزارش‌های مجاز؛ بدون ارسال پیام مستقیم.</p><p><a class="ss-link" href="/fa/customer-dashboard/#student-support">داشبورد حامی ←</a></p></article>
+<article class="ss-card"><h3>دانش‌آموز و سرپرست</h3><p>ثبت خصوصی درخواست‌ها، برنامهٔ پیشرفت، وضعیت رسیدگی و کنترل رضایت برای نمایش محدود به حامی.</p><p><a class="ss-link" href="/fa/danesh-amoozan/">درگاه دانش‌آموزان ←</a></p></article>
+<article class="ss-card"><h3>مسئول برنامه</h3><p>بررسی مدارک، رعایت محرمانگی، تأیید نیاز، ثبت تخصیص، کنترل مخارج، رسیدگی به تعارض‌ها و حق لغو دسترسی.</p><p><a class="ss-link" href="mailto:info@drjavadrezazadeh.com?subject=Student%20support%20program">پیگیری اداری ←</a></p></article>
+</div></div></section>
+<section class="ss-donate-wrap" id="contribute"><div class="ss-wrap"><section class="support-panel" aria-labelledby="support-heading">
+<p class="support-eyebrow">SUPPORT THE NEXT GENERATION · GUEST CHECKOUT</p>
+<h2 id="support-heading">حمایت مالی از دانش‌آموزان بااستعداد کم‌بضاعت</h2>
+<p>بدون نیاز به ثبت‌نام، مبلغ و زمینه حمایت را انتخاب کنید. پرداخت شما در صندوق برنامه ثبت می‌شود؛ انتخاب دانش‌آموز مشخص و تخصیص وجه فقط پس از ارزیابی نیاز و ثبت مستندات امکان‌پذیر است.</p>
+<form data-support-form>
+<label for="support-amount">مبلغ حمایت (تومان)</label>
+<div class="support-presets" role="group" aria-label="مبالغ پیشنهادی">
+<button type="button" data-support-amount="1000">۱٬۰۰۰ تومان</button>
+<button type="button" data-support-amount="5000">۵٬۰۰۰ تومان</button>
+<button type="button" data-support-amount="10000">۱۰٬۰۰۰ تومان</button>
+<button type="button" data-support-amount="20000">۲۰٬۰۰۰ تومان</button>
+</div>
+<input id="support-amount" name="amountToman" type="number" inputmode="numeric" min="1000" max="500000" step="1000" value="10000" required aria-describedby="support-preview">
+<p id="support-preview" class="support-preview" data-support-preview aria-live="polite"></p>
+<label for="support-focus">زمینه حمایت (اختیاری)</label><select id="support-focus" name="focus" aria-label="زمینه حمایت"><option value="general">صندوق عمومی فرصت برابر</option><option value="scholarship">بورسیه و شهریه تحصیلی</option><option value="books">کتاب و لوازم آموزشی</option><option value="services">آموزش و خدمات تخصصی</option><option value="essentials">پوشاک و نیازهای ضروری</option></select><p class="support-note">انتخاب زمینه حمایت، انتخاب دانش‌آموز مشخص نیست؛ تخصیص تنها پس از ارزیابی و ثبت هزینه انجام می‌شود.</p><label for="support-email">ایمیل برای دریافت تأیید پرداخت (اختیاری)</label>
+<input id="support-email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com">
+<p class="support-note">دریافت اطلاعات کارت فقط در درگاه بانکی انجام می‌شود. پیش از ورود اطلاعات کارت، دامنهٔ رسمی بانک و مبلغ را کنترل کنید.</p>
+<button class="support-submit" type="submit" disabled>پرداخت امن حمایت مالی</button>
+<p class="support-status" role="status" aria-live="polite" data-support-status>در حال بررسی درگاه...</p>
+</form>
+<div class="support-footer"><p class="support-note"><strong>اطلاعیه:</strong> این پرداخت به حساب پذیرندهٔ وب‌سایت انجام می‌شود و به‌عنوان مشارکت داوطلبانه در برنامهٔ حمایتی ثبت خواهد شد؛ ادعای خیریهٔ ثبت‌شده، معافیت مالیاتی یا تخصیص قطعی پیش از ثبت مستندات مطرح نیست. هیچ اطلاعات کارت بانکی در این سایت دریافت نمی‌شود.</p>
+<p><a href="/fa/shop/customer-policy/">شرایط پرداخت و پیگیری</a> · <a href="mailto:info@drjavadrezazadeh.com">پشتیبانی ایمیلی</a></p></div>
+</section></div></section>
+<section class="ss-section ss-band ss-faq"><div class="ss-wrap"><h2 class="ss-title">پرسش‌های متداول</h2>
+<details><summary>آیا برای کمک مالی باید ثبت‌نام کنم؟</summary><p>خیر. کمک مالی مهمان بدون ایجاد حساب ممکن است. اتصال بعدی کمک‌ها به داشبورد شخصی نیازمند احراز هویت و تطبیق امن است.</p></details>
+<details><summary>آیا بلافاصله نام دانش‌آموز را می‌بینم؟</summary><p>خیر. هیچ اطلاعاتی از کودکان عمومی نیست. هرگونه مشاهده محدود، به رضایت معتبر سرپرست و دانش‌آموز، موافقت طرف مقابل و تأیید مسئول حفاظت از کودک وابسته است.</p></details>
+<details><summary>آیا می‌توانم مستقیماً با دانش‌آموز تماس بگیرم؟</summary><p>خیر. این سامانه ارتباط مستقیم، پیام خصوصی یا تبادل شماره تماس و نشانی میان حامی و دانش‌آموز را فراهم نمی‌کند.</p></details>
+<details><summary>کمک من چگونه پیگیری می‌شود؟</summary><p>رسید پرداخت پس از تأیید بانکی صادر می‌شود. گزارش تخصیص تنها بعد از ارزیابی و ثبت هزینهٔ واقعی در داشبورد مجاز نمایش داده خواهد شد. رسید پرداخت به معنای انجام هزینه نیست.</p></details>
+</div></section>
+</main><footer class="ss-footer">© 2026 Dr. Javad Rezazadeh Yazdeli · حمایت مسئولانه از استعدادها · <a href="/fa/harim-khosusi/">حریم خصوصی</a></footer>
+<script src="/assets/js/donation-payment.js?v=20261011-students-v2" defer></script>
+</body></html>
