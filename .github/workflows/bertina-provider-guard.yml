@@ -66,6 +66,7 @@ jobs:
           php -l api/index.php
           node --check assets/js/customer-auth.js
           node tests/bertina-auth-readiness-regression.mjs
+          node tests/bertina-smtp-contract.mjs
 
       - name: Build sanitized Bertina artifact
         run: node scripts/build-public-site.mjs

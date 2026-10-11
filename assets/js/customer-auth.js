@@ -17,8 +17,11 @@ const text={
   generic:'درخواست کامل نشد. لطفاً کمی بعد دوباره تلاش کنید.',
   invalidRegistration:'شماره موبایل را با کد کشور مانند +98 وارد کنید و رمز عبور را بررسی کنید.',
   rateLimited:'تعداد تلاش‌ها بیش از حد مجاز است. لطفاً بعداً دوباره تلاش کنید.',
-  emailFailed:'حساب ممکن است در انتظار تأیید ثبت شده باشد، اما ایمیل ارسال نشد. لطفاً فعلاً درخواست تکراری نفرستید.',
+  emailFailed:'حساب ممکن است ثبت شده باشد، اما ایمیل تأیید ارسال نشد. پس از رفع مشکل ارسال، از گزینه «ارسال مجدد ایمیل تأیید» استفاده کنید.',
+  retryPending:'اگر حساب تأییدنشده‌ای با این ایمیل وجود داشته باشد، درخواست ارسال مجدد پردازش شد. دریافت پیام را در پوشه‌های ورودی و هرزنامه بررسی کنید.',
+  retryEmailRequired:'ابتدا ایمیل حساب خود را به‌درستی وارد کنید.',
   authUnavailable:'سرویس ثبت‌نام موقتاً آماده نیست. لطفاً بعداً مراجعه کنید.',
+  emailTransportUnavailable:'ارسال ایمیل تأیید هنوز آماده نیست. ورود به حساب‌های فعال همچنان امکان‌پذیر است.',
   passwordRule:'رمز باید حداقل ۱۲ نویسه داشته باشد.'
  },
  en:{
@@ -36,8 +39,11 @@ const text={
   generic:'The request could not be completed. Please try again later.',
   invalidRegistration:'Check the mobile number in international format (for example +98) and the password.',
   rateLimited:'Too many attempts. Please wait before trying again.',
-  emailFailed:'Your account may be pending verification, but the email could not be sent. Please avoid repeated submissions.',
+  emailFailed:'Your account may be pending verification, but email delivery failed. After the mail service is restored, use Retry verification email.',
+  retryPending:'If an unverified account exists for this email, the request has been processed. Check your inbox and spam folder.',
+  retryEmailRequired:'Please enter a valid account email address first.',
   authUnavailable:'Registration is temporarily unavailable. Please try again later.',
+  emailTransportUnavailable:'Email verification delivery is not ready yet. Existing users can still sign in.',
   passwordRule:'Password must contain at least 12 characters.'
  }
 }[lang];
@@ -56,8 +62,14 @@ async function health(){
   const d=await r.json();
   if(!r.ok||d?.ready!==true)throw new Error('not_ready');
   document.documentElement.dataset.authReady='true';
-  document.querySelectorAll('[data-auth-live-control]').forEach(el=>el.disabled=false);
-  setStatus(text.ready,'ready');
+  const registrationReady=d?.registrationReady===true;
+  document.documentElement.dataset.authRegistrationReady=String(registrationReady);
+  const registrationForm=$('[data-auth-form="register"]');
+  document.querySelectorAll('[data-auth-live-control]').forEach(el=>{
+    if(registrationForm?.contains(el)&&!registrationReady)return;
+    el.disabled=false;
+  });
+  setStatus(registrationForm&&!registrationReady?text.emailTransportUnavailable:text.ready,registrationForm&&!registrationReady?'unavailable':'ready');
   return true;
  }catch{
   document.documentElement.dataset.authReady='false';
@@ -80,6 +92,8 @@ function bindRegister(){
  const form=$('[data-auth-form="register"]');if(!form)return;
  form.addEventListener('submit',async e=>{
   e.preventDefault();
+  if(document.documentElement.dataset.authRegistrationReady!=='true')
+   return setStatus(text.emailTransportUnavailable,'unavailable');
   const fd=new FormData(form),password=String(fd.get('password')||'');
   if(password.length<12)return setStatus(text.passwordRule,'error');
   setStatus(text.sending,'checking');
@@ -94,11 +108,31 @@ function bindRegister(){
     invalid_password:text.invalidRegistration,
     rate_limited:text.rateLimited,
     verification_email_failed:text.emailFailed,
-    auth_unavailable:text.authUnavailable
+    auth_unavailable:text.authUnavailable,
+    verification_email_unavailable:text.emailTransportUnavailable
    };
    setStatus(safeMessages[error?.message]||text.generic,'error');
   }
   finally{form.querySelectorAll('[data-auth-live-control]').forEach(x=>x.disabled=false)}
+ });
+}
+function bindRetry(){
+ const button=$('[data-auth-retry]');
+ const form=$('[data-auth-form="register"]');
+ if(!button||!form)return;
+ button.addEventListener('click',async()=>{
+  if(document.documentElement.dataset.authRegistrationReady!=='true')
+   return setStatus(text.emailTransportUnavailable,'unavailable');
+  const emailField=form.querySelector('input[name="email"]');
+  if(!emailField||!emailField.checkValidity())return setStatus(text.retryEmailRequired,'error');
+  button.disabled=true;
+  setStatus(text.sending,'checking');
+  try{
+   await call('/auth/retry-verification',{email:emailField.value,locale:lang});
+   // Use the same result for existing/nonexisting addresses to prevent enumeration.
+   setStatus(text.retryPending,'success');
+  }catch{setStatus(text.generic,'error')}
+  finally{button.disabled=false}
  });
 }
 function bindLogin(){
@@ -144,6 +178,6 @@ document.addEventListener('DOMContentLoaded',async()=>{
  const ok=await health();
  if(!ok)return;
  await verifyFromUrl();
- bindRegister();bindLogin();bindRecovery();
+ bindRegister();bindRetry();bindLogin();bindRecovery();
 });
 })();
