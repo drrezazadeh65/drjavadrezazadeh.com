@@ -8,7 +8,7 @@
 <link rel="canonical" href="https://drjavadrezazadeh.com/fa/support-talented-students/">
 <link rel="stylesheet" href="/assets/css/public-v2.css?v=20261009-v441">
 <link rel="stylesheet" href="/assets/css/student-support-program.css?v=20261011-v1">
-<link rel="stylesheet" href="/assets/css/donation-payment.css?v=20261011-student-v2">
+<link rel="stylesheet" href="/assets/css/donation-payment.css?v=20261011-mobile-v3">
 <link rel="manifest" href="/site.webmanifest">
 <meta property="og:type" content="website"><meta property="og:title" content="حمایت از دانش‌آموزان بااستعداد کم‌بضاعت"><meta property="og:description" content="فرصت برابر برای رشد استعداد؛ بورسیه، کتاب، آموزش و پوشاک با حفاظت از حریم خصوصی کودکان.">
 <meta property="og:url" content="https://drjavadrezazadeh.com/fa/support-talented-students/">
@@ -64,14 +64,16 @@
 <h2 id="support-heading">حمایت مالی از دانش‌آموزان بااستعداد کم‌بضاعت</h2>
 <p>بدون نیاز به ثبت‌نام، مبلغ و زمینه حمایت را انتخاب کنید. پرداخت شما در صندوق برنامه ثبت می‌شود؛ انتخاب دانش‌آموز مشخص و تخصیص وجه فقط پس از ارزیابی نیاز و ثبت مستندات امکان‌پذیر است.</p>
 <form data-support-form>
-<label for="support-amount">مبلغ حمایت (تومان)</label>
+<label for="support-amount">مبلغ حمایت (تومان) · انتخاب مبلغ دلخواه از ۱٬۰۰۰ تا ۱۰٬۰۰۰٬۰۰۰ تومان</label>
 <div class="support-presets" role="group" aria-label="مبالغ پیشنهادی">
-<button type="button" data-support-amount="1000">۱٬۰۰۰ تومان</button>
-<button type="button" data-support-amount="5000">۵٬۰۰۰ تومان</button>
-<button type="button" data-support-amount="10000">۱۰٬۰۰۰ تومان</button>
-<button type="button" data-support-amount="20000">۲۰٬۰۰۰ تومان</button>
+<button type="button" data-support-amount="200000" aria-pressed="false">۲۰۰ هزار تومان</button>
+<button type="button" data-support-amount="500000" aria-pressed="true">۵۰۰ هزار تومان</button>
+<button type="button" data-support-amount="1000000" aria-pressed="false">۱ میلیون تومان</button>
+<button type="button" data-support-amount="2000000" aria-pressed="false">۲ میلیون تومان</button>
+<button type="button" data-support-amount="5000000" aria-pressed="false">۵ میلیون تومان</button>
+<button type="button" data-support-amount="10000000" aria-pressed="false">۱۰ میلیون تومان</button>
 </div>
-<input id="support-amount" name="amountToman" type="number" inputmode="numeric" min="1000" max="500000" step="1000" value="10000" required aria-describedby="support-preview">
+<input id="support-amount" name="amountToman" type="number" inputmode="numeric" min="1000" max="10000000" step="1" value="500000" required aria-describedby="support-preview">
 <p id="support-preview" class="support-preview" data-support-preview aria-live="polite"></p>
 <label for="support-focus">زمینه حمایت (اختیاری)</label><select id="support-focus" name="focus" aria-label="زمینه حمایت"><option value="general">صندوق عمومی فرصت برابر</option><option value="scholarship">بورسیه و شهریه تحصیلی</option><option value="books">کتاب و لوازم آموزشی</option><option value="services">آموزش و خدمات تخصصی</option><option value="essentials">پوشاک و نیازهای ضروری</option></select><p class="support-note">انتخاب زمینه حمایت، انتخاب دانش‌آموز مشخص نیست؛ تخصیص تنها پس از ارزیابی و ثبت هزینه انجام می‌شود.</p><label for="support-email">ایمیل برای دریافت تأیید پرداخت (اختیاری)</label>
 <input id="support-email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com">
@@ -89,5 +91,5 @@
 <details><summary>کمک من چگونه پیگیری می‌شود؟</summary><p>رسید پرداخت پس از تأیید بانکی صادر می‌شود. گزارش تخصیص تنها بعد از ارزیابی و ثبت هزینهٔ واقعی در داشبورد مجاز نمایش داده خواهد شد. رسید پرداخت به معنای انجام هزینه نیست.</p></details>
 </div></section>
 </main><footer class="ss-footer">© 2026 Dr. Javad Rezazadeh Yazdeli · حمایت مسئولانه از استعدادها · <a href="/fa/harim-khosusi/">حریم خصوصی</a></footer>
-<script src="/assets/js/donation-payment.js?v=20261011-students-v2" defer></script>
+<script src="/assets/js/donation-payment.js?v=20261011-mobile-v3" defer></script>
 </body></html>
