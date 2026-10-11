@@ -51,6 +51,13 @@ for(const route of ['/en/account/profile/','/en/account/relationships/','/en/acc
 }
 
 expect(css.includes('env(safe-area-inset-bottom)'),'CSS: mobile safe-area handling missing');
+expect(css.includes('font-family:"Segoe UI",Arial,"Helvetica Neue",Helvetica,sans-serif'),'CSS: trustworthy English font stack missing');
+expect(!css.includes('font-family:Inter,Tahoma,Arial,sans-serif'),'CSS: unsafe first-choice local Inter stack still present');
+expect(!css.includes('font:800 10px/1 Inter,Arial,sans-serif'),'CSS: local Inter symbol substitution possible in numeric step labels');
+for(const [label,html] of [['FA',fa],['EN',en]]){
+  expect(html.includes('customer-dashboard-v1.css?v=20261011-fontsafe-4'),label+': updated dashboard font cache key missing');
+}
+
 expect(css.includes('.cd-command-center'),'CSS: command centre styles missing');
 expect(css.includes('@media(max-width:920px)'),'CSS: primary mobile breakpoint missing');
 expect(css.includes('prefers-reduced-motion'),'CSS: reduced-motion handling missing');
