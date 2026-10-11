@@ -16,6 +16,8 @@ final class SupportResponse extends RuntimeException {
 function respond(array $value,int $code=200): never {throw new SupportResponse($value,$code);}
 function fail(string $code,int $status=400): never {respond(['ok'=>false,'error'=>$code],$status);}
 function commerceReady(): bool {return true;}
+function commerceSchemaReady(): bool {return true;}
+function validEmail(string $s): bool {return filter_var($s,FILTER_VALIDATE_EMAIL)!==false;}
 function authReady(): bool {return true;}
 function db(): ?PDO {return $GLOBALS['pdo'];}
 function sessionAccount(PDO $pdo): ?array {return $GLOBALS['actor']??null;}
@@ -40,6 +42,12 @@ $needHidden='33333333-3333-4333-8333-333333333334';
 $progress='44444444-4444-4444-8444-444444444444';
 $link='55555555-5555-4555-8555-555555555555';
 $actors=[$guardian,$sponsor,$other,$student];
+$donationPaid='88888888-8888-4888-8888-888888888880';
+$donationHistoric='88888888-8888-4888-8888-888888888881';
+$donationStranger='88888888-8888-4888-8888-888888888882';
+$donationPending='88888888-8888-4888-8888-888888888883';
+$donationIds=[$donationPaid,$donationHistoric,$donationStranger,$donationPending];
+
 function assertSupport(bool $ok,string $label): void {
  if(!$ok)throw new RuntimeException('support_safeguarding_failure: '.$label);
  echo "PASS ".$label."\n";
@@ -50,7 +58,8 @@ function callSupport(string $path,string $method='GET',array $input=[]): Support
  catch(SupportResponse $e){return $e;}
 }
 function actor(?string $id): void {
- $GLOBALS['actor']=$id?['id'=>$id,'status'=>'active','email_verified_at'=>time()]:null;
+ $GLOBALS['actor']=$id?['id'=>$id,'status'=>'active','email_verified_at'=>time(),
+  'email_normalized'=>str_replace('-','',$id).'@example.invalid']:null;
 }
 $pdo->prepare('DELETE FROM student_support_audit WHERE object_id=?')->execute([$link]);
 $pdo->prepare('DELETE FROM student_support_allocations WHERE need_id IN (?,?)')->execute([$needVisible,$needHidden]);
@@ -58,6 +67,7 @@ $pdo->prepare('DELETE FROM student_support_needs WHERE case_id=?')->execute([$ca
 $pdo->prepare('DELETE FROM student_support_progress WHERE case_id=?')->execute([$case]);
 $pdo->prepare('DELETE FROM student_support_sponsorships WHERE case_id=?')->execute([$case]);
 $pdo->prepare('DELETE FROM student_support_cases WHERE id=?')->execute([$case]);
+foreach($donationIds as $donationId)$pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$donationId]);
 foreach($actors as $id)$pdo->prepare('DELETE FROM customer_accounts WHERE id=?')->execute([$id]);
 try {
  foreach($actors as $id){
@@ -82,8 +92,49 @@ try {
   (id,case_id,sponsor_account_id,state,approved_sponsor_display_name,approved_student_display_name,expires_at)
   VALUES(?,?,?,'requested','حامی نمونه','نام محفوظ دانش‌آموز',DATE_ADD(NOW(), INTERVAL 30 DAY))")
   ->execute([$link,$case,$sponsor]);
+ // Donations are linked only to the email that the logged-in account proved it owns.
+ $donorEmail=str_replace('-','',$sponsor).'@example.invalid';
+ $otherEmail=str_replace('-','',$other).'@example.invalid';
+ $donations=[
+   [$donationPaid,$donorEmail,'paid','support:students','talented-students-v1','books'],
+   [$donationHistoric,$donorEmail,'paid','support:voluntary',null,null],
+   [$donationStranger,$otherEmail,'paid','support:students','talented-students-v1','services'],
+   [$donationPending,$donorEmail,'pending','support:students','talented-students-v1','scholarship']
+ ];
+ foreach($donations as $index=>$row){
+   [$orderId,$email,$state,$sku,$program,$focus]=$row;
+   $item=['sku'=>$sku,'title'=>'آزمون بدون مشخصات واقعی','kind'=>'donation',
+     'quantity'=>1,'price'=>1000,'subtotal'=>1000];
+   if($program!==null)$item+=['program'=>$program,'focus'=>$focus,'allocation'=>'pending_verified_need'];
+   $pdo->prepare("INSERT INTO commerce_orders
+     (id,factor_id,amount_toman,provider_amount,currency,customer_email,items_json,state,paid_at,provider_id_get,provider_trans_id)
+     VALUES(?,?,?,?, 'IRT',?,?,?,?,?,?)")
+   ->execute([$orderId,'STUDENTTEST'.(string)$index,1000,10000,$email,json_encode([$item],JSON_UNESCAPED_UNICODE),
+     $state,$state==='paid'?'2026-10-11 10:00:00':null,'789123','798123']);
+ }
  actor(null);
  assertSupport(callSupport('/student-support/health')->httpStatus===200,'anonymous_can_read_programme_health');
+ assertSupport(callSupport('/student-support/my-contributions')->httpStatus===401,'guest_cannot_view_contributor_ledger');
+ actor($sponsor);
+ $ledger=callSupport('/student-support/my-contributions');
+ assertSupport($ledger->httpStatus===200&&$ledger->payload['authenticated']===true&&
+    $ledger->payload['noStudentIdentity']===true&&$ledger->payload['count']===2,
+    'verified_sponsor_sees_only_paid_contributions_for_owned_email');
+ $paid=array_values(array_filter($ledger->payload['items'],fn($line)=>$line['programme']==='talented-students-v1'));
+ assertSupport(count($paid)===1&&$paid[0]['orderId']===$donationPaid&&
+    $paid[0]['focus']==='books'&&$paid[0]['allocationState']==='pending_verified_need',
+    'new_student_support_keeps_explicit_unallocated_state');
+ $legacy=array_values(array_filter($ledger->payload['items'],fn($line)=>$line['programme']==='legacy-voluntary'));
+ assertSupport(count($legacy)===1&&$legacy[0]['orderId']===$donationHistoric&&
+    $legacy[0]['allocationState']===null,
+    'historical_voluntary_contribution_not_relabelled_as_student_support');
+ actor($other);
+ $otherLedger=callSupport('/student-support/my-contributions');
+ assertSupport($otherLedger->payload['count']===1&&
+    $otherLedger->payload['items'][0]['orderId']===$donationStranger,
+    'verified_email_account_cannot_view_other_donors');
+ actor(null);
+
  assertSupport(callSupport('/student-support/portal')->httpStatus===401,'anonymous_cannot_read_student_cases');
  actor($other);
  $result=callSupport('/student-support/portal');
@@ -134,5 +185,6 @@ try {
  $pdo->prepare('DELETE FROM student_support_progress WHERE case_id=?')->execute([$case]);
  $pdo->prepare('DELETE FROM student_support_sponsorships WHERE case_id=?')->execute([$case]);
  $pdo->prepare('DELETE FROM student_support_cases WHERE id=?')->execute([$case]);
- foreach($actors as $id)$pdo->prepare('DELETE FROM customer_accounts WHERE id=?')->execute([$id]);
+ foreach($donationIds as $donationId)$pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$donationId]);
+foreach($actors as $id)$pdo->prepare('DELETE FROM customer_accounts WHERE id=?')->execute([$id]);
 }
