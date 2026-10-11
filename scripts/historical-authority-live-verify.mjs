@@ -84,8 +84,23 @@ export async function verifyHistoricalAuthority(registry,{request=trustedPublicR
     for(const origin of origins){
       for(const route of new Set([rec.path,rec.path.replace(/\/$/,'')])){
         const url=new URL(route,origin).href;
-        add('gone '+url,url,response=>{
-          if(response.status!==410||response.headers.location)throw new Error('discontinued product must be 410 Gone');
+        add('gone '+url,url,async response=>{
+          // Canonical HTTPS must terminate immediately. HTTP and www can
+          // perform their existing transport consolidation, but may not
+          // redirect the discontinued product to any semantically unrelated page.
+          if(response.status===410&&!response.headers.location)return;
+          if(new URL(url).origin===canonical.origin)throw new Error('canonical retired product must return 410 directly');
+          if(response.status!==301||!response.headers.location)throw new Error('retired product must return 410 or one canonical transport redirect');
+          const destination=new URL(response.headers.location,url);
+          const original=new URL(url);
+          let oldPath=original.pathname,newPath=destination.pathname;
+          try{oldPath=decodeURIComponent(oldPath);newPath=decodeURIComponent(newPath);}catch{}
+          if(destination.origin!==canonical.origin || oldPath.replace(/\\/$/,'')!==newPath.replace(/\\/$/,'') ||
+             destination.search!==original.search){
+            throw new Error('historical source must preserve exact discontinued path during transport consolidation');
+          }
+          const final=await request(destination.href);
+          if(final.status!==410||final.headers.location)throw new Error('canonical retired product must terminate at 410 Gone');
         });
       }
     }
@@ -123,7 +138,7 @@ export async function verifyHistoricalAuthority(registry,{request=trustedPublicR
   await Promise.all(Array.from({length:Math.min(Math.max(1,concurrency),cases.length)},async()=>{
     while(cursor<cases.length){
       const item=cases[cursor++];
-      try{item.check(await request(item.url));}
+      try{await item.check(await request(item.url));}
       catch(error){failures.push({check:item.label,error:error.message});}
     }
   }));
