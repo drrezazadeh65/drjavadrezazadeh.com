@@ -84,3 +84,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 mobile-first bookstore design harmonization and student-support amount release (200k/500k/1m/2m/5m/10m presets, custom 1k–10m; verify PHP/MySQL, Playwright and TLS before production; preserve approved cinematic banner).
 
 2026-10-11 final synchronized mobile-first release: use latest corrected browser assertions, six proposed amounts and custom payment ceiling; stale SHA guard must pass before uploading.
+
+2026-10-11 definitive mobile-first support checkout release: synchronize Playwright payment mocks with the 10,000,000-toman API ceiling and preserve 10,000-toman legacy gateway security tests, with fail-closed controls.
