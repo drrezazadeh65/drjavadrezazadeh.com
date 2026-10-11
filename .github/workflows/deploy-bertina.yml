@@ -83,6 +83,7 @@ jobs:
           node scripts/build-public-data.mjs --check
           node scripts/build-public-site.mjs
           node scripts/bookstore-release-audit.mjs
+          node scripts/public-retired-commerce-audit.mjs
           node scripts/stamp-bertina-release.mjs
           test -f .public-site/.htaccess
           test ! -e .public-site/platform
