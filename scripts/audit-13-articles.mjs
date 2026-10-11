@@ -56,7 +56,7 @@ for (const slug of slugs) {
  check(rail.length>200,'missing scholarly-commerce sidebar');
  check((rail.match(/<section\b/g)||[]).length===3,'sidebar must contain service, bookstore and related reading');
  check(rail.includes('launch-offer') && rail.includes('launch-shop-unit') && rail.includes('launch-related-reading'),'sidebar missing structured offer/shop/reading cards');
- check(html.includes('editorial-launch-2026.css?v=20261011-commerce-v3'),'stylesheet cache key not updated');
+ check(html.includes('editorial-launch-2026.css?v=20261011-commerce-v4'),'stylesheet cache key not updated');
  for(const [,href] of rail.matchAll(/href="([^"]+)"/g)){
    if(!href.startsWith('/')) {check(false,'unexpected sidebar URL: '+href);continue;}
    const local = path.join(root,href.slice(1));
