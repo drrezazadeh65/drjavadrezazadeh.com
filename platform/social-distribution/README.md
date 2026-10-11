@@ -46,7 +46,7 @@ Persistent database contract:
 ## Working code (v0.1)
 
 Node.js >=20; module engine.mjs, unit tests engine.test.mjs. It:
-- reads the site's existing /feed.xml, filters content by same-site /fa/ and /en/ routes;
+- reads the site's existing /feed.xml and approved news in /sitemap-news.xml, enriches only publicly accessible self-canonical /fa/akhbar/ and /en/news/ pages, prioritises news ahead of evergreen feed items;
 - adapts copy size and adds UTM tracking links without altering canonical;
 - provides dry-run preview; protects publication with two independent environment flags;
 - checks source page 200, indexability and canonical before publishing;
