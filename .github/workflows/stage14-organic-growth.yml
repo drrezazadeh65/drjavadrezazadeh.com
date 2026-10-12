@@ -1,0 +1,34 @@
+name: Stage 14 Organic Growth Contracts
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'platform/organic-growth-stage14.json'
+      - 'platform/organic-growth-revenue*.mjs'
+      - 'platform/conversion-event-contract.json'
+      - 'platform/analytics-config.json'
+      - 'assets/data/**'
+      - 'assets/js/free-growth-tools.js'
+      - 'assets/js/organic-sharing.js'
+      - 'assets/css/free-growth-tools.css'
+      - 'fa/akhbar/**'
+      - 'fa/khadamat/index.html'
+      - 'scripts/stage14-organic-growth-audit.mjs'
+      - '.github/workflows/stage14-organic-growth.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check assets/js/free-growth-tools.js
+      - run: node --check assets/js/organic-sharing.js
+      - run: node --check platform/organic-growth-revenue.mjs
+      - run: node scripts/stage14-organic-growth-audit.mjs
+      - run: node --test platform/organic-growth-revenue.test.mjs
