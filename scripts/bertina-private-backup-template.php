@@ -7,6 +7,16 @@ const CB_MAX_BYTES = 2147483648;
 const CB_FREE_RESERVE = 67108864;
 
 function cbFail(string $code): never { throw new RuntimeException($code); }
+function cbPrivateConfiguration(string $path): array {
+    // Preserve the host configuration exactly; discard include output before validating it.
+    if(!ob_start())cbFail('private_configuration_buffer_unavailable');
+    try{$configuration=require $path;$output=ob_get_contents();}
+    catch(Throwable $e){cbFail('private_configuration_load_failed');}
+    finally{ob_end_clean();}
+    if(!is_array($configuration))cbFail('private_configuration_type_invalid');
+    if(!is_string($output)||preg_match('/\A[ \t\r\n]*\z/',$output)!==1)cbFail('private_configuration_output_invalid');
+    return $configuration;
+}
 function cbRequest(): array {
     $raw=base64_decode(CB_REQUEST_B64,true);
     $r=is_string($raw)?json_decode($raw,true):null;
@@ -226,7 +236,7 @@ function cbCreate(string $site,string $private,array $r,string $helper): array {
     register_shutdown_function(function()use(&$reserve,&$success,$private,$archive,$sqlFile){$reserve='';if(!$success){if(is_file($sqlFile))@unlink($sqlFile);if(is_file($archive))@unlink($archive);if(is_file($private.'/full-backup.zip'))@unlink($private.'/full-backup.zip');}});
     try{
         cbWrite($state,json_encode(['ok'=>false,'status'=>'creating','id'=>$r['id'],'startedAt'=>$startedAt],JSON_THROW_ON_ERROR));
-        $files=cbFiles($site,$helper);$directories=cbDirectories($site);$sw=@file_get_contents($site.'/sw.js');if(!is_string($sw)||!preg_match("/^const CACHE_VERSION='jr-site-bertina-([a-f0-9]{40})';$/m",$sw,$release)||$release[1]!==$r['sourceRelease'])cbFail('backup_source_release_mismatch');ob_start();try{$configuration=require $site.'/api/config.local.php';$configOutput=ob_get_contents();}finally{ob_end_clean();}if(!is_array($configuration)||$configOutput!=='')cbFail('private_configuration_invalid');
+        $files=cbFiles($site,$helper);$directories=cbDirectories($site);$sw=@file_get_contents($site.'/sw.js');if(!is_string($sw)||!preg_match("/^const CACHE_VERSION='jr-site-bertina-([a-f0-9]{40})';$/m",$sw,$release)||$release[1]!==$r['sourceRelease'])cbFail('backup_source_release_mismatch');$configuration=cbPrivateConfiguration($site.'/api/config.local.php');
         $dsn=(string)($configuration['db_dsn']??'');if(!str_starts_with($dsn,'mysql:'))cbFail('mysql_configuration_missing');
         $pdo=new PDO($dsn,(string)($configuration['db_user']??''),(string)($configuration['db_password']??''),[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);
         cbDisk($private);$pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY,false);$pdo->exec('SET NAMES utf8mb4');$pdo->exec("SET SESSION time_zone='+00:00'");$dump=cbDump($pdo,$private);$inputBytes=array_sum(array_column($files,'size'))+filesize($sqlFile);$archiveBound=$inputBytes+(count($files)+3)*2048+4194304;$stageBound=$archiveBound+filesize($sqlFile);if($inputBytes>CB_MAX_BYTES||$stageBound>CB_MAX_BYTES)cbFail('backup_total_staging_size_limit');cbDisk($private,$archiveBound);$password=bin2hex(random_bytes(32));

@@ -125,6 +125,32 @@ try {
     refused('private_file_symlink',fn()=>cbWrite($private.'/example-link.json','changed'),'private symlink refused');
     check(file_get_contents($private.'/example.json')==='{"test":true}','symlink target unchanged');
 
+    // Only synthetic config files: include output must never escape, even on refusal.
+    $configFile=$root.'/configuration-fixture.php';
+    $config=['db_dsn'=>'mysql:synthetic_fixture','db_password'=>'local_fixture_secret'];
+    foreach(['',"\n "," \t\r\n"] as $whitespace){
+        file_put_contents($configFile,'<?php echo '.var_export($whitespace,true).'; return '.var_export($config,true).';');
+        ob_start();try{$loaded=cbPrivateConfiguration($configFile);}finally{$visible=ob_get_clean();}
+        check($loaded===$config,'array configuration accepted with ASCII JSON whitespace');
+        check($visible==='','accepted configuration never prints include output or secrets');
+    }
+    file_put_contents($configFile,'<?php return '.var_export($config,true).'; ?>' . "\n ");
+    ob_start();try{$loaded=cbPrivateConfiguration($configFile);}finally{$visible=ob_get_clean();}
+    check($loaded===$config&&$visible==='','array with closing-tag trailing newline/space remains unchanged and private');
+    foreach(['local_fixture_secret',"\xC2\xA0","\f","\v","\0"] as $unexpected){
+        file_put_contents($configFile,'<?php echo '.var_export($unexpected,true).'; return '.var_export($config,true).';');
+        ob_start();try{refused('private_configuration_output_invalid',fn()=>cbPrivateConfiguration($configFile),'non-JSON-whitespace configuration output refused with fixed code');}finally{$visible=ob_get_clean();}
+        check($visible==='','rejected configuration output never prints secrets or invalid bytes');
+    }
+    foreach([null,false,1,'local_fixture_secret'] as $nonarray){
+        file_put_contents($configFile,'<?php echo "\\n "; return '.var_export($nonarray,true).';');
+        ob_start();try{refused('private_configuration_type_invalid',fn()=>cbPrivateConfiguration($configFile),'non-array configuration refused with distinct fixed code');}finally{$visible=ob_get_clean();}
+        check($visible==='','non-array configuration refusal suppresses all include output');
+    }
+    file_put_contents($configFile,'<?php echo "local_fixture_secret"; throw new RuntimeException("local_fixture_secret");');
+    ob_start();try{refused('private_configuration_load_failed',fn()=>cbPrivateConfiguration($configFile),'configuration exception is replaced by a fixed safe code');}finally{$visible=ob_get_clean();}
+    check($visible==='','configuration exception prints neither output nor exception contents');
+
     $ddl="CREATE TABLE `AUTO_INCREMENT=111` (`id` int AUTO_INCREMENT, `note` varchar(255) DEFAULT 'AUTO_INCREMENT=222', `quoted` varchar(255) COMMENT 'it''s AUTO_INCREMENT=333', `double` varchar(255) DEFAULT \"AUTO_INCREMENT=444\") ENGINE=InnoDB AUTO_INCREMENT=555 COMMENT='AUTO_INCREMENT=666'";
     $normalized=cbNormalizeAutoIncrement($ddl);
     check($normalized===str_replace('ENGINE=InnoDB AUTO_INCREMENT=555','ENGINE=InnoDB AUTO_INCREMENT=SNAPSHOT',$ddl),'normalize only unquoted table auto-increment option');
