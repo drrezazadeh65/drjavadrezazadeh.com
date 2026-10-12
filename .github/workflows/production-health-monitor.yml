@@ -34,9 +34,19 @@ jobs:
         env:
           PROD_ORIGIN: https://drjavadrezazadeh.com
           PRODUCTION_HEALTH_STRICT: '1'
+          PRODUCTION_HEALTH_EVIDENCE_PATH: production-public-evidence.json
         run: node scripts/production-health-audit.mjs
-      - name: Explain strict production state
+      - name: Upload sanitized live source-versus-release proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bertina-public-live-proof
+          path: production-public-evidence.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Explain strict production scope
         if: always()
         run: |
-          echo "Production health monitoring is active in STRICT mode."
-          echo "Bertina public CA-trusted TLS remains an external gate. This monitor keeps strict TLS verification; a source pass is not public certification."
+          echo "Independent production checks use CA-trusted HTTPS without curl -k."
+          echo "The observed live release may legitimately trail branch HEAD until signed recovery and a serialized deployment."
+          echo "Source/browser CI and public checkout-readiness indicators are not signed restore, MFA, payment settlement or fulfilment proof."
