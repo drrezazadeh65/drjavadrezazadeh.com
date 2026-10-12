@@ -5,6 +5,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-action-runs.php';
+require_once __DIR__.'/operations-social.php';
 
 function operationsRegistry(): array {
     $raw = file_get_contents(__DIR__.'/internal/operations-registry.json');
@@ -349,6 +350,9 @@ function operationsRoute(string $path, string $verb): never {
             catch (Throwable $e) {fail('action_execution_unavailable',503);}
         }
 
+        if ($path === '/admin/operations/social' && $verb === 'GET') {
+            respond(operationsSocialSnapshot($pdo));
+        }
         if ($path === '/admin/operations/free-resources' && $verb === 'GET') {
             // This is below the verified administrator + MFA checks. No external API is called.
             $raw=@file_get_contents(__DIR__.'/internal/free-resources-registry.json');
