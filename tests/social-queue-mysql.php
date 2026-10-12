@@ -152,4 +152,47 @@ socialCheck(!str_contains(json_encode($snapshot),'fixture-password') &&
  !str_contains(json_encode($snapshot),'secret_reference'),
  'status route leaked infrastructure credentials');
 
+
+// Full admin review workflow: hash-bound decisions, stale copy rejection,
+// no provider API call, all data scoped to isolated MySQL.
+require __DIR__.'/../api/social-review.php';
+$pdo->exec('UPDATE social_accounts SET expires_at=NULL WHERE id=1');
+$reviewId='88888888-8888-4888-8888-888888888888';
+socialInsert($pdo,$reviewId,1,$campaign,$now+400,'Content approved for review');
+$listing=socialReviewList($pdo,$now);
+$review=array_values(array_filter($listing['drafts'],
+    static fn($x)=>$x['deliveryId']===$reviewId));
+socialCheck(count($review)===1 && $review[0]['reviewable']===true &&
+    strlen($review[0]['digest'])===64 &&
+    $review[0]['sourceIndependentlyVerified']===false,'review preview or limitation missing');
+$previewDigest=$review[0]['digest'];
+$pdo->prepare("UPDATE social_deliveries SET body=? WHERE id=?")
+    ->execute(['This copy changed after preview',$reviewId]);
+socialRejected(fn()=>socialReviewApprove($pdo,$reviewId,$previewDigest,$admin,$now),
+    'stale editorial preview approved');
+socialCheck(socialState($pdo,$reviewId)['status']==='draft',
+    'stale approval changed state');
+$pdo->prepare('UPDATE social_deliveries SET body=? WHERE id=?')
+    ->execute(['Content approved for review',$reviewId]);
+socialReviewApprove($pdo,$reviewId,$previewDigest,$admin,$now);
+socialCheck(socialState($pdo,$reviewId)['status']==='scheduled',
+    'approved review was not scheduled');
+socialRejected(fn()=>socialReviewApprove($pdo,$reviewId,$previewDigest,$admin,$now),
+    'replayed approval accepted');
+$rejectId='99999999-9999-4999-8999-999999999999';
+socialInsert($pdo,$rejectId,1,$campaign,$now+410,'Rejected social draft');
+$latest=socialReviewList($pdo,$now);
+$reject=array_values(array_filter($latest['drafts'],fn($r)=>$r['deliveryId']===$rejectId));
+socialCheck(count($reject)===1,'rejection candidate absent');
+socialReviewReject($pdo,$rejectId,$reject[0]['digest'],$admin,$now);
+socialCheck(socialState($pdo,$rejectId)['status']==='revoked',
+    'rejected draft remains publishable');
+socialRejected(fn()=>socialReviewReject($pdo,$rejectId,$reject[0]['digest'],$admin,$now),
+    'repeat rejection did not conflict');
+socialCheck((int)$pdo->query("SELECT COUNT(*) FROM social_audit
+    WHERE action IN ('admin_review_approved','admin_review_rejected')")->fetchColumn()===2,
+    'administrator action journal not persisted exactly once');
+socialCheck((int)$pdo->query("SELECT COUNT(*) FROM social_attempts")->fetchColumn()===3,
+    'review operations incorrectly dispatched to social platform');
+
 echo 'PASS: '.$checks.' isolated MySQL Stage 13 transactional queue checks; zero provider sends.'.PHP_EOL;
