@@ -123,6 +123,17 @@ for(const page of ['journal/fa/index.html','journal/fa/dashboard/index.html']){
 }
 if(faFeed.includes('journal.drjavadrezazadeh.com')||faFeed.includes('Call for Papers'))failures.push('Persian JHELA feed falsely claims a mature journal release');
 
+// Persian reviewer/editorial recruitment must remain client-initiated, accessible and non-persistent.
+for(const [route,role] of [['journal/fa/call-for-reviewers/index.html','reviewer'],['journal/fa/founding-collaborators/index.html','editorial']]){
+ const html=read(route);
+ if(!html.includes('data-jhela-interest="'+role+'"')||!html.includes('data-jhela-locale="fa"'))failures.push('Persian reviewer-interest form missing '+route);
+ if(!html.includes('jhela-intake.js')||!html.includes('data-jhela-copy')||!html.includes('type="submit"'))failures.push('Persian intake lacks accessible progressive enhancement '+route);
+ if(!html.includes('name="consent" required'))failures.push('Persian intake consent required '+route);
+ if(!html.includes('href="mailto:dr.rezazadeh65@gmail.com'))failures.push('Persian intake has no direct email fallback '+route);
+ if(/<form[^>]*\\baction=[\"']https?:/i.test(html))failures.push('Persian intake may not post to an external endpoint '+route);
+}
+if(!read('assets/js/jhela-intake.js').includes("dataset.jhelaLocale==='fa'"))failures.push('Persian intake locale feedback missing');
+
 if(failures.length){
  console.error('JHELA independent publishing/discovery failures ('+failures.length+')');
  for(const failure of failures)console.error('✗ '+failure);

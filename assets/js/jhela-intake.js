@@ -10,10 +10,12 @@ const fields=[
  ['publications','Selected publications / profile']
 ];
 document.querySelectorAll('form[data-jhela-interest]').forEach(form=>{
+ const isPersian=form.dataset.jhelaLocale==='fa';
+ const msg=(en,fa)=>isPersian?fa:en;
  const mode=form.dataset.jhelaInterest==='reviewer'?'Reviewer':'Founding Editorial Collaboration';
  const feedback=form.querySelector('[data-jhela-feedback]');
  const draft=()=>{
-   if(!form.reportValidity()){feedback.textContent='Please complete the required academic profile fields and confirm the declaration.';return null;}
+   if(!form.reportValidity()){feedback.textContent=msg('Please complete the required academic profile fields and confirm the declaration.','لطفاً اطلاعات ضروری، ایمیل معتبر و تأییدیهٔ همکاری را کامل کنید.');return null;}
    const parts=fields.map(([key,label])=>{
      const element=form.elements.namedItem(key);
      return label+': '+limit(element&&element.value,key==='subjects'||key==='methods'?1500:650);
@@ -26,7 +28,7 @@ document.querySelectorAll('form[data-jhela-interest]').forEach(form=>{
    event.preventDefault();
    const body=draft();if(!body)return;
    const subject='JHELA '+mode+' Expression of Interest';
-   feedback.textContent='Your email application is being prepared. Review the draft and attach your CV before sending.';
+   feedback.textContent=msg('Your email application is being prepared. Review the draft and attach your CV before sending.','ایمیل درخواست در برنامهٔ ایمیل شما آماده می‌شود. پیش از ارسال، متن را بررسی و رزومه را پیوست کنید.');
    window.location.href='mailto:'+inbox+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
  });
  const copy=form.querySelector('[data-jhela-copy]');
@@ -35,7 +37,7 @@ document.querySelectorAll('form[data-jhela-interest]').forEach(form=>{
    try{
      if(!navigator.clipboard||!navigator.clipboard.writeText)throw Error('Clipboard unavailable');
      await navigator.clipboard.writeText(body);
-     feedback.textContent='Application text copied. Email it to '+inbox+' with your CV and selected publications.';
+     feedback.textContent=msg('Application text copied. Email it to '+inbox+' with your CV and selected publications.','متن درخواست کپی شد. لطفاً آن را همراه رزومه و آثار منتخب به '+inbox+' ارسال کنید.');
    }catch{
      const output=document.createElement('textarea');
      output.value=body;output.setAttribute('readonly','');output.setAttribute('aria-label','Prepared application text');
@@ -43,7 +45,7 @@ document.querySelectorAll('form[data-jhela-interest]').forEach(form=>{
      document.body.appendChild(output);output.select();
      const ok=document.execCommand&&document.execCommand('copy');
      output.remove();
-     feedback.textContent=ok?'Application text copied. Attach your CV before sending.':'Clipboard unavailable. Use the compose email button or direct email link.';
+     feedback.textContent=ok?msg('Application text copied. Attach your CV before sending.','متن کپی شد؛ رزومه را قبل از ارسال پیوست کنید.'):msg('Clipboard unavailable. Use the compose email button or direct email link.','امکان کپی خودکار وجود ندارد. از دکمهٔ آماده‌سازی ایمیل یا پیوند ایمیل مستقیم استفاده کنید.');
    }
  });
 });
