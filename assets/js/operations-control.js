@@ -1,7 +1,7 @@
 /* Privileged operations: server-authorized data only; no browser persistence or closure writes. */
 (()=>{'use strict';
 const root=document.getElementById('operations-control');if(!root)return;
-const en=document.documentElement.lang==='en';let snapshot=null,csrf='',selected=null,expiryTimer=null,loadGeneration=0,actionRuns=[],sectionsExpanded=false;
+const en=document.documentElement.lang==='en';let snapshot=null,csrf='',selected=null,expiryTimer=null,loadGeneration=0,actionRuns=[],sectionsExpanded=false,githubAuditState=null,githubAuditExpanded=false;
 const t=(fa,eng)=>en?eng:fa,$=id=>document.getElementById(id);
 const statuses={not_started:t('شواهد ثبت نشده','No evidence'),in_progress:t('در حال انجام','In progress'),blocked:t('وابستگی باز','Blocked'),ready_for_verification:t('نیازمند آزمون مجدد','Recheck required'),verified_complete:t('تکمیل تأییدشده','Verified complete'),regressed:t('خطای جدید','Regressed')};
 const gates={unknown:t('نامشخص','Unknown'),stale:t('قدیمی؛ نیازمند بررسی','Stale'),pass:t('موفق','Pass'),fail:t('ناموفق','Fail'),blocked:t('مسدود','Blocked')};
@@ -13,7 +13,7 @@ const signalLabel=s=>en?s.labelEn:s.labelFa;
 function el(tag,txt,cls){const node=document.createElement(tag);if(txt!==undefined)node.textContent=txt;if(cls)node.className=cls;return node;}
 async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
-function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;$('ops-workspace').hidden=true;$('ops-auth').hidden=false;for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
+function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;$('ops-workspace').hidden=true;$('ops-auth').hidden=false;for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
 async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
 function progress(value){const bar=el('div',undefined,'ops-progress');const fill=el('span');fill.style.width=(value??0)+'%';bar.append(fill);bar.setAttribute('aria-label',t('پیشرفت اندازه‌گیری‌شده: ','Measured progress: ')+pct(value));return bar;}
@@ -87,10 +87,53 @@ async function runReadonlyAction(actionId,button){
  }finally{if(generation===loadGeneration&&button.isConnected)button.disabled=false;}
 }
 
+
+function githubAuditRender(host){
+ const section=el('details',undefined,'ops-github-audits');section.open=githubAuditExpanded;
+ section.addEventListener('toggle',()=>{githubAuditExpanded=section.open;});
+ section.append(el('summary',t('پایش آزمون‌های واقعی GitHub (فقط‌خواندنی)','Live GitHub audit runs (read-only)')));
+ const info=el('p',t('نتایج آزمون‌های اصلی، لینک اجرای واقعی و نسخهٔ آزمایش‌شده؛ این گزارش اجازهٔ انتشار یا تأیید نهایی اقدام را صادر نمی‌کند.','Real audit run links, status and tested source SHA. This does not dispatch releases or certify action completion.'));
+ section.append(info);
+ const button=el('button',t('دریافت آخرین وضعیت رسمی GitHub','Fetch verified GitHub workflow status'));button.type='button';
+ button.addEventListener('click',async()=>{
+  button.disabled=true;
+  const generation=loadGeneration;
+  try{
+   const response=await api('/github-audits');
+   if(generation!==loadGeneration||!snapshot)return;
+   githubAuditExpanded=true;githubAuditState=response;reportingRender();
+  }catch(error){
+   if(generation!==loadGeneration)return;
+   githubAuditExpanded=true;githubAuditState={audits:[],summary:null,error:true};reportingRender();
+  }finally{if(generation===loadGeneration&&button.isConnected)button.disabled=false;}
+ });section.append(button);
+ if(githubAuditState){
+  if(githubAuditState.error)section.append(el('p',t('دسترسی به گزارش رسمی GitHub برقرار نبود؛ نتیجه‌ای جعل نشد.','GitHub observations unavailable; no results inferred.')));
+  else{
+   section.append(el('p',t('گردش‌کارهای مشاهده‌شده: ','Workflows observed: ')+
+    githubAuditState.summary?.observableWorkflows+'/'+githubAuditState.summary?.registeredAllowlistedWorkflows));
+   const list=el('ul',undefined,'ops-queue');
+   for(const item of githubAuditState.audits||[]){
+    const li=el('li');li.append(el('strong',(en?item.labelEn:item.labelFa)+' · '+item.actionId),
+     el('p',t('دسترسی به منبع: ','Source status: ')+item.status));
+    for(const run of (item.runs||[]).slice(0,2)){
+     const p=el('p',run.status+' · '+(run.conclusion||t('در انتظار نتیجه','No conclusion yet'))+' · '+(run.sourceSha||'').slice(0,12)+' · '+(run.createdAt||''));
+     if(/^https:\/\/github\.com\/drrezazadeh65\/drjavadrezazadeh\.com\/actions\/runs\/[0-9]+$/.test(run.url||'')){
+      const link=el('a',t('مشاهده گزارش معتبر','View actual CI run'));link.href=run.url;link.target='_blank';link.rel='noopener noreferrer';p.append(' ',link);
+     }
+     li.append(p);
+    }list.append(li);
+   }section.append(list);
+  }
+ }
+ host.append(section);
+}
+
 function reportingRender(){
  const model=snapshot?.reporting;if(!model)return;
  let host=$('ops-reporting');if(!host){host=el('section',undefined,'ops-panel');host.id='ops-reporting';host.setAttribute('aria-label',t('گزارش‌های سیزده موتور','Thirteen-engine reporting'));$('ops-workspace').insertBefore(host,$('ops-cards'));}
  host.replaceChildren();host.append(el('h2',t('۱۳ موتور؛ یک مرکز مدیریت','13 engines, one administrative center')));
+ githubAuditRender(host);
  const nav=el('nav',undefined,'ops-toolbar');nav.setAttribute('aria-label',t('موتورهای مدیریتی','Administrative engines'));
  for(const engine of model.engines){const button=el('button',engine.id+' · '+engineName(engine));button.type='button';button.setAttribute('aria-pressed',String(reportingView.level==='engine'&&reportingView.engine===engine.id));button.addEventListener('click',()=>{reportingView.level='engine';reportingView.engine=engine.id;reportingRender();});nav.append(button);}host.append(nav);
  const tools=el('div',undefined,'ops-toolbar'),level=el('select');level.id='ops-report-level';level.setAttribute('aria-label',t('سطح گزارش','Report level'));
@@ -166,7 +209,7 @@ function reportingExport(){
   observations:(r.signals||[]).map(s=>({id:s.id,label:signalLabel(s),value:s.value,source:s.source,limitation:s.limitation,checkedAt:s.checkedAt,expiresAt:s.expiresAt,stale:s.expiresAt<=Date.now()/1000}))}));
  const engine=reportingView.level==='engine'?model.engines.find(e=>e.id===reportingView.engine):null;
  const action=reportingView.level==='action'?model.actionReports.find(a=>a.id===reportingView.action):null;
- return {schema:'operations-report-export-v1',recentActionRuns:actionRuns.filter(r=>!action||(r.actionId===action.id)).slice(0,50),reportingEngine:'ENG-13',level:reportingView.level,language:en?'en':'fa',period:model.reportingPeriod,metrics:engine?.metrics||(action?{actionCompletion:action.measuredProgress,status:action.currentStatus,claim:action.completionClaim}:model.executiveReport.metrics),awoseDomainView:engine?model.awoseDomainViews?.find(v=>v.engineId===engine.id&&v.type===reportingView.facet)||null:null,selectedEngine:engine?{id:engine.id,name:engineName(engine),responsibility:engine.responsibility}:null,selectedAction:action?{id:action.id,name:en?action.canonicalName:action.displayNameFa,criteria:action.acceptanceCriteria,status:action.currentStatus,completion:action.measuredProgress,claim:action.completionClaim,scoringScope:action.scoringScope,executionType:action.executionType,authorizationLevel:action.authorizationLevel}:null,reports:rows,freeSourceRegistry:model.freeSourceRegistry||null,freeScholarlyObservation:model.freeScholarlyObservation||null,freePerformanceObservation:model.freePerformanceObservation||null,manualPagespeedObservation:model.manualPagespeedObservation||null};
+ return {schema:'operations-report-export-v1',githubAuditObservation:githubAuditState?.error?null:githubAuditState,recentActionRuns:actionRuns.filter(r=>!action||(r.actionId===action.id)).slice(0,50),reportingEngine:'ENG-13',level:reportingView.level,language:en?'en':'fa',period:model.reportingPeriod,metrics:engine?.metrics||(action?{actionCompletion:action.measuredProgress,status:action.currentStatus,claim:action.completionClaim}:model.executiveReport.metrics),awoseDomainView:engine?model.awoseDomainViews?.find(v=>v.engineId===engine.id&&v.type===reportingView.facet)||null:null,selectedEngine:engine?{id:engine.id,name:engineName(engine),responsibility:engine.responsibility}:null,selectedAction:action?{id:action.id,name:en?action.canonicalName:action.displayNameFa,criteria:action.acceptanceCriteria,status:action.currentStatus,completion:action.measuredProgress,claim:action.completionClaim,scoringScope:action.scoringScope,executionType:action.executionType,authorizationLevel:action.authorizationLevel}:null,reports:rows,freeSourceRegistry:model.freeSourceRegistry||null,freeScholarlyObservation:model.freeScholarlyObservation||null,freePerformanceObservation:model.freePerformanceObservation||null,manualPagespeedObservation:model.manualPagespeedObservation||null};
 }
 function reportingCsvCell(value){let txt=value===null||value===undefined?'':typeof value==='object'?JSON.stringify(value):String(value);if(/^[\s]*[=+@-]/.test(txt)||/^[\t\r]/.test(txt))txt="'"+txt;return '"'+txt.replaceAll('"','""')+'"';}
 function reportingDownload(format){
