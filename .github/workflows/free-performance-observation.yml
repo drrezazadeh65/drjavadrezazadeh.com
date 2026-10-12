@@ -1,0 +1,46 @@
+name: Free Mobile PageSpeed Observation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - scripts/free-performance-observer.mjs
+      - .github/workflows/free-performance-observation.yml
+  schedule:
+    - cron: '43 4 * * 4'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: free-pagespeed-mobile-lab
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'schedule' && 'migration/bertina-linux6' || github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check bounded zero-key metric contract
+        run: |
+          node --check scripts/free-performance-observer.mjs
+          node scripts/free-performance-observer.mjs --self-test
+      - name: Observe mobile laboratory performance without a paid key
+        run: |
+          node scripts/free-performance-observer.mjs --collect
+          node scripts/free-performance-observer.mjs --check
+      - name: Retain safe evidence without changing production or source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-mobile-pagespeed-observation
+          path: api/internal/free-performance-observation.json
+          if-no-files-found: ignore
+          retention-days: 14
