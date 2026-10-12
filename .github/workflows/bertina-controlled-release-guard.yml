@@ -12,6 +12,8 @@ on:
       - 'tests/bertina-private-recovery-gate.php'
       - 'tests/bertina-release-assembly.py'
       - 'scripts/v5-ecosystem-integrity-audit.mjs'
+      - 'docs/governance/STAGE09_PRIVATE_DEPENDENCIES.json'
+      - 'docs/governance/V5_CONTROLLED_CPANEL_RELEASE_20261013.md'
   workflow_dispatch:
 
 permissions:
@@ -43,6 +45,24 @@ jobs:
           python3 tests/bertina-release-assembly.py
           node scripts/v5-ecosystem-integrity-audit.mjs
           node scripts/workflow-governance-audit.mjs
+          python3 - <<'PY'
+          import json,pathlib
+          doc=json.loads(pathlib.Path('docs/governance/STAGE09_PRIVATE_DEPENDENCIES.json').read_text())
+          owner=doc['production']['controlledSourceReleaseAuthorization']
+          assert owner['ownerExplicitlyApproved'] is True
+          assert owner['ownerAcceptsMissingIndependentIsolatedRestore'] is True
+          assert owner['appliedToLive'] is False
+          assert owner['noIndependentRestoreProven'] is True
+          assert owner['requiredGithubActor']=='drrezazadeh65'
+          assert owner['requiredTypedAcknowledgement']=='ACCEPT_UNTESTED_RESTORE_RISK_V5'
+          assert doc['production']['monetaryReleaseAuthorized'] is False
+          assert doc['production']['newRealMoneyTestAuthorized'] is False
+          assert doc['facts']['bertina_full_backup_isolated_restore']['status']=='unknown'
+          policy=pathlib.Path('docs/governance/V5_CONTROLLED_CPANEL_RELEASE_20261013.md').read_text()
+          assert 'NOT an authenticated, independently restored backup' in policy
+          assert 'coordinated website+database restoration' in policy
+          print('PASS: one-time owner risk acceptance is auditable, never implies money/restore verification')
+          PY
       - name: State limited evidence scope
         run: |
           echo 'Both guarded recovery policies passed offline fixture tests.' >> "$GITHUB_STEP_SUMMARY"
