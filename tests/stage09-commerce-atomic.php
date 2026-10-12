@@ -13,18 +13,19 @@ final class Stage9FixtureDb extends PDO {
     public array $outbox=[];
     public array $movements=[];
     public array $cases=[];
+    public array $parcels=[];
     private ?array $before=null;
     public function __construct(){}
     public function beginTransaction(): bool {
         if($this->before!==null)throw new RuntimeException('nested_tx');
-        $this->before=[$this->stock,$this->orders,$this->reservations,$this->claims,$this->outbox,$this->movements,$this->cases];
+        $this->before=[$this->stock,$this->orders,$this->reservations,$this->claims,$this->outbox,$this->movements,$this->cases,$this->parcels];
         return true;
     }
     public function inTransaction(): bool {return $this->before!==null;}
     public function commit(): bool {$this->before=null;return true;}
     public function rollBack(): bool {
         if($this->before===null)throw new RuntimeException('no_tx');
-        [$this->stock,$this->orders,$this->reservations,$this->claims,$this->outbox,$this->movements,$this->cases]=$this->before;
+        [$this->stock,$this->orders,$this->reservations,$this->claims,$this->outbox,$this->movements,$this->cases,$this->parcels]=$this->before;
         $this->before=null;return true;
     }
     public function prepare(string $query,array $options=[]): PDOStatement|false {return new Stage9FixtureStmt($this,$query);}
@@ -74,6 +75,10 @@ final class Stage9FixtureStmt extends PDOStatement {
             foreach($d->claims as $id=>$v)if($v['order']===$order)throw new PDOException('duplicate_order_claim');
             if(isset($d->claims[$trans]))throw new PDOException('duplicate_provider_transaction');
             $d->claims[$trans]=['order'=>$order,'amount'=>$amt];$this->affected=1;
+        }elseif(str_starts_with($q,'INSERT INTO commerce_parcels')){
+            [$order]=$p;
+            if(isset($d->parcels[$order]))throw new PDOException('duplicate_parcel');
+            $d->parcels[$order]='preparing';$this->affected=1;
         }elseif(str_starts_with($q,'INSERT INTO commerce_service_cases')){
             [$order,$sku]=$p;$key=$order.'|'.$sku;
             if(isset($d->cases[$key]))throw new PDOException('duplicate_case');
@@ -116,16 +121,22 @@ fixtureOrder($db,'a');fixtureOrder($db,'b');
 ok(stage9FinalizePayment($db,'a','111','777','20000000','a'),'verified_first_payment');
 ok($db->stock['book:one']['physical_on_hand']===1&&$db->stock['book:one']['reserved']===1,'sold_decrements_stock_and_reservation');
 ok(count($db->outbox)===1&&count($db->movements)===1,'single_outbox_and_stock_movement');
+ok(($db->parcels['a']??null)==='preparing'&&count($db->parcels)===1,
+ 'verified_book_creates_one_unshipped_parcel');
 ok(stage9FinalizePayment($db,'a','111','777','20000000','a')===false,'same_order_replay_idempotent');
 try{stage9FinalizePayment($db,'b','111','777','20000000','b');throw new RuntimeException('cross_order_claim_accepted');}
 catch(PDOException $e){ok(str_contains($e->getMessage(),'duplicate_provider_transaction'),'cross_order_replay_rejected');}
 ok($db->stock['book:one']['physical_on_hand']===1&&$db->stock['book:one']['reserved']===1,'duplicate_claim_rollback_stock');
+ok(count($db->parcels)===1,'cross_order_claim_rollback_does_not_create_parcel');
 try{stage9FinalizePayment($db,'b','111','778','1','b');throw new RuntimeException('bad_amount_accepted');}
 catch(RuntimeException $e){ok($e->getMessage()==='gateway_order_changed','locked_amount_rechecked');}
 ok(stage9FinalizePayment($db,'b','111','778','20000000','b'),'independent_second_payment');
 ok($db->stock['book:one']['physical_on_hand']===0&&$db->stock['book:one']['reserved']===0,'exact_final_stock');
 ok(count($db->claims)===2&&count($db->outbox)===2,'no_duplicate_financial_events');
+ok(count($db->parcels)===2&&($db->parcels['b']??null)==='preparing',
+ 'each_distinct_paid_book_order_has_one_preparing_parcel');
 $service=new Stage9FixtureDb();fixtureOrder($service,'s','service:academic_consult_60');
 ok(stage9FinalizePayment($service,'s','111','999','20000000','s'),'paid_service_processed');
 ok(($service->cases['s|service:academic_consult_60']??'')==='awaiting_contact','case_not_fake_booking');
+ok($service->parcels===[],'pure_service_purchase_has_no_shipping_parcel');
 echo "Source-only atomic commerce fixtures passed. Real database concurrency, settlement and stock certification remain OPEN.\n";
