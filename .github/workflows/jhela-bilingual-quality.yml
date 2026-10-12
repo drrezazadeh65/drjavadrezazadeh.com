@@ -1,0 +1,65 @@
+name: JHELA Bilingual Scholarly Quality
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'journal/**'
+      - 'assets/js/jhela-*.js'
+      - 'assets/css/journal-v2.css'
+      - 'scripts/jhela-*.mjs'
+      - 'platform/hreflang-pairs.json'
+      - 'platform/ecosystem-registry.json'
+      - 'platform/public-url-stability-manifest.json'
+      - 'assets/search-index.json'
+      - 'sitemap.xml'
+      - 'sitemap-core.xml'
+      - 'robots.txt'
+      - 'llms.txt'
+      - '.github/workflows/jhela-bilingual-quality.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'journal/**'
+      - 'assets/js/jhela-*.js'
+      - 'assets/css/journal-v2.css'
+      - 'scripts/jhela-*.mjs'
+      - '.github/workflows/jhela-bilingual-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jhela-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  journal-standards:
+    name: JHELA bilingual editorial, sitemap and privacy release
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact canonical revision
+        uses: actions/checkout@v4
+      - name: Install Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse journal UI and scholarly guard scripts
+        run: |
+          node --check assets/js/jhela-intake.js
+          node --check assets/js/jhela-portal.js
+          node --check assets/js/jhela-public-dashboard.js
+          node --check scripts/jhela-discovery-audit.mjs
+          node --check scripts/jhela-release-audit.mjs
+      - name: Audit independent JHELA sitemap, hreflang and staged origins
+        run: node scripts/jhela-discovery-audit.mjs
+      - name: Audit English and Persian policy parity, reviewer safeguards and noindex stage routes
+        run: node scripts/jhela-release-audit.mjs
+      - name: Verify global canonical and bilingual SEO compatibility
+        run: node scripts/seo-regression.mjs
+      - name: Record exact-source attestation boundary
+        run: |
+          echo "JHELA static/source QA passed at ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          echo "This is not evidence of live Bertina deployment, Search Console indexation, ISSN/DOI, a real OJS submission or completed peer review." >> "$GITHUB_STEP_SUMMARY"
