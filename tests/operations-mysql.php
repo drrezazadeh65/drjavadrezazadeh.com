@@ -148,6 +148,22 @@ try {
     'runs'=>operationsGithubAuditProject(['workflow_runs'=>[$event]],'bertina-master-seo.yml')]],
     operationsActionHistory($pdo,$id,time()));
  check(count($unrelated)===1&&$unrelated[0]['github']===null,'Unrelated GitHub audit spoofed correlation');
+
+ $noMatch=operationsGithubReconcile($pdo,$id,[
+    ['actionId'=>'ENG-01.ACT-001','runs'=>operationsGithubAuditProject(['workflow_runs'=>[$event]],'bertina-master-seo.yml')]
+ ],time());
+ check($noMatch['recorded']===0,'Wrong external trace fabricated a completed audit');
+ $verified=operationsGithubReconcile($pdo,$id,[
+    ['actionId'=>'ENG-01.ACT-001','runs'=>$observed]
+ ],time());
+ check($verified['recorded']===1,'Independently matched audit result not persisted');
+ $afterVerified=array_column(operationsActionHistory($pdo,$id,time()),null,'runId')[$submitted['runId']]??null;
+ check($afterVerified!==null&&$afterVerified['status']==='succeeded','Stored provider audit conclusion missing');
+ check($afterVerified['result']['githubRunId']===38275309821,'Authenticated provider run ID mismatch');
+ check($afterVerified['result']['verifiedByProvider']===true,'Provider provenance not recorded');
+ $replay=operationsGithubReconcile($pdo,$id,[['actionId'=>'ENG-01.ACT-001','runs'=>$observed]],time());
+ check($replay['recorded']===0,'Terminal provider result changed on duplicate review');
+
  check((int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn()===$before,
     'Synthetic audit dispatch fabricated acceptance evidence');
 
