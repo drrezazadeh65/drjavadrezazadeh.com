@@ -57,6 +57,16 @@
   const network=selector.value;
   const info=model.catalogue?.[network];if(!info)return;
   content.replaceChildren();
+  // Compact 16-channel navigation; only the selected panel is expanded.
+  const nav=elem('nav',undefined,'social-network-overview');
+  nav.setAttribute('aria-label',t('همهٔ شبکه‌های اجتماعی','All social networks'));
+  for(const [key,meta] of Object.entries(model.catalogue||{})){
+    const choice=elem('button',fa?meta.fa:meta.en);
+    choice.type='button';choice.setAttribute('aria-pressed',key===network?'true':'false');
+    choice.addEventListener('click',()=>{selector.value=key;render();});
+    nav.append(choice);
+  }
+  content.append(nav);
   const old=model.settings?.[network]||{};
   const active=model.settings!==null;
   const connected=Array.isArray(model.storedAccounts)?
