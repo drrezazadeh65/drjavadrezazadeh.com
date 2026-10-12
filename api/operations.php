@@ -365,6 +365,20 @@ function operationsRoute(string $path, string $verb): never {
             $source['ownerSubmissions']=operationsGithubCorrelatedRuns($source['audits'],$history);
             respond($source);
         }
+        if ($path === '/admin/operations/github-audits/reconcile' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('audit_owner_approval_required',403);
+            $body=jsonBody();
+            if(!is_array($body)||count($body)!==0)fail('invalid_audit_request',400);
+            if(!rateAllowed($pdo,'operations_github_reconcile',$accountId,6,300))
+                fail('rate_limited',429);
+            $provider=operationsGithubAuditSnapshot(operationsRegistry());
+            $result=operationsGithubReconcile($pdo,$accountId,$provider['audits']??[],nowTs());
+            respond(['ok'=>true,'schema'=>'operations-gh-audit-reconcile-v1',
+                'reconciliation'=>$result,'limitation'=>'Only independently found GitHub workflow conclusions are stored; no report gate, payment or site deployment is certified.']);
+        }
         if ($path === '/admin/operations/github-audits/dispatch' && $verb === 'POST') {
             if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
                 fail('csrf_forbidden',403);
