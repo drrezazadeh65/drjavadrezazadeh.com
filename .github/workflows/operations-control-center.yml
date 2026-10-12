@@ -3,10 +3,10 @@ name: Operations Control Center QA
 on:
   push:
     branches: [migration/bertina-linux6]
-    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/js/operations-free-resources.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
+    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/js/operations-free-resources.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'tests/stage09-mysql.php', 'docs/migrations/20261012_stage09_commerce.sql', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
   pull_request:
     branches: [migration/bertina-linux6]
-    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
+    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'tests/stage09-mysql.php', 'docs/migrations/20261012_stage09_commerce.sql', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
 
 permissions:
   contents: read
@@ -49,7 +49,9 @@ jobs:
           OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
           OPERATIONS_TEST_USER: root
           OPERATIONS_TEST_PASSWORD: fixture-password
-        run: php tests/operations-mysql.php
+        run: |
+          php tests/operations-mysql.php
+          php tests/stage09-mysql.php
       - name: Install pinned browser runtime
         run: |
           npm install --no-save @playwright/test@1.56.0
