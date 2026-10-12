@@ -12,7 +12,7 @@
     "fa"
   ],
   "preferredEditorialPlatform": "Official PKP Open Journal Systems",
-  "packagePolicy": "Obtain unmodified supported stable PKP release; check release provenance and SHA-256 before installing; do not treat historical 3.5.0-4 as automatically latest",
+  "packagePolicy": "Use verified official PKP OJS 3.5.0-5 LTS (released 2026-06-30 per PKP download page), or a newer official supported security release after fresh verification; record SHA-256 of securely downloaded package and validate it after transfer. Never claim a digest is publisher-signed unless independently verified.",
   "ojsInstalled": false,
   "secureFilesDirectoryVerified": false,
   "dedicatedDatabaseVerified": false,
