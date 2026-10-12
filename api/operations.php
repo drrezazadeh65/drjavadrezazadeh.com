@@ -328,7 +328,8 @@ function operationsRoute(string $path, string $verb): never {
                 'connectionStatus'=>'UNVERIFIED','verifiedExternalConnections'=>0,
                 'automatedDataInUse'=>false,'resources'=>$catalogue['resources'],
                 'scholarlyObservation'=>operationsFreeScholarlyObservation(),
-                'performanceObservation'=>operationsFreePerformanceObservation()]);
+                'performanceObservation'=>operationsFreePerformanceObservation(),
+                'localLighthouseObservation'=>operationsLocalLighthouseObservation()]);
         }
         if ($path === '/admin/operations' && $verb === 'GET') {
             $at=nowTs();$snapshot=operationsSnapshot($pdo,$at);
