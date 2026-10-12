@@ -97,7 +97,19 @@ function operationsLocalLighthouseObservation(): array {
             $s=$rec['score']['performance']??null;
             if(is_int($s)&&$s>=0&&$s<=100){$score=$s;$measured++;}
         }
+        $categoryScores=[];$labMetrics=[];
+        foreach(['performance','accessibility','seo','best-practices'] as $category){
+            $rawScore=$rec['status']==='observed'?($rec['score'][$category]??null):null;
+            $categoryScores[$category]=is_int($rawScore)&&$rawScore>=0&&$rawScore<=100?$rawScore:null;
+        }
+        foreach(['fcpMs','lcpMs','tbtMs','cls'] as $field){
+            $rawMetric=$rec['status']==='observed'?($rec['lab'][$field]??null):null;
+            $max=$field==='cls'?1.0:250000.0;
+            $labMetrics[$field]=is_numeric($rawMetric)&&is_finite((float)$rawMetric)
+                &&(float)$rawMetric>=0&&(float)$rawMetric<=$max?round((float)$rawMetric,3):null;
+        }
         $results[]=['route'=>$routes[$i],'status'=>$rec['status'],'localLabScore'=>$score,
+            'categoryScores'=>$categoryScores,'labMetrics'=>$labMetrics,
             'reason'=>$rec['status']==='unavailable'?substr((string)($rec['reason']??'unavailable'),0,72):null];
     }
     return ['status'=>$at<time()-14*86400?'stale':($measured>0?'observed':'unavailable'),
