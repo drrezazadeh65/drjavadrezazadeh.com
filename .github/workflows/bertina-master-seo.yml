@@ -1,4 +1,5 @@
 name: Bertina Master SEO Audit
+run-name: ${{ github.event_name == 'workflow_dispatch' && inputs.ops_request != '' && format('Admin audit {0}', inputs.ops_request) || github.workflow }}
 
 on:
   push:
@@ -8,7 +9,11 @@ on:
     branches:
       - migration/bertina-linux6
   workflow_dispatch:
-
+    inputs:
+      ops_request:
+        description: 'Optional owner audit request correlation (not a credential)'
+        required: false
+        type: string
 permissions:
   contents: read
 
