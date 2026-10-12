@@ -9,9 +9,9 @@ const en=document.documentElement.lang==='en';
 const tr=(fa,enText)=>en?enText:fa;
 const groups={GROWTH:tr('رشد و بازاریابی','Growth and marketing'),TECHNICAL:tr('فنی و دسترس‌پذیری','Technical quality'),SCHOLARLY:tr('علمی و استنادی','Scholarly authority')};
 const access={MANUAL_REFERENCE:tr('بررسی دستی','Manual reference'),READ_API_CANDIDATE:tr('API قابل بررسی؛ نامتصل','API candidate; not connected'),CI_OPEN_SOURCE_CANDIDATE:tr('متن‌باز؛ نیازمند نصب کنترل‌شده','Open-source; approved installation needed'),ACCOUNT_SETUP_REQUIRED:tr('نیازمند حساب و مجوز','Account authorization required'),CONDITIONAL_ELIGIBILITY:tr('وابسته به شرایط ارائه‌دهنده','Provider eligibility required')};
-let items=null,scholarlyObservation=null,request=null,generation=0;
+let items=null,scholarlyObservation=null,performanceObservation=null,request=null,generation=0;
 const make=(tag,txt,cls)=>{const node=document.createElement(tag);if(txt!==undefined)node.textContent=txt;if(cls)node.className=cls;return node;};
-function reset(){generation++;request?.abort();request=null;items=null;scholarlyObservation=null;document.getElementById('ops-scholar-observation')?.remove();list.replaceChildren();status.textContent='';select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';}
+function reset(){generation++;request?.abort();request=null;items=null;scholarlyObservation=null;performanceObservation=null;document.getElementById('ops-scholar-observation')?.remove();document.getElementById('ops-performance-observation')?.remove();list.replaceChildren();status.textContent='';select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';}
 function draw(){
  if(!items)return;list.replaceChildren();
  const category=select.value,shown=items.filter(item=>!category||item.category===category);
@@ -40,12 +40,23 @@ function draw(){
    }else summary.append(make('p',tr('هنوز داده معتبر و منتشرشده‌ای از Crossref در سرور موجود نیست.','No validated deployed Crossref observation is available yet.')));
    summary.append(make('small',tr('وجود فراداده DOI به معنای تأیید نویسندگی، میزان استناد یا رتبه گوگل نیست.','DOI metadata retrieval does not establish authorship, citations or Google rankings.')));
  }
+ if(performanceObservation){
+   let section=document.getElementById('ops-performance-observation');
+   if(!section){section=make('section',undefined,'ops-panel');section.id='ops-performance-observation';status.after(section);}
+   section.replaceChildren();section.append(make('h3',tr('آزمون رایگان سرعت موبایل','Free mobile performance check')));
+   const p=performanceObservation;
+   if(p.status==='provider_unavailable')section.append(make('p',tr('API گوگل داده‌ای ارائه نکرده است؛ این موضوع نشانه کندی سایت نیست.','Google API returned no usable data; this does not indicate a slow website.')));
+   else if(p.status==='observed')section.append(make('p',tr('سنجش آزمایشگاهی موبایل: ','Mobile lab observations: ')+String(p.measuredPages||0)+' / '+String(p.attemptedPages||0)));
+   else section.append(make('p',tr('هنوز سنجش معتبر و تازه‌ای موجود نیست.','No current reviewed lab measurement is available.')));
+   for(const q of p.results||[])section.append(make('p',q.url+' · '+(q.labPerformanceScore===null?tr('بدون امتیاز','No score'):q.labPerformanceScore+'/100')+(q.reason?' · '+q.reason:'')));
+   section.append(make('small',tr('HTTP 429 یعنی محدودیت سرویس؛ امتیاز آزمایشگاهی معادل داده کاربران واقعی نیست.','HTTP 429 indicates provider throttling; lab scores are not real-user field metrics.')));
+ }
 
 }
 async function load(){
  if(workspace.hidden||!panel.open)return;
  const id=++generation;request?.abort();request=new AbortController();
- document.getElementById('ops-scholar-observation')?.remove();list.replaceChildren();status.textContent=tr('در حال دریافت از سرور امن…','Loading from the protected server…');
+ document.getElementById('ops-scholar-observation')?.remove();document.getElementById('ops-performance-observation')?.remove();list.replaceChildren();status.textContent=tr('در حال دریافت از سرور امن…','Loading from the protected server…');
  try{
   const response=await fetch('/api/admin/operations/free-resources',{credentials:'same-origin',cache:'no-store',signal:request.signal,headers:{Accept:'application/json'}});
   const data=await response.json();
@@ -53,6 +64,7 @@ async function load(){
   if(id!==generation||workspace.hidden||!panel.open)return;
   items=data.resources;
   scholarlyObservation=data.scholarlyObservation||{status:'not_collected'};
+  performanceObservation=data.performanceObservation||{status:'not_collected'};
   const categories=[...new Set(items.map(item=>item.category))];
   select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';
   for(const category of categories){const option=make('option',groups[category]||category);option.value=category;select.append(option);}
