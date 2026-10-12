@@ -209,3 +209,9 @@ The public **independent journal sitemap** resides at `https://drjavadrezazadeh.
 The future permanent journal host remains `journal.drjavadrezazadeh.com`, but it is **RESERVED_NOT_LIVE** until independent DNS, verified TLS, scholarly/OJS hosting and migration tests pass. Do not publish reserved-origin sitemap URLs, canonical tags or machine claims beforehand. At actual cutover, generate the distinct subdomain's own `/sitemap.xml` and `/robots.txt` and redirect old `/journal/` indexed URLs with one-hop permanent redirects and evidence of integrity. The main-domain journal child sitemap is retired at that time.
 
 DOI, ISSN, published articles, approved editorial-board memberships, indexing or impact metrics may be asserted **only with independent, verified evidence**. Public search eligibility does not prove actual Google indexing. A source commit does not certify a live Bertina deployment.
+
+## 17. Public scholarly dashboard addition — 2026-10-12
+
+The owner has authorised an English-language, publicly indexable scholarly orientation dashboard at `/journal/dashboard/` in the **same single canonical repository and current /journal/ directory**. It distinguishes prospective reviewer, editorial collaborator, author and reader pathways. It does not create a manuscript submission account, store reviewer details or imply that appointments, ISSN, DOI, impact factors or published articles exist. It is part of the independent JHELA sitemap, search-index, canonical URL governance and permanently frozen public URL inventory.
+
+The dashboard is a public informational service until a verified OJS production deployment introduces genuinely authenticated editorial functions on the intended journal subdomain. Subsequent dashboard replacements must preserve accessible role guidance and one-hop URL continuity.

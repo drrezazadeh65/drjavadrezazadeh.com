@@ -1198,5 +1198,13 @@
     "category": "Journal",
     "summary": "How international scholarly reviewers can express interest, demonstrate expertise and be selected with consent and conflict checks.",
     "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — International Scholarly Dashboard",
+    "path": "journal/dashboard/",
+    "category": "Journal",
+    "summary": "English-language public hub for JHELA reviewers, founding editorial collaborators, authors and readers, with honest status and scientific editorial policies.",
+    "keywords": "JHELA scholarly dashboard international reviewers journal editorial collaboration aims scope ethical educational assessment"
   }
 ]

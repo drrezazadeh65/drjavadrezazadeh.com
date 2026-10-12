@@ -528,6 +528,11 @@
       "id": "fa-shop-receipt-information",
       "route": "/fa/shop/receipt/",
       "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "journal-public-scholarly-dashboard",
+      "route": "/journal/dashboard/",
+      "policy": "PUBLIC_CANDIDATE"
     }
   ],
   "origin_states": {

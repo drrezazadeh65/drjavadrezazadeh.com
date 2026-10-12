@@ -49,6 +49,7 @@ Use only public URLs listed here or discoverable through the canonical sitemap. 
 ## Publishing and journal
 
 - [JHELA international founding journal](https://drjavadrezazadeh.com/journal/): English-language scholarly journal; international reviewer and editorial recruitment open, manuscript intake not yet active.
+- [JHELA public scholarly dashboard](https://drjavadrezazadeh.com/journal/dashboard/): Separate routes for interested peer reviewers, prospective editorial collaborators, authors and readers; no private accounts or formal submission.
 - [JHELA aims and scope](https://drjavadrezazadeh.com/journal/aims-scope/): Scientific orientation, evidential transparency and contextual interpretation.
 - [JHELA publication ethics](https://drjavadrezazadeh.com/journal/ethics/): Founding policy on research integrity and editorial independence.
 - [JHELA peer-review policy](https://drjavadrezazadeh.com/journal/peer-review/): Planned independent double-anonymised research-article review.

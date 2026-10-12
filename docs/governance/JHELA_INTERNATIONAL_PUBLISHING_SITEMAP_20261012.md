@@ -40,3 +40,7 @@ External evaluation bases:
 `scripts/seo-regression.mjs`, `scripts/url-stability-audit.mjs`, `scripts/llms-txt-audit.mjs`, `scripts/sitemap-lastmod-audit.mjs`, sanitized public build, link/canonical tests, desktop/mobile accessibility tests and Bertina strict live checks must all pass on the exact intended release. No deployment-trigger mutation before coordinated safe release and existing signed private recovery procedures. Search index, frozen URL manifest and ecosystem registry are updated with each approved public journal route.
 
 The independent journal sitemap is **a firm invariant**, even after a permanent subdomain transition.
+
+## 6. Public scholarly dashboard release (2026-10-12)
+
+`/journal/dashboard/` has been added to the journal's own sitemap, stable route manifest, source search index and approved public indexing policy. The page contains original editorial illustrations and keyboard-accessible progressive-enhancement role tabs: reviewers, editors, authors and readers. Its OJS/submission/private-account status is disclosed without inventing actual functionality. It remains on the canonical main-domain `/journal/` mount until the independent subdomain itself is verified live. Automated `scripts/jhela-discovery-audit.mjs` now guards the independent sitemap, root discovery and exclusion of non-operational pages in CI.
