@@ -86,6 +86,22 @@
       "requires_consent": false,
       "client_event": true,
       "payload": "contract_allowlist_only"
+    },
+    {
+      "key": "organic_article_service_intent",
+      "data_class": "aggregate_product",
+      "requires_consent": true,
+      "client_event": true,
+      "payload": "contract_allowlist_only",
+      "source_authority": "browser_intent_only_not_sale"
+    },
+    {
+      "key": "organic_share_intent",
+      "data_class": "aggregate_product",
+      "requires_consent": true,
+      "client_event": true,
+      "payload": "contract_allowlist_only",
+      "source_authority": "browser_intent_only_not_sale"
     }
   ],
   "rules": {
