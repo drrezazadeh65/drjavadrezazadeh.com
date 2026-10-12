@@ -63,6 +63,9 @@ jobs:
           node --check assets/js/operations-social.js
           node --check assets/js/operations-social-composer.js
           node --test platform/social-distribution/*.test.mjs
+          # Only isolated CI MySQL 8. Never connect to the live Bertina database.
+          php -r '$pdo=new PDO("mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4","root","fixture-password"); $pdo->exec("CREATE DATABASE IF NOT EXISTS social_fixture CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");'
+          SOCIAL_TEST_DSN='mysql:host=127.0.0.1;port=3306;dbname=social_fixture;charset=utf8mb4' SOCIAL_TEST_USER=root SOCIAL_TEST_PASSWORD=fixture-password php tests/social-queue-mysql.php
           php tests/bertina-receipt-access.php
           php tests/bertina-receipt-contract.php
           php tests/bertina-commerce-callback-contract.php
