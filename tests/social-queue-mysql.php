@@ -43,7 +43,11 @@ socialCheck(socialQueueSchemaReady($pdo),'social schema missing');
 $pdo->prepare("INSERT INTO social_accounts
  (id,provider,external_id,display_handle,status,created_at,updated_at)
  VALUES(1,'telegram','fixture-telegram','test_channel','verified',1000,1000),
-       (2,'eitaa','fixture-eitaa','test_channel','verified',1000,1000)")
+       (2,'eitaa','fixture-eitaa','test_channel','verified',1000,1000),
+       (3,'instagram','fixture-ig','test_professional','verified',1000,1000),
+       (4,'facebook','fixture-fb','test_page','verified',1000,1000),
+       (5,'whatsapp','fixture-wa','test_business','verified',1000,1000),
+       (6,'x','fixture-x','test_profile','verified',1000,1000)")
  ->execute();
 $pdo->prepare("INSERT INTO social_campaigns
  (id,source_canonical,source_locale,title,editorial_state,source_hash,created_by,
@@ -51,6 +55,41 @@ $pdo->prepare("INSERT INTO social_campaigns
  VALUES(?,'https://drjavadrezazadeh.com/fa/akhbar/example/','fa','fixture',
  'approved',?,?,?,1000,1000,1000)")
  ->execute([$campaign,str_repeat('a',64),$admin,$admin]);
+// Unsupported adapters MUST preserve approved work; otherwise one pending
+// Instagram/Facebook/X/WhatsApp draft could revoke itself and starve Telegram.
+// A separate campaign prevents its media additions from invalidating the
+// independent Telegram campaign's approved asset fingerprint.
+$otherCampaign='bbbbbbbb-bbbb-4bbb-8bbb-cccccccccccc';
+$pdo->prepare("INSERT INTO social_campaigns
+ (id,source_canonical,source_locale,title,editorial_state,source_hash,created_by,
+ approved_by,approved_at,created_at,updated_at)
+ VALUES(?,'https://drjavadrezazadeh.com/fa/akhbar/example/','fa','fixture-unavailable',
+ 'approved',?,?,?,1000,1000,1000)")
+ ->execute([$otherCampaign,str_repeat('c',64),$admin,$admin]);
+$mediaProof='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+$pdo->prepare("INSERT INTO social_assets
+ (id,campaign_id,media_type,sha256,media_url,rights_status)
+ VALUES(?,?,'photo',?,'https://drjavadrezazadeh.com/assets/public-approved.webp','verified')")
+ ->execute([$mediaProof,$otherCampaign,str_repeat('d',64)]);
+$unsupported=[
+ ['instagram',3,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31'],
+ ['facebook',4,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa41'],
+ ['whatsapp',5,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa51'],
+ ['x',6,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa61'],
+];
+foreach ($unsupported as [$provider,$account,$draftId]) {
+    socialInsert($pdo,$draftId,$account,$otherCampaign,$now+20,
+        'Approved content retained for manual/official provider authorization',$provider);
+    socialQueueApprove($pdo,$draftId,$admin,$now);
+}
+socialCheck(socialQueueClaim($pdo,$now+21)===null,
+    'unsupported providers were incorrectly queued for automatic publication');
+foreach ($unsupported as [$provider,$account,$draftId]) {
+    socialCheck(socialState($pdo,$draftId)['status']==='scheduled',
+        'unsupported approved '.$provider.' record was lost');
+}
+socialCheck((int)$pdo->query('SELECT COUNT(*) FROM social_attempts')->fetchColumn()===0,
+    'unsupported provider initiated a publication attempt');
 $id='22222222-2222-4222-8222-222222222222';
 socialInsert($pdo,$id,1,$campaign,$now+60,'Verified approved public copy');
 socialRejected(fn()=>socialQueueApprove($pdo,$id,$admin,$now+61),'past delivery approved');
@@ -60,7 +99,12 @@ socialCheck(socialState($pdo,$id)['status']==='scheduled','not scheduled after a
 socialRejected(fn()=>socialQueueApprove($pdo,$id,$admin,$now),'duplicate approval permitted');
 socialCheck(socialQueueClaim($pdo,$now+59)===null,'premature queue claim');
 $claim=socialQueueClaim($pdo,$now+60);
-socialCheck(($claim['id']??'')===$id && strlen($claim['lease']??'')===64,'claim lacks verified lease');
+socialCheck(($claim['id']??'')===$id && strlen($claim['lease']??'')===64,
+    'supported Telegram delivery was blocked behind unsupported earlier items');
+foreach ($unsupported as [$provider,$account,$draftId]) {
+    socialCheck(socialState($pdo,$draftId)['status']==='scheduled',
+        'supported claim revoked a different provider '.$provider);
+}
 socialCheck(socialQueueClaim($pdo,$now+60)===null,'duplicate dispatch claim');
 socialRejected(fn()=>socialQueueFinalize($pdo,$id,str_repeat('f',64),$claim['attempt'],
  'telegram_receipt','123',$now+61),'forged lease accepted');
@@ -236,7 +280,7 @@ socialCheck(socialSettingsSnapshot($pdo)['connectionIntents'][0]['status']==='ca
  'connection intent cancellation not recorded');
 socialRejected(fn()=>socialIntentCancel($pdo,['id'=>$intent['id']],$admin,$now),
  'cancel replay modified account intent');
-socialCheck((int)$pdo->query('SELECT COUNT(*) FROM social_accounts')->fetchColumn()===2,
+socialCheck((int)$pdo->query('SELECT COUNT(*) FROM social_accounts')->fetchColumn()===6,
  'public handle forged a verified social account');
 socialCheck((int)$pdo->query('SELECT COUNT(*) FROM social_attempts')->fetchColumn()===3,
  'settings initiated unauthorized outbound publishing');
