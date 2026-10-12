@@ -12,7 +12,22 @@ $pdo=new PDO($dsn,(string)getenv('OPERATIONS_TEST_USER'),(string)getenv('OPERATI
     PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,
     PDO::ATTR_EMULATE_PREPARES=>false
 ]);
+// Real callback integration runs in a separate ephemeral fixture schema, never production.
+$pdo->exec('CREATE DATABASE IF NOT EXISTS commerce_callback_fixture CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+$pdo=new PDO(str_replace('dbname=operations_fixture','dbname=commerce_callback_fixture',$dsn),
+    (string)getenv('OPERATIONS_TEST_USER'),(string)getenv('OPERATIONS_TEST_PASSWORD'),[
+        PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES=>false
+    ]);
 $pdo->exec((string)file_get_contents(__DIR__.'/../docs/BERTINA_MYSQL_SCHEMA.sql'));
+$stage9Sql=(string)file_get_contents(__DIR__.'/../docs/migrations/20261012_stage09_commerce.sql');
+$stage9Sql=preg_replace('/^\\h*--[^\\r\\n]*\\r?\\n/m','',$stage9Sql);
+foreach(explode(';',$stage9Sql) as $query) {
+    if(trim($query)!=='') $pdo->exec(trim($query));
+}
+define('BERTINA_API_BOOTSTRAPPED',true);
+require __DIR__.'/../api/commerce-stage9.php';
 
 final class CommerceReturn extends RuntimeException {
     public function __construct(public string $destination) { parent::__construct('return'); }
@@ -54,10 +69,22 @@ $statusRoute=substr($source,$statusStart,$callbackStart-$statusStart);
 
 $GLOBALS['mysql']=$pdo;
 $order='11111111-1111-4111-8111-111111111117';
-$items=[['sku'=>'book:roshanaei','title'=>'کتاب آزمون','price'=>2000000,'quantity'=>1,'subtotal'=>2000000]];
+$items=[['kind'=>'book','sku'=>'book:roshanaei','title'=>'کتاب آزمون','price'=>2000000,'quantity'=>1,'subtotal'=>2000000]];
 $pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$order]);
 $insert=$pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,items_json,state,provider_id_get) VALUES(?,?,2000000,20000000,'IRT',NULL,?,'pending','123')");
 $insert->execute([$order,'123456789987',json_encode($items,JSON_UNESCAPED_UNICODE)]);
+$pdo->prepare('INSERT INTO commerce_book_stock(sku,physical_on_hand,reserved,reconciled_at,reconciled_by) VALUES(?,3,0,NOW(),?)')
+    ->execute(['book:roshanaei','isolated-ci-fixture']);
+$pdo->beginTransaction();
+try {
+    stage9ReserveBooks($pdo,$order,[['kind'=>'book','sku'=>'book:roshanaei','quantity'=>1]]);
+    $pdo->commit();
+} catch(Throwable $e) {
+    if($pdo->inTransaction())$pdo->rollBack();
+    throw $e;
+}
+$initialStock=$pdo->query("SELECT physical_on_hand,reserved FROM commerce_book_stock WHERE sku='book:roshanaei'")->fetch();
+verify((int)$initialStock['physical_on_hand']===3&&(int)$initialStock['reserved']===1,'pending_checkout_reserves_one_book_atomically');
 $load=$pdo->prepare('SELECT state,provider_trans_id,paid_at FROM commerce_orders WHERE id=?');
 
 function invokeCallback(string $order, string $case, bool $post=false, ?string $providerId=null): void {
@@ -105,6 +132,17 @@ try {
     verify($row['state']==='paid'&&$row['provider_trans_id']==='456'&&is_string($row['paid_at']),'verified_provider_writes_exactly_one_paid_order');
     verify($GLOBALS['gatewayCalls']===1,'success_verified_once');
     $firstPaidAt=$row['paid_at'];
+    $stock=$pdo->query("SELECT physical_on_hand,reserved FROM commerce_book_stock WHERE sku='book:roshanaei'")->fetch();
+    verify((int)$stock['physical_on_hand']===2 && (int)$stock['reserved']===0,'atomic_paid_book_debits_one_reserved_copy');
+    $res=$pdo->prepare('SELECT quantity,state FROM commerce_book_reservations WHERE order_id=?');
+    $res->execute([$order]);$reservation=$res->fetch();
+    verify($reservation && $reservation['state']==='committed' && (int)$reservation['quantity']===1,'book_reservation_committed_once');
+    $q=$pdo->prepare('SELECT COUNT(*) FROM commerce_payment_claims WHERE order_id=? AND provider=?');
+    $q->execute([$order,'bitpay']);verify((int)$q->fetchColumn()===1,'gateway_payment_claim_unique');
+    $q=$pdo->prepare('SELECT state FROM commerce_parcels WHERE order_id=?');$q->execute([$order]);
+    verify($q->fetchColumn()==='preparing','verified_book_creates_preparing_parcel_not_shipment');
+    $q=$pdo->prepare('SELECT COUNT(*) FROM commerce_stock_movements WHERE order_id=? AND reason=?');
+    $q->execute([$order,'sale']);verify((int)$q->fetchColumn()===1,'one_stock_movement_after_paid');
 
     $GLOBALS['receiptAccessAllowed']=false;
     $path='/commerce/status';$verb='GET';$_GET=['order'=>$order];$_POST=[];
@@ -123,7 +161,14 @@ try {
     $later=currentOrder($order);
     verify($GLOBALS['gatewayCalls']===0,'duplicate_callback_skips_provider');
     verify($later['state']==='paid'&&$later['provider_trans_id']==='456'&&$later['paid_at']===$firstPaidAt,'duplicate_callback_cannot_rewrite_paid_record');
+    $after=$pdo->query("SELECT physical_on_hand,reserved FROM commerce_book_stock WHERE sku='book:roshanaei'")->fetch();
+    verify((int)$after['physical_on_hand']===2 && (int)$after['reserved']===0,'replayed_callback_never_debits_stock_twice');
     echo "Real MySQL commerce callback/receipt integration passed; all provider actions mocked.\n";
 } finally {
+    foreach(['commerce_stock_movements','commerce_parcels','commerce_service_cases',
+             'commerce_outbox','commerce_payment_claims','commerce_book_reservations'] as $table) {
+        $pdo->prepare('DELETE FROM '.$table.' WHERE order_id=?')->execute([$order]);
+    }
     $pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$order]);
+    $pdo->prepare('DELETE FROM commerce_book_stock WHERE sku=?')->execute(['book:roshanaei']);
 }
