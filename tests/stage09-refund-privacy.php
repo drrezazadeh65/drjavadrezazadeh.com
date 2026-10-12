@@ -63,6 +63,7 @@ checkR(runR(null,$validPayload)->status===401,'anonymous_forbidden');
 checkR(runR($bob,$validPayload)->status===404,'foreign_order_forbidden');
 checkR(runR($alice,array_replace($validPayload,['reasonCode'=>'invalid']))->status===400,'reason_allowlist');
 $GLOBALS['orderState']='created';
+if($validPayload['reasonCode']!=='book_not_received'||$validPayload['orderId']!==$GLOBALS['orderId']) throw new RuntimeException('refund_fixture_payload_corrupted_before_unpaid_case');
 $unpaid=runR($alice,$validPayload);
 checkR($unpaid->status===409,'unpaid_refund_denied_HTTP'.$unpaid->status.'_'.($unpaid->body['error']??'none'));
 $GLOBALS['orderState']='paid';
