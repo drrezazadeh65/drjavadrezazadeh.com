@@ -28,7 +28,7 @@ const activeConsent = (events,subject,purpose,now) => {
   const c=currentConsent(events,subject.id,purpose,now);
   if (!c || c.decision!=='GRANTED') return false;
   if (subject.is_minor!==false) return same(c.granted_by_account_id,subject.guardian_account_id) && c.guardian_verified===true;
-  return same(c.granted_by_account_id,subject.id);
+  return same(c.granted_by_account_id,subject.student_account_id);
 };
 const verifiedRelation = (items,type,subjectId,actorId,capability) => Array.isArray(items) && items.some(r=>
   r?.record_source==='PERSISTED' && r.type===type && r.state==='VERIFIED' &&
