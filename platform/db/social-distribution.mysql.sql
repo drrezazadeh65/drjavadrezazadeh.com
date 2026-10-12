@@ -114,3 +114,29 @@ CREATE TABLE IF NOT EXISTS social_audit (
   evidence_digest CHAR(64) NULL,
   INDEX idx_social_audit_delivery (delivery_id,event_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Owner-managed channel preferences are never proof of provider authorization.
+CREATE TABLE IF NOT EXISTS social_channel_settings (
+  provider VARCHAR(32) PRIMARY KEY,
+  draft_enabled TINYINT(1) NOT NULL DEFAULT 1,
+  draft_locale ENUM('fa','en','both') NOT NULL DEFAULT 'both',
+  approval_mode ENUM('manual','review_required') NOT NULL DEFAULT 'review_required',
+  daily_draft_limit TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  preferred_local_time CHAR(5) NOT NULL DEFAULT '21:00',
+  utm_campaign VARCHAR(64) NOT NULL DEFAULT 'editorial',
+  updated_by CHAR(36) NOT NULL,
+  updated_at BIGINT NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Saved account identities are plans, NOT connected social accounts.
+CREATE TABLE IF NOT EXISTS social_connection_intents (
+  id CHAR(36) PRIMARY KEY,
+  provider VARCHAR(32) NOT NULL,
+  public_handle VARCHAR(100) NOT NULL,
+  status ENUM('awaiting_authorization','cancelled') NOT NULL DEFAULT 'awaiting_authorization',
+  created_by CHAR(36) NOT NULL,
+  created_at BIGINT NOT NULL,
+  updated_at BIGINT NOT NULL,
+  UNIQUE KEY uq_social_intent (provider,public_handle),
+  INDEX idx_social_intent_status (status,updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
