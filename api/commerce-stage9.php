@@ -10,7 +10,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 function stage9SchemaReady(PDO $pdo): bool {
     try {
         foreach (['commerce_book_stock','commerce_book_reservations','commerce_stock_movements',
-                  'commerce_payment_claims','commerce_outbox'] as $table) {
+                  'commerce_payment_claims','commerce_outbox','commerce_service_cases'] as $table) {
             $pdo->query('SELECT 1 FROM '.$table.' LIMIT 1');
         }
         return true;
@@ -100,21 +100,39 @@ function stage9CommitBooks(PDO $pdo,string $orderId,array $items): void {
  * claim, commits stock exactly once and records a deduplicated fulfilment event.
  * Return false for same-order replay/nonpending; throw on cross-order collision.
  */
-function stage9FinalizePayment(PDO $pdo,string $orderId,string $idGet,string $trans): bool {
+function stage9FinalizePayment(PDO $pdo,string $orderId,string $idGet,string $trans,string $verifiedAmount,string $verifiedFactor): bool {
     if (!preg_match('/^[1-9][0-9]*$/D',$idGet) || !preg_match('/^[1-9][0-9]*$/D',$trans))
         throw new RuntimeException('invalid_gateway_identity');
     $pdo->beginTransaction();
     try {
-        $s=$pdo->prepare('SELECT state,provider_id_get,provider_amount,items_json FROM commerce_orders WHERE id=? FOR UPDATE');
+        $s=$pdo->prepare('SELECT state,provider_id_get,provider_amount,factor_id,items_json FROM commerce_orders WHERE id=? FOR UPDATE');
         $s->execute([$orderId]);$row=$s->fetch();
         if (!$row || $row['state']!=='pending' || (string)$row['provider_id_get']!==$idGet) {
             $pdo->rollBack();return false;
         }
+        // Re-check all provider-verified values against the locked current row,
+        // not merely a stale pre-network order snapshot.
+        if ((string)$row['provider_amount']!==$verifiedAmount ||
+            (string)$row['factor_id']!==$verifiedFactor)
+            throw new RuntimeException('gateway_order_changed');
         $items=json_decode((string)$row['items_json'],true);
         if (!is_array($items) || !$items) throw new RuntimeException('invalid_order_items');
         $pdo->prepare("INSERT INTO commerce_payment_claims(provider,transaction_id,order_id,verified_amount) VALUES('bitpay',?,?,?)")
             ->execute([$trans,$orderId,(int)$row['provider_amount']]);
         stage9CommitBooks($pdo,$orderId,$items);
+        $case=$pdo->prepare("INSERT INTO commerce_service_cases(order_id,sku,status) VALUES(?,?,'awaiting_contact')");
+        $seen=[];
+        foreach ($items as $item) {
+            $sku=(string)($item['sku']??'');
+            if (str_starts_with($sku,'service:') || str_starts_with($sku,'vip:')) {
+                if (isset($seen[$sku]) || ($item['quantity']??null)!==1 ||
+                    !preg_match('/^(?:service|vip):[a-z0-9_-]{1,60}$/D',$sku))
+                    throw new RuntimeException('invalid_service_order');
+                $seen[$sku]=true;
+                // An administrative follow-up case is NOT an appointment or entitlement.
+                $case->execute([$orderId,$sku]);
+            }
+        }
         $u=$pdo->prepare("UPDATE commerce_orders SET state='paid',provider_trans_id=?,paid_at=NOW(),updated_at=NOW() WHERE id=? AND state='pending' AND provider_id_get=?");
         $u->execute([$trans,$orderId,$idGet]);
         if ($u->rowCount()!==1) throw new RuntimeException('payment_state_conflict');
