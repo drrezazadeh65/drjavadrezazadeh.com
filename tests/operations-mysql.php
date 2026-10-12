@@ -57,6 +57,8 @@ function request(string $path,int $expected,string $method='GET',?array $body=nu
 try {
  for($i=0;$i<50;$i++){if(@fsockopen('127.0.0.1',$port,$errno,$err,0.1))break;usleep(100000);}
  request('/api/admin/operations',401,'GET',null,[],false);
+ request('/api/admin/operations/social/settings',401,'GET',null,[],false);
+ request('/api/admin/operations/social/account-intents',401,'POST',['provider'=>'telegram','publicHandle'=>'demo'],[],false);
  request('/api/admin/operations/github-audits',401,'GET',null,[],false);
  request('/api/admin/operations/github-audits/dispatch',401,'POST',['actionId'=>'ENG-01.ACT-001','requestKey'=>str_repeat('b',32),'approval'=>'APPROVE_READONLY_AUDIT'],[],false);
  request('/api/admin/operations?role=SUPER_ADMIN',403);
@@ -72,6 +74,23 @@ try {
  check($elevatedSession['csrfToken']!==$session['csrfToken'],'CSRF token did not rotate');
  $headers['X-CSRF-Token']=$elevatedSession['csrfToken'];
  request('/api/admin/operations/mfa',403,'POST',['code'=>$code],$headers);
+ $social=request('/api/admin/operations/social/settings',200);
+ check(count($social['catalogue'])===16,'social network catalogue incomplete');
+ check($social['oauthExchangeAvailable']===false &&
+       $social['automatedPublishingAvailable']===false,'provider automation falsely enabled');
+ check($social['settings']===null,'uninstalled settings schema represented as configured');
+ request('/api/admin/operations/social/settings',403,'POST',[
+   'provider'=>'telegram','draftEnabled'=>true,'draftLocale'=>'both',
+   'approvalMode'=>'review_required','dailyDraftLimit'=>1,
+   'preferredLocalTime'=>'21:00','utmCampaign'=>'editorial'
+ ]);
+ request('/api/admin/operations/social/settings',503,'POST',[
+   'provider'=>'telegram','draftEnabled'=>true,'draftLocale'=>'both',
+   'approvalMode'=>'review_required','dailyDraftLimit'=>1,
+   'preferredLocalTime'=>'21:00','utmCampaign'=>'editorial'
+ ],$headers);
+ request('/api/admin/operations/social/account-intents',503,'POST',
+   ['provider'=>'telegram','publicHandle'=>'demo'],$headers);
  $data=request('/api/admin/operations',200);check($data['dashboard']['measuredProgress']===75,'unexpected admin score');check($data['dashboard']['closed']===false,'unverified production admin closed');check(count($data['reports'])===36,'report count changed');
  check(count($data['reporting']['engines'])===13,'canonical engine count changed');
  check(count($data['reporting']['actionReports'])===52,'action inventory changed');
