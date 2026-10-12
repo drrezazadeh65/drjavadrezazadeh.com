@@ -74,6 +74,38 @@ function operationsFreePerformanceObservation(): array {
         'limitation'=>'Mobile Lighthouse lab score only; HTTP 429 is a provider rate limit, not a slow-site diagnosis or a real-user field metric.'];
 }
 
+/** Optional non-production Lighthouse CI metrics from reviewed local build artifacts. */
+function operationsLocalLighthouseObservation(): array {
+    $raw=@file_get_contents(__DIR__.'/internal/free-local-lighthouse-observation.json');
+    $data=is_string($raw)?json_decode($raw,true):null;
+    $blank=['status'=>'not_collected','source'=>'local_sanitized_public_build','observedAt'=>null,
+        'measuredPages'=>null,'results'=>[],'limitation'=>'Local source measurements have not been reviewed and deployed.'];
+    if(!is_array($data)||($data['schema']??'')!=='free-local-lighthouse-observation-v1'
+        ||($data['origin']??'')!=='local_sanitized_public_build'||($data['sourceEngine']??'')!=='ENG-10'
+        ||count($data['records']??[])!==2)return $blank;
+    $at=strtotime((string)($data['observedAt']??''));
+    if($at===false||$at>time()+300)return array_merge($blank,['status'=>'invalid']);
+    $routes=['/fa/','/en/'];$results=[];$measured=0;
+    foreach($data['records'] as $i=>$rec){
+        if(!is_array($rec)||($rec['route']??'')!==$routes[$i]
+            ||!in_array($rec['status']??'', ['observed','unavailable'],true))
+            return array_merge($blank,['status'=>'invalid']);
+        $score=null;
+        if($rec['status']==='observed'){
+            if(($rec['isDeployedSite']??true)!==false||($rec['realUserFieldDataClaimed']??true)!==false
+                ||($rec['mobile']??false)!==true)return array_merge($blank,['status'=>'invalid']);
+            $s=$rec['score']['performance']??null;
+            if(is_int($s)&&$s>=0&&$s<=100){$score=$s;$measured++;}
+        }
+        $results[]=['route'=>$routes[$i],'status'=>$rec['status'],'localLabScore'=>$score,
+            'reason'=>$rec['status']==='unavailable'?substr((string)($rec['reason']??'unavailable'),0,72):null];
+    }
+    return ['status'=>$at<time()-14*86400?'stale':($measured>0?'observed':'unavailable'),
+        'source'=>'local_sanitized_public_build','observedAt'=>gmdate('c',$at),
+        'measuredPages'=>$measured,'results'=>$results,
+        'limitation'=>'Local Lighthouse scores measure the sanitized source on CI, not Bertina production or real-user Core Web Vitals.'];
+}
+
 /** Canonical management reporting. Pure projection; never creates evidence or closes actions. */
 function operationsReportingMetrics(array $records): array {
     $total=count($records);$totalGates=0;$observed=0;$passed=0;$weightedProgress=0.0;$estimated=[];$closed=0;$production=0;
@@ -186,7 +218,7 @@ function operationsReporting(array $snapshot,array $registry): array {
     $priorityOrder=['OP-02','OP-36','OP-03','OP-01','OP-04','OP-05','OP-06','OP-07','OP-08','OP-09','OP-10','OP-11'];
     usort($queue,function($a,$b)use($priorityOrder){$rank=fn($id)=>(($position=array_search($id,$priorityOrder,true))===false?99:$position);return strcmp($a['priority'],$b['priority'])?:($rank($a['id'])<=>$rank($b['id']));});
     return [
-        'schema'=>'operations-reporting-v1','reportingEngine'=>'ENG-13','freeSourceRegistry'=>$freeSourceRegistry,'freeScholarlyObservation'=>operationsFreeScholarlyObservation(),'freePerformanceObservation'=>operationsFreePerformanceObservation(),'reportingPeriod'=>[
+        'schema'=>'operations-reporting-v1','reportingEngine'=>'ENG-13','freeSourceRegistry'=>$freeSourceRegistry,'freeScholarlyObservation'=>operationsFreeScholarlyObservation(),'freePerformanceObservation'=>operationsFreePerformanceObservation(),'localLighthouseObservation'=>operationsLocalLighthouseObservation(),'reportingPeriod'=>[
             'releaseSha'=>$snapshot['releaseSha'],'publishedAt'=>$snapshot['publishedAt']??null,'generatedAt'=>$snapshot['checkedAt'],
             'historyScope'=>'Current release; bounded latest 5000 evidence events. Not all-time history.'],
         'engines'=>$engines,'actionReports'=>$actionReports,
