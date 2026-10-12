@@ -19,6 +19,12 @@ GUARD = (ROOT / 'scripts/bertina-private-recovery-gate.php').read_text()
 PUBLIC_REQUEST = (ROOT / '.bertina-backup-trigger').read_bytes()
 
 assert "workflow_dispatch:" in WORKFLOW
+RELEASE = (ROOT / '.github/workflows/deploy-bertina.yml').read_text()
+for source in [WORKFLOW, RELEASE]:
+    assert '  group: bertina-production-deploy' in source, (
+        'A commerce migration and a production release must share one environment concurrency group'
+    )
+    assert '  cancel-in-progress: false' in source, 'Never cancel an in-flight production mutation'
 assert "confirmation:" in WORKFLOW and "AUTHORIZE_AFTER_SIGNED_RESTORE" in WORKFLOW
 assert "expected_source_sha:" in WORKFLOW and "expected_live_sha:" in WORKFLOW
 assert 'test "$EXPECTED_SOURCE" = "$GITHUB_SHA"' in WORKFLOW
