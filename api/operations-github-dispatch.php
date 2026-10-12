@@ -51,7 +51,10 @@ function operationsGithubDispatchHttp(string $workflow,string $nonce,string $tok
     ]);
     $response=curl_exec($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);
     // No response content is ever logged or displayed: GitHub API may include sensitive diagnostics.
-    return is_string($response)?$status:0;
+    // cURL may report an empty 204 body as boolean true on some PHP builds.
+    // Transport success is determined by curl_exec !== false; only the actual
+    // HTTP response code confirms request acceptance, never audit success.
+    return $response!==false?$status:0;
 }
 function operationsGithubDispatchRun(PDO $pdo,array $registry,string $actor,string $actionId,
     string $nonce,string $approval,string $release,array $configuration,int $at,?callable $transport=null): array {
