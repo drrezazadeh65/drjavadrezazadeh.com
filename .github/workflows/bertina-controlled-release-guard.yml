@@ -1,0 +1,50 @@
+name: Bertina Controlled Release Gate CI
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/bertina-controlled-release-guard.yml'
+      - '.github/workflows/deploy-bertina.yml'
+      - 'scripts/bertina-controlled-cpanel-gate.php'
+      - 'scripts/bertina-private-recovery-gate.php'
+      - 'tests/bertina-controlled-cpanel-gate.php'
+      - 'tests/bertina-private-recovery-gate.php'
+      - 'tests/bertina-release-assembly.py'
+      - 'scripts/v5-ecosystem-integrity-audit.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bertina-controlled-release-guard
+  cancel-in-progress: true
+
+jobs:
+  offline-recovery-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP gate syntax and tamper rejection
+        run: |
+          set -euo pipefail
+          php -l scripts/bertina-controlled-cpanel-gate.php
+          php -l scripts/bertina-private-recovery-gate.php
+          php tests/bertina-controlled-cpanel-gate.php
+          php tests/bertina-private-recovery-gate.php
+      - name: Compile exact remote PHP handler and verify owner, branch, SHA and pre-extraction ordering
+        run: |
+          set -euo pipefail
+          python3 tests/bertina-release-assembly.py
+          node scripts/v5-ecosystem-integrity-audit.mjs
+          node scripts/workflow-governance-audit.mjs
+      - name: State limited evidence scope
+        run: |
+          echo 'Both guarded recovery policies passed offline fixture tests.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Controlled release is a one-time owner-authorized exception: it does NOT verify isolated restoration or bank settlement.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No FTP, live SQL, cPanel backup content, payment, or production deploy was accessed by this CI.' >> "$GITHUB_STEP_SUMMARY"
