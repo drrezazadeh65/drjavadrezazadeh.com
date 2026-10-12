@@ -322,6 +322,10 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        if ($path === '/admin/operations/growth' && $verb === 'GET') {
+            require_once __DIR__.'/growth-stage14.php';
+            respond(stage14AdminGrowthSnapshot($pdo));
+        }
         if ($path === '/admin/operations/action-runs' && $verb === 'GET') {
             if (!operationsActionRunsReady($pdo)) fail('action_journal_schema_unavailable',503);
             respond(['ok'=>true,'schema'=>'operations-readonly-action-history-v1',
