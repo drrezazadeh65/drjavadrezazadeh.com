@@ -1,0 +1,45 @@
+{
+  "schema": "stage09-owner-declared-inventory-v1",
+  "sourceBranch": "migration/bertina-linux6",
+  "declaredOn": "2026-10-13",
+  "status": "OWNER_DECLARED_NOT_YET_RECONCILED_IN_LIVE_DATABASE",
+  "stock": [
+    {
+      "sku": "book:roshanaei",
+      "titleFa": "سپید",
+      "ownerDeclaredSaleableCopies": 100
+    },
+    {
+      "sku": "book:tariki",
+      "titleFa": "تاریکی",
+      "ownerDeclaredSaleableCopies": 100
+    },
+    {
+      "sku": "book:bonbast",
+      "titleFa": "بن‌بست",
+      "ownerDeclaredSaleableCopies": 100
+    }
+  ],
+  "legacyCommerceObservations": {
+    "source": "User-shared read-only phpMyAdmin MariaDB 10.11 screenshots 2026-10-12",
+    "database": "drjavad1_store",
+    "orderRowsTotal": 2,
+    "paidOrderRows": 1,
+    "pendingOrderRows": 1,
+    "paidBookUnits": 0,
+    "pendingBookSku": "book:roshanaei",
+    "pendingBookUnits": 1,
+    "previousCommerceStage09TablesPresent": 0,
+    "commerceOrdersLegacyColumnsPresent": true
+  },
+  "pendingIncludedInOwnerDeclared100": "UNCONFIRMED",
+  "outstandingVerifications": [
+    "Owner declaration is not a physical stock count signed into the live DB",
+    "Confirm if 100 on-hand includes or excludes the legacy pending book reservation",
+    "Verify the pending gateway transaction state before any historic reservation creation or order cancellation",
+    "Do not fabricate Stage09 payment claims for the pre-migration paid non-book order",
+    "Verify current private signed recovery gate and 8 additive InnoDB tables before publishing source to Bertina"
+  ],
+  "productionWritesAuthorizedByThisDocument": false,
+  "releaseApprovedByThisDocument": false
+}
