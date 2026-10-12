@@ -7,6 +7,7 @@ on:
       - 'scripts/bertina-private-backup-restore.py'
       - 'scripts/bertina-private-recovery-gate.php'
       - 'tests/bertina-private-recovery-gate.php'
+      - 'tests/bertina-release-assembly.py'
       - '.github/workflows/deploy-bertina.yml'
       - 'tests/test_private_backup_restore_readiness.py'
       - '.github/workflows/bertina-restore-readiness-ci.yml'
@@ -41,3 +42,5 @@ jobs:
           assert "verified_private_recovery_required" in wf
           print("PASS: pinned signed private recovery gate precedes production extraction")
           PY
+      - name: Compile actual interpolated release endpoint without deploying
+        run: python3 tests/bertina-release-assembly.py
