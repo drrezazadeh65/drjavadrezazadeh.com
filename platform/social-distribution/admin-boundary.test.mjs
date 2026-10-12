@@ -67,3 +67,36 @@ test('manual composer is a nonpublishing, source-canonical feed workflow',()=>{
   assert.ok(html.indexOf('id="ops-social-composer"')>html.indexOf('id="ops-workspace"'));
  }
 });
+
+test('all sixteen providers are available inside owner-only FA/EN administration',()=>{
+ const api=read('api/social-admin-settings.php');
+ const routes=read('api/operations.php');
+ const client=read('assets/js/operations-social-settings.js');
+ const channels=['instagram','facebook','x','telegram','eitaa','aparat',
+ 'whatsapp','youtube','linkedin','threads','bluesky','pinterest','tiktok',
+ 'mastodon','discord','googlebusiness'];
+ for(const ch of channels)assert.ok(api.includes("'"+ch+"'=>"),ch);
+ const security=routes.indexOf("if (!$fresh) fail('admin_mfa_required',403)");
+ const settings=routes.indexOf("if ($path === '/admin/operations/social/settings' && $verb === 'GET')");
+ const mutation=routes.indexOf("if ($path === '/admin/operations/social/settings' && $verb === 'POST')");
+ assert.ok(security>=0&&settings>security&&mutation>security);
+ assert.ok(routes.slice(mutation).includes("operationsMutationAllowed"));
+ assert.match(api,/automatedPublishingAvailable'=>false/);
+ assert.match(api,/oauthExchangeAvailable'=>false/);
+ assert.ok(client.includes('social-network-overview'));
+ assert.ok(client.includes("social/account-intents"));
+ assert.ok(client.includes("social/settings"));
+ assert.ok(client.includes("admin_mfa_required"));
+ assert.equal(client.includes('localStorage'),false);
+ assert.equal(client.includes('innerHTML'),false);
+ assert.equal(client.includes('sendMessage'),false);
+ assert.equal(client.includes('SOCIAL_TELEGRAM_BOT_TOKEN'),false);
+ for(const page of ['fa/app/admin/index.html','en/account/admin/index.html']){
+  const html=read(page);
+  assert.match(html,/id="ops-social-settings"/);
+  assert.match(html,/id="social-settings-provider"/);
+  assert.match(html,/operations-social-settings\.js/);
+  assert.match(html,/operations-social-settings\.css/);
+  assert.ok(html.indexOf('id="ops-social-settings"')>html.indexOf('id="ops-workspace"'));
+ }
+});
