@@ -7,6 +7,7 @@ require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-action-runs.php';
 require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/operations-github-audits.php';
+require_once __DIR__.'/operations-github-dispatch.php';
 
 function operationsRegistry(): array {
     $raw = file_get_contents(__DIR__.'/internal/operations-registry.json');
@@ -352,9 +353,47 @@ function operationsRoute(string $path, string $verb): never {
         }
 
         if ($path === '/admin/operations/github-audits' && $verb === 'GET') {
-            // Public GitHub data is available only via the existing MFA-protected control center.
-            // External HTTP failure never modifies evidence, money or acceptance state.
-            respond(operationsGithubAuditSnapshot(operationsRegistry()));
+            // A real workflow status is sourced from GitHub, never a browser-provided number.
+            $source=operationsGithubAuditSnapshot(operationsRegistry());
+            $super=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
+            $ready=$super&&operationsActionRunsReady($pdo)
+                && operationsGithubDispatchToken($configuration)!==null
+                && function_exists('curl_init');
+            $source['summary']['dispatchReady']=$ready;
+            $history=operationsActionRunsReady($pdo)?operationsActionHistory($pdo,$accountId,nowTs()):[];
+            $source['ownerSubmissions']=operationsGithubCorrelatedRuns($source['audits'],$history);
+            respond($source);
+        }
+        if ($path === '/admin/operations/github-audits/dispatch' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            // Default-deny: only the owner's effective DB+private-config SUPER_ADMIN role.
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('audit_owner_approval_required',403);
+            $body=jsonBody();
+            if(!is_array($body)||count($body)!==3
+                || !is_string($body['actionId']??null)
+                || !is_string($body['requestKey']??null)
+                || ($body['approval']??null)!=='APPROVE_READONLY_AUDIT')
+                fail('invalid_audit_approval',400);
+            if(!operationsGithubDispatchDefinition(operationsRegistry(),$body['actionId']))
+                fail('audit_not_allowlisted',403);
+            if(!operationsActionRunsReady($pdo))fail('action_journal_schema_unavailable',503);
+            if(operationsGithubDispatchToken($configuration)===null || !function_exists('curl_init'))
+                fail('audit_dispatch_not_configured',503);
+            if(!rateAllowed($pdo,'operations_github_audit',$accountId,3,300))fail('rate_limited',429);
+            $releaseRow=$pdo->query('SELECT release_sha FROM operations_release WHERE singleton_id=1')->fetch();
+            $release=(string)($releaseRow['release_sha']??'');
+            if(!preg_match('/^[a-f0-9]{40}$/D',$release))fail('current_release_unavailable',503);
+            try {
+                $run=operationsGithubDispatchRun($pdo,operationsRegistry(),$accountId,
+                    $body['actionId'],$body['requestKey'],$body['approval'],
+                    $release,$configuration,nowTs());
+                respond(['ok'=>true,'schema'=>'operations-gh-audit-dispatch-v1','run'=>$run,
+                    'limitation'=>'GitHub HTTP 204 acknowledges request receipt only; check official run ID and conclusion on refresh. No Action/production acceptance is asserted.']);
+            }catch(InvalidArgumentException $e){fail('invalid_audit_approval',400);}
+            catch(DomainException $e){fail('audit_request_conflict',409);}
+            catch(Throwable $e){fail('audit_dispatch_unavailable',503);}
         }
         if ($path === '/admin/operations/social' && $verb === 'GET') {
             respond(operationsSocialSnapshot($pdo));
