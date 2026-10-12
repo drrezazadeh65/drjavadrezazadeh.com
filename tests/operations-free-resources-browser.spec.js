@@ -142,7 +142,7 @@ test('owner-supplied PageSpeed snapshots remain distinct from 429 and local CI w
  await expect(panel).toContainText('۹۹'.replace('۹۹','99'));
  await expect(panel).toContainText('100/100');
  await expect(panel).toContainText('96/100');
- await expect(panel).toContainText('No Data');
+ await expect(panel).toContainText('داده کاربران واقعی: موجود نیست');
  await expect(panel).toContainText('Agentic Browsing 3/3');
  await page.evaluate(()=>{document.getElementById('ops-workspace').hidden=true;});
  await expect(panel).toHaveCount(0);
