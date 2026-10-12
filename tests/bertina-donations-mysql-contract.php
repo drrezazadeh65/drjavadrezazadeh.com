@@ -20,6 +20,13 @@ function fail(string $code,int $status=400): never { respond(['ok'=>false,'error
 function requirePostOrigin(): void { $GLOBALS['originChecks']++; }
 function commerceReady(): bool { return $GLOBALS['ready']; }
 function db(): ?PDO { return $GLOBALS['pdo']; }
+// Cookie ownership proof is mandatory before starting a provider payment.
+// Mock only its result: never mint a real cookie, key, customer or gateway token.
+function commerceReceiptGrant(string $orderId): bool {
+    $GLOBALS['receiptGrantCalls']++;
+    if ($orderId !== uuidv4()) throw new RuntimeException('receipt_grant_wrong_order');
+    return $GLOBALS['receiptGrantReady'];
+}
 function jsonBody(): array { return $GLOBALS['input']; }
 function validEmail(string $email): bool { return filter_var($email,FILTER_VALIDATE_EMAIL)!==false; }
 function rateAllowed(PDO $pdo,string $action,string $identity,int $max,int $window): bool {
@@ -60,6 +67,8 @@ try {
     $GLOBALS['originChecks']=0;
     $GLOBALS['gatewayCalls']=0;
     $GLOBALS['gatewayMode']='ok';
+    $GLOBALS['receiptGrantReady']=true;
+    $GLOBALS['receiptGrantCalls']=0;
     $GLOBALS['ready']=false;
     $health=donationRequest($route,'/donations/health','GET');
     assertDonation($health->status===200&&$health->data['checkout']===false,'health_fails_closed_without_gateway');
@@ -80,6 +89,20 @@ try {
     $badEmail=donationRequest($route,'/donations/create','POST',['amountToman'=>10000,'email'=>'not-an-email']);
     assertDonation($badEmail->status===400&&$badEmail->data['error']==='invalid_donation_email','reject_invalid_optional_email');
     assertDonation($GLOBALS['gatewayCalls']===0,'invalid_payloads_never_contact_gateway');
+
+    // Regression: when the receipt capability cannot be set, do not contact
+    // the bank or create an orphaned order. The production code must fail closed.
+    $GLOBALS['receiptGrantReady']=false;
+    $beforeGatewayCalls=$GLOBALS['gatewayCalls'];
+    $deniedReceipt=donationRequest($route,'/donations/create','POST',['amountToman'=>10000]);
+    assertDonation($deniedReceipt->status===503&&
+        ($deniedReceipt->data['error']??null)==='receipt_access_unavailable',
+        'failed_receipt_capability_blocks_donation_before_gateway');
+    assertDonation($GLOBALS['gatewayCalls']===$beforeGatewayCalls,
+        'receipt_failure_never_contacts_provider');
+    $testOrder=$pdo->prepare('SELECT COUNT(*) FROM commerce_orders WHERE id=?');$testOrder->execute([$id]);
+    assertDonation((int)$testOrder->fetchColumn()===0,'receipt_failure_never_creates_unowned_order');
+    $GLOBALS['receiptGrantReady']=true;
 
     $GLOBALS['gatewayMode']='reject';
     $denied=donationRequest($route,'/donations/create','POST',['amountToman'=>10000]);
