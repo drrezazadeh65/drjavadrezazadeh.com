@@ -13,6 +13,8 @@ on:
       - 'docs/governance/STAGE09_OWNER_INVENTORY_DECLARATION_20261013.json'
       - 'tests/stage09-mysql.php'
       - 'tests/stage09-commerce-atomic.php'
+      - 'docs/migrations/20261013_stage09_bertina_owner_approved.sql'
+      - 'tests/stage09-owner-stock-mariadb.php'
   workflow_dispatch:
 
 permissions:
@@ -50,6 +52,7 @@ jobs:
           php -l api/operations-commerce.php
           php -l tests/stage09-mysql.php
           php -l tests/stage09-commerce-atomic.php
+          php -l tests/stage09-owner-stock-mariadb.php
           python3 - <<'PY'
           import json,pathlib,re
           root=pathlib.Path('.')
@@ -79,6 +82,7 @@ jobs:
           set -euo pipefail
           php tests/stage09-commerce-atomic.php
           php tests/stage09-mysql.php
+          php tests/stage09-owner-stock-mariadb.php
           echo 'MariaDB Stage09 fixture PASS: isolated test schema, no live credentials or production writes'
       - name: Explain release gate independence
         run: |
