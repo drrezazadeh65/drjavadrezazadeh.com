@@ -1,0 +1,68 @@
+name: Free Local Lighthouse Mobile Evidence
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - scripts/free-local-lighthouse-observer.mjs
+      - .github/workflows/free-local-lighthouse.yml
+  schedule:
+    - cron: '33 5 * * 5'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: free-local-lighthouse-mobile
+  cancel-in-progress: false
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'schedule' && 'migration/bertina-linux6' || github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate local source contract and existing site builder
+        run: |
+          node --check scripts/free-local-lighthouse-observer.mjs
+          node scripts/free-local-lighthouse-observer.mjs --self-test
+          node scripts/build-public-site.mjs
+      - name: Stage local public-only web assets with API directory removed
+        run: |
+          mkdir -p /tmp/drjavad-lhci-public
+          rsync -a --exclude='/api/' .public-site/ /tmp/drjavad-lhci-public/
+          test ! -e /tmp/drjavad-lhci-public/api
+          test -f /tmp/drjavad-lhci-public/fa/index.html
+          test -f /tmp/drjavad-lhci-public/en/index.html
+      - name: Install pinned open-source Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.15.1
+          command -v google-chrome || command -v google-chrome-stable || command -v chromium
+      - name: Measure both sanitized homepage routes with mobile Lighthouse lab
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          lhci collect \
+            --staticDistDir=/tmp/drjavad-lhci-public \
+            --url=http://localhost/fa/ \
+            --url=http://localhost/en/ \
+            --numberOfRuns=1 \
+            --settings.chromeFlags="--headless --no-sandbox --disable-dev-shm-usage"
+          node scripts/free-local-lighthouse-observer.mjs --collect
+          node scripts/free-local-lighthouse-observer.mjs --check
+      - name: Preserve local laboratory results only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-local-lighthouse-mobile-observation
+          path: |
+            api/internal/free-local-lighthouse-observation.json
+            .lighthouseci/manifest.json
+          if-no-files-found: ignore
+          retention-days: 14
