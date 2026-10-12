@@ -229,7 +229,7 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
   await page.goto(base+path);
   await expect(page.locator('#ops-workspace')).toBeVisible();
   await expect(page.locator('#ops-commerce-results article')).toHaveCount(0);
-  await page.locator('#ops-commerce summary').click();
+  await page.locator('#ops-commerce > summary').click();
   await expect(page.locator('#ops-commerce-results article')).toHaveCount(12);
   await expect(page.locator('#ops-commerce-results details')).toHaveCount(1);
   await expect(page.locator('#ops-commerce-results details')).not.toHaveAttribute('open');
@@ -241,7 +241,7 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
   expect(hits).toBe(1);
   await expect(page.locator('#ops-commerce-results')).not.toContainText(privateEmail);
   expect(await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth)).toBeLessThanOrEqual(1);
-  await page.locator('#ops-commerce summary').click();
+  await page.locator('#ops-commerce > summary').click();
   await expect(page.locator('#ops-commerce-results article')).toHaveCount(0);
   expect(await page.evaluate(()=>localStorage.length)).toBe(0);
  });
@@ -252,7 +252,7 @@ test('MFA-protected commerce reports never manufacture zero when server refuses 
   status:403,json:{ok:false,error:'admin_mfa_required'}}));
  await page.goto(base+'/fa/app/admin/');
  await expect(page.locator('#ops-workspace')).toBeVisible();
- await page.locator('#ops-commerce summary').click();
+ await page.locator('#ops-commerce > summary').click();
  await expect(page.locator('#ops-commerce-status')).toContainText('قابل دریافت نیست');
  await expect(page.locator('#ops-commerce-results article')).toHaveCount(0);
 });
