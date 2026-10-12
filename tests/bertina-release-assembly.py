@@ -39,6 +39,10 @@ for table in [
 ]:
     assert table in body, f"Missing gated table: {table}"
 assert "uq_payment_order" in body
+assert "information_schema.TABLES" in body
+assert "non_transactional_commerce_table" in body
+assert "commerce_orders" in body
+assert body.index("information_schema.TABLES") < body.index("->extractTo(__DIR__)")
 with tempfile.TemporaryDirectory(prefix='drjr-deploy-assembly-') as folder:
     candidate = Path(folder) / 'deploy.php'
     candidate.write_text(body)
