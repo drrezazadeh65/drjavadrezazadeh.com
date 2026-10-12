@@ -57,10 +57,20 @@ checkStage9(stage9BookStockReady($pdo),'all_three_reconciled_rows_required');
 $a='11111111-1111-4111-8111-111111111171';$b='11111111-1111-4111-8111-111111111172';
 $pdo->beginTransaction();stage9ReserveBooks($pdo,$a,[['kind'=>'book','sku'=>'book:roshanaei','quantity'=>1]]);pendingOrder($pdo,$a,'test-factor-1','book:roshanaei');$pdo->commit();
 $pdo->beginTransaction();stage9ReserveBooks($pdo,$b,[['kind'=>'book','sku'=>'book:roshanaei','quantity'=>1]]);pendingOrder($pdo,$b,'test-factor-2','book:roshanaei');$pdo->commit();
+checkStage9(stage9BookStockReady($pdo),'stock_matches_two_active_reservations');
+$pdo->exec("UPDATE commerce_book_stock SET reserved=1 WHERE sku='book:roshanaei'");
+checkStage9(!stage9BookStockReady($pdo),'stock_ledger_counter_understates_holds_rejected');
+$pdo->exec("UPDATE commerce_book_stock SET reserved=2 WHERE sku='book:roshanaei'");
+checkStage9(stage9BookStockReady($pdo),'restored_counter_matches_holds');
+$pdo->prepare("UPDATE commerce_book_reservations SET quantity=2 WHERE order_id=? AND sku='book:roshanaei'")->execute([$b]);
+checkStage9(!stage9BookStockReady($pdo),'reservation_ledger_overstates_counter_rejected');
+$pdo->prepare("UPDATE commerce_book_reservations SET quantity=1 WHERE order_id=? AND sku='book:roshanaei'")->execute([$b]);
+checkStage9(stage9BookStockReady($pdo),'reservation_ledger_repaired');
 $pdo->beginTransaction();
 try{stage9ReserveBooks($pdo,'no-stock',[['kind'=>'book','sku'=>'book:roshanaei','quantity'=>1]]);throw new RuntimeException('oversell_success');}
 catch(RuntimeException $e){checkStage9($e->getMessage()==='stock_unavailable','no_oversell');$pdo->rollBack();}
 checkStage9(stage9FinalizePayment($pdo,$a,'111','717171','20000000','test-factor-1'),'first_paid');
+checkStage9(stage9BookStockReady($pdo),'stock_matches_remaining_reservation_after_payment');
 checkStage9(stage9FinalizePayment($pdo,$a,'111','717171','20000000','test-factor-1')===false,'same_order_callback_replay');
 try{stage9FinalizePayment($pdo,$b,'111','717171','20000000','test-factor-2');throw new RuntimeException('cross_order_replay_accepted');}
 catch(PDOException $e){checkStage9(true,'cross_order_claim_unique');}
