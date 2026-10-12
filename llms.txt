@@ -81,3 +81,5 @@ Use only public URLs listed here or discoverable through the canonical sitemap. 
 - [اهداف و دامنهٔ علمی به فارسی](https://drjavadrezazadeh.com/journal/fa/aims-scope/)
 - [اخلاق نشر به فارسی](https://drjavadrezazadeh.com/journal/fa/ethics/)
 
+
+- [خوراک فارسی فراخوان‌های JHELA](https://drjavadrezazadeh.com/journal/fa/announcements.atom)

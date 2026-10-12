@@ -112,6 +112,17 @@ for(const page of ['journal/index.html','journal/dashboard/index.html']){
 }
 if(atom.includes('journal.drjavadrezazadeh.com')||atom.includes('<title>Call for Papers'))failures.push('JHELA feed claims an unlaunched origin or manuscript call');
 
+// Persian-language scholarly announcements: independently discoverable Atom, no manuscript acceptance claims.
+const faFeed=read('journal/fa/announcements.atom');
+if(!faFeed.includes('xmlns="http://www.w3.org/2005/Atom"')||!faFeed.includes('xml:lang="fa"'))failures.push('JHELA Persian feed must be valid-language Atom XML');
+for(const route of ['/journal/fa/call-for-reviewers/','/journal/fa/founding-collaborators/']){
+ if(!faFeed.includes('<id>'+base+route+'</id>'))failures.push('Persian JHELA feed lacks live founding invitation '+route);
+}
+for(const page of ['journal/fa/index.html','journal/fa/dashboard/index.html']){
+ if(!read(page).includes('href="'+base+'/journal/fa/announcements.atom"')) failures.push('Persian JHELA Atom discovery absent from '+page);
+}
+if(faFeed.includes('journal.drjavadrezazadeh.com')||faFeed.includes('Call for Papers'))failures.push('Persian JHELA feed falsely claims a mature journal release');
+
 if(failures.length){
  console.error('JHELA independent publishing/discovery failures ('+failures.length+')');
  for(const failure of failures)console.error('✗ '+failure);
