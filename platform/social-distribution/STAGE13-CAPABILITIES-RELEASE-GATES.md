@@ -4,14 +4,14 @@ Reviewed: 2026-10-12. Source: recovered PR #50; canonical working branch `migrat
 ## Eight required channels
 | Provider | Official mechanism | Eligibility and policy boundary | Current product status |
 |---|---|---|---|
-| Instagram | Meta Instagram content publishing API, supported professional accounts | App review, required scopes, media creation/publishing cycle, account/format eligibility; links in captions generally not clickable | Composition and OAuth-start helpers only; **not connected** |
+| Instagram | Meta Instagram content publishing API, supported professional accounts | Two official setups: Instagram API with Facebook Login requires a linked Page; Instagram API with Instagram Login uses professional account scopes without a required linked Page. Verify each eligible media format; caption links generally not clickable | Composition and OAuth-start helpers only; **not connected** |
 | Facebook | Meta Pages API and page access tokens | Pages with appropriate tasks and approved `pages_manage_posts`; never assume personal-profile posting | OAuth-start helper only; **not connected** |
 | X | POST `https://api.x.com/2/tweets` | User-context OAuth2 write permission, paid API budget/rate controls and returned post ID; media separate | Composition and OAuth-start helpers only; **not connected** |
 | Telegram | Bot API `sendMessage` | Bot administrator of destination channel, securely configured token and channel ID; returned `message_id` | Text adapter in source; **not live verified** |
-| Eitaa | EitaaYar `/api/app/sendMessage` | Destination permission, private token; `ok:true,result:success` is NOT an individual post ID | Text adapter in source; **not live verified** |
+| Eitaa | EitaaYar `/api/app/sendMessage` | Private token and destination authorization; published EitaaYar example documents user-granted messaging, not independently verified channel broadcast. `ok:true,result:success` is NOT an individual post ID | Text adapter in source; **not live verified** |
 | Aparat | Manual upload by account owner pending independent official API access confirmation | Video copyright, captions and destination channel; do not scrape/password-automate uploads | **Manual pack only** |
 | WhatsApp Business | Meta Cloud API messages | Opt-in + approved business template and recipient-specific policy; **not public-feed/Status publishing** | Consent-gated design; **disabled** |
-| YouTube | Data API `videos.insert` with `youtube.upload` OAuth scope | Actual video, owner/channel permission, processing and privacy checks, granular quota; uploads from unverified apps can be restricted | OAuth-start helper only; **not connected** |
+| YouTube | Data API `videos.insert` with `youtube.upload` OAuth scope | Actual video, user-authorized `youtube.upload` scope and processing checks; official YouTube documentation flags private-only uploads for some unverified API projects, so verify project audit and resulting video privacy status | OAuth-start helper only; **not connected** |
 Sources: https://developers.facebook.com/docs/instagram-platform/ ; https://developers.facebook.com/docs/pages-api/ ; https://docs.x.com/x-api/posts/create-post ; https://core.telegram.org/bots/api ; https://github.com/eitaa/Documentation/blob/main/docs/Develop/SendMassage.md ; https://www.aparat.com/ ; https://developers.facebook.com/docs/whatsapp/cloud-api/ ; https://developers.google.com/youtube/v3/docs/videos/insert .
 
 ## Publish state machine / evidence
@@ -38,3 +38,9 @@ Recovered into the canonical repository: Node engine, content/discovery, per-pro
 7. Monitor provider errors, UTM events, actual audience metrics and consent retention. No fake performance statistics.
 8. Test mobile RTL/LTR, screen readers, 320px/390px and desktop in the real protected console; verify no new public routes, broken canonical or private-page indexing.
 Until gates 1–8 pass, mark stage 13 **SOURCE-ONLY / NOT PRODUCTION COMPLETE**.
+
+## API documentation review, 2026-10-12
+- Meta officially offers **Instagram API with Instagram Login** (professional businesses/creators, scopes such as `instagram_business_content_publish`) as well as **Instagram API with Facebook Login** (professional account linked to Facebook Page). The historical PR #50 code implements only an initial OAuth request for the Facebook Login route. Do not require every Instagram account to link a Facebook Page when selecting the direct Instagram Login route, and do not claim direct login is implemented yet. https://www.postman.com/meta/instagram/documentation/6yqw8pt/instagram-api
+- Eitaa official developer text documents an EitaaYar *message to authorized user*, with `ok:true, result:success`; approval for channel posting must be tested separately rather than inferred from its message example. https://github.com/eitaa/Documentation/blob/main/docs/Develop/SendMassage.md
+- Telegram **Bot API** `sendMessage` returns a Message on success; store its actual `message_id`. Telegram MTProto `messages.sendMessage` is a different authorization/protocol path and must never be conflated with the Bot API adapter. https://core.telegram.org/bots/api
+- YouTube `videos.insert` requires user authorization and media, and can be subject to the API-project audit/private-upload restriction described in its official resources documentation. https://developers.google.com/youtube/v3/docs/videos
