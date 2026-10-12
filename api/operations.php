@@ -317,6 +317,17 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        if ($path === '/admin/operations/free-resources' && $verb === 'GET') {
+            // This is below the verified administrator + MFA checks. No external API is called.
+            $raw=@file_get_contents(__DIR__.'/internal/free-resources-registry.json');
+            $catalogue=is_string($raw)?json_decode($raw,true):null;
+            if(!is_array($catalogue)||($catalogue['schema']??'')!=='operations-free-resources-v1'
+                || count($catalogue['resources']??[])!==30)fail('resource_catalogue_unavailable',503);
+            respond(['ok'=>true,'schema'=>'operations-free-resources-v1',
+                'catalogueDate'=>$catalogue['catalogueDate']??null,
+                'connectionStatus'=>'UNVERIFIED','verifiedExternalConnections'=>0,
+                'automatedDataInUse'=>false,'resources'=>$catalogue['resources']]);
+        }
         if ($path === '/admin/operations' && $verb === 'GET') {
             $at=nowTs();$snapshot=operationsSnapshot($pdo,$at);
             if(operationsRecordProductionAccess($pdo,$snapshot,$accountId,$at))$snapshot=operationsSnapshot($pdo,$at);
