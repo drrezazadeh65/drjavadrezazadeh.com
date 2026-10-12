@@ -177,7 +177,7 @@ test('Audit-only dispatch requires owner confirmation and reports accepted reque
  await authorized(page,{data});
  await page.route('**/api/admin/operations/github-audits',route=>route.fulfill({json:{
   ok:true,schema:'operations-github-audits-v1',
-  summary:{observableWorkflows:0,registeredAllowlistedWorkflows:4,dispatchReady:true},
+  summary:{observableWorkflows:0,registeredAllowlistedWorkflows:4,dispatchReady:true,canReconcile:true},
   audits:[{actionId:'ENG-01.ACT-001',workflow:'bertina-master-seo.yml',
    labelFa:'ممیزی جامع سئو',labelEn:'Master SEO audit',status:'provider_unavailable',runs:[]}],
   ownerSubmissions:[]}}));
@@ -186,6 +186,22 @@ test('Audit-only dispatch requires owner confirmation and reports accepted reque
   return route.fulfill({json:{ok:true,schema:'operations-gh-audit-dispatch-v1',
     run:{runId:'a'.repeat(64),status:'running',result:{dispatchState:'accepted_run_unconfirmed'}}}});
  });
+ let reconcileCalls=0;
+ await page.route('**/api/admin/operations/github-audits/reconcile',route=>{
+  reconcileCalls++;expect(route.request().method()).toBe('POST');
+  expect(route.request().postDataJSON()).toEqual({});
+  expect(route.request().headers()['x-csrf-token']).toBe('c'.repeat(64));
+  return route.fulfill({json:{ok:true,schema:'operations-gh-audit-reconcile-v1',
+   reconciliation:{recorded:1,examined:1},
+   auditSnapshot:{ok:true,
+    summary:{observableWorkflows:1,registeredAllowlistedWorkflows:4,dispatchReady:true,canReconcile:true},
+    audits:[],ownerSubmissions:[{actionId:'ENG-01.ACT-001',
+      requestRunId:'a'.repeat(64),dispatchState:'accepted_run_unconfirmed',
+      status:'github_observed',github:{runId:12345,status:'completed',conclusion:'success',
+       sourceSha:'b'.repeat(40),url:'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/12345'}}]},
+   runs:[{runId:'a'.repeat(64),actionId:'ENG-01.ACT-001',status:'succeeded',createdAt:data.checkedAt,
+      result:{kind:'github_ci_audit',dispatchState:'accepted_run_unconfirmed',githubRunId:12345,verifiedByProvider:true}}]}});}
+ );
  await page.goto(base+'/en/account/admin/');
  await page.locator('details.ops-github-audits summary').click();
  await page.locator('details.ops-github-audits').getByRole('button',{name:'Fetch verified GitHub workflow status'}).click();
@@ -204,4 +220,8 @@ test('Audit-only dispatch requires owner confirmation and reports accepted reque
  expect(posted[0].body.requestKey).toMatch(/^[a-f0-9]{32}$/);
  expect(posted[0].headers['x-csrf-token']).toBe('c'.repeat(64));
  await expect(page.locator('details.ops-github-audits')).not.toContainText('GitHub run ID confirmed');
+ await page.locator('details.ops-github-audits').getByRole('button',{name:'Verify and record provider run result'}).click();
+ await expect(page.locator('details.ops-github-audits')).toContainText('github_observed');
+ await expect(page.locator('details.ops-github-audits a').last()).toHaveAttribute('href','https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/12345');
+ expect(reconcileCalls).toBe(1);
 });
