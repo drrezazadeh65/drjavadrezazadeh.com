@@ -1,0 +1,68 @@
+name: Upload owner-signed private backup helper
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths: ['.bertina-backup-trigger']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bertina-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    if: github.ref == 'refs/heads/migration/bertina-linux6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject a stale source commit
+        run: |
+          set -euo pipefail
+          current="$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)"
+          test "$current" = "$GITHUB_SHA"
+      - name: Install authenticated FTPS and public request renderer
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp python3-cryptography
+      - name: Render only the public-key helper
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 scripts/bertina-private-backup-client.py render \
+            --request .bertina-backup-trigger \
+            --template scripts/bertina-private-backup-template.php \
+            --directory "$RUNNER_TEMP/bertina-private-backup" > "$RUNNER_TEMP/bertina-private-backup-name"
+          name="$(cat "$RUNNER_TEMP/bertina-private-backup-name")"
+          php -l "$RUNNER_TEMP/bertina-private-backup/$name"
+      - name: Upload only the ephemeral helper over verified TLS
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          test -n "$FTP_USER" && test -n "$FTP_PASSWORD" && test -n "$FTP_REMOTE_DIR"
+          current="$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)"
+          test "$current" = "$GITHUB_SHA"
+          name="$(cat "$RUNNER_TEMP/bertina-private-backup-name")"
+          [[ "$name" =~ ^bertina-private-backup-[a-f0-9]{32}\.php$ ]]
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 20
+          cd "$FTP_REMOTE_DIR"
+          put "$RUNNER_TEMP/bertina-private-backup/$name" -o "$name"
+          bye
+          LFTP
+          echo "Uploaded one public-key helper. Backup creation, retrieval and certification require the owner's local RSA key." >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove runner scratch helper
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/bertina-private-backup" "$RUNNER_TEMP/bertina-private-backup-name"
