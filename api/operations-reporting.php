@@ -1,5 +1,41 @@
 <?php
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
+/**
+ * Optional, bounded scholarly evidence from a reviewable zero-fee Crossref GitHub run.
+ * Does not measure SEO ranking, citations, authorship, visits or performance.
+ */
+function operationsFreeScholarlyObservation(): array {
+    $path=__DIR__.'/internal/free-scholar-observation.json';
+    $raw=@file_get_contents($path);
+    $value=is_string($raw)?json_decode($raw,true):null;
+    if(!is_array($value)||($value['schema']??'')!=='free-scholar-observation-v1'
+        ||($value['provider']??'')!=='Crossref'||!is_array($value['records']??null)
+        ||count($value['records'])<1||count($value['records'])>10)
+        return ['status'=>'not_collected','provider'=>'Crossref','observedAt'=>null,
+            'records'=>[],'metrics'=>['metadataFound'=>null,'attempted'=>null],
+            'limitation'=>'A source-only reference catalogue or GitHub artifact is not a deployed verified provider observation.'];
+    $at=strtotime((string)($value['observedAt']??''));
+    if($at===false||$at>time()+300)return ['status'=>'invalid','provider'=>'Crossref','observedAt'=>null,'records'=>[],
+        'metrics'=>['metadataFound'=>null,'attempted'=>null],'limitation'=>'Invalid or future observation timestamp.'];
+    $records=[];
+    foreach($value['records'] as $record){
+        if(!is_array($record)||!preg_match('~^10\\.\\d{4,9}/[a-zA-Z0-9._()/;:+-]{1,180}$~D',(string)($record['doi']??'')))continue;
+        if(!in_array(($record['status']??''),['metadata_found','not_found','unavailable','mismatch'],true))continue;
+        $records[]=['doi'=>$record['doi'],'status'=>$record['status'],'providerTitle'=>isset($record['providerTitle'])?substr((string)$record['providerTitle'],0,400):null,
+            'sourceTitle'=>isset($record['sourceTitle'])?substr((string)$record['sourceTitle'],0,300):null,
+            'publisher'=>isset($record['publisher'])?substr((string)$record['publisher'],0,240):null,
+            'providerUrl'=>'https://api.crossref.org/works/'.rawurlencode($record['doi'])];
+    }
+    if(count($records)!==count($value['records']))return ['status'=>'invalid','provider'=>'Crossref','observedAt'=>null,'records'=>[],
+        'metrics'=>['metadataFound'=>null,'attempted'=>null],'limitation'=>'Observation records failed server validation.'];
+    $fresh=$at>=time()-14*86400;
+    $found=count(array_filter($records,static fn($row)=>$row['status']==='metadata_found'));
+    return ['status'=>$fresh?'observed':'stale','provider'=>'Crossref',
+        'observedAt'=>gmdate('c',$at),'records'=>$records,
+        'metrics'=>['metadataFound'=>$found,'attempted'=>count($records)],
+        'limitation'=>'Crossref record existence is not verification of authorship, article claims, citation impact, indexing, rankings or revenue.'];
+}
+
 /** Canonical management reporting. Pure projection; never creates evidence or closes actions. */
 function operationsReportingMetrics(array $records): array {
     $total=count($records);$totalGates=0;$observed=0;$passed=0;$weightedProgress=0.0;$estimated=[];$closed=0;$production=0;
@@ -112,7 +148,7 @@ function operationsReporting(array $snapshot,array $registry): array {
     $priorityOrder=['OP-02','OP-36','OP-03','OP-01','OP-04','OP-05','OP-06','OP-07','OP-08','OP-09','OP-10','OP-11'];
     usort($queue,function($a,$b)use($priorityOrder){$rank=fn($id)=>(($position=array_search($id,$priorityOrder,true))===false?99:$position);return strcmp($a['priority'],$b['priority'])?:($rank($a['id'])<=>$rank($b['id']));});
     return [
-        'schema'=>'operations-reporting-v1','reportingEngine'=>'ENG-13','freeSourceRegistry'=>$freeSourceRegistry,'reportingPeriod'=>[
+        'schema'=>'operations-reporting-v1','reportingEngine'=>'ENG-13','freeSourceRegistry'=>$freeSourceRegistry,'freeScholarlyObservation'=>operationsFreeScholarlyObservation(),'reportingPeriod'=>[
             'releaseSha'=>$snapshot['releaseSha'],'publishedAt'=>$snapshot['publishedAt']??null,'generatedAt'=>$snapshot['checkedAt'],
             'historyScope'=>'Current release; bounded latest 5000 evidence events. Not all-time history.'],
         'engines'=>$engines,'actionReports'=>$actionReports,
