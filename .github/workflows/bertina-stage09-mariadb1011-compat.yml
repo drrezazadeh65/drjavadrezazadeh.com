@@ -1,0 +1,78 @@
+name: Bertina Stage09 MariaDB 10.11 Compatibility
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/bertina-stage09-mariadb1011-compat.yml'
+      - 'api/commerce-stage9.php'
+      - 'api/operations-commerce.php'
+      - 'docs/BERTINA_MYSQL_SCHEMA.sql'
+      - 'docs/migrations/20261012_stage09_commerce.sql'
+      - 'docs/migrations/20261013_stage09_pre_migration_mariadb_readonly.sql'
+      - 'docs/governance/STAGE09_OWNER_INVENTORY_DECLARATION_20261013.json'
+      - 'tests/stage09-mysql.php'
+      - 'tests/stage09-commerce-atomic.php'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bertina-stage09-mariadb-compat
+  cancel-in-progress: true
+
+jobs:
+  mariadb-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: fixture-password
+          MARIADB_DATABASE: operations_fixture
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=8s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
+      OPERATIONS_TEST_USER: root
+      OPERATIONS_TEST_PASSWORD: fixture-password
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP syntax, audited schema, no customer data
+        run: |
+          php -l api/commerce-stage9.php
+          php -l api/operations-commerce.php
+          php -l tests/stage09-mysql.php
+          php -l tests/stage09-commerce-atomic.php
+          python3 - <<'PY'
+          import json,pathlib,re
+          root=pathlib.Path('.')
+          declared=json.loads((root/'docs/governance/STAGE09_OWNER_INVENTORY_DECLARATION_20261013.json').read_text())
+          assert declared['status']=='OWNER_DECLARED_NOT_YET_RECONCILED_IN_LIVE_DATABASE'
+          assert declared['productionWritesAuthorizedByThisDocument'] is False
+          assert [(x['sku'],x['ownerDeclaredSaleableCopies']) for x in declared['stock']]==[
+           ('book:roshanaei',100),('book:tariki',100),('book:bonbast',100)]
+          assert declared['legacyCommerceObservations']['pendingBookUnits']==1
+          source=(root/'docs/migrations/20261012_stage09_commerce.sql').read_text()
+          assert len(re.findall(r'^CREATE TABLE IF NOT EXISTS ',source,re.M))==8
+          assert len(re.findall(r'ENGINE=InnoDB',source))==8
+          assert not re.search(r'^(?:INSERT|UPDATE|DELETE|REPLACE|TRUNCATE)\b',source,re.I|re.M)
+          review=(root/'docs/migrations/20261013_stage09_pre_migration_mariadb_readonly.sql').read_text()
+          assert not re.search(r'^\s*(?:INSERT|UPDATE|DELETE|REPLACE|TRUNCATE|CREATE|ALTER|DROP)\b',review,re.I|re.M)
+          print('PASS: eight additive tables and user-declared inventory kept separate from live facts')
+          PY
+      - name: Exercise MariaDB 10.11 row locks, payment replay and order stock
+        run: |
+          set -euo pipefail
+          php tests/stage09-commerce-atomic.php
+          php tests/stage09-mysql.php
+          echo 'MariaDB Stage09 fixture PASS: isolated test schema, no live credentials or production writes'
+      - name: Explain release gate independence
+        run: |
+          echo 'CI compatibility is not physical stock confirmation, a restored Bertina backup, provider settlement, or authority to deploy/migrate live tables.'
