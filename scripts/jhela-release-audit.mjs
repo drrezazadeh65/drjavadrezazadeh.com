@@ -39,7 +39,7 @@ for(const role of ['reviewers','editors','authors','readers']){
  if(!dashboard.includes('id="jhela-tab-'+role+'"')||!dashboard.includes('id="jhela-panel-'+role+'"'))failures.push('Public role interface missing '+role);
 }
 if(!dashboardJs.includes("setAttribute('aria-selected'")||!dashboardJs.includes("ArrowRight")||!dashboardJs.includes("ArrowLeft"))failures.push('Public dashboard accessible tab controls missing');
-if(/(?:localStorage|sessionStorage|fetch\\(|XMLHttpRequest|document\\.cookie)/.test(dashboardJs))failures.push('Public dashboard must not persist or transmit private applicant data');
+if(['localStorage','sessionStorage','fetch(','XMLHttpRequest','document.cookie'].some(token=>dashboardJs.includes(token)))failures.push('Public dashboard must not persist or transmit private applicant data');
 if(!home.includes('Not yet open')||!read('journal/current/index.html').includes('0 published')) failures.push('Founding-stage publication status misrepresented');
 if(failures.length){
  console.error('JHELA release gate FAILED ('+failures.length+')');
