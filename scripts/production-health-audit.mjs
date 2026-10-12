@@ -177,7 +177,7 @@ try{
     const childNames=readLocs(sourceIndex).filter(u=>u.startsWith(ORIGIN+'/')).map(u=>u.slice(ORIGIN.length+1));
     const expected=[];
     for(const name of childNames){
-      if(!/^[a-z0-9-]+\.xml$/.test(name)||!fs.existsSync(name)) continue;
+      if(!/^(?:[a-z0-9-]+\/)*[a-z0-9-]+\.xml$/.test(name)||!fs.existsSync(name)) continue;
       expected.push(...readLocs(fs.readFileSync(name,'utf8')).filter(u=>u.startsWith(ORIGIN+'/')));
     }
     const sourceUrls=[...new Set(expected)];
