@@ -7,6 +7,27 @@ on:
     paths:
       - '.bertina-deploy-trigger'
   workflow_dispatch:
+    inputs:
+      recovery_mode:
+        description: "Recovery policy (default signed; alternate accepts untested restore risk)"
+        required: true
+        type: choice
+        default: signed_restore
+        options:
+          - signed_restore
+          - owner_cpanel_custody
+      approved_commit_sha:
+        description: "For cPanel custody ONLY: paste exact 40-character branch HEAD SHA"
+        required: false
+        type: string
+      expected_live_sha:
+        description: "For cPanel custody ONLY: paste current deployed 40-character /sw.js SHA"
+        required: false
+        type: string
+      owner_acknowledgement:
+        description: "For cPanel custody ONLY: type ACCEPT_UNTESTED_RESTORE_RISK_V5"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -34,14 +55,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Authorize the exact recovery policy before any deploy activity
+        id: release_policy
+        env:
+          RECOVERY_MODE_INPUT: ${{ inputs.recovery_mode }}
+          APPROVED_COMMIT_SHA_INPUT: ${{ inputs.approved_commit_sha }}
+          EXPECTED_LIVE_SHA_INPUT: ${{ inputs.expected_live_sha }}
+          OWNER_ACKNOWLEDGEMENT_INPUT: ${{ inputs.owner_acknowledgement }}
+        run: |
+          set -euo pipefail
+          mode="${RECOVERY_MODE_INPUT:-signed_restore}"
+          case "$mode" in
+            signed_restore) echo "mode=signed_restore" >> "$GITHUB_OUTPUT" ;;
+            owner_cpanel_custody)
+              test "$GITHUB_EVENT_NAME" = workflow_dispatch
+              test "$GITHUB_ACTOR" = drrezazadeh65
+              test "$APPROVED_COMMIT_SHA_INPUT" = "$GITHUB_SHA"
+              test "$OWNER_ACKNOWLEDGEMENT_INPUT" = ACCEPT_UNTESTED_RESTORE_RISK_V5
+              [[ "$EXPECTED_LIVE_SHA_INPUT" =~ ^[a-f0-9]{40}$ ]]
+              test "$EXPECTED_LIVE_SHA_INPUT" != "$GITHUB_SHA"
+              echo "mode=owner_cpanel_custody" >> "$GITHUB_OUTPUT"
+              echo "expected_live_sha=$EXPECTED_LIVE_SHA_INPUT" >> "$GITHUB_OUTPUT"
+              echo "Owner knowingly accepts **no independent isolated restore** for this one run; same-origin backup custody checks and live-SHA drift gate remain mandatory." >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            *) echo "Invalid recovery mode" >&2; exit 1 ;;
+          esac
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Compile and exercise isolated private recovery pre-extraction gate
+      - name: Compile and exercise both fail-closed recovery policy gates
         run: |
           php -l scripts/bertina-private-recovery-gate.php
+          php -l scripts/bertina-controlled-cpanel-gate.php
           php tests/bertina-private-recovery-gate.php
+          php tests/bertina-controlled-cpanel-gate.php
+          python3 tests/bertina-release-assembly.py
 
       - name: Verify operations registry, security and real MySQL
         env:
@@ -171,6 +221,8 @@ jobs:
           FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
           FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+          RECOVERY_MODE: ${{ steps.release_policy.outputs.mode }}
+          EXPECTED_LIVE_SHA: ${{ steps.release_policy.outputs.expected_live_sha }}
         run: |
           set -euo pipefail
           TOKEN="$(openssl rand -hex 32)"
@@ -180,13 +232,21 @@ jobs:
           ZIP_NAME="bertina-release-$NONCE.zip"
           SCRIPT_NAME="bertina-deploy-$NONCE.php"
           RECOVERY_GATE_SOURCE="$(tail -n +2 scripts/bertina-private-recovery-gate.php)"
+          CONTROLLED_GATE_SOURCE="$(tail -n +2 scripts/bertina-controlled-cpanel-gate.php)"
           BACKUP_REQUEST_B64="$(base64 -w0 .bertina-backup-trigger)"
-          test -n "$RECOVERY_GATE_SOURCE" && test -n "$BACKUP_REQUEST_B64"
+          test -n "$RECOVERY_GATE_SOURCE" && test -n "$CONTROLLED_GATE_SOURCE"
+          test -n "$BACKUP_REQUEST_B64"
+          [[ "$RECOVERY_MODE" = signed_restore || "$RECOVERY_MODE" = owner_cpanel_custody ]]
+          if [ "$RECOVERY_MODE" = owner_cpanel_custody ]; then
+            [[ "$EXPECTED_LIVE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          fi
 
           cat > "/tmp/$SCRIPT_NAME" <<PHP
           <?php
-          // Source-controlled RSA pinned verification; no application bytes are extracted before it passes.
+          // Both recovery policies are source-controlled and execute before extraction.
+          // Signed RSA restore remains the default. Controlled owner exception is explicit.
           $RECOVERY_GATE_SOURCE
+          $CONTROLLED_GATE_SOURCE
           header('Content-Type: application/json; charset=utf-8');
           header('Cache-Control: no-store');
           header('X-Robots-Tag: noindex, noarchive');
@@ -215,20 +275,28 @@ jobs:
               @unlink(\$manifestPath);
               @unlink(__FILE__);
           };
-          // Fail closed on missing, stale, invalid or unsigned owner-private restoration.
-          // Deliberately log no private proof bytes or backup locations to public HTTP.
+          // Distinct explicit release paths. Never misrepresent cPanel custody
+          // as a signed isolated-restore proof. Both fail BEFORE any source extraction.
+          // Only fixed valid enum values reach this PHP after job-owner/SHA validation.
           try {
-              drjrRecoveryCheck(__DIR__, '$BACKUP_REQUEST_B64', time());
+              if ('$RECOVERY_MODE'==='signed_restore') {
+                  drjrRecoveryCheck(__DIR__, '$BACKUP_REQUEST_B64', time());
+              } elseif ('$RECOVERY_MODE'==='owner_cpanel_custody') {
+                  drjrCpanelBackupCheck(__DIR__, '$EXPECTED_LIVE_SHA', time());
+              } else {
+                  throw new RuntimeException('release_policy_invalid');
+              }
           } catch (Throwable \$e) {
               \$cleanup();
               http_response_code(503);
-              echo json_encode(['ok'=>false,'error'=>'verified_private_recovery_required']);
+              echo json_encode(['ok'=>false,'error'=>'approved_recovery_policy_not_satisfied']);
               exit;
           }
           // Protect the already-live storefront: new source depends on the
           // additive Stage09 InnoDB tables AND pre-existing commerce-order columns.
           // This is READ ONLY. Do not mutate/reseed stocks or infer paid orders.
-          // Check AFTER signed restore and BEFORE extracting even one source file.
+          // Check AFTER the selected owner-approved recovery policy,
+          // and BEFORE extracting even one source file.
           try {
               \$cfg = require __DIR__ . '/api/config.local.php';
               if (!is_array(\$cfg)) throw new RuntimeException('private_config_missing');
@@ -358,7 +426,12 @@ jobs:
                   \$ok=false;\$operations=['ready'=>false,'error'=>'operations_install_or_import_failed'];
               }
           }
-          \$response = ['ok'=>\$ok,'commit'=>\$commit,'checked'=>\$checked,'mismatch'=>array_slice(\$mismatch,0,20),'operations'=>\$operations];
+          \$response = ['ok'=>\$ok,'commit'=>\$commit,'checked'=>\$checked,
+              'mismatch'=>array_slice(\$mismatch,0,20),'operations'=>\$operations,
+              'recoveryPolicy'=>[
+                'mode'=>'$RECOVERY_MODE',
+                'independentIsolatedRestoreCertified'=>('$RECOVERY_MODE'==='signed_restore')
+              ]];
           \$cleanup();
           if (!\$ok) http_response_code(500);
           echo json_encode(\$response, JSON_UNESCAPED_SLASHES);
