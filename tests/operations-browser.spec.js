@@ -19,6 +19,9 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])f
  test(lang+' operations at '+width+'px show server facts and filters',async({page})=>{
   await page.setViewportSize({width,height:900});const errors=[];page.on('pageerror',e=>errors.push(String(e)));await authorized(page);await page.goto(base+path);
   await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-cards article')).toHaveCount(36);
+  await expect(page.locator('#ops-cards')).toBeHidden();
+  await page.locator('#ops-section-toggle').click();await expect(page.locator('#ops-cards')).toBeVisible();
+  await page.locator('#ops-section-toggle').click();await expect(page.locator('#ops-cards')).toBeHidden();
   await expect(page.locator('#ops-verified')).toHaveText('0');await expect(page.locator('#ops-coverage')).toHaveText('0/36');
   await expect(page.locator('#ops-refresh-data')).toBeVisible();await page.locator('#ops-search').fill('OP-03');await expect(page.locator('#ops-cards article')).toHaveCount(1);
   await page.locator('#ops-cards button').click();await expect(page.locator('#ops-detail')).toBeVisible();await expect(page.locator('#ops-detail .ops-gate')).toHaveCount(4);
