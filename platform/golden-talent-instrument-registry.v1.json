@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.0",
+  "registry_version": "2026-10-12.1",
+  "framework": "Golden Talent",
+  "engine_version": "0.2-prevalidation",
+  "publication_policy": "NO_TOOL_IS_AUTOMATICALLY_ACTIVATED_BY_ITS_PRESENCE_IN_THIS_REGISTRY",
+  "scientific_policy": {
+    "validation_status": "PREVALIDATION",
+    "norm_referenced_talent_scores_allowed": false,
+    "total_talent_score_allowed": false,
+    "automatic_career_prescriptions_allowed": false,
+    "evidence_based_professional_review_required": true,
+    "note": "Registry existence or software tests must never be described as psychometric validation."
+  },
+  "governance": {
+    "versioning": "IMMUTABLE_ID_PLUS_VERSION_AND_CONTENT_HASH_ON_PUBLICATION",
+    "live_publication_requires": [
+      "frozen_content_sha256",
+      "consent_policy_version",
+      "documented_intended_use",
+      "scientific_review_evidence",
+      "human_approval",
+      "production_qa",
+      "private_storage_and_authorization_tests"
+    ],
+    "withdrawal_requires": "append-only event, immediate access revocation and re-routing of affected evidence",
+    "use_real_student_data": false
+  },
+  "instruments": [
+    {
+      "id": "RCAS-O1",
+      "version": "1.1",
+      "release_state": "PREVIEW_ONLY",
+      "scientific_status": "PREVALIDATION",
+      "kind": "OBSERVER_EVIDENCE",
+      "existing_definition": "platform/golden-talent-instruments.json",
+      "respondents": [
+        "PARENT",
+        "TEACHER"
+      ],
+      "scoring_enabled": false,
+      "content_sha256": null,
+      "consent_policy_version": null,
+      "human_approval": false
+    },
+    {
+      "id": "RCAS-CORE",
+      "version": null,
+      "release_state": "SPECIFICATION_REVIEW_REQUIRED",
+      "scientific_status": "PREVALIDATION",
+      "kind": "STUDENT_INITIAL_EVIDENCE",
+      "existing_definition": null,
+      "scoring_enabled": false,
+      "content_sha256": null,
+      "consent_policy_version": null,
+      "human_approval": false
+    },
+    {
+      "id": "D1",
+      "version": null,
+      "release_state": "INSTRUMENT_NOT_VERIFIED",
+      "scientific_status": "PREVALIDATION",
+      "kind": "DOMAIN_DEEP_MODULE",
+      "existing_definition": null,
+      "scoring_enabled": false,
+      "content_sha256": null,
+      "consent_policy_version": null,
+      "human_approval": false
+    },
+    {
+      "id": "D2",
+      "version": null,
+      "release_state": "INSTRUMENT_NOT_VERIFIED",
+      "scientific_status": "PREVALIDATION",
+      "kind": "DOMAIN_DEEP_MODULE",
+      "existing_definition": null,
+      "scoring_enabled": false,
+      "content_sha256": null,
+      "consent_policy_version": null,
+      "human_approval": false
+    },
+    {
+      "id": "D3",
+      "version": null,
+      "release_state": "INSTRUMENT_NOT_VERIFIED",
+      "scientific_status": "PREVALIDATION",
+      "kind": "DOMAIN_DEEP_MODULE",
+      "existing_definition": null,
+      "scoring_enabled": false,
+      "content_sha256": null,
+      "consent_policy_version": null,
+      "human_approval": false
+    },
+    {
+      "id": "D4",
+      "version": null,
+      "release_state": "INSTRUMENT_NOT_VERIFIED",
+      "scientific_status": "PREVALIDATION",
+      "kind": "DOMAIN_DEEP_MODULE",
+      "existing_definition": null,
+      "scoring_enabled": false,
+      "content_sha256": null,
+      "consent_policy_version": null,
+      "human_approval": false
+    },
+    {
+      "id": "D5",
+      "version": null,
+      "release_state": "INSTRUMENT_NOT_VERIFIED",
+      "scientific_status": "PREVALIDATION",
+      "kind": "DOMAIN_DEEP_MODULE",
+      "existing_definition": null,
+      "scoring_enabled": false,
+      "content_sha256": null,
+      "consent_policy_version": null,
+      "human_approval": false
+    },
+    {
+      "id": "D6",
+      "version": null,
+      "release_state": "INSTRUMENT_NOT_VERIFIED",
+      "scientific_status": "PREVALIDATION",
+      "kind": "DOMAIN_DEEP_MODULE",
+      "existing_definition": null,
+      "scoring_enabled": false,
+      "content_sha256": null,
+      "consent_policy_version": null,
+      "human_approval": false
+    }
+  ],
+  "journeys": {
+    "golden_path": {
+      "status": "PROFESSIONAL_RELEASE_REQUIRED",
+      "automatic_release": false
+    },
+    "bahar": {
+      "status": "LONGITUDINAL_FOLLOW_UP_DESIGN",
+      "requires_released_golden_path": true
+    }
+  }
+}
