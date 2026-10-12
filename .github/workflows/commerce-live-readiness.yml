@@ -30,10 +30,12 @@ jobs:
         run: |
           php -l api/index.php
           node --check assets/js/book-store.js
+      # Production finance health must not ignore invalid or self-signed TLS.
+      # --resolve preserves certificate hostname verification for the apex.
       - name: Verify hardened commerce contract at Bertina origin
         run: |
           set -euo pipefail
-          curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 \
+          curl -fsS --max-time 30 --resolve drjavadrezazadeh.com:443:188.40.203.218 \
             https://drjavadrezazadeh.com/api/commerce/health -o /tmp/commerce-origin.json
           node - <<'NODE'
           const fs=require('fs');
