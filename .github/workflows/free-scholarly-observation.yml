@@ -1,0 +1,65 @@
+name: Free Scholarly Metadata Observation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 4 * * 1'
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - scripts/free-scholarly-source-observer.mjs
+      - .github/workflows/free-scholarly-observation.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: free-scholarly-observation-canonical
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: migration/bertina-linux6
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify deterministic observer contracts
+        run: |
+          node --check scripts/free-scholarly-source-observer.mjs
+          node scripts/free-scholarly-source-observer.mjs --self-test
+      - name: Read public DOI metadata from free Crossref API
+        run: node scripts/free-scholarly-source-observer.mjs --collect
+      - name: Validate dated evidence and bounded schema
+        run: node scripts/free-scholarly-source-observer.mjs --check
+      - name: Preserve observation for review if branch update is unavailable
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-crossref-metadata-observation
+          path: api/internal/free-scholar-observation.json
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Publish only the sanitized evidence into canonical source
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          set -euo pipefail
+          cp api/internal/free-scholar-observation.json /tmp/free-scholar-observation.json
+          git fetch origin migration/bertina-linux6
+          git reset --hard origin/migration/bertina-linux6
+          cp /tmp/free-scholar-observation.json api/internal/free-scholar-observation.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add api/internal/free-scholar-observation.json
+          if git diff --cached --quiet; then
+            echo 'No observation change'; exit 0
+          fi
+          git commit -m 'data: refresh dated public scholarly DOI observation (no provider secrets)'
+          git push origin HEAD:refs/heads/migration/bertina-linux6
+          echo 'Metadata observation committed only; no Bertina deploy triggered.'
