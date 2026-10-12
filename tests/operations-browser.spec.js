@@ -256,3 +256,28 @@ test('MFA-protected commerce reports never manufacture zero when server refuses 
  await expect(page.locator('#ops-commerce-status')).toContainText('قابل دریافت نیست');
  await expect(page.locator('#ops-commerce-results article')).toHaveCount(0);
 });
+
+test('MFA expiry destroys service-order worklist references instead of merely hiding them',async({page})=>{
+ const order='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+ await authorized(page,{expiry:3});
+ await page.route('**/api/admin/operations/commerce',route=>route.fulfill({json:{
+   ok:true,schema:'operations-commerce-evidence-v1',available:true,
+   orders:{states:{},pendingRecords:0,paidStateRecords:1,totalRows:1},
+   claims:{paidRowsRequiringIndependentProviderReconciliation:0},
+   stock:{rows:[],ledgerDiscrepancies:0,rowsWithoutReconciliationTimestamp:0},
+   notifications:{outboxStates:{},paidOrderRowsWithoutReceiptEmailTimestamp:0},
+   fulfilment:{serviceCaseStates:{awaiting_contact:1},parcelStates:{},
+     activeServiceCaseCount:1,queueTruncated:false,
+     serviceActionQueue:[{orderId:order,sku:'service:academic_consult_60',
+       status:'awaiting_contact',providerClaimMatchesOrder:true}]}
+ }}));
+ await page.goto(base+'/fa/app/admin/');
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await page.locator('#ops-commerce > summary').click();
+ await expect(page.locator('#ops-commerce-results details')).toHaveCount(1);
+ await page.locator('#ops-commerce-results details summary').click();
+ await expect(page.locator('#ops-commerce-results')).toContainText(order.slice(0,8));
+ await expect(page.locator('#ops-workspace')).toBeHidden({timeout:7000});
+ await expect(page.locator('#ops-commerce-results')).toBeEmpty();
+ await expect(page.locator('#ops-commerce')).not.toHaveAttribute('open');
+});
