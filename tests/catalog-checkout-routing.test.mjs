@@ -41,3 +41,15 @@ test('selection and checkout share the same SKU and enforce live readiness',()=>
   assert.match(client,/button\.disabled=!ready/);
   assert.match(source('fa/services/checkout/index.html'),/data-commerce-services/);
 });
+
+test('checkout copy must reflect current gated capability without promising a booking',()=>{
+  for(const service of services){
+    const page=source('fa/services/'+service.id+'/index.html');
+    assert.ok(page.includes('وضعیت لحظه‌ای درگاه')&&page.includes('رزرو قطعی زمان نیست'),service.id);
+    assert.ok(!page.includes('رزرو و دریافت وجه آنلاین تا تأیید ظرفیت'),service.id);
+  }
+  const client=source('assets/js/commerce-checkout.js');
+  assert.ok(!client.includes('D1 remain authoritative'));
+  assert.ok(!client.includes('تا زمان رفع مشکل ایمیل خودکار'));
+  assert.match(client,/health\?\.checkout===true && channel===true/);
+});
