@@ -1,0 +1,39 @@
+name: Stage 13 social queue MySQL safety
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - api/social-queue.php
+      - platform/db/social-distribution.mysql.sql
+      - tests/social-queue-mysql.php
+      - .github/workflows/social-queue-mysql.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mysql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password
+          MYSQL_DATABASE: social_fixture
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pfixture-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate PHP syntax and fixture boundaries
+        run: |
+          php -l api/social-queue.php
+          php -l tests/social-queue-mysql.php
+          php -r 'exit(extension_loaded("pdo_mysql") ? 0 : 1);'
+      - name: Test transactional queue without provider access
+        env:
+          SOCIAL_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=social_fixture;charset=utf8mb4
+          SOCIAL_TEST_USER: root
+          SOCIAL_TEST_PASSWORD: fixture-password
+        run: php tests/social-queue-mysql.php
