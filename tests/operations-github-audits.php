@@ -52,8 +52,8 @@ foreach($catalog as $item){
 }
 
 assertAudit(operationsGithubDispatchToken([])===null,'Dispatch credentials must default OFF');
-assertAudit(operationsGithubDispatchToken(['github_readonly_audit_dispatch_token'=>'x'])===null,'Short token accepted');
-assertAudit(operationsGithubDispatchToken(['github_readonly_audit_dispatch_token'=>str_repeat('g',40)])===str_repeat('g',40),'Scoped fixture token rejected');
+assertAudit(operationsGithubDispatchToken(['github_audit_dispatch_token'=>'x'])===null,'Short token accepted');
+assertAudit(operationsGithubDispatchToken(['github_audit_dispatch_token'=>str_repeat('g',40)])===str_repeat('g',40),'Scoped fixture token rejected');
 foreach($catalog as $item){
  assertAudit(operationsGithubDispatchDefinition($registry,$item['actionId'])!==null,
     'Approved audit-only contract missing '.$item['actionId']);
