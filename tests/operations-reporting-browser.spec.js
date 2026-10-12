@@ -93,7 +93,7 @@ test('All 12 operational engines expose A/B/C views without claiming a worker or
   await page.locator('#ops-reporting nav button').filter({hasText:engine.id+' · '}).click();
   for(const type of ['A','B','C']){
    await page.locator('#ops-reporting').getByRole('button',{name:new RegExp('^'+type+':')}).click();
-   await expect(page.locator('#ops-reporting h4')).toContainText('AWOSE.'+engine.id+'.'+type);
+   await expect(page.locator('#ops-reporting h4').filter({hasText:'AWOSE.'+engine.id+'.'+type})).toHaveCount(1);
    if(type==='B')await expect(page.locator('#ops-reporting')).toContainText('Durable job execution: not implemented');
    if(type==='C')await expect(page.locator('#ops-reporting')).toContainText('Persisted experience and learning: not implemented');
    await noOverflow(page);
