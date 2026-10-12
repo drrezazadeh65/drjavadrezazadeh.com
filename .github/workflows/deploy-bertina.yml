@@ -72,6 +72,9 @@ jobs:
           php tests/bertina-commerce-mysql-contract.php
           php tests/bertina-donations-mysql-contract.php
           php tests/bertina-student-support-contract.php
+          php -l scripts/journal-ojs-preflight.php
+          php -l tests/journal-ojs-preflight.php
+          php tests/journal-ojs-preflight.php
 
       - name: Verify operations browser behavior before release
         run: |
