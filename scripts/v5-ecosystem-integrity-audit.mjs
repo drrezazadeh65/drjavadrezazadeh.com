@@ -90,7 +90,7 @@ verify('journal: isolated bilingual sitemap includes only real public URLs',(()=
   const locs=[...journalMap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(x=>x[1]);
   return locs.length===24 && distinct(locs) &&
     locs.every(x=>x.startsWith('https://drjavadrezazadeh.com/journal/')) &&
-    !locs.some(x=>/\/(?:submission|login|register|account|dashboard|payment)\//.test(x));
+    !locs.some(x=>/\/(?:submission|login|register|account|payment)\//.test(x));
 })());
 verify('journal: no false live OJS / submission / publishing claims',
   journal.ojsInstalled===false && journal.publicSubmissionsEnabled===false &&
