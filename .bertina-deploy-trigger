@@ -155,3 +155,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 
 
 2026-10-13 owner-authorized bilingual mobile/desktop homepage experience release: add clearer Persian and English bookstore entry points, refined responsive home visual hierarchy and reduced-motion/focus states; make the registration phone optional as an account barrier while retaining email-only verification and existing auth safeguards. Preserve all canonical/hreflang paths, SEO, payment settings, private config, and the established Bertina deployment/recovery gates. Source changes reviewed through 6e85812bd4062f6cdcb7e7a83bfcd77c53a9d934; publish current branch HEAD only after release workflow source, database, TLS, backup/recovery, stale-HEAD, and live fingerprint checks.
+
+2026-10-13 owner-requested publish retry: rerun the established Bertina deployment workflow from the current branch HEAD; preserve all source, database, TLS, backup/recovery, stale-HEAD, security and live fingerprint gates. Do not change deployment defaults or bypass any failed gate.
