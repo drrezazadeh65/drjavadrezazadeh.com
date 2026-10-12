@@ -78,6 +78,8 @@ export function publishedInstrument(registry,id,version){
   const entry=matches[0];
   if (!entry || entry.release_state!=='PUBLISHED' || !/^[a-f0-9]{64}$/.test(entry.content_sha256||'') ||
     entry.scientific_status!=='REVIEWED_FOR_STATED_USE' || entry.human_approval!==true ||
-    typeof entry.consent_policy_version!=='string' || !entry.consent_policy_version.trim()) return null;
+    typeof entry.consent_policy_version!=='string' || !entry.consent_policy_version.trim() ||
+    (entry.scoring_enabled===true && entry.psychometric_validation_status!=='SUPPORTED_FOR_STATED_SCORE_USE') ||
+    (entry.normative_labels_enabled===true && entry.norming_evidence_verified!==true)) return null;
   return entry;
 }
