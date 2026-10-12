@@ -62,6 +62,28 @@ function cfg(): array {
     }
     return $cfg;
 }
+/** Per-order guest receipt capability: UUID alone never proves ownership. */
+function commerceReceiptCookieName(string $id): string {
+    return 'drjr_receipt_'.substr(hash('sha256',$id),0,16);
+}
+function commerceReceiptProof(string $id): string {
+    $pepper=(string)(cfg()['auth_pepper']??'');
+    if(strlen($pepper)<32)throw new RuntimeException('receipt_auth_unavailable');
+    return hash_hmac('sha256','commerce-receipt-v1|'.$id,$pepper);
+}
+function commerceReceiptAuthorized(string $id): bool {
+    $provided=$_COOKIE[commerceReceiptCookieName($id)]??null;
+    if(!is_string($provided)||!preg_match('/^[a-f0-9]{64}$/D',$provided))return false;
+    try {return hash_equals(commerceReceiptProof($id),$provided);}
+    catch(Throwable $e){return false;}
+}
+function commerceReceiptGrant(string $id): bool {
+    return setcookie(commerceReceiptCookieName($id),commerceReceiptProof($id),[
+        'expires'=>time()+604800,'path'=>'/api/commerce/status',
+        'secure'=>true,'httponly'=>true,'samesite'=>'Lax'
+    ]);
+}
+
 function db(): ?PDO {
     static $pdo = false;
     if ($pdo instanceof PDO) return $pdo;
@@ -572,7 +594,7 @@ if($path==='/commerce/create'&&$verb==='POST'){
     $customerJson=json_encode($customer,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     if(!is_string($customerJson))fail('customer_encoding_failed',500);
     $rateIdentity=$customerEmail?:implode(',',array_keys($counts));if(!rateAllowed($pdo,'commerce_create',$rateIdentity,5,900))fail('rate_limited',429);
-    $mul=(int)$c['bitpay_amount_multiplier'];$providerAmount=$total*$mul;$order=uuidv4();$factor=preg_replace('/[^0-9]/','',(string)hrtime(true));$factor=substr($factor,0,28);
+    $mul=(int)$c['bitpay_amount_multiplier'];$providerAmount=$total*$mul;$order=uuidv4();if(!commerceReceiptGrant($order))fail('receipt_access_unavailable',503);$factor=preg_replace('/[^0-9]/','',(string)hrtime(true));$factor=substr($factor,0,28);
     $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,? ,NOW(),NOW())")
         ->execute([$order,$factor,$total,$providerAmount,'IRT',$customerEmail,$customerJson,json_encode($lines,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),'created']);
     try{
@@ -586,6 +608,8 @@ if($path==='/commerce/create'&&$verb==='POST'){
 if($path==='/commerce/status'&&$verb==='GET'){
     $id=(string)($_GET['order']??'');if(!validUuid($id))fail('invalid_order');$pdo=db();if(!$pdo)fail('database_unconfigured',503);
     $s=$pdo->prepare('SELECT state,amount_toman,currency,items_json,paid_at,provider_id_get,provider_trans_id FROM commerce_orders WHERE id=?');$s->execute([$id]);$row=$s->fetch();if(!$row)fail('order_not_found',404);
+    // Never expose order state or a paid receipt based only on a leaked order UUID.
+    if(!commerceReceiptAuthorized($id))fail('receipt_access_required',403);
     if($row['state']!=='paid')respond(['ok'=>true,'state'=>$row['state']]);
     // A paid label alone is not verified receipt evidence.
     if(($row['currency']??null)!=='IRT'||!is_string($row['paid_at']??null)||strtotime($row['paid_at'])===false||
@@ -645,7 +669,7 @@ if($path==='/donations/create'&&$verb==='POST'){
     if(!array_key_exists($focus,$allowedFocus))fail('invalid_support_focus');
     if(!rateAllowed($pdo,'donations_create',$email!==''?$email:'anonymous',5,900))fail('rate_limited',429);
     $c=cfg();$providerAmount=$amount*(int)$c['bitpay_amount_multiplier'];
-    $order=uuidv4();$factor=substr(preg_replace('/[^0-9]/','',(string)hrtime(true)),0,28);
+    $order=uuidv4();if(!commerceReceiptGrant($order))fail('receipt_access_unavailable',503);$factor=substr(preg_replace('/[^0-9]/','',(string)hrtime(true)),0,28);
     // Historical support:voluntary orders stay untouched. Only NEW payments belong to this student fund.
     $items=[['sku'=>'support:students','title'=>'حمایت از دانش‌آموزان مستعد کم‌بضاعت — '.$allowedFocus[$focus],
         'kind'=>'donation','program'=>'talented-students-v1','focus'=>$focus,

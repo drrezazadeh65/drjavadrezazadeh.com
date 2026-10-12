@@ -288,7 +288,7 @@
     feedback.textContent=bookPaymentReady?(isFa?'در حال ایجاد سفارش امن...':'Creating secure order...'):(isFa?'در حال ثبت سفارش...':'Recording your order...');
     try{
       const endpoint=bookPaymentReady?'/api/commerce/create':'/api/commerce/prepare';
-      const response=await fetch(endpoint,{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity})),customer})});
+      const response=await fetch(endpoint,{method:'POST',mode:'cors',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity})),customer})});
       const result=await response.json();
       if(!response.ok||!result.ok)throw Error(result.error||'order_failed');
       if(bookPaymentReady){

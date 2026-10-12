@@ -10,7 +10,7 @@ async function pay(items,button,message,customer){
  if(!customer||typeof customer.name!=='string'||typeof customer.email!=='string')return status(message,'نام و ایمیل خریدار برای هماهنگی ارائه خدمت لازم است.');
  button.disabled=true;status(message,'در حال ایجاد سفارش امن...');
  try{
-  const res=await fetch(API+'/commerce/create',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,customer})});
+  const res=await fetch(API+'/commerce/create',{method:'POST',mode:'cors',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,customer})});
   const data=await res.json();
   if(!res.ok||data?.ok!==true){
    status(message,data?.error==='checkout_disabled'?'پرداخت آنلاین این خدمت فعال نیست؛ از اقدام به پرداخت خودداری کنید.':'ثبت سفارش تأیید نشد؛ پیش از تلاش مجدد، وضعیت سفارش را از طریق ایمیل رسمی پیگیری کنید.');return;

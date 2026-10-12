@@ -76,8 +76,13 @@ button:focus-visible,a:focus-visible{outline:3px solid #c99d46;outline-offset:3p
  recheck.hidden=false;
  recheck.onclick=()=>location.reload(); // Read-only GET of the existing order; never starts a new payment.
  try{
-  const res=await fetch('/api/commerce/status?order='+encodeURIComponent(id),{cache:'no-store',credentials:'omit'});
+  const res=await fetch('/api/commerce/status?order='+encodeURIComponent(id),{cache:'no-store',credentials:'same-origin'});
   const data=await res.json();
+  if(res.status===403&&data.error==='receipt_access_required'){
+   title.textContent='رسید فقط در مرورگر خریدار قابل مشاهده است';
+   status.textContent='برای حفاظت از جزئیات سفارش، رسید تنها در مرورگری نمایش داده می‌شود که پرداخت را آغاز کرده است. اگر مرورگر یا دستگاه تغییر کرده یا کوکی‌ها پاک شده‌اند، با شناسه سفارش از ایمیل رسمی پیگیری کنید و دوباره پرداخت نکنید.';
+   return;
+  }
   if(!res.ok||data.ok!==true)throw Error('status_unavailable');
   if(data.state==='pending'||data.state==='created'){
    const returned=params.get('from')==='gateway';

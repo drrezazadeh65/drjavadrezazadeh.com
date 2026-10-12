@@ -73,7 +73,7 @@
   show(isFa?'در حال ایجاد پرداخت امن؛ لطفاً دوباره کلیک نکنید.':'Initiating secure payment; please do not submit again.');
   try{
    const response=await fetch('/api/donations/create',{
-    method:'POST',mode:'cors',credentials:'omit',cache:'no-store',
+    method:'POST',mode:'cors',credentials:'same-origin',cache:'no-store',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({amountToman:amount,email:email.value.trim(),focus:focus.value})
    });
