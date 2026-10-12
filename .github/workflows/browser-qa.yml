@@ -9,6 +9,7 @@ on:
       - 'sw.js'
       - 'site.webmanifest'
       - 'tests/public-browser-qa.spec.js'
+      - 'tests/bilingual-home-experience-regression.mjs'
       - 'tests/customer-dashboard-browser.spec.js'
       - 'tests/editorial-13-responsive.spec.js'
       - '.github/workflows/browser-qa.yml'
@@ -20,6 +21,7 @@ on:
       - 'sw.js'
       - 'site.webmanifest'
       - 'tests/public-browser-qa.spec.js'
+      - 'tests/bilingual-home-experience-regression.mjs'
       - 'tests/customer-dashboard-browser.spec.js'
       - 'tests/editorial-13-responsive.spec.js'
       - '.github/workflows/browser-qa.yml'
@@ -64,6 +66,7 @@ jobs:
         run: |
           set +e
           set -o pipefail
+          node tests/bilingual-home-experience-regression.mjs
           npx playwright test tests/public-browser-qa.spec.js tests/customer-dashboard-browser.spec.js tests/editorial-13-responsive.spec.js --reporter=line 2>&1 | tee /tmp/browser-qa.log
           status=${PIPESTATUS[0]}
           mkdir -p test-results
