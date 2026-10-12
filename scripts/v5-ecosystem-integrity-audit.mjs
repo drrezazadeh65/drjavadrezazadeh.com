@@ -50,9 +50,16 @@ verify('v5: explicit target and not-yet-published distinction',v5.includes('DrJa
 verify('production: release and schema mutation serialized without cancellation',
   [deploy,migrate].every(x=>x.includes('  group: bertina-production-deploy') &&
     x.includes('  cancel-in-progress: false')));
-verify('production: release is signed-restore gated before extraction',
+verify('production: owner-controlled release selects signed restore or audited cPanel custody before extraction',
   deploy.indexOf('drjrRecoveryCheck(__DIR__')>=0 &&
+  deploy.indexOf('drjrCpanelBackupCheck(__DIR__')>=0 &&
   deploy.indexOf('drjrRecoveryCheck(__DIR__')<deploy.indexOf('->extractTo(__DIR__)') &&
+  deploy.indexOf('drjrCpanelBackupCheck(__DIR__')<deploy.indexOf('->extractTo(__DIR__)') &&
+  deploy.includes('owner_cpanel_custody') &&
+  deploy.includes('test "$GITHUB_ACTOR" = drrezazadeh65') &&
+  deploy.includes('test "$APPROVED_COMMIT_SHA_INPUT" = "$GITHUB_SHA"') &&
+  deploy.includes('test "$GITHUB_EVENT_NAME" = workflow_dispatch') &&
+  deploy.includes('ACCEPT_UNTESTED_RESTORE_RISK_V5') &&
   deploy.indexOf("stage09_schema_preflight_required")>0 &&
   deploy.indexOf("stage09_schema_preflight_required")<deploy.indexOf('->extractTo(__DIR__)'));
 verify('production: no unattended database migration',
