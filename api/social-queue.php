@@ -81,6 +81,10 @@ function socialQueueApprove(PDO $pdo,string $deliveryId,string $adminId,int $at)
     }
 }
 function socialQueueClaim(PDO $pdo,int $now): ?array {
+    // Until explicit, account-specific adapters are authorized, only the two
+    // supported text-provider workflows can enter this *private* claim path.
+    // All other approved destinations stay scheduled, not erroneously revoked:
+    // manual publishing and future official APIs must preserve editorial work.
     if ($now<1)throw new InvalidArgumentException('invalid_clock');
     $pdo->beginTransaction();
     try {
@@ -90,6 +94,7 @@ function socialQueueClaim(PDO $pdo,int $now): ?array {
              FROM social_deliveries d JOIN social_campaigns c ON c.id=d.campaign_id
              JOIN social_accounts a ON a.id=d.account_id
              WHERE d.status='scheduled' AND d.schedule_utc<=?
+               AND d.provider IN ('telegram','eitaa')
              ORDER BY d.schedule_utc,d.id LIMIT 1".$lock);
         $q->execute([$now]);$row=$q->fetch();
         if (!$row) {$pdo->commit();return null;}
@@ -110,7 +115,7 @@ function socialQueueClaim(PDO $pdo,int $now): ?array {
           is_string($row['approval_digest']) &&
           hash_equals($row['approval_digest'],socialQueueDigest($row)) &&
           hash_equals((string)$row['body_hash'],hash('sha256',(string)$row['body'])) &&
-          !in_array($row['provider'],['instagram','youtube','aparat','whatsapp'],true);
+          in_array($row['provider'],['telegram','eitaa'],true);
         if (!$eligible) {
             // Revoked/changed payloads cannot remain in a runnable state.
             $pdo->prepare("UPDATE social_deliveries SET status='revoked',updated_at=? WHERE id=? AND status='scheduled'")
