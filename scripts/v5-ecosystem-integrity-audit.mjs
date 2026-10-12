@@ -101,6 +101,12 @@ verify('commerce: canonical 3/21/6 saleable catalogues',
 verify('commerce: payment callback uses atomic provider-claim finalizer',
   index.includes('stage9FinalizePayment($pdo,') && stage9.includes('INSERT INTO commerce_payment_claims') &&
   stage9.includes("WHERE id=? AND state='pending'"));
+verify('commerce: verified paid books create one preparation-only parcel in atomic callback',
+  stage9.includes('stage9CommitBooks($pdo,$orderId,$items);') &&
+  stage9.includes("INSERT INTO commerce_parcels(order_id,state) VALUES(?,'preparing')") &&
+  stage9.indexOf("INSERT INTO commerce_parcels(order_id,state)") <
+    stage9.indexOf("UPDATE commerce_orders SET state='paid'") &&
+  !stage9.includes("INSERT INTO commerce_parcels(order_id,state) VALUES(?,'delivered')"));
 verify('commerce: independent reservation ledger parity is required',
   stage9.includes("r.state='reserved'") && stage9.includes('AS held_units') &&
   stage9.includes("(int)$row['reserved'] !== (int)$row['held_units']"));
