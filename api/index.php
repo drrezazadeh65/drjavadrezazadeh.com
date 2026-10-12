@@ -830,6 +830,10 @@ if($path==='/donations/create'&&$verb==='POST'){
         'paymentUrl'=>SITE_ORIGIN.'/fa/shop/payment-start/?gateway='.rawurlencode('https://bitpay.ir/payment/gateway-'.$gatewayId.'-get')]);
 }
 if(str_starts_with($path,'/donations/'))fail('not_found',404);
+if(str_starts_with($path,'/growth/')){
+    require_once __DIR__.'/growth-stage14.php';
+    stage14LeadRoute($path,$verb);
+}
 if(str_starts_with($path,'/student-support/')){
     require_once __DIR__.'/student-support.php';
     studentSupportRoute($path,$verb);
