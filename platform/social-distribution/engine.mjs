@@ -51,7 +51,19 @@ export function shorten(text, max){
   if(!max || Array.from(text).length<=max)return text;
   return Array.from(text).slice(0,Math.max(0,max-1)).join('').trimEnd()+'…';
 }
-export function approvalDigest(post){return createHash('sha256').update(JSON.stringify([post.channel,post.url,post.text,post.mode])).digest('hex');}
+function recipientFingerprint(channel){
+  // Approval must never remain valid when the configured recipient changes.
+  // The destination is never logged or embedded in publicly served copy.
+  const id=channel==='telegram'?process.env.SOCIAL_TELEGRAM_CHAT_ID
+    :channel==='eitaa'?process.env.SOCIAL_EITAA_CHAT_ID:null;
+  return id ? createHash('sha256').update(channel+'|'+String(id).trim()).digest('hex')
+    : 'destination_not_configured';
+}
+export function approvalDigest(post){
+  return createHash('sha256').update(JSON.stringify([
+    post.channel,post.url,post.text,post.mode,recipientFingerprint(post.channel)
+  ])).digest('hex');
+}
 export function variant(item,channel,campaign='editorial'){
   if(!CHANNELS[channel])throw Error('Unknown channel');
   const post=planPost(item,channel,{campaign});
