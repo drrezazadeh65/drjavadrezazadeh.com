@@ -46,3 +46,24 @@ test('client never publishes, stores secrets, or reports unavailable data as zer
  assert.equal(js.includes("method:'POST'"),false);
  assert.equal(js.includes('providerPostId:'),false);
 });
+
+test('manual composer is a nonpublishing, source-canonical feed workflow',()=>{
+ const js=read('assets/js/operations-social-composer.js');
+ assert.match(js,/fetch\('\/feed\.xml'/);
+ assert.match(js,/verifyArticle\(item\)/);
+ assert.match(js,/link\[rel="canonical"\]/);
+ assert.match(js,/noindex/);
+ assert.match(js,/utm_source/);
+ assert.match(js,/navigator\.clipboard\.writeText/);
+ assert.equal(js.includes('localStorage'),false);
+ assert.equal(js.includes('innerHTML'),false);
+ assert.equal(js.includes('sendMessage'),false);
+ assert.equal(js.includes('POST'),false);
+ for(const page of ['fa/app/admin/index.html','en/account/admin/index.html']){
+  const html=read(page);
+  assert.match(html,/id="ops-social-composer"/);
+  assert.match(html,/id="social-preview"/);
+  assert.match(html,/operations-social-composer\.js/);
+  assert.ok(html.indexOf('id="ops-social-composer"')>html.indexOf('id="ops-workspace"'));
+ }
+});
