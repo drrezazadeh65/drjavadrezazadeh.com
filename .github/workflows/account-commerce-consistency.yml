@@ -22,6 +22,7 @@ on:
       - 'tests/account-commerce-consistency.test.mjs'
       - 'tests/bertina-account-order-history.php'
       - 'assets/js/account-order-history.js'
+      - 'assets/js/customer-dashboard.js'
       - 'fa/app/account/orders/index.html'
       - '.github/workflows/account-commerce-consistency.yml'
   pull_request:
@@ -46,6 +47,7 @@ on:
       - 'tests/account-commerce-consistency.test.mjs'
       - 'tests/bertina-account-order-history.php'
       - 'assets/js/account-order-history.js'
+      - 'assets/js/customer-dashboard.js'
       - 'fa/app/account/orders/index.html'
       - '.github/workflows/account-commerce-consistency.yml'
   workflow_dispatch:
@@ -68,5 +70,6 @@ jobs:
           php tests/bertina-receipt-contract.php
           php tests/bertina-account-order-history.php
           node --check assets/js/account-order-history.js
+          node --check assets/js/customer-dashboard.js
           node scripts/commerce-receipt-contract-audit.mjs
 
