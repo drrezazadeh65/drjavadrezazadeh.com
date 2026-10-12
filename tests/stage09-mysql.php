@@ -76,11 +76,17 @@ $pdo->beginTransaction();
 try{stage9ReserveBooks($pdo,'no-stock',[['kind'=>'book','sku'=>'book:roshanaei','quantity'=>1]]);throw new RuntimeException('oversell_success');}
 catch(RuntimeException $e){checkStage9($e->getMessage()==='stock_unavailable','no_oversell');$pdo->rollBack();}
 checkStage9(stage9FinalizePayment($pdo,$a,'111','717171','20000000','test-factor-1'),'first_paid');
+checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_parcels WHERE order_id='".$a."' AND state='preparing'")->fetchColumn()===1,
+ 'first_paid_book_creates_preparation_without_shipping_claim');
 checkStage9(stage9BookStockReady($pdo),'stock_matches_remaining_reservation_after_payment');
 checkStage9(stage9FinalizePayment($pdo,$a,'111','717171','20000000','test-factor-1')===false,'same_order_callback_replay');
+checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_parcels WHERE order_id='".$a."'")->fetchColumn()===1,
+ 'repeated_payment_callback_never_duplicates_parcel');
 try{stage9FinalizePayment($pdo,$b,'111','717171','20000000','test-factor-2');throw new RuntimeException('cross_order_replay_accepted');}
 catch(PDOException $e){checkStage9(true,'cross_order_claim_unique');}
 checkStage9(stage9FinalizePayment($pdo,$b,'111','727272','20000000','test-factor-2'),'second_unique_paid');
+checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_parcels WHERE state='preparing'")->fetchColumn()===2,
+ 'two_distinct_paid_book_orders_two_unshipped_parcels');
 $read=$pdo->query("SELECT physical_on_hand,reserved FROM commerce_book_stock WHERE sku='book:roshanaei'")->fetch();
 checkStage9((int)$read['physical_on_hand']===0&&(int)$read['reserved']===0,'zero_remaining_nonnegative');
 checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_payment_claims")->fetchColumn()===2,'claims_once');
@@ -116,6 +122,8 @@ $result=workers([['--finalize-worker',$id],['--finalize-worker',$id]]);
 sort($result);checkStage9($result===['FINALIZED','REPLAY'],'two_process_callback_idempotency');
 checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_outbox WHERE order_id='".$id."'")->fetchColumn()===1,'parallel_outbox_exactly_once');
 checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_service_cases WHERE order_id='".$id."' AND status='awaiting_contact'")->fetchColumn()===1,'service_case_pending_only');
+checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_parcels WHERE order_id='".$id."'")->fetchColumn()===0,
+ 'service_only_purchase_does_not_create_a_book_parcel');
 // V5 owner-only operational oversight uses aggregated READ-ONLY MySQL facts
 // and never leaks identifiers, email, delivery address or other customer PII.
 require __DIR__.'/../api/operations-commerce.php';
