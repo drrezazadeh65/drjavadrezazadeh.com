@@ -1,0 +1,29 @@
+{
+  "schema": "free-performance-observation-v1",
+  "provider": "Google PageSpeed Insights",
+  "observedAt": "2026-10-12T09:09:12.205Z",
+  "strategy": "mobile",
+  "origin": "https://drjavadrezazadeh.com",
+  "sourceCommit": "211bdd865aebe10b57d828d79eea3e087be42238",
+  "source": "Public PSI mobile Lighthouse lab API without API key",
+  "records": [
+    {
+      "target": "https://drjavadrezazadeh.com/fa/",
+      "status": "unavailable",
+      "checkedAt": "2026-10-12T09:09:12.205Z",
+      "reason": "http-429"
+    },
+    {
+      "target": "https://drjavadrezazadeh.com/en/",
+      "status": "unavailable",
+      "checkedAt": "2026-10-12T09:09:12.205Z",
+      "reason": "http-429"
+    }
+  ],
+  "summary": {
+    "attempted": 2,
+    "observed": 0,
+    "unavailable": 2
+  },
+  "limitation": "Lab performance is not real-user Core Web Vitals or a guarantee of search rank. No key, quota workaround or paid API used."
+}
