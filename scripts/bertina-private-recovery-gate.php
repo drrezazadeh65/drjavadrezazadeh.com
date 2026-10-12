@@ -5,7 +5,8 @@ function drjrRecoveryFail(string $reason): never {
     throw new RuntimeException('recovery_' . $reason);
 }
 function drjrRecoveryJson(string $file, int $maxBytes): array {
-    if (is_link($file) || !is_file($file) || filesize($file) < 2 || filesize($file) > $maxBytes) drjrRecoveryFail('file_invalid');
+    if (is_link($file) || !is_file($file) || filesize($file) < 2 || filesize($file) > $maxBytes
+        || (fileperms($file)&0777)!==0600) drjrRecoveryFail('file_invalid');
     $value = json_decode((string) file_get_contents($file), true);
     if (!is_array($value) || json_last_error() !== JSON_ERROR_NONE) drjrRecoveryFail('json_invalid');
     return $value;
@@ -36,7 +37,8 @@ function drjrRecoveryCheck(string $siteRoot, string $requestBase64, int $now): v
         || ($current['id']??null)!==$id || ($current['recipientSpkiSha256']??null)!==$trustedPin)
         drjrRecoveryFail('pointer_invalid');
     $private=$parent.'/.codex-private-backup-'.$id;
-    if (is_link($private) || !is_dir($private) || realpath($private)!==$private || (fileperms($private)&0007)!==0)
+    if (is_link($private) || !is_dir($private) || realpath($private)!==$private
+        || (fileperms($private)&0777)!==0700)
         drjrRecoveryFail('private_directory_invalid');
     $metadata=drjrRecoveryJson($private.'/metadata.json',262144);
     $receipt=drjrRecoveryJson($private.'/certification.json',65536);
