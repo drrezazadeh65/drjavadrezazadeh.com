@@ -31,7 +31,7 @@ $fake=$batch;$fake['events'][0]['sectionId']='OP-09';$fake['events'][0]['gateId'
 try{operationsImportRelease($pdo,$fake,$sha,$configuration,$run);throw new RuntimeException('CI certified a real payment');}catch(RuntimeException $e){check($e->getMessage()==='invalid_evidence_event','wrong forged-payment error');}
 $wrong=$batch;$wrong['runId']='654321';try{operationsImportRelease($pdo,$wrong,$sha,$configuration,$run);throw new RuntimeException('wrong run accepted');}catch(RuntimeException $e){check($e->getMessage()==='invalid_release_evidence','wrong run error');}
 $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=$work.'/operations-http-'.bin2hex(random_bytes(5));mkdir($folder,0700);mkdir($folder.'/api',0700);mkdir($folder.'/api/internal',0700);
-foreach(['index.php','operations.php','operations-schema.php','operations-reporting.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
+foreach(['index.php','operations.php','operations-schema.php','operations-reporting.php','operations-action-runs.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
 copy(__DIR__.'/../api/internal/operations-registry.json',$folder.'/api/internal/operations-registry.json');
 copy(__DIR__.'/../api/internal/operations-gsc-observation.json',$folder.'/api/internal/operations-gsc-observation.json');
 mkdir($folder.'/assets',0700);mkdir($folder.'/assets/data',0700);
@@ -75,6 +75,28 @@ try {
  check(count($data['reporting']['actionReports'])===52,'action inventory changed');
  check(count($data['reporting']['awoseDomainViews'])===36,'AWOSE domain views missing');
  check($data['reporting']['masterReport']['reportCount']===36,'administrative report double counted');
+
+ // Read-only Action execution always requires the SAME admin session, fresh MFA and CSRF.
+ $history=request('/api/admin/operations/action-runs',200);
+ check($history['runs']===[],'unexpected pre-existing action journal records');
+ request('/api/admin/operations/action-runs',403,'POST',['actionId'=>'ENG-11.ACT-009','requestKey'=>str_repeat('a',32)]);
+ request('/api/admin/operations/action-runs',403,'POST',['actionId'=>'ENG-11.ACT-009','requestKey'=>str_repeat('a',32)],['Origin'=>'https://evil.example','X-CSRF-Token'=>$elevatedSession['csrfToken']]);
+ request('/api/admin/operations/action-runs',400,'POST',['actionId'=>'ENG-11.ACT-009','requestKey'=>str_repeat('a',32),'unsafe'=>'payload'],$headers);
+ request('/api/admin/operations/action-runs',403,'POST',['actionId'=>'ENG-05.ACT-002','requestKey'=>str_repeat('a',32)],$headers);
+ $readonly=request('/api/admin/operations/action-runs',200,'POST',['actionId'=>'ENG-11.ACT-009','requestKey'=>str_repeat('a',32)],$headers);
+ check($readonly['run']['status']==='succeeded','Release observation did not execute');
+ check($readonly['run']['result']['freshSignalCount']===1,'Expected one real current release signal');
+ check($readonly['run']['result']['signalIds']===['current_release'],'Unallowlisted signal escaped to action result');
+ $beforeRunCount=(int)$pdo->query('SELECT COUNT(*) FROM operations_action_runs')->fetchColumn();
+ $duplicate=request('/api/admin/operations/action-runs',200,'POST',['actionId'=>'ENG-11.ACT-009','requestKey'=>str_repeat('a',32)],$headers);
+ check($duplicate['run']['runId']===$readonly['run']['runId'],'Idempotent request did not return original run');
+ check((int)$pdo->query('SELECT COUNT(*) FROM operations_action_runs')->fetchColumn()===$beforeRunCount,'Idempotent retry duplicated the action');
+ request('/api/admin/operations/action-runs',409,'POST',['actionId'=>'ENG-07.ACT-007','requestKey'=>str_repeat('a',32)],$headers);
+ $history=request('/api/admin/operations/action-runs',200);
+ check(count($history['runs'])===1 && $history['runs'][0]['actionId']==='ENG-11.ACT-009','Actor action history not persisted');
+ check((int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn()===$before,'Read-only action fabricated acceptance evidence');
+ check(!str_contains(json_encode($history),$secret)&&!str_contains(json_encode($history),$password),'Action result exposed secret');
+
  $canonicalEngines=array_column($data['reporting']['engines'],null,'id');
  check($canonicalEngines['ENG-13']['reportIds']===[],'reporting engine acquired operational ownership');
  check($canonicalEngines['ENG-12']['metrics']['totalReports']===1,'admin report lost its owner');
