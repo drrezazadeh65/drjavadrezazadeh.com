@@ -59,6 +59,13 @@ jobs:
           assert [(x['sku'],x['ownerDeclaredSaleableCopies']) for x in declared['stock']]==[
            ('book:roshanaei',100),('book:tariki',100),('book:bonbast',100)]
           assert declared['legacyCommerceObservations']['pendingBookUnits']==1
+          assert declared['pendingIncludedInOwnerDeclared100']=='NOT_APPLICABLE_OWNER_DECLARED_SELF_TEST'
+          clarification=declared['ownerClarification']
+          assert clarification['legacyPendingBookOrder']=='OWNER_DECLARED_TEST_IGNORE_FOR_SALEABLE_STOCK'
+          assert clarification['deductPendingBookQuantityFromDeclaredStock'] is False
+          assert clarification['migratePendingBookToNewReservationLedger'] is False
+          assert clarification['deleteOrMutateHistoricOrdersAuthorized'] is False
+          assert clarification['revenueCertified'] is False
           source=(root/'docs/migrations/20261012_stage09_commerce.sql').read_text()
           assert len(re.findall(r'^CREATE TABLE IF NOT EXISTS ',source,re.M))==8
           assert len(re.findall(r'ENGINE=InnoDB',source))==8
