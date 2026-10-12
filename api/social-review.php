@@ -8,7 +8,7 @@ function socialReviewCanonical(string $url): bool {
     $u=parse_url($url);
     if (!is_array($u) || ($u['scheme']??'')!=='https'
         || strtolower((string)($u['host']??''))!=='drjavadrezazadeh.com'
-        || isset($u['port'],$u['user']) || isset($u['pass']) || isset($u['query']) || isset($u['fragment']))return false;
+        || isset($u['port']) || isset($u['user']) || isset($u['pass']) || isset($u['query']) || isset($u['fragment']))return false;
     return (bool)preg_match('#^/(?:fa|en)/(?:akhbar|news|rahnamaha|guides|research|articles)/[a-zA-Z0-9/_-]+/?$#D',
         (string)($u['path']??''));
 }
