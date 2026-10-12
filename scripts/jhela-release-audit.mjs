@@ -33,10 +33,13 @@ for(const slug of withheld){
   if(!/<meta\s+name="robots"\s+content="[^"]*noindex/i.test(html)) failures.push(route+': stage-only route unexpectedly indexable');
   if(journalUrls.includes(origin+route)) failures.push(route+': stage-only route present in sitemap');
 }
-const home=read('journal/index.html'),dashboardJs=read('assets/js/jhela-public-dashboard.js');
-if(!home.includes('jhela-public-dashboard.js')||!home.includes('class="jhela-hub-grid"')) failures.push('JHELA public dashboard is missing');
-if(!dashboardJs.includes("role','tablist")&&!dashboardJs.includes("role\",\"tablist")) failures.push('Dashboard tablist semantics missing');
-if(/(?:localStorage|sessionStorage|fetch\(|XMLHttpRequest|document\.cookie)/.test(dashboardJs)) failures.push('Public dashboard must not capture private applicant data');
+const home=read('journal/index.html'),dashboard=read('journal/dashboard/index.html'),dashboardJs=read('assets/js/jhela-portal.js');
+if(!home.includes('class="jhela-hub-grid"')||!dashboard.includes('jhela-portal.js')) failures.push('Public JHELA role dashboard missing or not linked');
+for(const role of ['reviewers','editors','authors','readers']){
+ if(!dashboard.includes('id="jhela-tab-'+role+'"')||!dashboard.includes('id="jhela-panel-'+role+'"'))failures.push('Public role interface missing '+role);
+}
+if(!dashboardJs.includes("setAttribute('aria-selected'")||!dashboardJs.includes("ArrowRight")||!dashboardJs.includes("ArrowLeft"))failures.push('Public dashboard accessible tab controls missing');
+if(/(?:localStorage|sessionStorage|fetch\\(|XMLHttpRequest|document\\.cookie)/.test(dashboardJs))failures.push('Public dashboard must not persist or transmit private applicant data');
 if(!home.includes('Not yet open')||!read('journal/current/index.html').includes('0 published')) failures.push('Founding-stage publication status misrepresented');
 if(failures.length){
  console.error('JHELA release gate FAILED ('+failures.length+')');

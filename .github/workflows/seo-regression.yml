@@ -25,6 +25,8 @@ jobs:
         run: node scripts/seo-regression.mjs
       - name: Verify dedicated JHELA scholarly sitemap and founding-stage governance
         run: node scripts/jhela-discovery-audit.mjs
+      - name: Verify bilingual JHELA independent release and protected preparation pages
+        run: node scripts/jhela-release-audit.mjs
       - name: Verify all 13 academic launch articles and media references
         run: node scripts/audit-13-articles.mjs
       - name: Run visual-system regression audit
