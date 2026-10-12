@@ -6,6 +6,7 @@ const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-action-runs.php';
 require_once __DIR__.'/operations-social.php';
+require_once __DIR__.'/operations-github-audits.php';
 
 function operationsRegistry(): array {
     $raw = file_get_contents(__DIR__.'/internal/operations-registry.json');
@@ -350,6 +351,11 @@ function operationsRoute(string $path, string $verb): never {
             catch (Throwable $e) {fail('action_execution_unavailable',503);}
         }
 
+        if ($path === '/admin/operations/github-audits' && $verb === 'GET') {
+            // Public GitHub data is available only via the existing MFA-protected control center.
+            // External HTTP failure never modifies evidence, money or acceptance state.
+            respond(operationsGithubAuditSnapshot(operationsRegistry()));
+        }
         if ($path === '/admin/operations/social' && $verb === 'GET') {
             respond(operationsSocialSnapshot($pdo));
         }
