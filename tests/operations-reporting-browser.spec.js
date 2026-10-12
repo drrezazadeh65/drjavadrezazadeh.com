@@ -171,3 +171,37 @@ test('FA/EN owner can inspect real source-scoped GitHub audit evidence without r
  await expect(page.locator('details.ops-github-audits')).not.toHaveAttribute('open');
  expect(calls).toBe(1);
 });
+
+test('Audit-only dispatch requires owner confirmation and reports accepted request without invented run outcome',async({page})=>{
+ const data=fixture(),posted=[];
+ await authorized(page,{data});
+ await page.route('**/api/admin/operations/github-audits',route=>route.fulfill({json:{
+  ok:true,schema:'operations-github-audits-v1',
+  summary:{observableWorkflows:0,registeredAllowlistedWorkflows:4,dispatchReady:true},
+  audits:[{actionId:'ENG-01.ACT-001',workflow:'bertina-master-seo.yml',
+   labelFa:'ممیزی جامع سئو',labelEn:'Master SEO audit',status:'provider_unavailable',runs:[]}],
+  ownerSubmissions:[]}}));
+ await page.route('**/api/admin/operations/github-audits/dispatch',route=>{
+  posted.push({method:route.request().method(),body:route.request().postDataJSON(),headers:route.request().headers()});
+  return route.fulfill({json:{ok:true,schema:'operations-gh-audit-dispatch-v1',
+    run:{runId:'a'.repeat(64),status:'running',result:{dispatchState:'accepted_run_unconfirmed'}}}});
+ });
+ await page.goto(base+'/en/account/admin/');
+ await page.locator('details.ops-github-audits summary').click();
+ await page.locator('details.ops-github-audits').getByRole('button',{name:'Fetch verified GitHub workflow status'}).click();
+ await expect(page.locator('details.ops-github-audits').getByRole('button',{name:'Request audit-only workflow'})).toHaveCount(1);
+ // Explicit refusal must not dispatch or record a request.
+ page.once('dialog',dialog=>dialog.dismiss());
+ await page.locator('details.ops-github-audits').getByRole('button',{name:'Request audit-only workflow'}).click();
+ expect(posted).toHaveLength(0);
+ page.once('dialog',dialog=>dialog.accept());
+ await page.locator('details.ops-github-audits').getByRole('button',{name:'Request audit-only workflow'}).click();
+ await expect(page.locator('details.ops-github-audits')).toContainText('awaiting_external_run_correlation');
+ expect(posted).toHaveLength(1);
+ expect(posted[0].method).toBe('POST');
+ expect(posted[0].body.actionId).toBe('ENG-01.ACT-001');
+ expect(posted[0].body.approval).toBe('APPROVE_READONLY_AUDIT');
+ expect(posted[0].body.requestKey).toMatch(/^[a-f0-9]{32}$/);
+ expect(posted[0].headers['x-csrf-token']).toBe('c'.repeat(64));
+ await expect(page.locator('details.ops-github-audits')).not.toContainText('GitHub run ID confirmed');
+});
