@@ -69,3 +69,5 @@ Use only public URLs listed here or discoverable through the canonical sitemap. 
 - [JHELA journal sitemap](https://drjavadrezazadeh.com/journal/sitemap.xml)
 - [RSS feed](https://drjavadrezazadeh.com/feed.xml)
 - [Robots policy](https://drjavadrezazadeh.com/robots.txt)
+
+- [JHELA founding calls feed](https://drjavadrezazadeh.com/journal/announcements.atom)

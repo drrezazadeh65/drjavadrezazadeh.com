@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+  <id>https://drjavadrezazadeh.com/journal/</id>
+  <title>JHELA — International Scholarly Calls and Announcements</title>
+  <subtitle>Verified founding-stage announcements from the Journal of Human-Centred Education, Learning and Assessment. Formal manuscript submissions are not open.</subtitle>
+  <updated>2026-10-12T00:00:00Z</updated>
+  <link rel="self" type="application/atom+xml" href="https://drjavadrezazadeh.com/journal/announcements.atom"/>
+  <link rel="alternate" type="text/html" href="https://drjavadrezazadeh.com/journal/"/>
+  <author><name>JHELA Founding Editorial Office</name><uri>https://drjavadrezazadeh.com/journal/contact/</uri></author>
+  <entry><id>https://drjavadrezazadeh.com/journal/call-for-reviewers/</id><title>International Call for Reviewers — Expressions of Interest</title><updated>2026-10-12T00:00:00Z</updated><published>2026-10-12T00:00:00Z</published><link rel="alternate" type="text/html" href="https://drjavadrezazadeh.com/journal/call-for-reviewers/"/><summary>JHELA invites qualified researchers in education, learning, assessment, language education and associated disciplines to express interest in independent scholarly reviewing. Applications are considered individually; no appointment is automatic.</summary></entry>
+  <entry><id>https://drjavadrezazadeh.com/journal/founding-collaborators/</id><title>Founding Editorial Collaboration — International Expressions of Interest</title><updated>2026-10-12T00:00:00Z</updated><published>2026-10-12T00:00:00Z</published><link rel="alternate" type="text/html" href="https://drjavadrezazadeh.com/journal/founding-collaborators/"/><summary>Researchers with relevant academic and methodological experience may propose participation in JHELA's developing editorial community. Roles require verified qualifications, informed acceptance and conflict-of-interest safeguards.</summary></entry>
+</feed>

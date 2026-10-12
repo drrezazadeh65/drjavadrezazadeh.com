@@ -80,6 +80,18 @@ else{
  if(/\\b(?:fetch|XMLHttpRequest|localStorage|sessionStorage|indexedDB)\\b/.test(intake)) failures.push('Founding reviewer data may not be transmitted or persisted by script');
  if(!intake.includes('mailto:'))failures.push('Interim reviewer interest must use explicit email draft');
 }
+// Atom distribution is independent from the main site's RSS and only represents verified public calls.
+const atom=read('journal/announcements.atom');
+if(!atom.includes('xmlns="http://www.w3.org/2005/Atom"'))failures.push('JHELA scholarly feed is not Atom XML');
+if(!atom.includes('<link rel="self" type="application/atom+xml" href="'+base+'/journal/announcements.atom"/>'))failures.push('JHELA feed self-discovery missing');
+for(const route of ['/journal/call-for-reviewers/','/journal/founding-collaborators/']){
+ if(!atom.includes('<id>'+base+route+'</id>'))failures.push('JHELA feed omits released scholarly invitation '+route);
+}
+for(const page of ['journal/index.html','journal/dashboard/index.html']){
+ if(!read(page).includes('rel="alternate" type="application/atom+xml"'))failures.push('JHELA scholarly feed is undiscoverable from '+page);
+}
+if(atom.includes('journal.drjavadrezazadeh.com')||atom.includes('<title>Call for Papers'))failures.push('JHELA feed claims an unlaunched origin or manuscript call');
+
 if(failures.length){
  console.error('JHELA independent publishing/discovery failures ('+failures.length+')');
  for(const failure of failures)console.error('✗ '+failure);
