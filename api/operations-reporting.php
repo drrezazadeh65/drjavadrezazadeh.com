@@ -36,6 +36,44 @@ function operationsFreeScholarlyObservation(): array {
         'limitation'=>'Crossref record existence is not verification of authorship, article claims, citation impact, indexing, rankings or revenue.'];
 }
 
+/** Zero-cost PSI lab observations; never convert provider errors into numeric scores. */
+function operationsFreePerformanceObservation(): array {
+    $raw=@file_get_contents(__DIR__.'/internal/free-performance-observation.json');
+    $data=is_string($raw)?json_decode($raw,true):null;
+    $expected=['https://drjavadrezazadeh.com/fa/','https://drjavadrezazadeh.com/en/'];
+    if(!is_array($data)||($data['schema']??'')!=='free-performance-observation-v1'
+        ||($data['provider']??'')!=='Google PageSpeed Insights'
+        ||count($data['records']??[])!==2)
+        return ['status'=>'not_collected','observedAt'=>null,'provider'=>'Google PageSpeed Insights',
+            'results'=>[],'measuredPages'=>null,'attemptedPages'=>null,
+            'limitation'=>'No reviewed mobile lab observation is deployed.'];
+    $date=strtotime((string)($data['observedAt']??''));
+    if($date===false||$date>time()+300)return ['status'=>'invalid','observedAt'=>null,'results'=>[],
+        'provider'=>'Google PageSpeed Insights','measuredPages'=>null,'attemptedPages'=>null,
+        'limitation'=>'Invalid observation timestamp.'];
+    $results=[];$measured=0;
+    foreach($data['records'] as $i=>$rec){
+        if(!is_array($rec)||($rec['target']??null)!==$expected[$i]
+            ||!in_array($rec['status']??'', ['observed','unavailable'],true))
+            return ['status'=>'invalid','observedAt'=>null,'results'=>[],'provider'=>'Google PageSpeed Insights',
+                'measuredPages'=>null,'attemptedPages'=>null,'limitation'=>'Untrusted target or status.'];
+        $score=null;
+        if($rec['status']==='observed'){
+            $score=$rec['categories']['performance']??null;
+            if(!is_numeric($score)||$score<0||$score>100)$score=null;
+            if($score!==null)$measured++;
+        }
+        $results[]=['url'=>$expected[$i],'status'=>$rec['status'],
+            'labPerformanceScore'=>$score===null?null:(int)$score,
+            'reason'=>($rec['status']==='unavailable')?substr((string)($rec['reason']??'unavailable'),0,64):null];
+    }
+    $fresh=$date>=time()-14*86400;
+    return ['status'=>!$fresh?'stale':($measured>0?'observed':'provider_unavailable'),
+        'observedAt'=>gmdate('c',$date),'provider'=>'Google PageSpeed Insights',
+        'results'=>$results,'measuredPages'=>$measured,'attemptedPages'=>2,
+        'limitation'=>'Mobile Lighthouse lab score only; HTTP 429 is a provider rate limit, not a slow-site diagnosis or a real-user field metric.'];
+}
+
 /** Canonical management reporting. Pure projection; never creates evidence or closes actions. */
 function operationsReportingMetrics(array $records): array {
     $total=count($records);$totalGates=0;$observed=0;$passed=0;$weightedProgress=0.0;$estimated=[];$closed=0;$production=0;
@@ -148,7 +186,7 @@ function operationsReporting(array $snapshot,array $registry): array {
     $priorityOrder=['OP-02','OP-36','OP-03','OP-01','OP-04','OP-05','OP-06','OP-07','OP-08','OP-09','OP-10','OP-11'];
     usort($queue,function($a,$b)use($priorityOrder){$rank=fn($id)=>(($position=array_search($id,$priorityOrder,true))===false?99:$position);return strcmp($a['priority'],$b['priority'])?:($rank($a['id'])<=>$rank($b['id']));});
     return [
-        'schema'=>'operations-reporting-v1','reportingEngine'=>'ENG-13','freeSourceRegistry'=>$freeSourceRegistry,'freeScholarlyObservation'=>operationsFreeScholarlyObservation(),'reportingPeriod'=>[
+        'schema'=>'operations-reporting-v1','reportingEngine'=>'ENG-13','freeSourceRegistry'=>$freeSourceRegistry,'freeScholarlyObservation'=>operationsFreeScholarlyObservation(),'freePerformanceObservation'=>operationsFreePerformanceObservation(),'reportingPeriod'=>[
             'releaseSha'=>$snapshot['releaseSha'],'publishedAt'=>$snapshot['publishedAt']??null,'generatedAt'=>$snapshot['checkedAt'],
             'historyScope'=>'Current release; bounded latest 5000 evidence events. Not all-time history.'],
         'engines'=>$engines,'actionReports'=>$actionReports,
