@@ -1,0 +1,39 @@
+name: Golden Talent Phase 12 policy QA
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - "platform/golden-talent-phase12-gates.mjs"
+      - "platform/golden-talent-phase12-gates.test.mjs"
+      - "platform/golden-talent-instrument-registry.v1.json"
+      - "platform/golden-talent-instruments.json"
+      - "platform/golden-talent-engine.mjs"
+      - "platform/golden-talent-engine.test.mjs"
+      - ".github/workflows/golden-talent-phase12.yml"
+  pull_request:
+    paths:
+      - "platform/golden-talent-phase12-gates.mjs"
+      - "platform/golden-talent-phase12-gates.test.mjs"
+      - "platform/golden-talent-instrument-registry.v1.json"
+      - "platform/golden-talent-instruments.json"
+      - "platform/golden-talent-engine.mjs"
+      - "platform/golden-talent-engine.test.mjs"
+      - ".github/workflows/golden-talent-phase12.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Phase 12 privacy and registry test
+        run: node platform/golden-talent-phase12-gates.test.mjs
+      - name: Existing non-normative evidence routing regression
+        run: node platform/golden-talent-engine.test.mjs
