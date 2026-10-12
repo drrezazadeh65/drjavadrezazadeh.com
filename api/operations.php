@@ -367,6 +367,19 @@ function operationsRoute(string $path, string $verb): never {
         if ($path === '/admin/operations' && $verb === 'GET') {
             $at=nowTs();$snapshot=operationsSnapshot($pdo,$at);
             if(operationsRecordProductionAccess($pdo,$snapshot,$accountId,$at))$snapshot=operationsSnapshot($pdo,$at);
+            // ENG-13 retains the same privately authorized reporting surface.
+            // Action execution history is not an acceptance gate and is owner-scoped.
+            $ready=operationsActionRunsReady($pdo);
+            $runs=$ready?operationsActionHistory($pdo,$accountId,$at):[];
+            $snapshot['reporting']['actionExecution']=[
+                'schema'=>'operations-action-execution-report-v1',
+                'status'=>$ready?'available':'schema_not_provisioned',
+                'supportedReadOnlyActions'=>count(array_filter($snapshot['reporting']['actionReports'],
+                    static fn($a)=>($a['supportedExecutor']['type']??'')==='readonly_snapshot'
+                        && ($a['supportedExecutor']['writes']??true)===false)),
+                'recentRuns'=>$runs,'boundedHistory'=>50,
+                'limitation'=>'Server-stored read-only observations, not 52 operational executors or any final production acceptance.'
+            ];
             respond($snapshot);
         }
         fail('not_found',404);
