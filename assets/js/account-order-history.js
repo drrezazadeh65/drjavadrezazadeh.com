@@ -35,6 +35,58 @@ function render(orders){
     for(const line of order.items||[])list.append(el('li',(line.title||line.sku)+' × '+format(line.quantity)+' — '+format(line.subtotalToman)+' '+tr('تومان','toman')));
     item.append(list);
     item.append(el('small',tr('ارسال، تحویل، استرداد و دسترسی خدمت صرفاً پس از تأیید جداگانه نمایش داده می‌شوند.','Shipping, delivery, refunds and service access require separate verification.')));
+    if(order.paymentVerified===true){
+      const track=el('button',tr('پیگیری تحویل و نوبت','Track delivery or booking'),'button');
+      track.type='button';
+      const detail=el('div');detail.setAttribute('aria-live','polite');
+      let loaded=false;
+      track.addEventListener('click',async()=>{
+        if(loaded){detail.hidden=!detail.hidden;return;}
+        track.disabled=true;
+        detail.replaceChildren(el('p',tr('در حال بررسی آخرین وضعیت واقعی…','Checking recorded fulfilment status…')));
+        try{
+          const res=await fetch('/api/commerce/fulfilment?order='+encodeURIComponent(order.id),
+            {credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+          if(!res.ok)throw new Error('fulfilment_unavailable');
+          const data=await res.json();if(data?.ok!==true)throw new Error('invalid_response');
+          detail.replaceChildren();
+          if(data.paymentRecord!=='provider_verified_not_bank_settlement'){
+            detail.append(el('p',tr('پروندهٔ پرداخت برای ارائهٔ وضعیت تحویل هنوز به تطبیق نیاز دارد.','Payment evidence requires reconciliation before displaying fulfilment.')));
+          }else{
+            if(Array.isArray(data.serviceCases)&&data.serviceCases.length){
+              const list=el('ul');
+              const statuses={
+                awaiting_contact:tr('در انتظار هماهنگی','Awaiting contact'),
+                scheduling:tr('در حال تعیین نوبت','Scheduling'),
+                booked:tr('نوبت ثبت شده','Booked'),
+                in_progress:tr('در حال ارائه','In progress'),
+                delivered:tr('تحویل ثبت شده','Delivery recorded'),
+                cancelled:tr('لغو ثبت شده','Cancelled')
+              };
+              for(const c of data.serviceCases){
+                const line=el('li',c.sku+' — '+(statuses[c.status]||tr('نیازمند بررسی','Review needed')));
+                if(c.bookingStart)line.append(el('small',' · '+tr('زمان ثبت‌شده: ','Recorded slot: ')+c.bookingStart));
+                list.append(line);
+              }
+              detail.append(el('strong',tr('وضعیت خدمات','Service cases')),list);
+            }
+            if(data.parcel){
+              const p=data.parcel;
+              const states={preparing:tr('آماده‌سازی','Preparing'),dispatched:tr('ارسال‌شده','Dispatched'),
+                in_transit:tr('در مسیر','In transit'),delivered:tr('تحویل‌شده','Delivered'),returned:tr('مرجوع‌شده','Returned')};
+              detail.append(el('p',tr('وضعیت مرسوله: ','Parcel: ')+(states[p.state]||tr('ثبت نشده','Not reported'))));
+              if(p.carrier)detail.append(el('p',tr('شرکت حمل: ','Carrier: ')+p.carrier));
+              if(p.trackingCode)detail.append(el('p',tr('کد رهگیری: ','Tracking code: ')+p.trackingCode));
+            }
+            if((!data.serviceCases||!data.serviceCases.length)&&!data.parcel)
+              detail.append(el('p',tr('هنوز وضعیت تحویل تأییدشده‌ای برای این سفارش ثبت نشده است.','No verified fulfilment event has been recorded for this order.')));
+          }
+          loaded=true;
+        }catch(_){detail.replaceChildren(el('p',tr('وضعیت تحویل در حال حاضر قابل تأیید نیست؛ اطلاعات فرضی نمایش داده نمی‌شود.','Delivery cannot currently be verified; no synthetic tracking data is shown.')));}
+        finally{track.disabled=false;}
+      });
+      item.append(track,detail);
+    }
     wrap.append(item);
   }
   section.append(wrap);
