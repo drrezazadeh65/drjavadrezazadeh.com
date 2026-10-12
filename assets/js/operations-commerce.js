@@ -101,12 +101,14 @@
         method:'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}
       });
       const data=await response.json();
-      if(stamp!==seq)return;
+      // A request may finish after the owner closes the panel or TOTP expires.
+      // Never paint old protected order references back into a locked DOM.
+      if(stamp!==seq||workspace.hidden||!panel.open)return;
       if(!response.ok||data.ok!==true||data.schema!=='operations-commerce-evidence-v1')
         throw new Error('unauthorized_or_unavailable');
       present(data);
     }catch{
-      if(stamp!==seq)return;
+      if(stamp!==seq||workspace.hidden||!panel.open)return;
       results.replaceChildren();
       status.textContent=text('دسترسی دومرحله‌ای منقضی شده یا گزارش قابل دریافت نیست؛ هیچ عددی فرض نشد.',
         'MFA access expired or evidence is unavailable. No counts were assumed.');
