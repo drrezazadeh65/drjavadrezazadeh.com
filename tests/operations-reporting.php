@@ -39,4 +39,25 @@ $views=array_column($actualReporting['awoseDomainViews'],null,'id');
 check($views['AWOSE.ENG-05.B']['durableJobExecution']['status']==='not_implemented','Invented durable job execution.');
 check($views['AWOSE.ENG-05.C']['experienceMemory']['verifiedExperiences']===null,'Invented learning statistics.');
 check($views['AWOSE.ENG-05.A']['reportIds']===$actualReporting['engines'][4]['reportIds'],'AWOSE views lost original report scope.');
+// Verify that the two genuinely fetched scholarly records are not counted as search ranks.
+$scholarly=operationsFreeScholarlyObservation();
+check(in_array($scholarly['status'],['observed','stale'],true),'Actual Crossref record not recognised as time-labelled evidence.');
+check($scholarly['metrics']['attempted']===2&&$scholarly['metrics']['metadataFound']===2,'Scholarly DOI status inflated or lost.');
+
+// A throttled free API must never manufacture performance measurements.
+$mobileApi=operationsFreePerformanceObservation();
+check($mobileApi['status']==='provider_unavailable'||$mobileApi['status']==='stale','Google free PSI 429 was incorrectly treated as a measured result.');
+check($mobileApi['measuredPages']===0,'PSI throttling created a fake laboratory score.');
+check(count($mobileApi['results'])===2,'Both PSI target routes must be represented.');
+check($mobileApi['results'][0]['labPerformanceScore']===null&&$mobileApi['results'][1]['labPerformanceScore']===null,'Missing PSI results were converted to numbers.');
+
+// The two local-Lighthouse artifacts have an explicit non-production provenance.
+$local=operationsLocalLighthouseObservation();
+check(in_array($local['status'],['observed','stale'],true),'Local Lighthouse evidence not loaded.');
+check($local['source']==='local_sanitized_public_build','local Lighthouse cannot be labelled production.');
+check($local['measuredPages']===2,'Local Lighthouse did not retain both language routes.');
+check($local['results'][0]['route']==='/fa/'&&$local['results'][1]['route']==='/en/','Local language targets changed.');
+foreach($local['results'] as $result){
+    check(is_int($result['localLabScore'])&&$result['localLabScore']>=0&&$result['localLabScore']<=100,'Non-numeric/invalid local lab score entered manager reporting.');
+}
 echo "Reporting assertions: $assertions passed\n";
