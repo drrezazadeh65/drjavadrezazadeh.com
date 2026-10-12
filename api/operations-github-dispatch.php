@@ -8,7 +8,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
  * payments, shell commands, arbitrary repo selection or dynamic workflows.
  */
 function operationsGithubDispatchToken(array $configuration): ?string {
-    $token=$configuration['github_readonly_audit_dispatch_token']??null;
+    $token=$configuration['github_audit_dispatch_token']??null;
     if(!is_string($token) || strlen($token)<30 || strlen($token)>255
         || !preg_match('/^[A-Za-z0-9_]+$/D',$token))return null;
     return $token;
