@@ -419,7 +419,7 @@ function localCatalog(): array {
 }
 function commerceReady(): bool {
     $c=cfg();
-    return dbReady() && commerceSchemaReady() && $c['public_tls_confirmed']===true && $c['commerce_enabled']===true && $c['bitpay_api_key']!=='' &&
+    return dbReady() && commerceSchemaReady() && strlen((string)($c['auth_pepper']??''))>=32 && $c['public_tls_confirmed']===true && $c['commerce_enabled']===true && $c['bitpay_api_key']!=='' &&
         in_array((string)$c['bitpay_amount_multiplier'],['1','10'],true) &&
         $c['order_email_fulfilment_confirmed']===true;
 }
@@ -533,6 +533,7 @@ if (str_starts_with($path,'/auth/')) {
 if($path==='/commerce/health'&&$verb==='GET'){
     $c=cfg();$ready=commerceReady();
     respond(['ok'=>true,'service'=>'commerce','hardeningRevision'=>'tls-gate-v1','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'requirements'=>[
+        'receiptAccessReady'=>strlen((string)($c['auth_pepper']??''))>=32,
         'database'=>dbReady(),
         'schema'=>commerceSchemaReady(),
         'publicTlsConfirmed'=>$c['public_tls_confirmed']===true,

@@ -106,6 +106,12 @@ try {
     verify($GLOBALS['gatewayCalls']===1,'success_verified_once');
     $firstPaidAt=$row['paid_at'];
 
+    $GLOBALS['receiptAccessAllowed']=false;
+    $path='/commerce/status';$verb='GET';$_GET=['order'=>$order];$_POST=[];
+    try { eval($GLOBALS['statusRoute']); throw new RuntimeException('foreign_receipt_exposed'); }
+    catch(CommerceResult $denied) {
+        verify($denied->status===403&&($denied->body['error']??null)==='receipt_access_required','foreign_browser_receipt_denied');
+    }
     $GLOBALS['receiptAccessAllowed']=true;
     $receipt=statusFor($order);
     verify(($receipt['ok']??false)===true&&($receipt['state']??'')==='paid','real_mysql_status_reports_paid');
