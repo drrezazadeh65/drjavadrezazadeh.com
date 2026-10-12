@@ -1,0 +1,15 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {reconcileOrganicRevenue} from './organic-growth-revenue.mjs';
+const coverage={verified:true,source:'BANK_OR_MERCHANT_STATEMENT',evidenceDigest:'f'.repeat(64),periodStart:'2026-10-01',periodEnd:'2026-10-31',reviewedBy:'authorized_reviewer'};
+const order={id:'order-1',state:'paid',currency:'IRT',amountToman:100000,providerTransactionId:'ref-1',paidAt:'2026-10-12'};
+const settlement={orderId:'order-1',status:'SETTLED',currency:'IRT',amountToman:100000,transactionId:'ref-1',bankReference:'bank-statement-1',settledAt:'2026-10-13'};
+test('unknown coverage cannot claim zero or money',()=>{const m=reconcileOrganicRevenue({orders:[order],settlements:[settlement]});assert.equal(m.netSettledToman,null);assert.equal(m.status,'UNVERIFIED');});
+test('coverage claims must carry independent source, reviewer and digest',()=>{const m=reconcileOrganicRevenue({coverage:{...coverage,source:'GA4'},orders:[order],settlements:[settlement]});assert.equal(m.netSettledToman,null)});
+test('matching bank and order gives sum',()=>{const m=reconcileOrganicRevenue({coverage,orders:[order],settlements:[settlement]});assert.equal(m.netSettledToman,100000);assert.equal(m.settledOrderCount,1)});
+test('duplicate gateway transaction makes all reported revenue unknown',()=>{const m=reconcileOrganicRevenue({coverage,orders:[order],settlements:[settlement,settlement]});assert.equal(m.netSettledToman,null)});
+test('paid-only DB order without bank settlement is not revenue',()=>{const m=reconcileOrganicRevenue({coverage,orders:[order]});assert.equal(m.netSettledToman,null)});
+test('refund amount must be proven and deducted',()=>{const m=reconcileOrganicRevenue({coverage,orders:[order],settlements:[settlement],refunds:[{orderId:'order-1',status:'SETTLED',bankReference:'refund-1',amountToman:20000}]});assert.equal(m.netSettledToman,80000)});
+test('invalid refund never produces fake net revenue',()=>{const m=reconcileOrganicRevenue({coverage,orders:[order],settlements:[settlement],refunds:[{orderId:'order-1',status:'REQUESTED',amountToman:20000}]});assert.equal(m.netSettledToman,null)});
+test('mismatch or duplicate order forbids certification',()=>{const m=reconcileOrganicRevenue({coverage,orders:[order,order],settlements:[settlement]});assert.equal(m.netSettledToman,null)});
+test('zero can be declared only with full verified empty-period coverage',()=>{const m=reconcileOrganicRevenue({coverage});assert.equal(m.netSettledToman,0)});
