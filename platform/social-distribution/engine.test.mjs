@@ -15,7 +15,10 @@ test('RSS parser keeps only same-origin, qualified public paths',()=>{
 });
 test('scheme, host, and namespace cannot be injected',()=>{
  for(const value of ['https://evil.example/fa/news/','http://drjavadrezazadeh.com/fa/news/',
- 'https://drjavadrezazadeh.com.evil.example/en/','javascript:alert(1)']){
+ 'https://drjavadrezazadeh.com.evil.example/en/','javascript:alert(1)',
+ 'https://drjavadrezazadeh.com/fa/akhbar/sample/?q=tracking',
+ 'https://drjavadrezazadeh.com/en/account/',
+ 'https://drjavadrezazadeh.com/fa/app/admin/']){
    assert.equal(isSafeUrl(value),false,value);
  }
  assert.equal(isSafeUrl('https://drjavadrezazadeh.com/en/research/'),true);
