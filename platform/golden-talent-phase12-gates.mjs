@@ -13,20 +13,21 @@ export function currentConsent(events, subjectId, purpose, now = Date.now()) {
   if (!PURPOSES.has(purpose) || !subjectId || !Array.isArray(events)) return null;
   const relevant = events.filter(e => e && e.record_source==='PERSISTED' &&
     same(e.subject_id,subjectId) && e.purpose===purpose &&
-    Number.isSafeInteger(e.sequence) && e.sequence>0 &&
-    Number.isFinite(Date.parse(e.decided_at)) && Date.parse(e.decided_at)<=now &&
-    ['GRANTED','WITHDRAWN'].includes(e.decision) &&
-    typeof e.policy_version==='string' && e.policy_version.trim()!=='');
+    Number.isSafeInteger(e.sequence) && e.sequence>0);
   if (!relevant.length) return null;
   relevant.sort((a,b)=>b.sequence-a.sequence);
   if (relevant.length>1 && relevant[0].sequence===relevant[1].sequence) return null;
-  return relevant[0];
+  const latest=relevant[0];
+  if (!['GRANTED','WITHDRAWN'].includes(latest.decision) ||
+    !Number.isFinite(Date.parse(latest.decided_at)) || Date.parse(latest.decided_at)>now ||
+    typeof latest.policy_version!=='string' || !latest.policy_version.trim()) return null;
+  return latest;
 }
 
 const activeConsent = (events,subject,purpose,now) => {
   const c=currentConsent(events,subject.id,purpose,now);
   if (!c || c.decision!=='GRANTED') return false;
-  if (subject.is_minor===true) return same(c.granted_by_account_id,subject.guardian_account_id) && c.guardian_verified===true;
+  if (subject.is_minor!==false) return same(c.granted_by_account_id,subject.guardian_account_id) && c.guardian_verified===true;
   return same(c.granted_by_account_id,subject.id);
 };
 const verifiedRelation = (items,type,subjectId,actorId,capability) => Array.isArray(items) && items.some(r=>
@@ -72,7 +73,9 @@ export function authorisePhase12({actor,subject,action,relationships=[],consents
 
 export function publishedInstrument(registry,id,version){
   if (!registry || registry.schema_version!=='1.0' || !Array.isArray(registry.instruments)) return null;
-  const entry=registry.instruments.find(x=>x.id===id && x.version===version);
+  const matches=registry.instruments.filter(x=>x.id===id && x.version===version);
+  if (matches.length!==1) return null;
+  const entry=matches[0];
   if (!entry || entry.release_state!=='PUBLISHED' || !/^[a-f0-9]{64}$/.test(entry.content_sha256||'') ||
     entry.scientific_status!=='REVIEWED_FOR_STATED_USE' || entry.human_approval!==true ||
     typeof entry.consent_policy_version!=='string' || !entry.consent_policy_version.trim()) return null;
