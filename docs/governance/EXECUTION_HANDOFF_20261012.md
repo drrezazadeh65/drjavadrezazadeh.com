@@ -75,3 +75,22 @@ Read-only revenue inventory found21 standard services,6 VIP offers and3 books wi
 Existing related PRs:35 original draft dashboard,50 social draft targeting main,56 public-control/shipping proposal,25 RAVE draft and26 architecture draft. Review scope and current base before reuse; never merge retired Cloudflare/D1/Neon/Vercel runtime into Bertina. Issue60 stays open until full operational consolidation acceptance.
 
 Every closure requires published code, relevant passing tests, scoped production confirmation and saved evidence. Do not mark a requirement100% from a historical estimate, configuration flag, source text or successful mock.
+
+
+## 2026-10-12 continuation — isolated-restore readiness and selected checkout
+
+This dated addendum updates rather than overwrites the historical handoff. All of the following is canonical-branch **source work only** until separately certified Bertina release and scoped live verification.
+
+- Canonical repository / sole source: `drrezazadeh65/drjavadrezazadeh.com`, `migration/bertina-linux6`, independently reverified in GitHub metadata.
+- `067223fadbd3154f938becbb32ecd07224200fe9`: restore readiness requires final mariadbd/mysqld PID 1 both before and after successful socket SELECT 1; the temporary bootstrap server must not pass. All receipt, isolation, hash and cleanup rules remain intact. Five focused regression cases added.
+- `cabad51838a59c51fcc457d6e4662e48ba24ae16`: dedicated isolated-restore readiness CI; run https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38246883285 succeeded. SEO, SEO/GEO and provider guards on that commit also passed. It does not certify actual restored private backup.
+- `fac6ff7753f8f4005f45dff1755fb95bd46348e5` and `fcc11f22917d54f7d118089cfd453529fe201fe2`: 20 standard-service detail links now preserve their exact catalog selection; the 21st previously did so.
+- `adf7ce65dd651594db5eabd1c50057ff281aa066`: six VIP detail CTAs select their own existing VIP checkout item; payment remains subject to live health gate and does not constitute appointment confirmation. Added 21+6 contract tests and CI.
+- `2a92a6f6c01f293cf5ad6407fee21db933d09060`: legacy noindex dynamic service detail page also now retains the catalog-verified service. Selected-routing CI run https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38247707324 succeeded; the Master SEO, SEO/GEO, catalog integrity, preflight, provider and SEO service-gate checks on that same commit passed. Browser/visual/responsive checks had not yet concluded when sampled.
+- No application deploy trigger, private configuration, signing key, real payment, stock update, SQL migration, restoration receipt, source rewrite or full report acceptance was performed by these commits.
+
+**Release blocker:** The owner-private recovered archive, independent ciphertext readback and MariaDB image must be verified by an actual isolated restore in the authorized private environment. A signed nine-condition receipt, valid certification, secure server pointer and retirement of the ephemeral helper are still required. This chat's GitHub connector cannot access the primary `/workspace` checkout, production MySQL or private signing key.
+
+**Integration blocker:** The original 36-section report, extraction manifest and locally prepared patch from the prior checkpoint are not committed in the canonical GitHub tree. Recover those from the sole established checkout, preserve all newer SEO/UI and commerce changes, and continue only in the canonical branch. OP-01..36, ENG-01..13, and SOURCE-ECOSYSTEM-SEC-01..36 remain distinct scopes. Issue #60 stays open until full evidence-backed operational acceptance.
+
+**Next safe order:** complete owner-private actual restore and certification; reconcile the prepared unpublished patch with fresh HEAD and shared contributor changes; run exact CI; serialize approved Bertina release with checksums and strict live smoke tests; finish real order/gateway/fulfilment and administrator acceptance; then execute the existing AWOSE, Golden Talent, source-to-claim, external authority and zero-budget growth tracks. Do not equate catalog readiness, passing mocks or static action definitions with verified production execution.
