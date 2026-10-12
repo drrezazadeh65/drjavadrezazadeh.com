@@ -29,11 +29,14 @@ function operationsGithubAuditProject(array $input, string $workflow): array {
     foreach (($input['workflow_runs']??[]) as $item) {
         if (!is_array($item)||count($runs)>=5)break;
         $url=(string)($item['html_url']??'');
+        $providerRunId=$item['id']??null;
         $status=(string)($item['status']??'');
         $conclusion=$item['conclusion']??null;
         $sha=(string)($item['head_sha']??'');
         $event=(string)($item['event']??'');
         if (!operationsGithubAuditSafeUrl($url)
+            || !is_int($providerRunId) || $providerRunId<1
+            || !hash_equals((string)$providerRunId,(string)substr($url,strrpos($url,'/')+1))
             || !preg_match('/^[a-f0-9]{40}$/D',$sha)
             || !in_array($status,$allowedStatuses,true)
             || !in_array($event,['push','workflow_dispatch','schedule','pull_request'],true)
@@ -44,7 +47,7 @@ function operationsGithubAuditProject(array $input, string $workflow): array {
             ?$match[1]:null;
         $runs[]=[
             'requestKey'=>$requestKey,
-            'runId'=>(int)($item['id']??0),
+            'runId'=>$providerRunId,
             'url'=>$url,'status'=>$status,'conclusion'=>$conclusion,'event'=>$event,
             'sourceSha'=>$sha,'createdAt'=>(string)($item['created_at']??''),
             'updatedAt'=>(string)($item['updated_at']??''),
