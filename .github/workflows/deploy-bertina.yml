@@ -249,6 +249,15 @@ jobs:
                   // Fixed trusted table names; no request-controlled SQL identifiers.
                   \$pdo->query('SELECT 1 FROM ' . \$table . ' LIMIT 1');
               }
+              // SELECT ... FOR UPDATE and stock/payment atomicity require InnoDB,
+              // including the legacy orders table; table presence alone is insufficient.
+              \$engines = [];
+              foreach (\$pdo->query('SELECT TABLE_NAME,ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()')->fetchAll() as \$tableRow) {
+                  \$engines[(string)(\$tableRow['TABLE_NAME']??'')] = (string)(\$tableRow['ENGINE']??'');
+              }
+              foreach (array_merge(['commerce_orders'],\$required) as \$tableName) {
+                  if ((\$engines[\$tableName]??'')!=='InnoDB') throw new RuntimeException('non_transactional_commerce_table');
+              }
               \$indexes = \$pdo->query('SHOW INDEX FROM commerce_payment_claims')->fetchAll();
               \$keys = [];
               foreach (\$indexes as \$index) {
