@@ -44,3 +44,7 @@ The independent journal sitemap is **a firm invariant**, even after a permanent 
 ## 6. Public scholarly dashboard release (2026-10-12)
 
 `/journal/dashboard/` has been added to the journal's own sitemap, stable route manifest, source search index and approved public indexing policy. The page contains original editorial illustrations and keyboard-accessible progressive-enhancement role tabs: reviewers, editors, authors and readers. Its OJS/submission/private-account status is disclosed without inventing actual functionality. It remains on the canonical main-domain `/journal/` mount until the independent subdomain itself is verified live. Automated `scripts/jhela-discovery-audit.mjs` now guards the independent sitemap, root discovery and exclusion of non-operational pages in CI.
+
+## 7. Interim reviewer and collaborator expressions of interest
+
+The public JHELA reviewer and collaborator calls include short, locally completed professional-information forms that prepare a **user-initiated email** to the founding editorial inbox. They do not persist applicant data in site storage, transmit to an unapproved API, assign any role, upload manuscripts or make a submission/payment. A no-JavaScript direct email link remains available, and the applicant is responsible for reviewing the email and attaching a CV. The journal's scholarly-recruitment conversion flow will move to the independent OJS server only after its privacy, authentication, database, backups and role authorization are tested and approved.

@@ -66,6 +66,20 @@ if(!exists('assets/js/jhela-portal.js'))failures.push('Accessible journal dashbo
 const governance=registry.origin_states||{};
 if(governance.journal_subdomain!=='RESERVED_NOT_LIVE')failures.push('Journal origin state must be deliberately reviewed before release');
 if(locs.some(s=>s.includes('journal.drjavadrezazadeh.com')))failures.push('Reserved subdomain is leaked into production journal locs');
+// Founding interest collection is deliberately local until the authorised OJS server exists.
+for(const [page,role] of [['journal/call-for-reviewers/index.html','reviewer'],['journal/founding-collaborators/index.html','editorial']]){
+ const html=read(page);
+ if(!html.includes('data-jhela-interest="'+role+'"'))failures.push('Founding interest form missing on '+page);
+ if(!html.includes('href="mailto:dr.rezazadeh65@gmail.com'))failures.push('Non-JavaScript email fallback missing on '+page);
+ if(!html.includes('jhela-intake.js'))failures.push('Interest form JS missing on '+page);
+ if(/<form[^>]+action=["']https?:/i.test(html))failures.push('Unapproved external intake endpoint on '+page);
+}
+if(!exists('assets/js/jhela-intake.js'))failures.push('Founding interest email-draft script missing');
+else{
+ const intake=read('assets/js/jhela-intake.js');
+ if(/\\b(?:fetch|XMLHttpRequest|localStorage|sessionStorage|indexedDB)\\b/.test(intake)) failures.push('Founding reviewer data may not be transmitted or persisted by script');
+ if(!intake.includes('mailto:'))failures.push('Interim reviewer interest must use explicit email draft');
+}
 if(failures.length){
  console.error('JHELA independent publishing/discovery failures ('+failures.length+')');
  for(const failure of failures)console.error('✗ '+failure);

@@ -214,3 +214,21 @@
 @media(max-width:900px){.jhela-portal-hero,.jhela-panel-layout{grid-template-columns:1fr}}
 @media(max-width:520px){.jhela-portal-hero{padding:20px}.jhela-portal-hero h1{font-size:31px}.jhela-dashboard-links{grid-template-columns:1fr}.jhela-portal-tabs button{flex:1 1 44%;padding:10px 8px;font-size:14px}}
 @media(prefers-reduced-motion:reduce){.jhela-portal-tabs button{transition:none}}
+
+/* Founding reviewer/editorial email composition — intentionally client-only. */
+.jhela-interest-section{scroll-margin-top:25px}
+.jhela-interest-form{margin-top:23px}
+.jhela-intake-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+.jhela-intake-fields label{display:flex;flex-direction:column;gap:8px;color:#eee5d3;font-size:14px;font-weight:650}
+.jhela-intake-fields label>span{color:#e4ba7c}
+.jhela-intake-fields input,.jhela-intake-fields textarea{display:block;width:100%;box-sizing:border-box;border:1px solid #617b83;border-radius:12px;background:#0e2433;color:#f5f4ec;font:400 16px/1.45 system-ui,sans-serif;padding:12px 13px}
+.jhela-intake-fields input::placeholder,.jhela-intake-fields textarea::placeholder{color:#a7b6bd;opacity:1}
+.jhela-intake-fields textarea{resize:vertical;min-height:100px}
+.jhela-intake-fields input:focus-visible,.jhela-intake-fields textarea:focus-visible{outline:3px solid #b7d9ca;outline-offset:2px}
+.jhela-field-wide{grid-column:1/-1}
+.jhela-interest-consent{display:flex;align-items:start;gap:12px;margin:20px 0;color:#dbe4df;font-size:14px;line-height:1.65}
+.jhela-interest-consent input{margin-top:5px;flex:0 0 18px;width:18px;height:18px;accent-color:#d4b77c}
+.jhela-intake-actions{display:flex;flex-wrap:wrap;gap:11px;align-items:center}
+.jhela-intake-actions :where(a,button){font-size:14px;min-height:44px;cursor:pointer}
+.jhela-intake-feedback{margin-top:15px;color:#d4dddc;font-size:14px;line-height:1.6}
+@media(max-width:630px){.jhela-intake-fields{grid-template-columns:1fr}.jhela-intake-actions>*{flex:1 1 100%;text-align:center}}
