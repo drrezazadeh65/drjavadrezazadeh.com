@@ -105,7 +105,7 @@ try {
 
  // Same Bertina MySQL journal: synthetic transport confirms only REQUEST acceptance (204),
  // never a fabricated GitHub job success or a high-risk Action closure.
- $auditRegistry=operationsRegistry();$auditConfig=['github_readonly_audit_dispatch_token'=>str_repeat('Z',48)];
+ $auditRegistry=operationsRegistry();$auditConfig=['github_audit_dispatch_token'=>str_repeat('Z',48)];
  check(operationsGithubDispatchDefinition($auditRegistry,'ENG-01.ACT-001')!==null,'Valid non-deploying audit mapping rejected');
  check(operationsGithubDispatchDefinition($auditRegistry,'ENG-11.ACT-005')===null,'Critical backup action cannot be submitted');
  check(operationsGithubDispatchDefinition($auditRegistry,'ENG-05.ACT-002')===null,'Payment action cannot be submitted');
