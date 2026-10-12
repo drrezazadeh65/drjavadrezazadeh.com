@@ -56,7 +56,12 @@ function actionRunHistory(host,runs){
  if(!runs.length){host.append(el('p',t('اجرای ثبت‌شده‌ای برای این محدوده وجود ندارد.','No server-recorded runs for this scope.')));return;}
  const list=el('ul',undefined,'ops-queue');
  for(const r of runs){const li=el('li');li.append(el('strong',r.actionId+' · '+(runState[r.status]||r.status)),el('small',' · '+date(r.createdAt)+' · '+(r.runId||'').slice(0,12)));
- const detail=r.result||{};li.append(el('p',t('سیگنال تازه: ','Fresh signals: ')+String(detail.freshSignalCount??0)+'/'+String(detail.expectedSignalCount??'?')+' · '+t('وضعیت مشاهده: ','Observation: ')+(detail.status||'unknown')));
+ const detail=r.result||{};
+ if(detail.kind==='github_ci_audit'){
+   li.append(el('p',t('وضعیت درخواست ممیزی GitHub: ','GitHub audit request: ')+(detail.dispatchState||'unconfirmed')+
+     ' · '+t('شناسهٔ اجرای واقعی تا تأیید خارجی: ','Independently verified CI run ID: ')+
+     String(detail.githubRunId||t('هنوز دریافت نشده','Not yet confirmed'))));
+ }else li.append(el('p',t('سیگنال تازه: ','Fresh signals: ')+String(detail.freshSignalCount??0)+'/'+String(detail.expectedSignalCount??'?')+' · '+t('وضعیت مشاهده: ','Observation: ')+(detail.status||'unknown')));
  list.append(li);}host.append(list);
 }
 async function runReadonlyAction(actionId,button){
