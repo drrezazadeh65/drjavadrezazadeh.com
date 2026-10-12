@@ -51,6 +51,12 @@ $pdo->exec('ALTER TABLE commerce_payment_claims DROP INDEX uq_payment_order');
 checkStage9(!stage9SchemaReady($pdo),'missing_unique_claim_constraint_fails_closed');
 $pdo->exec('ALTER TABLE commerce_payment_claims ADD UNIQUE KEY uq_payment_order(provider,order_id)');
 checkStage9(stage9SchemaReady($pdo),'unique_claim_constraint_restored');
+// Source runtime must fail closed if any financial table loses transactional
+// row-lock/rollback semantics after an otherwise valid schema migration.
+$pdo->exec('ALTER TABLE commerce_outbox ENGINE=MyISAM');
+checkStage9(!stage9SchemaReady($pdo),'nontransactional_outbox_rejected');
+$pdo->exec('ALTER TABLE commerce_outbox ENGINE=InnoDB');
+checkStage9(stage9SchemaReady($pdo),'transactional_outbox_restored');
 checkStage9(!stage9BookStockReady($pdo),'empty_live_stock_never_assumed');
 foreach(['book:roshanaei'=>2,'book:tariki'=>0,'book:bonbast'=>0] as $sku=>$qty)putStock($pdo,$sku,$qty);
 checkStage9(stage9BookStockReady($pdo),'all_three_reconciled_rows_required');
