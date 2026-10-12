@@ -82,7 +82,7 @@ function operationsGithubDispatchRun(PDO $pdo,array $registry,string $actor,stri
             throw new RuntimeException('audit_journal_row_unavailable');
         }
         $pending=['kind'=>'github_ci_audit','workflow'=>$definition['workflow'],
-            'dispatchState'=>'submission_unconfirmed','githubRunId'=>null,
+            'dispatchState'=>'submission_unconfirmed','requestKey'=>$nonce,'githubRunId'=>null,
             'verifiedByProvider'=>false,'sourceScope'=>'migration/bertina-linux6'];
         $pdo->prepare('INSERT INTO operations_action_runs(run_id,account_id,action_id,request_key,release_sha,status,created_at,finished_at,result_json) VALUES(?,?,?,?,?,?,?,?,?)')
             ->execute([$runId,$actor,$actionId,$nonce,$release,'running',$at,null,json_encode($pending,JSON_THROW_ON_ERROR)]);
