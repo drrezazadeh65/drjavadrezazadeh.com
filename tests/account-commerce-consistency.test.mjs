@@ -51,3 +51,20 @@ test('Bertina PHP auth backend remains fail-closed and uses local mail plus MySQ
  assert.match(schema,/CREATE TABLE IF NOT EXISTS customer_auth_tokens/);
  assert.match(schema,/CREATE TABLE IF NOT EXISTS customer_auth_sessions/);
 });
+
+test('book delivery policies remain consistent in both languages',()=>{
+ for(const path of ['fa/shop/checkout/index.html','fa/shop/customer-policy/index.html','fa/shop/purchase-guide/index.html']){
+  const html=read(path);
+  assert.match(html,/رایگان/,path);
+  assert.match(html,/۱۰ تا ۱۴ روز کاری/,path);
+  assert.match(html,/موجودی/,path);
+ }
+ for(const path of ['en/shop/checkout/index.html','en/shop/customer-policy/index.html','en/shop/purchase-guide/index.html']){
+  const html=read(path);
+  assert.match(html,/shipping is free/i,path);
+  assert.match(html,/10–14 working days/,path);
+  assert.match(html,/stock/i,path);
+ }
+ assert.match(read('fa/shop/checkout/index.html'),/data-book-delivery-terms/);
+ assert.match(read('en/shop/checkout/index.html'),/data-book-delivery-terms/);
+});
