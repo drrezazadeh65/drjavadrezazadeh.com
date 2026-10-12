@@ -13,6 +13,10 @@ function operationsActionDefinition(array $registry, string $id): ?array {
         if (($action['id']??null)!==$id)continue;
         $contract=$action['supportedExecutor']??null;
         if (($action['executionType']??null)!=='automatic'
+            || ($action['scoringScope']??null)!=='observation'
+            || ($action['riskCategory']??null)!=='LOW'
+            || ($action['approvalPolicy']['serverEnforced']??false)!==true
+            || ($action['approvalPolicy']['cannotBeDowngradedByLearning']??false)!==true
             || !is_array($contract)
             || ($contract['type']??'')!=='readonly_snapshot'
             || ($contract['function']??'')!=='operationsSignals'
