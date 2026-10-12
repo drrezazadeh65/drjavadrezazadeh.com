@@ -7,6 +7,7 @@ require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-action-runs.php';
 require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/social-review.php';
+require_once __DIR__.'/social-admin-settings.php';
 require_once __DIR__.'/operations-github-audits.php';
 require_once __DIR__.'/operations-github-dispatch.php';
 
@@ -420,6 +421,40 @@ function operationsRoute(string $path, string $verb): never {
             }catch(InvalidArgumentException $e){fail('invalid_audit_approval',400);}
             catch(DomainException $e){fail('audit_request_conflict',409);}
             catch(Throwable $e){fail('audit_dispatch_unavailable',503);}
+        }
+        if ($path === '/admin/operations/social/settings' && $verb === 'GET') {
+            respond(socialSettingsSnapshot($pdo));
+        }
+        if ($path === '/admin/operations/social/settings' && $verb === 'POST') {
+            if (!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if (!socialSettingsReady($pdo))fail('social_settings_schema_unavailable',503);
+            if (!rateAllowed($pdo,'social_channel_settings',$accountId,20,300))fail('rate_limited',429);
+            try { respond(socialSettingsSave($pdo,jsonBody(),$accountId,nowTs())); }
+            catch (InvalidArgumentException $e) {fail('invalid_social_settings',400);}
+            catch (Throwable $e) {fail('social_settings_unavailable',503);}
+        }
+        if ($path === '/admin/operations/social/account-intents' && $verb === 'POST') {
+            if (!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if (!socialSettingsReady($pdo))fail('social_settings_schema_unavailable',503);
+            if (!rateAllowed($pdo,'social_account_intent',$accountId,10,3600))fail('rate_limited',429);
+            try { respond(socialIntentCreate($pdo,jsonBody(),$accountId,nowTs())); }
+            catch (InvalidArgumentException $e) {fail('invalid_account_intent',400);}
+            catch (PDOException $e) {
+                if ((string)$e->getCode()==='23000')fail('account_intent_exists',409);
+                fail('social_settings_unavailable',503);
+            } catch(Throwable $e) {fail('social_settings_unavailable',503);}
+        }
+        if ($path === '/admin/operations/social/account-intents/cancel' && $verb === 'POST') {
+            if (!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if (!socialSettingsReady($pdo))fail('social_settings_schema_unavailable',503);
+            if (!rateAllowed($pdo,'social_account_intent_cancel',$accountId,10,300))fail('rate_limited',429);
+            try { respond(socialIntentCancel($pdo,jsonBody(),$accountId,nowTs())); }
+            catch (InvalidArgumentException $e) {fail('invalid_account_intent',400);}
+            catch (DomainException $e) {fail('account_intent_conflict',409);}
+            catch(Throwable $e) {fail('social_settings_unavailable',503);}
         }
         if ($path === '/admin/operations/social/review' && $verb === 'GET') {
             try { respond(socialReviewList($pdo,nowTs())); }
