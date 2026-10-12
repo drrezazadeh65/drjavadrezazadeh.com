@@ -21,6 +21,9 @@ on:
       - 'scripts/commerce-receipt-contract-audit.mjs'
       - 'tests/account-commerce-consistency.test.mjs'
       - 'tests/bertina-account-order-history.php'
+      - 'api/commerce-stage9.php'
+      - 'docs/migrations/20261012_stage09_commerce.sql'
+      - 'tests/stage09-commerce-atomic.php'
       - 'assets/js/account-order-history.js'
       - 'assets/js/customer-dashboard.js'
       - 'fa/app/account/orders/index.html'
@@ -46,6 +49,9 @@ on:
       - 'en/shop/**'
       - 'tests/account-commerce-consistency.test.mjs'
       - 'tests/bertina-account-order-history.php'
+      - 'api/commerce-stage9.php'
+      - 'docs/migrations/20261012_stage09_commerce.sql'
+      - 'tests/stage09-commerce-atomic.php'
       - 'assets/js/account-order-history.js'
       - 'assets/js/customer-dashboard.js'
       - 'fa/app/account/orders/index.html'
@@ -69,6 +75,9 @@ jobs:
           php tests/bertina-receipt-access.php
           php tests/bertina-receipt-contract.php
           php tests/bertina-account-order-history.php
+          php -l api/commerce-stage9.php
+          php -l tests/stage09-commerce-atomic.php
+          php tests/stage09-commerce-atomic.php
           node --check assets/js/account-order-history.js
           node --check assets/js/customer-dashboard.js
           node scripts/commerce-receipt-contract-audit.mjs
