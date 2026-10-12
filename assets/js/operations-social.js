@@ -72,6 +72,53 @@
             'Real provider permissions and publication have not been verified.')
         ]));
       }
+      const deliveryRows=data.recentDeliveries;
+      const deliveryBox=document.createElement('section');
+      deliveryBox.className='ops-card';
+      deliveryBox.append(node('h3',t('آخرین سوابق ثبت‌شدهٔ ارسال','Latest stored delivery records')));
+      if(deliveryRows===null || !Array.isArray(deliveryRows)){
+        deliveryBox.append(node('p',t('جدول صف هنوز آماده نیست؛ وضعیت نامشخص است.',
+          'Delivery table unavailable; status is unknown.'),'ops-muted'));
+      }else if(!deliveryRows.length){
+        deliveryBox.append(node('p',t('هیچ رکوردی در صف ثبت نشده است.',
+          'No delivery records in the database.'),'ops-muted'));
+      }else{
+        const list=document.createElement('ul');
+        list.className='ops-queue';
+        for(const record of deliveryRows.slice(0,25)){
+          const li=document.createElement('li');
+          const confirmed=record.status==='confirmed' && record.confirmationMethod;
+          li.append(node('strong',String(record.provider||'?')+' · '+String(record.status||'?')));
+          li.append(node('p',confirmed
+            ?t('رسید ثبت‌شده: ','Stored receipt: ')+String(record.confirmationMethod)
+              +(record.providerId?' · '+String(record.providerId):'')
+            :t('بدون تأیید مستقل انتشار','No independently verified publication'),'ops-muted'));
+          list.append(li);
+        }
+        deliveryBox.append(list);
+      }
+      results.append(deliveryBox);
+      const metricsBox=document.createElement('section');
+      metricsBox.className='ops-card';
+      metricsBox.append(node('h3',t('مشاهده‌های واقعی عملکرد','Observed performance records')));
+      if(!Array.isArray(data.recentMetrics)){
+        metricsBox.append(node('p',t('داده‌های عملکرد در سرور قابل دسترسی نیستند.',
+          'Performance data is not available on the server.'),'ops-muted'));
+      }else if(!data.recentMetrics.length){
+        metricsBox.append(node('p',t('هنوز هیچ مشاهدهٔ مستند ثبت نشده است.',
+          'No documented provider observations have been stored yet.'),'ops-muted'));
+      }else{
+        for(const metric of data.recentMetrics.slice(0,10)){
+          const date=Number.isSafeInteger(metric.observedAt)
+            ?new Date(metric.observedAt*1000).toLocaleString(isFa?'fa-IR':'en-US')
+            :t('زمان نامشخص','Unknown date');
+          const clicks=Number.isSafeInteger(metric.clicks)
+            ?String(metric.clicks):t('نامشخص','unknown');
+          metricsBox.append(node('p',String(metric.source||'unknown')+' · '+date
+             +' · '+t('کلیک‌های ثبت‌شده: ','Recorded clicks: ')+clicks,'ops-muted'));
+        }
+      }
+      results.append(metricsBox);
       status.textContent=t('گزارش سرور خوانده شد؛ هیچ ارسال یا اتصال تازه‌ای انجام نشد.',
         'Server report loaded; no accounts were connected and no posts sent.');
     } catch(error) {
