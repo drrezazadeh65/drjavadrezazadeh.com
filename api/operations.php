@@ -381,8 +381,14 @@ function operationsRoute(string $path, string $verb): never {
                 fail('rate_limited',429);
             $provider=operationsGithubAuditSnapshot(operationsRegistry());
             $result=operationsGithubReconcile($pdo,$accountId,$provider['audits']??[],nowTs());
+            $history=operationsActionHistory($pdo,$accountId,nowTs());
+            $provider['ownerSubmissions']=operationsGithubCorrelatedRuns($provider['audits'],$history);
+            $provider['summary']['canReconcile']=true;
+            $provider['summary']['dispatchReady']=operationsGithubDispatchToken($configuration)!==null
+                && function_exists('curl_init');
             respond(['ok'=>true,'schema'=>'operations-gh-audit-reconcile-v1',
-                'reconciliation'=>$result,'limitation'=>'Only independently found GitHub workflow conclusions are stored; no report gate, payment or site deployment is certified.']);
+                'reconciliation'=>$result,'auditSnapshot'=>$provider,'runs'=>$history,
+                'limitation'=>'Only independently found GitHub workflow conclusions are stored; no report gate, payment or site deployment is certified.']);
         }
         if ($path === '/admin/operations/github-audits/dispatch' && $verb === 'POST') {
             if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
