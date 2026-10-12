@@ -14,7 +14,20 @@ function stage9SchemaReady(PDO $pdo): bool {
                   'commerce_parcels','commerce_refund_requests'] as $table) {
             $pdo->query('SELECT 1 FROM '.$table.' LIMIT 1');
         }
-        return true;
+        // Existence alone is insufficient: enforce the two unique provider
+        // identity constraints before a gateway can begin new money movement.
+        $indexes=$pdo->query('SHOW INDEX FROM commerce_payment_claims')->fetchAll();
+        $columns=[];
+        foreach ($indexes as $index) {
+            $key=(string)($index['Key_name']??'');
+            $position=(int)($index['Seq_in_index']??0);
+            if($position>0 && ($index['Non_unique']??1)==0)
+                $columns[$key][$position]=(string)($index['Column_name']??'');
+        }
+        foreach ($columns as &$fields)ksort($fields,SORT_NUMERIC);
+        unset($fields);
+        return array_values($columns['PRIMARY']??[])===['provider','transaction_id']
+            &&array_values($columns['uq_payment_order']??[])===['provider','order_id'];
     } catch (Throwable $e) { return false; }
 }
 function stage9BookStockReady(PDO $pdo): bool {
