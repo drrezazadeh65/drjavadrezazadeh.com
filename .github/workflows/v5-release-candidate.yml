@@ -22,6 +22,7 @@ on:
       - 'tests/bertina-commerce-callback-contract.php'
       - 'tests/stage09-commerce-atomic.php'
       - 'tests/stage09-mysql.php'
+      - 'tests/bertina-commerce-mysql-contract.php'
       - 'tests/operations-browser.spec.js'
       - 'sitemap*.xml'
       - 'sw.js'
@@ -77,6 +78,7 @@ jobs:
           php tests/operations-mysql.php
           php tests/stage09-mysql.php
           php tests/bertina-commerce-callback-contract.php
+          php tests/bertina-commerce-mysql-contract.php
           php tests/journal-ojs-preflight.php
       - name: Summary of test scope
         run: |
