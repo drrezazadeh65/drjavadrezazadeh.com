@@ -641,7 +641,7 @@ if($path==='/commerce/refund-request'&&$verb==='POST'){
         $existing=$pdo->prepare('SELECT id,status FROM commerce_refund_requests WHERE order_id=? AND requester_account_id=? LIMIT 1');
         $existing->execute([$orderId,$accountId]);$row=$existing->fetch();
         if($row){$pdo->commit();respond(['ok'=>true,'requestId'=>$row['id'],
-            'status'=>$row['status'],'bankRefundExecuted'=>false],200);}
+            'status'=>$row['status'],'bankRefundExecuted'=>null],200);}
         $requestId=uuidv4();
         $pdo->prepare("INSERT INTO commerce_refund_requests(id,order_id,requester_account_id,status,reason_code) VALUES(?,?,?,'requested',?)")
             ->execute([$requestId,$orderId,$accountId,$reason]);
