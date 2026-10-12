@@ -102,6 +102,55 @@ try {
  check((int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn()===$before,'Read-only action fabricated acceptance evidence');
  check(!str_contains(json_encode($history),$secret)&&!str_contains(json_encode($history),$password),'Action result exposed secret');
 
+
+ // Same Bertina MySQL journal: synthetic transport confirms only REQUEST acceptance (204),
+ // never a fabricated GitHub job success or a high-risk Action closure.
+ $auditRegistry=operationsRegistry();$auditConfig=['github_readonly_audit_dispatch_token'=>str_repeat('Z',48)];
+ check(operationsGithubDispatchDefinition($auditRegistry,'ENG-01.ACT-001')!==null,'Valid non-deploying audit mapping rejected');
+ check(operationsGithubDispatchDefinition($auditRegistry,'ENG-11.ACT-005')===null,'Critical backup action cannot be submitted');
+ check(operationsGithubDispatchDefinition($auditRegistry,'ENG-05.ACT-002')===null,'Payment action cannot be submitted');
+ $transportCalls=0;$tag=str_repeat('c',32);
+ $transport=function($workflow,$requestKey,$token)use(&$transportCalls,$tag){
+     $transportCalls++;
+     check($workflow==='bertina-master-seo.yml','Wrong workflow dispatched');
+     check($requestKey===$tag,'Request trace changed');
+     check($token===str_repeat('Z',48),'Owner-only test transport token changed');
+     return 204;
+ };
+ if(!function_exists('nowTs')){function nowTs():int{return time();}}
+ $submitted=operationsGithubDispatchRun($pdo,$auditRegistry,$id,'ENG-01.ACT-001',
+     $tag,'APPROVE_READONLY_AUDIT',$sha,$auditConfig,time(),$transport);
+ check($submitted['status']==='running','HTTP 204 must leave audit pending external result');
+ check($submitted['result']['dispatchState']==='accepted_run_unconfirmed','Workflow start incorrectly claimed success');
+ check($submitted['result']['githubRunId']===null,'Invented GitHub run ID');
+ check($transportCalls===1,'Expected exactly one approved outbound dispatch');
+ $same=operationsGithubDispatchRun($pdo,$auditRegistry,$id,'ENG-01.ACT-001',
+     $tag,'APPROVE_READONLY_AUDIT',$sha,$auditConfig,time(),$transport);
+ check($same['runId']===$submitted['runId']&&$transportCalls===1,'Replay re-dispatched the workflow');
+ try {
+     operationsGithubDispatchRun($pdo,$auditRegistry,$id,'ENG-11.ACT-003',$tag,
+         'APPROVE_READONLY_AUDIT',$sha,$auditConfig,time(),$transport);
+     throw new RuntimeException('Cross-Action replay accepted');
+ }catch(DomainException $e){check($e->getMessage()==='audit_idempotency_conflict','Cross-Action replay returned wrong failure');}
+ $event=['id'=>38275309821,
+     'html_url'=>'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38275309821',
+     'head_sha'=>str_repeat('a',40),'status'=>'completed','conclusion'=>'success',
+     'event'=>'workflow_dispatch','display_title'=>'Admin audit '.$tag,
+     'created_at'=>'2026-10-12T16:09:21Z','updated_at'=>'2026-10-12T16:09:58Z'];
+ $observed=operationsGithubAuditProject(['workflow_runs'=>[$event]],'bertina-master-seo.yml');
+ check($observed[0]['requestKey']===$tag,'Provider run correlation was lost');
+ $linked=operationsGithubCorrelatedRuns([['actionId'=>'ENG-01.ACT-001','runs'=>$observed]],
+     operationsActionHistory($pdo,$id,time()));
+ check(count($linked)===1&&$linked[0]['status']==='github_observed','Exact audit was not correlated');
+ check($linked[0]['github']['conclusion']==='success','Provider conclusion missing');
+ $event['display_title']='Admin audit '.str_repeat('e',32);
+ $unrelated=operationsGithubCorrelatedRuns([['actionId'=>'ENG-01.ACT-001',
+    'runs'=>operationsGithubAuditProject(['workflow_runs'=>[$event]],'bertina-master-seo.yml')]],
+    operationsActionHistory($pdo,$id,time()));
+ check(count($unrelated)===1&&$unrelated[0]['github']===null,'Unrelated GitHub audit spoofed correlation');
+ check((int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn()===$before,
+    'Synthetic audit dispatch fabricated acceptance evidence');
+
  $canonicalEngines=array_column($data['reporting']['engines'],null,'id');
  check($canonicalEngines['ENG-13']['reportIds']===[],'reporting engine acquired operational ownership');
  check($canonicalEngines['ENG-12']['metrics']['totalReports']===1,'admin report lost its owner');
