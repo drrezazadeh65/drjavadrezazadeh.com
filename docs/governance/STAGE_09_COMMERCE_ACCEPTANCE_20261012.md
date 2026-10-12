@@ -18,6 +18,10 @@ Status: **PARTIAL / LIVE ACCEPTANCE OPEN**. This is a scoped, source-audited rec
 4. New **source-only** `GET /api/commerce/history` uses the verified and active session account plus a bound `customer_email = ?` lookup, limits the response to 50 orders, excludes customer/address and provider identifiers, and never asserts fulfilment. `fa/app/account/orders/` consumes this endpoint with `credentials: same-origin` and `cache: no-store`. This does **not** prove the unpublished endpoint works on Bertina or verify all historic guest-order identity cases.
 5. Service and VIP checkout availability flags depend on existing private booking switches. An enabled capability is not an actual appointment, delivered manuscript, workshop or awarded entitlement. Existing /assistant/v1/leads returns a configuration error; persistent consented CRM remains unverified.
 
+## Additional private payment-provider evidence (reviewed 2026-10-12)
+
+Four BitPay **purchase-notification emails** dated 2026-10-08 through 2026-10-11 were observed in the owner's connected mailbox: three described as payment tests and one as a voluntary-support payment. This demonstrates that provider notifications have reached the mailbox, and refines the earlier generic statement that no gateway events existed. It does **not** establish successful matching MySQL order rows, unambiguous callback idempotency, merchant settlement, no chargeback, or service delivery. No email body, card detail, account credential, customer identity, wallet ID or transaction ID is copied into this public repository. Verification must use authorized private reconciliation evidence.
+
 ## Acceptance gates and current dispositions
 
 | Gate | Exact required proof | State |
