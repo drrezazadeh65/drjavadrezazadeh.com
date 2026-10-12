@@ -80,3 +80,12 @@ test('multi-account queue supports two pages per platform and rejects duplicates
 test('foreign website is rejected',()=>{
  assert.throws(()=>planPost({...fixture,url:'https://other.example/fa/test/removed'},'x'));
 });
+
+test('source canonical excludes checkout, account and tracking-query lookalikes',()=>{
+ for(const uri of [
+   'https://drjavadrezazadeh.com/en/account/admin/',
+   'https://drjavadrezazadeh.com/fa/customer-dashboard/',
+   'https://drjavadrezazadeh.com/fa/akhbar/example/?utm_campaign=forge',
+   'https://drjavadrezazadeh.com/fa/akhbar/example/#fragment'
+ ]) assert.throws(()=>planPost({...fixture,url:uri},'telegram'),uri);
+});
