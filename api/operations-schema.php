@@ -53,6 +53,21 @@ function operationsInstall(PDO $pdo): void {
             singleton_id TINYINT PRIMARY KEY,
             release_sha CHAR(40) NOT NULL,
             published_at BIGINT NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_action_runs (
+            run_id CHAR(64) PRIMARY KEY,
+            account_id CHAR(36) NOT NULL,
+            action_id VARCHAR(20) NOT NULL,
+            request_key CHAR(32) NOT NULL,
+            release_sha CHAR(40) NOT NULL,
+            status ENUM('running','succeeded','failed','blocked') NOT NULL,
+            created_at BIGINT NOT NULL,
+            finished_at BIGINT NULL,
+            result_json TEXT NOT NULL,
+            UNIQUE KEY uq_ops_actor_request(account_id,request_key),
+            INDEX idx_ops_actor_history(account_id,created_at),
+            INDEX idx_ops_action_status(action_id,status),
+            FOREIGN KEY (account_id) REFERENCES customer_accounts(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     ];
     foreach ($statements as $sql) $pdo->exec($sql);
