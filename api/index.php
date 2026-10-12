@@ -620,6 +620,39 @@ if($path==='/commerce/fulfilment'&&$verb==='GET'){
         'serviceCases'=>$safeCases,'parcel'=>$safeParcel]);
 }
 
+// A refund REQUEST is not a refund, a bank reversal or an entitlement cancellation.
+if($path==='/commerce/refund-request'&&$verb==='POST'){
+    requirePostOrigin();$pdo=db();
+    if(!$pdo||!commerceSchemaReady()||!stage9SchemaReady($pdo))fail('refund_request_unavailable',503);
+    $account=sessionAccount($pdo);
+    if(!$account||($account['status']??'')!=='active'||empty($account['email_verified_at']))fail('unauthorized',401);
+    $body=jsonBody();$orderId=(string)($body['orderId']??'');$reason=(string)($body['reasonCode']??'');
+    if(!validUuid($orderId)||!in_array($reason,['service_not_provided','cancel_request',
+        'book_not_received','incorrect_item','duplicate_payment','other'],true))fail('invalid_refund_request');
+    $email=emailNorm($account['email_normalized']??'');$accountId=(string)($account['id']??'');
+    if(!validEmail($email)||!validUuid($accountId))fail('unauthorized',401);
+    if(!rateAllowed($pdo,'refund_request',$accountId,5,3600))fail('rate_limited',429);
+    $pdo->beginTransaction();
+    try{
+        $query=$pdo->prepare('SELECT id,state FROM commerce_orders WHERE id=? AND customer_email=? LIMIT 1 FOR UPDATE');
+        $query->execute([$orderId,$email]);$order=$query->fetch();
+        if(!$order){$pdo->rollBack();fail('order_not_found',404);}
+        if(($order['state']??'')!=='paid'){$pdo->rollBack();fail('order_not_paid',409);}
+        $existing=$pdo->prepare('SELECT id,status FROM commerce_refund_requests WHERE order_id=? AND requester_account_id=? LIMIT 1');
+        $existing->execute([$orderId,$accountId]);$row=$existing->fetch();
+        if($row){$pdo->commit();respond(['ok'=>true,'requestId'=>$row['id'],
+            'status'=>$row['status'],'bankRefundExecuted'=>false],200);}
+        $requestId=uuidv4();
+        $pdo->prepare("INSERT INTO commerce_refund_requests(id,order_id,requester_account_id,status,reason_code) VALUES(?,?,?,'requested',?)")
+            ->execute([$requestId,$orderId,$accountId,$reason]);
+        $pdo->commit();
+        respond(['ok'=>true,'requestId'=>$requestId,'status'=>'requested','bankRefundExecuted'=>false],202);
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
+
 if($path==='/commerce/health'&&$verb==='GET'){
     $c=cfg();$ready=commerceReady();
     respond(['ok'=>true,'service'=>'commerce','hardeningRevision'=>'tls-gate-v1','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'requirements'=>[
