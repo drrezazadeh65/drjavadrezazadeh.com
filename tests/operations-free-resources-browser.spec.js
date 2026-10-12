@@ -57,3 +57,24 @@ test('Unverified visitor cannot load private manager resources',async({page})=>{
  await expect(page.locator('#ops-free-resources')).toBeHidden();
  expect(requested).toBe(0);
 });
+
+test('scholarly observation is available only inside authenticated manager and cleared on lock',async({page})=>{
+ const scholarly=require('../api/internal/free-scholar-observation.json');
+ await page.route('**/api/admin/operations**',route=>{
+  const url=new URL(route.request().url());
+  if(url.pathname.endsWith('/session'))return route.fulfill({json:{ok:true,mfaRequired:false,csrfToken:'c'.repeat(64),mfaExpiresIn:600}});
+  if(url.pathname.endsWith('/free-resources'))return route.fulfill({json:{ok:true,schema:'operations-free-resources-v1',verifiedExternalConnections:0,
+   scholarlyObservation:{status:'observed',observedAt:scholarly.observedAt,metrics:{attempted:scholarly.records.length,metadataFound:scholarly.records.filter(x=>x.status==='metadata_found').length},records:scholarly.records},
+   resources:freeRegistry.resources.map(r=>({id:r.id,name:r.name,url:r.official_url,category:r.category,ownerEngine:r.owner_engine,accessPath:r.access_path,purpose:r.purpose,connection:r.external_connection,automatedDataInUse:false}))}});
+  return route.fulfill({json:fixture()});
+ });
+ await page.goto(base+'/fa/app/admin/');
+ await expect(page.locator('#ops-scholar-observation')).toHaveCount(0);
+ await page.locator('#ops-free-resources summary').click();
+ await expect(page.locator('#ops-scholar-observation')).toContainText('Crossref');
+ await expect(page.locator('#ops-scholar-observation')).toContainText('10.61838/kman.ijes.1413');
+ await expect(page.locator('#ops-resources-list article')).toHaveCount(30);
+ await page.evaluate(()=>{document.getElementById('ops-workspace').hidden=true;});
+ await expect(page.locator('#ops-scholar-observation')).toHaveCount(0);
+ await expect(page.locator('#ops-resources-list article')).toHaveCount(0);
+});
