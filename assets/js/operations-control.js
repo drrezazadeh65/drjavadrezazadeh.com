@@ -88,6 +88,38 @@ async function runReadonlyAction(actionId,button){
 }
 
 
+async function githubAuditDispatch(item,button){
+ if(!snapshot||!csrf||button.disabled||!githubAuditState?.summary?.dispatchReady)return;
+ const approval=t('فقط ممیزی رسمی و بدون انتشار اجرا شود؟ این درخواست از سهمیهٔ GitHub Actions استفاده می‌کند و هیچ تغییری را تأیید یا منتشر نمی‌کند.','Run this approved audit-only GitHub workflow? It consumes GitHub Actions minutes and does not publish or certify changes.');
+ if(!window.confirm(approval))return;
+ if(!crypto?.getRandomValues){notice(t('شناسهٔ امن درخواست موجود نیست.','Secure request ID unavailable.'),true);return;}
+ const bytes=new Uint8Array(16);crypto.getRandomValues(bytes);
+ const requestKey=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+ const generation=loadGeneration;button.disabled=true;
+ try{
+  const result=await api('/github-audits/dispatch',{
+   method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+   body:JSON.stringify({actionId:item.actionId,requestKey,approval:'APPROVE_READONLY_AUDIT'})});
+  if(generation!==loadGeneration||!snapshot)return;
+  githubAuditExpanded=true;
+  if(result.run?.runId){
+   const entry={actionId:item.actionId,requestRunId:result.run.runId,
+      dispatchState:result.run.result?.dispatchState||'submission_unconfirmed',
+      status:'awaiting_external_run_correlation',github:null};
+   githubAuditState.ownerSubmissions=[entry,...(githubAuditState.ownerSubmissions||[]).filter(x=>x.requestRunId!==entry.requestRunId)].slice(0,30);
+  }
+  notice(t('درخواست ثبت شد؛ پذیرش GitHub به‌تنهایی موفقیت آزمون نیست. برای پیگیری، وضعیت رسمی را تازه‌سازی کنید.','Request logged. GitHub dispatch acknowledgement is not an audit result. Refresh official status to verify.'));
+  reportingRender();
+ }catch(e){
+  if(generation!==loadGeneration)return;
+  notice(({
+    audit_dispatch_not_configured:t('دسترسی خصوصی Actions هنوز روی سرور فعال نیست.','Private Actions authorization is not configured.'),
+    audit_owner_approval_required:t('این درخواست فقط برای مدیر ارشد مجاز است.','Only SUPER_ADMIN can approve this audit.'),
+    audit_not_allowlisted:t('این گردش‌کار در فهرست امن ممیزی نیست.','This workflow is not audit-allowlisted.')
+   })[e.message]||errorMessage(e),true);
+ }finally{if(generation===loadGeneration&&button.isConnected)button.disabled=false;}
+}
+
 function githubAuditRender(host){
  const section=el('details',undefined,'ops-github-audits');section.open=githubAuditExpanded;
  section.addEventListener('toggle',()=>{githubAuditExpanded=section.open;});
@@ -112,6 +144,9 @@ function githubAuditRender(host){
   else{
    section.append(el('p',t('گردش‌کارهای مشاهده‌شده: ','Workflows observed: ')+
     githubAuditState.summary?.observableWorkflows+'/'+githubAuditState.summary?.registeredAllowlistedWorkflows));
+   section.append(el('p',githubAuditState.summary?.dispatchReady
+    ?t('اجرای ممیزی فقط پس از تأیید مدیر ارشد فعال است؛ نتیجه را جداگانه از GitHub کنترل کنید.','Audits require explicit SUPER_ADMIN approval; verify the independent CI result separately.')
+    :t('اتصال مجاز اجرای ممیزی در تنظیمات خصوصی سرور تأیید نشده است. مشاهدهٔ گزارش‌ها همچنان ممکن است.','Authorized dispatch has not been verified in private host configuration. Read-only CI reports remain available.')));
    const list=el('ul',undefined,'ops-queue');
    for(const item of githubAuditState.audits||[]){
     const li=el('li');li.append(el('strong',(en?item.labelEn:item.labelFa)+' · '+item.actionId),
@@ -122,8 +157,25 @@ function githubAuditRender(host){
       const link=el('a',t('مشاهده گزارش معتبر','View actual CI run'));link.href=run.url;link.target='_blank';link.rel='noopener noreferrer';p.append(' ',link);
      }
      li.append(p);
+    if(githubAuditState.summary?.dispatchReady){
+      const trigger=el('button',t('درخواست اجرای ممیزی بدون انتشار','Request audit-only workflow'));
+      trigger.type='button';trigger.addEventListener('click',()=>githubAuditDispatch(item,trigger));li.append(trigger);
+    }
     }list.append(li);
    }section.append(list);
+   if(Array.isArray(githubAuditState.ownerSubmissions) && githubAuditState.ownerSubmissions.length){
+     section.append(el('h4',t('درخواست‌های دارای شناسهٔ پیگیری','Owner-approved audit request history')));
+     const history=el('ul',undefined,'ops-queue');
+     for(const item of githubAuditState.ownerSubmissions.slice(0,10)){
+       const li=el('li',item.actionId+' · '+item.status+' · '+(item.dispatchState||''));
+       if(item.github){
+         li.append(el('p',item.github.status+' · '+(item.github.conclusion||t('در انتظار','Pending'))+' · '+(item.github.sourceSha||'').slice(0,12)));
+         if(/^https:\/\/github\.com\/drrezazadeh65\/drjavadrezazadeh\.com\/actions\/runs\/[0-9]+$/.test(item.github.url||'')){
+           const link=el('a',t('گزارش رسمی این درخواست','Official request result'));link.href=item.github.url;link.target='_blank';link.rel='noopener noreferrer';li.append(link);
+         }
+       }history.append(li);
+     }section.append(history);
+   }
   }
  }
  host.append(section);
