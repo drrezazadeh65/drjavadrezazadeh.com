@@ -68,4 +68,15 @@ foreach($local['results'] as $result){
         check(is_numeric($n)&&$n>=0&&$n<=($metric==='cls'?1:250000),'Invalid local Lighthouse laboratory metric: '.$metric);
     }
 }
+// Owner-supplied PageSpeed UI screenshots must remain separate from API 429 and local Lighthouse results.
+$manualPsi=operationsManualPagespeedObservation();
+check(in_array($manualPsi['status'],['owner_supplied','stale'],true),'Screenshot evidence lost its manual provenance.');
+check($manualPsi['verifiedByProviderApi']===false,'Manual screenshots incorrectly treated as trusted API results.');
+check($manualPsi['targetUrl']==='https://drjavadrezazadeh.com/','Owner screenshot target changed to different route.');
+check(count($manualPsi['records'])===2,'Owner screenshot mobile/desktop results missing.');
+check($manualPsi['records'][0]['device']==='mobile'&&$manualPsi['records'][1]['device']==='desktop','Manual screenshot device identities reversed.');
+check($manualPsi['records'][0]['labScores']['performance']===99&&$manualPsi['records'][1]['labScores']['performance']===100,'Manual lab scores incorrectly recorded.');
+check($manualPsi['records'][0]['labScores']['bestPractices']===96&&$manualPsi['records'][1]['labScores']['bestPractices']===96,'Best Practices evidence lost.');
+check($manualPsi['realUserFieldData']==='No Data','No CrUX field data screenshot was incorrectly promoted to field measurements.');
+check($actualReporting['manualPagespeedObservation']['source']==='user_supplied_screenshot_transcription','Unified ENG-13 report lost screenshot provenance.');
 echo "Reporting assertions: $assertions passed\n";
