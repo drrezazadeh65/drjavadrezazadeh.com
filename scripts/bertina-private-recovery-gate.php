@@ -45,7 +45,11 @@ function drjrRecoveryCheck(string $siteRoot, string $requestBase64, int $now): v
     if (($metadata['ok']??null)!==true || ($metadata['schema']??null)!=='bertina-private-backup-metadata-v1'
         || ($metadata['metadataComplete']??null)!==true || ($metadata['consistentSnapshot']??null)!==true
         || ($metadata['id']??null)!==$id || ($metadata['recipientSpkiSha256']??null)!==$trustedPin
-        || ($metadata['sourceReleaseSha']??null)!==$request['sourceRelease'])
+        || ($metadata['sourceReleaseSha']??null)!==$request['sourceRelease']
+        || ($metadata['archiveEncryption']??null)!=='ZIP-AES256-each-entry'
+        || ($metadata['envelopeAlgorithm']??null)!=='RSA-OAEP-SHA1'
+        || !is_int($metadata['fileCount']??null) || $metadata['fileCount']<1
+        || !is_int($metadata['tableCount']??null) || $metadata['tableCount']<1)
         drjrRecoveryFail('metadata_invalid');
     if (($receipt['schema']??null)!=='bertina-private-backup-signed-receipt-v1'
         || ($receipt['scope']??null)!=='owner_attested_actual_isolated_restore_and_independent_ciphertext_readback'
@@ -81,7 +85,10 @@ function drjrRecoveryCheck(string $siteRoot, string $requestBase64, int $now): v
     $liveSw=@file_get_contents($root.'/sw.js');
     if (!is_string($liveSw)
         || !preg_match("/^const CACHE_VERSION='jr-site-bertina-([a-f0-9]{40})';$/m",$liveSw,$match)
-        || $match[1]!==$request['sourceRelease']) drjrRecoveryFail('source_release_mismatch');
+        || $match[1]!==$request['sourceRelease']
+        || !is_string($metadata['sourceServiceWorkerSha256']??null)
+        || !hash_equals($metadata['sourceServiceWorkerSha256'],hash('sha256',$liveSw)))
+        drjrRecoveryFail('source_release_mismatch');
     if (is_file($root.'/bertina-private-backup-'.$id.'.php'))
         drjrRecoveryFail('ephemeral_helper_not_retired');
     $archive=$private.'/full-backup.zip';
