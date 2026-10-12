@@ -1,0 +1,526 @@
+{
+  "schema": "organic-growth-stage14-v1",
+  "as_of": "2026-10-12",
+  "canonical_branch": "migration/bertina-linux6",
+  "site": "https://drjavadrezazadeh.com",
+  "release_status": "SOURCE_ONLY_UNVERIFIED",
+  "zero_ad_spend": true,
+  "commercial_priorities_are_editorial_not_observed_search_demand": true,
+  "counts": {
+    "services": 21,
+    "vip": 6,
+    "books": 3,
+    "articles": 13,
+    "evergreen_guides_mapped": 45
+  },
+  "opportunities": [
+    {
+      "sku_type": "SERVICE",
+      "id": "academic_consult_60",
+      "route": "/fa/services/academic_consult_60/",
+      "audience": "research",
+      "priority": "P0",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "student_parent_90",
+      "route": "/fa/services/student_parent_90/",
+      "audience": "student",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "konkur_consult_60",
+      "route": "/fa/services/konkur_consult_60/",
+      "audience": "student",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "konkur_month",
+      "route": "/fa/services/konkur_month/",
+      "audience": "student",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "transcript_analysis",
+      "route": "/fa/services/transcript_analysis/",
+      "audience": "student",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "field_selection_standard",
+      "route": "/fa/services/field_selection_standard/",
+      "audience": "student",
+      "priority": "P0",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "field_selection_comprehensive",
+      "route": "/fa/services/field_selection_comprehensive/",
+      "audience": "student",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "talent_initial",
+      "route": "/fa/services/talent_initial/",
+      "audience": "talent",
+      "priority": "P0",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "golden_talent_comprehensive",
+      "route": "/fa/services/golden_talent_comprehensive/",
+      "audience": "talent",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "golden_talent_premium",
+      "route": "/fa/services/golden_talent_premium/",
+      "audience": "talent",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "teacher_consult_60",
+      "route": "/fa/services/teacher_consult_60/",
+      "audience": "teacher",
+      "priority": "P0",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "teacher_dev_90",
+      "route": "/fa/services/teacher_dev_90/",
+      "audience": "teacher",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "manuscript_diagnostic",
+      "route": "/fa/services/manuscript_diagnostic/",
+      "audience": "research",
+      "priority": "P0",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "academic_editing",
+      "route": "/fa/services/academic_editing/",
+      "audience": "research",
+      "priority": "P0",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "research_consult_60",
+      "route": "/fa/services/research_consult_60/",
+      "audience": "research",
+      "priority": "P0",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "journal_strategy",
+      "route": "/fa/services/journal_strategy/",
+      "audience": "research",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "reviewer_response",
+      "route": "/fa/services/reviewer_response/",
+      "audience": "research",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "academic_cv",
+      "route": "/fa/services/academic_cv/",
+      "audience": "research",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "academic_interview_90",
+      "route": "/fa/services/academic_interview_90/",
+      "audience": "research",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "organization_consult_90",
+      "route": "/fa/services/organization_consult_90/",
+      "audience": "institution",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "SERVICE",
+      "id": "specialist_workshop_120",
+      "route": "/fa/services/specialist_workshop_120/",
+      "audience": "teacher",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/service-catalog.json",
+      "scope_status": "CATALOGUED",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "VIP",
+      "id": "academic-direction",
+      "route": "/fa/services/",
+      "priority": "P2",
+      "catalog_price_ref": "assets/data/vip-catalog.json",
+      "scope_status": "CATALOGUED_NEEDS_PRIVATE_CAPACITY",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "VIP",
+      "id": "university-selection",
+      "route": "/fa/services/",
+      "priority": "P2",
+      "catalog_price_ref": "assets/data/vip-catalog.json",
+      "scope_status": "CATALOGUED_NEEDS_PRIVATE_CAPACITY",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "VIP",
+      "id": "golden-talent-signature",
+      "route": "/fa/services/",
+      "priority": "P2",
+      "catalog_price_ref": "assets/data/vip-catalog.json",
+      "scope_status": "CATALOGUED_NEEDS_PRIVATE_CAPACITY",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "VIP",
+      "id": "research-publication",
+      "route": "/fa/services/",
+      "priority": "P2",
+      "catalog_price_ref": "assets/data/vip-catalog.json",
+      "scope_status": "CATALOGUED_NEEDS_PRIVATE_CAPACITY",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "VIP",
+      "id": "educator-development",
+      "route": "/fa/services/",
+      "priority": "P2",
+      "catalog_price_ref": "assets/data/vip-catalog.json",
+      "scope_status": "CATALOGUED_NEEDS_PRIVATE_CAPACITY",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "VIP",
+      "id": "institutional-advisory",
+      "route": "/fa/services/",
+      "priority": "P2",
+      "catalog_price_ref": "assets/data/vip-catalog.json",
+      "scope_status": "CATALOGUED_NEEDS_PRIVATE_CAPACITY",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "BOOK",
+      "id": "roshanaei",
+      "route": "/fa/shop/",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/book-catalog.json",
+      "remaining_stock": "UNKNOWN_REQUIRES_RECONCILIATION",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "BOOK",
+      "id": "tariki",
+      "route": "/fa/shop/",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/book-catalog.json",
+      "remaining_stock": "UNKNOWN_REQUIRES_RECONCILIATION",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    },
+    {
+      "sku_type": "BOOK",
+      "id": "bonbast",
+      "route": "/fa/shop/",
+      "priority": "P1",
+      "catalog_price_ref": "assets/data/book-catalog.json",
+      "remaining_stock": "UNKNOWN_REQUIRES_RECONCILIATION",
+      "actual_delivery": "UNVERIFIED",
+      "verified_settlement": "UNVERIFIED"
+    }
+  ],
+  "article_bridges": [
+    {
+      "article": "/fa/akhbar/academic-research-editing-services-2026/",
+      "related_public_destination": "/fa/khadamat-pajouheshi/",
+      "cta": "بررسی خدمات بازبینی و ویرایش مقاله",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/ai-search-and-scientific-content-2026/",
+      "related_public_destination": "/fa/khadamat-pajouheshi/",
+      "cta": "بررسی خدمات پژوهش و نگارش دانشگاهی",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/bookstore-books-and-student-support-2026/",
+      "related_public_destination": "/fa/shop/",
+      "cta": "مشاهده کتاب‌ها و شرایط خرید",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/customer-dashboard-one-account-2026/",
+      "related_public_destination": "/fa/khadamat/",
+      "cta": "مشاهده خدمات و شرایط درخواست",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/ecosystem-education-research-2026/",
+      "related_public_destination": "/fa/khadamat/",
+      "cta": "یافتن خدمت مناسب",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/educational-guidance-evidence-based-2026/",
+      "related_public_destination": "/fa/moshavere-tahsili/",
+      "cta": "بررسی دامنه مشاوره تحصیلی",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/golden-talent-developmental-framework-2026/",
+      "related_public_destination": "/fa/estedaadyabi/",
+      "cta": "آشنایی با خدمات رشد و استعدادیابی",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/how-to-use-educational-services-2026/",
+      "related_public_destination": "/fa/khadamat/",
+      "cta": "انتخاب خدمت متناسب",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/humanability-language-assessment-framework-2026/",
+      "related_public_destination": "/fa/services/teacher_consult_60/",
+      "cta": "بررسی مشاوره تدریس و سنجش",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/international-research-collaboration-2026/",
+      "related_public_destination": "/fa/hamkari-sazmani/",
+      "cta": "بررسی مسیر همکاری علمی و آموزشی",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/professional-services-public-guide-2026/",
+      "related_public_destination": "/fa/khadamat/",
+      "cta": "راهنمای انتخاب خدمت",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/support-talented-students-opportunity-2026/",
+      "related_public_destination": "/fa/support-talented-students/",
+      "cta": "آشنایی با حمایت تحصیلی مسئولانه",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    },
+    {
+      "article": "/fa/akhbar/teacher-schools-professional-learning-2026/",
+      "related_public_destination": "/fa/hamkari-sazmani/",
+      "cta": "بررسی خدمات مدارس و مؤسسات",
+      "secondary": "/fa/khadamat/#free-guidance-tools",
+      "event_key": "organic_article_service_intent",
+      "stage": "INTENT_ONLY_NOT_LEAD_OR_SALE"
+    }
+  ],
+  "free_tools": [
+    {
+      "id": "pathway",
+      "route": "/fa/khadamat/#free-tool-pathway",
+      "implementation": "LOCAL_BROWSER_REFLECTION_NOT_DIAGNOSTIC",
+      "network_upload": false
+    },
+    {
+      "id": "talent",
+      "route": "/fa/khadamat/#free-tool-talent",
+      "implementation": "LOCAL_BROWSER_REFLECTION_NOT_DIAGNOSTIC",
+      "network_upload": false
+    },
+    {
+      "id": "manuscript",
+      "route": "/fa/khadamat/#free-tool-manuscript",
+      "implementation": "LOCAL_BROWSER_REFLECTION_NOT_DIAGNOSTIC",
+      "network_upload": false
+    },
+    {
+      "id": "teacher",
+      "route": "/fa/khadamat/#free-tool-teacher",
+      "implementation": "LOCAL_BROWSER_REFLECTION_NOT_DIAGNOSTIC",
+      "network_upload": false
+    },
+    {
+      "id": "service",
+      "route": "/fa/khadamat/#free-tool-service",
+      "implementation": "LOCAL_BROWSER_REFLECTION_NOT_DIAGNOSTIC",
+      "network_upload": false
+    }
+  ],
+  "privacy": {
+    "tool_answers": "DOM_ONLY",
+    "analytics": "OPT_IN_NO_PII",
+    "crm": "REQUIRES_PURPOSE_SPECIFIC_VERSIONED_CONSENT_REVOCATION_RETENTION_LIMIT",
+    "minors": "REQUIRES_VERIFIED_GUARDIAN_FOR_PRIVATE_STUDENT_DATA",
+    "lead_source": "existing minimal email fallback; PHP CRM storage not live-certified"
+  },
+  "referral": {
+    "active": "USER_INITIATED_CANONICAL_URL_SHARING_ONLY",
+    "private_referrer_identity": false,
+    "paid_rewards": "NOT_ENABLED",
+    "conversion_credit": "NOT_CLAIMED_UNTIL_SERVER_PROOF_AND_CONSENT"
+  },
+  "event_evidence": {
+    "page_view": "OPT_IN_OBSERVED_ANALYTICS_ONLY",
+    "article_cta": "USER_INTENT_NOT_LEAD",
+    "lead": "BACKEND_ACCEPTED_WITH_SCOPE_CONSENT",
+    "paid_order": "SERVER_GATEWAY_VERIFIED_UNIQUE_ORDER_AND_TRANSACTION",
+    "settlement": "INDEPENDENT_BANK_OR_MERCHANT_RECONCILIATION",
+    "delivery": "PRIVATE_VERIFIED_FULFILMENT_PROOF",
+    "refund": "CONFIRMED_MERCHANT_OR_BANK_REFUND_PROOF"
+  },
+  "revenue_dashboard": {
+    "net_settled_revenue": "NULL_UNTIL_SETTLEMENT_DATA_AVAILABLE_AND_RECONCILED",
+    "formula": "SUM(confirmed_settled_amount)-SUM(confirmed_refunds_and_reversals)",
+    "not_revenue": [
+      "view",
+      "click",
+      "email_draft",
+      "form_start",
+      "gateway_start",
+      "callback_return_only",
+      "unreconciled_paid_row"
+    ],
+    "denominator_policy": "only comparable documented consent/coverage windows; null if missing",
+    "inventory_policy": "never reset book stock to historical initial count"
+  },
+  "experimental_plan": {
+    "day30": "Measure actual consent-based CTA journeys, mobile usability and tool engagement; check all 13 bridges",
+    "day60": "Enable secure consented lead reconciliation and real service completion only after privacy/payment gates",
+    "day90": "Compare article-to-service outcomes with qualified lead and settled revenue; stop misleading or non-performing variants"
+  },
+  "safeguards": [
+    "NO_PRIVATE_DATA_IN_PUBLIC_CACHE_SEARCH_OR_ANALYTICS",
+    "NO_UNVERIFIED_SCIENTIFIC_VALIDITY",
+    "NO_SYNTHETIC_REVENUE",
+    "NO_GATEWAY_ENABLE_OR_MONEY_TEST",
+    "NO_SEO_URL_CHANGES"
+  ]
+}
