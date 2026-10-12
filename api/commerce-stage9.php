@@ -34,11 +34,18 @@ function stage9BookStockReady(PDO $pdo): bool {
     if (!stage9SchemaReady($pdo)) return false;
     $books=array_filter(localCatalog(),static fn(array $entry): bool => $entry['kind']==='book');
     if (count($books)<1) return false;
-    $s=$pdo->prepare('SELECT physical_on_hand,reserved,reconciled_at FROM commerce_book_stock WHERE sku=?');
+    // Each statement observes a consistent InnoDB snapshot of the stock row
+    // and reservation ledger. A reconciled stock flag cannot excuse drift in
+    // actual held units: block new paid book orders until an operator reviews it.
+    $s=$pdo->prepare("SELECT s.physical_on_hand,s.reserved,s.reconciled_at,
+        COALESCE((SELECT SUM(r.quantity) FROM commerce_book_reservations r
+          WHERE r.sku=s.sku AND r.state='reserved'),0) AS held_units
+        FROM commerce_book_stock s WHERE s.sku=?");
     foreach (array_keys($books) as $sku) {
         $s->execute([$sku]);$row=$s->fetch();
         if (!$row || empty($row['reconciled_at']) ||
-            (int)$row['physical_on_hand'] < (int)$row['reserved']) return false;
+            (int)$row['physical_on_hand'] < (int)$row['reserved'] ||
+            (int)$row['reserved'] !== (int)$row['held_units']) return false;
     }
     return true;
 }
