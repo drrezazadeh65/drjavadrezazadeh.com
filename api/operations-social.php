@@ -44,6 +44,41 @@ function operationsSocialSnapshot(PDO $pdo): array {
             ];
         }
     } catch (Throwable $e) { $summary=null; }
+    $recentDeliveries=null;
+    try {
+        $rows=$pdo->query("SELECT id,provider,status,updated_at,schedule_utc,
+            confirmed_at,provider_id,confirmation_method FROM social_deliveries
+            ORDER BY updated_at DESC,id LIMIT 25")->fetchAll();
+        $recentDeliveries=array_map(static function(array $row):array {
+            return [
+                'deliveryId'=>(string)$row['id'],
+                'provider'=>(string)$row['provider'],
+                'status'=>(string)$row['status'],
+                'updatedAt'=>(int)$row['updated_at'],
+                'scheduledAt'=>$row['schedule_utc']===null?null:(int)$row['schedule_utc'],
+                'confirmedAt'=>$row['confirmed_at']===null?null:(int)$row['confirmed_at'],
+                'providerId'=>$row['provider_id']===null?null:(string)$row['provider_id'],
+                'confirmationMethod'=>$row['confirmation_method']===null?null:(string)$row['confirmation_method']
+            ];
+        },$rows);
+    } catch(Throwable $e) { $recentDeliveries=null; }
+    $recentMetrics=null;
+    try {
+        $rows=$pdo->query("SELECT delivery_id,source,observed_at,impressions,
+            reach,engagements,clicks,conversions
+            FROM social_metrics ORDER BY observed_at DESC,id DESC LIMIT 20")->fetchAll();
+        $recentMetrics=array_map(static function(array $row):array {
+            $mapped=[
+                'deliveryId'=>(string)$row['delivery_id'],
+                'source'=>(string)$row['source'],
+                'observedAt'=>(int)$row['observed_at']
+            ];
+            foreach(['impressions','reach','engagements','clicks','conversions'] as $key) {
+                $mapped[$key]=$row[$key]===null?null:(int)$row[$key];
+            }
+            return $mapped;
+        },$rows);
+    } catch(Throwable $e) { $recentMetrics=null; }
     return [
         'ok'=>true,
         'schema'=>'operations-social-readiness-v1',
@@ -52,6 +87,9 @@ function operationsSocialSnapshot(PDO $pdo): array {
         'verifiedStatusAccountRows'=>$counts,
         'deliveryDataStatus'=>$summary===null?'schema_unavailable':'stored_records_only',
         'deliveryRows'=>$summary,
+        'recentDeliveries'=>$recentDeliveries,
+        'recentMetrics'=>$recentMetrics,
+        'metricsSource'=>'social_metrics_stored_observations_only',
         'enabledForAutomaticPublication'=>null,
         'automationStatus'=>'runtime_not_verified',
         'channels'=>$providers,
