@@ -133,3 +133,68 @@ function operationsGithubCorrelatedRuns(array $audits,array $history): array {
     }
     return array_slice($matches,0,30);
 }
+
+/**
+ * Explicit owner-approved provider-result reconciliation. The ONLY accepted
+ * input is this server's own fixed GitHub REST source snapshot, never browser
+ * supplied run metadata or approval/acceptance percentages. No job is sent.
+ */
+function operationsGithubReconcile(PDO $pdo,string $actor,array $audits,int $at): array {
+    if(!operationsActionRunsReady($pdo))throw new RuntimeException('action_journal_schema_unavailable');
+    $history=operationsActionHistory($pdo,$actor,$at);
+    $matches=operationsGithubCorrelatedRuns($audits,$history);
+    $recorded=0;$unchanged=0;
+    foreach($matches as $match){
+        $github=$match['github']??null;
+        if(!is_array($github)||!operationsGithubAuditSafeUrl((string)($github['url']??''))||
+            !is_int($github['runId']??null)||$github['runId']<1||
+            !preg_match('/^[a-f0-9]{40}$/D',(string)($github['sourceSha']??''))){
+            $unchanged++;continue;
+        }
+        $providerState=$github['status']??'';
+        $conclusion=$github['conclusion']??null;
+        if(!in_array($providerState,['queued','in_progress','completed','requested','waiting','pending'],true)
+            || ($providerState==='completed' && $conclusion===null)){
+            $unchanged++;continue;
+        }
+        $final=$providerState==='completed';
+        $nextStatus=$final?($conclusion==='success'?'succeeded':'failed'):'running';
+        $runId=$match['requestRunId'];
+        $pdo->beginTransaction();
+        try{
+            $sql='SELECT action_id,status,result_json FROM operations_action_runs WHERE run_id=? AND account_id=?';
+            if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql')$sql.=' FOR UPDATE';
+            $q=$pdo->prepare($sql);$q->execute([$runId,$actor]);$row=$q->fetch(PDO::FETCH_ASSOC);
+            $result=$row?json_decode((string)$row['result_json'],true):null;
+            if(!is_array($result) || ($result['kind']??null)!=='github_ci_audit'
+                || ($row['action_id']??'')!==$match['actionId']
+                || ($result['dispatchState']??null)!=='accepted_run_unconfirmed'){
+                $unchanged++;$pdo->commit();continue;
+            }
+            // A first terminal conclusion is immutable to untrusted later client traffic.
+            if(in_array((string)$row['status'],['succeeded','failed'],true)){
+                $unchanged++;$pdo->commit();continue;
+            }
+            if(($result['githubRunId']??null)!==null
+                && (int)$result['githubRunId']!==$github['runId']){
+                $unchanged++;$pdo->commit();continue;
+            }
+            $result['githubRunId']=$github['runId'];
+            $result['githubUrl']=$github['url'];
+            $result['providerStatus']=$providerState;
+            $result['providerConclusion']=$conclusion;
+            $result['providerSourceSha']=$github['sourceSha'];
+            $result['verifiedByProvider']=true;
+            $result['providerObservedAt']=$at;
+            $pdo->prepare('UPDATE operations_action_runs SET status=?,finished_at=?,result_json=? WHERE run_id=? AND account_id=?')
+                ->execute([$nextStatus,$final?$at:null,json_encode($result,JSON_THROW_ON_ERROR),$runId,$actor]);
+            operationsAudit($pdo,$actor,'github_audit_observed',$runId);
+            $pdo->commit();$recorded++;
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
+    }
+    return ['recorded'=>$recorded,'unmatchedOrUnchanged'=>$unchanged,'examined'=>count($matches),
+        'limitation'=>'Provider-verified GitHub workflow run statuses only. A completed CI suite is not independent site release, SEO indexation, money settlement or HIGH-risk Action acceptance.'];
+}
