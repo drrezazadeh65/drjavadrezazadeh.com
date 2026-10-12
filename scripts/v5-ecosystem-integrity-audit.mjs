@@ -31,6 +31,10 @@ const journalMap=read('journal/sitemap.xml');
 const index=read('api/index.php');
 const stage9=read('api/commerce-stage9.php');
 const admin=read('api/operations.php');
+const ownerCommerce=read('api/operations-commerce.php');
+const commerceClient=read('assets/js/operations-commerce.js');
+const ownerFa=read('fa/app/admin/index.html');
+const ownerEn=read('en/account/admin/index.html');
 const social=read('api/social-queue.php');
 const deploy=read('.github/workflows/deploy-bertina.yml');
 const migrate=read('.github/workflows/bertina-commerce-schema-migrate.yml');
@@ -67,6 +71,20 @@ verify('admin: 52 unique classified actions',registry.actions.length===52 && dis
   registry.actions.every(x=>ids.includes(x.responsibleEngine)));
 verify('admin: MFA data separation',admin.includes('operations_session_mfa') &&
   admin.includes('operations_admin_memberships'));
+verify('admin: Stage09 real exception view requires MFA, avoids PII and preserves unknown',
+  admin.indexOf("if (!$fresh) fail('admin_mfa_required'") <
+    admin.indexOf("'/admin/operations/commerce'") &&
+  ownerCommerce.includes('stage9SchemaReady($pdo)') &&
+  ownerCommerce.includes("'providerBankSettlementVerified'=>null") &&
+  ownerCommerce.includes("'customerDetailsExposed'=>false") &&
+  ownerCommerce.includes('paidRowsRequiringIndependentProviderReconciliation') &&
+  ownerCommerce.includes('ledgerDiscrepancies') &&
+  !ownerCommerce.includes("SELECT * FROM commerce_orders") &&
+  ownerFa.includes('id="ops-commerce"') && ownerEn.includes('id="ops-commerce"') &&
+  [ownerFa,ownerEn].every(html=>html.includes('/assets/js/operations-commerce.js')) &&
+  commerceClient.includes("credentials:'same-origin'") &&
+  commerceClient.includes("cache:'no-store'") &&
+  !/(?:localStorage|sessionStorage|\.innerHTML\s*=)/.test(commerceClient));
 verify('commerce: canonical 3/21/6 saleable catalogues',
   books.books.length===3 && services.services.length===21 && vip.services.length===6 &&
   distinct(books.books.map(x=>x.id)) && distinct(services.services.map(x=>x.id)) &&
