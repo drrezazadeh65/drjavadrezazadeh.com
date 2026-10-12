@@ -1,0 +1,35 @@
+name: Bertina Commerce Migration Guard CI
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/bertina-commerce-schema-migrate.yml'
+      - '.github/workflows/bertina-commerce-schema-guard-ci.yml'
+      - 'tests/test_bertina_commerce_migration_guard.py'
+      - 'scripts/bertina-private-recovery-gate.php'
+      - 'tests/bertina-private-recovery-gate.php'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  no-production-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP RSA pinned recovery gate regression
+        run: |
+          php -l scripts/bertina-private-recovery-gate.php
+          php tests/bertina-private-recovery-gate.php
+      - name: Assemble real schema PHP and prove absence of signed restore fails closed
+        run: python3 tests/test_bertina_commerce_migration_guard.py
+      - name: Check canonical workflow governance
+        run: node scripts/workflow-governance-audit.mjs
+      - name: Explain scope
+        run: |
+          echo 'This workflow is offline, does not use production credentials,'
+          echo 'does not modify Bertina, create orders, approve owner-private'
+          echo 'restore evidence or authorize a database migration.'
