@@ -30,6 +30,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify fail-closed public health evidence contract (offline fixture)
+        run: node --test tests/production-health-evidence.test.mjs
       - name: Audit live production origin
         env:
           PROD_ORIGIN: https://drjavadrezazadeh.com
