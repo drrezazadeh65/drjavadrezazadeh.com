@@ -31,7 +31,7 @@ $fake=$batch;$fake['events'][0]['sectionId']='OP-09';$fake['events'][0]['gateId'
 try{operationsImportRelease($pdo,$fake,$sha,$configuration,$run);throw new RuntimeException('CI certified a real payment');}catch(RuntimeException $e){check($e->getMessage()==='invalid_evidence_event','wrong forged-payment error');}
 $wrong=$batch;$wrong['runId']='654321';try{operationsImportRelease($pdo,$wrong,$sha,$configuration,$run);throw new RuntimeException('wrong run accepted');}catch(RuntimeException $e){check($e->getMessage()==='invalid_release_evidence','wrong run error');}
 $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=$work.'/operations-http-'.bin2hex(random_bytes(5));mkdir($folder,0700);mkdir($folder.'/api',0700);mkdir($folder.'/api/internal',0700);
-foreach(['index.php','commerce-stage9.php','operations.php','operations-schema.php','operations-reporting.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
+foreach(['index.php','commerce-stage9.php','operations.php','operations-commerce.php','operations-schema.php','operations-reporting.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
 copy(__DIR__.'/../api/internal/operations-registry.json',$folder.'/api/internal/operations-registry.json');
 copy(__DIR__.'/../api/internal/operations-gsc-observation.json',$folder.'/api/internal/operations-gsc-observation.json');
 mkdir($folder.'/assets',0700);mkdir($folder.'/assets/data',0700);
@@ -57,6 +57,7 @@ function request(string $path,int $expected,string $method='GET',?array $body=nu
 try {
  for($i=0;$i<50;$i++){if(@fsockopen('127.0.0.1',$port,$errno,$err,0.1))break;usleep(100000);}
  request('/api/admin/operations',401,'GET',null,[],false);
+ request('/api/admin/operations/commerce',401,'GET',null,[],false);
  request('/api/admin/operations/social/settings',401,'GET',null,[],false);
  request('/api/admin/operations/social/account-intents',401,'POST',['provider'=>'telegram','publicHandle'=>'demo'],[],false);
  request('/api/admin/operations/github-audits',401,'GET',null,[],false);
@@ -91,6 +92,15 @@ try {
  ],$headers);
  request('/api/admin/operations/social/account-intents',503,'POST',
    ['provider'=>'telegram','publicHandle'=>'demo'],$headers);
+ // Signed-in and freshly TOTP-elevated ADMIN can read the redacted monitor;
+ // absent Stage09 schema must stay UNKNOWN, never zero orders or fake settlement.
+ $commerce=request('/api/admin/operations/commerce',200);
+ check($commerce['available']===false && $commerce['reason']==='stage09_schema_unavailable',
+     'unmigrated commerce reported as fully operational');
+ check($commerce['orders']===null && $commerce['providerBankSettlementVerified']===null,
+     'unknown bank/commerce status turned into fictitious zero or success');
+ check($commerce['customerDetailsExposed']===false,
+     'admin commerce monitor exposed customer details');
  $data=request('/api/admin/operations',200);check($data['dashboard']['measuredProgress']===75,'unexpected admin score');check($data['dashboard']['closed']===false,'unverified production admin closed');check(count($data['reports'])===36,'report count changed');
  check(count($data['reporting']['engines'])===13,'canonical engine count changed');
  check(count($data['reporting']['actionReports'])===52,'action inventory changed');
