@@ -51,8 +51,35 @@
       text('ارسال واقعی ایمیل جداگانه بررسی می‌شود.','Actual email delivery requires separate verification.'));
     card(text('پرونده‌های خدمات در انتظار تماس','Service cases awaiting contact'),
       service.awaiting_contact??0);
+    card(text('پرونده‌های فعال نیازمند پیگیری','Active service cases awaiting action'),
+      fulfilment.activeServiceCaseCount??null);
     card(text('مرسوله‌های در حال آماده‌سازی','Parcels being prepared'),
       parcels.preparing??0);
+    if(Array.isArray(fulfilment.serviceActionQueue)&&fulfilment.serviceActionQueue.length){
+      const detail=node('details'),label=node('summary',
+        text('مشاهدهٔ فهرست پرونده‌های قابل پیگیری','View service fulfilment worklist'));
+      detail.append(label);
+      const note=node('p',text(
+        'شناسه‌ها فقط ارجاع داخلی مدیر هستند؛ تطبیق درگاه با سفارش به معنای تسویهٔ بانکی یا ارائهٔ خدمت نیست.',
+        'Internal case references only. Matching payment claims does not prove bank settlement or service delivery.'),'ops-muted');
+      detail.append(note);
+      if(fulfilment.queueTruncated)detail.append(node('p',text(
+        'فقط ۵۰ پروندهٔ قدیمی‌تر نشان داده شده‌اند؛ برای باقی پرونده‌ها گزارش بعدی لازم است.',
+        'Only the oldest 50 cases are shown; further cases require a separate review.'),'ops-muted'));
+      const list=node('ul',undefined,'ops-queue');
+      list.style.maxHeight='20rem';list.style.overflowY='auto';
+      for(const entry of fulfilment.serviceActionQueue){
+        const item=node('li');
+        const id=String(entry.orderId||'').slice(0,8);
+        const claim=entry.providerClaimMatchesOrder===true?
+          text('تطبیق ثبت داخلی: دارد؛ تسویه نامشخص','Internal claim matches; settlement unknown'):
+          text('نیازمند بررسی اصالت پرداخت','Payment evidence needs review');
+        item.append(node('span',String(entry.sku||'')+' · '+String(entry.status||'')+
+          ' · '+id+'… · '+claim));
+        list.append(item);
+      }
+      detail.append(list);results.append(detail);
+    }
     for(const row of stock.rows||[]){
       const drift=row.ledgerDiscrepancy;
       card(row.sku,
