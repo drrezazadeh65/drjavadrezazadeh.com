@@ -187,3 +187,16 @@
 .journal-page .journal-header nav{max-width:none}
 @media(max-width:850px){.jhela-vision{grid-template-columns:1fr;padding:25px}.jhela-hub-grid{grid-template-columns:1fr}.journal-page .journal-brand{grid-template-columns:55px minmax(0,1fr)}.journal-page .journal-brand .jhela-logo{width:55px;height:55px}}
 @media(max-width:520px){.jhela-vision{padding:22px;border-radius:20px}.jhela-visual-pair{grid-template-columns:1fr}.jhela-vision h2{font-size:31px}.jhela-vision p{font-size:15px}.journal-page .journal-brand{grid-template-columns:48px minmax(0,1fr)}.journal-page .journal-brand .jhela-logo{width:48px;height:48px}}
+
+/* Accessible JHELA public role dashboard, progressive enhancement only.
+   Without JavaScript, all four role pathways remain fully available. */
+.jhela-role-tabs{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 14px}
+.jhela-role-tabs button{appearance:none;border:1px solid rgba(194,220,216,.45);border-radius:13px;background:rgba(13,43,62,.9);color:#e8efed;padding:12px 17px;font-size:15px;font-family:inherit;font-weight:650;line-height:1.4;cursor:pointer;min-height:44px}
+.jhela-role-tabs button[aria-selected="true"]{background:#d5b67d;color:#13243b;border-color:#e4ce99}
+.jhela-role-tabs button:focus-visible{outline:3px solid #b6ddd2;outline-offset:4px}
+.jhela-hub.jhela-tabs-ready .jhela-hub-grid{grid-template-columns:minmax(0,1fr)}
+.jhela-hub.jhela-tabs-ready .jhela-hub-grid>article{min-height:250px;padding:clamp(25px,3.5vw,40px)}
+.jhela-hub.jhela-tabs-ready .jhela-hub-grid>article h3{font-size:clamp(24px,2.3vw,32px)}
+.jhela-hub.jhela-tabs-ready .jhela-hub-grid>article p:not(.jhela-kicker){max-width:68ch;font-size:16px}
+.jhela-hub-grid>article[hidden]{display:none}
+@media(max-width:620px){.jhela-role-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.jhela-role-tabs button{font-size:14px;padding:12px 8px}.jhela-hub.jhela-tabs-ready .jhela-hub-grid>article{min-height:0;padding:23px}}

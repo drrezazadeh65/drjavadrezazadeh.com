@@ -48,6 +48,7 @@ jobs:
           }
           run_audit "Public data projection" node scripts/build-public-data.mjs --check
           run_audit "SEO/GEO regression" node scripts/seo-regression.mjs
+          run_audit "JHELA independent journal release gate" node scripts/jhela-release-audit.mjs
           run_audit "Design regression" node scripts/design-regression.mjs
           run_audit "Responsive resilience" node scripts/responsive-resilience-audit.mjs
           run_audit "Frontend copy hygiene" node scripts/frontend-copy-hygiene-audit.mjs
