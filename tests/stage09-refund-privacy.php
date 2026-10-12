@@ -58,17 +58,17 @@ function runR(?array $identity,array $input):RefundReply{
  $path='/commerce/refund-request';$verb='POST';
  try{eval($route);throw new RuntimeException('no_response');}catch(RefundReply $r){return $r;}
 }
-$input=['orderId'=>$GLOBALS['orderId'],'reasonCode'=>'book_not_received'];
-checkR(runR(null,$input)->status===401,'anonymous_forbidden');
-checkR(runR($bob,$input)->status===404,'foreign_order_forbidden');
-checkR(runR($alice,array_replace($input,['reasonCode'=>'invalid']))->status===400,'reason_allowlist');
+$validPayload=['orderId'=>$GLOBALS['orderId'],'reasonCode'=>'book_not_received'];
+checkR(runR(null,$validPayload)->status===401,'anonymous_forbidden');
+checkR(runR($bob,$validPayload)->status===404,'foreign_order_forbidden');
+checkR(runR($alice,array_replace($validPayload,['reasonCode'=>'invalid']))->status===400,'reason_allowlist');
 $GLOBALS['orderState']='created';
-$unpaid=runR($alice,$input);
+$unpaid=runR($alice,$validPayload);
 checkR($unpaid->status===409,'unpaid_refund_denied_HTTP'.$unpaid->status.'_'.($unpaid->body['error']??'none'));
 $GLOBALS['orderState']='paid';
-$first=runR($alice,$input);
+$first=runR($alice,$validPayload);
 checkR($first->status===202&&$first->body['bankRefundExecuted']===false,'review_only_no_reversal');
-$again=runR($alice,$input);
+$again=runR($alice,$validPayload);
 checkR($again->status===200&&$again->body['requestId']===$first->body['requestId'],'idempotent_refund_request');
 checkR($GLOBALS['db']->request['requester']===$alice['id'],'request_belongs_to_account');
 echo "Refund request route privacy fixtures passed. Bank refund is neither executed nor claimed.\n";
