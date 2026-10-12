@@ -43,6 +43,7 @@ try{
   warnings.push('DNS lookup failed: '+e.message);
 }
 
+let sourceLiveSitemapParity=null;
 let root;
 try{
   root=await fetchWithTimeout(ORIGIN+'/');
@@ -188,6 +189,7 @@ try{
       sourceNotYetInLiveSitemap:missingLive.length,liveOnlyUrls:liveOnly.length,
       sampleSourceOnly:missingLive.slice(0,15),
       note:'Source versus live discovery, not 404/indexing proof. Deployment is gated separately.'};
+    sourceLiveSitemapParity=report;
     console.log('Source/live sitemap discovery parity: '+JSON.stringify(report));
     if(missingLive.length) warnings.push('Unpublished source sitemap URLs: '+missingLive.length+'; live revision may be behind source');
   }catch(e){
@@ -334,7 +336,7 @@ if(process.env.PRODUCTION_HEALTH_EVIDENCE_PATH){
   const proof={schema:'bertina-production-public-evidence-v1',checkedAt:new Date().toISOString(),
     observedOrigin:ORIGIN,sourceCommit:/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA:null,
     deployedReleaseSha,sourceLiveSame:deployedReleaseSha!==null&&process.env.GITHUB_SHA===deployedReleaseSha,
-    commercePublicReadiness,checksPassed:failures.length===0,failures,warnings,
+    commercePublicReadiness,sourceLiveSitemapParity,checksPassed:failures.length===0,failures,warnings,
     limits:'Public anonymous GET only; no MFA, signed restore, gateway settlement, inventory or fulfilment proof.'};
   fs.writeFileSync(process.env.PRODUCTION_HEALTH_EVIDENCE_PATH,JSON.stringify(proof,null,2)+'\n',{mode:0o600});
 }
