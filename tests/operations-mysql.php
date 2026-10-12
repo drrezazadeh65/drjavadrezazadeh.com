@@ -31,7 +31,7 @@ $fake=$batch;$fake['events'][0]['sectionId']='OP-09';$fake['events'][0]['gateId'
 try{operationsImportRelease($pdo,$fake,$sha,$configuration,$run);throw new RuntimeException('CI certified a real payment');}catch(RuntimeException $e){check($e->getMessage()==='invalid_evidence_event','wrong forged-payment error');}
 $wrong=$batch;$wrong['runId']='654321';try{operationsImportRelease($pdo,$wrong,$sha,$configuration,$run);throw new RuntimeException('wrong run accepted');}catch(RuntimeException $e){check($e->getMessage()==='invalid_release_evidence','wrong run error');}
 $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=$work.'/operations-http-'.bin2hex(random_bytes(5));mkdir($folder,0700);mkdir($folder.'/api',0700);mkdir($folder.'/api/internal',0700);
-foreach(['index.php','commerce-stage9.php','operations.php','operations-schema.php','operations-reporting.php','operations-action-runs.php','operations-social.php','operations-github-audits.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
+foreach(['index.php','commerce-stage9.php','operations.php','operations-schema.php','operations-reporting.php','operations-action-runs.php','operations-social.php','operations-github-audits.php','operations-github-dispatch.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
 copy(__DIR__.'/../api/internal/operations-registry.json',$folder.'/api/internal/operations-registry.json');
 copy(__DIR__.'/../api/internal/operations-gsc-observation.json',$folder.'/api/internal/operations-gsc-observation.json');
 mkdir($folder.'/assets',0700);mkdir($folder.'/assets/data',0700);
@@ -58,6 +58,7 @@ try {
  for($i=0;$i<50;$i++){if(@fsockopen('127.0.0.1',$port,$errno,$err,0.1))break;usleep(100000);}
  request('/api/admin/operations',401,'GET',null,[],false);
  request('/api/admin/operations/github-audits',401,'GET',null,[],false);
+ request('/api/admin/operations/github-audits/dispatch',401,'POST',['actionId'=>'ENG-01.ACT-001','requestKey'=>str_repeat('b',32),'approval'=>'APPROVE_READONLY_AUDIT'],[],false);
  request('/api/admin/operations?role=SUPER_ADMIN',403);
  $session=request('/api/admin/operations/session',200);check($session['mfaRequired']===true,'MFA not required');
  request('/api/admin/operations/mfa',403,'POST',['code'=>'123456']);
@@ -84,6 +85,9 @@ try {
  request('/api/admin/operations/action-runs',403,'POST',['actionId'=>'ENG-11.ACT-009','requestKey'=>str_repeat('a',32)],['Origin'=>'https://evil.example','X-CSRF-Token'=>$elevatedSession['csrfToken']]);
  request('/api/admin/operations/action-runs',400,'POST',['actionId'=>'ENG-11.ACT-009','requestKey'=>str_repeat('a',32),'unsafe'=>'payload'],$headers);
  request('/api/admin/operations/action-runs',403,'POST',['actionId'=>'ENG-05.ACT-002','requestKey'=>str_repeat('a',32)],$headers);
+ // Ordinary ADMIN, even with fresh MFA, is not authorized to start CI workflows.
+ request('/api/admin/operations/github-audits/dispatch',403,'POST',[
+    'actionId'=>'ENG-01.ACT-001','requestKey'=>str_repeat('b',32),'approval'=>'APPROVE_READONLY_AUDIT'],$headers);
  $readonly=request('/api/admin/operations/action-runs',200,'POST',['actionId'=>'ENG-11.ACT-009','requestKey'=>str_repeat('a',32)],$headers);
  check($readonly['run']['status']==='succeeded','Release observation did not execute');
  check($readonly['run']['result']['freshSignalCount']===1,'Expected one real current release signal');
