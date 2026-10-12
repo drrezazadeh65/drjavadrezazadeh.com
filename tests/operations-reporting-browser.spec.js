@@ -34,7 +34,12 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
   await page.setViewportSize({width,height:900});await page.goto(base+route);await expect(page.locator('#ops-reporting nav button')).toHaveCount(13);await expect(page.locator('#ops-engine option')).toHaveCount(14);
   await expect(page.locator('#ops-report-level')).toHaveValue('executive');await expect(page.locator('#ops-reporting .ops-engine-aggregate article')).toHaveCount(13);await noOverflow(page);
   const engine=data.reporting.engines.find(e=>e.id==='ENG-05');await page.locator('#ops-reporting nav button').filter({hasText:engine.id+' · '}).click();await expect(page.locator('#ops-report-level')).toHaveValue('engine');await expect(page.locator('#ops-reporting .ops-queue li')).toHaveCount(engine.reportIds.length);
-  await page.locator('#ops-report-level').selectOption('action');await expect(page.locator('#ops-reporting select').nth(1).locator('option')).toHaveCount(registry.actions.length);await noOverflow(page);
+  await page.locator('#ops-report-level').selectOption('action');await expect(page.locator('#ops-reporting select').nth(1).locator('option')).toHaveCount(registry.actions.length);
+  await expect(page.locator('details.ops-action-contract')).toHaveCount(1);
+  await expect(page.locator('details.ops-action-contract')).not.toHaveAttribute('open');
+  await page.locator('details.ops-action-contract summary').click();
+  await expect(page.locator('details.ops-action-contract')).toContainText(lang==='en'?'Required inputs':'ورودی‌های مجاز');
+  await noOverflow(page);
   await page.locator('#ops-report-level').selectOption('master');await expect(page.locator('#ops-reporting .ops-queue li')).toHaveCount(36);await noOverflow(page);
   await page.locator('#ops-engine').selectOption('ENG-05');await expect(page.locator('#ops-cards article')).toHaveCount(engine.reportIds.filter(id=>id!=='ADM-01').length);
  }
