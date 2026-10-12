@@ -11,7 +11,7 @@ test('social route is nested after admin role/session/TOTP elevation and has GET
   assert.ok(roles>=0 && mfa>roles && social>mfa,'Role and MFA must precede social GET');
   assert.equal(ops.includes("'/admin/operations/social' && $verb === 'POST'"),false);
   const dispatch=read('api/index.php');
-  assert.match(dispatch,/str_starts_with\(\$path, '\/admin\/operations'\) operationsRoute/);
+  assert.match(dispatch,/str_starts_with\(\$path,\s*'\/admin\/operations'\)\s*\)\s*operationsRoute/);
 });
 test('collector is bootstrapped, read-only, and never exports credentials or fake results',()=>{
  const php=read('api/operations-social.php');
