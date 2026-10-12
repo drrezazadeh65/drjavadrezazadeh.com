@@ -432,12 +432,12 @@
     {
       "id": "journal-home-staging",
       "route": "/journal/",
-      "policy": "PUBLIC_NO_INDEX"
+      "policy": "PUBLIC_CANDIDATE"
     },
     {
       "id": "journal-aims-staging",
       "route": "/journal/aims-scope/",
-      "policy": "PUBLIC_NO_INDEX"
+      "policy": "PUBLIC_CANDIDATE"
     },
     {
       "id": "journal-archive-staging",
@@ -447,12 +447,12 @@
     {
       "id": "journal-author-guidelines-staging",
       "route": "/journal/author-guidelines/",
-      "policy": "PUBLIC_NO_INDEX"
+      "policy": "PUBLIC_CANDIDATE"
     },
     {
       "id": "journal-contact-staging",
       "route": "/journal/contact/",
-      "policy": "PUBLIC_NO_INDEX"
+      "policy": "PUBLIC_CANDIDATE"
     },
     {
       "id": "journal-current-staging",
@@ -462,17 +462,17 @@
     {
       "id": "journal-editorial-board-staging",
       "route": "/journal/editorial-board/",
-      "policy": "PUBLIC_NO_INDEX"
+      "policy": "PUBLIC_CANDIDATE"
     },
     {
       "id": "journal-ethics-staging",
       "route": "/journal/ethics/",
-      "policy": "PUBLIC_NO_INDEX"
+      "policy": "PUBLIC_CANDIDATE"
     },
     {
       "id": "journal-fees-staging",
       "route": "/journal/fees/",
-      "policy": "PUBLIC_NO_INDEX"
+      "policy": "PUBLIC_CANDIDATE"
     },
     {
       "id": "journal-founding-checklist-staging",
@@ -482,12 +482,12 @@
     {
       "id": "journal-peer-review-staging",
       "route": "/journal/peer-review/",
-      "policy": "PUBLIC_NO_INDEX"
+      "policy": "PUBLIC_CANDIDATE"
     },
     {
       "id": "journal-reviewer-registration-staging",
       "route": "/journal/reviewer-registration/",
-      "policy": "PUBLIC_NO_INDEX"
+      "policy": "PUBLIC_CANDIDATE"
     },
     {
       "id": "journal-submission-staging",

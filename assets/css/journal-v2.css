@@ -157,3 +157,33 @@
 @media(max-width:560px){
   .journal-page .journal-process{grid-template-columns:1fr 1fr}
 }
+
+/* JHELA founding-stage international visual and role dashboard — 2026-10-12 */
+.journal-page{--j-text:#eeeae1;--j-sub:#c9c9c6}
+.journal-page .journal-brand{display:grid;grid-template-columns:70px minmax(0,1fr);column-gap:14px;align-items:center}
+.journal-page .journal-brand .jhela-logo{grid-row:1/span 3;grid-column:1;border-radius:18px}
+.journal-page .journal-brand span,.journal-page .journal-brand strong,.journal-page .journal-brand small{grid-column:2}
+.journal-page .journal-brand strong{line-height:1.32}
+.journal-page .journal-section p,.journal-page .journal-article p{line-height:1.85}
+.journal-page .journal-status-card small{font-size:12px;color:#beb5a3}
+.journal-page .journal-status-card span{font-size:13px;color:#c3c0bb}
+.journal-page .journal-process span{font-size:13px;color:#cacaca}
+.journal-page .journal-process b{font-size:12px}
+.journal-page .journal-role-grid p{font-size:14px;color:#c9c7c1}
+.jhela-kicker{font-size:12px;letter-spacing:.14em;color:#e2c491;text-transform:uppercase;font-weight:700}
+.jhela-vision{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;background:linear-gradient(145deg,#0e2438,#122e45);border:1px solid #527183;border-radius:30px;padding:38px;margin-top:22px}
+.jhela-vision h2{font:600 clamp(29px,3.3vw,45px)/1.19 Georgia,serif;color:#f7f1e8;letter-spacing:-.02em}
+.jhela-vision p{font-size:16px;line-height:1.85;color:#d5dedf}
+.jhela-vision figure,.jhela-visual-pair figure{margin:0;min-width:0}
+.jhela-vision img,.jhela-visual-pair img{display:block;width:100%;height:auto;border-radius:18px}
+.jhela-vision figcaption,.jhela-visual-pair figcaption{padding:9px 2px;color:#c9d5d6;font-size:13px;line-height:1.5}
+.jhela-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:21px}
+.jhela-hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:25px}
+.jhela-hub-grid article{padding:26px;border:1px solid #426073;border-radius:20px;background:linear-gradient(145deg,rgba(30,74,95,.23),rgba(10,23,37,.1))}
+.jhela-hub-grid article h3{font:600 24px/1.25 Georgia,serif;color:#f1e8d7}
+.jhela-hub-grid article p{font-size:15px;color:#d1d5d5}
+.jhela-hub-grid article a{display:block;margin-top:14px;color:#f0d3a0;font-size:15px;text-underline-offset:4px}
+.jhela-visual-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:19px;margin-top:22px}
+.journal-page .journal-header nav{max-width:none}
+@media(max-width:850px){.jhela-vision{grid-template-columns:1fr;padding:25px}.jhela-hub-grid{grid-template-columns:1fr}.journal-page .journal-brand{grid-template-columns:55px minmax(0,1fr)}.journal-page .journal-brand .jhela-logo{width:55px;height:55px}}
+@media(max-width:520px){.jhela-vision{padding:22px;border-radius:20px}.jhela-visual-pair{grid-template-columns:1fr}.jhela-vision h2{font-size:31px}.jhela-vision p{font-size:15px}.journal-page .journal-brand{grid-template-columns:48px minmax(0,1fr)}.journal-page .journal-brand .jhela-logo{width:48px;height:48px}}

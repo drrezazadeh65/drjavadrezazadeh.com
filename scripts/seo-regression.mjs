@@ -118,7 +118,7 @@ if(failures.length) process.exit(1);
 
 
 // SITEMAP GOVERNANCE — Frozen SEO baseline
-const sitemapChildren=['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml'];
+const sitemapChildren=['sitemap-core.xml','journal/sitemap.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml'];
 const sitemapUrls=new Set();
 const sitemapIndexPath=path.join(root,'sitemap.xml');
 let sitePrefix='';
@@ -1106,6 +1106,15 @@ if(failures.length){
 
 // JOURNAL RELEASE FIREWALL — only explicitly approved JHELA routes may be indexed before journal launch.
 const journalIndexAllowlist=new Set([
+  '/journal/',
+  '/journal/aims-scope/',
+  '/journal/author-guidelines/',
+  '/journal/contact/',
+  '/journal/editorial-board/',
+  '/journal/ethics/',
+  '/journal/fees/',
+  '/journal/peer-review/',
+  '/journal/reviewer-registration/',
   '/journal/call-for-reviewers/',
   '/journal/founding-collaborators/'
 ]);

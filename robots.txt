@@ -209,3 +209,4 @@ Disallow: /fa/darkhast-moshavere/
 Disallow: /en/request-consultation/
 
 Sitemap: https://drjavadrezazadeh.com/sitemap.xml
+Sitemap: https://drjavadrezazadeh.com/journal/sitemap.xml

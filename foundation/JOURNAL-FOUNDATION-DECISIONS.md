@@ -197,3 +197,15 @@ Founding recommendation:
 Crossref currently states that it cannot accept direct membership applications from organisations based in Iran because of sanctions compliance. Therefore direct Crossref membership is not a current route for an Iran-based Rezazadeh Foundation Press.
 
 The journal must pursue only a lawful DOI route through an eligible Registration Agency or sponsor, including investigation of the mEDRA/Sinaweb route previously identified. No false address, nominal foreign entity or other misrepresentation is permitted.
+
+## 16. Owner-authorised founding-stage public discovery — 2026-10-12
+
+The owner has explicitly authorised JHELA's English-language founding pages to be made discoverable for reviewer and editorial recruitment. This supersedes the earlier **noindex-only rule for the public informational pages listed below**, but does not change the journal's actual maturity, publication rights or independent editorial obligations.
+
+Public indexable routes on the **currently verified host**: `/journal/`, `/journal/aims-scope/`, `/journal/author-guidelines/`, `/journal/contact/`, `/journal/editorial-board/`, `/journal/ethics/`, `/journal/fees/`, `/journal/peer-review/`, `/journal/reviewer-registration/`, `/journal/call-for-reviewers/`, and `/journal/founding-collaborators/`.
+
+The public **independent journal sitemap** resides at `https://drjavadrezazadeh.com/journal/sitemap.xml` while the journal operates under the main production origin. The primary XML index references this child; the core sitemap must exclude duplicate journal URLs. The journal's private/unopened submission workflow, founding checklist, empty current issue and empty archive remain noindex and absent from every sitemap.
+
+The future permanent journal host remains `journal.drjavadrezazadeh.com`, but it is **RESERVED_NOT_LIVE** until independent DNS, verified TLS, scholarly/OJS hosting and migration tests pass. Do not publish reserved-origin sitemap URLs, canonical tags or machine claims beforehand. At actual cutover, generate the distinct subdomain's own `/sitemap.xml` and `/robots.txt` and redirect old `/journal/` indexed URLs with one-hop permanent redirects and evidence of integrity. The main-domain journal child sitemap is retired at that time.
+
+DOI, ISSN, published articles, approved editorial-board memberships, indexing or impact metrics may be asserted **only with independent, verified evidence**. Public search eligibility does not prove actual Google indexing. A source commit does not certify a live Bertina deployment.

@@ -45,7 +45,7 @@ fs.writeFileSync(inventoryOutput,JSON.stringify(adminToolInventory)+'\n');
 const failures=[];
 const required=[
   'index.html','404.html','offline.html','robots.txt','llms.txt','site.webmanifest','sw.js',
-  'sitemap.xml','sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml',
+  'sitemap.xml','sitemap-core.xml','journal/sitemap.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml',
   'assets/data/book-catalog.json','assets/data/service-catalog.json','assets/data/analytics-config.json'
 ];
 for(const rel of required) if(!fs.existsSync(path.join(out,rel))) failures.push('Missing required public artifact: '+rel);

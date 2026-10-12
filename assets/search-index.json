@@ -1126,5 +1126,77 @@
     "category": "News",
     "summary": "چگونه محتوای علمی اصیل، پیوندهای معنایی و داده ساختاریافته به کشف‌پذیری کمک می‌کنند، بدون تضمین رتبه؟",
     "keywords": "سئو محتوا علمی جستجوی هوش مصنوعی GEO گوگل داده ساختاریافته نقشه سایت"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — International Scholarly Journal",
+    "path": "journal/",
+    "category": "Journal",
+    "summary": "Founding English-language journal for human-centred education, learning and assessment with open international reviewer and editorial collaboration calls.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Aims and Scope",
+    "path": "journal/aims-scope/",
+    "category": "Journal",
+    "summary": "Education, learning, assessment and interdisciplinary research focused on the relationship between methodological rigour, context and human development.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Author Guidelines",
+    "path": "journal/author-guidelines/",
+    "category": "Journal",
+    "summary": "Future publication guidance addressing methodology, literature, data transparency, ethics, scholarly contribution and contextual interpretation.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Editorial Contact",
+    "path": "journal/contact/",
+    "category": "Journal",
+    "summary": "Contact the independent founding editorial office about peer review or international editorial collaboration.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Editorial Leadership",
+    "path": "journal/editorial-board/",
+    "category": "Journal",
+    "summary": "Founding editorial leadership, independent decisions, transparent appointments and international editorial-board formation.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Publication Ethics",
+    "path": "journal/ethics/",
+    "category": "Journal",
+    "summary": "Scientific integrity, participant protection, AI disclosure, authorship, editorial independence and correction policy.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Open Access and Fees",
+    "path": "journal/fees/",
+    "category": "Journal",
+    "summary": "Founding access and fee policy: no submission fee, waiver for first issue proposed, independent editorial judgement.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Peer Review",
+    "path": "journal/peer-review/",
+    "category": "Journal",
+    "summary": "Founding policy for double-anonymised external research review, independent handling and evidence-sensitive reviewer feedback.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Reviewer Network",
+    "path": "journal/reviewer-registration/",
+    "category": "Journal",
+    "summary": "How international scholarly reviewers can express interest, demonstrate expertise and be selected with consent and conflict checks.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
   }
 ]

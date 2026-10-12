@@ -71,7 +71,7 @@ for(const route of frozen){
 
 // Every currently indexed sitemap URL must already be part of the frozen stability registry.
 const sitemapRoutes=new Set();
-for(const sm of files.filter(f=>/^sitemap-(?:core|fa|en|news)\.xml$/.test(path.basename(f)))){
+for(const sm of files.filter(f=>/^(?:sitemap-(?:core|fa|en|news)\.xml|journal\/sitemap\.xml)$/.test(f))){
   const xml=fs.readFileSync(path.join(root,sm),'utf8');
   for(const m of xml.matchAll(/<loc>([^<]+)<\/loc>/g)){
     const loc=m[1].trim();
