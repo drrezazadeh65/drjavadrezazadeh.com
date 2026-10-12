@@ -11,7 +11,7 @@ on:
       - .github/workflows/free-scholarly-observation.yml
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: free-scholarly-observation-canonical
@@ -24,8 +24,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: migration/bertina-linux6
-          persist-credentials: true
+          ref: ${{ github.event_name == 'schedule' && 'migration/bertina-linux6' || github.ref }}
+          persist-credentials: false
           fetch-depth: 1
       - uses: actions/setup-node@v4
         with:
@@ -46,20 +46,3 @@ jobs:
           path: api/internal/free-scholar-observation.json
           if-no-files-found: ignore
           retention-days: 14
-      - name: Publish only the sanitized evidence into canonical source
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
-        run: |
-          set -euo pipefail
-          cp api/internal/free-scholar-observation.json /tmp/free-scholar-observation.json
-          git fetch origin migration/bertina-linux6
-          git reset --hard origin/migration/bertina-linux6
-          cp /tmp/free-scholar-observation.json api/internal/free-scholar-observation.json
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add api/internal/free-scholar-observation.json
-          if git diff --cached --quiet; then
-            echo 'No observation change'; exit 0
-          fi
-          git commit -m 'data: refresh dated public scholarly DOI observation (no provider secrets)'
-          git push origin HEAD:refs/heads/migration/bertina-linux6
-          echo 'Metadata observation committed only; no Bertina deploy triggered.'
