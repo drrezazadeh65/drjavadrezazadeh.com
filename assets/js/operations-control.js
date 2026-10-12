@@ -97,6 +97,27 @@ function reportingRender(){
  for(const format of ['txt','csv','json']){const button=el('button',t('دریافت ','Download ')+format.toUpperCase());button.type='button';button.addEventListener('click',()=>reportingDownload(format));tools.append(button);}const print=el('button',t('چاپ / ذخیرهٔ PDF','Print / save PDF'));print.type='button';print.addEventListener('click',()=>window.print());tools.append(print);host.append(tools);
  if(reportingView.level==='action'){
   const action=model.actionReports.find(a=>a.id===reportingView.action);if(!action)return;host.append(el('h3',action.id+' · '+(en?action.canonicalName:action.displayNameFa)),el('p',action.description),el('p',t('وضعیت خود اقدام: ','Action status: ')+(statuses[action.currentStatus]||action.currentStatus)),el('p',t('تکمیل خود اقدام: ','Action completion: ')+pct(action.measuredProgress)),el('p',action.completionClaim),el('p',t('مجوز لازم: ','Required authorization: ')+action.authorizationLevel),el('p',t('نوع اجرا: ','Execution type: ')+action.executionType));
+  // Detailed contract is collapsed by default: no long initial mobile scroll.
+  // All values are text nodes from the immutable, server-owned registry.
+  const contract=el('details',undefined,'ops-action-contract');
+  contract.append(el('summary',t('قرارداد اجرا، وابستگی‌ها و بازبینی امنیتی','Execution contract, dependencies and safeguards')));
+  for(const [fa,enLabel,value] of [
+   ['هویت دائمی','Permanent identity',action.identityKey],
+   ['اولویت و ریسک','Priority and risk',action.priority+' · '+action.riskCategory],
+   ['وابستگی‌های اقدام','Action dependencies',(action.dependencies||[]).join(', ')||t('ندارد','None')],
+   ['ورودی‌های مجاز','Required inputs',(action.requiredInputs||[]).join('; ')||t('تعریف نشده','Not defined')],
+   ['خروجی مورد انتظار','Expected output',action.expectedOutput||t('تعریف نشده','Not defined')],
+   ['دامنهٔ اثر','Target scope',action.targetScope||'unknown'],
+   ['محیط اجرا','Execution environment',action.executionEnvironment||'unknown'],
+   ['مجوز و تأیید مستقل','Authorization and approval',action.authorizationLevel+' · '+(action.approvalPolicy?.required?'approval required':'read-only MFA scope')],
+   ['محدودیت اجرا','Execution timeout',action.maximumExecutionDurationSeconds==null?'not specified':String(action.maximumExecutionDurationSeconds)+'s'],
+   ['تلاش خودکار مجدد','Automatic retries',String(action.retryPolicy?.automaticRetries??0)],
+   ['کنترل عدم تکرار','Idempotency',action.idempotencyPolicy||'not specified'],
+   ['راستی‌آزمایی','Verification',(action.verificationProcedure||[]).join('; ')||'not defined'],
+   ['بازیابی پس از خطا','Recovery',action.errorRecovery?.recovery||'not defined'],
+   ['بازگشت ایمن','Rollback',action.rollbackStrategy||'not defined']
+  ])contract.append(el('p',t(fa,enLabel)+': '+String(value??'unknown')));
+  host.append(contract);
   const collector=action.collectorObservation;
   const registered=action.supportedExecutor?.type==='readonly_snapshot'&&action.supportedExecutor?.writes===false;
   host.append(el('h4',t('اجرا و شواهد اقدام','Execution and action evidence')));
