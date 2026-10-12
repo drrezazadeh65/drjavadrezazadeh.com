@@ -16,6 +16,10 @@ on:
       - 'en/**'
       - 'journal/**'
       - 'docs/migrations/**'
+      - 'tests/bertina-commerce-callback-contract.php'
+      - 'tests/stage09-commerce-atomic.php'
+      - 'tests/stage09-mysql.php'
+      - 'tests/operations-browser.spec.js'
       - 'sitemap*.xml'
       - 'sw.js'
   workflow_dispatch:
