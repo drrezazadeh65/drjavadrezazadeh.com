@@ -208,6 +208,55 @@ function operationsReportingCommercial(array $byId): array {
         'requiredReportIds'=>$ids,'openReportIds'=>$open,
         'limitation'=>'Commercial certification requires verified identity, gateway, real payment, receipt, inventory, delivery and service journeys. Configuration flags or paid-state rows alone do not certify revenue.'];
 }
+/**
+ * Read back only the seven existing allowlisted read-only collectors from the
+ * authenticated, release-scoped operations snapshot. This describes observed
+ * signal freshness, never a durable job execution or acceptance certification.
+ */
+function operationsCollectorObservation(array $action, array $byId, int $at): ?array {
+    $contract=$action['supportedExecutor']??null;
+    if (!is_array($contract) || ($contract['type']??'')!=='readonly_snapshot'
+        || ($contract['function']??'')!=='operationsSignals'
+        || ($contract['writes']??true)!==false
+        || ($contract['endpoint']??'')!=='/api/admin/operations') return null;
+    $allowed=$contract['signalIds']??null;
+    if (!is_array($allowed) || !$allowed || count($allowed)>20
+        || count(array_unique($allowed))!==count($allowed)) return null;
+    $signals=[];
+    foreach (($action['legacyReportIds']??[]) as $section) {
+        foreach (($byId[$section]['signals']??[]) as $signal) {
+            $id=$signal['id']??null;
+            if (!is_string($id) || !in_array($id,$allowed,true) || isset($signals[$id])) continue;
+            $checked=$signal['checkedAt']??null; $expires=$signal['expiresAt']??null;
+            if (!is_int($checked)||!is_int($expires)) continue;
+            $value=$signal['value']??null;
+            if ($value!==null && !is_bool($value) && !is_int($value)
+                && !is_float($value) && !is_string($value))continue;
+            $fresh=$checked<=$at+60&&$expires>$at&&$checked<=$expires;
+            $signals[$id]=[
+                'id'=>$id,'labelFa'=>(string)($signal['labelFa']??$id),
+                'labelEn'=>(string)($signal['labelEn']??$id),
+                'value'=>$value,'source'=>(string)($signal['source']??''),
+                'limitation'=>(string)($signal['limitation']??''),
+                'checkedAt'=>$checked,'expiresAt'=>$expires,
+                'status'=>!$fresh?'stale':($value===null?'unknown':'observed')
+            ];
+        }
+    }
+    $rows=array_values(array_filter(array_map(fn($id)=>$signals[$id]??null,$allowed)));
+    $valid=count(array_filter($rows,fn($row)=>$row['status']==='observed'));
+    $stale=count(array_filter($rows,fn($row)=>$row['status']==='stale'));
+    $status= $valid===count($allowed)?'observed'
+       :($valid>0?'partial':($stale>0?'stale':'unavailable'));
+    return [
+        'status'=>$status,'expectedSignalCount'=>count($allowed),
+        'collectedSignalCount'=>count($rows),'freshSignalCount'=>$valid,
+        'lastObservedAt'=>$rows?max(array_column($rows,'checkedAt')):null,
+        'signals'=>$rows,
+        'limitation'=>'Read-only signals from the currently MFA-authorized server snapshot. Not a separate executor run, scheduled job, accepted Action, money settlement or verified production closure.'
+    ];
+}
+
 /** The AWOSE 36 views reference the same 12 domain engines; they never renumber OP reports. */
 function operationsReportingDomainViews(array $engines,array $actions): array {
     $views=[];
@@ -260,7 +309,9 @@ function operationsReporting(array $snapshot,array $registry): array {
     foreach($registry['actions']??[] as $action){
         $scoped=[];foreach($action['legacyReportIds']??[] as $id)if(isset($byId[$id]))$scoped[]=$byId[$id];
         $legacy=($action['scoringScope']??'')==='legacy_acceptance'&&count($scoped)===1;
+        $collector=operationsCollectorObservation($action,$byId,(int)$snapshot['checkedAt']);
         $actionReports[]=array_merge($action,[
+            'collectorObservation'=>$collector,
             'currentStatus'=>$legacy?$scoped[0]['status']:($action['currentStatus']??'pending'),
             'measuredProgress'=>$legacy?$scoped[0]['measuredProgress']:null,
             'closed'=>$legacy&&$scoped[0]['closed'],
