@@ -31,7 +31,7 @@ $fake=$batch;$fake['events'][0]['sectionId']='OP-09';$fake['events'][0]['gateId'
 try{operationsImportRelease($pdo,$fake,$sha,$configuration,$run);throw new RuntimeException('CI certified a real payment');}catch(RuntimeException $e){check($e->getMessage()==='invalid_evidence_event','wrong forged-payment error');}
 $wrong=$batch;$wrong['runId']='654321';try{operationsImportRelease($pdo,$wrong,$sha,$configuration,$run);throw new RuntimeException('wrong run accepted');}catch(RuntimeException $e){check($e->getMessage()==='invalid_release_evidence','wrong run error');}
 $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=$work.'/operations-http-'.bin2hex(random_bytes(5));mkdir($folder,0700);mkdir($folder.'/api',0700);mkdir($folder.'/api/internal',0700);
-foreach(['index.php','operations.php','operations-schema.php','operations-reporting.php','operations-action-runs.php','operations-social.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
+foreach(['index.php','operations.php','operations-schema.php','operations-reporting.php','operations-action-runs.php','operations-social.php','operations-github-audits.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
 copy(__DIR__.'/../api/internal/operations-registry.json',$folder.'/api/internal/operations-registry.json');
 copy(__DIR__.'/../api/internal/operations-gsc-observation.json',$folder.'/api/internal/operations-gsc-observation.json');
 mkdir($folder.'/assets',0700);mkdir($folder.'/assets/data',0700);
@@ -57,6 +57,7 @@ function request(string $path,int $expected,string $method='GET',?array $body=nu
 try {
  for($i=0;$i<50;$i++){if(@fsockopen('127.0.0.1',$port,$errno,$err,0.1))break;usleep(100000);}
  request('/api/admin/operations',401,'GET',null,[],false);
+ request('/api/admin/operations/github-audits',401,'GET',null,[],false);
  request('/api/admin/operations?role=SUPER_ADMIN',403);
  $session=request('/api/admin/operations/session',200);check($session['mfaRequired']===true,'MFA not required');
  request('/api/admin/operations/mfa',403,'POST',['code'=>'123456']);
