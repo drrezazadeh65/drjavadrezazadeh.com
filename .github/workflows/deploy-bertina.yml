@@ -38,6 +38,11 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Compile and exercise isolated private recovery pre-extraction gate
+        run: |
+          php -l scripts/bertina-private-recovery-gate.php
+          php tests/bertina-private-recovery-gate.php
+
       - name: Verify operations registry, security and real MySQL
         env:
           OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
@@ -164,9 +169,14 @@ jobs:
           NONCE="$(openssl rand -hex 10)"
           ZIP_NAME="bertina-release-$NONCE.zip"
           SCRIPT_NAME="bertina-deploy-$NONCE.php"
+          RECOVERY_GATE_SOURCE="$(tail -n +2 scripts/bertina-private-recovery-gate.php)"
+          BACKUP_REQUEST_B64="$(base64 -w0 .bertina-backup-trigger)"
+          test -n "$RECOVERY_GATE_SOURCE" && test -n "$BACKUP_REQUEST_B64"
 
           cat > "/tmp/$SCRIPT_NAME" <<PHP
           <?php
+          // Source-controlled RSA pinned verification; no application bytes are extracted before it passes.
+          $RECOVERY_GATE_SOURCE
           header('Content-Type: application/json; charset=utf-8');
           header('Cache-Control: no-store');
           header('X-Robots-Tag: noindex, noarchive');
@@ -195,6 +205,16 @@ jobs:
               @unlink(\$manifestPath);
               @unlink(__FILE__);
           };
+          // Fail closed on missing, stale, invalid or unsigned owner-private restoration.
+          // Deliberately log no private proof bytes or backup locations to public HTTP.
+          try {
+              drjrRecoveryCheck(__DIR__, '$BACKUP_REQUEST_B64', time());
+          } catch (Throwable \$e) {
+              \$cleanup();
+              http_response_code(503);
+              echo json_encode(['ok'=>false,'error'=>'verified_private_recovery_required']);
+              exit;
+          }
           if (!class_exists('ZipArchive')) {
               http_response_code(500);
               echo json_encode(['ok'=>false,'error'=>'zip_extension_unavailable']);
