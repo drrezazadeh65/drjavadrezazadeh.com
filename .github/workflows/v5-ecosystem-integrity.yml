@@ -1,0 +1,62 @@
+name: DrJavad Ecosystem 5.0 Integration
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'scripts/v5-ecosystem-integrity-audit.mjs'
+      - '.github/workflows/v5-ecosystem-integrity.yml'
+      - 'docs/governance/V5_ECOSYSTEM_RELEASE_IDENTITY_20261012.md'
+      - 'docs/governance/SOURCE_OF_TRUTH.json'
+      - 'docs/governance/STAGE09_PRIVATE_DEPENDENCIES.json'
+      - 'api/internal/operations-registry.json'
+      - 'api/index.php'
+      - 'api/commerce-stage9.php'
+      - 'api/social-queue.php'
+      - 'api/operations.php'
+      - 'assets/data/book-catalog.json'
+      - 'assets/data/service-catalog.json'
+      - 'assets/data/vip-catalog.json'
+      - 'platform/organic-growth-stage14.json'
+      - 'platform/jhela-ojs-activation.json'
+      - 'journal/sitemap.xml'
+      - 'docs/migrations/20261012_stage09_commerce.sql'
+      - '.github/workflows/deploy-bertina.yml'
+      - '.github/workflows/bertina-commerce-schema-migrate.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v5-ecosystem-source-integrity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax validation
+        run: node --check scripts/v5-ecosystem-integrity-audit.mjs
+      - name: Audit nine v5 ecosystem workstreams without any private credentials
+        run: node scripts/v5-ecosystem-integrity-audit.mjs v5-ecosystem-source-evidence.json
+      - name: Upload scoped integration report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-ecosystem-source-evidence-${{ github.sha }}
+          path: v5-ecosystem-source-evidence.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Release interpretation
+        if: always()
+        run: |
+          echo 'Nine workstreams are still subject to independent production acceptance.'
+          echo 'Source checks cannot authorize private restoration, real-money actions, OJS activation or Bertina deployment.'
