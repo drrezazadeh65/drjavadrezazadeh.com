@@ -7,7 +7,7 @@ const root=process.cwd(), origin='https://drjavadrezazadeh.com';
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const failures=[];
 const published=['','dashboard/','aims-scope/','author-guidelines/','contact/','editorial-board/','ethics/','fees/','peer-review/','reviewer-registration/','call-for-reviewers/','founding-collaborators/'];
-const withheld=['submission/','current/','archive/','founding-checklist/'];
+const withheld=['submission/','current/','archive/','founding-checklist/','fa/submission/','fa/current/','fa/archive/'];
 const xml=read('journal/sitemap.xml');
 const journalUrls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
 const faPublished=['fa/','fa/dashboard/','fa/aims-scope/','fa/call-for-reviewers/','fa/founding-collaborators/','fa/reviewer-registration/','fa/editorial-board/','fa/peer-review/','fa/ethics/','fa/author-guidelines/','fa/fees/','fa/contact/'];

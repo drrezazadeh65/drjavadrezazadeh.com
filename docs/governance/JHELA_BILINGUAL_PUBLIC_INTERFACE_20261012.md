@@ -21,3 +21,7 @@ The future certified host `https://journal.drjavadrezazadeh.com` should preserve
 ## Deployment and verification
 
 The shared source branch remains `migration/bertina-linux6`. Run the following before any staged Bertina release: complete source SEO regression; `scripts/jhela-discovery-audit.mjs`; `scripts/jhela-release-audit.mjs`; hreflang and URL-stability checks; metadata and link integrity; responsive UI/a11y; sanitized public build. Application deploy is held by the shared owner-private signed backup/restore and serialized-release gate. A GitHub commit or CI PASS **does not certify** the live Bertina version or search-engine indexation.
+
+## Noindex preparation pages (Persian)
+
+Persian information counterparts for `/journal/submission/`, `/journal/current/`, and `/journal/archive/` are available at `/journal/fa/submission/`, `/journal/fa/current/`, and `/journal/fa/archive/`. Like their English equivalents, these three paths remain **noindex, absent from both public search and the independent JHELA sitemap, and without release/ISSN/DOI/article-count claims**. They explain in Persian that formal article submission is closed, the founding issue has no published research articles, and the journal archive is intentionally empty. No hreflang equivalence record is declared for these unindexed preparation pages; visible EN/FA links may still help users navigate between their public status notices. Their disclosure content must be reviewed when OJS and actual publication become operational.

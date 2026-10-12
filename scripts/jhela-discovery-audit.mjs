@@ -27,7 +27,7 @@ const journalRoutes=[
  '/journal/founding-collaborators/',
  ...faJournalRoutes
 ];
-const explicitlyUnreleased=['/journal/submission/','/journal/current/','/journal/archive/','/journal/founding-checklist/'];
+const explicitlyUnreleased=['/journal/submission/','/journal/current/','/journal/archive/','/journal/founding-checklist/','/journal/fa/submission/','/journal/fa/current/','/journal/fa/archive/'];
 const pathOf=url=>new URL(url).pathname;
 const sitemap=read('journal/sitemap.xml');
 const rootIndex=read('sitemap.xml');

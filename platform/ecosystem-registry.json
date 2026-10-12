@@ -593,6 +593,21 @@
       "id": "jhela-fa-contact",
       "route": "/journal/fa/contact/",
       "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-submission-staging",
+      "route": "/journal/fa/submission/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "jhela-fa-current-staging",
+      "route": "/journal/fa/current/",
+      "policy": "PUBLIC_NO_INDEX"
+    },
+    {
+      "id": "jhela-fa-archive-staging",
+      "route": "/journal/fa/archive/",
+      "policy": "PUBLIC_NO_INDEX"
     }
   ],
   "origin_states": {
