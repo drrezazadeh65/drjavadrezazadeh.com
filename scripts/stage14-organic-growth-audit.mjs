@@ -44,7 +44,7 @@ check(()=>{
   assert.ok(faServices.includes('organic_share_intent'));
   assert.equal(plan.free_tools.length,5);
   for(const item of plan.free_tools){
-    assert.ok(tools.includes(`id: '${item.id}'`),item.id+' missing');
+    assert.ok(item.id==='service' ? tools.includes("finder.id = 'free-tool-service'") : tools.includes(`id: '${item.id}'`),item.id+' missing');
     assert.ok(existsRoute(item.route),item.route+' missing');
   }
   assert.ok(!/(?:fetch\s*\(|XMLHttpRequest|sendBeacon|localStorage|sessionStorage|indexedDB)/.test(tools),'private tool data must not persist or transmit');
