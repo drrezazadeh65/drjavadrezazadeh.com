@@ -1,21 +1,21 @@
 # AGENTS.md — Dr. Javad Rezazadeh Website
 
 > Repository-wide coordination instructions for coding agents.
-> **CURRENT STATUS: CODEX EXCLUSIVE DEVELOPMENT LOCK — ACTIVE**
-> Effective 2026-10-10. GitHub lock issue: https://github.com/drrezazadeh65/drjavadrezazadeh.com/issues/28
+> **CURRENT STATUS: SHARED DEVELOPMENT OPEN — OWNER AUTHORIZED**
+> Exclusive lock lifted by the owner on 2026-10-12 (Asia/Tehran). Historical lock issue: https://github.com/drrezazadeh65/drjavadrezazadeh.com/issues/28
 
 ## Who may write?
 
-**Codex is the sole designated implementation agent** for this website until the project owner explicitly lifts the exclusive-development lock. All other assistant chats, coding agents, and operators are **read-only**. Do not modify files, push, merge, manually deploy, or start parallel development in another session while this lock is active. This document does not itself revoke GitHub permissions or stop background sessions, so any other active workers must also be paused by their operators.
+The owner explicitly lifted the Codex-exclusive development lock. **All owner-authorized assistant chats, coding agents and operators may implement changes and contribute to this repository using their existing authorized connections.** There is no Codex-only or repository-wide read-only restriction.
 
-An owner-approved one-time governance update that installed this file does not constitute authorization for other agents to continue implementing features.
+Use separate work branches for concurrent changes, review current source and open pull requests before editing, and coordinate shared files and production releases. Keep one deployment in progress at a time; this protects the live site without imposing an exclusive developer lock. Historical copies of the previous lock in old branches do not reinstate it. Read this current policy on the active Bertina branch when starting or resuming work.
 
 ## Verified project coordinates
 
 - Canonical site: https://drjavadrezazadeh.com
 - GitHub repository: `drrezazadeh65/drjavadrezazadeh.com`
 - **Active Bertina development/deployment branch**: `migration/bertina-linux6`
-- Default `main` is an earlier baseline, **not** the authoritative Bertina release state. Never overwrite Bertina's newer code with `main`.
+- `main` contains historical and parallel contributions; its name or latest timestamp does not establish the live Bertina release. Reconcile useful changes selectively against fresh deployment evidence and preserve newer valid code, content, media and SEO.
 - Bertina Linux is the sole production web/PHP/MySQL/domain-email infrastructure. GitHub is for source control and CI/CD.
 - Live app endpoints are same-origin `/api/`, not third-party Worker functions.
 - Do not reintroduce Vercel, Neon, old Cloudflare Worker/D1 checkout, or retired payment/email providers.
@@ -50,15 +50,15 @@ An owner-approved one-time governance update that installed this file does not c
 - Preserve pricing as server-authoritative and do not rewrite approved book-cover images.
 - Source or mock tests are not proof of public readiness, real email delivery or money movement.
 
-## Single-writer implementation protocol for Codex
+## Shared development and coordinated release protocol
 
 1. Start from `migration/bertina-linux6`; fetch latest; record base commit SHA and inspect current CI, open PRs and live deployment to avoid repeating or undoing work.
-2. Prefer an isolated work branch and reviewable PR for substantive changes; coordinate any final merge into the active release branch through the single Codex session.
+2. Use isolated work branches and reviewable PRs for substantive changes. Coordinate merges and releases with other active contributors; no chat has exclusive implementation ownership.
 3. Before release, verify build, SEO, responsive, accessibility, AI-discovery, cache/privacy, commerce fail-closed and GitHub Actions gates. Record evidence.
 4. Never publish a stale commit or race another deploy. Re-check branch head before a production deployment.
 5. For TLS, infrastructure, credential, payment or external approvals, document the precise blocker and continue safe source tasks without bypassing gates.
-6. Keep the lock active until owner explicitly lifts it; then update issue #28 and this policy to prevent an obsolete lock from misleading future sessions.
+6. The owner has lifted the exclusive lock. Keep issue #28 and this policy consistent with open collaboration; do not reintroduce an exclusive restriction without a new explicit owner instruction.
 
-## Scope warning
+## Access and handoff scope
 
-This is a **project governance/coordination lock**, not technical GitHub branch protection or credential revocation. A different worker with identical GitHub credentials can still push; human/user-side pause of other active chats and repository rulesets are needed for stronger technical enforcement.
+This update opens development collaboration. GitHub connections, repository permissions, protected customer/admin routes and private credential stores retain their existing security controls. It does not change account subscription quotas or distribute credentials. Preserve unfinished work in reviewable branches with exact base/head SHAs, test evidence and explicit deployment status so another authorized chat can continue safely.
