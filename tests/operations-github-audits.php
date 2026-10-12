@@ -2,6 +2,7 @@
 declare(strict_types=1);
 define('BERTINA_API_BOOTSTRAPPED',true);
 require __DIR__.'/../api/operations-github-audits.php';
+require __DIR__.'/../api/operations-github-dispatch.php';
 $n=0;
 function assertAudit(bool $condition,string $message): void {
     global $n;
@@ -49,4 +50,30 @@ foreach($catalog as $item){
  assertAudit($action['riskCategory']==='HIGH','Manual Action risk changed');
  assertAudit(!isset($action['supportedExecutor']),'Read-only viewer must not grant risky Action executor');
 }
+
+assertAudit(operationsGithubDispatchToken([])===null,'Dispatch credentials must default OFF');
+assertAudit(operationsGithubDispatchToken(['github_readonly_audit_dispatch_token'=>'x'])===null,'Short token accepted');
+assertAudit(operationsGithubDispatchToken(['github_readonly_audit_dispatch_token'=>str_repeat('g',40)])===str_repeat('g',40),'Scoped fixture token rejected');
+foreach($catalog as $item){
+ assertAudit(operationsGithubDispatchDefinition($registry,$item['actionId'])!==null,
+    'Approved audit-only contract missing '.$item['actionId']);
+}
+foreach(['ENG-11.ACT-005','ENG-05.ACT-002','ENG-04.ACT-001'] as $id)
+ assertAudit(operationsGithubDispatchDefinition($registry,$id)===null,'Critical unsafe audit action mapped '.$id);
+$trace=str_repeat('c',32);
+$dispatch=$valid;
+$dispatch['event']='workflow_dispatch';
+$dispatch['display_title']='Admin audit '.$trace;
+$projected=operationsGithubAuditProject(['workflow_runs'=>[$dispatch]],'bertina-master-seo.yml');
+assertAudit(($projected[0]['requestKey']??null)===$trace,'Valid provider trace not projected');
+$dispatch['display_title']='Admin audit '.str_repeat('e',32);
+$projected=operationsGithubAuditProject(['workflow_runs'=>[$dispatch]],'bertina-master-seo.yml');
+assertAudit(($projected[0]['requestKey']??null)!==$trace,'Unrelated trace accepted as current run');
+$dispatch['event']='push';
+$dispatch['display_title']='Admin audit '.$trace;
+$projected=operationsGithubAuditProject(['workflow_runs'=>[$dispatch]],'bertina-master-seo.yml');
+assertAudit(($projected[0]['requestKey']??null)===null,'Non-dispatch run forged an admin execution');
+$untrusted=[['actionId'=>'ENG-01.ACT-001','runs'=>$projected]];
+assertAudit(operationsGithubCorrelatedRuns($untrusted,[])===[],'Unowned run linked');
+
 echo 'PASS: '.$n.' public GitHub audit whitelisting, provenance, no-deploy and approval guard assertions.'.PHP_EOL;
