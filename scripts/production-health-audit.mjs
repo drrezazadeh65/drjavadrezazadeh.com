@@ -266,6 +266,52 @@ try{
   warnings.push('www host unavailable or TLS not ready: '+e.message);
 }
 
+// Observe the *deployed* release rather than assuming the latest source is live.
+// These are read-only, anonymous, strict-HTTPS checks. Never log customer data
+// or imply that readiness flags prove payment settlement or service delivery.
+let deployedReleaseSha=null;
+let commercePublicReadiness=null;
+try{
+  const {res,text}=await getText(ORIGIN+'/sw.js');
+  if(res.status!==200) failures.push('/sw.js: live release stamp fetch returned '+res.status);
+  else{
+    const match=text.match(/const CACHE_VERSION='jr-site-bertina-([a-f0-9]{40})';/);
+    if(!match) failures.push('/sw.js: expected immutable deployed release SHA stamp missing');
+    else{
+      deployedReleaseSha=match[1];
+      console.log('Deployed Bertina release SHA (strict live /sw.js): '+deployedReleaseSha);
+      if(/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')){
+        console.log('Source HEAD equals live release: '+(process.env.GITHUB_SHA===deployedReleaseSha));
+      }
+    }
+  }
+}catch(e){failures.push('/sw.js: strict live release probe failed: '+e.message);}
+try{
+  const {res,text}=await getText(ORIGIN+'/api/commerce/health');
+  if(res.status!==200) failures.push('/api/commerce/health: expected 200, got '+res.status);
+  else{
+    const c=JSON.parse(text);
+    if(c?.ok!==true||c.service!=='commerce'||typeof c.checkout!=='boolean')
+      failures.push('/api/commerce/health: read-only public readiness schema invalid');
+    else{
+      commercePublicReadiness={checkout:c.checkout,orderCapture:c.orderCapture===true,
+        services:c.capabilities?.services===true,vip:c.capabilities?.vip===true,
+        books:c.capabilities?.books===true,publicTlsConfirmed:c.requirements?.publicTlsConfirmed===true};
+      if(c.checkout===true&&!commercePublicReadiness.publicTlsConfirmed)
+        failures.push('/api/commerce/health: checkout active without reported trusted TLS');
+      console.log('Public commerce readiness booleans (not revenue certification): '+JSON.stringify(commercePublicReadiness));
+    }
+  }
+}catch(e){failures.push('/api/commerce/health: read-only health probe failed: '+e.message);}
+if(process.env.PRODUCTION_HEALTH_EVIDENCE_PATH){
+  const fs=await import('node:fs');
+  const proof={schema:'bertina-production-public-evidence-v1',checkedAt:new Date().toISOString(),
+    observedOrigin:ORIGIN,sourceCommit:/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA:null,
+    deployedReleaseSha,sourceLiveSame:deployedReleaseSha!==null&&process.env.GITHUB_SHA===deployedReleaseSha,
+    commercePublicReadiness,checksPassed:failures.length===0,failures,warnings,
+    limits:'Public anonymous GET only; no MFA, signed restore, gateway settlement, inventory or fulfilment proof.'};
+  fs.writeFileSync(process.env.PRODUCTION_HEALTH_EVIDENCE_PATH,JSON.stringify(proof,null,2)+'\n',{mode:0o600});
+}
 if(failures.length){
   console.error('\nProduction health failures ('+failures.length+')');
   failures.forEach(x=>console.error('✗ '+x));
