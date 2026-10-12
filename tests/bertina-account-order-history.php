@@ -67,6 +67,9 @@ foreach(['customer_email','customer_json','private-address','provider_id_get','p
 $GLOBALS['orders']=[array_replace($row,['provider_trans_id'=>null])];
 $incomplete=runCase($valid);
 check($incomplete->data['orders'][0]['paymentVerified']===false,'incomplete_payment_evidence_not_verified');
+$GLOBALS['orders']=[array_replace($row,['amount_toman'=>3000000])];
+$wrongTotal=runCase($valid);
+check($wrongTotal->data['orders'][0]['paymentVerified']===false,'mismatched_totals_not_verified');
 $GLOBALS['orders']=[];
 check(count(runCase($valid)->data['orders'])===0,'honest_empty_state');
 echo "Verified order history fixtures passed; no real account, payment or deployment certified.\n";
