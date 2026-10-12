@@ -60,7 +60,15 @@ function draw(){
      elmt.append(make('p',tr('صفحات سنجیده‌شده: ','Measured pages: ')+String(p.measuredPages??0)+' / 2 · '+String(p.observedAt||'')));
      if(p.status==='stale')elmt.append(make('p',tr('این داده قدیمی است.','This observation is stale.')));
      for(const record of p.results||[]){
-       elmt.append(make('p',record.route+' · '+(record.localLabScore===null?tr('بدون امتیاز','No score'):record.localLabScore+'/100')));
+       const scores=record.categoryScores||{},lab=record.labMetrics||{};
+       const pct=value=>Number.isInteger(value)&&value>=0&&value<=100?value+'/100':tr('ناموجود','N/A');
+       const metric=value=>typeof value==='number'&&Number.isFinite(value)?(value/1000).toFixed(2)+'s':tr('ناموجود','N/A');
+       const cls=typeof lab.cls==='number'&&Number.isFinite(lab.cls)?lab.cls.toFixed(3):tr('ناموجود','N/A');
+       elmt.append(make('p',record.route+' · '+tr('عملکرد ','Performance ')+pct(scores.performance)+
+         ' · '+tr('دسترس‌پذیری ','Accessibility ')+pct(scores.accessibility)+
+         ' · SEO '+pct(scores.seo)+
+         ' · '+tr('بهترین شیوه‌ها ','Best practices ')+pct(scores['best-practices'])));
+       elmt.append(make('small','LCP '+metric(lab.lcpMs)+' · FCP '+metric(lab.fcpMs)+' · TBT '+metric(lab.tbtMs)+' · CLS '+cls));
      }
    }else elmt.append(make('p',tr('هنوز نتیجه محلی معتبر در نسخه منتشرشده موجود نیست.','No reviewed local Lighthouse result has been deployed.')));
    elmt.append(make('small',tr('این نتایج مربوط به ساخت محلی سایت هستند، نه هاست برتینا یا تجربه واقعی کاربران.','Scores describe a local static build, not live Bertina or real-user Core Web Vitals.')));
