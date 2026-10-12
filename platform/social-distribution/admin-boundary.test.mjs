@@ -17,7 +17,7 @@ test('collector is bootstrapped, read-only, and never exports credentials or fak
  const php=read('api/operations-social.php');
  assert.match(php,/!defined\('BERTINA_API_BOOTSTRAPPED'\)/);
  assert.match(php,/schema_unavailable/);
- assert.match(php,/enabledForAutomaticPublication'\s*=>false/);
+ assert.match(php,/enabledForAutomaticPublication'\s*=>null/);
  for(const prohibited of ['access_token','refresh_token','token_secret','totp_secret','private_key'])
    assert.equal(php.includes(prohibited),false,prohibited);
  assert.equal(php.includes('INSERT INTO'),false);
