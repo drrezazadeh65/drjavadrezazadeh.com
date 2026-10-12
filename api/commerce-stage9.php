@@ -14,6 +14,18 @@ function stage9SchemaReady(PDO $pdo): bool {
                   'commerce_parcels','commerce_refund_requests'] as $table) {
             $pdo->query('SELECT 1 FROM '.$table.' LIMIT 1');
         }
+        // MyISAM or a missing legacy commerce_orders table defeats row locks,
+        // atomic reservations and payment-claim rollback. Recheck runtime storage
+        // engines, not only the one-time deployment preflight.
+        $engines=[];
+        foreach ($pdo->query('SELECT TABLE_NAME,ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()')->fetchAll() as $table) {
+            $engines[(string)($table['TABLE_NAME']??'')]=(string)($table['ENGINE']??'');
+        }
+        foreach (['commerce_orders','commerce_book_stock','commerce_book_reservations',
+                  'commerce_stock_movements','commerce_payment_claims','commerce_outbox',
+                  'commerce_service_cases','commerce_parcels','commerce_refund_requests'] as $table) {
+            if (strcasecmp($engines[$table]??'', 'InnoDB')!==0) return false;
+        }
         // Existence alone is insufficient: enforce the two unique provider
         // identity constraints before a gateway can begin new money movement.
         $indexes=$pdo->query('SHOW INDEX FROM commerce_payment_claims')->fetchAll();
