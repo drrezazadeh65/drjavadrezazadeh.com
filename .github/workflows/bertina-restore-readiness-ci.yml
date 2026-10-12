@@ -9,6 +9,8 @@ on:
       - 'tests/bertina-private-recovery-gate.php'
       - 'tests/bertina-release-assembly.py'
       - '.github/workflows/deploy-bertina.yml'
+      - 'scripts/bertina-controlled-cpanel-gate.php'
+      - 'tests/bertina-controlled-cpanel-gate.php'
       - 'tests/test_private_backup_restore_readiness.py'
       - '.github/workflows/bertina-restore-readiness-ci.yml'
   workflow_dispatch:
@@ -41,8 +43,16 @@ jobs:
           assert "drjrRecoveryCheck(__DIR__" in wf
           assert "$RECOVERY_GATE_SOURCE" in wf
           assert wf.index("drjrRecoveryCheck(__DIR__") < wf.index("if (!\\$zip->extractTo(__DIR__))")
-          assert "verified_private_recovery_required" in wf
-          print("PASS: pinned signed private recovery gate precedes production extraction")
+          assert "approved_recovery_policy_not_satisfied" in wf
+          assert "drjrCpanelBackupCheck(__DIR__" in wf
+          assert wf.index("drjrCpanelBackupCheck(__DIR__") < wf.index("if (!\\$zip->extractTo(__DIR__))")
+          assert "if ('$RECOVERY_MODE'==='signed_restore')" in wf
+          assert "elseif ('$RECOVERY_MODE'==='owner_cpanel_custody')" in wf
+          assert "ACCEPT_UNTESTED_RESTORE_RISK_V5" in wf
+          print("PASS: signed RSA default and explicit owner cPanel exception BOTH precede production extraction")
           PY
       - name: Compile actual interpolated release endpoint without deploying
-        run: python3 tests/bertina-release-assembly.py
+        run: |
+          php -l scripts/bertina-controlled-cpanel-gate.php
+          php tests/bertina-controlled-cpanel-gate.php
+          python3 tests/bertina-release-assembly.py
