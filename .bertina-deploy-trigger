@@ -150,3 +150,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-11 final editorial accessibility release: 13 WebP article images, repaired article/sidebar nesting, intrinsic image dimensions, mobile-first layout, cache-busted CSS, GSC tracked URLs; pass SEO and independent Playwright responsive checks.
 
 2026-10-11 approved editorial images PRODUCTION RELEASE: 10 verified 1672x941 WebP images installed on 10 launch articles plus image registry and news cards, release ONLY after passing SEO, responsive and Bertina checks.
+
+2026-10-12 owner-authorized release of MFA-protected free SEO source directory and audited ENG-13 provenance: Crossref (2/2 DOI metadata), PSI zero-key 429 (no scores), localhost Lighthouse evidence and manual live homepage PSI screenshots (mobile 99, desktop 100). Preserve Bertina private config, all existing SEO paths, customer authentication/payment fail-closed logic; do not activate finance or new accounts. Only release if all strict TLS, MySQL, browser, SEO and stale-HEAD gates pass. Audited source SHA: d50d085663ffdee094c1fe15f9a87bd4bd040933.
