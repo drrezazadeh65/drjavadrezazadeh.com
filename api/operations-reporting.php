@@ -98,11 +98,21 @@ function operationsReporting(array $snapshot,array $registry): array {
         ]);
     }
     $metrics=operationsReportingMetrics($reports);$metrics['commercialReadiness']=operationsReportingCommercial($byId);
+    // Reference inventory is not proof of 30 active external connections.
+    $referenceFile=__DIR__.'/internal/free-resources-registry.json';
+    $referenceRaw=@file_get_contents($referenceFile);
+    $reference=is_string($referenceRaw)?json_decode($referenceRaw,true):null;
+    $referenceOk=is_array($reference)&&($reference['schema']??'')==='operations-free-resources-v1'
+        && count($reference['resources']??[])===30;
+    $freeSourceRegistry=['status'=>$referenceOk?'reference_only':'unavailable',
+        'registeredCandidates'=>$referenceOk?30:null,'verifiedExternalConnections'=>0,
+        'automatedProviderMetrics'=>false,
+        'limitation'=>'External provider results require permissioned, timestamped and independently validated observations.'];
     $queue=array_values(array_filter($reports,fn($r)=>!($r['closed']??false)));
     $priorityOrder=['OP-02','OP-36','OP-03','OP-01','OP-04','OP-05','OP-06','OP-07','OP-08','OP-09','OP-10','OP-11'];
     usort($queue,function($a,$b)use($priorityOrder){$rank=fn($id)=>(($position=array_search($id,$priorityOrder,true))===false?99:$position);return strcmp($a['priority'],$b['priority'])?:($rank($a['id'])<=>$rank($b['id']));});
     return [
-        'schema'=>'operations-reporting-v1','reportingEngine'=>'ENG-13','reportingPeriod'=>[
+        'schema'=>'operations-reporting-v1','reportingEngine'=>'ENG-13','freeSourceRegistry'=>$freeSourceRegistry,'reportingPeriod'=>[
             'releaseSha'=>$snapshot['releaseSha'],'publishedAt'=>$snapshot['publishedAt']??null,'generatedAt'=>$snapshot['checkedAt'],
             'historyScope'=>'Current release; bounded latest 5000 evidence events. Not all-time history.'],
         'engines'=>$engines,'actionReports'=>$actionReports,
