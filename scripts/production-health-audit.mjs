@@ -172,12 +172,12 @@ try{
   // The canonical source may legitimately be ahead of Bertina during recovery.
   try{
     const fs=await import('node:fs');
-    const readLocs=xml=>[...xml.matchAll(/<loc>([^<]+)<\\/loc>/g)].map(m=>m[1].trim());
+    const readLocs=xml=>[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1].trim());
     const sourceIndex=fs.readFileSync('sitemap.xml','utf8');
     const childNames=readLocs(sourceIndex).filter(u=>u.startsWith(ORIGIN+'/')).map(u=>u.slice(ORIGIN.length+1));
     const expected=[];
     for(const name of childNames){
-      if(!/^[a-z0-9-]+\\.xml$/.test(name)||!fs.existsSync(name)) continue;
+      if(!/^[a-z0-9-]+\.xml$/.test(name)||!fs.existsSync(name)) continue;
       expected.push(...readLocs(fs.readFileSync(name,'utf8')).filter(u=>u.startsWith(ORIGIN+'/')));
     }
     const sourceUrls=[...new Set(expected)];
