@@ -361,6 +361,7 @@ function operationsRoute(string $path, string $verb): never {
                 && operationsGithubDispatchToken($configuration)!==null
                 && function_exists('curl_init');
             $source['summary']['dispatchReady']=$ready;
+            $source['summary']['canReconcile']=$super&&operationsActionRunsReady($pdo);
             $history=operationsActionRunsReady($pdo)?operationsActionHistory($pdo,$accountId,nowTs()):[];
             $source['ownerSubmissions']=operationsGithubCorrelatedRuns($source['audits'],$history);
             respond($source);
