@@ -32,14 +32,26 @@
     "previousCommerceStage09TablesPresent": 0,
     "commerceOrdersLegacyColumnsPresent": true
   },
-  "pendingIncludedInOwnerDeclared100": "UNCONFIRMED",
+  "pendingIncludedInOwnerDeclared100": "NOT_APPLICABLE_OWNER_DECLARED_SELF_TEST",
   "outstandingVerifications": [
+    "Owner-declared 100 saleable units per book remains subject to real stock reconciliation before any live stock seed",
+    "Do not count or reserve the owner-declared legacy test order as a real pending book sale",
+    "Verify gateway/provider state for the historic paid-labelled order before any DB cancellation, payment correction or accounting claim",
     "Owner declaration is not a physical stock count signed into the live DB",
-    "Confirm if 100 on-hand includes or excludes the legacy pending book reservation",
-    "Verify the pending gateway transaction state before any historic reservation creation or order cancellation",
     "Do not fabricate Stage09 payment claims for the pre-migration paid non-book order",
     "Verify current private signed recovery gate and 8 additive InnoDB tables before publishing source to Bertina"
   ],
   "productionWritesAuthorizedByThisDocument": false,
-  "releaseApprovedByThisDocument": false
+  "releaseApprovedByThisDocument": false,
+  "ownerClarification": {
+    "receivedOn": "2026-10-13",
+    "ownerStatement": "The displayed book order was a self-test by the owner. Owner reports no money was received from any customer.",
+    "legacyPendingBookOrder": "OWNER_DECLARED_TEST_IGNORE_FOR_SALEABLE_STOCK",
+    "deductPendingBookQuantityFromDeclaredStock": false,
+    "migratePendingBookToNewReservationLedger": false,
+    "recordedPaidState": "DATABASE_RECORD_PRESENT_BUT_OWNER_REPORTS_NO_REAL_CUSTOMER_PAYMENT",
+    "mailboxReview": "Connected Gmail search found no website book-purchase/payment receipt; Bertina payment invoices are separate hosting expenses. Mailbox absence does not independently certify provider/bank settlement.",
+    "deleteOrMutateHistoricOrdersAuthorized": false,
+    "revenueCertified": false
+  }
 }
