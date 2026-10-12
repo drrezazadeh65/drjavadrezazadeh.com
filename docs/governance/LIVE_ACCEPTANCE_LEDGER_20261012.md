@@ -93,3 +93,12 @@ A section may be marked completed only when relevant code is deployed, scoped te
 - Fresh same-day GSC inspection now describes the two remaining new articles as `Discovered - currently not indexed`, rather than `URL is unknown to Google`. No indexation claim for those two.
 
 **Status:** Release safety gate is implemented/tested in source, **not** independently exercised with a real production backup. Final completion remains blocked at authorized private recovery and deployment/money/fulfilment verification.
+
+
+## Guest order/receipt authorization addendum — 2026-10-12
+
+Previous source exposed a paid receipt using solely a UUID in an anonymous status route. Canonical source now issues a per-order private HMAC cookie at checkout/donation creation and denies unauthorized status reads, without modifying real bank callbacks. `tests/bertina-receipt-access.php` checks exact helper behavior on fixture orders; `tests/bertina-receipt-contract.php` covers anonymous rejection; MySQL fixture tests retain callback and receipt checks. [CI 38256011971](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38256011971) passes. This is **source + tests only**, NOT production PII boundary or verified paid revenue. Requirements: section 10 Payment, section 11 Auth object isolation, section 13 Dashboard, section 22 Services, and ENG-05/ENG-07/ENG-11/ENG-13 reporting evidence. Subsequent scope must demonstrate real owner/guest checkout and old receipt recovery safely, but never assert ownership from email alone.
+
+Research hub internal links to the two remaining discovered-not-indexed articles were added in `8f096ed3` and need live promotion plus new official Google URL Inspections. Do not infer indexing from links.
+
+Open PRs #25, #26, #35, #50 and #56 remain pending individual safe reconciliation; no merges were carried out. Source checkouts and sensitive backup key are not available through this chat's GitHub API connection. Release/signing block persists.
