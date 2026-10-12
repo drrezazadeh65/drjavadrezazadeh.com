@@ -19,6 +19,7 @@ function runPolicy(robotsText,discoveryText=llms){
       if(path.basename(file)==='robots.txt') return robotsText;
       if(path.basename(file)==='llms.txt') return discoveryText;
       if(path.basename(file)==='ecosystem-registry.json') return fs.readFileSync(file,'utf8');
+      if(path.resolve(file)===path.join(root,'journal/index.html')) return fs.readFileSync(file,'utf8');
       throw new Error('Unexpected audit input: '+file);
     }},
     path,URL,
