@@ -1,0 +1,447 @@
+{
+  "schema": "free-resource-inventory-v1",
+  "date": "2026-10-12",
+  "canonical_branch": "migration/bertina-linux6",
+  "scope": "Catalog of candidate no-mandatory-paid-subscription resources; not a second SEO engine or operational action registry.",
+  "authority": "Reference only. No network requests, installs, background jobs, tracking, publishing, or provider activation are authorized by this file.",
+  "classification_note": "Existing coverage paths name related in-repository checks, not a live integration with the named external provider. Source presence is not production evidence.",
+  "cost_note": "Availability, free quotas, legal eligibility and API terms must be reverified before use. Trial-only subscriptions and WordPress-only plugins are excluded.",
+  "privacy_note": "No secret, personal data, research record, payment information or student data may be sent to a new provider without a separate reviewed authorization.",
+  "reporting": {
+    "data_source": "STATIC_SOURCE_INVENTORY",
+    "live_metrics": "UNAVAILABLE",
+    "false_completion_prohibited": true,
+    "owner_engines": [
+      "ENG-01",
+      "ENG-02",
+      "ENG-03",
+      "ENG-05",
+      "ENG-06",
+      "ENG-10",
+      "ENG-11",
+      "ENG-13"
+    ],
+    "existing_control_center": "api/operations-reporting.php",
+    "no_dashboard_replacement": true
+  },
+  "resources": [
+    {
+      "id": "microsoft-clarity",
+      "name": "Microsoft Clarity",
+      "official_url": "https://clarity.microsoft.com/",
+      "category": "GROWTH",
+      "owner_engine": "ENG-03",
+      "access_path": "ACCOUNT_SETUP_REQUIRED",
+      "purpose": "Visitor behavior analytics; privacy and consent approval required.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/analytics-contract-audit.mjs"
+      ]
+    },
+    {
+      "id": "google-trends",
+      "name": "Google Trends",
+      "official_url": "https://trends.google.com/",
+      "category": "GROWTH",
+      "owner_engine": "ENG-01",
+      "access_path": "MANUAL_REFERENCE",
+      "purpose": "Search topic and interest exploration.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "platform/seo-intent-registry.json"
+      ]
+    },
+    {
+      "id": "google-alerts",
+      "name": "Google Alerts",
+      "official_url": "https://www.google.com/alerts",
+      "category": "GROWTH",
+      "owner_engine": "ENG-03",
+      "access_path": "ACCOUNT_SETUP_REQUIRED",
+      "purpose": "Mentions of the brand, publications and research.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": []
+    },
+    {
+      "id": "google-tag-manager",
+      "name": "Google Tag Manager",
+      "official_url": "https://tagmanager.google.com/",
+      "category": "GROWTH",
+      "owner_engine": "ENG-03",
+      "access_path": "ACCOUNT_SETUP_REQUIRED",
+      "purpose": "Tag governance, subject to consent and existing GA4 adapter.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "assets/js/analytics-adapter.js"
+      ]
+    },
+    {
+      "id": "looker-studio",
+      "name": "Google Looker Studio",
+      "official_url": "https://lookerstudio.google.com/",
+      "category": "GROWTH",
+      "owner_engine": "ENG-13",
+      "access_path": "ACCOUNT_SETUP_REQUIRED",
+      "purpose": "Manual dashboard across verified data sources.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "docs/OPERATIONS_CONTROL_CENTER.md"
+      ]
+    },
+    {
+      "id": "yandex-webmaster",
+      "name": "Yandex Webmaster",
+      "official_url": "https://webmaster.yandex.com/",
+      "category": "GROWTH",
+      "owner_engine": "ENG-01",
+      "access_path": "ACCOUNT_SETUP_REQUIRED",
+      "purpose": "Search engine site verification and index coverage.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/seo-regression.mjs"
+      ]
+    },
+    {
+      "id": "uptimerobot",
+      "name": "UptimeRobot",
+      "official_url": "https://uptimerobot.com/",
+      "category": "GROWTH",
+      "owner_engine": "ENG-11",
+      "access_path": "ACCOUNT_SETUP_REQUIRED",
+      "purpose": "Independent uptime alerts; no account or monitor verified.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/production-health-audit.mjs"
+      ]
+    },
+    {
+      "id": "google-merchant-center",
+      "name": "Google Merchant Center",
+      "official_url": "https://merchants.google.com/",
+      "category": "GROWTH",
+      "owner_engine": "ENG-05",
+      "access_path": "CONDITIONAL_ELIGIBILITY",
+      "purpose": "Optional free product listings if country, product and merchant policies permit.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "platform/book-catalog.json"
+      ]
+    },
+    {
+      "id": "lighthouse-ci",
+      "name": "Lighthouse CI",
+      "official_url": "https://github.com/GoogleChrome/lighthouse-ci",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-10",
+      "access_path": "CI_OPEN_SOURCE_CANDIDATE",
+      "purpose": "Optional mobile/performance regression CI; not installed.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/performance-source-audit.mjs"
+      ]
+    },
+    {
+      "id": "chrome-ux-report",
+      "name": "Chrome UX Report",
+      "official_url": "https://developer.chrome.com/docs/crux/",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-10",
+      "access_path": "READ_API_CANDIDATE",
+      "purpose": "Real user Core Web Vitals when origin has sufficient data.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/performance-source-audit.mjs"
+      ]
+    },
+    {
+      "id": "w3c-html-validator",
+      "name": "W3C HTML Validator",
+      "official_url": "https://validator.w3.org/nu/",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-10",
+      "access_path": "MANUAL_REFERENCE",
+      "purpose": "HTML conformance checks.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/seo-regression.mjs"
+      ]
+    },
+    {
+      "id": "w3c-css-validator",
+      "name": "W3C CSS Validator",
+      "official_url": "https://jigsaw.w3.org/css-validator/",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-10",
+      "access_path": "MANUAL_REFERENCE",
+      "purpose": "CSS conformance checks.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/design-regression.mjs"
+      ]
+    },
+    {
+      "id": "w3c-internationalization",
+      "name": "W3C Internationalization Checker",
+      "official_url": "https://validator.w3.org/i18n-checker/",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-10",
+      "access_path": "MANUAL_REFERENCE",
+      "purpose": "Internationalisation and language direction checks.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/seo-regression.mjs"
+      ]
+    },
+    {
+      "id": "w3c-link-checker",
+      "name": "W3C Link Checker",
+      "official_url": "https://validator.w3.org/checklink",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-01",
+      "access_path": "MANUAL_REFERENCE",
+      "purpose": "Optional external link checks.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/external-link-audit.mjs"
+      ]
+    },
+    {
+      "id": "schema-org-validator",
+      "name": "Schema.org Validator",
+      "official_url": "https://validator.schema.org/",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-01",
+      "access_path": "MANUAL_REFERENCE",
+      "purpose": "Structured data verification.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/structured-url-audit.mjs"
+      ]
+    },
+    {
+      "id": "wave",
+      "name": "WAVE",
+      "official_url": "https://wave.webaim.org/",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-10",
+      "access_path": "MANUAL_REFERENCE",
+      "purpose": "Manual accessibility diagnostics; do not assume a free API.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/accessibility-source-audit.mjs"
+      ]
+    },
+    {
+      "id": "accessibility-insights",
+      "name": "Accessibility Insights",
+      "official_url": "https://accessibilityinsights.io/",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-10",
+      "access_path": "MANUAL_REFERENCE",
+      "purpose": "Manual keyboard and accessibility testing.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/accessibility-source-audit.mjs"
+      ]
+    },
+    {
+      "id": "axe-core",
+      "name": "axe-core",
+      "official_url": "https://github.com/dequelabs/axe-core",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-10",
+      "access_path": "CI_OPEN_SOURCE_CANDIDATE",
+      "purpose": "Candidate open-source automated accessibility testing; not installed.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/accessibility-source-audit.mjs"
+      ]
+    },
+    {
+      "id": "mozilla-observatory",
+      "name": "Mozilla HTTP Observatory",
+      "official_url": "https://observatory.mozilla.org/",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-11",
+      "access_path": "MANUAL_REFERENCE",
+      "purpose": "HTTP security configuration reference; provider availability requires recheck.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/production-health-audit.mjs"
+      ]
+    },
+    {
+      "id": "qualys-ssl-labs",
+      "name": "Qualys SSL Labs",
+      "official_url": "https://www.ssllabs.com/ssltest/",
+      "category": "TECHNICAL",
+      "owner_engine": "ENG-11",
+      "access_path": "MANUAL_REFERENCE",
+      "purpose": "Manual independent TLS diagnostics.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        ".github/workflows/bertina-tls-diagnostic.yml"
+      ]
+    },
+    {
+      "id": "crossref",
+      "name": "Crossref",
+      "official_url": "https://www.crossref.org/",
+      "category": "SCHOLARLY",
+      "owner_engine": "ENG-06",
+      "access_path": "READ_API_CANDIDATE",
+      "purpose": "Read publication and DOI metadata; verify accuracy and reuse terms.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "platform/public-entity-registry.json"
+      ]
+    },
+    {
+      "id": "datacite",
+      "name": "DataCite",
+      "official_url": "https://datacite.org/",
+      "category": "SCHOLARLY",
+      "owner_engine": "ENG-06",
+      "access_path": "READ_API_CANDIDATE",
+      "purpose": "Discover dataset and scholarly DOI metadata.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "platform/public-entity-registry.json"
+      ]
+    },
+    {
+      "id": "opencitations",
+      "name": "OpenCitations",
+      "official_url": "https://opencitations.net/",
+      "category": "SCHOLARLY",
+      "owner_engine": "ENG-06",
+      "access_path": "READ_API_CANDIDATE",
+      "purpose": "Read open citation links subject to service limits.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "platform/public-entity-registry.json"
+      ]
+    },
+    {
+      "id": "semantic-scholar",
+      "name": "Semantic Scholar",
+      "official_url": "https://www.semanticscholar.org/",
+      "category": "SCHOLARLY",
+      "owner_engine": "ENG-06",
+      "access_path": "READ_API_CANDIDATE",
+      "purpose": "Research discovery and bibliographic links.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "platform/public-entity-registry.json"
+      ]
+    },
+    {
+      "id": "openalex",
+      "name": "OpenAlex",
+      "official_url": "https://openalex.org/",
+      "category": "SCHOLARLY",
+      "owner_engine": "ENG-06",
+      "access_path": "READ_API_CANDIDATE",
+      "purpose": "Read open research metadata subject to current API policy.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "platform/public-entity-registry.json"
+      ]
+    },
+    {
+      "id": "ror",
+      "name": "Research Organization Registry",
+      "official_url": "https://ror.org/",
+      "category": "SCHOLARLY",
+      "owner_engine": "ENG-06",
+      "access_path": "READ_API_CANDIDATE",
+      "purpose": "Validate institutional identity and affiliations.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "platform/public-entity-registry.json"
+      ]
+    },
+    {
+      "id": "orcid",
+      "name": "ORCID",
+      "official_url": "https://orcid.org/",
+      "category": "SCHOLARLY",
+      "owner_engine": "ENG-06",
+      "access_path": "ACCOUNT_SETUP_REQUIRED",
+      "purpose": "Author identifier links; API use governed by current terms.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "platform/public-entity-registry.json"
+      ]
+    },
+    {
+      "id": "zenodo",
+      "name": "Zenodo",
+      "official_url": "https://zenodo.org/",
+      "category": "SCHOLARLY",
+      "owner_engine": "ENG-06",
+      "access_path": "MANUAL_REFERENCE",
+      "purpose": "Repository deposit reference; deposit requires author rights and explicit action.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "platform/public-entity-registry.json"
+      ]
+    },
+    {
+      "id": "doaj",
+      "name": "DOAJ",
+      "official_url": "https://doaj.org/",
+      "category": "SCHOLARLY",
+      "owner_engine": "ENG-06",
+      "access_path": "READ_API_CANDIDATE",
+      "purpose": "Open access journal directory for cautious journal research.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "platform/public-entity-registry.json"
+      ]
+    },
+    {
+      "id": "common-crawl",
+      "name": "Common Crawl",
+      "official_url": "https://commoncrawl.org/",
+      "category": "SCHOLARLY",
+      "owner_engine": "ENG-02",
+      "access_path": "READ_API_CANDIDATE",
+      "purpose": "Open crawl corpus research; not a ranking or AI citation signal.",
+      "external_connection": "UNVERIFIED",
+      "automated_data_in_use": false,
+      "existing_coverage_paths": [
+        "scripts/ai-crawler-policy-audit.mjs"
+      ]
+    }
+  ]
+}
