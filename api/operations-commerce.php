@@ -77,6 +77,37 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         $missingEmail=(int)$pdo->query("SELECT COUNT(*) FROM commerce_orders
             WHERE state='paid' AND receipt_email_sent_at IS NULL AND customer_email IS NOT NULL
               AND customer_email<>''")->fetchColumn();
+        // Bounded owner-only service worklist, not a financial settlement
+        // record. Never SELECT email, customer_json, addresses or private notes.
+        // The visible order UUID is an internal case reference, not a public link.
+        $activeStates="'awaiting_contact','scheduling','booked','in_progress'";
+        $openCases=(int)$pdo->query("SELECT COUNT(*) FROM commerce_service_cases
+            WHERE status IN (".$activeStates.")")->fetchColumn();
+        $queueRows=$pdo->query("SELECT sc.order_id,sc.sku,sc.status,sc.created_at,
+                o.state AS order_state,o.provider_trans_id,o.provider_amount,
+                c.transaction_id AS claim_transaction,c.verified_amount AS claim_amount
+            FROM commerce_service_cases sc
+            JOIN commerce_orders o ON o.id=sc.order_id
+            LEFT JOIN commerce_payment_claims c
+                ON c.order_id=o.id AND c.provider='bitpay'
+            WHERE sc.status IN (".$activeStates.")
+            ORDER BY sc.created_at ASC,sc.order_id ASC,sc.sku ASC
+            LIMIT 50")->fetchAll();
+        $actionQueue=[];
+        foreach ($queueRows as $row) {
+            $claimMatched=$row['order_state']==='paid'
+                && $row['claim_transaction']!==null
+                && (string)$row['claim_transaction']===(string)$row['provider_trans_id']
+                && (string)$row['claim_amount']===(string)$row['provider_amount'];
+            $actionQueue[]=[
+                'orderId'=>(string)$row['order_id'],
+                'sku'=>(string)$row['sku'],
+                'status'=>(string)$row['status'],
+                'createdAt'=>(string)$row['created_at'],
+                'orderPaidState'=>(string)$row['order_state']==='paid',
+                'providerClaimMatchesOrder'=>$claimMatched
+            ];
+        }
         $snapshot['available']=true;
         $snapshot['reason']=null;
         $snapshot['orders']=[
@@ -100,7 +131,12 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         $snapshot['fulfilment']=[
             'serviceCaseStates'=>$service,
             'parcelStates'=>$parcels,
-            'proofOfDelivery'=>'not_observed'
+            'proofOfDelivery'=>'not_observed',
+            'activeServiceCaseCount'=>$openCases,
+            'serviceActionQueue'=>$actionQueue,
+            'queueLimit'=>50,
+            'queueTruncated'=>$openCases>count($actionQueue),
+            'limitation'=>'Provider claim equality does not prove bank settlement, customer contact, booking or delivery.'
         ];
         $snapshot['notifications']=[
             'outboxStates'=>$outbox,
