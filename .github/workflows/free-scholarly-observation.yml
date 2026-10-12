@@ -47,7 +47,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
       - name: Publish only the sanitized evidence into canonical source
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         run: |
           set -euo pipefail
           cp api/internal/free-scholar-observation.json /tmp/free-scholar-observation.json
