@@ -124,6 +124,10 @@ $legacy='11111111-1111-4111-8111-111111111180';
 pendingOrder($pdo,$legacy,'unreconciled-historical','service:academic_consult_60');
 $pdo->prepare("UPDATE commerce_orders SET state='paid',provider_trans_id='191919',
  paid_at=NOW(),customer_email=? WHERE id=?")->execute([$privateEmail,$legacy]);
+// An old paid-state row might have a fulfilment case without a matching
+// authenticated Stage09 provider claim. Preserve the work item but flag it.
+$pdo->prepare("INSERT INTO commerce_service_cases(order_id,sku,status)
+ VALUES(?,'service:academic_consult_60','awaiting_contact')")->execute([$legacy]);
 $beforeSnapshot=operationsCommerceSnapshot($pdo,time());
 checkStage9($beforeSnapshot['available']===true&&$beforeSnapshot['providerBankSettlementVerified']===null,
  'owner_commerce_snapshot_readonly_no_bank_certification');
@@ -137,8 +141,27 @@ checkStage9(($beforeSnapshot['notifications']['paidOrderRowsWithoutReceiptEmailT
  'owner_commerce_snapshot_missing_mail_timestamp_is_not_delivery_claim');
 $serialized=json_encode($beforeSnapshot);
 checkStage9(is_string($serialized)&&!str_contains($serialized,$privateEmail)&&
- !str_contains($serialized,$legacy)&&!str_contains($serialized,$id),
- 'owner_commerce_snapshot_never_exposes_customer_order_identifiers');
+ !str_contains($serialized,'customer_email')&&!str_contains($serialized,'customer_json'),
+ 'owner_commerce_snapshot_never_exposes_customer_personal_details');
+$worklist=$beforeSnapshot['fulfilment'];
+checkStage9(($worklist['activeServiceCaseCount']??0)===2 &&
+ count($worklist['serviceActionQueue']??[])===2,
+ 'owner_service_worklist_shows_real_pending_cases');
+$caseProof=[];
+foreach($worklist['serviceActionQueue'] as $case)$caseProof[$case['orderId']]=$case['providerClaimMatchesOrder'];
+checkStage9(($caseProof[$id]??false)===true &&
+ ($caseProof[$legacy]??true)===false,
+ 'owner_service_worklist_distinguishes_claim_matched_from_legacy_unverified');
+checkStage9(($worklist['queueTruncated']??true)===false &&
+ ($worklist['queueLimit']??0)===50,
+ 'owner_service_worklist_bounded_metadata_reported');
+$caseInsert=$pdo->prepare("INSERT INTO commerce_service_cases(order_id,sku,status)
+ VALUES(?,?,'awaiting_contact')");
+for($i=0;$i<54;$i++)$caseInsert->execute([$legacy,'service:test-'.str_pad((string)$i,2,'0',STR_PAD_LEFT)]);
+$bounded=operationsCommerceSnapshot($pdo,time())['fulfilment'];
+checkStage9(($bounded['activeServiceCaseCount']??null)===56 &&
+ count($bounded['serviceActionQueue']??[])===50 && $bounded['queueTruncated']===true,
+ 'owner_service_worklist_caps_at_fifty_without_losing_count');
 $pdo->exec("UPDATE commerce_book_stock SET reserved=0 WHERE sku='book:race'");
 $driftSnapshot=operationsCommerceSnapshot($pdo,time());
 checkStage9(($driftSnapshot['stock']['ledgerDiscrepancies']??null)===1,
@@ -146,5 +169,6 @@ checkStage9(($driftSnapshot['stock']['ledgerDiscrepancies']??null)===1,
 $pdo->exec("UPDATE commerce_book_stock SET reserved=1 WHERE sku='book:race'");
 checkStage9(stage9BookStockReady($pdo),
  'isolated_stock_restored_without_inventory_reseed');
+$pdo->prepare('DELETE FROM commerce_service_cases WHERE order_id=?')->execute([$legacy]);
 $pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$legacy]);
 echo "Stage09 MySQL8 multi-process acceptance passed (CI only, no bank/physical inventory evidence).\n";
