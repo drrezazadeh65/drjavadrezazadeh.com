@@ -26,7 +26,14 @@ $add('private_storage', $outside && is_writable($storage), 'Writable private man
 $add('verified_mail', getenv('JHELA_SMTP_DELIVERY_VERIFIED') === 'true', 'Recipient-confirmed real SMTP delivery');
 $add('backup_restore', getenv('JHELA_BACKUP_RESTORE_VERIFIED') === 'true', 'Encrypted recovery tested');
 $add('authorization_tests', getenv('JHELA_ROLE_SECURITY_TESTS_PASSED') === 'true', 'Private-file access and RBAC tests passed');
-$add('ojs_installed', getenv('JHELA_OJS_INSTALL_VERIFIED') === 'true', 'Installed OJS independently verified');
+// A private operator flag alone is insufficient to certify an installed journal.
+$ojsConfigPath = (string)getenv('JHELA_OJS_CONFIG_FILE');
+$ojsConfig = $ojsConfigPath !== '' && is_file($ojsConfigPath) && is_readable($ojsConfigPath)
+    ? @file_get_contents($ojsConfigPath, false, null, 0, 131072) : false;
+$configInstalled = is_string($ojsConfig) && preg_match('/^\\s*installed\\s*=\\s*(?:On|true|1)\\s*(?:[;#].*)?$/im', $ojsConfig) === 1;
+$add('ojs_configuration', $configInstalled, 'Existing OJS installation configuration declares installed; not sufficient alone');
+$add('ojs_installed', $configInstalled && getenv('JHELA_OJS_INSTALL_VERIFIED') === 'true', 'Installed OJS independently verified');
+
 $add('editorial_e2e', getenv('JHELA_EDITORIAL_E2E_PASSED') === 'true', 'Complete private sandbox editorial round trip verified');
 $pass = !in_array(false, array_column($checks, 'pass'), true);
 echo json_encode(['application'=>'JHELA','probe'=>'ojs_preflight_v1','ready_for_public_submission'=>$pass,'checks'=>$checks], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
