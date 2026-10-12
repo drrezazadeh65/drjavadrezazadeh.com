@@ -1,0 +1,223 @@
+{
+  "schema": "website-source-archives-v1",
+  "recordedAt": "2026-10-12T08:23:01.097663+00:00",
+  "canonicalRepository": "drrezazadeh65/drjavadrezazadeh.com",
+  "canonicalBranch": "migration/bertina-linux6",
+  "canonicalCheckout": "/workspace/drjavadrezazadeh.com",
+  "accessibleGithubWebsiteRepositories": 1,
+  "otherGithubRepositoriesArchived": 0,
+  "reason": "Only the canonical repository is exposed by the current GitHub connection; reviewed copies are local repositories/checkouts of this site",
+  "archivedLocalCheckouts": 17,
+  "checkouts": [
+    {
+      "path": "/workspace/drjavadrezazadeh.com",
+      "head": "0273e4e1f7e7d9c50a489419a41168450a03c91e",
+      "fileCount": 38,
+      "archiveSha256": "70009428ca4e52f593a311c1663284af3269e12c42cc14b815361a2e89843b19",
+      "payloadReadbackVerified": true,
+      "status": "active-canonical-checkout",
+      "mayDevelop": true,
+      "mayDeploy": true
+    },
+    {
+      "path": "/workspace/work/auth-mail-current",
+      "head": "d051dcc1ba8890c29fa04dc1b3c77efc8c35337a",
+      "fileCount": 24,
+      "archiveSha256": "be13ff85708f62ea600d5cdca08a26188718bed0c47c18ab4b0b60df44d9a02e",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/auth-mail-fresh",
+      "head": "5e9b111ac25987c2b00ce87ffba65c50006bd62d",
+      "fileCount": 5,
+      "archiveSha256": "1afa1f5f201faf65290647a0e3de1530810b794fa1c7bec1de17b825d5b3dbbd",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/consolidation-db-pipeline-20261011/repo",
+      "head": "5bcd67fa45cd15e94fc8ad3e9e3f928ad6b7fa19",
+      "fileCount": 27,
+      "archiveSha256": "ac29013ecf017c17edb1d3543d80dceb2dd4f977398d093a7dd063edeae7910d",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/consolidation-main-20261011/browser-proposal",
+      "head": "5bcd67fa45cd15e94fc8ad3e9e3f928ad6b7fa19",
+      "fileCount": 125,
+      "archiveSha256": "a19b96dc9234fc278939864d031dd2b43965fd68114979d4a487d579649255a5",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/current-control-social",
+      "head": "1135ed5461a43aecc0482624493f3be981846c10",
+      "fileCount": 5,
+      "archiveSha256": "37d37fe6f55a6fa237c59d8e41fc6266fc76fc58cece7e40bb1a1c2ffbe6e844",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/current-production-review",
+      "head": "1cfeb14e5eb07cae5e2261ccf6540a39a2fa7e9b",
+      "fileCount": 3,
+      "archiveSha256": "8d387f0089358fb6f5da2a2f5efd8e612484967bca34e578a652341a607d1efe",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/foundation-admin-view-proposal/repo",
+      "head": "d051dcc1ba8890c29fa04dc1b3c77efc8c35337a",
+      "fileCount": 9,
+      "archiveSha256": "dfac160d2c475331709eabdd551c7e2998426f4eb23a9195a6a2eb43bb3ea26d",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/foundation-grounded",
+      "head": "d051dcc1ba8890c29fa04dc1b3c77efc8c35337a",
+      "fileCount": 17,
+      "archiveSha256": "cec35decad8546145918d815a34ca2658c018c56bd982f54ec4bed8a0f19726f",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/latest-auth-reconciliation/snapshot",
+      "head": "d051dcc1ba8890c29fa04dc1b3c77efc8c35337a",
+      "fileCount": 0,
+      "archiveSha256": "12a3267d99340f238d1b0501b25fc28cf0952bf2bb016683ee6b395dda8e8abd",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/private-backup-source-20261012",
+      "head": "5bcd67fa45cd15e94fc8ad3e9e3f928ad6b7fa19",
+      "fileCount": 0,
+      "archiveSha256": "625840a6fb0ad3a5ff77fd3a9cc6a7785caa4977ba112739c23d5c5983eb9855",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/shared-handoff-20261012",
+      "head": "d3fe0ac61f1d4485ab16100344af91f7c3173537",
+      "fileCount": 202,
+      "archiveSha256": "54e1bc461805bc98d0297b4f9abcff346193129794185da29729d55a8f85b5fb",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/unified-control-center",
+      "head": "01530db62ebbc6d5681c64f09a31f896da1c2c5a",
+      "fileCount": 0,
+      "archiveSha256": "3733fca2d3aca07a01d2d39e982d9bfd2799546e3eb3261d57b8fb5f5fb8398c",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/unified-source-20261011",
+      "head": "5bcd67fa45cd15e94fc8ad3e9e3f928ad6b7fa19",
+      "fileCount": 186,
+      "archiveSha256": "8d47d8cf35637d0ee83ea85e3a9a29c6315ca19c230d1afcbeba728f0e574eb2",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/consolidation-main-20261011/patch-review-repo",
+      "head": "f725eae8480202216552d3592b97499741fc560d",
+      "fileCount": 125,
+      "archiveSha256": "607f977fcf493c0e39b3e30cdc7e10b3b340fd6b5fda75932d5f73825e8f76f7",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/social-distribution-review/repo",
+      "head": "749a7e20f6de78afdaedb96e5e5b4ce2fd125fdb",
+      "fileCount": 0,
+      "archiveSha256": "c744308cd27da02f2d7a91b3895e553fb9fe7b8e968eb8077758e0a21b21c0b8",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/social-distribution-review/proposal",
+      "head": "d051dcc1ba8890c29fa04dc1b3c77efc8c35337a",
+      "fileCount": 18,
+      "archiveSha256": "5ffbd59630affd812ecc0e555fae7c1915627b7421ed5de89cb6d60adbfd13b3",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    },
+    {
+      "path": "/workspace/work/consolidation-foundation-review-20261011/repo",
+      "head": "5bcd67fa45cd15e94fc8ad3e9e3f928ad6b7fa19",
+      "fileCount": 10,
+      "archiveSha256": "52cc7b08f509b68ae9e08225b1043c99f2f49e452994b5a1492bfb4aec89a57e",
+      "payloadReadbackVerified": true,
+      "status": "archived-reference-source-read-only",
+      "mayDevelop": false,
+      "mayDeploy": false
+    }
+  ],
+  "additionalProposalAreas": [
+    "social_php_queue_proposal",
+    "consolidation-private-backup-20261011",
+    "tls-evidence-executor-proposal",
+    "pre-reconciliation-draft",
+    "commerce_review",
+    "canonical_registry",
+    "engine_reporting",
+    "release_governance"
+  ],
+  "recovery": {
+    "privateSourceSnapshotSha256": "75c4776100da445d2938da980183049267d99e37bbf895018c6ab985884c4c0d",
+    "sourceSnapshotBytes": 8285780,
+    "privateDriveSourceActualDownloadVerified": true,
+    "independentGitHistoriesLocallyRestoredAndFsckChecked": 4,
+    "oldWorktreeNamingCollisionSupersededByPathDerivedArchiveIds": true,
+    "privateArchiveContentsNeverCommitted": true,
+    "notAProductionMysqlBackup": true,
+    "noSourceContentDiscarded": true,
+    "obsoleteCheckoutFilesReplacedOnlyAfterVerifiedRecovery": true,
+    "canonicalGitHistoryPrivateDriveDownloadVerified": true,
+    "canonicalGitBundleSha256": "4f989b72649b4bc05fbf9289a1dd25c7919437d54e6a3c71e662417af8114716"
+  },
+  "historicalRemoteBranches": {
+    "status": "preserved-reference-only",
+    "onlyWritableDevelopmentTarget": "migration/bertina-linux6",
+    "technicalGithubArchiveFlagForBranches": "not_applicable",
+    "branchesDeleted": 0
+  },
+  "pendingIntegratedSource": "200 prepared source files preserved in the active canonical checkout; individual acceptance and live publication remain pending"
+}

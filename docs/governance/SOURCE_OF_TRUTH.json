@@ -1,0 +1,37 @@
+{
+  "schema": "website-single-development-source-v1",
+  "ownerAuthorizedAt": "2026-10-12",
+  "repository": "drrezazadeh65/drjavadrezazadeh.com",
+  "canonicalBranch": "migration/bertina-linux6",
+  "siteOrigin": "https://drjavadrezazadeh.com",
+  "productionHosting": "Bertina Linux PHP/MySQL/domain email",
+  "developmentSourceCount": 1,
+  "allAuthorizedChatsAndCodexMustUseThisSource": true,
+  "allowAdditionalDevelopmentRepositories": false,
+  "allowAdditionalDevelopmentBranches": false,
+  "allowParallelApplicationFolders": false,
+  "archivePolicy": "historical-reference-and-recovery-only; preserve all source; no development/deployment from archived copies",
+  "resumeProtocol": [
+    "Fetch latest canonical HEAD",
+    "Read canonical AGENTS.md and source/archive records",
+    "Inspect current commits, CI, open work and actual live release before editing",
+    "Continue only remaining validated gaps; preserve latest designs, SEO, approved prices/media and private state",
+    "Write reviewable evidence-backed commits on the same canonical source; recheck fresh HEAD and serialize deployment"
+  ],
+  "localEvidence": {
+    "observedAt": "2026-10-12T08:23:01.097663+00:00",
+    "checkout": "/workspace/drjavadrezazadeh.com",
+    "activeBranch": "migration/bertina-linux6",
+    "fetchAndPushSource": "migration/bertina-linux6",
+    "remoteTrackingHead": "origin/migration/bertina-linux6"
+  },
+  "githubDefaultBranch": {
+    "desired": "migration/bertina-linux6",
+    "lastObserved": "main",
+    "changeStatus": "blocked_forbidden",
+    "reason": "GitHub settings PATCH returned Forbidden; available connected GitHub tools do not expose repository-settings writes",
+    "noClaimOfSuccessfulRemoteDefaultChange": true
+  },
+  "archives": "docs/governance/ARCHIVED_SOURCES_20261012.json",
+  "pendingWork": "docs/governance/EXECUTION_HANDOFF_20261012.md"
+}

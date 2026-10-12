@@ -1,0 +1,367 @@
+{
+  "schema": "canonical-local-pending-source-v2",
+  "canonicalRepository": "drrezazadeh65/drjavadrezazadeh.com",
+  "canonicalBranch": "migration/bertina-linux6",
+  "canonicalCheckout": "/workspace/drjavadrezazadeh.com",
+  "baseCommit": "3a538a0ad1f0e3c6bf9428ead2eba2b75ab3d40b",
+  "observedAt": "2026-10-12T08:29:37.375947+00:00",
+  "notDeployed": true,
+  "privateSourceRecoverySnapshotSha256": "75c4776100da445d2938da980183049267d99e37bbf895018c6ab985884c4c0d",
+  "files": [
+    {
+      "path": ".github/workflows/bertina-autossl.yml",
+      "sha256": "a6b1efe0ec39cb2ca81c82c41e72ac9a543f465e0339423adab7b0daeb563a51",
+      "bytes": 4868
+    },
+    {
+      "path": ".github/workflows/bertina-commerce-schema-migrate.yml",
+      "sha256": "b8647be946fa10867a8c59bada35e1fe21e9672854feb13badd10ff8504f9436",
+      "bytes": 5146
+    },
+    {
+      "path": ".github/workflows/bertina-ftps-data-diagnostic.yml",
+      "sha256": "e1d4396b7f6e6f863799aa27e1cc3470ce2c713630bd2f03e712eafc72a9c46d",
+      "bytes": 3287
+    },
+    {
+      "path": ".github/workflows/bertina-one-time-email-proof.yml",
+      "sha256": "fd212adb64a87538a670b7176aeef16f057f57c2ebcb51fbb475751c9ef26026",
+      "bytes": 5389
+    },
+    {
+      "path": ".github/workflows/bertina-php-cache-diagnostic.yml",
+      "sha256": "724780b68a1c0ea6cfb3e9df1144ac4faa46af229a4b689a9b88606b29950a81",
+      "bytes": 5291
+    },
+    {
+      "path": ".github/workflows/bertina-private-backup.yml",
+      "sha256": "8f128d29d399d197cbaee8dc8ad8ffaabdc6a07c239214a73819117514b5de10",
+      "bytes": 2892
+    },
+    {
+      "path": ".github/workflows/deploy-bertina.yml",
+      "sha256": "d370bb8005e0c1888becfabb73f3342685c19ab1f770ed550f0dabb08b8f7325",
+      "bytes": 28785
+    },
+    {
+      "path": ".github/workflows/operations-control-center.yml",
+      "sha256": "f18156896e3ad49ae9d19d30b9a4024dc0f52b441f4f315d8381e470fb11a6a8",
+      "bytes": 4874
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "82819efbabd6a066155f505e3e8598a7be1c3bba658719140ae23f189d0f5684",
+      "bytes": 8518
+    },
+    {
+      "path": "README.md",
+      "sha256": "a8f916e648d6fa202bcc18692515cef7921f4e345a9090001c8265e53899d9ad",
+      "bytes": 3416
+    },
+    {
+      "path": "api/.htaccess",
+      "sha256": "5f0ab5f63c9dd335297f37f1658fbb4d0c2b6b0994d84d1bdcdbdbd75f078d29",
+      "bytes": 717
+    },
+    {
+      "path": "api/deployment-schema.php",
+      "sha256": "e3571430844125f92d1f3f2ed8f48264b1132dbc0db9fda23993fb385c114dd9",
+      "bytes": 4893
+    },
+    {
+      "path": "api/internal/bertina-runtime-schema-v1.json",
+      "sha256": "f6415860290d00fdc385a11a8e9210ba414f5b077e26912b614c105495cd02aa",
+      "bytes": 9623
+    },
+    {
+      "path": "api/internal/ecosystem-report-original-20261011.md",
+      "sha256": "6cb5eff470bce1068528bcb0237feb0c82d122c781111ff0048bda4686f6b911",
+      "bytes": 36335
+    },
+    {
+      "path": "api/internal/ecosystem-source-manifest-v1.json",
+      "sha256": "920bebb413994d95a95e7ba8fd50a432e84dd101c439bfd9e78e1d1b87c4546a",
+      "bytes": 128163
+    },
+    {
+      "path": "api/operations-foundation.php",
+      "sha256": "98821b8bda2333e3fa99f4c04e02005804d4b0e046f84c58b6b1aabc23ca2df4",
+      "bytes": 8002
+    },
+    {
+      "path": "api/operations-schema.php",
+      "sha256": "27eca11bcc1a2e75e1792da9c5fd5b032362b5efb3f7b0fd43bd5d1224a1c010",
+      "bytes": 15426
+    },
+    {
+      "path": "api/operations.php",
+      "sha256": "863acfbd1e46f6fc2e7d667cc066c45546b1bd6709a368a5b48725313aaea7be",
+      "bytes": 27182
+    },
+    {
+      "path": "assets/css/admin-engine-dashboard.css",
+      "sha256": "c1df45b804cc7fa3b0d9f404b5f2ab48d0bdfdc238b9e2150eac53d962ab025f",
+      "bytes": 3680
+    },
+    {
+      "path": "assets/css/operations-control.css",
+      "sha256": "a0d5babec4f9cd15236d472d7ce9990173d85cc7802f22bedf5115bee8e10b91",
+      "bytes": 5541
+    },
+    {
+      "path": "assets/data/operations-public-catalog.json",
+      "sha256": "a3851ccb510abd59583fe1e91c655800c5742dc7277bb93d537cefe809c5f50f",
+      "bytes": 7992
+    },
+    {
+      "path": "assets/js/operations-control.js",
+      "sha256": "20b220a363c4c1865ccdbf453aa0c1d9716d0ec52204f8f0abac72ba12b66e92",
+      "bytes": 43274
+    },
+    {
+      "path": "assets/js/operations-public-preview.js",
+      "sha256": "d644d5c6fd9be4273cba5e83e5e414dda4deda4c98167e41a32fd947344cf520",
+      "bytes": 6046
+    },
+    {
+      "path": "assets/release-v4.4.json",
+      "sha256": "8432748dbf96c3fcb66a645eefb545e5facf240cfa21c56781bb510c5a9e3a4b",
+      "bytes": 1775
+    },
+    {
+      "path": "docs/AUTHENTICATION_VERIFIED_BASELINE_20261011.md",
+      "sha256": "fa1aa6d494c11fca524d46247dcdb8858203b3b55c396d90447dc7818f1b9144",
+      "bytes": 2562
+    },
+    {
+      "path": "docs/BERTINA_PRIVATE_BACKUP.md",
+      "sha256": "9cda4b1c00d42bdd1c9413d88d6931774fafc7cbe7e6fd1021e700471fc64449",
+      "bytes": 6436
+    },
+    {
+      "path": "docs/BERTINA_RELEASE_RECOVERY_CONTROL.md",
+      "sha256": "8ae959bafd5f6b7a6d9c979f4e33d535390b5d66092c62288cc3097aad59c856",
+      "bytes": 7432
+    },
+    {
+      "path": "docs/V4.4.1-BLOCKERS.md",
+      "sha256": "1f962b8b92dd037da4554332824c390037a729a62e36eab814038549db8f91b2",
+      "bytes": 4524
+    },
+    {
+      "path": "docs/archive/V4.4.1-BLOCKERS.pre-consolidation-20261011.md",
+      "sha256": "eba27461d1d26b5676a90e7c85204036e976fbdf1790d629de6c590aecdb14df",
+      "bytes": 4280
+    },
+    {
+      "path": "docs/governance/ARCHIVED_SOURCES_20261012.json",
+      "sha256": "02b2d257d1b0f11284b6bc90abcd6a175689ce9a60fe77071a29f09459fe663a",
+      "bytes": 9009
+    },
+    {
+      "path": "docs/governance/EXECUTION_HANDOFF_20261012.md",
+      "sha256": "d1ddaf4e61d4d1f11b3ffb4337dcca93de7fe3e76e21a002eae7713b5cd4aec3",
+      "bytes": 11832
+    },
+    {
+      "path": "docs/governance/SOURCE_OF_TRUTH.json",
+      "sha256": "4ab2d0d274046bc502c526dde64befbfac4d541e9fbf0e0533972209a4ad7590",
+      "bytes": 1859
+    },
+    {
+      "path": "en/account/admin/index.html",
+      "sha256": "42a29e2e11acc4d3db0a880a16f2909defd0655b0ff1821862f501f069a80461",
+      "bytes": 3626
+    },
+    {
+      "path": "en/register/index.html",
+      "sha256": "f82529579b280537a7f6c56150fb3bd239afe9e3778e2a7f3221f7c290c437f0",
+      "bytes": 3713
+    },
+    {
+      "path": "en/shop/checkout/index.html",
+      "sha256": "c8c7db7baae17f318029e5e5dcdc357b94fe89842f0beb72c767ed10f5ac2149",
+      "bytes": 5438
+    },
+    {
+      "path": "en/shop/customer-policy/index.html",
+      "sha256": "5f7dc819a4a45e6134b50a008716037d2825f5519a2929440b36ad3482f21726",
+      "bytes": 5294
+    },
+    {
+      "path": "en/shop/purchase-guide/index.html",
+      "sha256": "e88cbec301c1d822464886b4e032edbd51f715cf1cb7d1b235bc64ffdf73a960",
+      "bytes": 5068
+    },
+    {
+      "path": "fa/app/admin/index.html",
+      "sha256": "a833ca5ca446afbf6f8ec9391a8da079a62debd74eeaa0c2d4bcaaa240574b2b",
+      "bytes": 4070
+    },
+    {
+      "path": "fa/app/engine-status/index.html",
+      "sha256": "5bcc47498abb7f827a6467140537493cd4543598e0bda43f4a5b2b846c3c5d9b",
+      "bytes": 3409
+    },
+    {
+      "path": "fa/register/index.html",
+      "sha256": "909603ae9190fc0b3d8b3a58dac8a4e5da57101b7b74bebdb30b3b8a298c10fa",
+      "bytes": 4290
+    },
+    {
+      "path": "fa/shop/checkout/index.html",
+      "sha256": "d7568c7e8f7fa18bbd3e2086891af1821a6c6cf7ba286a266185fbd43d65d23a",
+      "bytes": 8344
+    },
+    {
+      "path": "fa/shop/customer-policy/index.html",
+      "sha256": "850c6814d3731f69dd21435939459b8e0d284b1222e6d134d191e8495d6ad1aa",
+      "bytes": 7422
+    },
+    {
+      "path": "fa/shop/purchase-guide/index.html",
+      "sha256": "2a30412cc18eb956ff3213d50e02a0428d43e6e5cf28bf29a887e5b9e647b566",
+      "bytes": 7326
+    },
+    {
+      "path": "scripts/bertina-backup-gate.php",
+      "sha256": "bc33686a6ec6f0ff676369e4bfaca862934986691fdec09a6365ec60b6bb2b94",
+      "bytes": 7823
+    },
+    {
+      "path": "scripts/bertina-commerce-schema-helper.php",
+      "sha256": "f95d84561f19b6ab12e5c9dcae7a5f781709ed7fdfc20906937c156ba60dc126",
+      "bytes": 3376
+    },
+    {
+      "path": "scripts/bertina-deploy-helper.php",
+      "sha256": "dbe10d8b1b801819d30c04ee287e67f370f1eb55beb4413601a3b8ddf3258930",
+      "bytes": 4409
+    },
+    {
+      "path": "scripts/bertina-private-backup-client.py",
+      "sha256": "d8cda7bfb95a0b52c344f6ee6a1ce5e79391170599d221b5e5ee1c77920faf4d",
+      "bytes": 16038
+    },
+    {
+      "path": "scripts/bertina-private-backup-extract.php",
+      "sha256": "a61cc8600da13885663212ee9652e7cf1bb43fad80a58ce9ff83a8308f7c57d9",
+      "bytes": 6162
+    },
+    {
+      "path": "scripts/bertina-private-backup-restore.py",
+      "sha256": "2885480c23996ca53c77756a4115dc949c94e3660b2435acb110d34bad7b8cfe",
+      "bytes": 32439
+    },
+    {
+      "path": "scripts/bertina-private-backup-template.php",
+      "sha256": "d3c6eadb81a7df7fd69dc7ab0256b51371e9ed072fdba8c875aa86ee595215aa",
+      "bytes": 39525
+    },
+    {
+      "path": "scripts/bertina-recovery-policy.json",
+      "sha256": "5a81edc4d8d485d2894005df54f3e8ca376902a3738cdaf04ea108ef38f49ee6",
+      "bytes": 177
+    },
+    {
+      "path": "scripts/bertina-recovery-public.crt",
+      "sha256": "58184a5e67aedc2d85e81ff6b5d9dd735b3c37fefdba7d7a0de5cfcaf6c4de43",
+      "bytes": 1927
+    },
+    {
+      "path": "scripts/bertina-release-contract.mjs",
+      "sha256": "4bbc79552f772941af8482aa5ad0814a9aea6de1ff5607f4d1a93f6ca74d2943",
+      "bytes": 4127
+    },
+    {
+      "path": "scripts/bertina-staged-release.php",
+      "sha256": "6f3f415719929dca5c77f024159c70baa9c896ae5f36c8cd1bdb6c8013a88aef",
+      "bytes": 11690
+    },
+    {
+      "path": "scripts/build-bertina-helper.py",
+      "sha256": "2855e9b62e0f8fd95ccbfe26e1b0069b0b1ab522845544c67747a925428eb54f",
+      "bytes": 3426
+    },
+    {
+      "path": "scripts/build-public-site.mjs",
+      "sha256": "2916cf3be7a6cc1d420f3f36a33072ffd84457e83d27adb827a6181f7fef810b",
+      "bytes": 5958
+    },
+    {
+      "path": "scripts/operations-release-evidence.mjs",
+      "sha256": "5d4c4534cdc9c19316825d478af3a8ecdcdbda11eca05a73bec8383bcefab380",
+      "bytes": 5099
+    },
+    {
+      "path": "scripts/workflow-governance-audit.mjs",
+      "sha256": "3124f206e67a5212ad5da922e8a17aea31853a234f5b9f208e76af6d39548d11",
+      "bytes": 4624
+    },
+    {
+      "path": "tests/bertina-backup-gate.php",
+      "sha256": "9fde3420fdeef3b6f1f5189ea1c292469dd258720c23250ee4723999f1abd8f1",
+      "bytes": 8631
+    },
+    {
+      "path": "tests/bertina-deployment-schema-mysql.php",
+      "sha256": "3a5977dc67d57e6e03e2e249cab747eb105e87ae1269b094fd0d41c703fcaa3b",
+      "bytes": 5615
+    },
+    {
+      "path": "tests/bertina-helper-builder.py",
+      "sha256": "f90a103cc849d10f08557e3ed479b32f7f28c9f2db86382ec64646c780ed84cd",
+      "bytes": 3453
+    },
+    {
+      "path": "tests/bertina-release-contract.test.mjs",
+      "sha256": "09a3f90163b0ff2975c5283d5ec8594e6bcfe8b588ad7f25a577d0b22c1f4403",
+      "bytes": 3060
+    },
+    {
+      "path": "tests/bertina-staged-archive.php",
+      "sha256": "c9ff2d354e70093141560eac0078a59618bacaf73e23f827c36cdbb142770cb7",
+      "bytes": 4572
+    },
+    {
+      "path": "tests/bertina-staged-release.php",
+      "sha256": "c7c9cafe18a709947c5c66abfa3c3d7427170f38c38694e5b13da26bbe7929cc",
+      "bytes": 6488
+    },
+    {
+      "path": "tests/operations-foundation-browser.spec.js",
+      "sha256": "2ba64284b237f6f837db3386efdc1435b037ee7fa067264506aff7a170fe7875",
+      "bytes": 13703
+    },
+    {
+      "path": "tests/operations-foundation.php",
+      "sha256": "6ae31553e3d101f86af058174340ea14d50cf75cb13444a0f84cf6610e29276c",
+      "bytes": 5582
+    },
+    {
+      "path": "tests/operations-mysql.php",
+      "sha256": "e346424a54ef184b10909477c10e679726c9f1cd70b9657a766f2d5ae05d34ce",
+      "bytes": 12991
+    },
+    {
+      "path": "tests/operations-public-preview-browser.spec.js",
+      "sha256": "48e96586d7eb003099e6c98953ea678e51f4c77bdebd2a8d61bb8e862589581d",
+      "bytes": 5324
+    },
+    {
+      "path": "tests/operations-reporting-browser.spec.js",
+      "sha256": "fe3917269f20a2915e2786d5998e1f55935b9bbc274d20fb86e99973a0e10b00",
+      "bytes": 13138
+    },
+    {
+      "path": "tests/operations-tls-release-mysql.php",
+      "sha256": "51296b980ab2ac27bbe986da05bddbfc52d2bf6ccb22501b3bf81efffc29cf27",
+      "bytes": 11893
+    },
+    {
+      "path": "tests/operations-tls-release.test.mjs",
+      "sha256": "0a7d326dfd6c545f8b855fea4fe78819c86fa2b540e0e03fa95157b9f56fa6fa",
+      "bytes": 4238
+    }
+  ]
+}

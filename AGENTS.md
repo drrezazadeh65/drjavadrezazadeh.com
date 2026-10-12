@@ -4,6 +4,17 @@
 > **CURRENT STATUS: SHARED DEVELOPMENT OPEN — OWNER AUTHORIZED**
 > Exclusive lock lifted by the owner on 2026-10-12 (Asia/Tehran). Historical lock issue: https://github.com/drrezazadeh65/drjavadrezazadeh.com/issues/28
 
+## Binding source instruction for every chat and Codex
+
+The owner requires **one repository and one existing development source**, applying equally to Codex, all other authorized chats, subagents and future sessions:
+
+- Repository: `drrezazadeh65/drjavadrezazadeh.com`; branch: `migration/bertina-linux6`.
+- Use the existing primary checkout. In this environment it is `/workspace/drjavadrezazadeh.com`; all prepared work resumes there. Do not start another repository, fork, development branch, application folder or separate replacement system for this website.
+- Other local review copies and historical branches are archived references/recovery material. Read them only to recover or compare valid contributions; transfer accepted work into the canonical source and never develop, publish or deploy from an archive.
+- On every return, fetch fresh canonical HEAD, inspect current CI/live release and recorded work, then fix only remaining justified gaps. Do not rebuild features already implemented or replace newer designs, content, SEO or working authentication/payment contracts with an older copy.
+- All owner-authorized contributors remain allowed to write in this same source. Coordinate edits and one deployment at a time; no Codex-exclusive lock is reinstated.
+- Machine-readable coordinates: [SOURCE_OF_TRUTH.json](docs/governance/SOURCE_OF_TRUTH.json). Archive/provenance: [ARCHIVED_SOURCES_20261012.json](docs/governance/ARCHIVED_SOURCES_20261012.json). GitHub's actual default-branch setting must be verified separately; a local symbolic ref is not proof of changing repository settings.
+
 ## Who may write?
 
 The owner explicitly lifted the Codex-exclusive development lock. **All owner-authorized assistant chats, coding agents and operators may implement changes and contribute to this repository using their existing authorized connections.** There is no Codex-only or repository-wide read-only restriction.
