@@ -1,4 +1,4 @@
-/* Unified payment initiation. Server-side catalog and D1 remain authoritative. */
+/* Existing Bertina PHP/MySQL checkout. Server-side catalog and validation are authoritative. */
 (()=>{'use strict';
 const API='/api';
 const CONTACT_EMAIL='info@drjavadrezazadeh.com';
@@ -49,7 +49,7 @@ function mount(host,kind,items){
  }
  const guidance=document.createElement('p');
  guidance.style.cssText='grid-column:1/-1;margin:0;font-size:13px;line-height:1.8;color:#41576b;';
- guidance.textContent='خرید خدمات بدون ثبت‌نام امکان‌پذیر است. نام و ایمیل صرفاً برای ثبت سفارش و هماهنگی ارائه خدمت دریافت می‌شود. تا زمان رفع مشکل ایمیل خودکار، شناسه سفارش را نگه دارید.';
+ guidance.textContent='خرید خدمات بدون ثبت‌نام امکان‌پذیر است. نام و ایمیل صرفاً برای ثبت سفارش و هماهنگی ارائه خدمت دریافت می‌شود. برای پیگیری، شناسه سفارش و ایمیل ثبت‌شده را نگه دارید؛ وضعیت اعلان‌های تراکنشی از مسیر رسمی بررسی می‌شود.';
  buyer.append(guidance);
  const buyerContact=()=>{
   for(const input of [fields.name,fields.email]){
