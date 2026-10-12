@@ -57,7 +57,21 @@ jobs:
           import json,pathlib,re
           root=pathlib.Path('.')
           declared=json.loads((root/'docs/governance/STAGE09_OWNER_INVENTORY_DECLARATION_20261013.json').read_text())
-          assert declared['status']=='OWNER_DECLARED_NOT_YET_RECONCILED_IN_LIVE_DATABASE'
+          assert declared['status'] in (
+           'OWNER_DECLARED_NOT_YET_RECONCILED_IN_LIVE_DATABASE',
+           'LIVE_OWNER_DECLARED_INVENTORY_ROWS_OBSERVED_IN_PHPMYADMIN_NOT_FINANCIAL_SETTLEMENT_VERIFIED')
+          if declared['status'].startswith('LIVE_OWNER_DECLARED'):
+              evidence=declared['liveMariaDbEvidence']
+              assert evidence['nineRequiredCommerceTablesEngine']=='InnoDB'
+              assert evidence['totalTablesVisible']==19
+              assert evidence['claimIndexesUniquenessAndColumnsVerified'] is True
+              assert evidence['allEightTableEnginesAndPaymentClaimUniqueIndexesVerified']=='VERIFIED_ALL_9_INNODB_AND_TWO_UNIQUE_PAYMENT_CLAIM_KEYS'
+              assert evidence['claimIndexes']==[
+                {'name':'PRIMARY','non_unique':0,'columns':['provider','transaction_id']},
+                {'name':'uq_payment_order','non_unique':0,'columns':['provider','order_id']}
+              ]
+              assert sorted((x['sku'],x['physical_on_hand'],x['reserved']) for x in evidence['stockRows'])==[
+                ('book:bonbast',100,0),('book:roshanaei',100,0),('book:tariki',100,0)]
           assert declared['productionWritesAuthorizedByThisDocument'] is False
           assert [(x['sku'],x['ownerDeclaredSaleableCopies']) for x in declared['stock']]==[
            ('book:roshanaei',100),('book:tariki',100),('book:bonbast',100)]
