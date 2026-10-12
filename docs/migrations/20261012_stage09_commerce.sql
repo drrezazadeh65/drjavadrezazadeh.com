@@ -88,5 +88,6 @@ CREATE TABLE IF NOT EXISTS commerce_refund_requests (
   reason_code VARCHAR(40) NOT NULL,
   requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   settled_at DATETIME NULL,
-  INDEX idx_commerce_refunds_order (order_id)
+  INDEX idx_commerce_refunds_order (order_id),
+  UNIQUE KEY uq_commerce_refund_request (order_id,requester_account_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
