@@ -10,7 +10,8 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 function stage9SchemaReady(PDO $pdo): bool {
     try {
         foreach (['commerce_book_stock','commerce_book_reservations','commerce_stock_movements',
-                  'commerce_payment_claims','commerce_outbox','commerce_service_cases'] as $table) {
+                  'commerce_payment_claims','commerce_outbox','commerce_service_cases',
+                  'commerce_parcels','commerce_refund_requests'] as $table) {
             $pdo->query('SELECT 1 FROM '.$table.' LIMIT 1');
         }
         return true;
