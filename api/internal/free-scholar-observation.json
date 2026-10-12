@@ -1,0 +1,43 @@
+{
+  "schema": "free-scholar-observation-v1",
+  "observedAt": "2026-10-12T09:03:00.038Z",
+  "provider": "Crossref",
+  "sourceFile": "en/publications/index.html",
+  "sourceBranch": "migration/bertina-linux6",
+  "sourceCommit": "79ab9442bbc11a55310e98628f8f803217239472",
+  "scope": "Public DOI metadata; no verified authorship, ranking, indexing, traffic or revenue",
+  "records": [
+    {
+      "doi": "10.61838/kman.ijes.1413",
+      "sourceUrl": "https://drjavadrezazadeh.com/en/publications/",
+      "sourceTitle": "Evaluating the Cultural and Pedagogical Fits of the Top-Notch Series in Iranian EFL Contexts: A Mixed-Methods Study",
+      "status": "metadata_found",
+      "provider": "Crossref",
+      "checkedAt": "2026-10-12T09:03:00.038Z",
+      "providerUrl": "https://api.crossref.org/works/10.61838%2Fkman.ijes.1413",
+      "providerTitle": "Evaluating the Cultural and Pedagogical Fits of the Top-Notch Series in Iranian EFL Contexts: A Mixed-Methods Study",
+      "publisher": "KMAN Publication Incorporation",
+      "sourceClaimIndependentlyValidated": false
+    },
+    {
+      "doi": "10.17576/3l-2016-2201-09",
+      "sourceUrl": "https://drjavadrezazadeh.com/en/publications/",
+      "sourceTitle": "The Relationship between Lexical Fluency, Temporal Fluency, and Language Proficiency in Iranian EFL Context",
+      "status": "metadata_found",
+      "provider": "Crossref",
+      "checkedAt": "2026-10-12T09:03:00.038Z",
+      "providerUrl": "https://api.crossref.org/works/10.17576%2F3l-2016-2201-09",
+      "providerTitle": "The Relationship between Lexical Fluency, Temporal Fluency, and Language Proficiency in Iranian EFL Context",
+      "publisher": "Penerbit Universiti Kebangsaan Malaysia (UKM Press)",
+      "sourceClaimIndependentlyValidated": false
+    }
+  ],
+  "summary": {
+    "attempted": 2,
+    "metadataFound": 2,
+    "unavailable": 0,
+    "notFound": 0,
+    "mismatch": 0
+  },
+  "caveat": "Provider metadata found means a DOI record is retrievable, not that site publication metadata, authorship, citations or ranking are independently verified."
+}
