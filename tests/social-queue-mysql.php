@@ -195,4 +195,50 @@ socialCheck((int)$pdo->query("SELECT COUNT(*) FROM social_audit
 socialCheck((int)$pdo->query("SELECT COUNT(*) FROM social_attempts")->fetchColumn()===3,
     'review operations incorrectly dispatched to social platform');
 
+
+// Network management settings and account intentions have NO ability to send.
+require __DIR__.'/../api/social-admin-settings.php';
+$channels=socialChannels();
+socialCheck(count($channels)===16,'all 16 network definitions missing');
+socialCheck(socialSettingsReady($pdo),'network settings schema missing');
+$summary=socialSettingsSnapshot($pdo);
+socialCheck($summary['automatedPublishingAvailable']===false
+  && $summary['oauthExchangeAvailable']===false
+  && $summary['storedAccounts']!==null,'network catalogue overstated provider capabilities');
+socialCheck($summary['settings']===[],'fake channel settings populated');
+$settings=['provider'=>'instagram','draftEnabled'=>true,'draftLocale'=>'both',
+    'approvalMode'=>'review_required','dailyDraftLimit'=>2,
+    'preferredLocalTime'=>'21:00','utmCampaign'=>'research_update'];
+$saved=socialSettingsSave($pdo,$settings,$admin,$now);
+socialCheck($saved['settingsSaved']===true &&
+    $saved['automatedPublishingActivated']===false,'settings toggled live publishing');
+$summary=socialSettingsSnapshot($pdo);
+socialCheck(($summary['settings']['instagram']['dailyDraftLimit']??null)===2,
+  'user channel preference not persisted');
+socialRejected(fn()=>socialSettingsSave($pdo,array_merge($settings,
+    ['autoPublish'=>true]),$admin,$now),'unlisted publication switch accepted');
+socialRejected(fn()=>socialSettingsSave($pdo,array_replace($settings,
+    ['dailyDraftLimit'=>100]),$admin,$now),'unsafe schedule limit accepted');
+socialRejected(fn()=>socialSettingsSave($pdo,array_replace($settings,
+    ['utmCampaign'=>'secret+token']),$admin,$now),'unsafe tracking suffix accepted');
+$intent=socialIntentCreate($pdo,['provider'=>'telegram','publicHandle'=>'@sample_channel'],
+    $admin,$now);
+socialCheck($intent['status']==='awaiting_authorization' && $intent['connected']===false,
+  'public handle incorrectly became authenticated network account');
+$summary=socialSettingsSnapshot($pdo);
+socialCheck(count($summary['connectionIntents'])===1 &&
+ $summary['connectionIntents'][0]['status']==='awaiting_authorization',
+ 'pending channel handle was not saved');
+socialRejected(fn()=>socialIntentCreate($pdo,['provider'=>'telegram',
+ 'publicHandle'=>'private token'], $admin,$now),'unsafe or secret-looking handle accepted');
+socialIntentCancel($pdo,['id'=>$intent['id']],$admin,$now);
+socialCheck(socialSettingsSnapshot($pdo)['connectionIntents'][0]['status']==='cancelled',
+ 'connection intent cancellation not recorded');
+socialRejected(fn()=>socialIntentCancel($pdo,['id'=>$intent['id']],$admin,$now),
+ 'cancel replay modified account intent');
+socialCheck((int)$pdo->query('SELECT COUNT(*) FROM social_accounts')->fetchColumn()===2,
+ 'public handle forged a verified social account');
+socialCheck((int)$pdo->query('SELECT COUNT(*) FROM social_attempts')->fetchColumn()===3,
+ 'settings initiated unauthorized outbound publishing');
+
 echo 'PASS: '.$checks.' isolated MySQL Stage 13 transactional queue checks; zero provider sends.'.PHP_EOL;
