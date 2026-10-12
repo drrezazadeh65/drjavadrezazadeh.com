@@ -48,7 +48,9 @@ function operationsActionHistory(PDO $pdo, string $accountId, int $at): array {
             'createdAt'=>(int)$row['created_at'],
             'finishedAt'=>$row['finished_at']!==null?(int)$row['finished_at']:null,
             'result'=>is_array($result)?$result:[],
-            'limitation'=>'Read-only observation run; not a CI suite execution, verified report closure, live publication, financial settlement or durable scheduler.'
+            'limitation'=>($result['kind']??null)==='github_ci_audit'
+                ?'Owner-approved fixed GitHub audit submission; HTTP acknowledgement is not a matched GitHub run or successful QA, and never certifies this HIGH-risk Action or production.'
+                :'Read-only observation run; not a CI suite execution, verified report closure, live publication, financial settlement or durable scheduler.'
         ];
     }
     return $rows;
