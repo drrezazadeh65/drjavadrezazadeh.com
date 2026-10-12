@@ -212,7 +212,12 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
        reservationUnitsHeld:2,ledgerDiscrepancy:true}]},
    notifications:{paidOrderRowsWithoutReceiptEmailTimestamp:2,
      outboxStates:{pending:2,failed:1,processing:0}},
-   fulfilment:{serviceCaseStates:{awaiting_contact:2},parcelStates:{preparing:1}}
+   fulfilment:{serviceCaseStates:{awaiting_contact:2},parcelStates:{preparing:1},
+     activeServiceCaseCount:1,queueTruncated:false,serviceActionQueue:[{
+       orderId:'12345678-1111-4111-8111-111111111111',
+       sku:'service:academic_consult_60',status:'awaiting_contact',
+       providerClaimMatchesOrder:false
+     }]}
   };
   let hits=0;
   await page.setViewportSize({width:320,height:850});
@@ -225,7 +230,12 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
   await expect(page.locator('#ops-workspace')).toBeVisible();
   await expect(page.locator('#ops-commerce-results article')).toHaveCount(0);
   await page.locator('#ops-commerce summary').click();
-  await expect(page.locator('#ops-commerce-results article')).toHaveCount(11);
+  await expect(page.locator('#ops-commerce-results article')).toHaveCount(12);
+  await expect(page.locator('#ops-commerce-results details')).toHaveCount(1);
+  await expect(page.locator('#ops-commerce-results details')).not.toHaveAttribute('open');
+  await page.locator('#ops-commerce-results details summary').click();
+  await expect(page.locator('#ops-commerce-results details li')).toHaveCount(1);
+  await expect(page.locator('#ops-commerce-results details')).toContainText('12345678');
   await expect(page.locator('#ops-commerce-results')).toContainText('3');
   await expect(page.locator('#ops-commerce-results')).toContainText('book:roshanaei');
   expect(hits).toBe(1);
