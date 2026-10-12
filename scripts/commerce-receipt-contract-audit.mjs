@@ -4,6 +4,8 @@ import {spawnSync} from 'node:child_process';
 const api=fs.readFileSync('api/index.php','utf8');
 const page=fs.readFileSync('fa/shop/payment-result/index.html','utf8');
 const checkout=fs.readFileSync('assets/js/book-store.js','utf8');
+const serviceCheckout=fs.readFileSync('assets/js/commerce-checkout.js','utf8');
+const donationsCheckout=fs.readFileSync('assets/js/donation-payment.js','utf8');
 const paymentStart=fs.readFileSync('fa/shop/payment-start/index.html','utf8');
 const failures=[];
 const requireSource=(source,needle,why)=>{if(!source.includes(needle))failures.push(why);};
@@ -16,6 +18,22 @@ for(const [needle,why] of [
  ["if($total!==(int)$row['amount_toman'])",'receipt total must match the server order'],
  ["'kind'=>'payment_confirmation_not_tax_invoice'",'receipt must not claim to be a tax invoice']
 ])requireSource(api,needle,why);
+
+for(const [needle,why] of [
+ ["if(!commerceReceiptAuthorized($id))fail('receipt_access_required',403)",'unauthorized guest receipt must be forbidden'],
+ ["function commerceReceiptProof(string $id): string",'receipt proof must be server-keyed'],
+ ["'httponly'=>true",'receipt capability must not be visible to page scripts'],
+ ["'samesite'=>'Lax'",'receipt must retain secure payment-return browser policy'],
+ ["'path'=>'/api/commerce/status'",'receipt capability must use restricted cookie path'],
+ ["strlen((string)($c['auth_pepper']??''))>=32",'payment readiness must require receipt proof secret']
+])requireSource(api,needle,why);
+for(const [source,needle,label] of [
+ [checkout,"const response=await fetch(endpoint,{method:'POST',mode:'cors',credentials:'same-origin'",'book payment'],
+ [serviceCheckout,"const res=await fetch(API+'/commerce/create',{method:'POST',mode:'cors',credentials:'same-origin'",'service/VIP payment'],
+ [donationsCheckout,"method:'POST',mode:'cors',credentials:'same-origin',cache:'no-store',",'support donation payment'],
+ [page,"{cache:'no-store',credentials:'same-origin'}",'receipt read'],
+ [page,"data.error==='receipt_access_required'",'receipt denied-browser guidance']
+])requireSource(source,needle,label+' must preserve guest secure receipt cookie');
 
 for(const [needle,why] of [
  ["const API='/api'",'book client must use same-origin Bertina API'],
