@@ -1,0 +1,38 @@
+[
+  {
+    "id": "seo-broken-links",
+    "title": "Audit and repair verified internal broken links",
+    "dimension": "seo",
+    "impact": 5,
+    "confidence": 4,
+    "effort": 2,
+    "risk": 1
+  },
+  {
+    "id": "academic-identity",
+    "title": "Validate bilingual academic identity and scholarly citations",
+    "dimension": "academic",
+    "impact": 5,
+    "confidence": 4,
+    "effort": 3,
+    "risk": 1
+  },
+  {
+    "id": "service-pages",
+    "title": "Evaluate service page deliverables and conversion clarity",
+    "dimension": "conversion",
+    "impact": 5,
+    "confidence": 3,
+    "effort": 3,
+    "risk": 2
+  },
+  {
+    "id": "ai-answer-sample",
+    "title": "Establish reproducible AI visibility question samples",
+    "dimension": "ai_visibility",
+    "impact": 3,
+    "confidence": 2,
+    "effort": 3,
+    "risk": 1
+  }
+]

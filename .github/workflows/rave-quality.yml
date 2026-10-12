@@ -1,0 +1,23 @@
+name: RAVE core quality
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'rave/**'
+      - '.github/workflows/rave-quality.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test rave/core/*.test.mjs
+      - run: node rave/plan.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rave-opportunity-plan
+          path: rave/reports/opportunity-plan.json

@@ -1,0 +1,17 @@
+{
+  "schema": "rave.config.v1",
+  "version": "1.0.0",
+  "mode": "observe",
+  "publicSiteOrigin": "https://drjavadrezazadeh.com",
+  "paths": [
+    "/",
+    "/fa/",
+    "/en/",
+    "/robots.txt",
+    "/sitemap.xml"
+  ],
+  "timeoutMs": 12000,
+  "autonomousPublishing": false,
+  "autonomousSpending": false,
+  "cloudflareRequired": false
+}
