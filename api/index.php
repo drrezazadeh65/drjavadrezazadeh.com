@@ -530,6 +530,54 @@ if (str_starts_with($path,'/auth/')) {
     fail('not_found',404);
 }
 
+// Verified-account order history. A guest email or a public order UUID never grants access.
+// The result deliberately excludes addresses, contact numbers and gateway identifiers.
+if($path==='/commerce/history'&&$verb==='GET'){
+    $pdo=db();
+    if(!$pdo||!commerceSchemaReady())fail('history_unavailable',503);
+    $account=sessionAccount($pdo);
+    if(!$account||($account['status']??'')!=='active'||empty($account['email_verified_at']))fail('unauthorized',401);
+    $email=emailNorm($account['email_normalized']??'');
+    if(!validEmail($email))fail('unauthorized',401);
+    $query=$pdo->prepare('SELECT id,state,amount_toman,currency,items_json,created_at,paid_at,provider_id_get,provider_trans_id FROM commerce_orders WHERE customer_email=? ORDER BY created_at DESC,id DESC LIMIT 50');
+    $query->execute([$email]);
+    $orders=[];
+    foreach($query->fetchAll() as $row){
+        $items=json_decode((string)($row['items_json']??''),true);
+        if(!is_array($items))$items=[];
+        $safeItems=[];
+        foreach(array_slice($items,0,20) as $item){
+            if(!is_array($item))continue;
+            $quantity=$item['quantity']??null;
+            $subtotal=$item['subtotal']??null;
+            if(!is_int($quantity)||$quantity<1||$quantity>20||!is_int($subtotal)||$subtotal<0)continue;
+            $safeItems[]=[
+                'sku'=>substr((string)($item['sku']??''),0,80),
+                'title'=>(string)($item['title']??''),
+                'quantity'=>$quantity,
+                'subtotalToman'=>$subtotal
+            ];
+        }
+        $verified=($row['state']??'')==='paid'
+            &&($row['currency']??'')==='IRT'
+            &&!empty($row['paid_at'])
+            &&!empty($row['provider_id_get'])
+            &&!empty($row['provider_trans_id']);
+        $orders[]=[
+            'id'=>(string)$row['id'],
+            'state'=>(string)$row['state'],
+            'paymentVerified'=>$verified,
+            'amountToman'=>(int)$row['amount_toman'],
+            'currency'=>(string)$row['currency'],
+            'createdAt'=>(string)$row['created_at'],
+            'paidAt'=>$verified?(string)$row['paid_at']:null,
+            'items'=>$safeItems,
+            'fulfilmentStatus'=>'not_verified'
+        ];
+    }
+    respond(['ok'=>true,'orders'=>$orders,'limit'=>50]);
+}
+
 if($path==='/commerce/health'&&$verb==='GET'){
     $c=cfg();$ready=commerceReady();
     respond(['ok'=>true,'service'=>'commerce','hardeningRevision'=>'tls-gate-v1','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'requirements'=>[
