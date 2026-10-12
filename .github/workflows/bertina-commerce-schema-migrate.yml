@@ -2,6 +2,19 @@ name: Bertina Commerce Schema Migration
 
 on:
   workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type AUTHORIZE_AFTER_SIGNED_RESTORE; requires real private signed recovery proof'
+        required: true
+        type: string
+      expected_source_sha:
+        description: 'Exact 40-hex canonical branch SHA reviewed before this production mutation'
+        required: true
+        type: string
+      expected_live_sha:
+        description: 'Exact 40-hex current Bertina /sw.js SHA; must match private backup sourceRelease'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -16,6 +29,38 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
+      - uses: actions/checkout@v4
+      - name: Refuse unapproved, stale, unverifiable or unaudited production changes
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          EXPECTED_SOURCE: ${{ inputs.expected_source_sha }}
+          EXPECTED_LIVE: ${{ inputs.expected_live_sha }}
+        run: |
+          set -euo pipefail
+          test "$CONFIRMATION" = 'AUTHORIZE_AFTER_SIGNED_RESTORE'
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$EXPECTED_LIVE" =~ ^[a-f0-9]{40}$ ]]
+          test "$EXPECTED_SOURCE" = "$GITHUB_SHA"
+          current="$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)"
+          test "$current" = "$GITHUB_SHA"
+          php -l scripts/bertina-private-recovery-gate.php
+          php tests/bertina-private-recovery-gate.php
+          python3 tests/test_bertina_commerce_migration_guard.py
+          python3 - <<'PY'
+          import json,os,re,time
+          request=json.load(open('.bertina-backup-trigger',encoding='utf-8'))
+          expected=os.environ['EXPECTED_LIVE']
+          assert request.get('schema')=='bertina-private-backup-v1'
+          assert request.get('sourceRelease')==expected
+          assert isinstance(request.get('issuedAt'),int) and isinstance(request.get('expiresAt'),int)
+          assert request['issuedAt']<=time.time()<request['expiresAt']
+          assert request['expiresAt']-request['issuedAt']<=3600
+          print('A fresh public request matches the expected live release; private signed proof is NOT yet certified here.')
+          PY
+          live="$(curl -fsS --max-time 25 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/sw.js |
+            sed -n "s/^const CACHE_VERSION='jr-site-bertina-\\([a-f0-9]\\{40\\}\\)';$/\\1/p" | head -n 1)"
+          test "$live" = "$EXPECTED_LIVE"
+          echo 'Confirmed expected source and actual TLS-verified live releases; PHP must independently check signed restore.'
       - name: Install FTPS client
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
 
@@ -30,6 +75,8 @@ jobs:
           cat > "/tmp/${SCRIPT_NAME}" <<'PHP'
           <?php
           declare(strict_types=1);
+          // Trusted pinned RSA validation is copied verbatim from the already-tested recovery gate.
+          __PINNED_RECOVERY_GATE__
           header('Content-Type: application/json; charset=utf-8');
           header('Cache-Control: no-store');
           header('X-Robots-Tag: noindex, noarchive');
@@ -37,6 +84,15 @@ jobs:
           $provided=(string)($_SERVER['HTTP_X_MIGRATION_TOKEN']??'');
           if(!hash_equals($expected,hash('sha256',$provided))){http_response_code(403);echo json_encode(['ok'=>false,'error'=>'forbidden']);exit;}
           $self=__FILE__;
+          try{
+              // This script lives under public_html/api; recovery metadata lives above public_html.
+              drjrRecoveryCheck(dirname(__DIR__),'__RECOVERY_REQUEST_B64__',time());
+          }catch(Throwable $e){
+              @unlink($self);
+              http_response_code(503);
+              echo json_encode(['ok'=>false,'error'=>'verified_private_recovery_required']);
+              exit;
+          }
           try{
               $cfg=require __DIR__.'/config.local.php';
               if(!is_array($cfg))throw new RuntimeException('config_invalid');
@@ -67,6 +123,20 @@ jobs:
           }
           PHP
           sed -i "s/__TOKEN_HASH__/$TOKEN_HASH/" "/tmp/$SCRIPT_NAME"
+          # Assemble source-controlled PHP, never embed an owner private key.
+          python3 - "$SCRIPT_NAME" <<'PY'
+          import base64,pathlib,sys
+          target=pathlib.Path('/tmp')/sys.argv[1]
+          php=target.read_text()
+          guard=pathlib.Path('scripts/bertina-private-recovery-gate.php').read_text().removeprefix('<?php').lstrip('\n')
+          public_request=base64.b64encode(pathlib.Path('.bertina-backup-trigger').read_bytes()).decode('ascii')
+          assert '__PINNED_RECOVERY_GATE__' in php and '__RECOVERY_REQUEST_B64__' in php
+          assert php.index('drjrRecoveryCheck(dirname(__DIR__)') < php.index("require __DIR__.'/config.local.php'")
+          php=php.replace('__PINNED_RECOVERY_GATE__',guard).replace('__RECOVERY_REQUEST_B64__',public_request)
+          target.write_text(php)
+          target.chmod(0o600)
+          PY
+          php -l "/tmp/$SCRIPT_NAME"
           {
             echo "token=$TOKEN"
             echo "script_name=$SCRIPT_NAME"
@@ -80,6 +150,7 @@ jobs:
           SCRIPT_NAME: ${{ steps.prep.outputs.script_name }}
         run: |
           set -euo pipefail
+          test "$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)" = "$GITHUB_SHA"
           echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
           timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
           set ftp:ssl-force true
@@ -100,7 +171,8 @@ jobs:
           SCRIPT_NAME: ${{ steps.prep.outputs.script_name }}
         run: |
           set -euo pipefail
-          RESPONSE="$(curl -kfsS --max-time 60             --resolve drjavadrezazadeh.com:443:188.40.203.218             -H "X-Migration-Token: $TOKEN"             "https://drjavadrezazadeh.com/api/$SCRIPT_NAME")"
+          test "$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)" = "$GITHUB_SHA"
+          RESPONSE="$(curl -fsS --max-time 60             --resolve drjavadrezazadeh.com:443:188.40.203.218             -H "X-Migration-Token: $TOKEN"             "https://drjavadrezazadeh.com/api/$SCRIPT_NAME")"
           printf '%s' "$RESPONSE" > /tmp/migration.json
           node - <<'NODE'
           const fs=require('fs');
