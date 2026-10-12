@@ -1,6 +1,7 @@
 <?php
 define('BERTINA_API_BOOTSTRAPPED',true);
 require __DIR__.'/../api/operations-reporting.php';
+require __DIR__.'/../api/operations-action-runs.php';
 $assertions=0;function check($value,$message){if(!$value)throw new RuntimeException($message);$GLOBALS['assertions']++;}
 function section($id){return ['id'=>$id,'estimatedProgress'=>95,'measuredProgress'=>null,'status'=>'not_started','closed'=>false,'priority'=>'P0','dependencies'=>[],'openDependencies'=>[],'verifiedGates'=>array_map(fn($id)=>['id'=>$id,'state'=>'unknown','evidence'=>null],['code','tests','production','evidence'])];}
 $first=section('OP-01');$second=section('OP-02');$m=operationsReportingMetrics([$first,$second]);
@@ -79,4 +80,25 @@ check($manualPsi['records'][0]['labScores']['performance']===99&&$manualPsi['rec
 check($manualPsi['records'][0]['labScores']['bestPractices']===96&&$manualPsi['records'][1]['labScores']['bestPractices']===96,'Best Practices evidence lost.');
 check($manualPsi['realUserFieldData']==='No Data','No CrUX field data screenshot was incorrectly promoted to field measurements.');
 check($actualReporting['manualPagespeedObservation']['source']==='user_supplied_screenshot_transcription','Unified ENG-13 report lost screenshot provenance.');
+
+$eligible=array_values(array_filter($actual['actions'],static fn($a)=>operationsActionDefinition($actual,(string)$a['id'])!==null));
+check(count($eligible)===7,'Read-only Action executor count changed or a sensitive Action was activated.');
+check(operationsActionDefinition($actual,'ENG-05.ACT-002')===null,'Payment receipt certification must not be runnable as a read-only observation.');
+check(operationsActionDefinition($actual,'ENG-06.ACT-001')===null,'Journal governance certification accidentally acquired an executor.');
+$releaseAction=operationsActionDefinition($actual,'ENG-11.ACT-009');
+check(is_array($releaseAction),'Registered release observer is not executable under its approved policy.');
+$then=time();
+$signals=['OP-02'=>['signals'=>[[
+ 'id'=>'current_release','labelFa'=>'شناسه نسخه','labelEn'=>'Release identity','source'=>'Bertina operations_release',
+ 'limitation'=>'Does not certify the deployed content','value'=>str_repeat('a',40),
+ 'checkedAt'=>$then,'expiresAt'=>$then+60
+]]]];
+$observed=operationsCollectorObservation($releaseAction,$signals,$then);
+check($observed['status']==='observed'&&$observed['freshSignalCount']===1,'Fresh read-only runtime observation incorrectly rejected.');
+check($observed['signals'][0]['value']===str_repeat('a',40),'Verified public release observation missing from Action report.');
+$stale=operationsCollectorObservation($releaseAction,$signals,$then+61);
+check($stale['status']==='stale'&&$stale['freshSignalCount']===0,'Expired Action observation claimed a fresh success.');
+$unavailable=operationsCollectorObservation($releaseAction,[],$then);
+check($unavailable['status']==='unavailable'&&$unavailable['expectedSignalCount']===1,'Missing Action signals must remain unavailable, never zero or success.');
+
 echo "Reporting assertions: $assertions passed\n";
