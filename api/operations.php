@@ -6,6 +6,7 @@ const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-action-runs.php';
 require_once __DIR__.'/operations-social.php';
+require_once __DIR__.'/social-review.php';
 require_once __DIR__.'/operations-github-audits.php';
 require_once __DIR__.'/operations-github-dispatch.php';
 
@@ -394,6 +395,45 @@ function operationsRoute(string $path, string $verb): never {
             }catch(InvalidArgumentException $e){fail('invalid_audit_approval',400);}
             catch(DomainException $e){fail('audit_request_conflict',409);}
             catch(Throwable $e){fail('audit_dispatch_unavailable',503);}
+        }
+        if ($path === '/admin/operations/social/review' && $verb === 'GET') {
+            try { respond(socialReviewList($pdo,nowTs())); }
+            catch (Throwable $e) { fail('social_review_unavailable',503); }
+        }
+        if ($path === '/admin/operations/social/approve' && $verb === 'POST') {
+            if (!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if (!rateAllowed($pdo,'social_review_approval',$accountId,10,300))
+                fail('rate_limited',429);
+            $body=jsonBody();
+            if (!is_array($body) || count($body)!==2 ||
+                !is_string($body['deliveryId']??null) || !is_string($body['digest']??null))
+                fail('invalid_social_review',400);
+            try {
+                $digest=socialReviewApprove($pdo,$body['deliveryId'],$body['digest'],$accountId,nowTs());
+                respond(['ok'=>true,'schema'=>'social-review-decision-v1',
+                    'status'=>'scheduled','deliveryId'=>$body['deliveryId'],
+                    'approvedDigest'=>$digest,'published'=>false]);
+            } catch (InvalidArgumentException $e) {fail('invalid_social_review',400);}
+            catch (DomainException $e) {fail('social_review_conflict',409);}
+            catch (Throwable $e) {fail('social_review_unavailable',503);}
+        }
+        if ($path === '/admin/operations/social/reject' && $verb === 'POST') {
+            if (!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if (!rateAllowed($pdo,'social_review_rejection',$accountId,10,300))
+                fail('rate_limited',429);
+            $body=jsonBody();
+            if (!is_array($body) || count($body)!==2 ||
+                !is_string($body['deliveryId']??null) || !is_string($body['digest']??null))
+                fail('invalid_social_review',400);
+            try {
+                socialReviewReject($pdo,$body['deliveryId'],$body['digest'],$accountId,nowTs());
+                respond(['ok'=>true,'schema'=>'social-review-decision-v1',
+                    'status'=>'revoked','deliveryId'=>$body['deliveryId'],'published'=>false]);
+            } catch (InvalidArgumentException $e) {fail('invalid_social_review',400);}
+            catch (DomainException $e) {fail('social_review_conflict',409);}
+            catch (Throwable $e) {fail('social_review_unavailable',503);}
         }
         if ($path === '/admin/operations/social' && $verb === 'GET') {
             respond(operationsSocialSnapshot($pdo));
