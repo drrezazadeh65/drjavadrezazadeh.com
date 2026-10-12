@@ -10,6 +10,7 @@ on:
       - fa/app/admin/index.html
       - en/account/admin/index.html
       - assets/js/operations-social.js
+      - assets/js/operations-social-composer.js
       - platform/social-distribution/admin-boundary.test.mjs
       - .github/workflows/social-admin-boundary.yml
   workflow_dispatch:
@@ -30,6 +31,8 @@ jobs:
           php -l api/operations.php
           php -l api/operations-social.php
       - name: Browser script syntax
-        run: node --check assets/js/operations-social.js
+        run: |
+          node --check assets/js/operations-social.js
+          node --check assets/js/operations-social-composer.js
       - name: Admin MFA boundary and UI assertions
         run: node --test platform/social-distribution/admin-boundary.test.mjs
