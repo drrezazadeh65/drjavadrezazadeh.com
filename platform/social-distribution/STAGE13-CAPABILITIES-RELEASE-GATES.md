@@ -28,6 +28,12 @@ Sources: https://developers.facebook.com/docs/instagram-platform/ ; https://deve
 ## Safe transition from PR #50
 Recovered into the canonical repository: Node engine, content/discovery, per-provider editorial rules, initial OAuth request generation and validation, media-planning policy, Persian account guide, CI and tests. The unprotected `dashboard-preview.html` was deliberately NOT made part of public production. The customer dashboard file from the historical PR was deliberately not overwritten. The default-branch history is NOT the deployment source.
 
+## Preserving approved posts when provider APIs are unavailable
+
+The guarded MySQL claim function `socialQueueClaim()` is intentionally limited to Telegram and Eitaa **text-adapter paths**, and no public dispatch worker is enabled. A scheduled Instagram, Facebook, X, WhatsApp Business, YouTube or Aparat item is **not** a failed or revoked publication merely because there is no approved automatic adapter. It remains in its existing approved, scheduled source state until an authorized operator selects the appropriate manual pack or a separately audited official API implementation.
+
+When an enabled text-adapter candidate's approved content, connected account authorization or media rights change, the existing hash-bound state machine can still revoke that candidate before publication. Unsupported earlier scheduled items must not starve eligible Telegram/Eitaa items or produce fabricated dispatch attempts. The regression is an isolated MySQL workflow test, **not a live publish receipt**. WhatsApp remains opt-in business messaging, not public broadcast.
+
 ## Release acceptance checklist
 1. Confirm production SSL/TLS trusted; current release checksum, protected MFA admin and real Bertina MySQL migrations.
 2. Implement account inventory and encrypted provider token persistence behind /api/admin/social/, with server-side scopes/expiry/revocation, and admin-only tabs in existing console.
