@@ -424,6 +424,31 @@ def publish_receipt(path, receipt):
         temporary.unlink(missing_ok=True)
 
 
+def final_database_pid_one(db):
+    """Exclude the temporary bootstrap daemon; require the final server as PID 1."""
+    try:
+        name = run([db.docker, 'exec', db.container, 'cat', '/proc/1/comm'],
+                   'isolated_database_pid1_read_failed', timeout=15).decode('ascii').strip()
+        return name in ('mariadbd', 'mysqld')
+    except (CheckFailed, subprocess.TimeoutExpired, UnicodeDecodeError):
+        return False
+
+
+def wait_for_final_database(db, timeout):
+    """Require final PID 1 both before and after a successful socket query."""
+    deadline = time.monotonic() + timeout
+    while True:
+        if final_database_pid_one(db):
+            try:
+                db.one('SELECT 1 AS ready')
+                if final_database_pid_one(db):
+                    return
+            except CheckFailed:
+                pass
+        require(time.monotonic() < deadline, 'isolated_database_ready_timeout')
+        time.sleep(1)
+
+
 def main(args):
     os.umask(0o077)
     archive = private_file(args.archive)
@@ -479,14 +504,7 @@ def main(args):
                 'database_container_isolation_invalid')
         image_id = inspected['Image']
         db = Database(args.docker, container, args.timeout)
-        deadline = time.monotonic() + args.timeout
-        while True:
-            try:
-                db.one('SELECT 1 AS ready')
-                break
-            except CheckFailed:
-                require(time.monotonic() < deadline, 'isolated_database_ready_timeout')
-                time.sleep(1)
+        wait_for_final_database(db, args.timeout)
         schema, restored_version = verify_database(db, manifest)
         synthetic_definers = prepare_definer_context(db, schema, manifest['database']['objects'])
         with (extracted / 'database/database.sql').open('rb') as stream:
