@@ -421,7 +421,7 @@ function commerceReady(): bool {
     $c=cfg();
     return dbReady() && commerceSchemaReady() && strlen((string)($c['auth_pepper']??''))>=32 && $c['public_tls_confirmed']===true && $c['commerce_enabled']===true && $c['bitpay_api_key']!=='' &&
         in_array((string)$c['bitpay_amount_multiplier'],['1','10'],true) &&
-        $c['order_email_fulfilment_confirmed']===true;
+        $c['order_email_fulfilment_confirmed']===true && stage9SchemaReady(db());
 }
 function gatewayPost(string $endpoint,array $fields): string {
     $c=cfg(); if($c['bitpay_api_key']==='')throw new RuntimeException('gateway_unconfigured');
@@ -440,6 +440,7 @@ if (defined('BERTINA_MAIL_SMOKE_CONTEXT') && BERTINA_MAIL_SMOKE_CONTEXT === true
 
 define('BERTINA_API_BOOTSTRAPPED', true);
 require_once __DIR__.'/operations.php';
+require_once __DIR__.'/commerce-stage9.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
 
@@ -592,12 +593,14 @@ if($path==='/commerce/health'&&$verb==='GET'){
         'amountMultiplierValid'=>in_array((string)$c['bitpay_amount_multiplier'],['1','10'],true),
         'orderEmailFulfilmentConfirmed'=>$c['order_email_fulfilment_confirmed']===true,
         'bookShippingConfirmed'=>$c['book_shipping_confirmed']===true,
+        'inventoryReconciled'=>dbReady() && stage9BookStockReady(db()),
+        'paymentClaimSchemaReady'=>dbReady() && stage9SchemaReady(db()),
         'serviceBookingConfirmed'=>$c['service_booking_confirmed']===true,
         'vipBookingConfirmed'=>$c['vip_booking_confirmed']===true,
     ],'capabilities'=>[
         'services'=>$ready&&$c['service_booking_confirmed']===true,
         'vip'=>$ready&&$c['vip_booking_confirmed']===true,
-        'books'=>$ready&&$c['book_shipping_confirmed']===true,
+        'books'=>$ready&&$c['book_shipping_confirmed']===true&&stage9BookStockReady(db()),
     ]]);
 }
 if($path==='/commerce/prepare'&&$verb==='POST'){
@@ -638,6 +641,7 @@ if($path==='/commerce/create'&&$verb==='POST'){
     $lines=[];$total=0;$c=cfg();$hasBook=false;
     foreach($counts as $sku=>$q){$x=$inventory[$sku];if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'){$hasBook=true;if($c['book_shipping_confirmed']!==true)fail('book_shipping_not_configured',503);}if($x['kind']==='service'&&$c['service_booking_confirmed']!==true)fail('service_booking_not_configured',503);if($x['kind']==='vip'&&$c['vip_booking_confirmed']!==true)fail('vip_booking_not_configured',503);$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
     if($total<1000||$total>1000000000)fail('amount_out_of_range');
+    if($hasBook&&!stage9BookStockReady($pdo))fail('inventory_not_reconciled',503);
     $customer=null;$customerEmail=null;$customerJson=null;
     if($hasBook){$customer=normalizedCustomer($b['customer']??null);}
     else {$customer=normalizedServiceBuyer($b['customer']??null);}
@@ -646,8 +650,17 @@ if($path==='/commerce/create'&&$verb==='POST'){
     if(!is_string($customerJson))fail('customer_encoding_failed',500);
     $rateIdentity=$customerEmail?:implode(',',array_keys($counts));if(!rateAllowed($pdo,'commerce_create',$rateIdentity,5,900))fail('rate_limited',429);
     $mul=(int)$c['bitpay_amount_multiplier'];$providerAmount=$total*$mul;$order=uuidv4();if(!commerceReceiptGrant($order))fail('receipt_access_unavailable',503);$factor=preg_replace('/[^0-9]/','',(string)hrtime(true));$factor=substr($factor,0,28);
-    $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,? ,NOW(),NOW())")
-        ->execute([$order,$factor,$total,$providerAmount,'IRT',$customerEmail,$customerJson,json_encode($lines,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),'created']);
+    // Reserve every physical book atomically; unavailable stock never reaches BitPay.
+    $pdo->beginTransaction();
+    try {
+        stage9ReserveBooks($pdo,$order,$lines);
+        $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,? ,NOW(),NOW())")
+            ->execute([$order,$factor,$total,$providerAmount,'IRT',$customerEmail,$customerJson,json_encode($lines,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),'created']);
+        $pdo->commit();
+    } catch(Throwable $e) {
+        if($pdo->inTransaction())$pdo->rollBack();
+        fail($hasBook?'stock_unavailable':'order_unavailable',$hasBook?409:503);
+    }
     try{
         $callback=SITE_ORIGIN.'/api/commerce/callback?order='.rawurlencode($order);
         $raw=gatewayPost('gateway-send',['amount'=>(string)$providerAmount,'redirect'=>$callback,'factorId'=>$factor,'description'=>'Order '.$order]);
@@ -679,7 +692,7 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
     $params=$_GET;if($verb==='POST')$params=array_merge($params,$_POST);$idGet=(string)($params['id_get']??'');$trans=(string)($params['trans_id']??'');
     if($idGet!==(string)$row['provider_id_get']||!preg_match('/^[1-9][0-9]*$/',$trans))commerceReturnToResult($id);
     try{$raw=gatewayPost('gateway-result-second',['trans_id'=>$trans,'id_get'=>$idGet,'json'=>'1']);$d=json_decode($raw,true);if(!is_array($d)||!in_array((string)($d['status']??''),['1','11'],true)||!preg_match('/^[1-9][0-9]*$/D',(string)($d['amount']??''))||(string)$d['amount']!==(string)$row['provider_amount']||(string)($d['factorId']??'')!==(string)$row['factor_id'])commerceReturnToResult($id);
-        $u=$pdo->prepare("UPDATE commerce_orders SET state='paid',provider_trans_id=?,paid_at=NOW(),updated_at=NOW() WHERE id=? AND state='pending' AND provider_id_get=?");$u->execute([$trans,$id,$idGet]);if($u->rowCount()!==1)commerceReturnToResult($id);
+        if(!stage9FinalizePayment($pdo,$id,$idGet,$trans))commerceReturnToResult($id);
         $customerEmail=(string)($row['customer_email']??'');
         if(validEmail($customerEmail)&&mailReady()){
             $items=json_decode((string)$row['items_json'],true);$summary=[];$sum=0;
