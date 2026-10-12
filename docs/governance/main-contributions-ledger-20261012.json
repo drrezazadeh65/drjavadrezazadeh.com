@@ -1,0 +1,2808 @@
+{
+  "schema": "bertina-main-reconciliation-v1",
+  "canonicalBranch": "migration/bertina-linux6",
+  "canonicalBase": "d3fe0ac61f1d4485ab16100344af91f7c3173537",
+  "historicalMainHead": "16aadc107b4eb1446c40240fee2dfce5ace26b35",
+  "developmentSources": 1,
+  "deploymentTriggered": false,
+  "originalEditorialBlocks": 131,
+  "adaptedPublicPages": 125,
+  "mainFileDispositions": [
+    {
+      "path": ".github/workflows/auth-live-readiness.yml",
+      "baseSha256": "c363fc5365441e873da456a51d25470fbbb1840891a59f54e95ce079872baf93",
+      "mainSha256": "47c4bd89d8649556487ce16d5ab573c235f4be1d248f54a81c7dc7bf61c2a5af",
+      "productionSha256": "a504b83fcdcd1e8a36f47216776003402cc05b8f4cd59f0b93073fa43141c13c",
+      "classification": "legacy-provider-or-writer-governance-already-adapted",
+      "notes": [
+        "Production gates target Bertina release branch and use current source audits; do not restore main-only Worker routes or disabled production jobs."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": ".github/workflows/domain-cutover-once.yml",
+      "baseSha256": "0ee6023dfcea927826c79257d8c28fe6bd08e92bb02a914356b869ddf8ceb01e",
+      "mainSha256": "241928a94ffc1c1495dd96daf9a2af10e9eb8106eb122bf39232d2074dc55d45",
+      "productionSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "legacy-provider-or-writer-governance-already-adapted",
+      "notes": [
+        "Production gates target Bertina release branch and use current source audits; do not restore main-only Worker routes or disabled production jobs."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": ".github/workflows/indexnow-activation.yml",
+      "baseSha256": "67241d503353f247e111b0f8945f35bcbacffa6f1f6db6fabec337ca99764b5f",
+      "mainSha256": "80c2662cf126d8c19296884f2fc72b1bb94cdd8eabcea32b3f867e5007b2d7de",
+      "productionSha256": "d69b1fdbe948d5b8ff599fdd30119393f9206379d45c23d8a5358bbdf4e0e47d",
+      "classification": "legacy-provider-or-writer-governance-already-adapted",
+      "notes": [
+        "Production gates target Bertina release branch and use current source audits; do not restore main-only Worker routes or disabled production jobs."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": ".github/workflows/indexnow-submit.yml",
+      "baseSha256": "2511af2cc13d2bd925afcbfb9828c42825b02e5001a030e3f77868c6a2371ad5",
+      "mainSha256": "21d18ba994dc4aebcd547e06b3721d0512110af232e9c0ed7b9c481413b31b85",
+      "productionSha256": "e57f2568e3fac40c4f6add82f9b2cb789fe8e710e0ec232f4a06fc17391d70ff",
+      "classification": "legacy-provider-or-writer-governance-already-adapted",
+      "notes": [
+        "Production gates target Bertina release branch and use current source audits; do not restore main-only Worker routes or disabled production jobs."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": ".github/workflows/knowledge-articles-premium-upgrade.yml",
+      "baseSha256": "197f791efd84fe960933367bef1bffd3802e27c74515a865c2f2376160479649",
+      "mainSha256": "47fb024f896fcb0c3d4ad126c82631afeaea4f8649e211828c6fd509ae2ffb44",
+      "productionSha256": "7430517982dd980c4590a27edd70183cc63280ac538c2087ef25d20fafa7328b",
+      "classification": "legacy-provider-or-writer-governance-already-adapted",
+      "notes": [
+        "Production gates target Bertina release branch and use current source audits; do not restore main-only Worker routes or disabled production jobs."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": ".github/workflows/media-derivatives.yml",
+      "baseSha256": "c2ad82b3b732cbb18c8837f43206973d4d39707928111068ab3ca818d9cced35",
+      "mainSha256": "2b77931c1962ad741bfbf24a4803f015e1cf3e0844fb929fc38b2691e5b82ff4",
+      "productionSha256": "bbcca701047a14d95a1b767ffdc61a0765edf8570ad5f7947489ff505683a771",
+      "classification": "legacy-provider-or-writer-governance-already-adapted",
+      "notes": [
+        "Production gates target Bertina release branch and use current source audits; do not restore main-only Worker routes or disabled production jobs."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": ".github/workflows/public-data-sync.yml",
+      "baseSha256": "4d56ffc1748cf2273cb0855d36f9690fda085cbd749c84134ad33d01eaee9f36",
+      "mainSha256": "38cc81a7528fb34b3bda05d845db45930b489a2aa79c347c0c22b1a6acad20ee",
+      "productionSha256": "c1af45cbad09ab2888ce4e3b0c89ec1af73c063beec8a9610e426f8ec8aad5e1",
+      "classification": "legacy-provider-or-writer-governance-already-adapted",
+      "notes": [
+        "Production gates target Bertina release branch and use current source audits; do not restore main-only Worker routes or disabled production jobs."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": ".github/workflows/release-cache-reset.yml",
+      "baseSha256": "6743de69c6f4bd16f18d769fa06916a70a225ebc4101e7fbbb0ab66fa4987c16",
+      "mainSha256": "e89b5e3e5093a2fbeef0f33f16eb6a0e0b84b840b05fa0164e4a43d3aed18d4e",
+      "productionSha256": "fb3c2dc4833e28efa1a67c36cd891d384d9499d08570aed3178bfebcde1f6f5e",
+      "classification": "legacy-provider-or-writer-governance-already-adapted",
+      "notes": [
+        "Production gates target Bertina release branch and use current source audits; do not restore main-only Worker routes or disabled production jobs."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "assets/css/customer-dashboard-v1.css",
+      "baseSha256": "225c3ab550538fcd884ccf481ed0c2a2cf905c7286d3d0678560e601a0c5853e",
+      "mainSha256": "91dbcea41434ab6dda637b60d32c60cf14961f3897cf4138cc26b2758b5f834f",
+      "productionSha256": "6fb4a6fcf431a77cbebb5e00936095b5b9a7094c497c8ac4cd58588e9767d365",
+      "classification": "dashboard-navigation-behavior-superseded-by-current-implementation",
+      "notes": [
+        "Current commandCenter implements four presentation-only path filters; hydrate distinguishes 401 and verified session; sheet traps/restores focus. Main entryChooser uses querySelector followed by forEach (would throw), so do not copy it."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "assets/css/store.css",
+      "baseSha256": "f6134e6b5a2ffbe4ec0c63c94a9c9bf300a2f1d3815bbdc637536c47eee6191e",
+      "mainSha256": "96d89ecc9139f74912a65a1cdc9220db23f7eeb201f2c99719f784dccdf2ec8e",
+      "productionSha256": "3a96febe8825acd2f82ac6349b9bfa050eff363638da3b81c3451a25f64061fc",
+      "classification": "store-mission-design-preserved-in-dedicated-current-stylesheet",
+      "notes": [
+        "Main appended mission/collaboration CSS is preserved in assets/css/store-mission.css; current cinematic owner-approved design has additional scope and responsive improvements."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "assets/js/customer-auth.js",
+      "baseSha256": "d600db7fde67e7d16f3b72594875c58725d6689441728486112ec377bfb873a3",
+      "mainSha256": "ea0a3dbd48cef3b4f1e169b4c789bc99be9ef2b98b10780d59cb1a67c18239d8",
+      "productionSha256": "30113ff1e65d44b6a4c94c2658be9b7809b29c07b088f93bc461754c9b73fe5f",
+      "classification": "auth-readiness-behavior-adapted-to-bertina-contract",
+      "notes": [
+        "Production uses same-origin PHP readiness and safe error mapping. Main Worker/Resend-specific fields and mandatory international mobile hint conflict with the email-only baseline; preserve current production contract."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "assets/js/customer-dashboard.js",
+      "baseSha256": "6fab3571d165deca884e8f33699a000dffcc33dfa1f6c6b648edcdb04b0b97f4",
+      "mainSha256": "9a022f26209a00f5c36b50d45b2c882d43bb060156519e886028a50942a423c3",
+      "productionSha256": "9339f301c64ebd95b17f2b787ebbab5caeb91ec8c9b4e63f5ed853017cfc648f",
+      "classification": "dashboard-navigation-behavior-superseded-by-current-implementation",
+      "notes": [
+        "Current commandCenter implements four presentation-only path filters; hydrate distinguishes 401 and verified session; sheet traps/restores focus. Main entryChooser uses querySelector followed by forEach (would throw), so do not copy it."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "assets/js/site.js",
+      "baseSha256": "3958abbd4a61bb449b7f0c41d5ce207e8af4c188904982a6e90399d173fdf01e",
+      "mainSha256": "4548ca8cbe4ee55fab5b4c205b347dd2f0f52c668b382beee8b3d1f23a101764",
+      "productionSha256": "8ebc9f8244dcbf4c89e92c7ee6bd4d9bdd0a3e06efefa261b7a7707c99090912",
+      "classification": "cache-privacy-behavior-already-adapted-current-release",
+      "notes": [
+        "Production excludes /fa/customer-dashboard/ and account routes, uses newer dynamic release cache key and same-origin /api privacy policy."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "docs/REGISTRATION-INCIDENT-2026-10-11.md",
+      "baseSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mainSha256": "12245780474b1cb4abddc59b546d0eddbd882ee648fb4b97dea0636cb46c1c9a",
+      "productionSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "historical-retired-provider-incident-archive-only",
+      "notes": [
+        "Workers.dev/Resend/D1 incident is not the current PHP/SMTP production baseline; retain original SHA as history without using it as live readiness."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "en/about/index.html",
+      "baseSha256": "bcddd96501588c29baeb715a6731a2f781d1a72c4d5f41ef2bc438a647b809bf",
+      "mainSha256": "564bc995ee2fdc17af4d753c7d5953ea4133badf0b7ea243652c7212121c2ef6",
+      "productionSha256": "bcddd96501588c29baeb715a6731a2f781d1a72c4d5f41ef2bc438a647b809bf",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/about/index.html::data-editorial-en-core-20261011=about"
+      ]
+    },
+    {
+      "path": "en/academic-engagements/index.html",
+      "baseSha256": "0ed19fb07eb938002a81499bfbf2ecbe13d3b61b4f751b4365b38c093cbf469f",
+      "mainSha256": "f64c7038c01e669c64201d71b24b7316b526839160a378b700db73cdfb8c8a28",
+      "productionSha256": "0ed19fb07eb938002a81499bfbf2ecbe13d3b61b4f751b4365b38c093cbf469f",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/academic-engagements/index.html::data-editorial-en-core-20261011=academic-engagements"
+      ]
+    },
+    {
+      "path": "en/academic-profile/index.html",
+      "baseSha256": "0ecfd7622bc59ce73d85279a3bbfe2310e6956cf227718104df068a27c27e01e",
+      "mainSha256": "2c2ce4812d5e08cac2a8c054c01ca9ead2edcda45b54839edec2a9b99443e903",
+      "productionSha256": "0ecfd7622bc59ce73d85279a3bbfe2310e6956cf227718104df068a27c27e01e",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/academic-profile/index.html::data-editorial-en-core-20261011=academic-profile"
+      ]
+    },
+    {
+      "path": "en/academic-services/index.html",
+      "baseSha256": "4d53bc75e8d2efb4204e89e4487089bb180e2588e9a9290b78521a18bf9e50d6",
+      "mainSha256": "eeecdc9abfa7de89116ced8d14b667ef2746362ef8842e5a7ae4119cf657b202",
+      "productionSha256": "4d53bc75e8d2efb4204e89e4487089bb180e2588e9a9290b78521a18bf9e50d6",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/academic-services/index.html::data-editorial-en-core-20261011=academic-services"
+      ]
+    },
+    {
+      "path": "en/books/index.html",
+      "baseSha256": "b29e77da27f698842656222d018d386e671da22d823f045dae175dd43c2cee46",
+      "mainSha256": "18b649f14b494f7bcb57753c4edc2e1472963183ed36d32771f22226528b00ff",
+      "productionSha256": "b29e77da27f698842656222d018d386e671da22d823f045dae175dd43c2cee46",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/books/index.html::data-editorial-en-core-20261011=books"
+      ]
+    },
+    {
+      "path": "en/collaboration/index.html",
+      "baseSha256": "989d1bed374452986e5da5a8551b76ab6139131eeac736130797f6227c142aea",
+      "mainSha256": "90653b47889b8ed8de00c66e5f0ef0536466a677951dba90292a0b837e080585",
+      "productionSha256": "989d1bed374452986e5da5a8551b76ab6139131eeac736130797f6227c142aea",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/collaboration/index.html::data-editorial-en-core-20261011=collaboration"
+      ]
+    },
+    {
+      "path": "en/contact/index.html",
+      "baseSha256": "409191bc5f7a854ceffd2cf01f55d513e2b9366b368b5eafdee8d7ef3d6bd740",
+      "mainSha256": "f863f8e4dd5fdcca9f383a78945fcdd6672b2d8d844cb1c49b34a3a16aec3a5d",
+      "productionSha256": "409191bc5f7a854ceffd2cf01f55d513e2b9366b368b5eafdee8d7ef3d6bd740",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/contact/index.html::data-editorial-contact-20261011=scope"
+      ]
+    },
+    {
+      "path": "en/educational-philosophy/index.html",
+      "baseSha256": "d0f41017048ebe3ee66a18f256cf48bcee8c4f059adfa2dd042bb70f4184de46",
+      "mainSha256": "e8fe6a7e8c6b1ffd291af57dd4522307255a72380d2b75c954990e342c099cef",
+      "productionSha256": "d0f41017048ebe3ee66a18f256cf48bcee8c4f059adfa2dd042bb70f4184de46",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/educational-philosophy/index.html::data-editorial-en-core-20261011=educational-philosophy"
+      ]
+    },
+    {
+      "path": "en/golden-talent/index.html",
+      "baseSha256": "946ac05c36e14037114a5084fb0cc21439d6baac6ccc630abdfa5ba416c4c001",
+      "mainSha256": "b8d22154021ea6427af2736a4d7fc97139ece036456a96fb5512421106f091c6",
+      "productionSha256": "946ac05c36e14037114a5084fb0cc21439d6baac6ccc630abdfa5ba416c4c001",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/golden-talent/index.html::data-editorial-en-golden-20261011=evidence",
+        "en/golden-talent/index.html::data-editorial-en-golden-20261011=path"
+      ]
+    },
+    {
+      "path": "en/golden-talent/methodology/index.html",
+      "baseSha256": "97cc0f44e9f951e8efc8e9e3bae2bdd440631e8246e1d00613bf903fd70fb6f7",
+      "mainSha256": "0302779395b10b5a0f3393b80503e533b0b4b6a7ecbb8f406553a3f1d9aa7d68",
+      "productionSha256": "97cc0f44e9f951e8efc8e9e3bae2bdd440631e8246e1d00613bf903fd70fb6f7",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/golden-talent/methodology/index.html::data-editorial-en-method-20261011=reasoning",
+        "en/golden-talent/methodology/index.html::data-editorial-en-method-20261011=limitations"
+      ]
+    },
+    {
+      "path": "en/index.html",
+      "baseSha256": "aa95b9f6f5ec96eaf72a51366b00413ec0730bbcca449ad5a1b2adad7116bbb0",
+      "mainSha256": "2c2d8b17939fa664105a0c8506cf5c3fc86ea2aa83db0004e4987c37c08c8276",
+      "productionSha256": "40ac4a5a75007af07dc720f3f3b0bd2af78104611be8a49afe3c49a5b8e80d1f",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/index.html::data-editorial-home-20261011=golden"
+      ]
+    },
+    {
+      "path": "en/invite/index.html",
+      "baseSha256": "dc00a006ff3e689fae035af3d750e3670bad0dd073c6a2b886f79e0299664a36",
+      "mainSha256": "16c831f99fbcbdac550778bf73bf70638feb9922ca12a8294bf131a3f220b5a6",
+      "productionSha256": "dc00a006ff3e689fae035af3d750e3670bad0dd073c6a2b886f79e0299664a36",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/invite/index.html::data-editorial-en-core-20261011=invite"
+      ]
+    },
+    {
+      "path": "en/language-education/index.html",
+      "baseSha256": "ff81df2e80a5de30c2f96d6cbc8d754caf58af5bb4c7e048e1bee3e7a85c916a",
+      "mainSha256": "a4ceab1b9c1459fa48a27929c761113559bd3bf2b86c94074ce0d83826ce8c10",
+      "productionSha256": "ff81df2e80a5de30c2f96d6cbc8d754caf58af5bb4c7e048e1bee3e7a85c916a",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/language-education/index.html::data-editorial-en-core-20261011=language-education"
+      ]
+    },
+    {
+      "path": "en/news-insights/index.html",
+      "baseSha256": "56e20ef150d02f76eb5d72bca3867c4e986a875e7915463e4fbfba57b1fb1ffb",
+      "mainSha256": "bb21a424a27f36ea8efad29aa659729cefc5dfa6a6b264c204e51d1e7577d32a",
+      "productionSha256": "56e20ef150d02f76eb5d72bca3867c4e986a875e7915463e4fbfba57b1fb1ffb",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/news-insights/index.html::data-editorial-en-core-20261011=news-insights"
+      ]
+    },
+    {
+      "path": "en/projects/index.html",
+      "baseSha256": "ac8ff743647667be36a86bebc5692c5434073bc6c98a384f583b44a42a502eec",
+      "mainSha256": "a0256221149a585e971a5a93c22fd19d5c72f35a131cd3f8250bbf7ba154ee60",
+      "productionSha256": "ac8ff743647667be36a86bebc5692c5434073bc6c98a384f583b44a42a502eec",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/projects/index.html::data-editorial-en-core-20261011=projects"
+      ]
+    },
+    {
+      "path": "en/publications/index.html",
+      "baseSha256": "6d04427e95d5c5a1f5ad36fbf0a97d2fb101d46e0b30e86b4717f75d8000a233",
+      "mainSha256": "41be3f4009417b01e6a8f274b783d9f22fbdcd698fd3ec436ef29bf60a9369b0",
+      "productionSha256": "6d04427e95d5c5a1f5ad36fbf0a97d2fb101d46e0b30e86b4717f75d8000a233",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/publications/index.html::data-editorial-en-core-20261011=publications"
+      ]
+    },
+    {
+      "path": "en/register/index.html",
+      "baseSha256": "2959489fcbf66385b396ca6d25856793cc43bddb3f7513df8078929438831bd1",
+      "mainSha256": "4f7849b60fb84e190f76a9142fdce987998f170d828c52cec89f4ed1b72af9c4",
+      "productionSha256": "f291cca0dcd598b36a5889ca53e5b33e4ae789f604c152c3d101c962ec5a6249",
+      "classification": "superseded-asset-cache-version",
+      "notes": [
+        "Main change only bumps the customer-auth asset query; preserve the current vetted Bertina client version."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "en/research/index.html",
+      "baseSha256": "60f94bd630433280e16625b40c3e867e1366359b3da9dbc153991de5bee74c18",
+      "mainSha256": "57281ce8298ee2683c00385f51d2ce594d7c3fe3c237e5ef47c5ed5dd0cacfa7",
+      "productionSha256": "60f94bd630433280e16625b40c3e867e1366359b3da9dbc153991de5bee74c18",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/research/index.html::data-editorial-en-core-20261011=research"
+      ]
+    },
+    {
+      "path": "en/services/index.html",
+      "baseSha256": "6b754834eee190bf91b02affee34390af9acebba50324a1a66435dd1e4cef756",
+      "mainSha256": "5bdbba8f5e3799dbe929d4967ed6831ae42f094e152ae426de586356c21dd4f0",
+      "productionSha256": "1dd375b7e53efd52bf5f420ab773728341ebce92abe9d9638535f758d5c3cf45",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/services/index.html::data-editorial-en-core-20261011=services"
+      ]
+    },
+    {
+      "path": "en/shop/index.html",
+      "baseSha256": "46ed14199b7ae9bf17f0a8a39a4fa9cdae81ff7f159ca057f622def36778964b",
+      "mainSha256": "93b0f6b56f40ff21ada76b41cb63c6198909e92d4fcaf8d5d14cb17c4c18117e",
+      "productionSha256": "038bf0207af5fb2b19796e10012759d42b1f71cef4984ccdde5fa97ac57ebc96",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/shop/index.html::data-editorial-shop-20261011=equity"
+      ]
+    },
+    {
+      "path": "en/student-guidance/index.html",
+      "baseSha256": "9e1b29f464d61bc5c38e3697250f1878aee7f349b9cccd5464fd9fd929e6a6cd",
+      "mainSha256": "549ab876124a4ecd6f61649b581de0fb61717f5d1175494faf44c44e724a5bbd",
+      "productionSha256": "a28efc631ac8dc80c7e32b74e93c26f15967ddc50092035462b6ddbd2cff19de",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/student-guidance/index.html::data-editorial-guidance-20261011=judgement"
+      ]
+    },
+    {
+      "path": "en/teacher-education/index.html",
+      "baseSha256": "e962e54f7e10a905a877fd8b91e95f6806805b7274578b7713d02784867e133f",
+      "mainSha256": "9ab6f623d8950484e3a5f23da7cb00903385dd497424c1c24fd2d022fc9cb72f",
+      "productionSha256": "e962e54f7e10a905a877fd8b91e95f6806805b7274578b7713d02784867e133f",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/teacher-education/index.html::data-editorial-en-core-20261011=teacher-education"
+      ]
+    },
+    {
+      "path": "en/teaching/index.html",
+      "baseSha256": "022cb914e6fe2073a534343dbe432e3294e1870eedf39cfa0eb9a88cc7274b3f",
+      "mainSha256": "d7022f19c7dae3050186db85195578287e3c44a2a4e4c6960d1ca572d3b7356b",
+      "productionSha256": "022cb914e6fe2073a534343dbe432e3294e1870eedf39cfa0eb9a88cc7274b3f",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "en/teaching/index.html::data-editorial-en-core-20261011=teaching"
+      ]
+    },
+    {
+      "path": "fa/akhbar/entekhab-reshteh-1405/index.html",
+      "baseSha256": "50b94d588a194b2cebc485fa1b4de88e2091e48f0ed657271c0fdfe944f9ad9b",
+      "mainSha256": "3803a88f741b09c643f940e9c5f4ccc922db4f207ce382397bf2d9de9143b68d",
+      "productionSha256": "50b94d588a194b2cebc485fa1b4de88e2091e48f0ed657271c0fdfe944f9ad9b",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/akhbar/entekhab-reshteh-1405/index.html::data-editorial-section-20261011=fa-akhbar-entekhab-reshteh-1405-index.html"
+      ]
+    },
+    {
+      "path": "fa/akhbar/farakhvan-jhela/index.html",
+      "baseSha256": "d63489129d53c95409e90ac12b6c123fee91e1b2a721d9b0c9e40f44428334b9",
+      "mainSha256": "5b25bd963e77bc115794063a7e72f4ca3f4d916674b978614458158cf81aac44",
+      "productionSha256": "d63489129d53c95409e90ac12b6c123fee91e1b2a721d9b0c9e40f44428334b9",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/akhbar/farakhvan-jhela/index.html::data-editorial-section-20261011=fa-akhbar-farakhvan-jhela-index.html"
+      ]
+    },
+    {
+      "path": "fa/akhbar/index.html",
+      "baseSha256": "2afd1744c141e94a1bf3d03bd4d72ed792ba95bf99a0e62bed6b0d55f9f335ec",
+      "mainSha256": "e47867934ac2c01a8f7cb5fde7aeb7cc741d857f410332eaacc072002ed2a143",
+      "productionSha256": "50e57005c389632584318ffd3f13a077d54467105a9f031fed91b5f5073c6e2f",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/akhbar/index.html::data-editorial-core-20261011=akhbar"
+      ]
+    },
+    {
+      "path": "fa/amoozesh-zaban/index.html",
+      "baseSha256": "f583d6ace5394cb640413ae96f4afca965fc724dee2215d5350fb4d75ce6bc7c",
+      "mainSha256": "7b5f54e9489cf9a58494e78a4b79e8bafa448d620d0b47543f8cdff537bfcaec",
+      "productionSha256": "f583d6ace5394cb640413ae96f4afca965fc724dee2215d5350fb4d75ce6bc7c",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/amoozesh-zaban/index.html::data-editorial-core-20261011=amoozesh-zaban"
+      ]
+    },
+    {
+      "path": "fa/customer-dashboard/index.html",
+      "baseSha256": "11dd3bf4088db72792fb1eff1a1b157e861049a8d69014162fec82b1b2333a92",
+      "mainSha256": "310f324dd63786531f83f7ddfb13e9a1064c97bcd2f356273dc6d322a1fd16ff",
+      "productionSha256": "e2be7d48bf210f15d0a9eb810f71832469f5b61986f795b297f32a2919b1037c",
+      "classification": "dashboard-navigation-behavior-superseded-by-current-implementation",
+      "notes": [
+        "Current commandCenter implements four presentation-only path filters; hydrate distinguishes 401 and verified session; sheet traps/restores focus. Main entryChooser uses querySelector followed by forEach (would throw), so do not copy it."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "fa/danesh-amoozan/index.html",
+      "baseSha256": "7ea6418b0e05e5c6774080e3d583531aa18f2690ca606adf98efcb74b61c5cc1",
+      "mainSha256": "099aa4449875d68d9c814a618fa41527ff1ee8a18c3c8ceaa2d8d54444011a4c",
+      "productionSha256": "e2ecafffea51738050c724686e61b4398a4e04b314277c80573ce2ebcdcd6b1d",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/danesh-amoozan/index.html::data-editorial-students-20261011=agency"
+      ]
+    },
+    {
+      "path": "fa/darbare-man/index.html",
+      "baseSha256": "7e8a605758653de8e133e2cf9965932cba17a5dd8a14944ddbf547de1450ef42",
+      "mainSha256": "f51c8e5a7772f457d7229ab929d6bed887e29ea4266036c24425b522889f80ff",
+      "productionSha256": "7e8a605758653de8e133e2cf9965932cba17a5dd8a14944ddbf547de1450ef42",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/darbare-man/index.html::data-editorial-core-20261011=darbare-man"
+      ]
+    },
+    {
+      "path": "fa/entekhab-reshteh/index.html",
+      "baseSha256": "399a66ac7649fe84b5ea52e7d3ab9c67e38598793362c14a535db2247edd4766",
+      "mainSha256": "978b3999603fea6afd2bed5f6d17501873bc893eb4d5bd841a73e5e927b0db29",
+      "productionSha256": "399a66ac7649fe84b5ea52e7d3ab9c67e38598793362c14a535db2247edd4766",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/entekhab-reshteh/index.html::data-editorial-field-20261011=interpretation",
+        "fa/entekhab-reshteh/index.html::data-editorial-field-20261011=quality"
+      ]
+    },
+    {
+      "path": "fa/entesharat-elmi/index.html",
+      "baseSha256": "1c8b0a478cf685efe27188612037fe89c2338e124651fff74959e66b20aa2137",
+      "mainSha256": "fb9215f37bb94598b76f956a5071c0b57fec39d7b6c5ebfb295aaddfddf8c331",
+      "productionSha256": "1c8b0a478cf685efe27188612037fe89c2338e124651fff74959e66b20aa2137",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/entesharat-elmi/index.html::data-editorial-core-20261011=entesharat-elmi"
+      ]
+    },
+    {
+      "path": "fa/estedaadyabi/index.html",
+      "baseSha256": "407fd753678dd899b0841295393b0d17166bc15be9ed0ef0d1f7db77219eba73",
+      "mainSha256": "bb3b924658ff2afe03c87557f1eaf2f30e63b1592f1f085aba7879b1f010afa8",
+      "productionSha256": "407fd753678dd899b0841295393b0d17166bc15be9ed0ef0d1f7db77219eba73",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/estedaadyabi/index.html::data-editorial-talent-20261011=evidence",
+        "fa/estedaadyabi/index.html::data-editorial-talent-20261011=action"
+      ]
+    },
+    {
+      "path": "fa/faaliat-haye-elmi/index.html",
+      "baseSha256": "9fb23f5d18413cba04b014c2851a64f522c4d6b5fb7263a72ccc7f9f293aad57",
+      "mainSha256": "49f91987149170056f21dc70a27877da4360201bc99d19925c75c93b801c5edd",
+      "productionSha256": "9fb23f5d18413cba04b014c2851a64f522c4d6b5fb7263a72ccc7f9f293aad57",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/faaliat-haye-elmi/index.html::data-editorial-core-20261011=faaliat-haye-elmi"
+      ]
+    },
+    {
+      "path": "fa/falsafe-amoozeshi/index.html",
+      "baseSha256": "ea66d0fc5756a52f131f0e9b95b3ace6e2cf5ac9ca0ac90e6a32d1e4559c5114",
+      "mainSha256": "b5087cb6357aa1cc32e05fd689938c49efd82d10943777e756921d1a9eea8f24",
+      "productionSha256": "ea66d0fc5756a52f131f0e9b95b3ace6e2cf5ac9ca0ac90e6a32d1e4559c5114",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/falsafe-amoozeshi/index.html::data-editorial-core-20261011=falsafe-amoozeshi"
+      ]
+    },
+    {
+      "path": "fa/golden-talent/index.html",
+      "baseSha256": "cc3a7901324a68d4a3bc30a6533e04986b2af4254888c55b419f64c6e1740c4c",
+      "mainSha256": "cf3ef4b8a5111fa149e8486997e94da096ecde9825098beec8c701be80bd88f1",
+      "productionSha256": "cc3a7901324a68d4a3bc30a6533e04986b2af4254888c55b419f64c6e1740c4c",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/golden-talent/index.html::data-editorial-golden-talent-20261011=evidence",
+        "fa/golden-talent/index.html::data-editorial-golden-talent-20261011=pathway"
+      ]
+    },
+    {
+      "path": "fa/golden-talent/ravesh-shenasi/index.html",
+      "baseSha256": "c55bbd73be9bc4d78511863ed23af6357d4c87dfb0dbf1ef35c7fd25a40e2324",
+      "mainSha256": "051991329e7c2bff17f90f55260d6f65da591399ef68435d0b25418270cb62ff",
+      "productionSha256": "c55bbd73be9bc4d78511863ed23af6357d4c87dfb0dbf1ef35c7fd25a40e2324",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/golden-talent/ravesh-shenasi/index.html::data-editorial-method-20261011=interpretation",
+        "fa/golden-talent/ravesh-shenasi/index.html::data-editorial-method-20261011=validation"
+      ]
+    },
+    {
+      "path": "fa/hamkari-sazmani/index.html",
+      "baseSha256": "aa5b52b464972aa2764fc07dd1c0eaa596bfd1f8d51c768bec67b7e694be1958",
+      "mainSha256": "efa0ba4517132b87a58f0e712d4c7fb21b0882aaf0ba5e90e616f94a7467b83a",
+      "productionSha256": "aa5b52b464972aa2764fc07dd1c0eaa596bfd1f8d51c768bec67b7e694be1958",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/hamkari-sazmani/index.html::data-editorial-core-20261011=hamkari-sazmani"
+      ]
+    },
+    {
+      "path": "fa/index.html",
+      "baseSha256": "65df70c7a75e1a24852661f1f436ca0878c67a550386163b6c2ffa012e82d3f8",
+      "mainSha256": "5787b918c434257beecb822f48deddf9bcbd6d647d63b790c30951d0c7597669",
+      "productionSha256": "643b9095a8e79b7f575453974d088ccb571c7511fd95d1021015ea349f34a1bc",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/index.html::data-editorial-home-20261011=golden"
+      ]
+    },
+    {
+      "path": "fa/ketab-ha/index.html",
+      "baseSha256": "9e05801dcbfba55e569a3173a9e129cf15d0bbc021cb1dbd2a7ccc1cf30a7d89",
+      "mainSha256": "53aafa176b7d654e016ab7f9f0be784814ec1fdfdb8d99b9e6fc4c5e5ac93690",
+      "productionSha256": "9e05801dcbfba55e569a3173a9e129cf15d0bbc021cb1dbd2a7ccc1cf30a7d89",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/ketab-ha/index.html::data-editorial-core-20261011=ketab-ha"
+      ]
+    },
+    {
+      "path": "fa/khadamat-pajouheshi/index.html",
+      "baseSha256": "a0717e3706cc751974553e083f6b85607906ea0c6dc6ace8ca507cb3db7924b4",
+      "mainSha256": "4dffa02eac8202dacf86eeee3cd32cc216e3434044964c7e88ac7f2c526d7567",
+      "productionSha256": "a0717e3706cc751974553e083f6b85607906ea0c6dc6ace8ca507cb3db7924b4",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/khadamat-pajouheshi/index.html::data-editorial-core-20261011=khadamat-pajouheshi"
+      ]
+    },
+    {
+      "path": "fa/khadamat/index.html",
+      "baseSha256": "3c7a6e0101ef057a0ceb24d554a022377a2dc7762eec3cadaf6a5de5f4dbb1b9",
+      "mainSha256": "4c23bc3ff8438fb19027824309c50bcae18ca3ac0a5d1dc67c1e558613c0c726",
+      "productionSha256": "b563b5d3b3ca47d8370dc451163521927c575732e141dbecf29905c2a75ed527",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/khadamat/index.html::data-editorial-core-20261011=khadamat"
+      ]
+    },
+    {
+      "path": "fa/moshavere-konkur/index.html",
+      "baseSha256": "dc10d4b2072c283fe26dd07221d156bb6031fd8535e056da0e985bed318c7c2c",
+      "mainSha256": "edd34beba48611c5ac4943ef72ad9209cb61cec647c4d1fa11f0c05b72a327bd",
+      "productionSha256": "dc10d4b2072c283fe26dd07221d156bb6031fd8535e056da0e985bed318c7c2c",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/moshavere-konkur/index.html::data-editorial-core-20261011=moshavere-konkur"
+      ]
+    },
+    {
+      "path": "fa/moshavere-tahsili/index.html",
+      "baseSha256": "ef965da976c8c770894e8ae9f02556948d100d8758d63c35413ba18cec45df31",
+      "mainSha256": "e772ecb0e0a2d5fcd0e0f87f027cb4dae2412841458c9ce450f18752ed0b88fe",
+      "productionSha256": "ef965da976c8c770894e8ae9f02556948d100d8758d63c35413ba18cec45df31",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/moshavere-tahsili/index.html::data-editorial-core-20261011=moshavere-tahsili"
+      ]
+    },
+    {
+      "path": "fa/pajouhesh/index.html",
+      "baseSha256": "c89c1a9d44938724fb960541991828dc1e360bec2974ac64ee113b850889da14",
+      "mainSha256": "b19a3e69ec9dea48af4de3a6f3787d5ac780c14817f36059078bef8bbc52bf2e",
+      "productionSha256": "c89c1a9d44938724fb960541991828dc1e360bec2974ac64ee113b850889da14",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/pajouhesh/index.html::data-editorial-core-20261011=pajouhesh"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/academic-cv-professional/index.html",
+      "baseSha256": "4c2aae057a11f39c1d47a3f1c03c5b8630978df356711b0e60b6e1ac6e435b18",
+      "mainSha256": "9c15c0dbae65907af1fc9e01a1fd5eb030a11ad6c4f2e1cade2f3fc1b8e4f7f4",
+      "productionSha256": "4c2aae057a11f39c1d47a3f1c03c5b8630978df356711b0e60b6e1ac6e435b18",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/academic-cv-professional/index.html::data-editorial-review-20261011=academic-cv-professional"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/academic-editing-vs-grammar-correction/index.html",
+      "baseSha256": "b3a52ca041e70ed41ddcbc942dd1cb663569a8fd215624a7e3a4fe4e883e31c8",
+      "mainSha256": "15a23de15dd7967f2bd25099ff0cc54042a9972305bb888fd8dcd998c50c59b7",
+      "productionSha256": "b3a52ca041e70ed41ddcbc942dd1cb663569a8fd215624a7e3a4fe4e883e31c8",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/academic-editing-vs-grammar-correction/index.html::data-editorial-review-20261011=academic-editing-vs-grammar-correction"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/ai-dar-tadris/index.html",
+      "baseSha256": "ced2772a26fdb405fd4362219abf31c0896d01cef0da13dc20654bf626b98bfd",
+      "mainSha256": "43d3fcae92c25f64a1ae6d9be440e176d5afe89642f632ddcedcac7690794f66",
+      "productionSha256": "ced2772a26fdb405fd4362219abf31c0896d01cef0da13dc20654bf626b98bfd",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/ai-dar-tadris/index.html::data-editorial-review-20261011=ai-dar-tadris"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/alaghe-tahsili-vaghei-ya-movaghat/index.html",
+      "baseSha256": "1c4e6104cd0ec8a6fac12c6ece280a56533652cdbd4e736069f59226a81d64f7",
+      "mainSha256": "7785b1bf8609d1dcefc41169f4bf8ee2fcbd6cfe9c6f24e8bff05b4c565a33bc",
+      "productionSha256": "1c4e6104cd0ec8a6fac12c6ece280a56533652cdbd4e736069f59226a81d64f7",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/alaghe-tahsili-vaghei-ya-movaghat/index.html::data-editorial-review-20261011=alaghe-tahsili-vaghei-ya-movaghat"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/alaghe-va-estedaad-motafavet/index.html",
+      "baseSha256": "9dbcdb2e44a1c2a11780d6685fba16f3bec0ba50f6439d14df387678cf9cd52b",
+      "mainSha256": "ad83fe11094dcc064a90f95b124f225d85394906ff38c54ba1fdad57b7d55522",
+      "productionSha256": "9dbcdb2e44a1c2a11780d6685fba16f3bec0ba50f6439d14df387678cf9cd52b",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/alaghe-va-estedaad-motafavet/index.html::data-editorial-review-20261011=alaghe-va-estedaad-motafavet"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/arzyabi-mavad-amoozeshi/index.html",
+      "baseSha256": "efa377ba19114ae53a4ff738da372569b0efd7733cac14b27ab7f05d85f4f411",
+      "mainSha256": "2c8da995fc73ade7f5f8918102dc585af2dc025c7472fc52aa4271cd55b5326f",
+      "productionSha256": "efa377ba19114ae53a4ff738da372569b0efd7733cac14b27ab7f05d85f4f411",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/arzyabi-mavad-amoozeshi/index.html::data-editorial-review-20261011=arzyabi-mavad-amoozeshi"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/aya-nomre-bala-yani-estedaad/index.html",
+      "baseSha256": "3934ddfa01dd61a9e105598cc70a00f46eb3798cba0b144015e3525e03357f9b",
+      "mainSha256": "d1e8835ea3ec7d6c0fc5940e7b375a825226c2e3b74f95eadb580be5abe1d663",
+      "productionSha256": "3934ddfa01dd61a9e105598cc70a00f46eb3798cba0b144015e3525e03357f9b",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/aya-nomre-bala-yani-estedaad/index.html::data-editorial-review-20261011=aya-nomre-bala-yani-estedaad"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/az-arzyabi-ta-barname-roshd-danesh-amooz/index.html",
+      "baseSha256": "6ca26aa3e33afb809e750bb2868849e93b5de565cf38d4b0993379b32c094c16",
+      "mainSha256": "acb88af8a5ac90132e7a934456a8637b7fbe936b2d7e83c6e20c34b24b0cd57b",
+      "productionSha256": "6ca26aa3e33afb809e750bb2868849e93b5de565cf38d4b0993379b32c094c16",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/az-arzyabi-ta-barname-roshd-danesh-amooz/index.html::data-editorial-review-20261011=az-arzyabi-ta-barname-roshd-danesh-amooz"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/azmoon-khoob-vijegiha/index.html",
+      "baseSha256": "d432cc091a57abf0538ef0eddd6908c45191cec8b3f8d2c2e8f2abe34ce9d306",
+      "mainSha256": "bbaa3363b8ddaaca556dd927e6977ed2868daf50bab50dda09f67ad90ca0760d",
+      "productionSha256": "d432cc091a57abf0538ef0eddd6908c45191cec8b3f8d2c2e8f2abe34ce9d306",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/azmoon-khoob-vijegiha/index.html::data-editorial-review-20261011=azmoon-khoob-vijegiha"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/barname-yek-mahe-konkur/index.html",
+      "baseSha256": "ff8bf8ceae7d969bdb5ce014afa2d2ff6b8fd2db570e69fbb3eb4df1e6af820c",
+      "mainSha256": "e7e49543d53dd82ea184803eb63c3f3559995d1d7becd3ad5441819cbf2e8959",
+      "productionSha256": "ff8bf8ceae7d969bdb5ce014afa2d2ff6b8fd2db570e69fbb3eb4df1e6af820c",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/barname-yek-mahe-konkur/index.html::data-editorial-review-20261011=barname-yek-mahe-konkur"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/bazaar-kar-dar-entekhab-reshteh/index.html",
+      "baseSha256": "d638223945f15fd7b88d57ad70467c516d091b81737114c34b45f3f3c2615377",
+      "mainSha256": "69220c9a890f29177dcd6aeeaad9fa206173050af8fe17c8ded06df93d335b5b",
+      "productionSha256": "d638223945f15fd7b88d57ad70467c516d091b81737114c34b45f3f3c2615377",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/bazaar-kar-dar-entekhab-reshteh/index.html::data-editorial-labor-20261011=context"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/behtarin-sen-estedaadyabi/index.html",
+      "baseSha256": "973a314b5fe7337190688923c00d06f0796822374f4dffb5da32d7eeedc195e4",
+      "mainSha256": "5c1e4e55a3882d000e2df7b62d358e81a167f2e070f280db5f9aa14b31375e8f",
+      "productionSha256": "973a314b5fe7337190688923c00d06f0796822374f4dffb5da32d7eeedc195e4",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/behtarin-sen-estedaadyabi/index.html::data-editorial-review-20261011=behtarin-sen-estedaadyabi"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/index.html",
+      "baseSha256": "cb199f16391049801f86eccbafbeaa2018e55c4280b6e9422f5be12e3557b52b",
+      "mainSha256": "3a0a70b2466e280ffd4e8627d4665aa0bcfe74550b024fd8236988d0ba9dcaa3",
+      "productionSha256": "cb199f16391049801f86eccbafbeaa2018e55c4280b6e9422f5be12e3557b52b",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/index.html::data-editorial-review-20261011=che-reshteyi-baraye-man-monaseb-ast"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/chegoone-estedaad-vaghei-farzand-ra-beshenasim/index.html",
+      "baseSha256": "17bf5b7ff4d9d756f49614f1424d15dd1ac51a7c84ab021ef5f0e139fc53c3c2",
+      "mainSha256": "1a769a14ef254f2f1e58798d6b1b78aafc28cce5255465658cf7d96b0d262f43",
+      "productionSha256": "17bf5b7ff4d9d756f49614f1424d15dd1ac51a7c84ab021ef5f0e139fc53c3c2",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/chegoone-estedaad-vaghei-farzand-ra-beshenasim/index.html::data-editorial-review-20261011=chegoone-estedaad-vaghei-farzand-ra-beshenasim"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/chera-danesh-amooz-baestedaad-bi-angizhe-ast/index.html",
+      "baseSha256": "0ba37697c7ce5b7e26171ab21fb19cc380dbc5bd50e3771e06c0c9fba5980b55",
+      "mainSha256": "669283cdbd26e7d548f9c312de6319ffcd61d844d28f2737d638b48ff6655fbc",
+      "productionSha256": "0ba37697c7ce5b7e26171ab21fb19cc380dbc5bd50e3771e06c0c9fba5980b55",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/chera-danesh-amooz-baestedaad-bi-angizhe-ast/index.html::data-editorial-review-20261011=chera-danesh-amooz-baestedaad-bi-angizhe-ast"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/chera-maghale-amade-ersal-nist/index.html",
+      "baseSha256": "af9e2172b62aca577afa4d11792b6ca5b79f3b7400c3080c13204349a82a7777",
+      "mainSha256": "8ff93d538e7fde2ee7fcd993e844590194f08befd5cc4bba909406a48dafa0f4",
+      "productionSha256": "af9e2172b62aca577afa4d11792b6ca5b79f3b7400c3080c13204349a82a7777",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/chera-maghale-amade-ersal-nist/index.html::data-editorial-review-20261011=chera-maghale-amade-ersal-nist"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/index.html",
+      "baseSha256": "6b4ccb7e383072553739cde665fe4effcc1a8f4559b69d226f69d34ca4daa218",
+      "mainSha256": "76c9fc8f4c8b70b5318b9891c6a415974b33f88a17dc60c6f3f365204543a66f",
+      "productionSha256": "6b4ccb7e383072553739cde665fe4effcc1a8f4559b69d226f69d34ca4daa218",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/index.html::data-editorial-single-test-20261011=limits"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/desk-rejection-chist/index.html",
+      "baseSha256": "fcdb3fac080f4fe37f4e5ba3ad4808ab992c47b17e964e16f4b78606280db1b3",
+      "mainSha256": "2cd5690b6a9fb54e75caeb34dacf895c64032ade3013981f6ade7385d7fc66c1",
+      "productionSha256": "fcdb3fac080f4fe37f4e5ba3ad4808ab992c47b17e964e16f4b78606280db1b3",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/desk-rejection-chist/index.html::data-editorial-review-20261011=desk-rejection-chist"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/entekhab-majale-monaseb/index.html",
+      "baseSha256": "38702b20d2e5febad4f55900e2c005aa34e5d88e4640fa9f37bc9ca7b73aed33",
+      "mainSha256": "c245aa96284f4cf6449262fb13c81dc7f1561397f0c6558f010d646c957c7395",
+      "productionSha256": "38702b20d2e5febad4f55900e2c005aa34e5d88e4640fa9f37bc9ca7b73aed33",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/entekhab-majale-monaseb/index.html::data-editorial-review-20261011=entekhab-majale-monaseb"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/entekhab-reshteh-jame/index.html",
+      "baseSha256": "dcb9a939107b6d32b85652732869bea4717f6c259f91db4e8464b7986d78ca91",
+      "mainSha256": "c7889521635d0470cad3a6922d8483825d5fee604f6bb3a4261bad335d5493bf",
+      "productionSha256": "dcb9a939107b6d32b85652732869bea4717f6c259f91db4e8464b7986d78ca91",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/entekhab-reshteh-jame/index.html::data-editorial-major-guide-20261011=evidence"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/estedaad-alaghe-bazaar-kar/index.html",
+      "baseSha256": "82ff5d9088b705ec75907a9e039b1b634ea73defafb73b711559c6826dda75d7",
+      "mainSha256": "834c2d5c635c92efcac6a1087746488029b8cb964c60541f7c6c6bf91783f7e5",
+      "productionSha256": "82ff5d9088b705ec75907a9e039b1b634ea73defafb73b711559c6826dda75d7",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/estedaad-alaghe-bazaar-kar/index.html::data-editorial-review-20261011=estedaad-alaghe-bazaar-kar"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/ghabl-az-submit-maghale/index.html",
+      "baseSha256": "ba3d0ac7958f90fc06c2cafa7c860174904ad933290b709e48385b7d5a35eec3",
+      "mainSha256": "81266eb74bc1a2f88dcc1eda9e70624e8a6428c9066028d177c6280c353773f8",
+      "productionSha256": "ba3d0ac7958f90fc06c2cafa7c860174904ad933290b709e48385b7d5a35eec3",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/ghabl-az-submit-maghale/index.html::data-editorial-review-20261011=ghabl-az-submit-maghale"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/golden-talent-chist/index.html",
+      "baseSha256": "ddb8ba4f429c4402014e6efc7b99be6f19876612ee662f8813bf2966e47aac9a",
+      "mainSha256": "0842449a9b1438a39c83190b2a3eb4c5ee597550ab4405dc3b62f4e77561ec52",
+      "productionSha256": "ddb8ba4f429c4402014e6efc7b99be6f19876612ee662f8813bf2966e47aac9a",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/golden-talent-chist/index.html::data-editorial-what-20261011=practice"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/gozaresh-estedaad-va-masir-roshd/index.html",
+      "baseSha256": "304f3bee459501954a65635df789d15a205c8c3705d9fe90c2e0842de8d0ca35",
+      "mainSha256": "2f79eafe28a2185d4490a3936b815729f61b9569764de36e476f213b5b490f0d",
+      "productionSha256": "304f3bee459501954a65635df789d15a205c8c3705d9fe90c2e0842de8d0ca35",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/gozaresh-estedaad-va-masir-roshd/index.html::data-editorial-review-20261011=gozaresh-estedaad-va-masir-roshd"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/index.html",
+      "baseSha256": "beb9f23263ed4f583e47ec85519038495e590c32c68885edb174a8b7309505df",
+      "mainSha256": "fe4b4d8818147464cb35075a02ea9c18ad260377e0b835c58b10914383454f57",
+      "productionSha256": "e56be24e299b2c29700e6731cffaaf705e27b75cd40e734524f744c347aa7960",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/index.html::data-editorial-core-20261011=rahnamaha"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/jalase-moshtarak-valed-danesh-amooz/index.html",
+      "baseSha256": "dd5d718026dbfd7f1ec38d58d59e1869fbcb5814e9db3ccfb91dc709bfebbb7b",
+      "mainSha256": "44e1dbefd3db85423f19eee43eb07b470e2fca3564e3d7ffd87f050b948198d2",
+      "productionSha256": "dd5d718026dbfd7f1ec38d58d59e1869fbcb5814e9db3ccfb91dc709bfebbb7b",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/jalase-moshtarak-valed-danesh-amooz/index.html::data-editorial-review-20261011=jalase-moshtarak-valed-danesh-amooz"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/kargah-amoozeshi-asarbakhsh/index.html",
+      "baseSha256": "16035e9b029782de28fee81da258d79e12c5e4ae1fc9a234679070cf7264d73f",
+      "mainSha256": "8ab012ba422ec0ad1648824e1742e647e91e2f7dbc6edbee6ffb9f0e6d98a7bb",
+      "productionSha256": "16035e9b029782de28fee81da258d79e12c5e4ae1fc9a234679070cf7264d73f",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/kargah-amoozeshi-asarbakhsh/index.html::data-editorial-review-20261011=kargah-amoozeshi-asarbakhsh"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh/index.html",
+      "baseSha256": "afa7250466e3323848145a55a41681b318fb01377d5e91c28d46cef131d4b261",
+      "mainSha256": "10dbec1d56809ee6204efbc27dd89ed9cc6432f8e93134e5cb587bfb78f317c8",
+      "productionSha256": "afa7250466e3323848145a55a41681b318fb01377d5e91c28d46cef131d4b261",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh/index.html::data-editorial-review-20261011=khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/madarese-che-zamani-moshaver-amoozeshi/index.html",
+      "baseSha256": "011f69884f8e772fe10d885cc33336669807030c6d1adb3c91edc15ac307f3df",
+      "mainSha256": "70bb21de99fa10cc71c57c9f313748a0fa1dd6183f11750bb32e39179c139736",
+      "productionSha256": "011f69884f8e772fe10d885cc33336669807030c6d1adb3c91edc15ac307f3df",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/madarese-che-zamani-moshaver-amoozeshi/index.html::data-editorial-review-20261011=madarese-che-zamani-moshaver-amoozeshi"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/madarese-system-estedaadyabi/index.html",
+      "baseSha256": "178f628505fd8136771b7b920ba92a22a76e2828593d8a8ffbd88060e7ef87b2",
+      "mainSha256": "833a72f72f5b6b7062cd4409eaff5e1d88a0bf7d36b32f86bc4a80cc0e056e0c",
+      "productionSha256": "178f628505fd8136771b7b920ba92a22a76e2828593d8a8ffbd88060e7ef87b2",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/madarese-system-estedaadyabi/index.html::data-editorial-review-20261011=madarese-system-estedaadyabi"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/major-revision-az-koja-shoroo-konim/index.html",
+      "baseSha256": "16794da56df3af9f52a4d27914477a7ecb4d4299351e19c5fedd8541a3b34dd7",
+      "mainSha256": "9d9b8450dc4ec61a979888049e6fbafdf651784e608cbbe2454853902f34a6b2",
+      "productionSha256": "16794da56df3af9f52a4d27914477a7ecb4d4299351e19c5fedd8541a3b34dd7",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/major-revision-az-koja-shoroo-konim/index.html::data-editorial-review-20261011=major-revision-az-koja-shoroo-konim"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/index.html",
+      "baseSha256": "67908b4b3a4a6fcb2b579158fef3dcfdde9c4209e5aaaf64621e4c951082dfd7",
+      "mainSha256": "76e72f60c0ada6d46a787eef59432c9f59017c9b87249a014e25631be3ac3b89",
+      "productionSha256": "fc4b36850d148945a1c41bce68dcf70cf2aee5dc344c420605871bf8e2095897",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/index.html::data-editorial-review-20261011=moghayese-reshteha-ba-matris-tasmim"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/mosahabe-heyat-elmi/index.html",
+      "baseSha256": "3b315caf5fc741e90ec30b27c13f580e95d65d81db3e971f46e3ab52757ac7ac",
+      "mainSha256": "68b256c15ff42928523ef26043cc525943b6a948f6d4f50613da6d538544a142",
+      "productionSha256": "3b315caf5fc741e90ec30b27c13f580e95d65d81db3e971f46e3ab52757ac7ac",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/mosahabe-heyat-elmi/index.html::data-editorial-review-20261011=mosahabe-heyat-elmi"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moshavere-konkur-herfei/index.html",
+      "baseSha256": "d4bd9074116e5c7b97c6533f90182d21b95c4f5f7515e7b6787b0cc6d5dd57be",
+      "mainSha256": "989d2519901a8e616a4f8b7c1c15690494f0190a04bfb1b091a5b56cf718a904",
+      "productionSha256": "d4bd9074116e5c7b97c6533f90182d21b95c4f5f7515e7b6787b0cc6d5dd57be",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/moshavere-konkur-herfei/index.html::data-editorial-review-20261011=moshavere-konkur-herfei"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moshavere-moallem-mavad-sanjessh/index.html",
+      "baseSha256": "2c1f34495ab755462bf155bd9333c63806a32ad450c8e7f6abff57894760492d",
+      "mainSha256": "adfdf68724dcbab931329aa0fee326dc5c124c906c0b7474f86ca9a15defe426",
+      "productionSha256": "2c1f34495ab755462bf155bd9333c63806a32ad450c8e7f6abff57894760492d",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/moshavere-moallem-mavad-sanjessh/index.html::data-editorial-review-20261011=moshavere-moallem-mavad-sanjessh"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moshavere-pajouheshi-che-zamani-lazem-ast/index.html",
+      "baseSha256": "13b5aeec5687e753950676352826a46b2ac5af1e5c4b7e557bfc165fc44a655a",
+      "mainSha256": "72a301180435909c0cd4abe9cdaefe3d50f3b2f1d515453f423ebc67f1193be7",
+      "productionSha256": "13b5aeec5687e753950676352826a46b2ac5af1e5c4b7e557bfc165fc44a655a",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/moshavere-pajouheshi-che-zamani-lazem-ast/index.html::data-editorial-review-20261011=moshavere-pajouheshi-che-zamani-lazem-ast"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moshavere-tahsili-baraye-tasmim/index.html",
+      "baseSha256": "ecc2f3f22d661cff4cb0e4c1f5878de700a328a986230797cebb9e31bf2108a8",
+      "mainSha256": "243a8e2fecc9475c155dfe4c817b72509813f1b164feaeb82e0a8682b18213de",
+      "productionSha256": "ecc2f3f22d661cff4cb0e4c1f5878de700a328a986230797cebb9e31bf2108a8",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/moshavere-tahsili-baraye-tasmim/index.html::data-editorial-review-20261011=moshavere-tahsili-baraye-tasmim"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moshavere-tahsili-takhasosi-chist/index.html",
+      "baseSha256": "77e22abba6a681dd42e412aff0006e924578833dbb03b9f0204be3f15e4b2f1a",
+      "mainSha256": "9c34bb56914ff9413871e36a66f15333b46dcfdd2d5f76543cd5b83cfa302ece",
+      "productionSha256": "77e22abba6a681dd42e412aff0006e924578833dbb03b9f0204be3f15e4b2f1a",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/moshavere-tahsili-takhasosi-chist/index.html::data-editorial-review-20261011=moshavere-tahsili-takhasosi-chist"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/naghsh-valedein-dar-masir-estedaad/index.html",
+      "baseSha256": "b7b7688c8f94f46fa2f98940f939ed2ca5daf33990b1eb6686ae33043e7f823f",
+      "mainSha256": "be207d99fd74ebe9f6b6c00ef465aebb9fbc9df2de4e7d18f62845ab65b541ec",
+      "productionSha256": "b7b7688c8f94f46fa2f98940f939ed2ca5daf33990b1eb6686ae33043e7f823f",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/naghsh-valedein-dar-masir-estedaad/index.html::data-editorial-review-20261011=naghsh-valedein-dar-masir-estedaad"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/pasokh-be-davaran/index.html",
+      "baseSha256": "66642ec6af987dd747e7fbc8dbf652b1685863de3e8625d6cec09f4081e20cbf",
+      "mainSha256": "4a12df94327b5dd0b0238ae0e7ea4bce103b888b3b7e211af027012aa8e87b6b",
+      "productionSha256": "66642ec6af987dd747e7fbc8dbf652b1685863de3e8625d6cec09f4081e20cbf",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/pasokh-be-davaran/index.html::data-editorial-review-20261011=pasokh-be-davaran"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/proofreading-editing-manuscript-review/index.html",
+      "baseSha256": "a5003054fd934b3b1e26a580223cbcdee812c35477fc14d7ed50ff0fe3e8ec2e",
+      "mainSha256": "bd20b962a066ba714cd32f1dd914416ad3c8a9a80c6967dde4d60db8f28826d7",
+      "productionSha256": "a5003054fd934b3b1e26a580223cbcdee812c35477fc14d7ed50ff0fe3e8ec2e",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/proofreading-editing-manuscript-review/index.html::data-editorial-review-20261011=proofreading-editing-manuscript-review"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/index.html",
+      "baseSha256": "34b26ea70cdfb2413f1fc7b9be4cbfc1834737130f27c4881302995ce46375ad",
+      "mainSha256": "b0b8fd9b82efe71b4a11b39e6882adca118e03f89cb74cf7cd7bab610b10d61d",
+      "productionSha256": "34b26ea70cdfb2413f1fc7b9be4cbfc1834737130f27c4881302995ce46375ad",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/index.html::data-editorial-review-20261011=rotbe-va-tanasob-dar-entekhab-reshteh"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/index.html",
+      "baseSha256": "9492cb45a5a721627cd222d958462b5d5f4aae0c8a203f6705e17a636ad820f4",
+      "mainSha256": "fed6851c8c0cf496c9142a65944f0e1e34131992275dd1c8e05f4238d6a4b7b7",
+      "productionSha256": "9492cb45a5a721627cd222d958462b5d5f4aae0c8a203f6705e17a636ad820f4",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/index.html::data-editorial-review-20261011=tafavot-estedaad-alaghe-maharat-amalkard"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/tahlil-karname-tahsili/index.html",
+      "baseSha256": "fdb416ee91997c5682a52dcffdc9ff54938f6d2a4f77155cb17968d0c991c6eb",
+      "mainSha256": "c0e452a67638b7f44a8d9454ff535c04dbec2d00d22305b813845b12ed92542a",
+      "productionSha256": "fdb416ee91997c5682a52dcffdc9ff54938f6d2a4f77155cb17968d0c991c6eb",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/tahlil-karname-tahsili/index.html::data-editorial-review-20261011=tahlil-karname-tahsili"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/tosee-herfei-moalleman/index.html",
+      "baseSha256": "d779ad43779a5f9fb80d9d00287532c7d98a36b9c8df1691367d369f966cb471",
+      "mainSha256": "1481502cd8cf72e95208df51c2638f47f0e5135a020320bc3135fe9a41954632",
+      "productionSha256": "d779ad43779a5f9fb80d9d00287532c7d98a36b9c8df1691367d369f966cb471",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/tosee-herfei-moalleman/index.html::data-editorial-review-20261011=tosee-herfei-moalleman"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand/index.html",
+      "baseSha256": "9b582848131277e69a7b36ce397ff274c93e6f1217e246d6d9227214c1ae4e47",
+      "mainSha256": "81405d55273908cb418dd808cfd62d3924d69a9880ba6d39d370afc9b29067a1",
+      "productionSha256": "9b582848131277e69a7b36ce397ff274c93e6f1217e246d6d9227214c1ae4e47",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/rahnamaha/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand/index.html::data-editorial-review-20261011=valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand"
+      ]
+    },
+    {
+      "path": "fa/register/index.html",
+      "baseSha256": "7b959de3e15d579992517299703a291c40c436373624e99a1f9eacb077b6f239",
+      "mainSha256": "7a03550d6519b8dcc5f9449ede6a787a8ec2da5aa439817a0a72de68af7fb730",
+      "productionSha256": "474d31f82136f66c5ba1a07c8f0894063ff827917eff91bf0b7ac9e29662fe9c",
+      "classification": "superseded-asset-cache-version",
+      "notes": [
+        "Main change only bumps the customer-auth asset query; preserve the current vetted Bertina client version."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "fa/services/academic_consult_60/index.html",
+      "baseSha256": "8e851765c4cab5eda54e6b425eef65dde5610c2b0cd57841ba14319491f22309",
+      "mainSha256": "697094abd90c7a0930a4945886b1676accaedff8633f682588ffa4802f7dff42",
+      "productionSha256": "8e851765c4cab5eda54e6b425eef65dde5610c2b0cd57841ba14319491f22309",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/academic_consult_60/index.html::data-editorial-depth-20261011=academic_consult_60"
+      ]
+    },
+    {
+      "path": "fa/services/academic_cv/index.html",
+      "baseSha256": "6f1d8df827cdba9741435e2232d36a90d6f5dbb7e9a5b4c989096c19b53e5342",
+      "mainSha256": "faf2692411bb80c9795f498e1f1627a6e73ae0e10e65c110ed977560093210a0",
+      "productionSha256": "6f1d8df827cdba9741435e2232d36a90d6f5dbb7e9a5b4c989096c19b53e5342",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/academic_cv/index.html::data-editorial-depth-20261011=academic_cv"
+      ]
+    },
+    {
+      "path": "fa/services/academic_editing/index.html",
+      "baseSha256": "3a361afdae58310ab0dc5499e0dd999b18873d645258c56a1a59fd983e998771",
+      "mainSha256": "f8a6eac0132b270352b5fc618b1dcc2b49fb8051b5aca52d3895a887026ed4a9",
+      "productionSha256": "3a361afdae58310ab0dc5499e0dd999b18873d645258c56a1a59fd983e998771",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/academic_editing/index.html::data-editorial-depth-20261011=academic_editing"
+      ]
+    },
+    {
+      "path": "fa/services/academic_interview_90/index.html",
+      "baseSha256": "81f8434554325f36de4e7f5259a4b2497a192434f2f5d6c6b144dc1967996f47",
+      "mainSha256": "5e6b7fad71c3e8d2fc271e0a3874f46b0b839eb7e14452433a1a314a80034fc8",
+      "productionSha256": "81f8434554325f36de4e7f5259a4b2497a192434f2f5d6c6b144dc1967996f47",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/academic_interview_90/index.html::data-editorial-depth-20261011=academic_interview_90"
+      ]
+    },
+    {
+      "path": "fa/services/field_selection_comprehensive/index.html",
+      "baseSha256": "5ebc9729cc03490f08aabcc9785832f95e24abb765295f6343570ce815b0a0bc",
+      "mainSha256": "4a4f85fbd1434833b23f1eea2b80900241546e4b71ceb99b71bda15758a67f7e",
+      "productionSha256": "5ebc9729cc03490f08aabcc9785832f95e24abb765295f6343570ce815b0a0bc",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/field_selection_comprehensive/index.html::data-editorial-depth-20261011=field_selection_comprehensive"
+      ]
+    },
+    {
+      "path": "fa/services/field_selection_standard/index.html",
+      "baseSha256": "52d3739b6761fa3d5e8e26f5b537ce29f97f6f31abaf5219f7a2b51be524e810",
+      "mainSha256": "29e557032aacd97a103012aa2a9726f95567170aae8e4aa693bc66fc3f8043d4",
+      "productionSha256": "52d3739b6761fa3d5e8e26f5b537ce29f97f6f31abaf5219f7a2b51be524e810",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/field_selection_standard/index.html::data-editorial-depth-20261011=field_selection_standard"
+      ]
+    },
+    {
+      "path": "fa/services/golden_talent_comprehensive/index.html",
+      "baseSha256": "f2ebbc84a95c04292fcb18643ba06afa3f9231f7251d70e916a8bc5fbb448e2c",
+      "mainSha256": "52567afd71cd982f2bb53457af32f5e46832b93f933951a1088f5b241502b50c",
+      "productionSha256": "f2ebbc84a95c04292fcb18643ba06afa3f9231f7251d70e916a8bc5fbb448e2c",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/golden_talent_comprehensive/index.html::data-editorial-gt-service-20261011=professional"
+      ]
+    },
+    {
+      "path": "fa/services/golden_talent_premium/index.html",
+      "baseSha256": "b16fcac861c271fb28ad0f7d5fc3d68bd3e8221a39d0ad865a0d9f482c23eb17",
+      "mainSha256": "686865d9aa4f9cedde6b041bbab52ca337abba4f729e467a8d092b589aadd03c",
+      "productionSha256": "b16fcac861c271fb28ad0f7d5fc3d68bd3e8221a39d0ad865a0d9f482c23eb17",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/golden_talent_premium/index.html::data-editorial-gt-premium-20261011=integrated"
+      ]
+    },
+    {
+      "path": "fa/services/index.html",
+      "baseSha256": "15b6145b9cc413dc50a567cf16800aaea5ec935177526000b48a5c36cc0d627f",
+      "mainSha256": "b136a82c1b3c1cdec33657307edef63be93d97f3b0330fef4e948a98bc4a7670",
+      "productionSha256": "15b6145b9cc413dc50a567cf16800aaea5ec935177526000b48a5c36cc0d627f",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/index.html::data-editorial-section-20261011=fa-services-index.html"
+      ]
+    },
+    {
+      "path": "fa/services/journal_strategy/index.html",
+      "baseSha256": "4bd7fc8c0aed134e5a373d5e2700c40d157dc34d668ed69b88067793ac7f5fd4",
+      "mainSha256": "45dd20bd915b15c232e80c44d5264d4ed684a35ec806bcffa3b0239a1cab54f9",
+      "productionSha256": "4bd7fc8c0aed134e5a373d5e2700c40d157dc34d668ed69b88067793ac7f5fd4",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/journal_strategy/index.html::data-editorial-depth-20261011=journal_strategy"
+      ]
+    },
+    {
+      "path": "fa/services/konkur_consult_60/index.html",
+      "baseSha256": "003c7965b1bd91f2f071c2297ec1e345366b5e8028959112db67e54eeb3d2007",
+      "mainSha256": "657554af1e1b7280d13486af1e40a7ea2cfa8b5544eb29b17822c7ff97c3579e",
+      "productionSha256": "003c7965b1bd91f2f071c2297ec1e345366b5e8028959112db67e54eeb3d2007",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/konkur_consult_60/index.html::data-editorial-depth-20261011=konkur_consult_60"
+      ]
+    },
+    {
+      "path": "fa/services/konkur_month/index.html",
+      "baseSha256": "ec51d5a18e418c0cc604b9ad4de7db795b434bf4984faed0ccec566097abee7a",
+      "mainSha256": "47804688ea48eeb400248c37e78e5f7bf0a65fd2c9608be8cd4bc5d1526559ec",
+      "productionSha256": "ec51d5a18e418c0cc604b9ad4de7db795b434bf4984faed0ccec566097abee7a",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/konkur_month/index.html::data-editorial-depth-20261011=konkur_month"
+      ]
+    },
+    {
+      "path": "fa/services/manuscript_diagnostic/index.html",
+      "baseSha256": "1dff0ade719dae5fd370abd51abfa071d97b2a27546079452cb44d2c0b5612db",
+      "mainSha256": "e66d5b2a1b040daf3ff35f5620bdcb994b64c3cec3e12df62d71a98167c16a17",
+      "productionSha256": "1dff0ade719dae5fd370abd51abfa071d97b2a27546079452cb44d2c0b5612db",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/manuscript_diagnostic/index.html::data-editorial-depth-20261011=manuscript_diagnostic"
+      ]
+    },
+    {
+      "path": "fa/services/organization_consult_90/index.html",
+      "baseSha256": "c813ccc2394678670a56d2488e6fcb5ec72614a03875475cd8644c493d3e8a2b",
+      "mainSha256": "2388e0d504347b80bb4fd8dbecb2540a2671b0e8130d09c38e25eed48da119dc",
+      "productionSha256": "c813ccc2394678670a56d2488e6fcb5ec72614a03875475cd8644c493d3e8a2b",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/organization_consult_90/index.html::data-editorial-depth-20261011=organization_consult_90"
+      ]
+    },
+    {
+      "path": "fa/services/research_consult_60/index.html",
+      "baseSha256": "5453921b48e382e9b2bd354f70837006f6199d17c77a45f8cd98bd95de51d71d",
+      "mainSha256": "dd8adc7ac30d080df300003ba3b8b1edf4b88b7d5661c8cd81ae90484d09a050",
+      "productionSha256": "5453921b48e382e9b2bd354f70837006f6199d17c77a45f8cd98bd95de51d71d",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/research_consult_60/index.html::data-editorial-depth-20261011=research_consult_60"
+      ]
+    },
+    {
+      "path": "fa/services/reviewer_response/index.html",
+      "baseSha256": "144eec9c1cc4da77b7313dbd556aa331c938d4e5411b81cb90d1ca0c1d33db0c",
+      "mainSha256": "3874034acab54f38fe5b8cdbf59851a736d8a670217185d68f1bebeaa03e47fd",
+      "productionSha256": "144eec9c1cc4da77b7313dbd556aa331c938d4e5411b81cb90d1ca0c1d33db0c",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/reviewer_response/index.html::data-editorial-depth-20261011=reviewer_response"
+      ]
+    },
+    {
+      "path": "fa/services/specialist_workshop_120/index.html",
+      "baseSha256": "e66a6fec238fe1d6bddcbfee2989f1ff81489b32b1ce3b6157f4f5bf626962f7",
+      "mainSha256": "99f2320fa9a403bcd7d297bdace170b27f9c3ca69ecafbbe1624b921b0efad14",
+      "productionSha256": "e66a6fec238fe1d6bddcbfee2989f1ff81489b32b1ce3b6157f4f5bf626962f7",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/specialist_workshop_120/index.html::data-editorial-depth-20261011=specialist_workshop_120"
+      ]
+    },
+    {
+      "path": "fa/services/student_parent_90/index.html",
+      "baseSha256": "949524ab903d6f478ddc73e76376ea1a304e89b2ab3f6b56068771a994c5a11e",
+      "mainSha256": "31e1fd3e17c8b849b47a93485e847163c157225b827fd770ebb7aa7318cad8d0",
+      "productionSha256": "949524ab903d6f478ddc73e76376ea1a304e89b2ab3f6b56068771a994c5a11e",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/student_parent_90/index.html::data-editorial-parent-dialogue-20261011=dialogue"
+      ]
+    },
+    {
+      "path": "fa/services/talent_initial/index.html",
+      "baseSha256": "30247edb7b9362bac62e166f13ed28ef43b0dbe369e860a628a3d942d264faec",
+      "mainSha256": "30b23eb946c17c3621b58df565e333be153f1a3d84e5fc87044545f9c8cbd22a",
+      "productionSha256": "30247edb7b9362bac62e166f13ed28ef43b0dbe369e860a628a3d942d264faec",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/talent_initial/index.html::data-editorial-talent-entry-20261011=scope"
+      ]
+    },
+    {
+      "path": "fa/services/teacher_consult_60/index.html",
+      "baseSha256": "5f09e0ecb863d073df743077c161361b065bff9ec675afd64cf8600394bf32ab",
+      "mainSha256": "ee7fcdc1740acf5210a28f0d14c8dfb9268dceb85b3fd5818193c00420da1bcf",
+      "productionSha256": "5f09e0ecb863d073df743077c161361b065bff9ec675afd64cf8600394bf32ab",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/teacher_consult_60/index.html::data-editorial-teacher-20261011=professional"
+      ]
+    },
+    {
+      "path": "fa/services/teacher_dev_90/index.html",
+      "baseSha256": "fb5c5fd488857850a11314d3badc3b77194d524e484708d727117c3fee443e45",
+      "mainSha256": "bb3947cd9878101650deae3bde6e213f6d48fa72e2b8c3c57874fe66f4b38494",
+      "productionSha256": "fb5c5fd488857850a11314d3badc3b77194d524e484708d727117c3fee443e45",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/teacher_dev_90/index.html::data-editorial-depth-20261011=teacher_dev_90"
+      ]
+    },
+    {
+      "path": "fa/services/transcript_analysis/index.html",
+      "baseSha256": "9e795a17a377db94a740f8bb672d886594d522716baa8b41d07cc22570e76f30",
+      "mainSha256": "92f8b9f6a74d7b588d435590ce17f2992d83e335394ff0c7d756c5893af86b8e",
+      "productionSha256": "9e795a17a377db94a740f8bb672d886594d522716baa8b41d07cc22570e76f30",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/services/transcript_analysis/index.html::data-editorial-depth-20261011=transcript_analysis"
+      ]
+    },
+    {
+      "path": "fa/shop/index.html",
+      "baseSha256": "b293164ae60b2a6f5617dd3a3ac89335a9148dc491e4ed29894e5f30352ab63d",
+      "mainSha256": "c2024a5d8d68e30feeb6faf3044774e1a934b884dcf13ec15f24ba6b71b74aff",
+      "productionSha256": "b07f2a79fe2367cfa16192735793848972faeced65b28522dde54291a98202c4",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/shop/index.html::data-editorial-shop-20261011=equity"
+      ]
+    },
+    {
+      "path": "fa/tadris/index.html",
+      "baseSha256": "bb7616b2c1450728344b53af7db211f576631beb95d7c4c6e04b706025684595",
+      "mainSha256": "453b58bc4b99f88b12b06bea5dca0923c7297928f6219eb62f73bda10129cc0e",
+      "productionSha256": "bb7616b2c1450728344b53af7db211f576631beb95d7c4c6e04b706025684595",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/tadris/index.html::data-editorial-core-20261011=tadris"
+      ]
+    },
+    {
+      "path": "fa/tamas/index.html",
+      "baseSha256": "55a093d223dd3202275c811e12fa3c039273d8afcbd8597b70d15865810d3443",
+      "mainSha256": "dce4169c0b3abc5e89967abfcbf4d79d74e890f7f1bc6efa3e8096ef5d08bf91",
+      "productionSha256": "55a093d223dd3202275c811e12fa3c039273d8afcbd8597b70d15865810d3443",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/tamas/index.html::data-editorial-contact-20261011=scope"
+      ]
+    },
+    {
+      "path": "fa/vip/academic-direction/index.html",
+      "baseSha256": "b4fa0d73f006bb4608389b22cac3f75cdc28578aac68adce8d672adee448991b",
+      "mainSha256": "13d8796011ada3d51e304ea4f0b52940006a8eddbaa29c9fefcdc93c15120db9",
+      "productionSha256": "b4fa0d73f006bb4608389b22cac3f75cdc28578aac68adce8d672adee448991b",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/vip/academic-direction/index.html::data-editorial-vip-20261011=academic-direction"
+      ]
+    },
+    {
+      "path": "fa/vip/educator-development/index.html",
+      "baseSha256": "a8b90c110f4cb342bcda933aa17357f86988c8d725d3386f77a306567a1033b2",
+      "mainSha256": "8f6e84b9e4c7ce7dc1bd2e62b8a229da520b183b900d11a45ff6028d40396ada",
+      "productionSha256": "a8b90c110f4cb342bcda933aa17357f86988c8d725d3386f77a306567a1033b2",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/vip/educator-development/index.html::data-editorial-vip-20261011=educator-development"
+      ]
+    },
+    {
+      "path": "fa/vip/golden-talent-signature/index.html",
+      "baseSha256": "f24b03a17d7d81f03bdf76702c9315b5b0a3763a4c94bbd0ce140334d007d480",
+      "mainSha256": "94dc521e8d26811b355a6977bf81fd39cafb190b195e1576e5d6feb19f1a0ff0",
+      "productionSha256": "f24b03a17d7d81f03bdf76702c9315b5b0a3763a4c94bbd0ce140334d007d480",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/vip/golden-talent-signature/index.html::data-editorial-vip-20261011=golden-talent-signature"
+      ]
+    },
+    {
+      "path": "fa/vip/index.html",
+      "baseSha256": "358b2389acf830d432dba0a2bee370dbda110ae760d250a17f0a2276b8075c29",
+      "mainSha256": "932c1567dedc435a9b6d569d832368769150ff7f71db7fea3c6588e3c12f7d17",
+      "productionSha256": "9b2f460863a111680ea644689d7c23ca0d9b4018ff3a42c6be87cc3088e098ef",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/vip/index.html::data-editorial-section-20261011=fa-vip-index.html"
+      ]
+    },
+    {
+      "path": "fa/vip/institutional-advisory/index.html",
+      "baseSha256": "52ace4023a1c3211b51d14f5542adbc890a6a651b05891b404861a1b3c64e14b",
+      "mainSha256": "3a07f6811aede85e13c7781223a2b08ca11a9ab907ef7b82f8f14f084542fa73",
+      "productionSha256": "52ace4023a1c3211b51d14f5542adbc890a6a651b05891b404861a1b3c64e14b",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/vip/institutional-advisory/index.html::data-editorial-vip-20261011=institutional-advisory"
+      ]
+    },
+    {
+      "path": "fa/vip/research-publication/index.html",
+      "baseSha256": "aa2dd070fc394f3a3cd246785e30f86118144ef1969ddffc02bdec06442e58fa",
+      "mainSha256": "aa8f9ebb2ce88fcc9bfccf38dcabb7763ccdaff9e0871bb7f9b74931427655dd",
+      "productionSha256": "aa2dd070fc394f3a3cd246785e30f86118144ef1969ddffc02bdec06442e58fa",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/vip/research-publication/index.html::data-editorial-vip-20261011=research-publication"
+      ]
+    },
+    {
+      "path": "fa/vip/university-selection/index.html",
+      "baseSha256": "87ec3825d8f53aac428f4dd5142c78024a7d21587fa135b0c821d90da8ad4f3d",
+      "mainSha256": "17d686738bf76cc0a29d073a1f49ab39df568983f320824770bcd23eacddf577",
+      "productionSha256": "87ec3825d8f53aac428f4dd5142c78024a7d21587fa135b0c821d90da8ad4f3d",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "fa/vip/university-selection/index.html::data-editorial-vip-20261011=university-selection"
+      ]
+    },
+    {
+      "path": "index.html",
+      "baseSha256": "a132837fd677136130c3c154ea288547573af1c0158cdff7f6f8bdbebaa13118",
+      "mainSha256": "4ebdf61e2712bcc03c39f1154fe363c6e0be4420b0570a1f92cdc85d6ffd6a1e",
+      "productionSha256": "53b223398aa2f8e2c3c21941b1c1937726e295fa5978bf1863c71a4a5899c231",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "index.html::data-editorial-root-20261011=academic"
+      ]
+    },
+    {
+      "path": "journal/call-for-reviewers/index.html",
+      "baseSha256": "2337ea98d9fde16a640b87bb6e72c0ea21278f45ffa603c1b9aad2c1c4282939",
+      "mainSha256": "0aaa4af9bda392b5e090d434209d5621d13e8ca585ed74ec23986ccd4699a0f1",
+      "productionSha256": "2337ea98d9fde16a640b87bb6e72c0ea21278f45ffa603c1b9aad2c1c4282939",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "journal/call-for-reviewers/index.html::data-editorial-section-20261011=journal-call-for-reviewers-index.html"
+      ]
+    },
+    {
+      "path": "journal/founding-collaborators/index.html",
+      "baseSha256": "2d051f184fb23214a4f042eacf6d8e34e406e77b39cc1863460f0deff54e6e7a",
+      "mainSha256": "4468f53fd44a414bf832f8546205c623230350ea647c85eeaaf7e0175476f522",
+      "productionSha256": "2d051f184fb23214a4f042eacf6d8e34e406e77b39cc1863460f0deff54e6e7a",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "journal/founding-collaborators/index.html::data-editorial-section-20261011=journal-founding-collaborators-index.html"
+      ]
+    },
+    {
+      "path": "payment-api/auth-routes.js",
+      "baseSha256": "786df02646ff07f58bcbc1692e878a0a4dc22363497c2d5230e34ff0422ce92e",
+      "mainSha256": "b29fb6ab87b13cbb50af62e414a9749525c7f4a962b24ccc4e780593653d3be1",
+      "productionSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "retired-cloudflare-worker-provider-code",
+      "notes": [
+        "Worker/D1/Resend implementation is intentionally retired; keep history, port no backend files."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "payment-api/worker-v4.4-corrected.js",
+      "baseSha256": "fe690bf236b92012a4099802ebdc521114cbf8a7b4e70b57f023e40fae04ff2c",
+      "mainSha256": "d8b46822cd1b8696455c52ba33c31826d68bec06eee71a5cf8a8e86c7854b72b",
+      "productionSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "retired-cloudflare-worker-provider-code",
+      "notes": [
+        "Worker/D1/Resend implementation is intentionally retired; keep history, port no backend files."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "publisher/index.html",
+      "baseSha256": "d8b65d3f53798e43b4da77775857a099e15cffe9a38a6766270824c138a64721",
+      "mainSha256": "37ba2501edb2b33bda08771e99cd65993932d8f4ae109efad02fba9ec8fdc6d1",
+      "productionSha256": "d8b65d3f53798e43b4da77775857a099e15cffe9a38a6766270824c138a64721",
+      "classification": "valuable-editorial-addition-missing-from-production",
+      "notes": [
+        "Marker absence and normalized visible text independently checked against the exact current production page."
+      ],
+      "editorialIds": [
+        "publisher/index.html::data-editorial-section-20261011=publisher-index.html"
+      ]
+    },
+    {
+      "path": "scripts/auth-live-readiness-audit.mjs",
+      "baseSha256": "d47a2b7d44bd3af13b7050a013615943e83496696bbad994bd301c1e369c851f",
+      "mainSha256": "8a2eb93790762de4ddcb74834630392e0df7abd2b314b59b02466d2f25b92c9d",
+      "productionSha256": "80a8eb85de56e3e20dd58f83c40d17bd0c61e8832e460adc32ea6f56e1128ccd",
+      "classification": "auth-readiness-behavior-adapted-to-bertina-contract",
+      "notes": [
+        "Production uses same-origin PHP readiness and safe error mapping. Main Worker/Resend-specific fields and mandatory international mobile hint conflict with the email-only baseline; preserve current production contract."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "sw.js",
+      "baseSha256": "f072b715e624fb0a0c1ddf4494bd03d466a48c925782eae8418d87140fcdaa27",
+      "mainSha256": "8eb5c3e72447acd457b706ddc9df9c6d28dc32639e077678004808ae3636c7b1",
+      "productionSha256": "a758281cae61099bc82c4894b0dcb49b690160db358926cf43a486991a1ed670",
+      "classification": "cache-privacy-behavior-already-adapted-current-release",
+      "notes": [
+        "Production excludes /fa/customer-dashboard/ and account routes, uses newer dynamic release cache key and same-origin /api privacy policy."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "tests/auth-registration-readiness.test.mjs",
+      "baseSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mainSha256": "9e6c2b7b8dabcc1b7812d113935a45e250fbb10c6d9aa19e212e75b26e8a5a61",
+      "productionSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "retired-cloudflare-worker-provider-code",
+      "notes": [
+        "Worker/D1/Resend implementation is intentionally retired; keep history, port no backend files."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "tests/auth-worker-routing.test.mjs",
+      "baseSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mainSha256": "bca061380a1e5ed4200fcf3f1cd9b078f4f7bb7e7e5cef95907e8cc2459ce079",
+      "productionSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "classification": "retired-cloudflare-worker-provider-code",
+      "notes": [
+        "Worker/D1/Resend implementation is intentionally retired; keep history, port no backend files."
+      ],
+      "editorialIds": []
+    },
+    {
+      "path": "tests/public-browser-qa.spec.js",
+      "baseSha256": "4ce01a4d20f3547f5822a4c4690085d17970300e88076ddcb57482ebe595cf83",
+      "mainSha256": "ee6edd90437f584ef698732861628654614c1a5760ba87c070b73c2aaa3eac13",
+      "productionSha256": "7246c7c744ed504bbc0d04f90e5d093c2b6d307840b88262e215014fdc98b71f",
+      "classification": "dashboard-navigation-behavior-superseded-by-current-implementation",
+      "notes": [
+        "Current commandCenter implements four presentation-only path filters; hydrate distinguishes 401 and verified session; sheet traps/restores focus. Main entryChooser uses querySelector followed by forEach (would throw), so do not copy it."
+      ],
+      "editorialIds": []
+    }
+  ],
+  "publicPages": [
+    {
+      "path": "en/about/index.html",
+      "sha256": "fe33c81154624785c138310014fa0495f88b0e0dd7fad2faadae3f4458a05873",
+      "blocks": [
+        "en/about/index.html::data-editorial-en-core-20261011=about"
+      ]
+    },
+    {
+      "path": "en/academic-engagements/index.html",
+      "sha256": "5181be95a7025aac86ec0d9a7998b40b40034e9a83674d813ba80913244cb1a6",
+      "blocks": [
+        "en/academic-engagements/index.html::data-editorial-en-core-20261011=academic-engagements"
+      ]
+    },
+    {
+      "path": "en/academic-profile/index.html",
+      "sha256": "0e369ef306395de92bb19c57bdcf519043ae5d07804bb871e601e14da7b6270a",
+      "blocks": [
+        "en/academic-profile/index.html::data-editorial-en-core-20261011=academic-profile"
+      ]
+    },
+    {
+      "path": "en/academic-services/index.html",
+      "sha256": "79b4418b40ac3acaba3ac51824fdf7d06b13531180b29690cf0b62fd3b3044ed",
+      "blocks": [
+        "en/academic-services/index.html::data-editorial-en-core-20261011=academic-services"
+      ]
+    },
+    {
+      "path": "en/books/index.html",
+      "sha256": "bdef145f3e4f51acbbad609f21339bfc5e8b36fe99a09e4c24503a2a8ef50218",
+      "blocks": [
+        "en/books/index.html::data-editorial-en-core-20261011=books"
+      ]
+    },
+    {
+      "path": "en/collaboration/index.html",
+      "sha256": "2140b6c336cb8c20f590af2f68d87aca85d11e6f16ca250a831ebdc46af8f5b1",
+      "blocks": [
+        "en/collaboration/index.html::data-editorial-en-core-20261011=collaboration"
+      ]
+    },
+    {
+      "path": "en/contact/index.html",
+      "sha256": "82462c048ad63454c28bf3d7628690f387e1d41b0505cda718532f7761fd8b2b",
+      "blocks": [
+        "en/contact/index.html::data-editorial-contact-20261011=scope"
+      ]
+    },
+    {
+      "path": "en/educational-philosophy/index.html",
+      "sha256": "1885ab537003b6a9e9d777cc468b6ec4bb6ef4eaa708bfee1563059591f12ee3",
+      "blocks": [
+        "en/educational-philosophy/index.html::data-editorial-en-core-20261011=educational-philosophy"
+      ]
+    },
+    {
+      "path": "en/golden-talent/index.html",
+      "sha256": "16b7d91f54ed8fc164022b0561c49b9675af57b3558fa321997272b536b39eca",
+      "blocks": [
+        "en/golden-talent/index.html::data-editorial-en-golden-20261011=evidence",
+        "en/golden-talent/index.html::data-editorial-en-golden-20261011=path"
+      ]
+    },
+    {
+      "path": "en/golden-talent/methodology/index.html",
+      "sha256": "0302779395b10b5a0f3393b80503e533b0b4b6a7ecbb8f406553a3f1d9aa7d68",
+      "blocks": [
+        "en/golden-talent/methodology/index.html::data-editorial-en-method-20261011=reasoning",
+        "en/golden-talent/methodology/index.html::data-editorial-en-method-20261011=limitations"
+      ]
+    },
+    {
+      "path": "en/index.html",
+      "sha256": "239e8033672cd50e66bc019aa3599e5131f826dec8a96588c5dbdd9b2b8f2c7b",
+      "blocks": [
+        "en/index.html::data-editorial-home-20261011=golden"
+      ]
+    },
+    {
+      "path": "en/invite/index.html",
+      "sha256": "5d03963f52f8c7bbfdfdc4c10aa807b3214db81e4a3d59b94f2ff2e912e03f7d",
+      "blocks": [
+        "en/invite/index.html::data-editorial-en-core-20261011=invite"
+      ]
+    },
+    {
+      "path": "en/language-education/index.html",
+      "sha256": "e187c12507e5066f010efe98eb9adaca6ebb61513135cf0b93f0caed1aa91944",
+      "blocks": [
+        "en/language-education/index.html::data-editorial-en-core-20261011=language-education"
+      ]
+    },
+    {
+      "path": "en/news-insights/index.html",
+      "sha256": "fad26681b39b8991abcc0ae646a5448a38ebda6a0799b692f9390107d52182ec",
+      "blocks": [
+        "en/news-insights/index.html::data-editorial-en-core-20261011=news-insights"
+      ]
+    },
+    {
+      "path": "en/projects/index.html",
+      "sha256": "95423673e9470edb94f914062c9c31e17c9a467929358f94ad9f068382a6b05e",
+      "blocks": [
+        "en/projects/index.html::data-editorial-en-core-20261011=projects"
+      ]
+    },
+    {
+      "path": "en/publications/index.html",
+      "sha256": "6deb99982d2f960a55c36790216d28a53f0c4f3afb04cdb697fbdb3562c49450",
+      "blocks": [
+        "en/publications/index.html::data-editorial-en-core-20261011=publications"
+      ]
+    },
+    {
+      "path": "en/research/index.html",
+      "sha256": "e57028c7595cf59d7d9581b02f0ac14b49be55a7950ce1fab9d8331aa7730efa",
+      "blocks": [
+        "en/research/index.html::data-editorial-en-core-20261011=research"
+      ]
+    },
+    {
+      "path": "en/services/index.html",
+      "sha256": "c24ed8e368333d9de39cf9093e88be18f95c1d5230ceeb7316d118ad110ee65e",
+      "blocks": [
+        "en/services/index.html::data-editorial-en-core-20261011=services"
+      ]
+    },
+    {
+      "path": "en/shop/index.html",
+      "sha256": "5afde251f7bc537e4fbcfe323607f95d134dfbeb4ca0c3e00ea1e47412fff230",
+      "blocks": [
+        "en/shop/index.html::data-editorial-shop-20261011=equity"
+      ]
+    },
+    {
+      "path": "en/student-guidance/index.html",
+      "sha256": "d805996c1833b37e05a70981d023c59047563dba255c7ee97fb8c0f3caf077cf",
+      "blocks": [
+        "en/student-guidance/index.html::data-editorial-guidance-20261011=judgement"
+      ]
+    },
+    {
+      "path": "en/teacher-education/index.html",
+      "sha256": "28ff2e93422dc8640dad50caa5186e2e8e202a7ef0456f22de40a4629f21b68b",
+      "blocks": [
+        "en/teacher-education/index.html::data-editorial-en-core-20261011=teacher-education"
+      ]
+    },
+    {
+      "path": "en/teaching/index.html",
+      "sha256": "c471332aac4e1ab576906ee79b8b870000e29bddde1ae1ba434000d3851bbe96",
+      "blocks": [
+        "en/teaching/index.html::data-editorial-en-core-20261011=teaching"
+      ]
+    },
+    {
+      "path": "fa/akhbar/entekhab-reshteh-1405/index.html",
+      "sha256": "4700662b89ab186b276d1789b336b0f677f1000c123fde7d8fbdefe3d3ee7ef3",
+      "blocks": [
+        "fa/akhbar/entekhab-reshteh-1405/index.html::data-editorial-section-20261011=fa-akhbar-entekhab-reshteh-1405-index.html"
+      ]
+    },
+    {
+      "path": "fa/akhbar/farakhvan-jhela/index.html",
+      "sha256": "dac5c63924382205b17908ee5e310887188ed9ce83cea4c7a69eb11fd94176f9",
+      "blocks": [
+        "fa/akhbar/farakhvan-jhela/index.html::data-editorial-section-20261011=fa-akhbar-farakhvan-jhela-index.html"
+      ]
+    },
+    {
+      "path": "fa/akhbar/index.html",
+      "sha256": "7a21a5e803e4dd8eabb31db53dbd2c86a4bb6ce8b0658fbf711ed15d683375f4",
+      "blocks": [
+        "fa/akhbar/index.html::data-editorial-core-20261011=akhbar"
+      ]
+    },
+    {
+      "path": "fa/amoozesh-zaban/index.html",
+      "sha256": "baa5727ac178da6ec4367243b8a4258a7070453c23a79db66c57092d84dff527",
+      "blocks": [
+        "fa/amoozesh-zaban/index.html::data-editorial-core-20261011=amoozesh-zaban"
+      ]
+    },
+    {
+      "path": "fa/danesh-amoozan/index.html",
+      "sha256": "17a50d87064f65760f06685d43b6b668b8703e2c6959ea0c2a3cce2d25cab913",
+      "blocks": [
+        "fa/danesh-amoozan/index.html::data-editorial-students-20261011=agency"
+      ]
+    },
+    {
+      "path": "fa/darbare-man/index.html",
+      "sha256": "b36f0e0de55fe068c19b4a0fb842b22b0245b187ba8d52e14b504617ec65ab4d",
+      "blocks": [
+        "fa/darbare-man/index.html::data-editorial-core-20261011=darbare-man"
+      ]
+    },
+    {
+      "path": "fa/entekhab-reshteh/index.html",
+      "sha256": "978b3999603fea6afd2bed5f6d17501873bc893eb4d5bd841a73e5e927b0db29",
+      "blocks": [
+        "fa/entekhab-reshteh/index.html::data-editorial-field-20261011=interpretation",
+        "fa/entekhab-reshteh/index.html::data-editorial-field-20261011=quality"
+      ]
+    },
+    {
+      "path": "fa/entesharat-elmi/index.html",
+      "sha256": "6997f9527d03b7d236e024074a7ae85db1a4f9901437181180e371f615107254",
+      "blocks": [
+        "fa/entesharat-elmi/index.html::data-editorial-core-20261011=entesharat-elmi"
+      ]
+    },
+    {
+      "path": "fa/estedaadyabi/index.html",
+      "sha256": "bb3b924658ff2afe03c87557f1eaf2f30e63b1592f1f085aba7879b1f010afa8",
+      "blocks": [
+        "fa/estedaadyabi/index.html::data-editorial-talent-20261011=evidence",
+        "fa/estedaadyabi/index.html::data-editorial-talent-20261011=action"
+      ]
+    },
+    {
+      "path": "fa/faaliat-haye-elmi/index.html",
+      "sha256": "664ad3d2f38c480e4c1be7ed670aeeb2a982dba1697de4f05079adb913076a19",
+      "blocks": [
+        "fa/faaliat-haye-elmi/index.html::data-editorial-core-20261011=faaliat-haye-elmi"
+      ]
+    },
+    {
+      "path": "fa/falsafe-amoozeshi/index.html",
+      "sha256": "5b4cbd4dceae68fc929e774c0810151d2598bf3d326700dfdd9a0dcf215a39f6",
+      "blocks": [
+        "fa/falsafe-amoozeshi/index.html::data-editorial-core-20261011=falsafe-amoozeshi"
+      ]
+    },
+    {
+      "path": "fa/golden-talent/index.html",
+      "sha256": "dc5b7214aad89250252e3d692803ea31cfb8144f4027f5892e3c7832b519615a",
+      "blocks": [
+        "fa/golden-talent/index.html::data-editorial-golden-talent-20261011=evidence",
+        "fa/golden-talent/index.html::data-editorial-golden-talent-20261011=pathway"
+      ]
+    },
+    {
+      "path": "fa/golden-talent/ravesh-shenasi/index.html",
+      "sha256": "051991329e7c2bff17f90f55260d6f65da591399ef68435d0b25418270cb62ff",
+      "blocks": [
+        "fa/golden-talent/ravesh-shenasi/index.html::data-editorial-method-20261011=interpretation",
+        "fa/golden-talent/ravesh-shenasi/index.html::data-editorial-method-20261011=validation"
+      ]
+    },
+    {
+      "path": "fa/hamkari-sazmani/index.html",
+      "sha256": "343bb11cb3224f3653290fc20f3fb76bf2b9715c66b1d85598008db699cd1354",
+      "blocks": [
+        "fa/hamkari-sazmani/index.html::data-editorial-core-20261011=hamkari-sazmani"
+      ]
+    },
+    {
+      "path": "fa/index.html",
+      "sha256": "ccd18e91835b9d504e9471ef2c1045d30a906302c7882faea274927bb4971b4c",
+      "blocks": [
+        "fa/index.html::data-editorial-home-20261011=golden"
+      ]
+    },
+    {
+      "path": "fa/ketab-ha/index.html",
+      "sha256": "922eb638207ee6d32b1a8f3da44a57ee0358b8d5dac497dee9ee7f825357a0c8",
+      "blocks": [
+        "fa/ketab-ha/index.html::data-editorial-core-20261011=ketab-ha"
+      ]
+    },
+    {
+      "path": "fa/khadamat-pajouheshi/index.html",
+      "sha256": "fcb3c3a4e26707dff84b8dc977a4a957dd7b5cf252f46120ec4fbda6f9beb30f",
+      "blocks": [
+        "fa/khadamat-pajouheshi/index.html::data-editorial-core-20261011=khadamat-pajouheshi"
+      ]
+    },
+    {
+      "path": "fa/khadamat/index.html",
+      "sha256": "c90413cb841159beeddd2f98fbe8681ecd242622ed327d2b7aa926d983e58e96",
+      "blocks": [
+        "fa/khadamat/index.html::data-editorial-core-20261011=khadamat"
+      ]
+    },
+    {
+      "path": "fa/moshavere-konkur/index.html",
+      "sha256": "71398314bd56086095a094c3d2b6c2eb2c7b4a0abbe70e1595ce600d8cfcc215",
+      "blocks": [
+        "fa/moshavere-konkur/index.html::data-editorial-core-20261011=moshavere-konkur"
+      ]
+    },
+    {
+      "path": "fa/moshavere-tahsili/index.html",
+      "sha256": "3e194bd69420562a5fc2e587ce1366fe034ba3f426349ab3517d164f1f2708eb",
+      "blocks": [
+        "fa/moshavere-tahsili/index.html::data-editorial-core-20261011=moshavere-tahsili"
+      ]
+    },
+    {
+      "path": "fa/pajouhesh/index.html",
+      "sha256": "c02e804a2452497d3717e7fc3f71f4c988f9caa4bdaf4e9bfdeb48bd129d38a0",
+      "blocks": [
+        "fa/pajouhesh/index.html::data-editorial-core-20261011=pajouhesh"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/academic-cv-professional/index.html",
+      "sha256": "89a63e9b55d0a9d019b1ae2412eb8428d05f84fbf5f659898b8c9e72e7492ea7",
+      "blocks": [
+        "fa/rahnamaha/academic-cv-professional/index.html::data-editorial-review-20261011=academic-cv-professional"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/academic-editing-vs-grammar-correction/index.html",
+      "sha256": "ad5a27cf583326aa3354f9df0e43961f792284ed4cd076974f0d9e63f166096f",
+      "blocks": [
+        "fa/rahnamaha/academic-editing-vs-grammar-correction/index.html::data-editorial-review-20261011=academic-editing-vs-grammar-correction"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/ai-dar-tadris/index.html",
+      "sha256": "5980db22668d237e29c3d37216ffb3bb8a20c638d66c2f415c80a8b2592c451c",
+      "blocks": [
+        "fa/rahnamaha/ai-dar-tadris/index.html::data-editorial-review-20261011=ai-dar-tadris"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/alaghe-tahsili-vaghei-ya-movaghat/index.html",
+      "sha256": "947ccef2b2a434bd017ddbed69445414c474c9c7acc1066d0066c962296c2ec8",
+      "blocks": [
+        "fa/rahnamaha/alaghe-tahsili-vaghei-ya-movaghat/index.html::data-editorial-review-20261011=alaghe-tahsili-vaghei-ya-movaghat"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/alaghe-va-estedaad-motafavet/index.html",
+      "sha256": "e545dd7f16771d9e867bdf48f74093271e84a2f7dd2fe5db2fb3316763ca583f",
+      "blocks": [
+        "fa/rahnamaha/alaghe-va-estedaad-motafavet/index.html::data-editorial-review-20261011=alaghe-va-estedaad-motafavet"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/arzyabi-mavad-amoozeshi/index.html",
+      "sha256": "70ff4ba430f64326bb93430733a68d85f5cf8bb3a19d145eed742cee4a42f490",
+      "blocks": [
+        "fa/rahnamaha/arzyabi-mavad-amoozeshi/index.html::data-editorial-review-20261011=arzyabi-mavad-amoozeshi"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/aya-nomre-bala-yani-estedaad/index.html",
+      "sha256": "371bde8806b52e5da1cf9542971117959d5ab39d53631eb548cb319ab39505e3",
+      "blocks": [
+        "fa/rahnamaha/aya-nomre-bala-yani-estedaad/index.html::data-editorial-review-20261011=aya-nomre-bala-yani-estedaad"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/az-arzyabi-ta-barname-roshd-danesh-amooz/index.html",
+      "sha256": "4b81dd7afc022ba0fb9068ac366b51e7d4895559eaee03aa7c4041405d86f032",
+      "blocks": [
+        "fa/rahnamaha/az-arzyabi-ta-barname-roshd-danesh-amooz/index.html::data-editorial-review-20261011=az-arzyabi-ta-barname-roshd-danesh-amooz"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/azmoon-khoob-vijegiha/index.html",
+      "sha256": "111046cb78690e26043faead61aa22bce96d954a25322b3546ad6b25758869e6",
+      "blocks": [
+        "fa/rahnamaha/azmoon-khoob-vijegiha/index.html::data-editorial-review-20261011=azmoon-khoob-vijegiha"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/barname-yek-mahe-konkur/index.html",
+      "sha256": "2d0711cd4df1a651a292e0d87521c4725100f4545c2bb51e1238f7511cc4fcd5",
+      "blocks": [
+        "fa/rahnamaha/barname-yek-mahe-konkur/index.html::data-editorial-review-20261011=barname-yek-mahe-konkur"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/bazaar-kar-dar-entekhab-reshteh/index.html",
+      "sha256": "69220c9a890f29177dcd6aeeaad9fa206173050af8fe17c8ded06df93d335b5b",
+      "blocks": [
+        "fa/rahnamaha/bazaar-kar-dar-entekhab-reshteh/index.html::data-editorial-labor-20261011=context"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/behtarin-sen-estedaadyabi/index.html",
+      "sha256": "0b7584f8208214d49582535163e557b80aa91b1acc6face875a528b4597a54be",
+      "blocks": [
+        "fa/rahnamaha/behtarin-sen-estedaadyabi/index.html::data-editorial-review-20261011=behtarin-sen-estedaadyabi"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/index.html",
+      "sha256": "a13e628ef339f9253703612ffadaec3de0e98375dc30dfea20c984415084635f",
+      "blocks": [
+        "fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/index.html::data-editorial-review-20261011=che-reshteyi-baraye-man-monaseb-ast"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/chegoone-estedaad-vaghei-farzand-ra-beshenasim/index.html",
+      "sha256": "09363f1fd2d16996b49dba39edf8badad289b650e23f59e8a3d524e1ecd17c14",
+      "blocks": [
+        "fa/rahnamaha/chegoone-estedaad-vaghei-farzand-ra-beshenasim/index.html::data-editorial-review-20261011=chegoone-estedaad-vaghei-farzand-ra-beshenasim"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/chera-danesh-amooz-baestedaad-bi-angizhe-ast/index.html",
+      "sha256": "06b40bb4b6dbd94e5f626555cde24c87808d0934b5608265067d8acc774277e0",
+      "blocks": [
+        "fa/rahnamaha/chera-danesh-amooz-baestedaad-bi-angizhe-ast/index.html::data-editorial-review-20261011=chera-danesh-amooz-baestedaad-bi-angizhe-ast"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/chera-maghale-amade-ersal-nist/index.html",
+      "sha256": "3a6864d722d97136a2f70d1d26221a20e9ad0358ffea8cd0c901165bc232bb48",
+      "blocks": [
+        "fa/rahnamaha/chera-maghale-amade-ersal-nist/index.html::data-editorial-review-20261011=chera-maghale-amade-ersal-nist"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/index.html",
+      "sha256": "76c9fc8f4c8b70b5318b9891c6a415974b33f88a17dc60c6f3f365204543a66f",
+      "blocks": [
+        "fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/index.html::data-editorial-single-test-20261011=limits"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/desk-rejection-chist/index.html",
+      "sha256": "ae035af83ab204eb8ca06206e1be76117fd549214b5f52840630b8118e9b82e0",
+      "blocks": [
+        "fa/rahnamaha/desk-rejection-chist/index.html::data-editorial-review-20261011=desk-rejection-chist"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/entekhab-majale-monaseb/index.html",
+      "sha256": "b3ff6e0bbb8448708d3eb9cc393ce89f8d15ade8c955240d5df1347873138b28",
+      "blocks": [
+        "fa/rahnamaha/entekhab-majale-monaseb/index.html::data-editorial-review-20261011=entekhab-majale-monaseb"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/entekhab-reshteh-jame/index.html",
+      "sha256": "c7889521635d0470cad3a6922d8483825d5fee604f6bb3a4261bad335d5493bf",
+      "blocks": [
+        "fa/rahnamaha/entekhab-reshteh-jame/index.html::data-editorial-major-guide-20261011=evidence"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/estedaad-alaghe-bazaar-kar/index.html",
+      "sha256": "c6a75801c7e0508f27e9a8901e1685b82b548a047f6d2878bb2e9d7f9030b325",
+      "blocks": [
+        "fa/rahnamaha/estedaad-alaghe-bazaar-kar/index.html::data-editorial-review-20261011=estedaad-alaghe-bazaar-kar"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/ghabl-az-submit-maghale/index.html",
+      "sha256": "2f08ea814829d21cf1a351b1dd6327d95635f9f9ef61b969ec4c329cdfeae104",
+      "blocks": [
+        "fa/rahnamaha/ghabl-az-submit-maghale/index.html::data-editorial-review-20261011=ghabl-az-submit-maghale"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/golden-talent-chist/index.html",
+      "sha256": "0842449a9b1438a39c83190b2a3eb4c5ee597550ab4405dc3b62f4e77561ec52",
+      "blocks": [
+        "fa/rahnamaha/golden-talent-chist/index.html::data-editorial-what-20261011=practice"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/gozaresh-estedaad-va-masir-roshd/index.html",
+      "sha256": "1844c1d217afc0b192ca9570981a85755c41081cbbc026ac243550cd1655c514",
+      "blocks": [
+        "fa/rahnamaha/gozaresh-estedaad-va-masir-roshd/index.html::data-editorial-review-20261011=gozaresh-estedaad-va-masir-roshd"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/index.html",
+      "sha256": "9bf13c497fcd2f34af22cfc0557f5177d2d40418936a8fcb1dc2e0c0f581ea8d",
+      "blocks": [
+        "fa/rahnamaha/index.html::data-editorial-core-20261011=rahnamaha"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/jalase-moshtarak-valed-danesh-amooz/index.html",
+      "sha256": "9492e5bc6e54ba7307591ab727af890a63ef8f886990e02d216bfc512cc30cff",
+      "blocks": [
+        "fa/rahnamaha/jalase-moshtarak-valed-danesh-amooz/index.html::data-editorial-review-20261011=jalase-moshtarak-valed-danesh-amooz"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/kargah-amoozeshi-asarbakhsh/index.html",
+      "sha256": "14967e73d0bd730a75bfc776ed41ebb7e5d208440b9bd4192e22fa07533a0ff1",
+      "blocks": [
+        "fa/rahnamaha/kargah-amoozeshi-asarbakhsh/index.html::data-editorial-review-20261011=kargah-amoozeshi-asarbakhsh"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh/index.html",
+      "sha256": "d145098ab0016a107b95fd974c06e3eec0fdbb2ce3547e9a82bd60e6f5aeb872",
+      "blocks": [
+        "fa/rahnamaha/khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh/index.html::data-editorial-review-20261011=khadamat-amoozeshi-pajouheshi-moshavere-javad-rezazadeh"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/madarese-che-zamani-moshaver-amoozeshi/index.html",
+      "sha256": "93c0a42aef6296fd8ce04ab8899a955af84c6ca1ff6fc2fc040e7aecd973154c",
+      "blocks": [
+        "fa/rahnamaha/madarese-che-zamani-moshaver-amoozeshi/index.html::data-editorial-review-20261011=madarese-che-zamani-moshaver-amoozeshi"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/madarese-system-estedaadyabi/index.html",
+      "sha256": "fd72501ca9c62cee4bcfec61cf8a73c9f6c2f6767db5ceb522add4b91117d96b",
+      "blocks": [
+        "fa/rahnamaha/madarese-system-estedaadyabi/index.html::data-editorial-review-20261011=madarese-system-estedaadyabi"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/major-revision-az-koja-shoroo-konim/index.html",
+      "sha256": "336d42a9649726b5f4d1b01dec8deea9e8208beaebc7d0a40b0cc17315d22d58",
+      "blocks": [
+        "fa/rahnamaha/major-revision-az-koja-shoroo-konim/index.html::data-editorial-review-20261011=major-revision-az-koja-shoroo-konim"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/index.html",
+      "sha256": "057664c02de2571c73ec30504b3cfbb5e15a7f1115c4c9c8489932af20017236",
+      "blocks": [
+        "fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/index.html::data-editorial-review-20261011=moghayese-reshteha-ba-matris-tasmim"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/mosahabe-heyat-elmi/index.html",
+      "sha256": "58797d5571e17455cab09a3393a446ffdf3dc410c11384e15f9394df9a226e42",
+      "blocks": [
+        "fa/rahnamaha/mosahabe-heyat-elmi/index.html::data-editorial-review-20261011=mosahabe-heyat-elmi"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moshavere-konkur-herfei/index.html",
+      "sha256": "c5ed75a8ea77dd19c238364c684852d3ce08aa5932b7d61b1802d40a31e5b221",
+      "blocks": [
+        "fa/rahnamaha/moshavere-konkur-herfei/index.html::data-editorial-review-20261011=moshavere-konkur-herfei"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moshavere-moallem-mavad-sanjessh/index.html",
+      "sha256": "a1a98d2b493bbc1b28e47f5228eb2b64e5f137b40f7cdd3c56c318181f492b02",
+      "blocks": [
+        "fa/rahnamaha/moshavere-moallem-mavad-sanjessh/index.html::data-editorial-review-20261011=moshavere-moallem-mavad-sanjessh"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moshavere-pajouheshi-che-zamani-lazem-ast/index.html",
+      "sha256": "2c242e9ab830ab6f0357e7b95a8e4922b278103c2ad589782abb5c93ed4db96b",
+      "blocks": [
+        "fa/rahnamaha/moshavere-pajouheshi-che-zamani-lazem-ast/index.html::data-editorial-review-20261011=moshavere-pajouheshi-che-zamani-lazem-ast"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moshavere-tahsili-baraye-tasmim/index.html",
+      "sha256": "579e4922ec235333286816a2152753c8046dbca97c442e41451f8601615b9f5c",
+      "blocks": [
+        "fa/rahnamaha/moshavere-tahsili-baraye-tasmim/index.html::data-editorial-review-20261011=moshavere-tahsili-baraye-tasmim"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/moshavere-tahsili-takhasosi-chist/index.html",
+      "sha256": "269121f7cfd58ed82eed394837ad7709cba96a7a0e6b383e4ef469c9f47f4639",
+      "blocks": [
+        "fa/rahnamaha/moshavere-tahsili-takhasosi-chist/index.html::data-editorial-review-20261011=moshavere-tahsili-takhasosi-chist"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/naghsh-valedein-dar-masir-estedaad/index.html",
+      "sha256": "11fe13f02aa6766259b37da389e044f0a1e7505e4ccde5fca19f53743151202b",
+      "blocks": [
+        "fa/rahnamaha/naghsh-valedein-dar-masir-estedaad/index.html::data-editorial-review-20261011=naghsh-valedein-dar-masir-estedaad"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/pasokh-be-davaran/index.html",
+      "sha256": "7a8f5c3b5081401e4fff8aa47ccb3a72a8987e9dd7f35869d9010e3569a2dc20",
+      "blocks": [
+        "fa/rahnamaha/pasokh-be-davaran/index.html::data-editorial-review-20261011=pasokh-be-davaran"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/proofreading-editing-manuscript-review/index.html",
+      "sha256": "62c4b733afb2f2d1560ae23a288eff4829fce989279110f95f4ef91bfd785e28",
+      "blocks": [
+        "fa/rahnamaha/proofreading-editing-manuscript-review/index.html::data-editorial-review-20261011=proofreading-editing-manuscript-review"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/index.html",
+      "sha256": "b5eea016055a7e341834824cd22979211c958044fe8948a9988460000313e271",
+      "blocks": [
+        "fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/index.html::data-editorial-review-20261011=rotbe-va-tanasob-dar-entekhab-reshteh"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/index.html",
+      "sha256": "4e5473f82f6b44fd11ba5df470591f8f22aa25666aa6866f3bf60054a44bbb07",
+      "blocks": [
+        "fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/index.html::data-editorial-review-20261011=tafavot-estedaad-alaghe-maharat-amalkard"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/tahlil-karname-tahsili/index.html",
+      "sha256": "54776d55baa7882760d70c5835d64239f651d6b1f0756d0fc9e8a9a80b71636c",
+      "blocks": [
+        "fa/rahnamaha/tahlil-karname-tahsili/index.html::data-editorial-review-20261011=tahlil-karname-tahsili"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/tosee-herfei-moalleman/index.html",
+      "sha256": "42e605e63a450ac514bdf40f2ed314cf598a2605fe3e2b09edebe693a4d96733",
+      "blocks": [
+        "fa/rahnamaha/tosee-herfei-moalleman/index.html::data-editorial-review-20261011=tosee-herfei-moalleman"
+      ]
+    },
+    {
+      "path": "fa/rahnamaha/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand/index.html",
+      "sha256": "c689f9cbc5a7e253718ef53991f73f8e6e7a489b7e6c26c4a73702700ad35fa8",
+      "blocks": [
+        "fa/rahnamaha/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand/index.html::data-editorial-review-20261011=valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand"
+      ]
+    },
+    {
+      "path": "fa/services/academic_consult_60/index.html",
+      "sha256": "7c388bc40de350714ae96cfd7b4ca40db37a8f56e5d9bc4e4c3bdf25685dcf13",
+      "blocks": [
+        "fa/services/academic_consult_60/index.html::data-editorial-depth-20261011=academic_consult_60"
+      ]
+    },
+    {
+      "path": "fa/services/academic_cv/index.html",
+      "sha256": "e14eadd603dc8f27053a7123f439c6e65b7d090417144e1fde6eaab359dc2bc9",
+      "blocks": [
+        "fa/services/academic_cv/index.html::data-editorial-depth-20261011=academic_cv"
+      ]
+    },
+    {
+      "path": "fa/services/academic_editing/index.html",
+      "sha256": "8665c14150b0dd339f8419bc378a38286b697f0aea18a4882dda46765f69632d",
+      "blocks": [
+        "fa/services/academic_editing/index.html::data-editorial-depth-20261011=academic_editing"
+      ]
+    },
+    {
+      "path": "fa/services/academic_interview_90/index.html",
+      "sha256": "5f35662ffb81587dd1d24ce4786480102c2518dcdc1a7a7f1fb7118700bfb8e9",
+      "blocks": [
+        "fa/services/academic_interview_90/index.html::data-editorial-depth-20261011=academic_interview_90"
+      ]
+    },
+    {
+      "path": "fa/services/field_selection_comprehensive/index.html",
+      "sha256": "950146983d0cbbac4b51728fe0120e5a581529a50721e17190471ad0931a1212",
+      "blocks": [
+        "fa/services/field_selection_comprehensive/index.html::data-editorial-depth-20261011=field_selection_comprehensive"
+      ]
+    },
+    {
+      "path": "fa/services/field_selection_standard/index.html",
+      "sha256": "2af9c411425011d9565cfc6f89523cc5bb712b813d15aefce9ecc75248838f30",
+      "blocks": [
+        "fa/services/field_selection_standard/index.html::data-editorial-depth-20261011=field_selection_standard"
+      ]
+    },
+    {
+      "path": "fa/services/golden_talent_comprehensive/index.html",
+      "sha256": "52567afd71cd982f2bb53457af32f5e46832b93f933951a1088f5b241502b50c",
+      "blocks": [
+        "fa/services/golden_talent_comprehensive/index.html::data-editorial-gt-service-20261011=professional"
+      ]
+    },
+    {
+      "path": "fa/services/golden_talent_premium/index.html",
+      "sha256": "686865d9aa4f9cedde6b041bbab52ca337abba4f729e467a8d092b589aadd03c",
+      "blocks": [
+        "fa/services/golden_talent_premium/index.html::data-editorial-gt-premium-20261011=integrated"
+      ]
+    },
+    {
+      "path": "fa/services/index.html",
+      "sha256": "45fa2e44327276f73407a73b30631dacfe53bb50d6082fdb947edb5ffc658f17",
+      "blocks": [
+        "fa/services/index.html::data-editorial-section-20261011=fa-services-index.html"
+      ]
+    },
+    {
+      "path": "fa/services/journal_strategy/index.html",
+      "sha256": "1f7f1f32fa0786e375d913ba8285c343a11b285c77c996bbbe76acf90e5f1023",
+      "blocks": [
+        "fa/services/journal_strategy/index.html::data-editorial-depth-20261011=journal_strategy"
+      ]
+    },
+    {
+      "path": "fa/services/konkur_consult_60/index.html",
+      "sha256": "b5f2d83ccb48b66e50bbe7b77d4276e4c1445bddde8ea37746d22eb993628776",
+      "blocks": [
+        "fa/services/konkur_consult_60/index.html::data-editorial-depth-20261011=konkur_consult_60"
+      ]
+    },
+    {
+      "path": "fa/services/konkur_month/index.html",
+      "sha256": "55a43ffc3d2d70de93d4fc1adf0ff6b43306084f29defe395fd71da70a71cd45",
+      "blocks": [
+        "fa/services/konkur_month/index.html::data-editorial-depth-20261011=konkur_month"
+      ]
+    },
+    {
+      "path": "fa/services/manuscript_diagnostic/index.html",
+      "sha256": "d07659de3a9975bc54e1d295fd50892592fc103f5de68ff15c11387a69307644",
+      "blocks": [
+        "fa/services/manuscript_diagnostic/index.html::data-editorial-depth-20261011=manuscript_diagnostic"
+      ]
+    },
+    {
+      "path": "fa/services/organization_consult_90/index.html",
+      "sha256": "4d73401bcbe42e6a4163077309a4f17832ece1b936fea90fa055cd5a4a96e689",
+      "blocks": [
+        "fa/services/organization_consult_90/index.html::data-editorial-depth-20261011=organization_consult_90"
+      ]
+    },
+    {
+      "path": "fa/services/research_consult_60/index.html",
+      "sha256": "f4deac953e4b77eb275ba3d35c5866b37eba6b25af37151a1e9fa298811854fc",
+      "blocks": [
+        "fa/services/research_consult_60/index.html::data-editorial-depth-20261011=research_consult_60"
+      ]
+    },
+    {
+      "path": "fa/services/reviewer_response/index.html",
+      "sha256": "05c1e70df64d0d8ee2f4df4e9d309c6b4bbdb7ce2923dfc6a53039b6ea337eb6",
+      "blocks": [
+        "fa/services/reviewer_response/index.html::data-editorial-depth-20261011=reviewer_response"
+      ]
+    },
+    {
+      "path": "fa/services/specialist_workshop_120/index.html",
+      "sha256": "418daaa639aefe63bcf62ee3cdb2510027147871f3d505845b4a6262d402ed21",
+      "blocks": [
+        "fa/services/specialist_workshop_120/index.html::data-editorial-depth-20261011=specialist_workshop_120"
+      ]
+    },
+    {
+      "path": "fa/services/student_parent_90/index.html",
+      "sha256": "31e1fd3e17c8b849b47a93485e847163c157225b827fd770ebb7aa7318cad8d0",
+      "blocks": [
+        "fa/services/student_parent_90/index.html::data-editorial-parent-dialogue-20261011=dialogue"
+      ]
+    },
+    {
+      "path": "fa/services/talent_initial/index.html",
+      "sha256": "30b23eb946c17c3621b58df565e333be153f1a3d84e5fc87044545f9c8cbd22a",
+      "blocks": [
+        "fa/services/talent_initial/index.html::data-editorial-talent-entry-20261011=scope"
+      ]
+    },
+    {
+      "path": "fa/services/teacher_consult_60/index.html",
+      "sha256": "ee7fcdc1740acf5210a28f0d14c8dfb9268dceb85b3fd5818193c00420da1bcf",
+      "blocks": [
+        "fa/services/teacher_consult_60/index.html::data-editorial-teacher-20261011=professional"
+      ]
+    },
+    {
+      "path": "fa/services/teacher_dev_90/index.html",
+      "sha256": "7cae3e2c8534431e2393d1e7af44a618d838cd1b36876cb6b98804b628cdcb98",
+      "blocks": [
+        "fa/services/teacher_dev_90/index.html::data-editorial-depth-20261011=teacher_dev_90"
+      ]
+    },
+    {
+      "path": "fa/services/transcript_analysis/index.html",
+      "sha256": "5583d361ed46214a3817b34cc6096f341dbe924789fcafba9ed06f04352e26bb",
+      "blocks": [
+        "fa/services/transcript_analysis/index.html::data-editorial-depth-20261011=transcript_analysis"
+      ]
+    },
+    {
+      "path": "fa/shop/index.html",
+      "sha256": "e8219c08cad092039182574f51a44a8382cb6a8992e1862cf4bffb3af1b6c85a",
+      "blocks": [
+        "fa/shop/index.html::data-editorial-shop-20261011=equity"
+      ]
+    },
+    {
+      "path": "fa/tadris/index.html",
+      "sha256": "7442c1077f44c050d3fc3311568971745aec51a514e4b3bce6b8544a9eb0bd38",
+      "blocks": [
+        "fa/tadris/index.html::data-editorial-core-20261011=tadris"
+      ]
+    },
+    {
+      "path": "fa/tamas/index.html",
+      "sha256": "281d897e1171bf3e5dbc5abb78df2c05b3f8336c68426911627e1e534297e87a",
+      "blocks": [
+        "fa/tamas/index.html::data-editorial-contact-20261011=scope"
+      ]
+    },
+    {
+      "path": "fa/vip/academic-direction/index.html",
+      "sha256": "6d30f52c8134630f7878a22721e648c81abb0aa76bdeb34159b43768c6530c0d",
+      "blocks": [
+        "fa/vip/academic-direction/index.html::data-editorial-vip-20261011=academic-direction"
+      ]
+    },
+    {
+      "path": "fa/vip/educator-development/index.html",
+      "sha256": "ae4763b83d6c8edd0b0fe3f5aaa38b4c069df3acfbda57404bb533b7277c8a9d",
+      "blocks": [
+        "fa/vip/educator-development/index.html::data-editorial-vip-20261011=educator-development"
+      ]
+    },
+    {
+      "path": "fa/vip/golden-talent-signature/index.html",
+      "sha256": "8a9c2325f1dcfd6ceccdbbab5305ab80f39eb3d253dae03fce295f38c3d66cdd",
+      "blocks": [
+        "fa/vip/golden-talent-signature/index.html::data-editorial-vip-20261011=golden-talent-signature"
+      ]
+    },
+    {
+      "path": "fa/vip/index.html",
+      "sha256": "8280ed5d27e8583f74bf5e3bcc869f56a5bfb6b8e7aff5f6b986ae8d1e2bcc6a",
+      "blocks": [
+        "fa/vip/index.html::data-editorial-section-20261011=fa-vip-index.html"
+      ]
+    },
+    {
+      "path": "fa/vip/institutional-advisory/index.html",
+      "sha256": "c05096b39d514913dfffbe8cf7537e583401b1da2fd196bcf085ccedcb6f2a44",
+      "blocks": [
+        "fa/vip/institutional-advisory/index.html::data-editorial-vip-20261011=institutional-advisory"
+      ]
+    },
+    {
+      "path": "fa/vip/research-publication/index.html",
+      "sha256": "824427ef47c164465ba13d7291d10d358c600139f87bea616af3f5ef39c0edda",
+      "blocks": [
+        "fa/vip/research-publication/index.html::data-editorial-vip-20261011=research-publication"
+      ]
+    },
+    {
+      "path": "fa/vip/university-selection/index.html",
+      "sha256": "5f5b49aba21e115a3aee0a53ae68bc8ce2b426a6040dba2924362117b49b671c",
+      "blocks": [
+        "fa/vip/university-selection/index.html::data-editorial-vip-20261011=university-selection"
+      ]
+    },
+    {
+      "path": "index.html",
+      "sha256": "1462b108e5b0701cb497f87902612cdcf577fba48e0ff49c7b42b74ad4fb2bc8",
+      "blocks": [
+        "index.html::data-editorial-root-20261011=academic"
+      ]
+    },
+    {
+      "path": "journal/call-for-reviewers/index.html",
+      "sha256": "ac4219ab76396b617d9b27ee32e7dae35a203ebd0cfc05dfef289051e6b9fee5",
+      "blocks": [
+        "journal/call-for-reviewers/index.html::data-editorial-section-20261011=journal-call-for-reviewers-index.html"
+      ]
+    },
+    {
+      "path": "journal/founding-collaborators/index.html",
+      "sha256": "ab66827b082fd8b0bc24e7e27386acecfd19cc8b61e0bdd79d7485325e1730b7",
+      "blocks": [
+        "journal/founding-collaborators/index.html::data-editorial-section-20261011=journal-founding-collaborators-index.html"
+      ]
+    },
+    {
+      "path": "publisher/index.html",
+      "sha256": "539d96ce2e3dd4bdac5c835eec06affd336f5cec466bdfccc79969e4e60a2ccc",
+      "blocks": [
+        "publisher/index.html::data-editorial-section-20261011=publisher-index.html"
+      ]
+    }
+  ],
+  "latestMainDelta": {
+    "retained": [
+      "assets/css/gateway.css",
+      "assets/fonts/INTER-OFL-LICENSE.txt",
+      "assets/fonts/inter-latin-400-v20.woff2",
+      "assets/fonts/inter-latin-700-v20.woff2",
+      "index.html",
+      ".github/workflows/gateway-font-live-verification.yml"
+    ],
+    "alreadyPresent": [
+      "fa/shop/index.html#support"
+    ],
+    "keepStrongerCanonical": [
+      "robots.txt",
+      "scripts/ai-crawler-policy-audit.mjs"
+    ],
+    "policyUpdated": "AGENTS.md"
+  }
+}

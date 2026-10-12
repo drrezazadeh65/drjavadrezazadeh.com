@@ -1,6 +1,9 @@
 # drjavadrezazadeh.com
 Official website of **Dr. Javad Rezazadeh Yazdeli**.
 
+## Single development source
+All owner-authorized chats, coding agents and operators develop in this existing repository on **`migration/bertina-linux6`**. Fetch its current HEAD and check live deployment evidence before editing. `main` and historical proposal branches are reference history, not additional development locations. Bertina serves deployments of this canonical GitHub source. Do not create a parallel application or development branch. See [the current coordination policy](AGENTS.md) and [main reconciliation](docs/governance/MAIN_RECONCILIATION_20261012.md).
+
 ## Strategic architecture
 The site combines academic scholarship, research programmes, educational/talent consulting, commerce, and a bilingual news/insights layer while preserving a single canonical public identity.
 
