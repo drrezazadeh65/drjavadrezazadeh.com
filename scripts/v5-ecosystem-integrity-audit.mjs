@@ -85,6 +85,15 @@ verify('admin: Stage09 real exception view requires MFA, avoids PII and preserve
   commerceClient.includes("credentials:'same-origin'") &&
   commerceClient.includes("cache:'no-store'") &&
   !/(?:localStorage|sessionStorage|\.innerHTML\s*=)/.test(commerceClient));
+verify('commerce: MFA service-case worklist is bounded, redacted and flags mismatched claims',
+  ownerCommerce.includes('FROM commerce_service_cases sc') &&
+  ownerCommerce.includes('LIMIT 50') &&
+  ownerCommerce.includes("'providerClaimMatchesOrder'") &&
+  ownerCommerce.includes("'activeServiceCaseCount'") &&
+  ownerCommerce.includes("'queueTruncated'") &&
+  !ownerCommerce.includes('SELECT sc.*,o.*') &&
+  commerceClient.includes('serviceActionQueue') &&
+  commerceClient.includes("const detail=node('details')"));
 verify('commerce: canonical 3/21/6 saleable catalogues',
   books.books.length===3 && services.services.length===21 && vip.services.length===6 &&
   distinct(books.books.map(x=>x.id)) && distinct(services.services.map(x=>x.id)) &&
