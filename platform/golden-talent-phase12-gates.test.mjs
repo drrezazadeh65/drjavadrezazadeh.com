@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {authorisePhase12,currentConsent,publishedInstrument} from './golden-talent-phase12-gates.mjs';
 const now=Date.parse('2026-10-12T00:00:00Z');
 const subject={id:'case-1',student_account_id:'student-1',guardian_account_id:'parent-1',is_minor:true,report_state:'RELEASED'};
@@ -33,4 +34,16 @@ no(req(actor('student-1','STUDENT'),'VIEW_OWN_REPORT',{consents:[consent('ASSESS
 assert.equal(currentConsent([consent('ASSESSMENT'),{...consent('ASSESSMENT',3,'WITHDRAWN'),policy_version:''}],'case-1','ASSESSMENT',now),null);
 no(req(actor('sponsor-1','SPONSOR'),'VIEW_SPONSOR_PROGRESS',{sponsorships:[{...link,state:'REVOKED'}],consents:[consent('SPONSOR_PROGRESS')]}));
 assert.equal(publishedInstrument({schema_version:'1.0',instruments:Array(2).fill({id:'RCAS',version:'1.0',release_state:'PUBLISHED',content_sha256:'a'.repeat(64),scientific_status:'REVIEWED_FOR_STATED_USE',human_approval:true,consent_policy_version:'v1'})},'RCAS','1.0'),null);
+const registry=JSON.parse(readFileSync(new URL('./golden-talent-instrument-registry.v1.json',import.meta.url),'utf8'));
+const observer=JSON.parse(readFileSync(new URL('./golden-talent-instruments.json',import.meta.url),'utf8'));
+assert.equal(registry.schema_version,'1.0');
+assert.equal(registry.scientific_policy.validation_status,'PREVALIDATION');
+assert.equal(registry.scientific_policy.total_talent_score_allowed,false);
+assert.deepEqual(registry.instruments.map(x=>x.id),['RCAS-O1','RCAS-CORE','D1','D2','D3','D4','D5','D6']);
+assert.equal(registry.instruments[0].version,observer.version);
+assert.equal(registry.instruments[0].id,observer.instrument_id);
+for(const instrument of registry.instruments) {
+  assert.equal(publishedInstrument(registry,instrument.id,instrument.version),null);
+  assert.equal(instrument.scoring_enabled,false);
+}
 console.log('Phase 12 privacy, consent, access, sponsor and entitlement gates: PASS');
