@@ -39,7 +39,11 @@ function operationsGithubAuditProject(array $input, string $workflow): array {
             || !in_array($event,['push','workflow_dispatch','schedule','pull_request'],true)
             || (!is_null($conclusion)&&!in_array($conclusion,['success','failure','cancelled','skipped','timed_out','action_required','neutral','stale'],true)))
             continue;
+        $displayTitle=(string)($item['display_title']??'');
+        $requestKey=preg_match('/^Admin audit ([a-f0-9]{32})$/D',$displayTitle,$match)&&$event==='workflow_dispatch'
+            ?$match[1]:null;
         $runs[]=[
+            'requestKey'=>$requestKey,
             'runId'=>(int)($item['id']??0),
             'url'=>$url,'status'=>$status,'conclusion'=>$conclusion,'event'=>$event,
             'sourceSha'=>$sha,'createdAt'=>(string)($item['created_at']??''),
