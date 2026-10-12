@@ -12,6 +12,7 @@ on:
       - 'docs/migrations/20261013_stage09_pre_migration_mariadb_readonly.sql'
       - 'docs/governance/STAGE09_OWNER_INVENTORY_DECLARATION_20261013.json'
       - 'tests/stage09-mysql.php'
+      - 'tests/bertina-commerce-mysql-contract.php'
       - 'tests/stage09-commerce-atomic.php'
       - 'docs/migrations/20261013_stage09_bertina_owner_approved.sql'
       - 'tests/stage09-owner-stock-mariadb.php'
@@ -97,6 +98,7 @@ jobs:
           php tests/stage09-commerce-atomic.php
           php tests/stage09-mysql.php
           php tests/stage09-owner-stock-mariadb.php
+          php tests/bertina-commerce-mysql-contract.php
           echo 'MariaDB Stage09 fixture PASS: isolated test schema, no live credentials or production writes'
       - name: Explain release gate independence
         run: |
