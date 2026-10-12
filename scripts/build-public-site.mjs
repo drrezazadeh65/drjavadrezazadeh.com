@@ -33,6 +33,15 @@ function copy(rel=''){
 }
 copy();
 
+// Project the existing private registry for the MFA-protected admin API.
+// No platform paths, secrets, account details or third-party measurements cross this boundary.
+const freeInventory=JSON.parse(fs.readFileSync(path.join(root,'platform/free-resources-registry.json'),'utf8'));
+if(freeInventory.schema!=='free-resource-inventory-v1'||freeInventory.resources?.length!==30)throw Error('Free resources registry contract drift');
+const adminToolInventory={schema:'operations-free-resources-v1',catalogueDate:freeInventory.date,categoryCounts:{GROWTH:8,TECHNICAL:12,SCHOLARLY:10},connectionStatus:'UNVERIFIED',automatedDataInUse:false,resources:freeInventory.resources.map(r=>({id:r.id,name:r.name,url:r.official_url,category:r.category,ownerEngine:r.owner_engine,accessPath:r.access_path,purpose:r.purpose,connection:r.external_connection,automatedDataInUse:false}))};
+const inventoryOutput=path.join(out,'api/internal/free-resources-registry.json');
+if(!/Require all denied/.test(fs.readFileSync(path.join(out,'api/internal/.htaccess'),'utf8')))throw Error('Private admin registry protection missing');
+fs.writeFileSync(inventoryOutput,JSON.stringify(adminToolInventory)+'\n');
+
 const failures=[];
 const required=[
   'index.html','404.html','offline.html','robots.txt','llms.txt','site.webmanifest','sw.js',
