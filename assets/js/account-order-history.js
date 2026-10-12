@@ -86,6 +86,49 @@ function render(orders){
         finally{track.disabled=false;}
       });
       item.append(track,detail);
+      const refund=el('details');
+      refund.append(el('summary',tr('درخواست بررسی استرداد وجه','Request a refund review')));
+      const form=el('form');form.style.cssText='display:grid;gap:.75rem;margin-top:.75rem;max-width:32rem';
+      const label=el('label',tr('دلیل درخواست','Reason for request'));
+      const select=el('select');select.required=true;
+      const reasons=[
+        ['service_not_provided',tr('خدمت ارائه نشده','Service not delivered')],
+        ['cancel_request',tr('درخواست لغو سفارش','Cancellation request')],
+        ['book_not_received',tr('کتاب دریافت نشده','Book not received')],
+        ['incorrect_item',tr('کالا یا خدمت نادرست','Incorrect item or service')],
+        ['duplicate_payment',tr('پرداخت تکراری','Duplicate payment')],
+        ['other',tr('سایر موارد','Other')]
+      ];
+      for(const [value,title] of reasons){
+        const option=el('option',title);option.value=value;select.append(option);
+      }
+      label.append(select);
+      const request=el('button',tr('ثبت درخواست برای بررسی','Submit for review'),'button');
+      request.type='submit';
+      const outcome=el('p');outcome.setAttribute('role','status');
+      form.append(label,request,el('small',tr('ثبت درخواست به معنی بازپرداخت یا لغو خودکار نیست.','Requesting a review does not automatically issue a refund or cancel an order.')),outcome);
+      form.addEventListener('submit',async event=>{
+        event.preventDefault();
+        if(!window.confirm(tr('درخواست بررسی این سفارش ثبت شود؟ وجه بدون بررسی و تأیید بازپرداخت نمی‌شود.','Submit this request for review? No bank refund is issued automatically.')))return;
+        request.disabled=true;
+        outcome.textContent=tr('در حال ثبت درخواست…','Submitting request…');
+        try{
+          const response=await fetch('/api/commerce/refund-request',{
+            method:'POST',credentials:'same-origin',cache:'no-store',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({orderId:order.id,reasonCode:select.value})
+          });
+          const data=await response.json();
+          if(!response.ok||data?.ok!==true)throw Error('request_failed');
+          outcome.textContent=tr('درخواست با شناسه ','Request ')+data.requestId+tr(' ثبت شد؛ بررسی و بازپرداخت احتمالی جداگانه انجام می‌شود.',' was recorded. Review and any bank refund are separate steps.');
+          form.querySelector('select').disabled=true;
+        }catch(_){
+          outcome.textContent=tr('ثبت درخواست اکنون تأیید نشد. از بخش پشتیبانی پیگیری کنید.','Submission could not be verified. Please contact support.');
+          request.disabled=false;
+        }
+      });
+      refund.append(form);item.append(refund);
+
     }
     wrap.append(item);
   }
