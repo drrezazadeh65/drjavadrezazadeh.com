@@ -25,6 +25,7 @@ on:
       - 'docs/migrations/20261012_stage09_commerce.sql'
       - 'tests/stage09-commerce-atomic.php'
       - 'tests/stage09-fulfilment-privacy.php'
+      - 'tests/stage09-refund-privacy.php'
       - 'assets/js/account-order-history.js'
       - 'assets/js/customer-dashboard.js'
       - 'fa/app/account/orders/index.html'
@@ -54,6 +55,7 @@ on:
       - 'docs/migrations/20261012_stage09_commerce.sql'
       - 'tests/stage09-commerce-atomic.php'
       - 'tests/stage09-fulfilment-privacy.php'
+      - 'tests/stage09-refund-privacy.php'
       - 'assets/js/account-order-history.js'
       - 'assets/js/customer-dashboard.js'
       - 'fa/app/account/orders/index.html'
@@ -82,6 +84,8 @@ jobs:
           php tests/stage09-commerce-atomic.php
           php -l tests/stage09-fulfilment-privacy.php
           php tests/stage09-fulfilment-privacy.php
+          php -l tests/stage09-refund-privacy.php
+          php tests/stage09-refund-privacy.php
           node --check assets/js/account-order-history.js
           node --check assets/js/customer-dashboard.js
           node scripts/commerce-receipt-contract-audit.mjs
