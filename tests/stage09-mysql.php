@@ -47,6 +47,10 @@ if($mode==='--finalize-worker'){
 $pdo->exec(file_get_contents(__DIR__.'/../docs/BERTINA_MYSQL_SCHEMA.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261012_stage09_commerce.sql'));
 checkStage9(stage9SchemaReady($pdo),'additive_schema_present');
+$pdo->exec('ALTER TABLE commerce_payment_claims DROP INDEX uq_payment_order');
+checkStage9(!stage9SchemaReady($pdo),'missing_unique_claim_constraint_fails_closed');
+$pdo->exec('ALTER TABLE commerce_payment_claims ADD UNIQUE KEY uq_payment_order(provider,order_id)');
+checkStage9(stage9SchemaReady($pdo),'unique_claim_constraint_restored');
 checkStage9(!stage9BookStockReady($pdo),'empty_live_stock_never_assumed');
 foreach(['book:roshanaei'=>2,'book:tariki'=>0,'book:bonbast'=>0] as $sku=>$qty)putStock($pdo,$sku,$qty);
 checkStage9(stage9BookStockReady($pdo),'all_three_reconciled_rows_required');
