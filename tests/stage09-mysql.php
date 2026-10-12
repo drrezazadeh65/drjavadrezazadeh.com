@@ -116,4 +116,35 @@ $result=workers([['--finalize-worker',$id],['--finalize-worker',$id]]);
 sort($result);checkStage9($result===['FINALIZED','REPLAY'],'two_process_callback_idempotency');
 checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_outbox WHERE order_id='".$id."'")->fetchColumn()===1,'parallel_outbox_exactly_once');
 checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_service_cases WHERE order_id='".$id."' AND status='awaiting_contact'")->fetchColumn()===1,'service_case_pending_only');
+// V5 owner-only operational oversight uses aggregated READ-ONLY MySQL facts
+// and never leaks identifiers, email, delivery address or other customer PII.
+require __DIR__.'/../api/operations-commerce.php';
+$privateEmail='unpublished.customer.fixture@example.invalid';
+$legacy='11111111-1111-4111-8111-111111111180';
+pendingOrder($pdo,$legacy,'unreconciled-historical','service:academic_consult_60');
+$pdo->prepare("UPDATE commerce_orders SET state='paid',provider_trans_id='191919',
+ paid_at=NOW(),customer_email=? WHERE id=?")->execute([$privateEmail,$legacy]);
+$beforeSnapshot=operationsCommerceSnapshot($pdo,time());
+checkStage9($beforeSnapshot['available']===true&&$beforeSnapshot['providerBankSettlementVerified']===null,
+ 'owner_commerce_snapshot_readonly_no_bank_certification');
+checkStage9(($beforeSnapshot['claims']['paidRowsRequiringIndependentProviderReconciliation']??null)===1,
+ 'historical_paid_row_without_claim_requires_review');
+checkStage9(($beforeSnapshot['stock']['ledgerDiscrepancies']??null)===0,
+ 'owner_commerce_snapshot_stock_consistent');
+checkStage9(($beforeSnapshot['orders']['paidStateRecords']??0)>=4,
+ 'owner_commerce_snapshot_paid_counts_are_aggregate');
+checkStage9(($beforeSnapshot['notifications']['paidOrderRowsWithoutReceiptEmailTimestamp']??0)>=1,
+ 'owner_commerce_snapshot_missing_mail_timestamp_is_not_delivery_claim');
+$serialized=json_encode($beforeSnapshot);
+checkStage9(is_string($serialized)&&!str_contains($serialized,$privateEmail)&&
+ !str_contains($serialized,$legacy)&&!str_contains($serialized,$id),
+ 'owner_commerce_snapshot_never_exposes_customer_order_identifiers');
+$pdo->exec("UPDATE commerce_book_stock SET reserved=0 WHERE sku='book:race'");
+$driftSnapshot=operationsCommerceSnapshot($pdo,time());
+checkStage9(($driftSnapshot['stock']['ledgerDiscrepancies']??null)===1,
+ 'owner_commerce_snapshot_flags_ledger_discrepancy');
+$pdo->exec("UPDATE commerce_book_stock SET reserved=1 WHERE sku='book:race'");
+checkStage9(stage9BookStockReady($pdo),
+ 'isolated_stock_restored_without_inventory_reseed');
+$pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$legacy]);
 echo "Stage09 MySQL8 multi-process acceptance passed (CI only, no bank/physical inventory evidence).\n";
