@@ -2,7 +2,7 @@
   "schema": "stage09-owner-declared-inventory-v1",
   "sourceBranch": "migration/bertina-linux6",
   "declaredOn": "2026-10-13",
-  "status": "OWNER_DECLARED_NOT_YET_RECONCILED_IN_LIVE_DATABASE",
+  "status": "LIVE_OWNER_DECLARED_INVENTORY_ROWS_OBSERVED_IN_PHPMYADMIN_NOT_FINANCIAL_SETTLEMENT_VERIFIED",
   "stock": [
     {
       "sku": "book:roshanaei",
@@ -34,12 +34,12 @@
   },
   "pendingIncludedInOwnerDeclared100": "NOT_APPLICABLE_OWNER_DECLARED_SELF_TEST",
   "outstandingVerifications": [
-    "Owner-declared 100 saleable units per book remains subject to real stock reconciliation before any live stock seed",
+    "Owner-declared 100 available copies per book are now visible in the live stock ledger (not independent physical count).",
+    "Verify eight Stage09 table engines and commerce_payment_claims unique indexes from live information_schema before attempting release.",
     "Do not count or reserve the owner-declared legacy test order as a real pending book sale",
     "Verify gateway/provider state for the historic paid-labelled order before any DB cancellation, payment correction or accounting claim",
-    "Owner declaration is not a physical stock count signed into the live DB",
     "Do not fabricate Stage09 payment claims for the pre-migration paid non-book order",
-    "Verify current private signed recovery gate and 8 additive InnoDB tables before publishing source to Bertina"
+    "Obtain the cryptographically signed private Bertina restore proof and live source parity for the existing guarded deploy."
   ],
   "productionWritesAuthorizedByThisDocument": false,
   "releaseApprovedByThisDocument": false,
@@ -53,5 +53,36 @@
     "mailboxReview": "Connected Gmail search found no website book-purchase/payment receipt; Bertina payment invoices are separate hosting expenses. Mailbox absence does not independently certify provider/bank settlement.",
     "deleteOrMutateHistoricOrdersAuthorized": false,
     "revenueCertified": false
+  },
+  "liveMariaDbEvidence": {
+    "capturedOn": "2026-10-13",
+    "source": "Owner-provided phpMyAdmin screenshot; screenshot is not uploaded to public GitHub",
+    "database": "drjavad1_store",
+    "stockRows": [
+      {
+        "sku": "book:bonbast",
+        "physical_on_hand": 100,
+        "reserved": 0,
+        "reconciled_by": "owner-declared-2026-10-13"
+      },
+      {
+        "sku": "book:roshanaei",
+        "physical_on_hand": 100,
+        "reserved": 0,
+        "reconciled_by": "owner-declared-2026-10-13"
+      },
+      {
+        "sku": "book:tariki",
+        "physical_on_hand": 100,
+        "reserved": 0,
+        "reconciled_by": "owner-declared-2026-10-13"
+      }
+    ],
+    "additiveStage09TablesVisible": 8,
+    "totalTablesVisible": 19,
+    "importStatementReport": "15 queries executed; an unqualified trailing SELECT failed because phpMyAdmin selected information_schema. Separate schema-qualified SELECT succeeded.",
+    "allEightTableEnginesAndPaymentClaimUniqueIndexesVerified": "NOT_YET_CHECKED_FROM_LIVE_INFORMATION_SCHEMA",
+    "actualRecoveryGateProof": "NOT_AVAILABLE_FROM_THIS_SCREENSHOT",
+    "actualBitpaySettlement": "NOT_VERIFIED"
   }
 }
