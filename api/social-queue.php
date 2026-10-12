@@ -93,9 +93,17 @@ function socialQueueClaim(PDO $pdo,int $now): ?array {
              ORDER BY d.schedule_utc,d.id LIMIT 1".$lock);
         $q->execute([$now]);$row=$q->fetch();
         if (!$row) {$pdo->commit();return null;}
-        $assets=socialQueueAssetFingerprint($pdo,(string)$row['campaign_id']);
-        $row['asset_fingerprint']=$assets['fingerprint'];
-        $eligible=$row['editorial_state']==='approved' &&
+        try {
+            $assets=socialQueueAssetFingerprint($pdo,(string)$row['campaign_id']);
+            $row['asset_fingerprint']=$assets['fingerprint'];
+            $assetValid=true;
+        } catch (DomainException $e) {
+            // Rights were revoked after editorial approval: invalidate this
+            // record and advance the queue without attempting delivery.
+            $row['asset_fingerprint']='revoked_media';
+            $assetValid=false;
+        }
+        $eligible=$assetValid && $row['editorial_state']==='approved' &&
           $row['account_status']==='verified' &&
           $row['provider']===$row['account_provider'] &&
           ($row['account_expires']===null || (int)$row['account_expires']>$now) &&
