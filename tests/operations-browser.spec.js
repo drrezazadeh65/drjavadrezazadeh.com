@@ -198,3 +198,51 @@ test('authenticated accounts receive only a verified personal greeting in both l
   await expect(page.locator('[data-home-heading]')).not.toContainText(lang==='en'?'Sign in':'وارد حساب شوید');
  }
 });
+
+for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
+ test(lang+' Stage09 owner-only commerce cards stay private and mobile-safe',async({page})=>{
+  const privateEmail='private-person@example.invalid';
+  const payload={
+   ok:true,schema:'operations-commerce-evidence-v1',available:true,
+   providerBankSettlementVerified:null,physicalStockCountVerified:null,
+   orders:{pendingRecords:3,paidStateRecords:2,failedRecords:0,totalRows:5,states:{pending:3,paid:2}},
+   claims:{paidRowsRequiringIndependentProviderReconciliation:1},
+   stock:{ledgerDiscrepancies:1,rowsWithoutReconciliationTimestamp:1,
+     rows:[{sku:'book:roshanaei',availableRecorded:4,reservedRecorded:3,
+       reservationUnitsHeld:2,ledgerDiscrepancy:true}]},
+   notifications:{paidOrderRowsWithoutReceiptEmailTimestamp:2,
+     outboxStates:{pending:2,failed:1,processing:0}},
+   fulfilment:{serviceCaseStates:{awaiting_contact:2},parcelStates:{preparing:1}}
+  };
+  let hits=0;
+  await page.setViewportSize({width:320,height:850});
+  await authorized(page);
+  await page.route('**/api/admin/operations/commerce',route=>{
+   hits++;expect(route.request().method()).toBe('GET');
+   return route.fulfill({json:payload});
+  });
+  await page.goto(base+path);
+  await expect(page.locator('#ops-workspace')).toBeVisible();
+  await expect(page.locator('#ops-commerce-results article')).toHaveCount(0);
+  await page.locator('#ops-commerce summary').click();
+  await expect(page.locator('#ops-commerce-results article')).toHaveCount(11);
+  await expect(page.locator('#ops-commerce-results')).toContainText('3');
+  await expect(page.locator('#ops-commerce-results')).toContainText('book:roshanaei');
+  expect(hits).toBe(1);
+  await expect(page.locator('#ops-commerce-results')).not.toContainText(privateEmail);
+  expect(await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth)).toBeLessThanOrEqual(1);
+  await page.locator('#ops-commerce summary').click();
+  await expect(page.locator('#ops-commerce-results article')).toHaveCount(0);
+  expect(await page.evaluate(()=>localStorage.length)).toBe(0);
+ });
+}
+test('MFA-protected commerce reports never manufacture zero when server refuses access',async({page})=>{
+ await authorized(page);
+ await page.route('**/api/admin/operations/commerce',route=>route.fulfill({
+  status:403,json:{ok:false,error:'admin_mfa_required'}}));
+ await page.goto(base+'/fa/app/admin/');
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await page.locator('#ops-commerce summary').click();
+ await expect(page.locator('#ops-commerce-status')).toContainText('قابل دریافت نیست');
+ await expect(page.locator('#ops-commerce-results article')).toHaveCount(0);
+});
