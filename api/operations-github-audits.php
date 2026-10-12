@@ -27,7 +27,7 @@ function operationsGithubAuditProject(array $input, string $workflow): array {
     $allowedStatuses=['queued','in_progress','completed','requested','waiting','pending'];
     $runs=[];
     foreach (($input['workflow_runs']??[]) as $item) {
-        if (!is_array($item)||count($runs)>=5)break;
+        if (!is_array($item)||count($runs)>=50)break;
         $url=(string)($item['html_url']??'');
         $providerRunId=$item['id']??null;
         $status=(string)($item['status']??'');
@@ -61,7 +61,7 @@ function operationsGithubAuditFetch(string $workflow): array {
     if (!in_array($workflow,$allowed,true))return ['status'=>'not_allowlisted','runs'=>[]];
     if (!function_exists('curl_init'))return ['status'=>'transport_unavailable','runs'=>[]];
     $url='https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/'.
-        rawurlencode($workflow).'/runs?per_page=5&branch=migration%2Fbertina-linux6';
+        rawurlencode($workflow).'/runs?per_page=50&branch=migration%2Fbertina-linux6';
     $ch=curl_init($url);
     if($ch===false)return ['status'=>'transport_unavailable','runs'=>[]];
     curl_setopt_array($ch,[
