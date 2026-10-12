@@ -41,7 +41,16 @@ function operationsActionHistory(PDO $pdo, string $accountId, int $at): array {
     foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $result=json_decode((string)$row['result_json'],true);
         $status=(string)$row['status'];
-        if($status==='running' && $at-(int)$row['created_at']>120)$status='interrupted';
+        // External GitHub dispatch acknowledgement is NOT a synchronous local job.
+        // A long-running provider run may legitimately outlast a two-minute HTTP window;
+        // never relabel an uncorrelated audit request as an interrupted PHP collector.
+        $githubRequest=is_array($result)&&($result['kind']??null)==='github_ci_audit';
+        if($githubRequest && $status==='running'){
+            $status=($result['verifiedByProvider']??false)===true
+                ?'provider_in_progress':'awaiting_external_run_correlation';
+        }elseif($status==='running' && $at-(int)$row['created_at']>120){
+            $status='interrupted';
+        }
         $rows[]=[
             'runId'=>(string)$row['run_id'],'actionId'=>(string)$row['action_id'],
             'releaseSha'=>(string)$row['release_sha'],'status'=>$status,
