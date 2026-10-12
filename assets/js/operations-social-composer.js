@@ -20,7 +20,11 @@
   telegram:{limit:1800,tags:3},
   eitaa:{limit:1700,tags:3},
   aparat:{limit:1100,tags:5,video:true},
-  youtube:{limit:1800,tags:3,video:true}
+  youtube:{limit:1800,tags:3,video:true},
+  linkedin:{limit:1600,tags:3},threads:{limit:450,tags:2},
+  bluesky:{limit:285,tags:2},pinterest:{limit:400,tags:3,media:true},
+  tiktok:{limit:130,tags:4,video:true},mastodon:{limit:450,tags:3},
+  discord:{limit:1500,tags:2},googlebusiness:{limit:750,tags:0}
  };
  const signals=[
   [/استعداد|talent/iu,'#استعدادیابی','#TalentDevelopment'],
@@ -83,13 +87,14 @@
   }catch{return false;}
  }
  const clipped=(s,max)=>{const v=Array.from(s);return v.length>max?v.slice(0,Math.max(0,max-1)).join('').trimEnd()+'…':s;};
- function draft(item,channel){
+ function draft(item,channel,campaign='editorial'){
+  if(!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(campaign))throw Error('Invalid UTM campaign');
   const policy=policies[channel];if(!policy)throw Error('Network unavailable');
   const locale=new URL(item.url).pathname.startsWith('/en/')?'en':'fa';
   const p=new URL(item.url);
   p.searchParams.set('utm_source',channel);
   p.searchParams.set('utm_medium','social');
-  p.searchParams.set('utm_campaign','editorial');
+  p.searchParams.set('utm_campaign',campaign);
   const tags=signals.filter(a=>a[0].test(item.title+' '+item.description))
    .map(a=>locale==='en'?a[2]:a[1]).slice(0,policy.tags);
   const hashtagBlock=tags.length?'\n\n'+tags.join(' '):'';
@@ -111,8 +116,21 @@
   if(!item||!policies[ch])return;
   produce.disabled=true;note(t('در حال تأیید آدرس عمومی مقاله…','Checking the public source article…'));
   try{
+   // Server-authoritative owner preferences are consulted for each preview.
+   // Preferences never authorize publishing or bypass article verification.
+   const settingsRes=await fetch('/api/admin/operations/social/settings',{
+     credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+   if(!settingsRes.ok)throw Error('admin_settings_unavailable');
+   const settingsData=await settingsRes.json();
+   if(!settingsData.ok||settingsData.schema!=='social-channel-settings-v1')
+     throw Error('admin_settings_invalid');
+   const options=settingsData.settings?.[ch]||null;
+   if(options?.draftEnabled===false)throw Error('drafting_disabled_by_owner');
+   const locale=new URL(item.url).pathname.startsWith('/en/')?'en':'fa';
+   if(options?.draftLocale && options.draftLocale!=='both' && options.draftLocale!==locale)
+     throw Error('article_language_not_in_channel_preferences');
    if(!await verifyArticle(item))throw Error('Article 200/indexability/self-canonical validation failed');
-   generated=draft(item,ch);
+   generated=draft(item,ch,options?.utmCampaign||'editorial');
    preview.value=generated.body;
    copy.disabled=false;
    note(generated.warning+' '+t('این متن فقط پیش‌نویس است؛ هیچ پیامی ارسال نشده است.',
