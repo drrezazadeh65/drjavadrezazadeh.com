@@ -1,0 +1,86 @@
+name: Admin engine report security
+on:
+  push:
+    paths:
+      - 'platform/admin-engine-report.mjs'
+      - 'platform/admin-engine-report.test.mjs'
+      - 'platform/admin-engine-report-staleness.test.mjs'
+      - 'platform/admin-engine-report-client.mjs'
+      - 'platform/admin-engine-report-client.test.mjs'
+      - 'platform/admin-engine-report-handler.mjs'
+      - 'platform/admin-engine-report-handler.test.mjs'
+      - 'platform/admin-engine-dashboard-view.mjs'
+      - 'platform/admin-engine-dashboard-view.test.mjs'
+      - 'platform/admin-engine-status-table.mjs'
+      - 'platform/admin-engine-status-table.test.mjs'
+      - 'platform/admin-engine-report-worker.mjs'
+      - 'platform/admin-engine-report-worker.test.mjs'
+      - 'platform/admin-engine-status-controller.mjs'
+      - 'platform/admin-engine-status-controller.test.mjs'
+      - 'platform/admin-engine-status-mount.mjs'
+      - 'platform/admin-engine-status-mount.test.mjs'
+      - 'platform/admin-engine-deployment-gate.mjs'
+      - 'platform/admin-engine-deployment-gate.test.mjs'
+      - 'platform/edge-health-evidence.mjs'
+      - 'platform/edge-health-evidence.test.mjs'
+      - 'platform/admin-operations-snapshot.mjs'
+      - 'platform/admin-operations-snapshot.test.mjs'
+      - 'platform/admin-session-verifier.mjs'
+      - 'platform/admin-session-verifier.test.mjs'
+      - 'platform/admin-d1-role-lookup.mjs'
+      - 'platform/admin-d1-role-lookup.test.mjs'
+      - 'platform/admin-d1-protected-report.mjs'
+      - 'platform/admin-d1-protected-report.test.mjs'
+      - 'platform/admin-runtime-config.mjs'
+      - 'platform/admin-runtime-config.test.mjs'
+      - 'platform/db/d1/001_admin_role_grant.sql'
+      - 'platform/engine-registry.mjs'
+      - '.github/workflows/admin-engine-report-security.yml'
+  pull_request:
+    paths:
+      - 'platform/admin-engine-report.mjs'
+      - 'platform/admin-engine-report.test.mjs'
+      - 'platform/admin-engine-report-staleness.test.mjs'
+      - 'platform/admin-engine-report-client.mjs'
+      - 'platform/admin-engine-report-client.test.mjs'
+      - 'platform/admin-engine-report-handler.mjs'
+      - 'platform/admin-engine-report-handler.test.mjs'
+      - 'platform/admin-engine-dashboard-view.mjs'
+      - 'platform/admin-engine-dashboard-view.test.mjs'
+      - 'platform/admin-engine-status-table.mjs'
+      - 'platform/admin-engine-status-table.test.mjs'
+      - 'platform/admin-engine-report-worker.mjs'
+      - 'platform/admin-engine-report-worker.test.mjs'
+      - 'platform/admin-engine-status-controller.mjs'
+      - 'platform/admin-engine-status-controller.test.mjs'
+      - 'platform/admin-engine-status-mount.mjs'
+      - 'platform/admin-engine-status-mount.test.mjs'
+      - 'platform/admin-engine-deployment-gate.mjs'
+      - 'platform/admin-engine-deployment-gate.test.mjs'
+      - 'platform/edge-health-evidence.mjs'
+      - 'platform/edge-health-evidence.test.mjs'
+      - 'platform/admin-operations-snapshot.mjs'
+      - 'platform/admin-operations-snapshot.test.mjs'
+      - 'platform/admin-session-verifier.mjs'
+      - 'platform/admin-session-verifier.test.mjs'
+      - 'platform/admin-d1-role-lookup.mjs'
+      - 'platform/admin-d1-role-lookup.test.mjs'
+      - 'platform/admin-d1-protected-report.mjs'
+      - 'platform/admin-d1-protected-report.test.mjs'
+      - 'platform/admin-runtime-config.mjs'
+      - 'platform/admin-runtime-config.test.mjs'
+      - 'platform/db/d1/001_admin_role_grant.sql'
+      - 'platform/engine-registry.mjs'
+      - '.github/workflows/admin-engine-report-security.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test platform/admin-engine-report.test.mjs platform/admin-engine-report-staleness.test.mjs platform/admin-engine-report-client.test.mjs platform/admin-engine-report-handler.test.mjs platform/admin-engine-dashboard-view.test.mjs platform/admin-engine-status-table.test.mjs platform/admin-engine-report-worker.test.mjs platform/admin-engine-status-controller.test.mjs platform/admin-engine-status-mount.test.mjs platform/admin-engine-deployment-gate.test.mjs platform/edge-health-evidence.test.mjs platform/admin-operations-snapshot.test.mjs platform/admin-session-verifier.test.mjs platform/admin-d1-role-lookup.test.mjs platform/admin-d1-protected-report.test.mjs platform/admin-runtime-config.test.mjs

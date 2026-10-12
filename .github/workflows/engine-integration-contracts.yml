@@ -1,0 +1,33 @@
+name: Engine integration contracts
+on:
+  push:
+    paths:
+      - 'platform/*-engine.mjs'
+      - 'platform/engine-*.mjs'
+      - 'platform/cross-engine-contract.test.mjs'
+      - 'platform/module-registry.json'
+      - 'platform/module-governance.mjs'
+      - '.github/workflows/engine-integration-contracts.yml'
+  pull_request:
+    paths:
+      - 'platform/*-engine.mjs'
+      - 'platform/engine-*.mjs'
+      - 'platform/cross-engine-contract.test.mjs'
+      - 'platform/module-registry.json'
+      - 'platform/module-governance.mjs'
+      - '.github/workflows/engine-integration-contracts.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate dependency graph
+        run: node platform/engine-dependency-audit.mjs
+      - name: Validate cross-engine contracts
+        run: node --test platform/engine-registry.test.mjs platform/engine-dependency-audit.test.mjs platform/cross-engine-contract.test.mjs platform/module-governance.test.mjs

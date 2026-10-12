@@ -1,0 +1,28 @@
+name: Consultation commerce orchestration
+on:
+  push:
+    paths:
+      - 'platform/consultation-commerce-orchestrator.mjs'
+      - 'platform/consultation-commerce-orchestrator.test.mjs'
+      - 'platform/commerce-engine.mjs'
+      - 'platform/consultation-engine.mjs'
+      - '.github/workflows/consultation-commerce-orchestration.yml'
+  pull_request:
+    paths:
+      - 'platform/consultation-commerce-orchestrator.mjs'
+      - 'platform/consultation-commerce-orchestrator.test.mjs'
+      - 'platform/commerce-engine.mjs'
+      - 'platform/consultation-engine.mjs'
+      - '.github/workflows/consultation-commerce-orchestration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test platform/consultation-commerce-orchestrator.test.mjs platform/cross-engine-contract.test.mjs
