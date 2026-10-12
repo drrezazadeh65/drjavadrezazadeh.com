@@ -225,6 +225,50 @@ jobs:
               echo json_encode(['ok'=>false,'error'=>'verified_private_recovery_required']);
               exit;
           }
+          // Protect the already-live storefront: new source depends on the
+          // additive Stage09 InnoDB tables AND pre-existing commerce-order columns.
+          // This is READ ONLY. Do not mutate/reseed stocks or infer paid orders.
+          // Check AFTER signed restore and BEFORE extracting even one source file.
+          try {
+              \$cfg = require __DIR__ . '/api/config.local.php';
+              if (!is_array(\$cfg)) throw new RuntimeException('private_config_missing');
+              \$pdo = new PDO((string)(\$cfg['db_dsn'] ?? ''),
+                  (string)(\$cfg['db_user'] ?? ''), (string)(\$cfg['db_password'] ?? ''), [
+                      PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                      PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                      PDO::ATTR_EMULATE_PREPARES => false,
+                  ]);
+              \$columns = array_column(\$pdo->query('SHOW COLUMNS FROM commerce_orders')->fetchAll(), 'Field');
+              foreach (['customer_email','customer_json','receipt_email_sent_at'] as \$column) {
+                  if (!in_array(\$column, \$columns, true)) throw new RuntimeException('missing_commerce_column');
+              }
+              \$required = ['commerce_book_stock','commerce_book_reservations',
+                  'commerce_stock_movements','commerce_payment_claims','commerce_outbox',
+                  'commerce_service_cases','commerce_parcels','commerce_refund_requests'];
+              foreach (\$required as \$table) {
+                  // Fixed trusted table names; no request-controlled SQL identifiers.
+                  \$pdo->query('SELECT 1 FROM ' . \$table . ' LIMIT 1');
+              }
+              \$indexes = \$pdo->query('SHOW INDEX FROM commerce_payment_claims')->fetchAll();
+              \$keys = [];
+              foreach (\$indexes as \$index) {
+                  \$key=(string)(\$index['Key_name']??'');
+                  \$position=(int)(\$index['Seq_in_index']??0);
+                  if (\$position>0 && (\$index['Non_unique']??1)==0) {
+                      \$keys[\$key][\$position]=(string)(\$index['Column_name']??'');
+                  }
+              }
+              foreach (\$keys as &\$cols) ksort(\$cols, SORT_NUMERIC);
+              unset(\$cols);
+              if (array_values(\$keys['PRIMARY']??[])!==['provider','transaction_id'] ||
+                  array_values(\$keys['uq_payment_order']??[])!==['provider','order_id'])
+                  throw new RuntimeException('payment_claim_unique_constraints_missing');
+          } catch (Throwable \$e) {
+              \$cleanup();
+              http_response_code(503);
+              echo json_encode(['ok'=>false,'error'=>'stage09_schema_preflight_required']);
+              exit;
+          }
           if (!class_exists('ZipArchive')) {
               http_response_code(500);
               echo json_encode(['ok'=>false,'error'=>'zip_extension_unavailable']);
