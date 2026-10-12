@@ -1,0 +1,44 @@
+{
+  "schema": "jhela-ojs-activation-v1",
+  "journal": "JHELA",
+  "authoritativeRepository": "drrezazadeh65/drjavadrezazadeh.com",
+  "developmentBranch": "migration/bertina-linux6",
+  "currentInformationOrigin": "https://drjavadrezazadeh.com/journal/",
+  "reservedScholarlyOrigin": "https://journal.drjavadrezazadeh.com",
+  "originState": "RESERVED_NOT_LIVE",
+  "journalPublicationLanguage": "en",
+  "publicInformationLanguages": [
+    "en",
+    "fa"
+  ],
+  "preferredEditorialPlatform": "Official PKP Open Journal Systems",
+  "packagePolicy": "Obtain unmodified supported stable PKP release; check release provenance and SHA-256 before installing; do not treat historical 3.5.0-4 as automatically latest",
+  "ojsInstalled": false,
+  "secureFilesDirectoryVerified": false,
+  "dedicatedDatabaseVerified": false,
+  "ownerEditorialRolesVerified": false,
+  "independentRestoreVerified": false,
+  "smtpDeliveryConfirmed": false,
+  "realReviewEndToEndConfirmed": false,
+  "publicSubmissionsEnabled": false,
+  "firstIssuePublished": false,
+  "doiAssigned": false,
+  "issnAssigned": false,
+  "seo": {
+    "existingJournalSitemap": "https://drjavadrezazadeh.com/journal/sitemap.xml",
+    "futureSubdomainSitemap": "https://journal.drjavadrezazadeh.com/sitemap.xml",
+    "newOriginNotAdvertisedBeforeCutover": true,
+    "legacyUrlsPreserved": true
+  },
+  "duties": [
+    "Author: prepare English metadata, manuscript and ethical declarations",
+    "Managing Editor: intake screening and editorial administration",
+    "Section Editor: independent reviewer assignment, decisions and conflict handling",
+    "Reviewer: confidential role-limited review after invitation",
+    "Copyeditor: accepted work only, no default access to blind review identities",
+    "Production Editor: final verified HTML/PDF and metadata after acceptance"
+  ],
+  "activation": "FAIL_CLOSED_UNTIL_NATIVE_OJS_RUNTIME_AND_OWNER_GATES_PASS",
+  "evidenceRule": "Never change readiness booleans from a CI test or source commit; independently verify production runtime and actual test email/role workflows",
+  "notedAt": "2026-10-12"
+}
