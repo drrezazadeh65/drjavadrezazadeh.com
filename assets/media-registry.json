@@ -3072,6 +3072,58 @@
       "alt_fa": "تصویر اختصاصی سنجش انسانی و ارزیابی آموزشی با رویکرد انسان‌محور",
       "caption_en": "Owner-approved original featured image for the academic editorial launch.",
       "caption_fa": "تصویر اختصاصی سنجش انسانی و ارزیابی آموزشی با رویکرد انسان‌محور"
+    },
+    {
+      "path": "assets/images/jhela/identity.svg",
+      "kind": "illustration",
+      "role": "jhela-identity",
+      "provenance": "Original repository-native SVG authored for JHELA's owner-authorized 2026-10-12 founding website redesign",
+      "rights": "site-use-approved by owner",
+      "alt_en": "An original open-book and globe emblem representing JHELA scholarly identity",
+      "alt_fa": "نشان اختصاصی مجله علمی JHELA شامل کتاب باز و کره زمین",
+      "caption_en": "Original conceptual illustration for the founding journal's public academic pages.",
+      "caption_fa": "تصویر مفهومی اختصاصی برای صفحات عمومی نشریه در مرحله تأسیس.",
+      "mime_type": "image/svg+xml",
+      "source_status": "original-vector"
+    },
+    {
+      "path": "assets/images/jhela/research.svg",
+      "kind": "illustration",
+      "role": "jhela-journal-hero",
+      "provenance": "Original repository-native SVG authored for JHELA's owner-authorized 2026-10-12 founding website redesign",
+      "rights": "site-use-approved by owner",
+      "alt_en": "An open scholarly book and connected globe symbolising international educational research",
+      "alt_fa": "کتاب علمی باز و کره زمین پیوسته، نماد پژوهش بین‌المللی آموزش",
+      "caption_en": "Original conceptual illustration for the founding journal's public academic pages.",
+      "caption_fa": "تصویر مفهومی اختصاصی برای صفحات عمومی نشریه در مرحله تأسیس.",
+      "mime_type": "image/svg+xml",
+      "source_status": "original-vector"
+    },
+    {
+      "path": "assets/images/jhela/peer-review.svg",
+      "kind": "illustration",
+      "role": "jhela-peer-review",
+      "provenance": "Original repository-native SVG authored for JHELA's owner-authorized 2026-10-12 founding website redesign",
+      "rights": "site-use-approved by owner",
+      "alt_en": "Independent scholarly perspectives evaluating a research manuscript",
+      "alt_fa": "بازنمایی دیدگاه‌های مستقل علمی در داوری یک مقاله پژوهشی",
+      "caption_en": "Original conceptual illustration for the founding journal's public academic pages.",
+      "caption_fa": "تصویر مفهومی اختصاصی برای صفحات عمومی نشریه در مرحله تأسیس.",
+      "mime_type": "image/svg+xml",
+      "source_status": "original-vector"
+    },
+    {
+      "path": "assets/images/jhela/learning.svg",
+      "kind": "illustration",
+      "role": "jhela-learning-research",
+      "provenance": "Original repository-native SVG authored for JHELA's owner-authorized 2026-10-12 founding website redesign",
+      "rights": "site-use-approved by owner",
+      "alt_en": "An open scholarly book and a growing plant as symbols of educational development",
+      "alt_fa": "کتاب باز و گیاه رو به رشد به عنوان نماد پرورش و یادگیری",
+      "caption_en": "Original conceptual illustration for the founding journal's public academic pages.",
+      "caption_fa": "تصویر مفهومی اختصاصی برای صفحات عمومی نشریه در مرحله تأسیس.",
+      "mime_type": "image/svg+xml",
+      "source_status": "original-vector"
     }
   ]
 }
