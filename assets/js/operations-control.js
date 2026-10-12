@@ -157,11 +157,12 @@ function githubAuditRender(host){
       const link=el('a',t('مشاهده گزارش معتبر','View actual CI run'));link.href=run.url;link.target='_blank';link.rel='noopener noreferrer';p.append(' ',link);
      }
      li.append(p);
+    }
     if(githubAuditState.summary?.dispatchReady){
       const trigger=el('button',t('درخواست اجرای ممیزی بدون انتشار','Request audit-only workflow'));
       trigger.type='button';trigger.addEventListener('click',()=>githubAuditDispatch(item,trigger));li.append(trigger);
     }
-    }list.append(li);
+    list.append(li);
    }section.append(list);
    if(Array.isArray(githubAuditState.ownerSubmissions) && githubAuditState.ownerSubmissions.length){
      section.append(el('h4',t('درخواست‌های دارای شناسهٔ پیگیری','Owner-approved audit request history')));
