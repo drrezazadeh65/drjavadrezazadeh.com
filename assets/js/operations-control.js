@@ -125,6 +125,24 @@ async function githubAuditDispatch(item,button){
  }finally{if(generation===loadGeneration&&button.isConnected)button.disabled=false;}
 }
 
+async function githubAuditReconcile(button){
+ if(!snapshot||!csrf||button.disabled||!githubAuditState?.summary?.canReconcile)return;
+ const generation=loadGeneration;button.disabled=true;
+ try{
+  const result=await api('/github-audits/reconcile',{method:'POST',
+    headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:'{}'});
+  if(generation!==loadGeneration||!snapshot)return;
+  githubAuditState=result.auditSnapshot||githubAuditState;
+  actionRuns=Array.isArray(result.runs)?result.runs:actionRuns;
+  githubAuditExpanded=true;
+  notice(t('تنها نتایج دارای شناسه و تطبیق معتبر GitHub در سوابق ثبت شدند.','Only independently correlated GitHub results were recorded in the existing action journal.'));
+  reportingRender();
+ }catch(e){
+  if(generation!==loadGeneration)return;
+  notice(errorMessage(e),true);
+ }finally{if(generation===loadGeneration&&button.isConnected)button.disabled=false;}
+}
+
 function githubAuditRender(host){
  const section=el('details',undefined,'ops-github-audits');section.open=githubAuditExpanded;
  section.addEventListener('toggle',()=>{githubAuditExpanded=section.open;});
@@ -170,6 +188,11 @@ function githubAuditRender(host){
     list.append(li);
    }section.append(list);
    if(Array.isArray(githubAuditState.ownerSubmissions) && githubAuditState.ownerSubmissions.length){
+     if(githubAuditState.summary?.canReconcile){
+       const reconcile=el('button',t('راستی‌آزمایی و ثبت نتیجهٔ GitHub','Verify and record provider run result'));
+       reconcile.type='button';reconcile.addEventListener('click',()=>githubAuditReconcile(reconcile));
+       section.append(reconcile);
+     }
      section.append(el('h4',t('درخواست‌های دارای شناسهٔ پیگیری','Owner-approved audit request history')));
      const history=el('ul',undefined,'ops-queue');
      for(const item of githubAuditState.ownerSubmissions.slice(0,10)){
