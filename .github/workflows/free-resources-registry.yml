@@ -1,0 +1,50 @@
+name: Free Resources Inventory Integrity
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - platform/free-resources-registry.json
+      - scripts/free-resources-registry-audit.mjs
+      - .github/workflows/free-resources-registry.yml
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths:
+      - platform/free-resources-registry.json
+      - scripts/free-resources-registry-audit.mjs
+      - .github/workflows/free-resources-registry.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: free-resources-inventory-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit 30 free-resource references without accessing providers
+        run: |
+          node --check scripts/free-resources-registry-audit.mjs
+          node scripts/free-resources-registry-audit.mjs | tee free-resources-audit.json
+          {
+            echo '## Free Resource Inventory — source-only audit'
+            echo ''
+            echo 'Validated 30 classified references, related existing source paths and conservative external-connection states.'
+            echo ''
+            echo 'This audit does **not** establish live accounts, API credentials, available free quotas, indexing, traffic, or deployment.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain non-sensitive inventory evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-resources-audit
+          path: free-resources-audit.json
+          retention-days: 14
