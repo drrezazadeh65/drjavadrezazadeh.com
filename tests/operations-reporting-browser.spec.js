@@ -136,3 +136,38 @@ test('Existing 7 collectors execute as MFA-scoped observations with server histo
  await expect(page.locator('#ops-reporting')).toContainText('This Action has no authorized executor yet');
  expect(requests).toHaveLength(1);
 });
+
+test('FA/EN owner can inspect real source-scoped GitHub audit evidence without running a workflow',async({page})=>{
+ const data=fixture();
+ const example={actionId:'ENG-01.ACT-001',workflow:'bertina-master-seo.yml',labelFa:'ممیزی جامع سئو',labelEn:'Master SEO audit',
+    status:'observed',runs:[{url:'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38275309821',
+    status:'completed',conclusion:'success',sourceSha:'b'.repeat(40),event:'push',createdAt:'2026-10-12T16:10:00Z'}]};
+ let calls=0;
+ await authorized(page,{data});
+ await page.route('**/api/admin/operations/github-audits',async route=>{calls++;
+   expect(route.request().method()).toBe('GET');
+   return route.fulfill({json:{ok:true,schema:'operations-github-audits-v1',
+     summary:{observableWorkflows:1,registeredAllowlistedWorkflows:4},
+     audits:[example],limitation:'read-only data, not an Action acceptance or deployment'}});});
+ await page.setViewportSize({width:320,height:900});
+ await page.goto(base+'/fa/app/admin/');
+ await expect(page.locator('details.ops-github-audits')).toHaveCount(1);
+ await expect(page.locator('details.ops-github-audits')).not.toHaveAttribute('open');
+ expect(calls).toBe(0);
+ await page.locator('details.ops-github-audits summary').click();
+ await page.locator('details.ops-github-audits').getByRole('button',{name:'دریافت آخرین وضعیت رسمی GitHub'}).click();
+ await expect(page.locator('details.ops-github-audits')).toContainText('ممیزی جامع سئو');
+ await expect(page.locator('details.ops-github-audits')).toContainText('success');
+ await expect(page.locator('details.ops-github-audits')).toContainText('bbbbbbbbbbbb');
+ const link=page.locator('details.ops-github-audits a');
+ await expect(link).toHaveAttribute('href','https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38275309821');
+ expect(calls).toBe(1);
+ const output=JSON.parse((await exported(page,'json')).body);
+ expect(output.githubAuditObservation.summary.observableWorkflows).toBe(1);
+ const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+ expect(overflow).toBeLessThanOrEqual(1);
+ await page.goto(base+'/en/account/admin/');
+ await expect(page.locator('details.ops-github-audits summary')).toContainText('GitHub');
+ await expect(page.locator('details.ops-github-audits')).not.toHaveAttribute('open');
+ expect(calls).toBe(1);
+});
