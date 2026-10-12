@@ -97,3 +97,37 @@ test('All 12 operational engines expose A/B/C views without claiming a worker or
  await page.locator('#ops-reporting nav button').filter({hasText:'ENG-05 · '}).click();await page.locator('#ops-reporting').getByRole('button',{name:/^C:/}).click();
  const output=JSON.parse((await exported(page,'json')).body);expect(output.awoseDomainView.id).toBe('AWOSE.ENG-05.C');expect(output.awoseDomainView.experienceMemory.status).toBe('not_implemented');expect(output.awoseDomainView.experienceMemory.verifiedExperiences).toBeNull();expect(output.awoseDomainView.experienceMemory.automationPromotions).toBeNull();expect(methods.every(method=>method==='GET')).toBe(true);
 });
+
+test('Existing 7 collectors execute as MFA-scoped observations with server history, without creating a new dashboard',async({page})=>{
+ const data=fixture(),runs=[],requests=[];
+ await authorized(page,{data});
+ await page.route('**/api/admin/operations/action-runs',async route=>{
+  const r=route.request();
+  if(r.method()==='GET')return route.fulfill({json:{ok:true,schema:'operations-readonly-action-history-v1',runs}});
+  requests.push({headers:r.headers(),body:r.postDataJSON()});
+  const actionId=r.postDataJSON().actionId;
+  const run={runId:'a'.repeat(64),actionId,releaseSha:data.releaseSha,status:'succeeded',
+   createdAt:data.checkedAt,finishedAt:data.checkedAt,result:{status:'observed',expectedSignalCount:1,freshSignalCount:1,signalIds:['current_release']}};
+  runs.unshift(run);return route.fulfill({json:{ok:true,run}});
+ });
+ await page.goto(base+'/en/account/admin/');
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await page.locator('#ops-report-level').selectOption('action');
+ await page.locator('#ops-reporting select').nth(1).selectOption('ENG-11.ACT-009');
+ await expect(page.locator('#ops-reporting').getByRole('button',{name:'Run observation and record result'})).toBeVisible();
+ await expect(page.locator('#ops-reporting')).toContainText('Existing collector: read-only');
+ await page.locator('#ops-reporting').getByRole('button',{name:'Run observation and record result'}).click();
+ await expect(page.locator('#ops-reporting')).toContainText('Observation completed');
+ expect(requests).toHaveLength(1);
+ expect(requests[0].body.actionId).toBe('ENG-11.ACT-009');
+ expect(requests[0].body.requestKey).toMatch(/^[a-f0-9]{32}$/);
+ expect(requests[0].headers['x-csrf-token']).toBe('c'.repeat(64));
+ const output=JSON.parse((await exported(page,'json')).body);
+ expect(output.selectedAction.id).toBe('ENG-11.ACT-009');
+ expect(output.recentActionRuns).toHaveLength(1);
+ expect(output.recentActionRuns[0].status).toBe('succeeded');
+ await page.locator('#ops-reporting select').nth(1).selectOption('ENG-05.ACT-002');
+ await expect(page.locator('#ops-reporting').getByRole('button',{name:'Run observation and record result'})).toHaveCount(0);
+ await expect(page.locator('#ops-reporting')).toContainText('This Action has no authorized executor yet');
+ expect(requests).toHaveLength(1);
+});
