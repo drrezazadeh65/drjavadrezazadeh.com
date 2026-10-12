@@ -20,6 +20,9 @@ on:
       - 'tests/bertina-receipt-access.php'
       - 'scripts/commerce-receipt-contract-audit.mjs'
       - 'tests/account-commerce-consistency.test.mjs'
+      - 'tests/bertina-account-order-history.php'
+      - 'assets/js/account-order-history.js'
+      - 'fa/app/account/orders/index.html'
       - '.github/workflows/account-commerce-consistency.yml'
   pull_request:
     branches: [migration/bertina-linux6]
@@ -41,6 +44,9 @@ on:
       - 'fa/shop/**'
       - 'en/shop/**'
       - 'tests/account-commerce-consistency.test.mjs'
+      - 'tests/bertina-account-order-history.php'
+      - 'assets/js/account-order-history.js'
+      - 'fa/app/account/orders/index.html'
       - '.github/workflows/account-commerce-consistency.yml'
   workflow_dispatch:
 permissions:
@@ -60,5 +66,7 @@ jobs:
           php -l api/index.php
           php tests/bertina-receipt-access.php
           php tests/bertina-receipt-contract.php
+          php tests/bertina-account-order-history.php
+          node --check assets/js/account-order-history.js
           node scripts/commerce-receipt-contract-audit.mjs
 
