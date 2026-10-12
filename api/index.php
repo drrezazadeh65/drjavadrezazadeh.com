@@ -581,6 +581,45 @@ if($path==='/commerce/history'&&$verb==='GET'){
     respond(['ok'=>true,'orders'=>$orders,'limit'=>50]);
 }
 
+// Order-owned private fulfilment lookup. Never trust a public order UUID by itself.
+if($path==='/commerce/fulfilment'&&$verb==='GET'){
+    $pdo=db();if(!$pdo||!commerceSchemaReady()||!stage9SchemaReady($pdo))fail('fulfilment_unavailable',503);
+    $account=sessionAccount($pdo);
+    if(!$account||($account['status']??'')!=='active'||empty($account['email_verified_at']))fail('unauthorized',401);
+    $orderId=(string)($_GET['order']??'');if(!validUuid($orderId))fail('invalid_order');
+    $email=emailNorm($account['email_normalized']??'');if(!validEmail($email))fail('unauthorized',401);
+    $q=$pdo->prepare('SELECT state,paid_at,provider_id_get,provider_trans_id,provider_amount FROM commerce_orders WHERE id=? AND customer_email=? LIMIT 1');
+    $q->execute([$orderId,$email]);$row=$q->fetch();if(!$row)fail('order_not_found',404);
+    $hasPaidRecord=($row['state']??'')==='paid' && !empty($row['paid_at'])
+        &&!empty($row['provider_id_get'])&&!empty($row['provider_trans_id']);
+    if(!$hasPaidRecord)respond(['ok'=>true,'paymentRecord'=>'not_confirmed','serviceCases'=>[],'parcel'=>null]);
+    // An unbackfilled historical payment or a mismatch is not a fulfilment entitlement.
+    $claim=$pdo->prepare("SELECT transaction_id,verified_amount FROM commerce_payment_claims WHERE provider='bitpay' AND order_id=? LIMIT 1");
+    $claim->execute([$orderId]);$evidence=$claim->fetch();
+    if(!$evidence || (string)$evidence['transaction_id']!==(string)$row['provider_trans_id']
+        || (string)$evidence['verified_amount']!==(string)$row['provider_amount'])
+        respond(['ok'=>true,'paymentRecord'=>'requires_reconciliation','serviceCases'=>[],'parcel'=>null]);
+    $cases=$pdo->prepare('SELECT sku,status,booking_start,booking_end,delivered_at FROM commerce_service_cases WHERE order_id=? ORDER BY sku');
+    $cases->execute([$orderId]);$safeCases=[];
+    $allowedCase=['awaiting_contact','scheduling','booked','in_progress','delivered','cancelled'];
+    foreach($cases->fetchAll() as $case){
+        if(!in_array((string)$case['status'],$allowedCase,true))continue;
+        $safeCases[]=['sku'=>(string)$case['sku'],'status'=>(string)$case['status'],
+            'bookingStart'=>$case['booking_start']??null,'bookingEnd'=>$case['booking_end']??null,
+            'deliveredAt'=>$case['delivered_at']??null];
+    }
+    $shipment=$pdo->prepare('SELECT carrier,tracking_code,state,dispatched_at,delivered_at FROM commerce_parcels WHERE order_id=? LIMIT 1');
+    $shipment->execute([$orderId]);$parcel=$shipment->fetch();
+    $safeParcel=null;
+    if($parcel && in_array((string)($parcel['state']??''),['preparing','dispatched','in_transit','delivered','returned'],true)){
+        $safeParcel=['state'=>(string)$parcel['state'],
+            'carrier'=>$parcel['carrier']??null,'trackingCode'=>$parcel['tracking_code']??null,
+            'dispatchedAt'=>$parcel['dispatched_at']??null,'deliveredAt'=>$parcel['delivered_at']??null];
+    }
+    respond(['ok'=>true,'paymentRecord'=>'provider_verified_not_bank_settlement',
+        'serviceCases'=>$safeCases,'parcel'=>$safeParcel]);
+}
+
 if($path==='/commerce/health'&&$verb==='GET'){
     $c=cfg();$ready=commerceReady();
     respond(['ok'=>true,'service'=>'commerce','hardeningRevision'=>'tls-gate-v1','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'requirements'=>[
