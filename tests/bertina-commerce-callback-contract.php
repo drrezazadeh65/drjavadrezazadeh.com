@@ -22,10 +22,9 @@ function mailReady(): bool { return false; }
 final class CallbackStatement {
     public function __construct(private string $sql) {}
     public function execute(array $params=[]): bool {
-        if(str_starts_with($this->sql,'UPDATE commerce_orders')){
-            $GLOBALS['writes'][]=$this->sql;
-            $GLOBALS['record']['state']='paid';
-        }
+        // Real callback must never regress to non-atomic direct order updates.
+        if(str_starts_with($this->sql,'UPDATE commerce_orders'))
+            throw new RuntimeException('legacy_direct_payment_state_update');
         return true;
     }
     public function fetch(): array|false { return $GLOBALS['record']; }
@@ -35,6 +34,24 @@ final class CallbackDb {
     public function prepare(string $sql): CallbackStatement { return new CallbackStatement($sql); }
 }
 function db(): CallbackDb { return new CallbackDb(); }
+
+// This is the fake finalizer ONLY for the isolated callback-router contract.
+// The real PDO transaction and its stock/claim/outbox/shipping behavior are
+// independently exercised in stage09-commerce-atomic.php and stage09-mysql.php.
+function stage9FinalizePayment(CallbackDb $pdo,string $orderId,string $idGet,
+    string $trans,string $verifiedAmount,string $verifiedFactor): bool {
+    $GLOBALS['finalizerCalls']++;
+    $row=$GLOBALS['record'];
+    if ($row['state']!=='pending'||(string)$row['provider_id_get']!==$idGet) return false;
+    if ((string)$row['provider_amount']!==$verifiedAmount ||
+        (string)$row['factor_id']!==$verifiedFactor)
+        throw new RuntimeException('finalizer_received_unverified_values');
+    if (!validUuid($orderId)||!preg_match('/^[1-9][0-9]*$/D',$trans))
+        throw new RuntimeException('finalizer_received_invalid_transaction');
+    $GLOBALS['record']['state']='paid';
+    $GLOBALS['writes'][]='atomic_stage09_payment_finalization';
+    return true;
+}
 
 function gatewayPost(string $endpoint,array $fields): string {
     $GLOBALS['gatewayCalls']++;
@@ -58,10 +75,18 @@ $source=file_get_contents(__DIR__.'/../api/index.php');
 if(!is_string($source))throw new RuntimeException('Could not read API');
 if(!str_contains($source,"function commerceReturnToResult(string \$orderId): never"))throw new RuntimeException('Missing production redirect helper');
 if(!str_contains($source,"?from=gateway&order="))throw new RuntimeException('Missing receipt landing marker');
+$stage9=(string)file_get_contents(__DIR__.'/../api/commerce-stage9.php');
+if(!str_contains($stage9,'function stage9FinalizePayment(') ||
+   !str_contains($stage9,'INSERT INTO commerce_payment_claims') ||
+   !str_contains($stage9,'stage9CommitBooks($pdo,$orderId,$items)'))
+    throw new RuntimeException('Atomic payment finalizer source contract missing');
 $start=strpos($source,"if(\$path==='/commerce/callback'&&");
 $end=strpos($source,"if(\$path==='/donations/health'",$start);
 if($start===false||$end===false)throw new RuntimeException('Could not extract real callback route');
 $route=substr($source,$start,$end-$start);
+if(!str_contains($route,'stage9FinalizePayment($pdo,$id,$idGet,$trans,') ||
+   str_contains($route,'UPDATE commerce_orders SET state='))
+    throw new RuntimeException('Production callback bypasses atomic finalizer');
 
 $id='11111111-1111-4111-8111-111111111111';
 $scenarios=[
@@ -84,6 +109,7 @@ foreach($scenarios as $scenario=>$expected){
     $GLOBALS['case']=$scenario;
     $GLOBALS['writes']=[];
     $GLOBALS['gatewayCalls']=0;
+    $GLOBALS['finalizerCalls']=0;
     $GLOBALS['record']=[
         'id'=>$id,
         'state'=>$scenario==='already_paid'?'paid':'pending',
@@ -106,6 +132,8 @@ foreach($scenarios as $scenario=>$expected){
         if($GLOBALS['record']['state']!==$expected['state'])throw new RuntimeException("$scenario changed order state incorrectly");
         if(count($GLOBALS['writes'])!==$expected['writes'])throw new RuntimeException("$scenario performed unexpected writes");
         if($GLOBALS['gatewayCalls']!==$expected['calls'])throw new RuntimeException("$scenario used the provider unexpectedly");
+        if($GLOBALS['finalizerCalls']!==$expected['writes'])
+            throw new RuntimeException("$scenario invoked atomic finalizer unexpectedly");
         echo "PASS $scenario\n";
     }
 }
