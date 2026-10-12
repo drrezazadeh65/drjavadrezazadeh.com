@@ -5,6 +5,9 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - 'scripts/bertina-private-backup-restore.py'
+      - 'scripts/bertina-private-recovery-gate.php'
+      - 'tests/bertina-private-recovery-gate.php'
+      - '.github/workflows/deploy-bertina.yml'
       - 'tests/test_private_backup_restore_readiness.py'
       - '.github/workflows/bertina-restore-readiness-ci.yml'
   workflow_dispatch:
@@ -22,3 +25,19 @@ jobs:
         run: python3 -m py_compile scripts/bertina-private-backup-restore.py tests/test_private_backup_restore_readiness.py
       - name: Verify temporary MariaDB bootstrap is rejected
         run: python3 tests/test_private_backup_restore_readiness.py
+      - name: Verify RSA-pinned pre-extraction recovery gate
+        run: |
+          php -l scripts/bertina-private-recovery-gate.php
+          php -l tests/bertina-private-recovery-gate.php
+          php tests/bertina-private-recovery-gate.php
+      - name: Require gate ahead of archive extraction in the release pipeline
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          wf=Path('.github/workflows/deploy-bertina.yml').read_text()
+          assert "drjrRecoveryCheck(__DIR__" in wf
+          assert "$RECOVERY_GATE_SOURCE" in wf
+          assert wf.index("drjrRecoveryCheck(__DIR__") < wf.index("if (!\\$zip->extractTo(__DIR__))")
+          assert "verified_private_recovery_required" in wf
+          print("PASS: pinned signed private recovery gate precedes production extraction")
+          PY
