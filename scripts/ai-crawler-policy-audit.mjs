@@ -67,8 +67,8 @@ for(const match of llms.matchAll(/https:\/\/drjavadrezazadeh\.com[^\s)<>]*/g)){
   }
 }
 if(llms.includes('(https://drjavadrezazadeh.com/journal/)')) {
-  const journalRoot=fs.readFileSync(path.join(root,'journal/index.html'),'utf8');
-  if(/<meta\\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(journalRoot)) failures.push('llms.txt exposes noindex journal root');
+  const journal=(routeRegistry.exact_routes||[]).find(route=>route.route==='/journal/');
+  if(!journal||routeRegistry.policies[journal.policy]?.indexing==='NOINDEX') failures.push('llms.txt exposes noindex journal root');
 }
 
 console.log('AI/search crawler audit: OAI Search, ChatGPT retrieval, Bing and Yandex discovery policies checked.');
