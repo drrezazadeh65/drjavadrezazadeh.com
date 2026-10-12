@@ -71,3 +71,13 @@ Use only public URLs listed here or discoverable through the canonical sitemap. 
 - [Robots policy](https://drjavadrezazadeh.com/robots.txt)
 
 - [JHELA founding calls feed](https://drjavadrezazadeh.com/journal/announcements.atom)
+
+## راهنمای فارسی نشریه JHELA
+
+- [معرفی فارسی مجله](https://drjavadrezazadeh.com/journal/fa/)
+- [داشبورد فارسی JHELA](https://drjavadrezazadeh.com/journal/fa/dashboard/)
+- [فراخوان داوران ایرانی و فارسی‌زبان](https://drjavadrezazadeh.com/journal/fa/call-for-reviewers/)
+- [دعوت به همکاری علمی و تحریریه](https://drjavadrezazadeh.com/journal/fa/founding-collaborators/)
+- [اهداف و دامنهٔ علمی به فارسی](https://drjavadrezazadeh.com/journal/fa/aims-scope/)
+- [اخلاق نشر به فارسی](https://drjavadrezazadeh.com/journal/fa/ethics/)
+

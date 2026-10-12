@@ -533,6 +533,66 @@
       "id": "journal-public-scholarly-dashboard",
       "route": "/journal/dashboard/",
       "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-home",
+      "route": "/journal/fa/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-dashboard",
+      "route": "/journal/fa/dashboard/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-aims-scope",
+      "route": "/journal/fa/aims-scope/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-call-for-reviewers",
+      "route": "/journal/fa/call-for-reviewers/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-founding-collaborators",
+      "route": "/journal/fa/founding-collaborators/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-reviewer-registration",
+      "route": "/journal/fa/reviewer-registration/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-editorial-board",
+      "route": "/journal/fa/editorial-board/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-peer-review",
+      "route": "/journal/fa/peer-review/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-ethics",
+      "route": "/journal/fa/ethics/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-author-guidelines",
+      "route": "/journal/fa/author-guidelines/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-fees",
+      "route": "/journal/fa/fees/",
+      "policy": "PUBLIC_CANDIDATE"
+    },
+    {
+      "id": "jhela-fa-contact",
+      "route": "/journal/fa/contact/",
+      "policy": "PUBLIC_CANDIDATE"
     }
   ],
   "origin_states": {

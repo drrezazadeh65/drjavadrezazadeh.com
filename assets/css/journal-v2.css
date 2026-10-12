@@ -232,3 +232,39 @@
 .jhela-intake-actions :where(a,button){font-size:14px;min-height:44px;cursor:pointer}
 .jhela-intake-feedback{margin-top:15px;color:#d4dddc;font-size:14px;line-height:1.6}
 @media(max-width:630px){.jhela-intake-fields{grid-template-columns:1fr}.jhela-intake-actions>*{flex:1 1 100%;text-align:center}}
+
+/* JHELA Persian information and scholarly recruitment: self-contained RTL pages.
+   English remains the language of scientific submissions and published articles. */
+.jhela-fa-page{font-family:Vazirmatn,"Noto Sans Arabic",Tahoma,system-ui,sans-serif;direction:rtl}
+.jhela-fa-page .journal-header,.jhela-fa-page .journal-main,.jhela-fa-page .journal-footer{direction:rtl}
+.jhela-fa-page .journal-header{display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+.jhela-fa-page .journal-brand{display:grid;grid-template-columns:70px minmax(0,1fr);column-gap:14px;max-width:650px;text-align:right}
+.jhela-fa-page .journal-brand .jhela-logo{grid-row:1/span 3;grid-column:1}
+.jhela-fa-page .journal-brand>span,.jhela-fa-page .journal-brand strong,.jhela-fa-page .journal-brand small{grid-column:2}
+.jhela-fa-page .journal-brand strong{font-family:inherit;font-size:clamp(17px,1.8vw,24px);line-height:1.55}
+.jhela-fa-page .journal-brand small{line-height:1.6;font-size:13px}
+.jhela-fa-page .journal-header nav{display:flex;max-width:none;flex-wrap:wrap;gap:4px 14px;align-items:center}
+.jhela-fa-page .journal-header nav a{font-size:14px;line-height:1.6}
+.jhela-fa-page .jhela-lang-link,.journal-page .jhela-lang-link{display:inline-flex;border:1px solid #bfa66a;border-radius:10px;padding:8px 12px;min-height:42px;align-items:center;color:#f5ddb3;text-decoration:none;font-weight:700}
+.jhela-fa-page .journal-main{max-width:1320px;margin-inline:auto}
+.jhela-fa-page .journal-hero{padding:clamp(27px,4vw,60px);text-align:right}
+.jhela-fa-page .journal-hero:before{left:30px;right:auto}
+.jhela-fa-page .journal-hero h1{font-family:inherit;font-weight:800;line-height:1.56;font-size:clamp(29px,3.5vw,45px)}
+.jhela-fa-page .journal-deck{line-height:2.05;font-size:clamp(15px,1.65vw,19px)}
+.jhela-fa-page .journal-hero .kicker,.jhela-fa-page .journal-section h2,.jhela-fa-page .journal-article h2{font-family:inherit;line-height:1.6}
+.jhela-fa-page .journal-article p,.jhela-fa-page .journal-section p{line-height:2.05;font-size:16px;text-align:right}
+.jhela-fa-page .journal-section,.jhela-fa-page .journal-article{padding:clamp(23px,3.7vw,46px)}
+.jhela-fa-page .journal-article h2{font-weight:800;font-size:clamp(22px,2.4vw,29px);margin-top:26px}
+.jhela-fa-page .journal-article section+section{border-top:1px solid rgba(200,193,175,.16);padding-top:15px;margin-top:15px}
+.jhela-fa-page .breadcrumbs{direction:rtl;margin:20px 0;color:#d6cfbf}
+.jhela-fa-visual{margin:20px auto;max-width:1000px}
+.jhela-fa-visual img{width:100%;display:block;height:auto;border-radius:18px}
+.jhela-fa-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:20px}
+.jhela-fa-grid a{display:block;color:#f4dfad;border:1px solid rgba(198,174,114,.32);border-radius:17px;padding:19px 22px;text-decoration:none;font-weight:750;line-height:1.7;background:linear-gradient(145deg,#142c40,#0f1e32)}
+.jhela-fa-grid a:hover,.jhela-fa-grid a:focus-visible{border-color:#e1ba79}
+.jhela-fa-grid span{display:block;font-weight:400;font-size:13px;line-height:1.8;color:#cbd0d0;margin-top:7px}
+.jhela-fa-page .journal-footer{text-align:right;line-height:1.85}
+.jhela-fa-page .journal-hero .actions,.jhela-fa-page .journal-section .actions{display:flex;gap:11px;flex-wrap:wrap}
+.jhela-fa-page .jhela-fa-contact .button{margin:6px}
+@media(max-width:940px){.jhela-fa-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.jhela-fa-page .journal-header nav{margin-top:10px}}
+@media(max-width:650px){.jhela-fa-page .journal-brand{grid-template-columns:50px minmax(0,1fr)}.jhela-fa-page .journal-brand .jhela-logo{width:50px;height:50px}.jhela-fa-grid{grid-template-columns:1fr}.jhela-fa-page .journal-hero h1{font-size:29px}.jhela-fa-page .journal-article p,.jhela-fa-page .journal-section p{font-size:15px}.jhela-fa-page .journal-hero .actions>*{flex:1 1 100%;text-align:center}.jhela-fa-page .journal-header nav a{font-size:13px}}

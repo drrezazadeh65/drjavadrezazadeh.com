@@ -1106,6 +1106,18 @@ if(failures.length){
 
 // JOURNAL RELEASE FIREWALL — only explicitly approved JHELA routes may be indexed before journal launch.
 const journalIndexAllowlist=new Set([
+  '/journal/fa/',
+  '/journal/fa/dashboard/',
+  '/journal/fa/aims-scope/',
+  '/journal/fa/call-for-reviewers/',
+  '/journal/fa/founding-collaborators/',
+  '/journal/fa/reviewer-registration/',
+  '/journal/fa/editorial-board/',
+  '/journal/fa/peer-review/',
+  '/journal/fa/ethics/',
+  '/journal/fa/author-guidelines/',
+  '/journal/fa/fees/',
+  '/journal/fa/contact/',
   '/journal/',
   '/journal/aims-scope/',
   '/journal/dashboard/',

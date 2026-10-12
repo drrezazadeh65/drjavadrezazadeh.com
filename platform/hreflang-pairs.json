@@ -110,6 +110,78 @@
       "en": "/en/shop/purchase-guide/",
       "fa": "/fa/shop/purchase-guide/",
       "x_default": "/en/shop/purchase-guide/"
+    },
+    {
+      "id": "jhela-home",
+      "en": "/journal/",
+      "fa": "/journal/fa/",
+      "x_default": "/journal/"
+    },
+    {
+      "id": "jhela-dashboard",
+      "en": "/journal/dashboard/",
+      "fa": "/journal/fa/dashboard/",
+      "x_default": "/journal/dashboard/"
+    },
+    {
+      "id": "jhela-aims-scope",
+      "en": "/journal/aims-scope/",
+      "fa": "/journal/fa/aims-scope/",
+      "x_default": "/journal/aims-scope/"
+    },
+    {
+      "id": "jhela-call-for-reviewers",
+      "en": "/journal/call-for-reviewers/",
+      "fa": "/journal/fa/call-for-reviewers/",
+      "x_default": "/journal/call-for-reviewers/"
+    },
+    {
+      "id": "jhela-founding-collaborators",
+      "en": "/journal/founding-collaborators/",
+      "fa": "/journal/fa/founding-collaborators/",
+      "x_default": "/journal/founding-collaborators/"
+    },
+    {
+      "id": "jhela-reviewer-registration",
+      "en": "/journal/reviewer-registration/",
+      "fa": "/journal/fa/reviewer-registration/",
+      "x_default": "/journal/reviewer-registration/"
+    },
+    {
+      "id": "jhela-editorial-board",
+      "en": "/journal/editorial-board/",
+      "fa": "/journal/fa/editorial-board/",
+      "x_default": "/journal/editorial-board/"
+    },
+    {
+      "id": "jhela-peer-review",
+      "en": "/journal/peer-review/",
+      "fa": "/journal/fa/peer-review/",
+      "x_default": "/journal/peer-review/"
+    },
+    {
+      "id": "jhela-ethics",
+      "en": "/journal/ethics/",
+      "fa": "/journal/fa/ethics/",
+      "x_default": "/journal/ethics/"
+    },
+    {
+      "id": "jhela-author-guidelines",
+      "en": "/journal/author-guidelines/",
+      "fa": "/journal/fa/author-guidelines/",
+      "x_default": "/journal/author-guidelines/"
+    },
+    {
+      "id": "jhela-fees",
+      "en": "/journal/fees/",
+      "fa": "/journal/fa/fees/",
+      "x_default": "/journal/fees/"
+    },
+    {
+      "id": "jhela-contact",
+      "en": "/journal/contact/",
+      "fa": "/journal/fa/contact/",
+      "x_default": "/journal/contact/"
     }
   ],
   "unpaired_public_routes_policy": "No hreflang counterpart is invented. Add a pair only after content equivalence is reviewed.",

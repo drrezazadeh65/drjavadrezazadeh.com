@@ -6,11 +6,12 @@ import path from 'node:path';
 const root=process.cwd(), origin='https://drjavadrezazadeh.com';
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const failures=[];
-const published=['','aims-scope/','author-guidelines/','contact/','editorial-board/','ethics/','fees/','peer-review/','reviewer-registration/','call-for-reviewers/','founding-collaborators/'];
+const published=['','dashboard/','aims-scope/','author-guidelines/','contact/','editorial-board/','ethics/','fees/','peer-review/','reviewer-registration/','call-for-reviewers/','founding-collaborators/'];
 const withheld=['submission/','current/','archive/','founding-checklist/'];
 const xml=read('journal/sitemap.xml');
 const journalUrls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
-const expected=published.map(slug=>origin+'/journal/'+slug);
+const faPublished=['fa/','fa/dashboard/','fa/aims-scope/','fa/call-for-reviewers/','fa/founding-collaborators/','fa/reviewer-registration/','fa/editorial-board/','fa/peer-review/','fa/ethics/','fa/author-guidelines/','fa/fees/','fa/contact/'];
+const expected=[...published,...faPublished].map(slug=>origin+'/journal/'+slug);
 if(new Set(journalUrls).size!==journalUrls.length) failures.push('JHELA sitemap contains duplicated loc');
 if(JSON.stringify([...journalUrls].sort())!==JSON.stringify([...expected].sort())) failures.push('JHELA sitemap does not match explicitly released English-language pages');
 if(journalUrls.some(url=>url.includes('journal.drjavadrezazadeh.com'))) failures.push('Reserved subdomain exposed before independent cutover');
@@ -19,7 +20,7 @@ if(!index.includes('<loc>'+origin+'/journal/sitemap.xml</loc>')) failures.push('
 if(core.includes('/journal/')) failures.push('JHELA URLs duplicated in core sitemap');
 if(!robots.includes('Sitemap: '+origin+'/journal/sitemap.xml')) failures.push('Missing explicit journal sitemap robots discovery');
 if(!llms.includes('('+origin+'/journal/)')) failures.push('Journal main page missing in AI discovery');
-for(const slug of published){
+for(const slug of [...published,...faPublished]){
   const route='/journal/'+slug,html=read('journal/'+slug+'index.html');
   if(/<meta\s+name="robots"\s+content="[^"]*noindex/i.test(html)) failures.push(route+': released route noindexed');
   if(!html.includes('<link rel="canonical" href="'+origin+route+'"')) failures.push(route+': self canonical missing');
@@ -42,4 +43,4 @@ if(failures.length){
  failures.forEach(item=>console.error('✗ '+item));
  process.exit(1);
 }
-console.log('JHELA release gate PASS: '+published.length+' unique released URLs, '+withheld.length+' protected founding routes, independent sitemap, academic identity and accessible public role dashboard.');
+console.log('JHELA release gate PASS: '+expected.length+' unique released URLs, '+withheld.length+' protected founding routes, independent sitemap, academic identity and accessible public role dashboard.');

@@ -5,12 +5,27 @@ const root=process.cwd(), failures=[];
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const exists=p=>fs.existsSync(path.join(root,p));
 const base='https://drjavadrezazadeh.com';
+const faJournalRoutes=[
+ '/journal/fa/',
+ '/journal/fa/dashboard/',
+ '/journal/fa/aims-scope/',
+ '/journal/fa/call-for-reviewers/',
+ '/journal/fa/founding-collaborators/',
+ '/journal/fa/reviewer-registration/',
+ '/journal/fa/editorial-board/',
+ '/journal/fa/peer-review/',
+ '/journal/fa/ethics/',
+ '/journal/fa/author-guidelines/',
+ '/journal/fa/fees/',
+ '/journal/fa/contact/'
+];
 const journalRoutes=[
  '/journal/','/journal/dashboard/','/journal/aims-scope/',
  '/journal/author-guidelines/','/journal/contact/','/journal/editorial-board/',
  '/journal/ethics/','/journal/fees/','/journal/peer-review/',
  '/journal/reviewer-registration/','/journal/call-for-reviewers/',
- '/journal/founding-collaborators/'
+ '/journal/founding-collaborators/',
+ ...faJournalRoutes
 ];
 const explicitlyUnreleased=['/journal/submission/','/journal/current/','/journal/archive/','/journal/founding-checklist/'];
 const pathOf=url=>new URL(url).pathname;
@@ -40,6 +55,11 @@ for(const loc of locs){
 for(const route of journalRoutes){
  const url=base+route,file=route.slice(1)+'index.html';
  if(!locSet.has(url))failures.push('Released JHELA page missing from its own sitemap: '+route);
+ if(route.startsWith('/journal/fa/')){
+   if(!/<html\\b[^>]*lang="fa"[^>]*dir="rtl"/.test(read(file))) failures.push('Persian JHELA document missing semantic RTL '+route);
+   const counterpart=base+route.replace('/journal/fa/','/journal/');
+   if(!read(file).includes('hreflang="en" href="'+counterpart+'"'))failures.push('Persian JHELA language alternate absent '+route);
+ }
  if(!exists(file)){failures.push('JHELA released page missing HTML: '+file);continue;}
  const html=read(file);
  if(/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(html))failures.push('JHELA released page is noindex: '+route);
