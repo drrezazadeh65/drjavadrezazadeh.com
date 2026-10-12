@@ -36,6 +36,16 @@
       "key": "golden_talent_private_preview",
       "stage": "PRODUCT_INTEREST",
       "purpose": "User opens a private Golden Talent preview"
+    },
+    {
+      "key": "organic_article_service_intent",
+      "stage": "INTENT_NOT_VERIFIED_LEAD_OR_REVENUE",
+      "purpose": "User independently opens a relevant service or public support program from an article"
+    },
+    {
+      "key": "organic_share_intent",
+      "stage": "INTENT_NOT_VERIFIED_LEAD_OR_REVENUE",
+      "purpose": "User voluntarily requests to share a canonical public services page"
     }
   ],
   "rules": {
