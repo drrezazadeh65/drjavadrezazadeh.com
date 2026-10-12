@@ -68,8 +68,13 @@ SOCIAL_EITAA_CHAT_ID=(set privately)
 SOCIAL_POSTS_PER_DAY=1
 SOCIAL_PUBLISH_HOUR=21
 
-Command: node platform/social-distribution/engine.mjs --preview
-Command: node platform/social-distribution/engine.mjs --publish
+Commands (private Bertina host; DO NOT expose production secrets):
+- `node platform/social-distribution/engine.mjs --preview` — side-effect-free per-provider drafts, including `approvalDigest`.
+- `node platform/social-distribution/engine.mjs --approve --channel telegram --url https://drjavadrezazadeh.com/fa/your-article/ --digest <64-hex-preview-digest>` — explicit operator approval after checking the exact canonical article, text and destination. Requires a private absolute SOCIAL_STATE_PATH and host access; no account self-service interface yet.
+- `node platform/social-distribution/engine.mjs --publish` — only for privately configured, explicitly approved Telegram/Eitaa destinations with both activation flags and a valid schedule. Never run before authorizing an external send.
+- `prepareManualPack(article, network)` in `manual-pack.mjs` — copyable package for owner-assisted upload; cannot transmit. `captureManualReference` only records an UNVERIFIED claimed URL, never proves actual publishing.
+
+**Limitation:** Node JSON state is a source-stage implementation, not production-grade concurrent MySQL dispatch, account-level approvals, platform OAuth exchange or the existing protected dashboard. The draft's current approval fingerprint must be extended to bind approved media, account identity and schedule before multi-account production. The proposed MySQL migration is in `platform/db/social-distribution.mysql.sql` and has NOT been executed.
 
 Only the explicitly approved --publish command with both activation flags, an absolute persistent private state path, a matching scheduled hour and connected official APIs can transmit. A cron trigger should run at 21:00 on a host using the Asia/Tehran timezone or at 17:30 on a UTC host. Verify the cron timezone and Node availability on Bertina first. GitHub Actions scheduled workflows can be delayed and must not be represented as exact-time infrastructure.
 
