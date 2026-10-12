@@ -1,0 +1,59 @@
+{
+  "schema": "free-local-lighthouse-observation-v1",
+  "observedAt": "2026-10-12T09:21:06.612Z",
+  "sourceEngine": "ENG-10",
+  "reportingEngine": "ENG-13",
+  "origin": "local_sanitized_public_build",
+  "sourceCommit": "725926aeb14c4d8515f3fc7a4af7b910e7321850",
+  "sourceBranch": "migration/bertina-linux6",
+  "records": [
+    {
+      "route": "/fa/",
+      "status": "observed",
+      "checkedAt": "2026-10-12T09:21:06.612Z",
+      "score": {
+        "performance": 98,
+        "accessibility": 100,
+        "seo": 100,
+        "best-practices": 100
+      },
+      "lab": {
+        "fcpMs": 1366.740875,
+        "lcpMs": 1731.68905,
+        "tbtMs": 151.551825,
+        "cls": 0
+      },
+      "source": "Lighthouse CI local sanitized build",
+      "mobile": true,
+      "isDeployedSite": false,
+      "realUserFieldDataClaimed": false
+    },
+    {
+      "route": "/en/",
+      "status": "observed",
+      "checkedAt": "2026-10-12T09:21:06.612Z",
+      "score": {
+        "performance": 100,
+        "accessibility": 100,
+        "seo": 100,
+        "best-practices": 100
+      },
+      "lab": {
+        "fcpMs": 1253.7043749999998,
+        "lcpMs": 1450.7269999999999,
+        "tbtMs": 12,
+        "cls": 0
+      },
+      "source": "Lighthouse CI local sanitized build",
+      "mobile": true,
+      "isDeployedSite": false,
+      "realUserFieldDataClaimed": false
+    }
+  ],
+  "summary": {
+    "attempted": 2,
+    "observed": 2
+  },
+  "scope": "Mobile Lighthouse lab metrics from the static source artifact, not live Bertina, CrUX or SEO rankings",
+  "limitation": "A localhost Lighthouse result cannot certify production/Core Web Vitals, search ranking, conversions or revenue."
+}
