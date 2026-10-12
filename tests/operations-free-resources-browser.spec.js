@@ -123,3 +123,27 @@ test('local lab categories are distinctly labelled and do not imply live speed',
  await page.evaluate(()=>document.getElementById('ops-workspace').hidden=true);
  await expect(page.locator('#ops-local-lighthouse-observation')).toHaveCount(0);
 });
+
+test('owner-supplied PageSpeed snapshots remain distinct from 429 and local CI with MFA cleanup',async({page})=>{
+ const evidence=require('../api/internal/free-manual-pagespeed-observation.json');
+ await page.route('**/api/admin/operations**',route=>{
+  const url=new URL(route.request().url());
+  if(url.pathname.endsWith('/session'))return route.fulfill({json:{ok:true,mfaRequired:false,csrfToken:'c'.repeat(64),mfaExpiresIn:600}});
+  if(url.pathname.endsWith('/free-resources'))return route.fulfill({json:{ok:true,schema:'operations-free-resources-v1',verifiedExternalConnections:0,
+   manualPagespeedObservation:{status:'owner_supplied',reportDate:evidence.runDate,
+    records:evidence.records.map(x=>({device:x.device,labScores:x.labScores,agenticBrowsing:x.agenticBrowsing,realUserFieldData:x.realUserFieldData}))},
+   resources:freeRegistry.resources.map(r=>({id:r.id,name:r.name,url:r.official_url,category:r.category,ownerEngine:r.owner_engine,accessPath:r.access_path,purpose:r.purpose,connection:r.external_connection,automatedDataInUse:false}))}});
+  return route.fulfill({json:fixture()});
+ });
+ await page.goto(base+'/fa/app/admin/');
+ await expect(page.locator('#ops-manual-pagespeed-observation')).toHaveCount(0);
+ await page.locator('#ops-free-resources summary').click();
+ const panel=page.locator('#ops-manual-pagespeed-observation');
+ await expect(panel).toContainText('۹۹'.replace('۹۹','99'));
+ await expect(panel).toContainText('100/100');
+ await expect(panel).toContainText('96/100');
+ await expect(panel).toContainText('No Data');
+ await expect(panel).toContainText('Agentic Browsing 3/3');
+ await page.evaluate(()=>{document.getElementById('ops-workspace').hidden=true;});
+ await expect(panel).toHaveCount(0);
+});
