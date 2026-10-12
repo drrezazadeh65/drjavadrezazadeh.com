@@ -34,6 +34,7 @@ const admin=read('api/operations.php');
 const social=read('api/social-queue.php');
 const deploy=read('.github/workflows/deploy-bertina.yml');
 const migrate=read('.github/workflows/bertina-commerce-schema-migrate.yml');
+const commerceRuntime=read('.github/workflows/commerce-live-readiness.yml');
 const stagedSql=read('docs/migrations/20261012_stage09_commerce.sql');
 
 verify('source: one canonical Bertina branch',truth.repository==='drrezazadeh65/drjavadrezazadeh.com' &&
@@ -53,6 +54,9 @@ verify('production: release is signed-restore gated before extraction',
 verify('production: no unattended database migration',
   migrate.includes('  workflow_dispatch:')&&!/^\s{2}(?:push|schedule|pull_request):/m.test(migrate) &&
   migrate.includes("drjrRecoveryCheck(dirname(__DIR__)") && !migrate.includes('curl -k'));
+verify('production: live commerce probe validates public certificate',
+  commerceRuntime.includes('curl -fsS --max-time 30 --resolve') &&
+  !/curl\s+-[^\n]*k(?:[fsS]|\s)/.test(commerceRuntime));
 
 const ids=registry.engines.map(x=>x.id);
 const reportIds=registry.reports.map(x=>x.id);
