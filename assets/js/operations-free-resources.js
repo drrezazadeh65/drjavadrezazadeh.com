@@ -9,9 +9,9 @@ const en=document.documentElement.lang==='en';
 const tr=(fa,enText)=>en?enText:fa;
 const groups={GROWTH:tr('رشد و بازاریابی','Growth and marketing'),TECHNICAL:tr('فنی و دسترس‌پذیری','Technical quality'),SCHOLARLY:tr('علمی و استنادی','Scholarly authority')};
 const access={MANUAL_REFERENCE:tr('بررسی دستی','Manual reference'),READ_API_CANDIDATE:tr('API قابل بررسی؛ نامتصل','API candidate; not connected'),CI_OPEN_SOURCE_CANDIDATE:tr('متن‌باز؛ نیازمند نصب کنترل‌شده','Open-source; approved installation needed'),ACCOUNT_SETUP_REQUIRED:tr('نیازمند حساب و مجوز','Account authorization required'),CONDITIONAL_ELIGIBILITY:tr('وابسته به شرایط ارائه‌دهنده','Provider eligibility required')};
-let items=null,request=null,generation=0;
+let items=null,scholarlyObservation=null,request=null,generation=0;
 const make=(tag,txt,cls)=>{const node=document.createElement(tag);if(txt!==undefined)node.textContent=txt;if(cls)node.className=cls;return node;};
-function reset(){generation++;request?.abort();request=null;items=null;list.replaceChildren();status.textContent='';select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';}
+function reset(){generation++;request?.abort();request=null;items=null;scholarlyObservation=null;list.replaceChildren();status.textContent='';select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';}
 function draw(){
  if(!items)return;list.replaceChildren();
  const category=select.value,shown=items.filter(item=>!category||item.category===category);
@@ -27,6 +27,20 @@ function draw(){
  }
  status.textContent=tr('نمایش '+shown.length+' از '+items.length+' منبع. هیچ داده خارجی خودکاری دریافت نشده است.',
  'Showing '+shown.length+' of '+items.length+' references. No automated external data has been retrieved.');
+ if(scholarlyObservation){
+   let summary=document.getElementById('ops-scholar-observation');
+   if(!summary){summary=make('section',undefined,'ops-panel');summary.id='ops-scholar-observation';status.after(summary);}
+   summary.replaceChildren();
+   summary.append(make('h3',tr('مشاهدات علمی Crossref','Crossref scholarly observations')));
+   const o=scholarlyObservation;
+   if(o.status==='observed'||o.status==='stale'){
+     summary.append(make('p',tr('زمان مشاهده: ','Observed: ')+(o.observedAt||tr('نامشخص','Unknown'))+' · '+tr('فراداده بازیابی‌شده: ','Metadata found: ')+String(o.metrics?.metadataFound??0)+' / '+String(o.metrics?.attempted??0)));
+     if(o.status==='stale')summary.append(make('p',tr('قدیمی؛ برای تصمیم‌گیری باید دوباره بررسی شود.','Stale: recheck before acting.')));
+     for(const item of o.records||[]){const detail=make('p',item.doi+' · '+item.status+' · '+(item.providerTitle||item.sourceTitle||''));summary.append(detail);}
+   }else summary.append(make('p',tr('هنوز داده معتبر و منتشرشده‌ای از Crossref در سرور موجود نیست.','No validated deployed Crossref observation is available yet.')));
+   summary.append(make('small',tr('وجود فراداده DOI به معنای تأیید نویسندگی، میزان استناد یا رتبه گوگل نیست.','DOI metadata retrieval does not establish authorship, citations or Google rankings.')));
+ }
+
 }
 async function load(){
  if(workspace.hidden||!panel.open)return;
@@ -38,6 +52,7 @@ async function load(){
   if(!response.ok||data.ok!==true||data.schema!=='operations-free-resources-v1'||!Array.isArray(data.resources)||data.verifiedExternalConnections!==0)throw Error('not_available');
   if(id!==generation||workspace.hidden||!panel.open)return;
   items=data.resources;
+  scholarlyObservation=data.scholarlyObservation||{status:'not_collected'};
   const categories=[...new Set(items.map(item=>item.category))];
   select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';
   for(const category of categories){const option=make('option',groups[category]||category);option.value=category;select.append(option);}
