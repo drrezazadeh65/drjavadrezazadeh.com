@@ -45,6 +45,15 @@ $zeroRun=operationsGithubAuditProject(['workflow_runs'=>[
  array_merge($valid,['id'=>0])
 ]],'bertina-master-seo.yml');
 assertAudit($zeroRun===[],'Zero GitHub run ID accepted as evidence');
+
+$busy=[];
+for($n=0;$n<70;$n++){
+    $runId=38275309852+$n;
+    $busy[]=array_merge($valid,['id'=>$runId,'html_url'=>$repo.$runId]);
+}
+$bounded=operationsGithubAuditProject(['workflow_runs'=>$busy],'bertina-master-seo.yml');
+assertAudit(count($bounded)===50,'High-traffic GitHub audit list lost its finite history bound');
+assertAudit($bounded[49]['runId']===38275309901,'Stable GitHub audit ordering changed');
 $empty=operationsGithubAuditProject(['workflow_runs'=>[array_merge($valid,['head_sha'=>'fake'])]],'bertina-master-seo.yml');
 assertAudit($empty===[],'Malformed SHA accepted');
 $bad=operationsGithubAuditFetch('deploy-bertina.yml');
