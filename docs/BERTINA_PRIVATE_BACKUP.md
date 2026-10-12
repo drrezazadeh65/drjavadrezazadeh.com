@@ -80,7 +80,8 @@ The following SHA-256 values identify the validated tool contents on 2026-10-12.
 |---|---|
 | `scripts/bertina-private-backup-template.php` | `e0ef1913892b64ad2312d60d3f75e0641a605582abae8f0762cd044a99aa9482` |
 | `scripts/bertina-private-backup-client.py` | `d8cda7bfb95a0b52c344f6ee6a1ce5e79391170599d221b5e5ee1c77920faf4d` |
-| `scripts/bertina-private-backup-restore.py` | `2885480c23996ca53c77756a4115dc949c94e3660b2435acb110d34bad7b8cfe` |
+| `scripts/bertina-private-backup-restore.py` | `ab43876f07edc76d1a03866a791ad5a90d788904be9a21dd5b92a1a05bb971c7` |
+| `scripts/bertina-private-recovery-gate.php` | `f7287f11c8810891345ae1514aac1837b4555f3c808d8c35832515dffc8b9c93` |
 | `scripts/bertina-private-backup-extract.php` | `a61cc8600da13885663212ee9652e7cf1bb43fad80a58ce9ff83a8308f7c57d9` |
 
 From the canonical checkout, using PHP with OpenSSL, PDO MySQL and ZIP AES256 support, and Python with `cryptography`:
@@ -93,3 +94,15 @@ php tests/bertina-private-backup-zip.php
 ```
 
 The recorded canonical run passed 199 PHP helper assertions, 30 Python client tests, 13 Python row-content restorer tests and 17 real local encrypted-ZIP assertions. The helper/client/row-content suites use generated test keys, synthetic data and blocked or mocked external I/O; they do not read production credentials, contact the live host or run a production database restore. Configuration fixtures check array preservation, accepted ASCII whitespace, refusal of non-whitespace/Unicode whitespace/non-arrays, and suppression of output and exception contents. Other negative cases include a changed cell with unchanged row counts/schema, generated-cell corruption, NULL-to-empty replacement, missing content-verification attestation, corrupted independent readback, replay and invalid signatures, and private-file cleanup failures. The real ZIP probe verifies AES256 encoding/decoding, rejection of missing or wrong passwords, exact byte recovery and fixture cleanup. Actual full-site/database restore and provider readback remain separate operational evidence.
+
+## Release pre-extraction gate — 2026-10-12
+
+**Scope:** Current canonical `.github/workflows/deploy-bertina.yml` includes the checked-in `scripts/bertina-private-recovery-gate.php` as an inline, include-only pre-extraction verifier. If the server-private signed pointer, metadata, receipt or encrypted archive cannot be proven, the release endpoint returns HTTP 503 `verified_private_recovery_required` and deletes its temporary archive and endpoint without extracting any managed file. It does not expose private backup contents, proof bytes or paths to the client.
+
+The check requires the owner's pinned RSA-4096 SPKI SHA256 `45b0d78e2327a30e1a84017c2293d6c3fa2050cc33bae1766035c250333e50b9`, an exact `0600` current pointer, metadata and receipt, exact `0700` backup folder, cryptographically valid signed proof, declared nine-condition locally certified restoration (via the owner's signed attestation), independent ciphertext readback attestation, matching source-release SHA from live `sw.js`, retired ephemeral helper, nonexpired six-hour creation window, matching ciphertext size/mtime and full on-host SHA256 readback. This does **not** allow reconstructing a production restore from GitHub source alone.
+
+These checks run **before** the original `ZipArchive::extractTo()` call. Current reusable public request in `.bertina-backup-trigger` was issued 2026-10-12 11:24:15 UTC and expired 12:24:15 UTC; that is a dated owner request, not a live valid restoration certificate. The owner-private signer must issue a fresh request when beginning the actual production snapshot. Do **not** extend that request, substitute a self-generated key, set an override flag or record a fake success.
+
+CI [38253071963](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38253071963) passed seven pinned fail-closed PHP cases, checks that the guard precedes extraction, verifies the final generated PHP release endpoint compiles, and retains prior temporary-MariaDB bootstrap readiness tests. Its logs record exactly the two new hashes in this document. Negative and syntax tests do **not** certify the positive production path; perform private backup and isolated restore in the authorized owner environment before releasing.
+
+The older test counts below remain historical validation of helper, client and source backup tests. Do not present them as a real production backup or a current signed gate proof.
