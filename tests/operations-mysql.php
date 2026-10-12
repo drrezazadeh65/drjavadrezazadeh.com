@@ -139,10 +139,14 @@ try {
  if(!function_exists('nowTs')){function nowTs():int{return time();}}
  $submitted=operationsGithubDispatchRun($pdo,$auditRegistry,$id,'ENG-01.ACT-001',
      $tag,'APPROVE_READONLY_AUDIT',$sha,$auditConfig,time(),$transport);
- check($submitted['status']==='running','HTTP 204 must leave audit pending external result');
+ check($submitted['status']==='awaiting_external_run_correlation','HTTP 204 must leave audit pending external result');
  check($submitted['result']['dispatchState']==='accepted_run_unconfirmed','Workflow start incorrectly claimed success');
  check($submitted['result']['githubRunId']===null,'Invented GitHub run ID');
  check($transportCalls===1,'Expected exactly one approved outbound dispatch');
+ $lateActorHistory=operationsActionHistory($pdo,$id,time()+600);
+ $lateRequest=array_column($lateActorHistory,null,'runId')[$submitted['runId']]??null;
+ check(is_array($lateRequest)&&$lateRequest['status']==='awaiting_external_run_correlation',
+    'Async GitHub provider audit was falsely marked as interrupted after local request timeout');
  $same=operationsGithubDispatchRun($pdo,$auditRegistry,$id,'ENG-01.ACT-001',
      $tag,'APPROVE_READONLY_AUDIT',$sha,$auditConfig,time(),$transport);
  check($same['runId']===$submitted['runId']&&$transportCalls===1,'Replay re-dispatched the workflow');
