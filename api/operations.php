@@ -326,7 +326,8 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'schema'=>'operations-free-resources-v1',
                 'catalogueDate'=>$catalogue['catalogueDate']??null,
                 'connectionStatus'=>'UNVERIFIED','verifiedExternalConnections'=>0,
-                'automatedDataInUse'=>false,'resources'=>$catalogue['resources']]);
+                'automatedDataInUse'=>false,'resources'=>$catalogue['resources'],
+                'scholarlyObservation'=>operationsFreeScholarlyObservation()]);
         }
         if ($path === '/admin/operations' && $verb === 'GET') {
             $at=nowTs();$snapshot=operationsSnapshot($pdo,$at);
