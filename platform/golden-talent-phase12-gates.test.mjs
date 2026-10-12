@@ -49,4 +49,7 @@ for(const instrument of registry.instruments) {
 const temptingUnvalidated={schema_version:'1.0',instruments:[{id:'RCAS',version:'9.9',release_state:'PUBLISHED',content_sha256:'b'.repeat(64),scientific_status:'REVIEWED_FOR_STATED_USE',human_approval:true,consent_policy_version:'v1',scoring_enabled:true,psychometric_validation_status:'PREVALIDATION'}]};
 assert.equal(publishedInstrument(temptingUnvalidated,'RCAS','9.9'),null);
 assert.ok(publishedInstrument({...temptingUnvalidated,instruments:[{...temptingUnvalidated.instruments[0],scoring_enabled:false}]},'RCAS','9.9'));
+const adult={...subject,is_minor:false,guardian_account_id:null};
+const adultConsent={...consent('ASSESSMENT'),granted_by_account_id:'student-1',guardian_verified:false};
+yes(authorisePhase12({actor:actor('student-1','STUDENT'),subject:adult,action:'VIEW_OWN_REPORT',consents:[adultConsent],now}));
 console.log('Phase 12 privacy, consent, access, sponsor and entitlement gates: PASS');
