@@ -95,3 +95,34 @@ function stage14LeadRoute(string $path,string $verb): never {
     }
     fail('not_found',404);
 }
+
+/** Aggregate only non-personal account-verified intake states for the MFA
+ * administrator. Bank settlement is NOT present in this ledger: NULL is mandatory.
+ */
+function stage14AdminGrowthSnapshot(PDO $pdo): array {
+    $counts=null;$leadSource='UNAVAILABLE';
+    if (stage14LeadSchemaReady($pdo)) {
+        try {
+            $q=$pdo->prepare("SELECT
+              COUNT(*) AS total,
+              COALESCE(SUM(state='NEW' AND consent_withdrawn_at IS NULL),0) AS new_requests,
+              COALESCE(SUM(state='QUALIFIED' AND consent_withdrawn_at IS NULL),0) AS qualified_requests,
+              COALESCE(SUM(state='WITHDRAWN' OR consent_withdrawn_at IS NOT NULL),0) AS withdrawn
+              FROM growth_lead_requests WHERE expires_at>?");
+            $q->execute([nowTs()]);$r=$q->fetch();
+            $counts=['total'=>(int)$r['total'],'new'=>(int)$r['new_requests'],
+                'qualified'=>(int)$r['qualified_requests'],'withdrawn'=>(int)$r['withdrawn']];
+            $leadSource='BERTINA_MYSQL_ACCOUNT_VERIFIED_OPT_IN';
+        } catch(Throwable $e){$counts=null;$leadSource='UNAVAILABLE';}
+    }
+    return [
+      'ok'=>true,'schema'=>'stage14-growth-evidence-v1',
+      'asOf'=>gmdate('c'),'leadMetrics'=>['counts'=>$counts,'source'=>$leadSource,
+        'limitation'=>'Account-verified consent intake only; not sales, booked services or attributed traffic.'],
+      'organicTraffic'=>['visits'=>null,'qualifiedConversionRate'=>null,'source'=>'PROVIDER_NOT_VERIFIED'],
+      'revenue'=>['grossSettledToman'=>null,'refundedToman'=>null,'netSettledToman'=>null,
+        'paidOrderCount'=>null,'verifiedDeliveredCount'=>null,'status'=>'UNVERIFIED_BANK_SETTLEMENT_COVERAGE',
+        'source'=>'NO_INDEPENDENT_FULL_PERIOD_BANK_RECONCILIATION'],
+      'policy'=>'Unknown is not zero. Never calculate revenue from a click, lead, gateway start, provider notification or unverified paid row.'
+    ];
+}
