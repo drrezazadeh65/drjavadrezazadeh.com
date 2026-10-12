@@ -153,6 +153,18 @@ function stage9FinalizePayment(PDO $pdo,string $orderId,string $idGet,string $tr
         $pdo->prepare("INSERT INTO commerce_payment_claims(provider,transaction_id,order_id,verified_amount) VALUES('bitpay',?,?,?)")
             ->execute([$trans,$orderId,(int)$row['provider_amount']]);
         stage9CommitBooks($pdo,$orderId,$items);
+        // A gateway-verified paid book order needs one physical fulfilment work
+        // item. "preparing" is NOT a shipment, label, carrier acceptance or
+        // delivery claim. The unique order PK and same locked transaction
+        // prevent duplicate parcels on callback replay or concurrent payment.
+        $hasBooks=false;
+        foreach ($items as $item) {
+            if (($item['kind']??null)==='book') { $hasBooks=true; break; }
+        }
+        if ($hasBooks) {
+            $parcel=$pdo->prepare("INSERT INTO commerce_parcels(order_id,state) VALUES(?,'preparing')");
+            $parcel->execute([$orderId]);
+        }
         $case=$pdo->prepare("INSERT INTO commerce_service_cases(order_id,sku,status) VALUES(?,?,'awaiting_contact')");
         $seen=[];
         foreach ($items as $item) {
