@@ -1,9 +1,15 @@
 name: External Link Monitor
+run-name: ${{ github.event_name == 'workflow_dispatch' && inputs.ops_request != '' && format('Admin audit {0}', inputs.ops_request) || github.workflow }}
 
 on:
   schedule:
     - cron: '17 5 * * *'
   workflow_dispatch:
+    inputs:
+      ops_request:
+        description: 'Optional owner audit request correlation (not a credential)'
+        required: false
+        type: string
   push:
     branches: [migration/bertina-linux6]
     paths:
