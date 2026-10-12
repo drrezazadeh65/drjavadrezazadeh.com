@@ -40,7 +40,8 @@ verify('source: one canonical Bertina branch',truth.repository==='drrezazadeh65/
   truth.canonicalBranch==='migration/bertina-linux6' && truth.developmentSourceCount===1 &&
   truth.allowAdditionalDevelopmentBranches===false && truth.productionHosting.includes('Bertina'));
 verify('v5: explicit target and not-yet-published distinction',v5.includes('DrJavad Ecosystem 5.0') &&
-  v5.includes('v5.0.0') && v5.includes('NOT PUBLISHED') && v5.includes('DEVELOPMENT'));
+  v5.includes('v5.0.0') && v5.includes('DEVELOPMENT') &&
+  (v5.includes('NOT PUBLISHED') || v5.includes('**NOT** a published')));
 verify('production: release and schema mutation serialized without cancellation',
   [deploy,migrate].every(x=>x.includes('  group: bertina-production-deploy') &&
     x.includes('  cancel-in-progress: false')));
