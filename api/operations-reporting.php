@@ -118,6 +118,60 @@ function operationsLocalLighthouseObservation(): array {
         'limitation'=>'Local Lighthouse scores measure the sanitized source on CI, not Bertina production or real-user Core Web Vitals.'];
 }
 
+/**
+ * Owner-supplied live PageSpeed UI screenshot transcription for the public homepage.
+ * No report link/image is published in Git; this is attested manual evidence rather
+ * than an independently retrievable provider result. Never merge with API 429 or localhost CI.
+ */
+function operationsManualPagespeedObservation(): array {
+    $empty=['status'=>'not_collected','source'=>'user_supplied_screenshot_transcription',
+        'verifiedByProviderApi'=>false,'targetUrl'=>'https://drjavadrezazadeh.com/',
+        'reportDate'=>null,'records'=>[],'realUserFieldData'=>'unknown',
+        'limitation'=>'No verified owner-supplied UI report is present.'];
+    $raw=@file_get_contents(__DIR__.'/internal/free-manual-pagespeed-observation.json');
+    $doc=is_string($raw)?json_decode($raw,true):null;
+    if(!is_array($doc)||($doc['schema']??'')!=='free-manual-pagespeed-observation-v1'
+        ||($doc['provider']??'')!=='Google PageSpeed Insights'
+        ||($doc['sourceMethod']??'')!=='user_supplied_screenshot_transcription'
+        ||($doc['targetUrl']??'')!=='https://drjavadrezazadeh.com/'
+        ||count($doc['records']??[])!==2)
+        return $empty;
+    $date=(string)($doc['runDate']??'');
+    if(!preg_match('/^\\d{4}-\\d{2}-\\d{2}$/D',$date))return array_merge($empty,['status'=>'invalid']);
+    $t=strtotime($date.'T12:00:00Z');
+    if($t===false||$t>time()+86400)return array_merge($empty,['status'=>'invalid']);
+    $rows=[];
+    foreach(['mobile','desktop'] as $i=>$device) {
+        $row=$doc['records'][$i];
+        if(!is_array($row)||($row['device']??'')!==$device
+            ||($row['realUserFieldData']??'')!=='No Data')
+            return array_merge($empty,['status'=>'invalid']);
+        $scores=[];
+        foreach(['performance','accessibility','bestPractices','seo'] as $category) {
+            $v=$row['labScores'][$category]??null;
+            if(!is_int($v)||$v<0||$v>100)return array_merge($empty,['status'=>'invalid']);
+            $scores[$category]=$v;
+        }
+        $evidence=$row['imageEvidence']??[];
+        if(!is_array($evidence)||!preg_match('/^[a-f0-9]{64}$/D',(string)($evidence['sha256']??'')))
+            return array_merge($empty,['status'=>'invalid']);
+        $agent=$row['agenticBrowsing']??[];
+        if(!is_int($agent['passed']??null)||!is_int($agent['total']??null)
+            ||$agent['total']<1||$agent['passed']<0||$agent['passed']>$agent['total'])
+            return array_merge($empty,['status'=>'invalid']);
+        $rows[]=['device'=>$device,'labScores'=>$scores,
+            'agenticBrowsing'=>['passed'=>$agent['passed'],'total'=>$agent['total']],
+            'realUserFieldData'=>'No Data',
+            'evidenceSha256'=>$evidence['sha256']];
+    }
+    return ['status'=>$t<time()-14*86400?'stale':'owner_supplied',
+        'source'=>'user_supplied_screenshot_transcription','verifiedByProviderApi'=>false,
+        'targetUrl'=>'https://drjavadrezazadeh.com/','reportDate'=>$date,
+        'displayedReportTime'=>substr((string)($doc['displayedReportTime']??''),0,100),
+        'records'=>$rows,'realUserFieldData'=>'No Data',
+        'limitation'=>'Scores were transcribed from two owner-supplied UI screenshots; the original images and an independently verifiable report URL were not committed. No CrUX data. Homepage only; not the same test as /fa/, /en/, a 429 API response, or localhost Lighthouse CI.'];
+}
+
 /** Canonical management reporting. Pure projection; never creates evidence or closes actions. */
 function operationsReportingMetrics(array $records): array {
     $total=count($records);$totalGates=0;$observed=0;$passed=0;$weightedProgress=0.0;$estimated=[];$closed=0;$production=0;
@@ -230,7 +284,7 @@ function operationsReporting(array $snapshot,array $registry): array {
     $priorityOrder=['OP-02','OP-36','OP-03','OP-01','OP-04','OP-05','OP-06','OP-07','OP-08','OP-09','OP-10','OP-11'];
     usort($queue,function($a,$b)use($priorityOrder){$rank=fn($id)=>(($position=array_search($id,$priorityOrder,true))===false?99:$position);return strcmp($a['priority'],$b['priority'])?:($rank($a['id'])<=>$rank($b['id']));});
     return [
-        'schema'=>'operations-reporting-v1','reportingEngine'=>'ENG-13','freeSourceRegistry'=>$freeSourceRegistry,'freeScholarlyObservation'=>operationsFreeScholarlyObservation(),'freePerformanceObservation'=>operationsFreePerformanceObservation(),'localLighthouseObservation'=>operationsLocalLighthouseObservation(),'reportingPeriod'=>[
+        'schema'=>'operations-reporting-v1','reportingEngine'=>'ENG-13','freeSourceRegistry'=>$freeSourceRegistry,'freeScholarlyObservation'=>operationsFreeScholarlyObservation(),'freePerformanceObservation'=>operationsFreePerformanceObservation(),'localLighthouseObservation'=>operationsLocalLighthouseObservation(),'manualPagespeedObservation'=>operationsManualPagespeedObservation(),'reportingPeriod'=>[
             'releaseSha'=>$snapshot['releaseSha'],'publishedAt'=>$snapshot['publishedAt']??null,'generatedAt'=>$snapshot['checkedAt'],
             'historyScope'=>'Current release; bounded latest 5000 evidence events. Not all-time history.'],
         'engines'=>$engines,'actionReports'=>$actionReports,
