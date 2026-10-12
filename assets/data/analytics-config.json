@@ -16,7 +16,9 @@
     "institution_invite_intent",
     "service_price_intent",
     "account_login_intent",
-    "account_register_intent"
+    "account_register_intent",
+    "organic_article_service_intent",
+    "organic_share_intent"
   ],
   "payload_allowlist": [
     "event_key",
