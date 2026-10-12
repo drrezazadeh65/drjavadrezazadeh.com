@@ -19,8 +19,10 @@ on:
 permissions:
   contents: read
 
+# Uses the SAME environment lock as deploy-bertina.yml: a schema migration
+# and a release must never interleave on the production Bertina MySQL/files.
 concurrency:
-  group: bertina-commerce-schema-migration
+  group: bertina-production-deploy
   cancel-in-progress: false
 
 jobs:
