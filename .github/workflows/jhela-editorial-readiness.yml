@@ -1,0 +1,34 @@
+name: JHELA Editorial Readiness
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'scripts/journal-ojs-preflight.php'
+      - 'tests/journal-ojs-preflight.php'
+      - 'docs/journal/**'
+      - '.github/workflows/jhela-editorial-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  editorial-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate preflight and closed-by-default contract
+        run: |
+          php -l scripts/journal-ojs-preflight.php
+          php -l tests/journal-ojs-preflight.php
+          php tests/journal-ojs-preflight.php
+      - name: Public status must remain closed
+        run: |
+          grep -q 'Formal submissions are not yet open' journal/submission/index.html
+          grep -q 'پذیرش رسمی مقاله در حال حاضر باز نیست' journal/fa/submission/index.html
+      - name: Record scope
+        run: |
+          echo 'JHELA editorial checks are source-only. No OJS deployment, production database migration, manuscript intake, or sensitive account activation has occurred.' >> "$GITHUB_STEP_SUMMARY"
