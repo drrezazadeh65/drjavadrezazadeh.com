@@ -1,0 +1,201 @@
+name: DrJavad v5.0.0 Nondeploying Release Candidate
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/v5-release-candidate.yml'
+      - 'scripts/build-public-site.mjs'
+      - 'scripts/build-public-data.mjs'
+      - 'scripts/stamp-bertina-release.mjs'
+      - 'scripts/v5-ecosystem-integrity-audit.mjs'
+      - '.github/workflows/deploy-bertina.yml'
+      - 'api/**'
+      - 'assets/**'
+      - 'fa/**'
+      - 'en/**'
+      - 'journal/**'
+      - 'docs/migrations/**'
+      - 'sitemap*.xml'
+      - 'sw.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: drjavad-v5-rc
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password
+          MYSQL_DATABASE: operations_fixture
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pfixture-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
+      OPERATIONS_TEST_USER: root
+      OPERATIONS_TEST_PASSWORD: fixture-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compile production release endpoint; protect owner/private gates
+        run: |
+          python3 tests/bertina-release-assembly.py
+          php tests/bertina-private-recovery-gate.php
+          python3 tests/test_bertina_commerce_migration_guard.py
+      - name: Validate source governance and all v5 workstreams
+        run: |
+          node scripts/v5-ecosystem-integrity-audit.mjs
+          node scripts/workflow-governance-audit.mjs
+          node scripts/seo-regression.mjs
+      - name: Exercise API, transaction, order/shipping and admin in isolated MySQL
+        run: |
+          set -euo pipefail
+          for file in api/*.php; do php -l "$file"; done
+          php tests/operations-security.php
+          php tests/stage09-commerce-atomic.php
+          php tests/operations-mysql.php
+          php tests/stage09-mysql.php
+          php tests/bertina-commerce-callback-contract.php
+          php tests/journal-ojs-preflight.php
+      - name: Summary of test scope
+        run: |
+          echo 'PASS means isolated CI only. No real Bertina migration, payment, email, physical stock or OJS intake.'
+          echo 'DO NOT treat this job as recovery sign-off or permission to bypass any production gate.'
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Chromium and Playwright
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Verify bilingual owner dashboard and bookstore flows
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/v5-rc-browser-server.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js --reporter=line
+      - name: Keep failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-rc-browser-failures
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+  candidate:
+    needs: [contracts, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assemble the sanitized owner-review candidate (NO FTP or live writes)
+        run: |
+          set -euo pipefail
+          node scripts/build-public-data.mjs --check
+          node scripts/build-public-site.mjs
+          node scripts/bookstore-release-audit.mjs
+          node scripts/public-retired-commerce-audit.mjs
+          node scripts/stamp-bertina-release.mjs
+          test -f .public-site/.htaccess
+          test -f .public-site/journal/sitemap.xml
+          test ! -e .public-site/.bertina-backup-trigger
+          test ! -e .public-site/.bertina-deploy-trigger
+          test ! -e .public-site/platform
+          test ! -e .public-site/scripts
+          test ! -e .public-site/tests
+          test ! -e .public-site/docs
+          test ! -e .public-site/.github
+          grep -F "jr-site-bertina-$GITHUB_SHA" .public-site/sw.js
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,zipfile
+          root=pathlib.Path('.public-site')
+          names=sorted(x for x in root.rglob('*') if x.is_file())
+          files={x.relative_to(root).as_posix():hashlib.sha256(x.read_bytes()).hexdigest() for x in names}
+          assert len(files)>=500
+          assert not any(path.startswith(('.github/','platform/','tests/','docs/','scripts/')) for path in files)
+          assert '.bertina-backup-trigger' not in files
+          archive=pathlib.Path('bertina-v5.0.0-rc.zip')
+          with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+              for f in names:z.write(f,f.relative_to(root).as_posix())
+          proof={
+              'schema':'drjavad-v5-release-candidate-v1',
+              'status':'SOURCE_ARTIFACT_ONLY_NOT_DEPLOYED',
+              'versionTarget':'v5.0.0',
+              'sourceSha':os.environ['GITHUB_SHA'],
+              'runId':os.environ['GITHUB_RUN_ID'],
+              'sanitizedFileCount':len(files),
+              'zipSha256':hashlib.sha256(archive.read_bytes()).hexdigest(),
+              'sourceAndBrowserContractsPassed':True,
+              'independentSignedBertinaRecoveryCertified':None,
+              'stage09LiveSchemaCompatible':None,
+              'currentLiveReleaseSha':None,
+              'productionAcceptance':False,
+              'archiveType':'review_candidate_not_final_production_bundle',
+              'limitations':'No private operations-release evidence, Bertina upload, live MySQL migration, financial settlement, stock reconciliation or bank charge was performed.',
+          }
+          pathlib.Path('v5-rc-evidence.json').write_text(json.dumps(proof,indent=2)+'\n')
+          print('Ready for owner/operator review: '+str(len(files))+' sanitized files, SHA256 '+proof['zipSha256'])
+          PY
+      - name: Upload immutable SHA-bound nonproduction candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: bertina-v5.0.0-rc
+          path: |
+            bertina-v5.0.0-rc.zip
+            v5-rc-evidence.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Explicit release boundary
+        run: |
+          echo 'Prepared v5.0.0 source candidate. NO FILES WERE UPLOADED TO BERTINA.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Production requires signed owner-private restore gate AND live Stage09 schema preflight, followed by a fresh full deploy-run acceptance.' >> "$GITHUB_STEP_SUMMARY"
+
+  public-observation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Observe current live release without cookies or credentials
+        continue-on-error: true
+        env:
+          PROD_ORIGIN: https://drjavadrezazadeh.com
+          PRODUCTION_HEALTH_STRICT: '0'
+          PRODUCTION_HEALTH_EVIDENCE_PATH: v5-live-public-evidence.json
+        run: node scripts/production-health-audit.mjs
+      - name: Attach release-drift evidence to candidate run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-public-live-drift
+          path: v5-live-public-evidence.json
+          if-no-files-found: warn
+          retention-days: 14
