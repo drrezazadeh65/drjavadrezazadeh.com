@@ -3,7 +3,7 @@ name: Operations Control Center QA
 on:
   push:
     branches: [migration/bertina-linux6]
-    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
+    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/js/operations-free-resources.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
   pull_request:
     branches: [migration/bertina-linux6]
     paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
@@ -60,7 +60,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js --reporter=line
+          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/operations-free-resources-browser.spec.js --reporter=line
       - name: Retain failure evidence
         if: failure()
         uses: actions/upload-artifact@v4
