@@ -101,6 +101,10 @@ verify('social: private worker authorization remains required',
   social.includes('No HTTP route to claim or deliver is published') &&
   social.includes("status='dispatching'") &&
   social.includes("approval_digest"));
+verify('social: unsupported official providers retain approved drafts',
+  social.includes("d.provider IN ('telegram','eitaa')") &&
+  social.includes("in_array($row['provider'],['telegram','eitaa'],true)") &&
+  !social.includes("!in_array($row['provider'],['instagram','youtube','aparat','whatsapp'],true)"));
 verify('growth: 30 source opportunities, 13 article bridges, 5 free tools',
   growth.opportunities.length===30 && growth.article_bridges.length===13 &&
   growth.free_tools.length===5 && growth.release_status==='SOURCE_ONLY_UNVERIFIED');
