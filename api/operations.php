@@ -4,6 +4,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
 const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/operations-reporting.php';
+require_once __DIR__.'/operations-action-runs.php';
 
 function operationsRegistry(): array {
     $raw = file_get_contents(__DIR__.'/internal/operations-registry.json');
@@ -317,6 +318,37 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        if ($path === '/admin/operations/action-runs' && $verb === 'GET') {
+            if (!operationsActionRunsReady($pdo)) fail('action_journal_schema_unavailable',503);
+            respond(['ok'=>true,'schema'=>'operations-readonly-action-history-v1',
+                'runs'=>operationsActionHistory($pdo,$accountId,nowTs()),
+                'limitation'=>'Only the seven registered read-only observations may run. Unregistered or mutating Actions cannot be executed.']);
+        }
+        if ($path === '/admin/operations/action-runs' && $verb === 'POST') {
+            if (!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            $body=jsonBody();
+            if (!is_array($body) || count($body)!==2
+                || !array_key_exists('actionId',$body) || !array_key_exists('requestKey',$body)
+                || !is_string($body['actionId']) || !is_string($body['requestKey']))
+                fail('invalid_action_request',400);
+            $action=operationsActionDefinition(operationsRegistry(),$body['actionId']);
+            if ($action===null) fail('action_executor_unavailable',403);
+            if (!operationsActionRunsReady($pdo))fail('action_journal_schema_unavailable',503);
+            if (!rateAllowed($pdo,'operations_action_observation',$accountId,12,300))
+                fail('rate_limited',429);
+            $releaseRow=$pdo->query('SELECT release_sha FROM operations_release WHERE singleton_id=1')->fetch();
+            $release=(string)($releaseRow['release_sha']??'');
+            if(!preg_match('/^[a-f0-9]{40}$/D',$release))fail('current_release_unavailable',503);
+            try {
+                $run=operationsActionExecute($pdo,operationsRegistry(),$accountId,$body['actionId'],
+                    $body['requestKey'],$release,$configuration,nowTs());
+                respond(['ok'=>true,'schema'=>'operations-readonly-action-run-v1','run'=>$run]);
+            } catch (InvalidArgumentException $e) {fail('invalid_action_request',400);}
+            catch (DomainException $e) {fail('action_request_conflict',409);}
+            catch (Throwable $e) {fail('action_execution_unavailable',503);}
+        }
+
         if ($path === '/admin/operations/free-resources' && $verb === 'GET') {
             // This is below the verified administrator + MFA checks. No external API is called.
             $raw=@file_get_contents(__DIR__.'/internal/free-resources-registry.json');
