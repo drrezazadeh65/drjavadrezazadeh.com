@@ -48,3 +48,12 @@ All these full URLs use `https://drjavadrezazadeh.com/fa/akhbar/{slug}/`. The fi
 ## Acceptance status
 
 `SOURCE-ECOSYSTEM-SEC-25` and SEO observations: **partially evidenced**, not complete. Live release parity, ongoing GSC/IndexNow outcomes, external broken-target matching, field Core Web Vitals, conversion attribution and scientific claims remain independent acceptance tasks.
+
+## Same-day later URL-inspection recheck
+
+Both previously `URL is unknown to Google` news posts now returned **`Discovered - currently not indexed`** in a fresh Google URL Inspection query on 2026-10-12:
+
+- `international-research-collaboration-2026`
+- `ai-search-and-scientific-content-2026`
+
+This is a real change in Google's reported discovery state, **not** an index confirmation or organic impression. Retain existing self canonical, source news links and sitemap; do not create duplicate routes or unrelated redirects. The other 11 indexed article proofs above remain separately evidenced.

@@ -84,3 +84,12 @@ ENG-13 may aggregate evidence, but cannot itself certify the operational status 
 ## Closure criterion
 
 A section may be marked completed only when relevant code is deployed, scoped tests passed, the **actual Bertina production scope** is verified, and timestamped reproducible evidence is recorded. Final `100%` is **not authorized** while any applicable required condition lacks valid evidence. Keep [Issue #60](https://github.com/drrezazadeh65/drjavadrezazadeh.com/issues/60) open and use `EXECUTION_HANDOFF_20261012.md` for sequential work.
+
+## Recovery release gate implemented in canonical source, not yet production exercised
+
+- Signed pre-extraction gate added in `scripts/bertina-private-recovery-gate.php` and in the **existing** `.github/workflows/deploy-bertina.yml`. Requires pinned owner RSA4096 public-key hash, certified private pointer, matching signed restore receipt and ciphertext, strict 0600/0700 private file modes, six-hour recovery window and exact previous live-release SHA; missing evidence returns `503 verified_private_recovery_required` before extraction.
+- CI [38253071963](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38253071963) succeeded: seven fail-closed PHP fixtures, pinned-verification/source-order assertions and compilation of the rendered deploy PHP endpoint. These prove code-level gating and fail-closed behavior **only**, not that real owner-signed backup exists or that a production deployment was completed.
+- Current public `.bertina-backup-trigger` request has a one-hour authorized access window from 2026-10-12 11:24:15 to 12:24:15 UTC. A fresh request must be generated in the owner's authorized private checkout when performing another create/retrieve/certify operation. The expired public request cannot authorize a new private operation; it does not itself establish or disprove a prior valid signed production certification.
+- Fresh same-day GSC inspection now describes the two remaining new articles as `Discovered - currently not indexed`, rather than `URL is unknown to Google`. No indexation claim for those two.
+
+**Status:** Release safety gate is implemented/tested in source, **not** independently exercised with a real production backup. Final completion remains blocked at authorized private recovery and deployment/money/fulfilment verification.
