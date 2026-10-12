@@ -1,0 +1,33 @@
+{
+  "schema": "stage09-private-acceptance-v1",
+  "project": "drjavadrezazadeh.com",
+  "sourceBranch": "migration/bertina-linux6",
+  "recordedOn": "2026-10-12",
+  "facts": {
+    "bertina_full_backup_isolated_restore": {
+      "status": "unknown",
+      "proof": "not_submitted_to_this_session"
+    },
+    "three_book_remaining_stock": {
+      "status": "unknown",
+      "proof": "not_submitted_to_this_session"
+    },
+    "bitpay_bank_settlement_reconciliation": {
+      "status": "unknown",
+      "proof": "not_submitted_to_this_session"
+    }
+  },
+  "production": {
+    "schemaMigrationAuthorized": false,
+    "monetaryReleaseAuthorized": false,
+    "newRealMoneyTestAuthorized": false
+  },
+  "interpretation": "Public repository records UNKNOWN ONLY. No private sensitive evidence/credentials/customer data here. This file cannot certify or authorize release. Private signed recovery, stock and bank evidence plus explicit owner authorization must be independently verified.",
+  "prohibitions": [
+    "do_not_deploy_or_migrate_bertina",
+    "do_not_assume_1000_copies_remaining",
+    "do_not_backfill_paid_claims_from_notifications",
+    "do_not_release_held_books_without_gateway_negative",
+    "do_not_issue_a_real_charge_or_bank_refund"
+  ]
+}
