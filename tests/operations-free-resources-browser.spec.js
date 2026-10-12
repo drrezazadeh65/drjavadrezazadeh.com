@@ -78,3 +78,24 @@ test('scholarly observation is available only inside authenticated manager and c
  await expect(page.locator('#ops-scholar-observation')).toHaveCount(0);
  await expect(page.locator('#ops-resources-list article')).toHaveCount(0);
 });
+
+test('quota-limited mobile observation never fabricates a PageSpeed score',async({page})=>{
+ await page.route('**/api/admin/operations**',route=>{
+  const pathname=new URL(route.request().url()).pathname;
+  if(pathname.endsWith('/session'))return route.fulfill({json:{ok:true,mfaRequired:false,csrfToken:'c'.repeat(64),mfaExpiresIn:600}});
+  if(pathname.endsWith('/free-resources'))return route.fulfill({json:{ok:true,schema:'operations-free-resources-v1',verifiedExternalConnections:0,
+    performanceObservation:{status:'provider_unavailable',observedAt:'2026-10-12T09:09:12Z',
+      measuredPages:0,attemptedPages:2,results:[
+       {url:'https://drjavadrezazadeh.com/fa/',status:'unavailable',labPerformanceScore:null,reason:'http-429'},
+       {url:'https://drjavadrezazadeh.com/en/',status:'unavailable',labPerformanceScore:null,reason:'http-429'}]},
+    resources:freeRegistry.resources.map(r=>({id:r.id,name:r.name,url:r.official_url,category:r.category,ownerEngine:r.owner_engine,accessPath:r.access_path,purpose:r.purpose,connection:r.external_connection,automatedDataInUse:false}))}});
+  return route.fulfill({json:fixture()});
+ });
+ await page.goto(base+'/en/account/admin/');
+ await page.locator('#ops-free-resources summary').click();
+ await expect(page.locator('#ops-performance-observation')).toContainText('http-429');
+ await expect(page.locator('#ops-performance-observation')).toContainText('No score');
+ await expect(page.locator('#ops-resources-list article')).toHaveCount(30);
+ await page.locator('#ops-free-resources summary').click();
+ await expect(page.locator('#ops-performance-observation')).toHaveCount(0);
+});
