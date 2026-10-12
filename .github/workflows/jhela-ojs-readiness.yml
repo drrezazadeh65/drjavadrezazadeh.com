@@ -33,6 +33,10 @@ jobs:
           node --check scripts/jhela-ojs-source-audit.mjs
           node scripts/jhela-ojs-source-audit.mjs
           node scripts/jhela-discovery-audit.mjs
+      - name: Test verified OJS package staging and extraction safety
+        run: |
+          python3 -m py_compile scripts/jhela-ojs-stage-package.py tests/jhela-ojs-stage-package.py
+          python3 tests/jhela-ojs-stage-package.py
       - name: Verify PHP capabilities without touching production
         run: php scripts/jhela-ojs-readiness.php --contract
       - name: Disclose evidence boundary
