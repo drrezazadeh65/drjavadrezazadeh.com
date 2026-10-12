@@ -1,0 +1,41 @@
+name: JHELA OJS Operational Readiness
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths: ['scripts/jhela-ojs-*', 'platform/jhela-ojs-activation.json', 'docs/governance/JHELA_OJS_INSTALLATION_RUNBOOK_20261012.md', '.github/workflows/jhela-ojs-readiness.yml']
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths: ['scripts/jhela-ojs-*', 'platform/jhela-ojs-activation.json', '.github/workflows/jhela-ojs-readiness.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jhela-ojs-source-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  prelaunch-source-safety:
+    name: Offline OJS PHP and privacy provisioning contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, mbstring, xml, dom, fileinfo, openssl, gd, intl, curl, zip
+          coverage: none
+      - name: Syntax and isolated journal source gates
+        run: |
+          php -l scripts/jhela-ojs-readiness.php
+          node --check scripts/jhela-ojs-source-audit.mjs
+          node scripts/jhela-ojs-source-audit.mjs
+          node scripts/jhela-discovery-audit.mjs
+      - name: Verify PHP capabilities without touching production
+        run: php scripts/jhela-ojs-readiness.php --contract
+      - name: Disclose evidence boundary
+        run: |
+          echo "OJS PHP/software source check passed for ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          echo "No OJS installed, manuscript accepted or production database migrated by this CI workflow. Separate Bertina runtime, backups, reviewer roles and real end-to-end checks remain mandatory." >> "$GITHUB_STEP_SUMMARY"
