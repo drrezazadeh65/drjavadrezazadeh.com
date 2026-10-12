@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS social_deliveries (
   approved_at BIGINT NULL,
   approval_digest CHAR(64) NULL,
   leased_until BIGINT NULL,
+  lease_token CHAR(64) NULL,
   provider_id VARCHAR(191) NULL,
   provider_url VARCHAR(700) NULL,
   confirmation_method VARCHAR(64) NULL,
