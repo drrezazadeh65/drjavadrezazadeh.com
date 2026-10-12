@@ -54,6 +54,19 @@ try{
 }
 
 if(!root){
+  // Even when DNS/HTTPS fails, emit an auditable, privacy-safe failure artifact.
+  // Missing a proof must never be interpreted as a healthy or aligned release.
+  if(process.env.PRODUCTION_HEALTH_EVIDENCE_PATH){
+    const fs=await import('node:fs');
+    const sourceCommit=/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA:null;
+    const proof={schema:'bertina-production-public-evidence-v1',checkedAt:new Date().toISOString(),
+      observedOrigin:ORIGIN,sourceCommit,deployedReleaseSha:null,sourceLiveSame:null,
+      releaseAlignmentStatus:'unavailable',commercePublicReadiness:null,
+      sourceLiveSitemapParity:null,checksPassed:false,availability:'unreachable',
+      failures,warnings,
+      limits:'Public anonymous GET only; origin unreachable. No MFA, signed restore, gateway settlement, inventory or fulfilment proof.'};
+    fs.writeFileSync(process.env.PRODUCTION_HEALTH_EVIDENCE_PATH,JSON.stringify(proof,null,2)+'\n',{mode:0o600});
+  }
   if(failures.length){
     console.error('\nProduction health failures ('+failures.length+')');
     failures.forEach(x=>console.error('✗ '+x));
@@ -159,7 +172,7 @@ try{
   if(!childUrls.length) failures.push('/sitemap.xml: no child sitemaps found');
   const pageUrls=[];
   for(const child of childUrls){
-    if(!child.startsWith(ORIGIN+'/')) failures.push('/sitemap.xml: child sitemap outside production origin '+child);
+    if(!child.startsWith(ORIGIN+'/')){failures.push('/sitemap.xml: child sitemap outside production origin '+child);continue;}
     try{
       const {res,text}=await getText(child);
       if(res.status!==200){failures.push(child+': sitemap fetch status '+res.status);continue;}
@@ -309,7 +322,9 @@ try{
       deployedReleaseSha=match[1];
       console.log('Deployed Bertina release SHA (strict live /sw.js): '+deployedReleaseSha);
       if(/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')){
-        console.log('Source HEAD equals live release: '+(process.env.GITHUB_SHA===deployedReleaseSha));
+        const aligned=process.env.GITHUB_SHA===deployedReleaseSha;
+        console.log('Source HEAD equals live release: '+aligned);
+        if(!aligned) warnings.push('Source/live revision drift: CI source is not the deployed Bertina release; no production acceptance inferred');
       }
     }
   }
@@ -335,8 +350,10 @@ if(process.env.PRODUCTION_HEALTH_EVIDENCE_PATH){
   const fs=await import('node:fs');
   const proof={schema:'bertina-production-public-evidence-v1',checkedAt:new Date().toISOString(),
     observedOrigin:ORIGIN,sourceCommit:/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA:null,
-    deployedReleaseSha,sourceLiveSame:deployedReleaseSha!==null&&process.env.GITHUB_SHA===deployedReleaseSha,
-    commercePublicReadiness,sourceLiveSitemapParity,checksPassed:failures.length===0,failures,warnings,
+    deployedReleaseSha,
+    sourceLiveSame:deployedReleaseSha!==null&&/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA===deployedReleaseSha:null,
+    releaseAlignmentStatus:deployedReleaseSha===null||!/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?'unavailable':process.env.GITHUB_SHA===deployedReleaseSha?'matched':'drift',
+    commercePublicReadiness,sourceLiveSitemapParity,checksPassed:failures.length===0,availability:'reachable',failures,warnings,
     limits:'Public anonymous GET only; no MFA, signed restore, gateway settlement, inventory or fulfilment proof.'};
   fs.writeFileSync(process.env.PRODUCTION_HEALTH_EVIDENCE_PATH,JSON.stringify(proof,null,2)+'\n',{mode:0o600});
 }
