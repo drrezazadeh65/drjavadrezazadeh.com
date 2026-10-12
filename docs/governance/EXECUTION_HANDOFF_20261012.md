@@ -10,14 +10,22 @@ All further implementation uses the existing `/workspace/drjavadrezazadeh.com` c
 
 Seventeen other Git checkouts and eight historical proposal areas are now recovery/reference-only. Fresh path-derived archives preserve794 changed-source file occurrences,2329 additional source files and four independent Git histories. Every archived payload was reread and hashed; all four history bundles were actually cloned into isolated bare repositories and passed strict fsck. The combined8,285,780-byte private source snapshot and16,875,868-byte canonical history bundle were copied into the owner's owner-only Drive, actually downloaded and matched SHA256. These are source recovery archives, not production Bertina/MySQL backups. Private contents/credentials are never committed; the public archival registry contains dispositions and hashes only.
 
-GitHub repository-default change to `migration/bertina-linux6` was attempted but returned `Forbidden`; the actual observed GitHub default remains `main`. Local branch/configuration is fixed. Do not claim the GitHub setting changed without successful independent readback. Current main references the reviewed canonical snapshot; all development and deployment still target only `migration/bertina-linux6`.
+The owner applied the GitHub default-branch change. Independent repository-metadata readback at2026-10-12 08:38:47 UTC confirms `default_branch: migration/bertina-linux6`. This resolves the earlier Forbidden settings attempt. Local branch/configuration and GitHub default now select the same sole source. Main remains historical; all development and deployment target only `migration/bertina-linux6`.
 
 ## Source and observed production
 
 - Checkpoint base: d3fe0ac61f1d4485ab16100344af91f7c3173537 (governance-only update on the Bertina source).
 - Last observed live application: 5bcd67fa45cd15e94fc8ad3e9e3f928ad6b7fa19; successful [deployment38164202830](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38164202830), 600 managed checksums, TLS6/6, privacy10/10 and historical137/137.
-- Main reconciliation examined c7e4ab7f30a0beeb5fbfb85010f08794631320bd. Main subsequently advanced to e31dd0f82b06280305161548e9e2fbbf97238c86, then governance16aadc107b4eb1446c40240fee2dfce5ace26b35. Review that newer main delta before promotion. Never overwrite current production with a stale complete tree.
+- Main reconciliation is completed: earlier c7e4ab7 plus the later font/crawler/governance delta through16aadc10 were reviewed and selectively merged at1aed2a509d694bdf0dfaca888c92ad5927652ceb. Do not repeat that port. Preserve the newer Bertina tree and independently verify production promotion.
 - Fetch fresh refs, deployment evidence and live revisions before each merge or deployment. Use the same canonical `migration/bertina-linux6` source; do not create parallel development branches or folders. Coordinate shared-file edits and serialize deployments.
+
+## Fresh status observations — 2026-10-12
+
+Independent metadata confirms the GitHub default is now `migration/bertina-linux6`. Fresh anonymous trusted-HTTPS GETs returned200 for `/api/health`, `/api/commerce/health` and both FA/EN stores. Auth/registration/database/SMTP provider parity are true; commerce checkout, order capture and book/service/VIP capabilities are true. Protected `/api/admin/operations` returns401 with no-store. These health flags do not certify an every-order bank reconciliation, remaining stock, scheduled service or delivered order.
+
+Canonical source now also includes the thirty external-resource reference catalogue, its MFA-bound read-only API, bilingual administrator component, ENG-13 provenance/export additions and browser/CI coverage through68348bd391e407c09d5d95449c237bc07caee01a. These are committed source changes, with provider connections still unverified; no new live feature or30 active integrations is inferred. The prepared original-source/TLS/recovery/build/API/UI patch must be reconciled with these newer source additions before publication, preserving both contributions.
+
+The original36-section acceptance integration remains locally prepared, as do the stronger staged-release/recovery gate and actual backup execution tools. Full production Bertina/MySQL snapshot, independent ciphertext copy and isolated runtime restore are still pending. Source Git archives do not close this gate. The original36 sections, OP01–36 reports and ENG01–13 are separate identities; some original sections are management/evidence summaries rather than independent engines. Preserve the confirmed owner Auth/SMTP journey and avoid reopening its superseded failure.
 
 ## Preserved baseline
 
@@ -29,7 +37,7 @@ The owner declares initial stock1000 copies of each of the three books, free pos
 
 ## Source changes ready for continuation
 
-1. Selected main content:131 original editorial blocks on125 existing pages, preserving current layout, media, SEO, prices and newer13 launch articles. OECD citation verification and conceptual RCAS/BAHAR wording corrections were reviewed independently. Original source ideas remain preserved in history/provenance.
+1. Main content is already committed to canonical source at1aed2a50:131 reviewed editorial blocks on125 existing pages plus licensed gateway font fixes. It preserves current layout, media, SEO, prices and newer13 launch articles. Source reconciliation is complete; live publication is still separately required. Do not rebuild or port these additions again.
 2. Original comprehensive36-section report: complete36,335-byte CRLF source, SHA2566cb5eff470bce1068528bcb0237feb0c82d122c781111ff0048bda4686f6b911, private loader and exact download,70 manually extracted nonexhaustive requirements including all18 section31 blockers. Keep original numbering distinct from OP01–36 and ENG01–13. Original section3 is deployment; section6 maps to SSL/OP03.
 3. Protected administration: full original-source review/export, independent unverified acceptance, safe literal-text rendering and MFA-expiry cleanup. Public preview has a separate compatible script, preserving the older foundation page. Do not open protected admin/customer records anonymously.
 4. First scoped TLS evidence producer/importer: actual six strict observations with exact release/run/checksum and PDO roundtrip binding. It can prove only the stated TLS scope, not original-report closure or code/HSTS/commerce certification.

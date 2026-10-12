@@ -27,10 +27,11 @@
   },
   "githubDefaultBranch": {
     "desired": "migration/bertina-linux6",
-    "lastObserved": "main",
-    "changeStatus": "blocked_forbidden",
-    "reason": "GitHub settings PATCH returned Forbidden; available connected GitHub tools do not expose repository-settings writes",
-    "noClaimOfSuccessfulRemoteDefaultChange": true
+    "lastObserved": "migration/bertina-linux6",
+    "changeStatus": "verified",
+    "verificationSource": "GitHub repository metadata GET after owner change",
+    "observedAt": "2026-10-12T08:38:47Z",
+    "previousAttempt": "settings PATCH returned Forbidden; owner subsequently applied the change"
   },
   "archives": "docs/governance/ARCHIVED_SOURCES_20261012.json",
   "pendingWork": "docs/governance/EXECUTION_HANDOFF_20261012.md"
