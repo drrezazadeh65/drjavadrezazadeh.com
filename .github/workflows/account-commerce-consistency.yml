@@ -11,11 +11,26 @@ on:
       - 'login/**'
       - 'en/shop/**'
       - 'assets/js/book-store.js'
+      - 'api/index.php'
+      - 'assets/js/commerce-checkout.js'
+      - 'assets/js/donation-payment.js'
+      - 'fa/shop/payment-result/**'
+      - 'tests/bertina-receipt-contract.php'
+      - 'tests/bertina-receipt-access.php'
+      - 'scripts/commerce-receipt-contract-audit.mjs'
       - 'tests/account-commerce-consistency.test.mjs'
       - '.github/workflows/account-commerce-consistency.yml'
   pull_request:
     branches: [migration/bertina-linux6]
     paths:
+      - 'api/index.php'
+      - 'assets/js/commerce-checkout.js'
+      - 'assets/js/donation-payment.js'
+      - 'fa/shop/payment-result/**'
+      - 'tests/bertina-receipt-contract.php'
+      - 'tests/bertina-receipt-access.php'
+      - 'scripts/commerce-receipt-contract-audit.mjs'
+      - 'assets/js/book-store.js'
       - 'fa/register/**'
       - 'en/register/**'
       - 'fa/login/**'
@@ -38,3 +53,10 @@ jobs:
           node-version: '22'
       - name: Verify account and shop links
         run: node --test tests/account-commerce-consistency.test.mjs
+      - name: Verify same-origin receipt access and payment isolation
+        run: |
+          php -l api/index.php
+          php tests/bertina-receipt-access.php
+          php tests/bertina-receipt-contract.php
+          node scripts/commerce-receipt-contract-audit.mjs
+
