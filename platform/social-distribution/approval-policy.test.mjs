@@ -48,3 +48,18 @@ test('private per-post approval is required; edited drafts invalidate consent; a
   await fs.rm(dir,{recursive:true,force:true});
  }
 });
+
+test('destination changes invalidate a previously reviewed draft approval',()=>{
+ const prior=process.env.SOCIAL_EITAA_CHAT_ID;
+ try{
+  process.env.SOCIAL_EITAA_CHAT_ID='channel-A-for-synthetic-test';
+  const initial=variant(article,'eitaa').approvalDigest;
+  process.env.SOCIAL_EITAA_CHAT_ID='channel-B-for-synthetic-test';
+  assert.notEqual(variant(article,'eitaa').approvalDigest,initial);
+  delete process.env.SOCIAL_EITAA_CHAT_ID;
+  assert.notEqual(variant(article,'eitaa').approvalDigest,initial);
+ }finally{
+  if(prior===undefined)delete process.env.SOCIAL_EITAA_CHAT_ID;
+  else process.env.SOCIAL_EITAA_CHAT_ID=prior;
+ }
+});
