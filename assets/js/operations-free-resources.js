@@ -9,9 +9,9 @@ const en=document.documentElement.lang==='en';
 const tr=(fa,enText)=>en?enText:fa;
 const groups={GROWTH:tr('رشد و بازاریابی','Growth and marketing'),TECHNICAL:tr('فنی و دسترس‌پذیری','Technical quality'),SCHOLARLY:tr('علمی و استنادی','Scholarly authority')};
 const access={MANUAL_REFERENCE:tr('بررسی دستی','Manual reference'),READ_API_CANDIDATE:tr('API قابل بررسی؛ نامتصل','API candidate; not connected'),CI_OPEN_SOURCE_CANDIDATE:tr('متن‌باز؛ نیازمند نصب کنترل‌شده','Open-source; approved installation needed'),ACCOUNT_SETUP_REQUIRED:tr('نیازمند حساب و مجوز','Account authorization required'),CONDITIONAL_ELIGIBILITY:tr('وابسته به شرایط ارائه‌دهنده','Provider eligibility required')};
-let items=null,scholarlyObservation=null,performanceObservation=null,localLighthouseObservation=null,request=null,generation=0;
+let items=null,scholarlyObservation=null,performanceObservation=null,localLighthouseObservation=null,manualPagespeedObservation=null,request=null,generation=0;
 const make=(tag,txt,cls)=>{const node=document.createElement(tag);if(txt!==undefined)node.textContent=txt;if(cls)node.className=cls;return node;};
-function reset(){generation++;request?.abort();request=null;items=null;scholarlyObservation=null;performanceObservation=null;localLighthouseObservation=null;document.getElementById('ops-scholar-observation')?.remove();document.getElementById('ops-local-lighthouse-observation')?.remove();document.getElementById('ops-performance-observation')?.remove();list.replaceChildren();status.textContent='';select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';}
+function reset(){generation++;request?.abort();request=null;items=null;scholarlyObservation=null;performanceObservation=null;localLighthouseObservation=null;manualPagespeedObservation=null;document.getElementById('ops-manual-pagespeed-observation')?.remove();document.getElementById('ops-scholar-observation')?.remove();document.getElementById('ops-local-lighthouse-observation')?.remove();document.getElementById('ops-performance-observation')?.remove();list.replaceChildren();status.textContent='';select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';}
 function draw(){
  if(!items)return;list.replaceChildren();
  const category=select.value,shown=items.filter(item=>!category||item.category===category);
@@ -74,11 +74,35 @@ function draw(){
    elmt.append(make('small',tr('این نتایج مربوط به ساخت محلی سایت هستند، نه هاست برتینا یا تجربه واقعی کاربران.','Scores describe a local static build, not live Bertina or real-user Core Web Vitals.')));
  }
 
+
+ if(manualPagespeedObservation){
+   let section=document.getElementById('ops-manual-pagespeed-observation');
+   if(!section){section=make('section',undefined,'ops-panel');section.id='ops-manual-pagespeed-observation';status.after(section);}
+   section.replaceChildren();
+   section.append(make('h3',tr('گزارش تصویری PageSpeed از صفحه اصلی زنده','Live homepage PageSpeed screenshot evidence')));
+   const result=manualPagespeedObservation;
+   if(result.status==='owner_supplied'||result.status==='stale'){
+     section.append(make('p',tr('منبع: تصاویر ارسالی مالک سایت؛ بررسی مستقل API نیست.','Source: owner-supplied screenshots, not independently verified API data.')+' · '+String(result.reportDate||'')));
+     if(result.status==='stale')section.append(make('p',tr('این گزارش قدیمی است و باید دوباره اندازه‌گیری شود.','The screenshot report is stale; repeat measurements before decisions.')));
+     for(const record of result.records||[]){
+       const sc=record.labScores||{};
+       section.append(make('p',(record.device==='mobile'?tr('موبایل','Mobile'):tr('دسکتاپ','Desktop'))+' · '+
+         tr('عملکرد ','Performance ')+String(sc.performance)+'/100 · '+
+         tr('دسترس‌پذیری ','Accessibility ')+String(sc.accessibility)+'/100 · '+
+         tr('بهترین شیوه‌ها ','Best Practices ')+String(sc.bestPractices)+'/100 · '+
+         'SEO '+String(sc.seo)+'/100'));
+       section.append(make('small','Agentic Browsing '+String(record.agenticBrowsing?.passed??'?')+'/'+String(record.agenticBrowsing?.total??'?')+
+          ' · '+tr('داده کاربران واقعی: موجود نیست','Real-user CrUX: No Data')));
+     }
+   }else section.append(make('p',tr('شواهد تصویری معتبر در نسخه منتشرشده موجود نیست.','No attested screenshots have been deployed.')));
+   section.append(make('small',tr('فقط صفحه اصلی در تاریخ گزارش؛ با آزمایش Lighthouse محلی یا خطای ۴۲۹ API قابل یکی‌انگاری نیست.','Homepage on the indicated date only; separate from local Lighthouse and the zero-key API 429 response.')));
+ }
+
 }
 async function load(){
  if(workspace.hidden||!panel.open)return;
  const id=++generation;request?.abort();request=new AbortController();
- document.getElementById('ops-scholar-observation')?.remove();document.getElementById('ops-performance-observation')?.remove();document.getElementById('ops-local-lighthouse-observation')?.remove();list.replaceChildren();status.textContent=tr('در حال دریافت از سرور امن…','Loading from the protected server…');
+ document.getElementById('ops-scholar-observation')?.remove();document.getElementById('ops-performance-observation')?.remove();document.getElementById('ops-local-lighthouse-observation')?.remove();document.getElementById('ops-manual-pagespeed-observation')?.remove();list.replaceChildren();status.textContent=tr('در حال دریافت از سرور امن…','Loading from the protected server…');
  try{
   const response=await fetch('/api/admin/operations/free-resources',{credentials:'same-origin',cache:'no-store',signal:request.signal,headers:{Accept:'application/json'}});
   const data=await response.json();
@@ -88,6 +112,7 @@ async function load(){
   scholarlyObservation=data.scholarlyObservation||{status:'not_collected'};
   performanceObservation=data.performanceObservation||{status:'not_collected'};
   localLighthouseObservation=data.localLighthouseObservation||{status:'not_collected'};
+  manualPagespeedObservation=data.manualPagespeedObservation||{status:'not_collected'};
   const categories=[...new Set(items.map(item=>item.category))];
   select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';
   for(const category of categories){const option=make('option',groups[category]||category);option.value=category;select.append(option);}
