@@ -41,6 +41,29 @@ for(const role of ['reviewers','editors','authors','readers']){
 if(!dashboardJs.includes("setAttribute('aria-selected'")||!dashboardJs.includes("ArrowRight")||!dashboardJs.includes("ArrowLeft"))failures.push('Public dashboard accessible tab controls missing');
 if(['localStorage','sessionStorage','fetch(','XMLHttpRequest','document.cookie'].some(token=>dashboardJs.includes(token)))failures.push('Public dashboard must not persist or transmit private applicant data');
 if(!home.includes('Not yet open')||!read('journal/current/index.html').includes('0 published')) failures.push('Founding-stage publication status misrepresented');
+// Policy parity and documented pre-launch limits for both public journal languages.
+// A translated summary may vary in style, but must not lose substantive author,
+// reviewer, editorial or open-access safeguards required for responsible disclosure.
+const policyParity=[
+ ['ethics/','Confidentiality, AI-assisted review and editorial accountability','محرمانگی داوری و استفادهٔ مسئولانه از هوش مصنوعی'],
+ ['peer-review/','Two independent assessments and evidence-sensitive decisions','دو ارزیابی مستقل و تصمیم‌گیری مبتنی بر شواهد'],
+ ['author-guidelines/','Reporting guidance suited to the study design','الگوهای گزارش‌نویسی متناسب با طرح پژوهش'],
+ ['fees/','Open access is a rights policy, not simply free reading','دسترسی آزاد فراتر از مطالعهٔ رایگان است']
+];
+for(const [slug,enMarker,faMarker] of policyParity){
+ const en=read('journal/'+slug+'index.html'),fa=read('journal/fa/'+slug+'index.html');
+ if(!en.includes(enMarker))failures.push('English scientific policy missing internationally aligned disclosure: '+slug);
+ if(!fa.includes(faMarker))failures.push('Persian scientific policy omits equivalent disclosure: '+slug);
+ if(!en.includes('https://')&&slug==='ethics/')failures.push('Ethics policy omits scholarly practice references');
+ if(!fa.includes('lang="fa" dir="rtl"'))failures.push('Persian policy missing RTL semantics: '+slug);
+}
+for(const lang of ['','fa/']){
+ const ethics=read('journal/'+lang+'ethics/index.html');
+ const peer=read('journal/'+lang+'peer-review/index.html');
+ if(!ethics.includes('doaj.org/apply/guide/'))failures.push('Ethics policy must cite current DOAJ source: '+lang);
+ if(!peer.includes(lang?'دو ارزیابی مستقل':'Two independent assessments'))failures.push('Peer review must explicitly address independence: '+lang);
+}
+
 if(failures.length){
  console.error('JHELA release gate FAILED ('+failures.length+')');
  failures.forEach(item=>console.error('✗ '+item));
