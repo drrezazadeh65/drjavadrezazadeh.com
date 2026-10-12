@@ -35,7 +35,7 @@
   "pendingIncludedInOwnerDeclared100": "NOT_APPLICABLE_OWNER_DECLARED_SELF_TEST",
   "outstandingVerifications": [
     "Owner-declared 100 available copies per book are now visible in the live stock ledger (not independent physical count).",
-    "Verify eight Stage09 table engines and commerce_payment_claims unique indexes from live information_schema before attempting release.",
+    "Verify the two live commerce_payment_claims unique indexes (PRIMARY(provider,transaction_id), uq_payment_order(provider,order_id)) in a complete screenshot; 9/9 engines verified InnoDB.",
     "Do not count or reserve the owner-declared legacy test order as a real pending book sale",
     "Verify gateway/provider state for the historic paid-labelled order before any DB cancellation, payment correction or accounting claim",
     "Do not fabricate Stage09 payment claims for the pre-migration paid non-book order",
@@ -81,8 +81,12 @@
     "additiveStage09TablesVisible": 8,
     "totalTablesVisible": 19,
     "importStatementReport": "15 queries executed; an unqualified trailing SELECT failed because phpMyAdmin selected information_schema. Separate schema-qualified SELECT succeeded.",
-    "allEightTableEnginesAndPaymentClaimUniqueIndexesVerified": "NOT_YET_CHECKED_FROM_LIVE_INFORMATION_SCHEMA",
+    "allEightTableEnginesAndPaymentClaimUniqueIndexesVerified": "ENGINES_VERIFIED_INDEX_COLUMNNAMES_PENDING",
     "actualRecoveryGateProof": "NOT_AVAILABLE_FROM_THIS_SCREENSHOT",
-    "actualBitpaySettlement": "NOT_VERIFIED"
+    "actualBitpaySettlement": "NOT_VERIFIED",
+    "nineRequiredCommerceTablesEngine": "InnoDB",
+    "nineRequiredCommerceTablesEngineSource": "Owner-shared phpMyAdmin information_schema.TABLES screenshot dated 2026-10-13, showing all nine InnoDB rows",
+    "claimIndexesIndexCountObserved": 2,
+    "claimIndexesUniquenessAndColumnsVerified": false
   }
 }
