@@ -52,7 +52,8 @@ function operationsSocialSnapshot(PDO $pdo): array {
         'verifiedStatusAccountRows'=>$counts,
         'deliveryDataStatus'=>$summary===null?'schema_unavailable':'stored_records_only',
         'deliveryRows'=>$summary,
-        'enabledForAutomaticPublication'=>false,
+        'enabledForAutomaticPublication'=>null,
+        'automationStatus'=>'runtime_not_verified',
         'channels'=>$providers,
         'limitations'=>[
             'Social-account records do not independently verify live provider credentials or publication scopes.',
