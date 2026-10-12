@@ -42,3 +42,33 @@ This is a catalog and audit scaffold, **not** 30 installed tools or a new live d
 - Keep all technical evidence scoped to the actual tested SHA and dated source. `PASS` for an offline inventory audit is not live availability or ranking.
 - Avoid parallel implementations of search or analytics engines; check unmerged RAVE proposals against the current PHP/Bertina AWOSE contracts.
 - A new commit on canonical Bertina may naturally put `main` behind. `main` is historical; its divergence after this checkpoint is not a license to reactivate development there.
+
+## 2026-10-12 integration checkpoint — verified current source
+
+**Source checkpoint:** `60d63bbd0cc0aba8384c1d1baeade37e97d55c20`; canonical branch `migration/bertina-linux6`. No other development branch was created. No Bertina production deployment was performed by this work.
+
+### Existing manager dashboard reused
+
+The existing Persian `/fa/app/admin/` and English `/en/account/admin/` operation consoles now include the 30-resource inventory already created in `platform/free-resources-registry.json`. The sole manager API `/api/admin/operations/free-resources` enforces the same server administrator role and fresh MFA as the original operations snapshot. Read-only projection: `scripts/build-public-site.mjs` writes a sanitized inventory under `api/internal/`, which is web-denied; no external provider call occurs on page display. `ENG-13` includes the inventory as **reference only** and never counts it as 30 connected APIs.
+
+### Genuine free-provider observations
+
+1. **Crossref (public DOI metadata):** `scripts/free-scholarly-source-observer.mjs` checks scholarly DOI declarations from `en/publications/index.html`, with fixed HTTPS provider, single-record requests and bounded output. GitHub Actions run [38226885399](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38226885399) found provider metadata for **2 of 2** DOI records. A later verified run recorded timestamp `2026-10-12T09:03:00.038Z` in `api/internal/free-scholar-observation.json`. Publisher/title claims remain provider data, not independent authorship or citation certification.
+2. **Google PageSpeed Insights mobile lab (keyless free API):** `scripts/free-performance-observer.mjs` checks `/fa/` and `/en/` with mobile strategy. GitHub Actions run [38228019916](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38228019916) observed **two HTTP 429 throttling responses**. `api/internal/free-performance-observation.json` honestly stores unavailable measurements and **no fabricated Lighthouse score**. This is not evidence of poor site performance.
+
+Both datasets are exposed within the **same authenticated manager directory** and via the existing `ENG-13` JSON report. Missing, stale, invalid, and rate-limited data must remain distinguishable. The manager frontend removes observations on lock/MFA expiry. The PHP reader is read-only.
+
+### Automatic checks without automatic source mutation
+
+`.github/workflows/free-scholarly-observation.yml` runs weekly and on manual dispatch; `.github/workflows/free-performance-observation.yml` runs weekly and on manual dispatch. Both are **read-only**, use only public sources, require no paid API/credential, and retain evidence as private-access GitHub Actions artifacts for 14 days. Importing new observations into the canonical source is a **separate reviewed, authorized step** so the repository-wide `scripts/workflow-governance-audit.mjs` prohibition on source-writing CI is not bypassed. A prior short-lived auto-commit workflow was corrected and removed; do not reintroduce it.
+
+### Regression evidence and outstanding requirements
+
+- [Bertina Master SEO Audit](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38228410438): PASS.
+- [SEO/GEO Regression](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38228410560): PASS.
+- [Operations Control Center QA](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38228410436): PASS, including privileged access, mobile view and absent numeric score on throttling.
+- Existing payments, registration, URLs, canonical/hreflang, image library, MySQL, GA4-disabled state, consent boundaries and Bertina deployment were **not changed**.
+
+**Not yet complete:** production Bertina deployment of this source; sustained no-cost reporting connectors for other providers; independent PageSpeed lab data while keyless access returns 429; GSC/GA4/Bing provider OAuth in the Bertina backend; automated evidence ingestion into production without weakening private roles or repository write controls. Do not claim a fully operational 30-source analyzer or 100% production readiness.
+
+**Next nonduplicative step:** use existing `ENG-01/02/03/11` and `ENG-13` to adapt one eligible free read-only provider at a time, prioritizing CrUX/public scholarly APIs and reusing already scheduled SEO/link/uptime audits. Preserve all provider timestamps, provenance, expiration and failures. Route actual site fixes through AWOSE review and release acceptance tests; do not change production on analysis alone.
