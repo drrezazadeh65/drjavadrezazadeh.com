@@ -38,6 +38,8 @@ requireSource(paymentStart,'btn.setAttribute("rel","noopener noreferrer")','paym
 requireSource(paymentStart,'params.getAll("gateway").length!==1','payment handoff must reject duplicate gateway values');
 
 // Execute the active PHP status route on in-memory fixtures, never a live order.
+const access=spawnSync('php',['tests/bertina-receipt-access.php'],{encoding:'utf8'});
+if(access.status!==0)failures.push('Guest receipt access proof tests failed: '+(access.error?.message||access.stderr||access.stdout));
 const result=spawnSync('php',['tests/bertina-receipt-contract.php'],{encoding:'utf8'});
 if(result.error||result.status!==0){
  failures.push('Bertina receipt fixture tests failed: '+(result.error?.message||result.stderr||result.stdout));

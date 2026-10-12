@@ -26,6 +26,7 @@ function validUuid(string $id): bool {
 }
 function validEmail(string $email): bool { return false; }
 function mailReady(): bool { return false; }
+function commerceReceiptAuthorized(string $id): bool { return $GLOBALS['receiptAccessAllowed']??false; }
 function commerceReturnToResult(string $orderId): never {
     throw new CommerceReturn('/fa/shop/payment-result/?from=gateway&order='.$orderId);
 }
@@ -105,6 +106,7 @@ try {
     verify($GLOBALS['gatewayCalls']===1,'success_verified_once');
     $firstPaidAt=$row['paid_at'];
 
+    $GLOBALS['receiptAccessAllowed']=true;
     $receipt=statusFor($order);
     verify(($receipt['ok']??false)===true&&($receipt['state']??'')==='paid','real_mysql_status_reports_paid');
     verify(($receipt['receipt']['amountToman']??0)===2000000&&

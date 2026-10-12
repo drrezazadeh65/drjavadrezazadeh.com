@@ -15,6 +15,7 @@ final class ReceiptRows {
     public function fetch(): array { return $GLOBALS['fixture']; }
 }
 function db(): ReceiptRows { return new ReceiptRows(); }
+function commerceReceiptAuthorized(string $id): bool { return $GLOBALS['receiptAccessAllowed']??false; }
 
 $source=file_get_contents(__DIR__.'/../api/index.php');
 $start=strpos($source,"if(\$path==='/commerce/status'&&\$verb==='GET')");
@@ -31,6 +32,7 @@ $base=[
 function checkCase(string $name,array $row,int $expectedStatus,?string $expectedError=null): array {
     global $route,$order;
     $GLOBALS['fixture']=$row;
+    $GLOBALS['receiptAccessAllowed']=$GLOBALS['nextAccessAllowed']??true;
     $path='/commerce/status';$verb='GET';$_GET=['order'=>$order];
     try { eval($route); throw new RuntimeException('Route returned without response'); }
     catch(ReceiptResponse $response){
@@ -41,6 +43,10 @@ function checkCase(string $name,array $row,int $expectedStatus,?string $expected
     }
 }
 
+$GLOBALS['nextAccessAllowed']=false;
+checkCase('foreign browser paid receipt denied',$base,403,'receipt_access_required');
+checkCase('foreign browser pending order denied',array_replace($base,['state'=>'created']),403,'receipt_access_required');
+$GLOBALS['nextAccessAllowed']=true;
 $paid=checkCase('valid verified receipt',$base,200);
 if($paid['receipt']['amountToman']!==2000000||$paid['receipt']['orderId']!==$order)throw new RuntimeException('Receipt totals/identity changed');
 foreach(['provider_id_get','provider_trans_id','customer_email','customer_json','factor_id'] as $private){
