@@ -167,6 +167,32 @@ try{
       failures.push(child+': sitemap fetch failed: '+e.message);
     }
   }
+  // Report source versus production discovery parity without conflating an
+  // unpublished source URL with a live HTTP failure or Google indexing state.
+  // The canonical source may legitimately be ahead of Bertina during recovery.
+  try{
+    const fs=await import('node:fs');
+    const readLocs=xml=>[...xml.matchAll(/<loc>([^<]+)<\\/loc>/g)].map(m=>m[1].trim());
+    const sourceIndex=fs.readFileSync('sitemap.xml','utf8');
+    const childNames=readLocs(sourceIndex).filter(u=>u.startsWith(ORIGIN+'/')).map(u=>u.slice(ORIGIN.length+1));
+    const expected=[];
+    for(const name of childNames){
+      if(!/^[a-z0-9-]+\\.xml$/.test(name)||!fs.existsSync(name)) continue;
+      expected.push(...readLocs(fs.readFileSync(name,'utf8')).filter(u=>u.startsWith(ORIGIN+'/')));
+    }
+    const sourceUrls=[...new Set(expected)];
+    const liveSet=new Set(pageUrls),sourceSet=new Set(sourceUrls);
+    const missingLive=sourceUrls.filter(u=>!liveSet.has(u));
+    const liveOnly=[...liveSet].filter(u=>!sourceSet.has(u));
+    const report={sourceUrls:sourceUrls.length,liveUrls:liveSet.size,
+      sourceNotYetInLiveSitemap:missingLive.length,liveOnlyUrls:liveOnly.length,
+      sampleSourceOnly:missingLive.slice(0,15),
+      note:'Source versus live discovery, not 404/indexing proof. Deployment is gated separately.'};
+    console.log('Source/live sitemap discovery parity: '+JSON.stringify(report));
+    if(missingLive.length) warnings.push('Unpublished source sitemap URLs: '+missingLive.length+'; live revision may be behind source');
+  }catch(e){
+    warnings.push('Source/live sitemap comparison unavailable: '+e.message);
+  }
   const unique=[...new Set(pageUrls)];
   const concurrency=8;
   let index=0;
