@@ -562,7 +562,9 @@ if($path==='/commerce/history'&&$verb==='GET'){
             &&($row['currency']??'')==='IRT'
             &&!empty($row['paid_at'])
             &&!empty($row['provider_id_get'])
-            &&!empty($row['provider_trans_id']);
+            &&!empty($row['provider_trans_id'])
+            &&count($safeItems)===count($items) &&count($safeItems)>0
+            &&array_sum(array_column($safeItems,'subtotalToman'))===(int)$row['amount_toman'];
         $orders[]=[
             'id'=>(string)$row['id'],
             'state'=>(string)$row['state'],
