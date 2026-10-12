@@ -6,11 +6,17 @@ on:
     paths:
       - api/operations.php
       - api/operations-social.php
+      - api/social-admin-settings.php
+      - api/social-review.php
+      - api/social-queue.php
       - api/index.php
       - fa/app/admin/index.html
       - en/account/admin/index.html
       - assets/js/operations-social.js
       - assets/js/operations-social-composer.js
+      - assets/js/operations-social-review.js
+      - assets/js/operations-social-settings.js
+      - assets/css/operations-social-settings.css
       - platform/social-distribution/admin-boundary.test.mjs
       - .github/workflows/social-admin-boundary.yml
   workflow_dispatch:
@@ -30,9 +36,14 @@ jobs:
           php -l api/index.php
           php -l api/operations.php
           php -l api/operations-social.php
+          php -l api/social-review.php
+          php -l api/social-queue.php
+          php -l api/social-admin-settings.php
       - name: Browser script syntax
         run: |
           node --check assets/js/operations-social.js
           node --check assets/js/operations-social-composer.js
+          node --check assets/js/operations-social-review.js
+          node --check assets/js/operations-social-settings.js
       - name: Admin MFA boundary and UI assertions
         run: node --test platform/social-distribution/admin-boundary.test.mjs
