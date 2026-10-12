@@ -10,6 +10,9 @@ on:
       - 'scripts/stamp-bertina-release.mjs'
       - 'scripts/v5-ecosystem-integrity-audit.mjs'
       - '.github/workflows/deploy-bertina.yml'
+      - 'scripts/bertina-controlled-cpanel-gate.php'
+      - 'tests/bertina-controlled-cpanel-gate.php'
+      - 'tests/bertina-release-assembly.py'
       - 'api/**'
       - 'assets/**'
       - 'fa/**'
@@ -58,6 +61,7 @@ jobs:
         run: |
           python3 tests/bertina-release-assembly.py
           php tests/bertina-private-recovery-gate.php
+          php tests/bertina-controlled-cpanel-gate.php
           python3 tests/test_bertina_commerce_migration_guard.py
       - name: Validate source governance and all v5 workstreams
         run: |
@@ -77,6 +81,7 @@ jobs:
       - name: Summary of test scope
         run: |
           echo 'PASS means isolated CI only. No real Bertina migration, payment, email, physical stock or OJS intake.'
+          echo 'Controlled cPanel custody does not establish independent isolated restore; exact owner and target SHA required on manual deployment.'
           echo 'DO NOT treat this job as recovery sign-off or permission to bypass any production gate.'
 
   browser:
