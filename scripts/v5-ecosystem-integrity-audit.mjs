@@ -86,12 +86,12 @@ verify('commerce: private financial facts remain explicitly unknown',
     'bitpay_bank_settlement_reconciliation'].every(k=>dep.facts?.[k]?.status==='unknown') &&
   dep.production?.monetaryReleaseAuthorized===false &&
   dep.production?.schemaMigrationAuthorized===false);
-verify('journal: isolated bilingual sitemap includes only real public URLs',()=>{
+verify('journal: isolated bilingual sitemap includes only real public URLs',(()=>{
   const locs=[...journalMap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(x=>x[1]);
   return locs.length===24 && distinct(locs) &&
     locs.every(x=>x.startsWith('https://drjavadrezazadeh.com/journal/')) &&
     !locs.some(x=>/\/(?:submission|login|register|account|dashboard|payment)\//.test(x));
-}());
+})());
 verify('journal: no false live OJS / submission / publishing claims',
   journal.ojsInstalled===false && journal.publicSubmissionsEnabled===false &&
   journal.realReviewEndToEndConfirmed===false && journal.doiAssigned===false &&
