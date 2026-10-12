@@ -59,5 +59,13 @@ check($local['measuredPages']===2,'Local Lighthouse did not retain both language
 check($local['results'][0]['route']==='/fa/'&&$local['results'][1]['route']==='/en/','Local language targets changed.');
 foreach($local['results'] as $result){
     check(is_int($result['localLabScore'])&&$result['localLabScore']>=0&&$result['localLabScore']<=100,'Non-numeric/invalid local lab score entered manager reporting.');
+    foreach(['performance','accessibility','seo','best-practices'] as $category){
+        $n=$result['categoryScores'][$category]??null;
+        check(is_int($n)&&$n>=0&&$n<=100,'Local Lighthouse category not safely projected: '.$category);
+    }
+    foreach(['fcpMs','lcpMs','tbtMs','cls'] as $metric){
+        $n=$result['labMetrics'][$metric]??null;
+        check(is_numeric($n)&&$n>=0&&$n<=($metric==='cls'?1:250000),'Invalid local Lighthouse laboratory metric: '.$metric);
+    }
 }
 echo "Reporting assertions: $assertions passed\n";
