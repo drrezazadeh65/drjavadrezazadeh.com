@@ -23,7 +23,22 @@ body = body.replace('\\$', '$')
 assert body.count('function drjrRecoveryCheck(') == 1
 assert body.count('drjrRecoveryCheck(__DIR__') == 1
 assert body.index('drjrRecoveryCheck(__DIR__') < body.index('->extractTo(__DIR__)')
+# Source checkout now requires Stage09's eight additive tables, authoritative
+# payment uniqueness and legacy order columns. Never replace existing live
+# storefront PHP until DB compatibility is observed AFTER signed recovery.
 assert "verified_private_recovery_required" in body
+assert "stage09_schema_preflight_required" in body
+assert body.count("stage09_schema_preflight_required") == 1
+assert body.index('drjrRecoveryCheck(__DIR__') < body.index("SHOW COLUMNS FROM commerce_orders")
+assert body.index("SHOW COLUMNS FROM commerce_orders") < body.index("->extractTo(__DIR__)")
+assert body.index("SHOW INDEX FROM commerce_payment_claims") < body.index("->extractTo(__DIR__)")
+for table in [
+    "commerce_book_stock", "commerce_book_reservations",
+    "commerce_stock_movements", "commerce_payment_claims", "commerce_outbox",
+    "commerce_service_cases", "commerce_parcels", "commerce_refund_requests",
+]:
+    assert table in body, f"Missing gated table: {table}"
+assert "uq_payment_order" in body
 with tempfile.TemporaryDirectory(prefix='drjr-deploy-assembly-') as folder:
     candidate = Path(folder) / 'deploy.php'
     candidate.write_text(body)
