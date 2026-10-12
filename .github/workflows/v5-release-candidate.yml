@@ -23,6 +23,7 @@ on:
       - 'tests/stage09-commerce-atomic.php'
       - 'tests/stage09-mysql.php'
       - 'tests/bertina-commerce-mysql-contract.php'
+      - 'tests/bertina-donations-mysql-contract.php'
       - 'tests/operations-browser.spec.js'
       - 'sitemap*.xml'
       - 'sw.js'
@@ -69,16 +70,38 @@ jobs:
           node scripts/v5-ecosystem-integrity-audit.mjs
           node scripts/workflow-governance-audit.mjs
           node scripts/seo-regression.mjs
-      - name: Exercise API, transaction, order/shipping and admin in isolated MySQL
+      - name: Exercise EXACT full deployment API and MySQL preflight before any FTP release
+        env:
+          OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
+          OPERATIONS_TEST_USER: root
+          OPERATIONS_TEST_PASSWORD: fixture-password
         run: |
           set -euo pipefail
+          node scripts/operations-registry-audit.mjs
+          python3 scripts/operations-canonical-registry.py api/internal/operations-registry.json --validate-only --identity-manifest api/internal/operations-action-identities-v1.json
+          python3 tests/operations-canonical-registry.py
+          php tests/operations-reporting.php
           for file in api/*.php; do php -l "$file"; done
+          php tests/bertina-smtp-body-contract.php
+          php tests/bertina-service-buyer-contact.php
+          node --check assets/js/commerce-checkout.js
+          node tests/bertina-service-contact-checkout.mjs
           php tests/operations-security.php
-          php tests/stage09-commerce-atomic.php
           php tests/operations-mysql.php
-          php tests/stage09-mysql.php
+          node --check assets/js/operations-social.js
+          node --check assets/js/operations-social-composer.js
+          node --test platform/social-distribution/*.test.mjs
+          # Only isolated CI MySQL 8. Never connect to the live Bertina database.
+          php -r '$pdo=new PDO("mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4","root","fixture-password"); $pdo->exec("CREATE DATABASE IF NOT EXISTS social_fixture CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");'
+          SOCIAL_TEST_DSN='mysql:host=127.0.0.1;port=3306;dbname=social_fixture;charset=utf8mb4' SOCIAL_TEST_USER=root SOCIAL_TEST_PASSWORD=fixture-password php tests/social-queue-mysql.php
+          php tests/bertina-receipt-access.php
+          php tests/bertina-receipt-contract.php
           php tests/bertina-commerce-callback-contract.php
           php tests/bertina-commerce-mysql-contract.php
+          php tests/bertina-donations-mysql-contract.php
+          php tests/bertina-student-support-contract.php
+          php -l scripts/journal-ojs-preflight.php
+          php -l tests/journal-ojs-preflight.php
           php tests/journal-ojs-preflight.php
       - name: Summary of test scope
         run: |
