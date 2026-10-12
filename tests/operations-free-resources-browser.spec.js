@@ -99,3 +99,27 @@ test('quota-limited mobile observation never fabricates a PageSpeed score',async
  await page.locator('#ops-free-resources summary').click();
  await expect(page.locator('#ops-performance-observation')).toHaveCount(0);
 });
+
+test('local lab categories are distinctly labelled and do not imply live speed',async({page})=>{
+ const snapshot=require('../api/internal/free-local-lighthouse-observation.json');
+ await page.route('**/api/admin/operations**',route=>{
+  const url=new URL(route.request().url());
+  if(url.pathname.endsWith('/session'))return route.fulfill({json:{ok:true,mfaRequired:false,csrfToken:'c'.repeat(64),mfaExpiresIn:600}});
+  if(url.pathname.endsWith('/free-resources'))return route.fulfill({json:{ok:true,schema:'operations-free-resources-v1',
+   verifiedExternalConnections:0,
+   localLighthouseObservation:{status:'observed',observedAt:snapshot.observedAt,measuredPages:2,
+    results:snapshot.records.map(rec=>({route:rec.route,status:'observed',localLabScore:rec.score.performance,
+     categoryScores:rec.score,labMetrics:rec.lab,reason:null}))},
+   resources:freeRegistry.resources.map(r=>({id:r.id,name:r.name,url:r.official_url,category:r.category,
+    ownerEngine:r.owner_engine,accessPath:r.access_path,purpose:r.purpose,connection:r.external_connection,automatedDataInUse:false}))}});
+  return route.fulfill({json:fixture()});
+ });
+ await page.goto(base+'/en/account/admin/');
+ await page.locator('#ops-free-resources summary').click();
+ await expect(page.locator('#ops-local-lighthouse-observation')).toContainText('Performance 98/100');
+ await expect(page.locator('#ops-local-lighthouse-observation')).toContainText('Accessibility 100/100');
+ await expect(page.locator('#ops-local-lighthouse-observation')).toContainText('LCP 1.73s');
+ await expect(page.locator('#ops-local-lighthouse-observation')).toContainText('local static build');
+ await page.evaluate(()=>document.getElementById('ops-workspace').hidden=true);
+ await expect(page.locator('#ops-local-lighthouse-observation')).toHaveCount(0);
+});
