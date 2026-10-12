@@ -1,0 +1,59 @@
+{
+  "schema": "free-manual-pagespeed-observation-v1",
+  "provider": "Google PageSpeed Insights",
+  "sourceMethod": "user_supplied_screenshot_transcription",
+  "sourceVerification": "screenshot_reviewed_in_chat_not_independently_link_verified",
+  "sourceFilesStoredInRepository": false,
+  "runDate": "2026-10-12",
+  "displayedReportTime": "Oct 12, 2026, 12:18:30 PM (timezone unspecified)",
+  "targetUrl": "https://drjavadrezazadeh.com/",
+  "scope": "Production origin homepage only; Lighthouse lab results reported in the PageSpeed Insights UI; no CrUX real-user data",
+  "records": [
+    {
+      "device": "mobile",
+      "labScores": {
+        "performance": 99,
+        "accessibility": 100,
+        "bestPractices": 96,
+        "seo": 100
+      },
+      "agenticBrowsing": {
+        "passed": 3,
+        "total": 3
+      },
+      "realUserFieldData": "No Data",
+      "imageEvidence": {
+        "originalFilename": "image(20261012-092108).png",
+        "sha256": "0408ec32194c8f637cc2f3743aed47b00377717ee97d349b04c97fba51bcaed0",
+        "widthPx": 1709,
+        "heightPx": 889
+      }
+    },
+    {
+      "device": "desktop",
+      "labScores": {
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 96,
+        "seo": 100
+      },
+      "agenticBrowsing": {
+        "passed": 3,
+        "total": 3
+      },
+      "realUserFieldData": "No Data",
+      "imageEvidence": {
+        "originalFilename": "image(20261012-092105).png",
+        "sha256": "805d8dfe0bb452f755123764e5593cc0706926ff0f5deb7163f271825efc1309",
+        "widthPx": 1859,
+        "heightPx": 883
+      }
+    }
+  ],
+  "sourceSeparation": {
+    "zeroKeyApiObservation": "api/internal/free-performance-observation.json",
+    "localLighthouseObservation": "api/internal/free-local-lighthouse-observation.json",
+    "notToBeCombinedAsEquivalentMeasurements": true
+  },
+  "limitation": "Owner-supplied UI screenshots, not verified API data. Images are not committed to this repository; SHA-256 identifies original uploads if preserved. The displayed No Data section means no real-user CrUX measurements are provided, not zero traffic. Scores describe the single homepage and date only. No URL to an independently verifiable PageSpeed report was supplied."
+}
