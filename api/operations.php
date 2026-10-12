@@ -329,7 +329,8 @@ function operationsRoute(string $path, string $verb): never {
                 'automatedDataInUse'=>false,'resources'=>$catalogue['resources'],
                 'scholarlyObservation'=>operationsFreeScholarlyObservation(),
                 'performanceObservation'=>operationsFreePerformanceObservation(),
-                'localLighthouseObservation'=>operationsLocalLighthouseObservation()]);
+                'localLighthouseObservation'=>operationsLocalLighthouseObservation(),
+                'manualPagespeedObservation'=>operationsManualPagespeedObservation()]);
         }
         if ($path === '/admin/operations' && $verb === 'GET') {
             $at=nowTs();$snapshot=operationsSnapshot($pdo,$at);
