@@ -125,4 +125,31 @@ socialCheck((int)$pdo->query('SELECT COUNT(*) FROM social_audit')->fetchColumn()
  'insufficient append-only audit entries');
 socialCheck((int)$pdo->query('SELECT COUNT(*) FROM social_metrics')->fetchColumn()===0,
  'fabricated platform analytics');
+require __DIR__.'/../api/operations-social.php';
+$snapshot=operationsSocialSnapshot($pdo);
+socialCheck($snapshot['ok']===true && $snapshot['schema']==='operations-social-readiness-v1',
+ 'protected reporting snapshot invalid');
+socialCheck(($snapshot['deliveryRows']['confirmedRecords']??null)===2,
+ 'report invented or lost confirmed provider receipts');
+socialCheck(($snapshot['deliveryRows']['uncertain']??null)===1,
+ 'uncertain delivery not visible to the administrator');
+socialCheck(is_array($snapshot['recentDeliveries']) &&
+ count($snapshot['recentDeliveries'])>=5,'recent receipts missing');
+socialCheck($snapshot['recentMetrics']===[],'absent provider metrics became fake observations');
+socialCheck($snapshot['enabledForAutomaticPublication']===null &&
+ $snapshot['automationStatus']==='runtime_not_verified',
+ 'live runtime was incorrectly certified');
+$metrics=$pdo->prepare("INSERT INTO social_metrics
+ (delivery_id,observed_at,source,clicks,engagements)
+ VALUES(?,?,?,NULL,?)");
+$metrics->execute([$telegram,$now+200,'telegram_authorized_metric',5]);
+$snapshot=operationsSocialSnapshot($pdo);
+socialCheck(count($snapshot['recentMetrics'])===1 &&
+ $snapshot['recentMetrics'][0]['clicks']===null &&
+ $snapshot['recentMetrics'][0]['engagements']===5,
+ 'missing clicks were converted to fabricated zero');
+socialCheck(!str_contains(json_encode($snapshot),'fixture-password') &&
+ !str_contains(json_encode($snapshot),'secret_reference'),
+ 'status route leaked infrastructure credentials');
+
 echo 'PASS: '.$checks.' isolated MySQL Stage 13 transactional queue checks; zero provider sends.'.PHP_EOL;
