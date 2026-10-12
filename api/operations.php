@@ -359,6 +359,10 @@ function operationsRoute(string $path, string $verb): never {
         }
 
         if ($path === '/admin/operations/github-audits' && $verb === 'GET') {
+            // Four external provider requests per inspection; per-owner throttle
+            // prevents exhausting the public GitHub API or occupying PHP workers.
+            if(!rateAllowed($pdo,'operations_github_audit_read',$accountId,6,600))
+                fail('rate_limited',429);
             // A real workflow status is sourced from GitHub, never a browser-provided number.
             $source=operationsGithubAuditSnapshot(operationsRegistry());
             $super=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
@@ -366,6 +370,7 @@ function operationsRoute(string $path, string $verb): never {
                 && operationsGithubDispatchToken($configuration)!==null
                 && function_exists('curl_init');
             $source['summary']['dispatchReady']=$ready;
+            $source['summary']['providerPermissionVerified']=null; // A configured credential is not a tested GitHub grant.
             $source['summary']['canReconcile']=$super&&operationsActionRunsReady($pdo);
             $history=operationsActionRunsReady($pdo)?operationsActionHistory($pdo,$accountId,nowTs()):[];
             $source['ownerSubmissions']=operationsGithubCorrelatedRuns($source['audits'],$history);
