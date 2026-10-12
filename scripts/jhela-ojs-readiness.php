@@ -28,6 +28,17 @@ if($runtime){
     $pp=$private!==''?realpath($private):false;
     $check('dedicated_ojs_document_root',is_string($rp)&&is_dir($rp)&&is_readable($rp));
     $check('private_files_directory_exists',is_string($pp)&&is_dir($pp)&&is_writable($pp));
+    // Prove a real installed PKP application, not a hand-written imitation.
+    $ojsRoot=is_string($rp)?$rp:'';
+    $config=$ojsRoot!==''?$ojsRoot.'/config.inc.php':'';
+    $check('official_ojs_application_files',$ojsRoot!==''&&is_file($ojsRoot.'/index.php')&&
+      is_dir($ojsRoot.'/lib/pkp')&&is_file($config));
+    $installed=false;
+    if($config!==''&&is_file($config)&&is_readable($config)){
+       $raw=@file_get_contents($config);
+       $installed=is_string($raw)&&preg_match('/^\\s*installed\\s*=\\s*(?:On|true|1)\\s*$/im',$raw)===1;
+    }
+    $check('ojs_install_completed',$installed);
     $overlap=is_string($rp)&&is_string($pp)&&
         (str_starts_with($pp,rtrim($rp,DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR)||$rp===$pp);
     $check('submission_files_outside_webroot',is_string($rp)&&is_string($pp)&&!$overlap);
@@ -43,8 +54,13 @@ if($runtime){
             ]);
             $db->query('SELECT 1')->fetchColumn();
             $check('database_connectivity',true);
+            try{
+               $db->query('SELECT major, minor FROM versions LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+               $db->query('SELECT journal_id FROM journals LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+               $check('native_ojs_schema_present',true);
+            }catch(Throwable $e){$check('native_ojs_schema_present',false);}
         }catch(Throwable $e){$check('database_connectivity',false);}
-    }else{$check('database_connectivity',false);}
+    }else{$check('database_connectivity',false);$check('native_ojs_schema_present',false);}
     $check('live_dns_tls_owner_verification',(getenv('JHELA_OJS_TLS_CERTIFIED')?:'')==='true',
       'Requires separate CA-trusted hostname+certificate evidence, not curl -k');
     $check('independent_restore_proof',(getenv('JHELA_OJS_RESTORE_VERIFIED')?:'')==='true',
