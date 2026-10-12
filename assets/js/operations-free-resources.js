@@ -11,7 +11,7 @@ const groups={GROWTH:tr('رشد و بازاریابی','Growth and marketing'),T
 const access={MANUAL_REFERENCE:tr('بررسی دستی','Manual reference'),READ_API_CANDIDATE:tr('API قابل بررسی؛ نامتصل','API candidate; not connected'),CI_OPEN_SOURCE_CANDIDATE:tr('متن‌باز؛ نیازمند نصب کنترل‌شده','Open-source; approved installation needed'),ACCOUNT_SETUP_REQUIRED:tr('نیازمند حساب و مجوز','Account authorization required'),CONDITIONAL_ELIGIBILITY:tr('وابسته به شرایط ارائه‌دهنده','Provider eligibility required')};
 let items=null,scholarlyObservation=null,request=null,generation=0;
 const make=(tag,txt,cls)=>{const node=document.createElement(tag);if(txt!==undefined)node.textContent=txt;if(cls)node.className=cls;return node;};
-function reset(){generation++;request?.abort();request=null;items=null;scholarlyObservation=null;list.replaceChildren();status.textContent='';select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';}
+function reset(){generation++;request?.abort();request=null;items=null;scholarlyObservation=null;document.getElementById('ops-scholar-observation')?.remove();list.replaceChildren();status.textContent='';select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';}
 function draw(){
  if(!items)return;list.replaceChildren();
  const category=select.value,shown=items.filter(item=>!category||item.category===category);
@@ -45,7 +45,7 @@ function draw(){
 async function load(){
  if(workspace.hidden||!panel.open)return;
  const id=++generation;request?.abort();request=new AbortController();
- list.replaceChildren();status.textContent=tr('در حال دریافت از سرور امن…','Loading from the protected server…');
+ document.getElementById('ops-scholar-observation')?.remove();list.replaceChildren();status.textContent=tr('در حال دریافت از سرور امن…','Loading from the protected server…');
  try{
   const response=await fetch('/api/admin/operations/free-resources',{credentials:'same-origin',cache:'no-store',signal:request.signal,headers:{Accept:'application/json'}});
   const data=await response.json();
