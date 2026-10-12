@@ -23,7 +23,8 @@ const cut=(s,n)=>{
 };
 const publicCanonical=uri=>{
  const u=new URL(uri);
- if(u.origin!==ORIGIN||!/^\/(?:fa|en)\/[^?#]+/.test(u.pathname)||u.username||u.password)
+ if(u.origin!==ORIGIN||!/^\/(?:fa|en)\/[^?#]+/.test(u.pathname)||u.username||u.password||u.search||u.hash
+  ||/^\/(?:fa|en)\/(?:app|account|customer-dashboard|login|signup|register|checkout|payment-result)(?:\/|$)/i.test(u.pathname))
   throw Error('Only canonical released site content is eligible');
  return u.origin+u.pathname;
 };
