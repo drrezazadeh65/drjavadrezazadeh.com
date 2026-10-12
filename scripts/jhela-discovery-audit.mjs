@@ -56,7 +56,7 @@ for(const route of journalRoutes){
  const url=base+route,file=route.slice(1)+'index.html';
  if(!locSet.has(url))failures.push('Released JHELA page missing from its own sitemap: '+route);
  if(route.startsWith('/journal/fa/')){
-   if(!/<html\\b[^>]*lang="fa"[^>]*dir="rtl"/.test(read(file))) failures.push('Persian JHELA document missing semantic RTL '+route);
+   if(!read(file).includes('<html lang="fa" dir="rtl">')) failures.push('Persian JHELA document missing semantic RTL '+route);
    const counterpart=base+route.replace('/journal/fa/','/journal/');
    if(!read(file).includes('hreflang="en" href="'+counterpart+'"'))failures.push('Persian JHELA language alternate absent '+route);
  }
