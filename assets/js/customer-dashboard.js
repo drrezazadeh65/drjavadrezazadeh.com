@@ -308,8 +308,8 @@ function serviceMarketplace(runtime,authenticated){
  };
  const apply=data=>{
   services=(data?.services||[]).filter(s=>s.sellable===true&&Number.isSafeInteger(s.price)&&typeof s.id==='string');
-  purchaseReady=runtime?.commerceReady===true&&authenticated===true;
-  if(status)status.textContent=purchaseReady?(lang==='fa'?'خرید مستقیم از همین داشبورد آماده است؛ پس از خرید تأییدشده، دسترسی خدمت به حساب شما متصل می‌شود.':'Direct checkout is ready; verified purchases attach to this account.'):(lang==='fa'?'همه خدمات قابل مشاهده‌اند؛ خرید امن پس از آماده‌شدن کامل حساب و درگاه از همین مسیر انجام می‌شود.':'The catalogue is visible; secure checkout activates when account and gateway readiness are confirmed.');
+  purchaseReady=runtime?.commerceReady===true&&runtime?.commerce?.data?.capabilities?.services===true&&authenticated===true;
+  if(status)status.textContent=purchaseReady?(lang==='fa'?'مسیر پرداخت این خدمت فعال است؛ تخصیص نوبت و تحویل فقط پس از تأیید جداگانه انجام می‌شود.':'This service checkout can start; booking and delivery require separate verification.'):(lang==='fa'?'همه خدمات قابل مشاهده‌اند؛ خرید امن پس از آماده‌شدن کامل حساب و درگاه از همین مسیر انجام می‌شود.':'The catalogue is visible; secure checkout activates when account and gateway readiness are confirmed.');
   render();
  };
  if(runtime?.catalog?.ok)apply(runtime.catalog.data);
