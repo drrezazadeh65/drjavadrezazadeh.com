@@ -42,7 +42,8 @@ export function isSafeUrl(value){
   try{
     const u=new URL(value);
     return u.origin===ORIGIN && /^\/(?:fa|en)\/[^\s]*\/?$/.test(u.pathname)
-      && !u.username && !u.password && !u.hash;
+      && !u.username && !u.password && !u.hash && !u.search
+      && !/^\/(?:fa|en)\/(?:app|account|customer-dashboard|login|signup|register|checkout|payment-result)(?:\/|$)/i.test(u.pathname);
   }catch{return false;}
 }
 function canonical(url){const u=new URL(url);return u.origin+u.pathname;}
