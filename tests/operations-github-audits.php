@@ -36,6 +36,15 @@ assertAudit(count($rows)===1,'Untrusted API result not rejected');
 assertAudit($rows[0]['sourceSha']===str_repeat('a',40),'Wrong observed source sha');
 assertAudit($rows[0]['conclusion']==='success','Wrong observed conclusion');
 assertAudit($rows[0]['url']===$repo.'38275309852','Wrong CI run URL');
+
+$inconsistent=operationsGithubAuditProject(['workflow_runs'=>[
+ array_merge($valid,['id'=>38275309821])
+]],'bertina-master-seo.yml');
+assertAudit($inconsistent===[],'GitHub run ID and official link mismatch wrongly accepted');
+$zeroRun=operationsGithubAuditProject(['workflow_runs'=>[
+ array_merge($valid,['id'=>0])
+]],'bertina-master-seo.yml');
+assertAudit($zeroRun===[],'Zero GitHub run ID accepted as evidence');
 $empty=operationsGithubAuditProject(['workflow_runs'=>[array_merge($valid,['head_sha'=>'fake'])]],'bertina-master-seo.yml');
 assertAudit($empty===[],'Malformed SHA accepted');
 $bad=operationsGithubAuditFetch('deploy-bertina.yml');
