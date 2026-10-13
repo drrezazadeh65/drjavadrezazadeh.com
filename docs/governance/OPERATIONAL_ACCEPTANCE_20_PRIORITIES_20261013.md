@@ -1,0 +1,56 @@
+# Operational acceptance ledger — 2026-10-13
+
+**Evidence date:** 2026-10-13 UTC. **Status:** OPEN; no global production acceptance. This dated superseding observation does not erase 2026-10-12 evidence. **Source:** `drrezazadeh65/drjavadrezazadeh.com`, branch `migration/bertina-linux6`, observed HEAD `be017bbfc3169bbd8b2855ee66aced1aa0c1cf9a` before creating this ledger. Never interpret a source CI pass as proof of Bertina deployment. No owner personal data, secret, bank records or credentials are included.
+
+## P0 source / CI / deployment, verified 2026-10-13
+
+- GitHub default/canonical branch: `migration/bertina-linux6` (branch endpoint and repository metadata).
+- Current observed source SHA **before this evidence-only commit**: `be017bbfc3169bbd8b2855ee66aced1aa0c1cf9a`; merge PR #69, 2026-10-13 10:40:43 UTC.
+- At that SHA, CI: ecosystem integrity SUCCESS [38385010202](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38385010202); v5 non-deploying candidate SUCCESS [38385010188](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38385010188); Master SEO SUCCESS [38385010215](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38385010215); SEO/GEO SUCCESS [38385010132](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38385010132); migration preflight SUCCESS [38385010248](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38385010248); isolated restore **readiness CI** SUCCESS [38385010238](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38385010238) (not an independent live backup restoration).
+- Automatic Bertina deployment **FAILED** [38385010181](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38385010181), step `Restrict automatic releases to public site changes`: **`Automatic production release blocked by protected change: tests/bilingual-home-experience-regression.mjs`**. Extraction and upload did NOT run in this failed job. This is a fail-closed path classification gate, not proof of a broken FTPS or successful upload. Do **not** whitelist `tests/*` wholesale to make the job green: tests can affect release verification.
+- Post-release acceptance for failed deploy was **SKIPPED** [38385104139](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38385104139), appropriately gated on successful deploy.
+- **Current live SHA: UNVERIFIED in this 2026-10-13 session.** Previous observer recorded `dd546f9c06275fe130216b9f5f8a31533619abf6` (2026-10-12 evidence), **not** a live observation today. External live-origin DNS/HTTPS could not be independently obtained using this session's available network path; that does not establish a site outage. Never declare the newest source released until a fresh strict HTTPS live `sw.js` fingerprint and post-release acceptance both pass.
+- **Resolution boundary:** a deliberate owner-authorized controlled release of the exact protected-change set under the documented cPanel recovery exception, with fresh live fingerprint / preflight / backup custody / one release at a time. Do not relax protected-file release policy, switch on money, change stock or trigger an automatic retry that cannot satisfy the policy.
+
+## GSC indexing and URL parity — fresh 2026-10-13
+
+- Authenticated GSC Wizard Tracker: **164 tracked**, **123 indexed**, **20 not indexed**, **21 pending**, **0 reported warnings**, **0 errors**; last tracker check `2026-10-13T11:43:04.562Z`. Tracker is active. These are *tool-observed statuses*, not Google crawl/traffic guarantees.
+- GitHub source inventories, parsed from `<loc>` entries: `sitemap-core.xml` 2, `sitemap-fa.xml` 70, `sitemap-en.xml` 24, `sitemap-news.xml` 15, `sitemap-services.xml` 29, `journal/sitemap.xml` 24. **164 distinct source URLs / 164 tracked; missing 0; extra 0; duplicates within source files 0.** This is **source list parity**, not live response or Google indexation parity. Do not delete tracked URLs just to improve ratios.
+- GSC Sitemap report: root index last downloaded `2026-10-13T04:08:25.115Z` with no warnings/errors reported; dedicated journal sitemap submitted `2026-10-12T22:39:01.060Z` and still pending in observed response. Sitemap report's `indexed:0` rows do not supersede direct inspection tracker statuses.
+- Article `/fa/akhbar/international-research-collaboration-2026/`: tracker confirmed **Submitted and indexed** `2026-10-13T10:30:34.956Z`; previously not indexed.
+- Article `/fa/akhbar/ai-search-and-scientific-content-2026/`: fresh direct URL Inspection on 2026-10-13 reports **URL is unknown to Google**, no crawl time reported. Source HTML has `index,follow` + self canonical; this does not prove live bytes match source. No forced URL rename or false indexing claim.
+- Journal `/journal/`: fresh URL Inspection on 2026-10-13 reports **Excluded by 'noindex' tag / BLOCKED_BY_META_TAG**, last Google crawl **2026-10-07T10:57:40Z**, Google canonical `/journal/`. Current source `journal/index.html` contains `index,follow` and self canonical. **Diagnosis: historical crawl vs current source mismatch; no claim that production is presently indexable.** Verify live response headers/meta, release parity, then request another crawl through appropriate verified mechanisms.
+- Inspect links: [journal](https://search.google.com/search-console/inspect?resource_id=https://drjavadrezazadeh.com/&id=pSE7VWvj21RzQEIh3tvnDQ&utm_medium=link&utm_source=api) · [AI article](https://search.google.com/search-console/inspect?resource_id=https://drjavadrezazadeh.com/&id=NU1fGLUP1RoHyrkCmllQ7A&utm_medium=link&utm_source=api).
+- JHELA remains an English-article journal in founding stage with a separately listed `/journal/sitemap.xml`, Persian informational interface and **no certified live OJS paper-submission/review cycle**. Journal subdomain is not certified live.
+
+## Owner's 20 required acceptance priorities (not a fabricated progress score)
+
+| Priority | Workstream | Current dated evidence/state | Missing acceptance gate |
+| --- | --- | --- | --- |
+| 01 | Exact source–CI–live identity | **SOURCE VERIFIED / DEPLOY BLOCKED**: source `be017bbfc3169bbd8b2855ee66aced1aa0c1cf9a`, CI successes above, deploy failed, postrelease skipped | Independently establish current live SHA and exact matching successful release + acceptance |
+| 02 | Replace stale progress claims | **THIS LEDGER RECORDED**; 2026-10-09 `V4.4.1` references to Cloudflare/D1 payment are historical, not current Bertina authority | Propagate dated evidence to future operational reports, do not overwrite original chronology |
+| 03 | Tracker against all current sitemap URLs | **SOURCE INVENTORY PASS**: 164/164 match, 0 missing/extra | Fresh Google inspections for unresolved pages; independently verify live sitemap and response/noindex |
+| 04 | JHELA and AI article discovery | **PARTIAL**: AI unknown to Google, JHELA home last Google crawl excluded by noindex; source self-canonicals verified | Strict live HTML/headers + successful release, fresh crawl and inspection |
+| 05 | Consent-based analytics | **UNACCEPTED**; source audit/workflow exists, no proven consent capture and data-minimised real event stream in this check | Test opt-in, opt-out, no pre-consent transmission, anonymisation and actual event receipt |
+| 06 | Multi-template performance baseline | **UNACCEPTED IN THIS CHECK** | Versioned URL/device/lab vs field CWV with dates and reproducible method |
+| 07 | Login/recovery/receipt object ownership | **UNACCEPTED IN THIS CHECK**; historical owner journey is not a fresh cross-account ownership test | Verify anonymous/other-account denial with controlled test identities and actual mail |
+| 08 | Settlement, stock, delivery, refunds | **BLOCKED/UNACCEPTED**; no verified live reconciliation proof in this check | Independent bank/provider settlement and idempotent callback, live stock no reseed, fulfilment and refunds; owner-approved money test only |
+| 09 | Independent restore | **CI READINESS PASS ONLY** | Coherent production files + DB restored in isolated environment with receipt; original live state retained |
+| 10 | CRM/consent lifecycle | **UNACCEPTED** | Consented lead create, tenant isolation, withdrawal, retention and deletion tests |
+| 11 | Commercial search intent | **UNACCEPTED** | Query intent ↔ unique owning canonical URL and documented evidence per landing page |
+| 12 | High-impact claims and references | **UNACCEPTED** | Citation/provenance audit, academic accountable owner and review date |
+| 13 | Historical backlinks and identity | **UNACCEPTED** | Verify real referring sources, destination status and entity identity; never purchase suspicious links |
+| 14 | Repeatable AI brand visibility | **UNACCEPTED** | Fixed prompts/providers/locale/date, citations or nonappearance captured without ranking promises |
+| 15 | Accessibility and real-device testing | **SOURCE TESTS EXIST / HUMAN GATE OPEN** | Manual keyboard/screen reader/RTL/mobile device checks and recorded defect disposition |
+| 16 | CTA, page weight and conversion | **UNACCEPTED** | Consent-respecting attribution and measured before/after; no fabricated uplift |
+| 17 | Admin/social action real execution | **UNACCEPTED** | Role and executor authorisation, idempotency, provider receipt and negative tests |
+| 18 | Private Golden Talent complete workflow | **UNACCEPTED** | Role, lawful consent, private record and safe report lifecycle |
+| 19 | Isolated OJS full lifecycle | **UNACCEPTED** | Real submission, reviewer assignment, editorial decision, secure restore and isolation |
+| 20 | Automatic post-release report | **WORKFLOW EXISTS / SKIPPED ON FAILED DEPLOY** | Successful release, accurate discrepancy classification and independent alert validation |
+
+## Actions permitted while release is gated
+
+- Continue source-only audits and descriptive governance updates on the **same canonical branch**.
+- Keep `tests/*`, private runtime, finance, DB, secrets and protected workflow changes **out of automatic public-only release permission**. A controlled and independently evidenced manual release is the documented exception, not a blanket path bypass.
+- Preserve URL stability, approved pricing/media, historical source/evidence, customer records and private backups. Never delete backups solely because a non-deploying CI run succeeded.
+- Disambiguate *code exists*, *test passed*, *live observed*, *externally independently verified*, and *accepted* for every area.
