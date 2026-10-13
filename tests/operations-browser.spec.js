@@ -256,6 +256,31 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
   expect(await page.evaluate(()=>localStorage.length)).toBe(0);
  });
 }
+test('English owner commerce formats real ledger amounts without implying bank settlement',async({page})=>{
+ await authorized(page);
+ await page.route('**/api/admin/operations/commerce',route=>route.fulfill({json:{
+  ok:true,schema:'operations-commerce-evidence-v1',available:true,
+  orders:{pendingRecords:0,paidStateRecords:1,totalRows:1},
+  claims:{paidRowsRequiringIndependentProviderReconciliation:0},
+  stock:{ledgerDiscrepancies:0,rowsWithoutReconciliationTimestamp:0,rows:[]},
+  notifications:{paidOrderRowsWithoutReceiptEmailTimestamp:0,outboxStates:{}},
+  fulfilment:{serviceCaseStates:{},parcelStates:{},activeServiceCaseCount:0,
+   activeParcelCount:0,preparingOlderThan48Hours:0,inShippingOlderThan7Days:0,
+   serviceActionQueue:[],parcelActionQueue:[]},
+  salesPipeline:{status:'INTERNAL_ORDER_LEDGER_ONLY',paidStateAmountToman:'1234567',
+   providerClaimMatchedAmountToman:'1234567',paidStateAmountLast30DaysToman:'1234567',
+   paidStateOrdersLast30Days:1,pendingOlderThan24Hours:0,pendingOlderThan7Days:0,
+   createdOlderThan24Hours:0,refundRequestsAwaitingAction:0}
+ }}));
+ await page.goto(base+'/en/account/admin/');
+ await page.locator('#ops-commerce > summary').click();
+ const value=page.locator('#ops-commerce-results article').filter({hasText:'Paid-state order value'}).first().locator('.ops-number');
+ await expect(value).toHaveText('1,234,567 toman');
+ await expect(page.locator('#ops-commerce-results')).toContainText('not bank-settled revenue');
+ await expect(page.locator('#ops-commerce-results')).not.toContainText('Verified bank settlement');
+ await page.locator('#ops-commerce > summary').click();
+ await expect(page.locator('#ops-commerce-results article')).toHaveCount(0);
+});
 test('MFA-protected commerce reports never manufacture zero when server refuses access',async({page})=>{
  await authorized(page);
  await page.route('**/api/admin/operations/commerce',route=>route.fulfill({
