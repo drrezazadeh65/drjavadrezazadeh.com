@@ -19,7 +19,7 @@ export function requiresManualActivation(path) {
   if (typeof path !== 'string') return true;
   return /^(?:\.github\/|database\/|migrations\/|docs\/governance\/|scripts\/bertina-(?:auto-release-policy|release-eligibility|private-recovery-gate|controlled-cpanel-gate|prune-backups)\.(?:mjs|php|py)$|scripts\/(?:build-public-site|operations-release-evidence)\.mjs$)/.test(path)
     || /(?:^|\/)(?:\.env(?:\.[^/]*)?|config\.local\.php|secrets?\.[^/]+|(?:id_rsa|id_ed25519)|[^/]+\.(?:pem|p12|pfx|key|sql|bak|dump))$/i.test(path)
-    || /(?:^|\\/)(?:\\.htaccess|\\.user\\.ini|php\\.ini|web\\.config)$/i.test(path)
+    || /(?:^|\/)(?:\.htaccess|\.user\.ini|php\.ini|web\.config)$/i.test(path)
     || ['.bertina-backup-trigger','AGENTS.md'].includes(path);
 }
 
