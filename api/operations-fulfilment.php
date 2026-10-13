@@ -77,6 +77,17 @@ function operationsCommerceServiceAdvance(PDO $pdo,string $actor,array $input): 
         if($expected==='booked' && (empty($case['booking_start'])||empty($case['booking_end'])))
             throw new DomainException('verified_booking_window_required');
         if($next==='booked'){
+            if(!commerceConsultationPreferenceSchemaReady($pdo))
+                throw new RuntimeException('consultation_preference_schema_required');
+            $choice=$pdo->prepare('SELECT delivery_mode,meeting_city
+                FROM commerce_consultation_preferences
+                WHERE order_id=? AND sku=? FOR UPDATE');
+            $choice->execute([$orderId,$sku]);
+            $selected=$choice->fetch(PDO::FETCH_ASSOC);
+            if(!is_array($selected)
+                ||!commerceConsultationValidChoice($sku,(string)$selected['delivery_mode'],
+                    $selected['meeting_city']===null?null:(string)$selected['meeting_city']))
+                throw new DomainException('customer_delivery_choice_required');
             // Lock serialises reservation attempts across different orders.
             // Half-open UTC intervals permit back-to-back appointments but
             // reject any overlap, including another SKU of the same order.
@@ -103,6 +114,7 @@ function operationsCommerceServiceAdvance(PDO $pdo,string $actor,array $input): 
         if(!$pdo->commit())throw new RuntimeException('commerce_commit_failed');
         return ['orderId'=>$orderId,'sku'=>$sku,'previousState'=>$expected,
             'state'=>$next,'bookingScheduled'=>$next==='booked',
+            'customerDeliveryPreferenceVerified'=>$next==='booked',
             'serviceDelivered'=>false,'customerNotified'=>false,
             'providerBankSettlementVerified'=>null,'readOnly'=>false];
     }catch(Throwable $e){
