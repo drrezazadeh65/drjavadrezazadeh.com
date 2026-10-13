@@ -441,6 +441,7 @@ if (defined('BERTINA_MAIL_SMOKE_CONTEXT') && BERTINA_MAIL_SMOKE_CONTEXT === true
 define('BERTINA_API_BOOTSTRAPPED', true);
 require_once __DIR__.'/operations.php';
 require_once __DIR__.'/commerce-stage9.php';
+require_once __DIR__.'/consultation-delivery.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
 
@@ -599,14 +600,27 @@ if($path==='/commerce/fulfilment'&&$verb==='GET'){
     if(!$evidence || (string)$evidence['transaction_id']!==(string)$row['provider_trans_id']
         || (string)$evidence['verified_amount']!==(string)$row['provider_amount'])
         respond(['ok'=>true,'paymentRecord'=>'requires_reconciliation','serviceCases'=>[],'parcel'=>null]);
-    $cases=$pdo->prepare('SELECT sku,status,booking_start,booking_end,delivered_at FROM commerce_service_cases WHERE order_id=? ORDER BY sku');
+    $prefsReady=commerceConsultationPreferenceSchemaReady($pdo);
+    $cases=$pdo->prepare($prefsReady
+        ? 'SELECT sc.sku,sc.status,sc.booking_start,sc.booking_end,sc.delivered_at,
+            pr.delivery_mode,pr.meeting_city
+            FROM commerce_service_cases sc
+            LEFT JOIN commerce_consultation_preferences pr
+              ON pr.order_id=sc.order_id AND pr.sku=sc.sku
+            WHERE sc.order_id=? ORDER BY sc.sku'
+        : 'SELECT sku,status,booking_start,booking_end,delivered_at
+            FROM commerce_service_cases WHERE order_id=? ORDER BY sku');
     $cases->execute([$orderId]);$safeCases=[];
     $allowedCase=['awaiting_contact','scheduling','booked','in_progress','delivered','cancelled'];
     foreach($cases->fetchAll() as $case){
         if(!in_array((string)$case['status'],$allowedCase,true))continue;
         $safeCases[]=['sku'=>(string)$case['sku'],'status'=>(string)$case['status'],
             'bookingStart'=>$case['booking_start']??null,'bookingEnd'=>$case['booking_end']??null,
-            'deliveredAt'=>$case['delivered_at']??null];
+            'deliveredAt'=>$case['delivered_at']??null,
+            'deliveryMode'=>$case['delivery_mode']??null,
+            'meetingCity'=>$case['meeting_city']??null,
+            'customerChoiceEnabled'=>$prefsReady&&in_array((string)$case['status'],['awaiting_contact','scheduling'],true),
+            'allowedDeliveryModes'=>commerceConsultationModes((string)$case['sku'])];
     }
     $shipment=$pdo->prepare('SELECT carrier,tracking_code,state,dispatched_at,delivered_at FROM commerce_parcels WHERE order_id=? LIMIT 1');
     $shipment->execute([$orderId]);$parcel=$shipment->fetch();
@@ -653,6 +667,35 @@ if($path==='/commerce/refund-request'&&$verb==='POST'){
     }
 }
 
+// Authenticated post-payment service-mode choice. A customer may choose
+// telephone/video, or in-person for eligible VIP/annual coaching in Tehran or
+// Kashan only. No calendar slot is created by this endpoint.
+if($path==='/commerce/consultation-preference'&&$verb==='POST'){
+    requirePostOrigin();
+    $pdo=db();
+    if(!$pdo||!commerceSchemaReady()||!stage9SchemaReady($pdo)
+        ||!commerceConsultationPreferenceSchemaReady($pdo))
+        fail('consultation_preference_unavailable',503);
+    $account=sessionAccount($pdo);
+    if(!$account||($account['status']??'')!=='active'
+        ||empty($account['email_verified_at']))fail('unauthorized',401);
+    $accountId=(string)($account['id']??'');
+    $email=emailNorm((string)($account['email_normalized']??''));
+    if(!validUuid($accountId)||!validEmail($email))fail('unauthorized',401);
+    if(!rateAllowed($pdo,'consultation_preference',$accountId,8,300))
+        fail('rate_limited',429);
+    $body=jsonBody();
+    try{
+        $choice=commerceConsultationSavePreference($pdo,$accountId,$email,$body);
+        respond(['ok'=>true,'schema'=>'commerce-consultation-choice-v1',
+            'preference'=>$choice]);
+    }catch(InvalidArgumentException $e){fail('invalid_consultation_delivery_choice',400);}
+    catch(DomainException $e){fail('payment_or_booking_state_conflict',409);}
+    catch(Throwable $e){
+        error_log('Consultation delivery choice unavailable: '.get_class($e));
+        fail('consultation_preference_unavailable',503);
+    }
+}
 if($path==='/commerce/health'&&$verb==='GET'){
     $c=cfg();$ready=commerceReady();
     respond(['ok'=>true,'service'=>'commerce','hardeningRevision'=>'tls-gate-v1','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'requirements'=>[
