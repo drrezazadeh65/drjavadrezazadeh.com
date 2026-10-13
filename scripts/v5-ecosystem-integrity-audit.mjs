@@ -43,6 +43,10 @@ const stagedSql=read('docs/migrations/20261012_stage09_commerce.sql');
 const goldenShop=read('fa/shop/golden-talent/index.html');
 const goldenDigitalCheckout=read('fa/shop/golden-talent/checkout/index.html');
 const goldenProducts=json('platform/golden-talent-products.json');
+const goldenBook=json('platform/golden-talent-book-crosswalk.v1.json');
+const goldenInstrumentRegistry=json('platform/golden-talent-instrument-registry.v1.json');
+const goldenDeep=json('platform/golden-talent-deep-modules.json');
+
 const goldenApi=read('api/golden-talent.php');
 const guardianClient=read('assets/js/golden-talent-guardian.js');
 const guardianFa=read('fa/golden-talent/roles/parent/index.html');
@@ -126,6 +130,41 @@ verify('commerce: owner dashboard diagnoses checkout blockers without money move
   commerceClient.includes('readiness.replaceChildren()') &&
   !commerceClient.includes("fetch('/api/commerce/prepare'") &&
   !commerceClient.includes('bitpay_api_key'));
+verify('golden talent: author manuscript grounded scientific inventory remains non-diagnostic',(()=>{
+ const core=goldenInstrumentRegistry.instruments.find(x=>x.id==='RCAS-CORE');
+ const count={D1:24,D2:24,D3:24,D4:22,D5:28,D6:20};
+ const modules=goldenBook.deep_modules.bank_inventory||[];
+ const chapters=goldenBook.chapter_anchors||[];
+ return goldenBook.authority.working_edition==='one_volume_15_chapters' &&
+   goldenBook.authority.scientific_status==='PREVALIDATION' &&
+   goldenBook.rcas.C1.core_item_count===28 &&
+   goldenBook.rcas.C1.group_count===7 &&
+   goldenBook.rcas.C1.unknown_evidence==='UNKNOWN_IS_NOT_ZERO_AND_DISTINCT_FROM_NA' &&
+   goldenBook.rcas.C1.not_applicable==='NA_IS_NOT_ZERO' &&
+   /^[a-f0-9]{64}$/.test(goldenBook.rcas.C1.book_wording_sha256||'') &&
+   chapters.length===15 && chapters.every((c,i)=>c.chapter===i+1) &&
+   goldenBook.rcas.source_channels.map(x=>x.code).join(',')==='S,P,R,O,C,T' &&
+   goldenBook.rcas.R1.automated_talent_ranking===false &&
+   modules.length===6 &&
+   modules.every(m=>m.bank_count===count[m.code] &&
+     m.instrument_approved===false &&
+     /^[a-f0-9]{64}$/.test(m.working_manuscript_bank_sha256||'') &&
+     goldenDeep.modules[m.code]?.tasks?.join(',')===m.activities.join(',') &&
+     goldenInstrumentRegistry.instruments.find(x=>x.id===m.code)?.book_bank_count===m.bank_count) &&
+   modules.reduce((sum,m)=>sum+m.bank_count,0)===142 &&
+   goldenBook.activities.length===10 &&
+   goldenBook.bahar.study_method.length===4 &&
+   goldenBook.bahar.action_cycle.length===7 &&
+   goldenBook.bahar.portfolio.length===6 &&
+   goldenInstrumentRegistry.book_alignment.crosswalk==='platform/golden-talent-book-crosswalk.v1.json' &&
+   core?.version==='start-1.1-browser-preview' &&
+   core?.scoring_enabled===false &&
+   goldenInstrumentRegistry.scientific_policy.validation_status==='PREVALIDATION' &&
+   goldenBook.deep_modules.publishable_question_bank===false &&
+   goldenBook.authority.manuscript_inventory.raw_item_text_uploaded_to_repository===false &&
+   rcasClient.includes('n===6?"UNKNOWN":n') &&
+   rcasClient.includes('["NA","UNKNOWN"].includes(x.value)');
+})());
 verify('golden talent: capability API is non-diagnostic and only mutates the append-only access audit',
   index.includes("if(str_starts_with($path,'/golden-talent/'))") &&
   index.includes("goldenTalentRoute($path,$verb)") &&
@@ -171,7 +210,7 @@ verify('rcas: Core 28 completion, self-selected routing and no private-response 
   !rcasClient.includes('why.replace(') &&
   !rcasClient.includes('/api/rcas/submit') &&
   rcasPage.includes('id="rcasCoreStatus"') &&
-  rcasPage.includes('rcas-start.js?v=20261014-core28-privacy-v2') &&
+  rcasPage.includes('rcas-start.js?v=20261014-core28-book-v3') &&
   studentDashboard.includes('s.completedItemCount!==28') &&
   studentDashboard.includes('s.routeBasis!=="SELF_SELECTED_UNVALIDATED"') &&
   studentDashboardPage.includes('student-dashboard.js?v=20261014-rcas-28-v2'));
