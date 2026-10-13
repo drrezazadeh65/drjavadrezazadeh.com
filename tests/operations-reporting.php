@@ -87,6 +87,25 @@ check(operationsActionDefinition($actual,'ENG-05.ACT-002')===null,'Payment recei
 check(operationsActionDefinition($actual,'ENG-06.ACT-001')===null,'Journal governance certification accidentally acquired an executor.');
 $releaseAction=operationsActionDefinition($actual,'ENG-11.ACT-009');
 check(is_array($releaseAction),'Registered release observer is not executable under its approved policy.');
+
+ // Even a perfect clone of a low-risk executor may not grant execution to
+ // an existing HIGH/CRITICAL Action by forging its registry metadata.
+ $forged=$releaseAction;
+ $forged['id']='ENG-05.ACT-002'; // Payment callback: CRITICAL.
+ check(operationsActionDefinition(['actions'=>[$forged]],$forged['id'])===null,
+     'CRITICAL payment Action gained execution through a forged registry entry');
+ $forged['id']='ENG-01.ACT-001'; // Granular SEO mutation: HIGH.
+ check(operationsActionDefinition(['actions'=>[$forged]],$forged['id'])===null,
+     'HIGH Action gained execution through a forged registry entry');
+ $expanded=$releaseAction;
+ $expanded['supportedExecutor']['signalIds']=['current_release','email_transport'];
+ check(operationsActionDefinition(['actions'=>[$expanded]],$expanded['id'])===null,
+     'Read-only observer widened its server-authorized signal scope');
+ $missing=$releaseAction;
+ $missing['supportedExecutor']['signalIds']=['unexpected'];
+ check(operationsActionDefinition(['actions'=>[$missing]],$missing['id'])===null,
+     'Read-only observer accepted unregistered signal identifiers');
+
 $then=time();
 $signals=['OP-02'=>['signals'=>[[
  'id'=>'current_release','labelFa'=>'شناسه نسخه','labelEn'=>'Release identity','source'=>'Bertina operations_release',
