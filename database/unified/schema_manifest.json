@@ -1,0 +1,116 @@
+{
+  "schema": "drjr-unified-mariadb-design-v1",
+  "engine": "InnoDB",
+  "target": [
+    "MariaDB 10.11",
+    "MySQL 8.0"
+  ],
+  "defaultCharset": "utf8mb4",
+  "defaultCollation": "utf8mb4_unicode_ci",
+  "state": "DESIGN_ONLY_NOT_APPLIED",
+  "ownerDatabase": "existing Bertina operational MySQL/MariaDB",
+  "rebuild": false,
+  "existingTablesRemainAuthoritative": [
+    "customer_accounts",
+    "customer_auth_tokens",
+    "customer_auth_sessions",
+    "customer_auth_rate_limits",
+    "commerce_orders"
+  ],
+  "optionalLegacyModules": [
+    "operations_*",
+    "growth_lead_*",
+    "commerce_book_*",
+    "commerce_payment_claims",
+    "commerce_service_cases",
+    "student_support_*",
+    "social_*"
+  ],
+  "sourceIncompatible": "platform/db/migrations/*.sql are PostgreSQL models and MUST NOT execute on Bertina MariaDB",
+  "prefix": "eco_",
+  "expectedNewTableCount": 198,
+  "modules": [
+    {
+      "file": "001_core_governance.sql",
+      "tableCount": 33,
+      "purpose": "Identity extensions, RBAC, consent, security, provenance, privacy, files, workflow and async"
+    },
+    {
+      "file": "002a_commerce_finance.sql",
+      "tableCount": 13,
+      "purpose": "Products, price revisions, cart, order-lines, payment reconciliation and invoices"
+    },
+    {
+      "file": "002b_services_fulfilment.sql",
+      "tableCount": 14,
+      "purpose": "Bookings, service cases, entitlements, delivery, shipment and protected addresses"
+    },
+    {
+      "file": "002c_subscriptions_tax.sql",
+      "tableCount": 5,
+      "purpose": "Subscriptions, tax rules and cross-currency rate versions"
+    },
+    {
+      "file": "003a_education_longitudinal.sql",
+      "tableCount": 13,
+      "purpose": "Longitudinal education, academic records, observations and study plans"
+    },
+    {
+      "file": "003b_coaching_decisions.sql",
+      "tableCount": 7,
+      "purpose": "Coaching, pathway options and explainable human decisions"
+    },
+    {
+      "file": "003c_assessment_scoring.sql",
+      "tableCount": 13,
+      "purpose": "Versioned instruments, responses, scoring provenance and reports"
+    },
+    {
+      "file": "003d_golden_talent_bahar.sql",
+      "tableCount": 13,
+      "purpose": "Golden Talent, RCAS, human evidence, Golden Path and BAHAR"
+    },
+    {
+      "file": "004a_content_seo_media.sql",
+      "tableCount": 12,
+      "purpose": "Bilingual CMS, canonical URLs, structured data, media and editorial revisions"
+    },
+    {
+      "file": "004b_journal_editorial.sql",
+      "tableCount": 12,
+      "purpose": "Journal, submissions, peer review, OJS bridge and DOI evidence"
+    },
+    {
+      "file": "004c_research_governance.sql",
+      "tableCount": 13,
+      "purpose": "Research ethics, deidentification, datasets, grants and frozen exports"
+    },
+    {
+      "file": "004d_publication_search.sql",
+      "tableCount": 6,
+      "purpose": "Release evidence, indexing requests, crawl results and content search"
+    },
+    {
+      "file": "005a_communications_support.sql",
+      "tableCount": 12,
+      "purpose": "Notifications, private messages, support cases and consented contact points"
+    },
+    {
+      "file": "005b_marketing_social.sql",
+      "tableCount": 12,
+      "purpose": "Social channel variants, gated publication, referrals and controlled experiments"
+    },
+    {
+      "file": "005c_analytics_attribution.sql",
+      "tableCount": 10,
+      "purpose": "Consented analytics, provider imports, attributed events and conversion proofs"
+    },
+    {
+      "file": "005d_ai_automation.sql",
+      "tableCount": 10,
+      "purpose": "AI knowledge provenance, safe conversations and owner-gated automations"
+    }
+  ],
+  "activationPolicy": "read-only inventory, independently proven recoverable backup, review, ephemeral MariaDB and MySQL verification, explicit owner approval, protected migration lock; no auto DDL",
+  "dataPolicy": "minimal PII, encrypted objects outside SQL, role and purpose gates in application, no fake payments or scientific claims"
+}
