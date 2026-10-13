@@ -180,6 +180,27 @@ function githubAuditRender(host){
      ?t('اقدام لازم: محافظت از شاخه را در تنظیمات GitHub فعال و قواعد آن را مستقلاً بررسی کنید.','Action required: enable branch protection in GitHub and independently inspect its rules.')
      :t('پوشش دقیق Rulesetها و مجوزهای انتشار هنوز مستقلاً تأیید نشده است.','Ruleset scope and deployment permissions are not independently certified.')));
     policy.append(el('p',t('آزمایش مستقل بازیابی بکاپ و بازگشت نسخه (OP-36): تأییدنشده','Independent backup restoration and rollback drill (OP-36): unverified')));
+
+    const restore=governance.restoreReadiness;
+    if(restore?.scope==='isolated_recovery_tooling_ci'){
+     policy.append(el('h4',t('OP-36 · آزمون ابزار بازیابی در GitHub','OP-36 · GitHub recovery-tool CI')));
+     const state={
+      isolated_ci_pass:t('آزمون ابزار بازیابی موفق؛ بازیابی واقعی تأییدنشده','Recovery-tool CI passed; real restore unverified'),
+      isolated_ci_not_passed:t('آزمون ابزار بازیابی موفق نبوده است','Recovery-tool CI did not pass'),
+      pending:t('آزمون ابزار بازیابی هنوز در جریان است','Recovery-tool CI is pending'),
+      stale:t('آخرین آزمون ابزار بازیابی قدیمی است','Recovery-tool CI observation is stale'),
+      unavailable:t('نتیجهٔ معتبر GitHub در دسترس نیست','Verified GitHub recovery CI unavailable')
+     }[restore.status]||t('نامشخص','Unknown');
+     policy.append(el('p',state));
+     if(restore.sourceSha)policy.append(el('small',t('نسخهٔ آزمون‌شده: ','Tested SHA: ')+restore.sourceSha.slice(0,12)));
+     if(restore.createdAt)policy.append(el('small',t('تاریخ اجرا: ','Run date: ')+restore.createdAt));
+     if(/^https:\/\/github\.com\/drrezazadeh65\/drjavadrezazadeh\.com\/actions\/runs\/[0-9]+$/.test(restore.url||'')){
+      const ciLink=el('a',t('مشاهدهٔ گزارش آزمون بازیابی','View official recovery CI result'));
+      ciLink.href=restore.url;ciLink.target='_blank';ciLink.rel='noopener noreferrer';policy.append(ciLink);
+     }
+     policy.append(el('p',t('موفقیت CI به معنی وجود بکاپ واقعی، بازیابی مستقل یا آزمایش بازگشت نسخهٔ زنده نیست.','CI success cannot certify an actual backup, independent restoration or live production rollback.')));
+    }
+
     const manage=el('a',t('تنظیمات محافظت از شاخه در GitHub','GitHub branch-protection settings'));
     manage.href='https://github.com/drrezazadeh65/drjavadrezazadeh.com/settings/branches';
     manage.target='_blank';manage.rel='noopener noreferrer';policy.append(manage);section.append(policy);

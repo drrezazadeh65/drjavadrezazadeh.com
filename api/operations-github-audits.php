@@ -117,7 +117,8 @@ function operationsGithubGovernanceProject(?array $repository, ?array $branches)
 function operationsGithubGovernanceFetchJson(string $kind): ?array {
     $paths=[
         'repository'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com',
-        'branches'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/branches?per_page=100'
+        'branches'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/branches?per_page=100',
+        'restore_ci'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/bertina-restore-readiness-ci.yml/runs?per_page=5&branch=migration%2Fbertina-linux6'
     ];
     if(!isset($paths[$kind])||!function_exists('curl_init'))return null;
     $ch=curl_init($paths[$kind]);if($ch===false)return null;
@@ -134,11 +135,64 @@ function operationsGithubGovernanceFetchJson(string $kind): ?array {
     $data=json_decode($raw,true);
     return is_array($data)?$data:null;
 }
+/**
+ * Only the existing isolated CI recovery-tool workflow is observed here.
+ * Even an official success is NOT proof that an actual Bertina backup has
+ * been restored, or that production rollback has been exercised.
+ */
+function operationsGithubRestoreCiProject(?array $data, int $now): array {
+    $empty=['status'=>'unavailable','checkedAt'=>$now,'runId'=>null,
+        'url'=>null,'sourceSha'=>null,'conclusion'=>null,'createdAt'=>null,
+        'scope'=>'isolated_recovery_tooling_ci','isolatedCiPassed'=>false,
+        'productionRestoreVerified'=>false,'rollbackVerified'=>false,
+        'limitation'=>'Passing an isolated restore-tooling regression is not an actual backup restore or production rollback.'];
+    if(!is_array($data)||!is_array($data['workflow_runs']??null)||!array_is_list($data['workflow_runs']))return $empty;
+    $valid=[];
+    foreach(array_slice($data['workflow_runs'],0,5) as $run){
+        if(!is_array($run))continue;
+        $id=$run['id']??null;
+        $url=$run['html_url']??null;
+        $sha=$run['head_sha']??null;
+        $created=$run['created_at']??null;
+        $stamp=is_string($created)?strtotime($created):false;
+        if(!is_int($id)||$id<1
+            || !is_string($url)||!operationsGithubAuditSafeUrl($url)
+            || $url!=='https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/'.$id
+            || !is_string($sha)||!preg_match('/^[a-f0-9]{40}$/D',$sha)
+            || !is_string($created)||!preg_match('/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/D',$created)
+            || $stamp===false||$stamp>$now+300
+            || !in_array($run['event']??null,['push','workflow_dispatch'],true)
+            || !in_array($run['status']??null,['queued','waiting','in_progress','completed'],true)
+            || (($run['status']??null)==='completed'
+                && !in_array($run['conclusion']??null,['success','failure','cancelled','skipped','timed_out','action_required','neutral','stale'],true))
+        )continue;
+        $valid[]=['runId'=>$id,'url'=>$url,'sourceSha'=>$sha,
+            'createdAt'=>$created,'timestamp'=>$stamp,'rawStatus'=>$run['status'],
+            'conclusion'=>$run['conclusion']??null];
+    }
+    if(!$valid)return $empty;
+    usort($valid,static fn($a,$b)=>$b['timestamp']<=>$a['timestamp']
+        ?:($b['runId']<=>$a['runId']));
+    $last=$valid[0];
+    $fresh=$last['timestamp']>=$now-604800;
+    $passed=$fresh&&$last['rawStatus']==='completed'&&$last['conclusion']==='success';
+    return array_merge($empty,[
+        'status'=>!$fresh?'stale':($last['rawStatus']!=='completed'?'pending':
+            ($passed?'isolated_ci_pass':'isolated_ci_not_passed')),
+        'runId'=>$last['runId'],'url'=>$last['url'],'sourceSha'=>$last['sourceSha'],
+        'createdAt'=>$last['createdAt'],'conclusion'=>$last['conclusion'],
+        'isolatedCiPassed'=>$passed
+    ]);
+}
+
 function operationsGithubGovernanceSnapshot(): array {
-    return operationsGithubGovernanceProject(
+    $snapshot=operationsGithubGovernanceProject(
         operationsGithubGovernanceFetchJson('repository'),
         operationsGithubGovernanceFetchJson('branches')
     );
+    $snapshot['restoreReadiness']=operationsGithubRestoreCiProject(
+        operationsGithubGovernanceFetchJson('restore_ci'),time());
+    return $snapshot;
 }
 
 function operationsGithubAuditSnapshot(array $registry): array {

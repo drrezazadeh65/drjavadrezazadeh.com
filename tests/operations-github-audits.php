@@ -69,6 +69,40 @@ foreach($catalog as $item){
  assertAudit(!isset($action['supportedExecutor']),'Read-only viewer must not grant risky Action executor');
 }
 
+
+$recoveryRun=[
+ 'id'=>38459475465,
+ 'html_url'=>'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38459475465',
+ 'head_sha'=>str_repeat('a',40),'created_at'=>'2026-10-13T18:10:00Z',
+ 'status'=>'completed','conclusion'=>'success','event'=>'push'
+];
+$recoveryAt=strtotime('2026-10-13T20:10:00Z');
+$liveCi=operationsGithubRestoreCiProject(['workflow_runs'=>[$recoveryRun]],$recoveryAt);
+assertAudit($liveCi['status']==='isolated_ci_pass'&&$liveCi['isolatedCiPassed']===true
+    &&$liveCi['productionRestoreVerified']===false&&$liveCi['rollbackVerified']===false,
+    'Tooling-only CI incorrectly certified a real backup restoration');
+$expired=operationsGithubRestoreCiProject(['workflow_runs'=>[$recoveryRun]],$recoveryAt+604801);
+assertAudit($expired['status']==='stale'&&$expired['isolatedCiPassed']===false,
+    'Expired GitHub test reported as current');
+$failedRun=$recoveryRun;$failedRun['conclusion']='failure';
+$failedRun['id']=38459475466;
+$failedRun['html_url']='https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38459475466';
+$failedRun['created_at']='2026-10-13T19:10:00Z';
+$latest=operationsGithubRestoreCiProject(['workflow_runs'=>[$recoveryRun,$failedRun]],$recoveryAt);
+assertAudit($latest['status']==='isolated_ci_not_passed'&&$latest['runId']===38459475466,
+    'Older successful CI masked newer failure');
+$pending=$failedRun;$pending['status']='in_progress';$pending['conclusion']=null;
+assertAudit(operationsGithubRestoreCiProject(['workflow_runs'=>[$pending]],$recoveryAt)['status']==='pending',
+    'Pending GitHub job fabricated success');
+$badRun=$recoveryRun;$badRun['html_url']='https://github.com/other/repo/actions/runs/38459475465';
+assertAudit(operationsGithubRestoreCiProject(['workflow_runs'=>[$badRun]],$recoveryAt)['status']==='unavailable',
+    'Untrusted GitHub evidence endpoint accepted');
+$badRun=$recoveryRun;$badRun['event']='pull_request';
+assertAudit(operationsGithubRestoreCiProject(['workflow_runs'=>[$badRun]],$recoveryAt)['status']==='unavailable',
+    'PR-only CI accepted for branch governance');
+assertAudit(operationsGithubRestoreCiProject(null,$recoveryAt)['isolatedCiPassed']===false,
+    'Absent GitHub API response marked recovery ready');
+
 assertAudit(operationsGithubDispatchToken([])===null,'Dispatch credentials must default OFF');
 assertAudit(operationsGithubDispatchToken(['github_audit_dispatch_token'=>'x'])===null,'Short token accepted');
 assertAudit(operationsGithubDispatchToken(['github_audit_dispatch_token'=>str_repeat('g',40)])===str_repeat('g',40),'Scoped fixture token rejected');
