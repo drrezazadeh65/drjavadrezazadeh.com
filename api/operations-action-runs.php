@@ -24,7 +24,9 @@ function operationsActionDefinition(array $registry, string $id): ?array {
     foreach ($registry['actions']??[] as $action) {
         if (($action['id']??null)!==$id)continue;
         $contract=$action['supportedExecutor']??null;
-        if (($action['executionType']??null)!=='automatic'
+        if (($action['responsibleEngine']??null)!==substr($id,0,6)
+            || ($action['identityKey']??null)!=='existing-observation:'.$id
+            || ($action['executionType']??null)!=='automatic'
             || ($action['scoringScope']??null)!=='observation'
             || ($action['riskCategory']??null)!=='LOW'
             || ($action['approvalPolicy']['serverEnforced']??false)!==true
