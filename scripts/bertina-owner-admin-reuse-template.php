@@ -82,7 +82,7 @@ function run(): array {
     EXPECTED_OWNER_ID=>['role'=>'SUPER_ADMIN','totp_secret'=>$verified['secret']]
   ];
   $newText="<?php\nreturn ".var_export($next,true).";\n";
-  $candidate=$configFile.'.owner-stage-'.bin2hex(random_bytes(8));
+  $candidate=$dir.'/owner-candidate-'.bin2hex(random_bytes(8)).'.php';
   if(file_put_contents($candidate,$newText,LOCK_EX)!==strlen($newText))
     throw new RuntimeException('config_stage_failed');
   chmod($candidate,0600);
@@ -102,7 +102,7 @@ function run(): array {
     if($db->inTransaction())$db->rollBack();
     @unlink($candidate);
     if($swapped && hash_equals(hash('sha256',$newText),hash('sha256',(string)@file_get_contents($configFile)))){
-      $restoreFile=$configFile.'.restore-'.bin2hex(random_bytes(8));
+      $restoreFile=$dir.'/owner-restore-'.bin2hex(random_bytes(8)).'.php';
       if(file_put_contents($restoreFile,$original,LOCK_EX)===strlen($original)){
         chmod($restoreFile,0600);@rename($restoreFile,$configFile);
       }
