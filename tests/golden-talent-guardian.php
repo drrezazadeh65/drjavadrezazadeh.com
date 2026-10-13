@@ -28,6 +28,11 @@ gtExpect(!goldenTalentAssessmentConsentCurrent([array_merge($grant,['retired_at'
 gtExpect(!goldenTalentAssessmentConsentCurrent([array_merge($grant,['retired_at'=>'invalid-date'])],$now),'invalid retirement timestamp denies');
 gtExpect(!goldenTalentAssessmentConsentCurrent([array_merge($grant,['granted_at'=>'invalid-date'])],$now),'invalid grant timestamp denies');
 gtExpect(!goldenTalentAssessmentConsentCurrent([array_merge($grant,['effective_at'=>'invalid-date'])],$now),'invalid effective timestamp denies');
+$parentGrant=array_merge($grant,['purpose_code'=>'PARENT_VISIBILITY']);
+gtExpect(goldenTalentPurposeConsentCurrent([$parentGrant],$now,'PARENT_VISIBILITY'),'independent parent visibility grant accepted');
+gtExpect(!goldenTalentPurposeConsentCurrent([$grant],$now,'PARENT_VISIBILITY'),'assessment alone never grants parent visibility');
+gtExpect(!goldenTalentPurposeConsentCurrent([$parentGrant],$now,'ASSESSMENT'),'parent visibility cannot authorise assessment');
+gtExpect(!goldenTalentPurposeConsentCurrent([$parentGrant],$now,'UNRECOGNISED_PURPOSE'),'unknown consent purposes deny');
 $withdrawal=array_merge($grant,['decision'=>'WITHDRAWN','granted_at'=>$ago(120)]);
 gtExpect(!goldenTalentAssessmentConsentCurrent([$withdrawal,$grant],$now),'newer withdrawal overrides older grant');
 $laterGrant=array_merge($grant,['granted_at'=>$ago(60)]);
@@ -46,4 +51,11 @@ gtExpect(str_contains($source,"INSERT INTO eco_audit_events"),'append-only read 
 gtExpect(str_contains($source,"if(!\$pdo->commit())"),'audit committed before disclosure');
 gtExpect(str_contains($source,"'availableActions'=>[]"),'no unintended report or module grants');
 gtExpect(!str_contains($source,'INSERT INTO eco_talent_'),'no writes to learner evidence');
+gtExpect(str_contains($source,"'/golden-talent/my-bahar-overview' && \$verb==='GET'"),'BAHAR overview GET required');
+gtExpect(str_contains($source,"n.purpose_code='PARENT_VISIBILITY'"),'Separate guardian visibility consent required');
+gtExpect(str_contains($source,"goldenTalentGuardianBaharOverview(\$pdo,\$accountId)"),'BAHAR read remains account-bound');
+gtExpect(str_contains($source,"goldenTalentAuditGuardianBaharOverview(\$pdo,\$accountId,count(\$items))"),'Audit required before BAHAR reply');
+gtExpect(str_contains($source,"'rawEvidenceExposed'=>false"),'No private evidence disclosure');
+gtExpect(str_contains($source,"'interpretationsExposed'=>false"),'No private interpretation disclosure');
+gtExpect(str_contains($source,"'longitudinalTrendValidated'=>false"),'No unvalidated trajectory claim');
 echo "Golden Talent guardian access: ".$checks." checks passed\n";
