@@ -101,6 +101,17 @@ verify('commerce: MFA service-case worklist is bounded, redacted and flags misma
   !ownerCommerce.includes('SELECT sc.*,o.*') &&
   commerceClient.includes('serviceActionQueue') &&
   commerceClient.includes("const detail=node('details')"));
+verify('commerce: owner dashboard diagnoses checkout blockers without money movement',
+  index.includes("'/commerce/health'") &&
+  index.includes("'paymentClaimSchemaReady'") &&
+  index.includes("'serviceBookingConfirmed'") &&
+  commerceClient.includes("fetch('/api/commerce/health'") &&
+  commerceClient.includes("loadReadiness(stamp)") &&
+  commerceClient.includes("void loadReadiness(stamp)") &&
+  commerceClient.includes('workspace.hidden||!panel.open||document.hidden') &&
+  commerceClient.includes('readiness.replaceChildren()') &&
+  !commerceClient.includes("fetch('/api/commerce/prepare'") &&
+  !commerceClient.includes('bitpay_api_key'));
 verify('commerce: canonical 3/21/6 saleable catalogues',
   books.books.length===3 && services.services.length===21 && vip.services.length===6 &&
   distinct(books.books.map(x=>x.id)) && distinct(services.services.map(x=>x.id)) &&
