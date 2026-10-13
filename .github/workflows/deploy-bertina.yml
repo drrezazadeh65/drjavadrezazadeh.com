@@ -30,7 +30,6 @@ on:
       - '.htaccess'
       - '.user.ini'
       - '.bertina-deploy-trigger'
-      - '.github/workflows/deploy-bertina.yml'
   workflow_dispatch:
     inputs:
       recovery_mode:
