@@ -32,5 +32,11 @@ Protected checkpoint branch: `checkpoint/commerce-golden-talent-rcas-bahar-20261
 - Verify deployment using the stamped service worker SHA, live health endpoints, pages and a controlled service order that does not accidentally charge or consume production stock.
 - Publish only after the independent tests pass and no other GitHub push changes HEAD midflight. If release is blocked, report exact gate and stop; do not rewrite policy to bypass it.
 
+## Post-checkpoint verification addendum
+- Main branch HEAD advanced to `da8fc160c4c6db6c062b870d63676f18547603d4` to fix a **test-only** SQL placeholder binding in `tests/commerce-service-advance-mysql.php` (four placeholders, three args before fix). The protected snapshot branch intentionally retains the source SHA above; continue from main HEAD if CI accepts the fix.
+- Latest inspected independent MariaDB workflow run `38486409053` failed on this test-only `SQLSTATE[HY093]` issue before the correction, so post-fix acceptance has NOT yet been verified.
+- Last inspected automatic Bertina release `38486364635` blocked at exact source eligibility: includes workflow changes and manual-only SQL migration. No production transfer occurred. DO NOT label this release deployed.
+- User explicitly requested publication before further feature development because of conversation length. Prioritise human-owner `workflow_dispatch` once the live SHA, database migration/backup, and CI status are checked. Do not issue additional feature commits until release attempt resolves.
+
 ## Resume instruction
 Continue with publication prerequisites and verification from the above checkpoint. User's latest request: "تا اینجای کار را منتشر کن بعد ادامه بده میترسم ظرفیت چت تمام شود" (publish progress now, then continue, worried chat space). **Preserve the code baseline, don't rush unsafe production changes.**
