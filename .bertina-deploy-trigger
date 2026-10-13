@@ -161,3 +161,4 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-13 — bilingual action-first cinematic academic homepage refresh. Source: migration/bertina-linux6 at 5a1c5abd21ceca38006444e40cbc284e790c828a. Preserve current five-item mobile dock, PWA behavior, privacy/security, SEO, checkout and all Bertina release gates; verify Persian/English homepages at desktop and mobile before publication.
 
 2026-10-13 — release retry after synchronizing the bilingual homepage cache regression assertion with the published stylesheet revision. Preserve all production and recovery gates.
+\n\n2026-10-13 — owner-requested compact homepage navigation in Persian and English; deploy only after the established Bertina production and recovery gates pass.\n
