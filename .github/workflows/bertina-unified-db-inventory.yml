@@ -1,0 +1,150 @@
+name: Bertina Unified Database — Read-Only Inventory
+on:
+  push:
+    branches: [ops/bertina-unified-db-install-20261013]
+    paths:
+      - 'scripts/bertina-unified-db-inventory.php'
+      - '.github/workflows/bertina-unified-db-inventory.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Mutually exclusive with all writes, backups and releases on production.
+concurrency:
+  group: bertina-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  inventory:
+    if: github.ref == 'refs/heads/ops/bertina-unified-db-install-20261013'
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate the read-only server probe and fixed source
+        run: |
+          set -euo pipefail
+          php -l scripts/bertina-unified-db-inventory.php
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('scripts/bertina-unified-db-inventory.php').read_text()
+          assert 'START TRANSACTION READ ONLY' in s
+          assert 'information_schema.TABLES' in s
+          assert 'SELECT COUNT(*)' in s
+          for forbidden in ('DROP TABLE','TRUNCATE TABLE','ALTER TABLE','INSERT INTO','DELETE FROM','UPDATE customer_','FOREIGN_KEY_CHECKS=0'):
+              assert forbidden not in s, forbidden
+          assert '@unlink(__FILE__)' in s
+          print('PASS: only schema metadata and exact row-count SELECTs; self-retiring endpoint')
+          PY
+      - name: Install authenticated FTPS client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      - name: Render ephemeral token-gated inventory endpoint
+        id: prepare
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          token="$(openssl rand -hex 32)"
+          digest="$(printf '%s' "$token" | sha256sum | awk '{print $1}')"
+          nonce="$(openssl rand -hex 16)"
+          name="jr-unified-db-inventory-${nonce}.php"
+          python3 - "$digest" "$name" <<'PY'
+          from pathlib import Path
+          import sys
+          source=Path('scripts/bertina-unified-db-inventory.php').read_text()
+          assert source.count('__JR_INVENTORY_TOKEN_SHA256__')==1
+          assert len(sys.argv[1])==64 and all(c in '0123456789abcdef' for c in sys.argv[1])
+          target=Path('/tmp')/sys.argv[2]
+          target.write_text(source.replace('__JR_INVENTORY_TOKEN_SHA256__',sys.argv[1]))
+          target.chmod(0o600)
+          PY
+          php -l "/tmp/$name"
+          {
+            echo "ephemeral_name=$name"
+            echo "inventory_token=$token"
+          } >> "$GITHUB_OUTPUT"
+      - name: Upload short-lived inspection endpoint over verified FTPS
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+          SCRIPT_NAME: ${{ steps.prepare.outputs.ephemeral_name }}
+        run: |
+          set -euo pipefail
+          test -n "$FTP_USER" && test -n "$FTP_PASSWORD" && test -n "$FTP_REMOTE_DIR"
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 20
+          cd "$FTP_REMOTE_DIR/api"
+          put "/tmp/$SCRIPT_NAME" -o "$SCRIPT_NAME"
+          bye
+          LFTP
+      - name: Verify EXACT live record counts without changing data
+        env:
+          SCRIPT_NAME: ${{ steps.prepare.outputs.ephemeral_name }}
+          INVENTORY_TOKEN: ${{ steps.prepare.outputs.inventory_token }}
+        run: |
+          set -euo pipefail
+          response_file="$RUNNER_TEMP/bertina-inventory-response.json"
+          status="$(curl -sS --max-time 175 -o "$response_file" -w '%{http_code}' \
+            --resolve drjavadrezazadeh.com:443:188.40.203.218 \
+            -H "X-JR-Inventory-Token: $INVENTORY_TOKEN" \
+            "https://drjavadrezazadeh.com/api/$SCRIPT_NAME")"
+          test "$status" = 200
+          node - "$response_file" <<'NODE'
+          const fs=require('fs');
+          const d=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if(d.ok!==true || d.schema!=='bertina-unified-readonly-inventory-v1')
+            throw Error('Inventory contract failed');
+          if(!Number.isInteger(d.tables)||!Number.isInteger(d.totalRows)||d.totalRows<0)
+            throw Error('Inventory counts missing');
+          const groups=d.groupCounts||{};
+          const report={
+            engineVersion:d.engineVersion,
+            tables:d.tables,
+            exactTotalRows:d.totalRows,
+            allTablesEmpty:d.allTablesEmpty,
+            groupCounts:groups,
+            nonEmptyTables:d.nonEmptyTables||[],
+            requiredBaselinePresent:d.requiredBaselinePresent,
+            allTablesInnoDb:d.allTablesInnoDb,
+            foreignKeyReferences:d.foreignKeyReferences
+          };
+          console.log('LIVE_READ_ONLY_DB_INVENTORY',JSON.stringify(report));
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            '## Verified Bertina database read-only inventory\n\n'+
+            '- Version: '+report.engineVersion+'\n'+
+            '- Tables: '+report.tables+'\n'+
+            '- Exact total rows: '+report.exactTotalRows+'\n'+
+            '- All tables empty: '+report.allTablesEmpty+'\n'+
+            '- Existing baseline intact: '+report.requiredBaselinePresent+'\n'+
+            '- No production database writes, DROP, TRUNCATE, UPDATE or DELETE were executed.\n');
+          NODE
+      - name: Remove ephemeral endpoint and scratch data
+        if: always()
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+          SCRIPT_NAME: ${{ steps.prepare.outputs.ephemeral_name }}
+        run: |
+          set +e
+          rm -f "$RUNNER_TEMP/bertina-inventory-response.json"
+          test -n "$SCRIPT_NAME" || exit 0
+          rm -f "/tmp/$SCRIPT_NAME"
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 65s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          cd "$FTP_REMOTE_DIR/api"
+          rm -f "$SCRIPT_NAME"
+          bye
+          LFTP
