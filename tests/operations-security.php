@@ -131,4 +131,16 @@ foreach(['code','tests','evidence'] as $gate)$prerequisites['dashboard']['verifi
 check(operationsProductionExpiry($prerequisites,$proof,$at)===$at+300,'production proof outlives prerequisite evidence');
 $bad=$proof;$bad['runId']='124';check(operationsProductionExpiry($prerequisites,$bad,$at)===null,'unrelated TLS run accepted');
 $prerequisites['dashboard']['verifiedGates'][0]['state']='fail';check(operationsProductionExpiry($prerequisites,$proof,$at)===null,'failed prerequisite certified production');
+
+ // The isolated production gate must use trusted same-release proof and
+ // cannot confer any of OP-03's three other acceptance gates.
+ $prerequisites['dashboard']['verifiedGates'][0]['state']='pass';
+ check(operationsProductionContext($server,$proof,$release,$at)
+     && operationsProductionExpiry($prerequisites,$proof,$at)!==null,
+     'Independent TLS scope not eligible under verified administrator prerequisites');
+ check(operationsProductionExpiry($prerequisites,array_merge($proof,['runId'=>'999']),$at)===null,
+     'Different GitHub execution was incorrectly accepted');
+ check(operationsProductionExpiry($prerequisites,$proof,$at+301)===null,
+     'Expired administrator evidence retained TLS acceptance eligibility');
+
 echo 'PASS: '.$count.' operations authorization, MFA, CSRF, scope, freshness and regression assertions. No production credentials or transactions used.'.PHP_EOL;

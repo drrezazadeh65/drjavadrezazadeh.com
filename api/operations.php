@@ -150,11 +150,12 @@ function operationsSignals(PDO $pdo, array $configuration, string $release, int 
     }catch(Throwable $e){
         $add(['OP-08','OP-09'],'order_metrics','دسترسی به شاخص سفارش‌ها','Order metrics available',null,'Bertina MySQL aggregate','Metrics unavailable; no records or completion inferred.');
     }
-    $add(['OP-02'],'current_release','شناسهٔ نسخهٔ ثبت‌شده در سرور','Server-recorded release SHA',$release?:null,'Bertina operations_release','This does not verify default-branch rulesets or retired provider decommissioning.');
+    $add(['OP-02','OP-36'],'current_release','شناسهٔ نسخهٔ ثبت‌شده در سرور','Server-recorded release SHA',$release?:null,'Bertina operations_release','A release identifier does not certify branch governance, rollback rehearsal, or completed recovery.');
     $raw=@file_get_contents(__DIR__.'/internal/operations-tls.json');$tls=is_string($raw)?json_decode($raw,true):null;
     if(is_array($tls)&&operationsProductionContext($_SERVER,$tls,$release,$at)){
         $expires=min($tls['checkedAt']+604800,min(array_column($tls['certificates'],'expiresAt'))-86400);
         $add(['OP-03'],'independent_tls','اعتبار شواهد مستقل TLS برای دامنه و www','Independent apex/www TLS proof valid',true,'Independent GitHub direct-TCP/public-DNS observer','Contacted addresses only; this observation does not activate payments or certify every DNS address.',false,$tls['checkedAt'],$expires);
+        $add(['OP-02','OP-03','OP-36'],'independent_tls_run','شناسهٔ ممیزی مستقل HTTPS نسخه','Current-release independent HTTPS audit run',(int)$tls['runId'],'Independent GitHub direct-TCP/public-DNS observer','Confirms only the independently observed TLS scope; branch protection, rollback, and backup recovery remain unverified.',false,$tls['checkedAt'],$expires);
     }
     $raw=@file_get_contents(__DIR__.'/internal/operations-gsc-observation.json');$gsc=is_string($raw)?json_decode($raw,true):null;
     if(is_array($gsc)&&($gsc['schema']??'')==='operations-gsc-observation-v1'&&($gsc['property']??'')==='https://drjavadrezazadeh.com/'&&is_array($gsc['results']??null)&&count($gsc['results'])>0&&count($gsc['results'])<=25){
@@ -272,24 +273,50 @@ function operationsProductionExpiry(array $snapshot, array $proof, int $at): ?in
     foreach($proof['certificates']??[] as $certificate)$expiries[]=(int)$certificate['expiresAt']-86400;
     $expires=min($expiries);return $expires>$at?$expires:null;
 }
-function operationsRecordProductionAccess(PDO $pdo, array $snapshot, string $accountId, int $at): bool {
-    $raw=@file_get_contents(__DIR__.'/internal/operations-tls.json');
-    $proof=is_string($raw)?json_decode($raw,true):null;
+/**
+ * Scope OP-03 narrowly to the independently certified apex/www TLS matrix.
+ * No browser request can supply this proof; production reads it from the
+ * checksum-verified release bundle only after administrator MFA succeeds.
+ */
+function operationsRecordVerifiedProduction(PDO $pdo, array $snapshot, string $accountId,
+    int $at, array $server, array $proof): bool {
     $release=(string)($snapshot['releaseSha']??'');
-    if (!is_array($proof) || !operationsProductionContext($_SERVER,$proof,$release,$at))return false;
-    $expires=operationsProductionExpiry($snapshot,$proof,$at);if($expires===null)return false;
-    // Only this successfully authenticated, MFA-protected reporting route can collect this observation.
-    // A browser cannot submit a percentage, approval, or evidence payload.
-    $identity=hash('sha256',$release.'|admin-live-report|'.intdiv($at,300));
-    $details=['scope'=>'admin_https_mfa_report_delivered','passed'=>36,'total'=>36];
+    if(!operationsProductionContext($server,$proof,$release,$at))return false;
+    $expires=operationsProductionExpiry($snapshot,$proof,$at);
+    if($expires===null)return false;
+    $sourceUrl='https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/'.$proof['runId'];
     $pdo->beginTransaction();
     try {
         $q=$pdo->prepare('INSERT IGNORE INTO operations_evidence(evidence_id,section_id,gate_id,result,release_sha,source,source_url,test_name,environment,checked_at,expires_at,details_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)');
-        $q->execute([$identity,'ADM-01','production','pass',$release,'bertina_probe','https://drjavadrezazadeh.com/api/admin/operations','Real administrator MFA and current-release HTTPS report delivery','production',$at,$expires,json_encode($details)]);
+        // Separate administrator acceptance: all existing prerequisites were checked above.
+        $adminIdentity=hash('sha256',$release.'|admin-live-report|'.intdiv($at,300));
+        $adminDetails=['scope'=>'admin_https_mfa_report_delivered','passed'=>36,'total'=>36];
+        $q->execute([$adminIdentity,'ADM-01','production','pass',$release,'bertina_probe',
+            'https://drjavadrezazadeh.com/api/admin/operations',
+            'Real administrator MFA and current-release HTTPS report delivery','production',
+            $at,$expires,json_encode($adminDetails,JSON_THROW_ON_ERROR)]);
         if($q->rowCount()>0)operationsAudit($pdo,$accountId,'production_report_delivered',$release);
+        // Only the TLS production gate; code, tests and evidence remain UNKNOWN.
+        // OP-02 branch governance and OP-36 rollback are NEVER certified here.
+        $tlsIdentity=hash('sha256',$release.'|tls-apex-www|'.$proof['runId'].'|'.intdiv($at,300));
+        $tlsDetails=['scope'=>'independent_tls_apex_www_six_checks',
+            'passed'=>6,'total'=>6,'checkedAt'=>$proof['checkedAt']];
+        $q->execute([$tlsIdentity,'OP-03','production','pass',$release,'bertina_probe',
+            $sourceUrl,'Independent apex/www certificate chain and HTTPS canonical matrix',
+            'production',$at,$expires,json_encode($tlsDetails,JSON_THROW_ON_ERROR)]);
+        if($q->rowCount()>0)operationsAudit($pdo,$accountId,'tls_production_observed',$release);
         $pdo->commit();
-    } catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+    } catch(Throwable $e) {
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
     return true;
+}
+function operationsRecordProductionAccess(PDO $pdo, array $snapshot, string $accountId, int $at): bool {
+    $raw=@file_get_contents(__DIR__.'/internal/operations-tls.json');
+    $proof=is_string($raw)?json_decode($raw,true):null;
+    return is_array($proof) &&
+        operationsRecordVerifiedProduction($pdo,$snapshot,$accountId,$at,$_SERVER,$proof);
 }
 
 function operationsRoute(string $path, string $verb): never {

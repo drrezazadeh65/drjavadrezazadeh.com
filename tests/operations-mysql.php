@@ -257,6 +257,56 @@ try {
  check($gscSignals['sample_size']['value']===10&&$gscSignals['indexed_sample']['value']===8&&$gscSignals['unknown_sample']['value']===2,'Google sample incorrectly represented');
  check($reports['OP-14']['measuredProgress']===null&&$reports['OP-14']['closed']===false,'Google sample certified overall indexation');
  check(!str_contains(json_encode($data),$password)&&!str_contains(json_encode($data),$secret)&&!str_contains(json_encode($data),str_repeat('p',32)),'private configuration leaked through metrics');
+
+ // Production-proof fixture: isolated MySQL + validated, release-matched 6/6
+ // TLS matrix, not a real credential, real DNS probe, payment, or restoration.
+ $tlsProof=['schema'=>'operations-tls-v1','ok'=>true,'commit'=>$sha,
+    'runId'=>$run,'observer'=>'independent-runner-direct-tcp-and-public-dns',
+    'checkedAt'=>$now-1,'checks'=>[],'certificates'=>[]];
+ foreach(['drjavadrezazadeh.com','www.drjavadrezazadeh.com'] as $hostname){
+    $tlsProof['certificates'][]=['host'=>$hostname,'expiresAt'=>$now+864000];
+    $tlsProof['checks'][]=['name'=>$hostname.' origin CA-chain hostname and expiry','passed'=>true];
+    foreach(['origin','public'] as $scope)$tlsProof['checks'][]=[
+       'name'=>$hostname.' '.$scope.' HTTPS status and canonical destination','passed'=>true];
+ }
+ $httpsServer=['HTTPS'=>'on','HTTP_HOST'=>'drjavadrezazadeh.com'];
+ $beforeTls=(int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn();
+ $beforeSnapshot=operationsSnapshot($pdo,$now);
+ check(operationsRecordVerifiedProduction($pdo,$beforeSnapshot,$id,$now,$httpsServer,$tlsProof),
+    'Release-matched independent TLS matrix did not register');
+ check((int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn()===$beforeTls+2,
+    'TLS collection imported unexpected acceptance gates');
+ check(operationsRecordVerifiedProduction($pdo,$beforeSnapshot,$id,$now,$httpsServer,$tlsProof),
+    'Idempotent valid TLS observation unexpectedly failed');
+ check((int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn()===$beforeTls+2,
+    'Refreshing a five-minute TLS observation duplicated evidence');
+ $postTls=operationsSnapshot($pdo,$now);
+ $byTls=array_column($postTls['reports'],null,'id');
+ $tlsStates=array_column($byTls['OP-03']['verifiedGates'],'state','id');
+ check($tlsStates===['code'=>'unknown','tests'=>'unknown','production'=>'pass','evidence'=>'unknown'],
+    'Narrow TLS check fabricated code/tests/evidence gate success');
+ check($byTls['OP-03']['closed']===false && $byTls['OP-03']['measuredProgress']===25,
+    'Single independent TLS gate was mistaken for OP-03 completion');
+ check($postTls['summary']['gateCoverage']['production']['pass']===1
+    && $postTls['summary']['verified']===0,
+    'OP-03 TLS evidence inflated the 36-report completion count');
+ foreach(['OP-02','OP-36'] as $unchanged){
+    check($byTls[$unchanged]['closed']===false
+      && array_column($byTls[$unchanged]['verifiedGates'],'state')===array_fill(0,4,'unknown'),
+      $unchanged.' was falsely certified by a TLS-only observation');
+ }
+ $invalidTls=$tlsProof;$invalidTls['commit']=str_repeat('b',40);
+ check(!operationsRecordVerifiedProduction($pdo,$beforeSnapshot,$id,$now,$httpsServer,$invalidTls),
+    'Mismatched release TLS proof accepted for MySQL evidence');
+ $invalidTls=$tlsProof;$invalidTls['checks'][0]['passed']=false;
+ check(!operationsRecordVerifiedProduction($pdo,$beforeSnapshot,$id,$now,$httpsServer,$invalidTls),
+    'Failed CA check accepted as verified TLS');
+ check(!operationsRecordVerifiedProduction($pdo,$beforeSnapshot,$id,$now,
+    ['HTTP_HOST'=>'drjavadrezazadeh.com','HTTP_X_FORWARDED_PROTO'=>'https'],$tlsProof),
+    'Spoofed forwarded HTTPS generated production evidence');
+ check((int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn()===$beforeTls+2,
+    'Rejected TLS evidence mutated operations MySQL');
+
  $remaining=request('/api/admin/operations/session',200);check($remaining['mfaExpiresIn']>0&&$remaining['mfaExpiresIn']<=600,'incorrect MFA expiry');
  $configuration['operations_admins'][$id]['totp_secret']=str_repeat('J',32);writeConfig();request('/api/admin/operations',403);
  $configuration['operations_admins'][$id]['totp_secret']=$secret;writeConfig();
