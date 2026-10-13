@@ -4,17 +4,18 @@ on:
   push:
     branches:
       - migration/bertina-linux6
-    # Only public pages and static assets initiate automatic releases. Governance,
-    # tests, scripts, API, private data and CI edits remain available for manual
-    # owner-authorised release, but do not generate spurious deploy failures.
+    # Cover deployable frontend, backend, journal and operational source.
+    # CI and production recovery checks remain required for every auto release.
     paths:
       - 'fa/**'
       - 'en/**'
       - 'journal/**'
-      - 'assets/images/**'
-      - 'assets/css/**'
-      - 'assets/fonts/**'
-      - 'assets/icons/**'
+      - 'api/**'
+      - 'assets/**'
+      - 'platform/**'
+      - 'database/**'
+      - 'migrations/**'
+      - 'scripts/**'
       - 'index.html'
       - '404.html'
       - 'offline.html'
@@ -25,7 +26,11 @@ on:
       - 'favicon.*'
       - 'site.webmanifest'
       - 'manifest.json'
+      - 'sw.js'
+      - '.htaccess'
+      - '.user.ini'
       - '.bertina-deploy-trigger'
+      - '.github/workflows/deploy-bertina.yml'
   workflow_dispatch:
     inputs:
       recovery_mode:
@@ -127,22 +132,24 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Verify automatic release-scope policy has not regressed
+      - name: Verify automatic release policy and full-scope decision tests
         if: github.event_name == 'push'
         run: |
           node --check scripts/bertina-auto-release-policy.mjs
-          node --test tests/bertina-auto-release-policy.test.mjs
+          node --check scripts/bertina-release-eligibility.mjs
+          node --test tests/bertina-auto-release-policy.test.mjs tests/bertina-release-eligibility.test.mjs
 
-      - name: Restrict automatic releases to public site changes
+      - name: Validate full source delta before automatic production preflight
         if: github.event_name == 'push'
         env:
           EXPECTED_LIVE_SHA: ${{ steps.release_policy.outputs.expected_live_sha }}
+          # Owner may set this repository variable to public_only to roll back scope.
+          # Default full permits private runtime changes to reach the same mandatory
+          # release tests, backup checks and production schema gates as manual runs.
+          BERTINA_AUTO_DEPLOY_SCOPE: ${{ vars.BERTINA_AUTO_DEPLOY_SCOPE || 'full' }}
         run: |
           set -euo pipefail
-          # Compare the entire not-yet-deployed delta, NOT just the last commit.
-          # Docs/notes omitted from the public artifact do not block harmless
-          # public updates; runtime/finance/auth/workflow/tests remain fail-closed.
-          node scripts/bertina-auto-release-policy.mjs "$EXPECTED_LIVE_SHA" "$GITHUB_SHA"
+          node scripts/bertina-release-eligibility.mjs "$EXPECTED_LIVE_SHA" "$GITHUB_SHA"
 
       - name: Compile and exercise both fail-closed recovery policy gates
         run: |
