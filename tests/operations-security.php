@@ -172,4 +172,8 @@ $auditBatch=operationsGithubBulkSources();
 check(count($auditBatch)===8 && !in_array('http://',array_map(
     static fn($url)=>substr($url,0,7),$auditBatch),true),
     'GitHub batch introduced untrusted endpoints');
+check(count(operationsCollectorCatalogue())===21,'Unreviewed extra collector scope');
+check(operationsCollectorNextDue('manual',50,2000000000)===0,'Manual source scheduled unexpectedly');
+check(operationsCollectorNextDue('hourly',25,2000000000)>2000000000,'Hourly schedule expired at creation');
+check(operationsCollectorNextDue('daily',230,2000000000)>2000000000,'Daily schedule expired at creation');
 echo 'PASS: '.$count.' operations authorization, MFA, CSRF, scope, freshness and regression assertions. No production credentials or transactions used.'.PHP_EOL;

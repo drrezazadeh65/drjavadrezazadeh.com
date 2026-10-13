@@ -31,7 +31,7 @@ $fake=$batch;$fake['events'][0]['sectionId']='OP-09';$fake['events'][0]['gateId'
 try{operationsImportRelease($pdo,$fake,$sha,$configuration,$run);throw new RuntimeException('CI certified a real payment');}catch(RuntimeException $e){check($e->getMessage()==='invalid_evidence_event','wrong forged-payment error');}
 $wrong=$batch;$wrong['runId']='654321';try{operationsImportRelease($pdo,$wrong,$sha,$configuration,$run);throw new RuntimeException('wrong run accepted');}catch(RuntimeException $e){check($e->getMessage()==='invalid_release_evidence','wrong run error');}
 $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=$work.'/operations-http-'.bin2hex(random_bytes(5));mkdir($folder,0700);mkdir($folder.'/api',0700);mkdir($folder.'/api/internal',0700);
-foreach(['index.php','commerce-stage9.php','operations.php','operations-commerce.php','operations-schema.php','operations-reporting.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
+foreach(['index.php','commerce-stage9.php','operations.php','operations-commerce.php','operations-schema.php','operations-reporting.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php','operations-collection.php'] as $file)copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file);
 copy(__DIR__.'/../api/internal/operations-registry.json',$folder.'/api/internal/operations-registry.json');
 copy(__DIR__.'/../api/internal/operations-gsc-observation.json',$folder.'/api/internal/operations-gsc-observation.json');
 mkdir($folder.'/assets',0700);mkdir($folder.'/assets/data',0700);
@@ -75,6 +75,32 @@ try {
  check($elevatedSession['csrfToken']!==$session['csrfToken'],'CSRF token did not rotate');
  $headers['X-CSRF-Token']=$elevatedSession['csrfToken'];
  request('/api/admin/operations/mfa',403,'POST',['code'=>$code],$headers);
+ 
+ $beforeCollections=(int)$pdo->query('SELECT COUNT(*) FROM operations_collection_policies')->fetchColumn();
+ check($beforeCollections===21,'Thirteen engines and eight source policies were not seeded');
+ $initial=request('/api/admin/operations/collection-settings',200);
+ check(count($initial['rows'])===21 && $initial['timezone']==='Asia/Tehran',
+     'Collector policy inventory missing');
+ $cached=request('/api/admin/operations/github-audits',200);
+ check(($cached['collection']['sourceStates']['governance:repository']['status']??null)==='missing',
+     'Unfetched GitHub source was falsely presented as fresh');
+ request('/api/admin/operations/collection-settings',403,'POST',[
+  'key'=>'ENG-01','enabled'=>false,'cadence'=>'manual','clockMinutes'=>240
+ ],$headers);
+ request('/api/admin/operations/github-audits/refresh',400,'POST',[
+  'scope'=>'malicious:provider'
+ ],$headers);
+ // Toggle logic in the same isolated mother database: never network fetch.
+ operationsCollectorConfigure($pdo,'ENG-11',false,'manual',120,$id,$now);
+ $disabled=operationsCollectorStatus($pdo,$now);
+ check(count(array_filter($disabled['sourceStates'],
+    static fn($state)=>$state['status']==='disabled'))>=4,
+    'Disabling engine did not block inherited provider collectors');
+ operationsCollectorConfigure($pdo,'ENG-11',true,'hourly',25,$id,$now);
+ check(operationsCollectorNextDue('manual',120,$now)===0
+    &&operationsCollectorNextDue('daily',300,$now)>$now,
+    'Schedule computed an unsafe automatic execution');
+
  $social=request('/api/admin/operations/social/settings',200);
  check(count($social['catalogue'])===16,'social network catalogue incomplete');
  check($social['oauthExchangeAvailable']===false &&

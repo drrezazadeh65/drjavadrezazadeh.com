@@ -280,6 +280,41 @@ test('OP-36 correlates server release with official deploy and post-release CI w
  await noOverflow(page);
 });
 
+
+test('Collection settings expose 13 engine switches, eight cached providers and owner refresh',async({page})=>{
+ const data=fixture();await authorized(page,{data});
+ const rows=[...Array.from({length:13},(_,i)=>({
+    id:'ENG-'+String(i+1).padStart(2,'0'),type:'engine',engineId:'ENG-'+String(i+1).padStart(2,'0'),
+    enabled:true,connected:i===0,cadence:'daily',clockMinutes:240,cacheState:'not_implemented'
+ })),...['audit:bertina-master-seo.yml','audit:external-link-monitor.yml',
+ 'audit:http-compression-diagnostic.yml','audit:full-route-responsive-certification.yml',
+ 'governance:repository','governance:branches','governance:restore_ci','governance:release_runs']
+  .map(id=>({id,type:'source',engineId:'ENG-11',enabled:true,connected:true,
+   cadence:'daily',clockMinutes:240,cacheState:'missing'}))];
+ const schedule={ok:true,schema:'operations-collection-controls-v1',timezone:'Asia/Tehran',
+  scheduler:'external_bertina_cron_required',rows,sourceStates:{}};
+ let saved=0,refreshed=0;
+ await page.route('**/api/admin/operations/collection-settings',route=>{
+  if(route.request().method()==='POST'){saved++;return route.fulfill({json:schedule});}
+  return route.fulfill({json:schedule});
+ });
+ await page.route('**/api/admin/operations/github-audits/refresh',route=>{
+  refreshed++;expect(route.request().postDataJSON()).toEqual({scope:'all'});
+  return route.fulfill({json:{ok:true,refresh:{attempted:8,saved:8},
+   auditSnapshot:{ok:true,schema:'operations-github-audits-v1',
+    summary:{observableWorkflows:0,registeredAllowlistedWorkflows:4},audits:[],
+    collection:schedule}}});
+ });
+ await page.setViewportSize({width:320,height:900});await page.goto(base+'/fa/app/admin/');
+ await page.locator('details.ops-github-audits summary').click();
+ await page.locator('details.ops-collection-settings summary').click();
+ await page.getByRole('button',{name:'نمایش تنظیمات و آخرین وضعیت'}).click();
+ const controls=page.locator('.ops-collector-item');await expect(controls).toHaveCount(21);
+ await controls.first().getByRole('button',{name:'ذخیره'}).click();expect(saved).toBe(1);
+ await page.getByRole('button',{name:'تازه‌سازی فوری همهٔ منابع فعال'}).click();
+ expect(refreshed).toBe(1);await noOverflow(page);
+});
+
 test('Audit-only dispatch requires owner confirmation and reports accepted request without invented run outcome',async({page})=>{
  const data=fixture(),posted=[];
  await authorized(page,{data});

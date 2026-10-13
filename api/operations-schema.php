@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
+require_once __DIR__.'/operations-collection.php';
 
 /** Called only by the authenticated deployment helper, never by a browser route. */
 function operationsInstall(PDO $pdo): void {
@@ -69,8 +70,25 @@ function operationsInstall(PDO $pdo): void {
             INDEX idx_ops_action_status(action_id,status),
             FOREIGN KEY (account_id) REFERENCES customer_accounts(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        , "CREATE TABLE IF NOT EXISTS operations_collection_policies (
+            scope_key VARCHAR(96) PRIMARY KEY,
+            enabled TINYINT NOT NULL DEFAULT 1,
+            cadence ENUM('manual','hourly','daily','live') NOT NULL,
+            clock_minutes SMALLINT UNSIGNED NOT NULL,
+            next_due BIGINT NOT NULL DEFAULT 0,
+            updated_at BIGINT NOT NULL,
+            INDEX idx_collector_due(enabled,next_due)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_collection_cache (
+            scope_key VARCHAR(96) PRIMARY KEY,
+            fetched_at BIGINT NOT NULL,
+            expires_at BIGINT NOT NULL,
+            body_json MEDIUMTEXT NOT NULL,
+            INDEX idx_collector_expires(expires_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     ];
     foreach ($statements as $sql) $pdo->exec($sql);
+    operationsCollectorSeed($pdo,time());
 }
 
 /** Exact-release evidence is accepted only by the one-time authenticated deployment helper. */

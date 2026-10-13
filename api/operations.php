@@ -10,6 +10,7 @@ require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/social-review.php';
 require_once __DIR__.'/social-admin-settings.php';
 require_once __DIR__.'/operations-github-audits.php';
+require_once __DIR__.'/operations-collection.php';
 require_once __DIR__.'/operations-github-dispatch.php';
 
 function operationsRegistry(): array {
@@ -403,13 +404,54 @@ function operationsRoute(string $path, string $verb): never {
             catch (Throwable $e) {fail('action_execution_unavailable',503);}
         }
 
-        if ($path === '/admin/operations/github-audits' && $verb === 'GET') {
-            // Four external provider requests per inspection; per-owner throttle
-            // prevents exhausting the public GitHub API or occupying PHP workers.
-            if(!rateAllowed($pdo,'operations_github_audit_read',$accountId,6,600))
+        if ($path === '/admin/operations/collection-settings' && $verb === 'GET') {
+            respond(operationsCollectorStatus($pdo,nowTs()));
+        }
+        if ($path === '/admin/operations/collection-settings' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('collector_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_collector_config',$accountId,20,600))fail('rate_limited',429);
+            $body=jsonBody();
+            if(!is_array($body)||count($body)!==4||!is_string($body['key']??null)
+                || !is_bool($body['enabled']??null)||!is_string($body['cadence']??null)
+                || !is_int($body['clockMinutes']??null))fail('invalid_collector_policy',400);
+            try{
+                operationsCollectorConfigure($pdo,$body['key'],$body['enabled'],
+                    $body['cadence'],$body['clockMinutes'],$accountId,nowTs());
+                respond(operationsCollectorStatus($pdo,nowTs()));
+            }catch(InvalidArgumentException $e){fail('invalid_collector_policy',400);}
+        }
+        if ($path === '/admin/operations/github-audits/refresh' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'operations_collector_manual',$accountId,3,3600))
                 fail('rate_limited',429);
-            // A real workflow status is sourced from GitHub, never a browser-provided number.
-            $source=operationsGithubAuditSnapshot(operationsRegistry(),(string)($pdo->query('SELECT release_sha FROM operations_release WHERE singleton_id=1')->fetch()['release_sha']??''));
+            $body=jsonBody();
+            if(!is_array($body)||array_keys($body)!==['scope']||!is_string($body['scope']))
+                fail('invalid_collector_scope',400);
+            try{
+                $result=operationsCollectorRefresh($pdo,'manual',nowTs(),$body['scope']);
+                $policies=operationsCollectorPolicies($pdo);
+                $cached=operationsCollectorCache($pdo,$policies,nowTs());
+                $release=(string)($pdo->query('SELECT release_sha FROM operations_release WHERE singleton_id=1')->fetch()['release_sha']??'');
+                $source=operationsGithubAuditSnapshot(operationsRegistry(),$release,$cached['sources']);
+                $source['collection']=operationsCollectorStatus($pdo,nowTs());
+                respond(['ok'=>true,'refresh'=>$result,'auditSnapshot'=>$source]);
+            }catch(InvalidArgumentException $e){fail('invalid_collector_scope',400);}
+        }
+        if ($path === '/admin/operations/github-audits' && $verb === 'GET') {
+            // No provider network I/O on dashboard views. Only private, unexpired
+            // MySQL snapshots are projected. An absent observation remains unknown.
+            if(!rateAllowed($pdo,'operations_github_audit_read',$accountId,12,600))
+                fail('rate_limited',429);
+            $at=nowTs();
+            $controls=operationsCollectorPolicies($pdo);
+            $cached=operationsCollectorCache($pdo,$controls,$at);
+            $release=(string)($pdo->query('SELECT release_sha FROM operations_release WHERE singleton_id=1')->fetch()['release_sha']??'');
+            $source=operationsGithubAuditSnapshot(operationsRegistry(),$release,$cached['sources']);
+            $source['collection']=operationsCollectorStatus($pdo,$at);
             $super=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
             $ready=$super&&operationsActionRunsReady($pdo)
                 && operationsGithubDispatchToken($configuration)!==null
@@ -430,7 +472,8 @@ function operationsRoute(string $path, string $verb): never {
             if(!is_array($body)||count($body)!==0)fail('invalid_audit_request',400);
             if(!rateAllowed($pdo,'operations_github_reconcile',$accountId,6,300))
                 fail('rate_limited',429);
-            $provider=operationsGithubAuditSnapshot(operationsRegistry(),(string)($pdo->query('SELECT release_sha FROM operations_release WHERE singleton_id=1')->fetch()['release_sha']??''));
+            $cached=operationsCollectorCache($pdo,operationsCollectorPolicies($pdo),nowTs());
+            $provider=operationsGithubAuditSnapshot(operationsRegistry(),(string)($pdo->query('SELECT release_sha FROM operations_release WHERE singleton_id=1')->fetch()['release_sha']??''),$cached['sources']);
             $result=operationsGithubReconcile($pdo,$accountId,$provider['audits']??[],nowTs());
             $history=operationsActionHistory($pdo,$accountId,nowTs());
             $provider['ownerSubmissions']=operationsGithubCorrelatedRuns($provider['audits'],$history);

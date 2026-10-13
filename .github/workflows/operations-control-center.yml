@@ -34,6 +34,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Lint isolated collection CLI and API
+        run: |
+          php -l api/operations-collection.php
+          php -l api/internal/operations-collector-cron.php
+          php -l api/operations-schema.php
       - name: Verify private registry and PHP security
         run: |
           node scripts/operations-registry-audit.mjs

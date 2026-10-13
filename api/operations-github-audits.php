@@ -266,12 +266,13 @@ function operationsGithubBulkSources(): array {
         $sources['governance:'.$name]=$url;
     return $sources;
 }
-function operationsGithubBulkFetch(): ?array {
+function operationsGithubBulkFetch(?array $enabledKeys=null): ?array {
     if(!function_exists('curl_multi_init')||!function_exists('curl_multi_exec'))return null;
     $multi=curl_multi_init();if($multi===false)return [];
     $handles=[];$results=[];
     try {
         foreach(operationsGithubBulkSources() as $key=>$url) {
+            if($enabledKeys!==null&&!in_array($key,$enabledKeys,true))continue;
             $ch=curl_init($url);
             if($ch===false)continue;
             curl_setopt_array($ch,[
