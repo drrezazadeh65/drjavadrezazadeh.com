@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "contract_id": "GOLDEN_TALENT_BOOK_RC_AS_CROSSWALK",
-  "version": "2026-10-14.1",
+  "version": "2026-10-14.2",
   "authority": {
     "book_title_fa": "کشف مسیر طلایی استعداد",
     "author": "Javad Rezazadeh",
@@ -12,7 +12,14 @@
       "Golden_Talent_Audit_Report_FA.md (editorial audit, 2026-10-04)"
     ],
     "scientific_status": "PREVALIDATION",
-    "note": "Editorial inventory is not independent psychometric validation, a published norm, or a licence to copy manuscript drafts into public runtime."
+    "note": "Editorial inventory is not independent psychometric validation, a published norm, or a licence to copy manuscript drafts into public runtime.",
+    "manuscript_inventory": {
+      "file": "Golden_Talent_Integrated_Manuscript_Working.docx (private Library, working draft)",
+      "verified_by": "programmatic extraction of code, response type, prompt text from author's working manuscript",
+      "status": "WORKING_DRAFT_ONLY_UNAPPROVED_FOR_PUBLIC_INSTRUMENT_RELEASE",
+      "fingerprint_algorithm": "sha256 of NFC whitespace-collapsed code|response specification|prompt joined in print order with newline",
+      "raw_item_text_uploaded_to_repository": false
+    }
   },
   "existing_registry": "platform/golden-talent-instrument-registry.v1.json",
   "chapter_anchors": [
@@ -150,7 +157,9 @@
         4
       ],
       "not_applicable": "NA_IS_NOT_ZERO",
-      "self_report_limit": "Does not establish independent multi-source convergence or diagnose an individual."
+      "self_report_limit": "Does not establish independent multi-source convergence or diagnose an individual.",
+      "unknown_evidence": "UNKNOWN_IS_NOT_ZERO_AND_DISTINCT_FROM_NA",
+      "book_wording_sha256": "1802182be35c1bfd8ea04d539f6101d9b8d874d07f097e09105688cbc30485ba"
     },
     "R1": {
       "code": "RCAS-R1",
@@ -219,7 +228,9 @@
           8,
           10,
           11
-        ]
+        ],
+        "working_manuscript_bank_sha256": "06e1089c581fa486b1f77b43dbfd3f110785d50b9112ffaba8c9f436fd192c82",
+        "instrument_approved": false
       },
       {
         "code": "D2",
@@ -231,7 +242,9 @@
         "source_chapters": [
           6,
           9
-        ]
+        ],
+        "working_manuscript_bank_sha256": "2fb30c69d37fd61da6dd3874595c89a3885d69ebc83492077153f44be402a867",
+        "instrument_approved": false
       },
       {
         "code": "D3",
@@ -242,7 +255,9 @@
         ],
         "source_chapters": [
           14
-        ]
+        ],
+        "working_manuscript_bank_sha256": "8dcb44a9ff0fe77189bad32db9dbf6205a592bba7b2b8029740d91f3a7ab7177",
+        "instrument_approved": false
       },
       {
         "code": "D4",
@@ -253,7 +268,9 @@
         ],
         "source_chapters": [
           15
-        ]
+        ],
+        "working_manuscript_bank_sha256": "c583dae83895ec3e82729a1e56877b4c74096ac5f5e408f18b434475686e5df6",
+        "instrument_approved": false
       },
       {
         "code": "D5",
@@ -265,7 +282,9 @@
         ],
         "source_chapters": [
           12
-        ]
+        ],
+        "working_manuscript_bank_sha256": "9feada71636f6fb6091518e2133022d184cd5dbf4e06eff524bf428474cbbc4d",
+        "instrument_approved": false
       },
       {
         "code": "D6",
@@ -278,10 +297,12 @@
         "source_chapters": [
           3,
           13
-        ]
+        ],
+        "working_manuscript_bank_sha256": "ff144c3998149ecf4bc17cd762e63dccc407592303c67f1e73a09e390ef7023b",
+        "instrument_approved": false
       }
     ],
-    "question_text_status": "MANUSCRIPT_ONLY_NOT_IN_ACTIVE_INSTRUMENT_REGISTRY",
+    "question_text_status": "142_ITEM_TEXT_LOCATED_IN_PRIVATE_WORKING_MANUSCRIPT_NOT_PUBLISHED_IN_WEB_RUNTIME",
     "publishable_question_bank": false,
     "content_copy_requires": "SOURCE_EXACT_ITEM_EXTRACTION_AND_AUTHOR_REVIEW_WITH_VERSION_HASH",
     "completion_is_not_diagnosis": true
