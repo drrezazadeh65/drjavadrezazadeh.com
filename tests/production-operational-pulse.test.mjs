@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {authContract,commerceContract,guestContract,requireCondition} from '../scripts/production-operational-pulse.mjs';
+import {authContract,commerceContract,guestContract,consultationContract,requireCondition} from '../scripts/production-operational-pulse.mjs';
 
 const healthyAuth={ok:true,service:'auth',ready:true,registrationReady:true,
   database:true,schemaReady:true,email:true,passwordKdf:true};
@@ -38,4 +38,15 @@ test('private endpoints must deny anonymous requests',()=>{
 test('generic invariant helper has exact failure behavior',()=>{
   assert.doesNotThrow(()=>requireCondition(true,'ok'));
   assert.throws(()=>requireCondition(false,'safety_gate'),/safety_gate/);
+});
+
+test('consultation intake readiness is distinct from identity and checkout readiness',()=>{
+ const h={ok:true,service:'consultation_interest',schema:'stage14-readiness-v1',
+   ready:true,requirements:{database:true,auth:true,consentSchema:true,
+      verifiedAccountRequired:true,paymentOrBookingImplied:false}};
+ assert.match(consultationContract(h),/configured/);
+ assert.throws(()=>consultationContract({...h,ready:false}),/consultation_not_ready/);
+ for(const key of ['database','auth','consentSchema','verifiedAccountRequired'])
+   assert.throws(()=>consultationContract({...h,requirements:{...h.requirements,[key]:false}}),/consultation_gate_/);
+ assert.throws(()=>consultationContract({...h,requirements:{...h.requirements,paymentOrBookingImplied:true}}),/consultation_false_booking_claim/);
 });
