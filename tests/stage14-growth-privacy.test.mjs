@@ -83,3 +83,27 @@ test('public aggregate health reports non-personal capability and guest is denie
  assert.ok(scope.indexOf('$account=stage14LeadAccount($pdo)')<scope.lastIndexOf('if (!stage14LeadSchemaReady($pdo))'));
  assert.doesNotMatch(scope,/password|customer_email|raw_token/);
 });
+
+test('service sales follow-up is consented, bounded and never presented as settled revenue',()=>{
+ assert.match(lead,/serviceSalesPipeline'=>\$pipeline/);
+ assert.match(lead,/consent_withdrawn_at IS NULL/);
+ assert.match(lead,/expires_at>\?/);
+ assert.match(lead,/state IN \('NEW','NEEDS_INFO'\)/);
+ assert.match(lead,/awaitingOver24Hours/);
+ assert.match(lead,/awaitingOver72Hours/);
+ assert.match(lead,/needsAdditionalInformation/);
+ assert.match(lead,/GROUP BY service_id/);
+ assert.match(lead,/LIMIT 7/);
+ assert.match(lead,/array_slice\(\$serviceRows,0,6\)/);
+ assert.match(lead,/topServiceQueuesTruncated/);
+ assert.match(lead,/\$counts=null;\$pipeline=null;\$leadSource='UNAVAILABLE'/);
+ assert.match(lead,/netSettledToman'=>null/);
+ assert.match(reportJs,/serviceSalesPipeline/);
+ assert.match(reportJs,/awaitingOver24Hours/);
+ assert.match(reportJs,/awaitingOver72Hours/);
+ assert.match(reportJs,/document\.createElement\('details'\)/);
+ assert.match(reportJs,/textContent=String\(item\.serviceId/);
+ assert.match(reportJs,/requestGeneration/);
+ assert.match(reportJs,/workspace\?\.hidden/);
+ assert.doesNotMatch(reportJs,/localStorage|sessionStorage|innerHTML/);
+});
