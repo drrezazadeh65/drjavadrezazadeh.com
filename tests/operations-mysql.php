@@ -271,7 +271,7 @@ try {
  }
  $httpsServer=['HTTPS'=>'on','HTTP_HOST'=>'drjavadrezazadeh.com'];
  $beforeTls=(int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn();
- $beforeSnapshot=operationsSnapshot($pdo,$now);
+ $beforeSnapshot=$data; // Authenticated API snapshot, not a source-only fixture.
  check(operationsRecordVerifiedProduction($pdo,$beforeSnapshot,$id,$now,$httpsServer,$tlsProof),
     'Release-matched independent TLS matrix did not register');
  check((int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn()===$beforeTls+2,
@@ -280,7 +280,7 @@ try {
     'Idempotent valid TLS observation unexpectedly failed');
  check((int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn()===$beforeTls+2,
     'Refreshing a five-minute TLS observation duplicated evidence');
- $postTls=operationsSnapshot($pdo,$now);
+ $postTls=request('/api/admin/operations',200); // Read persisted evidence through real PHP HTTP.
  $byTls=array_column($postTls['reports'],null,'id');
  $tlsStates=array_column($byTls['OP-03']['verifiedGates'],'state','id');
  check($tlsStates===['code'=>'unknown','tests'=>'unknown','production'=>'pass','evidence'=>'unknown'],
