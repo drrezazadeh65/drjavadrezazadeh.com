@@ -168,4 +168,8 @@ check($incomplete['status']==='unknown'&&$incomplete['canonicalBranchProtected']
 check(operationsGithubGovernanceProject(null,$protected)['status']==='unknown',
     'Unavailable provider returned a fabricated branch protection state');
 
+$auditBatch=operationsGithubBulkSources();
+check(count($auditBatch)===8 && !in_array('http://',array_map(
+    static fn($url)=>substr($url,0,7),$auditBatch),true),
+    'GitHub batch introduced untrusted endpoints');
 echo 'PASS: '.$count.' operations authorization, MFA, CSRF, scope, freshness and regression assertions. No production credentials or transactions used.'.PHP_EOL;

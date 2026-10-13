@@ -145,6 +145,47 @@ assertAudit(operationsGithubReleaseTraceProject(null,$release,$at)['releaseAccep
 assertAudit(operationsGithubReleaseTraceProject(['workflow_runs'=>[$deploy,$accepted]],'invalid',$at)['status']==='server_release_missing',
  'Invalid server release granted acceptance credit');
 
+
+$bulkSources=operationsGithubBulkSources();
+assertAudit(count($bulkSources)===8
+    &&count(array_unique(array_values($bulkSources)))===8,
+    'Expected exactly eight independent allowlisted GET URLs');
+foreach($bulkSources as $kind=>$url)assertAudit(
+    str_starts_with($url,'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/')
+      && !str_contains($url,'redirect') && !str_contains($url,'token'),
+    'Unsafe GitHub batch URL: '.$kind);
+$bulkData=[
+ 'audit:bertina-master-seo.yml'=>[
+   'http'=>200,'error'=>0,'body'=>json_encode(['workflow_runs'=>[$valid]],JSON_THROW_ON_ERROR)],
+ 'governance:repository'=>[
+   'http'=>200,'error'=>0,'body'=>json_encode([
+     'full_name'=>'drrezazadeh65/drjavadrezazadeh.com','default_branch'=>'migration/bertina-linux6'
+   ],JSON_THROW_ON_ERROR)],
+ 'governance:branches'=>[
+   'http'=>200,'error'=>0,'body'=>json_encode([['name'=>'migration/bertina-linux6','protected'=>false]],JSON_THROW_ON_ERROR)]
+];
+$batchObserved=operationsGithubBulkAudit($bulkData,'bertina-master-seo.yml');
+assertAudit($batchObserved['status']==='observed'
+  &&count($batchObserved['runs'])===1
+  &&$batchObserved['runs'][0]['runId']===38275309852,'Batch provider success not projected');
+$governanceObserved=operationsGithubGovernanceSnapshot(str_repeat('a',40),$bulkData);
+assertAudit($governanceObserved['status']==='branch_unprotected'
+  &&$governanceObserved['releaseTrace']['releaseAcceptedByCi']===false,
+  'Missing provider endpoints fabricated release certification');
+$badBatch=$bulkData;$badBatch['audit:bertina-master-seo.yml']['http']=429;
+assertAudit(operationsGithubBulkAudit($badBatch,'bertina-master-seo.yml')['status']==='provider_rate_limited',
+    'Rate limiting accepted as successful observation');
+$badBatch=$bulkData;$badBatch['audit:bertina-master-seo.yml']['body']='{bad';
+assertAudit(operationsGithubBulkAudit($badBatch,'bertina-master-seo.yml')['status']==='provider_invalid_response',
+    'Malformed provider JSON was accepted');
+$badBatch=$bulkData;$badBatch['governance:branches']['error']=28;
+assertAudit(operationsGithubGovernanceSnapshot(str_repeat('a',40),$badBatch)['status']==='unknown',
+    'Timed-out GitHub branch-list falsely declared unprotected');
+$batchSnapshot=operationsGithubAuditSnapshot($registry,str_repeat('a',40),$bulkData);
+assertAudit($batchSnapshot['summary']['observableWorkflows']===1
+    &&$batchSnapshot['summary']['registeredAllowlistedWorkflows']===4,
+    'Batch snapshot conflated unavailable provider workflows with observed success');
+
 assertAudit(operationsGithubDispatchToken([])===null,'Dispatch credentials must default OFF');
 assertAudit(operationsGithubDispatchToken(['github_audit_dispatch_token'=>'x'])===null,'Short token accepted');
 assertAudit(operationsGithubDispatchToken(['github_audit_dispatch_token'=>str_repeat('g',40)])===str_repeat('g',40),'Scoped fixture token rejected');

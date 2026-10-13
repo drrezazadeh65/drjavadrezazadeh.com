@@ -114,13 +114,16 @@ function operationsGithubGovernanceProject(?array $repository, ?array $branches)
         'limitations'=>'GitHub branch metadata is not proof of branch ruleset details, revoked legacy deploy credentials, an isolated backup restore, or production rollback. No OP-02/OP-36 gate is closed.'
     ];
 }
-function operationsGithubGovernanceFetchJson(string $kind): ?array {
-    $paths=[
+function operationsGithubGovernanceUrls(): array {
+    return [
         'repository'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com',
         'branches'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/branches?per_page=100',
         'restore_ci'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/bertina-restore-readiness-ci.yml/runs?per_page=5&branch=migration%2Fbertina-linux6',
         'release_runs'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/actions/runs?per_page=50&branch=migration%2Fbertina-linux6'
     ];
+}
+function operationsGithubGovernanceFetchJson(string $kind): ?array {
+    $paths=operationsGithubGovernanceUrls();
     if(!isset($paths[$kind])||!function_exists('curl_init'))return null;
     $ch=curl_init($paths[$kind]);if($ch===false)return null;
     curl_setopt_array($ch,[
@@ -245,19 +248,97 @@ function operationsGithubReleaseTraceProject(?array $input, string $releaseSha, 
     return array_merge($result,['status'=>'release_ci_accepted','releaseAcceptedByCi'=>true]);
 }
 
-function operationsGithubGovernanceSnapshot(string $releaseSha=''): array {
-    $snapshot=operationsGithubGovernanceProject(
-        operationsGithubGovernanceFetchJson('repository'),
-        operationsGithubGovernanceFetchJson('branches')
-    );
-    $snapshot['restoreReadiness']=operationsGithubRestoreCiProject(
-        operationsGithubGovernanceFetchJson('restore_ci'),time());
-    $snapshot['releaseTrace']=operationsGithubReleaseTraceProject(
-        operationsGithubGovernanceFetchJson('release_runs'),$releaseSha,time());
+
+/**
+ * Fetch the four fixed audit workflows and four fixed governance observations
+ * concurrently. Nothing is writable, redirects are forbidden, and the total
+ * wait is bounded even if GitHub is slow. No fetched content grants permissions.
+ */
+function operationsGithubBulkSources(): array {
+    $sources=[];
+    foreach(operationsGithubAuditCatalog() as $audit) {
+        $workflow=$audit['workflow'];
+        $sources['audit:'.$workflow]=
+            'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/'.
+            rawurlencode($workflow).'/runs?per_page=50&branch=migration%2Fbertina-linux6';
+    }
+    foreach(operationsGithubGovernanceUrls() as $name=>$url)
+        $sources['governance:'.$name]=$url;
+    return $sources;
+}
+function operationsGithubBulkFetch(): ?array {
+    if(!function_exists('curl_multi_init')||!function_exists('curl_multi_exec'))return null;
+    $multi=curl_multi_init();if($multi===false)return [];
+    $handles=[];$results=[];
+    try {
+        foreach(operationsGithubBulkSources() as $key=>$url) {
+            $ch=curl_init($url);
+            if($ch===false)continue;
+            curl_setopt_array($ch,[
+                CURLOPT_RETURNTRANSFER=>true,CURLOPT_FOLLOWLOCATION=>false,
+                CURLOPT_TIMEOUT=>6,CURLOPT_CONNECTTIMEOUT=>3,
+                CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_SSL_VERIFYPEER=>true,
+                CURLOPT_USERAGENT=>'DrJR-Admin-ReadOnly-CI-Observer/1.0',
+                CURLOPT_HTTPHEADER=>['Accept: application/vnd.github+json',
+                    'X-GitHub-Api-Version: 2022-11-28'],CURLOPT_MAXREDIRS=>0
+            ]);
+            if(curl_multi_add_handle($multi,$ch)!==CURLM_OK){curl_close($ch);continue;}
+            $handles[$key]=$ch;
+        }
+        $remaining=0;$stop=microtime(true)+8;
+        do{
+            $status=curl_multi_exec($multi,$remaining);
+            if($status!==CURLM_OK||microtime(true)>$stop)break;
+            if($remaining>0){
+                $selected=curl_multi_select($multi,0.25);
+                if($selected===-1)usleep(10000);
+            }
+        }while($remaining>0);
+        foreach($handles as $key=>$ch)
+            $results[$key]=[
+                'http'=>(int)curl_getinfo($ch,CURLINFO_HTTP_CODE),
+                'body'=>curl_multi_getcontent($ch),
+                'error'=>curl_errno($ch)
+            ];
+    }finally{
+        foreach($handles as $ch){curl_multi_remove_handle($multi,$ch);curl_close($ch);}
+        curl_multi_close($multi);
+    }
+    return $results;
+}
+function operationsGithubBulkJson(array $sources, string $key, int $maxBytes): ?array {
+    $item=$sources[$key]??null;
+    if(!is_array($item)||($item['http']??null)!==200||($item['error']??1)!==0
+        ||!is_string($item['body']??null)||strlen($item['body'])>$maxBytes)return null;
+    $value=json_decode($item['body'],true);
+    return is_array($value)?$value:null;
+}
+function operationsGithubBulkAudit(array $sources, string $workflow): array {
+    if(!in_array($workflow,array_column(operationsGithubAuditCatalog(),'workflow'),true))
+        return ['status'=>'not_allowlisted','runs'=>[]];
+    $entry=$sources['audit:'.$workflow]??null;
+    $http=is_array($entry)?($entry['http']??0):0;
+    if($http!==200)return ['status'=>in_array($http,[403,429],true)
+        ?'provider_rate_limited':'provider_unavailable','runs'=>[]];
+    $value=operationsGithubBulkJson($sources,'audit:'.$workflow,1024*1024);
+    if(!is_array($value)||!is_array($value['workflow_runs']??null))
+        return ['status'=>'provider_invalid_response','runs'=>[]];
+    return ['status'=>'observed','runs'=>operationsGithubAuditProject($value,$workflow)];
+}
+
+function operationsGithubGovernanceSnapshot(string $releaseSha='', ?array $sources=null): array {
+    $input=$sources===null
+        ?static fn(string $name)=>operationsGithubGovernanceFetchJson($name)
+        :static fn(string $name)=>operationsGithubBulkJson($sources,'governance:'.$name,256000);
+    $checkedAt=time();
+    $snapshot=operationsGithubGovernanceProject($input('repository'),$input('branches'));
+    $snapshot['restoreReadiness']=operationsGithubRestoreCiProject($input('restore_ci'),$checkedAt);
+    $snapshot['releaseTrace']=operationsGithubReleaseTraceProject($input('release_runs'),$releaseSha,$checkedAt);
     return $snapshot;
 }
 
-function operationsGithubAuditSnapshot(array $registry, string $releaseSha=''): array {
+function operationsGithubAuditSnapshot(array $registry, string $releaseSha='', ?array $sources=null): array {
+    $sources=$sources??operationsGithubBulkFetch();
     $identities=array_column($registry['actions']??[],null,'id');$entries=[];
     foreach(operationsGithubAuditCatalog() as $entry){
         $id=$entry['actionId'];$action=$identities[$id]??null;
@@ -266,7 +347,8 @@ function operationsGithubAuditSnapshot(array $registry, string $releaseSha=''): 
             || ($action['approvalPolicy']['required']??null)!==true
             || ($action['riskCategory']??'')!=='HIGH')
             continue;
-        $remote=operationsGithubAuditFetch($entry['workflow']);
+        $remote=$sources===null?operationsGithubAuditFetch($entry['workflow']):
+            operationsGithubBulkAudit($sources,$entry['workflow']);
         $entries[]=array_merge($entry,$remote,[
             'executionMode'=>'external_read_only_observation',
             'dispatchAvailable'=>false,
@@ -277,7 +359,7 @@ function operationsGithubAuditSnapshot(array $registry, string $releaseSha=''): 
     return [
         'ok'=>true,'schema'=>'operations-github-audits-v1','checkedAt'=>time(),
         'releaseScope'=>'migration/bertina-linux6','audits'=>$entries,
-        'governance'=>operationsGithubGovernanceSnapshot($releaseSha),
+        'governance'=>operationsGithubGovernanceSnapshot($releaseSha,$sources),
         'summary'=>[
             'registeredAllowlistedWorkflows'=>count(operationsGithubAuditCatalog()),
             'observableWorkflows'=>count(array_filter($entries,fn($x)=>$x['status']==='observed')),
