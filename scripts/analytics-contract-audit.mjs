@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
 const config=JSON.parse(fs.readFileSync('platform/analytics-config.json','utf8'));
 const policy=JSON.parse(fs.readFileSync('platform/observability-policy.json','utf8'));
 const source=fs.readFileSync('assets/js/analytics-adapter.js','utf8');
@@ -16,4 +17,5 @@ const policyEvents=new Set((policy.events||[]).filter(x=>x.client_event===true).
 for(const key of config.allowed_client_events||[]) if(!policyEvents.has(key)) failures.push('GA4 allowlist event absent from observability policy: '+key);
 if(policy.rules?.raw_form_values_in_analytics!==false) failures.push('raw form values must remain prohibited');
 if(failures.length){failures.forEach(x=>console.error('✗ '+x));process.exit(1);}
+execFileSync(process.execPath,['tests/analytics-consent-lifecycle.test.mjs'],{stdio:'inherit'});
 console.log('Analytics contract audit passed: provider disabled until verified property/Measurement ID + consent; '+config.allowed_client_events.length+' client events allow-listed.');
