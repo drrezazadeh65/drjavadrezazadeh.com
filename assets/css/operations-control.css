@@ -3,3 +3,11 @@
 .ops-report-metrics{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 16px}.ops-report-metrics dd{margin:0;overflow-wrap:anywhere}.ops-report-metrics dt{color:var(--ops-muted)}.ops-engine-aggregate{margin-block:16px}
 
 .ops-panel,.ops-card,.ops-stats,.ops-queue,.ops-toolbar{min-width:0;overflow-wrap:anywhere}.ops-report-metrics dt{overflow-wrap:anywhere}@media(max-width:600px){.ops-number{font-size:1.25rem}}
+
+/* Evidence coverage and action triage use accessible, collapsed, mobile-safe disclosures. */
+.ops-evidence-matrix,.ops-executor-backlog{min-width:0;margin-block:14px;padding:12px;border:1px solid var(--ops-border);border-radius:12px}
+.ops-evidence-matrix>summary,.ops-executor-backlog>summary{cursor:pointer;color:var(--ops-gold);font-weight:700;overflow-wrap:anywhere}
+.ops-evidence-matrix .ops-gate small{display:block}
+.ops-backlog-group{min-width:0}.ops-backlog-group ol{min-width:0;margin:8px 0;padding-inline-start:22px}
+.ops-backlog-group li{min-width:0;margin-block:6px}
+.ops-backlog-group button{max-width:100%;width:100%;text-align:start;white-space:normal;overflow-wrap:anywhere}
