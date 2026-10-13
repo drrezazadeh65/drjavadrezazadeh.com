@@ -13,6 +13,9 @@ $pdo=new PDO($dsn,(string)(getenv('OPERATIONS_TEST_USER')?:''),
 define('BERTINA_API_BOOTSTRAPPED',true);
 require_once __DIR__.'/../api/commerce-stage9.php';
 require_once __DIR__.'/../api/operations-fulfilment.php';
+function validUuid(string $v): bool {
+    return preg_match('/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i',$v)===1;
+}
 function operationsAudit(PDO $pdo,?string $actor,string $action,string $reference): void {
     $q=$pdo->prepare("INSERT INTO operations_audit(actor_id,action,reference_id,occurred_at)
       VALUES(?,?,?,?)");
