@@ -20,7 +20,7 @@ jobs:
           set -euo pipefail
           test "$(git ls-remote origin refs/heads/ops/bertina-unified-db-install-20261013 | cut -f1)" = "$GITHUB_SHA"
           test "$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)" = bdee7b2663923c3e0572f5823f65752f04c1aef2
-          test "$(cat .bertina-clean-master-deploy-trigger)" = OWNER_APPROVED_REMOVE_278_EXISTING_ROWS_AND_INSTALL_CLEAN_MOTHER_V1
+          test "$(cat .bertina-clean-master-deploy-trigger)" = OWNER_APPROVED_REMOVE_278_EXISTING_ROWS_AND_INSTALL_CLEAN_MOTHER_V2
           node --test tests/unified-db-schema.test.mjs
           php -l scripts/bertina-clean-master-apply-template.php
           python3 -m py_compile scripts/render-bertina-clean-master.py
@@ -35,6 +35,7 @@ jobs:
           set -euo pipefail
           umask 077
           token="$(openssl rand -hex 32)"
+          echo "::add-mask::$token"
           digest="$(printf '%s' "$token" | sha256sum | cut -d' ' -f1)"
           name="jr-clean-master-$(openssl rand -hex 16).php"
           python3 scripts/render-bertina-clean-master.py \
@@ -80,9 +81,9 @@ jobs:
           const f=require('fs');const d=JSON.parse(f.readFileSync(process.argv[2],'utf8'));const p=d.inventory||{};
           if(!d.ok||d.phase!=='read_only_preflight'||p.originalTables!==20||
              p.originalRows<278||p.originalRows>380||p.accounts!==2||p.orders!==2||
-             p.adminMemberships!==1||p.paidOrders!==0||p.bookStockRows!==3)
+             p.adminMemberships!==1||p.paidOrders!==1||p.bookStockRows!==3)
             throw Error('Unexpected live records: no deletion allowed');
-          console.log('LIVE_MASTER_PREFLIGHT_PASS',p.originalRows);
+          console.log('LIVE_MASTER_PREFLIGHT_PASS',p.originalRows,'owner-approved synthetic paid order',p.paidOrders);
           NODE
       - name: Create private encrypted recovery and install the mother database
         env:
