@@ -167,3 +167,5 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-13 release automation regression: standard public-only trigger after successful owner bootstrap; no site content, database, payment or server settings changes. Verify repeatable hands-free deployment on Bertina.
 2026-10-13 Stage 7 OP-03 scoped current-release TLS proof; verified read-only production observer, CI MySQL/MFA checks green; deploy canonical branch.
 2026-10-13 Stage 7 GitHub provider read-only concurrent observation 8 allowlisted API endpoints, validated PHP MySQL MFA and browser QA on source e92283425ce2893ef1657eddbcc8ff642d177605.
+
+2026-10-14 — explicit owner-requested Stage 7 master plan production publication retry from current canonical branch. Retain all release eligibility, backup/recovery, MySQL, privacy, security, SEO, stale-head and live fingerprint gates; fail closed on any unmet condition. No production secrets, schema resets or payment activation.
