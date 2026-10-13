@@ -37,6 +37,69 @@
    return new Intl.DateTimeFormat(locale,{dateStyle:'full',timeStyle:'short'}).format(date);
  };
  const timezone=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
+ const DELIVERY_LABELS={
+   PHONE:t('تلفنی','Telephone'),
+   VIDEO:t('آنلاین تصویری','Online video'),
+   IN_PERSON:t('حضوری (صرفاً VIP یا کوچینگ سالانه)','In person (VIP or annual coaching only)')
+ };
+ const CITY_LABELS={TEHRAN:t('تهران','Tehran'),KASHAN:t('کاشان','Kashan')};
+ function makeChoice(order,caseRecord,entry,stamp){
+   const modes=Array.isArray(caseRecord.allowedDeliveryModes)
+     ?caseRecord.allowedDeliveryModes.filter(v=>Object.hasOwn(DELIVERY_LABELS,v)):[];
+   if(!caseRecord.customerChoiceEnabled||!modes.length)return;
+   const container=el('div',undefined,'appointment-preference');
+   const label=el('label',t('نوع جلسه مورد نظر','Choose your preferred session format'));
+   const mode=document.createElement('select');
+   mode.setAttribute('aria-label',t('روش مشاوره','Consultation format'));
+   for(const key of modes){
+     const option=document.createElement('option');option.value=key;option.textContent=DELIVERY_LABELS[key];
+     mode.append(option);
+   }
+   if(modes.includes(caseRecord.deliveryMode))mode.value=caseRecord.deliveryMode;
+   else mode.value=modes[0];
+   label.append(mode);
+   const cityLabel=el('label',t('شهر جلسه حضوری','In-person city'));
+   const city=document.createElement('select');
+   for(const key of Object.keys(CITY_LABELS)){
+     const option=document.createElement('option');option.value=key;
+     option.textContent=CITY_LABELS[key];city.append(option);
+   }
+   if(Object.hasOwn(CITY_LABELS,caseRecord.meetingCity))city.value=caseRecord.meetingCity;
+   const updateCity=()=>{cityLabel.hidden=mode.value!=='IN_PERSON';};
+   cityLabel.append(city);mode.addEventListener('change',updateCity);updateCity();
+   const submit=el('button',t('ثبت روش پیشنهادی جلسه','Save preferred session format'),'button');
+   submit.type='button';
+   const feedback=el('p',t('انتخاب روش جلسه، به معنای تأیید نوبت یا ظرفیت نیست.',
+     'Selecting a format does not confirm appointment availability.'));
+   submit.addEventListener('click',async()=>{
+     if(stamp!==revision||document.hidden)return;
+     const selectedMode=mode.value;
+     if(!modes.includes(selectedMode))return;
+     const selectedCity=selectedMode==='IN_PERSON'?city.value:null;
+     submit.disabled=true;
+     feedback.textContent=t('در حال ثبت انتخاب شما…','Saving your preference…');
+     try{
+       const res=await fetch('/api/commerce/consultation-preference',{
+         method:'POST',credentials:'same-origin',cache:'no-store',
+         headers:{'Content-Type':'application/json','Accept':'application/json'},
+         body:JSON.stringify({orderId:order.id,sku:caseRecord.sku,
+           mode:selectedMode,city:selectedCity})
+       });
+       const answer=await res.json();
+       if(stamp!==revision||document.hidden)return;
+       if(!res.ok||answer?.ok!==true||answer?.schema!=='commerce-consultation-choice-v1'
+         ||answer.preference?.appointmentConfirmed!==false)throw Error('preference_not_accepted');
+       feedback.textContent=t('روش دلخواه ثبت شد؛ هماهنگی زمان و ظرفیت با تیم مشاوره است.',
+         'Your preference was recorded. The consultant must still confirm time and capacity.');
+     }catch{
+       if(stamp===revision&&!document.hidden)feedback.textContent=t(
+         'ثبت روش مشاوره تأیید نشد؛ ورود حساب، وضعیت سفارش یا آمادگی سامانه را بررسی کنید.',
+         'Your preference was not confirmed. Check account access, payment status or system readiness.');
+     }finally{if(stamp===revision)submit.disabled=false;}
+   });
+   container.append(label,cityLabel,submit,feedback);
+   entry.append(container);
+ }
  const statusLabels={
    awaiting_contact:t('در انتظار تماس و هماهنگی','Awaiting consultant contact'),
    scheduling:t('در حال تعیین نوبت','Scheduling in progress'),
@@ -91,6 +154,12 @@
            if(typeof c?.sku!=='string'||!statusLabels[c.status])continue;
            const entry=el('li');
            const title=el('strong',c.sku+' · '+statusLabels[c.status]);entry.append(title);
+           if(Object.hasOwn(DELIVERY_LABELS,c.deliveryMode)){
+             const cityText=c.deliveryMode==='IN_PERSON'&&Object.hasOwn(CITY_LABELS,c.meetingCity)
+               ?' · '+CITY_LABELS[c.meetingCity]:'';
+             entry.append(el('p',t('روش انتخاب‌شده: ','Selected format: ')+
+               DELIVERY_LABELS[c.deliveryMode]+cityText));
+           }
            if((c.status==='booked'||c.status==='in_progress')&&c.bookingStart&&c.bookingEnd){
              const start=formatTime(c.bookingStart),end=formatTime(c.bookingEnd);
              if(start&&end)entry.append(el('p',t('شروع: ','Start: ')+start+
@@ -100,6 +169,7 @@
                'No confirmed time yet; the service team must coordinate scheduling.')));
            }
            entry.append(el('small',t('شماره سفارش: ','Order: ')+String(order.id||'')));
+           makeChoice(order,c,entry,stamp);
            list.append(entry);
          }
        }catch(error){
