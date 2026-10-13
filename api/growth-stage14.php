@@ -120,7 +120,7 @@ function stage14LeadRoute(string $path,string $verb): never {
  * administrator. Bank settlement is NOT present in this ledger: NULL is mandatory.
  */
 function stage14AdminGrowthSnapshot(PDO $pdo): array {
-    $counts=null;$leadSource='UNAVAILABLE';
+    $counts=null;$pipeline=null;$leadSource='UNAVAILABLE';
     if (stage14LeadSchemaReady($pdo)) {
         try {
             $q=$pdo->prepare("SELECT
@@ -132,12 +132,49 @@ function stage14AdminGrowthSnapshot(PDO $pdo): array {
             $q->execute([nowTs()]);$r=$q->fetch();
             $counts=['total'=>(int)$r['total'],'new'=>(int)$r['new_requests'],
                 'qualified'=>(int)$r['qualified_requests'],'withdrawn'=>(int)$r['withdrawn']];
+            // Operational service sales funnel: count only active, consented
+            // requests. Ageing is based on intake time, not sales attribution.
+            $at=nowTs();
+            $q=$pdo->prepare("SELECT
+                COALESCE(SUM(state IN ('NEW','NEEDS_INFO')),0) AS awaiting_action,
+                COALESCE(SUM(state IN ('NEW','NEEDS_INFO') AND created_at<=?),0) AS awaiting_24h,
+                COALESCE(SUM(state IN ('NEW','NEEDS_INFO') AND created_at<=?),0) AS awaiting_72h,
+                COALESCE(SUM(state='NEEDS_INFO'),0) AS needs_info
+                FROM growth_lead_requests
+                WHERE expires_at>? AND consent_withdrawn_at IS NULL");
+            $q->execute([$at-86400,$at-259200,$at]);
+            $queue=$q->fetch(PDO::FETCH_ASSOC);
+            if (!is_array($queue)) throw new RuntimeException('growth_pipeline_unavailable');
+            $byService=$pdo->prepare("SELECT service_id,COUNT(*) AS awaiting_action
+                FROM growth_lead_requests
+                WHERE expires_at>? AND consent_withdrawn_at IS NULL
+                  AND state IN ('NEW','NEEDS_INFO')
+                GROUP BY service_id
+                ORDER BY awaiting_action DESC,service_id ASC LIMIT 6");
+            $byService->execute([$at]);
+            $top=[];
+            foreach($byService->fetchAll(PDO::FETCH_ASSOC) as $item){
+                $top[]=['serviceId'=>(string)$item['service_id'],
+                    'awaitingAction'=>(int)$item['awaiting_action']];
+            }
+            $pipeline=[
+                'awaitingAction'=>(int)$queue['awaiting_action'],
+                'awaitingOver24Hours'=>(int)$queue['awaiting_24h'],
+                'awaitingOver72Hours'=>(int)$queue['awaiting_72h'],
+                'needsAdditionalInformation'=>(int)$queue['needs_info'],
+                'topServiceQueues'=>$top,
+                'topServiceLimit'=>6,
+                'topServiceQueuesTruncated'=>count($top)===6,
+                'asOf'=>$at,
+                'scope'=>'consented_unexpired_service_interest_only',
+                'limitation'=>'Unresolved consented service enquiries, not customers, purchases, bookings or marketing permissions.'
+            ];
             $leadSource='BERTINA_MYSQL_ACCOUNT_VERIFIED_OPT_IN';
-        } catch(Throwable $e){$counts=null;$leadSource='UNAVAILABLE';}
+        } catch(Throwable $e){$counts=null;$pipeline=null;$leadSource='UNAVAILABLE';}
     }
     return [
       'ok'=>true,'schema'=>'stage14-growth-evidence-v1',
-      'asOf'=>gmdate('c'),'leadMetrics'=>['counts'=>$counts,'source'=>$leadSource,
+      'asOf'=>gmdate('c'),'serviceSalesPipeline'=>$pipeline,'leadMetrics'=>['counts'=>$counts,'source'=>$leadSource,
         'limitation'=>'Account-verified consent intake only; not sales, booked services or attributed traffic.'],
       'organicTraffic'=>['visits'=>null,'qualifiedConversionRate'=>null,'source'=>'PROVIDER_NOT_VERIFIED'],
       'revenue'=>['grossSettledToman'=>null,'refundedToman'=>null,'netSettledToman'=>null,
