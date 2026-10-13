@@ -13,9 +13,10 @@ const allowedStatement=/^\s*(?:--[^\n]*\n|\s)*CREATE TABLE IF NOT EXISTS\s+(eco_
 
 for(const [i,file] of files.entries()){
  const sql=fs.readFileSync(file,'utf8');
+ const statementsOnly=sql.replace(/^\s*--[^\n]*$/gm,'');
  const tables=[...sql.matchAll(/CREATE TABLE IF NOT EXISTS\s+(eco_[a-z0-9_]+)\s*\(/gi)].map(x=>x[1]);
  assert.equal(tables.length,manifest.modules[i].tableCount,manifest.modules[i].file);
- assert.ok(!/\b(?:DROP|TRUNCATE|DELETE\s+FROM|UPDATE\s+\w+\s+SET|ALTER\s+TABLE|INSERT\s+INTO|REPLACE\s+INTO|GRANT|CREATE\s+DATABASE|FOREIGN_KEY_CHECKS)\b/i.test(sql),file);
+ assert.ok(!/\b(?:DROP|TRUNCATE|DELETE\s+FROM|UPDATE\s+\w+\s+SET|ALTER\s+TABLE|INSERT\s+INTO|REPLACE\s+INTO|GRANT|CREATE\s+DATABASE|FOREIGN_KEY_CHECKS)\b/i.test(statementsOnly),file);
  assert.ok(!/\b(?:JSONB|TIMESTAMPTZ|BIGSERIAL|CREATE\s+EXTENSION|SERIAL\s+PRIMARY\s+KEY)\b/i.test(sql),
    'PostgreSQL construct accidentally entered Bertina SQL: '+file);
  const statements=sql.split(/;\s*(?:\n|$)/).map(x=>x.trim()).filter(Boolean);
