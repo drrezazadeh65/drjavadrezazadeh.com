@@ -1,0 +1,56 @@
+name: Bertina Production Operational Pulse
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub schedules on the default branch; 05:17 UTC daily.
+    - cron: '17 5 * * *'
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'scripts/production-operational-pulse.mjs'
+      - 'tests/production-operational-pulse.test.mjs'
+      - '.github/workflows/production-operational-pulse.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'scripts/production-operational-pulse.mjs'
+      - 'tests/production-operational-pulse.test.mjs'
+      - '.github/workflows/production-operational-pulse.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-operational-pulse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compile and unit-test fail-closed monitoring contracts
+        run: |
+          node --check scripts/production-operational-pulse.mjs
+          node --test tests/production-operational-pulse.test.mjs
+  live-readonly:
+    needs: source
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/migration/bertina-linux6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify public production auth, commerce, journal, release and guest privacy
+        run: node scripts/production-operational-pulse.mjs
+      - name: State the evidence boundary
+        if: always()
+        run: |
+          echo 'No customer, payment, booking, database or private server settings were changed by this job.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Status flags and GET privacy checks do not prove customer verification, payment settlement, actual fulfilment, OJS installation or restored backups.' >> "$GITHUB_STEP_SUMMARY"
