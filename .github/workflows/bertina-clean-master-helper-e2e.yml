@@ -1,0 +1,96 @@
+name: Clean Master PHP Helper — End-to-End Disposable Fixture
+on:
+  push:
+    branches: [ops/bertina-unified-db-install-20261013]
+    paths:
+      - 'scripts/bertina-clean-master-apply-template.php'
+      - 'scripts/render-bertina-clean-master.py'
+      - 'tests/seed-clean-master-fixture.php'
+      - '.github/workflows/bertina-clean-master-helper-e2e.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  php-full-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: fixture-secret-only
+          MARIADB_DATABASE: clean_master_qa
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql,openssl,mbstring
+          coverage: none
+      - name: Start disposable SQL database, never contact production
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mariadb-client
+          mariadb -h127.0.0.1 -uroot -p'fixture-secret-only' clean_master_qa < docs/BERTINA_MYSQL_SCHEMA.sql
+          mariadb -h127.0.0.1 -uroot -p'fixture-secret-only' clean_master_qa < docs/migrations/20261012_stage09_commerce.sql
+          JR_MASTER_QA_DATABASE=clean_master_qa php tests/seed-clean-master-fixture.php
+      - name: Prepare encrypted recovery fixture and one-time PHP endpoint
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > api/config.local.php <<'PHP'
+          <?php
+          return ['db_dsn'=>'mysql:host=127.0.0.1;dbname=clean_master_qa;charset=utf8mb4',
+                  'db_user'=>'root','db_password'=>'fixture-secret-only'];
+          PHP
+          token="$(openssl rand -hex 32)"
+          digest="$(printf '%s' "$token" | sha256sum | cut -d' ' -f1)"
+          python3 scripts/render-bertina-clean-master.py \
+            --token-digest "$digest" \
+            --live-sha 50067817d3b19a2d4b58e46904ba7e7d42308178 \
+            --output api/jr-clean-fixture.php
+          php -l api/jr-clean-fixture.php
+          echo "::add-mask::$token"
+          echo "JR_FIXTURE_TOKEN=$token" >> "$GITHUB_ENV"
+      - name: Exercise GET preflight and POST deletion + creation with encrypted recovery
+        run: |
+          set -euo pipefail
+          php -S 127.0.0.1:19291 -t api > "$RUNNER_TEMP/fixture-php.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" >/dev/null 2>&1 || true; rm -f api/jr-clean-fixture.php api/config.local.php' EXIT
+          sleep 2
+          status="$(curl -sS -o "$RUNNER_TEMP/preflight.json" -w '%{http_code}' \
+            -H "X-JR-Owner-Rebuild-Token: $JR_FIXTURE_TOKEN" \
+            http://127.0.0.1:19291/jr-clean-fixture.php)"
+          test "$status" = 200
+          node - "$RUNNER_TEMP/preflight.json" <<'NODE'
+          const d=JSON.parse(require('fs').readFileSync(process.argv[2],'utf8'));
+          if(!d.ok||d.inventory?.originalTables!==20||d.inventory?.originalRows!==278||
+             d.inventory?.paidOrders!==1||d.inventory?.accounts!==2||d.inventory?.adminMemberships!==1)
+            throw Error('synthetic preflight unexpectedly refused the owner-approved test paid order');
+          console.log('PASS: twenty legacy tables and 278 synthetic rows in strict read-only preflight');
+          NODE
+          status="$(curl -sS --max-time 250 -o "$RUNNER_TEMP/result.json" -w '%{http_code}' \
+            -H "X-JR-Owner-Rebuild-Token: $JR_FIXTURE_TOKEN" \
+            --data-binary '{}' -H 'Content-Type: application/json' \
+            http://127.0.0.1:19291/jr-clean-fixture.php)"
+          node - "$RUNNER_TEMP/result.json" "$status" <<'NODE'
+          const fs=require('fs'),d=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if(process.argv[3]!=='200'||d.ok!==true||d.phase!=='new_master_active')
+            throw Error('Fixture failed during rebuild: '+(d.phase||'unknown')+' '+(d.reason||''));
+          const a=d.installed||{},b=d.privateRecovery||{};
+          if(a.tables!==220||a.motherTables!==198||a.foreignKeyReferences!==407||
+             a.accounts!==0||a.orders!==0||a.adminMemberships!==0||a.stockRows!==0||
+             b.verifiedEncryptedReadback!==true||b.sourceRows!==278)
+            throw Error('Fixture postcondition or encrypted recovery mismatch');
+          console.log('PASS: complete destructive helper roundtrip; 220 empty tables, 407 FKs, encrypted readback');
+          NODE
+          mariadb -h127.0.0.1 -uroot -p'fixture-secret-only' clean_master_qa -N -e \
+            "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_TYPE='BASE TABLE';"
+          echo 'Synthetic MariaDB paid-order, delete-and-rebuild, encryption readback and exact schema verified. No Bertina production DB access.' >> "$GITHUB_STEP_SUMMARY"
