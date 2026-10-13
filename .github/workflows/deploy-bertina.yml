@@ -183,6 +183,7 @@ jobs:
           node --check assets/js/bahar-guardian-overview.js
           php tests/operations-security.php
           php tests/operations-mysql.php
+          php tests/commerce-service-advance-mysql.php
           node --check assets/js/operations-social.js
           node --check assets/js/operations-social-composer.js
           node --test platform/social-distribution/*.test.mjs
