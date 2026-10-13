@@ -1,0 +1,152 @@
+name: Owner-Approved Bertina Clean Mother Database
+on:
+  push:
+    branches: [ops/bertina-unified-db-install-20261013]
+    paths: ['.bertina-clean-master-deploy-trigger']
+permissions:
+  contents: read
+concurrency:
+  group: bertina-production-deploy
+  cancel-in-progress: false
+jobs:
+  install:
+    if: github.ref == 'refs/heads/ops/bertina-unified-db-install-20261013'
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pin authorized change and check live SHA
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/ops/bertina-unified-db-install-20261013 | cut -f1)" = "$GITHUB_SHA"
+          test "$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)" = bdee7b2663923c3e0572f5823f65752f04c1aef2
+          test "$(cat .bertina-clean-master-deploy-trigger)" = OWNER_APPROVED_REMOVE_278_EXISTING_ROWS_AND_INSTALL_CLEAN_MOTHER_V1
+          node --test tests/unified-db-schema.test.mjs
+          php -l scripts/bertina-clean-master-apply-template.php
+          python3 -m py_compile scripts/render-bertina-clean-master.py
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          curl -fsS --max-time 25 --resolve drjavadrezazadeh.com:443:188.40.203.218 \
+            https://drjavadrezazadeh.com/sw.js | grep -Fq 50067817d3b19a2d4b58e46904ba7e7d42308178
+      - name: Install secure FTPS transfer
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      - name: Render short-lived source-pinned SQL installation
+        id: render
+        run: |
+          set -euo pipefail
+          umask 077
+          token="$(openssl rand -hex 32)"
+          digest="$(printf '%s' "$token" | sha256sum | cut -d' ' -f1)"
+          name="jr-clean-master-$(openssl rand -hex 16).php"
+          python3 scripts/render-bertina-clean-master.py \
+            --token-digest "$digest" \
+            --live-sha 50067817d3b19a2d4b58e46904ba7e7d42308178 \
+            --output "$RUNNER_TEMP/$name"
+          php -l "$RUNNER_TEMP/$name"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+      - name: Upload one authenticated temporary helper
+        env:
+          USERNAME: ${{ secrets.BERTINA_FTP_USERNAME }}
+          PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+          NAME: ${{ steps.render.outputs.name }}
+        run: |
+          set -euo pipefail
+          test -n "$USERNAME" && test -n "$PASSWORD" && test -n "$DIR"
+          timeout 90s lftp -u "$USERNAME","$PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 20
+          cd "$DIR/api"
+          put "$RUNNER_TEMP/$NAME" -o "$NAME"
+          bye
+          LFTP
+      - name: Exact read-only checks before destructive SQL
+        env:
+          NAME: ${{ steps.render.outputs.name }}
+          TOKEN: ${{ steps.render.outputs.token }}
+        run: |
+          set -euo pipefail
+          response="$RUNNER_TEMP/master-preflight.json"
+          status="$(curl -sS --max-time 40 --resolve drjavadrezazadeh.com:443:188.40.203.218 \
+            -H "X-JR-Owner-Rebuild-Token: $TOKEN" -o "$response" -w '%{http_code}' \
+            "https://drjavadrezazadeh.com/api/$NAME")"
+          if [ "$status" != 200 ]; then echo "Aborted with HTTP $status, no changes"; exit 1; fi
+          node - "$response" <<'NODE'
+          const f=require('fs');const d=JSON.parse(f.readFileSync(process.argv[2],'utf8'));const p=d.inventory||{};
+          if(!d.ok||d.phase!=='read_only_preflight'||p.originalTables!==20||
+             p.originalRows<278||p.originalRows>380||p.accounts!==2||p.orders!==2||
+             p.adminMemberships!==1||p.paidOrders!==0||p.bookStockRows!==3)
+            throw Error('Unexpected live records: no deletion allowed');
+          console.log('LIVE_MASTER_PREFLIGHT_PASS',p.originalRows);
+          NODE
+      - name: Create private encrypted recovery and install the mother database
+        env:
+          NAME: ${{ steps.render.outputs.name }}
+          TOKEN: ${{ steps.render.outputs.token }}
+        run: |
+          set -euo pipefail
+          response="$RUNNER_TEMP/master-result.json"
+          status="$(curl -sS --max-time 260 --resolve drjavadrezazadeh.com:443:188.40.203.218 \
+            -H "X-JR-Owner-Rebuild-Token: $TOKEN" -H 'Content-Type: application/json' \
+            --data-binary '{}' -o "$response" -w '%{http_code}' \
+            "https://drjavadrezazadeh.com/api/$NAME")"
+          node - "$response" "$status" <<'NODE'
+          const fs=require('fs');const d=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if(process.argv[3]!=='200'||d.ok!==true||d.phase!=='new_master_active'){
+            console.error('Rebuild was NOT completed:',d.phase||'unknown',d.reason||'');
+            throw Error('Production rebuild not certified; inspect server recovery before retry');
+          }
+          const a=d.installed||{},b=d.privateRecovery||{};
+          if(a.tables!==220||a.motherTables!==198||a.foreignKeyReferences!==407||
+             a.accounts!==0||a.orders!==0||a.adminMemberships!==0||a.stockRows!==0||
+             !a.growthConsentInstalled||!b.verifiedEncryptedReadback||b.sourceTables!==20)
+            throw Error('Unacceptable database postcondition');
+          console.log('CLEAN_DATABASE_INSTALLED',JSON.stringify({deletedRows:d.removed.originalRows,
+            tables:a.tables,ecologicalTables:a.motherTables,foreignKeys:a.foreignKeyReferences,
+            adminMustEnrollAgain:d.adminAccountMustBeRecreated,privateRecovery:true}));
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,'Clean master installed: '+a.tables+
+            ' tables, '+a.motherTables+' extensions, '+a.foreignKeyReferences+' FKs, zero customer/order/admin rows.'+
+            ' Private encrypted snapshot readback verified; independent restore NOT certified.\n');
+          NODE
+      - name: Confirm live application APIs after replacement
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          for(const [path,name] of [['/auth/health','auth'],['/commerce/health','commerce'],['/growth/health','consultation_interest']]){
+            const r=await fetch('https://drjavadrezazadeh.com/api'+path,{cache:'no-store'});
+            const a=await r.json();
+            if(r.status!==200||!a.ok||a.service!==name)
+              throw Error('API unavailable after database rebuild: '+path);
+            if(path==='/auth/health'&&(!a.ready||!a.registrationReady))
+              throw Error('Registration not ready');
+            if(path==='/growth/health'&&(!a.ready||!a.requirements.consentSchema))
+              throw Error('Consultation schema not ready');
+            console.log('PASS',path);
+          }
+          NODE
+      - name: Always delete ephemeral endpoint and runner scratch
+        if: always()
+        env:
+          USERNAME: ${{ secrets.BERTINA_FTP_USERNAME }}
+          PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+          NAME: ${{ steps.render.outputs.name }}
+        run: |
+          set +e
+          rm -f "$RUNNER_TEMP/master-preflight.json" "$RUNNER_TEMP/master-result.json" "$RUNNER_TEMP/$NAME"
+          test -n "$NAME" || exit 0
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 65s lftp -u "$USERNAME","$PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          cd "$DIR/api"
+          rm -f "$NAME"
+          bye
+          LFTP
