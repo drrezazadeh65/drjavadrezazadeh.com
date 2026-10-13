@@ -19,7 +19,7 @@ function validUuid(string $v): bool {
 function operationsAudit(PDO $pdo,?string $actor,string $action,string $reference): void {
     $q=$pdo->prepare("INSERT INTO operations_audit(actor_id,action,reference_id,occurred_at)
       VALUES(?,?,?,?)");
-    $q->execute([$actor,$action,time()]);
+    $q->execute([$actor,$action,$reference,time()]);
 }
 function checkService(bool $ok,string $name): void {
     if(!$ok)throw new RuntimeException('service_advance_failed_'.$name);
