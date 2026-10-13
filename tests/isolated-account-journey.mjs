@@ -44,6 +44,14 @@ assert.ok(healthy,'Isolated PHP router did not start');
 assert.equal(healthy.ready,true,'Isolated auth MariaDB tables unavailable');
 assert.equal(healthy.registrationReady,true,'Isolated TLS SMTP sink unavailable');
 console.log('PASS isolated production PHP auth readiness');
+const preMigration=await request('/growth/health');
+assert.equal(preMigration.code,200,'Consent readiness route must be available independently of optional tables');
+assert.equal(preMigration.data.ready,false,'Consent database is deliberately absent in identity-only fixture');
+assert.equal(preMigration.data.requirements.consentSchema,false);
+const anonymousConsultation=await request('/growth/leads/mine');
+assert.equal(anonymousConsultation.code,401,'Guest identity must be denied before the optional consent schema check');
+console.log('PASS unprovisioned consent schema reports unavailable; anonymous user stays denied');
+
 
 const email='qa-'+randomUUID()+'@example.test';
 const original='Strong-Initial-QA-Password-2026';
