@@ -29,6 +29,29 @@ function goldenTalentBaseSchemaPresent(?PDO $pdo): bool {
     }
 }
 /**
+ * Read-only capability check for the canonical Bertina MariaDB BAHAR schema.
+ * The older platform/bahar-persistence.mjs contract describes a PostgreSQL
+ * prototype with different column names. It must not write to these tables.
+ * Zero-row SELECTs verify required columns only, never real student records.
+ */
+function goldenTalentBaharStorageSchemaReady(?PDO $pdo): bool {
+    if(!$pdo)return false;
+    try{
+        foreach([
+            'SELECT id,subject_id,portfolio_code,state,human_mentor_account_id FROM eco_bahar_portfolios LIMIT 0',
+            'SELECT id,portfolio_id,baseline_revision,source_fingerprint,review_status FROM eco_bahar_baselines LIMIT 0',
+            'SELECT id,portfolio_id,week_start_date,cycle_number,state,human_reviewed_at FROM eco_bahar_weekly_cycles LIMIT 0',
+            'SELECT id,cycle_id,evidence_kind,observed_at,review_state FROM eco_bahar_learning_evidence LIMIT 0',
+            'SELECT id,cycle_id,reviewer_account_id,decision_code,created_at FROM eco_bahar_reviews LIMIT 0'
+        ] as $sql){
+            if($pdo->query($sql)===false)return false;
+        }
+        return true;
+    }catch(Throwable $e){
+        return false;
+    }
+}
+/**
  * Fail-closed consent projection for a verified guardian. The latest decision,
  * not the existence of any historical grant, governs visibility. The SQL query
  * orders by granted_at DESC; ambiguous identical timestamps deny access.
@@ -137,7 +160,9 @@ function goldenTalentRoute(string $path,string $verb): never {
         }
     }
     if ($path==='/golden-talent/health' && $verb==='GET') {
-        $schema=goldenTalentBaseSchemaPresent(db());
+        $pdo=db();
+        $schema=goldenTalentBaseSchemaPresent($pdo);
+        $baharSchema=goldenTalentBaharStorageSchemaReady($pdo);
         $catalog=localCatalog();
         $professional=[];
         foreach (['service:talent_initial','service:golden_talent_comprehensive',
@@ -167,6 +192,16 @@ function goldenTalentRoute(string $path,string $verb): never {
             'deepModules'=>'PREVALIDATION',
             'goldenPath'=>'HUMAN_REVIEW_REQUIRED',
             'baharContinuity'=>'NOT_LIVE',
+            'baharReadiness'=>[
+                'bertinaMysqlSchemaColumnsAvailable'=>$baharSchema,
+                'weeklyCycleAndEvidenceApiActive'=>false,
+                'consentScopedPortfolioAccessActive'=>false,
+                'professionalReviewApiActive'=>false,
+                'longitudinalTrendValidated'=>false,
+                'requiresHumanReview'=>true,
+                'legacyPostgresqlAdapterCompatible'=>false,
+                'note'=>'Structural readiness only. Live BAHAR persistence, entitlement, consent, review and recovery are not certified.'
+            ],
             'readOnly'=>true,
             'warning'=>'Capability and schema checks do not prove scientific validation, consent, identity, payments, private storage or full production acceptance.'
         ]);
