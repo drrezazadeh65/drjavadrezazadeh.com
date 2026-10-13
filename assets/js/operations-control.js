@@ -495,6 +495,34 @@ function reportingDownload(format){
 $('ops-mfa-form').addEventListener('submit',async event=>{event.preventDefault();try{const code=$('ops-mfa-code').value;$('ops-mfa-code').value='';await api('/mfa',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({code})});await load();}catch(error){notice(errorMessage(error),true);}});
 for(const id of ['ops-search','ops-engine','ops-priority'])$(id).addEventListener(id==='ops-search'?'input':'change',cards);
 $('ops-refresh').addEventListener('click',load);$('ops-refresh-data').addEventListener('click',load);$('ops-report').addEventListener('click',()=>download());$('ops-print').addEventListener('click',()=>window.print());$('ops-admin-detail').addEventListener('click',()=>show('ADM-01'));document.addEventListener('visibilitychange',()=>{if(document.hidden)lock(t('برای مشاهدهٔ مجدد، شواهد را تازه‌سازی کنید.','Refresh evidence to view the workspace again.'));});
+// Stage 7: on-demand private audit history; never poll or imply live notifications.
+const auditPanel=el('details',undefined,'ops-panel');auditPanel.id='ops-audit-timeline';
+const auditSummary=el('summary',t('تاریخچهٔ حسابرسی مدیر (۵۰ رویداد اخیر)','Administrator audit history (latest 50 events)'));
+const auditDescription=el('p',t('فقط سوابق ثبت‌شده؛ این بخش پایش لحظه‌ای یا اعلان خودکار نیست.','Recorded audit events only; not real-time monitoring or automatic alerts.'),'ops-muted');
+const auditRefresh=el('button',t('دریافت تاریخچه','Load audit history'));auditRefresh.type='button';
+const auditContent=el('div');auditContent.setAttribute('aria-live','polite');
+auditPanel.append(auditSummary,auditDescription,auditRefresh,auditContent);
+$('ops-refresh-data').parentElement.after(auditPanel);
+auditRefresh.addEventListener('click',async()=>{
+  if(!snapshot){auditContent.textContent=t('ابتدا دسترسی مدیر را تأیید کنید.','Verify administrator access first.');return;}
+  const generation=loadGeneration;
+  auditRefresh.disabled=true;auditContent.textContent=t('در حال دریافت…','Loading…');
+  try{
+    const result=await api('/audit-timeline');
+    if(generation!==loadGeneration||!snapshot)return;
+    auditContent.replaceChildren();
+    const events=Array.isArray(result.events)?result.events:[];
+    if(!events.length){auditContent.textContent=t('رویدادی ثبت نشده است.','No events recorded.');return;}
+    const list=el('ol');list.className='ops-audit-events';
+    for(const item of events){
+      const li=el('li');const strong=el('strong',String(item.type||'unknown'));
+      const detail=el('span',' — '+String(item.reference||'')+' — '+date(Number(item.occurredAt)||0));
+      li.append(strong,detail);list.append(li);
+    }
+    auditContent.append(list);
+  }catch(error){if(generation===loadGeneration)auditContent.textContent=errorMessage(error);}
+  finally{auditRefresh.disabled=false;}
+});
 const sectionToggle=el('button',t('نمایش ۳۶ بخش تفصیلی','Show 36 detailed sections'));sectionToggle.id='ops-section-toggle';sectionToggle.type='button';sectionToggle.setAttribute('aria-controls','ops-cards');sectionToggle.setAttribute('aria-expanded','false');sectionToggle.addEventListener('click',()=>{sectionsExpanded=!sectionsExpanded;cards();});$('ops-refresh-data').parentElement.append(sectionToggle);
 load();
 })();
