@@ -797,7 +797,7 @@ jobs:
           print('Older backup archives to remove:',len(plan['remove']))
           with open('/tmp/bertina-backup-remove-list.txt','w',encoding='utf-8') as f:
               for name in plan['remove']:
-                  f.write(name+'\\n')
+                  f.write(name+'\n')
           PY
           while IFS= read -r name; do
             [ -n "$name" ] || continue
