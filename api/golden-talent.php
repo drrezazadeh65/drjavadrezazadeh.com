@@ -56,12 +56,13 @@ function goldenTalentBaharStorageSchemaReady(?PDO $pdo): bool {
  * not the existence of any historical grant, governs visibility. The SQL query
  * orders by granted_at DESC; ambiguous identical timestamps deny access.
  */
-function goldenTalentAssessmentConsentCurrent(array $rows,int $now): bool {
+function goldenTalentPurposeConsentCurrent(array $rows,int $now,string $purpose): bool {
+    if(!in_array($purpose,['ASSESSMENT','PARENT_VISIBILITY'],true))return false;
     if(!$rows||count($rows)>2)return false;
     $first=$rows[0];
     if(!is_array($first)||($first['decision']??'')!=='GRANTED'
         ||($first['withdrawn_at']??null)!==null
-        ||($first['purpose_code']??'')!=='ASSESSMENT')return false;
+        ||($first['purpose_code']??'')!==$purpose)return false;
     if(count($rows)>1 &&
         (string)($rows[0]['granted_at']??'')===(string)($rows[1]['granted_at']??''))return false;
     $toTime=static function($value): ?int {
@@ -77,6 +78,9 @@ function goldenTalentAssessmentConsentCurrent(array $rows,int $now): bool {
     if($decided===null||$effective===null||$decided>$now||$effective>$now)return false;
     if(($first['retired_at']??null)!==null&&($retired===null||$retired<=$now))return false;
     return true;
+}
+function goldenTalentAssessmentConsentCurrent(array $rows,int $now): bool {
+    return goldenTalentPurposeConsentCurrent($rows,$now,'ASSESSMENT');
 }
 function goldenTalentMyVerifiedSubjects(PDO $pdo,string $accountId): array {
     $subjects=$pdo->prepare("SELECT s.id,s.pseudonym,s.status
@@ -116,9 +120,104 @@ function goldenTalentMyVerifiedSubjects(PDO $pdo,string $accountId): array {
     }
     return $items;
 }
+/**
+ * Minimal guardian BAHAR projection for explicitly authorised visibility.
+ * Two independent purposes are checked: assessment and parent visibility.
+ * Absence of a current grant, an unverified relationship, or unavailable
+ * schema returns no learner. No answers or longitudinal interpretations.
+ */
+function goldenTalentGuardianBaharOverview(PDO $pdo,string $accountId): array {
+    $authorised=goldenTalentMyVerifiedSubjects($pdo,$accountId);
+    $consent=$pdo->prepare("SELECT c.decision,c.withdrawn_at,c.granted_at,
+            n.purpose_code,n.effective_at,n.retired_at
+        FROM eco_consent_records c
+        JOIN eco_consent_notices n ON n.id=c.notice_id
+        WHERE c.subject_id=? AND c.account_id=?
+          AND n.purpose_code='PARENT_VISIBILITY'
+        ORDER BY c.granted_at DESC,c.id DESC LIMIT 2");
+    $counts=$pdo->prepare("SELECT
+            COUNT(*) AS portfolio_count,
+            COALESCE(SUM((SELECT COUNT(*) FROM eco_bahar_weekly_cycles w
+                WHERE w.portfolio_id=p.id)),0) AS weekly_cycle_count,
+            COALESCE(SUM((SELECT COUNT(*) FROM eco_bahar_weekly_cycles w
+                WHERE w.portfolio_id=p.id AND w.human_reviewed_at IS NOT NULL)),0)
+                AS human_reviewed_cycle_count
+        FROM eco_bahar_portfolios p WHERE p.subject_id=?");
+    if(!$consent||!$counts)throw new RuntimeException('bahar_query_unavailable');
+    $output=[];
+    $now=nowTs();
+    foreach($authorised as $subject){
+        $id=(string)($subject['subjectId']??'');
+        if(!validUuid($id))continue;
+        if(!$consent->execute([$id,$accountId]))throw new RuntimeException('bahar_consent_query_failed');
+        $decisions=$consent->fetchAll(PDO::FETCH_ASSOC);
+        if(!goldenTalentPurposeConsentCurrent(is_array($decisions)?$decisions:[],$now,'PARENT_VISIBILITY'))continue;
+        if(!$counts->execute([$id]))throw new RuntimeException('bahar_counts_query_failed');
+        $row=$counts->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($row))throw new RuntimeException('bahar_counts_result_unavailable');
+        $output[]=[
+            'learnerAlias'=>(string)($subject['displayName']??''),
+            'portfolioCount'=>(int)($row['portfolio_count']??0),
+            'weeklyCycleCount'=>(int)($row['weekly_cycle_count']??0),
+            'humanReviewedCycleCount'=>(int)($row['human_reviewed_cycle_count']??0)
+        ];
+    }
+    return $output;
+}
+
+/** Append minimal private read evidence; caller must commit before respond(). */
+function goldenTalentAuditGuardianBaharOverview(PDO $pdo,string $accountId,int $count): void {
+    $nonce=bin2hex(random_bytes(32));
+    $eventKey=hash('sha256','GT_BAHAR_GUARDIAN_OVERVIEW_READ|'.$accountId.'|'.$nonce);
+    $statement=$pdo->prepare("INSERT INTO eco_audit_events
+        (event_key,actor_account_id,action_code,entity_kind,entity_id,
+         correlation_id,payload_sha256,event_sha256)
+         VALUES(?,?,'GT_BAHAR_GUARDIAN_OVERVIEW_READ','GUARDIAN_ACCOUNT',?,?,?,?)");
+    if(!$statement||!$statement->execute([
+        $eventKey,$accountId,$accountId,uuidv4(),
+        hash('sha256','visible_learner_count:'.$count),
+        hash('sha256','GT_BAHAR_GUARDIAN_OVERVIEW_READ|'.$eventKey)
+    ]))throw new RuntimeException('bahar_audit_required');
+}
 function goldenTalentRoute(string $path,string $verb): never {
     header('Cache-Control: no-store, no-cache, must-revalidate');
     header('X-Robots-Tag: noindex, noarchive, nosnippet');
+    if($path==='/golden-talent/my-bahar-overview' && $verb==='GET'){
+        $pdo=db();
+        if(!$pdo)fail('database_unconfigured',503);
+        $account=sessionAccount($pdo);
+        if(!$account||($account['status']??'')!=='active'
+            ||empty($account['email_verified_at']))fail('unauthorized',401);
+        $accountId=(string)($account['id']??'');
+        if(!validUuid($accountId))fail('unauthorized',401);
+        if(!goldenTalentBaseSchemaPresent($pdo)
+            ||!goldenTalentBaharStorageSchemaReady($pdo))
+            fail('golden_talent_schema_unavailable',503);
+        if(!rateAllowed($pdo,'gt_bahar_guardian_overview',$accountId,10,300))
+            fail('rate_limited',429);
+        try{
+            if(!$pdo->beginTransaction())throw new RuntimeException('bahar_read_transaction_unavailable');
+            $items=goldenTalentGuardianBaharOverview($pdo,$accountId);
+            goldenTalentAuditGuardianBaharOverview($pdo,$accountId,count($items));
+            if(!$pdo->commit())throw new RuntimeException('bahar_audit_commit_required');
+            respond([
+                'ok'=>true,'service'=>'golden-talent',
+                'schema'=>'bahar-guardian-overview-v1',
+                'scope'=>'verified_guardian_assessment_and_parent_visibility',
+                'learners'=>$items,'candidateScanLimit'=>25,
+                'interpretationsExposed'=>false,
+                'rawEvidenceExposed'=>false,
+                'longitudinalTrendValidated'=>false,
+                'learnerSubmissionEnabled'=>false,
+                'professionalReviewApiActive'=>false,
+                'note'=>'Read-only counts. These are neither growth scores, performance evaluations nor access to private assessment content.'
+            ]);
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            error_log('Golden Talent BAHAR overview unavailable: '.get_class($e));
+            fail('bahar_private_unavailable',503);
+        }
+    }
     if($path==='/golden-talent/my-subjects' && $verb==='GET'){
         $pdo=db();
         if(!$pdo)fail('database_unconfigured',503);
