@@ -795,18 +795,23 @@ jobs:
           plan=json.load(open('/tmp/bertina-backup-prune.json',encoding='utf-8'))
           print('Retaining canonical cPanel backup:',plan['keep'])
           print('Older backup archives to remove:',len(plan['remove']))
-          with open('/tmp/bertina-backup-prune.commands','w',encoding='utf-8') as f:
+          python3 - <<'PY'
+          import json
+          plan=json.load(open('/tmp/bertina-backup-prune.json',encoding='utf-8'))
+          with open('/tmp/bertina-backup-remove-list.txt','w',encoding='utf-8') as f:
               for name in plan['remove']:
-                  f.write('rm "../'+name+'"\\n')
+                  f.write(name+'\\n')
           PY
-          if [ -s /tmp/bertina-backup-prune.commands ]; then
-            {
-              printf 'set ftp:ssl-force true\\nset ftp:ssl-protect-data true\\nset ssl:verify-certificate yes\\nset ftp:passive-mode true\\nset ftp:prefer-epsv false\\ncd "%s"\\n' "$FTP_REMOTE_DIR"
-              cat /tmp/bertina-backup-prune.commands
-              printf 'bye\\n'
-            } > /tmp/bertina-backup-prune.lftp
-            timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" -e "$(cat /tmp/bertina-backup-prune.lftp)"
-          fi
+          while IFS= read -r name; do
+            [ -n "$name" ] || continue
+            case "$name" in
+              backup-*.tar.gz) ;;
+              *) echo "Refusing unexpected backup filename: $name" >&2; exit 1 ;;
+            esac
+            echo "Removing older cPanel archive: $name"
+            timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" \
+              -e "set cmd:fail-exit yes; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes; set ftp:passive-mode true; set ftp:prefer-epsv false; cd \"$FTP_REMOTE_DIR\"; rm ../$name; bye"
+          done < /tmp/bertina-backup-remove-list.txt
           timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" \
             -e "set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes; set ftp:passive-mode true; set ftp:prefer-epsv false; cd \"$FTP_REMOTE_DIR\"; cls -1 ../backup-*_drjavad1.tar.gz; bye" \
             > /tmp/bertina-backup-remaining.txt
