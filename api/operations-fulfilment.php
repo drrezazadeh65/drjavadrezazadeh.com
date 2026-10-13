@@ -40,8 +40,21 @@ function operationsCommerceServiceAdvance(PDO $pdo,string $actor,array $input): 
     }
     if(!function_exists('stage9SchemaReady')||!stage9SchemaReady($pdo))
         throw new RuntimeException('stage09_schema_unavailable');
-    if(!$pdo->beginTransaction())throw new RuntimeException('commerce_transaction_required');
+    // Bertina Stage09 has no resource/consultant assignment column yet.
+    // Until a per-consultant availability ledger is activated, all paid
+    // consultation slots share one conservative owner calendar. Avoid
+    // double-booking instead of inventing multi-provider capacity.
+    $bookingLock=false;
+    if($next==='booked'){
+        $seconds=$to->getTimestamp()-$from->getTimestamp();
+        if($seconds<15*60||$seconds>4*3600||$from->getTimestamp()>time()+90*86400)
+            throw new InvalidArgumentException('booking_duration_or_horizon_invalid');
+        $lock=$pdo->query("SELECT GET_LOCK('jr_stage09_owner_booking_v1',5)")->fetchColumn();
+        if((int)$lock!==1)throw new DomainException('booking_calendar_busy');
+        $bookingLock=true;
+    }
     try {
+        if(!$pdo->beginTransaction())throw new RuntimeException('commerce_transaction_required');
         // Row lock serialises overlapping attempts; the order's payment must
         // be independently matched to its immutable captured provider claim.
         $s=$pdo->prepare("SELECT o.state,o.currency,o.paid_at,o.provider_trans_id,o.provider_amount,
@@ -64,6 +77,15 @@ function operationsCommerceServiceAdvance(PDO $pdo,string $actor,array $input): 
         if($expected==='booked' && (empty($case['booking_start'])||empty($case['booking_end'])))
             throw new DomainException('verified_booking_window_required');
         if($next==='booked'){
+            // Lock serialises reservation attempts across different orders.
+            // Half-open UTC intervals permit back-to-back appointments but
+            // reject any overlap, including another SKU of the same order.
+            $conflict=$pdo->prepare("SELECT order_id FROM commerce_service_cases
+                WHERE status IN ('booked','in_progress')
+                  AND booking_start<? AND booking_end>? LIMIT 1");
+            $conflict->execute([$end,$start]);
+            if($conflict->fetchColumn()!==false)
+                throw new DomainException('booking_time_conflict');
             $q=$pdo->prepare("UPDATE commerce_service_cases
                 SET status='booked',booking_start=?,booking_end=?
                 WHERE order_id=? AND sku=? AND status='scheduling'");
@@ -86,5 +108,11 @@ function operationsCommerceServiceAdvance(PDO $pdo,string $actor,array $input): 
     }catch(Throwable $e){
         if($pdo->inTransaction())$pdo->rollBack();
         throw $e;
+    }finally{
+        if($bookingLock){
+            // Advisory lock is connection-scoped, not transaction-scoped.
+            $released=$pdo->query("SELECT RELEASE_LOCK('jr_stage09_owner_booking_v1')");
+            if($released!==false)$released->fetchColumn();
+        }
     }
 }
