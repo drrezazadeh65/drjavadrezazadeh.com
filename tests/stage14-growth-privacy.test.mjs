@@ -71,3 +71,15 @@ test('retention job is CLI only, dry run by default and off unless approved',()=
  assert.match(script,/stage14_retention_dry_run/);
  assert.match(script,/DELETE FROM growth_lead_requests/);
 });
+
+test('public aggregate health reports non-personal capability and guest is denied before optional consent schema checks',()=>{
+ assert.match(lead,/\$path==='\/growth\/health' && \$verb==='GET'/);
+ assert.match(lead,/service'=>'consultation_interest'/);
+ assert.match(lead,/paymentOrBookingImplied'=>false/);
+ assert.match(lead,/consentSchema'=>\$schema/);
+ const start=lead.indexOf('function stage14LeadRoute(');
+ const scope=lead.slice(start,lead.indexOf('if ($path===\'/growth/leads/mine\'',start));
+ assert.ok(scope.indexOf('$account=stage14LeadAccount($pdo)')>0);
+ assert.ok(scope.indexOf('$account=stage14LeadAccount($pdo)')<scope.lastIndexOf('if (!stage14LeadSchemaReady($pdo))'));
+ assert.doesNotMatch(scope,/password|customer_email|raw_token/);
+});
