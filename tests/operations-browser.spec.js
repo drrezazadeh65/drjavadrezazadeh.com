@@ -243,8 +243,8 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
   await page.locator('#ops-commerce-results details summary').first().click();
   await page.locator('#ops-commerce-results details summary').nth(1).click();
   await expect(page.locator('#ops-commerce-results details li')).toHaveCount(2);
-  await expect(page.locator('#ops-commerce-results details').first()).toContainText('12345678');
-  await expect(page.locator('#ops-commerce-results details').nth(1)).toContainText('87654321');
+  await expect(page.locator('#ops-commerce-results details').first()).toContainText('87654321');
+  await expect(page.locator('#ops-commerce-results details').nth(1)).toContainText('12345678');
   await expect(page.locator('#ops-commerce-results')).not.toContainText('private-person@example.invalid');
   await expect(page.locator('#ops-commerce-results')).toContainText('3');
   await expect(page.locator('#ops-commerce-results')).toContainText('book:roshanaei');
