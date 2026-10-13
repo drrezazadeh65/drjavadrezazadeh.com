@@ -96,6 +96,45 @@
       fulfilment.activeServiceCaseCount??null);
     card(text('مرسوله‌های در حال آماده‌سازی','Parcels being prepared'),
       parcels.preparing??0);
+    card(text('مرسوله‌های دارای وضعیت باز','Open parcel fulfilment records'),
+      fulfilment.activeParcelCount??null,
+      text('این تعداد به معنای ارسال یا تحویل تأییدشده نیست.',
+        'Open records do not prove shipping or delivery.'));
+    card(text('مرسوله‌های آماده‌سازی معطل بیش از ۴۸ ساعت','Parcels preparing for over 48 hours'),
+      fulfilment.preparingOlderThan48Hours??null,
+      text('نیازمند بررسی کارشناس ارسال، بدون اعلان خودکار به مشتری.',
+        'Dispatch follow-up only; no automatic customer notification.'));
+    card(text('مرسوله‌های ارسال‌شده با عدم تغییر وضعیت بیش از ۷ روز',
+      'Dispatched / in-transit records unchanged for over 7 days'),
+      fulfilment.inShippingOlderThan7Days??null);
+    if(Array.isArray(fulfilment.parcelActionQueue)&&fulfilment.parcelActionQueue.length){
+      const detail=node('details');
+      detail.append(node('summary',text('فهرست مرسوله‌های نیازمند پیگیری',
+        'View pending parcel fulfilment worklist')));
+      detail.append(node('p',text(
+        'شناسه سفارش و وضعیت ثبت‌شده فقط برای مدیر است. نشانی، کد رهگیری و اطلاعات خریدار نمایش داده نمی‌شوند؛ تطبیق فنی درگاه تسویه بانکی را اثبات نمی‌کند.',
+        'Order identifiers and ledger status are owner-only. No delivery address, tracking code or customer data is shown; provider claim equality does not prove settlement.'
+      ),'ops-muted'));
+      if(fulfilment.parcelQueueTruncated)detail.append(node('p',text(
+        'فقط ۵۰ مورد با قدیمی‌ترین زمان به‌روزرسانی نمایش داده شده است.',
+        'Only the 50 least recently updated parcels are shown.'
+      ),'ops-muted'));
+      const list=node('ul',undefined,'ops-queue');
+      list.style.maxHeight='20rem';list.style.overflowY='auto';
+      for(const entry of fulfilment.parcelActionQueue){
+        const item=node('li');
+        const id=String(entry.orderId||'').slice(0,8);
+        const match=entry.providerClaimMatchesOrder===true?
+          text('ادعای پرداخت تطبیق دارد؛ تسویه نامشخص',
+               'Provider claim matches; settlement unknown'):
+          text('نیازمند بررسی مستقل اصالت پرداخت',
+               'Independent payment evidence review required');
+        item.append(node('span',id+'… · '+String(entry.state||'')+
+          ' · '+String(entry.updatedAt||'')+' · '+match));
+        list.append(item);
+      }
+      detail.append(list);results.append(detail);
+    }
     if(Array.isArray(fulfilment.serviceActionQueue)&&fulfilment.serviceActionQueue.length){
       const detail=node('details'),label=node('summary',
         text('مشاهدهٔ فهرست پرونده‌های قابل پیگیری','View service fulfilment worklist'));
