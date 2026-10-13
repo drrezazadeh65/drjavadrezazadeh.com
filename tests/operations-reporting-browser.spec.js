@@ -208,6 +208,28 @@ test('FA/EN owner can inspect real source-scoped GitHub audit evidence without r
  expect(calls).toBe(1);
 });
 
+
+for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])test(language+' OP-02 branch governance stays read-only and never certifies OP-36',async({page})=>{
+ const data=fixture();await authorized(page,{data});
+ await page.route('**/api/admin/operations/github-audits',route=>route.fulfill({json:{
+   ok:true,schema:'operations-github-audits-v1',summary:{observableWorkflows:0,registeredAllowlistedWorkflows:4},
+   audits:[],governance:{schema:'operations-github-governance-v1',
+    canonicalBranch:'migration/bertina-linux6',defaultBranch:'migration/bertina-linux6',
+    defaultMatchesCanonical:true,canonicalBranchProtected:false,op02Certified:false,
+    op36RollbackVerified:false,status:'branch_unprotected'}
+ }}));
+ await page.setViewportSize({width:320,height:900});await page.goto(base+route);
+ const github=page.locator('details.ops-github-audits');
+ await github.locator('summary').click();
+ await github.getByRole('button',{name:language==='fa'?'دریافت آخرین وضعیت رسمی GitHub':'Fetch verified GitHub workflow status'}).click();
+ const policy=github.locator('.ops-branch-governance');
+ await expect(policy).toContainText('OP-02');await expect(policy).toContainText('OP-36');
+ await expect(policy).toContainText('migration/bertina-linux6');
+ await expect(policy).toContainText(language==='fa'?'تأییدنشده':'unverified');
+ await expect(policy.locator('a')).toHaveAttribute('href','https://github.com/drrezazadeh65/drjavadrezazadeh.com/settings/branches');
+ await noOverflow(page);
+});
+
 test('Audit-only dispatch requires owner confirmation and reports accepted request without invented run outcome',async({page})=>{
  const data=fixture(),posted=[];
  await authorized(page,{data});

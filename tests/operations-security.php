@@ -143,4 +143,29 @@ $prerequisites['dashboard']['verifiedGates'][0]['state']='fail';check(operations
  check(operationsProductionExpiry($prerequisites,$proof,$at+301)===null,
      'Expired administrator evidence retained TLS acceptance eligibility');
 
+
+// Governance is an observation, never an execution authority or OP-02 gate.
+$repo=['full_name'=>'drrezazadeh65/drjavadrezazadeh.com','default_branch'=>'migration/bertina-linux6'];
+$branches=[['name'=>'main','protected'=>false],['name'=>'migration/bertina-linux6','protected'=>false]];
+$governance=operationsGithubGovernanceProject($repo,$branches);
+check($governance['status']==='branch_unprotected'
+    && $governance['defaultMatchesCanonical']===true
+    && $governance['canonicalBranchProtected']===false,
+    'Unprotected default production branch wrongly certified');
+check($governance['op02Certified']===false&&$governance['op36RollbackVerified']===false,
+    'Branch metadata fabricated governance or rollback acceptance');
+$protected=$branches;$protected[1]['protected']=true;
+$governance=operationsGithubGovernanceProject($repo,$protected);
+check($governance['status']==='branch_protection_reported'
+    && $governance['op02Certified']===false,
+    'Branch-protection flag alone wrongly completed OP-02');
+$drift=$repo;$drift['default_branch']='main';
+check(operationsGithubGovernanceProject($drift,$protected)['status']==='default_branch_drift',
+    'Changed default branch not reported');
+$incomplete=operationsGithubGovernanceProject($repo,[['name'=>'main','protected'=>false]]);
+check($incomplete['status']==='unknown'&&$incomplete['canonicalBranchProtected']===null,
+    'Missing paginated branch incorrectly classified as unprotected');
+check(operationsGithubGovernanceProject(null,$protected)['status']==='unknown',
+    'Unavailable provider returned a fabricated branch protection state');
+
 echo 'PASS: '.$count.' operations authorization, MFA, CSRF, scope, freshness and regression assertions. No production credentials or transactions used.'.PHP_EOL;

@@ -165,6 +165,25 @@ function githubAuditRender(host){
  if(githubAuditState){
   if(githubAuditState.error)section.append(el('p',t('دسترسی به گزارش رسمی GitHub برقرار نبود؛ نتیجه‌ای جعل نشد.','GitHub observations unavailable; no results inferred.')));
   else{
+
+   // OP-02 and OP-36: observed public policy metadata, not completion gates.
+   const governance=githubAuditState.governance;
+   if(governance?.schema==='operations-github-governance-v1'){
+    const policy=el('section',undefined,'ops-branch-governance');
+    policy.append(el('h4',t('OP-02 · حاکمیت شاخهٔ اصلی و OP-36 · وضعیت بازگشت','OP-02 · Branch governance and OP-36 · Rollback readiness')));
+    const fmt=v=>v===true?t('بله','Yes'):v===false?t('خیر','No'):t('نامشخص','Unknown');
+    policy.append(el('p',t('شاخهٔ اصلی مورد انتظار: ','Expected production branch: ')+governance.canonicalBranch));
+    policy.append(el('p',t('شاخهٔ پیش‌فرض GitHub: ','GitHub default branch: ')+(governance.defaultBranch||t('نامشخص','Unknown'))));
+    policy.append(el('p',t('محافظت رسمی شاخه: ','Branch protection: ')+fmt(governance.canonicalBranchProtected)));
+    policy.append(el('p',t('انطباق شاخهٔ پیش‌فرض: ','Default branch matches: ')+fmt(governance.defaultMatchesCanonical)));
+    policy.append(el('p',governance.canonicalBranchProtected===false
+     ?t('اقدام لازم: محافظت از شاخه را در تنظیمات GitHub فعال و قواعد آن را مستقلاً بررسی کنید.','Action required: enable branch protection in GitHub and independently inspect its rules.')
+     :t('پوشش دقیق Rulesetها و مجوزهای انتشار هنوز مستقلاً تأیید نشده است.','Ruleset scope and deployment permissions are not independently certified.')));
+    policy.append(el('p',t('آزمایش مستقل بازیابی بکاپ و بازگشت نسخه (OP-36): تأییدنشده','Independent backup restoration and rollback drill (OP-36): unverified')));
+    const manage=el('a',t('تنظیمات محافظت از شاخه در GitHub','GitHub branch-protection settings'));
+    manage.href='https://github.com/drrezazadeh65/drjavadrezazadeh.com/settings/branches';
+    manage.target='_blank';manage.rel='noopener noreferrer';policy.append(manage);section.append(policy);
+   }
    section.append(el('p',t('گردش‌کارهای مشاهده‌شده: ','Workflows observed: ')+
     githubAuditState.summary?.observableWorkflows+'/'+githubAuditState.summary?.registeredAllowlistedWorkflows));
    section.append(el('p',githubAuditState.summary?.dispatchReady
