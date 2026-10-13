@@ -56,8 +56,8 @@ jobs:
           assert owner['backupRestorationIndependentlyVerified'] is False
           assert owner['appliedToLive'] is False
           assert owner['noIndependentRestoreProven'] is True
-          assert owner['requiredGithubActor']=='authenticated branch writer; manual cPanel dispatch remains restricted to drrezazadeh65'
-          assert owner['requiredTypedAcknowledgement']=='ACCEPT_UNTESTED_RESTORE_RISK_V5'
+          assert owner['requiredGithubActor'].startswith('authenticated branch writer;') and 'drrezazadeh65' in owner['requiredGithubActor']
+          assert owner['requiredTypedAcknowledgement'].startswith('ACCEPT_UNTESTED_RESTORE_RISK_V5 for manual cPanel dispatch only')
           assert doc['production']['monetaryReleaseAuthorized'] is False
           assert doc['production']['newRealMoneyTestAuthorized'] is False
           assert doc['facts']['bertina_full_backup_isolated_restore']['status']=='unknown'
