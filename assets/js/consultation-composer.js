@@ -11,6 +11,29 @@
     var copy = form.querySelector('[data-composer-copy]');
     var recipient = 'mailto:dr.rezazadeh65@gmail.com';
     var revision = 0;
+    var requestedServiceDetails=form.querySelector('[data-requested-service-details]');
+    function renderRequestedService(service){
+      if(!requestedServiceDetails)return;
+      requestedServiceDetails.replaceChildren();
+      requestedServiceDetails.hidden=!service;
+      if(!service)return;
+      var heading=document.createElement('strong');
+      heading.textContent=service.title_fa||'خدمت انتخاب‌شده';
+      requestedServiceDetails.appendChild(heading);
+      var rows=[
+        ['تعرفه ثبت‌شده',Number.isInteger(service.price)?new Intl.NumberFormat('fa-IR').format(service.price)+' تومان':'برای اعلام تعرفه هماهنگ کنید'],
+        ['مناسب برای',service.fit_fa],
+        ['خروجی مورد انتظار',service.outcome_fa],
+        ['مرز خدمت',service.boundary_fa]
+      ].filter(function(row){return typeof row[1]==='string'&&row[1].trim();});
+      rows.forEach(function(row){
+        var paragraph=document.createElement('p');
+        var label=document.createElement('b');
+        label.textContent=row[0]+': ';
+        paragraph.append(label,document.createTextNode(row[1]));
+        requestedServiceDetails.appendChild(paragraph);
+      });
+    }
     async function applyRequestedService(){
       if(!fa) return;
       var requested=new URLSearchParams(location.search).get('service');
@@ -32,7 +55,8 @@
           select.appendChild(option);
         }
         select.value=option.value;
-        status.textContent='خدمت انتخاب‌شده از صفحه تعرفه در فرم قرار گرفت؛ لطفاً زمینه و سؤال اصلی را تکمیل کنید.';
+        renderRequestedService(service);
+        status.textContent='خدمت انتخاب‌شده از صفحه تعرفه در فرم قرار گرفت؛ دامنه، خروجی و تعرفه را بررسی کنید و سپس زمینه و سؤال اصلی را تکمیل کنید.';
       }catch(_){ /* keep the normal manual selector available */ }
     }
     function invalidate() {
