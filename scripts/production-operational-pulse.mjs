@@ -29,6 +29,11 @@ export function commerceContract(c){
    paymentClaimSchemaReady:c.requirements?.paymentClaimSchemaReady===true};
 }
 export function guestContract(status,data){requireCondition(status===401 && data?.ok!==true,'guest_private_access');return 'anonymous access denied'}
+export function consultationGate(status,data){
+ if(status===503 && data?.error==='secure_lead_capture_unavailable')
+   throw Error('consultation_schema_or_runtime_not_ready_http_503');
+ return guestContract(status,data);
+}
 async function query(route,json=false){
  const ctrl=new AbortController();const timeout=setTimeout(()=>ctrl.abort(),17000);
  try{
@@ -50,7 +55,7 @@ export async function pulse(){
  await test('commerce',async()=>commerceContract((await query('/api/commerce/health',true)).body));
  for(const route of ['/api/auth/me','/api/commerce/history','/api/growth/leads/mine'])
    await test('guest_access_'+route,async()=>{
-    const r=await query(route,true);return guestContract(r.status,r.body);
+    const r=await query(route,true);return route==='/api/growth/leads/mine' ? consultationGate(r.status,r.body) : guestContract(r.status,r.body);
    });
  await Promise.all(routes.map(route=>test('page_'+route,async()=>{
   const r=await query(route);
