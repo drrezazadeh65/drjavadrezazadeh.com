@@ -12,6 +12,8 @@ on:
       - 'tests/bertina-private-recovery-gate.php'
       - 'tests/bertina-release-assembly.py'
       - 'scripts/v5-ecosystem-integrity-audit.mjs'
+      - 'scripts/bertina-auto-release-policy.mjs'
+      - 'tests/bertina-auto-release-policy.test.mjs'
       - 'docs/governance/STAGE09_PRIVATE_DEPENDENCIES.json'
       - 'docs/governance/V5_CONTROLLED_CPANEL_RELEASE_20261013.md'
   workflow_dispatch:
@@ -45,6 +47,8 @@ jobs:
           python3 tests/bertina-release-assembly.py
           node scripts/v5-ecosystem-integrity-audit.mjs
           node scripts/workflow-governance-audit.mjs
+          node --check scripts/bertina-auto-release-policy.mjs
+          node --test tests/bertina-auto-release-policy.test.mjs
           python3 - <<'PY'
           import json,pathlib
           doc=json.loads(pathlib.Path('docs/governance/STAGE09_PRIVATE_DEPENDENCIES.json').read_text())
