@@ -594,6 +594,24 @@ function operationsRoute(string $path, string $verb): never {
         if ($path === '/admin/operations/social' && $verb === 'GET') {
             respond(operationsSocialSnapshot($pdo));
         }
+        if ($path === '/admin/operations/audit-timeline' && $verb === 'GET') {
+            // Private, MFA-gated, bounded and read-only event timeline. This is
+            // historical operations_audit evidence, NOT a live error monitor.
+            if(!rateAllowed($pdo,'operations_audit_timeline_read',$accountId,20,300))
+                fail('rate_limited',429);
+            $rows=$pdo->query('SELECT sequence_id,action,reference_id,occurred_at FROM operations_audit ORDER BY sequence_id DESC LIMIT 50')->fetchAll(PDO::FETCH_ASSOC);
+            $events=[];
+            foreach($rows as $row){
+                $events[]=['sequence'=>(int)$row['sequence_id'],
+                    'type'=>(string)$row['action'],
+                    'reference'=>(string)$row['reference_id'],
+                    'occurredAt'=>(int)$row['occurred_at']];
+            }
+            respond(['ok'=>true,'schema'=>'operations-audit-timeline-v1',
+                'events'=>$events,'limit'=>50,'readOnly'=>true,
+                'liveNotifications'=>false,'source'=>'operations_audit',
+                'limitation'=>'Existing audit records only; no real-time monitoring, delivery guarantee or customer-event completeness.']);
+        }
         if ($path === '/admin/operations/free-resources' && $verb === 'GET') {
             // This is below the verified administrator + MFA checks. No external API is called.
             $raw=@file_get_contents(__DIR__.'/internal/free-resources-registry.json');
