@@ -1,0 +1,9 @@
+{
+  "schema": "bertina-one-time-owner-bootstrap-v1",
+  "owner": "drrezazadeh65",
+  "expectedLiveSha": "92eacc1e8945961f21664692f156b83ddb9f177e",
+  "approvedParentSha": "60da137d9f7d4b6894f3fc4ab30b825f11d5ad14",
+  "acknowledgement": "ACCEPT_UNTESTED_RESTORE_RISK_V5",
+  "purpose": "One-time initial activation of PR 70/71 on existing Bertina Linux; no independent isolated restore certified",
+  "source": "2026-10-13 owner instruction to complete publishing automation"
+}

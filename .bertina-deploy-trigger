@@ -162,3 +162,4 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 
 2026-10-13 — release retry after synchronizing the bilingual homepage cache regression assertion with the published stylesheet revision. Preserve all production and recovery gates.
 \n\n2026-10-13 — owner-requested compact homepage navigation in Persian and English; deploy only after the established Bertina production and recovery gates pass.\n
+2026-10-13 one-time owner-approved Bertina deployment bootstrap; approved parent 60da137d9f7d4b6894f3fc4ab30b825f11d5ad14, expected previously verified live 92eacc1e8945961f21664692f156b83ddb9f177e. Never delete backups or bypass production gates.
