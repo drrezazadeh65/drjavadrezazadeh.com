@@ -151,7 +151,8 @@ assertAudit(count($bulkSources)===8
     &&count(array_unique(array_values($bulkSources)))===8,
     'Expected exactly eight independent allowlisted GET URLs');
 foreach($bulkSources as $kind=>$url)assertAudit(
-    str_starts_with($url,'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/')
+    ($url==='https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com'
+      || str_starts_with($url,'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/'))
       && !str_contains($url,'redirect') && !str_contains($url,'token'),
     'Unsafe GitHub batch URL: '.$kind);
 $bulkData=[
