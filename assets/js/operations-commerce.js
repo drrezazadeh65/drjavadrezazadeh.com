@@ -9,6 +9,10 @@
   const results=document.getElementById('ops-commerce-results');
   const refresh=document.getElementById('ops-commerce-refresh');
   const workspace=document.getElementById('ops-workspace');
+  const readiness=document.createElement('section');
+  readiness.className='ops-grid';
+  readiness.setAttribute('aria-label',text('آمادگی فعال‌سازی فروش','Commerce activation readiness'));
+  status.after(readiness);
   let seq=0;
   function node(tag,value,cls){
     const n=document.createElement(tag);
@@ -129,9 +133,68 @@
       'گزارش فقط‌خواندنی پایگاه داده؛ هیچ پرداخت، تسویه، شمارش فیزیکی یا تحویلی از این اعداد تأیید نمی‌شود.',
       'Read-only database report. These counts do not certify payment settlement, physical inventory or delivery.');
   }
+  // Capability diagnostics are public booleans from the canonical API, not
+  // an attempted payment, a secret dump or a verified bank transaction.
+  async function loadReadiness(stamp){
+    try{
+      const response=await fetch('/api/commerce/health',{
+        method:'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}
+      });
+      const data=await response.json();
+      if(stamp!==seq||workspace.hidden||!panel.open||document.hidden)return;
+      if(!response.ok||data.ok!==true||data.service!=='commerce'||typeof data.checkout!=='boolean'
+        ||!data.requirements||!data.capabilities)throw new Error('unavailable');
+      readiness.replaceChildren();
+      const title=node('h3',text('وضعیت فعال‌سازی فروش واقعی','Live checkout activation readiness'));
+      title.style.gridColumn='1 / -1';readiness.append(title);
+      const state=ok=>ok===true?text('آماده (طبق API)','Ready (API)'):ok===false?
+        text('مسدود / غیرفعال','Blocked / disabled'):text('نامشخص','Unknown');
+      const add=(label,value)=>{const c=node('article',undefined,'ops-card');
+        c.append(node('small',label),node('div',state(value),'ops-number'));readiness.append(c);};
+      add(text('دریافت پرداخت','Checkout'),data.checkout);
+      const caps=data.capabilities;
+      add(text('فروش خدمات','Services checkout'),caps.services);
+      add(text('فروش خدمات ویژه','VIP checkout'),caps.vip);
+      add(text('فروش کتاب','Books checkout'),caps.books);
+      const flags=[
+        ['database',text('اتصال دیتابیس','Database')],
+        ['schema',text('جداول سفارش','Commerce schema')],
+        ['paymentClaimSchemaReady',text('ساختار امن پرداخت','Payment integrity schema')],
+        ['publicTlsConfirmed',text('گواهی و TLS عمومی','Public TLS')],
+        ['commerceEnabled',text('فعال‌سازی فروش در سرور','Server commerce switch')],
+        ['gatewayKeyConfigured',text('پیکربندی کلید درگاه','Payment gateway key configured')],
+        ['amountMultiplierValid',text('واحد مبلغ درگاه','Payment amount unit')],
+        ['orderEmailFulfilmentConfirmed',text('ارسال و پیگیری سفارش','Order email and fulfilment')],
+        ['inventoryReconciled',text('دفتر موجودی کتاب','Book inventory ledger')],
+        ['bookShippingConfirmed',text('آمادگی ارسال کتاب','Book shipping')],
+        ['serviceBookingConfirmed',text('آمادگی ارائه خدمات','Service booking')],
+        ['vipBookingConfirmed',text('آمادگی خدمات ویژه','VIP booking')],
+        ['receiptAccessReady',text('دسترسی امن رسید','Secure receipt access')]
+      ];
+      const blockers=flags.filter(([key])=>data.requirements[key]===false);
+      if(blockers.length){
+        const detail=node('details');detail.style.gridColumn='1 / -1';
+        detail.append(node('summary',text('موانع و تنظیمات نیازمند بررسی','Checkout prerequisites requiring review')));
+        const list=node('ul');
+        for(const [key,label] of blockers)list.append(node('li',label));
+        detail.append(list);readiness.append(detail);
+      }
+      const note=node('p',text(
+        'این وضعیت از API سایت خوانده شده است؛ «آماده» به معنای موفقیت پرداخت آزمایشی، تسویه بانکی یا تحویل واقعی نیست.',
+        'These are server API flags, not a verified test payment, bank settlement or fulfilment.'),'ops-muted');
+      note.style.gridColumn='1 / -1';readiness.append(note);
+    }catch{
+      if(stamp!==seq||workspace.hidden||!panel.open||document.hidden)return;
+      readiness.replaceChildren(node('p',text(
+        'آمادگی فروش از API قابل تأیید نیست؛ فعال‌بودن درگاه را فرض نکنید.',
+        'Commerce readiness API unavailable; checkout activation is unverified.'),'ops-muted'));
+    }
+  }
   async function load(){
     if(workspace.hidden||!panel.open)return;
     const stamp=++seq;refresh.disabled=true;
+    readiness.replaceChildren();
+    void loadReadiness(stamp);
     status.textContent=text('در حال دریافت شواهد سرور…','Reading server evidence…');
     try{
       const response=await fetch('/api/admin/operations/commerce',{
@@ -151,8 +214,8 @@
         'MFA access expired or evidence is unavailable. No counts were assumed.');
     }finally{if(stamp===seq)refresh.disabled=false;}
   }
-  panel.addEventListener('toggle',()=>{if(panel.open)load();else{seq++;results.replaceChildren();}});
+  panel.addEventListener('toggle',()=>{if(panel.open)load();else{seq++;results.replaceChildren();readiness.replaceChildren();}});
   refresh.addEventListener('click',load);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){seq++;results.replaceChildren();
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){seq++;results.replaceChildren();readiness.replaceChildren();
     status.textContent=text('برای دریافت شواهد جدید، بخش را دوباره باز کنید.','Reopen to refresh protected evidence.');}});
 })();
