@@ -141,6 +141,37 @@ checkStage9($beforeSnapshot['available']===true&&$beforeSnapshot['providerBankSe
  'owner_commerce_snapshot_readonly_no_bank_certification');
 checkStage9(($beforeSnapshot['claims']['paidRowsRequiringIndependentProviderReconciliation']??null)===1,
  'historical_paid_row_without_claim_requires_review');
+$pipeline=$beforeSnapshot['salesPipeline']??null;
+checkStage9(is_array($pipeline)&&($pipeline['status']??'')==='INTERNAL_ORDER_LEDGER_ONLY',
+ 'owner_sales_pipeline_requires_readonly_ledger_evidence');
+checkStage9(($pipeline['verifiedNetRevenueToman']??'missing')===null
+ && ($pipeline['verifiedBankSettlementToman']??'missing')===null
+ && ($pipeline['verifiedRefundDisbursementsToman']??'missing')===null,
+ 'internal_gateway_claims_never_fabricate_settled_revenue');
+checkStage9(($pipeline['currencyUnit']??'')==='toman'
+ && ctype_digit((string)($pipeline['paidStateAmountToman']??''))
+ && ctype_digit((string)($pipeline['providerClaimMatchedAmountToman']??'')),
+ 'internal_paid_amounts_are_nonnegative_decimal_strings');
+checkStage9((int)$pipeline['paidStateAmountToman']>(int)$pipeline['providerClaimMatchedAmountToman']
+ && (int)$pipeline['providerClaimMatchedOrderCount']>=1,
+ 'historical_unmatched_paid_order_excluded_from_provider_claim_amount');
+checkStage9(($pipeline['paidStateOrdersLast30Days']??0)>=4
+ && ($pipeline['refundRequestsAwaitingAction']??null)===0,
+ 'recent_paid_orders_do_not_imply_bank_settlement_or_refunds');
+$pendingAge='11111111-1111-4111-8111-111111111181';
+pendingOrder($pdo,$pendingAge,'ageing-test-factor','service:academic_consult_60');
+$pdo->prepare("UPDATE commerce_orders SET created_at=DATE_SUB(NOW(),INTERVAL 8 DAY)
+ WHERE id=?")->execute([$pendingAge]);
+$refundId='11111111-1111-4111-8111-111111111182';
+$pdo->prepare("INSERT INTO commerce_refund_requests(id,order_id,requester_account_id,status,reason_code)
+ VALUES(?,?,?,'requested','fixture_review')")->execute([$refundId,$legacy,$refundId]);
+$aged=operationsCommerceSnapshot($pdo,time())['salesPipeline'];
+checkStage9(($aged['pendingOlderThan24Hours']??0)>=1
+ && ($aged['pendingOlderThan7Days']??0)>=1
+ && ($aged['refundRequestsAwaitingAction']??null)===1,
+ 'old_pending_orders_and_refund_backlog_are_private_operational_signals');
+$pdo->prepare('DELETE FROM commerce_refund_requests WHERE id=?')->execute([$refundId]);
+$pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$pendingAge]);
 checkStage9(($beforeSnapshot['stock']['ledgerDiscrepancies']??null)===0,
  'owner_commerce_snapshot_stock_consistent');
 checkStage9(($beforeSnapshot['orders']['paidStateRecords']??0)>=4,
