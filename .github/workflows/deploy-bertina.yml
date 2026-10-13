@@ -795,9 +795,6 @@ jobs:
           plan=json.load(open('/tmp/bertina-backup-prune.json',encoding='utf-8'))
           print('Retaining canonical cPanel backup:',plan['keep'])
           print('Older backup archives to remove:',len(plan['remove']))
-          python3 - <<'PY'
-          import json
-          plan=json.load(open('/tmp/bertina-backup-prune.json',encoding='utf-8'))
           with open('/tmp/bertina-backup-remove-list.txt','w',encoding='utf-8') as f:
               for name in plan['remove']:
                   f.write(name+'\\n')
