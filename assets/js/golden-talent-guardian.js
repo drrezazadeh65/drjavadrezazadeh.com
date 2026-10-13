@@ -27,14 +27,15 @@
  load.addEventListener('click',async()=>{
    clear();
    const current=revision;
-   controller=new AbortController();
+   const requestController=new AbortController();
+   controller=requestController;
    load.disabled=true;
    message(t('در حال بررسی رابطه سرپرستی و رضایت معتبر…','Checking verified guardianship and current consent…'));
-   const timeout=setTimeout(()=>controller?.abort(),12000);
+   const timeout=setTimeout(()=>requestController.abort(),12000);
    try{
      const response=await fetch('/api/golden-talent/my-subjects',{
        method:'GET',credentials:'same-origin',cache:'no-store',
-       headers:{Accept:'application/json'},signal:controller.signal
+       headers:{Accept:'application/json'},signal:requestController.signal
      });
      if(current!==revision||document.hidden)return;
      output.replaceChildren();
