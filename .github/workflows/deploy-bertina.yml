@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - migration/bertina-linux6
-    paths:
-      - '.bertina-deploy-trigger'
   workflow_dispatch:
     inputs:
       recovery_mode:
@@ -54,6 +52,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Capture the live release fingerprint for automatic deployment
+        if: github.event_name == 'push'
+        id: live_release
+        run: |
+          set -euo pipefail
+          curl -fsSL --max-time 25 https://drjavadrezazadeh.com/sw.js -o /tmp/live-sw.js
+          live_sha="$(sed -n "s/^const CACHE_VERSION='jr-site-bertina-\\([a-f0-9]\\{40\\}\\)';$/\\1/p" /tmp/live-sw.js)"
+          [[ "$live_sha" =~ ^[a-f0-9]{40}$ ]]
+          test "$live_sha" != "$GITHUB_SHA"
+          echo "sha=$live_sha" >> "$GITHUB_OUTPUT"
 
       - name: Authorize the exact recovery policy before any deploy activity
         id: release_policy
@@ -62,24 +73,67 @@ jobs:
           APPROVED_COMMIT_SHA_INPUT: ${{ inputs.approved_commit_sha }}
           EXPECTED_LIVE_SHA_INPUT: ${{ inputs.expected_live_sha }}
           OWNER_ACKNOWLEDGEMENT_INPUT: ${{ inputs.owner_acknowledgement }}
+          LIVE_RELEASE_SHA: ${{ steps.live_release.outputs.sha }}
         run: |
           set -euo pipefail
-          mode="${RECOVERY_MODE_INPUT:-signed_restore}"
-          case "$mode" in
-            signed_restore) echo "mode=signed_restore" >> "$GITHUB_OUTPUT" ;;
-            owner_cpanel_custody)
-              test "$GITHUB_EVENT_NAME" = workflow_dispatch
-              test "$GITHUB_ACTOR" = drrezazadeh65
-              test "$APPROVED_COMMIT_SHA_INPUT" = "$GITHUB_SHA"
-              test "$OWNER_ACKNOWLEDGEMENT_INPUT" = ACCEPT_UNTESTED_RESTORE_RISK_V5
-              [[ "$EXPECTED_LIVE_SHA_INPUT" =~ ^[a-f0-9]{40}$ ]]
-              test "$EXPECTED_LIVE_SHA_INPUT" != "$GITHUB_SHA"
-              echo "mode=owner_cpanel_custody" >> "$GITHUB_OUTPUT"
-              echo "expected_live_sha=$EXPECTED_LIVE_SHA_INPUT" >> "$GITHUB_OUTPUT"
-              echo "Owner knowingly accepts **no independent isolated restore** for this one run; same-origin backup custody checks and live-SHA drift gate remain mandatory." >> "$GITHUB_STEP_SUMMARY"
-              ;;
-            *) echo "Invalid recovery mode" >&2; exit 1 ;;
-          esac
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            [[ "$LIVE_RELEASE_SHA" =~ ^[a-f0-9]{40}$ ]]
+            test "$LIVE_RELEASE_SHA" != "$GITHUB_SHA"
+            echo "mode=owner_cpanel_custody" >> "$GITHUB_OUTPUT"
+            echo "expected_live_sha=$LIVE_RELEASE_SHA" >> "$GITHUB_OUTPUT"
+            echo "Standing owner instruction: automatic site releases use the verified current Bertina state and retain one newest cPanel account backup. An isolated restoration is not independently tested." >> "$GITHUB_STEP_SUMMARY"
+          else
+            mode="${RECOVERY_MODE_INPUT:-signed_restore}"
+            case "$mode" in
+              signed_restore) echo "mode=signed_restore" >> "$GITHUB_OUTPUT" ;;
+              owner_cpanel_custody)
+                test "$GITHUB_EVENT_NAME" = workflow_dispatch
+                test "$GITHUB_ACTOR" = drrezazadeh65
+                test "$APPROVED_COMMIT_SHA_INPUT" = "$GITHUB_SHA"
+                test "$OWNER_ACKNOWLEDGEMENT_INPUT" = ACCEPT_UNTESTED_RESTORE_RISK_V5
+                [[ "$EXPECTED_LIVE_SHA_INPUT" =~ ^[a-f0-9]{40}$ ]]
+                test "$EXPECTED_LIVE_SHA_INPUT" != "$GITHUB_SHA"
+                echo "mode=owner_cpanel_custody" >> "$GITHUB_OUTPUT"
+                echo "expected_live_sha=$EXPECTED_LIVE_SHA_INPUT" >> "$GITHUB_OUTPUT"
+                echo "Owner knowingly accepts **no independent isolated restore** for this one run; current live-SHA drift guard remains mandatory." >> "$GITHUB_STEP_SUMMARY"
+                ;;
+              *) echo "Invalid recovery mode" >&2; exit 1 ;;
+            esac
+          fi
+
+      - name: Restrict automatic releases to public site changes
+        if: github.event_name == 'push'
+        env:
+          EXPECTED_LIVE_SHA: ${{ steps.release_policy.outputs.expected_live_sha }}
+        run: |
+          set -euo pipefail
+          git cat-file -e "$EXPECTED_LIVE_SHA^{commit}"
+          changed="$(git diff --name-only "$EXPECTED_LIVE_SHA" "$GITHUB_SHA")"
+          test -n "$changed"
+          while IFS= read -r path; do
+            case "$path" in
+              .github/workflows/deploy-bertina.yml|scripts/build-public-site.mjs|scripts/build-public-data.mjs|scripts/stamp-bertina-release.mjs|scripts/bertina-controlled-cpanel-gate.php|tests/bertina-controlled-cpanel-gate.php|scripts/bertina-prune-backups.py|tests/bertina-prune-backups.py|scripts/workflow-governance-audit.mjs|.github/workflows/bertina-controlled-release-guard.yml|docs/governance/STAGE09_PRIVATE_DEPENDENCIES.json|docs/governance/V5_CONTROLLED_CPANEL_RELEASE_20261013.md|fa/*|en/*|assets/images/*|assets/css/*|assets/fonts/*|assets/icons/*|assets/data/*|index.html|offline.html|robots.txt|sitemap.xml|favicon.svg|site.webmanifest|manifest.json|.bertina-deploy-trigger)
+                ;;
+              api/*|platform/*|foundation/*|edge/*|payment-api/*|database/*|migrations/*|docs/*|tests/*|scripts/*|.github/*|.bertina-backup-trigger|*.php|*.sql|*.env|.htaccess|package.json|package-lock.json|composer.json|composer.lock)
+                echo "Automatic production release blocked by protected change: $path" >&2
+                exit 1
+                ;;
+              assets/js/*)
+                case "$path" in
+                  *checkout*|*commerce*|*payment*|*donation*|*receipt*|*order*|*cart*)
+                    echo "Automatic production release blocked by financial/runtime change: $path" >&2
+                    exit 1
+                    ;;
+                  *) ;;
+                esac
+                ;;
+              *)
+                echo "Automatic production release blocked by unclassified change: $path" >&2
+                exit 1
+                ;;
+            esac
+          done <<< "$changed"
+          echo "Only public-site paths changed since the deployed commit." >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/setup-node@v4
         with:
@@ -722,6 +776,38 @@ jobs:
           path: /tmp/historical-authority-live.json
           if-no-files-found: ignore
           retention-days: 14
+
+      - name: Keep one newest Bertina account backup
+        if: steps.credentials.outputs.ready == 'true'
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" \
+            -e "set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes; set ftp:passive-mode true; set ftp:prefer-epsv false; cd \"$FTP_REMOTE_DIR\"; cls -1 ../backup-*_drjavad1.tar.gz; bye" \
+            > /tmp/bertina-backup-list.txt
+          python3 scripts/bertina-prune-backups.py /tmp/bertina-backup-list.txt > /tmp/bertina-backup-prune.json
+          python3 - <<'PY'
+          import json
+          plan=json.load(open('/tmp/bertina-backup-prune.json',encoding='utf-8'))
+          print('Retaining canonical cPanel backup:',plan['keep'])
+          print('Older backup archives to remove:',len(plan['remove']))
+          with open('/tmp/bertina-backup-prune.commands','w',encoding='utf-8') as f:
+              for name in plan['remove']:
+                  f.write('rm "../'+name+'"\\n')
+          PY
+          if [ -s /tmp/bertina-backup-prune.commands ]; then
+            {
+              printf 'set ftp:ssl-force true\\nset ftp:ssl-protect-data true\\nset ssl:verify-certificate yes\\nset ftp:passive-mode true\\nset ftp:prefer-epsv false\\ncd "%s"\\n' "$FTP_REMOTE_DIR"
+              cat /tmp/bertina-backup-prune.commands
+              printf 'bye\\n'
+            } > /tmp/bertina-backup-prune.lftp
+            timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" -f /tmp/bertina-backup-prune.lftp
+          fi
+          echo "One cPanel backup retained; older matching account archives were removed after the live release checks passed." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Deployment summary
         if: steps.credentials.outputs.ready == 'true'

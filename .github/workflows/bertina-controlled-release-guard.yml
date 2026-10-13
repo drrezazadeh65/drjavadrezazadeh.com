@@ -51,6 +51,9 @@ jobs:
           owner=doc['production']['controlledSourceReleaseAuthorization']
           assert owner['ownerExplicitlyApproved'] is True
           assert owner['ownerAcceptsMissingIndependentIsolatedRestore'] is True
+          assert owner['automaticPublicOnlyReleaseAuthorized'] is True
+          assert owner['retainedCpanelArchives']==1
+          assert owner['backupRestorationIndependentlyVerified'] is False
           assert owner['appliedToLive'] is False
           assert owner['noIndependentRestoreProven'] is True
           assert owner['requiredGithubActor']=='drrezazadeh65'
@@ -61,10 +64,11 @@ jobs:
           policy=pathlib.Path('docs/governance/V5_CONTROLLED_CPANEL_RELEASE_20261013.md').read_text()
           assert 'NOT an authenticated, independently restored backup' in policy
           assert 'coordinated website+database restoration' in policy
-          print('PASS: one-time owner risk acceptance is auditable, never implies money/restore verification')
+          assert owner['allowedScope'].startswith('STANDING automatic release of public site pages and assets')
+          print('PASS: standing public-only automation is auditable; financial operations and restore certification remain unclaimed')
           PY
       - name: State limited evidence scope
         run: |
           echo 'Both guarded recovery policies passed offline fixture tests.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Controlled release is a one-time owner-authorized exception: it does NOT verify isolated restoration or bank settlement.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Automatic deployment is restricted to public-only content/assets, exact live-SHA, CI, schema and one-backup custody gates; it does NOT verify isolated restoration or authorize financial operations.' >> "$GITHUB_STEP_SUMMARY"
           echo 'No FTP, live SQL, cPanel backup content, payment, or production deploy was accessed by this CI.' >> "$GITHUB_STEP_SUMMARY"

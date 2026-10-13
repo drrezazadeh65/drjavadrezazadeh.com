@@ -13,15 +13,19 @@ The owner confirmed in phpMyAdmin 19 tables in `drjavad1_store`, 9/9 commerce ta
 
 **The two cPanel archives are NOT an authenticated, independently restored backup, and restoration may require Bertina support.** They predate the new commerce schema and cannot be used to undo only part of a release safely. Rollback must return the application and database to a mutually compatible point in time, potentially losing changes made since the archive. The owner explicitly accepts this narrower recovery assurance to release v5 sooner.
 
+## Standing automation instruction — 2026-10-13
+
+The owner subsequently instructed that future public-site releases on `migration/bertina-linux6` run automatically, that the live Bertina release fingerprint be treated as the current production baseline, and that only one newest matching cPanel account archive be retained. The workflow therefore runs the existing full test suite, rejects stale live fingerprints and protected API/payment/database/schema changes, verifies one archive's custody before extraction, and removes older matching cPanel archives only after all deployment and live acceptance checks succeed. The retained archive is a recovery reference; it is not an independently tested restoration. Financial settlement, real charges/refunds, inventory reconciliation, and database migrations remain outside the standing automatic authorization.
+
 ## Recovery policy design
 
-The existing default `signed_restore` retains pinned RSA verification and has **not** been removed. The manually chosen exception `owner_cpanel_custody` is available only when ALL of the following are true:
+The existing default `signed_restore` retains pinned RSA verification and has **not** been removed. The manual `owner_cpanel_custody` exception still requires the per-run conditions below. Standing automatic public-only releases use the same server-side cPanel custody check, with the owner instruction recorded above.
 
-1. A GitHub `workflow_dispatch` by the exact account `drrezazadeh65` targets the **canonical branch**, never a push event.
+1. For manual cPanel dispatches, a GitHub `workflow_dispatch` by `drrezazadeh65` targets the canonical branch. Standing push-triggered runs are restricted to the same branch and public-only change set.
 2. `approved_commit_sha` equals `GITHUB_SHA` byte for byte, so an unrelated source update cannot be silently approved.
 3. `owner_acknowledgement` is exactly `ACCEPT_UNTESTED_RESTORE_RISK_V5`.
 4. `expected_live_sha` is the current, independently observed **40-character** source stamp in `https://drjavadrezazadeh.com/sw.js`; the authenticated Bertina endpoint rechecks that the live file matches it **before extraction**.
-5. The endpoint checks the two exact local account backup names immediately outside `public_html`: not links, readable, owner-consistent, mode `0600`, compressed gzip header, at least 128 MiB each, no older than seven days, and full SHA-256 readability/stability. These are **custody checks**, not a test restoration.
+5. The endpoint checks the one newest matching local account backup immediately outside `public_html`: not links, readable, owner-consistent, mode `0600`, compressed gzip header, at least 128 MiB and full SHA-256 readability/stability; cPanel's filename date is used to prune older matching archives after all live checks pass. These are **custody checks**, not a test restoration.
 6. The existing read-only database check confirms legacy order columns, eight new tables, nine InnoDB engines and both required composite unique payment indexes **before extraction**.
 7. The existing FTPS TLS, GitHub secrets, source-staleness check, path-traversal denial, file manifest checksums, cache fingerprint and origin health tests remain required. A failure stops/fails the workflow and must not be reported as successful production deployment.
 
