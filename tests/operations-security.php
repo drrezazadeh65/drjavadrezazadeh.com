@@ -176,4 +176,13 @@ check(count(operationsCollectorCatalogue())===21,'Unreviewed extra collector sco
 check(operationsCollectorNextDue('manual',50,2000000000)===0,'Manual source scheduled unexpectedly');
 check(operationsCollectorNextDue('hourly',25,2000000000)>2000000000,'Hourly schedule expired at creation');
 check(operationsCollectorNextDue('daily',230,2000000000)>2000000000,'Daily schedule expired at creation');
+// Stage-7 audit timeline contract: protected route and privacy-sensitive UI lifecycle.
+$opsSource=file_get_contents(__DIR__.'/../api/operations.php');
+$uiSource=file_get_contents(__DIR__.'/../assets/js/operations-control.js');
+check(is_string($opsSource)&&str_contains($opsSource,"'/admin/operations/audit-timeline' && \$verb === 'GET'"),'Audit route missing');
+check(str_contains($opsSource,"'operations_audit_timeline_read'"),'Audit read rate limit missing');
+check(str_contains($opsSource,'ORDER BY sequence_id DESC LIMIT 50'),'Audit timeline must be bounded');
+check(str_contains($opsSource,"'liveNotifications'=>false"),'Historical audit data misrepresented as live notifications');
+check(is_string($uiSource)&&str_contains($uiSource,"api('/audit-timeline')"),'Audit viewer not connected to protected endpoint');
+check(str_contains($uiSource,"auditHistory.querySelector('[aria-live]')?.replaceChildren()"),'Audit data not cleared on security lock');
 echo 'PASS: '.$count.' operations authorization, MFA, CSRF, scope, freshness and regression assertions. No production credentials or transactions used.'.PHP_EOL;
