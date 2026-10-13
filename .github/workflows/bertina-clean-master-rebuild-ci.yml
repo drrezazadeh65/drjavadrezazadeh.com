@@ -1,0 +1,89 @@
+name: Bertina Clean Master Database — Isolated Replacement Test
+on:
+  push:
+    branches: [ops/bertina-unified-db-install-20261013]
+    paths:
+      - '.github/workflows/bertina-clean-master-rebuild-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clean-rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [mariadb:10.11, mysql:8.0]
+    services:
+      database:
+        image: ${{ matrix.engine }}
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-secret-only
+          MARIADB_ROOT_PASSWORD: fixture-secret-only
+          MYSQL_DATABASE: master_fixture
+          MARIADB_DATABASE: master_fixture
+        ports:
+          - 3306:3306
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql
+          coverage: none
+      - name: Install MySQL client and await disposable database
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mariadb-client
+          for i in $(seq 1 90); do
+            if mariadb -h127.0.0.1 -uroot -p'fixture-secret-only' master_fixture -N -e 'SELECT 1' >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          mariadb -h127.0.0.1 -uroot -p'fixture-secret-only' master_fixture -N -e 'SELECT VERSION()'
+      - name: Recreate all 20 essential existing application tables with zero rows
+        env:
+          JR_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=master_fixture;charset=utf8mb4
+          JR_TEST_DB_PASSWORD: fixture-secret-only
+        run: |
+          set -euo pipefail
+          mariadb -h127.0.0.1 -uroot -p'fixture-secret-only' master_fixture < docs/BERTINA_MYSQL_SCHEMA.sql
+          mariadb -h127.0.0.1 -uroot -p'fixture-secret-only' master_fixture < docs/migrations/20261012_stage09_commerce.sql
+          php -r '
+          define("BERTINA_API_BOOTSTRAPPED",true);
+          require "api/operations-schema.php";
+          $pdo=new PDO(getenv("JR_TEST_DSN"),"root",getenv("JR_TEST_DB_PASSWORD"),[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+          operationsInstall($pdo);
+          '
+          count="$(mariadb -h127.0.0.1 -uroot -p'fixture-secret-only' master_fixture -N -e 'SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_TYPE="BASE TABLE"')"
+          test "$count" = 20
+          echo "PASS: 20 legacy-compatible clean tables; no seeded stock, users or admin."
+      - name: Add first-party growth consent subsystem and all mother-database modules
+        run: |
+          set -euo pipefail
+          mariadb -h127.0.0.1 -uroot -p'fixture-secret-only' master_fixture < docs/BERTINA_ORGANIC_GROWTH_SCHEMA.sql
+          for script in database/unified/[0-9]*.sql; do
+            echo "Applying $(basename "$script")"
+            mariadb -h127.0.0.1 -uroot -p'fixture-secret-only' master_fixture < "$script"
+          done
+          for script in database/unified/[0-9]*.sql; do
+            mariadb -h127.0.0.1 -uroot -p'fixture-secret-only' master_fixture < "$script"
+          done
+      - name: Certify clean unified schema and admin re-enrollment capability
+        run: |
+          set -euo pipefail
+          db="mariadb -h127.0.0.1 -uroot -pfixture-secret-only master_fixture -N -s"
+          test "$($db -e 'SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME REGEXP "^eco_"')" = 198
+          test "$($db -e 'SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_TYPE="BASE TABLE"')" = 220
+          test "$($db -e 'SELECT COUNT(*) FROM customer_accounts')" = 0
+          test "$($db -e 'SELECT COUNT(*) FROM commerce_orders')" = 0
+          test "$($db -e 'SELECT COUNT(*) FROM operations_admin_memberships')" = 0
+          test "$($db -e 'SELECT COUNT(*) FROM commerce_book_stock')" = 0
+          test "$($db -e 'SELECT COUNT(*) FROM growth_lead_requests')" = 0
+          fks="$($db -e 'SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL')"
+          test "$fks" -ge 399
+          echo "PASS: 220 tables, 198 extensions, $fks foreign keys, all user/order/admin/stock/consent rows empty"
+          echo 'Neither GitHub test nor branch changes the Bertina production database.' >> "$GITHUB_STEP_SUMMARY"
