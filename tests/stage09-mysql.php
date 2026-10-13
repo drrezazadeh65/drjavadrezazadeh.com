@@ -137,6 +137,39 @@ $pdo->prepare("UPDATE commerce_orders SET state='paid',provider_trans_id='191919
 $pdo->prepare("INSERT INTO commerce_service_cases(order_id,sku,status)
  VALUES(?,'service:academic_consult_60','awaiting_contact')")->execute([$legacy]);
 $beforeSnapshot=operationsCommerceSnapshot($pdo,time());
+// Paid book worklist must be bounded, customer-private and clearly distinct
+// from independently verified carrier delivery or bank settlement.
+$parcelsOverview=$beforeSnapshot['fulfilment']??[];
+checkStage9(($parcelsOverview['activeParcelCount']??0)===2
+    && ($parcelsOverview['parcelQueueLimit']??0)===50
+    && ($parcelsOverview['parcelQueueTruncated']??null)===false,
+    'owner_parcel_worklist_bounded_and_complete_fixture');
+checkStage9(count($parcelsOverview['parcelActionQueue']??[])===2
+    && ($parcelsOverview['preparingOlderThan48Hours']??null)===0,
+    'book_parcels_begin_in_preparing_state_without_false_overdue_flag');
+foreach($parcelsOverview['parcelActionQueue']??[] as $parcel){
+    checkStage9($parcel['providerClaimMatchesOrder']===true
+        && $parcel['orderPaidState']===true
+        && !array_key_exists('trackingCode',$parcel)
+        && !array_key_exists('shippingAddress',$parcel)
+        && !array_key_exists('customerEmail',$parcel),
+        'parcel_queue_contains_paid_claim_evidence_without_customer_pii');
+}
+$pdo->prepare("UPDATE commerce_parcels
+    SET updated_at=DATE_SUB(NOW(),INTERVAL 3 DAY) WHERE order_id=?")->execute([$a]);
+$agedParcel=operationsCommerceSnapshot($pdo,time())['fulfilment'];
+checkStage9(($agedParcel['preparingOlderThan48Hours']??null)===1,
+    'stale_unshipped_book_requires_operator_followup');
+$pdo->prepare("UPDATE commerce_parcels
+    SET state='in_transit',updated_at=DATE_SUB(NOW(),INTERVAL 8 DAY)
+    WHERE order_id=?")->execute([$a]);
+$transit=operationsCommerceSnapshot($pdo,time())['fulfilment'];
+checkStage9(($transit['inShippingOlderThan7Days']??null)===1
+    && ($transit['preparingOlderThan48Hours']??null)===0,
+    'stale_in_transit_book_is_distinguished_from_preparing');
+$pdo->prepare("UPDATE commerce_parcels
+    SET state='preparing',updated_at=NOW() WHERE order_id=?")->execute([$a]);
+
 checkStage9($beforeSnapshot['available']===true&&$beforeSnapshot['providerBankSettlementVerified']===null,
  'owner_commerce_snapshot_readonly_no_bank_certification');
 checkStage9(($beforeSnapshot['claims']['paidRowsRequiringIndependentProviderReconciliation']??null)===1,
