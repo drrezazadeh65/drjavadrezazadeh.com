@@ -27,6 +27,27 @@ async function exported(page,format){
  const file=await event;return {file,body:fs.readFileSync(await file.path(),'utf8')};
 }
 async function noOverflow(page){expect(await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth)).toBeLessThanOrEqual(1);}
+for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])test(lang+' evidence matrix and risk-ranked executor backlog stay truthful',async({page})=>{
+ const data=fixture();
+ data.summary.gateCoverage=Object.fromEntries(['code','tests','production','evidence'].map(id=>[id,{pass:0,fail:0,blocked:0,stale:0,unknown:36}]));
+ data.summary.gateCoverage.tests={pass:1,fail:2,blocked:3,stale:4,unknown:26};
+ await page.setViewportSize({width:320,height:900});await authorized(page,{data});await page.goto(base+route);
+ const matrix=page.locator('details.ops-evidence-matrix'),triage=page.locator('details.ops-executor-backlog');
+ await expect(matrix.locator('summary')).toContainText(lang==='fa'?'۱۴۴':'144');
+ await matrix.locator('summary').click();await expect(matrix.locator('article.ops-gate')).toHaveCount(4);
+ await expect(matrix.locator('article.ops-gate').nth(1)).toContainText(lang==='fa'?'نامشخص: 26':'Unknown: 26');
+ await expect(triage.locator('summary')).toContainText('45');
+ await triage.locator('summary').click();
+ await expect(triage.locator('section.ops-backlog-group')).toHaveCount(3);
+ await expect(triage.locator('section.ops-backlog-group').nth(0).locator('li')).toHaveCount(2);
+ await expect(triage.locator('section.ops-backlog-group').nth(1).locator('li')).toHaveCount(8);
+ await expect(triage.locator('section.ops-backlog-group').nth(2).locator('li')).toHaveCount(35);
+ await triage.getByRole('button',{name:/ENG-01\.ACT-001/}).click();
+ await expect(page.locator('#ops-report-level')).toHaveValue('action');
+ await expect(page.locator('#ops-reporting select').nth(1)).toHaveValue('ENG-01.ACT-001');
+ await expect(page.locator('#ops-reporting')).toContainText(lang==='fa'?'اجرا هنوز فعال نشده است':'Execution is not enabled');
+ await noOverflow(page);
+});
 function parseCsv(text){const rows=[];let row=[],field='',quote=false;for(let i=0;i<text.length;i++){const ch=text[i];if(ch==='"'){if(quote&&text[i+1]==='"'){field+='"';i++;}else quote=!quote;}else if(ch===','&&!quote){row.push(field);field='';}else if(ch==='\n'&&!quote){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field='';}else field+=ch;}if(field||row.length){row.push(field.replace(/\r$/,''));rows.push(row);}return rows;}
 for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])test(lang+' canonical navigation and four report levels stay usable on 320/390/430px',async({page})=>{
  const data=fixture(),errors=[];page.on('pageerror',e=>errors.push(String(e)));await authorized(page,{data});
