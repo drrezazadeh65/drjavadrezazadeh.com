@@ -31,6 +31,42 @@ for(const action of registry.actions){
   }
 }
 assert.equal(executable,7,'Changes to the seven executor allowlist require explicit review');
+
+const approvedReadOnlyIds = [
+  'ENG-01.ACT-011','ENG-05.ACT-008','ENG-05.ACT-009','ENG-05.ACT-010',
+  'ENG-07.ACT-007','ENG-11.ACT-008','ENG-11.ACT-009'
+].sort();
+assert.deepEqual(
+  registry.actions.filter(a=>a.supportedExecutor).map(a=>a.id).sort(),
+  approvedReadOnlyIds,
+  'The identity of the seven read-only executors cannot silently change'
+);
+const nonExecutable=registry.actions.filter(a=>!a.supportedExecutor);
+assert.equal(nonExecutable.length,45,'The 45 approval-gated Action contracts require independent review');
+assert.equal(nonExecutable.filter(a=>a.riskCategory==='HIGH').length,35,'HIGH backlog drift');
+assert.equal(nonExecutable.filter(a=>a.riskCategory==='CRITICAL').length,10,'CRITICAL backlog drift');
+for(const action of registry.actions){
+  const policy=action.approvalPolicy||{};
+  assert.equal(policy.serverEnforced,true,'Missing server approval policy: '+action.id);
+  assert.equal(policy.cannotBeDowngradedByLearning,true,'Unsafe approval downgrade: '+action.id);
+  if(!action.supportedExecutor){
+    assert(['manual','approval-required'].includes(action.executionType),'Unsafe execution type: '+action.id);
+    assert(['HIGH','CRITICAL'].includes(action.riskCategory),'Unreviewed backlog risk: '+action.id);
+    assert.equal(policy.required,true,'Missing approval for an unimplemented Action: '+action.id);
+  }else{
+    assert.equal(action.executionType,'automatic','Read-only executor changed type: '+action.id);
+    assert.equal(action.riskCategory,'LOW','Read-only executor changed risk: '+action.id);
+    assert.equal(action.scoringScope,'observation','Read-only Action gained acceptance authority: '+action.id);
+    assert.equal(policy.required,false,'Read-only Action unexpectedly requires approval: '+action.id);
+    assert.equal(action.supportedExecutor.endpoint,'/api/admin/operations','Executor endpoint drift: '+action.id);
+    assert(Array.isArray(action.supportedExecutor.signalIds)
+      && action.supportedExecutor.signalIds.length>0
+      && action.supportedExecutor.signalIds.length<=20
+      && new Set(action.supportedExecutor.signalIds).size===action.supportedExecutor.signalIds.length,
+      'Unsafe executor signals: '+action.id);
+  }
+}
+
 assert.match(registry.reports[6].blocker,/اینماد/);assert.equal(registry.sourceSections[22].title,'Enamad');
 assert.match(fs.readFileSync('api/internal/.htaccess','utf8'),/Require all denied/);
 assert.match(fs.readFileSync('api/.htaccess','utf8'),/operations-schema/);
