@@ -21,6 +21,7 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         'customerDetailsExposed'=>false,
         'limitations'=>[
             'A paid database row is not a bank settlement.',
+            'An open parcel record is not proof of carrier acceptance, delivery or customer notification.',
             'A reconciled_at field is not independent evidence of a physical stock count.',
             'The notification outbox is not proof of SMTP acceptance or inbox delivery.',
             'Historical paid rows without Stage09 claims need review, not automatic reclassification.',
@@ -102,6 +103,45 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             foreach($rows as $row)$out[(string)$row[$column]]=(int)$row['total'];
             return $out;
         };
+        // Paid book fulfilment worklist. Fixed-column, bounded owner-MFA
+        // projection: no shipping address, tracking code or customer identity.
+        // These signals flag operational follow-up, not proof of delivery.
+        $parcelOpenStates="'preparing','dispatched','in_transit'";
+        $openParcels=(int)$pdo->query("SELECT COUNT(*) FROM commerce_parcels
+            WHERE state IN (".$parcelOpenStates.")")->fetchColumn();
+        $parcelRows=$pdo->query("SELECT p.order_id,p.state,p.updated_at,p.dispatched_at,
+                o.state AS order_state,o.paid_at,o.provider_trans_id,o.provider_amount,
+                c.transaction_id AS claim_transaction,c.verified_amount AS claim_amount
+            FROM commerce_parcels p
+            JOIN commerce_orders o ON o.id=p.order_id
+            LEFT JOIN commerce_payment_claims c ON
+                c.order_id=o.id AND c.provider='bitpay'
+            WHERE p.state IN (".$parcelOpenStates.")
+            ORDER BY p.updated_at ASC,p.order_id ASC LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
+        $parcelQueue=[];
+        foreach($parcelRows as $row){
+            $paid=(string)$row['order_state']==='paid';
+            $claimMatched=$paid && $row['claim_transaction']!==null
+                && (string)$row['claim_transaction']===(string)$row['provider_trans_id']
+                && (string)$row['claim_amount']===(string)$row['provider_amount'];
+            $parcelQueue[]=[
+                'orderId'=>(string)$row['order_id'],
+                'state'=>(string)$row['state'],
+                'updatedAt'=>(string)$row['updated_at'],
+                'dispatchedAt'=>$row['dispatched_at']!==null?(string)$row['dispatched_at']:null,
+                'orderPaidState'=>$paid,
+                'providerClaimMatchesOrder'=>$claimMatched
+            ];
+        }
+        $parcelAge=$pdo->query("SELECT
+            COALESCE(SUM(CASE WHEN state='preparing'
+                AND updated_at<DATE_SUB(NOW(),INTERVAL 48 HOUR)
+                THEN 1 ELSE 0 END),0) AS preparing_over_48h,
+            COALESCE(SUM(CASE WHEN state IN ('dispatched','in_transit')
+                AND updated_at<DATE_SUB(NOW(),INTERVAL 7 DAY)
+                THEN 1 ELSE 0 END),0) AS shipping_over_7d
+            FROM commerce_parcels")->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($parcelAge))throw new RuntimeException('commerce_parcel_age_unavailable');
         $service=$statuses('commerce_service_cases','status');
         $parcels=$statuses('commerce_parcels','state');
         $outbox=$statuses('commerce_outbox','state');
@@ -187,6 +227,12 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'serviceCaseStates'=>$service,
             'parcelStates'=>$parcels,
             'proofOfDelivery'=>'not_observed',
+            'activeParcelCount'=>$openParcels,
+            'parcelActionQueue'=>$parcelQueue,
+            'parcelQueueLimit'=>50,
+            'parcelQueueTruncated'=>$openParcels>count($parcelQueue),
+            'preparingOlderThan48Hours'=>(int)$parcelAge['preparing_over_48h'],
+            'inShippingOlderThan7Days'=>(int)$parcelAge['shipping_over_7d'],
             'activeServiceCaseCount'=>$openCases,
             'serviceActionQueue'=>$actionQueue,
             'queueLimit'=>50,
