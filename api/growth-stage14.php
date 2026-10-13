@@ -21,6 +21,22 @@ function stage14LeadAccount(PDO $pdo): array {
     return $a;
 }
 function stage14LeadRoute(string $path,string $verb): never {
+    // Public readiness contains only aggregate capability booleans, never accounts,
+    // lead IDs, consent records, private configuration or customer information.
+    if ($path==='/growth/health' && $verb==='GET') {
+        $pdo=db();
+        $identity=authReady();
+        $schema=$pdo instanceof PDO && stage14LeadSchemaReady($pdo);
+        respond(['ok'=>true,'service'=>'consultation_interest','schema'=>'stage14-readiness-v1',
+            'ready'=>$identity && $schema,
+            'requirements'=>[
+                'database'=>$pdo instanceof PDO,
+                'auth'=>$identity,
+                'consentSchema'=>$schema,
+                'verifiedAccountRequired'=>true,
+                'paymentOrBookingImplied'=>false
+            ]]);
+    }
     if (!in_array($path,['/growth/leads','/growth/leads/mine','/growth/leads/withdraw'],true))
         fail('not_found',404);
     if (!in_array($verb,['GET','POST'],true))fail('method_not_allowed',405);
@@ -30,9 +46,13 @@ function stage14LeadRoute(string $path,string $verb): never {
             fail('origin_forbidden',403);
     }
     $pdo=db();
-    if (!$pdo || !authReady() || !stage14LeadSchemaReady($pdo))
+    if (!$pdo || !authReady())
         fail('secure_lead_capture_unavailable',503);
+    // Check the verified identity BEFORE schema readiness: guests consistently
+    // receive 401 even if the optional lead subsystem is not yet migrated.
     $account=stage14LeadAccount($pdo);
+    if (!stage14LeadSchemaReady($pdo))
+        fail('secure_lead_capture_unavailable',503);
     $accountId=(string)$account['id'];
     $now=nowTs();
     if ($path==='/growth/leads/mine' && $verb==='GET') {
