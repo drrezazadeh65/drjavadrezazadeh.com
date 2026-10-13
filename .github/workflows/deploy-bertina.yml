@@ -4,8 +4,10 @@ on:
   push:
     branches:
       - migration/bertina-linux6
-    # Cover deployable frontend, backend, journal and operational source.
-    # CI and production recovery checks remain required for every auto release.
+    # Only shippable frontend, API, journal and operational inputs start releases.
+    # Edits to CI/recovery/build scripts and database migrations require deliberate
+    # activation; they must not create failed deploy jobs by themselves.
+    # All production recovery, schema and checksum gates remain mandatory.
     paths:
       - 'fa/**'
       - 'en/**'
@@ -13,9 +15,6 @@ on:
       - 'api/**'
       - 'assets/**'
       - 'platform/**'
-      - 'database/**'
-      - 'migrations/**'
-      - 'scripts/**'
       - 'index.html'
       - '404.html'
       - 'offline.html'
@@ -27,8 +26,6 @@ on:
       - 'site.webmanifest'
       - 'manifest.json'
       - 'sw.js'
-      - '.htaccess'
-      - '.user.ini'
       - '.bertina-deploy-trigger'
   workflow_dispatch:
     inputs:
