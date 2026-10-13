@@ -51,6 +51,8 @@ const goldenDeep=json('platform/golden-talent-deep-modules.json');
 
 const goldenApi=read('api/golden-talent.php');
 const guardianClient=read('assets/js/golden-talent-guardian.js');
+const baharGuardianClient=read('assets/js/bahar-guardian-overview.js');
+const baharGuardianFixture=read('tests/bahar-guardian-mysql.php');
 const guardianFa=read('fa/golden-talent/roles/parent/index.html');
 const guardianEn=read('en/golden-talent/roles/parent/index.html');
 const guardianTests=read('tests/golden-talent-guardian.php');
@@ -201,6 +203,22 @@ verify('golden talent: guardian access is authenticated, consent-bound and audit
   guardianFa.includes('data-gt-guardian="fa"') &&
   guardianEn.includes('data-gt-guardian="en"') &&
   guardianTests.includes('goldenTalentAssessmentConsentCurrent'));
+verify('bahar: guardian overview requires independent consent, audit and private UI',
+  goldenApi.includes("'/golden-talent/my-bahar-overview' && $verb==='GET'") &&
+  goldenApi.includes("n.purpose_code='PARENT_VISIBILITY'") &&
+  goldenApi.includes("goldenTalentPurposeConsentCurrent") &&
+  goldenApi.includes("goldenTalentAuditGuardianBaharOverview($pdo,$accountId,count($items))") &&
+  goldenApi.includes("'rawEvidenceExposed'=>false") &&
+  goldenApi.includes("'interpretationsExposed'=>false") &&
+  goldenApi.includes("'longitudinalTrendValidated'=>false") &&
+  baharGuardianClient.includes("fetch('/api/golden-talent/my-bahar-overview'") &&
+  baharGuardianClient.includes("cache:'no-store'") &&
+  baharGuardianClient.includes("document.addEventListener('visibilitychange'") &&
+  !baharGuardianClient.includes('innerHTML') &&
+  !baharGuardianClient.includes('localStorage') &&
+  guardianFa.includes('data-bahar-guardian') &&
+  guardianEn.includes('data-bahar-guardian') &&
+  baharGuardianFixture.includes('operations_fixture'));
 verify('rcas: Core 28 completion, self-selected routing and no private-response persistence',
   rcasClient.includes('CORE_ITEM_IDS.length!==28') &&
   rcasClient.includes('if(Number(n)===3&&!coreComplete())return;') &&
