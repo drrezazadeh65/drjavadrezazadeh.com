@@ -20,6 +20,24 @@ $registry=['engines'=>[['id'=>'ENG-01','canonicalName'=>'Master SEO Engine','las
  'actions'=>[['id'=>'ENG-01.ACT-001','responsibleEngine'=>'ENG-01','executionType'=>'manual','scoringScope'=>'legacy_acceptance','legacyReportIds'=>['OP-01']],['id'=>'ENG-01.ACT-002','responsibleEngine'=>'ENG-01','executionType'=>'manual','scoringScope'=>'unverified_acceptance','legacyReportIds'=>['OP-01'],'currentStatus'=>'pending']]];
 $snapshot=['reports'=>$reports,'dashboard'=>$admin,'releaseSha'=>str_repeat('a',40),'checkedAt'=>123456,'sourceSections'=>array_fill(0,36,[])];
 $r=operationsReporting($snapshot,$registry);
+
+$critical=operationsCriticalPath([$first,$second]);
+check($critical['totalOpen']===2&&$critical['withoutOpenDependencies']===1
+    &&$critical['waitingOnDependencies']===1,'Dependency root and waiting counts are wrong');
+check($critical['items'][0]['id']==='OP-02'&&$critical['items'][0]['downstreamOpenReports']===1,
+    'Dependency-first triage did not prioritize the report that unblocks the next one');
+check($critical['unknownGates']===4&&$critical['staleGates']===0
+    &&$critical['failedGates']===0,'Triage gate counts included fabricated status');
+$staleRoot=$second;$staleRoot['verifiedGates'][0]['state']='stale';
+$expiredPath=operationsCriticalPath([$first,$staleRoot]);
+check($expiredPath['staleGates']===1&&$expiredPath['items'][0]['gateStates']['stale']===1,
+    'Expired evidence was not counted as stale');
+$completed=$second;$completed['closed']=true;
+$onlyDependent=operationsCriticalPath([$first,$completed]);
+check($onlyDependent['totalOpen']===1&&$onlyDependent['waitingOnDependencies']===1,
+    'Unresolved dependency from a non-closed report became falsely clear');
+check(operationsCriticalPath([],12)['totalOpen']===0,'Empty evidence snapshot invented work');
+
 check($r['masterReport']['reportCount']===36,'Master report duplicated administrative record.');
 check(count($r['masterReport']['reportIds'])===36,'Master must retain each original report exactly once.');
 check($r['engines'][1]['metrics']['totalReports']===1,'ADM record lost from administrator engine.');

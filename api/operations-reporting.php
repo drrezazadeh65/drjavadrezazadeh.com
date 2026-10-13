@@ -172,6 +172,75 @@ function operationsManualPagespeedObservation(): array {
         'limitation'=>'Scores were transcribed from two owner-supplied UI screenshots; the original images and an independently verifiable report URL were not committed. No CrUX data. Homepage only; not the same test as /fa/, /en/, a 429 API response, or localhost Lighthouse CI.'];
 }
 
+
+/**
+ * Dependency-first plan for the 36 live reports. This is triage, never proof
+ * of completion and never authorization to execute a sensitive Action.
+ */
+function operationsCriticalPath(array $reports, int $limit=12): array {
+    $byId=[];$open=[];
+    foreach($reports as $record) {
+        if(!is_array($record)||!is_string($record['id']??null))continue;
+        $byId[$record['id']]=$record;
+        if(($record['closed']??false)!==true)$open[$record['id']]=$record;
+    }
+    $depends=[];
+    foreach($open as $id=>$record) {
+        $raw=is_array($record['openDependencies']??null)?$record['openDependencies']:[];
+        $depends[$id]=array_values(array_unique(array_filter($raw,
+            static fn($dep)=>is_string($dep)&&$dep!=='')));
+    }
+    // Transitive impact counts only still-open reports; no evidence is manufactured.
+    $transitive=function(string $id)use(&$transitive,$depends):array {
+        $seen=[];$pending=$depends[$id]??[];
+        while($pending) {
+            $dep=array_pop($pending);
+            if(isset($seen[$dep])||$dep===$id)continue;
+            $seen[$dep]=true;
+            foreach($depends[$dep]??[] as $parent)if(!isset($seen[$parent]))$pending[]=$parent;
+        }
+        return array_keys($seen);
+    };
+    $impact=array_fill_keys(array_keys($open),0);
+    foreach(array_keys($open) as $id)
+        foreach($transitive($id) as $ancestor)
+            if(isset($impact[$ancestor]))$impact[$ancestor]++;
+    $items=[];$unknownGates=0;$staleGates=0;$failedGates=0;$rootCount=0;
+    foreach($open as $id=>$record) {
+        $states=['pass'=>0,'fail'=>0,'blocked'=>0,'stale'=>0,'unknown'=>0];
+        foreach(($record['verifiedGates']??[]) as $gate) {
+            $state=$gate['state']??'unknown';
+            if(!array_key_exists($state,$states))$state='unknown';
+            $states[$state]++;
+        }
+        $unknownGates+=$states['unknown'];$staleGates+=$states['stale'];$failedGates+=$states['fail'];
+        if(!$depends[$id])$rootCount++;
+        $items[]=[
+            'id'=>$id,'priority'=>$record['priority']??'P2','status'=>$record['status']??'not_started',
+            'title'=>$record['title']??$id,'titleFa'=>$record['titleFa']??$id,
+            'engineId'=>$record['engineId']??null,
+            'openDependencies'=>$depends[$id],'downstreamOpenReports'=>$impact[$id],
+            'gateStates'=>$states,'nextStep'=>$record['remaining']??'',
+        ];
+    }
+    $order=['P0'=>0,'P1'=>1,'P2'=>2];
+    usort($items,static function($a,$b)use($order) {
+        return (bool)$a['openDependencies']<=>(bool)$b['openDependencies']
+            ?:($order[$a['priority']]??3)<=>($order[$b['priority']]??3)
+            ?:($b['gateStates']['fail']<=>$a['gateStates']['fail'])
+            ?:($b['downstreamOpenReports']<=>$a['downstreamOpenReports'])
+            ?:strcmp($a['id'],$b['id']);
+    });
+    return [
+        'schema'=>'operations-critical-path-v1','totalOpen'=>count($open),
+        'withoutOpenDependencies'=>$rootCount,
+        'waitingOnDependencies'=>count($open)-$rootCount,
+        'unknownGates'=>$unknownGates,'staleGates'=>$staleGates,'failedGates'=>$failedGates,
+        'items'=>array_slice($items,0,max(0,min(36,$limit))),
+        'limitation'=>'Dependency clearance is not successful testing, permission to execute, or evidence of production readiness.',
+    ];
+}
+
 /** Canonical management reporting. Pure projection; never creates evidence or closes actions. */
 function operationsReportingMetrics(array $records): array {
     $total=count($records);$totalGates=0;$observed=0;$passed=0;$weightedProgress=0.0;$estimated=[];$closed=0;$production=0;
@@ -339,6 +408,7 @@ function operationsReporting(array $snapshot,array $registry): array {
             'releaseSha'=>$snapshot['releaseSha'],'publishedAt'=>$snapshot['publishedAt']??null,'generatedAt'=>$snapshot['checkedAt'],
             'historyScope'=>'Current release; bounded latest 5000 evidence events. Not all-time history.'],
         'engines'=>$engines,'actionReports'=>$actionReports,
+        'criticalPath'=>operationsCriticalPath($reports),
         'awoseDomainViews'=>operationsReportingDomainViews($engines,$actionReports),
         'executiveReport'=>['id'=>'ENG-13.EXECUTIVE','metrics'=>$metrics,'dashboardMetrics'=>operationsReportingMetrics([$snapshot['dashboard']]),
             'priorityReportIds'=>array_slice(array_column($queue,'id'),0,10),'verifiedReportIds'=>array_column(array_filter($reports,fn($r)=>$r['closed']), 'id'),

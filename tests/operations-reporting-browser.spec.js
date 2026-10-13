@@ -48,6 +48,21 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
  await expect(page.locator('#ops-reporting')).toContainText(lang==='fa'?'اجرا هنوز فعال نشده است':'Execution is not enabled');
  await noOverflow(page);
 });
+for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])test(language+' critical dependency path uses server evidence and opens the source report',async({page})=>{
+ const data=fixture();
+ await page.setViewportSize({width:320,height:900});
+ await authorized(page,{data});await page.goto(base+route);
+ const pathPanel=page.locator('details.ops-critical-path');
+ await expect(pathPanel.locator('summary')).toContainText(language==='fa'?'۳۶':'36');
+ await pathPanel.locator('summary').click();
+ await expect(pathPanel.locator('li')).toHaveCount(data.reporting.criticalPath.items.length);
+ await expect(pathPanel).toContainText(String(data.reporting.criticalPath.waitingOnDependencies));
+ const item=data.reporting.criticalPath.items[0];
+ await pathPanel.locator('li').first().locator('button').click();
+ await expect(page.locator('#ops-detail')).toBeVisible();
+ await expect(page.locator('#ops-detail')).toContainText(item.id);
+ await noOverflow(page);
+});
 function parseCsv(text){const rows=[];let row=[],field='',quote=false;for(let i=0;i<text.length;i++){const ch=text[i];if(ch==='"'){if(quote&&text[i+1]==='"'){field+='"';i++;}else quote=!quote;}else if(ch===','&&!quote){row.push(field);field='';}else if(ch==='\n'&&!quote){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field='';}else field+=ch;}if(field||row.length){row.push(field.replace(/\r$/,''));rows.push(row);}return rows;}
 for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])test(lang+' canonical navigation and four report levels stay usable on 320/390/430px',async({page})=>{
  const data=fixture(),errors=[];page.on('pageerror',e=>errors.push(String(e)));await authorized(page,{data});

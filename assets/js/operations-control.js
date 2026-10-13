@@ -256,6 +256,25 @@ function reportingRender(){
   }
   host.append(triage);
  }
+
+ // Derived from live, release-scoped server evidence; visible only inside MFA workspace.
+ const path=model.criticalPath;
+ if(path?.schema==='operations-critical-path-v1'){
+  const panel=el('details',undefined,'ops-critical-path');
+  panel.append(el('summary',t('مسیر بحرانی رفع موانع ۳۶ گزارش','Critical path for 36 operational reports')),
+   el('p',t('گزارش‌های باز: ','Open reports: ')+path.totalOpen+' · '+t('بدون وابستگی باز: ','Without open dependencies: ')+path.withoutOpenDependencies+' · '+t('منتظر وابستگی: ','Waiting for dependencies: ')+path.waitingOnDependencies),
+   el('p',t('معیارهای نامشخص: ','Unknown gates: ')+path.unknownGates+' · '+t('شواهد منقضی: ','Stale gates: ')+path.staleGates+' · '+t('ناموفق: ','Failed gates: ')+path.failedGates));
+  panel.append(el('p',t('رفع وابستگی به معنی تأیید آزمون، مجوز اجرا یا آمادگی محیط عملیاتی نیست.','Clearing dependencies does not certify testing, authorize execution or prove production readiness.')));
+  const list=el('ol',undefined,'ops-queue');
+  for(const item of path.items){
+   const li=el('li'),btn=el('button',item.id+' · '+(en?item.title:item.titleFa));
+   btn.type='button';btn.addEventListener('click',()=>show(item.id));
+   li.append(btn,el('small',' · '+item.priority+' · '+t('گزارش‌های وابسته: ','Downstream reports: ')+item.downstreamOpenReports));
+   li.append(el('small',(item.openDependencies.length?t('منتظر: ','Waiting for: ')+item.openDependencies.join(', '):t('وابستگی باز ندارد','No open dependencies'))+' · '+t('معیار نامشخص: ','Unknown gates: ')+item.gateStates.unknown));
+   list.append(li);
+  }
+  panel.append(list);host.append(panel);
+ }
  githubAuditRender(host);
  const nav=el('nav',undefined,'ops-toolbar');nav.setAttribute('aria-label',t('موتورهای مدیریتی','Administrative engines'));
  for(const engine of model.engines){const button=el('button',engine.id+' · '+engineName(engine));button.type='button';button.setAttribute('aria-pressed',String(reportingView.level==='engine'&&reportingView.engine===engine.id));button.addEventListener('click',()=>{reportingView.level='engine';reportingView.engine=engine.id;reportingRender();});nav.append(button);}host.append(nav);
