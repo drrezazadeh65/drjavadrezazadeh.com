@@ -1,0 +1,75 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const read=name=>fs.readFileSync(new URL(name,import.meta.url),'utf8');
+const book=JSON.parse(read('./golden-talent-book-crosswalk.v1.json'));
+const reg=JSON.parse(read('./golden-talent-instrument-registry.v1.json'));
+const deep=JSON.parse(read('./golden-talent-deep-modules.json'));
+const rcas=fs.readFileSync(new URL('../assets/js/rcas-start.js',import.meta.url),'utf8');
+assert.equal(book.authority.working_edition,'one_volume_15_chapters');
+assert.equal(book.authority.scientific_status,'PREVALIDATION');
+assert.equal(reg.book_alignment.crosswalk,'platform/golden-talent-book-crosswalk.v1.json');
+assert.deepEqual(book.chapter_anchors.map(x=>x.chapter),Array.from({length:15},(_,i)=>i+1));
+assert.deepEqual(book.rcas.flow,['P0','C1','R1','SELECTIVE_D1_D6','BAHAR_ACTION','PORTFOLIO','REVIEW']);
+assert.equal(book.rcas.C1.core_item_count,28);
+assert.equal(book.rcas.C1.unknown_evidence,'UNKNOWN_IS_NOT_ZERO_AND_DISTINCT_FROM_NA');
+assert.equal(book.rcas.C1.not_applicable,'NA_IS_NOT_ZERO');
+assert.match(book.rcas.C1.book_wording_sha256,/^[0-9a-f]{64}$/);
+assert.equal(book.rcas.R1.automated_talent_ranking,false);
+assert.deepEqual(book.rcas.source_channels.map(x=>x.code),['S','P','R','O','C','T']);
+assert.deepEqual(book.rcas.evidence_states,['INSUFFICIENT','SINGLE_SOURCE','CONVERGENT','DISCREPANT']);
+assert.ok(book.rcas.prohibited.includes('OVERALL_TALENT_SCORE'));
+assert.ok(book.rcas.prohibited.includes('RESOURCE_SCARCITY_AS_DEFICIT'));
+const groupMatch=rcas.match(/const groups=(\[[\s\S]*?\]);\nconst scaleLabels=/);
+assert.ok(groupMatch,'RCAS Core group source not found');
+const groups=vm.runInNewContext('('+groupMatch[1]+')',Object.create(null),{timeout:1000});
+assert.deepEqual(Array.from(groups,x=>x.key),book.rcas.C1.groups.map(x=>x.id));
+const ids=[];
+for(const group of groups){
+  const g=book.rcas.C1.groups.find(x=>x.id===group.key);
+  assert.equal(group.items.length,g.count);
+  for(const [index,item] of group.items.entries()){
+    assert.ok(typeof item==='string'&&item.trim().length>20);
+    ids.push(group.key+(index+1));
+  }
+}
+assert.equal(ids.length,28);assert.equal(new Set(ids).size,28);
+assert.match(rcas,/n===6\?"UNKNOWN":n/);
+assert.match(rcas,/\["NA","UNKNOWN"\]\.includes\(x\.value\)/);
+assert.match(rcas,/routeBasis:"SELF_SELECTED_UNVALIDATED"/);
+const counts={D1:24,D2:24,D3:24,D4:22,D5:28,D6:20};
+assert.deepEqual(Object.keys(deep.modules),Object.keys(counts));
+assert.equal(book.deep_modules.bank_items_total,142);
+assert.equal(book.deep_modules.bank_inventory.reduce((sum,m)=>sum+m.bank_count,0),142);
+assert.deepEqual(book.activities.map(x=>x.code),Array.from({length:10},(_,i)=>'E'+(i+1)));
+for(const m of book.deep_modules.bank_inventory){
+  assert.equal(m.bank_count,counts[m.code]);
+  assert.match(m.working_manuscript_bank_sha256,/^[0-9a-f]{64}$/);
+  assert.equal(m.instrument_approved,false);
+  assert.deepEqual(m.activities,deep.modules[m.code].tasks);
+  const r=reg.instruments.find(x=>x.id===m.code);
+  assert.ok(r);
+  assert.equal(r.book_bank_count,m.bank_count);
+  assert.equal(r.scientific_status,'PREVALIDATION');
+  assert.notEqual(r.release_state,'PUBLISHED');
+  assert.equal(r.existing_definition,null);
+}
+const core=reg.instruments.find(x=>x.id==='RCAS-CORE');
+assert.equal(core.version,'start-1.1-browser-preview');
+assert.equal(core.existing_definition,'assets/js/rcas-start.js');
+assert.equal(core.expected_item_count,28);
+assert.equal(core.routing_status,'SELF_SELECTED_NOT_MACHINE_INFERRED');
+assert.equal(core.scoring_enabled,false);
+assert.equal(book.deep_modules.publishable_question_bank,false);
+assert.equal(book.authority.manuscript_inventory.raw_item_text_uploaded_to_repository,false);
+assert.equal(reg.governance.use_real_student_data,false);
+assert.equal(reg.scientific_policy.total_talent_score_allowed,false);
+assert.equal(deep.common.server_authoritative_completion,true);
+assert.equal(deep.common.requires_entitlement,true);
+assert.equal(book.bahar.study_method.length,4);
+assert.equal(book.bahar.action_cycle.length,7);
+assert.equal(book.bahar.portfolio.length,6);
+assert.ok(book.future_readiness.science.includes('COGNITIVE_INTERVIEWS'));
+assert.ok(book.future_readiness.science.includes('FAIRNESS_AND_DIF_WHERE_APPLICABLE'));
+assert.ok(book.future_readiness.security.includes('WITHDRAWAL_ENFORCEMENT'));
+console.log('PASS: Golden Talent author-manuscript crosswalk; RCAS 28, D1–D6 142, E1–E10, BAHAR.');
