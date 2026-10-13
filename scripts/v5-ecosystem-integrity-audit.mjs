@@ -44,6 +44,11 @@ const goldenShop=read('fa/shop/golden-talent/index.html');
 const goldenDigitalCheckout=read('fa/shop/golden-talent/checkout/index.html');
 const goldenProducts=json('platform/golden-talent-products.json');
 const goldenApi=read('api/golden-talent.php');
+const guardianClient=read('assets/js/golden-talent-guardian.js');
+const guardianFa=read('fa/golden-talent/roles/parent/index.html');
+const guardianEn=read('en/golden-talent/roles/parent/index.html');
+const guardianTests=read('tests/golden-talent-guardian.php');
+
 const rcasClient=read('assets/js/rcas-start.js');
 const rcasPage=read('fa/assessments/golden-talent/start/index.html');
 const studentDashboard=read('assets/js/student-dashboard.js');
@@ -121,7 +126,7 @@ verify('commerce: owner dashboard diagnoses checkout blockers without money move
   commerceClient.includes('readiness.replaceChildren()') &&
   !commerceClient.includes("fetch('/api/commerce/prepare'") &&
   !commerceClient.includes('bitpay_api_key'));
-verify('golden talent: capability API is source-bounded, non-diagnostic and non-mutating',
+verify('golden talent: capability API is non-diagnostic and only mutates the append-only access audit',
   index.includes("if(str_starts_with($path,'/golden-talent/'))") &&
   index.includes("goldenTalentRoute($path,$verb)") &&
   goldenApi.includes("'/golden-talent/health' && $verb==='GET'") &&
@@ -131,8 +136,30 @@ verify('golden talent: capability API is source-bounded, non-diagnostic and non-
   goldenApi.includes("'normativeScoring'=>false") &&
   goldenApi.includes("'serverResponseStorage'=>false") &&
   goldenApi.includes("SELECT 1 FROM '.$table.' LIMIT 0") &&
-  !goldenApi.includes('INSERT INTO') && !goldenApi.includes('UPDATE ') &&
-  !goldenApi.includes('DELETE FROM'));
+  goldenApi.includes("INSERT INTO eco_audit_events") &&
+  !goldenApi.includes('INSERT INTO eco_talent_') &&
+  !goldenApi.includes('UPDATE eco_') &&
+  !goldenApi.includes('DELETE FROM eco_'));
+verify('golden talent: guardian access is authenticated, consent-bound and audited before response',
+  goldenApi.includes("'/golden-talent/my-subjects' && $verb==='GET'") &&
+  goldenApi.includes('sessionAccount($pdo)') &&
+  goldenApi.includes("!validUuid($accountId)") &&
+  goldenApi.includes("r.relationship_code='GUARDIAN' AND r.verification_status='VERIFIED'") &&
+  goldenApi.includes("s.guardian_account_id=?") &&
+  goldenApi.includes("s.status='ACTIVE'") &&
+  goldenApi.includes("n.purpose_code='ASSESSMENT'") &&
+  goldenApi.includes("goldenTalentAssessmentConsentCurrent") &&
+  goldenApi.includes("rateAllowed($pdo,'gt_my_subjects'") &&
+  goldenApi.includes("if(!$pdo->beginTransaction())") &&
+  goldenApi.includes("INSERT INTO eco_audit_events") &&
+  goldenApi.includes("if(!$pdo->commit())") &&
+  goldenApi.includes("'availableActions'=>[]") &&
+  guardianClient.includes("fetch('/api/golden-talent/my-subjects'") &&
+  guardianClient.includes("document.addEventListener('visibilitychange'") &&
+  !guardianClient.includes('innerHTML') &&
+  guardianFa.includes('data-gt-guardian="fa"') &&
+  guardianEn.includes('data-gt-guardian="en"') &&
+  guardianTests.includes('goldenTalentAssessmentConsentCurrent'));
 verify('rcas: Core 28 completion, self-selected routing and no private-response persistence',
   rcasClient.includes('CORE_ITEM_IDS.length!==28') &&
   rcasClient.includes('if(Number(n)===3&&!coreComplete())return;') &&
