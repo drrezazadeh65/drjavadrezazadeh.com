@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "registry_version": "2026-10-12.1",
+  "registry_version": "2026-10-14.1",
   "framework": "Golden Talent",
   "engine_version": "0.2-prevalidation",
   "publication_policy": "NO_TOOL_IS_AUTOMATICALLY_ACTIVATED_BY_ITS_PRESENCE_IN_THIS_REGISTRY",
@@ -45,15 +45,21 @@
     },
     {
       "id": "RCAS-CORE",
-      "version": null,
-      "release_state": "SPECIFICATION_REVIEW_REQUIRED",
+      "version": "start-1.1-browser-preview",
+      "release_state": "PREVIEW_ONLY",
       "scientific_status": "PREVALIDATION",
       "kind": "STUDENT_INITIAL_EVIDENCE",
-      "existing_definition": null,
+      "existing_definition": "assets/js/rcas-start.js",
       "scoring_enabled": false,
       "content_sha256": null,
       "consent_policy_version": null,
-      "human_approval": false
+      "human_approval": false,
+      "respondents": [
+        "STUDENT_SELF"
+      ],
+      "expected_item_count": 28,
+      "allowed_storage": "BROWSER_FORM_ONLY_NO_RAW_RESPONSE_UPLOAD",
+      "routing_status": "SELF_SELECTED_NOT_MACHINE_INFERRED"
     },
     {
       "id": "D1",
@@ -65,7 +71,9 @@
       "scoring_enabled": false,
       "content_sha256": null,
       "consent_policy_version": null,
-      "human_approval": false
+      "human_approval": false,
+      "book_bank_count": 24,
+      "question_text_state": "NOT_EXTRACTED_AND_VERIFIED_FOR_WEB_RELEASE"
     },
     {
       "id": "D2",
@@ -77,7 +85,9 @@
       "scoring_enabled": false,
       "content_sha256": null,
       "consent_policy_version": null,
-      "human_approval": false
+      "human_approval": false,
+      "book_bank_count": 24,
+      "question_text_state": "NOT_EXTRACTED_AND_VERIFIED_FOR_WEB_RELEASE"
     },
     {
       "id": "D3",
@@ -89,7 +99,9 @@
       "scoring_enabled": false,
       "content_sha256": null,
       "consent_policy_version": null,
-      "human_approval": false
+      "human_approval": false,
+      "book_bank_count": 24,
+      "question_text_state": "NOT_EXTRACTED_AND_VERIFIED_FOR_WEB_RELEASE"
     },
     {
       "id": "D4",
@@ -101,7 +113,9 @@
       "scoring_enabled": false,
       "content_sha256": null,
       "consent_policy_version": null,
-      "human_approval": false
+      "human_approval": false,
+      "book_bank_count": 22,
+      "question_text_state": "NOT_EXTRACTED_AND_VERIFIED_FOR_WEB_RELEASE"
     },
     {
       "id": "D5",
@@ -113,7 +127,9 @@
       "scoring_enabled": false,
       "content_sha256": null,
       "consent_policy_version": null,
-      "human_approval": false
+      "human_approval": false,
+      "book_bank_count": 28,
+      "question_text_state": "NOT_EXTRACTED_AND_VERIFIED_FOR_WEB_RELEASE"
     },
     {
       "id": "D6",
@@ -125,7 +141,9 @@
       "scoring_enabled": false,
       "content_sha256": null,
       "consent_policy_version": null,
-      "human_approval": false
+      "human_approval": false,
+      "book_bank_count": 20,
+      "question_text_state": "NOT_EXTRACTED_AND_VERIFIED_FOR_WEB_RELEASE"
     }
   ],
   "journeys": {
@@ -137,5 +155,11 @@
       "status": "LONGITUDINAL_FOLLOW_UP_DESIGN",
       "requires_released_golden_path": true
     }
+  },
+  "book_alignment": {
+    "crosswalk": "platform/golden-talent-book-crosswalk.v1.json",
+    "authoritative_text": "author manuscript and decision ledger, not published online",
+    "scope": "15 chapters, Core 28, D1-D6 manuscript bank 142, E1-E10, BAHAR and Golden Path",
+    "status": "EDITORIAL_ALIGNMENT_ONLY_NOT_PSYCHOMETRIC_VALIDATION"
   }
 }
