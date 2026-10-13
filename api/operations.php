@@ -5,6 +5,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-commerce.php';
+require_once __DIR__.'/operations-fulfilment.php';
 require_once __DIR__.'/operations-action-runs.php';
 require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/social-review.php';
@@ -368,6 +369,23 @@ function operationsRoute(string $path, string $verb): never {
             if(!rateAllowed($pdo,'operations_commerce_read',$accountId,12,300))
                 fail('rate_limited',429);
             respond(operationsCommerceSnapshot($pdo,nowTs()));
+        }
+        if ($path === '/admin/operations/commerce/service-advance' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'operations_commerce_service_advance',$accountId,10,300))
+                fail('rate_limited',429);
+            $body=jsonBody();
+            try {
+                $change=operationsCommerceServiceAdvance($pdo,$accountId,$body);
+                respond(['ok'=>true,'schema'=>'commerce-service-transition-v1',
+                    'change'=>$change]);
+            }catch(InvalidArgumentException $e){fail('invalid_service_transition',400);}
+            catch(DomainException $e){fail('service_payment_or_state_conflict',409);}
+            catch(Throwable $e){
+                error_log('Owner service transition unavailable: '.get_class($e));
+                fail('service_transition_unavailable',503);
+            }
         }
         if ($path === '/admin/operations/growth' && $verb === 'GET') {
             require_once __DIR__.'/growth-stage14.php';
