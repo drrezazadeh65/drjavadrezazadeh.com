@@ -217,6 +217,13 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
        orderId:'12345678-1111-4111-8111-111111111111',
        sku:'service:academic_consult_60',status:'awaiting_contact',
        providerClaimMatchesOrder:false
+     }],
+     activeParcelCount:1,parcelQueueLimit:50,parcelQueueTruncated:false,
+     preparingOlderThan48Hours:1,inShippingOlderThan7Days:0,
+     parcelActionQueue:[{
+       orderId:'87654321-1111-4111-8111-111111111111',
+       state:'preparing',updatedAt:'2026-10-10 12:00:00',
+       orderPaidState:true,providerClaimMatchesOrder:true
      }]}
   };
   let hits=0;
@@ -230,12 +237,15 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
   await expect(page.locator('#ops-workspace')).toBeVisible();
   await expect(page.locator('#ops-commerce-results article')).toHaveCount(0);
   await page.locator('#ops-commerce > summary').click();
-  await expect(page.locator('#ops-commerce-results article')).toHaveCount(12);
-  await expect(page.locator('#ops-commerce-results details')).toHaveCount(1);
-  await expect(page.locator('#ops-commerce-results details')).not.toHaveAttribute('open');
-  await page.locator('#ops-commerce-results details summary').click();
-  await expect(page.locator('#ops-commerce-results details li')).toHaveCount(1);
-  await expect(page.locator('#ops-commerce-results details')).toContainText('12345678');
+  await expect(page.locator('#ops-commerce-results article')).toHaveCount(15);
+  await expect(page.locator('#ops-commerce-results details')).toHaveCount(2);
+  await expect(page.locator('#ops-commerce-results details').first()).not.toHaveAttribute('open');
+  await page.locator('#ops-commerce-results details summary').first().click();
+  await page.locator('#ops-commerce-results details summary').nth(1).click();
+  await expect(page.locator('#ops-commerce-results details li')).toHaveCount(2);
+  await expect(page.locator('#ops-commerce-results details').first()).toContainText('12345678');
+  await expect(page.locator('#ops-commerce-results details').nth(1)).toContainText('87654321');
+  await expect(page.locator('#ops-commerce-results')).not.toContainText('private-person@example.invalid');
   await expect(page.locator('#ops-commerce-results')).toContainText('3');
   await expect(page.locator('#ops-commerce-results')).toContainText('book:roshanaei');
   expect(hits).toBe(1);
