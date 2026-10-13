@@ -204,11 +204,23 @@ function operationsSnapshot(PDO $pdo, int $at): array {
     }
     $reports = array_map(fn($r) => $byId[$r['id']],$registry['reports']);
     $known = array_filter($reports,fn($r) => $r['measuredProgress'] !== null);
+    // Evidence coverage is derived from current-release evaluations, never historical estimates.
+    // These are gate counts (36 reports x four gates), not verified completion percentages.
+    $gateCoverage=[];
+    foreach (['code','tests','production','evidence'] as $gateId) {
+        $gateCoverage[$gateId]=['pass'=>0,'fail'=>0,'blocked'=>0,'stale'=>0,'unknown'=>0];
+    }
+    foreach ($reports as $report) {
+        foreach ($report['verifiedGates'] as $gate) {
+            $gateId=$gate['id'];$state=$gate['state'];
+            if (isset($gateCoverage[$gateId][$state])) $gateCoverage[$gateId][$state]++;
+        }
+    }
     $snapshot=['ok'=>true,'schema'=>'operations-live-v1','version'=>'4.4.1','releaseSha'=>$release ?: null,
         'publishedAt'=>is_array($releaseRow)?(int)$releaseRow['published_at']:null,'checkedAt'=>$at,
         'methodology'=>'Four section-specific gates, current release, unexpired trusted evidence and completed dependencies. Unknown is not zero.',
         'reports'=>$reports,'dashboard'=>$byId[$registry['dashboard']['id']], 'sourceSections'=>$registry['sourceSections'],
-        'summary'=>['total'=>36,'verified'=>count(array_filter($reports,fn($r) => $r['closed'])),'measuredCoverage'=>count($known),
+        'summary'=>['total'=>36,'verified'=>count(array_filter($reports,fn($r) => $r['closed'])),'measuredCoverage'=>count($known),'gateCoverage'=>$gateCoverage,
             'measuredProgress'=>count($known)?round(array_sum(array_column($known,'measuredProgress'))/count($known),1):null],
         'history'=>array_values(array_filter($events,fn($e) => $e['release_sha']===$release))];
     $snapshot['reporting']=operationsReporting($snapshot,$registry);
