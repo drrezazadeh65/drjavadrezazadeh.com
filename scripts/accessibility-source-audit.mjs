@@ -63,7 +63,8 @@ for(const file of htmlFiles){
     if(!(getAttr(tag,'title')||'').trim()) failures.push(route+': iframe missing title');
   }
 
-  for(const tag of html.match(/<(?:input|select|textarea)\b[^>]*>/gi)||[]){
+  for(const match of html.matchAll(/<(?:input|select|textarea)\b[^>]*>/gi)){
+    const tag=match[0];
     const name=(tag.match(/^<([a-z]+)/i)||[])[1]||'control';
     const type=(getAttr(tag,'type')||'').toLowerCase();
     if(name==='input' && ['hidden','submit','button','reset','image'].includes(type)) continue;
@@ -75,6 +76,15 @@ for(const file of htmlFiles){
       const escaped=id.replace(/[|\\{}()[\]^$+*?.-]/g,'\\$&');
       const labelRe=new RegExp('<label\\b[^>]*for=["\\\']'+escaped+'["\\\'][^>]*>','i');
       if(labelRe.test(html)) continue;
+    }
+    // A <label> enclosing its control is a native, valid accessible label even
+    // without an id/for pairing. Only accept it when real label text exists.
+    const preceding=html.slice(0,match.index);
+    const openAt=preceding.lastIndexOf('<label');
+    const closedAt=preceding.lastIndexOf('</label>');
+    if(openAt>closedAt){
+      const endAt=html.indexOf('</label>',match.index+tag.length);
+      if(endAt!==-1 && strip(html.slice(openAt,endAt))) continue;
     }
     warnings.push(route+': form control may lack an explicit accessible label: '+tag.slice(0,120));
   }
