@@ -1,0 +1,67 @@
+name: Bertina Deployment Readiness
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/deploy-bertina.yml'
+      - 'scripts/bertina-auto-release-policy.mjs'
+      - 'scripts/bertina-release-eligibility.mjs'
+      - 'tests/bertina-release-eligibility.test.mjs'
+      - '.github/workflows/bertina-deployment-readiness.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check policy syntax and tests
+        run: |
+          node --check scripts/bertina-auto-release-policy.mjs
+          node --check scripts/bertina-release-eligibility.mjs
+          node --test tests/bertina-auto-release-policy.test.mjs tests/bertina-release-eligibility.test.mjs
+      - name: Diagnose current live-to-source delta (no deployment)
+        env:
+          BERTINA_AUTO_DEPLOY_SCOPE: ${{ vars.BERTINA_AUTO_DEPLOY_SCOPE || 'full' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "## Bertina deployment readiness" >> "$GITHUB_STEP_SUMMARY"
+          echo "This diagnostic never uploads files, modifies production or accesses deployment secrets." >> "$GITHUB_STEP_SUMMARY"
+          if ! curl -fsSL --max-time 25 https://drjavadrezazadeh.com/sw.js -o /tmp/bertina-live-sw.js; then
+            echo "Cannot fetch public live service worker. Check DNS/TLS/origin availability." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          live_sha="$(sed -n "s/^const CACHE_VERSION='jr-site-bertina-\\([a-f0-9]\\{40\\}\\)';$/\\1/p" /tmp/bertina-live-sw.js)"
+          if [[ ! "$live_sha" =~ ^[a-f0-9]{40}$ ]]; then
+            echo "Live service worker does not contain the expected release SHA." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "Live SHA: \`$live_sha\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Target SHA: \`$GITHUB_SHA\`" >> "$GITHUB_STEP_SUMMARY"
+          if ! git cat-file -e "$live_sha^{commit}" 2>/dev/null; then
+            echo "Live SHA not in checkout history. Review history/force-push before deploying." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [[ "$live_sha" == "$GITHUB_SHA" ]]; then
+            echo "Target is already the recorded live version." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # The production workflow still performs all build, recovery and origin checks.
+          export BERTINA_AUTO_DEPLOY_SCOPE="${BERTINA_AUTO_DEPLOY_SCOPE:-full}"
+          if node scripts/bertina-release-eligibility.mjs "$live_sha" "$GITHUB_SHA"; then
+            echo "Auto-release source eligibility: passed in $BERTINA_AUTO_DEPLOY_SCOPE mode. Production checks NOT executed here." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Auto-release source eligibility: blocked in $BERTINA_AUTO_DEPLOY_SCOPE mode. This job never deploys." >> "$GITHUB_STEP_SUMMARY"
+          fi

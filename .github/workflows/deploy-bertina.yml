@@ -4,17 +4,17 @@ on:
   push:
     branches:
       - migration/bertina-linux6
-    # Only public pages and static assets initiate automatic releases. Governance,
-    # tests, scripts, API, private data and CI edits remain available for manual
-    # owner-authorised release, but do not generate spurious deploy failures.
+    # Only shippable frontend, API, journal and operational inputs start releases.
+    # Edits to CI/recovery/build scripts and database migrations require deliberate
+    # activation; they must not create failed deploy jobs by themselves.
+    # All production recovery, schema and checksum gates remain mandatory.
     paths:
       - 'fa/**'
       - 'en/**'
       - 'journal/**'
-      - 'assets/images/**'
-      - 'assets/css/**'
-      - 'assets/fonts/**'
-      - 'assets/icons/**'
+      - 'api/**'
+      - 'assets/**'
+      - 'platform/**'
       - 'index.html'
       - '404.html'
       - 'offline.html'
@@ -25,6 +25,7 @@ on:
       - 'favicon.*'
       - 'site.webmanifest'
       - 'manifest.json'
+      - 'sw.js'
       - '.bertina-deploy-trigger'
   workflow_dispatch:
     inputs:
@@ -127,22 +128,24 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Verify automatic release-scope policy has not regressed
+      - name: Verify automatic release policy and full-scope decision tests
         if: github.event_name == 'push'
         run: |
           node --check scripts/bertina-auto-release-policy.mjs
-          node --test tests/bertina-auto-release-policy.test.mjs
+          node --check scripts/bertina-release-eligibility.mjs
+          node --test tests/bertina-auto-release-policy.test.mjs tests/bertina-release-eligibility.test.mjs
 
-      - name: Restrict automatic releases to public site changes
+      - name: Validate full source delta before automatic production preflight
         if: github.event_name == 'push'
         env:
           EXPECTED_LIVE_SHA: ${{ steps.release_policy.outputs.expected_live_sha }}
+          # Owner may set this repository variable to public_only to roll back scope.
+          # Default full permits private runtime changes to reach the same mandatory
+          # release tests, backup checks and production schema gates as manual runs.
+          BERTINA_AUTO_DEPLOY_SCOPE: ${{ vars.BERTINA_AUTO_DEPLOY_SCOPE || 'full' }}
         run: |
           set -euo pipefail
-          # Compare the entire not-yet-deployed delta, NOT just the last commit.
-          # Docs/notes omitted from the public artifact do not block harmless
-          # public updates; runtime/finance/auth/workflow/tests remain fail-closed.
-          node scripts/bertina-auto-release-policy.mjs "$EXPECTED_LIVE_SHA" "$GITHUB_SHA"
+          node scripts/bertina-release-eligibility.mjs "$EXPECTED_LIVE_SHA" "$GITHUB_SHA"
 
       - name: Compile and exercise both fail-closed recovery policy gates
         run: |
@@ -545,39 +548,36 @@ jobs:
           if(d.operations?.ready!==true) throw new Error('Operations schema and scoped evidence import failed');
           NODE
 
-      - name: Verify live bookstore release and cache fingerprint
+      - name: Verify published bookstore and cache against this exact release
         run: |
           set -euo pipefail
           ORIGIN_IP="188.40.203.218"
-          for route in /fa/shop/ /en/shop/; do
-            curl -fsSL --compressed --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP "https://drjavadrezazadeh.com$route" -o /tmp/bookstore-live.html
-            grep -q 'store-mission.css?v=approved-original-20261011-v5' /tmp/bookstore-live.html
-            if [ "$route" = "/fa/shop/" ]; then
-              grep -q 'cinema-original-hero' /tmp/bookstore-live.html
-              grep -q 'bookstore-talent-cinematic-approved-original-20261011.png' /tmp/bookstore-live.html
-              grep -q 'bookstore-talent-cinematic-approved-20261011.webp' /tmp/bookstore-live.html
-            else
-              grep -q 'bookstore-talent-approved-scene-20261011.webp' /tmp/bookstore-live.html
-            fi
-            grep -q 'id="publish-for-talent"' /tmp/bookstore-live.html
-            grep -q 'id="store-mission-title"' /tmp/bookstore-live.html
-            grep -q "$GITHUB_SHA" /tmp/bookstore-live.html
-            echo "$route fresh bookstore release verified"
+          HOST="https://drjavadrezazadeh.com"
+          # The local artifact was stamped with GITHUB_SHA, packed and checked
+          # byte-for-byte on Bertina. Verify externally served page bytes too.
+          for locale in fa en; do
+            route="/$locale/shop/"
+            expected=".public-site/$locale/shop/index.html"
+            test -s "$expected"
+            curl -fsSL --compressed --max-time 35 \
+              --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+              "$HOST$route" -o "/tmp/bertina-$locale-shop.html"
+            cmp -s "$expected" "/tmp/bertina-$locale-shop.html" || {
+              echo "Bookstore page bytes differ from approved release: $route" >&2
+              sha256sum "$expected" "/tmp/bertina-$locale-shop.html" >&2
+              exit 1
+            }
+            echo "Verified exact published HTML: $route"
           done
-          curl -fsSL --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/sw.js -o /tmp/bookstore-sw.js
-          grep -q "jr-site-bertina-$GITHUB_SHA" /tmp/bookstore-sw.js
-          echo "Service Worker cache invalidation version verified on Bertina"
-          # Verify the byte-identical owner-approved source image and optimized image at the origin.
-          curl -fsSL --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
-            https://drjavadrezazadeh.com/assets/images/bookstore-talent-cinematic-approved-original-20261011.png -o /tmp/approved-original.png
-          echo '24a7ec84fe17f2a3ca8fcf0f22a0cd6fc01e4ca312e7b136ca1bed9349e4b00e  /tmp/approved-original.png' | sha256sum -c -
-          curl -fsSL --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
-            https://drjavadrezazadeh.com/assets/images/bookstore-talent-cinematic-approved-20261011.webp -o /tmp/approved-optimized.webp
-          echo '4d2405a748bcbb7e1f5007a9ceae2b820cd4cbbf50511d093c5409a5fad07638  /tmp/approved-optimized.webp' | sha256sum -c -
-          curl -fsSL --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
-            https://drjavadrezazadeh.com/assets/images/bookstore-talent-approved-scene-20261011.webp -o /tmp/approved-crop.webp
-          test "$(wc -c </tmp/approved-crop.webp)" -eq 161508
-          echo "Owner-approved original image and WebP derivatives verified byte-for-byte at Bertina"
+          curl -fsSL --max-time 35 \
+            --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+            "$HOST/sw.js" -o /tmp/bertina-live-sw-check.js
+          cmp -s .public-site/sw.js /tmp/bertina-live-sw-check.js || {
+            echo "Live Service Worker differs from the exact approved release" >&2
+            exit 1
+          }
+          grep -Fq "jr-site-bertina-$GITHUB_SHA" /tmp/bertina-live-sw-check.js
+          echo "Live storefront and Service Worker match the stamped release. No obsolete asset hashes required."
 
       - name: Verify deployed unified dashboard, private headers and same-origin runtime
         run: |
@@ -782,51 +782,9 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Keep one newest Bertina account backup
-        if: steps.credentials.outputs.ready == 'true'
-        env:
-          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
-          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
-        run: |
-          set -euo pipefail
-          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
-          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" \
-            -e "set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes; set ftp:passive-mode true; set ftp:prefer-epsv false; cd \"$FTP_REMOTE_DIR\"; cls -1 ../backup-*_drjavad1.tar.gz; bye" \
-            > /tmp/bertina-backup-list.txt
-          python3 scripts/bertina-prune-backups.py /tmp/bertina-backup-list.txt > /tmp/bertina-backup-prune.json
-          python3 - <<'PY'
-          import json
-          plan=json.load(open('/tmp/bertina-backup-prune.json',encoding='utf-8'))
-          print('Retaining canonical cPanel backup:',plan['keep'])
-          print('Older backup archives to remove:',len(plan['remove']))
-          with open('/tmp/bertina-backup-remove-list.txt','w',encoding='utf-8') as f:
-              for name in plan['remove']:
-                  f.write(name+'\n')
-          PY
-          while IFS= read -r name; do
-            [ -n "$name" ] || continue
-            case "$name" in
-              backup-*.tar.gz) ;;
-              *) echo "Refusing unexpected backup filename: $name" >&2; exit 1 ;;
-            esac
-            echo "Removing older cPanel archive: $name"
-            timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" \
-              -e "set cmd:fail-exit yes; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes; set ftp:passive-mode true; set ftp:prefer-epsv false; cd \"$FTP_REMOTE_DIR\"; rm ../$name; bye"
-          done < /tmp/bertina-backup-remove-list.txt
-          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" \
-            -e "set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes; set ftp:passive-mode true; set ftp:prefer-epsv false; cd \"$FTP_REMOTE_DIR\"; cls -1 ../backup-*_drjavad1.tar.gz; bye" \
-            > /tmp/bertina-backup-remaining.txt
-          python3 scripts/bertina-prune-backups.py /tmp/bertina-backup-remaining.txt > /tmp/bertina-backup-remaining.json
-          python3 - <<'PY'
-          import json
-          before=json.load(open('/tmp/bertina-backup-prune.json',encoding='utf-8'))
-          after=json.load(open('/tmp/bertina-backup-remaining.json',encoding='utf-8'))
-          if after['keep']!=before['keep'] or after['remove']:
-              raise SystemExit('Bertina archive cleanup verification failed')
-          print('Verified exactly one cPanel archive remains:',after['keep'])
-          PY
-          echo "One cPanel backup retained; older matching account archives were removed and the remaining inventory was verified after live release checks passed." >> "$GITHUB_STEP_SUMMARY"
+      # Backup retention and deletion are managed separately from public deployment.
+      # Do not prune account archives during a release while independent restore
+      # evidence is unavailable. Preserve existing Bertina backups unchanged.
 
       - name: Deployment summary
         if: steps.credentials.outputs.ready == 'true'
