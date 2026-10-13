@@ -12,6 +12,16 @@ import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';
 import {classifyGitDelta} from './bertina-auto-release-policy.mjs';
 
+// Changes to the deployment authority itself and server/database provisioning
+// must be deliberately activated, even in full development mode. Ordinary API,
+// JavaScript, content and platform implementation changes remain eligible.
+export function requiresManualActivation(path) {
+  if (typeof path !== 'string') return true;
+  return /^(?:\.github\/|database\/|migrations\/|docs\/governance\/|scripts\/bertina-(?:auto-release-policy|release-eligibility|private-recovery-gate|controlled-cpanel-gate|prune-backups)\.(?:mjs|php|py)$|scripts\/(?:build-public-site|operations-release-evidence)\.mjs$)/.test(path)
+    || /(?:^|\/)(?:\.env(?:\.[^/]*)?|config\.local\.php|secrets?\.[^/]+|(?:id_rsa|id_ed25519)|[^/]+\.(?:pem|p12|pfx|key|sql|bak|dump))$/i.test(path)
+    || ['.bertina-backup-trigger','.htaccess','.user.ini','php.ini','AGENTS.md'].includes(path);
+}
+
 export function decideAutomaticRelease(delta, scope='full') {
   if (!['full','public_only'].includes(scope)) throw Error('Unknown automatic release scope');
   if (!delta || !delta.groups || typeof delta.canAutomaticallyDeploy!=='boolean')
@@ -21,6 +31,9 @@ export function decideAutomaticRelease(delta, scope='full') {
     throw Error('Incomplete release classification');
   if (published.length+controlled.length===0)
     return {allowed:false,reason:'No deployable source changes'};
+  const manual=[...published,...controlled,...unshipped].filter(requiresManualActivation);
+  if(manual.length)
+    return {allowed:false,reason:'Deployment authority or server/database provisioning requires deliberate activation',manual};
   if (scope==='public_only' && !delta.canAutomaticallyDeploy)
     return {allowed:false,reason:'Controlled changes require manual release in public_only mode'};
   return {allowed:true,reason:scope==='full'
@@ -43,6 +56,7 @@ if (process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) {
       'Unshipped paths: '+delta.groups.unshipped.length,
       'Decision: '+(decision.allowed?'ELIGIBLE_FOR_PREFLIGHT':'BLOCKED'),
       'Reason: '+decision.reason,
+      ...(decision.manual||[]).slice(0,30).map(path=>'Manual activation required: '+path),
       ...delta.groups.controlled.slice(0,30).map(path=>'Controlled delta: '+path),
       'Eligibility is not a successful deploy: build, tests, backup custody, origin schema and checksum verification must still pass.'
     ];
