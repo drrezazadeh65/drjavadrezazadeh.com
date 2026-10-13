@@ -150,10 +150,11 @@ function stage14AdminGrowthSnapshot(PDO $pdo): array {
                 WHERE expires_at>? AND consent_withdrawn_at IS NULL
                   AND state IN ('NEW','NEEDS_INFO')
                 GROUP BY service_id
-                ORDER BY awaiting_action DESC,service_id ASC LIMIT 6");
+                ORDER BY awaiting_action DESC,service_id ASC LIMIT 7");
             $byService->execute([$at]);
+            $serviceRows=$byService->fetchAll(PDO::FETCH_ASSOC);
             $top=[];
-            foreach($byService->fetchAll(PDO::FETCH_ASSOC) as $item){
+            foreach(array_slice($serviceRows,0,6) as $item){
                 $top[]=['serviceId'=>(string)$item['service_id'],
                     'awaitingAction'=>(int)$item['awaiting_action']];
             }
@@ -164,7 +165,7 @@ function stage14AdminGrowthSnapshot(PDO $pdo): array {
                 'needsAdditionalInformation'=>(int)$queue['needs_info'],
                 'topServiceQueues'=>$top,
                 'topServiceLimit'=>6,
-                'topServiceQueuesTruncated'=>count($top)===6,
+                'topServiceQueuesTruncated'=>count($serviceRows)>6,
                 'asOf'=>$at,
                 'scope'=>'consented_unexpired_service_interest_only',
                 'limitation'=>'Unresolved consented service enquiries, not customers, purchases, bookings or marketing permissions.'
