@@ -1,0 +1,47 @@
+name: QA Account Readiness — Non-mutating
+on:
+  push:
+    branches: [qa/account-readiness-20261013]
+    paths: ['.github/workflows/qa-account-readiness-20261013.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Check live account readiness and guest restrictions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const api='https://drjavadrezazadeh.com/api';
+          const origin='https://drjavadrezazadeh.com';
+          async function req(path,opts={}){
+            const c=new AbortController();
+            const t=setTimeout(()=>c.abort(),15000);
+            try {const r=await fetch(api+path,{cache:'no-store',signal:c.signal,redirect:'manual',...opts});
+              const value=await r.json().catch(()=>({}));return {status:r.status,value};}
+            finally{clearTimeout(t);}
+          }
+          function ensure(ok,message){if(!ok)throw Error(message);}
+          const health=await req('/auth/health');
+          ensure(health.status===200 && health.value.ok===true && health.value.service==='auth','health endpoint unavailable');
+          for(const key of ['ready','registrationReady','database','schemaReady','email','passwordKdf'])
+            ensure(health.value[key]===true,'auth readiness missing '+key);
+          console.log('PASS: live account configuration, email, schema and KDF');
+          const guest=await req('/auth/me');
+          ensure(guest.status===401 && guest.value?.error==='unauthorized','anonymous account privacy regression');
+          console.log('PASS: unauthenticated account data denied');
+          const wrong=await req('/auth/login',{method:'POST',headers:{'Content-Type':'application/json',Origin:origin},body:JSON.stringify({email:'nobody+qa@invalid.example',password:'NotThePassword54321'})});
+          ensure([400,401,403].includes(wrong.status),'unknown user login was not refused');
+          ensure(wrong.value?.ok!==true,'unknown account unexpectedly authenticated');
+          console.log('PASS: wrong-account login refused');
+          const invalid=await req('/auth/register',{method:'POST',headers:{'Content-Type':'application/json',Origin:origin},body:JSON.stringify({email:'invalid-address',mobile:'+12025550143',password:'ValidLookingLongPassword54321',locale:'en'})});
+          ensure([400,422].includes(invalid.status),'invalid registration payload not rejected');
+          console.log('PASS: malformed registration rejected without creating an account');
+          const forbidden=await req('/auth/register',{method:'POST',headers:{'Content-Type':'application/json',Origin:'https://attacker.invalid'},body:JSON.stringify({email:'nobody+qa@invalid.example',mobile:'+12025550143',password:'ValidLookingLongPassword54321',locale:'en'})});
+          ensure(forbidden.status===403 && forbidden.value?.error==='origin_forbidden','cross-origin registration was not denied');
+          console.log('PASS: unexpected Origin denied before registration');
+          console.log('All live read-only/negative account checks passed; positive registration and mailbox verification require a separate approved synthetic-account journey.');
+          NODE
