@@ -201,6 +201,31 @@ function githubAuditRender(host){
      policy.append(el('p',t('موفقیت CI به معنی وجود بکاپ واقعی، بازیابی مستقل یا آزمایش بازگشت نسخهٔ زنده نیست.','CI success cannot certify an actual backup, independent restoration or live production rollback.')));
     }
 
+
+    const releaseTrace=governance.releaseTrace;
+    if(releaseTrace?.schema==='operations-github-release-trace-v1'){
+     policy.append(el('h4',t('OP-36 · تطبیق انتشار و پذیرش همان نسخه','OP-36 · Matched release and post-release acceptance')));
+     const releaseLabel={
+      release_ci_accepted:t('انتشار و پذیرش مستقل همان نسخه موفق بوده‌اند','Same-release deployment and independent acceptance passed'),
+      acceptance_not_observed:t('سند پذیرش همین انتشار هنوز مشاهده نشده است','Post-release acceptance not observed for this deployment'),
+      acceptance_pending:t('پذیرش مستقل این نسخه در جریان است','Independent acceptance is pending'),
+      acceptance_not_successful:t('پذیرش مستقل این نسخه موفق نبوده است','Independent acceptance did not pass'),
+      deploy_pending:t('انتشار نسخهٔ جاری در جریان است','Current release deployment pending'),
+      deploy_not_successful:t('انتشار نسخهٔ جاری موفق نبوده است','Current release deployment did not pass'),
+      deploy_run_not_observed:t('اجرای انتشار نسخهٔ جاری در تاریخچهٔ محدود GitHub پیدا نشد','Current-release deployment not observed in limited GitHub history'),
+      server_release_missing:t('شناسهٔ نسخهٔ معتبر در سرور موجود نیست','Valid server release identity missing'),
+      unavailable:t('شواهد رسمی انتشار در دسترس نیست','Verified release-run history unavailable')
+     }[releaseTrace.status]||t('نامشخص','Unknown');
+     policy.append(el('p',releaseLabel));
+     if(/^[a-f0-9]{40}$/.test(releaseTrace.releaseSha||''))policy.append(el('small',t('نسخهٔ ثبت‌شده در سرور: ','Server release: ')+releaseTrace.releaseSha.slice(0,12)));
+     for(const [kind,fa,enLabel] of [['deploy','گزارش انتشار GitHub','GitHub deploy run'],['acceptance','گزارش پذیرش مستقل','Independent acceptance run']]){
+      const item=releaseTrace[kind];
+      if(!item||!/^https:\/\/github\.com\/drrezazadeh65\/drjavadrezazadeh\.com\/actions\/runs\/[0-9]+$/.test(item.url||''))continue;
+      const link=el('a',t(fa,enLabel));link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';
+      policy.append(el('p',item.status+' · '+(item.conclusion||t('در انتظار','Pending'))+' · '+(item.createdAt||'')),link);
+     }
+     policy.append(el('p',t('تأیید انتشار، جایگزین آزمون بازگشت نسخه و بازیابی بکاپ نیست.','A certified deployment is not evidence of production rollback or backup restoration.')));
+    }
     const manage=el('a',t('تنظیمات محافظت از شاخه در GitHub','GitHub branch-protection settings'));
     manage.href='https://github.com/drrezazadeh65/drjavadrezazadeh.com/settings/branches';
     manage.target='_blank';manage.rel='noopener noreferrer';policy.append(manage);section.append(policy);

@@ -409,7 +409,7 @@ function operationsRoute(string $path, string $verb): never {
             if(!rateAllowed($pdo,'operations_github_audit_read',$accountId,6,600))
                 fail('rate_limited',429);
             // A real workflow status is sourced from GitHub, never a browser-provided number.
-            $source=operationsGithubAuditSnapshot(operationsRegistry());
+            $source=operationsGithubAuditSnapshot(operationsRegistry(),(string)($pdo->query('SELECT release_sha FROM operations_release WHERE singleton_id=1')->fetch()['release_sha']??''));
             $super=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
             $ready=$super&&operationsActionRunsReady($pdo)
                 && operationsGithubDispatchToken($configuration)!==null
@@ -430,7 +430,7 @@ function operationsRoute(string $path, string $verb): never {
             if(!is_array($body)||count($body)!==0)fail('invalid_audit_request',400);
             if(!rateAllowed($pdo,'operations_github_reconcile',$accountId,6,300))
                 fail('rate_limited',429);
-            $provider=operationsGithubAuditSnapshot(operationsRegistry());
+            $provider=operationsGithubAuditSnapshot(operationsRegistry(),(string)($pdo->query('SELECT release_sha FROM operations_release WHERE singleton_id=1')->fetch()['release_sha']??''));
             $result=operationsGithubReconcile($pdo,$accountId,$provider['audits']??[],nowTs());
             $history=operationsActionHistory($pdo,$accountId,nowTs());
             $provider['ownerSubmissions']=operationsGithubCorrelatedRuns($provider['audits'],$history);

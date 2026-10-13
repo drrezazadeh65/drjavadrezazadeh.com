@@ -253,6 +253,33 @@ test('OP-36 displays official isolated-recovery CI without claiming a production
  await noOverflow(page);
 });
 
+
+test('OP-36 correlates server release with official deploy and post-release CI without claiming rollback',async({page})=>{
+ const data=fixture();await authorized(page,{data});
+ const deployUrl='https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38459966600';
+ const acceptanceUrl='https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38460316374';
+ await page.route('**/api/admin/operations/github-audits',route=>route.fulfill({json:{
+  ok:true,schema:'operations-github-audits-v1',
+  summary:{observableWorkflows:0,registeredAllowlistedWorkflows:4},audits:[],
+  governance:{schema:'operations-github-governance-v1',
+   canonicalBranch:'migration/bertina-linux6',defaultBranch:'migration/bertina-linux6',
+   canonicalBranchProtected:false,defaultMatchesCanonical:true,
+   releaseTrace:{schema:'operations-github-release-trace-v1',status:'release_ci_accepted',
+    releaseSha:'a'.repeat(40),releaseAcceptedByCi:true,rollbackVerified:false,backupRestoreVerified:false,
+    deploy:{url:deployUrl,status:'completed',conclusion:'success',createdAt:'2026-10-13T20:04:55Z'},
+    acceptance:{url:acceptanceUrl,status:'completed',conclusion:'success',createdAt:'2026-10-13T20:07:30Z'}}}
+ }}));
+ await page.setViewportSize({width:320,height:900});await page.goto(base+'/en/account/admin/');
+ const gh=page.locator('details.ops-github-audits');await gh.locator('summary').click();
+ await gh.getByRole('button',{name:'Fetch verified GitHub workflow status'}).click();
+ const panel=gh.locator('.ops-branch-governance');
+ await expect(panel).toContainText('Same-release deployment and independent acceptance passed');
+ await expect(panel).toContainText('not evidence of production rollback');
+ await expect(panel.getByRole('link',{name:'GitHub deploy run'})).toHaveAttribute('href',deployUrl);
+ await expect(panel.getByRole('link',{name:'Independent acceptance run'})).toHaveAttribute('href',acceptanceUrl);
+ await noOverflow(page);
+});
+
 test('Audit-only dispatch requires owner confirmation and reports accepted request without invented run outcome',async({page})=>{
  const data=fixture(),posted=[];
  await authorized(page,{data});

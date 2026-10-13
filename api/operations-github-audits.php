@@ -118,7 +118,8 @@ function operationsGithubGovernanceFetchJson(string $kind): ?array {
     $paths=[
         'repository'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com',
         'branches'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/branches?per_page=100',
-        'restore_ci'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/bertina-restore-readiness-ci.yml/runs?per_page=5&branch=migration%2Fbertina-linux6'
+        'restore_ci'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/bertina-restore-readiness-ci.yml/runs?per_page=5&branch=migration%2Fbertina-linux6',
+        'release_runs'=>'https://api.github.com/repos/drrezazadeh65/drjavadrezazadeh.com/actions/runs?per_page=50&branch=migration%2Fbertina-linux6'
     ];
     if(!isset($paths[$kind])||!function_exists('curl_init'))return null;
     $ch=curl_init($paths[$kind]);if($ch===false)return null;
@@ -185,17 +186,78 @@ function operationsGithubRestoreCiProject(?array $data, int $now): array {
     ]);
 }
 
-function operationsGithubGovernanceSnapshot(): array {
+/**
+ * Bind an observed GitHub Deploy and independent Post-Release run to the
+ * *server-recorded* release SHA, never to a client-supplied version.
+ * No action is dispatched, and no rollback/backup restore is certified.
+ */
+function operationsGithubReleaseTraceProject(?array $input, string $releaseSha, int $at): array {
+    $empty=['schema'=>'operations-github-release-trace-v1',
+        'status'=>'unavailable','releaseSha'=>$releaseSha,
+        'deploy'=>null,'acceptance'=>null,'releaseAcceptedByCi'=>false,
+        'rollbackVerified'=>false,'backupRestoreVerified'=>false,
+        'limitation'=>'Official CI deployment and post-release acceptance can verify that release pipeline only; they do not prove an actual rollback or restored backup.'];
+    if(!preg_match('/^[a-f0-9]{40}$/D',$releaseSha))return array_merge($empty,['status'=>'server_release_missing']);
+    if(!is_array($input)||!array_is_list($input['workflow_runs']??null))return $empty;
+    $collected=['deploy'=>[],'acceptance'=>[]];
+    $paths=[
+        '.github/workflows/deploy-bertina.yml'=>['deploy','push'],
+        '.github/workflows/bertina-postrelease-acceptance.yml'=>['acceptance','workflow_run']
+    ];
+    foreach(array_slice($input['workflow_runs'],0,50) as $run){
+        if(!is_array($run)||($run['head_sha']??null)!==$releaseSha)continue;
+        $workflow=$paths[$run['path']??'']??null;
+        if(!$workflow||($run['event']??null)!==$workflow[1])continue;
+        $id=$run['id']??null;$url=$run['html_url']??null;
+        $created=$run['created_at']??null;
+        $createdAt=is_string($created)?strtotime($created):false;
+        if(!is_int($id)||$id<1||!is_string($url)
+            || $url!=='https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/'.$id
+            || !is_string($created)||!preg_match('/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/D',$created)
+            || $createdAt===false||$createdAt>$at+300
+            || !in_array($run['status']??null,['queued','waiting','in_progress','completed'],true))continue;
+        $conclusion=$run['conclusion']??null;
+        if(($run['status']??null)==='completed' && !in_array($conclusion,
+            ['success','failure','cancelled','skipped','timed_out','action_required','neutral','stale'],true))continue;
+        $collected[$workflow[0]][]=[
+            'runId'=>$id,'url'=>$url,'createdAt'=>$created,
+            'timestamp'=>$createdAt,'status'=>$run['status'],'conclusion'=>$conclusion
+        ];
+    }
+    foreach($collected as &$items)
+        usort($items,static fn($a,$b)=>$b['timestamp']<=>$a['timestamp']
+            ?:($b['runId']<=>$a['runId']));
+    unset($items);
+    $deploy=$collected['deploy'][0]??null;
+    if(!$deploy)return array_merge($empty,['status'=>'deploy_run_not_observed']);
+    $result=array_merge($empty,['deploy'=>array_diff_key($deploy,['timestamp'=>true])]);
+    if($deploy['status']!=='completed')return array_merge($result,['status'=>'deploy_pending']);
+    if($deploy['conclusion']!=='success')return array_merge($result,['status'=>'deploy_not_successful']);
+    // An acceptance from an earlier deployment/attempt cannot validate this run.
+    $matched=array_values(array_filter($collected['acceptance'],
+        static fn($item)=>$item['timestamp']>=$deploy['timestamp']
+            && $item['timestamp']<=$deploy['timestamp']+86400));
+    $accept=$matched[0]??null;
+    if(!$accept)return array_merge($result,['status'=>'acceptance_not_observed']);
+    $result['acceptance']=array_diff_key($accept,['timestamp'=>true]);
+    if($accept['status']!=='completed')return array_merge($result,['status'=>'acceptance_pending']);
+    if($accept['conclusion']!=='success')return array_merge($result,['status'=>'acceptance_not_successful']);
+    return array_merge($result,['status'=>'release_ci_accepted','releaseAcceptedByCi'=>true]);
+}
+
+function operationsGithubGovernanceSnapshot(string $releaseSha=''): array {
     $snapshot=operationsGithubGovernanceProject(
         operationsGithubGovernanceFetchJson('repository'),
         operationsGithubGovernanceFetchJson('branches')
     );
     $snapshot['restoreReadiness']=operationsGithubRestoreCiProject(
         operationsGithubGovernanceFetchJson('restore_ci'),time());
+    $snapshot['releaseTrace']=operationsGithubReleaseTraceProject(
+        operationsGithubGovernanceFetchJson('release_runs'),$releaseSha,time());
     return $snapshot;
 }
 
-function operationsGithubAuditSnapshot(array $registry): array {
+function operationsGithubAuditSnapshot(array $registry, string $releaseSha=''): array {
     $identities=array_column($registry['actions']??[],null,'id');$entries=[];
     foreach(operationsGithubAuditCatalog() as $entry){
         $id=$entry['actionId'];$action=$identities[$id]??null;
@@ -215,7 +277,7 @@ function operationsGithubAuditSnapshot(array $registry): array {
     return [
         'ok'=>true,'schema'=>'operations-github-audits-v1','checkedAt'=>time(),
         'releaseScope'=>'migration/bertina-linux6','audits'=>$entries,
-        'governance'=>operationsGithubGovernanceSnapshot(),
+        'governance'=>operationsGithubGovernanceSnapshot($releaseSha),
         'summary'=>[
             'registeredAllowlistedWorkflows'=>count(operationsGithubAuditCatalog()),
             'observableWorkflows'=>count(array_filter($entries,fn($x)=>$x['status']==='observed')),

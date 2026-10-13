@@ -103,6 +103,48 @@ assertAudit(operationsGithubRestoreCiProject(['workflow_runs'=>[$badRun]],$recov
 assertAudit(operationsGithubRestoreCiProject(null,$recoveryAt)['isolatedCiPassed']===false,
     'Absent GitHub API response marked recovery ready');
 
+
+$release=str_repeat('a',40);$at=strtotime('2026-10-13T20:30:00Z');
+$make=function(int $id,string $path,string $event,string $created,string $conclusion='success')use($release):array{
+ return ['id'=>$id,'path'=>'.github/workflows/'.$path,'event'=>$event,'head_sha'=>$release,
+   'html_url'=>'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/'.$id,
+   'created_at'=>$created,'status'=>'completed','conclusion'=>$conclusion];
+};
+$deploy=$make(38459966600,'deploy-bertina.yml','push','2026-10-13T20:04:55Z');
+$accepted=$make(38460316374,'bertina-postrelease-acceptance.yml','workflow_run','2026-10-13T20:07:30Z');
+$matched=operationsGithubReleaseTraceProject(['workflow_runs'=>[$accepted,$deploy]],$release,$at);
+assertAudit($matched['status']==='release_ci_accepted'
+  && $matched['releaseAcceptedByCi']===true
+  && $matched['deploy']['runId']===38459966600
+  && $matched['acceptance']['runId']===38460316374
+  && $matched['rollbackVerified']===false && $matched['backupRestoreVerified']===false,
+ 'Deployment pipeline observation falsely certified a rollback');
+$wrong=$accepted;$wrong['head_sha']=str_repeat('b',40);
+assertAudit(operationsGithubReleaseTraceProject(['workflow_runs'=>[$deploy,$wrong]],$release,$at)['status']==='acceptance_not_observed',
+ 'Acceptance on another commit validated the current release');
+$older=$accepted;$older['created_at']='2026-10-13T20:01:00Z';
+assertAudit(operationsGithubReleaseTraceProject(['workflow_runs'=>[$deploy,$older]],$release,$at)['status']==='acceptance_not_observed',
+ 'Earlier acceptance validated later deployment');
+$bad=$accepted;$bad['conclusion']='failure';
+assertAudit(operationsGithubReleaseTraceProject(['workflow_runs'=>[$deploy,$bad]],$release,$at)['status']==='acceptance_not_successful',
+ 'Failed acceptance was certified as success');
+$failedDeploy=$deploy;$failedDeploy['conclusion']='failure';
+assertAudit(operationsGithubReleaseTraceProject(['workflow_runs'=>[$failedDeploy,$accepted]],$release,$at)['status']==='deploy_not_successful',
+ 'Failed deployment was certified by an unrelated acceptance');
+$pending=$accepted;$pending['status']='in_progress';$pending['conclusion']=null;
+assertAudit(operationsGithubReleaseTraceProject(['workflow_runs'=>[$deploy,$pending]],$release,$at)['status']==='acceptance_pending',
+ 'Pending acceptance was certified early');
+$foreign=$deploy;$foreign['path']='.github/workflows/unknown.yml';
+assertAudit(operationsGithubReleaseTraceProject(['workflow_runs'=>[$foreign,$accepted]],$release,$at)['status']==='deploy_run_not_observed',
+ 'Unknown workflow forged an authoritative deployment');
+$untrusted=$deploy;$untrusted['html_url']='https://github.com/other/repo/actions/runs/38459966600';
+assertAudit(operationsGithubReleaseTraceProject(['workflow_runs'=>[$untrusted,$accepted]],$release,$at)['status']==='deploy_run_not_observed',
+ 'Untrusted URL forged a canonical deployment');
+assertAudit(operationsGithubReleaseTraceProject(null,$release,$at)['releaseAcceptedByCi']===false,
+ 'Absent provider observation marked release accepted');
+assertAudit(operationsGithubReleaseTraceProject(['workflow_runs'=>[$deploy,$accepted]],'invalid',$at)['status']==='server_release_missing',
+ 'Invalid server release granted acceptance credit');
+
 assertAudit(operationsGithubDispatchToken([])===null,'Dispatch credentials must default OFF');
 assertAudit(operationsGithubDispatchToken(['github_audit_dispatch_token'=>'x'])===null,'Short token accepted');
 assertAudit(operationsGithubDispatchToken(['github_audit_dispatch_token'=>str_repeat('g',40)])===str_repeat('g',40),'Scoped fixture token rejected');
