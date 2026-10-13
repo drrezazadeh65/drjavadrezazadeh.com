@@ -1,4 +1,9 @@
 import test from 'node:test';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
 import {classifyPath,classifyPaths} from '../scripts/bertina-auto-release-policy.mjs';
 
@@ -45,4 +50,33 @@ test('public + unshipped documentation may deploy; protected anywhere blocks',()
   assert.equal(classifyPaths(['fa/index.html','docs/notes.md','tests/a.test.mjs']).canAutomaticallyDeploy,false);
   assert.equal(classifyPaths(['fa/index.html','assets/js/analytics-adapter.js']).canAutomaticallyDeploy,false);
   assert.equal(classifyPaths(['docs/notes.md','docs/notes.md']).groups.unshipped.length,1);
+});
+
+test('classifies the full Git history delta; fails closed for later protected files',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'bertina-policy-fixture-'));
+  const policy=fileURLToPath(new URL('../scripts/bertina-auto-release-policy.mjs',import.meta.url));
+  const git=(...args)=>execFileSync('git',args,{cwd:dir,encoding:'utf8'}).trim();
+  const invoke=(base,head)=>execFileSync(process.execPath,[policy,base,head],{cwd:dir,encoding:'utf8'});
+  try{
+    git('init','-q');
+    git('config','user.email','ci@example.test');
+    git('config','user.name','Policy Test');
+    fs.mkdirSync(path.join(dir,'fa'));
+    fs.writeFileSync(path.join(dir,'fa/index.html'),'old');
+    git('add','.');
+    git('commit','-qm','baseline');
+    const base=git('rev-parse','HEAD');
+    fs.writeFileSync(path.join(dir,'fa/index.html'),'new');
+    fs.mkdirSync(path.join(dir,'docs'));
+    fs.writeFileSync(path.join(dir,'docs/notes.md'),'evidence');
+    git('add','.');
+    git('commit','-qm','public');
+    const safeHead=git('rev-parse','HEAD');
+    assert.match(invoke(base,safeHead),/AUTHORIZED_PUBLIC_ONLY/);
+    fs.writeFileSync(path.join(dir,'docs/private-schema.json'),'protected');
+    git('add','.');
+    git('commit','-qm','protected');
+    const protectedHead=git('rev-parse','HEAD');
+    assert.throws(()=>invoke(base,protectedHead),/Command failed/);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
