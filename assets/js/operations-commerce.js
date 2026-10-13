@@ -21,7 +21,7 @@
     return n;
   }
   function toman(value){
-    if(value===null||value===undefined||!/^\\d+$/.test(String(value)))
+    if(value===null||value===undefined||!/^\d+$/.test(String(value)))
       return text('نامشخص','Unknown');
     try{return new Intl.NumberFormat(en?'en-GB':'fa-IR').format(BigInt(String(value)))+
       text(' تومان',' toman');}
