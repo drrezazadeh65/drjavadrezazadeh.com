@@ -69,6 +69,41 @@ try {
         $groups[$group]['rows'] += $count;
     }
     $constraints=(int)$pdo->query("SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL")->fetchColumn();
+
+    // Extra READ-ONLY aggregate indicators for diagnosing a refused owner preflight.
+    $requiredCleanTables=[
+      'customer_accounts','customer_auth_tokens','customer_auth_sessions','customer_auth_rate_limits',
+      'commerce_orders','commerce_book_stock','commerce_book_reservations','commerce_stock_movements',
+      'commerce_payment_claims','commerce_outbox','commerce_service_cases','commerce_parcels',
+      'commerce_refund_requests','operations_admin_memberships','operations_session_mfa',
+      'operations_mfa_counters','operations_evidence','operations_audit','operations_release','operations_action_runs'
+    ];
+    sort($requiredCleanTables,SORT_STRING);
+    $liveNames=array_keys($existingTables);
+    sort($liveNames,SORT_STRING);
+    $paidOrders=isset($existingTables['commerce_orders'])
+      ? (int)$pdo->query("SELECT COUNT(*) FROM commerce_orders WHERE state='paid'")->fetchColumn() : null;
+    $reservedUnits=isset($existingTables['commerce_book_stock'])
+      ? (int)$pdo->query("SELECT COALESCE(SUM(reserved),0) FROM commerce_book_stock")->fetchColumn() : null;
+    $financialActivity=0;
+    foreach(['commerce_payment_claims','commerce_book_reservations','commerce_stock_movements',
+             'commerce_parcels','commerce_refund_requests'] as $table)
+      if(isset($existingTables[$table]))
+        $financialActivity += (int)$pdo->query('SELECT COUNT(*) FROM `'.$table.'`')->fetchColumn();
+    $expectedCleanProfile=[
+      'exactTableSetMatches'=>$requiredCleanTables===$liveNames,
+      'paidOrders'=>$paidOrders,
+      'reservedStockUnits'=>$reservedUnits,
+      'financialActivityRows'=>$financialActivity,
+      'criticalCounts'=>[
+        'accounts'=>$baselineCounts['customer_accounts']??null,
+        'orders'=>$baselineCounts['commerce_orders']??null,
+        'admins'=>$baselineCounts['operations_admin_memberships']??null,
+        'stockRows'=>isset($existingTables['commerce_book_stock'])
+          ? (int)$pdo->query('SELECT COUNT(*) FROM commerce_book_stock')->fetchColumn() : null
+      ]
+    ];
+
     $pdo->commit();
     // Intentionally reveal only table names and row counts; never row contents,
     // database username/password, customer emails or session credentials.
@@ -85,6 +120,7 @@ try {
        'requiredBaselinePresent'=>isset($existingTables['customer_accounts'],$existingTables['commerce_orders']),
        'allTablesInnoDb'=>$onlyInnoDb,
        'foreignKeyReferences'=>$constraints,
+       'cleanRebuildReadiness'=>$expectedCleanProfile,
        'scope'=>'SELECT ONLY; no SQL mutation or data export'
     ],JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
 } catch(Throwable $e) {
