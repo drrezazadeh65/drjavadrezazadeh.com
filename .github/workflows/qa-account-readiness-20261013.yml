@@ -43,5 +43,15 @@ jobs:
           const forbidden=await req('/auth/register',{method:'POST',headers:{'Content-Type':'application/json',Origin:'https://attacker.invalid'},body:JSON.stringify({email:'nobody+qa@invalid.example',mobile:'+12025550143',password:'ValidLookingLongPassword54321',locale:'en'})});
           ensure(forbidden.status===403 && forbidden.value?.error==='origin_forbidden','cross-origin registration was not denied');
           console.log('PASS: unexpected Origin denied before registration');
+          const commerce=await req('/commerce/health');
+          ensure(commerce.status===200 && commerce.value?.service==='commerce','Commerce readiness endpoint absent');
+          const gates=commerce.value.requirements||{};
+          console.log('COMMERCE_READINESS',JSON.stringify({checkout:commerce.value.checkout,orderCapture:commerce.value.orderCapture,
+            database:gates.database,schema:gates.schema,publicTlsConfirmed:gates.publicTlsConfirmed,
+            commerceEnabled:gates.commerceEnabled,bookShippingConfirmed:gates.bookShippingConfirmed,
+            inventoryReconciled:gates.inventoryReconciled}));
+          const history=await req('/commerce/history');
+          ensure(history.status===401 && history.value?.error==='unauthorized','Guest order data not protected');
+          console.log('PASS: anonymous order history access refused');
           console.log('All live read-only/negative account checks passed; positive registration and mailbox verification require a separate approved synthetic-account journey.');
           NODE
