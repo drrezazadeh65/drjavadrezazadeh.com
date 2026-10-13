@@ -215,6 +215,47 @@ function reportingRender(){
  let host=$('ops-reporting');if(!host){host=el('section',undefined,'ops-panel');host.id='ops-reporting';host.setAttribute('aria-label',t('گزارش‌های سیزده موتور','Thirteen-engine reporting'));$('ops-workspace').insertBefore(host,$('ops-cards'));}
  host.replaceChildren();host.append(el('h2',t('۱۳ موتور؛ یک مرکز مدیریت','13 engines, one administrative center')));
  const enabledActions=model.actionReports.filter(a=>a.supportedExecutor?.type==='readonly_snapshot'&&a.supportedExecutor?.writes===false).length;host.append(el('p',t('اقدام‌های ثبت‌شده: ','Registered actions: ')+model.actionReports.length+' · '+t('قرارداد فقط‌خواندنی فعال: ','Read-only executors: ')+enabledActions+' · '+t('فاقد قرارداد اجرایی: ','Without executor: ')+(model.actionReports.length-enabledActions)));
+
+ // Four current-release acceptance gates per report; never conflate absence of evidence with failure.
+ const coverage=snapshot.summary?.gateCoverage;
+ if(coverage&&['code','tests','production','evidence'].every(id=>coverage[id])){
+  const matrix=el('details',undefined,'ops-evidence-matrix');
+  matrix.append(el('summary',t('ماتریس شواهد ۳۶ گزارش (۱۴۴ شرط)','36-report evidence matrix (144 gates)')),
+   el('p',t('شمارش صرفاً از شواهد معتبر نسخهٔ فعلی است؛ نامشخص و منقضی به معنای شکست قطعی نیستند.','Counts use current-release evidence; unknown and expired are not proven failures.')));
+  const tiles=el('div',undefined,'ops-gates');
+  for(const [id,fa,label] of [['code','کد','Code'],['tests','آزمون‌ها','Tests'],['production','محیط عملیاتی','Production'],['evidence','شواهد تکمیلی','Evidence']]){
+   const counts=coverage[id],tile=el('article',undefined,'ops-gate');
+   tile.append(el('h3',t(fa,label)),el('p',t('موفق: ','Pass: ')+Number(counts.pass||0)+' / 36'),
+    el('small',t('ناموفق: ','Fail: ')+Number(counts.fail||0)+' · '+t('مسدود: ','Blocked: ')+Number(counts.blocked||0)),
+    el('small',t('منقضی: ','Stale: ')+Number(counts.stale||0)+' · '+t('نامشخص: ','Unknown: ')+Number(counts.unknown||0)));
+   tiles.append(tile);
+  }
+  matrix.append(tiles);host.append(matrix);
+ }
+ // An inventory for the 45 non-executable contracts, not a shortcut around manual approval.
+ const backlog=model.actionReports.filter(a=>!a.supportedExecutor);
+ if(backlog.length){
+  const triage=el('details',undefined,'ops-executor-backlog');
+  triage.append(el('summary',t('صف اقدامات فاقد اجراکننده: ','Actions awaiting executors: ')+backlog.length),
+   el('p',t('این موارد صرفاً برای بررسی اولویت و قراردادهای اجرا فهرست شده‌اند؛ انتخاب آن‌ها هیچ عملیات تولیدی را اجرا نمی‌کند.','This is a planning queue only. Selecting an action does not execute production operations.')));
+  const riskGroups=[
+   [t('نیازمند تأیید مستقل','Independent approval required'),backlog.filter(a=>a.executionType==='approval-required')],
+   [t('بحرانی، اجرای دستی','Critical manual'),backlog.filter(a=>a.executionType!=='approval-required'&&a.riskCategory==='CRITICAL')],
+   [t('ریسک بالا، اجرای دستی','High-risk manual'),backlog.filter(a=>a.executionType!=='approval-required'&&a.riskCategory!=='CRITICAL')]
+  ];
+  for(const [label,items] of riskGroups){
+   if(!items.length)continue;
+   const section=el('section',undefined,'ops-backlog-group'),list=el('ol');
+   section.append(el('h3',label+' · '+items.length));
+   for(const action of items){
+    const li=el('li'),button=el('button',action.id+' · '+(en?action.canonicalName:action.displayNameFa));
+    button.type='button';button.addEventListener('click',()=>{reportingView.level='action';reportingView.action=action.id;reportingRender();});
+    li.append(button);list.append(li);
+   }
+   section.append(list);triage.append(section);
+  }
+  host.append(triage);
+ }
  githubAuditRender(host);
  const nav=el('nav',undefined,'ops-toolbar');nav.setAttribute('aria-label',t('موتورهای مدیریتی','Administrative engines'));
  for(const engine of model.engines){const button=el('button',engine.id+' · '+engineName(engine));button.type='button';button.setAttribute('aria-pressed',String(reportingView.level==='engine'&&reportingView.engine===engine.id));button.addEventListener('click',()=>{reportingView.level='engine';reportingView.engine=engine.id;reportingRender();});nav.append(button);}host.append(nav);
