@@ -21,7 +21,7 @@ function goldenTalentBaseSchemaPresent(?PDO $pdo): bool {
             'eco_bahar_reviews'
         ] as $table) {
             // No SELECT of personal records, columns or rows.
-            $pdo->query('SELECT 1 FROM '.$table.' LIMIT 0');
+            if($pdo->query('SELECT 1 FROM '.$table.' LIMIT 0')===false)return false;
         }
         return true;
     } catch (Throwable $e) {
@@ -85,7 +85,7 @@ function goldenTalentMyVerifiedSubjects(PDO $pdo,string $accountId): array {
         if(!goldenTalentAssessmentConsentCurrent(is_array($decisions)?$decisions:[],$now))continue;
         $items[]=[
             'subjectId'=>$subjectId,
-            'displayName'=>mb_substr((string)($row['pseudonym']??''),0,120,'UTF-8'),
+            'displayName'=>(string)($row['pseudonym']??''),
             'relationship'=>'VERIFIED_GUARDIAN',
             'assessmentConsent'=>'CURRENT',
             'availableActions'=>[] // no submissions, reports or entitlements yet
@@ -110,8 +110,8 @@ function goldenTalentRoute(string $path,string $verb): never {
             $items=goldenTalentMyVerifiedSubjects($pdo,$accountId);
             respond(['ok'=>true,'service'=>'golden-talent',
                 'scope'=>'verified_guardian_current_assessment_consent',
-                'learners'=>$items,'limit'=>25,
-                'hasMore'=>false,
+                'learners'=>$items,'candidateScanLimit'=>25,
+                'paginationAvailable'=>false,
                 'privateAssessmentApiActive'=>false,
                 'automaticPaidEntitlement'=>false,
                 'note'=>'Only verified guardian links with current assessment consent are listed. No private assessment data or report access is granted.']);
