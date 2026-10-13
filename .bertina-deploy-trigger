@@ -165,3 +165,4 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 2026-10-13 one-time owner-approved Bertina deployment bootstrap; approved parent 60da137d9f7d4b6894f3fc4ab30b825f11d5ad14, expected previously verified live 92eacc1e8945961f21664692f156b83ddb9f177e. Never delete backups or bypass production gates.
 
 2026-10-13 release automation regression: standard public-only trigger after successful owner bootstrap; no site content, database, payment or server settings changes. Verify repeatable hands-free deployment on Bertina.
+2026-10-13 Stage 7 OP-03 scoped current-release TLS proof; verified read-only production observer, CI MySQL/MFA checks green; deploy canonical branch.
