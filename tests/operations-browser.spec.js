@@ -281,3 +281,26 @@ test('MFA expiry destroys service-order worklist references instead of merely hi
  await expect(page.locator('#ops-commerce-results')).toBeEmpty();
  await expect(page.locator('#ops-commerce')).not.toHaveAttribute('open');
 });
+
+for(const [locale,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
+ for(const width of [320,1440])test(locale+' Stage 7 masterplan contains six development briefs and twelve delivery packages at '+width+'px',async({page})=>{
+  await page.setViewportSize({width,height:900});await authorized(page);await page.goto(base+route);
+  const panel=page.locator('#ops-stage7-blueprint');
+  await expect(panel).toBeVisible();
+  await expect(panel.locator('article.ops-card')).toHaveCount(6);
+  await expect(panel.locator('details.ops-s7-brief')).toHaveCount(6);
+  await expect(panel.locator('li[data-s7-package]')).toHaveCount(12);
+  await panel.locator(':scope > summary').click();
+  await panel.locator('details.ops-s7-brief').first().locator('summary').click();
+  await expect(panel.locator('details.ops-s7-brief').first()).toContainText(locale==='fa'?'معیار پذیرش':'Acceptance criteria');
+  await panel.locator('#ops-s7-delivery-briefs > summary').click();
+  await panel.locator('[data-s7-package="S7-11"] summary').click();
+  await expect(panel.locator('[data-s7-package="S7-11"]')).toContainText(locale==='fa'?'۱۴۴ معیار':'144 gates');
+  const delta=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+  expect(delta).toBeLessThanOrEqual(1);
+ });
+}
+test('Stage 7 development instructions stay within MFA-protected workspace',async({page})=>{
+ await authorized(page,{mfa:true});await page.goto(base+'/fa/app/admin/');
+ await expect(page.locator('#ops-stage7-blueprint')).toBeHidden();
+});

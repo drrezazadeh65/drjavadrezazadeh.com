@@ -22,3 +22,21 @@
 .ops-collector-item input[type=checkbox]{width:20px;height:20px;flex-shrink:0}
 .ops-collector-item input[type=time],.ops-collector-item select,.ops-collector-item button{min-width:0;width:100%}
 @media(max-width:600px){.ops-collection-settings{padding:10px}.ops-collector-list{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Stage 7 living masterplan: expandable, copyable instructions; no JS or API dependency. */
+#ops-stage7-blueprint .ops-card{min-width:0;display:flex;flex-direction:column;gap:8px;overflow-wrap:anywhere}
+#ops-stage7-blueprint .ops-card h3{margin:0}
+#ops-stage7-blueprint .ops-s7-brief{margin-top:auto;border-top:1px solid var(--ops-border);padding-top:12px;min-width:0}
+#ops-stage7-blueprint .ops-s7-brief>summary,#ops-stage7-blueprint .ops-s7-delivery-briefs>summary{cursor:pointer;color:var(--ops-gold);font-weight:700;line-height:1.7;overflow-wrap:anywhere}
+#ops-stage7-blueprint .ops-s7-brief-body{font-size:.89rem;display:grid;gap:8px;min-width:0;padding:12px 0 0;overflow-wrap:anywhere}
+#ops-stage7-blueprint .ops-s7-brief-body p{margin:0}
+#ops-stage7-blueprint .ops-s7-instruction{padding:12px;background:#0c192a;border-inline-start:3px solid var(--ops-gold);border-radius:9px;white-space:normal}
+#ops-stage7-blueprint .ops-s7-delivery-briefs{min-width:0;margin:22px 0 14px;padding:15px;border:1px solid var(--ops-border);border-radius:12px}
+#ops-stage7-blueprint .ops-s7-package-list{list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#ops-stage7-blueprint .ops-s7-package-list li{min-width:0}
+#ops-stage7-blueprint .ops-s7-package-brief{border:1px solid var(--ops-border);border-radius:10px;padding:12px;overflow-wrap:anywhere}
+#ops-stage7-blueprint .ops-s7-package-brief>summary{cursor:pointer;font-weight:700;color:var(--ops-text)}
+#ops-stage7-blueprint .ops-s7-package-brief code{color:var(--ops-gold);font-size:.78rem}
+#ops-stage7-blueprint .ops-s7-package-brief p{margin:9px 0 0}
+@media(max-width:720px){#ops-stage7-blueprint .ops-s7-package-list{grid-template-columns:1fr}#ops-stage7-blueprint .ops-s7-delivery-briefs{padding:10px}}
