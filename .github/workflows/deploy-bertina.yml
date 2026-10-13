@@ -805,7 +805,7 @@ jobs:
               cat /tmp/bertina-backup-prune.commands
               printf 'bye\\n'
             } > /tmp/bertina-backup-prune.lftp
-            timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" -f /tmp/bertina-backup-prune.lftp
+            timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" -e "$(cat /tmp/bertina-backup-prune.lftp)"
           fi
           timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" \
             -e "set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes; set ftp:passive-mode true; set ftp:prefer-epsv false; cd \"$FTP_REMOTE_DIR\"; cls -1 ../backup-*_drjavad1.tar.gz; bye" \
