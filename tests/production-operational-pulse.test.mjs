@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {authContract,commerceContract,guestContract,requireCondition} from '../scripts/production-operational-pulse.mjs';
+import {authContract,commerceContract,guestContract,consultationGate,requireCondition} from '../scripts/production-operational-pulse.mjs';
 
 const healthyAuth={ok:true,service:'auth',ready:true,registrationReady:true,
   database:true,schemaReady:true,email:true,passwordKdf:true};
@@ -38,4 +38,11 @@ test('private endpoints must deny anonymous requests',()=>{
 test('generic invariant helper has exact failure behavior',()=>{
   assert.doesNotThrow(()=>requireCondition(true,'ok'));
   assert.throws(()=>requireCondition(false,'safety_gate'),/safety_gate/);
+});
+
+test('consultation schema failure is a readiness failure, not a privacy success',()=>{
+  assert.equal(consultationGate(401,{ok:false,error:'verified_login_required'}),'anonymous access denied');
+  assert.throws(()=>consultationGate(503,{ok:false,error:'secure_lead_capture_unavailable'}),
+    /consultation_schema_or_runtime_not_ready_http_503/);
+  assert.throws(()=>consultationGate(200,{ok:true,requests:[]}),/guest_private_access/);
 });
