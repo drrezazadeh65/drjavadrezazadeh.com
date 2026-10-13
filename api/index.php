@@ -834,6 +834,10 @@ if(str_starts_with($path,'/growth/')){
     require_once __DIR__.'/growth-stage14.php';
     stage14LeadRoute($path,$verb);
 }
+if(str_starts_with($path,'/golden-talent/')){
+    require_once __DIR__.'/golden-talent.php';
+    goldenTalentRoute($path,$verb);
+}
 if(str_starts_with($path,'/student-support/')){
     require_once __DIR__.'/student-support.php';
     studentSupportRoute($path,$verb);
