@@ -56,7 +56,7 @@ jobs:
           assert owner['backupRestorationIndependentlyVerified'] is False
           assert owner['appliedToLive'] is False
           assert owner['noIndependentRestoreProven'] is True
-          assert owner['requiredGithubActor']=='drrezazadeh65'
+          assert owner['requiredGithubActor']=='authenticated branch writer; manual cPanel dispatch remains restricted to drrezazadeh65'
           assert owner['requiredTypedAcknowledgement']=='ACCEPT_UNTESTED_RESTORE_RISK_V5'
           assert doc['production']['monetaryReleaseAuthorized'] is False
           assert doc['production']['newRealMoneyTestAuthorized'] is False
