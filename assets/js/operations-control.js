@@ -265,7 +265,7 @@ function reportingRender(){
    el('p',t('گزارش‌های باز: ','Open reports: ')+path.totalOpen+' · '+t('بدون وابستگی باز: ','Without open dependencies: ')+path.withoutOpenDependencies+' · '+t('منتظر وابستگی: ','Waiting for dependencies: ')+path.waitingOnDependencies),
    el('p',t('معیارهای نامشخص: ','Unknown gates: ')+path.unknownGates+' · '+t('شواهد منقضی: ','Stale gates: ')+path.staleGates+' · '+t('ناموفق: ','Failed gates: ')+path.failedGates));
   panel.append(el('p',t('رفع وابستگی به معنی تأیید آزمون، مجوز اجرا یا آمادگی محیط عملیاتی نیست.','Clearing dependencies does not certify testing, authorize execution or prove production readiness.')));
-  const list=el('ol',undefined,'ops-queue');
+  const list=el('ol',undefined,'ops-critical-list');
   for(const item of path.items){
    const li=el('li'),btn=el('button',item.id+' · '+(en?item.title:item.titleFa));
    btn.type='button';btn.addEventListener('click',()=>show(item.id));
