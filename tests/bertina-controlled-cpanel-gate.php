@@ -45,6 +45,7 @@ try {
     touch($paths[0],time()+120);
     touch($paths[1],time()+120);
     checkCase(fn()=>drjrCpanelBackupCheck($site,$old,time()),'backup_size_or_future_date');
+    touch($paths[0]);
     touch($paths[1]);
     unlink($paths[1]);
     symlink($paths[0],$paths[1]);
