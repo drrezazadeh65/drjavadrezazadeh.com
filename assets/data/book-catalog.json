@@ -15,7 +15,8 @@
         "publisher": null,
         "publication_year": null,
         "edition": null,
-        "cover_image": "/assets/images/books/sepid-javad-rezazadeh-yazdeli-book-cover-2026.avif"
+        "cover_image": "/assets/images/books/sepid-javad-rezazadeh-yazdeli-book-cover-2026.avif",
+        "back_cover_image": "/assets/images/books/sepidi-back-1200.webp"
       },
       "commerce": {
         "sellable": true,
@@ -42,7 +43,8 @@
         "publisher": null,
         "publication_year": null,
         "edition": null,
-        "cover_image": "/assets/images/books/tariki-javad-rezazadeh-yazdeli-book-cover-2026.avif"
+        "cover_image": "/assets/images/books/tariki-javad-rezazadeh-yazdeli-book-cover-2026.avif",
+        "back_cover_image": "/assets/images/books/tariki-back-1200.webp"
       },
       "commerce": {
         "sellable": true,
@@ -69,7 +71,8 @@
         "publisher": null,
         "publication_year": null,
         "edition": null,
-        "cover_image": "/assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.webp"
+        "cover_image": "/assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.webp",
+        "back_cover_image": "/assets/images/books/bonbast-back-1200.webp"
       },
       "commerce": {
         "sellable": true,
