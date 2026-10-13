@@ -1,0 +1,98 @@
+name: Bertina Owner Admin — Isolated Provisioning Verification
+on:
+  push:
+    branches: [ops/owner-admin-reenrollment-20261013]
+    paths:
+      - 'scripts/bertina-owner-admin-provision-template.php'
+      - 'scripts/render-owner-admin-provision.py'
+      - '.github/workflows/bertina-owner-admin-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    services:
+      mysql:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: fixture-secret-only
+          MARIADB_DATABASE: admin_fixture
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql,openssl,mbstring
+          coverage: none
+      - name: Build disposable clean owner account
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mariadb-client
+          mariadb -h127.0.0.1 -uroot -pfixture-secret-only admin_fixture < docs/BERTINA_MYSQL_SCHEMA.sql
+          php -r '
+          define("BERTINA_API_BOOTSTRAPPED",true);
+          require "api/operations-schema.php";
+          $db=new PDO("mysql:host=127.0.0.1;dbname=admin_fixture;charset=utf8mb4","root","fixture-secret-only",[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+          operationsInstall($db);
+          $db->prepare("INSERT INTO customer_accounts(id,email_normalized,password_hash,status,email_verified_at,created_at,updated_at) VALUES(?,? ,? ,?,? ,? ,?)")
+            ->execute(["00000000-0000-4000-8000-000000000001","dr.rezazadeh65@gmail.com","fixture-disabled","active",1700000000,1700000000,1700000000]);
+          '
+          cat > api/config.local.php <<'PHP'
+          <?php
+          return [
+            'db_dsn'=>'mysql:host=127.0.0.1;dbname=admin_fixture;charset=utf8mb4',
+            'db_user'=>'root',
+            'db_password'=>'fixture-secret-only',
+            'auth_pepper'=>'disposable-fixture-40chars-for-owner-role-confirmation',
+            'operations_admins'=>[]
+          ];
+          PHP
+      - name: Render a one-use token protected PHP helper
+        run: |
+          set -euo pipefail
+          token="$(openssl rand -hex 32)"
+          echo "::add-mask::$token"
+          sha="$(printf '%s' "$token" | sha256sum | cut -d' ' -f1)"
+          python3 scripts/render-owner-admin-provision.py --digest "$sha" --output api/jr-admin-qa.php
+          php -l api/jr-admin-qa.php
+          echo "JR_ADMIN_QA_TOKEN=$token" >> "$GITHUB_ENV"
+      - name: Exercise the full one-use private owner role grant
+        run: |
+          set -euo pipefail
+          php -S 127.0.0.1:19343 -t api > "$RUNNER_TEMP/php-server.log" 2>&1 &
+          p=$!
+          trap 'kill "$p" >/dev/null 2>&1 || true; rm -f api/config.local.php api/jr-admin-qa.php' EXIT
+          sleep 2
+          status="$(curl -sS -o "$RUNNER_TEMP/owner-result.json" -w '%{http_code}' \
+            -H "X-JR-Owner-Provision-Token: $JR_ADMIN_QA_TOKEN" \
+            -X POST http://127.0.0.1:19343/jr-admin-qa.php)"
+          node - "$RUNNER_TEMP/owner-result.json" "$status" <<'NODE'
+          const d=JSON.parse(require('fs').readFileSync(process.argv[2],'utf8'));
+          if(process.argv[3]!=='200'||d.ok!==true||d.role!=='SUPER_ADMIN'||
+            !d.verifiedEmail||d.secretsExposedToGitHub!==false||
+            !d.mfaUserVerificationStillRequired)
+            throw Error('Owner provisioning contract failed: '+JSON.stringify(d));
+          if(!/^jr-owner-mfa-enrollment-[a-f0-9]{20}$/.test(d.privateSetupFolder))
+            throw Error('Invalid private key folder');
+          console.log('PASS role provisioned for verified owner; private TOTP setup requires owner action');
+          NODE
+          php -r '
+          $c=require "api/config.local.php";
+          $d=new PDO($c["db_dsn"],$c["db_user"],$c["db_password"],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+          $q=$d->query("SELECT COUNT(*) FROM operations_admin_memberships WHERE role='\''SUPER_ADMIN'\'' AND enabled=1");
+          if((int)$q->fetchColumn()!==1)throw new Exception("DB admin membership missing");
+          $q=$d->query("SELECT id FROM customer_accounts WHERE email_normalized='\''dr.rezazadeh65@gmail.com'\''");
+          $id=$q->fetchColumn();
+          $secret=$c["operations_admins"][$id]["totp_secret"]??"";
+          if(!preg_match("/^[A-Z2-7]{32}$/D",$secret))throw new Exception("TOTP provision invalid");
+          echo "PASS: verified account ID and confidential TOTP config match one DB membership\n";
+          '
+          echo "This only tested a disposable isolated MariaDB account. It did NOT access Bertina production." >> "$GITHUB_STEP_SUMMARY"
