@@ -40,3 +40,10 @@
 #ops-stage7-blueprint .ops-s7-package-brief code{color:var(--ops-gold);font-size:.78rem}
 #ops-stage7-blueprint .ops-s7-package-brief p{margin:9px 0 0}
 @media(max-width:720px){#ops-stage7-blueprint .ops-s7-package-list{grid-template-columns:1fr}#ops-stage7-blueprint .ops-s7-delivery-briefs{padding:10px}}
+
+/* Stage 7 desktop readability: cards size to their own content rather than stretching to the tallest expanded brief. */
+#ops-stage7-blueprint .ops-grid{align-items:start}
+#ops-stage7-blueprint .ops-card{height:auto;align-self:start}
+#ops-stage7-blueprint .ops-s7-brief{margin-top:12px}
+#ops-stage7-blueprint .ops-s7-brief[open]{margin-bottom:4px}
+#ops-stage7-blueprint .ops-card:focus-within{outline-offset:3px}
