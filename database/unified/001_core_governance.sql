@@ -129,8 +129,7 @@ CREATE TABLE IF NOT EXISTS eco_consent_records (
   KEY idx_eco_consent_subject (subject_id,granted_at),
   FOREIGN KEY (account_id) REFERENCES customer_accounts(id) ON DELETE SET NULL,
   FOREIGN KEY (subject_id) REFERENCES eco_subjects(id) ON DELETE SET NULL,
-  FOREIGN KEY (notice_id) REFERENCES eco_consent_notices(id) ON DELETE RESTRICT,
-  CONSTRAINT ck_eco_consent_owner CHECK (account_id IS NOT NULL OR subject_id IS NOT NULL)
+  FOREIGN KEY (notice_id) REFERENCES eco_consent_notices(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS eco_privacy_requests (
