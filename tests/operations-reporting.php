@@ -26,7 +26,7 @@ check($critical['totalOpen']===2&&$critical['withoutOpenDependencies']===1
     &&$critical['waitingOnDependencies']===1,'Dependency root and waiting counts are wrong');
 check($critical['items'][0]['id']==='OP-02'&&$critical['items'][0]['downstreamOpenReports']===1,
     'Dependency-first triage did not prioritize the report that unblocks the next one');
-check($critical['unknownGates']===4&&$critical['staleGates']===0
+check($critical['unknownGates']===3&&$critical['staleGates']===1
     &&$critical['failedGates']===0,'Triage gate counts included fabricated status');
 $staleRoot=$second;$staleRoot['verifiedGates'][0]['state']='stale';
 $expiredPath=operationsCriticalPath([$first,$staleRoot]);
