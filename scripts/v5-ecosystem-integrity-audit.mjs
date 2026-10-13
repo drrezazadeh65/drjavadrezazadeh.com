@@ -40,6 +40,10 @@ const deploy=read('.github/workflows/deploy-bertina.yml');
 const migrate=read('.github/workflows/bertina-commerce-schema-migrate.yml');
 const commerceRuntime=read('.github/workflows/commerce-live-readiness.yml');
 const stagedSql=read('docs/migrations/20261012_stage09_commerce.sql');
+const goldenShop=read('fa/shop/golden-talent/index.html');
+const goldenDigitalCheckout=read('fa/shop/golden-talent/checkout/index.html');
+const goldenProducts=json('platform/golden-talent-products.json');
+
 
 verify('source: one canonical Bertina branch',truth.repository==='drrezazadeh65/drjavadrezazadeh.com' &&
   truth.canonicalBranch==='migration/bertina-linux6' && truth.developmentSourceCount===1 &&
@@ -112,6 +116,24 @@ verify('commerce: owner dashboard diagnoses checkout blockers without money move
   commerceClient.includes('readiness.replaceChildren()') &&
   !commerceClient.includes("fetch('/api/commerce/prepare'") &&
   !commerceClient.includes('bitpay_api_key'));
+verify('golden talent: professional services reuse the live commerce engine, not digital entitlements',(()=>{
+ const required=['talent_initial','golden_talent_comprehensive','golden_talent_premium'];
+ return required.every(id=>
+   services.services.some(x=>x.id===id&&x.sellable===true&&Number.isSafeInteger(x.price)&&x.price>0) &&
+   goldenShop.includes('/fa/services/checkout/?service='+id) &&
+   goldenShop.includes('/fa/services/'+id+'/')
+ ) &&
+ vip.services.some(x=>x.id==='golden-talent-signature'&&x.sellable===true&&x.checkout_enabled===true) &&
+ goldenShop.includes('/fa/vip/?vip=golden-talent-signature#vip-checkout-heading') &&
+ goldenShop.includes('/fa/assessments/golden-talent/start/') &&
+ goldenShop.includes('ماژول‌های دیجیتال Golden Talent (هنوز قابل خرید نیستند)') &&
+ goldenDigitalCheckout.includes('خرید خودکار ماژول دیجیتال هنوز ارائه نمی‌شود') &&
+ goldenDigitalCheckout.includes('href="/fa/shop/golden-talent/#professional-services"') &&
+ goldenProducts.pricing_status==='not_published' &&
+ goldenProducts.premium.every(x=>x.price===null) &&
+ !goldenShop.includes('هیچ درگاه زنده‌ای در این پیش‌نمایش فعال نیست') &&
+ !goldenShop.includes('href="/api/commerce/create"');
+})());
 verify('commerce: canonical 3/21/6 saleable catalogues',
   books.books.length===3 && services.services.length===21 && vip.services.length===6 &&
   distinct(books.books.map(x=>x.id)) && distinct(services.services.map(x=>x.id)) &&
