@@ -12,6 +12,10 @@
   return /^\/assets\/images\/books\/[a-z0-9][a-z0-9._-]*\.(?:avif|webp|png|jpe?g)$/i.test(path)?root(path):null;
  }
 
+ function bookBackUrl(book){
+  const path=String(book?.bibliography?.back_cover_image||'');
+  return /^\/assets\/images\/books\/[a-z0-9][a-z0-9._-]*\.(?:avif|webp|png|jpe?g)$/i.test(path)?root(path):null;
+ }
  const API='/api';
  // Catalogue prices never authorise payment. The live Worker must explicitly permit books.
  let bookPaymentReady=false;
@@ -103,7 +107,9 @@
   document.title=(isFa?b.title_fa:b.english_reference_title)+' | '+(isFa?'فروشگاه کتاب':'Bookstore');
   const detailCoverSrc=bookCoverUrl(b);
   const detailCover=detailCoverSrc?'<figure class="book-cover"><img src="'+escapeHtml(detailCoverSrc)+'" width="600" height="900" decoding="async" alt="'+escapeHtml(isFa?'جلد کتاب «'+b.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+b.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong>'+escapeHtml(b.title_fa)+'</strong></div>';
-  host.innerHTML='<div class="book-detail-layout">'+detailCover+'<div class="book-detail-copy"><p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+escapeHtml(b.title_fa)+'</h1>'+
+  const backSrc=bookBackUrl(b);
+  const backCover=backSrc?'<figure class="book-cover book-back-cover"><img src="'+escapeHtml(backSrc)+'" width="900" height="600" loading="lazy" decoding="async" alt="'+escapeHtml(isFa?'پشت جلد کتاب «'+b.title_fa+'»':'Back cover of '+b.english_reference_title)+'"></figure>':'';
+  host.innerHTML='<div class="book-detail-layout">'+detailCover+backCover+'<div class="book-detail-copy"><p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+escapeHtml(b.title_fa)+'</h1>'+
    '<p class="lead">'+escapeHtml(isFa?b.description_fa:b.description_en)+'</p>'+
    '<dl class="book-meta"><div><dt>'+(isFa?'نویسنده':'Author')+'</dt><dd>Javad Rezazadeh Yazdeli</dd></div>'+
    '<div><dt>ISBN</dt><dd>'+escapeHtml(b.bibliography.isbn||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
