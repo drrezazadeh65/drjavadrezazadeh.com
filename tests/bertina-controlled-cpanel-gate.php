@@ -42,8 +42,8 @@ try {
     chmod($paths[1],0644);
     checkCase(fn()=>drjrCpanelBackupCheck($site,$old,time()),'backup_permissions_or_owner');
     chmod($paths[1],0600);
-    touch($paths[0],time()-8*86400);
-    touch($paths[1],time()-8*86400);
+    touch($paths[0],time()+120);
+    touch($paths[1],time()+120);
     checkCase(fn()=>drjrCpanelBackupCheck($site,$old,time()),'backup_size_or_future_date');
     touch($paths[1]);
     unlink($paths[1]);
