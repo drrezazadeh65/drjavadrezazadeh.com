@@ -37,7 +37,7 @@ function installGtag(config){
 
 function send(detail){
   const config=state.config;
-  if(!state.ready||!config?.enabled||!state.loaded||typeof window.gtag!=='function') return;
+  if(!state.ready||!config?.enabled||!state.loaded||!consentGranted(config)||typeof window.gtag!=='function') return;
   const allowed=new Set(config.allowed_client_events||[]);
   const eventKey=safeToken(detail?.event_key);
   if(!allowed.has(eventKey)) return;
@@ -68,6 +68,12 @@ window.JRAnalyticsConsent={
     const cfg=state.config;
     if(!cfg) return false;
     try{localStorage.setItem(cfg.consent.storage_key,cfg.consent.granted_value);}catch(_){return false;}
+    if(state.loaded){
+      if(typeof window.gtag==='function') window.gtag('consent','update',{
+        analytics_storage:'granted',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'
+      });
+      return true;
+    }
     return installGtag(cfg);
   },
   deny:()=>{
