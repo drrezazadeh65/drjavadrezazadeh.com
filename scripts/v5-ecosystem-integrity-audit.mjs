@@ -4,6 +4,8 @@
  * Usage: node scripts/v5-ecosystem-integrity-audit.mjs [private-output-path]
  */
 import assert from 'node:assert/strict';
+// Author-manuscript crosswalk remains a mandatory scientific source acceptance gate.
+import '../platform/golden-talent-book-crosswalk.test.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
