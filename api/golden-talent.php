@@ -10,11 +10,15 @@ function goldenTalentBaseSchemaPresent(?PDO $pdo): bool {
     if (!$pdo) return false;
     try {
         foreach ([
-            'eco_subjects','eco_consent_records','eco_talent_evidence',
-            'eco_talent_evidence_reviews','eco_talent_profiles',
-            'eco_talent_profile_revisions','eco_rcas_route_runs',
-            'eco_rcas_route_evidence','eco_golden_path_releases',
-            'eco_bahar_portfolios','eco_bahar_weekly_cycles'
+            'eco_subjects','eco_subject_relationships','eco_consent_notices',
+            'eco_consent_records','eco_privacy_requests','eco_object_refs',
+            'eco_audit_events','eco_talent_evidence','eco_talent_evidence_reviews',
+            'eco_talent_profiles','eco_talent_profile_revisions',
+            'eco_rcas_route_runs','eco_rcas_route_evidence',
+            'eco_golden_path_releases','eco_golden_path_actions',
+            'eco_bahar_portfolios','eco_bahar_baselines',
+            'eco_bahar_weekly_cycles','eco_bahar_learning_evidence',
+            'eco_bahar_reviews'
         ] as $table) {
             // No SELECT of personal records, columns or rows.
             $pdo->query('SELECT 1 FROM '.$table.' LIMIT 0');
