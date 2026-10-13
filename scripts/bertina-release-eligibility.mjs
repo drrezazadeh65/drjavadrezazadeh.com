@@ -9,6 +9,7 @@
  * and unshipped-only diffs remain fail-closed.
  */
 import fs from 'node:fs';
+import {spawnSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 import {classifyGitDelta} from './bertina-auto-release-policy.mjs';
 
@@ -23,7 +24,75 @@ export function requiresManualActivation(path) {
     || ['.bertina-backup-trigger','AGENTS.md'].includes(path);
 }
 
-export function decideAutomaticRelease(delta, scope='full') {
+
+// One-time owner activation solves the initial GitHub/live-SHA bootstrap
+// without making arbitrary CI, recovery or database edits auto-deployable.
+// The authority manifest and deploy trigger must be the ONLY files in the
+// final owner-authored commit. The manifest binds that commit to its exact
+// parent and the live fingerprint; it must not exist in the parent tree.
+const BOOTSTRAP_ALLOWED_AUTHORITY = new Set([
+  '.github/workflows/deploy-bertina.yml',
+  '.github/workflows/bertina-deployment-readiness.yml',
+  'scripts/bertina-release-eligibility.mjs',
+  'scripts/build-public-site.mjs',
+  '.bertina-bootstrap-authorization.json'
+]);
+const BOOTSTRAP_FINAL_FILES = [
+  '.bertina-bootstrap-authorization.json',
+  '.bertina-deploy-trigger'
+];
+
+export function verifyOneTimeOwnerBootstrap(delta, context) {
+  if (!context || !delta?.groups || !Array.isArray(context.finalFiles)) return false;
+  const authorization=context.authorization;
+  if (!authorization || typeof authorization!=='object') return false;
+  if (context.event!=='push' || context.actor!=='drrezazadeh65' ||
+      context.ref!=='refs/heads/migration/bertina-linux6') return false;
+  if (authorization.schema!=='bertina-one-time-owner-bootstrap-v1' ||
+      authorization.owner!=='drrezazadeh65' ||
+      authorization.acknowledgement!=='ACCEPT_UNTESTED_RESTORE_RISK_V5') return false;
+  if (!/^[a-f0-9]{40}$/.test(context.base||'') ||
+      !/^[a-f0-9]{40}$/.test(context.head||'') ||
+      !/^[a-f0-9]{40}$/.test(context.parent||'') ||
+      authorization.expectedLiveSha!==context.base ||
+      authorization.approvedParentSha!==context.parent ||
+      context.head!==delta.head || context.base!==delta.base ||
+      context.authorizationExistedInParent!==false) return false;
+  if (JSON.stringify([...new Set(context.finalFiles)].sort())!==
+      JSON.stringify(BOOTSTRAP_FINAL_FILES.slice().sort())) return false;
+  const paths=[...delta.groups.public,...delta.groups.controlled,...delta.groups.unshipped];
+  if (!paths.includes('.bertina-bootstrap-authorization.json') ||
+      !paths.includes('.bertina-deploy-trigger')) return false;
+  const guarded=paths.filter(requiresManualActivation);
+  if (!guarded.length || guarded.some(p=>!BOOTSTRAP_ALLOWED_AUTHORITY.has(p))) return false;
+  return true;
+}
+
+function runGitBootstrap(args) {
+  const run=spawnSync('git',args,{encoding:'utf8',maxBuffer:100000});
+  if(run.error||run.status!==0) throw Error('Unable to verify owner bootstrap Git evidence');
+  return run.stdout.trim();
+}
+
+function getOneTimeBootstrapEvidence(base,head) {
+  // Fail closed on any untrusted environment, malformed or stale manifest.
+  try {
+    if (process.env.GITHUB_EVENT_NAME!=='push' ||
+        process.env.GITHUB_ACTOR!=='drrezazadeh65' ||
+        process.env.GITHUB_REF!=='refs/heads/migration/bertina-linux6') return null;
+    if (runGitBootstrap(['rev-parse','HEAD'])!==head) return null;
+    const parent=runGitBootstrap(['rev-parse',head+'^']);
+    const finalFiles=runGitBootstrap(['diff','--name-only','--no-renames',parent,head]).split('\n').filter(Boolean);
+    const existed=spawnSync('git',['cat-file','-e',parent+':.bertina-bootstrap-authorization.json'],{encoding:'utf8'});
+    if (existed.error || existed.status===0) return null;
+    const authorization=JSON.parse(fs.readFileSync('.bertina-bootstrap-authorization.json','utf8'));
+    return {event:process.env.GITHUB_EVENT_NAME,actor:process.env.GITHUB_ACTOR,
+      ref:process.env.GITHUB_REF,base,head,parent,finalFiles,authorization,
+      authorizationExistedInParent:false};
+  } catch { return null; }
+}
+
+export function decideAutomaticRelease(delta, scope='full', bootstrapContext=null) {
   if (!['full','public_only'].includes(scope)) throw Error('Unknown automatic release scope');
   if (!delta || !delta.groups || typeof delta.canAutomaticallyDeploy!=='boolean')
     throw Error('Invalid release classification');
@@ -33,13 +102,16 @@ export function decideAutomaticRelease(delta, scope='full') {
   if (published.length+controlled.length===0)
     return {allowed:false,reason:'No deployable source changes'};
   const manual=[...published,...controlled,...unshipped].filter(requiresManualActivation);
-  if(manual.length)
+  const ownerBootstrap=scope==='full' && verifyOneTimeOwnerBootstrap(delta,bootstrapContext);
+  if(manual.length && !ownerBootstrap)
     return {allowed:false,reason:'Deployment authority or server/database provisioning requires deliberate activation',manual};
   if (scope==='public_only' && !delta.canAutomaticallyDeploy)
     return {allowed:false,reason:'Controlled changes require manual release in public_only mode'};
-  return {allowed:true,reason:scope==='full'
-    ? 'Full automatic release eligible for mandatory production preflight'
-    : 'Public-only automatic release eligible for mandatory production preflight'};
+  return {allowed:true,reason:ownerBootstrap
+    ? 'One-time owner-authorized activation eligible for mandatory production preflight'
+    : scope==='full'
+      ? 'Full automatic release eligible for mandatory production preflight'
+      : 'Public-only automatic release eligible for mandatory production preflight'};
 }
 
 if (process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) {
@@ -47,7 +119,7 @@ if (process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) {
     const [base,head]=process.argv.slice(2);
     const scope=process.env.BERTINA_AUTO_DEPLOY_SCOPE||'full';
     const delta=classifyGitDelta(base,head);
-    const decision=decideAutomaticRelease(delta,scope);
+    const decision=decideAutomaticRelease(delta,scope,getOneTimeBootstrapEvidence(base,head));
     const lines=[
       'Automatic release scope: '+scope,
       'Live release SHA: '+base,

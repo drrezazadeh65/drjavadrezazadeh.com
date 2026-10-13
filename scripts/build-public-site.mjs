@@ -7,7 +7,7 @@ checkStylesheetBundles();
 const root=process.cwd();
 const out=path.join(root,'.public-site');
 const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundation','node_modules','platform','database','migrations','scripts','tests','test-results','proposals','work','.public-site']);
-const excludedRoot=new Set(['README.md','AGENTS.md','.bertina-deploy-trigger','.bertina-backup-trigger','CACHE_STANDARD.md','CNAME','_headers','_redirects','_config.yml']);
+const excludedRoot=new Set(['README.md','AGENTS.md','.bertina-deploy-trigger','.bertina-backup-trigger','.bertina-bootstrap-authorization.json','CACHE_STANDARD.md','CNAME','_headers','_redirects','_config.yml']);
 const excludedExact=new Set(['assets/media-registry.json','assets/release-v4.4.json']);
 const forbiddenReleasePath=/(?:^|\/)(?:\.env(?:\.[^/]*)?|config\.local\.php|[^/]+\.(?:pem|p12|pfx|key|sql|bak|dump))$/i;
 

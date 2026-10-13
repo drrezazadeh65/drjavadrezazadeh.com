@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {classifyPaths} from '../scripts/bertina-auto-release-policy.mjs';
-import {decideAutomaticRelease} from '../scripts/bertina-release-eligibility.mjs';
+import {decideAutomaticRelease,verifyOneTimeOwnerBootstrap} from '../scripts/bertina-release-eligibility.mjs';
 
 test('full-scope release permits backend and public changes to enter mandatory preflight',()=>{
   const delta=classifyPaths(['api/auth.php','fa/index.html','assets/js/site.js']);
@@ -57,4 +57,56 @@ test('other backend, JavaScript and public changes remain eligible in full mode'
     const result=decideAutomaticRelease(classifyPaths([path]),'full');
     assert.equal(result.allowed,true,path);
   }
+});
+
+
+test('owner-bound single-use activation permits only the known bootstrap authority set',()=>{
+  const base='a'.repeat(40), parent='b'.repeat(40), head='c'.repeat(40);
+  const paths=[
+    '.github/workflows/deploy-bertina.yml',
+    '.github/workflows/bertina-deployment-readiness.yml',
+    'scripts/bertina-release-eligibility.mjs',
+    'scripts/build-public-site.mjs',
+    '.bertina-bootstrap-authorization.json',
+    '.bertina-deploy-trigger',
+    'fa/index.html'
+  ];
+  const delta={...classifyPaths(paths),base,head};
+  const context={
+    event:'push',actor:'drrezazadeh65',ref:'refs/heads/migration/bertina-linux6',
+    base,head,parent,
+    authorizationExistedInParent:false,
+    finalFiles:['.bertina-deploy-trigger','.bertina-bootstrap-authorization.json'],
+    authorization:{
+      schema:'bertina-one-time-owner-bootstrap-v1',
+      owner:'drrezazadeh65',expectedLiveSha:base,approvedParentSha:parent,
+      acknowledgement:'ACCEPT_UNTESTED_RESTORE_RISK_V5'
+    }
+  };
+  assert.equal(verifyOneTimeOwnerBootstrap(delta,context),true);
+  assert.equal(decideAutomaticRelease(delta,'full',context).allowed,true);
+  assert.equal(decideAutomaticRelease(delta,'public_only',context).allowed,false);
+  for(const changes of [
+    {actor:'attacker'}, {event:'pull_request'}, {parent:'d'.repeat(40)},
+    {authorizationExistedInParent:true},
+    {finalFiles:['.bertina-deploy-trigger','.bertina-bootstrap-authorization.json','api/auth.php']},
+    {authorization:{...context.authorization,expectedLiveSha:'d'.repeat(40)}},
+    {authorization:{...context.authorization,acknowledgement:''}}
+  ]) {
+    const modified={...context,...changes};
+    assert.equal(verifyOneTimeOwnerBootstrap(delta,modified),false);
+    assert.equal(decideAutomaticRelease(delta,'full',modified).allowed,false);
+  }
+  const sql={...classifyPaths([...paths,'database/ddl.sql']),base,head};
+  assert.equal(decideAutomaticRelease(sql,'full',context).allowed,false);
+  const secrets={...classifyPaths([...paths,'api/config.local.php']),base,head};
+  assert.equal(decideAutomaticRelease(secrets,'full',context).allowed,false);
+});
+
+test('the single-use owner manifest cannot authorize normal production changes in future commits',()=>{
+  const base='a'.repeat(40), head='c'.repeat(40);
+  const normal={...classifyPaths(['fa/index.html','api/commerce/health.php']),base,head};
+  assert.equal(decideAutomaticRelease(normal,'full').allowed,true);
+  const guarded={...classifyPaths(['fa/index.html','scripts/bertina-release-eligibility.mjs']),base,head};
+  assert.equal(decideAutomaticRelease(guarded,'full').allowed,false);
 });
