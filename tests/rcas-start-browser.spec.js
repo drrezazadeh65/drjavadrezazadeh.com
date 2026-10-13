@@ -12,9 +12,12 @@ test('RCAS Start requires all 28 items, preserves privacy and routes without sco
   await page.locator('[data-next="3"]').click();
   await expect(page.locator('.rcas-panel[data-step="2"]')).toHaveClass(/active/);
   await expect(page.locator('#rcasCoreStatus')).toContainText('۲۸ گزاره');
-  for(const fieldset of await page.locator('#rcasCore .rcas-item').all()){
-    await fieldset.locator('input[type="radio"]').first().check();
-  }
+  // RCAS styles accessible labels over visually-hidden input controls;
+  // native input clicks preserve the change event without Playwright trying to
+  // scroll onto the hidden pixel target beneath the sticky site header.
+  await page.locator('#rcasCore .rcas-item').evaluateAll(items=>{
+    for(const item of items)item.querySelector('input[type="radio"]')?.click();
+  });
   await expect(page.locator('#rcasCoreStatus')).toContainText('28 از ۲۸');
   await page.locator('[data-next="3"]').click();
   await expect(page.locator('.rcas-panel[data-step="3"]')).toHaveClass(/active/);
@@ -41,9 +44,12 @@ test('RCAS Start requires all 28 items, preserves privacy and routes without sco
 test('RCAS Start cannot generate routing or completion without domain selection',async({page})=>{
   await page.goto(base+start);
   await page.locator('[data-next="2"]').click();
-  for(const fieldset of await page.locator('#rcasCore .rcas-item').all()){
-    await fieldset.locator('input[type="radio"]').last().check(); // UNKNOWN is valid and not counted as zero
-  }
+  await page.locator('#rcasCore .rcas-item').evaluateAll(items=>{
+    for(const item of items){
+      const choices=item.querySelectorAll('input[type="radio"]');
+      choices[choices.length-1]?.click(); // UNKNOWN is distinct from zero and NA
+    }
+  });
   await page.locator('[data-next="3"]').click();
   await expect(page.locator('.rcas-panel[data-step="3"]')).toHaveClass(/active/);
   await page.locator('#showRoute').click();
