@@ -42,9 +42,10 @@ test('RCAS Start cannot generate routing or completion without domain selection'
   await page.goto(base+start);
   await page.locator('[data-next="2"]').click();
   for(const fieldset of await page.locator('#rcasCore .rcas-item').all()){
-    await fieldset.locator('input[type="radio"]').last().check(); // NA counts as answered, not zero
+    await fieldset.locator('input[type="radio"]').last().check(); // UNKNOWN is valid and not counted as zero
   }
   await page.locator('[data-next="3"]').click();
+  await expect(page.locator('.rcas-panel[data-step="3"]')).toHaveClass(/active/);
   await page.locator('#showRoute').click();
   await expect(page.locator('#rcasResult')).toContainText('D1 تا D6');
   expect(await page.evaluate(()=>sessionStorage.getItem('gt_rcas_state'))).toBe(null);
