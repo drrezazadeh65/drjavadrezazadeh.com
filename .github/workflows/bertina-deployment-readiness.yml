@@ -8,6 +8,8 @@ on:
     paths:
       - '.github/workflows/deploy-bertina.yml'
       - 'scripts/bertina-auto-release-policy.mjs'
+      - 'scripts/bertina-release-eligibility.mjs'
+      - 'tests/bertina-release-eligibility.test.mjs'
       - '.github/workflows/bertina-deployment-readiness.yml'
 
 permissions:
@@ -27,8 +29,11 @@ jobs:
       - name: Check policy syntax and tests
         run: |
           node --check scripts/bertina-auto-release-policy.mjs
-          node --test tests/bertina-auto-release-policy.test.mjs
+          node --check scripts/bertina-release-eligibility.mjs
+          node --test tests/bertina-auto-release-policy.test.mjs tests/bertina-release-eligibility.test.mjs
       - name: Diagnose current live-to-source delta (no deployment)
+        env:
+          BERTINA_AUTO_DEPLOY_SCOPE: ${{ vars.BERTINA_AUTO_DEPLOY_SCOPE || 'full' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -53,8 +58,10 @@ jobs:
             echo "Target is already the recorded live version." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          if node scripts/bertina-auto-release-policy.mjs "$live_sha" "$GITHUB_SHA"; then
-            echo "Public-only auto-release policy: eligible. Full deployment checks are still required." >> "$GITHUB_STEP_SUMMARY"
+          # The production workflow still performs all build, recovery and origin checks.
+          export BERTINA_AUTO_DEPLOY_SCOPE="${BERTINA_AUTO_DEPLOY_SCOPE:-full}"
+          if node scripts/bertina-release-eligibility.mjs "$live_sha" "$GITHUB_SHA"; then
+            echo "Auto-release source eligibility: passed in $BERTINA_AUTO_DEPLOY_SCOPE mode. Production checks NOT executed here." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "Public-only auto-release policy: blocked. See controlled paths above. This is diagnostic only." >> "$GITHUB_STEP_SUMMARY"
+            echo "Auto-release source eligibility: blocked in $BERTINA_AUTO_DEPLOY_SCOPE mode. This job never deploys." >> "$GITHUB_STEP_SUMMARY"
           fi
