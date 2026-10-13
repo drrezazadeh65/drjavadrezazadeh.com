@@ -158,4 +158,6 @@ Preserve payment fail-closed configuration and private admin MFA provisioning.
 
 2026-10-13 owner-requested publish retry: rerun the established Bertina deployment workflow from the current branch HEAD; preserve all source, database, TLS, backup/recovery, stale-HEAD, security and live fingerprint gates. Do not change deployment defaults or bypass any failed gate.
 
-2026-10-13 — bilingual action-first cinematic academic homepage refresh. Source: migration/bertina-linux6 at 81f53b48753ba6db628695c14b6b9168e9165ae2. Preserve current five-item mobile dock, PWA behavior, privacy/security, SEO, checkout and all Bertina release gates; verify Persian/English homepages at desktop and mobile before publication.
+2026-10-13 — bilingual action-first cinematic academic homepage refresh. Source: migration/bertina-linux6 at 5a1c5abd21ceca38006444e40cbc284e790c828a. Preserve current five-item mobile dock, PWA behavior, privacy/security, SEO, checkout and all Bertina release gates; verify Persian/English homepages at desktop and mobile before publication.
+
+2026-10-13 — release retry after synchronizing the bilingual homepage cache regression assertion with the published stylesheet revision. Preserve all production and recovery gates.
