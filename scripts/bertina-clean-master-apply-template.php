@@ -55,13 +55,16 @@ function verifiedPreflight(PDO $db): array {
  $total=array_sum($counts);
  if($total<278 || $total>380)throw new RuntimeException('unapproved_record_count_change');
  $paid=(int)$db->query("SELECT COUNT(*) FROM commerce_orders WHERE state='paid'")->fetchColumn();
- if($paid!==0)throw new RuntimeException('paid_order_exists');
+ // The owner explicitly confirmed on 2026-10-13 that the ONE marked-paid
+ // order is synthetic and approved its removal. Keep the count pinned so
+ // newly appearing paid orders still block this one-time operation.
+ if($paid!==1)throw new RuntimeException('approved_test_paid_order_count_changed');
  foreach(['commerce_payment_claims','commerce_book_reservations','commerce_stock_movements','commerce_parcels','commerce_refund_requests'] as $table)
    if($counts[$table]!==0)throw new RuntimeException('pending_financial_or_shipment_activity_'.$table);
  if((int)$db->query('SELECT COALESCE(SUM(reserved),0) FROM commerce_book_stock')->fetchColumn()!==0)
    throw new RuntimeException('active_stock_reservation');
  return ['originalTables'=>count($names),'originalRows'=>$total,'accounts'=>2,'orders'=>2,
-  'adminMemberships'=>1,'bookStockRows'=>3,'paidOrders'=>0,
+  'adminMemberships'=>1,'bookStockRows'=>3,'paidOrders'=>$paid,
   'databaseVersion'=>(string)$db->query('SELECT VERSION()')->fetchColumn()];
 }
 function readSnapshot(PDO $db,array $names): array {
