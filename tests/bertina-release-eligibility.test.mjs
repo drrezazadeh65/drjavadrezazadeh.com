@@ -29,3 +29,30 @@ test('unrecognized mode and malformed source classification always fail closed',
   assert.throws(()=>decideAutomaticRelease(null,'full'),/Invalid release classification/);
   assert.throws(()=>decideAutomaticRelease({groups:{public:[],controlled:[]},canAutomaticallyDeploy:false},'full'),/Incomplete release classification/);
 });
+
+test('full mode refuses deployment-authority, migration and credential changes',()=>{
+  const guarded=[
+    '.github/workflows/deploy-bertina.yml',
+    '.github/workflows/new-check.yml',
+    'scripts/bertina-release-eligibility.mjs',
+    'scripts/bertina-private-recovery-gate.php',
+    'scripts/build-public-site.mjs',
+    'database/schema.sql',
+    'migrations/2026_10_add.sql',
+    '.bertina-backup-trigger',
+    '.htaccess',
+    'api/config.local.php',
+    'docs/governance/RELEASE_POLICY.md'
+  ];
+  for(const path of guarded){
+    const result=decideAutomaticRelease(classifyPaths(['fa/index.html',path]),'full');
+    assert.equal(result.allowed,false,path);
+    assert.ok(result.manual.includes(path),path);
+  }
+});
+test('other backend, JavaScript and public changes remain eligible in full mode',()=>{
+  for(const path of ['api/commerce/health.php','assets/js/customer-dashboard.js','platform/service-registry.json']){
+    const result=decideAutomaticRelease(classifyPaths([path]),'full');
+    assert.equal(result.allowed,true,path);
+  }
+});
