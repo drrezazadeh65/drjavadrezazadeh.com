@@ -12,6 +12,8 @@ on:
       - 'docs/migrations/20261013_stage09_pre_migration_mariadb_readonly.sql'
       - 'docs/governance/STAGE09_OWNER_INVENTORY_DECLARATION_20261013.json'
       - 'tests/stage09-mysql.php'
+      - 'api/operations-fulfilment.php'
+      - 'tests/commerce-service-advance-mysql.php'
       - 'tests/bertina-commerce-mysql-contract.php'
       - 'tests/stage09-commerce-atomic.php'
       - 'docs/migrations/20261013_stage09_bertina_owner_approved.sql'
@@ -52,6 +54,8 @@ jobs:
           php -l api/commerce-stage9.php
           php -l api/operations-commerce.php
           php -l tests/stage09-mysql.php
+          php -l api/operations-fulfilment.php
+          php -l tests/commerce-service-advance-mysql.php
           php -l tests/stage09-commerce-atomic.php
           php -l tests/stage09-owner-stock-mariadb.php
           python3 - <<'PY'
@@ -97,6 +101,7 @@ jobs:
           set -euo pipefail
           php tests/stage09-commerce-atomic.php
           php tests/stage09-mysql.php
+          php tests/commerce-service-advance-mysql.php
           php tests/stage09-owner-stock-mariadb.php
           php tests/bertina-commerce-mysql-contract.php
           echo 'MariaDB Stage09 fixture PASS: isolated test schema, no live credentials or production writes'
