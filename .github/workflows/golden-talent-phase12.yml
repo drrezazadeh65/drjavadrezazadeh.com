@@ -10,6 +10,26 @@ on:
       - "platform/golden-talent-instruments.json"
       - "platform/golden-talent-engine.mjs"
       - "platform/golden-talent-engine.test.mjs"
+      - "platform/bahar-engine.mjs"
+      - "platform/bahar-engine.test.mjs"
+      - "platform/bahar-persistence.mjs"
+      - "platform/bahar-persistence.test.mjs"
+      - "platform/golden-talent-book-crosswalk.v1.json"
+      - "platform/golden-talent-book-crosswalk.test.mjs"
+      - "api/golden-talent.php"
+      - "assets/js/bahar-readiness.js"
+      - "assets/js/bahar-guardian-overview.js"
+      - "tests/golden-talent-guardian.php"
+      - "tests/bahar-bertina-schema.php"
+      - "tests/bahar-guardian-mysql.php"
+      - "tests/bahar-readiness-browser.spec.js"
+      - "tests/bahar-guardian-browser.spec.js"
+      - "tests/rcas-start-browser.spec.js"
+      - "fa/app/student/bahar/index.html"
+      - "en/golden-talent/dashboard/bahar/index.html"
+      - "fa/golden-talent/roles/parent/index.html"
+      - "en/golden-talent/roles/parent/index.html"
+      - "assets/js/rcas-start.js"
       - ".github/workflows/golden-talent-phase12.yml"
   pull_request:
     paths:
@@ -19,6 +39,26 @@ on:
       - "platform/golden-talent-instruments.json"
       - "platform/golden-talent-engine.mjs"
       - "platform/golden-talent-engine.test.mjs"
+      - "platform/bahar-engine.mjs"
+      - "platform/bahar-engine.test.mjs"
+      - "platform/bahar-persistence.mjs"
+      - "platform/bahar-persistence.test.mjs"
+      - "platform/golden-talent-book-crosswalk.v1.json"
+      - "platform/golden-talent-book-crosswalk.test.mjs"
+      - "api/golden-talent.php"
+      - "assets/js/bahar-readiness.js"
+      - "assets/js/bahar-guardian-overview.js"
+      - "tests/golden-talent-guardian.php"
+      - "tests/bahar-bertina-schema.php"
+      - "tests/bahar-guardian-mysql.php"
+      - "tests/bahar-readiness-browser.spec.js"
+      - "tests/bahar-guardian-browser.spec.js"
+      - "tests/rcas-start-browser.spec.js"
+      - "fa/app/student/bahar/index.html"
+      - "en/golden-talent/dashboard/bahar/index.html"
+      - "fa/golden-talent/roles/parent/index.html"
+      - "en/golden-talent/roles/parent/index.html"
+      - "assets/js/rcas-start.js"
       - ".github/workflows/golden-talent-phase12.yml"
 
 permissions:
@@ -37,3 +77,63 @@ jobs:
         run: node platform/golden-talent-phase12-gates.test.mjs
       - name: Existing non-normative evidence routing regression
         run: node platform/golden-talent-engine.test.mjs
+ 
+  private-bahar:
+    name: BAHAR consent and longitudinal safety
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password
+          MYSQL_DATABASE: operations_fixture
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -pfixture-password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
+      OPERATIONS_TEST_USER: root
+      OPERATIONS_TEST_PASSWORD: fixture-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify PHP MySQL extension
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y php-cli php-mysql
+          php -m | grep -iq pdo_mysql
+      - name: Book alignment and evidence-safe BAHAR engine tests
+        run: |
+          node --check platform/bahar-engine.mjs
+          node --check platform/bahar-persistence.mjs
+          node --check assets/js/bahar-readiness.js
+          node --check assets/js/bahar-guardian-overview.js
+          node platform/golden-talent-book-crosswalk.test.mjs
+          node platform/bahar-engine.test.mjs
+          node platform/bahar-persistence.test.mjs
+          php -l api/golden-talent.php
+          php -l tests/golden-talent-guardian.php
+          php -l tests/bahar-bertina-schema.php
+          php -l tests/bahar-guardian-mysql.php
+          php tests/golden-talent-guardian.php
+      - name: Isolated MySQL guardian and schema regression
+        run: |
+          php tests/bahar-bertina-schema.php
+          php tests/bahar-guardian-mysql.php
+      - name: Browser privacy and bilingual contract tests
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/gt-browser.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          npx playwright test tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js --reporter=line
