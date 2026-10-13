@@ -43,6 +43,11 @@ const stagedSql=read('docs/migrations/20261012_stage09_commerce.sql');
 const goldenShop=read('fa/shop/golden-talent/index.html');
 const goldenDigitalCheckout=read('fa/shop/golden-talent/checkout/index.html');
 const goldenProducts=json('platform/golden-talent-products.json');
+const goldenApi=read('api/golden-talent.php');
+const rcasClient=read('assets/js/rcas-start.js');
+const rcasPage=read('fa/assessments/golden-talent/start/index.html');
+const studentDashboard=read('assets/js/student-dashboard.js');
+const studentDashboardPage=read('fa/app/student/index.html');
 
 
 verify('source: one canonical Bertina branch',truth.repository==='drrezazadeh65/drjavadrezazadeh.com' &&
@@ -116,6 +121,33 @@ verify('commerce: owner dashboard diagnoses checkout blockers without money move
   commerceClient.includes('readiness.replaceChildren()') &&
   !commerceClient.includes("fetch('/api/commerce/prepare'") &&
   !commerceClient.includes('bitpay_api_key'));
+verify('golden talent: capability API is source-bounded, non-diagnostic and non-mutating',
+  index.includes("if(str_starts_with($path,'/golden-talent/'))") &&
+  index.includes("goldenTalentRoute($path,$verb)") &&
+  goldenApi.includes("'/golden-talent/health' && $verb==='GET'") &&
+  goldenApi.includes("'privateAssessmentApiActive'=>false") &&
+  goldenApi.includes("'profilePersistenceActive'=>false") &&
+  goldenApi.includes("'automaticDigitalEntitlement'=>false") &&
+  goldenApi.includes("'normativeScoring'=>false") &&
+  goldenApi.includes("'serverResponseStorage'=>false") &&
+  goldenApi.includes("SELECT 1 FROM '.$table.' LIMIT 0") &&
+  !goldenApi.includes('INSERT INTO') && !goldenApi.includes('UPDATE ') &&
+  !goldenApi.includes('DELETE FROM'));
+verify('rcas: Core 28 completion, self-selected routing and no private-response persistence',
+  rcasClient.includes('CORE_ITEM_IDS.length!==28') &&
+  rcasClient.includes('if(Number(n)===3&&!coreComplete())return;') &&
+  rcasClient.includes('if(!coreComplete())') &&
+  rcasClient.includes('routeBasis:"SELF_SELECTED_UNVALIDATED"') &&
+  rcasClient.includes('completedItemCount:28') &&
+  rcasClient.includes('explanation.textContent=why') &&
+  rcasClient.includes('sessionStorage.removeItem("gt_rcas_state")') &&
+  !rcasClient.includes('why.replace(') &&
+  !rcasClient.includes('/api/rcas/submit') &&
+  rcasPage.includes('id="rcasCoreStatus"') &&
+  rcasPage.includes('rcas-start.js?v=20261014-core28-privacy-v2') &&
+  studentDashboard.includes('s.completedItemCount!==28') &&
+  studentDashboard.includes('s.routeBasis!=="SELF_SELECTED_UNVALIDATED"') &&
+  studentDashboardPage.includes('student-dashboard.js?v=20261014-rcas-28-v2'));
 verify('golden talent: professional services reuse the live commerce engine, not digital entitlements',(()=>{
  const required=['talent_initial','golden_talent_comprehensive','golden_talent_premium'];
  return required.every(id=>
