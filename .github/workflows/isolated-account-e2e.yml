@@ -1,0 +1,102 @@
+name: Isolated Customer Account E2E
+on:
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'api/index.php'
+      - 'api/smtp-body.php'
+      - 'docs/BERTINA_MYSQL_SCHEMA.sql'
+      - 'tests/isolated-account-journey.mjs'
+      - 'tests/helpers/fake-auth-smtp.py'
+      - '.github/workflows/isolated-account-e2e.yml'
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'api/index.php'
+      - 'api/smtp-body.php'
+      - 'docs/BERTINA_MYSQL_SCHEMA.sql'
+      - 'tests/isolated-account-journey.mjs'
+      - 'tests/helpers/fake-auth-smtp.py'
+      - '.github/workflows/isolated-account-e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ephemeral-auth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: qa-only-local-password
+          MARIADB_DATABASE: jr_auth_qa
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, openssl, mbstring
+          coverage: none
+      - name: Compile real PHP router and disposable test programs
+        run: |
+          php -l api/index.php
+          php -l api/smtp-body.php
+          python3 -m py_compile tests/helpers/fake-auth-smtp.py
+          node --check tests/isolated-account-journey.mjs
+      - name: Create only the four identity tables in a temporary database
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mariadb-client
+          awk '/^CREATE TABLE IF NOT EXISTS commerce_orders/{exit} {print}' docs/BERTINA_MYSQL_SCHEMA.sql > "$RUNNER_TEMP/jr-auth-schema.sql"
+          test "$(grep -c 'CREATE TABLE IF NOT EXISTS customer_' "$RUNNER_TEMP/jr-auth-schema.sql")" = 4
+          mariadb -h127.0.0.1 -uroot -p'qa-only-local-password' jr_auth_qa < "$RUNNER_TEMP/jr-auth-schema.sql"
+          echo 'Four disposable identity tables initialized. No production MySQL connection.'
+      - name: Exercise signup, verification, login, reset and revocation with local TLS SMTP
+        env:
+          JR_DB_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=jr_auth_qa;charset=utf8mb4'
+          JR_DB_USER: root
+          JR_DB_PASSWORD: qa-only-local-password
+          JR_AUTH_PEPPER: isolated-only-test-pepper-strong-string-2026-abcdef
+          JR_MAIL_ENABLED: 'true'
+          JR_SMTP_ENABLED: 'true'
+          JR_SMTP_PASSWORD: qa-only-mail-password
+          JR_QA_MAILBOX: ${{ runner.temp }}/isolated-mail.jsonl
+        run: |
+          set -euo pipefail
+          umask 077
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 \
+            -keyout "$RUNNER_TEMP/isolated-smtp.key" \
+            -out "$RUNNER_TEMP/isolated-smtp.crt" \
+            -subj '/CN=drjavadrezazadeh.com' \
+            -addext 'subjectAltName=DNS:drjavadrezazadeh.com' \
+            -addext 'basicConstraints=critical,CA:TRUE' > /dev/null 2>&1
+          touch "$JR_QA_MAILBOX"
+          sudo sh -c 'echo "127.0.0.1 drjavadrezazadeh.com" >> /etc/hosts'
+          sudo python3 tests/helpers/fake-auth-smtp.py \
+            "$RUNNER_TEMP/isolated-smtp.crt" "$RUNNER_TEMP/isolated-smtp.key" "$JR_QA_MAILBOX" \
+            > "$RUNNER_TEMP/smtp-sink-output.log" 2>&1 &
+          SMTP_PID=$!
+          php -d "openssl.cafile=$RUNNER_TEMP/isolated-smtp.crt" \
+            -S 127.0.0.1:19237 api/index.php > "$RUNNER_TEMP/isolated-php.log" 2>&1 &
+          PHP_PID=$!
+          trap 'kill "$PHP_PID" "$SMTP_PID" >/dev/null 2>&1 || true; rm -f "$JR_QA_MAILBOX"' EXIT
+          sleep 2
+          node tests/isolated-account-journey.mjs
+      - name: Clearly state acceptance scope
+        if: always()
+        run: |
+          echo 'The customer lifecycle test used ephemeral MariaDB, test-only passwords and a TLS SMTP sink bound to loopback.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No test customer was created on Bertina; no Gmail or real SMTP mailbox was used by this job.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Real-world delivered email, bank payment and human-operated fulfilment require their separate production proofs.' >> "$GITHUB_STEP_SUMMARY"
