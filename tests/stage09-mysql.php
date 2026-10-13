@@ -144,9 +144,9 @@ checkStage9(($beforeSnapshot['claims']['paidRowsRequiringIndependentProviderReco
 $pipeline=$beforeSnapshot['salesPipeline']??null;
 checkStage9(is_array($pipeline)&&($pipeline['status']??'')==='INTERNAL_ORDER_LEDGER_ONLY',
  'owner_sales_pipeline_requires_readonly_ledger_evidence');
-checkStage9(($pipeline['verifiedNetRevenueToman']??'missing')===null
- && ($pipeline['verifiedBankSettlementToman']??'missing')===null
- && ($pipeline['verifiedRefundDisbursementsToman']??'missing')===null,
+checkStage9(array_key_exists('verifiedNetRevenueToman',$pipeline) && $pipeline['verifiedNetRevenueToman']===null
+ && array_key_exists('verifiedBankSettlementToman',$pipeline) && $pipeline['verifiedBankSettlementToman']===null
+ && array_key_exists('verifiedRefundDisbursementsToman',$pipeline) && $pipeline['verifiedRefundDisbursementsToman']===null,
  'internal_gateway_claims_never_fabricate_settled_revenue');
 checkStage9(($pipeline['currencyUnit']??'')==='toman'
  && ctype_digit((string)($pipeline['paidStateAmountToman']??''))
