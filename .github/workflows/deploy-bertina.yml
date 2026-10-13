@@ -807,7 +807,19 @@ jobs:
             } > /tmp/bertina-backup-prune.lftp
             timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" -f /tmp/bertina-backup-prune.lftp
           fi
-          echo "One cPanel backup retained; older matching account archives were removed after the live release checks passed." >> "$GITHUB_STEP_SUMMARY"
+          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" \
+            -e "set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes; set ftp:passive-mode true; set ftp:prefer-epsv false; cd \"$FTP_REMOTE_DIR\"; cls -1 ../backup-*_drjavad1.tar.gz; bye" \
+            > /tmp/bertina-backup-remaining.txt
+          python3 scripts/bertina-prune-backups.py /tmp/bertina-backup-remaining.txt > /tmp/bertina-backup-remaining.json
+          python3 - <<'PY'
+          import json
+          before=json.load(open('/tmp/bertina-backup-prune.json',encoding='utf-8'))
+          after=json.load(open('/tmp/bertina-backup-remaining.json',encoding='utf-8'))
+          if after['keep']!=before['keep'] or after['remove']:
+              raise SystemExit('Bertina archive cleanup verification failed')
+          print('Verified exactly one cPanel archive remains:',after['keep'])
+          PY
+          echo "One cPanel backup retained; older matching account archives were removed and the remaining inventory was verified after live release checks passed." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Deployment summary
         if: steps.credentials.outputs.ready == 'true'
