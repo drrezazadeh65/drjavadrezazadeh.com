@@ -123,6 +123,23 @@ verify('commerce: MFA service-case worklist is bounded, redacted and flags misma
   !ownerCommerce.includes('SELECT sc.*,o.*') &&
   commerceClient.includes('serviceActionQueue') &&
   commerceClient.includes("const detail=node('details')"));
+verify('commerce: owner can triage delayed book parcels without customer PII or false delivery claims',
+  ownerCommerce.includes('FROM commerce_parcels p') &&
+  ownerCommerce.includes("p.state IN (") &&
+  ownerCommerce.includes('LIMIT 50') &&
+  ownerCommerce.includes("'parcelActionQueue'") &&
+  ownerCommerce.includes("'parcelQueueTruncated'") &&
+  ownerCommerce.includes("'preparingOlderThan48Hours'") &&
+  ownerCommerce.includes("'inShippingOlderThan7Days'") &&
+  ownerCommerce.includes("'providerClaimMatchesOrder'") &&
+  !ownerCommerce.includes('p.tracking_code') &&
+  !ownerCommerce.includes('o.customer_json') &&
+  !ownerCommerce.includes('o.customer_email') &&
+  commerceClient.includes('fulfilment.parcelActionQueue') &&
+  commerceClient.includes('fulfilment.parcelQueueTruncated') &&
+  commerceClient.includes('fulfilment.preparingOlderThan48Hours') &&
+  commerceClient.includes('fulfilment.inShippingOlderThan7Days') &&
+  !commerceClient.includes('fetch(\'/api/commerce/create\''));
 verify('commerce: owner dashboard diagnoses checkout blockers without money movement',
   index.includes("'/commerce/health'") &&
   index.includes("'paymentClaimSchemaReady'") &&
