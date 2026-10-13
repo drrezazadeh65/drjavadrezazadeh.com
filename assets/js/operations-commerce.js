@@ -27,6 +27,70 @@
       text(' تومان',' toman');}
     catch{return text('نامشخص','Unknown');}
   }
+  const NEXT_SERVICE_STATE={
+    awaiting_contact:'scheduling',scheduling:'booked',booked:'in_progress'
+  };
+  function bookingField(label){
+    const wrapper=node('label',label,'ops-muted');
+    const input=document.createElement('input');
+    input.type='datetime-local';input.step='60';input.required=true;
+    wrapper.append(input);
+    return {wrapper,input};
+  }
+  function bookingUtc(input){
+    if(!input.value)return null;
+    const parsed=new Date(input.value);
+    if(!Number.isFinite(parsed.getTime()))return null;
+    return parsed.toISOString().replace('T',' ').slice(0,19);
+  }
+  async function advanceService(entry,button,begin,end){
+    if(workspace.hidden||!panel.open||document.hidden)return;
+    const next=NEXT_SERVICE_STATE[entry.status];
+    if(!next||entry.orderPaidState!==true||entry.providerClaimMatchesOrder!==true)return;
+    const bookingStart=next==='booked'?bookingUtc(begin):null;
+    const bookingEnd=next==='booked'?bookingUtc(end):null;
+    if(next==='booked'&&(!bookingStart||!bookingEnd||
+      new Date(bookingEnd.replace(' ','T')+'Z')<=new Date(bookingStart.replace(' ','T')+'Z'))){
+      status.textContent=text('بازه زمان معتبر را وارد کنید.','Enter a valid booking time window.');
+      return;
+    }
+    if(!window.confirm(text(
+       'تأیید تغییر وضعیت خدمت '+String(entry.sku||'')+' از '+String(entry.status)+' به '+next+'؟ این اقدام به معنای تحویل یا تأیید تسویه بانکی نیست.',
+       'Confirm '+String(entry.sku||'')+' transition from '+String(entry.status)+' to '+next+'? This does not certify delivery or bank settlement.'
+    )))return;
+    const stamp=seq;
+    button.disabled=true;
+    status.textContent=text('در حال ثبت کنترل‌شده وضعیت خدمت…','Submitting authorised service update…');
+    try{
+      const session=await fetch('/api/admin/operations/session',{
+        method:'GET',credentials:'same-origin',cache:'no-store'
+      });
+      if(!session.ok)throw Error('authorization');
+      const mfa=await session.json();
+      if(stamp!==seq||workspace.hidden||!panel.open||document.hidden)return;
+      if(mfa.ok!==true||mfa.mfaRequired===true||
+        !/^[a-f0-9]{64}$/i.test(String(mfa.csrfToken||'')))throw Error('authorization');
+      const response=await fetch('/api/admin/operations/commerce/service-advance',{
+        method:'POST',credentials:'same-origin',cache:'no-store',
+        headers:{'Content-Type':'application/json','X-CSRF-Token':mfa.csrfToken},
+        body:JSON.stringify({orderId:entry.orderId,sku:entry.sku,
+          expectedState:entry.status,nextState:next,
+          bookingStart,bookingEnd})
+      });
+      const result=await response.json();
+      if(stamp!==seq||workspace.hidden||!panel.open||document.hidden)return;
+      if(!response.ok||result?.ok!==true||
+        result?.schema!=='commerce-service-transition-v1')throw Error('conflict');
+      await load(); // Refresh private, current state after the server commits.
+    }catch(_error){
+      if(stamp===seq&&!workspace.hidden&&panel.open){
+        status.textContent=text('ثبت انجام نشد یا اعتبار مدیر منقضی شده است. وضعیت قبلی را بررسی و گزارش را تازه‌سازی کنید.',
+          'No confirmed change. Verify MFA, payment evidence and current state, then refresh.');
+      }
+    }finally{
+      if(stamp===seq)button.disabled=false;
+    }
+  }
   function card(label,value,detail){
     const n=node('article',undefined,'ops-card');
     n.append(node('small',label),node('div',value??text('نامشخص','Unknown'),'ops-number'));
@@ -141,7 +205,7 @@
       detail.append(label);
       const note=node('p',text(
         'شناسه‌ها فقط ارجاع داخلی مدیر هستند؛ تطبیق درگاه با سفارش به معنای تسویهٔ بانکی یا ارائهٔ خدمت نیست.',
-        'Internal case references only. Matching payment claims does not prove bank settlement or service delivery.'),'ops-muted');
+        'Internal case references only. Matching payment claims does not prove bank settlement or service delivery. Owner-only progress actions require fresh MFA and never mark delivery.'),'ops-muted');
       detail.append(note);
       if(fulfilment.queueTruncated)detail.append(node('p',text(
         'فقط ۵۰ پروندهٔ قدیمی‌تر نشان داده شده‌اند؛ برای باقی پرونده‌ها گزارش بعدی لازم است.',
@@ -156,6 +220,20 @@
           text('نیازمند بررسی اصالت پرداخت','Payment evidence needs review');
         item.append(node('span',String(entry.sku||'')+' · '+String(entry.status||'')+
           ' · '+id+'… · '+claim));
+        const next=NEXT_SERVICE_STATE[entry.status];
+        if(next && entry.orderPaidState===true && entry.providerClaimMatchesOrder===true){
+          const action=node('button',text('ثبت مرحله: ','Advance to: ')+next);
+          action.type='button';action.className='button';
+          let begin=null,end=null;
+          if(next==='booked'){
+            const start=bookingField(text('شروع جلسه (زمان محلی)','Start (local time)'));
+            const finish=bookingField(text('پایان جلسه (زمان محلی)','End (local time)'));
+            item.append(start.wrapper,finish.wrapper);
+            begin=start.input;end=finish.input;
+          }
+          item.append(action);
+          action.addEventListener('click',()=>advanceService(entry,action,begin,end));
+        }
         list.append(item);
       }
       detail.append(list);results.append(detail);
