@@ -6,9 +6,10 @@ checkStylesheetBundles();
 
 const root=process.cwd();
 const out=path.join(root,'.public-site');
-const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundation','node_modules','platform','scripts','tests','test-results','proposals','work','.public-site']);
+const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundation','node_modules','platform','database','migrations','scripts','tests','test-results','proposals','work','.public-site']);
 const excludedRoot=new Set(['README.md','AGENTS.md','.bertina-deploy-trigger','.bertina-backup-trigger','CACHE_STANDARD.md','CNAME','_headers','_redirects','_config.yml']);
 const excludedExact=new Set(['assets/media-registry.json','assets/release-v4.4.json']);
+const forbiddenReleasePath=/(?:^|\/)(?:\.env(?:\.[^/]*)?|config\.local\.php|[^/]+\.(?:pem|p12|pfx|key|sql|bak|dump))$/i;
 
 fs.rmSync(out,{recursive:true,force:true});
 fs.mkdirSync(out,{recursive:true});
@@ -17,6 +18,7 @@ function copy(rel=''){
   const src=path.join(root,rel);
   for(const ent of fs.readdirSync(src,{withFileTypes:true})){
     const child=rel?rel+'/'+ent.name:ent.name;
+    if(forbiddenReleasePath.test(child)) throw Error('Refusing to package credential, database or backup file: '+child);
     if(!rel&&excludedTop.has(ent.name)) continue;
     if(!rel&&excludedRoot.has(ent.name)) continue;
     if(excludedExact.has(child)) continue;
@@ -43,6 +45,7 @@ if(!/Require all denied/.test(fs.readFileSync(path.join(out,'api/internal/.htacc
 fs.writeFileSync(inventoryOutput,JSON.stringify(adminToolInventory)+'\n');
 
 const failures=[];
+for(const blocked of ['database','migrations']) if(fs.existsSync(path.join(out,blocked))) failures.push('Database or migration source leaked into public artifact: '+blocked);
 const required=[
   'index.html','404.html','offline.html','robots.txt','llms.txt','site.webmanifest','sw.js',
   'sitemap.xml','sitemap-core.xml','journal/sitemap.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml',
