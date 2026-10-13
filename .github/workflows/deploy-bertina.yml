@@ -548,39 +548,36 @@ jobs:
           if(d.operations?.ready!==true) throw new Error('Operations schema and scoped evidence import failed');
           NODE
 
-      - name: Verify live bookstore release and cache fingerprint
+      - name: Verify published bookstore and cache against this exact release
         run: |
           set -euo pipefail
           ORIGIN_IP="188.40.203.218"
-          for route in /fa/shop/ /en/shop/; do
-            curl -fsSL --compressed --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP "https://drjavadrezazadeh.com$route" -o /tmp/bookstore-live.html
-            grep -q 'store-mission.css?v=approved-original-20261011-v5' /tmp/bookstore-live.html
-            if [ "$route" = "/fa/shop/" ]; then
-              grep -q 'cinema-original-hero' /tmp/bookstore-live.html
-              grep -q 'bookstore-talent-cinematic-approved-original-20261011.png' /tmp/bookstore-live.html
-              grep -q 'bookstore-talent-cinematic-approved-20261011.webp' /tmp/bookstore-live.html
-            else
-              grep -q 'bookstore-talent-approved-scene-20261011.webp' /tmp/bookstore-live.html
-            fi
-            grep -q 'id="publish-for-talent"' /tmp/bookstore-live.html
-            grep -q 'id="store-mission-title"' /tmp/bookstore-live.html
-            grep -q "$GITHUB_SHA" /tmp/bookstore-live.html
-            echo "$route fresh bookstore release verified"
+          HOST="https://drjavadrezazadeh.com"
+          # The local artifact was stamped with GITHUB_SHA, packed and checked
+          # byte-for-byte on Bertina. Verify externally served page bytes too.
+          for locale in fa en; do
+            route="/$locale/shop/"
+            expected=".public-site/$locale/shop/index.html"
+            test -s "$expected"
+            curl -fsSL --compressed --max-time 35 \
+              --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+              "$HOST$route" -o "/tmp/bertina-$locale-shop.html"
+            cmp -s "$expected" "/tmp/bertina-$locale-shop.html" || {
+              echo "Bookstore page bytes differ from approved release: $route" >&2
+              sha256sum "$expected" "/tmp/bertina-$locale-shop.html" >&2
+              exit 1
+            }
+            echo "Verified exact published HTML: $route"
           done
-          curl -fsSL --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/sw.js -o /tmp/bookstore-sw.js
-          grep -q "jr-site-bertina-$GITHUB_SHA" /tmp/bookstore-sw.js
-          echo "Service Worker cache invalidation version verified on Bertina"
-          # Verify the byte-identical owner-approved source image and optimized image at the origin.
-          curl -fsSL --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
-            https://drjavadrezazadeh.com/assets/images/bookstore-talent-cinematic-approved-original-20261011.png -o /tmp/approved-original.png
-          echo '24a7ec84fe17f2a3ca8fcf0f22a0cd6fc01e4ca312e7b136ca1bed9349e4b00e  /tmp/approved-original.png' | sha256sum -c -
-          curl -fsSL --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
-            https://drjavadrezazadeh.com/assets/images/bookstore-talent-cinematic-approved-20261011.webp -o /tmp/approved-optimized.webp
-          echo '4d2405a748bcbb7e1f5007a9ceae2b820cd4cbbf50511d093c5409a5fad07638  /tmp/approved-optimized.webp' | sha256sum -c -
-          curl -fsSL --max-time 35 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
-            https://drjavadrezazadeh.com/assets/images/bookstore-talent-approved-scene-20261011.webp -o /tmp/approved-crop.webp
-          test "$(wc -c </tmp/approved-crop.webp)" -eq 161508
-          echo "Owner-approved original image and WebP derivatives verified byte-for-byte at Bertina"
+          curl -fsSL --max-time 35 \
+            --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
+            "$HOST/sw.js" -o /tmp/bertina-live-sw-check.js
+          cmp -s .public-site/sw.js /tmp/bertina-live-sw-check.js || {
+            echo "Live Service Worker differs from the exact approved release" >&2
+            exit 1
+          }
+          grep -Fq "jr-site-bertina-$GITHUB_SHA" /tmp/bertina-live-sw-check.js
+          echo "Live storefront and Service Worker match the stamped release. No obsolete asset hashes required."
 
       - name: Verify deployed unified dashboard, private headers and same-origin runtime
         run: |
