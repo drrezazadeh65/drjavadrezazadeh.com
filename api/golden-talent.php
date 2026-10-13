@@ -136,13 +136,13 @@ function goldenTalentGuardianBaharOverview(PDO $pdo,string $accountId): array {
           AND n.purpose_code='PARENT_VISIBILITY'
         ORDER BY c.granted_at DESC,c.id DESC LIMIT 2");
     $counts=$pdo->prepare("SELECT
-            COUNT(*) AS portfolio_count,
-            COALESCE(SUM((SELECT COUNT(*) FROM eco_bahar_weekly_cycles w
-                WHERE w.portfolio_id=p.id)),0) AS weekly_cycle_count,
-            COALESCE(SUM((SELECT COUNT(*) FROM eco_bahar_weekly_cycles w
-                WHERE w.portfolio_id=p.id AND w.human_reviewed_at IS NOT NULL)),0)
-                AS human_reviewed_cycle_count
-        FROM eco_bahar_portfolios p WHERE p.subject_id=?");
+            COUNT(DISTINCT p.id) AS portfolio_count,
+            COUNT(w.id) AS weekly_cycle_count,
+            COALESCE(SUM(CASE WHEN w.human_reviewed_at IS NOT NULL
+                THEN 1 ELSE 0 END),0) AS human_reviewed_cycle_count
+        FROM eco_bahar_portfolios p
+        LEFT JOIN eco_bahar_weekly_cycles w ON w.portfolio_id=p.id
+        WHERE p.subject_id=?");
     if(!$consent||!$counts)throw new RuntimeException('bahar_query_unavailable');
     $output=[];
     $now=nowTs();
