@@ -1,0 +1,424 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "GOLDEN_TALENT_BOOK_RC_AS_CROSSWALK",
+  "version": "2026-10-14.1",
+  "authority": {
+    "book_title_fa": "کشف مسیر طلایی استعداد",
+    "author": "Javad Rezazadeh",
+    "working_edition": "one_volume_15_chapters",
+    "editorial_sources": [
+      "final draft 1.docx (author manuscript, Library; not bundled in public repository)",
+      "Golden_Talent_Decisions_Guideline_FA.md (author decisions, 2026-10-02)",
+      "Golden_Talent_Audit_Report_FA.md (editorial audit, 2026-10-04)"
+    ],
+    "scientific_status": "PREVALIDATION",
+    "note": "Editorial inventory is not independent psychometric validation, a published norm, or a licence to copy manuscript drafts into public runtime."
+  },
+  "existing_registry": "platform/golden-talent-instrument-registry.v1.json",
+  "chapter_anchors": [
+    {
+      "chapter": 1,
+      "theme_fa": "خودشناسی، عاملیت، ارزش و کرامت"
+    },
+    {
+      "chapter": 2,
+      "theme_fa": "RCAS؛ از حدس تا شناخت"
+    },
+    {
+      "chapter": 3,
+      "theme_fa": "هنر پرسیدن"
+    },
+    {
+      "chapter": 4,
+      "theme_fa": "روش مطالعه بهار؛ بازیابی، شکاف، ترمیم، تثبیت"
+    },
+    {
+      "chapter": 5,
+      "theme_fa": "معماری BAHAR؛ از دانستن تا عمل"
+    },
+    {
+      "chapter": 6,
+      "theme_fa": "باور، خودکارآمدی، فشار و شکست"
+    },
+    {
+      "chapter": 7,
+      "theme_fa": "توجه، حافظه و علم یادگیری"
+    },
+    {
+      "chapter": 8,
+      "theme_fa": "هدف، برنامه و خودتنظیمی"
+    },
+    {
+      "chapter": 9,
+      "theme_fa": "انگیزش، اهمال‌کاری، عادت و استمرار"
+    },
+    {
+      "chapter": 10,
+      "theme_fa": "مطالعه حرفه‌ای، بازیابی و تمرین"
+    },
+    {
+      "chapter": 11,
+      "theme_fa": "خطا، بازخورد و اصلاح مسیر"
+    },
+    {
+      "chapter": 12,
+      "theme_fa": "استعداد، علاقه، ارزش و تجربه"
+    },
+    {
+      "chapter": 13,
+      "theme_fa": "تفکر انتقادی و کیفیت تصمیم"
+    },
+    {
+      "chapter": 14,
+      "theme_fa": "آینده، هوش مصنوعی و یادگیری مادام‌العمر"
+    },
+    {
+      "chapter": 15,
+      "theme_fa": "خانواده، معلم، مشاور و استقلال"
+    }
+  ],
+  "rcas": {
+    "name": "Rezazadeh Comprehensive Assessment System",
+    "role": "Formative multi-source evidence organisation and next-evidence selection; not a normative test.",
+    "flow": [
+      "P0",
+      "C1",
+      "R1",
+      "SELECTIVE_D1_D6",
+      "BAHAR_ACTION",
+      "PORTFOLIO",
+      "REVIEW"
+    ],
+    "P0": {
+      "code": "RCAS-P0",
+      "function": "Learner question, eight-week aim, context, access and observable evidence; never treated as a score."
+    },
+    "C1": {
+      "code": "RCAS-C1",
+      "core_item_count": 28,
+      "group_count": 7,
+      "items_per_group": 4,
+      "groups": [
+        {
+          "id": "A",
+          "label_fa": "جهت و عاملیت",
+          "count": 4
+        },
+        {
+          "id": "B",
+          "label_fa": "راهبرد یادگیری",
+          "count": 4
+        },
+        {
+          "id": "C",
+          "label_fa": "اجرا و بازگشت",
+          "count": 4
+        },
+        {
+          "id": "D",
+          "label_fa": "پایش و سواد خطا",
+          "count": 4
+        },
+        {
+          "id": "E",
+          "label_fa": "انرژی و بهزیستی تحصیلی",
+          "count": 4
+        },
+        {
+          "id": "F",
+          "label_fa": "خودتنظیمی دیجیتال و هوش مصنوعی",
+          "count": 4
+        },
+        {
+          "id": "G",
+          "label_fa": "مسیر طلایی و حمایت",
+          "count": 4
+        }
+      ],
+      "behaviour_scale": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "clarity_scale": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "not_applicable": "NA_IS_NOT_ZERO",
+      "self_report_limit": "Does not establish independent multi-source convergence or diagnose an individual."
+    },
+    "R1": {
+      "code": "RCAS-R1",
+      "purpose": "Informed self-selection of where more evidence could improve the decision.",
+      "allows_unknown": true,
+      "may_be_revised": true,
+      "automated_talent_ranking": false
+    },
+    "source_channels": [
+      {
+        "code": "S",
+        "description": "Learner self-report"
+      },
+      {
+        "code": "P",
+        "description": "Performance sample"
+      },
+      {
+        "code": "R",
+        "description": "Documented record"
+      },
+      {
+        "code": "O",
+        "description": "Other-person observation"
+      },
+      {
+        "code": "C",
+        "description": "Context and access"
+      },
+      {
+        "code": "T",
+        "description": "Behavioural trace"
+      }
+    ],
+    "evidence_states": [
+      "INSUFFICIENT",
+      "SINGLE_SOURCE",
+      "CONVERGENT",
+      "DISCREPANT"
+    ],
+    "prohibited": [
+      "OVERALL_TALENT_SCORE",
+      "STUDENT_RANKING",
+      "AUTOMATIC_GIFTED_LABEL",
+      "CAREER_PRESCRIPTION",
+      "RESOURCE_SCARCITY_AS_DEFICIT",
+      "UNVALIDATED_NORMS",
+      "AUTOMATIC_DIAGNOSIS"
+    ]
+  },
+  "deep_modules": {
+    "bank_items_total": 142,
+    "selection_policy": "ROUTING_ONLY_AS_NEEDED",
+    "bank_inventory": [
+      {
+        "code": "D1",
+        "label_fa": "یادگیری و خودتنظیمی",
+        "bank_count": 24,
+        "activities": [
+          "E1",
+          "E2",
+          "E4"
+        ],
+        "source_chapters": [
+          7,
+          8,
+          10,
+          11
+        ]
+      },
+      {
+        "code": "D2",
+        "label_fa": "خودکارآمدی، فشار و بازگشت",
+        "bank_count": 24,
+        "activities": [
+          "E5"
+        ],
+        "source_chapters": [
+          6,
+          9
+        ]
+      },
+      {
+        "code": "D3",
+        "label_fa": "خودتنظیمی دیجیتال و هوش مصنوعی",
+        "bank_count": 24,
+        "activities": [
+          "E6"
+        ],
+        "source_chapters": [
+          14
+        ]
+      },
+      {
+        "code": "D4",
+        "label_fa": "زمینه، دسترسی و بوم حمایت",
+        "bank_count": 22,
+        "activities": [
+          "E7"
+        ],
+        "source_chapters": [
+          15
+        ]
+      },
+      {
+        "code": "D5",
+        "label_fa": "استعداد، علاقه و آزمایش مسیر",
+        "bank_count": 28,
+        "activities": [
+          "E3",
+          "E8"
+        ],
+        "source_chapters": [
+          12
+        ]
+      },
+      {
+        "code": "D6",
+        "label_fa": "شواهد، تفکر انتقادی و کیفیت تصمیم",
+        "bank_count": 20,
+        "activities": [
+          "E9",
+          "E10"
+        ],
+        "source_chapters": [
+          3,
+          13
+        ]
+      }
+    ],
+    "question_text_status": "MANUSCRIPT_ONLY_NOT_IN_ACTIVE_INSTRUMENT_REGISTRY",
+    "publishable_question_bank": false,
+    "content_copy_requires": "SOURCE_EXACT_ITEM_EXTRACTION_AND_AUTHOR_REVIEW_WITH_VERSION_HASH",
+    "completion_is_not_diagnosis": true
+  },
+  "activities": [
+    {
+      "code": "E1",
+      "title_fa": "بازیابی و مقایسه با اطمینان قبلی",
+      "kind": "FORMATIVE_EVIDENCE_TASK",
+      "validated_measure": false
+    },
+    {
+      "code": "E2",
+      "title_fa": "برنامه–اجرا–بازبینی",
+      "kind": "FORMATIVE_EVIDENCE_TASK",
+      "validated_measure": false
+    },
+    {
+      "code": "E3",
+      "title_fa": "کارت شواهد مسیر طلایی",
+      "kind": "FORMATIVE_EVIDENCE_TASK",
+      "validated_measure": false
+    },
+    {
+      "code": "E4",
+      "title_fa": "ثبت خطا تا اصلاح",
+      "kind": "FORMATIVE_EVIDENCE_TASK",
+      "validated_measure": false
+    },
+    {
+      "code": "E5",
+      "title_fa": "نقشه شکست تا بازگشت",
+      "kind": "FORMATIVE_EVIDENCE_TASK",
+      "validated_measure": false
+    },
+    {
+      "code": "E6",
+      "title_fa": "استقلال از ابزار هوش مصنوعی",
+      "kind": "FORMATIVE_EVIDENCE_TASK",
+      "validated_measure": false
+    },
+    {
+      "code": "E7",
+      "title_fa": "نقشه مانع–کنترل–حمایت",
+      "kind": "FORMATIVE_EVIDENCE_TASK",
+      "validated_measure": false
+    },
+    {
+      "code": "E8",
+      "title_fa": "کارت آزمایش مسیر",
+      "kind": "FORMATIVE_EVIDENCE_TASK",
+      "validated_measure": false
+    },
+    {
+      "code": "E9",
+      "title_fa": "ادعا–شاهد–تصمیم",
+      "kind": "FORMATIVE_EVIDENCE_TASK",
+      "validated_measure": false
+    },
+    {
+      "code": "E10",
+      "title_fa": "بازبینی کیفیت تصمیم",
+      "kind": "FORMATIVE_EVIDENCE_TASK",
+      "validated_measure": false
+    }
+  ],
+  "bahar": {
+    "name": "BAHAR",
+    "is_artificial_english_acronym": false,
+    "study_method": [
+      "RETRIEVAL",
+      "GAP_DETECTION",
+      "REMEDIATION",
+      "CONSOLIDATION"
+    ],
+    "action_cycle": [
+      "RECOGNISE_CONTEXT",
+      "CHOOSE_ACTION",
+      "ACT",
+      "MONITOR_EVIDENCE",
+      "INTERPRET_GAP",
+      "REVISE",
+      "RETURN_TO_ACTION"
+    ],
+    "support_pillars_are_not_cycle_steps": true,
+    "portfolio": [
+      "BASELINE_SNAPSHOT",
+      "EIGHT_WEEK_COMPASS",
+      "WEEKLY_BAHAR_CYCLE",
+      "LEARNING_EVIDENCE_LOG",
+      "FOUR_WEEK_REVIEW",
+      "THIRTY_DAY_STARTER"
+    ],
+    "review_schedule": "CONTEXTUAL_AND_HUMAN_REVIEWED_NOT_AUTO_PRESCRIBED"
+  },
+  "future_readiness": {
+    "source_fidelity": [
+      "FROZEN_ITEM_TEXT",
+      "VERSIONED_CONTENT_HASH",
+      "ITEM_PROVENANCE",
+      "AUTHOR_APPROVAL",
+      "RIGHTS_AND_LOCALISATION_REVIEW"
+    ],
+    "science": [
+      "CONSTRUCT_AND_USE_CASE_DEFINITION",
+      "EXPERT_CONTENT_REVIEW",
+      "COGNITIVE_INTERVIEWS",
+      "ACCESSIBLE_PILOT",
+      "MEASUREMENT_QUALITY",
+      "RELIABILITY_BY_USE_CASE",
+      "VALIDITY_ARGUMENT",
+      "FAIRNESS_AND_DIF_WHERE_APPLICABLE",
+      "MEASUREMENT_INVARIANCE_WHERE_APPLICABLE",
+      "CROSS_SOURCE_AGREEMENT",
+      "UNCERTAINTY_AND_CALIBRATION",
+      "EXTERNAL_REVIEW"
+    ],
+    "security": [
+      "SERVER_SIDE_IDENTITY",
+      "VERIFIED_GUARDIAN_RELATIONSHIP_FOR_MINORS",
+      "PURPOSE_SPECIFIC_CONSENT",
+      "WITHDRAWAL_ENFORCEMENT",
+      "MINIMAL_PRIVATE_PERSISTENCE",
+      "APPEND_ONLY_AUDIT",
+      "ROLE_SCOPED_REPORT_RELEASE",
+      "SERVER_SIDE_ENTITLEMENT_VERIFICATION",
+      "RETENTION_AND_ERASURE_GOVERNANCE",
+      "PRODUCTION_RECOVERY_TEST"
+    ],
+    "analytics": [
+      "DESCRIPTIVE_EVIDENCE_COVERAGE",
+      "SOURCE_DIVERSITY",
+      "CONFLICT_EXPLANATION",
+      "MISSINGNESS_WITHOUT_PENALTY",
+      "LONGITUDINAL_CHANGE_WITH_CONTEXT",
+      "SUBGROUP_FAIRNESS_NOT_NORMATIVE_LABEL"
+    ],
+    "deployment_rule": "NO_PAID_DIGITAL_ENTITLEMENT_OR_PSYCHOMETRIC_CLAIM_BEFORE_VALIDATED_AND_HUMAN_APPROVED_RELEASE_GATES"
+  }
+}
