@@ -28,6 +28,15 @@ export function commerceContract(c){
    receiptsConfigured:c.requirements?.orderEmailFulfilmentConfirmed===true,
    paymentClaimSchemaReady:c.requirements?.paymentClaimSchemaReady===true};
 }
+export function consultationContract(h){
+ requireCondition(h?.ok===true && h.service==='consultation_interest','consultation_contract');
+ requireCondition(h.schema==='stage14-readiness-v1','consultation_schema_version');
+ for(const k of ['database','auth','consentSchema','verifiedAccountRequired'])
+  requireCondition(h.requirements?.[k]===true,'consultation_gate_'+k);
+ requireCondition(h.requirements?.paymentOrBookingImplied===false,'consultation_false_booking_claim');
+ requireCondition(h.ready===true,'consultation_not_ready');
+ return 'Consent intake configured, verified account required; no booking/payment assumed';
+}
 export function guestContract(status,data){requireCondition(status===401 && data?.ok!==true,'guest_private_access');return 'anonymous access denied'}
 async function query(route,json=false){
  const ctrl=new AbortController();const timeout=setTimeout(()=>ctrl.abort(),17000);
@@ -48,6 +57,7 @@ export async function pulse(){
  }
  await test('auth',async()=>authContract((await query('/api/auth/health',true)).body));
  await test('commerce',async()=>commerceContract((await query('/api/commerce/health',true)).body));
+ await test('consultation_intake',async()=>consultationContract((await query('/api/growth/health',true)).body));
  for(const route of ['/api/auth/me','/api/commerce/history','/api/growth/leads/mine'])
    await test('guest_access_'+route,async()=>{
     const r=await query(route,true);return guestContract(r.status,r.body);
