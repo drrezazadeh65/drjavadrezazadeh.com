@@ -18,14 +18,108 @@ groups.forEach(g=>{let html=`<section class="rcas-domain"><div class="rcas-domai
 const routing=document.getElementById("rcasRouting");
 const evidence=["شواهد همسو","شواهد متناقض","فقط یک منبع شاهد","شاهد کافی ندارم"];
 groups.forEach(g=>routing.insertAdjacentHTML("beforeend",`<fieldset class="rcas-route-row"><legend><b>${g.key}</b> ${g.title}</legend><div>${evidence.map((x,i)=>`<label><input type="radio" name="route_${g.key}" value="${i}"><span>${x}</span></label>`).join("")}<label class="priority-check"><input type="checkbox" name="priority_${g.key}"><span>این حوزه برای من اولویت است</span></label></div></fieldset>`));
-const panels=[...document.querySelectorAll(".rcas-panel")],bar=document.getElementById("rcasProgressBar"),txt=document.getElementById("rcasProgressText");
-function show(n){panels.forEach(p=>p.classList.toggle("active",p.dataset.step==n));bar.style.width=(n/3*100)+"%";txt.textContent=`مرحله ${n} از ۳ · ${n==1?"P0":n==2?"Core 28":"Routing"}`;window.scrollTo({top:0,behavior:"smooth"})}
-document.addEventListener("click",e=>{const n=e.target.dataset.next,b=e.target.dataset.back;if(n)show(+n);if(b)show(+b)});
-document.getElementById("showRoute").addEventListener("click",()=>{
- const d=document.getElementById("priorityDomain").value,res=document.getElementById("rcasResult");
- if(!d){res.hidden=false;res.innerHTML="<h3>یک حوزه اولویت را انتخاب کن.</h3><p>Routing در RCAS بدون انتخاب حوزه اولویت، مسیر عمیق‌تری تحمیل نمی‌کند.</p>";return}
- const code=routeMap[d]
- const why=document.getElementById("priorityWhy").value.trim();
- try{sessionStorage.setItem("gt_rcas_state",JSON.stringify({completed:true,route:d,routeCode:code[0],routeLabel:code[1],updatedAt:new Date().toISOString()}));}catch(e){} res.hidden=false;res.innerHTML=`<p class="kicker">مسیر پیشنهادی</p><h3>${code[0]} · ${code[1]}</h3><p>این پیشنهاد «تشخیص» یا حکم درباره تو نیست. فقط نشان می‌دهد در این مرحله، جمع‌آوری شواهد بیشتر در این حوزه می‌تواند تصمیم بعدی را بهتر کند.</p>${why?`<div class="rcas-user-note"><strong>دلیل انتخاب تو:</strong> ${why.replace(/[<>&]/g,"")}</div>`:""}<div class="actions"><a class="button primary" href="../">مشاهده مرحله پولی بعدی</a><a class="button" href="../../../danesh-amoozan/">بازگشت به پروفایل دانش‌آموز</a></div>`;
+// RCAS Start v1.1: an educational, self-directed evidence reflection.
+// This browser-only preview has no diagnostic score, norms or professional
+// assessment authority. Raw P0, C1 and R1 responses must never be persisted.
+const form=document.getElementById("rcasForm");
+const panels=[...document.querySelectorAll(".rcas-panel")];
+const bar=document.getElementById("rcasProgressBar"),txt=document.getElementById("rcasProgressText");
+const coreStatus=document.getElementById("rcasCoreStatus");
+const CORE_ITEM_IDS=groups.flatMap(g=>g.items.map((_,i)=>g.key+(i+1)));
+if(CORE_ITEM_IDS.length!==28||new Set(CORE_ITEM_IDS).size!==28)throw Error("RCAS Core 28 version mismatch");
+const coreAnswered=()=>CORE_ITEM_IDS.filter(name=>{
+  const inputs=[...form.querySelectorAll('input[type="radio"]')].filter(x=>x.name===name);
+  return inputs.some(x=>x.checked && (x.value==="NA"||/^[0-4]$/.test(x.value)));
 });
+const updateCoreProgress=()=>{
+  const count=coreAnswered().length;
+  if(coreStatus)coreStatus.textContent="Core 28: "+count+" از ۲۸ پاسخ ثبت‌شده در همین صفحه؛ NA یک پاسخ مجاز است، نه صفر.";
+  return count;
+};
+function show(n){
+  panels.forEach(p=>p.classList.toggle("active",p.dataset.step==n));
+  bar.style.width=(n/3*100)+"%";
+  txt.textContent="مرحله "+n+" از ۳ · "+(n===1?"P0":n===2?"Core 28":"Routing");
+  if(n===2)updateCoreProgress();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+const coreComplete=()=>{
+  const answered=new Set(coreAnswered());
+  if(answered.size===28)return true;
+  const first=CORE_ITEM_IDS.find(name=>!answered.has(name));
+  if(coreStatus)coreStatus.textContent="برای ادامه، هر ۲۸ گزاره را پاسخ بده یا NA انتخاب کن. پاسخ "+first+" باقی مانده است ("+answered.size+"/۲۸).";
+  const target=[...form.querySelectorAll('input[type="radio"]')].find(x=>x.name===first);
+  target?.closest("fieldset")?.scrollIntoView({behavior:"smooth",block:"center"});
+  target?.focus({preventScroll:true});
+  return false;
+};
+form.addEventListener("change",e=>{
+  if(e.target?.matches('input[type="radio"]'))updateCoreProgress();
+});
+document.addEventListener("click",e=>{
+  const target=e.target.closest("button");
+  if(!target)return;
+  const n=target.dataset.next,b=target.dataset.back;
+  if(n){
+    if(Number(n)===3&&!coreComplete())return;
+    show(Number(n));
+  }
+  if(b)show(Number(b));
+});
+const clearSummary=document.getElementById("clearRcasSummary");
+clearSummary?.addEventListener("click",()=>{
+  try{sessionStorage.removeItem("gt_rcas_state");}catch(_){}
+  const res=document.getElementById("rcasResult");
+  res.hidden=true;res.replaceChildren();
+  clearSummary.textContent="خلاصه مسیر این نشست پاک شد.";
+});
+document.getElementById("showRoute").addEventListener("click",()=>{
+  const res=document.getElementById("rcasResult"),d=document.getElementById("priorityDomain").value;
+  res.replaceChildren();
+  res.hidden=false;
+  if(!coreComplete()){
+    res.textContent="پیش از انتخاب مسیر، Core 28 را کامل کن؛ هیچ مسیر معتبری ذخیره نشده است.";
+    return;
+  }
+  if(!Object.prototype.hasOwnProperty.call(routeMap,d)){
+    res.textContent="یک حوزه اولویت D1 تا D6 انتخاب کن. پیشنهاد بدون انتخاب آگاهانه تحمیل نمی‌شود.";
+    return;
+  }
+  const code=routeMap[d],why=document.getElementById("priorityWhy").value.trim();
+  // Minimal session-state bridge for the existing student dashboard. It does
+  // not save raw item scores, contact details, private narrative or P0 answers.
+  const preview={
+    completed:true,rcasRevision:"start-1.1",completedItemCount:28,
+    route:d,routeCode:d,routeLabel:code[1],
+    routeBasis:"SELF_SELECTED_UNVALIDATED",
+    updatedAt:new Date().toISOString()
+  };
+  try{sessionStorage.setItem("gt_rcas_state",JSON.stringify(preview));}catch(_){}
+  const add=(tag,value,className)=>{
+    const node=document.createElement(tag);
+    if(className)node.className=className;
+    node.textContent=value;
+    res.append(node);
+    return node;
+  };
+  add("p","گام بعدی بر پایه انتخاب شخصی","kicker");
+  add("h3",code[0]+" · "+code[1]);
+  add("p","این اولویت را خودت انتخاب کردی. RCAS Start در نسخه فعلی پاسخ‌ها را با هنجار علمی مقایسه نمی‌کند و هیچ تشخیص، امتیاز استعداد یا صلاحیت خرید ماژول عمیق صادر نمی‌کند. شواهد دیگر و بررسی متخصص ممکن است مسیر را تغییر دهد.");
+  if(why){
+    const note=document.createElement("div");note.className="rcas-user-note";
+    const label=document.createElement("strong");label.textContent="دلیل انتخاب تو: ";
+    const explanation=document.createElement("span");explanation.textContent=why;
+    note.append(label,explanation);res.append(note);
+  }
+  const links=document.createElement("div");links.className="actions";
+  for(const [href,label,kind] of [
+    ["/fa/assessments/golden-talent/","نقشه مراحل Golden Talent","button primary"],
+    ["/fa/shop/golden-talent/#professional-services","بررسی خدمات حرفه‌ای (اختیاری)","button"],
+    ["/fa/app/student/","پیش‌نمایش داشبورد دانش‌آموز","button"]
+  ]){
+    const link=document.createElement("a");link.href=href;link.className=kind;link.textContent=label;links.append(link);
+  }
+  res.append(links);
+});
+updateCoreProgress();
 })();
