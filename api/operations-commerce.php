@@ -26,7 +26,8 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'Historical paid rows without Stage09 claims need review, not automatic reclassification.',
             'This endpoint never releases reservations or changes a paid order.'
         ],
-        'orders'=>null,'claims'=>null,'stock'=>null,'fulfilment'=>null,'notifications'=>null
+        'orders'=>null,'claims'=>null,'stock'=>null,'fulfilment'=>null,'notifications'=>null,
+        'salesPipeline'=>null
     ];
     // An incomplete production migration is an explicit unknown, not zero
     // orders or zero issues; no partially filled result escapes.
@@ -37,6 +38,36 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         foreach ($query->fetchAll() as $row) {
             $key=(string)$row['state'];$states[$key]=(int)$row['total'];
         }
+        // Money is taken from orders.amount_toman only. Even a Stage09 matched
+        // provider claim is NOT independently verified bank settlement or net revenue.
+        // A single pre-aggregated query avoids exposing any customer/order details.
+        $sales=$pdo->query("SELECT
+            COALESCE(SUM(CASE WHEN o.state='paid' THEN o.amount_toman ELSE 0 END),0) AS paid_state_toman,
+            COALESCE(SUM(CASE WHEN o.state='paid' AND c.transaction_id=o.provider_trans_id
+                AND c.verified_amount=o.provider_amount THEN o.amount_toman ELSE 0 END),0) AS claim_matched_toman,
+            COALESCE(SUM(CASE WHEN o.state='paid' AND c.transaction_id=o.provider_trans_id
+                AND c.verified_amount=o.provider_amount THEN 1 ELSE 0 END),0) AS claim_matched_count,
+            COALESCE(SUM(CASE WHEN o.state='paid' AND o.paid_at>=DATE_SUB(NOW(),INTERVAL 7 DAY)
+                THEN 1 ELSE 0 END),0) AS recent_paid_7d,
+            COALESCE(SUM(CASE WHEN o.state='paid' AND o.paid_at>=DATE_SUB(NOW(),INTERVAL 30 DAY)
+                THEN 1 ELSE 0 END),0) AS recent_paid_30d,
+            COALESCE(SUM(CASE WHEN o.state='paid' AND o.paid_at>=DATE_SUB(NOW(),INTERVAL 30 DAY)
+                THEN o.amount_toman ELSE 0 END),0) AS recent_paid_toman_30d,
+            COALESCE(SUM(CASE WHEN o.state='pending' AND o.created_at<DATE_SUB(NOW(),INTERVAL 24 HOUR)
+                THEN 1 ELSE 0 END),0) AS pending_older_24h,
+            COALESCE(SUM(CASE WHEN o.state='pending' AND o.created_at<DATE_SUB(NOW(),INTERVAL 7 DAY)
+                THEN 1 ELSE 0 END),0) AS pending_older_7d,
+            COALESCE(SUM(CASE WHEN o.state='created' AND o.created_at<DATE_SUB(NOW(),INTERVAL 24 HOUR)
+                THEN 1 ELSE 0 END),0) AS created_older_24h
+            FROM commerce_orders o
+            LEFT JOIN commerce_payment_claims c ON c.order_id=o.id AND c.provider='bitpay'")->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($sales)) throw new RuntimeException('commerce_sales_aggregate_unavailable');
+        $refunds=$pdo->query("SELECT status,COUNT(*) AS total
+            FROM commerce_refund_requests GROUP BY status")->fetchAll(PDO::FETCH_ASSOC);
+        $refundStates=[];
+        foreach($refunds as $refund)$refundStates[(string)$refund['status']]=(int)$refund['total'];
+        $refundsAwaiting=($refundStates['requested']??0)+($refundStates['reviewing']??0)
+            +($refundStates['approved']??0);
         $claimTotal=(int)$pdo->query('SELECT COUNT(*) FROM commerce_payment_claims')->fetchColumn();
         $unmatched=(int)$pdo->query("SELECT COUNT(*) FROM commerce_orders o
             LEFT JOIN commerce_payment_claims c ON c.order_id=o.id AND c.provider='bitpay'
@@ -116,6 +147,30 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'paidStateRecords'=>$states['paid']??0,
             'failedRecords'=>$states['failed']??0,
             'totalRows'=>array_sum($states)
+        ];
+        $snapshot['salesPipeline']=[
+            'paidStateAmountToman'=>(string)$sales['paid_state_toman'],
+            'providerClaimMatchedAmountToman'=>(string)$sales['claim_matched_toman'],
+            'providerClaimMatchedOrderCount'=>(int)$sales['claim_matched_count'],
+            'paidStateOrdersLast7Days'=>(int)$sales['recent_paid_7d'],
+            'paidStateOrdersLast30Days'=>(int)$sales['recent_paid_30d'],
+            'paidStateAmountLast30DaysToman'=>(string)$sales['recent_paid_toman_30d'],
+            'pendingOlderThan24Hours'=>(int)$sales['pending_older_24h'],
+            'pendingOlderThan7Days'=>(int)$sales['pending_older_7d'],
+            'createdOlderThan24Hours'=>(int)$sales['created_older_24h'],
+            'refundRequestStates'=>$refundStates,
+            'refundRequestsAwaitingAction'=>$refundsAwaiting,
+            'currencyUnit'=>'toman',
+            'verifiedNetRevenueToman'=>null,
+            'verifiedBankSettlementToman'=>null,
+            'verifiedRefundDisbursementsToman'=>null,
+            'status'=>'INTERNAL_ORDER_LEDGER_ONLY',
+            'limitations'=>[
+                'Gross paid-state amounts and matched provider claims are not bank-settled revenue.',
+                'Ageing pending orders are a review queue, not customer consent for contact.',
+                'Refund request status does not prove that money was returned.',
+                'No attribution, profit, net revenue or conversion rate is inferred.'
+            ]
         ];
         $snapshot['claims']=[
             'storedUniqueProviderClaims'=>$claimTotal,
