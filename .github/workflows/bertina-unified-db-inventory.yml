@@ -115,7 +115,8 @@ jobs:
             nonEmptyTables:d.nonEmptyTables||[],
             requiredBaselinePresent:d.requiredBaselinePresent,
             allTablesInnoDb:d.allTablesInnoDb,
-            foreignKeyReferences:d.foreignKeyReferences
+            foreignKeyReferences:d.foreignKeyReferences,
+            cleanRebuildReadiness:d.cleanRebuildReadiness||null
           };
           console.log('LIVE_READ_ONLY_DB_INVENTORY',JSON.stringify(report));
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
