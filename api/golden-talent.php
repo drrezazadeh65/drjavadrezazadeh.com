@@ -107,7 +107,22 @@ function goldenTalentRoute(string $path,string $verb): never {
         if(!goldenTalentBaseSchemaPresent($pdo))fail('golden_talent_schema_unavailable',503);
         if(!rateAllowed($pdo,'gt_my_subjects',$accountId,20,300))fail('rate_limited',429);
         try{
+            if(!$pdo->beginTransaction())throw new RuntimeException('audit_transaction_unavailable');
             $items=goldenTalentMyVerifiedSubjects($pdo,$accountId);
+            // An attributable, append-only read event is required before a
+            // private learner alias may leave the server. Log no student IDs,
+            // answers, pseudonyms or assessment outcomes in the event.
+            $eventKey=hash('sha256','GT_GUARDIAN_LIST_READ|'.$accountId.'|'.bin2hex(random_bytes(32)));
+            $eventDigest=hash('sha256',$eventKey.'|'.count($items));
+            $audit=$pdo->prepare("INSERT INTO eco_audit_events
+                (event_key,actor_account_id,action_code,entity_kind,entity_id,
+                 correlation_id,payload_sha256,event_sha256)
+                VALUES(?,?,'GT_GUARDIAN_LIST_READ','GUARDIAN_ACCOUNT',?,?,?,?)");
+            if(!$audit||!$audit->execute([
+                $eventKey,$accountId,$accountId,uuidv4(),
+                hash('sha256','count:'.count($items)),$eventDigest
+            ]))throw new RuntimeException('audit_write_failed');
+            if(!$pdo->commit())throw new RuntimeException('audit_commit_failed');
             respond(['ok'=>true,'service'=>'golden-talent',
                 'scope'=>'verified_guardian_current_assessment_consent',
                 'learners'=>$items,'candidateScanLimit'=>25,
@@ -116,6 +131,7 @@ function goldenTalentRoute(string $path,string $verb): never {
                 'automaticPaidEntitlement'=>false,
                 'note'=>'Only verified guardian links with current assessment consent are listed. No private assessment data or report access is granted.']);
         }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
             error_log('Golden Talent private listing unavailable: '.get_class($e));
             fail('golden_talent_private_unavailable',503);
         }
