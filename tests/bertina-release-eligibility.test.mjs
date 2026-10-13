@@ -41,6 +41,8 @@ test('full mode refuses deployment-authority, migration and credential changes',
     'migrations/2026_10_add.sql',
     '.bertina-backup-trigger',
     '.htaccess',
+    'api/internal/.htaccess',
+    'journal/.user.ini',
     'api/config.local.php',
     'docs/governance/RELEASE_POLICY.md'
   ];
