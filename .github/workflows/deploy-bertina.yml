@@ -179,6 +179,8 @@ jobs:
           node platform/golden-talent-book-crosswalk.test.mjs
           php tests/golden-talent-guardian.php
           php tests/bahar-bertina-schema.php
+          php tests/bahar-guardian-mysql.php
+          node --check assets/js/bahar-guardian-overview.js
           php tests/operations-security.php
           php tests/operations-mysql.php
           node --check assets/js/operations-social.js
@@ -206,7 +208,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js --reporter=line
+          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js --reporter=line
 
       - name: Independently certify apex and www TLS
         run: node scripts/operations-tls-certify.mjs /tmp/operations-tls.json
