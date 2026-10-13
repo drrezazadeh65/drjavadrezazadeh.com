@@ -231,3 +231,39 @@
     animation-iteration-count:1!important;transition-duration:.01ms!important
   }
 }
+\n\n/* Compact, accessible desktop homepage navigation. Mobile continues to use the existing app menu. */
+@media(min-width:901px){
+  .public-home-page .site-header{position:sticky;overflow:visible}
+  .public-home-page .site-header nav{overflow:visible;flex-wrap:nowrap;gap:clamp(5px,.65vw,12px)}
+  .public-home-page .home-nav-group{position:relative;flex:0 0 auto}
+  .public-home-page .home-nav-group>summary{
+    min-height:42px;display:flex;align-items:center;gap:8px;padding:8px 11px;
+    border:1px solid transparent;border-radius:11px;color:#d5c9ad;font-size:12px;
+    cursor:pointer;list-style:none;white-space:nowrap
+  }
+  .public-home-page .home-nav-group>summary::-webkit-details-marker{display:none}
+  .public-home-page .home-nav-group>summary::after{content:"⌄";color:var(--home-amber);font-size:14px}
+  .public-home-page .home-nav-group[open]>summary,
+  .public-home-page .home-nav-group>summary:hover,
+  .public-home-page .home-nav-group>summary:focus-visible{
+    border-color:var(--home-border);background:rgba(229,191,115,.07);outline:none
+  }
+  .public-home-page .home-nav-menu{
+    position:absolute;z-index:120;top:calc(100% + 8px);inset-inline-end:0;
+    display:grid;min-width:220px;padding:8px;border:1px solid var(--home-border);
+    border-radius:16px;background:#11100d;box-shadow:0 20px 48px rgba(0,0,0,.48)
+  }
+  .public-home-page .home-nav-menu a{
+    min-height:42px;display:flex;align-items:center;padding:8px 12px;border-radius:10px;
+    color:#eee7d7;text-decoration:none;font-size:13px
+  }
+  .public-home-page .home-nav-menu a:hover,
+  .public-home-page .home-nav-menu a:focus-visible{background:rgba(229,191,115,.09);color:#f0d28e}
+  .public-home-page .site-header nav>a{white-space:nowrap}
+}
+@media(max-width:1100px) and (min-width:901px){
+  .public-home-page .site-header{gap:14px;padding-inline:18px}
+  .public-home-page .site-header .brand{font-size:14px}
+  .public-home-page .site-header nav{gap:2px}
+  .public-home-page .site-header nav>a,.public-home-page .home-nav-group>summary{font-size:11px;padding-inline:7px}
+}
