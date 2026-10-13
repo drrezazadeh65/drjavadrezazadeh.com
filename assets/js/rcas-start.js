@@ -9,12 +9,12 @@ const groups=[
 {key:"F",title:"خودتنظیمی دیجیتال و هوش مصنوعی",scale:"B",items:["پیش از کار مهم، اعلان‌ها و ابزارهای دیجیتال را طوری تنظیم می‌کنم که احتمال وقفه کمتر شود.","پیش از بازکردن یک برنامه، سایت یا پلتفرم، معمولاً می‌دانم برای چه کاری وارد آن می‌شوم.","پیش از استفاده از یک پاسخ مهم تولیدشده با هوش مصنوعی، آن را بررسی می‌کنم.","پس از کمک گرفتن از هوش مصنوعی، بررسی می‌کنم چه چیزی را اکنون می‌توانم مستقل از آن توضیح دهم یا انجام دهم."]},
 {key:"G",title:"مسیر طلایی و حمایت",scale:"C",items:["برای یکی از توانایی‌های مهمی که به خودم نسبت می‌دهم، شاهد واقعی دارم.","دست‌کم یکی از مسیرهای موردعلاقه‌ام را با تجربه واقعی یا اطلاعات معتبر بررسی کرده‌ام.","برای یک مشکل تحصیلی مهم، می‌دانم از چه فردی و با چه سؤال مشخصی کمک بخواهم.","حمایتی که دریافت می‌کنم به من کمک می‌کند دفعه بعد بخش بیشتری از کار را خودم انجام دهم."]}
 ];
-const scaleLabels={B:["۰ · هرگز","۱ · به‌ندرت","۲ · گاهی","۳ · اغلب","۴ · تقریباً همیشه","NA"],C:["۰ · هنوز نمی‌توانم/روشن نیست","۱ · کم","۲ · تاحدی","۳ · خوب","۴ · روشن و همراه با شاهد","NA"]};
+const scaleLabels={B:["۰ · هرگز","۱ · به‌ندرت","۲ · گاهی","۳ · اغلب","۴ · تقریباً همیشه","NA · کاربرد ندارد","UNKNOWN · نمی‌دانم یا شاهد کافی ندارم"],C:["۰ · هنوز نمی‌توانم/روشن نیست","۱ · کم","۲ · تاحدی","۳ · خوب","۴ · روشن و همراه با شاهد","NA · کاربرد ندارد","UNKNOWN · نمی‌دانم یا شاهد کافی ندارم"]};
 const routeMap={D1:["RCAS-D1","Learning & Self-Regulation"],D2:["RCAS-D2","Self-Efficacy, Wellbeing & Recovery"],D3:["RCAS-D3","Digital & AI Self-Regulation"],D4:["RCAS-D4","Context, Access & Support Ecology"],D5:["RCAS-D5","Golden Path"],D6:["RCAS-D6","Critical Thinking & Decision Quality"]};
 const access=document.getElementById("rcasAccess");
 accessItems.forEach((x,i)=>{access.insertAdjacentHTML("beforeend",`<div class="rcas-access-row"><span>${x}</span><select name="access${i}"><option value="">انتخاب</option><option>در دسترس</option><option>محدود</option><option>فعلاً در دسترس نیست</option><option>نیاز ندارم</option></select></div>`)});
 const core=document.getElementById("rcasCore");
-groups.forEach(g=>{let html=`<section class="rcas-domain"><div class="rcas-domain-title"><b>${g.key}</b><h3>${g.title}</h3></div>`;g.items.forEach((item,i)=>{const sc=g.scales?g.scales[i]:g.scale;html+=`<fieldset class="rcas-item"><legend><span>${g.key}${i+1} · ${sc}</span>${item}</legend><div class="rcas-scale">${scaleLabels[sc].map((lab,n)=>`<label><input type="radio" name="${g.key}${i+1}" value="${n===5?"NA":n}"><span>${lab}</span></label>`).join("")}</div></fieldset>`});html+="</section>";core.insertAdjacentHTML("beforeend",html)});
+groups.forEach(g=>{let html=`<section class="rcas-domain"><div class="rcas-domain-title"><b>${g.key}</b><h3>${g.title}</h3></div>`;g.items.forEach((item,i)=>{const sc=g.scales?g.scales[i]:g.scale;html+=`<fieldset class="rcas-item"><legend><span>${g.key}${i+1} · ${sc}</span>${item}</legend><div class="rcas-scale">${scaleLabels[sc].map((lab,n)=>`<label><input type="radio" name="${g.key}${i+1}" value="${n===5?"NA":n===6?"UNKNOWN":n}"><span>${lab}</span></label>`).join("")}</div></fieldset>`});html+="</section>";core.insertAdjacentHTML("beforeend",html)});
 const routing=document.getElementById("rcasRouting");
 const evidence=["شواهد همسو","شواهد متناقض","فقط یک منبع شاهد","شاهد کافی ندارم"];
 groups.forEach(g=>routing.insertAdjacentHTML("beforeend",`<fieldset class="rcas-route-row"><legend><b>${g.key}</b> ${g.title}</legend><div>${evidence.map((x,i)=>`<label><input type="radio" name="route_${g.key}" value="${i}"><span>${x}</span></label>`).join("")}<label class="priority-check"><input type="checkbox" name="priority_${g.key}"><span>این حوزه برای من اولویت است</span></label></div></fieldset>`));
@@ -29,11 +29,11 @@ const CORE_ITEM_IDS=groups.flatMap(g=>g.items.map((_,i)=>g.key+(i+1)));
 if(CORE_ITEM_IDS.length!==28||new Set(CORE_ITEM_IDS).size!==28)throw Error("RCAS Core 28 version mismatch");
 const coreAnswered=()=>CORE_ITEM_IDS.filter(name=>{
   const inputs=[...form.querySelectorAll('input[type="radio"]')].filter(x=>x.name===name);
-  return inputs.some(x=>x.checked && (x.value==="NA"||/^[0-4]$/.test(x.value)));
+  return inputs.some(x=>x.checked && (["NA","UNKNOWN"].includes(x.value)||/^[0-4]$/.test(x.value)));
 });
 const updateCoreProgress=()=>{
   const count=coreAnswered().length;
-  if(coreStatus)coreStatus.textContent="Core 28: "+count+" از ۲۸ پاسخ ثبت‌شده در همین صفحه؛ NA یک پاسخ مجاز است، نه صفر.";
+  if(coreStatus)coreStatus.textContent="Core 28: "+count+" از ۲۸ پاسخ ثبت‌شده در همین صفحه؛ «کاربرد ندارد» و «نمی‌دانم/شاهد کافی ندارم» هر دو پاسخ مجاز و جدا از صفرند.";
   return count;
 };
 function show(n){
@@ -47,7 +47,7 @@ const coreComplete=()=>{
   const answered=new Set(coreAnswered());
   if(answered.size===28)return true;
   const first=CORE_ITEM_IDS.find(name=>!answered.has(name));
-  if(coreStatus)coreStatus.textContent="برای ادامه، هر ۲۸ گزاره را پاسخ بده یا NA انتخاب کن. پاسخ "+first+" باقی مانده است ("+answered.size+"/۲۸).";
+  if(coreStatus)coreStatus.textContent="برای ادامه، هر ۲۸ گزاره را پاسخ بده یا «کاربرد ندارد» یا «نمی‌دانم» را انتخاب کن. پاسخ "+first+" باقی مانده است ("+answered.size+"/۲۸).";
   const target=[...form.querySelectorAll('input[type="radio"]')].find(x=>x.name===first);
   target?.closest("fieldset")?.scrollIntoView({behavior:"smooth",block:"center"});
   target?.focus({preventScroll:true});
