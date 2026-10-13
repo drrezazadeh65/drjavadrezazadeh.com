@@ -53,5 +53,25 @@ jobs:
           const history=await req('/commerce/history');
           ensure(history.status===401 && history.value?.error==='unauthorized','Guest order data not protected');
           console.log('PASS: anonymous order history access refused');
+          const consultation=await req('/growth/health');
+          ensure(consultation.status===200 && consultation.value?.service==='consultation_interest'
+            && consultation.value?.schema==='stage14-readiness-v1','live consultation health route unavailable');
+          ensure(consultation.value.requirements?.verifiedAccountRequired===true,
+            'consultation identity contract missing');
+          ensure(consultation.value.requirements?.paymentOrBookingImplied===false,
+            'consultation health must never imply booking or payment');
+          console.log('CONSULTATION_READINESS',JSON.stringify({
+            ready:consultation.value.ready,
+            database:consultation.value.requirements?.database,
+            auth:consultation.value.requirements?.auth,
+            consentSchema:consultation.value.requirements?.consentSchema
+          }));
+          const guestLead=await req('/growth/leads/mine');
+          ensure(guestLead.status===401 && guestLead.value?.ok!==true,
+            'guest consultation records must require verified identity');
+          console.log('PASS: consultation anonymous isolation');
+          // Keep missing optional schema visible as an operational blocker.
+          ensure(consultation.value.ready===true && consultation.value.requirements?.consentSchema===true,
+            'consultation database migration has not been verified on Bertina');
           console.log('All live read-only/negative account checks passed; positive registration and mailbox verification require a separate approved synthetic-account journey.');
           NODE
