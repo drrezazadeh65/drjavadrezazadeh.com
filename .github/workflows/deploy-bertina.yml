@@ -782,51 +782,9 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Keep one newest Bertina account backup
-        if: steps.credentials.outputs.ready == 'true'
-        env:
-          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
-          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
-        run: |
-          set -euo pipefail
-          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
-          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" \
-            -e "set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes; set ftp:passive-mode true; set ftp:prefer-epsv false; cd \"$FTP_REMOTE_DIR\"; cls -1 ../backup-*_drjavad1.tar.gz; bye" \
-            > /tmp/bertina-backup-list.txt
-          python3 scripts/bertina-prune-backups.py /tmp/bertina-backup-list.txt > /tmp/bertina-backup-prune.json
-          python3 - <<'PY'
-          import json
-          plan=json.load(open('/tmp/bertina-backup-prune.json',encoding='utf-8'))
-          print('Retaining canonical cPanel backup:',plan['keep'])
-          print('Older backup archives to remove:',len(plan['remove']))
-          with open('/tmp/bertina-backup-remove-list.txt','w',encoding='utf-8') as f:
-              for name in plan['remove']:
-                  f.write(name+'\n')
-          PY
-          while IFS= read -r name; do
-            [ -n "$name" ] || continue
-            case "$name" in
-              backup-*.tar.gz) ;;
-              *) echo "Refusing unexpected backup filename: $name" >&2; exit 1 ;;
-            esac
-            echo "Removing older cPanel archive: $name"
-            timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" \
-              -e "set cmd:fail-exit yes; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes; set ftp:passive-mode true; set ftp:prefer-epsv false; cd \"$FTP_REMOTE_DIR\"; rm ../$name; bye"
-          done < /tmp/bertina-backup-remove-list.txt
-          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" \
-            -e "set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes; set ftp:passive-mode true; set ftp:prefer-epsv false; cd \"$FTP_REMOTE_DIR\"; cls -1 ../backup-*_drjavad1.tar.gz; bye" \
-            > /tmp/bertina-backup-remaining.txt
-          python3 scripts/bertina-prune-backups.py /tmp/bertina-backup-remaining.txt > /tmp/bertina-backup-remaining.json
-          python3 - <<'PY'
-          import json
-          before=json.load(open('/tmp/bertina-backup-prune.json',encoding='utf-8'))
-          after=json.load(open('/tmp/bertina-backup-remaining.json',encoding='utf-8'))
-          if after['keep']!=before['keep'] or after['remove']:
-              raise SystemExit('Bertina archive cleanup verification failed')
-          print('Verified exactly one cPanel archive remains:',after['keep'])
-          PY
-          echo "One cPanel backup retained; older matching account archives were removed and the remaining inventory was verified after live release checks passed." >> "$GITHUB_STEP_SUMMARY"
+      # Backup retention and deletion are managed separately from public deployment.
+      # Do not prune account archives during a release while independent restore
+      # evidence is unavailable. Preserve existing Bertina backups unchanged.
 
       - name: Deployment summary
         if: steps.credentials.outputs.ready == 'true'
