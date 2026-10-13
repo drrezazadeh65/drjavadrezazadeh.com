@@ -16,6 +16,13 @@
     if(cls)n.className=cls;
     return n;
   }
+  function toman(value){
+    if(value===null||value===undefined||!/^\\d+$/.test(String(value)))
+      return text('نامشخص','Unknown');
+    try{return new Intl.NumberFormat(en?'en-GB':'fa-IR').format(BigInt(String(value)))+
+      text(' تومان',' toman');}
+    catch{return text('نامشخص','Unknown');}
+  }
   function card(label,value,detail){
     const n=node('article',undefined,'ops-card');
     n.append(node('small',label),node('div',value??text('نامشخص','Unknown'),'ops-number'));
@@ -35,6 +42,36 @@
     card(text('سفارش‌های معلق','Pending orders'),orders.pendingRecords);
     card(text('ردیف‌های پرداخت‌شده','Paid-state records'),orders.paidStateRecords,
       text('تسویهٔ بانکی از این تعداد قابل استنتاج نیست.','This does not prove bank settlement.'));
+    const sales=data.salesPipeline||null;
+    if(sales && sales.status==='INTERNAL_ORDER_LEDGER_ONLY'){
+      const heading=node('h3',text('مسیر فروش و پیگیری درآمد','Sales pipeline and revenue follow-up'));
+      heading.style.gridColumn='1 / -1';results.append(heading);
+      card(text('ارزش سفارش‌های دارای وضعیت پرداخت‌شده','Paid-state order value'),
+        toman(sales.paidStateAmountToman),
+        text('جمع ثبت داخلی، نه مبلغ تسویه بانکی.','Internal ledger total, not bank-settled revenue.'));
+      card(text('ارزش دارای تطبیق ادعای درگاه','Provider-claim-matched order value'),
+        toman(sales.providerClaimMatchedAmountToman),
+        text('تطبیق فنی درگاه؛ تسویه بانکی همچنان نامشخص است.',
+          'Gateway claim match only; bank settlement remains unverified.'));
+      card(text('ارزش ۳۰ روز اخیر با وضعیت پرداخت‌شده','Last 30 days paid-state order value'),
+        toman(sales.paidStateAmountLast30DaysToman),
+        text('مبنای تاریخ پرداخت ثبت‌شده، نه رسید بانکی.',
+          'Based on recorded paid date, not bank statements.'));
+      card(text('سفارش‌های دارای وضعیت پرداخت‌شده در ۳۰ روز','Paid-state orders in 30 days'),
+        sales.paidStateOrdersLast30Days);
+      card(text('پرداخت‌های معلق بیش از ۲۴ ساعت','Pending payments older than 24 hours'),
+        sales.pendingOlderThan24Hours,
+        text('برای بررسی فنی؛ مجوز ارسال پیام بازاریابی نیست.',
+          'Operational review only; not permission for marketing outreach.'));
+      card(text('پرداخت‌های معلق بیش از ۷ روز','Pending payments older than 7 days'),
+        sales.pendingOlderThan7Days);
+      card(text('سفارش‌های ایجادشده بیش از ۲۴ ساعت','Unpaid created orders older than 24 hours'),
+        sales.createdOlderThan24Hours);
+      card(text('درخواست‌های بازپرداخت نیازمند اقدام','Refund requests awaiting action'),
+        sales.refundRequestsAwaitingAction,
+        text('وضعیت درخواست، دلیل بر بازگشت وجه نیست.',
+          'A refund request status is not evidence of a bank disbursement.'));
+    }
     card(text('پرداخت‌های نیازمند تطبیق مستقل','Paid records requiring review'),
       claims.paidRowsRequiringIndependentProviderReconciliation);
     card(text('مغایرت دفتر رزرو کتاب','Book reservation ledger discrepancies'),
