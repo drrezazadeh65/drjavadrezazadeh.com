@@ -6,7 +6,6 @@ the GitHub Actions runner and must not be uploaded as an artifact or committed.
 """
 import argparse
 import base64
-import gzip
 import hashlib
 import json
 from pathlib import Path
