@@ -1,0 +1,96 @@
+name: Unified Bertina Database — Isolated Schema Certification
+on:
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'database/unified/**'
+      - 'tests/unified-db-schema.test.mjs'
+      - '.github/workflows/unified-db-schema-ci.yml'
+  push:
+    branches: [architecture/bertina-unified-database-20261013]
+    paths:
+      - 'database/unified/**'
+      - 'tests/unified-db-schema.test.mjs'
+      - '.github/workflows/unified-db-schema-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce additive source, FKs, naming and no data mutation
+        run: node --test tests/unified-db-schema.test.mjs
+
+  disposable-database:
+    needs: static-governance
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    strategy:
+      fail-fast: false
+      matrix:
+        engine:
+          - mariadb:10.11
+          - mysql:8.0
+    services:
+      db:
+        image: ${{ matrix.engine }}
+        env:
+          MYSQL_ROOT_PASSWORD: disposable-ci-only
+          MYSQL_DATABASE: ecos_fixture
+          MARIADB_ROOT_PASSWORD: disposable-ci-only
+          MARIADB_DATABASE: ecos_fixture
+        ports:
+          - 3306:3306
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install isolated SQL client and wait for database readiness
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mariadb-client
+          for n in $(seq 1 70); do
+            if mariadb --connect-timeout=3 -h127.0.0.1 -uroot -p'disposable-ci-only' ecos_fixture -N -e 'SELECT 1' >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          mariadb --connect-timeout=10 -h127.0.0.1 -uroot -p'disposable-ci-only' ecos_fixture -N -e 'SELECT VERSION()'
+      - name: Apply canonical Bertina identity and commerce foundations only in CI
+        run: |
+          set -euo pipefail
+          mariadb -h127.0.0.1 -uroot -p'disposable-ci-only' ecos_fixture < docs/BERTINA_MYSQL_SCHEMA.sql
+      - name: Create every unified module, then rerun to certify idempotence
+        run: |
+          set -euo pipefail
+          for pass in first second; do
+            for file in database/unified/[0-9]*.sql; do
+              echo "$pass $(basename "$file")"
+              mariadb -h127.0.0.1 -uroot -p'disposable-ci-only' ecos_fixture < "$file"
+            done
+          done
+      - name: Prove exact table inventory, InnoDB FKs, identity references and zero test customers
+        run: |
+          set -euo pipefail
+          MYSQL="mariadb -h127.0.0.1 -uroot -pdisposable-ci-only ecos_fixture -N -s"
+          expected="$(node -p "require('./database/unified/schema_manifest.json').expectedNewTableCount")"
+          actual="$($MYSQL -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME REGEXP '^eco_';")"
+          test "$actual" = "$expected"
+          invalid_engine="$($MYSQL -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME REGEXP '^eco_' AND ENGINE <> 'InnoDB';")"
+          test "$invalid_engine" = 0
+          fks="$($MYSQL -e "SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME REGEXP '^eco_' AND REFERENCED_TABLE_NAME IS NOT NULL;")"
+          test "$fks" -gt 100
+          test "$($MYSQL -e 'SELECT COUNT(*) FROM customer_accounts;')" = 0
+          test "$($MYSQL -e 'SELECT COUNT(*) FROM commerce_orders;')" = 0
+          echo "PASS: $actual unified tables, $fks FK references, InnoDB only, zero customers, zero orders."
+      - name: Report database isolation and migration limits
+        if: always()
+        run: |
+          echo 'This job created and tested only a disposable GitHub Actions MySQL/MariaDB service.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Production Bertina database was NOT contacted or modified.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Real migration requires schema/row-count inventory, recoverable backup verification, a migration lock and owner-approved release.' >> "$GITHUB_STEP_SUMMARY"
