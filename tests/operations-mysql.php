@@ -107,6 +107,47 @@ try {
  check(count($data['reporting']['awoseDomainViews'])===36,'AWOSE domain views missing');
  check($data['reporting']['masterReport']['reportCount']===36,'administrative report double counted');
 
+ // Backend contract: all 36 reports x 4 gates are explicitly unknown without current-release evidence.
+ // The separately evaluated ADM-01 gates must never inflate the public 144-gate matrix.
+ $matrix=$data['summary']['gateCoverage']??null;
+ check(is_array($matrix)&&array_keys($matrix)===['code','tests','production','evidence'],
+     'Backend did not expose the four canonical evidence axes');
+ foreach($matrix as $axis=>$counts){
+     check(array_keys($counts)===['pass','fail','blocked','stale','unknown'],
+         'Unexpected gate-coverage states in '.$axis);
+     check(array_sum($counts)===36 && $counts['unknown']===36,
+         'Missing evidence wrongly promoted to accepted/failed production coverage in '.$axis);
+ }
+ check($data['summary']['verified']===0 && $data['summary']['measuredCoverage']===0,
+     'ADM-only evidence leaked into 36-report completion');
+
+ // Adversarial evidence precedence: future and other-release events must be ignored;
+ // a same-time failure outranks a pass, and an expired pass stays stale.
+ $record=operationsRegistry()['reports'][1]; // OP-02, independent of runtime blockers.
+ $probe=[
+     ['section_id'=>'OP-02','release_sha'=>$sha,'gate_id'=>'code','result'=>'pass',
+      'checked_at'=>$now-4,'expires_at'=>$now+80],
+     ['section_id'=>'OP-02','release_sha'=>$sha,'gate_id'=>'tests','result'=>'pass',
+      'checked_at'=>$now-3,'expires_at'=>$now+80],
+     ['section_id'=>'OP-02','release_sha'=>$sha,'gate_id'=>'tests','result'=>'fail',
+      'checked_at'=>$now-3,'expires_at'=>$now+80],
+     ['section_id'=>'OP-02','release_sha'=>$sha,'gate_id'=>'production','result'=>'blocked',
+      'checked_at'=>$now-2,'expires_at'=>$now+80],
+     ['section_id'=>'OP-02','release_sha'=>$sha,'gate_id'=>'evidence','result'=>'pass',
+      'checked_at'=>$now-100,'expires_at'=>$now-1],
+     ['section_id'=>'OP-02','release_sha'=>str_repeat('b',40),'gate_id'=>'code','result'=>'fail',
+      'checked_at'=>$now-1,'expires_at'=>$now+80],
+     ['section_id'=>'OP-02','release_sha'=>$sha,'gate_id'=>'code','result'=>'fail',
+      'checked_at'=>$now+1,'expires_at'=>$now+80],
+ ];
+ $evaluated=operationsEvaluate($record,$probe,$sha,$now);
+ check(array_column($evaluated['verifiedGates'],'state')===['pass','fail','blocked','stale'],
+     'Evidence precedence incorrectly promoted stale/future/foreign-release records');
+ check($evaluated['closed']===false && $evaluated['status']==='regressed'
+     && $evaluated['measuredProgress']===25,
+     'Mixed evidence states incorrectly certified report completion');
+
+
  // Read-only Action execution always requires the SAME admin session, fresh MFA and CSRF.
  $history=request('/api/admin/operations/action-runs',200);
  check($history['runs']===[],'unexpected pre-existing action journal records');
