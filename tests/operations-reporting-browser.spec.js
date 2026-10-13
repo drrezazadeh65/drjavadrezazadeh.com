@@ -291,7 +291,7 @@ test('Collection settings expose 13 engine switches, eight cached providers and 
  'governance:repository','governance:branches','governance:restore_ci','governance:release_runs']
   .map(id=>({id,type:'source',engineId:'ENG-11',enabled:true,connected:true,
    cadence:'daily',clockMinutes:240,cacheState:'missing'}))];
- const schedule={ok:true,schema:'operations-collection-controls-v1',timezone:'Asia/Tehran',
+ const schedule={ok:true,schema:'operations-collection-controls-v1',canManage:true,timezone:'Asia/Tehran',
   scheduler:'external_bertina_cron_required',rows,sourceStates:{}};
  let saved=0,refreshed=0;
  await page.route('**/api/admin/operations/collection-settings',route=>{

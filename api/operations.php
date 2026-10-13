@@ -405,7 +405,9 @@ function operationsRoute(string $path, string $verb): never {
         }
 
         if ($path === '/admin/operations/collection-settings' && $verb === 'GET') {
-            respond(operationsCollectorStatus($pdo,nowTs()));
+            $controls=operationsCollectorStatus($pdo,nowTs());
+            $controls['canManage']=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
+            respond($controls);
         }
         if ($path === '/admin/operations/collection-settings' && $verb === 'POST') {
             if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
@@ -420,7 +422,8 @@ function operationsRoute(string $path, string $verb): never {
             try{
                 operationsCollectorConfigure($pdo,$body['key'],$body['enabled'],
                     $body['cadence'],$body['clockMinutes'],$accountId,nowTs());
-                respond(operationsCollectorStatus($pdo,nowTs()));
+                $controls=operationsCollectorStatus($pdo,nowTs());$controls['canManage']=true;
+                respond($controls);
             }catch(InvalidArgumentException $e){fail('invalid_collector_policy',400);}
         }
         if ($path === '/admin/operations/github-audits/refresh' && $verb === 'POST') {

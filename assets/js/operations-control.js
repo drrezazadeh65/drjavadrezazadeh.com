@@ -187,7 +187,7 @@ function collectionControlsRender(parent){
    const minute=Number(scope.clockMinutes)||0;
    clock.value=String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0');
    clock.title=t('ساعت محلی تهران','Tehran local schedule time');line.append(clock);
-   const save=el('button',t('ذخیره','Save'));save.type='button';
+   const save=el('button',t('ذخیره','Save'));save.type='button';save.disabled=collectionState.canManage===false;
    save.addEventListener('click',async()=>{
     const parts=clock.value.split(':').map(Number),minutes=parts[0]*60+parts[1];
     save.disabled=true;try{
@@ -211,7 +211,7 @@ function githubAuditRender(host){
  section.append(el('summary',t('پایش آزمون‌های واقعی GitHub (فقط‌خواندنی)','Live GitHub audit runs (read-only)')));
  const info=el('p',t('نتایج آزمون‌های اصلی، لینک اجرای واقعی و نسخهٔ آزمایش‌شده؛ این گزارش اجازهٔ انتشار یا تأیید نهایی اقدام را صادر نمی‌کند.','Real audit run links, status and tested source SHA. This does not dispatch releases or certify action completion.'));
  section.append(info);
- collectionControlsRender(section);
+ collectionControlsRender(host);
  section.append(el('p',t('دکمهٔ گزارش فقط آخرین دادهٔ ذخیره‌شده را نمایش می‌دهد و به GitHub درخواست جدید نمی‌فرستد.','Report view displays saved evidence only and makes no new GitHub request.')));
  const button=el('button',t('دریافت آخرین وضعیت رسمی GitHub','Fetch verified GitHub workflow status'));button.type='button';
  button.addEventListener('click',async()=>{

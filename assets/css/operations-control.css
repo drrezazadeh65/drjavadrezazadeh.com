@@ -11,3 +11,14 @@
 .ops-backlog-group{min-width:0}.ops-backlog-group ol{min-width:0;margin:8px 0;padding-inline-start:22px}
 .ops-backlog-group li{min-width:0;margin-block:6px}
 .ops-backlog-group button{max-width:100%;width:100%;text-align:start;white-space:normal;overflow-wrap:anywhere}
+
+/* Administrator collection controls: responsive, breakable labels and touch targets. */
+.ops-collection-settings{min-width:0;margin-block:14px;padding:12px;border:1px solid var(--ops-border);border-radius:12px}
+.ops-collection-settings>summary{cursor:pointer;color:var(--ops-gold);font-weight:700;overflow-wrap:anywhere}
+.ops-collector-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));gap:12px;margin-block:14px;min-width:0}
+.ops-collector-item{min-width:0;display:grid;gap:9px;padding:12px;background:var(--ops-panel);border:1px solid var(--ops-border);border-radius:12px;overflow-wrap:anywhere}
+.ops-collector-item strong,.ops-collector-item small{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.ops-collector-item label{display:flex;align-items:center;gap:10px}
+.ops-collector-item input[type=checkbox]{width:20px;height:20px;flex-shrink:0}
+.ops-collector-item input[type=time],.ops-collector-item select,.ops-collector-item button{min-width:0;width:100%}
+@media(max-width:600px){.ops-collection-settings{padding:10px}.ops-collector-list{grid-template-columns:minmax(0,1fr)}}
