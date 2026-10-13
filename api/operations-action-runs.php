@@ -9,6 +9,18 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
  */
 function operationsActionDefinition(array $registry, string $id): ?array {
     if (!preg_match('/^ENG-[0-9]{2}\.ACT-[0-9]{3}$/D', $id)) return null;
+    // Immutable server-side Action and signal allowlist: registry edits alone
+    // cannot create executors or widen permitted observation data.
+    static $approvedSignals = [
+        'ENG-01.ACT-011'=>['sample_size','indexed_sample','unknown_sample'],
+        'ENG-05.ACT-008'=>['public_tls_confirmed','commerce_enabled','gateway_configured','amount_conversion','checkout_runtime'],
+        'ENG-05.ACT-009'=>['captured','pending','paid_records'],
+        'ENG-05.ACT-010'=>['sellable_books','order_email_fulfilment_confirmed','book_shipping_confirmed','service_booking_confirmed'],
+        'ENG-07.ACT-007'=>['auth_runtime','email_transport'],
+        'ENG-11.ACT-008'=>['independent_tls'],
+        'ENG-11.ACT-009'=>['current_release'],
+    ];
+    if (!isset($approvedSignals[$id])) return null;
     foreach ($registry['actions']??[] as $action) {
         if (($action['id']??null)!==$id)continue;
         $contract=$action['supportedExecutor']??null;
@@ -26,7 +38,8 @@ function operationsActionDefinition(array $registry, string $id): ?array {
             || ($action['authorizationLevel']??'')!=='verified_active_administrator_with_fresh_MFA_readonly')return null;
         if (!is_array($contract['signalIds']??null) || count($contract['signalIds'])<1
             || count($contract['signalIds'])>20
-            || count(array_unique($contract['signalIds']))!==count($contract['signalIds']))return null;
+            || count(array_unique($contract['signalIds']))!==count($contract['signalIds'])
+            || $contract['signalIds']!==$approvedSignals[$id])return null;
         return $action;
     }
     return null;
