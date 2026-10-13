@@ -4,6 +4,28 @@ on:
   push:
     branches:
       - migration/bertina-linux6
+    # Only public pages and static assets initiate automatic releases. Governance,
+    # tests, scripts, API, private data and CI edits remain available for manual
+    # owner-authorised release, but do not generate spurious deploy failures.
+    paths:
+      - 'fa/**'
+      - 'en/**'
+      - 'journal/**'
+      - 'assets/images/**'
+      - 'assets/css/**'
+      - 'assets/fonts/**'
+      - 'assets/icons/**'
+      - 'index.html'
+      - '404.html'
+      - 'offline.html'
+      - 'robots.txt'
+      - 'llms.txt'
+      - 'feed.xml'
+      - 'sitemap*.xml'
+      - 'favicon.*'
+      - 'site.webmanifest'
+      - 'manifest.json'
+      - '.bertina-deploy-trigger'
   workflow_dispatch:
     inputs:
       recovery_mode:
@@ -101,43 +123,26 @@ jobs:
             esac
           fi
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify automatic release-scope policy has not regressed
+        if: github.event_name == 'push'
+        run: |
+          node --check scripts/bertina-auto-release-policy.mjs
+          node --test tests/bertina-auto-release-policy.test.mjs
+
       - name: Restrict automatic releases to public site changes
         if: github.event_name == 'push'
         env:
           EXPECTED_LIVE_SHA: ${{ steps.release_policy.outputs.expected_live_sha }}
         run: |
           set -euo pipefail
-          git cat-file -e "$EXPECTED_LIVE_SHA^{commit}"
-          changed="$(git diff --name-only "$EXPECTED_LIVE_SHA" "$GITHUB_SHA")"
-          test -n "$changed"
-          while IFS= read -r path; do
-            case "$path" in
-              .github/workflows/deploy-bertina.yml|.github/workflows/bertina-postrelease-acceptance.yml|scripts/bertina-postrelease-check.mjs|scripts/build-public-site.mjs|scripts/build-public-data.mjs|scripts/stamp-bertina-release.mjs|scripts/bertina-controlled-cpanel-gate.php|tests/bertina-controlled-cpanel-gate.php|scripts/bertina-prune-backups.py|tests/bertina-prune-backups.py|scripts/workflow-governance-audit.mjs|.github/workflows/bertina-controlled-release-guard.yml|docs/governance/STAGE09_PRIVATE_DEPENDENCIES.json|docs/governance/V5_CONTROLLED_CPANEL_RELEASE_20261013.md|fa/*|en/*|assets/images/*|assets/css/*|assets/fonts/*|assets/icons/*|assets/data/*|index.html|offline.html|robots.txt|sitemap.xml|favicon.svg|site.webmanifest|manifest.json|.bertina-deploy-trigger)
-                ;;
-              api/*|platform/*|foundation/*|edge/*|payment-api/*|database/*|migrations/*|docs/*|tests/*|scripts/*|.github/*|.bertina-backup-trigger|*.php|*.sql|*.env|.htaccess|package.json|package-lock.json|composer.json|composer.lock)
-                echo "Automatic production release blocked by protected change: $path" >&2
-                exit 1
-                ;;
-              assets/js/*)
-                case "$path" in
-                  *checkout*|*commerce*|*payment*|*donation*|*receipt*|*order*|*cart*)
-                    echo "Automatic production release blocked by financial/runtime change: $path" >&2
-                    exit 1
-                    ;;
-                  *) ;;
-                esac
-                ;;
-              *)
-                echo "Automatic production release blocked by unclassified change: $path" >&2
-                exit 1
-                ;;
-            esac
-          done <<< "$changed"
-          echo "Only public-site paths changed since the deployed commit." >> "$GITHUB_STEP_SUMMARY"
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+          # Compare the entire not-yet-deployed delta, NOT just the last commit.
+          # Docs/notes omitted from the public artifact do not block harmless
+          # public updates; runtime/finance/auth/workflow/tests remain fail-closed.
+          node scripts/bertina-auto-release-policy.mjs "$EXPECTED_LIVE_SHA" "$GITHUB_SHA"
 
       - name: Compile and exercise both fail-closed recovery policy gates
         run: |
