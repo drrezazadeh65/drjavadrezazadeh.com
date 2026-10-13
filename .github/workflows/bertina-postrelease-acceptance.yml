@@ -1,0 +1,56 @@
+name: Bertina Post-Release Operational Acceptance
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Bertina"]
+    types: [completed]
+    branches: [migration/bertina-linux6]
+  workflow_dispatch:
+  schedule:
+    - cron: '43 6 * * *'
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'scripts/bertina-postrelease-check.mjs'
+      - '.github/workflows/bertina-postrelease-acceptance.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bertina-postrelease-acceptance
+  cancel-in-progress: true
+
+jobs:
+  anonymous-operational-smoke:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || 'migration/bertina-linux6' }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify observer syntax
+        run: node --check scripts/bertina-postrelease-check.mjs
+      - name: Check trusted public TLS, exact release, auth, commerce and 13 articles
+        env:
+          BERTINA_EXPECTED_RELEASE_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}
+          BERTINA_ACCEPTANCE_EVIDENCE: bertina-postrelease-evidence.json
+        run: node scripts/bertina-postrelease-check.mjs
+      - name: Retain sanitized anonymous evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bertina-postrelease-operational-evidence
+          path: bertina-postrelease-evidence.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: State verification limits
+        if: always()
+        run: |
+          echo 'This workflow observes only anonymous GET endpoints over CA-trusted HTTPS.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Release SHA, auth readiness, commerce safeguards and 13 public article routes are checked.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'It neither submits an order nor proves inbox delivery, settled payments, inventory, independent restore or MFA.' >> "$GITHUB_STEP_SUMMARY"
