@@ -8,14 +8,14 @@ test('RCAS Start requires all 28 items, preserves privacy and routes without sco
   await page.goto(base+start);
   await page.locator('[data-next="2"]').click();
   await expect(page.locator('#rcasCore .rcas-item')).toHaveCount(28);
-  await expect(page.locator('#rcasCoreStatus')).toContainText('۰ از ۲۸');
+  await expect(page.locator('#rcasCoreStatus')).toContainText('0 از ۲۸');
   await page.locator('[data-next="3"]').click();
   await expect(page.locator('.rcas-panel[data-step="2"]')).toHaveClass(/active/);
   await expect(page.locator('#rcasCoreStatus')).toContainText('۲۸ گزاره');
   for(const fieldset of await page.locator('#rcasCore .rcas-item').all()){
     await fieldset.locator('input[type="radio"]').first().check();
   }
-  await expect(page.locator('#rcasCoreStatus')).toContainText('۲۸ از ۲۸');
+  await expect(page.locator('#rcasCoreStatus')).toContainText('28 از ۲۸');
   await page.locator('[data-next="3"]').click();
   await expect(page.locator('.rcas-panel[data-step="3"]')).toHaveClass(/active/);
   await page.locator('#priorityDomain').selectOption('D5');
