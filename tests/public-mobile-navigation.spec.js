@@ -20,6 +20,12 @@ for(const locale of ['fa','en']){
   await expect.poll(()=>page.evaluate(()=>Boolean(history.state?.jrMobileMenu))).toBe(false);
   await trigger.click();
   await expect(sheet).toBeVisible();
+  await sheet.locator('[data-nav-close]').click();
+  await expect(sheet).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await expect.poll(()=>page.evaluate(()=>Boolean(history.state?.jrMobileMenu))).toBe(false);
+  await trigger.click();
+  await expect(sheet).toBeVisible();
   expect(await page.evaluate(()=>history.state?.jrMobileMenu)).toBe(true);
   await page.goBack({waitUntil:'domcontentloaded'});
   await expect(sheet).toBeHidden();
