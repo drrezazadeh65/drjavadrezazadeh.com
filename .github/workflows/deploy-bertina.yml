@@ -237,6 +237,10 @@ jobs:
           test ! -e .public-site/payment-api
           test ! -e .public-site/docs
           test ! -e .public-site/.github
+          # OJS is managed independently in Bertina, never shipped with the
+          # main site's sanitized public release or its static /journal/ hub.
+          test ! -e .public-site/journals
+          test ! -e .public-site/journal/portal
 
       - name: Check Bertina repository secrets
         id: credentials
