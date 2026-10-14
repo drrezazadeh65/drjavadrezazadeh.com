@@ -339,6 +339,29 @@
         "role-management",
         "audit-review"
       ]
+    },
+    {
+      "id": "journey-orchestration",
+      "kind": "CROSS_DOMAIN_COORDINATOR",
+      "state": "PREINTEGRATION",
+      "authority": "SERVER_ONLY",
+      "data_class": "PRIVATE",
+      "depends_on": [
+        "identity",
+        "consent",
+        "consultation",
+        "commerce",
+        "golden-talent-evidence",
+        "bahar",
+        "coaching",
+        "bookstore",
+        "audit-observability"
+      ],
+      "exposes": [
+        "server-attested-journey-events",
+        "idempotent-next-action-plans",
+        "cross-domain-reconciliation"
+      ]
     }
   ],
   "invariants": {
