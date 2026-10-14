@@ -47,6 +47,8 @@ export function recordEcosystemEvent(j,event){
    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(event.occurred_at)||
    !Number.isFinite(Date.parse(event.occurred_at)))
    throw new Error('Authoritative event contract required');
+ if(event.event_type==='ACCOUNT_VERIFIED'&&event.reference_id!==j.subject_id)
+   throw new Error('Verified account must match journey subject');
  if(rule.human&&(event.human_reviewed!==true||!safeId(event.reviewer_id)))
    throw new Error('Traceable professional human review required');
  if(!rule.human&&(event.human_reviewed!==undefined||event.reviewer_id!==undefined))
