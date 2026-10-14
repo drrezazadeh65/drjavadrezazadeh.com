@@ -145,3 +145,68 @@ test('consultation public calendar fails closed when server cannot verify capaci
   await expect(calendar.locator('[data-consultation-week-state]')).toContainText('در دسترس نیست');
   await expect(page.locator('form[data-consultation-composer]')).toBeVisible();
 });
+
+
+// These are synthetic, same-origin public availability responses. No buyer,
+// book stock, booking, payment, private order or external calendar is created.
+for(const locale of ['fa','en']){
+  test('consultation week reflects verified published hours and only requests slots ('+locale+')',async({page})=>{
+    const first='2026-10-19',second='2026-10-20';
+    const days=Array.from({length:7},(_,i)=>{
+      const date=new Date(Date.UTC(2026,9,19+i)).toISOString().slice(0,10);
+      let slots=[];
+      if(i===0)slots=[
+        {startUtc:first+' 12:30:00',endUtc:first+' 13:30:00',status:'AVAILABLE'},
+        {startUtc:first+' 13:30:00',endUtc:first+' 14:30:00',status:'FULL'}
+      ];
+      if(i===1)slots=[{startUtc:second+' 12:30:00',
+        endUtc:second+' 13:30:00',status:'AVAILABLE'}];
+      return {date,slots,totalSlots:slots.length,
+        remainingSlots:slots.filter(s=>s.status==='AVAILABLE').length};
+    });
+    await page.route('**/api/commerce/consultation-week',route=>route.fulfill({
+      status:200,json:{ok:true,schema:'consultation-week-v1',timezone:'Asia/Tehran',
+        slotMinutes:60,maxPublishedDailyHours:4,days,customerReservationEnabled:false,
+        externalCalendarConfirmed:false}
+    }));
+    const path=locale==='fa'?'/fa/darkhast-moshavere/':'/en/request-consultation/';
+    await page.setViewportSize({width:320,height:800});
+    await page.goto('http://127.0.0.1:4173'+path);
+    const calendar=page.locator('[data-consultation-week]');
+    await expect(calendar.locator('.cw-day')).toHaveCount(7);
+    await expect(calendar.locator('.cw-free')).toHaveCount(2);
+    await expect(calendar.locator('.cw-full')).toHaveCount(1);
+    await expect(calendar.locator('.cw-full')).toBeDisabled();
+    await expect(calendar.locator('.cw-day').first()).toContainText(
+      locale==='fa'?'۱ جلسه':'1 appointment');
+    const selected=calendar.locator('.cw-free').first();
+    await selected.click();
+    const form=page.locator('form[data-consultation-composer]');
+    await expect(form.locator('input[name="preferred_slot"]')).toHaveValue(first+' 12:30:00');
+    await expect(selected).toHaveAttribute('aria-pressed','true');
+    await form.locator('select[name="service"]').selectOption({index:1});
+    await form.locator('input[name="context"]').fill('Parent');
+    await form.locator('textarea[name="question"]').fill('How should we proceed?');
+    await form.locator('button[type="submit"]').click();
+    await expect(form.locator('[data-composer-draft]')).toHaveValue(
+      locale==='fa'?/زمان پیشنهادی.*در انتظار بررسی ظرفیت/:/Preferred time.*subject to availability/);
+    await expect(form.locator('[data-composer-status]')).toContainText(
+      locale==='fa'?'هنوز ارسال نشده':'has not been sent');
+    await expect(form.locator('[data-composer-draft]')).not.toContainText('booked');
+    await form.locator('button[type="reset"]').click();
+    await expect(form.locator('input[name="preferred_slot"]')).toHaveValue('');
+    expect(await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,
+      document.body.scrollWidth)-innerWidth)).toBeLessThanOrEqual(1);
+  });
+}
+test('unverified or missing week fails closed while enquiry remains available',async({page})=>{
+  await page.route('**/api/commerce/consultation-week',route=>route.fulfill({
+    status:503,json:{ok:false,error:'consultation_week_unavailable'}
+  }));
+  await page.goto('http://127.0.0.1:4173/fa/darkhast-moshavere/');
+  await expect(page.locator('[data-consultation-week] .cw-free')).toHaveCount(0);
+  await expect(page.locator('[data-consultation-week-state]')).toContainText('در دسترس نیست');
+  const form=page.locator('form[data-consultation-composer]');
+  await expect(form.locator('select[name="service"]')).toBeEnabled();
+  await expect(form.locator('input[name="preferred_slot"]')).toHaveValue('');
+});
