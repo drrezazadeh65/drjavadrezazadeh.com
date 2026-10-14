@@ -48,4 +48,12 @@ assert.throws(()=>recordEcosystemEvent(c,event('SESSION_COMPLETED','CONSULTATION
 c=recordEcosystemEvent(c,event('BOOKING_CONFIRMED','CONSULTATION','case-1'));
 c=recordEcosystemEvent(c,event('SESSION_COMPLETED','CONSULTATION','case-1'));
 assert.equal(planEcosystemJourney(c).next_action,'OFFER_CONTEXTUAL_FOLLOW_UP');
+// A previous paid order or reviewed instrument must never authorize a new one.
+b=recordEcosystemEvent(b,event('ORDER_CREATED','COMMERCE','book-o-2'));
+assert.equal(planEcosystemJourney(b).next_action,'AWAIT_PROVIDER_VERIFIED_PAYMENT');
+g=recordEcosystemEvent(g,event('ASSESSMENT_SUBMITTED','ASSESSMENT','s-2'));
+assert.equal(planEcosystemJourney(g).next_action,'QUEUE_PROFESSIONAL_EVIDENCE_REVIEW');
+// A second consultation case may not inherit the first case's booking.
+c=recordEcosystemEvent(c,event('SERVICE_REQUESTED','CONSULTATION','case-2'));
+assert.equal(planEcosystemJourney(c).next_action,'CHECK_REAL_APPOINTMENT_AVAILABILITY');
 console.log('Cross-domain journey contract passed');
