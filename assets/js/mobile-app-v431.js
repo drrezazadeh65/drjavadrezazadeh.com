@@ -91,6 +91,9 @@ window.addEventListener('storage',e=>{if(e.key==='jr-book-cart-v1')syncCartBadge
 qa('.home-focus-strip a,.audience-gate').forEach(a=>{if(a.querySelector('.app-card-icon'))return;const s=document.createElement('span');s.className='app-card-icon';s.innerHTML=icon(iconFor(a.href,a.textContent||''));s.setAttribute('aria-hidden','true');a.prepend(s)});
 
 /* v4.4.1 mobile sheet controller — accessible, back-button aware, app-like */
+// site.js owns menu events when both scripts are loaded; avoid double-toggle.
+if(document.documentElement.dataset.jrNavController!=='site'){
+
 const menuTriggers=qa('[data-nav-toggle]');
 const menuClose=q('[data-nav-close]');
 let lastFocus=null;
@@ -125,5 +128,6 @@ panel.addEventListener('keydown',e=>{
 });
 window.addEventListener('popstate',()=>{if(panel.classList.contains('is-open'))setMenu(false,{history:false})});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&panel.classList.contains('is-open'))setMenu(false,{history:false})});
+}
 
 })();
