@@ -4,7 +4,9 @@ const path=require('node:path');
 
 const root=process.cwd();
 const base=process.env.SITE_BASE_URL||'http://127.0.0.1:4173';
-const ignore=new Set(['.git','node_modules']);
+// Keep the certification inventory aligned with the sanitized public release artifact.
+// Internal document templates are tested by the dedicated Identity OS suite.
+const ignore=new Set(['.git','node_modules','identity','.public-site','tests','test-results','.github','scripts','docs','platform','foundation','database','migrations','edge','payment-api','work','proposals']);
 const html=[];
 
 function walk(dir){

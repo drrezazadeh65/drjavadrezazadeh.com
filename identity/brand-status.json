@@ -1,0 +1,21 @@
+{
+  "version": "1.1.0",
+  "creative_direction": "approved",
+  "primary_script": "fa",
+  "brand_name_fa": "دکتر جواد رضازاده یزدلی",
+  "brand_name_en": "Dr. Javad Rezazadeh Yazdeli",
+  "production_logo_status": "pending_vector_review",
+  "legacy_jr_svg_status": "deprecated_concept_only",
+  "production_deploy_allowed": false,
+  "approval_gates": [
+    "accurate Persian wordmark",
+    "custom vector paths reviewed",
+    "monochrome",
+    "small-size legibility",
+    "contrast",
+    "print proof",
+    "bilingual review",
+    "trademark clearance",
+    "template snapshots"
+  ]
+}

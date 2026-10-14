@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0.0",
+  "required": [
+    "template_id",
+    "template_version",
+    "locale",
+    "document_type",
+    "issued_at",
+    "issuer",
+    "document_id"
+  ],
+  "properties": {
+    "template_id": {
+      "type": "string"
+    },
+    "template_version": {
+      "type": "string"
+    },
+    "locale": {
+      "enum": [
+        "fa-IR",
+        "en"
+      ]
+    },
+    "direction": {
+      "enum": [
+        "rtl",
+        "ltr"
+      ]
+    },
+    "document_type": {
+      "enum": [
+        "receipt",
+        "invoice",
+        "letterhead",
+        "certificate",
+        "assessment",
+        "talent_report",
+        "booking",
+        "donation_acknowledgement",
+        "academic_report"
+      ]
+    },
+    "document_id": {
+      "type": "string"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "issuer": {
+      "type": "string"
+    },
+    "recipient": {
+      "type": "object"
+    },
+    "items": {
+      "type": "array"
+    },
+    "assessment": {
+      "type": "object"
+    },
+    "payment": {
+      "type": "object"
+    },
+    "verification": {
+      "type": "object",
+      "description": "Opaque, scoped verification token only; no sensitive data in URLs"
+    },
+    "brand_version": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "issued",
+        "void",
+        "revised"
+      ]
+    }
+  }
+}

@@ -1,0 +1,32 @@
+name: Identity OS validation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'identity/**'
+      - '.github/workflows/identity-validation.yml'
+  pull_request:
+    paths:
+      - 'identity/**'
+      - '.github/workflows/identity-validation.yml'
+permissions:
+  contents: read
+jobs:
+  preview-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run bilingual preview tests
+        run: node --test identity/engine/*.test.mjs
+      - name: Validate document template registry
+        run: node identity/engine/validate-manifest.mjs
+      - name: Validate proposed canonical registry without executing SQL
+        run: node identity/engine/validate-registry.mjs
+      - name: Verify brand governance status independently of release approval
+        run: |
+          node --check identity/engine/brand-release-gate.mjs
+          node identity/engine/brand-release-gate.mjs --validate-status

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root=process.cwd();
-const ignoreDirs=new Set(['.git','node_modules']);
+const ignoreDirs=new Set(['.git','node_modules','.public-site','identity','proposals','work','test-results']);
 const htmlFiles=[];
 
 function walk(dir){

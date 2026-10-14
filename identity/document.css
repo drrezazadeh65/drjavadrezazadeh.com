@@ -1,0 +1,14 @@
+/* JR print/document primitives. Load tokens.css before this stylesheet. */
+.jr-document{box-sizing:border-box;background:#fff;color:#17130d;font-family:var(--jr-font-ui);font-size:11pt;line-height:1.55;max-width:210mm;margin:auto;padding:18mm 17mm 20mm}
+.jr-document[lang=fa]{font-family:var(--jr-font-fa);direction:rtl;line-height:1.85}
+.jr-document *{box-sizing:border-box}
+.jr-document__header{display:flex;align-items:center;justify-content:space-between;gap:12mm;border-block-end:1px solid #b5a88b;padding-block-end:7mm}
+.jr-document__logo{max-width:55mm;height:auto}
+.jr-document__title{font-size:19pt;line-height:1.3;margin-block:10mm 5mm}
+.jr-document__meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3mm 8mm}
+.jr-document__table{width:100%;border-collapse:collapse;margin-block:8mm}
+.jr-document__table th,.jr-document__table td{padding:3mm 2mm;border-block-end:1px solid #d8d0c2;text-align:start;vertical-align:top}
+.jr-document__footer{border-block-start:1px solid #b5a88b;margin-block-start:12mm;padding-block-start:4mm;font-size:9pt;color:#4c473f}
+.jr-document__note{border-inline-start:2px solid #c8a24a;padding-inline-start:4mm}
+@page{size:A4;margin:0}
+@media print{html,body{margin:0;background:#fff}.jr-document{width:210mm;min-height:297mm;max-width:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}}

@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "status": "prototype",
+  "templates": [
+    {
+      "id": "letterhead-fa",
+      "path": "templates/letterhead-fa.html",
+      "locale": "fa-IR",
+      "type": "letterhead"
+    },
+    {
+      "id": "certificate-en",
+      "path": "templates/certificate-en.html",
+      "locale": "en",
+      "type": "certificate"
+    },
+    {
+      "id": "talent-report-fa",
+      "path": "templates/talent-report-fa.html",
+      "locale": "fa-IR",
+      "type": "talent_report"
+    },
+    {
+      "id": "invoice-en",
+      "path": "templates/invoice-en.html",
+      "locale": "en",
+      "type": "invoice"
+    },
+    {
+      "id": "receipt-en",
+      "path": "examples/receipt-en.html",
+      "locale": "en",
+      "type": "receipt"
+    },
+    {
+      "id": "assessment-fa",
+      "path": "examples/assessment-fa.html",
+      "locale": "fa-IR",
+      "type": "assessment"
+    }
+  ],
+  "rules": {
+    "issued_records_immutable": true,
+    "source": "verified server-side records only",
+    "privacy": "no personal data in public verification URLs",
+    "template_version_required": true,
+    "unapproved_brand_assets": true
+  }
+}

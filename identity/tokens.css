@@ -1,0 +1,39 @@
+/* JR Identity OS v1.0 — foundational semantic tokens, not yet imported into production */
+:root {
+  --jr-bg: #070707;
+  --jr-raised: #12100c;
+  --jr-ivory: #f1ebdf;
+  --jr-muted: #a79f90;
+  --jr-gold: #c8a24a;
+  --jr-gold-light: #ecd592;
+  --jr-hairline: rgba(200,162,74,.28);
+  --jr-focus: #ecd592;
+  --jr-font-display: "Cormorant Garamond", Georgia, serif;
+  --jr-font-ui: "Instrument Sans", Arial, sans-serif;
+  --jr-font-fa: "Vazirmatn", Tahoma, sans-serif;
+  --jr-body-size: 1.0625rem;
+  --jr-line-en: 1.6;
+  --jr-line-fa: 1.9;
+  --jr-heading-line-en: 1.05;
+  --jr-heading-line-fa: 1.4;
+  --jr-content-measure: 65ch;
+  --jr-space-1: .25rem;
+  --jr-space-2: .5rem;
+  --jr-space-3: .75rem;
+  --jr-space-4: 1rem;
+  --jr-space-6: 1.5rem;
+  --jr-space-8: 2rem;
+  --jr-space-12: 3rem;
+  --jr-ease: cubic-bezier(.22,1,.36,1);
+  --jr-motion-short: .7s;
+  --jr-motion-long: 1.3s;
+  --jr-tap-min: 48px;
+}
+:lang(fa) { font-family: var(--jr-font-fa); line-height: var(--jr-line-fa); letter-spacing: normal; }
+:lang(en) { font-family: var(--jr-font-ui); line-height: var(--jr-line-en); }
+@media print {
+  :root { --jr-bg: #fff; --jr-raised: #fff; --jr-ivory: #17130d; --jr-muted: #4c473f; --jr-hairline: #b5a88b; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --jr-motion-short: 0s; --jr-motion-long: 0s; }
+}
