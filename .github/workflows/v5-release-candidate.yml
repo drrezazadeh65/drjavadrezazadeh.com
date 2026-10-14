@@ -72,6 +72,10 @@ jobs:
           node scripts/v5-ecosystem-integrity-audit.mjs
           node scripts/v5-1-usable-release-audit.mjs
           node tests/jr-ecosystem-visual-contract.mjs
+          node --check assets/js/consented-lead-intake.js
+          node --test tests/stage14-growth-privacy.test.mjs tests/revenue-planner-model.test.mjs
+          node scripts/stage14-organic-growth-audit.mjs
+          node scripts/revenue-planner-contract-audit.mjs
           node scripts/workflow-governance-audit.mjs
           node scripts/seo-regression.mjs
           node --test tests/production-health-evidence.test.mjs
