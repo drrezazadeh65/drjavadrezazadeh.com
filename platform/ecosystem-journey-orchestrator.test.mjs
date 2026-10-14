@@ -6,6 +6,12 @@ const event=(event_type,source,reference_id,extra={})=>({
  occurred_at:'2026-10-14T07:00:00Z',server_attested:true,...extra
 });
 const make=kind=>createEcosystemJourney({journey_id:'j-'+kind,subject_id:'u-42',kind});
+// Authentication events must be scoped to the same subject, never another account.
+const identityJourney=make('CONSULTATION');
+assert.throws(()=>recordEcosystemEvent(identityJourney,event('ACCOUNT_VERIFIED','IDENTITY','u-99')),/must match journey subject/);
+const identityVerified=recordEcosystemEvent(identityJourney,event('ACCOUNT_VERIFIED','IDENTITY','u-42'));
+assert.equal(identityVerified.revision,1);
+assert.equal(planEcosystemJourney(identityVerified).next_action,'OFFER_SERVICE_INTAKE');
 assert.equal(JOURNEY_KINDS.length,4);
 let g=make('GOLDEN_TALENT');
 assert.equal(planEcosystemJourney(g).next_action,'VERIFY_EMAIL_ACCOUNT');
