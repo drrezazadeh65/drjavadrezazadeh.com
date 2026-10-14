@@ -9,6 +9,10 @@ on:
       - 'scripts/build-public-data.mjs'
       - 'scripts/stamp-bertina-release.mjs'
       - 'scripts/v5-ecosystem-integrity-audit.mjs'
+      - 'scripts/production-health-audit.mjs'
+      - 'scripts/production-operational-pulse.mjs'
+      - 'scripts/bertina-auto-release-policy.mjs'
+      - 'scripts/bertina-release-eligibility.mjs'
       - '.github/workflows/deploy-bertina.yml'
       - 'scripts/bertina-controlled-cpanel-gate.php'
       - 'tests/bertina-controlled-cpanel-gate.php'
@@ -18,13 +22,10 @@ on:
       - 'fa/**'
       - 'en/**'
       - 'journal/**'
+      - 'platform/**'
+      - 'database/unified/**'
       - 'docs/migrations/**'
-      - 'tests/bertina-commerce-callback-contract.php'
-      - 'tests/stage09-commerce-atomic.php'
-      - 'tests/stage09-mysql.php'
-      - 'tests/bertina-commerce-mysql-contract.php'
-      - 'tests/bertina-donations-mysql-contract.php'
-      - 'tests/operations-browser.spec.js'
+      - 'tests/**'
       - 'sitemap*.xml'
       - 'sw.js'
   workflow_dispatch:
@@ -70,6 +71,9 @@ jobs:
           node scripts/v5-ecosystem-integrity-audit.mjs
           node scripts/workflow-governance-audit.mjs
           node scripts/seo-regression.mjs
+          node --check scripts/bertina-auto-release-policy.mjs
+          node --check scripts/bertina-release-eligibility.mjs
+          node --test tests/bertina-auto-release-policy.test.mjs tests/bertina-release-eligibility.test.mjs
       - name: Exercise EXACT full deployment API and MySQL preflight before any FTP release
         env:
           OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
@@ -86,8 +90,22 @@ jobs:
           php tests/bertina-service-buyer-contact.php
           node --check assets/js/commerce-checkout.js
           node tests/bertina-service-contact-checkout.mjs
+          # Scientific engines: only synthetic fixture checks, never live learner records.
+          node --check platform/bahar-engine.mjs
+          node --check platform/bahar-persistence.mjs
+          node --check assets/js/bahar-readiness.js
+          node platform/bahar-engine.test.mjs
+          node platform/bahar-persistence.test.mjs
+          node platform/golden-talent-book-crosswalk.test.mjs
+          php tests/golden-talent-guardian.php
+          php tests/bahar-bertina-schema.php
+          php tests/bahar-guardian-mysql.php
+          node --check assets/js/bahar-guardian-overview.js
           php tests/operations-security.php
           php tests/operations-mysql.php
+          # Paid-claim, buyer preference and owner-controlled appointment gate.
+          php tests/commerce-service-advance-mysql.php
+          php tests/consultation-preference-mysql.php
           node --check assets/js/operations-social.js
           node --check assets/js/operations-social-composer.js
           node --test platform/social-distribution/*.test.mjs
@@ -129,7 +147,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js --reporter=line
+          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js --reporter=line
       - name: Keep failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
