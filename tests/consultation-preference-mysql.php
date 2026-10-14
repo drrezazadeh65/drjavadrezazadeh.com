@@ -45,7 +45,7 @@ ensureChoice(!commerceConsultationPreferenceSchemaReady($pdo),
 $pdo->exec('DROP TEMPORARY TABLE commerce_consultation_preferences');
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_preferences.sql'));
 ensureChoice(commerceConsultationPreferenceSchemaReady($pdo),'additive consultation SQL installs required columns');
-$tables=$pdo->query("SELECT table_name,engine FROM information_schema.tables
+$tables=$pdo->query("SELECT TABLE_NAME AS table_name, ENGINE AS engine FROM information_schema.tables
     WHERE table_schema=DATABASE() AND table_name IN
       ('commerce_consultation_preferences','commerce_consultation_preference_events')")->fetchAll();
 ensureChoice(count($tables)===2 && !array_filter($tables,static fn(array $x)=>$x['engine']!=='InnoDB'),
