@@ -12,7 +12,12 @@ $pdo=new PDO($dsn,(string)(getenv('OPERATIONS_TEST_USER')?:''),
 ]);
 define('BERTINA_API_BOOTSTRAPPED',true);
 require_once __DIR__.'/../api/commerce-stage9.php';
+require_once __DIR__.'/../api/consultation-delivery.php';
 require_once __DIR__.'/../api/operations-fulfilment.php';
+// Catalogue stub is restricted to the one fictitious service used by this CI fixture.
+function localCatalog(): array {
+    return ['service:academic_consult_60'=>['kind'=>'service','price'=>1000000]];
+}
 function validUuid(string $v): bool {
     return preg_match('/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i',$v)===1;
 }
@@ -35,6 +40,9 @@ function refused(callable $fn,string $exception,string $name): void {
 }
 $pdo->exec(file_get_contents(__DIR__.'/../docs/BERTINA_MYSQL_SCHEMA.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261012_stage09_commerce.sql'));
+$pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_preferences.sql'));
+if(!commerceConsultationPreferenceSchemaReady($pdo))
+    throw new RuntimeException('fixture_consultation_schema_not_ready');
 $pdo->exec("CREATE TEMPORARY TABLE operations_audit (
   sequence_id BIGINT AUTO_INCREMENT PRIMARY KEY,actor_id CHAR(36) NULL,
   action VARCHAR(40) NOT NULL,reference_id VARCHAR(64) NOT NULL,occurred_at BIGINT NOT NULL
@@ -83,6 +91,14 @@ refused(fn()=>operationsCommerceServiceAdvance($pdo,$actor,array_merge($booked,[
  InvalidArgumentException::class,'invalid_calendar_date_denied');
 refused(fn()=>operationsCommerceServiceAdvance($pdo,$actor,array_merge($booked,['bookingEnd'=>$start])),
  InvalidArgumentException::class,'invalid_booking_range_denied');
+refused(fn()=>operationsCommerceServiceAdvance($pdo,$actor,$booked),
+ DomainException::class,'booking_without_customer_delivery_preference_denied');
+checkService(!commerceConsultationValidChoice($sku,'IN_PERSON','TEHRAN')
+    && commerceConsultationValidChoice($sku,'PHONE',null)
+    && commerceConsultationValidChoice($sku,'VIDEO',null),
+    'ordinary_consultation_cannot_be_booked_in_person');
+$pdo->prepare('INSERT INTO commerce_consultation_preferences(order_id,sku,delivery_mode,meeting_city)
+    VALUES(?,?,\'PHONE\',NULL)')->execute([$orderId,$sku]);
 checkService(operationsCommerceServiceAdvance($pdo,$actor,$booked)['bookingScheduled']===true,
  'booking_times_must_be_explicit');
 $observed=$pdo->prepare('SELECT status,booking_start,booking_end
