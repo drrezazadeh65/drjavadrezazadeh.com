@@ -1,0 +1,26 @@
+/* Seven-day consultation request inventory: status requires words as well as colour. */
+.consultation-week{margin:1.4rem auto;padding:clamp(1rem,3vw,1.6rem);
+ background:linear-gradient(140deg,rgba(23,41,53,.96),rgba(9,20,32,.97));
+ border:1px solid rgba(178,211,219,.25);border-radius:22px;color:#f7f9fa}
+.consultation-week .cw-eyebrow{font-size:.78rem;letter-spacing:.06em;color:#c6deea}
+.consultation-week h2{color:#fff;margin:.4rem 0 .75rem;font-size:clamp(1.18rem,2.7vw,1.8rem)}
+.consultation-week .cw-intro,.consultation-week .cw-status{color:#dce7ee;line-height:1.9}
+.cw-week{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,205px),1fr));gap:.8rem;margin-block:1.15rem}
+.cw-day{min-width:0;background:rgba(255,255,255,.065);padding:1rem;border:1px solid rgba(255,255,255,.12);border-radius:15px}
+.cw-day h3{font-size:1rem;font-weight:750;margin:0 0 .5rem;color:#fff}
+.cw-count{min-height:2.8em;font-size:.84rem;color:#d6e8f4;margin:.5rem 0}
+.cw-day-slots{display:flex;flex-direction:column;gap:.45rem}
+.cw-slot{display:block;width:100%;padding:.73rem .65rem;border-radius:10px;
+ font:inherit;font-weight:650;line-height:1.5;cursor:pointer;text-align:center;
+ border:1px solid transparent;transition:transform .12s,box-shadow .12s}
+.cw-slot:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.cw-free{background:#e2f9e9;color:#125330;border-color:#62be82}
+.cw-free:hover,.cw-free.is-selected{background:#bdf7cb;box-shadow:0 0 0 2px #fff;transform:translateY(-1px)}
+.cw-full{background:#fce3e3;color:#8d252b;border-color:#eaa3a3;cursor:not-allowed}
+.cw-unpublished{color:#d6e8f4;font-size:.86rem}
+.cw-legend{display:flex;gap:.7rem 1.2rem;flex-wrap:wrap;font-size:.9rem;color:#e8f1f6}
+.cw-legend span{display:inline-flex;align-items:center;gap:.4rem}
+.cw-dot{width:.78em;height:.78em;border-radius:50%;display:inline-block}
+.cw-dot.free{background:#6ad896}.cw-dot.full{background:#f17b7b}.cw-dot.closed{background:#a4abb4}
+@media(max-width:600px){.consultation-week{padding:1rem;border-radius:16px}.cw-week{grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}.cw-day{padding:.7rem}.cw-slot{font-size:.8rem;padding:.6rem .25rem}}
+@media(max-width:360px){.cw-week{grid-template-columns:1fr}}
