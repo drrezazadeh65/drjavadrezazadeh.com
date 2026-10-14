@@ -96,8 +96,10 @@ $orphanEvent=$pdo->prepare("INSERT INTO commerce_consultation_preference_events
     (order_id,sku,actor_account_id,next_mode) VALUES(?,? ,?,'VIDEO')");
 denied(fn()=>$orphanEvent->execute(['eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',$sku,$owner]),
     PDOException::class,'preference audit cannot refer to an absent service case');
-ensureChoice((int)$pdo->query('SELECT COUNT(*) FROM commerce_consultation_preferences')->fetchColumn()===0,
-    'failed check insert leaves no persisted buyer choice');
+$checkAttempt=$pdo->prepare('SELECT COUNT(*) FROM commerce_consultation_preferences WHERE order_id=? AND sku=?');
+$checkAttempt->execute([$order,$sku]);
+ensureChoice((int)$checkAttempt->fetchColumn()===0,
+    'failed check insert leaves no preference for this isolated buyer');
 ensureChoice(commerceConsultationModes($sku)===['PHONE','VIDEO'],'normal counselling only phone/video');
 ensureChoice(commerceConsultationModes($vipSku)===['PHONE','VIDEO','IN_PERSON'],'catalogued VIP may request in-person');
 ensureChoice(commerceConsultationModes('service:annual_coaching')===[],'uncatalogued annual coaching is disabled');
