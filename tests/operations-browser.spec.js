@@ -476,6 +476,10 @@ test('owner-only capacity editor converts Tehran hours and submits after fresh M
  const editor=page.locator('#ops-commerce-results .ops-capacity');
  await expect(editor).toHaveCount(1);
  await editor.locator('summary').click();
+ await expect(editor.locator('.ops-week-day')).toHaveCount(7);
+ await editor.locator('.ops-week-day button').first().click();
+ await expect(editor.locator('input[type="date"]')).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
+ expect(submission).toBeNull();
  await editor.locator('input[type="date"]').fill('2026-10-20');
  await editor.locator('input[type="time"]').fill('14:00');
  await editor.locator('select').selectOption('2');
