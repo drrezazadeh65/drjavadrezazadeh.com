@@ -6,6 +6,7 @@ const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-commerce.php';
 require_once __DIR__.'/operations-fulfilment.php';
+require_once __DIR__.'/consultation-availability.php';
 require_once __DIR__.'/operations-action-runs.php';
 require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/social-review.php';
@@ -385,6 +386,22 @@ function operationsRoute(string $path, string $verb): never {
             catch(Throwable $e){
                 error_log('Owner service transition unavailable: '.get_class($e));
                 fail('service_transition_unavailable',503);
+            }
+        }
+        if ($path === '/admin/operations/commerce/availability' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'operations_consultation_capacity',$accountId,8,300))
+                fail('rate_limited',429);
+            try {
+                $change=operationsConsultationAvailabilityChange($pdo,$accountId,jsonBody());
+                respond(['ok'=>true,'schema'=>'commerce-consultation-capacity-v1',
+                    'change'=>$change]);
+            } catch(InvalidArgumentException $e) { fail('invalid_consultation_capacity',400); }
+            catch(DomainException $e) { fail('consultation_capacity_conflict',409); }
+            catch(Throwable $e) {
+                error_log('Owner consultation availability unavailable: '.get_class($e));
+                fail('consultation_capacity_unavailable',503);
             }
         }
         if ($path === '/admin/operations/growth' && $verb === 'GET') {
