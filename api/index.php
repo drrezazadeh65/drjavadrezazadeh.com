@@ -445,6 +445,19 @@ require_once __DIR__.'/consultation-delivery.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
 
+// No account, order identity, payment reference or owner window ID is exposed.
+// Fail closed if the additive capacity ledger is not yet installed/verified.
+if ($path==='/commerce/consultation-week' && $verb==='GET') {
+    $pdo=db();
+    if(!$pdo)fail('consultation_week_unavailable',503);
+    try {
+        respond(operationsConsultationWeeklySnapshot($pdo,time()));
+    } catch(Throwable $e) {
+        error_log('Consultation weekly read unavailable: '.get_class($e));
+        fail('consultation_week_unavailable',503);
+    }
+}
+
 if ($path==='/health' && $verb==='GET') {
     $hc=cfg(); respond(['ok'=>true,'service'=>'bertina-api','hosting'=>'bertina','database'=>dbReady(),'mailTransport'=>mailReady()?(smtpConfigured($hc)?'bertina-smtp':'bertina-local'):'not-configured','mailConfigEnabled'=>$hc['mail_enabled']===true,'smtpConfigured'=>smtpConfigured($hc),'smtpProviderSettingsMatch'=>smtpProviderSettingsMatch($hc),'smtpEffectiveProviderSettingsMatch'=>smtpProviderSettingsMatch(smtpResolvedConfig($hc)),'mailFunctionAvailable'=>function_exists('mail'),'mailFromValid'=>filter_var((string)$hc['mail_from'], FILTER_VALIDATE_EMAIL)!==false,'auth'=>authReady(),'registration'=>registrationReady(),'commerce'=>commerceReady()]);
 }
