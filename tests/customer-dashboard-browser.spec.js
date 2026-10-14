@@ -82,7 +82,7 @@ test('English dashboard uses a safe, unambiguous Latin font stack on desktop and
 
 
 for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/']]){
- test(lang+' verified buyer privately chooses phone or video from a paid order without auto-booking',async({page})=>{
+ test(lang+' verified buyer privately chooses phone, online voice or video without auto-booking',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   const orderId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
   let historyHits=0,fulfilmentHits=0;const submissions=[];
@@ -105,7 +105,7 @@ for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/'
       return intercepted.fulfill({json:{ok:true,paymentRecord:'provider_verified_not_bank_settlement',
         serviceCases:[{sku:'service:academic_consult_60',status:'scheduling',
           bookingStart:null,bookingEnd:null,deliveryMode:null,meetingCity:null,
-          customerChoiceEnabled:true,allowedDeliveryModes:['PHONE','VIDEO']}],parcel:null}});
+          customerChoiceEnabled:true,allowedDeliveryModes:['PHONE','VOICE','VIDEO']}],parcel:null}});
     }
     if(p==='/api/commerce/consultation-preference'){
       expect(request.method()).toBe('POST');
@@ -128,12 +128,12 @@ for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/'
   const choice=panel.locator('.appointment-preference');
   await expect(choice).toBeVisible();
   const selected=choice.locator('select').first();
-  await expect(selected.locator('option')).toHaveCount(2);
+  await expect(selected.locator('option')).toHaveCount(3);
   await expect(selected.locator('option[value="IN_PERSON"]')).toHaveCount(0);
-  await selected.selectOption('VIDEO');
+  await selected.selectOption('VOICE');
   await choice.locator('button').click();
   await expect.poll(()=>submissions.length).toBe(1);
-  expect(submissions[0]).toEqual({orderId,sku:'service:academic_consult_60',mode:'VIDEO',city:null});
+  expect(submissions[0]).toEqual({orderId,sku:'service:academic_consult_60',mode:'VOICE',city:null});
   await expect(choice).toContainText(lang==='fa'?'هماهنگی زمان':'consultant must still confirm');
   await expect(panel).not.toContainText('bank settlement verified');
   const inputFont=await selected.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
