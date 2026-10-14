@@ -33,3 +33,8 @@ Inspect current GitHub branch, FA/EN homepage markup, existing mobile nav JS/CSS
 - `a0ab53afadbf7f3f6337bbff723941bb7e06e5e2`: Escape dismissal prevents default keyboard event.
 - `4cdd066d7cbb5b82778a8170f0e7f2441d4c933e`: added `tests/public-mobile-navigation.spec.js` Playwright regression tests for FA/EN menu open/close, focus, Escape and Back.
 - The new test file has NOT been executed and is NOT in the existing deploy workflow's explicit Playwright file list. It must be run, reviewed for correctness, then integrated into CI through approved workflow governance. Do not claim a passing test or successful deploy.
+
+## CI integration checkpoint
+- `abeb7d428c1035c03ed2f8162d85b341e548a75f`: `.github/workflows/deploy-bertina.yml` now includes the FA/EN navigation Playwright spec in its explicit browser test list.
+- `9f65bfbc896aa3be87b5499649d304c9dea681b2`: test adds a deterministic synthetic same-URL history entry before asserting `popstate` dismissal. This tests handling of Back on an existing history entry, NOT whether opening the menu creates a new history entry. That separate UX requirement remains open.
+- CI run and live deployment still unverified; workflow-only commits do not independently trigger the release because path filters exclude `.github/workflows/**`.
