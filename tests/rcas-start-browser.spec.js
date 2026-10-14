@@ -154,7 +154,7 @@ test('RCAS response choices meet readable desktop and mobile geometry',async({pa
     const option=item.querySelector('.rcas-scale label span');
     const g=getComputedStyle(grid),v=getComputedStyle(option),box=option.getBoundingClientRect();
     return {font:parseFloat(v.fontSize),height:box.height,
-      columns:g.gridTemplateColumns.trim().split(/\\s+/).length,
+      columns:g.gridTemplateColumns.trim().split(/\s+/).length,
       lineHeight:parseFloat(v.lineHeight)};
   });
   expect(desktop.font).toBeGreaterThanOrEqual(16);
@@ -173,7 +173,7 @@ test('RCAS response choices meet readable desktop and mobile geometry',async({pa
     const r=grid.getBoundingClientRect(),w=window.innerWidth;
     return {font:parseFloat(getComputedStyle(spans[0]).fontSize),
       height:spans[0].getBoundingClientRect().height,
-      columns:getComputedStyle(grid).gridTemplateColumns.trim().split(/\\s+/).length,
+      columns:getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length,
       viewport:w,right:r.right};
   });
   expect(mobile.font).toBeGreaterThanOrEqual(16);
