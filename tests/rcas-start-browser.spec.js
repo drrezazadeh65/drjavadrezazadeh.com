@@ -72,6 +72,13 @@ test('RCAS rejects completely blank P0, prevents hidden-step bypass and requires
   await page.locator('#showRoute').click();
   await expect(page.locator('#rcasResult')).toBeVisible();
   await expect(page.locator('#rcasResult')).toContainText('D5');
+  await expect(page.locator('#rcasInsight')).toBeVisible();
+  await expect(page.locator('#rcasInsight')).toContainText('پاسخ مشخص');
+  await expect(page.locator('#rcasInsight')).toContainText('تجربه هفت‌روزه');
+  await expect(page.locator('#rcasInsight')).toContainText('شواهد چندمنبعی');
+  await expect(page.locator('#rcasInsight a[href="/fa/services/talent_initial/"]')).toHaveCount(1);
+  await expect(page.locator('#rcasInsight a[href="/fa/shop/golden-talent/#professional-services"]')).toHaveCount(1);
+
   await expect(page.locator('#rcasResult .rcas-user-note span')).toHaveText(userText);
   await expect(page.locator('#rcasResult img')).toHaveCount(0);
   await expect(page.locator('#rcasResult a[href="/fa/shop/golden-talent/#professional-services"]')).toHaveCount(1);
@@ -183,4 +190,29 @@ test('RCAS response choices meet readable desktop and mobile geometry',async({pa
   // The second stage remains editable without horizontal scrolling or hidden labels.
   await first.locator('input[type="radio"]').last().evaluate(input=>input.click());
   await expect(first.locator('input[type="radio"]').last()).toBeChecked();
+});
+
+test('RCAS free insight gives adults a non-diagnostic, evidence-aware next step and optional verified service',async({page})=>{
+  await page.goto(base+start);
+  await completeP0(page);
+  await page.locator('[name="edu"]').selectOption({label:'دانشجو'});
+  await page.locator('[name="age"]').fill('22');
+  await page.locator('[data-next="2"]').click();
+  await answerCore(page);
+  await page.locator('[data-next="3"]').click();
+  await answerRouting(page);
+  await page.locator('#priorityDomain').selectOption('D3');
+  await page.locator('#priorityWhy').fill('می‌خواهم استفاده از ابزار دیجیتال را آگاهانه‌تر بررسی کنم.');
+  await page.locator('#showRoute').click();
+  const insight=page.locator('#rcasInsight');
+  await expect(insight).toBeVisible();
+  await expect(insight).toContainText('خودتنظیمی دیجیتال و هوش مصنوعی');
+  await expect(insight).toContainText('این شمارش، کیفیت یا توانایی تو را اندازه نمی‌گیرد');
+  await expect(insight).toContainText('ابزارهای دیجیتال عمیق D1 تا D6 هنوز برای خرید فعال نشده‌اند');
+  await expect(insight.locator('a[href="/fa/services/checkout/?service=talent_initial"]')).toHaveCount(1);
+  const state=JSON.stringify(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('gt_rcas_state'))));
+  expect(state).not.toContain('می‌خواهم استفاده از ابزار دیجیتال');
+  expect(state).not.toContain('responses');
+  await page.locator('#priorityWhy').fill('دلیل من تغییر کرد');
+  await expect(insight).toBeHidden();
 });
