@@ -1,11 +1,6 @@
 (()=>{
-const standalone=window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;
-const preferred=localStorage.getItem('preferred-language');
-if(standalone && (preferred==='fa'||preferred==='en')){
-  const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
-  const target=base+preferred+'/';
-  if(location.pathname!==target){location.replace(target);return}
-}
+// A saved locale can preselect a label, but it must never hijack the installed
+// PWA's explicit language gateway. Every new gateway visit retains both choices.
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-language-choice]');
   if(!a)return;
