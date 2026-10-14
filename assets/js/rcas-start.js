@@ -134,6 +134,21 @@ function appendFreeInsight(report,selectedDomain){
  const hasExample=exampleNames.some(name=>String(form.elements.namedItem(name)?.value||'').trim());
  card('کیفیت شواهد اولیه',hasExample?'در پرونده اولیه نمونه یا شاهد نوشته‌ای، اما صحت آن در این مرحله به طور مستقل بررسی نشده است.':'هنوز نمونه قابل بررسی وارد نکرده‌ای؛ این نبودِ شاهد به معنای ضعف یا فقدان استعداد نیست.');
  card('پرسش ارزشمند بعدی',detail.question);
+ // Quote two concrete choices from the learner's own selected area, never
+ // infer aptitude, percentile, clinical state or a validated subscale score.
+ const observations=related.flatMap(code=>{
+   const answer=form.querySelector('input[name="'+code+'"]:checked')?.value;
+   if(!/^[0-4]$/.test(answer||''))return [];
+   const group=groups.find(g=>g.key===code[0]);
+   const index=Number(code.slice(1))-1;
+   if(!group||index<0||index>=group.items.length)return [];
+   const scale=group.scales?group.scales[index]:group.scale;
+   return ['«'+group.items[index]+'» — '+scaleLabels[scale][Number(answer)].replace(/^[۰-۴] · /,'')];
+ }).slice(0,2);
+ if(observations.length){
+   card('دو مشاهده مشخص از پاسخ‌های خودت',
+     observations.join('؛ ')+'؛ این‌ها صرفاً انتخاب‌های تو در همین فرم‌اند، نه اندازه‌گیری مستقل استعداد.');
+ }
  section.append(cards);
  el('h4','یک تجربه هفت‌روزه که همین حالا می‌توانی شروع کنی');
  el('p',detail.action);
