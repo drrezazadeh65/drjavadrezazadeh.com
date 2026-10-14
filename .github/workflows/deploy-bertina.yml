@@ -156,6 +156,11 @@ jobs:
           php tests/bertina-hosting-managed-release.php
           python3 tests/bertina-release-assembly.py
 
+      - name: Verify v5.1.0 first-usable customer journey contract (source only)
+        run: |
+          node scripts/customer-dashboard-audit.mjs
+          node scripts/v5-1-usable-release-audit.mjs
+
       - name: Verify operations registry, security and real MySQL
         env:
           OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
