@@ -83,9 +83,10 @@ function operationsConsultationAvailabilityChange(PDO $pdo,string $actor,array $
             $q->execute([$end,$start]);
             if ($q->fetchColumn()!==false)
                 throw new DomainException('capacity_window_overlap');
-            $id=vsprintf('%s%s-%s-%s-%s-%s%s%s',str_split(bin2hex(random_bytes(16)),4));
-            // Normalise UUID version and variant; no raw actor/client value used as ID.
-            $id=substr($id,0,14).'4'.substr($id,15,5).'8'.substr($id,21);
+            $hex=bin2hex(random_bytes(16));
+            // Canonical RFC 4122 v4 layout: version nibble 4, variant nibble 8.
+            $id=substr($hex,0,8).'-'.substr($hex,8,4).'-4'.substr($hex,13,3)
+                .'-8'.substr($hex,17,3).'-'.substr($hex,20,12);
             if (!validUuid($id))throw new RuntimeException('capacity_uuid_generation_failed');
             $insert=$pdo->prepare("INSERT INTO commerce_consultation_availability
                 (id,start_utc,end_utc,state,created_by) VALUES(?,?,?,'OPEN',?)");
