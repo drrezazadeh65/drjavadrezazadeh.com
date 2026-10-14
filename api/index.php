@@ -614,6 +614,7 @@ if($path==='/commerce/fulfilment'&&$verb==='GET'){
         || (string)$evidence['verified_amount']!==(string)$row['provider_amount'])
         respond(['ok'=>true,'paymentRecord'=>'requires_reconciliation','serviceCases'=>[],'parcel'=>null]);
     $prefsReady=commerceConsultationPreferenceSchemaReady($pdo);
+    $voiceReady=$prefsReady&&commerceConsultationVoiceSchemaReady($pdo);
     $cases=$pdo->prepare($prefsReady
         ? 'SELECT sc.sku,sc.status,sc.booking_start,sc.booking_end,sc.delivered_at,
             pr.delivery_mode,pr.meeting_city
@@ -633,7 +634,9 @@ if($path==='/commerce/fulfilment'&&$verb==='GET'){
             'deliveryMode'=>$case['delivery_mode']??null,
             'meetingCity'=>$case['meeting_city']??null,
             'customerChoiceEnabled'=>$prefsReady&&in_array((string)$case['status'],['awaiting_contact','scheduling'],true),
-            'allowedDeliveryModes'=>commerceConsultationModes((string)$case['sku'])];
+            'allowedDeliveryModes'=>array_values(array_filter(
+                commerceConsultationModes((string)$case['sku']),
+                static fn(string $m):bool=>$m!=='VOICE'||$voiceReady))];
     }
     $shipment=$pdo->prepare('SELECT carrier,tracking_code,state,dispatched_at,delivered_at FROM commerce_parcels WHERE order_id=? LIMIT 1');
     $shipment->execute([$orderId]);$parcel=$shipment->fetch();
