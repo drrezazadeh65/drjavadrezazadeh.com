@@ -230,14 +230,33 @@ checkService(is_string($json)
  &&!str_contains($json,$actor)
  &&!str_contains($json,'customer_email'),
  'public_week_does_not_expose_owner_or_customer_identifiers');
-$closed=operationsConsultationAvailabilityChange($pdo,$actor,[
+$nextBooked=array_merge($booked,[
+ 'orderId'=>$overlapId,
+ 'bookingStart'=>$u($tomorrow),
+ 'bookingEnd'=>$u($tomorrow->modify('+1 hour'))
+]);
+checkService(operationsCommerceServiceAdvance($pdo,$actor,$nextBooked)['bookingScheduled']===true,
+ 'paid_second_booking_inside_declared_owner_capacity');
+$afterBooking=operationsConsultationWeeklySnapshot($pdo,time());
+$afterRows=array_values(array_filter($afterBooking['days'],
+ static fn($day)=>$day['date']===$tomorrow->format('Y-m-d')));
+checkService(count($afterRows)===1
+ &&$afterRows[0]['totalSlots']===4
+ &&$afterRows[0]['remainingSlots']===3
+ &&count(array_filter($afterRows[0]['slots'],static fn($s)=>$s['status']==='FULL'))===1,
+ 'genuine_one_hour_booking_turns_exactly_one_public_hour_red');
+refused(fn()=>operationsConsultationAvailabilityChange($pdo,$actor,[
  'action'=>'close','windowId'=>$first['windowId'],'startUtc'=>null,'endUtc'=>null
+]),DomainException::class,'owner_cannot_close_capacity_supporting_confirmed_booking');
+$closed=operationsConsultationAvailabilityChange($pdo,$actor,[
+ 'action'=>'close','windowId'=>$second['windowId'],'startUtc'=>null,'endUtc'=>null
 ]);
 checkService($closed['state']==='CLOSED','owner_can_close_unbooked_hours');
 $less=operationsConsultationWeeklySnapshot($pdo,time());
 $one=array_values(array_filter($less['days'],static fn($day)=>$day['date']===$tomorrow->format('Y-m-d')));
-checkService(count($one)===1&&$one[0]['remainingSlots']===2,
- 'closing_unbooked_owner_hours_reduces_public_week');
+checkService(count($one)===1&&$one[0]['totalSlots']===2
+ &&$one[0]['remainingSlots']===1,
+ 'closing_unbooked_owner_hours_updates_real_remaining_slot_count');
 refused(fn()=>operationsConsultationAvailabilityChange($pdo,$actor,[
   'action'=>'close','windowId'=>'11111111-1111-4111-8111-111111111195',
   'startUtc'=>null,'endUtc'=>null
