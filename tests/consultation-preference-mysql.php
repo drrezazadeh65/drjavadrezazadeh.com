@@ -44,6 +44,13 @@ ensureChoice(!commerceConsultationPreferenceSchemaReady($pdo),
     'missing preference columns fail closed even when a namesake table exists');
 $pdo->exec('DROP TEMPORARY TABLE commerce_consultation_preferences');
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_preferences.sql'));
+// Existing isolated fixtures may still use the older enum; exercise the same
+// additive, owner-reviewed upgrade here only, never against Bertina.
+if(!commerceConsultationVoiceSchemaReady($pdo)) {
+    ensureChoice(commerceConsultationPreferenceSchemaReady($pdo),
+        'legacy phone/video preferences remain functional before approved voice upgrade');
+    $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261015_consultation_online_voice_upgrade.sql'));
+}
 ensureChoice(commerceConsultationPreferenceSchemaReady($pdo),'additive consultation SQL installs required columns');
 ensureChoice(commerceConsultationVoiceSchemaReady($pdo),'approved schema supports online voice without losing older modes');
 $tables=$pdo->query("SELECT TABLE_NAME AS table_name, ENGINE AS engine FROM information_schema.tables
