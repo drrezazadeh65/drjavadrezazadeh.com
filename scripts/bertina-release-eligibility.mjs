@@ -4,9 +4,10 @@
  * with production safety. All releases still pass the complete workflow's
  * backup/recovery, production schema, build and live-SHA checks.
  *
- * Scope: "full" allows API/runtime changes; "public_only" retains the previous
- * restriction. Classification failures, divergent history, invalid inputs
- * and unshipped-only diffs remain fail-closed.
+ * Scope: public_only is the owner-authorized standing automatic default;
+ * the explicit full classifier exists only for controlled policy tests and
+ * cannot be selected by the automatic workflow. Private/runtime deployment
+ * requires deliberate owner activation. All malformed inputs fail closed.
  */
 import fs from 'node:fs';
 import {spawnSync} from 'node:child_process';
@@ -92,7 +93,7 @@ function getOneTimeBootstrapEvidence(base,head) {
   } catch { return null; }
 }
 
-export function decideAutomaticRelease(delta, scope='full', bootstrapContext=null) {
+export function decideAutomaticRelease(delta, scope='public_only', bootstrapContext=null) {
   if (!['full','public_only'].includes(scope)) throw Error('Unknown automatic release scope');
   if (!delta || !delta.groups || typeof delta.canAutomaticallyDeploy!=='boolean')
     throw Error('Invalid release classification');
@@ -117,7 +118,7 @@ export function decideAutomaticRelease(delta, scope='full', bootstrapContext=nul
 if (process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) {
   try {
     const [base,head]=process.argv.slice(2);
-    const scope=process.env.BERTINA_AUTO_DEPLOY_SCOPE||'full';
+    const scope=process.env.BERTINA_AUTO_DEPLOY_SCOPE||'public_only';
     const delta=classifyGitDelta(base,head);
     const decision=decideAutomaticRelease(delta,scope,getOneTimeBootstrapEvidence(base,head));
     const lines=[
