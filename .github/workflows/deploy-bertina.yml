@@ -1,32 +1,7 @@
 name: Deploy to Bertina
 
+# Production deployment is intentionally manual until the owner authorizes one final release.
 on:
-  push:
-    branches:
-      - migration/bertina-linux6
-    # Only shippable frontend, API, journal and operational inputs start releases.
-    # Edits to CI/recovery/build scripts and database migrations require deliberate
-    # activation; they must not create failed deploy jobs by themselves.
-    # All production recovery, schema and checksum gates remain mandatory.
-    paths:
-      - 'fa/**'
-      - 'en/**'
-      - 'journal/**'
-      - 'api/**'
-      - 'assets/**'
-      - 'platform/**'
-      - 'index.html'
-      - '404.html'
-      - 'offline.html'
-      - 'robots.txt'
-      - 'llms.txt'
-      - 'feed.xml'
-      - 'sitemap*.xml'
-      - 'favicon.*'
-      - 'site.webmanifest'
-      - 'manifest.json'
-      - 'sw.js'
-      - '.bertina-deploy-trigger'
   workflow_dispatch:
     inputs:
       recovery_mode:
