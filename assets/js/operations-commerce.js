@@ -121,6 +121,146 @@
     if(detail)n.append(node('p',detail,'ops-muted'));
     results.append(n);
   }
+
+  // Translate Tehran wall-clock selections to UTC using the IANA zone, never
+  // the administrator's device time zone or a fixed offset.
+  function tehranWallToUtc(day,time){
+    const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(day||'');
+    const tm=/^(\d{2}):00$/.exec(time||'');
+    if(!match||!tm)return null;
+    const year=Number(match[1]),month=Number(match[2]),date=Number(match[3]),hour=Number(tm[1]);
+    if(hour>23)return null;
+    const target=Date.UTC(year,month-1,date,hour,0,0);
+    if(!Number.isFinite(target))return null;
+    const f=new Intl.DateTimeFormat('en-GB',{
+      timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',
+      day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+    });
+    const wall=t=>{
+      const bits=f.formatToParts(new Date(t)),part=n=>bits.find(x=>x.type===n)?.value;
+      return [Number(part('year')),Number(part('month')),Number(part('day')),
+        Number(part('hour')),Number(part('minute'))];
+    };
+    let guess=target;
+    for(let attempt=0;attempt<3;attempt++){
+      const [y,m,d,h,min]=wall(guess);
+      guess+=target-Date.UTC(y,m-1,d,h,min,0);
+    }
+    const [y,m,d,h,min]=wall(guess);
+    if(y!==year||m!==month||d!==date||h!==hour||min!==0)return null;
+    return guess;
+  }
+  async function changeAvailability(action,windowId,startUtc,endUtc,submit){
+    if(workspace.hidden||!panel.open||document.hidden)return;
+    const stamp=seq;
+    if(!window.confirm(action==='open'
+      ?text('این ساعت‌ها واقعاً در برنامه شما قابل ارائه‌اند و برای درخواست عمومی منتشر شوند؟',
+        'Publish these genuinely available internal hours for public requests?')
+      :text('این بازه از تقویم درخواست برداشته شود؟ رزرو موجود در سرور محافظت می‌شود.',
+        'Close this published window? Existing bookings remain protected by the server.')))return;
+    submit.disabled=true;
+    status.textContent=text('در حال اعمال تغییر ظرفیت با تأیید سرور…',
+      'Authorising and updating published capacity…');
+    try{
+      const response=await fetch('/api/admin/operations/session',{
+        method:'GET',credentials:'same-origin',cache:'no-store'
+      });
+      if(!response.ok)throw Error('owner_auth_required');
+      const auth=await response.json();
+      if(stamp!==seq||workspace.hidden||!panel.open||document.hidden)return;
+      if(auth.ok!==true||auth.mfaRequired!==false||
+        !/^[a-f0-9]{64}$/i.test(String(auth.csrfToken||'')))throw Error('owner_mfa_required');
+      const changed=await fetch('/api/admin/operations/commerce/availability',{
+        method:'POST',credentials:'same-origin',cache:'no-store',
+        headers:{'Content-Type':'application/json','Accept':'application/json',
+          'X-CSRF-Token':auth.csrfToken},
+        body:JSON.stringify({action,windowId,startUtc,endUtc})
+      });
+      const result=await changed.json();
+      if(stamp!==seq||workspace.hidden||!panel.open||document.hidden)return;
+      if(!changed.ok||result?.ok!==true||
+        result?.schema!=='commerce-consultation-availability-v1')
+        throw Error('capacity_not_confirmed');
+      await load();
+    }catch{
+      if(stamp===seq&&!workspace.hidden&&panel.open)
+        status.textContent=text('تغییر ظرفیت تأیید نشد. احراز هویت دومرحله‌ای، سقف چهار ساعت هر روز و تداخل ساعات را بررسی کنید.',
+        'Capacity change not confirmed. Check MFA, the four-hour daily limit and overlaps.');
+    }finally{if(stamp===seq)submit.disabled=false;}
+  }
+  function renderCapacity(capacity){
+    const wrapper=node('details');wrapper.className='ops-calendar ops-capacity';
+    wrapper.append(node('summary',text('تنظیم ظرفیت هفتگی مشاوره',
+      'Manage published consultation hours')));
+    const note=node('p',text(
+      'برای هر روز فقط ساعت‌هایی را منتشر کنید که خودتان واقعاً برای مشاوره اختصاص داده‌اید؛ جمع زمان‌های منتشرشده هر روز حداکثر چهار ساعت است. ساعت ورودی به وقت تهران است. خریدار با انتخاب ساعت رزرو قطعی نمی‌کند؛ تداخل در سمت سرور دوباره کنترل می‌شود.',
+      'Publish only genuinely reserved consulting hours (at most four hours per Tehran day). Times entered here use Tehran time. A visitor request is not a reservation; the server rechecks overlaps.'),'ops-muted');
+    wrapper.append(note);
+    if(capacity?.schemaReady!==true){
+      wrapper.append(node('p',text(
+        'جدول ظرفیت در پایگاه‌داده برتینا تأیید نشده است؛ انتشار ساعت فعلاً غیرفعال است.',
+        'The Bertina capacity table is not verified; publishing hours is disabled.'
+      ),'ops-muted'));
+      results.append(wrapper);return;
+    }
+    const editor=node('div',undefined,'ops-capacity-editor');
+    const label=(caption,type)=>{
+      const container=node('label',caption,'ops-muted');
+      const input=document.createElement('input');input.type=type;
+      container.append(input);editor.append(container);
+      return input;
+    };
+    const date=label(text('تاریخ روز (تقویم میلادی)','Date (Gregorian)'),'date');
+    const start=label(text('ساعت شروع، به وقت تهران','Start hour, Tehran'),'time');
+    start.step='3600';start.value='14:00';
+    const lengthLabel=node('label',text('ساعت قابل انتشار در این روز','Hours to publish on this day'),'ops-muted');
+    const duration=document.createElement('select');
+    for(const hours of [1,2,3,4]){
+      const option=document.createElement('option');option.value=String(hours);
+      option.textContent=String(hours)+text(' ساعت',' hours');duration.append(option);
+    }
+    duration.value='2';lengthLabel.append(duration);editor.append(lengthLabel);
+    const publish=node('button',text('انتشار این بازه','Publish genuine capacity'),'button');
+    publish.type='button';editor.append(publish);
+    const hint=node('p',text(
+      'برای روزهای مختلف، جداگانه بازه ثبت کنید: مثلاً شنبه دو ساعت، یکشنبه چهار ساعت. امکان افزودن بازه دوم به همان روز فقط تا سقف چهار ساعت وجود دارد.',
+      'Set each day independently, for example two hours Saturday and four Sunday. A second window is allowed only within the four-hour daily maximum.'),'ops-muted');
+    editor.append(hint);wrapper.append(editor);
+    publish.addEventListener('click',()=>{
+      const t=tehranWallToUtc(date.value,start.value);
+      const hours=Number(duration.value);
+      if(t===null||!Number.isInteger(hours)||hours<1||hours>4){
+        status.textContent=text('تاریخ و ساعت شروع معتبر و کامل انتخاب کنید.',
+          'Choose a valid Tehran date and whole-hour start time.');return;
+      }
+      const from=new Date(t).toISOString().slice(0,19).replace('T',' ');
+      const to=new Date(t+hours*3600000).toISOString().slice(0,19).replace('T',' ');
+      changeAvailability('open',null,from,to,publish);
+    });
+    const list=node('ul',undefined,'ops-queue');
+    const windows=Array.isArray(capacity.windows)?capacity.windows:[];
+    for(const w of windows.slice(0,100)){
+      if(typeof w?.id!=='string'||typeof w.startUtc!=='string'||typeof w.endUtc!=='string')continue;
+      const a=utcLabel(w.startUtc),b=utcLabel(w.endUtc);
+      if(!a||!b)continue;
+      const item=node('li');item.append(node('span',a+' – '+b));
+      const close=node('button',text('بستن ظرفیت','Close window'),'button');
+      close.type='button';
+      close.addEventListener('click',()=>changeAvailability('close',w.id,null,null,close));
+      item.append(close);list.append(item);
+    }
+    wrapper.append(node('p',text(
+      'بازه‌های آیندهٔ منتشرشده: ','Published upcoming windows: ')+
+      String(capacity.openWindowCount??'—'),'ops-muted'));
+    if(capacity.truncated===true)wrapper.append(node('p',text(
+      'فهرست خلاصه است؛ تا بررسی همه ساعت‌ها، از بازنویسی برنامه خودداری کنید.',
+      'List is truncated; review all published hours before changing the programme.'),'ops-muted'));
+    if(list.childElementCount)wrapper.append(list);
+    else wrapper.append(node('p',text('هنوز ساعتی منتشر نشده است.',
+      'No hours have been published.'),'ops-muted'));
+    results.append(wrapper);
+  }
+
   function present(data){
     results.replaceChildren();
     if(!data.available){
@@ -229,6 +369,7 @@
       }
       detail.append(list);results.append(detail);
     }
+    renderCapacity(fulfilment.internalAvailability||null);
     const calendar=fulfilment.internalCalendar||null;
     if(calendar && Array.isArray(calendar.windows)){
       const calendarSection=node('details');
