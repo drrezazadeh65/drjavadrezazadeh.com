@@ -12,12 +12,29 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 function commerceConsultationModes(string $sku): array {
     if (!preg_match('/^(?:service|vip):[a-z0-9_-]{1,60}$/D',$sku))return [];
     if (!function_exists('localCatalog') || !isset(localCatalog()[$sku]))return [];
-    $modes=['PHONE','VIDEO'];
+    $modes=['PHONE','VOICE','VIDEO'];
     // Annual coaching has no published SKU yet. Never infer eligibility from
     // partial name matches, payment amount or marketing descriptions.
     if (str_starts_with($sku,'vip:') || $sku==='service:annual_coaching')
         $modes[]='IN_PERSON';
     return $modes;
+}
+/**
+ * Compatibility with previously deployed PHONE/VIDEO/IN_PERSON ENUM tables.
+ * An online voice option is offered to paid buyers only after an approved
+ * additive schema migration; existing customer choices keep working.
+ * This capability check reads schema metadata, never customer records.
+ */
+function commerceConsultationVoiceSchemaReady(?PDO $pdo): bool {
+    if(!$pdo)return false;
+    try {
+        $q=$pdo->prepare("SELECT COLUMN_TYPE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='commerce_consultation_preferences'
+              AND COLUMN_NAME='delivery_mode' LIMIT 1");
+        $q->execute();
+        $type=$q->fetchColumn();
+        return is_string($type)&&str_contains(strtoupper($type),"'VOICE'");
+    }catch(Throwable $e){return false;}
 }
 function commerceConsultationValidChoice(string $sku,string $mode,?string $city): bool {
     if (!in_array($mode,commerceConsultationModes($sku),true))return false;
@@ -89,6 +106,8 @@ function commerceConsultationSavePreference(PDO $pdo,string $accountId,string $e
         throw new InvalidArgumentException('delivery_policy_forbidden');
     if(!commerceConsultationPreferenceSchemaReady($pdo)||!stage9SchemaReady($pdo))
         throw new RuntimeException('consultation_preference_schema_unavailable');
+    if($mode==='VOICE'&&!commerceConsultationVoiceSchemaReady($pdo))
+        throw new RuntimeException('consultation_voice_schema_unavailable');
     if(!$pdo->beginTransaction())throw new RuntimeException('preference_transaction_unavailable');
     try {
         $q=$pdo->prepare("SELECT o.state,o.currency,o.paid_at,
