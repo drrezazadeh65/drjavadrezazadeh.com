@@ -14,6 +14,7 @@ define('BERTINA_API_BOOTSTRAPPED',true);
 require_once __DIR__.'/../api/commerce-stage9.php';
 require_once __DIR__.'/../api/consultation-delivery.php';
 require_once __DIR__.'/../api/operations-fulfilment.php';
+require_once __DIR__.'/../api/operations-commerce.php';
 // Catalogue stub is restricted to the one fictitious service used by this CI fixture.
 function localCatalog(): array {
     return ['service:academic_consult_60'=>['kind'=>'service','price'=>1000000]];
@@ -106,6 +107,30 @@ $observed=$pdo->prepare('SELECT status,booking_start,booking_end
 $observed->execute([$orderId,$sku]);$state=$observed->fetch();
 checkService($state['status']==='booked'&&$state['booking_start']===$start
   &&$state['booking_end']===$end,'booking_recorded_on_server');
+$ownerView=operationsCommerceSnapshot($pdo,time());
+checkService($ownerView['available']===true
+    &&($ownerView['fulfilment']['customerPreferenceSchemaReady']??false)===true,
+    'owner_report_uses_verified_preference_table');
+$matching=null;
+foreach($ownerView['fulfilment']['serviceActionQueue'] as $row){
+    if($row['orderId']===$orderId&&$row['sku']===$sku){$matching=$row;break;}
+}
+checkService(is_array($matching)&&$matching['customerPreferenceRecorded']===true
+    &&$matching['deliveryMode']==='PHONE'&&$matching['meetingCity']===null
+    &&$matching['bookingStart']===$start&&$matching['bookingEnd']===$end,
+    'owner_sees_buyer_selected_mode_and_confirmed_utc_slot');
+$slots=$ownerView['fulfilment']['internalCalendar'];
+$matches=array_values(array_filter($slots['windows'],
+    static fn($r)=>$r['startUtc']===$start&&$r['endUtc']===$end));
+checkService($slots['scope']==='single_owner_internal_cases_only'
+    &&$slots['externalAvailabilityConfirmed']===false
+    &&$slots['timeZone']==='UTC'&&count($matches)===1,
+    'owner_calendar_is_real_internal_ledger_and_does_not_claim_external_capacity');
+$encodedOwner=json_encode($ownerView,JSON_UNESCAPED_SLASHES);
+checkService(is_string($encodedOwner)&&!str_contains($encodedOwner,'customer_email')
+    &&!str_contains($encodedOwner,'customer_json')
+    &&!str_contains($encodedOwner,'buyer@example.invalid'),
+    'owner_calendar_keeps_buyer_identifiers_private');
 $progress=array_merge($body,['expectedState'=>'booked','nextState'=>'in_progress']);
 checkService(operationsCommerceServiceAdvance($pdo,$actor,$progress)['state']==='in_progress',
   'human_confirmed_service_progress');
@@ -119,5 +144,35 @@ checkService(count($audit)===3 && array_reduce($audit,fn($yes,$row)=>$yes
     &&$row['action']==='commerce_service_advance'
     &&strlen($row['reference_id'])<=64,true),
   'exactly_three_private_operator_audit_events');
+// Two different paid, valid consultation orders must NEVER occupy the same
+// owner UTC interval; a PHP lock protects booking across concurrent requests.
+$overlapId='11111111-1111-4111-8111-111111111194';
+$orders->execute([$overlapId,'test-overlapping',$items]);
+$pdo->prepare("UPDATE commerce_orders SET provider_trans_id='77778' WHERE id=?")->execute([$overlapId]);
+$pdo->prepare("INSERT INTO commerce_payment_claims
+    (provider,transaction_id,order_id,verified_amount)
+    VALUES('bitpay','77778',?,10000000)")->execute([$overlapId]);
+$case->execute([$overlapId,$sku]);
+$pdo->prepare("INSERT INTO commerce_consultation_preferences(order_id,sku,delivery_mode)
+    VALUES(?,?,'VIDEO')")->execute([$overlapId,$sku]);
+$other=array_merge($body,['orderId'=>$overlapId]);
+checkService(operationsCommerceServiceAdvance($pdo,$actor,$other)['state']==='scheduling',
+    'second_paid_buyer_enters_scheduling_only');
+$overlap=array_merge($booked,['orderId'=>$overlapId,
+    'bookingStart'=>gmdate('Y-m-d H:i:s',time()+5400),
+    'bookingEnd'=>gmdate('Y-m-d H:i:s',time()+9000)]);
+refused(fn()=>operationsCommerceServiceAdvance($pdo,$actor,$overlap),
+    DomainException::class,'overlapping_owner_appointment_rejected');
+$otherCase=$pdo->prepare('SELECT status,booking_start,booking_end
+    FROM commerce_service_cases WHERE order_id=? AND sku=?');
+$otherCase->execute([$overlapId,$sku]);$observedOther=$otherCase->fetch();
+checkService($observedOther['status']==='scheduling'
+    &&$observedOther['booking_start']===null
+    &&$observedOther['booking_end']===null,
+    'conflicting_second_booking_never_commits');
+$after=operationsCommerceSnapshot($pdo,time())['fulfilment']['internalCalendar'];
+checkService(count(array_filter($after['windows'],
+    static fn($slot)=>$slot['startUtc']===$start&&$slot['endUtc']===$end))===1,
+    'overlap_denial_preserves_original_booking');
 $pdo->exec('DROP TEMPORARY TABLE operations_audit');
 echo "Service advance MySQL fixture: no real money, appointments, email or entitlement granted.\n";
