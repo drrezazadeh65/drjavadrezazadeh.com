@@ -62,3 +62,23 @@
 .golden-talent-page .breadcrumbs{max-width:1320px;margin-inline:auto}
 @media(max-width:900px){.golden-talent-page .service-hero{grid-template-columns:1fr;padding:clamp(24px,5vw,40px)}}
 @media(max-width:600px){.golden-talent-page .service-hero{margin-inline:12px;padding:24px 18px;border-radius:20px}.golden-talent-page .service-hero h1{font-size:clamp(1.85rem,7vw,2.7rem)}.golden-talent-page .service-hero .actions .button{flex:1 1 42%;font-size:.9rem}.golden-talent-page .service-visual{padding:12px;border-radius:14px}}
+
+
+/* Navigation and brand refinement shared by FA/EN homepage and Golden Talent. */
+.public-home-page .site-header,.golden-talent-page .site-header{position:relative;z-index:50}
+.public-home-page .site-header .brand,.golden-talent-page .site-header .brand{display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;max-width:min(48vw,330px);line-height:1.25;text-decoration:none}
+.public-home-page[dir=rtl] .site-header .brand,.golden-talent-page[dir=rtl] .site-header .brand{align-items:flex-start}
+.public-home-page .site-header .brand small,.golden-talent-page .site-header .brand small{font-size:.72rem;letter-spacing:.015em;opacity:.8;line-height:1.45}
+.public-home-page .site-header nav,.golden-talent-page .site-header nav{align-items:center;gap:clamp(8px,1.2vw,20px)}
+.public-home-page .home-nav-group{position:relative}
+.public-home-page .home-nav-group>summary{cursor:pointer;list-style:none;min-height:42px;display:inline-flex;align-items:center;gap:7px}
+.public-home-page .home-nav-group>summary::-webkit-details-marker{display:none}
+.public-home-page .home-nav-group>summary:after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);margin-top:-3px;transition:transform .2s ease}
+.public-home-page .home-nav-group[open]>summary:after{transform:rotate(225deg);margin-top:3px}
+.public-home-page .home-nav-group .home-nav-menu{z-index:100;min-width:220px;max-width:min(86vw,320px);padding:10px;border:1px solid rgba(229,196,138,.3);border-radius:16px;background:#17191c;box-shadow:0 22px 54px rgba(0,0,0,.48)}
+.public-home-page .home-nav-group .home-nav-menu a{display:block;min-height:42px;padding:11px 12px;border-radius:9px;line-height:1.45}
+.public-home-page .home-nav-group .home-nav-menu a:hover,.public-home-page .home-nav-group .home-nav-menu a:focus-visible{background:rgba(229,196,138,.12);color:#f7e3bd}
+.public-home-page .site-header a:focus-visible,.public-home-page .site-header summary:focus-visible,.golden-talent-page .site-header a:focus-visible{outline:2px solid #e5c48a;outline-offset:4px}
+.public-home-page .mobile-menu-trigger{min-width:44px;min-height:44px;align-items:center;justify-content:center}
+@media(max-width:850px){.public-home-page .site-header .brand,.golden-talent-page .site-header .brand{max-width:calc(100vw - 120px)}.public-home-page .site-header .brand small,.golden-talent-page .site-header .brand small{font-size:.65rem}}
+@media(prefers-reduced-motion:reduce){.public-home-page .home-nav-group>summary:after{transition:none}}
