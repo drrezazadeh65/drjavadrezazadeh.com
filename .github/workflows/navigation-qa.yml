@@ -1,0 +1,59 @@
+name: Navigation QA (no deployment)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'tests/public-mobile-navigation.spec.js'
+      - '.github/workflows/navigation-qa.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: navigation-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    name: Persian and English navigation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check navigation JavaScript syntax
+        run: |
+          node --check assets/js/site.js
+          node --check assets/js/mobile-app-v431.js
+          node --check tests/public-mobile-navigation.spec.js
+      - name: Install browser test runner
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Start local preview
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/navigation-preview.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/fa/ >/dev/null && curl -fsS http://127.0.0.1:4173/en/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/navigation-preview.log
+          exit 1
+      - name: Run bilingual navigation browser checks
+        run: npx playwright test tests/public-mobile-navigation.spec.js --reporter=line,html --trace=retain-on-failure --screenshot=only-on-failure
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: navigation-qa-${{ github.sha }}
+          path: |
+            playwright-report/
+            test-results/
+            /tmp/navigation-preview.log
+          if-no-files-found: ignore
+          retention-days: 14
