@@ -3,7 +3,7 @@
 -- personal customer fields, order contents, addresses or payment credentials.
 -- Run BEFORE migration to inspect existing definitions and AFTER to verify.
 -- Expected: 2 InnoDB tables; PRIMARY(order_id,sku); two case FKs;
--- exactly one CHECK forbidding a city for PHONE/VIDEO and requiring one for
+-- exactly one CHECK forbidding a city for PHONE/VOICE/VIDEO and requiring one for
 -- IN_PERSON. Database CHECK cannot enforce a VIP/catalogue entitlement: PHP does.
 SELECT DATABASE() AS selected_database;
 
