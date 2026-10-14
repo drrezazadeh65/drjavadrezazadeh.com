@@ -97,6 +97,8 @@ jobs:
           node --check platform/bahar-persistence.mjs
           node --check assets/js/bahar-readiness.js
           node platform/bahar-engine.test.mjs
+          node platform/ecosystem-journey-orchestrator.test.mjs
+          node platform/module-governance.test.mjs
           node platform/bahar-persistence.test.mjs
           node platform/golden-talent-book-crosswalk.test.mjs
           php tests/golden-talent-guardian.php
