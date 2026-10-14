@@ -10,6 +10,7 @@
  const chosen=form.querySelector('input[name="preferred_slot"]');
  if(!state||!days||!chosen)return;
  const zone='Asia/Tehran';
+ const count=new Intl.NumberFormat(fa?'fa-IR':'en-GB');
  const clock=new Intl.DateTimeFormat(fa?'fa-IR':'en-GB',
      {hour:'2-digit',minute:'2-digit',timeZone:zone,hourCycle:'h23'});
  const dateFormatter=new Intl.DateTimeFormat(fa?'fa-IR':'en-GB',
@@ -61,8 +62,6 @@
        const start=utcDate(slot?.startUtc),end=utcDate(slot?.endUtc);
        if(!start||!end||end-start!==3600000||!['AVAILABLE','FULL'].includes(slot.status))
          throw Error('invalid_calendar_slot');
-       const localDate=new Intl.DateTimeFormat('en-CA',{timeZone:zone,
-         year:'numeric',month:'2-digit',day:'2-digit'}).format(start);
        // Explicit date parts avoid browser locale-dependent date strings.
        const parts=new Intl.DateTimeFormat('en-GB',{timeZone:zone,
          year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(start);
@@ -97,8 +96,8 @@
      if(!day.slots.length)list.append(element('p',say('زمانی برای درخواست منتشر نشده است.',
        'No requestable hours have been published.'),'cw-unpublished'));
      card.append(element('p',day.slots.length
-       ?(remaining?say(remaining+' جلسه در این روز باقی مانده است.',
-           remaining+' appointment hour(s) left on this day.'):
+       ?(remaining?say(count.format(remaining)+' جلسه در این روز باقی مانده است.',
+           count.format(remaining)+' appointment hour(s) left on this day.'):
          say('ظرفیت این روز تکمیل شده است.','This day is fully booked.'))
        :say('برنامه این روز هنوز منتشر نشده است.','No published capacity for this day.'),'cw-count'),list);
      days.append(card);
