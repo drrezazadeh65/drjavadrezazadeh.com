@@ -1070,7 +1070,7 @@ Relevant subjects may include:
 - Human-centered assessment.
 - Golden Talent.
 - Humanability.
-- TESTLY.
+- Other independently governed, not-yet-public assessment research programmes (refer to the owner's private source materials).
 - Other authentic publications and projects.
 
 Do not merge distinct research projects without authorization.
