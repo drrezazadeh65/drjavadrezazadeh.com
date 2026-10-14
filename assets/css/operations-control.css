@@ -47,3 +47,66 @@
 #ops-stage7-blueprint .ops-s7-brief{margin-top:12px}
 #ops-stage7-blueprint .ops-s7-brief[open]{margin-bottom:4px}
 #ops-stage7-blueprint .ops-card:focus-within{outline-offset:3px}
+
+
+/* Owner-only consultation schedule: no client identity, no external capacity
+   promise. Inputs must remain operable at narrow mobile widths. */
+#ops-commerce-results .ops-service-queue,
+#ops-commerce-results .ops-calendar{
+  grid-column:1/-1;
+  min-width:0;
+  border:1px solid var(--ops-border);
+  border-radius:14px;
+  padding:14px;
+}
+#ops-commerce-results .ops-service-queue summary,
+#ops-commerce-results .ops-calendar summary{
+  font-size:1rem;
+  font-weight:700;
+  cursor:pointer;
+}
+#ops-commerce-results .ops-service-queue .ops-queue,
+#ops-commerce-results .ops-calendar .ops-queue{
+  max-height:24rem;
+  overflow-y:auto;
+}
+#ops-commerce-results .ops-service-queue li{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  min-width:0;
+  padding:15px 12px;
+  border:1px solid var(--ops-border);
+  border-radius:12px;
+  overflow-wrap:anywhere;
+  margin:8px 0;
+}
+#ops-commerce-results .ops-service-queue label{
+  display:grid;
+  gap:6px;
+  font-size:15px;
+  max-width:100%;
+}
+#ops-commerce-results .ops-service-queue input[type="datetime-local"]{
+  min-width:0;
+  width:100%;
+  box-sizing:border-box;
+  min-height:44px;
+  font-size:16px;
+}
+#ops-commerce-results .ops-service-queue button{
+  min-height:44px;
+  align-self:flex-start;
+  font-size:15px;
+  max-width:100%;
+  white-space:normal;
+}
+#ops-commerce-results .ops-calendar li{
+  line-height:1.85;
+  font-size:15px;
+}
+@media(max-width:480px){
+  #ops-commerce-results .ops-service-queue,
+  #ops-commerce-results .ops-calendar{padding:10px}
+  #ops-commerce-results .ops-service-queue button{width:100%}
+}
