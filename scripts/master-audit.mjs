@@ -19,7 +19,7 @@ const bookCatalog=read('platform/book-catalog.json');
 const html=[];
 function walk(dir){
  for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
-  if(['.git','node_modules'].includes(ent.name)) continue;
+  if(['.git','node_modules','.public-site','identity','proposals','work','test-results'].includes(ent.name)) continue;
   const p=path.join(dir,ent.name);
   if(ent.isDirectory()) walk(p);
   else if(ent.isFile()&&ent.name.endsWith('.html')) html.push(p);
