@@ -22,3 +22,5 @@ jobs:
           node-version: '22'
       - name: Run bilingual preview tests
         run: node --test identity/engine/preview.test.mjs
+      - name: Validate document template registry
+        run: node identity/engine/validate-manifest.mjs
