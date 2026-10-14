@@ -104,6 +104,55 @@ function routingComplete(){
   if(routeStatus)routeStatus.textContent="";
   return true;
 }
+// Descriptive, client-only insight; never a psychometric diagnosis or an AI-generated claim.
+const sevenDayActions={
+ D1:{focus:"راهبرد یادگیری و پایش اجرا",action:"یک تکلیف واقعی انتخاب کن؛ در سه نوبت کوتاه ابتدا بدون نگاه به منبع بازیابی کن و سپس خطاها را ثبت کن.",question:"کدام تغییر در روش مطالعه با نمونه عملکرد قابل بررسی است؟",value:"بررسی تخصصی می‌تواند نمونه‌های عملکرد، شرایط یادگیری و بازخورد را کنار خودگزارشی قرار دهد."},
+ D2:{focus:"انرژی، فشار و بازگشت به مسیر",action:"در سه روز، زمان فعالیت، استراحت و امکان تمرکز را بدون قضاوت درباره خودت ثبت کن؛ یک اصلاح کوچک و امن را امتحان کن.",question:"چه شرایطی انجام کار را آسان‌تر یا دشوارتر می‌کند؟",value:"در بررسی تخصصی، شرایط و زمینه فردی با گفت‌وگوی حرفه‌ای روشن می‌شود؛ این آزمون تشخیص سلامت نیست."},
+ D3:{focus:"خودتنظیمی دیجیتال و هوش مصنوعی",action:"برای یک تکلیف، پیش از شروع هدف استفاده از ابزار دیجیتال را بنویس؛ وقفه‌ها و میزان انجام مستقل کار را مشاهده کن.",question:"کدام استفاده از ابزار واقعاً یادگیری مستقل را پشتیبانی می‌کند؟",value:"بررسی عمیق‌تر می‌تواند نمونه‌های واقعی کار، کیفیت تصمیم‌گیری و موقعیت‌های استفاده از فناوری را مقایسه کند."},
+ D4:{focus:"دسترسی، محیط و شبکه حمایت",action:"یک مانع واقعی در محیط یادگیری را ثبت و یک حمایت قابل‌دسترس و داوطلبانه را آزمایش کن؛ پیامد را توصیف کن.",question:"کدام تغییر محیطی به جای سرزنش فرد، فرصت رشد ایجاد می‌کند؟",value:"در بررسی تخصصی می‌توان محدودیت منابع، فرصت‌ها و حمایت‌های عملی را در تفسیر شواهد لحاظ کرد."},
+ D5:{focus:"کاوش مسیر و شواهد توانمندی",action:"یک حوزه موردعلاقه انتخاب کن و یک نمونه فعالیت واقعی انجام بده؛ توضیح بده چه چیزی آموختی و چه پرسشی باقی مانده است.",question:"علاقه ادعاشده با چه تجربه واقعی و بازخوردی بهتر روشن می‌شود؟",value:"خدمت تخصصی Golden Talent می‌تواند شواهد چندمنبعی و گفت‌وگو را برای بازنگری گزینه‌های مسیر کنار هم قرار دهد؛ هیچ استعداد قطعی پیش‌بینی نمی‌شود."},
+ D6:{focus:"سواد شواهد و کیفیت تصمیم",action:"برای یک تصمیم آموزشی، دو منبع اطلاعاتی مستقل را بررسی کن و دلیل اعتماد یا تردیدت را به‌صورت مکتوب ثبت کن.",question:"برای تصمیم بهتر، هنوز چه شواهدی لازم است؟",value:"بررسی حرفه‌ای می‌تواند کیفیت منابع، فرض‌های تصمیم و پیامدهای وابسته به زمینه را به‌صورت انتقادی مرور کند."}
+};
+const domainCoreGroups={D1:['B','C','D'],D2:['E'],D3:['F'],D4:['G'],D5:['A','G'],D6:['D','F']};
+function appendFreeInsight(report,selectedDomain){
+ const detail=sevenDayActions[selectedDomain];
+ const valid=CORE_ITEM_IDS.map(name=>form.querySelector('input[name="'+name+'"]:checked')?.value);
+ const known=valid.filter(x=>/^[0-4]$/.test(x||'')).length;
+ const unknown=valid.filter(x=>x==='UNKNOWN').length;
+ const notApplicable=valid.filter(x=>x==='NA').length;
+ const related=domainCoreGroups[selectedDomain].flatMap(k=>CORE_ITEM_IDS.filter(x=>x.startsWith(k)));
+ const relatedKnown=related.filter(name=>/^[0-4]$/.test(form.querySelector('input[name="'+name+'"]:checked')?.value||'')).length;
+ const section=document.createElement('section');section.id='rcasInsight';section.className='rcas-insight';
+ const el=(tag,content,cls)=>{const n=document.createElement(tag);if(cls)n.className=cls;n.textContent=content;section.append(n);return n;};
+ el('p','بازخورد اولیه اختصاصی • صرفاً توصیفی','kicker');
+ el('h4','نقشه شواهد تو؛ نه نمره استعداد');
+ el('p','از ۲۸ گزاره، '+known+' پاسخ مشخص، '+unknown+' پاسخ «نمی‌دانم» و '+notApplicable+' پاسخ «کاربرد ندارد» ثبت کرده‌ای. این شمارش، کیفیت یا توانایی تو را اندازه نمی‌گیرد.');
+ const cards=document.createElement('div');cards.className='rcas-insight-grid';
+ const card=(title,description)=>{const box=document.createElement('div');box.className='rcas-insight-card';const strong=document.createElement('strong');strong.textContent=title;const p=document.createElement('p');p.textContent=description;box.append(strong,p);cards.append(box);};
+ card('حوزه‌ای که خودت انتخاب کردی',detail.focus+'؛ '+relatedKnown+' پاسخ مشخص از '+related.length+' گزاره مرتبط در فرم وجود دارد. ارتباط این گزاره‌ها صرفاً برای مرور توصیفی است، نه اعتبارسنجی حوزه.');
+ const exampleNames=['evidence1','evidence2','evidence8','needsEvidence','strengthEvidence'];
+ const hasExample=exampleNames.some(name=>String(form.elements.namedItem(name)?.value||'').trim());
+ card('کیفیت شواهد اولیه',hasExample?'در پرونده اولیه نمونه یا شاهد نوشته‌ای، اما صحت آن در این مرحله به طور مستقل بررسی نشده است.':'هنوز نمونه قابل بررسی وارد نکرده‌ای؛ این نبودِ شاهد به معنای ضعف یا فقدان استعداد نیست.');
+ card('پرسش ارزشمند بعدی',detail.question);
+ section.append(cards);
+ el('h4','یک تجربه هفت‌روزه که همین حالا می‌توانی شروع کنی');
+ el('p',detail.action);
+ el('p','در پایان هفته، یک نمونه از آنچه واقعاً رخ داده و یک ابهام باقی‌مانده را یادداشت کن. این پیشنهاد آموزشی رایگان است و به خرید نیاز ندارد.','rcas-insight-note');
+ const premium=document.createElement('section');premium.className='rcas-insight-premium';
+ const h=document.createElement('h4');h.textContent='اگر بخواهی از خودگزارشی به بررسی حرفه‌ای برسی';premium.append(h);
+ const p=document.createElement('p');p.textContent=detail.value+' خدمات قابل سفارش فعلی، خدمات انسانی‌اند؛ ابزارهای دیجیتال عمیق D1 تا D6 هنوز برای خرید فعال نشده‌اند.';premium.append(p);
+ const small=document.createElement('p');small.className='rcas-insight-note';small.textContent='ارتقا اختیاری است. هیچ نتیجه‌ای برای ایجاد ترس، ضرورت ساختگی خرید یا تضمین موفقیت صادر نمی‌شود.';premium.append(small);
+ const age=Number(form.elements.namedItem('age')?.value);
+ const minor=(age>=10&&age<18)||['متوسطه اول','پایه دهم','پایه یازدهم','پایه دوازدهم'].includes(form.elements.namedItem('edu')?.value);
+ const link=document.createElement('a');link.className='button primary';
+ link.href=minor?'/fa/services/talent_initial/':'/fa/services/checkout/?service=talent_initial';
+ link.textContent=minor?'اطلاعات ارزیابی تخصصی برای بررسی همراه والد/سرپرست':'مشاهده تعرفه و درخواست بررسی تخصصی';
+ premium.append(link);
+ const more=document.createElement('a');more.className='button';more.href='/fa/shop/golden-talent/#professional-services';more.textContent='مقایسه خدمات تکمیلی و حدود آن‌ها';premium.append(more);
+ section.append(premium);
+ report.append(section);
+}
+
 const CORE_ITEM_IDS=groups.flatMap(g=>g.items.map((_,i)=>g.key+(i+1)));
 if(CORE_ITEM_IDS.length!==28||new Set(CORE_ITEM_IDS).size!==28)throw Error("RCAS Core 28 version mismatch");
 const coreAnswered=()=>CORE_ITEM_IDS.filter(name=>{
@@ -204,6 +253,7 @@ document.getElementById("showRoute").addEventListener("click",()=>{
   ]){
     const link=document.createElement("a");link.href=href;link.className=kind;link.textContent=label;links.append(link);
   }
+  appendFreeInsight(res,d);
   res.append(links);
 });
 bar.style.width="0%";
