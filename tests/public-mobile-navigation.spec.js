@@ -68,3 +68,24 @@ for(const locale of ['fa','en']){
   expect(await page.evaluate(()=>Boolean(history.state?.jrMobileMenu))).toBe(false);
  });
 }
+
+for(const locale of ['fa','en'])for(const width of [320,430]){
+ test(locale+' navigation at '+width+'px stays within viewport and preserves touch targets',async({page})=>{
+  await page.setViewportSize({width,height:780});
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto('http://127.0.0.1:4173/'+locale+'/');
+  const toggle=page.locator('.site-header [data-nav-toggle]');
+  await expect(toggle).toBeVisible();
+  const size=await toggle.boundingBox();
+  expect(size).not.toBeNull();
+  expect(size.width).toBeGreaterThanOrEqual(40);
+  expect(size.height).toBeGreaterThanOrEqual(40);
+  await toggle.click();
+  await expect(page.locator('#mobile-app-menu')).toBeVisible();
+  const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#mobile-app-menu')).toBeHidden();
+  expect(errors).toEqual([]);
+ });
+}
