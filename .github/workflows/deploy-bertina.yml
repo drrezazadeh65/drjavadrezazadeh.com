@@ -139,10 +139,11 @@ jobs:
         if: github.event_name == 'push'
         env:
           EXPECTED_LIVE_SHA: ${{ steps.release_policy.outputs.expected_live_sha }}
-          # Owner may set this repository variable to public_only to roll back scope.
-          # Default full permits private runtime changes to reach the same mandatory
-          # release tests, backup checks and production schema gates as manual runs.
-          BERTINA_AUTO_DEPLOY_SCOPE: ${{ vars.BERTINA_AUTO_DEPLOY_SCOPE || 'full' }}
+          # Standing owner approval covers public-only changes. Private/API,
+          # payment, schema, JavaScript and deployment-authority deltas require
+          # the deliberate owner-controlled release path, not a repo variable.
+          # Never widen this scope through an unverified configuration toggle.
+          BERTINA_AUTO_DEPLOY_SCOPE: public_only
         run: |
           set -euo pipefail
           node scripts/bertina-release-eligibility.mjs "$EXPECTED_LIVE_SHA" "$GITHUB_SHA"
