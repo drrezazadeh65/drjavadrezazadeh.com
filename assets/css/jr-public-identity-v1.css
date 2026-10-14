@@ -82,3 +82,20 @@
 .public-home-page .mobile-menu-trigger{min-width:44px;min-height:44px;align-items:center;justify-content:center}
 @media(max-width:850px){.public-home-page .site-header .brand,.golden-talent-page .site-header .brand{max-width:calc(100vw - 120px)}.public-home-page .site-header .brand small,.golden-talent-page .site-header .brand small{font-size:.65rem}}
 @media(prefers-reduced-motion:reduce){.public-home-page .home-nav-group>summary:after{transition:none}}
+
+/* Navigation stabilization 2026-10-14: desktop dropdowns and touch-safe breakpoints. */
+@media(min-width:901px){
+ .public-home-page .site-header .home-nav-group{position:relative}
+ .public-home-page .site-header .home-nav-group .home-nav-menu{position:absolute;top:calc(100% + 6px);inset-inline-start:0;inset-inline-end:auto;display:grid;max-height:min(70vh,520px);overflow-y:auto;overscroll-behavior:contain}
+ .public-home-page .site-header .home-nav-group:not([open]) .home-nav-menu{display:none}
+ .public-home-page .site-header .home-nav-group>summary{min-height:44px}
+ .public-home-page .site-header .home-nav-group>summary::after{content:"";flex:none}
+ .public-home-page .site-header .home-nav-group[open]>summary{background:rgba(229,196,138,.1);color:#f7e3bd}
+}
+@media(max-width:900px){
+ .public-home-page .site-header nav{display:none}
+ .public-home-page .site-header .mobile-menu-trigger{display:inline-flex;min-width:44px;min-height:44px}
+}
+@media(hover:none){
+ .public-home-page .site-header .home-nav-group .home-nav-menu a{min-height:48px}
+}
