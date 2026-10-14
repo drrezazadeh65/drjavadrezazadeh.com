@@ -1,0 +1,10 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {evaluateDocumentTransition as check} from "./document-lifecycle.mjs";
+const base={from:"pending",to:"issued",actor:{authenticated:true,can_manage_documents:true},audit_ready:true,source_verified:true,storage_verified:true};
+test("Issue only after verified source, private storage and audit",()=>{assert.equal(check(base).allowed,true);for(const x of [{...base,source_verified:false},{...base,storage_verified:false},{...base,audit_ready:false},{...base,actor:{authenticated:true}}])assert.equal(check(x).allowed,false)});
+test("No resurrection of revoked or superseded documents",()=>{for(const from of ["revoked","superseded"])assert.equal(check({...base,from}).allowed,false)});
+test("Revocation requires reason and privileged actor",()=>{assert.equal(check({...base,from:"issued",to:"revoked"}).allowed,false);assert.equal(check({...base,from:"issued",to:"revoked",revocation_reason:"Correction"}).allowed,true)});
+test("Supersession requires replacement reference",()=>{assert.equal(check({...base,from:"issued",to:"superseded"}).allowed,false);assert.equal(check({...base,from:"issued",to:"superseded",replacement_document_id:"D2"}).allowed,true)});
+test("Retry failed record only through pending and no direct failed-to-issued",()=>{assert.equal(check({...base,from:"failed",to:"issued"}).allowed,false);assert.equal(check({...base,from:"failed",to:"pending"}).allowed,true)});
+test("Invalid input and duplicate transition fail closed",()=>{assert.equal(check(null).allowed,false);assert.equal(check({...base,from:"issued",to:"issued"}).allowed,false)});
