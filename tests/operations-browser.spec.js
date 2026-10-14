@@ -39,7 +39,8 @@ test('MFA code uses session CSRF and unlocks only after server confirmation',asy
  await page.locator('#ops-mfa-code').fill('123456');await page.locator('#ops-mfa-form button').click();await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-mfa-code')).toHaveValue('');
 });
 test('Expired MFA clears previously loaded reports',async({page})=>{
- await authorized(page,{expiry:1});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-workspace')).toBeHidden({timeout:4000});await expect(page.locator('#ops-cards article')).toHaveCount(0);
+ // One second can expire before a loaded CI browser paints the authenticated workspace.
+ await authorized(page,{expiry:3});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-workspace')).toBeHidden({timeout:5500});await expect(page.locator('#ops-cards article')).toHaveCount(0);
 });
 test('Written reports use current evidence and render untrusted strings as text',async({page})=>{
  const data=fixture();data.reports[0].titleFa='<img src=x onerror=alert(1)>';await authorized(page,{data});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-cards article')).toHaveCount(36);await expect(page.locator('#ops-cards img')).toHaveCount(0);
