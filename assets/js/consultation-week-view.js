@@ -2,13 +2,18 @@
 (()=>{'use strict';
  const root=document.querySelector('[data-consultation-week]');
  const form=document.querySelector('[data-consultation-composer]');
- if(!root||!form)return;
+ if(!root)return;
  const fa=document.documentElement.lang==='fa';
  const say=(a,b)=>fa?a:b;
  const state=root.querySelector('[data-consultation-week-state]');
  const days=root.querySelector('[data-consultation-week-days]');
- const chosen=form.querySelector('input[name="preferred_slot"]');
- if(!state||!days||!chosen)return;
+ const chosen=form?form.querySelector('input[name="preferred_slot"]'):null;
+ if(!state||!days||(form&&!chosen))return;
+ const requestPath=fa?'/fa/darkhast-moshavere/':'/en/request-consultation/';
+ const requested=new URLSearchParams(location.search).get('slot');
+ const validRequested=typeof requested==='string'&&
+   /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(requested)
+   ?requested:null;
  const zone='Asia/Tehran';
  const count=new Intl.NumberFormat(fa?'fa-IR':'en-GB');
  const clock=new Intl.DateTimeFormat(fa?'fa-IR':'en-GB',
@@ -35,8 +40,10 @@
    current=null;
    buttons.forEach(b=>{b.setAttribute('aria-pressed','false');b.classList.remove('is-selected');});
  };
- form.addEventListener('reset',()=>{
+ if(form)form.addEventListener('reset',()=>{
    reset();
+   // The reset event fires before the browser clears the actual field.
+   if(chosen)chosen.value='';
    state.textContent=say('انتخاب ساعت پاک شد؛ هیچ نوبتی رزرو نشده است.',
      'Time preference cleared. No appointment has been booked.');
  });
@@ -79,6 +86,13 @@
          button.addEventListener('click',()=>{
            reset();
            current=slot.startUtc;
+           if(!form){
+             // Dashboard is a navigation surface, not a new source of
+             // booking truth. The enquiry page checks the selected hour
+             // against a fresh server snapshot before reusing it.
+             location.assign(requestPath+'?slot='+encodeURIComponent(current));
+             return;
+           }
            chosen.value=current;
            chosen.dispatchEvent(new Event('change',{bubbles:true}));
            button.classList.add('is-selected');
@@ -87,6 +101,15 @@
              'You chose '+clock.format(start)+' as a preference. No slot has been held or booked. Complete the enquiry form.');
            form.scrollIntoView({behavior:'smooth',block:'start'});
          });
+         if(form&&validRequested===slot.startUtc){
+           // Never trust a URL-supplied preference unless this slot is
+           // actually AVAILABLE in the newly fetched server response.
+           current=slot.startUtc;
+           chosen.value=current;
+           chosen.dispatchEvent(new Event('change',{bubbles:true}));
+           button.classList.add('is-selected');
+           button.setAttribute('aria-pressed','true');
+         }
        }
        buttons.push(button);
        list.append(button);
@@ -118,7 +141,7 @@
    return response.json();
  }).then(render).catch(()=>{
    days.replaceChildren();
-   chosen.value='';
+   if(chosen)chosen.value='';
    state.textContent=say('تقویم لحظه‌ای هنوز در دسترس نیست. برای هماهنگی، فرم درخواست اولیه را تکمیل کنید؛ هیچ ساعت آزادی فرض نمی‌شود.',
      'The live calendar is not currently available. Use the initial enquiry form; no availability is assumed.');
  }).finally(()=>clearTimeout(timeout));
