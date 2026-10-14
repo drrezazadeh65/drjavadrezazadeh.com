@@ -183,23 +183,32 @@ document.body.appendChild(sheetEl);
 }
 ensureMobileNav();
 let lastMenuTrigger=null;
-function setSheet(open,trigger=null){
+let menuHistoryActive=false;
+function setSheet(open,trigger=null,{fromHistory=false}={}){
 const sheet=q('#mobile-app-menu'),btn=trigger||q('[data-nav-toggle]');
 if(!sheet||!btn)return;
-if(open) lastMenuTrigger=btn;
+if(open===!sheet.hidden)return;
+if(open){
+ lastMenuTrigger=btn;
+ menuHistoryActive=true;
+ try{history.pushState({...history.state,jrMobileMenu:true},'',location.href)}catch(_){menuHistoryActive=false}
+}
 sheet.hidden=!open;
 qa('[data-nav-toggle]').forEach(x=>x.setAttribute('aria-expanded',String(open)));
 sheet.setAttribute('aria-hidden',String(!open));
 document.documentElement.classList.toggle('nav-open',open);
+sheet.classList.toggle('is-open',open);
 if(open){
-requestAnimationFrame(()=>sheet.classList.add('is-open'));
-const first=q('[data-nav-close]',sheet)||q('a,button',sheet);first&&first.focus();
+ const first=q('[data-nav-close]',sheet)||q('a,button',sheet);first&&first.focus();
 }else{
-sheet.classList.remove('is-open');
-if(lastMenuTrigger&&document.contains(lastMenuTrigger)) lastMenuTrigger.focus();
+ if(lastMenuTrigger&&document.contains(lastMenuTrigger))lastMenuTrigger.focus();
+ if(!fromHistory&&menuHistoryActive&&history.state?.jrMobileMenu){
+  menuHistoryActive=false;
+  history.back();
+ }else menuHistoryActive=false;
 }
 }
-window.addEventListener('popstate',()=>{const sheet=q('#mobile-app-menu');if(sheet&&!sheet.hidden)setSheet(false)});
+window.addEventListener('popstate',()=>{const sheet=q('#mobile-app-menu');if(sheet&&!sheet.hidden)setSheet(false,null,{fromHistory:true})});
 document.addEventListener('visibilitychange',()=>{const sheet=q('#mobile-app-menu');if(document.hidden&&sheet&&!sheet.hidden)setSheet(false)});
 document.documentElement.dataset.jrNavController='site';
 document.addEventListener('click',e=>{
