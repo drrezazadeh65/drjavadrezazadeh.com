@@ -265,6 +265,9 @@ for(const [lang,path] of [['fa','/fa/darkhast-moshavere/'],['en','/en/request-co
     await expect(form.locator('input[name="consentGiven"]')).not.toBeChecked();
     await form.locator('[data-stage14-lead-mine]').click();
     await expect(form.locator('[data-stage14-lead-list] li')).toHaveCount(1);
+    await expect(form.locator('[data-stage14-lead-list] li')).toContainText(
+      lang==='fa'?'مشاوره تخصصی تحصیلی':'Specialist educational consultation'
+    );
     await form.locator('[data-stage14-lead-list] button').click();
     await expect(form.locator('[data-stage14-lead-list]')).toContainText('WITHDRAWN');
     await expect(form.locator('[data-stage14-lead-list] button')).toHaveCount(0);
