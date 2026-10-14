@@ -578,3 +578,45 @@ for(const [locale,route,intake] of [
     await expect(lead).toContainText(locale==='fa'?'اکنون دریافت درخواست‌های حساب از سرور ممکن نیست':'could not be verified');
   });
 }
+
+
+test('10k USD scenario studio remains strictly hypothetical, costed and capacity-aware',async({page})=>{
+  await authorized(page);
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/en/account/admin/',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#ops-workspace')).toBeVisible();
+  const section=page.locator('#ops-revenue-planning');
+  await section.locator('summary').click();
+  const planner=section.locator('[data-jr-revenue-planner]');
+  await expect(planner.locator('.jr-revenue-line')).toHaveCount(3);
+  const streams=planner.locator('.jr-revenue-line');
+  await streams.nth(0).locator('input').nth(0).fill('200');
+  await streams.nth(0).locator('input').nth(1).fill('5');
+  await streams.nth(0).locator('input').nth(2).fill('50');
+  await streams.nth(0).locator('input').nth(3).fill('1');
+  await streams.nth(1).locator('input').nth(0).fill('1000');
+  await streams.nth(1).locator('input').nth(1).fill('9');
+  await streams.nth(1).locator('input').nth(2).fill('100');
+  await streams.nth(1).locator('input').nth(3).fill('2');
+  await streams.nth(2).locator('input').nth(0).fill('0');
+  await streams.nth(2).locator('input').nth(1).fill('0');
+  await streams.nth(2).locator('input').nth(2).fill('0');
+  await streams.nth(2).locator('input').nth(3).fill('0');
+  const controls=planner.locator('.jr-revenue-controls').last();
+  await controls.locator('input').nth(0).fill('500');
+  await controls.locator('input').nth(1).fill('10');
+  await controls.locator('input').nth(2).fill('50');
+  const results=planner.locator('.jr-revenue-results');
+  await expect(results).toContainText('Hypothetical gross sales');
+  await expect(results).toContainText('10,000.00 USD');
+  await expect(results).toContainText('7,350.00 USD');
+  await expect(results).toContainText('Within stated capacity');
+  await expect(results).toContainText('Not observed transactions');
+  await expect(results).toContainText('does not connect to live accounting');
+  await controls.locator('input').nth(2).fill('10');
+  await expect(results).toContainText('Over capacity');
+  await expect(page.locator('#ops-organic-growth [data-ops-growth-results] article')).toHaveCount(0);
+  expect(await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,
+    document.body.scrollWidth)-innerWidth)).toBeLessThanOrEqual(1);
+  expect(await page.evaluate(()=>localStorage.length)).toBe(0);
+});
