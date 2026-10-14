@@ -3,7 +3,7 @@ const el=id=>document.getElementById(id);
 const allowedRoutes=new Set(["D1","D2","D3","D4","D5","D6"]);
 let s=null;
 try{s=JSON.parse(sessionStorage.getItem("gt_rcas_state")||"null")}catch(e){}
-if(!s||s.completed!==true||s.rcasRevision!=="start-1.1"||s.completedItemCount!==28||s.routeBasis!=="SELF_SELECTED_UNVALIDATED")return;
+if(!s||s.completed!==true||s.rcasRevision!=="start-1.2"||s.completedItemCount!==28||s.p0Validated!==true||s.routingEvidenceCompleted!==true||s.meaningfulCoreEvidence!==true||s.routeBasis!=="SELF_SELECTED_UNVALIDATED")return;
 
 const stage=el("dashStage"),
       progress=el("dashProgress"),
