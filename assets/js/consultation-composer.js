@@ -94,7 +94,7 @@
       // trusting modified form option labels or granting in-person access.
       var modeField = form.elements.namedItem('delivery_mode');
       var mode = modeField ? modeField.value : '';
-      var modeLabels = fa ? { PHONE: 'تلفنی', VIDEO: 'آنلاین تصویری' } : { PHONE: 'Telephone', VIDEO: 'Online video' };
+      var modeLabels = fa ? { PHONE: 'تلفنی', VOICE: 'تماس صوتی آنلاین', VIDEO: 'آنلاین تصویری' } : { PHONE: 'Telephone', VOICE: 'Online voice call', VIDEO: 'Online video' };
       if (mode && !Object.prototype.hasOwnProperty.call(modeLabels, mode)) {
         status.textContent = fa ? 'روش انتخابی مشاوره معتبر نیست.' : 'The selected consultation format is not valid.';
         return;
