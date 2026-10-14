@@ -1,5 +1,5 @@
-# Production identity gate — fail closed
-# Run: node identity/engine/brand-release-gate.mjs
+// Production identity gate — fail closed
+// Run: node identity/engine/brand-release-gate.mjs
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
