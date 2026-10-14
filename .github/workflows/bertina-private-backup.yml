@@ -1,9 +1,8 @@
 name: Upload owner-signed private backup helper
 
 on:
-  push:
-    branches: [migration/bertina-linux6]
-    paths: ['.bertina-backup-trigger']
+  # Private host upload is never initiated by a source-code push.
+  # Only a deliberately dispatched owner operation may publish the helper.
   workflow_dispatch:
 
 permissions:
@@ -15,7 +14,7 @@ concurrency:
 
 jobs:
   upload:
-    if: github.ref == 'refs/heads/migration/bertina-linux6'
+    if: github.ref == 'refs/heads/migration/bertina-linux6' && github.actor == 'drrezazadeh65'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
