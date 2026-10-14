@@ -369,7 +369,7 @@
       }
       detail.append(list);results.append(detail);
     }
-    renderCapacity(fulfilment.internalAvailability||null);
+    if(fulfilment.internalAvailability)renderCapacity(fulfilment.internalAvailability);
     const calendar=fulfilment.internalCalendar||null;
     if(calendar && Array.isArray(calendar.windows)){
       const calendarSection=node('details');
