@@ -209,7 +209,7 @@ if(open){
 }
 }
 window.addEventListener('popstate',()=>{const sheet=q('#mobile-app-menu');if(sheet&&!sheet.hidden)setSheet(false,null,{fromHistory:true})});
-document.addEventListener('visibilitychange',()=>{const sheet=q('#mobile-app-menu');if(document.hidden&&sheet&&!sheet.hidden)setSheet(false)});
+document.addEventListener('visibilitychange',()=>{const sheet=q('#mobile-app-menu');if(document.hidden&&sheet&&!sheet.hidden){if(history.state?.jrMobileMenu){const state={...history.state};delete state.jrMobileMenu;history.replaceState(state,'',location.href)}setSheet(false,null,{fromHistory:true})}});
 // Keep desktop <details> navigation mutually exclusive and keyboard dismissible.
 document.addEventListener('toggle',event=>{
  const group=event.target;
