@@ -17,9 +17,10 @@ for(const locale of ['fa','en']){
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
   await expect(trigger).toBeFocused();
+  await page.evaluate(()=>history.pushState({navigationTest:true},'',location.href));
   await trigger.click();
   await expect(sheet).toBeVisible();
-  await page.goBack({waitUntil:'domcontentloaded'}).catch(()=>{});
+  await page.goBack({waitUntil:'domcontentloaded'});
   await expect(sheet).toBeHidden();
   expect(errors).toEqual([]);
  });
