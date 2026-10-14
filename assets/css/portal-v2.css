@@ -2951,3 +2951,146 @@ html[lang="en"] .student-gateway-page .site-header .brand small{
   .account-subpage .dash-pill{min-height:44px;padding:8px 10px}
   .account-subpage .appointment-summary{grid-template-columns:1fr 1fr}
 }
+
+
+/* RCAS readable response controls v20261014:
+   Previous base stylesheet rendered Core 28 choices at 10px and Routing at
+   11px. Scope all overrides to this single assessment workspace. */
+.assessment-workspace-page .rcas-item{
+  margin-block:18px;
+  padding:clamp(16px,2vw,25px);
+}
+.assessment-workspace-page .rcas-item legend,
+.assessment-workspace-page .rcas-route-row legend{
+  font-size:clamp(17px,1.15vw,20px);
+  line-height:1.85;
+  font-weight:600;
+}
+.assessment-workspace-page .rcas-item legend span{
+  font-size:15px;
+  font-weight:700;
+}
+.assessment-workspace-page .rcas-scale{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-top:17px;
+}
+.assessment-workspace-page .rcas-scale label,
+.assessment-workspace-page .rcas-route-row label{
+  position:relative;
+  display:block;
+  min-width:0;
+}
+.assessment-workspace-page .rcas-scale label > span,
+.assessment-workspace-page .rcas-route-row label > span{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:72px;
+  padding:14px 12px;
+  border:1.5px solid #514638;
+  border-radius:13px;
+  background:#151411;
+  color:#eee7d9;
+  font-size:clamp(16px,1.05vw,18px);
+  font-weight:500;
+  line-height:1.85;
+  text-align:center;
+  text-wrap:pretty;
+  overflow-wrap:anywhere;
+  cursor:pointer;
+  transition:border-color .15s ease,background-color .15s ease;
+}
+.assessment-workspace-page .rcas-scale label:hover > span,
+.assessment-workspace-page .rcas-route-row label:hover > span{
+  border-color:#bf9c54;
+  background:#201b13;
+}
+.assessment-workspace-page .rcas-scale input:checked + span,
+.assessment-workspace-page .rcas-route-row input:checked + span{
+  border:2px solid #efd18c;
+  background:#302711;
+  color:#fff7dc;
+  font-weight:700;
+  box-shadow:inset 0 0 0 1px rgba(239,209,140,.20);
+}
+.assessment-workspace-page .rcas-scale input:focus-visible + span,
+.assessment-workspace-page .rcas-route-row input:focus-visible + span{
+  outline:3px solid #f4d58d;
+  outline-offset:3px;
+}
+.assessment-workspace-page .rcas-route-row{
+  margin-block:16px;
+  padding:clamp(16px,2vw,25px);
+}
+.assessment-workspace-page .rcas-route-row > div{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.assessment-workspace-page .rcas-route-row label > span{
+  min-height:70px;
+}
+.assessment-workspace-page .rcas-panel .rcas-validation-status{
+  font-size:16px;
+  line-height:1.95;
+  color:#e7d7ad;
+  margin-top:18px;
+}
+.assessment-workspace-page .rcas-panel .rcas-no-evidence{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  border:1px solid #52462e;
+  border-radius:12px;
+  font-size:16px;
+  line-height:1.9;
+}
+.assessment-workspace-page .rcas-panel .rcas-no-evidence input{
+  width:20px;
+  height:20px;
+  flex:none;
+  accent-color:#d9b96b;
+}
+@media(max-width:1000px){
+  .assessment-workspace-page .rcas-scale{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .assessment-workspace-page .rcas-route-row > div{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:680px){
+  .assessment-workspace-page .rcas-scale{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+  }
+  .assessment-workspace-page .rcas-route-row > div{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+  }
+  .assessment-workspace-page .rcas-scale label > span,
+  .assessment-workspace-page .rcas-route-row label > span{
+    min-height:76px;
+    padding:11px 9px;
+    font-size:16px;
+    line-height:1.75;
+  }
+  .assessment-workspace-page .rcas-item legend,
+  .assessment-workspace-page .rcas-route-row legend{
+    font-size:17px;
+  }
+}
+@media(max-width:350px){
+  .assessment-workspace-page .rcas-scale,
+  .assessment-workspace-page .rcas-route-row > div{
+    grid-template-columns:1fr;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .assessment-workspace-page .rcas-scale label > span,
+  .assessment-workspace-page .rcas-route-row label > span{
+    transition:none;
+  }
+}
