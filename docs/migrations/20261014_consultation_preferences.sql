@@ -2,7 +2,7 @@
 -- Source only: never auto-run from GitHub Actions. DDL implicitly commits.
 -- A restorable production backup and table definition comparison are required.
 -- Does NOT modify existing orders, payment claims, book stocks or service cases.
--- Customer chooses PHONE, VIDEO or eligible IN_PERSON before operator books.
+-- Customer chooses PHONE, online VOICE, VIDEO or eligible IN_PERSON before operator books.
 -- In-person restricted server-side to catalogued VIP / future annual coaching
 -- and exactly TEHRAN or KASHAN. Preferences are NOT confirmed appointments.
 SET NAMES utf8mb4;
@@ -10,7 +10,7 @@ SET NAMES utf8mb4;
 CREATE TABLE IF NOT EXISTS commerce_consultation_preferences (
   order_id CHAR(36) NOT NULL,
   sku VARCHAR(80) NOT NULL,
-  delivery_mode ENUM('PHONE','VIDEO','IN_PERSON') NOT NULL,
+  delivery_mode ENUM('PHONE','VOICE','VIDEO','IN_PERSON') NOT NULL,
   meeting_city ENUM('TEHRAN','KASHAN') NULL,
   selected_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS commerce_consultation_preferences (
     ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT ck_commerce_consultation_city CHECK (
     (delivery_mode='IN_PERSON' AND meeting_city IS NOT NULL)
-    OR (delivery_mode IN ('PHONE','VIDEO') AND meeting_city IS NULL)
+    OR (delivery_mode IN ('PHONE','VOICE','VIDEO') AND meeting_city IS NULL)
   )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
