@@ -106,6 +106,106 @@ for(const privatePath of ['/fa/customer-dashboard/','/fa/app/','/en/account/']){
 try{new Function(js)}catch(e){failures.push('JS syntax error: '+e.message)}
 try{new Function(appointmentClient)}catch(e){failures.push('Appointment JS syntax error: '+e.message)}
 
+
+// Cross-engine customer integration, October 2026:
+// The dashboard remains a presentation layer. User-owned leads, service
+// entitlements and actual booked appointments are separate server ledgers.
+const publicWeek=read('assets/js/consultation-week-view.js');
+const intakeLead=read('assets/js/customer-consultation-leads.js');
+const intakeFa=read('fa/darkhast-moshavere/index.html');
+const intakeEn=read('en/request-consultation/index.html');
+const backend=read('api/index.php');
+const growth=read('api/growth-stage14.php');
+const ownerCapacity=read('api/consultation-availability.php');
+const serviceAdvance=read('api/operations-fulfilment.php');
+const bookingCss=read('assets/css/consultation-week.css');
+
+for(const [label,html,accountPrefix,intake] of [
+  ['FA',fa,'/fa/app/account/','/fa/darkhast-moshavere/'],
+  ['EN',en,'/en/account/','/en/request-consultation/']
+]){
+  expect(count(html,'data-consultation-week')===1,
+    label+': owner-published week must appear exactly once in private dashboard');
+  expect(count(html,'data-consultation-week-days')===1,
+    label+': no separate or duplicate public calendar in private dashboard');
+  expect(count(html,'data-customer-consultation-leads')===1,
+    label+': account-owned consented enquiries must have one private surface');
+  expect(count(html,'data-consultation-lead-check')===1,
+    label+': enquiries must load only on explicit user request');
+  expect(html.includes('consultation-week-view.js?v='),
+    label+': shared seven-day consultation logic not loaded');
+  expect(html.includes('customer-consultation-leads.js?v='),
+    label+': consented enquiry viewer not loaded');
+  expect(html.includes('consultation-week.css?v='),
+    label+': seven-day consultation styles not loaded');
+  expect(html.includes(intake),
+    label+': customer journey cannot return to the live intake');
+  expect(html.includes(accountPrefix+'orders/'),
+    label+': private order history not discoverable from dashboard');
+  expect(html.includes(accountPrefix+'appointments/'),
+    label+': appointment and preference history not discoverable');
+  expect(html.includes(accountPrefix+'consents/'),
+    label+': account consent and privacy navigation missing');
+  expect(html.includes('data-consultation-appointments'),
+    label+': genuine paid booking statuses must remain linked');
+  const p=label==='FA'?'fa/customer-dashboard/index.html':'en/account/index.html';
+  const localPaths=[...html.matchAll(/\bhref="(\/(?:fa|en)\/[^"#?]+\/)(?:[?#][^"]*)?"/g)].map(m=>m[1]);
+  for(const route of new Set(localPaths)){
+    expect(fs.existsSync(route.slice(1)+'index.html'),
+      p+': navigation target is missing / would be 404: '+route);
+  }
+}
+expect(fa.includes('/fa/assessments/golden-talent/start/'),
+  'FA: public free RCAS introductory assessment must be discoverable in customer dashboard');
+expect(en.includes('/en/golden-talent/assessment/'),
+  'EN: Golden Talent assessment pathway must be discoverable');
+expect(en.includes('data-private-route href="/en/golden-talent/dashboard/"'),
+  'EN: restricted Golden Talent workspace must keep account navigation gating');
+expect(fs.existsSync('fa/assessments/golden-talent/start/index.html'),
+  'FA free RCAS start route does not resolve');
+expect(fs.existsSync('en/golden-talent/dashboard/index.html'),
+  'EN Golden Talent customer route does not resolve');
+expect(intakeFa.includes('data-consultation-week')
+  &&intakeEn.includes('data-consultation-week'),
+  'The public intake must reuse exactly the same owner-published calendar contract');
+expect(intakeFa.includes('name="preferred_slot"')
+  &&intakeEn.includes('name="preferred_slot"'),
+  'Chosen slot must survive into the same reviewed enquiry form in both languages');
+expect(publicWeek.includes("fetch('/api/commerce/consultation-week'"),
+  'The public and customer dashboard must read the same no-store API');
+expect(publicWeek.includes('customerReservationEnabled!==false')
+  &&publicWeek.includes('externalCalendarConfirmed!==false'),
+  'Calendar must fail closed if server claims direct booking or external synchronization');
+expect(publicWeek.includes("location.assign(requestPath+'?slot='")
+  &&publicWeek.includes('validRequested===slot.startUtc'),
+  'Dashboard handoff must revalidate a user-supplied preferred hour against live inventory');
+expect(publicWeek.includes('chosen.dispatchEvent(new Event'),
+  'A selected hour must invalidate already reviewed email previews');
+expect(intakeLead.includes("fetch('/api/growth/leads/mine'")
+  &&intakeLead.includes("credentials:'same-origin'")
+  &&intakeLead.includes("cache:'no-store'"),
+  'Private lead read must be authenticated, owner scoped and cache safe');
+expect(intakeLead.includes('OWNER_ONLY_NO_PAYMENT_CLAIMS')
+  &&intakeLead.includes('output.replaceChildren()'),
+  'Lead UI must fail closed and clear stale private records on failure');
+expect(!/localStorage|sessionStorage/.test(intakeLead),
+  'Private enquiry records must not persist in browser storage');
+expect(growth.includes("$path==='/growth/leads/mine'")
+  &&growth.includes('WHERE account_id=? AND expires_at>?'),
+  'Backend lead listing must scope rows to the signed-in account');
+expect(backend.includes("'/commerce/consultation-week'")
+  &&backend.includes('operationsConsultationWeeklySnapshot($pdo,time())'),
+  'The shared seven-day calendar must be backed by the internal booking/capacity ledger');
+expect(serviceAdvance.includes('operationsConsultationWithinCapacity'),
+  'Booking transition must reject hours not explicitly published by owner');
+expect(ownerCapacity.includes("maxPublishedDailyHours'=>4")
+  &&ownerCapacity.includes("['booked','in_progress']")===false,
+  'Daily capacity must remain bounded and sourced from actual server bookings');
+expect(bookingCss.includes('.cw-free')
+  &&bookingCss.includes('.cw-full')
+  &&bookingCss.includes(':focus-visible'),
+  'Public and dashboard calendar must distinguish available/full states accessibly');
+
 if(failures.length){
   console.error('Customer dashboard audit failed ('+failures.length+')');
   for(const f of failures)console.error('✗ '+f);
