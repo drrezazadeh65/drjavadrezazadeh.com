@@ -193,12 +193,14 @@ sheet.setAttribute('aria-hidden',String(!open));
 document.documentElement.classList.toggle('nav-open',open);
 if(open){
 requestAnimationFrame(()=>sheet.classList.add('is-open'));
-const first=q('a,button',sheet); first&&first.focus();
+const first=q('[data-nav-close]',sheet)||q('a,button',sheet);first&&first.focus();
 }else{
 sheet.classList.remove('is-open');
 if(lastMenuTrigger&&document.contains(lastMenuTrigger)) lastMenuTrigger.focus();
 }
 }
+window.addEventListener('popstate',()=>{const sheet=q('#mobile-app-menu');if(sheet&&!sheet.hidden)setSheet(false)});
+document.addEventListener('visibilitychange',()=>{const sheet=q('#mobile-app-menu');if(document.hidden&&sheet&&!sheet.hidden)setSheet(false)});
 document.documentElement.dataset.jrNavController='site';
 document.addEventListener('click',e=>{
 const t=e.target.closest('[data-nav-toggle]');
