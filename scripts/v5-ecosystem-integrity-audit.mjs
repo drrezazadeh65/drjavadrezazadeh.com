@@ -58,6 +58,7 @@ const guardianEn=read('en/golden-talent/roles/parent/index.html');
 const guardianTests=read('tests/golden-talent-guardian.php');
 
 const rcasClient=read('assets/js/rcas-start.js');
+const rcasCss=read('assets/css/portal-v2.css');
 const rcasPage=read('fa/assessments/golden-talent/start/index.html');
 const studentDashboard=read('assets/js/student-dashboard.js');
 const studentDashboardPage=read('fa/app/student/index.html');
@@ -236,21 +237,33 @@ verify('bahar: guardian overview requires independent consent, audit and private
   guardianFa.includes('data-bahar-guardian') &&
   guardianEn.includes('data-bahar-guardian') &&
   baharGuardianFixture.includes('operations_fixture'));
-verify('rcas: Core 28 completion, self-selected routing and no private-response persistence',
+verify('rcas: 3-stage evidence gates, Core 28, privacy and accessible choices',
   rcasClient.includes('CORE_ITEM_IDS.length!==28') &&
-  rcasClient.includes('if(Number(n)===3&&!coreComplete())return;') &&
-  rcasClient.includes('if(!coreComplete())') &&
+  rcasClient.includes('if(activeStep!==1||!p0Complete())return;') &&
+  rcasClient.includes('if(activeStep!==2||!p0Complete()||!coreComplete())return;') &&
+  rcasClient.includes('if(activeStep!==3||!p0Complete()||!coreComplete()||!routingComplete())return;') &&
+  rcasClient.includes('invalidateSummary();') &&
+  rcasClient.includes('sessionStorage.removeItem("gt_rcas_state")') &&
+  rcasClient.includes('rcasRevision:"start-1.2"') &&
+  rcasClient.includes('p0Validated:true,routingEvidenceCompleted:true,meaningfulCoreEvidence:true') &&
   rcasClient.includes('routeBasis:"SELF_SELECTED_UNVALIDATED"') &&
   rcasClient.includes('completedItemCount:28') &&
   rcasClient.includes('explanation.textContent=why') &&
-  rcasClient.includes('sessionStorage.removeItem("gt_rcas_state")') &&
   !rcasClient.includes('why.replace(') &&
   !rcasClient.includes('/api/rcas/submit') &&
   rcasPage.includes('id="rcasCoreStatus"') &&
-  rcasPage.includes('rcas-start.js?v=20261014-core28-book-v3') &&
-  studentDashboard.includes('s.completedItemCount!==28') &&
-  studentDashboard.includes('s.routeBasis!=="SELF_SELECTED_UNVALIDATED"') &&
-  studentDashboardPage.includes('student-dashboard.js?v=20261014-rcas-28-v2'));
+  rcasPage.includes('id="rcasP0Status"') &&
+  rcasPage.includes('id="rcasRouteStatus"') &&
+  rcasPage.includes('rcas-start.js?v=20261014-evidence-gates-v4') &&
+  rcasPage.includes('portal-v2.css?v=20261014-rcas-readable-v1') &&
+  rcasCss.includes('RCAS readable response controls v20261014') &&
+  rcasCss.includes('font-size:clamp(16px,1.05vw,18px)') &&
+  rcasCss.includes('input:focus-visible + span') &&
+  studentDashboard.includes('s.rcasRevision!=="start-1.2"') &&
+  studentDashboard.includes('s.p0Validated!==true') &&
+  studentDashboard.includes('s.routingEvidenceCompleted!==true') &&
+  studentDashboard.includes('s.meaningfulCoreEvidence!==true') &&
+  studentDashboardPage.includes('student-dashboard.js?v=20261014-rcas-evidence-v3'));
 verify('golden talent: professional services reuse the live commerce engine, not digital entitlements',(()=>{
  const required=['talent_initial','golden_talent_comprehensive','golden_talent_premium'];
  return required.every(id=>
