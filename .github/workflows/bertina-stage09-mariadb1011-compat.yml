@@ -14,6 +14,10 @@ on:
       - 'tests/stage09-mysql.php'
       - 'api/operations-fulfilment.php'
       - 'tests/commerce-service-advance-mysql.php'
+      - 'api/consultation-delivery.php'
+      - 'docs/migrations/20261014_consultation_preferences.sql'
+      - 'docs/migrations/20261014_consultation_preferences_readonly_check.sql'
+      - 'tests/consultation-preference-mysql.php'
       - 'tests/bertina-commerce-mysql-contract.php'
       - 'tests/stage09-commerce-atomic.php'
       - 'docs/migrations/20261013_stage09_bertina_owner_approved.sql'
@@ -56,6 +60,8 @@ jobs:
           php -l tests/stage09-mysql.php
           php -l api/operations-fulfilment.php
           php -l tests/commerce-service-advance-mysql.php
+          php -l api/consultation-delivery.php
+          php -l tests/consultation-preference-mysql.php
           php -l tests/stage09-commerce-atomic.php
           php -l tests/stage09-owner-stock-mariadb.php
           python3 - <<'PY'
@@ -102,6 +108,7 @@ jobs:
           php tests/stage09-commerce-atomic.php
           php tests/stage09-mysql.php
           php tests/commerce-service-advance-mysql.php
+          php tests/consultation-preference-mysql.php
           php tests/stage09-owner-stock-mariadb.php
           php tests/bertina-commerce-mysql-contract.php
           echo 'MariaDB Stage09 fixture PASS: isolated test schema, no live credentials or production writes'
