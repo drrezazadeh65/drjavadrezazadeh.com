@@ -32,3 +32,25 @@ for(const locale of ['fa','en']){
   expect(errors).toEqual([]);
  });
 }
+
+for(const locale of ['fa','en']){
+ test(locale+' desktop dropdowns are mutually exclusive and dismissible',async({page})=>{
+  await page.setViewportSize({width:1440,height:900});
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto('http://127.0.0.1:4173/'+locale+'/');
+  const groups=page.locator('.site-header .home-nav-group');
+  await expect(groups).toHaveCount(2);
+  await groups.nth(0).locator('summary').click();
+  await expect(groups.nth(0)).toHaveAttribute('open','');
+  await groups.nth(1).locator('summary').click();
+  await expect(groups.nth(1)).toHaveAttribute('open','');
+  await expect(groups.nth(0)).not.toHaveAttribute('open','');
+  await page.keyboard.press('Escape');
+  await expect(groups.nth(1)).not.toHaveAttribute('open','');
+  await expect(groups.nth(1).locator('summary')).toBeFocused();
+  await groups.nth(0).locator('summary').click();
+  await page.locator('main').click({position:{x:10,y:10}});
+  await expect(groups.nth(0)).not.toHaveAttribute('open','');
+  expect(errors).toEqual([]);
+ });
+}
