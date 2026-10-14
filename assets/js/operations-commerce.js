@@ -260,6 +260,7 @@
     if(Array.isArray(fulfilment.serviceActionQueue)&&fulfilment.serviceActionQueue.length){
       const detail=node('details'),label=node('summary',
         text('مشاهدهٔ فهرست پرونده‌های قابل پیگیری','View service fulfilment worklist'));
+      detail.className='ops-service-queue';
       detail.append(label);
       const note=node('p',text(
         'شناسه‌ها فقط ارجاع داخلی مدیر هستند؛ تطبیق درگاه با سفارش به معنای تسویهٔ بانکی یا ارائهٔ خدمت نیست.',
