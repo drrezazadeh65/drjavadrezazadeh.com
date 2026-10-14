@@ -117,7 +117,7 @@ for (const scenario of [
     await expect(calendar.locator('.cw-free')).toHaveCount(1);
     await expect(calendar.locator('.cw-full')).toHaveCount(2);
     await expect(calendar.locator('.cw-full').first()).toBeDisabled();
-    await expect(calendar.locator('.cw-day').first().locator('.cw-count')).toContainText(scenario.lang==='fa'?'1':'1 appointment');
+    await expect(calendar.locator('.cw-day').first().locator('.cw-count')).toContainText(scenario.lang==='fa'?'۱ جلسه':'1 appointment');
     const form=page.locator('form[data-consultation-composer]');
     await calendar.locator('.cw-free').first().click();
     await expect(form.locator('[name="preferred_slot"]')).toHaveValue('2030-01-01 07:00:00');
