@@ -432,3 +432,107 @@ border-radius:17px
 transition-duration:0s!important;animation-duration:0s!important
 }
 }
+
+
+/* v2.4 — bilingual consultation and consented enquiry: shared visual language. */
+.jr2-consultation{
+  --public-gold-soft:var(--jr2-gold-light);
+  --public-gold-line:var(--jr2-rule);
+  background:radial-gradient(ellipse 65% 24% at 85% 3%,rgba(192,144,62,.11),transparent 70%),#090a0c;
+  color:var(--jr2-ivory);
+  accent-color:var(--jr2-gold)
+}
+.jr2-consultation :is(a,button,input,select,textarea,summary):focus-visible{
+  outline:3px solid var(--jr2-gold-light);outline-offset:3px
+}
+.jr2-consultation .service-shell{max-width:1320px}
+.jr2-consultation .site-header{
+  background:rgba(9,10,11,.97);border-bottom:1px solid var(--jr2-rule)
+}
+.jr2-consultation .service-hero{
+  position:relative;overflow:hidden;min-width:0;
+  border:1px solid var(--jr2-rule);border-radius:28px;
+  padding:clamp(27px,4.5vw,64px);
+  background:radial-gradient(ellipse at 85% 15%,rgba(199,152,70,.15),transparent 58%),
+    linear-gradient(137deg,#211d18,#101315 76%);
+  box-shadow:0 28px 74px rgba(0,0,0,.29)
+}
+.jr2-consultation .service-hero h1{
+  font-size:clamp(2.15rem,4.2vw,4.55rem);line-height:1.31;
+  color:var(--jr2-ivory);text-wrap:balance;overflow-wrap:anywhere
+}
+.jr2-consultation.rtl .service-hero h1{line-height:1.52;letter-spacing:normal}
+.jr2-consultation .service-hero .lead{
+  color:var(--jr2-copy);line-height:1.91;max-width:76ch
+}
+.jr2-consultation :is(.service-card,.role-status-card,.principle,.process-step){
+  border-color:var(--jr2-rule);border-radius:18px;
+  background:linear-gradient(148deg,#211e1a,#111416)
+}
+.jr2-consultation :is(.role-status-card,.service-card,.principle){min-width:0;overflow-wrap:anywhere}
+.jr2-consultation .role-status-card strong{color:var(--jr2-ivory)}
+.jr2-consultation .role-status-card span{color:var(--jr2-copy)}
+.jr2-consultation .service-section h2{
+  color:var(--jr2-ivory);text-wrap:balance
+}
+.jr2-consultation .consultation-week{
+  border-color:var(--jr2-rule);
+  background:radial-gradient(ellipse at 87% 11%,rgba(191,144,68,.16),transparent 63%),
+    linear-gradient(135deg,#1b1b1a,#101416);
+  box-shadow:0 16px 49px rgba(0,0,0,.2)
+}
+.jr2-consultation .consultation-week .cw-eyebrow{color:var(--jr2-gold-light)}
+.jr2-consultation .consultation-week :is(.cw-intro,.cw-status){color:#e2ded5}
+.jr2-consultation .consultation-week .cw-day{border-color:rgba(218,185,115,.22)}
+.jr2-consultation .consultation-preview-form,
+.jr2-consultation [data-stage14-consent-lead]{
+  min-width:0;max-width:780px;
+  padding:clamp(18px,3vw,32px);
+  border:1px solid var(--jr2-rule);border-radius:20px;
+  background:linear-gradient(150deg,#211d19,#111417);
+  box-shadow:0 15px 45px rgba(0,0,0,.19)
+}
+.jr2-consultation [data-stage14-consent-lead] label{
+  display:block;margin-bottom:19px;color:#f0e9dc;line-height:1.8
+}
+.jr2-consultation [data-stage14-consent-lead] select{
+  display:block;min-height:48px;max-width:100%;width:100%;
+  margin-top:9px;padding:10px 14px;border:1px solid rgba(218,185,115,.36);
+  border-radius:12px;background:#101113;color:#f7f2e8;font:inherit
+}
+.jr2-consultation [data-stage14-consent-lead] input[type="checkbox"]{
+  width:20px;height:20px;margin-inline-end:10px;vertical-align:middle
+}
+.jr2-consultation [data-stage14-consent-lead] [data-stage14-lead-status]{
+  color:var(--jr2-gold-light);line-height:1.8;overflow-wrap:anywhere
+}
+.jr2-consultation [data-stage14-consent-lead] [data-stage14-lead-list]{
+  padding-inline-start:1.4em;overflow-wrap:anywhere;line-height:1.9
+}
+.jr2-consultation .button.primary{
+  min-height:48px;border-radius:12px;
+  background:linear-gradient(128deg,#f6e3b0,#dfb96e 47%,#bb914b);
+  color:#16120b;border:1px solid #e8c782;font-weight:750
+}
+.jr2-consultation .button:disabled{cursor:not-allowed;opacity:.64}
+@media(max-width:700px){
+  .jr2-consultation .service-hero{padding:25px 18px;border-radius:20px}
+  .jr2-consultation .service-hero h1{font-size:clamp(1.9rem,7.3vw,2.85rem)}
+  .jr2-consultation .service-shell{min-width:0}
+  .jr2-consultation .role-status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .jr2-consultation .consultation-week{border-radius:18px}
+  .jr2-consultation [data-stage14-consent-lead] .actions{display:flex;flex-wrap:wrap;gap:10px}
+  .jr2-consultation [data-stage14-consent-lead] .actions>*{flex:1 1 100%;min-height:48px}
+}
+@media(max-width:360px){
+  .jr2-consultation .role-status-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  .jr2-consultation *{transition-duration:0s!important;animation-duration:0s!important}
+}
+@media print{
+  .jr2-consultation{background:#fff!important;color:#181714!important}
+  .jr2-consultation :is(.service-hero,.consultation-week,[data-stage14-consent-lead]){
+    box-shadow:none!important
+  }
+}
