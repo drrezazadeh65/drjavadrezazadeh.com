@@ -8,12 +8,21 @@ function respond(array $data,int $status=200): never {throw new RouteAnswer($dat
 function fail(string $code,int $status=400): never {respond(['ok'=>false,'error'=>$code],$status);}
 function commerceSchemaReady(): bool {return true;}
 function stage9SchemaReady(PDO $pdo): bool {return true;}
+// Load the real service delivery policy, not an invented permissive test stub.
+// The fixture has no preference migration, so optional customer choices must
+// remain unavailable while verified order and private delivery access still work.
+define('BERTINA_API_BOOTSTRAPPED',true);
+function localCatalog():array{return ['service:academic_consult_60'=>['title'=>'fixture']];}
+require_once __DIR__.'/../api/consultation-delivery.php';
 function validUuid(string $s): bool {return preg_match('/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i',$s)===1;}
 function emailNorm(mixed $s): string{return strtolower(trim((string)$s));}
 function validEmail(string $s): bool{return filter_var($s,FILTER_VALIDATE_EMAIL)!==false;}
 function sessionAccount(PDO $pdo): ?array{return $GLOBALS['identity']??null;}
 final class DeliveryFixtureDb extends PDO {
     public function __construct(){}
+    // No database schema is present in this isolated fixture. The production
+    // readiness helper must fail closed, without contacting a real database.
+    public function query(string $query,?int $fetchMode=null,mixed ...$fetchModeArgs): PDOStatement|false {return false;}
     public function prepare(string $query,array $options=[]): PDOStatement|false {return new DeliveryFixtureStmt($query);}
 }
 final class DeliveryFixtureStmt extends PDOStatement {
@@ -68,6 +77,12 @@ $success=runDelivery($alice,$id);
 checkDelivery($success->status===200,'own_paid_order_allowed');
 checkDelivery($success->body['paymentRecord']==='provider_verified_not_bank_settlement','bank_settlement_not_claimed');
 checkDelivery(count($success->body['serviceCases'])===1&&$success->body['serviceCases'][0]['status']==='awaiting_contact','real_service_status_only');
+checkDelivery($success->body['serviceCases'][0]['customerChoiceEnabled']===false
+    &&$success->body['serviceCases'][0]['deliveryMode']===null
+    &&$success->body['serviceCases'][0]['meetingCity']===null,
+    'unmigrated_consultation_preferences_fail_closed');
+checkDelivery($success->body['serviceCases'][0]['allowedDeliveryModes']===['PHONE','VIDEO'],
+    'ordinary_consultation_only_phone_or_video');
 checkDelivery($success->body['parcel']['trackingCode']==='PRIVATE-CODE','owner_tracking_only');
 $GLOBALS['claimValid']=false;
 $unknown=runDelivery($alice,$id);
