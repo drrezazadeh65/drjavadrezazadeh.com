@@ -83,7 +83,7 @@ $constraints=$pdo->query("SELECT table_name,constraint_name,constraint_type
       AND table_name IN ('commerce_consultation_preferences',
         'commerce_consultation_preference_events')
       AND constraint_type IN ('FOREIGN KEY','CHECK')")->fetchAll();
-$named=array_fill_keys(array_map(static fn(array $x)=>strtolower((string)$x['constraint_name']),$constraints),true);
+$named=array_fill_keys(array_map(static fn(array $x)=>strtolower((string)$x['CONSTRAINT_NAME']),$constraints),true);
 ensureChoice(isset($named['ck_commerce_consultation_city'])
     &&isset($named['fk_commerce_consultation_case'])
     &&isset($named['fk_consultation_preference_events_case']),
