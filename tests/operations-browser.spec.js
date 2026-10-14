@@ -339,3 +339,108 @@ test('Stage 7 development instructions stay within MFA-protected workspace',asyn
  await authorized(page,{mfa:true});await page.goto(base+'/fa/app/admin/');
  await expect(page.locator('#ops-stage7-blueprint')).toBeHidden();
 });
+
+
+for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
+ test(lang+' owner appointment calendar verifies buyer choice and protects booking mutation on mobile',async({page})=>{
+  await page.setViewportSize({width:320,height:850});
+  await authorized(page);
+  const bookedStart=new Date(Date.now()+24*3600_000).toISOString().slice(0,19).replace('T',' ');
+  const bookedEnd=new Date(Date.now()+26*3600_000).toISOString().slice(0,19).replace('T',' ');
+  const allowedOrder='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const awaitingOrder='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const unseenEmail='confidential.client@example.invalid';
+  const fixture={
+   ok:true,schema:'operations-commerce-evidence-v1',available:true,
+   orders:{pendingRecords:0,paidStateRecords:2,totalRows:2,states:{paid:2}},
+   claims:{paidRowsRequiringIndependentProviderReconciliation:0},
+   stock:{rows:[],ledgerDiscrepancies:0,rowsWithoutReconciliationTimestamp:0},
+   notifications:{paidOrderRowsWithoutReceiptEmailTimestamp:0,outboxStates:{}},
+   fulfilment:{
+    customerPreferenceSchemaReady:true,
+    serviceCaseStates:{scheduling:2,booked:1},parcelStates:{},
+    activeServiceCaseCount:2,queueTruncated:false,
+    activeParcelCount:0,preparingOlderThan48Hours:0,inShippingOlderThan7Days:0,
+    parcelActionQueue:[],
+    internalCalendar:{scope:'single_owner_internal_cases_only',timeZone:'UTC',
+      totalUpcoming:1,limit:100,truncated:false,externalAvailabilityConfirmed:false,
+      windows:[{startUtc:bookedStart,endUtc:bookedEnd,state:'booked'}]},
+    serviceActionQueue:[
+      {orderId:allowedOrder,sku:'service:academic_consult_60',status:'scheduling',
+       orderPaidState:true,providerClaimMatchesOrder:true,deliveryMode:'VIDEO',
+       meetingCity:null,customerPreferenceRecorded:true,bookingStart:null,bookingEnd:null},
+      {orderId:awaitingOrder,sku:'service:academic_consult_60',status:'scheduling',
+       orderPaidState:true,providerClaimMatchesOrder:true,deliveryMode:null,
+       meetingCity:null,customerPreferenceRecorded:false,bookingStart:null,bookingEnd:null}
+    ]
+   }
+  };
+  let reads=0;
+  await page.route('**/api/admin/operations/commerce',route=>{
+    reads++;return route.fulfill({json:fixture});
+  });
+  const requests=[];
+  await page.route('**/api/admin/operations/commerce/service-advance',route=>{
+    const request=route.request();
+    expect(request.method()).toBe('POST');
+    expect(request.headers()['x-csrf-token']).toBe('c'.repeat(64));
+    const data=request.postDataJSON();requests.push(data);
+    expect(data).toMatchObject({
+      orderId:allowedOrder,sku:'service:academic_consult_60',
+      expectedState:'scheduling',nextState:'booked'
+    });
+    expect(Object.keys(data).sort()).toEqual(
+      ['bookingEnd','bookingStart','expectedState','nextState','orderId','sku'].sort());
+    expect(data.bookingStart).toMatch(/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/);
+    expect(data.bookingEnd).toMatch(/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/);
+    return route.fulfill({json:{
+      ok:true,schema:'commerce-service-transition-v1',
+      change:{state:'booked',customerNotified:false,serviceDelivered:false}
+    }});
+  });
+  await page.goto(base+path);
+  await expect(page.locator('#ops-workspace')).toBeVisible();
+  await page.locator('#ops-commerce > summary').click();
+  const calendar=page.locator('#ops-commerce-results .ops-calendar');
+  await expect(calendar).toHaveCount(1);
+  await calendar.locator('summary').click();
+  await expect(calendar).toContainText(lang==='fa'?'تقویم داخلی':'Internal confirmed');
+  await expect(calendar.locator('.ops-queue li')).toHaveCount(1);
+  const queue=page.locator('#ops-commerce-results .ops-service-queue');
+  await expect(queue).toHaveCount(1);
+  await queue.locator('summary').click();
+  const cases=queue.locator('.ops-queue li');
+  await expect(cases).toHaveCount(2);
+  await expect(cases.first()).toContainText(lang==='fa'?'آنلاین تصویری':'Online video');
+  await expect(cases.nth(1)).toContainText(lang==='fa'?'ثبت یا تأیید نشده':'absent or unverified');
+  await expect(cases.nth(1).locator('button')).toHaveCount(0);
+  await expect(cases.first().locator('button')).toHaveCount(1);
+  await expect(queue).not.toContainText(unseenEmail);
+  await expect(calendar).not.toContainText(allowedOrder);
+  const input=cases.first().locator('input[type="datetime-local"]');
+  await expect(input).toHaveCount(2);
+  const size=await input.first().evaluate(n=>({
+    width:n.getBoundingClientRect().width,height:n.getBoundingClientRect().height,
+    font:parseFloat(getComputedStyle(n).fontSize)
+  }));
+  expect(size.height).toBeGreaterThanOrEqual(44);
+  expect(size.font).toBeGreaterThanOrEqual(16);
+  const local=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),
+    String(d.getDate()).padStart(2,'0')].join('-')+'T'+
+    [String(d.getHours()).padStart(2,'0'),String(d.getMinutes()).padStart(2,'0')].join(':');
+  const startDate=new Date(Date.now()+72*3600_000);
+  startDate.setSeconds(0,0);
+  const endDate=new Date(startDate.getTime()+60*60_000);
+  await input.nth(0).fill(local(startDate));await input.nth(1).fill(local(endDate));
+  page.on('dialog',dialog=>dialog.accept());
+  await cases.first().locator('button').click();
+  await expect.poll(()=>requests.length).toBe(1);
+  await expect.poll(()=>reads).toBeGreaterThanOrEqual(2);
+  expect(requests[0].bookingStart).toBe(startDate.toISOString().slice(0,19).replace('T',' '));
+  expect(requests[0].bookingEnd).toBe(endDate.toISOString().slice(0,19).replace('T',' '));
+  expect(await page.evaluate(()=>localStorage.length)).toBe(0);
+  expect(await page.evaluate(()=>
+    Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth))
+    .toBeLessThanOrEqual(1);
+ });
+}
