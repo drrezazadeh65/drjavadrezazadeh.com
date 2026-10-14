@@ -124,7 +124,7 @@ for(const [label,html,accountPrefix,intake] of [
   ['FA',fa,'/fa/app/account/','/fa/darkhast-moshavere/'],
   ['EN',en,'/en/account/','/en/request-consultation/']
 ]){
-  expect(count(html,'data-consultation-week')===1,
+  expect(count(html,'data-consultation-week aria-labelledby')===1,
     label+': owner-published week must appear exactly once in private dashboard');
   expect(count(html,'data-consultation-week-days')===1,
     label+': no separate or duplicate public calendar in private dashboard');
