@@ -6,6 +6,10 @@ on:
     branches:
       - migration/bertina-linux6
     paths:
+      - 'assets/js/**'
+      - 'assets/css/**'
+      - 'fa/**'
+      - 'en/**'
       - 'tests/public-mobile-navigation.spec.js'
       - '.github/workflows/navigation-qa.yml'
 
