@@ -24,24 +24,37 @@ $check('public_site_not_modified',true,'Read-only script never mutates the main 
 if($runtime){
     $root=getenv('JHELA_OJS_DOCROOT')?:'';
     $private=getenv('JHELA_OJS_PRIVATE_DIR')?:'';
+    $main=getenv('JHELA_MAIN_PUBLIC_ROOT')?:'';
     $rp=$root!==''?realpath($root):false;
     $pp=$private!==''?realpath($private):false;
+    $mp=$main!==''?realpath($main):false;
+    $within=static function(string $child,string $parent):bool {
+        return $child===$parent || str_starts_with($child,rtrim($parent,DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR);
+    };
+    $check('main_public_root_known',is_string($mp)&&is_dir($mp));
     $check('dedicated_ojs_document_root',is_string($rp)&&is_dir($rp)&&is_readable($rp));
     $check('private_files_directory_exists',is_string($pp)&&is_dir($pp)&&is_writable($pp));
     // Prove a real installed PKP application, not a hand-written imitation.
     $ojsRoot=is_string($rp)?$rp:'';
     $config=$ojsRoot!==''?$ojsRoot.'/config.inc.php':'';
     $check('official_ojs_application_files',$ojsRoot!==''&&is_file($ojsRoot.'/index.php')&&
-      is_dir($ojsRoot.'/lib/pkp')&&is_file($config));
+      is_file($ojsRoot.'/lib/pkp/includes/bootstrap.php')&&
+      is_file($ojsRoot.'/lib/pkp/lib/vendor/autoload.php')&&
+      is_file($ojsRoot.'/lib/pkp/templates/install/install.tpl')&&
+      is_file($ojsRoot.'/dbscripts/xml/version.xml')&&is_file($config));
     $installed=false;
     if($config!==''&&is_file($config)&&is_readable($config)){
        $raw=@file_get_contents($config);
        $installed=is_string($raw)&&preg_match('/^\\s*installed\\s*=\\s*(?:On|true|1)\\s*$/im',$raw)===1;
     }
     $check('ojs_install_completed',$installed);
-    $overlap=is_string($rp)&&is_string($pp)&&
-        (str_starts_with($pp,rtrim($rp,DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR)||$rp===$pp);
-    $check('submission_files_outside_webroot',is_string($rp)&&is_string($pp)&&!$overlap);
+    $isolated=is_string($rp)&&is_string($mp)&&!$within($rp,$mp)&&!$within($mp,$rp);
+    $check('ojs_document_root_isolated_from_main_site',$isolated);
+    // Reject OJS files_dir anywhere beneath EITHER web root: an old pre-install
+    // form mistakenly proposed main public_html/files despite a separate OJS root.
+    $safeStorage=is_string($rp)&&is_string($pp)&&is_string($mp)&&
+        !$within($pp,$rp)&&!$within($pp,$mp)&&!$within($rp,$pp)&&!$within($mp,$pp);
+    $check('submission_files_outside_webroot',$safeStorage);
     $check('dedicated_ojs_database',is_string(getenv('JHELA_OJS_DB_DSN'))&&getenv('JHELA_OJS_DB_DSN')!=='' &&
       getenv('JHELA_OJS_DB_DSN')!==(getenv('JR_DB_DSN')?:'') &&
       !str_contains((string)getenv('JHELA_OJS_DB_DSN'),'YOUR_DATABASE'));
