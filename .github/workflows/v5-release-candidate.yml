@@ -71,6 +71,7 @@ jobs:
         run: |
           node scripts/v5-ecosystem-integrity-audit.mjs
           node scripts/v5-1-usable-release-audit.mjs
+          node tests/jr-ecosystem-visual-contract.mjs
           node scripts/workflow-governance-audit.mjs
           node scripts/seo-regression.mjs
           node --test tests/production-health-evidence.test.mjs
