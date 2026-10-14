@@ -179,7 +179,7 @@
       const result=await changed.json();
       if(stamp!==seq||workspace.hidden||!panel.open||document.hidden)return;
       if(!changed.ok||result?.ok!==true||
-        result?.schema!=='commerce-consultation-availability-v1')
+        result?.schema!=='commerce-consultation-capacity-v1')
         throw Error('capacity_not_confirmed');
       await load();
     }catch{
