@@ -48,8 +48,15 @@ if($runtime){
        $installed=is_string($raw)&&preg_match('/^\\s*installed\\s*=\\s*(?:On|true|1)\\s*$/im',$raw)===1;
     }
     $check('ojs_install_completed',$installed);
-    $isolated=is_string($rp)&&is_string($mp)&&!$within($rp,$mp)&&!$within($mp,$rp);
-    $check('ojs_document_root_isolated_from_main_site',$isolated);
+    // cPanel may require a dedicated subdomain directory *inside* public_html.
+    // Require a distinct OJS application root and explicit main-domain alias proof
+    // whenever that directory is accessible from the parent public site.
+    $distinct=is_string($rp)&&is_string($mp)&&$rp!==$mp&&!$within($mp,$rp);
+    $check('ojs_document_root_distinct_from_main_root',$distinct);
+    $nested=$distinct&&$within($rp,$mp);
+    $check('nested_main_domain_path_access_verified',!$nested||
+      (getenv('JHELA_OJS_MAIN_DOMAIN_PATH_VERIFIED')?:'')==='true',
+      'If nested below public_html, independently prove main-domain /journals path is access-controlled or canonicalised; never infer from docroot.');
     // Reject OJS files_dir anywhere beneath EITHER web root: an old pre-install
     // form mistakenly proposed main public_html/files despite a separate OJS root.
     $safeStorage=is_string($rp)&&is_string($pp)&&is_string($mp)&&
