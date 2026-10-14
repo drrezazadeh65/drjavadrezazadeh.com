@@ -25,3 +25,32 @@ test('service intent keeps the selected offer and makes scope, outcome, and pric
   await expect(summary).toContainText('پذیرش یا انتشار مقاله تضمین نمی‌شود.');
   await expect(page.locator('[data-composer-email]')).toHaveAttribute('href','mailto:dr.rezazadeh65@gmail.com');
 });
+
+for(const scenario of [
+  {lang:'fa',path:'/fa/darkhast-moshavere/',expected:'روش ترجیحی جلسه: آنلاین تصویری'},
+  {lang:'en',path:'/en/request-consultation/',expected:'Preferred session format: Online video'}
+]){
+  test('consultation preference is included in reviewed email only ('+scenario.lang+')',async({page})=>{
+    await page.goto('http://127.0.0.1:4173'+scenario.path,{waitUntil:'domcontentloaded'});
+    const form=page.locator('form[data-consultation-composer]');
+    const mode=form.locator('select[name="delivery_mode"]');
+    await expect(mode).toBeVisible();
+    await expect(mode.locator('option[value="IN_PERSON"]')).toHaveCount(0);
+    await form.locator('select[name="service"]').selectOption({index:1});
+    await form.locator('input[name="context"]').fill('An academic decision');
+    await form.locator('textarea[name="question"]').fill('Which route should I consider?');
+    await mode.selectOption('VIDEO');
+    await form.locator('button[type="submit"]').click();
+    const draft=form.locator('[data-composer-draft]');
+    await expect(draft).toHaveValue(new RegExp(scenario.expected));
+    const email=await form.locator('[data-composer-email]').getAttribute('href');
+    expect(email).toMatch(/^mailto:dr\.rezazadeh65@gmail\.com\?subject=/);
+    expect(decodeURIComponent(email)).toContain(scenario.expected);
+    await expect(form.locator('[data-composer-status]')).toContainText(scenario.lang==='fa'?'هنوز ارسال نشده':'has not been sent');
+    await mode.selectOption('PHONE');
+    await expect(form.locator('[data-composer-preview]')).toBeHidden();
+    await expect(form.locator('[data-composer-email]')).toHaveAttribute('href','mailto:dr.rezazadeh65@gmail.com');
+    await form.locator('button[type="submit"]').click();
+    await expect(draft).toHaveValue(scenario.lang==='fa'?/روش ترجیحی جلسه: تلفنی/:/Preferred session format: Telephone/);
+  });
+}
