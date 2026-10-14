@@ -8,6 +8,18 @@ const expectedHost='https://journal.drjavadrezazadeh.com';
 requireTrue(manifest.authoritativeRepository==='drrezazadeh65/drjavadrezazadeh.com','Unexpected journal repository');
 requireTrue(manifest.developmentBranch==='migration/bertina-linux6','Unexpected source branch');
 requireTrue(manifest.reservedScholarlyOrigin===expectedHost,'Journal target hostname changed');
+const selected=manifest.canonicalDomainDecision;
+requireTrue(selected?.decidedBy==='SITE_OWNER' && selected?.date==='2026-10-15','Explicit final owner journal-domain decision missing');
+requireTrue(selected?.selectedHost==='journal.drjavadrezazadeh.com','Journal final canonical domain must remain singular');
+requireTrue(selected?.currentCpanelHost==='journals.drjavadrezazadeh.com','Observed plural cPanel host must be preserved in migration provenance');
+requireTrue(selected?.currentCpanelDocumentRoot==='/public_html/journals','Do not silently rewrite existing OJS document root');
+requireTrue(selected?.status==='FINAL_OWNER_SELECTED_NOT_YET_PROVISIONED','Source must not imply unverified hosting activation');
+requireTrue(selected?.existingApplicationPreservationRequired===true,'Do not reinstall or overwrite recovered OJS application');
+requireTrue(selected?.manuscriptStorageOutsidePublicHtmlRequired===true,'Manuscripts must remain outside the public webroot');
+requireTrue(selected?.publicJournalInformationRoutesPreserved===true,'Existing /journal/ routes and sitemap must be preserved');
+requireTrue(selected?.canonicalCutoverAuthorized===false && selected?.legacyRedirectAuthorized===false,
+  'Cutover and redirects require separate verified cPanel+TLS+OJS readiness and owner activation');
+
 requireTrue(manifest.originState==='RESERVED_NOT_LIVE','Journal host must remain reserved until verified live');
 requireTrue(manifest.journalPublicationLanguage==='en','Scholarly publication language cannot be changed by a public-language UI task');
 requireTrue(JSON.stringify(manifest.publicInformationLanguages)===JSON.stringify(['en','fa']),'Public journal languages must remain English and Persian');
