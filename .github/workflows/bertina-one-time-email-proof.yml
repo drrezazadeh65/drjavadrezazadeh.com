@@ -1,9 +1,7 @@
 name: Bertina One-Time SMTP Delivery Proof
 on:
+  # Email proof uploads an ephemeral PHP file. Never start it from a push.
   workflow_dispatch:
-  push:
-    branches: [migration/bertina-linux6]
-    paths: ['.bertina-mail-smoke-trigger']
 
 permissions:
   contents: read
@@ -14,6 +12,7 @@ concurrency:
 
 jobs:
   probe:
+    if: github.ref == 'refs/heads/migration/bertina-linux6' && github.actor == 'drrezazadeh65'
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
