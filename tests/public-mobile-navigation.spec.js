@@ -130,3 +130,19 @@ for(const locale of ['fa','en']){
   expect(await page.evaluate(()=>Boolean(history.state?.jrMobileMenu))).toBe(false);
  });
 }
+
+for(const locale of ['fa','en']){
+ test(locale+' background menu dismissal tolerates blocked history updates',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto('http://127.0.0.1:4173/'+locale+'/');
+  await page.locator('.site-header [data-nav-toggle]').click();
+  await page.evaluate(()=>{
+   history.replaceState=()=>{throw Error('blocked')};
+   Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});
+   document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(page.locator('#mobile-app-menu')).toBeHidden();
+  expect(errors).toEqual([]);
+ });
+}
