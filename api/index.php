@@ -712,10 +712,13 @@ if($path==='/commerce/health'&&$verb==='GET'){
         'paymentClaimSchemaReady'=>dbReady() && stage9SchemaReady(db()),
         'serviceBookingConfirmed'=>$c['service_booking_confirmed']===true,
         'vipBookingConfirmed'=>$c['vip_booking_confirmed']===true,
+        'consultationPreferenceSchemaReady'=>dbReady() && commerceConsultationPreferenceSchemaReady(db()),
     ],'capabilities'=>[
         'services'=>$ready&&$c['service_booking_confirmed']===true,
         'vip'=>$ready&&$c['vip_booking_confirmed']===true,
         'books'=>$ready&&$c['book_shipping_confirmed']===true&&stage9BookStockReady(db()),
+        'consultationChoice'=>$ready&&commerceConsultationPreferenceSchemaReady(db()),
+        'selfServiceBooking'=>false,
     ]]);
 }
 if($path==='/commerce/prepare'&&$verb==='POST'){
