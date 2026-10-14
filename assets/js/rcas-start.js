@@ -248,7 +248,6 @@ document.getElementById("showRoute").addEventListener("click",()=>{
   const links=document.createElement("div");links.className="actions";
   for(const [href,label,kind] of [
     ["/fa/assessments/golden-talent/","نقشه مراحل Golden Talent","button primary"],
-    ["/fa/shop/golden-talent/#professional-services","بررسی خدمات حرفه‌ای (اختیاری)","button"],
     ["/fa/app/student/","پیش‌نمایش داشبورد دانش‌آموز","button"]
   ]){
     const link=document.createElement("a");link.href=href;link.className=kind;link.textContent=label;links.append(link);
