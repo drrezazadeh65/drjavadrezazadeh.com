@@ -32,6 +32,7 @@
   };
   const MODE_LABELS={
     PHONE:text('تلفنی','Telephone'),
+    VOICE:text('تماس صوتی آنلاین','Online voice call'),
     VIDEO:text('آنلاین تصویری','Online video'),
     IN_PERSON:text('حضوری ویژه','In person (eligible VIP)')
   };
