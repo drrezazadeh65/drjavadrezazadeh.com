@@ -19,8 +19,11 @@ $add('ojs_docroot_exists',$valid($root));
 $add('main_webroot_exists',$valid($main));
 $add('private_files_dir_exists',$valid($private));
 $add('private_files_dir_writable',$valid($private)&&is_writable($private));
-$separate=$valid($root)&&$valid($main)&&!$within($root,$main)&&!$within($main,$root);
-$add('dedicated_journal_docroot',$separate,'OJS must not overlap or be nested inside public_html');
+// cPanel can require subdomains to remain under public_html; this is safe only
+// when manuscript storage is elsewhere and the main-domain alias is controlled.
+$separate=$valid($root)&&$valid($main)&&$root!==$main&&!$within($main,$root);
+$nested=$separate&&$within($root,$main);
+$add('dedicated_journal_docroot',$separate,'Dedicated application directory; nested cPanel subdomains are allowed');
 $safe=$valid($root)&&$valid($main)&&$valid($private)&&
     !$within($private,$root)&&!$within($private,$main)&&!$within($root,$private)&&!$within($main,$private);
 $add('manuscripts_outside_all_webroots',$safe,'Even public_html/files is unsafe; separately test URL and alias isolation');
@@ -46,6 +49,7 @@ $add('cli_upload_limits_10mb',$bytes('upload_max_filesize')>=10*1024*1024
 $pass=!in_array(false,array_column($checks,'pass'),true);
 echo json_encode(['schema'=>'jhela-ojs-installer-check-v1','scope'=>'READ_ONLY_CLI_NOT_LIVE_EVIDENCE',
     'installer_layout_ready'=>$pass,'checks'=>$checks,
-    'next'=>$pass?'Independently verify official package digest, DNS/TLS, actual web PHP, isolated private URL access, and database before installation.':'Correct failed source-layout, private-storage, PHP or document-root checks before installation.'],
+    'nested_main_webroot'=>$nested,'main_domain_alias_status'=>$nested?'REQUIRES_INDEPENDENT_HTTP_PATH_CHECK':'NOT_NESTED',
+    'next'=>$pass?'Independently verify public main-domain /journals alias protection if nested, official package digest, DNS/TLS, effective web PHP, isolated manuscript URLs, and database before installation.':'Correct failed source-layout, private-storage, PHP or document-root checks before installation.'],
     JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
 exit($pass?0:1);
