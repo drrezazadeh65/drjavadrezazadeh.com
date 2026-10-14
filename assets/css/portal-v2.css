@@ -3094,3 +3094,45 @@ html[lang="en"] .student-gateway-page .site-header .brand small{
     transition:none;
   }
 }
+
+
+/* RCAS free report: evidence-first, high-clarity mobile conversion without score claims. */
+.assessment-workspace-page .rcas-insight{
+  margin-block:24px;padding:clamp(18px,3vw,30px);
+  border:1px solid rgba(188,155,94,.38);border-radius:22px;
+  background:linear-gradient(145deg,rgba(190,153,88,.11),rgba(11,21,27,.06) 72%);
+}
+.assessment-workspace-page .rcas-insight h4{
+  margin:12px 0;font-size:clamp(19px,2.4vw,24px);line-height:1.55;
+}
+.assessment-workspace-page .rcas-insight p{line-height:1.95}
+.assessment-workspace-page .rcas-insight-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;margin:18px 0 26px;
+}
+.assessment-workspace-page .rcas-insight-card{
+  padding:18px;border:1px solid rgba(176,155,108,.32);border-radius:16px;
+  background:rgba(120,120,120,.06);min-width:0;
+}
+.assessment-workspace-page .rcas-insight-card strong{
+  display:block;font-size:17px;line-height:1.7;margin-bottom:8px;
+}
+.assessment-workspace-page .rcas-insight-card p{margin:0;font-size:15px;line-height:1.95}
+.assessment-workspace-page .rcas-insight-note{font-size:14px;opacity:.86}
+.assessment-workspace-page .rcas-insight-premium{
+  margin-top:24px;padding:20px;border-radius:18px;
+  border:1px solid rgba(176,155,108,.38);background:rgba(165,135,77,.075);
+}
+.assessment-workspace-page .rcas-insight-premium .button{
+  display:inline-flex;justify-content:center;align-items:center;min-height:48px;
+  margin:10px 10px 4px 0;white-space:normal;text-align:center;
+}
+@media(max-width:780px){
+  .assessment-workspace-page .rcas-insight-grid{grid-template-columns:1fr}
+  .assessment-workspace-page .rcas-insight-premium .button{
+    width:100%;margin:8px 0 0;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .assessment-workspace-page .rcas-insight *{scroll-behavior:auto}
+}
