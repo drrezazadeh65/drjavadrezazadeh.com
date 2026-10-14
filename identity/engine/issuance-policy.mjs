@@ -14,7 +14,7 @@ export function evaluateIssuanceEligibility(input){
  if(input.subject_is_minor===true&&(!isRecord(input.guardian)||input.guardian.authorized!==true))reasons.push("GUARDIAN_AUTH_REQUIRED");
  if(["receipt","donation_acknowledgement"].includes(input.document_type)){
   const p=input.payment;
-  if(!isRecord(p)||p.server_verified!==true||p.state!=="SETTLED"||p.order_matches===false||p.amount_matches!==true||p.currency_matches!==true||!nonempty(p.provider_event_id)||p.event_unique!==true)reasons.push("PAYMENT_NOT_VERIFIED");
+  if(!isRecord(p)||p.server_verified!==true||p.state!=="SETTLED"||p.order_matches!==true||p.amount_matches!==true||p.currency_matches!==true||!nonempty(p.provider_event_id)||p.event_unique!==true)reasons.push("PAYMENT_NOT_VERIFIED");
  }
  if(input.document_type==="invoice"&&(!isRecord(input.invoice)||input.invoice.server_computed!==true||input.invoice.immutable_snapshot!==true))reasons.push("INVOICE_NOT_FINAL");
  if(input.document_type==="consultation_confirmation"&&(!isRecord(input.booking)||input.booking.accepted!==true||input.booking.slot_confirmed!==true||input.booking.account_matches!==true))reasons.push("BOOKING_NOT_CONFIRMED");
