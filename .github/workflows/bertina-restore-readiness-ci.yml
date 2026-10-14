@@ -8,6 +8,8 @@ on:
       - 'scripts/bertina-private-recovery-gate.php'
       - 'tests/bertina-private-recovery-gate.php'
       - 'tests/bertina-release-assembly.py'
+      - 'scripts/bertina-hosting-managed-release.php'
+      - 'tests/bertina-hosting-managed-release.php'
       - '.github/workflows/deploy-bertina.yml'
       - 'scripts/bertina-controlled-cpanel-gate.php'
       - 'tests/bertina-controlled-cpanel-gate.php'
@@ -43,16 +45,23 @@ jobs:
           assert "drjrRecoveryCheck(__DIR__" in wf
           assert "$RECOVERY_GATE_SOURCE" in wf
           assert wf.index("drjrRecoveryCheck(__DIR__") < wf.index("if (!\\$zip->extractTo(__DIR__))")
-          assert "approved_recovery_policy_not_satisfied" in wf
+          assert "release_policy_preflight_failed" in wf
+          assert "default: hosting_managed" in wf
+          assert "BERTINA_AUTO_DEPLOY_SCOPE: full" in wf
+          assert "drjrHostingManagedReleaseCheck(__DIR__" in wf
+          assert wf.index("drjrHostingManagedReleaseCheck(__DIR__") < wf.index("if (!\\$zip->extractTo(__DIR__))")
           assert "drjrCpanelBackupCheck(__DIR__" in wf
           assert wf.index("drjrCpanelBackupCheck(__DIR__") < wf.index("if (!\\$zip->extractTo(__DIR__))")
-          assert "if ('$RECOVERY_MODE'==='signed_restore')" in wf
+          assert "if ('$RECOVERY_MODE'==='hosting_managed')" in wf
+          assert "elseif ('$RECOVERY_MODE'==='signed_restore')" in wf
           assert "elseif ('$RECOVERY_MODE'==='owner_cpanel_custody')" in wf
           assert "ACCEPT_UNTESTED_RESTORE_RISK_V5" in wf
-          print("PASS: signed RSA default and explicit owner cPanel exception BOTH precede production extraction")
+          print("PASS: default FULL hosting-managed SHA gate and optional legacy recovery paths precede extraction")
           PY
       - name: Compile actual interpolated release endpoint without deploying
         run: |
           php -l scripts/bertina-controlled-cpanel-gate.php
           php tests/bertina-controlled-cpanel-gate.php
+          php -l scripts/bertina-hosting-managed-release.php
+          php tests/bertina-hosting-managed-release.php
           python3 tests/bertina-release-assembly.py
