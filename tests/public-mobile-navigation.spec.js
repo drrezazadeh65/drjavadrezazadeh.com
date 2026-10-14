@@ -89,3 +89,26 @@ for(const locale of ['fa','en'])for(const width of [320,430]){
   expect(errors).toEqual([]);
  });
 }
+
+for(const locale of ['fa','en']){
+ test(locale+' mobile sheet traps keyboard focus and synchronizes ARIA',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('http://127.0.0.1:4173/'+locale+'/');
+  const trigger=page.locator('.site-header [data-nav-toggle]');
+  const sheet=page.locator('#mobile-app-menu');
+  await trigger.click();
+  await expect(sheet).toHaveAttribute('aria-hidden','false');
+  await expect(trigger).toHaveAttribute('aria-expanded','true');
+  const focusable=sheet.locator('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])');
+  const first=focusable.first(),last=focusable.last();
+  await last.focus();
+  await page.keyboard.press('Tab');
+  await expect(first).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(last).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveAttribute('aria-hidden','true');
+  await expect(trigger).toHaveAttribute('aria-expanded','false');
+  await expect(trigger).toBeFocused();
+ });
+}
