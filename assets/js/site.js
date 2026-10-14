@@ -241,7 +241,7 @@ document.addEventListener('keydown',e=>{
 const sheet=q('#mobile-app-menu');
 if(e.key==='Escape'&&sheet&&!sheet.hidden){e.preventDefault();setSheet(false);return}
 if(e.key==='Tab'&&sheet&&!sheet.hidden){
-const focusables=qa('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])',sheet).filter(x=>!x.hidden);
+const focusables=qa('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])',sheet).filter(x=>!x.hidden&&!x.closest('[hidden],[inert]')&&getComputedStyle(x).visibility!=='hidden'&&x.getClientRects().length>0);
 if(!focusables.length)return;
 const first=focusables[0],last=focusables[focusables.length-1];
 if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
