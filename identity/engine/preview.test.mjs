@@ -34,3 +34,15 @@ test("Reject arrays and unsupported document locale",()=>{
 });
 
 test("Reject non-text description",()=>{assert.throws(()=>renderDocumentPreview({...base,description:{unsafe:"value"}}));});
+
+test("Every bilingual preview carries visible, print-persistent non-issuance watermark",()=>{
+ for(const type of ["receipt","invoice","certificate","talent_report","letterhead","assessment"]){
+  for(const locale of ["fa-IR","en"]){
+   const html=renderDocumentPreview({...base,type,locale});
+   assert.match(html,/<div class="preview-watermark" aria-hidden="true"><span>/);
+   assert.match(html,/position:fixed/);
+   assert.match(html,/pointer-events:none/);
+   assert.match(html,locale==="fa-IR"?/پیش‌نمایش آزمایشی ـ فاقد اعتبار رسمی/:/PREVIEW ONLY — NOT AN ISSUED DOCUMENT/);
+  }
+ }
+});
