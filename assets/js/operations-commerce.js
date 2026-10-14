@@ -30,6 +30,23 @@
   const NEXT_SERVICE_STATE={
     awaiting_contact:'scheduling',scheduling:'booked',booked:'in_progress'
   };
+  const MODE_LABELS={
+    PHONE:text('تلفنی','Telephone'),
+    VIDEO:text('آنلاین تصویری','Online video'),
+    IN_PERSON:text('حضوری ویژه','In person (eligible VIP)')
+  };
+  const CITY_LABELS={
+    TEHRAN:text('تهران','Tehran'),
+    KASHAN:text('کاشان','Kashan')
+  };
+  const timezone=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
+  function utcLabel(value){
+    if(typeof value!=='string'||!/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/.test(value))return null;
+    const d=new Date(value.replace(' ','T')+'Z');
+    if(!Number.isFinite(d.getTime())||d.toISOString().slice(0,19)!==value.replace(' ','T'))return null;
+    return new Intl.DateTimeFormat(en?'en-GB':'fa-IR',
+      {dateStyle:'medium',timeStyle:'short',timeZone:timezone}).format(d);
+  }
   function bookingField(label){
     const wrapper=node('label',label,'ops-muted');
     const input=document.createElement('input');
@@ -47,6 +64,13 @@
     if(workspace.hidden||!panel.open||document.hidden)return;
     const next=NEXT_SERVICE_STATE[entry.status];
     if(!next||entry.orderPaidState!==true||entry.providerClaimMatchesOrder!==true)return;
+    // UI reflects server authority; it never overrides missing buyer consent.
+    if(next==='booked'&&(entry.customerPreferenceRecorded!==true||
+       !Object.hasOwn(MODE_LABELS,String(entry.deliveryMode||'')))){
+      status.textContent=text('ابتدا مشتری باید روش جلسه را در حساب خود ثبت کند.',
+        'The buyer must choose a valid session format in their account before booking.');
+      return;
+    }
     const bookingStart=next==='booked'?bookingUtc(begin):null;
     const bookingEnd=next==='booked'?bookingUtc(end):null;
     if(next==='booked'&&(!bookingStart||!bookingEnd||
@@ -55,8 +79,8 @@
       return;
     }
     if(!window.confirm(text(
-       'تأیید تغییر وضعیت خدمت '+String(entry.sku||'')+' از '+String(entry.status)+' به '+next+'؟ این اقدام به معنای تحویل یا تأیید تسویه بانکی نیست.',
-       'Confirm '+String(entry.sku||'')+' transition from '+String(entry.status)+' to '+next+'? This does not certify delivery or bank settlement.'
+       'تأیید تغییر وضعیت خدمت '+String(entry.sku||'')+' از '+String(entry.status)+' به '+next+'؟ ظرفیت تقویم خارجی، اطلاع‌رسانی به خریدار، تحویل خدمت و تسویه بانکی با این اقدام تأیید نمی‌شوند.',
+       'Confirm '+String(entry.sku||'')+' transition from '+String(entry.status)+' to '+next+'? This does not verify external availability, customer notification, service delivery or bank settlement.'
     )))return;
     const stamp=seq;
     button.disabled=true;
@@ -158,6 +182,12 @@
       service.awaiting_contact??0);
     card(text('پرونده‌های فعال نیازمند پیگیری','Active service cases awaiting action'),
       fulfilment.activeServiceCaseCount??null);
+    if(fulfilment.customerPreferenceSchemaReady===false){
+      card(text('وضعیت انتخاب روش مشاوره','Consultation preference availability'),
+        text('جداول انتخاب روش قابل تأیید نیستند','Preference database not verified'),
+        text('تا تأیید ساختار دیتابیس، ثبت نوبت جدید مجاز نیست.',
+          'New appointment booking is not permitted until the schema is verified.'));
+    }
     card(text('مرسوله‌های در حال آماده‌سازی','Parcels being prepared'),
       parcels.preparing??0);
     card(text('مرسوله‌های دارای وضعیت باز','Open parcel fulfilment records'),
@@ -199,6 +229,34 @@
       }
       detail.append(list);results.append(detail);
     }
+    const calendar=fulfilment.internalCalendar||null;
+    if(calendar && Array.isArray(calendar.windows)){
+      const calendarSection=node('details');
+      calendarSection.className='ops-calendar';
+      calendarSection.append(node('summary',
+        text('تقویم داخلی نوبت‌های ثبت‌شده ('+String(calendar.totalUpcoming??'?')+')',
+          'Internal confirmed appointment windows ('+String(calendar.totalUpcoming??'?')+')')));
+      calendarSection.append(node('p',text(
+        'زمان‌ها براساس منطقه زمانی مرورگر شما ('+timezone+') نمایش داده می‌شوند. این فقط نوبت‌های ثبت‌شده در سامانه داخلی است؛ همگام‌سازی با تقویم خارجی یا اعلام ظرفیت انجام نشده است.',
+        'Times use your browser time zone ('+timezone+'). This is the internal booked-case ledger only; no external calendar sync or availability claim.'),'ops-muted'));
+      if(calendar.truncated===true)calendarSection.append(node('p',text(
+        'فقط صد نوبت اول نمایش داده شده‌اند؛ برای ثبت زمان، کنترل قطعی تداخل در سرور انجام می‌شود.',
+        'Only the first 100 windows are visible; the server makes the final conflict decision.'),'ops-muted'));
+      const calList=node('ul',undefined,'ops-queue');
+      for(const w of calendar.windows.slice(0,100)){
+        if(!['booked','in_progress'].includes(w?.state))continue;
+        const a=utcLabel(w.startUtc),b=utcLabel(w.endUtc);
+        if(a&&b)calList.append(node('li',
+          a+' – '+b+' · '+(w.state==='booked'?
+           text('رزرو قطعی داخلی','Internally booked'):
+           text('خدمت در حال ارائه','Service in progress'))));
+      }
+      if(calList.childElementCount)calendarSection.append(calList);
+      else calendarSection.append(node('p',text(
+        'نوبت آینده‌ای در دفتر داخلی نمایش داده نمی‌شود؛ این به معنای آزادبودن قطعی زمان نیست.',
+        'No upcoming internal window is shown; this does not confirm an available slot.'),'ops-muted'));
+      results.append(calendarSection);
+    }
     if(Array.isArray(fulfilment.serviceActionQueue)&&fulfilment.serviceActionQueue.length){
       const detail=node('details'),label=node('summary',
         text('مشاهدهٔ فهرست پرونده‌های قابل پیگیری','View service fulfilment worklist'));
@@ -220,12 +278,29 @@
           text('نیازمند بررسی اصالت پرداخت','Payment evidence needs review');
         item.append(node('span',String(entry.sku||'')+' · '+String(entry.status||'')+
           ' · '+id+'… · '+claim));
+        if(Object.hasOwn(MODE_LABELS,String(entry.deliveryMode||'')) &&
+           entry.customerPreferenceRecorded===true){
+          const mode=MODE_LABELS[entry.deliveryMode];
+          const city=entry.deliveryMode==='IN_PERSON'&&Object.hasOwn(CITY_LABELS,entry.meetingCity)
+            ?' · '+CITY_LABELS[entry.meetingCity]:'';
+          item.append(node('p',text('انتخاب ثبت‌شده خریدار: ','Buyer-selected format: ')+mode+city,'ops-muted'));
+        }else if(entry.status==='awaiting_contact'||entry.status==='scheduling'){
+          item.append(node('p',text(
+            'روش جلسه توسط مشتری ثبت یا تأیید نشده؛ ثبت زمان مجاز نیست.',
+            'Buyer format is absent or unverified; a booking cannot be made.'),'ops-muted'));
+        }
+        if(entry.bookingStart&&entry.bookingEnd){
+          const a=utcLabel(entry.bookingStart),b=utcLabel(entry.bookingEnd);
+          if(a&&b)item.append(node('p',text('نوبت داخلی: ','Internal booking: ')+a+' – '+b,'ops-muted'));
+        }
         const next=NEXT_SERVICE_STATE[entry.status];
-        if(next && entry.orderPaidState===true && entry.providerClaimMatchesOrder===true){
+        if(next && entry.orderPaidState===true && entry.providerClaimMatchesOrder===true
+          && (next!=='booked'||entry.customerPreferenceRecorded===true)){
           const action=node('button',text('ثبت مرحله: ','Advance to: ')+next);
           action.type='button';action.className='button';
           let begin=null,end=null;
           if(next==='booked'){
+            item.append(node('small',text('منطقه زمانی مرورگر: ','Browser timezone: ')+timezone));
             const start=bookingField(text('شروع جلسه (زمان محلی)','Start (local time)'));
             const finish=bookingField(text('پایان جلسه (زمان محلی)','End (local time)'));
             item.append(start.wrapper,finish.wrapper);
