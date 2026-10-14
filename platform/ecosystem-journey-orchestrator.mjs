@@ -77,32 +77,41 @@ export function recordEcosystemEvent(j,event){
 export function planEcosystemJourney(j){
  assertJourney(j);
  const ev=j.events,seen=type=>has(ev,type);
+ const latest=type=>[...ev].reverse().find(e=>e.event_type===type)?.reference_id;
+ const order=latest('ORDER_CREATED'),caseId=latest('SERVICE_REQUESTED'),assessment=latest('ASSESSMENT_SUBMITTED');
+ const paid=order!==undefined&&has(ev,'PAYMENT_VERIFIED',order);
+ const entitled=order!==undefined&&has(ev,'ENTITLEMENT_GRANTED',order);
+ const booked=caseId!==undefined&&has(ev,'BOOKING_CONFIRMED',caseId);
+ const completed=caseId!==undefined&&has(ev,'SESSION_COMPLETED',caseId);
+ const reviewed=assessment!==undefined&&has(ev,'ASSESSMENT_REVIEWED',assessment);
  let next_action;
  if(!seen('ACCOUNT_VERIFIED'))next_action='VERIFY_EMAIL_ACCOUNT';
  else if(j.kind==='BOOKSTORE'){
-   if(!seen('ORDER_CREATED'))next_action='DISPLAY_BOOK_CATALOGUE';
-   else if(!seen('PAYMENT_VERIFIED'))next_action='AWAIT_PROVIDER_VERIFIED_PAYMENT';
-   else if(!seen('ORDER_FULFILLED'))next_action='QUEUE_FULFILMENT_REVIEW';
+   if(order===undefined)next_action='DISPLAY_BOOK_CATALOGUE';
+   else if(!paid)next_action='AWAIT_PROVIDER_VERIFIED_PAYMENT';
+   else if(!has(ev,'ORDER_FULFILLED',order))next_action='QUEUE_FULFILMENT_REVIEW';
    else next_action='SHOW_VERIFIED_ORDER_HISTORY';
  }else if(j.kind==='GOLDEN_TALENT'){
-   if(!seen('ASSESSMENT_SUBMITTED'))next_action='OFFER_CONSENTED_ASSESSMENT';
-   else if(!seen('ASSESSMENT_REVIEWED'))next_action='QUEUE_PROFESSIONAL_EVIDENCE_REVIEW';
-   else if(!seen('ORDER_CREATED'))next_action='OFFER_OPTIONAL_SERVICE_OPTIONS';
-   else if(!seen('PAYMENT_VERIFIED'))next_action='AWAIT_PROVIDER_VERIFIED_PAYMENT';
-   else if(!seen('ENTITLEMENT_GRANTED'))next_action='RECONCILE_PAID_ENTITLEMENT';
+   if(assessment===undefined)next_action='OFFER_CONSENTED_ASSESSMENT';
+   else if(!reviewed)next_action='QUEUE_PROFESSIONAL_EVIDENCE_REVIEW';
+   else if(order===undefined)next_action='OFFER_OPTIONAL_SERVICE_OPTIONS';
+   else if(!paid)next_action='AWAIT_PROVIDER_VERIFIED_PAYMENT';
+   else if(!entitled)next_action='RECONCILE_PAID_ENTITLEMENT';
    else if(!seen('BAHAR_CYCLE_REVIEWED'))next_action='OFFER_HUMAN_SUPERVISED_GROWTH_CYCLE';
    else next_action='OFFER_CONTEXTUAL_FOLLOW_UP';
  }else{
-   if(!seen('SERVICE_REQUESTED'))next_action='OFFER_SERVICE_INTAKE';
-   else if(!seen('BOOKING_CONFIRMED'))next_action='CHECK_REAL_APPOINTMENT_AVAILABILITY';
-   else if(seen('ORDER_CREATED')&&!seen('PAYMENT_VERIFIED'))next_action='AWAIT_PROVIDER_VERIFIED_PAYMENT';
-   else if(!seen('SESSION_COMPLETED'))next_action='PREPARE_CONFIRMED_SESSION';
+   if(caseId===undefined)next_action='OFFER_SERVICE_INTAKE';
+   else if(!booked)next_action='CHECK_REAL_APPOINTMENT_AVAILABILITY';
+   else if(order!==undefined&&!paid)next_action='AWAIT_PROVIDER_VERIFIED_PAYMENT';
+   else if(!completed)next_action='PREPARE_CONFIRMED_SESSION';
    else if(j.kind==='COACHING'&&!seen('BAHAR_CYCLE_REVIEWED'))next_action='OFFER_HUMAN_SUPERVISED_GROWTH_CYCLE';
    else next_action='OFFER_CONTEXTUAL_FOLLOW_UP';
  }
  return {journey_id:j.journey_id,kind:j.kind,revision:j.revision,next_action,
-  observed_milestones:ev.map(e=>e.event_type),no_side_effects:true,
-  requires_server_authorization:true,payment_not_inferred_from_order:true,
-  booking_not_inferred_from_preference:true,
-  scientific_claims_not_inferred_from_assessment:true};
+   current_order_reference:order||null,current_case_reference:caseId||null,
+   current_assessment_reference:assessment||null,
+   observed_milestones:ev.map(e=>e.event_type),
+   no_side_effects:true,requires_server_authorization:true,
+   payment_not_inferred_from_order:true,booking_not_inferred_from_preference:true,
+   scientific_claims_not_inferred_from_assessment:true};
 }
