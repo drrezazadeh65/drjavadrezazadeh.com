@@ -10,6 +10,7 @@ export function renderDocumentPreview(input){
  const id=clean(input.document_id,80),version=clean(input.template_version,30);
  const recipient=clean(input.recipient,160);
  const title=TYPES[type][lang];
+ if(input.description!==undefined && typeof input.description!=="string") throw new TypeError("Invalid description");
  const body=typeof input.description==="string" ? input.description.slice(0,3000) : "";
  const watermark=fa?"پیش‌نمایش آزمایشی ـ فاقد اعتبار رسمی":"PREVIEW ONLY — NOT AN ISSUED DOCUMENT";
  const brand=fa?"دکتر جواد رضازاده یزدلی":"Dr. Javad Rezazadeh Yazdeli";
