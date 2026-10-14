@@ -73,7 +73,12 @@ verify('v5: explicit target and not-yet-published distinction',v5.includes('DrJa
 verify('production: release and schema mutation serialized without cancellation',
   [deploy,migrate].every(x=>x.includes('  group: bertina-production-deploy') &&
     x.includes('  cancel-in-progress: false')));
-verify('production: owner-controlled release selects signed restore or audited cPanel custody before extraction',
+verify('production: FULL hosting-managed release keeps optional historical recovery paths and exact pre-extraction SHA',
+  deploy.includes('default: hosting_managed') &&
+  deploy.includes('BERTINA_AUTO_DEPLOY_SCOPE: full') &&
+  deploy.includes("BACKUP_REQUEST_B64=''") &&
+  deploy.indexOf('drjrHostingManagedReleaseCheck(__DIR__')>=0 &&
+  deploy.indexOf('drjrHostingManagedReleaseCheck(__DIR__')<deploy.indexOf('->extractTo(__DIR__)') &&
   deploy.indexOf('drjrRecoveryCheck(__DIR__')>=0 &&
   deploy.indexOf('drjrCpanelBackupCheck(__DIR__')>=0 &&
   deploy.indexOf('drjrRecoveryCheck(__DIR__')<deploy.indexOf('->extractTo(__DIR__)') &&
