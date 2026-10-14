@@ -1,0 +1,21 @@
+/* JR public identity application v1 — scoped, bilingual, responsive. */
+.public-home-page{--jr-ink:#08090b;--jr-panel:#141517;--jr-accent:#d7b878;--jr-ivory:#f7f4ec;--jr-rule:rgba(215,184,120,.26);background:radial-gradient(ellipse at 78% 8%,rgba(215,184,120,.085),transparent 40%),var(--jr-ink);color:var(--jr-ivory)}
+.public-home-page .site-header{background:rgba(8,9,11,.97);border-bottom:1px solid var(--jr-rule);backdrop-filter:blur(18px)}
+.public-home-page .brand{line-height:1.55}
+.public-home-page .home-account-strip{max-width:1200px;border-color:var(--jr-rule);background:linear-gradient(115deg,#1c1a16,#101113 62%,#1b1812);box-shadow:0 16px 40px rgba(0,0,0,.22)}
+.public-home-page .hero{max-width:1240px;min-height:620px;border:1px solid var(--jr-rule);border-radius:30px;background:radial-gradient(ellipse at 78% 25%,rgba(215,184,120,.13),transparent 55%),linear-gradient(140deg,#161616,#0d0e10 65%);box-shadow:0 35px 95px rgba(0,0,0,.3)}
+.public-home-page .hero h1{font-size:clamp(3rem,5.6vw,5.7rem);line-height:1.2;letter-spacing:-.035em}
+.public-home-page .hero h1 em{color:var(--jr-accent)}
+.public-home-page .hero-line{max-width:25ch;font-size:clamp(1.25rem,2.2vw,2rem);line-height:1.55}
+.public-home-page .hero .lead{max-width:57ch;color:#d0cbc1;line-height:1.95}
+.public-home-page .portrait-shell{border-radius:24px 24px 100px 24px;border-color:rgba(215,184,120,.45);box-shadow:18px 18px 0 -8px rgba(215,184,120,.1),0 25px 65px rgba(0,0,0,.45)}
+.public-home-page .hero-portrait{border-radius:inherit}
+.public-home-page .hero-pathway-cta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.public-home-page .hero-pathway-cta .button{justify-content:center;min-height:54px;padding:12px 16px;border-radius:12px;text-align:center}
+.public-home-page .button.primary{background:linear-gradient(130deg,#efd79a,#cda65c);color:#15120c;font-weight:750}
+.public-home-page .home-focus-strip>a,.public-home-page .audience-gate,.public-home-page .service-card{border-color:var(--jr-rule);transition:transform .2s ease,border-color .2s ease,background .2s ease}
+@media(hover:hover){.public-home-page .home-focus-strip>a:hover,.public-home-page .audience-gate:hover,.public-home-page .service-card:hover{transform:translateY(-3px);border-color:rgba(215,184,120,.7)}}
+@media(max-width:900px){.public-home-page .hero{min-height:0;padding:clamp(24px,5vw,48px);gap:30px}.public-home-page .hero h1{font-size:clamp(2.7rem,7vw,4.5rem)}}
+@media(max-width:700px){.public-home-page .home-account-strip{width:calc(100% - 24px);margin-top:12px;padding:14px;border-radius:16px}.public-home-page .hero{width:calc(100% - 24px);margin:12px auto 24px;padding:26px 18px 32px;border-radius:22px;gap:24px}.public-home-page .hero h1{font-size:clamp(2.45rem,11vw,3.7rem)}.public-home-page .hero-line{font-size:1.25rem}.public-home-page .hero .lead{font-size:1rem}.public-home-page .portrait-shell{max-width:270px;width:min(66vw,270px);margin-inline:auto}.public-home-page .hero-pathway-cta{grid-template-columns:repeat(2,minmax(0,1fr))}.public-home-page .hero-pathway-cta .button{min-height:52px;padding:10px 8px;font-size:.88rem}}
+@media(max-width:380px){.public-home-page .hero-pathway-cta{grid-template-columns:1fr}.public-home-page .hero h1{font-size:2.35rem}}
+@media(prefers-reduced-motion:reduce){.public-home-page .home-focus-strip>a,.public-home-page .audience-gate,.public-home-page .service-card{transition:none}}
