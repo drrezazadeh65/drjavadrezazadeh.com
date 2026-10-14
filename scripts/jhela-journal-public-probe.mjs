@@ -98,7 +98,7 @@ if(process.argv[2]==='--contract'){
   const outfile='/tmp/jhela-journal-transport-probe.json';
   fs.writeFileSync(outfile,JSON.stringify(report,null,2)+'\n',{mode:0o600});
   const clean=probes.map(x=>({role:x.role,dns:(x.dns.ipv4||x.dns.ipv6)?'RESOLVES':'NOT_PROVED',
-    tls:x.http?.trustedTls?'CA_TRUSTED':'NOT_PROVED',status:x.http?.httpStatus??null,
+    tls:x.http?.trustedTls?'CA_TRUSTED':'NOT_PROVED',tlsError:x.http?.error??null,status:x.http?.httpStatus??null,
     redirect:x.http?.redirect||null,possibleInstaller:x.http?.installerVisible===true}));
   console.log(JSON.stringify({probes:clean,summary},null,2));
   if(process.env.GITHUB_STEP_SUMMARY){
