@@ -54,3 +54,35 @@ for(const scenario of [
     await expect(draft).toHaveValue(scenario.lang==='fa'?/روش ترجیحی جلسه: تلفنی/:/Preferred session format: Telephone/);
   });
 }
+
+test('delayed catalogue prefill cannot overwrite the visitor choice or prepared email',async({page})=>{
+  let releaseCatalogue,signalRequest;
+  const holdCatalogue=new Promise(resolve=>{releaseCatalogue=resolve;});
+  const requested=new Promise(resolve=>{signalRequest=resolve;});
+  await page.route('**/assets/data/service-catalog.json',async route=>{
+    signalRequest();
+    await holdCatalogue;
+    await route.fulfill({
+      contentType:'application/json',
+      body:JSON.stringify({services:[{
+        id:'manuscript_diagnostic',title_fa:'بازبینی مقاله',
+        price:12000000,sellable:true
+      }]})
+    });
+  });
+  await page.goto('http://127.0.0.1:4173/fa/darkhast-moshavere/?service=manuscript_diagnostic',{waitUntil:'domcontentloaded'});
+  await requested;
+  const form=page.locator('form[data-consultation-composer]');
+  const service=form.locator('select[name="service"]');
+  await service.selectOption({label:'مشاوره تحصیلی'});
+  await form.locator('input[name="context"]').fill('تصمیم آموزشی');
+  await form.locator('textarea[name="question"]').fill('از کجا شروع کنم؟');
+  await form.locator('button[type="submit"]').click();
+  await expect(form.locator('[data-composer-preview]')).toBeVisible();
+  const responseReady=page.waitForResponse('**/assets/data/service-catalog.json');
+  releaseCatalogue();
+  await responseReady;
+  await expect(service).toHaveValue('مشاوره تحصیلی');
+  await expect(form.locator('[data-requested-service-details]')).toBeHidden();
+  await expect(form.locator('[data-composer-draft]')).toHaveValue(/مشاوره تحصیلی/);
+});
