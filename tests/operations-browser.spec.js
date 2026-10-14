@@ -575,6 +575,6 @@ for(const [locale,route,intake] of [
       status:503,json:{ok:false,error:'secure_lead_capture_unavailable'}}));
     await lead.locator('[data-consultation-lead-check]').click();
     await expect(lead.locator('.appointment-private-list li')).toHaveCount(0);
-    await expect(lead).toContainText(locale==='fa'?'قابل':'could not be verified');
+    await expect(lead).toContainText(locale==='fa'?'اکنون دریافت درخواست‌های حساب از سرور ممکن نیست':'could not be verified');
   });
 }
