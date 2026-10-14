@@ -25,6 +25,11 @@ on:
       - 'assets/js/operations-growth.js'
       - 'tests/stage14-growth-privacy.test.mjs'
       - 'scripts/stage14-organic-growth-audit.mjs'
+      - 'assets/js/revenue-planner-model.mjs'
+      - 'assets/js/operations-revenue-planner.mjs'
+      - 'assets/css/operations-revenue-planner.css'
+      - 'tests/revenue-planner-model.test.mjs'
+      - 'scripts/revenue-planner-contract-audit.mjs'
       - '.github/workflows/stage14-organic-growth.yml'
   workflow_dispatch:
 permissions:
@@ -49,4 +54,8 @@ jobs:
       - run: php -l scripts/stage14-lead-retention.php
       - run: node scripts/stage14-organic-growth-audit.mjs
       - run: node --test platform/organic-growth-revenue.test.mjs
+      - run: node --check assets/js/revenue-planner-model.mjs
+      - run: node --check assets/js/operations-revenue-planner.mjs
+      - run: node scripts/revenue-planner-contract-audit.mjs
+      - run: node --test tests/revenue-planner-model.test.mjs
       - run: node --test tests/stage14-growth-privacy.test.mjs
