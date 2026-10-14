@@ -24,6 +24,8 @@ jobs:
         run: node --test identity/engine/*.test.mjs
       - name: Validate document template registry
         run: node identity/engine/validate-manifest.mjs
+      - name: Validate proposed canonical registry without executing SQL
+        run: node identity/engine/validate-registry.mjs
       - name: Verify production identity is not prematurely approved
         run: |
           node --check identity/engine/brand-release-gate.mjs
