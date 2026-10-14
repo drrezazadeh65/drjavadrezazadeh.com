@@ -44,3 +44,6 @@ Inspect current GitHub branch, FA/EN homepage markup, existing mobile nav JS/CSS
 - `eec55cf8fe178defce8dd255556fee979171621c`: Playwright regression asserts real `jrMobileMenu` history entry rather than a synthetic history entry.
 - `abeb7d428c1035c03ed2f8162d85b341e548a75f`: regression is included in the Bertina deployment workflow's explicit Playwright list.
 - Status: committed, NOT browser-tested or deployed/verified live in this conversation. Do not equate commits or CI wiring with successful release. Review rapid toggle, link navigation, history behavior, PWA Android Back, focus and keyboard accessibility in a real browser. Next run must check actual GitHub Actions run logs and Bertina origin release SHA before claiming deployed.
+
+## Latest navigation regression expansion
+- `f767ec9a6ad46ac6c15aedb4d59b973b2284546a`: FA/EN Playwright test also exercises close-button dismissal, focus restoration, and history cleanup before reopening. Code committed; test run unverified.
