@@ -79,3 +79,127 @@ test('English dashboard uses a safe, unambiguous Latin font stack on desktop and
  }
  expect(errors).toEqual([]);
 });
+
+
+for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/']]){
+ test(lang+' verified buyer privately chooses phone or video from a paid order without auto-booking',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  const orderId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  let historyHits=0,fulfilmentHits=0;const submissions=[];
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.route('**/api/**',async intercepted=>{
+    const request=intercepted.request(),url=new URL(request.url());
+    const p=url.pathname;
+    if(p==='/api/auth/health')return intercepted.fulfill({json:{ok:true,ready:true}});
+    if(p==='/api/auth/me')return intercepted.fulfill({json:{ok:true,user:{email:'buyer@example.invalid'}}});
+    if(p==='/api/commerce/health')return intercepted.fulfill({json:{ok:true,checkout:true,capabilities:{services:true,books:true,vip:true}}});
+    if(p==='/api/commerce/history'){
+      historyHits++;expect(request.method()).toBe('GET');
+      return intercepted.fulfill({json:{ok:true,orders:[{
+        id:orderId,paymentVerified:true,
+        items:[{sku:'service:academic_consult_60',quantity:1}]
+      }]}});
+    }
+    if(p==='/api/commerce/fulfilment'){
+      fulfilmentHits++;expect(url.searchParams.get('order')).toBe(orderId);
+      return intercepted.fulfill({json:{ok:true,paymentRecord:'provider_verified_not_bank_settlement',
+        serviceCases:[{sku:'service:academic_consult_60',status:'scheduling',
+          bookingStart:null,bookingEnd:null,deliveryMode:null,meetingCity:null,
+          customerChoiceEnabled:true,allowedDeliveryModes:['PHONE','VIDEO']}],parcel:null}});
+    }
+    if(p==='/api/commerce/consultation-preference'){
+      expect(request.method()).toBe('POST');
+      expect(request.headers()['content-type']).toContain('application/json');
+      submissions.push(request.postDataJSON());
+      return intercepted.fulfill({json:{ok:true,schema:'commerce-consultation-choice-v1',
+        preference:{appointmentConfirmed:false,customerSelected:true,customerNotified:false}}});
+    }
+    return intercepted.fulfill({status:404,json:{ok:false}});
+  });
+  await page.goto(base+route+'#consultations');
+  const panel=page.locator('#consultations');
+  await expect(panel).toBeVisible();
+  await expect(panel.locator('[data-consultation-appointments]')).toHaveCount(1);
+  expect(historyHits).toBe(0);
+  await panel.locator('[data-consultation-check]').click();
+  await expect(panel.locator('.appointment-private-list li')).toHaveCount(1);
+  expect(historyHits).toBe(1);
+  expect(fulfilmentHits).toBe(1);
+  const choice=panel.locator('.appointment-preference');
+  await expect(choice).toBeVisible();
+  const selected=choice.locator('select').first();
+  await expect(selected.locator('option')).toHaveCount(2);
+  await expect(selected.locator('option[value="IN_PERSON"]')).toHaveCount(0);
+  await selected.selectOption('VIDEO');
+  await choice.locator('button').click();
+  await expect.poll(()=>submissions.length).toBe(1);
+  expect(submissions[0]).toEqual({orderId,sku:'service:academic_consult_60',mode:'VIDEO',city:null});
+  await expect(choice).toContainText(lang==='fa'?'هماهنگی زمان':'consultant must still confirm');
+  await expect(panel).not.toContainText('bank settlement verified');
+  const inputFont=await selected.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+  expect(inputFont).toBeGreaterThanOrEqual(16);
+  expect(await page.evaluate(()=>localStorage.length)).toBe(0);
+  expect(await page.evaluate(()=>Math.max(
+    document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth))
+    .toBeLessThanOrEqual(1);
+  expect(errors).toEqual([]);
+ });
+
+ test(lang+' buyer can view confirmed server booking and is never offered a second booking button',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  const from=new Date(Date.now()+48*3600_000).toISOString().slice(0,19).replace('T',' ');
+  const to=new Date(Date.now()+49*3600_000).toISOString().slice(0,19).replace('T',' ');
+  let writes=0;
+  await page.route('**/api/**',intercepted=>{
+    const p=new URL(intercepted.request().url()).pathname;
+    if(p==='/api/auth/health')return intercepted.fulfill({json:{ok:true,ready:true}});
+    if(p==='/api/auth/me')return intercepted.fulfill({json:{ok:true,user:{email:'buyer@example.invalid'}}});
+    if(p==='/api/commerce/health')return intercepted.fulfill({json:{ok:true,checkout:true,capabilities:{services:true,books:true,vip:true}}});
+    if(p==='/api/commerce/history')return intercepted.fulfill({json:{ok:true,orders:[{
+      id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',paymentVerified:true,
+      items:[{sku:'service:academic_consult_60'}]
+    }]}});
+    if(p==='/api/commerce/fulfilment')return intercepted.fulfill({json:{
+      ok:true,paymentRecord:'provider_verified_not_bank_settlement',serviceCases:[{
+        sku:'service:academic_consult_60',status:'booked',
+        bookingStart:from,bookingEnd:to,deliveryMode:'PHONE',meetingCity:null,
+        customerChoiceEnabled:false,allowedDeliveryModes:['PHONE','VIDEO']
+      }],parcel:null
+    }});
+    if(intercepted.request().method()==='POST')writes++;
+    return intercepted.fulfill({status:404,json:{ok:false}});
+  });
+  await page.goto(base+route+'#consultations');
+  const section=page.locator('#consultations');
+  await section.locator('[data-consultation-check]').click();
+  await expect(section.locator('.appointment-private-list li')).toHaveCount(1);
+  await expect(section.locator('.appointment-private-list li')).toContainText(
+    lang==='fa'?'نوبت توسط مدیر ثبت شده':'Booked by consultant');
+  await expect(section.locator('.appointment-private-list li')).toContainText(
+    lang==='fa'?'تلفنی':'Telephone');
+  await expect(section.locator('.appointment-private-list li')).toContainText(
+    lang==='fa'?'شروع':'Start');
+  await expect(section.locator('.appointment-preference')).toHaveCount(0);
+  expect(writes).toBe(0);
+ });
+
+ test(lang+' unsigned buyer cannot see or save another customer appointment',async({page})=>{
+  let details=0;
+  await page.route('**/api/**',intercepted=>{
+    const path=new URL(intercepted.request().url()).pathname;
+    if(path==='/api/auth/health')return intercepted.fulfill({json:{ok:true,ready:true}});
+    if(path==='/api/auth/me')return intercepted.fulfill({status:401,json:{ok:false}});
+    if(path==='/api/commerce/health')return intercepted.fulfill({json:{ok:true,checkout:false,capabilities:{}}});
+    if(path==='/api/commerce/history')return intercepted.fulfill({status:401,json:{ok:false}});
+    if(path==='/api/commerce/fulfilment'||path==='/api/commerce/consultation-preference')details++;
+    return intercepted.fulfill({status:404,json:{ok:false}});
+  });
+  await page.goto(base+route+'#consultations');
+  const section=page.locator('#consultations');
+  await section.locator('[data-consultation-check]').click();
+  await expect(section.locator('[data-consultation-results]')).toContainText(
+    lang==='fa'?'ایمیل آن تأیید شده':'verified account');
+  await expect(section.locator('.appointment-private-list')).toHaveCount(0);
+  expect(details).toBe(0);
+ });
+}
