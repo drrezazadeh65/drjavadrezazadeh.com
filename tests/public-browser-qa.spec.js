@@ -381,9 +381,10 @@ test('standalone gateway always offers explicit language choice even when saved'
         dispatchEvent(){return false}
       };
     };
-    localStorage.setItem('preferred-language','fa');
   });
   await page.goto(base+'/',{waitUntil:'domcontentloaded'});
+  await page.evaluate(()=>localStorage.setItem('preferred-language','fa'));
+  await page.reload({waitUntil:'domcontentloaded'});
   await expect(page).toHaveURL(/\/(?:index\.html)?$/);
   await expect(page.locator('[data-language-choice="fa"]')).toBeVisible();
   await expect(page.locator('[data-language-choice="en"]')).toBeVisible();
@@ -1206,8 +1207,8 @@ test('premium service selection guides explain decisions and boundaries on mobil
 
 test('bilingual intake, service pages and shops disclose real booking and payment state',async({page})=>{
   const cases=[
-    ['/fa/darkhast-moshavere/','رزرو آنلاین فعلاً غیرفعال','این فرم پرداخت دریافت نمی‌کند'],
-    ['/en/request-consultation/','Online booking not active','No payment in this form'],
+    ['/fa/darkhast-moshavere/','زمان پیشنهادی، نه رزرو قطعی','این فرم پرداخت دریافت نمی‌کند'],
+    ['/en/request-consultation/','Preferred time, not a confirmed appointment','No payment in this form'],
     ['/fa/khadamat/','رزرو و پرداخت آنلاین در این مرحله فعال نیستند','درخواست اولیه، خرید نیست'],
     ['/en/services/','Live appointment booking is not currently available','Online payments are not yet enabled'],
     ['/fa/shop/','ثبت سفارش فعال','پرداخت آنلاین با کنترل مبلغ و تأیید نتیجهٔ بانک در سرور انجام می‌شود'],
