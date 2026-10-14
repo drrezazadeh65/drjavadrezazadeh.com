@@ -366,7 +366,7 @@ test('PWA manifest stays installable without locking device orientation',async({
   expect(m.shortcuts.some(s=>s.url==='./fa/')).toBeTruthy();
 });
 
-test('standalone gateway resumes the saved language',async({page})=>{
+test('standalone gateway always offers explicit language choice even when saved',async({page})=>{
   await page.addInitScript(()=>{
     const native=window.matchMedia?.bind(window);
     window.matchMedia=(query)=>{
@@ -384,7 +384,12 @@ test('standalone gateway resumes the saved language',async({page})=>{
     localStorage.setItem('preferred-language','fa');
   });
   await page.goto(base+'/',{waitUntil:'domcontentloaded'});
-  await expect.poll(()=>new URL(page.url()).pathname,{timeout:5000}).toMatch(/\/fa\/(?:index\.html)?$/);
+  await expect(page).toHaveURL(/\/(?:index\.html)?$/);
+  await expect(page.locator('[data-language-choice="fa"]')).toBeVisible();
+  await expect(page.locator('[data-language-choice="en"]')).toBeVisible();
+  await page.locator('[data-language-choice="en"]').click();
+  await expect(page).toHaveURL(/\/en\/(?:index\.html)?$/);
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('preferred-language'))).toBe('en');
 });
 
 test('private student shells obey the frozen five-tab mobile contract',async({page})=>{
