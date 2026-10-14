@@ -24,3 +24,11 @@ jobs:
         run: node --test identity/engine/*.test.mjs
       - name: Validate document template registry
         run: node identity/engine/validate-manifest.mjs
+      - name: Verify production identity is not prematurely approved
+        run: |
+          node --check identity/engine/brand-release-gate.mjs
+          if node identity/engine/brand-release-gate.mjs; then
+            echo 'Unexpected production approval: verify brand status and release evidence.' >&2
+            exit 1
+          fi
+          echo 'Expected: unapproved Persian production logo remains blocked.'
