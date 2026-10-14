@@ -32,3 +32,5 @@ test("Reject arrays and unsupported document locale",()=>{
  assert.throws(()=>renderDocumentPreview([]));
  assert.throws(()=>renderDocumentPreview({...base,locale:"fa"}));
 });
+
+test("Reject non-text description",()=>{assert.throws(()=>renderDocumentPreview({...base,description:{unsafe:"value"}}));});
