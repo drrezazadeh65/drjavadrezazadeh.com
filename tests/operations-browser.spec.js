@@ -391,8 +391,8 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
     });
     expect(Object.keys(data).sort()).toEqual(
       ['bookingEnd','bookingStart','expectedState','nextState','orderId','sku'].sort());
-    expect(data.bookingStart).toMatch(/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/);
-    expect(data.bookingEnd).toMatch(/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/);
+    expect(data.bookingStart).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+    expect(data.bookingEnd).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
     return route.fulfill({json:{
       ok:true,schema:'commerce-service-transition-v1',
       change:{state:'booked',customerNotified:false,serviceDelivered:false}
