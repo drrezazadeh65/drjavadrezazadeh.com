@@ -35,7 +35,14 @@ function denied(callable $fn,string $expected,string $label): void {
 $pdo->exec(file_get_contents(__DIR__.'/../docs/BERTINA_MYSQL_SCHEMA.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261012_stage09_commerce.sql'));
 ensureChoice(stage9SchemaReady($pdo),'commerce fixture schema ready');
-ensureChoice(!commerceConsultationPreferenceSchemaReady($pdo),'missing optional preference tables fail closed');
+// Earlier Stage09 fixture tests may already have applied these tables to
+// this same CI database. Shadow one table ONLY in this connection to prove
+// fail-closed readiness without dropping anyone else's fixture tables.
+$pdo->exec('CREATE TEMPORARY TABLE commerce_consultation_preferences
+    (order_id CHAR(36) NOT NULL)');
+ensureChoice(!commerceConsultationPreferenceSchemaReady($pdo),
+    'missing preference columns fail closed even when a namesake table exists');
+$pdo->exec('DROP TEMPORARY TABLE commerce_consultation_preferences');
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_preferences.sql'));
 ensureChoice(commerceConsultationPreferenceSchemaReady($pdo),'additive consultation SQL installs required columns');
 $tables=$pdo->query("SELECT table_name,engine FROM information_schema.tables
