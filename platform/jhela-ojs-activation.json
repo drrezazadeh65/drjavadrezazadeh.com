@@ -45,7 +45,7 @@
     "decidedBy": "SITE_OWNER",
     "date": "2026-10-15",
     "selectedHost": "journal.drjavadrezazadeh.com",
-    "status": "FINAL_OWNER_SELECTED_NOT_YET_PROVISIONED",
+    "status": "DOMAIN_CREATED_CPANEL_TLS_UNVERIFIED",
     "currentCpanelHost": "journals.drjavadrezazadeh.com",
     "currentCpanelDocumentRoot": "/public_html/journals",
     "existingApplicationPreservationRequired": true,
@@ -53,6 +53,13 @@
     "legacyRedirectAuthorized": false,
     "manuscriptStorageOutsidePublicHtmlRequired": true,
     "publicJournalInformationRoutesPreserved": true,
-    "nextGate": "Verify cPanel domain-management options, then provision singular host and trusted TLS without changing existing OJS files."
+    "nextGate": "Inspect SSL/TLS Status for journal.drjavadrezazadeh.com and complete CA-trusted HTTPS; verify DNS, singular host serves the intended OJS site, and private files outside public_html before changing redirects or completing installation.",
+    "singularHostProvisionedInCpanel": true,
+    "singularCpanelDocumentRoot": "/public_html/journals",
+    "pluralHostStillPresent": true,
+    "cpanelConfirmation": "Owner-supplied cPanel Domains success banner, 2026-10-15",
+    "httpsForceRedirectObserved": "OFF_WITH_WARNING",
+    "sslCertificateVerified": false,
+    "ojsInstallerVerifiedOnSingularHost": false
   }
 }
