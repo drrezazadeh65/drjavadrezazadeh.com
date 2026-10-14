@@ -62,7 +62,9 @@ if(!root){
     const proof={schema:'bertina-production-public-evidence-v1',checkedAt:new Date().toISOString(),
       observedOrigin:ORIGIN,sourceCommit,deployedReleaseSha:null,sourceLiveSame:null,
       releaseAlignmentStatus:'unavailable',commercePublicReadiness:null,
-      sourceLiveSitemapParity:null,checksPassed:false,availability:'unreachable',
+      sourceLiveSitemapParity:null,checksPassed:false,
+      releaseAlignedPublicChecksPassed:false,productionCertified:false,
+      availability:'unreachable',
       failures,warnings,
       limits:'Public anonymous GET only; origin unreachable. No MFA, signed restore, gateway settlement, inventory or fulfilment proof.'};
     fs.writeFileSync(process.env.PRODUCTION_HEALTH_EVIDENCE_PATH,JSON.stringify(proof,null,2)+'\n',{mode:0o600});
@@ -348,12 +350,17 @@ try{
 }catch(e){failures.push('/api/commerce/health: read-only health probe failed: '+e.message);}
 if(process.env.PRODUCTION_HEALTH_EVIDENCE_PATH){
   const fs=await import('node:fs');
+  const sourceCommit=/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA:null;
+  const sourceLiveSame=sourceCommit!==null&&deployedReleaseSha!==null?sourceCommit===deployedReleaseSha:null;
+  const publicChecksPassed=failures.length===0;
   const proof={schema:'bertina-production-public-evidence-v1',checkedAt:new Date().toISOString(),
-    observedOrigin:ORIGIN,sourceCommit:/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA:null,
-    deployedReleaseSha,
-    sourceLiveSame:deployedReleaseSha!==null&&/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA===deployedReleaseSha:null,
-    releaseAlignmentStatus:deployedReleaseSha===null||!/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?'unavailable':process.env.GITHUB_SHA===deployedReleaseSha?'matched':'drift',
-    commercePublicReadiness,sourceLiveSitemapParity,checksPassed:failures.length===0,availability:'reachable',failures,warnings,
+    observedOrigin:ORIGIN,sourceCommit,deployedReleaseSha,sourceLiveSame,
+    releaseAlignmentStatus:sourceLiveSame===null?'unavailable':sourceLiveSame?'matched':'drift',
+    commercePublicReadiness,sourceLiveSitemapParity,checksPassed:publicChecksPassed,
+    // A green anonymous crawl with an old live SHA is not acceptance of the new release.
+    releaseAlignedPublicChecksPassed:publicChecksPassed&&sourceLiveSame===true,
+    // No public GET can certify a signed restore, real money or service fulfilment.
+    productionCertified:false,availability:'reachable',failures,warnings,
     limits:'Public anonymous GET only; no MFA, signed restore, gateway settlement, inventory or fulfilment proof.'};
   fs.writeFileSync(process.env.PRODUCTION_HEALTH_EVIDENCE_PATH,JSON.stringify(proof,null,2)+'\n',{mode:0o600});
 }
