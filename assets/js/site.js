@@ -199,6 +199,7 @@ sheet.classList.remove('is-open');
 if(lastMenuTrigger&&document.contains(lastMenuTrigger)) lastMenuTrigger.focus();
 }
 }
+document.documentElement.dataset.jrNavController='site';
 document.addEventListener('click',e=>{
 const t=e.target.closest('[data-nav-toggle]');
 if(t){e.preventDefault();setSheet(t.getAttribute('aria-expanded')!=='true',t);return}
