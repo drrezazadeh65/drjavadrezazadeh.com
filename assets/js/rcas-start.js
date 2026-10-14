@@ -146,7 +146,7 @@ function appendFreeInsight(report,selectedDomain){
    return ['«'+group.items[index]+'» — '+scaleLabels[scale][Number(answer)].replace(/^[۰-۴] · /,'')];
  }).slice(0,2);
  if(observations.length){
-   card('دو مشاهده مشخص از پاسخ‌های خودت',
+   card(observations.length===1?'یک مشاهده مشخص از پاسخ‌های خودت':'دو مشاهده مشخص از پاسخ‌های خودت',
      observations.join('؛ ')+'؛ این‌ها صرفاً انتخاب‌های تو در همین فرم‌اند، نه اندازه‌گیری مستقل استعداد.');
  }
  section.append(cards);
