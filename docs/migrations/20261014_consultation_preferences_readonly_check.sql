@@ -42,9 +42,9 @@ WHERE table_schema=DATABASE()
 GROUP BY table_name,constraint_name,referenced_table_name
 ORDER BY table_name,constraint_name;
 
--- Result counts only. Never export individual customers' preferences.
+-- Presence of table definitions only. No customer records are read.
 SELECT 'commerce_consultation_preferences' AS checked_table,
-  COUNT(*) AS existing_rows
+  COUNT(*) AS table_present
 FROM information_schema.tables
 WHERE table_schema=DATABASE() AND table_name='commerce_consultation_preferences'
 UNION ALL
