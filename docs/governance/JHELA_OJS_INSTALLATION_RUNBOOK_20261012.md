@@ -108,3 +108,29 @@ To proceed safely in cPanel without exposing passwords:
 5. Finish independent journal database, web-PHP extensions, restore, SMTP, privacy and reviewer smoke tests without touching the main website commerce/customer database.
 
 **Evidence boundary:** No shell/file-manager connection to Bertina is available via the connected GitHub repository. These source/CI checks do not demonstrate that production OJS is installed, operational or accepting manuscripts.
+
+## 10. Owner-approved permanent host — 2026-10-15
+
+**Decisive owner instruction:** the permanent journal origin is **`https://journal.drjavadrezazadeh.com` (singular)**. This choice is final. The existing **`journals.drjavadrezazadeh.com` (plural)** is only the observed cPanel installation host and must **never** become the journal's declared permanent canonical. `platform/jhela-ojs-activation.json` records the decision without falsely switching `RESERVED_NOT_LIVE` or enabling public submissions.
+
+**Official cPanel limitation (Manage the Domain, last updated 2026-07-22):** `Rename Domain` does **not** rename a *subdomain*. Do not attempt to rename the plural host using that control. cPanel's `Create a New Domain` supports entering a fully qualified subdomain and, when the hosting plan allows, customizing its document root. The `Share document root` checkbox points to the **main domain's `public_html`**, not automatically to the plural journal's `public_html/journals`. Leave it unchecked to avoid replacing the main site. Official references:
+- https://docs.cpanel.net/cpanel/domains/domains/manage-the-domain/
+- https://docs.cpanel.net/cpanel/domains/domains/create-a-new-domain/
+
+### Preferred no-loss provisioning
+1. Confirm current `public_html/journals` folder and snapshot its OJS files, `config.inc.php`, independent DB (if created), and the separate private `files_dir` (if created). Do not expose backups inside `public_html`. Do not share secrets in screenshots.
+2. In cPanel `Domains > Create a New Domain`, select a registered-domain/subdomain entry and enter exactly `journal.drjavadrezazadeh.com`. **Uncheck `Share document root`**. If cPanel allows assigning an already-existing dedicated document root `public_html/journals` to both hosts, do so only after checking that the setting does not change the main domain. If the form refuses reusing that root, stop and seek an authorized Bertina configuration rather than deleting the plural host or copying incomplete OJS files.
+3. **Never use `public_html/journal` as a new OJS document root.** That path belongs to the site's existing independent `/journal/` public pages and sitemap. If Bertina cannot map the new subdomain to the existing OJS root, coordinate a separately backed-up relocation to a noncolliding directory with Bertina, preserving the full PKP file tree and its private assets.
+4. Confirm independent DNS records, effective web PHP, CA-trusted SSL and HTTPS for `journal.` (singular). An SSL warning on the old `journals.` entry is not a certificate test for `journal.`. Configure protected access to the unfinished installer before exposing the new hostname.
+5. Create/verify the private `files_dir` **outside `/home/drjavad1/public_html`**. Do not install OJS with `public_html/files`, `public_html/journals/files` or any other web-served upload directory.
+6. While OJS is still in the installer, configure its secure `base_url` for `https://journal.drjavadrezazadeh.com` only after the hostname serves the intended OJS application with CA-trusted HTTPS; install using the dedicated DB and administrator credentials entered privately through Bertina. Do not put private values in GitHub.
+7. Carry out real after-install checks: confirmed admin login, transactional journal email, password recovery, private files access denial, backups + restore, English-only manuscript workflow, two independent reviewers, human editorial decisions, double-anonymous access separation. Until accepted, restrict access / registrations and keep production submissions closed.
+8. **Only after the journal's canonical hostname, OJS paths and TLS are verified**, decide whether to redirect the plural host to the singular one. Prevent redirect loops and leaking uninstalled/private URLs. **Do not implement blanket main-domain `/journal/` redirects** before one-to-one target routes are verified to exist; preserve legacy bilingual editorial pages and independent sitemap.
+
+### Current state: decision approved, domain provisioning still unverified
+- **CONFIRMED:** owner selected permanent singular hostname.
+- **OBSERVED IN CPANEL SCREENSHOT:** plural hostname mapped to `/public_html/journals`.
+- **UNKNOWN/NOT YET PROVED:** new singular host created, its root mapped to recovered OJS, valid TLS, protected install, DB, private uploads, installed OJS, public-safe URL routing, editor/reviewer and restoration tests.
+- **NO-GO:** publishing submissions, official `journal.` sitemap, old-host redirect or production-canonical cutover until all appropriate checks pass.
+
+**Next human-visible checkpoint:** cPanel `Domains > Create a New Domain`, with `journal.drjavadrezazadeh.com` entered and the **Share document root box unchecked**. Inspect whether the `Document Root` field accepts `public_html/journals` (do not Submit until supported). Screenshot that configuration without credentials. If that path is not offered, ask Bertina support to map the singular hostname to the existing verified OJS root or approve a no-loss alternate root.
