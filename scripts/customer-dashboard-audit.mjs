@@ -6,6 +6,7 @@ const fa=read('fa/customer-dashboard/index.html');
 const en=read('en/account/index.html');
 const js=read('assets/js/customer-dashboard.js');
 const css=read('assets/css/customer-dashboard-v1.css');
+const appointmentClient=read('assets/js/consultation-appointments.js');
 const sw=read('sw.js');
 const site=read('assets/js/site.js');
 const robots=read('robots.txt');
@@ -55,10 +56,23 @@ expect(css.includes('font-family:"Segoe UI",Arial,"Helvetica Neue",Helvetica,san
 expect(!css.includes('font-family:Inter,Tahoma,Arial,sans-serif'),'CSS: unsafe first-choice local Inter stack still present');
 expect(!css.includes('font:800 10px/1 Inter,Arial,sans-serif'),'CSS: local Inter symbol substitution possible in numeric step labels');
 for(const [label,html] of [['FA',fa],['EN',en]]){
-  expect(html.includes('customer-dashboard-v1.css?v=20261011-fontsafe-4'),label+': updated dashboard font cache key missing');
+  expect(html.includes('customer-dashboard-v1.css?v=20261014-consultations-v5'),label+': updated private dashboard CSS cache key missing');
+  expect(count(html,'data-consultation-appointments')===1,label+': verified appointment panel must appear once');
+  expect(count(html,'data-consultation-check')===1,label+': explicit buyer lookup control missing');
+  expect(count(html,'data-consultation-results')===1,label+': private appointment result region missing');
+  expect(count(html,'consultation-appointments.js?v=20261014-portal-verified-v2')===1,
+    label+': versioned private appointments runtime must load exactly once');
 }
 
 expect(css.includes('.cd-command-center'),'CSS: command centre styles missing');
+expect(css.includes('.appointment-private-list'),'CSS: accessible appointment list missing');
+expect(css.includes('.appointment-preference'),'CSS: accessible buyer choice controls missing');
+expect(appointmentClient.includes("fetch('/api/commerce/history'"),'Appointments must verify buyer order history');
+expect(appointmentClient.includes("fetch('/api/commerce/fulfilment?order='"),'Appointments must verify specific order ownership');
+expect(appointmentClient.includes("fetch('/api/commerce/consultation-preference'"),'Buyer selection must use server-validated preference route');
+expect(appointmentClient.includes("credentials:'same-origin'"),'Appointments must preserve same-origin customer session');
+expect(appointmentClient.includes("cache:'no-store'"),'Private appointments must never use stale HTTP responses');
+expect(appointmentClient.includes('output.replaceChildren()'),'Appointments must clear stale private details');
 expect(css.includes('@media(max-width:920px)'),'CSS: primary mobile breakpoint missing');
 expect(css.includes('prefers-reduced-motion'),'CSS: reduced-motion handling missing');
 expect(css.includes('.cd-confidence-strip'),'CSS: trust architecture styles missing');
@@ -90,6 +104,7 @@ for(const privatePath of ['/fa/customer-dashboard/','/fa/app/','/en/account/']){
 }
 
 try{new Function(js)}catch(e){failures.push('JS syntax error: '+e.message)}
+try{new Function(appointmentClient)}catch(e){failures.push('Appointment JS syntax error: '+e.message)}
 
 if(failures.length){
   console.error('Customer dashboard audit failed ('+failures.length+')');
