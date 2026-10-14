@@ -100,7 +100,8 @@ refused(fn()=>operationsCommerceServiceAdvance($pdo,$actor,$booked),
  DomainException::class,'booking_without_customer_delivery_preference_denied');
 checkService(!commerceConsultationValidChoice($sku,'IN_PERSON','TEHRAN')
     && commerceConsultationValidChoice($sku,'PHONE',null)
-    && commerceConsultationValidChoice($sku,'VIDEO',null),
+    && commerceConsultationValidChoice($sku,'VIDEO',null)
+     && commerceConsultationValidChoice($sku,'VOICE',null),
     'ordinary_consultation_cannot_be_booked_in_person');
 $pdo->prepare('INSERT INTO commerce_consultation_preferences(order_id,sku,delivery_mode,meeting_city)
     VALUES(?,?,\'PHONE\',NULL)')->execute([$orderId,$sku]);
