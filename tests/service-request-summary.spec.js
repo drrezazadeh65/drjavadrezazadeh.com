@@ -52,6 +52,9 @@ for(const scenario of [
     await expect(form.locator('[data-composer-email]')).toHaveAttribute('href','mailto:dr.rezazadeh65@gmail.com');
     await form.locator('button[type="submit"]').click();
     await expect(draft).toHaveValue(scenario.lang==='fa'?/روش ترجیحی جلسه: تلفنی/:/Preferred session format: Telephone/);
+     await mode.selectOption('VOICE');
+     await form.locator('button[type="submit"]').click();
+     await expect(draft).toHaveValue(scenario.lang==='fa'?/روش ترجیحی جلسه: تماس صوتی آنلاین/:/Preferred session format: Online voice call/);
   });
 }
 
