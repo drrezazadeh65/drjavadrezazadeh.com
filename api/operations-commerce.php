@@ -154,16 +154,52 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         $activeStates="'awaiting_contact','scheduling','booked','in_progress'";
         $openCases=(int)$pdo->query("SELECT COUNT(*) FROM commerce_service_cases
             WHERE status IN (".$activeStates.")")->fetchColumn();
+        // Preferences are an additive migration. Old Stage09 deployments
+        // retain a working READ-ONLY report but never imply a usable choice.
+        $preferenceReady=function_exists('commerceConsultationPreferenceSchemaReady')
+            && commerceConsultationPreferenceSchemaReady($pdo);
+        $preferenceFields=$preferenceReady
+            ? 'pr.delivery_mode,pr.meeting_city,pr.updated_at AS preference_updated_at'
+            : 'NULL AS delivery_mode,NULL AS meeting_city,NULL AS preference_updated_at';
+        $preferenceJoin=$preferenceReady
+            ? ' LEFT JOIN commerce_consultation_preferences pr ON pr.order_id=sc.order_id AND pr.sku=sc.sku'
+            : '';
         $queueRows=$pdo->query("SELECT sc.order_id,sc.sku,sc.status,sc.created_at,
+                sc.booking_start,sc.booking_end,
                 o.state AS order_state,o.provider_trans_id,o.provider_amount,
-                c.transaction_id AS claim_transaction,c.verified_amount AS claim_amount
+                c.transaction_id AS claim_transaction,c.verified_amount AS claim_amount,
+                ".$preferenceFields."
             FROM commerce_service_cases sc
             JOIN commerce_orders o ON o.id=sc.order_id
             LEFT JOIN commerce_payment_claims c
                 ON c.order_id=o.id AND c.provider='bitpay'
+            ".$preferenceJoin."
             WHERE sc.status IN (".$activeStates.")
             ORDER BY sc.created_at ASC,sc.order_id ASC,sc.sku ASC
             LIMIT 50")->fetchAll();
+        // Owner's one-resource internal schedule. No customer names, email,
+        // telephone numbers, notes, links or gateway identifiers leave MySQL.
+        // Missing records are not proof of external consultant availability.
+        $calendarCount=(int)$pdo->query("SELECT COUNT(*)
+            FROM commerce_service_cases
+            WHERE status IN ('booked','in_progress')
+                AND booking_start IS NOT NULL AND booking_end>UTC_TIMESTAMP()
+                AND booking_start<DATE_ADD(UTC_TIMESTAMP(),INTERVAL 90 DAY)")->fetchColumn();
+        $calendarRows=$pdo->query("SELECT booking_start,booking_end,status
+            FROM commerce_service_cases
+            WHERE status IN ('booked','in_progress')
+                AND booking_start IS NOT NULL AND booking_end>UTC_TIMESTAMP()
+                AND booking_start<DATE_ADD(UTC_TIMESTAMP(),INTERVAL 90 DAY)
+            ORDER BY booking_start,booking_end LIMIT 100")->fetchAll(PDO::FETCH_ASSOC);
+        $calendar=[];
+        foreach($calendarRows as $window){
+            $start=(string)($window['booking_start']??'');
+            $end=(string)($window['booking_end']??'');
+            if(!preg_match('/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/D',$start)
+                ||!preg_match('/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/D',$end))continue;
+            $calendar[]=['startUtc'=>$start,'endUtc'=>$end,
+                'state'=>(string)$window['status']];
+        }
         $actionQueue=[];
         foreach ($queueRows as $row) {
             $claimMatched=$row['order_state']==='paid'
@@ -176,7 +212,18 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
                 'status'=>(string)$row['status'],
                 'createdAt'=>(string)$row['created_at'],
                 'orderPaidState'=>(string)$row['order_state']==='paid',
-                'providerClaimMatchesOrder'=>$claimMatched
+                'providerClaimMatchesOrder'=>$claimMatched,
+                'bookingStart'=>$row['booking_start']!==null?(string)$row['booking_start']:null,
+                'bookingEnd'=>$row['booking_end']!==null?(string)$row['booking_end']:null,
+                'deliveryMode'=>$row['delivery_mode']!==null?(string)$row['delivery_mode']:null,
+                'meetingCity'=>$row['meeting_city']!==null?(string)$row['meeting_city']:null,
+                'customerPreferenceRecorded'=>$preferenceReady
+                    && $row['delivery_mode']!==null
+                    && function_exists('commerceConsultationValidChoice')
+                    && commerceConsultationValidChoice((string)$row['sku'],(string)$row['delivery_mode'],
+                        $row['meeting_city']===null?null:(string)$row['meeting_city']),
+                'preferenceUpdatedAt'=>$row['preference_updated_at']!==null
+                    ?(string)$row['preference_updated_at']:null
             ];
         }
         $snapshot['available']=true;
@@ -235,6 +282,17 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'inShippingOlderThan7Days'=>(int)$parcelAge['shipping_over_7d'],
             'activeServiceCaseCount'=>$openCases,
             'serviceActionQueue'=>$actionQueue,
+            'customerPreferenceSchemaReady'=>$preferenceReady,
+            'internalCalendar'=>[
+                'scope'=>'single_owner_internal_cases_only',
+                'timeZone'=>'UTC',
+                'futureDays'=>90,
+                'totalUpcoming'=>$calendarCount,
+                'windows'=>$calendar,
+                'limit'=>100,
+                'truncated'=>$calendarCount>count($calendar),
+                'externalAvailabilityConfirmed'=>false
+            ],
             'queueLimit'=>50,
             'queueTruncated'=>$openCases>count($actionQueue),
             'limitation'=>'Provider claim equality does not prove bank settlement, customer contact, booking or delivery.'
