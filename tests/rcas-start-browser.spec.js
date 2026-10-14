@@ -142,3 +142,45 @@ test('RCAS blocks an otherwise completed P0 when the learner omits access/contex
   await expect(page.locator('.rcas-panel[data-step="1"]')).toHaveClass(/active/);
   await expect(page.locator('#rcasP0Status')).toContainText('هشت مورد دسترسی');
 });
+
+test('RCAS response choices meet readable desktop and mobile geometry',async({page})=>{
+  await page.setViewportSize({width:1440,height:900});
+  await page.goto(base+start);
+  await completeP0(page);
+  await page.locator('[data-next="2"]').click();
+  const first=page.locator('#rcasCore .rcas-item').first();
+  const desktop=await first.evaluate(item=>{
+    const grid=item.querySelector('.rcas-scale');
+    const option=item.querySelector('.rcas-scale label span');
+    const g=getComputedStyle(grid),v=getComputedStyle(option),box=option.getBoundingClientRect();
+    return {font:parseFloat(v.fontSize),height:box.height,
+      columns:g.gridTemplateColumns.trim().split(/\\s+/).length,
+      lineHeight:parseFloat(v.lineHeight)};
+  });
+  expect(desktop.font).toBeGreaterThanOrEqual(16);
+  expect(desktop.height).toBeGreaterThanOrEqual(70);
+  expect(desktop.columns).toBe(4);
+  expect(desktop.lineHeight).toBeGreaterThanOrEqual(27);
+  await first.locator('input[type="radio"]').first().evaluate(input=>input.click());
+  const selected=await first.locator('input[type="radio"]').first().evaluate(
+    input=>({checked:input.checked,border:getComputedStyle(input.nextElementSibling).borderTopWidth})
+  );
+  expect(selected).toEqual({checked:true,border:'2px'});
+  await page.setViewportSize({width:390,height:844});
+  const mobile=await first.evaluate(item=>{
+    const grid=item.querySelector('.rcas-scale');
+    const spans=[...item.querySelectorAll('.rcas-scale label span')];
+    const r=grid.getBoundingClientRect(),w=window.innerWidth;
+    return {font:parseFloat(getComputedStyle(spans[0]).fontSize),
+      height:spans[0].getBoundingClientRect().height,
+      columns:getComputedStyle(grid).gridTemplateColumns.trim().split(/\\s+/).length,
+      viewport:w,right:r.right};
+  });
+  expect(mobile.font).toBeGreaterThanOrEqual(16);
+  expect(mobile.height).toBeGreaterThanOrEqual(76);
+  expect(mobile.columns).toBe(2);
+  expect(mobile.right).toBeLessThanOrEqual(mobile.viewport+1);
+  // The second stage remains editable without horizontal scrolling or hidden labels.
+  await first.locator('input[type="radio"]').last().evaluate(input=>input.click());
+  await expect(first.locator('input[type="radio"]').last()).toBeChecked();
+});
