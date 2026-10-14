@@ -3,8 +3,10 @@ declare(strict_types=1);
 /**
  * Bertina-host-managed release preflight.
  *
- * Owner instruction 2026-10-14: hosting provider handles automatic backups.
- * The deployment pipeline MUST NOT inspect, generate, prune or require backups
+ * Owner instruction 2026-10-14: the hosting provider runs its own internal
+ * backup processes, outside this workflow. Bertina TOS does not guarantee a
+ * customer-specific restore. The deployment pipeline MUST NOT inspect,
+ * generate, prune or require backups
  * in this mode. This gate ONLY compares the expected trusted live stamp with
  * the exact file currently installed, before a new release is extracted.
  *
