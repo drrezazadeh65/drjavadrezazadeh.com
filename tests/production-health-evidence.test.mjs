@@ -28,6 +28,8 @@ test('strict health audit records an unreachable live origin as UNKNOWN, never a
     assert.equal(proof.sourceLiveSame,null);
     assert.equal(proof.releaseAlignmentStatus,'unavailable');
     assert.equal(proof.checksPassed,false);
+    assert.equal(proof.releaseAlignedPublicChecksPassed,false);
+    assert.equal(proof.productionCertified,false);
     assert.ok(proof.failures.some(message=>message.includes('unreachable')));
     assert.ok(!JSON.stringify(proof).includes('payment_key'));
     if(process.platform!=='win32'){
