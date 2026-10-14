@@ -65,5 +65,6 @@ for(const locale of ['fa','en']){
   await link.click();
   await expect.poll(()=>new URL(page.url()).pathname).toBe(destination);
   await expect(page.locator('#mobile-app-menu')).toBeHidden();
+  expect(await page.evaluate(()=>Boolean(history.state?.jrMobileMenu))).toBe(false);
  });
 }
