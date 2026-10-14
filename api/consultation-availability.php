@@ -65,6 +65,16 @@ function operationsConsultationAvailabilityChange(PDO $pdo,string $actor,array $
             ||$to->getTimestamp()>$from->getTimestamp()+8*3600
             ||$to->getTimestamp()>$now+90*86400)
             throw new InvalidArgumentException('invalid_capacity_window_utc');
+        // The visitor sees only a small, genuinely published daily budget.
+        // The owner can set e.g. two hours on Saturday and four on Sunday.
+        $localStart=$from->setTimezone(new DateTimeZone('Asia/Tehran'));
+        $localEnd=$to->setTimezone(new DateTimeZone('Asia/Tehran'));
+        $duration=$to->getTimestamp()-$from->getTimestamp();
+        if ($duration<3600||$duration>4*3600||$duration%3600!==0
+            ||$localStart->format('Y-m-d')!==$localEnd->format('Y-m-d')
+            ||$localStart->format('i:s')!=='00:00'
+            ||$localEnd->format('i:s')!=='00:00')
+            throw new InvalidArgumentException('owner_capacity_hour_policy_required');
     } else {
         if (!is_string($id)||!validUuid($id)||$start!==null||$end!==null)
             throw new InvalidArgumentException('invalid_capacity_close_fields');
@@ -83,6 +93,24 @@ function operationsConsultationAvailabilityChange(PDO $pdo,string $actor,array $
             $q->execute([$end,$start]);
             if ($q->fetchColumn()!==false)
                 throw new DomainException('capacity_window_overlap');
+            // The limit counts ALL published owner hours on that Tehran day,
+            // including separate morning/afternoon windows. Shared lock makes
+            // the check atomic with the insert.
+            $iranDayStart=$localStart->setTime(0,0,0);
+            $dayStart=$iranDayStart->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+            $dayEnd=$iranDayStart->modify('+1 day')->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+            $q=$pdo->prepare("SELECT start_utc,end_utc FROM commerce_consultation_availability
+                WHERE state='OPEN' AND end_utc>? AND start_utc<?");
+            $q->execute([$dayStart,$dayEnd]);
+            $totalSeconds=$duration;
+            $dayStartTs=strtotime($dayStart.' UTC');$dayEndTs=strtotime($dayEnd.' UTC');
+            foreach($q->fetchAll(PDO::FETCH_ASSOC) as $existing){
+                $s=strtotime((string)$existing['start_utc'].' UTC');
+                $e=strtotime((string)$existing['end_utc'].' UTC');
+                if($s===false||$e===false)throw new RuntimeException('invalid_existing_capacity');
+                $totalSeconds+=max(0,min($e,$dayEndTs)-max($s,$dayStartTs));
+            }
+            if($totalSeconds>4*3600)throw new DomainException('daily_capacity_four_hours_max');
             $hex=bin2hex(random_bytes(16));
             // Canonical RFC 4122 v4 layout: version nibble 4, variant nibble 8.
             $id=substr($hex,0,8).'-'.substr($hex,8,4).'-4'.substr($hex,13,3)
@@ -124,4 +152,88 @@ function operationsConsultationAvailabilityChange(PDO $pdo,string $actor,array $
         $release=$pdo->query("SELECT RELEASE_LOCK('jr_stage09_owner_booking_v1')");
         if ($release!==false)$release->fetchColumn();
     }
+}
+
+
+/**
+ * Privacy-safe next-seven-days view of the single-owner internal calendar.
+ * Published 60-minute slots only; private order and customer data NEVER leave
+ * this projection. A green slot is an expression-of-interest opportunity,
+ * not a hold, confirmed booking or independently synchronized free/busy.
+ */
+function operationsConsultationWeeklySnapshot(PDO $pdo,int $at): array {
+    if(!operationsConsultationAvailabilitySchemaReady($pdo)
+        ||!function_exists('stage9SchemaReady')||!stage9SchemaReady($pdo))
+        throw new RuntimeException('consultation_week_not_ready');
+    $tehran=new DateTimeZone('Asia/Tehran');
+    $utc=new DateTimeZone('UTC');
+    $today=(new DateTimeImmutable('@'.$at))->setTimezone($tehran)->setTime(0,0,0);
+    $until=$today->modify('+7 days');
+    $sinceUtc=gmdate('Y-m-d H:i:s',$at);
+    $untilUtc=$until->setTimezone($utc)->format('Y-m-d H:i:s');
+    $q=$pdo->prepare("SELECT id,start_utc,end_utc FROM commerce_consultation_availability
+        WHERE state='OPEN' AND start_utc<? AND end_utc>?
+        ORDER BY start_utc,id LIMIT 101");
+    $q->execute([$untilUtc,$sinceUtc]);$windows=$q->fetchAll(PDO::FETCH_ASSOC);
+    if(count($windows)>100)throw new RuntimeException('capacity_snapshot_truncated');
+    $q=$pdo->prepare("SELECT booking_start,booking_end FROM commerce_service_cases
+        WHERE status IN ('booked','in_progress')
+          AND booking_start<? AND booking_end>?
+        ORDER BY booking_start,booking_end LIMIT 101");
+    $q->execute([$untilUtc,$sinceUtc]);$booked=$q->fetchAll(PDO::FETCH_ASSOC);
+    if(count($booked)>100)throw new RuntimeException('booking_snapshot_truncated');
+    $bookedTimes=[];
+    foreach($booked as $row){
+        $start=operationsConsultationUtc((string)$row['booking_start']);
+        $end=operationsConsultationUtc((string)$row['booking_end']);
+        if(!$start||!$end||$end<=$start)
+            throw new RuntimeException('booking_snapshot_invalid');
+        $bookedTimes[]=[$start->getTimestamp(),$end->getTimestamp()];
+    }
+    $days=[];$seen=[];
+    for($i=0;$i<7;$i++){
+        $day=$today->modify('+'.$i.' days');
+        $date=$day->format('Y-m-d');
+        $dayEnd=$day->modify('+1 day');
+        $dayStartTs=$day->getTimestamp();$dayEndTs=$dayEnd->getTimestamp();
+        $slots=[];
+        foreach($windows as $win){
+            $start=operationsConsultationUtc((string)$win['start_utc']);
+            $end=operationsConsultationUtc((string)$win['end_utc']);
+            if(!$start||!$end||$end<=$start)
+                throw new RuntimeException('capacity_window_invalid');
+            $from=$start->getTimestamp();$to=$end->getTimestamp();
+            if($from>=$dayEndTs||$to<=$dayStartTs)continue;
+            // Whole one-hour slots; ignore incomplete legacy fragments.
+            for($t=$from;$t+3600<=$to&&$t<$dayEndTs;$t+=3600){
+                if($t<$at||$t<$dayStartTs||$t+3600>$dayEndTs)continue;
+                $id=gmdate('Y-m-d H:i:s',$t);
+                if(isset($seen[$id]))throw new RuntimeException('capacity_window_duplicate');
+                $seen[$id]=true;
+                $full=false;
+                foreach($bookedTimes as $busy){
+                    if($busy[0]<$t+3600&&$busy[1]>$t){$full=true;break;}
+                }
+                $slots[]=[
+                    'startUtc'=>$id,
+                    'endUtc'=>gmdate('Y-m-d H:i:s',$t+3600),
+                    'status'=>$full?'FULL':'AVAILABLE'
+                ];
+                if(count($slots)>4)throw new RuntimeException('capacity_day_limit_breached');
+            }
+        }
+        usort($slots,static fn($a,$b)=>strcmp($a['startUtc'],$b['startUtc']));
+        $remaining=count(array_filter($slots,static fn($s)=>$s['status']==='AVAILABLE'));
+        $days[]=['date'=>$date,'totalSlots'=>count($slots),
+            'remainingSlots'=>$remaining,'slots'=>$slots];
+    }
+    return [
+        'ok'=>true,'schema'=>'consultation-week-v1','timezone'=>'Asia/Tehran',
+        'slotMinutes'=>60,'maxPublishedDailyHours'=>4,
+        'asOfUtc'=>gmdate('Y-m-d H:i:s',$at),
+        'days'=>$days,'customerReservationEnabled'=>false,
+        'availabilitySource'=>'owner-published internal windows minus recorded bookings',
+        'externalCalendarConfirmed'=>false,
+        'limitation'=>'Availability may change before review; clicking a slot does not hold or confirm it.'
+    ];
 }
