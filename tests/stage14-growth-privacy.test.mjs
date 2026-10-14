@@ -107,3 +107,32 @@ test('service sales follow-up is consented, bounded and never presented as settl
  assert.match(reportJs,/workspace\?\.hidden/);
  assert.doesNotMatch(reportJs,/localStorage|sessionStorage|innerHTML/);
 });
+
+
+test('bilingual consultation pages share the verified-account consent pathway without activating payments',()=>{
+ const english=read('en/request-consultation/index.html');
+ for(const source of [html,english]){
+   assert.match(source,/data-stage14-consent-lead/);
+   assert.match(source,/name="serviceId" required disabled/);
+   assert.match(source,/name="consentGiven" required/);
+   assert.match(source,/data-stage14-lead-mine/);
+   assert.match(source,/data-stage14-lead-list/);
+   assert.match(source,/\/assets\/js\/consented-lead-intake\.js/);
+   assert.match(source,/noindex,follow,noarchive/);
+   assert.match(source,/mailto:/);
+   assert.doesNotMatch(source,/data-stage14-consent-lead[^>]*action=/);
+ }
+ assert.match(english,/href="\/privacy\/"/);
+ assert.match(english,/href="\.\.\/login\/"/);
+ assert.match(js,/const fa=document\.documentElement\.lang==='fa'/);
+ assert.match(js,/const englishTitles=Object\.freeze/);
+ assert.match(js,/The server received your consented enquiry/);
+ assert.match(js,/The server did not confirm the request/);
+ assert.match(js,/marketingOptIn:false/);
+ assert.match(js,/\/api\/growth\/leads\/mine/);
+ assert.doesNotMatch(js,/localStorage|sessionStorage|sendBeacon|indexedDB|innerHTML/);
+ const catalog=JSON.parse(read('assets/data/service-catalog.json'));
+ for(const service of catalog.services.filter(s=>s.sellable===true)){
+   assert.ok(js.includes(service.id+':'),service.id+' needs an English intake label');
+ }
+});
