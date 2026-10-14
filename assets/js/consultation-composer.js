@@ -38,12 +38,15 @@
       if(!fa) return;
       var requested=new URLSearchParams(location.search).get('service');
       if(!requested) return;
+      // A delayed catalogue response must never replace a choice already made
+      // by the visitor or silently rewrite an already reviewed draft.
+      var startedAt=revision;
       try{
         var response=await fetch('/assets/data/service-catalog.json',{cache:'reload'});
         if(!response.ok) return;
         var catalogue=await response.json();
         var service=(catalogue.services||[]).find(function(item){return item.id===requested&&item.sellable===true;});
-        if(!service) return;
+        if(!service || revision!==startedAt || !preview.hidden) return;
         var select=form.elements.namedItem('service');
         if(!select) return;
         var option=Array.from(select.options).find(function(item){return item.value===service.title_fa;});
