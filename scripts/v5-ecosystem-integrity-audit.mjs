@@ -259,8 +259,10 @@ verify('rcas: 3-stage evidence gates, Core 28, privacy and accessible choices',
   rcasPage.includes('id="rcasCoreStatus"') &&
   rcasPage.includes('id="rcasP0Status"') &&
   rcasPage.includes('id="rcasRouteStatus"') &&
-  rcasPage.includes('rcas-start.js?v=20261014-evidence-gates-v4') &&
-  rcasPage.includes('portal-v2.css?v=20261014-rcas-readable-v1') &&
+  /rcas-start\.js\?v=[A-Za-z0-9._-]+/.test(rcasPage) &&
+  /portal-v2\.css\?v=[A-Za-z0-9._-]+/.test(rcasPage) &&
+  rcasClient.includes('appendFreeInsight(res,d)') &&
+  rcasClient.includes('این شمارش، کیفیت یا توانایی تو را اندازه نمی‌گیرد') &&
   rcasCss.includes('RCAS readable response controls v20261014') &&
   rcasCss.includes('font-size:clamp(16px,1.05vw,18px)') &&
   rcasCss.includes('input:focus-visible + span') &&
