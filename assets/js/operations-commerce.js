@@ -41,7 +41,7 @@
   };
   const timezone=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
   function utcLabel(value){
-    if(typeof value!=='string'||!/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/.test(value))return null;
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value))return null;
     const d=new Date(value.replace(' ','T')+'Z');
     if(!Number.isFinite(d.getTime())||d.toISOString().slice(0,19)!==value.replace(' ','T'))return null;
     return new Intl.DateTimeFormat(en?'en-GB':'fa-IR',
