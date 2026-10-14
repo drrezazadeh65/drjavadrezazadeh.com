@@ -45,6 +45,7 @@ ensureChoice(!commerceConsultationPreferenceSchemaReady($pdo),
 $pdo->exec('DROP TEMPORARY TABLE commerce_consultation_preferences');
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_preferences.sql'));
 ensureChoice(commerceConsultationPreferenceSchemaReady($pdo),'additive consultation SQL installs required columns');
+ensureChoice(commerceConsultationVoiceSchemaReady($pdo),'approved schema supports online voice without losing older modes');
 $tables=$pdo->query("SELECT TABLE_NAME AS table_name, ENGINE AS engine FROM information_schema.tables
     WHERE table_schema=DATABASE() AND table_name IN
       ('commerce_consultation_preferences','commerce_consultation_preference_events')")->fetchAll();
@@ -100,12 +101,14 @@ $checkAttempt=$pdo->prepare('SELECT COUNT(*) FROM commerce_consultation_preferen
 $checkAttempt->execute([$order,$sku]);
 ensureChoice((int)$checkAttempt->fetchColumn()===0,
     'failed check insert leaves no preference for this isolated buyer');
-ensureChoice(commerceConsultationModes($sku)===['PHONE','VIDEO'],'normal counselling only phone/video');
-ensureChoice(commerceConsultationModes($vipSku)===['PHONE','VIDEO','IN_PERSON'],'catalogued VIP may request in-person');
+ensureChoice(commerceConsultationModes($sku)===['PHONE','VOICE','VIDEO'],'normal counselling: telephone, online voice, video');
+ensureChoice(commerceConsultationModes($vipSku)===['PHONE','VOICE','VIDEO','IN_PERSON'],'catalogued VIP may request in-person');
 ensureChoice(commerceConsultationModes('service:annual_coaching')===[],'uncatalogued annual coaching is disabled');
 ensureChoice(!commerceConsultationValidChoice($sku,'IN_PERSON','KASHAN'),'ordinary in-person denied');
 ensureChoice(!commerceConsultationValidChoice($vipSku,'IN_PERSON','ISFAHAN'),'unapproved VIP city denied');
 ensureChoice(!commerceConsultationValidChoice($vipSku,'VIDEO','TEHRAN'),'video may not contain a city');
+ensureChoice(commerceConsultationValidChoice($sku,'VOICE',null)
+    && !commerceConsultationValidChoice($sku,'VOICE','KASHAN'),'online voice requires no physical city');
 ensureChoice(commerceConsultationValidChoice($vipSku,'IN_PERSON','TEHRAN')
     && commerceConsultationValidChoice($vipSku,'IN_PERSON','KASHAN'),'only Tehran/Kashan permitted');
 $choice=['orderId'=>$order,'sku'=>$sku,'mode'=>'PHONE','city'=>null];
@@ -133,6 +136,12 @@ ensureChoice($eventCount()===1,'idempotent preference does not create repeated a
 $video=commerceConsultationSavePreference($pdo,$owner,$email,array_merge($choice,['mode'=>'VIDEO']));
 ensureChoice($video['deliveryMode']==='VIDEO' && $eventCount()===2,
     'buyer may change telephone to video before a booking');
+$voice=commerceConsultationSavePreference($pdo,$owner,$email,array_merge($choice,['mode'=>'VOICE']));
+ensureChoice($voice['deliveryMode']==='VOICE'&&$eventCount()===3,
+    'buyer can change video to online voice without booking automatically');
+$videoAgain=commerceConsultationSavePreference($pdo,$owner,$email,array_merge($choice,['mode'=>'VIDEO']));
+ensureChoice($videoAgain['deliveryMode']==='VIDEO'&&$eventCount()===4,
+    'buyer can return to video before confirmation; history remains append-only');
 $vipChoice=['orderId'=>$vipOrder,'sku'=>$vipSku,'mode'=>'IN_PERSON','city'=>'TEHRAN'];
 ensureChoice(commerceConsultationSavePreference($pdo,$owner,$email,$vipChoice)['meetingCity']==='TEHRAN',
     'VIP may select Tehran');
@@ -147,8 +156,10 @@ $live->execute([$order,$sku]);$last=$live->fetch();
 ensureChoice($last['delivery_mode']==='VIDEO'&&$last['meeting_city']===null,'locked preference unchanged');
 $log=$pdo->query("SELECT actor_account_id,previous_mode,next_mode FROM commerce_consultation_preference_events
     WHERE order_id='".$order."' ORDER BY event_id")->fetchAll();
-ensureChoice(count($log)===2 && $log[0]['actor_account_id']===$owner
+ensureChoice(count($log)===4 && $log[0]['actor_account_id']===$owner
     && $log[0]['previous_mode']===null && $log[0]['next_mode']==='PHONE'
-    && $log[1]['previous_mode']==='PHONE' && $log[1]['next_mode']==='VIDEO',
+    && $log[1]['previous_mode']==='PHONE' && $log[1]['next_mode']==='VIDEO'
+     && $log[2]['previous_mode']==='VIDEO' && $log[2]['next_mode']==='VOICE'
+     && $log[3]['previous_mode']==='VOICE' && $log[3]['next_mode']==='VIDEO',
     'append-only change audit records transitions without PII');
 echo "Consultation mode SQL and security fixture passed: synthetic rows only, no real payment or appointment.\n";
