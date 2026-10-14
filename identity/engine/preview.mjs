@@ -1,9 +1,11 @@
+import {validatePreviewPayload} from "./validate-payload.mjs";
 /** JR Identity OS preview renderer. NOT an issuance, signing, or payment-verification service. */
 const TYPES = Object.freeze({receipt:{fa:"رسید پرداخت",en:"Payment receipt"},invoice:{fa:"صورتحساب",en:"Invoice"},certificate:{fa:"گواهی",en:"Certificate"},talent_report:{fa:"گزارش تفسیری استعداد",en:"Talent interpretation report"},letterhead:{fa:"نامه رسمی",en:"Official letter"},assessment:{fa:"فرم ارزیابی",en:"Assessment form"}});
 const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const clean = (v,max=160) => {if(typeof v!=="string" || !v.trim() || v.length>max) throw new TypeError("Invalid text field");return v.trim()};
 export function renderDocumentPreview(input){
- if(!input || typeof input!=="object" || Array.isArray(input)) throw new TypeError("Invalid input");
+ const validation=validatePreviewPayload(input);
+ if(!validation.ok) throw new TypeError(validation.errors.join("; "));
  const type=clean(input.type,40); if(!Object.hasOwn(TYPES,type)) throw new TypeError("Unsupported type");
  const locale=input.locale; if(!["fa-IR","en"].includes(locale)) throw new TypeError("Unsupported locale");
  const fa=locale==="fa-IR",lang=fa?"fa":"en",dir=fa?"rtl":"ltr";
@@ -11,7 +13,7 @@ export function renderDocumentPreview(input){
  const recipient=clean(input.recipient,160);
  const title=TYPES[type][lang];
  if(input.description!==undefined && typeof input.description!=="string") throw new TypeError("Invalid description");
- const body=typeof input.description==="string" ? input.description.slice(0,3000) : "";
+ const body=typeof input.description==="string" ? input.description : "";
  const watermark=fa?"پیش‌نمایش آزمایشی ـ فاقد اعتبار رسمی":"PREVIEW ONLY — NOT AN ISSUED DOCUMENT";
  const brand=fa?"دکتر جواد رضازاده یزدلی":"Dr. Javad Rezazadeh Yazdeli";
  const note=fa?"این پیش‌نمایش سند صادرشده یا تأیید پرداخت نیست.":"This preview is not an issued document or proof of payment.";
