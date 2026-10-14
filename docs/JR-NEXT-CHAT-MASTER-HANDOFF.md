@@ -21,3 +21,10 @@ Actions deploy #351 was reported successful for SHA `64123d21088feb914752abaf0ce
 
 ## Immediate next action
 Inspect current GitHub branch, FA/EN homepage markup, existing mobile nav JS/CSS, logos/media and public build. Review actual Claude prototype files if available. Deliver the highest-impact verifiable visual fix, then test and report evidence rather than promises.
+
+## 2026-10-14 navigation stabilization checkpoint
+- `1ed42785`: desktop dropdown and mobile breakpoint CSS.
+- `a6b86285`: site.js identifies itself as primary mobile sheet event controller.
+- `fcc7324f`: mobile-app-v431.js skips its duplicate click controller when site.js owns it.
+- `762b095b`: site.js adds Back/visibility close handling and focuses the close control on opening.
+- Important: browser automation, real Android testing, live Bertina deployment, keyboard accessibility and visual checks remain UNVERIFIED. Do not mark them complete. Check menu script interactions and browser Back history behavior; ensure no regressions before deploy.
