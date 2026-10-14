@@ -210,6 +210,26 @@ if(open){
 }
 window.addEventListener('popstate',()=>{const sheet=q('#mobile-app-menu');if(sheet&&!sheet.hidden)setSheet(false,null,{fromHistory:true})});
 document.addEventListener('visibilitychange',()=>{const sheet=q('#mobile-app-menu');if(document.hidden&&sheet&&!sheet.hidden)setSheet(false)});
+// Keep desktop <details> navigation mutually exclusive and keyboard dismissible.
+document.addEventListener('toggle',event=>{
+ const group=event.target;
+ if(!group.matches?.('.site-header .home-nav-group')||!group.open)return;
+ qa('.site-header .home-nav-group').forEach(other=>{if(other!==group)other.open=false});
+},true);
+document.addEventListener('click',event=>{
+ if(event.target.closest('.site-header .home-nav-group'))return;
+ qa('.site-header .home-nav-group[open]').forEach(group=>{group.open=false});
+});
+document.addEventListener('keydown',event=>{
+ if(event.key!=='Escape')return;
+ const groups=qa('.site-header .home-nav-group[open]');
+ if(!groups.length)return;
+ groups.forEach(group=>{group.open=false});
+ if(q('#mobile-app-menu')?.hidden!==false){
+  event.preventDefault();
+  groups[0].querySelector('summary')?.focus();
+ }
+});
 document.documentElement.dataset.jrNavController='site';
 document.addEventListener('click',e=>{
 const t=e.target.closest('[data-nav-toggle]');
