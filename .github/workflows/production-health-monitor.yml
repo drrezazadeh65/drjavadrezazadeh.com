@@ -6,6 +6,7 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - scripts/production-health-audit.mjs
+      - tests/production-health-evidence.test.mjs
       - foundation/V4.4-EXECUTION-AND-EMAIL-CLOSURE-2026-10-09.md
       - api/index.php
       - api/config.example.php
