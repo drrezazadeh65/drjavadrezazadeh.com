@@ -1,0 +1,8 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {evaluateDocumentAccess as check,PRIVATE_DOCUMENT_HEADERS as headers} from "./document-access.mjs";
+const base={actor:{authenticated:true,account_id:"A1"},document:{id:"D1",owner_account_id:"A1",status:"issued",revoked:false,private_storage_verified:true}};
+test("Owner may access only active verified private document",()=>assert.equal(check(base).allowed,true));
+test("Reject anonymous, other-account, revoked, pending and unverified storage",()=>{for(const input of [null,{}, {...base,actor:{authenticated:false,account_id:"A1"}},{...base,actor:{authenticated:true,account_id:"A2"}},{...base,document:{...base.document,revoked:true}},{...base,document:{...base.document,status:"pending"}},{...base,document:{...base.document,private_storage_verified:false}}])assert.equal(check(input).allowed,false)});
+test("Delegation must be verified, scoped, document-bound and active",()=>{const actor={authenticated:true,account_id:"A2"};const delegation={server_verified:true,active:true,document_id:"D1",delegate_account_id:"A2",scope:"read"};assert.equal(check({...base,actor,delegation}).allowed,true);for(const d of [{...delegation,server_verified:false},{...delegation,scope:"write"},{...delegation,document_id:"D2"},{...delegation,active:false}])assert.equal(check({...base,actor,delegation:d}).allowed,false)});
+test("Private response policy prohibits caches, indexing and framing",()=>{assert.match(headers["Cache-Control"],/no-store/);assert.match(headers["X-Robots-Tag"],/noindex/);assert.match(headers["Content-Security-Policy"],/frame-ancestors 'none'/)});
