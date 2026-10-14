@@ -210,7 +210,7 @@ const link=e.target.closest('#mobile-app-menu a');if(link)setSheet(false);
 });
 document.addEventListener('keydown',e=>{
 const sheet=q('#mobile-app-menu');
-if(e.key==='Escape'&&sheet&&!sheet.hidden){setSheet(false);return}
+if(e.key==='Escape'&&sheet&&!sheet.hidden){e.preventDefault();setSheet(false);return}
 if(e.key==='Tab'&&sheet&&!sheet.hidden){
 const focusables=qa('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])',sheet).filter(x=>!x.hidden);
 if(!focusables.length)return;
