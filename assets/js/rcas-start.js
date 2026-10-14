@@ -206,5 +206,6 @@ document.getElementById("showRoute").addEventListener("click",()=>{
   }
   res.append(links);
 });
+bar.style.width="0%";
 updateCoreProgress();
 })();
