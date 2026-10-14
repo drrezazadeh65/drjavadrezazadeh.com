@@ -1,0 +1,37 @@
+name: JHELA Journal Public TLS and DNS
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'scripts/jhela-journal-public-probe.mjs'
+      - '.github/workflows/jhela-journal-public-probe.yml'
+permissions:
+  contents: read
+concurrency:
+  group: jhela-public-tls-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  read-only-origin-observer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate probe syntax and fail-closed scope
+        run: |
+          node --check scripts/jhela-journal-public-probe.mjs
+          node scripts/jhela-journal-public-probe.mjs --contract
+      - name: Observe DNS, CA-trusted HTTPS and public installer only
+        run: node scripts/jhela-journal-public-probe.mjs --probe
+      - name: Retain sanitized read-only result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jhela-public-tls-${{ github.sha }}
+          path: /tmp/jhela-journal-transport-probe.json
+          if-no-files-found: ignore
+          retention-days: 14
