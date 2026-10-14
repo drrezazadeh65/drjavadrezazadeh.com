@@ -209,7 +209,7 @@ if(open){
 }
 }
 window.addEventListener('popstate',()=>{const sheet=q('#mobile-app-menu');if(sheet&&!sheet.hidden)setSheet(false,null,{fromHistory:true})});
-document.addEventListener('visibilitychange',()=>{const sheet=q('#mobile-app-menu');if(document.hidden&&sheet&&!sheet.hidden){if(history.state?.jrMobileMenu){const state={...history.state};delete state.jrMobileMenu;history.replaceState(state,'',location.href)}setSheet(false,null,{fromHistory:true})}});
+document.addEventListener('visibilitychange',()=>{const sheet=q('#mobile-app-menu');if(document.hidden&&sheet&&!sheet.hidden){if(history.state?.jrMobileMenu){const state={...history.state};delete state.jrMobileMenu;try{history.replaceState(state,'',location.href)}catch(_){/* Background transitions must not throw. */}}setSheet(false,null,{fromHistory:true})}});
 // Keep desktop <details> navigation mutually exclusive and keyboard dismissible.
 document.addEventListener('toggle',event=>{
  const group=event.target;
@@ -235,7 +235,7 @@ document.addEventListener('click',e=>{
 const t=e.target.closest('[data-nav-toggle]');
 if(t){e.preventDefault();setSheet(t.getAttribute('aria-expanded')!=='true',t);return}
 if(e.target.closest('[data-nav-close]')||e.target.classList.contains('mobile-app-sheet'))setSheet(false);
-const link=e.target.closest('#mobile-app-menu a');if(link){if(history.state?.jrMobileMenu){const state={...history.state};delete state.jrMobileMenu;history.replaceState(state,'',location.href)}setSheet(false,null,{fromHistory:true})}
+const link=e.target.closest('#mobile-app-menu a');if(link){if(history.state?.jrMobileMenu){const state={...history.state};delete state.jrMobileMenu;try{history.replaceState(state,'',location.href)}catch(_){/* Navigation must continue even if history is unavailable. */}}setSheet(false,null,{fromHistory:true})}
 });
 document.addEventListener('keydown',e=>{
 const sheet=q('#mobile-app-menu');
