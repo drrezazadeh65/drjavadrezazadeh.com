@@ -17,6 +17,7 @@ for(const locale of ['fa','en']){
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
   await expect(trigger).toBeFocused();
+  await expect.poll(()=>page.evaluate(()=>Boolean(history.state?.jrMobileMenu))).toBe(false);
   await trigger.click();
   await expect(sheet).toBeVisible();
   expect(await page.evaluate(()=>history.state?.jrMobileMenu)).toBe(true);
