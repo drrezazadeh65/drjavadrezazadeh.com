@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * Authorize an automatic Bertina release without conflating source-change scope
- * with production safety. All releases still pass the complete workflow's
- * backup/recovery, production schema, build and live-SHA checks.
+ * with production safety. Releases require production schema, build and
+ * live-SHA checks; hosting backups are owned and managed by Bertina.
  *
- * Scope: public_only is the owner-authorized standing automatic default;
- * the explicit full classifier exists only for controlled policy tests and
- * cannot be selected by the automatic workflow. Private/runtime deployment
- * requires deliberate owner activation. All malformed inputs fail closed.
+ * Scope: full is the owner-authorized development default (2026-10-14).
+ * Eligible API/runtime changes may undergo guarded automatic preflight;
+ * deployment authority, credentials and SQL migrations remain manually gated.
+ * All malformed inputs fail closed.
  */
 import fs from 'node:fs';
 import {spawnSync} from 'node:child_process';
@@ -93,7 +93,7 @@ function getOneTimeBootstrapEvidence(base,head) {
   } catch { return null; }
 }
 
-export function decideAutomaticRelease(delta, scope='public_only', bootstrapContext=null) {
+export function decideAutomaticRelease(delta, scope='full', bootstrapContext=null) {
   if (!['full','public_only'].includes(scope)) throw Error('Unknown automatic release scope');
   if (!delta || !delta.groups || typeof delta.canAutomaticallyDeploy!=='boolean')
     throw Error('Invalid release classification');
@@ -118,7 +118,7 @@ export function decideAutomaticRelease(delta, scope='public_only', bootstrapCont
 if (process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) {
   try {
     const [base,head]=process.argv.slice(2);
-    const scope=process.env.BERTINA_AUTO_DEPLOY_SCOPE||'public_only';
+    const scope=process.env.BERTINA_AUTO_DEPLOY_SCOPE||'full';
     const delta=classifyGitDelta(base,head);
     const decision=decideAutomaticRelease(delta,scope,getOneTimeBootstrapEvidence(base,head));
     const lines=[
@@ -132,7 +132,7 @@ if (process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) {
       'Reason: '+decision.reason,
       ...(decision.manual||[]).slice(0,30).map(path=>'Manual activation required: '+path),
       ...delta.groups.controlled.slice(0,30).map(path=>'Controlled delta: '+path),
-      'Eligibility is not a successful deploy: build, tests, backup custody, origin schema and checksum verification must still pass.'
+      'Eligibility is not a successful deploy: build, tests, hosting checks, origin schema and checksums must still pass.'
     ];
     for(const line of lines) console.log(line);
     if(process.env.GITHUB_STEP_SUMMARY)
