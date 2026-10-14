@@ -23,33 +23,37 @@
     "newRealMoneyTestAuthorized": false,
     "controlledSourceReleaseAuthorization": {
       "ownerExplicitlyApproved": true,
-      "receivedOn": "2026-10-13",
-      "recoveryPolicy": "owner_cpanel_custody",
+      "receivedOn": "2026-10-14",
+      "recoveryPolicy": "hosting_managed",
       "ownerAcceptsMissingIndependentIsolatedRestore": true,
-      "allowedScope": "STANDING automatic release of public site pages and assets after full CI, live-SHA and one-backup custody checks; API, payment, database and schema changes remain excluded. No financial settlement/backfill/refund/test-charge authorization.",
-      "requiredGithubActor": "authenticated branch writer; manual cPanel dispatch remains restricted to drrezazadeh65",
-      "requiredTypedAcknowledgement": "ACCEPT_UNTESTED_RESTORE_RISK_V5 for manual cPanel dispatch only; standing public-only push policy is owner instruction dated 2026-10-13",
+      "allowedScope": "STANDING FULL development-source release of eligible public pages, assets, API, JavaScript and runtime after CI, exact live SHA, security and read-only schema compatibility checks. No deployment-managed backup preflight, archive inspection, rotation or deletion. SQL migrations, secrets, workflow authority and live monetary operations remain separately controlled.",
+      "requiredGithubActor": "authenticated branch writer; manual hosting-managed/cPanel dispatch restricted to drrezazadeh65",
+      "requiredTypedAcknowledgement": "ACCEPT_UNTESTED_RESTORE_RISK_V5 only if manual owner_cpanel_custody legacy mode is chosen; none for hosting_managed",
       "requiredInputs": [
-        "automatic push: exact live SHA fetched from public /sw.js and rechecked at the host",
-        "manual cPanel dispatch: approved_commit_sha",
-        "manual cPanel dispatch: expected_live_sha"
+        "automatic push: exact live SHA fetched from public /sw.js and checked again on the host",
+        "manual hosting_managed: approved_commit_sha equals HEAD and expected_live_sha equals current deployed /sw.js stamp",
+        "legacy manual owner_cpanel_custody: requires explicit typed acknowledgement"
       ],
       "appliedToLive": false,
-      "evidence": "owner-confirmed two cPanel account archives, post-import 9 InnoDB tables and live payment unique indexes; actual runtime SHA/archives checked separately at deploy-time",
+      "evidence": "Owner 2026-10-14 authorized FULL development-source releases without ChatGPT/deployment-controlled backup preflight. Bertina marketing describes three-layer backups; official TOS says provider backups are internal, restoration is not guaranteed and customer bears backup responsibility. Prior cPanel screenshots are historical, not a recovery certification.",
       "noIndependentRestoreProven": true,
-      "automaticPublicOnlyReleaseAuthorized": true,
+      "automaticPublicOnlyReleaseAuthorized": false,
       "retainedCpanelArchives": 1,
-      "backupRestorationIndependentlyVerified": false
+      "backupRestorationIndependentlyVerified": false,
+      "automaticFullDevelopmentReleaseAuthorized": true,
+      "backupPreflightRequired": false,
+      "backupManagedByDeployment": false,
+      "providerBackupResponsibility": "Bertina hosting-managed operational process; per-account recoverability unverified"
     }
   },
-  "interpretation": "The owner has authorized standing automatic public-only source releases on migration/bertina-linux6. Each run must pass full CI, current live-SHA drift checks, the read-only database schema guard, and custody/readability checks for one newest Bertina account archive. API, payment, database and schema changes are excluded from the automatic path and retain guarded manual release requirements. This acceptance does not authorize database migration, any real bank charge, refunds, synthetic payment claims or recognition of historic self-tests as real revenue. No independent isolated restoration has been certified.",
+  "interpretation": "Owner instruction 2026-10-14 supersedes historical public-only release authorization: the one canonical branch uses FULL development code scope. Hosting-managed mode NEVER inspects, creates, prunes or requires backup artifacts in the deployment path. Source release retains CI, exact live-SHA, source freshness, managed checksums, private-route safety and read-only database compatibility controls. This does not authorize SQL migrations, credential exposure, fake revenue, real payment test charges, refunds, settlement assumptions, financial data mutation or an assertion that Bertina backups are restorable. Bertina TOS explicitly makes provider backups non-guaranteed internal copies; owner accepts that deployment does not check them.",
   "prohibitions": [
-    "automatic_release_scope_must_exclude_api_payment_database_and_schema_changes",
     "do_not_assume_1000_copies_remaining",
     "do_not_backfill_paid_claims_from_notifications",
     "do_not_release_held_books_without_gateway_negative",
     "do_not_issue_a_real_charge_or_bank_refund",
     "do_not_claim_independent_restore_verified_from_cpanel_backup_presence",
-    "retain_exactly_one_validated_cpanel_account_archive_after_successful_public_release"
+    "hosting_managed_release_must_not_inspect_create_rotate_prune_or_certify_backup_files",
+    "full_development_release_does_not_authorize_sql_migration_credentials_or_live_money_actions"
   ]
 }
