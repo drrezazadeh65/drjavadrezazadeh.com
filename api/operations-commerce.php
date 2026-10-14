@@ -200,6 +200,25 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             $calendar[]=['startUtc'=>$start,'endUtc'=>$end,
                 'state'=>(string)$window['status']];
         }
+        // Explicit internal owner-authored windows, bounded and private.
+        // A missing additive table is UNKNOWN, not an empty/available diary.
+        $capacityReady=function_exists('operationsConsultationAvailabilitySchemaReady')
+            && operationsConsultationAvailabilitySchemaReady($pdo);
+        $capacityOpenCount=null;$capacityWindows=[];
+        if ($capacityReady) {
+            $capacityOpenCount=(int)$pdo->query("SELECT COUNT(*) FROM commerce_consultation_availability
+                WHERE state='OPEN' AND end_utc>UTC_TIMESTAMP()
+                  AND start_utc<DATE_ADD(UTC_TIMESTAMP(),INTERVAL 90 DAY)")->fetchColumn();
+            $capacityRows=$pdo->query("SELECT id,start_utc,end_utc FROM commerce_consultation_availability
+                WHERE state='OPEN' AND end_utc>UTC_TIMESTAMP()
+                  AND start_utc<DATE_ADD(UTC_TIMESTAMP(),INTERVAL 90 DAY)
+                ORDER BY start_utc,id LIMIT 100")->fetchAll(PDO::FETCH_ASSOC);
+            foreach($capacityRows as $window){
+                $capacityWindows[]=['id'=>(string)$window['id'],
+                    'startUtc'=>(string)$window['start_utc'],
+                    'endUtc'=>(string)$window['end_utc']];
+            }
+        }
         $actionQueue=[];
         foreach ($queueRows as $row) {
             $claimMatched=$row['order_state']==='paid'
@@ -283,6 +302,16 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'activeServiceCaseCount'=>$openCases,
             'serviceActionQueue'=>$actionQueue,
             'customerPreferenceSchemaReady'=>$preferenceReady,
+            'internalAvailability'=>[
+                'schemaReady'=>$capacityReady,
+                'scope'=>'single_owner_explicit_windows_only',
+                'timeZone'=>'UTC',
+                'openWindowCount'=>$capacityOpenCount,
+                'windows'=>$capacityWindows,
+                'limit'=>100,
+                'truncated'=>$capacityReady&&$capacityOpenCount>count($capacityWindows),
+                'externalAvailabilityConfirmed'=>false
+            ],
             'internalCalendar'=>[
                 'scope'=>'single_owner_internal_cases_only',
                 'timeZone'=>'UTC',
