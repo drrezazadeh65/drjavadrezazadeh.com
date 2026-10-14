@@ -1201,8 +1201,8 @@ test('premium service selection guides explain decisions and boundaries on mobil
 
 test('bilingual intake, service pages and shops disclose real booking and payment state',async({page})=>{
   const cases=[
-    ['/fa/darkhast-moshavere/','رزرو آنلاین فعلاً غیرفعال','پرداخت آنلاین فعلاً غیرفعال'],
-    ['/en/request-consultation/','Online booking not active','Online payment not active'],
+    ['/fa/darkhast-moshavere/','رزرو آنلاین فعلاً غیرفعال','این فرم پرداخت دریافت نمی‌کند'],
+    ['/en/request-consultation/','Online booking not active','No payment in this form'],
     ['/fa/khadamat/','رزرو و پرداخت آنلاین در این مرحله فعال نیستند','درخواست اولیه، خرید نیست'],
     ['/en/services/','Live appointment booking is not currently available','Online payments are not yet enabled'],
     ['/fa/shop/','ثبت سفارش فعال','پرداخت آنلاین با کنترل مبلغ و تأیید نتیجهٔ بانک در سرور انجام می‌شود'],
