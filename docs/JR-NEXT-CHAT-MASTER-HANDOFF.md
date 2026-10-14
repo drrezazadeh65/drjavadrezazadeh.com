@@ -52,3 +52,10 @@ Inspect current GitHub branch, FA/EN homepage markup, existing mobile nav JS/CSS
 - `3434193c55abf68a9c57b5c11c2e1c053713979f`: desktop details groups are mutually exclusive, close on outside click and close/focus summary on Escape.
 - `89a8bc5b4a3d5e2dfa07e4f7a78fc254e2eacef4`: Playwright FA/EN desktop navigation regression coverage added to existing navigation spec, which is already included in the Bertina workflow.
 - Test execution and live deployment remain unverified. Review event ordering for click/toggle and keyboard Escape under Playwright before release.
+
+## Navigation regression checkpoint (2026-10-14)
+- `8061b9a310f4753be95d803490cc8e9693ce491c`: mobile menu link click avoids history.back racing destination navigation.
+- `9a0d830e2461f71baf0d4b5136a735290c5972af`: Playwright tests link navigation in FA/EN.
+- `ad16c7d4e5cf36d1be88719fd4a9387ef37cd3bd`: outside-click test no longer assumes a main element.
+- `def668fe4985ba4c360a7fd12b3b00d49e1f40f6`: navigation test asserts the temporary menu history marker is cleared after link navigation.
+- These are committed, not proof of passing CI or Bertina deployment. Prior GitHub workflow lookup was PR-only and could not establish push-run status.
