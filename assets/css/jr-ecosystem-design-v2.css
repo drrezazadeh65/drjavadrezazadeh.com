@@ -329,3 +329,106 @@ background:radial-gradient(ellipse at 80% 10%,rgba(206,161,78,.14),transparent 6
 :is(.foundation-page,.jr2-editorial,.ss-body){background:#fff!important;color:#181613!important}
 :is(.foundation-page,.jr2-editorial,.ss-body) :is(.article-hero,.authority-hero,.book-store-hero,.ss-hero){box-shadow:none!important}
 }
+
+
+/* v2.3 — private account surfaces, RCAS, BAHAR, independent founding journal. */
+:is(.student-dashboard-page,.customer-dashboard,.journal-page){
+--jr2-workspace:linear-gradient(135deg,#1c1b19,#101316);
+--jr2-workspace-rule:rgba(218,185,115,.26);
+accent-color:var(--jr2-gold)
+}
+:is(.student-dashboard-page,.customer-dashboard,.journal-page) :is(a,button,input,select,textarea,summary):focus-visible{
+outline:3px solid var(--jr2-gold-light);outline-offset:3px
+}
+:is(.student-dashboard-page,.customer-dashboard,.journal-page) :is(.button,.cd-btn,.cd-action,.dash-pill):not([disabled]){
+min-height:44px
+}
+/* Assessment stages: don't erase scientific confidence boundaries or lock status. */
+.student-dashboard-page :is(.gt-private-hero,.bahar-hero,.assessment-hero){
+background:radial-gradient(ellipse 55% 60% at 90% 10%,rgba(204,155,73,.13),transparent 77%),var(--jr2-workspace);
+border:1px solid var(--jr2-workspace-rule);
+border-radius:25px;box-shadow:0 22px 58px rgba(0,0,0,.23)
+}
+.student-dashboard-page :is(.gt-private-hero,.bahar-hero) h1{
+color:var(--jr2-ivory);line-height:1.35;text-wrap:balance
+}
+.student-dashboard-page :is(.gt-step,.bahar-card,.gt-module-grid>*,.dashboard-sidebar){
+border-color:var(--jr2-workspace-rule)
+}
+.student-dashboard-page :is(.gt-step,.bahar-card){
+border-radius:18px
+}
+.student-dashboard-page :is(.gt-private-hero,.bahar-hero) .lead{
+color:var(--jr2-copy);line-height:1.88
+}
+.student-dashboard-page :is(.gt-private-hero,.bahar-hero) .button.primary,
+.student-dashboard-page .dash-pill.primary{
+background:linear-gradient(125deg,#f6e0a3,#cda25a);
+color:#17130c;border-color:#ddb46e
+}
+.student-dashboard-page :is(.gt-step-no,.bahar-no){color:var(--jr2-gold-light)}
+.student-dashboard-page .dashboard-topbar{
+border-bottom:1px solid var(--jr2-workspace-rule)
+}
+/* Customer operating system; retain authentication and entitlement logic. */
+.customer-dashboard{
+--cd-gold:var(--jr2-gold);
+--cd-accent:var(--jr2-gold);
+accent-color:var(--jr2-gold)
+}
+.customer-dashboard :is(.cd-rail,.cd-topbar){
+border-color:var(--jr2-workspace-rule)
+}
+.customer-dashboard :is(.cd-stat,.cd-hero,.cd-command-center,.cd-journey-shell,.cd-home-priority,.cd-section){
+border-color:var(--jr2-workspace-rule)
+}
+.customer-dashboard :is(.cd-action.primary,.cd-btn.gold){
+background:linear-gradient(130deg,#f4e0ab,#c69a4b);
+color:#17130c;border-color:var(--jr2-gold)
+}
+.customer-dashboard .cd-brand-copy{
+line-height:1.5
+}
+.customer-dashboard :is(.cd-home-priority,.cd-command-center){
+box-shadow:0 18px 49px rgba(0,0,0,.2)
+}
+/* The journal is scientifically/administratively independent despite shared quality tokens. */
+.journal-page{--jhela-gold:var(--jr2-gold);color:var(--jr2-ivory)}
+.journal-page .journal-hero{
+border:1px solid var(--jr2-workspace-rule);
+border-radius:25px;
+background:radial-gradient(ellipse at 85% 10%,rgba(193,145,63,.13),transparent 68%),linear-gradient(130deg,#242019,#141719);
+box-shadow:0 24px 60px rgba(0,0,0,.23)
+}
+.journal-page .journal-hero h1{
+font-size:clamp(2.2rem,4.15vw,4.65rem);
+line-height:1.25;text-wrap:balance
+}
+.journal-page :is(.journal-status-card,.journal-section,.journal-role-grid>a,.journal-visual-pair){
+border-color:var(--jr2-workspace-rule)
+}
+.journal-page .journal-status-card{border-radius:16px}
+.journal-page :is(.journal-header,.journal-brand){color:inherit}
+@media(min-width:701px) and (max-width:1100px){
+.student-dashboard-page :is(.gt-private-hero,.bahar-hero){padding:clamp(24px,3.9vw,45px)}
+.journal-page .journal-hero{margin-inline:12px}
+}
+@media(max-width:700px){
+.student-dashboard-page :is(.gt-private-hero,.bahar-hero){
+padding:22px 17px;border-radius:18px
+}
+.student-dashboard-page :is(.gt-private-hero,.bahar-hero) h1{
+font-size:clamp(1.92rem,7.8vw,2.85rem)
+}
+.student-dashboard-page .bahar-cycle{max-width:100%;overflow-wrap:anywhere}
+.customer-dashboard :is(.cd-home-priority,.cd-command-center,.cd-hero){
+border-radius:17px
+}
+.journal-page .journal-hero{border-radius:19px}
+.journal-page .journal-hero h1{font-size:clamp(1.85rem,7.6vw,2.8rem)}
+}
+@media(prefers-reduced-motion:reduce){
+:is(.student-dashboard-page,.customer-dashboard,.journal-page) *{
+transition-duration:0s!important;animation-duration:0s!important
+}
+}
