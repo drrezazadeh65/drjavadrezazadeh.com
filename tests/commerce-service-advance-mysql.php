@@ -13,6 +13,7 @@ $pdo=new PDO($dsn,(string)(getenv('OPERATIONS_TEST_USER')?:''),
 define('BERTINA_API_BOOTSTRAPPED',true);
 require_once __DIR__.'/../api/commerce-stage9.php';
 require_once __DIR__.'/../api/consultation-delivery.php';
+require_once __DIR__.'/../api/consultation-availability.php';
 require_once __DIR__.'/../api/operations-fulfilment.php';
 require_once __DIR__.'/../api/operations-commerce.php';
 // Catalogue stub is restricted to the one fictitious service used by this CI fixture.
@@ -42,6 +43,9 @@ function refused(callable $fn,string $exception,string $name): void {
 $pdo->exec(file_get_contents(__DIR__.'/../docs/BERTINA_MYSQL_SCHEMA.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261012_stage09_commerce.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_preferences.sql'));
+$pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_availability.sql'));
+if(!operationsConsultationAvailabilitySchemaReady($pdo))
+    throw new RuntimeException('fixture_availability_schema_not_ready');
 if(!commerceConsultationPreferenceSchemaReady($pdo))
     throw new RuntimeException('fixture_consultation_schema_not_ready');
 $pdo->exec("CREATE TEMPORARY TABLE operations_audit (
@@ -100,6 +104,13 @@ checkService(!commerceConsultationValidChoice($sku,'IN_PERSON','TEHRAN')
     'ordinary_consultation_cannot_be_booked_in_person');
 $pdo->prepare('INSERT INTO commerce_consultation_preferences(order_id,sku,delivery_mode,meeting_city)
     VALUES(?,?,\'PHONE\',NULL)')->execute([$orderId,$sku]);
+refused(fn()=>operationsCommerceServiceAdvance($pdo,$actor,$booked),
+ DomainException::class,'booking_without_explicit_owner_capacity_denied');
+$pdo->prepare("INSERT INTO commerce_consultation_availability(id,start_utc,end_utc,state,created_by)
+ VALUES(?,?,?,'OPEN',?)")->execute([
+ '11111111-1111-4111-8111-111111111195',
+ gmdate('Y-m-d H:i:s',time()+600),gmdate('Y-m-d H:i:s',time()+14400),$actor
+ ]);
 checkService(operationsCommerceServiceAdvance($pdo,$actor,$booked)['bookingScheduled']===true,
  'booking_times_must_be_explicit');
 $observed=$pdo->prepare('SELECT status,booking_start,booking_end
