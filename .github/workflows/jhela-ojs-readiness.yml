@@ -2,10 +2,10 @@ name: JHELA OJS Operational Readiness
 on:
   push:
     branches: [migration/bertina-linux6]
-    paths: ['scripts/jhela-ojs-*', 'platform/jhela-ojs-activation.json', 'docs/governance/JHELA_OJS_INSTALLATION_RUNBOOK_20261012.md', '.github/workflows/jhela-ojs-readiness.yml']
+    paths: ['scripts/jhela-ojs-*', 'tests/jhela-ojs-installer-check.py', 'platform/jhela-ojs-activation.json', 'docs/governance/JHELA_OJS_INSTALLATION_RUNBOOK_20261012.md', '.github/workflows/jhela-ojs-readiness.yml']
   pull_request:
     branches: [migration/bertina-linux6]
-    paths: ['scripts/jhela-ojs-*', 'platform/jhela-ojs-activation.json', '.github/workflows/jhela-ojs-readiness.yml']
+    paths: ['scripts/jhela-ojs-*', 'tests/jhela-ojs-installer-check.py', 'platform/jhela-ojs-activation.json', '.github/workflows/jhela-ojs-readiness.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,6 +30,7 @@ jobs:
       - name: Syntax and isolated journal source gates
         run: |
           php -l scripts/jhela-ojs-readiness.php
+          php -l scripts/jhela-ojs-installer-check.php
           node --check scripts/jhela-ojs-source-audit.mjs
           node scripts/jhela-ojs-source-audit.mjs
           node scripts/jhela-discovery-audit.mjs
@@ -37,6 +38,8 @@ jobs:
         run: |
           python3 -m py_compile scripts/jhela-ojs-stage-package.py tests/jhela-ojs-stage-package.py
           python3 tests/jhela-ojs-stage-package.py
+      - name: Adversarial installer filesystem guard fixtures
+        run: python3 tests/jhela-ojs-installer-check.py
       - name: Verify PHP capabilities without touching production
         run: php scripts/jhela-ojs-readiness.php --contract
       - name: Disclose evidence boundary
