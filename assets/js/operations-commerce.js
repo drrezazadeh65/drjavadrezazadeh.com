@@ -225,7 +225,51 @@
     const hint=node('p',text(
       'برای روزهای مختلف، جداگانه بازه ثبت کنید: مثلاً شنبه دو ساعت، یکشنبه چهار ساعت. امکان افزودن بازه دوم به همان روز فقط تا سقف چهار ساعت وجود دارد.',
       'Set each day independently, for example two hours Saturday and four Sunday. A second window is allowed only within the four-hour daily maximum.'),'ops-muted');
-    editor.append(hint);wrapper.append(editor);
+    editor.append(hint);
+    // A seven-day planner is an owner convenience only: choosing a day fills
+    // the editor; NOTHING is published before explicit owner confirmation.
+    const planner=node('section',undefined,'ops-week-planner');
+    planner.append(node('h4',text('برنامهٔ هفت روز آینده','Next seven days')));
+    planner.append(node('p',text(
+      'برای هر روز فقط زمان‌های واقعاً قابل ارائه را منتشر کنید؛ آمار زیر ساعات منتشرشده است، نه تعداد مشتریان یا رزروهای واقعی.',
+      'Publish only actual consulting hours. Counts below are owner-published hours, not purchases, bookings or live external availability.'),'ops-muted'));
+    const weekGrid=node('div',undefined,'ops-week-grid');
+    const zoneParts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Tehran',
+      year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+    const part=key=>Number(zoneParts.find(p=>p.type===key)?.value);
+    const year=part('year'),month=part('month'),day=part('day');
+    const midnight=Date.UTC(year,month-1,day);
+    const goodWindows=Array.isArray(capacity.windows)&&capacity.truncated!==true;
+    for(let i=0;i<7;i++){
+      const utcDay=new Date(midnight+i*86400000);
+      const key=utcDay.toISOString().slice(0,10);
+      const nextKey=new Date(midnight+(i+1)*86400000).toISOString().slice(0,10);
+      const dayName=new Intl.DateTimeFormat(en?'en-GB':'fa-IR',
+        {timeZone:'UTC',weekday:'long',day:'numeric',month:'long'}).format(utcDay);
+      const card=node('div',undefined,'ops-week-day');
+      card.append(node('strong',dayName));
+      const begin=tehranWallToUtc(key,'00:00');
+      const end=tehranWallToUtc(nextKey,'00:00');
+      if(goodWindows&&begin!==null&&end!==null){
+        const count=capacity.windows.reduce((total,w)=>{
+          const start=utcLabel(w?.startUtc)?new Date(w.startUtc.replace(' ','T')+'Z').getTime():NaN;
+          const finish=utcLabel(w?.endUtc)?new Date(w.endUtc.replace(' ','T')+'Z').getTime():NaN;
+          if(!Number.isFinite(start)||!Number.isFinite(finish))return total;
+          return total+Math.max(0,Math.min(finish,end)-Math.max(start,begin));
+        },0)/3600000;
+        card.append(node('p',text('ساعت منتشرشده: ','Published hours: ')+
+          String(Math.round(count*100)/100)+' / 4','ops-muted'));
+      }else card.append(node('p',text('آمار این روز قابل تأیید نیست',
+        'Daily published hours unverified'),'ops-muted'));
+      const selectDay=node('button',text('تنظیم ساعت این روز','Set hours for this day'),'button');
+      selectDay.type='button';
+      selectDay.addEventListener('click',()=>{
+        date.value=key;date.focus();
+        editor.scrollIntoView({behavior:'smooth',block:'nearest'});
+      });
+      card.append(selectDay);weekGrid.append(card);
+    }
+    planner.append(weekGrid);wrapper.append(planner,editor);
     publish.addEventListener('click',()=>{
       const t=tehranWallToUtc(date.value,start.value);
       const hours=Number(duration.value);
