@@ -1,5 +1,6 @@
 name: Identity OS validation
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'identity/**'
