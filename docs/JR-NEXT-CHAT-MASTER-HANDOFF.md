@@ -47,3 +47,8 @@ Inspect current GitHub branch, FA/EN homepage markup, existing mobile nav JS/CSS
 
 ## Latest navigation regression expansion
 - `f767ec9a6ad46ac6c15aedb4d59b973b2284546a`: FA/EN Playwright test also exercises close-button dismissal, focus restoration, and history cleanup before reopening. Code committed; test run unverified.
+
+## Desktop navigation continuation
+- `3434193c55abf68a9c57b5c11c2e1c053713979f`: desktop details groups are mutually exclusive, close on outside click and close/focus summary on Escape.
+- `89a8bc5b4a3d5e2dfa07e4f7a78fc254e2eacef4`: Playwright FA/EN desktop navigation regression coverage added to existing navigation spec, which is already included in the Bertina workflow.
+- Test execution and live deployment remain unverified. Review event ordering for click/toggle and keyboard Escape under Playwright before release.
