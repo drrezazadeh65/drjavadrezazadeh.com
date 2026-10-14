@@ -12,7 +12,14 @@ test('full-scope release permits backend and public changes to enter mandatory p
 });
 
 test('full scope also permits backend-only changes but not documentation-only changes',()=>{
-  assert.equal(decideAutomaticRelease(classifyPaths(['api/commerce/health.php'])).allowed,true);
+  assert.equal(decideAutomaticRelease(classifyPaths(['api/commerce/health.php']),'full').allowed,true);
+  assert.equal(decideAutomaticRelease(classifyPaths(['docs/notes.md']),'full').allowed,false);
+});
+
+test('standing automatic default never promotes protected backend work',()=>{
+  assert.equal(decideAutomaticRelease(classifyPaths(['api/auth.php'])).allowed,false);
+  assert.equal(decideAutomaticRelease(classifyPaths(['fa/index.html','api/auth.php'])).allowed,false);
+  assert.equal(decideAutomaticRelease(classifyPaths(['fa/index.html'])).allowed,true);
   assert.equal(decideAutomaticRelease(classifyPaths(['docs/notes.md'])).allowed,false);
 });
 
