@@ -40,5 +40,19 @@
   ],
   "activation": "FAIL_CLOSED_UNTIL_NATIVE_OJS_RUNTIME_AND_OWNER_GATES_PASS",
   "evidenceRule": "Never change readiness booleans from a CI test or source commit; independently verify production runtime and actual test email/role workflows",
-  "notedAt": "2026-10-12"
+  "notedAt": "2026-10-12",
+  "canonicalDomainDecision": {
+    "decidedBy": "SITE_OWNER",
+    "date": "2026-10-15",
+    "selectedHost": "journal.drjavadrezazadeh.com",
+    "status": "FINAL_OWNER_SELECTED_NOT_YET_PROVISIONED",
+    "currentCpanelHost": "journals.drjavadrezazadeh.com",
+    "currentCpanelDocumentRoot": "/public_html/journals",
+    "existingApplicationPreservationRequired": true,
+    "canonicalCutoverAuthorized": false,
+    "legacyRedirectAuthorized": false,
+    "manuscriptStorageOutsidePublicHtmlRequired": true,
+    "publicJournalInformationRoutesPreserved": true,
+    "nextGate": "Verify cPanel domain-management options, then provision singular host and trusted TLS without changing existing OJS files."
+  }
 }
