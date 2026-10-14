@@ -49,3 +49,43 @@ The branch's `.bertina-backup-trigger` is expired: that does **not** prohibit th
 - No BitPay payment, stock shipment, student-support donation, journal manuscript submission or social post was executed by the source tests.
 - Neither the GitHub release CI nor this document can certify that the website was deployed; **only an exact live SHA match and successful production acceptance run can**.
 - `STAGE09_PRIVATE_DEPENDENCIES.json` continues to block monetary release authorization and real charge/refund tests; a controlled *file* release is not financial-operations approval.
+
+## Superseding development instructions — 2026-10-14
+
+**The instructions below supersede the 2026-10-13 `public_only` automatic
+release scope and deployment-managed cPanel backup custody conditions.** The
+earlier section above is preserved as historical evidence, not as the active
+release policy.
+
+- Current canonical development-release scope: **FULL** for eligible page,
+  asset, PHP API, JavaScript and platform source changes.
+- Default release mode: `hosting_managed` on push and owner manual dispatch.
+  **Deployment does not make, inspect, download, verify, require, rotate,
+  prune or delete host backup files.** Automatic backup operations, if any,
+  are entirely external to this deployment job.
+- Still mandatory before extraction: exact trusted live `/sw.js` SHA,
+  canonical branch/HEAD, source eligibility, isolated code/security tests,
+  read-only production schema compatibility, authenticated deploy token,
+  secure FTPS/TLS and checksum verification. No bypass of these safeguards.
+- Workflow/authority modifications, production SQL migrations, credentials,
+  real-money payments, refunds and inventory reseeding are **not** granted
+  automatically by `FULL`. Historical `signed_restore` and
+  `owner_cpanel_custody` can be invoked explicitly if later chosen, but
+  they are not preconditions for `hosting_managed`.
+- The owner accepts that the provider backup is not verified or certified
+  by this workflow. Neither a successful deployment nor a configured backup
+  policy is evidence that any customer/order/database restore can succeed.
+
+### Official Bertina evidence consulted on 2026-10-14
+
+- Bertina Linux marketing: https://www.bertina.ir/hosting/linux
+  describes continuous three-layer backup coverage.
+- Bertina terms: https://www.bertina.ir/tos (section «بکاپ داده ها»)
+  state that provider server backups are for Bertina internal operations;
+  they might not contain an individual account; independent off-host backups
+  are the customer's contractual responsibility; provider restore may be
+  unavailable or fee-based.
+
+This discrepancy is documented as a recovery risk, **not** converted into a
+deployment-managed backup gate against the owner's explicit development
+instruction. Do not invent a recovery receipt or claim guaranteed restorability.
