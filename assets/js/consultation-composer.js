@@ -87,6 +87,16 @@
       }
       var labels = fa ? ['نوع خدمت', 'نقش یا زمینه', 'سؤال اصلی', 'مهلت'] : ['Service', 'Context', 'Main question', 'Deadline'];
       var text = values.map(function (value, index) { return value ? labels[index] + ': ' + value : ''; }).filter(Boolean).join('\n\n');
+      // A preference is not a booking. Keep the mode allowlisted rather than
+      // trusting modified form option labels or granting in-person access.
+      var modeField = form.elements.namedItem('delivery_mode');
+      var mode = modeField ? modeField.value : '';
+      var modeLabels = fa ? { PHONE: 'تلفنی', VIDEO: 'آنلاین تصویری' } : { PHONE: 'Telephone', VIDEO: 'Online video' };
+      if (mode && !Object.prototype.hasOwnProperty.call(modeLabels, mode)) {
+        status.textContent = fa ? 'روش انتخابی مشاوره معتبر نیست.' : 'The selected consultation format is not valid.';
+        return;
+      }
+      if (mode) text += '\n\n' + (fa ? 'روش ترجیحی جلسه: ' : 'Preferred session format: ') + modeLabels[mode];
       var subject = (fa ? 'درخواست مشاوره: ' : 'Consultation request: ') + values[0];
       draft.value = text;
       email.setAttribute('href', recipient + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(text));
