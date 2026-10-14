@@ -203,3 +203,54 @@ for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/'
   expect(details).toBe(0);
  });
 }
+
+
+for(const [locale,account,intake] of [
+  ['fa','/fa/customer-dashboard/','/fa/darkhast-moshavere/'],
+  ['en','/en/account/','/en/request-consultation/']
+]){
+ test(locale+' uses same verified hour from dashboard through intake, without auto-booking',async({page})=>{
+   await page.setViewportSize({width:390,height:844});
+   let readCount=0;
+   const data={ok:true,schema:'consultation-week-v1',timezone:'Asia/Tehran',
+     slotMinutes:60,maxPublishedDailyHours:4,customerReservationEnabled:false,
+     externalCalendarConfirmed:false,days:Array.from({length:7},(_,i)=>({
+       date:new Date(Date.UTC(2030,0,1+i)).toISOString().slice(0,10),
+       totalSlots:i===0?2:0,remainingSlots:i===0?1:0,
+       slots:i===0?[
+         {startUtc:'2030-01-01 07:00:00',endUtc:'2030-01-01 08:00:00',status:'AVAILABLE'},
+         {startUtc:'2030-01-01 08:00:00',endUtc:'2030-01-01 09:00:00',status:'FULL'}
+       ]:[]
+     }))};
+   await page.route('**/api/commerce/consultation-week',route=>{
+     expect(route.request().method()).toBe('GET');
+     readCount++;
+     return route.fulfill({json:data});
+   });
+   await page.route('**/api/auth/**',route=>{
+     const url=new URL(route.request().url()).pathname;
+     if(url.endsWith('/health'))return route.fulfill({json:{ok:true,ready:false}});
+     return route.fulfill({status:401,json:{ok:false}});
+   });
+   await page.goto(base+account+'#consultations',{waitUntil:'domcontentloaded'});
+   const ownerWeek=page.locator('#consultations [data-consultation-week]');
+   await expect(ownerWeek).toHaveCount(1);
+   await expect(ownerWeek.locator('.cw-day')).toHaveCount(7);
+   await expect(ownerWeek.locator('.cw-free')).toHaveCount(1);
+   await expect(ownerWeek.locator('.cw-full')).toHaveCount(1);
+   await expect(ownerWeek.locator('.cw-full')).toBeDisabled();
+   await ownerWeek.locator('.cw-free').click();
+   await expect(page).toHaveURL(new RegExp(intake.replaceAll('/','\\/')+'\\?slot='));
+   await expect(page.locator('[data-consultation-week] .cw-free')).toHaveCount(1);
+   const form=page.locator('form[data-consultation-composer]');
+   await expect(form.locator('input[name="preferred_slot"]')).toHaveValue('2030-01-01 07:00:00');
+   await form.locator('select[name="service"]').selectOption({index:1});
+   await form.locator('input[name="context"]').fill('A study decision');
+   await form.locator('textarea[name="question"]').fill('Which route is appropriate?');
+   await form.locator('button[type="submit"]').click();
+   await expect(form.locator('[data-composer-draft]')).toHaveValue(/Asia\/Tehran/);
+   await expect(form.locator('[data-composer-status]')).toContainText(
+     locale==='fa'?'هنوز ارسال نشده':'has not been sent');
+   expect(readCount).toBeGreaterThanOrEqual(2);
+ });
+}
