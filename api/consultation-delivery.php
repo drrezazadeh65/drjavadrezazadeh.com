@@ -32,6 +32,47 @@ function commerceConsultationPreferenceSchemaReady(?PDO $pdo): bool {
             'SELECT order_id,sku,delivery_mode,meeting_city,updated_at FROM commerce_consultation_preferences LIMIT 0',
             'SELECT event_id,order_id,sku,actor_account_id,previous_mode,next_mode,previous_city,next_city FROM commerce_consultation_preference_events LIMIT 0'
         ] as $sql)if($pdo->query($sql)===false)return false;
+        // Valid column names alone do not make a trustworthy migration.
+        // Enforce InnoDB transactions plus the two case foreign keys and the
+        // phone/video versus in-person city CHECK on every protected write.
+        // Only INFORMATION_SCHEMA metadata is inspected, never customer rows.
+        $required=[
+            'commerce_consultation_preferences'=>[
+                'fk_commerce_consultation_case'=>'FOREIGN KEY',
+                'ck_commerce_consultation_city'=>'CHECK'
+            ],
+            'commerce_consultation_preference_events'=>[
+                'fk_consultation_preference_events_case'=>'FOREIGN KEY'
+            ]
+        ];
+        $engines=$pdo->query("SELECT TABLE_NAME AS table_name,ENGINE AS engine
+            FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()
+              AND TABLE_NAME IN ('commerce_consultation_preferences',
+                'commerce_consultation_preference_events')")->fetchAll(PDO::FETCH_ASSOC);
+        $seenEngines=[];
+        foreach($engines as $table){
+            $seenEngines[strtolower((string)$table['table_name'])]=(string)$table['engine'];
+        }
+        foreach(array_keys($required) as $table){
+            if(strcasecmp($seenEngines[$table]??'','InnoDB')!==0)return false;
+        }
+        $constraints=$pdo->query("SELECT TABLE_NAME AS table_name,
+                CONSTRAINT_NAME AS constraint_name,CONSTRAINT_TYPE AS constraint_type
+            FROM information_schema.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA=DATABASE()
+              AND TABLE_NAME IN ('commerce_consultation_preferences',
+                'commerce_consultation_preference_events')")->fetchAll(PDO::FETCH_ASSOC);
+        $actual=[];
+        foreach($constraints as $constraint){
+            $table=strtolower((string)$constraint['table_name']);
+            $name=strtolower((string)$constraint['constraint_name']);
+            $actual[$table][$name]=strtoupper((string)$constraint['constraint_type']);
+        }
+        foreach($required as $table=>$definitions){
+            foreach($definitions as $name=>$type){
+                if(($actual[$table][$name]??null)!==$type)return false;
+            }
+        }
         return true;
     }catch(Throwable $e){return false;}
 }
