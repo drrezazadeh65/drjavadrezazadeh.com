@@ -511,3 +511,67 @@ test('without verified consultation capacity schema the owner cannot publish tim
  await expect(availability.locator('input')).toHaveCount(0);
  await expect(availability.getByRole('button',{name:'Publish genuine capacity'})).toHaveCount(0);
 });
+
+
+// customer dashboard weekly calendar and consented enquiry linkage:
+for(const [locale,route,intake] of [
+ ['fa','/fa/customer-dashboard/','/fa/darkhast-moshavere/'],
+ ['en','/en/account/','/en/request-consultation/']
+]){
+  test(locale+' customer dashboard revalidates genuine weekly hours on enquiry route',async({page})=>{
+    const days=Array.from({length:7},(_,i)=>{
+      const day=new Date(Date.UTC(2026,9,19+i)).toISOString().slice(0,10);
+      const slots=i===0?[
+        {startUtc:'2026-10-19 12:30:00',endUtc:'2026-10-19 13:30:00',status:'AVAILABLE'},
+        {startUtc:'2026-10-19 13:30:00',endUtc:'2026-10-19 14:30:00',status:'FULL'}
+      ]:[];
+      return {date:day,totalSlots:slots.length,
+        remainingSlots:slots.filter(x=>x.status==='AVAILABLE').length,slots};
+    });
+    let reads=0;
+    await page.route('**/api/commerce/consultation-week',route=>{
+      reads++;
+      return route.fulfill({json:{ok:true,schema:'consultation-week-v1',
+        timezone:'Asia/Tehran',slotMinutes:60,maxPublishedDailyHours:4,
+        customerReservationEnabled:false,externalCalendarConfirmed:false,days}});
+    });
+    await page.goto(base+route);
+    await page.setViewportSize({width:390,height:844});
+    await page.locator('a[data-section="consultations"]').first().click();
+    const week=page.locator('#consultations [data-consultation-week]');
+    await expect(week.locator('.cw-day')).toHaveCount(7);
+    await expect(week.locator('.cw-free')).toHaveCount(1);
+    await expect(week.locator('.cw-full')).toHaveCount(1);
+    await expect(week.locator('.cw-full')).toBeDisabled();
+    await week.locator('.cw-free').click();
+    await expect(page).toHaveURL(new RegExp(intake.replaceAll('/','\\/')+'\\?slot='));
+    await expect(page.locator('form[data-consultation-composer] input[name="preferred_slot"]'))
+      .toHaveValue('2026-10-19 12:30:00');
+    expect(reads).toBeGreaterThanOrEqual(2);
+    await expect(page.locator('form[data-consultation-composer] [data-composer-preview]')).toBeHidden();
+  });
+  test(locale+' customer dashboard separates owner-authenticated enquiries from paid appointments',async({page})=>{
+    let reads=0;
+    await page.route('**/api/growth/leads/mine',route=>{
+      reads++;
+      return route.fulfill({json:{ok:true,evidenceScope:'OWNER_ONLY_NO_PAYMENT_CLAIMS',
+        requests:[{service_id:'service:academic_consult_60',state:'NEW'},
+          {service_id:'vip:golden-talent-signature',state:'WITHDRAWN'}]}});
+    });
+    await page.goto(base+route);
+    await page.locator('a[data-section="consultations"]').first().click();
+    const lead=page.locator('#consultations [data-customer-consultation-leads]');
+    await expect(lead).toBeVisible();
+    expect(reads).toBe(0);
+    await lead.locator('[data-consultation-lead-check]').click();
+    await expect(lead.locator('.appointment-private-list li')).toHaveCount(2);
+    await expect(lead).toContainText(locale==='fa'?'دریافت‌شده':'Received');
+    await expect(lead).not.toContainText('private-buyer@example.invalid');
+    expect(reads).toBe(1);
+    await page.route('**/api/growth/leads/mine',route=>route.fulfill({
+      status:503,json:{ok:false,error:'secure_lead_capture_unavailable'}}));
+    await lead.locator('[data-consultation-lead-check]').click();
+    await expect(lead.locator('.appointment-private-list li')).toHaveCount(0);
+    await expect(lead).toContainText(locale==='fa'?'قابل':'could not be verified');
+  });
+}
