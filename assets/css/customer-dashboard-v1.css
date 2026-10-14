@@ -850,3 +850,124 @@ html[data-customer-authenticated="true"] .cd-auth-state::before{background:var(-
 /* Windows-safe dashboard typography: avoid dependence on a locally installed Inter font whose glyph cmap may be corrupted or overridden. */
 body.customer-dashboard:not(.rtl){font-family:"Segoe UI",Arial,"Helvetica Neue",Helvetica,sans-serif}
 body.customer-dashboard:not(.rtl) :is(button,input,select,textarea){font-family:inherit}
+
+
+/* Canonical private buyer consultations: authenticated server facts only.
+   Larger controls intentionally match the mobile accessibility standard. */
+#consultations .cd-appointment-live,
+#consultations .cd-appointment-guide{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+#consultations .cd-appointment-live h3,
+#consultations .cd-appointment-guide h3{
+  font-size:clamp(18px,1.4vw,21px);
+  line-height:1.6;
+}
+#consultations .cd-appointment-live .cd-panel-sub,
+#consultations .cd-appointment-guide .cd-panel-sub{
+  font-size:15px;
+  line-height:1.9;
+}
+#consultations .cd-appointment-guide > p{
+  font-size:15px;
+  line-height:1.95;
+}
+#consultations .cd-appointment-check,
+#consultations .appointment-preference button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  max-width:100%;
+  min-height:46px;
+  padding:12px 18px;
+  border:1px solid rgba(217,185,107,.70);
+  border-radius:12px;
+  background:#272216;
+  color:#f4e5b7;
+  font-family:inherit;
+  font-size:16px;
+  font-weight:700;
+  line-height:1.6;
+  white-space:normal;
+  cursor:pointer;
+}
+#consultations .cd-appointment-check:focus-visible,
+#consultations .appointment-preference button:focus-visible,
+#consultations .appointment-preference select:focus-visible{
+  outline:3px solid #f2d58a;
+  outline-offset:3px;
+}
+#consultations .cd-appointment-check:disabled,
+#consultations .appointment-preference button:disabled{
+  opacity:.6;
+  cursor:wait;
+}
+#consultations .cd-appointment-results{
+  margin-top:18px;
+  font-size:15px;
+  line-height:1.95;
+}
+#consultations .appointment-private-list{
+  display:grid;
+  gap:12px;
+  padding:0;
+  margin:16px 0;
+  list-style:none;
+}
+#consultations .appointment-private-list > li{
+  padding:16px;
+  border:1px solid var(--cd-line);
+  border-radius:14px;
+  background:rgba(255,255,255,.018);
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+#consultations .appointment-private-list > li > strong{
+  display:block;
+  color:#f1e4c9;
+  font-size:16px;
+  line-height:1.7;
+}
+#consultations .appointment-private-list p{
+  font-size:15px;
+  line-height:1.95;
+  margin:8px 0;
+}
+#consultations .appointment-private-list small{
+  font-size:13px;
+  word-break:break-word;
+}
+#consultations .appointment-preference{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid var(--cd-line);
+  display:grid;
+  gap:10px;
+}
+#consultations .appointment-preference label{
+  display:grid;
+  gap:7px;
+  font-size:15px;
+  line-height:1.75;
+  color:#e9d9b3;
+}
+#consultations .appointment-preference select{
+  min-width:0;
+  width:100%;
+  min-height:46px;
+  box-sizing:border-box;
+  border:1px solid var(--cd-line);
+  border-radius:11px;
+  background:#0c141d;
+  color:#edf1f5;
+  padding:10px 12px;
+  font:inherit;
+  font-size:16px;
+}
+@media(max-width:720px){
+  #consultations .cd-duo{grid-template-columns:1fr}
+  #consultations .cd-appointment-check,
+  #consultations .appointment-preference button{width:100%}
+  #consultations .appointment-private-list > li{padding:13px}
+}
