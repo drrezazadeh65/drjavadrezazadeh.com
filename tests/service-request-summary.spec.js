@@ -1,4 +1,6 @@
 const {test,expect}=require('@playwright/test');
+// Route-based synthetic API fixtures must not be bypassed by a registered PWA worker.
+test.use({serviceWorkers:'block'});
 
 test('service intent keeps the selected offer and makes scope, outcome, and price visible before email',async({page})=>{
   await page.route('**/assets/data/service-catalog.json',route=>route.fulfill({
