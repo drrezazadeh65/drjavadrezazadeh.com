@@ -444,3 +444,66 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
     .toBeLessThanOrEqual(1);
  });
 }
+
+
+test('owner-only capacity editor converts Tehran hours and submits after fresh MFA',async({page})=>{
+ const payload={ok:true,schema:'operations-commerce-evidence-v1',available:true,
+  orders:{states:{},pendingRecords:0,paidStateRecords:0,totalRows:0},
+  claims:{paidRowsRequiringIndependentProviderReconciliation:0},
+  stock:{rows:[],ledgerDiscrepancies:0,rowsWithoutReconciliationTimestamp:0},
+  notifications:{outboxStates:{},paidOrderRowsWithoutReceiptEmailTimestamp:0},
+  fulfilment:{serviceCaseStates:{},parcelStates:{},activeServiceCaseCount:0,
+    activeParcelCount:0,serviceActionQueue:[],parcelActionQueue:[],
+    internalAvailability:{schemaReady:true,scope:'single_owner_explicit_windows_only',
+      timeZone:'UTC',openWindowCount:0,windows:[],truncated:false,
+      externalAvailabilityConfirmed:false},
+    internalCalendar:{totalUpcoming:0,windows:[],truncated:false}}};
+ let submission=null;
+ await authorized(page);
+ await page.route('**/api/admin/operations/commerce',route=>route.fulfill({json:payload}));
+ await page.route('**/api/admin/operations/commerce/availability',route=>{
+   const req=route.request();
+   expect(req.method()).toBe('POST');
+   expect(req.headers()['x-csrf-token']).toBe('c'.repeat(64));
+   submission=req.postDataJSON();
+   return route.fulfill({json:{ok:true,schema:'commerce-consultation-capacity-v1',
+     change:{state:'OPEN',appointmentConfirmed:false,customerNotified:false}}});
+ });
+ page.on('dialog',dialog=>dialog.accept());
+ await page.setViewportSize({width:390,height:844});
+ await page.goto(base+'/fa/app/admin/');
+ await page.locator('#ops-commerce > summary').click();
+ const editor=page.locator('#ops-commerce-results .ops-capacity');
+ await expect(editor).toHaveCount(1);
+ await editor.locator('summary').click();
+ await editor.locator('input[type="date"]').fill('2026-10-20');
+ await editor.locator('input[type="time"]').fill('14:00');
+ await editor.locator('select').selectOption('2');
+ await editor.getByRole('button',{name:'انتشار این بازه'}).click();
+ await expect.poll(()=>submission).not.toBeNull();
+ expect(submission).toEqual({
+   action:'open',windowId:null,startUtc:'2026-10-20 10:30:00',
+   endUtc:'2026-10-20 12:30:00'
+ });
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ expect(await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,
+  document.body.scrollWidth)-innerWidth)).toBeLessThanOrEqual(1);
+});
+test('without verified consultation capacity schema the owner cannot publish time',async({page})=>{
+ await authorized(page);
+ await page.route('**/api/admin/operations/commerce',route=>route.fulfill({json:{
+  ok:true,schema:'operations-commerce-evidence-v1',available:true,
+  orders:{states:{}},claims:{},stock:{rows:[]},notifications:{outboxStates:{}},
+  fulfilment:{serviceCaseStates:{},parcelStates:{},activeServiceCaseCount:0,
+   serviceActionQueue:[],parcelActionQueue:[],
+   internalAvailability:{schemaReady:false,windows:[],openWindowCount:null}}
+ }}));
+ await page.goto(base+'/en/account/admin/');
+ await page.locator('#ops-commerce > summary').click();
+ const availability=page.locator('#ops-commerce-results .ops-capacity');
+ await expect(availability).toHaveCount(1);
+ await availability.locator('summary').click();
+ await expect(availability).toContainText('not verified');
+ await expect(availability.locator('input')).toHaveCount(0);
+ await expect(availability.getByRole('button',{name:'Publish genuine capacity'})).toHaveCount(0);
+});
