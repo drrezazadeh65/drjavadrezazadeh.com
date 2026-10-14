@@ -62,3 +62,7 @@ Inspect current GitHub branch, FA/EN homepage markup, existing mobile nav JS/CSS
 
 ## Responsive navigation test coverage
 - `c6dcbd392cc8abcfd244bbcf9ae5d0a3bc8b65f4`: adds FA/EN Playwright viewport checks at 320px and 430px, with minimum 40px trigger dimensions, sheet open/close, horizontal overflow and JS error checks. These are regression assertions, not passing test results.
+
+## Keyboard accessibility coverage
+- `21c4a73050839c6ae1f7f902f55462760ebfb126`: bilingual Playwright checks mobile menu Tab and Shift+Tab focus wrapping, Escape focus restoration and ARIA open/closed synchronization.
+- Regression source is included in the existing Bertina browser workflow. Execution, CI pass and production deployment are NOT verified.
