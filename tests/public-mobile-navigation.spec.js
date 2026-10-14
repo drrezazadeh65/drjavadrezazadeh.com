@@ -54,3 +54,16 @@ for(const locale of ['fa','en']){
   expect(errors).toEqual([]);
  });
 }
+
+for(const locale of ['fa','en']){
+ test(locale+' mobile menu link navigates without returning to previous page',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('http://127.0.0.1:4173/'+locale+'/');
+  await page.locator('.site-header [data-nav-toggle]').click();
+  const link=page.locator('#mobile-app-menu a[href]').first();
+  const destination=await link.evaluate(a=>new URL(a.href,location.href).pathname);
+  await link.click();
+  await expect.poll(()=>new URL(page.url()).pathname).toBe(destination);
+  await expect(page.locator('#mobile-app-menu')).toBeHidden();
+ });
+}
