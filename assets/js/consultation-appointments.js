@@ -39,6 +39,7 @@
  const timezone=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
  const DELIVERY_LABELS={
    PHONE:t('تلفنی','Telephone'),
+   VOICE:t('تماس صوتی آنلاین','Online voice call'),
    VIDEO:t('آنلاین تصویری','Online video'),
    IN_PERSON:t('حضوری (صرفاً VIP یا کوچینگ سالانه)','In person (VIP or annual coaching only)')
  };
