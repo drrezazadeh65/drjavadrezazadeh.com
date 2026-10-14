@@ -1,0 +1,58 @@
+name: JHELA Bertina AutoSSL Account Preflight
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jhela-bertina-autossl-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jhela-cpanel-ssl-preflight-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  read-only-cpanel-autossl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Confirm cPanel AutoSSL API access without modifying the host
+        env:
+          CPANEL_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          CPANEL_PASS: ${{ secrets.BERTINA_FTP_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$CPANEL_USER" ] || [ -z "$CPANEL_PASS" ]; then
+            echo "CPANEL_ACCESS_NOT_CONFIGURED: existing GitHub-hosted credentials unavailable."
+            exit 1
+          fi
+          echo "::add-mask::$CPANEL_USER"
+          echo "::add-mask::$CPANEL_PASS"
+          # Do NOT use -k / --insecure. Never expose API data or private credentials in logs.
+          host="https://server388.bertina.biz:2083"
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          check() {
+            local label="$1" path="$2" result="$tmp/$1.json" status
+            status="$(curl --noproxy '*' --silent --show-error --max-time 20 \
+              --user "$CPANEL_USER:$CPANEL_PASS" --output "$result" \
+              --write-out '%{http_code}' "$host/execute/$path")" || {
+              echo "$label: SECURE_CONNECT_OR_AUTH_FAILED"
+              return 1
+            }
+            if [ "$status" != 200 ]; then
+              echo "$label: CPANEL_HTTP_$status"
+              return 1
+            fi
+            if ! jq -e '.result.status == 1' "$result" >/dev/null 2>&1; then
+              echo "$label: CPANEL_API_NOT_GRANTED_OR_FAILED"
+              return 1
+            fi
+            echo "$label: CPANEL_API_OK"
+          }
+          check "autossl_exclusions" "SSL/get_autossl_excluded_domains"
+          check "journal_renewal" "SSL/get_autossl_renewal_status?domain=journal.drjavadrezazadeh.com"
+          check "old_journals_renewal" "SSL/get_autossl_renewal_status?domain=journals.drjavadrezazadeh.com"
+          check "autossl_running" "SSL/is_autossl_check_in_progress"
+          echo "READ_ONLY_CPANEL_AUTOSSL_PREFLIGHT_PASSED"
+          echo "Read-only cPanel AutoSSL API access verified. No certificates, DNS, redirects, OJS files or site accounts were changed." >> "$GITHUB_STEP_SUMMARY"
