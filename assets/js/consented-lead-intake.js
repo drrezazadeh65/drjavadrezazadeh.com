@@ -16,6 +16,7 @@
   const list=form.querySelector('[data-stage14-lead-list]');
   const submit=form.querySelector('[type="submit"]');
   const consentVersion='stage14-consultation-v1';
+  const serviceLabels=new Map();
   const englishTitles=Object.freeze({
     academic_consult_60:'Specialist educational consultation',
     student_parent_90:'Joint student and parent session',
@@ -51,6 +52,7 @@
         const option=document.createElement('option');
         option.value='service:'+service.id;
         option.textContent=titleFor(service);
+        serviceLabels.set(option.value,option.textContent);
         choice.append(option);
       }
       choice.disabled=choice.options.length<=1;
@@ -122,8 +124,9 @@
         const entry=document.createElement('li');
         const span=document.createElement('span');
         const serviceId=String(r.service_id||t('خدمت','Service'));
+        const serviceTitle=serviceLabels.get(serviceId)||serviceId;
         const state=String(r.state||t('نامشخص','Unknown'));
-        span.textContent=serviceId+' — '+state+' ';
+        span.textContent=serviceTitle+' — '+state+' ';
         entry.append(span);
         if(r.state!=='WITHDRAWN'&&typeof r.id==='string'){
           const button=document.createElement('button');
@@ -134,7 +137,7 @@
             try{
               const out=await callApi('/api/growth/leads/withdraw',{leadId:r.id});
               if(out.state==='WITHDRAWN'){
-                span.textContent=serviceId+' — WITHDRAWN ';
+                span.textContent=serviceTitle+' — WITHDRAWN ';
                 button.remove();
                 say(t('رضایت این درخواست لغو شد؛ داده باید طبق سیاست نگهداری پردازش شود.',
                   'Consent was withdrawn. The record remains subject to the stated retention policy.'));
