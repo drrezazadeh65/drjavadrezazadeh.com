@@ -75,6 +75,8 @@ test('RCAS rejects completely blank P0, prevents hidden-step bypass and requires
   await expect(page.locator('#rcasInsight')).toBeVisible();
   await expect(page.locator('#rcasInsight')).toContainText('پاسخ مشخص');
   await expect(page.locator('#rcasInsight')).toContainText('تجربه هفت‌روزه');
+  await expect(page.locator('#rcasInsight')).toContainText('دو مشاهده مشخص از پاسخ‌های خودت');
+  await expect(page.locator('#rcasInsight')).toContainText('این‌ها صرفاً انتخاب‌های تو در همین فرم‌اند');
   await expect(page.locator('#rcasInsight')).toContainText('شواهد چندمنبعی');
   await expect(page.locator('#rcasInsight a[href="/fa/services/talent_initial/"]')).toHaveCount(1);
   await expect(page.locator('#rcasInsight a[href="/fa/shop/golden-talent/#professional-services"]')).toHaveCount(1);
