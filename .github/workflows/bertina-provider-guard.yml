@@ -55,6 +55,9 @@ jobs:
           fi
           echo "Bertina-only runtime guard passed."
 
+      - name: Enforce manual-only production host writes
+        run: node scripts/production-write-trigger-audit.mjs
+
       - name: Lint Bertina PHP runtime
         run: php -l api/index.php && php -l api/config.example.php
 
