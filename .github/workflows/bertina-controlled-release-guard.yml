@@ -8,6 +8,10 @@ on:
       - '.github/workflows/deploy-bertina.yml'
       - 'scripts/bertina-controlled-cpanel-gate.php'
       - 'scripts/bertina-private-recovery-gate.php'
+      - 'scripts/bertina-hosting-managed-release.php'
+      - 'tests/bertina-hosting-managed-release.php'
+      - 'scripts/bertina-release-eligibility.mjs'
+      - 'tests/bertina-release-eligibility.test.mjs'
       - 'tests/bertina-controlled-cpanel-gate.php'
       - 'tests/bertina-private-recovery-gate.php'
       - 'tests/bertina-release-assembly.py'
@@ -39,6 +43,8 @@ jobs:
           set -euo pipefail
           php -l scripts/bertina-controlled-cpanel-gate.php
           php -l scripts/bertina-private-recovery-gate.php
+          php -l scripts/bertina-hosting-managed-release.php
+          php tests/bertina-hosting-managed-release.php
           php tests/bertina-controlled-cpanel-gate.php
           php tests/bertina-private-recovery-gate.php
       - name: Compile exact remote PHP handler and verify owner, branch, SHA and pre-extraction ordering
@@ -48,31 +54,35 @@ jobs:
           node scripts/v5-ecosystem-integrity-audit.mjs
           node scripts/workflow-governance-audit.mjs
           node --check scripts/bertina-auto-release-policy.mjs
-          node --test tests/bertina-auto-release-policy.test.mjs
+          node --test tests/bertina-auto-release-policy.test.mjs tests/bertina-release-eligibility.test.mjs
           python3 - <<'PY'
           import json,pathlib
           doc=json.loads(pathlib.Path('docs/governance/STAGE09_PRIVATE_DEPENDENCIES.json').read_text())
           owner=doc['production']['controlledSourceReleaseAuthorization']
           assert owner['ownerExplicitlyApproved'] is True
           assert owner['ownerAcceptsMissingIndependentIsolatedRestore'] is True
-          assert owner['automaticPublicOnlyReleaseAuthorized'] is True
-          assert owner['retainedCpanelArchives']==1
+          assert owner['automaticFullDevelopmentReleaseAuthorized'] is True
+          assert owner['automaticPublicOnlyReleaseAuthorized'] is False
+          assert owner['recoveryPolicy']=='hosting_managed'
+          assert owner['backupPreflightRequired'] is False
+          assert owner['backupManagedByDeployment'] is False
           assert owner['backupRestorationIndependentlyVerified'] is False
           assert owner['appliedToLive'] is False
           assert owner['noIndependentRestoreProven'] is True
           assert owner['requiredGithubActor'].startswith('authenticated branch writer;') and 'drrezazadeh65' in owner['requiredGithubActor']
-          assert owner['requiredTypedAcknowledgement'].startswith('ACCEPT_UNTESTED_RESTORE_RISK_V5 for manual cPanel dispatch only')
+          assert owner['requiredTypedAcknowledgement'].startswith('ACCEPT_UNTESTED_RESTORE_RISK_V5 only if manual')
           assert doc['production']['monetaryReleaseAuthorized'] is False
           assert doc['production']['newRealMoneyTestAuthorized'] is False
           assert doc['facts']['bertina_full_backup_isolated_restore']['status']=='unknown'
           policy=pathlib.Path('docs/governance/V5_CONTROLLED_CPANEL_RELEASE_20261013.md').read_text()
           assert 'NOT an authenticated, independently restored backup' in policy
           assert 'coordinated website+database restoration' in policy
-          assert owner['allowedScope'].startswith('STANDING automatic release of public site pages and assets')
-          print('PASS: standing public-only automation is auditable; financial operations and restore certification remain unclaimed')
+          assert owner['allowedScope'].startswith('STANDING FULL development-source release')
+          assert '## Superseding development instructions — 2026-10-14' in policy
+          print('PASS: FULL development release authority, hosting-managed backups, immutable SHA and separate financial guards')
           PY
       - name: State limited evidence scope
         run: |
-          echo 'Both guarded recovery policies passed offline fixture tests.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Automatic deployment is restricted to public-only content/assets, exact live-SHA, CI, schema and one-backup custody gates; it does NOT verify isolated restoration or authorize financial operations.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Hosting-managed release SHA guard passed; historical recovery helpers remain opt-in and tested separately.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Owner FULL development source scope includes eligible API/runtime; deployment requires exact live SHA, CI, schema and checksums, never backup artifact inspection or certification. Financial operations not authorized.' >> "$GITHUB_STEP_SUMMARY"
           echo 'No FTP, live SQL, cPanel backup content, payment, or production deploy was accessed by this CI.' >> "$GITHUB_STEP_SUMMARY"
