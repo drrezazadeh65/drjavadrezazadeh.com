@@ -60,6 +60,20 @@
     "cpanelConfirmation": "Owner-supplied cPanel Domains success banner, 2026-10-15",
     "httpsForceRedirectObserved": "OFF_WITH_WARNING",
     "sslCertificateVerified": false,
-    "ojsInstallerVerifiedOnSingularHost": false
+    "ojsInstallerVerifiedOnSingularHost": false,
+    "externalPublicTlsObservation": {
+      "observationSource": "GitHub Actions external runner, read-only",
+      "workflowRun": "https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38642432799",
+      "checkedAt": "2026-10-14T21:43:44Z",
+      "singularDnsResolves": true,
+      "pluralDnsResolves": true,
+      "singularTlsError": "DEPTH_ZERO_SELF_SIGNED_CERT",
+      "pluralTlsError": "DEPTH_ZERO_SELF_SIGNED_CERT",
+      "mainDomainNestedPathStatus": 200,
+      "mainDomainNestedPathNeedsAccessReview": true,
+      "externallyVerifiedTrustedTls": false,
+      "noPublicOjsInstallerExposureProven": false,
+      "nextRequiredAction": "Replace self-signed certificates with a CA-trusted AutoSSL certificate for journal.drjavadrezazadeh.com; check main-domain /journals/ route privacy and keep OJS disabled until protection verified."
+    }
   }
 }
