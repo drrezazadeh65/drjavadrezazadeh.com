@@ -147,3 +147,18 @@ The owner supplied a cPanel Domains success notice explicitly confirming **`jour
 5. Only when hostname/TLS and private storage are secured, complete official OJS configuration and an independent editorial workflow test. Once the journal has real accepted public content and is ready, validate per-route redirects, canonicals and the journal's independent sitemap before changing any old link.
 
 **No deployment or redirect was made by this GitHub documentation change.** The source readiness flag `originState=RESERVED_NOT_LIVE` deliberately continues to mean **not certified for public journal operations**, while `canonicalDomainDecision.status=DOMAIN_CREATED_CPANEL_TLS_UNVERIFIED` records the separately confirmed cPanel provisioning step.
+
+## 12. Independent public TLS evidence — GitHub external runner, 2026-10-14T21:43:44Z
+
+**Run:** https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38642432799
+**Probe:** `scripts/jhela-journal-public-probe.mjs --probe` executed on a GitHub-hosted runner with trusted default CA verification and no cPanel credentials, redirects, uploads, login or database access.
+
+- `journal.drjavadrezazadeh.com`: publicly resolved DNS; HTTPS rejected with **`DEPTH_ZERO_SELF_SIGNED_CERT`**, not acceptable CA trust.
+- `journals.drjavadrezazadeh.com`: publicly resolved DNS; HTTPS rejected with the same **`DEPTH_ZERO_SELF_SIGNED_CERT`**.
+- `https://drjavadrezazadeh.com/journals/`: trusted HTTPS, **HTTP 200**, so the parent-domain alias potentially serves content from the nested OJS root; the read-only probe did **not** establish whether confidential material or the unfinished installer is exposed. Treat this as needing explicit access control review, not proof of a data leak.
+
+**Next owner-side action:** cPanel **Security → SSL/TLS Status** (or the Status tab of **SSL/TLS Certificates** on unified cPanel). Check the new `journal.` hostname is **included** in AutoSSL. Use **Run AutoSSL** if available, then re-run strict HTTPS verification. If the current self-signed certificate prevents certificate replacement or the Run AutoSSL control is unavailable, request Bertina to configure a CA-issued AutoSSL/Let’s Encrypt DV certificate for `journal.drjavadrezazadeh.com`. Do not delete a certificate, override browser warnings or enable Force HTTPS Redirect as a workaround.
+
+**Second gate:** protect any uninstalled OJS setup wizard; verify the main-domain `/journals/` path is not a backdoor to a different public host. Keep `files_dir` outside all public document roots. The existing `/journal/` public article/information site remains untouched.
+
+**Honesty rule:** the DNS signal is confirmed, but a self-signed certificate is not a trusted production TLS certificate; installed and functional OJS, validated private storage, emails and scholarly submissions remain **NOT VERIFIED**. No redirection or production rollout was performed by the external probe.
