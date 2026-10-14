@@ -9,34 +9,43 @@ root = Path(__file__).resolve().parents[1]
 workflow = (root / '.github/workflows/deploy-bertina.yml').read_text()
 gate = (root / 'scripts/bertina-private-recovery-gate.php').read_text()
 controlled = (root / 'scripts/bertina-controlled-cpanel-gate.php').read_text()
-assert gate.startswith('<?php\n') and controlled.startswith('<?php\n')
+hosting = (root / 'scripts/bertina-hosting-managed-release.php').read_text()
+assert gate.startswith('<?php\n') and controlled.startswith('<?php\n') and hosting.startswith('<?php\n')
 marker = '          cat > "/tmp/$SCRIPT_NAME" <<PHP\n'
 assert workflow.count(marker) == 1
 body = workflow.split(marker, 1)[1].split('\n          PHP\n', 1)[0]
 body = '\n'.join(line[10:] if line.startswith('          ') else line for line in body.splitlines())
 assert body.startswith('<?php\n')
+assert body.count('$HOSTING_GATE_SOURCE') == 1
 assert body.count('$RECOVERY_GATE_SOURCE') == 1
 assert body.count('$CONTROLLED_GATE_SOURCE') == 1
+body = body.replace('$HOSTING_GATE_SOURCE', hosting.split('\n', 1)[1])
 body = body.replace('$RECOVERY_GATE_SOURCE', gate.split('\n', 1)[1])
 body = body.replace('$CONTROLLED_GATE_SOURCE', controlled.split('\n', 1)[1])
 # Simulate a Bash expanding its named release/request variables; literal \$ in
 # the source here-document is intentionally retained as PHP variable syntax.
 body = re.sub(r'(?<!\\)\$[A-Z][A-Z0-9_]*', 'fixture', body)
 body = body.replace('\\$', '$')
+assert body.count('function drjrHostingManagedReleaseCheck(') == 1
 assert body.count('function drjrRecoveryCheck(') == 1
 assert body.count('function drjrCpanelBackupCheck(') == 1
+assert body.count('drjrHostingManagedReleaseCheck(__DIR__') == 1
 assert body.count('drjrRecoveryCheck(__DIR__') == 1
 assert body.count('drjrCpanelBackupCheck(__DIR__') == 1
+assert body.index('drjrHostingManagedReleaseCheck(__DIR__') < body.index('->extractTo(__DIR__)')
 assert body.index('drjrRecoveryCheck(__DIR__') < body.index('->extractTo(__DIR__)')
 assert body.index('drjrCpanelBackupCheck(__DIR__') < body.index('->extractTo(__DIR__)')
-assert "if ('fixture'==='signed_restore')" in body
+assert "if ('fixture'==='hosting_managed')" in body
+assert "elseif ('fixture'==='signed_restore')" in body
 assert "elseif ('fixture'==='owner_cpanel_custody')" in body
 # Source checkout now requires Stage09's eight additive tables, authoritative
 # payment uniqueness and legacy order columns. Never replace existing live
 # storefront PHP until DB compatibility is observed AFTER selected recovery policy.
-assert "approved_recovery_policy_not_satisfied" in body
+assert "release_policy_preflight_failed" in body
+assert "backupVerifiedByRelease'=>false" in body
 assert "stage09_schema_preflight_required" in body
 assert body.count("stage09_schema_preflight_required") == 1
+assert body.index('drjrHostingManagedReleaseCheck(__DIR__') < body.index("SHOW COLUMNS FROM commerce_orders")
 assert body.index('drjrRecoveryCheck(__DIR__') < body.index("SHOW COLUMNS FROM commerce_orders")
 assert body.index('drjrCpanelBackupCheck(__DIR__') < body.index("SHOW COLUMNS FROM commerce_orders")
 assert body.index("SHOW COLUMNS FROM commerce_orders") < body.index("->extractTo(__DIR__)")
@@ -64,4 +73,6 @@ assert "ACCEPT_UNTESTED_RESTORE_RISK_V5" in workflow
 assert 'test "$GITHUB_EVENT_NAME" = workflow_dispatch' in workflow
 assert "  group: bertina-production-deploy" in workflow
 assert "  cancel-in-progress: false" in workflow
-print('PASS: exact assembled PHP endpoint compiles; BOTH owner-controlled gates run before extraction, source SHA & actor protected')
+assert 'BERTINA_AUTO_DEPLOY_SCOPE: full' in workflow
+assert 'default: hosting_managed' in workflow
+print('PASS: assembled PHP compiles; host-managed release SHA gate before extraction, FULL scope and schema/actor protections retained')
