@@ -213,3 +213,82 @@ test('unverified or missing week fails closed while enquiry remains available',a
   await expect(form.locator('select[name="service"]')).toBeEnabled();
   await expect(form.locator('input[name="preferred_slot"]')).toHaveValue('');
 });
+
+
+ 
+// Bilingual account-based growth pathway. All HTTP responses below are synthetic
+// fixtures: no real account, personal data, payment, appointment or lead is created.
+for(const [lang,path] of [['fa','/fa/darkhast-moshavere/'],['en','/en/request-consultation/']]){
+  test('consent-based verified-account lead journey ('+lang+')',async({page})=>{
+    await page.setViewportSize({width:320,height:800});
+    const submitted=[];
+    await page.route('**/api/growth/leads',route=>{
+      expect(route.request().method()).toBe('POST');
+      const payload=route.request().postDataJSON();
+      submitted.push(payload);
+      expect(payload).toEqual({
+        serviceId:'service:academic_consult_60',
+        purpose:'CONSULTATION_CONTACT',
+        consentGiven:true,
+        consentVersion:'stage14-consultation-v1',
+        marketingOptIn:false
+      });
+      return route.fulfill({status:201,json:{ok:true,leadId:'synthetic-1',state:'NEW',duplicate:false}});
+    });
+    await page.route('**/api/growth/leads/mine',route=>route.fulfill({
+      status:200,json:{ok:true,requests:[
+        {id:'synthetic-1',service_id:'service:academic_consult_60',state:'NEW'}
+      ]}
+    }));
+    await page.route('**/api/growth/leads/withdraw',route=>{
+      expect(route.request().method()).toBe('POST');
+      expect(route.request().postDataJSON()).toEqual({leadId:'synthetic-1'});
+      return route.fulfill({status:200,json:{ok:true,state:'WITHDRAWN'}});
+    });
+    await page.goto('http://127.0.0.1:4173'+path,{waitUntil:'domcontentloaded'});
+    const form=page.locator('[data-stage14-consent-lead]');
+    await expect(form).toBeVisible();
+    await expect(page.locator('body')).toHaveClass(/jr2-consultation/);
+    const services=form.locator('select[name="serviceId"]');
+    await expect(services).toBeEnabled();
+    await services.selectOption('service:academic_consult_60');
+    if(lang==='en')await expect(services.locator('option:checked')).toHaveText('Specialist educational consultation');
+    await expect(form.locator('input[name="consentGiven"]')).not.toBeChecked();
+    await form.locator('button[type="submit"]').click();
+    expect(submitted).toHaveLength(0);
+    await form.locator('input[name="consentGiven"]').check();
+    await form.locator('button[type="submit"]').click();
+    await expect(form.locator('[data-stage14-lead-status]')).toContainText(
+      lang==='fa'?'سرور پذیرفته شد':'server received your consented enquiry'
+    );
+    expect(submitted).toHaveLength(1);
+    await expect(form.locator('input[name="consentGiven"]')).not.toBeChecked();
+    await form.locator('[data-stage14-lead-mine]').click();
+    await expect(form.locator('[data-stage14-lead-list] li')).toHaveCount(1);
+    await form.locator('[data-stage14-lead-list] button').click();
+    await expect(form.locator('[data-stage14-lead-list]')).toContainText('WITHDRAWN');
+    await expect(form.locator('[data-stage14-lead-list] button')).toHaveCount(0);
+    const overflow=await page.evaluate(()=>
+      Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
+  test('unauthenticated verified-lead submission cannot be represented as received ('+lang+')',async({page})=>{
+    await page.route('**/api/growth/leads',route=>route.fulfill({
+      status:401,json:{ok:false,error:'verified_login_required'}
+    }));
+    await page.goto('http://127.0.0.1:4173'+path,{waitUntil:'domcontentloaded'});
+    const form=page.locator('[data-stage14-consent-lead]');
+    await expect(form.locator('select[name="serviceId"]')).toBeEnabled();
+    await form.locator('select[name="serviceId"]').selectOption('service:academic_consult_60');
+    await form.locator('input[name="consentGiven"]').check();
+    await form.locator('button[type="submit"]').click();
+    await expect(form.locator('[data-stage14-lead-status]')).toContainText(
+      lang==='fa'?'ایمیل تأییدشده':'verified email account'
+    );
+    await expect(form.locator('[data-stage14-lead-status]')).not.toContainText(
+      lang==='fa'?'سرور پذیرفته شد':'server received your consented enquiry'
+    );
+    await expect(form.locator('[data-stage14-lead-list] li')).toHaveCount(0);
+    await expect(page.locator('a[href^="mailto:"]').first()).toHaveAttribute('href',/^mailto:/);
+  });
+}
