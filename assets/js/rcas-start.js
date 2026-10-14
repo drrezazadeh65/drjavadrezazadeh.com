@@ -40,6 +40,10 @@ function invalidateSummary(){
   routeResult.hidden=true;
   routeResult.replaceChildren();
   if(routeStatus)routeStatus.textContent="";
+  if(activeStep===3){
+    bar.style.width="66.666%";
+    txt.textContent="مرحله ۳ از ۳ · Routing (خلاصه نیازمند ثبت دوباره)";
+  }
   if(clearSummary)clearSummary.textContent="پاک‌کردن خلاصه مسیر این نشست";
 }
 function p0Complete(){
@@ -84,9 +88,10 @@ function routingComplete(){
     document.getElementById("priorityWhy").focus();
     return false;
   }
-  const primaryGroup={D1:"B",D2:"E",D3:"F",D4:"G",D5:"G",D6:"D"}[domain];
-  if(values[groups.findIndex(g=>g.key===primaryGroup)]==="3"){
-    if(routeStatus)routeStatus.textContent="برای حوزه انتخاب‌شده فعلاً شاهد کافی گزارش نکرده‌ای. ابتدا شواهد جمع‌آوری کن؛ مسیر به‌عنوان نتیجه کامل‌شده صادر نمی‌شود.";
+  // There is no validated one-to-one mapping from A–G evidence domains to
+  // D1–D6 self-selected modules. Do not fabricate such a psychometric rule.
+  if(values.every(v=>v==="3")){
+    if(routeStatus)routeStatus.textContent="در هر هفت حوزه اعلام کرده‌ای هنوز شاهد کافی نداری. اکنون باید شاهد جمع‌آوری کنی؛ خروجی مسیر تکمیل‌شده صادر نمی‌شود.";
     return false;
   }
   if(!CORE_ITEM_IDS.some(name=>{
@@ -113,7 +118,9 @@ const updateCoreProgress=()=>{
 function show(n){
   activeStep=n;
   panels.forEach(p=>p.classList.toggle("active",p.dataset.step==n));
-  bar.style.width=(n/3*100)+"%";
+  // Bar represents completed FLOW stages, not a psychological score or
+  // automatically inferred progress from blank questions.
+  bar.style.width=(((n-1)/3)*100)+"%";
   txt.textContent="مرحله "+n+" از ۳ · "+(n===1?"P0":n===2?"Core 28":"Routing");
   if(n===2)updateCoreProgress();
   window.scrollTo({top:0,behavior:"smooth"});
@@ -160,6 +167,8 @@ document.getElementById("showRoute").addEventListener("click",()=>{
   // Recheck all gates at output time, not just when moving between panels.
   if(activeStep!==3||!p0Complete()||!coreComplete()||!routingComplete())return;
   res.hidden=false;
+  bar.style.width="100%";
+  txt.textContent="مرحله ۳ از ۳ · انتخاب شخصی ثبت شد";
   const code=routeMap[d],why=document.getElementById("priorityWhy").value.trim();
   // Minimal session-state bridge for the existing student dashboard. It does
   // not save raw item scores, contact details, private narrative or P0 answers.
