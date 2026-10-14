@@ -536,7 +536,6 @@ for(const [locale,route,intake] of [
         customerReservationEnabled:false,externalCalendarConfirmed:false,days}});
     });
     await page.setViewportSize({width:390,height:844});
-    await page.setViewportSize({width:390,height:844});
     await page.goto(base+route);
     await page.locator('.cd-mobile-dock [data-dashboard-more]').click();
     await page.locator('[data-dashboard-sheet] a[href="#consultations"]').click();
@@ -553,6 +552,7 @@ for(const [locale,route,intake] of [
     await expect(page.locator('form[data-consultation-composer] [data-composer-preview]')).toBeHidden();
   });
   test(locale+' customer dashboard separates owner-authenticated enquiries from paid appointments',async({page})=>{
+    await page.setViewportSize({width:390,height:844});
     let reads=0;
     await page.route('**/api/growth/leads/mine',route=>{
       reads++;
