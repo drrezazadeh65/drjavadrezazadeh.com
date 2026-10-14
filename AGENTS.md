@@ -4,6 +4,14 @@
 > **CURRENT STATUS: SHARED DEVELOPMENT OPEN — OWNER AUTHORIZED**
 > Exclusive lock lifted by the owner on 2026-10-12 (Asia/Tehran). Historical lock issue: https://github.com/drrezazadeh65/drjavadrezazadeh.com/issues/28
 
+## Governing owner directive and evidence requirement — 2026-10-15
+
+The owner's current [Super Master Execution Directive](docs/governance/SUPER_MASTER_EXECUTION_DIRECTIVE_20261015.md) is the governing **scope and acceptance standard** for further website development. Follow the [evidence-led reconciliation ledger](docs/governance/MASTER_DIRECTIVE_AUDIT_RECONCILIATION_20261015.md) for findings raised by other chats. The master directive complements—not replaces—the frozen bilingual SEO standard, science/privacy safeguards, approved project decisions and this repository's single-source-of-truth protocol.
+
+**No ungrounded discretionary change:** first trace a proposed change to an owner requirement, inspect current code, confirm the defect or an unmet acceptance gate, implement only a justified safe correction, then record tests and remaining production evidence. Third-party audits and AI suggestions are hypotheses to evaluate, never independent authorization for unrelated modifications. If instructions genuinely conflict or require irreversible changes, obtain the owner's explicit decision.
+
+**Final deployment remains manually owner-authorized.** Never conflate a passing source test or nondeploying candidate with a production release, and never delete, replace or downgrade existing functional work merely to satisfy a generic redesign suggestion.
+
 ## Binding source instruction for every chat and Codex
 
 The owner requires **one repository and one existing development source**, applying equally to Codex, all other authorized chats, subagents and future sessions:
