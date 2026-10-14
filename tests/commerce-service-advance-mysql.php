@@ -106,10 +106,16 @@ $pdo->prepare('INSERT INTO commerce_consultation_preferences(order_id,sku,delive
     VALUES(?,?,\'PHONE\',NULL)')->execute([$orderId,$sku]);
 refused(fn()=>operationsCommerceServiceAdvance($pdo,$actor,$booked),
  DomainException::class,'booking_without_explicit_owner_capacity_denied');
+// Start on a Tehran wall-clock hour and contain the synthetic booking.
+$tehranZone=new DateTimeZone('Asia/Tehran');
+$nextHour=(new DateTimeImmutable('now',$tehranZone))->modify('+1 hour');
+$capacityLocalStart=$nextHour->setTime((int)$nextHour->format('H'),0,0);
+$capacityUtcStart=gmdate('Y-m-d H:i:s',$capacityLocalStart->getTimestamp());
+$capacityUtcEnd=gmdate('Y-m-d H:i:s',$capacityLocalStart->getTimestamp()+2*3600);
 $pdo->prepare("INSERT INTO commerce_consultation_availability(id,start_utc,end_utc,state,created_by)
  VALUES(?,?,?,'OPEN',?)")->execute([
  '11111111-1111-4111-8111-111111111195',
- gmdate('Y-m-d H:i:s',time()+600),gmdate('Y-m-d H:i:s',time()+14400),$actor
+ $capacityUtcStart,$capacityUtcEnd,$actor
  ]);
 checkService(operationsCommerceServiceAdvance($pdo,$actor,$booked)['bookingScheduled']===true,
  'booking_times_must_be_explicit');
@@ -185,5 +191,57 @@ $after=operationsCommerceSnapshot($pdo,time())['fulfilment']['internalCalendar']
 checkService(count(array_filter($after['windows'],
     static fn($slot)=>$slot['startUtc']===$start&&$slot['endUtc']===$end))===1,
     'overlap_denial_preserves_original_booking');
+// Owner can selectively publish only real hours, with a strict Tehran-day
+// aggregate max of four hours, and the public week exposes no private IDs.
+$tomorrow=(new DateTimeImmutable('tomorrow 10:00:00',new DateTimeZone('Asia/Tehran')));
+$u=static fn(DateTimeImmutable $d): string=>gmdate('Y-m-d H:i:s',$d->getTimestamp());
+$open=static fn(DateTimeImmutable $start,int $hours): array=>[
+  'action'=>'open','windowId'=>null,'startUtc'=>$u($start),
+  'endUtc'=>$u($start->modify('+'.$hours.' hours'))
+];
+refused(fn()=>operationsConsultationAvailabilityChange($pdo,$actor,$open($tomorrow,5)),
+ InvalidArgumentException::class,'single_window_over_four_hours_denied');
+$first=operationsConsultationAvailabilityChange($pdo,$actor,$open($tomorrow,2));
+checkService($first['state']==='OPEN'&&$first['appointmentConfirmed']===false,
+ 'owner_can_publish_two_genuine_hours_without_booking');
+refused(fn()=>operationsConsultationAvailabilityChange($pdo,$actor,$open($tomorrow->modify('+1 hour'),1)),
+ DomainException::class,'overlapping_owner_window_denied');
+$second=operationsConsultationAvailabilityChange($pdo,$actor,$open($tomorrow->modify('+4 hours'),2));
+checkService($second['state']==='OPEN','owner_can_publish_second_two_hour_window');
+refused(fn()=>operationsConsultationAvailabilityChange($pdo,$actor,$open($tomorrow->modify('+7 hours'),1)),
+ DomainException::class,'five_hours_on_same_tehran_day_denied');
+$week=operationsConsultationWeeklySnapshot($pdo,time());
+checkService($week['schema']==='consultation-week-v1'
+ &&$week['maxPublishedDailyHours']===4 &&$week['slotMinutes']===60
+ &&$week['customerReservationEnabled']===false
+ &&$week['externalCalendarConfirmed']===false
+ &&count($week['days'])===7,'public_week_contract_is_explicit_and_unbooked');
+$tomorrowRows=array_values(array_filter($week['days'],
+ static fn($day)=>$day['date']===$tomorrow->format('Y-m-d')));
+checkService(count($tomorrowRows)===1
+ &&$tomorrowRows[0]['totalSlots']===4
+ &&$tomorrowRows[0]['remainingSlots']===4
+ &&count(array_filter($tomorrowRows[0]['slots'],static fn($s)=>$s['status']==='AVAILABLE'))===4,
+ 'tehran_day_four_real_available_hours_displayed');
+$json=json_encode($week,JSON_UNESCAPED_SLASHES);
+checkService(is_string($json)
+ &&!str_contains($json,$orderId)
+ &&!str_contains($json,$first['windowId'])
+ &&!str_contains($json,$actor)
+ &&!str_contains($json,'customer_email'),
+ 'public_week_does_not_expose_owner_or_customer_identifiers');
+$closed=operationsConsultationAvailabilityChange($pdo,$actor,[
+ 'action'=>'close','windowId'=>$first['windowId'],'startUtc'=>null,'endUtc'=>null
+]);
+checkService($closed['state']==='CLOSED','owner_can_close_unbooked_hours');
+$less=operationsConsultationWeeklySnapshot($pdo,time());
+$one=array_values(array_filter($less['days'],static fn($day)=>$day['date']===$tomorrow->format('Y-m-d')));
+checkService(count($one)===1&&$one[0]['remainingSlots']===2,
+ 'closing_unbooked_owner_hours_reduces_public_week');
+refused(fn()=>operationsConsultationAvailabilityChange($pdo,$actor,[
+  'action'=>'close','windowId'=>'11111111-1111-4111-8111-111111111195',
+  'startUtc'=>null,'endUtc'=>null
+]),DomainException::class,'owner_cannot_close_window_containing_confirmed_booking');
+
 $pdo->exec('DROP TEMPORARY TABLE operations_audit');
 echo "Service advance MySQL fixture: no real money, appointments, email or entitlement granted.\n";
