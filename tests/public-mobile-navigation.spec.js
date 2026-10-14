@@ -1,13 +1,14 @@
 const {test,expect}=require('@playwright/test');
 test.use({serviceWorkers:'block'});
 // Navigation needs parsed DOM; unrelated image/font load must not block its checks.
+// Header has mobile and tablet triggers by design. Exercise only the button visible at the test viewport.
 for(const locale of ['fa','en']){
  test(locale+' mobile menu opens once and closes accessibly',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto('http://127.0.0.1:4173/'+locale+'/',{waitUntil:'domcontentloaded'});
-  const trigger=page.locator('.site-header [data-nav-toggle]');
+  const trigger=page.locator('.site-header [data-nav-toggle]:visible');
   const sheet=page.locator('#mobile-app-menu');
   await expect(trigger).toBeVisible();
   await expect(sheet).toBeHidden();
@@ -60,7 +61,7 @@ for(const locale of ['fa','en']){
  test(locale+' mobile menu link navigates without returning to previous page',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await page.goto('http://127.0.0.1:4173/'+locale+'/',{waitUntil:'domcontentloaded'});
-  await page.locator('.site-header [data-nav-toggle]').click();
+  await page.locator('.site-header [data-nav-toggle]:visible').click();
   const link=page.locator('#mobile-app-menu a[href]').first();
   const destination=await link.evaluate(a=>new URL(a.href,location.href).pathname);
   await link.click();
@@ -75,7 +76,7 @@ for(const locale of ['fa','en'])for(const width of [320,430]){
   await page.setViewportSize({width,height:780});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto('http://127.0.0.1:4173/'+locale+'/',{waitUntil:'domcontentloaded'});
-  const toggle=page.locator('.site-header [data-nav-toggle]');
+  const toggle=page.locator('.site-header [data-nav-toggle]:visible');
   await expect(toggle).toBeVisible();
   const size=await toggle.boundingBox();
   expect(size).not.toBeNull();
@@ -95,7 +96,7 @@ for(const locale of ['fa','en']){
  test(locale+' mobile sheet traps keyboard focus and synchronizes ARIA',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await page.goto('http://127.0.0.1:4173/'+locale+'/',{waitUntil:'domcontentloaded'});
-  const trigger=page.locator('.site-header [data-nav-toggle]');
+  const trigger=page.locator('.site-header [data-nav-toggle]:visible');
   const sheet=page.locator('#mobile-app-menu');
   await trigger.click();
   await expect(sheet).toHaveAttribute('aria-hidden','false');
@@ -119,7 +120,7 @@ for(const locale of ['fa','en']){
   await page.setViewportSize({width:390,height:844});
   await page.goto('http://127.0.0.1:4173/'+locale+'/',{waitUntil:'domcontentloaded'});
   const sheet=page.locator('#mobile-app-menu');
-  await page.locator('.site-header [data-nav-toggle]').click();
+  await page.locator('.site-header [data-nav-toggle]:visible').click();
   await expect(sheet).toBeVisible();
   const before=page.url();
   await page.evaluate(()=>{
@@ -137,7 +138,7 @@ for(const locale of ['fa','en']){
   await page.setViewportSize({width:390,height:844});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto('http://127.0.0.1:4173/'+locale+'/',{waitUntil:'domcontentloaded'});
-  await page.locator('.site-header [data-nav-toggle]').click();
+  await page.locator('.site-header [data-nav-toggle]:visible').click();
   await page.evaluate(()=>{
    history.replaceState=()=>{throw Error('blocked')};
    Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});
