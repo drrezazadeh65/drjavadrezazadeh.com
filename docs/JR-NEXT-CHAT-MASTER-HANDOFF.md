@@ -28,3 +28,8 @@ Inspect current GitHub branch, FA/EN homepage markup, existing mobile nav JS/CSS
 - `fcc7324f`: mobile-app-v431.js skips its duplicate click controller when site.js owns it.
 - `762b095b`: site.js adds Back/visibility close handling and focuses the close control on opening.
 - Important: browser automation, real Android testing, live Bertina deployment, keyboard accessibility and visual checks remain UNVERIFIED. Do not mark them complete. Check menu script interactions and browser Back history behavior; ensure no regressions before deploy.
+
+## Further checkpoint (2026-10-14)
+- `a0ab53afadbf7f3f6337bbff723941bb7e06e5e2`: Escape dismissal prevents default keyboard event.
+- `4cdd066d7cbb5b82778a8170f0e7f2441d4c933e`: added `tests/public-mobile-navigation.spec.js` Playwright regression tests for FA/EN menu open/close, focus, Escape and Back.
+- The new test file has NOT been executed and is NOT in the existing deploy workflow's explicit Playwright file list. It must be run, reviewed for correctness, then integrated into CI through approved workflow governance. Do not claim a passing test or successful deploy.
