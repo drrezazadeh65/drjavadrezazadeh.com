@@ -535,9 +535,11 @@ for(const [locale,route,intake] of [
         timezone:'Asia/Tehran',slotMinutes:60,maxPublishedDailyHours:4,
         customerReservationEnabled:false,externalCalendarConfirmed:false,days}});
     });
-    await page.goto(base+route);
     await page.setViewportSize({width:390,height:844});
-    await page.locator('a[data-section="consultations"]').first().click();
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+route);
+    await page.locator('.cd-mobile-dock [data-dashboard-more]').click();
+    await page.locator('[data-dashboard-sheet] a[href="#consultations"]').click();
     const week=page.locator('#consultations [data-consultation-week]');
     await expect(week.locator('.cw-day')).toHaveCount(7);
     await expect(week.locator('.cw-free')).toHaveCount(1);
@@ -559,7 +561,8 @@ for(const [locale,route,intake] of [
           {service_id:'vip:golden-talent-signature',state:'WITHDRAWN'}]}});
     });
     await page.goto(base+route);
-    await page.locator('a[data-section="consultations"]').first().click();
+    await page.locator('.cd-mobile-dock [data-dashboard-more]').click();
+    await page.locator('[data-dashboard-sheet] a[href="#consultations"]').click();
     const lead=page.locator('#consultations [data-customer-consultation-leads]');
     await expect(lead).toBeVisible();
     expect(reads).toBe(0);
