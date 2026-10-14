@@ -8,3 +8,27 @@ test("HTML injection is escaped",()=>{const out=renderDocumentPreview({...base,r
 test("Reject unknown document type",()=>assert.throws(()=>renderDocumentPreview({...base,type:"admin"})));
 test("Reject missing identity",()=>assert.throws(()=>renderDocumentPreview({...base,document_id:""})));
 test("Reject invalid locale",()=>assert.throws(()=>renderDocumentPreview({...base,locale:"xx"})));
+
+test("All supported document types render in both languages",()=>{
+ for(const type of ["receipt","invoice","certificate","talent_report","letterhead","assessment"]){
+  for(const locale of ["fa-IR","en"]){
+   const html=renderDocumentPreview({...base,type,locale});
+   assert.match(html,/<html lang=/);
+   assert.match(html,/PREVIEW ONLY|فاقد اعتبار رسمی/);
+  }
+ }
+});
+test("Description is escaped including script and markup",()=>{
+ const html=renderDocumentPreview({...base,description:'<script>alert("x")</script>&'});
+ assert.doesNotMatch(html,/<script>/);
+ assert.match(html,/&lt;script&gt;/);
+ assert.match(html,/&amp;/);
+});
+test("Reject excessively long recipient and missing template version",()=>{
+ assert.throws(()=>renderDocumentPreview({...base,recipient:"x".repeat(161)}));
+ assert.throws(()=>renderDocumentPreview({...base,template_version:""}));
+});
+test("Reject arrays and unsupported document locale",()=>{
+ assert.throws(()=>renderDocumentPreview([]));
+ assert.throws(()=>renderDocumentPreview({...base,locale:"fa"}));
+});
