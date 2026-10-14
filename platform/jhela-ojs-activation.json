@@ -74,6 +74,17 @@
       "externallyVerifiedTrustedTls": false,
       "noPublicOjsInstallerExposureProven": false,
       "nextRequiredAction": "Replace self-signed certificates with a CA-trusted AutoSSL certificate for journal.drjavadrezazadeh.com; check main-domain /journals/ route privacy and keep OJS disabled until protection verified."
+    },
+    "cpanelAutoSslReadOnlyDiagnostic": {
+      "checkedAt": "2026-10-14T21:50:04Z",
+      "source": "GitHub Actions read-only cPanel UAPI preflight",
+      "workflow": "https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38643250885",
+      "endpoint": "SSL/get_autossl_excluded_domains",
+      "httpStatus": 401,
+      "apiAuthorized": false,
+      "modificationsAttempted": false,
+      "autosslStarted": false,
+      "nextStep": "Use authenticated cPanel > SSL/TLS Status > Run AutoSSL or ask Bertina support. Do not send cPanel passwords through chat or reuse FTP credentials as a cPanel session."
     }
   }
 }
