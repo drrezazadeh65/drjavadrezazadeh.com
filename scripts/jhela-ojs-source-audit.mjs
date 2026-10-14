@@ -13,7 +13,13 @@ requireTrue(selected?.decidedBy==='SITE_OWNER' && selected?.date==='2026-10-15',
 requireTrue(selected?.selectedHost==='journal.drjavadrezazadeh.com','Journal final canonical domain must remain singular');
 requireTrue(selected?.currentCpanelHost==='journals.drjavadrezazadeh.com','Observed plural cPanel host must be preserved in migration provenance');
 requireTrue(selected?.currentCpanelDocumentRoot==='/public_html/journals','Do not silently rewrite existing OJS document root');
-requireTrue(selected?.status==='FINAL_OWNER_SELECTED_NOT_YET_PROVISIONED','Source must not imply unverified hosting activation');
+requireTrue(selected?.status==='DOMAIN_CREATED_CPANEL_TLS_UNVERIFIED','Confirmed cPanel domain creation must not be represented as OJS/TLS readiness');
+requireTrue(selected?.singularHostProvisionedInCpanel===true && selected?.singularCpanelDocumentRoot==='/public_html/journals',
+  'Owner-confirmed singular host must continue to point to recovered OJS directory');
+requireTrue(selected?.pluralHostStillPresent===true,'Do not remove the legacy plural domain without validated cutover');
+requireTrue(selected?.sslCertificateVerified===false && selected?.ojsInstallerVerifiedOnSingularHost===false,
+  'Unverified TLS and native OJS installation cannot be certified from the cPanel domain list');
+requireTrue(selected?.httpsForceRedirectObserved==='OFF_WITH_WARNING','Protect cPanel observed SSL caution until verified');
 requireTrue(selected?.existingApplicationPreservationRequired===true,'Do not reinstall or overwrite recovered OJS application');
 requireTrue(selected?.manuscriptStorageOutsidePublicHtmlRequired===true,'Manuscripts must remain outside the public webroot');
 requireTrue(selected?.publicJournalInformationRoutesPreserved===true,'Existing /journal/ routes and sitemap must be preserved');
