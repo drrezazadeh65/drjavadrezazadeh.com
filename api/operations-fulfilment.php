@@ -88,6 +88,11 @@ function operationsCommerceServiceAdvance(PDO $pdo,string $actor,array $input): 
                 ||!commerceConsultationValidChoice($sku,(string)$selected['delivery_mode'],
                     $selected['meeting_city']===null?null:(string)$selected['meeting_city']))
                 throw new DomainException('customer_delivery_choice_required');
+            // Explicit owner-authored internal capacity is mandatory, never
+            // inferred from a gap between bookings or an external calendar.
+            if (!function_exists('operationsConsultationWithinCapacity')
+                ||!operationsConsultationWithinCapacity($pdo,$start,$end))
+                throw new DomainException('verified_owner_capacity_required');
             // Lock serialises reservation attempts across different orders.
             // Half-open UTC intervals permit back-to-back appointments but
             // reject any overlap, including another SKU of the same order.
