@@ -1,0 +1,226 @@
+/* JR Ecosystem Visual v2 — approved direction, unapproved production logo.
+ * Source-only additive styling; original imagery, mobile navigation, identity
+ * and assessment contracts remain unchanged.
+ */
+:root{
+--jr2-obsidian:#08090b;--jr2-coal:#111214;--jr2-night:#17181a;
+--jr2-gold:#dab973;--jr2-gold-light:#f6dc9c;--jr2-gold-dark:#98743b;
+--jr2-ivory:#f8f3e9;--jr2-copy:#d4cec3;--jr2-muted:#ada69a;
+--jr2-rule:rgba(218,185,115,.25);--jr2-radius:24px;
+--jr2-ease:cubic-bezier(.21,.8,.24,1)
+}
+:is(.public-home-page,.golden-talent-page){
+--gold:var(--jr2-gold);
+--public-gold:var(--jr2-gold);
+--public-gold-soft:var(--jr2-gold-light);
+background:
+radial-gradient(ellipse 52% 35% at 85% 10%,rgba(194,145,70,.13),transparent 75%),
+linear-gradient(180deg,#08090b,#101114 43%,#08090b);
+color:var(--jr2-ivory)
+}
+:is(.public-home-page,.golden-talent-page) :is(a,button,summary,input,select,textarea):focus-visible{
+outline:3px solid var(--jr2-gold-light);outline-offset:3px
+}
+:is(.public-home-page,.golden-talent-page) .site-header{
+border-bottom:1px solid var(--jr2-rule);
+background:rgba(9,10,11,.96);
+backdrop-filter:blur(20px)
+}
+:is(.public-home-page,.golden-talent-page) .site-header .brand{
+font-weight:700;line-height:1.4;max-width:min(48vw,340px)
+}
+:is(.public-home-page,.golden-talent-page) .site-header a{
+transition:color .22s var(--jr2-ease),background .22s var(--jr2-ease)
+}
+:is(.public-home-page,.golden-talent-page) .button{
+display:inline-flex;align-items:center;justify-content:center;min-height:48px;
+border-radius:12px;text-align:center;
+transition:transform .25s var(--jr2-ease),border-color .25s var(--jr2-ease),box-shadow .25s var(--jr2-ease)
+}
+:is(.public-home-page,.golden-talent-page) .button.primary{
+background:linear-gradient(128deg,#f6e3b0,#dfb96e 46%,#bb914b);
+border:1px solid #e8c782;color:#18140d;font-weight:750;
+box-shadow:inset 0 1px rgba(255,255,255,.55),0 12px 30px rgba(159,109,38,.15)
+}
+/* A genuine photographic scholarly frontispiece — no invented likeness. */
+.public-home-page .hero{
+max-width:1320px;position:relative;isolation:isolate;overflow:hidden;
+min-height:620px;padding:clamp(35px,5.2vw,82px);
+border:1px solid var(--jr2-rule);border-radius:28px;
+background:
+radial-gradient(ellipse 66% 80% at 85% 40%,rgba(191,142,68,.19),transparent 70%),
+linear-gradient(135deg,#1c1b18,#101114 68%);
+box-shadow:0 38px 90px rgba(0,0,0,.33)
+}
+.public-home-page .hero::before{
+width:48%;height:85%;inset:5% 0 auto auto;
+border:1px solid rgba(210,169,91,.11);border-radius:50%;
+transform:none;background:none
+}
+.public-home-page .hero .eyebrow{
+border-color:var(--jr2-rule);color:var(--jr2-gold-light);background:rgba(15,13,11,.72)
+}
+.public-home-page .hero h1{
+color:var(--jr2-ivory);font-size:clamp(3.1rem,5.5vw,5.9rem);
+line-height:1.12;letter-spacing:-.045em;text-wrap:balance
+}
+.public-home-page.rtl .hero h1{
+font-size:clamp(2.9rem,5.3vw,5.4rem);
+letter-spacing:normal;line-height:1.32
+}
+.public-home-page .hero h1 em{
+background:linear-gradient(120deg,#f9e7b7,#d9b36a 65%,#ac8043);
+-webkit-background-clip:text;background-clip:text;
+color:transparent;text-shadow:none
+}
+.public-home-page .hero-line{
+max-width:29ch;color:var(--jr2-gold-light);font-size:clamp(1.2rem,2.2vw,2rem)
+}
+.public-home-page .hero .lead{color:var(--jr2-copy);line-height:1.88;max-width:56ch}
+.public-home-page .hero-pathway-cta{gap:12px;margin-top:29px;max-width:590px}
+.public-home-page .hero-pathway-cta .button{
+min-height:58px;justify-content:space-between;
+padding-inline:17px;font-size:clamp(.82rem,1.03vw,1rem)
+}
+.public-home-page .portrait-shell{
+width:min(100%,400px);aspect-ratio:4/5;overflow:hidden;
+padding:7px;border:1px solid rgba(237,198,122,.56);
+border-radius:210px 210px 22px 22px;
+background:linear-gradient(140deg,#ab8851,#1b1a17 42%,#080a0c);
+box-shadow:0 36px 90px rgba(0,0,0,.53),0 0 75px rgba(183,132,48,.12)
+}
+.public-home-page .portrait-shell::after{
+z-index:1;inset:auto 7px 7px;height:24%;
+background:linear-gradient(0deg,rgba(8,8,9,.54),transparent);
+border-radius:0 0 15px 15px;pointer-events:none
+}
+.public-home-page .hero-portrait{
+width:100%;height:100%;object-fit:cover;object-position:center 22%;
+border-radius:205px 205px 14px 14px
+}
+.public-home-page .home-account-strip{
+max-width:1320px;
+border:1px solid var(--jr2-rule);
+background:linear-gradient(110deg,#1a1917,#101113 60%,#201a11)
+}
+.public-home-page .home-focus-strip{
+max-width:1320px;border:1px solid var(--jr2-rule);
+background:linear-gradient(110deg,#201c16,#111214 56%,#201b15)
+}
+.public-home-page .home-focus-strip>a{
+min-height:142px;border-inline-start-color:rgba(215,180,107,.15)
+}
+.public-home-page .home-focus-strip strong{color:#fcf3e0}
+.public-home-page .audience-home{
+max-width:1320px;border:1px solid var(--jr2-rule);
+background:radial-gradient(ellipse at 0 0,rgba(178,129,53,.12),transparent 54%),#111213
+}
+.public-home-page .audience-gate{
+border:1px solid var(--jr2-rule);
+background:linear-gradient(148deg,#222019,#111315 74%);
+border-radius:18px
+}
+.public-home-page :is(.service-card,.news-card,.grid article){
+border:1px solid var(--jr2-rule);
+background:linear-gradient(150deg,#1a1b1a,#101113)
+}
+.public-home-page .section h2{color:var(--jr2-ivory);text-wrap:balance}
+.public-home-page.rtl .section h2{letter-spacing:normal}
+/* Golden Talent: human development presented as evidence, not gamification. */
+.golden-talent-page .service-shell{max-width:1320px}
+.golden-talent-page .service-hero{
+position:relative;overflow:hidden;
+padding:clamp(28px,5vw,70px);
+border:1px solid var(--jr2-rule);border-radius:28px;
+background:
+radial-gradient(ellipse at 85% 22%,rgba(206,157,80,.12),transparent 55%),
+linear-gradient(136deg,#201c17,#121519 74%);
+box-shadow:0 28px 75px rgba(0,0,0,.29)
+}
+.golden-talent-page .service-hero h1{
+font-size:clamp(2.25rem,3.8vw,4.4rem);line-height:1.25;
+color:var(--jr2-ivory);text-wrap:balance
+}
+.golden-talent-page .service-hero .lead{color:var(--jr2-copy);line-height:1.91}
+.golden-talent-page .service-visual{
+padding:clamp(12px,2vw,24px);border:1px solid var(--jr2-rule);
+border-radius:20px;background:#151615
+}
+.golden-talent-page .service-visual img{max-width:100%;height:auto}
+.golden-talent-page .service-section h2{color:var(--jr2-ivory);text-wrap:balance}
+.golden-talent-page :is(.principle,.service-card,.gt-plan){
+border:1px solid var(--jr2-rule);
+background:linear-gradient(150deg,#22201b,#121417);
+border-radius:17px
+}
+@media(hover:hover) and (pointer:fine){
+:is(.public-home-page,.golden-talent-page) :is(.audience-gate,.service-card,.news-card,.button):hover{
+transform:translateY(-3px);border-color:rgba(228,193,119,.62)
+}
+}
+/* Tablet is its own composition, not an enlarged phone. */
+@media(min-width:701px) and (max-width:1100px){
+.public-home-page .hero{
+grid-template-columns:minmax(0,1.15fr) minmax(210px,.85fr);
+gap:clamp(24px,4vw,44px)
+}
+.public-home-page .hero h1{font-size:clamp(2.8rem,5vw,4.7rem)}
+.public-home-page .portrait-shell{max-width:320px}
+.public-home-page .audience-gates{grid-template-columns:repeat(2,minmax(0,1fr))}
+.golden-talent-page .service-hero{grid-template-columns:1fr}
+}
+/* Mobile is an app-like surface: preserve existing menu and five-item dock. */
+@media(max-width:700px){
+.public-home-page .hero{
+width:calc(100% - 24px);
+padding:26px 18px 28px;min-height:0;
+grid-template-columns:1fr;gap:22px;
+margin:12px auto 24px;border-radius:22px
+}
+.public-home-page .hero::before{width:80%;height:66%;inset:8% 10% auto auto}
+.public-home-page .hero h1,.public-home-page.rtl .hero h1{
+font-size:clamp(2.38rem,10.1vw,3.65rem);
+line-height:1.29;letter-spacing:normal
+}
+.public-home-page .hero .lead{font-size:clamp(.87rem,3.6vw,1rem);line-height:1.82}
+.public-home-page .hero-line{font-size:clamp(1.14rem,4.5vw,1.47rem)}
+.public-home-page .hero-pathway-cta{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.public-home-page .hero-pathway-cta .button{
+min-height:52px;padding:11px 9px;line-height:1.43;
+font-size:clamp(.77rem,3.05vw,.9rem);
+border-radius:12px;white-space:normal
+}
+.public-home-page .portrait-shell{width:min(64vw,255px);max-width:255px;margin-inline:auto}
+.public-home-page .home-focus-strip{width:calc(100% - 24px);grid-template-columns:repeat(2,minmax(0,1fr))}
+.public-home-page .home-focus-strip>a{min-height:120px;padding:14px;min-width:0}
+.public-home-page .home-focus-strip strong{overflow-wrap:anywhere}
+.public-home-page .audience-home{width:calc(100% - 24px);padding:24px 17px}
+.public-home-page .audience-gates{grid-template-columns:1fr}
+.golden-talent-page .service-hero{
+grid-template-columns:1fr;margin-inline:12px;padding:24px 18px;
+border-radius:21px
+}
+.golden-talent-page .service-hero h1{
+font-size:clamp(1.9rem,7.2vw,2.8rem);line-height:1.39
+}
+.golden-talent-page .service-hero .actions .button{flex:1 1 100%}
+.golden-talent-page .service-visual{padding:12px}
+}
+@media(max-width:360px){
+.public-home-page .hero{padding:22px 15px}
+.public-home-page .hero-pathway-cta{grid-template-columns:1fr}
+.public-home-page .hero-pathway-cta .button{min-height:48px}
+}
+@media(prefers-reduced-motion:reduce){
+:is(.public-home-page,.golden-talent-page) *{
+animation-duration:0s!important;transition-duration:0s!important;scroll-behavior:auto!important
+}
+}
+@media print{
+:is(.public-home-page,.golden-talent-page){
+background:#fff!important;color:#161616!important
+}
+:is(.public-home-page,.golden-talent-page) :is(.hero,.service-hero){
+background:#fff!important;box-shadow:none!important
+}
+}
