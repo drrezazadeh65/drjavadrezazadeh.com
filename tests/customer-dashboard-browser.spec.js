@@ -75,7 +75,7 @@ test('English dashboard uses a safe, unambiguous Latin font stack on desktop and
   expect(details.heading).not.toMatch(/(^|,)\\s*Inter\\s*(,|$)/);
   expect(details.label).toMatch(/[A-Za-z]/);
   expect(details.brand).toMatch(/Rezazadeh/);
-  expect(details.stylesheet.some(x=>x.includes('customer-dashboard-v1.css?v=20261011-fontsafe-4'))).toBe(true);
+  expect(details.stylesheet.some(x=>x.includes('customer-dashboard-v1.css?v=20261014-consultations-v5'))).toBe(true);
  }
  expect(errors).toEqual([]);
 });
