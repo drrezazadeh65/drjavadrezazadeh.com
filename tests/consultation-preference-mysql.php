@@ -76,6 +76,28 @@ $cases=$pdo->prepare("INSERT INTO commerce_service_cases(order_id,sku,status)
 $cases->execute([$order,$sku]);
 $cases->execute([$vipOrder,$vipSku]);
 $cases->execute([$unpaid,$sku]);
+// Verify that MariaDB/MySQL itself enforces the additive DDL contract,
+// independently of the PHP catalogue and buyer authorization gates.
+$constraints=$pdo->query("SELECT table_name,constraint_name,constraint_type
+    FROM information_schema.table_constraints WHERE table_schema=DATABASE()
+      AND table_name IN ('commerce_consultation_preferences',
+        'commerce_consultation_preference_events')
+      AND constraint_type IN ('FOREIGN KEY','CHECK')")->fetchAll();
+$named=array_fill_keys(array_map(static fn(array $x)=>strtolower((string)$x['constraint_name']),$constraints),true);
+ensureChoice(isset($named['ck_commerce_consultation_city'])
+    &&isset($named['fk_commerce_consultation_case'])
+    &&isset($named['fk_consultation_preference_events_case']),
+    'both case FKs and the city delivery CHECK exist in the database');
+$badCity=$pdo->prepare("INSERT INTO commerce_consultation_preferences
+    (order_id,sku,delivery_mode,meeting_city) VALUES(?,?,'PHONE','TEHRAN')");
+denied(fn()=>$badCity->execute([$order,$sku]),PDOException::class,
+    'database check refuses city attached to telephone choice');
+$orphanEvent=$pdo->prepare("INSERT INTO commerce_consultation_preference_events
+    (order_id,sku,actor_account_id,next_mode) VALUES(?,? ,?,'VIDEO')");
+denied(fn()=>$orphanEvent->execute(['eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',$sku,$owner]),
+    PDOException::class,'preference audit cannot refer to an absent service case');
+ensureChoice((int)$pdo->query('SELECT COUNT(*) FROM commerce_consultation_preferences')->fetchColumn()===0,
+    'failed check insert leaves no persisted buyer choice');
 ensureChoice(commerceConsultationModes($sku)===['PHONE','VIDEO'],'normal counselling only phone/video');
 ensureChoice(commerceConsultationModes($vipSku)===['PHONE','VIDEO','IN_PERSON'],'catalogued VIP may request in-person');
 ensureChoice(commerceConsultationModes('service:annual_coaching')===[],'uncatalogued annual coaching is disabled');
