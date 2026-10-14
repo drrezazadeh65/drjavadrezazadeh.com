@@ -25,10 +25,84 @@ const form=document.getElementById("rcasForm");
 const panels=[...document.querySelectorAll(".rcas-panel")];
 const bar=document.getElementById("rcasProgressBar"),txt=document.getElementById("rcasProgressText");
 const coreStatus=document.getElementById("rcasCoreStatus");
+const p0Status=document.getElementById("rcasP0Status");
+const routeStatus=document.getElementById("rcasRouteStatus");
+const routeResult=document.getElementById("rcasResult");
+const clearSummary=document.getElementById("clearRcasSummary");
+const requiredP0Access=[...access.querySelectorAll('select[name^="access"]')];
+const P0_EVIDENCE_FIELDS=["evidence1","evidence2","evidence8","needsEvidence","strengthEvidence"];
+let activeStep=1;
+// A newly opened form is a NEW attempt. Previous session summaries are not
+// evidence that this blank form has been answered.
+try{sessionStorage.removeItem("gt_rcas_state");}catch(_){}
+function invalidateSummary(){
+  try{sessionStorage.removeItem("gt_rcas_state");}catch(_){}
+  routeResult.hidden=true;
+  routeResult.replaceChildren();
+  if(routeStatus)routeStatus.textContent="";
+  if(clearSummary)clearSummary.textContent="پاک‌کردن خلاصه مسیر این نشست";
+}
+function p0Complete(){
+  const value=name=>String(form.elements.namedItem(name)?.value||"").trim();
+  const education=form.elements.namedItem("edu");
+  const reasons=[...form.querySelectorAll('input[name="reason"]:checked')];
+  const noEvidence=form.elements.namedItem("noEvidenceYet");
+  const checks=[
+    [value("edu")!=="",education,"وضعیت آموزشی فعلی را مشخص کن."],
+    [reasons.length>0,form.querySelector('input[name="reason"]'),"دست‌کم یک دلیل برای شروع RCAS انتخاب کن؛ گزینه «هنوز دقیق نمی‌دانم» هم مجاز است."],
+    [value("mainQuestion")!==""||value("priority8")!=="",form.elements.namedItem("mainQuestion"),"سؤال اصلی یا اولویت هشت‌هفته‌ای خود را بنویس."],
+    [requiredP0Access.length===8&&requiredP0Access.every(x=>x.value!==""),requiredP0Access.find(x=>!x.value)||requiredP0Access[0],"وضعیت هر هشت مورد دسترسی را مشخص کن. گزینه «نیاز ندارم» نیز مجاز است."],
+    [P0_EVIDENCE_FIELDS.some(name=>value(name)!=="")||noEvidence?.checked===true,form.elements.namedItem("evidence1"),"یک شاهد یا مثال واقعی بنویس، یا صریحاً علامت بزن که هنوز شاهد کافی نداری."]
+  ];
+  const invalid=checks.find(([ok])=>!ok);
+  if(invalid){
+    if(p0Status)p0Status.textContent="مرحله P0 هنوز کامل نیست: "+invalid[2];
+    invalid[1]?.scrollIntoView({behavior:"smooth",block:"center"});
+    invalid[1]?.focus({preventScroll:true});
+    return false;
+  }
+  if(p0Status)p0Status.textContent="حداقل اطلاعات مرحله P0 تکمیل شد. این داده‌ها نتیجه تشخیصی یا امتیاز استعداد نیستند.";
+  return true;
+}
+function routingComplete(){
+  const values=groups.map(g=>form.querySelector('input[name="route_'+g.key+'"]:checked')?.value);
+  const missing=values.findIndex(v=>!["0","1","2","3"].includes(v));
+  if(missing>=0){
+    if(routeStatus)routeStatus.textContent="برای هر هفت حوزه، وضعیت شواهد را انتخاب کن؛ حوزه "+groups[missing].key+" هنوز بی‌پاسخ است.";
+    routing.querySelectorAll("fieldset")[missing]?.scrollIntoView({behavior:"smooth",block:"center"});
+    return false;
+  }
+  const domain=document.getElementById("priorityDomain").value;
+  if(!Object.prototype.hasOwnProperty.call(routeMap,domain)){
+    if(routeStatus)routeStatus.textContent="ابتدا یک حوزه D1 تا D6 را به‌صورت آگاهانه انتخاب کن.";
+    document.getElementById("priorityDomain").focus();
+    return false;
+  }
+  const why=document.getElementById("priorityWhy").value.trim();
+  if(!why){
+    if(routeStatus)routeStatus.textContent="دلیل خودت را برای انتخاب این حوزه بنویس. این دلیل، تشخیص علمی محسوب نمی‌شود.";
+    document.getElementById("priorityWhy").focus();
+    return false;
+  }
+  const primaryGroup={D1:"B",D2:"E",D3:"F",D4:"G",D5:"G",D6:"D"}[domain];
+  if(values[groups.findIndex(g=>g.key===primaryGroup)]==="3"){
+    if(routeStatus)routeStatus.textContent="برای حوزه انتخاب‌شده فعلاً شاهد کافی گزارش نکرده‌ای. ابتدا شواهد جمع‌آوری کن؛ مسیر به‌عنوان نتیجه کامل‌شده صادر نمی‌شود.";
+    return false;
+  }
+  if(!CORE_ITEM_IDS.some(name=>{
+    const checked=form.querySelector('input[name="'+name+'"]:checked');
+    return checked&&/^[0-4]$/.test(checked.value);
+  })){
+    if(routeStatus)routeStatus.textContent="هر ۲۸ پاسخ، «کاربرد ندارد» یا «نمی‌دانم» است. بدون حتی یک مشاهده خودگزارشی مشخص، مسیر تکمیل‌شده ساخته نمی‌شود.";
+    return false;
+  }
+  if(routeStatus)routeStatus.textContent="";
+  return true;
+}
 const CORE_ITEM_IDS=groups.flatMap(g=>g.items.map((_,i)=>g.key+(i+1)));
 if(CORE_ITEM_IDS.length!==28||new Set(CORE_ITEM_IDS).size!==28)throw Error("RCAS Core 28 version mismatch");
 const coreAnswered=()=>CORE_ITEM_IDS.filter(name=>{
-  const inputs=[...form.querySelectorAll('input[type="radio"]')].filter(x=>x.name===name);
+  const inputs=[...core.querySelectorAll('input[type="radio"]')].filter(x=>x.name===name);
   return inputs.some(x=>x.checked && (["NA","UNKNOWN"].includes(x.value)||/^[0-4]$/.test(x.value)));
 });
 const updateCoreProgress=()=>{
@@ -37,6 +111,7 @@ const updateCoreProgress=()=>{
   return count;
 };
 function show(n){
+  activeStep=n;
   panels.forEach(p=>p.classList.toggle("active",p.dataset.step==n));
   bar.style.width=(n/3*100)+"%";
   txt.textContent="مرحله "+n+" از ۳ · "+(n===1?"P0":n===2?"Core 28":"Routing");
@@ -48,27 +123,32 @@ const coreComplete=()=>{
   if(answered.size===28)return true;
   const first=CORE_ITEM_IDS.find(name=>!answered.has(name));
   if(coreStatus)coreStatus.textContent="برای ادامه، هر ۲۸ گزاره را پاسخ بده یا «کاربرد ندارد» یا «نمی‌دانم» را انتخاب کن. پاسخ "+first+" باقی مانده است ("+answered.size+"/۲۸).";
-  const target=[...form.querySelectorAll('input[type="radio"]')].find(x=>x.name===first);
+  const target=[...core.querySelectorAll('input[type="radio"]')].find(x=>x.name===first);
   target?.closest("fieldset")?.scrollIntoView({behavior:"smooth",block:"center"});
   target?.focus({preventScroll:true});
   return false;
 };
+form.addEventListener("input",()=>invalidateSummary());
 form.addEventListener("change",e=>{
+  invalidateSummary();
   if(e.target?.matches('input[type="radio"]'))updateCoreProgress();
 });
 document.addEventListener("click",e=>{
   const target=e.target.closest("button");
-  if(!target)return;
-  const n=target.dataset.next,b=target.dataset.back;
-  if(n){
-    if(Number(n)===3&&!coreComplete())return;
-    show(Number(n));
+  if(!target||!form.contains(target))return;
+  const n=Number(target.dataset.next),b=Number(target.dataset.back);
+  if(n===2){
+    if(activeStep!==1||!p0Complete())return;
+    show(2);
+  }else if(n===3){
+    if(activeStep!==2||!p0Complete()||!coreComplete())return;
+    show(3);
   }
-  if(b)show(Number(b));
+  if(b===1&&activeStep===2)show(1);
+  if(b===2&&activeStep===3)show(2);
 });
-const clearSummary=document.getElementById("clearRcasSummary");
 clearSummary?.addEventListener("click",()=>{
-  try{sessionStorage.removeItem("gt_rcas_state");}catch(_){}
+  invalidateSummary();
   const res=document.getElementById("rcasResult");
   res.hidden=true;res.replaceChildren();
   clearSummary.textContent="خلاصه مسیر این نشست پاک شد.";
@@ -76,20 +156,16 @@ clearSummary?.addEventListener("click",()=>{
 document.getElementById("showRoute").addEventListener("click",()=>{
   const res=document.getElementById("rcasResult"),d=document.getElementById("priorityDomain").value;
   res.replaceChildren();
+  res.hidden=true;
+  // Recheck all gates at output time, not just when moving between panels.
+  if(activeStep!==3||!p0Complete()||!coreComplete()||!routingComplete())return;
   res.hidden=false;
-  if(!coreComplete()){
-    res.textContent="پیش از انتخاب مسیر، Core 28 را کامل کن؛ هیچ مسیر معتبری ذخیره نشده است.";
-    return;
-  }
-  if(!Object.prototype.hasOwnProperty.call(routeMap,d)){
-    res.textContent="یک حوزه اولویت D1 تا D6 انتخاب کن. پیشنهاد بدون انتخاب آگاهانه تحمیل نمی‌شود.";
-    return;
-  }
   const code=routeMap[d],why=document.getElementById("priorityWhy").value.trim();
   // Minimal session-state bridge for the existing student dashboard. It does
   // not save raw item scores, contact details, private narrative or P0 answers.
   const preview={
-    completed:true,rcasRevision:"start-1.1",completedItemCount:28,
+    completed:true,rcasRevision:"start-1.2",completedItemCount:28,
+    p0Validated:true,routingEvidenceCompleted:true,meaningfulCoreEvidence:true,
     route:d,routeCode:d,routeLabel:code[1],
     routeBasis:"SELF_SELECTED_UNVALIDATED",
     updatedAt:new Date().toISOString()
