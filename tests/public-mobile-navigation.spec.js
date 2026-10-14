@@ -49,7 +49,7 @@ for(const locale of ['fa','en']){
   await expect(groups.nth(1)).not.toHaveAttribute('open','');
   await expect(groups.nth(1).locator('summary')).toBeFocused();
   await groups.nth(0).locator('summary').click();
-  await page.locator('main').click({position:{x:10,y:10}});
+  await page.locator('body').click({position:{x:1,y:1},force:true});
   await expect(groups.nth(0)).not.toHaveAttribute('open','');
   expect(errors).toEqual([]);
  });
