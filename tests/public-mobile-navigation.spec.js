@@ -112,3 +112,21 @@ for(const locale of ['fa','en']){
   await expect(trigger).toBeFocused();
  });
 }
+
+for(const locale of ['fa','en']){
+ test(locale+' backgrounding closes mobile menu without history traversal',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('http://127.0.0.1:4173/'+locale+'/');
+  const sheet=page.locator('#mobile-app-menu');
+  await page.locator('.site-header [data-nav-toggle]').click();
+  await expect(sheet).toBeVisible();
+  const before=page.url();
+  await page.evaluate(()=>{
+   Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});
+   document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(sheet).toBeHidden();
+  expect(page.url()).toBe(before);
+  expect(await page.evaluate(()=>Boolean(history.state?.jrMobileMenu))).toBe(false);
+ });
+}
