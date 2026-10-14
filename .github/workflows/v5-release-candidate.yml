@@ -10,6 +10,7 @@ on:
       - 'scripts/stamp-bertina-release.mjs'
       - 'scripts/v5-ecosystem-integrity-audit.mjs'
       - 'scripts/production-health-audit.mjs'
+      - '.github/workflows/production-health-monitor.yml'
       - 'scripts/production-operational-pulse.mjs'
       - 'scripts/bertina-auto-release-policy.mjs'
       - 'scripts/bertina-release-eligibility.mjs'
@@ -71,6 +72,7 @@ jobs:
           node scripts/v5-ecosystem-integrity-audit.mjs
           node scripts/workflow-governance-audit.mjs
           node scripts/seo-regression.mjs
+          node --test tests/production-health-evidence.test.mjs
           node --check scripts/bertina-auto-release-policy.mjs
           node --check scripts/bertina-release-eligibility.mjs
           node --test tests/bertina-auto-release-policy.test.mjs tests/bertina-release-eligibility.test.mjs
