@@ -13,29 +13,32 @@ def probe(ojs,site,files):
  data=json.loads(run.stdout)
  assert data['scope']=='READ_ONLY_CLI_NOT_LIVE_EVIDENCE'
  assert all(str(p) not in run.stdout for p in (ojs,site,files)),'Private absolute paths leaked'
- return run.returncode,{x['id']:x['pass'] for x in data['checks']}
+ return run.returncode,{x['id']:x['pass'] for x in data['checks']},data
 with tempfile.TemporaryDirectory() as tmp:
  home=Path(tmp);ojs=home/'ojs';site=home/'public_html';private=home/'private_manuscripts'
  for p in (ojs,site,private):p.mkdir()
  for f in required:
   p=ojs/f;p.parent.mkdir(parents=True,exist_ok=True);p.write_text('fixture')
- code,checks=probe(ojs,site,private)
+ code,checks,data=probe(ojs,site,private)
  assert all(checks[k] for k in ['native_pkp_bootstrap','native_pkp_vendor_autoload','native_db_version_xml',
  'native_install_template','dedicated_journal_docroot','manuscripts_outside_all_webroots'])
  assert code in (0,1) # local CI PHP extensions may differ
  (ojs/'lib/pkp/includes/bootstrap.php').unlink()
- code,checks=probe(ojs,site,private)
+ code,checks,data=probe(ojs,site,private)
  assert code==1 and checks['native_pkp_bootstrap'] is False
  (ojs/'lib/pkp/includes/bootstrap.php').write_text('fixture')
  exposed=site/'files';exposed.mkdir()
- code,checks=probe(ojs,site,exposed)
+ code,checks,data=probe(ojs,site,exposed)
  assert code==1 and checks['manuscripts_outside_all_webroots'] is False
  nested=site/'journals';nested.mkdir()
  for f in required:
   p=nested/f;p.parent.mkdir(parents=True,exist_ok=True);p.write_text('fixture')
- code,checks=probe(nested,site,private)
- assert code==1 and checks['dedicated_journal_docroot'] is False
+ code,checks,data=probe(nested,site,private)
+ assert checks['dedicated_journal_docroot'] is True
+ assert checks['manuscripts_outside_all_webroots'] is True
+ assert data['nested_main_webroot'] is True
+ assert data['main_domain_alias_status']=='REQUIRES_INDEPENDENT_HTTP_PATH_CHECK'
  (nested/'dbscripts/xml/version.xml').unlink()
- code,checks=probe(nested,site,private)
+ code,checks,data=probe(nested,site,private)
  assert code==1 and checks['native_db_version_xml'] is False
-print('PASS: read-only OJS pre-install native layout, private uploads and independent document roots; production untouched')
+print('PASS: read-only OJS native layout, private uploads, cPanel nesting warning and distinct document roots; production untouched')
