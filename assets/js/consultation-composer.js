@@ -100,6 +100,24 @@
         return;
       }
       if (mode) text += '\n\n' + (fa ? 'روش ترجیحی جلسه: ' : 'Preferred session format: ') + modeLabels[mode];
+      var slotField=form.elements.namedItem('preferred_slot');
+      var selectedSlot=slotField ? String(slotField.value||'').trim() : '';
+      if(selectedSlot){
+        if(!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(selectedSlot)){
+          status.textContent=fa?'زمان پیشنهادی معتبر نیست.':'The preferred time is not valid.';return;
+        }
+        var slotDate=new Date(selectedSlot.replace(' ','T')+'Z');
+        if(!Number.isFinite(slotDate.getTime())
+          ||slotDate.toISOString().slice(0,19)!==selectedSlot.replace(' ','T')){
+          status.textContent=fa?'زمان پیشنهادی معتبر نیست.':'The preferred time is not valid.';return;
+        }
+        var local=new Intl.DateTimeFormat(fa?'fa-IR':'en-GB',{
+          dateStyle:'full',timeStyle:'short',timeZone:'Asia/Tehran'
+        }).format(slotDate);
+        text += '\n\n'+(fa?'زمان پیشنهادی (در انتظار بررسی ظرفیت و تأیید): ':
+          'Preferred time (subject to availability and confirmation): ')+local+
+          ' [Asia/Tehran]';
+      }
       var subject = (fa ? 'درخواست مشاوره: ' : 'Consultation request: ') + values[0];
       draft.value = text;
       email.setAttribute('href', recipient + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(text));
