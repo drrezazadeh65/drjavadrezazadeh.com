@@ -1,4 +1,4 @@
-name: DrJavad v5.0.0 Nondeploying Release Candidate
+name: DrJavad v5.1.0 First Usable Nondeploying Candidate
 
 on:
   push:
@@ -198,13 +198,13 @@ jobs:
           assert len(files)>=500
           assert not any(path.startswith(('.github/','platform/','tests/','docs/','scripts/')) for path in files)
           assert '.bertina-backup-trigger' not in files
-          archive=pathlib.Path('bertina-v5.0.0-rc.zip')
+          archive=pathlib.Path('bertina-v5.1.0-rc.zip')
           with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
               for f in names:z.write(f,f.relative_to(root).as_posix())
           proof={
               'schema':'drjavad-v5-release-candidate-v1',
               'status':'SOURCE_ARTIFACT_ONLY_NOT_DEPLOYED',
-              'versionTarget':'v5.0.0',
+              'versionTarget':'v5.1.0',
               'sourceSha':os.environ['GITHUB_SHA'],
               'runId':os.environ['GITHUB_RUN_ID'],
               'sanitizedFileCount':len(files),
@@ -223,15 +223,15 @@ jobs:
       - name: Upload immutable SHA-bound nonproduction candidate
         uses: actions/upload-artifact@v4
         with:
-          name: bertina-v5.0.0-rc
+          name: bertina-v5.1.0-rc
           path: |
-            bertina-v5.0.0-rc.zip
+            bertina-v5.1.0-rc.zip
             v5-rc-evidence.json
           if-no-files-found: error
           retention-days: 14
       - name: Explicit release boundary
         run: |
-          echo 'Prepared v5.0.0 source candidate. NO FILES WERE UPLOADED TO BERTINA.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Prepared v5.1.0 source candidate. NO FILES WERE UPLOADED TO BERTINA.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Production requires signed owner-private restore gate AND live Stage09 schema preflight, followed by a fresh full deploy-run acceptance.' >> "$GITHUB_STEP_SUMMARY"
 
   public-observation:
