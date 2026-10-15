@@ -43,8 +43,10 @@
         "cannibalization",
         "evidence-labelled ranking and volume"
       ],
-      "source": "/assets/data/keyword-master-map-v1.json",
-      "verifiedOwnerRoutes": 13
+      "source": "/api/admin/operations/keyword-map",
+      "verifiedOwnerRoutes": 13,
+      "access": "SERVER_AUTHENTICATED_ADMIN_MFA_REQUIRED",
+      "publicExposure": false
     },
     {
       "id": "admin-intelligence",
