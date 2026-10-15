@@ -48,6 +48,10 @@ for(const asset of workerCacheEntries){
  assert.ok(fs.existsSync(file),'Service worker precache asset missing: '+asset);
  assert.ok(fs.statSync(file).size>100,'Service worker precache asset empty: '+asset);
 }
+for(const privatePath of ["'/api/'","'/fa/customer-dashboard/'","'/fa/app/'","'/en/account/'","'/fa/services/checkout/'"]){
+ assert.ok(worker.includes(privatePath),'Sensitive route must remain excluded from offline cache: '+privatePath);
+}
+assert.ok(worker.includes("fetch(req,{cache:'no-store'})"),'Private requests must use network-only no-store fetch');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'site.webmanifest'),'utf8'));
 const iconFiles=new Set(manifest.icons.map(icon=>icon.src.replace(/^\.\//,'')));
 for(const required of ['assets/images/pwa-icon-192.png','assets/images/pwa-icon-512.png','assets/images/pwa-icon-maskable-512.png']){
