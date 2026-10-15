@@ -10,6 +10,7 @@
   active.element.classList.remove('jr-receipt-print-target');
   if(active.wasClosed)active.element.open=false;
   if(active.element.dataset.jrExporting==='true')delete active.element.dataset.jrExporting;
+  if(active.element.dataset.jrPrintTitle)delete active.element.dataset.jrPrintTitle;
   document.title=active.title;
   active=null;
  }
@@ -22,6 +23,7 @@
   active={element,wasClosed,title:document.title};
   element.classList.add('jr-receipt-print-target');
   element.dataset.jrExporting='true';
+  element.dataset.jrPrintTitle='JR-'+String(element.dataset.receiptId||'document').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,60);
   document.body.classList.add('jr-receipt-print-mode');
   const safeId=String(element.dataset.receiptId||'document').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,60);
   document.title='JR-'+safeId;
