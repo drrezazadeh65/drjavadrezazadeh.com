@@ -113,6 +113,35 @@ try {
          'nextState'=>'PAID']);
        throw new RuntimeException('invalid financial state accepted');
     }catch(InvalidArgumentException $e){}
+    // Beyond twenty records, a full queue must not hide new customer
+    // enquiries. Use deterministic synthetic identities in isolated MySQL.
+    for($i=0;$i<25;$i++){
+        $id=sprintf('88888888-8888-4888-8888-%012d',$i+1);
+        $qAccount->execute([$id,'synthetic-'.($i+1).'@example.test','active',$now]);
+        $qLead->execute([$id,$id,'service:academic_consult_60','NEW',
+            null,$now-30000+$i,$now-30000+$i,$now+86400]);
+    }
+    $first=stage14AdminLeadWorklist($pdo);
+    check(count($first['items'])===20,'first batch bounded to twenty');
+    check(is_string($first['nextCursor']),'next cursor when backlog exceeds twenty');
+    $second=stage14AdminLeadWorklist($pdo,$first['nextCursor']);
+    check(count($second['items'])===7,'remaining consenting cases all reachable');
+    check($second['nextCursor']===null,'last batch terminates without a cursor');
+    $seen=[];
+    foreach(array_merge($first['items'],$second['items']) as $item){
+        check(!isset($seen[$item['id']]),'no duplicate across pages');
+        $seen[$item['id']]=true;
+    }
+    check(count($seen)===27,'all eligible active cases accounted for');
+    foreach(['nonsense','0:11111111-1111-4111-8111-111111111111',
+        (string)($now+3600).':11111111-1111-4111-8111-111111111111'] as $bad){
+        try{
+            stage14AdminLeadWorklist($pdo,$bad);
+            throw new RuntimeException('invalid owner cursor accepted');
+        }catch(InvalidArgumentException $e){}
+    }
+    check((int)$pdo->query('SELECT COUNT(*) FROM operations_audit')->fetchColumn()===1,
+        'pagination does not mutate audit trail or lead status');
     echo "PASS Stage14 owner triage: isolated MySQL, consent, MFA-call boundary, state locking and audit; zero real customer data.\n";
 } catch(Throwable $e){
     fwrite(STDERR,"FAIL Stage14 isolated owner triage: ".get_class($e)." ".$e->getMessage()."\n");
