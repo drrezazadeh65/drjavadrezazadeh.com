@@ -25,6 +25,11 @@ jobs:
       - name: Verify public build and route inventory
         run: |
           node scripts/build-public-data.mjs --check
+          # Reproduce the former deployment failure: Playwright creates an HTML report.
+          mkdir -p playwright-report
+          printf '<!doctype html><title>Playwright diagnostic only</title>\\n' > playwright-report/index.html
           node scripts/build-public-site.mjs
+          test ! -e .public-site/playwright-report
+          test -f .public-site/fa/index.html
       - name: Clarify nondeploying scope
         run: echo 'Source policy and build checks only. No deployment, no live data, no proof of user-visible improvement.' >> "$GITHUB_STEP_SUMMARY"
