@@ -38,3 +38,29 @@ import('/assets/js/mobile-app-v431.js?v=431d');
 
 /* Footer provenance/copyright metadata. Public information only. */
 (()=>{if(document.querySelector('script[data-jr-footer-meta-loader]'))return;const script=document.createElement('script');script.src='/assets/js/site-footer-meta-2026.js?v=20261016-v1';script.defer=true;script.dataset.jrFooterMetaLoader='1';document.head.append(script);})();
+
+/* Permanent manual PWA installation entry near the homepage footer.
+   Auto-prompt remains capped to once; visitors can always request installation. */
+(()=>{
+const raw=location.pathname.replace(/index\.html$/,'');
+const path=raw.includes('/drjavadrezazadeh.com/')?'/'+raw.split('/drjavadrezazadeh.com/')[1]:raw;
+if(!/^\/(?:fa|en)\/?$/.test(path)||window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true)return;
+const footer=document.querySelector('footer');
+if(!footer||document.querySelector('[data-jr-home-install]'))return;
+const fa=document.documentElement.lang==='fa';
+const area=document.createElement('div');area.dataset.jrHomeInstall='1';
+area.style.cssText='display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin:22px auto;padding:16px;text-align:center;max-width:840px;';
+const button=document.createElement('button');button.type='button';
+button.textContent=fa?'↓ نصب اپلیکیشن وب‌سایت':'↓ Install the website app';
+button.style.cssText='font:inherit;min-height:48px;padding:11px 24px;border-radius:999px;border:1px solid #c9aa72;color:#f9efd9;background:#15273b;cursor:pointer;';
+const note=document.createElement('small');note.setAttribute('role','status');note.setAttribute('aria-live','polite');
+note.style.cssText='font-size:.85rem;line-height:1.7;max-width:430px;';
+button.addEventListener('click',async()=>{
+ const available=typeof window.jrPwaRequest==='function';
+ if(available&&await window.jrPwaRequest())return;
+ note.textContent=/iPhone|iPad|iPod/i.test(navigator.userAgent||'')
+  ?(fa?'در Safari: اشتراک‌گذاری ← افزودن به صفحه اصلی':'In Safari: Share → Add to Home Screen')
+  :(fa?'از منوی مرورگر، نصب برنامه یا افزودن به صفحه اصلی را انتخاب کنید.':'Open your browser menu and select Install app or Add to Home Screen.');
+});
+area.append(button,note);footer.parentNode.insertBefore(area,footer);
+})();
