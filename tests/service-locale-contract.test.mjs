@@ -61,13 +61,13 @@ test('VIP English labels match six canonical offers and cannot redefine fees or 
  for(const [id,title] of Object.entries(names.services)){
   assert.equal(typeof title,'string',id);
   assert.ok(title.trim().length>=10&&title.trim().length<=120,id);
-  assert.doesNotMatch(title,/[<>\\x00-\\x1f]/,id+' must remain plain text');
+  assert.doesNotMatch(title,/[<>\x00-\x1f]/,id+' must remain plain text');
  }
  const consent=readFileSync('assets/js/consented-lead-intake.js','utf8');
  const customer=readFileSync('assets/js/customer-consultation-leads.js','utf8');
  const admin=readFileSync('assets/js/operations-growth.js','utf8');
  for(const source of [consent,customer,admin]){
-  assert.match(source,/vip-descriptions-en\\.json/);
-  assert.doesNotMatch(source,/paymentVerified\\s*[:=]\\s*true/);
+  assert.match(source,/vip-descriptions-en\.json/);
+  assert.doesNotMatch(source,/paymentVerified\s*[:=]\s*true/);
  }
 });
