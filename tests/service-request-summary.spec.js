@@ -419,3 +419,21 @@ test('unverified English service identifier cannot preselect a nonexistent servi
  await expect(form.locator('[data-requested-service-details]')).toBeHidden();
  await expect(form.locator('[data-composer-email]')).toHaveAttribute('href','mailto:dr.rezazadeh65@gmail.com');
 });
+
+test('missing English service descriptions keep account intake closed without hiding email enquiry',async({page})=>{
+  await page.route('**/assets/data/service-descriptions-en.json',route=>route.fulfill({
+    status:503,json:{ok:false,error:'localization_unavailable'}
+  }));
+  await page.goto('http://127.0.0.1:4173/en/request-consultation/',{
+    waitUntil:'domcontentloaded'
+  });
+  const lead=page.locator('[data-stage14-consent-lead]');
+  await expect(lead.locator('select[name="serviceId"]')).toBeDisabled();
+  await expect(lead.locator('button[type="submit"]')).toBeDisabled();
+  await expect(lead.locator('[data-stage14-lead-status]')).toContainText(
+    'catalogue is unavailable'
+  );
+  await expect(lead.locator('[data-stage14-service-summary]')).toBeHidden();
+  await expect(page.locator('form[data-consultation-composer] select[name="service"]')).toBeEnabled();
+  await expect(page.locator('a[href^="mailto:dr.rezazadeh65@gmail.com"]').first()).toBeVisible();
+});
