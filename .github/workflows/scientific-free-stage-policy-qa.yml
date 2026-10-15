@@ -16,6 +16,9 @@ on:
       - "platform/bertina-consent-projection.php"
       - "api/golden-talent.php"
       - "api/golden-talent-consent.php"
+      - "api/operations.php"
+      - "api/operations-scientific-schema.php"
+      - "tests/operations-security.php"
       - "tests/bertina-public-consent-assembly.mjs"
       - "tests/golden-talent-guardian.php"
       - "tests/bahar-guardian-mysql.php"
@@ -63,6 +66,8 @@ jobs:
           php -l platform/bertina-consent-projection.php
           php -l api/golden-talent.php
           php -l api/golden-talent-consent.php
+          php -l api/operations.php
+          php -l api/operations-scientific-schema.php
           php -l tests/golden-talent-guardian.php
           php tests/golden-talent-guardian.php
           php -l tests/bertina-consent-projection.php
@@ -163,3 +168,23 @@ jobs:
           node tests/bertina-public-consent-assembly.mjs
           php -l .public-site/api/golden-talent.php
           php -l .public-site/api/golden-talent-consent.php
+          php -l .public-site/api/operations.php
+          php -l .public-site/api/operations-scientific-schema.php
+
+  admin-schema-authorization:
+    name: Scientific schema endpoint requires verified admin MFA and auditable reads
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP SQLite fixture dependencies (no real DB)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y php-cli php-sqlite3
+          php -m | grep -iq pdo_sqlite
+      - name: Authenticated admin route security regression
+        run: |
+          php -l api/operations-scientific-schema.php
+          php -l api/operations.php
+          php -l tests/operations-security.php
+          php tests/operations-security.php
