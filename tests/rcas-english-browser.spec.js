@@ -50,3 +50,10 @@ for(const width of [320,360,390,430,768,1440]){
   await expect(page.locator('.rcas-panel[data-step="1"]')).toBeVisible();
  });
 }
+
+test('English dashboard supports the RCAS pilot summary',async({page})=>{
+ await page.goto(base+'/en/golden-talent/dashboard/');
+ await expect(page.locator('script[src*="rcas-dashboard-en-bridge.js"]')).toHaveCount(1);
+ await expect(page.locator('[data-resource="student-dashboard"]')).toBeVisible();
+ await expect(page.getByText('Your current-tab RCAS reflection')).toHaveCount(0);
+});
