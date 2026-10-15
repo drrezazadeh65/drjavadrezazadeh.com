@@ -63,3 +63,18 @@ The earlier statement 'tests have not been run' is superseded: GitHub Actions pr
 
 ## Not yet frozen; minimum remaining before final Super Master Plan
 Resolve A01–A05 by exact canonical API/SQL/runtime mapping, reach agreement on A06 version taxonomy, capture scientific evidence matrix, document service-specific bilingual dashboard flows and current research/market baseline, define acceptance fixtures and release authority. Only then consolidate to one final plan aligned with the existing frozen roadmap. No production deploy, database migration, live data inspection or modification is claimed.
+
+
+## Implementation checkpoint — P0 consent and guardian adapter (2026-10-16)
+
+**Observed nondeploy CI:** [Scientific free-stage policy QA, run 38817126782](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38817126782) completed with BOTH jobs green. Logs show 29 isolated PHP consent checks, 25 isolated PHP DTO access checks, 17 JavaScript policy tests, and 16 MySQL 8 ephemeral temporary-table integration checks — **87 passing checks total**, 0 Node test failures. Job success is evidence of this bounded synthetic suite only.
+
+**Implemented on this scientific branch:**
+- PHP consent projection handles both explicit withdrawal decisions and later grant withdrawn_at modifications, strict UTC fractional-second DATETIME(3) and notice/version/hash/retirement; latest ambiguous timestamps deny.
+- MySQL-native PHP free-first authorisation validates exact stage, canonical subject ownership, active account, server-proven subject/guardian link with expiry, scope-matched complete consent, and independently verified age classification; UNKNOWN age denies. Pure prototype, not invoked by API.
+- The JavaScript free-stage policy denies unknown age and requires guardian-session launch for minors pending a formal minor assent/delegation lifecycle.
+- A test job starts an isolated MySQL 8 operations_fixture service and constructs temporary eco_* tables with synthetic identities, guardian decisions, regrant and withdrawal. It does not connect to production.
+
+**Still blocked:** no actual Bertina installed-schema proof, no verified age-classification source in reviewed eco_subjects schema, no production-consent transactional writer, no private assessment submission, no persisted scientific report release or unified dashboard. Existing customer/admin panels and public browser RCAS are intentionally untouched. A01–A05 remain runtime release blockers despite bounded policy QA progress. Do not equate 87 checks with psychometric validity or real-customer acceptance.
+
+**Documented trust contract:** docs/scientific-validation/P0-CANONICAL-IDENTITY-CONSENT-ADAPTER-DECISION-2026-10-16.md.
