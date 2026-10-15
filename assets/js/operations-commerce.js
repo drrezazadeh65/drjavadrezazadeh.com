@@ -319,6 +319,18 @@
     card(text('سفارش‌های معلق','Pending orders'),orders.pendingRecords);
     card(text('ردیف‌های پرداخت‌شده','Paid-state records'),orders.paidStateRecords,
       text('تسویهٔ بانکی از این تعداد قابل استنتاج نیست.','This does not prove bank settlement.'));
+    const giving=data.donations||null;
+    if(giving&&giving.scope==='sampled_internal_donation_ledger'){
+      const h=node('h3',text('حمایت مالی تحصیلی — گزارش مستقل','Student support — separate ledger'));
+      h.style.gridColumn='1 / -1';results.append(h);
+      card(text('کمک‌های در انتظار پرداخت (نمونه)','Pending donations (sample)'),giving.pendingOrders);
+      card(text('کمک‌های دارای وضعیت پرداخت‌شده (نمونه)','Paid-state donations (sample)'),giving.paidStateOrders);
+      card(text('کمک‌های تطبیق‌یافته با سند درگاه (نمونه)','Provider-claim-matched donations (sample)'),giving.claimMatchedOrders);
+      card(text('مبلغ کمک‌های تطبیق‌یافته با درگاه (نمونه)','Provider-claim-matched donation value (sample)'),
+        toman(giving.claimMatchedAmountToman),
+        text('صرفاً شواهد داخلی؛ تسویه بانکی و تخصیص کمک تأیید نشده است.',
+          'Internal evidence only; bank settlement and allocation are not verified.'));
+    }
     const sales=data.salesPipeline||null;
     if(sales && sales.status==='INTERNAL_ORDER_LEDGER_ONLY'){
       const heading=node('h3',text('مسیر فروش و پیگیری درآمد','Sales pipeline and revenue follow-up'));
