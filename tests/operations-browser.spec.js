@@ -611,6 +611,15 @@ test('10k USD scenario studio remains strictly hypothetical, costed and capacity
   await expect(results).toContainText('Hypothetical gross sales');
   await expect(results).toContainText('10,000.00 USD');
   await expect(results).toContainText('7,350.00 USD');
+  await expect(results).toContainText('Contribution goal shortfall');
+  await expect(results).toContainText('2,650.00 USD');
+  const goalKind=planner.locator('.jr-revenue-controls').first().locator('select').nth(1);
+  await expect(goalKind).toHaveValue('CONTRIBUTION');
+  await goalKind.selectOption('GROSS');
+  await expect(results).toContainText('Gross sales goal shortfall');
+  await expect(results).toContainText('0.00 USD');
+  await goalKind.selectOption('CONTRIBUTION');
+  await expect(results).toContainText('2,650.00 USD');
   await expect(results).toContainText('Within stated capacity');
   await expect(results).toContainText('Not observed transactions');
   await expect(results).toContainText('does not connect to live accounting');
