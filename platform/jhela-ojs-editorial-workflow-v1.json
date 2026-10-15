@@ -27,7 +27,8 @@
         "submit_own",
         "upload_own_revision",
         "request_withdrawal"
-      ]
+      ],
+      "implementation": "NATIVE_OJS_CONFIGURATION_REQUIRED"
     },
     {
       "id": "reviewer",
@@ -43,7 +44,8 @@
         "accept_or_decline",
         "declare_conflict",
         "submit_structured_review"
-      ]
+      ],
+      "implementation": "NATIVE_OJS_CONFIGURATION_REQUIRED"
     },
     {
       "id": "handling_editor",
@@ -59,7 +61,8 @@
         "assign_unconflicted_reviewers",
         "record_decision_rationale",
         "request_revision"
-      ]
+      ],
+      "implementation": "NATIVE_OJS_CONFIGURATION_REQUIRED"
     },
     {
       "id": "editor_in_chief",
@@ -75,7 +78,8 @@
         "delegate_decisions",
         "approve_editorial_release",
         "recuse_and_transfer"
-      ]
+      ],
+      "implementation": "NATIVE_OJS_CONFIGURATION_REQUIRED"
     },
     {
       "id": "journal_manager",
@@ -92,7 +96,8 @@
         "configure_journal",
         "issue_approved_invitations",
         "manage_production"
-      ]
+      ],
+      "implementation": "NATIVE_OJS_CONFIGURATION_REQUIRED"
     },
     {
       "id": "production",
@@ -109,7 +114,8 @@
         "copyedit",
         "proof_send",
         "release_after_signoff"
-      ]
+      ],
+      "implementation": "NATIVE_OJS_CONFIGURATION_REQUIRED"
     },
     {
       "id": "financial_officer",
@@ -125,7 +131,8 @@
         "approve_separate_waiver",
         "issue_invoice",
         "record_refund"
-      ]
+      ],
+      "implementation": "INTEGRATION_NOT_BUILT"
     },
     {
       "id": "audit_officer",
@@ -141,7 +148,8 @@
       "actions": [
         "export_redacted_evidence",
         "flag_security_incident"
-      ]
+      ],
+      "implementation": "INTEGRATION_NOT_BUILT"
     }
   ],
   "reviewForm": {
@@ -240,6 +248,25 @@
     "paymentActive": false,
     "boardMembershipsVerified": false,
     "issnAssigned": false,
-    "doiRegistered": false
+    "doiRegistered": false,
+    "financePanelReady": false,
+    "auditPanelReady": false
+  },
+  "implementationBoundary": {
+    "purpose": "Role and capability contract, NOT installed native OJS screens",
+    "nativeOjsRoles": [
+      "author",
+      "reviewer",
+      "handling_editor",
+      "editor_in_chief",
+      "journal_manager",
+      "production"
+    ],
+    "separateIntegrations": [
+      "financial_officer",
+      "audit_officer"
+    ],
+    "guard": "Do not grant finance or audit staff broad OJS administrative/editorial privileges to imitate a dashboard. Design a separately authenticated, minimally scoped and independently audited integration only after native OJS is operational.",
+    "actualRolePermissions": "Validate in installed OJS 3.5; UI role names and available plugin permissions can differ. Every manuscript authorization is checked by OJS server."
   }
 }
