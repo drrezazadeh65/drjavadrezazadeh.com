@@ -59,7 +59,32 @@
       ],
       "expected_item_count": 28,
       "allowed_storage": "BROWSER_FORM_ONLY_NO_RAW_RESPONSE_UPLOAD",
-      "routing_status": "SELF_SELECTED_NOT_MACHINE_INFERRED"
+      "routing_status": "SELF_SELECTED_NOT_MACHINE_INFERRED",
+      "registry_reference_revision_state": "LEGACY_REFERENCE_NOT_CURRENT_BROWSER_EDITION",
+      "browser_preview_editions": [
+        {
+          "locale": "fa",
+          "revision": "start-1.2",
+          "source": "assets/js/rcas-start.js",
+          "mode": "BROWSER_PREVIEW_ONLY",
+          "expected_item_count": 28,
+          "scoring_enabled": false,
+          "content_sha256": null,
+          "human_approval": false,
+          "cross_locale_equivalence_established": false
+        },
+        {
+          "locale": "en",
+          "revision": "start-en-pilot-1",
+          "source": "assets/js/rcas-start-en.js",
+          "mode": "TRANSLATION_PILOT_BROWSER_ONLY",
+          "expected_item_count": 28,
+          "scoring_enabled": false,
+          "content_sha256": null,
+          "human_approval": false,
+          "cross_locale_equivalence_established": false
+        }
+      ]
     },
     {
       "id": "D1",
