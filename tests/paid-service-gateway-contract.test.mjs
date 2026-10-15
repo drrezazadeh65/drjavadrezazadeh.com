@@ -26,6 +26,16 @@ test('paid service and VIP checkout do not require a preassigned appointment',()
   assert.match(client,/\{sku:kind\+':'\+item\.id,quantity:1\}/);
   assert.match(client,/هماهنگ/);
 });
+test('paid checkout pages load the latest payment scripts instead of stale cached copies',()=>{
+  for(const [path,version] of [
+    ['fa/services/checkout/index.html','commerce-checkout.js?v=20261015-paid-service-followup-v3'],
+    ['fa/vip/index.html','commerce-checkout.js?v=20261015-paid-service-followup-v3'],
+    ['fa/shop/checkout/index.html','book-store.js?v=20261015-payment-followup-v10'],
+    ['en/shop/checkout/index.html','book-store.js?v=20261015-payment-followup-v10'],
+  ]){
+    assert.ok(readFileSync(path,'utf8').includes(version),path+' must load updated checkout code');
+  }
+});
 test('money movement retains authoritative server verification and stock protections',()=>{
   assert.match(api,/function commerceReady\(\): bool/);
   assert.match(api,/stage9SchemaReady\(db\(\)\)/);
