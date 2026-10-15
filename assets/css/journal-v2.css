@@ -274,3 +274,13 @@
 .journal-page .jhela-hero-wordmark img,.journal-page .jhela-portal-wordmark img{display:block;width:100%;height:auto;object-fit:contain}
 .journal-page .jhela-portal-wordmark{max-width:390px;margin:0 0 22px}
 @media(max-width:650px){.journal-page .jhela-hero-wordmark{margin:-14px 0 18px}.journal-page .jhela-portal-wordmark{max-width:300px}}
+
+/* JHELA transparent APC schedule — legible across LTR/RTL and mobile. */
+.journal-page .jhela-fee-schedule{margin-top:38px;padding-top:20px;border-top:1px solid var(--j-border-strong)}
+.journal-page .jhela-fee-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:24px 0 12px}
+.journal-page .jhela-fee-cards>div{padding:24px;border:1px solid var(--j-border-strong);border-radius:18px;background:rgba(198,161,90,.045)}
+.journal-page .jhela-fee-cards span{display:block;min-height:3.6em;color:#e4dac8;line-height:1.55}
+.journal-page .jhela-fee-cards strong{display:block;font:700 clamp(30px,3vw,42px)/1.25 Georgia,serif;color:#f4d18b;margin:15px 0 8px}
+.journal-page .jhela-fee-cards small{display:block;color:#c6bfb0;line-height:1.65;font-size:13px}
+.journal-page .jhela-fee-evidence{font-size:13px;line-height:1.75;color:#c8c1b4}
+@media(max-width:640px){.journal-page .jhela-fee-cards{grid-template-columns:1fr}.journal-page .jhela-fee-cards>div{padding:19px}.journal-page .jhela-fee-cards span{min-height:auto}}
