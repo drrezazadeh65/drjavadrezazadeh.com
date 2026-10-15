@@ -194,7 +194,9 @@ checkService(count(array_filter($after['windows'],
     'overlap_denial_preserves_original_booking');
 // Owner can selectively publish only real hours, with a strict Tehran-day
 // aggregate max of four hours, and the public week exposes no private IDs.
-$tomorrow=(new DateTimeImmutable('tomorrow 10:00:00',new DateTimeZone('Asia/Tehran')));
+// Use the day after tomorrow: the earlier synthetic booking may cross Tehran midnight.
+// Keep daily-budget tests independent of that separate booking fixture.
+$tomorrow=(new DateTimeImmutable('tomorrow 10:00:00',new DateTimeZone('Asia/Tehran')))->modify('+1 day');
 $u=static fn(DateTimeImmutable $d): string=>gmdate('Y-m-d H:i:s',$d->getTimestamp());
 $open=static fn(DateTimeImmutable $start,int $hours): array=>[
   'action'=>'open','windowId'=>null,'startUtc'=>$u($start),
