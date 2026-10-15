@@ -407,7 +407,7 @@ for(const [lang,route] of [['fa','/fa/app/account/orders/'],['en','/en/account/o
       serviceCases:[],parcel:null}});
    });
    await page.goto(base+route,{waitUntil:'domcontentloaded'});
-   const panel=page.locator('[data-resource="orders"] .case-section .appointment-card');
+   const panel=page.locator('[data-resource="orders"] .case-section > div.appointment-card.empty');
    await expect(panel).toContainText(orderId);
    if(providerMatched){
     await expect(panel).toContainText(lang==='fa'?'تسویه بانکی جداگانه':'bank settlement requires separate verification');
