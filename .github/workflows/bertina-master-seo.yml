@@ -78,6 +78,7 @@ jobs:
           run_audit "PWA private cache" node scripts/pwa-private-cache-audit.mjs
           run_audit "Admin keyword privacy" node --test tests/admin-intelligence-private.test.mjs
           run_audit "One-time PWA offer" node --test tests/pwa-install-once.test.mjs
+          run_audit "Premium bookstore layout" node --test tests/bookstore-premium-layout.test.mjs
           run_audit "Private cache behavior" node --test tests/private-cache-behavior.test.mjs
           run_audit "Ordered stylesheet bundles" node scripts/stylesheet-bundles.mjs --check
           run_audit "Service SEO and Bertina commerce gates" node scripts/seo-services-gate.cjs
