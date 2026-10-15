@@ -1,0 +1,30 @@
+name: Progressive Release Policy Tests (No Deployment)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: progressive-release-tests-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  policy-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify policy and existing release protections
+        run: node --test tests/progressive-release-policy.test.mjs
+      - name: Verify release eligibility regression tests
+        run: node --test tests/bertina-auto-release-policy.test.mjs tests/bertina-release-eligibility.test.mjs
+      - name: Verify public build and route inventory
+        run: |
+          node scripts/build-public-data.mjs --check
+          node scripts/build-public-site.mjs
+      - name: Clarify nondeploying scope
+        run: echo 'Source policy and build checks only. No deployment, no live data, no proof of user-visible improvement.' >> "$GITHUB_STEP_SUMMARY"
