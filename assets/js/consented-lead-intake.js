@@ -17,6 +17,23 @@
   const submit=form.querySelector('[type="submit"]');
   const consentVersion='stage14-consultation-v1';
   const serviceLabels=new Map();
+  // Context links carry only a public catalogue identifier, never a customer
+  // identifier, private questionnaire response, consent, or payment instruction.
+  const requested=(()=>{
+    const value=new URLSearchParams(location.search).get('service');
+    if(typeof value!=='string'||value.length>84)return null;
+    const key=/^(?:service|vip):[A-Za-z0-9_-]{3,64}$/.test(value)
+      ?value:(/^[A-Za-z0-9_-]{3,64}$/.test(value)?'service:'+value:null);
+    return key;
+  })();
+  const vipEnglish=Object.freeze({
+    'academic-direction':'Personal academic pathway guidance',
+    'university-selection':'VIP university major selection',
+    'golden-talent-signature':'Signature Golden Talent guidance',
+    'research-publication':'Research and publication advisory',
+    'educator-development':'Educator professional development',
+    'institutional-advisory':'Institutional educational advisory'
+  });
   const englishTitles=Object.freeze({
     academic_consult_60:'Specialist educational consultation',
     student_parent_90:'Joint student and parent session',
@@ -54,6 +71,30 @@
         option.textContent=titleFor(service);
         serviceLabels.set(option.value,option.textContent);
         choice.append(option);
+      }
+      // VIP offers use the EXISTING catalogue and server-authoritative
+      // service IDs; a displayed option does not activate a payment gateway.
+      try{
+        const vipResponse=await fetch('/assets/data/vip-catalog.json',{
+          credentials:'same-origin',cache:'reload'
+        });
+        if(vipResponse.ok){
+          const vipCatalog=await vipResponse.json();
+          for(const offer of (vipCatalog.services||[])){
+            if(offer.sellable!==true||offer.checkout_enabled!==true||
+               typeof offer.id!=='string'||!vipEnglish[offer.id])continue;
+            const option=document.createElement('option');
+            option.value='vip:'+offer.id;
+            option.textContent=fa?offer.title_fa:vipEnglish[offer.id];
+            serviceLabels.set(option.value,option.textContent);
+            choice.append(option);
+          }
+        }
+      }catch(_){/* ordinary services and email remain available */}
+      if(requested && serviceLabels.has(requested)){
+        choice.value=requested;
+        say(t('خدمت مرتبط از صفحه قبل انتخاب شد. لطفاً آن را بررسی کنید و سپس رضایت را ثبت کنید.',
+          'The related service was selected from your previous page. Review it before consenting.'));
       }
       choice.disabled=choice.options.length<=1;
       submit.disabled=choice.disabled;
