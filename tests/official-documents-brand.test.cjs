@@ -49,7 +49,10 @@ for(const required of ['assets/images/pwa-icon-192.png','assets/images/pwa-icon-
  assert.ok(fs.statSync(path.join(root,required)).size>1000,'PWA icon file is missing or empty: '+required);
 }
 for(const shortcut of manifest.shortcuts||[]){
- assert.ok(shortcut.url.startsWith('./'),'PWA shortcut must use site-relative URL');
+ assert.ok(/^\.\/[a-z0-9/_-]+\/$/i.test(shortcut.url),'PWA shortcut must be a safe site-relative directory URL');
+ const target=path.join(root,shortcut.url.slice(2),'index.html');
+ assert.ok(fs.existsSync(target),'PWA shortcut target does not exist: '+shortcut.url);
+ assert.ok(fs.statSync(target).size>100,'PWA shortcut target is empty: '+shortcut.url);
 }
 const css=fs.readFileSync(path.join(root,'identity/document.css'),'utf8');
 assert.ok(css.includes('@page')&&css.includes('A4'),'Shared document stylesheet must support A4');
