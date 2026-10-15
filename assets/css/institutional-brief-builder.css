@@ -1,0 +1,149 @@
+/* Bilingual institutional brief: coherent with the approved JR obsidian/gold
+   visual system; no new brand identity and no payment simulation. */
+.jr-institutional-brief{
+  --ib-gold:var(--jr2-gold,#dab973);
+  --ib-ink:var(--jr2-obsidian,#08090b);
+  --ib-paper:var(--jr2-ivory,#f8f3e9);
+  --ib-rule:var(--jr2-rule,rgba(218,185,115,.25));
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  border:1px solid var(--ib-rule);
+  border-radius:clamp(18px,2.5vw,30px);
+  background:radial-gradient(ellipse 70% 80% at 100% 0%,rgba(218,185,115,.11),transparent 70%),linear-gradient(145deg,#141619,#08090b);
+  padding:clamp(20px,3.4vw,50px);
+  color:var(--ib-paper);
+  box-shadow:0 20px 60px rgba(0,0,0,.23);
+}
+.jr-institutional-brief h2{
+  font-size:clamp(1.45rem,2.2vw,2.35rem);
+  line-height:1.48;
+  max-width:32ch;
+  margin:.6rem 0 1rem;
+  color:var(--ib-paper);
+}
+.jr-institutional-brief .ib-eyebrow{
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--ib-gold);
+  font-size:.76rem;
+  font-weight:800;
+}
+.jr-institutional-brief .ib-intro{
+  color:#ded8ca;
+  line-height:1.9;
+  max-width:76ch;
+  margin:0 0 1.5rem;
+}
+.jr-institutional-brief .ib-fields{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(12px,2vw,22px);
+  padding:0;
+  border:0;
+  margin:0;
+  min-width:0;
+}
+.jr-institutional-brief .ib-fields label{
+  display:grid;
+  align-content:start;
+  gap:.55rem;
+  min-width:0;
+  font-size:.95rem;
+  line-height:1.55;
+  color:var(--ib-paper);
+  font-weight:650;
+}
+.jr-institutional-brief .ib-fields label.ib-wide{grid-column:1/-1}
+.jr-institutional-brief :is(select,textarea,input){
+  display:block;
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  font:inherit;
+  font-weight:450;
+  border:1px solid rgba(231,206,156,.34);
+  border-radius:12px;
+  padding:12px 14px;
+  color:#faf6ed;
+  background:#222327;
+  color-scheme:dark;
+  min-height:48px;
+}
+.jr-institutional-brief textarea{
+  min-height:136px;
+  resize:vertical;
+  line-height:1.8;
+}
+.jr-institutional-brief :is(select,textarea,input):focus-visible,
+.jr-institutional-brief :is(button,a):focus-visible{
+  outline:3px solid #ffe4a6;
+  outline-offset:3px;
+}
+.jr-institutional-brief .ib-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-items:center;
+  margin:1.25rem 0 .6rem;
+}
+.jr-institutional-brief .ib-actions :is(button,a){
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 20px;
+  min-height:48px;
+  border-radius:12px;
+  font:inherit;
+  font-weight:750;
+  text-align:center;
+  text-decoration:none;
+  cursor:pointer;
+}
+.jr-institutional-brief .ib-submit,
+.jr-institutional-brief .ib-primary{
+  border:1px solid #e8c782;
+  background:linear-gradient(125deg,#f6e3b0,#dfb96e 65%,#bd9452);
+  color:#19150e;
+}
+.jr-institutional-brief .ib-secondary{
+  background:transparent;
+  color:#f9e6bd;
+  border:1px solid rgba(244,205,136,.46);
+}
+.jr-institutional-brief .ib-note{
+  color:#c3bdaf;
+  font-size:.89rem;
+  line-height:1.85;
+  max-width:80ch;
+}
+.jr-institutional-brief .ib-status{
+  margin:1rem 0;
+  min-height:1.5em;
+  color:#f1cf85;
+  line-height:1.7;
+}
+.jr-institutional-brief [data-ib-result]{
+  margin-top:1.5rem;
+  border-top:1px solid var(--ib-rule);
+  padding-top:1.3rem;
+}
+.jr-institutional-brief [data-ib-result][hidden]{display:none!important}
+.jr-institutional-brief [data-ib-result] h3{color:#f8e3b5}
+.jr-institutional-brief [data-ib-preview]{
+  font-size:.9rem;
+  line-height:1.75;
+  direction:auto;
+  min-height:260px;
+}
+@media(max-width:640px){
+  .jr-institutional-brief .ib-fields{grid-template-columns:1fr}
+  .jr-institutional-brief .ib-actions{align-items:stretch}
+  .jr-institutional-brief .ib-actions :is(button,a){width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  .jr-institutional-brief *, .jr-institutional-brief *::before,
+  .jr-institutional-brief *::after{scroll-behavior:auto!important;transition:none!important}
+}
