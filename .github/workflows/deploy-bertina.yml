@@ -200,7 +200,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/customer-dashboard-browser.spec.js tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js tests/public-mobile-navigation.spec.js --reporter=line,html --trace=retain-on-failure --screenshot=only-on-failure
+          npx playwright test tests/customer-dashboard-browser.spec.js tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js tests/public-mobile-navigation.spec.js --reporter=line,html
 
       - name: Retain Playwright failure diagnostics
         if: failure()
