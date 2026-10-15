@@ -684,3 +684,39 @@ body.ss-body{
 .ss-body .ss-nav-cta,.ss-body .ss-button.primary{background:linear-gradient(125deg,#f4dca6,#c79b50);color:#15120d}
 .ss-body a.ss-link,.ss-body .support-panel a{color:var(--jr2-gold-light)}
 .ss-body .ss-faq-grid summary:focus-visible{outline:3px solid var(--jr2-gold-light)}
+
+
+/* Super Master Design: accessible interaction and small-screen hardening.
+ * Scoped to the existing public design system; no checkout or auth logic changes.
+ */
+@media (prefers-reduced-motion: reduce){
+  :is(.public-home-page,.golden-talent-page,.ss-body) *,
+  :is(.public-home-page,.golden-talent-page,.ss-body) *::before,
+  :is(.public-home-page,.golden-talent-page,.ss-body) *::after{
+    scroll-behavior:auto!important;
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+}
+@media (max-width:480px){
+  :is(.public-home-page,.golden-talent-page,.ss-body) :is(input,select,textarea){
+    max-width:100%;
+    min-width:0;
+    font-size:max(16px,1rem);
+  }
+  :is(.public-home-page,.golden-talent-page,.ss-body) :is(img,video,iframe){
+    max-width:100%;
+  }
+}
+@media (forced-colors:active){
+  :is(.public-home-page,.golden-talent-page,.ss-body) :is(a,button,summary,input,select,textarea):focus-visible{
+    outline:3px solid Highlight;
+    outline-offset:3px;
+  }
+  :is(.public-home-page,.golden-talent-page,.ss-body) .button.primary,
+  .ss-body .ss-button.primary{
+    border:2px solid ButtonText;
+    forced-color-adjust:auto;
+  }
+}
