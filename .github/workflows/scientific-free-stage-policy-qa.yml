@@ -11,6 +11,8 @@ on:
       - "platform/scientific-release-gate.mjs"
       - "platform/scientific-release-gate.test.mjs"
       - "platform/golden-talent-phase12-gates.mjs"
+      - "platform/bertina-consent-projection.php"
+      - "tests/bertina-consent-projection.php"
       - ".github/workflows/scientific-free-stage-policy-qa.yml"
   pull_request:
     paths:
@@ -40,6 +42,11 @@ jobs:
           node --check platform/free-first-stage-policy.mjs
           node --check platform/free-first-stage-consent-adapter.mjs
           node --check platform/scientific-release-gate.mjs
+      - name: Isolated PHP Bertina consent projection
+        run: |
+          php -l platform/bertina-consent-projection.php
+          php -l tests/bertina-consent-projection.php
+          php tests/bertina-consent-projection.php
       - name: Privacy, consent, free/paid and scientific policy regression
         run: |
           node --test platform/free-first-stage-policy.test.mjs platform/free-first-stage-consent-adapter.test.mjs platform/scientific-release-gate.test.mjs
