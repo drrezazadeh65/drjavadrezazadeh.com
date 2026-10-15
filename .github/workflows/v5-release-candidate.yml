@@ -77,6 +77,10 @@ jobs:
           node --check assets/js/customer-consultation-leads.js
           node --check assets/js/customer-dashboard.js
           node --test tests/service-locale-contract.test.mjs tests/scientific-bilingual-contract.test.mjs
+          node --test tests/paid-service-gateway-contract.test.mjs
+          node --check assets/js/book-store.js
+          node --check assets/js/commerce-checkout.js
+          node --check assets/js/donation-payment.js
           node --check assets/js/institutional-brief-builder.mjs
           node --test tests/institutional-conversion.test.mjs
           node --test tests/stage14-growth-privacy.test.mjs tests/revenue-planner-model.test.mjs
