@@ -18,6 +18,13 @@ test('journal roles remain separate from site superadmin and OJS external financ
   assert.equal(roles.separation.clientSideAuthorisation,false);
   assert.equal(policy.segregation.superadmin.includes('never equates'),true);
   assert.equal(policy.canEnablePublicSubmissions,false);
+  assert.equal(roles.reviewForm.fieldBlueprint.length,13);
+  const blueprint=roles.reviewForm.fieldBlueprint;
+  assert.equal(new Set(blueprint.map(x=>x.id)).size,13);
+  assert.deepEqual(blueprint.filter(x=>x.shareWithAuthor).map(x=>x.id),['B1','B2','B3','B4','B5','B6','B7','B8']);
+  assert.equal(roles.reviewForm.privateEditorCommentsMustNotReachAuthor,true);
+  assert.equal(roles.reviewForm.editorialRecommendationsAdvisoryOnly,true);
+  assert.equal(roles.reviewForm.blueprintContract,'NATIVE_OJS_MANAGER_CONFIGURATION_NOT_INSTALLED');
 });
 
 test('native OJS 3.5 settings changes reserved for journal manager, not editor/production',()=>{
