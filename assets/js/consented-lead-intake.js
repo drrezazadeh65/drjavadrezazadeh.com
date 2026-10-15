@@ -34,38 +34,91 @@
     'educator-development':'Educator professional development',
     'institutional-advisory':'Institutional educational advisory'
   });
-  const englishTitles=Object.freeze({
-    academic_consult_60:'Specialist educational consultation',
-    student_parent_90:'Joint student and parent session',
-    konkur_consult_60:'Iranian university entrance exam consultation',
-    konkur_month:'One-month university entrance exam guidance',
-    transcript_analysis:'Academic transcript and pathway review',
-    field_selection_standard:'University major selection — standard',
-    field_selection_comprehensive:'Comprehensive university major selection',
-    talent_initial:'Initial specialist talent exploration',
-    golden_talent_comprehensive:'Golden Talent — comprehensive assessment and proposed pathway',
-    golden_talent_premium:'Golden Talent — assessment, parent session and pathway report',
-    teacher_consult_60:'Teacher, materials and assessment consultation',
-    teacher_dev_90:'Teacher professional development session',
-    manuscript_diagnostic:'Manuscript diagnostic review (up to 7,000 words)',
-    academic_editing:'Academic English editing (up to 5,000 words)',
-    research_consult_60:'Research consultation',
-    journal_strategy:'Journal selection and publication strategy',
-    reviewer_response:'Response-to-reviewers support (up to 20 comments)',
-    academic_cv:'Academic CV and application/career guidance',
-    academic_interview_90:'Academic or faculty interview preparation',
-    organization_consult_90:'Institutional or school consultation',
-    specialist_workshop_120:'Online specialist workshop (up to 2 hours)'
+  // One authoritative catalogue controls IDs/fees; the separate locale file
+  // provides English labels and bounded scope only. Neither proves checkout.
+  const serviceDetails=new Map();
+  let englishServices=null;
+  let priceCurrency=null;
+  const details=document.createElement('div');
+  details.className='jr2-service-consent-context';
+  details.setAttribute('data-stage14-service-summary','');
+  details.setAttribute('role','region');
+  details.setAttribute('aria-label',t('اطلاعات خدمت انتخاب‌شده','Selected service details'));
+  details.hidden=true;
+  choice.closest('label')?.insertAdjacentElement('afterend',details);
+  function renderDetails(){
+    details.replaceChildren();
+    const service=serviceDetails.get(choice.value);
+    const localized=fa?null:englishServices?.[service?.id];
+    if(!service||(!fa&&!localized)){details.hidden=true;return;}
+    details.hidden=false;
+    const heading=document.createElement('h3');
+    heading.textContent=fa?service.title_fa:localized.title;
+    details.append(heading);
+    const fee=priceCurrency==='IRT'&&Number.isSafeInteger(service.price)&&service.price>=0
+      ?new Intl.NumberFormat(fa?'fa-IR':'en-US').format(service.price)+t(' تومان',' toman')
+      :t('تعرفه نیازمند تأیید است','Fee requires confirmation');
+    const fields=fa?[
+      ['تعرفه اعلام‌شده',fee],
+      ['مناسب برای',service.fit_fa],
+      ['خروجی مورد انتظار',service.outcome_fa],
+      ['محدوده خدمت',service.boundary_fa]
+    ]:[
+      ['Listed fee',fee],
+      ['Suitable for',localized.fit],
+      ['Expected outcome',localized.outcome],
+      ['Scope and limits',localized.boundary]
+    ];
+    for(const [label,value] of fields){
+      if(typeof value!=='string'||!value.trim())continue;
+      const p=document.createElement('p');
+      const b=document.createElement('strong');
+      b.textContent=label+': ';
+      p.append(b,document.createTextNode(value));
+      details.append(p);
+    }
+    const note=document.createElement('p');
+    note.className='jr2-service-consent-note';
+    note.textContent=t(
+      'این اطلاعات از کاتالوگ خدمات است. ثبت علاقه‌مندی به معنی پرداخت، تأیید خدمت یا رزرو جلسه نیست.',
+      'This is catalogue information only. Recording interest is not payment, service acceptance or a confirmed appointment.'
+    );
+    details.append(note);
+  }
+  choice.addEventListener('change',()=>{
+    // Consent must apply to the service visible at the moment it is given.
+    consent.checked=false;
+    renderDetails();
+    say(t('خدمت انتخاب‌شده را بررسی کنید و سپس رضایت خود را ثبت کنید.',
+      'Review the selected service and then give your consent.'));
   });
   const say=message=>{status.textContent=message};
-  const titleFor=service=>fa?service.title_fa:(englishTitles[service.id]||service.title_fa||service.id);
+  const titleFor=service=>fa?service.title_fa:englishServices?.[service.id]?.title;
   async function loadCatalog(){
     try{
-      const response=await fetch('/assets/data/service-catalog.json',{credentials:'same-origin',cache:'reload'});
-      if(!response.ok)throw new Error('catalog');
+      const [response,localeResponse]=await Promise.all([
+        fetch('/assets/data/service-catalog.json',{credentials:'same-origin',cache:'no-store'}),
+        fa?Promise.resolve(null):fetch('/assets/data/service-descriptions-en.json',{
+          credentials:'same-origin',cache:'no-store'
+        })
+      ]);
+      if(!response.ok||(!fa&&!localeResponse?.ok))throw new Error('catalog');
       const catalog=await response.json();
-      for(const service of (catalog.services||[])){
-        if(service.sellable!==true||typeof service.id!=='string')continue;
+      const sellable=(Array.isArray(catalog.services)?catalog.services:[]).filter(
+        item=>item?.sellable===true&&typeof item.id==='string'
+      );
+      if(!fa){
+        const localized=await localeResponse.json();
+        if(localized?.language!=='en'||!localized.services||
+          sellable.some(service=>!['title','fit','outcome','boundary'].every(
+            field=>typeof localized.services[service.id]?.[field]==='string'&&
+              localized.services[service.id][field].trim()
+          )))throw new Error('localized_catalog_unavailable');
+        englishServices=localized.services;
+      }
+      priceCurrency=catalog.currency;
+      for(const service of sellable){
+        serviceDetails.set('service:'+service.id,service);
         const option=document.createElement('option');
         option.value='service:'+service.id;
         option.textContent=titleFor(service);
@@ -98,6 +151,7 @@
       }
       choice.disabled=choice.options.length<=1;
       submit.disabled=choice.disabled;
+      renderDetails();
       if(choice.disabled)say(t('فهرست خدمات اکنون در دسترس نیست؛ از مسیر ایمیل استفاده کنید.',
         'The service catalogue is unavailable; please use the email contact option.'));
     }catch(_){say(t('فهرست خدمات در دسترس نیست؛ درخواست اولیه را از طریق ایمیل ارسال کنید.',
