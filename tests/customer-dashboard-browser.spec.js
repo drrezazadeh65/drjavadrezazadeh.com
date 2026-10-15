@@ -318,3 +318,70 @@ for(const status of ['guest','verified-checkout','translations-unavailable']){
   expect(errors).toEqual([]);
  });
 }
+
+
+for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/']]){
+ test(lang+' paid consultation list admits partial failures and refuses a foreign service SKU',async({page})=>{
+  const idA='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const idB='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const idC='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+  const orders=[idA,idB,idC].map(id=>({
+   id,paymentVerified:true,items:[{sku:'service:academic_consult_60',quantity:1}]
+  }));
+  let detailHits=0;
+  await page.route('**/api/**',route=>{
+   const url=new URL(route.request().url()),p=url.pathname;
+   if(p==='/api/auth/health')return route.fulfill({json:{ok:true,ready:true}});
+   if(p==='/api/auth/me')return route.fulfill({json:{ok:true,user:{email:'account@example.invalid'}}});
+   if(p==='/api/commerce/health')return route.fulfill({json:{ok:true,checkout:false,capabilities:{}}});
+   if(p==='/api/commerce/history')return route.fulfill({json:{ok:true,orders}});
+   if(p==='/api/commerce/fulfilment'){
+    detailHits++;
+    const id=url.searchParams.get('order');
+    if(id===idB)return route.fulfill({status:503,json:{ok:false,error:'unavailable'}});
+    return route.fulfill({json:{ok:true,paymentRecord:'provider_verified_not_bank_settlement',
+      serviceCases:[{sku:id===idC?'vip:university-selection':'service:academic_consult_60',
+        status:'scheduling',deliveryMode:null,meetingCity:null,
+        bookingStart:null,bookingEnd:null,customerChoiceEnabled:false,
+        allowedDeliveryModes:[]}],parcel:null}});
+   }
+   return route.fulfill({status:404,json:{ok:false}});
+  });
+  await page.goto(base+route+'#consultations');
+  const section=page.locator('#consultations');
+  await section.locator('[data-consultation-check]').click();
+  await expect(section.locator('.appointment-private-list li')).toHaveCount(1);
+  await expect(section.locator('.appointment-private-list li')).toContainText(idA);
+  await expect(section.locator('[data-consultation-results]')).toContainText(
+    lang==='fa'?'این فهرست ممکن است ناقص باشد':'This list may be incomplete');
+  await expect(section.locator('.appointment-private-list')).not.toContainText(idB);
+  await expect(section.locator('.appointment-private-list')).not.toContainText(idC);
+  await expect(section.locator('.appointment-private-list')).not.toContainText('university-selection');
+  expect(detailHits).toBe(3);
+  expect(await page.evaluate(()=>localStorage.length)).toBe(0);
+ });
+}
+
+test('exactly 50 history entries warns that older consultations may not be visible',async({page})=>{
+ const id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ const orders=[{id,paymentVerified:true,items:[{sku:'service:academic_consult_60'}]},
+  ...Array.from({length:49},(_,i)=>({id:'book-'+i,paymentVerified:false,items:[]}))];
+ await page.route('**/api/**',route=>{
+  const p=new URL(route.request().url()).pathname;
+  if(p==='/api/auth/health')return route.fulfill({json:{ok:true,ready:true}});
+  if(p==='/api/auth/me')return route.fulfill({json:{ok:true,user:{email:'account@example.invalid'}}});
+  if(p==='/api/commerce/health')return route.fulfill({json:{ok:true,checkout:false,capabilities:{}}});
+  if(p==='/api/commerce/history')return route.fulfill({json:{ok:true,orders}});
+  if(p==='/api/commerce/fulfilment')return route.fulfill({json:{
+   ok:true,paymentRecord:'provider_verified_not_bank_settlement',
+   serviceCases:[{sku:'service:academic_consult_60',status:'scheduling',
+    bookingStart:null,bookingEnd:null,customerChoiceEnabled:false,
+    deliveryMode:null,meetingCity:null,allowedDeliveryModes:[]}],parcel:null}});
+  return route.fulfill({status:404,json:{ok:false}});
+ });
+ await page.goto(base+'/en/account/#consultations');
+ const section=page.locator('#consultations');
+ await section.locator('[data-consultation-check]').click();
+ await expect(section.locator('.appointment-private-list li')).toHaveCount(1);
+ await expect(section.locator('[data-consultation-results]')).toContainText('older records may exist');
+});
