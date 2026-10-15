@@ -73,3 +73,19 @@ test('ADR explains future topology, OJS object storage limit and independent cut
  assert.ok(adr.includes('2026-10-17')===false || adr.includes('17 October 2026'));
  assert.ok(!adr.includes('already certified for publication'));
 });
+
+
+test('four future target tiers are displayed inside existing bilingual MFA-scoped JHELA dashboard',()=>{
+ for(const file of ['fa/app/admin/index.html','en/account/admin/index.html']){
+  const html=read(file),root=html.indexOf('<div id="ops-workspace" hidden>'),start=html.indexOf('id="ops-jhela-architecture"');
+  assert.ok(root>0&&start>root,'JHELA target architecture must live within protected administrative workspace');
+  const part=html.slice(start,html.indexOf('</ol>',start));
+  assert.equal((part.match(/data-jhela-target-tier=/g)||[]).length,4);
+  for(const tier of target.scaleStages)assert.ok(part.includes('data-jhela-target-tier="'+tier.id+'"'));
+  assert.ok(part.includes('not commissioned')||part.includes('راه‌اندازی نشده'));
+  assert.ok(html.includes('JHELA_FUTURE_SCALE_ARCHITECTURE_ADR_20261016.md'));
+ }
+ const css=read('assets/css/operations-jhela-workstream.css');
+ assert.ok(css.includes('.ops-jhela-architecture'));
+ assert.ok(css.includes('@media(max-width:700px)'));
+});
