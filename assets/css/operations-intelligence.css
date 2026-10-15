@@ -18,3 +18,9 @@
 #jr-intelligence .jr-i-card small{opacity:.8}
 @media(max-width:650px){#jr-intelligence .jr-i-layout{grid-template-columns:minmax(0,1fr)}#jr-intelligence .jr-i-grid{grid-template-columns:minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){#jr-intelligence *{transition:none!important}}
+
+#jr-intelligence .jr-i-priorities{margin-top:20px;padding:18px;border:1px solid rgba(199,163,91,.32);border-radius:14px;background:rgba(14,25,42,.55)}
+#jr-intelligence .jr-i-priorities h3{margin:0 0 10px;font-size:1.07rem}
+#jr-intelligence .jr-i-priorities p{color:var(--ops-muted,#b3c0d2);font-size:.9rem}
+#jr-intelligence .jr-i-priorities ol{margin:12px 0 0;padding-inline-start:24px}
+#jr-intelligence .jr-i-priorities li{margin-block:7px;line-height:1.75}
