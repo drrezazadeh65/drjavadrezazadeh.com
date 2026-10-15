@@ -3,6 +3,7 @@
  const scope=document.getElementById('ops-workspace');
  const root=document.getElementById('ops-jhela-workstream');
  if(!scope||!root||!scope.contains(root))return;
+ const rtl=document.documentElement.dir==='rtl';
  const tabs=[...root.querySelectorAll('[data-jhela-admin-tab]')];
  const panels=[...root.querySelectorAll('[data-jhela-admin-panel]')];
  if(!tabs.length||tabs.length!==panels.length)return;
@@ -21,8 +22,8 @@
    tabs[i].addEventListener('click',()=>activate(tabs[i],false));
    tabs[i].addEventListener('keydown',e=>{
      let n=i;
-     if(e.key==='ArrowRight')n=(i+1)%tabs.length;
-     else if(e.key==='ArrowLeft')n=(i+tabs.length-1)%tabs.length;
+     if(e.key==='ArrowRight')n=rtl?(i+tabs.length-1)%tabs.length:(i+1)%tabs.length;
+     else if(e.key==='ArrowLeft')n=rtl?(i+1)%tabs.length:(i+tabs.length-1)%tabs.length;
      else if(e.key==='Home')n=0;
      else if(e.key==='End')n=tabs.length-1;
      else return;
