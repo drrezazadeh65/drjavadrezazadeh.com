@@ -30,8 +30,8 @@ test('paid checkout pages load the latest payment scripts instead of stale cache
   for(const [path,version] of [
     ['fa/services/checkout/index.html','commerce-checkout.js?v=20261015-paid-service-support-v4'],
     ['fa/vip/index.html','commerce-checkout.js?v=20261015-paid-service-support-v4'],
-    ['fa/shop/checkout/index.html','book-store.js?v=20261015-payment-followup-v10'],
-    ['en/shop/checkout/index.html','book-store.js?v=20261015-payment-followup-v10'],
+    ['fa/shop/checkout/index.html','book-store.js?v=20261015-stock-clarity-v11'],
+    ['en/shop/checkout/index.html','book-store.js?v=20261015-stock-clarity-v11'],
   ]){
     assert.ok(readFileSync(path,'utf8').includes(version),path+' must load updated checkout code');
   }
@@ -52,6 +52,11 @@ test('health contract distinguishes manual fulfilment from paid checkout readine
   assert.match(api,/'bookFulfilmentMode'=>'stock_reserved_manual_shipping'/);
   assert.match(api,/'bookPaymentRequiresReconciledStock'=>true/);
   assert.match(api,/'selfServiceBooking'=>false/);
+});
+test('book checkout tells customers when inventory reconciliation prevents charging',()=>{
+  assert.match(books,/stockPending:healthy&&health\.checkout===true&&health\.requirements\?\.inventoryReconciled===false/);
+  assert.match(books,/bookStockPending=capability\.stockPending===true/);
+  assert.match(books,/موجودی فیزیکی کتاب‌ها هنوز در سامانه تأیید نشده است/);
 });
 test('money movement retains authoritative server verification and stock protections',()=>{
   assert.match(api,/function commerceReady\(\): bool/);
