@@ -33,3 +33,75 @@ jobs:
           test -f .public-site/fa/index.html
       - name: Clarify nondeploying scope
         run: echo 'Source policy and build checks only. No deployment, no live data, no proof of user-visible improvement.' >> "$GITHUB_STEP_SUMMARY"
+
+  full-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password
+          MYSQL_DATABASE: operations_fixture
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pfixture-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify backend contracts and database fixture
+        env:
+          OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
+          OPERATIONS_TEST_USER: root
+          OPERATIONS_TEST_PASSWORD: fixture-password
+        run: |
+          node scripts/operations-registry-audit.mjs
+          python3 scripts/operations-canonical-registry.py api/internal/operations-registry.json --validate-only --identity-manifest api/internal/operations-action-identities-v1.json
+          python3 tests/operations-canonical-registry.py
+          php tests/operations-reporting.php
+          for file in api/*.php; do php -l "$file"; done
+          php tests/bertina-smtp-body-contract.php
+          php tests/bertina-service-buyer-contact.php
+          node tests/bertina-service-contact-checkout.mjs
+          node platform/bahar-engine.test.mjs
+          node platform/rcas-evidence-bridge.test.mjs
+          node platform/ecosystem-journey-orchestrator.test.mjs
+          node platform/module-governance.test.mjs
+          node platform/bahar-persistence.test.mjs
+          node platform/golden-talent-book-crosswalk.test.mjs
+          php tests/golden-talent-guardian.php
+      - name: Run full release browser regression suite
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/operations-http.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          npx playwright test tests/customer-dashboard-browser.spec.js tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js tests/public-mobile-navigation.spec.js --reporter=line,html
+      - name: Recheck sanitized release after browser tests
+        run: |
+          node scripts/build-public-data.mjs --check
+          node scripts/build-public-site.mjs
+          node scripts/bookstore-release-audit.mjs
+          node scripts/public-retired-commerce-audit.mjs
+          test ! -e .public-site/playwright-report
+          test ! -e .public-site/tests
+          test ! -e .public-site/platform
+          test ! -e .public-site/journals
+      - name: Verify live fingerprint without changing production
+        run: |
+          set -euo pipefail
+          curl -fsSL --max-time 25 https://drjavadrezazadeh.com/sw.js -o /tmp/live-sw.js
+          live_sha="$(sed -n "s/^const CACHE_VERSION='jr-site-bertina-\\([a-f0-9]\\{40\\}\\)';$/\\1/p" /tmp/live-sw.js)"
+          [[ "$live_sha" =~ ^[a-f0-9]{40}$ ]]
+          echo "Observed live release: $live_sha" >> "$GITHUB_STEP_SUMMARY"
+          test "$live_sha" != "$GITHUB_SHA"
+      - name: Certify public TLS
+        run: node scripts/operations-tls-certify.mjs /tmp/operations-tls.json
+      - name: Explicitly prohibit deployment
+        run: echo 'PRE-FLIGHT ONLY. No production upload or mutation is performed.' >> "$GITHUB_STEP_SUMMARY"
