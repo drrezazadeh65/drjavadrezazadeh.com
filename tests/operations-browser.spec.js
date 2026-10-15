@@ -630,3 +630,48 @@ test('10k USD scenario studio remains strictly hypothetical, costed and capacity
     document.body.scrollWidth)-innerWidth)).toBeLessThanOrEqual(1);
   expect(await page.evaluate(()=>localStorage.length)).toBe(0);
 });
+
+
+test('owner can inspect more than twenty consented enquiries without persisting contacts',async({page})=>{
+ await authorized(page);
+ await page.setViewportSize({width:390,height:844});
+ const cursor='1700000019:88888888-8888-4888-8888-000000000020';
+ let reads=0;
+ await page.route('**/api/admin/operations/growth/leads*',route=>{
+   const url=new URL(route.request().url());
+   if(!url.pathname.endsWith('/growth/leads'))
+     return route.fulfill({status:404,json:{ok:false}});
+   reads++;
+   const next=url.searchParams.get('cursor');
+   const first=next===null;
+   expect(next===null||next===cursor).toBeTruthy();
+   const start=first?0:20,count=first?20:2;
+   const items=Array.from({length:count},(_,i)=>{
+     const n=start+i+1;
+     return {id:'88888888-8888-4888-8888-'+String(n).padStart(12,'0'),
+       serviceId:'service:academic_consult_60',state:'NEW',
+       contactEmail:'synthetic-'+n+'@example.test',
+       createdAt:1700000000+n-1,updatedAt:1700000000+n-1};
+   });
+   return route.fulfill({json:{ok:true,schema:'stage14-owner-lead-worklist-v1',
+     items,limit:20,asOf:1700000100,nextCursor:first?cursor:null,
+     privacy:'MFA_ONLY_CURRENT_CONSENT_NO_MARKETING_PERMISSION'}});
+ });
+ await page.goto(base+'/en/account/admin/',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ const growth=page.locator('#ops-organic-growth');
+ await growth.locator(':scope > summary').click();
+ const queue=growth.locator(':scope > details.ops-panel');
+ await expect(queue).toHaveCount(1);
+ await queue.locator('summary').click();
+ await queue.getByRole('button',{name:'Load current follow-up queue'}).click();
+ await expect(queue.locator('ol.ops-source-list > li')).toHaveCount(20);
+ await queue.getByRole('button',{name:'Load next enquiries'}).click();
+ await expect(queue.locator('ol.ops-source-list > li')).toHaveCount(22);
+ await expect(queue.getByRole('button',{name:'Load next enquiries'})).toBeHidden();
+ expect(reads).toBe(2);
+ await queue.locator('summary').click();
+ await expect(queue.locator('ol.ops-source-list')).toBeEmpty();
+ await expect(queue).not.toContainText('synthetic-1@example.test');
+ expect(await page.evaluate(()=>localStorage.length)).toBe(0);
+});
