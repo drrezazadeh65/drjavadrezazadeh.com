@@ -39,15 +39,16 @@ for(const [locale,path] of [['fa','fa/app/admin/index.html'],['en','en/account/a
    const hiddenWorkspace=html.indexOf('<div id="ops-workspace" hidden>');
    const jhela=html.indexOf('<details id="ops-jhela-workstream"');
    const workspaceEnd=html.indexOf('</div></main>');
+   const block=html.slice(jhela,html.indexOf('<details class="ops-panel" id="ops-commerce">',jhela));
    assert.ok(hiddenWorkspace>=0&&jhela>hiddenWorkspace&&workspaceEnd>jhela);
    assert.match(html,/<meta name="robots" content="noindex,nofollow,noarchive">/);
    assert.match(html,/src="\/assets\/js\/operations-control\.js\?/);
    assert.match(html,/src="\/assets\/js\/operations-jhela-workstream\.js\?/);
    assert.match(html,/href="\/assets\/css\/operations-jhela-workstream\.css\?/);
-   assert.equal((html.match(/data-jhela-admin-tab=/g)||[]).length,8);
-   assert.equal((html.match(/data-jhela-admin-panel=/g)||[]).length,8);
-   assert.equal((html.match(/aria-selected="true"/g)||[]).length,1);
-   assert.equal((html.match(/role="tabpanel"/g)||[]).length,8);
+   assert.equal((block.match(/data-jhela-admin-tab=/g)||[]).length,8);
+   assert.equal((block.match(/data-jhela-admin-panel=/g)||[]).length,8);
+   assert.equal((block.match(/aria-selected="true"/g)||[]).length,1);
+   assert.equal((block.match(/role="tabpanel"/g)||[]).length,8);
    assert.ok(!html.includes('https://journal.drjavadrezazadeh.com/index.php/jhela/submissions/'));
    for(const role of names){
      assert.match(html,new RegExp('id="ops-jhela-tab-'+role+'"'));
@@ -68,7 +69,8 @@ test('role tab Javascript is keyboard accessible and contains no editor-privileg
  assert.match(js,/scope\.contains\(root\)/);
  assert.match(js,/panels\.forEach/);
  assert.ok(!/localStorage|sessionStorage|fetch\s*\(|XMLHttpRequest|innerHTML/.test(js));
- assert.ok(css.includes('focus')===false || css.includes('focus')===true); // no constraint on decorative CSS
+ assert.match(css,/#ops-jhela-workstream\s*\{/);
+ assert.match(css,/\.ops-jhela-tabs button\[aria-selected="true"\]/);
  assert.ok(css.includes('ops-jhela-workstream')&&css.includes('@media(max-width:600px)'));
 });
 
