@@ -34,6 +34,9 @@ for(const key of ['ojsInstalled','realReviewEndToEndConfirmed','publicSubmission
 }
 requirePolicy(!/https:\/\/journal.drjavadrezazadeh.com/.test(read('journal/sitemap.xml')),'Unverified OJS host leaked into public journal sitemap');
 requirePolicy(editorial.panels.length===8,'Journal role-specific panel contract missing');
+requirePolicy(editorial.reviewForm.fieldBlueprint?.length===13,'Review form 13-field machine policy not synchronized');
+requirePolicy(editorial.reviewForm.fieldBlueprint.filter(p=>p.shareWithAuthor).length===8,'Scientific review author-facing fields must be exactly eight');
+requirePolicy(editorial.reviewForm.fieldBlueprint.filter(p=>!p.shareWithAuthor).every(p=>p.visibility==='handling_editor'),'Confidential reviewer fields must remain editor-only');
 requirePolicy(editorial.panels.some(p=>p.id==='reviewer'&&p.scope==='ACCEPTED_ASSIGNMENTS_ONLY'),'Reviewer permissions unsafe');
 requirePolicy(editorial.panels.some(p=>p.id==='audit_officer'&&p.scope==='REDACTED_EVENT_AUDIT_ONLY'),'Audit role must see redacted events');
 requirePolicy(editorial.reviewForm.automaticDecisionByScore===false&&editorial.reviewForm.requireNormallyTwoIndependentReviewers===true,'Independent review contract missing');
