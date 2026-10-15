@@ -1,0 +1,210 @@
+{
+  "schema": "jhela-target-architecture-v1",
+  "asOf": "2026-10-16",
+  "status": "OWNER_DIRECTED_FUTURE_TARGET_NOT_DEPLOYED",
+  "journal": "Journal of Human-Centred Education, Learning and Assessment",
+  "canonicalOrigin": "https://journal.drjavadrezazadeh.com",
+  "publicDiscoveryOrigin": "https://drjavadrezazadeh.com/journal/",
+  "principle": "Design to international scholarly-publishing requirements; current hosting is a transitional constraint only.",
+  "platformStrategy": {
+    "editorialCore": "OFFICIAL_SUPPORTED_PKP_OJS_3_5_SERIES",
+    "singleCanonicalEditorialDatabase": true,
+    "application": "Native OJS modular monolith with supported plugins/interfaces",
+    "avoidParallelPeerReviewApp": true,
+    "noDirectThirdPartyWritesToOjsTables": true,
+    "onlyVerifiedOjsPluginOrAPIIntegrations": true
+  },
+  "plannedUpgrade": {
+    "date": "2026-10-17",
+    "diskAdditionalGB": 5,
+    "confirmedInstalled": false,
+    "architecturalCap": false,
+    "whenAvailable": "Check actual disk quota, inode count, DB limit, PHP extensions, TLS, backup and privacy; never infer launch readiness from disk."
+  },
+  "logicalZones": [
+    {
+      "id": "edge",
+      "en": "Public access and edge protection",
+      "isolation": "internet_to_public",
+      "technologies": "TLS, WAF, rate limits, CDN for anonymous immutable assets only",
+      "never": [
+        "cache private sessions or review files",
+        "rewrite OJS methods without support"
+      ]
+    },
+    {
+      "id": "web",
+      "en": "Native OJS journal app",
+      "isolation": "private_app_zone",
+      "technologies": "Version-pinned supported OJS, PHP-FPM, shared code on release, strong sessions, RBAC",
+      "never": [
+        "accept direct unauthenticated manuscript uploads",
+        "publicly serve files_dir"
+      ]
+    },
+    {
+      "id": "database",
+      "en": "Editorial database",
+      "isolation": "private_database_zone",
+      "technologies": "Dedicated transactional relational database, point-in-time recovery when available",
+      "never": [
+        "share credentials or tables with website commerce",
+        "make reporting replica writable"
+      ]
+    },
+    {
+      "id": "manuscripts",
+      "en": "Private manuscripts and reviews",
+      "isolation": "private_file_zone",
+      "technologies": "OJS-compatible POSIX file service/volume outside every web root, restrictive permissions, tested migration",
+      "never": [
+        "assume native OJS 3.5 supports direct S3 files_dir",
+        "public CDN delivery of private files"
+      ]
+    },
+    {
+      "id": "jobs",
+      "en": "Editorial jobs and e-mail",
+      "isolation": "private_worker_zone",
+      "technologies": "Scheduled jobs via OS scheduler and controlled OJS queue/job runner, consented transactional SMTP",
+      "never": [
+        "duplicate publishing/invoicing jobs on multiple nodes",
+        "send confidential submission content to analytics"
+      ]
+    },
+    {
+      "id": "publishing",
+      "en": "Verified public publication service",
+      "isolation": "public_release_zone",
+      "technologies": "Native OJS galleys, accessibility, ISBN/ISSN as verified, Crossref when authorised, public preservation",
+      "never": [
+        "invent DOI, ISSN, issue, ranking",
+        "release material prior to editorial acceptance"
+      ]
+    },
+    {
+      "id": "finance",
+      "en": "Independent publishing finance",
+      "isolation": "restricted_financial_zone",
+      "technologies": "Future invoicing, waivers, reconciliation, refunds through legal payment service and minimal accepted-article interface",
+      "never": [
+        "read reviewer reports",
+        "issue invoice before acceptance",
+        "collect card data in the journal database"
+      ]
+    },
+    {
+      "id": "audit",
+      "en": "Independent audit and performance",
+      "isolation": "restricted_audit_zone",
+      "technologies": "Redacted append-only operations/security event log, privacy-preserving aggregates, per-role viewing",
+      "never": [
+        "log manuscript bodies, upload payloads or blind identities",
+        "treat absent integrations as zero activity"
+      ]
+    },
+    {
+      "id": "backup",
+      "en": "Encrypted recovery and preservation",
+      "isolation": "isolated_recovery_zone",
+      "technologies": "Encryption, distinct account/provider/location when possible, 3-2-1 practice, immutable backups and tested restore",
+      "never": [
+        "store the only backup on same hosting filesystem",
+        "claim restore success without test"
+      ]
+    }
+  ],
+  "scaleStages": [
+    {
+      "id": "T0_TRANSITION",
+      "state": "PROPOSED_NOT_VERIFIED",
+      "target": "Existing hosting + planned 5 GB temporary increase",
+      "description": "Do not bend editorial requirements to the present host. Only prepare data/brand/contracts; run OJS there only after all native technical, privacy and TLS gates pass.",
+      "gate": "Server security and full staging manuscript workflow audited"
+    },
+    {
+      "id": "T1_DEDICATED",
+      "state": "PREFERRED_NEXT_HOST",
+      "target": "Dedicated or managed VPS with separate private database and encrypted off-host backups",
+      "description": "OJS application on supported PHP runtime; dedicated managed DB, private mounted file storage outside public files, TLS/WAF, external mail, log/audit and reserve capacity.",
+      "gate": "Observed reliability, backup restore, load/error measurements"
+    },
+    {
+      "id": "T2_HIGH_AVAILABILITY",
+      "state": "CONDITIONAL",
+      "target": "High availability OJS with compatible shared state",
+      "description": "Multiple PHP application instances only if OJS sessions, plugins, shared POSIX file store and job ownership have passed concurrency/failover testing. Dedicated DB failover; caches and analytics isolated.",
+      "gate": "Demonstrated multi-node correctness with same-document editing, job idempotency, restored backup and failover drills"
+    },
+    {
+      "id": "T3_PUBLISHING_NETWORK",
+      "state": "LONG_TERM_OPTION",
+      "target": "Multi-journal publisher, not a compulsory microservice rewrite",
+      "description": "Multiple native OJS journals or verified publisher tenant configuration, separately governed journals, shared institutional services for public metadata only; distinct financial/legal policies; independent board authority.",
+      "gate": "Actual governance, staff, funding and audit capacity with no tenant data leakage"
+    }
+  ],
+  "objectStorageCompatibility": {
+    "nativeOjs35S3FilesDirSupported": "NOT_ASSUMED",
+    "nativeManuscripts": "OJS-compatible private POSIX filesystem until a vendor-supported adapter is proven with failover and recovery",
+    "s3AllowedNow": "encrypted backups, public archive copies/derivatives only when authorised and independent of OJS files_dir",
+    "vendorReviewBeforeSwitch": true
+  },
+  "identity": {
+    "nativeOjsIdentityIsolated": true,
+    "siteIdentityReuse": false,
+    "oidcOrSso": "OPTIONAL_ONLY_AFTER_SUPPORTED_PLUGIN_SECURITY_REVIEW",
+    "privilegedMfaRequired": true,
+    "reviewerAccess": "assigned_accepted_blinded_manuscripts_only",
+    "financialAccess": "approved_publication_billing_metadata_only"
+  },
+  "integrationBoundary": {
+    "design": "Versioned adapters, immutable event IDs and signed server-to-server authentication",
+    "apiSource": "Verified and supported OJS 3.5 API/hook/plugin surface, not assumed arbitrary endpoints",
+    "direction": "Read-only projection of authorised aggregate statuses to existing master site, with isolated finance/audit access",
+    "noLivePersonalDataInPublicWebsite": true,
+    "idempotentReconciliation": true,
+    "requestTracingRedacted": true
+  },
+  "capacityPlanning": {
+    "basis": "Real observed throughput, file volume, seasonal submissions, retention and backup sizes",
+    "sampleThresholdsNotPromises": {
+      "freeSpacePercentAlert": 20,
+      "freeInodePercentAlert": 20,
+      "dailyBackupAgeHoursAlert": 26,
+      "reviewQueueOverdueDaysExample": 14
+    },
+    "noFixedCPUOrRamRequiredWithoutMeasurement": true
+  },
+  "reliabilityTargets": {
+    "prelaunch": "No public SLO claims",
+    "afterVerifiedLaunch": {
+      "applicationUptimeTarget": "99.9% monthly aspiration, verify monitoring and support capacity",
+      "recoveryPointObjective": "<=24h initial target; <=1h after tested PITR",
+      "recoveryTimeObjective": "<=24h initial target; <=4h after tested failover and documented operations"
+    },
+    "notGuarantees": true
+  },
+  "migrationGates": [
+    "Inventory real OJS version/plugins, DB, upload files, roles and current public URL mappings",
+    "Prove destination PHP/MySQL compatibility, TLS, private files, SMTP and backup restore",
+    "Dry-run migration using sanitised/staging copies; negative-authorization and full review tests",
+    "Set safe cutover window and independent data freeze; snapshot consistent DB and private files",
+    "Restore destination and reconcile counts, file hashes, permissions and blinded reports",
+    "Verify canonical host, one-hop redirects only after true destination is functioning, canonical/hreflang, cache isolation",
+    "Permit writes on one origin only and monitor actual errors with rollback checkpoint",
+    "Record owner approval, rollback decision criteria and no split-brain reactivation"
+  ],
+  "evidencePolicy": {
+    "stagesOnlyCloseWithIndependentEvidence": true,
+    "currentOjsInstalled": false,
+    "currentSubmissionsOpen": false,
+    "currentFinancialTransactionsActive": false,
+    "currentDoajScopusWosListing": false
+  },
+  "securityReferences": [
+    "https://docs.pkp.sfu.ca/admin-guide/en/securing-your-system",
+    "https://github.com/pkp/ojs/blob/main/config.TEMPLATE.inc.php",
+    "https://docs.pkp.sfu.ca/dev/api/"
+  ]
+}
