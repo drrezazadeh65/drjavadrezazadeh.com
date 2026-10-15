@@ -230,8 +230,10 @@ test('customer-owned lead history is keyset paginated so consent withdrawal rema
  assert.match(dashboard,/QUALIFIED:say\(/);
  assert.match(dashboard,/NEEDS_INFO:say\(/);
  assert.match(dashboard,/data\.nextCursor/);
- assert.match(dashboard,/\/en\/request-consultation\//);
- assert.match(dashboard,/\/fa\/darkhast-moshavere\//);
+ assert.match(dashboard,/publicTitles\(\)/);
+ assert.match(dashboard,/vip-descriptions-en\.json/);
+ assert.match(read('en/account/index.html'),/href="\/en\/request-consultation\/#secure-consented-lead"/);
+ assert.match(read('fa/customer-dashboard/index.html'),/href="\/fa\/darkhast-moshavere\/#secure-consented-lead"/);
  for(const source of [js,dashboard]){
    assert.doesNotMatch(source,/localStorage|sessionStorage|sendBeacon|indexedDB|innerHTML/);
  }
