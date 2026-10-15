@@ -10,6 +10,7 @@ const fees=read('journal/fees/index.html'), feesFa=read('journal/fa/fees/index.h
 const sub=read('journal/submission/index.html'),subFa=read('journal/fa/submission/index.html');
 const master=read('docs/journal/JHELA_EDITORIAL_DESIGN_FINANCE_RELEASE_MASTER_20261016.md');
 const manifest=JSON.parse(read('platform/jhela-ojs-activation.json'));
+const editorial=JSON.parse(read('platform/jhela-ojs-editorial-workflow-v1.json'));
 for(const [path,document] of [['EN fees',fees],['FA fees',feesFa]]){
  for(const price of ['CHF 0','CHF 990','CHF 2,000'])requirePolicy(document.includes(price),path+' missing '+price);
  requirePolicy(/noindex/i.test(sub)&&/noindex/i.test(subFa),'Unreleased submission surfaces must remain noindex');
@@ -32,5 +33,11 @@ for(const key of ['ojsInstalled','realReviewEndToEndConfirmed','publicSubmission
  requirePolicy(manifest[key]===false,'Unsafe claim: '+key+' was enabled without evidence');
 }
 requirePolicy(!/https:\/\/journal.drjavadrezazadeh.com/.test(read('journal/sitemap.xml')),'Unverified OJS host leaked into public journal sitemap');
+requirePolicy(editorial.panels.length===8,'Journal role-specific panel contract missing');
+requirePolicy(editorial.panels.some(p=>p.id==='reviewer'&&p.scope==='ACCEPTED_ASSIGNMENTS_ONLY'),'Reviewer permissions unsafe');
+requirePolicy(editorial.panels.some(p=>p.id==='audit_officer'&&p.scope==='REDACTED_EVENT_AUDIT_ONLY'),'Audit role must see redacted events');
+requirePolicy(editorial.reviewForm.automaticDecisionByScore===false&&editorial.reviewForm.requireNormallyTwoIndependentReviewers===true,'Independent review contract missing');
+requirePolicy(editorial.finance.currency==='CHF'&&editorial.finance.charges.some(c=>c.amount===2000)&&editorial.finance.charges.some(c=>c.amount===990),'Financial policy and public rates diverged');
+requirePolicy(editorial.finance.feeActivation.startsWith('DISABLED')&&editorial.liveClaims.publicSubmissionsOpen===false,'Editorial activation must fail closed');
 if(failures.length){console.error('JHELA policy/brand contract FAILED:\n'+failures.join('\n'));process.exit(1)}
 console.log('JHELA source contracts PASS: two English logo variants, public bilingual fee schedule, waived founding issue, and native-OJS activation safety preserved. Live operation NOT certified.');
