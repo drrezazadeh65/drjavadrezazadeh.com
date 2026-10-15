@@ -48,3 +48,19 @@ test('English support routing stays within its own canonical language',()=>{
  assert.match(page,/data-support-form/);
  assert.match(read('assets/js/donation-payment.js'),/gateway\.hostname!=='bitpay\.ir'/);
 });
+
+test('Golden Path displays only same-tab RCAS reflection without manufacturing entitlements',()=>{
+ const script=read('assets/js/golden-path-session-bridge.js');
+ assert.match(script,/SELF_SELECTED_UNVALIDATED/);
+ assert.match(script,/sessionStorage\.getItem/);
+ assert.match(script,/textContent/);
+ assert.doesNotMatch(script,/\bfetch\s*\(|\bXMLHttpRequest\b/);
+ for(const path of ['fa/app/student/golden-path/index.html',
+                    'en/golden-talent/dashboard/golden-path/index.html']){
+  const html=read(path);
+  assert.match(html,/data-golden-path-session-status/);
+  assert.match(html,/golden-path-session-bridge\.js/);
+  assert.match(html,/jr-ecosystem-design-v2\.css/);
+  assert.match(html,/class="skip"/);
+ }
+});
