@@ -37,7 +37,7 @@ test('BAHAR keeps real learner portfolios and validation behind independent gate
  for(const phase of ['Recognise context and direction','Choose a strategy and action',
    'Act on the plan','Monitor and collect evidence','Interpret gaps and errors',
    'Revise and return to action']) assert.ok(en.includes(phase),'English BAHAR phase: '+phase);
- assert.doesNotMatch(en,/<b>H<\\/b>/,'avoid unsupported BAHAR mnemonic expansion');
+ assert.ok(!en.includes('<b>H</b>'),'avoid unsupported BAHAR mnemonic expansion');
  assert.match(read('assets/js/bahar-readiness.js'),/longitudinalTrendValidated/);
 });
 test('English support routing stays within its own canonical language',()=>{
