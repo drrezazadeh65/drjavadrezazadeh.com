@@ -126,6 +126,21 @@ test('English Golden Path never promotes a self-selected RCAS route into a verif
  })));
  await page.reload();
  await expect(status).toContainText('D5');
+ // A completed marker without meaningful evidence must never surface a route.
+ await page.evaluate(()=>{
+  const value=JSON.parse(sessionStorage.getItem('gt_rcas_state'));
+  delete value.meaningfulCoreEvidence;
+  sessionStorage.setItem('gt_rcas_state',JSON.stringify(value));
+ });
+ await page.reload();
+ await expect(status).toContainText('No current-tab RCAS route');
+ await page.evaluate(()=>{
+  const value=JSON.parse(sessionStorage.getItem('gt_rcas_state'));
+  value.meaningfulCoreEvidence=true;
+  sessionStorage.setItem('gt_rcas_state',JSON.stringify(value));
+ });
+ await page.reload();
+ await expect(status).toContainText('D5');
  await expect(status).toContainText('not a talent score');
  await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
   completed:true,rcasRevision:'start-en-pilot-1',completedItemCount:28,
