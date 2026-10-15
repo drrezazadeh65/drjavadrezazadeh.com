@@ -26,14 +26,7 @@
       ?value:(/^[A-Za-z0-9_-]{3,64}$/.test(value)?'service:'+value:null);
     return key;
   })();
-  const vipEnglish=Object.freeze({
-    'academic-direction':'Personal academic pathway guidance',
-    'university-selection':'VIP university major selection',
-    'golden-talent-signature':'Signature Golden Talent guidance',
-    'research-publication':'Research and publication advisory',
-    'educator-development':'Educator professional development',
-    'institutional-advisory':'Institutional educational advisory'
-  });
+  let vipEnglish={};
   // One authoritative catalogue controls IDs/fees; the separate locale file
   // provides English labels and bounded scope only. Neither proves checkout.
   const serviceDetails=new Map();
@@ -140,15 +133,28 @@
       // VIP offers use the EXISTING catalogue and server-authoritative
       // service IDs; a displayed option does not activate a payment gateway.
       try{
-        const vipResponse=await fetch('/assets/data/vip-catalog.json',{
-          credentials:'same-origin',cache:'reload'
-        });
+        const [vipResponse,englishVipResponse]=await Promise.all([
+          fetch('/assets/data/vip-catalog.json',{credentials:'same-origin',cache:'no-store'}),
+          fa?Promise.resolve(null):fetch('/assets/data/vip-descriptions-en.json',{
+            credentials:'same-origin',cache:'no-store'
+          })
+        ]);
         if(vipResponse.ok){
           const vipCatalog=await vipResponse.json();
+          const offers=(Array.isArray(vipCatalog.services)?vipCatalog.services:[]).filter(
+            offer=>offer?.sellable===true&&offer.checkout_enabled===true
+          );
+          if(!fa){
+            if(!englishVipResponse?.ok)throw Error('vip_translation_unavailable');
+            const localized=await englishVipResponse.json();
+            if(localized?.language!=='en'||!localized.services||
+              offers.some(offer=>typeof localized.services[offer.id]!=='string'||
+                !localized.services[offer.id].trim()))throw Error('vip_translation_unavailable');
+            vipEnglish=localized.services;
+          }
           vipPriceCurrency=vipCatalog.currency;
-          for(const offer of (vipCatalog.services||[])){
-            if(offer.sellable!==true||offer.checkout_enabled!==true||
-               typeof offer.id!=='string'||!vipEnglish[offer.id])continue;
+          for(const offer of offers){
+            if(typeof offer.id!=='string'||(!fa&&!vipEnglish[offer.id]))continue;
             const option=document.createElement('option');
             option.value='vip:'+offer.id;
             serviceDetails.set(option.value,offer);
