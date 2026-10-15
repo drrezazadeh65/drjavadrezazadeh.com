@@ -1,30 +1,33 @@
-/* JR Document Export v1 — one print/PDF workflow for verified, server-backed documents.
- * Uses native browser print (Save as PDF); does not generate or upload document data.
+/* JR Document Export v2 — native print / Save as PDF, no external processing.
+ * Caller must supply an authenticated, server-verified document.
  */
 (function(){
  'use strict';
  let active=null;
  function clear(){
+  if(!active)return;
   document.body.classList.remove('jr-receipt-print-mode');
-  if(active)active.classList.remove('jr-receipt-print-target');
+  active.element.classList.remove('jr-receipt-print-target');
+  if(active.wasClosed)active.element.open=false;
+  document.title=active.title;
   active=null;
  }
- function exportDocument(element,mode){
-  if(!(element instanceof HTMLElement))return false;
+ window.addEventListener('afterprint',clear);
+ function exportDocument(element){
+  if(!(element instanceof HTMLElement)||!element.isConnected||!document.body.contains(element))return false;
   if(active)clear();
-  active=element;
-  if(element.tagName==='DETAILS')element.open=true;
+  const wasClosed=element.tagName==='DETAILS'&&!element.open;
+  if(wasClosed)element.open=true;
+  active={element,wasClosed,title:document.title};
   element.classList.add('jr-receipt-print-target');
   document.body.classList.add('jr-receipt-print-mode');
-  const originalTitle=document.title;
   const safeId=String(element.dataset.receiptId||'document').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,60);
   document.title='JR-'+safeId;
-  const finish=()=>{clear();document.title=originalTitle;window.removeEventListener('afterprint',finish)};
-  window.addEventListener('afterprint',finish,{once:true});
-  try{window.print()}catch(_){finish();return false}
-  // Some mobile browsers do not fire afterprint; clean up on the next focus.
-  window.addEventListener('focus',()=>{if(active===element)finish()},{once:true});
-  return true;
+  try{window.print();return true}catch(_){clear();return false}
  }
- window.JRDocumentExport=Object.freeze({print:element=>exportDocument(element,'print'),savePdf:element=>exportDocument(element,'pdf')});
+ window.JRDocumentExport=Object.freeze({
+  print:exportDocument,
+  savePdf:exportDocument,
+  clear
+ });
 })();
