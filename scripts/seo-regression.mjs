@@ -1108,6 +1108,7 @@ if(failures.length){
 const journalIndexAllowlist=new Set([
   '/journal/fa/',
   '/journal/fa/dashboard/',
+  '/journal/fa/roadmap/',
   '/journal/fa/aims-scope/',
   '/journal/fa/call-for-reviewers/',
   '/journal/fa/founding-collaborators/',
@@ -1121,6 +1122,7 @@ const journalIndexAllowlist=new Set([
   '/journal/',
   '/journal/aims-scope/',
   '/journal/dashboard/',
+  '/journal/roadmap/',
   '/journal/author-guidelines/',
   '/journal/contact/',
   '/journal/editorial-board/',
