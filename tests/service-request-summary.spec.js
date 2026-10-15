@@ -348,3 +348,59 @@ for(const [language,routePath] of [
     expect(withdrawn).toBe(1);
   });
 }
+
+
+// English contextual service link never loses the intended offer or invent a booking or payment.
+test('English service CTA preserves authoritative service identity into the draft',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:4173/en/request-consultation/?service=manuscript_diagnostic',
+   {waitUntil:'domcontentloaded'});
+ const form=page.locator('[data-consultation-composer]');
+ const select=form.locator('select[name="service"]');
+ await expect(select).toHaveValue('Manuscript diagnostic review, up to 7,000 words');
+ const summary=form.locator('[data-requested-service-details]');
+ await expect(summary).toBeVisible();
+ await expect(summary).toContainText('Manuscript diagnostic review');
+ await expect(summary).toContainText('Listed price:');
+ await expect(summary).toContainText('toman');
+ await expect(summary).toContainText('ghostwriting');
+ await expect(form.locator('[data-composer-email]')).toHaveAttribute('href','mailto:dr.rezazadeh65@gmail.com');
+ await form.locator('input[name="context"]').fill('Draft article before submission');
+ await form.locator('textarea[name="question"]').fill('What are the main revision priorities?');
+ await form.locator('button[type="submit"]').click();
+ await expect(form.locator('[data-composer-draft]')).toHaveValue(/Manuscript diagnostic review/);
+ await expect(form.locator('[data-composer-status]')).toContainText('has not been sent');
+ const href=await form.locator('[data-composer-email]').getAttribute('href');
+ expect(decodeURIComponent(href)).toContain('Manuscript diagnostic review');
+ // The visitor remains free to change their mind: stale fees and scope disappear.
+ await select.selectOption({label:'Student guidance'});
+ await expect(summary).toBeHidden();
+ await expect(form.locator('[data-composer-preview]')).toBeHidden();
+ await expect(form.locator('[data-composer-email]')).toHaveAttribute('href','mailto:dr.rezazadeh65@gmail.com');
+ expect(errors).toEqual([]);
+});
+
+for(const [lang,path] of [
+ ['fa','/fa/darkhast-moshavere/'],
+ ['en','/en/request-consultation/']
+]){
+ test('request preselection is resettable without retained or invented service details '+lang,async({page})=>{
+  await page.goto('http://127.0.0.1:4173'+path+'?service=manuscript_diagnostic',
+    {waitUntil:'domcontentloaded'});
+  const form=page.locator('[data-consultation-composer]');
+  await expect(form.locator('[data-requested-service-details]')).toBeVisible();
+  await form.locator('button[type="reset"]').click();
+  await expect(form.locator('[data-requested-service-details]')).toBeHidden();
+  await expect(form.locator('select[name="service"]')).toHaveValue('');
+  await expect(form.locator('[data-composer-email]')).toHaveAttribute('href','mailto:dr.rezazadeh65@gmail.com');
+ });
+}
+test('unverified English service identifier cannot preselect a nonexistent service',async({page})=>{
+ await page.goto('http://127.0.0.1:4173/en/request-consultation/?service=unknown_unapproved_service',
+   {waitUntil:'domcontentloaded'});
+ const form=page.locator('[data-consultation-composer]');
+ await expect(form.locator('select[name="service"]')).toHaveValue('');
+ await expect(form.locator('[data-requested-service-details]')).toBeHidden();
+ await expect(form.locator('[data-composer-email]')).toHaveAttribute('href','mailto:dr.rezazadeh65@gmail.com');
+});
