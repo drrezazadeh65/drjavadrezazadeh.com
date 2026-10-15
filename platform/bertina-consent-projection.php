@@ -28,7 +28,7 @@ function bertinaSqlUtcSeconds(mixed $value): ?float {
  * WITHDRAWN decisions and a grant's withdrawn_at as revocation events.
  * Later valid re-grants can restore access; same-instant ties always deny.
  */
-function bertinaCurrentConsent(array $rows, string $purpose, int $now): array {
+function bertinaCurrentConsent(array $rows, string $purpose, int|float $now): array {
     $deny = static fn(string $reason): array => ['allowed'=>false,'reason'=>$reason];
     if (!in_array($purpose, ['ASSESSMENT','PARENT_VISIBILITY'], true) || $now <= 0)
         return $deny('INVALID_PURPOSE_OR_CLOCK');
