@@ -36,7 +36,11 @@ test('BAHAR keeps real learner portfolios and validation behind independent gate
   assert.match(en,new RegExp(title,'i'));
  for(const phase of ['Recognise context and direction','Choose a strategy and action',
    'Act on the plan','Monitor and collect evidence','Interpret gaps and errors',
-   'Revise and return to action']) assert.ok(en.includes(phase),'English BAHAR phase: '+phase);
+   'Revise the strategy or goal','Return to action']) assert.ok(en.includes(phase),'English BAHAR phase: '+phase);
+ const faCycle=read('fa/app/student/bahar/index.html');
+ for(const phase of ['اصلاح راهبرد یا هدف','بازگشت به عمل'])assert.ok(faCycle.includes(phase),'Persian BAHAR phase: '+phase);
+ const model=read('platform/bahar-engine.mjs');
+ for(const phase of ['RECOGNISE_CONTEXT','CHOOSE_ACTION','ACT','MONITOR_EVIDENCE','INTERPRET_GAP','REVISE','RETURN_TO_ACTION'])assert.ok(model.includes(phase),'Engine BAHAR phase: '+phase);
  assert.ok(!en.includes('<b>H</b>'),'avoid unsupported BAHAR mnemonic expansion');
  assert.match(read('assets/js/bahar-readiness.js'),/longitudinalTrendValidated/);
 });
