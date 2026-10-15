@@ -54,6 +54,7 @@ foreach([
 $account='11111111-1111-4111-8111-111111111111';$hash=tokenHash('fixture-session');$at=nowTs();$release=str_repeat('a',40);
 $GLOBALS['configuration']=['auth_pepper'=>str_repeat('x',32),'operations_admins'=>[]];$_COOKIE=[];$_SERVER=[];
 request('/admin/operations','GET',401,'unauthorized');
+request('/admin/operations/scientific/schema-readiness','GET',401,'unauthorized');
 $pdo->prepare('INSERT INTO customer_accounts VALUES(?,?,?)')->execute([$account,'active',$at]);
 $pdo->prepare('INSERT INTO customer_auth_sessions VALUES(?,?,?,NULL)')->execute([$hash,$account,$at+3600]);$_COOKIE[SESSION_COOKIE]='fixture-session';
 request('/admin/operations','GET',403,'admin_forbidden');
@@ -63,6 +64,7 @@ $GLOBALS['configuration']['operations_admins'][$account]=['role'=>'ADMIN','totp_
 request('/admin/operations','GET',403,'admin_forbidden');
 $pdo->prepare('INSERT INTO operations_admin_memberships VALUES(?,?,1,?)')->execute([$account,'ADMIN',$at]);
 request('/admin/operations','GET',403,'admin_mfa_required');
+request('/admin/operations/scientific/schema-readiness','GET',403,'admin_mfa_required');
 $session=request('/admin/operations/session','GET',200);check($session['mfaRequired']===true,'missing MFA challenge');
 request('/admin/operations/mfa','POST',403,'csrf_forbidden');
 $_SERVER=['HTTP_ORIGIN'=>SITE_ORIGIN,'HTTP_X_CSRF_TOKEN'=>$session['csrfToken'],'HTTP_SEC_FETCH_SITE'=>'cross-site'];
@@ -76,6 +78,28 @@ $pdo->prepare('UPDATE operations_session_mfa SET account_id=?,verified_at=?,expi
 request('/admin/operations','GET',403,'admin_mfa_required');
 $pdo->prepare('UPDATE operations_session_mfa SET verified_at=?,expires_at=?')->execute([$at,$at+600]);
 $pdo->prepare('INSERT INTO operations_release VALUES(1,?,?)')->execute([$release,$at]);
+$scientific=request('/admin/operations/scientific/schema-readiness','GET',200);
+check($scientific['schema']==='scientific-structural-preflight-v1',
+    'Scientific readiness route has the wrong contract');
+check($scientific['readOnly']===true && $scientific['adminMfaRequired']===true &&
+    $scientific['inspection']==='TABLE_AND_COLUMN_PROJECTIONS_ONLY',
+    'Schema readiness erroneously authorises assessment writes');
+check($scientific['personalRowsRead']===false &&
+    $scientific['realProductionCertified']===false &&
+    $scientific['operationalWriteApproved']===false,
+    'Schema probing falsely reports production readiness');
+check($scientific['modules']['consent_guardian']['columnProjectionReady']===false &&
+    $scientific['modules']['assessment']['columnProjectionReady']===false &&
+    $scientific['modules']['bahar']['columnProjectionReady']===false,
+    'Uninstalled eco tables must fail closed');
+check(strpos(json_encode($scientific),'fixture-session')===false &&
+    strpos(json_encode($scientific),$account)===false,
+    'Sensitive session/account value leaked in readiness');
+$event=$pdo->query("SELECT action,reference_id FROM operations_audit
+    WHERE action='scientific_schema_read' ORDER BY sequence_id DESC LIMIT 1")->fetch();
+check($event!==false && $event['reference_id']==='scientific-structural-preflight-v1',
+    'Scientific admin read must be audited');
+request('/admin/operations/scientific/schema-readiness','POST',404,'not_found');
 $data=request('/admin/operations','GET',200);check(count($data['reports'])===36,'36 reports missing');check(count($data['sourceSections'])===36,'36 source sections missing');
 check($data['summary']['measuredCoverage']===0&&$data['summary']['verified']===0,'unknown evidence asserted complete');
 check(!str_contains(json_encode($data),'totp_secret')&&!str_contains(json_encode($data),'auth_pepper'),'private configuration leaked');
@@ -84,6 +108,7 @@ $pdo->exec("UPDATE customer_accounts SET status='disabled'");request('/admin/ope
 $pdo->exec("UPDATE customer_accounts SET status='active',email_verified_at=NULL");request('/admin/operations','GET',403,'admin_forbidden');
 $pdo->exec("UPDATE customer_accounts SET email_verified_at=$at");$pdo->exec('UPDATE operations_admin_memberships SET enabled=0');request('/admin/operations','GET',403,'admin_forbidden');
 $pdo->exec('UPDATE operations_admin_memberships SET enabled=1');$pdo->exec('UPDATE customer_auth_sessions SET revoked_at=1');request('/admin/operations','GET',401,'unauthorized');
+request('/admin/operations/scientific/schema-readiness','GET',401,'unauthorized');
 $pdo->exec('UPDATE customer_auth_sessions SET revoked_at=NULL,expires_at=1');request('/admin/operations','GET',401,'unauthorized');
 $pepper=str_repeat('x',32);$csrf=operationsCsrf($hash,$pepper);
 check(!operationsMutationAllowed([], $csrf,$csrf),'absent Origin accepted');
