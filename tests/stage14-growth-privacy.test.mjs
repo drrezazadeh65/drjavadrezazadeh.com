@@ -198,3 +198,30 @@ test('worklist pagination keeps every consenting lead reachable without weakenin
  assert.match(mysql,/count\(\$seen\)===27/);
  assert.doesNotMatch(ui,/localStorage|sessionStorage|sendBeacon|innerHTML/);
 });
+
+
+test('customer-owned lead history is keyset paginated so consent withdrawal remains reachable',()=>{
+ const dashboard=read('assets/js/customer-consultation-leads.js');
+ assert.match(lead,/\$cursor=\$_GET\['cursor'\]\?\?null/);
+ assert.match(lead,/fail\('invalid_lead_cursor',400\)/);
+ assert.match(lead,/validUuid\(\$parts\[2\]\)/);
+ assert.match(lead,/account_id=\? AND expires_at>\?/);
+ assert.match(lead,/created_at<\? OR \(created_at=\? AND id<\?\)/);
+ assert.match(lead,/ORDER BY created_at DESC,id DESC LIMIT 21/);
+ assert.match(lead,/\$more=count\(\$rows\)>20/);
+ assert.match(lead,/array_slice\(\$rows,0,20\)/);
+ assert.match(lead,/nextCursor/);
+ assert.match(js,/Show older enquiries/);
+ assert.match(js,/leadCursor=data\.nextCursor/);
+ assert.match(js,/encodeURIComponent\(next\)/);
+ assert.match(js,/\/api\/growth\/leads\/withdraw/);
+ assert.match(js,/document\.addEventListener\('visibilitychange'/);
+ assert.match(dashboard,/QUALIFIED:say\(/);
+ assert.match(dashboard,/NEEDS_INFO:say\(/);
+ assert.match(dashboard,/data\.nextCursor/);
+ assert.match(dashboard,/\/en\/request-consultation\//);
+ assert.match(dashboard,/\/fa\/darkhast-moshavere\//);
+ for(const source of [js,dashboard]){
+   assert.doesNotMatch(source,/localStorage|sessionStorage|sendBeacon|indexedDB|innerHTML/);
+ }
+});
