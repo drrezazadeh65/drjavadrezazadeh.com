@@ -5,7 +5,9 @@ if(!root)return;
 let state=null;
 try{state=JSON.parse(sessionStorage.getItem('gt_rcas_state')||'null')}catch(_){}
 if(!state||state.rcasRevision!=='start-en-pilot-1'||state.completed!==true||
-state.completedItemCount!==28||state.routeBasis!=='SELF_SELECTED_UNVALIDATED')return;
+state.completedItemCount!==28||state.p0Validated!==true||
+state.routingEvidenceCompleted!==true||state.meaningfulCoreEvidence!==true||
+state.routeBasis!=='SELF_SELECTED_UNVALIDATED')return;
 const code=String(state.route||'');
 if(!['D1','D2','D3','D4','D5','D6'].includes(code))return;
 const hero=root.querySelector('.student-dash-hero');
