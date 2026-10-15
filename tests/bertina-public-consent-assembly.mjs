@@ -8,7 +8,9 @@ const root=process.cwd();
 const publicSite=path.join(root,'.public-site');
 const required=[
  'api/index.php','api/golden-talent.php','api/golden-talent-consent.php',
- 'api/operations.php','api/operations-scientific-schema.php'
+ 'api/operations.php','api/operations-scientific-schema.php',
+ 'assets/js/operations-scientific-schema.js','fa/app/admin/index.html',
+ 'en/account/admin/index.html'
 ];
 for(const rel of required)
  assert.ok(fs.statSync(path.join(publicSite,rel)).isFile(),'Release missing '+rel);
@@ -35,4 +37,12 @@ assert.ok(!projector.includes('$_GET')&&!projector.includes('$_POST')&&!projecto
 assert.match(alias,/\/api\/golden-talent-consent\.php/,
  'Internal prototype must reference canonical API implementation');
 assert.match(schemaAlias,/\/api\/operations-scientific-schema\.php/, 'Schema prototype must use packaged implementation');
+for(const rel of ['fa/app/admin/index.html','en/account/admin/index.html']){
+  const html=fs.readFileSync(path.join(publicSite,rel),'utf8');
+  assert.match(html,/id="ops-scientific-schema"/, 'Private schema disclosure missing: '+rel);
+  assert.match(html,/\/assets\/js\/operations-scientific-schema\.js/, 'Private schema UI script missing: '+rel);
+}
+const scientificUi=fs.readFileSync(path.join(publicSite,'assets/js/operations-scientific-schema.js'),'utf8');
+assert.match(scientificUi,/credentials:'same-origin'/, 'Private scientific schema read lost session scope');
+assert.match(scientificUi,/cache:'no-store'/, 'Private readiness must not use browser cache');
 console.log('Bertina sanitized package consent and MFA schema dependencies: passed');
