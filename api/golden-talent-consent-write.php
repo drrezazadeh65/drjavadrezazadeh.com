@@ -33,6 +33,11 @@ function goldenTalentInternalWithdrawConsent(
     PDO $pdo, string $authenticatedAccountId, string $subjectId,
     string $purpose, string $commandId
 ): array {
+    // Defence in depth: an accidental future include must NEVER activate a
+    // private consent writer before explicitly approved rollout.
+    if (!defined('GT_INTERNAL_CONSENT_WRITE_ENABLED') ||
+        constant('GT_INTERNAL_CONSENT_WRITE_ENABLED') !== true)
+        throw new DomainException('WITHDRAWAL_FEATURE_NOT_RELEASED');
     $uuid = static fn(string $id): bool =>
         preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/Di', $id) === 1;
     if (!$uuid($authenticatedAccountId) || !$uuid($subjectId) || !$uuid($commandId) ||
