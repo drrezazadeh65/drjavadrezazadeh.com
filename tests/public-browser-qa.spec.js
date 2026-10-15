@@ -1007,7 +1007,8 @@ test('international service example remains explicitly hypothetical and accessib
     await expect(sample).toContainText('hypothetical');
     await expect(sample).toContainText('not a client case');
     await expect(sample.locator('.service-offer')).toHaveCount(3);
-    await expect(sample.locator('a[href="../request-consultation/"]')).toHaveCount(1);
+    // The existing consented intake now safely preselects the canonical service.
+    await expect(sample.locator('a[href="../request-consultation/?service=manuscript_diagnostic"]')).toHaveCount(1);
     const dims=await stableOverflow(page);
     expect(Math.max(dims.html,dims.body),'English services overflow '+width).toBeLessThanOrEqual(dims.viewport+1);
   }
