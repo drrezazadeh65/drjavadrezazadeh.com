@@ -254,3 +254,68 @@ for(const [locale,account,intake] of [
    expect(readCount).toBeGreaterThanOrEqual(2);
  });
 }
+
+
+// English service marketplace mirrors all 21 authoritative SKUs; translations cannot authorise prices or payment.
+for(const status of ['guest','verified-checkout','translations-unavailable']){
+ test('English service marketplace '+status+' remains bilingual, searchable and payment-honest',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  let requestPath='';
+  await page.route('**/api/**',r=>{
+   const path=new URL(r.request().url()).pathname;
+   if(path==='/api/auth/health')return r.fulfill({json:{ok:true,ready:true}});
+   if(path==='/api/auth/me')return status==='verified-checkout'
+     ?r.fulfill({json:{ok:true,user:{email:'demo@example.test'}}})
+     :r.fulfill({status:401,json:{ok:false}});
+   if(path==='/api/commerce/health')return r.fulfill({json:{
+     ok:true,checkout:status==='verified-checkout',
+     capabilities:{services:status==='verified-checkout',books:false,vip:false}
+   }});
+   return r.fulfill({status:404,json:{ok:false}});
+  });
+  if(status==='translations-unavailable'){
+   await page.route('**/assets/data/service-descriptions-en.json',r=>
+     r.fulfill({status:503,json:{ok:false}}));
+  }
+  await page.goto(base+'/en/account/#service-market',{waitUntil:'domcontentloaded'});
+  const panel=page.locator('#service-market');
+  await expect(panel).toBeVisible();
+  const cards=panel.locator('.cd-service-card');
+  if(status==='translations-unavailable'){
+   await expect(panel.locator('[data-dashboard-service-status]')).toContainText('cannot be verified');
+   await expect(cards).toHaveCount(0);
+  }else{
+   await expect(cards).toHaveCount(21);
+   await expect(panel.locator('[data-dashboard-service-count]')).toHaveText('21');
+   await expect(cards.first().locator('h3')).toHaveText('Specialist academic consultation');
+   await expect(cards.first()).toContainText('toman');
+   await expect(cards.first().locator('.cd-service-boundary')).toContainText('Not a substitute');
+   await expect(cards.first().locator('.cd-service-more')).toHaveAttribute('href','/en/services/');
+   const label=cards.first().locator('.cd-service-buy');
+   if(status==='verified-checkout'){
+    await expect(label).toHaveText('Checkout (Persian)');
+    await expect(label).toHaveAttribute('href','/fa/services/checkout/?service=academic_consult_60');
+    await expect(cards.first()).toHaveAttribute('data-purchase-ready','true');
+   }else{
+    await expect(label).toHaveText('Enquire about this service');
+    await expect(label).toHaveAttribute('href','/en/request-consultation/?service=academic_consult_60');
+    await expect(cards.first()).toHaveAttribute('data-purchase-ready','false');
+   }
+   const names=await cards.locator('h3').allTextContents();
+   expect(names.join(' ')).not.toMatch(/[\u0600-\u06ff]/);
+   const search=panel.locator('[data-dashboard-service-search]');
+   await search.fill('manuscript');
+   await expect(cards).toHaveCount(2);
+   await search.fill('golden talent');
+   await expect(cards).toHaveCount(2);
+   await search.fill('no-match-xyz');
+   await expect(cards).toHaveCount(0);
+   await search.fill('');
+   await expect(cards).toHaveCount(21);
+  }
+  const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+  expect(errors).toEqual([]);
+ });
+}
