@@ -47,6 +47,8 @@ function bertinaAuthoriseFreeStage(array $context): array {
         !is_string($age['reference']??null) || trim($age['reference'])==='')
         return $deny('AGE_CLASSIFICATION_UNVERIFIED');
 
+    $now=$context['now']??null;
+    if (!is_int($now) || $now<=0) return $deny('INVALID_CLOCK');
     $account=$actor['id'];
     if ($age['classification']==='ADULT') {
         if (($subject['owner_account_id']??null)!==$account)
@@ -66,7 +68,7 @@ function bertinaAuthoriseFreeStage(array $context): array {
                 trim($row['verified_by_account_id'])==='') continue;
             $expires=$row['expires_at']??null;
             $until=$expires===null?null:bertinaSqlUtcSeconds($expires);
-            if ($expires!==null && ($until===null || $until<=$context['now'])) continue;
+            if ($expires!==null && ($until===null || $until<=$now)) continue;
             $valid=true;
         }
         if (!$valid) return $deny('VERIFIED_GUARDIAN_RELATION_REQUIRED');
@@ -74,8 +76,7 @@ function bertinaAuthoriseFreeStage(array $context): array {
         // because the guardian has authorised a session.
     }
     $history=$context['consent_history']??null;
-    $now=$context['now']??null;
-    if (!is_int($now)||$now<=0||!is_array($history))
+    if (!is_array($history))
         return $deny('CONSENT_HISTORY_OR_CLOCK_REQUIRED');
     foreach ($history as $row) {
         if (!is_array($row) || ($row['subject_id']??null)!==$subject['id'] ||
