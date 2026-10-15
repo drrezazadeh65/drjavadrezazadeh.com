@@ -1,4 +1,4 @@
-/* JR Document Export v2 — native print / Save as PDF, no external processing.
+/* JR Document Export v3 — native print / Save as PDF, no external processing.
  * Caller must supply an authenticated, server-verified document.
  */
 (function(){
@@ -23,7 +23,6 @@
   active={element,wasClosed,title:document.title};
   element.classList.add('jr-receipt-print-target');
   element.dataset.jrExporting='true';
-  element.dataset.jrPrintTitle='JR-'+String(element.dataset.receiptId||'document').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,60);
   document.body.classList.add('jr-receipt-print-mode');
   const safeId=String(element.dataset.receiptId||'document').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,60);
   document.title='JR-'+safeId;
