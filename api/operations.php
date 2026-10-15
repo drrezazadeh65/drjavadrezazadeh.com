@@ -408,6 +408,33 @@ function operationsRoute(string $path, string $verb): never {
             require_once __DIR__.'/growth-stage14.php';
             respond(stage14AdminGrowthSnapshot($pdo));
         }
+        // Customer email for one-to-one service follow-up is sensitive:
+        // only a fresh-MFA SUPER_ADMIN can see the current, consenting worklist.
+        if ($path === '/admin/operations/growth/leads' && $verb === 'GET') {
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('growth_lead_owner_required',403);
+            if(!rateAllowed($pdo,'operations_growth_lead_read',$accountId,12,300))
+                fail('rate_limited',429);
+            require_once __DIR__.'/growth-stage14.php';
+            respond(stage14AdminLeadWorklist($pdo));
+        }
+        if ($path === '/admin/operations/growth/leads/transition' && $verb === 'POST') {
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('growth_lead_owner_required',403);
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'operations_growth_lead_change',$accountId,10,300))
+                fail('rate_limited',429);
+            require_once __DIR__.'/growth-stage14.php';
+            try{
+                respond(stage14AdminLeadTransition($pdo,$accountId,jsonBody()));
+            }catch(InvalidArgumentException $e){ fail('invalid_lead_transition',400); }
+            catch(DomainException $e){ fail('lead_state_or_consent_conflict',409); }
+            catch(Throwable $e){
+                error_log('Owner lead triage unavailable: '.get_class($e));
+                fail('lead_transition_unavailable',503);
+            }
+        }
         if ($path === '/admin/operations/action-runs' && $verb === 'GET') {
             if (!operationsActionRunsReady($pdo)) fail('action_journal_schema_unavailable',503);
             respond(['ok'=>true,'schema'=>'operations-readonly-action-history-v1',
