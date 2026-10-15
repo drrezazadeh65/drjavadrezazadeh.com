@@ -1,0 +1,98 @@
+{
+  "schema": "jhela-ojs-3.5-roles-configuration-policy-v1",
+  "scope": "NATIVE_OJS_CONFIGURATION_PENDING_NOT_DEPLOYED",
+  "intendedOrigin": "https://journal.drjavadrezazadeh.com",
+  "authoritativeRelease": "PKP OJS 3.5 vendor-supported compatible version verified at installation time",
+  "baseline": {
+    "openRegistrationRoles": [
+      "Author",
+      "Reader"
+    ],
+    "publicSelfAssignmentForbidden": [
+      "Reviewer",
+      "Section Editor",
+      "Journal Editor",
+      "Journal Manager",
+      "Production Editor"
+    ],
+    "noOneClickReviewAccessByDefault": true,
+    "reviewerInvitationsAuthenticated": true,
+    "reviewModel": "Anonymous Reviewer/Anonymous Author",
+    "minimumIndependentReviewersNormally": 2,
+    "confictScreeningBeforeAssignment": true,
+    "noAutomaticDecisionsFromNumericScores": true,
+    "unrelatedManuscriptAccessForbidden": true,
+    "noSharedSitePasswords": true,
+    "privateFileStorageOutsideWebroots": true,
+    "emailOnlyAccountVerification": true,
+    "manuscriptFilesMustNotEnterPublicGitHub": true
+  },
+  "groupSettings": [
+    {
+      "group": "Journal Manager",
+      "permitChangesToSettings": true,
+      "individualProvisioningOnly": true,
+      "mfaRequired": true,
+      "purpose": "journal configuration and verified editorial staff invitations"
+    },
+    {
+      "group": "Journal Editor",
+      "permitChangesToSettings": false,
+      "individualProvisioningOnly": true,
+      "mfaRequired": true,
+      "purpose": "editorial decisions, no website/settings changes"
+    },
+    {
+      "group": "Section Editor",
+      "permitChangesToSettings": false,
+      "individualProvisioningOnly": true,
+      "mfaRequired": true,
+      "purpose": "assigned manuscripts, editorial delegation"
+    },
+    {
+      "group": "Production Editor",
+      "permitChangesToSettings": false,
+      "individualProvisioningOnly": true,
+      "mfaRequired": true,
+      "purpose": "accepted article proof and galley production"
+    },
+    {
+      "group": "Reviewer",
+      "permitChangesToSettings": false,
+      "individualProvisioningOnly": true,
+      "mfaRequired": false,
+      "purpose": "invited and accepted review only"
+    },
+    {
+      "group": "Author",
+      "permitChangesToSettings": false,
+      "individualProvisioningOnly": false,
+      "mfaRequired": false,
+      "purpose": "own manuscripts and correspondence"
+    }
+  ],
+  "segregation": {
+    "editorAuthorConflict": "must delegate to independent unconflicted editor and log recusal",
+    "financeOfficer": "not granted journal editor/manager permissions to see decisions; separate non-OJS scoped integration remains unbuilt",
+    "securityAuditor": "redacted access audit only; no broad manuscript or reviewer content; separate integration remains unbuilt",
+    "superadmin": "site-superadmin status never equates to journal reviewer/editor role",
+    "approvedMFAImplementation": "verify supported OJS-native MFA or documented audited identity provider before requiring production elevation"
+  },
+  "verification": [
+    "Check OJS 3.5 'Permit changes to Settings' in Users & Roles for every Manager-level group: change permissions separately, verify negative access as that role",
+    "Check reviewer invitations have no default unauthenticated bearer URL; if enabled by policy, threat-model and test expiry, revocation and email forwarding",
+    "Verify non-appointed users cannot opt into Editor/Reviewer via self-registration or manipulated POST body",
+    "Verify Editor-in-Chief-authored work cannot be independently handled by self or a conflicted associate",
+    "Verify Reviewer A cannot view Reviewer B's report or any unrelated manuscript ID, and cannot change decisions",
+    "Verify Stage-specific OJS role permissions and resulting routes, direct downloads and API access with 401 or 403 responses",
+    "Verify test emails only to consented addresses; private links not included in public log or analytics",
+    "Verify finance and audit accounts do not receive broad native editorial privileges",
+    "Review current vendor security maintenance and plugin compatibility prior to public activation"
+  ],
+  "sources": [
+    "https://github.com/pkp/pkp-lib/issues/5504",
+    "https://github.com/pkp/pkp-docs/blob/main/learning-ojs/journal-managers/en/users.md",
+    "https://github.com/pkp/pkp-docs/blob/main/learning-ojs/editorial-workflow/en/review.md"
+  ],
+  "canEnablePublicSubmissions": false
+}
