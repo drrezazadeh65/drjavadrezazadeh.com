@@ -103,7 +103,7 @@ try {
         'independent visibility purpose can be revoked');
     $check((int)$pdo->query("SELECT COUNT(*) FROM eco_audit_events")->fetchColumn()===2,
         'separate purpose append audited');
-    $expectError('COMMAND_ID_REUSED',
+    $expectError('COMMAND_SCOPE_MISMATCH',
         static fn()=> $withdraw($parent,$subject,'ASSESSMENT',$command2),
         'command cannot cross purposes');
     $audit=$pdo->query("SELECT action_code,entity_kind,entity_id,payload_sha256
@@ -148,16 +148,19 @@ try {
         WHERE id='".$parent."'");
 
     // Transaction atomicity: no audit table means NO consent event committed.
+    $subject2='77777777-7777-4777-8777-777777777777';
+    $pdo->prepare("INSERT INTO eco_subjects VALUES (?,?,'ACTIVE')")
+        ->execute([$subject2,$parent]);
     $pdo->exec("INSERT INTO eco_consent_notices VALUES
        ('extra','ASSESSMENT','v2','fa',REPEAT('c',64),
         UTC_TIMESTAMP(3) - INTERVAL 1 DAY,NULL)");
     $pdo->prepare("INSERT INTO eco_consent_records VALUES
        ('grant2',?,?,'extra','GRANTED','CONSENT',NULL,
         UTC_TIMESTAMP(3) - INTERVAL 1 SECOND,NULL,'ORIGINAL_GRANTED')")
-        ->execute([$parent,$subject]);
+        ->execute([$parent,$subject2]);
     $pdo->exec('DROP TEMPORARY TABLE eco_audit_events');
     $failed=false;
-    try {$withdraw($parent,$subject,'ASSESSMENT',$command3);}
+    try {$withdraw($parent,$subject2,'ASSESSMENT',$command3);}
     catch(Throwable $e){$failed=true;}
     $check($failed,'missing audit storage must reject consent write');
     $check(!$pdo->inTransaction(),'failing audit rolled back');
