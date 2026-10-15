@@ -16,6 +16,8 @@ on:
       - "platform/bertina-consent-projection.php"
       - "api/golden-talent.php"
       - "api/golden-talent-consent.php"
+      - "api/golden-talent-consent-write.php"
+      - "tests/bertina-consent-withdrawal-mysql.php"
       - "api/operations.php"
       - "api/operations-scientific-schema.php"
       - "tests/operations-security.php"
@@ -72,6 +74,7 @@ jobs:
           php -l platform/bertina-consent-projection.php
           php -l api/golden-talent.php
           php -l api/golden-talent-consent.php
+          php -l api/golden-talent-consent-write.php
           php -l api/operations.php
           php -l api/operations-scientific-schema.php
           php -l tests/golden-talent-guardian.php
@@ -124,6 +127,8 @@ jobs:
           php tests/bahar-guardian-mysql.php
           php -l tests/bertina-guardian-transaction-lock-mysql.php
           SCIENTIFIC_LOCK_FIXTURE_ENABLED=1 php tests/bertina-guardian-transaction-lock-mysql.php
+          php -l tests/bertina-consent-withdrawal-mysql.php
+          SCIENTIFIC_WITHDRAWAL_FIXTURE_ENABLED=1 php tests/bertina-consent-withdrawal-mysql.php
 
   mariadb-fixture:
     name: Isolated MariaDB 10.11 guardian and consent compatibility
@@ -160,6 +165,8 @@ jobs:
           php tests/bahar-guardian-mysql.php
           php -l tests/bertina-guardian-transaction-lock-mysql.php
           SCIENTIFIC_LOCK_FIXTURE_ENABLED=1 php tests/bertina-guardian-transaction-lock-mysql.php
+          php -l tests/bertina-consent-withdrawal-mysql.php
+          SCIENTIFIC_WITHDRAWAL_FIXTURE_ENABLED=1 php tests/bertina-consent-withdrawal-mysql.php
 
   assembly-check:
     name: Sanitized Bertina release includes canonical consent library
@@ -179,6 +186,7 @@ jobs:
           node --check .public-site/assets/js/operations-scientific-schema.js
           php -l .public-site/api/golden-talent.php
           php -l .public-site/api/golden-talent-consent.php
+          php -l .public-site/api/golden-talent-consent-write.php
           php -l .public-site/api/operations.php
           php -l .public-site/api/operations-scientific-schema.php
 
