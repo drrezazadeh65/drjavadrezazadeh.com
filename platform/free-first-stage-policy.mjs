@@ -13,6 +13,7 @@ export function authoriseFreeFirstStage({module,stage,actor,subject,assessmentCo
  if(actor?.record_source!=='PERSISTED'||actor.session_verified!==true||!actor.account_id)
    return deny('AUTHENTICATION_REQUIRED');
  if(subject?.record_source!=='PERSISTED'||!subject.id)return deny('SUBJECT_NOT_VERIFIED');
+ if(typeof subject.is_minor!=='boolean')return deny('AGE_CLASSIFICATION_REQUIRED');
  const isSelf=subject.student_account_id===actor.account_id;
  const isGuardian=subject.is_minor===true&&subject.guardian_account_id===actor.account_id&&
    guardianRelation?.record_source==='PERSISTED'&&guardianRelation.state==='VERIFIED'&&
