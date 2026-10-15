@@ -310,29 +310,22 @@ const gh='/drjavadrezazadeh.com/';
 const base=raw.includes(gh)?gh:'/';
 const relative=base==='/'?raw:'/'+raw.slice(base.length);
 const privatePath=JR_PRIV(relative);
+const seenKey='jr-pwa-auto-shown-v1';
+const readSeen=()=>{try{return localStorage.getItem(seenKey)==='1';}catch(_){try{return sessionStorage.getItem(seenKey)==='1';}catch(__){return false;}}};
+const markSeen=()=>{try{localStorage.setItem(seenKey,'1');}catch(_){try{sessionStorage.setItem(seenKey,'1');}catch(__){}}};
+window.jrPwaRequest=async()=>{if(!deferredPrompt)return false;const p=deferredPrompt;deferredPrompt=null;try{await p.prompt();await p.userChoice;return true;}catch(_){return false;}};
 window.addEventListener('beforeinstallprompt',e=>{
-e.preventDefault();
-deferredPrompt=e;
-const openAssistantPanel=document.querySelector('#jr-assistant-panel');
-const assistantLauncher=document.querySelector('.jr-assistant-launcher');
-if(openAssistantPanel&&!openAssistantPanel.hidden){
-openAssistantPanel.hidden=true;
-assistantLauncher?.setAttribute('aria-expanded','false');
-}
-if(privatePath || document.querySelector('.pwa-install') || sessionStorage.getItem('pwa-install-dismissed')==='1') return;
-const isFa=document.documentElement.lang==='fa';
-const wrap=document.createElement('div');
+e.preventDefault();deferredPrompt=e;
+const standalone=navigator.standalone===true||window.matchMedia?.('(display-mode: standalone)').matches;
+if(privatePath||standalone||readSeen()||document.querySelector('.pwa-install'))return;
+const assistant=document.querySelector('#jr-assistant-panel');
+if(assistant&&!assistant.hidden){assistant.hidden=true;document.querySelector('.jr-assistant-launcher')?.setAttribute('aria-expanded','false');}
+const fa=document.documentElement.lang==='fa',wrap=document.createElement('div');
 wrap.className='pwa-install';
-wrap.innerHTML='<button type="button" class="pwa-install-btn">'+(isFa?'نصب نسخه اپ‌مانند':'Install app experience')+'</button><button type="button" class="pwa-install-close" aria-label="'+(isFa?'بستن':'Close')+'">×</button>';
-document.body.appendChild(wrap);
-wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>{sessionStorage.setItem('pwa-install-dismissed','1');wrap.remove();});
-wrap.querySelector('.pwa-install-btn')?.addEventListener('click',async()=>{
-if(!deferredPrompt) return;
-deferredPrompt.prompt();
-try{await deferredPrompt.userChoice;}catch(e){}
-deferredPrompt=null;
-wrap.remove();
-});
+wrap.innerHTML='<button type="button" class="pwa-install-btn">'+(fa?'نصب اپلیکیشن':'Install app')+'</button><button type="button" class="pwa-install-close" aria-label="'+(fa?'بستن':'Close')+'">×</button>';
+document.body.append(wrap);markSeen();
+wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>wrap.remove());
+wrap.querySelector('.pwa-install-btn')?.addEventListener('click',async()=>{await window.jrPwaRequest();wrap.remove();});
 });
 })();
 (function(){
@@ -395,26 +388,22 @@ document.body?.classList.add('standalone-app-body');
 }
 })();
 (function(){
-const ua=navigator.userAgent||'';
-const ios=/iPhone|iPad|iPod/i.test(ua);
-const standalone=window.navigator.standalone===true || window.matchMedia?.('(display-mode: standalone)').matches;
-const raw=location.pathname.replace(/index\.html$/,'');
-const gh='/drjavadrezazadeh.com/';
-const base=raw.includes(gh)?gh:'/';
-const relative=base==='/'?raw:'/'+raw.slice(base.length);
-const privatePath=JR_PRIV(relative);
-if(!ios||standalone||privatePath||sessionStorage.getItem('ios-install-dismissed')==='1'||document.querySelector('.pwa-install')) return;
-const isFa=document.documentElement.lang==='fa';
-window.addEventListener('load',()=>{
-setTimeout(()=>{
-if(document.querySelector('.pwa-install')) return;
-const wrap=document.createElement('div');
+const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent||'');
+const standalone=navigator.standalone===true||window.matchMedia?.('(display-mode: standalone)').matches;
+const path=location.pathname.replace(/index\.html$/,'');
+const relative=path.includes('/drjavadrezazadeh.com/')?'/'+path.split('/drjavadrezazadeh.com/')[1]:path;
+const key='jr-pwa-auto-shown-v1';
+const seen=()=>{try{return localStorage.getItem(key)==='1';}catch(_){try{return sessionStorage.getItem(key)==='1';}catch(__){return false;}}};
+const mark=()=>{try{localStorage.setItem(key,'1');}catch(_){try{sessionStorage.setItem(key,'1');}catch(__){}}};
+if(!ios||standalone||JR_PRIV(relative)||seen())return;
+window.addEventListener('load',()=>setTimeout(()=>{
+if(seen()||document.querySelector('.pwa-install'))return;
+const fa=document.documentElement.lang==='fa',wrap=document.createElement('div');
 wrap.className='pwa-install';
-wrap.innerHTML='<div class="pwa-install-btn" role="note">'+(isFa?'برای تجربه شبیه اپ: Share → Add to Home Screen':'For an app-like experience: Share → Add to Home Screen')+'</div><button type="button" class="pwa-install-close" aria-label="'+(isFa?'بستن':'Close')+'">×</button>';
-document.body.appendChild(wrap);
-wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>{sessionStorage.setItem('ios-install-dismissed','1');wrap.remove();});
-},1800);
-});
+wrap.innerHTML='<div class="pwa-install-btn" role="note">'+(fa?'در Safari: اشتراک‌گذاری ← افزودن به صفحه اصلی':'Safari: Share → Add to Home Screen')+'</div><button type="button" class="pwa-install-close" aria-label="'+(fa?'بستن':'Close')+'">×</button>';
+document.body.append(wrap);mark();
+wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>wrap.remove());
+},1800));
 })();
 (function(){
 let timer=null;
