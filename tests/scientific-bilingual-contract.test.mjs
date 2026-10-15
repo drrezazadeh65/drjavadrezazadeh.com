@@ -72,7 +72,8 @@ test('Golden Path displays only same-tab RCAS reflection without manufacturing e
                     'en/golden-talent/dashboard/golden-path/index.html']){
   const html=read(path);
   assert.match(html,/data-golden-path-session-status/);
-  assert.match(html,/golden-path-session-bridge\.js/);
+  assert.match(html,/golden-path-session-bridge\.js\?v=20261015-2/);
+  assert.match(html,/jr-ecosystem-design-v2\.css\?v=20261015-r2/);
   assert.match(html,/jr-ecosystem-design-v2\.css/);
   assert.match(html,/class="skip"/);
  }
