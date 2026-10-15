@@ -64,6 +64,20 @@ test('English dashboard supports the RCAS pilot summary',async({page})=>{
  await expect(page.locator('script[src*="rcas-dashboard-en-bridge.js"]')).toHaveCount(1);
  await expect(page.locator('[data-resource="student-dashboard"]')).toBeVisible();
  await expect(page.getByText('Your current-tab RCAS reflection')).toHaveCount(0);
+ await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
+  completed:true,rcasRevision:'start-en-pilot-1',completedItemCount:28,
+  routeBasis:'SELF_SELECTED_UNVALIDATED',route:'D5'
+ })));
+ await page.reload();
+ await expect(page.getByText('Your current-tab RCAS reflection')).toHaveCount(0);
+ await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
+  completed:true,rcasRevision:'start-en-pilot-1',completedItemCount:28,
+  p0Validated:true,routingEvidenceCompleted:true,meaningfulCoreEvidence:true,
+  routeBasis:'SELF_SELECTED_UNVALIDATED',route:'D5'
+ })));
+ await page.reload();
+ await expect(page.getByText('Your current-tab RCAS reflection')).toHaveCount(1);
+ await expect(page.locator('.gt-private-note')).toContainText('No ability score');
 });
 
 test('English RCAS response controls retain accessible dimensions on desktop and mobile',async({page})=>{
