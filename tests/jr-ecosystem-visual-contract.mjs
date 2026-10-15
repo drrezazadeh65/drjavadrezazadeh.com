@@ -20,4 +20,16 @@ for(const p of ['fa/index.html','en/index.html']){
 for(const p of ["fa/shop/index.html","en/shop/index.html","fa/akhbar/index.html","en/news-insights/index.html","fa/support-talented-students/index.html","en/support-talented-students/index.html"]){const html=fs.readFileSync(p,'utf8');assert.ok(html.includes('href="/assets/css/jr-ecosystem-design-v2.css?v=20261015-r1"'),p+' identity layer');}
 for(const p of ['fa/shop/index.html','en/shop/index.html']){const html=fs.readFileSync(p,'utf8');assert.match(html,/data-cart-count/,p+' cart preserved');assert.match(html,/bookstore-talent-approved-scene-20261011/,p+' approved scene preserved');}
 for(const p of ["fa/assessments/golden-talent/index.html","en/golden-talent/assessment/index.html","fa/app/student/bahar/index.html","en/golden-talent/dashboard/bahar/index.html","fa/customer-dashboard/index.html","en/account/index.html","journal/index.html","journal/fa/index.html"]){const html=fs.readFileSync(p,'utf8');assert.ok(html.includes('href="/assets/css/jr-ecosystem-design-v2.css?v=20261015-r1"'),p+' shared design');}
+
+/* Do not silently reduce RCAS option height in a later shared-theme pass.
+   The primary responsive controls are governed by portal-v2.css. */
+const portalCss=fs.readFileSync('assets/css/portal-v2.css','utf8');
+const rcasChoices=css.match(/\.assessment-workspace-page \.rcas-scale label>span\s*\{([^}]*)\}/);
+assert.ok(rcasChoices,'find RCAS theme extension');
+assert.doesNotMatch(rcasChoices[1],/min-height\s*:/,'theme must not override assessment tap-target geometry');
+const portalOptions=portalCss.match(/\.assessment-workspace-page \.rcas-scale label > span,\s*\.assessment-workspace-page \.rcas-route-row label > span\s*\{([^}]*)\}/);
+assert.ok(portalOptions,'find accessible desktop choices');
+assert.match(portalOptions[1],/min-height\s*:\s*72px\s*;/,'desktop option minimum must be 72px');
+assert.match(portalCss,/\.assessment-workspace-page \.rcas-route-row label > span\s*\{[^}]*min-height\s*:\s*76px\s*;/,'mobile option minimum must be 76px');
+
 console.log('PASS: bilingual academic home and Golden Talent share one mobile/tablet-first visual layer.');
