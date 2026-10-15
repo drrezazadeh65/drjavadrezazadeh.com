@@ -27,7 +27,7 @@ function mount(host,kind,items){
  if(!host)return;
  host.classList.add('commerce-grid');
  host.innerHTML='';
- const message=document.createElement('p');message.className='commerce-notice';message.textContent='مبلغ نهایی در سرور بررسی می‌شود. برای پیگیری، شناسه سفارش را نگه دارید و فقط از طریق ایمیل رسمی مکاتبه کنید.';
+ const message=document.createElement('p');message.className='commerce-notice';message.textContent='مبلغ نهایی در سرور بررسی می‌شود. پس از پرداخت، شناسه سفارش را نگه دارید. در صورت تأخیر در هماهنگی، اشکال در ارائه خدمت یا درخواست استرداد وجه، با ذکر شناسه سفارش به info@drjavadrezazadeh.com ایمیل بزنید. پرداخت به‌تنهایی رزرو قطعی ساعت مشاوره نیست.';
  const buyer=document.createElement('div');
  buyer.className='commerce-buyer-fields';
  buyer.style.cssText='grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;background:#fff;border:1px solid #c6d2de;border-radius:16px;padding:18px;';
