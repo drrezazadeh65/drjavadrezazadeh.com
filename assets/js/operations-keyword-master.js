@@ -40,10 +40,10 @@ exportBtn.addEventListener('click',()=>{
 });
 $('[data-kw-search]').addEventListener('input',repaint);
 $('[data-kw-lang]').addEventListener('change',repaint);
-fetch('/assets/data/keyword-master-map-v1.json',{credentials:'omit',cache:'no-store',headers:{Accept:'application/json'}})
+fetch('/api/admin/operations/keyword-map',{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}})
  .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();})
  .then(data=>{
-  if(data.schema!=='jr-keyword-master-map-v1'||!Array.isArray(data.keywords))throw Error('Unsupported map');
+  if(data.ok!==true||data.schema!=='jr-keyword-master-map-v1'||!Array.isArray(data.keywords))throw Error('Unsupported map');
   rows=data.keywords.filter(k=>typeof k.keyword==='string'&&/^\/(?:fa|en|journal)\//.test(k.canonical)&&/^KW-\d{3}$/.test(k.id));
   repaint();
  }).catch(()=>{summary.textContent=t('نقشه کلیدواژه در این نسخه بارگذاری نشد.','Keyword map unavailable in this release.');});
