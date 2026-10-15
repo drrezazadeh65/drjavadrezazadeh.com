@@ -366,6 +366,25 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+
+        // Owner-only keyword intelligence: no public asset or unauthenticated strategy data.
+        // This branch is reached only after verified account, server admin membership
+        // and fresh TOTP session, and inherits private no-store API headers.
+        if ($path === '/admin/operations/keyword-map' && $verb === 'GET') {
+            if (!rateAllowed($pdo,'operations_keyword_map_read',$accountId,30,300))
+                fail('rate_limited',429);
+            $mapPath=__DIR__.'/internal/keyword-master-map-v1.json';
+            $raw=@file_get_contents($mapPath);
+            if (!is_string($raw) || strlen($raw)>65536) fail('keyword_map_unavailable',503);
+            $map=json_decode($raw,true);
+            if (!is_array($map) || ($map['schema']??'')!=='jr-keyword-master-map-v1'
+                || !is_array($map['keywords']??null)
+                || count($map['keywords'])<1 || count($map['keywords'])>150)
+                fail('keyword_map_unavailable',503);
+            $map['ok']=true;
+            respond($map);
+        }
+
         if ($path === '/admin/operations/commerce' && $verb === 'GET') {
             if(!rateAllowed($pdo,'operations_commerce_read',$accountId,12,300))
                 fail('rate_limited',429);
