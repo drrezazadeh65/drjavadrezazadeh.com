@@ -43,6 +43,29 @@
  const ledgerStatus=shell.querySelector('[data-contributions-status]');
  const focusName={general:'صندوق عمومی فرصت برابر',scholarship:'بورسیه و شهریه',books:'کتاب و لوازم آموزشی',
    services:'خدمات آموزشی',essentials:'پوشاک و نیازهای ضروری'};
+ async function loadPendingGiving(){
+  const target=shell.querySelector('[data-pending-giving]');
+  if(!target)return;
+  target.textContent='';
+  try{
+   const response=await fetch('/api/commerce/history',{credentials:'same-origin',cache:'no-store'});
+   if(!response.ok)return;
+   const data=await response.json();
+   if(data.ok!==true||!Array.isArray(data.orders))return;
+   const donations=data.orders.filter(order=>Array.isArray(order.items)&&
+    order.items.length===1&&order.items[0].sku==='support:students');
+   if(!donations.length)return;
+   const title=node('h3','وضعیت تراکنش‌های اخیر حمایت مالی');
+   target.append(title);
+   for(const order of donations.slice(0,10)){
+    const verified=order.state==='paid'&&order.paymentVerified===true;
+    const label=verified?'پرداخت تأییدشده':order.state==='pending'?'در انتظار پرداخت':
+      'پرداخت تأیید نشده';
+    const row=node('p',label+' · '+formatAmount(order.amountToman)+' · '+String(order.createdAt||''));
+    target.append(row);
+   }
+  }catch(_){target.textContent='وضعیت تراکنش‌های اخیر فعلاً قابل دریافت نیست.'}
+ }
  async function loadContributions(){
   if(!ledgerList||!ledgerStatus)return;
   try{
@@ -83,6 +106,7 @@
  async function load(){
   say('در حال بررسی دسترسی امن و مجوزهای حمایت تحصیلی…');
   await loadContributions();
+  await loadPendingGiving();
   try{
     const h=await fetch('/api/student-support/health',{credentials:'include',cache:'no-store'});
     if(!h.ok)throw Error('unavailable');
