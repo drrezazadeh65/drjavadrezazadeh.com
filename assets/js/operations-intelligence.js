@@ -14,6 +14,21 @@ const modules=[
 [t('شبیه‌ساز نتایج کنکور','Entrance Exam Simulator'),t('فقط طرح آینده؛ غیرفعال و بدون محاسبه.','Future concept only; disabled with no calculations.')]
 ];
 modules.forEach(([title,description],i)=>{const article=document.createElement('article');article.className='jr-i-card';const h=document.createElement('h3');h.textContent=title;const p=document.createElement('p');p.textContent=description;const tag=document.createElement('small');tag.textContent=i===3?t('غیرفعال — فقط ثبت عنوان','Parked — title only'):t('در صف تکمیل','Planned');article.append(h,p,tag);pending.append(article);});
+
+/* Three standing editorial priorities. These are not live diagnoses or auto-executed work. */
+const prioritySection=document.createElement('section');prioritySection.className='jr-i-priorities';
+prioritySection.setAttribute('aria-label',t('سه اولویت بعدی','Three next priorities'));
+const priorityTitle=document.createElement('h3');priorityTitle.textContent=t('سه اولویت بعدی پیشنهادی','Three proposed next priorities');
+const priorityNote=document.createElement('p');priorityNote.textContent=t('بر اساس فهرست درخواست‌ها و وابستگی‌های ثبت‌شده؛ داده زنده موتورهای سایت یا تحلیل ChatGPT نیست.','From recorded requirements and dependencies; not live engine data or a ChatGPT analysis.');
+const priorityList=document.createElement('ol');priorityList.setAttribute('data-jr-priority-list','');
+[
+ t('تکمیل اتصال امن داشبورد و شواهد اجرایی ۱۳ موتور','Verify secure dashboard connectivity and execution evidence for 13 engines'),
+ t('ارتقای تجربه نصب PWA و فروشگاه، همراه با آزمون موبایل و دسکتاپ','Test PWA installation UX and redesign the store across devices'),
+ t('تکمیل نقشه کلیدواژه و سنجش واقعی GEO با داده‌های معتبر','Complete keyword strategy and collect verified GEO/AI visibility observations')
+].forEach(s=>{const li=document.createElement('li');li.textContent=s;priorityList.append(li);});
+prioritySection.append(priorityTitle,priorityNote,priorityList);
+pending.after(prioritySection);
+
 const allowed=p=>/^\/(fa|en)\/(?!app\/|account\/|login\/|register\/|shop\/(cart|checkout|payment|payment-start|payment-return|payment-result)\/|customer-dashboard\/|assessments\/|bazyabi-hesab\/|recover\/)/.test(p)&&!/(?:^|\/)(?:admin|checkout|login|register|payment)(?:\/|$)/i.test(p);
 const normalize=u=>new URL(u,location.origin).pathname.replace(/index\.html$/,'').replace(/\/?$/,'/');
 const finding=(url,state,notes)=>{const li=document.createElement('li');const a=document.createElement('a');a.href=url;a.textContent=new URL(url).pathname;a.target='_blank';a.rel='noopener noreferrer';const b=document.createElement('strong');b.textContent=state;const p=document.createElement('span');p.textContent=notes.join(' · ');li.append(a,b,p);return li;};
