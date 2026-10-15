@@ -71,3 +71,21 @@
 **Independent live read-only operational observation (NOT same source SHA):** [Bertina Production Operational Pulse run 38716257161](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38716257161) reported **readiness checks 0 failures**, configured auth/email/registration and commerce/checkout/order capture/service/VIP/shipping/receipts/stock/claim schemas, correct 401 guest barriers for auth/me, commerce/history, growth/leads/mine, and successful tested public page HTTP responses. Observed existing *live* release fingerprint `cc60a6eb7ce2b8a2237bbfa0d5d61e5bd82ef4d7`. This proves neither the NEW source SHA is live nor actual customer email receipt, BitPay bank settlement, physical stock, real booking/case delivery, student donations, isolated restore or JHELA OJS workflow. Configured flags are **read-only capabilities**, not authorizations for money movement.
 
 **Release remains withheld:** User's latest instruction remains NO LIVE DEPLOYMENT until specifically told the controlled v5.1.0 candidate is ready and owner authorizes publication. No manual deployment, SQL migration, live purchases/charges/refunds, SMTP sends or privileged host changes were performed during this code-hardening phase. Next: authorized real customer/owner acceptance against verified release and rollback, exact live/source SHA matching, safe schema presence, provider reconciliation, and incident observability.
+
+---
+
+## 2026-10-15 subsequent code checkpoint — RCAS, Golden Path and BAHAR (still NOT RELEASED)
+
+**Newest application source SHA prior to documentation:** `c6b8210295d9b4c405f1f0499d8acaa3cbd0be40`. Refer to the detailed, updated `docs/JR-NEXT-CHAT-MASTER-HANDOFF.md` and current source HEAD for later documentation commits.
+
+**Changes to be tested at this SHA (not certified as passed):**
+
+- Corrected the RCAS desktop response-choice collision: the later global design file no longer overrides the existing 72px desktop and 76px mobile min-heights. No lowered browser threshold. Added a static regression assertion.
+- Expanded the official nondeployment candidate workflow: English RCAS and donation browser specifications and scientific bilingual source contracts are now explicitly invoked.
+- Added negative English RCAS behaviour against ungrounded completed pathways (all 28 self-reports UNKNOWN or NA, no substantial evidence in any of the seven routing domains, or no reason for the self-selected priority). Updated its tests.
+- Added bilingual Golden Path read-only display of a strictly bounded, unvalidated, self-selected RCAS route from the current browser tab only. No student persistence, score, secure record, professional report, inference or entitlement.
+- Reconciled English/Persian BAHAR explanatory pages with the original seven-step author-book cycle. The six planned portfolio components are a different artefact from seven action phases; both are distinct from live, scientifically validated developmental monitoring.
+
+**Certification is NOT signed:** historical run [38720210368](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38720210368) ran 184 passing and one failing browser tests on the prior SHA, with candidate job skipped. Newly written/fixed tests have **not** been independently confirmed running and passing on the current SHA via this session's available Actions results. Real browser/mobile visual certification, complete bilingual route/crawl, private role/guardian/consent workflows, scientific validation, real payment capture/refund/settlement, donor allocation, production database acceptance and isolated recovery remain OPEN.
+
+**Release decision:** Continue source QA and correct any CI failures. **No site deployment, real payment, production migration or customer data write** has been executed. The controlled v5.1.0 launch remains withheld until all required independent gates, a single immutable target SHA and the owner's explicit authorization are recorded.
