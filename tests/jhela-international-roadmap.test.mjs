@@ -68,7 +68,8 @@ for(const [lang,route] of [['en',urls[0]],['fa',urls[1]]]){
   assert.equal((html.match(/<h1\b/g)||[]).length,1);
   for(const p of model.phases){
    assert.ok(html.includes('id="stage-'+p.id.toLowerCase()+'"'));
-   assert.ok(html.includes(lang==='fa'?p.fa:p.en));
+   const encodedTitle=(lang==='fa'?p.fa:p.en).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+   assert.ok(html.includes(encodedTitle),'Missing safely HTML-escaped phase title: '+p.id);
   }
   assert.ok(sitemap.includes('<loc>'+url+'</loc>'));
   assert.ok(manifest.frozen_indexable_routes.includes(route));
