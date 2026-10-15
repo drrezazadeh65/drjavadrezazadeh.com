@@ -258,3 +258,9 @@ Available personal Library materials were retrieved for conceptual review: `Gold
 - `72693aca`: English dashboard browser contract now includes a forged-incomplete summary rejection followed by a constrained valid synthetic summary.
 - `0492a2cc`: source contract checks both the visible rationale label and the tightened dashboard bridge.
 - Last application/test SHA before this documentation update: `0492a2cc336ce2fdd40d0f5f790d2b41e1384d81`. **Still no confirmed new Actions result; no production deployment.**
+
+### English sponsor-route quality correction
+
+- `918eadc3` corrected the remaining `/fa/danesh-amoozan/` link on the English student-support page to the existing `/en/golden-talent/student/` route. This was a **real uncovered locale inconsistency**, not a newly invented destination.
+- `436b4245` updated `tests/donation-payment-browser.spec.js` to assert both English gateway links and zero Persian-gateway links. The test is committed, NOT yet independently reported PASS.
+- Last code/test SHA before this handoff supplement: `436b42450e5b73374be238ddd4968b170f781e22`. Everything in these checkpoints is still source-only; the main site has not been deployed.
