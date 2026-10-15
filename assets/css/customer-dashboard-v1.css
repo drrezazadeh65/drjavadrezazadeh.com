@@ -1000,3 +1000,10 @@ body.customer-dashboard:not(.rtl) :is(button,input,select,textarea){font-family:
  body.jr-receipt-print-mode .jr-receipt-print-target .jr-payment-receipt-brand{break-inside:avoid-page!important}
  body.jr-receipt-print-mode .jr-receipt-print-target img{max-width:100%!important}
 }
+
+/* Approved Persian mother-brand lockup for actual verified customer receipts. */
+.jr-payment-receipt-identity{display:flex;align-items:center;gap:.65rem;min-width:0}
+.jr-payment-receipt-brand .jr-payment-receipt-symbol{width:58px;max-width:58px;height:58px;max-height:58px;flex:none;object-fit:contain}
+.jr-payment-receipt-brand .jr-payment-receipt-wordmark{width:min(48vw,220px);max-width:220px;height:auto;max-height:76px;object-fit:contain}
+@media(max-width:540px){.jr-payment-receipt-brand .jr-payment-receipt-symbol{width:46px;height:46px}.jr-payment-receipt-brand .jr-payment-receipt-wordmark{width:min(60vw,190px)}}
+@media print{body.jr-receipt-print-mode .jr-payment-receipt-identity{break-inside:avoid!important}body.jr-receipt-print-mode .jr-payment-receipt-brand .jr-payment-receipt-symbol{width:19mm!important;height:19mm!important}body.jr-receipt-print-mode .jr-payment-receipt-brand .jr-payment-receipt-wordmark{width:58mm!important;max-width:58mm!important}}
