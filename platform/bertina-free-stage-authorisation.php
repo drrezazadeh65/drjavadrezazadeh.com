@@ -1,0 +1,95 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__.'/bertina-consent-projection.php';
+
+/**
+ * Pure RESEARCH-STAGE Bertina MySQL DTO policy, not connected to the API.
+ *
+ * All parameters MUST come from authenticated backend joins / trusted
+ * verification records. A browser cannot assert server_context, age proof,
+ * history_complete, guardian relationship or consent. PHP API integration
+ * is forbidden until those trust sources and transactional checks exist.
+ */
+function bertinaAuthoriseFreeStage(array $context): array {
+    $deny = static fn(string $reason): array =>
+        ['allowed'=>false,'reason'=>$reason,'tier'=>'NONE'];
+    $stages=['GOLDEN_TALENT'=>'ORIENTATION',
+             'RCAS'=>'CONTEXT_REFLECTION',
+             'BAHAR'=>'STARTER_PLAN'];
+    $module=$context['module']??null;
+    if (!is_string($module) || !isset($stages[$module]) ||
+        ($context['stage']??null)!==$stages[$module])
+        return $deny('UNKNOWN_OR_PAID_STAGE');
+    if (($context['server_context']??null)!=='TRUSTED_BACKEND' ||
+        ($context['history_complete']??null)!==true)
+        return $deny('TRUSTED_HISTORY_REQUIRED');
+    $actor=$context['actor']??null;
+    $subject=$context['subject']??null;
+    if (!is_array($actor) || !is_string($actor['id']??null) ||
+        trim($actor['id'])==='' || ($actor['source']??null)!=='SERVER_SESSION' ||
+        ($actor['session_verified']??null)!==true ||
+        ($actor['email_verified']??null)!==true ||
+        ($actor['status']??null)!=='active')
+        return $deny('AUTHENTICATION_REQUIRED');
+    if (!is_array($subject) || !is_string($subject['id']??null) ||
+        trim($subject['id'])==='' ||
+        ($subject['status']??null)!=='ACTIVE' ||
+        ($subject['subject_type']??null)!=='LEARNER')
+        return $deny('ACTIVE_SUBJECT_REQUIRED');
+
+    // eco_subjects.age_band is NOT reliable proof of legal minority/adulthood.
+    // The current DDL has no age-verification record; until one is implemented,
+    // this gate intentionally cannot authorise a real assessment.
+    $age=$context['age_verification']??null;
+    if (!is_array($age) || ($age['state']??null)!=='VERIFIED' ||
+        !in_array($age['classification']??null,['ADULT','MINOR'],true) ||
+        ($age['source']??null)!=='INDEPENDENT_VERIFIED_RECORD' ||
+        !is_string($age['reference']??null) || trim($age['reference'])==='')
+        return $deny('AGE_CLASSIFICATION_UNVERIFIED');
+
+    $account=$actor['id'];
+    if ($age['classification']==='ADULT') {
+        if (($subject['owner_account_id']??null)!==$account)
+            return $deny('SUBJECT_OWNERSHIP_REQUIRED');
+    } else {
+        if (($subject['guardian_account_id']??null)!==$account)
+            return $deny('GUARDIAN_ID_MISMATCH');
+        $relationships=$context['relationships']??null;
+        if (!is_array($relationships)) return $deny('RELATIONSHIP_HISTORY_REQUIRED');
+        $valid=false;
+        foreach ($relationships as $row) {
+            if (!is_array($row) || ($row['subject_id']??null)!==$subject['id'] ||
+                ($row['related_account_id']??null)!==$account ||
+                ($row['relationship_code']??null)!=='GUARDIAN' ||
+                ($row['verification_status']??null)!=='VERIFIED' ||
+                !is_string($row['verified_by_account_id']??null) ||
+                trim($row['verified_by_account_id'])==='') continue;
+            $expires=$row['expires_at']??null;
+            $until=$expires===null?null:bertinaSqlUtcSeconds($expires);
+            if ($expires!==null && ($until===null || $until<=$context['now'])) continue;
+            $valid=true;
+        }
+        if (!$valid) return $deny('VERIFIED_GUARDIAN_RELATION_REQUIRED');
+        // Assent workflow remains separate. Never imply it exists merely
+        // because the guardian has authorised a session.
+    }
+    $history=$context['consent_history']??null;
+    $now=$context['now']??null;
+    if (!is_int($now)||$now<=0||!is_array($history))
+        return $deny('CONSENT_HISTORY_OR_CLOCK_REQUIRED');
+    foreach ($history as $row) {
+        if (!is_array($row) || ($row['subject_id']??null)!==$subject['id'] ||
+            ($row['account_id']??null)!==$account ||
+            !is_string($row['notice_id']??null) ||
+            trim($row['notice_id'])==='' ||
+            !in_array($row['locale']??null,['fa','en'],true))
+            return $deny('CONSENT_SCOPE_MISMATCH');
+    }
+    $consent=bertinaCurrentConsent($history,'ASSESSMENT',$now);
+    if ($consent['allowed']!==true)
+        return $deny('ASSESSMENT_CONSENT_'.$consent['reason']);
+    return ['allowed'=>true,'reason'=>'FREE_STAGE_AUTHORISED',
+        'tier'=>'FREE','payment_required'=>false,'module'=>$module,
+        'stage'=>$context['stage'],'projection'=>'FORMATIVE_ONLY',
+        'consentNoticeVersion'=>$consent['noticeVersion']];
+}
