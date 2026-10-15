@@ -116,3 +116,18 @@ This additive batch implements tangible bilingual JHELA user experience while pr
 **Version verification:** the official PKP download page checked 16 October 2026 lists OJS 3.5.0-5 LTS as its newest 3.5 package, released 30 June 2026, while OJS 3.4.0-11 is also listed as a newer 3.4 release. Prioritise a maintained 3.5 LTS package only after independent security/runtime compatibility checks. Source https://pkp.sfu.ca/software/ojs/download/. PKP role guide: https://github.com/pkp/pkp-docs/blob/main/learning-ojs/journal-managers/en/users.md.
 
 **Deployment:** none. All statuses in `platform/jhela-ojs-activation.json` remain unverified/false. The live author submission intake, reviewer/author native OJS screens, manuscript privacy, editor authentication, payment and publication are NOT YET CERTIFIED. Do not switch any of these on until a fully documented hosted OJS, independent restore, end-to-end manuscript workflow and owner-approved coordinated release exist.
+
+
+## 13. Public international-excellence roadmap and independent indexing gates
+
+By owner direction (16 October 2026), JHELA's public research-publishing roadmap explicitly proceeds **beyond initial launch to the highest realistically attainable levels of international scholarly standing**. The roadmap is now a governed, additive canonical source:
+- `docs/journal/JHELA_ULTIMATE_INTERNATIONAL_ROADMAP_20261016.md`: analytical ten-stage international roadmap, scientific ethics, finance and sustainability principles, external-index criteria and evidence gates.
+- `platform/jhela-international-roadmap-v1.json`: ten machine-readable milestones with Persian and English scholarly descriptions, evidential thresholds and official source references; no fictitious completed/verified stages.
+- `journal/roadmap/index.html` and `journal/fa/roadmap/index.html`: public fully contextualised English/Persian roadmaps. Indexed public information only, not an OJS author/decision dashboard. The separate JHELA XML sitemap, public search index, preserved route identities and AI discovery inventory include both new URLs.
+- `assets/css/jhela-roadmap.css`: responsive long-form editorial presentation, semantic stage headings, accessible evidence disclosures and print styles.
+- Journal English/Persian homepages and public scholarly dashboards link to the new roadmap; MFA-gated bilingual owner admin panels also include all ten **planned** phases.
+- `tests/jhela-international-roadmap.test.mjs` and `.github/workflows/jhela-ojs-readiness.yml` extend source constraints against fake publication, indexing, DOI/ISSN or quartile claims.
+
+**Core evidence criteria:** DOAJ active journal >= 5 research papers per year and, for new journals, >1 year of publication history **OR** >=10 genuine OA research articles; Scopus dropped a generic 2-year wait in Aug 2024 but still demands evaluable history; Clarivate uses 24 journal-quality and four separate impact criteria. A possible ESCI listing is distinct from SSCI; Q1 is only verifiable for a specified year/database/subject category. These are eligibility/selection criteria and aspirational goals, not external admissions already earned. All may change; re-check at application time.
+
+**No new public submission/fee activation.** No live OJS, indexed status, editorial board verification, ISSN, DOI or financial settlement is certified here. Adhere to the existing release gate and master publisher policies.
