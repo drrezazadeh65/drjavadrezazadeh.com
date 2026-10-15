@@ -1,0 +1,171 @@
+{
+  "schema": "jr-keyword-master-map-v1",
+  "date": "2026-10-16",
+  "status": "EDITORIAL_SEEDS_NOT_MEASURED",
+  "source": "Manual topical hypotheses mapped to verified existing repository routes. Not search-engine performance data.",
+  "methodology": {
+    "keywordRanks": "UNKNOWN",
+    "searchVolumes": "UNKNOWN",
+    "competitorPositions": "UNKNOWN",
+    "measurementRequires": "Authenticated GSC/Bing and a sourced, dated independent competitor SERP sample; never invent metrics.",
+    "canonicalPolicy": "One primary intent owner per route; review topical overlap before new URLs."
+  },
+  "keywords": [
+    {
+      "id": "KW-001",
+      "lang": "fa",
+      "keyword": "مشاوره تحصیلی",
+      "canonical": "/fa/moshavere-tahsili/",
+      "intent": "service",
+      "editorialPriority": "P1",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-002",
+      "lang": "fa",
+      "keyword": "استعدادیابی دانش‌آموزان",
+      "canonical": "/fa/estedaadyabi/",
+      "intent": "informational",
+      "editorialPriority": "P1",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-003",
+      "lang": "fa",
+      "keyword": "کشف استعداد و مسیر رشد",
+      "canonical": "/fa/golden-talent/",
+      "intent": "product-research",
+      "editorialPriority": "P1",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-004",
+      "lang": "fa",
+      "keyword": "راهنمای انتخاب رشته و مسیر تحصیلی",
+      "canonical": "/fa/rahnamaha/",
+      "intent": "informational",
+      "editorialPriority": "P1",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-005",
+      "lang": "fa",
+      "keyword": "خدمات آموزشی و مشاوره‌ای",
+      "canonical": "/fa/khadamat/",
+      "intent": "service",
+      "editorialPriority": "P2",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-006",
+      "lang": "fa",
+      "keyword": "کتاب‌های جواد رضازاده",
+      "canonical": "/fa/ketab-ha/",
+      "intent": "navigational",
+      "editorialPriority": "P2",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-007",
+      "lang": "fa",
+      "keyword": "پژوهش در آموزش و زبان‌شناسی کاربردی",
+      "canonical": "/fa/pajouhesh/",
+      "intent": "scholarly",
+      "editorialPriority": "P2",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-008",
+      "lang": "en",
+      "keyword": "educational guidance Iran",
+      "canonical": "/en/student-guidance/",
+      "intent": "service",
+      "editorialPriority": "P2",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-009",
+      "lang": "en",
+      "keyword": "talent identification and development",
+      "canonical": "/en/golden-talent/",
+      "intent": "product-research",
+      "editorialPriority": "P1",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-010",
+      "lang": "en",
+      "keyword": "applied linguistics education research",
+      "canonical": "/en/research/",
+      "intent": "scholarly",
+      "editorialPriority": "P1",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-011",
+      "lang": "en",
+      "keyword": "education consulting services",
+      "canonical": "/en/services/",
+      "intent": "service",
+      "editorialPriority": "P2",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-012",
+      "lang": "en",
+      "keyword": "academic writing and research support",
+      "canonical": "/en/academic-services/",
+      "intent": "service",
+      "editorialPriority": "P2",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    },
+    {
+      "id": "KW-013",
+      "lang": "en",
+      "keyword": "human-centred educational assessment journal",
+      "canonical": "/journal/",
+      "intent": "scholarly",
+      "editorialPriority": "P2",
+      "rank": null,
+      "volume": null,
+      "competitorEvidence": null,
+      "stage": "HYPOTHESIS"
+    }
+  ]
+}
