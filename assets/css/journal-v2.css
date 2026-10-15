@@ -284,3 +284,19 @@
 .journal-page .jhela-fee-cards small{display:block;color:#c6bfb0;line-height:1.65;font-size:13px}
 .journal-page .jhela-fee-evidence{font-size:13px;line-height:1.75;color:#c8c1b4}
 @media(max-width:640px){.journal-page .jhela-fee-cards{grid-template-columns:1fr}.journal-page .jhela-fee-cards>div{padding:19px}.journal-page .jhela-fee-cards span{min-height:auto}}
+
+/* JHELA author readiness: ephemeral, no-upload pre-submission preparation. */
+.journal-page .jhela-readiness{margin-top:36px;padding:30px;border:1px solid var(--j-border-strong);border-radius:22px;background:linear-gradient(140deg,rgba(198,161,90,.075),rgba(255,255,255,.014))}
+.journal-page .jhela-readiness h2{margin-top:8px}
+.journal-page .jhela-readiness p{max-width:82ch}
+.journal-page .jhela-readiness-meter{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:22px 0}
+.journal-page .jhela-readiness-meter progress{appearance:auto;accent-color:#e3c17f;width:min(440px,100%);height:15px;flex:1 1 210px}
+.journal-page .jhela-readiness-meter span{font-weight:700;color:#f6dfb3}
+.journal-page .jhela-readiness fieldset{min-width:0;padding:0;border:0;margin:0;display:grid;gap:9px}
+.journal-page .jhela-readiness legend{font-weight:700;padding:0 0 14px;color:#fff}
+.journal-page .jhela-readiness label{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid rgba(226,200,134,.24);border-radius:12px;background:rgba(9,24,38,.3);cursor:pointer;line-height:1.65;color:#eee6d6}
+.journal-page .jhela-readiness label:hover{border-color:var(--j-border-strong)}
+.journal-page .jhela-readiness input[type="checkbox"]{margin-top:4px;flex:none;width:20px;height:20px;accent-color:#d5b46d}
+.journal-page .jhela-readiness button{margin-top:16px;border:1px solid rgba(226,200,134,.56);background:rgba(226,200,134,.14);color:#fff;border-radius:10px;padding:10px 17px;min-height:44px;cursor:pointer}
+.journal-page .jhela-readiness .jhela-readiness-privacy{font-size:.9rem;color:#cdc5b6;margin-top:16px}
+@media(max-width:580px){.journal-page .jhela-readiness{padding:18px;border-radius:16px}.journal-page .jhela-readiness label{padding:12px}}
