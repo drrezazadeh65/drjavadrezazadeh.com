@@ -32,3 +32,16 @@
 6. On unexpected financial/authentication errors, stop new traffic if operationally possible and roll back to the verified backup/previous release; investigate before retrying.
 
 **No go-live assertion:** repository commits and source-level tests do not by themselves prove operational readiness.
+
+## Operator verification record (fill at release time)
+- Production SHA observed immediately before deployment: `____________`
+- Target SHA approved for release: `____________`
+- GitHub Actions successful run URL: `____________`
+- Backup snapshot identifiers (files/database): `____________`
+- PHP and MySQL versions verified on Bertina: `____________`
+- Browser print/PDF and mobile/PWA reviewer: `____________`
+- Deployment date/time and operator: `____________`
+- Post-deployment smoke test outcome: `____________`
+- Rollback outcome if needed: `____________`
+
+Never record API keys, passwords, session cookies, or personal payment details in this release record.
