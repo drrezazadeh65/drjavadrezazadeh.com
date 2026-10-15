@@ -68,3 +68,8 @@ For writes, use a transaction with explicit consistent locks on canonical subjec
 
 ## Acceptance decision
 Current result: **PASS for isolated deterministic policy regression**, **BLOCK for production integration and scientific claims**. Next evidence: read-only installed-schema inventory, identity/age/consent-source provenance, transaction tests on isolated MySQL, complete PHP API and bilingual dashboard E2E, psychometric validation programme. Follow the frozen DESIGN-SYSTEM.md, MASTER-ECOSYSTEM-ROADMAP.md and bilingual master SEO baseline.
+
+
+## Status correction after private guardian API hardening
+
+The above initial 'no API changes' status was accurate when this decision record was first written, but is superseded for the *development branch*. The existing authenticated guardian read routes in `api/golden-talent.php` now use one canonical guarded policy in `api/golden-talent-consent.php` for complete bounded MySQL decision history and notice lifecycle. No new learner writes, user-dashboard routes, result downloads or admin case-detail access have been enabled. CI run 38822501322 passed code, sanitized archive, and MySQL/MariaDB temporary fixtures. The remaining trusted minor-age source and consent-writer transactions are **not** implemented. See `docs/scientific-validation/P0-LIVE-READ-CONSENT-HARDENING-AND-SCHEMA-PREFLIGHT-2026-10-16.md`.
