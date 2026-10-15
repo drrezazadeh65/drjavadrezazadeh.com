@@ -247,25 +247,31 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         }
         $snapshot['available']=true;
         $snapshot['reason']=null;
-        $givingRows=$pdo->query("SELECT state,amount_toman,provider_amount,provider_trans_id
-            FROM commerce_orders WHERE JSON_VALID(items_json)=1 AND JSON_LENGTH(items_json)=1 AND JSON_UNQUOTE(JSON_EXTRACT(items_json,'$[0].sku'))='support:students'
-            ORDER BY created_at DESC LIMIT 1000")->fetchAll(PDO::FETCH_ASSOC);
-        $givingClaim=$pdo->query("SELECT COUNT(*) AS matched_count,COALESCE(SUM(o.amount_toman),0) AS matched_toman
-          FROM commerce_orders o INNER JOIN commerce_payment_claims c
-          ON c.order_id=o.id AND c.provider='bitpay'
-          WHERE o.state='paid' AND c.transaction_id=o.provider_trans_id
-          AND c.verified_amount=o.provider_amount
-          AND JSON_VALID(o.items_json)=1 AND JSON_LENGTH(o.items_json)=1
-          AND JSON_UNQUOTE(JSON_EXTRACT(o.items_json,'$[0].sku'))='support:students'")->fetch(PDO::FETCH_ASSOC);
-        $givingPending=0;$givingPaid=0;
-        foreach($givingRows as $givingRow){
-            if($givingRow['state']==='pending')$givingPending++;
-            if($givingRow['state']==='paid')$givingPaid++;
-        }
-        $snapshot['donations']=['scope'=>'sampled_internal_donation_ledger',
-            'pendingOrders'=>$givingPending,'paidStateOrders'=>$givingPaid,'claimMatchedOrders'=>(int)$givingClaim['matched_count'],
-            'claimMatchedAmountToman'=>(string)$givingClaim['matched_toman'],'bankSettlementVerified'=>false,
-            'allocationVerified'=>false];
+        // All-time donation totals; do not mix a 1,000-row sample with all-time claim totals.
+        // This uses the existing verified commerce order and provider-claim ledgers.
+        $givingTotals=$pdo->query("SELECT
+            COUNT(*) AS total_count,
+            COALESCE(SUM(CASE WHEN o.state='pending' THEN 1 ELSE 0 END),0) AS pending_count,
+            COALESCE(SUM(CASE WHEN o.state='paid' THEN 1 ELSE 0 END),0) AS paid_count,
+            COALESCE(SUM(CASE WHEN o.state='paid' AND c.transaction_id=o.provider_trans_id
+                AND c.verified_amount=o.provider_amount THEN 1 ELSE 0 END),0) AS matched_count,
+            COALESCE(SUM(CASE WHEN o.state='paid' AND c.transaction_id=o.provider_trans_id
+                AND c.verified_amount=o.provider_amount THEN o.amount_toman ELSE 0 END),0) AS matched_toman
+            FROM commerce_orders o
+            LEFT JOIN commerce_payment_claims c ON c.order_id=o.id AND c.provider='bitpay'
+            WHERE JSON_VALID(o.items_json)=1 AND JSON_LENGTH(o.items_json)=1
+              AND JSON_UNQUOTE(JSON_EXTRACT(o.items_json,'$[0].sku'))='support:students'")->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($givingTotals))throw new RuntimeException('donation_totals_unavailable');
+        $snapshot['donations']=[
+            'scope'=>'all_time_internal_donation_ledger',
+            'totalOrders'=>(int)$givingTotals['total_count'],
+            'pendingOrders'=>(int)$givingTotals['pending_count'],
+            'paidStateOrders'=>(int)$givingTotals['paid_count'],
+            'claimMatchedOrders'=>(int)$givingTotals['matched_count'],
+            'claimMatchedAmountToman'=>(string)$givingTotals['matched_toman'],
+            'bankSettlementVerified'=>false,
+            'allocationVerified'=>false
+        ];
         $snapshot['orders']=[
             'states'=>$states,
             'pendingRecords'=>$states['pending']??0,
