@@ -91,3 +91,24 @@ test('English RCAS response controls retain accessible dimensions on desktop and
  const selected=await first.locator('input[type="radio"]').first().evaluate(el=>getComputedStyle(el.nextElementSibling).borderTopWidth);
  expect(selected).toBe('2px');
 });
+
+test('English Golden Path never promotes a self-selected RCAS route into a verified result',async({page})=>{
+ await page.goto(base+'/en/golden-talent/dashboard/golden-path/');
+ const status=page.locator('[data-golden-path-session-status]');
+ await expect(status).toContainText('No current-tab RCAS route');
+ await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
+  completed:true,rcasRevision:'start-en-pilot-1',completedItemCount:28,
+  p0Validated:true,routingEvidenceCompleted:true,
+  routeBasis:'SELF_SELECTED_UNVALIDATED',route:'D5'
+ })));
+ await page.reload();
+ await expect(status).toContainText('D5');
+ await expect(status).toContainText('not a talent score');
+ await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
+  completed:true,rcasRevision:'start-en-pilot-1',completedItemCount:28,
+  p0Validated:true,routingEvidenceCompleted:true,
+  routeBasis:'SELF_SELECTED_UNVALIDATED',route:'D9'
+ })));
+ await page.reload();
+ await expect(status).toContainText('No current-tab RCAS route');
+});
