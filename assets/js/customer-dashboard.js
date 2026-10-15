@@ -287,37 +287,98 @@ function network(){
  update();
 }
 
+let serviceMarketplaceGeneration=0;
 function serviceMarketplace(runtime,authenticated){
- const host=$('[data-dashboard-services]'),search=$('[data-dashboard-service-search]'),count=$('[data-dashboard-service-count]'),status=$('[data-dashboard-service-status]');
+ const host=$('[data-dashboard-services]'),search=$('[data-dashboard-service-search]'),
+       count=$('[data-dashboard-service-count]'),status=$('[data-dashboard-service-status]');
  if(!host)return;
- const money=n=>localNumber(n)+(lang==='fa'?' تومان':' IRT');
- let services=[],purchaseReady=false;
+ const stamp=++serviceMarketplaceGeneration;
+ const isEnglish=lang==='en';
+ const money=n=>localNumber(n)+(isEnglish?' toman':' تومان');
+ let services=[],english={},purchaseReady=false;
  const render=()=>{
+  if(stamp!==serviceMarketplaceGeneration)return;
   const q=normalize(search?.value);
-  const rows=services.filter(s=>normalize([s.title_fa,s.fit_fa,s.outcome_fa].join(' ')).includes(q));
+  const terms=s=>{
+   const t=english[s.id];
+   return isEnglish?[s.id,t?.title,t?.fit,t?.outcome,t?.boundary]:
+     [s.title_fa,s.fit_fa,s.outcome_fa,s.boundary_fa];
+  };
+  const rows=services.filter(s=>normalize(terms(s).join(' ')).includes(q));
   if(count)count.textContent=localNumber(services.length);
   host.innerHTML=rows.length?rows.map(s=>{
-    const id=encodeURIComponent(s.id);
-    const duration=Number.isInteger(s.duration_minutes)?localNumber(s.duration_minutes)+(lang==='fa'?' دقیقه':' min'):(lang==='fa'?'دامنه اختصاصی خدمت':'Service-specific scope');
-    const label=purchaseReady?(lang==='fa'?'خرید و افزودن به داشبورد':'Purchase & add'):(authenticated?(lang==='fa'?'مشاهده شرایط خرید':'View purchase terms'):(lang==='fa'?'ورود و ادامه':'Sign in to continue'));
-    const checkoutHref=authenticated?('/fa/services/checkout/?service='+id):(lang==='fa'?'/fa/login/':'/en/login/');
-    const outcome=s.outcome_fa?'<p class="cd-service-outcome"><b>'+(lang==='fa'?'خروجی روشن:':'Defined outcome:')+'</b> '+esc(s.outcome_fa)+'</p>':'';
-    const boundary=s.boundary_fa?'<details class="cd-service-boundary"><summary>'+(lang==='fa'?'دامنه و مرز خدمت':'Scope & boundary')+'</summary><p>'+esc(s.boundary_fa)+'</p></details>':'';
-    return '<article class="cd-service-card" data-purchase-ready="'+purchaseReady+'"><h3>'+esc(s.title_fa)+'</h3><div class="cd-service-price">'+money(s.price)+'</div><span class="cd-service-duration">'+duration+'</span><p class="cd-service-fit">'+esc(s.fit_fa||'')+'</p>'+outcome+boundary+'<div class="cd-service-actions"><a class="cd-service-buy" href="'+checkoutHref+'">'+label+'</a><a class="cd-service-more" href="/fa/services/'+id+'/" aria-label="'+(lang==='fa'?'معرفی بیشتر':'More information')+'">↗</a></div></article>';
-  }).join(''):'<div class="cd-service-empty">'+(lang==='fa'?'خدمتی با این عبارت پیدا نشد.':'No matching service found.')+'</div>';
+    const id=encodeURIComponent(s.id),translation=english[s.id];
+    const title=isEnglish?translation.title:s.title_fa;
+    const fit=isEnglish?translation.fit:s.fit_fa;
+    const outcomeText=isEnglish?translation.outcome:s.outcome_fa;
+    const boundaryText=isEnglish?translation.boundary:s.boundary_fa;
+    const duration=Number.isInteger(s.duration_minutes)?localNumber(s.duration_minutes)+(isEnglish?' min':' دقیقه'):
+      (isEnglish?'Service-specific scope':'دامنه اختصاصی خدمت');
+    // English customers should never be silently moved to a Persian checkout.
+    // No service is described as bought or booked without verified payment.
+    const checkoutHref=isEnglish
+      ?(purchaseReady?'/fa/services/checkout/?service='+id:'/en/request-consultation/?service='+id)
+      :(authenticated?'/fa/services/checkout/?service='+id:'/fa/login/');
+    const label=isEnglish
+      ?(purchaseReady?'Checkout (Persian)':'Enquire about this service')
+      :(purchaseReady?'خرید و افزودن به داشبورد':authenticated?'مشاهده شرایط خرید':'ورود و ادامه');
+    const outcome=outcomeText?'<p class="cd-service-outcome"><b>'+
+      (isEnglish?'Defined outcome:':'خروجی روشن:')+'</b> '+esc(outcomeText)+'</p>':'';
+    const boundary=boundaryText?'<details class="cd-service-boundary"><summary>'+
+      (isEnglish?'Scope & boundary':'دامنه و مرز خدمت')+'</summary><p>'+esc(boundaryText)+'</p></details>':'';
+    const infoHref=isEnglish?'/en/services/':'/fa/services/'+id+'/';
+    return '<article class="cd-service-card" data-purchase-ready="'+purchaseReady+'"><h3>'+
+      esc(title)+'</h3><div class="cd-service-price">'+money(s.price)+'</div>'+
+      '<span class="cd-service-duration">'+duration+'</span><p class="cd-service-fit">'+
+      esc(fit||'')+'</p>'+outcome+boundary+'<div class="cd-service-actions"><a class="cd-service-buy" href="'+
+      checkoutHref+'">'+label+'</a><a class="cd-service-more" href="'+infoHref+'" aria-label="'+
+      (isEnglish?'Review public service information':'معرفی بیشتر')+'">↗</a></div></article>';
+  }).join(''):'<div class="cd-service-empty">'+
+    (isEnglish?'No services match this search.':'خدمتی با این عبارت پیدا نشد.')+'</div>';
  };
- const apply=data=>{
-  services=(data?.services||[]).filter(s=>s.sellable===true&&Number.isSafeInteger(s.price)&&typeof s.id==='string');
-  purchaseReady=runtime?.commerceReady===true&&runtime?.commerce?.data?.capabilities?.services===true&&authenticated===true;
-  if(status)status.textContent=purchaseReady?(lang==='fa'?'مسیر پرداخت این خدمت فعال است؛ تخصیص نوبت و تحویل فقط پس از تأیید جداگانه انجام می‌شود.':'This service checkout can start; booking and delivery require separate verification.'):(lang==='fa'?'همه خدمات قابل مشاهده‌اند؛ خرید امن پس از آماده‌شدن کامل حساب و درگاه از همین مسیر انجام می‌شود.':'The catalogue is visible; secure checkout activates when account and gateway readiness are confirmed.');
-  render();
- };
- if(runtime?.catalog?.ok)apply(runtime.catalog.data);
- else jsonRequest('/assets/data/service-catalog.json',{credentials:'omit'}).then(r=>{if(r.ok)apply(r.data);else throw Error('catalog')}).catch(()=>{
-  if(status)status.textContent=lang==='fa'?'فهرست خدمات موقتاً در دسترس نیست.':'Service catalogue is temporarily unavailable.';
-  host.innerHTML='<div class="cd-service-empty">'+(lang==='fa'?'بارگذاری خدمات انجام نشد. از کاتالوگ رسمی خدمات استفاده کنید.':'Services could not be loaded. Use the official catalogue.')+'</div>';
- });
  if(search)search.oninput=render;
+ const catalogue=runtime?.catalog?.ok
+   ?Promise.resolve({ok:true,data:runtime.catalog.data})
+   :jsonRequest('/assets/data/service-catalog.json',{credentials:'omit'});
+ const translated=isEnglish
+   ?jsonRequest('/assets/data/service-descriptions-en.json',{credentials:'omit'})
+   :Promise.resolve({ok:true,data:null});
+ Promise.all([catalogue,translated]).then(([catalogueResult,translationResult])=>{
+  if(stamp!==serviceMarketplaceGeneration)return;
+  if(!catalogueResult.ok||!Array.isArray(catalogueResult.data?.services))throw Error('catalogue_unavailable');
+  services=catalogueResult.data.services.filter(s=>s.sellable===true&&
+    Number.isSafeInteger(s.price)&&s.price>=0&&typeof s.id==='string');
+  if(isEnglish){
+    const descriptions=translationResult.data;
+    if(!translationResult.ok||descriptions?.schema_version!=='1.0'||
+       descriptions.language!=='en'||!descriptions.services||
+       Array.isArray(descriptions.services)||typeof descriptions.services!=='object'||
+       Object.keys(descriptions.services).length!==catalogueResult.data.services.length||
+       services.some(s=>{
+         const t=descriptions.services[s.id];
+         return !t||['title','fit','outcome','boundary'].some(key=>
+           typeof t[key]!=='string'||!t[key].trim()||t[key].length>1200);
+       }))throw Error('translation_unavailable');
+    english=descriptions.services;
+  }
+  purchaseReady=runtime?.commerceReady===true&&
+    runtime?.commerce?.data?.capabilities?.services===true&&authenticated===true;
+  if(status)status.textContent=purchaseReady
+    ?(isEnglish?'Secure checkout can start in the Persian interface. Appointment confirmation and service delivery require separate verification.':
+      'مسیر پرداخت این خدمت فعال است؛ تخصیص نوبت و تحویل فقط پس از تأیید جداگانه انجام می‌شود.')
+    :(isEnglish?'Browse verified catalogue descriptions; use the English enquiry route until secure checkout is confirmed. An enquiry is not a booking.':
+      'همه خدمات قابل مشاهده‌اند؛ خرید امن پس از آماده‌شدن کامل حساب و درگاه از همین مسیر انجام می‌شود.');
+  render();
+ }).catch(()=>{
+  if(stamp!==serviceMarketplaceGeneration)return;
+  if(count)count.textContent=localNumber(0);
+  if(status)status.textContent=isEnglish
+    ?'The service catalogue or its English descriptions cannot be verified at the moment.'
+    :'فهرست خدمات موقتاً در دسترس نیست.';
+  host.innerHTML='<div class="cd-service-empty">'+
+    (isEnglish?'Service descriptions could not be loaded. Please use the official English services page.':
+      'بارگذاری خدمات انجام نشد. از کاتالوگ رسمی خدمات استفاده کنید.')+'</div>';
+ });
 }
 
 function authNavigation(authenticated){
