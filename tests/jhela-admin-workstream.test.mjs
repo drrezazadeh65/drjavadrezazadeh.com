@@ -65,7 +65,7 @@ for(const [locale,path] of [['fa','fa/app/admin/index.html'],['en','en/account/a
 test('role tab Javascript is keyboard accessible and contains no editor-privilege or fake data mutation',()=>{
  const js=read('assets/js/operations-jhela-workstream.js');
  const css=read('assets/css/operations-jhela-workstream.css');
- for(const key of ['ArrowRight','ArrowLeft','Home','End','aria-selected','tabIndex'])assert.ok(js.includes(key));
+ for(const key of ['ArrowRight','ArrowLeft','Home','End','aria-selected','tabIndex','document.documentElement.dir'])assert.ok(js.includes(key));
  assert.match(js,/scope\.contains\(root\)/);
  assert.match(js,/panels\.forEach/);
  assert.ok(!/localStorage|sessionStorage|fetch\s*\(|XMLHttpRequest|innerHTML/.test(js));
