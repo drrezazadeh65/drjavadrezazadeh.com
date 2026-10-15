@@ -690,3 +690,35 @@ test('owner can inspect more than twenty consented enquiries without persisting 
  await expect(queue).not.toContainText('synthetic-1@example.test');
  expect(await page.evaluate(()=>localStorage.length)).toBe(0);
 });
+
+
+test('administrator audit history filters by event and reference without changing server records',async({page})=>{
+ await authorized(page);
+ const events=[
+  {type:'mfa_verified',reference:'admin-session-1',occurredAt:1700000000},
+  {type:'payment_verified',reference:'donation-order-1',occurredAt:1700000100},
+  {type:'release_imported',reference:'release-2',occurredAt:1700000200}
+ ];
+ let reads=0;
+ await page.route('**/api/admin/operations/audit-timeline',route=>{
+  reads++;
+  return route.fulfill({json:{ok:true,events}});
+ });
+ await page.goto(base+'/fa/app/admin/');
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ const audit=page.locator('#ops-audit-timeline');
+ await audit.locator('summary').click();
+ await audit.getByRole('button',{name:'دریافت تاریخچه'}).click();
+ await expect(audit.locator('.ops-audit-table tbody tr')).toHaveCount(3);
+ await audit.locator('select').selectOption('payment_verified');
+ await expect(audit.locator('.ops-audit-table tbody tr')).toHaveCount(1);
+ await expect(audit.locator('.ops-audit-table tbody')).toContainText('donation-order-1');
+ await audit.locator('select').selectOption('');
+ await audit.locator('input[type=search]').fill('release-2');
+ await expect(audit.locator('.ops-audit-table tbody tr')).toHaveCount(1);
+ await expect(audit.locator('.ops-audit-table tbody')).toContainText('release_imported');
+ await audit.locator('input[type=search]').fill('missing');
+ await expect(audit.locator('.ops-audit-table tbody')).toContainText('موردی یافت نشد');
+ expect(reads).toBe(1);
+ expect(await page.evaluate(()=>localStorage.length)).toBe(0);
+});
