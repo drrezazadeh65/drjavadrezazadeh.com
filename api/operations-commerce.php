@@ -249,16 +249,25 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         $snapshot['reason']=null;
         // All-time donation totals; do not mix a 1,000-row sample with all-time claim totals.
         // This uses the existing verified commerce order and provider-claim ledgers.
+        // EXISTS counts each donation order once, even if the provider has multiple
+        // verification claim records. Never inflate donation revenue by JOIN fan-out.
         $givingTotals=$pdo->query("SELECT
             COUNT(*) AS total_count,
             COALESCE(SUM(CASE WHEN o.state='pending' THEN 1 ELSE 0 END),0) AS pending_count,
             COALESCE(SUM(CASE WHEN o.state='paid' THEN 1 ELSE 0 END),0) AS paid_count,
-            COALESCE(SUM(CASE WHEN o.state='paid' AND c.transaction_id=o.provider_trans_id
-                AND c.verified_amount=o.provider_amount THEN 1 ELSE 0 END),0) AS matched_count,
-            COALESCE(SUM(CASE WHEN o.state='paid' AND c.transaction_id=o.provider_trans_id
-                AND c.verified_amount=o.provider_amount THEN o.amount_toman ELSE 0 END),0) AS matched_toman
+            COALESCE(SUM(CASE WHEN o.state='paid' AND EXISTS (
+                SELECT 1 FROM commerce_payment_claims c
+                WHERE c.order_id=o.id AND c.provider='bitpay'
+                  AND c.transaction_id=o.provider_trans_id
+                  AND c.verified_amount=o.provider_amount
+            ) THEN 1 ELSE 0 END),0) AS matched_count,
+            COALESCE(SUM(CASE WHEN o.state='paid' AND EXISTS (
+                SELECT 1 FROM commerce_payment_claims c
+                WHERE c.order_id=o.id AND c.provider='bitpay'
+                  AND c.transaction_id=o.provider_trans_id
+                  AND c.verified_amount=o.provider_amount
+            ) THEN o.amount_toman ELSE 0 END),0) AS matched_toman
             FROM commerce_orders o
-            LEFT JOIN commerce_payment_claims c ON c.order_id=o.id AND c.provider='bitpay'
             WHERE JSON_VALID(o.items_json)=1 AND JSON_LENGTH(o.items_json)=1
               AND JSON_UNQUOTE(JSON_EXTRACT(o.items_json,'$[0].sku'))='support:students'")->fetch(PDO::FETCH_ASSOC);
         if(!is_array($givingTotals))throw new RuntimeException('donation_totals_unavailable');
