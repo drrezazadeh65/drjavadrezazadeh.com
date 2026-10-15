@@ -74,10 +74,14 @@ const html=all.filter(p=>p.endsWith('.html'));
 // Route count includes the public engine-status page, the approved noindex customer dashboard, and approved noindex commerce relays.
 // Keep a fixed route count as a guard against accidentally publishing engineering files.
 // Verified against the healthy cb2b26b2 baseline, the successful 1c5d3b74 deployment,
-// and the current source tree: each has exactly 320 publishable HTML routes.
+// and the current source tree: each had exactly 320 publishable HTML routes prior to two approved journal roadmap pages.
 // Nine additional HTML files under identity/ and foundation/ are deliberately excluded.
-// Do not increase this count without an approved new public route; never publish templates.
-const approvedPublicHtmlRoutes=320;
+// 2026-10-16: two approved, canonical, indexable bilingual journal roadmap URLs added.
+// Do not increase this count for unapproved templates or engineering paths.
+const approvedPublicHtmlRoutes=322;
+for(const route of ['journal/roadmap/index.html','journal/fa/roadmap/index.html']){
+  if(!fs.existsSync(path.join(out,route))) failures.push('Approved JHELA roadmap page missing: '+route);
+}
 if(html.length!==approvedPublicHtmlRoutes) failures.push(
   'Expected '+approvedPublicHtmlRoutes+' public HTML routes in sanitized artifact, found '+html.length
 );
