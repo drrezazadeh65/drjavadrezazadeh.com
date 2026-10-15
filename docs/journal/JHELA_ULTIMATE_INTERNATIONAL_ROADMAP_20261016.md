@@ -99,3 +99,11 @@ Every gate should have: `owner`, `source_version`, `evidence_date`, `evidence_ty
 - Clarivate journal evaluation (28 criteria): https://clarivate.com/academia-government/scientific-and-academic-research/research-discovery-and-referencing/web-of-science/web-of-science-core-collection/editorial-selection-process/journal-evaluation-process-selection-criteria/
 - Crossref fees/membership: https://www.crossref.org/fees/ ; https://www.crossref.org/membership/
 - ISSN request: https://www.issn.org/services/requesting-an-issn/
+
+## E. Infrastructure-independence and journal migration baseline
+
+The owner confirmed on 16 October 2026 that JHELA shall be designed **beyond the capacity of the present host**. A five-gigabyte host-space expansion is planned for 17 October 2026, but the added capacity has not been verified and must not alter scientific or security acceptance requirements.
+
+The canonical technical destination is recorded in [JHELA-ADR-001](JHELA_FUTURE_SCALE_ARCHITECTURE_ADR_20261016.md) and its executable evidence contract `platform/jhela-target-architecture-v1.json`. It defines independent OJS application, dedicated database, private compatible POSIX manuscript storage, verified plugin/API adapters, separately permissioned finance and audit functions, encrypted off-host recovery and progressive deployment tiers. OJS 3.5's direct S3 manuscript support must never be assumed. The scholarly publishing identity and citation URL structure must survive any hosting change.
+
+This is a governance decision and future migration plan; it does not certify present OJS installation, SSL, author submissions, finance, ISSN or any indexing status.
