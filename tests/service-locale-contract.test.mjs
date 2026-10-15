@@ -19,7 +19,7 @@ test('English service descriptions match every canonical service SKU exactly',()
   for(const [key,text] of Object.entries(value)){
    assert.equal(typeof text,'string',id+'.'+key);
    assert.ok(text.trim().length>=10&&text.length<=1200,id+'.'+key+' is incomplete');
-   assert.doesNotMatch(text,/[<>\\x00-\\x1f]/,id+'.'+key+' should remain plain, safe copy');
+   assert.doesNotMatch(text,/[<>\x00-\x1f]/,id+'.'+key+' should remain plain, safe copy');
   }
  }
 });
@@ -37,16 +37,16 @@ test('English translation file cannot redefine offers, prices, status or entitle
  assert.match(page,/id="service-market"[^>]+data-dashboard-panel="ecosystem"/);
  assert.match(page,/data-dashboard-service-search/);
  assert.match(page,/data-dashboard-services/);
- assert.match(page,/customer-dashboard\\.js\\?v=20261015-bilingual-market-v51/);
- assert.match(client,/service-descriptions-en\\.json/);
- assert.match(client,/Checkout \\(Persian\\)/);
- assert.match(client,/en\\/request-consultation\\/\\?service=/);
+ assert.match(page,/customer-dashboard\.js\?v=20261015-bilingual-market-v51/);
+ assert.match(client,/service-descriptions-en\.json/);
+ assert.match(client,/Checkout \(Persian\)/);
+ assert.match(client,/en\/request-consultation\/\?service=/);
 });
 
-test('Portuguese/Persian source catalogue cannot leak a fake English checkout',()=>{
+test('Persian source catalogue cannot leak a fake English checkout',()=>{
  const en=readFileSync('en/account/index.html','utf8');
- assert.doesNotMatch(en,/href="\\/en\\/services\\/checkout\\/"/);
- assert.doesNotMatch(en,/href="\\/en\\/shop\\/payment-start\\/"/);
+ assert.doesNotMatch(en,/href="\/en\/services\/checkout\/"/);
+ assert.doesNotMatch(en,/href="\/en\/shop\/payment-start\/"/);
  const fa=readFileSync('fa/customer-dashboard/index.html','utf8');
  assert.match(fa,/data-dashboard-services/);
 });
