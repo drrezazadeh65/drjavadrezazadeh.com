@@ -23,7 +23,8 @@ function render(orders){
     const item=el('article','','appointment-card');item.style.cssText='display:block;min-width:0;padding:1rem;overflow-wrap:anywhere';
     const heading=el('strong',tr('سفارش ','Order ')+order.id);
     const state=order.paymentVerified===true
-      ?tr('پرداخت در سرور تأیید شده','Server-verified payment')
+      ?tr('پرداخت با سند تأیید درگاه مطابقت دارد؛ تسویه بانکی جداگانه بررسی می‌شود',
+        'Provider claim matched; bank settlement requires separate verification')
       :({'created':tr('ثبت اولیه، پرداخت‌نشده','Created, unpaid'),
           'pending':tr('در انتظار تأیید درگاه','Awaiting gateway verification'),
           'failed':tr('پرداخت تأیید نشد','Payment not verified'),
