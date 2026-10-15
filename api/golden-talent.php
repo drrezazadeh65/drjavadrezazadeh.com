@@ -60,7 +60,7 @@ function goldenTalentBaharStorageSchemaReady(?PDO $pdo): bool {
  * 1025 is a fail-closed overflow sentinel; >1024 decisions are not accepted.
  */
 function goldenTalentPurposeConsentCurrent(array $rows,int|float $now,string $purpose): bool {
-    $projector=dirname(__DIR__).'/platform/bertina-consent-projection.php';
+    $projector=__DIR__.'/golden-talent-consent.php';
     if(!is_file($projector))return false;
     require_once $projector;
     if(!function_exists('bertinaCurrentConsent'))return false;
