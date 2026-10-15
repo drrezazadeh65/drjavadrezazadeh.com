@@ -52,34 +52,21 @@ function goldenTalentBaharStorageSchemaReady(?PDO $pdo): bool {
     }
 }
 /**
- * Fail-closed consent projection for a verified guardian. The latest decision,
- * not the existence of any historical grant, governs visibility. The SQL query
- * orders by granted_at DESC; ambiguous identical timestamps deny access.
+ * The same strict MySQL UTC consent projection used by the isolated science
+ * policy tests. Direct HTTP access cannot provide this history. A missing
+ * reference implementation fails closed rather than trusting a legacy grant.
+ *
+ * Full rows MUST come from subject/account/purpose-scoped server SQL. LIMIT
+ * 1025 is a fail-closed overflow sentinel; >1024 decisions are not accepted.
  */
-function goldenTalentPurposeConsentCurrent(array $rows,int $now,string $purpose): bool {
-    if(!in_array($purpose,['ASSESSMENT','PARENT_VISIBILITY'],true))return false;
-    if(!$rows||count($rows)>2)return false;
-    $first=$rows[0];
-    if(!is_array($first)||($first['decision']??'')!=='GRANTED'
-        ||($first['withdrawn_at']??null)!==null
-        ||($first['purpose_code']??'')!==$purpose)return false;
-    if(count($rows)>1 &&
-        (string)($rows[0]['granted_at']??'')===(string)($rows[1]['granted_at']??''))return false;
-    $toTime=static function($value): ?int {
-        if(!is_string($value)||trim($value)==='')return null;
-        try {
-            $d=new DateTimeImmutable($value,new DateTimeZone('UTC'));
-            return $d->getTimestamp();
-        }catch(Throwable $e){return null;}
-    };
-    $decided=$toTime($first['granted_at']??null);
-    $effective=$toTime($first['effective_at']??null);
-    $retired=$toTime($first['retired_at']??null);
-    if($decided===null||$effective===null||$decided>$now||$effective>$now)return false;
-    if(($first['retired_at']??null)!==null&&($retired===null||$retired<=$now))return false;
-    return true;
+function goldenTalentPurposeConsentCurrent(array $rows,int|float $now,string $purpose): bool {
+    $projector=dirname(__DIR__).'/platform/bertina-consent-projection.php';
+    if(!is_file($projector))return false;
+    require_once $projector;
+    if(!function_exists('bertinaCurrentConsent'))return false;
+    return bertinaCurrentConsent($rows,$purpose,$now)['allowed']===true;
 }
-function goldenTalentAssessmentConsentCurrent(array $rows,int $now): bool {
+function goldenTalentAssessmentConsentCurrent(array $rows,int|float $now): bool {
     return goldenTalentPurposeConsentCurrent($rows,$now,'ASSESSMENT');
 }
 function goldenTalentMyVerifiedSubjects(PDO $pdo,string $accountId): array {
@@ -95,15 +82,17 @@ function goldenTalentMyVerifiedSubjects(PDO $pdo,string $accountId): array {
     $subjects->execute([$accountId,$accountId]);
     $candidates=$subjects->fetchAll(PDO::FETCH_ASSOC);
     if(!is_array($candidates))return [];
-    $consent=$pdo->prepare("SELECT c.decision,c.withdrawn_at,c.granted_at,
-            n.purpose_code,n.effective_at,n.retired_at
+    $consent=$pdo->prepare("SELECT c.id,c.account_id,c.subject_id,c.notice_id,
+            c.decision,c.withdrawn_at,c.granted_at,
+            n.purpose_code,n.version_label,n.locale,n.notice_sha256,
+            n.effective_at,n.retired_at
         FROM eco_consent_records c
         INNER JOIN eco_consent_notices n ON n.id=c.notice_id
         WHERE c.subject_id=? AND c.account_id=?
           AND n.purpose_code='ASSESSMENT'
-        ORDER BY c.granted_at DESC,c.id DESC LIMIT 2");
+        ORDER BY c.granted_at DESC,c.id DESC LIMIT 1025");
     $items=[];
-    $now=nowTs();
+    $now=microtime(true);
     foreach(array_slice($candidates,0,25) as $row) {
         $subjectId=(string)($row['id']??'');
         if(!validUuid($subjectId))continue;
@@ -128,13 +117,15 @@ function goldenTalentMyVerifiedSubjects(PDO $pdo,string $accountId): array {
  */
 function goldenTalentGuardianBaharOverview(PDO $pdo,string $accountId): array {
     $authorised=goldenTalentMyVerifiedSubjects($pdo,$accountId);
-    $consent=$pdo->prepare("SELECT c.decision,c.withdrawn_at,c.granted_at,
-            n.purpose_code,n.effective_at,n.retired_at
+    $consent=$pdo->prepare("SELECT c.id,c.account_id,c.subject_id,c.notice_id,
+            c.decision,c.withdrawn_at,c.granted_at,
+            n.purpose_code,n.version_label,n.locale,n.notice_sha256,
+            n.effective_at,n.retired_at
         FROM eco_consent_records c
         JOIN eco_consent_notices n ON n.id=c.notice_id
         WHERE c.subject_id=? AND c.account_id=?
           AND n.purpose_code='PARENT_VISIBILITY'
-        ORDER BY c.granted_at DESC,c.id DESC LIMIT 2");
+        ORDER BY c.granted_at DESC,c.id DESC LIMIT 1025");
     $counts=$pdo->prepare("SELECT
             COUNT(DISTINCT p.id) AS portfolio_count,
             COUNT(w.id) AS weekly_cycle_count,
@@ -145,7 +136,7 @@ function goldenTalentGuardianBaharOverview(PDO $pdo,string $accountId): array {
         WHERE p.subject_id=?");
     if(!$consent||!$counts)throw new RuntimeException('bahar_query_unavailable');
     $output=[];
-    $now=nowTs();
+    $now=microtime(true);
     foreach($authorised as $subject){
         $id=(string)($subject['subjectId']??'');
         if(!validUuid($id))continue;
