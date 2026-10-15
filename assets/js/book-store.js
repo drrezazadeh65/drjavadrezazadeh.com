@@ -294,6 +294,7 @@
    return;
   }
   host.innerHTML='<p class="kicker">'+(isFa?'ثبت سفارش':'Order')+'</p><h1>'+(isFa?'سفارش کتاب':'Book order')+'</h1>'+
+   '<p class="store-notice" role="note">'+(isFa?'پس از پرداخت، شناسه سفارش را برای پیگیری نگه دارید. اگر ارسال کتاب امکان‌پذیر نبود، از طریق ایمیل info@drjavadrezazadeh.com با ذکر شناسه سفارش درخواست پیگیری یا استرداد وجه ثبت کنید.':'Keep your order ID after payment. If delivery cannot be completed, email info@drjavadrezazadeh.com with the order ID to request support or a refund.')+'</p>'+ 
    '<p class="lead">'+(bookPaymentReady
      ?(isFa?'اطلاعات سفارش و مبلغ نهایی پیش از انتقال به درگاه دوباره در سرور بررسی می‌شود.':'Order details and the final amount are checked again on the server before payment.')
      :(isFa?'ثبت سفارش سمت سرور فعال است. در وضعیت فعلی سفارش بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Order submission is active. For now, the order is recorded without charging you and you receive a tracking ID.'))+'</p>'+
