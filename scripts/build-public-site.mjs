@@ -73,7 +73,11 @@ walk(out);
 const html=all.filter(p=>p.endsWith('.html'));
 // Route count includes the public engine-status page, the approved noindex customer dashboard, and approved noindex commerce relays.
 // Keep a fixed route count as a guard against accidentally publishing engineering files.
-const approvedPublicHtmlRoutes=321;
+// Verified against the healthy cb2b26b2 baseline, the successful 1c5d3b74 deployment,
+// and the current source tree: each has exactly 320 publishable HTML routes.
+// Nine additional HTML files under identity/ and foundation/ are deliberately excluded.
+// Do not increase this count without an approved new public route; never publish templates.
+const approvedPublicHtmlRoutes=320;
 if(html.length!==approvedPublicHtmlRoutes) failures.push(
   'Expected '+approvedPublicHtmlRoutes+' public HTML routes in sanitized artifact, found '+html.length
 );
