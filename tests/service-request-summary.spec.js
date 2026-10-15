@@ -235,16 +235,17 @@ for(const [lang,path] of [['fa','/fa/darkhast-moshavere/'],['en','/en/request-co
         consentVersion:'stage14-consultation-v1',
         marketingOptIn:false
       });
-      return route.fulfill({status:201,json:{ok:true,leadId:'synthetic-1',state:'NEW',duplicate:false}});
+      return route.fulfill({status:201,json:{ok:true,leadId:'11111111-1111-4111-8111-111111111111',state:'NEW',duplicate:false}});
     });
     await page.route('**/api/growth/leads/mine',route=>route.fulfill({
-      status:200,json:{ok:true,requests:[
-        {id:'synthetic-1',service_id:'service:academic_consult_60',state:'NEW'}
+      status:200,json:{ok:true,evidenceScope:'OWNER_ONLY_NO_PAYMENT_CLAIMS',
+        limit:20,nextCursor:null,requests:[
+        {id:'11111111-1111-4111-8111-111111111111',service_id:'service:academic_consult_60',state:'NEW'}
       ]}
     }));
     await page.route('**/api/growth/leads/withdraw',route=>{
       expect(route.request().method()).toBe('POST');
-      expect(route.request().postDataJSON()).toEqual({leadId:'synthetic-1'});
+      expect(route.request().postDataJSON()).toEqual({leadId:'11111111-1111-4111-8111-111111111111'});
       return route.fulfill({status:200,json:{ok:true,state:'WITHDRAWN'}});
     });
     await page.goto('http://127.0.0.1:4173'+path,{waitUntil:'domcontentloaded'});
