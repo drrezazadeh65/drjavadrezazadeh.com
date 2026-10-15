@@ -96,19 +96,13 @@
        'این سوابق فقط درخواست اولیه با رضایت‌اند؛ پرداخت، پذیرش خدمت یا رزرو قطعی را تأیید نمی‌کنند. برای لغو رضایت به فرم درخواست مراجعه کنید.',
        'These are consented initial enquiries, not confirmed bookings, payment or service acceptance.'
      )));
-     // The read-only dashboard always offers the existing authenticated,
-     // paginated withdrawal UI; this link is not a withdrawal itself.
-     const manage=text('a',say(
-       'مشاهده تمام درخواست‌ها و مدیریت رضایت',
-       'View all enquiries and manage consent'));
-     manage.href=en?'/en/request-consultation/#secure-consented-lead':
-       '/fa/darkhast-moshavere/#secure-consented-lead';
-     output.append(manage);
+     // The dashboard's existing static CTA opens the canonical enquiry
+     // and paginated consent management route; no duplicate link is inserted.
      if(typeof data.nextCursor==='string'&&
         /^[0-9]{1,10}:[a-f0-9-]{36}$/i.test(data.nextCursor)){
        output.append(text('p',say(
-         'سوابق بیشتری وجود دارد؛ برای مشاهده و لغو رضایت آن‌ها از پیوند بالا استفاده کنید.',
-         'Older enquiries are available through the full, paginated consent history above.'
+         'سوابق بیشتری وجود دارد؛ برای مشاهده و لغو رضایت آن‌ها از پیوند پایین استفاده کنید.',
+         'Older enquiries are available through the full, paginated consent history linked below.'
        )));
      }
    }catch(error){
