@@ -31,6 +31,8 @@ jobs:
         run: node --test tests/article-image-alt-policy.test.mjs
       - name: Verify admin-only intelligence and PWA install contracts
         run: node --test tests/admin-intelligence-private.test.mjs tests/pwa-install-once.test.mjs
+      - name: Verify luxury bilingual bookstore and payment contract preservation
+        run: node --test tests/bookstore-premium-layout.test.mjs
       - name: Verify all 13 academic launch articles and media references
         run: node scripts/audit-13-articles.mjs
       - name: Run visual-system regression audit
