@@ -125,9 +125,9 @@ test('bilingual consultation pages share the verified-account consent pathway wi
  assert.match(english,/href="\/privacy\/"/);
  assert.match(english,/href="\.\.\/login\/"/);
  assert.match(js,/const fa=document\.documentElement\.lang==='fa'/);
- assert.match(js,/service-descriptions-en\\.json/);
- assert.match(js,/const titleFor=service=>fa\\?service\\.title_fa:englishServices/);
- assert.match(js,/consent\\.checked=false/);
+ assert.match(js,/service-descriptions-en\.json/);
+ assert.match(js,/const titleFor=service=>fa\?service\.title_fa:englishServices/);
+ assert.match(js,/consent\.checked=false/);
  assert.match(js,/data-stage14-service-summary/);
  assert.match(js,/The server received your consented enquiry/);
  assert.match(js,/The server did not confirm the request/);
