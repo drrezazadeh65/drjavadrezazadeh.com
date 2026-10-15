@@ -635,6 +635,33 @@ transition-duration:0s!important;animation-duration:0s!important
  }
 }
 
+/* Golden Path: self-selected RCAS continuity is visually distinct from professional reporting. */
+.golden-path-workspace-page .gp-session-bridge{
+ min-width:0;margin-block:clamp(18px,3vw,32px);
+ padding:clamp(19px,3.5vw,34px);
+ border:1px solid var(--jr2-rule);border-radius:20px;
+ background:radial-gradient(ellipse at 84% 10%,rgba(195,146,65,.13),transparent 67%),linear-gradient(138deg,#231e18,#121517);
+ box-shadow:0 18px 48px rgba(0,0,0,.19);
+ overflow-wrap:anywhere
+}
+.golden-path-workspace-page .gp-session-bridge h2{
+ color:var(--jr2-ivory);font-size:clamp(1.25rem,2.5vw,1.85rem);line-height:1.55;margin-block:8px 14px
+}
+.golden-path-workspace-page .gp-session-bridge [data-golden-path-session-status]{
+ color:var(--jr2-copy);line-height:1.9;max-width:78ch
+}
+.golden-path-workspace-page .gp-session-bridge .button{
+ display:inline-flex;min-height:48px;align-items:center;justify-content:center
+}
+.golden-path-workspace-page :is(button,a,select,input):focus-visible{
+ outline:3px solid var(--jr2-gold-light);outline-offset:3px
+}
+.golden-path-workspace-page .gp-evidence-prompts .gp-evidence-grid{min-width:0}
+@media(max-width:700px){
+ .golden-path-workspace-page .gp-session-bridge{padding:20px 16px;border-radius:16px}
+ .golden-path-workspace-page .gp-session-bridge .button{max-width:100%}
+}
+
 /* v2.6 sponsor convergence: reuse academic brand tokens, not a second theme. */
 body.ss-body{
  --ss-bg:var(--jr2-obsidian);--ss-ink:var(--jr2-ivory);
