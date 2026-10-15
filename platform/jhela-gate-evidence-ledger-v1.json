@@ -1,0 +1,201 @@
+{
+  "schema": "jhela-gate-evidence-ledger-v1",
+  "asOf": "2026-10-16",
+  "state": "METADATA_REGISTRY_SOURCE_ONLY_NOT_A_LIVE_AUDIT_SERVICE",
+  "purpose": "Dated, independent, revocable proof for the ten-stage scholarly maturity roadmap; no artificial progress percentages.",
+  "journal": "JHELA",
+  "storageBoundary": {
+    "metadataInRepository": true,
+    "rawEvidenceInRepository": false,
+    "actualVault": "NOT_PROVISIONED",
+    "noManuscriptText": true,
+    "noReviewerIdentity": true,
+    "noParticipantData": true,
+    "noCredentials": true,
+    "encryptedPrivateEvidenceVaultRequiredBeforeLive": true
+  },
+  "acceptedEvidenceKinds": [
+    "LEGAL_PUBLISHER",
+    "HOST_RUNTIME",
+    "EDITORIAL_GOVERNANCE",
+    "PUBLIC_ARTICLE",
+    "REGISTRY_PROVIDER",
+    "DIGITAL_PRESERVATION",
+    "INDEXING_AUTHORITY",
+    "INDEPENDENT_AUDIT"
+  ],
+  "acceptedStatuses": [
+    "UNVERIFIED",
+    "UNDER_REVIEW",
+    "VERIFIED",
+    "EXPIRED",
+    "REJECTED"
+  ],
+  "evidenceShape": {
+    "id": "uuid",
+    "kind": "one of acceptedEvidenceKinds",
+    "scope": "nonempty, narrow description",
+    "sourceAuthority": "public authoritative source URL or vault reference",
+    "artifactRef": "private immutable evidence identifier, never raw file or public review URL",
+    "sha256": "64 lowercase hex characters",
+    "observedAt": "ISO8601 timestamp",
+    "submittedByRole": "registered journal/audit role",
+    "verifiedByRole": "independent qualified official or auditor; not the submitter",
+    "verifiedAt": "ISO8601 timestamp",
+    "validUntil": "optional ISO8601 or null",
+    "attestation": "approved reviewer signature/id in restricted evidence vault",
+    "sourceSystem": "not user browser"
+  },
+  "rolePolicy": {
+    "editorsCannotSelfVerifyOwnConflict": true,
+    "financeCannotVerifyReviewDecision": true,
+    "reviewersCannotReadOtherReviews": true,
+    "externalIndexerClaimsNeedOfficialSource": true,
+    "serverSecretsMustNeverBeCommitted": true,
+    "certificationRequiresIndependentReview": true
+  },
+  "stageRecords": [
+    {
+      "id": "JH-01",
+      "status": "UNVERIFIED",
+      "requiredEvidenceKinds": [
+        "LEGAL_PUBLISHER",
+        "INDEPENDENT_AUDIT"
+      ],
+      "evidence": [],
+      "lastReviewedAt": null,
+      "reviewedByRole": null,
+      "claimsAllowed": false
+    },
+    {
+      "id": "JH-02",
+      "status": "UNVERIFIED",
+      "requiredEvidenceKinds": [
+        "HOST_RUNTIME",
+        "INDEPENDENT_AUDIT"
+      ],
+      "evidence": [],
+      "lastReviewedAt": null,
+      "reviewedByRole": null,
+      "claimsAllowed": false
+    },
+    {
+      "id": "JH-03",
+      "status": "UNVERIFIED",
+      "requiredEvidenceKinds": [
+        "EDITORIAL_GOVERNANCE",
+        "INDEPENDENT_AUDIT"
+      ],
+      "evidence": [],
+      "lastReviewedAt": null,
+      "reviewedByRole": null,
+      "claimsAllowed": false
+    },
+    {
+      "id": "JH-04",
+      "status": "UNVERIFIED",
+      "requiredEvidenceKinds": [
+        "PUBLIC_ARTICLE",
+        "EDITORIAL_GOVERNANCE"
+      ],
+      "evidence": [],
+      "lastReviewedAt": null,
+      "reviewedByRole": null,
+      "claimsAllowed": false
+    },
+    {
+      "id": "JH-05",
+      "status": "UNVERIFIED",
+      "requiredEvidenceKinds": [
+        "REGISTRY_PROVIDER",
+        "DIGITAL_PRESERVATION"
+      ],
+      "evidence": [],
+      "lastReviewedAt": null,
+      "reviewedByRole": null,
+      "claimsAllowed": false
+    },
+    {
+      "id": "JH-06",
+      "status": "UNVERIFIED",
+      "requiredEvidenceKinds": [
+        "INDEXING_AUTHORITY",
+        "INDEPENDENT_AUDIT"
+      ],
+      "evidence": [],
+      "lastReviewedAt": null,
+      "reviewedByRole": null,
+      "claimsAllowed": false
+    },
+    {
+      "id": "JH-07",
+      "status": "UNVERIFIED",
+      "requiredEvidenceKinds": [
+        "PUBLIC_ARTICLE",
+        "INDEPENDENT_AUDIT"
+      ],
+      "evidence": [],
+      "lastReviewedAt": null,
+      "reviewedByRole": null,
+      "claimsAllowed": false
+    },
+    {
+      "id": "JH-08",
+      "status": "UNVERIFIED",
+      "requiredEvidenceKinds": [
+        "INDEXING_AUTHORITY",
+        "INDEPENDENT_AUDIT"
+      ],
+      "evidence": [],
+      "lastReviewedAt": null,
+      "reviewedByRole": null,
+      "claimsAllowed": false
+    },
+    {
+      "id": "JH-09",
+      "status": "UNVERIFIED",
+      "requiredEvidenceKinds": [
+        "INDEXING_AUTHORITY",
+        "INDEPENDENT_AUDIT"
+      ],
+      "evidence": [],
+      "lastReviewedAt": null,
+      "reviewedByRole": null,
+      "claimsAllowed": false
+    },
+    {
+      "id": "JH-10",
+      "status": "UNVERIFIED",
+      "requiredEvidenceKinds": [
+        "INDEXING_AUTHORITY",
+        "INDEPENDENT_AUDIT"
+      ],
+      "evidence": [],
+      "lastReviewedAt": null,
+      "reviewedByRole": null,
+      "claimsAllowed": false
+    }
+  ],
+  "outcomes": {
+    "certifiedStageCount": 0,
+    "unverifiedStageCount": 10,
+    "progressPercent": null,
+    "countsAreRecordedEvidenceNotOperationalMeasurements": true
+  },
+  "futureOperations": {
+    "immutableAppendOnlyEvents": true,
+    "revocationAndExpirySupported": true,
+    "roleBoundEvidenceVault": true,
+    "privateAuditInterfaceNotBuilt": true,
+    "publicProjection": "publish verified claims only with authoritative evidence, no raw documents",
+    "crossChecks": [
+      "journal roadmap",
+      "ISSN portal",
+      "Crossref",
+      "DOAJ",
+      "Scopus CSAB",
+      "Clarivate"
+    ],
+    "realTimeDataConnected": false
+  }
+}
