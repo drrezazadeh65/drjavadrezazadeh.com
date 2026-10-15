@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.0",
+  "language": "en",
+  "purpose": "Public-facing descriptions only. Pricing, availability and entitlement remain server-authoritative.",
+  "services": {
+    "academic_consult_60": {
+      "title": "Specialist academic consultation",
+      "fit": "For a defined academic decision requiring individual analysis and professional guidance.",
+      "outcome": "A 60-minute analytical session to clarify the issue, options and next step.",
+      "boundary": "Not a substitute for long-term follow-up or comprehensive talent assessment."
+    },
+    "student_parent_90": {
+      "title": "Student and parent consultation",
+      "fit": "For an educational decision that benefits from both the student’s and parent’s participation.",
+      "outcome": "A 90-minute joint session to examine evidence, concerns and the decision pathway.",
+      "boundary": "Not designed for family conflict intervention or clinical concerns."
+    },
+    "konkur_consult_60": {
+      "title": "University entrance examination consultation (Konkur)",
+      "fit": "For focused decisions about Konkur preparation, study planning or changing course.",
+      "outcome": "A 60-minute session focused on the current issue and practical next steps.",
+      "boundary": "No examination rank or result is guaranteed."
+    },
+    "konkur_month": {
+      "title": "One-month Konkur guidance programme",
+      "fit": "For students seeking structured guidance over one month.",
+      "outcome": "An individual one-month guidance plan with an approach to reviewing progress.",
+      "boundary": "The number and format of follow-ups are agreed before final booking."
+    },
+    "transcript_analysis": {
+      "title": "Academic transcript and pathway analysis",
+      "fit": "For turning academic record evidence into an understandable educational decision.",
+      "outcome": "A review of strengths and constraints reflected in the transcript, with potential options.",
+      "boundary": "A transcript alone cannot replace exploration of interests, context and goals."
+    },
+    "field_selection_standard": {
+      "title": "Standard university major selection",
+      "fit": "For applicants who need systematic, defensible priorities among programme and university choices.",
+      "outcome": "A structured development and review of preferences grounded in the applicant’s verified information.",
+      "boundary": "Admission is not guaranteed; official capacity and admission rules apply."
+    },
+    "field_selection_comprehensive": {
+      "title": "Comprehensive university major selection",
+      "fit": "For applicants navigating competing pathways, constraints or priorities requiring deeper analysis.",
+      "outcome": "A more detailed evaluation of alternatives and final preference ordering informed by individual evidence.",
+      "boundary": "The final decision remains with the applicant and family; guidance does not replace their agency."
+    },
+    "talent_initial": {
+      "title": "Initial specialist talent assessment",
+      "fit": "For beginning a multi-source review of strengths and development potential before major decisions.",
+      "outcome": "An initial evidence profile and identification of questions needing further examination.",
+      "boundary": "No definitive talent label, IQ designation or clinical diagnosis is produced."
+    },
+    "golden_talent_comprehensive": {
+      "title": "Golden Talent — comprehensive assessment and pathway",
+      "fit": "For families seeking a multi-source, development-oriented approach beyond one test.",
+      "outcome": "Synthesis of available Golden Talent evidence and a provisional development pathway.",
+      "boundary": "No Total Talent Score or definitive career or degree prescription is provided."
+    },
+    "golden_talent_premium": {
+      "title": "Golden Talent — assessment, parent session and pathway report",
+      "fit": "For cases requiring a comprehensive review, a parent consultation and a pathway report.",
+      "outcome": "A comprehensive Golden Talent review, parent session and pathway report within verified evidence limits.",
+      "boundary": "The report is neither a certain forecast of the future nor a psychological diagnosis."
+    },
+    "teacher_consult_60": {
+      "title": "Teacher consultation: materials, teaching and assessment",
+      "fit": "For educators with a specific challenge in teaching, learning materials or assessment.",
+      "outcome": "A 60-minute problem analysis with viable professional options.",
+      "boundary": "Full course design or a whole-institution project is outside this session."
+    },
+    "teacher_dev_90": {
+      "title": "Educator professional development session",
+      "fit": "For educators seeking deeper analysis of a professional issue and planning for growth.",
+      "outcome": "A 90-minute discussion grounded in evidence, professional judgement and next steps.",
+      "boundary": "No formal certification or institutional promotion is guaranteed."
+    },
+    "manuscript_diagnostic": {
+      "title": "Manuscript diagnostic review, up to 7,000 words",
+      "fit": "For manuscripts of up to 7,000 words needing a diagnosis of key weaknesses before submission or revision.",
+      "outcome": "A diagnostic review accompanied by a prioritised revision report.",
+      "boundary": "Excludes ghostwriting, fabricated data and guarantees of journal acceptance."
+    },
+    "academic_editing": {
+      "title": "Academic English editing, up to 5,000 words",
+      "fit": "For developed academic manuscripts of up to 5,000 words that need English-language refinement.",
+      "outcome": "An edited version focused on clarity, linguistic accuracy and scholarly expression.",
+      "boundary": "Language editing does not substitute for research redesign or writing original scholarship on the author's behalf."
+    },
+    "research_consult_60": {
+      "title": "Research consultation",
+      "fit": "For researchers with a defined question about design, methods, interpretation or argumentation.",
+      "outcome": "A 60-minute analysis of the research issue and the next decision.",
+      "boundary": "The adviser does not generate data or undertake the research for the client."
+    },
+    "journal_strategy": {
+      "title": "Journal selection and publication strategy",
+      "fit": "For manuscripts requiring an informed assessment of journal fit and submission strategy.",
+      "outcome": "Analysis of suitability and publication options informed by topic, scope and manuscript readiness.",
+      "boundary": "No journal placement or acceptance is guaranteed."
+    },
+    "reviewer_response": {
+      "title": "Reviewer-response support, up to 20 comments",
+      "fit": "For authors responding to up to 20 reviewer comments and seeking a systematic scholarly response.",
+      "outcome": "Review of the comments and assistance structuring evidence-based responses.",
+      "boundary": "The author remains responsible for the accuracy of revisions and the final scientific response."
+    },
+    "academic_cv": {
+      "title": "Academic CV and applications strategy",
+      "fit": "For scholars reviewing their CV and application approach for a specific opportunity.",
+      "outcome": "A review of CV structure and presentation of evidence aligned with the target role.",
+      "boundary": "No admission, interview invitation or employment is guaranteed."
+    },
+    "academic_interview_90": {
+      "title": "Academic or faculty interview preparation",
+      "fit": "For candidates preparing for a defined academic or faculty recruitment interview.",
+      "outcome": "A structured 90-minute session informed by the role, background and likely questions.",
+      "boundary": "Recruitment and selection outcomes cannot be guaranteed."
+    },
+    "organization_consult_90": {
+      "title": "School and organisational education consultation",
+      "fit": "For a school or organisation needing to define an educational problem and an initial course of action.",
+      "outcome": "A 90-minute examination of the challenge, stakeholders and possible actions.",
+      "boundary": "Full project delivery, field evaluation and workshops are priced separately."
+    },
+    "specialist_workshop_120": {
+      "title": "Specialist online workshop, up to two hours",
+      "fit": "For schools, organisations and professional groups with a defined topic and audience.",
+      "outcome": "An online specialist workshop of up to two hours on the agreed topic.",
+      "boundary": "Multi-session course design, institutional evaluation or bespoke materials are outside this fee."
+    }
+  }
+}
