@@ -125,15 +125,26 @@ test('bilingual consultation pages share the verified-account consent pathway wi
  assert.match(english,/href="\/privacy\/"/);
  assert.match(english,/href="\.\.\/login\/"/);
  assert.match(js,/const fa=document\.documentElement\.lang==='fa'/);
- assert.match(js,/const englishTitles=Object\.freeze/);
+ assert.match(js,/service-descriptions-en\\.json/);
+ assert.match(js,/const titleFor=service=>fa\\?service\\.title_fa:englishServices/);
+ assert.match(js,/consent\\.checked=false/);
+ assert.match(js,/data-stage14-service-summary/);
  assert.match(js,/The server received your consented enquiry/);
  assert.match(js,/The server did not confirm the request/);
  assert.match(js,/marketingOptIn:false/);
  assert.match(js,/\/api\/growth\/leads\/mine/);
  assert.doesNotMatch(js,/localStorage|sessionStorage|sendBeacon|indexedDB|innerHTML/);
  const catalog=JSON.parse(read('assets/data/service-catalog.json'));
+ const translation=JSON.parse(read('assets/data/service-descriptions-en.json'));
+ assert.equal(translation.language,'en');
+ assert.deepEqual(Object.keys(translation.services).sort(),
+   catalog.services.map(service=>service.id).sort());
  for(const service of catalog.services.filter(s=>s.sellable===true)){
-   assert.ok(js.includes(service.id+':'),service.id+' needs an English intake label');
+   for(const field of ['title','fit','outcome','boundary']){
+     assert.ok(typeof translation.services[service.id]?.[field]==='string'&&
+       translation.services[service.id][field].trim(),
+       service.id+' needs official English '+field);
+   }
  }
 });
 
