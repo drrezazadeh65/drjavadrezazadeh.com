@@ -136,6 +136,8 @@ jobs:
           node scripts/customer-dashboard-audit.mjs
           node scripts/v5-1-usable-release-audit.mjs
           node --check assets/js/consented-lead-intake.js
+          node --check assets/js/institutional-brief-builder.mjs
+          node --test tests/institutional-conversion.test.mjs
           node --test tests/stage14-growth-privacy.test.mjs tests/revenue-planner-model.test.mjs
           node scripts/stage14-organic-growth-audit.mjs
           node scripts/revenue-planner-contract-audit.mjs
@@ -198,7 +200,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/customer-dashboard-browser.spec.js tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js tests/public-mobile-navigation.spec.js --reporter=line,html --trace=retain-on-failure --screenshot=only-on-failure
+          npx playwright test tests/customer-dashboard-browser.spec.js tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js tests/public-mobile-navigation.spec.js --reporter=line,html --trace=retain-on-failure --screenshot=only-on-failure
 
       - name: Retain Playwright failure diagnostics
         if: failure()
