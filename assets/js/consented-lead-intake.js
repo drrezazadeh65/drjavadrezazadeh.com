@@ -39,6 +39,7 @@
   const serviceDetails=new Map();
   let englishServices=null;
   let priceCurrency=null;
+  let vipPriceCurrency=null;
   const details=document.createElement('div');
   details.className='jr2-service-consent-context';
   details.setAttribute('data-stage14-service-summary','');
@@ -49,16 +50,27 @@
   function renderDetails(){
     details.replaceChildren();
     const service=serviceDetails.get(choice.value);
-    const localized=fa?null:englishServices?.[service?.id];
+    const vip=choice.value.startsWith('vip:');
+    const localized=fa?null:(vip?vipEnglish[service?.id]:englishServices?.[service?.id]);
     if(!service||(!fa&&!localized)){details.hidden=true;return;}
     details.hidden=false;
     const heading=document.createElement('h3');
-    heading.textContent=fa?service.title_fa:localized.title;
+    heading.textContent=fa?service.title_fa:(vip?localized:localized.title);
     details.append(heading);
-    const fee=priceCurrency==='IRT'&&Number.isSafeInteger(service.price)&&service.price>=0
+    const fee=(vip?vipPriceCurrency:priceCurrency)==='IRT'&&Number.isSafeInteger(service.price)&&service.price>=0
       ?new Intl.NumberFormat(fa?'fa-IR':'en-US').format(service.price)+t(' تومان',' toman')
       :t('تعرفه نیازمند تأیید است','Fee requires confirmation');
-    const fields=fa?[
+    const fields=vip?[
+      [t('تعرفه ثبت‌شده','Listed fee'),fee],
+      [t('هماهنگی جلسه','Appointment coordination'),t(
+        'این بسته به هماهنگی زمان با مشاور نیاز دارد؛ ثبت درخواست زمان یا پذیرش خدمت را قطعی نمی‌کند.',
+        'This package requires appointment coordination. An enquiry does not hold a time or accept a service.'
+      )],
+      [t('محدوده جلسه حضوری','In-person eligibility'),t(
+        'صرفاً بسته واجد شرایط و پس از تأیید، در تهران یا کاشان؛ حضور قطعی تضمین نمی‌شود.',
+        'Only qualifying packages after explicit confirmation, in Tehran or Kashan; attendance is not guaranteed.'
+      )]
+    ]:fa?[
       ['تعرفه اعلام‌شده',fee],
       ['مناسب برای',service.fit_fa],
       ['خروجی مورد انتظار',service.outcome_fa],
@@ -133,11 +145,13 @@
         });
         if(vipResponse.ok){
           const vipCatalog=await vipResponse.json();
+          vipPriceCurrency=vipCatalog.currency;
           for(const offer of (vipCatalog.services||[])){
             if(offer.sellable!==true||offer.checkout_enabled!==true||
                typeof offer.id!=='string'||!vipEnglish[offer.id])continue;
             const option=document.createElement('option');
             option.value='vip:'+offer.id;
+            serviceDetails.set(option.value,offer);
             option.textContent=fa?offer.title_fa:vipEnglish[offer.id];
             serviceLabels.set(option.value,option.textContent);
             choice.append(option);
