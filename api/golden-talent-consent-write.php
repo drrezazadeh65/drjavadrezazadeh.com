@@ -42,8 +42,15 @@ function goldenTalentInternalWithdrawConsent(
     if ($pdo->inTransaction()) throw new DomainException('TRANSACTION_ALREADY_ACTIVE');
     if (!$pdo->beginTransaction()) throw new RuntimeException('TRANSACTION_NOT_AVAILABLE');
     try {
-        // Recheck authenticated account state inside the writing transaction.
-        // The caller must still derive this ID from sessionAccount($pdo).
+        // The subject mutex MUST be the first row lock, matching private
+        // guardian readers and all future writer implementations.
+        $q=$pdo->prepare('SELECT id FROM eco_subjects WHERE id=? FOR UPDATE');
+        $q->execute([$subjectId]);
+        if (!$q->fetch(PDO::FETCH_ASSOC))
+            throw new DomainException('SUBJECT_NOT_FOUND');
+
+        // Caller identity is derived from sessionAccount, never from input;
+        // recheck the verified account state inside the same transaction.
         $q=$pdo->prepare("SELECT id,status,email_verified_at FROM customer_accounts
                          WHERE id=? FOR UPDATE");
         $q->execute([$authenticatedAccountId]);
@@ -51,12 +58,6 @@ function goldenTalentInternalWithdrawConsent(
         if(!is_array($account)||($account['status']??null)!=='active'||
            empty($account['email_verified_at']))
             throw new DomainException('VERIFIED_ACCOUNT_REQUIRED');
-
-        // The primary-key subject row is a mandatory cross-route mutex.
-        $q=$pdo->prepare('SELECT id FROM eco_subjects WHERE id=? FOR UPDATE');
-        $q->execute([$subjectId]);
-        if (!$q->fetch(PDO::FETCH_ASSOC))
-            throw new DomainException('SUBJECT_NOT_FOUND');
 
         // Require persisted previous consent issued by this account. A person
         // may withdraw their own recorded consent even after guardian expiry;
