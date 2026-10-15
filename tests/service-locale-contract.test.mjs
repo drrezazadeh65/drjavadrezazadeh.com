@@ -50,3 +50,24 @@ test('Persian source catalogue cannot leak a fake English checkout',()=>{
  const fa=readFileSync('fa/customer-dashboard/index.html','utf8');
  assert.match(fa,/data-dashboard-services/);
 });
+
+test('VIP English labels match six canonical offers and cannot redefine fees or booking',()=>{
+ const vip=read('assets/data/vip-catalog.json');
+ const names=read('assets/data/vip-descriptions-en.json');
+ assert.equal(names.schema_version,'1.0');
+ assert.equal(names.language,'en');
+ assert.equal(vip.services.length,6);
+ assert.deepEqual(Object.keys(names.services).sort(),vip.services.map(x=>x.id).sort());
+ for(const [id,title] of Object.entries(names.services)){
+  assert.equal(typeof title,'string',id);
+  assert.ok(title.trim().length>=10&&title.trim().length<=120,id);
+  assert.doesNotMatch(title,/[<>\\x00-\\x1f]/,id+' must remain plain text');
+ }
+ const consent=readFileSync('assets/js/consented-lead-intake.js','utf8');
+ const customer=readFileSync('assets/js/customer-consultation-leads.js','utf8');
+ const admin=readFileSync('assets/js/operations-growth.js','utf8');
+ for(const source of [consent,customer,admin]){
+  assert.match(source,/vip-descriptions-en\\.json/);
+  assert.doesNotMatch(source,/paymentVerified\\s*[:=]\\s*true/);
+ }
+});
