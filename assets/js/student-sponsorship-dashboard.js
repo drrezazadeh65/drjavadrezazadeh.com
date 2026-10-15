@@ -77,18 +77,22 @@
      receipt.append(node('p','مبلغ: '+formatAmount(order.amountToman)));
      receipt.append(node('p','تاریخ ثبت پرداخت: '+String(order.paidAt||'')));
      receipt.append(node('small','این تأییدیه بر پایه سند تطبیق‌یافته درگاه است؛ فاکتور مالیاتی یا سند تسویه بانکی نیست.'));
-     const printButton=node('button','چاپ رسید تأیید پرداخت','jr-payment-receipt-print');
+     receipt.dataset.receiptId=String(order.id||'payment');
+     const printButton=node('button','چاپ رسید','jr-payment-receipt-print');
      printButton.type='button';
-     printButton.addEventListener('click',()=>{
-      document.querySelectorAll('.jr-receipt-print-target').forEach(el=>el.classList.remove('jr-receipt-print-target'));
-      receipt.open=true;
-      receipt.classList.add('jr-receipt-print-target');
-      document.body.classList.add('jr-receipt-print-mode');
-      const reset=()=>{document.body.classList.remove('jr-receipt-print-mode');receipt.classList.remove('jr-receipt-print-target');window.removeEventListener('afterprint',reset)};
-      window.addEventListener('afterprint',reset,{once:true});
-      window.print();
+     printButton.addEventListener('click',()=>window.JRDocumentExport?.print(receipt));
+     const pdfButton=node('button','ذخیره PDF','jr-payment-receipt-print');
+     pdfButton.type='button';
+     pdfButton.title='در پنجره چاپ مرورگر، Save as PDF را انتخاب کنید';
+     pdfButton.addEventListener('click',()=>{
+      if(window.JRDocumentExport?.savePdf(receipt)){
+       const hint=node('p','در پنجره چاپ، مقصد «Save as PDF / ذخیره به‌صورت PDF» را انتخاب کنید.');
+       hint.className='jr-receipt-export-hint';
+       receipt.append(hint);
+       window.setTimeout(()=>hint.remove(),12000);
+      }
      });
-     receipt.append(printButton);
+     receipt.append(printButton,pdfButton);
      target.append(receipt);
     }
    }
