@@ -36,6 +36,21 @@ $subject='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 $subject2='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
 foreach($schema as $table=>$columns)$pdo->exec('CREATE TEMPORARY TABLE '.$table.' ('.$columns.')');
 try{
+    // Private guardian DTO helpers must never be used without a surrounding
+    // transaction that retains row/range locks until the response is audited.
+    $rejected=false;
+    try { goldenTalentGuardianBaharOverview($pdo,$owner); }
+    catch(RuntimeException $error) {
+        $rejected=$error->getMessage()==='bahar_read_requires_transaction';
+    }
+    expectBahar($rejected,'Missing transaction must deny guardian BAHAR read');
+    $rejected=false;
+    try { goldenTalentMyVerifiedSubjects($pdo,$owner); }
+    catch(RuntimeException $error) {
+        $rejected=$error->getMessage()==='guardian_read_requires_transaction';
+    }
+    expectBahar($rejected,'Missing transaction must deny guardian learner list');
+    $pdo->beginTransaction();
     $pdo->prepare("INSERT INTO eco_subjects VALUES
         (?,?, 'ACTIVE','LEARNER',?,UTC_TIMESTAMP(3)),
         (?,?, 'ACTIVE','LEARNER',?,UTC_TIMESTAMP(3))")->execute([
@@ -94,7 +109,6 @@ try{
     $pdo->prepare("INSERT INTO eco_consent_records VALUES
         ('assessment-revoked',?,?,'assessment','WITHDRAWN',UTC_TIMESTAMP(3) - INTERVAL 2 HOUR,UTC_TIMESTAMP(3) - INTERVAL 2 HOUR)")->execute([$subject,$owner]);
     expectBahar(goldenTalentGuardianBaharOverview($pdo,$owner)===[],'Revoked assessment consent denies parent overview');
-    $pdo->beginTransaction();
     goldenTalentAuditGuardianBaharOverview($pdo,$owner,0);
     $pdo->commit();
     $logs=$pdo->query("SELECT action_code,entity_kind,entity_id FROM eco_audit_events")->fetchAll();
