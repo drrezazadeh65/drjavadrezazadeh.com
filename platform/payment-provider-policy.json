@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "status": "BITPAY_SELECTED_PRODUCTION_CREDENTIAL_OBTAINED_RUNTIME_PENDING",
+  "status": "BITPAY_PRODUCTION_PAYMENT_CONFIRMED_OWNER_REPORTED",
   "selection_rule": "SERVER_SIDE_ONLY",
   "markets": {
     "IR": {
@@ -8,11 +8,11 @@
       "display_currency": "IRT",
       "provider_mode": "domestic_gateway",
       "provider_key": "bitpay",
-      "enabled": false,
+      "enabled": true,
       "notes": [
-        "BitPay is the selected domestic gateway and the sandbox roundtrip has been verified.",
-        "The production API credential has been obtained but is not stored in the repository or browser.",
-        "Production activation uses the existing Bertina PHP/MySQL runtime and requires trusted public TLS, private gateway configuration and controlled reconciliation certification.",
+        "Owner-confirmed successful production BitPay payments; production gateway itself is operational.",
+        "The production API credential must remain in Bertina private runtime configuration, never in the repository or browser.",
+        "Individual checkout capabilities remain determined by server-side commerce/health and stock/fulfilment constraints, not this policy metadata.",
         "Browser return is never proof of payment; verification must be server-side."
       ]
     },
