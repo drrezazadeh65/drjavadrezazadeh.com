@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "language": "en",
+  "purpose": "Public labels only. Booking, price, availability and payment remain governed by the canonical VIP catalogue and verified server.",
+  "services": {
+    "academic-direction": "Personal academic pathway guidance",
+    "university-selection": "VIP university major selection",
+    "golden-talent-signature": "Signature Golden Talent guidance",
+    "research-publication": "Research and publication advisory",
+    "educator-development": "Educator professional development",
+    "institutional-advisory": "Institutional educational advisory"
+  }
+}
