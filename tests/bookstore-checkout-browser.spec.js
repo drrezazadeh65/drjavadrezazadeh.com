@@ -405,3 +405,62 @@ test('Donor history is not visible to guest without verified login',async({page}
  await expect(page.locator('[data-contributions-list]')).toBeHidden();
  await expect(page.locator('[data-support-cases]')).toBeHidden();
 });
+
+
+// v5.1 book-detail quality gate. These are synthetic, payment-disabled views:
+// the gallery and the description must form two columns, never three
+// independent grid children that push the description below the fold.
+for(const [language,bookId] of [
+ ['fa','roshanaei'],['fa','tariki'],['fa','bonbast'],
+ ['en','roshanaei'],['en','tariki'],['en','bonbast']
+]){
+ for(const width of [320,768,1440]){
+  test('book-detail gallery is a coherent readable two-column journey '+language+' '+bookId+' '+width,async({page})=>{
+   await page.setViewportSize({width,height:900});
+   const errors=[];page.on('pageerror',e=>errors.push(e.message));
+   await page.route('**/api/commerce/health',route=>route.fulfill({status:503,json:{ok:false}}));
+   await page.goto(base+'/'+language+'/shop/book/?id='+bookId,{waitUntil:'domcontentloaded'});
+   const host=page.locator('[data-book-detail]');
+   await expect(host.locator('.book-detail-layout')).toBeVisible();
+   await expect(host.locator('.book-detail-layout > .book-detail-gallery')).toHaveCount(1);
+   await expect(host.locator('.book-detail-layout > .book-detail-copy')).toHaveCount(1);
+   await expect(host.locator('.book-detail-gallery .book-cover img')).toHaveCount(2);
+   await expect(host.locator('.book-detail-journey ol li')).toHaveCount(3);
+   await expect(host.locator('.book-detail-copy .book-meta')).toContainText('ISBN');
+   await expect(host.locator('.book-detail-copy')).toContainText(language==='fa'?'تومان':'toman');
+   await expect(host.locator('a.book-detail-cart-link')).toHaveAttribute('href','../cart/');
+   await expect(host.locator('a[data-book-info-request]')).toHaveAttribute('href',/^mailto:/);
+   const geometry=await page.evaluate(()=>{
+    const host=document.querySelector('[data-book-detail] .book-detail-layout');
+    const media=host.querySelector(':scope > .book-detail-gallery').getBoundingClientRect();
+    const copy=host.querySelector(':scope > .book-detail-copy').getBoundingClientRect();
+    return {mediaX:media.x,mediaY:media.y,copyX:copy.x,copyY:copy.y,
+      viewport:innerWidth,overflow:Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth};
+   });
+   expect(geometry.overflow).toBeLessThanOrEqual(1);
+   if(width>900){
+    expect(Math.abs(geometry.mediaY-geometry.copyY)).toBeLessThanOrEqual(30);
+    expect(Math.abs(geometry.mediaX-geometry.copyX)).toBeGreaterThan(100);
+   }else{
+    expect(geometry.copyY).toBeGreaterThan(geometry.mediaY);
+   }
+   expect(errors).toEqual([]);
+  });
+ }
+}
+for(const language of ['fa','en']){
+ test('book detail cart choice remains separate from payment '+language,async({page})=>{
+  await page.addInitScript(()=>localStorage.removeItem('jr-book-cart-v1'));
+  await page.route('**/api/commerce/health',route=>route.fulfill({status:503,json:{ok:false}}));
+  await page.goto(base+'/'+language+'/shop/book/?id=roshanaei',{waitUntil:'domcontentloaded'});
+  const add=page.locator('[data-book-detail] [data-detail-add="roshanaei"]');
+  await expect(add).toBeVisible();
+  await add.click();
+  const cart=await page.evaluate(()=>JSON.parse(localStorage.getItem('jr-book-cart-v1')||'[]'));
+  expect(cart).toEqual([{book_id:'roshanaei',quantity:1}]);
+  await expect(page.locator('[data-book-detail] .book-detail-cart-link')).toBeVisible();
+  await expect(page.locator('[data-book-detail] .store-notice')).toContainText(
+    language==='fa'?'پرداخت آنلاین':'online payment'
+  );
+ });
+}
