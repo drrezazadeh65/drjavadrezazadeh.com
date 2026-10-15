@@ -13,6 +13,7 @@ $now=time();
 $ago=static fn(int $n): string=>gmdate('Y-m-d H:i:s',$now-$n);
 $ahead=static fn(int $n): string=>gmdate('Y-m-d H:i:s',$now+$n);
 $grant=[
+    'id'=>'grant-1','version_label'=>'v1','notice_sha256'=>str_repeat('a',64),
     'decision'=>'GRANTED','withdrawn_at'=>null,'purpose_code'=>'ASSESSMENT',
     'granted_at'=>$ago(600),'effective_at'=>$ago(3600),'retired_at'=>null
 ];
@@ -33,18 +34,25 @@ gtExpect(goldenTalentPurposeConsentCurrent([$parentGrant],$now,'PARENT_VISIBILIT
 gtExpect(!goldenTalentPurposeConsentCurrent([$grant],$now,'PARENT_VISIBILITY'),'assessment alone never grants parent visibility');
 gtExpect(!goldenTalentPurposeConsentCurrent([$parentGrant],$now,'ASSESSMENT'),'parent visibility cannot authorise assessment');
 gtExpect(!goldenTalentPurposeConsentCurrent([$parentGrant],$now,'UNRECOGNISED_PURPOSE'),'unknown consent purposes deny');
-$withdrawal=array_merge($grant,['decision'=>'WITHDRAWN','granted_at'=>$ago(120)]);
+$withdrawal=array_merge($grant,['id'=>'withdrawal-1','decision'=>'WITHDRAWN','granted_at'=>$ago(120)]);
 gtExpect(!goldenTalentAssessmentConsentCurrent([$withdrawal,$grant],$now),'newer withdrawal overrides older grant');
-$laterGrant=array_merge($grant,['granted_at'=>$ago(60)]);
+$laterGrant=array_merge($grant,['id'=>'regrant-1','granted_at'=>$ago(60)]);
 gtExpect(goldenTalentAssessmentConsentCurrent([$laterGrant,$withdrawal],$now),'valid regrant after withdrawal is allowed');
 gtExpect(!goldenTalentAssessmentConsentCurrent([$grant,$grant],$now),'ambiguous duplicate timestamp denies');
-gtExpect(!goldenTalentAssessmentConsentCurrent([$grant,$withdrawal,$grant],$now),'unexpected number of decisions denies');
+gtExpect(goldenTalentAssessmentConsentCurrent([$grant,$withdrawal,$laterGrant],$now),'complete three-decision history supports regrant');
+gtExpect(!goldenTalentAssessmentConsentCurrent([$grant,$withdrawal,$grant],$now),'duplicate grant ID denies');
+gtExpect(!goldenTalentAssessmentConsentCurrent([array_merge($grant,['notice_sha256'=>'bad'])],$now),'invalid notice hash denies');
+$mutated=array_merge($grant,['withdrawn_at'=>$ago(30)]);
+gtExpect(!goldenTalentAssessmentConsentCurrent([$mutated,$laterGrant],$now),'later withdrawal on older grant blocks regrant');
 // Route/source contract checks guard against accidental client-authoritative or open access.
 $source=file_get_contents(__DIR__.'/../api/golden-talent.php');
 gtExpect(is_string($source)&&str_contains($source,"'/golden-talent/my-subjects' && \$verb==='GET'"),'only GET private listing');
 gtExpect(str_contains($source,"r.verification_status='VERIFIED'"),'guardian must be verified');
 gtExpect(str_contains($source,"s.guardian_account_id=?"),'guardian must match subject');
 gtExpect(str_contains($source,"c.account_id=?"),'consent account is scoped');
+gtExpect(substr_count($source,'LIMIT 1025')===2,'complete consent history has overflow sentinel');
+gtExpect(str_contains($source,"bertinaCurrentConsent(\$rows,\$purpose,\$now)"),'both read paths use same strict projection');
+gtExpect(str_contains($source,'microtime(true)'),'microsecond current decision clock');
 gtExpect(str_contains($source,"n.purpose_code='ASSESSMENT'"),'consent purpose specific');
 gtExpect(str_contains($source,"empty(\$account['email_verified_at'])"),'verified login required');
 gtExpect(str_contains($source,"INSERT INTO eco_audit_events"),'append-only read audit');
