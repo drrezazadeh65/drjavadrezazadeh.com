@@ -12,7 +12,7 @@ The code is more mature than a blank project: existing protected PHP routes, gua
 
 ## Evidence levels
 - **Directly checked repository source:** file code/DDL/readme, not proof the proposed SQL has been installed.
-- **CI checked:** GitHub Actions Scientific free-stage policy QA succeeded on push runs 38814597169, 38814922191 and 38815002564. The last run explicitly succeeded on syntax, isolated PHP projection, and Node policy tests. Newer commit tests must be rechecked; never claim pending runs passed.
+- **CI checked:** GitHub Actions Scientific free-stage policy QA succeeded on push runs 38814597169, 38814922191 and 38815002564. The last run explicitly succeeded on syntax, isolated PHP projection, and Node policy tests. Follow-up isolated checks for consent date validation also passed on GitHub Actions run 38815603892 (commit ef29b0e). This is limited to the repository's declared checks, not staging or production certification.
 - **Not verified:** live Bertina schema, current consent data, live operational health, private authenticated flows, payment settlement, current SEO rankings, psychometric samples. Direct web access to site health was unavailable at this review.
 - **Externally confirmed research standards:** AERA/APA/NCME *Standards for Educational and Psychological Testing* (2014, NCME distribution); ITC *Guidelines for Translating and Adapting Tests* (2017); ITC/ATP *Guidelines for Technology-Based Assessment* (updated July 2025); Mokkink et al., *Journal of Clinical Epidemiology* 2025, DOI 10.1016/j.jclinepi.2025.111879 (content validity relevance/comprehensiveness/comprehensibility; adapt COSMIN principles carefully outside health measurement).
 
@@ -59,7 +59,7 @@ For EACH instrument × version × language × population × intended use: constr
 - G7: Controlled staging, SEO/404/redirect regression, payments/refunds, support/incident drill, then explicit owner release sign-off.
 
 ## Reconciliation with previous progress messages
-The earlier statement 'tests have not been run' is superseded: GitHub Actions proved all three earlier policy workflow runs succeeded. That confirms *isolated code checks only*. The previously described consent timestamp issue was partly addressed by converting MySQL milliseconds to PHP microseconds; a date-rollover validation patch was added in branch during this re-audit. The current CI status of further changes needs direct verification before marking those patches passing.
+The earlier statement 'tests have not been run' is superseded: GitHub Actions proved all three earlier policy workflow runs succeeded. That confirms *isolated code checks only*. The previously described consent timestamp issue was partly addressed by converting MySQL milliseconds to PHP microseconds; a date-rollover validation patch was added in branch during this re-audit. GitHub Actions run 38815603892 completed successfully on commit ef29b0e, including the expanded PHP consent-date regression. No runtime API or DB compatibility test is implied.
 
 ## Not yet frozen; minimum remaining before final Super Master Plan
 Resolve A01–A05 by exact canonical API/SQL/runtime mapping, reach agreement on A06 version taxonomy, capture scientific evidence matrix, document service-specific bilingual dashboard flows and current research/market baseline, define acceptance fixtures and release authority. Only then consolidate to one final plan aligned with the existing frozen roadmap. No production deploy, database migration, live data inspection or modification is claimed.
