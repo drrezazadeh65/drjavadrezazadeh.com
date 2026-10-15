@@ -586,8 +586,10 @@ transition-duration:0s!important;animation-duration:0s!important
 }
 .assessment-workspace-page .rcas-scale{min-width:0}
 .assessment-workspace-page .rcas-scale label{min-width:0}
+/* Preserve the 72px desktop / 76px mobile choice geometry set by portal-v2.css.
+   The shared visual layer only adds safe text wrapping; it must not shrink RCAS controls. */
 .assessment-workspace-page .rcas-scale label>span{
- min-height:44px;overflow-wrap:anywhere
+ overflow-wrap:anywhere
 }
 .assessment-workspace-page .rcas-panel :is(button,a,select,input,textarea):focus-visible,
 .support-panel :is(button,a,input,select):focus-visible,
