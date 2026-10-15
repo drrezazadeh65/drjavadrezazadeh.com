@@ -225,7 +225,7 @@ test('Persian Golden Path keeps RCAS focus as session-only educational inquiry',
  await expect(text).toContainText('مسیر انتخاب‌شده‌ای');
  await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
   completed:true,rcasRevision:'start-1.2',completedItemCount:28,
-  p0Validated:true,routingEvidenceCompleted:true,
+  p0Validated:true,routingEvidenceCompleted:true,meaningfulCoreEvidence:true,
   routeBasis:'SELF_SELECTED_UNVALIDATED',route:'D2'
  })));
  await page.reload();
@@ -233,7 +233,7 @@ test('Persian Golden Path keeps RCAS focus as session-only educational inquiry',
  await expect(text).toContainText('نه نمره استعداد');
  await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
   completed:true,rcasRevision:'start-en-pilot-1',completedItemCount:28,
-  p0Validated:true,routingEvidenceCompleted:true,
+  p0Validated:true,routingEvidenceCompleted:true,meaningfulCoreEvidence:true,
   routeBasis:'SELF_SELECTED_UNVALIDATED',route:'D2'
  })));
  await page.reload();
