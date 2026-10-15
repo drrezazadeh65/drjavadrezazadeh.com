@@ -35,3 +35,9 @@ test('unknown or unverified age classification fails closed',()=>{
   assert.equal(result.reason,'AGE_CLASSIFICATION_REQUIRED');
  }
 });
+
+test('minor cannot launch independent self session merely from a parent consent flag',()=>{
+ const child={...subject,is_minor:true,student_account_id:'a1',guardian_account_id:'g1'};
+ const consent={...assessmentConsent,granted_by_account_id:'g1',guardian_verified:true};
+ assert.equal(gate({module:'RCAS',stage:stages.RCAS,actor,subject:child,assessmentConsent:consent}).allowed,false);
+});
