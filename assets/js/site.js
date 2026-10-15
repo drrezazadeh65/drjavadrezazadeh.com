@@ -310,6 +310,30 @@ const gh='/drjavadrezazadeh.com/';
 const base=raw.includes(gh)?gh:'/';
 const relative=base==='/'?raw:'/'+raw.slice(base.length);
 const privatePath=JR_PRIV(relative);
+const jrPwaRead=key=>{try{return localStorage.getItem(key);}catch(_){try{return sessionStorage.getItem(key);}catch(__){return null;}}};
+const jrPwaWrite=(key,val)=>{try{localStorage.setItem(key,val);}catch(_){try{sessionStorage.setItem(key,val);}catch(__){}}};
+const jrPwaAutoKey='jr-pwa-auto-shown-v1';
+const jrPwaStandalone=window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true;
+const jrPwaHome=/^\/(fa|en)\/?$/.test(relative);
+if(jrPwaHome&&!jrPwaStandalone){
+ const isFa=document.documentElement.lang==='fa';
+ const container=document.createElement('div');container.className='jr-home-install';container.style.cssText='display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;padding:20px 14px;margin:16px auto;max-width:720px;text-align:center;';
+ const install=document.createElement('button');install.type='button';install.className='jr-home-install-button';install.textContent=isFa?'نصب اپلیکیشن سایت':'Install the site app';
+ install.style.cssText='min-height:44px;padding:10px 20px;border:1px solid #bda778;border-radius:999px;color:#f6edda;background:#19283b;font:inherit;cursor:pointer;';
+ const info=document.createElement('small');info.setAttribute('role','status');info.setAttribute('aria-live','polite');info.style.cssText='max-width:420px;line-height:1.8;color:inherit;';
+ install.addEventListener('click',async()=>{
+  if(deferredPrompt){
+   try{await deferredPrompt.prompt();await deferredPrompt.userChoice;}catch(_){}
+   deferredPrompt=null;jrPwaWrite(jrPwaAutoKey,'1');
+   info.textContent=isFa?'درخواست نصب در مرورگر بررسی شد.':'The browser handled the install request.';
+  }else{
+   info.textContent=/iPhone|iPad|iPod/i.test(navigator.userAgent||'')?(isFa?'در Safari: اشتراک‌گذاری ← افزودن به صفحه اصلی':'In Safari: Share → Add to Home Screen'):(isFa?'از منوی مرورگر، گزینه نصب برنامه یا افزودن به صفحه اصلی را انتخاب کنید.':'Open your browser menu and choose Install app or Add to Home Screen.');
+  }
+ });
+ container.append(install,info);
+ const footer=document.querySelector('footer');if(footer?.parentNode)footer.parentNode.insertBefore(container,footer);else document.body.append(container);
+}
+
 window.addEventListener('beforeinstallprompt',e=>{
 e.preventDefault();
 deferredPrompt=e;
@@ -319,13 +343,14 @@ if(openAssistantPanel&&!openAssistantPanel.hidden){
 openAssistantPanel.hidden=true;
 assistantLauncher?.setAttribute('aria-expanded','false');
 }
-if(privatePath || document.querySelector('.pwa-install') || sessionStorage.getItem('pwa-install-dismissed')==='1') return;
+if(privatePath || jrPwaStandalone || document.querySelector('.pwa-install') || jrPwaRead(jrPwaAutoKey)==='1') return;
+jrPwaWrite(jrPwaAutoKey,'1');
 const isFa=document.documentElement.lang==='fa';
 const wrap=document.createElement('div');
 wrap.className='pwa-install';
 wrap.innerHTML='<button type="button" class="pwa-install-btn">'+(isFa?'نصب نسخه اپ‌مانند':'Install app experience')+'</button><button type="button" class="pwa-install-close" aria-label="'+(isFa?'بستن':'Close')+'">×</button>';
 document.body.appendChild(wrap);
-wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>{sessionStorage.setItem('pwa-install-dismissed','1');wrap.remove();});
+wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>{jrPwaWrite(jrPwaAutoKey,'1');wrap.remove();});
 wrap.querySelector('.pwa-install-btn')?.addEventListener('click',async()=>{
 if(!deferredPrompt) return;
 deferredPrompt.prompt();
