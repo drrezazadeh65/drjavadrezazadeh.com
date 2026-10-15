@@ -1,0 +1,31 @@
+/* Guard the canonical Persian identity in every static official-document preview. */
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+
+const root=process.cwd();
+const templates=['donation-receipt-fa.html','official-letterhead-fa.html','service-invoice-fa.html'];
+const assets=['identity/references/persian-symbol-gold.png','identity/references/persian-wordmark-gold.png'];
+for(const asset of assets){
+ assert.ok(fs.existsSync(path.join(root,asset)), 'Missing approved identity asset: '+asset);
+ assert.ok(fs.statSync(path.join(root,asset)).size>1000, 'Empty identity asset: '+asset);
+}
+for(const name of templates){
+ const file=path.join(root,'identity/templates',name);
+ const html=fs.readFileSync(file,'utf8');
+ assert.match(html,/<html\s+lang="fa"\s+dir="rtl"/);
+ assert.match(html,/name="robots"\s+content="[^"]*noindex/);
+ assert.ok(html.includes('../tokens.css')&&html.includes('../document.css'),name+': missing shared styles');
+ assert.ok(html.includes('jr-document--official'),name+': missing shared stationery');
+ for(const asset of assets){
+  const relative='../references/'+path.basename(asset);
+  assert.ok(html.includes(relative),name+': missing '+relative);
+ }
+ assert.ok(/پیش.?نمایش|قالب نمایشی/.test(html),name+': missing preview disclosure');
+ assert.ok(!/<script\b/i.test(html),name+': preview must not execute JavaScript');
+ console.log('PASS '+name);
+}
+const css=fs.readFileSync(path.join(root,'identity/document.css'),'utf8');
+assert.ok(css.includes('@page')&&css.includes('A4'),'Shared document stylesheet must support A4');
+assert.ok(css.includes('.jr-document__header')&&css.includes('.jr-document__footer'));
+console.log('PASS official stationery: '+templates.length+' templates, approved assets, A4 rules');
