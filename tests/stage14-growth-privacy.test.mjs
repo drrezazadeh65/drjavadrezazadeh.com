@@ -141,14 +141,14 @@ test('bilingual consultation pages share the verified-account consent pathway wi
 test('owner-only consented lead triage is MFA/CSRF protected and cannot manufacture sales',()=>{
  const operations=read('api/operations.php');
  const client=read('assets/js/operations-growth.js');
- assert.match(lead,/function stage14AdminLeadWorklist\(PDO \$pdo\)/);
+ assert.match(lead,/function stage14AdminLeadWorklist\(PDO \$pdo, \?string \$cursor=null\)/);
  assert.match(lead,/function stage14AdminLeadTransition\(PDO \$pdo/);
  assert.match(lead,/a\.email_normalized AS contact_email/);
  assert.match(lead,/l\.consent_withdrawn_at IS NULL/);
  assert.match(lead,/l\.expires_at>\?/);
  assert.match(lead,/a\.email_verified_at IS NOT NULL/);
  assert.match(lead,/a\.status='active'/);
- assert.match(lead,/LIMIT 20/);
+ assert.match(lead,/ORDER BY l\.created_at ASC,l\.id ASC LIMIT 21/);
  assert.match(lead,/state IN \('NEW','NEEDS_INFO','QUALIFIED'\)/);
  assert.match(lead,/FOR UPDATE/);
  assert.match(lead,/operationsAudit\(\$pdo,\$actorId,'growth_lead_state_changed'/);
