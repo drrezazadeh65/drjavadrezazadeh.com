@@ -41,6 +41,8 @@
      const stateLabels={
        NEW:say('دریافت‌شده برای بررسی اولیه','Received for initial review'),
        CONTACTED:say('پیگیری‌شده','Follow-up recorded'),
+       QUALIFIED:say('واجد شرایط بررسی انسانی','Qualified for human review'),
+       NEEDS_INFO:say('نیازمند اطلاعات تکمیلی','More information requested'),
        CLOSED:say('بسته‌شده','Closed'),
        WITHDRAWN:say('رضایت لغو شده','Consent withdrawn')
      };
@@ -60,6 +62,16 @@
        'این سوابق فقط درخواست اولیه با رضایت‌اند؛ پرداخت، پذیرش خدمت یا رزرو قطعی را تأیید نمی‌کنند. برای لغو رضایت به فرم درخواست مراجعه کنید.',
        'These are consented initial enquiries, not confirmed bookings, payment or service acceptance.'
      )));
+     // This dashboard is a bounded preview. The original private intake
+     // route offers keyset pages with withdrawal controls for older records.
+     if(typeof data.nextCursor==='string'&&
+        /^[0-9]{1,10}:[a-f0-9-]{36}$/i.test(data.nextCursor)){
+       const more=text('a',say(
+         'برای مشاهده و لغو رضایت درخواست‌های قدیمی‌تر، تاریخچه کامل را باز کنید.',
+         'View older enquiries and manage their consent in your full history.'));
+       more.href=en?'/en/request-consultation/':'/fa/darkhast-moshavere/';
+       output.append(more);
+     }
    }catch(error){
      if(stamp!==run||document.hidden||ctrl.signal.aborted)return;
      output.replaceChildren(text('p',
