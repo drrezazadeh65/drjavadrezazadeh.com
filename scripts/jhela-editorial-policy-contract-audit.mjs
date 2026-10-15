@@ -39,6 +39,14 @@ requirePolicy(editorial.panels.some(p=>p.id==='audit_officer'&&p.scope==='REDACT
 requirePolicy(editorial.reviewForm.automaticDecisionByScore===false&&editorial.reviewForm.requireNormallyTwoIndependentReviewers===true,'Independent review contract missing');
 requirePolicy(editorial.finance.currency==='CHF'&&editorial.finance.charges.some(c=>c.amount===2000)&&editorial.finance.charges.some(c=>c.amount===990),'Financial policy and public rates diverged');
 requirePolicy(editorial.finance.feeActivation.startsWith('DISABLED')&&editorial.liveClaims.publicSubmissionsOpen===false,'Editorial activation must fail closed');
+requirePolicy(editorial.implementationBoundary?.separateIntegrations?.includes('financial_officer')&&
+  editorial.implementationBoundary?.separateIntegrations?.includes('audit_officer'),
+  'Do not misrepresent finance or audit as native OJS editorial dashboards');
+requirePolicy(editorial.panels.filter(p=>p.implementation==='INTEGRATION_NOT_BUILT').length===2,
+  'Finance and security audit permissions must remain outside broad OJS native roles');
+requirePolicy(editorial.liveClaims.financePanelReady===false&&editorial.liveClaims.auditPanelReady===false,
+  'Unbuilt finance/audit integrations cannot be marked operational');
+
 
 const ojsTheme=read('assets/css/jhela-ojs-theme.css');
 const reviewForm=read('docs/journal/JHELA_OJS_REVIEW_FORM_V1.md');
