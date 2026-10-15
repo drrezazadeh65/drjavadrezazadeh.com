@@ -17,7 +17,7 @@
   return /^\/assets\/images\/books\/[a-z0-9][a-z0-9._-]*\.(?:avif|webp|png|jpe?g)$/i.test(path)?root(path):null;
  }
  const API='/api';
- // Catalogue prices never authorise payment. The live Worker must explicitly permit books.
+ // Catalogue prices never authorise payment. The server must explicitly permit books and reconcile stock.
  let bookPaymentReady=false;
  let deliveryCaptureReady=false;
  async function verifyBookPaymentCapability(){
