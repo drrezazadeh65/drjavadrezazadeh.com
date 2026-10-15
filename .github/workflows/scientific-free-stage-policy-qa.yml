@@ -15,6 +15,8 @@ on:
       - "platform/golden-talent-phase12-gates.mjs"
       - "platform/bertina-consent-projection.php"
       - "api/golden-talent.php"
+      - "api/golden-talent-consent.php"
+      - "tests/bertina-public-consent-assembly.mjs"
       - "tests/golden-talent-guardian.php"
       - "tests/bahar-guardian-mysql.php"
       - "platform/bertina-free-stage-authorisation.php"
@@ -59,6 +61,7 @@ jobs:
         run: |
           php -l platform/bertina-consent-projection.php
           php -l api/golden-talent.php
+          php -l api/golden-talent-consent.php
           php -l tests/golden-talent-guardian.php
           php tests/golden-talent-guardian.php
           php -l tests/bertina-consent-projection.php
@@ -140,3 +143,21 @@ jobs:
           php -l tests/bertina-free-stage-mysql.php
           php tests/bertina-free-stage-mysql.php
           php tests/bahar-guardian-mysql.php
+
+  assembly-check:
+    name: Sanitized Bertina release includes canonical consent library
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build sanitized site WITHOUT deployment
+        run: |
+          node scripts/build-public-site.mjs
+      - name: Inspect archived API and exclude research directories
+        run: |
+          node tests/bertina-public-consent-assembly.mjs
+          php -l .public-site/api/golden-talent.php
+          php -l .public-site/api/golden-talent-consent.php
