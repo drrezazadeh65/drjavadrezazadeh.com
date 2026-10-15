@@ -26,3 +26,30 @@ test('negative contribution is reported without disguising it as revenue',()=>{
  const r=forecastRevenue({currency:'IRT',fixedCostMinor:200,lines:[{quantity:1,unitPriceMinor:100,unitCostMinor:300,minutesPerUnit:60}]});
  assert.equal(r.contributionMinor,-400);
 });
+
+
+test('contribution and gross targets are distinct; a 10k sale need not yield 10k after costs',()=>{
+ const gross=forecastRevenue({...base,monthlyGoalMinor:300000,goalMetric:'GROSS'});
+ assert.equal(gross.grossMinor,300000);
+ assert.equal(gross.contributionMinor,195000);
+ assert.equal(gross.selectedGoalGapMinor,0);
+ assert.equal(gross.selectedGoalMet,true);
+ const contribution=forecastRevenue({...base,monthlyGoalMinor:300000,goalMetric:'CONTRIBUTION'});
+ assert.equal(contribution.goalGapMinor,0,'gross-only gap is preserved for existing callers');
+ assert.equal(contribution.selectedGoalGapMinor,105000);
+ assert.equal(contribution.selectedGoalMet,false);
+ assert.equal(contribution.goalMetric,'CONTRIBUTION');
+ assert.equal(contribution.isOperationalEvidence,false);
+});
+test('negative contribution cannot silently count toward the income goal',()=>{
+ const bad=forecastRevenue({currency:'USD',goalMetric:'CONTRIBUTION',
+   monthlyGoalMinor:1000000,fixedCostMinor:5000,lines:[{
+     quantity:1,unitPriceMinor:1000,unitCostMinor:3000,minutesPerUnit:30
+   }]});
+ assert.equal(bad.contributionMinor,-7000);
+ assert.equal(bad.selectedGoalGapMinor,1007000);
+ assert.equal(bad.selectedGoalMet,false);
+});
+test('an invalid contribution goal metric fails closed',()=>{
+ assert.throws(()=>forecastRevenue({...base,goalMetric:'AFTER_TAX_NET'}),RangeError);
+});
