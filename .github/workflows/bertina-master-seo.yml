@@ -97,10 +97,10 @@ jobs:
           echo
           if [ "$failed" -ne 0 ]; then
             echo "===== FAILED AUDIT CHECKS ====="
-            printf 'FAIL: %s\\n' "${failed_labels[@]}"
+            printf 'FAIL: %s\n' "${failed_labels[@]}"
             {
               echo '### Bertina Master SEO Audit — failing checks'
-              printf -- '- ❌ `%s`\\n' "${failed_labels[@]}"
+              printf -- '- ❌ `%s`\n' "${failed_labels[@]}"
               echo
               echo 'Successful checks remain enforced; investigate these failures before deployment.'
             } >> "$GITHUB_STEP_SUMMARY"
