@@ -2,7 +2,7 @@ name: JHELA OJS Operational Readiness
 on:
   push:
     branches: [migration/bertina-linux6]
-    paths: ['scripts/jhela-ojs-*', 'scripts/jhela-editorial-policy-contract-audit.mjs', 'assets/css/jhela-ojs-theme.css', 'docs/journal/JHELA_OJS_REVIEW_FORM_V1.md', 'docs/journal/JHELA_OJS_EDITORIAL_MESSAGES_V1.md', 'assets/images/jhela/wordmark-en*.svg', 'journal/fees/index.html', 'journal/fa/fees/index.html', 'journal/index.html', 'journal/dashboard/index.html', 'tests/jhela-ojs-installer-check.py', 'platform/jhela-ojs-activation.json', 'platform/jhela-ojs-editorial-workflow-v1.json', 'docs/governance/JHELA_OJS_INSTALLATION_RUNBOOK_20261012.md', '.github/workflows/jhela-ojs-readiness.yml']
+    paths: ['scripts/jhela-ojs-*', 'scripts/jhela-editorial-policy-contract-audit.mjs', 'assets/css/jhela-ojs-theme.css', 'assets/css/operations-jhela-workstream.css', 'assets/js/operations-jhela-workstream.js', 'fa/app/admin/index.html', 'en/account/admin/index.html', 'tests/jhela-admin-workstream.test.mjs', 'platform/jhela-ojs-role-policy-v1.json', 'docs/journal/JHELA_OJS_REVIEW_FORM_V1.md', 'docs/journal/JHELA_OJS_EDITORIAL_MESSAGES_V1.md', 'assets/images/jhela/wordmark-en*.svg', 'journal/fees/index.html', 'journal/fa/fees/index.html', 'journal/index.html', 'journal/dashboard/index.html', 'tests/jhela-ojs-installer-check.py', 'platform/jhela-ojs-activation.json', 'platform/jhela-ojs-editorial-workflow-v1.json', 'docs/governance/JHELA_OJS_INSTALLATION_RUNBOOK_20261012.md', '.github/workflows/jhela-ojs-readiness.yml']
   pull_request:
     branches: [migration/bertina-linux6]
     paths: ['scripts/jhela-ojs-*', 'tests/jhela-ojs-installer-check.py', 'platform/jhela-ojs-activation.json', '.github/workflows/jhela-ojs-readiness.yml']
@@ -35,6 +35,8 @@ jobs:
           node scripts/jhela-ojs-source-audit.mjs
           node scripts/jhela-discovery-audit.mjs
           node scripts/jhela-editorial-policy-contract-audit.mjs
+          node --check assets/js/operations-jhela-workstream.js
+          node --test tests/jhela-admin-workstream.test.mjs
           node --check scripts/jhela-ojs-origin-probe.mjs
           node scripts/jhela-ojs-origin-probe.mjs --self-test
       - name: Test verified OJS package staging and extraction safety
