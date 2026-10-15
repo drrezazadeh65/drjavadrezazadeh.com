@@ -33,3 +33,15 @@
 #ops-jhela-workstream .ops-jhela-roadmap li b{font-family:Georgia,serif;color:#f0cc80;margin-inline-end:6px}
 #ops-jhela-workstream .ops-jhela-roadmap li small{color:#e6c3b0}
 @media(max-width:640px){#ops-jhela-workstream .ops-jhela-roadmap ol{grid-template-columns:1fr}}
+
+/* Owner's future-scale JHELA architecture: truthful, actionable planning tiers. */
+#ops-jhela-workstream .ops-jhela-architecture{margin:20px 0;padding:17px;border:1px solid #69728c;border-radius:14px;background:linear-gradient(130deg,#132941,#0e2035)}
+#ops-jhela-workstream .ops-jhela-architecture summary{cursor:pointer;color:#f4dca7;font-weight:750;line-height:1.65}
+#ops-jhela-workstream .ops-jhela-architecture ol{padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:20px 0 12px}
+#ops-jhela-workstream .ops-jhela-architecture li{min-width:0;display:grid;align-content:start;gap:12px;background:rgba(255,255,255,.035);border:1px solid #4d6580;border-radius:12px;padding:19px}
+#ops-jhela-workstream .ops-jhela-architecture li strong{color:#f7e1aa;font-size:1rem;line-height:1.5}
+#ops-jhela-workstream .ops-jhela-architecture li span{color:#e6e6e6;font-size:.94rem;line-height:1.75}
+#ops-jhela-workstream .ops-jhela-architecture li small{color:#e9baaf;font-size:.81rem}
+#ops-jhela-workstream .ops-jhela-architecture a{color:#ffe4a6;text-decoration:underline;text-underline-offset:4px;overflow-wrap:anywhere}
+#ops-jhela-workstream .ops-jhela-architecture :focus-visible{outline:3px solid #f9c65b;outline-offset:4px}
+@media(max-width:700px){#ops-jhela-workstream .ops-jhela-architecture ol{grid-template-columns:1fr}#ops-jhela-workstream .ops-jhela-architecture li{padding:15px}}
