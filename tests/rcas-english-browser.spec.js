@@ -77,7 +77,7 @@ test('English RCAS response controls retain accessible dimensions on desktop and
    const style=getComputedStyle(span);
    return {font:parseFloat(style.fontSize),height:span.getBoundingClientRect().height,
     lineHeight:parseFloat(style.lineHeight),
-    columns:getComputedStyle(grid).gridTemplateColumns.trim().split(/\\s+/).length,
+    columns:getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length,
     overflow:Math.max(document.body.scrollWidth,document.documentElement.scrollWidth)-innerWidth};
   });
   expect(data.font).toBeGreaterThanOrEqual(16);
