@@ -10,6 +10,36 @@
  const en=document.documentElement.lang==='en';
  const say=(fa,english)=>en?english:fa;
  const text=(tag,value)=>{const node=document.createElement(tag);node.textContent=value;return node;};
+ // Public catalogues only provide display labels; private statuses and
+ // entitlements are obtained exclusively from the authenticated API.
+ async function publicTitles(){
+   const titles=new Map();
+   const fetchJson=async path=>{
+     const response=await fetch(path,{credentials:'omit',cache:'no-store'});
+     if(!response.ok)throw Error('catalog_unavailable');
+     return response.json();
+   };
+   try{
+     const [catalog,localized,vip,vipLocalized]=await Promise.all([
+       fetchJson('/assets/data/service-catalog.json'),
+       en?fetchJson('/assets/data/service-descriptions-en.json'):Promise.resolve(null),
+       fetchJson('/assets/data/vip-catalog.json'),
+       en?fetchJson('/assets/data/vip-descriptions-en.json'):Promise.resolve(null)
+     ]);
+     if(en&&(localized?.language!=='en'||vipLocalized?.language!=='en'))throw Error('locale');
+     for(const service of (Array.isArray(catalog.services)?catalog.services:[])){
+       if(service?.sellable!==true||typeof service.id!=='string')continue;
+       const title=en?localized?.services?.[service.id]?.title:service.title_fa;
+       if(typeof title==='string'&&title.trim())titles.set('service:'+service.id,title);
+     }
+     for(const offer of (Array.isArray(vip.services)?vip.services:[])){
+       if(offer?.sellable!==true||typeof offer.id!=='string')continue;
+       const title=en?vipLocalized?.services?.[offer.id]:offer.title_fa;
+       if(typeof title==='string'&&title.trim())titles.set('vip:'+offer.id,title);
+     }
+   }catch(_){/* Private lead statuses remain usable even if public labels fail. */}
+   return titles;
+ }
  let run=0,controller=null;
  const clear=()=>{run++;if(controller)controller.abort();controller=null;
    button.disabled=false;output.replaceChildren();};
@@ -21,10 +51,13 @@
      'در حال خواندن درخواست‌های متعلق به حساب شما از سرور…',
      'Reading enquiries owned by your account from the server…')));
    try{
-     const response=await fetch('/api/growth/leads/mine',{
-       method:'GET',credentials:'same-origin',cache:'no-store',
-       headers:{Accept:'application/json'},signal:ctrl.signal
-     });
+     const [response,titles]=await Promise.all([
+       fetch('/api/growth/leads/mine',{
+         method:'GET',credentials:'same-origin',cache:'no-store',
+         headers:{Accept:'application/json'},signal:ctrl.signal
+       }),
+       publicTitles()
+     ]);
      const data=await response.json();
      if(stamp!==run||document.hidden||!section.isConnected)return;
      output.replaceChildren();
@@ -53,7 +86,8 @@
        const row=document.createElement('li');
        const state=Object.hasOwn(stateLabels,item.state)
          ?stateLabels[item.state]:say('در انتظار تأیید وضعیت','Status not verified');
-       row.append(text('strong',item.service_id),text('span',' · '+state));
+       row.append(text('strong',titles.get(item.service_id)||item.service_id),
+         text('span',' · '+state));
        list.append(row);
      }
      if(list.childElementCount)output.append(list);
@@ -62,15 +96,20 @@
        'این سوابق فقط درخواست اولیه با رضایت‌اند؛ پرداخت، پذیرش خدمت یا رزرو قطعی را تأیید نمی‌کنند. برای لغو رضایت به فرم درخواست مراجعه کنید.',
        'These are consented initial enquiries, not confirmed bookings, payment or service acceptance.'
      )));
-     // This dashboard is a bounded preview. The original private intake
-     // route offers keyset pages with withdrawal controls for older records.
+     // The read-only dashboard always offers the existing authenticated,
+     // paginated withdrawal UI; this link is not a withdrawal itself.
+     const manage=text('a',say(
+       'مشاهده تمام درخواست‌ها و مدیریت رضایت',
+       'View all enquiries and manage consent'));
+     manage.href=en?'/en/request-consultation/#secure-consented-lead':
+       '/fa/darkhast-moshavere/#secure-consented-lead';
+     output.append(manage);
      if(typeof data.nextCursor==='string'&&
         /^[0-9]{1,10}:[a-f0-9-]{36}$/i.test(data.nextCursor)){
-       const more=text('a',say(
-         'برای مشاهده و لغو رضایت درخواست‌های قدیمی‌تر، تاریخچه کامل را باز کنید.',
-         'View older enquiries and manage their consent in your full history.'));
-       more.href=en?'/en/request-consultation/':'/fa/darkhast-moshavere/';
-       output.append(more);
+       output.append(text('p',say(
+         'سوابق بیشتری وجود دارد؛ برای مشاهده و لغو رضایت آن‌ها از پیوند بالا استفاده کنید.',
+         'Older enquiries are available through the full, paginated consent history above.'
+       )));
      }
    }catch(error){
      if(stamp!==run||document.hidden||ctrl.signal.aborted)return;
