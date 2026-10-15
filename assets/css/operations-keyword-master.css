@@ -1,0 +1,17 @@
+/* Read-only keyword master: admin visual tokens, touch/keyboard-safe, RTL/LTR. */
+#jr-intelligence .jr-keyword-master{margin-top:26px;padding-top:20px;border-top:1px solid var(--ops-border,#314259)}
+#jr-intelligence .jr-keyword-master h3{margin:0 0 10px;font-size:1.12rem}
+#jr-intelligence .jr-keyword-caption{color:var(--ops-muted,#b3c0d2);font-size:.9rem;max-width:84ch;line-height:1.8}
+#jr-intelligence .jr-keyword-controls{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin:16px 0}
+#jr-intelligence .jr-keyword-controls label{display:flex;flex-direction:column;gap:5px;min-width:148px;max-width:100%;flex:1 1 180px}
+#jr-intelligence .jr-keyword-controls input,#jr-intelligence .jr-keyword-controls select{min-height:44px;width:100%}
+#jr-intelligence .jr-keyword-controls button{min-height:44px}
+#jr-intelligence .jr-keyword-controls button:disabled{opacity:.5;cursor:not-allowed}
+#jr-intelligence .jr-keyword-table-scroll{width:100%;overflow-x:auto;border:1px solid var(--ops-border,#314259);border-radius:14px}
+#jr-intelligence .jr-keyword-master table{width:100%;border-collapse:collapse;min-width:610px;font-size:.88rem}
+#jr-intelligence .jr-keyword-master th,#jr-intelligence .jr-keyword-master td{padding:12px 10px;text-align:start;vertical-align:top;border-bottom:1px solid rgba(155,169,191,.18)}
+#jr-intelligence .jr-keyword-master th{background:#1a2a43;color:#f5e7c7;white-space:nowrap}
+#jr-intelligence .jr-keyword-master tr:last-child td{border-bottom:0}
+#jr-intelligence .jr-keyword-master a{overflow-wrap:anywhere}
+#jr-intelligence .jr-keyword-master tr:hover td{background:rgba(194,161,102,.06)}
+@media(max-width:560px){#jr-intelligence .jr-keyword-controls{align-items:stretch}#jr-intelligence .jr-keyword-controls button{width:100%}}
