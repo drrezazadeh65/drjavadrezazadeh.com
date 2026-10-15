@@ -271,3 +271,11 @@ Available personal Library materials were retrieved for conceptual review: `Gold
 - `f3ce0f3e`: English browser RCAS end-to-end scenario uses `Upper secondary` without age and asserts guardian guidance is visible.
 - `4ecbe89e`: scientific source contract pins stage-based safeguarding logic.
 - Latest application/test SHA before this appended handoff: `4ecbe89e23828c41ee5d51e63cee2ba2f3cf4235`. New automated runtime status is **UNVERIFIED**; the existing non-deploying CI is wired but its current passing result has not been obtained. No live deployment.
+
+### 2026-10-15 continuation: Golden Path evidence gate
+
+- `695b4485`: shared bilingual Golden Path session bridge now requires `meaningfulCoreEvidence===true` in addition to completed context, routing and locale-specific revision. It remains read-only and non-diagnostic.
+- `778302ef`, `11d55b0d`: updated English and Persian Playwright positive fixtures to carry the substantive-evidence flag.
+- `750af45d`: source contract asserts the shared evidence gate.
+- Latest application/test SHA before this note: `750af45d2ebb04e6f0b3fb25027fc5c1b8060b1c`.
+- Runtime CI status for this revision is **not independently confirmed**. Production deployment remains prohibited pending owner approval.
