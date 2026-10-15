@@ -131,6 +131,24 @@ function validateRoutes(){
  if(missing){status.textContent='Identify the evidence status for domain '+missing.id+'.';return false;}
  const domain=form.elements.namedItem('priorityDomain').value;
  if(!Object.prototype.hasOwnProperty.call(routes,domain)){status.textContent='Choose your own next area of inquiry.';return false;}
+ if(!form.elements.namedItem('priorityWhy').value.trim()){
+  status.textContent='Explain why you selected this area. Your own reason is not a diagnosis.';
+  form.elements.namedItem('priorityWhy').focus();return false;
+ }
+ // Match the Persian formative safeguard: all-unknown responses or wholly
+ // insufficient evidence cannot produce a completed exploratory pathway.
+ const observed=groups.some(g=>g.items.some((_,i)=>{
+  const checked=form.querySelector('input[name="'+g.id+(i+1)+'"]:checked');
+  return checked&&/^[0-4]$/.test(checked.value);
+ }));
+ if(!observed){
+  status.textContent='All 28 responses are not applicable or unsure. Gather one specific observation before completing a pathway.';
+  return false;
+ }
+ if(groups.every(g=>form.querySelector('input[name="route_'+g.id+'"]:checked')?.value==='insufficient')){
+  status.textContent='No domain has sufficient evidence yet. Gather evidence before completing a pathway.';
+  return false;
+ }
  return true;
 }
 form.addEventListener('input',erase);form.addEventListener('change',erase);
