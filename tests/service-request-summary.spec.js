@@ -437,3 +437,27 @@ test('missing English service descriptions keep account intake closed without hi
   await expect(page.locator('form[data-consultation-composer] select[name="service"]')).toBeEnabled();
   await expect(page.locator('a[href^="mailto:dr.rezazadeh65@gmail.com"]:visible').first()).toBeVisible();
 });
+
+
+for(const [language,path] of [['fa','/fa/darkhast-moshavere/'],['en','/en/request-consultation/']]){
+  test('VIP consent review shows catalogue fee and conditional booking ('+language+')',async({page})=>{
+    await page.goto('http://127.0.0.1:4173'+path+'?service=vip%3Aacademic-direction',
+      {waitUntil:'domcontentloaded'});
+    const form=page.locator('[data-stage14-consent-lead]');
+    const select=form.locator('select[name="serviceId"]');
+    await expect(select).toHaveValue('vip:academic-direction');
+    const summary=form.locator('[data-stage14-service-summary]');
+    await expect(summary).toBeVisible();
+    await expect(summary).toContainText(language==='fa'?'تعرفه ثبت‌شده':'Listed fee');
+    await expect(summary).toContainText(language==='fa'?'هماهنگی جلسه':'Appointment coordination');
+    await expect(summary).toContainText(language==='fa'?'کاشان':'Kashan');
+    await expect(summary).toContainText(language==='fa'
+      ?'راهبری اختصاصی مسیر تحصیلی':'Personal academic pathway guidance');
+    await form.locator('input[name="consentGiven"]').check();
+    await select.selectOption('vip:university-selection');
+    await expect(form.locator('input[name="consentGiven"]')).not.toBeChecked();
+    await expect(summary).toContainText(language==='fa'
+      ?'انتخاب رشته اختصاصی VIP':'VIP university major selection');
+    await expect(form.locator('button[type="submit"]')).toBeEnabled();
+  });
+}
