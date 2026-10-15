@@ -142,6 +142,36 @@
       QUALIFIED:t('واجد شرایط بررسی','Qualified for review'),
       CLOSED:t('بسته','Closed')
     })[state]||t('نامشخص','Unknown');
+    // Labels are public catalogue content. Private contact details stay solely
+    // in the MFA-protected worklist and are never cached in browser storage.
+    async function serviceTitles(){
+      const labels=new Map();
+      const json=async path=>{
+        const r=await fetch(path,{credentials:'omit',cache:'no-store'});
+        if(!r.ok)throw Error('catalog_unavailable');
+        return r.json();
+      };
+      try{
+        const [standard,vip,translated,vipNames]=await Promise.all([
+          json('/assets/data/service-catalog.json'),
+          json('/assets/data/vip-catalog.json'),
+          fa?Promise.resolve(null):json('/assets/data/service-descriptions-en.json'),
+          fa?Promise.resolve(null):json('/assets/data/vip-descriptions-en.json')
+        ]);
+        if(!fa&&(translated?.language!=='en'||vipNames?.language!=='en'))return labels;
+        for(const service of (Array.isArray(standard.services)?standard.services:[])){
+          if(service?.sellable!==true||typeof service.id!=='string')continue;
+          const name=fa?service.title_fa:translated?.services?.[service.id]?.title;
+          if(typeof name==='string'&&name.trim())labels.set('service:'+service.id,name);
+        }
+        for(const offer of (Array.isArray(vip.services)?vip.services:[])){
+          if(offer?.sellable!==true||typeof offer.id!=='string')continue;
+          const name=fa?offer.title_fa:vipNames?.services?.[offer.id];
+          if(typeof name==='string'&&name.trim())labels.set('vip:'+offer.id,name);
+        }
+      }catch(_){/* Admin retains authentic service references if public copy is unavailable. */}
+      return labels;
+    }
     async function loadLeads(cursor=null){
       if(!canShow())return;
       const generation=++leadGeneration;
@@ -155,10 +185,13 @@
       try{
         const requestUrl='/api/admin/operations/growth/leads'+
           (cursor===null?'':'?cursor='+encodeURIComponent(cursor));
-        const response=await fetch(requestUrl,{
-          credentials:'same-origin',cache:'no-store',
-          headers:{Accept:'application/json'}
-        });
+        const [response,names]=await Promise.all([
+          fetch(requestUrl,{
+            credentials:'same-origin',cache:'no-store',
+            headers:{Accept:'application/json'}
+          }),
+          serviceTitles()
+        ]);
         if(!response.ok)throw Error(response.status===401||response.status===403
           ?'OWNER_MFA':'UNAVAILABLE');
         const data=await response.json();
@@ -186,7 +219,9 @@
              !/^[^\s@?#]+@[^\s@?#]+\.[^\s@?#]+$/.test(contact))
             throw Error('UNAVAILABLE');
           const row=elem('li');
-          const title=elem('strong',service+' · '+stateLabel(state));
+          const display=names.get(service)||service;
+          const title=elem('strong',display+' · '+stateLabel(state));
+          const code=elem('small',service);code.className='ops-muted';
           const label=elem('p',t('ایمیل حساب تأییدشده: ','Verified account email: ')+contact);
           label.className='ops-muted';
           const contactLink=elem('a',t('آماده‌سازی ایمیل پیگیری (ارسال خودکار نیست)',
@@ -194,7 +229,7 @@
           contactLink.href='mailto:'+encodeURIComponent(contact)+
             '?subject='+encodeURIComponent('Service enquiry: '+service);
           const select=elem('select');
-          select.setAttribute('aria-label',t('وضعیت بعدی برای ','Next review status for ')+service);
+          select.setAttribute('aria-label',t('وضعیت بعدی برای ','Next review status for ')+display);
           for(const next of allowedTransitions[state]){
             const option=elem('option',stateLabel(next));
             option.value=next;select.append(option);
@@ -206,8 +241,8 @@
             const next=select.value;
             if(!allowedTransitions[state].includes(next))return;
             if(!window.confirm(t(
-              'تغییر وضعیت درخواست '+service+' به '+stateLabel(next)+'؟ این کار پیام، رزرو یا پرداخت ایجاد نمی‌کند.',
-              'Change '+service+' to '+stateLabel(next)+'? No email, booking or payment will be created.'
+              'تغییر وضعیت درخواست '+display+' به '+stateLabel(next)+'؟ این کار پیام، رزرو یا پرداخت ایجاد نمی‌کند.',
+              'Change '+display+' to '+stateLabel(next)+'? No email, booking or payment will be created.'
             )))return;
             const stamp=leadGeneration;
             change.disabled=true;
@@ -243,7 +278,7 @@
               }
             }
           });
-          row.append(title,label,contactLink,select,change);
+          row.append(title,code,label,contactLink,select,change);
           leadList.append(row);
         }
         leadCursor=data.nextCursor;
@@ -262,10 +297,12 @@
           leadStatus.textContent=t('دسترسی مدیر ارشد با تأیید دومرحله‌ای تازه لازم است.',
             'Super-admin access with fresh MFA is required.');
         }else{
-          if(!isNextPage){leadList.replaceChildren();leadCursor=null;}
-          moreLeads.hidden=leadCursor===null;
-          leadStatus.textContent=t('صف معتبر قابل دریافت نیست؛ هیچ داده‌ای تخمین زده نمی‌شود.',
-            'Current worklist unavailable; no records are inferred.');
+          // A failed page may contain stale or partially validated private
+          // contacts. Discard the entire snapshot rather than keeping them
+          // actionable after an unverified refresh or malformed response.
+          clearSensitive();
+          leadStatus.textContent=t('صف معتبر قابل دریافت نیست؛ اطلاعات قبلی پاک شد. برای مشاهده وضعیت واقعی دوباره بررسی کنید.',
+            'Current worklist unavailable; previous contacts were cleared. Refresh to verify the current queue.');
         }
       }finally{
         if(generation===leadGeneration){
