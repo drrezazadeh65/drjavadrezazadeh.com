@@ -43,7 +43,8 @@ for(const [lang,path] of [['fa','/fa/support-talented-students/'],['en','/en/sup
 test('English support links are localised and do not contain dead public privacy path',async({page})=>{
  await page.goto(base+'/en/support-talented-students/');
  await expect(page.locator('a[href="/en/account/#student-support"]')).toHaveCount(1);
- await expect(page.locator('a[href="/en/golden-talent/student/"]')).toHaveCount(1);
+ await expect(page.locator('a[href="/en/golden-talent/student/"]')).toHaveCount(2);
+ await expect(page.locator('a[href="/fa/danesh-amoozan/"]')).toHaveCount(0);
  await expect(page.locator('a[href="/en/account/privacy/"]')).toHaveCount(1);
  await expect(page.locator('a[href="/en/privacy/"]')).toHaveCount(0);
 });
