@@ -1,0 +1,135 @@
+/*
+ * JHELA · OJS 3.5 journal stylesheet candidate v1.0
+ * Upload ONLY to a verified, backed-up native OJS installation via
+ * Website > Appearance > Advanced > Journal Style Sheet.
+ * Non-executable, reversible, journal-scoped visual layer.
+ * Do not use as a substitute for native OJS roles/authorization.
+ * No selectors hide system warnings, labels, instructions or review controls.
+ */
+:root{
+  --jhela-navy:#102940;
+  --jhela-navy-deep:#091a2a;
+  --jhela-brass:#916b27;
+  --jhela-brass-dark:#755318;
+  --jhela-ink:#172739;
+  --jhela-muted:#475566;
+  --jhela-rule:#d9e0e5;
+  --jhela-paper:#fff;
+  --jhela-canvas:#f5f7f9;
+  --jhela-focus:#a66a00;
+}
+body{background:var(--jhela-canvas);color:var(--jhela-ink)}
+/* OJS reader pages. Native editorial dashboard components are not restyled. */
+.pkp_structure_page{
+  background:var(--jhela-paper);
+  color:var(--jhela-ink);
+  box-shadow:0 20px 65px rgba(10,35,59,.075);
+}
+.pkp_structure_head{background:var(--jhela-navy-deep)}
+.pkp_head_wrapper{max-width:1240px}
+.pkp_site_name .is_img img,.pkp_site_name img{
+  width:auto;max-width:min(100%,460px);max-height:132px;object-fit:contain;
+}
+.pkp_navigation_primary_wrapper{background:var(--jhela-navy)}
+.pkp_navigation_primary>li>a,
+.pkp_navigation_primary>li>a:link,
+.pkp_navigation_primary>li>a:visited{
+  color:#fff;
+  letter-spacing:.012em;
+  font-weight:600;
+}
+.pkp_navigation_primary>li>a:hover,
+.pkp_navigation_primary>li>a:focus-visible{
+  color:#fce7aa;
+}
+.pkp_navigation_primary .dropdown-menu{
+  background:#fff;border:1px solid var(--jhela-rule);
+  box-shadow:0 16px 36px rgba(16,41,64,.16);
+}
+.pkp_navigation_primary .dropdown-menu a{color:var(--jhela-ink)}
+.pkp_structure_main h1,
+.pkp_structure_main h2,
+.pkp_structure_main h3,
+.pkp_structure_main .page_title,
+.pkp_structure_main .current_issue_title{
+  font-family:Georgia,'Times New Roman',serif;
+  color:var(--jhela-navy);
+  line-height:1.26;
+  text-wrap:balance;
+}
+.pkp_structure_main h1,.pkp_structure_main .page_title{
+  font-size:clamp(1.9rem,3.8vw,3rem);
+  letter-spacing:-.025em;
+}
+.pkp_structure_main p,.pkp_structure_main li{
+  line-height:1.75;
+  overflow-wrap:break-word;
+}
+.pkp_structure_main a{color:#075987;text-underline-offset:3px}
+.pkp_structure_main a:hover{color:#074168}
+.pkp_structure_main a:focus-visible,
+.pkp_structure_sidebar a:focus-visible,
+.pkp_navigation_primary a:focus-visible,
+.pkp_navigation_user a:focus-visible,
+.pkp_structure_main button:focus-visible,
+.pkp_structure_main input:focus-visible,
+.pkp_structure_main select:focus-visible,
+.pkp_structure_main textarea:focus-visible{
+  outline:3px solid var(--jhela-focus);
+  outline-offset:3px;
+  border-radius:2px;
+}
+.pkp_structure_main .obj_article_summary,
+.pkp_structure_main .obj_issue_summary,
+.pkp_structure_main .cmp_article_list{
+  border-color:var(--jhela-rule);
+}
+.pkp_structure_main .obj_article_summary .title,
+.pkp_structure_main .obj_issue_summary .title{font-weight:650}
+.pkp_structure_main .obj_article_details .main_entry,
+.pkp_structure_main .obj_article_details .entry_details{
+  min-width:0;
+}
+.pkp_structure_main .obj_article_details .abstract{
+  font-size:1.03rem;line-height:1.8;
+}
+.pkp_structure_main .obj_article_details .item{
+  border-color:var(--jhela-rule);
+}
+.pkp_structure_main .obj_galley_link{
+  background:var(--jhela-navy);border-color:var(--jhela-navy);
+  color:#fff;border-radius:7px;font-weight:650;
+}
+.pkp_structure_main .obj_galley_link:hover,
+.pkp_structure_main .obj_galley_link:focus-visible{
+  background:#244a69;border-color:#244a69;color:#fff;
+}
+.pkp_structure_sidebar .pkp_block{
+  border:1px solid var(--jhela-rule);
+  border-radius:12px;
+  padding:16px 18px;
+  background:#fff;
+}
+.pkp_structure_sidebar .pkp_block .title{
+  color:var(--jhela-navy);font-weight:750;
+}
+.pkp_structure_footer{background:var(--jhela-navy-deep);color:#f6f7f9}
+.pkp_structure_footer a{color:#f8e6b8}
+.pkp_structure_footer a:hover{color:#fff}
+/* RTL information pages; English article metadata retains natural text direction. */
+html[dir="rtl"] .pkp_structure_main{text-align:start}
+html[dir="rtl"] .pkp_navigation_primary{direction:rtl}
+@media(max-width:991px){
+  .pkp_structure_page{box-shadow:none}
+  .pkp_site_name .is_img img,.pkp_site_name img{max-width:min(78vw,350px)}
+  .pkp_structure_main h1,.pkp_structure_main .page_title{font-size:clamp(1.75rem,8vw,2.35rem)}
+  .pkp_structure_sidebar .pkp_block{padding:14px}
+}
+@media(prefers-reduced-motion:reduce){
+  .pkp_structure_page *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
+@media print{
+  body,.pkp_structure_page{background:#fff!important;color:#000!important;box-shadow:none!important}
+  .pkp_navigation_primary_wrapper,.pkp_structure_sidebar{display:none!important}
+  .pkp_structure_main a{color:#000;text-decoration:underline}
+}
