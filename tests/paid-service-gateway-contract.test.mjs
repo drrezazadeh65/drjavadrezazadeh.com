@@ -43,6 +43,13 @@ test('paid books permit post-payment shipping coordination without bypassing sto
   assert.match(create,/if\(\$hasBook&&!stage9BookStockReady\(\$pdo\)\)/);
   assert.match(create,/stage9ReserveBooks\(\$pdo,\$order,\$lines\)/);
 });
+test('health contract distinguishes manual fulfilment from paid checkout readiness',()=>{
+  assert.match(api,/'serviceFulfilmentMode'=>'manual_post_payment'/);
+  assert.match(api,/'vipFulfilmentMode'=>'manual_post_payment'/);
+  assert.match(api,/'bookFulfilmentMode'=>'stock_reserved_manual_shipping'/);
+  assert.match(api,/'bookPaymentRequiresReconciledStock'=>true/);
+  assert.match(api,/'selfServiceBooking'=>false/);
+});
 test('money movement retains authoritative server verification and stock protections',()=>{
   assert.match(api,/function commerceReady\(\): bool/);
   assert.match(api,/stage9SchemaReady\(db\(\)\)/);
