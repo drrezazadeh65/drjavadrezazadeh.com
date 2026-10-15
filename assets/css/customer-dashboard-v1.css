@@ -977,3 +977,14 @@ body.customer-dashboard:not(.rtl) :is(button,input,select,textarea){font-family:
 .jr-payment-receipt-brand img{display:block;width:min(55%,260px);height:auto;max-height:95px;object-fit:contain}
 .jr-payment-receipt-brand h4{margin:0;font-size:1.05rem;color:#1f1f1f}
 @media(max-width:540px){.jr-payment-receipt-brand{flex-direction:column;align-items:flex-start}.jr-payment-receipt-brand img{width:min(100%,220px)}}
+
+.jr-payment-receipt-print{margin:.8rem 0;padding:.6rem 1rem;border:1px solid #a88955;border-radius:.5rem;background:#f8f5e9;color:#1f1f1f;cursor:pointer}
+@media print{
+ body.jr-receipt-print-mode *{visibility:hidden!important}
+ body.jr-receipt-print-mode .jr-receipt-print-target,
+ body.jr-receipt-print-mode .jr-receipt-print-target *{visibility:visible!important}
+ body.jr-receipt-print-mode .jr-receipt-print-target{position:absolute!important;top:12mm!important;left:12mm!important;right:12mm!important;display:block!important;width:auto!important;max-width:none!important;padding:18mm!important;background:#f8f5e9!important;color:#1f1f1f!important;border:1px solid #a88955!important;direction:rtl!important}
+ body.jr-receipt-print-mode .jr-receipt-print-target summary,
+ body.jr-receipt-print-mode .jr-payment-receipt-print{display:none!important}
+ @page{size:A4;margin:12mm}
+}
