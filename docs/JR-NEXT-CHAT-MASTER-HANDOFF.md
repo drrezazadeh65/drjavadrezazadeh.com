@@ -112,3 +112,41 @@ Inspect current GitHub branch, FA/EN homepage markup, existing mobile nav JS/CSS
 
 ### A ready-to-paste next-chat request
 "Continue the drjavadrezazadeh.com Website project from `docs/JR-NEXT-CHAT-MASTER-HANDOFF.md` in the canonical GitHub repo `drrezazadeh65/drjavadrezazadeh.com`, branch `migration/bertina-linux6`. Read the new 2026-10-15 checkpoint and SUPER MASTER directive, check the **latest** GitHub HEAD/Actions and project history. Do not redo already committed work. Keep coding, testing and integrating the bilingual v5.1.0 commercial customer journey and premium design until defensibly ready for a *single* controlled release. **Do not deploy the live site yet; tell me first when the verified release gate is ready.** Give evidence-based updates and keep this handoff current."
+
+
+---
+
+## 2026-10-15 continuation — catalogue-grounded consent and release-candidate retest
+
+**Read this newest checkpoint after the previous October 15 section. It supersedes test-status guesses from this session.** This is an explicitly *NONDEPLOYING* development checkpoint.
+
+### Branch, change provenance and no-live-release
+
+- Start-of-session canonical HEAD: `38c44eadf4d9cee2e5db5e238ee8fa9e9dad7672`. Compared against `7fd008f973b725e77319eed05d2c1f64ccf599a3`: **one handoff-documentation-only commit**, not missing code.
+- Last tested code HEAD before adding this note: **`bf1d7e4db994f3e1459256f198b8a74d52399d56`**. Re-fetch latest HEAD before the next modification because parallel desktop/mobile work may have moved it. This handoff commit is documentation-only and **will advance the branch beyond the tested code SHA**; do not falsely label the resulting docs-only SHA as a separately CI-certified release.
+- `.github/workflows/deploy-bertina.yml` checked at source: `workflow_dispatch` only, current-branch and exact source/live SHA checks still present. No production deployment or payment was initiated in this chat; owner authorization for a final controlled deployment remains withheld.
+
+### Implemented and committed in canonical development branch
+
+The source-proven problem was duplicated, outdated English labels in the Stage14 account-consented consultation enquiry form. This disagreed with the established 21-entry official `assets/data/service-descriptions-en.json` and the customer dashboard / email composer.
+
+- `b1ebe69e`: `assets/js/consented-lead-intake.js` now retrieves authoritative `assets/data/service-catalog.json` plus the English descriptions file; deletes parallel hard-coded 21 English service names. The ordinary selected service displays catalogue-grounded fee, fit, expected outcome and boundary before consent, rendered through safe DOM `textContent`. Prices are displayed as **catalogue information only**, not proof of payment, entitlement or booking. Changing selected service revokes the unchecked consent checkbox. If English localization is unavailable the consented submission option fails closed while the separate email route remains available.
+- `764e47e3`, `04d97892`, `bf1d7e4d`: `tests/service-request-summary.spec.js` asserts official EN names, FA/EN selected-service details and consent reset, and negative missing-localization / visible email fallback.
+- `fd1266a3`: `assets/css/jr-ecosystem-design-v2.css` shared bilingual scope-panel styling.
+- `f70d9c16`, `f7f51128`: `fa/darkhast-moshavere/index.html` and `en/request-consultation/index.html` invalidate relevant JS/CSS caches by shared new asset query versions.
+- `89b464c1`, `797e7bfd`: `tests/stage14-growth-privacy.test.mjs` now asserts exact canonical 21 English translations and privacy/no-payment guard, not existence of a duplicate JS English list; regex test fixture repaired.
+- No existing store, price source, authentication, payment/settlement, appointment write endpoint, GitHub deploy workflow, service URLs or live database were rewritten.
+
+### Verification evidence — source, CI, live are different
+
+- **SUCCESS:** [v5.1.0 nondeploying candidate, run 38709230938](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38709230938), on tested code SHA `bf1d7e4db994f3e1459256f198b8a74d52399d56`: contract, public-observation, browser and candidate jobs successful; **176/176 Playwright tests passing** (browser job log). Earlier code snapshot 797e had 175 passing plus one faulty new test locator for a hidden mailto preview; fixed in `bf1d7e4d`. No need to re-open this resolved fixture failure.
+- **SUCCESS** same tested code SHA: [Master SEO 38709231110](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38709231110), [SEO/GEO 38709231088](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38709231088), [Bertina provider guard 38709231136](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38709231136).
+- **SUCCESS** Stage14 consent/privacy contract checks on immediate prior `797e7bfd`: [run 38708950936](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38708950936); the final `bf1d7e4d` change was only a Playwright locator correction.
+- Prior public-observation job independently counted **164/164 sitemap URLs present on both source and live discovery** and **90/90 valid WebP media**, but specifically reported **source/live revision drift**. Neither sitemap parity nor passing code/browser CI proves this source revision is in Bertina or that real checkout, customer MFA, booking, SMTP or database writes operate there.
+- English and Golden Talent prototype Markdown text was found in Project Library and examined; treat as conceptual copy guidance, **not** a full visual specification. Do not invent unavailable seven-design-mode definitions.
+
+### Release still blocked; precise next high-impact task
+
+**DO NOT DEPLOY THE MAIN SITE.** Real Bertina acceptance for one commercially usable release still requires independently validated host deployment/rollback evidence, operational account email verification and MFA, MariaDB consultation-week schema and owner-published real capacity (1–4 hours/day, Tehran), end-to-end consented lead / withdrawal with real owned account, live payment provider and reconciled settlement where claimed, accurate stock/fulfilment and student-support donation configuration, and secure post-release incident observability. Psychometric standardisation for Golden Talent, RCAS and BAHAR remains separate from synthetic source tests; no diagnostic/predictive claims.
+
+**Next implementation priority:** inspect FA/EN consultation and account journey for additional confirmed data-flow/visual mismatches (including VIP option evidence and parity) and the protected dashboard/administrator workflow; fix a real source-proven defect in one coherent batch and run matching E2E. Then independently review homepage/mobile/desktop visual quality against approved identity and conceptual prototypes. Keep updating this same document with new exact HEAD + Actions run IDs. No new branch, duplicated CRM or store, and no live deploy without explicit owner go-ahead.
