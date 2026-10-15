@@ -25,6 +25,11 @@ for(const name of templates){
  assert.ok(!/<script\b/i.test(html),name+': preview must not execute JavaScript');
  console.log('PASS '+name);
 }
+const live=fs.readFileSync(path.join(root,'assets/js/student-sponsorship-dashboard.js'),'utf8');
+const page=fs.readFileSync(path.join(root,'fa/customer-dashboard/index.html'),'utf8');
+assert.ok(live.includes('/identity/references/persian-symbol-gold.png'));
+assert.ok(live.includes('/identity/references/persian-wordmark-gold.png'));
+assert.ok(page.includes('20261015-persian-receipt-lockup-v1'));
 const css=fs.readFileSync(path.join(root,'identity/document.css'),'utf8');
 assert.ok(css.includes('@page')&&css.includes('A4'),'Shared document stylesheet must support A4');
 assert.ok(css.includes('.jr-document__header')&&css.includes('.jr-document__footer'));
