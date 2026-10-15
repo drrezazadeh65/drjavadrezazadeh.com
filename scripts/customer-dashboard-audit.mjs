@@ -60,7 +60,7 @@ for(const [label,html] of [['FA',fa],['EN',en]]){
   expect(count(html,'data-consultation-appointments')===1,label+': verified appointment panel must appear once');
   expect(count(html,'data-consultation-check')===1,label+': explicit buyer lookup control missing');
   expect(count(html,'data-consultation-results')===1,label+': private appointment result region missing');
-  expect(count(html,'consultation-appointments.js?v=20261014-portal-verified-v2')===1,
+  expect(count(html,'consultation-appointments.js?v=20261015-partial-record-integrity-v3')===1,
     label+': versioned private appointments runtime must load exactly once');
 }
 
