@@ -536,3 +536,20 @@ transition-duration:0s!important;animation-duration:0s!important
     box-shadow:none!important
   }
 }
+
+/* Stage14 consultation: bilingual, catalogue-grounded scope before consent. */
+.jr2-consultation .jr2-service-consent-context{
+  min-width:0;margin:0 0 24px;padding:clamp(16px,2.8vw,24px);
+  border:1px solid rgba(218,185,115,.33);border-radius:16px;
+  background:linear-gradient(130deg,rgba(218,185,115,.09),rgba(17,20,23,.74));
+  color:#eee7da;overflow-wrap:anywhere
+}
+.jr2-consultation .jr2-service-consent-context h3{
+  margin:0 0 12px;color:#f3dca0;font-size:clamp(1.1rem,2.4vw,1.35rem);line-height:1.55
+}
+.jr2-consultation .jr2-service-consent-context p{margin:0 0 10px;line-height:1.8}
+.jr2-consultation .jr2-service-consent-context strong{color:#f6e6bd}
+.jr2-consultation .jr2-service-consent-context .jr2-service-consent-note{
+  margin:15px 0 0;padding-block-start:12px;border-top:1px solid rgba(218,185,115,.22);
+  color:#ddd4c6;font-size:.94rem
+}
