@@ -428,16 +428,17 @@ const gh='/drjavadrezazadeh.com/';
 const base=raw.includes(gh)?gh:'/';
 const relative=base==='/'?raw:'/'+raw.slice(base.length);
 const privatePath=JR_PRIV(relative);
-if(!ios||standalone||privatePath||sessionStorage.getItem('ios-install-dismissed')==='1'||document.querySelector('.pwa-install')) return;
+if(!ios||standalone||privatePath||jrPwaRead(jrPwaAutoKey)==='1'||document.querySelector('.pwa-install')) return;
 const isFa=document.documentElement.lang==='fa';
 window.addEventListener('load',()=>{
 setTimeout(()=>{
-if(document.querySelector('.pwa-install')) return;
+if(document.querySelector('.pwa-install')||jrPwaRead(jrPwaAutoKey)==='1') return;
+jrPwaWrite(jrPwaAutoKey,'1');
 const wrap=document.createElement('div');
 wrap.className='pwa-install';
 wrap.innerHTML='<div class="pwa-install-btn" role="note">'+(isFa?'برای تجربه شبیه اپ: Share → Add to Home Screen':'For an app-like experience: Share → Add to Home Screen')+'</div><button type="button" class="pwa-install-close" aria-label="'+(isFa?'بستن':'Close')+'">×</button>';
 document.body.appendChild(wrap);
-wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>{sessionStorage.setItem('ios-install-dismissed','1');wrap.remove();});
+wrap.querySelector('.pwa-install-close')?.addEventListener('click',()=>{jrPwaWrite(jrPwaAutoKey,'1');wrap.remove();});
 },1800);
 });
 })();
