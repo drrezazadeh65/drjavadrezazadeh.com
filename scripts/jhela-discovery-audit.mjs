@@ -8,6 +8,7 @@ const base='https://drjavadrezazadeh.com';
 const faJournalRoutes=[
  '/journal/fa/',
  '/journal/fa/dashboard/',
+ '/journal/fa/roadmap/',
  '/journal/fa/aims-scope/',
  '/journal/fa/call-for-reviewers/',
  '/journal/fa/founding-collaborators/',
@@ -20,7 +21,7 @@ const faJournalRoutes=[
  '/journal/fa/contact/'
 ];
 const journalRoutes=[
- '/journal/','/journal/dashboard/','/journal/aims-scope/',
+ '/journal/','/journal/dashboard/','/journal/roadmap/','/journal/aims-scope/',
  '/journal/author-guidelines/','/journal/contact/','/journal/editorial-board/',
  '/journal/ethics/','/journal/fees/','/journal/peer-review/',
  '/journal/reviewer-registration/','/journal/call-for-reviewers/',
@@ -139,4 +140,4 @@ if(failures.length){
  for(const failure of failures)console.error('✗ '+failure);
  process.exit(1);
 }
-console.log('JHELA independent journal sitemap: '+locs.length+' unique released English pages; honest founding status, public dashboard and reserved-host boundary PASS.');
+console.log('JHELA independent journal sitemap: '+locs.length+' unique released English/Persian pages; founding disclosures, roadmap, public dashboard and reserved-host boundary PASS.');
