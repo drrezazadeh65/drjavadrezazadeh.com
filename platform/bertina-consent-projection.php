@@ -22,7 +22,7 @@ function bertinaCurrentConsent(array $rows, string $purpose, int $now): array {
         $ts=$row['granted_at']??null;
         if(!is_string($ts)||!preg_match('/^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d(?:\.\d{1,3})?$/D',$ts))
             return $deny('INVALID_EVENT_TIME');
-        $dt=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s.u',str_contains($ts,'.')?$ts:$ts.'.000',new DateTimeZone('UTC'));
+        $dt=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s.u',str_contains($ts,'.')?$ts.'000':$ts.'.000000',new DateTimeZone('UTC'));
         if(!$dt)return $deny('INVALID_EVENT_TIME');
         $timestamp=(float)$dt->format('U.u');
         if($timestamp>$now)return $deny('FUTURE_DECISION');
@@ -43,7 +43,7 @@ function bertinaCurrentConsent(array $rows, string $purpose, int $now): array {
         if($field==='retired_at'&&$value===null)continue;
         if(!is_string($value)||!preg_match('/^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d(?:\.\d{1,3})?$/D',$value))
             return $deny('INVALID_NOTICE_TIME');
-        $dt=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s.u',str_contains($value,'.')?$value:$value.'.000',new DateTimeZone('UTC'));
+        $dt=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s.u',str_contains($value,'.')?$value.'000':$value.'.000000',new DateTimeZone('UTC'));
         if(!$dt)return $deny('INVALID_NOTICE_TIME');
         $time=(float)$dt->format('U.u');
         if($field==='effective_at'&&$time>$now)return $deny('NOTICE_NOT_EFFECTIVE');
