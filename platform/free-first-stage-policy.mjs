@@ -14,7 +14,9 @@ export function authoriseFreeFirstStage({module,stage,actor,subject,assessmentCo
    return deny('AUTHENTICATION_REQUIRED');
  if(subject?.record_source!=='PERSISTED'||!subject.id)return deny('SUBJECT_NOT_VERIFIED');
  if(typeof subject.is_minor!=='boolean')return deny('AGE_CLASSIFICATION_REQUIRED');
- const isSelf=subject.student_account_id===actor.account_id;
+ // Until student assent and revocable guardian delegation are implemented,
+ // a minor cannot launch a private stage from an independent self session.
+ const isSelf=subject.is_minor===false&&subject.student_account_id===actor.account_id;
  const isGuardian=subject.is_minor===true&&subject.guardian_account_id===actor.account_id&&
    guardianRelation?.record_source==='PERSISTED'&&guardianRelation.state==='VERIFIED'&&
    guardianRelation.subject_id===subject.id&&guardianRelation.actor_id===actor.account_id;
