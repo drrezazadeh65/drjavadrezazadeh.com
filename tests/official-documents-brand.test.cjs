@@ -30,6 +30,9 @@ const page=fs.readFileSync(path.join(root,'fa/customer-dashboard/index.html'),'u
 assert.ok(live.includes('/identity/references/persian-symbol-gold.png'));
 assert.ok(live.includes('/identity/references/persian-wordmark-gold.png'));
 assert.ok(page.includes('20261015-persian-receipt-lockup-v1'));
+const favicon=fs.readFileSync(path.join(root,'favicon.svg'),'utf8');
+assert.ok(favicon.includes('data:image/png;base64,'),'SVG favicon must be self-contained for browser compatibility');
+assert.ok(!/href="\/(?!\/)/.test(favicon),'SVG favicon must not depend on external images');
 const css=fs.readFileSync(path.join(root,'identity/document.css'),'utf8');
 assert.ok(css.includes('@page')&&css.includes('A4'),'Shared document stylesheet must support A4');
 assert.ok(css.includes('.jr-document__header')&&css.includes('.jr-document__footer'));
