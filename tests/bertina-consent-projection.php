@@ -18,4 +18,6 @@ $check(!bertinaCurrentConsent([array_replace($grant,['retired_at'=>'2026-10-15 0
 $check(!bertinaCurrentConsent([array_replace($grant,['granted_at'=>'2026-10-17 00:00:00'])],'ASSESSMENT',$now)['allowed'],'future event');
 $check(!bertinaCurrentConsent([array_replace($grant,['purpose_code'=>'PARENT_VISIBILITY'])],'ASSESSMENT',$now)['allowed'],'purpose mismatch');
 $check(!bertinaCurrentConsent([array_replace($grant,['withdrawn_at'=>'2026-10-15 11:00:00'])],'ASSESSMENT',$now)['allowed'],'withdrawn flag');
-echo "Bertina isolated consent projection: 8 checks passed\n";
+$check(!bertinaCurrentConsent([array_replace($grant,['granted_at'=>'2026-02-30 10:00:00.100'])],'ASSESSMENT',$now)['allowed'],'invalid calendar date');
+$check(!bertinaCurrentConsent([array_replace($grant,['effective_at'=>'2026-02-30 10:00:00'])],'ASSESSMENT',$now)['allowed'],'invalid notice calendar date');
+echo "Bertina isolated consent projection: 10 checks passed\\n";
