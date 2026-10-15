@@ -9,12 +9,12 @@ if(host && workspace){
   const fa=document.documentElement.lang==='fa';
   const t=(a,b)=>fa?a:b;
   const model={
-    IRT:{goal:'',fixed:'',reserve:'',available:'',lines:[
+    IRT:{goal:'',goalMetric:'GROSS',fixed:'',reserve:'',available:'',lines:[
       {product:'SERVICE:talent_initial',quantity:'',unitCost:'',minutes:''},
       {product:'SERVICE:academic_consult_60',quantity:'',unitCost:'',minutes:'60'},
       {product:'VIP:institutional-advisory',quantity:'',unitCost:'',minutes:''}
     ]},
-    USD:{goal:'10000',fixed:'',reserve:'',available:'',lines:[
+    USD:{goal:'10000',goalMetric:'CONTRIBUTION',fixed:'',reserve:'',available:'',lines:[
       {name:'Digital assessments',price:'',quantity:'',unitCost:'',minutes:''},
       {name:'Specialist consultations',price:'',quantity:'',unitCost:'',minutes:''},
       {name:'Institutional services',price:'',quantity:'',unitCost:'',minutes:''}
@@ -79,7 +79,17 @@ if(host && workspace){
     const s=current();
     const goal=numeric(s.goal,{step:currency==='USD'?'0.01':'1'});
     goal.addEventListener('input',()=>{s.goal=goal.value;update()});
-    top.append(field(t('هدف درآمد ناخالص ماهانه','Monthly gross revenue goal'),goal));
+    const metric=el('select');
+    for(const [code,label] of [
+      ['GROSS',t('فروش ناخالص پیش از هزینه‌ها','Gross sales before costs')],
+      ['CONTRIBUTION',t('مانده پس از هزینه‌های واردشده (پیش از مالیات)','Contribution after entered costs (before tax)')]
+    ]){
+      const option=el('option','',label);option.value=code;metric.append(option);
+    }
+    metric.value=s.goalMetric;
+    metric.addEventListener('change',()=>{s.goalMetric=metric.value;render()});
+    top.append(field(t('نوع هدف ماهانه','Monthly goal measure'),metric));
+    top.append(field(t('مبلغ هدف ماهانه','Monthly goal amount'),goal));
     main.append(top);
     const list=el('div','jr-revenue-lines');
     for(const [idx,line] of s.lines.entries()){
@@ -144,7 +154,8 @@ if(host && workspace){
       if(!Number.isFinite(refundPct)||refundPct<0||refundPct>100)throw new RangeError('invalid reserve');
       const reserveBps=Math.round(refundPct*100);
       const forecast=forecastRevenue({currency,lines,monthlyGoalMinor:minor(s.goal,currency),
-        fixedCostMinor:minor(s.fixed,currency),refundReserveBasisPoints:reserveBps,availableMinutes:minutes(s.available)});
+        fixedCostMinor:minor(s.fixed,currency),refundReserveBasisPoints:reserveBps,
+        availableMinutes:minutes(s.available),goalMetric:s.goalMetric});
       const grid=el('div','ops-grid');
       const card=(name,value,subtitle)=>{
         const article=el('article','ops-card');
@@ -153,7 +164,11 @@ if(host && workspace){
       card(t('فروش ناخالصِ فرضی','Hypothetical gross sales'),money(forecast.grossMinor),t('نه گردش مالی واقعی','Not observed transactions'));
       card(t('ذخیره استرداد','Refund reserve'),money(forecast.reserveMinor),t('فرض انتخابی شما','Your own assumption'));
       card(t('سهم پس از هزینه‌های واردشده','Contribution after entered costs'),money(forecast.contributionMinor),t('بدون هزینه‌های ثبت‌نشده یا مالیات','Excludes unentered costs and taxes'));
-      card(t('فاصله تا هدف فروش ناخالص','Gross goal shortfall'),s.goal!==''?money(forecast.goalGapMinor):t('هدف تعیین نشده','No goal entered'),t('فقط بر اساس فرضیات بالا','Based only on the assumptions above'));
+      card(s.goalMetric==='CONTRIBUTION'
+        ?t('فاصله تا هدف مانده عملیاتی','Contribution goal shortfall')
+        :t('فاصله تا هدف فروش ناخالص','Gross sales goal shortfall'),
+        s.goal!==''?money(forecast.selectedGoalGapMinor):t('هدف تعیین نشده','No goal entered'),
+        t('فرضی، پیش از مالیات و هزینه‌های لحاظ‌نشده','Hypothetical; excludes taxes and unentered costs'));
       card(t('حجم فروش موردنیاز در سناریو','Assumed order volume'),forecast.units.toLocaleString(fa?'fa-IR':'en-US'),t('تعداد از ورودی‌های شما','Sum of entered quantities'));
       card(t('ظرفیت تحویل','Delivery capacity'),forecast.capacityStatus==='OVER_CAPACITY'?t('بیش از ظرفیت','Over capacity'):forecast.capacityStatus==='WITHIN_CAPACITY'?t('در محدوده ورودی','Within stated capacity'):t('نامشخص','Unknown'),
         forecast.requiredMinutes===null?t('برخی ساعات انجام کار مشخص نیست','Some delivery times are missing'):t('ساعات لازم: ','Required hours: ')+(forecast.requiredMinutes/60).toLocaleString(fa?'fa-IR':'en-US'));
@@ -163,6 +178,14 @@ if(host && workspace){
       if(s.fixed==='')gaps.push(t('هزینه‌های ثابت هنوز برآورد نشده‌اند.','Fixed costs have not been estimated.'));
       if(s.reserve==='')gaps.push(t('ذخیرهٔ استرداد هنوز تعیین نشده است.','A refund reserve has not been selected.'));
       if(forecast.capacityStatus==='UNKNOWN')gaps.push(t('ظرفیت عملیاتی تأیید نشده است.','Delivery capacity is not established.'));
+      if(forecast.capacityStatus==='OVER_CAPACITY')gaps.push(t('این ترکیب فروش با ساعات عرضه‌شده قابل تحویل نیست.','This sales mix exceeds entered delivery capacity.'));
+      if(s.goal!==''&&forecast.selectedGoalMet){
+        const caution=s.fixed===''||s.reserve===''||s.lines.some(x=>x.unitCost===''||x.minutes==='')||
+          forecast.capacityStatus!=='WITHIN_CAPACITY';
+        gaps.push(caution
+          ?t('هدف صرفاً روی کاغذ پوشش داده می‌شود؛ هزینه یا ظرفیت کامل معلوم نیست.','The scenario meets its numerical target, but cost or capacity assumptions remain incomplete.')
+          :t('هدف در سناریو برآورده شده است؛ این رقم فروش یا سود واقعی نیست.','The scenario meets the entered target, not verified revenue or profit.'));
+      }
       if(gaps.length)result.append(el('p','jr-revenue-warning',gaps.join(' ')));
       result.append(el('p','ops-muted',t('این بخش فقط تحلیل سناریوی مدیر است و به داشبورد درآمد واقعی، دیتابیس، مشتری، ایمیل، بانک یا درگاه متصل نیست.',
         'Planning only: this model does not connect to live accounting, customers, bank settlement, bookings or payments.')));
