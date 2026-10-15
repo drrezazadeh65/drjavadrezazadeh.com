@@ -174,3 +174,22 @@ The design is ready for implementation when:
 - W3C. WCAG 2.2, Success Criterion 2.5.8 Target Size (Minimum). https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum
 - Google for Developers. Authenticate with a backend server. https://developers.google.com/identity/sign-in/web/backend-auth
 - Google for Developers. Verify the Google ID token on your server side. https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
+
+
+## Approved owner-provided visual assets — 15 October 2026
+
+The owner explicitly selected the original gold Persian calligraphic symbol (not Latin JR) as the canonical favicon and installed mobile/desktop PWA icon. Five owner-provided design references are the visual foundation for website, shop, account, operations dashboard, receipts, certificates, assessments and reports.
+
+Canonical binary asset destinations, to be supplied from the exact owner uploads:
+- `identity/references/brand-board.png`: brand board and document layout.
+- `identity/references/persian-wordmark-gold.png`: complete gold Persian name lockup.
+- `identity/references/persian-symbol-gold.png`: original isolated Persian icon.
+- `identity/references/brand-board-secondary.png`: additional original board.
+- `identity/references/website-design-board.png`: responsive site/app screen reference.
+- `assets/images/persian-brand-symbol.png`: same original symbol for shared identity components.
+- `assets/images/pwa-icon-192.png`, `pwa-icon-512.png`, `pwa-icon-maskable-512.png`, `pwa-icon-180.png`, `pwa-icon-16.png`, `pwa-icon-32.png`, `pwa-icon-48.png`: image derivatives for installed apps and favicon.
+- `favicon.ico` and `favicon.png`: browser favicon derivatives.
+
+Keep existing public icon URLs in `site.webmanifest`, `sw.js`, HTML and shortcut definitions where possible, so replacement of binaries at those same paths updates all installed-app consumers. Update service worker cache version and audit Safari apple-touch-icon references at release time. Do not switch the favicon SVG to an invented vector: the authentic icon is currently a raster source. Verify maskable safe-zone visually before deployment.
+
+**Integration gate:** source PNGs must physically exist in the branch, have valid image dimensions and provenance, and the relevant HTML/manifest/service-worker references must resolve. This specification alone does not mean that binary files have been uploaded or the site deployed. The exact owner-provided image package was prepared as `jr-brand-master-assets.zip` and favicon package as `jr-persian-favicon-ready.zip` in the conversation.
