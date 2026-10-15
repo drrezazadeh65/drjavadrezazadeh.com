@@ -23,6 +23,15 @@ on:
       - 'scripts/stage14-lead-retention.php'
       - 'assets/js/consented-lead-intake.js'
       - 'assets/js/customer-consultation-leads.js'
+      - 'assets/js/institutional-brief-builder.mjs'
+      - 'assets/css/institutional-brief-builder.css'
+      - 'fa/hamkari-sazmani/index.html'
+      - 'en/invite/index.html'
+      - 'fa/estedaadyabi/index.html'
+      - 'fa/entekhab-reshteh/index.html'
+      - 'fa/moshavere-tahsili/index.html'
+      - 'en/services/index.html'
+      - 'tests/institutional-conversion.test.mjs'
       - 'assets/js/operations-growth.js'
       - 'tests/stage14-growth-privacy.test.mjs'
       - 'scripts/stage14-organic-growth-audit.mjs'
@@ -49,6 +58,8 @@ jobs:
       - run: node --check platform/organic-growth-revenue.mjs
       - run: node --check assets/js/consented-lead-intake.js
       - run: node --check assets/js/customer-consultation-leads.js
+      - run: node --check assets/js/institutional-brief-builder.mjs
+      - run: node --test tests/institutional-conversion.test.mjs
       - run: node --check assets/js/operations-growth.js
       - run: php -l api/growth-stage14.php
       - run: php -l api/index.php
