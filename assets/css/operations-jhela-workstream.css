@@ -1,0 +1,25 @@
+/* JHELA editorial workstream — scoped to the existing MFA-guarded operations workspace */
+#ops-jhela-workstream{--jhela-journal-navy:#102b44;--jhela-journal-gold:#edcd88;position:relative;overflow:hidden}
+#ops-jhela-workstream>summary{cursor:pointer;font-size:1.12rem;font-weight:700;color:var(--ops-gold);line-height:1.7}
+#ops-jhela-workstream .ops-jhela-masthead{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:20px 0;padding:22px;background:linear-gradient(122deg,#102b44,#13233a 78%);border:1px solid #4c6481;border-radius:16px}
+#ops-jhela-workstream .ops-jhela-masthead>div{display:grid;gap:6px}
+#ops-jhela-workstream .ops-jhela-masthead strong{font:700 clamp(2rem,5vw,3.4rem)/1 Georgia,'Times New Roman',serif;letter-spacing:.07em;color:#f5ebd0}
+#ops-jhela-workstream .ops-jhela-masthead span{font-size:.88rem;line-height:1.6;max-width:630px}
+#ops-jhela-workstream .ops-jhela-state{display:inline-block;color:#ffddd8;font-size:.84rem;font-weight:700;background:rgba(189,48,51,.12);border:1px solid #c7827b;padding:9px 13px;border-radius:999px}
+#ops-jhela-workstream .ops-jhela-quicklinks{display:flex;gap:9px;flex-wrap:wrap;margin:20px 0}
+#ops-jhela-workstream .ops-jhela-quicklinks a,#ops-jhela-workstream .ops-jhela-panels a{overflow-wrap:anywhere}
+#ops-jhela-workstream .ops-jhela-quicklinks a{display:inline-flex;align-items:center;min-height:42px;padding:8px 12px;border:1px solid var(--ops-border);border-radius:10px;text-decoration:none}
+#ops-jhela-workstream .ops-jhela-quicklinks a:hover{border-color:var(--ops-gold)}
+#ops-jhela-workstream h3{margin:20px 0 12px;color:#fae5b4}
+#ops-jhela-workstream .ops-jhela-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
+#ops-jhela-workstream .ops-jhela-tabs button{flex:1 1 auto;min-width:125px;min-height:44px;background:#172d48;color:#f3f2f0;border:1px solid #435b7c;white-space:normal;line-height:1.45;text-align:center}
+#ops-jhela-workstream .ops-jhela-tabs button[aria-selected="true"]{color:#131f2c;background:#edcd88;border-color:#ffe0a0;font-weight:700}
+#ops-jhela-workstream .ops-jhela-panels>[role="tabpanel"]{border:1px solid #3b536f;border-radius:14px;padding:20px;background:linear-gradient(150deg,#1b304b,#132238);min-height:190px}
+#ops-jhela-workstream .ops-jhela-panels h3{margin-top:0}
+#ops-jhela-workstream .ops-jhela-panels p{max-width:86ch}
+#ops-jhela-workstream .ops-jhela-gates{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));padding:0;gap:10px;list-style:none}
+#ops-jhela-workstream .ops-jhela-gates li{background:#14283f;border:1px solid #455876;border-radius:12px;padding:14px;display:grid;gap:10px}
+#ops-jhela-workstream .ops-jhela-gates small{font-size:.85rem;color:#f2c6c0}
+#ops-jhela-workstream .ops-jhela-notice{padding:14px 16px;border-inline-start:4px solid var(--ops-gold);background:#1c324b;border-radius:4px;line-height:1.85}
+@media(max-width:600px){#ops-jhela-workstream .ops-jhela-masthead{padding:16px}#ops-jhela-workstream .ops-jhela-tabs button{flex:1 1 calc(50% - 8px);min-width:0}#ops-jhela-workstream .ops-jhela-panels>[role="tabpanel"]{padding:14px}#ops-jhela-workstream .ops-jhela-quicklinks a{flex:1 1 100%}}
+@media print{#ops-jhela-workstream .ops-jhela-masthead,#ops-jhela-workstream .ops-jhela-gates li,#ops-jhela-workstream .ops-jhela-panels>[role="tabpanel"]{background:#fff;color:#000}#ops-jhela-workstream .ops-jhela-tabs{display:none}}
