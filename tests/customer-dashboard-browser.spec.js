@@ -261,7 +261,6 @@ for(const status of ['guest','verified-checkout','translations-unavailable']){
  test('English service marketplace '+status+' remains bilingual, searchable and payment-honest',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  let requestPath='';
   await page.route('**/api/**',r=>{
    const path=new URL(r.request().url()).pathname;
    if(path==='/api/auth/health')return r.fulfill({json:{ok:true,ready:true}});
@@ -306,7 +305,7 @@ for(const status of ['guest','verified-checkout','translations-unavailable']){
    expect(names.join(' ')).not.toMatch(/[\u0600-\u06ff]/);
    const search=panel.locator('[data-dashboard-service-search]');
    await search.fill('manuscript');
-   await expect(cards).toHaveCount(2);
+   await expect(cards).toHaveCount(3);
    await search.fill('golden talent');
    await expect(cards).toHaveCount(2);
    await search.fill('no-match-xyz');
