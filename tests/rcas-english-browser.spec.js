@@ -57,3 +57,37 @@ test('English dashboard supports the RCAS pilot summary',async({page})=>{
  await expect(page.locator('[data-resource="student-dashboard"]')).toBeVisible();
  await expect(page.getByText('Your current-tab RCAS reflection')).toHaveCount(0);
 });
+
+test('English RCAS response controls retain accessible dimensions on desktop and mobile',async({page})=>{
+ await page.goto(base+'/en/golden-talent/assessment/');
+ const form=page.locator('#rcasEnForm');
+ await form.locator('[name="edu"]').selectOption('University');
+ await form.locator('[name="reason"][value="learn"]').check();
+ await form.locator('[name="mainQuestion"]').fill('Which study practice should I review?');
+ for(const select of await form.locator('#rcasEnAccess select').all())await select.selectOption('limited');
+ await form.locator('[name="noEvidenceYet"]').check();
+ await form.locator('[data-next="2"]').click();
+ const first=form.locator('#rcasEnCore .rcas-item').first();
+ await expect(first).toBeVisible();
+ for(const [width,columns,minimumHeight] of [[1440,4,70],[390,2,76],[320,1,76]]){
+  await page.setViewportSize({width,height:850});
+  const data=await first.evaluate(item=>{
+   const grid=item.querySelector('.rcas-scale');
+   const span=grid.querySelector('label > span');
+   const style=getComputedStyle(span);
+   return {font:parseFloat(style.fontSize),height:span.getBoundingClientRect().height,
+    lineHeight:parseFloat(style.lineHeight),
+    columns:getComputedStyle(grid).gridTemplateColumns.trim().split(/\\s+/).length,
+    overflow:Math.max(document.body.scrollWidth,document.documentElement.scrollWidth)-innerWidth};
+  });
+  expect(data.font).toBeGreaterThanOrEqual(16);
+  expect(data.height).toBeGreaterThanOrEqual(minimumHeight);
+  expect(data.lineHeight).toBeGreaterThanOrEqual(27);
+  expect(data.columns).toBe(columns);
+  expect(data.overflow).toBeLessThanOrEqual(1);
+ }
+ await first.locator('input[type="radio"]').first().evaluate(el=>el.click());
+ await expect(first.locator('input[type="radio"]').first()).toBeChecked();
+ const selected=await first.locator('input[type="radio"]').first().evaluate(el=>getComputedStyle(el.nextElementSibling).borderTopWidth);
+ expect(selected).toBe('2px');
+});
