@@ -23,3 +23,13 @@
 #ops-jhela-workstream .ops-jhela-notice{padding:14px 16px;border-inline-start:4px solid var(--ops-gold);background:#1c324b;border-radius:4px;line-height:1.85}
 @media(max-width:600px){#ops-jhela-workstream .ops-jhela-masthead{padding:16px}#ops-jhela-workstream .ops-jhela-tabs button{flex:1 1 calc(50% - 8px);min-width:0}#ops-jhela-workstream .ops-jhela-panels>[role="tabpanel"]{padding:14px}#ops-jhela-workstream .ops-jhela-quicklinks a{flex:1 1 100%}}
 @media print{#ops-jhela-workstream .ops-jhela-masthead,#ops-jhela-workstream .ops-jhela-gates li,#ops-jhela-workstream .ops-jhela-panels>[role="tabpanel"]{background:#fff;color:#000}#ops-jhela-workstream .ops-jhela-tabs{display:none}}
+
+/* Roadmap stages are targets without manufactured completion figures. */
+#ops-jhela-workstream .ops-jhela-roadmap{padding:16px;border:1px solid #52627c;border-radius:13px;background:rgba(14,32,49,.68);margin:22px 0}
+#ops-jhela-workstream .ops-jhela-roadmap summary{color:#efd9a5;font-weight:750;cursor:pointer;line-height:1.8}
+#ops-jhela-workstream .ops-jhela-roadmap ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:0;list-style:none;margin:16px 0}
+#ops-jhela-workstream .ops-jhela-roadmap li{min-width:0;display:grid;gap:7px;border:1px solid #3a5169;border-radius:11px;padding:13px 15px;background:#142b42}
+#ops-jhela-workstream .ops-jhela-roadmap li span{overflow-wrap:anywhere}
+#ops-jhela-workstream .ops-jhela-roadmap li b{font-family:Georgia,serif;color:#f0cc80;margin-inline-end:6px}
+#ops-jhela-workstream .ops-jhela-roadmap li small{color:#e6c3b0}
+@media(max-width:640px){#ops-jhela-workstream .ops-jhela-roadmap ol{grid-template-columns:1fr}}
