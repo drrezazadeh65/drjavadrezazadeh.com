@@ -18,3 +18,18 @@ Branch: work/p1-scientific-validation-20261016. Never deploy directly to product
 ## Work status
 Existing implementation inspected: platform/golden-talent-phase12-gates.mjs, platform/rcas-evidence-bridge.mjs, platform/bahar-engine.mjs. These already contain fail-closed authorization primitives, missing-value safeguards and PREVALIDATION declarations. Preserve them; do not duplicate or silently replace.
 Pending: full repository dependency trace, database/API/dashboard integration verification, test execution, empirical validation studies and controlled release.
+
+
+## Mandatory scientific and master-design governance (owner directive, 2026-10-16)
+Before EACH development change (backend, UI, instrument, consent, reporting, dashboard, PDF, email, certificate, and print output), review the current repository master plan and design system. Primary references:
+- `docs/governance/SUPER_MASTER_EXECUTION_DIRECTIVE_20261015.md` (integrated execution/release governance)
+- `foundation/DESIGN-SYSTEM.md` (frozen semantic design baseline)
+- `foundation/MASTER-ECOSYSTEM-ROADMAP.md` (ecosystem architecture and dependencies)
+- `docs/superpowers/specs/2026-10-13-cinematic-bilingual-mobile-first-experience-design.md` (approved experience specification)
+- `identity/brand-governance.md` and `identity/OFFICIAL_DOCUMENTS_REGISTRY.md` (identity and official artifacts)
+- `assets/css/jr-ecosystem-design-v2.css` (implementation tokens; inspect current usage before changing)
+Read the relevant documents at the current branch head and record in each PR/change description: consulted paths and versions, affected components, token reuse, bilingual/RTL/LTR behavior, accessibility checks, and regression evidence. Resolve conflicts through established governance rather than creating competing visual systems.
+
+Scientific review must be traceable to authoritative primary research and current measurement standards (e.g., AERA/APA/NCME Standards for Educational and Psychological Testing, COSMIN where appropriate, and relevant ethical/privacy frameworks). Treat standards as applicability-dependent, not as a substitute for instrument-specific evidence. For each construct, document its conceptual definition, intended inference and use, population, item-content rationale, response processes, internal structure, relationships with external variables, reliability/precision, fairness, translation/adaptation, interpretive limits, and prospective validation protocol. Distinguish proposed hypotheses from established findings. Include citations with bibliographic identifiers and human scholarly review. No psychometric approval without actual study data and documented review.
+
+Design and science are joint release gates: academic rigor must be visible in explanatory language, evidence-status labels, uncertainty, consent readability, and non-stigmatizing interpretation, while preserving the existing premium, restrained, human-centred visual identity. No production changes without explicit release authorization.
