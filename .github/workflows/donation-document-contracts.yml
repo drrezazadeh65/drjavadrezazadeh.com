@@ -1,0 +1,50 @@
+name: Donation and Document Export Contracts
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'scripts/donation-cycle-audit.cjs'
+      - 'api/operations-commerce.php'
+      - 'api/index.php'
+      - 'assets/js/operations-commerce.js'
+      - 'assets/js/student-sponsorship-dashboard.js'
+      - 'assets/js/dashboard-direct-donation.js'
+      - 'assets/js/jr-document-export.js'
+      - 'fa/customer-dashboard/index.html'
+      - 'fa/app/admin/index.html'
+      - 'en/account/admin/index.html'
+      - '.github/workflows/donation-document-contracts.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          node --check scripts/donation-cycle-audit.cjs
+          node --check assets/js/student-sponsorship-dashboard.js
+          node --check assets/js/dashboard-direct-donation.js
+          node --check assets/js/operations-commerce.js
+          node --check assets/js/jr-document-export.js
+      - name: PHP syntax
+        run: |
+          php -l api/operations-commerce.php
+          php -l api/index.php
+      - name: Donation and print/PDF source contracts
+        run: node scripts/donation-cycle-audit.cjs
+      - name: Acceptance boundary
+        run: |
+          echo 'Source contracts only. This workflow does not deploy, process payments,'
+          echo 'verify bank settlement, or replace browser and database acceptance tests.'
