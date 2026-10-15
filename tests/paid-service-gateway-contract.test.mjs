@@ -44,6 +44,9 @@ test('paid books permit post-payment shipping coordination without bypassing sto
   assert.match(create,/stage9ReserveBooks\(\$pdo,\$order,\$lines\)/);
 });
 test('health contract distinguishes manual fulfilment from paid checkout readiness',()=>{
+  assert.match(api,/'manualServiceFulfilmentSupported'=>\$ready/);
+  assert.match(api,/'manualVipFulfilmentSupported'=>\$ready/);
+  assert.match(api,/'manualBookShippingSupported'=>\$ready&&stage9BookStockReady\(db\(\)\)/);
   assert.match(api,/'serviceFulfilmentMode'=>'manual_post_payment'/);
   assert.match(api,/'vipFulfilmentMode'=>'manual_post_payment'/);
   assert.match(api,/'bookFulfilmentMode'=>'stock_reserved_manual_shipping'/);
