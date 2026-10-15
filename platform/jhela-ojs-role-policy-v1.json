@@ -19,13 +19,13 @@
     "reviewerInvitationsAuthenticated": true,
     "reviewModel": "Anonymous Reviewer/Anonymous Author",
     "minimumIndependentReviewersNormally": 2,
-    "confictScreeningBeforeAssignment": true,
     "noAutomaticDecisionsFromNumericScores": true,
     "unrelatedManuscriptAccessForbidden": true,
     "noSharedSitePasswords": true,
     "privateFileStorageOutsideWebroots": true,
     "emailOnlyAccountVerification": true,
-    "manuscriptFilesMustNotEnterPublicGitHub": true
+    "manuscriptFilesMustNotEnterPublicGitHub": true,
+    "conflictScreeningBeforeAssignment": true
   },
   "groupSettings": [
     {
