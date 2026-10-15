@@ -1,0 +1,14 @@
+{
+  "schema": "jr-brand-motto-v1",
+  "status": "OWNER_APPROVED",
+  "approvedAt": "2026-10-16",
+  "fa": "ادراک ندانستن سرآغاز فهمیدن است.",
+  "en": "Recognizing what we do not know is the beginning of understanding.",
+  "canonicalLanguage": "fa",
+  "policy": "Preserve exact Persian wording and punctuation; use English translation for international surfaces. Do not reintroduce prior slogan.",
+  "surfaces": [
+    "bilingual sign-in and registration",
+    "future site-wide brand identity",
+    "website welcome and approved brand communications"
+  ]
+}
