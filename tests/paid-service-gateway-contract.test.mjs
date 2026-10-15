@@ -36,6 +36,13 @@ test('paid checkout pages load the latest payment scripts instead of stale cache
     assert.ok(readFileSync(path,'utf8').includes(version),path+' must load updated checkout code');
   }
 });
+test('paid books permit post-payment shipping coordination without bypassing stock',()=>{
+  assert.match(api,/'books'=>\$ready&&stage9BookStockReady\(db\(\)\)/);
+  const create=api.slice(api.indexOf("if(\$path==='/commerce/create'"),api.indexOf("if(\$path==='/commerce/status'"));
+  assert.doesNotMatch(create,/book_shipping_not_configured/);
+  assert.match(create,/if\(\$hasBook&&!stage9BookStockReady\(\$pdo\)\)/);
+  assert.match(create,/stage9ReserveBooks\(\$pdo,\$order,\$lines\)/);
+});
 test('money movement retains authoritative server verification and stock protections',()=>{
   assert.match(api,/function commerceReady\(\): bool/);
   assert.match(api,/stage9SchemaReady\(db\(\)\)/);
