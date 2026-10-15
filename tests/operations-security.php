@@ -100,6 +100,27 @@ $event=$pdo->query("SELECT action,reference_id FROM operations_audit
 check($event!==false && $event['reference_id']==='scientific-structural-preflight-v1',
     'Scientific admin read must be audited');
 request('/admin/operations/scientific/schema-readiness','POST',404,'not_found');
+
+foreach ([
+    'CREATE TABLE eco_subjects(id TEXT,owner_account_id TEXT,guardian_account_id TEXT,subject_type TEXT,status TEXT,age_band TEXT)',
+    'CREATE TABLE eco_subject_relationships(id TEXT,subject_id TEXT,related_account_id TEXT,relationship_code TEXT,verification_status TEXT,verified_by_account_id TEXT,expires_at TEXT)',
+    'CREATE TABLE eco_consent_notices(id TEXT,purpose_code TEXT,version_label TEXT,locale TEXT,notice_sha256 TEXT,effective_at TEXT,retired_at TEXT)',
+    'CREATE TABLE eco_consent_records(id TEXT,account_id TEXT,subject_id TEXT,notice_id TEXT,decision TEXT,granted_at TEXT,withdrawn_at TEXT)',
+    'CREATE TABLE eco_assessment_instruments(id TEXT,instrument_code TEXT,status TEXT)'
+] as $ddl)$pdo->exec($ddl);
+$pdo->exec("INSERT INTO eco_subjects VALUES
+  ('SENTINEL_PRIVATE_LEARNER','SENTINEL_OWNER','SENTINEL_GUARDIAN','LEARNER','ACTIVE','UNKNOWN')");
+$structural=request('/admin/operations/scientific/schema-readiness','GET',200);
+check($structural['modules']['consent_guardian']['columnProjectionReady']===true,
+    'Complete installed core column signatures should be classified ready');
+check($structural['modules']['assessment']['columnProjectionReady']===false,
+    'Incomplete assessment table must still be blocked');
+check($structural['modules']['bahar']['columnProjectionReady']===false,
+    'Absent BAHAR tables must still be blocked');
+check(!str_contains(json_encode($structural),'SENTINEL_PRIVATE_LEARNER') &&
+    !str_contains(json_encode($structural),'SENTINEL_OWNER'),
+    'Read-only schema projection leaked fictional learner or owner data');
+
 $data=request('/admin/operations','GET',200);check(count($data['reports'])===36,'36 reports missing');check(count($data['sourceSections'])===36,'36 source sections missing');
 check($data['summary']['measuredCoverage']===0&&$data['summary']['verified']===0,'unknown evidence asserted complete');
 check(!str_contains(json_encode($data),'totp_secret')&&!str_contains(json_encode($data),'auth_pepper'),'private configuration leaked');
