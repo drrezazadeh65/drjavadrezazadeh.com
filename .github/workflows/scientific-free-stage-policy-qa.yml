@@ -15,6 +15,7 @@ on:
       - "platform/bertina-free-stage-authorisation.php"
       - "tests/bertina-consent-projection.php"
       - "tests/bertina-free-stage-authorisation.php"
+      - "tests/bertina-free-stage-mysql.php"
       - ".github/workflows/scientific-free-stage-policy-qa.yml"
   pull_request:
     paths:
@@ -55,3 +56,36 @@ jobs:
       - name: Privacy, consent, free/paid and scientific policy regression
         run: |
           node --test platform/free-first-stage-policy.test.mjs platform/free-first-stage-consent-adapter.test.mjs platform/scientific-release-gate.test.mjs
+
+  mysql-fixture:
+    name: Isolated MySQL subject, guardian, consent and free-stage integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password
+          MYSQL_DATABASE: operations_fixture
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pfixture-password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
+      OPERATIONS_TEST_USER: root
+      OPERATIONS_TEST_PASSWORD: fixture-password
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install isolated MySQL PDO test runtime
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y php-cli php-mysql
+          php -m | grep -iq pdo_mysql
+      - name: Syntax and MySQL fixture checks (temporary tables only)
+        run: |
+          php -l tests/bertina-free-stage-mysql.php
+          php tests/bertina-free-stage-mysql.php
