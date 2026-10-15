@@ -268,3 +268,9 @@
 .jhela-fa-page .jhela-fa-contact .button{margin:6px}
 @media(max-width:940px){.jhela-fa-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.jhela-fa-page .journal-header nav{margin-top:10px}}
 @media(max-width:650px){.jhela-fa-page .journal-brand{grid-template-columns:50px minmax(0,1fr)}.jhela-fa-page .journal-brand .jhela-logo{width:50px;height:50px}.jhela-fa-grid{grid-template-columns:1fr}.jhela-fa-page .journal-hero h1{font-size:29px}.jhela-fa-page .journal-article p,.jhela-fa-page .journal-section p{font-size:15px}.jhela-fa-page .journal-hero .actions>*{flex:1 1 100%;text-align:center}.jhela-fa-page .journal-header nav a{font-size:13px}}
+
+/* JHELA English visual identity — independent scholarly wordmark, existing master tokens preserved. */
+.journal-page .jhela-hero-wordmark{max-width:min(100%,560px);margin:-26px 0 20px}
+.journal-page .jhela-hero-wordmark img,.journal-page .jhela-portal-wordmark img{display:block;width:100%;height:auto;object-fit:contain}
+.journal-page .jhela-portal-wordmark{max-width:390px;margin:0 0 22px}
+@media(max-width:650px){.journal-page .jhela-hero-wordmark{margin:-14px 0 18px}.journal-page .jhela-portal-wordmark{max-width:300px}}
