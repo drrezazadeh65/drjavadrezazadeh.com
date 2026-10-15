@@ -12,58 +12,88 @@
     var recipient = 'mailto:dr.rezazadeh65@gmail.com';
     var revision = 0;
     var requestedServiceDetails=form.querySelector('[data-requested-service-details]');
-    function renderRequestedService(service){
+    var requestedServiceValue=null;
+    function renderRequestedService(service,english){
       if(!requestedServiceDetails)return;
       requestedServiceDetails.replaceChildren();
       requestedServiceDetails.hidden=!service;
       if(!service)return;
       var heading=document.createElement('strong');
-      heading.textContent=service.title_fa||'خدمت انتخاب‌شده';
+      heading.textContent=fa?(service.title_fa||'خدمت انتخاب‌شده'):(english?.title||'');
       requestedServiceDetails.appendChild(heading);
-      var rows=[
-        ['تعرفه ثبت‌شده',Number.isInteger(service.price)?new Intl.NumberFormat('fa-IR').format(service.price)+' تومان':'برای اعلام تعرفه هماهنگ کنید'],
+      var price=Number.isSafeInteger(service.price)&&service.price>=0
+        ?new Intl.NumberFormat(fa?'fa-IR':'en-GB').format(service.price)+(fa?' تومان':' toman')
+        :(fa?'برای اعلام تعرفه هماهنگ کنید':'Confirm the listed fee');
+      var rows=fa?[
+        ['تعرفه ثبت‌شده',price],
         ['مناسب برای',service.fit_fa],
         ['خروجی مورد انتظار',service.outcome_fa],
         ['مرز خدمت',service.boundary_fa]
-      ].filter(function(row){return typeof row[1]==='string'&&row[1].trim();});
-      rows.forEach(function(row){
-        var paragraph=document.createElement('p');
-        var label=document.createElement('b');
-        label.textContent=row[0]+': ';
-        paragraph.append(label,document.createTextNode(row[1]));
-        requestedServiceDetails.appendChild(paragraph);
-      });
+      ]:[
+        ['Listed price',price],
+        ['Who it is for',english?.fit],
+        ['Expected outcome',english?.outcome],
+        ['Scope and limits',english?.boundary]
+      ];
+      rows.filter(function(row){return typeof row[1]==='string'&&row[1].trim();})
+        .forEach(function(row){
+          var paragraph=document.createElement('p');
+          var label=document.createElement('b');
+          label.textContent=row[0]+': ';
+          paragraph.append(label,document.createTextNode(row[1]));
+          requestedServiceDetails.appendChild(paragraph);
+        });
     }
     async function applyRequestedService(){
-      if(!fa) return;
       var requested=new URLSearchParams(location.search).get('service');
-      if(!requested) return;
-      // A delayed catalogue response must never replace a choice already made
-      // by the visitor or silently rewrite an already reviewed draft.
+      if(!requested||!/^[a-z][a-z0-9_]{2,63}$/.test(requested))return;
+      // Catalogue and English copy are public descriptions, never payment,
+      // booking or entitlement proof. Manual choices always take precedence.
       var startedAt=revision;
       try{
-        var response=await fetch('/assets/data/service-catalog.json',{cache:'reload'});
-        if(!response.ok) return;
-        var catalogue=await response.json();
-        var service=(catalogue.services||[]).find(function(item){return item.id===requested&&item.sellable===true;});
-        if(!service || revision!==startedAt || !preview.hidden) return;
+        var responses=await Promise.all([
+          fetch('/assets/data/service-catalog.json',{cache:'no-store'}),
+          fa?Promise.resolve(null):fetch('/assets/data/service-descriptions-en.json',{cache:'no-store'})
+        ]);
+        if(!responses[0].ok||(!fa&&!responses[1].ok))return;
+        var catalogue=await responses[0].json();
+        var localized=fa?null:await responses[1].json();
+        var service=(catalogue.services||[]).find(function(item){
+          return item.id===requested&&item.sellable===true;
+        });
+        var english=fa?null:localized?.services?.[requested];
+        if(!service||(!fa&&(!english||localized.language!=='en'||
+          !['title','fit','outcome','boundary'].every(function(key){
+            return typeof english[key]==='string'&&english[key].trim();
+          })))||revision!==startedAt||!preview.hidden)return;
         var select=form.elements.namedItem('service');
-        if(!select) return;
-        var option=Array.from(select.options).find(function(item){return item.value===service.title_fa;});
+        if(!select)return;
+        var selectedTitle=fa?service.title_fa:english.title;
+        var option=Array.from(select.options).find(function(item){return item.value===selectedTitle;});
         if(!option){
           option=document.createElement('option');
-          option.value=service.title_fa;
-          option.textContent=service.title_fa;
+          option.value=selectedTitle;
+          option.textContent=selectedTitle;
           option.dataset.serviceId=service.id;
           select.appendChild(option);
         }
         select.value=option.value;
-        renderRequestedService(service);
-        status.textContent='خدمت انتخاب‌شده از صفحه تعرفه در فرم قرار گرفت؛ دامنه، خروجی و تعرفه را بررسی کنید و سپس زمینه و سؤال اصلی را تکمیل کنید.';
-      }catch(_){ /* keep the normal manual selector available */ }
+        requestedServiceValue=option.value;
+        renderRequestedService(service,english);
+        status.textContent=fa
+          ?'خدمت انتخاب‌شده از صفحه تعرفه در فرم قرار گرفت؛ دامنه، خروجی و تعرفه را بررسی کنید و سپس زمینه و سؤال اصلی را تکمیل کنید.'
+          :'The selected service has been added from the official catalogue. Review its fee, scope and outcome, then describe your context. Nothing has been sent or booked.';
+      }catch(_){ /* Keep the ordinary manual email route available. */ }
     }
     function invalidate() {
       revision++;
+      if(requestedServiceValue){
+        var selected=form.elements.namedItem('service');
+        if(!selected||selected.value!==requestedServiceValue){
+          requestedServiceValue=null;
+          renderRequestedService(null,null);
+        }
+      }
       preview.hidden = true;
       draft.value = '';
       email.setAttribute('href', recipient);
@@ -76,6 +106,10 @@
     form.addEventListener('input', invalidate);
     form.addEventListener('change', invalidate);
     form.addEventListener('reset', invalidate);
+    form.addEventListener('reset',function(){
+      requestedServiceValue=null;
+      renderRequestedService(null,null);
+    });
     form.addEventListener('submit', function (event) {
       event.preventDefault();
       if (!form.reportValidity()) return;
