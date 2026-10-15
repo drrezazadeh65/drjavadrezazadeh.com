@@ -1,0 +1,45 @@
+name: Scientific free-stage policy QA
+
+on:
+  push:
+    branches: [work/p1-scientific-validation-20261016]
+    paths:
+      - "platform/free-first-stage-policy.mjs"
+      - "platform/free-first-stage-policy.test.mjs"
+      - "platform/free-first-stage-consent-adapter.mjs"
+      - "platform/free-first-stage-consent-adapter.test.mjs"
+      - "platform/scientific-release-gate.mjs"
+      - "platform/scientific-release-gate.test.mjs"
+      - "platform/golden-talent-phase12-gates.mjs"
+      - ".github/workflows/scientific-free-stage-policy-qa.yml"
+  pull_request:
+    paths:
+      - "platform/free-first-stage-policy.mjs"
+      - "platform/free-first-stage-policy.test.mjs"
+      - "platform/free-first-stage-consent-adapter.mjs"
+      - "platform/free-first-stage-consent-adapter.test.mjs"
+      - "platform/scientific-release-gate.mjs"
+      - "platform/scientific-release-gate.test.mjs"
+      - "platform/golden-talent-phase12-gates.mjs"
+      - ".github/workflows/scientific-free-stage-policy-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax checks
+        run: |
+          node --check platform/free-first-stage-policy.mjs
+          node --check platform/free-first-stage-consent-adapter.mjs
+          node --check platform/scientific-release-gate.mjs
+      - name: Privacy, consent, free/paid and scientific policy regression
+        run: |
+          node --test platform/free-first-stage-policy.test.mjs platform/free-first-stage-consent-adapter.test.mjs platform/scientific-release-gate.test.mjs
