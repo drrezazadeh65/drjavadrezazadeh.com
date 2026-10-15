@@ -1310,5 +1310,21 @@
     "category": "مجلهٔ علمی",
     "summary": "راهنمای تماس حرفه‌ای با دفتر مؤسس برای همکاری داوری و مشارکت علمی، بدون پذیرش مقاله در این مرحله.",
     "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA International Scholarly Development Roadmap",
+    "path": "journal/roadmap/",
+    "category": "Journal",
+    "summary": "Ten evidence-based milestones: native OJS, editorial governance, open access, ISSN, DOI, DOAJ, Scopus, ESCI and long-term SSCI/Q1 ambitions.",
+    "keywords": "JHELA roadmap OJS DOAJ Scopus Web of Science ESCI SSCI Q1 education scholarly publishing"
+  },
+  {
+    "lang": "fa",
+    "title": "نقشه راه بین المللی مجله JHELA",
+    "path": "journal/fa/roadmap/",
+    "category": "Journal",
+    "summary": "نقشه راه ده مرحله‌ای علمی و بین‌المللی مجله، معیارهای پذیرش DOAJ، Scopus، Web of Science و هدف بلندمدت SSCI و Q1.",
+    "keywords": "مجله JHELA نقشه راه داوری مقالات نمایه سازی اعتبار علمی"
   }
 ]
