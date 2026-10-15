@@ -385,3 +385,43 @@ test('exactly 50 history entries warns that older consultations may not be visib
  await expect(section.locator('.appointment-private-list li')).toHaveCount(1);
  await expect(section.locator('[data-consultation-results]')).toContainText('older records may exist');
 });
+
+
+for(const [lang,route] of [['fa','/fa/app/account/orders/'],['en','/en/account/orders/']]){
+ for(const providerMatched of [false,true]){
+  test(lang+' bilingual purchased-order history requires provider claims '+providerMatched,async({page})=>{
+   const orderId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+   let historyHits=0,detailHits=0;
+   await page.route('**/api/commerce/history',intercepted=>{
+    historyHits++;
+    return intercepted.fulfill({json:{ok:true,limit:50,orders:[{
+     id:orderId,state:'paid',paymentVerified:providerMatched,
+     amountToman:2000000,createdAt:'2026-10-15 12:00:00',
+     items:[{sku:'book:roshanaei',quantity:1,title:lang==='fa'?'سپید':'Book',
+       subtotalToman:2000000}]
+    }]}});
+   });
+   await page.route('**/api/commerce/fulfilment*',intercepted=>{
+    detailHits++;
+    return intercepted.fulfill({json:{ok:true,paymentRecord:'requires_reconciliation',
+      serviceCases:[],parcel:null}});
+   });
+   await page.goto(base+route,{waitUntil:'domcontentloaded'});
+   const panel=page.locator('[data-resource="orders"] .case-section .appointment-card');
+   await expect(panel).toContainText(orderId);
+   if(providerMatched){
+    await expect(panel).toContainText(lang==='fa'?'تسویه بانکی جداگانه':'bank settlement requires separate verification');
+    await expect(panel.getByRole('button',{name:lang==='fa'?'پیگیری تحویل و نوبت':'Track delivery or booking'})).toHaveCount(1);
+    await panel.getByRole('button',{name:lang==='fa'?'پیگیری تحویل و نوبت':'Track delivery or booking'}).click();
+    await expect(panel).toContainText(lang==='fa'?'به تطبیق نیاز دارد':'requires reconciliation');
+    expect(detailHits).toBe(1);
+   }else{
+    await expect(panel).toContainText(lang==='fa'?'بررسی شواهد پرداخت لازم است':'Payment evidence requires review');
+    await expect(panel.getByRole('button',{name:lang==='fa'?'پیگیری تحویل و نوبت':'Track delivery or booking'})).toHaveCount(0);
+    expect(detailHits).toBe(0);
+   }
+   expect(historyHits).toBe(1);
+   expect(await page.evaluate(()=>localStorage.length)).toBe(0);
+  });
+ }
+}
