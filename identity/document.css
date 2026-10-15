@@ -12,3 +12,16 @@
 .jr-document__note{border-inline-start:2px solid #c8a24a;padding-inline-start:4mm}
 @page{size:A4;margin:0}
 @media print{html,body{margin:0;background:#fff}.jr-document{width:210mm;min-height:297mm;max-width:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+
+/* Shared official stationery: receipts, invoices, letters, reports and certificates. */
+.jr-document--official{--jr-document-gold:#a88955;--jr-document-ink:#211c15;--jr-document-paper:#f8f5e9;background:var(--jr-document-paper);color:var(--jr-document-ink);border-block-start:5px solid var(--jr-document-gold)}
+.jr-document__identity{display:flex;align-items:center;gap:6mm;min-width:0}
+.jr-document__symbol{width:19mm;height:19mm;object-fit:contain;flex:none}
+.jr-document__wordmark{max-width:60mm;max-height:19mm;width:auto;height:auto;object-fit:contain}
+.jr-document__brand-name{font-size:11pt;font-weight:700}
+.jr-document__document-type{font-size:9pt;color:#605442}
+.jr-document__reference{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.jr-document__verification{padding:3mm 4mm;border-inline-start:2px solid var(--jr-document-gold,#a88955);background:#fff9ed;font-size:9pt}
+.jr-document__verification[data-verified="false"]{border-inline-start-color:#a35b47}
+@media(max-width:600px){.jr-document__header{flex-wrap:wrap}.jr-document__meta{grid-template-columns:1fr}.jr-document__wordmark{max-width:46mm}}
+@media print{.jr-document--official{border-block-start:4px solid #a88955}.jr-document__header,.jr-document__identity,.jr-document__verification{break-inside:avoid}.jr-document__table thead{display:table-header-group}.jr-document__table tr{break-inside:avoid}.jr-document__footer{break-inside:avoid}}
