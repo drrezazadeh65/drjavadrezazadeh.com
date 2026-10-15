@@ -31,6 +31,7 @@ assert.match(api,/LIMIT 1025/, 'Consent history must use fail-closed bounded rea
 assert.match(projector,/BERTINA_API_BOOTSTRAPPED/, 'Direct-access guard is missing');
 assert.match(internalWriter,/BERTINA_API_BOOTSTRAPPED/, 'Standalone consent writer must be HTTP guarded');
 assert.match(internalWriter,/function goldenTalentInternalWithdrawConsent\(/, 'Internal withdrawal service missing');
+assert.match(internalWriter,/GT_INTERNAL_CONSENT_WRITE_ENABLED/, 'Explicit fail-closed rollout gate missing');
 assert.doesNotMatch(api,/require_once __DIR__\.'\/golden-talent-consent-write\.php'/,
  'Internal consent write must not be live-wired to Golden Talent routes');
 assert.match(schema,/BERTINA_API_BOOTSTRAPPED/, 'Schema helper direct-access guard missing');
