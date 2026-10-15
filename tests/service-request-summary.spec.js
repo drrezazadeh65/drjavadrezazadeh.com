@@ -435,5 +435,5 @@ test('missing English service descriptions keep account intake closed without hi
   );
   await expect(lead.locator('[data-stage14-service-summary]')).toBeHidden();
   await expect(page.locator('form[data-consultation-composer] select[name="service"]')).toBeEnabled();
-  await expect(page.locator('a[href^="mailto:dr.rezazadeh65@gmail.com"]').first()).toBeVisible();
+  await expect(page.locator('a[href^="mailto:dr.rezazadeh65@gmail.com"]:visible').first()).toBeVisible();
 });
