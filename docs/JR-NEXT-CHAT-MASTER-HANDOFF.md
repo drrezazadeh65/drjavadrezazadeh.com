@@ -250,3 +250,11 @@ Available personal Library materials were retrieved for conceptual review: `Gold
 **Confirmed now:** new source files and test definitions are committed on the authorized branch; selected static/regex source checks were inspected, and historical failed browser logs were read. **NOT YET CONFIRMED:** the revised Node tests actually execute/pASS, revised Chromium/Playwright flows pass, all widths/contrast/keyboard checks pass, private PHP/MySQL relationships/consent and human review function on Bertina, donation gateway actually charges or settles, independent recovery/rollback works, full Golden Path/BAHAR persists with consent, or scientific measures are validated.
 
 **Next highest-priority action:** retrieve the newest nondeploying v5 Actions job logs for the updated SHA; fix every red Node/Playwright test without lowering thresholds; separately run/verify bilingual screenshot and mobile accessibility QA; only then consider code promotion to an UNPUBLISHED release candidate. Do not manually deploy, move money, migrate the live database, or change the approved production site without explicit final owner authorization.
+
+### Additional evidence-parity hardening after the initial checkpoint
+
+- `08b60b32`: English RCAS form now visibly labels its priority rationale as **required**, matching the actual client validation. No hidden mandatory field remains.
+- `0b3cbf0a`: English RCAS-to-dashboard bridge now requires `p0Validated`, `routingEvidenceCompleted` and `meaningfulCoreEvidence` explicitly before a session-only journey card is marked complete; it still confers no private record or paid entitlement.
+- `72693aca`: English dashboard browser contract now includes a forged-incomplete summary rejection followed by a constrained valid synthetic summary.
+- `0492a2cc`: source contract checks both the visible rationale label and the tightened dashboard bridge.
+- Last application/test SHA before this documentation update: `0492a2cc336ce2fdd40d0f5f790d2b41e1384d81`. **Still no confirmed new Actions result; no production deployment.**
