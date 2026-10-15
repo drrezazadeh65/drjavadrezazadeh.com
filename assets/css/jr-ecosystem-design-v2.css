@@ -553,3 +553,82 @@ transition-duration:0s!important;animation-duration:0s!important
   margin:15px 0 0;padding-block-start:12px;border-top:1px solid rgba(218,185,115,.22);
   color:#ddd4c6;font-size:.94rem
 }
+
+
+/* v2.5 bilingual scientific and support convergence: existing brand tokens only. */
+.assessment-workspace-page .rcas-shell{
+ width:min(100% - 32px,1160px);min-width:0;margin-inline:auto;
+ padding-block:clamp(20px,3.2vw,40px)
+}
+.assessment-workspace-page .rcas-hero,
+.assessment-workspace-page .rcas-panel,
+.assessment-workspace-page .gt-private-note{
+ min-width:0;overflow-wrap:anywhere;
+ border:1px solid var(--jr2-workspace-rule,var(--jr2-rule));
+ border-radius:clamp(16px,2.4vw,25px);
+ background:linear-gradient(143deg,#211e19,#111517 76%);
+ box-shadow:0 20px 55px rgba(0,0,0,.22)
+}
+.assessment-workspace-page .rcas-hero h1{
+ font-size:clamp(1.9rem,4.1vw,3.85rem);
+ line-height:1.42;max-width:24ch;overflow-wrap:anywhere
+}
+.assessment-workspace-page .rcas-hero .lead{max-width:76ch;line-height:1.86}
+.assessment-workspace-page .rcas-domain,
+.assessment-workspace-page .rcas-route-row{
+ min-width:0;border-color:var(--jr2-rule);border-radius:16px
+}
+.assessment-workspace-page .rcas-panel [hidden],
+.assessment-workspace-page .rcas-insight[hidden]{display:none!important}
+.assessment-workspace-page .rcas-panel fieldset{min-inline-size:0}
+.assessment-workspace-page .rcas-item legend{
+ max-width:100%;line-height:1.8;white-space:normal;text-wrap:pretty
+}
+.assessment-workspace-page .rcas-scale{min-width:0}
+.assessment-workspace-page .rcas-scale label{min-width:0}
+.assessment-workspace-page .rcas-scale label>span{
+ min-height:44px;overflow-wrap:anywhere
+}
+.assessment-workspace-page .rcas-panel :is(button,a,select,input,textarea):focus-visible,
+.support-panel :is(button,a,input,select):focus-visible,
+.student-dashboard-page .bahar-boundary :is(button,a):focus-visible{
+ outline:3px solid var(--jr2-gold-light);outline-offset:3px
+}
+.assessment-workspace-page .rcas-validation-status:not(:empty){
+ border-inline-start:3px solid var(--jr2-gold);padding:12px 16px;
+ background:rgba(218,185,115,.09);line-height:1.8
+}
+.assessment-workspace-page .rcas-panel .actions{display:flex;flex-wrap:wrap;gap:12px}
+.assessment-workspace-page .rcas-panel .actions>*{
+ min-height:48px;display:inline-flex;align-items:center;justify-content:center
+}
+:is(.assessment-workspace-page,.dashboard-shell-page) .gt-mobile-dock{
+ padding-bottom:max(10px,env(safe-area-inset-bottom))
+}
+:is(.assessment-workspace-page,.dashboard-shell-page) .dashboard-workspace,
+:is(.assessment-workspace-page,.dashboard-shell-page) main{min-width:0}
+:is(.assessment-workspace-page,.dashboard-shell-page) :is(h1,h2,h3,p,legend){
+ overflow-wrap:anywhere
+}
+.ss-donate-wrap,.ss-donate-wrap .ss-wrap,.support-panel,
+.support-panel form{min-width:0;max-width:100%}
+.support-panel :is(input,select,button){max-width:100%}
+.support-panel .support-presets{grid-template-columns:repeat(3,minmax(0,1fr))}
+.support-panel .support-presets button{min-width:0;overflow-wrap:anywhere}
+@media(max-width:700px){
+ .assessment-workspace-page .rcas-shell{width:min(100% - 24px,1160px)}
+ .assessment-workspace-page .rcas-hero,
+ .assessment-workspace-page .rcas-panel{padding:clamp(17px,4.5vw,24px);border-radius:18px}
+ .assessment-workspace-page .rcas-hero h1{font-size:clamp(1.86rem,7.3vw,2.65rem)}
+ .assessment-workspace-page .rcas-scale{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .assessment-workspace-page .rcas-panel .actions>*{flex:1 1 100%}
+ .support-panel .support-presets{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:360px){
+ .assessment-workspace-page .rcas-scale,.support-panel .support-presets{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+ .assessment-workspace-page *, .support-panel *{
+  animation-duration:0s!important;transition-duration:0s!important;scroll-behavior:auto!important
+ }
+}
