@@ -279,3 +279,10 @@ Available personal Library materials were retrieved for conceptual review: `Gold
 - `750af45d`: source contract asserts the shared evidence gate.
 - Latest application/test SHA before this note: `750af45d2ebb04e6f0b3fb25027fc5c1b8060b1c`.
 - Runtime CI status for this revision is **not independently confirmed**. Production deployment remains prohibited pending owner approval.
+
+### 2026-10-15 continuation: bilingual negative-case coverage
+
+- `3571df61` and `d28cf7f4` extend the Persian and English Golden Path browser tests to reject completed-looking RCAS sessions missing `meaningfulCoreEvidence`, then accept restored valid evidence.
+- Current latest application/test SHA: `d28cf7f4be9ae1d6fe8c14b7a3a64ce1cee6fe26`.
+- Browser/runtime execution remains unverified: the local runtime cannot resolve github.com and the available GitHub connector does not expose a fresh nondeploying workflow dispatch or complete run listing. Do not claim green CI.
+- No production deploy; retain final owner approval gate.
