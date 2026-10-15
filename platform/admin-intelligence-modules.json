@@ -6,7 +6,7 @@
     {
       "id": "schema-intelligence",
       "title_fa": "مرکز هوشمند اسکیما",
-      "state": "SPECIFIED_NOT_LIVE",
+      "state": "SOURCE_SAMPLE_AUDIT_READY_NOT_PRODUCTION_CERTIFIED",
       "capabilities": [
         "bilingual page inventory",
         "JSON-LD validation",
@@ -36,13 +36,15 @@
     {
       "id": "keyword-intelligence",
       "title_fa": "مرکز کلیدواژه",
-      "state": "SPECIFIED_NOT_LIVE",
+      "state": "EDITORIAL_MAP_UI_READY_EXTERNAL_METRICS_UNVERIFIED",
       "capabilities": [
         "fa/en keyword map",
         "competitor comparisons",
         "cannibalization",
         "evidence-labelled ranking and volume"
-      ]
+      ],
+      "source": "/assets/data/keyword-master-map-v1.json",
+      "verifiedOwnerRoutes": 13
     },
     {
       "id": "admin-intelligence",
