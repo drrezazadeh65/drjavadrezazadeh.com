@@ -3,6 +3,7 @@
 // Run: node scripts/audit-13-articles.mjs
 import fs from 'node:fs';
 import path from 'node:path';
+import {auditLaunchArticleImages} from './article-image-alt-policy.mjs';
 const slugs = [
   "academic-research-editing-services-2026",
   "ai-search-and-scientific-content-2026",
@@ -51,7 +52,11 @@ for (const slug of slugs) {
  check(/\.webp$/i.test(image),'featured image must be an approved WebP asset');
  check(/\.webp$/i.test(ogImage),'Open Graph article image must be WebP');
  check(html.includes('og:image:alt'),'missing OG image alt');
- if(!/\balt="[^"]{10,}"/.test(html))warnings.push(slug+': image alt needs review');
+ const altAudit=auditLaunchArticleImages(html);
+ check(altAudit.images>=3,'article template must retain its main/linked content images');
+ check(altAudit.informative>=2,'article requires informative hero and shop image alt');
+ for(const issue of altAudit.issues) check(false,'image ALT: '+issue);
+ if(altAudit.decorative) console.log('DECORATIVE_ICONS_WITH_LABELLED_LINKS',slug,altAudit.decorative);
  const rail = html.match(/<aside class="launch-service-sidebar"[\s\S]*?<\/aside>/)?.[0] || '';
  check(rail.length>200,'missing scholarly-commerce sidebar');
  check((rail.match(/<section\b/g)||[]).length===3,'sidebar must contain service, bookstore and related reading');
