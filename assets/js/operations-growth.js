@@ -85,4 +85,167 @@
       button.disabled=false;
     }
   });
+  // A worklist is not an additional CRM. It is a bounded view of the
+  // existing consented Stage14 requests, restricted to fresh owner MFA.
+  const growthPanel=document.getElementById('ops-organic-growth');
+  if(growthPanel){
+    const leadPanel=document.createElement('details');
+    leadPanel.className='ops-panel';
+    const leadHeading=document.createElement('summary');
+    leadHeading.textContent=t('صف پیگیری درخواست‌های دارای رضایت',
+      'Consented service enquiries requiring human follow-up');
+    const explanation=document.createElement('p');
+    explanation.className='ops-muted';
+    explanation.textContent=t(
+      'فقط مدیر ارشد دارای تأیید دومرحله‌ای تازه می‌تواند حداکثر ۲۰ درخواست فعال را ببیند. وضعیت بررسی، به معنی تماس انجام‌شده، پذیرش خدمت، رزرو یا دریافت وجه نیست. رضایت تبلیغاتی از این مسیر صادر نمی‌شود.',
+      'Fresh-MFA super-admin only. Up to 20 active consented enquiries. Updating a review status does not send an email, accept a client, reserve time or prove payment. Never treat consent to an enquiry as marketing opt-in.');
+    const refreshLeads=document.createElement('button');
+    refreshLeads.type='button';refreshLeads.textContent=t('دریافت صف واقعی پیگیری','Load current follow-up queue');
+    const leadStatus=document.createElement('p');
+    leadStatus.className='ops-muted';leadStatus.setAttribute('role','status');
+    leadStatus.setAttribute('aria-live','polite');
+    const leadList=document.createElement('ol');
+    leadList.className='ops-source-list';
+    leadPanel.append(leadHeading,explanation,refreshLeads,leadStatus,leadList);
+    growthPanel.append(leadPanel);
+    let leadGeneration=0;
+    const canShow=()=>!workspace?.hidden && growthPanel.open &&
+      leadPanel.open && !document.hidden;
+    const clearSensitive=()=>{
+      leadGeneration++;
+      leadList.replaceChildren();
+      leadStatus.textContent=t('نمایش اطلاعات تماس بسته شد؛ برای مشاهده دوباره وارد شوید یا تازه‌سازی کنید.',
+        'Contact details have been cleared. Reopen and refresh with current owner MFA.');
+      refreshLeads.disabled=false;
+    };
+    const elem=(tag,content)=>{
+      const n=document.createElement(tag);
+      if(content!==undefined)n.textContent=String(content);
+      return n;
+    };
+    const allowedTransitions={
+      NEW:['QUALIFIED','NEEDS_INFO','CLOSED'],
+      NEEDS_INFO:['QUALIFIED','CLOSED'],
+      QUALIFIED:['NEEDS_INFO','CLOSED']
+    };
+    const stateLabel=state=>({
+      NEW:t('جدید','New'),
+      NEEDS_INFO:t('نیازمند اطلاعات','Needs information'),
+      QUALIFIED:t('واجد شرایط بررسی','Qualified for review'),
+      CLOSED:t('بسته','Closed')
+    })[state]||t('نامشخص','Unknown');
+    async function loadLeads(){
+      if(!canShow())return;
+      const generation=++leadGeneration;
+      leadList.replaceChildren();refreshLeads.disabled=true;
+      leadStatus.textContent=t('در حال دریافت رکوردهای دارای رضایت معتبر…',
+        'Retrieving records with current consent…');
+      try{
+        const response=await fetch('/api/admin/operations/growth/leads',{
+          credentials:'same-origin',cache:'no-store',
+          headers:{Accept:'application/json'}
+        });
+        if(!response.ok)throw Error(response.status===401||response.status===403
+          ?'OWNER_MFA':'UNAVAILABLE');
+        const data=await response.json();
+        if(generation!==leadGeneration||!canShow())return;
+        if(data.ok!==true||data.schema!=='stage14-owner-lead-worklist-v1'
+          ||!Array.isArray(data.items)||data.items.length>20)throw Error('UNAVAILABLE');
+        if(data.items.length===0){
+          leadStatus.textContent=t('درخواست فعال و واجد شرایط پیگیری گزارش نشده است.',
+            'No current, consenting enquiries require follow-up.');
+          return;
+        }
+        for(const entry of data.items){
+          const id=String(entry.id||''),service=String(entry.serviceId||''),
+                state=String(entry.state||''),contact=String(entry.contactEmail||'');
+          if(!/^[a-f0-9-]{36}$/i.test(id)||!/^service:[A-Za-z0-9_-]{3,64}$/.test(service)&&
+             !/^vip:[A-Za-z0-9_-]{3,64}$/.test(service)||
+             !allowedTransitions[state]||contact.length>254||
+             !/^[^\s@?#]+@[^\s@?#]+\.[^\s@?#]+$/.test(contact))
+            throw Error('UNAVAILABLE');
+          const row=elem('li');
+          const title=elem('strong',service+' · '+stateLabel(state));
+          const label=elem('p',t('ایمیل حساب تأییدشده: ','Verified account email: ')+contact);
+          label.className='ops-muted';
+          const contactLink=elem('a',t('آماده‌سازی ایمیل پیگیری (ارسال خودکار نیست)',
+            'Prepare follow-up email (not sent automatically)'));
+          contactLink.href='mailto:'+encodeURIComponent(contact)+
+            '?subject='+encodeURIComponent('Service enquiry: '+service);
+          const select=elem('select');
+          select.setAttribute('aria-label',t('وضعیت بعدی برای ','Next review status for ')+service);
+          for(const next of allowedTransitions[state]){
+            const option=elem('option',stateLabel(next));
+            option.value=next;select.append(option);
+          }
+          const change=elem('button',t('ثبت نتیجه بررسی','Save review status'));
+          change.type='button';
+          change.addEventListener('click',async()=>{
+            if(!canShow())return;
+            const next=select.value;
+            if(!allowedTransitions[state].includes(next))return;
+            if(!window.confirm(t(
+              'تغییر وضعیت درخواست '+service+' به '+stateLabel(next)+'؟ این کار پیام، رزرو یا پرداخت ایجاد نمی‌کند.',
+              'Change '+service+' to '+stateLabel(next)+'? No email, booking or payment will be created.'
+            )))return;
+            const stamp=leadGeneration;
+            change.disabled=true;
+            try{
+              const ses=await fetch('/api/admin/operations/session',{
+                credentials:'same-origin',cache:'no-store',
+                headers:{Accept:'application/json'}
+              });
+              if(!ses.ok)throw Error('OWNER_MFA');
+              const auth=await ses.json();
+              if(stamp!==leadGeneration||!canShow())return;
+              if(auth.ok!==true||auth.mfaRequired!==false||
+                !/^[a-f0-9]{64}$/i.test(String(auth.csrfToken||'')))throw Error('OWNER_MFA');
+              const response=await fetch('/api/admin/operations/growth/leads/transition',{
+                method:'POST',credentials:'same-origin',cache:'no-store',
+                headers:{Accept:'application/json','Content-Type':'application/json',
+                  'X-CSRF-Token':auth.csrfToken},
+                body:JSON.stringify({leadId:id,expectedState:state,nextState:next})
+              });
+              const result=await response.json().catch(()=>null);
+              if(stamp!==leadGeneration||!canShow())return;
+              if(!response.ok||result?.ok!==true||
+                result?.schema!=='stage14-lead-transition-v1')throw Error('CONFLICT');
+              await loadLeads();
+            }catch(error){
+              if(stamp===leadGeneration&&canShow()){
+                leadStatus.textContent=error.message==='OWNER_MFA'
+                  ?t('برای اصلاح وضعیت، ورود مدیر ارشد و تأیید دومرحله‌ای تازه لازم است.',
+                    'Fresh super-admin MFA is required to change the review status.')
+                  :t('به‌روزرسانی تأیید نشد. وضعیت معتبر را دوباره دریافت کنید.',
+                    'No state change was confirmed. Refresh the worklist before retrying.');
+                change.disabled=false;
+              }
+            }
+          });
+          row.append(title,label,contactLink,select,change);
+          leadList.append(row);
+        }
+        leadStatus.textContent=t('نمایش حداکثر ۲۰ درخواست قدیمی‌تر با رضایت معتبر؛ هیچ پیام خودکاری ارسال نشده است.',
+          'Showing up to 20 oldest actively consented enquiries. No follow-up messages were sent.');
+      }catch(error){
+        if(generation!==leadGeneration||!canShow())return;
+        leadList.replaceChildren();
+        leadStatus.textContent=error.message==='OWNER_MFA'
+          ?t('دسترسی مدیر ارشد با تأیید دومرحله‌ای تازه لازم است.',
+            'Super-admin access with fresh MFA is required.')
+          :t('صف معتبر قابل دریافت نیست؛ هیچ داده‌ای تخمین زده نمی‌شود.',
+            'Current worklist unavailable; no records are inferred.');
+      }finally{
+        if(generation===leadGeneration)refreshLeads.disabled=false;
+      }
+    }
+    refreshLeads.addEventListener('click',loadLeads);
+    growthPanel.addEventListener('toggle',()=>{if(!growthPanel.open)clearSensitive()});
+    leadPanel.addEventListener('toggle',()=>{if(!leadPanel.open)clearSensitive()});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)clearSensitive()});
+    if(workspace)new MutationObserver(()=>{
+      if(workspace.hidden)clearSensitive();
+    }).observe(workspace,{attributes:true,attributeFilter:['hidden']});
+  }
+
 })();
