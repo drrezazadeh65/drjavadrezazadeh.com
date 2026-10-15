@@ -45,3 +45,41 @@
 6. Verify real account roles and child safety using synthetic identities first; check deployment, CI, SEO/privacy, mobile and accessibility, and independently record live results. Only scientifically cleared instruments can be published later.
 
 **Closure rule:** all eight acceptance gates require test logs, stored release SHA, DB evidence and live scoped observations; source commits alone never close Phase 12.
+
+
+## Phase 12 scientific completion addendum — 2026-10-16 (source governance, NOT production approval)
+
+### Verified architecture and scientific boundaries
+- Canonical evidence router: `platform/golden-talent-engine.mjs`, engine `0.2-prevalidation`. Its states `INSUFFICIENT`, `SINGLE_SOURCE`, `DISCREPANT`, `CONVERGENT` describe **evidence coverage/agreement**, never talent level, norm, probability, diagnosis or career prediction. A convergent result is not a validity coefficient.
+- Registry: `platform/golden-talent-instrument-registry.v1.json`. RCAS-O1 v1.1 and RCAS-CORE browser preview are `PREVIEW_ONLY`, scoring disabled; D1–D6 instrument versions and hashes remain unverified. Do not fabricate item text, norms, weights, cutoffs, standard errors or validation samples.
+- Unified MySQL definitions: `database/unified/003c_assessment_scoring.sql` and `003d_golden_talent_bahar.sql`. DDL presence does not demonstrate live migration, data persistence, authorized readback or backup recovery.
+- The `platform/golden-talent-phase12-gates.mjs` policy is NOT a PHP authorization boundary. Production controllers must independently enforce authenticated roles, relationship scope, consent, entitlement, record ownership and revocation.
+- `assets/js/rcas-o1.js` currently generates a **local preview** without persistence; `assets/js/bahar-readiness.js` explicitly reports BAHAR as not enabled for real learner portfolios. A browser preview must never appear in a customer dashboard as a verified longitudinal record.
+
+### Release matrix — each gate needs separately retained evidence
+| Gate | Required evidence / acceptance criteria | Release state |
+| --- | --- | --- |
+| SCI-01 Book-to-web traceability | Author-approved frozen manuscript and migration ledger; each of 28 RCAS core items and 142 D1–D6 bank items mapped to chapter, construct, item ID, exact FA/EN wording, scoring key if any, and approved revisions; no invented or silent item replacement | OPEN |
+| SCI-02 Instrument freeze | Exact versioned bilingual form, immutable SHA256 for item order, choices, instructions and rubric; archived previous versions; report refers to submitted version | OPEN |
+| SCI-03 Scoring and uncertainty | Predeclared purpose-specific scoring specification with missingness, reverse coding, response quality, dimension aggregation and uncertainty; independently reviewed. Until evidence supports it, keep scoring disabled, total score null, normative labels null | OPEN |
+| SCI-04 Psychometric programme | Content validity review; response-process interviews; accessibility and language equivalence; pilot item analysis; appropriate internal consistency/test-retest/inter-rater estimates; construct structure, measurement invariance/DIF and consequential validity where applicable; sampling and limitations disclosed | OPEN |
+| SCI-05 Consent and safeguarding | Versioned, purpose-specific, withdrawable informed consent and verified guardian relationship for minors; consent revocation blocks future access; teacher/adviser role tests and IDOR/CSRF/replay checks; retention/deletion protocol | OPEN |
+| SCI-06 Server-backed sessions | Bertina same-origin authenticated create/save/resume/submit, transaction-safe one-time finalization, idempotent retries, no duplicate sessions, and fail-closed outage behavior; no raw learner responses in localStorage or public cache | OPEN |
+| SCI-07 Evidence/provenance | Immutable event IDs, respondent role verified server-side, collection date, version/hash, observation context, provenance, quality flags, withdrawal and reviewer decision; conflicting sources remain visible to assigned professional | OPEN |
+| SCI-08 Human-reviewed report | Explainable domain-level evidence summary, provenance and missingness, contextual cautions, alternative interpretations, reviewer identity/date, non-diagnostic language, report revision, restricted audience and explicit approval before release | OPEN |
+| SCI-09 Golden Path | Several revisable developmental hypotheses, rationale/evidence links, feasible activities, human decision, follow-up date and non-prescriptive alternatives; no automatic career assignment | OPEN |
+| SCI-10 BAHAR longitudinal | Authorized baseline, eight-week plan and weekly cycles, review at week four, dated evidence, mentor approval, versioned revision and private dashboard history; no longitudinal effect claim without suitable study | OPEN |
+| SCI-11 Dashboard linkage | Student/guardian/teacher/adviser see only server-authorized projections; cross-account and withdrawn-consent negative tests; FA/EN consistency, mobile accessibility, PDF export privacy and cache exclusion | OPEN |
+| SCI-12 Production acceptance | Isolated MySQL schema and restore evidence, real authorized and unauthorized E2E flows, security review, audit trail, incident rollback and explicit owner approval; deploy separately from source CI | OPEN |
+
+### Interpretation contract for prevalidation reporting
+A preview can state: observed evidence, its origin, contradictory/absent evidence, what remains to be investigated, and provisional developmental activities. It must not state: percentile, IQ, aptitude rank, clinically significant difference, validated diagnostic category, guaranteed educational success, or an individual's immutable talent. `CONVERGENT` means only that two or more qualifying source classes agree under the router's declared rules, **not** that the conclusion is scientifically validated.
+
+### Immediate execution order and regression policy
+1. Lock the frozen publisher manuscript as the editorial reference without modifying its text. Build the item-by-item crosswalk; report missing content rather than inferring it.
+2. Implement and test immutable instrument binding and consent gates in the **existing** Bertina PHP/MySQL account architecture, never a parallel database.
+3. Add server-backed drafts, provenance and reviewed-report projections with negative authorization tests before activating real learner data.
+4. Bind authorized report revisions to the existing customer dashboard, preserving all working shop, donation, appointments, SEO, PWA and bilingual routes.
+5. Only after controlled fieldwork and independent psychometric review consider advancing any instrument's scientific-status label.
+
+**Operational prohibition:** This addendum is an acceptance specification, not a release or scientific certification. Do not enable real learner collection, publish scored conclusions or deploy production changes solely because this document was committed.
