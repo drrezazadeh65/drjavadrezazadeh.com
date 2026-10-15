@@ -40,11 +40,38 @@ exportBtn.addEventListener('click',()=>{
 });
 $('[data-kw-search]').addEventListener('input',repaint);
 $('[data-kw-lang]').addEventListener('change',repaint);
-fetch('/api/admin/operations/keyword-map',{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}})
- .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();})
- .then(data=>{
-  if(data.ok!==true||data.schema!=='jr-keyword-master-map-v1'||!Array.isArray(data.keywords))throw Error('Unsupported map');
+const workspace=document.getElementById('ops-workspace');
+let generation=0;
+function clearPrivateMap(){
+ generation++;
+ rows=[];current=[];tbody.replaceChildren();exportBtn.disabled=true;
+ summary.textContent=t('برای مشاهده نقشه، ورود مدیر و تأیید دومرحله‌ای لازم است.','Administrator sign-in and fresh MFA are required to view the map.');
+}
+async function loadPrivateMap(){
+ if(!workspace||workspace.hidden)return;
+ const active=++generation;
+ summary.textContent=t('در حال دریافت امن نقشه کلیدواژه…','Loading keyword strategy securely…');
+ try{
+  const response=await fetch('/api/admin/operations/keyword-map',{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const data=await response.json();
+  if(data.ok!==true||data.schema!=='jr-keyword-master-map-v1'||!Array.isArray(data.keywords)||data.keywords.length>150)throw Error('Invalid strategy map');
+  if(active!==generation||workspace.hidden)return;
   rows=data.keywords.filter(k=>typeof k.keyword==='string'&&/^\/(?:fa|en|journal)\//.test(k.canonical)&&/^KW-\d{3}$/.test(k.id));
   repaint();
- }).catch(()=>{summary.textContent=t('نقشه کلیدواژه در این نسخه بارگذاری نشد.','Keyword map unavailable in this release.');});
+ }catch(_){
+  if(active!==generation||workspace.hidden)return;
+  rows=[];current=[];tbody.replaceChildren();exportBtn.disabled=true;
+  summary.textContent=t('دریافت نقشه از سرور خصوصی ممکن نشد؛ ورود مدیر را تازه‌سازی کنید.','Could not retrieve the private map; refresh administrator access.');
+ }
+}
+if(workspace){
+ const observer=new MutationObserver(()=>{
+  if(workspace.hidden)clearPrivateMap();
+  else loadPrivateMap();
+ });
+ observer.observe(workspace,{attributes:true,attributeFilter:['hidden']});
+ if(!workspace.hidden)loadPrivateMap();
+ else clearPrivateMap();
+}
 })();
