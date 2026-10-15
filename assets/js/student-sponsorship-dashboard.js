@@ -63,6 +63,15 @@
       'پرداخت تأیید نشده';
     const row=node('p',label+' · '+formatAmount(order.amountToman)+' · '+String(order.createdAt||''));
     target.append(row);
+    if(verified){
+     const receipt=node('details','','cd-donor-ledger-item');
+     receipt.append(node('summary','مشاهده تأییدیه پرداخت'));
+     receipt.append(node('p','شماره پیگیری داخلی: '+String(order.id||'')));
+     receipt.append(node('p','مبلغ: '+formatAmount(order.amountToman)));
+     receipt.append(node('p','تاریخ ثبت پرداخت: '+String(order.paidAt||'')));
+     receipt.append(node('small','این تأییدیه بر پایه سند تطبیق‌یافته درگاه است؛ فاکتور مالیاتی یا سند تسویه بانکی نیست.'));
+     target.append(receipt);
+    }
    }
   }catch(_){target.textContent='وضعیت تراکنش‌های اخیر فعلاً قابل دریافت نیست.'}
  }
