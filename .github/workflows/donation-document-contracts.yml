@@ -6,6 +6,12 @@ on:
     paths:
       - 'scripts/donation-cycle-audit.cjs'
       - 'tests/jr-document-export.test.cjs'
+      - 'tests/official-documents-brand.test.cjs'
+      - 'identity/document.css'
+      - 'identity/tokens.css'
+      - 'identity/templates/**'
+      - 'identity/references/persian-symbol-gold.png'
+      - 'identity/references/persian-wordmark-gold.png'
       - 'api/operations-commerce.php'
       - 'api/index.php'
       - 'assets/js/operations-commerce.js'
@@ -36,6 +42,7 @@ jobs:
         run: |
           node --check scripts/donation-cycle-audit.cjs
           node --check tests/jr-document-export.test.cjs
+          node --check tests/official-documents-brand.test.cjs
           node --check assets/js/student-sponsorship-dashboard.js
           node --check assets/js/dashboard-direct-donation.js
           node --check assets/js/operations-commerce.js
@@ -48,6 +55,8 @@ jobs:
         run: node scripts/donation-cycle-audit.cjs
       - name: Native print engine behavior
         run: node tests/jr-document-export.test.cjs
+      - name: Official stationery identity contracts
+        run: node tests/official-documents-brand.test.cjs
       - name: Acceptance boundary
         run: |
           echo 'Source contracts only. This workflow does not deploy, process payments,'
