@@ -84,3 +84,20 @@ Professional visibility follows genuine work: verified founder, consented intern
 - Frontiers fee framework: https://www.frontiersin.org/about/fee-policy
 - Google Scholar inclusion: https://scholar.google.com/intl/en/scholar/inclusion.html
 - Crossref membership/recording: https://www.crossref.org/membership/
+
+
+## 11. Additive execution checkpoint — 2026-10-16, source only
+
+The next committed batch strengthens *native OJS configuration readiness*, not the live service. Do not redo or remove earlier work:
+- `assets/css/jhela-ojs-theme.css` — journal-scoped, reversible reader-interface style for PKP OJS 3.5; deploy only through OJS Website → Appearance → Advanced after the native application and backups pass gates. Do not overlay unverified controls or conceal system warnings.
+- `docs/journal/JHELA_OJS_REVIEW_FORM_V1.md` — author-visible scientific review criteria and separate handling-editor confidential fields, including formal conflict/confidentiality declarations and consented user/role acceptance tests. Native OJS Review Forms must be configured manually in the approved journal account; the document is not a public data entry endpoint.
+- `docs/journal/JHELA_OJS_EDITORIAL_MESSAGES_V1.md` — eight English OJS communication drafts, from successful submission receipt and reviewer invitation to editorial decisions, fee notices and appeals. Placeholder syntax is **not** the set of native OJS template tags.
+- `scripts/jhela-ojs-origin-probe.mjs` — nonmutating HTTPS checks with strict CA validation; deterministic `--self-test` and explicit `--live` mode. Outputs only statuses and safe classifications; never uploads/retrieves private manuscript files or emits response bodies.
+- `.github/workflows/jhela-ojs-origin-probe.yml` — manually triggered public surface check, never an application deployment.
+- `scripts/jhela-editorial-policy-contract-audit.mjs` — expanded static safety contracts for accessibility CSS, review form, correspondence, read-only probe and separation of real/private editorial powers.
+- `platform/jhela-ojs-editorial-workflow-v1.json` — six conceptual native OJS editorial roles and two integrations not yet built (finance and security audit). Neither the finance/audit role specifications nor the public information dashboard mean these environments are live.
+- [GitHub issue #65](https://github.com/drrezazadeh65/drjavadrezazadeh.com/issues/65) contains the operational owner/operator blocker checklist and a dated progress note.
+
+**Verification level:** Eight source artifacts were reread from the authoritative branch and compared with their declared contracts; no file mismatch found by this structural review. The actual Node script, OJS PHP server, external Action run and browser testing could not be executed from the present chat and thus are not claimed to have passed. The live OJS origin could not be reliably fetched in this environment. The source defaults remain fail-closed and the owner-coordinated final release is not authorised by this document.
+
+**Next operational dependency:** obtain independent CA-trusted TLS and parent-path access evidence; verify native OJS files/private storage/dedicated database; configure staff roles and review form; exercise staging submissions, two independent reviews, decision and revision; verify mail, backup restore and negative permissions; complete separate lawful CHF invoicing. Until these are proven, `platform/jhela-ojs-activation.json` must retain its false activation flags and manuscript/payment intake stays closed.
