@@ -18,6 +18,9 @@ test('Golden Talent scientific prevalidation is unchanged by the English interfa
  assert.match(en,/not a validated talent assessment/);
  assert.match(source,/SELF_SELECTED_UNVALIDATED/);
  assert.match(source,/completedItemCount:28/);
+ assert.match(source,/All 28 responses are not applicable or unsure/);
+ assert.match(source,/No domain has sufficient evidence yet/);
+ assert.match(source,/Explain why you selected this area/);
  assert.match(fa,/rcasApp/);
  for(const page of [en,fa]){
   assert.match(page,/jr-ecosystem-design-v2/);
