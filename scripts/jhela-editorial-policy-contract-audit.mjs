@@ -39,5 +39,19 @@ requirePolicy(editorial.panels.some(p=>p.id==='audit_officer'&&p.scope==='REDACT
 requirePolicy(editorial.reviewForm.automaticDecisionByScore===false&&editorial.reviewForm.requireNormallyTwoIndependentReviewers===true,'Independent review contract missing');
 requirePolicy(editorial.finance.currency==='CHF'&&editorial.finance.charges.some(c=>c.amount===2000)&&editorial.finance.charges.some(c=>c.amount===990),'Financial policy and public rates diverged');
 requirePolicy(editorial.finance.feeActivation.startsWith('DISABLED')&&editorial.liveClaims.publicSubmissionsOpen===false,'Editorial activation must fail closed');
+
+const ojsTheme=read('assets/css/jhela-ojs-theme.css');
+const reviewForm=read('docs/journal/JHELA_OJS_REVIEW_FORM_V1.md');
+const emailKit=read('docs/journal/JHELA_OJS_EDITORIAL_MESSAGES_V1.md');
+const publicProbe=read('scripts/jhela-ojs-origin-probe.mjs');
+requirePolicy(ojsTheme.includes('JHELA')&&ojsTheme.includes('pkp_structure_main')&&ojsTheme.includes('prefers-reduced-motion'),'Reversible native OJS theme or accessibility safeguard missing');
+for(const field of ['Field A1','Field A2','Field B1','Field B2','Field B3','Field B4','Field B5','Field B6','Field B7','Field B8','Field D1','Field D2','Field D3']){
+  requirePolicy(reviewForm.includes(field),'Reviewer form missing '+field);
+}
+requirePolicy(reviewForm.includes('NOT an active public submission form')&&reviewForm.includes('never'),'Reviewer configuration must not impersonate an active workflow');
+requirePolicy(emailKit.includes('NOT emails already sent')&&emailKit.includes('Current hard stop'),'Editorial correspondence must remain inactive in prelaunch');
+requirePolicy((emailKit.match(/\*\*Subject:\*\*/g)||[]).length>=8,'Editorial correspondence lacks key operational messages');
+requirePolicy(publicProbe.includes('--self-test')&&publicProbe.includes('--live')&&publicProbe.includes('https.get'),'Read-only strict TLS OJS public surface probe missing');
+
 if(failures.length){console.error('JHELA policy/brand contract FAILED:\n'+failures.join('\n'));process.exit(1)}
 console.log('JHELA source contracts PASS: two English logo variants, public bilingual fee schedule, waived founding issue, and native-OJS activation safety preserved. Live operation NOT certified.');
