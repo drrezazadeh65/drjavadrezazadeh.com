@@ -64,6 +64,7 @@ test('English support routing stays within its own canonical language',()=>{
 test('Golden Path displays only same-tab RCAS reflection without manufacturing entitlements',()=>{
  const script=read('assets/js/golden-path-session-bridge.js');
  assert.match(script,/SELF_SELECTED_UNVALIDATED/);
+ assert.match(script,/meaningfulCoreEvidence!==true/);
  assert.match(script,/sessionStorage\.getItem/);
  assert.match(script,/textContent/);
  assert.doesNotMatch(script,/\bfetch\s*\(|\bXMLHttpRequest\b/);
