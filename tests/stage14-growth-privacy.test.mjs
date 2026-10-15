@@ -175,3 +175,26 @@ test('owner-only consented lead triage is MFA/CSRF protected and cannot manufact
  assert.doesNotMatch(client,/localStorage|sessionStorage|sendBeacon|innerHTML/);
  assert.match(client,/No email, booking or payment/);
 });
+
+
+test('worklist pagination keeps every consenting lead reachable without weakening MFA or exposing contact in cursors',()=>{
+ const operations=read('api/operations.php');
+ const ui=read('assets/js/operations-growth.js');
+ const mysql=read('tests/stage14-lead-triage-mysql.php');
+ assert.match(lead,/function stage14AdminLeadWorklist\(PDO \$pdo, \?string \$cursor=null\)/);
+ assert.match(lead,/l\.created_at>\? OR \(l\.created_at=\? AND l\.id>\?\)/);
+ assert.match(lead,/ORDER BY l\.created_at ASC,l\.id ASC LIMIT 21/);
+ assert.match(lead,/\$hasMore=count\(\$rows\)>20/);
+ assert.match(lead,/nextCursor/);
+ assert.match(lead,/validUuid\(\$parts\[2\]\)/);
+ assert.match(operations,/\$_GET\['cursor'\]\?\?null/);
+ assert.match(operations,/invalid_lead_cursor/);
+ assert.match(ui,/encodeURIComponent\(cursor\)/);
+ assert.match(ui,/moreLeads\.addEventListener/);
+ assert.match(ui,/leadCursor=null/);
+ assert.match(ui,/if\(error\.message==='OWNER_MFA'\)/);
+ assert.match(ui,/clearSensitive\(\)/);
+ assert.match(mysql,/for\(\$i=0;\$i<25;\$i\+\+\)/);
+ assert.match(mysql,/count\(\$seen\)===27/);
+ assert.doesNotMatch(ui,/localStorage|sessionStorage|sendBeacon|innerHTML/);
+});
