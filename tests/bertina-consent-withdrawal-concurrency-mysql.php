@@ -10,6 +10,7 @@ if(getenv('OPERATIONS_TEST_DSN')!==$dsn ||
     fwrite(STDERR,"Refusing non-fixture write concurrency test\n");exit(2);
 }
 define('BERTINA_API_BOOTSTRAPPED',true);
+define('GT_INTERNAL_CONSENT_WRITE_ENABLED',true);
 require_once __DIR__.'/../api/golden-talent.php';
 require_once __DIR__.'/../api/golden-talent-consent-write.php';
 function validUuid(string $value): bool {
