@@ -11,7 +11,7 @@ holder.className='jr-footer-legal';
 holder.setAttribute('aria-label',fa?'حقوق نشر و اطلاعات وبگاه':'Copyright and website details');
 holder.style.cssText='width:100%;max-width:1120px;margin:20px auto 0;padding:18px clamp(14px,3vw,28px);border-top:1px solid rgba(199,163,91,.29);text-align:center;color:#cfc8b9;line-height:1.95;font-size:.85rem;box-sizing:border-box;';
 const line=(text)=>{const p=document.createElement('p');p.textContent=text;p.style.margin='0 0 7px';return p};
-holder.append(line(fa?'© ۲۰۲۲–'+String(currentYear)+' دکتر جواد رضازاده یزدلی. کلیه حقوق محفوظ است.':'© 2022–'+currentYear+' Dr. Javad Rezazadeh Yazdeli. All rights reserved.'));
+if(!footer.textContent.includes('©'))holder.append(line(fa?'© ۲۰۲۲–'+String(currentYear)+' دکتر جواد رضازاده یزدلی. کلیه حقوق محفوظ است.':'© 2022–'+currentYear+' Dr. Javad Rezazadeh Yazdeli. All rights reserved.'));
 holder.append(line(fa?'هرگونه تکثیر، بهره‌برداری تجاری یا بازنشر مطالب، تصاویر و طراحی اختصاصی سایت بدون مجوز کتبی، جز در موارد مجاز قانونی، ممنوع است و می‌تواند مطابق قوانین مربوط پیگیری حقوقی داشته باشد.':'Reproduction, commercial use, or republication of the site’s original text, imagery or design without written permission is prohibited, except where permitted by law, and may be subject to legal action.'));
 const meta=document.createElement('p');meta.className='jr-footer-metadata';meta.style.cssText='margin:8px 0 0;color:#b5b1aa;display:flex;gap:10px 20px;justify-content:center;flex-wrap:wrap;';
 const date=document.createElement('span');date.textContent=fa?'تاریخ ثبت دامنه: ۱۸ نوامبر ۲۰۲۲':'Domain registration date: 18 November 2022';
