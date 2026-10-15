@@ -66,6 +66,13 @@
     if(verified){
      const receipt=node('details','','cd-donor-ledger-item');
      receipt.append(node('summary','مشاهده تأییدیه پرداخت'));
+     const brand=node('header','','jr-payment-receipt-brand');
+     const mark=document.createElement('img');
+     mark.src='/identity/references/persian-wordmark-gold.png';
+     mark.alt='دکتر جواد رضازاده یزدلی';
+     mark.loading='lazy';
+     brand.append(mark,node('h4','رسید تأیید حمایت مالی'));
+     receipt.append(brand);
      receipt.append(node('p','شماره پیگیری داخلی: '+String(order.id||'')));
      receipt.append(node('p','مبلغ: '+formatAmount(order.amountToman)));
      receipt.append(node('p','تاریخ ثبت پرداخت: '+String(order.paidAt||'')));
