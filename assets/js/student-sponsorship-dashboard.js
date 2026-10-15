@@ -85,12 +85,7 @@
      pdfButton.type='button';
      pdfButton.title='در پنجره چاپ مرورگر، Save as PDF را انتخاب کنید';
      pdfButton.addEventListener('click',()=>{
-      if(window.JRDocumentExport?.savePdf(receipt)){
-       const hint=node('p','در پنجره چاپ، مقصد «Save as PDF / ذخیره به‌صورت PDF» را انتخاب کنید.');
-       hint.className='jr-receipt-export-hint';
-       receipt.append(hint);
-       window.setTimeout(()=>hint.remove(),12000);
-      }
+      window.JRDocumentExport?.savePdf(receipt);
      });
      receipt.append(printButton,pdfButton);
      target.append(receipt);
