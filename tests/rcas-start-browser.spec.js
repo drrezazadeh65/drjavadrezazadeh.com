@@ -230,6 +230,21 @@ test('Persian Golden Path keeps RCAS focus as session-only educational inquiry',
  })));
  await page.reload();
  await expect(text).toContainText('D2');
+ // A completed marker without meaningful evidence must never surface a route.
+ await page.evaluate(()=>{
+  const value=JSON.parse(sessionStorage.getItem('gt_rcas_state'));
+  delete value.meaningfulCoreEvidence;
+  sessionStorage.setItem('gt_rcas_state',JSON.stringify(value));
+ });
+ await page.reload();
+ await expect(text).toContainText('مسیر انتخاب‌شده‌ای');
+ await page.evaluate(()=>{
+  const value=JSON.parse(sessionStorage.getItem('gt_rcas_state'));
+  value.meaningfulCoreEvidence=true;
+  sessionStorage.setItem('gt_rcas_state',JSON.stringify(value));
+ });
+ await page.reload();
+ await expect(text).toContainText('D2');
  await expect(text).toContainText('نه نمره استعداد');
  await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
   completed:true,rcasRevision:'start-en-pilot-1',completedItemCount:28,
