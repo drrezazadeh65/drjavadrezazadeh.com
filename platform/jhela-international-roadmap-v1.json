@@ -1,0 +1,146 @@
+{
+  "schema": "jhela-international-roadmap-v1",
+  "updated": "2026-10-16",
+  "project": "JHELA",
+  "kind": "PUBLIC_PLAN_NOT_PRODUCTION_EVIDENCE",
+  "publicationStatus": "PRELAUNCH",
+  "ojsCertified": false,
+  "manuscriptsAccepted": false,
+  "indexesConfirmed": [],
+  "phases": [
+    {
+      "id": "JH-01",
+      "en": "Foundation & legal identity",
+      "fa": "هویت و مسئولیت حقوقی",
+      "descriptionEn": "Verify legal publisher, unique title, office contact, intellectual scope and ownership.",
+      "descriptionFa": "ثبت و تأیید ناشر، نام مستقل، نشانی رسمی، اهداف علمی و مسئولیت حقوقی.",
+      "gateEn": "Publisher identity and public governance verified",
+      "gateFa": "هویت و سیاست ناشر تأیید شده",
+      "status": "FOUNDING_IN_PROGRESS",
+      "source": "https://doaj.org/apply/transparency/"
+    },
+    {
+      "id": "JH-02",
+      "en": "Secure OJS and manuscript protection",
+      "fa": "OJS و محرمانگی مقاله",
+      "descriptionEn": "Verify OJS 3.5, TLS, isolated database, private files, SMTP, roles, recovery and end-to-end staging review.",
+      "descriptionFa": "OJS 3.5، گواهی معتبر، پایگاه داده مستقل، فایل محرمانه، ایمیل، نقش‌ها و آزمون بازیابی.",
+      "gateEn": "Two independent reviewers, decision, revision and restore tested",
+      "gateFa": "دو داور مستقل، تصمیم، اصلاح و بازیابی آزمایش شده",
+      "status": "RUNTIME_UNVERIFIED",
+      "source": "https://pkp.sfu.ca/software/ojs/"
+    },
+    {
+      "id": "JH-03",
+      "en": "Independent editorial governance",
+      "fa": "حاکمیت مستقل تحریریه",
+      "descriptionEn": "Appoint consenting international scholars, ethical reviewers and an independent editor for conflicted submissions.",
+      "descriptionFa": "انتخاب متخصصان با رضایت صریح، حفظ تنوع علمی، استقلال سردبیر و حل تعارض منافع.",
+      "gateEn": "Independent board, review and appeal protocols actually evidenced",
+      "gateFa": "هیئت مستقل و فرایند اعتراض و داوری با شواهد واقعی",
+      "status": "FOUNDING_IN_PROGRESS",
+      "source": "https://doaj.org/apply/guide/"
+    },
+    {
+      "id": "JH-04",
+      "en": "First genuine publications",
+      "fa": "نخستین مقالات واقعی",
+      "descriptionEn": "Publish rigorously accepted, open full-text articles, establish reliable frequency and measure genuine output.",
+      "descriptionFa": "انتشار مقالات داوری‌شده با دسترسی آزاد و نظم انتشار؛ بدون شماره و آمار ساختگی.",
+      "gateEn": "Verified published articles, honest records and sustainable frequency",
+      "gateFa": "مقالات واقعی، سوابق علمی و برنامه انتشار قابل استناد",
+      "status": "NOT_PUBLISHED",
+      "source": "https://doaj.org/apply/guide/"
+    },
+    {
+      "id": "JH-05",
+      "en": "ISSN, DOI and long-term preservation",
+      "fa": "ISSN و DOI و حفاظت بلندمدت",
+      "descriptionEn": "Seek verified ISSN, lawful Crossref membership or sponsor, DOI metadata, stable article pages and preservation.",
+      "descriptionFa": "درخواست ISSN معتبر، مسیر قانونی Crossref، DOI واقعی و ذخیره‌سازی ماندگار مقالات.",
+      "gateEn": "ISSN record, registered DOI resolve, preservation proof",
+      "gateFa": "شناسه‌های قابل استعلام و شواهد حفظ بلندمدت",
+      "status": "NOT_VERIFIED",
+      "source": "https://www.crossref.org/membership/"
+    },
+    {
+      "id": "JH-06",
+      "en": "DOAJ and open-access assurance",
+      "fa": "ارزیابی و پذیرش DOAJ",
+      "descriptionEn": "Meet all DOAJ requirements, including active publishing of five research articles annually and, for a new journal, over one year of history OR ten OA research articles.",
+      "descriptionFa": "رعایت همه معیارهای DOAJ از جمله حداقل پنج مقاله پژوهشی در سال؛ برای مجله نوپا بیش از یک سال سابقه یا ده مقاله دسترسی‌آزاد.",
+      "gateEn": "Independent DOAJ acceptance after eligibility review",
+      "gateFa": "پذیرش رسمی DOAJ پس از تکمیل شروط و بررسی مستقل",
+      "status": "NOT_ELIGIBLE",
+      "source": "https://doaj.org/apply/guide/"
+    },
+    {
+      "id": "JH-07",
+      "en": "Global discovery and relevant scholarship",
+      "fa": "دیده‌شدن جهانی و ارتباط علمی",
+      "descriptionEn": "Grow genuine scholarly collaboration, reliable metadata, cross-border authorship and independently verifiable citations.",
+      "descriptionFa": "گسترش همکاری علمی واقعی، نویسندگان بین‌المللی، فراداده دقیق و ارجاعات معتبر.",
+      "gateEn": "Evidence of consistent scientific reach without fabricated metrics",
+      "gateFa": "شواهد واقعی اثرگذاری بدون آمارسازی",
+      "status": "FUTURE",
+      "source": "https://www.crossref.org/membership/"
+    },
+    {
+      "id": "JH-08",
+      "en": "Scopus eligibility and selection",
+      "fa": "ارزیابی Scopus",
+      "descriptionEn": "Meet Scopus technical and scholarly selection criteria; two-year blanket waiting rule was removed in August 2024, but sufficient output remains necessary.",
+      "descriptionFa": "تکمیل معیارهای Scopus؛ شرط عمومی انتظار دوساله حذف شده، اما سابقه محتوایی کافی همچنان ضروری است.",
+      "gateEn": "CSAB independent acceptance verified before indexing claim",
+      "gateFa": "پذیرش واقعی CSAB پیش از ادعای نمایه‌شدن",
+      "status": "FUTURE_EXTERNAL_DECISION",
+      "source": "https://www.elsevier.com/products/scopus/content/content-policy-and-selection"
+    },
+    {
+      "id": "JH-09",
+      "en": "Web of Science quality and ESCI",
+      "fa": "معیارهای Web of Science و ESCI",
+      "descriptionEn": "Meet Clarivate's 24 quality criteria and seek independent evaluation for ESCI; selection is never automatic.",
+      "descriptionFa": "پاسخ به ۲۴ معیار کیفیت Clarivate و بررسی مستقل برای ESCI؛ پذیرش تضمینی نیست.",
+      "gateEn": "Verified Clarivate decision and official listing",
+      "gateFa": "پاسخ رسمی و ثبت در فهرست تأییدشده",
+      "status": "FUTURE_EXTERNAL_DECISION",
+      "source": "https://clarivate.com/academia-government/scientific-and-academic-research/research-discovery-and-referencing/web-of-science/web-of-science-core-collection/editorial-selection-process/journal-evaluation-process-selection-criteria/"
+    },
+    {
+      "id": "JH-10",
+      "en": "Sustained impact, SSCI and Q1 aspiration",
+      "fa": "اثرگذاری پایدار و هدف SSCI و Q1",
+      "descriptionEn": "Build long-term research significance; SSCI needs impact evaluation beyond quality and Q1 depends on annual subject/category rankings. Neither can be guaranteed.",
+      "descriptionFa": "ایجاد مرجعیت علمی پایدار؛ SSCI به ارزیابی اثرگذاری و Q1 به رتبه نسبی سالانه در دسته علمی وابسته است.",
+      "gateEn": "Year- and category-specific independent SSCI/Q1 evidence",
+      "gateFa": "شواهد رسمی سال و دسته موضوعی برای SSCI/Q1",
+      "status": "LONG_TERM_ASPIRATION",
+      "source": "https://clarivate.com/academia-government/scientific-and-academic-research/research-discovery-and-referencing/web-of-science/web-of-science-core-collection/editorial-selection-process/journal-evaluation-process-selection-criteria/"
+    }
+  ],
+  "governance": {
+    "noAutoComplete": true,
+    "requiredEvidence": "Dated server evidence or official third-party acceptance",
+    "phaseProgressUnknownNotZero": true,
+    "noGuaranteeOfIndexingOrQ1": true,
+    "firstIssueFeeWaived": true
+  },
+  "thresholds": {
+    "doajAnnualResearchMin": 5,
+    "doajNewJournalHistory": "more than one year OR at least ten OA research articles",
+    "doajEndogenyMaxPercent": 25,
+    "doajRecommendedBoardMin": 5,
+    "clarivateQualityCriteria": 24,
+    "clarivateImpactCriteria": 4,
+    "scopusTwoYearConditionRemoved": "2024-08"
+  },
+  "externalSources": [
+    "https://doaj.org/apply/guide/",
+    "https://www.elsevier.com/products/scopus/content/content-policy-and-selection",
+    "https://blog.scopus.com/scopus-content-policy-and-selection-changes/",
+    "https://www.crossref.org/membership/",
+    "https://www.issn.org/services/requesting-an-issn/",
+    "https://clarivate.com/academia-government/scientific-and-academic-research/research-discovery-and-referencing/web-of-science/web-of-science-core-collection/editorial-selection-process/journal-evaluation-process-selection-criteria/"
+  ]
+}
