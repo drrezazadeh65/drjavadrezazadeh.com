@@ -213,7 +213,132 @@
       "cannot_review"
     ],
     "automaticDecisionByScore": false,
-    "requireNormallyTwoIndependentReviewers": true
+    "requireNormallyTwoIndependentReviewers": true,
+    "blueprintVersion": "1.0",
+    "blueprintContract": "NATIVE_OJS_MANAGER_CONFIGURATION_NOT_INSTALLED",
+    "fieldBlueprint": [
+      {
+        "id": "A1",
+        "label": "Review competency and independence",
+        "type": "long_text",
+        "visibility": "handling_editor",
+        "required": true,
+        "shareWithAuthor": false,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "A2",
+        "label": "Confidentiality and non-disclosure undertaking",
+        "type": "confirmation",
+        "visibility": "handling_editor",
+        "required": true,
+        "shareWithAuthor": false,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "B1",
+        "label": "Research problem, significance and originality",
+        "type": "long_text",
+        "visibility": "author_and_editor",
+        "required": true,
+        "shareWithAuthor": true,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "B2",
+        "label": "Conceptual and theoretical integrity",
+        "type": "long_text",
+        "visibility": "author_and_editor",
+        "required": true,
+        "shareWithAuthor": true,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "B3",
+        "label": "Methodological fit and transparency",
+        "type": "long_text",
+        "visibility": "author_and_editor",
+        "required": true,
+        "shareWithAuthor": true,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "B4",
+        "label": "Evidence, results and interpretive warrant",
+        "type": "long_text",
+        "visibility": "author_and_editor",
+        "required": true,
+        "shareWithAuthor": true,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "B5",
+        "label": "Research ethics and participant protection",
+        "type": "long_text",
+        "visibility": "author_and_editor",
+        "required": true,
+        "shareWithAuthor": true,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "B6",
+        "label": "Human-centred and contextual significance",
+        "type": "long_text",
+        "visibility": "author_and_editor",
+        "required": true,
+        "shareWithAuthor": true,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "B7",
+        "label": "Clarity, references and scholarly transparency",
+        "type": "long_text",
+        "visibility": "author_and_editor",
+        "required": true,
+        "shareWithAuthor": true,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "B8",
+        "label": "Prioritised essential and optional revisions",
+        "type": "long_text",
+        "visibility": "author_and_editor",
+        "required": true,
+        "shareWithAuthor": true,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "D1",
+        "label": "Identity-sensitive and research-integrity concerns",
+        "type": "long_text",
+        "visibility": "handling_editor",
+        "required": false,
+        "shareWithAuthor": false,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "D2",
+        "label": "Recommendation and rationale",
+        "type": "recommendation",
+        "visibility": "handling_editor",
+        "required": true,
+        "shareWithAuthor": false,
+        "allowedUserRole": "invited_reviewer_only"
+      },
+      {
+        "id": "D3",
+        "label": "Specialist methodological review requirement",
+        "type": "long_text",
+        "visibility": "handling_editor",
+        "required": false,
+        "shareWithAuthor": false,
+        "allowedUserRole": "invited_reviewer_only"
+      }
+    ],
+    "legacySummaryFieldsRetained": true,
+    "privateEditorCommentsMustNotReachAuthor": true,
+    "editorialRecommendationsAdvisoryOnly": true,
+    "oneFormPerReviewRoundWithVersionHistory": true
   },
   "finance": {
     "currency": "CHF",
