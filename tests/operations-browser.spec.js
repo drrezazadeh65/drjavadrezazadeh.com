@@ -569,6 +569,12 @@ for(const [locale,route,intake] of [
     expect(reads).toBe(0);
     await lead.locator('[data-consultation-lead-check]').click();
     await expect(lead.locator('.appointment-private-list li')).toHaveCount(2);
+    await expect(lead.locator('.appointment-private-list li').first()).toContainText(
+      locale==='fa'?'مشاوره تخصصی تحصیلی':'Specialist academic consultation');
+    await expect(lead.locator('.appointment-private-list li').last()).toContainText(
+      locale==='fa'?'استعدادیابی اختصاصی Golden Talent':'Signature Golden Talent guidance');
+    await expect(lead.locator('a[href$="#secure-consented-lead"]')).toHaveAttribute('href',
+      intake+'#secure-consented-lead');
     await expect(lead).toContainText(locale==='fa'?'دریافت‌شده':'Received');
     await expect(lead).not.toContainText('private-buyer@example.invalid');
     expect(reads).toBe(1);
@@ -666,10 +672,19 @@ test('owner can inspect more than twenty consented enquiries without persisting 
  await queue.locator('summary').click();
  await queue.getByRole('button',{name:'Load current follow-up queue'}).click();
  await expect(queue.locator('ol.ops-source-list > li')).toHaveCount(20);
+ await expect(queue.locator('ol.ops-source-list > li').first()).toContainText('Specialist academic consultation');
  await queue.getByRole('button',{name:'Load next enquiries'}).click();
  await expect(queue.locator('ol.ops-source-list > li')).toHaveCount(22);
  await expect(queue.getByRole('button',{name:'Load next enquiries'})).toBeHidden();
  expect(reads).toBe(2);
+ // A failed MFA-protected refresh must not leave old contact details actionable.
+ await page.route('**/api/admin/operations/growth/leads*',route=>route.fulfill({
+   status:503,json:{ok:false,error:'secure_lead_capture_unavailable'}
+ }));
+ await queue.getByRole('button',{name:'Load current follow-up queue'}).click();
+ await expect(queue.locator('ol.ops-source-list')).toBeEmpty();
+ await expect(queue).toContainText('previous contacts were cleared');
+ await expect(queue).not.toContainText('synthetic-1@example.test');
  await queue.locator('summary').click();
  await expect(queue.locator('ol.ops-source-list')).toBeEmpty();
  await expect(queue).not.toContainText('synthetic-1@example.test');
