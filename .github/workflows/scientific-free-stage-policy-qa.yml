@@ -21,6 +21,7 @@ on:
       - "tests/bahar-guardian-mysql.php"
       - "platform/bertina-free-stage-authorisation.php"
       - "platform/bertina-dashboard-projections.php"
+      - "platform/bertina-scientific-schema-readiness.php"
       - "tests/bertina-consent-projection.php"
       - "tests/bertina-free-stage-authorisation.php"
       - "tests/bertina-dashboard-projections.php"
@@ -68,6 +69,7 @@ jobs:
           php -l platform/bertina-free-stage-authorisation.php
           php -l tests/bertina-free-stage-authorisation.php
           php -l platform/bertina-dashboard-projections.php
+          php -l platform/bertina-scientific-schema-readiness.php
           php -l tests/bertina-dashboard-projections.php
           php tests/bertina-consent-projection.php
           php tests/bertina-free-stage-authorisation.php
