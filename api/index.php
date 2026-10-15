@@ -554,10 +554,35 @@ if($path==='/commerce/history'&&$verb==='GET'){
     if(!$account||($account['status']??'')!=='active'||empty($account['email_verified_at']))fail('unauthorized',401);
     $email=emailNorm($account['email_normalized']??'');
     if(!validEmail($email))fail('unauthorized',401);
-    $query=$pdo->prepare('SELECT id,state,amount_toman,currency,items_json,created_at,paid_at,provider_id_get,provider_trans_id FROM commerce_orders WHERE customer_email=? ORDER BY created_at DESC,id DESC LIMIT 50');
+    $query=$pdo->prepare('SELECT id,state,amount_toman,currency,items_json,created_at,paid_at,provider_id_get,provider_trans_id,provider_amount FROM commerce_orders WHERE customer_email=? ORDER BY created_at DESC,id DESC LIMIT 50');
     $query->execute([$email]);
+    $historyRows=$query->fetchAll(PDO::FETCH_ASSOC);
+    // A paid state and a provider transaction identifier are NOT independently
+    // verified payment evidence. Match the provider claim ledger, bounded to
+    // this already authenticated account's last 50 order IDs. An unavailable
+    // Stage09 schema leaves paymentVerified=false; history remains readable.
+    $claims=[];
+    if($historyRows && stage9SchemaReady($pdo)){
+        try{
+            $ids=array_values(array_filter(array_column($historyRows,'id'),
+                static fn($id)=>is_string($id)&&validUuid($id)));
+            if($ids){
+                $marks=implode(',',array_fill(0,count($ids),'?'));
+                $claimQuery=$pdo->prepare("SELECT order_id,transaction_id,verified_amount
+                    FROM commerce_payment_claims
+                    WHERE provider='bitpay' AND order_id IN (".$marks.")");
+                $claimQuery->execute($ids);
+                foreach($claimQuery->fetchAll(PDO::FETCH_ASSOC) as $claim){
+                    $claims[(string)$claim['order_id']]=$claim;
+                }
+            }
+        }catch(Throwable $e){
+            // Fail closed rather than treating a stale paid flag as provider proof.
+            $claims=[];
+        }
+    }
     $orders=[];
-    foreach($query->fetchAll() as $row){
+    foreach($historyRows as $row){
         $items=json_decode((string)($row['items_json']??''),true);
         if(!is_array($items))$items=[];
         $safeItems=[];
@@ -578,6 +603,11 @@ if($path==='/commerce/history'&&$verb==='GET'){
             &&!empty($row['paid_at'])
             &&!empty($row['provider_id_get'])
             &&!empty($row['provider_trans_id'])
+            &&isset($claims[(string)$row['id']])
+            &&hash_equals((string)$row['provider_trans_id'],
+                (string)$claims[(string)$row['id']]['transaction_id'])
+            &&(string)$row['provider_amount']===
+                (string)$claims[(string)$row['id']]['verified_amount']
             &&count($safeItems)===count($items) &&count($safeItems)>0
             &&array_sum(array_column($safeItems,'subtotalToman'))===(int)$row['amount_toman'];
         $orders[]=[
