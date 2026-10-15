@@ -56,8 +56,29 @@ function stage14LeadRoute(string $path,string $verb): never {
     $accountId=(string)$account['id'];
     $now=nowTs();
     if ($path==='/growth/leads/mine' && $verb==='GET') {
-        $q=$pdo->prepare('SELECT id,service_id,state,consent_version,consent_granted_at,consent_withdrawn_at,created_at,expires_at FROM growth_lead_requests WHERE account_id=? AND expires_at>? ORDER BY created_at DESC LIMIT 20');
-        $q->execute([$accountId,$now]);respond(['ok'=>true,'requests'=>$q->fetchAll(),'evidenceScope'=>'OWNER_ONLY_NO_PAYMENT_CLAIMS']);
+        // Consent withdrawal must remain reachable even when an account has
+        // more than 20 active enquiries. Cursor is a non-contact keyset only.
+        $cursor=$_GET['cursor']??null;
+        $after='';$params=[$accountId,$now];
+        if ($cursor!==null) {
+            if (!is_string($cursor)
+                || !preg_match('/^([0-9]{1,10}):([a-f0-9-]{36})$/iD',$cursor,$parts)
+                || !validUuid($parts[2]) || (int)$parts[1]<1 || (int)$parts[1]>$now)
+                fail('invalid_lead_cursor',400);
+            $after=' AND (created_at<? OR (created_at=? AND id<?))';
+            array_push($params,(int)$parts[1],(int)$parts[1],$parts[2]);
+        }
+        $q=$pdo->prepare('SELECT id,service_id,state,consent_version,consent_granted_at,consent_withdrawn_at,created_at,expires_at
+            FROM growth_lead_requests WHERE account_id=? AND expires_at>?'.$after.'
+            ORDER BY created_at DESC,id DESC LIMIT 21');
+        $q->execute($params);
+        $rows=$q->fetchAll(PDO::FETCH_ASSOC);
+        $more=count($rows)>20;
+        $page=array_slice($rows,0,20);
+        $last=$page ? $page[count($page)-1] : null;
+        $nextCursor=$more && $last!==null ? (string)$last['created_at'].':'.(string)$last['id'] : null;
+        respond(['ok'=>true,'requests'=>$page,'nextCursor'=>$nextCursor,'limit'=>20,
+            'evidenceScope'=>'OWNER_ONLY_NO_PAYMENT_CLAIMS']);
     }
     if ($path==='/growth/leads' && $verb==='POST') {
         $b=jsonBody();
