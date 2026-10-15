@@ -49,3 +49,14 @@ The serialization guarantee is not yet universal: all **future** grant, regrant,
 - End-to-end browser tests with realistic consent revoke/regrant/guardian/report access; operational backup/rollback and security review; explicit owner release authorisation.
 
 **Decision:** safe-to-keep as **internal isolated development code**; NOT approved to bind to a public path, activate student assessment submissions, issue scientific reports or deploy.
+
+
+## 5. Release-lock and notice lifecycle safety hardening
+
+The internal withdrawal function now **refuses to run by default** even if accidentally included by a route: trusted PHP constant `GT_INTERNAL_CONSENT_WRITE_ENABLED === true` must be defined explicitly by a reviewed server bootstrap. The existing API does **not** set this constant or invoke the writer. CI proves default refusal and package integrity. This is defense in depth, not authorization for self-service withdrawal.
+
+A further privacy lifecycle correction: when an original GRANT exists but its notice is retired or not yet effective, the user may still register a durable withdrawal. Otherwise later notice changes could restore a consent that the account already sought to revoke. Additional synthetic tests exercise both notice states and verify later effective/retired changes do not resurrect access.
+
+**Latest CI:** [run 38825833509](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38825833509) completed with **six green nondeploying jobs**, including the PHP/Node security contracts, MySQL 8 and MariaDB 10.11, admin MFA, browser regressions and sanitized-release checks. SQL logs show **30 internal withdrawal checks and 7 two-session reader/writer tests on each engine**. The earlier acceptance result is superseded for this branch. No live Bertina DB or personal information was accessed.
+
+**Production write gate remains NO-GO** until independently verified age/guardian/assent authority, reviewed privacy procedure for disabled accounts, consent-grant/notice lifecycle governance, real installed-schema proof, CSRF/session/RBAC/rate limits, replay retention, staging rollback and explicit owner deployment approval.
