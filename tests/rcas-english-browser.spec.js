@@ -9,7 +9,7 @@ test('English RCAS has 28 items, 3 stages, seven evidence domains and no raw per
  await expect(app.locator('#rcasEnRouting fieldset')).toHaveCount(7);
  await app.locator('[data-next="2"]').click();
  await expect(page.locator('#rcasEnStatus')).toContainText('educational stage');
- await app.locator('[name="edu"]').selectOption('University');
+ await app.locator('[name="edu"]').selectOption('Upper secondary');
  await app.locator('[name="reason"][value="unclear"]').check();
  await app.locator('[name="mainQuestion"]').fill('How can I improve study strategies?');
  for(const select of await app.locator('#rcasEnAccess select').all())await select.selectOption('limited');
@@ -38,6 +38,7 @@ test('English RCAS has 28 items, 3 stages, seven evidence domains and no raw per
  await expect(app.locator('#rcasEnResult')).toBeVisible();
  await expect(app.locator('#rcasEnResult')).toContainText('D5');
  await expect(app.locator('#rcasEnResult')).toContainText('unvalidated translation pilot');
+ await expect(app.locator('#rcasEnResult')).toContainText('seek a parent or guardian');
  const stored=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('gt_rcas_state')));
  expect(stored).toMatchObject({completed:true,completedItemCount:28,route:'D5',
   routeBasis:'SELF_SELECTED_UNVALIDATED',rcasRevision:'start-en-pilot-1'});
