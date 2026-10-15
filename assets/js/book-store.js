@@ -302,7 +302,7 @@
      ?(isFa?'اطلاعات سفارش و مبلغ نهایی پیش از انتقال به درگاه دوباره در سرور بررسی می‌شود.':'Order details and the final amount are checked again on the server before payment.')
      :(bookStockPending
        ?(isFa?'موجودی فیزیکی کتاب‌ها هنوز در سامانه تأیید نشده است؛ سفارش فعلاً بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Physical book inventory has not yet been reconciled; your request is recorded without charging you and a tracking ID is provided.')
-       :(isFa?'ثبت سفارش سمت سرور فعال است. در وضعیت فعلی سفارش بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Order submission is active. For now, the order is recorded without charging you and you receive a tracking ID.')) )+'</p>'
+       :(isFa?'ثبت سفارش سمت سرور فعال است. در وضعیت فعلی سفارش بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Order submission is active. For now, the order is recorded without charging you and you receive a tracking ID.')) )+'</p>'+ 
    '<div class="store-notice">'+(valid
      ?(bookPaymentReady
        ?(isFa?'ارسال کتاب رایگان است. مبلغ نهایی در سرور محاسبه می‌شود و فقط پرداخت تأییدشده سفارش را قطعی می‌کند.':'Book shipping is free. The final total is calculated on the server and only a verified payment completes the order.')
