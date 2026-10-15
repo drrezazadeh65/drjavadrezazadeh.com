@@ -8,6 +8,8 @@ const sponsor=read('assets/js/student-sponsorship-dashboard.js');
 const admin=read('api/operations-commerce.php');
 const operations=read('assets/js/operations-commerce.js');
 const api=read('api/index.php');
+const adminFa=read('fa/app/admin/index.html');
+const adminEn=read('en/account/admin/index.html');
 const checks=[
  ['dashboard has a direct donation form',dashboard.includes('data-direct-donation-form')],
  ['dashboard loads direct donation script',dashboard.includes('/assets/js/dashboard-direct-donation.js')],
@@ -28,7 +30,8 @@ const checks=[
  ['admin UI uses complete donation scope',operations.includes("giving.scope==='all_time_internal_donation_ledger'")],
  ['shared document exporter is loaded',dashboard.includes('/assets/js/jr-document-export.js')],
  ['print and PDF use one export engine',sponsor.includes('JRDocumentExport?.print(receipt)')&&sponsor.includes('JRDocumentExport?.savePdf(receipt)')],
- ['Persian wordmark is used on verified receipt',sponsor.includes('/identity/references/persian-wordmark-gold.png')]
+ ['Persian wordmark is used on verified receipt',sponsor.includes('/identity/references/persian-wordmark-gold.png')],
+ ['both admin dashboards load updated finance module',adminFa.includes('operations-commerce.js?v=20261015-donations-alltime-v1')&&adminEn.includes('operations-commerce.js?v=20261015-donations-alltime-v1')]
 ];
 for(const [name,ok] of checks){process.stdout.write((ok?'PASS':'FAIL')+' '+name+'\n');assert.ok(ok,name)}
 console.log('Donation integration source contracts passed: '+checks.length);
