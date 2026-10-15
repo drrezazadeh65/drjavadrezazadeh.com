@@ -193,3 +193,18 @@ Canonical binary asset destinations, to be supplied from the exact owner uploads
 Keep existing public icon URLs in `site.webmanifest`, `sw.js`, HTML and shortcut definitions where possible, so replacement of binaries at those same paths updates all installed-app consumers. Update service worker cache version and audit Safari apple-touch-icon references at release time. Do not switch the favicon SVG to an invented vector: the authentic icon is currently a raster source. Verify maskable safe-zone visually before deployment.
 
 **Integration gate:** source PNGs must physically exist in the branch, have valid image dimensions and provenance, and the relevant HTML/manifest/service-worker references must resolve. This specification alone does not mean that binary files have been uploaded or the site deployed. The exact owner-provided image package was prepared as `jr-brand-master-assets.zip` and favicon package as `jr-persian-favicon-ready.zip` in the conversation.
+
+
+## Master-plan visual reference index — approved files
+
+All owner-provided visual concepts are maintained as **canonical source files** in `identity/references/`, linked here rather than duplicated in the documentation directory:
+
+| Reference | Repository file | Design application |
+| --- | --- | --- |
+| Primary visual identity board | [brand-board.png](../../../identity/references/brand-board.png) | Persian gold calligraphic identity, palette, typography, invoice/receipt, assessments, reports, certificates |
+| Secondary visual identity board | [brand-board-secondary.png](../../../identity/references/brand-board-secondary.png) | Additional approved brand-board reference |
+| Persian full lockup | [persian-wordmark-gold.png](../../../identity/references/persian-wordmark-gold.png) | Official bilingual header, letterhead, receipts, certificates |
+| Standalone Persian mark | [persian-symbol-gold.png](../../../identity/references/persian-symbol-gold.png) | Favicon, mobile/desktop PWA app icon and compact marks |
+| Mobile/desktop ecosystem prototype | [website-design-board.png](../../../identity/references/website-design-board.png) | Homepage, shop, dashboards, navigation, checkout and receipt flow |
+
+Design sources are separate from optimized runtime derivatives in `assets/images/`. This is intentional: original artwork must not be replaced by downscaled favicon derivatives. The owner uploaded these source assets to `migration/bertina-linux6` on 2026-10-15. Before release, check binary integrity, favicon rendering, manifest icons and cache refresh. Do not silently substitute a Latin JR glyph.
