@@ -70,6 +70,7 @@ function goldenTalentAssessmentConsentCurrent(array $rows,int|float $now): bool 
     return goldenTalentPurposeConsentCurrent($rows,$now,'ASSESSMENT');
 }
 function goldenTalentMyVerifiedSubjects(PDO $pdo,string $accountId): array {
+    if(!$pdo->inTransaction())throw new RuntimeException('guardian_read_requires_transaction');
     $subjects=$pdo->prepare("SELECT s.id,s.pseudonym,s.status
         FROM eco_subjects s
         INNER JOIN eco_subject_relationships r ON
@@ -78,7 +79,7 @@ function goldenTalentMyVerifiedSubjects(PDO $pdo,string $accountId): array {
           AND (r.expires_at IS NULL OR r.expires_at>UTC_TIMESTAMP(3))
         WHERE s.guardian_account_id=? AND s.subject_type='LEARNER'
           AND s.status='ACTIVE'
-        ORDER BY s.created_at DESC,s.id DESC LIMIT 26");
+        ORDER BY s.created_at DESC,s.id DESC LIMIT 26 FOR UPDATE");
     $subjects->execute([$accountId,$accountId]);
     $candidates=$subjects->fetchAll(PDO::FETCH_ASSOC);
     if(!is_array($candidates))return [];
@@ -90,7 +91,7 @@ function goldenTalentMyVerifiedSubjects(PDO $pdo,string $accountId): array {
         INNER JOIN eco_consent_notices n ON n.id=c.notice_id
         WHERE c.subject_id=? AND c.account_id=?
           AND n.purpose_code='ASSESSMENT'
-        ORDER BY c.granted_at DESC,c.id DESC LIMIT 1025");
+        ORDER BY c.granted_at DESC,c.id DESC LIMIT 1025 FOR UPDATE");
     $items=[];
     $now=microtime(true);
     foreach(array_slice($candidates,0,25) as $row) {
@@ -116,6 +117,7 @@ function goldenTalentMyVerifiedSubjects(PDO $pdo,string $accountId): array {
  * schema returns no learner. No answers or longitudinal interpretations.
  */
 function goldenTalentGuardianBaharOverview(PDO $pdo,string $accountId): array {
+    if(!$pdo->inTransaction())throw new RuntimeException('bahar_read_requires_transaction');
     $authorised=goldenTalentMyVerifiedSubjects($pdo,$accountId);
     $consent=$pdo->prepare("SELECT c.id,c.account_id,c.subject_id,c.notice_id,
             c.decision,c.withdrawn_at,c.granted_at,
@@ -125,7 +127,7 @@ function goldenTalentGuardianBaharOverview(PDO $pdo,string $accountId): array {
         JOIN eco_consent_notices n ON n.id=c.notice_id
         WHERE c.subject_id=? AND c.account_id=?
           AND n.purpose_code='PARENT_VISIBILITY'
-        ORDER BY c.granted_at DESC,c.id DESC LIMIT 1025");
+        ORDER BY c.granted_at DESC,c.id DESC LIMIT 1025 FOR UPDATE");
     $counts=$pdo->prepare("SELECT
             COUNT(DISTINCT p.id) AS portfolio_count,
             COUNT(w.id) AS weekly_cycle_count,
