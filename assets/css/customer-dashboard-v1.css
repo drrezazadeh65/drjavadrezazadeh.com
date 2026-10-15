@@ -988,3 +988,7 @@ body.customer-dashboard:not(.rtl) :is(button,input,select,textarea){font-family:
  body.jr-receipt-print-mode .jr-payment-receipt-print{display:none!important}
  @page{size:A4;margin:12mm}
 }
+
+/* Shared document export: controls and hints never appear on paper/PDF. */
+.jr-receipt-export-hint{font-size:.85rem;color:#b59a62}
+@media print{.jr-receipt-export-hint,.jr-receipt-print-target button{display:none!important}.jr-receipt-print-target,.jr-receipt-print-target *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.jr-receipt-print-target p{break-inside:avoid}}
