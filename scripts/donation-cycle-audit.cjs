@@ -23,7 +23,12 @@ const checks=[
  ['admin view renders donation totals',operations.includes('giving.claimMatchedAmountToman')],
  ['bank settlement is not assumed',admin.includes("'bankSettlementVerified'=>false")],
  ['receipt requires server verified claim',sponsor.includes("if(verified)")&&sponsor.includes('مشاهده تأییدیه پرداخت')],
- ['admin claim totals use provider claim match',admin.includes("c.transaction_id=o.provider_trans_id")&&admin.includes("c.verified_amount=o.provider_amount")]
+ ['admin claim totals use provider claim match',admin.includes("c.transaction_id=o.provider_trans_id")&&admin.includes("c.verified_amount=o.provider_amount")],
+ ['admin donation scope is complete',admin.includes("all_time_internal_donation_ledger")&&!admin.includes('sampled_internal_donation_ledger')],
+ ['admin UI uses complete donation scope',operations.includes("giving.scope==='all_time_internal_donation_ledger'")],
+ ['shared document exporter is loaded',dashboard.includes('/assets/js/jr-document-export.js')],
+ ['print and PDF use one export engine',sponsor.includes('JRDocumentExport?.print(receipt)')&&sponsor.includes('JRDocumentExport?.savePdf(receipt)')],
+ ['Persian wordmark is used on verified receipt',sponsor.includes('/identity/references/persian-wordmark-gold.png')]
 ];
 for(const [name,ok] of checks){process.stdout.write((ok?'PASS':'FAIL')+' '+name+'\n');assert.ok(ok,name)}
 console.log('Donation integration source contracts passed: '+checks.length);
