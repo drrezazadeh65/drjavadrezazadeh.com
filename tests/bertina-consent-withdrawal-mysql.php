@@ -160,6 +160,43 @@ try {
     $pdo->exec("UPDATE customer_accounts SET email_verified_at=1000
         WHERE id='".$parent."'");
 
+    // A currently retired or not-yet-effective consent notice must not
+    // prevent the account from issuing a durable revocation record.
+    foreach([
+        ['subject'=>'88888888-8888-4888-8888-888888888888',
+         'notice'=>'retired-notice','command'=>'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+         'effective'=>"UTC_TIMESTAMP(3) - INTERVAL 3 DAY",
+         'retired'=>"UTC_TIMESTAMP(3) - INTERVAL 1 DAY"],
+        ['subject'=>'99999999-9999-4999-8999-999999999999',
+         'notice'=>'future-notice','command'=>'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+         'effective'=>"UTC_TIMESTAMP(3) + INTERVAL 1 DAY",
+         'retired'=>'NULL']
+    ] as $fixture){
+        $pdo->prepare("INSERT INTO eco_subjects VALUES (?,?,'ACTIVE')")
+            ->execute([$fixture['subject'],$parent]);
+        $pdo->exec("INSERT INTO eco_consent_notices VALUES
+            ('".$fixture['notice']."','ASSESSMENT','v3','fa',REPEAT('c',64),".
+            $fixture['effective'].",".$fixture['retired'].")");
+        $pdo->prepare("INSERT INTO eco_consent_records VALUES
+            (?,?,? ,?,'GRANTED','CONSENT',NULL,
+             UTC_TIMESTAMP(3) - INTERVAL 2 DAY,NULL,'ORIGINAL_GRANTED')")
+            ->execute(['grant-'.$fixture['notice'],$parent,$fixture['subject'],$fixture['notice']]);
+        $result=$withdraw($parent,$fixture['subject'],'ASSESSMENT',$fixture['command']);
+        $check($result['state']==='WITHDRAWN'&&$result['changed']===true,
+            'durable withdrawal even if notice retired or not effective');
+        $pdo->prepare("UPDATE eco_consent_notices SET effective_at=UTC_TIMESTAMP(3) - INTERVAL 3 DAY,
+            retired_at=NULL WHERE id=?")->execute([$fixture['notice']]);
+        $lookup=$pdo->prepare("SELECT c.id,c.subject_id,c.account_id,c.notice_id,c.decision,
+            c.granted_at,c.withdrawn_at,n.purpose_code,n.version_label,n.locale,
+            n.notice_sha256,n.effective_at,n.retired_at
+            FROM eco_consent_records c JOIN eco_consent_notices n ON n.id=c.notice_id
+            WHERE c.subject_id=? AND c.account_id=? AND n.purpose_code='ASSESSMENT'");
+        $lookup->execute([$fixture['subject'],$parent]);
+        $check(bertinaCurrentConsent($lookup->fetchAll(PDO::FETCH_ASSOC),
+            'ASSESSMENT',microtime(true))['allowed']===false,
+            'notice lifecycle change cannot resurrect withdrawn consent');
+    }
+
     // Transaction atomicity: no audit table means NO consent event committed.
     $subject2='77777777-7777-4777-8777-777777777777';
     $pdo->prepare("INSERT INTO eco_subjects VALUES (?,?,'ACTIVE')")
