@@ -49,3 +49,11 @@ The initial USD goal input is 10,000 per month, reflecting a **target requested 
 
 ## Not completed by this source contribution
 No public production deployment, real payment acceptance, live bank reconciliation, visitor-to-lead conversion certification, demand estimate, $10k revenue achievement, independent SSL proof or end-user browser acceptance is claimed by these commits.
+
+
+## Contribution target correction — 2026-10-15 (source-only)
+The owner's USD 10,000 per month aspiration now defaults to a **hypothetical contribution-after-entered-costs goal** in the existing bilingual Revenue & Capacity Scenario Studio, instead of silently treating USD 10,000 of *gross sales* as take-home earnings. The admin can explicitly change the target metric between `GROSS` and `CONTRIBUTION`. Both totals, the selected target gap, refund reserve, delivery-hour capacity, and missing cost assumptions remain distinguishable. Contribution is **not** certified net income: taxes, omitted costs, currency settlement, actual sales and bank reconciliation are excluded. Domestic IRT scenarios default to gross unless the operator changes the goal metric, and the engine performs **no FX conversion**.
+
+Implementation: `assets/js/revenue-planner-model.mjs`, `assets/js/operations-revenue-planner.mjs`; arithmetic regression: `tests/revenue-planner-model.test.mjs`; browser regression: `tests/operations-browser.spec.js`. Example fixture: USD 10,000 assumed gross sales, USD 1,000 refund reserve, USD 1,150 direct costs and USD 500 monthly fixed costs yield USD 7,350 contribution — **USD 2,650 short of the USD 10,000 contribution goal**, before tax and any costs not supplied by the operator. This is an arithmetic illustration, **not observed demand, revenue, profit, customer conversion or operating capacity**.
+
+Deployment: no automatic production publication is implied by this source-only correction. Evidence of final release still requires matching canonical HEAD, CI, verified production origin, host checks and a successful recorded deployment.
