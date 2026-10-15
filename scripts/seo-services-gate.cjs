@@ -106,9 +106,18 @@ for(const flag of ['public_tls_confirmed','commerce_enabled','order_email_fulfil
  assert(read('api/config.example.php').includes("'"+flag+"' => false"),'Bertina '+flag+' must default to false');
 }
 assert(backend.includes("if(!commerceReady())fail('checkout_disabled',503)"),'Bertina create must reject unavailable commerce');
-for(const [kind,flag] of [['book','book_shipping_confirmed'],['service','service_booking_confirmed'],['vip','vip_booking_confirmed']]){
- assert(backend.includes("$c['"+flag+"']!==true)fail('"+(kind==='book'?'book_shipping':kind+'_booking')+"_not_configured',503)"),'Bertina create must enforce '+kind+' operational readiness');
-}
+// Service/VIP appointment allocation and book shipping happen after payment.
+// Their legacy flags remain observable, but must not gate checkout. Books
+// still require reconciled inventory and an atomic stock reservation.
+const create=backend.slice(backend.indexOf("if($path==='/commerce/create'"),backend.indexOf("if($path==='/commerce/status'"));
+assert(create.length>1000,'Commerce create route not found');
+for(const stale of ['book_shipping_not_configured','service_booking_not_configured','vip_booking_not_configured'])
+ assert(!create.includes(stale),'Legacy fulfilment flag incorrectly blocks payment: '+stale);
+assert(create.includes('if($hasBook&&!stage9BookStockReady($pdo))'),'Book checkout must require reconciled inventory');
+assert(create.includes('stage9ReserveBooks($pdo,$order,$lines)'),'Book checkout must reserve stock atomically');
+assert(backend.includes("'serviceFulfilmentMode'=>'manual_post_payment'"),'Service fulfilment mode missing');
+assert(backend.includes("'vipFulfilmentMode'=>'manual_post_payment'"),'VIP fulfilment mode missing');
+assert(backend.includes("'bookFulfilmentMode'=>'stock_reserved_manual_shipping'"),'Book fulfilment mode missing');
 
 
 assert(checkoutClient.includes("'/fa/vip/'+encodeURIComponent(item.id)"),'VIP purchase card must link to its specific detail page');
