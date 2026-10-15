@@ -366,6 +366,19 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        if ($path === '/admin/operations/scientific/schema-readiness' && $verb === 'GET') {
+            // Existing owner/admin membership, fresh MFA and no-store privacy
+            // gate have already passed above. Never query real learner rows.
+            if (!rateAllowed($pdo,'scientific_schema_read',$accountId,6,300))
+                fail('rate_limited',429);
+            require_once __DIR__.'/operations-scientific-schema.php';
+            $schema=bertinaScientificSchemaContract($pdo);
+            // Minimal accountable read; no subject IDs, source SQL or column values.
+            operationsAudit($pdo,$accountId,'scientific_schema_read',
+                'scientific-structural-preflight-v1');
+            respond(['ok'=>true,'readOnly'=>true,'adminMfaRequired'=>true,
+                'inspection'=>'TABLE_AND_COLUMN_PROJECTIONS_ONLY']+$schema);
+        }
         if ($path === '/admin/operations/commerce' && $verb === 'GET') {
             if(!rateAllowed($pdo,'operations_commerce_read',$accountId,12,300))
                 fail('rate_limited',429);
