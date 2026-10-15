@@ -247,8 +247,16 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         }
         $snapshot['available']=true;
         $snapshot['reason']=null;
+        $givingRows=$pdo->query("SELECT state,amount_toman,provider_amount,provider_trans_id
+            FROM commerce_orders WHERE items_json LIKE '%support:students%'
+            ORDER BY created_at DESC LIMIT 1000")->fetchAll(PDO::FETCH_ASSOC);
+        $givingPending=0;$givingPaid=0;
+        foreach($givingRows as $givingRow){
+            if($givingRow['state']==='pending')$givingPending++;
+            if($givingRow['state']==='paid')$givingPaid++;
+        }
         $snapshot['donations']=['scope'=>'sampled_internal_donation_ledger',
-            'pendingOrders'=>null,'paidStateOrders'=>null,'claimMatchedOrders'=>null,
+            'pendingOrders'=>$givingPending,'paidStateOrders'=>$givingPaid,'claimMatchedOrders'=>null,
             'claimMatchedAmountToman'=>null,'bankSettlementVerified'=>false,
             'allocationVerified'=>false];
         $snapshot['orders']=[
