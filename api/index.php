@@ -765,6 +765,12 @@ if($path==='/commerce/health'&&$verb==='GET'){
         'books'=>$ready&&stage9BookStockReady(db()),
         'consultationChoice'=>$ready&&commerceConsultationPreferenceSchemaReady(db()),
         'selfServiceBooking'=>false,
+        // Paid services and VIP are fulfilled by subsequent human coordination.
+        // Paid books require reconciled stock, not a pre-confirmed shipping workflow.
+        'serviceFulfilmentMode'=>'manual_post_payment',
+        'vipFulfilmentMode'=>'manual_post_payment',
+        'bookFulfilmentMode'=>'stock_reserved_manual_shipping',
+        'bookPaymentRequiresReconciledStock'=>true,
     ]]);
 }
 if($path==='/commerce/prepare'&&$verb==='POST'){
