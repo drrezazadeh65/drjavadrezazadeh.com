@@ -513,13 +513,33 @@ auditRefresh.addEventListener('click',async()=>{
     auditContent.replaceChildren();
     const events=Array.isArray(result.events)?result.events:[];
     if(!events.length){auditContent.textContent=t('رویدادی ثبت نشده است.','No events recorded.');return;}
-    const list=el('ol');list.className='ops-audit-events';
-    for(const item of events){
-      const li=el('li');const strong=el('strong',String(item.type||'unknown'));
-      const detail=el('span',' — '+String(item.reference||'')+' — '+date(Number(item.occurredAt)||0));
-      li.append(strong,detail);list.append(li);
-    }
-    auditContent.append(list);
+    // Local-only filtering: do not send audit references to third-party services.
+    const toolbar=el('div',undefined,'ops-audit-toolbar');
+    const search=el('input');search.type='search';search.placeholder=t('جست‌وجوی رویداد یا شناسه','Search event or reference');search.setAttribute('aria-label',search.placeholder);
+    const typeFilter=el('select');typeFilter.setAttribute('aria-label',t('نوع رویداد','Event type'));
+    const all=el('option',t('همهٔ رویدادها','All event types'));all.value='';typeFilter.append(all);
+    for(const type of [...new Set(events.map(item=>String(item.type||'unknown')))].sort()){const option=el('option',type);option.value=type;typeFilter.append(option);}
+    const count=el('span',undefined,'ops-muted');count.setAttribute('role','status');
+    toolbar.append(search,typeFilter,count);
+    const wrap=el('div',undefined,'ops-table-wrap'),table=el('table',undefined,'ops-table ops-audit-table');
+    const caption=el('caption',t('سوابق حسابرسی مدیر، فقط خواندنی','Administrator audit records, read-only'));
+    const head=el('thead'),header=el('tr');
+    for(const label of [t('زمان','Time'),t('رویداد','Event'),t('شناسه / مرجع','Reference')])header.append(el('th',label));
+    head.append(header);const body=el('tbody');table.append(caption,head,body);wrap.append(table);
+    const render=()=>{
+      const q=search.value.trim().toLocaleLowerCase();
+      const matched=events.filter(item=>(!typeFilter.value||String(item.type||'unknown')===typeFilter.value)&&(!q||(String(item.type||'')+' '+String(item.reference||'')).toLocaleLowerCase().includes(q)));
+      body.replaceChildren();
+      for(const item of matched){
+        const row=el('tr');
+        row.append(el('td',date(Number(item.occurredAt)||0)),el('td',String(item.type||'unknown')),el('td',String(item.reference||'')));
+        body.append(row);
+      }
+      count.textContent=t('نمایش ','Showing ')+matched.length+t(' از ',' of ')+events.length;
+      if(!matched.length){const row=el('tr'),cell=el('td',t('موردی یافت نشد.','No matching records.'));cell.colSpan=3;row.append(cell);body.append(row);}
+    };
+    search.addEventListener('input',render);typeFilter.addEventListener('change',render);
+    auditContent.append(toolbar,wrap);render();
   }catch(error){if(generation===loadGeneration)auditContent.textContent=errorMessage(error);}
   finally{auditRefresh.disabled=false;}
 });
