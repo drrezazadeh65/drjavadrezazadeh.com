@@ -25,9 +25,11 @@
    const response=await fetch(API+'/commerce/health',{cache:'no-store',credentials:'omit'});
    if(!response.ok)return {payment:false,capture:false};
    const health=await response.json();
+   const healthy=health?.ok===true&&health.service==='commerce';
    return {
-    payment:health?.ok===true&&health.service==='commerce'&&health.checkout===true&&health.capabilities?.books===true,
-    capture:health?.ok===true&&health.service==='commerce'&&health.orderCapture===true
+    payment:healthy&&health.checkout===true&&health.capabilities?.books===true,
+    capture:healthy&&health.orderCapture===true,
+    stockPending:healthy&&health.checkout===true&&health.requirements?.inventoryReconciled===false
    };
   }catch(_){return {payment:false,capture:false}}
  }
