@@ -1,5 +1,5 @@
 /* JR Cache Standard v2.0 — fresh-by-default, offline-safe, privacy-safe */
-const CACHE_VERSION='jr-site-20261010-bertina-cache-v5';
+const CACHE_VERSION='jr-site-20261015-persian-brand-v1';
 const CACHE_FAMILY='jr-site-';
 const SHELL_CACHE=CACHE_VERSION+'-shell';
 const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
@@ -7,6 +7,8 @@ const OFFLINE_URL='/offline.html';
 
 const CORE=[
   OFFLINE_URL,
+  '/favicon.ico',
+  '/favicon.png',
   '/favicon.svg',
   '/assets/images/pwa-icon-192.png',
   '/assets/images/pwa-icon-512.png',
