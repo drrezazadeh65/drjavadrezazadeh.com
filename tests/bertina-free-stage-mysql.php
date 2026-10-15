@@ -5,6 +5,7 @@ declare(strict_types=1);
  * operations_fixture. Never open production DB or store personal records.
  */
 require_once __DIR__.'/../platform/bertina-free-stage-authorisation.php';
+require_once __DIR__.'/../platform/bertina-scientific-schema-readiness.php';
 $dsn=(string)(getenv('OPERATIONS_TEST_DSN') ?: '');
 if ($dsn !== 'mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4') {
     fwrite(STDERR,"Refusing to connect outside isolated loopback operations_fixture\n");
@@ -58,6 +59,17 @@ $context=static function(string $actor,string $subject,string $module,string $st
 };
 $gate=static fn(array $ctx): bool => bertinaAuthoriseFreeStage($ctx)['allowed']===true;
 try {
+    $preflight=bertinaScientificSchemaContract($pdo);
+    $expect($preflight['modules']['consent_guardian']['columnProjectionReady']===true,
+        'actual SQL temporary-table core columns match read-only contract');
+    $expect($preflight['modules']['assessment']['columnProjectionReady']===false,
+        'missing assessment tables are reported as not structurally ready');
+    $expect($preflight['modules']['bahar']['columnProjectionReady']===false,
+        'missing BAHAR tables are reported as not structurally ready');
+    $expect($preflight['personalRowsRead']===false &&
+        $preflight['realProductionCertified']===false &&
+        $preflight['operationalWriteApproved']===false,
+        'read-only inventory is not production certification');
     $pdo->exec("INSERT INTO eco_subjects VALUES
       ('adult','self',NULL,'LEARNER','ACTIVE','18_PLUS'),
       ('child',NULL,'parent','LEARNER','ACTIVE','UNDER_18')");
