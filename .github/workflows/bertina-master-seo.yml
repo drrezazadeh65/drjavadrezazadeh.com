@@ -37,6 +37,7 @@ jobs:
         run: |
           set +e
           failed=0
+          failed_labels=()
           run_audit() {
             echo
             echo "===== $1 ====="
@@ -45,7 +46,8 @@ jobs:
             "$@"
             code=$?
             if [ "$code" -ne 0 ]; then
-              echo "::error::FAILED: $label"
+              echo "::error::FAILED: $label (exit $code)"
+              failed_labels+=("$label")
               failed=1
             else
               echo "PASS"
@@ -92,6 +94,20 @@ jobs:
           run_audit "Public entity schema" node platform/public-entity-schema-audit.mjs
           run_audit "Sanitized public build" node scripts/build-public-site.mjs
           run_audit "Retired commerce and bookstore hero" node scripts/public-retired-commerce-audit.mjs
+          echo
+          if [ "$failed" -ne 0 ]; then
+            echo "===== FAILED AUDIT CHECKS ====="
+            printf 'FAIL: %s\\n' "${failed_labels[@]}"
+            {
+              echo '### Bertina Master SEO Audit — failing checks'
+              printf -- '- ❌ `%s`\\n' "${failed_labels[@]}"
+              echo
+              echo 'Successful checks remain enforced; investigate these failures before deployment.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "PASS: All source SEO audit checks"
+            echo '### Bertina Master SEO Audit — all source checks passed' >> "$GITHUB_STEP_SUMMARY"
+          fi
           exit "$failed"
 
       - name: Diagnostic live Bertina SEO/cache surface (TLS trust not certified)
