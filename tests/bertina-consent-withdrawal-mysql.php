@@ -15,6 +15,19 @@ $pdo=new PDO($dsn,(string)getenv('OPERATIONS_TEST_USER'),
       PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,
       PDO::ATTR_EMULATE_PREPARES=>false
     ]);
+// Internal consent writes stay disabled by default, even in the API package.
+$inactiveRejected=false;
+try{
+    goldenTalentInternalWithdrawConsent($pdo,
+        '22222222-2222-4222-8222-222222222222',
+        '11111111-1111-4111-8111-111111111111',
+        'ASSESSMENT',
+        '44444444-4444-4444-8444-444444444444');
+}catch(DomainException $e){
+    $inactiveRejected=$e->getMessage()==='WITHDRAWAL_FEATURE_NOT_RELEASED';
+}
+if(!$inactiveRejected)throw new RuntimeException('Internal withdrawal was active without explicit server gate');
+define('GT_INTERNAL_CONSENT_WRITE_ENABLED',true);
 $checks=0;
 $check=static function(bool $ok,string $label) use (&$checks): void {
     $checks++;
