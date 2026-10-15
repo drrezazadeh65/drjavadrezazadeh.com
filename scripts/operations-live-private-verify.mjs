@@ -4,12 +4,12 @@ import crypto from 'node:crypto';
 const origin='https://drjavadrezazadeh.com';
 const checks=[];
 async function get(path){return fetch(origin+path,{redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(15000)});}
-for(const path of ['/api/internal/operations-registry.json','/api/internal/operations-action-identities-v1.json','/api/operations-reporting.php','/api/config.local.php']){
+for(const path of ['/api/internal/operations-registry.json','/api/internal/operations-action-identities-v1.json','/api/internal/keyword-master-map-v1.json','/api/operations-reporting.php','/api/config.local.php']){
  const response=await get(path);await response.arrayBuffer();
  if(![403,404].includes(response.status))throw Error('Private artifact is not denied: '+path+' HTTP '+response.status);
  checks.push({path,status:response.status,passed:true});
 }
-for(const path of ['/api/admin/operations','/api/admin/operations/session']){
+for(const path of ['/api/admin/operations','/api/admin/operations/session','/api/admin/operations/keyword-map']){
  const response=await get(path),body=await response.json();
  if(response.status!==401||body.ok!==false||body.error!=='unauthorized'||!/no-store/i.test(response.headers.get('cache-control')||''))throw Error('Anonymous privileged route boundary failed: '+path);
  checks.push({path,status:response.status,passed:true});
