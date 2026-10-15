@@ -49,7 +49,7 @@ function mount(host,kind,items){
  }
  const guidance=document.createElement('p');
  guidance.style.cssText='grid-column:1/-1;margin:0;font-size:13px;line-height:1.8;color:#41576b;';
- guidance.textContent='خرید خدمات بدون ثبت‌نام امکان‌پذیر است. نام و ایمیل صرفاً برای ثبت سفارش و هماهنگی ارائه خدمت دریافت می‌شود. برای پیگیری، شناسه سفارش و ایمیل ثبت‌شده را نگه دارید؛ وضعیت اعلان‌های تراکنشی از مسیر رسمی بررسی می‌شود.';
+ guidance.textContent='خرید خدمات و بسته‌های VIP بدون ثبت‌نام امکان‌پذیر است. پرداخت، سفارش شما را ثبت می‌کند؛ تعیین زمان و شیوه ارائه خدمت پس از پرداخت از طریق ایمیل هماهنگ می‌شود و پرداخت به‌تنهایی به معنای رزرو قطعی ساعت مشاوره نیست. در صورت عدم امکان ارائه خدمت، با اعلام شناسه سفارش از طریق ایمیل رسمی، درخواست پیگیری یا استرداد وجه ثبت کنید.';
  buyer.append(guidance);
  const buyerContact=()=>{
   for(const input of [fields.name,fields.email]){
