@@ -758,6 +758,11 @@ if($path==='/commerce/health'&&$verb==='GET'){
         'paymentClaimSchemaReady'=>dbReady() && stage9SchemaReady(db()),
         'serviceBookingConfirmed'=>$c['service_booking_confirmed']===true,
         'vipBookingConfirmed'=>$c['vip_booking_confirmed']===true,
+        // Legacy booking/shipping flags are informational; they no longer gate paid
+        // service/VIP orders or stock-backed book purchases.
+        'manualServiceFulfilmentSupported'=>$ready,
+        'manualVipFulfilmentSupported'=>$ready,
+        'manualBookShippingSupported'=>$ready&&stage9BookStockReady(db()),
         'consultationPreferenceSchemaReady'=>dbReady() && commerceConsultationPreferenceSchemaReady(db()),
     ],'capabilities'=>[
         'services'=>$ready,
