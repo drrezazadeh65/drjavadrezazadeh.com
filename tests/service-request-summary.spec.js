@@ -255,7 +255,22 @@ for(const [lang,path] of [['fa','/fa/darkhast-moshavere/'],['en','/en/request-co
     const services=form.locator('select[name="serviceId"]');
     await expect(services).toBeEnabled();
     await services.selectOption('service:academic_consult_60');
-    if(lang==='en')await expect(services.locator('option:checked')).toHaveText('Specialist educational consultation');
+    if(lang==='en')await expect(services.locator('option:checked')).toHaveText('Specialist academic consultation');
+    const summary=form.locator('[data-stage14-service-summary]');
+    await expect(summary).toBeVisible();
+    await expect(summary).toContainText(lang==='fa'?'تعرفه اعلام‌شده':'Listed fee');
+    await expect(summary).toContainText(lang==='fa'
+      ?'جایگزین پیگیری بلندمدت':'Not a substitute for long-term follow-up');
+    await expect(summary).toContainText(lang==='fa'?'رزرو جلسه نیست':'not payment');
+    // Consent to one service must not silently carry over to another.
+    await form.locator('input[name="consentGiven"]').check();
+    await services.selectOption('service:student_parent_90');
+    await expect(summary).toContainText(lang==='fa'
+      ?'جلسه دانش‌آموز و والد':'Student and parent consultation');
+    await expect(form.locator('input[name="consentGiven"]')).not.toBeChecked();
+    await services.selectOption('service:academic_consult_60');
+    await expect(summary).toContainText(lang==='fa'
+      ?'مشاوره تخصصی تحصیلی':'Specialist academic consultation');
     await expect(form.locator('input[name="consentGiven"]')).not.toBeChecked();
     await form.locator('button[type="submit"]').click();
     expect(submitted).toHaveLength(0);
@@ -269,7 +284,7 @@ for(const [lang,path] of [['fa','/fa/darkhast-moshavere/'],['en','/en/request-co
     await form.locator('[data-stage14-lead-mine]').click();
     await expect(form.locator('[data-stage14-lead-list] li')).toHaveCount(1);
     await expect(form.locator('[data-stage14-lead-list] li')).toContainText(
-      lang==='fa'?'مشاوره تخصصی تحصیلی':'Specialist educational consultation'
+      lang==='fa'?'مشاوره تخصصی تحصیلی':'Specialist academic consultation'
     );
     await form.locator('[data-stage14-lead-list] button').click();
     await expect(form.locator('[data-stage14-lead-list]')).toContainText('WITHDRAWN');
