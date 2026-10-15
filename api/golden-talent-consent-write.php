@@ -116,16 +116,19 @@ function goldenTalentInternalWithdrawConsent(
             throw new DomainException('NO_PERSISTED_CONSENT');
         }
 
-        // Valid consent is still required for "active grant" withdrawal;
-        // an already withdrawn/retired notice needs no *new* right to access.
+        // Withdrawal must remain possible even when the original notice is
+        // currently retired or not yet effective: otherwise later notice
+        // changes might resurrect a grant that the actor tried to withdraw.
+        // An already withdrawn/denied latest decision is a no-op.
         $current=bertinaCurrentConsent($history,$purpose,$now);
         if($current['allowed']!==true){
-            if(in_array($current['reason'],['CONSENT_NOT_GRANTED','NOTICE_RETIRED',
-                                            'NOTICE_NOT_EFFECTIVE','NO_DECISION'],true)){
+            if(in_array($current['reason'],['CONSENT_NOT_GRANTED','NO_DECISION'],true)){
                 if(!$pdo->commit())throw new RuntimeException('WITHDRAWAL_COMMIT_FAILED');
                 return ['state'=>'ALREADY_UNAVAILABLE','purpose'=>$purpose,'changed'=>false];
             }
-            throw new DomainException('CONSENT_HISTORY_UNSAFE');
+            if(!in_array($current['reason'],['NOTICE_RETIRED','NOTICE_NOT_EFFECTIVE'],true))
+                throw new DomainException('CONSENT_HISTORY_UNSAFE');
+            // Persist a durable opt-out despite the notice's current state.
         }
         $latestGrant=null;
         $maxTime=null;
