@@ -298,3 +298,53 @@ for(const [lang,path] of [['fa','/fa/darkhast-moshavere/'],['en','/en/request-co
     await expect(page.locator('a[href^="mailto:"]').first()).toHaveAttribute('href',/^mailto:/);
   });
 }
+
+
+// Consent-withdrawal rights must survive any history longer than the first
+// twenty records. All fixtures are synthetic; no private API or mail is sent.
+for(const [language,routePath] of [
+  ['fa','/fa/darkhast-moshavere/'],
+  ['en','/en/request-consultation/']
+]){
+  test('historical consent page beyond twenty remains withdrawable ('+language+')',async({page})=>{
+    await page.setViewportSize({width:320,height:780});
+    const ids=Array.from({length:21},(_,index)=>
+      '00000000-0000-4000-8000-'+String(index+1).padStart(12,'0'));
+    const cursor='1750000000:'+ids[19];
+    let fetched=0;
+    await page.route('**/api/growth/leads/mine*',handler=>{
+      const parsed=new URL(handler.request().url());
+      const next=parsed.searchParams.get('cursor');
+      if(next!==null)expect(next).toBe(cursor);
+      fetched++;
+      const pageIds=next===null?ids.slice(0,20):ids.slice(20);
+      return handler.fulfill({status:200,json:{
+        ok:true,evidenceScope:'OWNER_ONLY_NO_PAYMENT_CLAIMS',
+        requests:pageIds.map(id=>({
+          id,service_id:'service:academic_consult_60',state:'QUALIFIED'
+        })),
+        limit:20,nextCursor:next===null?cursor:null
+      }});
+    });
+    let withdrawn=0;
+    await page.route('**/api/growth/leads/withdraw',handler=>{
+      expect(handler.request().postDataJSON()).toEqual({leadId:ids[20]});
+      withdrawn++;
+      return handler.fulfill({status:200,json:{ok:true,state:'WITHDRAWN'}});
+    });
+    await page.goto('http://127.0.0.1:4173'+routePath,{waitUntil:'domcontentloaded'});
+    const form=page.locator('[data-stage14-consent-lead]');
+    await form.locator('[data-stage14-lead-mine]').click();
+    const entries=form.locator('[data-stage14-lead-list] li');
+    await expect(entries).toHaveCount(20);
+    const loadMore=form.locator('button').filter({hasText:language==='fa'?'نمایش درخواست‌های قدیمی‌تر':'Show older enquiries'});
+    await expect(loadMore).toBeVisible();
+    await loadMore.click();
+    await expect(entries).toHaveCount(21);
+    await expect(loadMore).toBeHidden();
+    await entries.nth(20).locator('button').click();
+    await expect(entries.nth(20)).toContainText('WITHDRAWN');
+    expect(fetched).toBe(2);
+    expect(withdrawn).toBe(1);
+  });
+}
