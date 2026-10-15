@@ -42,6 +42,15 @@ assert.ok(!customerCss.includes('.jr-receipt-print-target{box-sizing:border-box!
 const worker=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 assert.ok(worker.includes('jr-site-20261015-persian-brand-favicon-v2'),'PWA cache must rotate after Persian favicon change');
 assert.ok(worker.includes("'/favicon.svg'"),'Service worker must precache the canonical favicon');
+const manifest=JSON.parse(fs.readFileSync(path.join(root,'site.webmanifest'),'utf8'));
+const iconFiles=new Set(manifest.icons.map(icon=>icon.src.replace(/^\.\//,'')));
+for(const required of ['assets/images/pwa-icon-192.png','assets/images/pwa-icon-512.png','assets/images/pwa-icon-maskable-512.png']){
+ assert.ok(iconFiles.has(required),'Missing approved PWA icon in manifest: '+required);
+ assert.ok(fs.statSync(path.join(root,required)).size>1000,'PWA icon file is missing or empty: '+required);
+}
+for(const shortcut of manifest.shortcuts||[]){
+ assert.ok(shortcut.url.startsWith('./'),'PWA shortcut must use site-relative URL');
+}
 const css=fs.readFileSync(path.join(root,'identity/document.css'),'utf8');
 assert.ok(css.includes('@page')&&css.includes('A4'),'Shared document stylesheet must support A4');
 assert.ok(css.includes('.jr-document__header')&&css.includes('.jr-document__footer'));
