@@ -20,6 +20,7 @@ test('Golden Talent scientific prevalidation is unchanged by the English interfa
  assert.match(source,/completedItemCount:28/);
  assert.match(source,/All 28 responses are not applicable or unsure/);
  assert.match(source,/No domain has sufficient evidence yet/);
+ assert.match(source,/\['Junior secondary','Upper secondary'\]\.includes\(stage\)/);
  assert.match(source,/Explain why you selected this area/);
  assert.match(en,/Why does this area matter to you\? \(required\)/);
  const bridge=read('assets/js/rcas-dashboard-en-bridge.js');
