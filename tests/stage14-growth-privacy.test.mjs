@@ -136,3 +136,42 @@ test('bilingual consultation pages share the verified-account consent pathway wi
    assert.ok(js.includes(service.id+':'),service.id+' needs an English intake label');
  }
 });
+
+
+test('owner-only consented lead triage is MFA/CSRF protected and cannot manufacture sales',()=>{
+ const operations=read('api/operations.php');
+ const client=read('assets/js/operations-growth.js');
+ assert.match(lead,/function stage14AdminLeadWorklist\(PDO \$pdo\)/);
+ assert.match(lead,/function stage14AdminLeadTransition\(PDO \$pdo/);
+ assert.match(lead,/a\.email_normalized AS contact_email/);
+ assert.match(lead,/l\.consent_withdrawn_at IS NULL/);
+ assert.match(lead,/l\.expires_at>\?/);
+ assert.match(lead,/a\.email_verified_at IS NOT NULL/);
+ assert.match(lead,/a\.status='active'/);
+ assert.match(lead,/LIMIT 20/);
+ assert.match(lead,/state IN \('NEW','NEEDS_INFO','QUALIFIED'\)/);
+ assert.match(lead,/FOR UPDATE/);
+ assert.match(lead,/operationsAudit\(\$pdo,\$actorId,'growth_lead_state_changed'/);
+ assert.match(lead,/lead_stale_or_not_consenting/);
+ assert.match(lead,/expectedState/);
+ assert.doesNotMatch(lead,/mark_as_paid|gatewayCharge|sendMarketingEmail/);
+ const protect=operations.indexOf("if (!$fresh) fail('admin_mfa_required',403)");
+ const worklist=operations.indexOf("'/admin/operations/growth/leads'");
+ const transition=operations.indexOf("'/admin/operations/growth/leads/transition'");
+ assert.ok(protect>=0&&worklist>protect&&transition>worklist);
+ const scoped=operations.slice(worklist-60,transition+1550);
+ assert.match(scoped,/SUPER_ADMIN/);
+ assert.match(scoped,/operationsMutationAllowed\(/);
+ assert.match(scoped,/rateAllowed\(/);
+ assert.match(scoped,/csrf_forbidden/);
+ assert.match(client,/stage14-owner-lead-worklist-v1/);
+ assert.match(client,/stage14-lead-transition-v1/);
+ assert.match(client,/\/api\/admin\/operations\/session/);
+ assert.match(client,/X-CSRF-Token/);
+ assert.match(client,/email-draft|mailto:/i);
+ assert.match(client,/MutationObserver/);
+ assert.match(client,/leadList\.replaceChildren\(\)/);
+ assert.match(client,/document\.hidden/);
+ assert.doesNotMatch(client,/localStorage|sessionStorage|sendBeacon|innerHTML/);
+ assert.match(client,/No email, booking or payment/);
+});
