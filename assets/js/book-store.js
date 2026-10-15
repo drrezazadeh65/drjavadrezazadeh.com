@@ -109,7 +109,28 @@
   const detailCover=detailCoverSrc?'<figure class="book-cover"><img src="'+escapeHtml(detailCoverSrc)+'" width="600" height="900" decoding="async" alt="'+escapeHtml(isFa?'جلد کتاب «'+b.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+b.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong>'+escapeHtml(b.title_fa)+'</strong></div>';
   const backSrc=bookBackUrl(b);
   const backCover=backSrc?'<figure class="book-cover book-back-cover"><img src="'+escapeHtml(backSrc)+'" width="900" height="600" loading="lazy" decoding="async" alt="'+escapeHtml(isFa?'پشت جلد کتاب «'+b.title_fa+'»':'Back cover of '+b.english_reference_title)+'"></figure>':'';
-  host.innerHTML='<div class="book-detail-layout">'+detailCover+backCover+'<div class="book-detail-copy"><p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+escapeHtml(b.title_fa)+'</h1>'+
+  // The front/back covers belong to one media gallery, not two independent
+  // grid columns: the companion column must always contain the book's story.
+  const frontCaption=isFa?'روی جلد کتاب':'Front cover';
+  const backCaption=isFa?'پشت جلد کتاب':'Back cover';
+  const gallery='<div class="book-detail-gallery" role="group" aria-label="'+
+    (isFa?'تصاویر جلد کتاب':'Book cover images')+'">'+
+    '<div class="book-detail-front">'+detailCover+'<span class="book-detail-media-caption">'+frontCaption+'</span></div>'+
+    (backCover?'<div class="book-detail-back">'+backCover+'<span class="book-detail-media-caption">'+backCaption+'</span></div>':'')+
+    '</div>';
+  const purchaseGuide='<section class="book-detail-journey" aria-label="'+
+    (isFa?'مراحل تهیه کتاب':'How book ordering works')+'">'+
+    '<h2>'+(isFa?'از انتخاب کتاب تا ثبت سفارش':'From selection to order')+'</h2>'+
+    '<ol><li>'+(isFa?'کتاب را به سبد خرید اضافه کنید.':'Add this book to your cart.')+'</li>'+
+    '<li>'+(isFa?'مبلغ و اطلاعات ارسال را در سبد و فرم سفارش بررسی کنید.':'Review the listed price and shipping details at checkout.')+'</li>'+
+    '<li>'+(isFa?'پرداخت آنلاین تنها پس از فعال‌بودن و تأیید معتبر درگاه قابل انجام است.':'Online payment is available only when the verified gateway is active.')+'</li></ol>'+
+    '</section>';
+  host.innerHTML='<nav class="book-detail-breadcrumb" aria-label="'+
+    (isFa?'موقعیت صفحه':'Breadcrumb')+'"><a href="../">'+
+    (isFa?'فروشگاه کتاب':'Bookstore')+'</a><span aria-hidden="true"> / </span><span lang="fa" dir="rtl">'+
+    escapeHtml(b.title_fa)+'</span></nav>'+
+    '<div class="book-detail-layout">'+gallery+
+    '<div class="book-detail-copy"><p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+escapeHtml(b.title_fa)+'</h1>'+
    '<p class="lead">'+escapeHtml(isFa?b.description_fa:b.description_en)+'</p>'+
    '<dl class="book-meta"><div><dt>'+(isFa?'نویسنده':'Author')+'</dt><dd>Javad Rezazadeh Yazdeli</dd></div>'+
    '<div><dt>ISBN</dt><dd>'+escapeHtml(b.bibliography.isbn||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
@@ -118,12 +139,15 @@
    '<div><dt>'+(isFa?'نوبت چاپ':'Edition')+'</dt><dd>'+escapeHtml(b.bibliography.edition||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قالب':'Format')+'</dt><dd>'+(b.commerce?.formats_confirmed?.includes('PRINT')?(isFa?'چاپی':'Print'):(isFa?'نیازمند تأیید':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قیمت ثبت‌شده':'Listed price')+'</dt><dd>'+escapeHtml(money(b.commerce?.price,b.commerce?.currency))+'</dd></div></dl>'+
+   purchaseGuide+
    '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. ثبت سفارش از مسیر سبد فعال است؛ پرداخت آنلاین فقط پس از تأیید مسیر امن درگاه فعال می‌شود.':'Unverified bibliographic fields are deliberately marked as such. Order submission is active; online payment remains gated until the trusted gateway is verified.')+'</p>'+
    '<div class="actions">'+
-   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+escapeHtml(b.id)+'">'+(isFa?'افزودن به فهرست انتخاب‌ها':'Add to selection')+'</button>':'')+
+   (ready(b)?'<button class="button primary" type="button" data-detail-add="'+escapeHtml(b.id)+'">'+(isFa?'افزودن به سبد خرید':'Add to cart')+'</button>':'')+
    '<a class="button" data-book-info-request href="mailto:info@drjavadrezazadeh.com?subject='+encodeURIComponent((isFa?'درخواست اطلاعات کتاب: ':'Book information enquiry: ')+b.title_fa)+
    '&body='+encodeURIComponent((isFa?'لطفاً اطلاعات تأییدشده کتاب، جزئیات نشر، نحوه تهیه و شرایط ارسال را اعلام کنید: ':'Please share verified publication metadata, availability, and delivery terms for: ')+b.title_fa)+'">'+
-   (isFa?'درخواست اطلاعات تکمیلی':'Request verified book details')+'</a></div></div></div>';
+   (isFa?'درخواست اطلاعات تکمیلی':'Request verified book details')+'</a>'+
+   '<a class="button book-detail-cart-link" href="../cart/">'+
+   (isFa?'مشاهده سبد خرید':'View cart')+'</a></div></div></div>';
   host.addEventListener('click',e=>{if(e.target.closest('[data-detail-add]'))add(b);});
  }
  function renderCart(data){
