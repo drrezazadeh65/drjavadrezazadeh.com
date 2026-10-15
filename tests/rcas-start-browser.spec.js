@@ -218,3 +218,24 @@ test('RCAS free insight gives adults a non-diagnostic, evidence-aware next step 
   await page.locator('#priorityWhy').fill('دلیل من تغییر کرد');
   await expect(insight).toBeHidden();
 });
+
+test('Persian Golden Path keeps RCAS focus as session-only educational inquiry',async({page})=>{
+ await page.goto(base+'/fa/app/student/golden-path/');
+ const text=page.locator('[data-golden-path-session-status]');
+ await expect(text).toContainText('مسیر انتخاب‌شده‌ای');
+ await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
+  completed:true,rcasRevision:'start-1.2',completedItemCount:28,
+  p0Validated:true,routingEvidenceCompleted:true,
+  routeBasis:'SELF_SELECTED_UNVALIDATED',route:'D2'
+ })));
+ await page.reload();
+ await expect(text).toContainText('D2');
+ await expect(text).toContainText('نه نمره استعداد');
+ await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
+  completed:true,rcasRevision:'start-en-pilot-1',completedItemCount:28,
+  p0Validated:true,routingEvidenceCompleted:true,
+  routeBasis:'SELF_SELECTED_UNVALIDATED',route:'D2'
+ })));
+ await page.reload();
+ await expect(text).toContainText('مسیر انتخاب‌شده‌ای');
+});
