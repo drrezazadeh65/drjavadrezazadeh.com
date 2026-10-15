@@ -760,8 +760,8 @@ if($path==='/commerce/health'&&$verb==='GET'){
         'vipBookingConfirmed'=>$c['vip_booking_confirmed']===true,
         'consultationPreferenceSchemaReady'=>dbReady() && commerceConsultationPreferenceSchemaReady(db()),
     ],'capabilities'=>[
-        'services'=>$ready&&$c['service_booking_confirmed']===true,
-        'vip'=>$ready&&$c['vip_booking_confirmed']===true,
+        'services'=>$ready,
+        'vip'=>$ready,
         'books'=>$ready&&$c['book_shipping_confirmed']===true&&stage9BookStockReady(db()),
         'consultationChoice'=>$ready&&commerceConsultationPreferenceSchemaReady(db()),
         'selfServiceBooking'=>false,
@@ -803,7 +803,7 @@ if($path==='/commerce/create'&&$verb==='POST'){
     $inventory=localCatalog();$counts=[];
     foreach($items as $item){$sku=(string)($item['sku']??'');$q=$item['quantity']??null;if(!isset($inventory[$sku])||!is_int($q)||$q<1||$q>20)fail('invalid_item');$counts[$sku]=($counts[$sku]??0)+$q;}
     $lines=[];$total=0;$c=cfg();$hasBook=false;
-    foreach($counts as $sku=>$q){$x=$inventory[$sku];if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'){$hasBook=true;if($c['book_shipping_confirmed']!==true)fail('book_shipping_not_configured',503);}if($x['kind']==='service'&&$c['service_booking_confirmed']!==true)fail('service_booking_not_configured',503);if($x['kind']==='vip'&&$c['vip_booking_confirmed']!==true)fail('vip_booking_not_configured',503);$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
+    foreach($counts as $sku=>$q){$x=$inventory[$sku];if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'){$hasBook=true;if($c['book_shipping_confirmed']!==true)fail('book_shipping_not_configured',503);}$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
     if($total<1000||$total>1000000000)fail('amount_out_of_range');
     if($hasBook&&!stage9BookStockReady($pdo))fail('inventory_not_reconciled',503);
     $customer=null;$customerEmail=null;$customerJson=null;
