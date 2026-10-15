@@ -1,0 +1,245 @@
+{
+  "schema": "jhela-editorial-workflow-design-v1",
+  "journal": "JHELA",
+  "state": "SOURCE_POLICY_ONLY_OJS_NATIVE_IMPLEMENTATION_NOT_CERTIFIED",
+  "nativePlatform": "PKP OJS 3.5",
+  "separation": {
+    "journalUserStore": "OJS_NATIVE_SEPARATE_FROM_CUSTOMER_AUTH",
+    "editorialRecords": "OJS_NATIVE_DATABASE",
+    "manuscriptStorage": "PRIVATE_DIRECTORY_OUTSIDE_PUBLIC_HTML",
+    "clientSideAuthorisation": false,
+    "sharedCustomerPasswordHashes": false,
+    "independentMfaRequiredForJournalPrivilegedRoles": true
+  },
+  "panels": [
+    {
+      "id": "author",
+      "title": "My manuscripts",
+      "scope": "SUBMISSION_OWNER_ONLY",
+      "views": [
+        "drafts",
+        "submitted",
+        "revision_requests",
+        "decision_letters",
+        "proofs"
+      ],
+      "actions": [
+        "submit_own",
+        "upload_own_revision",
+        "request_withdrawal"
+      ]
+    },
+    {
+      "id": "reviewer",
+      "title": "Reviewer desk",
+      "scope": "ACCEPTED_ASSIGNMENTS_ONLY",
+      "views": [
+        "review_invitations",
+        "due_dates",
+        "blinded_files",
+        "own_submitted_reviews"
+      ],
+      "actions": [
+        "accept_or_decline",
+        "declare_conflict",
+        "submit_structured_review"
+      ]
+    },
+    {
+      "id": "handling_editor",
+      "title": "Handling editor desk",
+      "scope": "EDITOR_ASSIGNED_UNCONFLICTED",
+      "views": [
+        "screening_queue",
+        "review_assignments",
+        "editor_private_feedback",
+        "review_rounds"
+      ],
+      "actions": [
+        "assign_unconflicted_reviewers",
+        "record_decision_rationale",
+        "request_revision"
+      ]
+    },
+    {
+      "id": "editor_in_chief",
+      "title": "Editor-in-Chief desk",
+      "scope": "JOURNAL_EDITORIAL_OVERSIGHT_WITH_RECUSAL",
+      "views": [
+        "assignment_oversight",
+        "decision_history",
+        "appeals",
+        "staff_conflicts"
+      ],
+      "actions": [
+        "delegate_decisions",
+        "approve_editorial_release",
+        "recuse_and_transfer"
+      ]
+    },
+    {
+      "id": "journal_manager",
+      "title": "Journal management",
+      "scope": "JOURNAL_ADMINISTRATIVE",
+      "views": [
+        "operational_pipeline",
+        "deadline_tracking",
+        "mail_health",
+        "role_invitations",
+        "templates"
+      ],
+      "actions": [
+        "configure_journal",
+        "issue_approved_invitations",
+        "manage_production"
+      ]
+    },
+    {
+      "id": "production",
+      "title": "Production and proofs",
+      "scope": "ACCEPTED_ARTICLES_ONLY",
+      "views": [
+        "copyedit_queue",
+        "proofs",
+        "rights",
+        "metadata",
+        "publication_schedule"
+      ],
+      "actions": [
+        "copyedit",
+        "proof_send",
+        "release_after_signoff"
+      ]
+    },
+    {
+      "id": "financial_officer",
+      "title": "Finance and waivers",
+      "scope": "FINANCIAL_ACCEPTED_ARTICLE_ONLY",
+      "views": [
+        "post_acceptance_invoices",
+        "waivers",
+        "refunds",
+        "settlement_records"
+      ],
+      "actions": [
+        "approve_separate_waiver",
+        "issue_invoice",
+        "record_refund"
+      ]
+    },
+    {
+      "id": "audit_officer",
+      "title": "Editorial security audit",
+      "scope": "REDACTED_EVENT_AUDIT_ONLY",
+      "views": [
+        "access_denials",
+        "permission_changes",
+        "time_to_decision_aggregates",
+        "conflict_recusals",
+        "unresolved_errors"
+      ],
+      "actions": [
+        "export_redacted_evidence",
+        "flag_security_incident"
+      ]
+    }
+  ],
+  "reviewForm": {
+    "visibility": "OJS_ASSIGNMENT_PRIVATE",
+    "fields": [
+      {
+        "id": "theory_contribution",
+        "label": "Theoretical framing and contribution",
+        "ratingOptional": true,
+        "narrativeRequired": true
+      },
+      {
+        "id": "method_evidence_fit",
+        "label": "Method–question–evidence alignment",
+        "ratingOptional": true,
+        "narrativeRequired": true
+      },
+      {
+        "id": "analytic_transparency",
+        "label": "Analysis transparency, limitations and provenance",
+        "ratingOptional": true,
+        "narrativeRequired": true
+      },
+      {
+        "id": "contextual_interpretation",
+        "label": "Contextual interpretation and transferability",
+        "ratingOptional": true,
+        "narrativeRequired": true
+      },
+      {
+        "id": "participant_ethics",
+        "label": "Ethics, participant protection and consent",
+        "ratingOptional": true,
+        "narrativeRequired": true
+      },
+      {
+        "id": "clarity_revisions",
+        "label": "Actionable major and minor revisions",
+        "ratingOptional": false,
+        "narrativeRequired": true
+      },
+      {
+        "id": "confidential_editor_comments",
+        "label": "Confidential comments to handling editor",
+        "ratingOptional": false,
+        "narrativeRequired": false,
+        "editorOnly": true
+      },
+      {
+        "id": "conflict_declaration",
+        "label": "Current and potential conflicts of interest",
+        "ratingOptional": false,
+        "narrativeRequired": true
+      }
+    ],
+    "recommendations": [
+      "accept",
+      "minor_revision",
+      "major_revision",
+      "reject",
+      "cannot_review"
+    ],
+    "automaticDecisionByScore": false,
+    "requireNormallyTwoIndependentReviewers": true
+  },
+  "finance": {
+    "currency": "CHF",
+    "feeActivation": "DISABLED_UNTIL_LAWFUL_CHECKOUT_AND_NATIVE_OJS_CERTIFIED",
+    "charges": [
+      {
+        "type": "submission",
+        "amount": 0
+      },
+      {
+        "type": "research_review_methods_theory",
+        "amount": 2000
+      },
+      {
+        "type": "short_perspective_report",
+        "amount": 990
+      },
+      {
+        "type": "correction_retraction",
+        "amount": 0
+      }
+    ],
+    "inauguralIssueWaiverPercent": 100,
+    "acceptanceRequiredBeforeBilling": true,
+    "editorCanReadWaiverStatus": false,
+    "noPaidFastTrack": true,
+    "noPaidAcceptance": true
+  },
+  "liveClaims": {
+    "ojsOperational": false,
+    "publicSubmissionsOpen": false,
+    "paymentActive": false,
+    "boardMembershipsVerified": false,
+    "issnAssigned": false,
+    "doiRegistered": false
+  }
+}
