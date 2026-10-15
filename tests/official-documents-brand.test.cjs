@@ -29,6 +29,8 @@ const live=fs.readFileSync(path.join(root,'assets/js/student-sponsorship-dashboa
 const page=fs.readFileSync(path.join(root,'fa/customer-dashboard/index.html'),'utf8');
 assert.ok(live.includes('/identity/references/persian-symbol-gold.png'));
 assert.ok(live.includes('/identity/references/persian-wordmark-gold.png'));
+assert.ok(live.includes("order.state==='paid'&&order.paymentVerified===true"),'Receipt must be gated by paid state and verified payment claim');
+assert.ok(live.includes('if(verified){'),'Receipt must only render in verified branch');
 assert.ok(page.includes('20261015-persian-receipt-lockup-v1'));
 const favicon=fs.readFileSync(path.join(root,'favicon.svg'),'utf8');
 assert.ok(favicon.includes('data:image/png;base64,'),'SVG favicon must be self-contained for browser compatibility');
