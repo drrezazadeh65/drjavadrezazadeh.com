@@ -264,3 +264,10 @@ Available personal Library materials were retrieved for conceptual review: `Gold
 - `918eadc3` corrected the remaining `/fa/danesh-amoozan/` link on the English student-support page to the existing `/en/golden-talent/student/` route. This was a **real uncovered locale inconsistency**, not a newly invented destination.
 - `436b4245` updated `tests/donation-payment-browser.spec.js` to assert both English gateway links and zero Persian-gateway links. The test is committed, NOT yet independently reported PASS.
 - Last code/test SHA before this handoff supplement: `436b42450e5b73374be238ddd4968b170f781e22`. Everything in these checkpoints is still source-only; the main site has not been deployed.
+
+### Guardian-equity follow-up — 2026-10-15
+
+- `b2272a65`: English RCAS now infers the need for a guardian-help reminder from the educational stage `Junior secondary` or `Upper secondary` as well as a supplied age 10–17. The age field remains optional and NO guardian identity or minor's raw responses are transmitted.
+- `f3ce0f3e`: English browser RCAS end-to-end scenario uses `Upper secondary` without age and asserts guardian guidance is visible.
+- `4ecbe89e`: scientific source contract pins stage-based safeguarding logic.
+- Latest application/test SHA before this appended handoff: `4ecbe89e23828c41ee5d51e63cee2ba2f3cf4235`. New automated runtime status is **UNVERIFIED**; the existing non-deploying CI is wired but its current passing result has not been obtained. No live deployment.
