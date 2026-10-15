@@ -992,3 +992,11 @@ body.customer-dashboard:not(.rtl) :is(button,input,select,textarea){font-family:
 /* Shared document export: controls and hints never appear on paper/PDF. */
 .jr-receipt-export-hint{font-size:.85rem;color:#b59a62}
 @media print{.jr-receipt-export-hint,.jr-receipt-print-target button{display:none!important}.jr-receipt-print-target,.jr-receipt-print-target *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.jr-receipt-print-target p{break-inside:avoid}}
+
+/* Print-only receipt pagination: keep the document on a clean A4 page. */
+@media print{
+ body.jr-receipt-print-mode{background:#fff!important}
+ body.jr-receipt-print-mode .jr-receipt-print-target{box-sizing:border-box!important;position:relative!important;top:auto!important;left:auto!important;right:auto!important;margin:0 auto!important;padding:12mm!important;width:100%!important;max-width:186mm!important;min-height:0!important;break-inside:avoid-page!important}
+ body.jr-receipt-print-mode .jr-receipt-print-target .jr-payment-receipt-brand{break-inside:avoid-page!important}
+ body.jr-receipt-print-mode .jr-receipt-print-target img{max-width:100%!important}
+}
