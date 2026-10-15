@@ -573,7 +573,7 @@ for(const [locale,route,intake] of [
       locale==='fa'?'مشاوره تخصصی تحصیلی':'Specialist academic consultation');
     await expect(lead.locator('.appointment-private-list li').last()).toContainText(
       locale==='fa'?'استعدادیابی اختصاصی Golden Talent':'Signature Golden Talent guidance');
-    await expect(lead.locator('a[href$="#secure-consented-lead"]')).toHaveAttribute('href',
+    await expect(lead.locator('a.cd-section-link[href$="#secure-consented-lead"]')).toHaveAttribute('href',
       intake+'#secure-consented-lead');
     await expect(lead).toContainText(locale==='fa'?'دریافت‌شده':'Received');
     await expect(lead).not.toContainText('private-buyer@example.invalid');
