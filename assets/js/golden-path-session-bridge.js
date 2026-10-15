@@ -17,7 +17,8 @@
  const requiredRevision=en?'start-en-pilot-1':'start-1.2';
  if(!value||value.completed!==true||value.rcasRevision!==requiredRevision||
     value.completedItemCount!==28||value.p0Validated!==true||
-    value.routingEvidenceCompleted!==true||value.routeBasis!=='SELF_SELECTED_UNVALIDATED')
+    value.routingEvidenceCompleted!==true||value.meaningfulCoreEvidence!==true||
+    value.routeBasis!=='SELF_SELECTED_UNVALIDATED')
   return;
  const route=String(value.route||'');
  if(!/^D[1-6]$/.test(route))return;
