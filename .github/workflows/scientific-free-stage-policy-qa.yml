@@ -18,6 +18,7 @@ on:
       - "api/golden-talent-consent.php"
       - "api/golden-talent-consent-write.php"
       - "tests/bertina-consent-withdrawal-mysql.php"
+      - "tests/bertina-consent-withdrawal-concurrency-mysql.php"
       - "api/operations.php"
       - "api/operations-scientific-schema.php"
       - "tests/operations-security.php"
@@ -129,6 +130,8 @@ jobs:
           SCIENTIFIC_LOCK_FIXTURE_ENABLED=1 php tests/bertina-guardian-transaction-lock-mysql.php
           php -l tests/bertina-consent-withdrawal-mysql.php
           SCIENTIFIC_WITHDRAWAL_FIXTURE_ENABLED=1 php tests/bertina-consent-withdrawal-mysql.php
+          php -l tests/bertina-consent-withdrawal-concurrency-mysql.php
+          SCIENTIFIC_WITHDRAWAL_CONCURRENCY_FIXTURE=1 php tests/bertina-consent-withdrawal-concurrency-mysql.php
 
   mariadb-fixture:
     name: Isolated MariaDB 10.11 guardian and consent compatibility
@@ -167,6 +170,8 @@ jobs:
           SCIENTIFIC_LOCK_FIXTURE_ENABLED=1 php tests/bertina-guardian-transaction-lock-mysql.php
           php -l tests/bertina-consent-withdrawal-mysql.php
           SCIENTIFIC_WITHDRAWAL_FIXTURE_ENABLED=1 php tests/bertina-consent-withdrawal-mysql.php
+          php -l tests/bertina-consent-withdrawal-concurrency-mysql.php
+          SCIENTIFIC_WITHDRAWAL_CONCURRENCY_FIXTURE=1 php tests/bertina-consent-withdrawal-concurrency-mysql.php
 
   assembly-check:
     name: Sanitized Bertina release includes canonical consent library
