@@ -416,7 +416,10 @@ function operationsRoute(string $path, string $verb): never {
             if(!rateAllowed($pdo,'operations_growth_lead_read',$accountId,12,300))
                 fail('rate_limited',429);
             require_once __DIR__.'/growth-stage14.php';
-            respond(stage14AdminLeadWorklist($pdo));
+            $cursor=$_GET['cursor']??null;
+            if($cursor!==null && !is_string($cursor)) fail('invalid_lead_cursor',400);
+            try {respond(stage14AdminLeadWorklist($pdo,$cursor));}
+            catch(InvalidArgumentException $e) {fail('invalid_lead_cursor',400);}
         }
         if ($path === '/admin/operations/growth/leads/transition' && $verb === 'POST') {
             if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
