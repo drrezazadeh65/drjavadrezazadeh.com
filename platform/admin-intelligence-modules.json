@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0",
+  "release_policy": "NO_AUTOMATIC_DEPLOY",
+  "security": "ADMIN_MFA_SERVER_AUTH_ONLY",
+  "modules": [
+    {
+      "id": "schema-intelligence",
+      "title_fa": "مرکز هوشمند اسکیما",
+      "state": "SOURCE_SAMPLE_AUDIT_READY_NOT_PRODUCTION_CERTIFIED",
+      "capabilities": [
+        "bilingual page inventory",
+        "JSON-LD validation",
+        "visible-content consistency",
+        "schema duplication/conflict checks",
+        "change-triggered revalidation",
+        "evidence-based 0-10 health score",
+        "GSC integration only with authorized credentials"
+      ]
+    },
+    {
+      "id": "ai-discovery-geo",
+      "title_fa": "موتور کشف هوش مصنوعی و GEO",
+      "canonical_engine": "ENG-02",
+      "state": "PARTIAL_SOURCE_IMPLEMENTATION",
+      "existing": [
+        "llms.txt",
+        "crawler policy",
+        "CI audits"
+      ],
+      "next": [
+        "measure observed AI citations",
+        "verify live crawl accessibility",
+        "AI search referral baselines"
+      ]
+    },
+    {
+      "id": "keyword-intelligence",
+      "title_fa": "مرکز کلیدواژه",
+      "state": "EDITORIAL_MAP_UI_READY_EXTERNAL_METRICS_UNVERIFIED",
+      "capabilities": [
+        "fa/en keyword map",
+        "competitor comparisons",
+        "cannibalization",
+        "evidence-labelled ranking and volume"
+      ],
+      "source": "/assets/data/keyword-master-map-v1.json",
+      "verifiedOwnerRoutes": 13
+    },
+    {
+      "id": "admin-intelligence",
+      "title_fa": "مرکز فرماندهی هوشمند",
+      "state": "SPECIFIED_NOT_LIVE",
+      "capabilities": [
+        "audit provenance",
+        "0-10 evidence scoring",
+        "three priorities",
+        "historic plan reconciliation",
+        "private AI integration only via secure backend"
+      ]
+    },
+    {
+      "id": "konkur-results-simulator",
+      "title_fa": "شبیه‌ساز نتایج کنکور",
+      "state": "PARKED_ADMIN_ONLY",
+      "public_enabled": false,
+      "calculation_enabled": false
+    }
+  ],
+  "guardrails": [
+    "Preserve existing URLs and features",
+    "Do not expose admin data on public pages",
+    "Never claim live scores without verification",
+    "No deployment without release gates"
+  ]
+}
