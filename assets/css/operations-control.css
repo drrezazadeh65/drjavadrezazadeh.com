@@ -122,3 +122,15 @@
 #ops-commerce-results .ops-week-day button{width:100%;font:inherit;padding:.55rem .45rem;white-space:normal;border-radius:8px;min-height:42px}
 @media(max-width:480px){#ops-commerce-results .ops-week-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#ops-commerce-results .ops-week-day{padding:.5rem}}
 @media(max-width:320px){#ops-commerce-results .ops-week-grid{grid-template-columns:1fr}}
+
+
+/* Read-only audit history: compact and searchable across desktop/mobile. */
+.ops-audit-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:16px 0}
+.ops-audit-toolbar input,.ops-audit-toolbar select{min-height:42px;max-width:100%;padding:8px 12px;border:1px solid #45607e;border-radius:9px;background:#10233c;color:#fff;font:inherit}
+.ops-audit-toolbar input{flex:2 1 230px}.ops-audit-toolbar select{flex:1 1 180px}
+.ops-audit-toolbar .ops-muted{flex-basis:100%}
+.ops-audit-table{width:100%;border-collapse:collapse;table-layout:auto}
+.ops-audit-table caption{text-align:start;margin-bottom:8px}
+.ops-audit-table th,.ops-audit-table td{padding:10px 12px;text-align:start;border-bottom:1px solid #34485f;overflow-wrap:anywhere}
+.ops-audit-table th{white-space:nowrap}
+@media(max-width:640px){.ops-audit-toolbar{display:grid;grid-template-columns:minmax(0,1fr)}.ops-audit-toolbar input,.ops-audit-toolbar select{width:100%}.ops-audit-table{font-size:12px}.ops-audit-table th,.ops-audit-table td{padding:8px 5px}}
