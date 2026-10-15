@@ -14,6 +14,9 @@ on:
       - "tests/talent-dashboard-view-model.test.mjs"
       - "platform/golden-talent-phase12-gates.mjs"
       - "platform/bertina-consent-projection.php"
+      - "api/golden-talent.php"
+      - "tests/golden-talent-guardian.php"
+      - "tests/bahar-guardian-mysql.php"
       - "platform/bertina-free-stage-authorisation.php"
       - "platform/bertina-dashboard-projections.php"
       - "tests/bertina-consent-projection.php"
@@ -55,6 +58,9 @@ jobs:
       - name: Isolated PHP Bertina consent projection
         run: |
           php -l platform/bertina-consent-projection.php
+          php -l api/golden-talent.php
+          php -l tests/golden-talent-guardian.php
+          php tests/golden-talent-guardian.php
           php -l tests/bertina-consent-projection.php
           php -l platform/bertina-free-stage-authorisation.php
           php -l tests/bertina-free-stage-authorisation.php
@@ -99,6 +105,7 @@ jobs:
         run: |
           php -l tests/bertina-free-stage-mysql.php
           php tests/bertina-free-stage-mysql.php
+          php tests/bahar-guardian-mysql.php
 
   mariadb-fixture:
     name: Isolated MariaDB 10.11 guardian and consent compatibility
@@ -132,3 +139,4 @@ jobs:
         run: |
           php -l tests/bertina-free-stage-mysql.php
           php tests/bertina-free-stage-mysql.php
+          php tests/bahar-guardian-mysql.php
