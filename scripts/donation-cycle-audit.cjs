@@ -27,6 +27,7 @@ const checks=[
  ['receipt requires server verified claim',sponsor.includes("if(verified)")&&sponsor.includes('مشاهده تأییدیه پرداخت')],
  ['admin claim totals use provider claim match',admin.includes("c.transaction_id=o.provider_trans_id")&&admin.includes("c.verified_amount=o.provider_amount")],
  ['admin donation scope is complete',admin.includes("all_time_internal_donation_ledger")&&!admin.includes('sampled_internal_donation_ledger')],
+ ['donation totals count each order only once',admin.includes('EXISTS (')],
  ['admin UI uses complete donation scope',operations.includes("giving.scope==='all_time_internal_donation_ledger'")],
  ['shared document exporter is loaded',dashboard.includes('/assets/js/jr-document-export.js')],
  ['print and PDF use one export engine',sponsor.includes('JRDocumentExport?.print(receipt)')&&sponsor.includes('JRDocumentExport?.savePdf(receipt)')],
