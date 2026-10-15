@@ -1,0 +1,30 @@
+name: JHELA Public OJS Origin Safety (read only)
+# This workflow cannot deploy, alter DNS, install OJS, write to a live host, or access private credentials.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jhela-public-ojs-origin-probe
+  cancel-in-progress: true
+
+jobs:
+  inspect-public-origin:
+    name: Check strict TLS, nested path and submission noindex
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify deterministic origin-probe safety classifications
+        run: node scripts/jhela-ojs-origin-probe.mjs --self-test
+      - name: Probe public-only pages via CA-verified HTTPS
+        run: node scripts/jhela-ojs-origin-probe.mjs --live
+      - name: Evidence limits
+        if: always()
+        run: |
+          echo "Read-only public TLS and URL-path probes only. Do not interpret pass as installed OJS, manuscript security, reviewer access, SMTP, database isolation, backup/restore or live submission readiness." >> "$GITHUB_STEP_SUMMARY"
