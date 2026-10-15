@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 300" role="img" aria-labelledby="title desc">
+<title id="title">JHELA — Journal of Human-Centred Education, Learning and Assessment</title>
+<desc id="desc">An original open-book emblem, with two rising human forms in navy and gold, beside the English journal wordmark.</desc>
+<g transform="translate(16 20)">
+  <circle cx="82" cy="48" r="12" fill="#f4f0e6"/>
+  <circle cx="192" cy="48" r="12" fill="#e7c779"/>
+  <path d="M20 90 C73 91 103 140 137 207 C105 187 71 181 20 187 Z" fill="#f4f0e6"/>
+  <path d="M254 90 C201 91 171 140 137 207 C169 187 203 181 254 187 Z" fill="#e7c779"/>
+  <path d="M41 74 C103 98 122 155 137 207 C125 146 96 104 41 74 Z" fill="#c6d3db"/>
+  <path d="M233 74 C171 98 152 155 137 207 C149 146 178 104 233 74 Z" fill="#e7c779" opacity=".75"/>
+  <path d="M16 188 C76 177 116 193 137 214 C158 193 198 177 258 188 L258 236 C204 223 165 226 137 245 C109 226 70 223 16 236 Z" fill="none" stroke="#f4f0e6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M137 214 L137 245" stroke="#e7c779" stroke-width="7" stroke-linecap="round"/>
+</g>
+<text x="320" y="168" font-family="Georgia,'Times New Roman',serif" font-size="126" font-weight="700" letter-spacing="9" fill="#f4f0e6">JHELA</text>
+<path d="M326 194 H1040" stroke="#e7c779" stroke-width="4"/>
+<text x="326" y="233" font-family="Georgia,'Times New Roman',serif" font-size="22" letter-spacing="2.8" fill="#f4f0e6">JOURNAL OF HUMAN-CENTRED</text>
+<text x="326" y="265" font-family="Georgia,'Times New Roman',serif" font-size="22" letter-spacing="2.55" fill="#f4f0e6">EDUCATION, LEARNING AND ASSESSMENT</text>
+</svg>
