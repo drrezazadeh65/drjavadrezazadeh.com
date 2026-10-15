@@ -24,7 +24,7 @@ $pdo=new PDO($dsn,getenv('OPERATIONS_TEST_USER')?:'',getenv('OPERATIONS_TEST_PAS
 $schema=[
 'eco_subjects'=>"id CHAR(36),pseudonym VARCHAR(120),status VARCHAR(24),subject_type VARCHAR(32),guardian_account_id CHAR(36),created_at DATETIME(3)",
 'eco_subject_relationships'=>"subject_id CHAR(36),related_account_id CHAR(36),relationship_code VARCHAR(32),verification_status VARCHAR(24),expires_at DATETIME(3)",
-'eco_consent_notices'=>"id CHAR(36),purpose_code VARCHAR(64),effective_at DATETIME(3),retired_at DATETIME(3)",
+'eco_consent_notices'=>"id CHAR(36),purpose_code VARCHAR(64),version_label VARCHAR(32),locale CHAR(2),notice_sha256 CHAR(64),effective_at DATETIME(3),retired_at DATETIME(3)",
 'eco_consent_records'=>"id CHAR(36),subject_id CHAR(36),account_id CHAR(36),notice_id CHAR(36),decision VARCHAR(20),withdrawn_at DATETIME(3),granted_at DATETIME(3)",
 'eco_bahar_portfolios'=>"id CHAR(36),subject_id CHAR(36),state VARCHAR(24),portfolio_code VARCHAR(80),created_at DATETIME(3)",
 'eco_bahar_weekly_cycles'=>"id CHAR(36),portfolio_id CHAR(36),human_reviewed_at DATETIME(3)",
@@ -47,8 +47,8 @@ try{
         $subject,$owner,$subject2,$owner
     ]);
     $pdo->exec("INSERT INTO eco_consent_notices VALUES
-        ('assessment','ASSESSMENT',UTC_TIMESTAMP(3) - INTERVAL 30 DAY,NULL),
-        ('parent','PARENT_VISIBILITY',UTC_TIMESTAMP(3) - INTERVAL 30 DAY,NULL)");
+        ('assessment','ASSESSMENT','v1','fa',REPEAT('a',64),UTC_TIMESTAMP(3) - INTERVAL 30 DAY,NULL),
+        ('parent','PARENT_VISIBILITY','v1','fa',REPEAT('b',64),UTC_TIMESTAMP(3) - INTERVAL 30 DAY,NULL)");
     $pdo->prepare("INSERT INTO eco_consent_records VALUES
         ('assessment-grant',?,?, 'assessment','GRANTED',NULL,UTC_TIMESTAMP(3) - INTERVAL 9 DAY),
         ('parent-grant',?,?, 'parent','GRANTED',NULL,UTC_TIMESTAMP(3) - INTERVAL 9 DAY)")->execute([
@@ -75,8 +75,17 @@ try{
         ('parent-revoked',?,?,'parent','WITHDRAWN',UTC_TIMESTAMP(3) - INTERVAL 1 DAY,UTC_TIMESTAMP(3) - INTERVAL 1 DAY)")->execute([$subject,$owner]);
     expectBahar(goldenTalentGuardianBaharOverview($pdo,$owner)===[],'Newer visibility revocation blocks all BAHAR counts');
     $pdo->prepare("INSERT INTO eco_consent_records VALUES
-        ('parent-regrant',?,?,'parent','GRANTED',NULL,UTC_TIMESTAMP(3))")->execute([$subject,$owner]);
+        ('parent-regrant',?,?,'parent','GRANTED',NULL,UTC_TIMESTAMP(3) - INTERVAL 5 MINUTE)")->execute([$subject,$owner]);
     expectBahar(count(goldenTalentGuardianBaharOverview($pdo,$owner))===1,'Current regrant can restore authorised summary');
+    $pdo->prepare("UPDATE eco_consent_records SET withdrawn_at=UTC_TIMESTAMP(3) - INTERVAL 2 MINUTE
+        WHERE id='parent-grant'")->execute();
+    expectBahar(goldenTalentGuardianBaharOverview($pdo,$owner)===[],
+        'A late mutation on the original parent grant overrides newer regrant');
+    $pdo->prepare("INSERT INTO eco_consent_records VALUES
+        ('parent-regrant-after-mutation',?,?,'parent','GRANTED',NULL,UTC_TIMESTAMP(3) - INTERVAL 1 MINUTE)")
+        ->execute([$subject,$owner]);
+    expectBahar(count(goldenTalentGuardianBaharOverview($pdo,$owner))===1,
+        'Valid new parent visibility grant restores after original grant withdrawal');
     $pdo->prepare("UPDATE eco_subject_relationships SET verification_status='PENDING' WHERE subject_id=?")
         ->execute([$subject]);
     expectBahar(goldenTalentGuardianBaharOverview($pdo,$owner)===[],'Unverified relationship denies access');
