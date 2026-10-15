@@ -247,6 +247,10 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         }
         $snapshot['available']=true;
         $snapshot['reason']=null;
+        $snapshot['donations']=['scope'=>'sampled_internal_donation_ledger',
+            'pendingOrders'=>null,'paidStateOrders'=>null,'claimMatchedOrders'=>null,
+            'claimMatchedAmountToman'=>null,'bankSettlementVerified'=>false,
+            'allocationVerified'=>false];
         $snapshot['orders']=[
             'states'=>$states,
             'pendingRecords'=>$states['pending']??0,
