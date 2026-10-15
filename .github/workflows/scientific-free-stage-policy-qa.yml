@@ -89,3 +89,36 @@ jobs:
         run: |
           php -l tests/bertina-free-stage-mysql.php
           php tests/bertina-free-stage-mysql.php
+
+  mariadb-fixture:
+    name: Isolated MariaDB 10.11 guardian and consent compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      mysql:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: fixture-password
+          MARIADB_DATABASE: operations_fixture
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -pfixture-password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
+      OPERATIONS_TEST_USER: root
+      OPERATIONS_TEST_PASSWORD: fixture-password
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MariaDB PDO test runtime
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y php-cli php-mysql
+          php -m | grep -iq pdo_mysql
+      - name: MariaDB 10.11 temporary-table consent and guardian checks
+        run: |
+          php -l tests/bertina-free-stage-mysql.php
+          php tests/bertina-free-stage-mysql.php
