@@ -128,3 +128,13 @@ This checkpoint **advances, but does not close**, prior installed-schema/consent
 **CI verified:** [run 38825343607](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38825343607) completed with **six successful nondeploying jobs** including **26 consent-withdrawal/idempotency/audit tests on each of MySQL 8 and MariaDB 10.11**, **7 two-connection writer-vs-reader concurrency tests on each engine**, PHP/JS policy and guarded archive/route packaging, admin MFA and bilingual Chromium regression. These are isolated synthetic fixtures, not real production schema, user consent or scientific evidence.
 
 **Acceptance dossier:** `docs/scientific-validation/P0-TRANSACTIONAL-CONSENT-WITHDRAWAL-ACCEPTANCE-2026-10-16.md`. Mandatory public-write blockers remain independently verified age/guardianship/child assent, clear revocation UX, session/CSRF/rate limits, all writers' lock-order policy, real Bertina schema proof, data-retention and safeguarding review, and owner-approved staging rollout. Existing science statuses remain PREVALIDATION.
+
+## Withdrawal Safety Gate — Default Off and Durable Revocation
+
+**Development-only security change**: `api/golden-talent-consent-write.php` is still not wired to an HTTP route and now requires explicit PHP server constant `GT_INTERNAL_CONSENT_WRITE_ENABLED === true`; absent that, it rejects all calls before acquiring database locks. Production bootstrap and current Golden Talent routes do not activate it. This is a deliberate nondeployment safeguard.
+
+**Consent-notice resilience**: a recorded grant can be withdrawn durably even when its notice is currently retired or not yet effective, preventing unexpected grant resurrection if the notice lifecycle changes afterward. The same transaction writes the consent revocation and an actor-scoped audit event and respects canonical subject-first locks.
+
+**Latest bounded evidence**: [Scientific QA run 38825833509](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38825833509) concluded with six successful nondeploying jobs including 30 withdrawal and 7 two-session consent-lock checks **per SQL engine** (MySQL 8 and MariaDB 10.11), plus existing admin/bilingual browser, PHP/Node and release-package regression tests. This does not prove legal/ethical sufficiency, live installed database state, account recovery/privacy rights for disabled users, or psychometric validity.
+
+**Still NO-GO** for a public withdrawal/grant route, live private assessment, release of reports, migration, deployment and final master-plan freeze. See `docs/scientific-validation/P0-TRANSACTIONAL-CONSENT-WITHDRAWAL-ACCEPTANCE-2026-10-16.md`.
