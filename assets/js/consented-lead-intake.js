@@ -107,28 +107,58 @@
     }catch(error){say(describe(error));}
     finally{submit.disabled=false;}
   });
-  mine.addEventListener('click',async()=>{
-    mine.disabled=true;
-    say(t('در حال دریافت درخواست‌های متعلق به حساب شما…','Retrieving enquiries for your verified account…'));
+  // Keep every active consent record accessible without a bulk private response.
+  // No browser storage or automatic follow-up is introduced.
+  const more=document.createElement('button');
+  more.type='button';
+  more.hidden=true;
+  more.textContent=t('نمایش درخواست‌های قدیمی‌تر','Show older enquiries');
+  list.insertAdjacentElement('afterend',more);
+  let leadCursor=null,leadGeneration=0,loadingLeads=false;
+  function clearMine(){
+    leadGeneration++;
+    leadCursor=null;
     list.replaceChildren();
+    more.hidden=true;
+    mine.disabled=false;
+    loadingLeads=false;
+  }
+  async function loadMine(next=null){
+    if(loadingLeads||document.hidden)return;
+    const generation=++leadGeneration;
+    loadingLeads=true;
+    mine.disabled=true;more.disabled=true;more.hidden=true;
+    if(next===null){leadCursor=null;list.replaceChildren();}
+    say(t('در حال دریافت درخواست‌های متعلق به حساب شما…',
+      'Retrieving enquiries for your verified account…'));
     try{
-      const data=await callApi('/api/growth/leads/mine');
-      if(!Array.isArray(data.requests)||data.requests.length===0){
+      const data=await callApi('/api/growth/leads/mine'+
+        (next===null?'':'?cursor='+encodeURIComponent(next)));
+      if(generation!==leadGeneration||document.hidden)return;
+      if(data.evidenceScope!=='OWNER_ONLY_NO_PAYMENT_CLAIMS'||
+         !Array.isArray(data.requests)||data.requests.length>20||
+         (data.nextCursor!==null&&
+          (typeof data.nextCursor!=='string'||
+           !/^[0-9]{1,10}:[a-f0-9-]{36}$/i.test(data.nextCursor)))||
+         (data.nextCursor!==null&&data.requests.length!==20))
+        throw {status:503,code:'invalid_private_page'};
+      if(data.requests.length===0&&next===null){
         say(t('در این حساب، درخواست فعال و قابل مشاهده‌ای گزارش نشد.',
           'There are no visible active enquiries for this account.'));
         return;
       }
-      say(t('فقط درخواست‌های حساب تأییدشده فعلی نمایش داده می‌شوند.',
-        'Only enquiries belonging to the current verified account are shown.'));
       for(const r of data.requests){
+        if(typeof r.id!=='string'||!/^[a-f0-9-]{36}$/i.test(r.id)||
+           typeof r.service_id!=='string'||!r.service_id.match(/^(service|vip):[A-Za-z0-9_-]{3,64}$/))
+          throw {status:503,code:'invalid_private_record'};
         const entry=document.createElement('li');
         const span=document.createElement('span');
-        const serviceId=String(r.service_id||t('خدمت','Service'));
+        const serviceId=r.service_id;
         const serviceTitle=serviceLabels.get(serviceId)||serviceId;
         const state=String(r.state||t('نامشخص','Unknown'));
         span.textContent=serviceTitle+' — '+state+' ';
         entry.append(span);
-        if(r.state!=='WITHDRAWN'&&typeof r.id==='string'){
+        if(r.state!=='WITHDRAWN'){
           const button=document.createElement('button');
           button.type='button';
           button.textContent=t('لغو رضایت این درخواست','Withdraw consent for this enquiry');
@@ -148,8 +178,29 @@
         }
         list.append(entry);
       }
-    }catch(error){say(describe(error));}
-    finally{mine.disabled=false;}
-  });
+      leadCursor=data.nextCursor;
+      more.hidden=leadCursor===null;
+      say(t('نمایش '+list.children.length+' درخواست متعلق به حساب شما'+
+        (leadCursor===null?'؛ پایان سوابق قابل مشاهده.':'؛ سوابق بیشتری وجود دارد.'),
+        'Showing '+list.children.length+' enquiries owned by your account'+
+        (leadCursor===null?'; end of visible history.':'; more history is available.')));
+    }catch(error){
+      if(generation!==leadGeneration||document.hidden)return;
+      // On malformed or unavailable pages, do not infer an empty history.
+      if(next===null)list.replaceChildren();
+      leadCursor=null;
+      more.hidden=true;
+      say(describe(error));
+    }finally{
+      if(generation===leadGeneration){
+        loadingLeads=false;
+        mine.disabled=false;more.disabled=false;
+      }
+    }
+  }
+  mine.addEventListener('click',()=>loadMine());
+  more.addEventListener('click',()=>{if(leadCursor!==null)loadMine(leadCursor)});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)clearMine()});
+  window.addEventListener('pagehide',clearMine);
   loadCatalog();
 })();
