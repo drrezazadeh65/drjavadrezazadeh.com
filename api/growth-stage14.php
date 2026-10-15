@@ -191,20 +191,36 @@ function stage14AdminGrowthSnapshot(PDO $pdo): array {
  * time, never copied into lead tables or the aggregate growth snapshot.
  * Expired, withdrawn, disabled and unverified accounts are excluded.
  */
-function stage14AdminLeadWorklist(PDO $pdo): array {
+function stage14AdminLeadWorklist(PDO $pdo, ?string $cursor=null): array {
     if (!stage14LeadSchemaReady($pdo)) fail('secure_lead_capture_unavailable',503);
     $at=nowTs();
+    // Keyset pagination, not OFFSET: new enquiries remain reachable even if
+    // the owner already has more than twenty older unresolved cases.
+    // The cursor contains only a timestamp and a lead ID, never contact data.
+    $after='';
+    $params=[$at];
+    if ($cursor!==null) {
+        if (!preg_match('/^([0-9]{1,10}):([a-f0-9-]{36})$/iD',$cursor,$parts)
+            || !validUuid($parts[2]) || (int)$parts[1]<1 || (int)$parts[1]>$at)
+            throw new InvalidArgumentException('invalid_lead_cursor');
+        $after=' AND (l.created_at>? OR (l.created_at=? AND l.id>?))';
+        array_push($params,(int)$parts[1],(int)$parts[1],$parts[2]);
+    }
     $q=$pdo->prepare("SELECT l.id,l.service_id,l.state,l.created_at,l.updated_at,
         a.email_normalized AS contact_email
         FROM growth_lead_requests l
         INNER JOIN customer_accounts a ON a.id=l.account_id
         WHERE l.expires_at>? AND l.consent_withdrawn_at IS NULL
           AND l.state IN ('NEW','NEEDS_INFO','QUALIFIED')
-          AND a.status='active' AND a.email_verified_at IS NOT NULL
-        ORDER BY l.created_at ASC,l.id ASC LIMIT 20");
-    $q->execute([$at]);
+          AND a.status='active' AND a.email_verified_at IS NOT NULL"
+          .$after."
+        ORDER BY l.created_at ASC,l.id ASC LIMIT 21");
+    $q->execute($params);
+    $rows=$q->fetchAll(PDO::FETCH_ASSOC);
+    $hasMore=count($rows)>20;
+    $visible=array_slice($rows,0,20);
     $records=[];
-    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    foreach($visible as $row) {
         $records[]=[
           'id'=>(string)$row['id'],
           'serviceId'=>(string)$row['service_id'],
@@ -214,8 +230,11 @@ function stage14AdminLeadWorklist(PDO $pdo): array {
           'contactEmail'=>(string)$row['contact_email']
         ];
     }
+    $last=$visible ? $visible[count($visible)-1] : null;
+    $nextCursor=$hasMore && $last!==null
+      ?(string)$last['created_at'].':'.(string)$last['id'] : null;
     return ['ok'=>true,'schema'=>'stage14-owner-lead-worklist-v1',
-      'items'=>$records,'limit'=>20,'asOf'=>$at,
+      'items'=>$records,'limit'=>20,'asOf'=>$at,'nextCursor'=>$nextCursor,
       'privacy'=>'MFA_ONLY_CURRENT_CONSENT_NO_MARKETING_PERMISSION',
       'limitation'=>'Manual human follow-up only. Not a booking, acceptance, sale or settlement.'];
 }
