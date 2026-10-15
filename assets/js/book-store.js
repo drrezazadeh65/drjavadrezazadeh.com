@@ -20,6 +20,7 @@
  // Catalogue prices never authorise payment. The server must explicitly permit books and reconcile stock.
  let bookPaymentReady=false;
  let deliveryCaptureReady=false;
+ let bookStockPending=false;
  async function verifyBookPaymentCapability(){
   try{
    const response=await fetch(API+'/commerce/health',{cache:'no-store',credentials:'omit'});
@@ -299,7 +300,9 @@
    '<p class="store-notice" role="note">'+(isFa?'پس از پرداخت، شناسه سفارش را برای پیگیری نگه دارید. اگر ارسال کتاب امکان‌پذیر نبود، از طریق ایمیل info@drjavadrezazadeh.com با ذکر شناسه سفارش درخواست پیگیری یا استرداد وجه ثبت کنید.':'Keep your order ID after payment. If delivery cannot be completed, email info@drjavadrezazadeh.com with the order ID to request support or a refund.')+'</p>'+ 
    '<p class="lead">'+(bookPaymentReady
      ?(isFa?'اطلاعات سفارش و مبلغ نهایی پیش از انتقال به درگاه دوباره در سرور بررسی می‌شود.':'Order details and the final amount are checked again on the server before payment.')
-     :(isFa?'ثبت سفارش سمت سرور فعال است. در وضعیت فعلی سفارش بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Order submission is active. For now, the order is recorded without charging you and you receive a tracking ID.'))+'</p>'+
+     :(bookStockPending
+       ?(isFa?'موجودی فیزیکی کتاب‌ها هنوز در سامانه تأیید نشده است؛ سفارش فعلاً بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Physical book inventory has not yet been reconciled; your request is recorded without charging you and a tracking ID is provided.')
+       :(isFa?'ثبت سفارش سمت سرور فعال است. در وضعیت فعلی سفارش بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Order submission is active. For now, the order is recorded without charging you and you receive a tracking ID.')) )+'</p>'
    '<div class="store-notice">'+(valid
      ?(bookPaymentReady
        ?(isFa?'ارسال کتاب رایگان است. مبلغ نهایی در سرور محاسبه می‌شود و فقط پرداخت تأییدشده سفارش را قطعی می‌کند.':'Book shipping is free. The final total is calculated on the server and only a verified payment completes the order.')
@@ -371,6 +374,7 @@
   const capability=await verifyBookPaymentCapability();
   bookPaymentReady=capability.payment;
   deliveryCaptureReady=capability.capture;
+  bookStockPending=capability.stockPending===true;
   // Re-render after a fresh explicit readiness check; controls remain disabled on uncertainty.
   renderCart(data);renderCheckout(data);
  }).catch(()=>document.querySelectorAll('[data-store-error]').forEach(x=>{
