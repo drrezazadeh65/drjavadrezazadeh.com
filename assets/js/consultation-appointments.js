@@ -129,7 +129,11 @@
      const data=await response.json();
      if(data?.ok!==true||!Array.isArray(data.orders)||data.orders.length>50)
        throw Error('history_invalid');
-     const orders=data.orders.filter(paidService).slice(0,20);
+     const eligibleOrders=data.orders.filter(paidService);
+     const orders=eligibleOrders.slice(0,20);
+     // History is a bounded page: 50 total records may imply unseen older
+     // purchases. A separate 20-service display limit can also truncate.
+     const mayHaveOlder=data.orders.length===50||eligibleOrders.length>orders.length;
      output.replaceChildren();
      if(!orders.length){
        message(t('در ۵۰ سفارش اخیر این حساب، خدمت دارای پرداخت ثبت‌شده برای نمایش نوبت یافت نشد. این نتیجه به معنای نبود تمام سوابق قبلی نیست.',
@@ -139,6 +143,7 @@
      message(t('تاریخ و ساعت بر اساس منطقه زمانی مرورگر شما نمایش داده می‌شوند: ',
        'Times are shown in your browser time zone: ')+timezone);
      const list=el('ul');list.className='appointment-private-list';
+     let unverifiedOrderCount=0;
      for(const order of orders){
        if(stamp!==revision||document.hidden)break;
        try{
@@ -147,12 +152,19 @@
            headers:{Accept:'application/json'},signal:ctrl.signal
          });
          if(stamp!==revision||document.hidden)break;
-         if(!detail.ok)continue;
+         if(!detail.ok){unverifiedOrderCount++;continue;}
          const d=await detail.json();
          if(d?.ok!==true||d.paymentRecord!=='provider_verified_not_bank_settlement'
-           ||!Array.isArray(d.serviceCases)||d.serviceCases.length>20)continue;
+           ||!Array.isArray(d.serviceCases)||!d.serviceCases.length||
+           d.serviceCases.length>20){unverifiedOrderCount++;continue;}
+         let shownForOrder=0,partialOrder=false;
          for(const c of d.serviceCases){
-           if(typeof c?.sku!=='string'||!statusLabels[c.status])continue;
+           // Defence in depth: an API detail is not displayed for an
+           // unrelated SKU even when a paid order ID is valid.
+           if(typeof c?.sku!=='string'||!Object.hasOwn(statusLabels,c.status)||
+             !order.items.some(x=>x?.sku===c.sku)){
+             partialOrder=true;continue;
+           }
            const entry=el('li');
            const title=el('strong',c.sku+' · '+statusLabels[c.status]);entry.append(title);
            if(Object.hasOwn(DELIVERY_LABELS,c.deliveryMode)){
@@ -163,8 +175,11 @@
            }
            if((c.status==='booked'||c.status==='in_progress')&&c.bookingStart&&c.bookingEnd){
              const start=formatTime(c.bookingStart),end=formatTime(c.bookingEnd);
-             if(start&&end)entry.append(el('p',t('شروع: ','Start: ')+start+
-               ' | '+t('پایان: ','End: ')+end));
+             if(start&&end&&Date.parse(c.bookingStart.replace(' ','T')+'Z')<
+               Date.parse(c.bookingEnd.replace(' ','T')+'Z'))
+               entry.append(el('p',t('شروع: ','Start: ')+start+
+                 ' | '+t('پایان: ','End: ')+end));
+             else partialOrder=true;
            }else if(c.status==='scheduling'||c.status==='awaiting_contact'){
              entry.append(el('p',t('زمان قطعی ثبت نشده؛ هماهنگی توسط تیم خدمات انجام می‌شود.',
                'No confirmed time yet; the service team must coordinate scheduling.')));
@@ -172,10 +187,14 @@
            entry.append(el('small',t('شماره سفارش: ','Order: ')+String(order.id||'')));
            makeChoice(order,c,entry,stamp);
            list.append(entry);
+           shownForOrder++;
          }
+         if(!shownForOrder||partialOrder)unverifiedOrderCount++;
        }catch(error){
          if(ctrl.signal.aborted)break;
-         // A failed individual order lookup cannot authorise guessed details.
+         // A failed individual order lookup cannot authorise guessed details
+         // or silently turn this bounded view into an apparently complete one.
+         unverifiedOrderCount++;
        }
      }
      if(stamp!==revision||document.hidden)return;
@@ -185,6 +204,10 @@
        return;
      }
      output.append(list);
+     if(unverifiedOrderCount||mayHaveOlder)message(t(
+       'این فهرست ممکن است ناقص باشد: جزئیات برخی سفارش‌ها تأیید نشد یا سوابق قدیمی‌تری وجود دارد. برای پیگیری دقیق، دوباره بررسی کنید یا با تیم خدمات تماس بگیرید.',
+       'This list may be incomplete: some order details could not be verified or older records may exist. Retry or contact the service team for a complete review.'
+     ));
      message(t('تغییر یا لغو نوبت هنوز از این صفحه انجام نمی‌شود؛ برای هماهنگی با واحد خدمات تماس بگیرید. داشتن نوبت به معنای انجام جلسه یا تسویه بانکی نیست.',
        'This page cannot reschedule or cancel appointments. Contact the service team. A booking does not prove delivery or bank settlement.'));
    }catch(error){
