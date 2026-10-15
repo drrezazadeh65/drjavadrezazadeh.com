@@ -248,7 +248,7 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         $snapshot['available']=true;
         $snapshot['reason']=null;
         $givingRows=$pdo->query("SELECT state,amount_toman,provider_amount,provider_trans_id
-            FROM commerce_orders WHERE items_json LIKE '%support:students%'
+            FROM commerce_orders WHERE JSON_VALID(items_json)=1 AND JSON_LENGTH(items_json)=1 AND JSON_UNQUOTE(JSON_EXTRACT(items_json,'$[0].sku'))='support:students'
             ORDER BY created_at DESC LIMIT 1000")->fetchAll(PDO::FETCH_ASSOC);
         $givingPending=0;$givingPaid=0;
         foreach($givingRows as $givingRow){
