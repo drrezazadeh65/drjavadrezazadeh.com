@@ -5,6 +5,7 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - '.github/workflows/v5-release-candidate.yml'
+      - '.github/workflows/stage14-organic-growth.yml'
       - 'scripts/build-public-site.mjs'
       - 'scripts/build-public-data.mjs'
       - 'scripts/stamp-bertina-release.mjs'
@@ -73,6 +74,7 @@ jobs:
           node scripts/v5-1-usable-release-audit.mjs
           node tests/jr-ecosystem-visual-contract.mjs
           node --check assets/js/consented-lead-intake.js
+          node --check assets/js/customer-consultation-leads.js
           node --test tests/stage14-growth-privacy.test.mjs tests/revenue-planner-model.test.mjs
           node scripts/stage14-organic-growth-audit.mjs
           node scripts/revenue-planner-contract-audit.mjs
