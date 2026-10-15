@@ -52,12 +52,17 @@ function bertinaCurrentConsent(array $rows, string $purpose, int|float $now): ar
         if (($row['withdrawn_at'] ?? null) !== null) {
             // A revoked grant can be recorded as a mutation of the original
             // record even without a distinct WITHDRAWN row.
-            if ($decision !== 'GRANTED') return $deny('CONFLICTING_WITHDRAWAL');
             $revokedAt = bertinaSqlUtcSeconds($row['withdrawn_at']);
             if ($revokedAt === null || $revokedAt < $at)
                 return $deny('INVALID_WITHDRAWAL_TIME');
             if ($revokedAt > $now) return $deny('FUTURE_WITHDRAWAL');
-            $events[] = ['time'=>$revokedAt,'decision'=>'WITHDRAWN','row'=>null];
+            if ($decision === 'GRANTED') {
+                $events[] = ['time'=>$revokedAt,'decision'=>'WITHDRAWN','row'=>null];
+            } elseif ($decision !== 'WITHDRAWN' || $revokedAt !== $at) {
+                // Explicit withdrawal recorded with the SAME timestamp is a
+                // single revocation event, not a duplicate event or an error.
+                return $deny('CONFLICTING_WITHDRAWAL');
+            }
         }
     }
     usort($events, static fn(array $a,array $b): int => $b['time'] <=> $a['time']);
