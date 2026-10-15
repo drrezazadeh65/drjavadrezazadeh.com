@@ -1,0 +1,26 @@
+/* Schema Intelligence panel — reuses operations neutral/ink visual language */
+#jr-intelligence{--jr-progress:0;color:inherit}
+#jr-intelligence .jr-i-layout{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);align-items:center;gap:clamp(1rem,3vw,2rem)}
+#jr-intelligence .jr-i-ring{width:min(100%,180px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#bba272 calc(var(--jr-progress)*1%),#253349 0);padding:12px;margin:auto}
+#jr-intelligence .jr-i-ring>div{width:100%;height:100%;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111c2b;text-align:center;color:#f7f0df}
+#jr-intelligence .jr-i-ring strong{font-size:clamp(1.3rem,3vw,2rem);font-variant-numeric:tabular-nums}
+#jr-intelligence .jr-i-ring small{font-size:.72rem;max-width:120px}
+#jr-intelligence .jr-i-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-block:14px}
+#jr-intelligence button{min-height:44px}
+#jr-intelligence .jr-i-list{margin:16px 0 0;padding-inline-start:22px;max-height:380px;overflow:auto}
+#jr-intelligence .jr-i-list li{padding:9px 0;border-bottom:1px solid rgba(155,169,191,.2);display:flex;gap:8px;flex-wrap:wrap;align-items:baseline}
+#jr-intelligence .jr-i-list li a{max-width:100%;overflow-wrap:anywhere}
+#jr-intelligence .jr-i-list li span{font-size:.85rem;opacity:.85}
+#jr-intelligence .jr-i-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#jr-intelligence .jr-i-card{border:1px solid rgba(155,169,191,.25);border-radius:14px;padding:16px;background:rgba(13,28,47,.45)}
+#jr-intelligence .jr-i-card h3{margin:0 0 8px;font-size:1rem}
+#jr-intelligence .jr-i-card p{margin:0 0 12px;font-size:.9rem}
+#jr-intelligence .jr-i-card small{opacity:.8}
+@media(max-width:650px){#jr-intelligence .jr-i-layout{grid-template-columns:minmax(0,1fr)}#jr-intelligence .jr-i-grid{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){#jr-intelligence *{transition:none!important}}
+
+#jr-intelligence .jr-i-priorities{margin-top:20px;padding:18px;border:1px solid rgba(199,163,91,.32);border-radius:14px;background:rgba(14,25,42,.55)}
+#jr-intelligence .jr-i-priorities h3{margin:0 0 10px;font-size:1.07rem}
+#jr-intelligence .jr-i-priorities p{color:var(--ops-muted,#b3c0d2);font-size:.9rem}
+#jr-intelligence .jr-i-priorities ol{margin:12px 0 0;padding-inline-start:24px}
+#jr-intelligence .jr-i-priorities li{margin-block:7px;line-height:1.75}
