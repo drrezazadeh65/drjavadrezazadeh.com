@@ -19,6 +19,10 @@ on:
       - "api/operations.php"
       - "api/operations-scientific-schema.php"
       - "tests/operations-security.php"
+      - "assets/js/operations-scientific-schema.js"
+      - "fa/app/admin/index.html"
+      - "en/account/admin/index.html"
+      - "tests/operations-scientific-schema-browser.spec.js"
       - "tests/bertina-public-consent-assembly.mjs"
       - "tests/golden-talent-guardian.php"
       - "tests/bahar-guardian-mysql.php"
@@ -62,6 +66,7 @@ jobs:
           node --check platform/free-first-stage-consent-adapter.mjs
           node --check platform/scientific-release-gate.mjs
           node --check assets/js/talent-dashboard-view-model.mjs
+          node --check assets/js/operations-scientific-schema.js
       - name: Isolated PHP Bertina consent projection
         run: |
           php -l platform/bertina-consent-projection.php
@@ -171,6 +176,7 @@ jobs:
       - name: Inspect archived API and exclude research directories
         run: |
           node tests/bertina-public-consent-assembly.mjs
+          node --check .public-site/assets/js/operations-scientific-schema.js
           php -l .public-site/api/golden-talent.php
           php -l .public-site/api/golden-talent-consent.php
           php -l .public-site/api/operations.php
@@ -193,3 +199,24 @@ jobs:
           php -l api/operations.php
           php -l tests/operations-security.php
           php tests/operations-security.php
+
+  admin-schema-browser:
+    name: Bilingual scientific schema dashboard browser regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install isolated Chromium test runner
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Start local fixture site (never production)
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/scientific-ui-fixture.log 2>&1 &
+          curl -fsS --retry 10 --retry-delay 1 http://127.0.0.1:4173/fa/app/admin/ > /dev/null
+      - name: Test FA/EN lazy data, MFA denial, private state clear, hostile payload
+        run: |
+          npx playwright test tests/operations-scientific-schema-browser.spec.js --reporter=line
