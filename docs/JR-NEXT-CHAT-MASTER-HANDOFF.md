@@ -286,3 +286,9 @@ Available personal Library materials were retrieved for conceptual review: `Gold
 - Current latest application/test SHA: `d28cf7f4be9ae1d6fe8c14b7a3a64ce1cee6fe26`.
 - Browser/runtime execution remains unverified: the local runtime cannot resolve github.com and the available GitHub connector does not expose a fresh nondeploying workflow dispatch or complete run listing. Do not claim green CI.
 - No production deploy; retain final owner approval gate.
+
+### 2026-10-15 continuation: asset revision source contract
+
+- `5437876b`: `tests/scientific-bilingual-contract.test.mjs` now requires both Golden Path locale pages to load `golden-path-session-bridge.js?v=20261015-2` and `jr-ecosystem-design-v2.css?v=20261015-r2`; guards against stale page asset revisions.
+- Candidate workflow `.github/workflows/v5-release-candidate.yml` is push-triggered for `tests/**`, includes source contract and Playwright suites, and explicitly does not deploy. Actual run outcome for the latest SHA remains unverified; the GitHub connector's commit workflow run lookup is limited to PR-triggered runs.
+- No production deployment authorized or performed.
