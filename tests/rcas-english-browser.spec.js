@@ -121,7 +121,7 @@ test('English Golden Path never promotes a self-selected RCAS route into a verif
  await expect(status).toContainText('No current-tab RCAS route');
  await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
   completed:true,rcasRevision:'start-en-pilot-1',completedItemCount:28,
-  p0Validated:true,routingEvidenceCompleted:true,
+  p0Validated:true,routingEvidenceCompleted:true,meaningfulCoreEvidence:true,
   routeBasis:'SELF_SELECTED_UNVALIDATED',route:'D5'
  })));
  await page.reload();
@@ -129,7 +129,7 @@ test('English Golden Path never promotes a self-selected RCAS route into a verif
  await expect(status).toContainText('not a talent score');
  await page.evaluate(()=>sessionStorage.setItem('gt_rcas_state',JSON.stringify({
   completed:true,rcasRevision:'start-en-pilot-1',completedItemCount:28,
-  p0Validated:true,routingEvidenceCompleted:true,
+  p0Validated:true,routingEvidenceCompleted:true,meaningfulCoreEvidence:true,
   routeBasis:'SELF_SELECTED_UNVALIDATED',route:'D9'
  })));
  await page.reload();
