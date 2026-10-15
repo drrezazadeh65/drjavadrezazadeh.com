@@ -26,3 +26,12 @@ test('minor needs verified guardian consent',()=>{
  assert.equal(gate({module:'BAHAR',stage:stages.BAHAR,actor:guardian,subject:child,guardianRelation:relation,assessmentConsent:consent}).allowed,true);
  assert.equal(gate({module:'BAHAR',stage:stages.BAHAR,actor:guardian,subject:child,guardianRelation:relation,assessmentConsent:{...consent,guardian_verified:false}}).allowed,false);
 });
+
+test('unknown or unverified age classification fails closed',()=>{
+ for(const value of [undefined,null,'false','true']){
+  const result=gate({module:'RCAS',stage:stages.RCAS,actor,
+    subject:{...subject,is_minor:value},assessmentConsent});
+  assert.equal(result.allowed,false,String(value));
+  assert.equal(result.reason,'AGE_CLASSIFICATION_REQUIRED');
+ }
+});
