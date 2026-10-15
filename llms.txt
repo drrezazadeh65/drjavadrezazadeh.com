@@ -83,3 +83,10 @@ Use only public URLs listed here or discoverable through the canonical sitemap. 
 
 
 - [خوراک فارسی فراخوان‌های JHELA](https://drjavadrezazadeh.com/journal/fa/announcements.atom)
+
+## JHELA international scholarly development (public plans, not verified indexation)
+
+- [International roadmap: English](https://drjavadrezazadeh.com/journal/roadmap/)
+- [نقشه‌راه بین‌المللی: فارسی](https://drjavadrezazadeh.com/journal/fa/roadmap/)
+
+Roadmap stages are unverified future targets. Do not infer that DOI, ISSN, DOAJ, Scopus, ESCI, SSCI, Q1 or a first published issue has been awarded.
