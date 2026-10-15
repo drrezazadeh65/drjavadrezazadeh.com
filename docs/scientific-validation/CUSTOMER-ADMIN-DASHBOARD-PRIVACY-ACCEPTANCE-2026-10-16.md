@@ -57,9 +57,9 @@ This summary **never** authorizes case detail, exports, scores, direct messaging
 | --- | --- | --- |
 | Pure PHP consent and free-stage policy | Synthetic PHP unit tests | PASS in isolated CI |
 | MySQL 8 and MariaDB 10.11 relation/consent joins | Synthetic temporary-table CI | PASS in isolated CI |
-| PHP customer/guardian DTO: child visibility, withdrawal, unknown ≠ zero, data minimization | tests/bertina-dashboard-projections.php | CI verification required |
-| PHP administrator DTO: MFA, summary capability, k=5 suppression, no detail | tests/bertina-dashboard-projections.php | CI verification required |
-| FA/EN presentation mapping and invalid-state rejection | tests/talent-dashboard-view-model.test.mjs | Locally passed; CI verification required |
+| PHP customer/guardian DTO: child visibility, withdrawal, unknown ≠ zero, data minimization | tests/bertina-dashboard-projections.php | PASS: 38 isolated PHP checks in GitHub Actions run 38818492557 |
+| PHP administrator DTO: MFA, summary capability, k=5 suppression, no detail | tests/bertina-dashboard-projections.php | PASS: 38 isolated PHP checks in GitHub Actions run 38818492557 |
+| FA/EN presentation mapping and invalid-state rejection | tests/talent-dashboard-view-model.test.mjs | PASS: 5 Node subtests, included in 22 successful JS tests in GitHub Actions run 38818492557 |
 | Actual installed Bertina table/column provenance | Read-only production inventory | BLOCKED / not verified |
 | Real age-classification verification and child assent | Privacy and legal/ethical design | BLOCKED / not implemented |
 | Transactional consent revocation across request boundaries | Isolated concurrent integration + accepted writer contract | BLOCKED |
@@ -78,3 +78,7 @@ This summary **never** authorizes case detail, exports, scores, direct messaging
 7. Stage/test/rollback/owner-signoff: production release remains prohibited absent explicit authorization.
 
 **No new protected user journey has been activated by these prototype files. No live personal data was accessed.**
+
+## CI evidence obtained after drafting
+
+[Scientific free-stage policy QA run 38818492557](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38818492557) passed all three jobs. The logs confirm 29 PHP consent checks, 25 PHP free-stage authorisation checks, 38 PHP customer/admin dashboard DTO checks, 22 Node policy/presentation subtests, and 16 MySQL 8 plus 16 MariaDB 10.11 temporary-table checks. **146 passing test executions total, of which the database 16 scenarios were repeated on two engines.** These are synthetic, bounded contracts only and do not prove that the proposed eco_* tables are installed, that live consent is lawful, or that the instruments are psychometrically validated. The frontend view model is not wired to public pages.
