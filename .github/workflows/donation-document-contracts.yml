@@ -7,6 +7,7 @@ on:
       - 'scripts/donation-cycle-audit.cjs'
       - 'tests/jr-document-export.test.cjs'
       - 'tests/official-documents-brand.test.cjs'
+      - 'favicon.svg'
       - 'identity/document.css'
       - 'identity/tokens.css'
       - 'identity/templates/**'
