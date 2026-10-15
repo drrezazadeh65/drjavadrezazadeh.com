@@ -184,3 +184,80 @@ function stage14AdminGrowthSnapshot(PDO $pdo): array {
       'policy'=>'Unknown is not zero. Never calculate revenue from a click, lead, gateway start, provider notification or unverified paid row.'
     ];
 }
+
+
+/**
+ * MFA-owner worklist. Identifying contact information is joined only at request
+ * time, never copied into lead tables or the aggregate growth snapshot.
+ * Expired, withdrawn, disabled and unverified accounts are excluded.
+ */
+function stage14AdminLeadWorklist(PDO $pdo): array {
+    if (!stage14LeadSchemaReady($pdo)) fail('secure_lead_capture_unavailable',503);
+    $at=nowTs();
+    $q=$pdo->prepare("SELECT l.id,l.service_id,l.state,l.created_at,l.updated_at,
+        a.email_normalized AS contact_email
+        FROM growth_lead_requests l
+        INNER JOIN customer_accounts a ON a.id=l.account_id
+        WHERE l.expires_at>? AND l.consent_withdrawn_at IS NULL
+          AND l.state IN ('NEW','NEEDS_INFO','QUALIFIED')
+          AND a.status='active' AND a.email_verified_at IS NOT NULL
+        ORDER BY l.created_at ASC,l.id ASC LIMIT 20");
+    $q->execute([$at]);
+    $records=[];
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $records[]=[
+          'id'=>(string)$row['id'],
+          'serviceId'=>(string)$row['service_id'],
+          'state'=>(string)$row['state'],
+          'createdAt'=>(int)$row['created_at'],
+          'updatedAt'=>(int)$row['updated_at'],
+          'contactEmail'=>(string)$row['contact_email']
+        ];
+    }
+    return ['ok'=>true,'schema'=>'stage14-owner-lead-worklist-v1',
+      'items'=>$records,'limit'=>20,'asOf'=>$at,
+      'privacy'=>'MFA_ONLY_CURRENT_CONSENT_NO_MARKETING_PERMISSION',
+      'limitation'=>'Manual human follow-up only. Not a booking, acceptance, sale or settlement.'];
+}
+
+/** Atomic state transition: no follow-up after consent withdrawal or expiry. */
+function stage14AdminLeadTransition(PDO $pdo, string $actorId, array $body): array {
+    if(!stage14LeadSchemaReady($pdo)) fail('secure_lead_capture_unavailable',503);
+    if(count($body)!==3 || !is_string($body['leadId']??null)
+        || !validUuid($body['leadId']) || !is_string($body['expectedState']??null)
+        || !is_string($body['nextState']??null))
+        throw new InvalidArgumentException('invalid_lead_change');
+    $expected=$body['expectedState'];$next=$body['nextState'];
+    $allowed=[
+      'NEW'=>['NEEDS_INFO','QUALIFIED','CLOSED'],
+      'NEEDS_INFO'=>['QUALIFIED','CLOSED'],
+      'QUALIFIED'=>['NEEDS_INFO','CLOSED']
+    ];
+    if(!in_array($next,$allowed[$expected]??[],true))
+        throw new InvalidArgumentException('invalid_lead_transition');
+    $at=nowTs();
+    $pdo->beginTransaction();
+    try {
+        $q=$pdo->prepare("SELECT l.state,l.expires_at,l.consent_withdrawn_at,
+            a.status AS account_status,a.email_verified_at
+            FROM growth_lead_requests l JOIN customer_accounts a ON a.id=l.account_id
+            WHERE l.id=? FOR UPDATE");
+        $q->execute([$body['leadId']]);$row=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($row)||$row['state']!==$expected
+            ||$row['consent_withdrawn_at']!==null||((int)$row['expires_at'])<=$at
+            ||$row['account_status']!=='active'||$row['email_verified_at']===null)
+            throw new DomainException('lead_stale_or_not_consenting');
+        $change=$pdo->prepare("UPDATE growth_lead_requests SET state=?,updated_at=?
+            WHERE id=? AND state=? AND consent_withdrawn_at IS NULL AND expires_at>?");
+        $change->execute([$next,$at,$body['leadId'],$expected,$at]);
+        if($change->rowCount()!==1)throw new DomainException('lead_state_conflict');
+        operationsAudit($pdo,$actorId,'growth_lead_state_changed',$body['leadId']);
+        $pdo->commit();
+        return ['ok'=>true,'schema'=>'stage14-lead-transition-v1',
+          'leadId'=>$body['leadId'],'state'=>$next,
+          'limitation'=>'Status is administrative triage only; no email sent, booking accepted or payment verified.'];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
