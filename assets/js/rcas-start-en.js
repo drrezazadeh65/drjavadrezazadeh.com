@@ -171,7 +171,10 @@ form.querySelector('[data-show-route]').addEventListener('click',()=>{
  add(result,'p','The English wording is an unvalidated translation pilot. No norm, diagnostic score, automatic purchase entitlement or professional report is generated.');
  const link=add(result,'a','Return to the Golden Talent pathway','button primary');link.href='/en/golden-talent/';
  const age=Number(form.elements.namedItem('age').value);
- if(Number.isFinite(age)&&age>=10&&age<18)add(result,'p','If you are under 18, seek a parent or guardian’s help before requesting a paid professional service.');
+ const stage=form.elements.namedItem('edu').value;
+ const minor=(Number.isFinite(age)&&age>=10&&age<18)||
+  ['Junior secondary','Upper secondary'].includes(stage);
+ if(minor)add(result,'p','If you are under 18, seek a parent or guardian’s help before requesting a paid professional service.');
  result.hidden=false;progress.textContent='Stage 3 of 3 · Your own next inquiry';
  try{sessionStorage.setItem('gt_rcas_state',JSON.stringify({
   completed:true,rcasRevision:'start-en-pilot-1',completedItemCount:28,
