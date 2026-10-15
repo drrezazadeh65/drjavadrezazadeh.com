@@ -21,6 +21,10 @@ test('Golden Talent scientific prevalidation is unchanged by the English interfa
  assert.match(source,/All 28 responses are not applicable or unsure/);
  assert.match(source,/No domain has sufficient evidence yet/);
  assert.match(source,/Explain why you selected this area/);
+ assert.match(en,/Why does this area matter to you\? \(required\)/);
+ const bridge=read('assets/js/rcas-dashboard-en-bridge.js');
+ for(const flag of ['p0Validated','routingEvidenceCompleted','meaningfulCoreEvidence'])
+  assert.ok(bridge.includes(flag+'!==true'),'pilot bridge must reject incomplete '+flag);
  assert.match(fa,/rcasApp/);
  for(const page of [en,fa]){
   assert.match(page,/jr-ecosystem-design-v2/);
