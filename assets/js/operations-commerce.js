@@ -320,13 +320,13 @@
     card(text('ردیف‌های پرداخت‌شده','Paid-state records'),orders.paidStateRecords,
       text('تسویهٔ بانکی از این تعداد قابل استنتاج نیست.','This does not prove bank settlement.'));
     const giving=data.donations||null;
-    if(giving&&giving.scope==='sampled_internal_donation_ledger'){
+    if(giving&&giving.scope==='all_time_internal_donation_ledger'){
       const h=node('h3',text('حمایت مالی تحصیلی — گزارش مستقل','Student support — separate ledger'));
       h.style.gridColumn='1 / -1';results.append(h);
-      card(text('کمک‌های در انتظار پرداخت (نمونه)','Pending donations (sample)'),giving.pendingOrders);
-      card(text('کمک‌های دارای وضعیت پرداخت‌شده (نمونه)','Paid-state donations (sample)'),giving.paidStateOrders);
-      card(text('کمک‌های تطبیق‌یافته با سند درگاه (نمونه)','Provider-claim-matched donations (sample)'),giving.claimMatchedOrders);
-      card(text('مبلغ کمک‌های تطبیق‌یافته با درگاه (نمونه)','Provider-claim-matched donation value (sample)'),
+      card(text('کمک‌های در انتظار پرداخت (تمام سوابق)','Pending donations (all time)'),giving.pendingOrders);
+      card(text('کمک‌های دارای وضعیت پرداخت‌شده (تمام سوابق)','Paid-state donations (all time)'),giving.paidStateOrders);
+      card(text('کمک‌های تطبیق‌یافته با سند درگاه (تمام سوابق)','Provider-claim-matched donations (all time)'),giving.claimMatchedOrders);
+      card(text('مبلغ کمک‌های تطبیق‌یافته با درگاه (تمام سوابق)','Provider-claim-matched donation value (all time)'),
         toman(giving.claimMatchedAmountToman),
         text('صرفاً شواهد داخلی؛ تسویه بانکی و تخصیص کمک تأیید نشده است.',
           'Internal evidence only; bank settlement and allocation are not verified.'));
