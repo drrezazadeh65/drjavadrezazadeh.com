@@ -27,6 +27,14 @@ test('English RCAS has 28 items, 3 stages, seven evidence domains and no raw per
  await expect(page.locator('#rcasEnStatus')).toContainText('domain A');
  await app.locator('#rcasEnRouting fieldset').evaluateAll(fields=>fields.forEach(x=>x.querySelector('input[value="insufficient"]').click()));
  await app.locator('[data-show-route]').click();
+ await expect(page.locator('#rcasEnStatus')).toContainText('All 28 responses');
+ await expect(app.locator('#rcasEnResult')).toBeHidden();
+ expect(await page.evaluate(()=>sessionStorage.getItem('gt_rcas_state'))).toBeNull();
+ await app.locator('.rcas-item').first().locator('input[value="3"]').evaluate(input=>input.click());
+ await app.locator('[data-show-route]').click();
+ await expect(page.locator('#rcasEnStatus')).toContainText('No domain has sufficient evidence');
+ await app.locator('#rcasEnRouting fieldset').first().locator('input[value="compatible"]').evaluate(input=>input.click());
+ await app.locator('[data-show-route]').click();
  await expect(app.locator('#rcasEnResult')).toBeVisible();
  await expect(app.locator('#rcasEnResult')).toContainText('D5');
  await expect(app.locator('#rcasEnResult')).toContainText('unvalidated translation pilot');
