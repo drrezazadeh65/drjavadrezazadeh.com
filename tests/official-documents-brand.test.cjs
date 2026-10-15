@@ -42,6 +42,12 @@ assert.ok(!customerCss.includes('.jr-receipt-print-target{box-sizing:border-box!
 const worker=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 assert.ok(worker.includes('jr-site-20261015-persian-brand-favicon-v2'),'PWA cache must rotate after Persian favicon change');
 assert.ok(worker.includes("'/favicon.svg'"),'Service worker must precache the canonical favicon');
+const workerCacheEntries=[...worker.matchAll(/^\s*'\/(?:favicon\.(?:ico|png|svg)|assets\/images\/pwa-icon-[^']+)'/gm)].map(m=>m[0].trim().slice(1,-1));
+for(const asset of workerCacheEntries){
+ const file=path.join(root,asset.slice(1));
+ assert.ok(fs.existsSync(file),'Service worker precache asset missing: '+asset);
+ assert.ok(fs.statSync(file).size>100,'Service worker precache asset empty: '+asset);
+}
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'site.webmanifest'),'utf8'));
 const iconFiles=new Set(manifest.icons.map(icon=>icon.src.replace(/^\.\//,'')));
 for(const required of ['assets/images/pwa-icon-192.png','assets/images/pwa-icon-512.png','assets/images/pwa-icon-maskable-512.png']){
