@@ -78,3 +78,7 @@ Resolve A01–A05 by exact canonical API/SQL/runtime mapping, reach agreement on
 **Still blocked:** no actual Bertina installed-schema proof, no verified age-classification source in reviewed eco_subjects schema, no production-consent transactional writer, no private assessment submission, no persisted scientific report release or unified dashboard. Existing customer/admin panels and public browser RCAS are intentionally untouched. A01–A05 remain runtime release blockers despite bounded policy QA progress. Do not equate 87 checks with psychometric validity or real-customer acceptance.
 
 **Documented trust contract:** docs/scientific-validation/P0-CANONICAL-IDENTITY-CONSENT-ADAPTER-DECISION-2026-10-16.md.
+
+
+### Cross-engine fixture acceptance — MySQL 8 and MariaDB 10.11
+GitHub Actions [run 38817368074](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38817368074) completed with **all three jobs successful**: (1) PHP/Node pure policy, (2) isolated MySQL 8.0 temporary-table SQL joins, and (3) isolated MariaDB 10.11 temporary-table SQL joins. The latter two each ran the 16 synthetic MySQL-native guardian/consent access scenarios. The total is **103 check executions**, including 16 equivalent scenarios rerun on the second engine; this is **not 103 independent scientific validations**. No live Bertina data was accessed and no PHP runtime route was enabled. CI is strong evidence of the proposed adapter's portability, not of installed production schema or informed consent governance.
