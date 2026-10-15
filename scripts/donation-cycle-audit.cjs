@@ -21,7 +21,9 @@ const checks=[
  ['admin donation totals are separate',admin.includes("$snapshot['donations']")],
  ['admin matched payments use claim ledger',admin.includes('commerce_payment_claims c')],
  ['admin view renders donation totals',operations.includes('giving.claimMatchedAmountToman')],
- ['bank settlement is not assumed',admin.includes("'bankSettlementVerified'=>false")]
+ ['bank settlement is not assumed',admin.includes("'bankSettlementVerified'=>false")],
+ ['receipt requires server verified claim',sponsor.includes("if(verified)")&&sponsor.includes('مشاهده تأییدیه پرداخت')],
+ ['admin claim totals use provider claim match',admin.includes("c.transaction_id=o.provider_trans_id")&&admin.includes("c.verified_amount=o.provider_amount")]
 ];
 for(const [name,ok] of checks){process.stdout.write((ok?'PASS':'FAIL')+' '+name+'\n');assert.ok(ok,name)}
 console.log('Donation integration source contracts passed: '+checks.length);
