@@ -36,6 +36,8 @@ on:
       - "tests/bahar-guardian-mysql.php"
       - "tests/bertina-guardian-transaction-lock-mysql.php"
       - "platform/bertina-free-stage-authorisation.php"
+      - "platform/bertina-age-attestation-reader.php"
+      - "tests/bertina-age-attestation-mysql.php"
       - "platform/bertina-dashboard-projections.php"
       - "platform/bertina-scientific-schema-readiness.php"
       - "tests/bertina-consent-projection.php"
@@ -93,6 +95,7 @@ jobs:
           php tests/golden-talent-guardian.php
           php -l tests/bertina-consent-projection.php
           php -l platform/bertina-free-stage-authorisation.php
+          php -l platform/bertina-age-attestation-reader.php
           php -l tests/bertina-free-stage-authorisation.php
           php -l platform/bertina-dashboard-projections.php
           php -l platform/bertina-scientific-schema-readiness.php
@@ -143,6 +146,8 @@ jobs:
           SCIENTIFIC_WITHDRAWAL_FIXTURE_ENABLED=1 php tests/bertina-consent-withdrawal-mysql.php
           php -l tests/bertina-consent-withdrawal-concurrency-mysql.php
           SCIENTIFIC_WITHDRAWAL_CONCURRENCY_FIXTURE=1 php tests/bertina-consent-withdrawal-concurrency-mysql.php
+          php -l tests/bertina-age-attestation-mysql.php
+          SCIENTIFIC_AGE_FIXTURE_ENABLED=1 php tests/bertina-age-attestation-mysql.php
 
   mariadb-fixture:
     name: Isolated MariaDB 10.11 guardian and consent compatibility
@@ -183,6 +188,8 @@ jobs:
           SCIENTIFIC_WITHDRAWAL_FIXTURE_ENABLED=1 php tests/bertina-consent-withdrawal-mysql.php
           php -l tests/bertina-consent-withdrawal-concurrency-mysql.php
           SCIENTIFIC_WITHDRAWAL_CONCURRENCY_FIXTURE=1 php tests/bertina-consent-withdrawal-concurrency-mysql.php
+          php -l tests/bertina-age-attestation-mysql.php
+          SCIENTIFIC_AGE_FIXTURE_ENABLED=1 php tests/bertina-age-attestation-mysql.php
 
   assembly-check:
     name: Sanitized Bertina release includes canonical consent library
