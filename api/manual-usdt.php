@@ -126,6 +126,20 @@ function jrUsdtSubmit(PDO $pdo,array $account): never {
         'managerEmailAcceptedBySMTP'=>$sent,'paymentVerified'=>false,'orderFulfilled'=>false],202);
 }
 function jrUsdtCustomerRoute(string $path,string $verb): never {
+    // Nonprivate public capability query: never reveal the wallet when unavailable.
+    // Wallet/contract are public receiving information, but displaying them early
+    // could induce transfers for which no valid claim workflow is operational.
+    if($path==='/crypto/usdt/options' && $verb==='GET'){
+        $pdo=db();$live=$pdo && jrUsdtReady($pdo);
+        header('Cache-Control: no-store, max-age=0');
+        respond(['ok'=>true,'schema'=>'manual-usdt-options-v1','enabled'=>$live,
+            'requiresVerifiedAccount'=>true,'manualApprovalOnly'=>true,
+            'automaticEntitlement'=>false,
+            'network'=>$live?'BNB Smart Chain (BEP-20)':null,
+            'chainId'=>$live?56:null,
+            'tokenContract'=>$live?JR_USDT_CONTRACT:null,
+            'receiveAddress'=>$live?JR_USDT_RECEIVER:null]);
+    }
     $pdo=db();if(!$pdo||!jrUsdtReady($pdo))fail('manual_usdt_not_available',503);
     $account=jrUsdtAuth($pdo);
     if($path==='/crypto/usdt/csrf' && $verb==='GET')
