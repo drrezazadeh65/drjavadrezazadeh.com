@@ -106,3 +106,33 @@
  .jhela-document .jhela-document__certificate-body h2{font-size:20pt;margin:6mm 0}
  .jhela-document .jhela-document__signoff{min-height:11mm;margin-block:3mm}
 }
+
+/* Print refinement v3.2 — measured after a real A4 reviewer form overflow.
+ * Keep body legible at 10pt and preserve luxury spacing with controlled paragraph rhythm. */
+@media print{
+ .jr-document.jhela-document{
+  padding:10mm 13mm 11mm;
+  font-size:10pt;
+  line-height:1.48;
+ }
+ .jhela-document .jr-document__header{gap:4mm;padding-block-end:3mm}
+ .jhela-document .jhela-document__wordmark{max-height:20mm}
+ .jhela-document .jhela-document__imprint{font-size:8pt;line-height:1.35}
+ .jhela-document .jr-document__title{font-size:19pt;margin-block:4mm 3mm}
+ .jhela-document h2{font-size:12pt;margin-block:4mm 2mm}
+ .jhela-document p,.jhela-document li{line-height:1.48}
+ .jhela-document .jhela-document__issue-status{padding:1mm 2mm;margin-block:1.8mm}
+ .jhela-document .jr-document__meta{padding:2mm 3mm;gap:1.5mm 4mm;margin-block:3mm}
+ .jhela-document .jr-document__meta p{margin:.5mm 0;font-size:8.5pt}
+ .jhela-document .jr-document__note{padding:2mm 3mm;margin-block:3mm}
+ .jhela-document .jhela-document__decision{padding:2mm 3mm}
+ .jhela-document .jr-document__footer{margin-block-start:5mm;padding-block-start:2mm;font-size:7.8pt}
+ .jhela-document .jhela-document__preview-warning{font-size:7.8pt}
+ .jhela-document .jhela-document__cover-art{padding:8mm 5mm;margin-block:5mm}
+ .jhela-document .jhela-document__issue-title{margin-block:5mm 7mm}
+ .jhela-document .jhela-document__issue-title h2{font-size:19pt}
+ .jhela-document .jhela-document__certificate-body{padding:6mm 5mm;margin-block:5mm}
+ .jhela-document .jhela-document__certificate-body h2{font-size:19pt;margin:4mm 0}
+ .jhela-document .jhela-document__certificate-body p{margin:3mm auto}
+ .jhela-document .jhela-document__signoff{min-height:9mm;margin-block:2mm}
+}
