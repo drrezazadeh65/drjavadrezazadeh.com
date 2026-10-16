@@ -54,9 +54,16 @@ function operationsCommerceRecordDelivery(PDO $pdo,string $actor,array $request)
             FROM commerce_service_cases WHERE order_id=? AND sku=? FOR UPDATE");
         $s->execute([$orderId,$sku]);$case=$s->fetch(PDO::FETCH_ASSOC);
         if(!is_array($case)||$case['status']!=='in_progress')throw new DomainException('service_not_in_progress');
-        if($kind==='session_completed' &&
-            (empty($case['booking_start'])||empty($case['booking_end'])||(int)$case['booking_elapsed']!==1))
-            throw new DomainException('session_not_completed');
+        // A scheduled service cannot be marked delivered until its REAL
+        // booked interval has elapsed, regardless of which evidence type
+        // the owner selects. No calendar shortcut via document attestation.
+        if(!empty($case['booking_start']) || !empty($case['booking_end'])){
+            if(empty($case['booking_start'])||empty($case['booking_end'])
+                ||(int)$case['booking_elapsed']!==1)
+                throw new DomainException('booked_service_not_completed');
+        } elseif($kind==='session_completed') {
+            throw new DomainException('session_booking_evidence_required');
+        }
 
         // Reference is an opaque ID from the owner's real private delivery
         // evidence. HMAC protects even guessable IDs from disclosure in SQL.
