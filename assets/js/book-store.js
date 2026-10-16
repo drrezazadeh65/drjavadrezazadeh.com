@@ -83,6 +83,24 @@
   const selector='[data-add-book="'+book.id+'"],[data-detail-add="'+book.id+'"]';
   document.querySelectorAll(selector).forEach(btn=>{btn.textContent=isFa?'✓ به سبد افزوده شد':'✓ Added to cart';btn.setAttribute('aria-live','polite');});
  }
+ function cardBibliography(book){
+  const bib=book?.bibliography||{};
+  const unknown=isFa?'در انتظار تأیید':'Not yet verified';
+  const year=value=>Number.isInteger(value)&&value>=1200&&value<=1600
+    ?new Intl.NumberFormat(isFa?'fa-IR':'en-US',{useGrouping:false}).format(value)
+    :unknown;
+  const publisher=typeof bib.publisher==='string'&&bib.publisher.trim()
+    ?(isFa?bib.publisher:(bib.publisher==='نشر دارما'?'Darma Publishing':bib.publisher))
+    :unknown;
+  const isbn=typeof bib.isbn==='string'&&/^\\d{13}$/.test(bib.isbn)?bib.isbn:unknown;
+  const row=(label,value,dir='auto')=>'<div><dt>'+label+'</dt><dd dir="'+dir+'">'+escapeHtml(value)+'</dd></div>';
+  return '<dl class="book-catalog-imprint" aria-label="'+(isFa?'مشخصات نشر تأییدشده':'Verified publication details')+'">'+
+    row(isFa?'ناشر':'Publisher',publisher)+
+    row(isFa?'سال انتشار':'Publication year',year(bib.publication_year),'ltr')+
+    row(isFa?'نخستین چاپ':'First printing',year(bib.printing_year),'ltr')+
+    row('ISBN',isbn,'ltr')+'</dl>';
+ }
+
  function card(book){
   const el=document.createElement('article');
   el.className='book-product-card';
@@ -90,7 +108,7 @@
   const cover=coverSrc?'<figure class="book-cover"><img src="'+escapeHtml(coverSrc)+'" width="600" height="900" loading="lazy" decoding="async" alt="'+escapeHtml(isFa?'جلد کتاب «'+book.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+book.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong lang="fa" dir="rtl">'+escapeHtml(book.title_fa)+'</strong></div>';
   el.innerHTML=cover+
    '<div class="book-product-copy"><span class="status-chip">'+(isFa?'منتشرشده':'Published')+'</span>'+
-   '<h2 dir="rtl" lang="fa">'+escapeHtml(book.title_fa)+'</h2><p>'+escapeHtml(isFa?book.description_fa:book.description_en)+'</p>'+
+   '<h2 dir="rtl" lang="fa">'+escapeHtml(book.title_fa)+'</h2><p>'+escapeHtml(isFa?book.description_fa:book.description_en)+'</p>'+cardBibliography(book)+
    '<div class="book-price">'+escapeHtml(money(book.commerce?.price,book.commerce?.currency))+'</div>'+
    '<div class="actions"><a class="button" href="'+root((isFa?'fa':'en')+'/shop/book/?id='+encodeURIComponent(book.id))+'">'+(isFa?'جزئیات کتاب':'Book details')+'</a>'+
    (ready(book)?'<button class="button primary" type="button" data-add-book="'+escapeHtml(book.id)+'">'+(isFa?'افزودن به سبد':'Add to cart')+'</button>':'<span class="book-pending">'+(isFa?'قیمت ثبت شده است؛ خرید پس از تأیید موجودی، شرایط ارسال و درگاه معتبر فعال می‌شود.':'The price is recorded; purchase activates after stock, fulfilment terms and the verified payment path are ready.')+'</span>')+
