@@ -367,6 +367,11 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        // Wallet proof and approval are private and require this fresh TOTP gate.
+        if (str_starts_with($path, '/admin/operations/crypto/usdt/')) {
+            require_once __DIR__.'/manual-usdt.php';
+            jrUsdtAdminRoute($pdo,$accountId,$path,$verb,$csrf);
+        }
 
         // Privacy-preserving scholarly roadmap, only after owner MFA and bounded read rate.
         if ($path === '/admin/operations/jhela/maturity' && $verb === 'GET') {
