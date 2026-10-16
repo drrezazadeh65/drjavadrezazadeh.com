@@ -1,0 +1,75 @@
+
+/* JHELA stationery v3 — print-only design language shared with JR official documents.
+ * Source: platform/jhela-unified-brand-v3.json. Preview, not a signed journal record.
+ * Load identity/tokens.css and identity/document.css first. */
+.jr-document.jhela-document{
+ --jhela-navy:#0b203c;--jhela-brass:#b48a3f;
+ --jhela-ivory:#f4f0e6;--jhela-paper:#fcfaf5;
+ --jhela-ink:#172739;--jhela-soft-rule:#d5c9b2;
+ --jr-document-gold:var(--jhela-brass);
+ --jr-document-ink:var(--jhela-ink);
+ --jr-document-paper:var(--jhela-paper);
+ border-block-start:5px solid var(--jhela-navy);
+ background:var(--jhela-paper);color:var(--jhela-ink);
+ font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;
+ padding-block:19mm 20mm;
+}
+.jhela-document .jr-document__header{
+ border-block-end:2px solid var(--jhela-brass);
+ gap:7mm;align-items:center;padding-block-end:6mm
+}
+.jhela-document .jhela-document__wordmark{width:min(100%,83mm);max-height:26mm;height:auto;object-fit:contain}
+.jhela-document .jhela-document__imprint{
+ font-size:9pt;color:#516072;line-height:1.5;text-align:end;
+}
+.jhela-document .jhela-document__issue-status{
+ display:inline-block;padding:2mm 3mm;border:1px solid #bd8d6a;
+ font-size:8pt;letter-spacing:.035em;font-weight:700;color:#70432b;
+ background:#f8eae0;margin-block:4mm;
+}
+.jhela-document .jr-document__title{
+ font:700 22pt/1.18 Georgia,'Times New Roman',serif;
+ letter-spacing:-.02em;color:var(--jhela-navy);
+ margin-block:9mm 5mm;
+}
+.jhela-document h2{font:700 13pt/1.4 Georgia,serif;color:var(--jhela-navy);margin-block:8mm 3mm}
+.jhela-document p,.jhela-document li{line-height:1.68;overflow-wrap:break-word}
+.jhela-document .jr-document__meta{
+ border:1px solid var(--jhela-soft-rule);border-radius:2mm;
+ padding:3mm 4mm;margin-block:6mm;grid-template-columns:repeat(2,minmax(0,1fr));
+ background:#fff;
+}
+.jhela-document .jr-document__meta p{margin:1.5mm 0;font-size:9pt}
+.jhela-document .jr-document__note{
+ border-inline-start:3px solid var(--jhela-brass);
+ padding:3mm 4mm;background:#f7f3e9;margin-block:6mm;color:#273747;
+}
+.jhela-document .jhela-document__decision{
+ padding:4mm;border:1px solid #cbb587;border-radius:2mm;background:#f9f5eb;
+}
+.jhela-document .jr-document__table th{color:var(--jhela-navy);background:#f0ece3}
+.jhela-document .jr-document__table td,.jhela-document .jr-document__table th{font-size:9pt;border-color:var(--jhela-soft-rule)}
+.jhela-document .jr-document__footer{border-color:var(--jhela-soft-rule);margin-block-start:13mm}
+.jhela-document .jhela-document__preview-warning{font-weight:700;color:#724a31;font-size:9pt}
+.jhela-document .jhela-document__reference{font-variant-numeric:tabular-nums;font-size:9pt}
+.jhela-document .jhela-document__signoff{min-height:18mm;border-block-end:1px dotted var(--jhela-soft-rule);margin-block:6mm}
+@media screen{
+ body:has(.jhela-document){background:#ddd9d0;padding:clamp(12px,3vw,36px)}
+ .jhela-document{box-shadow:0 18px 62px rgba(16,29,42,.16)}
+}
+@media(max-width:650px){
+ .jhela-document{padding:22px 19px}
+ .jhela-document .jr-document__header{flex-wrap:wrap}
+ .jhela-document .jhela-document__imprint{text-align:start}
+ .jhela-document .jr-document__meta{grid-template-columns:1fr}
+}
+@media print{
+ @page{size:A4;margin:0}
+ body:has(.jhela-document){background:#fff;padding:0;margin:0}
+ .jr-document.jhela-document{
+  width:210mm;max-width:210mm;min-height:297mm;
+  margin:0;box-shadow:none;break-after:page;print-color-adjust:exact;
+  -webkit-print-color-adjust:exact;
+ }
+ .jhela-document :is(.jr-document__header,.jr-document__meta,.jr-document__footer,.jr-document__note,.jhela-document__decision){break-inside:avoid}
+}
