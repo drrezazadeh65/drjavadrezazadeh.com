@@ -8,6 +8,7 @@ require_once __DIR__.'/operations-jhela.php';
 require_once __DIR__.'/jhela-intake.php';
 require_once __DIR__.'/operations-commerce.php';
 require_once __DIR__.'/operations-fulfilment.php';
+require_once __DIR__.'/operations-service-delivery.php';
 require_once __DIR__.'/consultation-availability.php';
 require_once __DIR__.'/operations-action-runs.php';
 require_once __DIR__.'/operations-social.php';
@@ -447,6 +448,26 @@ function operationsRoute(string $path, string $verb): never {
             catch(Throwable $e){
                 error_log('Owner service transition unavailable: '.get_class($e));
                 fail('service_transition_unavailable',503);
+            }
+        }
+        if ($path === '/admin/operations/commerce/service-delivery' && $verb === 'POST') {
+            // This is an explicit owner attestation, not automatic delivery.
+            // An ADMIN may schedule, but only the SUPER_ADMIN may attest.
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('delivery_owner_role_required',403);
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'operations_service_delivery',$accountId,5,300))
+                fail('rate_limited',429);
+            try {
+                $change=operationsCommerceRecordDelivery($pdo,$accountId,jsonBody());
+                respond(['ok'=>true,'schema'=>'commerce-service-delivery-attestation-v1',
+                    'change'=>$change]);
+            } catch(InvalidArgumentException $e) { fail('invalid_delivery_attestation',400); }
+            catch(DomainException $e) { fail('delivery_payment_or_state_conflict',409); }
+            catch(Throwable $e) {
+                error_log('Owner delivery recording unavailable: '.get_class($e));
+                fail('delivery_evidence_not_ready',503);
             }
         }
         if ($path === '/admin/operations/commerce/availability' && $verb === 'POST') {
