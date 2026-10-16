@@ -113,11 +113,14 @@ try {
        SET reviewed_by_account_id=? WHERE id=?")->execute([$reviewer2,$id2]);
     $expect($check()['classification']==='MINOR','restored valid approved review');
     // Historical collision at the same verified instant must deny.
-    $pdo->exec("UPDATE eco_subject_age_attestations SET revoked_at=NULL,
-       verified_at=(SELECT latest.verified_at FROM
-         (SELECT verified_at FROM eco_subject_age_attestations
-          WHERE id='".$id2."') AS latest)
-        WHERE id='".$id."'");
+    // MySQL 8 cannot reopen the same TEMPORARY TABLE in an UPDATE
+    // subquery. Read the source instant first, then issue a bound update.
+    $same=$pdo->prepare('SELECT verified_at FROM eco_subject_age_attestations WHERE id=?');
+    $same->execute([$id2]);
+    $verifiedInstant=$same->fetchColumn();
+    $update=$pdo->prepare('UPDATE eco_subject_age_attestations
+        SET revoked_at=NULL,verified_at=? WHERE id=?');
+    $update->execute([$verifiedInstant,$id]);
     $expect($check()===null,'same-tick conflicting classification fails closed');
 
     $pdo->rollBack();
