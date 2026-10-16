@@ -477,7 +477,16 @@ test('owner-only capacity editor converts Tehran hours and submits after fresh M
  const editor=page.locator('#ops-commerce-results .ops-capacity');
  await expect(editor).toHaveCount(1);
  await editor.locator('summary').click();
+ const startHour=editor.locator('input[type="time"]');
+ const duration=editor.locator('select');
+ await expect(startHour).toHaveValue('17:00');
+ await expect(duration).toHaveValue('1');
  await expect(editor.locator('.ops-week-day')).toHaveCount(7);
+ // Selecting a time does not publish a real owner calendar window.
+ await editor.locator('[data-consultation-evening-preset="1700-1800"]').click();
+ await expect(startHour).toHaveValue('17:00');
+ await expect(duration).toHaveValue('1');
+ expect(submission).toBeNull();
  await editor.locator('.ops-week-day button').first().click();
  await expect(editor.locator('input[type="date"]')).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
  expect(submission).toBeNull();
