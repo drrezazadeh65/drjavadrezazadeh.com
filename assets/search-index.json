@@ -1326,5 +1326,173 @@
     "category": "Journal",
     "summary": "نقشه راه ده مرحله‌ای علمی و بین‌المللی مجله، معیارهای پذیرش DOAJ، Scopus، Web of Science و هدف بلندمدت SSCI و Q1.",
     "keywords": "مجله JHELA نقشه راه داوری مقالات نمایه سازی اعتبار علمی"
+  },
+  {
+    "lang": "en",
+    "title": "Specialist academic consultation",
+    "path": "en/services/academic_consult_60/",
+    "category": "Services",
+    "summary": "For a defined academic decision requiring individual analysis and professional guidance. A 60-minute analytical session to clarify the issue, options and next step.",
+    "keywords": "academic educational specialist services Specialist academic consultation For a defined academic decision requiring individual analysis and professional guidance academic consult 60"
+  },
+  {
+    "lang": "en",
+    "title": "Student and parent consultation",
+    "path": "en/services/student_parent_90/",
+    "category": "Services",
+    "summary": "For an educational decision that benefits from both the student’s and parent’s participation. A 90-minute joint session to examine evidence, concerns and the decision pathway.",
+    "keywords": "academic educational specialist services Student and parent consultation For an educational decision that benefits from both the student’s and parent’s participation student parent 90"
+  },
+  {
+    "lang": "en",
+    "title": "University entrance examination consultation (Konkur)",
+    "path": "en/services/konkur_consult_60/",
+    "category": "Services",
+    "summary": "For focused decisions about Konkur preparation, study planning or changing course. A 60-minute session focused on the current issue and practical next steps.",
+    "keywords": "academic educational specialist services University entrance examination consultation (Konkur) For focused decisions about Konkur preparation study planning or changing course konkur consult 60"
+  },
+  {
+    "lang": "en",
+    "title": "One-month Konkur guidance programme",
+    "path": "en/services/konkur_month/",
+    "category": "Services",
+    "summary": "For students seeking structured guidance over one month. An individual one-month guidance plan with an approach to reviewing progress.",
+    "keywords": "academic educational specialist services One-month Konkur guidance programme For students seeking structured guidance over one month konkur month"
+  },
+  {
+    "lang": "en",
+    "title": "Academic transcript and pathway analysis",
+    "path": "en/services/transcript_analysis/",
+    "category": "Services",
+    "summary": "For turning academic record evidence into an understandable educational decision. A review of strengths and constraints reflected in the transcript, with potential options.",
+    "keywords": "academic educational specialist services Academic transcript and pathway analysis For turning academic record evidence into an understandable educational decision transcript analysis"
+  },
+  {
+    "lang": "en",
+    "title": "Standard university major selection",
+    "path": "en/services/field_selection_standard/",
+    "category": "Services",
+    "summary": "For applicants who need systematic, defensible priorities among programme and university choices. A structured development and review of preferences grounded in the applicant’s verified information.",
+    "keywords": "academic educational specialist services Standard university major selection For applicants who need systematic defensible priorities among programme and university choices field selection standard"
+  },
+  {
+    "lang": "en",
+    "title": "Comprehensive university major selection",
+    "path": "en/services/field_selection_comprehensive/",
+    "category": "Services",
+    "summary": "For applicants navigating competing pathways, constraints or priorities requiring deeper analysis. A more detailed evaluation of alternatives and final preference ordering informed by individual evidence.",
+    "keywords": "academic educational specialist services Comprehensive university major selection For applicants navigating competing pathways constraints or priorities requiring deeper analysis field selection comprehensive"
+  },
+  {
+    "lang": "en",
+    "title": "Initial specialist talent assessment",
+    "path": "en/services/talent_initial/",
+    "category": "Services",
+    "summary": "For beginning a multi-source review of strengths and development potential before major decisions. An initial evidence profile and identification of questions needing further examination.",
+    "keywords": "academic educational specialist services Initial specialist talent assessment For beginning a multi-source review of strengths and development potential before major decisions talent initial"
+  },
+  {
+    "lang": "en",
+    "title": "Golden Talent — comprehensive assessment and pathway",
+    "path": "en/services/golden_talent_comprehensive/",
+    "category": "Services",
+    "summary": "For families seeking a multi-source, development-oriented approach beyond one test. Synthesis of available Golden Talent evidence and a provisional development pathway.",
+    "keywords": "academic educational specialist services Golden Talent — comprehensive assessment and pathway For families seeking a multi-source development-oriented approach beyond one test golden talent comprehensive"
+  },
+  {
+    "lang": "en",
+    "title": "Golden Talent — assessment, parent session and pathway report",
+    "path": "en/services/golden_talent_premium/",
+    "category": "Services",
+    "summary": "For cases requiring a comprehensive review, a parent consultation and a pathway report. A comprehensive Golden Talent review, parent session and pathway report within verified evidence limits.",
+    "keywords": "academic educational specialist services Golden Talent — assessment, parent session and pathway report For cases requiring a comprehensive review a parent consultation and a pathway report golden talent premium"
+  },
+  {
+    "lang": "en",
+    "title": "Teacher consultation: materials, teaching and assessment",
+    "path": "en/services/teacher_consult_60/",
+    "category": "Services",
+    "summary": "For educators with a specific challenge in teaching, learning materials or assessment. A 60-minute problem analysis with viable professional options.",
+    "keywords": "academic educational specialist services Teacher consultation: materials, teaching and assessment For educators with a specific challenge in teaching learning materials or assessment teacher consult 60"
+  },
+  {
+    "lang": "en",
+    "title": "Educator professional development session",
+    "path": "en/services/teacher_dev_90/",
+    "category": "Services",
+    "summary": "For educators seeking deeper analysis of a professional issue and planning for growth. A 90-minute discussion grounded in evidence, professional judgement and next steps.",
+    "keywords": "academic educational specialist services Educator professional development session For educators seeking deeper analysis of a professional issue and planning for growth teacher dev 90"
+  },
+  {
+    "lang": "en",
+    "title": "Manuscript diagnostic review, up to 7,000 words",
+    "path": "en/services/manuscript_diagnostic/",
+    "category": "Services",
+    "summary": "For manuscripts of up to 7,000 words needing a diagnosis of key weaknesses before submission or revision. A diagnostic review accompanied by a prioritised revision report.",
+    "keywords": "academic educational specialist services Manuscript diagnostic review, up to 7,000 words For manuscripts of up to 7000 words needing a diagnosis of key weaknesses before submission or revision manuscript diagnostic"
+  },
+  {
+    "lang": "en",
+    "title": "Academic English editing, up to 5,000 words",
+    "path": "en/services/academic_editing/",
+    "category": "Services",
+    "summary": "For developed academic manuscripts of up to 5,000 words that need English-language refinement. An edited version focused on clarity, linguistic accuracy and scholarly expression.",
+    "keywords": "academic educational specialist services Academic English editing, up to 5,000 words For developed academic manuscripts of up to 5000 words that need English-language refinement academic editing"
+  },
+  {
+    "lang": "en",
+    "title": "Research consultation",
+    "path": "en/services/research_consult_60/",
+    "category": "Services",
+    "summary": "For researchers with a defined question about design, methods, interpretation or argumentation. A 60-minute analysis of the research issue and the next decision.",
+    "keywords": "academic educational specialist services Research consultation For researchers with a defined question about design methods interpretation or argumentation research consult 60"
+  },
+  {
+    "lang": "en",
+    "title": "Journal selection and publication strategy",
+    "path": "en/services/journal_strategy/",
+    "category": "Services",
+    "summary": "For manuscripts requiring an informed assessment of journal fit and submission strategy. Analysis of suitability and publication options informed by topic, scope and manuscript readiness.",
+    "keywords": "academic educational specialist services Journal selection and publication strategy For manuscripts requiring an informed assessment of journal fit and submission strategy journal strategy"
+  },
+  {
+    "lang": "en",
+    "title": "Reviewer-response support, up to 20 comments",
+    "path": "en/services/reviewer_response/",
+    "category": "Services",
+    "summary": "For authors responding to up to 20 reviewer comments and seeking a systematic scholarly response. Review of the comments and assistance structuring evidence-based responses.",
+    "keywords": "academic educational specialist services Reviewer-response support, up to 20 comments For authors responding to up to 20 reviewer comments and seeking a systematic scholarly response reviewer response"
+  },
+  {
+    "lang": "en",
+    "title": "Academic CV and applications strategy",
+    "path": "en/services/academic_cv/",
+    "category": "Services",
+    "summary": "For scholars reviewing their CV and application approach for a specific opportunity. A review of CV structure and presentation of evidence aligned with the target role.",
+    "keywords": "academic educational specialist services Academic CV and applications strategy For scholars reviewing their CV and application approach for a specific opportunity academic cv"
+  },
+  {
+    "lang": "en",
+    "title": "Academic or faculty interview preparation",
+    "path": "en/services/academic_interview_90/",
+    "category": "Services",
+    "summary": "For candidates preparing for a defined academic or faculty recruitment interview. A structured 90-minute session informed by the role, background and likely questions.",
+    "keywords": "academic educational specialist services Academic or faculty interview preparation For candidates preparing for a defined academic or faculty recruitment interview academic interview 90"
+  },
+  {
+    "lang": "en",
+    "title": "School and organisational education consultation",
+    "path": "en/services/organization_consult_90/",
+    "category": "Services",
+    "summary": "For a school or organisation needing to define an educational problem and an initial course of action. A 90-minute examination of the challenge, stakeholders and possible actions.",
+    "keywords": "academic educational specialist services School and organisational education consultation For a school or organisation needing to define an educational problem and an initial course of action organization consult 90"
+  },
+  {
+    "lang": "en",
+    "title": "Specialist online workshop, up to two hours",
+    "path": "en/services/specialist_workshop_120/",
+    "category": "Services",
+    "summary": "For schools, organisations and professional groups with a defined topic and audience. An online specialist workshop of up to two hours on the agreed topic.",
+    "keywords": "academic educational specialist services Specialist online workshop, up to two hours For schools organisations and professional groups with a defined topic and audience specialist workshop 120"
   }
 ]
