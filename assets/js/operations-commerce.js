@@ -170,6 +170,68 @@
       if(stamp===seq)button.disabled=false;
     }
   }
+  function ownerServiceIntakeViewer(entry){
+    const disclosure=node('details');
+    disclosure.className='ops-intake-private-viewer';
+    disclosure.style.cssText='border:1px solid rgba(212,175,55,.34);border-radius:12px;padding:12px;margin-top:10px;max-width:100%';
+    const summary=node('summary',text('مشاهده محرمانه شرح مشتری — ویژه مالک',
+      'View encrypted client brief — owner only'));
+    const content=node('div');content.setAttribute('aria-live','polite');
+    disclosure.append(summary,content);
+    let loading=false;
+    disclosure.addEventListener('toggle',async()=>{
+      if(!disclosure.open){
+        // Avoid retaining decrypted personal research or student notes in a
+        // hidden DOM or the normal read-only admin commerce snapshot.
+        content.replaceChildren();return;
+      }
+      if(loading||workspace.hidden||!panel.open||document.hidden)return;
+      loading=true;
+      content.replaceChildren(node('p',text('در حال خواندن ایمن پرونده خصوصی…',
+        'Securely retrieving the private service brief…'),'ops-muted'));
+      try{
+        const response=await fetch('/api/admin/operations/commerce/service-intake?order='+
+          encodeURIComponent(entry.orderId)+'&sku='+encodeURIComponent(entry.sku),{
+            credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}
+          });
+        if(!response.ok)throw Error('owner_mfa_or_intake_unavailable');
+        const data=await response.json();
+        if(data?.ok!==true||data.schema!=='private-service-intake-v1')
+          throw Error('invalid_private_intake');
+        if(!disclosure.open||workspace.hidden||!panel.open||document.hidden)return;
+        content.replaceChildren();
+        if(!data.intake){
+          content.append(node('p',text('در این پرونده شرحی ثبت نشده است.',
+            'No private client brief is currently recorded.')));return;
+        }
+        const fields=[
+          ['subject',text('موضوع و مسئله','Subject and key question')],
+          ['background',text('زمینه و شواهد','Background and evidence')],
+          ['objectives',text('هدف و خروجی','Objectives and deliverables')]
+        ];
+        for(const [key,label] of fields){
+          const section=node('section');section.style.cssText='margin-block:12px;white-space:pre-wrap;overflow-wrap:anywhere';
+          section.append(node('strong',label),node('p',String(data.intake[key]||''),'ops-muted'));
+          content.append(section);
+        }
+        content.append(node('p',text(
+          'نسخه ثبت‌شده: ','Saved revision: ')+String(data.revision),'ops-muted'));
+        if(data.intake.isMinor===true)
+          content.append(node('p',text(
+            'تأیید خوداظهاری سرپرست: ','Self-declared guardian acknowledgement: ')+
+            (data.guardianAcknowledged===true?text('ثبت شده؛ احراز مستقل نشده','recorded; not independently verified'):
+             text('نامشخص','unverified')),'ops-muted'));
+      }catch(_){
+        if(disclosure.open)content.replaceChildren(node('p',text(
+          'دسترسی به شرح خصوصی تأیید نشد؛ نقش مالک، اعتبار MFA و آماده‌بودن دیتابیس را بررسی کنید.',
+          'Private service brief could not be read. Check owner privilege, MFA and database readiness.'),'ops-muted'));
+      }finally{loading=false;}
+    });
+    document.addEventListener('visibilitychange',()=>{
+      if(document.hidden&&disclosure.open)disclosure.open=false;
+    });
+    return disclosure;
+  }
   function card(label,value,detail){
     const n=node('article',undefined,'ops-card');
     n.append(node('small',label),node('div',value??text('نامشخص','Unknown'),'ops-number'));
@@ -602,6 +664,15 @@
         if(entry.bookingStart&&entry.bookingEnd){
           const a=utcLabel(entry.bookingStart),b=utcLabel(entry.bookingEnd);
           if(a&&b)item.append(node('p',text('نوبت داخلی: ','Internal booking: ')+a+' – '+b,'ops-muted'));
+        }
+        if(entry.intakeSubmitted===true){
+          item.append(node('p',text('شرح محرمانه مشتری ثبت شده — نسخه ',
+            'Encrypted client brief submitted — revision ')+String(entry.intakeRevision||1),'ops-muted'));
+          item.append(ownerServiceIntakeViewer(entry));
+        }else if(fulfilment.serviceIntakeSchemaReady===true && entry.orderPaidState===true){
+          item.append(node('p',text(
+            'شرح تکمیلی مشتری هنوز ارسال نشده است.',
+            'The client has not yet supplied the optional service brief.'),'ops-muted'));
         }
         const next=NEXT_SERVICE_STATE[entry.status];
         if(next && entry.orderPaidState===true && entry.providerClaimMatchesOrder===true
