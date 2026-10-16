@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS community_comments (
   rating TINYINT UNSIGNED NULL,
   state ENUM('pending','approved','rejected','removed') NOT NULL DEFAULT 'pending',
   created_at BIGINT UNSIGNED NOT NULL,
+  consented_at BIGINT UNSIGNED NOT NULL,
   reviewed_at BIGINT UNSIGNED NULL,
   reviewer_account_id CHAR(36) NULL,
   PRIMARY KEY (id),
