@@ -64,3 +64,7 @@
 }
 @media(prefers-reduced-motion:reduce){.jr-community *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 @media(forced-colors:active){.jr-community,.jr-community-comment,.jr-community-rating-options span{border:1px solid CanvasText}}
+
+/* Privacy-critical: explicit hidden state must beat component display:grid/flex.
+   A guest must never see the verified-account submission form. */
+.jr-community [hidden]{display:none!important}
