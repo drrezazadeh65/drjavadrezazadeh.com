@@ -45,3 +45,10 @@ main{padding:16px 12px 120px}
 .actions .btn{width:100%}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Scientific service figures: source-grounded distinct SVGs in the shared visual identity. */
+.service-science-figure{margin:26px 0 24px;padding:clamp(12px,2vw,20px);border-radius:23px;background:linear-gradient(145deg,#171615,#22201b);border:1px solid var(--jr-detail-stroke);box-shadow:0 14px 44px rgba(0,0,0,.16)}
+.service-science-figure img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;border-radius:14px;background:#0b0b0b}
+.service-science-figure figcaption{margin:15px 6px 0;color:#f1e5ce;font-size:14px;line-height:2}
+.service-science-figure figcaption strong{display:block;color:#f3d994;font-size:16px}
+@media(max-width:650px){.service-science-figure{margin:15px 0;padding:9px;border-radius:17px}.service-science-figure figcaption{margin:12px 5px 4px;font-size:13px}}
