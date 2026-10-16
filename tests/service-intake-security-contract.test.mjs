@@ -40,7 +40,7 @@ test('write access needs exact buyer email, verified payment claim, open service
  assert.match(api,/if\(\$path==='\/commerce\/service-intake'/);
  assert.match(api,/sessionAccount\(\$pdo\)/);
  assert.match(api,/email_verified_at/);
- assert.match(api,/\(\$_SERVER\['HTTP_ORIGIN'\]\?\?'\)\!==SITE_ORIGIN/);
+ assert.ok(api.includes("($_SERVER['HTTP_ORIGIN']??'')!==SITE_ORIGIN"));
  assert.match(api,/service_intake_private_write/);
  assert.match(api,/no-store, private, max-age=0/);
 });
