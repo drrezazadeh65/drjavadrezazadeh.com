@@ -46,6 +46,10 @@ function jrNewsletterChosen(array $body): array {
     return $out;
 }
 function jrNewsletterRoute(string $path,string $verb): never {
+    if($path==='/newsletter/unsubscribe'){
+        require_once __DIR__.'/newsletter-unsubscribe.php';
+        jrNewsletterUnsubscribeRoute($verb);
+    }
     if($path==='/newsletter/health' && $verb==='GET'){
         $pdo=db();$ready=$pdo instanceof PDO && authReady() && jrNewsletterSchemaReady($pdo);
         respond(['ok'=>true,'service'=>'verified-account-newsletter',
