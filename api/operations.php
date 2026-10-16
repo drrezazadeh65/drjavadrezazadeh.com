@@ -368,6 +368,40 @@ function operationsRoute(string $path, string $verb): never {
         }
         if (!$fresh) fail('admin_mfa_required',403);
 
+        // Owner-approved reviewer screening is a private, real DB workflow, never public automatically.
+        if ($path === '/admin/operations/jhela/reviewers' && $verb === 'GET') {
+            if(!jhelaSchemaReady($pdo))fail('journal_schema_unavailable',503);
+            if(!rateAllowed($pdo,'jhela_private_reviewer_read',$accountId,16,300))fail('rate_limited',429);
+            $q=$pdo->query("SELECT r.id,r.account_id,r.academic_name,r.academic_rank,r.institution,r.country,
+                 r.orcid,r.institutional_page,r.expertise,r.methods,r.cv_summary,r.publications,
+                 r.profile_public_consent,r.privacy_consent,r.status,r.created_at,r.approved_at,
+                 a.email_normalized AS private_contact_email
+                 FROM jhela_reviewer_candidates r JOIN customer_accounts a ON a.id=r.account_id
+                 ORDER BY r.created_at DESC LIMIT 120");
+            respond(['ok'=>true,'schema'=>'jhela-owner-reviewer-queue-v1','candidates'=>$q->fetchAll()]);
+        }
+        if ($path === '/admin/operations/jhela/reviewers/decision' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!jhelaSchemaReady($pdo))fail('journal_schema_unavailable',503);
+            if(!rateAllowed($pdo,'jhela_reviewer_decision',$accountId,14,900))fail('rate_limited',429);
+            $input=jsonBody();$id=(string)($input['id']??'');$decision=(string)($input['decision']??'');
+            if(!validUuid($id)||!in_array($decision,['APPROVED','REJECTED','REVOKED'],true))fail('invalid_reviewer_decision',422);
+            $pdo->beginTransaction();
+            try {
+                $check=$pdo->prepare('SELECT account_id,privacy_consent,status FROM jhela_reviewer_candidates WHERE id=? FOR UPDATE');
+                $check->execute([$id]);$candidate=$check->fetch();
+                if(!$candidate||$candidate['account_id']===$accountId||(int)$candidate['privacy_consent']!==1){
+                    $pdo->rollBack();fail('reviewer_conflict_or_consent_missing',403);
+                }
+                $q=$pdo->prepare("UPDATE jhela_reviewer_candidates SET status=?,approved_by=?,approved_at=IF(?='APPROVED',NOW(),NULL) WHERE id=?");
+                $q->execute([$decision,$accountId,$decision,$id]);
+                operationsAudit($pdo,$accountId,'jhela_reviewer_'.strtolower($decision),$id);
+                $pdo->commit();
+            }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+            respond(['ok'=>true,'decision'=>$decision,'publicListingRequiresConsent'=>true]);
+        }
+
         // Privacy-preserving scholarly roadmap, only after owner MFA and bounded read rate.
         if ($path === '/admin/operations/jhela/maturity' && $verb === 'GET') {
             if (!rateAllowed($pdo,'operations_jhela_maturity_read',$accountId,12,300)) fail('rate_limited',429);
