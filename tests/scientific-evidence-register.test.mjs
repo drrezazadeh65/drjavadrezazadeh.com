@@ -66,3 +66,29 @@ test('published free browser assets still cannot silently score or persist answe
    assert.ok(!bahar.includes(forbidden),'BAHAR privacy breach: '+forbidden);
  }
 });
+
+
+test('three independent human-study workstreams have real instructions but zero fabricated evidence',()=>{
+ const ops=JSON.parse(fs.readFileSync('platform/scientific-study-ops.v1.json','utf8'));
+ assert.equal(ops.schema_version,'scientific-study-operations-v1');
+ assert.equal(ops.all_live_intake_blocked,true);
+ assert.equal(ops.owner_signoff_is_not_independent_approval,true);
+ assert.equal(ops.studies.length,3);
+ assert.deepEqual(new Set(ops.studies.map(s=>s.instrument)),
+   new Set(['GOLDEN_TALENT','RCAS_START','BAHAR']));
+ for(const study of ops.studies){
+   const text=fs.readFileSync(study.protocol_path,'utf8');
+   assert.ok(text.length>2500,study.study_id+' operational protocol incomplete');
+   assert.equal(study.ethics_approval,'NOT_SUBMITTED');
+   assert.equal(study.preregistration,'NOT_SUBMITTED');
+   assert.equal(study.recruitment,'NOT_STARTED');
+   assert.equal(study.external_review,'NOT_STARTED');
+   assert.equal(study.empirical_results,'NONE');
+   assert.equal(study.authorised_to_claim_validity,false);
+   assert.ok(study.needed_roles.length>=3);
+ }
+ assert.equal(ops.release_boundaries.private_minor_records,false);
+ assert.equal(ops.release_boundaries.psychometric_norms,false);
+ assert.equal(ops.release_boundaries.validated_use_claims,false);
+ assert.equal(ops.release_boundaries.adult_ephemeral_bahar_worksheet,true);
+});
