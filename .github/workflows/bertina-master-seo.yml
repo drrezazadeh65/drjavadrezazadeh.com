@@ -79,7 +79,7 @@ jobs:
           run_audit "Admin keyword privacy" node --test tests/admin-intelligence-private.test.mjs
           run_audit "Bounded schema intelligence" node --test tests/admin-schema-intelligence.test.mjs
           run_audit "Bilingual brand motto" node --test tests/brand-motto-home.test.mjs
-          run_audit "Private moderated community" node --test tests/community-moderation.test.mjs
+          run_audit "Private moderated community and design" node --test tests/community-moderation.test.mjs tests/community-design-consistency.test.mjs
           run_audit "Community PHP syntax" php -l api/community.php
           run_audit "One-time PWA offer" node --test tests/pwa-install-once.test.mjs
           run_audit "Premium bookstore layout" node --test tests/bookstore-premium-layout.test.mjs
