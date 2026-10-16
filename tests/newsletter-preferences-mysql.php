@@ -152,7 +152,7 @@ $pdo->prepare("INSERT INTO eco_notifications
 $check(jrNewsletterDispatchOne($pdo,$failed,static fn():bool=>false)==='SMTP_FAILED',
     'SMTP rejection recorded without automatic retry');
 $check(jrNewsletterDispatchOne($pdo,$failed,$send)==='ALREADY_HANDLED'&&$called===1,
-    'ambiguous or failed SMTP attempts do not automatically resend');
+    'ambiguous or failed SMTP attempts are never repeated automatically');
 $pending=uuidv4();
 $pdo->prepare("INSERT INTO eco_notifications
  (id,recipient_account_id,channel_code,purpose_code,message_object_id,delivery_state,idempotency_key)
