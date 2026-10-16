@@ -39,7 +39,7 @@ for(const [name,path,bahar,rcas] of [
   await page.goto(base+path);
   const region=page.locator('#scientific-readiness');
   await expect(region).toBeVisible();
-  await expect(region).toContainText('PREVALIDATION');
+  await expect(region).toContainText(name==='fa'?'اعتبارسنجی مستقل':'not independently validated');
   await expect(region.locator('.jr-sci-stage')).toHaveCount(3);
   const links=region.locator('a[href]');
   const hrefs=await links.evaluateAll(as=>as.map(a=>a.getAttribute('href')));
@@ -56,7 +56,7 @@ test('client scientific cards remain informational, never personal assessment re
  const cards=page.locator('[data-scientific-pathway="preview"] .jr-sci-stage');
  await expect(cards).toHaveCount(3);
  const section=page.locator('[data-scientific-pathway="preview"]');
- await expect(section).toContainText('PREVALIDATION');
+ await expect(section).toContainText('در مرحله پژوهشی');
  await expect(section).not.toContainText('95%');
  const links=await section.locator('a').evaluateAll(as=>as.map(a=>a.getAttribute('href')));
  for(const path of links){
