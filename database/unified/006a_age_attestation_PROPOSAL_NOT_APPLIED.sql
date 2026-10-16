@@ -31,6 +31,33 @@ CREATE TABLE IF NOT EXISTS eco_subject_age_attestations (
     REFERENCES customer_accounts(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ADDITIONAL CANDIDATE: separate learner assent, never implied by guardian
+-- permission. No user essay, child response, uploaded media or DOB is stored.
+-- A secure approved workflow must attest comprehension and voluntary choice.
+-- Capacity exceptions / withdrawal authority require human/ethics review.
+CREATE TABLE IF NOT EXISTS eco_minor_assent_records (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  subject_id CHAR(36) NOT NULL,
+  guardian_account_id CHAR(36) NOT NULL,
+  notice_version VARCHAR(32) NOT NULL,
+  notice_sha256 CHAR(64) NOT NULL,
+  decision VARCHAR(24) NOT NULL,
+  verification_status VARCHAR(24) NOT NULL DEFAULT 'PENDING',
+  source_code VARCHAR(40) NOT NULL,
+  reviewer_account_id CHAR(36) NULL,
+  assented_at DATETIME(3) NOT NULL,
+  expires_at DATETIME(3) NOT NULL,
+  withdrawn_at DATETIME(3) NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  KEY idx_eco_minor_assent_subject (subject_id,guardian_account_id,assented_at),
+  CONSTRAINT fk_eco_assent_subject FOREIGN KEY(subject_id)
+    REFERENCES eco_subjects(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_eco_assent_guardian FOREIGN KEY(guardian_account_id)
+    REFERENCES customer_accounts(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_eco_assent_reviewer FOREIGN KEY(reviewer_account_id)
+    REFERENCES customer_accounts(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Release gate: the installed migration hash, indexes/foreign keys, approved
 -- jurisdiction policy, independent reviewer capability, renewal/withdrawal
 -- procedure, consent revocation and child assent all require review. No
