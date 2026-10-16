@@ -56,18 +56,18 @@ news:'<path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/>'
 return '<svg class="app-icon" viewBox="0 0 24 24">'+(d[n]||d.menu)+'</svg>';
 };
 function ensureTabletMenuTrigger(){
- if(isPrivateApp||q('.tablet-menu-trigger')) return;
- const header=q('.site-header');
- if(!header) return;
- const tabletTrigger=document.createElement('button');
- tabletTrigger.type='button';
- tabletTrigger.className='tablet-menu-trigger';
- tabletTrigger.setAttribute('data-nav-toggle','');
- tabletTrigger.setAttribute('aria-controls','mobile-app-menu');
- tabletTrigger.setAttribute('aria-expanded','false');
- tabletTrigger.setAttribute('aria-label',isFa?'بازکردن منو':'Open menu');
- tabletTrigger.innerHTML=icon('menu')+'<span>'+(isFa?'منو':'Menu')+'</span>';
- header.appendChild(tabletTrigger);
+if(isPrivateApp||q('.tablet-menu-trigger')) return;
+const header=q('.site-header');
+if(!header) return;
+const tabletTrigger=document.createElement('button');
+tabletTrigger.type='button';
+tabletTrigger.className='tablet-menu-trigger';
+tabletTrigger.setAttribute('data-nav-toggle','');
+tabletTrigger.setAttribute('aria-controls','mobile-app-menu');
+tabletTrigger.setAttribute('aria-expanded','false');
+tabletTrigger.setAttribute('aria-label',isFa?'بازکردن منو':'Open menu');
+tabletTrigger.innerHTML=icon('menu')+'<span>'+(isFa?'منو':'Menu')+'</span>';
+header.appendChild(tabletTrigger);
 }
 function ensureMobileNav(){
 if(document.body.classList.contains('dashboard-shell-page')) q('.gt-mobile-dock')?.remove();
@@ -189,9 +189,9 @@ const sheet=q('#mobile-app-menu'),btn=trigger||q('[data-nav-toggle]');
 if(!sheet||!btn)return;
 if(open===!sheet.hidden)return;
 if(open){
- lastMenuTrigger=btn;
- menuHistoryActive=true;
- try{history.pushState({...history.state,jrMobileMenu:true},'',location.href)}catch(_){menuHistoryActive=false}
+lastMenuTrigger=btn;
+menuHistoryActive=true;
+try{history.pushState({...history.state,jrMobileMenu:true},'',location.href)}catch(_){menuHistoryActive=false}
 }
 sheet.hidden=!open;
 qa('[data-nav-toggle]').forEach(x=>x.setAttribute('aria-expanded',String(open)));
@@ -199,36 +199,35 @@ sheet.setAttribute('aria-hidden',String(!open));
 document.documentElement.classList.toggle('nav-open',open);
 sheet.classList.toggle('is-open',open);
 if(open){
- const first=q('[data-nav-close]',sheet)||q('a,button',sheet);first&&first.focus();
+const first=q('[data-nav-close]',sheet)||q('a,button',sheet);first&&first.focus();
 }else{
- if(lastMenuTrigger&&document.contains(lastMenuTrigger))lastMenuTrigger.focus();
- if(!fromHistory&&menuHistoryActive&&history.state?.jrMobileMenu){
-  menuHistoryActive=false;
-  history.back();
- }else menuHistoryActive=false;
+if(lastMenuTrigger&&document.contains(lastMenuTrigger))lastMenuTrigger.focus();
+if(!fromHistory&&menuHistoryActive&&history.state?.jrMobileMenu){
+menuHistoryActive=false;
+history.back();
+}else menuHistoryActive=false;
 }
 }
 window.addEventListener('popstate',()=>{const sheet=q('#mobile-app-menu');if(sheet&&!sheet.hidden)setSheet(false,null,{fromHistory:true})});
 document.addEventListener('visibilitychange',()=>{const sheet=q('#mobile-app-menu');if(document.hidden&&sheet&&!sheet.hidden){if(history.state?.jrMobileMenu){const state={...history.state};delete state.jrMobileMenu;try{history.replaceState(state,'',location.href)}catch(_){/* Background transitions must not throw. */}}setSheet(false,null,{fromHistory:true})}});
-// Keep desktop <details> navigation mutually exclusive and keyboard dismissible.
 document.addEventListener('toggle',event=>{
- const group=event.target;
- if(!group.matches?.('.site-header .home-nav-group')||!group.open)return;
- qa('.site-header .home-nav-group').forEach(other=>{if(other!==group)other.open=false});
+const group=event.target;
+if(!group.matches?.('.site-header .home-nav-group')||!group.open)return;
+qa('.site-header .home-nav-group').forEach(other=>{if(other!==group)other.open=false});
 },true);
 document.addEventListener('click',event=>{
- if(event.target.closest('.site-header .home-nav-group'))return;
- qa('.site-header .home-nav-group[open]').forEach(group=>{group.open=false});
+if(event.target.closest('.site-header .home-nav-group'))return;
+qa('.site-header .home-nav-group[open]').forEach(group=>{group.open=false});
 });
 document.addEventListener('keydown',event=>{
- if(event.key!=='Escape')return;
- const groups=qa('.site-header .home-nav-group[open]');
- if(!groups.length)return;
- groups.forEach(group=>{group.open=false});
- if(q('#mobile-app-menu')?.hidden!==false){
-  event.preventDefault();
-  groups[0].querySelector('summary')?.focus();
- }
+if(event.key!=='Escape')return;
+const groups=qa('.site-header .home-nav-group[open]');
+if(!groups.length)return;
+groups.forEach(group=>{group.open=false});
+if(q('#mobile-app-menu')?.hidden!==false){
+event.preventDefault();
+groups[0].querySelector('summary')?.focus();
+}
 });
 document.documentElement.dataset.jrNavController='site';
 document.addEventListener('click',e=>{
@@ -291,17 +290,17 @@ if(!('serviceWorker' in navigator)) return;
 window.addEventListener('load',()=>{
 const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
 navigator.serviceWorker.register(base+'sw.js?v=20261010-bertina-cache-v4',{updateViaCache:'none'}).then(reg=>{
-  reg.update().catch(()=>{});
-  if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
-  reg.addEventListener('updatefound',()=>{
-    const worker=reg.installing;
-    if(!worker) return;
-    worker.addEventListener('statechange',()=>{
-      if(worker.state==='installed' && navigator.serviceWorker.controller){
-        worker.postMessage({type:'SKIP_WAITING'});
-      }
-    });
-  });
+reg.update().catch(()=>{});
+if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+reg.addEventListener('updatefound',()=>{
+const worker=reg.installing;
+if(!worker) return;
+worker.addEventListener('statechange',()=>{
+if(worker.state==='installed' && navigator.serviceWorker.controller){
+worker.postMessage({type:'SKIP_WAITING'});
+}
+});
+});
 }).catch(()=>{});
 });
 let deferredPrompt=null;
@@ -461,17 +460,17 @@ return el?.dataset?.uiState||null;
 })();
 (function(){
 window.JRCacheControl=Object.freeze({
-  async refresh(){
-    if('caches' in window){
-      const keys=await caches.keys();
-      await Promise.all(keys.filter(k=>k.startsWith('jr-site-') && k.endsWith('-runtime')).map(k=>caches.delete(k)));
-    }
-    if('serviceWorker' in navigator){
-      const reg=await navigator.serviceWorker.getRegistration();
-      await reg?.update().catch(()=>{});
-      navigator.serviceWorker.controller?.postMessage({type:'PURGE_RUNTIME'});
-    }
-  }
+async refresh(){
+if('caches' in window){
+const keys=await caches.keys();
+await Promise.all(keys.filter(k=>k.startsWith('jr-site-') && k.endsWith('-runtime')).map(k=>caches.delete(k)));
+}
+if('serviceWorker' in navigator){
+const reg=await navigator.serviceWorker.getRegistration();
+await reg?.update().catch(()=>{});
+navigator.serviceWorker.controller?.postMessage({type:'PURGE_RUNTIME'});
+}
+}
 });
 })();
 (function(){
