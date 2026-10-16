@@ -147,7 +147,7 @@ await observeHostGate('jhela-ojs-subdomain-tls',async()=>{
 });
 
 const evidence={
- schema:'bertina-postrelease-acceptance-v2',checkedAt:new Date().toISOString(),
+ schema:'bertina-postrelease-acceptance-v1',checkedAt:new Date().toISOString(),
  origin:ORIGIN,expectedReleaseSha:expected||null,observedReleaseSha:observed,
  readOnly:true,authenticatedRequests:false,realMoneyActions:false,
  passed:failures===0,checks,operationalGates,
