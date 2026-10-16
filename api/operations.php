@@ -375,7 +375,7 @@ function operationsRoute(string $path, string $verb): never {
             $schema=bertinaScientificSchemaContract($pdo);
             // Minimal accountable read; no subject IDs, source SQL or column values.
             operationsAudit($pdo,$accountId,'scientific_schema_read',
-                'scientific-structural-preflight-v1');
+                'scientific-structural-preflight-v2');
             respond(['ok'=>true,'readOnly'=>true,'adminMfaRequired'=>true,
                 'inspection'=>'TABLE_AND_COLUMN_PROJECTIONS_ONLY']+$schema);
         }
