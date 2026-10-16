@@ -45,6 +45,23 @@ function bertinaScientificSchemaContract(PDO $pdo): array {
             'eco_bahar_learning_evidence'=>['id','cycle_id','evidence_kind',
                 'observed_at','review_state'],
             'eco_bahar_reviews'=>['id','cycle_id','reviewer_account_id','decision_code','created_at']
+        ],
+        // Candidate safeguarding records are deliberately NOT installed by
+        // this read-only probe. A missing table must show NOT READY rather
+        // than silently treating a guardian declaration as valid age/assent.
+        'safeguarding'=>[
+            'eco_subject_age_attestations'=>[
+                'id','subject_id','classification','jurisdiction_code',
+                'policy_version','source_code','review_status',
+                'verified_by_account_id','reviewed_by_account_id',
+                'evidence_sha256','verified_at','expires_at','revoked_at'
+            ],
+            'eco_minor_assent_records'=>[
+                'id','subject_id','guardian_account_id',
+                'notice_version','notice_sha256','decision',
+                'verification_status','source_code','reviewer_account_id',
+                'assented_at','expires_at','withdrawn_at'
+            ]
         ]
     ];
     $modules=[];
@@ -67,7 +84,7 @@ function bertinaScientificSchemaContract(PDO $pdo): array {
         ];
     }
     return [
-        'schema'=>'scientific-structural-preflight-v1',
+        'schema'=>'scientific-structural-preflight-v2',
         'modules'=>$modules,
         'personalRowsRead'=>false,
         'realProductionCertified'=>false,
