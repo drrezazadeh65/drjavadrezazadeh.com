@@ -1,0 +1,34 @@
+/* Canonical Persian-first brand skin for the EXISTING Bertina service checkout.
+ * Presentation only; preserves commerce create/health, server prices, CSRF and payment URLs.
+ * Never renders an invented official logo. */
+.jr-premium-service-checkout{--gold:#d4af37;--ivory:#f8f5e9;--muted:#d1cabb;--surface:#1f1f1f;--stroke:rgba(212,175,55,.3);background:#0b0b0b;color:var(--ivory);font-family:Tahoma,Arial,sans-serif}
+.jr-premium-service-checkout header{background:linear-gradient(125deg,#171513,#0b0b0b);border-bottom:1px solid var(--stroke);padding-top:clamp(25px,4vw,52px);padding-bottom:clamp(25px,4vw,52px);color:var(--ivory)}
+.jr-premium-service-checkout header>p:first-child{color:#e4bf5b;font-size:13px;letter-spacing:.01em}
+.jr-premium-service-checkout header h1{font-size:clamp(28px,4vw,45px);margin:.3em 0;line-height:1.6}
+.jr-premium-service-checkout header p{max-width:72ch}
+.jr-premium-service-checkout main{max-width:1160px}
+.jr-premium-service-checkout main>section:first-child{background:#29241b!important;border-color:var(--gold)!important;color:#f2e4c5}
+.jr-premium-service-checkout main>section:first-child a{color:#ffdf95}
+.jr-premium-service-checkout .buyer-path article,.jr-premium-service-checkout .commerce-card{background:linear-gradient(155deg,#25231e,#1b1a19);border:1px solid var(--stroke);box-shadow:0 12px 40px rgba(0,0,0,.18);color:var(--ivory)}
+.jr-premium-service-checkout .buyer-path b{color:#f0d38a}
+.jr-premium-service-checkout .buyer-path span,.jr-premium-service-checkout .commerce-fit{color:#ded7c9}
+.jr-premium-service-checkout .commerce-price{color:#f0d791;font-size:clamp(20px,3vw,25px)}
+.jr-premium-service-checkout .commerce-pay{background:var(--gold);color:#0b0b0b;min-height:50px;border:1px solid #d4af37;font-weight:800}
+.jr-premium-service-checkout .commerce-pay:disabled{background:#39342a;color:#e5d6bb;border-color:#6a5c3a;cursor:not-allowed;opacity:1}
+.jr-premium-service-checkout .commerce-notice,.jr-premium-service-checkout .commerce-contact,.jr-premium-service-checkout .commerce-feedback{color:#f0e2c7}
+.jr-premium-service-checkout .commerce-buyer-fields{background:#1e1b18!important;border:1px solid var(--stroke)!important;box-shadow:0 10px 35px rgba(0,0,0,.12)}
+.jr-premium-service-checkout .commerce-buyer-fields label{color:var(--ivory)!important}
+.jr-premium-service-checkout .commerce-buyer-fields input{background:#111!important;color:var(--ivory)!important;border:1px solid #867653!important;border-radius:10px!important}
+.jr-premium-service-checkout .commerce-buyer-fields input::placeholder{color:#c6c0b5}
+.jr-premium-service-checkout .commerce-buyer-fields p{color:#cfc8bc!important}
+.jr-premium-service-checkout .commerce-card img{border-color:rgba(212,175,55,.5)!important}
+.jr-premium-service-checkout .customer-links a{color:#f3d891}
+.jr-premium-service-checkout .customer-links a:hover,.jr-premium-service-checkout .commerce-details:hover{text-decoration-color:var(--gold)}
+.jr-premium-service-checkout a:focus-visible,.jr-premium-service-checkout button:focus-visible,.jr-premium-service-checkout input:focus-visible{outline:3px solid #f9dc85;outline-offset:3px}
+@media(max-width:620px){
+ .jr-premium-service-checkout .customer-links a{background:#221f19;border:1px solid var(--stroke);color:#f8e5bd}
+ .jr-premium-service-checkout header{padding-inline:18px}
+ .jr-premium-service-checkout main{padding:20px 12px 115px}
+ .jr-premium-service-checkout .commerce-card{padding:18px}
+}
+@media(prefers-reduced-motion:reduce){.jr-premium-service-checkout *{transition:none!important;animation:none!important}}
