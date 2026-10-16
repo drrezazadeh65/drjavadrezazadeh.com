@@ -43,6 +43,38 @@ const adminToolInventory={schema:'operations-free-resources-v1',catalogueDate:fr
 const inventoryOutput=path.join(out,'api/internal/free-resources-registry.json');
 if(!/Require all denied/.test(fs.readFileSync(path.join(out,'api/internal/.htaccess'),'utf8')))throw Error('Private admin registry protection missing');
 fs.writeFileSync(inventoryOutput,JSON.stringify(adminToolInventory)+'\n');
+// Create a strict, non-sensitive projection for the MFA-only JHELA administrator endpoint.
+// Original platform contracts, manuscript records, reviewer identities and evidence files are never shipped.
+const journalProjectionDefinitions=[
+  {name:'jhela-ojs-activation.json',map:d=>({
+    schema:d.schema,ojsInstalled:d.ojsInstalled,publicSubmissionsEnabled:d.publicSubmissionsEnabled
+  })},
+  {name:'jhela-international-roadmap-v1.json',map:d=>({
+    schema:d.schema,publicationStatus:d.publicationStatus,
+    phases:d.phases.map(p=>({id:p.id,en:p.en,fa:p.fa}))
+  })},
+  {name:'jhela-target-architecture-v1.json',map:d=>({
+    schema:d.schema,status:d.status,scaleStages:d.scaleStages.map(p=>({id:p.id}))
+  })},
+  {name:'jhela-gate-evidence-ledger-v1.json',map:d=>({
+    schema:d.schema,
+    stageRecords:d.stageRecords.map(p=>({id:p.id,status:p.status,claimsAllowed:p.claimsAllowed,evidence:[]}))
+  })}
+];
+for(const def of journalProjectionDefinitions){
+  const original=JSON.parse(fs.readFileSync(path.join(root,'platform',def.name),'utf8'));
+  if(typeof original.schema!=='string')throw Error('Invalid JHELA contract source: '+def.name);
+  if(def.name==='jhela-gate-evidence-ledger-v1.json' &&
+      (original.stageRecords.length!==10||original.stageRecords.some(x=>x.status!=='UNVERIFIED'||x.claimsAllowed!==false||x.evidence.length>0))){
+    throw Error('A JHELA verification claim needs a separately authorised protected audit integration, not a static public-package projection');
+  }
+  const safe=def.map(original);
+  if(safe.schema!==original.schema||JSON.stringify(safe).match(/password|credential|apiKey|reviewerEmail|manuscriptText/i))
+    throw Error('Unsafe JHELA administrative projection');
+  const dest=path.join(out,'api','internal',def.name);
+  fs.writeFileSync(dest,JSON.stringify(safe)+'\n');
+}
+
 
 const failures=[];
 for(const blocked of ['database','migrations']) if(fs.existsSync(path.join(out,blocked))) failures.push('Database or migration source leaked into public artifact: '+blocked);
