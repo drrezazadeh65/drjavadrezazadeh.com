@@ -23,6 +23,28 @@ function jrNewsletterSchemaReady(PDO $pdo): bool {
         return true;
     }catch(Throwable $e){return false;}
 }
+/**
+ * Cancel pending first-party newsletter deliveries after preferences are
+ * locked and before the consent transaction commits. No account/security
+ * messages are affected, and accepted/historical sends remain immutable.
+ */
+function jrNewsletterSuppressPending(PDO $pdo,string $accountId,array $topics): int {
+    $allowed=jrNewsletterTopics();
+    if(!validUuid($accountId))throw new InvalidArgumentException('invalid_account_id');
+    foreach($topics as $topic){
+        if(!is_string($topic)||!in_array($topic,$allowed,true))
+            throw new InvalidArgumentException('invalid_newsletter_topic');
+    }
+    $topics=array_values(array_unique($topics));
+    if(!$topics)return 0;
+    $in=implode(',',array_fill(0,count($topics),'?'));
+    $q=$pdo->prepare("UPDATE eco_notifications SET delivery_state='SUPPRESSED'
+        WHERE recipient_account_id=? AND channel_code='EMAIL'
+        AND purpose_code IN ($in) AND delivery_state='PENDING'");
+    $q->execute(array_merge([$accountId],$topics));
+    return $q->rowCount();
+}
+
 function jrNewsletterActor(PDO $pdo): array {
     $account=sessionAccount($pdo);
     if(!is_array($account)||($account['status']??'')!=='active'||empty($account['email_verified_at'])||
@@ -115,6 +137,9 @@ function jrNewsletterRoute(string $path,string $verb): never {
                 $insertPref->execute([uuidv4(),$id,$row['topic'],$enabled?1:0,$consentId,$now]);
             }
         }
+        // Re-check suppression inside the same consent transaction, including
+        // topics already opted out in a prior request (idempotent cleanup).
+        jrNewsletterSuppressPending($pdo,$id,array_values(array_diff(jrNewsletterTopics(),$selected)));
         $pdo->commit();
         respond(['ok'=>true,'schema'=>'newsletter-preferences-v1','selected'=>$selected,
             'changedTopics'=>count($changed),'subscribedEmailDeliveryVerified'=>false,
