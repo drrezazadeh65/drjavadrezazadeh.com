@@ -50,6 +50,7 @@ export function evaluateScientificRelease({ instrument, administration, claim = 
       (safe.guardian_relationship_state!=='VERIFIED' ||
        safe.learner_assent_state!=='VERIFIED' ||
        !nonEmpty(safe.learner_assent_notice_version) ||
+       !/^[a-f0-9]{64}$/.test(safe.learner_assent_notice_sha256||'') ||
        !Number.isFinite(Date.parse(safe.learner_assent_expires_at)) ||
        Date.parse(safe.learner_assent_expires_at)<=releaseTime))
     return deny('CURRENT_GUARDIAN_AND_LEARNER_ASSENT_REQUIRED');
