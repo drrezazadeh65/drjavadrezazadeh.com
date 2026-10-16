@@ -137,7 +137,19 @@
    gap:16px;padding:clamp(16px,4.5vw,24px);border-radius:25px;
    background:linear-gradient(155deg,#1F1F1F,#0B0B0B);
  }
- /* Match the actual cinema-original-hero markup in both locales. */
+ /* English image-stage and Persian cinematic figure use different,
+    existing, approved source markup. Keep both variants in one design layer. */
+ .book-store-shell .book-store-hero:not(.cinema-original-hero) .bookstore-hero-stage{
+   order:-1;min-width:0;width:100%;display:grid;gap:12px;
+ }
+ .book-store-shell .book-store-hero:not(.cinema-original-hero) .bookstore-hero-art{
+   margin:0;min-width:0;overflow:hidden;border-radius:16px;
+ }
+ .book-store-shell .book-store-hero:not(.cinema-original-hero) .bookstore-hero-art img{
+   display:block;width:100%;height:auto;max-height:320px;
+   object-fit:contain;border-radius:16px;
+ }
+ /* Match the actual Persian cinema-original-hero markup. */
  .book-store-shell .book-store-hero.cinema-original-hero{
    display:grid;grid-template-columns:minmax(0,1fr);
    gap:0;padding:0;overflow:hidden;
