@@ -8,7 +8,7 @@ test('reader commentary uses frozen global brand tokens, not an independent pale
  const s=read('assets/css/community-comments.css');
  for(const token of ['--bg','--bg-elev','--surface-2','--text','--muted','--gold','--line','--r-xl','--shadow'])
   assert.ok(s.includes(token),'Missing semantic token: '+token);
- assert.match(s,/academic|academic luxury|Academic/i);
+ assert.match(s,/academic|academia/i);
  assert.match(s,/radial-gradient/);
 });
 test('admin component inherits operations design tokens and protects privacy visibility',()=>{
