@@ -140,8 +140,12 @@ function jhelaIntakeRoute(string $path,string $verb): never {
   if(!$pdo||!jhelaSchemaReady($pdo))fail('journal_database_not_ready',503);
   if($path==='/journal/reviewers'&&$verb==='GET')jhelaPublicReviewers($pdo);
   $a=jhelaAccount($pdo);$accountId=(string)$a['id'];
-  if($path==='/journal/workspace'&&$verb==='GET')jhelaPrivateHome($pdo,$a);
   $ready=jhelaReadiness($pdo);
+  // No private manuscript or reviewer records until trusted TLS and schema gates pass.
+  if($path==='/journal/workspace'&&$verb==='GET'){
+    if(!$ready['profile'])fail('journal_profile_unavailable',503);
+    jhelaPrivateHome($pdo,$a);
+  }
   if(!in_array($verb,['POST'],true))fail('method_not_allowed',405);
   jhelaMutation();
   if(!rateAllowed($pdo,'jhela_'.$path,$accountId,14,900))fail('rate_limited',429);
