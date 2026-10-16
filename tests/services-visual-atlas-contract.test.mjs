@@ -50,3 +50,26 @@ test('atlas has dedicated responsive visual styling and its canonical catalogue 
   assert.ok(atlas.includes('href="https://drjavadrezazadeh.com/fa/services/"'));
   assert.ok(atlas.includes('data-jr-services-learning-atlas'));
 });
+
+test('each of the 21 paid services has its own substantive SVG infographic and accessible figure', () => {
+  const seen = new Set();
+  const css = read('assets/css/service-detail-brand-2026.css');
+  assert.ok(css.includes('.service-science-figure'));
+  for (const service of catalogue.services) {
+    const filename = `assets/images/services/infographics/${service.id}-workflow.svg`;
+    assert.ok(fs.existsSync(path.join(root, filename)), 'missing scholarly infographic: ' + service.id);
+    const svg = read(filename);
+    const page = read(`fa/services/${service.id}/index.html`);
+    assert.ok(svg.includes('xmlns="http://www.w3.org/2000/svg"'), filename);
+    assert.ok(svg.includes('<title id="title">') && svg.includes('<desc id="desc">'), filename);
+    assert.ok(svg.includes('مسئله و مخاطب') && svg.includes('خروجی قابل انتظار') &&
+      svg.includes('مرز حرفه‌ای'), filename);
+    assert.doesNotMatch(svg, /<script\b|onload=|javascript:|<foreignObject\b/i, filename);
+    assert.ok(page.includes(`data-jr-service-infographic="${service.id}"`), 'figure not mounted: ' + service.id);
+    assert.ok(page.includes('/' + filename), 'missing exact image link: ' + service.id);
+    assert.ok(page.includes('<figcaption>') && page.includes('loading="lazy"'), service.id);
+    assert.ok(!seen.has(svg), 'duplicate infographic: ' + service.id);
+    seen.add(svg);
+  }
+  assert.equal(seen.size, 21);
+});
