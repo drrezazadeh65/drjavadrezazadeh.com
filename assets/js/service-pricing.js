@@ -80,7 +80,7 @@
           '</div>'+
           '<label class="service-compare-option"><input type="checkbox" data-service-compare="'+escapeHtml(service.id)+'" '+(selectedIds.has(service.id)?'checked':'')+'><span>افزودن به مقایسه</span></label>'+ 
 
-          '<a class="button" data-conversion-event="service_price_intent" data-conversion-surface="fa_services_pricing" href="/fa/darkhast-moshavere/?service='+id+'">درخواست بررسی این خدمت</a>'+
+          '<a class="button" data-conversion-event="service_price_intent" data-conversion-surface="fa_services_pricing" href="/fa/services/'+id+'/">شرح علمی و ثبت سفارش این خدمت</a>'+
         '</article>';
         }).join('');
         if(feedback) feedback.textContent='نمایش '+faDigits(selected.length)+' خدمت از '+faDigits(services.length)+' خدمت';
