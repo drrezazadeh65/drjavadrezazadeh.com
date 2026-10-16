@@ -92,3 +92,29 @@ test('three independent human-study workstreams have real instructions but zero 
  assert.equal(ops.release_boundaries.validated_use_claims,false);
  assert.equal(ops.release_boundaries.adult_ephemeral_bahar_worksheet,true);
 });
+
+
+test('FA/EN scientific review dossiers reuse canonical identity and cannot impersonate signed validation',()=>{
+ const paths=[
+   'identity/templates/scientific-validation-dossier-preview-fa.html',
+   'identity/templates/scientific-validation-dossier-preview-en.html'
+ ];
+ const css=fs.readFileSync('identity/scientific-dossier.css','utf8');
+ assert.match(css,/jr-scientific-dossier/);
+ assert.match(css,/jr-document__header/);
+ assert.match(css,/@media print/);
+ for(const file of paths){
+  const html=fs.readFileSync(file,'utf8');
+  assert.match(html,/name="robots" content="noindex,nofollow,noarchive,noimageindex"/);
+  assert.match(html,/href="\.\.\/tokens\.css"/);
+  assert.match(html,/href="\.\.\/document\.css"/);
+  assert.match(html,/href="\.\.\/scientific-dossier\.css"/);
+  assert.match(html,/src="\.\.\/references\/persian-symbol-gold\.png"/);
+  assert.match(html,/src="\.\.\/references\/persian-wordmark-gold\.png"/);
+  assert.equal((html.match(/<tr>/g)||[]).length,5);
+  assert.match(html,/G11–G12/);
+  assert.doesNotMatch(html,/<script\b/i);
+  assert.doesNotMatch(html,/<input\b/i);
+  assert.ok(/NOT ISSUED|NOT VALIDATED|فاقد تأیید علمی/.test(html));
+ }
+});
