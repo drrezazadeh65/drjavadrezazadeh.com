@@ -72,17 +72,18 @@ function element(tag,content,className){
 function render(data){
   if(!validate(data))throw Error('invalid_schema_projection');
   const fragment=document.createDocumentFragment();
-  for(const [key] of domains){
+  for(const [index,[key]] of domains.entries()){
     const part=data.modules[key];
-    const card=element('article',undefined,'ops-card');
+    const card=element('article',undefined,'ops-card jr-sci-evidence-card');
+    card.append(element('span',String(index+1).padStart(2,'0'),'jr-sci-card-index'));
     card.append(element('h3',text.names[key]));
     card.append(element('p',part.columnProjectionReady?text.ready:text.missing,
-      part.columnProjectionReady?'ops-pass':'ops-fail'));
+      'jr-sci-evidence-state '+(part.columnProjectionReady?'ops-pass':'ops-fail')));
     card.append(element('small',part.incompatibleTables.length?
       text.table+' '+part.incompatibleTables.join('، '):text.empty));
     fragment.append(card);
   }
-  fragment.append(element('p',text.foot,'ops-muted'));
+  fragment.append(element('p',text.foot,'ops-muted jr-sci-legal-note'));
   results.replaceChildren(fragment);
   status.textContent=domains.every(([key])=>data.modules[key].columnProjectionReady)
     ?text.complete:text.incomplete;
