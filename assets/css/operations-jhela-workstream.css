@@ -45,3 +45,20 @@
 #ops-jhela-workstream .ops-jhela-architecture a{color:#ffe4a6;text-decoration:underline;text-underline-offset:4px;overflow-wrap:anywhere}
 #ops-jhela-workstream .ops-jhela-architecture :focus-visible{outline:3px solid #f9c65b;outline-offset:4px}
 @media(max-width:700px){#ops-jhela-workstream .ops-jhela-architecture ol{grid-template-columns:1fr}#ops-jhela-workstream .ops-jhela-architecture li{padding:15px}}
+
+/* Authenticated JHELA evidence reader — data always treated as unverified until separately certified. */
+#ops-jhela-workstream .ops-jhela-maturity{border:1px solid #536e89;border-radius:14px;padding:19px;margin:20px 0;background:#102841}
+#ops-jhela-workstream .ops-jhela-maturity>summary{cursor:pointer;color:#f2d7a2;font-weight:750;line-height:1.8}
+#ops-jhela-workstream .ops-jhela-maturity [data-jhela-maturity-refresh]{min-height:44px;margin:10px 0;padding:9px 16px;color:#182a3e;background:#eed09c;font-weight:700;border:1px solid #f6deac;border-radius:9px;cursor:pointer}
+#ops-jhela-workstream .ops-jhela-maturity [data-jhela-maturity-refresh]:disabled{opacity:.55;cursor:progress}
+#ops-jhela-workstream .ops-jhela-maturity [data-jhela-maturity-status]{min-height:24px;line-height:1.7;color:#ead6ac}
+#ops-jhela-workstream .ops-jhela-live-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:17px 0}
+#ops-jhela-workstream .ops-jhela-live-metrics>div{display:grid;align-content:space-between;gap:12px;padding:15px;min-width:0;border:1px solid #516b85;border-radius:11px}
+#ops-jhela-workstream .ops-jhela-live-metrics span{font-size:.85rem;color:#ddd3c0}
+#ops-jhela-workstream .ops-jhela-live-metrics strong{font-size:1.05rem;color:#ffe0a2;overflow-wrap:anywhere}
+#ops-jhela-workstream .ops-jhela-evidence-list{padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#ops-jhela-workstream .ops-jhela-evidence-list li{display:grid;gap:10px;border:1px solid #3d5973;border-radius:10px;padding:12px 14px;min-width:0}
+#ops-jhela-workstream .ops-jhela-evidence-list li span{color:#f1e8d7;line-height:1.6}
+#ops-jhela-workstream .ops-jhela-evidence-list li small{color:#e4bca8;line-height:1.5}
+#ops-jhela-workstream .ops-jhela-maturity :focus-visible{outline:3px solid #ffcd62;outline-offset:4px}
+@media(max-width:700px){#ops-jhela-workstream .ops-jhela-live-metrics,#ops-jhela-workstream .ops-jhela-evidence-list{grid-template-columns:1fr}}
