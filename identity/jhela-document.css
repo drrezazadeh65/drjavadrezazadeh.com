@@ -85,3 +85,24 @@
 .jhela-document .jhela-document__certificate-body p{max-width:135mm;margin:5mm auto;line-height:1.9}
 @media(max-width:650px){.jhela-document .jhela-document__cover-art{padding:25px 16px}.jhela-document .jhela-document__certificate-body{padding:25px 16px}}
 @media print{.jhela-document :is(.jhela-document__cover-art,.jhela-document__certificate-body){break-inside:avoid}}
+
+/* Printed-page evidence correction: original 297mm min-height + page-break after forced
+ * unissued A4 specimens to 2 pages, often leaving only the footer on page 2. */
+@media print{
+ .jr-document.jhela-document{
+  box-sizing:border-box;
+  width:210mm;max-width:210mm;
+  min-height:0;height:auto;
+  padding:14mm 16mm 14mm;
+  margin:0;break-after:auto;
+ }
+ .jhela-document .jr-document__title{font-size:20pt;margin-block:6mm 4mm}
+ .jhela-document .jr-document__footer{margin-block-start:7mm;padding-block-start:3mm;font-size:8pt}
+ .jhela-document .jhela-document__issue-status{margin-block:2mm}
+ .jhela-document .jr-document__meta{margin-block:4mm}
+ .jhela-document .jhela-document__cover-art{padding:10mm 6mm;margin-block:7mm}
+ .jhela-document .jhela-document__issue-title{margin-block:7mm 11mm}
+ .jhela-document .jhela-document__certificate-body{padding:7mm 5mm;margin-block:7mm}
+ .jhela-document .jhela-document__certificate-body h2{font-size:20pt;margin:6mm 0}
+ .jhela-document .jhela-document__signoff{min-height:11mm;margin-block:3mm}
+}
