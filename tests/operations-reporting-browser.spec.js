@@ -315,7 +315,8 @@ test('Collection settings expose 13 engine switches, eight cached providers and 
  const controls=page.locator('.ops-collector-item');await expect(controls).toHaveCount(21);
  await controls.first().getByRole('button',{name:'ذخیره'}).click();expect(saved).toBe(1);
  await page.getByRole('button',{name:'تازه‌سازی فوری همهٔ منابع فعال'}).click();
- expect(refreshed).toBe(1);await noOverflow(page);
+ await expect.poll(()=>refreshed,{timeout:8000,message:'Owner refresh must issue exactly one authorized request'}).toBe(1);
+ await noOverflow(page);
 });
 
 test('Audit-only dispatch requires owner confirmation and reports accepted request without invented run outcome',async({page})=>{
