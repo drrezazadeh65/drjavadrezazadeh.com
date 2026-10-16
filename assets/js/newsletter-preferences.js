@@ -29,7 +29,7 @@
  };
  const E=(name,className,text)=>{const el=document.createElement(name);if(className)el.className=className;if(text)el.textContent=text;return el;};
  let sharedCsrf='',deliveryActive=false;
- function responseError(){for(const root of roots)root.hidden=true;}
+ function responseError(){for(const root of roots){root.replaceChildren();root.hidden=true;}}
  const root=roots[0]; // one integrated account panel per dashboard
  const heading=E('h3','jr-newsletter-title',words.heading);
  const intro=E('p','jr-newsletter-intro',words.subheading);
