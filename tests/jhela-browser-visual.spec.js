@@ -107,9 +107,9 @@ for(const {role,route} of roles){
   expect(errs).toEqual([]);
  });
 }
-test('A4 scholarly stationery previews render print-safe with no issued record',async({page})=>{
- const samples=['jhela-reviewer-invitation-preview-en.html','jhela-reviewer-report-preview-en.html','jhela-editorial-decision-preview-en.html','jhela-finance-waiver-preview-en.html','jhela-article-galley-preview-en.html','jhela-issue-cover-preview-en.html','jhela-reviewer-certificate-preview-en.html'];
- for(const sample of samples){
+const a4Samples=['jhela-reviewer-invitation-preview-en.html','jhela-reviewer-report-preview-en.html','jhela-editorial-decision-preview-en.html','jhela-finance-waiver-preview-en.html','jhela-article-galley-preview-en.html','jhela-issue-cover-preview-en.html','jhela-reviewer-certificate-preview-en.html'];
+for(const sample of a4Samples){
+ test('A4 single-page scholarly print '+sample,async({page})=>{
   const response=await page.goto(base+'/identity/templates/'+sample,{waitUntil:'domcontentloaded'});
   expect(response?.status()).toBe(200);
   await expect(page.locator('.jhela-document__issue-status')).toHaveText('DRAFT TEMPLATE — NOT ISSUED');
@@ -118,11 +118,11 @@ test('A4 scholarly stationery previews render print-safe with no issued record',
   expect(width).toBeGreaterThan(500);
   await page.emulateMedia({media:'print'});
   const pdf=await page.pdf({format:'A4',printBackground:true,preferCSSPageSize:true});
-  expect(pdf.length).toBeGreaterThan(4000);
-  const pdfPageCount=(pdf.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length;
-  expect(pdfPageCount,sample+' must print on exactly one A4 page with no orphaned footer').toBe(1);
   await fs.promises.mkdir(screenshotsRoot+'/print',{recursive:true});
   await fs.promises.writeFile(screenshotsRoot+'/print/'+sample.replace('.html','.pdf'),pdf);
+  expect(pdf.length).toBeGreaterThan(4000);
+  const pages=(pdf.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length;
+  expect(pages,sample+' must be one A4 page without orphaned footer').toBe(1);
   await page.emulateMedia({media:'screen'});
- }
-});
+ });
+}
