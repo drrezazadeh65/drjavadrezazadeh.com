@@ -86,4 +86,6 @@ Canonical source continuation after the previously recorded `c760001c` newslette
 - BLOCKED_BY_CONFIGURATION: owner-approved USDT receipt wallet/chain settlement, actual newsletter SMTP worker delivery, OJS security and real JHELA intake, where the previous audit gates remain.
 - Deployment was **NOT triggered** by these source edits. No irreversible database migration, payment receipt acceptance or live service change occurred.
 
+Additional third-person navigation pass: visible «درباره من» labels replaced with «درباره دکتر رضازاده» across the FA homepage/about page and shared site/mobile navigation; historical `/fa/darbare-man/` URL, schema target, canonical and breadcrumbs destination retained. New source guard asserts third-person labels without route renaming. 
+
 Continue with the verified production gate: exact HEAD CI, safe public build, image/metadata audits, responsive screenshots at 320/390/430/768/1440 and actual book-page rendering before an approved single deployment. Revalidate previous working newsletter and commerce code instead of rebasing or merging the divergent PRs wholesale.
