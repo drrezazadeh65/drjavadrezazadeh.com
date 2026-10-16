@@ -1,10 +1,39 @@
-/* MFA-only moderation queue, no public content rendered before admin unlock */
-.jr-community-admin{margin-block:22px}
-.jr-community-admin-list{display:grid;gap:14px;margin-top:18px}
-.jr-community-admin-item{border:1px solid var(--ops-border,#314259);border-radius:14px;padding:16px;background:rgba(22,35,52,.65)}
-.jr-community-admin-item p{overflow-wrap:anywhere;line-height:1.8}
-.jr-community-admin-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
-.jr-community-admin-actions button{min-height:44px}
-.jr-community-admin-actions button:first-child{border-color:var(--ops-green,#83dec3)}
-.jr-community-admin-actions button:disabled{opacity:.5;cursor:not-allowed}
-@media(max-width:500px){.jr-community-admin-actions button{flex:1 1 100%}}
+/* JR Private Editorial Governance — inherits existing Operations design tokens.
+   Academic luxury: graphite surfaces, ivory content, restrained gold identity. */
+#jr-community-admin{
+ --jr-op-bg:var(--ops-bg,#0a101b);
+ --jr-op-surface:var(--ops-panel,#142033);
+ --jr-op-rule:var(--ops-border,#314259);
+ --jr-op-text:var(--ops-text,#edf2fb);
+ --jr-op-muted:var(--ops-muted,#b3c0d2);
+ --jr-op-gold:var(--ops-gold,#edcd88);
+ position:relative;isolation:isolate;overflow:hidden;
+ margin-block:clamp(20px,3.4vw,42px);
+ padding:clamp(18px,3vw,33px);
+ border:1px solid rgba(237,205,136,.3);
+ border-radius:22px;
+ background:radial-gradient(520px 290px at 100% -40%,rgba(237,205,136,.07),transparent 85%),var(--jr-op-surface);
+ box-shadow:0 22px 55px rgba(0,0,0,.13);
+ color:var(--jr-op-text);
+}
+#jr-community-admin .jr-community-admin-header{display:flex;align-items:center;gap:clamp(12px,2vw,20px);padding-bottom:17px;margin-bottom:16px;border-bottom:1px solid var(--jr-op-rule)}
+#jr-community-admin .jr-community-admin-logo{width:54px;height:54px;flex:none;object-fit:contain;border:1px solid rgba(237,205,136,.3);border-radius:13px;background:rgba(237,205,136,.04);padding:7px}
+#jr-community-admin .jr-community-admin-titles{min-width:0}
+#jr-community-admin .jr-community-admin-kicker{font:.69rem/1.6 Georgia,serif;letter-spacing:.1em;color:var(--jr-op-gold);margin:0 0 6px}
+#jr-community-admin h2{font-size:clamp(1.13rem,1.8vw,1.5rem);line-height:1.55;margin:0}
+#jr-community-admin h3{font-size:1.04rem;line-height:1.65;margin:22px 0 9px;color:var(--jr-op-gold)}
+#jr-community-admin>p{line-height:1.9;max-width:88ch}
+#jr-community-admin>button{min-height:46px;border-radius:12px;border:1px solid var(--jr-op-gold);background:rgba(237,205,136,.085);color:var(--jr-op-text);padding-inline:20px;margin:10px 0}
+#jr-community-admin .jr-community-admin-list{display:grid;gap:14px;margin-top:18px}
+#jr-community-admin .jr-community-admin-item{position:relative;min-width:0;padding:clamp(15px,2.4vw,24px);border-radius:16px;border:1px solid var(--jr-op-rule);background:linear-gradient(145deg,rgba(255,255,255,.025),rgba(255,255,255,.007))}
+#jr-community-admin .jr-community-admin-item p{overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.88;margin:0 0 12px}
+#jr-community-admin .jr-community-admin-item>p:first-child{font-size:.84rem;color:var(--jr-op-gold);direction:ltr;text-align:start;white-space:normal}
+#jr-community-admin .jr-community-admin-actions{display:flex;gap:9px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--jr-op-rule);margin-top:16px}
+#jr-community-admin .jr-community-admin-actions button{min-height:46px;padding:10px 17px;border-radius:11px;border:1px solid var(--jr-op-rule);background:#1b2b41;color:var(--jr-op-text);font-weight:600;cursor:pointer;white-space:normal}
+#jr-community-admin .jr-community-admin-actions button:first-child{border-color:rgba(131,222,195,.6);background:rgba(131,222,195,.08)}
+#jr-community-admin .jr-community-admin-actions button:last-child:not(:first-child){border-color:rgba(237,205,136,.45)}
+#jr-community-admin .jr-community-admin-actions button:disabled{opacity:.5;cursor:not-allowed}
+#jr-community-admin :is(button,a):focus-visible{outline:3px solid var(--jr-op-gold);outline-offset:3px}
+@media(max-width:560px){#jr-community-admin{padding:18px 14px;border-radius:16px}#jr-community-admin .jr-community-admin-header{gap:12px}#jr-community-admin .jr-community-admin-logo{width:43px;height:43px;padding:5px}#jr-community-admin .jr-community-admin-actions button{flex:1 1 100%}}
+@media(prefers-reduced-motion:reduce){#jr-community-admin *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media(forced-colors:active){#jr-community-admin,#jr-community-admin .jr-community-admin-item{border:1px solid CanvasText}}
