@@ -72,8 +72,32 @@ function bertinaAuthoriseFreeStage(array $context): array {
             $valid=true;
         }
         if (!$valid) return $deny('VERIFIED_GUARDIAN_RELATION_REQUIRED');
-        // Assent workflow remains separate. Never imply it exists merely
-        // because the guardian has authorised a session.
+
+        // Site-level conservative safeguarding rule: until an independent,
+        // purpose-scoped and withdrawable child assent source has been
+        // deployed, private MINOR assessment stays closed. Parent permission
+        // never substitutes for child assent. Capacity exceptions require
+        // a distinct reviewed policy and must not be inferred from age_band.
+        $assent=$context['minor_assent']??null;
+        if(!is_array($assent) ||
+           ($assent['record_source']??null)!=='TRUSTED_ASSENT_RECORD' ||
+           ($assent['state']??null)!=='VERIFIED' ||
+           ($assent['decision']??null)!=='ASSENTED' ||
+           ($assent['subject_id']??null)!==$subject['id'] ||
+           ($assent['guardian_account_id']??null)!==$account ||
+           !is_string($assent['reference']??null) ||
+           trim($assent['reference'])==='' ||
+           !is_string($assent['notice_version']??null) ||
+           trim($assent['notice_version'])==='' ||
+           !is_string($assent['notice_sha256']??null) ||
+           !preg_match('/^[a-f0-9]{64}$/D',$assent['notice_sha256']) ||
+           ($assent['withdrawn_at']??null)!==null)
+            return $deny('MINOR_ASSENT_NOT_VERIFIED');
+        $assented=bertinaSqlUtcSeconds($assent['assented_at']??null);
+        $expires=bertinaSqlUtcSeconds($assent['expires_at']??null);
+        if($assented===null || $expires===null ||
+           $assented>$now || $expires<=$now || $expires<=$assented)
+            return $deny('MINOR_ASSENT_NOT_CURRENT');
     }
     $history=$context['consent_history']??null;
     if (!is_array($history))
