@@ -32,6 +32,7 @@ async function probe(path){
     if(!contentType.toLowerCase().includes('json'))throw new Error('unexpected_mime');
     const payload=JSON.parse(raw);
     details=summarize(payload);
+    if(payload&&typeof payload==='object'&&!Array.isArray(payload))details.topLevelStatus={value:payload.status??null,type:typeof payload.status};
     // Strictly print structural evidence, never trust unlabeled numbers as tomans.
     if(payload&&typeof payload==='object'&&!Array.isArray(payload)){
       for(const k of ['data','result','results','pairs','markets'])
