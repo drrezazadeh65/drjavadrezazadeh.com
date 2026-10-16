@@ -68,7 +68,12 @@ test('institutional biography and academic pages use editorial third person',()=
  ['en/academic-profile/index.html',/in Dr\. Rezazadeh Yazdeli’s work/]
  ];
  for(const [p,pattern] of cases)assert.match(source(p),pattern,p);
- for(const route of ['fa/index.html','fa/darbare-man/index.html']){
+ for(const route of [
+  'fa/index.html','fa/darbare-man/index.html','fa/tadris/index.html',
+  'fa/tamas/index.html','fa/pajouhesh/index.html',
+  'fa/harim-khosusi/index.html','fa/amoozesh-zaban/index.html',
+  'fa/faaliat-haye-elmi/index.html','fa/falsafe-amoozeshi/index.html'
+ ]){
   const html=source(route);
   assert.doesNotMatch(html,/درباره من/);
   assert.match(html,/درباره دکتر رضازاده/);
