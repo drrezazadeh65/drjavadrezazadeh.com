@@ -26,7 +26,7 @@ ids(vip.services,'VIP');
 check(books.books.length===3,'books: expected three published books');
 check(new Set(books.books.map(x=>x.id)).size===3,'books: duplicate ID');
 // Match the current owner-corrected first poetry-book title; prices and covers remain pinned.
-const expected = new Map([['roshanaei','سپیدی'],['tariki','تاریکی'],['bonbast','بن‌بست']]);
+const expected = new Map([['roshanaei','سپید'],['tariki','تاریکی'],['bonbast','بن‌بست']]);
 for(const b of books.books){
   check(expected.get(b.id)===b.title_fa,'book: unexpected title or ID '+b.id);
   check(b.publication_status==='PUBLISHED','book: unexpected publication status '+b.id);
