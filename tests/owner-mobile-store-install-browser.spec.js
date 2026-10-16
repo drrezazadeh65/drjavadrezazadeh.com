@@ -1,0 +1,72 @@
+const {test,expect}=require('@playwright/test');
+test.use({serviceWorkers:'block'});
+const base='http://127.0.0.1:4173';
+
+// Source assertions are not enough: measure the actual bilingual DOM.
+for(const locale of ['fa','en']){
+ for(const width of [320,390,430]){
+  test(locale+' cinema storefront and installed-app dock at '+width+'px',async({page})=>{
+   const errors=[];page.on('pageerror',e=>errors.push(String(e)));
+   await page.setViewportSize({width,height:844});
+   await page.goto(base+'/'+locale+'/shop/',{waitUntil:'domcontentloaded'});
+   const hero=page.locator('.book-store-hero.cinema-original-hero');
+   const picture=hero.locator('.cinema-hero-picture');
+   const copy=hero.locator('.cinema-hero-copy');
+   const nav=hero.locator('.cinema-hero-nav');
+   await expect(hero).toBeVisible();
+   await expect(picture).toBeVisible();
+   await expect(copy).toBeVisible();
+   await expect(nav).toBeVisible();
+   // Image-first: approved artwork appears before editorial copy and sales actions.
+   const [pb,cb,nb]=await Promise.all([picture.boundingBox(),copy.boundingBox(),nav.boundingBox()]);
+   expect(pb).not.toBeNull();expect(cb).not.toBeNull();expect(nb).not.toBeNull();
+   expect(pb.y+pb.height,'approved image before copy').toBeLessThanOrEqual(cb.y+2);
+   expect(cb.y+cb.height,'copy before actions').toBeLessThanOrEqual(nb.y+2);
+   const cover=page.locator('.book-store-grid .book-product-card .book-cover img');
+   await expect(cover).toHaveCount(3,{timeout:10000});
+   for(const image of await cover.all()){
+     await expect(image).toBeVisible();
+     expect(await image.evaluate(el=>el.complete&&el.naturalWidth>0),'official cover must load').toBe(true);
+   }
+   const dock=page.locator('.app-dock');
+   const install=dock.locator('[data-jr-dock-install]');
+   await expect(install).toBeVisible({timeout:10000});
+   await expect(dock.locator('a')).toHaveCount(5);
+   const targetSize=await install.evaluate(el=>{const b=el.getBoundingClientRect();return {width:b.width,height:b.height}});
+   expect(targetSize.width,'mobile install target width').toBeGreaterThanOrEqual(44);
+   expect(targetSize.height,'mobile install target height').toBeGreaterThanOrEqual(44);
+   const overflow=await page.evaluate(()=>Math.max(document.body.scrollWidth,document.documentElement.scrollWidth)-innerWidth);
+   expect(overflow,'mobile horizontal overflow').toBeLessThanOrEqual(1);
+   await install.click();
+   const help=page.locator('[data-jr-install-help]');
+   await expect(help).toBeVisible();
+   await expect(help).toContainText(locale==='fa'?'مرورگر':'browser');
+   expect(errors,'uncaught JS errors').toEqual([]);
+  });
+ }
+}
+
+test('installed PWA mode removes redundant install control but preserves five dock routes',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.addInitScript(()=>{
+   const native=window.matchMedia.bind(window);
+   window.matchMedia=query=>query==='(display-mode: standalone)'
+    ? {matches:true,media:query,addListener(){},removeListener(){},addEventListener(){},removeEventListener(){}}
+    : native(query);
+ });
+ await page.goto(base+'/fa/shop/',{waitUntil:'domcontentloaded'});
+ const dock=page.locator('.app-dock');
+ await expect(dock).toBeVisible();
+ await expect(dock.locator('a')).toHaveCount(5);
+ await expect(dock.locator('[data-jr-dock-install]')).toHaveCount(0);
+});
+
+test('product versions are public-friendly and do not leak the service-worker fingerprint',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.goto(base+'/fa/shop/',{waitUntil:'domcontentloaded'});
+ const legal=page.locator('[data-jr-footer-legal]');
+ await expect(legal).toBeAttached({timeout:10000});
+ await expect(legal.locator('[data-jr-public-version]')).toHaveText('نسخه وب‌سایت: ۵.۱.۰');
+ await expect(legal).not.toContainText('شناسه نسخه فنی');
+ await expect(legal).not.toContainText('jr-site-bertina-');
+});
