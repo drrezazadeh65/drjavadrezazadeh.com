@@ -7,7 +7,7 @@ test('premium bookstore stylesheet is present, scoped and touch/responsive safe'
  const css=read('assets/css/store-premium-editorial-2026.css');
  assert.match(css,/\.book-store-shell \.book-store-grid/);
  assert.match(css,/\.book-store-shell \.book-product-card/);
- assert.match(css,/\.book-store-shell \.book-cover/);
+ assert.match(css,/\.book-store-shell\s+\.book-product-card\s+\.book-cover/);
  assert.match(css,/@media\(max-width:1040px\)/);
  assert.match(css,/@media\(max-width:690px\)/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
