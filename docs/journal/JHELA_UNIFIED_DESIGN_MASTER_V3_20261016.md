@@ -45,3 +45,12 @@ The OJS reader template is intentionally **light paper on a dark scholarly heade
 Governance references: `docs/journal/JHELA_FUTURE_SCALE_ARCHITECTURE_ADR_20261016.md`, `docs/journal/JHELA_SCIENTIFIC_EVIDENCE_AND_INDEXING_AUDIT_SOP_20261016.md`, `docs/journal/JHELA_OJS_METADATA_PRODUCTION_QA_20261016.md`.
 
 The GitHub master exists to prevent repeated incompatible redesigns; future changes should update the same token manifest, journal theme, owner workspace, stationery and tests within one reviewed versioned change, not overwrite a functioning product.
+
+
+## Canonical masthead and print family rollout — 16 October 2026
+
+The approved reverse English wordmark is **not redrawn**. Its exact original emblem group was extracted as `assets/images/jhela/mark-en-reverse.svg` for narrow scholarly headers and registered with provenance in `assets/media-registry.json`. The full English wordmark remains on both international roadmap pages and the prominent scholarly hero. All 31 other discovered English/Persian journal route mastheads now display the matching compact emblem with visible adjacent title; the former `identity.svg` remains in the repository for rollback and historical provenance. No other website, Golden Talent or parent Persian mark was changed.
+
+Seven coordinated A4, English-only **unissued design specimens** now share `identity/jhela-document.css`: reviewer invitation, editorial decision letter, future APC/waiver explanation, article galley, reviewer report, future issue cover, and consent-based reviewer acknowledgement. Drafts do not send messages, assign real ISSN or DOI, certify service, collect money, create submissions or provide functioning native OJS reviewer data. The private reviewer-report layout explicitly distinguishes author-facing assessment from editor-only confidential comments.
+
+`tests/jhela-brand-route-coverage.test.mjs` verifies every discovered English/Persian journal index page against the canonical icon/full-logo family, safe SVG extraction, registered asset, logo loading and dimension contract, WCAG body-text pairings, seven print specimens and fail-closed OJS conditions. This source audit is additional to future human visual review; real screenshot and print/OJS testing remain independent release gates.
