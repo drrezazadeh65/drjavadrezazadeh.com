@@ -1,0 +1,33 @@
+/* JR Scientific Dossier / A4 — extends canonical identity/tokens.css and identity/document.css.
+ * No off-brand logo, false certification, or unstated scientific evidence.
+ */
+.jr-scientific-dossier{--jr-evidence-red:#8f493a}
+.jr-scientific-dossier .jr-document__header{align-items:center}
+.jr-scientific-dossier .jr-evidence-kicker{letter-spacing:.12em;font-size:9pt;font-weight:700;color:#8a6a34;margin:0}
+.jr-scientific-dossier .jr-evidence-status{font-size:9pt;font-weight:750;color:#70392e;padding:3mm 4mm;border:1px solid #ba9183;background:#fff7f2;border-radius:3mm}
+.jr-scientific-dossier .jr-evidence-status strong{display:block}
+.jr-scientific-dossier .jr-document__title{font-family:Georgia,var(--jr-font-fa),serif;font-weight:700}
+.jr-scientific-dossier .jr-evidence-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4mm 8mm;margin:8mm 0}
+.jr-scientific-dossier .jr-evidence-grid p{margin:0;border-block-end:1px solid #d3c2a9;padding-block:2mm}
+.jr-scientific-dossier .jr-evidence-grid strong{display:block;font-size:9pt;color:#6f5739}
+.jr-scientific-dossier .jr-evidence-ledger h2{font-size:13pt;line-height:1.4;margin:8mm 0 3mm;color:#211a13}
+.jr-scientific-dossier .jr-evidence-ledger table{font-size:9pt}
+.jr-scientific-dossier .jr-evidence-ledger th{background:#ede2cf;color:#2e271d}
+.jr-scientific-dossier .jr-evidence-ledger td{background:rgba(255,255,255,.28)}
+.jr-scientific-dossier .jr-evidence-stamp{border-inline-start:3px solid var(--jr-evidence-red);background:#fff7f2;padding:4mm 5mm;margin:7mm 0;font-size:10pt}
+.jr-scientific-dossier .jr-evidence-roles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6mm;margin:7mm 0}
+.jr-scientific-dossier .jr-evidence-role{border:1px solid #b6a78c;padding:4mm;background:rgba(255,255,255,.35);font-size:9pt}
+.jr-scientific-dossier .jr-evidence-role strong{display:block;margin-bottom:3mm}
+.jr-scientific-dossier .jr-evidence-guidance{font-size:9pt;color:#5a5145;line-height:1.8}
+@media(max-width:600px){
+ body.jr-evidence-preview{padding:12px!important}
+ .jr-scientific-dossier{width:100%;padding:15mm 11mm}
+ .jr-scientific-dossier .jr-evidence-grid,.jr-scientific-dossier .jr-evidence-roles{grid-template-columns:1fr}
+ .jr-scientific-dossier .jr-evidence-ledger{overflow-x:auto}
+ .jr-scientific-dossier .jr-evidence-ledger table{min-width:580px}
+}
+@media print{
+ body.jr-evidence-preview{padding:0!important;background:#fff!important}
+ .jr-scientific-dossier{box-shadow:none!important}
+ .jr-scientific-dossier .jr-evidence-ledger tr{break-inside:avoid}
+}
