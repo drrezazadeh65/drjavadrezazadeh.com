@@ -1,0 +1,47 @@
+/* JR Academic Services — unified Persian-first premium service detail skin, 2026-10-16.
+ * Shared presentation only. Never interferes with service checkout, pricing, auth or DB.
+ * See foundation/DESIGN-SYSTEM.md and identity/brand-governance.md. */
+:root{
+  --jr-detail-bg:#0b0b0b;
+  --jr-detail-surface:#1f1f1f;
+  --jr-detail-surface-raised:#252322;
+  --jr-detail-ivory:#f8f5e9;
+  --jr-detail-gold:#d4af37;
+  --jr-detail-antique:#a88955;
+  --jr-detail-text-secondary:#d1cbc0;
+  --jr-detail-stroke:rgba(212,175,55,.32);
+}
+body{background:var(--jr-detail-bg);color:var(--jr-detail-ivory);font-family:Tahoma,Arial,sans-serif;line-height:2}
+body a{color:#f1d991;text-underline-offset:4px}
+header{background:#141312;border-bottom:1px solid var(--jr-detail-stroke);color:var(--jr-detail-ivory);box-shadow:0 8px 32px rgba(0,0,0,.18)}
+header a{color:var(--jr-detail-ivory)}
+header a:hover,header a:focus-visible{color:#f6de9b}
+main{max-width:1160px}
+.hero{background:linear-gradient(145deg,#1f1e1c 0%,#111111 62%,#1a1813 100%);color:var(--jr-detail-ivory);border:1px solid var(--jr-detail-stroke);border-radius:26px;box-shadow:0 25px 80px rgba(0,0,0,.3)}
+.hero img{background:#151411;border-bottom:1px solid rgba(212,175,55,.20)}
+.hero h1{font-weight:800;color:var(--jr-detail-ivory);letter-spacing:-.01em}
+.hero-inner>p{color:var(--jr-detail-text-secondary);max-width:72ch}
+.price{color:#f0d48a}
+.panel{background:linear-gradient(155deg,var(--jr-detail-surface-raised),var(--jr-detail-surface));border:1px solid rgba(212,175,55,.23);color:var(--jr-detail-ivory);box-shadow:0 8px 24px rgba(0,0,0,.11)}
+.panel h2{color:#f6deab;line-height:1.55}
+.panel p,.panel li{color:#ebe5d8}
+.panel p a{color:#f1d991;text-decoration-color:var(--jr-detail-antique)}
+.btn{background:var(--jr-detail-gold);border:1px solid var(--jr-detail-gold);color:#101010;min-height:46px;display:inline-flex;align-items:center;justify-content:center;box-shadow:none;text-decoration:none}
+.btn.alt{background:transparent;border:1px solid var(--jr-detail-stroke);color:#f6dfad}
+.btn:hover,.btn:focus-visible{filter:brightness(1.12)}
+.actions a:not(.btn){color:#f6da8e;min-height:44px;display:inline-flex;align-items:center}
+.service-booking-disclosure{background:#29251d;color:#f6e7c2;border-inline-start:4px solid var(--jr-detail-gold);border-radius:13px;padding:17px 21px;box-shadow:0 4px 25px rgba(0,0,0,.12)}
+footer{color:#c7c0b4}
+footer a{color:#efd48a}
+:focus-visible{outline:3px solid #f6d98e;outline-offset:4px}
+@media(max-width:650px){
+main{padding:16px 12px 120px}
+.hero{border-radius:20px}
+.hero-inner{padding:23px 21px 25px}
+.hero h1{font-size:clamp(25px,7vw,34px)}
+.panel{padding:22px 18px;border-radius:16px}
+.grid{gap:13px}
+.actions{gap:10px}
+.actions .btn{width:100%}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
