@@ -213,14 +213,27 @@
     };
     const date=label(text('تاریخ روز (تقویم میلادی)','Date (Gregorian)'),'date');
     const start=label(text('ساعت شروع، به وقت تهران','Start hour, Tehran'),'time');
-    start.step='3600';start.value='14:00';
+    // Owner preference: 17:00–18:00 Tehran is a draft, not auto-published.
+    start.step='3600';start.value='17:00';
     const lengthLabel=node('label',text('ساعت قابل انتشار در این روز','Hours to publish on this day'),'ops-muted');
     const duration=document.createElement('select');
     for(const hours of [1,2,3,4]){
       const option=document.createElement('option');option.value=String(hours);
       option.textContent=String(hours)+text(' ساعت',' hours');duration.append(option);
     }
-    duration.value='2';lengthLabel.append(duration);editor.append(lengthLabel);
+    duration.value='1';lengthLabel.append(duration);editor.append(lengthLabel);
+    const hourPreset=node('button',text('انتخاب ساعت ۱۷ تا ۱۸','Select 17:00–18:00'),'button');
+    hourPreset.type='button';
+    hourPreset.dataset.consultationEveningPreset='1700-1800';
+    hourPreset.addEventListener('click',()=>{
+      // Preserve the owner's selected Gregorian day; require a separate save.
+      start.value='17:00';duration.value='1';
+      status.textContent=text(
+        'بازهٔ ۱۷ تا ۱۸ به وقت تهران انتخاب شد. روز موردنظر را مشخص و انتشار را جداگانه تأیید کنید؛ هنوز ساعتی منتشر نشده است.',
+        '17:00–18:00 Tehran time selected. Choose a date and confirm publication separately; no hour has been published.'
+      );
+    });
+    editor.append(hourPreset);
     const publish=node('button',text('انتشار این بازه','Publish genuine capacity'),'button');
     publish.type='button';editor.append(publish);
     const hint=node('p',text(
