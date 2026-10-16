@@ -82,14 +82,33 @@ test('institutional biography and academic pages use editorial third person',()=
  // The personal philosophy/poetry and private user-facing prompts are NOT rewritten.
 });
 
-test('three book bibliographic fields remain truthful until imprint evidence',()=>{
- const c=JSON.parse(source('platform/book-catalog.json'));
- assert.equal(c.books.length,3);
- for(const b of c.books){
-   assert.equal(b.publication_status,'PUBLISHED');
-   for(const key of ['publisher','isbn','publication_year','edition'])
-     assert.equal(b.bibliography[key],null,'Unverified '+b.id+':'+key+' must not be fabricated');
+test('three photographed book imprints have valid, unique ISBN-13 and genuine first printing data',()=>{
+ const books=JSON.parse(source('platform/book-catalog.json')).books;
+ const verified=new Map([
+  ['roshanaei',{isbn:'9786229465141',year:1404}],
+  ['tariki',{isbn:'9786229636275',year:1404}],
+  ['bonbast',{isbn:'9786229636237',year:1399}]
+ ]);
+ assert.equal(books.length,verified.size);
+ for(const book of books){
+  assert.equal(book.publication_status,'PUBLISHED');
+  const expected=verified.get(book.id);
+  assert.ok(expected,'Unknown canonical book '+book.id);
+  assert.equal(book.bibliography.publisher,'نشر دارما');
+  assert.equal(book.bibliography.isbn,expected.isbn);
+  assert.equal(book.bibliography.publication_year,expected.year);
+  assert.equal(book.bibliography.publication_calendar,'Solar Hijri');
+  assert.equal(book.bibliography.edition,'چاپ اول');
+  assert.equal(book.bibliography.print_run,200);
+  assert.match(expected.isbn,/^[0-9]{13}$/);
+  assert.equal([...expected.isbn].reduce((s,n,i)=>s+Number(n)*(i%2===0?1:3),0)%10,0);
  }
+ const ui=source('assets/js/book-store.js');
+ assert.match(ui,/First printing quantity/);
+ assert.match(ui,/not current inventory/);
+ assert.match(ui,/Darma Publishing/);
+ assert.match(ui,/Solar Hijri/);
+ assert.match(ui,/bdi dir="ltr"/);
 });
 
 test('bilingual published-book identity follows the canonical catalogue and third-person author copy',()=>{
