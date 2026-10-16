@@ -10,6 +10,7 @@ if(getenv('OPERATIONS_TEST_DSN')!==$dsn ||
     fwrite(STDERR,"Refusing non-fixture age verification test\n");exit(2);
 }
 require_once __DIR__.'/../platform/bertina-age-attestation-reader.php';
+require_once __DIR__.'/../platform/bertina-free-stage-authorisation.php';
 $pdo=new PDO($dsn,(string)getenv('OPERATIONS_TEST_USER'),
     (string)getenv('OPERATIONS_TEST_PASSWORD'),[
       PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
@@ -61,6 +62,34 @@ try {
         $v['source']==='INDEPENDENT_VERIFIED_RECORD'&&$v['reference']===$id,
         'independently reviewed valid attestation maps to exact existing DTO');
     $expect(count($v)===4,'returned DTO never leaks reviewer identity or evidence hash');
+    // The independent SQL-derived verification DTO must feed the EXISTING
+    // three-module free-stage policy without trusting the self-entered band.
+    $actor='66666666-6666-4666-8666-666666666666';
+    $assessGrant=[
+      'id'=>'synthetic-grant','account_id'=>$actor,'subject_id'=>$subject,
+      'notice_id'=>'assessment-notice','purpose_code'=>'ASSESSMENT','locale'=>'fa',
+      'decision'=>'GRANTED','granted_at'=>gmdate('Y-m-d H:i:s',time()-3600),
+      'withdrawn_at'=>null,'version_label'=>'v1',
+      'notice_sha256'=>str_repeat('e',64),
+      'effective_at'=>gmdate('Y-m-d H:i:s',time()-86400),
+      'retired_at'=>null
+    ];
+    $ctx=[
+      'module'=>'RCAS','stage'=>'CONTEXT_REFLECTION',
+      'server_context'=>'TRUSTED_BACKEND','history_complete'=>true,'now'=>time(),
+      'actor'=>['id'=>$actor,'source'=>'SERVER_SESSION','session_verified'=>true,
+                'email_verified'=>true,'status'=>'active'],
+      'subject'=>['id'=>$subject,'subject_type'=>'LEARNER','status'=>'ACTIVE',
+                  'owner_account_id'=>$actor,'guardian_account_id'=>null,
+                  'age_band'=>'UNDER_18'],
+      'age_verification'=>$v,'relationships'=>[],
+      'consent_history'=>[$assessGrant]
+    ];
+    $expect(bertinaAuthoriseFreeStage($ctx)['allowed']===true,
+        'SQL-derived adult verification integrates with the free RCAS stage');
+    $expect(bertinaAuthoriseFreeStage(array_replace($ctx,['age_verification'=>null]))['allowed']===false,
+        'missing SQL verification denies even with valid assessment consent');
+
     $expect($check()['classification']==='ADULT',
         'self-reported age_band UNDER_18 cannot override independent reviewed adult proof');
     $expect(bertinaVerifiedAgeAttestation($pdo,$subject,'AZ',$now)===null,
@@ -73,11 +102,15 @@ try {
     $pdo->exec("UPDATE eco_subject_age_attestations SET expires_at=
          UTC_TIMESTAMP(3) - INTERVAL 1 DAY WHERE id='".$id."'");
     $expect($check()===null,'expired proof denies');
+    $expect(bertinaAuthoriseFreeStage(array_replace($ctx,['age_verification'=>$check()]))['allowed']===false,
+        'expired SQL verification cannot unlock RCAS');
     $pdo->exec("UPDATE eco_subject_age_attestations SET expires_at=
          UTC_TIMESTAMP(3) + INTERVAL 20 DAY WHERE id='".$id."'");
     $pdo->exec("UPDATE eco_subject_age_attestations SET revoked_at=
          UTC_TIMESTAMP(3) - INTERVAL 1 DAY WHERE id='".$id."'");
     $expect($check()===null,'revoked attestation denies');
+    $expect(bertinaAuthoriseFreeStage(array_replace($ctx,['age_verification'=>$check()]))['allowed']===false,
+        'revoked SQL verification cannot unlock RCAS');
 
     $id2='55555555-5555-4555-8555-555555555555';
     $insert->execute([$id2,$subject,'MINOR','IR','AGE_ATTESTATION_V1',
