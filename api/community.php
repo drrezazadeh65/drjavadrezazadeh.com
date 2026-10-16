@@ -89,12 +89,13 @@ function communityRoute(string $route,string $verb): never {
         if (textLen($content)<12 || textLen($content)>2000 || strlen($content)>6000) fail('invalid_comment',400);
         $rating=$pageBody['rating']??null;
         if ($rating!==null && (!is_int($rating) || $rating<1 || $rating>5)) fail('invalid_rating',400);
+        if (($pageBody['consentToPublication']??false)!==true) fail('consent_required',400);
         $id=(string)$account['id'];
         if (!rateAllowed($pdo,'community_comment',$id,3,3600)) fail('rate_limited',429);
         $comment=uuidv4();$now=nowTs();
         try {
             $pdo->beginTransaction();
-            $pdo->prepare("INSERT INTO community_comments(id,page_path,author_account_id,body_text,rating,state,created_at) VALUES(?,?,?,?,?,'pending',?)")->execute([$comment,$page,$id,$content,$rating,$now]);
+            $pdo->prepare("INSERT INTO community_comments(id,page_path,author_account_id,body_text,rating,state,created_at,consented_at) VALUES(?,?,?,?,?,'pending',?,?)")->execute([$comment,$page,$id,$content,$rating,$now,$now]);
             $pdo->prepare("INSERT INTO community_moderation_audit(id,comment_id,actor_account_id,action,created_at) VALUES(?,?,?,'submitted',?)")->execute([uuidv4(),$comment,$id,$now]);
             $pdo->commit();
         } catch (PDOException $e) {
