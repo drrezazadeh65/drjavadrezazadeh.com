@@ -1,0 +1,14 @@
+/* Private account: inherited editorial system, no simulated payment status. */
+.jr-usdt-account{--u-gold:var(--gold,#c7a35b);--u-line:var(--line,rgba(199,163,91,.26));margin:clamp(26px,3vw,42px) 0;padding:clamp(18px,3vw,30px);border:1px solid var(--u-line);border-radius:20px;background:linear-gradient(135deg,rgba(199,163,91,.07),rgba(22,34,51,.055))}
+.jr-usdt-account[hidden]{display:none!important}
+.jr-usdt-account h2{font-size:clamp(1.2rem,2vw,1.6rem);line-height:1.6;margin:0 0 12px}
+.jr-usdt-account p{line-height:1.9}
+.jr-usdt-account-info{opacity:.83;font-size:.91rem}
+.jr-usdt-account-cta{display:inline-flex;align-items:center;justify-content:center;min-height:46px;margin:14px 0;padding:10px 21px;border:1px solid var(--u-gold);border-radius:12px;color:inherit;text-decoration:none;font-weight:700}
+.jr-usdt-account-list{display:grid;gap:12px;margin:15px 0}
+.jr-usdt-account-card{overflow-wrap:anywhere;border:1px solid var(--u-line);padding:16px 18px;border-radius:14px;background:rgba(140,143,156,.035)}
+.jr-usdt-account-card strong{font-size:.92rem}
+.jr-usdt-account-card p{margin:8px 0;font-size:.87rem}
+.jr-usdt-account :is(a,button):focus-visible{outline:3px solid var(--u-gold);outline-offset:3px}
+@media(max-width:600px){.jr-usdt-account{padding:18px 14px;border-radius:16px}.jr-usdt-account-card{padding:14px}.jr-usdt-account-cta{width:100%}}
+@media(prefers-reduced-motion:reduce){.jr-usdt-account *{animation:none!important;transition:none!important}}
