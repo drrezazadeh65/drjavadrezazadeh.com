@@ -444,6 +444,8 @@ require_once __DIR__.'/commerce-stage9.php';
 require_once __DIR__.'/consultation-delivery.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
+// Community remains hard-disabled until owner-approved migration and privacy/security acceptance.
+if (str_starts_with($path, '/community/')) { require_once __DIR__.'/community.php'; communityRoute($path,$verb); }
 
 // No account, order identity, payment reference or owner window ID is exposed.
 // Fail closed if the additive capacity ledger is not yet installed/verified.
