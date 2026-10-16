@@ -1,0 +1,44 @@
+/* JR BSC/USDT Manual Payment v1 · frozen integrated academic luxury system */
+.jr-usdt-page{--u-bg:var(--bg,#080b11);--u-surface:var(--bg-elev,#111825);--u-text:var(--text,#f4f0e7);--u-muted:var(--muted,#b8b4af);--u-gold:var(--gold,#c7a35b);--u-line:var(--line,rgba(199,163,91,.26));margin:0;background:radial-gradient(ellipse at 4% -9%,rgba(199,163,91,.12),transparent 55%),var(--u-bg);color:var(--u-text);font-family:Tahoma,Arial,sans-serif;min-height:100vh}
+.jr-usdt-page *{box-sizing:border-box}
+.jr-usdt-page [hidden]{display:none!important}
+.jr-usdt-wrap{width:min(1240px,100%);margin-inline:auto;padding:clamp(16px,3.5vw,52px)}
+.jr-usdt-top{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--u-line)}
+.jr-usdt-logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--u-text);font-size:.97rem;font-weight:700;line-height:1.6}
+.jr-usdt-logo img{width:44px;height:44px;object-fit:contain}
+.jr-usdt-topnav a{color:var(--u-gold);text-underline-offset:4px;font-size:.89rem}
+.jr-usdt-intro{padding-block:clamp(28px,4.5vw,62px) clamp(19px,3vw,32px);max-width:850px}
+.jr-usdt-kicker{font:500 .71rem/1.7 Georgia,serif;letter-spacing:.18em;text-transform:uppercase;color:var(--u-gold);margin:0 0 10px;direction:ltr;text-align:start}
+.jr-usdt-intro h1{font-size:clamp(1.65rem,3.2vw,3.25rem);line-height:1.45;font-weight:640;margin:0 0 16px;color:#f9f3e8}
+.jr-usdt-intro p{font-size:clamp(.93rem,1.15vw,1.08rem);line-height:2;color:var(--u-muted);margin:0}
+.jr-usdt-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(310px,.78fr);gap:clamp(17px,2.5vw,30px);align-items:start}
+.jr-usdt-panel{border:1px solid var(--u-line);background:linear-gradient(142deg,rgba(242,210,145,.04),transparent 60%),var(--u-surface);border-radius:22px;padding:clamp(20px,2.8vw,35px);box-shadow:0 14px 45px rgba(0,0,0,.14);min-width:0}
+.jr-usdt-panel h2{font-size:clamp(1.15rem,1.65vw,1.55rem);margin:0 0 15px;line-height:1.6}
+.jr-usdt-panel p{line-height:1.95}
+.jr-usdt-alert{border-inline-start:3px solid var(--u-gold);background:rgba(199,163,91,.09);border-radius:5px;padding:13px 17px;margin:18px 0;font-size:.9rem;line-height:1.9}
+.jr-usdt-ledger{display:grid;gap:14px;margin-block:20px}
+.jr-usdt-ledger dt{font-size:.83rem;color:var(--u-muted);margin-bottom:5px}
+.jr-usdt-ledger dd{margin:0;font-weight:600;line-height:1.7}
+.jr-usdt-address{display:flex;align-items:center;flex-wrap:wrap;gap:10px;background:rgba(5,10,17,.58);border:1px solid var(--u-line);border-radius:12px;padding:13px}
+.jr-usdt-address code{color:var(--u-text);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:clamp(.78rem,1.3vw,.96rem);overflow-wrap:anywhere;direction:ltr;unicode-bidi:isolate}
+.jr-usdt-page button,.jr-usdt-primary{min-height:47px;padding:10px 19px;border-radius:11px;border:1px solid var(--u-gold);font:600 .91rem/1.5 inherit;cursor:pointer;background:rgba(199,163,91,.1);color:var(--u-text)}
+.jr-usdt-page button.jr-usdt-primary{background:var(--u-gold);color:#10121a;width:100%;font-weight:700}
+.jr-usdt-page button:disabled{opacity:.45;cursor:not-allowed}
+.jr-usdt-form{display:grid;gap:15px}
+.jr-usdt-form label{display:grid;gap:7px;font-size:.9rem;line-height:1.85;color:var(--u-text)}
+.jr-usdt-form input,.jr-usdt-form select{width:100%;min-height:48px;background:#0a111e;border:1px solid rgba(208,189,152,.34);border-radius:11px;padding:10px 13px;color:var(--u-text);font:inherit}
+.jr-usdt-form input[type=file]{padding:11px}
+.jr-usdt-form input[type=checkbox]{width:18px;min-height:0;height:18px;accent-color:var(--u-gold);flex:none;margin-top:7px}
+.jr-usdt-form .jr-usdt-consent{display:flex;gap:11px;align-items:flex-start;color:var(--u-muted)}
+.jr-usdt-form input:focus-visible,.jr-usdt-page :is(a,button,select):focus-visible{outline:3px solid var(--u-gold);outline-offset:3px}
+.jr-usdt-status{font-size:.87rem;line-height:1.8;overflow-wrap:anywhere}
+.jr-usdt-steps{padding-inline-start:20px;color:var(--u-muted);line-height:2}
+.jr-usdt-steps li{margin-block:9px;padding-inline-start:5px}
+.jr-usdt-steps strong{color:var(--u-text)}
+.jr-usdt-footer{margin-block:35px 0;padding-block:24px;text-align:center;border-top:1px solid var(--u-line);color:var(--u-muted);font-size:.85rem;line-height:1.85}
+.jr-usdt-footer a{color:var(--u-gold)}
+.jr-usdt-page a{touch-action:manipulation}
+@media(max-width:820px){.jr-usdt-layout{grid-template-columns:1fr}.jr-usdt-panel{padding:22px 18px}}
+@media(max-width:480px){.jr-usdt-top{gap:7px}.jr-usdt-logo{font-size:.77rem}.jr-usdt-logo img{width:34px;height:34px}.jr-usdt-panel{border-radius:17px}.jr-usdt-intro h1{font-size:1.65rem}}
+@media(prefers-reduced-motion:reduce){.jr-usdt-page *, .jr-usdt-page *:before,.jr-usdt-page *:after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+@media(forced-colors:active){.jr-usdt-panel,.jr-usdt-address{border:1px solid CanvasText}}
