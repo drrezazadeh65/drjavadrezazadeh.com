@@ -54,3 +54,12 @@ The approved reverse English wordmark is **not redrawn**. Its exact original emb
 Seven coordinated A4, English-only **unissued design specimens** now share `identity/jhela-document.css`: reviewer invitation, editorial decision letter, future APC/waiver explanation, article galley, reviewer report, future issue cover, and consent-based reviewer acknowledgement. Drafts do not send messages, assign real ISSN or DOI, certify service, collect money, create submissions or provide functioning native OJS reviewer data. The private reviewer-report layout explicitly distinguishes author-facing assessment from editor-only confidential comments.
 
 `tests/jhela-brand-route-coverage.test.mjs` verifies every discovered English/Persian journal index page against the canonical icon/full-logo family, safe SVG extraction, registered asset, logo loading and dimension contract, WCAG body-text pairings, seven print specimens and fail-closed OJS conditions. This source audit is additional to future human visual review; real screenshot and print/OJS testing remain independent release gates.
+
+
+## Eight distinct future editorial role interface specimens
+
+The privacy-bound role contract `platform/jhela-ojs-editorial-workflow-v1.json` now drives eight distinct high-fidelity English prototype pages in `docs/journal/prototypes/`, sharing `jhela-role-showroom.css`. Each role renders only its approved view and action *labels* and displays a clearly non-operational, unknown-data state. Separate author, reviewer, handling editor, Editor-in-Chief, manager, production, finance and audit layouts use the same approved wordmark and palette but never impersonate real authenticated OJS dashboards.
+
+The eight files are **excluded from `.public-site/`** and therefore cannot be navigated as functional live journal pages. Navigation is limited to links among source design specimens. A future supported OJS plugin/theming integration must be independently audited for security, UI capability and privacy.
+
+Automated gates: `tests/jhela-role-prototype.test.mjs` checks all eight role scopes, labels, preview disclaimers, design tokens and navigation. `tests/jhela-role-showroom-packaged.test.mjs` checks the actual sanitized build does not include any privileged design mockup. Both are registered with the nondeploying JHELA CI workflow.
