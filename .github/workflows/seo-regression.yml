@@ -33,8 +33,8 @@ jobs:
         run: node --test tests/admin-intelligence-private.test.mjs tests/admin-schema-intelligence.test.mjs tests/pwa-install-once.test.mjs
       - name: Verify owner-approved bilingual brand motto
         run: node --test tests/brand-motto-home.test.mjs
-      - name: Verify community moderation and disabled-by-default privacy contract
-        run: node --test tests/community-moderation.test.mjs
+      - name: Verify community moderation, editorial luxury design and disabled-by-default privacy
+        run: node --test tests/community-moderation.test.mjs tests/community-design-consistency.test.mjs
       - name: Syntax-check gated PHP community API
         run: php -l api/community.php
       - name: Verify luxury bilingual bookstore and payment contract preservation
