@@ -441,6 +441,7 @@ if (defined('BERTINA_MAIL_SMOKE_CONTEXT') && BERTINA_MAIL_SMOKE_CONTEXT === true
 define('BERTINA_API_BOOTSTRAPPED', true);
 require_once __DIR__.'/operations.php';
 require_once __DIR__.'/commerce-stage9.php';
+require_once __DIR__.'/service-intake.php';
 require_once __DIR__.'/consultation-delivery.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
@@ -554,6 +555,50 @@ if (str_starts_with($path,'/auth/')) {
         cookieClear();respond(['ok'=>true]);
     }
     fail('not_found',404);
+}
+
+// Private post-payment academic service intake. Unlike a lead form, only an
+// active verified account that owns the paid order may record this brief.
+// The module encrypts content with AEAD and enforces optimistic concurrency.
+if($path==='/commerce/service-intake'&&in_array($verb,['GET','POST'],true)){
+    header('Cache-Control: no-store, private, max-age=0');header('Vary: Cookie');
+    $pdo=db();if(!$pdo||!commerceSchemaReady()||!stage9SchemaReady($pdo)
+        ||!jrServiceIntakeSchemaReady($pdo))fail('service_intake_unavailable',503);
+    $account=sessionAccount($pdo);
+    if(!$account||($account['status']??'')!=='active'||empty($account['email_verified_at']))
+        fail('unauthorized',401);
+    $email=emailNorm($account['email_normalized']??'');
+    if(!validEmail($email))fail('unauthorized',401);
+    if($verb==='GET'){
+        $order=$_GET['order']??null;$sku=$_GET['sku']??null;
+        if(!is_string($order)||!is_string($sku))fail('invalid_service_reference',400);
+        try{
+            jrServiceIntakeReference($order,$sku);
+            if(!jrServiceIntakeOwned($pdo,$order,$sku,$email))fail('order_not_found',404);
+            if(!rateAllowed($pdo,'service_intake_private_read',(string)$account['id'],30,300))
+                fail('rate_limited',429);
+            $data=jrServiceIntakeRead($pdo,$order,$sku);
+            respond(['ok'=>true,'schema'=>'private-service-intake-v1']+$data);
+        }catch(InvalidArgumentException $e){fail('invalid_service_reference',400);}
+        catch(Throwable $e){fail('service_intake_read_unavailable',503);}
+    }
+    // Browser-authorised same-origin application/json only; absent origin
+    // is rejected for private mutations, independently of cookie SameSite.
+    if(($_SERVER['HTTP_ORIGIN']??'')!==SITE_ORIGIN
+       ||!in_array($_SERVER['HTTP_SEC_FETCH_SITE']??'same-origin',['same-origin','none'],true))
+        fail('origin_forbidden',403);
+    if(!rateAllowed($pdo,'service_intake_private_write',(string)$account['id'],5,3600))
+        fail('rate_limited',429);
+    $input=jsonBody();
+    try{
+        $saved=jrServiceIntakeSave($pdo,$email,(string)$account['id'],$input);
+        respond(['ok'=>true,'schema'=>'private-service-intake-v1']+$saved);
+    }catch(InvalidArgumentException $e){fail('invalid_service_intake',400);}
+    catch(DomainException $e){fail('intake_payment_owner_or_revision_conflict',409);}
+    catch(Throwable $e){
+        error_log('Service intake unavailable: '.get_class($e));
+        fail('service_intake_write_unavailable',503);
+    }
 }
 
 // Verified-account order history. A guest email or a public order UUID never grants access.
