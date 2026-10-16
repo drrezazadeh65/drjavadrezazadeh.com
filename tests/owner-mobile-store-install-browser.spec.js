@@ -119,3 +119,28 @@ test('mobile shell cannot bootstrap twice when direct and shared loaders coexist
  await expect(page.locator('.app-dock a[data-app-tab]')).toHaveCount(5);
  await expect(page.locator('html')).toHaveAttribute('data-jr-mobile-app-shell-initialized','1');
 });
+
+
+for(const locale of ['fa','en']){
+ test(locale+' verified book-card bibliographies and distinct publication versus printing year',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('http://127.0.0.1:4173/'+locale+'/shop/',{waitUntil:'domcontentloaded'});
+  const cards=page.locator('[data-book-catalog] .book-product-card');
+  await expect(cards).toHaveCount(3,{timeout:12000});
+  const years=locale==='fa'?['۱۴۰۴','۱۴۰۱','۱۳۹۹']:['1404','1401','1399'];
+  const isbns=['9786229465141','9786229636275','9786229636237'];
+  for(let i=0;i<3;i++){
+   const metadata=cards.nth(i).locator('dl.book-catalog-imprint');
+   await expect(metadata).toBeVisible();
+   await expect(metadata.locator('div')).toHaveCount(4);
+   await expect(metadata).toContainText(locale==='fa'?'نشر دارما':'Darma Publishing');
+   await expect(metadata).toContainText(isbns[i]);
+   await expect(metadata).toContainText(years[i]);
+  }
+  const tariki=cards.nth(1).locator('dl.book-catalog-imprint');
+  await expect(tariki.locator('div').nth(1)).toContainText(locale==='fa'?'۱۴۰۱':'1401');
+  await expect(tariki.locator('div').nth(2)).toContainText(locale==='fa'?'۱۴۰۴':'1404');
+  const width=await page.evaluate(()=>Math.max(document.body.scrollWidth,document.documentElement.scrollWidth)-innerWidth);
+  expect(width,'No sideways scroll from ISBN and year metadata').toBeLessThanOrEqual(1);
+ });
+}
