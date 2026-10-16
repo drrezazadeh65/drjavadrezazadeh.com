@@ -74,3 +74,14 @@
  }
  .jhela-document :is(.jr-document__header,.jr-document__meta,.jr-document__footer,.jr-document__note,.jhela-document__decision){break-inside:avoid}
 }
+
+/* Additional JHELA print families: peer-review evidence, unissued issue cover, consented future recognition. */
+.jhela-document .jhela-document__cover-art{border:1px solid #b8a37a;background:linear-gradient(142deg,#fdfbf7,#e6dcca);padding:22mm 8mm;text-align:center;margin-block:10mm}
+.jhela-document .jhela-document__cover-art img{width:min(100%,128mm);height:auto;object-fit:contain}
+.jhela-document .jhela-document__issue-title{text-align:center;margin-block:12mm 20mm}
+.jhela-document .jhela-document__issue-title h2{font:700 22pt/1.4 Georgia,serif;max-width:150mm;margin-inline:auto}
+.jhela-document .jhela-document__certificate-body{padding:13mm 7mm;text-align:center;margin-block:15mm;border:2px solid #b48a3f;outline:1px solid #d7c4a6;outline-offset:-4mm}
+.jhela-document .jhela-document__certificate-body h2{font-size:22pt;margin:9mm 0}
+.jhela-document .jhela-document__certificate-body p{max-width:135mm;margin:5mm auto;line-height:1.9}
+@media(max-width:650px){.jhela-document .jhela-document__cover-art{padding:25px 16px}.jhela-document .jhela-document__certificate-body{padding:25px 16px}}
+@media print{.jhela-document :is(.jhela-document__cover-art,.jhela-document__certificate-body){break-inside:avoid}}
