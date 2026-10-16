@@ -105,3 +105,81 @@
  .book-store-shell .book-product-card{border:1px solid CanvasText}
  .book-store-shell .book-product-copy .status-chip{border:1px solid CanvasText}
 }
+
+
+/* JR Store mobile-first couture finishing pass — shared master palette,
+   official product images only, no speculative product or price claims. */
+.book-store-shell .book-product-copy{isolation:isolate}
+.book-store-shell .book-product-card .book-cover{
+  background:
+    radial-gradient(ellipse at 50% 18%,color-mix(in srgb,var(--jr-store-gold) 20%,transparent),transparent 61%),
+    linear-gradient(165deg,#202126 0%,#0b0c10 72%);
+}
+.book-store-shell .book-product-card .book-cover img{filter:drop-shadow(15px 21px 25px rgba(0,0,0,.58))}
+.book-store-shell .book-product-card .book-cover:before{
+  content:"";position:absolute;inset:16% 19% 7%;border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(212,175,55,.12),transparent 75%);
+  filter:blur(26px);pointer-events:none
+}
+.book-store-shell .book-product-card .book-cover img{position:relative;z-index:1}
+.book-store-shell .book-price{letter-spacing:.005em}
+.book-store-shell .book-product-copy .actions>.book-pending{font-size:.85rem}
+.book-store-shell .book-product-card .actions .button.primary:focus-visible{
+  outline:3px solid var(--jr-store-ivory);outline-offset:3px
+}
+@media(max-width:690px){
+ .book-store-shell{
+   width:min(100% - 24px,520px);margin-inline:auto;
+   padding-block-start:18px;padding-block-end:132px
+ }
+ .book-store-shell .book-store-hero{
+   display:flex;flex-direction:column;align-items:stretch;
+   gap:16px;padding:clamp(16px,4.5vw,24px);border-radius:25px;
+   background:linear-gradient(155deg,#1F1F1F,#0B0B0B);
+ }
+ .book-store-shell .bookstore-hero-stage{order:-1;min-width:0;width:100%;display:grid;gap:12px}
+ .book-store-shell .bookstore-hero-art{margin:0;min-width:0}
+ .book-store-shell .bookstore-hero-art img{
+   display:block;width:100%;height:auto;max-height:320px;
+   object-fit:contain;border-radius:16px;
+ }
+ .book-store-shell .book-store-hero h1{
+   font-size:clamp(29px,7.5vw,39px);line-height:1.23;
+   margin-block:10px 14px;
+ }
+ .book-store-shell .book-store-hero .lead{font-size:.93rem;line-height:1.85}
+ .book-store-shell .store-nav{
+   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+   gap:9px
+ }
+ .book-store-shell .store-nav .button{
+   min-width:0;justify-content:center;text-align:center;line-height:1.45;
+   padding:10px 8px;min-height:48px
+ }
+ .book-store-shell #book-catalog{margin-top:33px;scroll-margin-top:72px}
+ .book-store-shell .store-catalog-heading{
+   gap:8px;margin-bottom:18px;padding-bottom:17px
+ }
+ .book-store-shell .store-catalog-heading h2{
+   font-size:clamp(25px,6.6vw,35px);line-height:1.35
+ }
+ .book-store-shell .book-store-grid{gap:20px}
+ .book-store-shell .book-product-card{
+   border-radius:25px;
+   box-shadow:0 19px 50px rgba(0,0,0,.36);
+ }
+ .book-store-shell .book-product-card .book-cover{
+   min-height:270px;aspect-ratio:1.08 / 1;
+   padding:20px
+ }
+ .book-store-shell .book-product-card .book-cover img{max-width:70%;max-height:310px}
+ .book-store-shell .book-product-copy{
+   padding:20px 19px 23px;gap:9px
+ }
+ .book-store-shell .book-product-copy>p{line-height:1.85;font-size:.94rem}
+ .book-store-shell .book-product-copy .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:350px){
+ .book-store-shell .book-product-copy .actions{grid-template-columns:1fr}
+ .book-store-shell .store-nav{grid-template-columns:1fr}
+}
