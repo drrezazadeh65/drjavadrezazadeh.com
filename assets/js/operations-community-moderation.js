@@ -35,15 +35,18 @@ async function load(){
    return;
   }
   const pending=Array.isArray(response.body?.pending)?response.body.pending:[];
+  const approved=Array.isArray(response.body?.approved)?response.body.approved:[];
   status.textContent=t('دیدگاه در انتظار تأیید: ','Pending comments: ')+pending.length;
-  if(!pending.length){list.append(elt('p','',t('صف بررسی خالی است.','No pending comments.')));return;}
-  for(const c of pending.slice(0,30)){
+  if(!pending.length)list.append(elt('p','',t('صف بررسی خالی است.','No pending comments.')));
+  for(const [kind,items] of [['pending',pending.slice(0,30)],['approved',approved.slice(0,20)]]){
+   if(kind==='approved'&&items.length)list.append(elt('h3','',t('دیدگاه‌های منتشرشده — امکان حذف','Published comments — removal control')));
+   for(const c of items){
    if(!c||typeof c.id!=='string'||typeof c.body!=='string'||typeof c.page!=='string')continue;
    const row=elt('article','jr-community-admin-item');
    const meta=elt('p','',c.page+(c.rating?' · '+c.rating+'/5':''));
    const message=elt('p','',c.body);message.style.whiteSpace='pre-wrap';message.style.overflowWrap='anywhere';
    const actions=elt('div','jr-community-admin-actions');
-   for(const [decision,label] of [['approved',t('تأیید و انتشار','Approve and publish')],['rejected',t('رد دیدگاه','Reject')]]){
+   for(const [decision,label] of (kind==='pending'?[['approved',t('تأیید و انتشار','Approve and publish')],['rejected',t('رد دیدگاه','Reject')]]:[['removed',t('حذف از نمایش عمومی','Remove from public display')]])){
     const button=elt('button','',label);button.type='button';
     button.addEventListener('click',async()=>{
      if(workspace.hidden)return;
@@ -62,6 +65,7 @@ async function load(){
     actions.append(button);
    }
    row.append(meta,message,actions);list.append(row);
+   }
   }
  }catch(_){if(active===generation&&!workspace.hidden)status.textContent=t('اتصال به سرور برقرار نشد.','Server connection failed.');}
  finally{if(active===generation&&!workspace.hidden)reload.disabled=false;}
