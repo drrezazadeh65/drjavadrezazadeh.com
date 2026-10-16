@@ -58,20 +58,36 @@ for(const route of routes){
       await page.waitForTimeout(140);
       await page.waitForLoadState('domcontentloaded',{timeout:3000}).catch(()=>{});
 
-      const result=await page.evaluate(()=>{
-        const html=document.documentElement;
-        const body=document.body;
-        const viewport=window.innerWidth;
-        const brokenImages=[...document.images]
-          .filter(img=>img.complete&&img.naturalWidth===0)
-          .map(img=>img.currentSrc||img.src||'(unknown)');
-        return {
-          viewport,
-          htmlWidth:html.scrollWidth,
-          bodyWidth:body?body.scrollWidth:0,
-          brokenImages
-        };
-      });
+      // Some public routes legitimately redirect on first load. Retry only
+      // a navigation-destroyed JS context, then perform the same strict checks.
+      // Never treat a failed image/overflow assertion as a retryable success.
+      let result,transient;
+      for(let attempt=0;attempt<3;attempt++){
+        try{
+          result=await page.evaluate(()=>{
+            const html=document.documentElement;
+            const body=document.body;
+            const viewport=window.innerWidth;
+            const brokenImages=[...document.images]
+              .filter(img=>img.complete&&img.naturalWidth===0)
+              .map(img=>img.currentSrc||img.src||'(unknown)');
+            return {
+              viewport,
+              htmlWidth:html.scrollWidth,
+              bodyWidth:body?body.scrollWidth:0,
+              brokenImages
+            };
+          });
+          break;
+        }catch(error){
+          transient=error;
+          if(!/Execution context was destroyed|navigation/i.test(String(error))||attempt===2)
+            throw error;
+          await page.waitForLoadState('domcontentloaded',{timeout:5000}).catch(()=>{});
+          await page.waitForTimeout(120);
+        }
+      }
+      if(!result)throw transient||new Error('responsive_document_not_stable');
 
       expect(result.htmlWidth,route+' '+label+' html horizontal overflow').toBeLessThanOrEqual(result.viewport+1);
       expect(result.bodyWidth,route+' '+label+' body horizontal overflow').toBeLessThanOrEqual(result.viewport+1);
