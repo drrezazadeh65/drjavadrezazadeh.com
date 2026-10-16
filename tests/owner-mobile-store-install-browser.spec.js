@@ -9,10 +9,10 @@ for(const locale of ['fa','en']){
    const errors=[];page.on('pageerror',e=>errors.push(String(e)));
    await page.setViewportSize({width,height:844});
    await page.goto(base+'/'+locale+'/shop/',{waitUntil:'domcontentloaded'});
-   const hero=page.locator('.book-store-hero.cinema-original-hero');
-   const picture=hero.locator('.cinema-hero-picture');
-   const copy=hero.locator('.cinema-hero-copy');
-   const nav=hero.locator('.cinema-hero-nav');
+   const hero=page.locator('.book-store-hero');
+   const picture=hero.locator(locale==='fa'?'.cinema-hero-picture':'.bookstore-hero-art');
+   const copy=hero.locator(locale==='fa'?'.cinema-hero-copy':':scope > div:first-child');
+   const nav=hero.locator(locale==='fa'?'.cinema-hero-nav':'.bookstore-hero-stage .store-nav');
    await expect(hero).toBeVisible();
    await expect(picture).toBeVisible();
    await expect(copy).toBeVisible();
@@ -20,8 +20,13 @@ for(const locale of ['fa','en']){
    // Image-first: approved artwork appears before editorial copy and sales actions.
    const [pb,cb,nb]=await Promise.all([picture.boundingBox(),copy.boundingBox(),nav.boundingBox()]);
    expect(pb).not.toBeNull();expect(cb).not.toBeNull();expect(nb).not.toBeNull();
-   expect(pb.y+pb.height,'approved image before copy').toBeLessThanOrEqual(cb.y+2);
-   expect(cb.y+cb.height,'copy before actions').toBeLessThanOrEqual(nb.y+2);
+   if(locale==='fa'){
+     expect(pb.y+pb.height,'FA approved image before copy').toBeLessThanOrEqual(cb.y+2);
+     expect(cb.y+cb.height,'FA copy before actions').toBeLessThanOrEqual(nb.y+2);
+   }else{
+     expect(pb.y+pb.height,'EN approved image before actions').toBeLessThanOrEqual(nb.y+2);
+     expect(nb.y+nb.height,'EN stage navigation precedes explanatory copy').toBeLessThanOrEqual(cb.y+2);
+   }
    const cover=page.locator('.book-store-grid .book-product-card .book-cover img');
    await expect(cover).toHaveCount(3,{timeout:10000});
    for(const image of await cover.all()){
