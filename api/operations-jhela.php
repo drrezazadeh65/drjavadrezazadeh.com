@@ -17,7 +17,10 @@ function operationsJhelaReadContract(string $filename, string $schema): array {
     if (!isset($allowed[$filename]) || $allowed[$filename] !== $schema) {
         throw new RuntimeException('journal_contract_not_authorised');
     }
-    $file = dirname(__DIR__).'/platform/'.$filename;
+    $base = __DIR__.'/internal';
+    // CLI contract fixtures may read source contracts; production MUST use protected projected files.
+    if (PHP_SAPI === 'cli' && getenv('JHELA_SOURCE_TEST') === '1') $base = dirname(__DIR__).'/platform';
+    $file = $base.'/'.$filename;
     $raw = @file_get_contents($file);
     if (!is_string($raw) || strlen($raw) > 130000 || strlen($raw) < 50) {
         throw new RuntimeException('journal_contract_unavailable');
