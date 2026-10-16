@@ -62,6 +62,7 @@ form?.addEventListener('submit',async e=>{
  if(purpose!=='donation' && !ref && !order){formStatus.textContent=t('برای خدمات و سفارش‌ها، شماره سفارش یا فاکتور رسمی لازم است.','Services and purchases require an official order or invoice reference.');return;}
  const amount=String(form.elements.amountUSDT.value||'').trim();
  const data=new FormData();for(const field of ['purpose','transactionHash','invoiceReference','orderId','amountUSDT'])data.append(field,form.elements[field].value);
+ data.set('consentToReview',form.elements.consentToReview.checked?'yes':'no');
  if(receipt)data.append('receipt',receipt,receipt.name);
  button.disabled=true;formStatus.textContent=t('در حال ثبت امن رسید و ارسال اعلان به مدیر…','Submitting evidence to the protected review queue…');
  try{
