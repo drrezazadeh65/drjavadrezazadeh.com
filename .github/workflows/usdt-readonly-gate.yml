@@ -1,0 +1,56 @@
+name: USDT BSC Read-Only Exchange Gate (No Deployment)
+
+on:
+  pull_request:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'api/manual-usdt.php'
+      - 'api/ramzinex-readonly.php'
+      - 'api/index.php'
+      - 'api/operations.php'
+      - 'platform/manual-usdt-bsc.json'
+      - 'database/bertina/022_manual_usdt_bsc.sql'
+      - 'tests/ramzinex-readonly-smoke.php'
+      - 'tests/ramzinex-usdt-safety.test.mjs'
+      - '.github/workflows/usdt-readonly-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jr-usdt-readonly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security-static-and-fixture:
+    name: Read-only API and manual-payment protections
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      JR_RAMZINEX_READONLY_ENABLED: 'false'
+      JR_MANUAL_USDT_ENABLED: 'false'
+      JR_MANUAL_USDT_SCHEMA_APPROVED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Ensure PHP CLI is available
+        run: |
+          php -v
+          php -m | grep -iq '^openssl$'
+      - name: Lint isolated PHP and exercise hash-matching fixtures
+        run: |
+          php -l api/manual-usdt.php
+          php -l api/ramzinex-readonly.php
+          php -l tests/ramzinex-readonly-smoke.php
+          php tests/ramzinex-readonly-smoke.php
+      - name: Contract safety checks without real API credentials
+        run: node --test tests/ramzinex-usdt-safety.test.mjs
+      - name: Fail closed when runtime flags or live credentials are absent
+        run: |
+          grep -Fq "JR_MANUAL_USDT_ENABLED" api/manual-usdt.php
+          grep -Fq "JR_RAMZINEX_READONLY_ENABLED" api/ramzinex-readonly.php
+          echo "No wallet funds accessed, no payment approved, no provider authenticated, no production deployment."
