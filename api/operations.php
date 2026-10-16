@@ -5,6 +5,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-jhela.php';
+require_once __DIR__.'/jhela-intake.php';
 require_once __DIR__.'/operations-commerce.php';
 require_once __DIR__.'/operations-fulfilment.php';
 require_once __DIR__.'/consultation-availability.php';
