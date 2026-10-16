@@ -3,7 +3,7 @@
  * Pure policy: caller MUST supply authenticated, persisted server-side evidence.
  * No client-supplied approval, score, or validation claim is authoritative.
  */
-export const SCIENTIFIC_GATE_VERSION = '1.0.0';
+export const SCIENTIFIC_GATE_VERSION = '1.1.0-preproduction';
 export const SCIENTIFIC_STATES = Object.freeze(['RESEARCH', 'PILOT', 'VALIDATED_FOR_SPECIFIED_USE', 'RETIRED']);
 const allowed = new Set(SCIENTIFIC_STATES);
 const nonEmpty = v => typeof v === 'string' && v.trim().length > 0;
@@ -32,6 +32,34 @@ export function evaluateScientificRelease({ instrument, administration, claim = 
     return deny('CONSENT_OR_ACCESS_NOT_VERIFIED');
   if (administration.review_state !== 'RELEASED' || administration.reviewer_verified !== true)
     return deny('HUMAN_REVIEW_REQUIRED');
+  // A reviewed descriptive narrative is still protected learner information.
+  // Its release must use a server-verified, subject-scoped safeguarding state
+  // no weaker than the free-first assessment access policy. No UI checkbox
+  // or age_band/self-declaration supplies these facts.
+  const safe=administration.safeguarding_context;
+  const releaseTime=Date.parse(now);
+  if (!safe || safe.record_source!=='TRUSTED_BACKEND' ||
+      !exact(administration.subject_id,safe.subject_id) ||
+      safe.age_attestation_state!=='VERIFIED' ||
+      !['ADULT','MINOR'].includes(safe.age_classification) ||
+      !Number.isFinite(releaseTime) ||
+      !Number.isFinite(Date.parse(safe.age_attestation_expires_at)) ||
+      Date.parse(safe.age_attestation_expires_at)<=releaseTime)
+    return deny('VERIFIED_AGE_AND_SUBJECT_SCOPE_REQUIRED');
+  if (safe.age_classification==='MINOR' &&
+      (safe.guardian_relationship_state!=='VERIFIED' ||
+       safe.learner_assent_state!=='VERIFIED' ||
+       !nonEmpty(safe.learner_assent_notice_version) ||
+       !Number.isFinite(Date.parse(safe.learner_assent_expires_at)) ||
+       Date.parse(safe.learner_assent_expires_at)<=releaseTime))
+    return deny('CURRENT_GUARDIAN_AND_LEARNER_ASSENT_REQUIRED');
+  if (!['SELF','GUARDIAN'].includes(administration.release_audience))
+    return deny('RELEASE_AUDIENCE_NOT_VERIFIED');
+  if (administration.release_audience==='GUARDIAN' &&
+      (safe.age_classification!=='MINOR' ||
+       safe.parent_visibility_consent_state!=='GRANTED'))
+    return deny('PARENT_VISIBILITY_CONSENT_REQUIRED');
+
   if (claim === 'DESCRIPTIVE_REPORT')
     return permit();
   if (instrument.status !== 'VALIDATED_FOR_SPECIFIED_USE')
