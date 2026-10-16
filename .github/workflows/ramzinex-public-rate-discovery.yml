@@ -4,6 +4,9 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - 'scripts/ramzinex-public-rate-probe.mjs'
+      - 'api/ramzinex-public-usdt-rate.php'
+      - 'tests/ramzinex-public-usdt-rate.php'
+      - 'api/index.php'
       - 'docs/governance/RAMZINEX_TOMAN_USDT_LIVE_RATE_QUOTE_MASTER_20261016.md'
       - '.github/workflows/ramzinex-public-rate-discovery.yml'
   workflow_dispatch:
@@ -25,6 +28,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Syntax and synthetic fail-closed adapter checks
+        run: |
+          php -l api/ramzinex-public-usdt-rate.php
+          php -l api/index.php
+          php tests/ramzinex-public-usdt-rate.php
       - name: Validate read-only probe
         run: node --check scripts/ramzinex-public-rate-probe.mjs
       - name: Probe fixed public endpoints with no API key and no funds
