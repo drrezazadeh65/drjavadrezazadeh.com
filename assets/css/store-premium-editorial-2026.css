@@ -217,3 +217,38 @@
  .book-store-shell .book-product-copy .actions{grid-template-columns:1fr}
  .book-store-shell .cinema-original-hero .cinema-hero-nav{grid-template-columns:1fr}
 }
+
+
+/* JR verified bookstore bibliographic microgrid — real catalogue fields only.
+   Distinguish publication/CIP year from the first physical printing year. */
+.book-store-shell .book-catalog-imprint{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px 10px;margin:6px 0 5px;padding:15px 0;
+ border-block:1px solid rgba(212,175,55,.18)
+}
+.book-store-shell .book-catalog-imprint>div{
+ min-width:0;border:1px solid rgba(212,175,55,.12);
+ border-radius:12px;background:rgba(212,175,55,.045);
+ padding:10px 11px;display:flex;flex-direction:column;gap:5px
+}
+.book-store-shell .book-catalog-imprint dt{
+ margin:0;color:#C2B8AA;font-size:.77rem;line-height:1.55
+}
+.book-store-shell .book-catalog-imprint dd{
+ margin:0;min-width:0;overflow-wrap:anywhere;
+ color:#F8F5E9;font-size:.87rem;line-height:1.6;font-weight:650
+}
+.book-store-shell .book-catalog-imprint dd[dir="ltr"]{
+ unicode-bidi:isolate;text-align:start;font-variant-numeric:tabular-nums
+}
+@media(max-width:355px){
+ .book-store-shell .book-catalog-imprint{
+  grid-template-columns:minmax(0,1fr);gap:6px
+ }
+ .book-store-shell .book-catalog-imprint>div{
+  flex-direction:row;justify-content:space-between;flex-wrap:wrap
+ }
+}
+@media(forced-colors:active){
+ .book-store-shell .book-catalog-imprint>div{border:1px solid CanvasText}
+}
