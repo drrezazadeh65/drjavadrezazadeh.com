@@ -68,7 +68,8 @@ test('user text is output via textContent, not HTML, and widget hides on disable
  assert.match(js,/state==='pending'/);
  const loader=read('assets/js/site-extras.js');
  assert.match(loader,/community-comments\.js/);
- assert.match(loader,/^\/fa\/akhbar\//m);
+ assert.match(loader,/community-comments\.css/);
+ assert.match(loader,/data-jr-community-loader/);
 });
 test('both administrator dashboards retain MFA and existing journal features',()=>{
  for(const p of ['fa/app/admin/index.html','en/account/admin/index.html']){
