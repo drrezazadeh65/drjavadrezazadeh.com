@@ -40,9 +40,10 @@ test('compact SVG contains EXACT same original emblem group as approved reverse 
  const group=wide.match(/<g transform="translate\(16 20\)">[\s\S]*?<\/g>/);
  assert.ok(group,'canonical emblem not found');
  assert.ok(mark.includes(group[0]),'independent unapproved emblem redesign prohibited');
- assert.ok(mark.startsWith('<svg ')&&mark.includes('viewBox="0 0 300 300"'));
+ assert.ok(mark.startsWith('<svg xmlns="http://www.w3.org/2000/svg"')&&mark.includes('viewBox="0 0 300 300"'));
+ assert.ok(!/\b(?:href|src)="https?:/i.test(mark),'SVG must not load external content');
  assert.ok(mark.includes('<title')&&mark.includes('<desc'));
- for(const hazard of ['<script','<foreignObject','onload=','xlink:href=','http://','data:'])assert.ok(!mark.includes(hazard),'unsafe external SVG feature');
+ for(const hazard of ['<script','<foreignObject','onload=','xlink:href=','data:'])assert.ok(!mark.includes(hazard),'unsafe external SVG feature');
  const reg=JSON.parse(read('assets/media-registry.json'));
  assert.equal(reg.assets.filter(x=>x.path==='assets/images/jhela/mark-en-reverse.svg').length,1);
  const brand=JSON.parse(read('platform/jhela-unified-brand-v3.json'));
