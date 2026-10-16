@@ -19,7 +19,8 @@ $tables=[
   'eco_subjects'=>'id CHAR(36) PRIMARY KEY, owner_account_id CHAR(36), guardian_account_id CHAR(36), subject_type VARCHAR(32), status VARCHAR(24), age_band VARCHAR(24)',
   'eco_subject_relationships'=>'id CHAR(36) PRIMARY KEY, subject_id CHAR(36), related_account_id CHAR(36), relationship_code VARCHAR(32), verification_status VARCHAR(24), verified_by_account_id CHAR(36), expires_at DATETIME(3)',
   'eco_consent_notices'=>'id CHAR(36) PRIMARY KEY, purpose_code VARCHAR(64), version_label VARCHAR(32), locale CHAR(2), notice_sha256 CHAR(64), effective_at DATETIME(3), retired_at DATETIME(3)',
-  'eco_consent_records'=>'id CHAR(36) PRIMARY KEY, account_id CHAR(36), subject_id CHAR(36), notice_id CHAR(36), decision VARCHAR(20), granted_at DATETIME(3), withdrawn_at DATETIME(3)'
+  'eco_consent_records'=>'id CHAR(36) PRIMARY KEY, account_id CHAR(36), subject_id CHAR(36), notice_id CHAR(36), decision VARCHAR(20), granted_at DATETIME(3), withdrawn_at DATETIME(3)',
+  'eco_minor_assent_records'=>'id CHAR(36) PRIMARY KEY, subject_id CHAR(36), guardian_account_id CHAR(36), notice_version VARCHAR(32), notice_sha256 CHAR(64), decision VARCHAR(24), verification_status VARCHAR(24), source_code VARCHAR(40), reviewer_account_id CHAR(36), assented_at DATETIME(3), expires_at DATETIME(3), withdrawn_at DATETIME(3)'
 ];
 foreach ($tables as $name=>$columns) $pdo->exec('CREATE TEMPORARY TABLE '.$name.' ('.$columns.')');
 $now=strtotime('2026-10-16 12:00:00 UTC');
@@ -42,6 +43,29 @@ $context=static function(string $actor,string $subject,string $module,string $st
         verified_by_account_id,expires_at
         FROM eco_subject_relationships WHERE subject_id=? AND related_account_id=?');
     $r->execute([$subject,$actor]);
+    $minorAssent=null;
+    if(($age['classification']??null)==='MINOR'){
+        $proof=$pdo->prepare('SELECT id,subject_id,guardian_account_id,notice_version,
+            notice_sha256,decision,verification_status,source_code,reviewer_account_id,
+            assented_at,expires_at,withdrawn_at
+            FROM eco_minor_assent_records
+            WHERE subject_id=? AND guardian_account_id=?
+            ORDER BY assented_at DESC LIMIT 1');
+        $proof->execute([$subject,$actor]);
+        $row=$proof->fetch();
+        if(is_array($row)&&($row['verification_status']??null)==='VERIFIED'&&
+           ($row['source_code']??null)==='REVIEWED_ASSENT' &&
+           is_string($row['reviewer_account_id']??null) &&
+           trim($row['reviewer_account_id'])!=='')
+            $minorAssent=[
+                'record_source'=>'TRUSTED_ASSENT_RECORD','state'=>'VERIFIED',
+                'decision'=>$row['decision'],'subject_id'=>$row['subject_id'],
+                'guardian_account_id'=>$row['guardian_account_id'],
+                'reference'=>$row['id'],'notice_version'=>$row['notice_version'],
+                'notice_sha256'=>$row['notice_sha256'],'assented_at'=>$row['assented_at'],
+                'expires_at'=>$row['expires_at'],'withdrawn_at'=>$row['withdrawn_at']
+            ];
+    }
     $c=$pdo->prepare("SELECT c.id,c.account_id,c.subject_id,c.notice_id,c.decision,
         c.granted_at,c.withdrawn_at,n.purpose_code,n.version_label,n.locale,
         n.notice_sha256,n.effective_at,n.retired_at
@@ -55,7 +79,8 @@ $context=static function(string $actor,string $subject,string $module,string $st
         'actor'=>['id'=>$actor,'source'=>'SERVER_SESSION','status'=>'active',
                   'session_verified'=>true,'email_verified'=>true],
         'subject'=>$person?:null,'relationships'=>$r->fetchAll(),
-        'consent_history'=>$c->fetchAll(),'age_verification'=>$age];
+        'consent_history'=>$c->fetchAll(),'age_verification'=>$age,
+        'minor_assent'=>$minorAssent];
 };
 $gate=static fn(array $ctx): bool => bertinaAuthoriseFreeStage($ctx)['allowed']===true;
 try {
@@ -82,6 +107,12 @@ try {
       ('visibility','parent','child','parent-visibility','GRANTED','2026-10-10 09:00:00.100',NULL)");
     $pdo->exec("INSERT INTO eco_subject_relationships VALUES
       ('relation','child','parent','GUARDIAN','VERIFIED','reviewer','2026-12-01 00:00:00')");
+    $expect(!$gate($context('parent','child','RCAS','CONTEXT_REFLECTION',$minor)),
+        'verified guardian plus assessment consent alone cannot replace minor assent');
+    $pdo->exec("INSERT INTO eco_minor_assent_records VALUES
+       ('assent1','child','parent','assent-v1',REPEAT('c',64),
+        'ASSENTED','VERIFIED','REVIEWED_ASSENT','independent-reviewer',
+        '2026-10-12 09:00:00','2026-12-01 09:00:00',NULL)");
     foreach(['GOLDEN_TALENT'=>'ORIENTATION','RCAS'=>'CONTEXT_REFLECTION','BAHAR'=>'STARTER_PLAN'] as $module=>$stage) {
         $expect($gate($context('self','adult',$module,$stage,$adult)),'adult free:'.$module);
         $expect($gate($context('parent','child',$module,$stage,$minor)),'guardian free:'.$module);
@@ -98,6 +129,16 @@ try {
     $pdo->exec("INSERT INTO eco_consent_records VALUES
         ('withdrawal','self','adult','assess','WITHDRAWN','2026-10-15 11:30:00.000',NULL)");
     $expect(!$gate($context('self','adult','RCAS','CONTEXT_REFLECTION',$adult)),'explicit latest withdrawal');
+    $pdo->exec("UPDATE eco_minor_assent_records SET withdrawn_at='2026-10-15 10:00:00'
+       WHERE id='assent1'");
+    $expect(!$gate($context('parent','child','BAHAR','STARTER_PLAN',$minor)),
+        'withdrawn minor assent blocks free BAHAR stage');
+    $pdo->exec("UPDATE eco_minor_assent_records SET withdrawn_at=NULL,
+       expires_at='2026-10-15 09:00:00' WHERE id='assent1'");
+    $expect(!$gate($context('parent','child','RCAS','CONTEXT_REFLECTION',$minor)),
+        'expired assent blocks free RCAS stage');
+    $pdo->exec("UPDATE eco_minor_assent_records SET expires_at='2026-12-01 09:00:00'
+       WHERE id='assent1'");
     $pdo->exec("UPDATE eco_subject_relationships SET expires_at='2026-10-15 00:00:00' WHERE id='relation'");
     $expect(!$gate($context('parent','child','BAHAR','STARTER_PLAN',$minor)),'expired guardian');
     $pdo->exec("UPDATE eco_subject_relationships SET expires_at=NULL,verification_status='PENDING' WHERE id='relation'");
