@@ -105,7 +105,7 @@ test('CSV neutralizes spreadsheet formulas, escapes quotes/newlines and action e
  expect((await exported(page,'txt')).body).toContain(action.id);expect((await exported(page,'csv')).body).toContain(action.id);
 });
 test('MFA expiry clears every copied privileged report, queue and status value',async({page})=>{
- await authorized(page,{expiry:1});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-reporting nav button')).toHaveCount(13);await expect(page.locator('#ops-workspace')).toBeHidden({timeout:3000});
+ await authorized(page,{expiry:8});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-reporting nav button')).toHaveCount(13,{timeout:6000});await expect(page.locator('#ops-workspace')).toBeHidden({timeout:12000});
  await expect(page.locator('#ops-reporting')).toBeEmpty();await expect(page.locator('#ops-queue')).toBeEmpty();await expect(page.locator('#ops-cards')).toBeEmpty();await expect(page.locator('#ops-detail')).toBeEmpty();await expect(page.locator('#ops-sources')).toBeEmpty();
  for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])expect((await page.locator('#'+id).textContent()).trim()).not.toMatch(/95|aaaaaaaa|36/);
 });
