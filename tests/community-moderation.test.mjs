@@ -47,9 +47,11 @@ test('moderation is controlled by administrator membership, fresh MFA and audit 
  assert.match(s,/operationsAdmin\(\$pdo,\$account,\$settings\)/);
  assert.match(s,/operationsMfaFresh\(\$pdo,\$session,\$accountId,nowTs\(\),\$credentialHash\)/);
  assert.match(s,/communityMutationGuard\(\$pdo\)/);
- assert.match(s,/WHERE id=\? AND state='pending'/);
+ assert.match(s,/WHERE id=\? AND state=\?/);
+ assert.match(s,/\$expectedState=\$decision==='removed'\?'approved':'pending'/);
  assert.match(s,/community_moderation_audit/);
- assert.match(s,/in_array\(\$decision,\['approved','rejected'\],true\)/);
+ assert.match(s,/in_array\(\$decision,\['approved','rejected','removed'\],true\)/);
+ assert.match(s,/rateAllowed\(\$pdo,'community_moderation'/);
 });
 test('MySQL migrations are additive, default pending and ratings bounded',()=>{
  const sql=read('database/bertina/021_community_moderation.sql');
@@ -88,5 +90,7 @@ test('both administrator dashboards retain MFA and existing journal features',()
  const ui=read('assets/js/operations-community-moderation.js');
  assert.match(ui,/if\(workspace\.hidden\)\{lock\(\);return;\}/);
  assert.match(ui,/workspace\.hidden\?lock\(\):load\(\)/);
+ assert.match(ui,/kind==='approved'/);
+ assert.match(ui,/\['removed'/);
  assert.doesNotMatch(ui,/document\.write/);
 });
