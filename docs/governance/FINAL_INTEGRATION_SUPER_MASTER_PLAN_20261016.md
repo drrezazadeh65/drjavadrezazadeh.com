@@ -164,3 +164,47 @@ Legend: LIVE_VERIFIED = dated real host observation for exact feature and SHA; T
 - https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38863635706 (JHELA contract failing)
 - https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38863635791 (JHELA latest visual failing)
 - https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38859737089 (historical 49/49 visual success, not latest)
+
+
+## 11. Implementation evidence ledger (16 October 2026)
+
+This dated record supersedes only the earlier **implementation status**, not the frozen architecture/design/SEO/privacy standards. It records source-code integration in `migration/bertina-linux6`; it is **not a certification of the live Bertina host**, a publishing licence, a validated psychometric instrument or an authorization to deploy. The source snapshot before this work was `1db3453e00f1c654dee4bc7c553ee61f93bac9a3`. The nine commits below advanced the branch to `9a850f8cfa99123022258c265daea4987a635999`, touching 37 files without rewriting a working production service.
+
+| Commit | Verified implementation/change | Boundary preserved |
+|---|---|---|
+| `48079a67` | JHELA design unit assertions updated to reflect current unissued-document disclaimer | No fabricated manuscript/ISSN/DOI/payment |
+| `09941044` | JHELA browser-visual static fixture now tests unavailable API as fail-closed while rejecting genuinely broken assets | No live intake assumed |
+| `4faaea61` | Bilingual Golden Talent Evidence Studio and BAHAR formative worksheet integrated with mother identity, JS, CSS and dedicated browser QA | Adult-only, temporary/non-scored educational reflection; no upload or child profile |
+| `583448e2` | RCAS, both methodology pages, unified customer dashboard and bilingual admin identity integrated; public-science QA runs on canonical branch | No private score, authorisation change or psychometric validity claim |
+| `920df68b` | Three JHELA specimen documents changed to meaningful unissued-record notices | Sample documents never become issued certificates or decisions |
+| `48030c1d` | Isolated operations HTTP/MySQL fixture includes new JHELA PHP dependencies | Production PHP, DB and MFA controls unchanged |
+| `76afbf3e` | Browser regression verifies admin data stays locked when pending refresh completes **or is cancelled** | No stale privileged view or weakened MFA |
+| `ebb5a162` | Existing moderated Persian-article community API linked to article loader and bilingual owner consoles; isolated MySQL and browser gates added | Both server activation flags remain false by default; pending comments unpublished |
+| `9a850f8c` | Mobile form-first auth layout, compact academic masthead, cache-busted stylesheet in four bilingual sign-in/registration routes | Email verification, account security and recovery logic unchanged |
+
+### 11.1 Evidence at the exact tested code snapshot
+
+These are **historical SHA-scoped CI results**; subsequent commits must earn their own green runs.
+
+- `9a850f8c`: [Browser QA](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38877957246), [safe public science QA](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38877957334), [v5.1.0 nondeploying candidate](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38877957305), [SEO/GEO regression](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38877957339), [Bertina Master SEO Audit](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38877957268), [progressive release policy](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38877957406), and [responsive certification](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38877957279) each returned success when checked.
+- `ebb5a162`: [Community Moderation Database Gate](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38877313091) passed separate MySQL 8 and Chromium jobs with no real user data.
+- `920df68b`: [JHELA visual/print QA](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38876094622) and [OJS source-contract readiness QA](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38876094594) passed; neither proves a live OJS installation.
+- `9a850f8c`: [Full Route Visual Crawl](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38877957299) must be consulted for its **final** conclusion; it was in progress when this ledger was drafted. No pass is claimed prematurely.
+
+### 11.2 Remaining gates, intentionally not bypassed
+
+**A. Public experience:** A final current-SHA route crawl must confirm CSS/JS/image integrity, accessibility, responsive behaviour and no new internal 404. A passing GitHub browser fixture does not establish that the revised release is already on the live host.
+
+**B. Scientific claims:** Golden Talent / RCAS / BAHAR public worksheets are usable **non-scored** reflections. Any normed scoring, automated routing, longitudinal child records, paid interpretation or clinical/psychometric claims require separate versioned validation for target population, language, administration, consent and qualified review.
+
+**C. Journal and author/reviewer services:** Public information and tested code are distinct from the production OJS installation. Author submissions, reviewer records, live editorial decisions, finance and private attachments require HTTPS, verified accounts, isolated schema, private file storage, malware scanning, tested OJS roles, backup restoration and end-to-end server evidence. Do not turn on public intake on repository tests alone.
+
+**D. Moderated comments:** The active code is dormant until isolated MySQL migration is explicitly verified on the intended host and both operator-controlled flags are approved, together with public privacy notice and moderator MFA. Never claim comments are already accepted or published.
+
+**E. Payments and fulfilment:** Source contracts and sandbox tests do not establish gateway settlement or entitlement. No release may infer access from client redirects, crypto receipts or unverified transactions.
+
+**F. Release governance:** Preserve `/fa/` and `/en/` canonical routes, frozen SEO standard, mother brand tokens and all existing functional user/admin dashboard modules. Stage changes as one reviewed, reversible Bertina-only release with a matching source SHA, manifest, isolated database migration plan and proven recovery. Production deployment is **not** authorized by this document.
+
+### 11.3 Safe continuation point
+
+Current code target at writing: `9a850f8cfa99123022258c265daea4987a635999`. Confirm the **actual current branch HEAD** and all test conclusions before proceeding. Do not reapply the nine commits or merge the full stale PR #81/#84 diff over newer canonical files. Continue from the surviving integration branch using narrowly scoped changes and evidence-based gates, then decide on a supervised production release only after unresolved host-level requirements are genuinely satisfied.
