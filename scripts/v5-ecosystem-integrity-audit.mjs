@@ -321,8 +321,15 @@ verify('commerce: private financial facts remain explicitly unknown',
   dep.production?.schemaMigrationAuthorized===false);
 verify('journal: isolated bilingual sitemap includes only real public URLs',(()=>{
   const locs=[...journalMap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(x=>x[1]);
-  return locs.length===24 && distinct(locs) &&
-    locs.every(x=>x.startsWith('https://drjavadrezazadeh.com/journal/')) &&
+  const prefix='https://drjavadrezazadeh.com/journal/';
+  const validLoc=locs.every(x=>{
+    if(!x.startsWith(prefix) || !/^https:\/\/drjavadrezazadeh\.com\/journal\/(?:[a-z-]+\/)*$/.test(x))return false;
+    const local=x.slice('https://drjavadrezazadeh.com/'.length);
+    return fs.existsSync(path.join(root,local,'index.html'));
+  });
+  return locs.length>=24 && locs.length<=100 && distinct(locs) &&
+    validLoc &&
+    locs.includes(prefix+'roadmap/') && locs.includes(prefix+'fa/roadmap/') &&
     !locs.some(x=>/\/(?:submission|login|register|account|payment)\//.test(x));
 })());
 verify('journal: no false live OJS / submission / publishing claims',
