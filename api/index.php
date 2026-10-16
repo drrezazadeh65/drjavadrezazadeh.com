@@ -444,6 +444,8 @@ require_once __DIR__.'/commerce-stage9.php';
 require_once __DIR__.'/consultation-delivery.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
+// Credential-free public indicative rate only; never authorize an order or payment from this tick.
+if ($path==='/rates/usdt-irt') { require_once __DIR__.'/ramzinex-public-usdt-rate.php'; jrPublicUsdtRateRoute($verb); }
 // Owner-gated community pilot: schema and privacy approval required.
 if (str_starts_with($path, '/community/')) { require_once __DIR__.'/community.php'; communityRoute($path,$verb); }
 if (str_starts_with($path, '/journal/')) {
