@@ -70,3 +70,24 @@ test('product versions are public-friendly and do not leak the service-worker fi
  await expect(legal).not.toContainText('شناسه نسخه فنی');
  await expect(legal).not.toContainText('jr-site-bertina-');
 });
+
+
+for(const locale of ['fa','en']){
+ test(locale+' authentic book detail gallery and bibliographic gate at 390px',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/'+locale+'/shop/book/?id=roshanaei',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('[data-book-detail] h1')).toContainText('سپیدی');
+  const images=page.locator('[data-book-detail] .book-detail-gallery img');
+  await expect(images).toHaveCount(2,{timeout:12000});
+  for(const cover of await images.all()){
+    await expect(cover).toHaveAttribute('src',/\/assets\/images\/books\//);
+    await expect.poll(()=>cover.evaluate(el=>el.complete&&el.naturalWidth>0),
+      {timeout:12000,message:'original book cover must decode'}).toBe(true);
+  }
+  await expect(page.locator('[data-book-detail] .book-meta')).toContainText(
+    locale==='fa'?'هنوز تأیید نشده':'Not yet verified');
+  await expect(page.locator('.app-dock [data-jr-dock-install]')).toBeVisible({timeout:12000});
+  const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+  expect(overflow,'book detail mobile overflow').toBeLessThanOrEqual(1);
+ });
+}
