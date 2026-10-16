@@ -142,6 +142,9 @@
      ?new Intl.NumberFormat(isFa?'fa-IR':'en-US',{useGrouping:false}).format(b.bibliography.publication_year)+(isFa?' خورشیدی':' (Solar Hijri)')
      :(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'نوبت چاپ':'Printing')+'</dt><dd>'+escapeHtml(b.bibliography.edition==='چاپ اول'&&!isFa?'First printing':b.bibliography.edition||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'سال چاپ اول':'Year of first printing')+'</dt><dd>'+escapeHtml(Number.isInteger(b.bibliography.printing_year)&&b.bibliography.publication_calendar==='Solar Hijri'
+     ?new Intl.NumberFormat(isFa?'fa-IR':'en-US',{useGrouping:false}).format(b.bibliography.printing_year)+(isFa?' خورشیدی':' (Solar Hijri)')
+     :(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'شمارگان چاپ اول':'First printing quantity')+'</dt><dd>'+escapeHtml(Number.isInteger(b.bibliography.print_run)
      ?new Intl.NumberFormat(isFa?'fa-IR':'en-US').format(b.bibliography.print_run)+(isFa?' نسخه (نه موجودی فعلی)':' copies (not current inventory)')
      :(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
