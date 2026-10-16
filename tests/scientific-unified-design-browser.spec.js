@@ -59,8 +59,16 @@ test('client scientific cards remain informational, never personal assessment re
  await expect(section).toContainText('در مرحله پژوهشی');
  await expect(section).not.toContainText('95%');
  const links=await section.locator('a').evaluateAll(as=>as.map(a=>a.getAttribute('href')));
+ expect(links).toContain('/fa/golden-talent/#goldenTalentEvidenceStudio');
+ expect(links).toContain('/fa/assessments/golden-talent/start/');
+ expect(links).toContain('/fa/app/student/bahar/#baharWorkingPlan');
+
  for(const path of links){
    const response=await page.request.get(base+path);
    expect(response.status()).toBe(200);
  }
+ await page.goto(base+'/fa/golden-talent/#goldenTalentEvidenceStudio');
+ await expect(page.locator('#goldenTalentEvidenceStudio [data-gt-evidence-form]')).toBeVisible();
+ await page.goto(base+'/fa/app/student/bahar/#baharWorkingPlan');
+ await expect(page.locator('#baharWorkingPlan [data-bahar-plan-form]')).toBeVisible();
 });
