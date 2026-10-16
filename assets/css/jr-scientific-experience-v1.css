@@ -7,22 +7,24 @@
  * NO fabricated score, paid entitlement, report availability or validation.
  * Preserve existing page interactions/links and the frozen SEO architecture.
  * Shared semantic values are aligned to the mother identity, not a subbrand.
+ * Mother tokens: identity/tokens.css; var() fallback preserves existing sites
+ * until that shared stylesheet is included on every legacy route.
  */
 :where(.jr-private-academic,.jr-science-workspace){
-  --jr-sc-obsidian:#0b0b0b;
+  --jr-sc-obsidian:var(--jr-bg,#0b0b0b);
   --jr-sc-graphite:#1f1f1f;
-  --jr-sc-raised:#171613;
-  --jr-sc-ivory:#f8f5e9;
-  --jr-sc-muted:#c4baa9;
-  --jr-sc-gold:#d4af37;
-  --jr-sc-soft-gold:#ebd79e;
+  --jr-sc-raised:var(--jr-raised,#171613);
+  --jr-sc-ivory:var(--jr-ivory,#f8f5e9);
+  --jr-sc-muted:var(--jr-muted,#c4baa9);
+  --jr-sc-gold:var(--jr-gold,#d4af37);
+  --jr-sc-soft-gold:var(--jr-gold-light,#ebd79e);
   --jr-sc-antique:#a88955;
-  --jr-sc-line:rgba(212,175,55,.25);
+  --jr-sc-line:var(--jr-hairline,rgba(212,175,55,.25));
   --jr-sc-line-active:rgba(235,215,158,.62);
   --jr-sc-shadow:0 22px 58px rgba(0,0,0,.27);
   --jr-sc-radius:22px;
-  --jr-sc-ui-font:"Instrument Sans","Segoe UI",Arial,sans-serif;
-  --jr-sc-fa-font:"Vazirmatn",Tahoma,Arial,sans-serif;
+  --jr-sc-ui-font:var(--jr-font-ui,"Instrument Sans","Segoe UI",Arial,sans-serif);
+  --jr-sc-fa-font:var(--jr-font-fa,"Vazirmatn",Tahoma,Arial,sans-serif);
   --jr-sc-readable:65ch;
   color-scheme:dark;
 }
