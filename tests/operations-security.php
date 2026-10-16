@@ -79,7 +79,7 @@ request('/admin/operations','GET',403,'admin_mfa_required');
 $pdo->prepare('UPDATE operations_session_mfa SET verified_at=?,expires_at=?')->execute([$at,$at+600]);
 $pdo->prepare('INSERT INTO operations_release VALUES(1,?,?)')->execute([$release,$at]);
 $scientific=request('/admin/operations/scientific/schema-readiness','GET',200);
-check($scientific['schema']==='scientific-structural-preflight-v1',
+check($scientific['schema']==='scientific-structural-preflight-v2',
     'Scientific readiness route has the wrong contract');
 check($scientific['readOnly']===true && $scientific['adminMfaRequired']===true &&
     $scientific['inspection']==='TABLE_AND_COLUMN_PROJECTIONS_ONLY',
@@ -90,14 +90,15 @@ check($scientific['personalRowsRead']===false &&
     'Schema probing falsely reports production readiness');
 check($scientific['modules']['consent_guardian']['columnProjectionReady']===false &&
     $scientific['modules']['assessment']['columnProjectionReady']===false &&
-    $scientific['modules']['bahar']['columnProjectionReady']===false,
+    $scientific['modules']['bahar']['columnProjectionReady']===false &&
+    $scientific['modules']['safeguarding']['columnProjectionReady']===false,
     'Uninstalled eco tables must fail closed');
 check(strpos(json_encode($scientific),'fixture-session')===false &&
     strpos(json_encode($scientific),$account)===false,
     'Sensitive session/account value leaked in readiness');
 $event=$pdo->query("SELECT action,reference_id FROM operations_audit
     WHERE action='scientific_schema_read' ORDER BY sequence_id DESC LIMIT 1")->fetch();
-check($event!==false && $event['reference_id']==='scientific-structural-preflight-v1',
+check($event!==false && $event['reference_id']==='scientific-structural-preflight-v2',
     'Scientific admin read must be audited');
 request('/admin/operations/scientific/schema-readiness','POST',404,'not_found');
 
@@ -117,6 +118,42 @@ check($structural['modules']['assessment']['columnProjectionReady']===false,
     'Incomplete assessment table must still be blocked');
 check($structural['modules']['bahar']['columnProjectionReady']===false,
     'Absent BAHAR tables must still be blocked');
+
+check($structural['modules']['safeguarding']['columnProjectionReady']===false &&
+    $structural['modules']['safeguarding']['requiredTables']===2,
+    'Uninstalled age/assent tables cannot count as ready');
+
+$pdo->exec('CREATE TABLE eco_subject_age_attestations(
+    id TEXT,subject_id TEXT,classification TEXT,jurisdiction_code TEXT,
+    policy_version TEXT,source_code TEXT,review_status TEXT,
+    verified_by_account_id TEXT,reviewed_by_account_id TEXT,
+    evidence_sha256 TEXT,verified_at TEXT,expires_at TEXT,revoked_at TEXT)');
+$partial=request('/admin/operations/scientific/schema-readiness','GET',200);
+check($partial['modules']['safeguarding']['columnProjectionReady']===false &&
+    in_array('eco_minor_assent_records',
+        $partial['modules']['safeguarding']['incompatibleTables'],true),
+    'An age attestation table without separate minor assent is not ready');
+
+$pdo->exec('CREATE TABLE eco_minor_assent_records(
+    id TEXT,subject_id TEXT,guardian_account_id TEXT,
+    notice_version TEXT,notice_sha256 TEXT,decision TEXT,
+    verification_status TEXT,source_code TEXT,reviewer_account_id TEXT,
+    assented_at TEXT,expires_at TEXT,withdrawn_at TEXT)');
+$pdo->exec("INSERT INTO eco_subject_age_attestations
+    (id,subject_id,evidence_sha256) VALUES
+    ('SENTINEL_PROOF','SENTINEL_PRIVATE_LEARNER','SENTINEL_HIDDEN_EVIDENCE')");
+$complete=request('/admin/operations/scientific/schema-readiness','GET',200);
+check($complete['modules']['safeguarding']['columnProjectionReady']===true &&
+    $complete['modules']['safeguarding']['requiredTables']===2,
+    'Both independently required age/assent structural signatures must be present');
+check($complete['realProductionCertified']===false &&
+    $complete['operationalWriteApproved']===false,
+    'Correct candidate structure must never certify real legal or scientific readiness');
+check(!str_contains(json_encode($complete),'SENTINEL_PROOF') &&
+    !str_contains(json_encode($complete),'SENTINEL_HIDDEN_EVIDENCE') &&
+    !str_contains(json_encode($complete),'SENTINEL_PRIVATE_LEARNER'),
+    'Read-only preflight disclosed private child verification evidence');
+
 check(!str_contains(json_encode($structural),'SENTINEL_PRIVATE_LEARNER') &&
     !str_contains(json_encode($structural),'SENTINEL_OWNER'),
     'Read-only schema projection leaked fictional learner or owner data');
