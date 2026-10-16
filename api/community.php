@@ -117,20 +117,28 @@ function communityRoute(string $route,string $verb): never {
             'body'=>(string)$x['body_text'],'rating'=>$x['rating']===null?null:(int)$x['rating'],
             'createdAt'=>(int)$x['created_at']
         ],$q->fetchAll());
-        respond(['ok'=>true,'schema'=>'community-moderation-v1','pending'=>$queue]);
+        $published=$pdo->query("SELECT id,page_path,body_text,rating,created_at FROM community_comments WHERE state='approved' ORDER BY reviewed_at DESC,id DESC LIMIT 20")->fetchAll();
+        $published=array_map(static fn($x)=>[
+            'id'=>(string)$x['id'],'page'=>(string)$x['page_path'],
+            'body'=>(string)$x['body_text'],'rating'=>$x['rating']===null?null:(int)$x['rating'],
+            'createdAt'=>(int)$x['created_at']
+        ],$published);
+        respond(['ok'=>true,'schema'=>'community-moderation-v1','pending'=>$queue,'approved'=>$published]);
     }
     if ($route==='/community/moderation' && $verb==='POST') {
         $actor=communityMutationGuard($pdo);
         communityModerator($pdo);
         $input=jsonBody();
         $comment=$input['id']??null;$decision=$input['decision']??null;
-        if (!is_string($comment)||!validUuid($comment)||!in_array($decision,['approved','rejected'],true)) fail('invalid_moderation',400);
+        if (!is_string($comment)||!validUuid($comment)||!in_array($decision,['approved','rejected','removed'],true)) fail('invalid_moderation',400);
+        if (!rateAllowed($pdo,'community_moderation',(string)$actor['id'],30,3600)) fail('rate_limited',429);
         $now=nowTs();
         try {
             $pdo->beginTransaction();
-            $q=$pdo->prepare("UPDATE community_comments SET state=?,reviewed_at=?,reviewer_account_id=? WHERE id=? AND state='pending'");
-            $q->execute([$decision,$now,(string)$actor['id'],$comment]);
-            if ($q->rowCount()!==1) {$pdo->rollBack();fail('not_pending',409);}
+            $expectedState=$decision==='removed'?'approved':'pending';
+            $q=$pdo->prepare("UPDATE community_comments SET state=?,reviewed_at=?,reviewer_account_id=? WHERE id=? AND state=?");
+            $q->execute([$decision,$now,(string)$actor['id'],$comment,$expectedState]);
+            if ($q->rowCount()!==1) {$pdo->rollBack();fail('moderation_state_conflict',409);}
             $pdo->prepare("INSERT INTO community_moderation_audit(id,comment_id,actor_account_id,action,created_at) VALUES(?,?,?,?,?)")->execute([uuidv4(),$comment,(string)$actor['id'],$decision,$now]);
             $pdo->commit();
         } catch (Throwable $e) {
