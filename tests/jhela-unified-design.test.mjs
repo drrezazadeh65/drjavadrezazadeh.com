@@ -49,7 +49,10 @@ test('four editable print previews use authentic English JHELA wordmark and make
    assert.ok(html.includes('../../assets/images/jhela/wordmark-en.svg'));
    assert.ok(html.includes('../jhela-document.css'));
    assert.match(html,/DRAFT TEMPLATE — NOT ISSUED/);
-   assert.match(html,/No manuscript, acceptance, review, invoice, payment, certification, ISSN or DOI is created/);
+   // This unissued-record guard verifies the current editorial disclaimer without
+   // coupling safety to superseded sample copy.
+   assert.match(html,/Illustrative editorial document, not an issued record\./);
+   assert.match(html,/Manuscript submissions, decisions, reviews, fees, waivers and scholarly identifiers require separate confirmation/);
    assert.equal((html.match(/<h1\b/g)||[]).length,1);
    assert.ok(!/<script\b|<form\b|onload=|onerror=/.test(html));
  }
