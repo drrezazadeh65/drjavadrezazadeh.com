@@ -18,7 +18,7 @@ function jrNewsletterNotice(string $locale): string {
 }
 function jrNewsletterSchemaReady(PDO $pdo): bool {
     try {
-        foreach(['eco_notification_preferences','eco_consent_notices','eco_consent_records'] as $table)
+        foreach(['eco_notification_preferences','eco_consent_notices','eco_consent_records','eco_notifications'] as $table)
             $pdo->query('SELECT 1 FROM '.$table.' LIMIT 0');
         return true;
     }catch(Throwable $e){return false;}
