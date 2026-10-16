@@ -164,16 +164,26 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         $preferenceJoin=$preferenceReady
             ? ' LEFT JOIN commerce_consultation_preferences pr ON pr.order_id=sc.order_id AND pr.sku=sc.sku'
             : '';
+        // Only a boolean and revision leave this PII-free admin overview.
+        // Actual encrypted buyer notes require separate SUPER_ADMIN + fresh MFA.
+        $intakeReady=function_exists('jrServiceIntakeSchemaReady')
+            && jrServiceIntakeSchemaReady($pdo);
+        $intakeFields=$intakeReady
+            ? 'si.revision AS intake_revision,si.updated_at AS intake_updated_at'
+            : 'NULL AS intake_revision,NULL AS intake_updated_at';
+        $intakeJoin=$intakeReady
+            ? ' LEFT JOIN commerce_service_intakes si ON si.order_id=sc.order_id AND si.sku=sc.sku'
+            : '';
         $queueRows=$pdo->query("SELECT sc.order_id,sc.sku,sc.status,sc.created_at,
                 sc.booking_start,sc.booking_end,
                 o.state AS order_state,o.provider_trans_id,o.provider_amount,
                 c.transaction_id AS claim_transaction,c.verified_amount AS claim_amount,
-                ".$preferenceFields."
+                ".$preferenceFields.",".$intakeFields."
             FROM commerce_service_cases sc
             JOIN commerce_orders o ON o.id=sc.order_id
             LEFT JOIN commerce_payment_claims c
                 ON c.order_id=o.id AND c.provider='bitpay'
-            ".$preferenceJoin."
+            ".$preferenceJoin.$intakeJoin."
             WHERE sc.status IN (".$activeStates.")
             ORDER BY sc.created_at ASC,sc.order_id ASC,sc.sku ASC
             LIMIT 50")->fetchAll();
@@ -236,6 +246,9 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
                 'bookingEnd'=>$row['booking_end']!==null?(string)$row['booking_end']:null,
                 'deliveryMode'=>$row['delivery_mode']!==null?(string)$row['delivery_mode']:null,
                 'meetingCity'=>$row['meeting_city']!==null?(string)$row['meeting_city']:null,
+                'intakeSubmitted'=>$intakeReady && $row['intake_revision']!==null,
+                'intakeRevision'=>$row['intake_revision']===null?null:(int)$row['intake_revision'],
+                'intakeUpdatedAt'=>$row['intake_updated_at']===null?null:(string)$row['intake_updated_at'],
                 'customerPreferenceRecorded'=>$preferenceReady
                     && $row['delivery_mode']!==null
                     && function_exists('commerceConsultationValidChoice')
@@ -336,6 +349,7 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'activeServiceCaseCount'=>$openCases,
             'serviceActionQueue'=>$actionQueue,
             'serviceDeliveryEvidenceSchemaReady'=>function_exists('operationsServiceDeliveryEvidenceReady') && operationsServiceDeliveryEvidenceReady($pdo),
+            'serviceIntakeSchemaReady'=>$intakeReady,
             'customerPreferenceSchemaReady'=>$preferenceReady,
             'internalAvailability'=>[
                 'schemaReady'=>$capacityReady,
