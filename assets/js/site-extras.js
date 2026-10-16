@@ -31,7 +31,7 @@ holder.innerHTML="<a referrerpolicy='origin' target='_blank' href='https://trust
 footer.appendChild(holder);
 })();
 
-import('/assets/js/mobile-app-v431.js?v=431d');
+import('/assets/js/mobile-app-v431.js?v=20261016-install-dock-v2');
 
 /* Brand emblem lives beside the original merchant trust seal. */
 (()=>{if(document.querySelector('script[data-jr-footer-brand-loader]'))return;const el=document.createElement('script');el.src='/assets/js/footer-brand-seal.js?v=20261016-v1';el.defer=true;el.dataset.jrFooterBrandLoader='1';document.head.append(el);})();
