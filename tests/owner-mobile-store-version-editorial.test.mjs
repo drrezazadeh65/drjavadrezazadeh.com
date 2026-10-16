@@ -55,6 +55,17 @@ test('institutional biography and academic pages use editorial third person',()=
  ['en/academic-profile/index.html',/in Dr\. Rezazadeh Yazdeli’s work/]
  ];
  for(const [p,pattern] of cases)assert.match(source(p),pattern,p);
+ for(const route of ['fa/index.html','fa/darbare-man/index.html']){
+  const html=source(route);
+  assert.doesNotMatch(html,/درباره من/);
+  assert.match(html,/درباره دکتر رضازاده/);
+  assert.match(html,/darbare-man\//);
+ }
+ for(const asset of ['assets/js/site.js','assets/js/mobile-app-v431.js']){
+  const script=source(asset);
+  assert.doesNotMatch(script,/درباره من/);
+  assert.match(script,/درباره دکتر رضازاده/);
+ }
  // The personal philosophy/poetry and private user-facing prompts are NOT rewritten.
 });
 
