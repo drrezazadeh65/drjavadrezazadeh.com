@@ -22,9 +22,9 @@ $integrityFailure=static function(callable $fn,string $name)use($check): void{
     catch(PDOException $e){
         $sqlState=(string)$e->getCode();
         $driverCode=(int)($e->errorInfo[1]??0);
-        // MySQL 8 CHECK failure is HY000/3819, whereas unique/FK/NOT NULL
-        // normally signal 23000. Never treat arbitrary HY000 as acceptance.
-        $valid=$sqlState==='23000'||($sqlState==='HY000'&&$driverCode===3819);
+        // MySQL 8 CHECK failure is HY000/3819; a required field omitted in STRICT mode
+        // is HY000/1364. Unique/FK violations signal 23000. Reject other HY000.
+        $valid=$sqlState==='23000'||($sqlState==='HY000'&&in_array($driverCode,[3819,1364],true));
         $check($valid,$name.' integrity enforced (SQLSTATE '.$sqlState.', code '.$driverCode.')');
     }
 };
