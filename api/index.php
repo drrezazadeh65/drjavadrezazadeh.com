@@ -444,6 +444,8 @@ require_once __DIR__.'/commerce-stage9.php';
 require_once __DIR__.'/consultation-delivery.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
+// Manual crypto ledger is isolated from the BitPay settlement state machine.
+if (str_starts_with($path, '/crypto/usdt/')) { require_once __DIR__.'/manual-usdt.php'; jrUsdtCustomerRoute($path,$verb); }
 
 // No account, order identity, payment reference or owner window ID is exposed.
 // Fail closed if the additive capacity ledger is not yet installed/verified.
