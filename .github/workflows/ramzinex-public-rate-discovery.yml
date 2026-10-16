@@ -1,0 +1,41 @@
+name: Ramzinex Public USDT/Toman Feed Discovery (No Payments)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'scripts/ramzinex-public-rate-probe.mjs'
+      - 'docs/governance/RAMZINEX_TOMAN_USDT_LIVE_RATE_QUOTE_MASTER_20261016.md'
+      - '.github/workflows/ramzinex-public-rate-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ramzinex-public-rate-discovery-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  public-source-reachability:
+    name: Verify published API reachability and report sanitized schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate read-only probe
+        run: node --check scripts/ramzinex-public-rate-probe.mjs
+      - name: Probe fixed public endpoints with no API key and no funds
+        run: |
+          node scripts/ramzinex-public-rate-probe.mjs | tee /tmp/ramzinex-market-discovery.json
+      - name: Explain limits of public-rate discovery
+        if: always()
+        run: |
+          {
+            echo '### Ramzinex market feed discovery'
+            echo 'This job reads **public market data only**, without a token, private account data or transactions.'
+            echo 'Provider reachability alone does NOT verify a USDT/IRT pair, its rial/toman unit, bid/ask direction, pricing quotes or a receiving wallet.'
+            echo 'Do NOT enable any payment flag on the basis of this workflow.'
+          } >> "$GITHUB_STEP_SUMMARY"
