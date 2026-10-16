@@ -62,6 +62,14 @@ for(const {route,locale} of pages){
    expect(root.masthead).toContain('jhela/');
    expect(root.maxScroll,route+' viewport overflow '+width).toBeLessThanOrEqual(root.viewport+2);
    expect(root.primaryMain).toBe(true);
+   if(width<=390){
+     const sections=await page.evaluate(()=>[...document.querySelectorAll('.journal-main .journal-section,.journal-main .journal-article')]
+      .map(el=>({left:Number.parseFloat(getComputedStyle(el).paddingLeft),right:Number.parseFloat(getComputedStyle(el).paddingRight)})));
+     for(const [i,space] of sections.entries()){
+      expect(space.left,route+' left reading gutter section '+i+' at '+width).toBeGreaterThanOrEqual(17);
+      expect(space.right,route+' right reading gutter section '+i+' at '+width).toBeGreaterThanOrEqual(17);
+     }
+   }
    expect(root.imageComplete,route+' logo not loaded').toBe(true);
    expect(root.naturalWidth,route+' broken journal masthead').toBeGreaterThan(0);
    if([390,1440].includes(width)){
@@ -111,6 +119,8 @@ test('A4 scholarly stationery previews render print-safe with no issued record',
   await page.emulateMedia({media:'print'});
   const pdf=await page.pdf({format:'A4',printBackground:true,preferCSSPageSize:true});
   expect(pdf.length).toBeGreaterThan(4000);
+  const pdfPageCount=(pdf.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length;
+  expect(pdfPageCount,sample+' must print on exactly one A4 page with no orphaned footer').toBe(1);
   await fs.promises.mkdir(screenshotsRoot+'/print',{recursive:true});
   await fs.promises.writeFile(screenshotsRoot+'/print/'+sample.replace('.html','.pdf'),pdf);
   await page.emulateMedia({media:'screen'});
