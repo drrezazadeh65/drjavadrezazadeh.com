@@ -24,12 +24,12 @@ const view=async()=>{
  try{
   const d=await call('workspace');
   find('[data-jhela-signin]').hidden=true;find('[data-jhela-private]').hidden=false;
-  find('[data-jhela-email]').textContent=d.verifiedEmail;
+  const email=find('[data-jhela-email]');if(email)email.textContent=d.verifiedEmail;
   const form=find('[data-jhela-profile]');
   if(form&&d.profile)for(const [key,val] of Object.entries({name:d.profile.public_name,affiliation:d.profile.affiliation,country:d.profile.country,orcid:d.profile.orcid,interests:d.profile.research_interests})){
    if(form.elements.namedItem(key)&&!form.elements.namedItem(key).value)form.elements.namedItem(key).value=val||'';
   }
-  const list=find('[data-jhela-articles]');list.replaceChildren();
+  const list=find('[data-jhela-articles]');if(list){list.replaceChildren();
   if(!d.manuscripts.length)list.append(el('p',t('No manuscripts submitted yet.','هنوز مقاله‌ای ثبت نشده است.')));
   for(const x of d.manuscripts){
    const card=el('article');card.className='jhela-intake-card';
@@ -49,6 +49,7 @@ const view=async()=>{
      }catch(err){message(err.message,'error')}finally{btn.disabled=false}
     });card.append(form);
    }list.append(card);
+  }
   }
   const rev=find('[data-jhela-reviewer-state]');if(rev)rev.textContent=d.reviewerApplication?state(d.reviewerApplication.status):t('No academic reviewer application yet.','هنوز درخواست داوری ثبت نشده است.');
  }catch(err){
