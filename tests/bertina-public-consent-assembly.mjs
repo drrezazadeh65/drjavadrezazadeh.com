@@ -11,7 +11,10 @@ const required=[
  'api/golden-talent-consent-write.php',
  'api/operations.php','api/operations-scientific-schema.php',
  'assets/js/operations-scientific-schema.js','fa/app/admin/index.html',
- 'en/account/admin/index.html'
+ 'en/account/admin/index.html',
+ 'assets/css/jr-scientific-experience-v1.css','assets/js/bahar-formative-workspace-v1.js',
+ 'fa/app/student/bahar/index.html','en/golden-talent/dashboard/bahar/index.html',
+ 'fa/customer-dashboard/index.html'
 ];
 for(const rel of required)
  assert.ok(fs.statSync(path.join(publicSite,rel)).isFile(),'Release missing '+rel);
@@ -61,3 +64,20 @@ assert.match(scientificUi,/scientific-structural-preflight-v2/,
 assert.match(scientificUi,/\['safeguarding',2\]/,
   'Missing mandatory age and learner-assent domain in admin UI');
 console.log('Bertina sanitized package consent and MFA schema dependencies: passed');
+
+
+for(const rel of ['fa/app/student/bahar/index.html','en/golden-talent/dashboard/bahar/index.html']){
+  const html=fs.readFileSync(path.join(publicSite,rel),'utf8');
+  assert.match(html,/data-bahar-formative/, 'The BAHAR formative worksheet must be usable: '+rel);
+  assert.match(html,/data-bahar-plan-form/, 'BAHAR working plan form missing: '+rel);
+  assert.match(html,/bahar-formative-workspace-v1\.js/, 'BAHAR interaction script not packaged: '+rel);
+  assert.match(html,/jr-scientific-experience-v1\.css/, 'Shared premium brand system missing: '+rel);
+}
+const baharJS=fs.readFileSync(path.join(publicSite,'assets/js/bahar-formative-workspace-v1.js'),'utf8');
+for(const unsafe of ['localStorage','sessionStorage','fetch(','XMLHttpRequest(','WebSocket(']){
+  assert.equal(baharJS.includes(unsafe),false,
+    'Browser-only BAHAR must not retain or transfer private worksheet values: '+unsafe);
+}
+const dashboard=fs.readFileSync(path.join(publicSite,'fa/customer-dashboard/index.html'),'utf8');
+assert.match(dashboard,/jr-sci-pathway/, 'Unified Golden Talent/RCAS/BAHAR cards missing from dashboard');
+assert.match(dashboard,/persian-brand-symbol\.png/, 'Canonical Persian mark missing from dashboard');
