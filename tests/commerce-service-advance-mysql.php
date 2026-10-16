@@ -16,12 +16,15 @@ require_once __DIR__.'/../api/consultation-delivery.php';
 require_once __DIR__.'/../api/consultation-availability.php';
 require_once __DIR__.'/../api/operations-fulfilment.php';
 require_once __DIR__.'/../api/operations-service-delivery.php';
+require_once __DIR__.'/../api/service-intake.php';
 require_once __DIR__.'/../api/operations-commerce.php';
 // Catalogue stub is restricted to the one fictitious service used by this CI fixture.
 function localCatalog(): array {
     return ['service:academic_consult_60'=>['kind'=>'service','price'=>1000000]];
 }
 function cfg(): array { return ['auth_pepper'=>str_repeat('fixture-strong-pepper-',3)]; }
+function validEmail(string $v): bool { return strlen($v)<=254 && filter_var($v,FILTER_VALIDATE_EMAIL)!==false; }
+function textLen(string $v): int { return function_exists('mb_strlen')?mb_strlen($v,'UTF-8'):strlen($v); }
 function validUuid(string $v): bool {
     return preg_match('/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i',$v)===1;
 }
@@ -47,6 +50,8 @@ $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261012_stage09_comme
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_preferences.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_availability.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261016_owner_attested_service_delivery.sql'));
+$pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261016_private_service_intake.sql'));
+
 if(!operationsConsultationAvailabilitySchemaReady($pdo))
     throw new RuntimeException('fixture_availability_schema_not_ready');
 if(!commerceConsultationPreferenceSchemaReady($pdo))
@@ -315,6 +320,66 @@ checkService($state['status']==='delivered'&&!empty($state['delivered_at']),
  'customer_fulfilment_projection_sees_owner_attested_delivery');
 refused(fn()=>operationsCommerceRecordDelivery($pdo,$actor,$validDocument),
  DomainException::class,'delivery_replay_cannot_change_completed_case');
+
+// AES-256-GCM buyer service brief: verified account, immutable paid claim,
+// optimistic version, real service case and operator-only source protection.
+checkService(jrServiceIntakeSchemaReady($pdo),'service_intake_innodb_schema_ready');
+$intakeEmail='buyer@example.invalid';
+$pdo->prepare('UPDATE commerce_orders SET customer_email=? WHERE id=?')
+    ->execute([$intakeEmail,$orderId]);
+checkService(jrServiceIntakeOwned($pdo,$orderId,$sku,$intakeEmail),
+    'verified_email_owns_exact_order_and_service');
+checkService(!jrServiceIntakeOwned($pdo,$orderId,$sku,'outsider@example.invalid'),
+    'other_customer_cannot_read_service_brief');
+$brief=[
+ 'orderId'=>$orderId,'sku'=>$sku,'expectedRevision'=>0,
+ 'subject'=>'Language learning progress review',
+ 'background'=>'Current evidence includes classroom observations and dated learning activities.',
+ 'objectives'=>'Obtain an evidence-grounded set of actionable learning recommendations.',
+ 'isMinor'=>false,'guardianAcknowledged'=>false,'privacyAcknowledged'=>true
+];
+refused(fn()=>jrServiceIntakeSave($pdo,'outsider@example.invalid',$actor,$brief),
+ DomainException::class,'client_cannot_save_to_other_email');
+refused(fn()=>jrServiceIntakeSave($pdo,$intakeEmail,$actor,
+    array_merge($brief,['isMinor'=>true])),InvalidArgumentException::class,
+    'minor_requires_guardian_acknowledgment');
+refused(fn()=>jrServiceIntakeSave($pdo,$intakeEmail,$actor,
+    array_merge($brief,['privacyAcknowledged'=>false])),InvalidArgumentException::class,
+    'no_consent_no_saved_service_brief');
+refused(fn()=>jrServiceIntakeSave($pdo,$intakeEmail,$actor,
+    array_merge($brief,['unexpected'=>true])),InvalidArgumentException::class,
+    'service_intake_ignores_no_extra_fields');
+$firstBrief=jrServiceIntakeSave($pdo,$intakeEmail,$actor,$brief);
+checkService($firstBrief['saved']===true&&$firstBrief['revision']===1
+    &&$firstBrief['filesUploaded']===false
+    &&$firstBrief['customerNotified']===false,
+    'paid_buyer_can_save_encrypted_service_brief');
+$readBrief=jrServiceIntakeRead($pdo,$orderId,$sku);
+checkService($readBrief['revision']===1
+    &&$readBrief['intake']['subject']===$brief['subject']
+    &&$readBrief['intake']['background']===$brief['background'],
+    'authorised_private_intake_decrypt_roundtrip');
+$stored=$pdo->prepare('SELECT payload_ciphertext FROM commerce_service_intakes
+ WHERE order_id=? AND sku=?');$stored->execute([$orderId,$sku]);$encrypted=$stored->fetchColumn();
+checkService(is_string($encrypted)&&$encrypted!==$brief['background']
+    &&!str_contains($encrypted,'classroom observations')
+    &&strlen($encrypted)>100,'database_holds_only_ciphertext');
+refused(fn()=>jrServiceIntakeSave($pdo,$intakeEmail,$actor,$brief),
+ DomainException::class,'stale_intake_revision_denied');
+$brief2=array_merge($brief,['expectedRevision'=>1,
+    'objectives'=>'Clarify the next learning steps with reflective and measurable criteria.']);
+$secondBrief=jrServiceIntakeSave($pdo,$intakeEmail,$actor,$brief2);
+checkService($secondBrief['revision']===2
+    &&jrServiceIntakeRead($pdo,$orderId,$sku)['intake']['objectives']===$brief2['objectives'],
+    'intake_edit_uses_revision_lock');
+$stored->execute([$orderId,$sku]);
+checkService($stored->fetchColumn()!==$encrypted,
+    'aead_ciphertext_rotates_per_saved_revision');
+$pdo->prepare('UPDATE commerce_orders SET customer_email=? WHERE id=?')
+    ->execute([$intakeEmail,$documentOrder]);
+refused(fn()=>jrServiceIntakeSave($pdo,$intakeEmail,$actor,
+    array_merge($brief,['orderId'=>$documentOrder])),
+ DomainException::class,'delivered_case_cannot_silently_replace_intake');
 
 $pdo->exec('DROP TEMPORARY TABLE operations_audit');
 echo "Service advance MySQL fixture: no real money, appointments, email or entitlement granted.\n";
