@@ -32,9 +32,24 @@ test('all JHELA routes have approved 33-page bilingual navigation inventory',()=
 });
 for(const {route,locale} of pages){
  test('JHELA public visual '+route,async({page})=>{
-  const errs=[],badResponses=[];
+  const errs=[],badResponses=[],expectedUnavailable=[];
+  // Visual QA runs on a static file server without PHP. Model the three
+  // read-only journal endpoints as explicitly unavailable; all unexpected
+  // API requests and genuinely broken image/CSS/JS resources still fail.
+  const offlineEndpoints=new Set(['/api/journal/intake/health','/api/journal/workspace','/api/journal/reviewers']);
+  await page.route(base+'/api/journal/**',async route=>{
+   const req=route.request(),path=new URL(req.url()).pathname;
+   const expected=req.method()==='GET'&&offlineEndpoints.has(path);
+   await route.fulfill({status:expected?503:500,contentType:'application/json',
+    body:JSON.stringify({ok:false,error:expected?'journal_unavailable':'unexpected_fixture_request'})});
+  });
   page.on('pageerror',e=>errs.push(e.message));
-  page.on('response',r=>{if(r.status()>=400&&r.url().startsWith(base))badResponses.push(r.status()+' '+r.url())});
+  page.on('response',r=>{
+   if(r.status()<400||!r.url().startsWith(base))return;
+   const path=new URL(r.url()).pathname;
+   if(r.status()===503&&offlineEndpoints.has(path)){expectedUnavailable.push(path);return;}
+   badResponses.push(r.status()+' '+r.url());
+  });
   for(const width of widths){
    await page.setViewportSize({width,height:width<=390?850:width===768?1024:900});
    const response=await page.goto(base+route,{waitUntil:'domcontentloaded',timeout:20000});
@@ -42,6 +57,10 @@ for(const {route,locale} of pages){
    const heading=page.locator('h1');
    await expect(heading,route+' must have exactly one accessible h1').toHaveCount(1);
    await expect(heading).toBeVisible();
+   if(route.endsWith('/submission/')||route.endsWith('/reviewer-registration/')){
+    await expect(page.locator('[data-jhela-not-ready]')).toBeVisible();
+    await expect(page.locator('[data-jhela-private]')).toBeHidden();
+   }
    const root=await page.evaluate(()=>({
     lang:document.documentElement.lang,
     dir:document.documentElement.dir,
@@ -77,6 +96,9 @@ for(const {route,locale} of pages){
     await capture(page,file);
    }
   }
+  if(route.endsWith('/submission/')||route.endsWith('/reviewer-registration/'))
+   expect(expectedUnavailable.length,route+' should exercise fail-closed API behavior').toBeGreaterThan(0);
+  else expect(expectedUnavailable,route+' unexpected API calls').toEqual([]);
   expect(errs,route+' browser exceptions').toEqual([]);
   expect(badResponses,route+' broken local resources').toEqual([]);
  });
