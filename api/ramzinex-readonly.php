@@ -44,12 +44,10 @@ function jrRamzinexReadDeposits(): array {
     }
     return ['available'=>false,'reason'=>'unrecognized_provider_schema'];
 }
-function jrRamzinexFindDepositEvidence(string $hash): array {
+function jrRamzinexMatchEvidenceRows(string $hash,array $items): array {
     if(!preg_match('/^0x[a-f0-9]{64}$/D',strtolower($hash)))return ['state'=>'invalid_claim_hash'];
-    $data=jrRamzinexReadDeposits();
-    if(!$data['available'])return ['state'=>'unavailable','reason'=>$data['reason']];
     $needle=strtolower($hash);
-    foreach($data['items'] as $row){
+    foreach($items as $row){
         if(!is_array($row))continue;
         // Match ONLY exact transaction hash fields, not arbitrary nested free text.
         foreach(['tx_hash','txHash','transactionHash','transaction_hash','hash','txid','txId'] as $key){
@@ -62,4 +60,10 @@ function jrRamzinexFindDepositEvidence(string $hash): array {
     }
     return ['state'=>'not_found_in_recent_sample','source'=>'ramzinex_deposits_readonly',
         'note'=>'Recent exchange history has no exact hash match; pagination, indexing delay and API schema can cause omissions.'];
+}
+function jrRamzinexFindDepositEvidence(string $hash): array {
+    if(!preg_match('/^0x[a-f0-9]{64}$/D',strtolower($hash)))return ['state'=>'invalid_claim_hash'];
+    $data=jrRamzinexReadDeposits();
+    if(!$data['available'])return ['state'=>'unavailable','reason'=>$data['reason']];
+    return jrRamzinexMatchEvidenceRows($hash,$data['items']);
 }
