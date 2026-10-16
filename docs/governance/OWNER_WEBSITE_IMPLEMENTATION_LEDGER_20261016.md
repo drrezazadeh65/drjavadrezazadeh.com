@@ -149,3 +149,21 @@ No production database migration, money movement, or Bertina publish was perform
 **Bibliographic limitation:** The recovered images are **front covers**, not legible internal imprint/copyright pages. They do **not** establish the publisher, ISBN, publication year or edition. All four fields remain null. Search results for the exact book/author pair returned no reliable bibliographic registry evidence; no value has been fabricated. To complete the bibliography, inspect the actual interior shenasname/copyright pages or a verifiable matching official library/publisher record. Do not request the already recovered cover photos again.
 
 No Bertina deployment, database migration or money transfer resulted from this metadata correction. Verify exact-SHA CI and the live source/view separately before claiming the title is corrected on production.
+
+### Recovered original three-book colophons — 16 October 2026
+
+Previously designated `REQUIRES_OWNER_INPUT` is now **resolved for verified bibliographic fields** from the three *original book-imprint photographs* in the owner's personal Library. The photos were created/available on 13 October and visually examined upright at native image resolution; no synthetic promotion artwork was used.
+
+| Canonical product ID | Printed original imprint source | SHA-256 of original JPEG | Publisher | ISBN-13 | First printing (Solar Hijri) | Original print run |
+|---|---|---|---|---|---|---|
+| `roshanaei` | `1000101520.jpg` | `8dbb8f60a217257b8312f1d3acc917305c31f80e974e1d8c10440ff06a6f0983` | نشر دارما | 9786229465141 | 1404 | 200 copies |
+| `tariki` | `1000101519.jpg` | `6f7939739ba97c4ed9f5b5b317534a147b656c19387ff0a1204740480071885d` | نشر دارما | 9786229636275 | 1404 | 200 copies |
+| `bonbast` | `1000101518.jpg` | `b764acdb3b1a5f724d30ba02cf8e807df220a605444ce40a647c4f7920124fad` | نشر دارما | 9786229636237 | 1399 | 200 copies |
+
+Each 13-digit ISBN has also passed the weighted ISBN-13 checksum. The individual book title on the current official photographed *front cover* is already treated separately in the existing canonical catalogue and must not be relabelled solely from a catalogue internal ID or earlier promotional image. Avoid silently changing URLs/book IDs. All three original book-imprint photographs remain in the owner's private Library; no customer imagery or private photos were committed or placed under the site's public media tree.
+
+**Changes:** `platform/book-catalog.json` now carries the documented `publisher`, `isbn`, `publication_year`, `publication_calendar`, `edition` and `print_run` for each published book. `assets/js/book-store.js` renders publisher, true Solar Hijri year, first printing and bidirectionally isolated ISBN in FA/EN detail pages. The 200-print quantity is first *printing* only, **not live available stock**. It must not populate `inventory_on_hand`, order allocations or customer promises. No payment, purchase price, commerce status, checkout flow, cover image path, migration or private data has been changed.
+
+**Design source:** The existing Figma file `MM2wC6wDAG9YGJSwgjAFMw` has six bibliographic labels and corresponding verified title copy updated within the existing FA mobile + EN desktop native text layers. This does not establish deployed pixels, actual cover image placement or independent review of every screen. Keep the verified original covers from the website source.
+
+**Proof gate:** source-code tests must now assert these independently evidenced non-null fields rather than the previous null-only sentinel. Re-run the exact-SHA SEO/source, navigation/browser and store detail tests. Production Bertina publication remains a separate controlled action; prior success of the historical SHA cannot certify these new book facts on the live server.
