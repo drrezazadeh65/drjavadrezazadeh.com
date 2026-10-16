@@ -26,7 +26,8 @@ for(const locale of ['fa','en']){
    await expect(cover).toHaveCount(3,{timeout:10000});
    for(const image of await cover.all()){
      await expect(image).toBeVisible();
-     expect(await image.evaluate(el=>el.complete&&el.naturalWidth>0),'official cover must load').toBe(true);
+     await expect.poll(()=>image.evaluate(el=>el.complete&&el.naturalWidth>0),
+       {timeout:12000,message:'official cover must load'}).toBe(true);
    }
    const dock=page.locator('.app-dock');
    const install=dock.locator('[data-jr-dock-install]');
