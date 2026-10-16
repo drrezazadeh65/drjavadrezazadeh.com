@@ -96,3 +96,17 @@
 @media(prefers-reduced-motion:reduce){
  #ops-jhela-workstream *,#ops-jhela-workstream *::before{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+
+/* Owner-MFA reviewer approval cards — same restrained JHELA v3 navy/brass identity. */
+#ops-jhela-workstream .ops-jhela-reviewer-owner{padding:20px;margin:20px 0;border:1px solid #b48a3f;border-radius:15px;background:linear-gradient(120deg,#0b203c,#14273a)}
+#ops-jhela-workstream .ops-jhela-reviewer-owner>summary{cursor:pointer;font-weight:750;color:#f5dfb7;line-height:1.7}
+#ops-jhela-workstream .ops-jhela-reviewer-owner>p{line-height:1.8}
+#ops-jhela-workstream .ops-jhela-reviewer-owner button{cursor:pointer;border-radius:9px;padding:10px 15px;min-height:44px;color:#13263c;background:#ead19e;border:1px solid #d8b56f;font-weight:700}
+#ops-jhela-workstream .ops-jhela-reviewer-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+#ops-jhela-workstream .ops-jhela-reviewer-card{padding:17px;min-width:0;border-radius:13px;border:1px solid #566d84;background:#182d41;overflow-wrap:anywhere}
+#ops-jhela-workstream .ops-jhela-reviewer-card h4{margin:0 0 10px;color:#f7deb0;font-size:1.1rem}
+#ops-jhela-workstream .ops-jhela-reviewer-card p{line-height:1.7;color:#e1d7c7}
+#ops-jhela-workstream .ops-jhela-reviewer-decisions{display:flex;flex-wrap:wrap;gap:9px}
+#ops-jhela-workstream .ops-jhela-reviewer-decisions button{font-size:.83rem}
+#ops-jhela-workstream .ops-jhela-reviewer-decisions button:last-child{background:#5c2f32;color:#fff;border-color:#ab7e83}
+@media(max-width:820px){#ops-jhela-workstream .ops-jhela-reviewer-list{grid-template-columns:1fr}}
