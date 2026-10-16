@@ -72,6 +72,25 @@ try {
         'missing assessment tables are reported as not structurally ready');
     $expect($preflight['modules']['bahar']['columnProjectionReady']===false,
         'missing BAHAR tables are reported as not structurally ready');
+    $expect($preflight['modules']['safeguarding']['columnProjectionReady']===false
+        && in_array('eco_subject_age_attestations',
+            $preflight['modules']['safeguarding']['incompatibleTables'],true),
+        'Learner assent alone does not establish a reviewed age authority');
+    $pdo->exec('CREATE TEMPORARY TABLE eco_subject_age_attestations (
+       id CHAR(36) PRIMARY KEY,subject_id CHAR(36),
+       classification VARCHAR(12),jurisdiction_code CHAR(2),
+       policy_version VARCHAR(48),source_code VARCHAR(64),
+       review_status VARCHAR(24),verified_by_account_id CHAR(36),
+       reviewed_by_account_id CHAR(36),evidence_sha256 CHAR(64),
+       verified_at DATETIME(3),expires_at DATETIME(3),
+       revoked_at DATETIME(3)
+    ) ENGINE=InnoDB');
+    $afterAgeSchema=bertinaScientificSchemaContract($pdo);
+    $expect($afterAgeSchema['modules']['safeguarding']['columnProjectionReady']===true &&
+        $afterAgeSchema['realProductionCertified']===false &&
+        $afterAgeSchema['operationalWriteApproved']===false,
+        'Complete safeguarding signatures are structural only, never a real release approval');
+
     $expect($preflight['personalRowsRead']===false &&
         $preflight['realProductionCertified']===false &&
         $preflight['operationalWriteApproved']===false,
@@ -149,5 +168,6 @@ try {
     echo "Bertina MySQL ephemeral guardian and consent: ".$checks." checks passed\n";
 } finally {
     if($pdo->inTransaction())$pdo->rollBack();
+    $pdo->exec('DROP TEMPORARY TABLE IF EXISTS eco_subject_age_attestations');
     foreach (array_keys($tables) as $name) $pdo->exec('DROP TEMPORARY TABLE IF EXISTS '.$name);
 }
