@@ -15,11 +15,13 @@ require_once __DIR__.'/../api/commerce-stage9.php';
 require_once __DIR__.'/../api/consultation-delivery.php';
 require_once __DIR__.'/../api/consultation-availability.php';
 require_once __DIR__.'/../api/operations-fulfilment.php';
+require_once __DIR__.'/../api/operations-service-delivery.php';
 require_once __DIR__.'/../api/operations-commerce.php';
 // Catalogue stub is restricted to the one fictitious service used by this CI fixture.
 function localCatalog(): array {
     return ['service:academic_consult_60'=>['kind'=>'service','price'=>1000000]];
 }
+function cfg(): array { return ['auth_pepper'=>str_repeat('fixture-strong-pepper-',3)]; }
 function validUuid(string $v): bool {
     return preg_match('/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i',$v)===1;
 }
@@ -44,6 +46,7 @@ $pdo->exec(file_get_contents(__DIR__.'/../docs/BERTINA_MYSQL_SCHEMA.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261012_stage09_commerce.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_preferences.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_availability.sql'));
+$pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261016_owner_attested_service_delivery.sql'));
 if(!operationsConsultationAvailabilitySchemaReady($pdo))
     throw new RuntimeException('fixture_availability_schema_not_ready');
 if(!commerceConsultationPreferenceSchemaReady($pdo))
@@ -264,6 +267,54 @@ refused(fn()=>operationsConsultationAvailabilityChange($pdo,$actor,[
   'action'=>'close','windowId'=>'11111111-1111-4111-8111-111111111195',
   'startUtc'=>null,'endUtc'=>null
 ]),DomainException::class,'owner_cannot_close_window_containing_confirmed_booking');
+
+// Additive, isolated source-integration exercise: owner attestation and
+// matching provider claim, never a real gateway transaction or delivery.
+checkService(operationsServiceDeliveryEvidenceReady($pdo),
+ 'owner_evidence_schema_innodb_ready');
+$attestation=[
+ 'orderId'=>$orderId,'sku'=>$sku,'expectedState'=>'in_progress',
+ 'evidenceKind'=>'document_handed_over',
+ 'evidenceReference'=>'EDITORIAL-TEST-0001','ownerConfirmed'=>true
+];
+refused(fn()=>operationsCommerceRecordDelivery($pdo,$actor,$attestation),
+ DomainException::class,'booked_future_service_cannot_pretend_delivered');
+refused(fn()=>operationsCommerceRecordDelivery($pdo,$actor,
+ array_merge($attestation,['ownerConfirmed'=>false])),
+ InvalidArgumentException::class,'no_owner_attestation_denied');
+refused(fn()=>operationsCommerceRecordDelivery($pdo,$actor,
+ array_merge($attestation,['evidenceReference'=>'abc'])),
+ InvalidArgumentException::class,'evidence_reference_must_be_traceable');
+$documentOrder='11111111-1111-4111-8111-111111111196';
+$orders->execute([$documentOrder,'test-document-delivery',$items]);
+$pdo->prepare("UPDATE commerce_orders SET provider_trans_id='77779' WHERE id=?")
+ ->execute([$documentOrder]);
+$pdo->prepare("INSERT INTO commerce_payment_claims
+  (provider,transaction_id,order_id,verified_amount)
+  VALUES('bitpay','77779',?,10000000)")->execute([$documentOrder]);
+$pdo->prepare("INSERT INTO commerce_service_cases(order_id,sku,status)
+ VALUES(?,?,'in_progress')")->execute([$documentOrder,$sku]);
+$validDocument=array_merge($attestation,['orderId'=>$documentOrder]);
+$complete=operationsCommerceRecordDelivery($pdo,$actor,$validDocument);
+checkService(($complete['state']??'')==='delivered'
+ &&$complete['deliveryRecordedByOwner']===true
+ &&$complete['customerNotified']===false
+ &&$complete['providerBankSettlementVerified']===null,
+ 'verified_owner_can_record_actual_evidenced_document_handover');
+$evidence=$pdo->query("SELECT evidence_kind,evidence_reference_hmac,owner_account_id
+ FROM commerce_service_delivery_evidence WHERE order_id='".$documentOrder."'")->fetch();
+checkService(is_array($evidence)
+ &&$evidence['owner_account_id']===$actor
+ &&$evidence['evidence_kind']==='document_handed_over'
+ &&preg_match('/^[a-f0-9]{64}$/D',$evidence['evidence_reference_hmac'])===1
+ &&$evidence['evidence_reference_hmac']!==$validDocument['evidenceReference'],
+ 'raw_evidence_reference_never_stored');
+$state=$pdo->query("SELECT status,delivered_at FROM commerce_service_cases WHERE order_id='"
+ .$documentOrder."'")->fetch();
+checkService($state['status']==='delivered'&&!empty($state['delivered_at']),
+ 'customer_fulfilment_projection_sees_owner_attested_delivery');
+refused(fn()=>operationsCommerceRecordDelivery($pdo,$actor,$validDocument),
+ DomainException::class,'delivery_replay_cannot_change_completed_case');
 
 $pdo->exec('DROP TEMPORARY TABLE operations_audit');
 echo "Service advance MySQL fixture: no real money, appointments, email or entitlement granted.\n";
