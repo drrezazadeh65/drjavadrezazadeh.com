@@ -118,3 +118,20 @@ The canonical `migration/bertina-linux6` branch changed concurrently during this
 
 
 **PWA duplicate-loader correction:** `dfd54b87` adds a document-scoped initialization guard to the existing mobile shell, because legacy book routes include the shell directly as well as via `site-extras.js`. `a8ded372` adds an actual Chromium re-injection test to ensure no duplicated or replaced bottom dock, menu or install control. This is `SOURCE_TESTED` only until the exact-SHA Browser QA job completes successfully. No live deployment or native OS-install proof is claimed.
+
+## Figma editable master-storefront checkpoint — 16 October 2026
+
+The previously empty Figma Design file [JR Ecosystem — Premium Bookstore, Mobile PWA & Unified Design System](https://www.figma.com/design/MM2wC6wDAG9YGJSwgjAFMw) is now **populated with editable Figma-native layers**. This corrects the earlier explicit finding that only an empty file existed. The Canva baseline [DAHYLI4vvKc](https://www.canva.com/d/dwOiA4aTJTiL-8I) remains separate and was not misrepresented as the production page.
+
+Figma Design file key: `MM2wC6wDAG9YGJSwgjAFMw`.
+- Brand variable collection `JR Brand | Storefront 2026`: six master colors (Background, Surface, Gold, Antique Gold, Ivory, Muted), obtained from the owner's approved master palette. The earlier `identity/tokens.css` records an alternate OS foundation; do not silently replace that CSS or the frozen production design identity with Figma variables.
+- Editable screen `3:9`: English 1440px institutional bookstore desktop view: branded navigation, editorial hero, verified title presentation, a three-book catalogue, educational-support language, and public `v5.1.0` footer. It contains 74 native Figma child/nested nodes, rather than a flattened screenshot.
+- Editable screen `3:10`: Persian 390px mobile bookstore with brand hero, three catalogue cards, price and unverified-metadata disclosure, educational support, six-position bottom navigation including PWA install action, and public release number. It contains 79 native Figma child/nested nodes rather than one raster mockup.
+- Correct product identities: سپیدی / تاریکی / بن‌بست, and the currently confirmed storefront listing of 2,000,000 toman per print title. **No publisher, ISBN, publication year or edition was invented.**
+- **Important design gap**: explicit neutral book/hero image slots remain. The approved photographic hero and authentic cover assets are implemented in the repository's website but were not yet transferred as image fills into Figma. The external Figma live-capture flow could not be completed without a supported browser capture session. Therefore this is an **editable first-pass layout**, not yet a final art-complete Figma sign-off and not a substitute for the production CSS.
+
+Recent Chromium storefront/browser evidence: [Navigation QA 38913116270](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38913116270) completed **40/40 tests**, including mobile install state, authentic covers on the actual local website, distinct bilingual visual hierarchy and public version UI, on commit `5554ad83`. Separate independent on-device Android/iOS and on-server Bertina verification remains required.
+
+Current evidence grades: `SOURCE_TESTED` for mobile storefront and editable Figma layout; `HOST_UNVERIFIED` for the updated production website/PWA, Figma image fidelity and independent paid-order journey; `REQUIRES_OWNER_INPUT` for the three book imprint records; `BLOCKED_BY_CONFIGURATION` for newsletter real SMTP delivery, USDT settlement, and OJS submission where previously documented gates have not changed.
+
+No production database migration, money movement, or Bertina publish was performed by the Figma work.
