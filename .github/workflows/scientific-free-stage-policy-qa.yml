@@ -38,6 +38,8 @@ on:
       - "platform/bertina-free-stage-authorisation.php"
       - "platform/bertina-age-attestation-reader.php"
       - "platform/bertina-minor-assent-reader.php"
+      - "platform/bertina-free-stage-trusted-reader.php"
+      - "tests/bertina-trusted-free-stage-reader-mysql.php"
       - "database/unified/006a_age_attestation_PROPOSAL_NOT_APPLIED.sql"
       - "tests/bertina-age-attestation-mysql.php"
       - "platform/bertina-dashboard-projections.php"
@@ -83,6 +85,8 @@ on:
       - "platform/bertina-free-stage-authorisation.php"
       - "platform/bertina-age-attestation-reader.php"
       - "platform/bertina-minor-assent-reader.php"
+      - "platform/bertina-free-stage-trusted-reader.php"
+      - "tests/bertina-trusted-free-stage-reader-mysql.php"
       - "database/unified/006a_age_attestation_PROPOSAL_NOT_APPLIED.sql"
       - "tests/bertina-age-attestation-mysql.php"
       - "platform/bertina-dashboard-projections.php"
@@ -127,6 +131,7 @@ jobs:
           php -l platform/bertina-free-stage-authorisation.php
           php -l platform/bertina-age-attestation-reader.php
           php -l platform/bertina-minor-assent-reader.php
+          php -l platform/bertina-free-stage-trusted-reader.php
           php -l tests/bertina-free-stage-authorisation.php
           php -l platform/bertina-dashboard-projections.php
           php -l platform/bertina-scientific-schema-readiness.php
@@ -179,6 +184,8 @@ jobs:
           SCIENTIFIC_WITHDRAWAL_CONCURRENCY_FIXTURE=1 php tests/bertina-consent-withdrawal-concurrency-mysql.php
           php -l tests/bertina-age-attestation-mysql.php
           SCIENTIFIC_AGE_FIXTURE_ENABLED=1 php tests/bertina-age-attestation-mysql.php
+          php -l tests/bertina-trusted-free-stage-reader-mysql.php
+          SCIENTIFIC_TRUSTED_READER_FIXTURE=1 php tests/bertina-trusted-free-stage-reader-mysql.php
 
   mariadb-fixture:
     name: Isolated MariaDB 10.11 guardian and consent compatibility
@@ -221,6 +228,8 @@ jobs:
           SCIENTIFIC_WITHDRAWAL_CONCURRENCY_FIXTURE=1 php tests/bertina-consent-withdrawal-concurrency-mysql.php
           php -l tests/bertina-age-attestation-mysql.php
           SCIENTIFIC_AGE_FIXTURE_ENABLED=1 php tests/bertina-age-attestation-mysql.php
+          php -l tests/bertina-trusted-free-stage-reader-mysql.php
+          SCIENTIFIC_TRUSTED_READER_FIXTURE=1 php tests/bertina-trusted-free-stage-reader-mysql.php
 
   assembly-check:
     name: Sanitized Bertina release includes canonical consent library
