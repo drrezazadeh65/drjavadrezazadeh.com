@@ -70,12 +70,88 @@ if(links.length>=13&&new Set(links).size===links.length){
   }));
  }
 }
+
+// Additional P0 host observations are deliberately NON-GATING for the older
+// 17-check public release acceptance. A public GET cannot prove real SMTP
+// delivery, a private user journey, settlement, OJS security or DB restoration.
+const operationalGates=[];
+async function observeHostGate(name,task){
+  try{
+    const result=await task();
+    operationalGates.push({name,...result});
+    console.log('OBSERVE '+name+' '+result.status);
+  }catch(_){
+    operationalGates.push({name,status:'HOST_UNVERIFIED',reason:'trusted_public_read_unavailable'});
+    console.log('UNVERIFIED '+name);
+  }
+}
+async function getPublicJson(path){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),12000);
+  try{
+    const response=await fetch(ORIGIN+path,{method:'GET',redirect:'manual',
+      headers:{Accept:'application/json'},signal:controller.signal});
+    if(response.status!==200)return {httpStatus:response.status,body:null};
+    const body=await response.json();
+    if(!body||typeof body!=='object'||Array.isArray(body))
+      throw new Error('invalid_public_json');
+    return {httpStatus:200,body};
+  }finally{clearTimeout(timer);}
+}
+await observeHostGate('ramzinex-public-indicative-rate',async()=>{
+  const r=await getPublicJson('/api/rates/usdt-irt');
+  if(r.httpStatus!==200)return {status:r.httpStatus===503?'BLOCKED_BY_CONFIGURATION':'HOST_UNVERIFIED',
+    httpStatus:r.httpStatus,paymentQuoteVerified:false};
+  const p=r.body;
+  if(p?.ok!==true||p.schema!=='ramzinex-usdt-irr-indicative-v1'||
+     p.rate?.pairId!==11||p.rate?.base!=='USDT'||p.rate?.quote!=='IRR'||
+     p.rate?.indicativeOnly!==true||p.rate?.paymentQuote!==false||
+     !Number.isFinite(p.rate?.buyToman)||!Number.isFinite(p.rate?.sellToman))
+    return {status:'FAILED',httpStatus:200,reason:'unexpected_public_rate_contract',
+      paymentQuoteVerified:false};
+  return {status:'LIVE_VERIFIED',httpStatus:200,indicativeRateOnly:true,
+    paymentQuoteVerified:false,observedAt:p.rate.receivedAt||null};
+});
+await observeHostGate('newsletter-consent-schema-not-delivery',async()=>{
+  const r=await getPublicJson('/api/newsletter/health');
+  if(r.httpStatus!==200||r.body?.schema!=='newsletter-preferences-v1')
+    return {status:'HOST_UNVERIFIED',httpStatus:r.httpStatus,
+      actualInboxDeliveryVerified:false};
+  return {status:r.body.ready===true?'LIVE_VERIFIED':'BLOCKED_BY_CONFIGURATION',
+    httpStatus:200,preferenceSchemaReady:r.body.ready===true,
+    actualInboxDeliveryVerified:false,subscriptionMailWorkerVerified:false};
+});
+await observeHostGate('jhela-founding-intake-readiness',async()=>{
+  const r=await getPublicJson('/api/journal/intake/health');
+  if(r.httpStatus!==200||r.body?.schema!=='jhela-public-intake-readiness-v1')
+    return {status:'HOST_UNVERIFIED',httpStatus:r.httpStatus,realSubmissionVerified:false};
+  const b=r.body;
+  return {status:b.manuscriptIntake===true&&b.reviewerIntake===true?
+      'HOST_UNVERIFIED':'BLOCKED_BY_CONFIGURATION',
+    httpStatus:200,authorProfileReady:b.profile===true,
+    manuscriptIntakeConfigured:b.manuscriptIntake===true,
+    reviewerIntakeConfigured:b.reviewerIntake===true,
+    ojsReviewConnected:b.ojsFormalPeerReviewConnected===true,
+    realSubmissionVerified:false};
+});
+await observeHostGate('jhela-ojs-subdomain-tls',async()=>{
+  // Fetch checks CA-trusted TLS. Never follow redirects or expose installer HTML.
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),12000);
+  try{
+    const response=await fetch('https://journal.drjavadrezazadeh.com/',{
+      method:'GET',redirect:'manual',signal:controller.signal});
+    return {status:'HOST_UNVERIFIED',httpStatus:response.status,
+      trustedTlsHandshake:true,installedOjsOrPrivateUploadsVerified:false};
+  }finally{clearTimeout(timer);}
+});
+
 const evidence={
- schema:'bertina-postrelease-acceptance-v1',checkedAt:new Date().toISOString(),
+ schema:'bertina-postrelease-acceptance-v2',checkedAt:new Date().toISOString(),
  origin:ORIGIN,expectedReleaseSha:expected||null,observedReleaseSha:observed,
  readOnly:true,authenticatedRequests:false,realMoneyActions:false,
- passed:failures===0,checks,
- limitation:'Anonymous HTTPS source/live observations, not proof of email inbox delivery, independent backup restore, real order, stock, BitPay settlement or protected admin login.'
+ passed:failures===0,checks,operationalGates,
+ limitation:'Anonymous HTTPS source/live observations, not proof of email inbox delivery, independent backup restore, real order, stock, BitPay settlement or protected admin login; operationalGates are public-only observations.'
 };
 fs.writeFileSync(output,JSON.stringify(evidence,null,2)+'\n',{mode:0o600});
 console.log('Read-only operational acceptance: '+(failures===0?'PASS':'FAIL')+'; '+checks.length+' checks.');
