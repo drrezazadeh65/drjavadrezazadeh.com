@@ -154,3 +154,17 @@ Test coverage: `tests/jhela-operations-snapshot.php`, `tests/jhela-maturity-api.
 The full operational guide is `docs/journal/JHELA_OWNER_MATURITY_DASHBOARD_RUNBOOK_20261016.md`. Scientific stages remain evidence-unverified, actual submitted/reviewed manuscripts are unknown rather than zero, and the intended five-gigabyte host expansion is not recorded as installed. A future verified private-OJS adapter and independently governed evidence vault must be built before any real journal metric or indexing award can appear.
 
 **Release note:** source `assets/js/site.js` exceeded its strict 25 KiB limit by 170 bytes; redundant JavaScript indentation and one explanatory comment were removed without intentional behavioural change (214-byte reduction), allowing the size guard to be re-evaluated. This change does not waive browser regression or other main-site release gates; unrelated bookstore tests still require independent attention. Formal OJS submissions and payments remain closed.
+
+
+## 16. Native OJS 3.5 metadata quality, ORCID, ROR and Crossref publication gates
+
+The **16 October 2026 JHELA article-level metadata quality contract** adds a systematic, privacy-preserving preparation layer to the existing scientific/operational master:
+- `platform/jhela-article-metadata-quality-policy-v1.json` — English scholarly metadata and article-type standards, ethical and funding declarations, rights and licence signoff, consented public bibliographic authors/affiliations, blind-review privacy and historical dates.
+- `scripts/jhela-article-metadata-audit.mjs` — offline-only article quality validation, ORCID MOD 11-2 checksum, ROR identifier format, DOI syntax, anonymous review privacy checks and a strict separation between content QA and actual OJS acceptance, Crossref DOI registration or journal indexing.
+- `tests/jhela-article-metadata.test.mjs` — eight synthetic positive/negative tests, never using real research participants, private reviewers or journal credentials.
+- `docs/journal/JHELA_OJS_METADATA_PRODUCTION_QA_20261016.md` — operating procedure for native OJS editorial workflow, article identity, Crossref Manager, DOI registration status, ORCID/ROR, peer review, copyediting, proof, licence, preservation and re-deposit.
+- `.github/workflows/jhela-ojs-readiness.yml` — source-quality tests on push and PR, with no automated deployment or activation.
+
+A successful metadata lint **never means** that the article has been accepted by reviewers, that the DOI resolves or has been registered, that the journal has an ISSN, or that Scopus/DOAJ/Web of Science has indexed it. Author and reviewer accounts, OJS database, secure files and DOI issuance remain closed or unverified until independently witnessed runtime tests and lawful publisher verification.
+
+**Official, current technical references:** [Crossref OJS 3.5 guidance, last updated September 2026](https://www.crossref.org/documentation/register-maintain-records/ojs-plugin/ojs-3.5/); [PKP editorial peer-review workflow](https://github.com/pkp/pkp-docs/blob/main/learning-ojs/editorial-workflow/en/review.md); [PKP journal publication guide](https://github.com/pkp/pkp-docs/blob/main/learning-ojs/editorial-workflow/en/publication.md).
