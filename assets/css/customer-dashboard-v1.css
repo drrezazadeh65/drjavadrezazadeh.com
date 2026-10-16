@@ -1007,3 +1007,22 @@ body.customer-dashboard:not(.rtl) :is(button,input,select,textarea){font-family:
 .jr-payment-receipt-brand .jr-payment-receipt-wordmark{width:min(48vw,220px);max-width:220px;height:auto;max-height:76px;object-fit:contain}
 @media(max-width:540px){.jr-payment-receipt-brand .jr-payment-receipt-symbol{width:46px;height:46px}.jr-payment-receipt-brand .jr-payment-receipt-wordmark{width:min(60vw,190px)}}
 @media print{body.jr-receipt-print-mode .jr-payment-receipt-identity{break-inside:avoid!important}body.jr-receipt-print-mode .jr-payment-receipt-brand .jr-payment-receipt-symbol{width:19mm!important;height:19mm!important}body.jr-receipt-print-mode .jr-payment-receipt-brand .jr-payment-receipt-wordmark{width:58mm!important;max-width:58mm!important}}
+
+/* JR keyboard-accessible account rail v1 (desktop): the final account and
+   privacy navigation item must never be covered by the pinned sign-out card.
+   Keep nav scrolling independent of the rail footer at short viewport heights. */
+@media(min-width:921px){
+ .cd-rail{display:flex;flex-direction:column;overflow:hidden}
+ .cd-rail .cd-brand{flex:0 0 auto}
+ .cd-rail .cd-nav{
+  flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior-y:contain;scrollbar-width:thin;align-content:start;
+  grid-auto-rows:max-content;padding:15px 3px 18px;
+ }
+ .cd-rail .cd-nav a{flex-shrink:0}
+ .cd-rail .cd-rail-foot{
+  position:static;flex:0 0 auto;margin-top:auto;padding-top:12px;
+  border-top:1px solid var(--cd-line);
+ }
+ .cd-rail .cd-nav a:focus-visible{outline-offset:-2px}
+}
