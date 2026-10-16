@@ -69,10 +69,7 @@ function jrNewsletterOptoutApply(PDO $pdo,string $accountId,string $locale): int
         }
         // Existing mother queue, never a parallel subscriber list.
         // Do not suppress password reset, account, order or other service mail.
-        $s=$pdo->prepare("UPDATE eco_notifications SET delivery_state='SUPPRESSED'
-          WHERE recipient_account_id=? AND channel_code='EMAIL'
-          AND purpose_code IN ($placeholders) AND delivery_state='PENDING'");
-        $s->execute(array_merge([$accountId],$topics));
+        jrNewsletterSuppressPending($pdo,$accountId,$topics);
         $pdo->commit();
         return count($active);
     }catch(Throwable $e){
