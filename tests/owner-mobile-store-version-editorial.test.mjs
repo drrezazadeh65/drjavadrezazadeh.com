@@ -85,9 +85,9 @@ test('institutional biography and academic pages use editorial third person',()=
 test('three photographed book imprints have valid, unique ISBN-13 and genuine first printing data',()=>{
  const books=JSON.parse(source('platform/book-catalog.json')).books;
  const verified=new Map([
-  ['roshanaei',{isbn:'9786229465141',year:1404}],
-  ['tariki',{isbn:'9786229636275',year:1404}],
-  ['bonbast',{isbn:'9786229636237',year:1399}]
+  ['roshanaei',{isbn:'9786229465141',year:1404,printing:1404}],
+  ['tariki',{isbn:'9786229636275',year:1401,printing:1404}],
+  ['bonbast',{isbn:'9786229636237',year:1399,printing:1399}]
  ]);
  assert.equal(books.length,verified.size);
  for(const book of books){
@@ -97,6 +97,7 @@ test('three photographed book imprints have valid, unique ISBN-13 and genuine fi
   assert.equal(book.bibliography.publisher,'نشر دارما');
   assert.equal(book.bibliography.isbn,expected.isbn);
   assert.equal(book.bibliography.publication_year,expected.year);
+  assert.equal(book.bibliography.printing_year,expected.printing,'CIP publication year can differ from actual first printing');
   assert.equal(book.bibliography.publication_calendar,'Solar Hijri');
   assert.equal(book.bibliography.edition,'چاپ اول');
   assert.equal(book.bibliography.print_run,200);
