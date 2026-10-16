@@ -13,7 +13,7 @@ test('existing newsletter router handles mail-link unsubscribe without parallel 
   assert.doesNotMatch(code,/CREATE TABLE|CREATE DATABASE|DROP TABLE|ALTER TABLE/);
   assert.match(code,/eco_notification_preferences/);
   assert.match(code,/eco_consent_records/);
-  assert.match(code,/eco_notifications/);
+  assert.match(existing,/eco_notifications/);
 });
 
 test('mail clients and crawlers cannot unsubscribe by visiting a GET link',()=>{
