@@ -6,6 +6,7 @@ declare(strict_types=1);
  */
 require_once __DIR__.'/../platform/bertina-free-stage-authorisation.php';
 require_once __DIR__.'/../platform/bertina-scientific-schema-readiness.php';
+require_once __DIR__.'/../platform/bertina-minor-assent-reader.php';
 $dsn=(string)(getenv('OPERATIONS_TEST_DSN') ?: '');
 if ($dsn !== 'mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4') {
     fwrite(STDERR,"Refusing to connect outside isolated loopback operations_fixture\n");
@@ -43,29 +44,8 @@ $context=static function(string $actor,string $subject,string $module,string $st
         verified_by_account_id,expires_at
         FROM eco_subject_relationships WHERE subject_id=? AND related_account_id=?');
     $r->execute([$subject,$actor]);
-    $minorAssent=null;
-    if(($age['classification']??null)==='MINOR'){
-        $proof=$pdo->prepare('SELECT id,subject_id,guardian_account_id,notice_version,
-            notice_sha256,decision,verification_status,source_code,reviewer_account_id,
-            assented_at,expires_at,withdrawn_at
-            FROM eco_minor_assent_records
-            WHERE subject_id=? AND guardian_account_id=?
-            ORDER BY assented_at DESC LIMIT 1');
-        $proof->execute([$subject,$actor]);
-        $row=$proof->fetch();
-        if(is_array($row)&&($row['verification_status']??null)==='VERIFIED'&&
-           ($row['source_code']??null)==='REVIEWED_ASSENT' &&
-           is_string($row['reviewer_account_id']??null) &&
-           trim($row['reviewer_account_id'])!=='')
-            $minorAssent=[
-                'record_source'=>'TRUSTED_ASSENT_RECORD','state'=>'VERIFIED',
-                'decision'=>$row['decision'],'subject_id'=>$row['subject_id'],
-                'guardian_account_id'=>$row['guardian_account_id'],
-                'reference'=>$row['id'],'notice_version'=>$row['notice_version'],
-                'notice_sha256'=>$row['notice_sha256'],'assented_at'=>$row['assented_at'],
-                'expires_at'=>$row['expires_at'],'withdrawn_at'=>$row['withdrawn_at']
-            ];
-    }
+    $minorAssent=(($age['classification']??null)==='MINOR')
+        ? bertinaVerifiedMinorAssent($pdo,$subject,$actor,$now) : null;
     $c=$pdo->prepare("SELECT c.id,c.account_id,c.subject_id,c.notice_id,c.decision,
         c.granted_at,c.withdrawn_at,n.purpose_code,n.version_label,n.locale,
         n.notice_sha256,n.effective_at,n.retired_at
@@ -84,6 +64,7 @@ $context=static function(string $actor,string $subject,string $module,string $st
 };
 $gate=static fn(array $ctx): bool => bertinaAuthoriseFreeStage($ctx)['allowed']===true;
 try {
+    $pdo->beginTransaction();
     $preflight=bertinaScientificSchemaContract($pdo);
     $expect($preflight['modules']['consent_guardian']['columnProjectionReady']===true,
         'actual SQL temporary-table core columns match read-only contract');
@@ -139,6 +120,24 @@ try {
         'expired assent blocks free RCAS stage');
     $pdo->exec("UPDATE eco_minor_assent_records SET expires_at='2026-12-01 09:00:00'
        WHERE id='assent1'");
+
+    $pdo->exec("INSERT INTO eco_minor_assent_records VALUES
+       ('assent-declined','child','parent','assent-v1',REPEAT('c',64),
+        'DECLINED','VERIFIED','REVIEWED_ASSENT','independent-reviewer',
+        '2026-10-15 11:00:00','2026-12-02 09:00:00',NULL)");
+    $expect(!$gate($context('parent','child','BAHAR','STARTER_PLAN',$minor)),
+        'latest learner decline overrides older assent');
+    $pdo->exec("DELETE FROM eco_minor_assent_records WHERE id='assent-declined'");
+    $pdo->exec("INSERT INTO eco_minor_assent_records VALUES
+       ('assent-tie','child','parent','assent-v1',REPEAT('c',64),
+        'ASSENTED','VERIFIED','REVIEWED_ASSENT','independent-reviewer',
+        '2026-10-12 09:00:00','2026-12-01 09:00:00',NULL)");
+    $expect(!$gate($context('parent','child','RCAS','CONTEXT_REFLECTION',$minor)),
+        'simultaneous contradictory assent records fail closed');
+    $pdo->exec("DELETE FROM eco_minor_assent_records WHERE id='assent-tie'");
+    $expect($gate($context('parent','child','BAHAR','STARTER_PLAN',$minor)),
+        'single current independently witnessed assent restored');
+
     $pdo->exec("UPDATE eco_subject_relationships SET expires_at='2026-10-15 00:00:00' WHERE id='relation'");
     $expect(!$gate($context('parent','child','BAHAR','STARTER_PLAN',$minor)),'expired guardian');
     $pdo->exec("UPDATE eco_subject_relationships SET expires_at=NULL,verification_status='PENDING' WHERE id='relation'");
@@ -149,5 +148,6 @@ try {
     $expect(!$gate($context('parent','child','BAHAR','STARTER_PLAN',$minor)),'retired assessment notice');
     echo "Bertina MySQL ephemeral guardian and consent: ".$checks." checks passed\n";
 } finally {
+    if($pdo->inTransaction())$pdo->rollBack();
     foreach (array_keys($tables) as $name) $pdo->exec('DROP TEMPORARY TABLE IF EXISTS '.$name);
 }
