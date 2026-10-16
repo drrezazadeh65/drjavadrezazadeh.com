@@ -12,6 +12,7 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - 'scripts/bertina-postrelease-check.mjs'
+      - 'docs/governance/CONTROLLED_DEPLOY_HANDOFF_20261016.md'
       - '.github/workflows/bertina-postrelease-acceptance.yml'
 
 permissions:
