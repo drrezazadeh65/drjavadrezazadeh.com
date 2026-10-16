@@ -15,6 +15,109 @@ function showInfo(message,login){
     a.href=isEn?'/en/login/':'/fa/login/';wrapper.append(a);}
   section.append(wrapper);
 }
+function serviceIntakeEditor(order,service){
+ const disclosure=el('details');disclosure.className='service-intake-editor';
+ disclosure.style.cssText='margin-top:13px;padding:12px;border:1px solid rgba(212,175,55,.35);border-radius:12px;max-width:100%';
+ disclosure.append(el('summary',tr('ثبت یا اصلاح شرح محرمانه خدمت','Submit or revise your private service brief')));
+ const region=el('div');region.setAttribute('aria-live','polite');disclosure.append(region);
+ let revision=0,loaded=false,loading=false;
+ const field=(label,tag,min,max,rows)=>{
+  const wrap=el('label',label);wrap.style.cssText='display:grid;gap:7px;margin:12px 0';
+  const input=document.createElement(tag);input.required=true;
+  input.minLength=min;input.maxLength=max;
+  input.style.cssText='width:100%;min-height:45px;padding:10px;border-radius:8px;font:inherit;background:#141414;color:#f8f5e9;border:1px solid #b6a16a;box-sizing:border-box';
+  if(rows)input.rows=rows;
+  wrap.append(input);return {wrap,input};
+ };
+ const form=el('form');form.style.cssText='display:grid;gap:9px;margin-top:13px';
+ const subject=field(tr('موضوع سفارش و مسئله اصلی','Service topic and main question'),'input',8,180);
+ const background=field(tr('زمینه، وضعیت موجود و شواهد مرتبط','Background, current situation and relevant evidence'),'textarea',20,3500,5);
+ const objectives=field(tr('هدف دقیق و خروجی مورد انتظار','Specific objectives and expected deliverable'),'textarea',20,3000,4);
+ form.append(subject.wrap,background.wrap,objectives.wrap);
+ const minor=el('label');minor.style.cssText='display:flex;align-items:center;gap:9px;margin-top:8px';
+ const minorCheck=document.createElement('input');minorCheck.type='checkbox';
+ minor.append(minorCheck,el('span',tr('این درخواست درباره فرد زیر ۱۸ سال است.','The service concerns someone under 18.')));
+ const guardian=el('label');guardian.style.cssText='display:flex;align-items:center;gap:9px';
+ const guardianCheck=document.createElement('input');guardianCheck.type='checkbox';
+ guardian.append(guardianCheck,el('span',tr('ولی یا سرپرست قانونی هستم و مسئولیت ثبت این درخواست را می‌پذیرم.','I am the parent or legal guardian authorised to make this request.')));
+ guardian.hidden=true;
+ minorCheck.addEventListener('change',()=>{guardian.hidden=!minorCheck.checked;
+   guardianCheck.required=minorCheck.checked;if(!minorCheck.checked)guardianCheck.checked=false;});
+ const consent=el('label');consent.style.cssText='display:flex;align-items:start;gap:9px;margin-top:8px';
+ const consentCheck=document.createElement('input');consentCheck.type='checkbox';consentCheck.required=true;
+ consent.append(consentCheck,el('span',tr(
+  'با استفاده محرمانه از این توضیحات صرفاً برای بررسی و اجرای خدمت خریداری‌شده موافقم. نام، رمز عبور یا مدارک محرمانه را اینجا وارد نمی‌کنم.',
+  'I agree to the private use of this brief solely to coordinate the purchased service. I will not enter passwords, personal identity documents or sensitive files here.'
+ )));
+ const note=el('p',tr(
+  'این فرم فقط متن را به‌صورت رمزنگاری‌شده ثبت می‌کند؛ بارگذاری مدارک از این بخش انجام نمی‌شود. تأیید سرپرستی توسط این گزینه به‌تنهایی احراز هویت مستقل نیست.',
+  'This form stores encrypted text only, not documents. Checking guardian consent is not independent verification of guardianship.'
+ ),'ops-muted');
+ const save=el('button',tr('ذخیره محرمانه شرح خدمت','Save encrypted service brief'),'button');
+ save.type='submit';
+ const result=el('p');result.setAttribute('role','status');
+ form.append(minor,guardian,consent,note,save,result);
+ region.append(form);
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();if(!loaded||loading||!form.reportValidity())return;
+  if(minorCheck.checked&&!guardianCheck.checked)return;
+  if(!window.confirm(tr(
+   'شرح خدمت فقط در پرونده سفارش خودتان ذخیره شود؟ این کار به معنای تحویل یا شروع خودکار خدمت نیست.',
+   'Save this brief in your private order? It does not start or certify fulfilment automatically.'
+  )))return;
+  loading=true;save.disabled=true;result.textContent=tr('در حال ذخیره امن…','Encrypting and saving your brief…');
+  try{
+   const payload={orderId:order.id,sku:service.sku,expectedRevision:revision,
+    subject:subject.input.value.trim(),background:background.input.value.trim(),
+    objectives:objectives.input.value.trim(),isMinor:minorCheck.checked,
+    guardianAcknowledged:guardianCheck.checked,privacyAcknowledged:consentCheck.checked};
+   const response=await fetch('/api/commerce/service-intake',{
+    method:'POST',credentials:'same-origin',cache:'no-store',
+    headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body:JSON.stringify(payload)});
+   const data=await response.json();
+   if(!response.ok||data?.ok!==true||data.schema!=='private-service-intake-v1'
+      ||data.saved!==true||!Number.isSafeInteger(data.revision))throw Error('not_saved');
+   revision=data.revision;consentCheck.checked=false;
+   result.textContent=tr('شرح خدمت با موفقیت و به‌صورت محرمانه ثبت شد. نسخه: ','Encrypted brief saved. Revision: ')+revision;
+  }catch(_){
+   result.textContent=tr('ذخیره تأیید نشد؛ برای جلوگیری از بازنویسی اطلاعات، ابتدا فرم را ببندید و دوباره بارگذاری کنید.',
+    'Save not confirmed. To avoid overwriting recent updates, close and reopen this form to refresh.');
+   loaded=false;
+  }finally{loading=false;save.disabled=false;}
+ });
+ disclosure.addEventListener('toggle',async()=>{
+  if(!disclosure.open||loaded||loading)return;
+  loading=true;save.disabled=true;
+  result.textContent=tr('در حال دریافت محرمانه اطلاعات سفارش…','Loading your private service brief…');
+  try{
+   const response=await fetch('/api/commerce/service-intake?order='+encodeURIComponent(order.id)
+     +'&sku='+encodeURIComponent(service.sku),{
+      method:'GET',credentials:'same-origin',cache:'no-store',
+      headers:{Accept:'application/json'}});
+   if(!response.ok)throw Error('intake_unavailable');
+   const data=await response.json();
+   if(data?.ok!==true||data.schema!=='private-service-intake-v1'
+      ||!Number.isSafeInteger(data.revision))throw Error('intake_invalid');
+   revision=data.revision;
+   if(data.intake){
+    subject.input.value=String(data.intake.subject||'');
+    background.input.value=String(data.intake.background||'');
+    objectives.input.value=String(data.intake.objectives||'');
+    minorCheck.checked=data.intake.isMinor===true;
+    guardianCheck.checked=data.guardianAcknowledged===true;
+    guardian.hidden=!minorCheck.checked;guardianCheck.required=minorCheck.checked;
+   }
+   loaded=true;result.textContent=revision>0?
+     tr('نسخه پیشین بازیابی شد؛ اصلاحات پس از ذخیره ثبت می‌شوند.','Previously saved version loaded; edits require saving.'):
+     tr('هنوز شرحی ثبت نشده است.','No private brief has been recorded yet.');
+  }catch(_){result.textContent=tr(
+    'دسترسی به فرم محرمانه تأیید نشد. ورود به حساب، پرداخت تأییدشده و فعال‌بودن پایگاه داده را بررسی کنید.',
+    'The private form is unavailable. Check verified sign-in, payment evidence and service storage readiness.');}
+  finally{loading=false;save.disabled=!loaded;}
+ });
+ return disclosure;
+}
 function render(orders){
   section.replaceChildren();
   if(!orders.length){showInfo(tr('هنوز سفارشی برای ایمیل تأییدشدهٔ این حساب ثبت نشده است. سفارش مهمان تنها پس از تأیید مالکیت ایمیل با حساب ارتباط می‌یابد.','No orders were found for this account’s verified email. Guest orders appear only after email ownership is verified.'),false);return;}
@@ -67,6 +170,9 @@ function render(orders){
               for(const c of data.serviceCases){
                 const line=el('li',c.sku+' — '+(statuses[c.status]||tr('نیازمند بررسی','Review needed')));
                 if(c.bookingStart)line.append(el('small',' · '+tr('زمان ثبت‌شده: ','Recorded slot: ')+c.bookingStart));
+                if(typeof c.sku==='string'&&/^(?:service|vip):[a-z0-9_-]{1,60}$/.test(c.sku)
+                  &&!['delivered','cancelled'].includes(c.status))
+                  line.append(serviceIntakeEditor(order,c));
                 list.append(line);
               }
               detail.append(el('strong',tr('وضعیت خدمات','Service cases')),list);
