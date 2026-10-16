@@ -43,3 +43,17 @@
 1. Run fresh canonical-head CI, PHP lint, privacy tests, MFA login/registration and live mobile/desktop visual accessibility acceptance; record exact SHA and backup before any deploy.
 2. Finish the customer-facing commerce trust chain: real book bibliographic records, store visual review, end-to-end order, payment, donation and customer dashboard acceptance.
 3. Implement comments/ratings through a server-side moderation workflow, then deploy knowledge-current AI assistant and measured competitor/GEO intelligence only with genuine data and secure backend authorization.
+
+
+## 16 October — additional canonical integration and evidence
+
+- Bilingual public landing pages now present the approved owner motto verbatim: `/fa/` displays «ادراک ندانستن سرآغاز فهمیدن است.» and `/en/` displays “Recognizing what we do not know is the beginning of understanding.” The root language gateway displays both, with language attributes, while existing H1 and language choices remain intact.
+- `/fa/` professional hero language was corrected from the first person to the editorial third person without changing its academic scope.
+- `tests/admin-schema-intelligence.test.mjs` added five source-contract checks for private MFA dashboard placement, bounded same-origin public HTML sampling, absence of Google-rank claims, PWA and existing admin workstream preservation.
+- `tests/brand-motto-home.test.mjs` added five tests for the exact canonical bilingual motto across gateway/home/auth routes and source page structural checks.
+- Both test files were registered in `.github/workflows/seo-regression.yml` and `.github/workflows/bertina-master-seo.yml`.
+- Eleven targeted cross-file source assertions were independently rechecked from current GitHub sources and passed. **Not equivalent to a green Actions run**: commit-status endpoint showed no check/status evidence for examined SHA; node test execution and live browser acceptance remain unverified.
+- During book-source discovery, the searchable image named `Three Persian Books in Golden Light.png` proved to be a promotional mockup containing unreliable fictional academic/medical credentials and no imprint data. **Do not use as evidence of ISBN, publisher, book titles, or professional role.** Actual photographed colophon/copyright pages remain unverified and are still required.
+- Public production webpage fetch was unavailable from the research tool. Do not infer deployment or live functionality from repository edits.
+
+The outstanding P1 release gate is a passing CI run for the exact immutable canonical SHA, privacy/auth/PWA/mobile and bilingual smoke tests, and a recoverable Bertina backup. Work on public comments/ratings must not publish user content before a server-side moderation system and audit log have passed security review.
