@@ -8,6 +8,11 @@ const path=base==='/'?raw:'/'+raw.slice(base.length);
 const isFa=path.startsWith('/fa/');
 const privatePrefixes=['/fa/app/','/app/','/en/account/','/fa/assessments/','/assessments/','/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/'];
 if(privatePrefixes.some(p=>path.startsWith(p))||path.startsWith('/journal/'))return;
+/* Some legacy inner pages include this shell directly AND through site-extras.
+   A second bootstrap must not remove the first dock, destroy focus, or attach
+   duplicate menu/cart event handlers. Keep this document-scoped and private-safe. */
+if(document.documentElement.dataset.jrMobileAppShellInitialized==='1')return;
+document.documentElement.dataset.jrMobileAppShellInitialized='1';
 const u=p=>base+p.replace(/^\//,'');
 if(!q('link[data-v431-mobile-shell],link[href*="mobile-app-v431.css"]')){
  const l=document.createElement('link');l.rel='stylesheet';l.href=u('assets/css/mobile-app-v431.css?v=431b');l.dataset.v431MobileShell='1';document.head.appendChild(l);
