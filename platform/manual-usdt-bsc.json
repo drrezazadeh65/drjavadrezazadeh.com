@@ -1,0 +1,32 @@
+{
+  "schema": "jr-manual-usdt-bsc-v1",
+  "status": "FEATURE_DISABLED_PENDING_SECURITY_AND_RELEASE_GATES",
+  "ownerConfirmed": "2026-10-16",
+  "chain": "BNB Smart Chain",
+  "chainId": 56,
+  "token": "Binance-Peg BSC-USD (BEP-20 USDT)",
+  "tokenContract": "0x55d398326f99059ff775485246999027b3197955",
+  "tokenDecimals": 18,
+  "receiveAddress": "0x21f892a74949B82FF62fCDd0089C53fb145f17B5",
+  "verification": "Human admin review of BscScan evidence; no blockchain auto-verification or auto-entitlement",
+  "audiences": [
+    "fa",
+    "en"
+  ],
+  "purposes": [
+    "donation",
+    "bookstore",
+    "service",
+    "golden_talent",
+    "journal_invoice",
+    "other"
+  ],
+  "notes": [
+    "Only send the BSC token with exactly the expected contract; never on Ethereum/TRON",
+    "Never transfer before confirming the amount from an issued invoice for goods/services",
+    "For JHELA no APC collections until formal accepted article and owner enable flags",
+    "Never equate a receipt or tx hash with completed payment",
+    "No checkout restrictions based on user nationality or interface language"
+  ],
+  "source": "Wallet address explicitly provided by site owner; token contract checked against BscScan."
+}
