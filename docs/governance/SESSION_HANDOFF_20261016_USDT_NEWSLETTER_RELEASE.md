@@ -33,3 +33,34 @@ E. Resolve live WebP problems and source/live release drift; audit JHELA/OJS and
 F. Controlled, serialized Bertina deployment only after signed artifact, current CI/visual/SEO/security/database backup and restoration evidence, rate and payment safeguards, journal host readiness, and post-deploy smoke with rollback.
 
 **Truthful release status:** Not yet ready to state that every public section, live USDT payments, OJS and mailing are fully operational. Missing server and payment proof is a genuine blocker, not a cosmetic flag to bypass.
+
+## Continued verified integration — 16 October 2026, source RC
+
+**Last code SHA verified on GitHub Actions:** `c5f25e07ecdf916bda9cdfd835d8f7b68ff8df98`. The next commit to this document is **documentation-only**. Before any further code/deploy operation, re-read the current branch SHA.
+
+### Code actually integrated (no parallel registry or routing)
+- Bilingual, indicative-only USDT/toman calculator integrated into existing storefront, service and talent-support routes. Real market API reader `GET /api/rates/usdt-irt` reads active public Ramzinex pair 11 (base USDT, quote IRR); converts rial to toman exactly once; has no automatic checkout or settlement. [Browser FX QA green](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38885566852).
+- First-party `/api/newsletter/health` and authenticated `/api/newsletter/preferences` are routed in `api/index.php`; bilingual opt-in/withdrawal UI is integrated in **existing** account dashboards `/fa/customer-dashboard/` and `/en/account/`, not a new customer dashboard. Handles 6 topics, verified account, adult/consent checkboxes, CSRF/origin and auditable mother-database consent. On unavailable schema or unverified account, submit controls are removed and no disabled public subscription is advertised.
+- Tested the original `database/unified/001_core_governance.sql` and `005a_communications_support.sql` in isolated MySQL 8 with no duplicate newsletter tables; verified grant and withdrawal persistence plus Chromium usage. [MySQL + bilingual UI both green](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38889741611).
+- Repaired the desktop unified dashboard rail so its final account/privacy link remains clickable above a fixed sign-out footer in low-height viewports, with independent nav scrolling. Updated `tests/customer-dashboard-browser.spec.js` to insist on a cache-busted stylesheet without matching an obsolete fixed version string. Keep both desktop and mobile variants intact.
+- The earlier isolated browser regression and MySQL/consent failures were corrected by actual UX fixes and fail-closed DOM cleanup, not by bypassing consent, authentication or hidden private data assertions.
+
+### SHA-scoped acceptance evidence for `c5f25e07...`
+All seven workflows returned **success**:
+1. [v5.1.0 full nondeploying candidate](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38890012015).
+2. [Sitewide Browser QA](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38890012000).
+3. [Scientific experience and bilingual designs](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38890012003).
+4. [Bertina Master SEO Audit](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38890012149).
+5. [SEO/GEO Regression](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38890011976).
+6. [Bertina-only hosting guard](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38890011983).
+7. [Progressive release policy and full preflight](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38890012055).
+
+### Not yet live / not to claim ready
+- The production deployment is **not verified executed**. Bertina's `.github/workflows/deploy-bertina.yml` uses manual `workflow_dispatch`, exact approved source SHA and expected live /sw.js SHA, private FTP secrets, recovery-mode gate and independent on-host post-deploy smoke. Connected GitHub tools in this conversation could commit/read but could **not dispatch** that workflow; never claim source CI was the deployment.
+- Public FX reading and converter are green in fixture/CI; the **live host** `/api/rates/usdt-irt` has not been independently smoke-tested after deploying this code.
+- Newsletter preference persistence is source/fixture-tested, but unified `eco_` consent/notification table migration on *production* was not applied or verified in this chat. The outbound publication event queue, suppression/recheck worker, actual SMTP acceptance and unsubscribe email link remain operational gates. **No sent newsletter emails verified.**
+- Manual USDT payment **for donations, books, services, Golden Talent and eligible scholarly invoices is NOT LIVE**. PR #86 is open/unmerged; its draft SQL had a duplicate `PRIMARY KEY`, enum mismatch and lacks server-authoritative payable quote for all order types. Neither a payment transaction nor receiver ownership/settlement was independently verified. Rotate previously exposed private read-only Ramzinex key off-platform. Do not display a wallet as active simply because a constant exists in source.
+- Native OJS status in `platform/jhela-ojs-activation.json`: not independently installed/secured and real editorial/test mail workflow not certified. Do not publicize fake review, publication, fees, DOI/ISSN or accepted articles.
+- Previous read-only production observation reported source/live revision drift; a new version's exact SHA, host database snapshot/restore, private receipt storage and live SSL/SMTP must all be retested before declaring release.
+
+**Next source + host actions:** A) Read actual HEAD and source/live fingerprints and audit host database modules; B) fix/implement authoritative BSC quote/order claim and private approved receipt flow using mother finance tables; C) add consent-rechecking, suppression-aware newsletter enqueue/delivery with verified SMTP and safe opt-out; D) verify native OJS and source/public file privacy; E) only then run one explicitly authorised manual Bertina deployment and full post-release smoke with rollback. Keep each change narrowly scoped to canonical branch and do not re-merge stale PRs.
