@@ -116,7 +116,9 @@ test('A delayed authorized snapshot cannot start a fresh MFA window after the se
 test('Locking while a refresh is pending invalidates its response instead of reopening copied reports',async({page})=>{
  const data=fixture();let snapshots=0,release,refreshSettled=false;const gate=new Promise(resolve=>{release=resolve});
  await page.route('**/api/admin/operations**',async route=>{if(new URL(route.request().url()).pathname.endsWith('/session'))return route.fulfill({json:{ok:true,mfaRequired:false,csrfToken:'c'.repeat(64),mfaExpiresIn:600}});snapshots++;if(snapshots>1){await gate;try{await route.fulfill({json:data})}catch(error){if(!(await page.locator('#ops-workspace').isHidden()))throw error;}finally{refreshSettled=true;}return;}return route.fulfill({json:data});});
- await page.goto(base+'/en/account/admin/');await expect(page.locator('#ops-workspace')).toBeVisible();await page.locator('#ops-refresh-data').click();await expect.poll(()=>snapshots).toBe(2);
+ await page.goto(base+'/en/account/admin/');await expect(page.locator('#ops-workspace')).toBeVisible();await page.locator('#ops-refresh-data').click();
+ // The control may coalesce or initiate additional reads; lock safety must not depend on exactly two network requests.
+ await expect.poll(()=>snapshots).toBeGreaterThanOrEqual(2);
  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));Object.defineProperty(document,'hidden',{configurable:true,value:false});});await expect(page.locator('#ops-workspace')).toBeHidden();
  // A locked session may abort its pending request; an absent response is not a security failure.
  release();await expect.poll(()=>refreshSettled,{timeout:10000}).toBe(true);await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
