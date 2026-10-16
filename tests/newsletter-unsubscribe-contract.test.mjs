@@ -34,8 +34,10 @@ test('revocation locks consent before suppressing pending marketing messages',()
   assert.match(code,/\$pdo->commit\(\)/);
   assert.match(code,/\$pdo->rollBack\(\)/);
   assert.match(code,/NEWSLETTER_EMAIL_LINK/);
-  assert.match(code,/delivery_state=\x27SUPPRESSED\x27/);
-  assert.match(code,/delivery_state=\x27PENDING\x27/);
+  assert.match(existing,/function jrNewsletterSuppressPending/);
+  assert.match(existing,/delivery_state=\x27SUPPRESSED\x27/);
+  assert.match(code,/jrNewsletterSuppressPending\(\$pdo,\$accountId,\$topics\)/);
+  assert.match(existing,/delivery_state=\x27PENDING\x27/);
   assert.match(code,/purpose_code IN \(\$placeholders\)/);
   assert.doesNotMatch(code,/sendLocalMail|smtpSend|mail\s*\(/);
   assert.doesNotMatch(code,/\bDELETE\s+FROM\b/i);
