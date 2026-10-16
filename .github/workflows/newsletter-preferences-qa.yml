@@ -1,0 +1,83 @@
+name: Consent-First Newsletter — Mother DB and Bilingual Dashboard QA
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'api/newsletter-preferences.php'
+      - 'api/index.php'
+      - 'assets/js/newsletter-preferences.js'
+      - 'assets/css/newsletter-preferences.css'
+      - 'fa/customer-dashboard/index.html'
+      - 'en/account/index.html'
+      - 'tests/newsletter-preferences-*'
+      - '.github/workflows/newsletter-preferences-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  schema-and-consent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password-only
+          MYSQL_DATABASE: newsletter_fixture
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pfixture-password-only"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install PDO MySQL and client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq php-cli php-mysql default-mysql-client
+      - name: Syntax and source guardrails
+        run: |
+          php -l api/newsletter-preferences.php
+          php -l tests/newsletter-preferences-mysql.php
+          node --check assets/js/newsletter-preferences.js
+          node --test tests/newsletter-preferences-contract.test.mjs
+      - name: Apply authentic mother schemas to fixture DB
+        env: {MYSQL_PWD: fixture-password-only}
+        run: |
+          mysql -h127.0.0.1 -P3306 -uroot newsletter_fixture < docs/BERTINA_MYSQL_SCHEMA.sql
+          mysql -h127.0.0.1 -P3306 -uroot newsletter_fixture < database/unified/001_core_governance.sql
+          mysql -h127.0.0.1 -P3306 -uroot newsletter_fixture < database/unified/005a_communications_support.sql
+      - name: Consent and unsubscribe SQL smoke
+        env:
+          JR_TEST_NEWSLETTER_DSN: mysql:host=127.0.0.1;port=3306;dbname=newsletter_fixture;charset=utf8mb4
+          JR_TEST_NEWSLETTER_USER: root
+          JR_TEST_NEWSLETTER_PASSWORD: fixture-password-only
+        run: php tests/newsletter-preferences-mysql.php
+  dashboard-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Chromium browser
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Local server (mocked API, no real accounts)
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/newsletter-local.log 2>&1 &
+          curl -fsS --retry-connrefused --retry 15 --retry-delay 1 http://127.0.0.1:4173/en/account/ >/dev/null
+      - name: Verify responsive opt-in, withdrawal and unavailable-mode
+        run: npx playwright test tests/newsletter-preferences-browser.spec.js --workers=2 --reporter=line
+      - name: Retain failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newsletter-browser-failure-${{ github.sha }}
+          path: |
+            test-results/
+            /tmp/newsletter-local.log
+          if-no-files-found: ignore
+          retention-days: 7
