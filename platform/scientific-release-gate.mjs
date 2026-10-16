@@ -3,7 +3,9 @@
  * Pure policy: caller MUST supply authenticated, persisted server-side evidence.
  * No client-supplied approval, score, or validation claim is authoritative.
  */
-export const SCIENTIFIC_GATE_VERSION = '1.1.0-preproduction';
+import { evidenceMeetsSpecifiedUseGate } from './scientific-evidence-policy.mjs';
+
+export const SCIENTIFIC_GATE_VERSION = '1.2.0-preproduction';
 export const SCIENTIFIC_STATES = Object.freeze(['RESEARCH', 'PILOT', 'VALIDATED_FOR_SPECIFIED_USE', 'RETIRED']);
 const allowed = new Set(SCIENTIFIC_STATES);
 const nonEmpty = v => typeof v === 'string' && v.trim().length > 0;
@@ -78,5 +80,7 @@ export function evaluateScientificRelease({ instrument, administration, claim = 
   const current = Date.parse(now);
   if (!Number.isFinite(expiry) || !Number.isFinite(current) || expiry <= current)
     return deny('EXPIRED_VALIDATION');
+  if (!evidenceMeetsSpecifiedUseGate(evidence,instrument,administration,now))
+    return deny('INDEPENDENT_IMMUTABLE_EVIDENCE_NOT_VERIFIED');
   return permit();
 }
