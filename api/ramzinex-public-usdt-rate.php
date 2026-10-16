@@ -11,13 +11,20 @@ function jrPublicUsdtRateNormalize(array $payload): array {
     if (($payload['status'] ?? null) !== 0) throw new RuntimeException('invalid_market_status');
     $pair=$payload['data']??null;
     if(!is_array($pair) || array_is_list($pair))throw new RuntimeException('missing_market_pair');
-    if(($pair['pair_id']??null)!==11 ||
-       (int)($pair['base_currency_id']??-1)!==9 ||
-       (int)($pair['quote_currency_id']??-1)!==2 ||
+    // Reject malformed provider fields instead of PHP's permissive casts:
+    // (int) "9oops" === 9 and (int) "unknown" === 0.
+    $providerInt=static function(mixed $raw,int $expected): bool {
+        return (is_int($raw) && $raw===$expected) ||
+            (is_string($raw) && $raw===(string)$expected);
+    };
+    if(!$providerInt($pair['pair_id']??null,11) ||
+       !$providerInt($pair['base_currency_id']??null,9) ||
+       !$providerInt($pair['quote_currency_id']??null,2) ||
        strtolower((string)($pair['base_currency_symbol']['en']??''))!=='usdt' ||
        strtolower((string)($pair['quote_currency_symbol']['en']??''))!=='irr' ||
-       (int)($pair['is_delist']??1)!==0 ||
-       (int)($pair['is_temporarily_suspended']??1)!==0)throw new RuntimeException('untrusted_pair_or_unit');
+       !$providerInt($pair['is_delist']??null,0) ||
+       !$providerInt($pair['is_temporarily_suspended']??null,0))
+        throw new RuntimeException('untrusted_pair_or_unit');
 
     $numbers=[];
     foreach(['buy','sell'] as $side){
@@ -39,6 +46,37 @@ function jrPublicUsdtRateNormalize(array $payload): array {
       'buyToman'=>$numbers['buyToman'],'sellToman'=>$numbers['sellToman'],
       'indicativeOnly'=>true,'isUsdFiatRate'=>false,'paymentQuote'=>false,
       'receivedAt'=>gmdate('c')
+    ];
+}
+
+/**
+ * Exact integer arithmetic for a FUTURE server-issued payment quote.
+ * Not a quote issuer: rate side, freshness, owner approval, database binding,
+ * wallet and payment verification must be checked independently.
+ *
+ * A toman is ten IRR; USDT uses six decimal places. A ceiling prevents
+ * under-quoting caused by fractional micro-USDT. Never use JS floats for money.
+ * The strict 64-bit bound avoids overflow without assuming BCMath/GMP hosting.
+ */
+function jrUsdtExactMicrosFromIrr(int $amountToman, string $irrPerUsdt): array {
+    if(PHP_INT_SIZE<8 || $amountToman<1 || $amountToman>900000000000)
+        throw new InvalidArgumentException('toman_amount_out_of_bounds');
+    if(!preg_match('/^[1-9][0-9]{3,9}$/D',$irrPerUsdt))
+        throw new InvalidArgumentException('rate_irr_not_precise_integer');
+    $rate=(int)$irrPerUsdt;
+    if($rate<1000 || $rate>9999999999)
+        throw new InvalidArgumentException('rate_irr_out_of_bounds');
+    // Max numerator = 9e18, strictly below PHP_INT_MAX on 64-bit PHP.
+    $numerator=$amountToman*10000000;
+    $micros=intdiv($numerator,$rate)+(($numerator%$rate)!==0?1:0);
+    if($micros<1)throw new InvalidArgumentException('amount_below_micro_usdt');
+    $formatted=intdiv($micros,1000000).'.'.str_pad((string)($micros%1000000),6,'0',STR_PAD_LEFT);
+    return [
+        'amountUsdt'=>$formatted,
+        'amountMicros'=>$micros,
+        'rateIrrPerUsdt'=>$irrPerUsdt,
+        'rounding'=>'CEIL_TO_6_DECIMALS',
+        'isIssuedPaymentQuote'=>false
     ];
 }
 
