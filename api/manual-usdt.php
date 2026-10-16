@@ -148,6 +148,21 @@ function jrUsdtAdminRoute(PDO $pdo,string $accountId,string $path,string $verb,s
                           FROM manual_usdt_claims ORDER BY submitted_at DESC,id DESC LIMIT 80");
         respond(['ok'=>true,'schema'=>'manual-usdt-admin-v1','claims'=>$q->fetchAll()]);
     }
+    if($path==='/admin/operations/crypto/usdt/exchange-evidence' && $verb==='GET'){
+        // Restricted to the existing server-authorized administrator + fresh TOTP MFA.
+        if(!rateAllowed($pdo,'usdt_ramzinex_read',$accountId,6,300))fail('rate_limited',429);
+        $id=(string)($_GET['id']??'');if(!validUuid($id))fail('invalid_claim');
+        $q=$pdo->prepare('SELECT tx_hash FROM manual_usdt_claims WHERE id=? LIMIT 1');
+        $q->execute([$id]);$claim=$q->fetch();
+        if(!$claim)fail('claim_not_found',404);
+        if(empty($claim['tx_hash']))
+            respond(['ok'=>true,'evidence'=>['state'=>'onchain_hash_required'],
+                'automaticApproval'=>false,'automaticActivation'=>false]);
+        require_once __DIR__.'/ramzinex-readonly.php';
+        $evidence=jrRamzinexFindDepositEvidence((string)$claim['tx_hash']);
+        respond(['ok'=>true,'evidence'=>$evidence,'automaticApproval'=>false,
+            'automaticActivation'=>false,'manualOwnerVerificationRequired'=>true]);
+    }
     if($path==='/admin/operations/crypto/usdt/receipt' && $verb==='GET'){
         $id=(string)($_GET['id']??'');if(!validUuid($id))fail('invalid_claim');
         $q=$pdo->prepare('SELECT receipt_filename,receipt_mime FROM manual_usdt_claims WHERE id=? LIMIT 1');$q->execute([$id]);$row=$q->fetch();
