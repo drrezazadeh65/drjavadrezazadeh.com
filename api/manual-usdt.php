@@ -69,6 +69,7 @@ function jrUsdtSubmit(PDO $pdo,array $account): never {
     if(!rateAllowed($pdo,'manual_usdt_claim',(string)$account['id'],4,3600))fail('rate_limited',429);
     $maxBytes=(int)($_SERVER['CONTENT_LENGTH']??0);
     if($maxBytes<=0||$maxBytes>2300000)fail('payload_too_large',413);
+    if(($_POST['consentToReview']??'')!=='yes')fail('privacy_consent_required',400);
     $purpose=(string)($_POST['purpose']??'');
     if(!in_array($purpose,['donation','bookstore','service','golden_talent','journal_invoice','other'],true))fail('invalid_purpose');
     // A journal payment is not accepted until legitimate manuscript acceptance
