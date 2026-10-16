@@ -72,3 +72,12 @@ area.append(button,note);footer.parentNode.insertBefore(area,footer);
  const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/css/community-comments.css?v=20261016-pilot1';css.dataset.jrCommunityLoader='1';document.head.append(css);
  const script=document.createElement('script');script.src='/assets/js/community-comments.js?v=20261016-pilot1';script.defer=true;document.head.append(script);
 })();
+
+/* Bilingual public USDT/toman calculator: informational only, never a money quote. */
+(()=>{
+ const path=location.pathname.replace(/index\\.html$/,'');
+ if(!/^\\/(?:fa|en)\\/(?:shop|services|khadamat|support-talented-students)\\/$/.test(path))return;
+ if(document.querySelector('[data-jr-fx-loader]'))return;
+ const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='/assets/css/jr-public-fx-converter.css?v=20261016-v1';stylesheet.dataset.jrFxLoader='1';document.head.append(stylesheet);
+ const js=document.createElement('script');js.src='/assets/js/jr-public-fx-converter.js?v=20261016-v1';js.defer=true;document.head.append(js);
+})();
