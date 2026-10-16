@@ -4,6 +4,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
 const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/operations-reporting.php';
+require_once __DIR__.'/operations-jhela.php';
 require_once __DIR__.'/operations-commerce.php';
 require_once __DIR__.'/operations-fulfilment.php';
 require_once __DIR__.'/consultation-availability.php';
@@ -366,6 +367,12 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+
+        // Privacy-preserving scholarly roadmap, only after owner MFA and bounded read rate.
+        if ($path === '/admin/operations/jhela/maturity' && $verb === 'GET') {
+            if (!rateAllowed($pdo,'operations_jhela_maturity_read',$accountId,12,300)) fail('rate_limited',429);
+            respond(operationsJhelaSnapshot());
+        }
 
         // Owner-only keyword intelligence: no public asset or unauthenticated strategy data.
         // This branch is reached only after verified account, server admin membership
