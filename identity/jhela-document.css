@@ -52,6 +52,7 @@
 .jhela-document .jr-document__footer{border-color:var(--jhela-soft-rule);margin-block-start:13mm}
 .jhela-document .jhela-document__preview-warning{font-weight:700;color:#724a31;font-size:9pt}
 .jhela-document .jhela-document__reference{font-variant-numeric:tabular-nums;font-size:9pt}
+.jhela-document :is(a,button,input,select,textarea):focus-visible{outline:2px solid var(--jhela-brass);outline-offset:3px}
 .jhela-document .jhela-document__signoff{min-height:18mm;border-block-end:1px dotted var(--jhela-soft-rule);margin-block:6mm}
 @media screen{
  body:has(.jhela-document){background:#ddd9d0;padding:clamp(12px,3vw,36px)}
