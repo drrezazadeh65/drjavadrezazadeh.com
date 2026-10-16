@@ -110,7 +110,25 @@ const html=all.filter(p=>p.endsWith('.html'));
 // Nine additional HTML files under identity/ and foundation/ are deliberately excluded.
 // 2026-10-16: two approved, canonical, indexable bilingual journal roadmap URLs added.
 // Do not increase this count for unapproved templates or engineering paths.
-const approvedPublicHtmlRoutes=322;
+// Explicit owner-approved scope expansion 2026-10-16:
+// 21 matched English academic service pages, one English noindex payment form,
+// and one English noindex authenticated service-order history page.
+// These are specific, checked routes; never infer authority from a directory count.
+const existingBaseHtmlRoutes=322;
+const approvedEnglishServices=JSON.parse(fs.readFileSync(path.join(root,'assets/data/service-catalog.json'),'utf8'))
+  .services.map(item=>'en/services/'+item.id+'/index.html');
+if(approvedEnglishServices.length!==21||new Set(approvedEnglishServices).size!==21)
+  failures.push('Approved English service expansion must contain exactly 21 unique canonical entries');
+const protectedNewRoutes=['en/services/checkout/index.html','en/app/account/orders/index.html'];
+for(const route of [...approvedEnglishServices,...protectedNewRoutes]){
+  if(!fs.existsSync(path.join(out,route))) failures.push('Approved bilingual service route missing: '+route);
+}
+for(const route of protectedNewRoutes){
+  const file=path.join(out,route);
+  if(fs.existsSync(file)&&!/<meta name="robots" content="[^"]*noindex/i.test(fs.readFileSync(file,'utf8')))
+    failures.push('English commerce private route must be noindex: '+route);
+}
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length;
 for(const route of ['journal/roadmap/index.html','journal/fa/roadmap/index.html']){
   if(!fs.existsSync(path.join(out,route))) failures.push('Approved JHELA roadmap page missing: '+route);
 }
