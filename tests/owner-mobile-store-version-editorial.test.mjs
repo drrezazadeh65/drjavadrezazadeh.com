@@ -33,7 +33,11 @@ test('permanent bottom-dock install control retains five other tabs in each loca
 test('official bookstore styles are mobile-first without synthetic covers or extra payment promises',()=>{
  const css=source('assets/css/store-premium-editorial-2026.css');
  assert.match(css,/JR Store mobile-first couture finishing pass/);
- assert.match(css,/\.bookstore-hero-stage\{order:-1/);
+ assert.match(css,/\.cinema-original-hero \.cinema-hero-picture/);
+ assert.match(css,/\.cinema-original-hero \.cinema-hero-copy/);
+ assert.match(css,/\.cinema-original-hero \.cinema-hero-nav/);
+ assert.doesNotMatch(css,/\.bookstore-hero-stage/);
+ assert.doesNotMatch(css,/\.bookstore-hero-art/);
  assert.match(css,/\.book-product-card \.book-cover img/);
  assert.match(css,/@media\(max-width:350px\)/);
  assert.doesNotMatch(css,/overflow-x\s*:\s*hidden/);
@@ -41,6 +45,8 @@ test('official bookstore styles are mobile-first without synthetic covers or ext
   const html=source(locale+'/shop/index.html');
   assert.match(html,/store-premium-editorial-2026\.css\?v=20261016-mobile-v2/);
   assert.match(html,/data-book-catalog/);
+  assert.match(html,/class="book-store-hero talent-hero cinema-original-hero"/);
+  for(const cls of ['cinema-hero-picture','cinema-hero-copy','cinema-hero-nav'])assert.ok(html.includes(cls),cls);
  }
 });
 
