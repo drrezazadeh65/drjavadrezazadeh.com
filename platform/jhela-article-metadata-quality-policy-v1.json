@@ -1,0 +1,89 @@
+{
+  "schema": "jhela-article-metadata-quality-policy-v1",
+  "asOf": "2026-10-16",
+  "status": "SOURCE_PREPUBLICATION_QA_NOT_AN_OJS_PRODUCTION_AUTHORIZATION",
+  "editorialLanguage": "en",
+  "permittedArticleTypes": [
+    "research",
+    "systematic_review",
+    "methods",
+    "theory",
+    "short_report",
+    "perspective"
+  ],
+  "metadataRequirements": {
+    "titleMinimumCharacters": 20,
+    "abstractMinimumWordsForResearch": 75,
+    "abstractAdvisoryMaximumWords": 350,
+    "keywordsMin": 3,
+    "keywordsMax": 8,
+    "authorsMin": 1,
+    "referencesMinUnlessPerspective": 1,
+    "authorNameMinimumCharacters": 3,
+    "affiliationRequiredForEachAuthor": true,
+    "orcidOptionalButChecksumValidated": true,
+    "rorOptionalButOfficialPatternValidated": true,
+    "languageMustBeEnglish": true
+  },
+  "ethicalMinimum": [
+    "ethicsStatement",
+    "consentStatement",
+    "fundingStatement",
+    "competingInterestsStatement",
+    "dataAvailabilityStatement",
+    "aiAssistanceStatement"
+  ],
+  "prepublicationControls": {
+    "distinctPublicationAndAcceptedDate": true,
+    "sourceEditableMetadataOnly": false,
+    "decisionAuthority": "verified native OJS editorial record, never client or content QA script",
+    "requireNamedQualifiedProductionSignoff": true,
+    "reviewReportsNeverInPublicMetadata": true,
+    "publicPeerReviewClaimsRequireActualOjsRecord": true,
+    "rejectExposedEditorPrivateInformation": true,
+    "documentLicenseSelectionNeedsAuthorAgreement": true,
+    "publishedArticleUrlsMustBePublicAndHttps": true,
+    "doiAutoAssignmentNotEquivalentToRegistration": true,
+    "strictDoiRegistryVerificationBeforePublicDoiClaims": true
+  },
+  "reviewWorkflow": {
+    "ordinarilyIndependentReviewers": 2,
+    "confidentialReviewsThroughOjsOnly": true,
+    "authorAndReviewerBlinding": "verify native OJS workflow and files",
+    "decisionOnlyFromUnconflictedHandlingEditor": true,
+    "editorAuthoredConflictRecusal": true,
+    "noAcceptanceByNumericReviewScore": true
+  },
+  "crossrefOjs35": {
+    "doiAdministration": "native OJS 3.5 DOIs page and Distribution > DOIs",
+    "plugin": "Crossref Manager (supported version)",
+    "doiPreferredContent": [
+      "Articles"
+    ],
+    "suffixPreference": "opaque default",
+    "metadataDeposit": "Crossref Manager after publisher membership and lawful credentials",
+    "referenceMetadata": "enable author-provided references and supported Crossref reference linking",
+    "orcid": "OJS 3.5 native",
+    "ror": "OJS 3.5 native affiliation support",
+    "validationRule": "never infer registration from local DOI string or source-only flag",
+    "source": "https://www.crossref.org/documentation/register-maintain-records/ojs-plugin/ojs-3.5/",
+    "issuerNotVerified": true,
+    "membershipNotVerified": true
+  },
+  "privacy": {
+    "noUnpublishedManuscriptInRepo": true,
+    "noBlindReviewerIdentityInPublicMetadata": true,
+    "noParticipantPII": true,
+    "noLocalPaymentCardData": true,
+    "noRawEthicsApprovalDocumentsInPublicMetadata": true,
+    "privatePublisherEvidenceRequiresRestrictedVault": true
+  },
+  "finalization": {
+    "offlinePreflightNeverAuthorizesPublication": true,
+    "releaseNeedsNativeOjsAudit": true,
+    "releaseNeedsPrivacyReview": true,
+    "releaseNeedsLegalRightsReview": true,
+    "releaseNeedsProductionProof": true,
+    "releaseNeedsOwnerAuthorizedOpenIntake": true
+  }
+}
