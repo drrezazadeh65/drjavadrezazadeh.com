@@ -36,6 +36,8 @@ assert.doesNotMatch(api,/require_once __DIR__\.'\/golden-talent-consent-write\.p
  'Internal consent write must not be live-wired to Golden Talent routes');
 assert.match(schema,/BERTINA_API_BOOTSTRAPPED/, 'Schema helper direct-access guard missing');
 assert.match(schema,/LIMIT 0/, 'Schema helper must probe without reading rows');
+assert.match(schema,/scientific-structural-preflight-v2/, 'Sanitized admin endpoint must use strict safeguarding schema v2');
+assert.match(schema,/'safeguarding'=>\[/, 'Sanitized read-only endpoint missing age/assent requirements');
 assert.match(operations,/if \(!\$fresh\) fail\('admin_mfa_required',403\)/, 'MFA guard missing');
 assert.match(operations,/\/admin\/operations\/scientific\/schema-readiness/, 'Scientific schema route missing');
 assert.match(operations,/require_once __DIR__\.'\/operations-scientific-schema\.php'/, 'Schema route includes excluded dependency');
@@ -48,8 +50,14 @@ for(const rel of ['fa/app/admin/index.html','en/account/admin/index.html']){
   const html=fs.readFileSync(path.join(publicSite,rel),'utf8');
   assert.match(html,/id="ops-scientific-schema"/, 'Private schema disclosure missing: '+rel);
   assert.match(html,/\/assets\/js\/operations-scientific-schema\.js/, 'Private schema UI script missing: '+rel);
+  assert.match(html,/operations-scientific-schema\.js\?v=20261016-p0-schema-v2/,
+    'Stale cached v1 JavaScript would mislabel missing safeguarding tables: '+rel);
 }
 const scientificUi=fs.readFileSync(path.join(publicSite,'assets/js/operations-scientific-schema.js'),'utf8');
 assert.match(scientificUi,/credentials:'same-origin'/, 'Private scientific schema read lost session scope');
 assert.match(scientificUi,/cache:'no-store'/, 'Private readiness must not use browser cache');
+assert.match(scientificUi,/scientific-structural-preflight-v2/,
+  'Bilingual admin UI must fail closed on old schema version');
+assert.match(scientificUi,/\['safeguarding',2\]/,
+  'Missing mandatory age and learner-assent domain in admin UI');
 console.log('Bertina sanitized package consent and MFA schema dependencies: passed');
