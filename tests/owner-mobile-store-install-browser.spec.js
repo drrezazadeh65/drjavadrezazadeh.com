@@ -97,3 +97,21 @@ for(const locale of ['fa','en']){
   expect(overflow,'book detail mobile overflow').toBeLessThanOrEqual(1);
  });
 }
+
+
+test('mobile shell cannot bootstrap twice when direct and shared loaders coexist',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.goto(base+'/fa/shop/book/?id=roshanaei',{waitUntil:'domcontentloaded'});
+ const dock=page.locator('.app-dock');
+ await expect(dock).toBeVisible({timeout:10000});
+ const before=await dock.elementHandle();
+ expect(before).not.toBeNull();
+ await page.addScriptTag({url:'/assets/js/mobile-app-v431.js?v=deliberate-duplicate-load'});
+ await expect(dock).toHaveCount(1);
+ await expect(page.locator('#mobile-app-menu')).toHaveCount(1);
+ await expect(page.locator('[data-jr-dock-install]')).toHaveCount(1);
+ const same=await before.evaluate(el=>el===document.querySelector('.app-dock'));
+ expect(same,'duplicate loader must not replace installed dock, links or focus').toBe(true);
+ await expect(page.locator('.app-dock a[data-app-tab]')).toHaveCount(5);
+ await expect(page.locator('html')).toHaveAttribute('data-jr-mobile-app-shell-initialized','1');
+});
