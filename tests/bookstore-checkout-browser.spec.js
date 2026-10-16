@@ -460,7 +460,7 @@ for(const language of ['fa','en']){
   expect(cart).toEqual([{book_id:'roshanaei',quantity:1}]);
   await expect(page.locator('[data-book-detail] .book-detail-cart-link')).toBeVisible();
   await expect(page.locator('[data-book-detail] .store-notice')).toContainText(
-    language==='fa'?'پرداخت آنلاین':'online payment'
+    language==='fa'?/پرداخت آنلاین/:/online payment/i
   );
  });
 }
