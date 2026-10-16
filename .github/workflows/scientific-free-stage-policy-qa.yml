@@ -10,6 +10,9 @@ on:
       - "platform/free-first-stage-consent-adapter.test.mjs"
       - "platform/scientific-release-gate.mjs"
       - "platform/scientific-release-gate.test.mjs"
+      - "platform/scientific-evidence-policy.mjs"
+      - "platform/scientific-evidence-register.v1.json"
+      - "tests/scientific-evidence-register.test.mjs"
       - "platform/rcas-preview-edition-contract.mjs"
       - "tests/rcas-preview-edition-contract.test.mjs"
       - "platform/golden-talent-instrument-registry.v1.json"
@@ -64,6 +67,9 @@ on:
       - "platform/free-first-stage-consent-adapter.test.mjs"
       - "platform/scientific-release-gate.mjs"
       - "platform/scientific-release-gate.test.mjs"
+      - "platform/scientific-evidence-policy.mjs"
+      - "platform/scientific-evidence-register.v1.json"
+      - "tests/scientific-evidence-register.test.mjs"
       - "platform/rcas-preview-edition-contract.mjs"
       - "tests/rcas-preview-edition-contract.test.mjs"
       - "platform/golden-talent-instrument-registry.v1.json"
@@ -128,6 +134,7 @@ jobs:
           node --check platform/free-first-stage-policy.mjs
           node --check platform/free-first-stage-consent-adapter.mjs
           node --check platform/scientific-release-gate.mjs
+          node --check platform/scientific-evidence-policy.mjs
           node --check platform/rcas-preview-edition-contract.mjs
           node --check assets/js/talent-dashboard-view-model.mjs
           node --check assets/js/operations-scientific-schema.js
@@ -156,7 +163,7 @@ jobs:
           php tests/bertina-dashboard-projections.php
       - name: Privacy, consent, free/paid and scientific policy regression
         run: |
-          node --test platform/free-first-stage-policy.test.mjs platform/free-first-stage-consent-adapter.test.mjs platform/scientific-release-gate.test.mjs tests/talent-dashboard-view-model.test.mjs tests/rcas-preview-edition-contract.test.mjs
+          node --test platform/free-first-stage-policy.test.mjs platform/free-first-stage-consent-adapter.test.mjs platform/scientific-release-gate.test.mjs tests/talent-dashboard-view-model.test.mjs tests/rcas-preview-edition-contract.test.mjs tests/scientific-evidence-register.test.mjs
 
   mysql-fixture:
     name: Isolated MySQL subject, guardian, consent and free-stage integration
