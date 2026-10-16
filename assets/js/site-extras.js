@@ -64,3 +64,15 @@ button.addEventListener('click',async()=>{
 });
 area.append(button,note);footer.parentNode.insertBefore(area,footer);
 })();
+
+
+/* Moderated discussion is feature-disabled by default on the server.
+   Load only on individual Persian articles; hide the widget if API returns 503. */
+(()=>{
+ const path=location.pathname.replace(/index\.html$/,'');
+ if(!/^\/fa\/akhbar\/[a-z0-9-]+\/$/.test(path)||document.querySelector('[data-jr-community-loader]'))return;
+ const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';
+ stylesheet.href='/assets/css/community-comments.css?v=20261016-pilot1';
+ stylesheet.dataset.jrCommunityLoader='1';document.head.append(stylesheet);
+ const script=document.createElement('script');script.src='/assets/js/community-comments.js?v=20261016-pilot1';script.defer=true;document.head.append(script);
+})();
