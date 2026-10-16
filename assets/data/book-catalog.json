@@ -18,7 +18,8 @@
         "cover_image": "/assets/images/books/sepid-javad-rezazadeh-yazdeli-book-cover-2026.avif",
         "back_cover_image": "/assets/images/books/sepidi-back-1200.webp",
         "print_run": 200,
-        "publication_calendar": "Solar Hijri"
+        "publication_calendar": "Solar Hijri",
+        "printing_year": 1404
       },
       "commerce": {
         "sellable": true,
@@ -43,12 +44,13 @@
       "bibliography": {
         "isbn": "9786229636275",
         "publisher": "نشر دارما",
-        "publication_year": 1404,
+        "publication_year": 1401,
         "edition": "چاپ اول",
         "cover_image": "/assets/images/books/tariki-javad-rezazadeh-yazdeli-book-cover-2026.avif",
         "back_cover_image": "/assets/images/books/tariki-back-1200.webp",
         "print_run": 200,
-        "publication_calendar": "Solar Hijri"
+        "publication_calendar": "Solar Hijri",
+        "printing_year": 1404
       },
       "commerce": {
         "sellable": true,
@@ -78,7 +80,8 @@
         "cover_image": "/assets/images/books/bonbast-javad-rezazadeh-yazdeli-book-cover-2026.webp",
         "back_cover_image": "/assets/images/books/bonbast-back-1200.webp",
         "print_run": 200,
-        "publication_calendar": "Solar Hijri"
+        "publication_calendar": "Solar Hijri",
+        "printing_year": 1399
       },
       "commerce": {
         "sellable": true,
