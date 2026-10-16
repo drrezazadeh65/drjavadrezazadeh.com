@@ -49,3 +49,10 @@ The nondeploy `.github/workflows/scientific-free-stage-policy-qa.yml` tests the 
 7. Run independent staging acceptance for security, accessibility, performance, bilingual behaviour, rollback and payment isolation. **Production deployment requires explicit owner signoff.**
 
 **Decision:** retains progress without weakening the privacy/child-safeguarding release gate; no live migration or child records touched.
+
+
+## Verified nondeploy regression checkpoint
+
+[GitHub Actions run 38853504403](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38853504403) completed with **all six jobs successful**. Actual CI logs confirm **22 tests on MySQL 8 and the same 22 scenarios on MariaDB 10.11** for the *full server-sourced* free-stage trust composition; **25 independent age attestation checks on each engine**, **26 SQL guardian/consent fixture checks per engine**, **32 PHP free-stage policy checks**, **40 PHP dashboard/privacy checks**, **27 JavaScript policy tests**, and **45 Chromium FA/EN and existing admin UI regression tests**. The two database engine runs repeat the same fixtures; do not represent independent scientific studies. The test environments contain only fictional, ephemeral tables. No live Bertina installation, child or guardian evidence, instrument psychometric data or private user session was accessed.
+
+**Acceptance distinction:** the *reference SQL loader* and its child-safeguarding gates have passed deterministic tests. The actual installed database and live credentials remain unverified; reviewer authority/provenance, lawful age/assent policy, approved migration, public/session binding, request-level audit and customer-dashboard integration remain separate production blockers. The service is still **NOT wired into** `api/golden-talent.php` or any live form. The proposal SQL is **NOT applied**, and all new PHP reader prototypes remain outside the sanitized release package.
