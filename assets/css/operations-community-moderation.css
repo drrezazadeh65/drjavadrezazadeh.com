@@ -1,0 +1,10 @@
+/* MFA-only moderation queue, no public content rendered before admin unlock */
+.jr-community-admin{margin-block:22px}
+.jr-community-admin-list{display:grid;gap:14px;margin-top:18px}
+.jr-community-admin-item{border:1px solid var(--ops-border,#314259);border-radius:14px;padding:16px;background:rgba(22,35,52,.65)}
+.jr-community-admin-item p{overflow-wrap:anywhere;line-height:1.8}
+.jr-community-admin-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.jr-community-admin-actions button{min-height:44px}
+.jr-community-admin-actions button:first-child{border-color:var(--ops-green,#83dec3)}
+.jr-community-admin-actions button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:500px){.jr-community-admin-actions button{flex:1 1 100%}}
