@@ -38,6 +38,15 @@ test('both surfaces respect mobile, keyboard and reduced-motion preferences',()=
  assert.match(read('assets/css/community-comments.css'),/min-height:48px/);
  assert.match(read('assets/css/operations-community-moderation.css'),/min-height:46px/);
 });
+test('the native hidden attribute overrides grid layout for unauthenticated visitors',()=>{
+ const css=read('assets/css/community-comments.css');
+ assert.match(css,/\.jr-community\s+\[hidden\]\s*\{\s*display\s*:\s*none\s*!important\s*\}/);
+ const ui=read('assets/js/community-comments.js');
+ assert.match(ui,/form\.hidden=true/);
+ assert.match(ui,/form\.hidden=false/);
+ assert.match(ui,/login\.hidden=true/);
+ assert.match(ui,/login\.hidden=false/);
+});
 test('reader star scale has semantic radio controls and no speculative SEO schema',()=>{
  const src=read('assets/js/community-comments.js');
  assert.match(src,/<fieldset class="jr-community-rating">/);
