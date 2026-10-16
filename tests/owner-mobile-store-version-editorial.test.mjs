@@ -5,7 +5,7 @@ const source=p=>readFileSync(p,'utf8');
 
 test('the public footer exposes the owner-facing 5.1.0 version, never internal cache SHA',()=>{
  const s=source('assets/js/site-footer-meta-2026.js');
- assert.match(s,/data\.jrPublicVersion='5\.1\.0'/);
+ assert.ok(s.includes("version.dataset.jrPublicVersion='5.1.0'"));
  assert.match(s,/نسخه وب‌سایت: ۵\.۱\.۰/);
  assert.match(s,/Website version: 5\.1\.0/);
  assert.doesNotMatch(s,/fetch\('\/sw\.js'/);
