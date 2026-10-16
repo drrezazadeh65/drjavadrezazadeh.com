@@ -36,8 +36,8 @@ test('official bookstore styles are mobile-first without synthetic covers or ext
  assert.match(css,/\.cinema-original-hero \.cinema-hero-picture/);
  assert.match(css,/\.cinema-original-hero \.cinema-hero-copy/);
  assert.match(css,/\.cinema-original-hero \.cinema-hero-nav/);
- assert.doesNotMatch(css,/\.bookstore-hero-stage/);
- assert.doesNotMatch(css,/\.bookstore-hero-art/);
+ assert.match(css,/\.bookstore-hero-stage/);
+ assert.match(css,/\.bookstore-hero-art/);
  assert.match(css,/\.book-product-card \.book-cover img/);
  assert.match(css,/@media\(max-width:350px\)/);
  assert.doesNotMatch(css,/overflow-x\s*:\s*hidden/);
@@ -45,8 +45,15 @@ test('official bookstore styles are mobile-first without synthetic covers or ext
   const html=source(locale+'/shop/index.html');
   assert.match(html,/store-premium-editorial-2026\.css\?v=20261016-mobile-v2/);
   assert.match(html,/data-book-catalog/);
-  assert.match(html,/class="book-store-hero talent-hero cinema-original-hero"/);
-  for(const cls of ['cinema-hero-picture','cinema-hero-copy','cinema-hero-nav'])assert.ok(html.includes(cls),cls);
+  if(locale==='fa'){
+    assert.match(html,/class="book-store-hero talent-hero cinema-original-hero"/);
+    for(const cls of ['cinema-hero-picture','cinema-hero-copy','cinema-hero-nav'])
+      assert.ok(html.includes(cls),cls);
+  }else{
+    assert.match(html,/class="book-store-hero talent-hero"/);
+    for(const cls of ['bookstore-hero-stage','bookstore-hero-art','store-nav'])
+      assert.ok(html.includes(cls),cls);
+  }
  }
 });
 
