@@ -43,7 +43,7 @@ test('official bookstore styles are mobile-first without synthetic covers or ext
  assert.doesNotMatch(css,/overflow-x\s*:\s*hidden/);
  for(const locale of ['fa','en']){
   const html=source(locale+'/shop/index.html');
-  assert.match(html,/store-premium-editorial-2026\.css\?v=20261016-mobile-v2/);
+  assert.match(html,/store-premium-editorial-2026\.css\?v=20261016-imprint-v3/);
   assert.match(html,/data-book-catalog/);
   if(locale==='fa'){
     assert.match(html,/class="book-store-hero talent-hero cinema-original-hero"/);
@@ -113,6 +113,15 @@ test('three photographed book imprints have valid, unique ISBN-13 and genuine fi
  assert.match(ui,/First printing quantity/);
  assert.match(ui,/not current inventory/);
  assert.match(ui,/Darma Publishing/);
+ assert.match(ui,/function cardBibliography\(book\)/);
+ assert.match(ui,/class="book-catalog-imprint"/);
+ assert.match(ui,/row\('ISBN',isbn,'ltr'\)/);
+ assert.match(ui,/year\(bib\.publication_year\)/);
+ assert.match(ui,/year\(bib\.printing_year\)/);
+ const premium=source('assets/css/store-premium-editorial-2026.css');
+ assert.match(premium,/JR verified bookstore bibliographic microgrid/);
+ assert.match(premium,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+
  assert.match(ui,/Solar Hijri/);
  assert.match(ui,/bdi dir="ltr"/);
 });
