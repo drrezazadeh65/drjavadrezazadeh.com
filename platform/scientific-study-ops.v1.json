@@ -1,0 +1,75 @@
+{
+  "schema_version": "scientific-study-operations-v1",
+  "as_of": "2026-10-16",
+  "operational_state": "PROTOCOLS_READY_RESEARCH_NOT_STARTED",
+  "scientific_review_independence_required": true,
+  "all_live_intake_blocked": true,
+  "owner_signoff_is_not_independent_approval": true,
+  "canonical_protocol": "docs/scientific-validation/SCIENTIFIC-EVIDENCE-AND-INDEPENDENT-VALIDATION-MASTER-PROTOCOL-2026-10-16.md",
+  "studies": [
+    {
+      "study_id": "GT-VIGNETTE-001",
+      "instrument": "GOLDEN_TALENT",
+      "design": "INDEPENDENT_CONFLICT_BLINDED_CASE_ANALYSIS",
+      "protocol_path": "docs/scientific-validation/study-pack/GOLDEN-TALENT-INDEPENDENT-VIGNETTE-REVIEW-PROTOCOL.md",
+      "ethics_approval": "NOT_SUBMITTED",
+      "preregistration": "NOT_SUBMITTED",
+      "recruitment": "NOT_STARTED",
+      "external_review": "NOT_STARTED",
+      "empirical_results": "NONE",
+      "authorised_to_claim_validity": false,
+      "needed_roles": [
+        "INDEPENDENT_METHODS_REVIEWER",
+        "EDUCATIONAL_CASE_REVIEWER",
+        "ETHICS_FAIRNESS_REVIEWER"
+      ],
+      "next_gate": "G02_RIVAL_LITERATURE_AND_CONSTRUCT_MAP"
+    },
+    {
+      "study_id": "RCAS-COGINT-FAEN-001",
+      "instrument": "RCAS_START",
+      "design": "BILINGUAL_COGNITIVE_INTERVIEWS_AND_ADAPTATION",
+      "protocol_path": "docs/scientific-validation/study-pack/RCAS-RESPONSE-PROCESS-AND-TRANSLATION-PROTOCOL-FA-EN.md",
+      "ethics_approval": "NOT_SUBMITTED",
+      "preregistration": "NOT_SUBMITTED",
+      "recruitment": "NOT_STARTED",
+      "external_review": "NOT_STARTED",
+      "empirical_results": "NONE",
+      "authorised_to_claim_validity": false,
+      "needed_roles": [
+        "INDEPENDENT_CONTENT_EXPERT",
+        "FA_EN_TRANSLATION_REVIEWER",
+        "ETHICS_SAFEGUARDING_REVIEWER"
+      ],
+      "next_gate": "G03_ITEM_MAP_AND_INDEPENDENT_PANEL"
+    },
+    {
+      "study_id": "BAHAR-USABILITY-001",
+      "instrument": "BAHAR",
+      "design": "FORMATIVE_FEASIBILITY_THEN_OPTIONAL_EFFECTIVENESS",
+      "protocol_path": "docs/scientific-validation/study-pack/BAHAR-FORMATIVE-FEASIBILITY-AND-OUTCOME-PROTOCOL.md",
+      "ethics_approval": "NOT_SUBMITTED",
+      "preregistration": "NOT_SUBMITTED",
+      "recruitment": "NOT_STARTED",
+      "external_review": "NOT_STARTED",
+      "empirical_results": "NONE",
+      "authorised_to_claim_validity": false,
+      "needed_roles": [
+        "INDEPENDENT_EDUCATIONAL_RESEARCHER",
+        "ACCESSIBILITY_REVIEWER",
+        "ETHICS_REVIEWER"
+      ],
+      "next_gate": "G07_APPROVED_ADULT_COGNITIVE_TASKS"
+    }
+  ],
+  "release_boundaries": {
+    "public_bilingual_explanatory_content": true,
+    "adult_ephemeral_rcas_activity": true,
+    "adult_ephemeral_bahar_worksheet": true,
+    "private_minor_records": false,
+    "raw_research_intake": false,
+    "psychometric_norms": false,
+    "validated_use_claims": false,
+    "private_premium_professional_reports": false
+  }
+}
