@@ -92,7 +92,7 @@
   const publisher=typeof bib.publisher==='string'&&bib.publisher.trim()
     ?(isFa?bib.publisher:(bib.publisher==='نشر دارما'?'Darma Publishing':bib.publisher))
     :unknown;
-  const isbn=typeof bib.isbn==='string'&&/^\\d{13}$/.test(bib.isbn)?bib.isbn:unknown;
+  const isbn=typeof bib.isbn==='string'&&/^[0-9]{13}$/.test(bib.isbn)?bib.isbn:unknown;
   const row=(label,value,dir='auto')=>'<div><dt>'+label+'</dt><dd dir="'+dir+'">'+escapeHtml(value)+'</dd></div>';
   return '<dl class="book-catalog-imprint" aria-label="'+(isFa?'مشخصات نشر تأییدشده':'Verified publication details')+'">'+
     row(isFa?'ناشر':'Publisher',publisher)+
