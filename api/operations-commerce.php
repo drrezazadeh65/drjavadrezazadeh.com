@@ -335,6 +335,7 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'inShippingOlderThan7Days'=>(int)$parcelAge['shipping_over_7d'],
             'activeServiceCaseCount'=>$openCases,
             'serviceActionQueue'=>$actionQueue,
+            'serviceDeliveryEvidenceSchemaReady'=>function_exists('operationsServiceDeliveryEvidenceReady') && operationsServiceDeliveryEvidenceReady($pdo),
             'customerPreferenceSchemaReady'=>$preferenceReady,
             'internalAvailability'=>[
                 'schemaReady'=>$capacityReady,
