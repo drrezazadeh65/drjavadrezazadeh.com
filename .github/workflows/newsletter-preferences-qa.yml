@@ -5,6 +5,8 @@ on:
     paths:
       - 'api/newsletter-preferences.php'
       - 'api/newsletter-unsubscribe.php'
+      - 'api/newsletter-delivery.php'
+      - 'api/newsletter-worker.php'
       - 'api/index.php'
       - 'assets/js/newsletter-preferences.js'
       - 'assets/css/newsletter-preferences.css'
@@ -42,9 +44,13 @@ jobs:
         run: |
           php -l api/newsletter-preferences.php
           php -l api/newsletter-unsubscribe.php
+          php -l api/newsletter-delivery.php
+          php -l api/newsletter-worker.php
           php -l tests/newsletter-preferences-mysql.php
           node --check assets/js/newsletter-preferences.js
           node --test tests/newsletter-preferences-contract.test.mjs tests/newsletter-unsubscribe-contract.test.mjs
+          if JR_NEWSLETTER_DELIVERY_ENABLED=false php api/newsletter-worker.php > /tmp/newsletter-guard.log 2>&1; then echo 'Worker ran without activation'; exit 1; fi
+          grep -Fq 'worker is disabled by production policy' /tmp/newsletter-guard.log
       - name: Apply authentic mother schemas to fixture DB
         env: {MYSQL_PWD: fixture-password-only}
         run: |
