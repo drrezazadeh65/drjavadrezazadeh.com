@@ -68,6 +68,26 @@ jobs:
           test ! -e .public-site/platform
           test ! -e .public-site/database
           test ! -e .public-site/tests
+          test ! -e .public-site/.git
+          test ! -e .public-site/.env
+          test ! -e .public-site/.env.local
+          find .public-site -type f -print0 | sort -z | xargs -0 sha256sum > safe-scientific-public-site-manifest.sha256
+          test "$(wc -l < safe-scientific-public-site-manifest.sha256)" -gt 700
+          tar --sort=name --mtime='UTC 2020-01-01' --owner=0 --group=0 --numeric-owner -czf safe-scientific-public-site.tar.gz -C .public-site .
+          sha256sum safe-scientific-public-site.tar.gz > safe-scientific-public-site.tar.gz.sha256
+          git rev-parse HEAD > safe-scientific-source-sha.txt
+      - name: Preserve reviewed archive, source SHA and full checksums
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safe-scientific-release-${{ github.sha }}
+          path: |
+            safe-scientific-public-site.tar.gz
+            safe-scientific-public-site.tar.gz.sha256
+            safe-scientific-public-site-manifest.sha256
+            safe-scientific-source-sha.txt
+          if-no-files-found: error
+          retention-days: 7
       - name: Retain failure diagnostics only
         if: failure()
         uses: actions/upload-artifact@v4
