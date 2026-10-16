@@ -75,8 +75,8 @@ area.append(button,note);footer.parentNode.insertBefore(area,footer);
 
 /* Bilingual public USDT/toman calculator: informational only, never a money quote. */
 (()=>{
- const path=location.pathname.replace(/index\\.html$/,'');
- if(!/^\\/(?:fa|en)\\/(?:shop|services|khadamat|support-talented-students)\\/$/.test(path))return;
+ const path=location.pathname.replace(/index\.html$/,'');
+ if(!/^\/(?:fa|en)\/(?:shop|services|khadamat|support-talented-students)\/$/.test(path))return;
  if(document.querySelector('[data-jr-fx-loader]'))return;
  const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='/assets/css/jr-public-fx-converter.css?v=20261016-v1';stylesheet.dataset.jrFxLoader='1';document.head.append(stylesheet);
  const js=document.createElement('script');js.src='/assets/js/jr-public-fx-converter.js?v=20261016-v1';js.defer=true;document.head.append(js);
