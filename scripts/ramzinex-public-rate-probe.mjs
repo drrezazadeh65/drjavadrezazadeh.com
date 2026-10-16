@@ -7,6 +7,7 @@
 const base='https://publicapi.ramzinex.com';
 const endpoints=[
   '/exchange/api/v1.0/exchange/pairs',
+  '/exchange/api/v1.0/exchange/pairs/11',
   '/exchange/api/exchange/prices'
 ];
 const summarize=v=>{
@@ -35,6 +36,12 @@ async function probe(path){
     if(payload&&typeof payload==='object'&&!Array.isArray(payload)){
       for(const k of ['data','result','results','pairs','markets'])
         if(Object.hasOwn(payload,k))details[k]=summarize(payload[k]);
+      if(path.endsWith('/pairs/11')&&payload.data){
+        const market=Array.isArray(payload.data)?payload.data[0]:payload.data;
+        const names=['pair_id','url_name','name','base_currency_id','base_currency_symbol','quote_currency_id',
+          'quote_currency_symbol','buy','sell','is_delist','is_temporarily_suspended'];
+        details.targetMarket=Object.fromEntries(names.filter(k=>Object.hasOwn(market,k)).map(k=>[k,market[k]]));
+      }
       if(path.endsWith('/pairs')&&Array.isArray(payload.data)){
         const whitelist=['id','pair_id','url_name','name','symbol','base_currency_symbol','quote_currency_symbol',
           'base_currency_id','quote_currency_id','buy','sell','status'];
