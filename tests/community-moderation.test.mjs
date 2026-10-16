@@ -18,7 +18,9 @@ test('only previously verified accounts can submit, with origin, CSRF and rate l
  const s=php();
  for(const rule of ['sessionAccount($pdo)',"email_verified_at","HTTP_ORIGIN","HTTP_SEC_FETCH_SITE","HTTP_X_JR_COMMUNITY_CSRF","hash_equals","rateAllowed($pdo,'community_comment'","textLen($content)<12","textLen($content)>2000"])
   assert.ok(s.includes(rule),'Missing '+rule);
- assert.match(s,/VALUES\(\?,\?,\?,\?,\?,'pending',\?\)/);
+ assert.match(s,/VALUES\(\?,\?,\?,\?,\?,'pending',\?,\?\)/);
+ assert.match(s,/consentToPublication/);
+ assert.match(s,/consented_at/);
  assert.match(s,/status.*'pending'|state.*'pending'/);
  assert.match(s,/return \$v;/);
 });
@@ -66,6 +68,9 @@ test('user text is output via textContent, not HTML, and widget hides on disable
  assert.match(js,/n\.textContent=content/);
  assert.doesNotMatch(js,/innerHTML\s*=\s*[^;]*(?:\.body|\.message|c\.body)/);
  assert.match(js,/state==='pending'/);
+ assert.match(js,/name="consent" required/);
+ assert.match(js,/consentToPublication/);
+ assert.match(js,/harim-khosusi/);
  const loader=read('assets/js/site-extras.js');
  assert.match(loader,/community-comments\.js/);
  assert.match(loader,/community-comments\.css/);
