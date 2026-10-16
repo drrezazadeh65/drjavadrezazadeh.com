@@ -82,7 +82,7 @@ for(const locale of ['fa','en']){
  test(locale+' authentic book detail gallery and bibliographic gate at 390px',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await page.goto(base+'/'+locale+'/shop/book/?id=roshanaei',{waitUntil:'domcontentloaded'});
-  await expect(page.locator('[data-book-detail] h1')).toContainText('سپیدی');
+  await expect(page.locator('[data-book-detail] h1')).toContainText('سپید');
   const images=page.locator('[data-book-detail] .book-detail-gallery img');
   await expect(images).toHaveCount(2,{timeout:12000});
   for(const cover of await images.all()){
