@@ -12,31 +12,33 @@ const en=document.documentElement.lang==='en';
 const text=en?{
   idle:'No database structure has been inspected in this session.',
   checking:'Checking table and column compatibility…',
-  complete:'All required table/column projections are compatible.',
+  complete:'All required table/column signatures exist. Operational safeguarding is NOT certified.',
   incomplete:'Some modules are missing required tables or columns.',
   missing:'Unverified or structurally incompatible',
   ready:'Required columns found (structure only)',
   failed:'The private schema check is unavailable. No readiness was assumed.',
   expired:'Administrator verification may have expired. Recheck access and MFA.',
-  foot:'Read-only structural evidence; not instrument validation, legal consent, migration approval, backup proof or a live-service certification.',
+  foot:'Read-only structural evidence. Even when all four sections match, this does not certify real age/assent proof, reviewer authority, instrument validity, migration approval, backups or live service.',
   table:'Incompatible table(s):',
   empty:'No incompatible tables found in this domain.',
-  names:{consent_guardian:'Identity, guardians and consent',assessment:'Assessment and reports',bahar:'BAHAR longitudinal records'}
+  names:{consent_guardian:'Identity, guardians and consent',assessment:'Assessment and reports',bahar:'BAHAR longitudinal records',safeguarding:'Verified age and learner assent'}
 }:{
   idle:'در این نشست، ساختار پایگاه داده هنوز بررسی نشده است.',
   checking:'در حال بررسی سازگاری جدول‌ها و ستون‌ها…',
-  complete:'ستون‌های ضروری در همهٔ بخش‌ها شناسایی شدند؛ فقط از نظر ساختاری.',
+  complete:'ستون‌های ضروری هر چهار بخش شناسایی شدند؛ این نتیجه مجوز بهره‌برداری نیست.',
   incomplete:'برخی جدول‌ها یا ستون‌های ضروری هنوز در دسترس نیستند.',
   missing:'تأییدنشده یا ناسازگار',
   ready:'ستون‌های ضروری یافت شدند (صرفاً ساختاری)',
   failed:'بررسی خصوصی ساختار در دسترس نیست؛ هیچ آمادگی‌ای تأیید نشد.',
   expired:'ممکن است اعتبار دومرحله‌ای مدیر منقضی شده باشد. دسترسی را دوباره بررسی کنید.',
-  foot:'این بررسی فقط ساختار را نشان می‌دهد؛ نه روایی علمی، رضایت معتبر، مجوز مهاجرت، سلامت بکاپ یا آمادگی عملیاتی.',
+  foot:'این بررسی صرفاً ساختاری است؛ حتی با سازگاری هر چهار بخش، اعتبار واقعی مدارک سن و رضایت، اختیار داور، روایی علمی، مجوز مهاجرت و آمادگی عملیاتی تأیید نمی‌شود.',
   table:'جدول‌های ناسازگار:',
   empty:'در این حوزه جدول ناسازگاری شناسایی نشد.',
-  names:{consent_guardian:'هویت، سرپرستی و رضایت',assessment:'ارزیابی و گزارش',bahar:'سوابق رشد طولی BAHAR'}
+  names:{consent_guardian:'هویت، سرپرستی و رضایت',assessment:'ارزیابی و گزارش',bahar:'سوابق رشد طولی BAHAR',safeguarding:'احراز معتبر سن و رضایت مستقل یادگیرنده'}
 };
-const domains=[['consent_guardian',4],['assessment',8],['bahar',5]];
+// Version 2 makes reviewed-age and minor-assent source tables mandatory.
+// Any older v1 backend/UI pairing fails closed rather than showing success.
+const domains=[['consent_guardian',4],['assessment',8],['bahar',5],['safeguarding',2]];
 let current=null,generation=0;
 function clear(message=text.idle){
   generation++;
@@ -46,7 +48,7 @@ function clear(message=text.idle){
   refresh.disabled=false;
 }
 function validate(data){
-  if(!data||data.ok!==true||data.schema!=='scientific-structural-preflight-v1'||
+  if(!data||data.ok!==true||data.schema!=='scientific-structural-preflight-v2'||
      data.readOnly!==true||data.adminMfaRequired!==true||
      data.inspection!=='TABLE_AND_COLUMN_PROJECTIONS_ONLY'||
      data.personalRowsRead!==false||data.realProductionCertified!==false||
