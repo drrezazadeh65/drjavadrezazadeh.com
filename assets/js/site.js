@@ -118,7 +118,7 @@ links=[
 [u('fa/akhbar/'),'مطالب','news']
 ];
 sheet=[
-[u('fa/darbare-man/'),'درباره من'],
+[u('fa/darbare-man/'),'درباره دکتر رضازاده'],
 [u('fa/rezome/'),'رزومه علمی'],
 [u('fa/khadamat/'),'خدمات آموزشی'],
 [u('fa/tadris/'),'تدریس دانشگاهی'],
