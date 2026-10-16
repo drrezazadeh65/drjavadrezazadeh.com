@@ -7,14 +7,14 @@
  * No selectors hide system warnings, labels, instructions or review controls.
  */
 :root{
-  --jhela-navy:#102940;
-  --jhela-navy-deep:#091a2a;
-  --jhela-brass:#916b27;
-  --jhela-brass-dark:#755318;
+  --jhela-navy:#0b203c;
+  --jhela-navy-deep:#08192e;
+  --jhela-brass:#b48a3f;
+  --jhela-brass-dark:#916b27;
   --jhela-ink:#172739;
   --jhela-muted:#475566;
   --jhela-rule:#d9e0e5;
-  --jhela-paper:#fff;
+  --jhela-paper:#fcfaf5;
   --jhela-canvas:#f5f7f9;
   --jhela-focus:#a66a00;
 }
@@ -132,4 +132,40 @@ html[dir="rtl"] .pkp_navigation_primary{direction:rtl}
   body,.pkp_structure_page{background:#fff!important;color:#000!important;box-shadow:none!important}
   .pkp_navigation_primary_wrapper,.pkp_structure_sidebar{display:none!important}
   .pkp_structure_main a{color:#000;text-decoration:underline}
+}
+
+/* JHELA v3 OJS reader-language styling. Same semantic palette as public journal.
+ * Never changes/replaces native OJS editorial privilege or hidden state. */
+:root{
+ --jhela-parent-obsidian:#0b0b0b;--jhela-parent-gold:#d4af37;
+ --jhela-ivory:#f4f0e6;--jhela-focus-gold:#edcd88;
+ --jhela-radius:12px;--jhela-reading-measure:78ch;
+}
+.pkp_structure_main{min-width:0}
+.pkp_structure_main :is(.about_section,.page,.obj_article_details){
+ max-width:100%;overflow-wrap:break-word;
+}
+.pkp_structure_main :is(p,li){line-height:1.76}
+.pkp_structure_main :is(.page,.obj_article_details) p{max-width:var(--jhela-reading-measure)}
+.pkp_structure_main :is(blockquote,.pull_quote){
+ border-inline-start:3px solid var(--jhela-brass);padding:15px 20px;
+ margin:22px 0;background:#f7f4ed;color:var(--jhela-ink);
+}
+.pkp_structure_main :is(th,td){padding-block:10px;border-bottom:1px solid var(--jhela-rule);vertical-align:top}
+.pkp_structure_main :is(a,button,input,select,textarea,summary):focus-visible{
+ outline:3px solid #a66a00;outline-offset:3px
+}
+.pkp_structure_main .obj_galley_link{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.pkp_structure_main :is(input,select,textarea){max-width:100%}
+@media(max-width:760px){
+ .pkp_structure_page{max-width:100%}
+ .pkp_structure_main{min-width:0}
+ .pkp_site_name .is_img img,.pkp_site_name img{max-width:min(70vw,350px);height:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ .pkp_structure_page *{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+@media print{
+ .pkp_structure_main .obj_article_details,.pkp_structure_main :is(p,li){color:#111}
+ .pkp_structure_main .obj_galley_link{border:1px solid #111;background:#fff;color:#111}
 }

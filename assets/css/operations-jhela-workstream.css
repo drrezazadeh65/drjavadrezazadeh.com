@@ -62,3 +62,37 @@
 #ops-jhela-workstream .ops-jhela-evidence-list li small{color:#e4bca8;line-height:1.5}
 #ops-jhela-workstream .ops-jhela-maturity :focus-visible{outline:3px solid #ffcd62;outline-offset:4px}
 @media(max-width:700px){#ops-jhela-workstream .ops-jhela-live-metrics,#ops-jhela-workstream .ops-jhela-evidence-list{grid-template-columns:1fr}}
+
+
+/* Master design v3 · protected owner journal administration (not OJS reviewer UI). */
+#ops-jhela-workstream{
+ --jhela-journal-navy:#0b203c;--jhela-journal-gold:#edcd88;
+ --jhela-brass:#b48a3f;--jhela-ivory:#f4f0e6;
+ --jhela-control-rule:rgba(214,178,101,.35);
+}
+#ops-jhela-workstream>summary{padding-block:6px}
+#ops-jhela-workstream .ops-jhela-masthead{
+ background:radial-gradient(ellipse 68% 110% at 85% 0%,rgba(183,139,63,.15),transparent 75%),
+ linear-gradient(120deg,#0b203c,#14253a 69%,#171c26);
+ border-color:var(--jhela-control-rule);border-radius:19px;
+}
+#ops-jhela-workstream .ops-jhela-tabs button{
+ border-color:var(--jhela-control-rule);min-height:44px;transition:border-color .16s ease;
+}
+#ops-jhela-workstream .ops-jhela-tabs button[aria-selected=true]{
+ background:#edcd88;color:#132236;border-color:#edcd88;
+}
+#ops-jhela-workstream .ops-jhela-panels>[role=tabpanel]{
+ border-color:var(--jhela-control-rule);border-radius:15px;
+}
+#ops-jhela-workstream :is(button,summary,a):focus-visible{
+ outline:3px solid #f5d58b;outline-offset:3px;
+}
+#ops-jhela-workstream .ops-jhela-gates li,
+#ops-jhela-workstream .ops-jhela-evidence-list li,
+#ops-jhela-workstream .ops-jhela-roadmap li{
+ border-color:var(--jhela-control-rule);
+}
+@media(prefers-reduced-motion:reduce){
+ #ops-jhela-workstream *,#ops-jhela-workstream *::before{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}

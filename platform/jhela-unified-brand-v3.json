@@ -1,0 +1,97 @@
+{
+  "schema": "jhela-unified-visual-identity-v3",
+  "version": "3.0.0",
+  "baseline": "foundation/DESIGN-SYSTEM.md",
+  "governance": "identity/brand-governance.md",
+  "status": "SOURCE_DESIGN_SYSTEM_NOT_PRODUCTION_VISUAL_CERTIFICATION",
+  "asOf": "2026-10-16",
+  "identity": {
+    "relationship": "JHELA is a scholarly sub-brand of the approved Persian-first JR ecosystem; it retains its separate English editorial wordmark while respecting parent restraint and gold emphasis",
+    "wordmarkLight": "assets/images/jhela/wordmark-en.svg",
+    "wordmarkDark": "assets/images/jhela/wordmark-en-reverse.svg",
+    "foundingLabel": "Founding-stage journal; no unverified indexing, journal rank, DOI, ISSN or claimed publication",
+    "corePalette": {
+      "royalBlack": "#0B0B0B",
+      "parentGold": "#D4AF37",
+      "parentIvory": "#F8F5E9",
+      "journalNavy": "#0B203C",
+      "journalBrass": "#B48A3F",
+      "journalIvory": "#F4F0E6",
+      "journalPaper": "#FCFAF5",
+      "journalInk": "#172739",
+      "darkText": "#F4F0E6",
+      "mutedText": "#D1C6B4",
+      "focus": "#EDCD88"
+    },
+    "typography": {
+      "editorialDisplay": "Georgia, Times New Roman, serif",
+      "englishUI": "Arial, Helvetica Neue, Helvetica, sans-serif",
+      "persianUI": "Tahoma, Arial, sans-serif",
+      "localizedLineHeightFA": 1.95,
+      "englishBodyLineHeight": 1.76,
+      "readingMeasureCh": 78
+    },
+    "spacing": {
+      "step": "4px",
+      "sectionDesktopPx": 48,
+      "sectionMobilePx": 20,
+      "touchTargetMinPx": 44
+    },
+    "semantics": {
+      "success": "verified evidenced only",
+      "pending": "unverified / in preparation",
+      "danger": "permission, intake, payment or legal blocker",
+      "decorativeGold": "accent not blanket-fill"
+    },
+    "components": [
+      "masthead",
+      "journal-scope-hero",
+      "editorial-article",
+      "scholarly-card",
+      "policy-panel",
+      "milestone",
+      "peer-review-rubric",
+      "status-chip",
+      "fee-tier",
+      "metadata-panel",
+      "author-guidance",
+      "protected-role-tab",
+      "print-letterhead",
+      "print-decision",
+      "print-reviewer-invitation",
+      "print-finance-notice"
+    ],
+    "media": {
+      "allowUnverifiedThirdPartySeals": false,
+      "allowUnverifiedIndexBadges": false,
+      "requireAlt": true,
+      "requireWidthHeight": true,
+      "sourceOnlyCurrentLogo": true
+    },
+    "accessibility": {
+      "target": "WCAG 2.2 AA",
+      "minTouchPx": 44,
+      "rtlKeyboard": true,
+      "visibleFocus": true,
+      "reducedMotion": true,
+      "reflow320px": true,
+      "textZoom200Percent": true,
+      "noColorOnlyStates": true
+    }
+  },
+  "applications": {
+    "public": "assets/css/journal-v2.css",
+    "privateOwnerWorkspace": "assets/css/operations-jhela-workstream.css",
+    "ojs": "assets/css/jhela-ojs-theme.css (standalone OJS journal upload candidate; not installed)",
+    "stationery": "identity/jhela-document.css",
+    "allAreSeparateTrustDomains": true
+  },
+  "launchCriteria": [
+    "Visual browser QA English and Persian, 320/375/768/1440 viewport",
+    "Real mobile and keyboard review, no sticky blocking elements",
+    "Test 200% zoom and contrast focus",
+    "Native OJS stylesheet on confirmed installed OJS without hiding statuses",
+    "Actual print A4 physical/pdf proof and rightsholder review",
+    "Actual publisher/logo and payment/document permissions before issue"
+  ]
+}
