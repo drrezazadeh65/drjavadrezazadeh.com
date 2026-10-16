@@ -4,12 +4,14 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - 'api/newsletter-preferences.php'
+      - 'api/newsletter-unsubscribe.php'
       - 'api/index.php'
       - 'assets/js/newsletter-preferences.js'
       - 'assets/css/newsletter-preferences.css'
       - 'fa/customer-dashboard/index.html'
       - 'en/account/index.html'
       - 'tests/newsletter-preferences-*'
+      - 'tests/newsletter-unsubscribe-*'
       - '.github/workflows/newsletter-preferences-qa.yml'
   workflow_dispatch:
 permissions:
@@ -39,9 +41,10 @@ jobs:
       - name: Syntax and source guardrails
         run: |
           php -l api/newsletter-preferences.php
+          php -l api/newsletter-unsubscribe.php
           php -l tests/newsletter-preferences-mysql.php
           node --check assets/js/newsletter-preferences.js
-          node --test tests/newsletter-preferences-contract.test.mjs
+          node --test tests/newsletter-preferences-contract.test.mjs tests/newsletter-unsubscribe-contract.test.mjs
       - name: Apply authentic mother schemas to fixture DB
         env: {MYSQL_PWD: fixture-password-only}
         run: |
