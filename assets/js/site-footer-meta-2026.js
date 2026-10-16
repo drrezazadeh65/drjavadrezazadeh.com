@@ -1,6 +1,6 @@
-/* JR global footer metadata — no admin/private state, no invented release version.
+/* JR global footer metadata — no admin/private state or cache fingerprints.
    Domain date: owner-confirmed 2022-11-18; official registry readback pending.
-   Release identifier: public service-worker cache signature, labelled accordingly. */
+   Product version: owner-requested public v5.1.0 label; independent from deploy SHA. */
 (()=>{'use strict';
 const footer=document.querySelector('footer');
 if(!footer || footer.querySelector('[data-jr-footer-legal]'))return;
@@ -15,17 +15,11 @@ if(!footer.textContent.includes('©'))holder.append(line(fa?'© ۲۰۲۲–'+Str
 holder.append(line(fa?'هرگونه تکثیر، بهره‌برداری تجاری یا بازنشر مطالب، تصاویر و طراحی اختصاصی سایت بدون مجوز کتبی، جز در موارد مجاز قانونی، ممنوع است و می‌تواند مطابق قوانین مربوط پیگیری حقوقی داشته باشد.':'Reproduction, commercial use, or republication of the site’s original text, imagery or design without written permission is prohibited, except where permitted by law, and may be subject to legal action.'));
 const meta=document.createElement('p');meta.className='jr-footer-metadata';meta.style.cssText='margin:8px 0 0;color:#b5b1aa;display:flex;gap:10px 20px;justify-content:center;flex-wrap:wrap;';
 const date=document.createElement('span');date.textContent=fa?'تاریخ ثبت دامنه: ۱۸ نوامبر ۲۰۲۲':'Domain registration date: 18 November 2022';
-const version=document.createElement('span');version.textContent=fa?'شناسه نسخه فنی: در حال بررسی':'Technical build ID: checking';meta.append(date,version);holder.append(meta);
+// Public product version is owner-specified; deployment fingerprints belong only
+// in privileged technical release evidence, never public footer copy.
+const version=document.createElement('span');
+version.dataset.jrPublicVersion='5.1.0';
+version.textContent=fa?'نسخه وب‌سایت: ۵.۱.۰':'Website version: 5.1.0';
+meta.append(date,version);holder.append(meta);
 footer.append(holder);
-/* The sw.js immutable cache label is an observable build identifier, not a verified semantic release number. */
-fetch('/sw.js',{cache:'no-store',credentials:'omit',headers:{Accept:'text/javascript'}})
- .then(async r=>{if(!r.ok||r.url&&new URL(r.url).origin!==location.origin)throw Error('unavailable');return (await r.text()).slice(0,900);})
- .then(s=>{
-  const match=s.match(/const\s+CACHE_VERSION\s*=\s*['"](jr-site-[A-Za-z0-9._-]{1,105})['"]/);
-  if(!match)throw Error('unavailable');
-  const id=match[1].slice('jr-site-'.length);
-  version.textContent=(fa?'شناسه نسخه فنی: ':'Technical build ID: ')+id;
-  version.title=fa?'شناسه استخراج‌شده از نسخه خدمت‌رسان PWA؛ جایگزین تأیید انتشار سمت سرور نیست.':'Identifier read from the live PWA service worker; not independently verified as server deployment SHA.';
- })
- .catch(()=>{version.textContent=fa?'شناسه نسخه فنی: نامشخص':'Technical build ID: unavailable';});
 })();
