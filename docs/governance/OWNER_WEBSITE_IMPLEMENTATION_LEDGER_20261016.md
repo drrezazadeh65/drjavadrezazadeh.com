@@ -135,3 +135,17 @@ Recent Chromium storefront/browser evidence: [Navigation QA 38913116270](https:/
 Current evidence grades: `SOURCE_TESTED` for mobile storefront and editable Figma layout; `HOST_UNVERIFIED` for the updated production website/PWA, Figma image fidelity and independent paid-order journey; `REQUIRES_OWNER_INPUT` for the three book imprint records; `BLOCKED_BY_CONFIGURATION` for newsletter real SMTP delivery, USDT settlement, and OJS submission where previously documented gates have not changed.
 
 No production database migration, money movement, or Bertina publish was performed by the Figma work.
+
+## Verified original book covers recovered from Library — 16 October 2026
+
+**Correction to the earlier Library-availability statement:** The owner's **three original first/front-cover photographs** were located and inspected in the persistent ChatGPT Library on this date. Their image headers/date filenames correspond to `1000100955.png`, `1000100956.png` and `1000100957.png`, together showing the actual printed covers of **سپید**, **تاریکی** and **بن‌بست**. The verified first book title, visibly printed on the physical cover, is **سپید**, *not* «سپیدی». An earlier image-generated studio mockup portraying a different «سپید» book and credentials is not admissible bibliographic evidence and must never replace the authentic cover.
+
+**Source alignment applied on the canonical `migration/bertina-linux6` branch**:
+- `platform/book-catalog.json` and `assets/data/book-catalog.json`: first book title `سپید`, English transliteration `Sepid`, and authentic description heading.
+- `fa/ketab-ha/index.html` and `en/books/index.html`: first title/transliteration corrected without altering historical URLs, product IDs, stock or payments.
+- `assets/media-registry.json`: text alt/captions corrected while preserving cover and back-cover image filenames.
+- `scripts/catalog-integrity.mjs`, `tests/owner-mobile-store-version-editorial.test.mjs`, `tests/owner-mobile-store-install-browser.spec.js`: matching identity guards adjusted to the actual photographic evidence. Figma Design file `MM2wC6wDAG9YGJSwgjAFMw` also had 3 native editable title nodes corrected.
+
+**Bibliographic limitation:** The recovered images are **front covers**, not legible internal imprint/copyright pages. They do **not** establish the publisher, ISBN, publication year or edition. All four fields remain null. Search results for the exact book/author pair returned no reliable bibliographic registry evidence; no value has been fabricated. To complete the bibliography, inspect the actual interior shenasname/copyright pages or a verifiable matching official library/publisher record. Do not request the already recovered cover photos again.
+
+No Bertina deployment, database migration or money transfer resulted from this metadata correction. Verify exact-SHA CI and the live source/view separately before claiming the title is corrected on production.
