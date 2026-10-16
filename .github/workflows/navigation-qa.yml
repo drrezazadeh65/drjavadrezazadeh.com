@@ -12,6 +12,7 @@ on:
       - 'en/**'
       - 'tests/public-mobile-navigation.spec.js'
       - 'tests/owner-mobile-install-store.browser.spec.js'
+      - 'tests/owner-mobile-store-install-browser.spec.js'
       - '.github/workflows/navigation-qa.yml'
 
 permissions:
@@ -37,6 +38,7 @@ jobs:
           node --check assets/js/mobile-app-v431.js
           node --check tests/public-mobile-navigation.spec.js
           node --check tests/owner-mobile-install-store.browser.spec.js
+          node --check tests/owner-mobile-store-install-browser.spec.js
       - name: Install browser test runner
         run: |
           npm install --no-save @playwright/test@1.56.0
@@ -51,7 +53,7 @@ jobs:
           cat /tmp/navigation-preview.log
           exit 1
       - name: Run bilingual navigation browser checks
-        run: npx playwright test tests/public-mobile-navigation.spec.js tests/owner-mobile-install-store.browser.spec.js --workers=2 --reporter=line,html --trace=retain-on-failure
+        run: npx playwright test tests/public-mobile-navigation.spec.js tests/owner-mobile-install-store.browser.spec.js tests/owner-mobile-store-install-browser.spec.js --workers=2 --reporter=line,html --trace=retain-on-failure
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
