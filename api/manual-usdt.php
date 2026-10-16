@@ -136,6 +136,7 @@ function jrUsdtCustomerRoute(string $path,string $verb): never {
         respond(['ok'=>true,'schema'=>'manual-usdt-options-v1','enabled'=>$live,
             'requiresVerifiedAccount'=>true,'manualApprovalOnly'=>true,
             'automaticEntitlement'=>false,
+            'journalInvoiceEnabled'=>$live && getenv('JR_JOURNAL_APC_OPEN')==='true' && getenv('JR_JOURNAL_INVOICING_APPROVED')==='true',
             'network'=>$live?'BNB Smart Chain (BEP-20)':null,
             'chainId'=>$live?56:null,
             'tokenContract'=>$live?JR_USDT_CONTRACT:null,
