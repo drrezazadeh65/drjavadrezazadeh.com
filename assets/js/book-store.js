@@ -136,14 +136,19 @@
     '<div class="book-detail-copy"><p class="kicker">'+(isFa?'کتاب منتشرشده':'Published book')+'</p><h1 lang="fa" dir="rtl">'+escapeHtml(b.title_fa)+'</h1>'+
    '<p class="lead">'+escapeHtml(isFa?b.description_fa:b.description_en)+'</p>'+
    '<dl class="book-meta"><div><dt>'+(isFa?'نویسنده':'Author')+'</dt><dd>Javad Rezazadeh Yazdeli</dd></div>'+
-   '<div><dt>ISBN</dt><dd>'+escapeHtml(b.bibliography.isbn||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
-   '<div><dt>'+(isFa?'ناشر':'Publisher')+'</dt><dd>'+escapeHtml(b.bibliography.publisher||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
-   '<div><dt>'+(isFa?'سال انتشار':'Publication year')+'</dt><dd>'+escapeHtml(b.bibliography.publication_year||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
-   '<div><dt>'+(isFa?'نوبت چاپ':'Edition')+'</dt><dd>'+escapeHtml(b.bibliography.edition||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>ISBN</dt><dd><bdi dir="ltr">'+escapeHtml(b.bibliography.isbn||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</bdi></dd></div>'+
+   '<div><dt>'+(isFa?'ناشر':'Publisher')+'</dt><dd>'+escapeHtml(b.bibliography.publisher==='نشر دارما'&&!isFa?'Darma Publishing (نشر دارما)':b.bibliography.publisher||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'سال انتشار':'Publication year')+'</dt><dd>'+escapeHtml(Number.isInteger(b.bibliography.publication_year)&&b.bibliography.publication_calendar==='Solar Hijri'
+     ?new Intl.NumberFormat(isFa?'fa-IR':'en-US',{useGrouping:false}).format(b.bibliography.publication_year)+(isFa?' خورشیدی':' (Solar Hijri)')
+     :(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'نوبت چاپ':'Printing')+'</dt><dd>'+escapeHtml(b.bibliography.edition==='چاپ اول'&&!isFa?'First printing':b.bibliography.edition||(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
+   '<div><dt>'+(isFa?'شمارگان چاپ اول':'First printing quantity')+'</dt><dd>'+escapeHtml(Number.isInteger(b.bibliography.print_run)
+     ?new Intl.NumberFormat(isFa?'fa-IR':'en-US').format(b.bibliography.print_run)+(isFa?' نسخه (نه موجودی فعلی)':' copies (not current inventory)')
+     :(isFa?'هنوز تأیید نشده':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قالب':'Format')+'</dt><dd>'+(b.commerce?.formats_confirmed?.includes('PRINT')?(isFa?'چاپی':'Print'):(isFa?'نیازمند تأیید':'Not yet verified'))+'</dd></div>'+
    '<div><dt>'+(isFa?'قیمت ثبت‌شده':'Listed price')+'</dt><dd>'+escapeHtml(money(b.commerce?.price,b.commerce?.currency))+'</dd></div></dl>'+
    purchaseGuide+
-   '<p class="store-notice">'+(isFa?'جزئیات کتاب‌شناختیِ نامشخص تا زمان تأیید رسمی خالی می‌مانند. ثبت سفارش از مسیر سبد فعال است؛ پرداخت آنلاین فقط پس از تأیید مسیر امن درگاه فعال می‌شود.':'Unverified bibliographic fields are deliberately marked as such. Order submission is active; online payment remains gated until the trusted gateway is verified.')+'</p>'+
+   '<p class="store-notice">'+(isFa?'مشخصات ناشر، شابک، سال نشر و نوبت چاپ از شناسنامه نسخه‌های چاپی استخراج شده‌اند؛ شمارگان چاپ اول بیانگر موجودی فعلی نیست. پرداخت آنلاین فقط پس از تأیید مسیر امن درگاه فعال می‌شود.':'Publisher, ISBN, publication year and first-print data come from the photographed original book imprints. First printing quantity is not current inventory. Online payment remains gated until the verified payment route is ready.')+'</p>'+
    '<div class="actions">'+
    (ready(b)?'<button class="button primary" type="button" data-detail-add="'+escapeHtml(b.id)+'">'+(isFa?'افزودن به سبد خرید':'Add to cart')+'</button>':'')+
    '<a class="button" data-book-info-request href="mailto:info@drjavadrezazadeh.com?subject='+encodeURIComponent((isFa?'درخواست اطلاعات کتاب: ':'Book information enquiry: ')+b.title_fa)+
