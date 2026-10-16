@@ -113,8 +113,8 @@ try {
        SET reviewed_by_account_id=? WHERE id=?")->execute([$reviewer2,$id2]);
     $expect($check()['classification']==='MINOR','restored valid approved review');
     // Historical collision at the same verified instant must deny.
-    $pdo->exec("UPDATE eco_subject_age_attestations SET verified_at=
-        (SELECT latest.verified_at FROM
+    $pdo->exec("UPDATE eco_subject_age_attestations SET revoked_at=NULL,
+       verified_at=(SELECT latest.verified_at FROM
          (SELECT verified_at FROM eco_subject_age_attestations
           WHERE id='".$id2."') AS latest)
         WHERE id='".$id."'");
