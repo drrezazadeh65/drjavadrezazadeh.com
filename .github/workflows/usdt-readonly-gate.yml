@@ -13,6 +13,15 @@ on:
       - 'database/bertina/022_manual_usdt_bsc.sql'
       - 'tests/ramzinex-readonly-smoke.php'
       - 'tests/ramzinex-usdt-safety.test.mjs'
+      - 'tests/manual-usdt-integration.test.mjs'
+      - 'fa/payments/usdt/index.html'
+      - 'en/payments/usdt/index.html'
+      - 'assets/js/manual-usdt-payment.js'
+      - 'assets/js/manual-usdt-account.js'
+      - 'assets/js/operations-manual-usdt.js'
+      - 'assets/css/manual-usdt-payment.css'
+      - 'assets/css/manual-usdt-account.css'
+      - 'assets/css/operations-manual-usdt.css'
       - '.github/workflows/usdt-readonly-gate.yml'
   workflow_dispatch:
 
@@ -47,8 +56,12 @@ jobs:
           php -l api/ramzinex-readonly.php
           php -l tests/ramzinex-readonly-smoke.php
           php tests/ramzinex-readonly-smoke.php
-      - name: Contract safety checks without real API credentials
-        run: node --test tests/ramzinex-usdt-safety.test.mjs
+      - name: JavaScript syntax and server-side integration contracts
+        run: |
+          node --check assets/js/manual-usdt-payment.js
+          node --check assets/js/manual-usdt-account.js
+          node --check assets/js/operations-manual-usdt.js
+          node --test tests/ramzinex-usdt-safety.test.mjs tests/manual-usdt-integration.test.mjs
       - name: Fail closed when runtime flags or live credentials are absent
         run: |
           grep -Fq "JR_MANUAL_USDT_ENABLED" api/manual-usdt.php
