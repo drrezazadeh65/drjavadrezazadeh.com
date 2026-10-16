@@ -3,15 +3,15 @@
 -- Feature flag JR_COMMUNITY_ENABLED defaults OFF. No automatic migration.
 SET NAMES utf8mb4;
 CREATE TABLE IF NOT EXISTS community_comments (
-  id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  id CHAR(36) NOT NULL,
   page_path VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
-  author_account_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  author_account_id CHAR(36) NOT NULL,
   body_text TEXT NOT NULL,
   rating TINYINT UNSIGNED NULL,
   state ENUM('pending','approved','rejected','removed') NOT NULL DEFAULT 'pending',
   created_at BIGINT UNSIGNED NOT NULL,
   reviewed_at BIGINT UNSIGNED NULL,
-  reviewer_account_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  reviewer_account_id CHAR(36) NULL,
   PRIMARY KEY (id),
   UNIQUE KEY uq_community_one_review_per_account_page (author_account_id,page_path),
   KEY idx_community_public (page_path,state,created_at),
@@ -24,9 +24,9 @@ CREATE TABLE IF NOT EXISTS community_comments (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS community_moderation_audit (
-  id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
-  comment_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
-  actor_account_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  id CHAR(36) NOT NULL,
+  comment_id CHAR(36) NOT NULL,
+  actor_account_id CHAR(36) NOT NULL,
   action ENUM('submitted','approved','rejected','removed') NOT NULL,
   created_at BIGINT UNSIGNED NOT NULL,
   PRIMARY KEY (id),
