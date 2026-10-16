@@ -40,7 +40,9 @@ const customerCss=fs.readFileSync(path.join(root,'assets/css/customer-dashboard-
 assert.ok(customerCss.includes('.jr-receipt-print-target{box-sizing:border-box!important;position:absolute!important'),'Printed receipt must be positioned independently of dashboard flow');
 assert.ok(!customerCss.includes('.jr-receipt-print-target{box-sizing:border-box!important;position:relative!important'),'Printed receipt must not re-enter dashboard flow');
 const worker=fs.readFileSync(path.join(root,'sw.js'),'utf8');
-assert.ok(worker.includes('jr-site-20261015-persian-brand-favicon-v2'),'PWA cache must rotate after Persian favicon change');
+const cacheStamp=worker.match(/^const CACHE_VERSION='(jr-site-(?:bertina-[a-f0-9]{40}|20[0-9]{6}-[a-z0-9-]+))';$/m);
+assert.ok(cacheStamp,'PWA cache must have a valid source-version or immutable release-SHA identifier');
+assert.notEqual(cacheStamp[1],'jr-site-20261015-persian-brand-favicon-v1','PWA cache cannot regress to pre-brand favicon version');
 assert.ok(worker.includes("'/favicon.svg'"),'Service worker must precache the canonical favicon');
 const workerCacheEntries=[...worker.matchAll(/^\s*'\/(?:favicon\.(?:ico|png|svg)|assets\/images\/pwa-icon-[^']+)'/gm)].map(m=>m[0].trim().slice(1,-1));
 for(const asset of workerCacheEntries){
