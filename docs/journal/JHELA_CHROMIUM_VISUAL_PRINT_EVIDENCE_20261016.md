@@ -23,3 +23,16 @@
 `tests/jhela-browser-visual.spec.js` and `.github/workflows/jhela-visual-qa.yml` are the canonical automated browser/print evidence instruments. They run on relevant modifications to bilingual journal pages, brand assets, print specimens and the eight design-source role mockups. Screenshots are withheld from `.public-site/` and no live admissions, fees, DOI/ISSN or index rank is certified.
 
 **Baseline:** `docs/journal/JHELA_UNIFIED_DESIGN_MASTER_V3_20261016.md`, `platform/jhela-unified-brand-v3.json`, `foundation/DESIGN-SYSTEM.md`, `identity/brand-governance.md`. Changes should strengthen this agreed design system rather than create a new competing identity.
+
+## 2. Direct screenshot/PDF inspection and defect closure — 16 October 2026
+
+After the initial 43/43 structural Chromium pass, the archived images and A4 PDFs were downloaded for direct examination. Two nontrivial defects were found **despite the passing first run**:
+
+1. At 390px, the English journal home page's `Editorial direction` section lost horizontal reading gutters because the legacy global stylesheet set `padding-left/right:0!important` at small breakpoints. This placed scholarly text almost against the card border. Scoped fix: the JHELA-only responsive rule in `assets/css/journal-v2.css` restores 18–25px horizontal padding without changing any other site's stylesheet or route.
+2. All seven print templates initially generated **two A4 pages**, often with only the official footer on the second page. The original document print minimum-height and explicit page break, combined with full stationery spacing, caused unnecessary pagination. Scoped fix: corrected JHELA print-height and break rules and refined vertical spacing in `identity/jhela-document.css`, leaving the parent official-document styles unchanged.
+
+A stricter Chromium/print test was added: actual computed left and right mobile gutters must be at least 17px, and **each of seven A4 templates is tested independently to contain exactly one PDF page**. PDF bytes are saved for review even when a print test fails.
+
+**Verified correction:** [JHELA Dedicated Visual & Print QA run #38859737089](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/38859737089), source commit `f5bdd77204830676014144e4efb313f1ccb8b4f0`, concluded **49 passed / 0 failed**. The new artifact `jhela-visual-and-print-evidence` is approximately 86.7 MB. All seven new PDFs were additionally inspected programmatically with a separate PDF renderer and confirmed to be **one A4 page each**, approximately 594×841 points per rendered page, with extractable text. Direct comparison of the English home mobile screenshot confirms the content now sits inside consistent visible gutters. Selected reviewer report, fee/waiver and reviewer acknowledgement A4 outputs were rendered to image for composition inspection: coherent logo, title/metadata, confidentiality notices and page footers are visible on a single sheet.
+
+**Qualification:** the source-HTML role prototypes do not constitute native OJS UI deployment, and Chromium image review is not yet an accessibility audit using assistive technology. No source changes alter submission or payment activation. These improvements are additive and do not waive main-site release failures.
