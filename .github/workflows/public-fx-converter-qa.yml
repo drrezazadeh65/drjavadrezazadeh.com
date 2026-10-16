@@ -1,0 +1,48 @@
+name: Public FX Toman-USDT Accessibility and Fail-Closed Browser QA
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'assets/js/jr-public-fx-converter.js'
+      - 'assets/css/jr-public-fx-converter.css'
+      - 'assets/js/site-extras.js'
+      - 'tests/public-fx-converter-browser.spec.js'
+      - '.github/workflows/public-fx-converter-qa.yml'
+      - 'fa/support-talented-students/index.html'
+      - 'en/support-talented-students/index.html'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-fx:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          node --check assets/js/jr-public-fx-converter.js
+          node --check assets/js/site-extras.js
+      - name: Playwright Chromium
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Static HTTP fixture
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/fx-qa-server.log 2>&1 &
+          curl -fsS --retry-connrefused --retry 15 --retry-delay 1 http://127.0.0.1:4173/en/shop/ >/dev/null
+      - name: Test six public routes plus failures
+        run: npx playwright test tests/public-fx-converter-browser.spec.js --workers=2 --reporter=line
+      - name: Retain diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-fx-qa-failure-${{ github.sha }}
+          path: |
+            test-results/
+            /tmp/fx-qa-server.log
+          if-no-files-found: ignore
+          retention-days: 7
