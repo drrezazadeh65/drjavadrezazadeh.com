@@ -22,6 +22,16 @@ test('first-party intake endpoints are connected to existing verified email-sess
  for(const endpoint of ['intake/health','reviewers','workspace','profile','reviewer/apply','manuscripts/create','manuscripts/upload'])
    assert.ok(php.includes("'/journal/"+endpoint+"'"),'route missing '+endpoint);
 });
+test('private JHELA workspace is unavailable until trusted TLS and schema readiness are confirmed',()=>{
+ const method=php.slice(php.indexOf('function jhelaIntakeRoute('));
+ const readiness=method.indexOf('$ready=jhelaReadiness($pdo);');
+ const workspace=method.indexOf("if($path==='/journal/workspace'&&$verb==='GET'){");
+ const guarded=method.indexOf("if(!$ready['profile'])fail('journal_profile_unavailable',503);",workspace);
+ const response=method.indexOf('jhelaPrivateHome($pdo,$a);',workspace);
+ assert.ok(readiness>=0&&readiness<workspace,'readiness must precede private workspace route');
+ assert.ok(workspace>=0&&guarded>workspace&&guarded<response,'workspace response requires readiness guard');
+ assert.ok(php.includes("'trustedTLS'=>(cfg()['public_tls_confirmed']??false)===true"));
+});
 test('manuscript PDFs have isolated storage, content verification, AV, private checksum and ownership',()=>{
  for(const check of ["getenv('JR_JHELA_INTAKE_ENABLED')","getenv('JR_JHELA_PRIVATE_STORAGE')","getenv('JR_JHELA_AV_BINARY')",
  'realpath($raw)','is_uploaded_file','move_uploaded_file',"new finfo(FILEINFO_MIME_TYPE)","'%PDF-'","'sha256'",
