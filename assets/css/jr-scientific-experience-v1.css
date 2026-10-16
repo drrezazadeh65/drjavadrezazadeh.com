@@ -586,3 +586,47 @@ body.customer-dashboard.jr-private-academic{
 @media(max-width:380px){
  .jr-science-workspace .jr-sci-site-brand__mark{width:34px;height:34px}
 }
+
+/* Golden Talent evidence-studio: the same luxury grammar as BAHAR and RCAS. */
+.jr-gt-workspace{margin-block:clamp(24px,4vw,56px);color:var(--jr-sc-ivory)}
+.jr-gt-workspace h2{font:700 clamp(1.45rem,2.7vw,2.1rem)/1.45 Georgia,var(--jr-sc-fa-font),serif;color:var(--jr-sc-ivory);margin:8px 0 16px}
+.jr-gt-intro{max-width:80ch;color:var(--jr-sc-muted);line-height:1.9;margin:0 0 25px}
+.jr-gt-field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.jr-gt-field{display:flex;flex-direction:column;gap:8px;min-width:0;color:var(--jr-sc-ivory);font-weight:650}
+.jr-gt-field>span{font-size:.88rem;line-height:1.6}
+.jr-gt-field :is(select,textarea,input){
+  display:block;width:100%;min-width:0;box-sizing:border-box;min-height:49px;
+  border:1px solid var(--jr-sc-line-active);border-radius:12px;padding:13px 14px;
+  background:var(--jr-sc-obsidian);color:var(--jr-sc-ivory);
+  font:400 .95rem/1.8 var(--jr-sc-fa-font);
+}
+.jr-science-workspace:lang(en) .jr-gt-field :is(select,textarea,input){font-family:var(--jr-sc-ui-font)}
+.jr-gt-field :is(textarea,input)::placeholder{color:var(--jr-sc-muted);opacity:1}
+.jr-gt-field :is(select,textarea,input):focus-visible{outline:3px solid var(--jr-sc-soft-gold);outline-offset:2px}
+.jr-gt-evidence-list-head{display:flex;align-items:start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:30px 0 14px;border-block-start:1px solid var(--jr-sc-line);padding-block-start:25px}
+.jr-gt-evidence-list-head h3{color:var(--jr-sc-ivory);font-size:clamp(1.05rem,1.55vw,1.3rem);margin:0 0 7px}
+.jr-gt-evidence-list-head p{color:var(--jr-sc-muted);font-size:.91rem;margin:0;line-height:1.7}
+.jr-gt-evidence-list{display:grid;gap:13px;margin:15px 0}
+.jr-gt-evidence-item{min-width:0;border:1px solid var(--jr-sc-line);border-radius:17px;padding:20px;background:linear-gradient(130deg,#221e18,#12110e)}
+.jr-gt-evidence-item legend{color:var(--jr-sc-soft-gold);font-weight:750;padding-inline:11px}
+.jr-gt-evidence-item .jr-gt-field-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.jr-gt-evidence-item [data-gt-evidence-remove]{margin-block-start:13px}
+.jr-gt-summary{margin:16px 0;padding:clamp(18px,3vw,32px);border:1px solid var(--jr-sc-line-active);border-radius:18px;background:linear-gradient(135deg,#2c261b,#171510 70%)}
+.jr-gt-summary h3{font-size:clamp(1.14rem,1.7vw,1.42rem);color:var(--jr-sc-ivory);margin:0 0 18px}
+.jr-gt-summary-row{border-block-end:1px solid var(--jr-sc-line);padding-block:12px}
+.jr-gt-summary-row h4{color:var(--jr-sc-soft-gold);margin:0 0 7px;font-size:.95rem}
+.jr-gt-summary-row p,.jr-gt-summary-row ol{color:var(--jr-sc-ivory);line-height:1.85;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.jr-gt-summary-row ol{padding-inline-start:23px}
+.jr-gt-summary-row li{margin-block:7px}
+.jr-gt-summary-row li small{display:block;color:var(--jr-sc-muted);margin-block-start:3px}
+.jr-gt-summary-warning,.jr-gt-summary-note{border-inline-start:3px solid var(--jr-sc-antique);padding:11px 14px;color:var(--jr-sc-ivory);background:rgba(212,175,55,.06);line-height:1.8}
+.jr-gt-workspace [hidden]{display:none!important}
+@media(max-width:900px){.jr-gt-evidence-item .jr-gt-field-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:730px){.jr-gt-field-grid,.jr-gt-evidence-item .jr-gt-field-grid{grid-template-columns:1fr}.jr-gt-workspace{padding:20px 17px}.jr-gt-evidence-item{padding:15px}.jr-gt-workspace .jr-bahar-controls{flex-direction:column}.jr-gt-workspace .jr-bahar-controls button{width:100%}}
+@media print{
+ .jr-gt-workspace form,.jr-gt-workspace [data-gt-evidence-feedback],.jr-gt-workspace>.jr-sci-pathway__disclaimer{display:none!important}
+ .jr-gt-workspace{background:white!important;color:black!important;border:0!important;box-shadow:none!important;padding:0!important}
+ .jr-gt-workspace .jr-gt-summary{background:white!important;color:black!important;border:1px solid #8f856f;break-inside:avoid}
+ .jr-gt-workspace .jr-gt-summary :is(h3,h4,p,li,strong,small){color:#181818!important}
+ .jr-gt-workspace [data-gt-evidence-summary][hidden]{display:none!important}
+}
