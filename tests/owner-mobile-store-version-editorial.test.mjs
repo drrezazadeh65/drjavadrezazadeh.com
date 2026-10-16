@@ -95,21 +95,21 @@ test('three book bibliographic fields remain truthful until imprint evidence',()
 test('bilingual published-book identity follows the canonical catalogue and third-person author copy',()=>{
  const books=JSON.parse(source('platform/book-catalog.json')).books;
  const first=books.find(b=>b.id==='roshanaei');
- assert.equal(first?.title_fa,'سپیدی');
- assert.equal(first?.english_reference_title,'Sepidi');
+ assert.equal(first?.title_fa,'سپید');
+ assert.equal(first?.english_reference_title,'Sepid');
  const fa=source('fa/ketab-ha/index.html'),en=source('en/books/index.html');
  assert.match(fa,/سه کتابی که پیش از پروژه‌های فعلی منتشر شده‌اند/);
- assert.match(fa,/<h3>سپیدی<\/h3>/);
- assert.match(en,/<h3 lang="fa" dir="rtl">سپیدی<\/h3>/);
- assert.match(en,/<em>Sepidi<\/em>/);
+ assert.match(fa,/<h3>سپید<\/h3>/);
+ assert.match(en,/<h3 lang="fa" dir="rtl">سپید<\/h3>/);
+ assert.match(en,/<em>Sepid<\/em>/);
  for(const book of books){
   const faTitle='<h3>'+book.title_fa+'</h3>';
   const enTitle='<h3 lang="fa" dir="rtl">'+book.title_fa+'</h3>';
   assert.ok(fa.includes(faTitle),'Persian public books must agree with catalogue: '+book.id);
   assert.ok(en.includes(enTitle),'English public books must agree with catalogue: '+book.id);
  }
- assert.doesNotMatch(fa,/<h3>سپید<\/h3>|نوشتن برای من|نوشتار شخصی من|این سه را یکی نمی‌کنم|درباره من/);
- assert.doesNotMatch(en,/<h3 lang="fa" dir="rtl">سپید<\/h3>|<em>Sepid<\/em>|My writing|my writing|I keep these/);
+ assert.doesNotMatch(fa,/<h3>سپیدی<\/h3>|نوشتن برای من|نوشتار شخصی من|این سه را یکی نمی‌کنم|درباره من/);
+ assert.doesNotMatch(en,/<h3 lang="fa" dir="rtl">سپیدی<\/h3>|<em>Sepidi<\/em>|My writing|my writing|I keep these/);
  // Book projects under preparation remain distinct from published books.
  assert.match(fa,/ما در رخ او تو را می‌جستیم/);
  assert.match(en,/ما در رخ او تو را می‌جستیم/);
