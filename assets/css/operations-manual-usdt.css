@@ -1,0 +1,24 @@
+/* Fresh-MFA administrator payment review · follows existing --ops-* system */
+#jr-usdt-admin{--u-gold:var(--ops-gold,#edcd88);--u-line:var(--ops-border,#314259);margin:24px 0;padding:clamp(18px,3vw,32px);border:1px solid rgba(237,205,136,.3);border-radius:22px;background:radial-gradient(ellipse at 100% 0,rgba(237,205,136,.05),transparent 55%),var(--ops-panel,#142033)}
+#jr-usdt-admin[hidden],#jr-usdt-admin [hidden]{display:none!important}
+#jr-usdt-admin .jr-usdt-admin-header{display:flex;align-items:center;gap:17px;padding-bottom:18px;border-bottom:1px solid var(--u-line)}
+#jr-usdt-admin .jr-usdt-admin-logo{width:54px;height:54px;object-fit:contain;border:1px solid var(--u-line);border-radius:13px;padding:7px}
+#jr-usdt-admin .jr-usdt-admin-eyebrow{font:.7rem Georgia,serif;letter-spacing:.12em;color:var(--u-gold);margin:0 0 7px}
+#jr-usdt-admin h2{font-size:clamp(1.15rem,1.8vw,1.6rem);line-height:1.6;margin:0}
+#jr-usdt-admin p{line-height:1.8;overflow-wrap:anywhere}
+#jr-usdt-admin .jr-usdt-admin-list{display:grid;gap:15px;margin-top:20px}
+#jr-usdt-admin .jr-usdt-admin-card{padding:clamp(17px,2vw,26px);border:1px solid var(--u-line);border-radius:16px;min-width:0;background:rgba(255,255,255,.022)}
+#jr-usdt-admin .jr-usdt-admin-card>strong{display:block;overflow-wrap:anywhere;font-size:.9rem;color:var(--u-gold)}
+#jr-usdt-admin .jr-usdt-admin-card p{font-size:.87rem;margin:9px 0}
+#jr-usdt-admin button{border-radius:10px;border:1px solid var(--u-gold);min-height:44px;padding:10px 14px;background:rgba(237,205,136,.09);color:inherit;font:inherit;cursor:pointer}
+#jr-usdt-admin button:disabled{opacity:.5;cursor:not-allowed}
+#jr-usdt-admin .jr-usdt-admin-receipt{display:inline-flex;align-items:center;min-height:44px;margin:12px 0;color:var(--u-gold);text-decoration:underline;text-underline-offset:4px}
+#jr-usdt-admin .jr-usdt-admin-note{display:block;max-width:100%;width:100%;min-height:95px;margin:14px 0;padding:13px;background:var(--ops-bg,#0a101b);color:inherit;border:1px solid var(--u-line);border-radius:11px;font:inherit}
+#jr-usdt-admin .jr-usdt-admin-checks{display:grid;gap:9px;border-inline-start:3px solid var(--u-gold);padding:13px;margin:10px 0}
+#jr-usdt-admin .jr-usdt-admin-check{display:flex;align-items:flex-start;gap:11px;font-size:.87rem;line-height:1.8}
+#jr-usdt-admin .jr-usdt-admin-check input{width:19px;height:19px;accent-color:var(--u-gold);flex:none;margin-top:6px}
+#jr-usdt-admin .jr-usdt-admin-actions{display:flex;flex-wrap:wrap;gap:10px}
+#jr-usdt-admin :is(a,button,textarea,input):focus-visible{outline:3px solid var(--u-gold);outline-offset:3px}
+@media(max-width:580px){#jr-usdt-admin{padding:17px 13px;border-radius:15px}#jr-usdt-admin .jr-usdt-admin-actions button{flex:1 1 100%}#jr-usdt-admin .jr-usdt-admin-logo{width:44px;height:44px;padding:5px}}
+@media(prefers-reduced-motion:reduce){#jr-usdt-admin *{animation:none!important;transition:none!important}}
+@media(forced-colors:active){#jr-usdt-admin,#jr-usdt-admin .jr-usdt-admin-card{border:1px solid CanvasText}}
