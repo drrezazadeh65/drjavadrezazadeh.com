@@ -61,7 +61,7 @@ function render(orders){
                 scheduling:tr('در حال تعیین نوبت','Scheduling'),
                 booked:tr('نوبت ثبت شده','Booked'),
                 in_progress:tr('در حال ارائه','In progress'),
-                delivered:tr('تحویل ثبت شده','Delivery recorded'),
+                delivered:tr('تحویل توسط مدیر همراه با سند داخلی ثبت شده؛ تأیید مستقل دریافت مشتری هنوز لازم است','Owner-attested delivery recorded; independent buyer receipt is not confirmed'),
                 cancelled:tr('لغو ثبت شده','Cancelled')
               };
               for(const c of data.serviceCases){
