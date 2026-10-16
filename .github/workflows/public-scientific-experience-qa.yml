@@ -37,7 +37,7 @@ jobs:
         run: |
           node --check assets/js/bahar-formative-workspace-v1.js
           node --check scripts/build-public-site.mjs
-          node -e "const fs=require('fs');const s=fs.readFileSync('assets/js/bahar-formative-workspace-v1.js','utf8');for(const x of ['localStorage','sessionStorage','fetch(','XMLHttpRequest(','WebSocket(')if(s.includes(x))throw Error('BAHAR cannot persist/upload worksheet answers: '+x);"
+          node -e "const fs=require('fs');const s=fs.readFileSync('assets/js/bahar-formative-workspace-v1.js','utf8');for(const x of ['localStorage','sessionStorage','fetch(','XMLHttpRequest(','WebSocket(']){if(s.includes(x))throw Error('BAHAR must not retain/upload: '+x)}"
       - name: Install Chromium runner
         run: |
           npm install --no-save @playwright/test@1.56.0
