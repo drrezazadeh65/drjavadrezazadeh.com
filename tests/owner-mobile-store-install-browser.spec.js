@@ -90,8 +90,12 @@ for(const locale of ['fa','en']){
     await expect.poll(()=>cover.evaluate(el=>el.complete&&el.naturalWidth>0),
       {timeout:12000,message:'original book cover must decode'}).toBe(true);
   }
-  await expect(page.locator('[data-book-detail] .book-meta')).toContainText(
-    locale==='fa'?'هنوز تأیید نشده':'Not yet verified');
+  // Verified original imprint data now replaces the earlier placeholder.
+  const meta=page.locator('[data-book-detail] .book-meta');
+  await expect(meta).toContainText('9786229465141');
+  await expect(meta).toContainText(locale==='fa'?'نشر دارما':'Darma Publishing');
+  await expect(meta).toContainText(locale==='fa'?'۱۴۰۴':'1404');
+  await expect(meta).not.toContainText(locale==='fa'?'هنوز تأیید نشده':'Not yet verified');
   await expect(page.locator('.app-dock [data-jr-dock-install]')).toBeVisible({timeout:12000});
   const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
   expect(overflow,'book detail mobile overflow').toBeLessThanOrEqual(1);
