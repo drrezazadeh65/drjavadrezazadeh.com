@@ -40,7 +40,11 @@ const customerCss=fs.readFileSync(path.join(root,'assets/css/customer-dashboard-
 assert.ok(customerCss.includes('.jr-receipt-print-target{box-sizing:border-box!important;position:absolute!important'),'Printed receipt must be positioned independently of dashboard flow');
 assert.ok(!customerCss.includes('.jr-receipt-print-target{box-sizing:border-box!important;position:relative!important'),'Printed receipt must not re-enter dashboard flow');
 const worker=fs.readFileSync(path.join(root,'sw.js'),'utf8');
-assert.ok(worker.includes('jr-site-20261015-persian-brand-favicon-v2'),'PWA cache must rotate after Persian favicon change');
+const cacheVersion=(worker.match(/const CACHE_VERSION='(jr-site-[a-z0-9-]+)'/)||[])[1];
+assert.ok(/^jr-site-20[0-9]{6}-[a-z0-9-]+$/.test(cacheVersion||''),
+  'PWA cache must retain a dated versioned release namespace');
+assert.notEqual(cacheVersion,'jr-site-20261015-persian-brand-favicon-v2',
+  'Later private-admin PWA releases must not revert to the old Persian favicon cache');
 assert.ok(worker.includes("'/favicon.svg'"),'Service worker must precache the canonical favicon');
 const workerCacheEntries=[...worker.matchAll(/^\s*'\/(?:favicon\.(?:ico|png|svg)|assets\/images\/pwa-icon-[^']+)'/gm)].map(m=>m[0].trim().slice(1,-1));
 for(const asset of workerCacheEntries){

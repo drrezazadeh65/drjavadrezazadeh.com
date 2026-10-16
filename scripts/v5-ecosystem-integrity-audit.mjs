@@ -321,8 +321,11 @@ verify('commerce: private financial facts remain explicitly unknown',
   dep.production?.schemaMigrationAuthorized===false);
 verify('journal: isolated bilingual sitemap includes only real public URLs',(()=>{
   const locs=[...journalMap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(x=>x[1]);
-  return locs.length===24 && distinct(locs) &&
-    locs.every(x=>x.startsWith('https://drjavadrezazadeh.com/journal/')) &&
+  // The released bilingual roadmap expanded the JHELA public sitemap from
+  // 24 to 26 authentic pages. Reject phantom/private routes and missing HTML.
+  return locs.length===26 && distinct(locs) &&
+    locs.every(x=>x.startsWith('https://drjavadrezazadeh.com/journal/') &&
+      fs.existsSync(path.join(root,new URL(x).pathname.slice(1),'index.html'))) &&
     !locs.some(x=>/\/(?:submission|login|register|account|payment)\//.test(x));
 })());
 verify('journal: no false live OJS / submission / publishing claims',
