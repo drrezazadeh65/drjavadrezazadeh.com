@@ -49,6 +49,12 @@ on:
       - "tests/bertina-free-stage-authorisation.php"
       - "tests/bertina-dashboard-projections.php"
       - "tests/bertina-free-stage-mysql.php"
+      - "assets/js/bahar-formative-workspace-v1.js"
+      - "assets/css/jr-scientific-experience-v1.css"
+      - "fa/app/student/bahar/index.html"
+      - "en/golden-talent/dashboard/bahar/index.html"
+      - "fa/customer-dashboard/index.html"
+      - "tests/bahar-formative-workspace-browser.spec.js"
       - ".github/workflows/scientific-free-stage-policy-qa.yml"
   pull_request:
     paths:
@@ -97,6 +103,12 @@ on:
       - "tests/bertina-free-stage-authorisation.php"
       - "tests/bertina-dashboard-projections.php"
       - "tests/bertina-free-stage-mysql.php"
+      - "assets/js/bahar-formative-workspace-v1.js"
+      - "assets/css/jr-scientific-experience-v1.css"
+      - "fa/app/student/bahar/index.html"
+      - "en/golden-talent/dashboard/bahar/index.html"
+      - "fa/customer-dashboard/index.html"
+      - "tests/bahar-formative-workspace-browser.spec.js"
       - ".github/workflows/scientific-free-stage-policy-qa.yml"
 
 permissions:
@@ -119,6 +131,7 @@ jobs:
           node --check platform/rcas-preview-edition-contract.mjs
           node --check assets/js/talent-dashboard-view-model.mjs
           node --check assets/js/operations-scientific-schema.js
+          node --check assets/js/bahar-formative-workspace-v1.js
       - name: Isolated PHP Bertina consent projection
         run: |
           php -l platform/bertina-consent-projection.php
@@ -280,7 +293,7 @@ jobs:
   admin-schema-browser:
     name: Bilingual scientific schema plus existing operations dashboard browser regression
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 23
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -296,4 +309,4 @@ jobs:
           curl -fsS --retry-connrefused --retry 15 --retry-delay 1 --max-time 3 http://127.0.0.1:4173/fa/app/admin/ > /dev/null
       - name: Test FA/EN lazy data, MFA denial, private state clear, hostile payload
         run: |
-          npx playwright test tests/operations-scientific-schema-browser.spec.js tests/operations-browser.spec.js --reporter=line
+          npx playwright test tests/operations-scientific-schema-browser.spec.js tests/operations-browser.spec.js tests/bahar-formative-workspace-browser.spec.js --reporter=line
