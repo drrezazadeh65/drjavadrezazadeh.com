@@ -1,0 +1,16 @@
+/* Moderated article comments: warm academic style, responsive and screen-reader safe. */
+.jr-community{margin:clamp(28px,5vw,60px) 0;padding:clamp(18px,3vw,32px);border:1px solid rgba(189,162,107,.34);border-radius:22px;background:linear-gradient(135deg,rgba(203,168,105,.065),rgba(10,23,39,.075));}
+.jr-community h2{font-size:clamp(1.25rem,2vw,1.65rem);margin:0 0 10px}
+.jr-community-intro,.jr-community-status,.jr-community-form-status{font-size:.92rem;line-height:1.9;color:inherit;opacity:.85}
+.jr-community-list{display:grid;gap:12px;margin-block:22px}
+.jr-community-comment{border:1px solid rgba(145,154,167,.27);border-radius:14px;padding:15px 20px;background:rgba(117,129,151,.05)}
+.jr-community-comment-meta{font-size:.85rem;font-weight:700;color:inherit;opacity:.8;margin:0 0 10px}
+.jr-community-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.9;margin:0}
+.jr-community-form{display:grid;gap:13px;margin-top:20px;padding-top:17px;border-top:1px solid rgba(145,154,167,.25)}
+.jr-community-form h3{margin:0 0 5px}
+.jr-community-form label{display:grid;gap:6px;font-weight:600}
+.jr-community-form textarea,.jr-community-form select{background:var(--surface,#fff);color:var(--text,#202936);border:1px solid #9b9d9f;border-radius:10px;padding:11px;max-width:100%;font:inherit}
+.jr-community-form button{font:inherit;border:1px solid #a6854e;background:#18334d;color:#fff5de;border-radius:12px;padding:12px 20px;cursor:pointer;min-height:44px}
+.jr-community-form button:disabled{opacity:.55;cursor:not-allowed}
+.jr-community :is(button,a,select,textarea):focus-visible{outline:3px solid #b69a60;outline-offset:3px}
+@media(max-width:600px){.jr-community{border-radius:15px}.jr-community-comment{padding:12px}}
