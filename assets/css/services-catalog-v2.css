@@ -154,3 +154,22 @@
 @media(prefers-reduced-motion:reduce){
   .services-catalog-page .card{transition:none}.services-catalog-page .card:hover{transform:none}
 }
+
+/* JR service/knowledge atlas: 40 source-confirmed internal destinations; same premium brand tokens. */
+.services-catalog-page .jr-service-path-atlas{margin-top:36px;padding:clamp(20px,4vw,40px);border:1px solid var(--svc-gold-line);border-radius:26px;background:linear-gradient(155deg,#191719,#0c0c0e);color:#f8f5e9}
+.services-catalog-page .jr-atlas-head{max-width:940px}
+.services-catalog-page .jr-atlas-eyebrow{font-size:12px;letter-spacing:.07em;color:var(--svc-gold-soft);font-weight:700}
+.services-catalog-page .jr-atlas-head h2{margin:.3em 0;font-size:clamp(25px,3vw,35px);line-height:1.5;color:#f8f5e9}
+.services-catalog-page .jr-atlas-head p,.services-catalog-page .jr-atlas-group>p{max-width:980px;color:#c7bdad;font-size:14px;line-height:2}
+.services-catalog-page .jr-atlas-head .jr-atlas-count{font-weight:700;color:#ecd59a}
+.services-catalog-page .jr-atlas-group{margin-top:29px}
+.services-catalog-page .jr-atlas-group h3{font-size:21px;margin:0 0 7px;color:#f6dfb2}
+.services-catalog-page .jr-atlas-links{list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.services-catalog-page .jr-atlas-links li{min-width:0}
+.services-catalog-page .jr-atlas-links a{display:flex;height:100%;flex-direction:column;gap:6px;padding:15px 16px;text-decoration:none;border:1px solid rgba(212,175,55,.20);border-radius:13px;background:rgba(255,255,255,.025);transition:border-color .15s ease,background .15s ease}
+.services-catalog-page .jr-atlas-links a strong{color:#f8f5e9;font-size:14px;line-height:1.65}
+.services-catalog-page .jr-atlas-links a span{color:#bdb7aa;font-size:12px;line-height:1.85}
+.services-catalog-page .jr-atlas-links a:hover,.services-catalog-page .jr-atlas-links a:focus-visible{border-color:#d4af37;background:rgba(212,175,55,.07)}
+@media(max-width:900px){.services-catalog-page .jr-atlas-links{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.services-catalog-page .jr-service-path-atlas{padding:20px 15px;border-radius:18px}.services-catalog-page .jr-atlas-links{grid-template-columns:1fr}.services-catalog-page .jr-atlas-links a{padding:13px 14px}}
+@media(prefers-reduced-motion:reduce){.services-catalog-page .jr-atlas-links a{transition:none}}
