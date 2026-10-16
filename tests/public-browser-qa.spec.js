@@ -1357,7 +1357,7 @@ test('book selection rejects corrupt or excessive device-only quantities',async(
 });
 
 
-test('bilingual book detail retains verified identity and explicitly flags missing publishing data',async({page})=>{
+test('bilingual book detail displays verified imprint and distinguishes printed stock from current inventory',async({page})=>{
  for(const [route,language] of [['/fa/shop/book/?id=roshanaei','fa'],['/en/shop/book/?id=roshanaei','en']]){
   for(const [width,height] of [[390,844],[1440,900]]){
    await page.setViewportSize({width,height});
@@ -1365,9 +1365,14 @@ test('bilingual book detail retains verified identity and explicitly flags missi
    expect(response.status()).toBe(200);
    const main=page.locator('[data-book-detail]');
    await expect(main.locator('h1')).toContainText('سپید');
-   await expect(main.locator('.book-meta')).toContainText(language==='fa'?'هنوز تأیید نشده':'Not yet verified');
-   await expect(main.locator('.book-meta')).toContainText(language==='fa'?'ناشر':'Publisher');
-   await expect(main.locator('.book-meta')).toContainText(language==='fa'?'نوبت چاپ':'Edition');
+   const meta=main.locator('.book-meta');
+   await expect(meta).toContainText('9786229465141');
+   await expect(meta).toContainText(language==='fa'?'نشر دارما':'Darma Publishing');
+   await expect(meta).toContainText(language==='fa'?'ناشر':'Publisher');
+   await expect(meta).toContainText(language==='fa'?'چاپ اول':'First printing');
+   await expect(meta).toContainText(language==='fa'?'شمارگان چاپ اول':'First printing quantity');
+   await expect(meta).toContainText(language==='fa'?'نه موجودی فعلی':'not current inventory');
+   await expect(meta).not.toContainText(language==='fa'?'هنوز تأیید نشده':'Not yet verified');
    await expect(main.locator('[data-book-info-request]')).toHaveAttribute('href',/^mailto:/);
    await expect(main.locator('[data-detail-add]')).toBeVisible();
    const o=await stableOverflow(page);
