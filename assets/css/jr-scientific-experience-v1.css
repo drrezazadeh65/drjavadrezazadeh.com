@@ -1,0 +1,561 @@
+/*
+ * JR Scientific Experience / identity design extension v1.0
+ * Scientific tools, private customer dashboard, owner-only administration.
+ * Source of truth: foundation/DESIGN-SYSTEM.md, identity/tokens.css,
+ * identity/brand-governance.md and JR cinematic bilingual master design.
+ *
+ * NO fabricated score, paid entitlement, report availability or validation.
+ * Preserve existing page interactions/links and the frozen SEO architecture.
+ * Shared semantic values are aligned to the mother identity, not a subbrand.
+ */
+:where(.jr-private-academic,.jr-science-workspace){
+  --jr-sc-obsidian:#0b0b0b;
+  --jr-sc-graphite:#1f1f1f;
+  --jr-sc-raised:#171613;
+  --jr-sc-ivory:#f8f5e9;
+  --jr-sc-muted:#c4baa9;
+  --jr-sc-gold:#d4af37;
+  --jr-sc-soft-gold:#ebd79e;
+  --jr-sc-antique:#a88955;
+  --jr-sc-line:rgba(212,175,55,.25);
+  --jr-sc-line-active:rgba(235,215,158,.62);
+  --jr-sc-shadow:0 22px 58px rgba(0,0,0,.27);
+  --jr-sc-radius:22px;
+  --jr-sc-ui-font:"Instrument Sans","Segoe UI",Arial,sans-serif;
+  --jr-sc-fa-font:"Vazirmatn",Tahoma,Arial,sans-serif;
+  --jr-sc-readable:65ch;
+  color-scheme:dark;
+}
+:where(.jr-private-academic,.jr-science-workspace):lang(fa){
+  font-family:var(--jr-sc-fa-font);
+  line-height:1.9;
+}
+:where(.jr-private-academic,.jr-science-workspace):lang(en){
+  font-family:var(--jr-sc-ui-font);
+  line-height:1.65;
+}
+/* Adapt established private app semantic tokens, not replace their APIs. */
+body.jr-private-academic:has(.ops){
+  --ops-bg:var(--jr-sc-obsidian);
+  --ops-panel:var(--jr-sc-raised);
+  --ops-border:var(--jr-sc-line);
+  --ops-text:var(--jr-sc-ivory);
+  --ops-muted:var(--jr-sc-muted);
+  --ops-gold:var(--jr-sc-soft-gold);
+  --ops-green:#9dd9bc;
+  background:
+    radial-gradient(ellipse 75% 29% at 78% -7%,rgba(212,175,55,.105),transparent 73%),
+    var(--jr-sc-obsidian);
+}
+body.customer-dashboard.jr-private-academic{
+  --cd-bg:var(--jr-sc-obsidian);
+  --cd-bg2:#11100e;
+  --cd-panel:var(--jr-sc-raised);
+  --cd-panel2:var(--jr-sc-graphite);
+  --cd-panel3:#24211a;
+  --cd-line:var(--jr-sc-line);
+  --cd-line-strong:var(--jr-sc-line-active);
+  --cd-gold:var(--jr-sc-soft-gold);
+  --cd-gold-2:var(--jr-sc-antique);
+  --cd-shadow:var(--jr-sc-shadow);
+}
+/* Reuse the same mother mark in RTL and LTR. No new JR letterform. */
+.jr-sci-identity{
+  display:flex;
+  align-items:center;
+  gap:clamp(10px,1.3vw,18px);
+  min-width:0;
+}
+.jr-sci-identity__symbol{
+  width:52px;height:52px;
+  object-fit:contain;
+  flex:0 0 auto;
+  border-radius:14px;
+  border:1px solid var(--jr-sc-line);
+  background:var(--jr-sc-obsidian);
+}
+.jr-sci-identity__copy{display:grid;gap:2px;min-width:0}
+.jr-sci-identity__copy strong{
+  color:var(--jr-sc-ivory);
+  font-size:clamp(.93rem,1.3vw,1.1rem);
+  line-height:1.45;
+  font-weight:700;
+}
+.jr-sci-identity__copy small{
+  color:var(--jr-sc-muted);
+  font-size:.76rem;
+  line-height:1.5;
+}
+/* Admin surfaces inherit brand, retain all existing panels and operations. */
+.jr-private-academic .ops-top{
+  padding-block:clamp(15px,2.8vw,30px);
+  gap:20px;
+  border-block-end:1px solid var(--jr-sc-line);
+}
+.jr-private-academic .ops-top h1{
+  color:var(--jr-sc-ivory);
+  font-size:clamp(1.5rem,2.5vw,2.2rem);
+  line-height:1.35;
+  letter-spacing:normal;
+  margin:.4rem 0;
+}
+.jr-private-academic .ops-panel{
+  border-color:var(--jr-sc-line);
+  box-shadow:0 12px 34px rgba(0,0,0,.12);
+}
+.jr-private-academic .ops-card{border-color:var(--jr-sc-line)}
+.jr-private-academic :is(button,input,select){
+  min-height:44px;
+}
+.jr-private-academic :is(button,summary,a,input,select,textarea):focus-visible,
+.jr-science-workspace :is(button,a,input,select,textarea,summary):focus-visible{
+  outline:3px solid var(--jr-sc-soft-gold);
+  outline-offset:3px;
+}
+/* The consent-safe structural inventory uses four evidence sections. */
+#ops-scientific-schema.jr-science-panel{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  padding:clamp(18px,3vw,34px);
+  background:
+    radial-gradient(circle at 93% 0%,rgba(212,175,55,.11),transparent 38%),
+    linear-gradient(145deg,#1c1a16,#121210 72%);
+  border:1px solid var(--jr-sc-line);
+  border-radius:var(--jr-sc-radius);
+}
+#ops-scientific-schema.jr-science-panel::before{
+  content:"";
+  position:absolute;
+  inset-block:0;
+  inset-inline-start:0;
+  width:3px;
+  background:linear-gradient(180deg,var(--jr-sc-gold),transparent 85%);
+  pointer-events:none;
+}
+#ops-scientific-schema.jr-science-panel>summary{
+  display:list-item;
+  list-style-position:inside;
+  cursor:pointer;
+  padding-block:8px;
+  padding-inline-end:12px;
+  color:var(--jr-sc-ivory);
+  font-family:Georgia,var(--jr-sc-fa-font),serif;
+  font-weight:700;
+  font-size:clamp(1.08rem,2vw,1.45rem);
+  line-height:1.55;
+  text-wrap:balance;
+}
+#ops-scientific-schema.jr-science-panel>summary::marker{
+  color:var(--jr-sc-gold);
+}
+#ops-scientific-schema.jr-science-panel .jr-sci-intro{
+  margin-block:14px 17px;
+  max-width:75ch;
+  color:var(--jr-sc-muted);
+}
+.jr-sci-eyebrow{
+  display:block;
+  font-family:var(--jr-sc-ui-font);
+  font-size:.72rem;
+  font-weight:750;
+  color:var(--jr-sc-soft-gold);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  direction:ltr;
+  unicode-bidi:isolate;
+}
+.jr-science-panel [data-scientific-schema-status]{
+  padding:12px 16px;
+  margin:16px 0;
+  color:var(--jr-sc-ivory);
+  border:1px solid var(--jr-sc-line);
+  background:rgba(7,7,7,.31);
+  border-radius:14px;
+  font-size:.9rem;
+  overflow-wrap:anywhere;
+}
+.jr-science-panel [data-scientific-schema-refresh]{
+  min-height:48px;
+  max-width:100%;
+  border:1px solid var(--jr-sc-line-active);
+  background:linear-gradient(125deg,#272116,#181611);
+  color:var(--jr-sc-ivory);
+  padding:11px 21px;
+  font-weight:750;
+  border-radius:13px;
+  cursor:pointer;
+}
+.jr-science-panel [data-scientific-schema-refresh]:hover:not(:disabled){
+  background:#322a19;
+}
+.jr-science-panel [data-scientific-schema-refresh]:disabled{
+  opacity:.6;
+  cursor:progress;
+}
+.jr-science-panel [data-scientific-schema-results]{
+  margin-block:23px 0;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  align-items:stretch;
+}
+.jr-science-panel .jr-sci-evidence-card{
+  min-width:0;
+  padding:clamp(15px,1.5vw,22px);
+  border:1px solid var(--jr-sc-line);
+  border-radius:18px;
+  background:linear-gradient(150deg,#27231b,#191714 78%);
+  box-shadow:0 12px 28px rgba(0,0,0,.18);
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  overflow-wrap:anywhere;
+}
+.jr-science-panel .jr-sci-evidence-card .jr-sci-card-index{
+  font:600 .75rem/1.5 var(--jr-sc-ui-font);
+  color:var(--jr-sc-soft-gold);
+  letter-spacing:.08em;
+}
+.jr-science-panel .jr-sci-evidence-card h3{
+  color:var(--jr-sc-ivory);
+  font-size:clamp(.96rem,1.2vw,1.13rem);
+  line-height:1.55;
+  margin:0;
+}
+.jr-science-panel .jr-sci-evidence-card .jr-sci-evidence-state{
+  color:var(--jr-sc-muted);
+  font-size:.88rem;
+  margin:0;
+}
+.jr-science-panel .jr-sci-evidence-card .jr-sci-evidence-state.ops-pass{
+  color:#a9debf;
+}
+.jr-science-panel .jr-sci-evidence-card .jr-sci-evidence-state.ops-fail{
+  color:#f6baa9;
+}
+.jr-science-panel .jr-sci-evidence-card small{
+  margin-block-start:auto;
+  padding-block-start:11px;
+  border-block-start:1px solid var(--jr-sc-line);
+  color:var(--jr-sc-muted);
+  line-height:1.65;
+  overflow-wrap:anywhere;
+}
+.jr-science-panel .jr-sci-legal-note{
+  grid-column:1/-1;
+  margin:0;
+  padding:15px 18px;
+  border:1px solid var(--jr-sc-line);
+  border-inline-start:3px solid var(--jr-sc-antique);
+  border-radius:12px;
+  background:rgba(0,0,0,.2);
+  font-size:.86rem;
+  max-width:none;
+}
+/* Reusable locked/prevalidation state: no score, checkout or clinical label. */
+.jr-sci-pathway{
+  border:1px solid var(--jr-sc-line);
+  background:
+    radial-gradient(ellipse at 90% 6%,rgba(212,175,55,.09),transparent 48%),
+    linear-gradient(150deg,var(--jr-sc-raised),var(--jr-sc-obsidian));
+  border-radius:var(--jr-sc-radius);
+  padding:clamp(18px,3vw,30px);
+  min-width:0;
+}
+.jr-sci-pathway__header{
+  display:flex;justify-content:space-between;
+  align-items:start;gap:18px;flex-wrap:wrap;
+  margin-block-end:22px;
+}
+.jr-sci-pathway__header h2{
+  margin:5px 0 8px;
+  font-family:Georgia,var(--jr-sc-fa-font),serif;
+  font-size:clamp(1.45rem,2.6vw,2.1rem);
+  line-height:1.45;
+  color:var(--jr-sc-ivory);
+}
+.jr-sci-pathway__header p{max-width:var(--jr-sc-readable);color:var(--jr-sc-muted);margin:0}
+.jr-sci-stage-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.jr-sci-stage{
+  position:relative;
+  display:flex;flex-direction:column;
+  gap:11px;
+  min-width:0;
+  padding:23px 21px;
+  border:1px solid var(--jr-sc-line);
+  border-radius:17px;
+  background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(0,0,0,.08));
+  overflow-wrap:anywhere;
+}
+.jr-sci-stage small{font-size:.74rem;color:var(--jr-sc-soft-gold);letter-spacing:.07em;font-family:var(--jr-sc-ui-font)}
+.jr-sci-stage h3{font-size:clamp(1.04rem,1.5vw,1.25rem);color:var(--jr-sc-ivory);margin:0}
+.jr-sci-stage p{color:var(--jr-sc-muted);line-height:1.8;font-size:.9rem;margin:0}
+.jr-sci-stage__foot{margin-block-start:auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.jr-sci-stage__state{
+  color:var(--jr-sc-soft-gold);
+  font-size:.78rem;
+  border:1px solid var(--jr-sc-line);
+  background:rgba(212,175,55,.075);
+  border-radius:999px;
+  padding:5px 12px;
+}
+.jr-sci-stage__link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  padding:9px 13px;
+  text-decoration:none;
+  color:var(--jr-sc-ivory);
+  border:1px solid var(--jr-sc-line-active);
+  border-radius:12px;
+  font-size:.85rem;
+  font-weight:700;
+}
+.jr-sci-stage__link:hover{background:rgba(212,175,55,.12)}
+.jr-sci-pathway__disclaimer{
+  margin:18px 0 0;
+  color:var(--jr-sc-muted);
+  border-inline-start:2px solid var(--jr-sc-gold);
+  padding:12px 17px;
+  background:rgba(212,175,55,.045);
+  font-size:.87rem;
+}
+/* Preview assessment pages inherit exactly the same private gold grammar. */
+.jr-science-workspace .rcas-hero,
+.jr-science-workspace :is(.assessment-hero,.gt-private-hero,.bahar-hero){
+  border-color:var(--jr-sc-line);
+}
+.jr-science-workspace :is(.rcas-panel,.rcas-privacy,.gt-step,.bahar-card){
+  border-color:var(--jr-sc-line);
+}
+.jr-science-workspace :is(input,select,textarea):focus-visible{
+  box-shadow:0 0 0 2px var(--jr-sc-obsidian);
+}
+/* Future templates: same tokens, export-safe labels, no decorative seals. */
+.jr-sci-report-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.jr-sci-report-meta>*{border-block-end:1px solid var(--jr-sc-line);padding-block:12px}
+.jr-sci-report-status{color:var(--jr-sc-soft-gold);font-weight:700}
+@media(max-width:1180px){
+  .jr-science-panel [data-scientific-schema-results]{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:720px){
+  .jr-sci-stage-grid{grid-template-columns:1fr}
+  .jr-sci-pathway__header{display:block}
+  .jr-science-panel [data-scientific-schema-results]{grid-template-columns:1fr}
+  #ops-scientific-schema.jr-science-panel{padding:18px 15px;border-radius:18px}
+  .jr-sci-identity__symbol{width:46px;height:46px}
+  .jr-sci-pathway{border-radius:18px}
+  .jr-sci-evidence-card{padding:17px}
+  .jr-sci-report-meta{grid-template-columns:1fr}
+}
+@media(max-width:380px){
+  .jr-sci-identity__copy strong{font-size:.87rem}
+  .jr-sci-identity__copy small{font-size:.69rem}
+  .jr-sci-pathway__header h2{font-size:1.36rem}
+  .jr-sci-stage{padding:16px}
+  .jr-science-panel [data-scientific-schema-refresh]{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  :where(.jr-private-academic,.jr-science-workspace) :is(
+    .jr-science-panel,.jr-sci-evidence-card,.jr-sci-stage,.jr-sci-stage__link){
+    transition:none!important;animation:none!important;scroll-behavior:auto!important;
+  }
+}
+@media(forced-colors:active){
+  .jr-sci-stage,.jr-science-panel .jr-sci-evidence-card,
+  .jr-sci-pathway{border:1px solid CanvasText}
+  .jr-sci-stage__state{border:1px solid CanvasText}
+}
+@media print{
+  .jr-science-panel [data-scientific-schema-refresh]{display:none}
+  .jr-sci-pathway,.jr-sci-stage,.jr-science-panel .jr-sci-evidence-card{
+    background:white!important;color:black!important;box-shadow:none!important;
+    border:1px solid #7b7367;break-inside:avoid;
+  }
+  .jr-sci-pathway :is(h2,h3),.jr-sci-stage :is(h3),
+  .jr-science-panel .jr-sci-evidence-card h3{color:#151515!important}
+  .jr-sci-pathway :is(p,small){color:#333!important}
+}
+
+
+/* BAHAR active formative worksheet · same identity as private science. */
+.jr-science-workspace .dash-brand:has(img[src*="persian-brand-symbol"]){
+  display:flex;align-items:center;gap:11px;
+}
+.jr-science-workspace .dash-brand img[src*="persian-brand-symbol"]{
+  width:39px;height:39px;object-fit:contain;flex:0 0 auto;
+  background:#0b0b0b;border-radius:11px;border:1px solid var(--jr-sc-line);
+}
+.jr-bahar-workspace{
+  margin-block:clamp(22px,3.2vw,44px);
+  max-width:100%;
+  color:var(--jr-sc-ivory);
+}
+.jr-bahar-workspace h2{
+  color:var(--jr-sc-ivory);
+  font-size:clamp(1.4rem,2.6vw,2.15rem);
+  font-family:Georgia,var(--jr-sc-fa-font),serif;
+  margin:7px 0 14px;
+}
+.jr-bahar-intro{
+  max-width:78ch;
+  color:var(--jr-sc-muted);
+  font-size:clamp(.9rem,1.12vw,1.03rem);
+  line-height:1.95;
+  margin:0 0 23px;
+}
+.jr-bahar-field-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:17px;
+}
+.jr-bahar-field{
+  display:flex;flex-direction:column;gap:8px;
+  min-width:0;color:var(--jr-sc-ivory);
+  font-size:.9rem;font-weight:650;
+}
+.jr-bahar-field span{line-height:1.65}
+.jr-bahar-field :is(textarea,input){
+  display:block;
+  width:100%;
+  min-width:0;
+  min-height:50px;
+  padding:13px 15px;
+  resize:vertical;
+  border-radius:12px;
+  border:1px solid rgba(212,175,55,.35);
+  background:#11110f;
+  color:var(--jr-sc-ivory);
+  box-shadow:inset 0 1px 6px rgba(0,0,0,.15);
+  font:400 .94rem/1.85 var(--jr-sc-fa-font);
+  box-sizing:border-box;
+}
+.jr-science-workspace:lang(en) .jr-bahar-field :is(textarea,input){
+  font-family:var(--jr-sc-ui-font);
+}
+.jr-bahar-field :is(textarea,input)::placeholder{color:#a79e91;opacity:1}
+.jr-bahar-field :is(textarea,input):focus-visible{
+  outline:3px solid var(--jr-sc-soft-gold);
+  outline-offset:2px;
+  border-color:var(--jr-sc-gold);
+}
+.jr-bahar-evidence{
+  border-block-start:1px solid var(--jr-sc-line);
+  margin-block:24px 18px;
+  padding-block-start:25px;
+}
+.jr-bahar-evidence-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:start;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-block-end:14px;
+}
+.jr-bahar-evidence-head h3,.jr-bahar-summary h3{
+  color:var(--jr-sc-ivory);
+  font-size:clamp(1.08rem,1.4vw,1.3rem);
+  margin:0 0 6px;
+}
+.jr-bahar-evidence-head p{
+  margin:0;color:var(--jr-sc-muted);font-size:.88rem;
+}
+.jr-bahar-evidence-list{
+  display:grid;gap:13px;margin-block:14px 16px;
+}
+.jr-bahar-evidence-entry{
+  border:1px solid var(--jr-sc-line);
+  border-radius:15px;
+  padding:15px;
+  background:rgba(255,255,255,.025);
+  display:grid;gap:12px;
+  min-width:0;
+}
+.jr-bahar-evidence-entry legend{
+  padding-inline:9px;
+  color:var(--jr-sc-soft-gold);
+  font-weight:700;
+}
+.jr-bahar-evidence-entry .jr-bahar-field-grid{gap:12px}
+.jr-bahar-action{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:46px;
+  max-width:100%;
+  gap:9px;
+  padding:10px 18px;
+  border-radius:13px;
+  border:1px solid var(--jr-sc-line-active);
+  background:linear-gradient(135deg,#2b2519,#191815);
+  color:var(--jr-sc-ivory);
+  font:750 .9rem/1.5 var(--jr-sc-fa-font);
+  cursor:pointer;
+  transition:background-color .2s ease,border-color .2s ease;
+}
+.jr-science-workspace:lang(en) .jr-bahar-action{font-family:var(--jr-sc-ui-font)}
+.jr-bahar-action--primary{
+  background:linear-gradient(140deg,#e8d29b,#d4af37);
+  color:#15110b;
+  border-color:#e9d7aa;
+}
+.jr-bahar-action--primary:hover{background:linear-gradient(140deg,#fae4ac,#e0bb4b)}
+.jr-bahar-action--quiet{background:transparent;border-color:var(--jr-sc-line)}
+.jr-bahar-action:hover:not(:disabled){border-color:var(--jr-sc-soft-gold)}
+.jr-bahar-action:disabled{opacity:.6;cursor:not-allowed}
+.jr-bahar-controls{display:flex;flex-wrap:wrap;gap:12px;margin-block:20px}
+.jr-bahar-status{
+  min-height:22px;
+  margin-block:14px 16px;
+  padding:10px 12px;
+  color:var(--jr-sc-soft-gold);
+  background:rgba(212,175,55,.055);
+  border:1px solid var(--jr-sc-line);
+  border-radius:10px;
+  overflow-wrap:anywhere;
+}
+.jr-bahar-summary{
+  padding:22px 24px;
+  margin-block:16px 20px;
+  border:1px solid var(--jr-sc-line-active);
+  border-radius:17px;
+  background:linear-gradient(145deg,rgba(212,175,55,.08),rgba(0,0,0,.22));
+  overflow-wrap:anywhere;
+}
+.jr-bahar-summary-row{
+  padding-block:12px;
+  border-block-end:1px solid var(--jr-sc-line);
+}
+.jr-bahar-summary-row strong{
+  color:var(--jr-sc-soft-gold);
+  display:block;margin-block-end:4px;
+}
+.jr-bahar-summary-row p{
+  color:var(--jr-sc-ivory);margin:0;
+  white-space:pre-wrap;
+}
+.jr-bahar-summary h4{color:var(--jr-sc-ivory);margin:18px 0 9px}
+.jr-bahar-summary ol{
+  color:var(--jr-sc-ivory);padding-inline-start:24px;line-height:1.9;
+}
+.jr-bahar-summary-note{
+  font-size:.82rem;color:var(--jr-sc-muted);
+  border-inline-start:2px solid var(--jr-sc-gold);
+  padding-inline-start:12px;margin-block-start:17px;
+}
+.jr-bahar-workspace [hidden]{display:none!important}
+@media(max-width:780px){
+  .jr-bahar-field-grid{grid-template-columns:1fr}
+  .jr-bahar-controls{flex-direction:column}
+  .jr-bahar-controls .jr-bahar-action{width:100%}
+  .jr-bahar-summary{padding:17px 16px}
+}
+@media print{
+  .jr-bahar-workspace :is(form,.jr-bahar-status){display:none!important}
+  .jr-bahar-workspace .jr-bahar-summary{
+    background:#fff!important;
+    color:#1b1b1b!important;
+    border:1px solid #999!important;
+  }
+  .jr-bahar-workspace .jr-bahar-summary :is(p,li,strong,h3,h4){
+    color:#191919!important;
+  }
+}
