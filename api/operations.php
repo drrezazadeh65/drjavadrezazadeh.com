@@ -470,6 +470,26 @@ function operationsRoute(string $path, string $verb): never {
                 fail('delivery_evidence_not_ready',503);
             }
         }
+        if ($path === '/admin/operations/commerce/service-intake' && $verb === 'GET') {
+            // Operator reads actual client notes only with verified SUPER_ADMIN
+            // session + recent TOTP. Standard commerce snapshots remain PII-free.
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('service_intake_owner_role_required',403);
+            if(!rateAllowed($pdo,'service_intake_owner_read',$accountId,12,300))
+                fail('rate_limited',429);
+            $order=$_GET['order']??null;$sku=$_GET['sku']??null;
+            if(!is_string($order)||!is_string($sku))fail('invalid_service_reference',400);
+            try {
+                jrServiceIntakeReference($order,$sku);
+                $case=$pdo->prepare('SELECT 1 FROM commerce_service_cases WHERE order_id=? AND sku=?');
+                $case->execute([$order,$sku]);
+                if($case->fetchColumn()===false)fail('service_case_not_found',404);
+                $intake=jrServiceIntakeRead($pdo,$order,$sku);
+                respond(['ok'=>true,'schema'=>'private-service-intake-v1',
+                    'buyerNotesVisibleToOwnerOnly'=>true]+$intake);
+            } catch(InvalidArgumentException $e){fail('invalid_service_reference',400);}
+            catch(Throwable $e){fail('service_intake_owner_unavailable',503);}
+        }
         if ($path === '/admin/operations/commerce/availability' && $verb === 'POST') {
             if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
                 fail('csrf_forbidden',403);
