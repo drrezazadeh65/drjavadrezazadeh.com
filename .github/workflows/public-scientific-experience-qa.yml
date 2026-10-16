@@ -1,0 +1,71 @@
+name: Safe public scientific experience release QA
+
+on:
+  push:
+    branches: [release/active-scientific-worksheets-20261016]
+  pull_request:
+    paths:
+      - "assets/css/jr-scientific-experience-v1.css"
+      - "assets/js/bahar-formative-workspace-v1.js"
+      - "fa/app/student/bahar/index.html"
+      - "en/golden-talent/dashboard/bahar/index.html"
+      - "fa/assessments/golden-talent/start/index.html"
+      - "en/golden-talent/assessment/index.html"
+      - "fa/customer-dashboard/index.html"
+      - "fa/golden-talent/ravesh-shenasi/index.html"
+      - "en/golden-talent/methodology/index.html"
+      - "fa/app/admin/index.html"
+      - "en/account/admin/index.html"
+      - "tests/bahar-formative-workspace-browser.spec.js"
+      - "tests/scientific-unified-design-browser.spec.js"
+      - ".github/workflows/public-scientific-experience-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  public-science:
+    name: Active BAHAR and RCAS, design identity and zero-regression public artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify educational worksheet cannot persist or transmit input
+        run: |
+          node --check assets/js/bahar-formative-workspace-v1.js
+          node --check scripts/build-public-site.mjs
+          node -e "const fs=require('fs');const s=fs.readFileSync('assets/js/bahar-formative-workspace-v1.js','utf8');for(const x of ['localStorage','sessionStorage','fetch(','XMLHttpRequest(','WebSocket(')if(s.includes(x))throw Error('BAHAR cannot persist/upload worksheet answers: '+x);"
+      - name: Install Chromium runner
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Start nonproduction fixture webserver
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/safe-science-web.log 2>&1 &
+          curl -fsS --retry-connrefused --retry 15 --retry-delay 1 --max-time 3 http://127.0.0.1:4173/fa/app/student/bahar/ > /dev/null
+      - name: Browser acceptance for design, free activities, account and safety
+        run: |
+          npx playwright test tests/scientific-unified-design-browser.spec.js tests/bahar-formative-workspace-browser.spec.js tests/rcas-start-browser.spec.js tests/customer-dashboard-browser.spec.js tests/bahar-readiness-browser.spec.js --reporter=line
+      - name: Build EXACT sanitized public release artifact without deploying
+        run: |
+          node scripts/build-public-site.mjs
+          test -f .public-site/assets/js/bahar-formative-workspace-v1.js
+          test -f .public-site/assets/css/jr-scientific-experience-v1.css
+          test -f .public-site/fa/app/student/bahar/index.html
+          test -f .public-site/en/golden-talent/dashboard/bahar/index.html
+          test ! -e .public-site/platform
+          test ! -e .public-site/database
+          test ! -e .public-site/tests
+      - name: Retain failure diagnostics only
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-science-qa-failure
+          path: |
+            test-results/
+            playwright-report/
+            /tmp/safe-science-web.log
+          if-no-files-found: ignore
