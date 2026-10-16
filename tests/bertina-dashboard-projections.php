@@ -61,15 +61,27 @@ $parentVisibility=array_replace($parentGrant,['id'=>'parent-vis','notice_id'=>'n
 $link=['subject_id'=>'learner','related_account_id'=>'parent','relationship_code'=>'GUARDIAN',
        'verification_status'=>'VERIFIED','verified_by_account_id'=>'reviewer',
        'expires_at'=>'2026-12-01 00:00:00'];
+$assent=[
+ 'record_source'=>'TRUSTED_ASSENT_RECORD','state'=>'VERIFIED',
+ 'decision'=>'ASSENTED','subject_id'=>'learner',
+ 'guardian_account_id'=>'parent','reference'=>'assent-1',
+ 'notice_version'=>'assent-v1','notice_sha256'=>str_repeat('c',64),
+ 'assented_at'=>'2026-10-15 08:00:00',
+ 'expires_at'=>'2026-12-01 08:00:00','withdrawn_at'=>null
+];
 $guardian=array_replace($base,[
  'actor'=>$parent,'subject'=>$child,'relationships'=>[$link],
- 'consent_history'=>[$parentGrant],
+ 'consent_history'=>[$parentGrant],'minor_assent'=>$assent,
  'age_verification'=>['state'=>'VERIFIED','classification'=>'MINOR',
                       'source'=>'INDEPENDENT_VERIFIED_RECORD','reference'=>'child-proof'],
  'parent_visibility_history_complete'=>true,
  'parent_visibility_history'=>[$parentVisibility]
 ]);
 $check(bertinaCustomerTalentOverview($guardian)['ok'],'guardian with independent visibility consent');
+
+$check(!bertinaCustomerTalentOverview(array_replace($guardian,['minor_assent'=>null]))['ok'],'guardian dashboard requires separately verified learner assent');
+$check(!bertinaCustomerTalentOverview(array_replace($guardian,['minor_assent'=>array_replace($assent,['withdrawn_at'=>'2026-10-16 10:00:00'])]))['ok'],'withdrawn assent blocks guardian private dashboard');
+
 $check(bertinaCustomerTalentOverview($guardian)['viewerScope']==='VERIFIED_GUARDIAN','guardian scope');
 $check(!bertinaCustomerTalentOverview(array_replace($guardian,['parent_visibility_history'=>[]]))['ok'],'no parent visibility consent');
 $check(!bertinaCustomerTalentOverview(array_replace($guardian,['parent_visibility_history_complete'=>false]))['ok'],'incomplete visibility history');
