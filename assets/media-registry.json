@@ -3254,6 +3254,21 @@
       "source_status": "original-vector",
       "composition_locked": true,
       "approved_on": "2026-10-16"
+    },
+    {
+      "path": "assets/images/jhela/mark-en-reverse.svg",
+      "kind": "brand-identity",
+      "role": "jhela-compact-english-scholar-mark-dark",
+      "provenance": "Exact symbol group extracted without redrawing from the existing approved JHELA reverse English vector wordmark (2026-10-16).",
+      "rights": "site-use-approved by owner for JHELA branding",
+      "alt_en": "JHELA open-book scholarly mark",
+      "alt_fa": "نشان کتاب باز علمی مجله JHELA",
+      "caption_en": "Compact ivory-and-brass emblem from the JHELA English reverse wordmark.",
+      "caption_fa": "نشان کوچک برگرفته از لوگوی انگلیسی مجله JHELA با رنگ عاجی و طلایی",
+      "mime_type": "image/svg+xml",
+      "source_status": "original-vector",
+      "composition_locked": true,
+      "approved_on": "2026-10-16"
     }
   ]
 }

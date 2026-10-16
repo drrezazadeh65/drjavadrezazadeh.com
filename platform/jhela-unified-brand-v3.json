@@ -77,7 +77,9 @@
       "reflow320px": true,
       "textZoom200Percent": true,
       "noColorOnlyStates": true
-    }
+    },
+    "compactMarkDark": "assets/images/jhela/mark-en-reverse.svg",
+    "markRelationship": "Compact mark is the unmodified emblem group from the original English reverse JHELA wordmark; header mark and wide hero lockup coexist."
   },
   "applications": {
     "public": "assets/css/journal-v2.css",
