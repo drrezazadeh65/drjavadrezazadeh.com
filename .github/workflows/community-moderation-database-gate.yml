@@ -1,0 +1,108 @@
+name: Community Moderation Database Gate (No Deployment)
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'api/community.php'
+      - 'api/index.php'
+      - 'assets/js/site-extras.js'
+      - 'fa/app/admin/index.html'
+      - 'en/account/admin/index.html'
+      - 'tests/community-mysql-smoke.php'
+      - 'tests/community-browser-qa.spec.js'
+      - '.github/workflows/community-moderation-database-gate.yml'
+  pull_request:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'api/community.php'
+      - 'api/index.php'
+      - 'database/bertina/021_community_moderation.sql'
+      - 'tests/community-mysql-smoke.php'
+      - 'tests/community-moderation.test.mjs'
+      - 'tests/community-design-consistency.test.mjs'
+      - 'assets/js/community-comments.js'
+      - 'assets/js/operations-community-moderation.js'
+      - 'assets/css/community-comments.css'
+      - 'assets/css/operations-community-moderation.css'
+      - '.github/workflows/community-moderation-database-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: community-pilot-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mysql-community-fixture:
+    name: Community MySQL 8.0 security fixture
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password-only
+          MYSQL_DATABASE: community_fixture
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1 --user=root --password=fixture-password-only"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test-only PHP PDO/MySQL tooling
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq php-cli php-mysql default-mysql-client
+          php -m | grep -iq '^pdo_mysql$'
+      - name: PHP syntax and source-level policy checks
+        run: |
+          php -l api/community.php
+          php -l tests/community-mysql-smoke.php
+          node --test tests/community-moderation.test.mjs tests/community-design-consistency.test.mjs
+      - name: Apply customer-account baseline and additive pilot to isolated MySQL
+        env:
+          MYSQL_PWD: fixture-password-only
+        run: |
+          mysql -h127.0.0.1 -P3306 -uroot community_fixture < docs/BERTINA_MYSQL_SCHEMA.sql
+          mysql -h127.0.0.1 -P3306 -uroot community_fixture < database/bertina/021_community_moderation.sql
+      - name: Assert fail-closed comment, rating, consent, moderation and audit behavior
+        env:
+          JR_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=community_fixture;charset=utf8mb4
+          JR_TEST_MYSQL_USER: root
+          JR_TEST_MYSQL_PASSWORD: fixture-password-only
+        run: php tests/community-mysql-smoke.php
+      - name: Confirm public feature remains disabled in source
+        run: |
+          grep -Fq "getenv('JR_COMMUNITY_ENABLED') !== 'true'" api/community.php
+          grep -Fq "getenv('JR_COMMUNITY_MIGRATION_APPROVED') !== 'true'" api/community.php
+          echo 'No deployment, production database or feature-flag activation performed.'
+
+  browser-community-fixture:
+    name: Community privacy and moderated approval, browser-only fixtures
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated Chromium
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Start local static server (no real user data)
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/community-web.log 2>&1 &
+          curl -fsS --retry-connrefused --retry 12 --retry-delay 1 http://127.0.0.1:4173/fa/akhbar/teacher-schools-professional-learning-2026/ >/dev/null
+      - name: Test fail-closed public comments and protected moderation
+        run: npx playwright test tests/community-browser-qa.spec.js --workers=2 --reporter=line
