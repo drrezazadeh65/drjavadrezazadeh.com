@@ -15,6 +15,7 @@ function uuidv4():string{$bytes=random_bytes(16);$bytes[6]=chr((ord($bytes[6])&1
 function fail(string $code,int $status=400):never {throw new RuntimeException($code);}
 require_once __DIR__.'/../api/newsletter-preferences.php';
 require_once __DIR__.'/../api/newsletter-unsubscribe.php';
+require_once __DIR__.'/../api/newsletter-delivery.php';
 $check=static function(bool $ok,string $message):void{if(!$ok)throw new RuntimeException($message);echo "PASS: ".$message."\n";};
 $check(jrNewsletterSchemaReady($pdo),'mother consent/communication tables loaded');
 $check(jrNewsletterTopics()===['ARTICLES','BOOKS','EVENTS','SERVICES','GOLDEN_TALENT','JHELA'],'six canonical topics');
@@ -92,5 +93,75 @@ $check(jrNewsletterOptoutApply($pdo,$account,'fa')===0,
 $check((int)$pdo->query("SELECT COUNT(*) FROM eco_consent_records
  WHERE account_id='$account'")->fetchColumn()===4,
        'idempotent withdrawal preserves consent audit count');
+
+
+// First-party publication and SMTP queue; the fake transport never leaves CI.
+$path='/fa/akhbar/ecosystem-education-research-2026/';
+$local=realpath(__DIR__.'/../'.ltrim($path,'/').'index.html');
+$check(is_string($local)&&is_file($local),'published article exists in release source');
+$html=file_get_contents($local);
+$objectId=uuidv4();
+$pdo->prepare("INSERT INTO eco_object_refs
+ (id,storage_provider,object_reference,content_sha256,mime_type,byte_size,data_class,malware_scan_status)
+ VALUES(?,'JR_NEWSLETTER_PUBLISHED_PAGE',?,?,'text/html',?,'PUBLIC','NOT_APPLICABLE')")
+ ->execute([$objectId,$path,hash('sha256',$html),strlen($html)]);
+$object=$pdo->prepare("SELECT storage_provider,object_reference,content_sha256,mime_type,data_class
+  FROM eco_object_refs WHERE id=?");
+$object->execute([$objectId]);$ref=$object->fetch();
+$check(jrNewsletterPublishedPage($ref,'ARTICLES')!==null,
+    'hash-pinned canonical sitemap publication accepted');
+$check(jrNewsletterPublishedPage($ref,'JHELA')===null,
+    'unapproved journal content cannot borrow article evidence');
+$ref['content_sha256']=str_repeat('f',64);
+$check(jrNewsletterPublishedPage($ref,'ARTICLES')===null,
+    'tampered publication hash fails closed');
+$grantId=uuidv4();
+$pdo->prepare('INSERT INTO eco_consent_records(id,account_id,notice_id,decision,lawful_basis,evidence_sha256,granted_at,source_code) VALUES(?,?,?,?,?,?,?,?)')
+ ->execute([$grantId,$account,$notice,'GRANTED','CONSENT',str_repeat('c',64),$at,'NEWSLETTER_SETTINGS']);
+$pdo->prepare("UPDATE eco_notification_preferences SET opted_in=1,consent_record_id=?
+ WHERE account_id=? AND purpose_code='ARTICLES'")->execute([$grantId,$account]);
+$notificationId=uuidv4();
+$pdo->prepare("INSERT INTO eco_notifications
+ (id,recipient_account_id,channel_code,purpose_code,message_object_id,delivery_state,idempotency_key)
+ VALUES(?,?,'EMAIL','ARTICLES',?,'PENDING',?)")
+ ->execute([$notificationId,$account,$objectId,hash('sha256','article-v1|'.$account)]);
+$check(jrNewsletterOutboundSchemaReady($pdo),'mother queue, evidence and attempt ledger are ready');
+$called=0;
+$send=static function(string $recipient,string $subject,string $body)use(&$called):bool{
+ $called++;
+ if($recipient!=='newsletter-fixture@example.invalid'||!str_contains($body,'/api/newsletter/unsubscribe?'))
+    throw new RuntimeException('untrusted_test_email');
+ return true;
+};
+$check(jrNewsletterDispatchOne($pdo,$notificationId,$send)==='SMTP_ACCEPTED',
+    'consented published mail accepted by injected fixture transport');
+$check($called===1,'only one simulated SMTP attempt');
+$check(jrNewsletterDispatchOne($pdo,$notificationId,$send)==='ALREADY_HANDLED'&&$called===1,
+    'idempotency prevents second SMTP submission');
+$q=$pdo->prepare('SELECT delivery_state FROM eco_notifications WHERE id=?');
+$q->execute([$notificationId]);
+$check($q->fetchColumn()==='SMTP_ACCEPTED','records provider acceptance but never mailbox delivery');
+$check((int)$pdo->query("SELECT COUNT(*) FROM eco_notification_attempts
+ WHERE notification_id='$notificationId' AND attempt_no=1")->fetchColumn()===1,
+ 'exactly one durable send-attempt audit');
+$failed=uuidv4();
+$pdo->prepare("INSERT INTO eco_notifications
+ (id,recipient_account_id,channel_code,purpose_code,message_object_id,delivery_state,idempotency_key)
+ VALUES(?,?,'EMAIL','ARTICLES',?,'PENDING',?)")
+ ->execute([$failed,$account,$objectId,hash('sha256','failure-v1|'.$account)]);
+$check(jrNewsletterDispatchOne($pdo,$failed,static fn():bool=>false)==='SMTP_FAILED',
+    'SMTP rejection recorded without automatic retry');
+$check(jrNewsletterDispatchOne($pdo,$failed,$send)==='ALREADY_HANDLED'&&$called===1,
+    'ambiguous or failed SMTP attempts do not automatically resend');
+$pending=uuidv4();
+$pdo->prepare("INSERT INTO eco_notifications
+ (id,recipient_account_id,channel_code,purpose_code,message_object_id,delivery_state,idempotency_key)
+ VALUES(?,?,'EMAIL','ARTICLES',?,'PENDING',?)")
+ ->execute([$pending,$account,$objectId,hash('sha256','optout-v1|'.$account)]);
+$check(jrNewsletterOptoutApply($pdo,$account,'en')===1,'consent withdrawn from email link');
+$q->execute([$pending]);
+$check($q->fetchColumn()==='SUPPRESSED','pending sender candidate suppressed before SMTP');
+$check(jrNewsletterDispatchOne($pdo,$pending,$send)==='ALREADY_HANDLED'&&$called===1,
+    'withdrawn reader never triggers transport');
 
 echo "Mother DB newsletter fixture PASS. No mail was sent.\n";
