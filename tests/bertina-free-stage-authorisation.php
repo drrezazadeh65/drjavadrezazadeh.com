@@ -51,13 +51,30 @@ $childGrant=array_replace($grant,['account_id'=>'parent-1']);
 $link=['subject_id'=>'subject-1','related_account_id'=>'parent-1',
        'relationship_code'=>'GUARDIAN','verification_status'=>'VERIFIED',
        'verified_by_account_id'=>'verified-admin','expires_at'=>'2026-12-01 00:00:00'];
+$assent=[
+    'record_source'=>'TRUSTED_ASSENT_RECORD','state'=>'VERIFIED',
+    'decision'=>'ASSENTED','subject_id'=>'subject-1',
+    'guardian_account_id'=>'parent-1','reference'=>'assent-1',
+    'notice_version'=>'assent-v1','notice_sha256'=>str_repeat('c',64),
+    'assented_at'=>'2026-10-15 08:00:00',
+    'expires_at'=>'2026-12-01 08:00:00','withdrawn_at'=>null
+];
 $minor=array_replace($base,[
     'actor'=>$parent,'subject'=>$child,'consent_history'=>[$childGrant],
     'age_verification'=>['state'=>'VERIFIED','classification'=>'MINOR',
                           'source'=>'INDEPENDENT_VERIFIED_RECORD','reference'=>'trusted-age-2'],
-    'relationships'=>[$link]
+    'relationships'=>[$link],'minor_assent'=>$assent
 ]);
 $expect($allowed($minor),'verified current guardian');
+
+$expect(!$allowed(array_replace($minor,['minor_assent'=>null])),'guardian permission without learner assent is insufficient');
+$expect(!$allowed(array_replace($minor,['minor_assent'=>array_replace($assent,['withdrawn_at'=>'2026-10-16 07:00:00'])])),'withdrawn child assent denies');
+$expect(!$allowed(array_replace($minor,['minor_assent'=>array_replace($assent,['expires_at'=>'2026-10-01 00:00:00'])])),'expired child assent denies');
+$expect(!$allowed(array_replace($minor,['minor_assent'=>array_replace($assent,['guardian_account_id'=>'other'])])),'assent must match the real guardian');
+$expect(!$allowed(array_replace($minor,['minor_assent'=>array_replace($assent,['subject_id'=>'other'])])),'assent cannot be transferred between children');
+$expect(!$allowed(array_replace($minor,['minor_assent'=>array_replace($assent,['record_source'=>'CLIENT'])])),'client assertion is not child assent');
+$expect(!$allowed(array_replace($minor,['minor_assent'=>array_replace($assent,['notice_sha256'=>'bad'])])),'assent needs pinned notice content');
+
 $expect(!$allowed(array_replace($minor,['relationships'=>[]])),'guardian link missing');
 $expect(!$allowed(array_replace($minor,['relationships'=>[array_replace($link,['verification_status'=>'PENDING'])]])),'guardian unverified');
 $expect(!$allowed(array_replace($minor,['relationships'=>[array_replace($link,['expires_at'=>'2026-10-01 00:00:00'])]])),'guardian expired');
