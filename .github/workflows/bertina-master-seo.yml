@@ -77,6 +77,7 @@ jobs:
           run_audit "Public secret exposure" node scripts/public-secret-audit.mjs
           run_audit "PWA private cache" node scripts/pwa-private-cache-audit.mjs
           run_audit "Admin keyword privacy" node --test tests/admin-intelligence-private.test.mjs
+          run_audit "Bounded schema intelligence" node --test tests/admin-schema-intelligence.test.mjs
           run_audit "One-time PWA offer" node --test tests/pwa-install-once.test.mjs
           run_audit "Premium bookstore layout" node --test tests/bookstore-premium-layout.test.mjs
           run_audit "Private cache behavior" node --test tests/private-cache-behavior.test.mjs
