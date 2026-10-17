@@ -65,3 +65,18 @@ test('canonical publishing mother-schema inventory tracks both approved additive
  assert.doesNotMatch(executable,/FROM\s+publishing_[a-z]+/i);
  assert.doesNotMatch(executable,/JOIN\s+publishing_[a-z]+/i);
 });
+
+
+test('modular mother-database inventory includes all additive author-onboarding tables without reading personal records',()=>{
+ const onboarding=fs.readFileSync('docs/migrations/20261017_jr_publishing_author_onboarding.sql','utf8');
+ const names=[...onboarding.matchAll(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(publishing_[a-z0-9_]+)/ig)].map(x=>x[1]);
+ assert.deepEqual(names,[
+  'publishing_author_profiles','publishing_author_bank_accounts','publishing_author_documents'
+ ]);
+ for(const name of names)assert.ok(sql.includes("'"+name+"'"),'mother inventory missing '+name);
+ assert.match(sql,/PUBLISHING_AUTHOR_ONBOARDING/);
+ // The inventory must inspect information_schema metadata only: no sensitive records.
+ const executable=sql.replace(/^--.*$/gm,'');
+ assert.doesNotMatch(executable,/FROM\s+publishing_author_(?:profiles|bank_accounts|documents)\b/i);
+ assert.doesNotMatch(executable,/\b(?:INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|TRUNCATE|REPLACE|GRANT|REVOKE|CALL)\b/i);
+});
