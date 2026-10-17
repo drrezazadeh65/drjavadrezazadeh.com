@@ -110,6 +110,7 @@ jobs:
       - name: JR Future Publishing contract, ledger and author privacy checks (nondeploying)
         run: |
           php -l api/publishing.php
+          php -l api/publishing-onboarding.php
           php -l api/internal/jr-publishing-allocations.php
           php -l api/internal/jr-publishing-notifications.php
           php -l api/internal/jr-publishing-contract-draft.php
@@ -125,9 +126,12 @@ jobs:
           php tests/jr-publishing-author-email.php
           php -l tests/jr-publishing-mysql-fixture.php
           node --check assets/js/jr-author-workspace-v1.js
+          node --check assets/js/jr-author-onboarding-v1.js
+          node --check assets/js/operations-publishing-authors-v1.js
           node --check assets/js/jr-publishing-checkout-v1.js
           node --test tests/jr-publishing-release-policy.test.mjs tests/jr-publishing-digital-payment-guard.test.mjs tests/jr-publishing-private-installer.test.mjs
           node --test tests/merged-master-publishing-release-contract.test.mjs
+          node --test tests/jr-publishing-author-onboarding.test.mjs
           echo 'Publishing stage remains prelaunch. This is SOURCE evidence, not permission to take payments or deploy.'
       - name: Preserve existing 41-gate and 21-service evidence pointers (NO approval)
         if: always()
