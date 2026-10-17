@@ -99,6 +99,30 @@ async function getPublicJson(path){
     return {httpStatus:200,body};
   }finally{clearTimeout(timer);}
 }
+// Specific 2026-10-17 Google Search Console smartphone 404: validate the
+// one-hop semantic /home/ -> / route; never request indexing of the alias.
+// This is non-gating until a signed production release ships the Apache rule.
+await observeHostGate('gsc-home-legacy-301',async()=>{
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),12000);
+ try{
+  const response=await fetch(ORIGIN+'/home/',{
+   method:'GET',redirect:'manual',cache:'no-store',
+   headers:{Accept:'text/html'},signal:controller.signal
+  });
+  const location=response.headers.get('location');
+  const correct=response.status===301&&location===ORIGIN+'/';
+  return {
+   status:correct?'LIVE_VERIFIED':'HOST_UNVERIFIED',
+   httpStatus:response.status,
+   destination:location===ORIGIN+'/'?'/':null,
+   oneHopPermanentCanonical:correct,
+   googleIndexConsolidationVerified:false,
+   note:'Public read-only response; does not confirm Google has recrawled or indexed any page.'
+  };
+ }finally{clearTimeout(timer);}
+});
+
 await observeHostGate('ramzinex-public-indicative-rate',async()=>{
   const r=await getPublicJson('/api/rates/usdt-irt');
   if(r.httpStatus!==200)return {status:r.httpStatus===503?'BLOCKED_BY_CONFIGURATION':'HOST_UNVERIFIED',
