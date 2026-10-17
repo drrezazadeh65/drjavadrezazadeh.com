@@ -242,8 +242,9 @@ function serviceFileWorkspace(order,service){
   'در این پرونده، ولی یا سرپرست قانونی هستم و اجازه ارائه مدرک را دارم. این اعلام جایگزین احراز مستقل سرپرستی نیست.',
   'I am the authorised parent or legal guardian for this document. This declaration is not independent verification of guardianship.'
  )));
- guardianFlag.hidden=true;
+ guardianFlag.hidden=true;guardianFlag.style.display='none';
  minorCheck.addEventListener('change',()=>{guardianFlag.hidden=!minorCheck.checked;
+   guardianFlag.style.display=minorCheck.checked?'flex':'none';
    guardianCheck.required=minorCheck.checked;if(!minorCheck.checked)guardianCheck.checked=false;});
  const privacyFlag=el('label');privacyFlag.style.cssText='display:flex;align-items:start;gap:9px';
  const privacyCheck=document.createElement('input');privacyCheck.type='checkbox';privacyCheck.required=true;
@@ -255,12 +256,12 @@ function serviceFileWorkspace(order,service){
  content.append(help,state,files);
  if(!['delivered','cancelled'].includes(service.status))content.append(form);
  // Never advertise an upload until its authenticated private API responds.
- form.hidden=true;
+ form.hidden=true;form.style.display='none';
  box.append(content);
  let loading=false,loaded=false;
  async function refresh(){
   if(loading||!box.open)return;
-  loading=true;loaded=false;form.hidden=true;
+  loading=true;loaded=false;form.hidden=true;form.style.display='none';
   files.replaceChildren();
   state.textContent=tr('در حال دریافت پرونده خصوصی…','Retrieving your private files…');
   try{
@@ -271,6 +272,7 @@ function serviceFileWorkspace(order,service){
    if(data?.ok!==true||data.schema!=='private-service-files-v1'||!Array.isArray(data.files))throw Error('invalid_file_list');
    if(!box.open)return;
    form.hidden=['delivered','cancelled'].includes(service.status);
+   form.style.display=form.hidden?'none':'grid';
    files.replaceChildren();
    for(const record of data.files){
     if(!/^[0-9a-f-]{36}$/i.test(String(record.id||'')))continue;
@@ -327,14 +329,14 @@ function serviceFileWorkspace(order,service){
     tr('هنوز فایلی برای این پرونده ثبت نشده است.','There are no files available for this case yet.');
    loaded=true;
   }catch(_){
-   form.hidden=true;loaded=false;files.replaceChildren();
+   form.hidden=true;form.style.display='none';loaded=false;files.replaceChildren();
    state.textContent=tr('سامانه امن فایل هنوز پاسخ تأییدشده‌ای ارائه نکرده است؛ سند محرمانه را از راه عمومی ارسال نکنید.',
     'Private file storage is not currently verified. Do not send confidential records through a public channel.');
   }finally{loading=false;}
  }
  box.addEventListener('toggle',()=>{
   if(box.open)refresh();
-  else{form.hidden=true;loaded=false;files.replaceChildren();}
+  else{form.hidden=true;form.style.display='none';loaded=false;files.replaceChildren();}
  });
  form.addEventListener('submit',async event=>{
   event.preventDefault();if(loading||!loaded||form.hidden||!box.open||!file.files?.length||!form.reportValidity()||!privacyCheck.checked||(minorCheck.checked&&!guardianCheck.checked))return;
@@ -357,7 +359,7 @@ function serviceFileWorkspace(order,service){
    const data=await response.json();
    if(!response.ok||data?.ok!==true||data.schema!=='private-service-files-v1'
       ||data.file?.registered!==true)throw Error('not_accepted');
-   file.value='';privacyCheck.checked=false;minorCheck.checked=false;guardianCheck.checked=false;guardianCheck.required=false;guardianFlag.hidden=true;loaded=false;
+   file.value='';privacyCheck.checked=false;minorCheck.checked=false;guardianCheck.checked=false;guardianCheck.required=false;guardianFlag.hidden=true;guardianFlag.style.display='none';loaded=false;
    state.textContent=tr('مدرک به‌صورت محرمانه ثبت شد.','Your document was registered privately.');
   }catch(_){
    state.textContent=tr('ثبت فایل تأیید نشد؛ ابتدا وضعیت پرونده را دوباره بررسی کنید و سند را از روش عمومی ارسال نکنید.',
