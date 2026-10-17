@@ -22,7 +22,7 @@ test('host preflight is CLI only, fail-closed and discloses boolean readiness wi
 test('required host prerequisites include private path, ClamAV, 12MB upload headroom and real encrypted custody schema',()=>{
   for (const gate of [
     'approvedAntiMalwareBinary','privateStorageOutsideWebRoot','privateStoragePrivatePermissions',
-    'privateStorageUsable','privateStorageSpaceForOneJob','safePHPUploadLimit','safePHPMemoryLimit',
+    'privateStorageUsable','privateStorageSpaceForOneJob','safePHPUploadLimit','safePHPMemoryLimit','safePHPExecutionLimit',
     'featureExplicitlyEnabled','tlsOwnerSwitchAsserted','strongExistingPepper',
     'phpOpenSSL','phpHKDF','docxArchive','readOnlyDatabaseSchema'
   ]) assert.ok(php.includes(gate),gate);
@@ -33,6 +33,9 @@ test('required host prerequisites include private path, ClamAV, 12MB upload head
   ]) assert.ok(php.includes(name),name);
   assert.match(php,/INFORMATION_SCHEMA|information_schema/);
   assert.match(php,/--check-db/);
+  assert.match(php,/webPhpRuntimeIndependentlyVerified'=>false/);
+  assert.match(php,/max_execution_time/);
+  assert.ok(php.includes('$execRaw'));
   assert.match(php,/50331648/);
 });
 test('existing stage-5 release candidate syntax checks include read-only preflight file',()=>{
