@@ -65,6 +65,11 @@ test('uploads require actual uploaded PDF or DOCX, ClamAV scanning and no plaint
 
  assert.match(handler,/jrServiceFileEncrypt\(\$plain/);
  assert.match(handler,/fopen\(\$target,'xb'\)/);
+ assert.ok(handler.includes("while($offset<$remaining)"),'large encrypted blobs must be fully written');
+ assert.ok(handler.includes("min(262144,$remaining-$offset)"),'bounded ciphertext write chunks');
+ assert.ok(handler.includes("encrypted_storage_flush_failed"),'flush failures must reject uploads');
+ assert.ok(handler.includes("encrypted_storage_permissions_failed"),'private file permissions must be verified');
+
  assert.match(handler,/chmod\(\$target,0600\)/);
  assert.match(handler,/client_source/);
  assert.match(handler,/professional_output/);
