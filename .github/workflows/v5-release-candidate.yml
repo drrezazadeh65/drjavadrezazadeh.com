@@ -119,6 +119,7 @@ jobs:
           php tests/jr-publishing-allocations.php
           php tests/jr-publishing-contract-preview.php
           php tests/jr-publishing-author-email.php
+          php -l tests/jr-publishing-mysql-fixture.php
           node --check assets/js/jr-author-workspace-v1.js
           node --check assets/js/jr-publishing-checkout-v1.js
           node --test tests/jr-publishing-release-policy.test.mjs tests/jr-publishing-digital-payment-guard.test.mjs
@@ -185,6 +186,8 @@ jobs:
           php tests/bertina-receipt-contract.php
           php tests/bertina-commerce-callback-contract.php
           php tests/bertina-commerce-mysql-contract.php
+          # Isolated, disposable publishing_fixture schema; no BitPay/SMTP calls.
+          php tests/jr-publishing-mysql-fixture.php
           php tests/bertina-donations-mysql-contract.php
           php tests/bertina-student-support-contract.php
           php -l scripts/service-private-custody-preflight.php
