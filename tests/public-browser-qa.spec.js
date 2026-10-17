@@ -1676,3 +1676,57 @@ test('publishing mobile-app and desktop editorial layouts share the approved nav
     }
   }
 });
+
+
+// Regression proof for the premium customer-commerce rollout:
+// CSS is isolated, photos come from approved media, and app-shell SVGs must
+// never expand into giant unstyled shapes on documentation pages.
+test('premium shop customer pages retain image, navigation and safe mobile layout',async({page})=>{
+ const routes=['purchase-guide','customer-policy','receipt','cart','checkout'];
+ for(const lang of ['fa','en']){
+  for(const route of routes){
+   const url='/'+lang+'/shop/'+route+'/';
+   for(const width of [390,1440]){
+    await page.setViewportSize({width,height:844});
+    const response=await page.goto(base+url,{waitUntil:'domcontentloaded'});
+    expect(response.status(),url+' HTTP').toBe(200);
+    await expect(page.locator('h1')).toHaveCount(1);
+    const image=page.locator(route==='cart'?'.jr-cart-hero__visual img':route==='checkout'?'.jr-checkout-head__image img':'.jr-help-hero__image img');
+    await expect(image,url+' image').toHaveCount(1);
+    await expect(image).toBeVisible();
+    await image.evaluate(img=>img.decode());
+    const imageSize=await image.evaluate(img=>({naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight}));
+    expect(imageSize.naturalWidth,url+' image did not load').toBeGreaterThan(100);
+    const overflow=await stableOverflow(page);
+    expect(Math.max(overflow.html,overflow.body),url+' '+width+' overflow').toBeLessThanOrEqual(overflow.viewport+1);
+    if(route==='receipt'||route==='cart'||route==='checkout')
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
+    else
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/index,follow/);
+    if(route==='cart'){
+      const targets=page.locator('.cart-trust-links a');
+      await expect(targets).toHaveCount(4);
+      for(const target of await targets.all()){
+       const box=await target.boundingBox();
+       expect(box.height,url+' touch target').toBeGreaterThanOrEqual(48);
+      }
+    }
+    if(route==='purchase-guide'||route==='customer-policy'||route==='receipt'){
+      await expect(page.locator('.jr-help-nav__item')).toHaveCount(3);
+      const dock=page.locator('.app-dock');
+      if(width>=901){
+        if(await dock.count()) await expect(dock).toBeHidden();
+      }else{
+        if(await dock.count()){
+          const icons=await dock.locator('svg').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {w:r.width,h:r.height}}));
+          for(const icon of icons){
+            expect(icon.w,url+' mobile SVG width').toBeLessThanOrEqual(30);
+            expect(icon.h,url+' mobile SVG height').toBeLessThanOrEqual(30);
+          }
+        }
+      }
+    }
+   }
+  }
+ }
+});
