@@ -153,6 +153,14 @@ jobs:
           node --check assets/js/bahar-guardian-overview.js
           php tests/operations-security.php
           php tests/operations-mysql.php
+          # Fail immediately on PHP parser regressions in newly integrated private custody.
+          php -l api/index.php
+          php -l api/operations.php
+          php -l api/service-files.php
+          php -l api/service-buyer-receipt.php
+          php -l api/operations-service-delivery.php
+          php -l tests/commerce-service-advance-mysql.php
+          php -l tests/service-private-files-crypto.php
           # Paid-claim, buyer preference and owner-controlled appointment gate.
           php tests/service-private-files-crypto.php
           php tests/commerce-service-advance-mysql.php
