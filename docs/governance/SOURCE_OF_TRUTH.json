@@ -34,5 +34,27 @@
     "previousAttempt": "settings PATCH returned Forbidden; owner subsequently applied the change"
   },
   "archives": "docs/governance/ARCHIVED_SOURCES_20261012.json",
-  "pendingWork": "docs/governance/EXECUTION_HANDOFF_20261012.md"
+  "pendingWork": "docs/governance/EXECUTION_HANDOFF_20261012.md",
+  "modularMotherDatabase": {
+    "masterplan": "docs/governance/MOTHER_DATABASE_MODULAR_MASTERPLAN_20261017.md",
+    "operationalProvider": "Bertina PHP + MySQL/MariaDB",
+    "operationalDatabaseCount": 1,
+    "canonicalCore": [
+      "customer_accounts",
+      "commerce_orders",
+      "commerce_payment_claims",
+      "commerce_outbox"
+    ],
+    "productionSqlAuthorities": [
+      "docs/BERTINA_MYSQL_SCHEMA.sql",
+      "docs/migrations/20261012_stage09_commerce.sql",
+      "docs/migrations/20261017_jr_future_publishing.sql",
+      "docs/migrations/20261017_jr_publishing_contract_and_reserve.sql"
+    ],
+    "futurePostgresBlueprintOnly": "platform/db/migrations",
+    "deprecatedParallelPublishingDraft": "docs/migrations/20261017_jr_future_publishing_draft.sql",
+    "schemaDeploymentStatus": "REQUIRES_INDEPENDENT_HOST_EVIDENCE",
+    "ownerLastStepRule": "DEFER_ALL_PRIVATE_PDF_UPLOADS_AND_MYSQL_MIGRATIONS_UNTIL_JOINT_FINAL_PREFLIGHT",
+    "releaseEvidenceAuthority": "docs/governance/MASTERPLAN_100_RELEASE_ACCEPTANCE.json"
+  }
 }
