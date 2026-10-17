@@ -332,7 +332,7 @@ function serviceMarketplace(runtime,authenticated){
       esc(title)+'</h3><div class="cd-service-price">'+money(s.price)+'</div>'+
       '<span class="cd-service-duration">'+duration+'</span><p class="cd-service-fit">'+
       esc(fit||'')+'</p>'+outcome+boundary+'<div class="cd-service-actions"><a class="cd-service-buy" href="'+
-      checkoutHref+'">'+label+'</a><a class="cd-service-more" href="'+infoHref+'" aria-label="'+
+      checkoutHref+'"'+(isEnglish?' hreflang="en"':'')+'>'+label+'</a><a class="cd-service-more" href="'+infoHref+'" aria-label="'+
       (isEnglish?'Review public service information':'معرفی بیشتر')+'">↗</a></div></article>';
   }).join(''):'<div class="cd-service-empty">'+
     (isEnglish?'No services match this search.':'خدمتی با این عبارت پیدا نشد.')+'</div>';
