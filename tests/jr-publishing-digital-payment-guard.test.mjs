@@ -91,3 +91,17 @@ test('digital checkout sends only the correct secure buyer receipt, without a ge
  assert.match(mail,/status='processing'/);
  assert.match(mail,/status='sent',sent_at=NOW\(\)/);
 });
+
+test('legacy paid books/services/donations never depend on publishing mailer existing',()=>{
+ const callback=read('api/index.php');
+ const anchor=callback.indexOf('// Only paid digital bundles invoke the publishing mail outbox.');
+ assert.ok(anchor>0,'digital-only mail integration must be explicit');
+ const section=callback.slice(anchor,anchor+1400);
+ assert.match(section,/if\(\$digitalReceipt\)\{/);
+ assert.match(section,/if\(!is_file\(\$mailer\)\)throw new RuntimeException\('publishing_mailer_missing'\)/);
+ assert.match(section,/require_once \$mailer/);
+ assert.match(section,/catch\(Throwable \$mailError\)/);
+ assert.match(section,/if\(!\$digitalReceipt && validEmail\(\$customerEmail\)&&mailReady\(\)\)/);
+ assert.ok(section.indexOf('if($digitalReceipt){')<section.indexOf('require_once $mailer'),
+  'optional publishing dependency must be loaded only for the digital SKU');
+});
