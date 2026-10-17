@@ -102,9 +102,11 @@
 
 **مرحله ۳ ـ staging:** import انتخاب‌شده روی clone ایزوله به‌همراه fixture واقعی syntax/index/constraint، tests موجود PHP/MySQL، replay/negative cases و سیاست backup restore.
 
-**مرحله ۴ ـ انتقال دو PDF با حضور مالک:** فقط `JR_Publishing_PDF_Private_Server_Staging.zip` به محیط خصوصی **خارج از `public_html`**، با `api/internal/jr-publishing-private-install-cli.php` و مستر راهنمای `docs/governance/JR_PUBLISHING_DIGITAL_PAYMENT_ACTIVATION_20261017.md`. Hashهای منبع:
+**مرحله ۴ ـ انتقال دو PDF با حضور مالک:** فقط `JR_Publishing_PDF_Private_Server_Staging_v2.zip` به محیط خصوصی **خارج از `public_html`**، با `api/internal/jr-publishing-private-install-cli.php` و مستر راهنمای `docs/governance/JR_PUBLISHING_DIGITAL_PAYMENT_ACTIVATION_20261017.md`. Hashهای منبع:
 - questions PDF = `6245641c453e92ee005c4176575ef315b96ac72fd8535b7e3ff67c2369dda7c8`
 - answers PDF = `db8070f8a88723c1947a094a461ad2f703192092b09f03255867bbab53fa2ab4`
+- **فایل آپلود معتبر فقط v2 با دقیقاً چهار عضو:** `tefl_1370_1405_questions.pdf`، `tefl_1370_1405_answers.pdf`، `private-asset-manifest.json` و `READ_ME_PRIVATE_DEPLOYMENT.txt`؛ ZIP SHA-256: `a0fb784d92f0b3b40fc03f370444bfda41af40a1dc72d6b90568c4c9ffcdbbcf`؛ حجم ZIP: **9,031,196 bytes**؛ نسخه قدیمی دو‌فایلی با اسکریپت نصب سازگار نیست و **نباید برای آپلود استفاده شود**. بررسی محتوای ZIP قبل از نصب ضروری است.
+
 - **اصل حقوق نشر و توزیع دیجیتال** و بررسی محتوای آزمون‌های ادوار گذشته، هویت مؤلف، نسخه قرارداد و اذن مستند مستقل؛ sandbox/owner bank & SMTP setup و malware scan واقعی.
 
 **مرحله ۵ ـ فعال‌سازی کنترل‌شده:** بعد از مجوز مؤلف و تأیید مالک، provisioning خصوصی account-role، ایمیل تأییدشده، outbox worker، BitPay و price، ثبت منبع پرداخت reserve ۷٪؛ آزمون پرداخت مجاز با همان محصول، دو download، نامه مستقل مؤلف، حسابداری ۶۰/۴۰، برگشت وجه و عدم دریافت تکراری.
