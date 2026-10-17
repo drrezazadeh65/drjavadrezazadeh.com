@@ -15,7 +15,7 @@ if(document.documentElement.dataset.jrMobileAppShellInitialized==='1')return;
 document.documentElement.dataset.jrMobileAppShellInitialized='1';
 const u=p=>base+p.replace(/^\//,'');
 if(!q('link[data-v431-mobile-shell],link[href*="mobile-app-v431.css"]')){
- const l=document.createElement('link');l.rel='stylesheet';l.href=u('assets/css/mobile-app-v431.css?v=431b');l.dataset.v431MobileShell='1';document.head.appendChild(l);
+ const l=document.createElement('link');l.rel='stylesheet';l.href=u('assets/css/mobile-app-v431.css?v=431c');l.dataset.v431MobileShell='1';document.head.appendChild(l);
 }
 const paths={
 home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M9 20v-6h6v6"/>',
