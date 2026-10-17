@@ -90,12 +90,20 @@ function jrPubCommitVerifiedDigitalOrder(PDO $pdo,string $orderId,array $items):
        ($x['price']??null)!==1000000||($x['subtotal']??null)!==1000000||
        ($x['authorShare']??null)!==600000||($x['fundShare']??null)!==400000)
         throw new RuntimeException('digital_order_snapshot_invalid');
-    // Require current release readiness, without trusting any public JSON.
-    $ready=jrPubDigitalOffer($pdo);
-    if(!$ready||($x['offerId']??null)!==$ready['offerId']||
-       ($x['authorId']??null)!==$ready['authorId']||
-       ($x['workVersionId']??null)!==$ready['workVersionId'])
-        throw new RuntimeException('digital_fulfilment_no_longer_ready');
+    // Payment has already been charged at this stage. DO NOT re-check online
+    // SMTP, filesystem or author visibility gates: a temporary outage after
+    // checkout MUST NOT hide a real paid bank transaction. Persist owed
+    // fulfilment as durable grants/outbox even if delivery is temporarily down.
+    $check=$pdo->prepare("SELECT f.id offer_id,w.author_id
+      FROM publishing_offers f JOIN publishing_works w ON w.id=f.work_id
+      JOIN publishing_work_versions v ON v.work_id=w.id
+      WHERE f.id=? AND f.sku=? AND w.author_id=? AND v.id=?
+       AND f.unit_price_toman=1000000 AND f.unit_author_toman=600000
+       AND f.unit_fund_toman=400000 LIMIT 1");
+    $check->execute([(string)$x['offerId'],JR_PUB_SKU,(string)$x['authorId'],(string)$x['workVersionId']]);
+    if(!$check->fetch(PDO::FETCH_ASSOC))throw new RuntimeException('digital_order_snapshot_no_longer_matches_db');
+    $ready=['offerId'=>(string)$x['offerId'],'authorId'=>(string)$x['authorId'],
+      'workVersionId'=>(string)$x['workVersionId']];
     $entries=$pdo->prepare("INSERT INTO publishing_sale_allocation_entries
       (id,order_id,offer_id,author_id,line_key,entry_kind,amount_toman,currency,source_event_key)
       VALUES(?,?,?,?,?, ?,?,'IRT',?)");
