@@ -1046,9 +1046,25 @@ else{
         visit(data,obj=>{
           const types=Array.isArray(obj['@type'])?obj['@type']:[obj['@type']];
           if(types.includes('Person')){
-            if(obj.name&&obj.name!==person.structured_name) failures.push(route+': Person schema name drifts from public entity registry');
-            if(obj['@id']&&obj['@id']!==expectedPersonId) failures.push(route+': Person schema @id drifts from canonical entity id');
-            for(const url of obj.sameAs||[]) if(!approvedSameAs.has(url)) failures.push(route+': unverified Person sameAs URL '+url);
+            // A scholarly article legitimately has other Person authors.
+            // Only validate our site's owner identity against OUR owner registry;
+            // never rename or misidentify colleagues and co-authors.
+            const ownerNames=new Set([
+              person.structured_name,person.english_public_name,person.persian_public_name
+            ].filter(Boolean));
+            const ownerIdentity=obj['@id']===expectedPersonId
+              ||ownerNames.has(obj.name);
+            if(ownerIdentity){
+              if(obj.name&&obj.name!==person.structured_name)
+                failures.push(route+': Person schema name drifts from public entity registry');
+              if(obj['@id']&&obj['@id']!==expectedPersonId)
+                failures.push(route+': Person schema @id drifts from canonical entity id');
+              for(const url of obj.sameAs||[])
+                if(!approvedSameAs.has(url))
+                  failures.push(route+': unverified Person sameAs URL '+url);
+            }else if(!obj.name){
+              failures.push(route+': scholarly Person author lacks an explicit name');
+            }
           }
           if(types.includes('ProfilePage')){
             const main=obj.mainEntity;
