@@ -420,6 +420,9 @@ function localCatalog(): array {
     foreach(($books['books']??[]) as $b){$c=$b['commerce']??[];if(($c['sellable']??false)===true&&($c['inventory_state']??'')==='IN_STOCK'&&($c['currency']??'')==='IRT'&&is_int($c['price']??null)&&$c['price']>0){$items['book:'.$b['id']]=['sku'=>'book:'.$b['id'],'title'=>(string)($b['title_fa']??$b['id']),'price'=>$c['price'],'kind'=>'book'];}}
     foreach(($services['services']??[]) as $s){if(($s['sellable']??false)===true&&is_int($s['price']??null)&&$s['price']>0){$items['service:'.$s['id']]=['sku'=>'service:'.$s['id'],'title'=>(string)($s['title_fa']??$s['id']),'price'=>$s['price'],'kind'=>'service'];}}
     foreach(($vip['services']??[]) as $v){if(($v['sellable']??false)===true&&($v['checkout_enabled']??false)===true&&is_int($v['price']??null)&&$v['price']>0){$items['vip:'.$v['id']]=['sku'=>'vip:'.$v['id'],'title'=>(string)($v['title_fa']??$v['id']),'price'=>$v['price'],'kind'=>'vip'];}}
+    // Digital authors' titles are not physical books and must never use stock/shipping logic.
+    $pdo=db();$digital=$pdo?jrPubDigitalOffer($pdo):null;
+    if($digital!==null)$items[JR_PUB_SKU]=$digital;
     return $items;
 }
 function commerceReady(): bool {
@@ -446,6 +449,8 @@ if (defined('BERTINA_MAIL_SMOKE_CONTEXT') && BERTINA_MAIL_SMOKE_CONTEXT === true
 define('BERTINA_API_BOOTSTRAPPED', true);
 require_once __DIR__.'/operations.php';
 require_once __DIR__.'/commerce-stage9.php';
+require_once __DIR__.'/publishing.php';
+require_once __DIR__.'/internal/jr-publishing-digital.php';
 require_once __DIR__.'/service-intake.php';
 require_once __DIR__.'/service-files.php';
 require_once __DIR__.'/service-buyer-receipt.php';
@@ -453,7 +458,15 @@ require_once __DIR__.'/consultation-delivery.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
 // JR Future Publishing: approved author-only read view. No checkout or payout writes.
-if (str_starts_with($path, '/publishing/')) { require_once __DIR__.'/publishing.php'; jrPublishingAuthorRoute($path,$verb); }
+if ($path==='/publishing/download') jrPubDownloadRoute();
+if ($path==='/publishing/offer' && $verb==='GET') {
+    header('Cache-Control: no-store, private, max-age=0');
+    $pdo=db();$offer=$pdo&&commerceReady()?jrPubDigitalOffer($pdo):null;
+    respond(['ok'=>true,'available'=>$offer!==null,
+      'sku'=>JR_PUB_SKU,'priceToman'=>1000000,'delivery'=>'private_email_two_pdfs',
+      'checkoutEnabled'=>$offer!==null]);
+}
+if (str_starts_with($path, '/publishing/')) jrPublishingAuthorRoute($path,$verb);
 // Credential-free public indicative rate only; never authorize an order or payment from this tick.
 if ($path==='/rates/usdt-irt') { require_once __DIR__.'/ramzinex-public-usdt-rate.php'; jrPublicUsdtRateRoute($verb); }
 // First-party newsletter preferences, verified account only, independent of transactional mail.
@@ -970,9 +983,10 @@ if($path==='/commerce/create'&&$verb==='POST'){
     $b=jsonBody();$items=$b['items']??null;if(!is_array($items)||count($items)<1||count($items)>20)fail('invalid_items');
     $inventory=localCatalog();$counts=[];
     foreach($items as $item){$sku=(string)($item['sku']??'');$q=$item['quantity']??null;if(!isset($inventory[$sku])||!is_int($q)||$q<1||$q>20)fail('invalid_item');$counts[$sku]=($counts[$sku]??0)+$q;}
-    $lines=[];$total=0;$c=cfg();$hasBook=false;
-    foreach($counts as $sku=>$q){$x=$inventory[$sku];if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'){$hasBook=true;}$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
+    $lines=[];$total=0;$c=cfg();$hasBook=false;$hasDigital=false;
+    foreach($counts as $sku=>$q){$x=$inventory[$sku];if($x['kind']==='digital'){$hasDigital=true;}if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'){$hasBook=true;}$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
     if($total<1000||$total>1000000000)fail('amount_out_of_range');
+    if($hasDigital&&($hasBook||count($counts)!==1))fail('digital_bundle_only',400);
     if($hasBook&&!stage9BookStockReady($pdo))fail('inventory_not_reconciled',503);
     $customer=null;$customerEmail=null;$customerJson=null;
     if($hasBook){$customer=normalizedCustomer($b['customer']??null);}
