@@ -71,3 +71,22 @@ test('Mirkarimi offer preserves 60/40, status gate and genuine published media',
  const src=(html.match(/<figure class="jp-commercial-image"><img src="([^"]+)/)||[])[1];
  assert.ok(src && existsSync(path.join(root,src.replace(/^\//,''))));
 });
+
+for(const locale of locales){
+ test(`${locale} cart trust links are full touch targets with approved site imagery`,()=>{
+  const html=read(`${locale}/shop/cart/index.html`);
+  assert.match(html,/jr-cart-redesign/);
+  assert.match(html,/jr-cart-hero__visual/);
+  assert.match(html,/class="cart-trust-links"/);
+  assert.match(html,/data-book-cart/);
+  assert.match(html,/data-store-error/);
+  assert.match(html,/noindex/);
+  for(const target of [...requiredLinks,'checkout'])assert.ok(html.includes(`../${target}/`),target);
+  const src=(html.match(/<figure class="jr-cart-hero__visual"><img src="([^"]+)/)||[])[1];
+  assert.ok(src && existsSync(path.join(root,src.replace(/^\\//,''))));
+ });
+}
+test('premium CSS styles cart actions in RTL and LTR',()=>{
+ assert.match(css,/\\.jr-cart-redesign \\.cart-trust-links/);
+ assert.match(css,/html\\[lang="en"\\] \\.jr-cart-redesign/);
+});
