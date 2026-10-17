@@ -15,6 +15,9 @@ RewriteRule ^academic-engagements/?$ https://drjavadrezazadeh.com/en/academic-en
 RewriteRule ^books/?$ https://drjavadrezazadeh.com/en/books/ [R=301,L,NE]
 RewriteRule ^educational-philosophy/?$ https://drjavadrezazadeh.com/en/educational-philosophy/ [R=301,L,NE]
 RewriteRule ^golden-talent/?$ https://drjavadrezazadeh.com/en/golden-talent/ [R=301,L,NE]
+# GSC-confirmed missing /home/ is a specific homepage alias, not a catch-all 404 redirect.
+# Place before transport consolidation: HTTPS/HTTP, www/apex, slash/slashless => one canonical 301.
+RewriteRule ^home/?$ https://drjavadrezazadeh.com/ [R=301,L,NE]
 RewriteRule ^publications/?$ https://drjavadrezazadeh.com/en/publications/ [R=301,L,NE]
 RewriteRule ^research/?$ https://drjavadrezazadeh.com/en/research/ [R=301,L,NE]
 RewriteRule ^teaching/?$ https://drjavadrezazadeh.com/en/teaching/ [R=301,L,NE]
