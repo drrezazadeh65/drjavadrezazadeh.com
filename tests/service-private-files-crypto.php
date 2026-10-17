@@ -45,4 +45,44 @@ try{
     fails(fn()=>jrServiceFileCheckFormat('sample.docx',$tmp),'renamed_pdf_not_accepted_as_docx');
     fails(fn()=>jrServiceFileCheckFormat('secret.php',$tmp),'executable_extension_rejected');
 }finally{@unlink($tmp);}
+
+/**
+ * Read the literal production PCRE expressions (not a hand-copied regex)
+ * so an escaping mistake in source cannot silently make every valid
+ * 12 MiB upload and every 48-hex .blob filename impossible.
+ */
+function serviceSourceRegexes(string $filename): array {
+    $source=file_get_contents(__DIR__.'/../api/'.$filename);
+    if(!is_string($source))throw new RuntimeException('php_source_unavailable');
+    $all=[];$cursor=0;$needle="preg_match('";
+    while(($pos=strpos($source,$needle,$cursor))!==false){
+        $begin=$pos+strlen($needle);
+        $end=strpos($source,"'",$begin);
+        if($end===false)throw new RuntimeException('broken_source_regex_literal');
+        $all[]=substr($source,$begin,$end-$begin);
+        $cursor=$end+1;
+    }
+    return $all;
+}
+$sourcePatterns=serviceSourceRegexes('service-files.php');
+$uploadPattern=$sourcePatterns[0]??'';
+pass(@preg_match($uploadPattern,'12M')===1
+    &&@preg_match($uploadPattern,'16M')===1
+    &&@preg_match($uploadPattern,'2K')===1
+    &&@preg_match($uploadPattern,'12mb')===0,
+    'production_source_php_regexes_accept_real_upload_values');
+$blob='a'.str_repeat('b',47).'.blob';
+foreach(['service-files.php','operations-service-delivery.php',
+    'service-buyer-receipt.php'] as $filename){
+    $regexes=array_filter(serviceSourceRegexes($filename),
+        static fn(string $pattern): bool => str_contains($pattern,'.blob'));
+    pass(count($regexes)>0,'production_has_sealed_name_checks_'.basename($filename,'.php'));
+    foreach($regexes as $pattern){
+        pass(@preg_match($pattern,$blob)===1
+            &&@preg_match($pattern,$blob.'.txt')===0
+            &&@preg_match($pattern,'other/../'.$blob)===0,
+            'production_filename_pcre_accepts_exact_hex_blob_'.basename($filename,'.php'));
+    }
+}
+
 echo "Secure service file crypto tests: synthetic only; no real content or release verified.\n";
