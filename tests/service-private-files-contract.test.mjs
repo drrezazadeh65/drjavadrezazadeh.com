@@ -189,3 +189,19 @@ test('Bertina candidate bundle cannot omit linked private-file runtime modules',
  assert.ok(builder.includes("'migrations'"));
  assert.match(builder,/for\(const rel of required\)/);
 });
+
+test('buyer upload controls remain closed until a verified private-case API response',()=>{
+ const source=dashboard.slice(dashboard.indexOf('function serviceFileWorkspace'),dashboard.indexOf('function render(orders)'));
+ assert.ok(source.includes('form.hidden=true;'),'upload initially gated');
+ assert.ok(source.includes("if(!response.ok)throw Error('unavailable')"),'non-2xx must not enable upload');
+ assert.ok(source.includes("data.schema!=='private-service-files-v1'"),'response schema checked');
+ assert.ok(source.includes("form.hidden=['delivered','cancelled'].includes(service.status)"),'enable only when verified and case open');
+ assert.ok(source.includes('form.hidden=true;loaded=false;files.replaceChildren();'),'API errors must hide the upload');
+ assert.ok(source.includes('!loaded||form.hidden||!box.open'),'submit must not bypass readiness');
+ assert.ok(source.includes('if(box.open)refresh();'),'reopening must revalidate');
+ assert.ok(source.includes('else{form.hidden=true;loaded=false;files.replaceChildren();}'),'closed view clears private listing');
+ for(const page of ['fa/app/account/orders/index.html','en/app/account/orders/index.html']){
+  assert.ok(read(page).includes('account-order-history.js?v=20261017-secure-upload-readiness-v8'),
+   'stale buyer upload control script '+page);
+ }
+});
