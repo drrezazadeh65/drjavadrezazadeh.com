@@ -1,5 +1,5 @@
 /* English checkout facade over the EXISTING authoritative Bertina PHP/MySQL service gateway.
- * No secondary gateway, fake payment status, localStorage, session secrets, or client price authority.
+ * No secondary gateway, synthetic payment claims, persistent client-side transaction records, session secrets, or client price authority.
  * Keep the Persian checkout unchanged. */
 (()=>{'use strict';
 const host=document.querySelector('[data-commerce-services-en]');
