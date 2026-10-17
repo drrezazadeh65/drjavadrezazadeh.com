@@ -271,3 +271,18 @@
 همچنین محل قرارگیری متن علمی صفحات `golden_talent_premium` و `teacher_consult_60` اصلاح شد تا مطلب داخل `<article>` بماند و خارج از سند معنایی صفحه نمایش داده نشود. آزمون `tests/services-visual-atlas-contract.test.mjs` اکنون برای همه صفحات فارسی و انگلیسی وجود بخش محتوایی، دو پیوند منبع غیرتکراری، دامنه‌های علمی مجاز، قرارگیری صحیح در ساختار مقاله و عدم القای تأیید بیرونی را کنترل می‌کند. مرور منبع در مخزن **۲۱/۲۱ صفحه فارسی و ۲۱/۲۱ صفحه انگلیسی** را از حیث این قرارداد تأیید کرد.
 
 این تکمیل، **گواه عبور از معیار محتوای مرجع یا تأیید جامع سئو/درگاه مالی/عملیات زنده نیست**؛ بازبینی علمی تخصصی عمیق‌تر هر خدمت، آزمون مرورگر و شواهد عملیاتی Bertina مستقل و لازم می‌مانند.
+
+
+---
+
+## Governance Extension — Structured Data, Entity SEO and Knowledge Graph (2026-10-17)
+
+**Owner-supplied directive preserved verbatim:** [Master Structured Data & Entity Graph Execution (nine phases)](MASTER_STRUCTURED_DATA_ENTITY_GRAPH_EXECUTION_20261017.md). This directive runs **in parallel** with the existing 100% operable services, unified visual identity, academic content, privacy, payment, customer/admin dashboards and accepted frozen bilingual SEO standard. It does not authorize relaxing the 41-evidence-item owner release freeze in `AGENTS.md`.
+
+**Source corrections delivered:** `en/publications/index.html` and `fa/entesharat-elmi/index.html` replace invalid article-level `volumeNumber` and `issueNumber` with three nested `PublicationIssue` → `PublicationVolume` → `Periodical` paths, preserve two verified DOIs, and represent actual coauthors through `author`. The third article's publisher metadata remains flagged as not independently verified; inventing a DOI or credentials is prohibited.
+
+**Cross-language entity identity:** All 21 approved priced services retain their original public URLs and existing Persian `#service` IDs; their English service JSON-LD now references **the same canonical Service IDs**. Both retain the single approved Person `@id` (`/#person`), which remains governed by `platform/public-entity-registry.json`.
+
+**Continuous nondeploy audit:** `scripts/schema-entity-inventory.mjs` inventories each committed HTML page's language, intent, robots, canonical, hreflang, schema types, `@id`s, invalid JSON-LD and selected privacy/semantic errors, producing `.artifacts/schema-entity-inventory.json` in the v5 candidate CI. Tests `tests/publications-entity-graph.test.mjs`, `tests/schema-entity-inventory.test.mjs` and `tests/bilingual-service-entity-identity.test.mjs` enforce the new contracts. Machine checks complement—but do not replace—Schema.org, Google Rich Results and **live TLS-verified** checks.
+
+**Evidence discipline:** Current positive observations are repository-source findings, not a final 0-warning Schema Markup Validator result on production. Dynamic PHP/OJS pages remain a separate runtime inventory requirement. The owner's full-ecosystem release gate stays **BLOCKED** until all recorded scientific, technical, operational and live evidence requirements are met.
