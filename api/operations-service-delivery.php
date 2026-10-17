@@ -65,6 +65,36 @@ function operationsCommerceRecordDelivery(PDO $pdo,string $actor,array $request)
             throw new DomainException('session_booking_evidence_required');
         }
 
+        if($kind==='document_handed_over'){
+            // The reference must identify a real, signed-at-upload encrypted
+            // output for exactly this paid service case. No free-text claim is
+            // accepted as document delivery evidence.
+            if(!validUuid($reference)||!function_exists('jrServiceFilesSchemaReady')
+                ||!jrServiceFilesSchemaReady($pdo))
+                throw new DomainException('actual_document_evidence_required');
+            $proof=$pdo->prepare("SELECT storage_name,plaintext_size,content_sha256
+                FROM commerce_service_files
+                WHERE id=? AND order_id=? AND sku=? AND kind='professional_output' FOR UPDATE");
+            $proof->execute([$reference,$orderId,$sku]);
+            $document=$proof->fetch(PDO::FETCH_ASSOC);
+            if(!is_array($document)||
+                !preg_match('/^[a-f0-9]{48}\\.blob$/D',(string)$document['storage_name']))
+                throw new DomainException('document_evidence_not_in_this_case');
+            $root=jrServiceFilesPrivateRoot();
+            if($root===null)throw new RuntimeException('document_evidence_storage_unavailable');
+            $target=$root.'/'.$document['storage_name'];
+            if(is_link($target)||!is_file($target))
+                throw new DomainException('document_delivery_file_missing');
+            $sealed=@file_get_contents($target);
+            if(!is_string($sealed)||strlen($sealed)>12583000)
+                throw new DomainException('document_delivery_cipher_invalid');
+            $plain=jrServiceFileDecrypt($sealed,$orderId,$sku);
+            if(strlen($plain)!==(int)$document['plaintext_size']||
+               !hash_equals((string)$document['content_sha256'],hash('sha256',$plain)))
+                throw new DomainException('document_delivery_integrity_invalid');
+            unset($plain,$sealed);
+        }
+
         // Reference is an opaque ID from the owner's real private delivery
         // evidence. HMAC protects even guessable IDs from disclosure in SQL.
         // The actual source document stays under existing private custody.
