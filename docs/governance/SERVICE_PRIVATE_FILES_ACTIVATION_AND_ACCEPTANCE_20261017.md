@@ -23,6 +23,18 @@ A paid client already has a verified email account, provider-claim-backed order 
 5. Ensure PHP has `fileinfo`, `openssl`, `zip` (DOCX), `hash_hkdf`, `proc_open` and adequate upload/post limits to handle a 12 MiB file. The scanner must succeed before encrypted storage.
 6. Confirm the 20261016 owner delivery-evidence migration was also applied, then verify its table and `commerce_service_files` InnoDB schema. If any gate is absent, display the verified unavailable state rather than pretending documents were saved.
 
+## Read-only Bertina host prerequisite check
+
+Run the following **only from the authorized Bertina SSH/control-panel terminal**, before any live operation:
+
+```bash
+php scripts/service-private-custody-preflight.php --check-db
+```
+
+This CLI-only preflight reads existing private configuration and executes only read-only `information_schema` queries. It reports sanitized booleans for host configuration, actual private folder permissions (0700), filesystem headroom for a 12 MiB artifact, PHP fileinfo/ZipArchive/OpenSSL/HKDF capabilities, PHP upload and POST limits, ClamAV executable, and the three additive database migrations. It never prints database usernames, private directory paths, passwords, keys, transactions or customer records. It exits **2** when prerequisites are missing. A success code **0** means only that source-host prerequisites appear present; it does **not** certify that the owner tested uploads, malware rejection, authentication isolation, the payment gateway, staging parity or the complete 41-gate masterplan.
+
+The owner has confirmed that hosting capacity can be increased when required. The 48 MiB minimum is not a storage budget or arbitrary constraint: it is a protective threshold to handle a single 12 MiB upload, temporary encrypted output and scanner work without truncation. A high-volume staging/load test must separately confirm required capacity for expected traffic. Do not auto-deploy if this preflight returns 0; the full masterplan release freeze remains in force.
+
 ## Acceptance tests before public release
 - Run `php -l api/service-files.php` and `php -l api/index.php`, `php -l api/operations.php`, `php -l api/operations-service-delivery.php`.
 - Run `php tests/service-private-files-crypto.php`, `node --test tests/service-private-files-contract.test.mjs tests/service-delivery-evidence-contract.test.mjs tests/service-intake-security-contract.test.mjs` and `php tests/commerce-service-advance-mysql.php` against **only an isolated fixture database**. The GitHub v5 release-candidate CI includes these checks, but a committed workflow is not proof that the job actually ran or passed.
