@@ -132,7 +132,20 @@ for(const route of protectedNewRoutes){
   if(fs.existsSync(file)&&!/<meta name="robots" content="[^"]*noindex/i.test(fs.readFileSync(file,'utf8')))
     failures.push('English commerce private route must be noindex: '+route);
 }
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length;
+// 2026-10-17 approved independently indexable Persian author storefront.
+// Explicitly account for precisely this new route, never weaken the
+// global sanitized-route count or permit arbitrary new public paths.
+const approvedAuthorPage='fa/shop/authors/mehrab-mirkarimi/index.html';
+const authorHtml=path.join(out,approvedAuthorPage);
+if(!fs.existsSync(authorHtml)){
+  failures.push('Approved Persian author page absent from sanitized artifact: '+approvedAuthorPage);
+}else{
+  const content=fs.readFileSync(authorHtml,'utf8');
+  if(!content.includes('<link rel="canonical" href="https://drjavadrezazadeh.com/fa/shop/authors/mehrab-mirkarimi/">')
+    ||!/<meta name="robots" content="index,follow/.test(content))
+    failures.push('Approved author page canonical/indexability differs from frozen route approval');
+}
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+1;
 for(const route of ['journal/roadmap/index.html','journal/fa/roadmap/index.html']){
   if(!fs.existsSync(path.join(out,route))) failures.push('Approved JHELA roadmap page missing: '+route);
 }
