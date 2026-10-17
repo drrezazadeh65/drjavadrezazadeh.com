@@ -444,6 +444,18 @@ refused(fn()=>jrServiceBuyerReceiptConfirm($pdo,$actor,$intakeEmail,
 refused(fn()=>jrServiceBuyerReceiptConfirm($pdo,$actor,$intakeEmail,
  array_merge($receiptBody,['fileId'=>$draftId])),
  DomainException::class,'buyer_cannot_confirm_unreleased_internal_draft');
+// The owner-attested row is insufficient without the actual stored output.
+$fixturePath=$privateDir.'/'.$storageName;
+$temporarilyMissing=$privateDir.'/withheld-fixture.blob';
+if(!rename($fixturePath,$temporarilyMissing))
+    throw new RuntimeException('unable_to_simulate_missing_attested_file');
+try{
+    refused(fn()=>jrServiceBuyerReceiptConfirm($pdo,$actor,$intakeEmail,$receiptBody),
+        DomainException::class,'self_receipt_denied_if_real_encrypted_output_is_missing');
+}finally{
+    if(!rename($temporarilyMissing,$fixturePath))
+        throw new RuntimeException('unable_to_restore_attested_fixture');
+}
 $confirmed=jrServiceBuyerReceiptConfirm($pdo,$actor,$intakeEmail,$receiptBody);
 checkService($confirmed['buyerSelfAcknowledgedReceipt']===true
  &&$confirmed['actualDownloadIndependentlyProven']===false
