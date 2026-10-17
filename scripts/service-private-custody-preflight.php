@@ -45,6 +45,12 @@ $checks['safePHPUploadLimit']=$limit('upload_max_filesize')>=12582912
     &&$limit('post_max_size')>=12582912+65536;
 $memory=trim((string)ini_get('memory_limit'));
 $checks['safePHPMemoryLimit']=$memory==='-1'||$limit('memory_limit')>=100663296;
+$execRaw=trim((string)ini_get('max_execution_time'));
+$checks['safePHPExecutionLimit']=preg_match('/^\\d+$/D',$execRaw)===1
+    &&((int)$execRaw===0||(int)$execRaw>=90);
+// CLI PHP can have a different INI from web PHP. This CLI check is only
+// a prerequisite, not proof that the cPanel web-SAPI timeout was updated.
+
 $dir=(string)($configuration['service_private_storage']??'');
 $real=$dir!==''&&str_starts_with($dir,'/')&&!is_link($dir)?realpath($dir):false;
 $www=(string)($_SERVER['DOCUMENT_ROOT']??'');
@@ -103,6 +109,7 @@ echo json_encode([
     'checks'=>$checks,
     'customerDataAccessed'=>false,
     'filesUploaded'=>false,'databaseMutated'=>false,'paymentTested'=>false,
+    'webPhpRuntimeIndependentlyVerified'=>false,
     'productionCertified'=>false,
     'next'=>'Independent staging/production acceptance and full masterplan release gate remain mandatory.'
 ],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n";
