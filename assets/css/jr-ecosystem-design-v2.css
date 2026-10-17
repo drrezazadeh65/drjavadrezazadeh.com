@@ -720,3 +720,16 @@ body.ss-body{
     forced-color-adjust:auto;
   }
 }
+
+/* One Persian-first, site-approved repository brand symbol in both account dashboards.
+ * Never reinterpret the adjacent name/wordmark as an unapproved logo replacement. */
+.customer-dashboard .cd-brand .cd-monogram.jr-sci-client-mark,
+.customer-dashboard .cd-mobile-logo.jr-sci-client-mark{
+ display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex:none;
+ background:linear-gradient(145deg,#181612,#29241b);border:1px solid rgba(212,175,55,.34);
+}
+.customer-dashboard .cd-brand .cd-monogram.jr-sci-client-mark img,
+.customer-dashboard .cd-mobile-logo.jr-sci-client-mark img{
+ width:100%;height:100%;object-fit:contain;display:block;border-radius:inherit;
+}
+.customer-dashboard .cd-mobile-logo.jr-sci-client-mark{width:42px;height:42px;border-radius:10px}
