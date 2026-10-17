@@ -43,7 +43,7 @@ function jrPubDigitalOffer(PDO $pdo): ?array {
         WHERE f.sku=? AND f.checkout_enabled=1 AND f.retired_at IS NULL
           AND f.effective_from<=NOW() AND w.publication_status='approved'
           AND w.rights_verified_at IS NOT NULL AND a.status='approved'
-          AND v.review_state='accepted'
+          AND v.review_state IN('submitted','under_review','accepted')
         ORDER BY v.version_number DESC LIMIT 1");
       $s->execute([JR_PUB_SKU]);$o=$s->fetch(PDO::FETCH_ASSOC);if(!$o)return null;
       $price=(int)$o['unit_price_toman'];$author=(int)$o['unit_author_toman'];$fund=(int)$o['unit_fund_toman'];
