@@ -61,13 +61,15 @@ test('English checkout remains guarded by live capability and the canonical paym
  assert.match(page,/name="robots" content="noindex,follow,noarchive"/);
  assert.match(page,/data-commerce-services-en/);
  assert.match(page,/checkout-en-contact/);
- assert.match(page,/commerce-checkout-en\.js\?v=20261016-v1/);
+ assert.match(page,/commerce-checkout-en\.js\?v=20261017-redirect-lock-v2/);
  assert.match(logic,/\/api\/commerce\/create|API\+'\/commerce\/create'/);
  assert.match(logic,/\/commerce\/health/);
  assert.match(logic,/health\?\.checkout===true/);
  assert.match(logic,/health\?\.capabilities\?\.services===true/);
  assert.match(logic,/items:\[\{sku:'service:'\+id,quantity:1\}\]/);
  assert.match(logic,/url\.origin!==location\.origin/);
+ assert.ok(logic.includes('redirecting=true'),'redirect must keep checkout locked');
+ assert.ok(logic.includes('if(!redirecting){busy=false;buttonState();}'),'only failed redirects may unlock');
  assert.match(logic,/url\.pathname!=='\/fa\/shop\/payment-start\/'/);
  assert.match(logic,/!form\.reportValidity\(\)/);
  assert.match(logic,/fetch\('\/assets\/data\/service-catalog\.json'/);
