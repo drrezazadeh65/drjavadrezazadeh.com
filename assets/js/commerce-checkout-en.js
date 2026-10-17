@@ -17,6 +17,7 @@ const selected=new URLSearchParams(location.search).get('service');
 const help='info@drjavadrezazadeh.com';
 let busy=false;
 let ready=false;
+let redirecting=false;
 const setStatus=(message,kind='info')=>{
  status.textContent=message;status.dataset.state=kind;
  status.setAttribute('role','status');status.setAttribute('aria-live','polite');
@@ -72,10 +73,15 @@ async function createServiceOrder(id){
   }
   const gateway=safeGateway(data.paymentUrl);
   setStatus('Your order was created securely. Redirecting to the existing verified payment gateway…');
+  // Keep all payment buttons locked while the browser leaves this page.
+  // Clearing busy in finally immediately after location.assign permits a
+  // duplicate click before navigation completes and can create extra orders.
+  redirecting=true;
   location.assign(gateway);
  }catch(_){
+  redirecting=false;
   setStatus('The payment request status could not be verified. Please check your order history or contact '+help+' before trying again.','error');
- }finally{busy=false;buttonState();}
+ }finally{if(!redirecting){busy=false;buttonState();}}
 }
 function offer(item,translation){
  const card=node('article',undefined,'en-checkout-card');
