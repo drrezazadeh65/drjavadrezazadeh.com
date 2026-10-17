@@ -41,6 +41,10 @@ test('full masterplan gate, owner identity, exact SHA, SQL and protected host ch
  const phased=wf.indexOf('BLOCK unsafe guarded phased release unless owner authorizes exact scope');
  const preflight=wf.indexOf('Authorize the exact recovery policy before any deploy activity');
  assert.ok(old>=0&&phased>old&&preflight>phased);
+ const scopeGate=wf.indexOf('Reject missing or unrecognized release scopes before all gates');
+ assert.ok(scopeGate>=0&&scopeGate<old,'unknown scopes must fail before either conditional guard');
+ assert.match(wf,/full_masterplan\|phased_live_audit/);
+ assert.match(wf,/\*\) echo "Unrecognized release scope; production remains blocked\."/);
  assert.match(wf,/if: inputs.release_scope == 'full_masterplan'/);
  assert.match(wf,/if: inputs.release_scope == 'phased_live_audit'/);
  assert.match(wf,/node scripts\/masterplan-100-release-gate\.mjs/);
