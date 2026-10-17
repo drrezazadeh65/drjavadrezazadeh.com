@@ -70,6 +70,15 @@ function jrServicePhpExecutionReady(): bool {
     $seconds=(int)$raw;
     return $seconds===0||$seconds>=90;
 }
+/** Multipart parsing must have the same practical time budget as file processing.
+ * An oversized request can otherwise expire before PHP populates $_FILES.
+ */
+function jrServicePhpInputTimeReady(): bool {
+    $raw=trim((string)ini_get('max_input_time'));
+    if(!preg_match('/^-?\\d+$/D',$raw))return false;
+    $seconds=(int)$raw;
+    return $seconds===-1||$seconds===0||$seconds>=90;
+}
 function jrServiceFilesReady(PDO $pdo): bool {
     return ((cfg()['service_files_enabled']??(getenv('JR_SERVICE_FILES_ENABLED')==='true'))===true)
         &&(cfg()['public_tls_confirmed']??false)===true
@@ -87,6 +96,7 @@ function jrServiceFilesReady(PDO $pdo): bool {
         &&jrServicePhpUploadLimitsReady()
         &&jrServicePhpMemoryReady()
         &&jrServicePhpExecutionReady()
+        &&jrServicePhpInputTimeReady()
         &&strlen((string)(cfg()['auth_pepper']??''))>=32;
 }
 /**
@@ -118,6 +128,7 @@ function jrServiceFilesActivationChecks(PDO $pdo): array {
         'phpUploadCapacity'=>$safe(static fn(): bool => jrServicePhpUploadLimitsReady()),
         'phpMemoryCapacity'=>$safe(static fn(): bool => jrServicePhpMemoryReady()),
         'phpExecutionCapacity'=>$safe(static fn(): bool => jrServicePhpExecutionReady()),
+        'phpInputTimeCapacity'=>$safe(static fn(): bool => jrServicePhpInputTimeReady()),
         'ownerDeliverySchema'=>$safe(static fn(): bool =>
             function_exists('operationsServiceDeliveryEvidenceReady')
             &&operationsServiceDeliveryEvidenceReady($pdo)),
