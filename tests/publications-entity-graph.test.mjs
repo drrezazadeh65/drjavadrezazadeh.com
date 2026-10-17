@@ -59,6 +59,21 @@ test('article → issue → volume → periodical is exact and acyclic',()=>{
  }
 });
 
+test('third article metadata is supported by the original IJHCS issue index, with no invented DOI',()=>{
+ for(const filename of pagePath){
+  const nodes=graph(read(filename));
+  const issue=byType(nodes,'PublicationIssue').find(x=>x.issueNumber==='2');
+  const periodical=byType(nodes,'Periodical').find(x=>x.name==='International Journal of Humanities and Cultural Studies');
+  assert.equal(issue?.url,'https://www.ijhcs.com/index.php/IJHCS/issue/download/10/28');
+  assert.equal(periodical?.issn,'2356-5926');
+  const third=byType(nodes,'ScholarlyArticle').find(x=>x.name==='On the Effect of Phonetic Transcription and Morphological Awareness on Performing Listening Tasks');
+  assert.equal(third?.identifier,undefined,'no publisher-confirmed DOI available');
+  assert.equal(third?.pagination,'1791-1800');
+  assert.deepEqual(third?.author?.map(a=>a.name||a['@id']),[
+   'Hooshang Yazdani','Afsaneh Afshin Mehr','Hojjat Yousefali',id
+  ]);
+ }
+});
 test('verified coauthors are authors, not merely contributors; preserve the true order',()=>{
  const authors=byType(graph(read(pagePath[0])),'ScholarlyArticle').map(a=>a.author);
  assert.deepEqual(authors.map(list=>list.map(p=>p.name||p['@id'])),[
