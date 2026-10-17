@@ -48,7 +48,7 @@ test('verified bank order sends two PDF links and a distinct private author noti
  assert.match(m,/status='sent'/);
  assert.match(cli,/PHP_SAPI!=='cli'/);
  assert.match(notifications,/provider_verified/);
- assert.doesNotMatch(m,/Mehrabmirkarimi2000@gmail.com/);
+ assert.doesNotMatch(m,/[a-z0-9._%+-]*mirkarimi[a-z0-9._%+-]*@[a-z0-9.-]+\.[a-z]{2,}/i);
 });
 test('author contract remains preview only and no paid files are stored in the git repository',()=>{
  const php=read('api/internal/jr-publishing-contract-draft.php');
