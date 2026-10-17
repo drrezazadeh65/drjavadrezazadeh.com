@@ -192,3 +192,23 @@ test('settled bank refund blocks PDF download and paid buyer/author email delive
  assert.match(digital,/g\.expires_at>NOW\(\) FOR UPDATE/,'existing locked grant checks must survive');
  assert.match(mailer,/p\.verified_amount=o\.provider_amount/,'payment claim checks must survive');
 });
+
+
+test('settled digital refunds must be visible to authors until allocation reversals reconcile',()=>{
+ const api=read('api/publishing.php');
+ const ui=read('assets/js/jr-author-workspace-v1.js');
+ const migration=read('docs/migrations/20261012_stage09_commerce.sql');
+ assert.match(migration,/status ENUM\('requested','reviewing','approved','declined','settled'\)/);
+ assert.match(api,/EXISTS\(SELECT 1 FROM commerce_refund_requests r/);
+ assert.match(api,/r\.status='settled'/);
+ assert.match(api,/HAVING SUM\(CASE WHEN e\.entry_kind IN \('author_share','author_reversal'\)/);
+ assert.match(api,/SUM\(CASE WHEN e\.entry_kind IN \('talent_fund','fund_reversal'\)/);
+ assert.match(api,/AS unreconciled_count/);
+ assert.match(api,/'settledRefundsAwaitingAllocationReversal'/);
+ assert.match(api,/'refundSettled'/);
+ assert.match(api,/'refundAllocationsUnreconciled'/);
+ assert.match(ui,/unresolvedRefunds>0/);
+ assert.match(ui,/warning\.setAttribute\('role','alert'\)/);
+ assert.match(ui,/sale\.refundAllocationsUnreconciled/);
+ assert.doesNotMatch(api,/SELECT [^\n]*customer_email FROM commerce_refund_requests/);
+});
