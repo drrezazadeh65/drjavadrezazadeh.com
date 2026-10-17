@@ -1,0 +1,37 @@
+# Secure service-file custody — Bertina source-to-production acceptance
+**Version:** SERVICE-FILES-V1 · 2026-10-17  
+**Owner standard:** `docs/governance/SUPER_MASTER_ALL_SERVICES_VISUAL_IDENTITY_100_PERCENT_20261016.md`  
+**Source:** `drrezazadeh65/drjavadrezazadeh.com`, branch `migration/bertina-linux6`  
+**Release state:** Source implementation with synthetic/static contract checks. **Not evidence of a deployed, configured, end-to-end file workflow.**
+
+## Purpose and existing capabilities
+A paid client already has a verified email account, provider-claim-backed order history, encrypted text brief, a case status and private dashboard. Preserve those contracts. This addition handles **real attached PDF/DOCX artifacts** for that exact paid order, without treating an uploaded file, an owner action or a gateway return as a completed transaction or as independent confirmation of customer receipt.
+
+- Authenticated client: `GET/POST /api/commerce/service-files`, `GET /api/commerce/service-file?id=...`. The verified email must own the order; payment state, amount, provider transaction and claim must match. Uploads are permitted before the case is closed; customer downloads of professional outputs only after `delivered`.
+- Fresh-MFA SUPER_ADMIN: `GET/POST /api/admin/operations/commerce/service-files`, `GET /api/admin/operations/commerce/service-file?id=...`. All mutations retain the existing CSRF/origin/rate checks.
+- Private metadata: `commerce_service_files`, with composite foreign key to the real `commerce_service_cases`. No original filename, buyer email, document text, plaintext blob, public object URL, card details or payment key is stored in this new table.
+- Binary custody: 12 MiB limit per file, PDF or macro-free DOCX, MIME+magic/ZIP checks, ClamAV scan, random 192-bit filename, AES-256-GCM envelope with HKDF-derived purpose-specific key, authenticated context `orderId|sku`, outside any document root, directory mode 0700 and blob mode 0600. Restricted to 10 attachments per case per role.
+- Actual report handover: `document_handed_over` attestation now requires a **real professional output file ID** and checks case match, existence, authenticated decryption and SHA-256 integrity **before** updating status to `delivered`. A consultant can still attest a genuinely elapsed booked session with the separate session evidence code. Recording a professional output never claims independent customer download, satisfaction, refund or bank settlement.
+- Two language interfaces: private order history in `/fa/app/account/orders/` and `/en/app/account/orders/`, and owner queue in operations dashboard. No additional independent gateway.
+
+## Production activation gates — do not skip
+1. Confirm trusted TLS, host operator backups and a tested rollback. **No CI job may write to production MySQL.** Only the owner-approved Bertina migration procedure can apply `docs/migrations/20261017_private_service_files.sql`, after the existing Stage09 schema. It is additive and leaves existing orders untouched.
+2. Provision **an existing, dedicated directory outside public_html**, preferably `/home/<hosting-account>/private-service-files`. Restrict it to the web-service account at **0700**; never create or place files in a deployable GitHub directory. Check realpath and document root, disk quota, system backups and lifecycle policies.
+3. Install the **approved ClamAV executable** at `/usr/bin/clamscan` or `/usr/local/bin/clamscan`, make sure the daemon/signatures are maintained and the website's PHP process can execute it. A missing scanner must fail closed, not silently admit unchecked files.
+4. Using the server's **private environment settings** (not public HTML or GitHub), configure `JR_SERVICE_PRIVATE_STORAGE=/absolute/private/path`, `JR_SERVICE_AV_BINARY=/usr/bin/clamscan`, `JR_SERVICE_FILES_ENABLED=true` and keep `JR_PUBLIC_TLS_CONFIRMED=true` **only if** the trusted production certificate has genuinely been verified. `JR_AUTH_PEPPER` must remain the existing >=32-byte strong secret; never rotate it casually as existing encrypted briefs and attached files depend on it. The new file key is derived in a distinct HKDF context.
+5. Ensure PHP has `fileinfo`, `openssl`, `zip` (DOCX), `hash_hkdf`, `proc_open` and adequate upload/post limits to handle a 12 MiB file. The scanner must succeed before encrypted storage.
+6. Confirm the 20261016 owner delivery-evidence migration was also applied, then verify its table and `commerce_service_files` InnoDB schema. If any gate is absent, display the verified unavailable state rather than pretending documents were saved.
+
+## Acceptance tests before public release
+- Run `php -l api/service-files.php` and `php -l api/index.php`, `php -l api/operations.php`, `php -l api/operations-service-delivery.php`.
+- Run `php tests/service-private-files-crypto.php`, `node --test tests/service-private-files-contract.test.mjs tests/service-delivery-evidence-contract.test.mjs tests/service-intake-security-contract.test.mjs` and `php tests/commerce-service-advance-mysql.php` against **only an isolated fixture database**. The GitHub v5 release-candidate CI includes these checks, but a committed workflow is not proof that the job actually ran or passed.
+- Verify the private upload and download on desktop and Android mobile in both languages using **synthetic** non-sensitive PDF and DOCX fixtures; check real response codes, file contents, scanned/private ciphertext, upload/retry messages, buyer vs owner access, forced signout, expired MFA, concurrent upload limits and deny-by-default configuration.
+- Assert that an unpaid or merely pending order cannot upload or download; other signed-in accounts cannot enumerate UUIDs, list files or read the output; a staff account lacking SUPER_ADMIN cannot upload a deliverable; a completed, cancelled or booked-but-unfinished service cannot be falsely marked delivered.
+- Confirm a PDF output is still hidden from the buyer **until the owner deliberately attests a matching, existing and decryptable output**. Then confirm a buyer with verified email can download it, but neither the website nor its emails claim independent buyer acceptance. Repeat with a DOCX after production `zip` and antivirus readiness.
+- Validate that Donation, original checkout, BitPay, receipts, order amounts, customer account login, Golden Talent and JHELA have no regressions, and that private file URLs are `noindex`, `no-store`, owner-authorized, never in a sitemap or CDN cache.
+- Check server backups include the **private storage directory and its encryption key recovery procedure** in separately secured recovery controls. Retention/deletion requests must be handled without breaking immutable fiscal records.
+
+## Operational limits and explicit exclusions
+This new feature does **not** claim that antivirus, filesystem, TLS, production DB migration or external operator permissions have been configured. It does not send transactional email or certify that a client downloaded the result. It does not establish academic effectiveness, validation of assessment instruments, actual professional delivery or published journal acceptance. DOCX files remain attachment-only; no public document preview is performed. Future additional file types require separately validated MIME, AV and safe rendering controls.
+
+**Security principle:** Payment identity, file access, real output, owner confirmation, customer receipt and bank settlement are separate records. Keep them separate in both the database and all user-facing wording.
