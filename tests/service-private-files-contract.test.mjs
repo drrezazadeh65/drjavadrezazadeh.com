@@ -148,7 +148,7 @@ test('owner readiness never advertises private file custody until the required s
  assert.match(snapshot,/privateServiceFilesReady/);
  assert.ok(snapshot.includes('jrServiceFilesReady($pdo)'));
  assert.ok(admin.includes('fulfilment.privateServiceFilesReady===true'));
- const version='operations-commerce.js?v=20261017-private-document-workflow-v4';
+ const version='operations-commerce.js?v=20261017-private-receipt-status-v5';
  for(const page of ['fa/app/admin/index.html','en/account/admin/index.html']){
   assert.ok(read(page).includes(version),'stale operations script '+page);
  }
