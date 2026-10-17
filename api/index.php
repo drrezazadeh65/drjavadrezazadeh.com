@@ -448,6 +448,7 @@ require_once __DIR__.'/operations.php';
 require_once __DIR__.'/commerce-stage9.php';
 require_once __DIR__.'/service-intake.php';
 require_once __DIR__.'/service-files.php';
+require_once __DIR__.'/service-buyer-receipt.php';
 require_once __DIR__.'/consultation-delivery.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
@@ -664,6 +665,34 @@ if(in_array($path,['/commerce/service-files','/commerce/service-file'],true)){
         }
     }
     fail('method_not_allowed',405);
+}
+
+// Explicit client acknowledgement of an already owner-attested exact output.
+// This never changes commerce_orders, service delivery or bank settlement.
+if($path==='/commerce/service-receipt'&&$verb==='POST'){
+    header('Cache-Control: no-store, private, max-age=0');
+    header('Vary: Cookie');
+    if(($_SERVER['HTTP_ORIGIN']??'')!==SITE_ORIGIN
+       ||!in_array($_SERVER['HTTP_SEC_FETCH_SITE']??'same-origin',['same-origin','none'],true))
+        fail('origin_forbidden',403);
+    $pdo=db();if(!$pdo||!stage9SchemaReady($pdo)
+       ||!jrServiceBuyerReceiptSchemaReady($pdo))fail('buyer_receipt_unavailable',503);
+    $account=sessionAccount($pdo);
+    if(!$account||($account['status']??'')!=='active'||empty($account['email_verified_at']))
+        fail('unauthorized',401);
+    $email=emailNorm($account['email_normalized']??'');
+    if(!validEmail($email))fail('unauthorized',401);
+    if(!rateAllowed($pdo,'service_buyer_acknowledge',(string)$account['id'],10,3600))
+        fail('rate_limited',429);
+    try{
+        $ack=jrServiceBuyerReceiptConfirm($pdo,(string)$account['id'],$email,jsonBody());
+        respond(['ok'=>true,'schema'=>'customer-service-receipt-ack-v1','acknowledgement'=>$ack]);
+    }catch(InvalidArgumentException $e){fail('invalid_receipt_acknowledgement',422);}
+    catch(DomainException $e){fail('confirmed_receipt_requires_delivered_exact_file',409);}
+    catch(Throwable $e){
+        error_log('Buyer self-receipt acknowledgement: '.get_class($e));
+        fail('buyer_receipt_write_unavailable',503);
+    }
 }
 
 // Verified-account order history. A guest email or a public order UUID never grants access.
