@@ -1,0 +1,516 @@
+{
+  "schema": "owner-masterplan-100-acceptance-v1",
+  "canonicalRepository": "drrezazadeh65/drjavadrezazadeh.com",
+  "canonicalBranch": "migration/bertina-linux6",
+  "ownerDirective": "docs/governance/SUPER_MASTER_EXECUTION_DIRECTIVE_20261015.md",
+  "servicesDirective": "docs/governance/SUPER_MASTER_ALL_SERVICES_VISUAL_IDENTITY_100_PERCENT_20261016.md",
+  "releaseState": "BLOCKED_PENDING_FULL_ACCEPTANCE",
+  "ownerFinalAuthorization": false,
+  "reviewedSourceCommit": null,
+  "sourceCiEvidence": null,
+  "stagingEvidence": null,
+  "operationalReadinessEvidence": null,
+  "independentReviewEvidence": null,
+  "finalOwnerApprovalEvidence": null,
+  "verifiedGates": [
+    {
+      "id": "governance_source",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "approved_visual_identity",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "homepage",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "original_media_licensed",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "academic_content_integrity",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "service_internal_links_40",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "service_price_benchmark",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "service_checkout_claims",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "service_user_dashboard",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "service_owner_dashboard",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "service_file_custody",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "service_receipt_custody",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "donation_regression",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "auth_email_oauth",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "client_account_dashboard",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "owner_operations_dashboard",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "golden_talent",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "rcas",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "bahar",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "golden_path",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "assessment_psychometrics",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "consultation_booking",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "bookstore_and_receipts",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "scientific_journal_ojs",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "books_publications",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "operational_ai_assistant",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "bilingual_architecture",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "seo_eeat_geo",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "mobile_pwa",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "accessibility",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "performance_core_web_vitals",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "privacy_security",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "notification_email",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "analytics_observability",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "database_migrations",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "hosting_staging_parity",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "e2e_payment_service_journey",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "load_recovery_backups",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "independent_academic_peer_review",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "independent_design_ux_review",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "production_release_preflight",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "acceptanceEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    }
+  ],
+  "verifiedServices": [
+    {
+      "id": "academic_consult_60",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "student_parent_90",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "konkur_consult_60",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "konkur_month",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "transcript_analysis",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "field_selection_standard",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "field_selection_comprehensive",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "talent_initial",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "golden_talent_comprehensive",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "golden_talent_premium",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "teacher_consult_60",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "teacher_dev_90",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "manuscript_diagnostic",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "academic_editing",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "research_consult_60",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "journal_strategy",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "reviewer_response",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "academic_cv",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "academic_interview_90",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "organization_consult_90",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    },
+    {
+      "id": "specialist_workshop_120",
+      "status": "PENDING",
+      "sourceEvidence": null,
+      "stagingEvidence": null,
+      "reviewedAt": null,
+      "reviewer": null
+    }
+  ],
+  "qualityRule": "Every gate AND every service must be VERIFIED with distinct existing audited evidence files; no percent, generic check or text declaration substitutes for real production-like tests. Production remains manually owner authorized."
+}
