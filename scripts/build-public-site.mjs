@@ -81,7 +81,11 @@ for(const blocked of ['database','migrations']) if(fs.existsSync(path.join(out,b
 const required=[
   'index.html','404.html','offline.html','robots.txt','llms.txt','site.webmanifest','sw.js',
   'sitemap.xml','sitemap-core.xml','journal/sitemap.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml',
-  'assets/data/book-catalog.json','assets/data/service-catalog.json','assets/data/analytics-config.json'
+  'assets/data/book-catalog.json','assets/data/service-catalog.json','assets/data/analytics-config.json',
+  // These runtime modules must ship together with api/index.php; publishing
+  // routes without their bound PHP source would cause an immediate 500.
+  'api/service-files.php','api/service-buyer-receipt.php','api/operations-service-delivery.php',
+  'assets/js/account-order-history.js','assets/js/operations-commerce.js'
 ];
 for(const rel of required) if(!fs.existsSync(path.join(out,rel))) failures.push('Missing required public artifact: '+rel);
 
