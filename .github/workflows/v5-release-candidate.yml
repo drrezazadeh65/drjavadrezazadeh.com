@@ -86,6 +86,8 @@ jobs:
           node --test tests/service-intake-security-contract.test.mjs tests/service-private-files-contract.test.mjs tests/service-buyer-receipt-contract.test.mjs tests/service-completed-queue-contract.test.mjs tests/service-private-custody-preflight-contract.test.mjs
           node --test tests/bertina-phmyadmin-schema-context-contract.test.mjs
           node --test tests/masterplan-100-release-gate.test.mjs
+          node --test tests/masterplan-evidence-reuse-audit.test.mjs
+          node scripts/masterplan-evidence-reuse-audit.mjs --output .artifacts/masterplan-existing-work-reuse.json
           node --check assets/js/commerce-checkout-en.js
           node --check assets/js/operations-commerce.js
           node --check assets/js/account-order-history.js
@@ -127,6 +129,14 @@ jobs:
           node --test tests/jr-publishing-release-policy.test.mjs tests/jr-publishing-digital-payment-guard.test.mjs tests/jr-publishing-private-installer.test.mjs
           node --test tests/merged-master-publishing-release-contract.test.mjs
           echo 'Publishing stage remains prelaunch. This is SOURCE evidence, not permission to take payments or deploy.'
+      - name: Preserve existing 41-gate and 21-service evidence pointers (NO approval)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: masterplan-existing-work-reuse
+          path: .artifacts/masterplan-existing-work-reuse.json
+          if-no-files-found: warn
+          retention-days: 14
       - name: Archive bilingual structured-data source inventory (nonproduction evidence)
         if: always()
         uses: actions/upload-artifact@v4
