@@ -742,8 +742,16 @@
             'شرح تکمیلی مشتری هنوز ارسال نشده است.',
             'The client has not yet supplied the optional service brief.'),'ops-muted'));
         }
-        if(entry.orderPaidState===true&&entry.providerClaimMatchesOrder===true)
-          item.append(ownerServiceFileWorkspace(entry,item));
+        if(entry.orderPaidState===true&&entry.providerClaimMatchesOrder===true){
+          if(fulfilment.privateServiceFilesReady===true){
+            item.append(ownerServiceFileWorkspace(entry,item));
+          }else{
+            item.append(node('p',text(
+              'محل نگهداری اسناد رمزنگاری‌شده هنوز آماده و تأیید نشده است. ابتدا مهاجرت، فضای خصوصی و اسکنر روی سرور را آماده کنید؛ هیچ فایل عمومی ارسال نکنید.',
+              'Private encrypted document custody is not currently ready. Verify the migration, private storage and antivirus before requesting files.'
+            ),'ops-muted'));
+          }
+        }
         const next=NEXT_SERVICE_STATE[entry.status];
         if(next && entry.orderPaidState===true && entry.providerClaimMatchesOrder===true
           && (next!=='booked'||entry.customerPreferenceRecorded===true)){
