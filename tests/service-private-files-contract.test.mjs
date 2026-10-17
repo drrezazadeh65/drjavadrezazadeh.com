@@ -72,6 +72,13 @@ test('uploads require actual uploaded PDF or DOCX, ClamAV scanning and no plaint
  assert.match(handler,/service_file_idempotent_commit_failed/);
  assert.match(handler,/content_sha256=\? LIMIT 1/);
  assert.match(handler,/alreadyRecorded'=>true/);
+ assert.ok(handler.includes('prior_service_file_storage_missing'),
+   'a previous record with a missing encrypted blob must not be acknowledged again');
+ assert.ok(handler.includes('prior_service_file_integrity_mismatch'),
+   'a tampered encrypted blob must not pass idempotency');
+ assert.ok(handler.includes('jrServiceFileDecrypt($priorCipher,$order,$sku)'),
+   'duplicate response must check the original cryptographic envelope');
+
 
 });
 
