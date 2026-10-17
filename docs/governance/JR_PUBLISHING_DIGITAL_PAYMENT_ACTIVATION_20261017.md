@@ -57,3 +57,18 @@ PDF 425 + 572 = 997 pages. Verify antivirus and filesystem checks before any off
 - The two exact original PDF hashes inside `JR_Publishing_PDF_Private_Server_Staging.zip` were rechecked using SHA-256 and the ZIP passed archive integrity testing in the preparation container. This does not prove files were transferred to Bertina.
 - Commercial authorisation has been explicitly given by the website owner. The separate author licence and third-party exam-content rights must still be recorded; the draft contract itself is not that licence.
 - Current program status is **private implementation and staged handoff, not paid live activation**: no host filesystem/database/SMTP operational access exists within this conversation.
+
+## Secure original-PDF archive extraction (2026-10-17 update)
+The CLI-only private installer has been added at api/internal/jr-publishing-private-install-cli.php. The two-PDF archive is still in the conversation working files; it is NOT present on Bertina until independently transferred by the hosting operator.
+
+1. In Bertina cPanel File Manager, create /home/ACCOUNT/private-inbox/ and /home/ACCOUNT/jr-publishing-private/, both OUTSIDE /home/ACCOUNT/public_html/. Confirm directory owner and PHP runtime permissions.
+2. Upload the verified JR_Publishing_PDF_Private_Server_Staging.zip into the private-inbox directory. Never upload or extract it inside public_html, a public upload folder, GitHub or a CDN.
+3. After deploying the CLI-only PHP installer with the site's normal controlled release, execute via authenticated Terminal/SSH (NOT an HTTP address):
+   php /home/ACCOUNT/public_html/api/internal/jr-publishing-private-install-cli.php --archive=/home/ACCOUNT/private-inbox/JR_Publishing_PDF_Private_Server_Staging.zip --dest=/home/ACCOUNT/jr-publishing-private --confirm=INSTALL_VERIFIED_PRIVATE_PDFS
+4. The installer rejects wrong SHA256, unexpected archive paths, wrong sizes, wrong PDF signatures, public document root, symlink targets, existing mismatched files and missing ZipArchive. It saves two exact PDFs with 0640 permissions and never turns payments on. If ZipArchive is missing, hosting support must enable it; NEVER use public_html extraction as a workaround.
+5. In the private host configuration set JR_PUBLISHING_PRIVATE_STORAGE=/home/ACCOUNT/jr-publishing-private after installation. Separately complete genuine malware scan and author-rights verification evidence.
+6. Only apply audited canonical MySQL migrations after an independent tested backup. Register the verified author account and a genuine digital distribution permission. Preserve the nonbinding contract draft for separate later negotiation.
+7. Run the private read-only preflight and test SMTP delivery, signed-link downloads, dead-letter handling and external 7% cost provision.
+8. Carry out a controlled real BitPay test: verified amount and factor, buyer gets exactly two different PDF links and both resolve, author receives one sale notice, one 600k/400k split pair, separate 70k platform reserve, callback replay creates no duplicates. Activate public sales only after actual site-level verification.
+
+GitHub CI success is not evidence of production transactions or email inbox delivery.
