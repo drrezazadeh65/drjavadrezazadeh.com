@@ -196,7 +196,7 @@ test('buyer upload controls remain closed until a verified private-case API resp
  assert.ok(source.includes("if(!response.ok)throw Error('unavailable')"),'non-2xx must not enable upload');
  assert.ok(source.includes("data.schema!=='private-service-files-v1'"),'response schema checked');
  assert.ok(source.includes("form.hidden=['delivered','cancelled'].includes(service.status)"),'enable only when verified and case open');
- assert.ok(source.includes('form.hidden=true;loaded=false;files.replaceChildren();'),'API errors must hide the upload');
+ assert.ok(source.includes("form.hidden=true;form.style.display='none';loaded=false;files.replaceChildren();"),'API errors must hide upload in both HTML state and inline CSS');
  assert.ok(source.includes('!loaded||form.hidden||!box.open'),'submit must not bypass readiness');
  assert.ok(source.includes('if(box.open)refresh();'),'reopening must revalidate');
  assert.ok(source.includes('else{form.hidden=true;loaded=false;files.replaceChildren();}'),'closed view clears private listing');
