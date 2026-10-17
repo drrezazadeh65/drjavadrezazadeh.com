@@ -25,6 +25,10 @@ function jrServiceFilesPrivateRoot(): ?string {
     if(str_contains($dir,'/public_html/')||str_ends_with($dir,'/public_html'))return null;
     $perms=@fileperms($dir);
     if($perms===false||(($perms&0077)!==0))return null;
+    // Do not claim readiness while the next bounded 12 MiB attachment
+    // would leave the service below its encrypted-storage safety reserve.
+    $free=@disk_free_space($dir);
+    if($free===false||$free<50331648)return null;
     return $dir;
 }
 function jrServiceFilesAntivirus(): ?string {
