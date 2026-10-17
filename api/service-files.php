@@ -47,6 +47,12 @@ function jrServiceFilesReady(PDO $pdo): bool {
     return ((cfg()['service_files_enabled']??(getenv('JR_SERVICE_FILES_ENABLED')==='true'))===true)
         &&(cfg()['public_tls_confirmed']??false)===true
         &&stage9SchemaReady($pdo)&&jrServiceFilesSchemaReady($pdo)
+        // A file intake without possible evidence-backed handover and
+        // optional buyer receipt is a partial workflow, not ready to sell.
+        &&function_exists('operationsServiceDeliveryEvidenceReady')
+        &&operationsServiceDeliveryEvidenceReady($pdo)
+        &&function_exists('jrServiceBuyerReceiptSchemaReady')
+        &&jrServiceBuyerReceiptSchemaReady($pdo)
         &&jrServiceFilesPrivateRoot()!==null&&jrServiceFilesAntivirus()!==null
         &&function_exists('hash_hkdf')&&function_exists('openssl_encrypt')
         &&function_exists('openssl_decrypt')
