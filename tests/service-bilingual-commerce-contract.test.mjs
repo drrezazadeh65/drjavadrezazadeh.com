@@ -156,3 +156,22 @@ test('user dashboards share the approved repository Persian-first visual symbol,
  assert.ok(exists('assets/images/persian-brand-symbol.png'),'brand symbol must physically exist');
  assert.match(visual,/\.cd-mobile-logo\.jr-sci-client-mark img/);
 });
+
+
+test('English account service cards use the genuine English checkout, without creating another payment gateway', () => {
+ const buyer=read('assets/js/customer-dashboard.js');
+ const enAccount=read('en/account/index.html');
+ const faAccount=read('fa/customer-dashboard/index.html');
+ const enCheckout=read('en/services/checkout/index.html');
+ const faCheckout=read('fa/services/checkout/index.html');
+ assert.ok(buyer.includes("purchaseReady?'/en/services/checkout/?service='+id"),
+    'English paid-service cards must not fall back to Persian checkout');
+ assert.ok(buyer.includes("purchaseReady?'Secure service checkout'"),
+    'English purchase call-to-action must accurately describe the page');
+ assert.ok(enAccount.includes('customer-dashboard.js?v=20261017-en-checkout-verified-v52'));
+ assert.ok(faAccount.includes('customer-dashboard.js?v=20261017-en-checkout-verified-v52'));
+ assert.ok(enCheckout.includes('/api/commerce/health'));
+ assert.ok(enCheckout.includes('commerce-checkout-en.js'));
+ assert.ok(faCheckout.includes('commerce-checkout.js'));
+ assert.doesNotMatch(buyer,/Checkout \\(Persian\\)/);
+});
