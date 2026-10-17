@@ -610,6 +610,20 @@
         line.style.cssText='color:'+(ok?'#d9dfc5':'#f0d597')+';line-height:1.8';
         list.append(line);
       }
+      if(privateChecks.phpUploadCapacity!==true){
+        const guide=node('p',text(
+          'اقدام در cPanel → MultiPHP INI Editor: مقدار upload_max_filesize را 16M و post_max_size را 24M قرار دهید، ذخیره کنید و سپس این پنل را تازه‌سازی کنید. محدودیت فعلی در همان سرور باید دوباره خوانده شود؛ ذخیره تنظیمات به‌تنهایی به معنای رفع اشکال نیست.',
+          'cPanel → MultiPHP INI Editor: set upload_max_filesize to 16M and post_max_size to 24M, save and refresh this panel. Read the effective PHP settings again; merely saving a form does not certify an upload.'
+        ),'ops-muted');
+        guide.style.cssText='margin-top:12px;padding:12px;border:1px solid rgba(212,175,55,.36);border-radius:10px;background:#29241b;color:#f1dfb3';
+        section.append(guide);
+      }
+      if(privateChecks.phpMemoryCapacity!==true){
+        section.append(node('p',text(
+          'در همان تنظیمات cPanel، memory_limit را حداقل 128M و ترجیحاً 256M بگذارید؛ مقدار مؤثر PHP باید در همین پنل تأیید شود.',
+          'In the same PHP editor, set memory_limit to at least 128M, preferably 256M, and verify the effective setting here.'
+        ),'ops-muted'));
+      }
       section.append(list);results.append(section);
     }
     card(text('سفارش‌های معلق','Pending orders'),orders.pendingRecords);
