@@ -81,7 +81,7 @@ jobs:
           node --test tests/paid-service-gateway-contract.test.mjs
           node --test tests/services-visual-atlas-contract.test.mjs tests/service-delivery-evidence-contract.test.mjs
           node --test tests/service-bilingual-commerce-contract.test.mjs
-          node --test tests/service-intake-security-contract.test.mjs tests/service-private-files-contract.test.mjs tests/service-buyer-receipt-contract.test.mjs tests/service-completed-queue-contract.test.mjs
+          node --test tests/service-intake-security-contract.test.mjs tests/service-private-files-contract.test.mjs tests/service-buyer-receipt-contract.test.mjs tests/service-completed-queue-contract.test.mjs tests/service-private-custody-preflight-contract.test.mjs
           node --test tests/masterplan-100-release-gate.test.mjs
           node --check assets/js/commerce-checkout-en.js
           node --check assets/js/operations-commerce.js
@@ -158,6 +158,7 @@ jobs:
           php tests/bertina-commerce-mysql-contract.php
           php tests/bertina-donations-mysql-contract.php
           php tests/bertina-student-support-contract.php
+          php -l scripts/service-private-custody-preflight.php
           php -l scripts/journal-ojs-preflight.php
           php -l tests/journal-ojs-preflight.php
           php tests/journal-ojs-preflight.php
