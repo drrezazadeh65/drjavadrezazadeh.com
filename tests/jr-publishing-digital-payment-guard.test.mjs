@@ -179,6 +179,7 @@ test('digital buyer checkout fail-closes ambiguous payment creation and untruste
 test('settled bank refund blocks PDF download and paid buyer/author email delivery',()=>{
  const digital=read('api/internal/jr-publishing-digital.php');
  const mailer=read('api/internal/jr-publishing-mailer.php');
+ const worker=read('api/internal/jr-publishing-mail-worker.php');
  const schema=read('api/publishing.php');
  const migration=read('docs/migrations/20261012_stage09_commerce.sql');
  assert.match(migration,/CREATE TABLE IF NOT EXISTS commerce_refund_requests/);
@@ -187,6 +188,7 @@ test('settled bank refund blocks PDF download and paid buyer/author email delive
  const denied=/NOT EXISTS\s*\(SELECT 1 FROM commerce_refund_requests r\s*WHERE r\.order_id=o\.id AND r\.status='settled'\)/;
  assert.match(digital,denied,'the entitlement query must check the bank-refund ledger');
  assert.match(mailer,denied,'queued buyer and author notices must not send after settled refunds');
+ assert.match(worker,/NOT EXISTS\s*\(SELECT 1 FROM commerce_refund_requests r\s*WHERE r\.order_id=n\.order_id AND r\.status='settled'\)/,'refunded queued notices must not starve eligible deliveries');
  assert.match(digital,/g\.expires_at>NOW\(\) FOR UPDATE/,'existing locked grant checks must survive');
  assert.match(mailer,/p\.verified_amount=o\.provider_amount/,'payment claim checks must survive');
 });
