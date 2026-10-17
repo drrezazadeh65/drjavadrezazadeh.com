@@ -1,6 +1,7 @@
 // Read-only Bertina acceptance. No credentials, orders, payment requests or mutations.
 import fs from 'node:fs';
 import {inspectPublicServiceRoute,serviceRoutesFromCatalog} from './lib/public-service-route-contract.mjs';
+import {assessPublicReleaseEvidence} from './lib/public-release-acceptance.mjs';
 const ORIGIN='https://drjavadrezazadeh.com';
 const expected=(process.env.BERTINA_EXPECTED_RELEASE_SHA||'').trim();
 const output=process.env.BERTINA_ACCEPTANCE_EVIDENCE||'bertina-postrelease-evidence.json';
@@ -263,6 +264,10 @@ const evidence={
  passed:failures===0,checks,operationalGates,
  limitation:'Anonymous HTTPS source/live observations, not proof of email inbox delivery, independent backup restore, real order, stock, BitPay settlement or protected admin login; operationalGates are public-only observations.'
 };
+// Legacy smoke remains backward-compatible; stricter P0 status is separate.
+// A passing 17-check smoke run MUST NOT be represented as 42/42 route recovery.
+evidence.publicReleaseAcceptance=assessPublicReleaseEvidence(evidence);
+console.log('Public P0 deployment acceptance: '+evidence.publicReleaseAcceptance.publicP0Acceptance);
 fs.writeFileSync(output,JSON.stringify(evidence,null,2)+'\n',{mode:0o600});
 console.log('Read-only operational acceptance: '+(failures===0?'PASS':'FAIL')+'; '+checks.length+' checks.');
 if(failures)process.exitCode=1;
