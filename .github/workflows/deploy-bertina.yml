@@ -354,6 +354,7 @@ jobs:
           FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
           FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
           RECOVERY_MODE: ${{ steps.release_policy.outputs.mode }}
+          RELEASE_SCOPE: ${{ inputs.release_scope }}
           EXPECTED_LIVE_SHA: ${{ steps.release_policy.outputs.expected_live_sha }}
         run: |
           set -euo pipefail
@@ -449,6 +450,16 @@ jobs:
               foreach (\$required as \$table) {
                   // Fixed trusted table names; no request-controlled SQL identifiers.
                   \$pdo->query('SELECT 1 FROM ' . \$table . ' LIMIT 1');
+              }
+              // Phase-1 cannot install any new tables. Verify all existing
+              // operations dependencies BEFORE archive extraction begins.
+              if ('$RELEASE_SCOPE'==='phased_live_audit') {
+                foreach (['operations_admin_memberships','operations_session_mfa',
+                  'operations_mfa_counters','operations_evidence','operations_audit',
+                  'operations_release','operations_action_runs',
+                  'operations_collection_policies','operations_collection_cache'] as \$opsTable) {
+                    \$pdo->query('SELECT 1 FROM ' . \$opsTable . ' LIMIT 0');
+                }
               }
               // SELECT ... FOR UPDATE and stock/payment atomicity require InnoDB,
               // including the legacy orders table; table presence alone is insufficient.
@@ -551,7 +562,7 @@ jobs:
                   define('BERTINA_API_BOOTSTRAPPED',true);
                   require_once __DIR__.'/api/operations.php';
                   require_once __DIR__.'/api/operations-schema.php';
-                  operationsInstall(\$pdo);
+                  if ('$RELEASE_SCOPE'!=='phased_live_audit') operationsInstall(\$pdo);
                   \$batch=json_decode((string)file_get_contents(__DIR__.'/api/internal/operations-release.json'),true);
                   \$imported=operationsImportRelease(\$pdo,\$batch,'$GITHUB_SHA',\$private,'$GITHUB_RUN_ID');
                   \$operations=['ready'=>true,'imported'=>\$imported,'schema'=>'operations-v1'];
