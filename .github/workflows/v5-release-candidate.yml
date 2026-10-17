@@ -8,6 +8,7 @@ on:
       - '.github/workflows/stage14-organic-growth.yml'
       - 'scripts/build-public-site.mjs'
       - 'scripts/build-public-data.mjs'
+      - 'scripts/schema-entity-inventory.mjs'
       - 'scripts/stamp-bertina-release.mjs'
       - 'scripts/v5-ecosystem-integrity-audit.mjs'
       - 'scripts/production-health-audit.mjs'
@@ -95,7 +96,7 @@ jobs:
           node scripts/revenue-planner-contract-audit.mjs
           node scripts/workflow-governance-audit.mjs
           node scripts/seo-regression.mjs
-          node --test tests/publications-entity-graph.test.mjs tests/schema-entity-inventory.test.mjs
+          node --test tests/publications-entity-graph.test.mjs tests/schema-entity-inventory.test.mjs tests/bilingual-service-entity-identity.test.mjs
           node scripts/schema-entity-inventory.mjs --strict-publications
           node --test tests/production-health-evidence.test.mjs
           node --check scripts/bertina-auto-release-policy.mjs
