@@ -38,6 +38,12 @@ test('private files are an additive paid-case table, not a replacement checkout 
  assert.ok(handler.includes("ini_get('max_execution_time')"));
  assert.ok(handler.includes('return $seconds===0||$seconds>=90;'));
  assert.ok(handler.includes('&&jrServicePhpExecutionReady()'));
+ assert.ok(handler.includes('function jrServicePhpInputTimeReady()'));
+ assert.ok(handler.includes("ini_get('max_input_time')"));
+ assert.ok(handler.includes('&&jrServicePhpInputTimeReady()'));
+ assert.ok(handler.includes("'phpInputTimeCapacity'"));
+ assert.ok(admin.includes("['phpInputTimeCapacity'"));
+ assert.ok(admin.includes("['phpExecutionCapacity'"));
  assert.ok(handler.includes("'phpExecutionCapacity'"));
 
  assert.ok(handler.includes('100663296'));
