@@ -232,7 +232,26 @@ function serviceFileWorkspace(order,service){
  label.append(file);
  const submit=el('button',tr('ارسال رمزنگاری‌شده به پرونده','Securely upload to this case'),'button');
  submit.type='submit';
- form.append(label,submit);
+ const minorFlag=el('label');minorFlag.style.cssText='display:flex;align-items:start;gap:9px';
+ const minorCheck=document.createElement('input');minorCheck.type='checkbox';
+ minorFlag.append(minorCheck,el('span',tr('این مدرک مربوط به فرد زیر ۱۸ سال است.',
+    'This document concerns someone under 18.')));
+ const guardianFlag=el('label');guardianFlag.style.cssText='display:flex;align-items:start;gap:9px';
+ const guardianCheck=document.createElement('input');guardianCheck.type='checkbox';
+ guardianFlag.append(guardianCheck,el('span',tr(
+  'در این پرونده، ولی یا سرپرست قانونی هستم و اجازه ارائه مدرک را دارم. این اعلام جایگزین احراز مستقل سرپرستی نیست.',
+  'I am the authorised parent or legal guardian for this document. This declaration is not independent verification of guardianship.'
+ )));
+ guardianFlag.hidden=true;
+ minorCheck.addEventListener('change',()=>{guardianFlag.hidden=!minorCheck.checked;
+   guardianCheck.required=minorCheck.checked;if(!minorCheck.checked)guardianCheck.checked=false;});
+ const privacyFlag=el('label');privacyFlag.style.cssText='display:flex;align-items:start;gap:9px';
+ const privacyCheck=document.createElement('input');privacyCheck.type='checkbox';privacyCheck.required=true;
+ privacyFlag.append(privacyCheck,el('span',tr(
+  'آگاهانه با اسکن امنیتی و ذخیره رمزنگاری‌شده این سند فقط برای بررسی و ارائه همین خدمت موافقت می‌کنم.',
+  'I explicitly consent to security scanning and encrypted storage of this document solely for the purchased service.'
+ )));
+ form.append(label,minorFlag,guardianFlag,privacyFlag,submit);
  content.append(help,state,files);
  if(!['delivered','cancelled'].includes(service.status))content.append(form);
  box.append(content);
@@ -270,7 +289,7 @@ function serviceFileWorkspace(order,service){
  }
  box.addEventListener('toggle',()=>{if(box.open&&!loaded)refresh();});
  form.addEventListener('submit',async event=>{
-  event.preventDefault();if(loading||!file.files?.length)return;
+  event.preventDefault();if(loading||!file.files?.length||!form.reportValidity()||!privacyCheck.checked||(minorCheck.checked&&!guardianCheck.checked))return;
   const selected=file.files[0];
   if(selected.size>12582912||!/(\\.pdf|\\.docx)$/i.test(selected.name)){
    state.textContent=tr('فقط PDF یا DOCX حداکثر ۱۲ مگابایت مجاز است.','Only PDF or DOCX up to 12 MB is accepted.');return;
@@ -278,6 +297,9 @@ function serviceFileWorkspace(order,service){
   if(!window.confirm(tr('فایل فقط به پرونده خصوصی این سفارش پیوست شود؟',
       'Attach this document only to your private paid service case?')))return;
   const payload=new FormData();payload.append('orderId',order.id);payload.append('sku',service.sku);
+  payload.append('privacyAcknowledged','1');
+  payload.append('isMinor',minorCheck.checked?'1':'0');
+  payload.append('guardianAcknowledged',guardianCheck.checked?'1':'0');
   payload.append('document',selected,selected.name);
   loading=true;submit.disabled=true;
   state.textContent=tr('در حال اسکن، رمزنگاری و ثبت سند…','Scanning, encrypting and registering the file…');
@@ -287,7 +309,7 @@ function serviceFileWorkspace(order,service){
    const data=await response.json();
    if(!response.ok||data?.ok!==true||data.schema!=='private-service-files-v1'
       ||data.file?.registered!==true)throw Error('not_accepted');
-   file.value='';loaded=false;
+   file.value='';privacyCheck.checked=false;minorCheck.checked=false;guardianCheck.checked=false;guardianFlag.hidden=true;loaded=false;
    state.textContent=tr('مدرک به‌صورت محرمانه ثبت شد.','Your document was registered privately.');
   }catch(_){
    state.textContent=tr('ثبت فایل تأیید نشد؛ ابتدا وضعیت پرونده را دوباره بررسی کنید و سند را از روش عمومی ارسال نکنید.',
