@@ -3,6 +3,7 @@ declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
 const OPERATIONS_MFA_TTL = 600;
+require_once __DIR__.'/publishing-onboarding.php';
 require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-jhela.php';
 require_once __DIR__.'/jhela-intake.php';
@@ -369,6 +370,8 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        if(str_starts_with($path,'/admin/operations/publishing/authors'))
+            jrPubKycAdminRoute($pdo,$path,$verb,$accountId,$csrf,$configuration);
 
         // Owner-approved reviewer screening is a private, real DB workflow, never public automatically.
         if ($path === '/admin/operations/jhela/reviewers' && $verb === 'GET') {
