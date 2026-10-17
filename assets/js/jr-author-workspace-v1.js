@@ -16,7 +16,9 @@ function renderAuthor(author){
  ['خریدهای قطعی دارای تأیید درگاه',fa(author.verifiedPaidOrders)],
  ['سهم تعهدشده مؤلف',fa(author.authorAccruedToman)+' تومان'],
  ['سهم ثبت‌شده صندوق استعدادها',fa(author.talentFundEarmarkedToman)+' تومان'],
- ['تسویه بانکی تأییدشده مؤلف',fa(author.authorBankSettledToman)+' تومان']
+ ['تسویه بانکی تأییدشده مؤلف',fa(author.authorBankSettledToman)+' تومان'],
+ ['ذخیره مستقل هزینه سایت (۷٪)',fa(author.platformOperatingReserveToman)+' تومان'],
+ ['تأمین بودجه هزینه‌ها، تطبیق‌شده',fa(author.platformOperatingFundingReconciledToman)+' تومان']
  ];
  for(const [label,value] of items){const box=el('div','');box.append(el('strong','',value),el('span','',label));cards.append(box)}
  section.append(cards,el('p','jp-small','مانده تسویه‌نشده مؤلف: '+fa(author.authorUnsettledToman)+' تومان. تعهد صندوق به معنی پرداخت قطعی به ذی‌نفع نیست.'));
@@ -24,6 +26,18 @@ function renderAuthor(author){
  for(const work of author.works||[]){const li=el('li','');li.append(el('strong','',work.title),el('small','',''));li.lastChild.textContent='وضعیت انتشار: '+String(work.publicationStatus||'نامشخص')+' · داوری علمی: '+String(work.scientificReview||'نامشخص');works.append(li)}
  if(!works.childElementCount)works.append(el('li','','هنوز اثری در حساب تأییدشده ثبت نشده است.'));
  section.append(el('h3','','آثار و وضعیت داوری'),works);
+ const financialNotice=el('p','jp-small','توضیح هزینه‌ها: ذخیره ۷ درصدی از بودجه مستقل مجموعه تأمین می‌شود؛ از سهم مؤلف یا صندوق کم نمی‌شود و نرخ قانونی مالیات نیز محسوب نمی‌گردد. هر عدد صرفاً از ثبت‌های واقعی سمت سرور خوانده می‌شود.');
+ section.append(financialNotice);
+ const contracts=el('ul','jp-work-list');
+ for(const c of author.contracts||[]){
+  const item=el('li','');
+  item.append(el('strong','','نسخه قرارداد: '+String(c.version||'نامشخص')),
+              el('small','',''));
+  item.lastChild.textContent='وضعیت قرارداد: '+String(c.state||'نامشخص')+' · شروع اعتبار: '+String(c.effectiveFrom||'هنوز فعال نشده');
+  contracts.append(item);
+ }
+ if(!contracts.childElementCount)contracts.append(el('li','','هیچ قرارداد امضاشده یا فعالی برای این حساب ثبت نشده است. تا تأیید حقوقی و امضای معتبر، فروش اثر فعال نمی‌شود.'));
+ section.append(el('h3','','قراردادهای مؤلف و مدارک امضا'),contracts);
  return section;
 }
 async function load(){
