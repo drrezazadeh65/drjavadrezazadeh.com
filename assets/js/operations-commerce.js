@@ -170,6 +170,118 @@
       if(stamp===seq)button.disabled=false;
     }
   }
+  function ownerServiceFileWorkspace(entry,item){
+    const disclosure=node('details');
+    disclosure.className='ops-service-private-files';
+    disclosure.style.cssText='border:1px solid rgba(212,175,55,.34);border-radius:12px;padding:12px;margin-top:10px;max-width:100%';
+    disclosure.append(node('summary',text('اسناد رمزنگاری‌شده و خروجی قابل تحویل — فقط مالک',
+      'Private input documents and deliverables — owner MFA only')));
+    const region=node('div');region.style.cssText='display:grid;gap:12px;margin-top:12px';
+    const notice=node('p',text(
+      'فایل‌های PDF و DOCX پس از بررسی امنیتی خارج از فضای عمومی رمزنگاری می‌شوند. خروجی مشتری فقط بعد از ثبت تحویل مستند در دسترس خریدار قرار می‌گیرد.',
+      'PDF/DOCX files are scanned and encrypted outside the public web root. A professional output is withheld from the client until documented delivery is approved.'
+    ),'ops-muted');
+    const statusLine=node('p');statusLine.setAttribute('role','status');
+    const list=node('ul');list.style.cssText='padding:0;list-style:none;display:grid;gap:9px';
+    const form=node('form');form.style.cssText='display:grid;gap:10px';
+    const label=node('label',text('فایل گزارش یا خروجی واقعی (PDF / DOCX تا ۱۲ مگابایت)',
+      'Actual professional deliverable (PDF / DOCX, up to 12MB)'),'ops-muted');
+    label.style.cssText='display:grid;gap:8px';
+    const file=document.createElement('input');file.type='file';file.name='document';file.required=true;
+    file.accept='.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    label.append(file);form.append(label);
+    const submit=node('button',text('ثبت امن خروجی در پرونده','Scan and privately register deliverable'),'button');
+    submit.type='submit';form.append(submit);
+    if(entry.status!=='in_progress')form.hidden=true;
+    region.append(notice,statusLine,list,form);disclosure.append(region);
+    let loading=false;
+    const valid=()=>!workspace.hidden&&panel.open&&!document.hidden&&disclosure.open;
+    async function reload(){
+      if(!valid()||loading)return;
+      loading=true;statusLine.textContent=text('در حال بررسی سندهای واقعی…','Retrieving private file records…');
+      try{
+        const response=await fetch('/api/admin/operations/commerce/service-files?order='+
+          encodeURIComponent(entry.orderId)+'&sku='+encodeURIComponent(entry.sku),{
+          method:'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+        if(!response.ok)throw Error('owner_storage_unavailable');
+        const data=await response.json();
+        if(data?.ok!==true||data.schema!=='private-service-files-v1'||!Array.isArray(data.files))throw Error('private_file_response_invalid');
+        if(!valid())return;
+        list.replaceChildren();
+        for(const record of data.files){
+          if(!/^[0-9a-f-]{36}$/i.test(String(record.id||'')))continue;
+          const row=node('li');row.style.cssText='padding:12px;border:1px solid rgba(212,175,55,.22);border-radius:10px;display:flex;gap:9px;align-items:center;flex-wrap:wrap';
+          row.append(node('span',(record.kind==='professional_output'?
+            text('خروجی تخصصی','Professional output'):text('مدرک مشتری','Customer document'))+
+            ' · '+String(record.file_extension||'').toUpperCase()+' · '+String(record.id)));
+          const link=node('a',text('دریافت محرمانه','Private download'));
+          link.href='/api/admin/operations/commerce/service-file?id='+encodeURIComponent(record.id);
+          link.rel='nofollow';link.style.cssText='color:#f2d993;text-decoration:underline';
+          row.append(link);
+          if(record.kind==='professional_output'&&entry.status==='in_progress'){
+            const use=node('button',text('انتخاب این فایل برای ثبت تحویل','Use this real file as handover evidence'),'button');
+            use.type='button';
+            use.addEventListener('click',()=>{
+              item.dispatchEvent(new CustomEvent('jr:deliverable-selected',{detail:{id:record.id}}));
+              statusLine.textContent=text('شناسه این فایل در فرم ثبت تحویل قرار گرفت؛ تأیید و ثبت نهایی همچنان لازم است.',
+                'The file identifier was placed in the delivery attestation; final review and confirmation are still required.');
+            });
+            row.append(use);
+          }
+          list.append(row);
+        }
+        statusLine.textContent=data.files.length?text(
+          'اسناد ثبت‌شده برای این پرونده خوانده شد.','This service case has private file records.'):
+          text('هیچ فایل محرمانه‌ای در این پرونده ثبت نشده است.','No private documents are recorded for this case.');
+      }catch(_){
+        if(valid())statusLine.textContent=text(
+          'دسترسی به اسناد محرمانه تأیید نشد؛ وضعیت احراز هویت دومرحله‌ای، تنظیمات رمزنگاری و محل ذخیره را بررسی کنید.',
+          'Owner file access is unavailable. Verify MFA, encrypted storage and the approved migration.');
+      }finally{loading=false;}
+    }
+    disclosure.addEventListener('toggle',()=>{
+      if(!disclosure.open){list.replaceChildren();file.value='';return;}
+      reload();
+    });
+    form.addEventListener('submit',async event=>{
+      event.preventDefault();if(loading||!valid()||entry.status!=='in_progress'||!file.files?.length)return;
+      const selected=file.files[0];
+      if(selected.size>12582912||!/(\\.pdf|\\.docx)$/i.test(selected.name)){
+        statusLine.textContent=text('فقط PDF یا DOCX حداکثر ۱۲ مگابایت پذیرفته می‌شود.',
+          'Only PDF or DOCX up to 12MB is accepted.');return;
+      }
+      if(!window.confirm(text(
+        'آیا این فایل واقعاً خروجی قابل ارائه همین پرونده است؟ آپلود به معنای تحویل نهایی نیست.',
+        'Is this a genuine professional output for this specific case? Upload does not mark it delivered.'
+      )))return;
+      loading=true;submit.disabled=true;
+      statusLine.textContent=text('در حال دریافت مجوز مالک و اسکن محرمانه…','Checking owner MFA and scanning the encrypted file…');
+      try{
+        const session=await fetch('/api/admin/operations/session',{
+          method:'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+        if(!session.ok)throw Error('authorization');
+        const auth=await session.json();
+        if(auth?.ok!==true||auth.mfaRequired!==false||
+          !/^[a-f0-9]{64}$/i.test(String(auth.csrfToken||'')))throw Error('authorization');
+        const payload=new FormData();payload.append('orderId',entry.orderId);
+        payload.append('sku',entry.sku);payload.append('document',selected,selected.name);
+        const response=await fetch('/api/admin/operations/commerce/service-files',{
+          method:'POST',credentials:'same-origin',cache:'no-store',
+          headers:{Accept:'application/json','X-CSRF-Token':auth.csrfToken},body:payload});
+        const data=await response.json();
+        if(!response.ok||data?.ok!==true||data.schema!=='private-service-files-v1'||
+          data.file?.kind!=='professional_output'||data.file?.registered!==true)
+          throw Error('upload_not_confirmed');
+        file.value='';
+        statusLine.textContent=text('فایل رمزنگاری شد؛ شناسه آن برای ثبت تحویل در فهرست قرار می‌گیرد.',
+          'Encrypted output stored. Select its verified identifier to record actual handover.');
+      }catch(_){
+        statusLine.textContent=text('آپلود تأیید نشد؛ سند محرمانه را از مسیر عمومی ارسال نکنید.',
+          'Secure upload could not be verified. Do not send the confidential output through public channels.');
+      }finally{loading=false;submit.disabled=false;reload();}
+    });
+    return disclosure;
+  }
   function ownerServiceIntakeViewer(entry){
     const disclosure=node('details');
     disclosure.className='ops-intake-private-viewer';
@@ -630,6 +742,8 @@
             'شرح تکمیلی مشتری هنوز ارسال نشده است.',
             'The client has not yet supplied the optional service brief.'),'ops-muted'));
         }
+        if(entry.orderPaidState===true&&entry.providerClaimMatchesOrder===true)
+          item.append(ownerServiceFileWorkspace(entry,item));
         const next=NEXT_SERVICE_STATE[entry.status];
         if(next && entry.orderPaidState===true && entry.providerClaimMatchesOrder===true
           && (next!=='booked'||entry.customerPreferenceRecorded===true)){
@@ -668,6 +782,13 @@
               ['document_handed_over','خروجی واقعی تحویل شده','Document or report handed over']
             ]){const option=node('option',text(fa,en));option.value=value;kind.append(option);}
             kindLabel.append(kind);form.append(kindLabel);
+            item.addEventListener('jr:deliverable-selected',ev=>{
+              const selectedId=String(ev.detail?.id||'');
+              if(/^[0-9a-f-]{36}$/i.test(selectedId)){
+                kind.value='document_handed_over';
+                reference.value=selectedId;
+              }
+            });
             const refLabel=node('label',text('شناسه ارجاع واقعی (بدون داده شخصی)','Real evidence reference (no personal data)'),'ops-muted');
             refLabel.style.cssText='display:grid;gap:7px;margin-block:10px';
             const reference=document.createElement('input');
