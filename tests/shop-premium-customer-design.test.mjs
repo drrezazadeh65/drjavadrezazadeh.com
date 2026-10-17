@@ -109,3 +109,17 @@ test('author intro contains a real approved editorial visual instead of unexplai
  const src=(html.split('class="jp-avatar jp-author-visual"><img src="')[1]||'').split('"')[0];
  assert.ok(src.startsWith('/') && existsSync(path.join(root,src.slice(1))));
 });
+
+test('social preview image matches visible licensed hero on bilingual customer pages',()=>{
+ for(const locale of locales){
+  for(const slug of informational){
+   const html=read(locale+'/shop/'+slug+'/index.html');
+   const pathFromHero=(html.match(/<figure class="jr-help-hero__image"><img src="([^"]+)/)||[])[1];
+   const expected='https://drjavadrezazadeh.com'+pathFromHero;
+   assert.ok(pathFromHero?.startsWith('/assets/images/editorial-launch/'),locale+'/'+slug+' approved media');
+   assert.ok(html.includes('<meta property="og:image" content="'+expected+'">'),locale+'/'+slug+' OG preview');
+   assert.ok(html.includes('<meta name="twitter:image" content="'+expected+'">'),locale+'/'+slug+' social preview');
+   assert.match(html,/<meta property="og:image:alt" content="[^"]{10,}">/);
+  }
+ }
+});
