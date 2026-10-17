@@ -107,11 +107,7 @@ if(fs.existsSync(path.join(out,'assets/media-registry.json'))) failures.push('In
 if(fs.existsSync(path.join(out,'assets/release-v4.4.json'))) failures.push('Internal release manifest leaked into artifact');
 if(!fs.readFileSync(path.join(out,'api/internal/.htaccess'),'utf8').includes('Require all denied'))
   failures.push('Author payments must not ship with web-readable private PHP modules');
-for(const risky of ['tefl_1370_1405_questions.pdf','tefl_1370_1405_answers.pdf',
-  'JR_Publishing_PDF_Private_Server_Staging.zip']){
-  if(all?.some && all.some(file=>path.basename(file)===risky))
-    failures.push('Private paid scholarly resource must not be in sanitized public release: '+risky);
-}
+
 
 const all=[];
 function walk(dir){
@@ -121,6 +117,12 @@ function walk(dir){
   }
 }
 walk(out);
+// Never distribute paid PDFs or private staging archives via public_html.
+for(const risky of ['tefl_1370_1405_questions.pdf','tefl_1370_1405_answers.pdf',
+  'JR_Publishing_PDF_Private_Server_Staging.zip']){
+  if(all.some(file=>path.basename(file)===risky))
+    failures.push('Private paid scholarly resource must not be in sanitized public release: '+risky);
+}
 const html=all.filter(p=>p.endsWith('.html'));
 // Route count includes the public engine-status page, the approved noindex customer dashboard, and approved noindex commerce relays.
 // Keep a fixed route count as a guard against accidentally publishing engineering files.
