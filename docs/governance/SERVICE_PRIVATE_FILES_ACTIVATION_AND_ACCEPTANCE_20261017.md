@@ -44,6 +44,28 @@ The owner has confirmed that hosting capacity can be increased when required. Th
 - Validate that Donation, original checkout, BitPay, receipts, order amounts, customer account login, Golden Talent and JHELA have no regressions, and that private file URLs are `noindex`, `no-store`, owner-authorized, never in a sitemap or CDN cache.
 - Check server backups include the **private storage directory and its encryption key recovery procedure** in separately secured recovery controls. Retention/deletion requests must be handled without breaking immutable fiscal records.
 
+## cPanel screenshot-based PHP capacity review — 2026-10-17
+
+The owner-provided cPanel/MultiPHP screenshot shows the following **web UI configuration values**, not an independently executed production `phpinfo()` or file-upload test:
+
+| Setting | Visible value | Result for <=12 MiB private service uploads |
+|---|---|---|
+| `file_uploads` | enabled | Prerequisite met in screenshot |
+| `upload_max_filesize` | 16M | Above 12 MiB allowed attachment |
+| `post_max_size` | 32M | Includes multipart request overhead |
+| `memory_limit` | 256M | Above bounded >=96 MiB memory gate |
+| `max_input_time` | 60 seconds | Verify real mobile upload under slow network conditions |
+| `max_execution_time` | **30 seconds** | **Not accepted** for the current synchronous malware scan and encrypted upload handler |
+| `log_errors` | enabled | Retain; never expose private document contents in log output |
+| `include_path` | contains php83 paths | Does **not** alone prove the selected domain PHP version |
+| `session.save_path` | contains php82 path | Possible version mismatch; confirm actual domain-selected PHP first, preserve the functioning login/session path unless proven wrong |
+
+**Host action before feature activation:** for the *correct selected domain/PHP profile*, set `max_execution_time=120` (at minimum 90 seconds according to the source gate). Keep `file_uploads=On`, `upload_max_filesize>=16M`, `post_max_size>=32M`, `memory_limit>=256M` and `log_errors=On`. Increasing `max_input_time` to 120 can improve reliability for slow uploads, but do not overwrite unrelated sites' PHP profiles. A host/reverse proxy can still enforce a lower independent timeout. ClamAV execution and private storage must be independently available.
+
+**Version awareness:** `include_path` mentioning PHP 8.3 and `session.save_path` mentioning PHP 8.2 is a *warning to verify*, not authority to change sessions or assert they are broken. Use the host's PHP selector for `drjavadrezazadeh.com` and a safe nonpublic runtime check; do not change a working session path based on the screenshot alone.
+
+The read-only CLI preflight now checks `safePHPExecutionLimit` and explicitly reports `webPhpRuntimeIndependentlyVerified=false`. CLI `max_execution_time=0` may be different from the cPanel HTTP runtime; an operator must separately confirm web-SAPI settings and complete a synthetic upload. No production readiness is inferred from this screenshot.
+
 ## Independent client file receipt — added 2026-10-17
 
 The buyer now has a separate, optional **explicit self-attested receipt** action only for the exact professional output released by the owner. The record is not created on a download GET, gateway callback, scheduling change or owner attestation. It is not a quality/satisfaction endorsement, independent network-download proof or bank-settlement certificate.
