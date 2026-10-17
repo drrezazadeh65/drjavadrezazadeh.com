@@ -6,7 +6,7 @@ declare(strict_types=1);
  * or certify copyright/licensing. Never upload this ZIP inside public_html.
  *
  * php /path/public_html/api/internal/jr-publishing-private-install-cli.php \
- *   --archive=/home/ACCOUNT/private-inbox/JR_Publishing_PDF_Private_Server_Staging.zip \
+ *   --archive=/home/ACCOUNT/private-inbox/JR_Publishing_PDF_Private_Server_Staging_v2.zip \
  *   --dest=/home/ACCOUNT/jr-publishing-private \
  *   --confirm=INSTALL_VERIFIED_PRIVATE_PDFS
  */
