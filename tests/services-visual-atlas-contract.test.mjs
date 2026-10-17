@@ -98,3 +98,31 @@ test('all Persian specialist academic essays remain inside their semantic servic
        item.id+' must not have orphaned scholarly sections outside the article');
   }
 });
+
+
+test('each Persian paid service cites two directly accessible primary scholarly organisations',()=>{
+ const authorisedDomains=new Set([
+  'www.aera.net','www.oecd.org','schoolcounselor.org',
+  'learningpolicyinstitute.org','udlguidelines.cast.org',
+  'www.icmje.org','publicationethics.org','sfdora.org'
+ ]);
+ for(const service of catalogue.services){
+  const html=read(`fa/services/${service.id}/index.html`);
+  const identifier=`data-jr-academic-evidence="${service.id}"`;
+  const begin=html.indexOf(identifier),articleClose=html.indexOf('</article>');
+  assert.ok(begin>0&&begin<articleClose,'missing in-article academic bibliography '+service.id);
+  const finish=html.indexOf('</section>',begin);
+  assert.ok(finish>begin&&finish<articleClose,'academic sources outside article '+service.id);
+  const section=html.slice(begin,finish);
+  const refs=[...section.matchAll(/<a href="(https:\/\/[^"]+)"[^>]*>/g)].map(m=>m[1]);
+  assert.equal(refs.length,2,'two scientific primary references required per service: '+service.id);
+  assert.equal(new Set(refs).size,2,'repeated academic source '+service.id);
+  for(const link of refs){
+    const url=new URL(link);
+    assert.ok(authorisedDomains.has(url.hostname),'unreviewed source domain in '+service.id+': '+link);
+    assert.ok(!url.username&&!url.password&&!url.hash,'unsafe public scholarly URL '+service.id);
+  }
+  assert.match(section,/به معنای|نباید به معنای/,
+    'scholarly bibliography must not imply external endorsement '+service.id);
+ }
+});
