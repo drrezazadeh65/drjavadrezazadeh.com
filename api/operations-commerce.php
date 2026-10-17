@@ -349,6 +349,7 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'activeServiceCaseCount'=>$openCases,
             'serviceActionQueue'=>$actionQueue,
             'serviceDeliveryEvidenceSchemaReady'=>function_exists('operationsServiceDeliveryEvidenceReady') && operationsServiceDeliveryEvidenceReady($pdo),
+            'privateServiceFilesReady'=>function_exists('jrServiceFilesReady') && jrServiceFilesReady($pdo),
             'serviceIntakeSchemaReady'=>$intakeReady,
             'customerPreferenceSchemaReady'=>$preferenceReady,
             'internalAvailability'=>[
