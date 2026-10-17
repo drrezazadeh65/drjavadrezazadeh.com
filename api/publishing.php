@@ -47,7 +47,7 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
             FROM publishing_author_accounts l
             JOIN publishing_authors a ON a.id=l.author_id
             WHERE l.account_id=? AND l.role='author' AND l.approved_at IS NOT NULL
-              AND l.revoked_at IS NULL AND a.status='approved'
+              AND l.revoked_at IS NULL AND a.status IN('verification_pending','approved')
             ORDER BY a.display_name_fa ASC LIMIT 30");
         $authors->execute([(string)$account['id']]);
         $rows=$authors->fetchAll(PDO::FETCH_ASSOC);
