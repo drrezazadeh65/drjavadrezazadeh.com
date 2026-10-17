@@ -218,6 +218,17 @@
           link.href='/api/admin/operations/commerce/service-file?id='+encodeURIComponent(record.id);
           link.rel='nofollow';link.style.cssText='color:#f2d993;text-decoration:underline';
           row.append(link);
+          if(record.kind==='professional_output'){
+            const state=record.releasedToBuyer===true?
+              (record.buyerReceiptConfirmed===true?
+                text('دریافت صریحاً توسط مشتری اعلام شده؛ تأیید کیفیت یا تسویه نیست',
+                  'Buyer self-attested receipt; neither satisfaction nor settlement verified'):
+                text('این خروجی آزاد شده؛ مشتری هنوز دریافت را اعلام نکرده است',
+                  'This output is released; buyer receipt not yet acknowledged')):
+              text('خروجی داخلی، هنوز برای مشتری آزاد نشده است',
+                'Internal output, not released to buyer');
+            row.append(node('small',state,'ops-muted'));
+          }
           if(record.kind==='professional_output'&&entry.status==='in_progress'){
             const use=node('button',text('انتخاب این فایل برای ثبت تحویل','Use this real file as handover evidence'),'button');
             use.type='button';
