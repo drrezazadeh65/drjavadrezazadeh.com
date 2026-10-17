@@ -30,7 +30,7 @@ test('completed delivery dashboard never implies customer satisfaction or settle
 });
 
 test('admin web clients invalidate shared scripts without changing Donation auditing',()=>{
- const extract=body=>(body.match(/operations-commerce\\.js\\?v=[A-Za-z0-9_-]+/)||[])[0];
+ const extract=body=>(body.match(/operations-commerce[.]js[?]v=[A-Za-z0-9_-]+/)||[])[0];
  const fa=extract(read('fa/app/admin/index.html'));
  const en=extract(read('en/account/admin/index.html'));
  const verified=extract(audit);
