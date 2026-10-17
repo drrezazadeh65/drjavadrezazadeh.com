@@ -25,6 +25,8 @@ on:
       - 'en/shop/checkout/index.html'
       - 'fa/shop/authors/mehrab-mirkarimi/index.html'
       - 'tests/shop-premium-customer-design.test.mjs'
+      - 'fa/shop/cart/index.html'
+      - 'en/shop/cart/index.html'
   pull_request:
     branches: [migration/bertina-linux6]
     paths:
@@ -47,6 +49,8 @@ on:
       - 'en/shop/checkout/index.html'
       - 'fa/shop/authors/mehrab-mirkarimi/index.html'
       - 'tests/shop-premium-customer-design.test.mjs'
+      - 'fa/shop/cart/index.html'
+      - 'en/shop/cart/index.html'
   workflow_dispatch:
 permissions:
   contents: read
