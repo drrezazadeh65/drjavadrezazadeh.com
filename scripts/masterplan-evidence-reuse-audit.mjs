@@ -37,7 +37,7 @@ const GATES={
  privacy_security:['scripts/public-secret-audit.mjs','scripts/private-route-http-audit.mjs'],
  notification_email:['tests/bertina-smtp-body-contract.php','api/internal/jr-publishing-mailer.php'],
  analytics_observability:['scripts/analytics-contract-audit.mjs','scripts/operations-release-evidence.mjs'],
- database_migrations:['tests/operations-mysql.php','tests/jr-publishing-mysql-fixture.php'],
+ database_migrations:['docs/governance/MOTHER_DATABASE_MODULAR_MASTERPLAN_20261017.md','tests/operations-mysql.php','tests/jr-publishing-mysql-fixture.php'],
  hosting_staging_parity:['tests/bertina-release-assembly.py','scripts/bertina-postrelease-check.mjs'],
  e2e_payment_service_journey:['tests/bertina-commerce-mysql-contract.php','tests/paid-service-gateway-contract.test.mjs'],
  load_recovery_backups:['tests/bertina-hosting-managed-release.php','tests/bertina-private-recovery-gate.php'],
