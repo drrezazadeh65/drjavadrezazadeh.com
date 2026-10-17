@@ -82,6 +82,16 @@ test('private buyer routes require verified account, claim-matched order and ori
  assert.match(handler,/hash_equals\(\(string\)\$record\['provider_trans_id'\]/);
  assert.match(handler,/service_state'\]==='delivered'/);
  assert.match(handler,/Content-Disposition: attachment/);
+ assert.match(handler,/function jrServiceFileReleasedDigest/);
+ assert.match(handler,/function jrServiceFileMatchesRelease/);
+ assert.match(handler,/evidence_kind.*document_handed_over/);
+ assert.match(handler,/evidence_reference_hmac/);
+ assert.match(handler,/hash_equals\\(\\$digest,\\$candidate\\)/);
+ assert.match(handler,/if\\(\\$buyerEmail===null\\|\\|!\\$isOutput\\|\\|\\$isReleased\\)/);
+ assert.match(handler,/professional_output_not_released/);
+ assert.match(read('tests/commerce-service-advance-mysql.php'),
+   /unapproved_draft_in_same_delivered_case_remains_private/);
+
  assert.match(handler,/Cache-Control: private, no-store/);
  assert.match(handler,/Content-Security-Policy: sandbox/);
  assert.doesNotMatch(handler,/header\('Location:/);
