@@ -258,6 +258,34 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
                     ?(string)$row['preference_updated_at']:null
             ];
         }
+        // Keep completed services in a separate bounded queue. Never mix
+        // them into the active queue where they could crowd out new clients.
+        // No buyer contact details, file contents or banking IDs are exposed.
+        $deliveredCount=(int)$pdo->query("SELECT COUNT(*) FROM commerce_service_cases
+            WHERE status='delivered'")->fetchColumn();
+        $completedRows=$pdo->query("SELECT sc.order_id,sc.sku,sc.status,sc.delivered_at,
+                o.state AS order_state,o.provider_trans_id,o.provider_amount,
+                c.transaction_id AS claim_transaction,c.verified_amount AS claim_amount
+            FROM commerce_service_cases sc JOIN commerce_orders o ON o.id=sc.order_id
+            LEFT JOIN commerce_payment_claims c ON c.order_id=o.id AND c.provider='bitpay'
+            WHERE sc.status='delivered'
+            ORDER BY sc.delivered_at DESC,sc.order_id DESC,sc.sku DESC LIMIT 50")
+            ->fetchAll(PDO::FETCH_ASSOC);
+        $deliveredQueue=[];
+        foreach($completedRows as $row){
+            $matched=$row['order_state']==='paid'
+                &&$row['claim_transaction']!==null
+                &&(string)$row['provider_trans_id']===(string)$row['claim_transaction']
+                &&(string)$row['provider_amount']===(string)$row['claim_amount'];
+            $deliveredQueue[]=[
+                'orderId'=>(string)$row['order_id'],
+                'sku'=>(string)$row['sku'],
+                'status'=>'delivered',
+                'deliveredAt'=>$row['delivered_at']===null?null:(string)$row['delivered_at'],
+                'orderPaidState'=>$row['order_state']==='paid',
+                'providerClaimMatchesOrder'=>$matched
+            ];
+        }
         $snapshot['available']=true;
         $snapshot['reason']=null;
         // All-time donation totals; do not mix a 1,000-row sample with all-time claim totals.
@@ -348,6 +376,9 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'inShippingOlderThan7Days'=>(int)$parcelAge['shipping_over_7d'],
             'activeServiceCaseCount'=>$openCases,
             'serviceActionQueue'=>$actionQueue,
+            'deliveredServiceCaseCount'=>$deliveredCount,
+            'deliveredServiceActionQueue'=>$deliveredQueue,
+            'deliveredServiceQueueTruncated'=>$deliveredCount>count($deliveredQueue),
             'serviceDeliveryEvidenceSchemaReady'=>function_exists('operationsServiceDeliveryEvidenceReady') && operationsServiceDeliveryEvidenceReady($pdo),
             'privateServiceFilesReady'=>function_exists('jrServiceFilesReady') && jrServiceFilesReady($pdo),
             'serviceIntakeSchemaReady'=>$intakeReady,
