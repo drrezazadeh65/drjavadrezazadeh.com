@@ -47,6 +47,17 @@ function jrServicePhpUploadLimitsReady(): bool {
     return $parse((string)ini_get('upload_max_filesize'))>=12582912
         &&$parse((string)ini_get('post_max_size'))>=12582912+65536;
 }
+function jrServicePhpMemoryReady(): bool {
+    // This bounded v1 handler buffers the scanned plaintext and its sealed
+    // AES-GCM envelope. PHP needs safe headroom for both plus application code.
+    $raw=trim((string)ini_get('memory_limit'));
+    if($raw==='-1')return true;
+    if(!preg_match('/^([0-9]+)([KMG])?$/iD',$raw,$m))return false;
+    $n=(int)$m[1];$suffix=strtoupper((string)($m[2]??''));
+    $multiple=[''=>1,'K'=>1024,'M'=>1048576,'G'=>1073741824][$suffix]??0;
+    if($multiple<=0||$n>intdiv(PHP_INT_MAX,$multiple))return false;
+    return $n*$multiple>=100663296;
+}
 function jrServiceFilesReady(PDO $pdo): bool {
     return ((cfg()['service_files_enabled']??(getenv('JR_SERVICE_FILES_ENABLED')==='true'))===true)
         &&(cfg()['public_tls_confirmed']??false)===true
@@ -62,6 +73,7 @@ function jrServiceFilesReady(PDO $pdo): bool {
         &&function_exists('openssl_decrypt')
         &&class_exists('ZipArchive')&&class_exists('finfo')
         &&jrServicePhpUploadLimitsReady()
+        &&jrServicePhpMemoryReady()
         &&strlen((string)(cfg()['auth_pepper']??''))>=32;
 }
 /**
@@ -91,6 +103,7 @@ function jrServiceFilesActivationChecks(PDO $pdo): array {
         'documentParsers'=>$safe(static fn(): bool =>
             class_exists('ZipArchive')&&class_exists('finfo')),
         'phpUploadCapacity'=>$safe(static fn(): bool => jrServicePhpUploadLimitsReady()),
+        'phpMemoryCapacity'=>$safe(static fn(): bool => jrServicePhpMemoryReady()),
         'ownerDeliverySchema'=>$safe(static fn(): bool =>
             function_exists('operationsServiceDeliveryEvidenceReady')
             &&operationsServiceDeliveryEvidenceReady($pdo)),
