@@ -192,7 +192,10 @@
     label.append(file);form.append(label);
     const submit=node('button',text('ثبت امن خروجی در پرونده','Scan and privately register deliverable'),'button');
     submit.type='submit';form.append(submit);
-    if(entry.status!=='in_progress')form.hidden=true;
+    if(entry.status!=='in_progress'){
+      form.hidden=true;
+      form.style.display='none';
+    }
     region.append(notice,statusLine,list,form);disclosure.append(region);
     let loading=false;
     const valid=()=>!workspace.hidden&&panel.open&&!document.hidden&&disclosure.open;
