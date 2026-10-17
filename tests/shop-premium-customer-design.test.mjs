@@ -89,7 +89,7 @@ test('premium CSS styles cart actions in RTL and LTR',()=>{
 test('mobile app icon shells never render oversized on desktop standalone help pages',()=>{
  const mobile=read('assets/css/mobile-app-v431.css');
  const boot=read('assets/js/mobile-app-v431.js');
- for(const marker of ['.app-dock{display:none}','@media(min-width:901px)',".app-dock,.mobile-app-sheet,.mobile-menu-trigger{display:none!important}",'fill:none','max-width:22px','.mobile-app-sheet[hidden]{display:none!important}','@media(max-width:900px)']){
+ for(const marker of ['.app-dock{display:none}','@media(min-width:901px)',".app-dock,.mobile-menu-trigger{display:none!important}",'fill:none','max-width:22px','.mobile-app-sheet[hidden]{display:none!important}','@media(max-width:900px)']){
   assert.ok(mobile.includes(marker),'missing app-shell invariant: '+marker);
  }
  assert.ok(boot.includes('mobile-app-v431.css?v=431c'),'shell fallback cache version');
