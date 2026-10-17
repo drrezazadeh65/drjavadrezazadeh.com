@@ -51,6 +51,12 @@ test('mother database reference preserves one active Bertina backend and defers 
  assert.match(doc,/PostgreSQL/);
  assert.match(doc,/information_schema/);
  assert.match(doc,/مرحله مشترک/);
+ assert.match(doc,/JR_Publishing_PDF_Private_Server_Staging_v2\\.zip/);
+ assert.match(doc,/a0fb784d92f0b3b40fc03f370444bfda41af40a1dc72d6b90568c4c9ffcdbbcf/);
+ const installer=fs.readFileSync('api/internal/jr-publishing-private-install-cli.php','utf8');
+ assert.match(installer,/JR_Publishing_PDF_Private_Server_Staging_v2\\.zip/);
+ assert.match(installer,/private-asset-manifest\\.json/);
+ assert.match(installer,/READ_ME_PRIVATE_DEPLOYMENT\\.txt/);
  const canonical=fs.readFileSync('docs/migrations/20261017_jr_future_publishing.sql','utf8');
  const alternative=fs.readFileSync(db.deprecatedParallelPublishingDraft,'utf8');
  assert.match(canonical,/CREATE TABLE IF NOT EXISTS publishing_authors/);
