@@ -94,9 +94,48 @@ const required=[
   'api/internal/jr-publishing-private-install-cli.php',
   'api/internal/.htaccess','assets/js/jr-publishing-checkout-v1.js',
   'fa/app/author/index.html','fa/shop/authors/mehrab-mirkarimi/index.html',
-  'assets/js/account-order-history.js','assets/js/operations-commerce.js'
+  'assets/js/account-order-history.js','assets/js/operations-commerce.js',
+  // Approved luxury bilingual commerce help + checkout must be packaged atomically:
+  // no image-less pages, no unstyled navigation, no checkout pages without guides.
+  'assets/css/shop-customer-premium-20261017.css',
+  'assets/css/mobile-app-v431.css','assets/js/mobile-app-v431.js',
+  'assets/css/jr-future-publishing-author-v1.css',
+  'assets/images/bookstore-talent-cinematic-approved-20261011.webp',
+  'assets/images/editorial-launch/scholarly-bookstore-library-20261011.webp',
+  'assets/images/editorial-launch/professional-services-decisions-20261011.webp',
+  'assets/images/editorial-launch/unified-customer-dashboard-20261011.webp',
+  'assets/images/editorial-launch/academic-research-editing-20261011.webp',
+  'fa/shop/cart/index.html','fa/shop/checkout/index.html',
+  'fa/shop/purchase-guide/index.html','fa/shop/customer-policy/index.html',
+  'fa/shop/receipt/index.html',
+  'en/shop/cart/index.html','en/shop/checkout/index.html',
+  'en/shop/purchase-guide/index.html','en/shop/customer-policy/index.html',
+  'en/shop/receipt/index.html'
 ];
 for(const rel of required) if(!fs.existsSync(path.join(out,rel))) failures.push('Missing required public artifact: '+rel);
+
+const premiumCommercePages=[
+ 'fa/shop/cart/index.html','fa/shop/checkout/index.html','fa/shop/purchase-guide/index.html',
+ 'fa/shop/customer-policy/index.html','fa/shop/receipt/index.html',
+ 'en/shop/cart/index.html','en/shop/checkout/index.html','en/shop/purchase-guide/index.html',
+ 'en/shop/customer-policy/index.html','en/shop/receipt/index.html'
+];
+for(const rel of premiumCommercePages){
+ const file=path.join(out,rel);
+ if(!fs.existsSync(file))continue;
+ const html=fs.readFileSync(file,'utf8');
+ if(!html.includes('shop-customer-premium-20261017.css'))
+  failures.push('Premium bilingual customer-commerce page shipped without approved stylesheet: '+rel);
+ const imageRefs=[...html.matchAll(/<img\b[^>]*\bsrc=["'](\/assets\/images\/[^"']+)["']/gi)]
+  .map(match=>match[1]);
+ if(!imageRefs.length)failures.push('Premium commerce page missing meaningful licensed image: '+rel);
+ for(const src of imageRefs)if(!fs.existsSync(path.join(out,src.slice(1))))
+  failures.push('Premium commerce page references unpackaged image '+src+' in '+rel);
+ if((rel.includes('/cart/')||rel.includes('/checkout/')||rel.includes('/receipt/')) &&
+    !/<meta\s+name=["']robots["']\s+content=["'][^"']*noindex/i.test(html))
+  failures.push('Private commerce route missing noindex protection: '+rel);
+}
+
 
 for(const blocked of [...excludedTop]){
   if(fs.existsSync(path.join(out,blocked))) failures.push('Internal top-level directory leaked into artifact: '+blocked);
