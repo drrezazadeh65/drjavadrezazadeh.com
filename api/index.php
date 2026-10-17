@@ -647,11 +647,14 @@ if(in_array($path,['/commerce/service-files','/commerce/service-file'],true)){
             fail('multipart_form_required',415);
         if(!rateAllowed($pdo,'service_file_private_upload',(string)$account['id'],5,3600))
             fail('rate_limited',429);
-        if(array_keys($_POST)!==['orderId','sku']||array_keys($_FILES)!==['document'])
+        if(array_keys($_POST)!==['orderId','sku','privacyAcknowledged','isMinor','guardianAcknowledged']
+           ||array_keys($_FILES)!==['document'])
             fail('invalid_service_file_form',400);
         try{
+            $consent=['privacyAcknowledged'=>$_POST['privacyAcknowledged'],
+                'isMinor'=>$_POST['isMinor'],'guardianAcknowledged'=>$_POST['guardianAcknowledged']];
             $saved=jrServiceFileUpload($pdo,(string)$_POST['orderId'],(string)$_POST['sku'],
-                (string)$account['id'],$email,'client_source',(array)$_FILES['document']);
+                (string)$account['id'],$email,'client_source',(array)$_FILES['document'],$consent);
             respond(['ok'=>true,'schema'=>'private-service-files-v1','file'=>$saved],201);
         }catch(InvalidArgumentException $e){fail('invalid_service_file',422);}
         catch(DomainException $e){fail('private_case_or_file_limit_conflict',409);}
