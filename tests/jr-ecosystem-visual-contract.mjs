@@ -24,7 +24,7 @@ for(const p of ["fa/assessments/golden-talent/index.html","en/golden-talent/asse
  const dashboard=p==='fa/customer-dashboard/index.html'||p==='en/account/index.html';
  const version=dashboard?'20261017-brand-unified-r2':'20261015-r1';
  assert.ok(html.includes('href="/assets/css/jr-ecosystem-design-v2.css?v='+version+'"'),p+' shared design');
- assert.equal((html.match(/jr-ecosystem-design-v2\\.css/g)||[]).length,1,p+' exactly one shared stylesheet');
+ assert.equal((html.match(/jr-ecosystem-design-v2\.css/g)||[]).length,1,p+' exactly one shared stylesheet');
  if(dashboard)assert.ok(html.includes('/assets/images/persian-brand-symbol.png'),p+' approved Persian identity');
 }
 
