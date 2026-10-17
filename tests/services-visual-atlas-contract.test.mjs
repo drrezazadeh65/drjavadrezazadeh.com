@@ -148,7 +148,7 @@ test('all 21 English service essays include two independently traceable scholarl
    assert.ok(allowed.has(parsed.hostname),'unreviewed scholarly source '+item.id);
    assert.ok(!parsed.username&&!parsed.password&&!parsed.hash,'unexpected URL payload '+item.id);
   }
-  assert.match(section,/does not|do not|not represent/i,
+  assert.match(section,/\b(?:does\s+not|do\s+not|not\s+(?:(?:an?\s+)?independent\s+)?(?:endorsement|validation|represent))/i,
     'source citation should never imply independent endorsement '+item.id);
  }
 });
