@@ -73,3 +73,31 @@ function jrPublishingAllocationBalances(int $grossDelta, int $authorDelta, int $
     // Avoid overflow in authorDelta + fundDelta, even for malformed inputs.
     return ($grossDelta - $authorDelta) === $fundDelta;
 }
+
+/**
+ * Read-only, server-side contractual accounting projection:
+ * a 7% operating-cost reserve is NOT charged to the author or talent fund.
+ * It requires an equal external platform funding commitment, separately
+ * verified in the ledger. It is neither a VAT nor income-tax calculation.
+ *
+ * @return array{gross_toman:int,author_toman:int,talent_fund_toman:int,
+ * operating_reserve_toman:int,platform_funding_required_toman:int,
+ * total_cost_and_entitlements_toman:int,operating_reserve_bps:int}
+ */
+function jrPublishingGrossWithOperatingReserve(
+    int $grossToman, int $authorBps, int $fundBps, int $reserveBps
+): array {
+    if ($reserveBps < 0 || $reserveBps > 10000)
+        throw new InvalidArgumentException('invalid_operating_reserve_rate');
+    $split = jrPublishingGrossAllocation($grossToman, $authorBps, $fundBps);
+    $reserve = intdiv($grossToman, 10000) * $reserveBps
+        + intdiv(($grossToman % 10000) * $reserveBps, 10000);
+    if ($reserve > PHP_INT_MAX - $grossToman)
+        throw new OverflowException('operating_reserve_total_overflow');
+    return $split + [
+        'operating_reserve_toman'=>$reserve,
+        'platform_funding_required_toman'=>$reserve,
+        'total_cost_and_entitlements_toman'=>$grossToman + $reserve,
+        'operating_reserve_bps'=>$reserveBps
+    ];
+}
