@@ -38,6 +38,33 @@ function renderAuthor(author){
  }
  if(!contracts.childElementCount)contracts.append(el('li','','هیچ قرارداد امضاشده یا فعالی برای این حساب ثبت نشده است. تا تأیید حقوقی و امضای معتبر، فروش اثر فعال نمی‌شود.'));
  section.append(el('h3','','قراردادهای مؤلف و مدارک امضا'),contracts);
+ const draft=author.draftContract;
+ if(draft&&draft.status==='negotiation_draft_not_signed'&&Array.isArray(draft.clauses)){
+  const panel=el('section','jp-card');
+  panel.style.marginTop='22px';
+  panel.append(el('p','jp-kicker','فقط برای مطالعه و مذاکره — بدون امضا'),
+    el('h3','',String(draft.title||'پیش‌نویس قرارداد')));
+  panel.append(el('p','jp-small','شناسه نسخه: '+String(draft.version||'—')));
+  for(const notice of draft.notices||[]){
+   panel.append(el('p','jp-status',String(notice)));
+  }
+  const contractBody=el('div','jp-contract-preview');
+  for(const clause of draft.clauses){
+   const item=el('section','');
+   item.append(el('h4','',String(clause.heading||'')),el('p','',String(clause.body||'')));
+   contractBody.append(item);
+  }
+  panel.append(contractBody);
+  panel.append(el('h4','','موارد پیشنهادی برای تکمیل و اصلاح'));
+  const todo=el('ul','jp-work-list');
+  for(const item of draft.openPoints||[])todo.append(el('li','',String(item)));
+  panel.append(todo);
+  const print=el('button','jp-button','چاپ یا ذخیره قرارداد برای بازبینی');
+  print.type='button';print.addEventListener('click',()=>window.print());
+  panel.append(print,el('p','jp-small','این بخش امکان امضا، پذیرش نهایی یا بارگذاری مدرک ندارد. اصلاحات از مسیر مذاکره با مدیر ثبت می‌شوند.'));
+  section.append(panel);
+ }
+
  const history=el('ul','jp-work-list');
  for(const sale of author.recentSales||[]){
   const item=el('li','');
