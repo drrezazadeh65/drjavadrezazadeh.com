@@ -254,11 +254,15 @@ function serviceFileWorkspace(order,service){
  form.append(label,minorFlag,guardianFlag,privacyFlag,submit);
  content.append(help,state,files);
  if(!['delivered','cancelled'].includes(service.status))content.append(form);
+ // Never advertise an upload until its authenticated private API responds.
+ form.hidden=true;
  box.append(content);
  let loading=false,loaded=false;
  async function refresh(){
   if(loading||!box.open)return;
-  loading=true;state.textContent=tr('در حال دریافت پرونده خصوصی…','Retrieving your private files…');
+  loading=true;loaded=false;form.hidden=true;
+  files.replaceChildren();
+  state.textContent=tr('در حال دریافت پرونده خصوصی…','Retrieving your private files…');
   try{
    const url='/api/commerce/service-files?order='+encodeURIComponent(order.id)+'&sku='+encodeURIComponent(service.sku);
    const response=await fetch(url,{method:'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
@@ -266,6 +270,7 @@ function serviceFileWorkspace(order,service){
    const data=await response.json();
    if(data?.ok!==true||data.schema!=='private-service-files-v1'||!Array.isArray(data.files))throw Error('invalid_file_list');
    if(!box.open)return;
+   form.hidden=['delivered','cancelled'].includes(service.status);
    files.replaceChildren();
    for(const record of data.files){
     if(!/^[0-9a-f-]{36}$/i.test(String(record.id||'')))continue;
@@ -322,13 +327,17 @@ function serviceFileWorkspace(order,service){
     tr('هنوز فایلی برای این پرونده ثبت نشده است.','There are no files available for this case yet.');
    loaded=true;
   }catch(_){
+   form.hidden=true;loaded=false;files.replaceChildren();
    state.textContent=tr('سامانه امن فایل هنوز پاسخ تأییدشده‌ای ارائه نکرده است؛ سند محرمانه را از راه عمومی ارسال نکنید.',
     'Private file storage is not currently verified. Do not send confidential records through a public channel.');
   }finally{loading=false;}
  }
- box.addEventListener('toggle',()=>{if(box.open&&!loaded)refresh();});
+ box.addEventListener('toggle',()=>{
+  if(box.open)refresh();
+  else{form.hidden=true;loaded=false;files.replaceChildren();}
+ });
  form.addEventListener('submit',async event=>{
-  event.preventDefault();if(loading||!file.files?.length||!form.reportValidity()||!privacyCheck.checked||(minorCheck.checked&&!guardianCheck.checked))return;
+  event.preventDefault();if(loading||!loaded||form.hidden||!box.open||!file.files?.length||!form.reportValidity()||!privacyCheck.checked||(minorCheck.checked&&!guardianCheck.checked))return;
   const selected=file.files[0];
   if(selected.size>12582912||!/(\\.pdf|\\.docx)$/i.test(selected.name)){
    state.textContent=tr('فقط PDF یا DOCX حداکثر ۱۲ مگابایت مجاز است.','Only PDF or DOCX up to 12 MB is accepted.');return;
