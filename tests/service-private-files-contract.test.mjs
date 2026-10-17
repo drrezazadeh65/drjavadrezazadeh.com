@@ -29,8 +29,8 @@ test('private files are an additive paid-case table, not a replacement checkout 
  assert.ok(handler.includes("ini_get('post_max_size')"));
  assert.ok(handler.includes("class_exists('ZipArchive')&&class_exists('finfo')"));
  assert.ok(handler.includes("&&jrServicePhpUploadLimitsReady()"));
- assert.doesNotMatch(sql,/consent_version VARCHAR\\(48\\) NOT NULL DEFAULT/);
- assert.doesNotMatch(sql,/guardian_acknowledged TINYINT\\(1\\) NOT NULL DEFAULT/);
+ assert.ok(!sql.includes('consent_version VARCHAR(48) NOT NULL DEFAULT'));
+ assert.ok(!sql.includes('guardian_acknowledged TINYINT(1) NOT NULL DEFAULT'));
 
  assert.match(handler,/proc_open/);
  assert.match(handler,/aes-256-gcm/);
