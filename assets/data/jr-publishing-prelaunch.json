@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "program": "jr-future-publishing",
   "release_state": "prelaunch",
   "compliance": {
@@ -54,12 +54,45 @@
         "fund_rate_basis_points": 4000,
         "split_basis": "gross_per_paid_bundle",
         "gateway_cost_bearer": "platform_subject_to_owner_approval",
-        "checkout_enabled": false
+        "checkout_enabled": false,
+        "operating_reserve_rate_basis_points": 700,
+        "operating_reserve_irt": 70000,
+        "platform_subsidy_required_irt": 70000,
+        "unit_amounts_bps_total": 10700,
+        "subsidy_approved": false
       },
       "download_file_urls": [],
       "sku": null,
       "approved_images": [],
-      "rights_confirmed": false
+      "rights_confirmed": false,
+      "editorial_notes": {
+        "audio_transcript_supplied": "2026-10-17",
+        "author_describes_project_over_one_year": true,
+        "author_claimed_over_120_edits": true,
+        "author_statement_about_shortened_pre_1390_answers_with_ai": true,
+        "author_claims_review_of_exam_key_differences": true,
+        "original_exam_question_integrity_must_be_verified": true
+      }
     }
-  ]
+  ],
+  "finance_policy": {
+    "accounting_status": "prelaunch_not_posted",
+    "gross_price_irt": 1000000,
+    "author_share_irt": 600000,
+    "student_support_earmark_irt": 400000,
+    "operating_reserve_irt": 70000,
+    "operating_reserve_rate_bps": 700,
+    "operating_reserve_label_fa": "ذخیره پیشنهادی هزینه‌های سایت، نگهداری و مالیات",
+    "total_allocations_and_operating_reserve_irt": 1070000,
+    "required_platform_subsidy_irt": 70000,
+    "subsidy_approval_status": "pending_owner_financial_approval",
+    "funding_source": "platform_separate_budget_only_if_approved",
+    "rate_is_statutory_tax": false,
+    "tax_estimate_is_provisional": true,
+    "settlement_allowed": false,
+    "details_displayed_to_author": true,
+    "standard_accounting_principle": "author and talent-fund shares are computed from gross paid amount; reserve is an independent expense borne by platform; record funding source separately; no disbursement without approved funding and reconciliation",
+    "invoice_currency": "IRT",
+    "provider_gateway_fee_absorption": "additional_platform_cost_pending_contract"
+  }
 }
