@@ -170,7 +170,8 @@ test('English account service cards use the genuine English checkout, without cr
     'English purchase call-to-action must accurately describe the page');
  assert.ok(enAccount.includes('customer-dashboard.js?v=20261017-en-checkout-verified-v52'));
  assert.ok(faAccount.includes('customer-dashboard.js?v=20261017-en-checkout-verified-v52'));
- assert.ok(enCheckout.includes('/api/commerce/health'));
+ assert.ok(read('assets/js/commerce-checkout-en.js').includes("API+'/commerce/health"), 'English checkout must check the real API status');
+ assert.ok(read('assets/js/commerce-checkout-en.js').includes("API+'/commerce/create"), 'English checkout must call the original service checkout API');
  assert.ok(enCheckout.includes('commerce-checkout-en.js'));
  assert.ok(faCheckout.includes('commerce-checkout.js'));
  assert.doesNotMatch(buyer,/Checkout \\(Persian\\)/);
