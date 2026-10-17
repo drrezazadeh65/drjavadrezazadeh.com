@@ -138,6 +138,13 @@ function jrServiceFileUpload(PDO $pdo,string $order,string $sku,string $actor,
        ||($buyerEmail!==null&&$kind!=='client_source'))
         throw new InvalidArgumentException('service_file_actor_or_role_invalid');
     if(!jrServiceFilesReady($pdo))throw new RuntimeException('service_files_not_ready');
+    // Fail before expensive malware scanning or disk access if this verified
+    // account does not own a real provider-claim-matched paid service case.
+    $preflight=jrServiceFilePaidCase($pdo,$order,$sku,$buyerEmail);
+    if(!in_array((string)$preflight['service_state'],
+        ['awaiting_contact','scheduling','booked','in_progress'],true)
+       ||($kind==='professional_output'&&$preflight['service_state']!=='in_progress'))
+        throw new DomainException('service_case_closed_to_upload');
     $tmp=$upload['tmp_name']??null;
     if(!is_string($tmp)||($upload['error']??-1)!==UPLOAD_ERR_OK||!is_uploaded_file($tmp))
         throw new InvalidArgumentException('actual_uploaded_file_required');
@@ -174,6 +181,20 @@ function jrServiceFileUpload(PDO $pdo,string $order,string $sku,string $actor,
             throw new DomainException('service_case_closed_to_upload');
         if($kind==='professional_output'&&$case['service_state']!=='in_progress')
             throw new DomainException('professional_output_requires_in_progress');
+        // Replays of an identical uploaded document are idempotent. Parent
+        // row lock serialises every upload for this exact paid service case.
+        $prior=$pdo->prepare('SELECT id FROM commerce_service_files
+            WHERE order_id=? AND sku=? AND kind=? AND content_sha256=? LIMIT 1');
+        $prior->execute([$order,$sku,$kind,$digest]);$existing=$prior->fetchColumn();
+        if(is_string($existing)&&validUuid($existing)){
+            if(!$pdo->commit())throw new RuntimeException('service_file_idempotent_commit_failed');
+            @unlink($target);
+            return ['id'=>$existing,'orderId'=>$order,'sku'=>$sku,
+                'kind'=>$kind,'format'=>$extension,'bytes'=>$bytes,
+                'registered'=>true,'alreadyRecorded'=>true,
+                'availableToBuyer'=>$kind==='client_source',
+                'customerNotified'=>false,'deliveryProven'=>false];
+        }
         $count=$pdo->prepare('SELECT COUNT(*) FROM commerce_service_files WHERE order_id=? AND sku=? AND kind=?');
         $count->execute([$order,$sku,$kind]);
         if((int)$count->fetchColumn()>=10)throw new DomainException('case_file_limit');
