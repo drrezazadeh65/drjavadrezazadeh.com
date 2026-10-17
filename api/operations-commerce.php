@@ -381,6 +381,8 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'deliveredServiceQueueTruncated'=>$deliveredCount>count($deliveredQueue),
             'serviceDeliveryEvidenceSchemaReady'=>function_exists('operationsServiceDeliveryEvidenceReady') && operationsServiceDeliveryEvidenceReady($pdo),
             'privateServiceFilesReady'=>function_exists('jrServiceFilesReady') && jrServiceFilesReady($pdo),
+            'privateServiceFilesActivationChecks'=>function_exists('jrServiceFilesActivationChecks')
+                ?jrServiceFilesActivationChecks($pdo):[],
             'serviceIntakeSchemaReady'=>$intakeReady,
             'customerPreferenceSchemaReady'=>$preferenceReady,
             'internalAvailability'=>[
