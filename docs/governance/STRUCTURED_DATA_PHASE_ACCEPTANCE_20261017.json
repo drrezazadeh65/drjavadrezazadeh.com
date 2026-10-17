@@ -123,5 +123,36 @@
       ]
     }
   ],
-  "invariant": "Never change established URLs, invent academic metadata, expose private data or claim 100% before live evidence and owner-approved release gate."
+  "invariant": "Never change established URLs, invent academic metadata, expose private data or claim 100% before live evidence and owner-approved release gate.",
+  "sourceSpotCheck": {
+    "source": "GitHub canonical branch at time of inspection",
+    "htmlPages": 18,
+    "structuralErrors": 0,
+    "mode": "read-only per-page static parsing, NOT full site",
+    "includes": [
+      "FA/EN homepage",
+      "FA/EN books listing",
+      "FA/EN services listing",
+      "FA/EN Golden Talent",
+      "journal information",
+      "FA/EN about",
+      "FA/EN research",
+      "FA shop",
+      "private checkout",
+      "FA/EN customer order pages",
+      "FA guidance hub"
+    ],
+    "limitations": [
+      "Only 18 selected pages, not all public routes",
+      "Does not include server-rendered PHP or OJS",
+      "Not a successful Google Rich Results or live production test"
+    ]
+  },
+  "serviceEntityPairSourceCheck": {
+    "count": 21,
+    "matched": 21,
+    "allUseSinglePersonEntity": true,
+    "existingFaIdPreserved": true,
+    "publicUrlsChanged": 0
+  }
 }
