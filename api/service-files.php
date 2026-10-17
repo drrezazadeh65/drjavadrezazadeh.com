@@ -35,7 +35,7 @@ function jrServiceFilesAntivirus(): ?string {
 function jrServicePhpUploadLimitsReady(): bool {
     $parse=static function(string $raw): int {
         $raw=trim($raw);
-        if(!preg_match('/^(\\d+)([KMG])?$/iD',$raw,$m))return 0;
+        if(!preg_match('/^(\d+)([KMG])?$/iD',$raw,$m))return 0;
         $size=(int)$m[1];$power=strtoupper((string)($m[2]??''));
         return $size*([''=>1,'K'=>1024,'M'=>1048576,'G'=>1073741824][$power]??1);
     };
@@ -219,7 +219,7 @@ function jrServiceFileUpload(PDO $pdo,string $order,string $sku,string $actor,
     if($bytes<64||$bytes>12582912||!is_int($upload['size']))
         throw new InvalidArgumentException('file_size_limit');
     $name=$upload['name']??null;
-    if(!is_string($name)||strlen($name)>180||preg_match('/[\\x00-\\x1f]/',$name)
+    if(!is_string($name)||strlen($name)>180||preg_match('/[\x00-\x1f]/',$name)
        ||str_contains($name,'/')||str_contains($name,'\\'))
         throw new InvalidArgumentException('invalid_filename');
     [$extension,$mime]=jrServiceFileCheckFormat($name,$tmp);
@@ -260,7 +260,7 @@ function jrServiceFileUpload(PDO $pdo,string $order,string $sku,string $actor,
             // missing, replaced or tampered private object. Repair and retry
             // require a separate audited recovery path, not invented success.
             $previousName=(string)$previous['storage_name'];
-            if(!preg_match('/^[a-f0-9]{48}\\.blob$/D',$previousName)
+            if(!preg_match('/^[a-f0-9]{48}\.blob$/D',$previousName)
                 ||(int)$previous['plaintext_size']!==$bytes
                 ||!hash_equals((string)$previous['content_sha256'],$digest))
                 throw new RuntimeException('prior_service_file_record_invalid');
@@ -374,7 +374,7 @@ function jrServiceFileDownload(PDO $pdo,string $id,?string $buyerEmail): never {
             (string)$f['sku'],(string)$f['id']))
             throw new DomainException('professional_output_not_released');
     }
-    if(!preg_match('/^[a-f0-9]{48}\\.blob$/D',(string)$f['storage_name']))
+    if(!preg_match('/^[a-f0-9]{48}\.blob$/D',(string)$f['storage_name']))
         throw new RuntimeException('invalid_private_storage_name');
     $base=jrServiceFilesPrivateRoot();
     if($base===null)throw new RuntimeException('private_storage_missing');
