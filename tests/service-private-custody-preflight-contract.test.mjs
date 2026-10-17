@@ -22,7 +22,7 @@ test('host preflight is CLI only, fail-closed and discloses boolean readiness wi
 test('required host prerequisites include private path, ClamAV, 12MB upload headroom and real encrypted custody schema',()=>{
   for (const gate of [
     'approvedAntiMalwareBinary','privateStorageOutsideWebRoot','privateStoragePrivatePermissions',
-    'privateStorageUsable','privateStorageSpaceForOneJob','safePHPUploadLimit',
+    'privateStorageUsable','privateStorageSpaceForOneJob','safePHPUploadLimit','safePHPMemoryLimit',
     'featureExplicitlyEnabled','tlsOwnerSwitchAsserted','strongExistingPepper',
     'phpOpenSSL','phpHKDF','docxArchive','readOnlyDatabaseSchema'
   ]) assert.ok(php.includes(gate),gate);
