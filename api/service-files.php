@@ -1,0 +1,238 @@
+<?php
+declare(strict_types=1);
+if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
+
+/**
+ * Service-file custody v1: no public URLs, no plaintext persistence, no owner
+ * uploads without MFA, no client downloads until owner-evidenced delivery.
+ * Only PDF and macro-free DOCX. The existing commerce gateway is untouched.
+ */
+function jrServiceFilesSchemaReady(PDO $pdo): bool {
+    try {
+        $pdo->query('SELECT id,order_id,sku,kind,uploader_account_id,storage_name,file_extension,mime_type,plaintext_size,content_sha256,created_at FROM commerce_service_files LIMIT 0');
+        $s=$pdo->query("SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='commerce_service_files' LIMIT 1");
+        return strcasecmp((string)$s->fetchColumn(),'InnoDB')===0;
+    } catch(Throwable $e){return false;}
+}
+function jrServiceFilesPrivateRoot(): ?string {
+    $raw=(string)(getenv('JR_SERVICE_PRIVATE_STORAGE')?:'');
+    if($raw===''||$raw[0]!=='/'||is_link($raw))return null;
+    $dir=realpath($raw);
+    if($dir===false||!is_dir($dir)||!is_writable($dir))return null;
+    $web=(string)($_SERVER['DOCUMENT_ROOT']??'');
+    $www=$web!==''?realpath($web):false;
+    if($www!==false&&($dir===$www||str_starts_with($dir,$www.'/')))return null;
+    if(str_contains($dir,'/public_html/')||str_ends_with($dir,'/public_html'))return null;
+    $perms=@fileperms($dir);
+    if($perms===false||(($perms&0077)!==0))return null;
+    return $dir;
+}
+function jrServiceFilesAntivirus(): ?string {
+    $bin=(string)(getenv('JR_SERVICE_AV_BINARY')?:'');
+    return in_array($bin,['/usr/bin/clamscan','/usr/local/bin/clamscan'],true)
+        &&is_executable($bin)&&function_exists('proc_open')?$bin:null;
+}
+function jrServiceFilesReady(PDO $pdo): bool {
+    return (getenv('JR_SERVICE_FILES_ENABLED')==='true')
+        &&(cfg()['public_tls_confirmed']??false)===true
+        &&stage9SchemaReady($pdo)&&jrServiceFilesSchemaReady($pdo)
+        &&jrServiceFilesPrivateRoot()!==null&&jrServiceFilesAntivirus()!==null
+        &&function_exists('hash_hkdf')&&function_exists('openssl_encrypt')
+        &&function_exists('openssl_decrypt')
+        &&strlen((string)(cfg()['auth_pepper']??''))>=32;
+}
+function jrServiceFilesKey(): string {
+    $pepper=(string)(cfg()['auth_pepper']??'');
+    if(strlen($pepper)<32||!function_exists('hash_hkdf'))throw new RuntimeException('service_files_crypto_unavailable');
+    return hash_hkdf('sha256',$pepper,32,'jr-private-service-file-aes256gcm-v1');
+}
+function jrServiceFileReference(string $order,string $sku): void {
+    if(!validUuid($order)||!preg_match('/^(?:service|vip):[a-z0-9_-]{1,60}$/D',$sku))
+        throw new InvalidArgumentException('invalid_service_file_reference');
+}
+function jrServiceFilePaidCase(PDO $pdo,string $order,string $sku,?string $ownerEmail,bool $lock=false): array {
+    jrServiceFileReference($order,$sku);
+    $query="SELECT o.state,o.currency,o.paid_at,o.provider_trans_id,o.provider_amount,
+        c.transaction_id AS verified_transaction,c.verified_amount AS verified_amount,
+        sc.status AS service_state
+        FROM commerce_orders o
+        JOIN commerce_service_cases sc ON sc.order_id=o.id AND sc.sku=?
+        LEFT JOIN commerce_payment_claims c ON c.order_id=o.id AND c.provider='bitpay'
+        WHERE o.id=?";
+    $args=[$sku,$order];
+    if($ownerEmail!==null){$query.=' AND o.customer_email=?';$args[]=$ownerEmail;}
+    if($lock)$query.=' FOR UPDATE';
+    $q=$pdo->prepare($query);$q->execute($args);$record=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($record)||$record['state']!=='paid'||$record['currency']!=='IRT'
+        ||empty($record['paid_at'])||$record['verified_transaction']===null
+        ||!hash_equals((string)$record['provider_trans_id'],(string)$record['verified_transaction'])
+        ||(string)$record['provider_amount']!==(string)$record['verified_amount'])
+        throw new DomainException('verified_paid_service_owner_required');
+    return $record;
+}
+function jrServiceFileCheckFormat(string $filename,string $tmp): array {
+    $ext=strtolower(pathinfo($filename,PATHINFO_EXTENSION));
+    if(!in_array($ext,['pdf','docx'],true)||!is_file($tmp))throw new InvalidArgumentException('pdf_or_docx_only');
+    $mime=(new finfo(FILEINFO_MIME_TYPE))->file($tmp);
+    if($ext==='pdf'){
+        $h=fopen($tmp,'rb');$magic=$h?fread($h,5):false;if($h)fclose($h);
+        if($magic!=='%PDF-'||$mime!=='application/pdf')throw new InvalidArgumentException('invalid_pdf');
+        return [$ext,'application/pdf'];
+    }
+    if(!class_exists('ZipArchive')||!in_array($mime,[
+        'application/zip','application/octet-stream',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ],true))throw new InvalidArgumentException('docx_zip_validation_required');
+    $zip=new ZipArchive();
+    if($zip->open($tmp)!==true)throw new InvalidArgumentException('invalid_docx');
+    try{
+        if($zip->numFiles<2||$zip->numFiles>1500)throw new InvalidArgumentException('invalid_docx_entries');
+        $hasTypes=false;$hasDocument=false;$total=0;
+        for($i=0;$i<$zip->numFiles;$i++){
+            $s=$zip->statIndex($i);
+            if(!is_array($s))throw new InvalidArgumentException('invalid_docx_entry');
+            $entry=(string)$s['name'];$size=(int)$s['size'];
+            if(str_contains($entry,'..')||str_starts_with($entry,'/')||
+                str_contains($entry,'\\')||preg_match('/(?:vbaProject|activeX|embeddings|oleObject)/i',$entry))
+                throw new InvalidArgumentException('disallowed_docx_content');
+            if($size<0||$size>20000000)throw new InvalidArgumentException('docx_entry_size');
+            $total+=$size;if($total>60000000)throw new InvalidArgumentException('docx_uncompressed_limit');
+            if($entry==='[Content_Types].xml')$hasTypes=true;
+            if($entry==='word/document.xml')$hasDocument=true;
+        }
+        if(!$hasTypes||!$hasDocument)throw new InvalidArgumentException('not_word_document');
+    }finally{$zip->close();}
+    return ['docx','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+}
+function jrServiceFileScan(string $tmp,string $scanner): void {
+    $pipes=[];
+    $proc=@proc_open([$scanner,'--no-summary',$tmp],
+        [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+    if(!is_resource($proc))throw new RuntimeException('antivirus_unavailable');
+    fclose($pipes[0]);stream_get_contents($pipes[1],1024);fclose($pipes[1]);
+    stream_get_contents($pipes[2],1024);fclose($pipes[2]);
+    if(proc_close($proc)!==0)throw new RuntimeException('antivirus_not_clean');
+}
+function jrServiceFileEncrypt(string $plaintext,string $order,string $sku): string {
+    $iv=random_bytes(12);$tag='';
+    $cipher=openssl_encrypt($plaintext,'aes-256-gcm',jrServiceFilesKey(),
+        OPENSSL_RAW_DATA,$iv,$tag,'jr-service-file-v1|'.$order.'|'.$sku,16);
+    if(!is_string($cipher)||strlen($tag)!==16)throw new RuntimeException('service_file_encrypt_failed');
+    return 'JRSF1'.$iv.$tag.$cipher;
+}
+function jrServiceFileDecrypt(string $sealed,string $order,string $sku): string {
+    if(strlen($sealed)<34||substr($sealed,0,5)!=='JRSF1')throw new RuntimeException('sealed_file_invalid');
+    $body=substr($sealed,5);
+    $plain=openssl_decrypt(substr($body,28),'aes-256-gcm',jrServiceFilesKey(),
+        OPENSSL_RAW_DATA,substr($body,0,12),substr($body,12,16),
+        'jr-service-file-v1|'.$order.'|'.$sku);
+    if(!is_string($plain))throw new RuntimeException('sealed_file_authentication_failed');
+    return $plain;
+}
+function jrServiceFileUpload(PDO $pdo,string $order,string $sku,string $actor,
+        ?string $buyerEmail,string $kind,array $upload): array {
+    jrServiceFileReference($order,$sku);
+    if(!validUuid($actor)||!in_array($kind,['client_source','professional_output'],true)
+       ||($buyerEmail!==null&&!validEmail($buyerEmail))
+       ||($buyerEmail===null&&$kind!=='professional_output')
+       ||($buyerEmail!==null&&$kind!=='client_source'))
+        throw new InvalidArgumentException('service_file_actor_or_role_invalid');
+    if(!jrServiceFilesReady($pdo))throw new RuntimeException('service_files_not_ready');
+    $tmp=$upload['tmp_name']??null;
+    if(!is_string($tmp)||($upload['error']??-1)!==UPLOAD_ERR_OK||!is_uploaded_file($tmp))
+        throw new InvalidArgumentException('actual_uploaded_file_required');
+    $bytes=(int)($upload['size']??0);
+    if($bytes<64||$bytes>12582912||!is_int($upload['size']))
+        throw new InvalidArgumentException('file_size_limit');
+    $name=$upload['name']??null;
+    if(!is_string($name)||strlen($name)>180||preg_match('/[\\x00-\\x1f]/',$name)
+       ||str_contains($name,'/')||str_contains($name,'\\'))
+        throw new InvalidArgumentException('invalid_filename');
+    [$extension,$mime]=jrServiceFileCheckFormat($name,$tmp);
+    jrServiceFileScan($tmp,(string)jrServiceFilesAntivirus());
+    $plain=file_get_contents($tmp);
+    if(!is_string($plain)||strlen($plain)!==$bytes)throw new RuntimeException('file_read_failed');
+    $digest=hash('sha256',$plain);
+    $fileId=uuidv4();
+    $sealed=jrServiceFileEncrypt($plain,$order,$sku);
+    unset($plain);
+    $name=bin2hex(random_bytes(24)).'.blob';
+    $base=jrServiceFilesPrivateRoot();
+    if($base===null)throw new RuntimeException('private_folder_lost');
+    $target=$base.'/'.$name;
+    $h=@fopen($target,'xb');
+    if($h===false)throw new RuntimeException('encrypted_storage_unavailable');
+    try{
+        if(fwrite($h,$sealed)!==strlen($sealed))throw new RuntimeException('encrypted_storage_incomplete');
+    }catch(Throwable $e){fclose($h);@unlink($target);throw $e;}
+    fclose($h);@chmod($target,0600);
+    try{
+        if(!$pdo->beginTransaction())throw new RuntimeException('service_file_transaction_required');
+        $case=jrServiceFilePaidCase($pdo,$order,$sku,$buyerEmail,true);
+        if(!in_array((string)$case['service_state'],
+            ['awaiting_contact','scheduling','booked','in_progress'],true))
+            throw new DomainException('service_case_closed_to_upload');
+        if($kind==='professional_output'&&$case['service_state']!=='in_progress')
+            throw new DomainException('professional_output_requires_in_progress');
+        $count=$pdo->prepare('SELECT COUNT(*) FROM commerce_service_files WHERE order_id=? AND sku=? AND kind=?');
+        $count->execute([$order,$sku,$kind]);
+        if((int)$count->fetchColumn()>=10)throw new DomainException('case_file_limit');
+        $q=$pdo->prepare('INSERT INTO commerce_service_files
+            (id,order_id,sku,kind,uploader_account_id,storage_name,
+             file_extension,mime_type,plaintext_size,content_sha256)
+             VALUES(?,?,?,?,?,?,?,?,?,?)');
+        $q->execute([$fileId,$order,$sku,$kind,$actor,$name,$extension,$mime,$bytes,$digest]);
+        if($buyerEmail===null)operationsAudit($pdo,$actor,'commerce_service_file_uploaded',$fileId);
+        if(!$pdo->commit())throw new RuntimeException('service_file_commit_failed');
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        @unlink($target);throw $e;
+    }
+    return ['id'=>$fileId,'orderId'=>$order,'sku'=>$sku,
+        'kind'=>$kind,'format'=>$extension,'bytes'=>$bytes,'registered'=>true,
+        'availableToBuyer'=>$kind==='client_source',
+        'customerNotified'=>false,'deliveryProven'=>false];
+}
+function jrServiceFilesList(PDO $pdo,string $order,string $sku,?string $buyerEmail): array {
+    if(!jrServiceFilesReady($pdo))throw new RuntimeException('service_files_not_ready');
+    $case=jrServiceFilePaidCase($pdo,$order,$sku,$buyerEmail);
+    $allowOutputs=$buyerEmail===null||$case['service_state']==='delivered';
+    $q=$pdo->prepare('SELECT id,kind,file_extension,plaintext_size,created_at
+        FROM commerce_service_files WHERE order_id=? AND sku=?
+        '.($allowOutputs?'':"AND kind='client_source'").'
+        ORDER BY created_at DESC,id DESC LIMIT 30');
+    $q->execute([$order,$sku]);
+    return ['files'=>$q->fetchAll(PDO::FETCH_ASSOC),
+        'professionalOutputsReleasedToBuyer'=>$case['service_state']==='delivered',
+        'verifiedPaidServiceCase'=>true];
+}
+function jrServiceFileDownload(PDO $pdo,string $id,?string $buyerEmail): never {
+    if(!validUuid($id)||!jrServiceFilesReady($pdo))
+        throw new RuntimeException('file_download_unavailable');
+    $q=$pdo->prepare('SELECT id,order_id,sku,kind,storage_name,file_extension,
+         mime_type,plaintext_size,content_sha256 FROM commerce_service_files WHERE id=?');
+    $q->execute([$id]);$f=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($f))throw new DomainException('file_not_found');
+    $case=jrServiceFilePaidCase($pdo,(string)$f['order_id'],(string)$f['sku'],$buyerEmail);
+    if($buyerEmail!==null&&$f['kind']==='professional_output'&&$case['service_state']!=='delivered')
+        throw new DomainException('professional_output_not_released');
+    if(!preg_match('/^[a-f0-9]{48}\\.blob$/D',(string)$f['storage_name']))
+        throw new RuntimeException('invalid_private_storage_name');
+    $base=jrServiceFilesPrivateRoot();
+    if($base===null)throw new RuntimeException('private_storage_missing');
+    $path=$base.'/'.$f['storage_name'];
+    if(is_link($path)||!is_file($path))throw new RuntimeException('private_file_missing');
+    $sealed=@file_get_contents($path);
+    if(!is_string($sealed)||strlen($sealed)>12583000)throw new RuntimeException('invalid_ciphertext_size');
+    $plain=jrServiceFileDecrypt($sealed,(string)$f['order_id'],(string)$f['sku']);
+    if(strlen($plain)!==(int)$f['plaintext_size']||
+       !hash_equals((string)$f['content_sha256'],hash('sha256',$plain)))
+       throw new RuntimeException('private_file_integrity_failed');
+    $downloadName=$f['kind']==='professional_output'?'service-deliverable':'service-source';
+    header('Cache-Control: private, no-store, max-age=0');
+    header('Pragma: no-cache');header('X-Content-Type-Options: nosniff');
+    header('Content-Security-Policy: sandbox');
+    header('Content-Type: '.$f['mime_type']);header('Content-Length: '.strlen($plain));
+    header('Content-Disposition: attachment; filename="'.$downloadName.'-'.substr($id,0,8).'.'.$f['file_extension'].'"');
+    echo $plain;exit;
+}
