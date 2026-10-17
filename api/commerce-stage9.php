@@ -153,6 +153,10 @@ function stage9FinalizePayment(PDO $pdo,string $orderId,string $idGet,string $tr
         $pdo->prepare("INSERT INTO commerce_payment_claims(provider,transaction_id,order_id,verified_amount) VALUES('bitpay',?,?,?)")
             ->execute([$trans,$orderId,(int)$row['provider_amount']]);
         stage9CommitBooks($pdo,$orderId,$items);
+        // Atomically allocate the digital author's share, talent fund share,
+        // 7% external platform cost, and two private PDF entitlements.
+        // Any failure rolls back the bank claim and order state for safe retry.
+        jrPubCommitVerifiedDigitalOrder($pdo,$orderId,$items);
         // A gateway-verified paid book order needs one physical fulfilment work
         // item. "preparing" is NOT a shipment, label, carrier acceptance or
         // delivery claim. The unique order PK and same locked transaction
