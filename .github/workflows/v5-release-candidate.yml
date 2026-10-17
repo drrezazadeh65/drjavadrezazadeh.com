@@ -107,7 +107,9 @@ jobs:
         run: |
           php -l api/publishing.php
           php -l api/internal/jr-publishing-allocations.php
+          php -l api/internal/jr-publishing-notifications.php
           php tests/jr-publishing-allocations.php
+          php tests/jr-publishing-author-email.php
           node --check assets/js/jr-author-workspace-v1.js
           node --test tests/jr-publishing-release-policy.test.mjs
           echo 'Publishing stage remains prelaunch. This is SOURCE evidence, not permission to take payments or deploy.'
