@@ -26,9 +26,14 @@ $expired=$pdo->exec("UPDATE publishing_notification_outbox
 if($expired>0) {
   error_log('JR publishing outbox: '.(int)$expired.' ambiguous sends require manual reconciliation');
 }
-$s=$pdo->query("SELECT DISTINCT order_id FROM publishing_notification_outbox
-  WHERE status IN('queued','retry') AND next_attempt_at<=NOW()
-  ORDER BY order_id ASC LIMIT 20");
+// A bank-settled refund is not eligible for paid-file emails. Exclude its
+// queued notices at selection time so they do not starve valid orders; retain
+// rows for operator reconciliation rather than silently marking them sent.
+$s=$pdo->query("SELECT DISTINCT n.order_id FROM publishing_notification_outbox n
+  WHERE n.status IN('queued','retry') AND n.next_attempt_at<=NOW()
+    AND NOT EXISTS (SELECT 1 FROM commerce_refund_requests r
+      WHERE r.order_id=n.order_id AND r.status='settled')
+  ORDER BY n.order_id ASC LIMIT 20");
 $total=0;
 foreach($s->fetchAll(PDO::FETCH_COLUMN) as $id) {
   try { $total+=jrPubProcessOutbox($pdo,(string)$id); }
