@@ -587,6 +587,8 @@
         ['documentParsers','پشتیبانی PDF و DOCX','Document format parsers'],
         ['phpUploadCapacity','ظرفیت امن ارسال فایل ۱۲ مگابایتی','PHP upload limits for 12 MB'],
         ['phpMemoryCapacity','حافظه کافی PHP برای رمزنگاری فایل تا ۱۲ مگابایت','PHP memory headroom for encrypted 12 MB documents'],
+        ['phpExecutionCapacity','زمان اجرای کافی PHP (حداقل ۹۰ ثانیه)','PHP max_execution_time ≥ 90 seconds'],
+        ['phpInputTimeCapacity','زمان دریافت کافی داده PHP (حداقل ۹۰ ثانیه)','PHP max_input_time ≥ 90 seconds'],
         ['ownerDeliverySchema','مهاجرت ثبت مستند تحویل مدیر','Owner delivery evidence migration'],
         ['buyerReceiptSchema','مهاجرت تأیید دریافت مشتری','Buyer receipt acknowledgment migration']
       ];
