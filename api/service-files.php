@@ -237,9 +237,23 @@ function jrServiceFileUpload(PDO $pdo,string $order,string $sku,string $actor,
     $h=@fopen($target,'xb');
     if($h===false)throw new RuntimeException('encrypted_storage_unavailable');
     try{
-        if(fwrite($h,$sealed)!==strlen($sealed))throw new RuntimeException('encrypted_storage_incomplete');
-    }catch(Throwable $e){fclose($h);@unlink($target);throw $e;}
-    fclose($h);@chmod($target,0600);
+        // A single fwrite() is not guaranteed to write all 12 MiB. Persist
+        // every ciphertext byte or fail closed; never commit a partial blob.
+        $remaining=strlen($sealed);$offset=0;
+        while($offset<$remaining){
+            $written=fwrite($h,substr($sealed,$offset,min(262144,$remaining-$offset)));
+            if(!is_int($written)||$written<=0)
+                throw new RuntimeException('encrypted_storage_incomplete');
+            $offset+=$written;
+        }
+        if(!fflush($h))throw new RuntimeException('encrypted_storage_flush_failed');
+        if(!fclose($h))throw new RuntimeException('encrypted_storage_close_failed');
+        if(!chmod($target,0600))throw new RuntimeException('encrypted_storage_permissions_failed');
+    }catch(Throwable $e){
+        if(is_resource($h))fclose($h);
+        @unlink($target);
+        throw $e;
+    }
     try{
         if(!$pdo->beginTransaction())throw new RuntimeException('service_file_transaction_required');
         $case=jrServiceFilePaidCase($pdo,$order,$sku,$buyerEmail,true);
