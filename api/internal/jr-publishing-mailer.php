@@ -58,7 +58,7 @@ function jrPubProcessOutbox(PDO $pdo, string $orderId): int {
            ."\nاگر دریافت انجام نشد، شناسه سفارش خود را به پشتیبانی رسمی سایت اعلام کنید."
            ."\n\nاین رسید پرداخت است، نه صورتحساب رسمی مالیاتی.";
         } elseif($type==='author_sale'){
-          $q=$pdo->prepare("SELECT acc.email,a.display_name_fa FROM publishing_offers f
+          $q=$pdo->prepare("SELECT acc.email_normalized AS email,a.display_name_fa FROM publishing_offers f
             JOIN publishing_works w ON w.id=f.work_id
             JOIN publishing_authors a ON a.id=w.author_id
             JOIN publishing_author_accounts l ON l.author_id=a.id AND l.role='author'
