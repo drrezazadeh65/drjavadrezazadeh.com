@@ -154,6 +154,12 @@ test('owner readiness never advertises private file custody until the required s
  const snapshot=read('api/operations-commerce.php');
  assert.match(snapshot,/privateServiceFilesReady/);
  assert.match(snapshot,/privateServiceFilesActivationChecks/);
+ assert.ok(admin.includes('Encrypted service files — deployment prerequisites'));
+ for(const check of ["explicitlyEnabled","verifiedHttps","commerceSchema","privateFileSchema","privateStorage","antivirus","cryptoAndKey","documentParsers","phpUploadCapacity","ownerDeliverySchema","buyerReceiptSchema"]){
+  assert.ok(read('api/service-files.php').includes("'"+check+"'=>"),'activation proof missing: '+check);
+ }
+ assert.doesNotMatch(snapshot,/servicePrivateStoragePath|privateStorageSecret/);
+
  assert.match(admin,/privateServiceFilesActivationChecks/);
  assert.match(read('api/service-files.php'),/function jrServiceFilesActivationChecks/);
  assert.ok(snapshot.includes('jrServiceFilesReady($pdo)'));
