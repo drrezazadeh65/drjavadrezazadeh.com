@@ -130,13 +130,26 @@ function jrServiceFileDecrypt(string $sealed,string $order,string $sku): string 
     return $plain;
 }
 function jrServiceFileUpload(PDO $pdo,string $order,string $sku,string $actor,
-        ?string $buyerEmail,string $kind,array $upload): array {
+        ?string $buyerEmail,string $kind,array $upload,array $consent=[]): array {
     jrServiceFileReference($order,$sku);
     if(!validUuid($actor)||!in_array($kind,['client_source','professional_output'],true)
        ||($buyerEmail!==null&&!validEmail($buyerEmail))
        ||($buyerEmail===null&&$kind!=='professional_output')
        ||($buyerEmail!==null&&$kind!=='client_source'))
         throw new InvalidArgumentException('service_file_actor_or_role_invalid');
+    if($buyerEmail===null){
+        if($consent!==[])throw new InvalidArgumentException('admin_file_consent_contract');
+        $consentVersion='OWNER_DELIVERABLE_V1';$minor=0;$guardian=0;
+    }else{
+        if(array_keys($consent)!==['privacyAcknowledged','isMinor','guardianAcknowledged']
+          ||$consent['privacyAcknowledged']!=='1'
+          ||!in_array($consent['isMinor'],['0','1'],true)
+          ||!in_array($consent['guardianAcknowledged'],['0','1'],true)
+          ||($consent['isMinor']==='1'&&$consent['guardianAcknowledged']!=='1'))
+            throw new InvalidArgumentException('private_file_consent_or_guardian_required');
+        $consentVersion='SERVICE_FILE_HANDLING_V1';
+        $minor=(int)$consent['isMinor'];$guardian=(int)$consent['guardianAcknowledged'];
+    }
     if(!jrServiceFilesReady($pdo))throw new RuntimeException('service_files_not_ready');
     // Fail before expensive malware scanning or disk access if this verified
     // account does not own a real provider-claim-matched paid service case.
@@ -200,9 +213,11 @@ function jrServiceFileUpload(PDO $pdo,string $order,string $sku,string $actor,
         if((int)$count->fetchColumn()>=10)throw new DomainException('case_file_limit');
         $q=$pdo->prepare('INSERT INTO commerce_service_files
             (id,order_id,sku,kind,uploader_account_id,storage_name,
-             file_extension,mime_type,plaintext_size,content_sha256)
-             VALUES(?,?,?,?,?,?,?,?,?,?)');
-        $q->execute([$fileId,$order,$sku,$kind,$actor,$name,$extension,$mime,$bytes,$digest]);
+             file_extension,mime_type,plaintext_size,content_sha256,consent_version,
+             subject_is_minor,guardian_acknowledged)
+             VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)');
+        $q->execute([$fileId,$order,$sku,$kind,$actor,$name,$extension,$mime,$bytes,$digest,
+            $consentVersion,$minor,$guardian]);
         if($buyerEmail===null)operationsAudit($pdo,$actor,'commerce_service_file_uploaded',$fileId);
         if(!$pdo->commit())throw new RuntimeException('service_file_commit_failed');
     }catch(Throwable $e){
