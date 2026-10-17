@@ -60,3 +60,23 @@ test('author contract remains preview only and no paid files are stored in the g
  assert.equal(catalog.works[0].rights_confirmed,false);
  assert.deepEqual(catalog.works[0].download_file_urls,[]);
 });
+
+test('uncertain SMTP result is never automatically retried as a duplicate sale email',()=>{
+ const mailer=read('api/internal/jr-publishing-mailer.php');
+ const worker=read('api/internal/jr-publishing-mail-worker.php');
+ assert.match(mailer,/count\(array_unique\(\$kinds\)\)!==2/);
+ assert.match(mailer,/invalid_digital_grant_kinds/);
+ assert.match(mailer,/\$smtpAccepted=true/);
+ assert.match(mailer,/\$status=\$smtpAccepted/);
+ assert.match(mailer,/status IN\('queued','retry'\) AND next_attempt_at<=NOW\(\)/);
+ assert.match(worker,/SET status='dead_letter' WHERE status='processing'/);
+ assert.doesNotMatch(worker,/status IN\('queued','retry'\) OR \(status='processing'/);
+});
+test('private deployment verifier cannot grant public-sale approval by self-declared flags',()=>{
+ const check=read('api/internal/jr-publishing-preflight-cli.php');
+ assert.match(check,/PHP_SAPI!=='cli'/);
+ assert.match(check,/'ready_for_public_sales'=>false/);
+ assert.match(check,/'independent_live_purchase_evidence_read_here'=>false/);
+ assert.match(check,/exit\(2\)/);
+ assert.doesNotMatch(check,/getenv\('JR_PUBLISHING_AUTHOR_EMAIL'\).*echo/);
+});
