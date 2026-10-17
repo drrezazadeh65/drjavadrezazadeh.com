@@ -43,3 +43,20 @@ test('indexability and language are recorded without inventing hreflang equivale
  assert.ok(b.warnings.some(x=>x.code==='language_path_mismatch'));
  assert.ok(b.warnings.some(x=>x.code==='public_missing_canonical'));
 });
+
+test('paid-service pages are classified by their real content intent, never a generic product schema',()=>{
+ const html=read('en/services/academic_editing/index.html');
+ const item=inspectHtml('/en/services/academic_editing/',html);
+ assert.equal(item.contentIntent,'paid-service-detail');
+ assert.ok(item.schemaTypes.includes('Service'));
+ assert.equal(item.errors.length,0,JSON.stringify(item.errors));
+ assert.ok(!item.contextualSchemaTypes.includes('Product'));
+ const fake=inspectHtml('/fa/services/not-real/',`<html lang="fa"><link rel="canonical" href="https://drjavadrezazadeh.com/fa/services/not-real/"></html>`);
+ assert.ok(fake.warnings.some(x=>x.code==='paid_service_missing_service_schema'));
+});
+test('a private account route without noindex is an error, not an optional rich-result enhancement',()=>{
+ const html=`<html lang="en"><title>Private</title></html>`;
+ const item=inspectHtml('/en/app/account/orders/',html);
+ assert.equal(item.contentIntent,'private-transactional');
+ assert.ok(item.errors.some(x=>x.code==='private_route_indexable'));
+});
