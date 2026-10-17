@@ -48,6 +48,11 @@ test('uploads require actual uploaded PDF or DOCX, ClamAV scanning and no plaint
  assert.doesNotMatch(sql,/payload_plaintext|original_filename|storage_full_path/);
  assert.match(handler,/COUNT\(\*\) FROM commerce_service_files/);
  assert.match(handler,/FOR UPDATE/);
+ assert.match(handler,/\$preflight=jrServiceFilePaidCase\(\$pdo,\$order,\$sku,\$buyerEmail\)/);
+ assert.match(handler,/service_file_idempotent_commit_failed/);
+ assert.match(handler,/content_sha256=\? LIMIT 1/);
+ assert.match(handler,/alreadyRecorded'=>true/);
+
 });
 
 test('private buyer routes require verified account, claim-matched order and origin protection',()=>{
