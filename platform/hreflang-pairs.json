@@ -182,11 +182,138 @@
       "en": "/journal/contact/",
       "fa": "/journal/fa/contact/",
       "x_default": "/journal/contact/"
+    },
+    {
+      "id": "service-academic_consult_60",
+      "en": "/en/services/academic_consult_60/",
+      "fa": "/fa/services/academic_consult_60/",
+      "x_default": "/en/services/academic_consult_60/"
+    },
+    {
+      "id": "service-student_parent_90",
+      "en": "/en/services/student_parent_90/",
+      "fa": "/fa/services/student_parent_90/",
+      "x_default": "/en/services/student_parent_90/"
+    },
+    {
+      "id": "service-konkur_consult_60",
+      "en": "/en/services/konkur_consult_60/",
+      "fa": "/fa/services/konkur_consult_60/",
+      "x_default": "/en/services/konkur_consult_60/"
+    },
+    {
+      "id": "service-konkur_month",
+      "en": "/en/services/konkur_month/",
+      "fa": "/fa/services/konkur_month/",
+      "x_default": "/en/services/konkur_month/"
+    },
+    {
+      "id": "service-transcript_analysis",
+      "en": "/en/services/transcript_analysis/",
+      "fa": "/fa/services/transcript_analysis/",
+      "x_default": "/en/services/transcript_analysis/"
+    },
+    {
+      "id": "service-field_selection_standard",
+      "en": "/en/services/field_selection_standard/",
+      "fa": "/fa/services/field_selection_standard/",
+      "x_default": "/en/services/field_selection_standard/"
+    },
+    {
+      "id": "service-field_selection_comprehensive",
+      "en": "/en/services/field_selection_comprehensive/",
+      "fa": "/fa/services/field_selection_comprehensive/",
+      "x_default": "/en/services/field_selection_comprehensive/"
+    },
+    {
+      "id": "service-talent_initial",
+      "en": "/en/services/talent_initial/",
+      "fa": "/fa/services/talent_initial/",
+      "x_default": "/en/services/talent_initial/"
+    },
+    {
+      "id": "service-golden_talent_comprehensive",
+      "en": "/en/services/golden_talent_comprehensive/",
+      "fa": "/fa/services/golden_talent_comprehensive/",
+      "x_default": "/en/services/golden_talent_comprehensive/"
+    },
+    {
+      "id": "service-golden_talent_premium",
+      "en": "/en/services/golden_talent_premium/",
+      "fa": "/fa/services/golden_talent_premium/",
+      "x_default": "/en/services/golden_talent_premium/"
+    },
+    {
+      "id": "service-teacher_consult_60",
+      "en": "/en/services/teacher_consult_60/",
+      "fa": "/fa/services/teacher_consult_60/",
+      "x_default": "/en/services/teacher_consult_60/"
+    },
+    {
+      "id": "service-teacher_dev_90",
+      "en": "/en/services/teacher_dev_90/",
+      "fa": "/fa/services/teacher_dev_90/",
+      "x_default": "/en/services/teacher_dev_90/"
+    },
+    {
+      "id": "service-manuscript_diagnostic",
+      "en": "/en/services/manuscript_diagnostic/",
+      "fa": "/fa/services/manuscript_diagnostic/",
+      "x_default": "/en/services/manuscript_diagnostic/"
+    },
+    {
+      "id": "service-academic_editing",
+      "en": "/en/services/academic_editing/",
+      "fa": "/fa/services/academic_editing/",
+      "x_default": "/en/services/academic_editing/"
+    },
+    {
+      "id": "service-research_consult_60",
+      "en": "/en/services/research_consult_60/",
+      "fa": "/fa/services/research_consult_60/",
+      "x_default": "/en/services/research_consult_60/"
+    },
+    {
+      "id": "service-journal_strategy",
+      "en": "/en/services/journal_strategy/",
+      "fa": "/fa/services/journal_strategy/",
+      "x_default": "/en/services/journal_strategy/"
+    },
+    {
+      "id": "service-reviewer_response",
+      "en": "/en/services/reviewer_response/",
+      "fa": "/fa/services/reviewer_response/",
+      "x_default": "/en/services/reviewer_response/"
+    },
+    {
+      "id": "service-academic_cv",
+      "en": "/en/services/academic_cv/",
+      "fa": "/fa/services/academic_cv/",
+      "x_default": "/en/services/academic_cv/"
+    },
+    {
+      "id": "service-academic_interview_90",
+      "en": "/en/services/academic_interview_90/",
+      "fa": "/fa/services/academic_interview_90/",
+      "x_default": "/en/services/academic_interview_90/"
+    },
+    {
+      "id": "service-organization_consult_90",
+      "en": "/en/services/organization_consult_90/",
+      "fa": "/fa/services/organization_consult_90/",
+      "x_default": "/en/services/organization_consult_90/"
+    },
+    {
+      "id": "service-specialist_workshop_120",
+      "en": "/en/services/specialist_workshop_120/",
+      "fa": "/fa/services/specialist_workshop_120/",
+      "x_default": "/en/services/specialist_workshop_120/"
     }
   ],
   "unpaired_public_routes_policy": "No hreflang counterpart is invented. Add a pair only after content equivalence is reviewed.",
   "notes": [
     "News/Insights and اخبار remain intentionally unpaired until collection-level content equivalence is reviewed; no hreflang relationship is invented.",
-    "2026-10-17 targeted equivalence correction: the 21-item English /en/services/ catalogue is now paired with its true Persian /fa/services/ catalogue. The former /fa/khadamat/ editorial landing page retains its canonical URL but is no longer declared the localized equivalent. No URL was renamed or redirected."
+    "2026-10-17 targeted equivalence correction: the 21-item English /en/services/ catalogue is now paired with its true Persian /fa/services/ catalogue. The former /fa/khadamat/ editorial landing page retains its canonical URL but is no longer declared the localized equivalent. No URL was renamed or redirected.",
+    "2026-10-17: 21 owner-approved priced bilingual service detail pairs appended without renaming or redirecting any historical URL. These pairs must remain reciprocal, self-referencing and indexable."
   ]
 }
