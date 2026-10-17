@@ -32,7 +32,7 @@ const checks=[
  ['shared document exporter is loaded',dashboard.includes('/assets/js/jr-document-export.js')],
  ['print and PDF use one export engine',sponsor.includes('JRDocumentExport?.print(receipt)')&&sponsor.includes('JRDocumentExport?.savePdf(receipt)')],
  ['approved Persian symbol and wordmark are used on verified receipt',sponsor.includes('/identity/references/persian-symbol-gold.png')&&sponsor.includes('/identity/references/persian-wordmark-gold.png')],
- ['both admin dashboards load updated finance module',adminFa.includes('operations-commerce.js?v=20261017-delivered-receipt-queue-v6')&&adminEn.includes('operations-commerce.js?v=20261017-delivered-receipt-queue-v6')]
+ ['both admin dashboards load updated finance module',adminFa.includes('operations-commerce.js?v=20261017-owner-activation-checks-v7')&&adminEn.includes('operations-commerce.js?v=20261017-owner-activation-checks-v7')]
 ];
 for(const [name,ok] of checks){process.stdout.write((ok?'PASS':'FAIL')+' '+name+'\n');assert.ok(ok,name)}
 console.log('Donation integration source contracts passed: '+checks.length);
