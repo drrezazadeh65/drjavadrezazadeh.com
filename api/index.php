@@ -1039,18 +1039,25 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
     if($idGet!==(string)$row['provider_id_get']||!preg_match('/^[1-9][0-9]*$/',$trans))commerceReturnToResult($id);
     try{$raw=gatewayPost('gateway-result-second',['trans_id'=>$trans,'id_get'=>$idGet,'json'=>'1']);$d=json_decode($raw,true);if(!is_array($d)||!in_array((string)($d['status']??''),['1','11'],true)||!preg_match('/^[1-9][0-9]*$/D',(string)($d['amount']??''))||(string)$d['amount']!==(string)$row['provider_amount']||(string)($d['factorId']??'')!==(string)$row['factor_id'])commerceReturnToResult($id);
         if(!stage9FinalizePayment($pdo,$id,$idGet,$trans,(string)$d['amount'],(string)$d['factorId']))commerceReturnToResult($id);
-        // Post-commit best-effort mail dispatch, with persistent outbox and retry worker.
-        // A mail error never changes an already verified paid state or charges again.
-        require_once __DIR__.'/internal/jr-publishing-mailer.php';
-        try { jrPubProcessOutbox($pdo,$id); }
-        catch(Throwable $mailError){ error_log('Publishing postpay mail deferred '.get_class($mailError)); }
-        $customerEmail=(string)($row['customer_email']??'');
-        // The digital publishing outbox already owns the buyer receipt and
-        // the two private download links. Never send the generic commerce
-        // receipt as a second, duplicate message for this same purchase.
+        // Only paid digital bundles invoke the publishing mail outbox.
+        // A missing mail helper must NEVER break a bank-verified callback or
+        // alter legacy book, service and Donation receipt processing.
         $paidItems=json_decode((string)($row['items_json']??''),true);
         $digitalReceipt=is_array($paidItems) && count($paidItems)===1
           && ($paidItems[0]['sku']??null)===JR_PUB_SKU;
+        if($digitalReceipt){
+            try{
+                $mailer=__DIR__.'/internal/jr-publishing-mailer.php';
+                if(!is_file($mailer))throw new RuntimeException('publishing_mailer_missing');
+                require_once $mailer;
+                jrPubProcessOutbox($pdo,$id);
+            }catch(Throwable $mailError){
+                error_log('Publishing postpay mail deferred '.get_class($mailError));
+            }
+        }
+        $customerEmail=(string)($row['customer_email']??'');
+        // Digital buyers receive their two secured links exclusively from
+        // the persistent publishing outbox, never a second generic receipt.
         if(!$digitalReceipt && validEmail($customerEmail)&&mailReady()){
             $items=json_decode((string)$row['items_json'],true);$summary=[];$sum=0;
             if(is_array($items)){foreach($items as $x){$qty=(int)($x['quantity']??0);$sub=(int)($x['subtotal']??0);$sum+=$sub;$summary[]='- '.(string)($x['title']??$x['sku']??'item').' × '.$qty.' | '.number_format($sub).' تومان';}}
