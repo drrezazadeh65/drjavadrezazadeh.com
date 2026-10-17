@@ -1,0 +1,29 @@
+<?php
+declare(strict_types=1);
+/**
+ * Bertina cron: php /absolute/path/public_html/api/internal/jr-publishing-mail-worker.php
+ * CLI only. Runs with private PHP configuration; never via an HTTP request.
+ * Dispatch is best-effort but durable and retriable. A dead-letter queue
+ * remains visible to the operator for manual remediation.
+ */
+if(PHP_SAPI!=='cli') { http_response_code(404); exit; }
+define('BERTINA_MAIL_SMOKE_CONTEXT',true);
+require_once dirname(__DIR__).'/index.php'; // defines cfg(), db(), sendLocalMail(), etc.; returns before routing
+define('BERTINA_API_BOOTSTRAPPED',true);
+require_once dirname(__DIR__).'/publishing.php';
+require_once __DIR__.'/jr-publishing-digital.php';
+require_once __DIR__.'/jr-publishing-notifications.php';
+require_once __DIR__.'/jr-publishing-mailer.php';
+$pdo=db();
+if(!$pdo||!mailReady()||!jrPublishingSchemaReady($pdo)) {
+  fwrite(STDERR,"JR publishing outbox not configured\n");exit(1);
+}
+$s=$pdo->query("SELECT DISTINCT order_id FROM publishing_notification_outbox
+  WHERE (status IN('queued','retry') OR (status='processing' AND next_attempt_at<NOW()))
+  AND next_attempt_at<=NOW() ORDER BY order_id ASC LIMIT 20");
+$total=0;
+foreach($s->fetchAll(PDO::FETCH_COLUMN) as $id) {
+  try { $total+=jrPubProcessOutbox($pdo,(string)$id); }
+  catch(Throwable $e) { error_log('JR outbox cron '.get_class($e)); }
+}
+fwrite(STDOUT,'JR publishing outbox accepted deliveries: '.$total."\n");
