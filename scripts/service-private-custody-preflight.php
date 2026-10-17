@@ -43,6 +43,8 @@ $limit=static function(string $setting): int {
 };
 $checks['safePHPUploadLimit']=$limit('upload_max_filesize')>=12582912
     &&$limit('post_max_size')>=12582912+65536;
+$memory=trim((string)ini_get('memory_limit'));
+$checks['safePHPMemoryLimit']=$memory==='-1'||$limit('memory_limit')>=100663296;
 $dir=(string)($configuration['service_private_storage']??'');
 $real=$dir!==''&&str_starts_with($dir,'/')&&!is_link($dir)?realpath($dir):false;
 $www=(string)($_SERVER['DOCUMENT_ROOT']??'');
