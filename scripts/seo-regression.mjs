@@ -400,6 +400,7 @@ else{
     'books':'/en/books/',
     'educational-philosophy':'/en/educational-philosophy/',
     'golden-talent':'/en/golden-talent/',
+    'home':'/',
     'publications':'/en/publications/',
     'research':'/en/research/',
     'teaching':'/en/teaching/',
