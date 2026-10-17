@@ -50,7 +50,7 @@ function jrServiceBuyerReceiptConfirm(PDO $pdo,string $actor,string $email,array
             throw new DomainException('approved_exact_output_required');
         // Confirm the exact released file is still retrievable and intact.
         // A stale metadata row must never support a claimed customer receipt.
-        if(!preg_match('/^[a-f0-9]{48}\\.blob$/D',(string)$artifact['storage_name']))
+        if(!preg_match('/^[a-f0-9]{48}\.blob$/D',(string)$artifact['storage_name']))
             throw new DomainException('receipt_artifact_name_invalid');
         $root=jrServiceFilesPrivateRoot();
         if($root===null)throw new RuntimeException('receipt_private_storage_unavailable');
