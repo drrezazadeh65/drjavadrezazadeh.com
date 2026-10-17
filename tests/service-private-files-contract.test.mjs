@@ -96,7 +96,7 @@ test('private buyer routes require verified account, claim-matched order and ori
  assert.match(handler,/evidence_kind.*document_handed_over/);
  assert.match(handler,/evidence_reference_hmac/);
  assert.ok(handler.includes('return hash_equals($digest,$candidate);'));
- assert.ok(handler.includes('if($buyerEmail===null||!$isOutput||$isReleased)$files[]=$file;'));
+ assert.ok(handler.includes('if($buyerEmail===null||!$isOutput||$isReleased){'));
  assert.match(handler,/professional_output_not_released/);
  assert.match(read('tests/commerce-service-advance-mysql.php'),
    /unapproved_draft_in_same_delivered_case_remains_private/);
