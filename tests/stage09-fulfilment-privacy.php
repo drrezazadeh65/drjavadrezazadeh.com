@@ -8,6 +8,9 @@ function respond(array $data,int $status=200): never {throw new RouteAnswer($dat
 function fail(string $code,int $status=400): never {respond(['ok'=>false,'error'=>$code],$status);}
 function commerceSchemaReady(): bool {return true;}
 function stage9SchemaReady(PDO $pdo): bool {return true;}
+// The isolated fixture intentionally has no private file storage or antivirus.
+// The real route must report the upload control unavailable, not fatal out.
+function jrServiceFilesReady(PDO $pdo): bool {return false;}
 // Load the real service delivery policy, not an invented permissive test stub.
 // The fixture has no preference migration, so optional customer choices must
 // remain unavailable while verified order and private delivery access still work.
@@ -75,6 +78,8 @@ checkDelivery(runDelivery($bob,$id)->status===404,'other_customer_order_denied')
 checkDelivery(runDelivery($alice,'bad-id')->status===400,'malformed_id_denied');
 $success=runDelivery($alice,$id);
 checkDelivery($success->status===200,'own_paid_order_allowed');
+checkDelivery(($success->body['privateServiceFilesReady']??null)===false,
+    'unconfigured_private_files_fail_closed_without_blocking_paid_history');
 checkDelivery($success->body['paymentRecord']==='provider_verified_not_bank_settlement','bank_settlement_not_claimed');
 checkDelivery(count($success->body['serviceCases'])===1&&$success->body['serviceCases'][0]['status']==='awaiting_contact','real_service_status_only');
 checkDelivery($success->body['serviceCases'][0]['customerChoiceEnabled']===false
