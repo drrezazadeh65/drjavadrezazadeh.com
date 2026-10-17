@@ -426,7 +426,16 @@ function render(orders){
                 if(typeof c.sku==='string'&&/^(?:service|vip):[a-z0-9_-]{1,60}$/.test(c.sku)
                   &&c.status!=='cancelled'){
                   if(c.status!=='delivered')line.append(serviceIntakeEditor(order,c));
-                  line.append(serviceFileWorkspace(order,c));
+                  if(data.privateServiceFilesReady===true){
+                    line.append(serviceFileWorkspace(order,c));
+                  }else{
+                    const custodyNotice=el('p',tr(
+                      'بارگذاری محرمانهٔ سند هنوز از سوی سرور تأیید نشده است؛ پروندهٔ سفارش و شرح خدمت قابل پیگیری می‌ماند. اسناد خصوصی را از مسیر عمومی ارسال نکنید.',
+                      'Private document storage has not been confirmed by the server. Your paid order and service brief remain accessible; do not send confidential documents through a public channel.'
+                    ),'service-file-unavailable');
+                    custodyNotice.style.cssText='padding:12px;border:1px solid rgba(212,175,55,.3);border-radius:10px;color:#e8dac1';
+                    line.append(custodyNotice);
+                  }
                 }
                 list.append(line);
               }
