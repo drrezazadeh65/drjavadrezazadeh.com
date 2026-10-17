@@ -12,7 +12,9 @@ function jrPubProcessOutbox(PDO $pdo, string $orderId): int {
       FROM commerce_orders o JOIN commerce_payment_claims p ON p.order_id=o.id
       AND p.provider='bitpay' AND p.transaction_id=o.provider_trans_id
       AND p.verified_amount=o.provider_amount
-      WHERE o.id=? AND o.state='paid' AND o.currency='IRT' AND o.paid_at IS NOT NULL");
+      WHERE o.id=? AND o.state='paid' AND o.currency='IRT' AND o.paid_at IS NOT NULL
+        AND NOT EXISTS (SELECT 1 FROM commerce_refund_requests r
+          WHERE r.order_id=o.id AND r.status='settled')");
     $s->execute([$orderId]);$order=$s->fetch(PDO::FETCH_ASSOC);if(!$order)return 0;
     $items=json_decode((string)$order['items_json'],true);
     if(!is_array($items)||count($items)!==1||($items[0]['sku']??null)!==JR_PUB_SKU||
