@@ -91,6 +91,7 @@ const required=[
   'api/internal/jr-publishing-mailer.php','api/internal/jr-publishing-mail-worker.php',
   'api/internal/jr-publishing-contract-draft.php','api/internal/jr-publishing-notifications.php',
   'api/internal/jr-publishing-provision-cli.php','api/internal/jr-publishing-preflight-cli.php',
+  'api/internal/jr-publishing-private-install-cli.php',
   'api/internal/.htaccess','assets/js/jr-publishing-checkout-v1.js',
   'fa/app/author/index.html','fa/shop/authors/mehrab-mirkarimi/index.html',
   'assets/js/account-order-history.js','assets/js/operations-commerce.js'
