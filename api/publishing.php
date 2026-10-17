@@ -82,6 +82,19 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
            JOIN publishing_offers f ON f.id=c.offer_id
            JOIN publishing_works w ON w.id=f.work_id
            WHERE w.author_id=?");
+        // A settled refund and its allocation reversal are independent facts.
+        // Surface unmatched refund obligations instead of silently reporting them as clean earnings.
+        $refunds=$pdo->prepare("SELECT COUNT(*) AS unreconciled_count FROM (
+           SELECT e.order_id FROM publishing_sale_allocation_entries e
+           WHERE e.author_id=?
+             AND EXISTS (SELECT 1 FROM commerce_refund_requests r
+               WHERE r.order_id=e.order_id AND r.status='settled')
+           GROUP BY e.order_id
+           HAVING SUM(CASE WHEN e.entry_kind IN ('author_share','author_reversal')
+               THEN e.amount_toman ELSE 0 END)<>0
+              OR SUM(CASE WHEN e.entry_kind IN ('talent_fund','fund_reversal')
+               THEN e.amount_toman ELSE 0 END)<>0
+        ) unresolved_refunds");
         $contracts=$pdo->prepare("SELECT id,work_id,version_label,state,effective_from,effective_until
            FROM publishing_author_contracts WHERE author_id=?
            ORDER BY template_created_at DESC LIMIT 30");
@@ -99,7 +112,9 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
               WHERE pc.order_id=e.order_id AND pc.offer_id=e.offer_id),0) AS operating_reserve_net,
            (SELECT n.status FROM publishing_notification_outbox n
               WHERE n.order_id=e.order_id AND n.event_type='author_sale'
-              ORDER BY n.created_at DESC LIMIT 1) AS author_notice_state
+              ORDER BY n.created_at DESC LIMIT 1) AS author_notice_state,
+           EXISTS(SELECT 1 FROM commerce_refund_requests r
+             WHERE r.order_id=e.order_id AND r.status='settled') AS refund_settled
            FROM publishing_sale_allocation_entries e
            JOIN commerce_orders o ON o.id=e.order_id AND o.state='paid'
              AND o.currency='IRT' AND o.paid_at IS NOT NULL
@@ -118,6 +133,7 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
             $reserve->execute([$id]);$reserveAmount=$reserve->fetch(PDO::FETCH_ASSOC)?:[];
             $funding->execute([$id]);$fundedAmount=$funding->fetch(PDO::FETCH_ASSOC)?:[];
             $contracts->execute([$id]);$contractRows=$contracts->fetchAll(PDO::FETCH_ASSOC);
+            $refunds->execute([$id]);$refundCounts=$refunds->fetch(PDO::FETCH_ASSOC)?:[];
             $history->execute([$id]);$saleRows=$history->fetchAll(PDO::FETCH_ASSOC);
             $accrued=(int)($totals['author_accrued_toman']??0);
             $sent=(int)($bank['bank_settled_toman']??0);
@@ -127,6 +143,7 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
               'displayNameFa'=>(string)$row['display_name_fa'],
               'displayNameEn'=>(string)$row['display_name_en'],
               'verifiedPaidOrders'=>(int)($totals['verified_paid_orders']??0),
+              'settledRefundsAwaitingAllocationReversal'=>(int)($refundCounts['unreconciled_count']??0),
               'authorAccruedToman'=>$accrued,
               'talentFundEarmarkedToman'=>(int)($totals['fund_earmarked_toman']??0),
               'authorBankSettledToman'=>$sent,
@@ -145,7 +162,9 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
                     'authorShareToman'=>$a,
                     'talentFundShareToman'=>$fund,
                     'platformOperatingReserveToman'=>(int)$sale['operating_reserve_net'],
-                    'authorNotificationState'=>$sale['author_notice_state']??'not_queued'
+                    'authorNotificationState'=>$sale['author_notice_state']??'not_queued',
+                    'refundSettled'=>(bool)($sale['refund_settled']??false),
+                    'refundAllocationsUnreconciled'=>(bool)($sale['refund_settled']??false) && ($a!==0||$fund!==0)
                   ];
               },$saleRows),
               'contracts'=>array_map(static function(array $c): array {
