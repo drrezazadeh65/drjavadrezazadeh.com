@@ -95,10 +95,20 @@ jobs:
           node scripts/revenue-planner-contract-audit.mjs
           node scripts/workflow-governance-audit.mjs
           node scripts/seo-regression.mjs
+          node --test tests/publications-entity-graph.test.mjs tests/schema-entity-inventory.test.mjs
+          node scripts/schema-entity-inventory.mjs --strict-publications
           node --test tests/production-health-evidence.test.mjs
           node --check scripts/bertina-auto-release-policy.mjs
           node --check scripts/bertina-release-eligibility.mjs
           node --test tests/bertina-auto-release-policy.test.mjs tests/bertina-release-eligibility.test.mjs
+      - name: Archive bilingual structured-data source inventory (nonproduction evidence)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structured-data-inventory-source
+          path: .artifacts/schema-entity-inventory.json
+          if-no-files-found: warn
+          retention-days: 14
       - name: Exercise EXACT full deployment API and MySQL preflight before any FTP release
         env:
           OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
