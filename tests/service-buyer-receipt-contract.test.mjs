@@ -38,6 +38,12 @@ test('buyer receipt is an explicit authenticated same-origin action only for a r
  assert.match(server,/kind='professional_output' FOR UPDATE/);
  assert.match(server,/jrServiceFileReleasedDigest/);
  assert.match(server,/jrServiceFileMatchesRelease/);
+ assert.ok(server.includes("receipt_artifact_missing"));
+ assert.ok(server.includes("receipt_artifact_integrity_invalid"));
+ assert.ok(server.includes("jrServiceFileDecrypt($sealed,$order,$sku)"));
+ assert.ok(server.includes("hash_equals((string)$artifact['content_sha256']"));
+ assert.ok(fixture.includes("self_receipt_denied_if_real_encrypted_output_is_missing"));
+
  assert.match(server,/ON DUPLICATE KEY UPDATE file_id=file_id/);
  assert.match(server,/actualDownloadIndependentlyProven'=>false/);
  assert.match(server,/buyerSatisfactionConfirmed'=>null/);
