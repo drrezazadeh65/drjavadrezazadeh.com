@@ -48,6 +48,20 @@ for(const filename of files){
   if(!events.includes('workflow_dispatch')){
     errors.push(filename+': missing manual workflow_dispatch event');
   }
+  if(filename==='deploy-bertina.yml'){
+    // Explicit owner 2026-10-17 order: ALL accepted masterplan work must be
+    // verified BEFORE production release. Protect this guard against removal
+    // in later well-intended source or workflow refactors.
+    const masterplanGate=source.indexOf('node scripts/masterplan-100-release-gate.mjs');
+    const firstProductionAction=source.indexOf('Authorize the exact recovery policy before any deploy activity');
+    if(masterplanGate<0||firstProductionAction<0||masterplanGate>=firstProductionAction)
+      errors.push(filename+': mandatory 100% masterplan gate missing or not first');
+    if(!/github\.actor == 'drrezazadeh65'/.test(source)
+       ||!/github\.event_name == 'workflow_dispatch'/.test(source))
+      errors.push(filename+': final release must be owner-only and manually dispatched');
+    if(!/owner_masterplan_final_confirmation:/.test(source))
+      errors.push(filename+': explicit owner masterplan final confirmation missing');
+  }
   if(mandatoryManual.has(filename)&&filename==='bertina-private-backup.yml' &&
      !/github\.actor == 'drrezazadeh65'/.test(source)){
     errors.push(filename+': owner actor restriction missing');
