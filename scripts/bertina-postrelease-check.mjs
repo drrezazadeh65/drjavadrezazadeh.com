@@ -191,6 +191,47 @@ await observeHostGate('bilingual-public-service-pages-21x2',async()=>{
  };
 });
 
+// Future Publishing: public-only availability audit for the first multi-author
+// scientific PDF listing. No payment, SMTP send, account login or private file
+// access is attempted here. This does not grant publication rights or sign a
+// contributor agreement.
+await observeHostGate('mirkarimi-public-author-and-digital-offer',async()=>{
+ const pagePath='/fa/shop/authors/mehrab-mirkarimi/';
+ const url=ORIGIN+pagePath;
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),12000);
+ let status=null, pageOk=false;
+ try{
+   const response=await fetch(url,{method:'GET',redirect:'manual',
+     headers:{Accept:'text/html'},signal:controller.signal});
+   status=response.status;
+   if(status===200){
+     const page=await response.text();
+     pageOk=page.includes('<link rel="canonical" href="'+url+'"')
+       && page.includes('id="jp-digital-checkout-form"')
+       && page.includes('jr-publishing-checkout-v1.js')
+       && page.includes('تأییدیه نهایی هنوز صادر نشده')
+       && !page.includes('Mehrabmirkarimi2000@gmail.com');
+   }
+ }finally{clearTimeout(timer);}
+ const offer=await getPublicJson('/api/publishing/offer');
+ const ready=offer.httpStatus===200&&offer.body?.ok===true
+   &&offer.body?.available===true&&offer.body?.checkoutEnabled===true
+   &&offer.body?.sku==='digital:tefl-ma-exams-1370-1405'
+   &&offer.body?.priceToman===1000000;
+ return {
+   status:status===200&&pageOk&&offer.httpStatus===200
+     ?'LIVE_VERIFIED':'HOST_UNVERIFIED',
+   pageHttpStatus:status,publicPagePassesSourceDisclosure:pageOk,
+   offerHttpStatus:offer.httpStatus,publicCheckoutReadyClaim:ready,
+   actualBankPaymentAndVerifiedPrivatePdfDelivery:false,
+   authorDistributionRightsIndependentlyReviewed:false,
+   genuineContributorSignatureVerified:false,
+   academicPeerReviewComplete:false,
+   note:'Public HTTP read is not evidence of paid file custody, signed author rights, settlement, buyer email or both downloads.'
+ };
+});
+
 const evidence={
  schema:'bertina-postrelease-acceptance-v1',checkedAt:new Date().toISOString(),
  origin:ORIGIN,expectedReleaseSha:expected||null,observedReleaseSha:observed,
