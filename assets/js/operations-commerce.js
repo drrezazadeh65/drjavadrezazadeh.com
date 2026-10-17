@@ -834,6 +834,44 @@
       }
       detail.append(list);results.append(detail);
     }
+    // Completed cases are kept out of the open-service worklist, but the
+    // owner must still be able to inspect actual buyer receipt afterward.
+    if(Array.isArray(fulfilment.deliveredServiceActionQueue)
+       &&fulfilment.deliveredServiceActionQueue.length){
+      const completed=node('section',undefined,'ops-card');
+      completed.append(node('h3',text(
+        'تحویل‌های ثبت‌شده و تأیید دریافت مشتری',
+        'Completed services and buyer receipt declarations'
+      )));
+      completed.append(node('p',text(
+        'این فهرست صرفاً وضعیت داخلی تحویل و اعلام دریافت خریدار را نشان می‌دهد؛ رضایت از کیفیت خدمت یا تسویه بانکی از آن نتیجه نمی‌شود.',
+        'These records distinguish owner handover from buyer self-attested receipt; neither buyer satisfaction nor bank settlement is implied.'
+      ),'ops-muted'));
+      if(fulfilment.deliveredServiceQueueTruncated===true)
+        completed.append(node('p',text(
+          '۵۰ پروندهٔ تحویل‌شدهٔ اخیر نمایش داده شده‌اند؛ پرونده‌های قدیمی‌تر در این نمای محدود نیستند.',
+          'Only the 50 most recently recorded deliveries are shown in this bounded worklist.'
+        ),'ops-muted'));
+      const list=node('ul',undefined,'ops-queue');
+      list.style.cssText='max-height:25rem;overflow-y:auto';
+      for(const entry of fulfilment.deliveredServiceActionQueue){
+        const item=node('li');
+        item.append(node('span',String(entry.sku||'')+' · '+
+          String(entry.orderId||'').slice(0,8)+'… · '+
+          text('تحویل ثبت شده','Owner handover recorded')));
+        if(entry.orderPaidState===true&&entry.providerClaimMatchesOrder===true
+           &&fulfilment.privateServiceFilesReady===true){
+          item.append(ownerServiceFileWorkspace(entry,item));
+        }else{
+          item.append(node('small',text(
+            'برای بررسی اسناد، تطبیق واقعی ادعای پرداخت و آمادگی سامانه محرمانه لازم است.',
+            'Private file review requires a matched provider claim and the configured secure storage.'
+          ),'ops-muted'));
+        }
+        list.append(item);
+      }
+      completed.append(list);results.append(completed);
+    }
     for(const row of stock.rows||[]){
       const drift=row.ledgerDiscrepancy;
       card(row.sku,
