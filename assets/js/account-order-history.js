@@ -213,6 +213,92 @@ function serviceIntakeEditor(order,service){
  });
  return disclosure;
 }
+function serviceFileWorkspace(order,service){
+ const box=el('details');box.className='service-private-files';
+ box.style.cssText='margin-top:13px;border:1px solid rgba(212,175,55,.35);border-radius:12px;padding:12px;max-width:100%;background:#191918';
+ box.append(el('summary',tr('مدارک محرمانه و خروجی تحویل‌شده','Private documents and delivered outputs')));
+ const content=el('div');content.style.cssText='margin-top:14px';
+ const state=el('p');state.setAttribute('role','status');state.setAttribute('aria-live','polite');
+ const files=el('ul');files.style.cssText='list-style:none;padding:0;display:grid;gap:9px';
+ const form=el('form');form.style.cssText='margin:18px 0;display:grid;gap:12px';
+ const help=el('p',tr(
+  'برای ارسال مدارک، فایل PDF یا DOCX حداکثر ۱۲ مگابایت انتخاب کنید. فایل پس از اسکن امنیتی به‌صورت رمزنگاری‌شده در پرونده سفارش ذخیره می‌شود. خروجی مشاور تنها پس از ثبت مستند تحویل قابل دریافت است.',
+  'Submit a PDF or DOCX of up to 12 MB. Each upload is scanned and encrypted in your paid-order record. The professional output appears only after evidence-backed delivery is recorded.'
+ ),'ops-muted');
+ const label=el('label',tr('بارگذاری سند مربوط به این خدمت','Upload a document for this service'));
+ label.style.cssText='display:grid;gap:9px';
+ const file=document.createElement('input');file.type='file';file.name='document';file.required=true;
+ file.accept='.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+ label.append(file);
+ const submit=el('button',tr('ارسال رمزنگاری‌شده به پرونده','Securely upload to this case'),'button');
+ submit.type='submit';
+ form.append(label,submit);
+ content.append(help,state,files);
+ if(!['delivered','cancelled'].includes(service.status))content.append(form);
+ box.append(content);
+ let loading=false,loaded=false;
+ async function refresh(){
+  if(loading||!box.open)return;
+  loading=true;state.textContent=tr('در حال دریافت پرونده خصوصی…','Retrieving your private files…');
+  try{
+   const url='/api/commerce/service-files?order='+encodeURIComponent(order.id)+'&sku='+encodeURIComponent(service.sku);
+   const response=await fetch(url,{method:'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+   if(!response.ok)throw Error('unavailable');
+   const data=await response.json();
+   if(data?.ok!==true||data.schema!=='private-service-files-v1'||!Array.isArray(data.files))throw Error('invalid_file_list');
+   if(!box.open)return;
+   files.replaceChildren();
+   for(const record of data.files){
+    if(!/^[0-9a-f-]{36}$/i.test(String(record.id||'')))continue;
+    if(!['client_source','professional_output'].includes(record.kind))continue;
+    const li=el('li');li.style.cssText='padding:12px;border:1px solid rgba(212,175,55,.2);border-radius:10px;display:flex;gap:12px;align-items:center;flex-wrap:wrap';
+    li.append(el('span',(record.kind==='professional_output'?
+     tr('خروجی تخصصی','Professional output'):tr('مدرک شما','Your document'))+' · '+String(record.file_extension||'').toUpperCase()));
+    const a=el('a',tr('دریافت امن فایل','Download privately'));
+    a.href='/api/commerce/service-file?id='+encodeURIComponent(record.id);
+    a.rel='nofollow';a.style.cssText='color:#f5d993;text-underline-offset:4px';
+    li.append(a);files.append(li);
+   }
+   state.textContent=data.files.length?
+    tr('فایل‌های قابل‌دسترسی این پرونده نمایش داده شدند.','Authorised files for this case are listed.'):
+    tr('هنوز فایلی برای این پرونده ثبت نشده است.','There are no files available for this case yet.');
+   loaded=true;
+  }catch(_){
+   state.textContent=tr('سامانه امن فایل هنوز پاسخ تأییدشده‌ای ارائه نکرده است؛ سند محرمانه را از راه عمومی ارسال نکنید.',
+    'Private file storage is not currently verified. Do not send confidential records through a public channel.');
+  }finally{loading=false;}
+ }
+ box.addEventListener('toggle',()=>{if(box.open&&!loaded)refresh();});
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();if(loading||!file.files?.length)return;
+  const selected=file.files[0];
+  if(selected.size>12582912||!/(\\.pdf|\\.docx)$/i.test(selected.name)){
+   state.textContent=tr('فقط PDF یا DOCX حداکثر ۱۲ مگابایت مجاز است.','Only PDF or DOCX up to 12 MB is accepted.');return;
+  }
+  if(!window.confirm(tr('فایل فقط به پرونده خصوصی این سفارش پیوست شود؟',
+      'Attach this document only to your private paid service case?')))return;
+  const payload=new FormData();payload.append('orderId',order.id);payload.append('sku',service.sku);
+  payload.append('document',selected,selected.name);
+  loading=true;submit.disabled=true;
+  state.textContent=tr('در حال اسکن، رمزنگاری و ثبت سند…','Scanning, encrypting and registering the file…');
+  try{
+   const response=await fetch('/api/commerce/service-files',{method:'POST',
+    credentials:'same-origin',cache:'no-store',body:payload,headers:{Accept:'application/json'}});
+   const data=await response.json();
+   if(!response.ok||data?.ok!==true||data.schema!=='private-service-files-v1'
+      ||data.file?.registered!==true)throw Error('not_accepted');
+   file.value='';loaded=false;
+   state.textContent=tr('مدرک به‌صورت محرمانه ثبت شد.','Your document was registered privately.');
+  }catch(_){
+   state.textContent=tr('ثبت فایل تأیید نشد؛ ابتدا وضعیت پرونده را دوباره بررسی کنید و سند را از روش عمومی ارسال نکنید.',
+     'Upload not confirmed. Check this case before retrying; do not send sensitive files through public channels.');
+  }finally{
+   loading=false;submit.disabled=false;
+   if(!loaded)refresh();
+  }
+ });
+ return box;
+}
 function render(orders){
   section.replaceChildren();
   if(!orders.length){showInfo(tr('هنوز سفارشی برای ایمیل تأییدشدهٔ این حساب ثبت نشده است. سفارش مهمان تنها پس از تأیید مالکیت ایمیل با حساب ارتباط می‌یابد.','No orders were found for this account’s verified email. Guest orders appear only after email ownership is verified.'),false);return;}
@@ -266,8 +352,10 @@ function render(orders){
                 const line=el('li',c.sku+' — '+(statuses[c.status]||tr('نیازمند بررسی','Review needed')));
                 if(c.bookingStart)line.append(el('small',' · '+tr('زمان ثبت‌شده: ','Recorded slot: ')+c.bookingStart));
                 if(typeof c.sku==='string'&&/^(?:service|vip):[a-z0-9_-]{1,60}$/.test(c.sku)
-                  &&!['delivered','cancelled'].includes(c.status))
-                  line.append(serviceIntakeEditor(order,c));
+                  &&c.status!=='cancelled'){
+                  if(c.status!=='delivered')line.append(serviceIntakeEditor(order,c));
+                  line.append(serviceFileWorkspace(order,c));
+                }
                 list.append(line);
               }
               detail.append(el('strong',tr('وضعیت خدمات','Service cases')),list);
