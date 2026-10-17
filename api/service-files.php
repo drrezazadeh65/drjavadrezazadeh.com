@@ -54,6 +54,41 @@ function jrServiceFilesReady(PDO $pdo): bool {
         &&jrServicePhpUploadLimitsReady()
         &&strlen((string)(cfg()['auth_pepper']??''))>=32;
 }
+/**
+ * Owner dashboard activation diagnostics: only booleans, never secrets,
+ * filesystem paths, configuration values or customer records.
+ * Missing optional receipt/delivery schema is reported separately from
+ * the ability to ingest already-purchased service files.
+ */
+function jrServiceFilesActivationChecks(PDO $pdo): array {
+    $safe=static function(callable $check): bool {
+        try{return $check()===true;}catch(Throwable $e){return false;}
+    };
+    $config=cfg();
+    return [
+        'explicitlyEnabled'=>$safe(static fn(): bool =>
+            ($config['service_files_enabled']??false)===true),
+        'verifiedHttps'=>$safe(static fn(): bool =>
+            ($config['public_tls_confirmed']??false)===true),
+        'commerceSchema'=>$safe(static fn(): bool => stage9SchemaReady($pdo)),
+        'privateFileSchema'=>$safe(static fn(): bool => jrServiceFilesSchemaReady($pdo)),
+        'privateStorage'=>$safe(static fn(): bool => jrServiceFilesPrivateRoot()!==null),
+        'antivirus'=>$safe(static fn(): bool => jrServiceFilesAntivirus()!==null),
+        'cryptoAndKey'=>$safe(static fn(): bool =>
+            function_exists('hash_hkdf')&&function_exists('openssl_encrypt')
+            &&function_exists('openssl_decrypt')
+            &&strlen((string)($config['auth_pepper']??''))>=32),
+        'documentParsers'=>$safe(static fn(): bool =>
+            class_exists('ZipArchive')&&class_exists('finfo')),
+        'phpUploadCapacity'=>$safe(static fn(): bool => jrServicePhpUploadLimitsReady()),
+        'ownerDeliverySchema'=>$safe(static fn(): bool =>
+            function_exists('operationsServiceDeliveryEvidenceReady')
+            &&operationsServiceDeliveryEvidenceReady($pdo)),
+        'buyerReceiptSchema'=>$safe(static fn(): bool =>
+            function_exists('jrServiceBuyerReceiptSchemaReady')
+            &&jrServiceBuyerReceiptSchemaReady($pdo))
+    ];
+}
 function jrServiceFilesKey(): string {
     $pepper=(string)(cfg()['auth_pepper']??'');
     if(strlen($pepper)<32||!function_exists('hash_hkdf'))throw new RuntimeException('service_files_crypto_unavailable');
