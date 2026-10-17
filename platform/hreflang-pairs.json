@@ -72,7 +72,7 @@
     {
       "id": "services",
       "en": "/en/services/",
-      "fa": "/fa/khadamat/",
+      "fa": "/fa/services/",
       "x_default": "/en/services/"
     },
     {
@@ -186,6 +186,7 @@
   ],
   "unpaired_public_routes_policy": "No hreflang counterpart is invented. Add a pair only after content equivalence is reviewed.",
   "notes": [
-    "News/Insights and اخبار remain intentionally unpaired until collection-level content equivalence is reviewed; no hreflang relationship is invented."
+    "News/Insights and اخبار remain intentionally unpaired until collection-level content equivalence is reviewed; no hreflang relationship is invented.",
+    "2026-10-17 targeted equivalence correction: the 21-item English /en/services/ catalogue is now paired with its true Persian /fa/services/ catalogue. The former /fa/khadamat/ editorial landing page retains its canonical URL but is no longer declared the localized equivalent. No URL was renamed or redirected."
   ]
 }
