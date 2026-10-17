@@ -155,3 +155,18 @@ test('owner readiness never advertises private file custody until the required s
  assert.ok(read('scripts/donation-cycle-audit.cjs').includes(version),
    'Donation regression test must track the actual shared admin script');
 });
+
+test('Bertina candidate bundle cannot omit linked private-file runtime modules',()=>{
+ const builder=read('scripts/build-public-site.mjs');
+ for(const required of [
+   'api/service-files.php','api/service-buyer-receipt.php',
+   'api/operations-service-delivery.php',
+   'assets/js/account-order-history.js','assets/js/operations-commerce.js'
+ ]){
+  assert.ok(builder.includes("'"+required+"'"),'missing required runtime gate: '+required);
+ }
+ assert.ok(builder.includes("'docs'"));
+ assert.ok(builder.includes("'database'"));
+ assert.ok(builder.includes("'migrations'"));
+ assert.match(builder,/for\(const rel of required\)/);
+});
