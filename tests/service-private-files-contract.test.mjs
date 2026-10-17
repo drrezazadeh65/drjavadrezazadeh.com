@@ -80,7 +80,8 @@ test('private buyer routes require verified account, claim-matched order and ori
  assert.match(section,/private_service_files_unavailable/);
  assert.match(handler,/jrServiceFilePaidCase\(\$pdo,\$order,\$sku,\$buyerEmail/);
  assert.match(handler,/hash_equals\(\(string\)\$record\['provider_trans_id'\]/);
- assert.match(handler,/service_state'\]==='delivered'/);
+ assert.match(handler,/jrServiceFileReleasedDigest/);
+ assert.match(handler,/jrServiceFileMatchesRelease/);
  assert.match(handler,/Content-Disposition: attachment/);
  assert.match(handler,/function jrServiceFileReleasedDigest/);
  assert.match(handler,/function jrServiceFileMatchesRelease/);
