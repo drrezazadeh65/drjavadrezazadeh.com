@@ -1,0 +1,127 @@
+{
+  "schema": "jr-structured-data-phase-acceptance-v1",
+  "asOf": "2026-10-17",
+  "branch": "migration/bertina-linux6",
+  "sourceAuthority": "docs/governance/MASTER_STRUCTURED_DATA_ENTITY_GRAPH_EXECUTION_20261017.md",
+  "releaseStatus": "BLOCKED_PENDING_FULL_MASTERPLAN_100_LIVE_EVIDENCE",
+  "constraints": {
+    "liveDeploymentPerformed": false,
+    "schemaMarkupValidatorRetested": false,
+    "googleRichResultsRetested": false,
+    "fullSiteDynamicPHP_OJS_Audited": false,
+    "existingDonationPreservedByDesign": true
+  },
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Six article-schema warnings",
+      "status": "SOURCE_FIXED_VALIDATOR_PENDING",
+      "evidence": [
+        "en/publications/index.html",
+        "fa/entesharat-elmi/index.html",
+        "tests/publications-entity-graph.test.mjs",
+        "docs/research/STRUCTURED_DATA_PUBLICATIONS_AUDIT_20261017.md"
+      ],
+      "blockers": [
+        "Rerun actual live Schema.org Validator after approved release",
+        "Verify third article's original publisher record"
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Full bilingual public and dynamic schema inventory",
+      "status": "SOURCE_SCANNER_ADDED_FULL_SCOPE_PENDING",
+      "evidence": [
+        "scripts/schema-entity-inventory.mjs",
+        "tests/schema-entity-inventory.test.mjs"
+      ],
+      "blockers": [
+        "Run full nondeploy CI artifact and classify findings",
+        "Add authenticated server/PHP/OJS render audit without private data exposure"
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Canonical semantic entity graph",
+      "status": "SERVICE_AND_PUBLICATION_IDS_RECONCILED_PARTIAL",
+      "evidence": [
+        "platform/public-entity-registry.json",
+        "tests/bilingual-service-entity-identity.test.mjs"
+      ],
+      "blockers": [
+        "Review remaining organization/product/journal identity graphs against verified facts"
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Page-appropriate schema across all verticals",
+      "status": "PARTIAL",
+      "evidence": [
+        "scripts/schema-entity-inventory.mjs"
+      ],
+      "blockers": [
+        "Page-by-page review of real book product offers, journal status, assessment validation and visible content"
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "AI Search and global discoverability",
+      "status": "ACCEPTED_SEO_STANDARD_PRESERVED_NOT_RANKING_CERTIFIED",
+      "evidence": [
+        "scripts/seo-regression.mjs"
+      ],
+      "blockers": [
+        "Independent search and entity-discovery verification when indexable live pages are approved"
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "URL, privacy and cross-language regression",
+      "status": "SOURCE_CHANGES_NONDESTRUCTIVE_LIVE_PENDING",
+      "evidence": [
+        "platform/hreflang-pairs.json",
+        "tests/bilingual-service-entity-identity.test.mjs"
+      ],
+      "blockers": [
+        "Production link, noindex, sitemap and canonical verification after final owner release"
+      ]
+    },
+    {
+      "phase": 7,
+      "name": "Maintainable tooling and CI",
+      "status": "CODE_COMMITTED_CI_RESULT_PENDING",
+      "evidence": [
+        ".github/workflows/v5-release-candidate.yml",
+        "scripts/schema-entity-inventory.mjs"
+      ],
+      "blockers": [
+        "Collect actual successful GitHub Actions run and retained inventory artifact"
+      ]
+    },
+    {
+      "phase": 8,
+      "name": "Schema.org, Rich Results, semantic/privacy and production tests",
+      "status": "NOT_COMPLETE",
+      "evidence": [],
+      "blockers": [
+        "Actual official validator results",
+        "Google Rich Results eligibility per page type",
+        "Trusted production TLS runtime audit"
+      ]
+    },
+    {
+      "phase": 9,
+      "name": "Documentation and evidence dossier",
+      "status": "IN_PROGRESS",
+      "evidence": [
+        "docs/governance/MASTER_STRUCTURED_DATA_ENTITY_GRAPH_EXECUTION_20261017.md",
+        "docs/research/STRUCTURED_DATA_PUBLICATIONS_AUDIT_20261017.md"
+      ],
+      "blockers": [
+        "Commit-bound full inventory evidence",
+        "Actual CI + production evidence and unresolved issues"
+      ]
+    }
+  ],
+  "invariant": "Never change established URLs, invent academic metadata, expose private data or claim 100% before live evidence and owner-approved release gate."
+}
