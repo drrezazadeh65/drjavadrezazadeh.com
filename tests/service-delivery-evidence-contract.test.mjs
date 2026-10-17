@@ -42,6 +42,13 @@ test('server requires claim-matched paid order, in-progress state and owner evid
   assert.match(implementation,/throw new DomainException\('booked_service_not_completed'\)/);
   assert.match(implementation,/evidence_reference_hmac/);
   assert.match(implementation,/hash_hmac\('sha256'/);
+  assert.match(implementation,/document_evidence_not_in_this_case/);
+  assert.match(implementation,/jrServiceFilesSchemaReady/);
+  assert.match(implementation,/jrServiceFileDecrypt/);
+  assert.match(implementation,/document_delivery_integrity_invalid/);
+  assert.match(read('tests/commerce-service-advance-mysql.php'),/document_delivery_without_registered_file_denied/);
+  assert.match(read('tests/commerce-service-advance-mysql.php'),/private_service_file_aead_roundtrip/);
+
   assert.match(implementation,/WHERE order_id=\? AND sku=\? AND status='in_progress'/);
   assert.match(implementation,/\$pdo->rollBack\(\)/);
   assert.match(implementation,/customerNotified'=>false/);
