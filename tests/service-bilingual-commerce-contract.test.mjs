@@ -139,3 +139,18 @@ test('shared checkout remains bilingual while keeping authoritative payments and
  assert.match(fa,/commerce-checkout\.js/);
  assert.doesNotMatch(js,/localStorage\.setItem|sessionStorage\.setItem/);
 });
+
+
+test('user dashboards share the approved repository Persian-first visual symbol, never obsolete Latin JR logo',()=>{
+ const english=read('en/account/index.html'),persian=read('fa/customer-dashboard/index.html');
+ const visual=read('assets/css/jr-ecosystem-design-v2.css');
+ for(const [name,html] of [['English',english],['Persian',persian]]){
+  assert.ok(html.includes('class="cd-monogram jr-sci-client-mark"'),name+' should use shared mark');
+  assert.ok(html.includes('class="cd-mobile-logo jr-sci-client-mark"'),name+' mobile mark');
+  assert.ok(html.includes('/assets/images/persian-brand-symbol.png'),name+' approved repository asset');
+  assert.ok(!html.includes('class="cd-mobile-logo">JR</span>'),name+' obsolete JR mobile logo');
+  assert.ok(html.includes('jr-ecosystem-design-v2.css?v=20261017-brand-unified-r2'));
+ }
+ assert.ok(exists('assets/images/persian-brand-symbol.png'),'brand symbol must physically exist');
+ assert.match(visual,/\.cd-mobile-logo\.jr-sci-client-mark img/);
+});
