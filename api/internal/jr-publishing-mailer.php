@@ -19,12 +19,13 @@ function jrPubProcessOutbox(PDO $pdo, string $orderId): int {
        (int)$order['amount_toman']!==1000000)return 0;
     $x=$items[0];$success=0;
     for($i=0;$i<2;$i++){
+      unset($notice);
+      $smtpAccepted=false;
       try {
         $pdo->beginTransaction();
         $a=$pdo->prepare("SELECT id,event_type,attempts FROM publishing_notification_outbox
          WHERE order_id=? AND event_type IN('buyer_paid','author_sale')
-           AND ((status IN('queued','retry') AND next_attempt_at<=NOW()) OR
-                (status='processing' AND next_attempt_at<=NOW()))
+           AND status IN('queued','retry') AND next_attempt_at<=NOW()
            ORDER BY created_at ASC LIMIT 1 FOR UPDATE");
         $a->execute([$orderId]);$notice=$a->fetch(PDO::FETCH_ASSOC);
         if(!$notice){$pdo->commit();break;}
@@ -42,6 +43,11 @@ function jrPubProcessOutbox(PDO $pdo, string $orderId): int {
              ORDER BY a.logical_kind");
           $q->execute([$orderId]);$grants=$q->fetchAll(PDO::FETCH_ASSOC);
           if(count($grants)!==2)throw new RuntimeException('missing_two_download_grants');
+          $kinds=array_column($grants,'logical_kind');
+          if(count(array_unique($kinds))!==2 ||
+             !in_array('question_pdf',$kinds,true) ||
+             !in_array('answer_pdf',$kinds,true))
+              throw new RuntimeException('invalid_digital_grant_kinds');
           $pepper=(string)(cfg()['auth_pepper']??'');
           if(strlen($pepper)<32)throw new RuntimeException('digital_key_unavailable');
           $links=[];
@@ -82,8 +88,11 @@ function jrPubProcessOutbox(PDO $pdo, string $orderId): int {
         if(!filter_var($recipient,FILTER_VALIDATE_EMAIL)||$body==='')throw new RuntimeException('email_destination_unavailable');
         $sent=sendLocalMail($recipient,$subject,$body);
         if(!$sent)throw new RuntimeException('smtp_send_failed');
-        $pdo->prepare("UPDATE publishing_notification_outbox SET status='sent',sent_at=NOW()
-            WHERE id=? AND status='processing'")->execute([$notice['id']]);
+        $smtpAccepted=true;
+        $completed=$pdo->prepare("UPDATE publishing_notification_outbox SET status='sent',sent_at=NOW()
+            WHERE id=? AND status='processing'");
+        $completed->execute([$notice['id']]);
+        if($completed->rowCount()!==1)throw new RuntimeException('smtp_accepted_but_receipt_not_persisted');
         ++$success;
       }catch(Throwable $e){
         if($pdo->inTransaction())$pdo->rollBack();
@@ -91,7 +100,11 @@ function jrPubProcessOutbox(PDO $pdo, string $orderId): int {
         if(isset($notice['id'])){
           try{
             $wait=min(1440,5*(2**min(8,(int)($notice['attempts']??0))));
-            $status=(int)($notice['attempts']??0)+1>=6?'dead_letter':'retry';
+            // Once the SMTP server accepts the message, an unconfirmed DB
+            // update is ambiguous. Do NOT send the same author notice again
+            // without operator investigation; route it to dead-letter review.
+            $status=$smtpAccepted || (int)($notice['attempts']??0)+1>=6
+              ?'dead_letter':'retry';
             $pdo->prepare("UPDATE publishing_notification_outbox
                SET status=?,next_attempt_at=DATE_ADD(NOW(),INTERVAL ".$wait." MINUTE)
                WHERE id=? AND status='processing'")->execute([$status,$notice['id']]);
