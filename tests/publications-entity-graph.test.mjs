@@ -96,3 +96,24 @@ test('preserve canonical bilingual pages and the single stable person entity',()
   assert.doesNotMatch(p,/\bprivate[_-]?key\b/i);
  }
 });
+
+test('SEO identity governance preserves real independent coauthors without relaxing owner identity',()=>{
+ const source=read('scripts/seo-regression.mjs');
+ const registry=JSON.parse(read('platform/public-entity-registry.json'));
+ const owner=registry.person.structured_name;
+ assert.equal(owner,'Javad Rezazadeh Yazdeli');
+ assert.match(source,/const ownerIdentity=obj\['@id'\]===expectedPersonId/);
+ assert.match(source,/ownerNames\.has\(obj\.name\)/);
+ assert.match(source,/if\(ownerIdentity\)/);
+ assert.match(source,/if\(obj\.name&&obj\.name!==person\.structured_name\)/);
+ assert.match(source,/if\(!approvedSameAs\.has\(url\)\)/);
+ for(const file of pagePath){
+  const authors=byType(graph(read(file)),'ScholarlyArticle').flatMap(a=>a.author);
+  const namedColleagues=authors.filter(a=>a['@type']==='Person'&&a['@id']!==id);
+  assert.equal(namedColleagues.length,7,'retain independently identified colleagues');
+  assert.ok(namedColleagues.every(a=>typeof a.name==='string'&&a.name.length>=8));
+  assert.ok(namedColleagues.every(a=>a.name!==owner));
+  assert.ok(namedColleagues.every(a=>a['@id']!==id),
+   'coauthors must not be assigned the site owner identity');
+ }
+});
