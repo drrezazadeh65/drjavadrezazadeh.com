@@ -17,6 +17,7 @@ require_once __DIR__.'/../api/consultation-availability.php';
 require_once __DIR__.'/../api/operations-fulfilment.php';
 require_once __DIR__.'/../api/operations-service-delivery.php';
 require_once __DIR__.'/../api/service-files.php';
+require_once __DIR__.'/../api/service-buyer-receipt.php';
 require_once __DIR__.'/../api/service-intake.php';
 require_once __DIR__.'/../api/operations-commerce.php';
 // Catalogue stub is restricted to the one fictitious service used by this CI fixture.
@@ -52,6 +53,7 @@ $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_availability.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261016_owner_attested_service_delivery.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261017_private_service_files.sql'));
+$pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261017_service_buyer_receipt.sql'));
 
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261016_private_service_intake.sql'));
 
@@ -430,6 +432,29 @@ checkService($stored->fetchColumn()!==$encrypted,
     'aead_ciphertext_rotates_per_saved_revision');
 $pdo->prepare('UPDATE commerce_orders SET customer_email=? WHERE id=?')
     ->execute([$intakeEmail,$documentOrder]);
+// Buyer receipt is a separate action following owner-attested delivery.
+checkService(jrServiceBuyerReceiptSchemaReady($pdo),'independent_buyer_receipt_schema_ready');
+$receiptBody=['orderId'=>$documentOrder,'sku'=>$sku,
+ 'fileId'=>$validDocument['evidenceReference'],'received'=>true];
+refused(fn()=>jrServiceBuyerReceiptConfirm($pdo,$actor,'other@example.invalid',$receiptBody),
+ DomainException::class,'nonowner_email_cannot_claim_document_receipt');
+refused(fn()=>jrServiceBuyerReceiptConfirm($pdo,$actor,$intakeEmail,
+ array_merge($receiptBody,['received'=>false])),
+ InvalidArgumentException::class,'buyer_receipt_requires_explicit_confirmation');
+refused(fn()=>jrServiceBuyerReceiptConfirm($pdo,$actor,$intakeEmail,
+ array_merge($receiptBody,['fileId'=>$draftId])),
+ DomainException::class,'buyer_cannot_confirm_unreleased_internal_draft');
+$confirmed=jrServiceBuyerReceiptConfirm($pdo,$actor,$intakeEmail,$receiptBody);
+checkService($confirmed['buyerSelfAcknowledgedReceipt']===true
+ &&$confirmed['actualDownloadIndependentlyProven']===false
+ &&$confirmed['providerBankSettlementVerified']===null,
+ 'buyer_receipt_records_explicit_self_attestation_only');
+jrServiceBuyerReceiptConfirm($pdo,$actor,$intakeEmail,$receiptBody);
+$receiptRows=jrServiceBuyerReceiptRows($pdo,$documentOrder,$sku);
+checkService(count($receiptRows)===1
+ &&isset($receiptRows[$validDocument['evidenceReference']])
+ &&!isset($receiptRows[$draftId]),
+ 'buyer_receipt_idempotent_and_not_attached_to_draft');
 refused(fn()=>jrServiceIntakeSave($pdo,$intakeEmail,$actor,
     array_merge($brief,['orderId'=>$documentOrder])),
  DomainException::class,'delivered_case_cannot_silently_replace_intake');
