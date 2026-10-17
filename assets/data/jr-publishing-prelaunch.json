@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "program": "jr-future-publishing",
+  "release_state": "prelaunch",
+  "compliance": {
+    "publication_permission": false,
+    "scientific_review_approved": false,
+    "merchant_approved": false,
+    "digital_delivery_approved": false,
+    "fund_governance_approved": false
+  },
+  "authors": [
+    {
+      "id": "mehrab-mirkarimi",
+      "slug": "mehrab-mirkarimi",
+      "display_name_fa": "سید محراب میرکریمی",
+      "display_name_en": "Seyyed Mehrab Mirkarimi",
+      "degree_claim": "دانشجوی کارشناسی ارشد آموزش زبان انگلیسی دانشگاه تهران",
+      "rank_claim": "رتبه یک کنکور کارشناسی ارشد آموزش زبان انگلیسی ۱۴۰۵ (طبق رزومه ارائه‌شده)",
+      "verification_state": "author_supplied_pending",
+      "public_email": null,
+      "portrait_asset": null,
+      "profile_url_fa": "/fa/shop/authors/mehrab-mirkarimi/"
+    }
+  ],
+  "works": [
+    {
+      "id": "tefl-ma-exams-1370-1405",
+      "author_id": "mehrab-mirkarimi",
+      "slug": "tefl-ma-exams-1370-1405",
+      "title_fa": "مجموعه سؤالات و پاسخ‌های تشریحی کارشناسی ارشد آموزش زبان انگلیسی (۱۳۷۰–۱۴۰۵)",
+      "title_en": "English Language Teaching MA Entrance Examination Questions and Explanatory Answers (1991–2026)",
+      "scope": {
+        "first_year_jalali": 1370,
+        "last_year_jalali": 1405,
+        "question_pages": 425,
+        "answer_pages": 572,
+        "total_pdf_pages": 997,
+        "files": 2
+      },
+      "formats": [
+        "PDF"
+      ],
+      "print_status": "planned_unconfirmed",
+      "academic_review_status": "in_progress",
+      "publication_status": "prelaunch",
+      "quote": {
+        "currency": "IRT",
+        "gross_unit_price": 1000000,
+        "author_unit_share": 600000,
+        "fund_unit_share": 400000,
+        "unit": "toman",
+        "author_rate_basis_points": 6000,
+        "fund_rate_basis_points": 4000,
+        "split_basis": "gross_per_paid_bundle",
+        "gateway_cost_bearer": "platform_subject_to_owner_approval",
+        "checkout_enabled": false
+      },
+      "download_file_urls": [],
+      "sku": null,
+      "approved_images": [],
+      "rights_confirmed": false
+    }
+  ]
+}
