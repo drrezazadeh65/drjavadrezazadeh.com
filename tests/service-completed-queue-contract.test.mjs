@@ -30,8 +30,11 @@ test('completed delivery dashboard never implies customer satisfaction or settle
 });
 
 test('admin web clients invalidate shared scripts without changing Donation auditing',()=>{
- const version='operations-commerce.js?v=20261017-delivered-receipt-queue-v6';
- assert.ok(read('fa/app/admin/index.html').includes(version));
- assert.ok(read('en/account/admin/index.html').includes(version));
- assert.ok(audit.includes(version));
+ const extract=body=>(body.match(/operations-commerce\\.js\\?v=[A-Za-z0-9_-]+/)||[])[0];
+ const fa=extract(read('fa/app/admin/index.html'));
+ const en=extract(read('en/account/admin/index.html'));
+ const verified=extract(audit);
+ assert.ok(fa&&en&&verified,'both admin shells and Donation audit must declare the script');
+ assert.equal(fa,en,'both languages must use the same current script version');
+ assert.equal(fa,verified,'Donation regression audit must track the currently loaded script');
 });
