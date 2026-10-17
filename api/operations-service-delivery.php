@@ -78,7 +78,7 @@ function operationsCommerceRecordDelivery(PDO $pdo,string $actor,array $request)
             $proof->execute([$reference,$orderId,$sku]);
             $document=$proof->fetch(PDO::FETCH_ASSOC);
             if(!is_array($document)||
-                !preg_match('/^[a-f0-9]{48}\\.blob$/D',(string)$document['storage_name']))
+                !preg_match('/^[a-f0-9]{48}\.blob$/D',(string)$document['storage_name']))
                 throw new DomainException('document_evidence_not_in_this_case');
             $root=jrServiceFilesPrivateRoot();
             if($root===null)throw new RuntimeException('document_evidence_storage_unavailable');
