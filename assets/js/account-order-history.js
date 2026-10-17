@@ -309,7 +309,7 @@ function serviceFileWorkspace(order,service){
    const data=await response.json();
    if(!response.ok||data?.ok!==true||data.schema!=='private-service-files-v1'
       ||data.file?.registered!==true)throw Error('not_accepted');
-   file.value='';privacyCheck.checked=false;minorCheck.checked=false;guardianCheck.checked=false;guardianFlag.hidden=true;loaded=false;
+   file.value='';privacyCheck.checked=false;minorCheck.checked=false;guardianCheck.checked=false;guardianCheck.required=false;guardianFlag.hidden=true;loaded=false;
    state.textContent=tr('مدرک به‌صورت محرمانه ثبت شد.','Your document was registered privately.');
   }catch(_){
    state.textContent=tr('ثبت فایل تأیید نشد؛ ابتدا وضعیت پرونده را دوباره بررسی کنید و سند را از روش عمومی ارسال نکنید.',
