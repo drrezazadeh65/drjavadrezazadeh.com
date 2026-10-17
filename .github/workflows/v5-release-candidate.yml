@@ -81,6 +81,7 @@ jobs:
           node --test tests/services-visual-atlas-contract.test.mjs tests/service-delivery-evidence-contract.test.mjs
           node --test tests/service-bilingual-commerce-contract.test.mjs
           node --test tests/service-intake-security-contract.test.mjs tests/service-private-files-contract.test.mjs tests/service-buyer-receipt-contract.test.mjs
+          node --test tests/masterplan-100-release-gate.test.mjs
           node --check assets/js/commerce-checkout-en.js
           node --check assets/js/operations-commerce.js
           node --check assets/js/account-order-history.js
