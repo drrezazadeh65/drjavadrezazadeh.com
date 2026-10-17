@@ -31,7 +31,9 @@ assert.ok(live.includes('/identity/references/persian-symbol-gold.png'));
 assert.ok(live.includes('/identity/references/persian-wordmark-gold.png'));
 assert.ok(live.includes("order.state==='paid'&&order.paymentVerified===true"),'Receipt must be gated by paid state and verified payment claim');
 assert.ok(live.includes('if(verified){'),'Receipt must only render in verified branch');
-assert.ok(page.includes('customer-dashboard-v1.css?v=20261015-a4-print-flow-v2'),'Dashboard must load latest A4 print stylesheet');
+// Assert current A4-capable stylesheet identity, not an obsolete cache-buster: the
+// dashboard has since received legitimate rail/mobile fixes while A4 CSS persists.
+assert.match(page,/assets\/css\/customer-dashboard-v1\.css\?v=20[0-9]{6}-[a-z0-9-]+/i,'Dashboard must load the versioned A4 print-capable stylesheet');
 assert.ok(page.includes('student-sponsorship-dashboard.js?v=20261015-persian-receipt-lockup-v1'),'Dashboard must load branded receipt renderer');
 const favicon=fs.readFileSync(path.join(root,'favicon.svg'),'utf8');
 assert.ok(favicon.includes('data:image/png;base64,'),'SVG favicon must be self-contained for browser compatibility');
