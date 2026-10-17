@@ -33,6 +33,13 @@ test('private files are an additive paid-case table, not a replacement checkout 
  assert.ok(handler.includes("class_exists('ZipArchive')&&class_exists('finfo')"));
  assert.ok(handler.includes("&&jrServicePhpUploadLimitsReady()"));
  assert.ok(handler.includes('&&jrServicePhpMemoryReady()'));
+ 
+ assert.ok(handler.includes('function jrServicePhpExecutionReady()'));
+ assert.ok(handler.includes("ini_get('max_execution_time')"));
+ assert.ok(handler.includes('return $seconds===0||$seconds>=90;'));
+ assert.ok(handler.includes('&&jrServicePhpExecutionReady()'));
+ assert.ok(handler.includes("'phpExecutionCapacity'"));
+
  assert.ok(handler.includes('100663296'));
 
  assert.ok(handler.includes("operationsServiceDeliveryEvidenceReady($pdo)"));
