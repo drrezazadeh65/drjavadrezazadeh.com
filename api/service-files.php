@@ -277,14 +277,23 @@ function jrServiceFilesList(PDO $pdo,string $order,string $sku,?string $buyerEma
         FROM commerce_service_files WHERE order_id=? AND sku=?
         ORDER BY created_at DESC,id DESC LIMIT 30');
     $q->execute([$order,$sku]);$all=$q->fetchAll(PDO::FETCH_ASSOC);
+    $receiptReady=function_exists('jrServiceBuyerReceiptSchemaReady')
+        &&jrServiceBuyerReceiptSchemaReady($pdo);
+    $receipts=$receiptReady?jrServiceBuyerReceiptRows($pdo,$order,$sku):[];
     $released=false;$files=[];
     foreach($all as $file){
         $isOutput=$file['kind']==='professional_output';
         $isReleased=$isOutput&&jrServiceFileMatchesRelease($digest,$order,$sku,(string)$file['id']);
         if($isReleased)$released=true;
-        if($buyerEmail===null||!$isOutput||$isReleased)$files[]=$file;
+        if($buyerEmail===null||!$isOutput||$isReleased){
+            $confirmed=$isReleased&&isset($receipts[(string)$file['id']]);
+            $file['buyerReceiptConfirmed']=$confirmed;
+            $file['buyerReceiptConfirmedAt']=$confirmed?$receipts[(string)$file['id']]:null;
+            $files[]=$file;
+        }
     }
     return ['files'=>$files,'professionalOutputsReleasedToBuyer'=>$released,
+        'buyerReceiptConfirmationAvailable'=>$receiptReady,
         'verifiedPaidServiceCase'=>true];
 }
 function jrServiceFileDownload(PDO $pdo,string $id,?string $buyerEmail): never {
