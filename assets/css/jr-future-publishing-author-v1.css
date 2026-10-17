@@ -21,3 +21,40 @@
 @media(max-width:900px){.jp-hero-grid,.jp-commercial{grid-template-columns:1fr}.jp-book-scene{min-height:365px}.jp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.jp-split{grid-template-columns:1fr}.jp-hero:before{inset:8px}}
 @media(max-width:550px){.jp-nav{align-items:flex-start;padding:14px 0;flex-direction:column;gap:10px}.jp-menu{gap:13px;font-size:.83rem}.jp-hero{padding:42px 0}.jp-hero h1{font-size:clamp(1.85rem,8vw,2.3rem)}.jp-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.jp-metric{padding:16px 9px}.jp-grid{grid-template-columns:1fr}.jp-book-scene{min-height:328px}.jp-book{height:264px;padding:14px}.jp-book strong{font-size:.95rem}.jp-book small{font-size:.62rem}.jp-author-card{grid-template-columns:72px 1fr}.jp-avatar{height:72px;width:72px}.jp-split-metrics{grid-template-columns:1fr 1fr}.jp-hero-actions .jp-button{width:100%}}
 @media(prefers-reduced-motion:reduce){.jp-button{transition:none}}
+
+/* Mobile app-dock continuity for the existing publishing surfaces; five approved destinations. */
+.jp-app-dock{display:none}
+@media(max-width:700px){
+ .jr-pub{padding-bottom:calc(94px + env(safe-area-inset-bottom,0px))}
+ .jp-app-dock{
+  position:fixed;z-index:80;inset-inline:10px;
+  bottom:max(8px,env(safe-area-inset-bottom,0px));
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;
+  padding:5px 6px;border:1px solid #d4af3766;border-radius:21px;
+  background:#0b0b0bf5;box-shadow:0 9px 34px #000a;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+ }
+ .jp-app-dock a{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:0;min-height:58px;gap:3px;padding:6px 1px;
+  border-radius:13px;text-decoration:none;color:#e6dfd1;
+  font-size:clamp(.65rem,2.65vw,.78rem);line-height:1.3;font-weight:700;
+  text-align:center;-webkit-tap-highlight-color:transparent;
+ }
+ .jp-app-dock a[aria-current="page"]{background:#d4af3724;color:#f5d995}
+ .jp-app-dock a:focus-visible{outline:3px solid #f3d99b;outline-offset:1px}
+ .jp-app-dock a:hover{background:#d4af3719}
+ .jp-app-dock .jp-dock-icon{
+  width:22px;height:22px;flex:none;fill:none;stroke:currentColor;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+ }
+ .jr-pub .jp-footer{padding-bottom:22px}
+}
+@media(max-width:360px){
+ .jp-app-dock{inset-inline:7px;padding:4px 3px}
+ .jp-app-dock a{font-size:.67rem}
+}
+@media print{
+ .jp-app-dock{display:none!important}
+ .jr-pub{padding-bottom:0!important}
+}
