@@ -49,7 +49,7 @@ if($archive===$dest || str_contains($dest,'..'))
     jrInstallStop('invalid_private_destination');
 if(!class_exists(ZipArchive::class))jrInstallStop('zip_extension_not_available');
 $zip=new ZipArchive();
-if($zip->open($archive,ZipArchive::RDONLY)!==true)jrInstallStop('archive_not_readable');
+if($zip->open($archive,0)!==true)jrInstallStop('archive_not_readable');
 $allowed=array_merge(array_keys($expected),
     ['private-asset-manifest.json','READ_ME_PRIVATE_DEPLOYMENT.txt']);
 if($zip->numFiles!==count($allowed))jrInstallStop('archive_contents_not_exactly_expected');
