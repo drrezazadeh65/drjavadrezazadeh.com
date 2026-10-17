@@ -89,3 +89,15 @@ test('the real observer writes publicReleaseAcceptance beside (not replacing) le
  assert.match(source,/evidence\.publicReleaseAcceptance=assessPublicReleaseEvidence\(evidence\)/);
  assert.doesNotMatch(source,/\/api\/commerce\/create/);
 });
+
+test('GitHub Actions summary discloses strict P0 blockers even if smoke passed',()=>{
+ const workflow=fs.readFileSync('.github/workflows/bertina-postrelease-acceptance.yml','utf8');
+ assert.match(workflow,/### Public P0 acceptance \(strict\)/);
+ assert.match(workflow,/PUBLIC SURFACES VERIFIED/);
+ assert.match(workflow,/Exact release SHA pinned/);
+ assert.match(workflow,/One-hop \/home\/ redirect/);
+ assert.match(workflow,/Service pages meeting public contract/);
+ assert.match(workflow,/Strict public blockers/);
+ assert.match(workflow,/does NOT certify bank settlement/);
+ assert.match(workflow,/if: always\(\)/);
+});
