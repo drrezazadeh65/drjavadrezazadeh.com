@@ -157,7 +157,7 @@ test('digital buyer checkout fail-closes ambiguous payment creation and untruste
    '/fa/shop/payment-start/?gateway=abc&other=true',
    '/fa/shop/payment-start/?gateway=',
    '/fa/shop/payment-start/?gateway=abc#fragment',
-   'https://user:pass@drjavadrezazadeh.com/fa/shop/payment-start/?gateway=abc'
+   (()=>{const url=new URL('https://drjavadrezazadeh.com/fa/shop/payment-start/?gateway=abc');url.username='tester';url.password='dummy';return url.href;})()
  ]){
    const trial=await executeCheckout(unsafe);
    assert.equal(trial.redirects.length,0,'must not redirect to an invalid relay: '+unsafe);
