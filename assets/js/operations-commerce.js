@@ -551,50 +551,6 @@
                'Independent payment evidence review required');
         item.append(node('span',id+'… · '+String(entry.state||'')+
           ' · '+String(entry.updatedAt||'')+' · '+match));
-        if(entry.status==='in_progress'&&entry.orderPaidState===true
-           &&entry.providerClaimMatchesOrder===true){
-          const proofReady=fulfilment.serviceDeliveryEvidenceSchemaReady===true;
-          if(!proofReady){
-            item.append(node('p',text(
-              'ثبت تحویل مستند پس از اجرای مهاجرت امن پایگاه داده در دسترس خواهد بود؛ پرونده اکنون به‌صورت محافظت‌شده در جریان می‌ماند.',
-              'Evidence-backed delivery awaits its safe database migration; the case stays in progress.'),'ops-muted'));
-          }else{
-            const form=node('details');form.className='ops-delivery-attestation';
-            form.style.cssText='display:block;width:100%;margin-block:12px;padding:12px;border:1px solid rgba(212,175,55,.34);border-radius:12px';
-            form.append(node('summary',text('ثبت تحویل واقعی با سند محرمانه','Record actual delivery with private evidence')));
-            form.append(node('p',text(
-              'تنها پس از ارائه واقعی خدمت، شناسه ارجاع از پرونده محرمانه را درج کنید؛ متن فایل، مشخصات مشتری یا مدرک خصوصی را در این فرم وارد نکنید.',
-              'After genuine handover, enter an opaque reference from the private evidence ledger; do not type customer identity or document contents.'),'ops-muted'));
-            const kindLabel=node('label',text('نوع شاهد تحویل','Delivery evidence type'),'ops-muted');
-            kindLabel.style.cssText='display:grid;gap:7px;margin-block:10px';
-            const kind=document.createElement('select');
-            for(const [value,fa,en] of [
-              ['session_completed','جلسه واقعاً انجام شده','Session actually completed'],
-              ['document_handed_over','خروجی واقعی تحویل شده','Document or report handed over']
-            ]){const option=node('option',text(fa,en));option.value=value;kind.append(option);}
-            kindLabel.append(kind);form.append(kindLabel);
-            const refLabel=node('label',text('شناسه ارجاع واقعی (بدون داده شخصی)','Real evidence reference (no personal data)'),'ops-muted');
-            refLabel.style.cssText='display:grid;gap:7px;margin-block:10px';
-            const reference=document.createElement('input');
-            reference.type='text';reference.minLength=8;reference.maxLength=96;
-            reference.autocomplete='off';reference.spellcheck=false;
-            reference.placeholder='DELIVERY-2026-0001';
-            reference.style.cssText='width:100%;min-height:46px;padding:8px 12px;font:inherit';
-            refLabel.append(reference);form.append(refLabel);
-            const acknowledgementLabel=node('label',undefined,'ops-muted');
-            acknowledgementLabel.style.cssText='display:flex;gap:9px;align-items:start;margin-block:12px';
-            const acknowledgement=document.createElement('input');
-            acknowledgement.type='checkbox';acknowledgement.style.cssText='width:20px;height:20px;flex:none;margin-top:5px';
-            acknowledgementLabel.append(acknowledgement,node('span',text(
-              'تأیید می‌کنم خدمت واقعاً ارائه شده و شاهد قابل مراجعه در پرونده محرمانه موجود است.',
-              'I attest that service delivery actually occurred and the referenced evidence exists in private custody.')));
-            form.append(acknowledgementLabel);
-            const submit=node('button',text('ثبت تحویل مستند','Record evidenced delivery'),'button');
-            submit.type='button';form.append(submit);
-            submit.addEventListener('click',()=>confirmRealServiceDelivery(entry,submit,kind,reference,acknowledgement));
-            item.append(form);
-          }
-        }
         list.append(item);
       }
       detail.append(list);results.append(detail);
@@ -689,6 +645,50 @@
           }
           item.append(action);
           action.addEventListener('click',()=>advanceService(entry,action,begin,end));
+        }
+        if(entry.status==='in_progress'&&entry.orderPaidState===true
+           &&entry.providerClaimMatchesOrder===true){
+          const proofReady=fulfilment.serviceDeliveryEvidenceSchemaReady===true;
+          if(!proofReady){
+            item.append(node('p',text(
+              'ثبت تحویل مستند پس از اجرای مهاجرت امن پایگاه داده در دسترس خواهد بود؛ پرونده اکنون به‌صورت محافظت‌شده در جریان می‌ماند.',
+              'Evidence-backed delivery awaits its safe database migration; the case stays in progress.'),'ops-muted'));
+          }else{
+            const form=node('details');form.className='ops-delivery-attestation';
+            form.style.cssText='display:block;width:100%;margin-block:12px;padding:12px;border:1px solid rgba(212,175,55,.34);border-radius:12px';
+            form.append(node('summary',text('ثبت تحویل واقعی با سند محرمانه','Record actual delivery with private evidence')));
+            form.append(node('p',text(
+              'تنها پس از ارائه واقعی خدمت، شناسه ارجاع از پرونده محرمانه را درج کنید؛ متن فایل، مشخصات مشتری یا مدرک خصوصی را در این فرم وارد نکنید.',
+              'After genuine handover, enter an opaque reference from the private evidence ledger; do not type customer identity or document contents.'),'ops-muted'));
+            const kindLabel=node('label',text('نوع شاهد تحویل','Delivery evidence type'),'ops-muted');
+            kindLabel.style.cssText='display:grid;gap:7px;margin-block:10px';
+            const kind=document.createElement('select');
+            for(const [value,fa,en] of [
+              ['session_completed','جلسه واقعاً انجام شده','Session actually completed'],
+              ['document_handed_over','خروجی واقعی تحویل شده','Document or report handed over']
+            ]){const option=node('option',text(fa,en));option.value=value;kind.append(option);}
+            kindLabel.append(kind);form.append(kindLabel);
+            const refLabel=node('label',text('شناسه ارجاع واقعی (بدون داده شخصی)','Real evidence reference (no personal data)'),'ops-muted');
+            refLabel.style.cssText='display:grid;gap:7px;margin-block:10px';
+            const reference=document.createElement('input');
+            reference.type='text';reference.minLength=8;reference.maxLength=96;
+            reference.autocomplete='off';reference.spellcheck=false;
+            reference.placeholder='DELIVERY-2026-0001';
+            reference.style.cssText='width:100%;min-height:46px;padding:8px 12px;font:inherit';
+            refLabel.append(reference);form.append(refLabel);
+            const acknowledgementLabel=node('label',undefined,'ops-muted');
+            acknowledgementLabel.style.cssText='display:flex;gap:9px;align-items:start;margin-block:12px';
+            const acknowledgement=document.createElement('input');
+            acknowledgement.type='checkbox';acknowledgement.style.cssText='width:20px;height:20px;flex:none;margin-top:5px';
+            acknowledgementLabel.append(acknowledgement,node('span',text(
+              'تأیید می‌کنم خدمت واقعاً ارائه شده و شاهد قابل مراجعه در پرونده محرمانه موجود است.',
+              'I attest that service delivery actually occurred and the referenced evidence exists in private custody.')));
+            form.append(acknowledgementLabel);
+            const submit=node('button',text('ثبت تحویل مستند','Record evidenced delivery'),'button');
+            submit.type='button';form.append(submit);
+            submit.addEventListener('click',()=>confirmRealServiceDelivery(entry,submit,kind,reference,acknowledgement));
+            item.append(form);
+          }
         }
         list.append(item);
       }
