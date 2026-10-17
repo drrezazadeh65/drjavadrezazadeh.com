@@ -4,6 +4,14 @@ name: Deploy to Bertina
 on:
   workflow_dispatch:
     inputs:
+      release_scope:
+        description: "full_masterplan requires all acceptance; phased_live_audit is owner-approved current snapshot with PDF and SQL deferred"
+        required: true
+        type: choice
+        default: full_masterplan
+        options:
+          - full_masterplan
+          - phased_live_audit
       recovery_mode:
         description: "Development: hosting-managed by default; historical recovery modes remain opt-in"
         required: true
@@ -26,7 +34,7 @@ on:
         required: false
         type: string
       owner_masterplan_final_confirmation:
-        description: "ONLY AFTER all masterplan acceptance gates are independently VERIFIED. Enter owner final release phrase."
+        description: "For full: approved 100% phrase. For phased: I_APPROVE_GUARDED_LIVE_AUDIT_RELEASE_WITH_PDF_AND_SQL_DEFERRED"
         required: true
         type: string
 
@@ -57,13 +65,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # Non-bypassable owner instruction: no release until ALL 41 project gates,
-      # ALL 21 services, 40 real destinations and full independent evidence
-      # are accepted. This step runs before ANY production interaction.
+      # Full-acceptance and guarded-phase paths are mutually exclusive.
+      # Both require the owner actor, exact SHA, and existing production safety checks.
+      # The phased path does not certify any of the 41/21 acceptance records.
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: BLOCK PRODUCTION until full 100 percent masterplan acceptance
+        if: inputs.release_scope == 'full_masterplan'
         env:
           OWNER_FINAL_MASTERPLAN_CONFIRMATION: ${{ inputs.owner_masterplan_final_confirmation }}
         run: |
@@ -71,6 +80,22 @@ jobs:
           node --check scripts/masterplan-100-release-gate.mjs
           node --test tests/masterplan-100-release-gate.test.mjs
           node scripts/masterplan-100-release-gate.mjs
+
+      - name: BLOCK unsafe guarded phased release unless owner authorizes exact scope
+        if: inputs.release_scope == 'phased_live_audit'
+        env:
+          RELEASE_SCOPE: ${{ inputs.release_scope }}
+          APPROVED_COMMIT_SHA_INPUT: ${{ inputs.approved_commit_sha }}
+          EXPECTED_LIVE_SHA_INPUT: ${{ inputs.expected_live_sha }}
+          RECOVERY_MODE_INPUT: ${{ inputs.recovery_mode }}
+          OWNER_ACKNOWLEDGEMENT_INPUT: ${{ inputs.owner_acknowledgement }}
+          OWNER_PHASED_RELEASE_CONFIRMATION: ${{ inputs.owner_masterplan_final_confirmation }}
+        run: |
+          set -euo pipefail
+          node --check scripts/bertina-phased-release-gate.mjs
+          node --test tests/bertina-phased-release-gate.test.mjs
+          node scripts/bertina-phased-release-gate.mjs
+          echo "Guarded current-snapshot mode. PDF installation, SQL migrations, payouts, full 41/21 certification remain deferred." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Capture the live release fingerprint for automatic deployment
         if: github.event_name == 'push'
