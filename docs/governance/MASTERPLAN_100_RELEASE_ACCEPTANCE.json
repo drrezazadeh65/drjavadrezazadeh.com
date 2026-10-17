@@ -7,7 +7,7 @@
   "releaseState": "BLOCKED_PENDING_FULL_ACCEPTANCE",
   "ownerFinalAuthorization": false,
   "reviewedSourceCommit": null,
-  "sourceCiEvidence": "docs/governance/release-evidence/source_ci_20261017_6f63dae52c.md",
+  "sourceCiEvidence": "docs/governance/release-evidence/source_ci_20261017_cc4e6f6fe444.md",
   "stagingEvidence": null,
   "operationalReadinessEvidence": null,
   "independentReviewEvidence": null,
