@@ -211,7 +211,7 @@ await observeHostGate('mirkarimi-public-author-and-digital-offer',async()=>{
        && page.includes('id="jp-digital-checkout-form"')
        && page.includes('jr-publishing-checkout-v1.js')
        && page.includes('تأییدیه نهایی هنوز صادر نشده')
-       && !page.includes('Mehrabmirkarimi2000@gmail.com');
+       && !/[a-z0-9._%+-]*mirkarimi[a-z0-9._%+-]*@[a-z0-9.-]+\.[a-z]{2,}/i.test(page);
    }
  }finally{clearTimeout(timer);}
  const offer=await getPublicJson('/api/publishing/offer');
