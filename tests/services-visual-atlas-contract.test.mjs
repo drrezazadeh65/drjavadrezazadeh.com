@@ -126,3 +126,29 @@ test('each Persian paid service cites two directly accessible primary scholarly 
     'scholarly bibliography must not imply external endorsement '+service.id);
  }
 });
+
+
+test('all 21 English service essays include two independently traceable scholarly sources',()=>{
+ const allowed=new Set([
+  'www.aera.net','www.oecd.org','schoolcounselor.org','learningpolicyinstitute.org',
+  'udlguidelines.cast.org','www.icmje.org','publicationethics.org','sfdora.org'
+ ]);
+ for(const item of catalogue.services){
+  const html=read(`en/services/${item.id}/index.html`);
+  const start=html.indexOf(`data-jr-academic-evidence="${item.id}"`);
+  const end=html.indexOf('</section>',start);
+  const articleClose=html.indexOf('</article>');
+  assert.ok(start>0&&end>start&&articleClose>end,item.id+' EN sources must appear within article');
+  const section=html.slice(start,end);
+  const urls=[...section.matchAll(/<a href="(https:\/\/[^"]+)"[^>]*>/g)].map(m=>m[1]);
+  assert.equal(urls.length,2,'two English scholarly references required for '+item.id);
+  assert.equal(new Set(urls).size,2,'duplicate EN reference '+item.id);
+  for(const link of urls){
+   const parsed=new URL(link);
+   assert.ok(allowed.has(parsed.hostname),'unreviewed scholarly source '+item.id);
+   assert.ok(!parsed.username&&!parsed.password&&!parsed.hash,'unexpected URL payload '+item.id);
+  }
+  assert.match(section,/does not|do not|not represent/i,
+    'source citation should never imply independent endorsement '+item.id);
+ }
+});
