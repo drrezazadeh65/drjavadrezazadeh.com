@@ -85,3 +85,27 @@ test('premium CSS styles cart actions in RTL and LTR',()=>{
  assert.ok(css.includes('.jr-cart-redesign .cart-trust-links'));
  assert.ok(css.includes('html[lang="en"] .jr-cart-redesign'));
 });
+
+test('mobile app icon shells never render oversized on desktop standalone help pages',()=>{
+ const mobile=read('assets/css/mobile-app-v431.css');
+ const boot=read('assets/js/mobile-app-v431.js');
+ for(const marker of ['.app-dock{display:none}','@media(min-width:901px)',".app-dock,.mobile-app-sheet,.mobile-menu-trigger{display:none!important}",'fill:none','max-width:22px','.mobile-app-sheet[hidden]{display:none!important}','@media(max-width:900px)']){
+  assert.ok(mobile.includes(marker),'missing app-shell invariant: '+marker);
+ }
+ assert.ok(boot.includes('mobile-app-v431.css?v=431c'),'shell fallback cache version');
+ for(const locale of locales){
+  for(const slug of informational){
+   const html=read(locale+'/shop/'+slug+'/index.html');
+   assert.ok(html.includes('mobile-app-v431.css?v=431c'),locale+'/'+slug+' missing corrected mobile stylesheet cache key');
+  }
+ }
+});
+test('author intro contains a real approved editorial visual instead of unexplained initials',()=>{
+ const html=read('fa/shop/authors/mehrab-mirkarimi/index.html');
+ const stylesheet=read('assets/css/jr-future-publishing-author-v1.css');
+ assert.ok(html.includes('jp-author-visual'));
+ assert.ok(!html.includes('>م.م</div>'));
+ assert.ok(stylesheet.includes('.jp-author-card .jp-author-visual img'));
+ const src=(html.split('class="jp-avatar jp-author-visual"><img src="')[1]||'').split('"')[0];
+ assert.ok(src.startsWith('/') && existsSync(path.join(root,src.slice(1))));
+});
