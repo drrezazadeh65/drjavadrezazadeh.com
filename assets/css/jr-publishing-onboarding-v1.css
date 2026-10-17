@@ -1,0 +1,18 @@
+/* JR Author onboarding — shared academic gold/navy visual identity */
+.jp-kyc-form,.jp-owner-case{display:grid;gap:12px;padding:20px;margin:16px 0;border:1px solid #9a82465c;border-radius:16px;background:#13233a;color:#f8f5e9}
+.jp-kyc-form h3,.jp-owner-case h3{margin:0 0 8px;color:#e9c979}
+.jp-kyc-label{display:flex;flex-direction:column;gap:6px;font-size:.95rem;color:#f0e9d9;min-width:0}
+.jp-kyc-label input,.jp-kyc-label textarea,.jp-kyc-label select,.jp-owner-actions textarea{box-sizing:border-box;display:block;width:100%;padding:12px;min-height:44px;font:inherit;border:1px solid #8290a8;border-radius:9px;color:#181818;background:#fff}
+.jp-kyc-label textarea,.jp-owner-actions textarea{min-height:86px;resize:vertical}
+.jp-kyc-check{display:flex;gap:10px;align-items:flex-start;line-height:1.6;color:#f0e9d9}
+.jp-kyc-check input{width:20px;height:20px;flex-shrink:0}
+.jp-kyc-form button,.jp-owner-actions button{min-height:44px;justify-self:start;white-space:normal}
+.jp-kyc-form :focus-visible,.jp-owner-case :focus-visible{outline:3px solid #d4af37;outline-offset:3px}
+.jp-owner-case p{color:#ebebec;overflow-wrap:anywhere}
+.jp-owner-case a{color:#f3dba9;display:inline-block;padding:8px}
+.jp-owner-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0}
+.jp-owner-actions textarea{flex:1 1 280px}
+.jp-kyc-form[aria-busy=true]{opacity:.7}
+@media(min-width:860px){.jp-kyc-form{grid-template-columns:repeat(2,minmax(0,1fr))}.jp-kyc-form h3,.jp-kyc-form p,.jp-kyc-form .jp-kyc-check,.jp-kyc-form button{grid-column:1/-1}}
+@media(max-width:430px){.jp-kyc-form,.jp-owner-case{padding:14px}.jp-owner-actions{display:grid}.jp-owner-actions textarea{width:100%}}
+@media(prefers-reduced-motion:reduce){.jp-kyc-form *,.jp-owner-case *{scroll-behavior:auto;transition:none!important}}
