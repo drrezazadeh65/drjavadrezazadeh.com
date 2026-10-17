@@ -28,8 +28,8 @@ test('paid service and VIP checkout do not require a preassigned appointment',()
 });
 test('paid checkout pages load the latest payment scripts instead of stale cached copies',()=>{
   for(const [path,version] of [
-    ['fa/services/checkout/index.html','commerce-checkout.js?v=20261015-paid-service-support-v4'],
-    ['fa/vip/index.html','commerce-checkout.js?v=20261015-paid-service-support-v4'],
+    ['fa/services/checkout/index.html','commerce-checkout.js?v=20261017-bilingual-auth-v5'],
+    ['fa/vip/index.html','commerce-checkout.js?v=20261017-bilingual-auth-v5'],
     ['fa/shop/checkout/index.html','book-store.js?v=20261015-stock-clarity-v11'],
     ['en/shop/checkout/index.html','book-store.js?v=20261015-stock-clarity-v11'],
   ]){
