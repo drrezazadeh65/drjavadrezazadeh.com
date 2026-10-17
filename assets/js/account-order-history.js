@@ -276,7 +276,46 @@ function serviceFileWorkspace(order,service){
     const a=el('a',tr('دریافت امن فایل','Download privately'));
     a.href='/api/commerce/service-file?id='+encodeURIComponent(record.id);
     a.rel='nofollow';a.style.cssText='color:#f5d993;text-underline-offset:4px';
-    li.append(a);files.append(li);
+    li.append(a);
+    if(record.kind==='professional_output'&&data.buyerReceiptConfirmationAvailable===true){
+      if(record.buyerReceiptConfirmed===true){
+        li.append(el('small',tr(
+          'دریافت این خروجی توسط صاحب حساب تأیید شده است؛ این تأیید درباره کیفیت خدمت داوری نمی‌کند.',
+          'The account holder explicitly acknowledged receiving this output; this is not an assessment of service quality.'
+        )));
+      }else{
+        const acknowledged=el('button',tr('تأیید دریافت این خروجی',
+          'Acknowledge receipt of this output'),'button');
+        acknowledged.type='button';
+        acknowledged.addEventListener('click',async()=>{
+          if(!window.confirm(tr(
+            'آیا تأیید می‌کنید همین فایل خروجی را دریافت کرده‌اید؟ این اعلام رضایت از کیفیت یا تکمیل امور مالی نیست.',
+            'Do you personally confirm receipt of this exact file? This does not confirm satisfaction, bank settlement or successful download verification.'
+          )))return;
+          acknowledged.disabled=true;
+          try{
+            const response=await fetch('/api/commerce/service-receipt',{
+              method:'POST',credentials:'same-origin',cache:'no-store',
+              headers:{'Content-Type':'application/json','Accept':'application/json'},
+              body:JSON.stringify({orderId:order.id,sku:service.sku,fileId:record.id,received:true})
+            });
+            const result=await response.json();
+            if(!response.ok||result?.ok!==true
+              ||result.schema!=='customer-service-receipt-ack-v1'
+              ||result.acknowledgement?.buyerSelfAcknowledgedReceipt!==true)
+              throw Error('receipt_not_confirmed');
+            state.textContent=tr('دریافت فایل به درخواست صاحب حساب ثبت شد.',
+              'Your explicit receipt acknowledgment was recorded.');
+            await refresh();
+          }catch(_){
+            state.textContent=tr('تأیید دریافت ثبت نشد؛ پیش از تلاش مجدد، وضعیت این پرونده را بررسی کنید.',
+              'Receipt confirmation was not verified. Review your order before retrying.');
+          }finally{acknowledged.disabled=false;}
+        });
+        li.append(acknowledged);
+      }
+    }
+    files.append(li);
    }
    state.textContent=data.files.length?
     tr('فایل‌های قابل‌دسترسی این پرونده نمایش داده شدند.','Authorised files for this case are listed.'):
