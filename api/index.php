@@ -826,8 +826,13 @@ if($path==='/commerce/fulfilment'&&$verb==='GET'){
             'carrier'=>$parcel['carrier']??null,'trackingCode'=>$parcel['tracking_code']??null,
             'dispatchedAt'=>$parcel['dispatched_at']??null,'deliveredAt'=>$parcel['delivered_at']??null];
     }
+    // A private document upload button must not be advertised merely because
+    // the client has a paid case. Report actual server-side custody readiness,
+    // never private paths, settings, scanner names or DB connection details.
+    $privateFilesReady=jrServiceFilesReady($pdo);
     respond(['ok'=>true,'paymentRecord'=>'provider_verified_not_bank_settlement',
-        'serviceCases'=>$safeCases,'parcel'=>$safeParcel]);
+        'serviceCases'=>$safeCases,'parcel'=>$safeParcel,
+        'privateServiceFilesReady'=>$privateFilesReady]);
 }
 
 // A refund REQUEST is not a refund, a bank reversal or an entitlement cancellation.
