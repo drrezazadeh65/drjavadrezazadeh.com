@@ -51,7 +51,7 @@ async function pay(items,button,message,customer){
   }
   if(typeof data.paymentUrl!=='string')throw Error('missing_gateway_link');
   const link=new URL(data.paymentUrl,location.origin);
-  if(link.origin!==location.origin||link.pathname!=='/fa/shop/payment-start/'||link.searchParams.size!==1||!link.searchParams.get('gateway'))throw Error('unsafe_gateway_link');
+  if(link.origin!==location.origin||link.username||link.password||link.hash||link.pathname!=='/fa/shop/payment-start/'||link.searchParams.size!==1||!link.searchParams.get('gateway'))throw Error('unsafe_gateway_link');
   button.dataset.redirecting='true';
   location.assign(link.href);
  }catch(e){delete button.dataset.redirecting;status(message,tr('وضعیت درخواست پرداخت نامشخص است. پیش از تلاش مجدد، وضعیت سفارش را از طریق ایمیل رسمی بررسی کنید.'))}
