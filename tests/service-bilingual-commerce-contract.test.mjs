@@ -98,8 +98,9 @@ test('service hubs have 21 real canonical structured-data destinations and a sin
  const english=read('en/services/index.html');
  const persian=read('fa/khadamat/index.html');
  const faCatalog=read('fa/services/index.html');
- const matchJson=html=>[...html.matchAll(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/g)]
-   .map(match=>JSON.parse(match[1])).find(json=>json['@type']==='ItemList');
+ const matchJson=html=>html.split('<script type="application/ld+json">').slice(1)
+   .map(block=>JSON.parse(block.split('</script>')[0]))
+   .find(json=>json['@type']==='ItemList');
  const enList=matchJson(english),faList=matchJson(persian);
  assert.equal(enList?.itemListElement?.length,21);
  assert.equal(faList?.itemListElement?.length,21);
