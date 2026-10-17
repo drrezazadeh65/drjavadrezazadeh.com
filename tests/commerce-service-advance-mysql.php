@@ -324,10 +324,33 @@ $pdo->prepare("INSERT INTO commerce_service_files
   hash('sha256',$documentPlain)]);
 checkService(jrServiceFileDecrypt($docCipher,$documentOrder,$sku)===$documentPlain,
  'private_service_file_aead_roundtrip');
+// An internal draft in the same case must NEVER be visible to the buyer
+// merely because the owner attested delivery of another finished document.
+$draftId='11111111-1111-4111-8111-111111111198';
+$draftName=str_repeat('b',48).'.blob';
+$draftPlain='%PDF-1.7'.str_repeat(' unapproved internal draft CI fixture',10);
+$draftCipher=jrServiceFileEncrypt($draftPlain,$documentOrder,$sku);
+if(file_put_contents($privateDir.'/'.$draftName,$draftCipher,LOCK_EX)!==strlen($draftCipher))
+    throw new RuntimeException('private_draft_fixture_unwritable');
+chmod($privateDir.'/'.$draftName,0600);
+$pdo->prepare("INSERT INTO commerce_service_files
+ (id,order_id,sku,kind,uploader_account_id,storage_name,file_extension,
+ mime_type,plaintext_size,content_sha256) VALUES(?,?,?,?,?,?,?,?,?,?)")
+ ->execute([$draftId,$documentOrder,$sku,'professional_output',$actor,
+ $draftName,'pdf','application/pdf',strlen($draftPlain),hash('sha256',$draftPlain)]);
 refused(fn()=>jrServiceFileDecrypt($docCipher,$orderId,$sku),
  RuntimeException::class,'encrypted_document_cannot_be_reused_for_other_order');
 
 $complete=operationsCommerceRecordDelivery($pdo,$actor,$validDocument);
+$released=jrServiceFileReleasedDigest($pdo,$documentOrder,$sku,'delivered');
+checkService(jrServiceFileMatchesRelease($released,$documentOrder,$sku,$validDocument['evidenceReference']),
+ 'only_document_attested_with_real_file_is_released');
+checkService(!jrServiceFileMatchesRelease($released,$documentOrder,$sku,$draftId),
+ 'unapproved_draft_in_same_delivered_case_remains_private');
+checkService(jrServiceFileReleasedDigest($pdo,$documentOrder,$sku,'in_progress')===null,
+ 'uncompleted_case_has_no_customer_release');
+checkService(jrServiceFileReleasedDigest($pdo,$wrongId,$sku,'delivered')===null,
+ 'case_without_document_evidence_cannot_release_output');
 checkService(($complete['state']??'')==='delivered'
  &&$complete['deliveryRecordedByOwner']===true
  &&$complete['customerNotified']===false
@@ -408,7 +431,7 @@ refused(fn()=>jrServiceIntakeSave($pdo,$intakeEmail,$actor,
     array_merge($brief,['orderId'=>$documentOrder])),
  DomainException::class,'delivered_case_cannot_silently_replace_intake');
 
-@unlink($privateDir.'/'.$storageName);@rmdir($privateDir);
+@unlink($privateDir.'/'.$storageName);@unlink($privateDir.'/'.$draftName);@rmdir($privateDir);
 putenv('JR_SERVICE_PRIVATE_STORAGE');
 $pdo->exec('DROP TEMPORARY TABLE operations_audit');
 echo "Service advance MySQL fixture: no real money, appointments, email or entitlement granted.\n";
