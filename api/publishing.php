@@ -16,7 +16,7 @@ function jrPublishingSchemaReady(PDO $pdo): bool {
           'publishing_notification_outbox','publishing_audit_events',
           'publishing_author_contracts','publishing_contract_signature_evidence',
           'publishing_platform_cost_entries','publishing_platform_funding_entries',
-          'commerce_orders','commerce_payment_claims'];
+          'commerce_orders','commerce_payment_claims','commerce_refund_requests'];
         $s=$pdo->query('SELECT TABLE_NAME, ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');
         $engines=[];
         foreach($s->fetchAll(PDO::FETCH_ASSOC) as $row) {
