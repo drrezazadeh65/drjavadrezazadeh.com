@@ -20,12 +20,15 @@
         "en/publications/index.html",
         "fa/entesharat-elmi/index.html",
         "tests/publications-entity-graph.test.mjs",
-        "docs/research/STRUCTURED_DATA_PUBLICATIONS_AUDIT_20261017.md"
+        "docs/research/STRUCTURED_DATA_PUBLICATIONS_AUDIT_20261017.md",
+        "https://www.ijhcs.com/index.php/IJHCS/issue/download/10/28"
       ],
       "blockers": [
-        "Rerun actual live Schema.org Validator after approved release",
-        "Verify third article's original publisher record"
-      ]
+        "Rerun actual live Schema.org Validator after approved release"
+      ],
+      "sourcesVerified": 3,
+      "doiAssignedFromPrimaryEvidence": 2,
+      "thirdNoDoiInvented": true
     },
     {
       "phase": 2,
@@ -154,5 +157,20 @@
     "allUseSinglePersonEntity": true,
     "existingFaIdPreserved": true,
     "publicUrlsChanged": 0
+  },
+  "proofs": {
+    "schemaSourceSpotcheck": {
+      "publicationPages": 2,
+      "parsedErrors": 0
+    },
+    "semanticServices": {
+      "totalBilingualPairs": 21,
+      "verifiedMatchingIdentityPairs": 21
+    },
+    "scriptSyntax": {
+      "files": 4,
+      "checksPassed": 4
+    },
+    "directiveStoredVerbatim": true
   }
 }
