@@ -74,3 +74,22 @@ test('buyer order timeline can save consented brief, read revisions and render p
  assert.match(english,/account-order-history\.js/);
  assert.match(english,/noindex,nofollow,noarchive/);
 });
+
+
+test('all 21 approved paid service cases have bilingual private-brief guidance without exposing secrets',()=>{
+ const marker='const SERVICE_BRIEF_PROMPTS=';
+ const start=buyer.indexOf(marker);
+ const end=buyer.indexOf(';\nfunction serviceIntakeEditor',start);
+ assert.ok(start>=0&&end>start,'service-specific guidance missing');
+ const prompts=JSON.parse(buyer.slice(start+marker.length,end));
+ const catalog=JSON.parse(read('assets/data/service-catalog.json')).services;
+ assert.deepEqual(Object.keys(prompts).sort(),catalog.map(s=>s.id).sort());
+ for(const [id,pair] of Object.entries(prompts)){
+  assert.equal(Array.isArray(pair),true,id);
+  assert.equal(pair.length,2,id);
+  assert.ok(pair.every(s=>typeof s==='string'&&s.length>=30),id);
+ }
+ assert.match(buyer,/service-intake-context/);
+ assert.match(buyer,/\/api\/commerce\/service-intake/);
+ assert.match(buyer,/credentials:'same-origin'/);
+});
