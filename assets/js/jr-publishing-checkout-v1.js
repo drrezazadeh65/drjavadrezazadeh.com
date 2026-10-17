@@ -30,12 +30,13 @@ form.addEventListener('submit',async e=>{
   const j=await r.json();
   if(!r.ok||j.ok!==true||j.currency!=='IRT'||j.totalToman!==1000000||typeof j.paymentUrl!=='string')throw Error('order_not_ready');
   const dest=new URL(j.paymentUrl,location.origin);
-  if(dest.origin!==location.origin||!dest.pathname.startsWith('/fa/shop/payment-start/'))throw Error('invalid_gateway_relay');
+  if(dest.origin!==location.origin||dest.username||dest.password||dest.hash||dest.pathname!=='/fa/shop/payment-start/'||dest.searchParams.size!==1||!dest.searchParams.get('gateway'))throw Error('invalid_gateway_relay');
   notice('سفارش ثبت شد؛ انتقال به صفحه پرداخت امن...');
   window.location.assign(dest.href);
  }catch(_){
-  notice('سفارش پرداختی تکمیل نشد. وجهی از این صفحه دریافت نشده است؛ برای تلاش مجدد یا پیگیری با پشتیبانی تماس بگیرید.');
-  busy=false;pay.disabled=false;
+  // An uncertain POST can create an order or start payment before the response is lost.
+  // Keep this form locked to prevent a duplicate charge until the buyer checks status.
+  notice('وضعیت سفارش یا درخواست پرداخت نامشخص است. برای جلوگیری از پرداخت تکراری، پیش از تلاش مجدد با پشتیبانی رسمی info@drjavadrezazadeh.com و با اعلام نام و ایمیل سفارش تماس بگیرید.');
  }
 });
 offer();
