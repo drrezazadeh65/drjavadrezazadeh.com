@@ -47,21 +47,21 @@ test('canonical publishing mother-schema inventory tracks both approved additive
    'docs/migrations/20261017_jr_publishing_contract_and_reserve.sql'
  ];
  const canonical=migrationFiles.flatMap(file=>[...fs.readFileSync(file,'utf8')
-   .matchAll(/CREATE\\s+TABLE\\s+IF\\s+NOT\\s+EXISTS\\s+(publishing_[a-z0-9_]+)/ig)]
+   .matchAll(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(publishing_[a-z0-9_]+)/ig)]
    .map(m=>m[1]));
  assert.equal(canonical.length,17,'canonical publishing layer has 17 proposed tables');
  assert.equal(new Set(canonical).size,17,'no duplicate canonical table');
  for(const name of canonical)assert.ok(sql.includes("'"+name+"'"),'inventory missing: '+name);
  assert.match(sql,/PUBLISHING_CANONICAL/);
  assert.match(sql,/TABLE_NAME LIKE 'publishing_%'/);
- assert.match(sql,/FROM information_schema\\.KEY_COLUMN_USAGE/);
+ assert.match(sql,/FROM information_schema\.KEY_COLUMN_USAGE/);
  assert.match(sql,/REFERENCED_TABLE_NAME IS NOT NULL/);
  assert.match(sql,/publishing_sale_allocation_entries/);
  assert.match(sql,/publishing_platform_cost_entries/);
  assert.doesNotMatch(sql,/UNION ALL SELECT 'PUBLISHING_CANONICAL','jr_pub_/);
  // No live migration, private record query, authority claim or accepting evidence.
  const executable=sql.replace(/^--.*$/gm,'');
- assert.doesNotMatch(executable,/\\b(?:INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|TRUNCATE|REPLACE|GRANT|REVOKE|CALL)\\b/i);
- assert.doesNotMatch(executable,/FROM\\s+publishing_[a-z]+/i);
- assert.doesNotMatch(executable,/JOIN\\s+publishing_[a-z]+/i);
+ assert.doesNotMatch(executable,/\b(?:INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|TRUNCATE|REPLACE|GRANT|REVOKE|CALL)\b/i);
+ assert.doesNotMatch(executable,/FROM\s+publishing_[a-z]+/i);
+ assert.doesNotMatch(executable,/JOIN\s+publishing_[a-z]+/i);
 });
