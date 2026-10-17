@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 const read=p=>fs.readFileSync(p,'utf8');
 test('only verified BitPay callback may create digital entitlements and allocation',()=>{
  const api=read('api/index.php'),stage=read('api/commerce-stage9.php'),digital=read('api/internal/jr-publishing-digital.php');
@@ -104,4 +105,72 @@ test('legacy paid books/services/donations never depend on publishing mailer exi
  assert.match(section,/if\(!\$digitalReceipt && validEmail\(\$customerEmail\)&&mailReady\(\)\)/);
  assert.ok(section.indexOf('if($digitalReceipt){')<section.indexOf('require_once $mailer'),
   'optional publishing dependency must be loaded only for the digital SKU');
+});
+
+
+test('digital buyer checkout fail-closes ambiguous payment creation and untrusted relay URLs',async()=>{
+ const client=read('assets/js/jr-publishing-checkout-v1.js');
+ async function executeCheckout(paymentUrl,{networkFails=false}={}){
+   const redirects=[];let posts=0;
+   const form={hidden:true,reportValidity:()=>true,addEventListener(_event,callback){this.onSubmit=callback;}};
+   const message={textContent:''},pay={disabled:false},name={value:'Verified Test Buyer'};
+   const email={value:'test@example.invalid'};
+   const map={
+     '#jp-digital-checkout-form':form,
+     '#jp-checkout-state':message,
+     '#jp-pay-now':pay,
+     '#jp-buyer-name':name,
+     '#jp-buyer-email':email
+   };
+   const fetch=async (url)=>{
+     if(url==='/api/publishing/offer'){
+       return {ok:true,json:async()=>({
+         ok:true,checkoutEnabled:true,available:true,
+         sku:'digital:tefl-ma-exams-1370-1405',priceToman:1000000
+       })};
+     }
+     assert.equal(url,'/api/commerce/create');posts++;
+     if(networkFails)throw Error('ambiguous_network_failure');
+     return {ok:true,json:async()=>({
+       ok:true,currency:'IRT',totalToman:1000000,paymentUrl
+     })};
+   };
+   vm.runInNewContext(client,{
+     document:{querySelector:selector=>map[selector]||null},
+     fetch,URL,
+     location:{origin:'https://drjavadrezazadeh.com'},
+     window:{location:{assign:url=>redirects.push(url)}}
+   });
+   // Allow the asynchronous, fail-closed public offer check to settle first.
+   await new Promise(resolve=>setImmediate(resolve));
+   assert.equal(form.hidden,false);
+   await form.onSubmit({preventDefault(){}});
+   return {redirects,posts,pay,message,form};
+ }
+ const valid=await executeCheckout('/fa/shop/payment-start/?gateway=abc123');
+ assert.equal(valid.redirects.length,1,'the single, same-origin gateway relay remains usable');
+ assert.match(valid.redirects[0],/^https:\/\/drjavadrezazadeh\.com\/fa\/shop\/payment-start\/\?gateway=abc123$/);
+ for(const unsafe of [
+   'https://evil.example/fa/shop/payment-start/?gateway=abc',
+   '/fa/shop/payment-start/other/?gateway=abc',
+   '/fa/shop/payment-start/?gateway=abc&gateway=xyz',
+   '/fa/shop/payment-start/?gateway=abc&other=true',
+   '/fa/shop/payment-start/?gateway=',
+   '/fa/shop/payment-start/?gateway=abc#fragment',
+   'https://user:pass@drjavadrezazadeh.com/fa/shop/payment-start/?gateway=abc'
+ ]){
+   const trial=await executeCheckout(unsafe);
+   assert.equal(trial.redirects.length,0,'must not redirect to an invalid relay: '+unsafe);
+   assert.equal(trial.pay.disabled,true,'uncertain order must remain non-retryable');
+   assert.match(trial.message.textContent,/وضعیت سفارش یا درخواست پرداخت نامشخص است/);
+   await trial.form.onSubmit({preventDefault(){}});
+   assert.equal(trial.posts,1,'never repeat ambiguous commerce POST');
+ }
+ const ambiguous=await executeCheckout(undefined,{networkFails:true});
+ assert.equal(ambiguous.redirects.length,0);
+ assert.equal(ambiguous.pay.disabled,true);
+ assert.equal(ambiguous.posts,1);
+ assert.doesNotMatch(ambiguous.message.textContent,/وجهی از این صفحه دریافت نشده است/);
+ await ambiguous.form.onSubmit({preventDefault(){}});
+ assert.equal(ambiguous.posts,1);
 });
