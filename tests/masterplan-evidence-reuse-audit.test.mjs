@@ -1,0 +1,31 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {reconcile} from '../scripts/masterplan-evidence-reuse-audit.mjs';
+const acceptancePath='docs/governance/MASTERPLAN_100_RELEASE_ACCEPTANCE.json';
+test('reuse all existing 41/21 requirements without fabricating acceptance',()=>{
+ const before=fs.readFileSync(acceptancePath,'utf8');
+ const original=JSON.parse(before);
+ const r=reconcile(process.cwd(),{sha:'bb22b9588b394cba9df499fe31baaece7925a5bb',runId:'39033867925'});
+ assert.equal(r.gates.count,41);
+ assert.equal(r.services.count,21);
+ assert.equal(r.gates.records.length,41);
+ assert.equal(r.services.records.length,21);
+ assert.equal(r.gates.formallyVerified,original.verifiedGates.filter(x=>x.status==='VERIFIED').length);
+ assert.equal(r.services.formallyVerified,original.verifiedServices.filter(x=>x.status==='VERIFIED').length);
+ assert.equal(r.officiallyAcceptedDestinations,original.verifiedInternalDestinations.length);
+ assert.equal(r.services.bilingualSourcePagesExisting,42);
+ assert.equal(r.releaseState,original.releaseState);
+ assert.equal(r.ownerFinalAuthorization,original.ownerFinalAuthorization);
+ assert.equal(fs.readFileSync(acceptancePath,'utf8'),before,'read-only reconciliation must not alter acceptance state');
+});
+test('source code and prior tests are never represented as real payment or review acceptance',()=>{
+ const r=reconcile();
+ assert.ok(r.gates.records.every(x=>x.sourcePointersAreAcceptanceEvidence===false));
+ assert.ok(r.services.records.every(x=>x.thisAuditVerifiedPaymentOrFulfilment===false));
+ assert.ok(r.gates.records.every(x=>Array.isArray(x.existingSourcePointers)&&x.existingSourcePointers.length>0));
+ assert.ok(r.gates.records.some(x=>x.independentReviewRequired));
+ assert.ok(r.gates.records.some(x=>x.liveProofRequired));
+ assert.match(r.conclusion,/No previous tests repeated/);
+ assert.match(r.conclusion,/No.*41\/21 acceptance status advanced/);
+});
