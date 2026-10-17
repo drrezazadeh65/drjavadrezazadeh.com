@@ -286,6 +286,7 @@ function jrServiceFilesList(PDO $pdo,string $order,string $sku,?string $buyerEma
         $isReleased=$isOutput&&jrServiceFileMatchesRelease($digest,$order,$sku,(string)$file['id']);
         if($isReleased)$released=true;
         if($buyerEmail===null||!$isOutput||$isReleased){
+            $file['releasedToBuyer']=$isReleased;
             $confirmed=$isReleased&&isset($receipts[(string)$file['id']]);
             $file['buyerReceiptConfirmed']=$confirmed;
             $file['buyerReceiptConfirmedAt']=$confirmed?$receipts[(string)$file['id']]:null;
