@@ -22,7 +22,9 @@ test('extend existing mother schema with exactly three additive publishing table
  assert.match(doc,/card_sealed TEXT NOT NULL/);
  assert.match(doc,/iban_sealed TEXT NOT NULL/);
  assert.match(doc,/encrypted_storage_name/);
- assert.doesNotMatch(doc.replace(/^\s*--[^\n]*$/gm,''),/\b(?:DROP|TRUNCATE|DELETE FROM|UPDATE|CREATE DATABASE|INSERT INTO)\b/);
+ // Block mutating SQL statements, without rejecting legitimate DDL ON UPDATE column attributes.
+ assert.doesNotMatch(doc.replace(/^\s*--[^\n]*$/gm,''),/^\s*(?:DROP\b|TRUNCATE\b|DELETE\s+FROM\b|UPDATE\s+[a-z_]|CREATE\s+DATABASE\b|INSERT\s+INTO\b)/gmi);
+ assert.match(doc,/ON UPDATE CURRENT_TIMESTAMP/);
  assert.doesNotMatch(doc,/CREATE TABLE IF NOT EXISTS (?:author_users|customer_accounts|commerce_orders)/);
 });
 test('author profile, bank and document submissions are scoped to an email-verified account with mandatory POST Origin',()=>{
