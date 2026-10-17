@@ -1,5 +1,6 @@
 // Read-only Bertina acceptance. No credentials, orders, payment requests or mutations.
 import fs from 'node:fs';
+import {inspectPublicServiceRoute,serviceRoutesFromCatalog} from './lib/public-service-route-contract.mjs';
 const ORIGIN='https://drjavadrezazadeh.com';
 const expected=(process.env.BERTINA_EXPECTED_RELEASE_SHA||'').trim();
 const output=process.env.BERTINA_ACCEPTANCE_EVIDENCE||'bertina-postrelease-evidence.json';
@@ -144,6 +145,36 @@ await observeHostGate('jhela-ojs-subdomain-tls',async()=>{
     return {status:'HOST_UNVERIFIED',httpStatus:response.status,
       trustedTlsHandshake:true,installedOjsOrPrivateUploadsVerified:false};
   }finally{clearTimeout(timer);}
+});
+
+// Public-only 21 x 2 service route observation: HTTP 200, canonical,
+// reciprocal hreflang, indexability, real checkout link and visible H1.
+// Deliberately NON-GATING for the established 17-check observer. A clean
+// source/browser result cannot prove a payment, fulfilled service or refund.
+await observeHostGate('bilingual-public-service-pages-21x2',async()=>{
+ const catalog=JSON.parse(fs.readFileSync('assets/data/service-catalog.json','utf8'));
+ const routes=serviceRoutesFromCatalog(catalog);
+ const inspected=[];
+ for(let i=0;i<routes.length;i+=6){
+   await Promise.all(routes.slice(i,i+6).map(async item=>{
+     try{
+       const html=await get(item.path);
+       const result=inspectPublicServiceRoute(html,{id:item.id,locale:item.locale,origin:ORIGIN});
+       inspected.push({...item,...result});
+     }catch(_){
+       inspected.push({...item,ok:false,failures:['unreachable_or_non200']});
+     }
+   }));
+ }
+ const failed=inspected.filter(r=>!r.ok);
+ return {
+   status:failed.length?'HOST_UNVERIFIED':'LIVE_VERIFIED',
+   expectedPages:42,inspectedPages:inspected.length,
+   publicPagesMatchingContract:inspected.length-failed.length,
+   failedRoutes:failed.map(({path,failures})=>({path,failures})),
+   notes:'Public routes only; payment, user and owner dashboards, funds, fulfilment and academic endorsement are NOT verified.',
+   verifiedEndToEndPurchase:false,verifiedDelivery:false,verifiedBeneficiarySettlement:false
+ };
 });
 
 const evidence={
