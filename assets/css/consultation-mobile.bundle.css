@@ -1,4 +1,26 @@
 /* Source: mobile-app-v431.css */
+/* Critical guard: every page loading the shared app shell must have a
+   complete SVG and visibility baseline, even when style.css is not loaded.
+   Prevents desktop-sized black icon silhouettes on standalone help pages. */
+.app-icon,.mobile-app-sheet .app-icon,.mobile-menu-trigger .app-icon{
+ display:block;width:22px;height:22px;max-width:22px;max-height:22px;
+ flex:none;fill:none;stroke:currentColor;stroke-width:1.8;
+ stroke-linecap:round;stroke-linejoin:round;
+}
+.app-dock{display:none}
+.mobile-app-sheet[hidden]{display:none!important}
+@media(min-width:901px){
+ .app-dock,.mobile-menu-trigger{display:none!important}
+ /* The 901–1100px tablet trigger opens this sheet; never hide the dialog here. */
+ .mobile-app-sheet[hidden]{display:none!important}
+}
+@media(max-width:900px){
+ .app-dock{display:grid;position:fixed;z-index:70;max-width:calc(100% - 12px)}
+ .mobile-app-sheet{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.68)}
+ .mobile-app-sheet[hidden]{display:none!important}
+ .app-sheet-panel{position:absolute;max-width:calc(100% - 16px)}
+}
+
 /* v4.3.1 Mobile App Shell — public/mobile experience only.
    Preserves semantic HTML, URLs, crawlability and desktop layouts. */
 :root{
