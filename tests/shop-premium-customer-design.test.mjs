@@ -123,3 +123,24 @@ test('social preview image matches visible licensed hero on bilingual customer p
   }
  }
 });
+
+test('bilingual public help guides keep reciprocal canonicals, hreflang and discoverability',()=>{
+ const host='https://drjavadrezazadeh.com';
+ for(const slug of ['purchase-guide','customer-policy']){
+  for(const locale of locales){
+   const html=read(locale+'/shop/'+slug+'/index.html');
+   assert.ok(html.includes('<link rel="canonical" href="'+host+'/'+locale+'/shop/'+slug+'/">'));
+   for(const lang of locales){
+    assert.ok(html.includes('<link rel="alternate" hreflang="'+lang+'" href="'+host+'/'+lang+'/shop/'+slug+'/">'),locale+'/'+slug+'/'+lang);
+   }
+   assert.ok(html.includes('<link rel="alternate" hreflang="x-default" href="'+host+'/en/shop/'+slug+'/">'));
+   assert.match(html,/<meta name="robots" content="index,follow/);
+  }
+ }
+ for(const locale of locales){
+  for(const slug of ['receipt','cart','checkout']){
+   const html=read(locale+'/shop/'+slug+'/index.html');
+   assert.match(html,/<meta name="robots" content="noindex/);
+  }
+ }
+});
