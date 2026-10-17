@@ -1627,3 +1627,52 @@ test('bilingual student support FAQ retains four original answers and eight new 
   }
  }
 });
+
+
+test('publishing mobile-app and desktop editorial layouts share the approved navigation without overlap',async({page})=>{
+  const screens=[
+    ['/fa/shop/authors/mehrab-mirkarimi/','shop'],
+    ['/fa/app/author/','account']
+  ];
+  for(const [route,active] of screens){
+    for(const width of [320,390,430,768,1024,1440]){
+      await page.setViewportSize({width,height:844});
+      const response=await page.goto(base+route,{waitUntil:'domcontentloaded'});
+      expect(response.status(),route+' at '+width).toBe(200);
+      await expect(page.locator('main h1')).toBeVisible();
+      const overflow=await stableOverflow(page);
+      expect(Math.max(overflow.html,overflow.body),route+' at '+width+' overflow')
+        .toBeLessThanOrEqual(overflow.viewport+1);
+      const dock=page.locator('nav.jp-app-dock');
+      await expect(dock.locator('a')).toHaveCount(5);
+      await expect(dock.locator('a[aria-current="page"]')).toHaveCount(1);
+      const expected=active==='shop'?'/fa/shop/':'/fa/app/author/';
+      await expect(dock.locator('a[aria-current="page"]')).toHaveAttribute('href',expected);
+      if(width<=430){
+        await expect(dock).toBeVisible();
+        const targets=await dock.locator('a').evaluateAll(nodes=>nodes.map(node=>{
+          const r=node.getBoundingClientRect();
+          return {width:r.width,height:r.height};
+        }));
+        for(const target of targets){
+          expect(target.width,route+' '+width+' touch width').toBeGreaterThanOrEqual(44);
+          expect(target.height,route+' '+width+' touch height').toBeGreaterThanOrEqual(44);
+        }
+        const dockBox=await dock.boundingBox();
+        expect(dockBox.y+dockBox.height,route+' dock fits viewport').toBeLessThanOrEqual(844);
+        expect(dockBox.x,route+' dock stays in viewport').toBeGreaterThanOrEqual(0);
+      }else{
+        await expect(dock).toBeHidden();
+        await expect(page.locator('.jp-header .jp-menu')).toBeVisible();
+      }
+      if(active==='shop'){
+        const checkout=page.locator('#jp-digital-checkout-form');
+        await expect(checkout).toHaveCount(1);
+        const support=page.locator('a[href="/fa/tamas/"]').first();
+        await expect(support).toHaveCount(1);
+      }else{
+        await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
+      }
+    }
+  }
+});
