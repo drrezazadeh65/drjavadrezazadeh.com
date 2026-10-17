@@ -61,3 +61,32 @@ jobs:
           echo 'This workflow observes only anonymous GET endpoints over CA-trusted HTTPS.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Release SHA, auth readiness, commerce safeguards and 13 public article routes are checked.' >> "$GITHUB_STEP_SUMMARY"
           echo 'It neither submits an order nor proves inbox delivery, settled payments, inventory, independent restore or MFA.' >> "$GITHUB_STEP_SUMMARY"
+          node <<'NODE'
+          const fs=require('node:fs');
+          const file='bertina-postrelease-evidence.json';
+          const out=process.env.GITHUB_STEP_SUMMARY;
+          const lines=['','### Public P0 acceptance (strict)'];
+          if(!fs.existsSync(file)){
+            lines.push('- **BLOCKED** — acceptance artifact missing; neither smoke nor deployment readiness established.');
+          }else{
+            try{
+              const e=JSON.parse(fs.readFileSync(file,'utf8'));
+              const p=e.publicReleaseAcceptance;
+              const status=p?.publicP0Acceptance==='PUBLIC_SURFACES_VERIFIED'?'PUBLIC SURFACES VERIFIED':'BLOCKED';
+              lines.push('- **'+status+'** — separate from the 17-check anonymous smoke verdict.');
+              lines.push('- Anonymous 17-check smoke: '+(e.passed===true?'PASS':'FAIL or unverified')+'.');
+              lines.push('- Exact release SHA pinned: '+(typeof e.expectedReleaseSha==='string'&&e.expectedReleaseSha.length===40?'YES':'NO')+'.');
+              const page=p?.checks?.bilingualRoutes;
+              lines.push('- Service pages meeting public contract: '+(Number.isInteger(page)?page:'unverified')+'/42.');
+              lines.push('- One-hop /home/ redirect: '+(p?.checks?.homeOneHop301===true?'verified':'NOT VERIFIED')+'.');
+              lines.push('- Journal TLS observation: '+(p?.checks?.journalTlsPublicHandshakeObserved===true?'trusted handshake observed':'NOT VERIFIED')+'.');
+              const known=new Set(['legacy_anonymous_smoke_not_passing','immutable_expected_sha_absent','observed_live_sha_missing','deployed_source_sha_mismatch','gsc_home_301_not_verified','bilingual_42_routes_not_verified','publishing_public_offer_not_verified']);
+              const blockers=Array.isArray(p?.blockers)?p.blockers.filter(x=>known.has(x)):[];
+              lines.push('- Strict public blockers: '+(blockers.length?blockers.join(', '):status==='BLOCKED'?'evidence missing':'none')+'.');
+            }catch(_){
+              lines.push('- **BLOCKED** — supplied evidence could not be parsed or authenticated.');
+            }
+          }
+          lines.push('- This summary does NOT certify bank settlement, paid-service fulfilment, SMTP delivery, PKP OJS, private manuscripts, 41 acceptance gates or owner release authorization.');
+          fs.appendFileSync(out,lines.join('\n')+'\n');
+          NODE
