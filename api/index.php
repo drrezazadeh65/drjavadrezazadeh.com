@@ -52,6 +52,11 @@ function cfg(): array {
         'service_booking_confirmed' => getenv('JR_SERVICE_BOOKING_CONFIRMED') === 'true',
         'vip_booking_confirmed' => getenv('JR_VIP_BOOKING_CONFIRMED') === 'true',
         'book_shipping_confirmed' => getenv('JR_BOOK_SHIPPING_CONFIRMED') === 'true',
+        // Encrypted academic service attachments: private Bertina storage only.
+        // Private config.local.php may override environment defaults.
+        'service_files_enabled' => getenv('JR_SERVICE_FILES_ENABLED') === 'true',
+        'service_private_storage' => (string)(getenv('JR_SERVICE_PRIVATE_STORAGE') ?: ''),
+        'service_antivirus_binary' => (string)(getenv('JR_SERVICE_AV_BINARY') ?: ''),
         // Account UUID => ['role'=>'ADMIN', 'totp_secret'=>'...']; private provisioning only.
         'operations_admins' => [],
     ];
