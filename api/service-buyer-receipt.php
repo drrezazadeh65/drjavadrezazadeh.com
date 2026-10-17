@@ -31,20 +31,40 @@ function jrServiceBuyerReceiptConfirm(PDO $pdo,string $actor,string $email,array
     $order=$input['orderId'];$sku=$input['sku'];$id=$input['fileId'];
     jrServiceFileReference($order,$sku);
     if(!jrServiceBuyerReceiptSchemaReady($pdo)
-      ||!jrServiceFilesSchemaReady($pdo))
+      ||!jrServiceFilesReady($pdo))
         throw new RuntimeException('buyer_receipt_not_ready');
     if(!$pdo->beginTransaction())throw new RuntimeException('receipt_transaction_unavailable');
     try{
         $case=jrServiceFilePaidCase($pdo,$order,$sku,$email,true);
         if($case['service_state']!=='delivered')
             throw new DomainException('delivered_service_required_for_receipt');
-        $q=$pdo->prepare("SELECT id FROM commerce_service_files
+        $q=$pdo->prepare("SELECT id,storage_name,plaintext_size,content_sha256
+            FROM commerce_service_files
             WHERE id=? AND order_id=? AND sku=? AND kind='professional_output' FOR UPDATE");
         $q->execute([$id,$order,$sku]);
-        if($q->fetchColumn()!==$id)throw new DomainException('delivered_output_not_found');
+        $artifact=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($artifact)||(string)$artifact['id']!==$id)
+            throw new DomainException('delivered_output_not_found');
         $digest=jrServiceFileReleasedDigest($pdo,$order,$sku,(string)$case['service_state']);
         if(!jrServiceFileMatchesRelease($digest,$order,$sku,$id))
             throw new DomainException('approved_exact_output_required');
+        // Confirm the exact released file is still retrievable and intact.
+        // A stale metadata row must never support a claimed customer receipt.
+        if(!preg_match('/^[a-f0-9]{48}\\.blob$/D',(string)$artifact['storage_name']))
+            throw new DomainException('receipt_artifact_name_invalid');
+        $root=jrServiceFilesPrivateRoot();
+        if($root===null)throw new RuntimeException('receipt_private_storage_unavailable');
+        $blob=$root.'/'.$artifact['storage_name'];
+        if(is_link($blob)||!is_file($blob))
+            throw new DomainException('receipt_artifact_missing');
+        $sealed=@file_get_contents($blob);
+        if(!is_string($sealed)||strlen($sealed)>12583000)
+            throw new DomainException('receipt_artifact_cipher_invalid');
+        $plain=jrServiceFileDecrypt($sealed,$order,$sku);
+        if(strlen($plain)!==(int)$artifact['plaintext_size']
+           ||!hash_equals((string)$artifact['content_sha256'],hash('sha256',$plain)))
+            throw new DomainException('receipt_artifact_integrity_invalid');
+        unset($sealed,$plain);
         $insert=$pdo->prepare('INSERT INTO commerce_service_buyer_receipts
             (file_id,order_id,sku,account_id,acknowledged_at)
             VALUES(?,?,?,?,UTC_TIMESTAMP())
