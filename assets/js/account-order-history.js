@@ -15,6 +15,92 @@ function showInfo(message,login){
     a.href=isEn?'/en/login/':'/fa/login/';wrapper.append(a);}
   section.append(wrapper);
 }
+const SERVICE_BRIEF_PROMPTS={
+ "academic_consult_60": [
+  "تصمیم دانشگاهی مورد نظر، مهلت آن و گزینه‌هایی که تاکنون بررسی شده‌اند را مشخص کنید.",
+  "State the academic decision, its deadline, and the alternatives already considered."
+ ],
+ "student_parent_90": [
+  "مسئله را از نگاه دانش‌آموز و والد به‌صورت جداگانه و بدون قضاوت نهایی شرح دهید.",
+  "Explain the issue from both the student's and the parent's perspectives without prematurely choosing a side."
+ ],
+ "konkur_consult_60": [
+  "وضعیت فعلی آمادگی کنکور، برنامه مطالعه و مسئله فوری تصمیم را روشن کنید.",
+  "Describe current entrance-exam preparation, existing study routines and the immediate decision."
+ ],
+ "konkur_month": [
+  "هدف یک‌ماهه، زمان در دسترس و داده‌ای که با آن پیشرفت سنجیده می‌شود را بنویسید.",
+  "Specify the one-month objective, realistic study time and evidence used to review progress."
+ ],
+ "transcript_analysis": [
+  "بازه زمانی و نظام نمره‌دهی کارنامه، هدف تحلیل و محدودیت‌های تفسیر آن را توضیح دهید.",
+  "Identify the transcript period and grading system, the decision it informs and any interpretive limits."
+ ],
+ "field_selection_standard": [
+  "ترجیح رشته و دانشگاه، شرایط احراز و محدودیت‌های مکانی یا خانوادگی را توضیح دهید.",
+  "Explain preferred disciplines and universities, verified eligibility and location or family constraints."
+ ],
+ "field_selection_comprehensive": [
+  "تعارض ترجیحات، انتخاب‌های اصلی و معیارهای اولویت‌بندی را با نمونه روشن کنید.",
+  "Identify competing priorities, leading options and the criteria for comparing them."
+ ],
+ "talent_initial": [
+  "تجربه‌های مشاهده‌شده، علاقه‌های فرد و پرسش واقعی خانواده درباره مسیر رشد را بیان کنید.",
+  "Describe observed experiences, the learner's interests and the family's actual developmental question."
+ ],
+ "golden_talent_comprehensive": [
+  "منابع شواهد آموزشی و رشدی، ابهام‌ها و هدف تصمیم را بدون برچسب‌زنی به فرد شرح دهید.",
+  "Outline developmental and learning evidence, uncertainties and the decision context without fixed talent labels."
+ ],
+ "golden_talent_premium": [
+  "دلیل نیاز به جلسه والد و گزارش مسیر، داده‌های موجود و پرسش‌های باز را شرح دهید.",
+  "Explain the need for a parent consultation and pathway report, including available evidence and unanswered questions."
+ ],
+ "teacher_consult_60": [
+  "مسئله کلاس، هدف یادگیری، ویژگی زبان‌آموزان و شواهد تدریس را توصیف کنید.",
+  "Describe the teaching challenge, learning objective, learner context and available classroom evidence."
+ ],
+ "teacher_dev_90": [
+  "مسئله حرفه‌ای تکرارشونده، تجربه‌های انجام‌شده و شاخص تغییر مطلوب را بیان کنید.",
+  "Identify a recurring professional problem, previous responses and signs of desired improvement."
+ ],
+ "manuscript_diagnostic": [
+  "پرسش پژوهش، رشته، نوع مقاله، محدودیت واژگان و نگرانی‌های روش یا استدلال را مشخص کنید.",
+  "State the research question, discipline, manuscript type, word limit and methodological or argument concerns."
+ ],
+ "academic_editing": [
+  "رشته علمی، مخاطب نشریه، گونه انگلیسی ترجیحی و محدوده تغییر مجاز را مشخص کنید.",
+  "Specify the discipline, target readership, preferred English variety and limits on editorial changes."
+ ],
+ "research_consult_60": [
+  "طرح و سؤال پژوهش، روش یا داده موجود و محل دقیق ابهام را شرح دهید.",
+  "Summarise the research question, design or existing data and the exact methodological uncertainty."
+ ],
+ "journal_strategy": [
+  "موضوع و نوع مقاله، نشریات مدنظر و معیار واقعی انتخاب مجله را بیان کنید.",
+  "Describe topic and article type, candidate journals and genuine journal-selection criteria."
+ ],
+ "reviewer_response": [
+  "نظرهای داوران، نسخه فعلی اصلاحات و مواردی که با استدلال مخالفت دارید را خلاصه کنید.",
+  "Summarise reviewer comments, revisions made and points of evidence-based disagreement."
+ ],
+ "academic_cv": [
+  "نوع فرصت دانشگاهی، رزومه واقعی و شواهد مرتبط با معیارهای اعلام‌شده را معرفی کنید.",
+  "State the target academic role, verifiable CV record and evidence aligned with the published criteria."
+ ],
+ "academic_interview_90": [
+  "عنوان جایگاه، حوزه دانشگاهی، سوابق مستند و محورهای مصاحبه را روشن کنید.",
+  "Provide the role, academic field, documented achievements and interview focus."
+ ],
+ "organization_consult_90": [
+  "مسئله سازمانی، ذی‌نفعان، محدودیت اجرا و معیارهای سنجش موفقیت را توضیح دهید.",
+  "Describe the institutional problem, stakeholders, implementation constraints and meaningful success criteria."
+ ],
+ "specialist_workshop_120": [
+  "گروه شرکت‌کنندگان، هدف یادگیری، مدت و نتیجه عملی قابل انتظار را مشخص کنید.",
+  "Describe the participants, learning objectives, session duration and expected practical outputs."
+ ]
+};
 function serviceIntakeEditor(order,service){
  const disclosure=el('details');disclosure.className='service-intake-editor';
  disclosure.style.cssText='margin-top:13px;padding:12px;border:1px solid rgba(212,175,55,.35);border-radius:12px;max-width:100%';
@@ -33,6 +119,15 @@ function serviceIntakeEditor(order,service){
  const subject=field(tr('موضوع سفارش و مسئله اصلی','Service topic and main question'),'input',8,180);
  const background=field(tr('زمینه، وضعیت موجود و شواهد مرتبط','Background, current situation and relevant evidence'),'textarea',20,3500,5);
  const objectives=field(tr('هدف دقیق و خروجی مورد انتظار','Specific objectives and expected deliverable'),'textarea',20,3000,4);
+ const specificId=String(service.sku||'').replace(/^(service|vip):/,'');
+ const guidance=Object.hasOwn(SERVICE_BRIEF_PROMPTS,specificId)?SERVICE_BRIEF_PROMPTS[specificId]:null;
+ if(guidance){
+  const note=el('p',tr(guidance[0],guidance[1]),'service-intake-context');
+  note.style.cssText='margin:0 0 12px;padding:12px 15px;border:1px solid rgba(212,175,55,.3);border-radius:12px;background:#242019;color:#f8e6c1;line-height:1.8';
+  form.append(note);
+  background.input.placeholder=tr('شرح شواهد و زمینه مرتبط با راهنمای بالا','Relevant evidence and context for the question above');
+  objectives.input.placeholder=tr('نتیجه‌ای که باید به‌صورت قابل‌توضیح تحویل شود','The practical, explainable outcome you expect');
+ }
  form.append(subject.wrap,background.wrap,objectives.wrap);
  const minor=el('label');minor.style.cssText='display:flex;align-items:center;gap:9px;margin-top:8px';
  const minorCheck=document.createElement('input');minorCheck.type='checkbox';
