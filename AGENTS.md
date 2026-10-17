@@ -1,5 +1,10 @@
 # AGENTS.md — Dr. Javad Rezazadeh Website
 
+## Modular mother database — permanent canonical reference (2026-10-17)
+
+**Read first for ANY database, publishing, commerce, service, author, journal, or deployment task:** [MOTHER_DATABASE_MODULAR_MASTERPLAN_20261017.md](docs/governance/MOTHER_DATABASE_MODULAR_MASTERPLAN_20261017.md). It is the enduring mother-database schema crosswalk and dependency/order checklist. Production uses the **ONE EXISTING Bertina PHP + MySQL/MariaDB database**, with `customer_accounts`, `commerce_orders`, `commerce_payment_claims`, and existing service/payment tables as the foundation. Do not introduce a parallel database, fork or checkout, reinterpret future PostgreSQL design files as production migrations, or import the alternate `jr_pub_*` draft schema. Author publishing runs on canonical `publishing_*` migrations only. **Owner decision:** Defer ALL actual private PDF uploads, new MariaDB table installation, and final live activation to the last joint owner/operator deployment step; until then continue source-level work and nondeploying CI only. Do not declare a fictitious 99% verified status or alter 41/21 release-acceptance records without genuine independent evidence.
+
+
 > Repository-wide coordination instructions for coding agents.
 > **CURRENT STATUS: SHARED DEVELOPMENT OPEN — OWNER AUTHORIZED**
 > Exclusive lock lifted by the owner on 2026-10-12 (Asia/Tehran). Historical lock issue: https://github.com/drrezazadeh65/drjavadrezazadeh.com/issues/28
