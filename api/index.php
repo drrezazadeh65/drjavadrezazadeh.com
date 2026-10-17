@@ -452,6 +452,8 @@ require_once __DIR__.'/service-buyer-receipt.php';
 require_once __DIR__.'/consultation-delivery.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
+// JR Future Publishing: approved author-only read view. No checkout or payout writes.
+if (str_starts_with($path, '/publishing/')) { require_once __DIR__.'/publishing.php'; jrPublishingAuthorRoute($path,$verb); }
 // Credential-free public indicative rate only; never authorize an order or payment from this tick.
 if ($path==='/rates/usdt-irt') { require_once __DIR__.'/ramzinex-public-usdt-rate.php'; jrPublicUsdtRateRoute($verb); }
 // First-party newsletter preferences, verified account only, independent of transactional mail.
