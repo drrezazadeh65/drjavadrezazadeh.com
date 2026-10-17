@@ -36,3 +36,28 @@
 - **No claim:** The site is not declared the world's most expensive or best service without verifiable like-for-like evidence.
 
 Owner's binding requirement: premium, professionally justified prices, not an invented high sticker price.
+
+---
+
+## Additional independently sourced rates — 2026-10-17
+
+The October 17 recheck includes a fifth independent international provider and primary-source Iranian market context. Figures below are **comparative indications, not equivalent quotations for the website's exact product**, and should not be silently converted into a new tariff.
+
+| Provider and market | Official observable pricing | Illustrative basis for 5,000 words | Important non-equivalence | Source |
+|---|---|---|---|---|
+| **Scribbr (international; independent of Editage)** | PhD/MBA, seven days, Proofreading + Editing + Structure + Clarity: **$0.033/word** plus **$25 setup** | **$190** under that published formula | Not the site's specialist author-facing scholarly advice; confirmed rates, not proof of project acceptance | https://www.scribbr.com/frequently-asked-questions/how-are-the-rates-per-word-calculated/ and https://www.scribbr.com/proofreading-editing/rates/ |
+| **Sanjagh (Iranian marketplace aggregate)** | English editing **50,000–80,000 toman per 100 words**, September 1405 survey | **2,500,000–4,000,000 toman** by straight unit conversion | Marketplace *median range*; does not isolate senior academic-specialist intervention, method advice or revision SLA | https://sanjagh.pro/price/ترجمه-متن-انگلیسی |
+| **ArticleX / Brieflands (Iranian provider)** | Advanced English editing **712 toman per word**, two business days (as listed) | **3,560,000 toman**, arithmetic only | Scope, journal-specific guidance, qualified editor and re-edits differ; verify fresh quote before contracting | https://brieflands.com/articlex/price |
+| **Editgar (Iranian provider)** | Advertised “native academic editing” promotional **359 toman/word**, displayed alternate higher price | **1,795,000 toman** at promotional rate (if applicable) | Promotional price and unspecified requirements; investigate certificate and editorial credentials rather than adopting advertised claims | https://editgar.com/ |
+| **LAIS / Iranian Studies (Iranian/UK-linked provider)** | Native academic editing **£0.02/word**, 4 months support and tracked changes | **£100** at 5,000 words before any quote/time variation | Five-day estimate on the provider website is specified for 4,000 words, **not automatically valid for 5,000 words** | https://iranianstudies.org/fa/ویرایش-مقاله-انگلیسی/ |
+| **AJE — American Journal Experts (international)** | Four packages listed, but each official price requires contact/calculator | **No defensible exact price** without quote | The provider's different scientific/VIP tiers are evidence for scope benchmarking, not a numeric comparator | https://www.aje.com/pricing |
+
+### Evidence-based interpretation of the current site tariff
+
+The current **15,000,000 toman per 5,000-word `academic_editing`** corresponds to **3,000 toman/word at its full allowed word-count**; shorter manuscripts have a higher effective per-word cost because this product is fixed-scope. This is *above* the three quoted Iranian market-based or promotional rates above, but the comparison does not establish equivalent academic expertise, deliverables, specialist-level review, or return-edit policy. It therefore supports the label **“premium-positioned current tariff”** only, **not “verified top of the entire market”**. It is not legitimate to declare the product 100% benchmark-approved until contractual outcomes, actual SLA, provider qualification and policy details are documented.
+
+International amounts remain in their original currency; **no assumed FX rate** or USD/toman parity is used. The Scribbr computation is (5,000 × $0.033) + $25 = $190. The Sanjagh illustration is 50 groups of 100 words × 50,000–80,000 toman = 2.5–4m toman. These examples are normalisations, not undisclosed actual quotes.
+
+**Recommendation recorded, no financial mutation:** Maintain the existing public **15m toman** while matching its promised work to a substantiated Premium/Signature deliverables contract and obtaining live scope-equivalent quotes. Keep the exact price **server-authoritative** in checkout; old paid orders must never be repriced. Do not add invented editorial certificates, acceptance guarantees or unlimited revisions.
+
+**Remaining gates:** scientific review of every competing provider's exact service level; verified delivery/revision promises and qualifications of this site's own specialist; additional domestic *high-end* quotes; competent reviewer approval; and dated pricing version. The fifth independent international provider was found, but this is not a completed market sample for all 21 services.
