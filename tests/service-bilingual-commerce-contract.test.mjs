@@ -110,6 +110,13 @@ test('service hubs have 21 real canonical structured-data destinations and a sin
   assert.equal(faList.itemListElement.filter(row=>row.url===base+'/fa/services/'+id+'/').length,1,'FA schema destination '+id);
  }
  const registry=JSON.parse(read('platform/hreflang-pairs.json'));
+ const detailed=registry.pairs.filter(entry=>entry.id.startsWith('service-'));
+ assert.equal(detailed.length,21,'21 distinct canonical service pairs must be protected by SEO regression');
+ assert.equal(new Set(detailed.map(p=>p.en)).size,21);
+ assert.equal(new Set(detailed.map(p=>p.fa)).size,21);
+ for(const id of ids){
+  assert.deepEqual(detailed.filter(p=>p.en==='/en/services/'+id+'/').map(p=>p.fa),['/fa/services/'+id+'/']);
+ }
  const pair=registry.pairs.find(entry=>entry.id==='services');
  assert.deepEqual([pair.en,pair.fa],['/en/services/','/fa/services/']);
  assert.match(faCatalog,/hreflang="en" href="https:\/\/drjavadrezazadeh\.com\/en\/services\/"/);
