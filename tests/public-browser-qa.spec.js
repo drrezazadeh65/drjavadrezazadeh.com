@@ -1279,7 +1279,8 @@ test('mobile above-the-fold typography keeps shop and service entry actions visi
       expect(Math.max(metrics.html,metrics.body),route+' at '+width+' overflow').toBeLessThanOrEqual(metrics.viewport+1);
       if(route==='/fa/shop/'){
         const links=page.locator('.book-store-hero .store-nav a:visible');
-        await expect(links).toHaveCount(2);
+        await expect(links).toHaveCount(3); // catalog + verified author overview + student support
+        await expect(page.locator('.book-store-hero .store-nav a[href="/fa/shop/authors/mehrab-mirkarimi/"]')).toBeVisible();
         const rects=await links.evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().toJSON()));
         expect(Math.abs(rects[0].top-rects[1].top)).toBeLessThanOrEqual(3);
       }
@@ -1539,7 +1540,8 @@ test('mobile-first educational support keeps six preset amounts, an editable amo
     expect(await input.getAttribute('step')).toBe('1');
     const overflow=await stableOverflow(page);
     expect(Math.max(overflow.html,overflow.body),'donation width '+width).toBeLessThanOrEqual(overflow.viewport+1);
-    await expect(page.locator('.book-store-hero .store-nav a:visible')).toHaveCount(2);
+    await expect(page.locator('.book-store-hero .store-nav a:visible')).toHaveCount(3);
+    await expect(page.locator('.book-store-hero .store-nav a[href="#support"]')).toBeVisible();
   }
 });
 
@@ -1553,7 +1555,14 @@ test('bilingual bookstore mobile hero exposes shop and sponsorship, and help lin
    expect(response.status()).toBe(200);
    const nav=page.locator('.book-store-hero .store-nav');
    const visibleLinks=nav.locator('a:visible');
-   await expect(visibleLinks).toHaveCount(2);
+   await expect(visibleLinks).toHaveCount(lang==='fa'?3:2);
+   if(lang==='fa'){
+    const authorLink=nav.locator('a[href="/fa/shop/authors/mehrab-mirkarimi/"]');
+    await expect(authorLink).toBeVisible();
+    const authorBox=await authorLink.boundingBox();
+    expect(authorBox.width).toBeGreaterThanOrEqual(44);
+    expect(authorBox.height).toBeGreaterThanOrEqual(44);
+   }
    for(const anchor of ['#book-catalog','#support']){
     const link=nav.locator('a[href="'+anchor+'"]');
     await expect(link).toBeVisible();
