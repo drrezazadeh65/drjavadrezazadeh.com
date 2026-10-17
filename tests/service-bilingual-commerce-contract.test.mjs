@@ -86,7 +86,7 @@ test('English order history is real, authenticated, private and discoverable fro
  assert.match(html,/data-resource="orders"/);
  assert.match(html,/class="case-section"/);
  assert.match(html,/class="appointment-card empty"/);
- assert.match(html,/account-order-history\.js\?v=20261017-encrypted-documents-v6/);
+ assert.match(html,/account-order-history\.js\?v=20261017-explicit-file-receipt-v7/);
  assert.match(dashboard,/href="\/en\/app\/account\/orders\/"/);
  assert.match(js,/\/api\/commerce\/history/);
  assert.match(js,/\/api\/commerce\/fulfilment\?order=/);
