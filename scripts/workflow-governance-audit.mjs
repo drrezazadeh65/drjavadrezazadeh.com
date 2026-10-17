@@ -19,7 +19,11 @@ for(const name of ['bertina-autossl.yml','bertina-commerce-schema-migrate.yml','
 const deploy=fs.readFileSync(root+'deploy-bertina.yml','utf8');
 if(!fs.readFileSync(root+'indexnow-activation.yml','utf8').includes("if: inputs.mode != 'live' || github.ref == 'refs/heads/migration/bertina-linux6'")) failures.push('Live IndexNow activation must use the active Bertina branch');
 if(deploy.includes("      - '.github/workflows/deploy-bertina.yml'")) failures.push('Deployment workflow edits must not deploy on merge');
-if(!deploy.includes("if: github.ref == 'refs/heads/migration/bertina-linux6'")||!deploy.includes('test "$current" = "$GITHUB_SHA"')) failures.push('Deploy must reject wrong branch and stale commit');
+// Require the same pinned branch, exact HEAD SHA and *manual owner dispatch*.
+ // Do not reject a stronger composite if: condition simply because the
+ // branch test is preceded by event/actor checks.
+const ownerManualBranch=/if:\s*[^\n]*github\.event_name == 'workflow_dispatch'[^\n]*github\.actor == 'drrezazadeh65'[^\n]*github\.ref == 'refs\/heads\/migration\/bertina-linux6'/.test(deploy);
+if(!ownerManualBranch||!deploy.includes('test "$current" = "$GITHUB_SHA"')) failures.push('Deploy must reject wrong branch, wrong owner/event and stale commit');
 for(const name of ['bertina-master-seo.yml','bertina-provider-guard.yml','browser-qa.yml','full-route-responsive-certification.yml','full-route-visual-crawl.yml']){
   if(!fs.readFileSync(root+name,'utf8').includes('  pull_request:')) failures.push(name+': missing PR gate');
 }
