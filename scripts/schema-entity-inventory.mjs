@@ -129,7 +129,8 @@ export function auditRepository(root){
 }
 const invoked=process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url);
 if(invoked){
- const root=path.resolve(process.argv[process.argv.indexOf('--root')+1]||'.');
+ const rootFlag=process.argv.indexOf('--root');
+ const root=path.resolve(rootFlag>=0?(process.argv[rootFlag+1]||'.'):'.');
  const report=auditRepository(root);
  const out=path.join(root,'.artifacts','schema-entity-inventory.json');
  fs.mkdirSync(path.dirname(out),{recursive:true});
