@@ -47,3 +47,12 @@ The buyer now has a separate, optional **explicit self-attested receipt** action
 This new feature does **not** claim that antivirus, filesystem, TLS, production DB migration or external operator permissions have been configured. It does not send transactional email or certify that a client downloaded the result. It does not establish academic effectiveness, validation of assessment instruments, actual professional delivery or published journal acceptance. DOCX files remain attachment-only; no public document preview is performed. Future additional file types require separately validated MIME, AV and safe rendering controls.
 
 **Security principle:** Payment identity, file access, real output, owner confirmation, customer receipt and bank settlement are separate records. Keep them separate in both the database and all user-facing wording.
+
+
+## Operator visibility and fail-closed release gate — 2026-10-17 addition
+
+The **existing bilingual operations dashboard** now shows eleven **boolean-only** prerequisite checks: feature activation, trusted HTTPS, commerce schema, private file schema, non-public storage, antivirus executable, cryptography and key, document parsers, PHP upload capacity, owner-delivery evidence schema and buyer-receipt schema. No path, API key, database password, file metadata or account content appears in this diagnostic panel. The front-end assets in both admin locales are explicitly versioned to bypass stale cached scripts.
+
+**All-or-nothing secure file readiness:** `jrServiceFilesReady()` must reject requests until **both** `commerce_service_delivery_evidence` and `commerce_service_buyer_receipts` have been migrated, in addition to file storage, antivirus, upload and payment schema requirements. Being able to accept a file while having no legal route to actually deliver or acknowledge it must not be described as a complete service. This stricter condition does not gate the preexisting Donation checkout or general customer registration.
+
+The source-level `tests/service-private-files-contract.test.mjs` includes a check for every diagnostic status and the full-cycle schema condition; seven source-contract cases passed in a direct check during this session. A positive source check is **not** proof the private hosting directory, ClamAV, TLS, database migration or browser flow exists on Bertina. The owner should see the exact remaining checks in the dashboard after the nondeploying CI and independent operator review.
