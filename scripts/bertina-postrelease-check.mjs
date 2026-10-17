@@ -158,11 +158,25 @@ await observeHostGate('bilingual-public-service-pages-21x2',async()=>{
  for(let i=0;i<routes.length;i+=6){
    await Promise.all(routes.slice(i,i+6).map(async item=>{
      try{
-       const html=await get(item.path);
-       const result=inspectPublicServiceRoute(html,{id:item.id,locale:item.locale,origin:ORIGIN});
-       inspected.push({...item,...result});
+       const controller=new AbortController();
+       const timer=setTimeout(()=>controller.abort(),12000);
+       let response;
+       try{
+         response=await fetch(ORIGIN+item.path,{
+           method:'GET',redirect:'manual',cache:'no-store',
+           headers:{Accept:'text/html'},signal:controller.signal
+         });
+         if(response.status!==200){
+           inspected.push({...item,ok:false,httpStatus:response.status,
+             failures:['http_status_'+response.status]});
+           return;
+         }
+         const html=await response.text();
+         const result=inspectPublicServiceRoute(html,{id:item.id,locale:item.locale,origin:ORIGIN});
+         inspected.push({...item,httpStatus:200,...result});
+       }finally{clearTimeout(timer);}
      }catch(_){
-       inspected.push({...item,ok:false,failures:['unreachable_or_non200']});
+       inspected.push({...item,ok:false,httpStatus:null,failures:['trusted_tls_network_or_timeout']});
      }
    }));
  }
