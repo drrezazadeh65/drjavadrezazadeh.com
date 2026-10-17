@@ -15,7 +15,7 @@ function jrServiceFilesSchemaReady(PDO $pdo): bool {
     } catch(Throwable $e){return false;}
 }
 function jrServiceFilesPrivateRoot(): ?string {
-    $raw=(string)(cfg()['service_private_storage']??getenv('JR_SERVICE_PRIVATE_STORAGE')?:'');
+    $raw=(string)(cfg()['service_private_storage'] ?? (getenv('JR_SERVICE_PRIVATE_STORAGE') ?: ''));
     if($raw===''||$raw[0]!=='/'||is_link($raw))return null;
     $dir=realpath($raw);
     if($dir===false||!is_dir($dir)||!is_writable($dir))return null;
@@ -28,7 +28,7 @@ function jrServiceFilesPrivateRoot(): ?string {
     return $dir;
 }
 function jrServiceFilesAntivirus(): ?string {
-    $bin=(string)(cfg()['service_antivirus_binary']??getenv('JR_SERVICE_AV_BINARY')?:'');
+    $bin=(string)(cfg()['service_antivirus_binary'] ?? (getenv('JR_SERVICE_AV_BINARY') ?: ''));
     return in_array($bin,['/usr/bin/clamscan','/usr/local/bin/clamscan'],true)
         &&is_executable($bin)&&function_exists('proc_open')?$bin:null;
 }
