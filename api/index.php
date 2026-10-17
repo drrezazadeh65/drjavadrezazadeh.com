@@ -442,6 +442,7 @@ define('BERTINA_API_BOOTSTRAPPED', true);
 require_once __DIR__.'/operations.php';
 require_once __DIR__.'/commerce-stage9.php';
 require_once __DIR__.'/service-intake.php';
+require_once __DIR__.'/service-files.php';
 require_once __DIR__.'/consultation-delivery.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
@@ -599,6 +600,62 @@ if($path==='/commerce/service-intake'&&in_array($verb,['GET','POST'],true)){
         error_log('Service intake unavailable: '.get_class($e));
         fail('service_intake_write_unavailable',503);
     }
+}
+
+// Encrypted academic-service files: same verified email and matched payment claim.
+// A public URL, a guest email and a gateway return cannot authorize access.
+if(in_array($path,['/commerce/service-files','/commerce/service-file'],true)){
+    header('Cache-Control: no-store, private, max-age=0');
+    header('Vary: Cookie');header('X-Content-Type-Options: nosniff');
+    $pdo=db();
+    if(!$pdo||!jrServiceFilesReady($pdo))fail('private_service_files_unavailable',503);
+    $account=sessionAccount($pdo);
+    if(!$account||($account['status']??'')!=='active'||empty($account['email_verified_at']))
+        fail('unauthorized',401);
+    $email=emailNorm($account['email_normalized']??'');
+    if(!validEmail($email))fail('unauthorized',401);
+    if($path==='/commerce/service-file'&&$verb==='GET'){
+        $id=$_GET['id']??null;
+        if(!is_string($id)||!validUuid($id))fail('invalid_file_reference',400);
+        if(!rateAllowed($pdo,'service_file_private_download',(string)$account['id'],25,300))
+            fail('rate_limited',429);
+        try{jrServiceFileDownload($pdo,$id,$email);}
+        catch(DomainException $e){fail('private_file_not_found',404);}
+        catch(Throwable $e){error_log('Private service file download: '.get_class($e));fail('private_file_unavailable',503);}
+    }
+    if($path==='/commerce/service-files'&&$verb==='GET'){
+        $order=$_GET['order']??null;$sku=$_GET['sku']??null;
+        if(!is_string($order)||!is_string($sku))fail('invalid_file_reference',400);
+        if(!rateAllowed($pdo,'service_file_private_list',(string)$account['id'],30,300))
+            fail('rate_limited',429);
+        try{respond(['ok'=>true,'schema'=>'private-service-files-v1']+
+            jrServiceFilesList($pdo,$order,$sku,$email));}
+        catch(InvalidArgumentException $e){fail('invalid_file_reference',400);}
+        catch(DomainException $e){fail('private_case_not_found',404);}
+        catch(Throwable $e){fail('private_files_unavailable',503);}
+    }
+    if($path==='/commerce/service-files'&&$verb==='POST'){
+        if(($_SERVER['HTTP_ORIGIN']??'')!==SITE_ORIGIN||
+           !in_array($_SERVER['HTTP_SEC_FETCH_SITE']??'same-origin',['same-origin','none'],true))
+            fail('origin_forbidden',403);
+        if(!str_starts_with(strtolower((string)($_SERVER['CONTENT_TYPE']??'')),'multipart/form-data;'))
+            fail('multipart_form_required',415);
+        if(!rateAllowed($pdo,'service_file_private_upload',(string)$account['id'],5,3600))
+            fail('rate_limited',429);
+        if(array_keys($_POST)!==['orderId','sku']||array_keys($_FILES)!==['document'])
+            fail('invalid_service_file_form',400);
+        try{
+            $saved=jrServiceFileUpload($pdo,(string)$_POST['orderId'],(string)$_POST['sku'],
+                (string)$account['id'],$email,'client_source',(array)$_FILES['document']);
+            respond(['ok'=>true,'schema'=>'private-service-files-v1','file'=>$saved],201);
+        }catch(InvalidArgumentException $e){fail('invalid_service_file',422);}
+        catch(DomainException $e){fail('private_case_or_file_limit_conflict',409);}
+        catch(Throwable $e){
+            error_log('Private service upload: '.get_class($e));
+            fail('private_file_storage_unavailable',503);
+        }
+    }
+    fail('method_not_allowed',405);
 }
 
 // Verified-account order history. A guest email or a public order UUID never grants access.
