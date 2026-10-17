@@ -14,6 +14,17 @@ on:
       - 'fa/shop/checkout/index.html'
       - 'fa/shop/payment-start/index.html'
       - '.github/workflows/catalog-integrity.yml'
+      - 'assets/css/shop-customer-premium-20261017.css'
+      - 'assets/css/jr-future-publishing-author-v1.css'
+      - 'fa/shop/purchase-guide/index.html'
+      - 'fa/shop/customer-policy/index.html'
+      - 'fa/shop/receipt/index.html'
+      - 'en/shop/purchase-guide/index.html'
+      - 'en/shop/customer-policy/index.html'
+      - 'en/shop/receipt/index.html'
+      - 'en/shop/checkout/index.html'
+      - 'fa/shop/authors/mehrab-mirkarimi/index.html'
+      - 'tests/shop-premium-customer-design.test.mjs'
   pull_request:
     branches: [migration/bertina-linux6]
     paths:
@@ -25,6 +36,17 @@ on:
       - 'assets/js/commerce-checkout.js'
       - 'assets/js/book-store.js'
       - '.github/workflows/catalog-integrity.yml'
+      - 'assets/css/shop-customer-premium-20261017.css'
+      - 'assets/css/jr-future-publishing-author-v1.css'
+      - 'fa/shop/purchase-guide/index.html'
+      - 'fa/shop/customer-policy/index.html'
+      - 'fa/shop/receipt/index.html'
+      - 'en/shop/purchase-guide/index.html'
+      - 'en/shop/customer-policy/index.html'
+      - 'en/shop/receipt/index.html'
+      - 'en/shop/checkout/index.html'
+      - 'fa/shop/authors/mehrab-mirkarimi/index.html'
+      - 'tests/shop-premium-customer-design.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -43,3 +65,5 @@ jobs:
           node --check assets/js/book-store.js
       - name: Validate service, VIP and bookstore catalogs
         run: node scripts/catalog-integrity.mjs
+      - name: Validate bilingual premium shop guidance and preserved payment semantics
+        run: node --test tests/shop-premium-customer-design.test.mjs
