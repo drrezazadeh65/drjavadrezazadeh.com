@@ -52,7 +52,7 @@ test('real-money checkout is blocked unless author rights, private files and ver
  assert.match(client,/\/api\/commerce\/create/);
  assert.match(worker,/count\(array_unique\(\$kinds\)\)!==2/);
  assert.match(worker,/jrPublishingAuthorSaleNotice/);
- assert.doesNotMatch(page,/Mehrabmirkarimi2000@gmail.com/);
+ assert.doesNotMatch(page,/[a-z0-9._%+-]*mirkarimi[a-z0-9._%+-]*@[a-z0-9.-]+\.[a-z]{2,}/i);
  assert.doesNotMatch(book.works[0].quote.checkout_enabled.toString(),/true/);
 });
 test('scientific peer review status and author signature must not be counterfeited by deployment',()=>{
