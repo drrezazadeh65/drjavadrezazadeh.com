@@ -70,3 +70,26 @@ test('full masterplan certification status and digital-rights limitations are st
  assert.equal(pre.works[0].quote.checkout_enabled,false);
  assert.equal(pre.works[0].rights_confirmed,false);
 });
+
+
+// The full-release flow may install approved schema; phase-1 explicitly defers
+// all new DB tables, so its deployment must only use already-installed tables.
+test('phased production path checks installed operations schema before extraction and never runs CREATE TABLE',()=>{
+ const wf=fs.readFileSync('.github/workflows/deploy-bertina.yml','utf8');
+ const readOnlyCheck=wf.indexOf("if ('$RELEASE_SCOPE'==='phased_live_audit') {");
+ const extraction=wf.indexOf("if (!\\$zip->extractTo(__DIR__))");
+ const conditionalInstall=wf.indexOf("if ('$RELEASE_SCOPE'!=='phased_live_audit') operationsInstall(\\$pdo);");
+ assert.ok(readOnlyCheck>=0 && extraction>readOnlyCheck,
+   'absence of existing operations schema must block before any file extraction');
+ assert.ok(conditionalInstall>extraction,
+   'phased release must bypass CREATE TABLE/seed routine after extraction');
+ assert.match(wf,/RELEASE_SCOPE: \$\{\{ inputs\.release_scope \}\}/);
+ const section=wf.slice(readOnlyCheck,extraction);
+ for(const table of [
+   'operations_admin_memberships','operations_session_mfa','operations_mfa_counters',
+   'operations_evidence','operations_audit','operations_release',
+   'operations_action_runs','operations_collection_policies','operations_collection_cache'
+ ]) assert.ok(section.includes("'"+table+"'"),'required pre-existing table: '+table);
+ assert.ok(section.includes("SELECT 1 FROM "),
+   'phased schema preflight must be read-only');
+});
