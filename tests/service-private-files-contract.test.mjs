@@ -153,9 +153,12 @@ test('bilingual buyer and admin worklists use only private per-case file routes'
 test('owner readiness never advertises private file custody until the required secure gates are available',()=>{
  const snapshot=read('api/operations-commerce.php');
  assert.match(snapshot,/privateServiceFilesReady/);
+ assert.match(snapshot,/privateServiceFilesActivationChecks/);
+ assert.match(admin,/privateServiceFilesActivationChecks/);
+ assert.match(read('api/service-files.php'),/function jrServiceFilesActivationChecks/);
  assert.ok(snapshot.includes('jrServiceFilesReady($pdo)'));
  assert.ok(admin.includes('fulfilment.privateServiceFilesReady===true'));
- const version='operations-commerce.js?v=20261017-delivered-receipt-queue-v6';
+ const version='operations-commerce.js?v=20261017-owner-activation-checks-v7';
  for(const page of ['fa/app/admin/index.html','en/account/admin/index.html']){
   assert.ok(read(page).includes(version),'stale operations script '+page);
  }
