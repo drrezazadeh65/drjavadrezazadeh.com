@@ -314,13 +314,14 @@ function serviceMarketplace(runtime,authenticated){
     const boundaryText=isEnglish?translation.boundary:s.boundary_fa;
     const duration=Number.isInteger(s.duration_minutes)?localNumber(s.duration_minutes)+(isEnglish?' min':' دقیقه'):
       (isEnglish?'Service-specific scope':'دامنه اختصاصی خدمت');
-    // English customers should never be silently moved to a Persian checkout.
-    // No service is described as bought or booked without verified payment.
+    // English customers now use the genuine localized secure service
+    // checkout, backed by the same server-verified payment engine.
+    // Payment never claims scheduling, professional delivery or settlement.
     const checkoutHref=isEnglish
-      ?(purchaseReady?'/fa/services/checkout/?service='+id:'/en/request-consultation/?service='+id)
+      ?(purchaseReady?'/en/services/checkout/?service='+id:'/en/request-consultation/?service='+id)
       :(authenticated?'/fa/services/checkout/?service='+id:'/fa/login/');
     const label=isEnglish
-      ?(purchaseReady?'Checkout (Persian)':'Enquire about this service')
+      ?(purchaseReady?'Secure service checkout':'Enquire about this service')
       :(purchaseReady?'خرید و افزودن به داشبورد':authenticated?'مشاهده شرایط خرید':'ورود و ادامه');
     const outcome=outcomeText?'<p class="cd-service-outcome"><b>'+
       (isEnglish?'Defined outcome:':'خروجی روشن:')+'</b> '+esc(outcomeText)+'</p>':'';
