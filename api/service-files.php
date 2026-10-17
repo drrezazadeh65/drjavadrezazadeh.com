@@ -209,10 +209,31 @@ function jrServiceFileUpload(PDO $pdo,string $order,string $sku,string $actor,
             throw new DomainException('professional_output_requires_in_progress');
         // Replays of an identical uploaded document are idempotent. Parent
         // row lock serialises every upload for this exact paid service case.
-        $prior=$pdo->prepare('SELECT id FROM commerce_service_files
+        $prior=$pdo->prepare('SELECT id,storage_name,plaintext_size,content_sha256
+            FROM commerce_service_files
             WHERE order_id=? AND sku=? AND kind=? AND content_sha256=? LIMIT 1');
-        $prior->execute([$order,$sku,$kind,$digest]);$existing=$prior->fetchColumn();
+        $prior->execute([$order,$sku,$kind,$digest]);$previous=$prior->fetch(PDO::FETCH_ASSOC);
+        $existing=is_array($previous)?(string)$previous['id']:null;
         if(is_string($existing)&&validUuid($existing)){
+            // A duplicate acknowledgement must never refer to an already
+            // missing, replaced or tampered private object. Repair and retry
+            // require a separate audited recovery path, not invented success.
+            $previousName=(string)$previous['storage_name'];
+            if(!preg_match('/^[a-f0-9]{48}\\.blob$/D',$previousName)
+                ||(int)$previous['plaintext_size']!==$bytes
+                ||!hash_equals((string)$previous['content_sha256'],$digest))
+                throw new RuntimeException('prior_service_file_record_invalid');
+            $priorPath=$base.'/'.$previousName;
+            if(is_link($priorPath)||!is_file($priorPath))
+                throw new RuntimeException('prior_service_file_storage_missing');
+            $priorCipher=@file_get_contents($priorPath);
+            if(!is_string($priorCipher)||strlen($priorCipher)>12583000)
+                throw new RuntimeException('prior_service_file_cipher_unavailable');
+            $priorPlain=jrServiceFileDecrypt($priorCipher,$order,$sku);
+            if(strlen($priorPlain)!==$bytes
+                ||!hash_equals($digest,hash('sha256',$priorPlain)))
+                throw new RuntimeException('prior_service_file_integrity_mismatch');
+            unset($priorPlain,$priorCipher);
             if(!$pdo->commit())throw new RuntimeException('service_file_idempotent_commit_failed');
             @unlink($target);
             return ['id'=>$existing,'orderId'=>$order,'sku'=>$sku,
