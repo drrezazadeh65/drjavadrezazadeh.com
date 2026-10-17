@@ -22,6 +22,11 @@ function renderAuthor(author){
  ];
  for(const [label,value] of items){const box=el('div','');box.append(el('strong','',value),el('span','',label));cards.append(box)}
  section.append(cards,el('p','jp-small','مانده تسویه‌نشده مؤلف: '+fa(author.authorUnsettledToman)+' تومان. تعهد صندوق به معنی پرداخت قطعی به ذی‌نفع نیست.'));
+ const unresolvedRefunds=Number(author.settledRefundsAwaitingAllocationReversal)||0;
+ if(unresolvedRefunds>0){
+  const warning=el('p','jp-status','هشدار مالی: '+fa(unresolvedRefunds)+' سفارش بازپرداخت‌شده هنوز فاقد ثبت معکوس کامل سهم مؤلف یا صندوق در دفتر تخصیص است. ارقام تعهد و مانده ممکن است تا تطبیق مالی اصلاح شوند. برای بررسی با مدیریت تماس بگیرید.');
+  warning.setAttribute('role','alert');section.append(warning);
+ }
  const works=el('ul','jp-work-list');
  for(const work of author.works||[]){const li=el('li','');li.append(el('strong','',work.title),el('small','',''));li.lastChild.textContent='وضعیت انتشار: '+String(work.publicationStatus||'نامشخص')+' · داوری علمی: '+String(work.scientificReview||'نامشخص');works.append(li)}
  if(!works.childElementCount)works.append(el('li','','هنوز اثری در حساب تأییدشده ثبت نشده است.'));
@@ -75,7 +80,8 @@ function renderAuthor(author){
    ' · سهم مؤلف: '+fa(sale.authorShareToman)+' تومان'+
    ' · سهم صندوق: '+fa(sale.talentFundShareToman)+' تومان'+
    ' · ذخیره مستقل سایت (۷٪): '+fa(sale.platformOperatingReserveToman)+' تومان'+
-   ' · اعلان مؤلف: '+String(sale.authorNotificationState||'not_queued');
+   ' · اعلان مؤلف: '+String(sale.authorNotificationState||'not_queued')+
+   (sale.refundSettled?(sale.refundAllocationsUnreconciled?' · بازپرداخت تسویه‌شده؛ تخصیص مالی نیازمند تطبیق':' · بازپرداخت تسویه‌شده؛ تخصیص‌ها معکوس شده‌اند'):'');
   history.append(item);
  }
  if(!history.childElementCount)history.append(el('li','','فروش بانکی تأییدشده‌ای برای نمایش وجود ندارد؛ هیچ ردیف آزمایشی نمایش داده نمی‌شود.'));
