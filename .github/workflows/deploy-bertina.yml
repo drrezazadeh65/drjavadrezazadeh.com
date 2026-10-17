@@ -71,6 +71,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Reject missing or unrecognized release scopes before all gates
+        env:
+          RELEASE_SCOPE_INPUT: ${{ inputs.release_scope }}
+        run: |
+          set -euo pipefail
+          case "$RELEASE_SCOPE_INPUT" in
+            full_masterplan|phased_live_audit) ;;
+            *) echo "Unrecognized release scope; production remains blocked." >&2; exit 1 ;;
+          esac
+
       - name: BLOCK PRODUCTION until full 100 percent masterplan acceptance
         if: inputs.release_scope == 'full_masterplan'
         env:
