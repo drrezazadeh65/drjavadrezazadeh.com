@@ -13,7 +13,10 @@ function jrPublishingSchemaReady(PDO $pdo): bool {
           'publishing_work_versions','publishing_review_decisions','publishing_rights_licences',
           'publishing_offers','publishing_sale_allocation_entries','publishing_author_settlements',
           'publishing_private_assets','publishing_digital_access_grants',
-          'publishing_notification_outbox','publishing_audit_events','commerce_orders','commerce_payment_claims'];
+          'publishing_notification_outbox','publishing_audit_events',
+          'publishing_author_contracts','publishing_contract_signature_evidence',
+          'publishing_platform_cost_entries','publishing_platform_funding_entries',
+          'commerce_orders','commerce_payment_claims'];
         $s=$pdo->query('SELECT TABLE_NAME, ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');
         $engines=[];
         foreach($s->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -62,12 +65,33 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
         $works=$pdo->prepare("SELECT id,public_slug,title_fa,publication_status,scientific_review
             FROM publishing_works WHERE author_id=?
             ORDER BY created_at DESC LIMIT 100");
+        $reserve=$pdo->prepare("SELECT
+           COALESCE(SUM(c.reserve_amount_toman),0) AS reserved_toman
+           FROM publishing_platform_cost_entries c
+           JOIN publishing_offers f ON f.id=c.offer_id
+           JOIN publishing_works w ON w.id=f.work_id
+           JOIN commerce_orders o ON o.id=c.order_id AND o.state='paid'
+           JOIN commerce_payment_claims p ON p.order_id=o.id AND p.provider='bitpay'
+           WHERE w.author_id=?");
+        $funding=$pdo->prepare("SELECT
+           COALESCE(SUM(CASE WHEN a.funding_state='bank_reconciled' THEN a.amount_toman ELSE 0 END),0) AS reconciled_toman
+           FROM publishing_platform_funding_entries a
+           JOIN publishing_platform_cost_entries c ON c.id=a.cost_entry_id
+           JOIN publishing_offers f ON f.id=c.offer_id
+           JOIN publishing_works w ON w.id=f.work_id
+           WHERE w.author_id=?");
+        $contracts=$pdo->prepare("SELECT id,work_id,version_label,state,effective_from,effective_until
+           FROM publishing_author_contracts WHERE author_id=?
+           ORDER BY template_created_at DESC LIMIT 30");
         $out=[];
         foreach($rows as $row) {
             $id=(string)$row['id'];
             $earnings->execute([$id]);$totals=$earnings->fetch(PDO::FETCH_ASSOC)?:[];
             $settled->execute([$id]);$bank=$settled->fetch(PDO::FETCH_ASSOC)?:[];
             $works->execute([$id]);$items=$works->fetchAll(PDO::FETCH_ASSOC);
+            $reserve->execute([$id]);$reserveAmount=$reserve->fetch(PDO::FETCH_ASSOC)?:[];
+            $funding->execute([$id]);$fundedAmount=$funding->fetch(PDO::FETCH_ASSOC)?:[];
+            $contracts->execute([$id]);$contractRows=$contracts->fetchAll(PDO::FETCH_ASSOC);
             $accrued=(int)($totals['author_accrued_toman']??0);
             $sent=(int)($bank['bank_settled_toman']??0);
             $out[]=[
@@ -80,6 +104,15 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
               'talentFundEarmarkedToman'=>(int)($totals['fund_earmarked_toman']??0),
               'authorBankSettledToman'=>$sent,
               'authorUnsettledToman'=>max(0,$accrued-$sent),
+              'platformOperatingReserveToman'=>(int)($reserveAmount['reserved_toman']??0),
+              'platformOperatingFundingReconciledToman'=>(int)($fundedAmount['reconciled_toman']??0),
+              'platformOperatingReserveBps'=>700,
+              'platformOperatingPolicy'=>'Costs borne independently by platform, never withheld from author/fund',
+              'contracts'=>array_map(static function(array $c): array {
+                 return ['id'=>(string)$c['id'],'workId'=>(string)$c['work_id'],
+                   'version'=>(string)$c['version_label'],'state'=>(string)$c['state'],
+                   'effectiveFrom'=>$c['effective_from'],'effectiveUntil'=>$c['effective_until']];
+              },$contractRows),
               'works'=>array_map(static function(array $v): array {
                   return ['id'=>(string)$v['id'],'slug'=>(string)$v['public_slug'],
                       'title'=>(string)$v['title_fa'],'publicationStatus'=>(string)$v['publication_status'],
