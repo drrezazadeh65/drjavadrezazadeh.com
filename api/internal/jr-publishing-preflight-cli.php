@@ -81,13 +81,16 @@ try{
     'schema'=>'jr-publishing-private-release-preflight-v1',
     'scope'=>'private_operator_only_no_payment_side_effect',
     'passed'=>$passed,'total'=>count($checks),
-    'ready_for_public_sales'=>$passed===count($checks),
+    // Environment flags are not independently verifiable evidence of a test
+    // sale or bank reconciliation. Only the real release review can approve.
+    'ready_for_public_sales'=>false,
+    'technical_flags_present'=>$passed===count($checks),
     'checks'=>$checks,
-    'unverified_live_purchase'=>true,
+    'independent_live_purchase_evidence_read_here'=>false,
     'notice'=>'A positive preflight is not evidence of actual bank payment or legal review. Operator must confirm author rights and an independent test sale.'
   ];
   echo json_encode($result,JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n";
-  exit($result['ready_for_public_sales']?0:2);
+  exit(2); // report only; always requires independent operational approval
 }catch(Throwable $e){
   fwrite(STDERR,"JR publishing private preflight encountered an unavailable service; no secrets printed.\n");
   exit(3);
