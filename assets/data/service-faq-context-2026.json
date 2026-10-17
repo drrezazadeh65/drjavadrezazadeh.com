@@ -1,0 +1,90 @@
+{
+  "schema": "service-faq-context-2026-v1",
+  "governance": "Confirmed 21 canonical paid-service IDs; contextual input guidance is not a promise of specific outcomes.",
+  "services": {
+    "academic_consult_60": {
+      "fa": "صورت مسئله تحصیلی، گزینه‌های واقعی، محدودیت‌های زمانی و شواهد موجود از عملکرد آموزشی مشخص شود؛ نیازی به بارگذاری اطلاعات غیرمرتبط نیست.",
+      "en": "Define the actual educational decision, available options, timeline and relevant learning evidence; unrelated personal records are unnecessary."
+    },
+    "student_parent_90": {
+      "fa": "دیدگاه دانش‌آموز و دغدغه والد جداگانه، همراه با هدف مشترک و موقعیت‌های اختلاف نظر بیان شود؛ هیچ‌کدام جای صدای دانش‌آموز را نگیرد.",
+      "en": "Bring the student's and parent's perspectives separately, including the shared aim and any disagreement; the learner's own voice must remain central."
+    },
+    "konkur_consult_60": {
+      "fa": "سطح آمادگی، آزمون‌های اخیر، محدودیت ساعات مطالعه و تصمیم فوری کنکور با تاریخ دقیق مشخص شود؛ پیش‌بینی رتبه به‌جای داده واقعی استفاده نشود.",
+      "en": "Bring recent performance evidence, realistic study hours and the time-sensitive exam decision; speculative rank predictions are not evidence."
+    },
+    "konkur_month": {
+      "fa": "برنامه فعلی، شاخص‌های هفتگی پیشرفت و موانع تکرارشونده مشخص شوند تا توصیه یک‌ماهه قابل بازبینی باشد.",
+      "en": "Share the existing plan, weekly progress indicators and persistent constraints so that monthly guidance remains revisable."
+    },
+    "transcript_analysis": {
+      "fa": "بازه و مقیاس نمره‌دهی کارنامه، زمینه آموزشی و تصمیمی که تحلیل قرار است پشتیبانی کند توضیح داده شود؛ نمره نباید برچسب توانایی ثابت شود.",
+      "en": "State the transcript period, grading scale, educational setting and intended decision; marks should not be treated as fixed ability labels."
+    },
+    "field_selection_standard": {
+      "fa": "شرایط رسمی پذیرش، اولویت رشته و دانشگاه، موقعیت جغرافیایی و محدودیت بودجه یا خانواده به‌روزشده اعلام شوند.",
+      "en": "Provide verified admission eligibility, subject and institution preferences, geographic constraints and any relevant family or financial boundaries."
+    },
+    "field_selection_comprehensive": {
+      "fa": "تعارض میان علاقه، امکان پذیرش، کیفیت رشته و ملاحظات زندگی با ترتیب اولویت روشن شود؛ هر انتخاب باید قابل دفاع باشد.",
+      "en": "Clarify trade-offs among interest, eligible programmes, institutional fit and life circumstances, with an explicit preference order."
+    },
+    "talent_initial": {
+      "fa": "نمونه‌هایی از فعالیت‌های واقعی، علاقه‌های خود فرد و مشاهده در چند موقعیت مختلف ارائه شود؛ امتیاز یک آزمون به‌تنهایی ملاک نباشد.",
+      "en": "Describe authentic activities, learner interests and observations across contexts; a single score cannot establish a permanent talent classification."
+    },
+    "golden_talent_comprehensive": {
+      "fa": "شواهد مدرسه، خانه و فعالیت‌های داوطلبانه با توجه به تفاوت فرصت‌ها و محدودیت ابزار گردآوری شوند؛ نتیجه یک فرضیه رشدی بازبینی‌پذیر است.",
+      "en": "Gather learning and developmental evidence from more than one context while noting unequal opportunities and the limits of each assessment instrument."
+    },
+    "golden_talent_premium": {
+      "fa": "پرسش‌های والد، روایت خود فرد و نمونه‌های رشد در موقعیت‌های متفاوت برای جلسه و گزارش مسیر آماده شوند.",
+      "en": "Prepare parents' questions, the learner's own account and observed developmental experiences across settings for the consultation and pathway report."
+    },
+    "teacher_consult_60": {
+      "fa": "هدف یادگیری، مشخصات گروه زبان‌آموز، نمونه فعالیت یا سنجش و مسئله عملی کلاس مستند شود.",
+      "en": "Provide the learning objective, learner profile, classroom materials or assessment samples and the specific pedagogical challenge."
+    },
+    "teacher_dev_90": {
+      "fa": "یک تجربه واقعی تدریس، بازخورد موجود و تردید حرفه‌ای در تصمیم آموزشی انتخاب شود تا بازاندیشی به اقدام قابل پیگیری ختم شود.",
+      "en": "Select a real teaching episode, available feedback and a professional judgement dilemma so reflection can lead to a testable next step."
+    },
+    "manuscript_diagnostic": {
+      "fa": "فایل مقاله، پرسش اصلی، طرح پژوهش و راهنمای مجله هدف در صورت وجود آماده باشد؛ داده خام غیرضروری ارسال نشود.",
+      "en": "Prepare the manuscript, research question, study design and target journal guidance where relevant; unnecessary raw confidential data should not be submitted."
+    },
+    "academic_editing": {
+      "fa": "نسخه کامل متن تا سقف توافق‌شده، رشته تخصصی، گونه انگلیسی موردنظر و حدود تغییر معنایی مجاز روشن شود.",
+      "en": "Provide the agreed manuscript version, disciplinary context, preferred English variety and limits on changes to the author's intended meaning."
+    },
+    "research_consult_60": {
+      "fa": "سؤال پژوهش، مبانی انتخاب روش، نوع داده و ادعایی که باید با شواهد پشتیبانی شود دقیق بیان گردد.",
+      "en": "Define the research question, rationale for design, available data and the particular inference requiring an evidential warrant."
+    },
+    "journal_strategy": {
+      "fa": "نوع دست‌نوشته، دامنه علمی و الزامات نشریات موردنظر، همراه با محدودیت‌های اخلاق انتشار مشخص شوند.",
+      "en": "Identify manuscript type, disciplinary scope, prospective journal guidelines and relevant research-publication ethical requirements."
+    },
+    "reviewer_response": {
+      "fa": "نامه سردبیر، تک‌تک نظرهای داوران و نسخه دارای تغییرات واقعی ارائه شوند؛ پاسخ نباید اصلاح انجام‌نشده را ادعا کند.",
+      "en": "Provide the editor decision, individual reviewer comments and actual revised text; a response must not claim changes that were never made."
+    },
+    "academic_cv": {
+      "fa": "فرصت دانشگاهی مشخص، معیارهای آگهی و مدارک قابل‌راستی‌آزمایی سوابق پژوهش، تدریس و خدمت آماده شوند.",
+      "en": "Bring the specific academic vacancy, advertised criteria and verifiable research, teaching and service evidence; unsupported achievements must not be invented."
+    },
+    "academic_interview_90": {
+      "fa": "شرح جایگاه، رزومه واقعی، حوزه تدریس و پژوهش و پرسش‌های محتمل متناسب با مؤسسه آماده شود.",
+      "en": "Share the specific role, actual CV, teaching and research focus and institution-specific concerns for meaningful interview practice."
+    },
+    "organization_consult_90": {
+      "fa": "مسئله سازمانی، گروه‌های ذی‌نفع، محدودیت اجرا و شاخص معتبر سنجش تغییر مشخص شود.",
+      "en": "Describe the institutional concern, stakeholders, implementation constraints and observable indicators that would justify a proposed intervention."
+    },
+    "specialist_workshop_120": {
+      "fa": "سطح دانش شرکت‌کنندگان، هدف قابل‌مشاهده یادگیری، مدت و امکان اجرای فعالیت مشارکتی مشخص شوند.",
+      "en": "Specify participant readiness, observable learning objectives, session duration and opportunities for active work and follow-up."
+    }
+  }
+}
