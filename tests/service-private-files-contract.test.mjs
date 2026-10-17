@@ -137,6 +137,11 @@ test('bilingual buyer and admin worklists use only private per-case file routes'
  assert.match(dashboard,/\/api\/commerce\/service-file\?id=/);
  assert.match(dashboard,/FormData/);
  assert.match(dashboard,/serviceFileWorkspace\(order,c\)/);
+ assert.ok(api.includes("'privateServiceFilesReady'=>$privateFilesReady"));
+ assert.ok(api.includes("$privateFilesReady=jrServiceFilesReady($pdo)"));
+ assert.ok(dashboard.includes('data.privateServiceFilesReady===true'));
+ assert.ok(dashboard.includes('Private document storage has not been confirmed by the server.'));
+
  assert.match(admin,/function ownerServiceFileWorkspace/);
  assert.match(admin,/\/api\/admin\/operations\/commerce\/service-files/);
  assert.match(admin,/\/api\/admin\/operations\/commerce\/service-file\?id=/);
