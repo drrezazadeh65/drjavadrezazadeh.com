@@ -205,3 +205,14 @@ test('buyer upload controls remain closed until a verified private-case API resp
    'stale buyer upload control script '+page);
  }
 });
+
+test('inline grid/flex styles cannot override private file and guardian visibility gates',()=>{
+ const customer=read('assets/js/account-order-history.js');
+ const operator=read('assets/js/operations-commerce.js');
+ assert.ok(customer.includes("form.hidden=true;form.style.display='none';"));
+ assert.ok(customer.includes("form.style.display=form.hidden?'none':'grid'"));
+ assert.ok(customer.includes("guardianFlag.hidden=true;guardianFlag.style.display='none';"));
+ assert.ok(customer.includes("guardianFlag.style.display=minorCheck.checked?'flex':'none'"));
+ assert.ok(operator.includes("form.style.display='none'"));
+ assert.ok(operator.includes("if(entry.status!=='in_progress')"));
+});
