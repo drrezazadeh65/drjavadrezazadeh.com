@@ -14,7 +14,8 @@ SELECT DATABASE() AS phpmyadmin_current_context,
 -- STEP 2: Inventory by EXPLICIT schema name, independent of DATABASE().
 -- Baseline: 9 Stage09 commerce tables (incl. commerce_orders), already
 -- screenshot-observed on 2026-10-13. Newer 3 document/receipt tables and
--- the 17 CANONICAL publishing_* tables are separately proposed migrations;
+-- the 17 CANONICAL publishing_* tables plus 3 additive author-onboarding
+-- tables are separately proposed migrations;
 -- none are presumed deployed. Excludes obsolete parallel jr_pub_* proposal.
 SELECT expected.stage,expected.table_name,
        CASE WHEN actual.TABLE_NAME IS NULL THEN 'NOT_FOUND_IN_TARGET_SCHEMA'
@@ -52,6 +53,9 @@ FROM (
     UNION ALL SELECT 'PUBLISHING_CANONICAL','publishing_contract_signature_evidence'
     UNION ALL SELECT 'PUBLISHING_CANONICAL','publishing_platform_cost_entries'
     UNION ALL SELECT 'PUBLISHING_CANONICAL','publishing_platform_funding_entries'
+    UNION ALL SELECT 'PUBLISHING_AUTHOR_ONBOARDING','publishing_author_profiles'
+    UNION ALL SELECT 'PUBLISHING_AUTHOR_ONBOARDING','publishing_author_bank_accounts'
+    UNION ALL SELECT 'PUBLISHING_AUTHOR_ONBOARDING','publishing_author_documents'
     UNION ALL SELECT 'ACCOUNT','customer_accounts'
     UNION ALL SELECT 'OPTIONAL_ECOSYSTEM','eco_order_evidence'
     UNION ALL SELECT 'OPTIONAL_ECOSYSTEM','eco_object_refs'
@@ -71,7 +75,8 @@ LEFT JOIN (
   GROUP BY TABLE_NAME
 ) AS cols ON cols.TABLE_NAME=expected.table_name
 ORDER BY FIELD(expected.stage,
-  'BASELINE_STAGE09','ACCOUNT','NEW_SERVICE_CUSTODY','PUBLISHING_CANONICAL','OPTIONAL_ECOSYSTEM'),
+  'BASELINE_STAGE09','ACCOUNT','NEW_SERVICE_CUSTODY','PUBLISHING_CANONICAL',
+  'PUBLISHING_AUTHOR_ONBOARDING','OPTIONAL_ECOSYSTEM'),
   expected.table_name;
 
 -- STEP 3: Display non-sensitive column metadata for these tables, in TARGET schema.
