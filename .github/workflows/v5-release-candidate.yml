@@ -17,6 +17,7 @@ on:
       - 'scripts/service-private-custody-preflight.php'
       - 'scripts/bertina-auto-release-policy.mjs'
       - 'scripts/bertina-release-eligibility.mjs'
+      - 'scripts/bertina-phased-release-gate.mjs'
       - '.github/workflows/deploy-bertina.yml'
       - 'scripts/bertina-controlled-cpanel-gate.php'
       - 'tests/bertina-controlled-cpanel-gate.php'
@@ -86,6 +87,8 @@ jobs:
           node --test tests/service-intake-security-contract.test.mjs tests/service-private-files-contract.test.mjs tests/service-buyer-receipt-contract.test.mjs tests/service-completed-queue-contract.test.mjs tests/service-private-custody-preflight-contract.test.mjs
           node --test tests/bertina-phmyadmin-schema-context-contract.test.mjs
           node --test tests/masterplan-100-release-gate.test.mjs
+          node --check scripts/bertina-phased-release-gate.mjs
+          node --test tests/bertina-phased-release-gate.test.mjs
           node --test tests/masterplan-evidence-reuse-audit.test.mjs
           node scripts/masterplan-evidence-reuse-audit.mjs --output .artifacts/masterplan-existing-work-reuse.json
           node --check assets/js/commerce-checkout-en.js
