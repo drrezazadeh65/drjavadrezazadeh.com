@@ -156,7 +156,13 @@ function stage9FinalizePayment(PDO $pdo,string $orderId,string $idGet,string $tr
         // Atomically allocate the digital author's share, talent fund share,
         // 7% external platform cost, and two private PDF entitlements.
         // Any failure rolls back the bank claim and order state for safe retry.
-        jrPubCommitVerifiedDigitalOrder($pdo,$orderId,$items);
+        $hasDigitalOrder=false;
+        foreach($items as $line){if(($line['kind']??null)==='digital'){$hasDigitalOrder=true;break;}}
+        if($hasDigitalOrder){
+            if(!function_exists('jrPubCommitVerifiedDigitalOrder'))
+                throw new RuntimeException('digital_fulfilment_module_missing');
+            jrPubCommitVerifiedDigitalOrder($pdo,$orderId,$items);
+        }
         // A gateway-verified paid book order needs one physical fulfilment work
         // item. "preparing" is NOT a shipment, label, carrier acceptance or
         // delivery claim. The unique order PK and same locked transaction
