@@ -187,4 +187,28 @@ This is a **source/artifact handoff**, not approval to deploy. Read it together 
 
 At handoff creation, the authoritative release manifest remains `BLOCKED_PENDING_FULL_ACCEPTANCE`, with `0/41` formally verified gates, `0/21` separately verified paid-service journeys, `0` approved internal destination records, `ownerFinalAuthorization=false` and no approved immutable deployment SHA. These are **formal proof counts**, not completion percentages. Earlier trusted observations recorded missing live English service pages and first-author page/offer; this session's direct web fetch could not independently verify whether they have since gone live. Do not treat the absence of a fresh observation as success or as definitive continued 404. No live deployment, money movement, rights approval, email sending, private SQL modification or public file upload was performed by preparing this handoff.
 
-**Next action with highest value:** an authorized operator must run private staging and backup/restore acceptance and capture real evidence for the existing 41+21 records. Only then can the existing release gate legitimately progress. 
+**Next action with highest value:** an authorized operator must run private staging and backup/restore acceptance and capture real evidence for the existing 41+21 records. Only then can the existing release gate legitimately progress.
+
+
+## 9 — Mobile publishing QA and exact-SHA test evidence (2026-10-17)
+
+**Tested application SHA:** `6f63dae52cc26b470cdc57816a07161039775578` on canonical `migration/bertina-linux6`. This checkpoint supersedes the older source-checkpoint only for the code and routes it directly exercised. A later documentation commit will not be confused with this application SHA. Nothing in this section marks production-ready services, digital author rights or 41/21 independent approvals as completed.
+
+**Confirmed browser regression closure:** [Browser QA #39039964760](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964760) completed **SUCCESS (131/131)** on the exact SHA. The previously failing new mobile publishing flow passed at 320/390/430/768/1024/1440 widths on the Mirkarimi product page and the private author dashboard. Root cause: the native inline margin/min-content sizing of the product-page `figure.jp-book-scene` exceeded the 320-pixel viewport. An additive media-query constraint removed the incidental margin and allowed the grid child to shrink. Both existing pages have cache-busted the shared premium CSS without removing five-button mobile app navigation or replacing earlier designs.
+
+**Other exact-SHA workflow outcomes — all SUCCESS (11/11, not eleven production approvals):**
+
+| Workflow | Run |
+|---|---|
+| Full Route Responsive Certification | [39039964713](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964713) |
+| Full Route Visual Crawl | [39039964732](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964732) |
+| First Usable **Nondeploying** Candidate | [39039964770](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964770) |
+| Master SEO Audit / SEO GEO Regression | [39039964790](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964790), [39039964783](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964783) |
+| Bertina Migration Preflight / Bertina-Only Provider Guard | [39039964818](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964818), [39039964723](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964723) |
+| Navigation QA / Safe Public Scientific QA | [39039964714](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964714), [39039964751](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964751) |
+| Progressive Release Policy Tests | [39039964752](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964752) |
+| Chromium Browser QA | [39039964760](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39039964760) |
+
+**Production separation:** The preceding public read-only candidate observation reported deployed Bertina `/sw.js` SHA `f0bc6178a437d24e23b65eec1b791a36e578d8fb`, versus 22 newer source-only sitemap URLs including the Mirkarimi publishing page and English service-detail pages. This is a dated observation, not a newly repeated origin check. No production upload has occurred as a result of source CI.
+
+**Trusted private deployment blockers remain unchanged:** owner/author verified rights evidence; Bertina private custody of two authentic PDFs; scanned and staged MySQL migrations; SMTP receipt and mail worker; operator-led backup and independent restore; one legally authorized real bank receipt and tested restricted delivery; reconciled 60/40 gross split and separately funded 7% cost; verified private dashboards, OJS, science, 21 services and the masterplan's 41 gates/40 destinations. **No 100% certification or live-money author offer is claimed.** Keep `MASTERPLAN_100_RELEASE_ACCEPTANCE.json` pending until actual independent reviewer/host evidence and final owner authorization exists.
