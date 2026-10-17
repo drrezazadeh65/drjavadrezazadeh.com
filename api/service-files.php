@@ -58,6 +58,18 @@ function jrServicePhpMemoryReady(): bool {
     if($multiple<=0||$n>intdiv(PHP_INT_MAX,$multiple))return false;
     return $n*$multiple>=100663296;
 }
+/**
+ * 12-MiB uploaded documents are AV scanned before encryption. A default
+ * 30-second web-request limit cannot be advertised as production ready.
+ * 0 is the PHP setting for no execution-time limit. Operational limits and
+ * reverse-proxy timeouts must still be tested on the real hosting stack.
+ */
+function jrServicePhpExecutionReady(): bool {
+    $raw=trim((string)ini_get('max_execution_time'));
+    if(!preg_match('/^\d+$/D',$raw))return false;
+    $seconds=(int)$raw;
+    return $seconds===0||$seconds>=90;
+}
 function jrServiceFilesReady(PDO $pdo): bool {
     return ((cfg()['service_files_enabled']??(getenv('JR_SERVICE_FILES_ENABLED')==='true'))===true)
         &&(cfg()['public_tls_confirmed']??false)===true
@@ -74,6 +86,7 @@ function jrServiceFilesReady(PDO $pdo): bool {
         &&class_exists('ZipArchive')&&class_exists('finfo')
         &&jrServicePhpUploadLimitsReady()
         &&jrServicePhpMemoryReady()
+        &&jrServicePhpExecutionReady()
         &&strlen((string)(cfg()['auth_pepper']??''))>=32;
 }
 /**
@@ -104,6 +117,7 @@ function jrServiceFilesActivationChecks(PDO $pdo): array {
             class_exists('ZipArchive')&&class_exists('finfo')),
         'phpUploadCapacity'=>$safe(static fn(): bool => jrServicePhpUploadLimitsReady()),
         'phpMemoryCapacity'=>$safe(static fn(): bool => jrServicePhpMemoryReady()),
+        'phpExecutionCapacity'=>$safe(static fn(): bool => jrServicePhpExecutionReady()),
         'ownerDeliverySchema'=>$safe(static fn(): bool =>
             function_exists('operationsServiceDeliveryEvidenceReady')
             &&operationsServiceDeliveryEvidenceReady($pdo)),
