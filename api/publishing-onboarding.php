@@ -199,6 +199,12 @@ function jrPubAuthorOnboardingRoute(string $path,string $verb): never {
             $q->execute([$author,$p['legalNameFa'],$p['legalNameEn'],$p['academicTitle'],$p['affiliation'],
                 $p['specialization'],$p['orcid'],$p['professionalBio'],$p['identityKind'],$sealed,
                 $birth,$phone,$address,$p['cvPublicConsent']?1:0,'AUTHOR_PRIVATE_ONBOARDING_V1']);
+            // An edited legal identity invalidates earlier bank ownership approval.
+            // Never settle against identity/bank information that is awaiting re-review.
+            $pdo->prepare("UPDATE publishing_author_bank_accounts
+                 SET review_state='submitted',reviewed_by=NULL,reviewed_at=NULL,verified_at=NULL,
+                 review_note='Identity profile changed; bank ownership must be reviewed again'
+                 WHERE author_id=? AND review_state='verified'")->execute([$author]);
             jrPubKycAudit($pdo,$author,$id,'author_profile_submitted');$pdo->commit();
             respond(['ok'=>true,'state'=>'submitted','reviewRequired'=>true]);
         }
@@ -286,6 +292,10 @@ function jrPubKycAdminRoute(PDO $pdo,string $path,string $verb,string $admin,str
         if($kind==='document'&&$decision==='changes_requested')fail('invalid_decision',422);
         try{
             $pdo->beginTransaction();
+            $conflict=$pdo->prepare("SELECT 1 FROM publishing_author_accounts
+               WHERE author_id=? AND account_id=? AND revoked_at IS NULL LIMIT 1");
+            $conflict->execute([$author,$admin]);
+            if($conflict->fetchColumn())throw new DomainException('owner_cannot_approve_own_author_identity');
             if($kind==='document'){
                 $s=$pdo->prepare("SELECT review_state FROM publishing_author_documents WHERE author_id=? AND id=? FOR UPDATE");
                 $s->execute([$author,$docId]);$state=$s->fetchColumn();
