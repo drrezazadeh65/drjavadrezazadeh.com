@@ -490,6 +490,55 @@ function operationsRoute(string $path, string $verb): never {
             } catch(InvalidArgumentException $e){fail('invalid_service_reference',400);}
             catch(Throwable $e){fail('service_intake_owner_unavailable',503);}
         }
+        // Owner's private file custody: SUPER_ADMIN + fresh TOTP; authenticated
+        // order and matched provider claim remain mandatory for each operation.
+        if(in_array($path,['/admin/operations/commerce/service-files',
+                           '/admin/operations/commerce/service-file'],true)){
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('service_files_owner_role_required',403);
+            if(!jrServiceFilesReady($pdo))fail('private_service_files_unavailable',503);
+            if($path==='/admin/operations/commerce/service-file' && $verb==='GET'){
+                $id=$_GET['id']??null;
+                if(!is_string($id)||!validUuid($id))fail('invalid_file_reference',400);
+                if(!rateAllowed($pdo,'owner_service_file_download',$accountId,25,300))
+                    fail('rate_limited',429);
+                try{jrServiceFileDownload($pdo,$id,null);}
+                catch(DomainException $e){fail('private_file_not_found',404);}
+                catch(Throwable $e){error_log('Owner service file download: '.get_class($e));fail('private_file_unavailable',503);}
+            }
+            if($path==='/admin/operations/commerce/service-files' && $verb==='GET'){
+                $order=$_GET['order']??null;$sku=$_GET['sku']??null;
+                if(!is_string($order)||!is_string($sku))fail('invalid_service_reference',400);
+                if(!rateAllowed($pdo,'owner_service_file_list',$accountId,20,300))
+                    fail('rate_limited',429);
+                try{respond(['ok'=>true,'schema'=>'private-service-files-v1','ownerView'=>true]+
+                    jrServiceFilesList($pdo,$order,$sku,null));}
+                catch(InvalidArgumentException $e){fail('invalid_service_reference',400);}
+                catch(DomainException $e){fail('service_case_not_found',404);}
+                catch(Throwable $e){fail('owner_private_files_unavailable',503);}
+            }
+            if($path==='/admin/operations/commerce/service-files' && $verb==='POST'){
+                if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                    fail('csrf_forbidden',403);
+                if(!str_starts_with(strtolower((string)($_SERVER['CONTENT_TYPE']??'')),'multipart/form-data;'))
+                    fail('multipart_form_required',415);
+                if(!rateAllowed($pdo,'owner_service_file_upload',$accountId,5,3600))
+                    fail('rate_limited',429);
+                if(array_keys($_POST)!==['orderId','sku']||array_keys($_FILES)!==['document'])
+                    fail('invalid_service_file_form',400);
+                try{
+                    $file=jrServiceFileUpload($pdo,(string)$_POST['orderId'],(string)$_POST['sku'],
+                        $accountId,null,'professional_output',(array)$_FILES['document']);
+                    respond(['ok'=>true,'schema'=>'private-service-files-v1','file'=>$file],201);
+                }catch(InvalidArgumentException $e){fail('invalid_service_file',422);}
+                catch(DomainException $e){fail('private_case_or_file_limit_conflict',409);}
+                catch(Throwable $e){
+                    error_log('Owner service file upload: '.get_class($e));
+                    fail('owner_file_upload_unavailable',503);
+                }
+            }
+            fail('method_not_allowed',405);
+        }
         if ($path === '/admin/operations/commerce/availability' && $verb === 'POST') {
             if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
                 fail('csrf_forbidden',403);
