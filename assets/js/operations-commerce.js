@@ -568,6 +568,46 @@
     }
     const orders=data.orders||{},claims=data.claims||{},stock=data.stock||{},
       notices=data.notifications||{},fulfilment=data.fulfilment||{};
+    // Owner-only, non-sensitive explanation of why encrypted file intake is
+    // not yet live on Bertina. Never expose private paths or key material.
+    const privateChecks=fulfilment.privateServiceFilesActivationChecks||null;
+    if(privateChecks&&typeof privateChecks==='object'
+       &&!Array.isArray(privateChecks)&&Object.keys(privateChecks).length){
+      const checks=[
+        ['explicitlyEnabled','فعال‌سازی صریح مدیر سرور','Server-side feature enabled'],
+        ['verifiedHttps','تأیید HTTPS قابل اعتماد','Trusted HTTPS confirmation'],
+        ['commerceSchema','ساختار سفارش و پرونده خدمات','Commerce and service case schema'],
+        ['privateFileSchema','مهاجرت جدول اسناد محرمانه','Private file schema migration'],
+        ['privateStorage','فضای خصوصی خارج از پوشه عمومی','Private storage outside public web'],
+        ['antivirus','اسکنر ضدبدافزار فعال','Working malware scanner'],
+        ['cryptoAndKey','رمزنگاری و کلید خصوصی معتبر','Encryption and protected key'],
+        ['documentParsers','پشتیبانی PDF و DOCX','Document format parsers'],
+        ['phpUploadCapacity','ظرفیت امن ارسال فایل ۱۲ مگابایتی','PHP upload limits for 12 MB'],
+        ['ownerDeliverySchema','مهاجرت ثبت مستند تحویل مدیر','Owner delivery evidence migration'],
+        ['buyerReceiptSchema','مهاجرت تأیید دریافت مشتری','Buyer receipt acknowledgment migration']
+      ];
+      const missing=checks.filter(([key])=>privateChecks[key]!==true);
+      const section=node('section',undefined,'ops-card');
+      section.style.cssText='grid-column:1/-1;border:1px solid rgba(212,175,55,.33);background:linear-gradient(140deg,#201e1b,#131312)';
+      section.append(node('h3',text('آمادگی عملیاتی پرونده محرمانه خدمات',
+        'Encrypted service files — deployment prerequisites')));
+      section.append(node('p',missing.length
+         ?text('پیش‌نیازهای زیر هنوز روی سرور به‌صورت معتبر تأیید نشده‌اند؛ هیچ فایل محرمانه‌ای نباید از راه عمومی ارسال شود.',
+             'At least one required server prerequisite remains unverified. Do not accept private documents through public channels.')
+         :text('همه پیش‌نیازهای فنی گزارش‌شده برقرارند؛ آزمون واقعی خرید، ارسال فایل و دریافت توسط دو حساب مستقل همچنان پیش از تأیید نهایی لازم است.',
+             'All reported configuration checks pass. Real buyer/owner acceptance tests are still required before declaring production complete.'),
+         'ops-muted'));
+      const list=node('ul');
+      list.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:7px 17px;margin-top:12px;padding-inline-start:20px';
+      for(const [key,fa,enLabel] of checks){
+        const ok=privateChecks[key]===true;
+        const line=node('li',text(fa,enLabel)+' — '+(ok
+          ?text('تأیید شده','Ready'):text('نیازمند اقدام','Needs setup')));
+        line.style.cssText='color:'+(ok?'#d9dfc5':'#f0d597')+';line-height:1.8';
+        list.append(line);
+      }
+      section.append(list);results.append(section);
+    }
     card(text('سفارش‌های معلق','Pending orders'),orders.pendingRecords);
     card(text('ردیف‌های پرداخت‌شده','Paid-state records'),orders.paidStateRecords,
       text('تسویهٔ بانکی از این تعداد قابل استنتاج نیست.','This does not prove bank settlement.'));
