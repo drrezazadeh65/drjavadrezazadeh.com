@@ -34,6 +34,8 @@ One domain, one `/api/` origin, one verified email-account system, one BitPay St
 - Golden Talent, RCAS, BAHAR, Golden Path and scientifically qualified claims; academic publications/books; JHELA/OJS journal and scholarly submission/reviewer flows; bilingual SEO/GEO and structured entity graph.
 - Unique service illustrations and academically substantiated, professionally written Persian/English content. An attractive mockup is not functional acceptance.
 
+**Known live P0 for the author product:** [Post-release anonymous observation #39031499136](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39031499136) confirms the live **Mirkarimi public author page HTTP 404** and **/api/publishing/offer HTTP 404** on the production release fingerprint `f0bc6178a437d24e23b65eec1b791a36e578d8fb`. No actual paid link delivery or author email was demonstrated. This is a production visibility gap independent of complete private activation. The observer is in `scripts/bertina-postrelease-check.mjs` and its data are in the run's `bertina-postrelease-operational-evidence` artifact.
+
 **Known live P0:** [route evidence](LIVE_BILINGUAL_SERVICE_ROUTE_GAP_20261017.md) documents **21/21 EN service detail URLs responding 404** in the inspected live revision and **21/21 FA URLs returning 200 but without the source-approved reciprocal hreflang**. Source-level 42-route tests pass; the live release fingerprint `f0bc6178a437d24e23b65eec1b791a36e578d8fb` differs from reviewed development code. This must be resolved through one approved deployment and verified afterward, without making false redirects or altering approved URLs. Follow-up source control: `scripts/lib/public-service-route-contract.mjs`, `tests/bertina-live-service-route-contract.test.mjs`, `scripts/bertina-postrelease-check.mjs`.
 
 ## 3 — First external author and digital bundle
@@ -118,6 +120,7 @@ The newer owner timing instruction to launch the verified current subset and aud
 | P1 JHELA/OJS, assessments, bookshop | Source/staging work exists | Real host evidence, scientific quality, private workflows, submission/payment proof | Complete research ecosystem |
 
 ### Audit trail links (known source runs, dates 2026-10-17)
+- Successful **combined site+author** source CI run (source candidate with new 21-service publishing invariant): https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39031565681 — four jobs success (contracts/browser/public observation/candidate); does not validate live paid release.
 - Successful nondeploying candidate run: https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39030687100
 - Live bilingual 42-page failure evidence: https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39030826424
 - Live system observer base case: https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39027647436
