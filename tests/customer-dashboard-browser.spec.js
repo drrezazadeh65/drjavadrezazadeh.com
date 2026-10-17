@@ -296,8 +296,9 @@ for(const status of ['guest','verified-checkout','translations-unavailable']){
    await expect(cards.first().locator('.cd-service-more')).toHaveAttribute('href','/en/services/');
    const label=cards.first().locator('.cd-service-buy');
    if(status==='verified-checkout'){
-    await expect(label).toHaveText('Checkout (Persian)');
-    await expect(label).toHaveAttribute('href','/fa/services/checkout/?service=academic_consult_60');
+    await expect(label).toHaveText('Secure service checkout');
+    await expect(label).toHaveAttribute('href','/en/services/checkout/?service=academic_consult_60');
+    await expect(label).toHaveAttribute('hreflang','en');
     await expect(cards.first()).toHaveAttribute('data-purchase-ready','true');
    }else{
     await expect(label).toHaveText('Enquire about this service');
