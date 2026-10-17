@@ -199,7 +199,7 @@ test('buyer upload controls remain closed until a verified private-case API resp
  assert.ok(source.includes("form.hidden=true;form.style.display='none';loaded=false;files.replaceChildren();"),'API errors must hide upload in both HTML state and inline CSS');
  assert.ok(source.includes('!loaded||form.hidden||!box.open'),'submit must not bypass readiness');
  assert.ok(source.includes('if(box.open)refresh();'),'reopening must revalidate');
- assert.ok(source.includes('else{form.hidden=true;loaded=false;files.replaceChildren();}'),'closed view clears private listing');
+ assert.ok(source.includes("else{form.hidden=true;form.style.display='none';loaded=false;files.replaceChildren();}"),'closed view must both hide upload in CSS and clear private file listing');
  for(const page of ['fa/app/account/orders/index.html','en/app/account/orders/index.html']){
   assert.ok(read(page).includes('account-order-history.js?v=20261017-secure-upload-readiness-v8'),
    'stale buyer upload control script '+page);
