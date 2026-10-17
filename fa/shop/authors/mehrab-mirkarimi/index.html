@@ -106,8 +106,16 @@
 <section class="jp-section" id="purchase"><div class="jp-container"><div class="jp-commercial">
 <div><p class="jp-kicker" style="color:#80602e">قیمت و عرضه دیجیتال</p><h2>دسترسی به مجموعه کامل دو فایل PDF</h2><p>قیمت تعیین‌شده برای مجموعه کامل یک میلیون تومان است. فروش آنلاین و تحویل ایمیلی تنها پس از آزمایش موفق درگاه، اعتبارسنجی علمی، قرارداد مؤلف و فعال‌سازی حفاظت فایل آغاز خواهد شد.</p>
 <div class="jp-price">۱٬۰۰۰٬۰۰۰ <small>تومان</small></div><p class="jp-subprice">شامل ۴۲۵ صفحه سؤال و ۵۷۲ صفحه پاسخ تشریحی · فایل فیزیکی/چاپی فعلاً عرضه نمی‌شود</p>
-<div class="jp-status">ثبت سفارش و پرداخت در این مرحله فعال نیست. هیچ مبلغی از مراجعه‌کننده دریافت نمی‌شود.</div>
-<div class="jp-hero-actions"><a class="jp-button primary" href="/fa/tamas/">پرسش درباره زمان آغاز فروش</a><a class="jp-button" href="/fa/shop/">بازگشت به فروشگاه</a></div>
+<div class="jp-status" id="jp-checkout-state" role="status" aria-live="polite">در حال استعلام آمادگی درگاه و تحویل امن نسخه دیجیتال...</div>
+<form id="jp-digital-checkout-form" class="jp-card" hidden aria-label="فرم خرید آنلاین نسخه دیجیتال" style="margin-block:18px;background:#fff8ed;color:#162840">
+ <label for="jp-buyer-name">نام و نام خانوادگی خریدار</label>
+ <input id="jp-buyer-name" name="buyer-name" autocomplete="name" minlength="2" maxlength="100" required style="width:100%;min-height:48px;margin-bottom:12px;padding:10px;color:#12283e;background:white;border:1px solid #9b855f;border-radius:9px" />
+ <label for="jp-buyer-email">ایمیل برای دریافت دو فایل PDF</label>
+ <input id="jp-buyer-email" name="buyer-email" type="email" autocomplete="email" required style="width:100%;min-height:48px;margin-bottom:16px;padding:10px;direction:ltr;text-align:left;color:#12283e;background:white;border:1px solid #9b855f;border-radius:9px" />
+ <button id="jp-pay-now" class="jp-button primary" type="submit" style="width:100%">پرداخت امن ۱٬۰۰۰٬۰۰۰ تومان و دریافت PDF</button>
+ <p class="jp-subprice" style="margin-bottom:0">پس از تأیید پرداخت، لینک دانلود خصوصی هر دو فایل به ایمیل ثبت‌شده ارسال خواهد شد. بدون نیاز به آدرس پستی.</p>
+</form>
+<div class="jp-hero-actions"><a class="jp-button" href="/fa/tamas/">پشتیبانی خرید</a><a class="jp-button" href="/fa/shop/">بازگشت به فروشگاه</a></div>
 </div>
 <div><p class="jp-kicker" style="color:#80602e">شفافیت اجتماعی هر فروش</p><h2>۴۰٪ از مبلغ خرید، برای استعدادهای آینده</h2>
 <p>این تصمیم به معنی پرداخت ۴۰ درصد از درآمد ناخالص فروش است، نه ۴۰ درصد از سود پس از هزینه‌ها. هزینه‌های اجرایی نباید به‌صورت پنهان از سهم مؤلف یا صندوق کسر شوند.</p>
@@ -130,4 +138,4 @@
 <details><summary>آیا پس از پرداخت، فایل‌ها خودکار به ایمیل فرستاده می‌شوند؟</summary><p>در طرح عملیاتی بله؛ پس از تأیید معتبر پرداخت، لینک امن دانلود از طریق ایمیل ارسال می‌شود. این قابلیت تا زمان آزمون و فعال‌سازی در دسترس نیست.</p></details>
 </div></section></main>
 <footer class="jp-footer"><div class="jp-container"><div>© ۲۰۲۶ · دکتر جواد رضازاده یزدلی · زیرساخت توسعه‌پذیر آثار علمی</div><div><a href="/fa/shop/customer-policy/">شرایط خرید</a> · <a href="/fa/harim-khosusi/">حریم خصوصی</a> · <a href="/fa/support-talented-students/">حمایت از استعدادها</a></div></div></footer>
-</body></html>
+<script src="/assets/js/jr-publishing-checkout-v1.js?v=20261017-first-sale" defer></script></body></html>
