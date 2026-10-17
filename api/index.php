@@ -1045,7 +1045,13 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
         try { jrPubProcessOutbox($pdo,$id); }
         catch(Throwable $mailError){ error_log('Publishing postpay mail deferred '.get_class($mailError)); }
         $customerEmail=(string)($row['customer_email']??'');
-        if(validEmail($customerEmail)&&mailReady()){
+        // The digital publishing outbox already owns the buyer receipt and
+        // the two private download links. Never send the generic commerce
+        // receipt as a second, duplicate message for this same purchase.
+        $paidItems=json_decode((string)($row['items_json']??''),true);
+        $digitalReceipt=is_array($paidItems) && count($paidItems)===1
+          && ($paidItems[0]['sku']??null)===JR_PUB_SKU;
+        if(!$digitalReceipt && validEmail($customerEmail)&&mailReady()){
             $items=json_decode((string)$row['items_json'],true);$summary=[];$sum=0;
             if(is_array($items)){foreach($items as $x){$qty=(int)($x['quantity']??0);$sub=(int)($x['subtotal']??0);$sum+=$sub;$summary[]='- '.(string)($x['title']??$x['sku']??'item').' × '.$qty.' | '.number_format($sub).' تومان';}}
             $studentSupport=is_array($items)&&count($items)===1&&($items[0]['sku']??'')==='support:students';
