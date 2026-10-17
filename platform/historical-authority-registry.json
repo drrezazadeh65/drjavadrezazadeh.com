@@ -77,6 +77,13 @@
       "evidence": "existing approved legacy migration"
     },
     {
+      "source": "/home/",
+      "target": "/",
+      "status": 301,
+      "evidence": "Owner-supplied Google Search Console Live Test 2026-10-17: /home/ is fetchable by Googlebot but returns HTTP 404. This is an explicit homepage-named route, semantically consolidating to the canonical bilingual homepage /; prior unique content at /home/ has not been independently established.",
+      "classification": "SPECIFIC_HOME_ALIAS_GSC_404"
+    },
+    {
       "source": "/publications/",
       "target": "/en/publications/",
       "status": 301,
