@@ -85,6 +85,14 @@ const required=[
   // These runtime modules must ship together with api/index.php; publishing
   // routes without their bound PHP source would cause an immediate 500.
   'api/service-files.php','api/service-buyer-receipt.php','api/operations-service-delivery.php',
+  // Every paid digital dependency must be in the deployment artifact together,
+  // otherwise the gateway may accept money while PHP fails to deliver PDFs.
+  'api/publishing.php','api/internal/jr-publishing-digital.php',
+  'api/internal/jr-publishing-mailer.php','api/internal/jr-publishing-mail-worker.php',
+  'api/internal/jr-publishing-contract-draft.php','api/internal/jr-publishing-notifications.php',
+  'api/internal/jr-publishing-provision-cli.php','api/internal/jr-publishing-preflight-cli.php',
+  'api/internal/.htaccess','assets/js/jr-publishing-checkout-v1.js',
+  'fa/app/author/index.html','fa/shop/authors/mehrab-mirkarimi/index.html',
   'assets/js/account-order-history.js','assets/js/operations-commerce.js'
 ];
 for(const rel of required) if(!fs.existsSync(path.join(out,rel))) failures.push('Missing required public artifact: '+rel);
@@ -97,6 +105,13 @@ for(const blocked of excludedRoot){
 }
 if(fs.existsSync(path.join(out,'assets/media-registry.json'))) failures.push('Internal media registry leaked into artifact');
 if(fs.existsSync(path.join(out,'assets/release-v4.4.json'))) failures.push('Internal release manifest leaked into artifact');
+if(!fs.readFileSync(path.join(out,'api/internal/.htaccess'),'utf8').includes('Require all denied'))
+  failures.push('Author payments must not ship with web-readable private PHP modules');
+for(const risky of ['tefl_1370_1405_questions.pdf','tefl_1370_1405_answers.pdf',
+  'JR_Publishing_PDF_Private_Server_Staging.zip']){
+  if(all?.some && all.some(file=>path.basename(file)===risky))
+    failures.push('Private paid scholarly resource must not be in sanitized public release: '+risky);
+}
 
 const all=[];
 function walk(dir){
