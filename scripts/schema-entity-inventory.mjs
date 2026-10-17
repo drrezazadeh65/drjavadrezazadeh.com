@@ -55,6 +55,20 @@ const graphNodes=doc=>{
    Array.isArray(doc['@graph'])?doc['@graph'].flatMap(graphNodes):[doc];
 };
 const typeList=type=>typeof type==='string'?[type]:Array.isArray(type)?type.filter(x=>typeof x==='string'):[];
+export function classifyContentIntent(route){
+ if(/^\/(?:fa|en)\/services\/[^/]+\/$/.test(route)&&!route.endsWith('/checkout/'))
+  return {intent:'paid-service-detail',appropriate:['Service','BreadcrumbList']};
+ if(/^\/(?:fa|en)\/services\/$/.test(route))
+  return {intent:'service-archive',appropriate:['CollectionPage','ItemList']};
+ if(route==='/en/publications/'||route==='/fa/entesharat-elmi/')
+  return {intent:'scholarly-publications',appropriate:['CollectionPage','ScholarlyArticle','PublicationIssue','PublicationVolume','Periodical']};
+ if(/^\/(?:fa|en)\/(?:books|ketab-ha)\/$/.test(route))
+  return {intent:'books-archive',appropriate:['CollectionPage','BreadcrumbList']};
+ if(route==='/journal/')return {intent:'journal-initiative',appropriate:['WebPage']};
+ if(/\/(?:app|account|admin|checkout|customer-dashboard|payment-start)\//.test(route))
+  return {intent:'private-transactional',appropriate:[]};
+ return {intent:'other-public-or-contextual',appropriate:[]};
+}
 export function inspectHtml(route,html){
  const issues=[],report=(severity,code,details)=>issues.push({severity,code,details});
  const lang=attr(html.match(/<html\b[^>]*>/i)?.[0]||'','lang')||'und';
@@ -63,6 +77,7 @@ export function inspectHtml(route,html){
  const meta=tag(html,'meta','name','robots');
  const robots=meta?attr(meta,'content')||'':'';
  const noindex=/\bnoindex\b/i.test(robots);
+ const intent=classifyContentIntent(route);
  const hreflang=[...(html.match(/<link\b[^>]*>/gi)||[])]
    .filter(t=>attr(t,'rel')?.toLowerCase()==='alternate'&&attr(t,'hreflang'))
    .map(t=>({lang:attr(t,'hreflang'),url:attr(t,'href')}));
@@ -97,6 +112,12 @@ export function inspectHtml(route,html){
   if(/"(?:password_hash|password_plaintext|api[_-]?key|access_token|refresh_token|payment_card_number|student_full_name|customer_email_normalized)"\s*:/i.test(str))
    report('error','structured_data_private_field','A private-field key appeared in public JSON-LD');
  }
+ if(intent.intent==='private-transactional'&&!noindex)
+  report('error','private_route_indexable','Account, admin, checkout and payment routes must remain noindex');
+ if(!noindex&&intent.intent==='paid-service-detail'&&!observedTypes.includes('Service'))
+  report('warning','paid_service_missing_service_schema','A visible publicly purchasable service detail lacks Service JSON-LD');
+ if(!noindex&&intent.intent==='scholarly-publications'&&!observedTypes.includes('ScholarlyArticle'))
+  report('warning','publication_archive_missing_article_schema','Published article archive has no article metadata');
  if(!noindex){
   const expected=BASE+route;
   if(!canonical)report('warning','public_missing_canonical','No canonical link on indexable page');
@@ -106,6 +127,7 @@ export function inspectHtml(route,html){
  if(route.startsWith('/fa/')&&lang!=='fa')report('warning','language_path_mismatch',lang);
  if(route.startsWith('/en/')&&lang!=='en')report('warning','language_path_mismatch',lang);
  return {url:BASE+route,route,language:lang,indexability:noindex?'noindex':'indexable-or-unspecified',
+  contentIntent:intent.intent,contextualSchemaTypes:intent.appropriate,
   canonical,hreflang,schemaTypes:observedTypes,structuredDataBlocks:blocks.length,
   entityIds:[...entities.keys()],errors:issues.filter(i=>i.severity==='error'),
   warnings:issues.filter(i=>i.severity==='warning'),issues};
