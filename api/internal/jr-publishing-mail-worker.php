@@ -18,9 +18,17 @@ $pdo=db();
 if(!$pdo||!mailReady()||!jrPublishingSchemaReady($pdo)) {
   fwrite(STDERR,"JR publishing outbox not configured\n");exit(1);
 }
+// A worker crash after SMTP acceptance but before status persistence makes
+// the send outcome unknowable. Escalate stale leases for operator review;
+// never automatically repeat an ambiguous author/buyer notification.
+$expired=$pdo->exec("UPDATE publishing_notification_outbox
+  SET status='dead_letter' WHERE status='processing' AND next_attempt_at<NOW()");
+if($expired>0) {
+  error_log('JR publishing outbox: '.(int)$expired.' ambiguous sends require manual reconciliation');
+}
 $s=$pdo->query("SELECT DISTINCT order_id FROM publishing_notification_outbox
-  WHERE (status IN('queued','retry') OR (status='processing' AND next_attempt_at<NOW()))
-  AND next_attempt_at<=NOW() ORDER BY order_id ASC LIMIT 20");
+  WHERE status IN('queued','retry') AND next_attempt_at<=NOW()
+  ORDER BY order_id ASC LIMIT 20");
 $total=0;
 foreach($s->fetchAll(PDO::FETCH_COLUMN) as $id) {
   try { $total+=jrPubProcessOutbox($pdo,(string)$id); }
