@@ -108,6 +108,7 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
            WHERE e.author_id=?
            GROUP BY e.order_id,e.offer_id
            ORDER BY MAX(e.created_at) DESC LIMIT 50");
+        require_once __DIR__.'/internal/jr-publishing-contract-draft.php';
         $out=[];
         foreach($rows as $row) {
             $id=(string)$row['id'];
@@ -134,6 +135,7 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
               'platformOperatingFundingReconciledToman'=>(int)($fundedAmount['reconciled_toman']??0),
               'platformOperatingReserveBps'=>700,
               'platformOperatingPolicy'=>'Costs borne independently by platform, never withheld from author/fund',
+              'draftContract'=>jrPublishingDraftContract((string)$row['display_name_fa']),
               'recentSales'=>array_map(static function(array $sale): array {
                   $a=(int)$sale['author_net'];$fund=(int)$sale['fund_net'];
                   return [
