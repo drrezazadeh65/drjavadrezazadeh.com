@@ -32,6 +32,17 @@ A paid client already has a verified email account, provider-claim-backed order 
 - Validate that Donation, original checkout, BitPay, receipts, order amounts, customer account login, Golden Talent and JHELA have no regressions, and that private file URLs are `noindex`, `no-store`, owner-authorized, never in a sitemap or CDN cache.
 - Check server backups include the **private storage directory and its encryption key recovery procedure** in separately secured recovery controls. Retention/deletion requests must be handled without breaking immutable fiscal records.
 
+## Independent client file receipt — added 2026-10-17
+
+The buyer now has a separate, optional **explicit self-attested receipt** action only for the exact professional output released by the owner. The record is not created on a download GET, gateway callback, scheduling change or owner attestation. It is not a quality/satisfaction endorsement, independent network-download proof or bank-settlement certificate.
+
+- Additive migration **after** the private files migration: `docs/migrations/20261017_service_buyer_receipt.sql`, creating `commerce_service_buyer_receipts` with actual output and service-case foreign keys.
+- Buyer route: `POST /api/commerce/service-receipt`. Requires an active verified account, same-origin request, rate limiting, provider-claim-matched paid order and exact file-ID equality with the owner's HMACed document-delivery evidence. A draft, a merely completed session, a different order and a false `received` input are rejected.
+- Receipt replay is idempotent; first timestamp is preserved. `GET /api/commerce/service-files` projects only the client's permitted output and its real self-receipt status, leaving other internal outputs private.
+- Owner panel distinguishes **private draft**, **released output awaiting buyer declaration**, and **buyer self-attested receipt**. No finance, orders, delivery evidence or client satisfaction is automatically mutated.
+- CI fixtures: `tests/service-buyer-receipt-contract.test.mjs` and `tests/commerce-service-advance-mysql.php` include schema, wrong-email, no-consent, draft and replay checks. Run PHP/MySQL integration in an isolated fixture before deploying to Bertina.
+- New receipt schema not applied means buyer acknowledgement must fail closed without affecting login, payment or already-released file download.
+
 ## Operational limits and explicit exclusions
 This new feature does **not** claim that antivirus, filesystem, TLS, production DB migration or external operator permissions have been configured. It does not send transactional email or certify that a client downloaded the result. It does not establish academic effectiveness, validation of assessment instruments, actual professional delivery or published journal acceptance. DOCX files remain attachment-only; no public document preview is performed. Future additional file types require separately validated MIME, AV and safe rendering controls.
 
