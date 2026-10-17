@@ -31,7 +31,7 @@ function jrServiceBuyerReceiptConfirm(PDO $pdo,string $actor,string $email,array
     $order=$input['orderId'];$sku=$input['sku'];$id=$input['fileId'];
     jrServiceFileReference($order,$sku);
     if(!jrServiceBuyerReceiptSchemaReady($pdo)
-      ||!jrServiceFilesReady($pdo))
+      ||!jrServiceFilesSchemaReady($pdo))
         throw new RuntimeException('buyer_receipt_not_ready');
     if(!$pdo->beginTransaction())throw new RuntimeException('receipt_transaction_unavailable');
     try{
