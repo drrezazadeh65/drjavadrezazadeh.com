@@ -108,7 +108,7 @@
 .jr-cart-redesign .cart-trust-links{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px!important;margin-top:20px}
 .jr-cart-redesign .cart-trust-links a{display:flex!important;align-items:center;justify-content:space-between;gap:10px;min-height:56px;padding:14px 17px!important;border:1px solid #d9b77c!important;border-radius:14px!important;background:#172d3f!important;color:#ffebc7!important;text-decoration:none!important;font-size:1rem;line-height:1.7;font-weight:800;box-shadow:0 7px 20px #0003}
 .jr-cart-redesign .cart-trust-links a::after{content:"\2190";font-size:1.15rem;line-height:1;opacity:.85}
-.jr-cart-redesign[lang="en"] .cart-trust-links a::after{content:"\2192"}
+html[lang="en"] .jr-cart-redesign .cart-trust-links a::after{content:"\2192"}
 .jr-cart-redesign .cart-trust-links a:hover{background:#29465c!important}
 .jr-cart-redesign .cart-trust-links a:focus-visible{outline:3px solid #f7d994;outline-offset:3px}
 .jr-cart-redesign .store-notice{background:linear-gradient(145deg,#17273a,#131d2b);color:#f4e5c5}
