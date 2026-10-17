@@ -586,6 +586,7 @@
         ['cryptoAndKey','رمزنگاری و کلید خصوصی معتبر','Encryption and protected key'],
         ['documentParsers','پشتیبانی PDF و DOCX','Document format parsers'],
         ['phpUploadCapacity','ظرفیت امن ارسال فایل ۱۲ مگابایتی','PHP upload limits for 12 MB'],
+        ['phpMemoryCapacity','حافظه کافی PHP برای رمزنگاری فایل تا ۱۲ مگابایت','PHP memory headroom for encrypted 12 MB documents'],
         ['ownerDeliverySchema','مهاجرت ثبت مستند تحویل مدیر','Owner delivery evidence migration'],
         ['buyerReceiptSchema','مهاجرت تأیید دریافت مشتری','Buyer receipt acknowledgment migration']
       ];
