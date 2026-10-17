@@ -24,6 +24,24 @@ test('approved legacy routes map one hop to live public destinations',()=>{
   assert.equal(pubs.status,301);
 });
 
+test('GSC /home/ 404 has only an explicit semantic one-hop homepage redirect',()=>{
+  const rule='RewriteRule ^home/?$ https://drjavadrezazadeh.com/ [R=301,L,NE]';
+  const ht=fs.readFileSync(path.join(process.cwd(),'.htaccess'),'utf8');
+  const mapping=classifyHistoricalTarget('/home/',registry);
+  assert.equal(mapping.action,'ALREADY_MAPPED');
+  assert.equal(mapping.target,'/');
+  assert.equal(mapping.status,301);
+  assert.ok(ht.includes(rule),'Homepage alias must be one explicit Apache 301');
+  const transport='RewriteRule ^ https://drjavadrezazadeh.com%{REQUEST_URI} [R=301,L,NE]';
+  assert.ok(ht.indexOf(rule)>=0&&ht.indexOf(rule)<ht.indexOf(transport),'Must not chain HTTP or www on missing homepage alias');
+  assert.ok(!fs.existsSync('home/index.html'),'Do not create competing homepage content');
+  for(const file of ['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml']){
+    assert.ok(!fs.readFileSync(file,'utf8').includes('<loc>https://drjavadrezazadeh.com/home/</loc>'));
+  }
+  const unrelated=classifyHistoricalTarget('/old-wordpress-page-that-we-have-not-verified/',registry);
+  assert.equal(unrelated.action,'REVIEW');
+});
+
 test('removed historical product remains Gone with no unrelated redirection',()=>{
   const p=classifyHistoricalTarget('/product/%D8%AE%D8%B1%DB%8C%D8%AF-%D9%81%D8%B1%D8%B4-%D9%85%D8%A7%D8%B4%DB%8C%D9%86%DB%8C-%DA%A9%D8%AF-2-7801-9735/',registry);
   assert.equal(p.action,'QUARANTINE_GONE');
