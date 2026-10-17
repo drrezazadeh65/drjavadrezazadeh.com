@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+// Source-only negative release gate for the JR multi-author pilot.
+// PASS means: no unsafe public launch was accidentally permitted.
+// It does NOT certify live email, bank settlement, payments, files or rights.
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+const root = path.resolve(import.meta.dirname,'..');
+const get = p=>fs.readFileSync(path.join(root,p),'utf8');
+const product=JSON.parse(get('assets/data/jr-publishing-prelaunch.json'));
+const global=JSON.parse(get('docs/governance/MASTERPLAN_100_RELEASE_ACCEPTANCE.json'));
+const page=get('fa/shop/authors/mehrab-mirkarimi/index.html');
+const api=get('api/publishing.php');
+const js=get('assets/js/jr-author-workspace-v1.js');
+const helper=get('api/internal/jr-publishing-allocations.php');
+const legal=get('docs/migrations/20261017_jr_publishing_contract_and_reserve.sql');
+const policy=get('docs/governance/JR_FUTURE_PUBLISHING_MASTER_20261017.md');
+const work=product.works.find(w=>w.id==='tefl-ma-exams-1370-1405');
+assert.ok(work,'work registry entry missing');
+assert.equal(work.quote.gross_unit_price,1_000_000);
+assert.equal(work.quote.author_unit_share,600_000);
+assert.equal(work.quote.fund_unit_share,400_000);
+assert.equal(work.quote.operating_reserve_irt,70_000);
+assert.equal(work.quote.author_unit_share+work.quote.fund_unit_share,work.quote.gross_unit_price);
+assert.equal(work.quote.operating_reserve_irt+work.quote.author_unit_share+work.quote.fund_unit_share,1_070_000);
+assert.equal(work.quote.operating_reserve_irt,work.quote.platform_subsidy_required_irt);
+assert.equal(work.quote.checkout_enabled,false);
+assert.equal(work.rights_confirmed,false);
+assert.equal(product.compliance.scientific_review_approved,false);
+assert.equal(product.finance_policy.settlement_allowed,false);
+assert.equal(product.finance_policy.rate_is_statutory_tax,false);
+assert.equal(global.ownerFinalAuthorization,false);
+assert.equal(global.releaseState,'BLOCKED_PENDING_FULL_ACCEPTANCE');
+assert.ok(page.includes('فروش آنلاین و تحویل ایمیلی تنها پس از'), 'prelaunch disclaimer not visible');
+assert.ok(page.includes('نسخه کتابی'), 'future print disclosure missing');
+assert.ok(page.includes('تأییدیه نهایی هنوز صادر نشده'), 'scientific approval should not be represented as complete');
+assert.ok(!page.includes('Mehrabmirkarimi2000@gmail.com'), 'author private email leaked in public HTML');
+assert.ok(!get('assets/data/jr-publishing-prelaunch.json').includes('Mehrabmirkarimi2000@gmail.com'),'author email leaked in public catalog');
+assert.match(page, /rel="canonical"/);
+assert.match(page, /application\/ld\+json/);
+assert.ok(!page.includes('"@type":"Offer"'), 'unavailable offer must not be advertised in SEO markup');
+assert.ok(api.includes("if($verb!=='GET'"),'author endpoint must remain read-only');
+assert.ok(api.includes('jrPublishingSchemaReady'),'private schema not enforced');
+assert.ok(api.includes('sessionAccount'),'dashboard must use existing authenticated identity');
+assert.ok(api.includes('email_verified_at'),'author email verification missing');
+assert.ok(api.includes('approved_at IS NOT NULL'),'author permission approval missing');
+assert.ok(api.includes('Cache-Control: no-store'),'private HTTP cache disabled');
+assert.ok(js.includes('operatingReserveToman') || js.includes('platformOperatingReserveToman'));
+assert.ok(js.includes('قراردادهای مؤلف'),'contract status must be visible in author UI');
+assert.ok(helper.includes('jrPublishingGrossWithOperatingReserve'),'separate 7 percent model missing');
+assert.ok(legal.includes('publishing_contract_signature_evidence'),'signed proof schema missing');
+assert.ok(legal.includes('publishing_platform_cost_entries'),'platform-cost ledger schema missing');
+assert.ok(legal.includes('publishing_platform_funding_entries'),'separate budget ledger missing');
+assert.ok(policy.includes('20261017_jr_future_publishing.sql'),'must select canonical base migration');
+console.log('JR Publishing pilot: source constraints PASS. Release, money movement and contract signing remain BLOCKED.');
