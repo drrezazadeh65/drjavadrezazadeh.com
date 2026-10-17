@@ -157,7 +157,9 @@ function jrPubDownloadRoute(): never {
         JOIN commerce_orders o ON o.id=g.order_id AND o.state='paid' AND o.paid_at IS NOT NULL
         JOIN commerce_payment_claims p ON p.order_id=o.id AND p.provider='bitpay'
           AND p.transaction_id=o.provider_trans_id AND p.verified_amount=o.provider_amount
-        WHERE g.id=? AND g.token_hash=? AND g.revoked_at IS NULL
+        WHERE NOT EXISTS (SELECT 1 FROM commerce_refund_requests r
+          WHERE r.order_id=o.id AND r.status='settled')
+          AND g.id=? AND g.token_hash=? AND g.revoked_at IS NULL
           AND g.expires_at>NOW() FOR UPDATE");
       $q->execute([$id,$hash]);$row=$q->fetch(PDO::FETCH_ASSOC);
       if(!$row||(int)$row['download_count']>=(int)$row['max_downloads']){
