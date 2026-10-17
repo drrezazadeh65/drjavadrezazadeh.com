@@ -9,7 +9,9 @@
 .app-dock{display:none}
 .mobile-app-sheet[hidden]{display:none!important}
 @media(min-width:901px){
- .app-dock,.mobile-app-sheet,.mobile-menu-trigger{display:none!important}
+ .app-dock,.mobile-menu-trigger{display:none!important}
+ /* The 901–1100px tablet trigger opens this sheet; never hide the dialog here. */
+ .mobile-app-sheet[hidden]{display:none!important}
 }
 @media(max-width:900px){
  .app-dock{display:grid;position:fixed;z-index:70;max-width:calc(100% - 12px)}
