@@ -57,8 +57,9 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
             COALESCE(SUM(CASE WHEN e.entry_kind IN ('author_share','author_reversal') THEN e.amount_toman ELSE 0 END),0) AS author_accrued_toman,
             COALESCE(SUM(CASE WHEN e.entry_kind IN ('talent_fund','fund_reversal') THEN e.amount_toman ELSE 0 END),0) AS fund_earmarked_toman
             FROM publishing_sale_allocation_entries e
-            JOIN commerce_orders o ON o.id=e.order_id AND o.state='paid'
+            JOIN commerce_orders o ON o.id=e.order_id AND o.state='paid' AND o.currency='IRT' AND o.paid_at IS NOT NULL
             JOIN commerce_payment_claims c ON c.order_id=o.id AND c.provider='bitpay'
+              AND c.transaction_id=o.provider_trans_id AND c.verified_amount=o.provider_amount
             WHERE e.author_id=?");
         $settled=$pdo->prepare("SELECT COALESCE(SUM(amount_toman),0) AS bank_settled_toman
             FROM publishing_author_settlements WHERE author_id=? AND status='bank_verified'");
@@ -70,8 +71,9 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
            FROM publishing_platform_cost_entries c
            JOIN publishing_offers f ON f.id=c.offer_id
            JOIN publishing_works w ON w.id=f.work_id
-           JOIN commerce_orders o ON o.id=c.order_id AND o.state='paid'
+           JOIN commerce_orders o ON o.id=c.order_id AND o.state='paid' AND o.currency='IRT' AND o.paid_at IS NOT NULL
            JOIN commerce_payment_claims p ON p.order_id=o.id AND p.provider='bitpay'
+             AND p.transaction_id=o.provider_trans_id AND p.verified_amount=o.provider_amount
            WHERE w.author_id=?");
         $funding=$pdo->prepare("SELECT
            COALESCE(SUM(CASE WHEN a.funding_state='bank_reconciled' THEN a.amount_toman ELSE 0 END),0) AS reconciled_toman
@@ -83,6 +85,29 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
         $contracts=$pdo->prepare("SELECT id,work_id,version_label,state,effective_from,effective_until
            FROM publishing_author_contracts WHERE author_id=?
            ORDER BY template_created_at DESC LIMIT 30");
+        // Read-only per-sale financial history, limited to this verified author.
+        // Never select buyer identity, raw gateway transaction, download token or
+        // account email. Monetary values are actual ledger entries, not estimates.
+        $history=$pdo->prepare("SELECT e.order_id,e.offer_id,
+           MAX(e.created_at) AS booked_at,
+           COALESCE(SUM(CASE WHEN e.entry_kind IN ('author_share','author_reversal')
+              THEN e.amount_toman ELSE 0 END),0) AS author_net,
+           COALESCE(SUM(CASE WHEN e.entry_kind IN ('talent_fund','fund_reversal')
+              THEN e.amount_toman ELSE 0 END),0) AS fund_net,
+           COALESCE((SELECT SUM(pc.reserve_amount_toman)
+              FROM publishing_platform_cost_entries pc
+              WHERE pc.order_id=e.order_id AND pc.offer_id=e.offer_id),0) AS operating_reserve_net,
+           (SELECT n.status FROM publishing_notification_outbox n
+              WHERE n.order_id=e.order_id AND n.event_type='author_sale'
+              ORDER BY n.created_at DESC LIMIT 1) AS author_notice_state
+           FROM publishing_sale_allocation_entries e
+           JOIN commerce_orders o ON o.id=e.order_id AND o.state='paid'
+             AND o.currency='IRT' AND o.paid_at IS NOT NULL
+           JOIN commerce_payment_claims c ON c.order_id=o.id AND c.provider='bitpay'
+             AND c.transaction_id=o.provider_trans_id AND c.verified_amount=o.provider_amount
+           WHERE e.author_id=?
+           GROUP BY e.order_id,e.offer_id
+           ORDER BY MAX(e.created_at) DESC LIMIT 50");
         $out=[];
         foreach($rows as $row) {
             $id=(string)$row['id'];
@@ -92,6 +117,7 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
             $reserve->execute([$id]);$reserveAmount=$reserve->fetch(PDO::FETCH_ASSOC)?:[];
             $funding->execute([$id]);$fundedAmount=$funding->fetch(PDO::FETCH_ASSOC)?:[];
             $contracts->execute([$id]);$contractRows=$contracts->fetchAll(PDO::FETCH_ASSOC);
+            $history->execute([$id]);$saleRows=$history->fetchAll(PDO::FETCH_ASSOC);
             $accrued=(int)($totals['author_accrued_toman']??0);
             $sent=(int)($bank['bank_settled_toman']??0);
             $out[]=[
@@ -108,6 +134,18 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
               'platformOperatingFundingReconciledToman'=>(int)($fundedAmount['reconciled_toman']??0),
               'platformOperatingReserveBps'=>700,
               'platformOperatingPolicy'=>'Costs borne independently by platform, never withheld from author/fund',
+              'recentSales'=>array_map(static function(array $sale): array {
+                  $a=(int)$sale['author_net'];$fund=(int)$sale['fund_net'];
+                  return [
+                    'saleRef'=>substr(hash('sha256','jr-pub-privacy-v1|'.(string)$sale['order_id']),0,12),
+                    'bookedAt'=>(string)$sale['booked_at'],
+                    'netSaleToman'=>$a+$fund,
+                    'authorShareToman'=>$a,
+                    'talentFundShareToman'=>$fund,
+                    'platformOperatingReserveToman'=>(int)$sale['operating_reserve_net'],
+                    'authorNotificationState'=>$sale['author_notice_state']??'not_queued'
+                  ];
+              },$saleRows),
               'contracts'=>array_map(static function(array $c): array {
                  return ['id'=>(string)$c['id'],'workId'=>(string)$c['work_id'],
                    'version'=>(string)$c['version_label'],'state'=>(string)$c['state'],
