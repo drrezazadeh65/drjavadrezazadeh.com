@@ -18,6 +18,9 @@ test('private files are an additive paid-case table, not a replacement checkout 
  assert.match(sql,/ENGINE=InnoDB/);
  assert.doesNotMatch(sql,/ALTER TABLE commerce_orders|UPDATE commerce_orders/);
  assert.match(handler,/JR_SERVICE_PRIVATE_STORAGE/);
+ assert.ok(handler.includes('disk_free_space($dir)'),'storage readiness must inspect actual disk headroom');
+ assert.ok(handler.includes('$free<50331648'),'private storage must retain at least 48 MiB free');
+
  assert.match(handler,/JR_SERVICE_FILES_ENABLED/);
  assert.match(handler,/public_tls_confirmed/);
  assert.match(handler,/realpath\(\$raw\)/);
