@@ -91,8 +91,10 @@ test('strict live matrix covers every registered redirect, transport and slash f
   const requested=[];
   const result=await verifyHistoricalAuthority(registry,{request:async url=>{requested.push(url);return liveFixture(url)}});
   assert.equal(result.failed,0);
-  assert.equal(result.checks,137);
-  assert.equal(result.authority_redirects,9);
+  // Eight source variants plus one destination check per verified semantic mapping;
+  // other legacy 410/404/transport assertions contribute 56 stable cases.
+  assert.equal(result.checks,56+registry.authority_redirects.length*9);
+  assert.equal(result.authority_redirects,registry.authority_redirects.length);
   for(const mapping of registry.authority_redirects){
     for(const origin of result.origins){
       assert.ok(requested.includes(new URL(mapping.source,origin).href));
@@ -156,7 +158,10 @@ test('strict live verification rejects guessed PDF redirects and network/TLS err
     if(url.includes('/wp-content/')) return {status:301,headers:{location:registry.production_origin+'/en/publications/'},body:''};
     return liveFixture(url);
   }});
-  assert.equal(result.failed,2);
+  // Canonical / is checked both as the homepage and as a registered destination
+  // when /home/ points to /; both checks must reject the simulated TLS error.
+  const canonicalRootIsMapped=registry.authority_redirects.some(x=>x.target==='/');
+  assert.equal(result.failed,2+Number(canonicalRootIsMapped));
   assert.ok(result.failures.some(f=>/certificate verification failed/.test(f.error)));
   assert.ok(result.failures.some(f=>/genuine 404/.test(f.error)));
 });
