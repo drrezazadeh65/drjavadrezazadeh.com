@@ -32,6 +32,9 @@ test('private files are an additive paid-case table, not a replacement checkout 
  assert.ok(handler.includes("ini_get('post_max_size')"));
  assert.ok(handler.includes("class_exists('ZipArchive')&&class_exists('finfo')"));
  assert.ok(handler.includes("&&jrServicePhpUploadLimitsReady()"));
+ assert.ok(handler.includes('&&jrServicePhpMemoryReady()'));
+ assert.ok(handler.includes('100663296'));
+
  assert.ok(handler.includes("operationsServiceDeliveryEvidenceReady($pdo)"));
  assert.ok(handler.includes("jrServiceBuyerReceiptSchemaReady($pdo)"));
 
@@ -171,7 +174,7 @@ test('owner readiness never advertises private file custody until the required s
  assert.match(snapshot,/privateServiceFilesReady/);
  assert.match(snapshot,/privateServiceFilesActivationChecks/);
  assert.ok(admin.includes('Encrypted service files — deployment prerequisites'));
- for(const check of ["explicitlyEnabled","verifiedHttps","commerceSchema","privateFileSchema","privateStorage","antivirus","cryptoAndKey","documentParsers","phpUploadCapacity","ownerDeliverySchema","buyerReceiptSchema"]){
+ for(const check of ["explicitlyEnabled","verifiedHttps","commerceSchema","privateFileSchema","privateStorage","antivirus","cryptoAndKey","documentParsers","phpUploadCapacity","phpMemoryCapacity","ownerDeliverySchema","buyerReceiptSchema"]){
   assert.ok(read('api/service-files.php').includes("'"+check+"'=>"),'activation proof missing: '+check);
  }
  assert.doesNotMatch(snapshot,/servicePrivateStoragePath|privateStorageSecret/);
