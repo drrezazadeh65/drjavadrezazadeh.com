@@ -38,6 +38,22 @@ function renderAuthor(author){
  }
  if(!contracts.childElementCount)contracts.append(el('li','','هیچ قرارداد امضاشده یا فعالی برای این حساب ثبت نشده است. تا تأیید حقوقی و امضای معتبر، فروش اثر فعال نمی‌شود.'));
  section.append(el('h3','','قراردادهای مؤلف و مدارک امضا'),contracts);
+ const history=el('ul','jp-work-list');
+ for(const sale of author.recentSales||[]){
+  const item=el('li','');
+  item.append(el('strong','','فروش دارای تأیید درگاه · '+String(sale.saleRef||'—')),
+              el('small','',''));
+  item.lastChild.textContent='زمان ثبت: '+String(sale.bookedAt||'—')+
+   ' · خالص مبلغ فروش: '+fa(sale.netSaleToman)+' تومان'+
+   ' · سهم مؤلف: '+fa(sale.authorShareToman)+' تومان'+
+   ' · سهم صندوق: '+fa(sale.talentFundShareToman)+' تومان'+
+   ' · ذخیره مستقل سایت (۷٪): '+fa(sale.platformOperatingReserveToman)+' تومان'+
+   ' · اعلان مؤلف: '+String(sale.authorNotificationState||'not_queued');
+  history.append(item);
+ }
+ if(!history.childElementCount)history.append(el('li','','فروش بانکی تأییدشده‌ای برای نمایش وجود ندارد؛ هیچ ردیف آزمایشی نمایش داده نمی‌شود.'));
+ section.append(el('h3','','تاریخچه ۵۰ فروش اخیر و وضعیت اعلان‌ها'),history,
+  el('p','jp-small','شناسه نمایشی فروش محرمانه و غیرقابل بازشناسی است. اطلاعات شخصی خریداران در این داشبورد ارائه نمی‌شود. وضعیت اعلان «ارسال‌شده» نیز با «دریافت/مطالعه قطعی ایمیل» متفاوت است.'));
  return section;
 }
 async function load(){
