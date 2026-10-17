@@ -216,3 +216,17 @@ test('inline grid/flex styles cannot override private file and guardian visibili
  assert.ok(operator.includes("form.style.display='none'"));
  assert.ok(operator.includes("if(entry.status!=='in_progress')"));
 });
+
+
+test('verified order history uses truthful, privacy-safe content rather than dormant Preview labels',()=>{
+ const fa=read('fa/app/account/orders/index.html');
+ const en=read('en/app/account/orders/index.html');
+ for(const [locale,html] of [['fa',fa],['en',en]]){
+  assert.ok(html.includes('data-resource="orders"'),locale+' must mount real account history');
+  assert.ok(html.includes('noindex,nofollow,noarchive'),locale+' must not be indexed');
+  assert.ok(html.includes('name="referrer" content="same-origin"'),locale+' private referrer policy');
+  assert.ok(!/Commerce Preview|Private Account Preview|پیش‌نمایش سفارش و پرداخت/i.test(html),
+    locale+' must not mislabel a real verified-order workspace as a demo');
+ }
+ assert.ok(fa.includes('وضعیت واقعی سفارش'));
+});
