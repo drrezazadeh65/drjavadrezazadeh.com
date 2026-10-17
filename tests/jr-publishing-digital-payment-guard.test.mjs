@@ -179,8 +179,10 @@ test('digital buyer checkout fail-closes ambiguous payment creation and untruste
 test('settled bank refund blocks PDF download and paid buyer/author email delivery',()=>{
  const digital=read('api/internal/jr-publishing-digital.php');
  const mailer=read('api/internal/jr-publishing-mailer.php');
+ const schema=read('api/publishing.php');
  const migration=read('docs/migrations/20261012_stage09_commerce.sql');
  assert.match(migration,/CREATE TABLE IF NOT EXISTS commerce_refund_requests/);
+ assert.match(schema,/'commerce_orders','commerce_payment_claims','commerce_refund_requests'/,'private schema preflight must require the refund table');
  assert.match(migration,/status ENUM\('requested','reviewing','approved','declined','settled'\)/);
  const denied=/NOT EXISTS\s*\(SELECT 1 FROM commerce_refund_requests r\s*WHERE r\.order_id=o\.id AND r\.status='settled'\)/;
  assert.match(digital,denied,'the entitlement query must check the bank-refund ledger');
