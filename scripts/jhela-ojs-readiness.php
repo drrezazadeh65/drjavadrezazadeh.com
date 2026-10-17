@@ -81,8 +81,38 @@ if($runtime){
             }catch(Throwable $e){$check('native_ojs_schema_present',false);}
         }catch(Throwable $e){$check('database_connectivity',false);}
     }else{$check('database_connectivity',false);$check('native_ojs_schema_present',false);}
-    $check('live_dns_tls_owner_verification',(getenv('JHELA_OJS_TLS_CERTIFIED')?:'')==='true',
-      'Requires separate CA-trusted hostname+certificate evidence, not curl -k');
+    // A manual environment flag is only human-provided evidence: it does not
+    // demonstrate an actual browser-trusted server certificate.
+    // Before public intake, independently authenticate the EXACT journal host.
+    $ownerTlsEvidence=(getenv('JHELA_OJS_TLS_CERTIFIED')?:'')==='true';
+    $trustedJournalTls=false;
+    if ($ownerTlsEvidence && extension_loaded('openssl') && function_exists('stream_socket_client')) {
+        $journalHost='journal.drjavadrezazadeh.com'; // Fixed allowlist; never a user URL.
+        $tlsContext=stream_context_create(['ssl'=>[
+            'verify_peer'=>true,
+            'verify_peer_name'=>true,
+            'peer_name'=>$journalHost,
+            'SNI_enabled'=>true,
+            'SNI_server_name'=>$journalHost,
+            'allow_self_signed'=>false,
+            'capture_peer_cert'=>true,
+            'crypto_method'=>STREAM_CRYPTO_METHOD_TLS_CLIENT,
+        ]]);
+        $networkError=0; $networkReason='';
+        $socket=@stream_socket_client('tls://'.$journalHost.':443',
+            $networkError,$networkReason,7,STREAM_CLIENT_CONNECT,$tlsContext);
+        if(is_resource($socket)){
+            $options=stream_context_get_options($tlsContext);
+            $peerCert=$options['ssl']['peer_certificate']??null;
+            $trustedJournalTls=$peerCert instanceof OpenSSLCertificate;
+            fclose($socket);
+        }
+        // Never print certificate contents, network host IPs or private paths.
+    }
+    $check('live_dns_tls_owner_verification',$ownerTlsEvidence,
+      'Separate dated CA evidence from the operator, never a self-signed cPanel icon.');
+    $check('independent_ca_trusted_tls_handshake',$trustedJournalTls,
+      'Require a live CA-validated TLS chain, correct SNI and certificate hostname without insecure bypass.');
     $check('independent_restore_proof',(getenv('JHELA_OJS_RESTORE_VERIFIED')?:'')==='true',
       'Restore must cover isolated OJS database, private files and configuration');
     $check('owner_approved_editorial_roles',(getenv('JHELA_OJS_ROLES_VERIFIED')?:'')==='true');
