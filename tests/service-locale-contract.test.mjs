@@ -37,15 +37,16 @@ test('English translation file cannot redefine offers, prices, status or entitle
  assert.match(page,/id="service-market"[^>]+data-dashboard-panel="ecosystem"/);
  assert.match(page,/data-dashboard-service-search/);
  assert.match(page,/data-dashboard-services/);
- assert.match(page,/customer-dashboard\.js\?v=20261015-bilingual-market-v51/);
+ assert.match(page,/customer-dashboard\.js\?v=20261017-en-checkout-verified-v52/);
  assert.match(client,/service-descriptions-en\.json/);
- assert.match(client,/Checkout \(Persian\)/);
+ assert.match(client,/Secure service checkout/);
+ assert.ok(client.includes("'/en/services/checkout/?service='+id"), 'English service CTA must reach the existing localized checkout');
  assert.match(client,/en\/request-consultation\/\?service=/);
 });
 
-test('Persian source catalogue cannot leak a fake English checkout',()=>{
+test('English checkout is a localized view of the established service payment gateway',()=>{
  const en=readFileSync('en/account/index.html','utf8');
- assert.doesNotMatch(en,/href="\/en\/services\/checkout\/"/);
+ assert.ok(!en.includes('href="/en/shop/payment-start/"'), 'Do not invent an alternative gateway path');
  assert.doesNotMatch(en,/href="\/en\/shop\/payment-start\/"/);
  const fa=readFileSync('fa/customer-dashboard/index.html','utf8');
  assert.match(fa,/data-dashboard-services/);
