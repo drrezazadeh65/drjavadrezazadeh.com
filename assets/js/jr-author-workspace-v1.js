@@ -36,7 +36,7 @@ function renderAuthor(author){
   item.lastChild.textContent='وضعیت قرارداد: '+String(c.state||'نامشخص')+' · شروع اعتبار: '+String(c.effectiveFrom||'هنوز فعال نشده');
   contracts.append(item);
  }
- if(!contracts.childElementCount)contracts.append(el('li','','هیچ قرارداد امضاشده یا فعالی برای این حساب ثبت نشده است. تا تأیید حقوقی و امضای معتبر، فروش اثر فعال نمی‌شود.'));
+ if(!contracts.childElementCount)contracts.append(el('li','','هیچ قرارداد امضاشده یا فعالی ثبت نشده است. پیش‌نویس زیر فقط برای مطالعه و ارائه پیشنهاد اصلاح است و رضایت به توزیع دیجیتال باید مستقلاً ثبت شود.'));
  section.append(el('h3','','قراردادهای مؤلف و مدارک امضا'),contracts);
  const draft=author.draftContract;
  if(draft&&draft.status==='negotiation_draft_not_signed'&&Array.isArray(draft.clauses)){
