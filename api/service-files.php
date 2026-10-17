@@ -229,17 +229,49 @@ function jrServiceFileUpload(PDO $pdo,string $order,string $sku,string $actor,
         'availableToBuyer'=>$kind==='client_source',
         'customerNotified'=>false,'deliveryProven'=>false];
 }
+/**
+ * The only customer-visible professional file is the exact output whose ID
+ * the owner attested, not every draft stored in a completed service case.
+ * Missing evidence table, session-only attestation and invalid proof all
+ * fail closed. This is a release gate, not proof of buyer receipt.
+ */
+function jrServiceFileReleasedDigest(PDO $pdo,string $order,string $sku,string $state): ?string {
+    if($state!=='delivered')return null;
+    try {
+        $q=$pdo->prepare('SELECT evidence_kind,evidence_reference_hmac
+            FROM commerce_service_delivery_evidence WHERE order_id=? AND sku=? LIMIT 1');
+        $q->execute([$order,$sku]);$proof=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($proof)||$proof['evidence_kind']!=='document_handed_over'
+           ||!preg_match('/^[a-f0-9]{64}$/D',(string)$proof['evidence_reference_hmac']))
+           return null;
+        return (string)$proof['evidence_reference_hmac'];
+    }catch(Throwable $e){return null;}
+}
+function jrServiceFileMatchesRelease(?string $digest,string $order,string $sku,string $id): bool {
+    if($digest===null||!validUuid($id))return false;
+    $pepper=(string)(cfg()['auth_pepper']??'');
+    if(strlen($pepper)<32)return false;
+    $candidate=hash_hmac('sha256',
+        'jr-service-delivery-v1|'.$order.'|'.$sku.'|document_handed_over|'.$id,
+        $pepper);
+    return hash_equals($digest,$candidate);
+}
 function jrServiceFilesList(PDO $pdo,string $order,string $sku,?string $buyerEmail): array {
     if(!jrServiceFilesReady($pdo))throw new RuntimeException('service_files_not_ready');
     $case=jrServiceFilePaidCase($pdo,$order,$sku,$buyerEmail);
-    $allowOutputs=$buyerEmail===null||$case['service_state']==='delivered';
+    $digest=jrServiceFileReleasedDigest($pdo,$order,$sku,(string)$case['service_state']);
     $q=$pdo->prepare('SELECT id,kind,file_extension,plaintext_size,created_at
         FROM commerce_service_files WHERE order_id=? AND sku=?
-        '.($allowOutputs?'':"AND kind='client_source'").'
         ORDER BY created_at DESC,id DESC LIMIT 30');
-    $q->execute([$order,$sku]);
-    return ['files'=>$q->fetchAll(PDO::FETCH_ASSOC),
-        'professionalOutputsReleasedToBuyer'=>$case['service_state']==='delivered',
+    $q->execute([$order,$sku]);$all=$q->fetchAll(PDO::FETCH_ASSOC);
+    $released=false;$files=[];
+    foreach($all as $file){
+        $isOutput=$file['kind']==='professional_output';
+        $isReleased=$isOutput&&jrServiceFileMatchesRelease($digest,$order,$sku,(string)$file['id']);
+        if($isReleased)$released=true;
+        if($buyerEmail===null||!$isOutput||$isReleased)$files[]=$file;
+    }
+    return ['files'=>$files,'professionalOutputsReleasedToBuyer'=>$released,
         'verifiedPaidServiceCase'=>true];
 }
 function jrServiceFileDownload(PDO $pdo,string $id,?string $buyerEmail): never {
@@ -250,8 +282,13 @@ function jrServiceFileDownload(PDO $pdo,string $id,?string $buyerEmail): never {
     $q->execute([$id]);$f=$q->fetch(PDO::FETCH_ASSOC);
     if(!is_array($f))throw new DomainException('file_not_found');
     $case=jrServiceFilePaidCase($pdo,(string)$f['order_id'],(string)$f['sku'],$buyerEmail);
-    if($buyerEmail!==null&&$f['kind']==='professional_output'&&$case['service_state']!=='delivered')
-        throw new DomainException('professional_output_not_released');
+    if($buyerEmail!==null&&$f['kind']==='professional_output'){
+        $digest=jrServiceFileReleasedDigest($pdo,(string)$f['order_id'],(string)$f['sku'],
+            (string)$case['service_state']);
+        if(!jrServiceFileMatchesRelease($digest,(string)$f['order_id'],
+            (string)$f['sku'],(string)$f['id']))
+            throw new DomainException('professional_output_not_released');
+    }
     if(!preg_match('/^[a-f0-9]{48}\\.blob$/D',(string)$f['storage_name']))
         throw new RuntimeException('invalid_private_storage_name');
     $base=jrServiceFilesPrivateRoot();
