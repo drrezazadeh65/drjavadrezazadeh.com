@@ -80,3 +80,14 @@ test('private deployment verifier cannot grant public-sale approval by self-decl
  assert.match(check,/exit\(2\)/);
  assert.doesNotMatch(check,/getenv\('JR_PUBLISHING_AUTHOR_EMAIL'\).*echo/);
 });
+
+test('digital checkout sends only the correct secure buyer receipt, without a generic duplicate',()=>{
+ const api=read('api/index.php');
+ const mail=read('api/internal/jr-publishing-mailer.php');
+ assert.match(api,/const?\s+JR_PUB_SKU|JR_PUB_SKU/);
+ assert.match(api,/if\(!\$digitalReceipt && validEmail\(\$customerEmail\)&&mailReady\(\)\)/);
+ assert.match(api,/jrPubProcessOutbox\(\$pdo,\$id\)/);
+ assert.match(mail,/event_type IN\('buyer_paid','author_sale'\)/);
+ assert.match(mail,/status='processing'/);
+ assert.match(mail,/status='sent',sent_at=NOW\(\)/);
+});
