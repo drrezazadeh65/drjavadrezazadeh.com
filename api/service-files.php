@@ -32,6 +32,17 @@ function jrServiceFilesAntivirus(): ?string {
     return in_array($bin,['/usr/bin/clamscan','/usr/local/bin/clamscan'],true)
         &&is_executable($bin)&&function_exists('proc_open')?$bin:null;
 }
+function jrServicePhpUploadLimitsReady(): bool {
+    $parse=static function(string $raw): int {
+        $raw=trim($raw);
+        if(!preg_match('/^(\\d+)([KMG])?$/iD',$raw,$m))return 0;
+        $size=(int)$m[1];$power=strtoupper((string)($m[2]??''));
+        return $size*([''=>1,'K'=>1024,'M'=>1048576,'G'=>1073741824][$power]??1);
+    };
+    // Multipart body includes boundaries and metadata on top of file bytes.
+    return $parse((string)ini_get('upload_max_filesize'))>=12582912
+        &&$parse((string)ini_get('post_max_size'))>=12582912+65536;
+}
 function jrServiceFilesReady(PDO $pdo): bool {
     return ((cfg()['service_files_enabled']??(getenv('JR_SERVICE_FILES_ENABLED')==='true'))===true)
         &&(cfg()['public_tls_confirmed']??false)===true
@@ -39,6 +50,8 @@ function jrServiceFilesReady(PDO $pdo): bool {
         &&jrServiceFilesPrivateRoot()!==null&&jrServiceFilesAntivirus()!==null
         &&function_exists('hash_hkdf')&&function_exists('openssl_encrypt')
         &&function_exists('openssl_decrypt')
+        &&class_exists('ZipArchive')&&class_exists('finfo')
+        &&jrServicePhpUploadLimitsReady()
         &&strlen((string)(cfg()['auth_pepper']??''))>=32;
 }
 function jrServiceFilesKey(): string {
