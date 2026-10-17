@@ -66,3 +66,16 @@ test('release and receipt are separate from accounting and institutional decisio
  assert.doesNotMatch(sql,/buyer_satisfied|bank_settled|payment_received/);
  assert.match(files,/hash_equals\(\$digest,\$candidate\)/);
 });
+
+test('owner can inspect buyer acknowledgments even after the case leaves the active worklist',()=>{
+ const snapshot=read('api/operations-commerce.php');
+ assert.ok(snapshot.includes('deliveredServiceActionQueue'));
+ assert.ok(snapshot.includes('deliveredServiceQueueTruncated'));
+ assert.ok(snapshot.includes('serviceActionQueue'));
+ assert.ok(snapshot.includes("WHERE sc.status='delivered'"));
+ assert.ok(snapshot.includes("ORDER BY sc.delivered_at DESC"));
+ assert.ok(admin.includes('Completed services and buyer receipt declarations'));
+ assert.ok(admin.includes('fulfilment.deliveredServiceActionQueue'));
+ assert.ok(admin.includes('ownerServiceFileWorkspace(entry,item)'));
+ assert.ok(admin.includes('Buyer self-attested receipt'));
+});
