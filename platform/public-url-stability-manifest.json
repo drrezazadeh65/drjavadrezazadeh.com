@@ -138,6 +138,7 @@
     "/fa/rahnamaha/tosee-herfei-moalleman/",
     "/fa/rahnamaha/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand/",
     "/fa/shop/",
+    "/fa/shop/authors/mehrab-mirkarimi/",
     "/fa/shop/customer-policy/",
     "/fa/shop/purchase-guide/",
     "/fa/tadris/",
@@ -198,5 +199,13 @@
       "/en/services/specialist_workshop_120/"
     ],
     "rule": "Add routes without renaming or deleting frozen paths; keep one-hop redirects for any future migration."
+  },
+  "approved_addition_20261017_author": {
+    "approved_by": "website_owner",
+    "scope": "One published in-press academic author profile, canonical Persian public route",
+    "routes": [
+      "/fa/shop/authors/mehrab-mirkarimi/"
+    ],
+    "rule": "Only this explicit URL is added; public URL continuity, no redirects and canonical self-reference retained."
   }
 }
