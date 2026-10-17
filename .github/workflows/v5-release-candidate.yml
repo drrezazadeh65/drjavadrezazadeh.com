@@ -80,7 +80,7 @@ jobs:
           node --test tests/paid-service-gateway-contract.test.mjs
           node --test tests/services-visual-atlas-contract.test.mjs tests/service-delivery-evidence-contract.test.mjs
           node --test tests/service-bilingual-commerce-contract.test.mjs
-          node --test tests/service-intake-security-contract.test.mjs
+          node --test tests/service-intake-security-contract.test.mjs tests/service-private-files-contract.test.mjs
           node --check assets/js/commerce-checkout-en.js
           node --check assets/js/operations-commerce.js
           node --check assets/js/account-order-history.js
@@ -131,6 +131,7 @@ jobs:
           php tests/operations-security.php
           php tests/operations-mysql.php
           # Paid-claim, buyer preference and owner-controlled appointment gate.
+          php tests/service-private-files-crypto.php
           php tests/commerce-service-advance-mysql.php
           php tests/consultation-preference-mysql.php
           node --check assets/js/operations-social.js
