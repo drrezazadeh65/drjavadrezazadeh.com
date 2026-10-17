@@ -318,10 +318,11 @@ if(file_put_contents($privateDir.'/'.$storageName,$docCipher,LOCK_EX)!==strlen($
 chmod($privateDir.'/'.$storageName,0600);
 $pdo->prepare("INSERT INTO commerce_service_files
   (id,order_id,sku,kind,uploader_account_id,storage_name,file_extension,
-  mime_type,plaintext_size,content_sha256) VALUES(?,?,?,?,?,?,?,?,?,?)")
+  mime_type,plaintext_size,content_sha256,consent_version,subject_is_minor,guardian_acknowledged)
+  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)")
  ->execute([$validDocument['evidenceReference'],$documentOrder,$sku,'professional_output',
   $actor,$storageName,'pdf','application/pdf',strlen($documentPlain),
-  hash('sha256',$documentPlain)]);
+  hash('sha256',$documentPlain),'OWNER_DELIVERABLE_V1',0,0]);
 checkService(jrServiceFileDecrypt($docCipher,$documentOrder,$sku)===$documentPlain,
  'private_service_file_aead_roundtrip');
 // An internal draft in the same case must NEVER be visible to the buyer
@@ -335,9 +336,11 @@ if(file_put_contents($privateDir.'/'.$draftName,$draftCipher,LOCK_EX)!==strlen($
 chmod($privateDir.'/'.$draftName,0600);
 $pdo->prepare("INSERT INTO commerce_service_files
  (id,order_id,sku,kind,uploader_account_id,storage_name,file_extension,
- mime_type,plaintext_size,content_sha256) VALUES(?,?,?,?,?,?,?,?,?,?)")
+ mime_type,plaintext_size,content_sha256,consent_version,subject_is_minor,guardian_acknowledged)
+ VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)")
  ->execute([$draftId,$documentOrder,$sku,'professional_output',$actor,
- $draftName,'pdf','application/pdf',strlen($draftPlain),hash('sha256',$draftPlain)]);
+ $draftName,'pdf','application/pdf',strlen($draftPlain),hash('sha256',$draftPlain),
+ 'OWNER_DELIVERABLE_V1',0,0]);
 refused(fn()=>jrServiceFileDecrypt($docCipher,$orderId,$sku),
  RuntimeException::class,'encrypted_document_cannot_be_reused_for_other_order');
 
