@@ -82,3 +82,19 @@ test('priced comparison cards link to verified specific service pages', () => {
   assert.ok(!pricing.includes('/fa/darkhast-moshavere/?service='));
   assert.ok(page.includes('service-pricing.js?v=20261016-verified-service-details-v2'));
 });
+
+
+test('all Persian specialist academic essays remain inside their semantic service article', () => {
+  for (const item of catalogue.services) {
+    const page=read(`fa/services/${item.id}/index.html`);
+    const editorial=page.indexOf('data-editorial');
+    const close=page.indexOf('</article>');
+    const mainClose=page.lastIndexOf('</main>');
+    assert.ok(editorial>0,item.id+' must preserve its established scholarly essay');
+    assert.ok(close>editorial,item.id+' academic essay must not render after </article>');
+    assert.ok(mainClose>close,item.id+' service article must remain inside <main>');
+    const trailing=page.slice(close,mainClose);
+    assert.doesNotMatch(trailing,/<section[^>]+data-editorial/,
+       item.id+' must not have orphaned scholarly sections outside the article');
+  }
+});
