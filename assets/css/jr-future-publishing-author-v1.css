@@ -58,3 +58,10 @@
  .jp-app-dock{display:none!important}
  .jr-pub{padding-bottom:0!important}
 }
+
+/* Approved editorial photography for customer-facing digital offer. */
+.jp-commercial-image{overflow:hidden;margin:17px 0 18px;border:1px solid #ba9557;border-radius:17px;background:#14273a;box-shadow:0 12px 28px #17243420;aspect-ratio:16/7}
+.jp-commercial-image img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+.jp-commercial>div{min-width:0}
+.jp-commercial .jp-subprice{line-height:1.95}
+@media(max-width:550px){.jp-commercial-image{aspect-ratio:16/9;border-radius:13px}.jp-commercial{gap:25px}.jp-commercial h2{font-size:clamp(1.5rem,6vw,2rem)}}
