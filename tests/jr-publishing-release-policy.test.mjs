@@ -35,8 +35,8 @@ assert.ok(page.includes('خرید آنلاین پس از تأیید آمادگی
 assert.ok(page.includes('درگاه و تحویل امن دو PDF'), 'two-file delivery prerequisites must be disclosed');
 assert.ok(page.includes('نسخه کتابی'), 'future print disclosure missing');
 assert.ok(page.includes('تأییدیه نهایی هنوز صادر نشده'), 'scientific approval should not be represented as complete');
-assert.ok(!page.includes('Mehrabmirkarimi2000@gmail.com'), 'author private email leaked in public HTML');
-assert.ok(!get('assets/data/jr-publishing-prelaunch.json').includes('Mehrabmirkarimi2000@gmail.com'),'author email leaked in public catalog');
+assert.ok(!/[a-z0-9._%+-]*mirkarimi[a-z0-9._%+-]*@[a-z0-9.-]+\.[a-z]{2,}/i.test(page), 'author private email leaked in public HTML');
+assert.ok(!/[a-z0-9._%+-]*mirkarimi[a-z0-9._%+-]*@[a-z0-9.-]+\.[a-z]{2,}/i.test(get('assets/data/jr-publishing-prelaunch.json')),'author email leaked in public catalog');
 assert.match(page, /rel="canonical"/);
 assert.match(page, /application\/ld\+json/);
 assert.ok(!page.includes('"@type":"Offer"'), 'unavailable offer must not be advertised in SEO markup');
