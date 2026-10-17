@@ -94,5 +94,13 @@
     "standard_accounting_principle": "author and talent-fund shares are computed from gross paid amount; reserve is an independent expense borne by platform; record funding source separately; no disbursement without approved funding and reconciliation",
     "invoice_currency": "IRT",
     "provider_gateway_fee_absorption": "additional_platform_cost_pending_contract"
+  },
+  "owner_commercial_authorization": {
+    "recorded": true,
+    "source": "explicit_direct_owner_instruction",
+    "date": "2026-10-17",
+    "scope": "Paid digital sale of approved PDF bundle; no false claim of author signature or final scientific endorsement",
+    "does_not_replace_author_distribution_permission": true,
+    "does_not_activate_server_payment_alone": true
   }
 }
