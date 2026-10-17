@@ -27,6 +27,15 @@ on:
       - 'tests/shop-premium-customer-design.test.mjs'
       - 'fa/shop/cart/index.html'
       - 'en/shop/cart/index.html'
+      - 'docs/governance/BERTINA_OBSERVED_TABLE_CATALOG_20261017.json'
+      - 'tests/bertina-observed-schema-registry.test.mjs'
+      - 'docs/migrations/20261016_private_service_intake.sql'
+      - 'docs/migrations/20261017_private_service_files.sql'
+      - 'docs/migrations/20261017_service_buyer_receipt.sql'
+      - 'database/unified/004c_jhela_founding_intake.sql'
+      - 'docs/migrations/20261017_jr_future_publishing.sql'
+      - 'docs/migrations/20261017_jr_publishing_contract_and_reserve.sql'
+      - 'docs/migrations/20261017_jr_publishing_author_onboarding.sql'
   pull_request:
     branches: [migration/bertina-linux6]
     paths:
@@ -51,6 +60,15 @@ on:
       - 'tests/shop-premium-customer-design.test.mjs'
       - 'fa/shop/cart/index.html'
       - 'en/shop/cart/index.html'
+      - 'docs/governance/BERTINA_OBSERVED_TABLE_CATALOG_20261017.json'
+      - 'tests/bertina-observed-schema-registry.test.mjs'
+      - 'docs/migrations/20261016_private_service_intake.sql'
+      - 'docs/migrations/20261017_private_service_files.sql'
+      - 'docs/migrations/20261017_service_buyer_receipt.sql'
+      - 'database/unified/004c_jhela_founding_intake.sql'
+      - 'docs/migrations/20261017_jr_future_publishing.sql'
+      - 'docs/migrations/20261017_jr_publishing_contract_and_reserve.sql'
+      - 'docs/migrations/20261017_jr_publishing_author_onboarding.sql'
   workflow_dispatch:
 permissions:
   contents: read
@@ -71,3 +89,5 @@ jobs:
         run: node scripts/catalog-integrity.mjs
       - name: Validate bilingual premium shop guidance and preserved payment semantics
         run: node --test tests/shop-premium-customer-design.test.mjs
+      - name: Validate documented 253-table Bertina schema inventory without production access
+        run: node --test tests/bertina-observed-schema-registry.test.mjs
