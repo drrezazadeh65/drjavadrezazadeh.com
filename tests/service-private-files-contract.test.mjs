@@ -40,6 +40,18 @@ test('uploads require actual uploaded PDF or DOCX, ClamAV scanning and no plaint
  assert.match(handler,/vbaProject\|activeX\|embeddings\|oleObject/);
  assert.match(handler,/%PDF-/);
  assert.match(handler,/jrServiceFileScan\(\$tmp/);
+ assert.match(sql,/consent_version/);
+ assert.match(sql,/subject_is_minor/);
+ assert.match(sql,/guardian_acknowledged/);
+ assert.match(handler,/private_file_consent_or_guardian_required/);
+ assert.match(handler,/SERVICE_FILE_HANDLING_V1/);
+ assert.match(api,/privacyAcknowledged/);
+ assert.match(api,/guardianAcknowledged/);
+ assert.match(dashboard,/privacyCheck\.required=true/);
+ assert.match(dashboard,/guardianCheck\.required=minorCheck\.checked/);
+ assert.match(dashboard,/payload\.append\('privacyAcknowledged','1'\)/);
+ assert.match(dashboard,/payload\.append\('guardianAcknowledged'/);
+
  assert.match(handler,/jrServiceFileEncrypt\(\$plain/);
  assert.match(handler,/fopen\(\$target,'xb'\)/);
  assert.match(handler,/chmod\(\$target,0600\)/);
