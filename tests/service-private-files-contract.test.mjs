@@ -134,3 +134,16 @@ test('bilingual buyer and admin worklists use only private per-case file routes'
   assert.doesNotMatch(read(path),/\/commerce\/service-file(?:s)?/);
  }
 });
+
+test('owner readiness never advertises private file custody until the required secure gates are available',()=>{
+ const snapshot=read('api/operations-commerce.php');
+ assert.match(snapshot,/privateServiceFilesReady/);
+ assert.match(snapshot,/jrServiceFilesReady\\(\\$pdo\\)/);
+ assert.match(admin,/fulfilment\\.privateServiceFilesReady===true/);
+ const version='operations-commerce.js?v=20261017-private-document-workflow-v4';
+ for(const page of ['fa/app/admin/index.html','en/account/admin/index.html']){
+  assert.ok(read(page).includes(version),'stale operations script '+page);
+ }
+ assert.ok(read('scripts/donation-cycle-audit.cjs').includes(version),
+   'Donation regression test must track the actual shared admin script');
+});
