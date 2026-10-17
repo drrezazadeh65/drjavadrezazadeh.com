@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
+require_once __DIR__.'/publishing-onboarding.php';
 /**
  * JR Future Publishing — verified author-only, READ-ONLY dashboard.
  * The file is additive to the existing Bertina app and cannot enable checkout,
@@ -35,6 +36,7 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
     header('Cache-Control: no-store, private, max-age=0');
     header('Pragma: no-cache');
     header('X-Robots-Tag: noindex, noarchive, nosnippet');
+    if(str_starts_with($path,'/publishing/author/onboarding')) jrPubAuthorOnboardingRoute($path,$verb);
     if($verb!=='GET'||$path!=='/publishing/author/overview') fail('route_not_found',404);
     if(!authReady()) fail('author_portal_unavailable',503);
     $pdo=db();
