@@ -145,7 +145,18 @@ if(!fs.existsSync(authorHtml)){
     ||!/<meta name="robots" content="index,follow/.test(content))
     failures.push('Approved author page canonical/indexability differs from frozen route approval');
 }
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+1;
+// 2026-10-17 approved private author workspace: noindex is mandatory,
+// and this singular route is counted without weakening the engineering leak guard.
+const approvedPrivateAuthorPage='fa/app/author/index.html';
+const privateAuthorFile=path.join(out,approvedPrivateAuthorPage);
+if(!fs.existsSync(privateAuthorFile))
+  failures.push('Approved private author dashboard missing from sanitized artifact');
+else {
+  const privateHtml=fs.readFileSync(privateAuthorFile,'utf8');
+  if(!/<meta name="robots" content="[^"]*noindex[^"]*nofollow/i.test(privateHtml))
+    failures.push('Author dashboard must be private noindex,nofollow');
+}
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2;
 for(const route of ['journal/roadmap/index.html','journal/fa/roadmap/index.html']){
   if(!fs.existsSync(path.join(out,route))) failures.push('Approved JHELA roadmap page missing: '+route);
 }
