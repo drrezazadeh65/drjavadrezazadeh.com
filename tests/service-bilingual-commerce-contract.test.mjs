@@ -92,3 +92,42 @@ test('English order history is real, authenticated, private and discoverable fro
  assert.match(js,/res\.status===401/);
  assert.doesNotMatch(js,/localStorage\.setItem/);
 });
+
+
+test('service hubs have 21 real canonical structured-data destinations and a single true bilingual pair',()=>{
+ const english=read('en/services/index.html');
+ const persian=read('fa/khadamat/index.html');
+ const faCatalog=read('fa/services/index.html');
+ const matchJson=html=>[...html.matchAll(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/g)]
+   .map(match=>JSON.parse(match[1])).find(json=>json['@type']==='ItemList');
+ const enList=matchJson(english),faList=matchJson(persian);
+ assert.equal(enList?.itemListElement?.length,21);
+ assert.equal(faList?.itemListElement?.length,21);
+ const ids=catalog.services.map(s=>s.id);
+ for(const id of ids){
+  assert.equal(enList.itemListElement.filter(row=>row.url===base+'/en/services/'+id+'/').length,1,'EN schema destination '+id);
+  assert.equal(faList.itemListElement.filter(row=>row.url===base+'/fa/services/'+id+'/').length,1,'FA schema destination '+id);
+ }
+ const registry=JSON.parse(read('platform/hreflang-pairs.json'));
+ const pair=registry.pairs.find(entry=>entry.id==='services');
+ assert.deepEqual([pair.en,pair.fa],['/en/services/','/fa/services/']);
+ assert.match(faCatalog,/hreflang="en" href="https:\/\/drjavadrezazadeh\.com\/en\/services\/"/);
+ assert.match(english,/hreflang="fa" href="https:\/\/drjavadrezazadeh\.com\/fa\/services\/"/);
+ assert.doesNotMatch(persian,/hreflang="en" href="https:\/\/drjavadrezazadeh\.com\/en\/services\/"/);
+ assert.match(read('scripts/seo-regression.mjs'),/\['\/en\/services\/','\/fa\/services\/'\]/);
+});
+
+test('shared checkout remains bilingual while keeping authoritative payments and Persian customer support',()=>{
+ const js=read('assets/js/commerce-checkout.js');
+ const fa=read('fa/services/checkout/index.html');
+ assert.match(js,/const IS_EN=document\.documentElement\.lang==='en'/);
+ assert.match(js,/const tr=fa=>IS_EN/);
+ assert.match(js,/translations\[item\.id\]\?\.title/);
+ assert.match(js,/\/assets\/data\/service-descriptions-en\.json/);
+ assert.match(js,/\/commerce\/create/);
+ assert.match(js,/link\.origin!==location\.origin/);
+ assert.match(js,/link\.pathname!=='\/fa\/shop\/payment-start\/'/);
+ assert.match(fa,/lang="fa" dir="rtl"/);
+ assert.match(fa,/commerce-checkout\.js/);
+ assert.doesNotMatch(js,/localStorage\.setItem|sessionStorage\.setItem/);
+});
