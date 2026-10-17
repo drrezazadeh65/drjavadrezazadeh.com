@@ -16,6 +16,7 @@ require_once __DIR__.'/../api/consultation-delivery.php';
 require_once __DIR__.'/../api/consultation-availability.php';
 require_once __DIR__.'/../api/operations-fulfilment.php';
 require_once __DIR__.'/../api/operations-service-delivery.php';
+require_once __DIR__.'/../api/service-files.php';
 require_once __DIR__.'/../api/service-intake.php';
 require_once __DIR__.'/../api/operations-commerce.php';
 // Catalogue stub is restricted to the one fictitious service used by this CI fixture.
@@ -50,6 +51,8 @@ $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261012_stage09_comme
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_preferences.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261014_consultation_availability.sql'));
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261016_owner_attested_service_delivery.sql'));
+$pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261017_private_service_files.sql'));
+
 $pdo->exec(file_get_contents(__DIR__.'/../docs/migrations/20261016_private_service_intake.sql'));
 
 if(!operationsConsultationAvailabilitySchemaReady($pdo))
@@ -280,7 +283,7 @@ checkService(operationsServiceDeliveryEvidenceReady($pdo),
 $attestation=[
  'orderId'=>$orderId,'sku'=>$sku,'expectedState'=>'in_progress',
  'evidenceKind'=>'document_handed_over',
- 'evidenceReference'=>'EDITORIAL-TEST-0001','ownerConfirmed'=>true
+ 'evidenceReference'=>'11111111-1111-4111-8111-111111111197','ownerConfirmed'=>true
 ];
 refused(fn()=>operationsCommerceRecordDelivery($pdo,$actor,$attestation),
  DomainException::class,'booked_future_service_cannot_pretend_delivered');
@@ -300,6 +303,30 @@ $pdo->prepare("INSERT INTO commerce_payment_claims
 $pdo->prepare("INSERT INTO commerce_service_cases(order_id,sku,status)
  VALUES(?,?,'in_progress')")->execute([$documentOrder,$sku]);
 $validDocument=array_merge($attestation,['orderId'=>$documentOrder]);
+checkService(jrServiceFilesSchemaReady($pdo),'private_service_file_schema_ready');
+refused(fn()=>operationsCommerceRecordDelivery($pdo,$actor,$validDocument),
+ DomainException::class,'document_delivery_without_registered_file_denied');
+$privateDir=sys_get_temp_dir().'/jr-service-fixture-'.bin2hex(random_bytes(7));
+if(!mkdir($privateDir,0700)||!chmod($privateDir,0700))
+    throw new RuntimeException('private_service_fixture_storage_unavailable');
+putenv('JR_SERVICE_PRIVATE_STORAGE='.$privateDir);
+$documentPlain='%PDF-1.7'.str_repeat(' private synthetic CI academic document',9);
+$docCipher=jrServiceFileEncrypt($documentPlain,$documentOrder,$sku);
+$storageName=str_repeat('a',48).'.blob';
+if(file_put_contents($privateDir.'/'.$storageName,$docCipher,LOCK_EX)!==strlen($docCipher))
+    throw new RuntimeException('private_doc_fixture_unwritable');
+chmod($privateDir.'/'.$storageName,0600);
+$pdo->prepare("INSERT INTO commerce_service_files
+  (id,order_id,sku,kind,uploader_account_id,storage_name,file_extension,
+  mime_type,plaintext_size,content_sha256) VALUES(?,?,?,?,?,?,?,?,?,?)")
+ ->execute([$validDocument['evidenceReference'],$documentOrder,$sku,'professional_output',
+  $actor,$storageName,'pdf','application/pdf',strlen($documentPlain),
+  hash('sha256',$documentPlain)]);
+checkService(jrServiceFileDecrypt($docCipher,$documentOrder,$sku)===$documentPlain,
+ 'private_service_file_aead_roundtrip');
+refused(fn()=>jrServiceFileDecrypt($docCipher,$orderId,$sku),
+ RuntimeException::class,'encrypted_document_cannot_be_reused_for_other_order');
+
 $complete=operationsCommerceRecordDelivery($pdo,$actor,$validDocument);
 checkService(($complete['state']??'')==='delivered'
  &&$complete['deliveryRecordedByOwner']===true
@@ -381,5 +408,7 @@ refused(fn()=>jrServiceIntakeSave($pdo,$intakeEmail,$actor,
     array_merge($brief,['orderId'=>$documentOrder])),
  DomainException::class,'delivered_case_cannot_silently_replace_intake');
 
+@unlink($privateDir.'/'.$storageName);@rmdir($privateDir);
+putenv('JR_SERVICE_PRIVATE_STORAGE');
 $pdo->exec('DROP TEMPORARY TABLE operations_audit');
 echo "Service advance MySQL fixture: no real money, appointments, email or entitlement granted.\n";
