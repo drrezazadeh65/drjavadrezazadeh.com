@@ -9,7 +9,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
  */
 function jrServiceFilesSchemaReady(PDO $pdo): bool {
     try {
-        $pdo->query('SELECT id,order_id,sku,kind,uploader_account_id,storage_name,file_extension,mime_type,plaintext_size,content_sha256,created_at FROM commerce_service_files LIMIT 0');
+        $pdo->query('SELECT id,order_id,sku,kind,uploader_account_id,storage_name,file_extension,mime_type,plaintext_size,content_sha256,consent_version,subject_is_minor,guardian_acknowledged,created_at FROM commerce_service_files LIMIT 0');
         $s=$pdo->query("SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='commerce_service_files' LIMIT 1");
         return strcasecmp((string)$s->fetchColumn(),'InnoDB')===0;
     } catch(Throwable $e){return false;}
