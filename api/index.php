@@ -1039,6 +1039,11 @@ if($path==='/commerce/callback'&&in_array($verb,['GET','POST'],true)){
     if($idGet!==(string)$row['provider_id_get']||!preg_match('/^[1-9][0-9]*$/',$trans))commerceReturnToResult($id);
     try{$raw=gatewayPost('gateway-result-second',['trans_id'=>$trans,'id_get'=>$idGet,'json'=>'1']);$d=json_decode($raw,true);if(!is_array($d)||!in_array((string)($d['status']??''),['1','11'],true)||!preg_match('/^[1-9][0-9]*$/D',(string)($d['amount']??''))||(string)$d['amount']!==(string)$row['provider_amount']||(string)($d['factorId']??'')!==(string)$row['factor_id'])commerceReturnToResult($id);
         if(!stage9FinalizePayment($pdo,$id,$idGet,$trans,(string)$d['amount'],(string)$d['factorId']))commerceReturnToResult($id);
+        // Post-commit best-effort mail dispatch, with persistent outbox and retry worker.
+        // Mail failure never changes bank-verified paid state or resends money.
+        require_once __DIR__.'/internal/jr-publishing-mailer.php';
+        try { jrPubProcessOutbox($pdo,$id); }
+        catch(Throwable $mailError){ error_log('Publishing postpay mail deferred '.get_class($mailError)); }
         $customerEmail=(string)($row['customer_email']??'');
         if(validEmail($customerEmail)&&mailReady()){
             $items=json_decode((string)$row['items_json'],true);$summary=[];$sum=0;
