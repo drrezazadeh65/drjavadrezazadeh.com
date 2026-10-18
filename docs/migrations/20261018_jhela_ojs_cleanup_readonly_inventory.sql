@@ -18,7 +18,7 @@ SELECT s.SCHEMA_NAME AS database_name,
          AS ojs_like_table_name_hits
 FROM information_schema.SCHEMATA s
 LEFT JOIN information_schema.TABLES t ON t.TABLE_SCHEMA=s.SCHEMA_NAME
-WHERE s.SCHEMA_NAME LIKE 'drjavad1\\_%'
+WHERE s.SCHEMA_NAME LIKE 'drjavad1\_%'
 GROUP BY s.SCHEMA_NAME
 ORDER BY s.SCHEMA_NAME;
 
@@ -27,17 +27,17 @@ SELECT TABLE_NAME,TABLE_TYPE,ENGINE,TABLE_ROWS AS estimated_rows,
        ROUND((DATA_LENGTH+INDEX_LENGTH)/1024/1024,2) AS approx_mb
 FROM information_schema.TABLES
 WHERE TABLE_SCHEMA='drjavad1_store'
-  AND (TABLE_NAME LIKE 'customer\\_%'
-    OR TABLE_NAME LIKE 'commerce\\_%'
-    OR TABLE_NAME LIKE 'publishing\\_%'
-    OR TABLE_NAME LIKE 'jhela\\_%'
-    OR TABLE_NAME LIKE 'eco\\_journal\\_%'
-    OR TABLE_NAME LIKE 'eco\\_manuscript\\_%'
-    OR TABLE_NAME LIKE 'eco\\_review\\_%'
-    OR TABLE_NAME LIKE 'eco\\_reviewer\\_%'
-    OR TABLE_NAME LIKE 'eco\\_editorial\\_%'
-    OR TABLE_NAME LIKE 'eco\\_doi\\_%'
-    OR TABLE_NAME LIKE 'eco\\_ojs\\_%')
+  AND (TABLE_NAME LIKE 'customer\_%'
+    OR TABLE_NAME LIKE 'commerce\_%'
+    OR TABLE_NAME LIKE 'publishing\_%'
+    OR TABLE_NAME LIKE 'jhela\_%'
+    OR TABLE_NAME LIKE 'eco\_journal\_%'
+    OR TABLE_NAME LIKE 'eco\_manuscript\_%'
+    OR TABLE_NAME LIKE 'eco\_review\_%'
+    OR TABLE_NAME LIKE 'eco\_reviewer\_%'
+    OR TABLE_NAME LIKE 'eco\_editorial\_%'
+    OR TABLE_NAME LIKE 'eco\_doi\_%'
+    OR TABLE_NAME LIKE 'eco\_ojs\_%')
 ORDER BY TABLE_NAME;
 
 -- C. All table names from other account-owned DBs: distinguish an OJS
@@ -46,7 +46,7 @@ SELECT TABLE_SCHEMA AS database_name,TABLE_NAME,ENGINE,
        TABLE_ROWS AS estimated_rows,
        ROUND((DATA_LENGTH+INDEX_LENGTH)/1024/1024,2) AS approx_mb
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA LIKE 'drjavad1\\_%'
+WHERE TABLE_SCHEMA LIKE 'drjavad1\_%'
   AND TABLE_SCHEMA <> 'drjavad1_store'
 ORDER BY TABLE_SCHEMA,TABLE_NAME;
 
@@ -56,12 +56,12 @@ SELECT CONSTRAINT_NAME,TABLE_NAME,COLUMN_NAME,
 FROM information_schema.KEY_COLUMN_USAGE
 WHERE TABLE_SCHEMA='drjavad1_store'
   AND REFERENCED_TABLE_NAME IS NOT NULL
-  AND (TABLE_NAME LIKE 'jhela\\_%'
-    OR TABLE_NAME LIKE 'eco\\_journal\\_%'
-    OR TABLE_NAME LIKE 'eco\\_manuscript\\_%'
-    OR REFERENCED_TABLE_NAME LIKE 'jhela\\_%'
-    OR REFERENCED_TABLE_NAME LIKE 'eco\\_journal\\_%'
-    OR REFERENCED_TABLE_NAME LIKE 'eco\\_manuscript\\_%')
+  AND (TABLE_NAME LIKE 'jhela\_%'
+    OR TABLE_NAME LIKE 'eco\_journal\_%'
+    OR TABLE_NAME LIKE 'eco\_manuscript\_%'
+    OR REFERENCED_TABLE_NAME LIKE 'jhela\_%'
+    OR REFERENCED_TABLE_NAME LIKE 'eco\_journal\_%'
+    OR REFERENCED_TABLE_NAME LIKE 'eco\_manuscript\_%')
 ORDER BY TABLE_NAME,CONSTRAINT_NAME,ORDINAL_POSITION;
 
 -- E. Inspect existing mother table columns and types before applying a
@@ -80,18 +80,18 @@ ORDER BY TABLE_NAME,ORDINAL_POSITION;
 SELECT 'TRIGGER' AS object_kind,TRIGGER_SCHEMA AS database_name,
        TRIGGER_NAME AS object_name
 FROM information_schema.TRIGGERS
-WHERE TRIGGER_SCHEMA LIKE 'drjavad1\\_%'
-  AND (EVENT_OBJECT_TABLE LIKE 'jhela\\_%'
-    OR EVENT_OBJECT_TABLE LIKE 'eco\\_journal\\_%')
+WHERE TRIGGER_SCHEMA LIKE 'drjavad1\_%'
+  AND (EVENT_OBJECT_TABLE LIKE 'jhela\_%'
+    OR EVENT_OBJECT_TABLE LIKE 'eco\_journal\_%')
 UNION ALL
 SELECT 'ROUTINE',ROUTINE_SCHEMA,ROUTINE_NAME
 FROM information_schema.ROUTINES
-WHERE ROUTINE_SCHEMA LIKE 'drjavad1\\_%'
+WHERE ROUTINE_SCHEMA LIKE 'drjavad1\_%'
   AND (ROUTINE_NAME LIKE '%jhela%' OR ROUTINE_NAME LIKE '%ojs%' OR ROUTINE_NAME LIKE '%journal%')
 UNION ALL
 SELECT 'EVENT',EVENT_SCHEMA,EVENT_NAME
 FROM information_schema.EVENTS
-WHERE EVENT_SCHEMA LIKE 'drjavad1\\_%'
+WHERE EVENT_SCHEMA LIKE 'drjavad1\_%'
   AND (EVENT_NAME LIKE '%jhela%' OR EVENT_NAME LIKE '%ojs%' OR EVENT_NAME LIKE '%journal%')
 ORDER BY database_name,object_kind,object_name;
 
