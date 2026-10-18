@@ -56,6 +56,13 @@
     "/en/student-guidance/",
     "/en/teacher-education/",
     "/en/teaching/",
+    "/en/vip/",
+    "/en/vip/academic-direction/",
+    "/en/vip/educator-development/",
+    "/en/vip/golden-talent-signature/",
+    "/en/vip/institutional-advisory/",
+    "/en/vip/research-publication/",
+    "/en/vip/university-selection/",
     "/fa/",
     "/fa/akhbar/",
     "/fa/akhbar/academic-research-editing-services-2026/",
@@ -207,5 +214,19 @@
       "/fa/shop/authors/mehrab-mirkarimi/"
     ],
     "rule": "Only this explicit URL is added; public URL continuity, no redirects and canonical self-reference retained."
+  },
+  "approved_addition_20261018_english_vip": {
+    "approved_by": "website_owner",
+    "scope": "Seven bilingual reciprocal, indexable original English VIP service URLs (one hub + six offers) added to existing canonical site",
+    "routes": [
+      "/en/vip/",
+      "/en/vip/academic-direction/",
+      "/en/vip/university-selection/",
+      "/en/vip/golden-talent-signature/",
+      "/en/vip/research-publication/",
+      "/en/vip/educator-development/",
+      "/en/vip/institutional-advisory/"
+    ],
+    "rule": "Preserve existing Persian URLs, retain reciprocal hreflang and existing secure checkout; explicit addition does not weaken route continuity."
   }
 }

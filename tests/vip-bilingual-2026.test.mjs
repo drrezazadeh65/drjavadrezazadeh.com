@@ -53,3 +53,23 @@ test('6-offer English VIP hub has distinct list schema, canonical and reciprocal
  assert.deepEqual([pairs.find(x=>x.id==='vip').en,pairs.find(x=>x.id==='vip').fa],['/en/vip/','/fa/vip/']);
  assert.equal(JSON.parse(read('assets/data/service-catalog.json')).services.length,21);
 });
+
+
+// v5.2 whitelist integrity: the seven English VIP pages are additive, not a
+// reason to disable the route-count, public visual or SEO privacy gates.
+test('owner-approved English VIP routes are indexed, visually integrated and counted in guarded release',()=>{
+ const expected=['/en/vip/','/en/vip/academic-direction/','/en/vip/university-selection/',
+ '/en/vip/golden-talent-signature/','/en/vip/research-publication/',
+ '/en/vip/educator-development/','/en/vip/institutional-advisory/'];
+ const urls=JSON.parse(fs.readFileSync('platform/public-url-stability-manifest.json','utf8'));
+ const search=JSON.parse(fs.readFileSync('assets/search-index.json','utf8'));
+ const build=fs.readFileSync('scripts/build-public-site.mjs','utf8');
+ for(const route of expected){
+  assert.ok(urls.frozen_indexable_routes.includes(route),'stability registry missing '+route);
+  assert.ok(search.some(e=>e.lang==='en'&&'/'+e.path===route&&e.summary),'search index missing '+route);
+  const html=fs.readFileSync('.'+route+'index.html','utf8');
+  assert.ok(html.includes('public-v2.css'),route+' should load shared public visual layer');
+  assert.ok(html.includes('https://drjavadrezazadeh.com'+route),route+' must retain canonical URL');
+ }
+ assert.ok(build.includes('approvedEnglishVipRoutes.length'),'route count must explicitly account for approved new pages');
+});

@@ -213,7 +213,28 @@ else {
   if(!/<meta name="robots" content="[^"]*noindex[^"]*nofollow/i.test(privateHtml))
     failures.push('Author dashboard must be private noindex,nofollow');
 }
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2;
+// 2026-10-18: seven owner-approved English VIP routes; each must exist with
+// its own canonical/indexable metadata before any package is accepted.
+const approvedEnglishVipRoutes=[
+   "en/vip/index.html",
+   "en/vip/academic-direction/index.html",
+   "en/vip/university-selection/index.html",
+   "en/vip/golden-talent-signature/index.html",
+   "en/vip/research-publication/index.html",
+   "en/vip/educator-development/index.html",
+   "en/vip/institutional-advisory/index.html"
+ ];
+for(const route of approvedEnglishVipRoutes){
+  const file=path.join(out,route);
+  if(!fs.existsSync(file)){failures.push('Approved English VIP route missing: '+route);continue;}
+  const html=fs.readFileSync(file,'utf8');
+  const publicUrl='https://drjavadrezazadeh.com/'+route.replace(/index\.html$/,'');
+  if(!html.includes('<link rel="canonical" href="'+publicUrl+'"')||
+     !/<meta name="robots" content="index,follow/.test(html)||
+     !html.includes('public-v2.css'))
+    failures.push('Approved English VIP route lacks canonical/indexable/visual contract: '+route);
+}
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length;
 for(const route of ['journal/roadmap/index.html','journal/fa/roadmap/index.html']){
   if(!fs.existsSync(path.join(out,route))) failures.push('Approved JHELA roadmap page missing: '+route);
 }
