@@ -327,7 +327,7 @@ function serviceMarketplace(runtime,authenticated){
       (isEnglish?'Defined outcome:':'خروجی روشن:')+'</b> '+esc(outcomeText)+'</p>':'';
     const boundary=boundaryText?'<details class="cd-service-boundary"><summary>'+
       (isEnglish?'Scope & boundary':'دامنه و مرز خدمت')+'</summary><p>'+esc(boundaryText)+'</p></details>':'';
-    const infoHref=isEnglish?'/en/services/':'/fa/services/'+id+'/';
+    const infoHref=(isEnglish?'/en/services/':'/fa/services/')+id+'/';
     return '<article class="cd-service-card" data-purchase-ready="'+purchaseReady+'"><h3>'+
       esc(title)+'</h3><div class="cd-service-price">'+money(s.price)+'</div>'+
       '<span class="cd-service-duration">'+duration+'</span><p class="cd-service-fit">'+
