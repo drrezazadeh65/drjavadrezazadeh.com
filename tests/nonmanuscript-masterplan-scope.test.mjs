@@ -41,8 +41,8 @@ test('staged website releases keep the separate manuscript suspension',()=>{
  assert.ok(php.includes("fail('manuscript_submissions_paused',503);"));
  assert.ok(php.includes("'/journal/reviewer/apply'"));
  const decision=read('docs/governance/V5.2_EVOLUTION_OWNER_DIRECTIVE_20261018.md');
- assert.ok(decision.includes('global 100%-before-release'));
- assert.ok(decision.includes('manuscript create/upload'));
+ assert.match(decision,/earlier requirement to await 100% completion[^.]*RETIRED/i);
+ assert.match(decision,/manuscript metadata creation, confidential PDF upload and formal submission/);
  assert.equal(scope.latestOwnerSupersession.ownerAuthorizedNativePreliminaryManuscriptIntake,false);
  assert.equal(json('platform/jhela-native-intake-activation-v1.json').ownerAuthorizesPreliminaryManuscriptSubmission,false);
  for(const p of ['journal/submission/index.html','journal/fa/submission/index.html'])assert.ok(read(p).includes('data-jhela-article-open hidden'));
