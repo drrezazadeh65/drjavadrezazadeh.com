@@ -443,7 +443,7 @@ function render(orders){
               };
               for(const c of data.serviceCases){
                 const line=el('li',c.sku+' — '+(statuses[c.status]||tr('نیازمند بررسی','Review needed')));
-                if(c.bookingStart||c.bookingEnd){
+                if(['booked','in_progress','delivered'].includes(c.status)&&(c.bookingStart||c.bookingEnd)){
                    const appointment=formatBookingWindow(c.bookingStart,c.bookingEnd);
                    if(appointment){
                      line.append(el('small',' · '+tr('شروع جلسه: ','Session start: ')+
