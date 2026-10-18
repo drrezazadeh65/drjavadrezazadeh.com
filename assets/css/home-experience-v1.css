@@ -272,3 +272,60 @@
   .public-home-page .site-header nav{gap:2px}
   .public-home-page .site-header nav>a,.public-home-page .home-nav-group>summary{font-size:11px;padding-inline:7px}
 }
+
+/* Homepage Choice Studio discovery — one useful editorial route, not a fake chart.
+   Mobile first; two columns only with space for readable copy and real links. */
+.public-home-page .jr-choice-discovery{
+ display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
+ align-items:center;gap:clamp(22px,4.5vw,60px);
+ width:min(100%,var(--max,1180px));min-width:0;
+ margin:clamp(26px,5vw,64px) auto;
+ padding:clamp(22px,4.2vw,50px);
+ border:1px solid rgba(212,175,55,.32);
+ border-radius:clamp(18px,3vw,30px);
+ background:radial-gradient(ellipse at 90% 0%,rgba(212,175,55,.11),transparent 63%),linear-gradient(155deg,#191917,#0e0f11);
+ box-shadow:0 16px 55px rgba(0,0,0,.16);
+ color:var(--text,#f8f5e9);
+}
+.public-home-page .jr-choice-discovery *{box-sizing:border-box;min-width:0}
+.public-home-page .jr-cd-copy h2{
+ color:var(--text,#f8f5e9);font-size:clamp(1.45rem,3.1vw,2.45rem);
+ line-height:1.4;margin:.4rem 0 1.05rem;max-width:24ch
+}
+.public-home-page .jr-cd-copy>p:not(.kicker){font-size:clamp(.96rem,1.5vw,1.09rem);line-height:1.95;color:#e5dccd;max-width:61ch}
+.public-home-page .jr-cd-action{
+ display:inline-flex;align-items:center;justify-content:center;gap:.65rem;
+ margin:.5rem 0 .9rem;border-radius:11px;min-height:48px;
+ border:1px solid #e6c77e;background:#e6c77e;color:#17140e;
+ padding:.8rem 1.35rem;text-decoration:none;font-size:1rem;font-weight:750;line-height:1.5
+}
+.public-home-page .jr-cd-action:hover{background:#f4dca2}
+.public-home-page .jr-cd-action:focus-visible{
+ outline:3px solid #f4dca2;outline-offset:4px
+}
+.public-home-page .jr-cd-note{font-size:.84rem!important;color:#cfc4b3!important;margin:0}
+.public-home-page .jr-cd-steps{
+ counter-reset:none;list-style:none;padding:0;margin:0;display:grid;gap:11px;
+}
+.public-home-page .jr-cd-steps li{
+ display:flex;gap:13px;align-items:flex-start;border:1px solid rgba(212,175,55,.23);
+ background:rgba(8,9,11,.54);border-radius:13px;padding:14px 16px;
+}
+.public-home-page .jr-cd-steps li>span{
+ flex:0 0 auto;display:grid;place-items:center;width:35px;min-width:35px;height:35px;
+ border:1px solid #bb9654;border-radius:9px;color:#efcf8f;font:700 .86rem/1.2 system-ui,sans-serif
+}
+.public-home-page .jr-cd-steps strong{color:#f5e7cd;display:block;font-size:1.01rem;line-height:1.65}
+.public-home-page .jr-cd-steps p{color:#d5cabb;font-size:.89rem;line-height:1.8;margin:.2rem 0 0}
+@media(max-width:920px){
+ .public-home-page .jr-choice-discovery{grid-template-columns:minmax(0,1fr);gap:24px}
+ .public-home-page .jr-cd-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:580px){
+ .public-home-page .jr-choice-discovery{padding:22px 16px;margin:24px auto;border-radius:18px}
+ .public-home-page .jr-cd-steps{grid-template-columns:minmax(0,1fr)}
+ .public-home-page .jr-cd-action{width:100%;text-align:center}
+}
+@media(prefers-reduced-motion:reduce){
+ .public-home-page .jr-choice-discovery *{animation:none!important;transition:none!important}
+}
