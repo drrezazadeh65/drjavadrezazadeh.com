@@ -71,7 +71,7 @@ for(const [language,home,destination] of [
   expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.client+2);
   await expect(section.locator('ol>li')).toHaveCount(4);
   const cta=section.locator('a.jr-cd-action');
-  await expect(cta).toHaveAttribute('href','.'+destination.replace(home,''));
+  await expect(cta).toHaveAttribute('href','./'+destination.slice(home.length));
   await cta.click();
   await expect(page).toHaveURL(origin+destination);
   await expect(page.locator('[data-choice-studio] form')).toBeVisible();
