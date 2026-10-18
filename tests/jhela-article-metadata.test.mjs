@@ -25,7 +25,7 @@ function sample(){
   },
   rights:{license:'CC-BY-4.0',authorAgreementConfirmed:true,fullTextOpenAccess:true},
   history:{submittedAt:'2026-10-01T12:00:00Z'},
-  review:{decision:'accept',independentReviewersConfirmed:true,conflictScreeningConfirmed:true,nativeOjsAuditReferenceVerified:true},
+  review:{decision:'accept',independentReviewersConfirmed:true,conflictScreeningConfirmed:true,nativeEditorialAuditReferenceVerified:true},
   publication:{landingUrl:'https://journal.drjavadrezazadeh.com/jhela/article/view/123',fullTextUrl:'https://journal.drjavadrezazadeh.com/jhela/article/download/123/100'},
   production:{proofApproved:true,metadataApproved:true,publisherRightsApproved:true},
  };
@@ -40,8 +40,8 @@ test('synthetic complete English journal metadata is ready for editorial quality
 });
 test('production metadata requires actual review, acceptance chronology, proof signoff and HTTPS pages',()=>{
  const a=sample();a.history.acceptedAt='2026-10-10T09:00:00Z';
- assert.equal(check(a,'production').pass,true,'source preflight can pass with synthetic affirmative flags, but cannot independently certify OJS records');
- a.history.acceptedAt='2026-09-01T09:00:00Z';a.review.nativeOjsAuditReferenceVerified=false;a.production.proofApproved=false;
+ assert.equal(check(a,'production').pass,true,'source preflight can pass with synthetic affirmative flags, but cannot independently certify native editorial platform records');
+ a.history.acceptedAt='2026-09-01T09:00:00Z';a.review.nativeEditorialAuditReferenceVerified=false;a.production.proofApproved=false;
  a.publication.fullTextUrl='http://example.com/paper.pdf';
  const r=check(a,'production');
  for(const code of ['history.acceptance_precedes_submission','review.native_evidence_not_verified','production.proof_metadata_rights_signoff','publication.public_urls_required'])assert.ok(r.errors.includes(code));

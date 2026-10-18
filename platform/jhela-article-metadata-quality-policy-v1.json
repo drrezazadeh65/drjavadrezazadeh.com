@@ -1,7 +1,7 @@
 {
   "schema": "jhela-article-metadata-quality-policy-v1",
-  "asOf": "2026-10-16",
-  "status": "SOURCE_PREPUBLICATION_QA_NOT_AN_OJS_PRODUCTION_AUTHORIZATION",
+  "asOf": "2026-10-18",
+  "status": "SOURCE_PREPUBLICATION_QA_NOT_NATIVE_PRODUCTION_AUTHORIZATION",
   "editorialLanguage": "en",
   "permittedArticleTypes": [
     "research",
@@ -36,39 +36,23 @@
   "prepublicationControls": {
     "distinctPublicationAndAcceptedDate": true,
     "sourceEditableMetadataOnly": false,
-    "decisionAuthority": "verified native OJS editorial record, never client or content QA script",
+    "decisionAuthority": "verified first-party editorial decision record, never a client or content QA script",
     "requireNamedQualifiedProductionSignoff": true,
     "reviewReportsNeverInPublicMetadata": true,
-    "publicPeerReviewClaimsRequireActualOjsRecord": true,
     "rejectExposedEditorPrivateInformation": true,
     "documentLicenseSelectionNeedsAuthorAgreement": true,
     "publishedArticleUrlsMustBePublicAndHttps": true,
     "doiAutoAssignmentNotEquivalentToRegistration": true,
-    "strictDoiRegistryVerificationBeforePublicDoiClaims": true
+    "strictDoiRegistryVerificationBeforePublicDoiClaims": true,
+    "publicPeerReviewClaimsRequireActualEditorialRecord": true
   },
   "reviewWorkflow": {
     "ordinarilyIndependentReviewers": 2,
-    "confidentialReviewsThroughOjsOnly": true,
-    "authorAndReviewerBlinding": "verify native OJS workflow and files",
+    "authorAndReviewerBlinding": "verify first-party editorial role isolation and confidential files",
     "decisionOnlyFromUnconflictedHandlingEditor": true,
     "editorAuthoredConflictRecusal": true,
-    "noAcceptanceByNumericReviewScore": true
-  },
-  "crossrefOjs35": {
-    "doiAdministration": "native OJS 3.5 DOIs page and Distribution > DOIs",
-    "plugin": "Crossref Manager (supported version)",
-    "doiPreferredContent": [
-      "Articles"
-    ],
-    "suffixPreference": "opaque default",
-    "metadataDeposit": "Crossref Manager after publisher membership and lawful credentials",
-    "referenceMetadata": "enable author-provided references and supported Crossref reference linking",
-    "orcid": "OJS 3.5 native",
-    "ror": "OJS 3.5 native affiliation support",
-    "validationRule": "never infer registration from local DOI string or source-only flag",
-    "source": "https://www.crossref.org/documentation/register-maintain-records/ojs-plugin/ojs-3.5/",
-    "issuerNotVerified": true,
-    "membershipNotVerified": true
+    "noAcceptanceByNumericReviewScore": true,
+    "confidentialReviewsThroughNativePlatformOnly": true
   },
   "privacy": {
     "noUnpublishedManuscriptInRepo": true,
@@ -80,10 +64,26 @@
   },
   "finalization": {
     "offlinePreflightNeverAuthorizesPublication": true,
-    "releaseNeedsNativeOjsAudit": true,
     "releaseNeedsPrivacyReview": true,
     "releaseNeedsLegalRightsReview": true,
     "releaseNeedsProductionProof": true,
-    "releaseNeedsOwnerAuthorizedOpenIntake": true
+    "releaseNeedsOwnerAuthorizedOpenIntake": true,
+    "releaseNeedsNativeEditorialAudit": true
+  },
+  "crossrefIntegration": {
+    "doiAdministration": "publisher-authorized DOI registry deposit after editorial publication approval",
+    "plugin": "No third-party journal plugin dependency",
+    "doiPreferredContent": [
+      "Articles"
+    ],
+    "suffixPreference": "opaque default",
+    "metadataDeposit": "Publisher-authorized Crossref deposit with verified membership and lawful credentials",
+    "referenceMetadata": "enable author-provided references and supported Crossref reference linking",
+    "orcid": "Validated ORCID iD and consented author metadata",
+    "ror": "Verified institutional affiliation metadata when supported",
+    "validationRule": "never infer registration from local DOI string or source-only flag",
+    "source": "https://www.crossref.org/documentation/",
+    "issuerNotVerified": true,
+    "membershipNotVerified": true
   }
 }

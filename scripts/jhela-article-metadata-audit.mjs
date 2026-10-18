@@ -1,6 +1,6 @@
 /**
  * JHELA public scholarly metadata preflight — source-only, zero HTTP calls or publication writes.
- * Does NOT certify that peer review, actual Crossref registration or OJS acceptance occurred.
+ * Does NOT certify that peer review, actual Crossref registration or native editorial platform acceptance occurred.
  * Never provide live unredacted manuscripts, reviewer details or participant data as fixtures.
  */
 import fs from 'node:fs';
@@ -85,7 +85,7 @@ export function validateJhelaArticle(article,policy,{phase='editorial'}={}){
  if(phase==='production'){
   if(!validDate(history.acceptedAt))add('history.acceptance_not_recorded');
   if(validDate(history.submittedAt)&&validDate(history.acceptedAt)&&Date.parse(history.acceptedAt)<Date.parse(history.submittedAt))add('history.acceptance_precedes_submission');
-  if(article.review?.decision!=='accept'||article.review?.independentReviewersConfirmed!==true||article.review?.conflictScreeningConfirmed!==true||article.review?.nativeOjsAuditReferenceVerified!==true)add('review.native_evidence_not_verified');
+  if(article.review?.decision!=='accept'||article.review?.independentReviewersConfirmed!==true||article.review?.conflictScreeningConfirmed!==true||article.review?.nativeEditorialAuditReferenceVerified!==true)add('review.native_evidence_not_verified');
   if(!onlyHttps(article.publication?.landingUrl)||!onlyHttps(article.publication?.fullTextUrl))add('publication.public_urls_required');
   if(article.production?.proofApproved!==true||article.production?.metadataApproved!==true||article.production?.publisherRightsApproved!==true)add('production.proof_metadata_rights_signoff');
  }
@@ -101,7 +101,7 @@ export function validateJhelaArticle(article,policy,{phase='editorial'}={}){
   phase,pass:errors.length===0,
   errors:[...new Set(errors)].sort(),warnings:[...new Set(warnings)].sort(),
   publicationAuthorised:false,registryCertified:false,
-  limitation:'Source metadata quality does not certify OJS editorial decisions, DOI registration, issue release or publisher approval.'
+  limitation:'Source metadata quality does not certify native editorial platform editorial decisions, DOI registration, issue release or publisher approval.'
  };
 }
 if(process.argv[1]?.endsWith('jhela-article-metadata-audit.mjs')){
