@@ -1555,14 +1555,13 @@ test('bilingual bookstore mobile hero exposes shop and sponsorship, and help lin
    expect(response.status()).toBe(200);
    const nav=page.locator('.book-store-hero .store-nav');
    const visibleLinks=nav.locator('a:visible');
-   await expect(visibleLinks).toHaveCount(lang==='fa'?3:2);
-   if(lang==='fa'){
-    const authorLink=nav.locator('a[href="/fa/shop/authors/mehrab-mirkarimi/"]');
-    await expect(authorLink).toBeVisible();
-    const authorBox=await authorLink.boundingBox();
-    expect(authorBox.width).toBeGreaterThanOrEqual(44);
-    expect(authorBox.height).toBeGreaterThanOrEqual(44);
-   }
+   // Both storefronts now include a real, reciprocal author profile link.
+   await expect(visibleLinks).toHaveCount(3);
+   const authorLink=nav.locator('a[href="/'+lang+'/shop/authors/mehrab-mirkarimi/"]');
+   await expect(authorLink).toBeVisible();
+   const authorBox=await authorLink.boundingBox();
+   expect(authorBox.width).toBeGreaterThanOrEqual(44);
+   expect(authorBox.height).toBeGreaterThanOrEqual(44);
    for(const anchor of ['#book-catalog','#support']){
     const link=nav.locator('a[href="'+anchor+'"]');
     await expect(link).toBeVisible();
