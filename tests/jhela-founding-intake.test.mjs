@@ -30,7 +30,7 @@ test('private JHELA workspace is unavailable until trusted TLS and schema readin
  const response=method.indexOf('jhelaPrivateHome($pdo,$a);',workspace);
  assert.ok(readiness>=0&&readiness<workspace,'readiness must precede private workspace route');
  assert.ok(workspace>=0&&guarded>workspace&&guarded<response,'workspace response requires readiness guard');
- assert.ok(php.includes("'trustedTLS'=>(cfg()['public_tls_confirmed']??false)===true"));
+ assert.ok(php.includes("'trustedTLS'=>($site['public_tls_confirmed']??false)===true"));
 });
 test('manuscript PDFs have isolated storage, content verification, AV, private checksum and ownership',()=>{
  for(const check of ["getenv('JR_JHELA_INTAKE_ENABLED')","getenv('JR_JHELA_PRIVATE_STORAGE')","getenv('JR_JHELA_AV_BINARY')",
