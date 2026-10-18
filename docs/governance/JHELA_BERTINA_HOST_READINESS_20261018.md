@@ -20,3 +20,10 @@ An executable scanner check does not prove that its malware signatures are up-to
 
 ## Release
 Use the existing owner-operated GitHub Actions `deploy-bertina.yml` on `migration/bertina-linux6` only when CI and the current source snapshot are clean. The host configuration above is never committed to the repository.
+
+## cPanel without Terminal (owner screenshot verified 18 October 2026)
+The owner already has private directories at `/home/drjavad1/jhela_private_files` and `/home/drjavad1/jhela_private_manuscripts`. **Reuse and verify** the latter; do not create duplicate directories or delete any old folder during activation. The cPanel search shown to the owner does not expose a Terminal tool. Do not require shell access.
+
+The owner can use File Manager for folder permission inspection and to add **only non-secret** JHELA settings to the existing private `public_html/api/config.local.php` (without replacing any other keys). Bertina support must confirm whether live LiteSpeed PHP can run the real `clamscan` binary and `proc_open`; CLI availability alone is insufficient. The existing owner dashboard displays the host-readiness booleans and per-check remediation without exposing private paths.
+
+**Correct enablement sequence:** first leave `jhela_intake_enabled=false`; verify the directory, schema, HTTPS, executable scanner and test scans in a safe staging setting. Then explicitly enable the flag for a controlled test receipt, verify owner-only access and audit trail, and only then announce public manuscript intake. This avoids the impossible requirement to observe a live receipt before allowing any test intake.

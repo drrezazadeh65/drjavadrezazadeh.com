@@ -35,3 +35,15 @@ test('bilingual admin panels render only sanitized diagnostic booleans',()=>{
   assert.ok(html.includes('operations-jhela-host-readiness.js'));
  }
 });
+
+
+test('host operator checklist supports cPanel without Terminal and never asks for credentials',()=>{
+ const js=read('assets/js/operations-jhela-host-readiness.js');
+ for(const key of ['motherDatabase','trustedTls','privateStorageConfigured','privateStorageWritable','antivirusConfigured','antivirusExecutable','manuscriptIntakeEnabled','reviewerIntakeEnabled'])
+  assert.ok(js.includes(key+':['));
+ assert.ok(js.includes('A cPanel Terminal is not required.'));
+ assert.ok(js.includes("hint.className='ops-muted'"));
+ assert.ok(js.includes("d.checks?.[key]!==true"));
+ assert.ok(!js.includes('smtp_password'));
+ assert.ok(!js.includes('db_password'));
+});

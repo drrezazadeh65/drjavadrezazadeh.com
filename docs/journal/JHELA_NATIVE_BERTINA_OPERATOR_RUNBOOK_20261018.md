@@ -54,3 +54,8 @@ These values are examples, **not** instructions to enable blindly. The private p
 ## 5. Release boundary
 
 The owner performs the existing one-click Bertina release. Do not modify the deployment workflow. Source CI passes do not prove the host's runtime readiness; final operational status requires the live tests above. The existing mother database, working store, orders, services, and author accounts must be preserved without regression.
+
+## cPanel-only operator route (no Terminal shown in owner account)
+The owner's screenshots show `/home/drjavad1/jhela_private_manuscripts` already exists, outside `public_html`. Reuse it after checking ownership/writability; no new folder or second database is needed. The cPanel search did not list Terminal. Ask Bertina support to check ClamAV and `proc_open` specifically for the active LiteSpeed PHP 8.3 web worker. Use the existing protected admin **Live journal host readiness** dashboard to inspect results; do not create a public `phpinfo()` page or upload a diagnostic PHP file to the document root.
+
+Keep intake disabled until infrastructure and a safe scanner test pass. For the first controlled end-to-end test, enable the flag temporarily, submit only a harmless test PDF from a verified account, confirm private owner-only receipt, then announce public availability only after the complete test passes. On failure, turn the flag off again. Do not request private configuration or secrets in screenshots.
