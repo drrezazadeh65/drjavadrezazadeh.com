@@ -10,6 +10,19 @@ const warnings=[];
 
 const read=rel=>fs.readFileSync(path.join(root,rel),'utf8');
 const exists=rel=>fs.existsSync(path.join(root,rel));
+
+// The keyboard-visible desktop disclosure is part of both bilingual homepage contracts.
+// Hover styling or an open-state border is not a substitute for focus visibility.
+if(!exists('assets/css/home-experience-v1.css')){
+  failures.push('Bilingual homepage visual layer is missing');
+}else{
+  const homeCss=read('assets/css/home-experience-v1.css');
+  const focusDeclarations=[...homeCss.matchAll(/\.public-home-page\s+\.home-nav-group>summary:focus-visible\s*\{([^}]*)\}/g)]
+    .map(m=>m[1]);
+  if(!focusDeclarations.some(rule=>/\boutline\s*:\s*[1-9]\d*px\s+solid\b/.test(rule))){
+    failures.push('Desktop homepage disclosure lacks a visible keyboard focus outline');
+  }
+}
 const routeFile=route=>{
   if(route==='/') return 'index.html';
   return route.replace(/^\//,'').replace(/\/$/,'')+'/index.html';
