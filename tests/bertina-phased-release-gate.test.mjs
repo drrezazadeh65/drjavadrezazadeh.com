@@ -134,7 +134,7 @@ test('PERMANENT FREEZE: deployment workflow and release gate source match succes
  for(const [path,expected] of Object.entries(FROZEN_DEPLOYMENT_BLOBS)){
   const contents=fs.readFileSync(path);
   const gitBlob=createHash('sha1')
-   .update(Buffer.from('blob '+contents.length+'\\0'))
+   .update(Buffer.from('blob '+contents.length+'\0'))
    .update(contents).digest('hex');
   assert.equal(gitBlob,expected,
    'FROZEN DEPLOYMENT CONTRACT VIOLATED: '+path+' differs from successful run #395');
