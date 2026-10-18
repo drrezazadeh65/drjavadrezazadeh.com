@@ -64,7 +64,7 @@
 @media(max-width:700px){#ops-jhela-workstream .ops-jhela-live-metrics,#ops-jhela-workstream .ops-jhela-evidence-list{grid-template-columns:1fr}}
 
 
-/* Master design v3 · protected owner journal administration (not OJS reviewer UI). */
+/* Master design v3 · protected owner journal administration (not retired vendor system reviewer UI). */
 #ops-jhela-workstream{
  --jhela-journal-navy:#0b203c;--jhela-journal-gold:#edcd88;
  --jhela-brass:#b48a3f;--jhela-ivory:#f4f0e6;

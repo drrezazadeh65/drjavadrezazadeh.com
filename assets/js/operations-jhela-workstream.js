@@ -1,4 +1,4 @@
-/* JHELA admin workstream navigator — interface only, not OJS authorisation. */
+/* JHELA admin workstream navigator — interface only, not retired vendor system authorisation. */
 (()=>{'use strict';
  const scope=document.getElementById('ops-workspace');
  const root=document.getElementById('ops-jhela-workstream');
