@@ -74,9 +74,9 @@ assert 'test "$GITHUB_EVENT_NAME" = workflow_dispatch' in workflow
 assert "  group: bertina-production-deploy" in workflow
 assert "  cancel-in-progress: false" in workflow
 assert 'BERTINA_AUTO_DEPLOY_SCOPE: full' in workflow
-# One-click owner-controlled release defaults; legacy hosting-managed mode remains optional.
+# One-click owner-controlled release defaults; owner explicitly accepts untested backup restoration.
 assert 'default: phased_live_audit' in workflow
-assert 'default: owner_cpanel_custody' in workflow
+assert 'default: hosting_managed' in workflow
 assert 'default: ACCEPT_UNTESTED_RESTORE_RISK_V5' in workflow
 assert 'default: I_APPROVE_GUARDED_LIVE_AUDIT_RELEASE_WITH_PDF_AND_SQL_DEFERRED' in workflow
 assert 'id: owner_release' in workflow
