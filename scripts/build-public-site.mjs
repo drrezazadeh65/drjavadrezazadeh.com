@@ -100,6 +100,10 @@ const required=[
   'assets/css/shop-customer-premium-20261017.css',
   'assets/css/mobile-app-v431.css','assets/js/mobile-app-v431.js',
   'assets/css/jr-future-publishing-author-v1.css',
+  // The v5.2 author interface is incomplete without this frozen-brand stylesheet.
+  'assets/css/jr-author-premium-v52.css',
+  'en/shop/authors/mehrab-mirkarimi/index.html',
+  'assets/images/bookstore-talent-cinematic-approved-original-20261011.png',
   'assets/images/bookstore-talent-cinematic-approved-20261011.webp',
   'assets/images/editorial-launch/scholarly-bookstore-library-20261011.webp',
   'assets/images/editorial-launch/professional-services-decisions-20261011.webp',
