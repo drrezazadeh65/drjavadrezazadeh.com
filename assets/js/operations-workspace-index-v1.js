@@ -6,8 +6,7 @@
 (()=>{
  'use strict';
  const workspace=document.getElementById('ops-workspace');
- const nav=document.querySelector('[data-ops-workspace-index]');
- if(!workspace||!nav||!workspace.contains(nav))return;
+ if(!workspace)return;
  const en=document.documentElement.lang==='en';
  const text=en?{
    placeholder:'Filter existing operations sections…',
@@ -30,6 +29,45 @@
    shortcut:'کلید / برای جستجو',
    fallback:'این بخش در نسخه حاضر موجود نیست.'
  };
+ // Preserve the original server-gated HTML shell and mount navigation entirely
+ // inside the hidden workspace. Existing MFA/role checks still control visibility.
+ const make=(tag,klass,value)=>{
+  const element=document.createElement(tag);
+  if(klass)element.className=klass;
+  if(value!==undefined)element.textContent=value;
+  return element;
+ };
+ const nav=make('details','ops-workspace-index');
+ nav.id='ops-navigator';
+ nav.dataset.opsWorkspaceIndex='';
+ nav.open=true;
+ const summary=make('summary');
+ summary.append(make('span',null,en?'Explore operations workspaces':'دسترسی سریع به بخش‌های مدیریت'));
+ const body=make('div','ops-index-inner');
+ body.append(make('p','ops-muted',en
+  ?'This navigation opens existing operational sections only. It cannot change payment, editorial, security or release states.'
+  :'این فهرست فقط بخش‌های واقعی مدیریت را باز می‌کند؛ هیچ وضعیت مالی، داوری، انتشار یا گواهی عملیاتی را تغییر نمی‌دهد.'));
+ const controls=make('div','ops-index-controls');
+ const label=make('label',null,en?'Search sections':'جستجوی بخش');
+ label.htmlFor='ops-index-search';
+ const input=make('input');
+ input.id='ops-index-search';input.type='search';input.autocomplete='off';input.maxLength=100;
+ input.dataset.opsIndexFilter='';
+ input.setAttribute('aria-controls','ops-index-links');
+ label.append(input);
+ const clearButton=make('button',null,text.clear);
+ clearButton.type='button';clearButton.dataset.opsIndexClear='';clearButton.hidden=true;
+ controls.append(label,clearButton);body.append(controls);
+ const count=make('p','ops-index-count');count.dataset.opsIndexCount='';body.append(count);
+ const results=make('div','ops-index-list');results.id='ops-index-links';results.dataset.opsIndexList='';
+ body.append(results);
+ const footer=make('div','ops-index-footer');
+ const hint=make('span',null,text.shortcut);hint.dataset.opsIndexHint='';
+ const feedback=make('p','ops-index-status');feedback.dataset.opsIndexStatus='';
+ feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
+ footer.append(hint,feedback);body.append(footer);
+ nav.append(summary,body);
+ workspace.prepend(nav);
  const groups=[
    {id:'jr-intelligence',group:'evidence'},
    {id:'ops-cards',group:'evidence',label:en?'Evidence and engine register':'فهرست موتورهای عملیاتی'},
