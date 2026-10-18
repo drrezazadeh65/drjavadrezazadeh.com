@@ -212,3 +212,33 @@ test('settled digital refunds must be visible to authors until allocation revers
  assert.match(ui,/sale\.refundAllocationsUnreconciled/);
  assert.doesNotMatch(api,/SELECT [^\n]*customer_email FROM commerce_refund_requests/);
 });
+
+test('existing publishing offer activation is owner-controlled, idempotent and does not fabricate evidence',()=>{
+ const cli=read('api/internal/jr-publishing-activate-existing-cli.php');
+ const offer=read('api/internal/jr-publishing-digital.php');
+ assert.match(cli,/PHP_SAPI !== 'cli'/);
+ assert.match(cli,/--check/);
+ assert.match(cli,/--activate/);
+ assert.match(cli,/beginTransaction\(\)/);
+ assert.match(cli,/rollBack\(\)/);
+ assert.match(cli,/publishing_author_accounts/);
+ assert.match(cli,/email_verified_at/);
+ assert.match(cli,/publishing_rights_licences/);
+ assert.match(cli,/digital_distribution/);
+ assert.match(cli,/publishing_private_assets/);
+ assert.match(cli,/malware_scanned_at/);
+ assert.match(cli,/hash_file\('sha256'/);
+ assert.match(cli,/jrPubDigitalOffer\(\$pdo\)/);
+ assert.match(cli,/UPDATE publishing_offers SET checkout_enabled=1/);
+ assert.match(cli,/WHERE id=\? AND retired_at IS NULL/);
+ assert.match(cli,/JR_PUBLISHING_SEPARATE_7PCT_BUDGET/);
+ assert.match(cli,/JR_PUBLISHING_MAIL_CRON_TESTED/);
+ assert.doesNotMatch(cli,/INSERT INTO publishing_rights_licences/);
+ assert.doesNotMatch(cli,/INSERT INTO customer_accounts/);
+ assert.doesNotMatch(cli,/UPDATE publishing_private_assets SET/);
+ assert.doesNotMatch(cli,/CREATE TABLE|DROP TABLE|DELETE FROM/);
+ assert.match(offer,/function jrPubDigitalSalesSwitchEnabled\(\): bool/);
+ assert.match(offer,/\['publishing_digital_enabled'\]/);
+ assert.match(offer,/JR_PUBLISHING_DIGITAL_ENABLED/);
+ assert.match(offer,/jrPubDigitalSalesSwitchEnabled\(\)/);
+});
