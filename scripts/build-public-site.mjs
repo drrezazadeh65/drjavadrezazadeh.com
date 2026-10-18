@@ -102,6 +102,10 @@ const required=[
   'assets/css/jr-future-publishing-author-v1.css',
   // The v5.2 author interface is incomplete without this frozen-brand stylesheet.
   'assets/css/jr-author-premium-v52.css',
+  // The two bilingual author CV pages depend on the accessible resume layer and
+  // progressive optional-portrait script; public build must package them together.
+  'assets/css/jr-author-resume-portrait-v52.css',
+  'assets/js/jr-author-portrait-v52.js',
   'en/shop/authors/mehrab-mirkarimi/index.html',
   'assets/images/bookstore-talent-cinematic-approved-original-20261011.png',
   'assets/images/bookstore-talent-cinematic-approved-20261011.webp',
