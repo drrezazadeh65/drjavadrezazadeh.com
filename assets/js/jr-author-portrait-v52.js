@@ -2,7 +2,7 @@
    author-approved portrait only if its same-origin file has been installed.
    Never store personal data; absence of photo must not break the public page. */
 (()=>{'use strict';
-const target='/assets/images/authors/mehrab-mirkarimi-portrait-v52.webp';
+const target='/assets/images/mehrab-mirkarimi-portrait-v52.webp';
 for(const img of document.querySelectorAll('img[data-author-photo]')){
   const probe=new Image();
   probe.decoding='async';
