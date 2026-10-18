@@ -34,8 +34,8 @@ for(const locale of ['fa','en']){
    await expect(image).toHaveAttribute('alt',/Back|پشت/);
    await expect(back).toHaveAttribute('aria-pressed','true');
    await expect(front).toHaveAttribute('aria-pressed','false');
-   const loaded=await image.evaluate(img=>img.complete&&img.naturalWidth>0);
-   expect(loaded,book.id+' genuine back cover must load').toBe(true);
+   await expect.poll(()=>image.evaluate(img=>img.complete&&img.naturalWidth>0),
+    {message:book.id+' genuine back cover must load'}).toBe(true);
    await front.focus();
    await page.keyboard.press('Enter');
    await expect(image).toHaveAttribute('src',book.bibliography.cover_image);
