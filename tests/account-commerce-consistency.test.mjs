@@ -96,6 +96,8 @@ test('buyer order history renders complete UTC appointment intervals in local ti
   ['2026-06-01T12:00:00Z','2026-06-01 13:00:00']
  ])assert.equal(en(a,b,'UTC'),null,'unsafe or partial booking interval must fail closed');
  assert.match(source,/formatBookingWindow\(c\.bookingStart,c\.bookingEnd\)/);
+ assert.ok(source.includes("['booked','in_progress','delivered'].includes(c.status)"),
+  'only owner-confirmed or already delivered service cases may advertise recorded session times');
  assert.match(source,/Time zone: /);
  assert.match(source,/بازه زمان جلسه نیازمند بررسی مجدد/);
  assert.doesNotMatch(source,/Recorded slot: '\)\+c\.bookingStart/);
