@@ -52,7 +52,7 @@ function request(string $path,int $expected,string $method='GET',?array $body=nu
  global $port,$raw;
  $headers=['Content-Type: application/json'];if($cookie)$headers[]='Cookie: drjr_session='.$raw;foreach($extra as $key=>$value)$headers[]=$key.': '.$value;
  $context=stream_context_create(['http'=>['method'=>$method,'header'=>implode("\r\n",$headers),'content'=>$body===null?'':json_encode($body),'ignore_errors'=>true,'timeout'=>5]]);
- $data=file_get_contents('http://127.0.0.1:'.$port.$path,false,$context);$status=(int)explode(' ',$http_response_header[0])[1];check($status===$expected,$path.' HTTP '.$status.' expected '.$expected);
+ $data=file_get_contents('http://127.0.0.1:'.$port.$path,false,$context);$status=(int)explode(' ',$http_response_header[0])[1];if($status!==$expected){$log=(string)@file_get_contents($GLOBALS['folder'].'/server.log');$errors=array_values(array_filter(explode("\n",$log),fn($line)=>str_contains($line,'Fatal error')||str_contains($line,'Uncaught Error')||str_contains($line,'Failed opening required')));throw new RuntimeException($path.' HTTP '.$status.' expected '.$expected.'; fixture PHP diagnostic: '.substr(implode(' | ',array_slice($errors,-3)),0,1500));}
  check((bool)array_filter($http_response_header,fn($h)=>stripos($h,'Cache-Control:')===0&&str_contains($h,'no-store')),'missing private cache header');
  $result=json_decode((string)$data,true)??[];
  foreach($http_response_header as $header)if(preg_match('/^Set-Cookie: drjr_session=([^;]+)/i',$header,$match)){
