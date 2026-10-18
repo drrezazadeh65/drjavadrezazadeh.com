@@ -7,6 +7,7 @@ on:
       - 'journal/**'
       - '.htaccess'
       - 'tests/jhela-public-host-recovery.test.mjs'
+      - 'tests/jhela-retired-vendor-absence.test.mjs'
       - 'tests/jhela-owner-triage.test.mjs'
       - 'tests/jhela-owner-pdf-download.test.mjs'
       - 'api/operations.php'
@@ -29,6 +30,7 @@ on:
       - 'journal/**'
       - '.htaccess'
       - 'tests/jhela-public-host-recovery.test.mjs'
+      - 'tests/jhela-retired-vendor-absence.test.mjs'
       - 'tests/jhela-owner-triage.test.mjs'
       - 'tests/jhela-owner-pdf-download.test.mjs'
       - 'api/operations.php'
@@ -68,7 +70,7 @@ jobs:
           node --check scripts/jhela-release-audit.mjs
       - name: Verify JHELA public routing and native intake contracts
         run: |
-          node --test tests/jhela-public-host-recovery.test.mjs tests/jhela-founding-intake.test.mjs tests/nonmanuscript-masterplan-scope.test.mjs tests/jhela-owner-triage.test.mjs tests/jhela-owner-pdf-download.test.mjs
+          node --test tests/jhela-public-host-recovery.test.mjs tests/jhela-retired-vendor-absence.test.mjs tests/jhela-founding-intake.test.mjs tests/nonmanuscript-masterplan-scope.test.mjs tests/jhela-owner-triage.test.mjs tests/jhela-owner-pdf-download.test.mjs
           php -l api/jhela-intake.php
           php -l api/operations.php
       - name: Audit independent JHELA sitemap, hreflang and staged origins
