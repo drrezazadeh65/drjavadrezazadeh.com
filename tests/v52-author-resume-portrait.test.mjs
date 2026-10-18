@@ -20,8 +20,10 @@ test('both stable bilingual author pages include an accessible CV and a non-brea
   assert.match(html,/name="robots" content="index,follow,max-image-preview:large"/);
   assert.ok(html.indexOf('jr-author-resume-portrait-v52.css')>html.indexOf('jr-author-premium-v52.css'));
  }
- assert.match(fa,/احراز مستند|راستی‌آزمایی/);
- assert.match(en,/independent verification|verification pending|unverified/i);
+ assert.match(fa,/تأیید مدیر نشر سایت/);
+ assert.match(en,/publisher's approval/);
+ assert.doesNotMatch(fa,/نیازمند احراز مستند|در انتظار راستی‌آزمایی/);
+ assert.doesNotMatch(en,/documentary verification pending|unverified/);
 });
 test('image loader does not allow third-party remote pictures, sensitive browser persistence or broken-image replacement',()=>{
  assert.match(js,/const target='\/assets\/images\/mehrab-mirkarimi-portrait-v52\.webp'/);
