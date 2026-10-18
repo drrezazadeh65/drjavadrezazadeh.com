@@ -85,6 +85,9 @@ const required=[
   // These runtime modules must ship together with api/index.php; publishing
   // routes without their bound PHP source would cause an immediate 500.
   'api/service-files.php','api/service-buyer-receipt.php','api/operations-service-delivery.php',
+  // Native JHELA must ship with its owner MFA queue and preliminary-screening UI.
+  'api/jhela-intake.php','api/jhela-native-editorial.php',
+  'assets/js/operations-jhela-manuscripts.js','assets/js/jhela-author-workspace.js',
   // Every paid digital dependency must be in the deployment artifact together,
   // otherwise the gateway may accept money while PHP fails to deliver PDFs.
   'api/publishing.php','api/internal/jr-publishing-digital.php',
