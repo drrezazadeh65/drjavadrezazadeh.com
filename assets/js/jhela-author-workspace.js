@@ -20,7 +20,7 @@ const state=s=>({AWAITING_FILE:t('Awaiting a secure PDF upload','در انتظا
  PRELIMINARY_RECEIVED:t('Received for preliminary screening','دریافت‌شده برای بررسی مقدماتی'),
  UNDER_SCREENING:t('Initial academic screening','بررسی اولیه علمی'),
  NEEDS_INFORMATION:t('Additional information requested','درخواست تکمیل اطلاعات'),
- TRANSFERRED_TO_OJS:t('Transferred to official OJS peer review','انتقال به داوری رسمی OJS'),
+ TRANSFERRED_TO_OJS:t('Transferred to editorial peer review','انتقال به داوری علمی رسمی'),
  NOT_INVOICED:t('No invoice issued; no payment is due','فاکتوری صادر نشده و پرداختی لازم نیست'),
  PENDING:t('Academic application under review','درخواست همکاری در حال بررسی'),
  APPROVED:t('Approved','تأییدشده')})[s]||s||t('Not yet assessed','بررسی نشده');

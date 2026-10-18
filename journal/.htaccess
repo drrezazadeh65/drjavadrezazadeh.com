@@ -1,0 +1,17 @@
+# Dedicated JHELA document-root recovery (also safe under the apex /journal/).
+# Do not move, copy or enable old OJS assets. This is a host-scoped public bridge.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# JHELA public-site recovery: TEMPORARY host-scoped redirect only.
+# Until a separately audited native subdomain is deployed, preserve all public
+# journal pages, styles, login links and SEO canonicals at the working apex.
+# GET/HEAD only; never forward POST bodies, passwords or manuscript uploads.
+# 302 is intentional: a future native subdomain must not inherit a cached 301.
+RewriteCond %{HTTP_HOST} ^journal\.drjavadrezazadeh\.com(?::[0-9]+)?$ [NC]
+RewriteCond %{REQUEST_METHOD} !^(GET|HEAD)$
+RewriteRule ^ - [F,L]
+RewriteCond %{HTTP_HOST} ^journal\.drjavadrezazadeh\.com(?::[0-9]+)?$ [NC]
+RewriteRule ^journal(?:/(.*))?$ https://drjavadrezazadeh.com/journal/$1 [R=302,L,NE]
+RewriteCond %{HTTP_HOST} ^journal\.drjavadrezazadeh\.com(?::[0-9]+)?$ [NC]
+RewriteRule ^(.*)$ https://drjavadrezazadeh.com/journal/$1 [R=302,L,NE]
+</IfModule>
