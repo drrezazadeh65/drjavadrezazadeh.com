@@ -30,6 +30,10 @@ test('public bilingual dashboards do not promise obsolete OJS workflows',()=>{
  const en=read('journal/dashboard/index.html');
  const fa=read('journal/fa/dashboard/index.html');
  assert.ok(en.includes('Native editorial workflow not yet certified'));
+ assert.ok(en.includes('Intake subject to live readiness'));
+ assert.ok(!en.includes('Formal submissions closed'));
+ assert.ok(!read('journal/reviewer-registration/index.html').includes('OJS workflow'));
+ assert.ok(read('journal/fees/index.html').includes('server-readiness-gated preliminary intake'));
  assert.ok(!en.includes('OJS'));
  assert.ok(!fa.includes('OJS'));
  assert.ok(read('assets/js/jhela-author-workspace.js').includes('Transferred to editorial peer review'));

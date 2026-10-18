@@ -82,7 +82,7 @@ for(const role of ['reviewers','editors','authors','readers']){
  if(!d.includes('id="jhela-tab-'+role+'"')||!d.includes('id="jhela-panel-'+role+'"'))
    failures.push('Dashboard role tab/panel is missing: '+role);
 }
-if(!d.includes('Formal submissions closed')||!d.includes('No published articles'))failures.push('Dashboard founding transparency disclosure changed');
+if(!d.includes('Intake subject to live readiness')||!d.includes('No published articles'))failures.push('Dashboard founding transparency disclosure changed');
 if(!exists('assets/js/jhela-portal.js'))failures.push('Accessible journal dashboard tab script is missing');
 const governance=registry.origin_states||{};
 if(governance.journal_subdomain!=='RESERVED_NOT_LIVE')failures.push('Journal origin state must be deliberately reviewed before release');
