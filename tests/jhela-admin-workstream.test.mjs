@@ -65,7 +65,7 @@ for(const [locale,path] of [['fa','fa/app/admin/index.html'],['en','en/account/a
    }
    assert.ok(html.includes('issues/65'));
    assert.match(html,/journal\/(fa\/)?submission\//);
-   assert.ok(html.includes(locale==='fa'?'پذیرش مقاله بسته':'Submissions closed'));
+   assert.ok(html.includes(locale==='fa'?'دریافت مقدماتی مقاله منوط به تأیید امنیت سرور':'Preliminary intake depends on verified server readiness'));
  });
 }
 
