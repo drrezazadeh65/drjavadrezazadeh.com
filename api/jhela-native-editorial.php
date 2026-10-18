@@ -21,8 +21,61 @@ function jhelaOwnerManuscripts(PDO $pdo): never {
     $items=$q->fetchAll();
     // Never expose private_file_rel or a manuscript download link in this view.
     respond(['ok'=>true,'schema'=>'jhela-native-owner-screening-v1',
-        'manuscripts'=>$items,'preliminaryOnly'=>true,
+        'manuscripts'=>$items,'canDownloadFiles'=>jhelaOwnerFilePermission($pdo),
+        'preliminaryOnly'=>true,
         'peerReviewOperational'=>false,'publicationOperational'=>false]);
+}
+
+/** Only a fresh-MFA SUPER_ADMIN can retrieve a confidential PDF. */
+function jhelaOwnerFilePermission(PDO $pdo): bool {
+    $a=sessionAccount($pdo);
+    if (!$a||!validUuid((string)($a['id']??''))) return false;
+    return (cfg()['operations_admins'][(string)$a['id']]['role']??null)==='SUPER_ADMIN';
+}
+
+/**
+ * Download the original PDF ONLY inside operationsRoute after fresh MFA.
+ * Neither original author filenames nor private filesystem paths are disclosed.
+ */
+function jhelaOwnerDownload(PDO $pdo,string $id): never {
+    if (!jhelaSchemaReady($pdo)) fail('journal_schema_unavailable',503);
+    if (!validUuid($id)) fail('invalid_manuscript_id',422);
+    if (!in_array(($_SERVER['HTTP_SEC_FETCH_SITE']??'same-origin'),['same-origin','none'],true))
+        fail('origin_forbidden',403);
+    $q=$pdo->prepare('SELECT tracking_code,private_file_rel,manuscript_sha256,file_bytes,uploaded_at
+        FROM jhela_intake_manuscripts WHERE id=? LIMIT 1');
+    $q->execute([$id]);$m=$q->fetch();
+    if (!$m||empty($m['uploaded_at'])) fail('manuscript_file_not_found',404);
+    $rel=(string)($m['private_file_rel']??'');
+    $hash=(string)($m['manuscript_sha256']??'');
+    $bytes=(int)($m['file_bytes']??0);
+    $tracking=(string)($m['tracking_code']??'');
+    if (!preg_match('/^[a-f0-9]{48}\\.pdf$/D',$rel)||
+        !preg_match('/^[a-f0-9]{64}$/D',$hash)||
+        !preg_match('/^[A-Z0-9-]{12,40}$/D',$tracking)||
+        $bytes<1024||$bytes>15728640) fail('manuscript_file_not_ready',503);
+    $root=jhelaPrivateRoot((string)(getenv('JR_JHELA_PRIVATE_STORAGE')?:''));
+    if ($root===null) fail('private_storage_unavailable',503);
+    $path=$root.'/'.$rel;
+    if (is_link($path)||!is_file($path)||!is_readable($path)||
+        realpath($path)!==$path||filesize($path)!==$bytes)
+        fail('manuscript_integrity_unavailable',503);
+    $actual=hash_file('sha256',$path);
+    if (!is_string($actual)||!hash_equals($hash,$actual))
+        fail('manuscript_integrity_unavailable',503);
+    $a=sessionAccount($pdo);
+    if (!$a||!validUuid((string)($a['id']??''))) fail('unauthorized',401);
+    operationsAudit($pdo,(string)$a['id'],'jhela_private_pdf_download',$id);
+    header('Cache-Control: no-store, private, max-age=0');
+    header('Pragma: no-cache');
+    header('X-Content-Type-Options: nosniff');
+    header('X-Robots-Tag: noindex, noarchive');
+    header('Content-Security-Policy: sandbox');
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: attachment; filename="JHELA-'.$tracking.'.pdf"');
+    header('Content-Length: '.(string)$bytes);
+    readfile($path);
+    exit;
 }
 
 /** Only an accountable editorial screening transition; no silent acceptance. */

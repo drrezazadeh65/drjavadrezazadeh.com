@@ -7,6 +7,7 @@ const scope=document.getElementById('ops-workspace');
 const root=document.querySelector('[data-jhela-manuscript-owner]');
 if(!scope||!root||!scope.contains(root))return;
 const fa=document.documentElement.lang==='fa';
+let canDownloadFiles=false;
 const t=(en,faText)=>fa?faText:en;
 const button=root.querySelector('[data-jhela-owner-ms-refresh]');
 const status=root.querySelector('[data-jhela-owner-ms-status]');
@@ -53,6 +54,11 @@ function card(m){
  item.append(el('p',t('Secure receipt: ','رسید امن: ')+
   (m.uploaded_at&&m.manuscript_sha256?t('Verified metadata','فراداده ثبت‌شده'):
    t('PDF not yet received','فایل هنوز دریافت نشده است'))));
+ if(canDownloadFiles&&m.uploaded_at&&m.manuscript_sha256){
+  const link=el('a',t('Download confidential manuscript PDF','دریافت محرمانه فایل PDF مقاله'));
+  link.href='/api/admin/operations/jhela/manuscripts/file?id='+encodeURIComponent(m.id);
+  link.className='button';link.rel='nofollow';item.append(link);
+ }
  item.append(details(t('Abstract and keywords','چکیده و کلیدواژه‌ها'),
   (m.abstract_text||'')+'\n'+(m.keywords_text||'')));
  item.append(details(t('Research ethics declaration','اظهارنامه اخلاق پژوهش'),m.declarations));
@@ -80,6 +86,7 @@ async function refresh(){
   await session();
   const d=await request('/api/admin/operations/jhela/manuscripts');
   if(d.schema!=='jhela-native-owner-screening-v1'||!Array.isArray(d.manuscripts))throw Error('invalid_queue');
+  canDownloadFiles=d.canDownloadFiles===true;
   if(!d.manuscripts.length)panel.append(el('p',t('No manuscripts have been received.','هنوز مقاله‌ای دریافت نشده است.')));
   else d.manuscripts.forEach(m=>panel.append(card(m)));
   note(t('Preliminary screening only; this does not constitute peer review or acceptance.',

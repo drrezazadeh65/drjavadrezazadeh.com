@@ -381,6 +381,13 @@ function operationsRoute(string $path, string $verb): never {
                 fail('rate_limited',429);
             jhelaOwnerManuscripts($pdo);
         }
+        if ($path === '/admin/operations/jhela/manuscripts/file' && $verb === 'GET') {
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('editorial_owner_role_required',403);
+            if(!rateAllowed($pdo,'jhela_owner_pdf_download',$accountId,8,300))
+                fail('rate_limited',429);
+            jhelaOwnerDownload($pdo,(string)($_GET['id']??''));
+        }
         if ($path === '/admin/operations/jhela/manuscripts/screen' && $verb === 'POST') {
             if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
                 fail('editorial_owner_role_required',403);
