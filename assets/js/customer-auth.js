@@ -63,7 +63,7 @@ function normalizedSignupMobile(raw){
  let value=String(raw||'').trim()
   .replace(/[۰-۹]/g,ch=>String(ch.charCodeAt(0)-0x06f0))
   .replace(/[٠-٩]/g,ch=>String(ch.charCodeAt(0)-0x0660))
-  .replace(/[ \\t().-]+/g,'');
+  .replace(/[\s().-]+/g,'');
  if(/^09[0-9]{9}$/.test(value))value='+98'+value.slice(1);
  else if(/^0098[0-9]{10}$/.test(value))value='+'+value.slice(2);
  return value;
