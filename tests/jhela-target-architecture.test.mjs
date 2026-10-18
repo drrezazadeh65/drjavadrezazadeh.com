@@ -21,16 +21,16 @@ test('hosting increase remains unverified transitional capacity, not architectur
  assert.ok(target.scaleStages.every(s=>s.gate.length>30&&s.state!=='OPERATIVE'));
 });
 
-test('native OJS remains scholarly system-of-record across scales',()=>{
+test('first-party editorial module remains the canonical scholarly record',()=>{
  assert.equal(target.platformStrategy.singleCanonicalEditorialDatabase,true);
  assert.equal(target.platformStrategy.avoidParallelPeerReviewApp,true);
- assert.equal(target.platformStrategy.noDirectThirdPartyWritesToOjsTables,true);
- assert.equal(target.platformStrategy.onlyVerifiedOjsPluginOrAPIIntegrations,true);
- assert.equal(target.objectStorageCompatibility.nativeOjs35S3FilesDirSupported,'NOT_ASSUMED');
- assert.match(target.objectStorageCompatibility.nativeManuscripts,/POSIX/);
- assert.match(target.platformStrategy.editorialCore,/OJS/);
- assert.equal(target.identity.nativeOjsIdentityIsolated,true);
- assert.equal(target.identity.siteIdentityReuse,false);
+ assert.equal(target.platformStrategy.noParallelIdentityOrCommerceLedger,true);
+ assert.equal(target.platformStrategy.onlyAuditedFirstPartyAPIIntegrations,true);
+ assert.equal(target.objectStorageCompatibility.directS3PrivateUploadsSupported,'NOT_ASSUMED');
+ assert.match(target.objectStorageCompatibility.privateUploadStorage,/POSIX/);
+ assert.match(target.platformStrategy.editorialCore,/JHELA_FIRST_PARTY/);
+ assert.equal(target.identity.journalRolesIsolatedFromCommerce,true);
+ assert.equal(target.identity.siteIdentityReuse,true);
  assert.equal(editorial.separation.sharedCustomerPasswordHashes,false);
 });
 
@@ -57,15 +57,15 @@ test('disaster recovery, migration and future uptime are unverified proposals on
  assert.ok(target.migrationGates.some(x=>x.includes('writes on one origin only')));
  assert.ok(target.migrationGates.some(x=>x.includes('snapshot consistent DB and private files')));
  assert.ok(target.logicalZones.find(x=>x.id==='backup').never.some(x=>x.includes('only backup')));
- assert.equal(target.evidencePolicy.currentOjsInstalled,false);
- assert.equal(target.evidencePolicy.currentSubmissionsOpen,false);
+ assert.equal(target.evidencePolicy.nativeEditorialE2eVerified,false);
+ assert.equal(target.evidencePolicy.currentPreliminaryIntakeVerified,false);
  assert.equal(target.evidencePolicy.currentFinancialTransactionsActive,false);
  assert.equal(live.ojsInstalled,false);
  assert.equal(live.publicSubmissionsEnabled,false);
  assert.equal(live.realReviewEndToEndConfirmed,false);
 });
 
-test('ADR explains future topology, OJS object storage limit and independent cutover',()=>{
+test('ADR records historical topology and independent cutover',()=>{
  const adr=read('docs/journal/JHELA_FUTURE_SCALE_ARCHITECTURE_ADR_20261016.md');
  for(const phrase of ['JHELA-ADR-001','T0: Transition','T1: Dedicated academic production','T2: High availability','T3: Scholarly publishing network','files_dir','POSIX','Crossref','one-hour recovery point','no automatic change']){
   assert.ok(adr.toLowerCase().includes(phrase.toLowerCase()),'ADR must explain '+phrase);
