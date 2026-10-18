@@ -100,14 +100,17 @@ test('mobile app icon shells never render oversized on desktop standalone help p
   }
  }
 });
-test('author intro contains a real approved editorial visual instead of unexplained initials',()=>{
+test('author CV contains accessible approved portrait loader with an editorial fallback',()=>{
  const html=read('fa/shop/authors/mehrab-mirkarimi/index.html');
- const stylesheet=read('assets/css/jr-future-publishing-author-v1.css');
- assert.ok(html.includes('jp-author-visual'));
+ const loader=read('assets/js/jr-author-portrait-v52.js');
+ assert.match(html,/class="jr-resume-portrait"/);
+ assert.match(html,/img data-author-photo src="\/assets\/images\/editorial-launch\/academic-research-editing-20261011\.webp"/);
+ assert.match(html,/jr-author-portrait-v52\.js/);
+ assert.match(loader,/mehrab-mirkarimi-portrait-v52\.webp/);
  assert.ok(!html.includes('>م.م</div>'));
- assert.ok(stylesheet.includes('.jp-author-card .jp-author-visual img'));
- const src=(html.split('class="jp-avatar jp-author-visual"><img src="')[1]||'').split('"')[0];
- assert.ok(src.startsWith('/') && existsSync(path.join(root,src.slice(1))));
+ const src=(html.match(/img data-author-photo src="([^"]+)"/)||[])[1];
+ assert.ok(src?.startsWith('/') && existsSync(path.join(root,src.slice(1))));
+ assert.ok(existsSync(path.join(root,'assets/images/mehrab-mirkarimi-portrait-v52.webp')));
 });
 
 test('social preview image matches visible licensed hero on bilingual customer pages',()=>{
