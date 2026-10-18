@@ -176,3 +176,20 @@ test('English account service cards use the genuine English checkout, without cr
  assert.ok(faCheckout.includes('commerce-checkout.js'));
  assert.doesNotMatch(buyer,/Checkout \\(Persian\\)/);
 });
+
+test('unified dashboards offer verified bilingual service checkout to guest buyers without inventing payment success',()=>{
+ const buyer=read('assets/js/customer-dashboard.js');
+ // The same server-owned capability governs guest and signed-in purchase links.
+ assert.ok(buyer.includes('r?.ok&&r.data?.ok===true&&r.data?.checkout===true&&r.data?.capabilities?.services===true'));
+ assert.ok(buyer.includes("purchaseReady?'/en/services/checkout/?service='+id"));
+ assert.ok(buyer.includes("purchaseReady?'/fa/services/checkout/?service='+id"));
+ assert.ok(buyer.includes(":'/fa/services/'+id+'/'"),'when not ready, browse public terms instead of sending buyers to a blocked checkout');
+ assert.doesNotMatch(buyer,/purchaseReady=runtime\?\.commerceReady===true&&[\s\S]{0,110}authenticated===true/);
+ assert.ok(buyer.includes('Secure checkout is available in English.'));
+ assert.ok(!buyer.includes('Secure checkout can start in the Persian interface.'));
+ // Payments and fulfilment remain authoritative in the existing PHP gateway.
+ const api=read('api/index.php');
+ assert.match(api,/function commerceReady\(\): bool/);
+ assert.match(api,/gatewayPost\('gateway-send'/);
+ assert.ok(buyer.includes('Appointment confirmation and service delivery require separate verification.'));
+});
