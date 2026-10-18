@@ -14,7 +14,7 @@ test('existing authenticated operational workflows stay private and unchanged',(
  ]){
   const html=read(path);
   assert.match(html,/<meta name="robots" content="noindex,nofollow,noarchive"/);
-  assert.match(html,/<div id="ops-workspace" hidden>\s*<details class="ops-workspace-index"/);
+  assert.match(html,/<div id="ops-workspace" hidden><section id="jr-intelligence"/);
   assert.match(html,/id="ops-auth" class="ops-panel ops-auth"/);
   assert.match(html,/id="ops-mfa-form"/);
   assert.match(html,/id="ops-commerce"/);
@@ -23,7 +23,7 @@ test('existing authenticated operational workflows stay private and unchanged',(
   assert.match(html, /\/assets\/css\/operations-workspace-index-v1\.css\?v=20261019-admin-index-v1/);
   assert.match(html, /\/assets\/js\/operations-workspace-index-v1\.js\?v=20261019-admin-index-v1/);
   assert.match(html, /<html lang="(?:fa|en)"/);
-  assert.match(html, new RegExp('id="ops-index-search"[^>]+type="search"') );
+  assert.doesNotMatch(html,/data-ops-workspace-index/,'navigation is generated under the original protected shell');
  }
 });
 
@@ -35,6 +35,7 @@ test('navigation is a bounded local index, not a parallel administrator or finan
   'ops-commerce','ops-publishing-author-review','ops-organic-growth','ops-revenue-planning','ops-cards']){
   assert.ok(script.includes("id:'"+id+"'"),id);
  }
+ assert.match(script,/workspace\.prepend\(nav\)/);
  assert.match(script,/if\(workspace.hidden\)return;/);
  assert.match(script,/observer\.observe\(workspace,\{attributes:true,attributeFilter:\['hidden'\]\}\)/);
  assert.match(script,/if\(x\.target\.matches\('details'\)\)x\.target\.open=true/);
