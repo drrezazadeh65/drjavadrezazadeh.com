@@ -68,6 +68,11 @@ function normalizedSignupMobile(raw){
  else if(/^0098[0-9]{10}$/.test(value))value='+'+value.slice(2);
  return value;
 }
+function validSignupMobile(value){
+ // Optional phone; provided phones must be strict E.164 after normalization.
+ // This guard runs before network submission, matching the PHP server gate.
+ return value===''||/^\+[1-9][0-9]{7,14}$/.test(value);
+}
 async function call(path,body){
  const r=await fetch(API+path,{method:'POST',mode:'cors',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
  let d={};try{d=await r.json()}catch{}
@@ -114,7 +119,7 @@ function bindRegister(){
    return setStatus(text.emailTransportUnavailable,'unavailable');
   const fd=new FormData(form),password=String(fd.get('password')||'');
   const mobile=normalizedSignupMobile(fd.get('mobile'));
-  if(mobile&&!/^\\+[1-9][0-9]{7,14}$/.test(mobile))
+  if(!validSignupMobile(mobile))
    return setStatus(text.invalidRegistration,'error');
   if(password.length<12)return setStatus(text.passwordRule,'error');
   setStatus(text.sending,'checking');
