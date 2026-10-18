@@ -2,44 +2,49 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const read=p=>fs.readFileSync(p,'utf8');
-test('owner-only manuscript queue and triage are gated by existing MFA session and CSRF',()=>{
- const php=read('api/operations.php');
- const a=php.indexOf("if (!$fresh) fail('admin_mfa_required',403);");
- const b=php.indexOf("if ($path === '/admin/operations/jhela/manuscripts' && $verb === 'GET')");
- const c=php.indexOf("if ($path === '/admin/operations/jhela/manuscripts/triage' && $verb === 'POST')");
- assert.ok(a>=0&&b>a&&c>b);
- const section=php.slice(b,c+2800);
- assert.ok(section.includes("operationsMutationAllowed($_SERVER"));
- assert.ok(section.includes("jhelaSchemaReady($pdo)"));
- assert.ok(section.includes("rateAllowed($pdo"));
- assert.ok(section.includes("FOR UPDATE"));
- assert.ok(section.includes("jhelaEvent($pdo,$id,$next,$message)"));
- assert.ok(section.includes("operationsAudit($pdo,$accountId"));
- assert.ok(section.includes("'formalPeerReviewStarted'=>false"));
- assert.ok(!section.includes("private_file_rel"));
- assert.ok(!section.includes("abstract_text"));
- assert.ok(!section.includes("declarations"));
+test('native JHELA owner queue and screening require protected MFA and CSRF',()=>{
+ const php=read('api/operations.php'),native=read('api/jhela-native-editorial.php');
+ const auth=php.indexOf("if (!$fresh) fail('admin_mfa_required',403);");
+ const queue=php.indexOf("if ($path === '/admin/operations/jhela/manuscripts' && $verb === 'GET')");
+ const screen=php.indexOf("if ($path === '/admin/operations/jhela/manuscripts/screen' && $verb === 'POST')");
+ assert.ok(auth>=0&&queue>auth&&screen>queue);
+ assert.equal(php.split("if ($path === '/admin/operations/jhela/manuscripts' && $verb === 'GET')").length,2);
+ assert.ok(php.slice(screen,screen+1000).includes("'SUPER_ADMIN'"));
+ assert.ok(php.slice(screen,screen+1000).includes('operationsMutationAllowed($_SERVER'));
+ assert.ok(php.includes('jhelaOwnerManuscripts($pdo)'));
+ assert.ok(php.includes('jhelaOwnerScreen($pdo,$accountId,jsonBody())'));
+ assert.ok(native.includes('jhelaSchemaReady($pdo)'));
+ assert.ok(native.includes('FOR UPDATE'));
+ assert.ok(native.includes('jhelaEvent($pdo,$id,$next,$publicMessage)'));
+ assert.ok(native.includes('operationsAudit($pdo,$ownerId'));
+ assert.ok(native.includes("m['account_id']===$ownerId"));
+ assert.ok(!native.includes('private_file_rel'));
 });
-test('only permitted preliminary state transitions exist; no acceptance or peer-review simulation',()=>{
- const php=read('api/operations.php');
- const s=php.slice(php.indexOf("if ($path === '/admin/operations/jhela/manuscripts/triage'"),php.indexOf('// Owner-approved reviewer screening'));
+test('native preliminary transitions require verified PDF, author-facing reason, and no acceptance',()=>{
+ const s=read('api/jhela-native-editorial.php');
  assert.ok(s.includes("['UNDER_SCREENING','NEEDS_INFORMATION']"));
- assert.ok(s.includes("['PRELIMINARY_RECEIVED','NEEDS_INFORMATION']"));
- assert.ok(s.includes("&&$old==='UNDER_SCREENING'"));
- assert.ok(s.includes("!$allowed||empty($record['uploaded_at'])"));
- assert.ok(!s.includes("ACCEPTED"));
- assert.ok(!s.includes("PUBLISHED"));
+ assert.ok(s.includes("jhelaStr($body['message']??null,20,500"));
+ assert.ok(s.includes("manuscript_sha256"));
+ assert.ok(s.includes("file_bytes"));
+ assert.ok(s.includes("AUTHOR_INFORMATION_RECEIVED"));
+ assert.ok(!s.includes("'ACCEPTED'"));
+ assert.ok(!s.includes("'PUBLISHED'"));
 });
-test('bilingual owner UI uses safe DOM text and does not leak into public dashboards',()=>{
+test('exactly one native owner panel and one safe script are present in each admin locale',()=>{
  const js=read('assets/js/operations-jhela-manuscripts.js');
- assert.ok(js.includes("document.getElementById('ops-workspace')"));
  assert.ok(js.includes('textContent'));
  assert.ok(!js.includes('innerHTML'));
- assert.ok(js.includes('/api/admin/operations/jhela/manuscripts/triage'));
+ assert.ok(js.includes('/api/admin/operations/jhela/manuscripts/screen'));
+ assert.ok(js.includes('jhela-native-owner-screening-v1'));
  for(const p of ['fa/app/admin/index.html','en/account/admin/index.html']){
-  const s=read(p);assert.ok(s.includes('data-jhela-manuscript-owner'));
-  assert.ok(s.includes('operations-jhela-manuscripts.js'));
+  const s=read(p);
+  assert.equal((s.match(/data-jhela-manuscript-owner/g)||[]).length,1);
+  assert.equal((s.match(/<script src="\/assets\/js\/operations-jhela-manuscripts\.js/g)||[]).length,1);
+  assert.ok(s.includes('data-jhela-owner-ms-refresh'));
  }
  for(const p of ['journal/dashboard/index.html','journal/fa/dashboard/index.html'])
   assert.ok(!read(p).includes('operations-jhela-manuscripts.js'));
+});
+test('isolated operations MySQL fixture includes the native editorial module',()=>{
+ assert.ok(read('tests/operations-mysql.php').includes("'jhela-native-editorial.php'"));
 });
