@@ -19,7 +19,8 @@ const state=s=>({AWAITING_FILE:t('Awaiting a secure PDF upload','در انتظا
  PRELIMINARY_RECEIVED:t('Received for preliminary screening','دریافت‌شده برای بررسی مقدماتی'),
  UNDER_SCREENING:t('Initial academic screening','بررسی اولیه علمی'),
  NEEDS_INFORMATION:t('Additional information requested','درخواست تکمیل اطلاعات'),
- TRANSFERRED_TO_OJS:t('Transferred to editorial peer review','انتقال به داوری علمی رسمی'),
+ TRANSFERRED_TO_OJS:t('Historical external review transfer','سابقه انتقال به سامانه داوری قدیمی'),
+ AUTHOR_INFORMATION_RECEIVED:t('Author information received; editorial follow-up pending','اطلاعات تکمیلی نویسنده دریافت شد؛ در انتظار بررسی'),
  NOT_INVOICED:t('No invoice issued; no payment is due','فاکتوری صادر نشده و پرداختی لازم نیست'),
  PENDING:t('Academic application under review','درخواست همکاری در حال بررسی'),
  APPROVED:t('Approved','تأییدشده')})[s]||s||t('Not yet assessed','بررسی نشده');
@@ -51,7 +52,23 @@ const view=async()=>{
       await call('manuscripts/upload',payload);message(t('PDF received for initial screening.','PDF برای بررسی اولیه دریافت شد.'),'success');await view();
      }catch(err){message(err.message,'error')}finally{btn.disabled=false}
     });card.append(form);
-   }list.append(card);
+   }
+   if(x.status==='NEEDS_INFORMATION'){
+    const form=el('form');form.className='jhela-intake-retry';
+    const label=el('label',t('Reply to the editorial information request (20–500 characters)','پاسخ به درخواست تکمیل اطلاعات تحریریه (۲۰ تا ۵۰۰ نویسه)'));
+    const answer=el('textarea');answer.required=true;answer.minLength=20;answer.maxLength=500;answer.rows=4;label.append(answer);
+    const btn=el('button',t('Send secure reply','ارسال پاسخ امن'));form.append(label,btn);
+    form.addEventListener('submit',async ev=>{
+     ev.preventDefault();btn.disabled=true;
+     try{
+      await call('manuscripts/respond',{manuscriptId:x.id,message:answer.value});
+      message(t('Response received; editorial screening will continue.','پاسخ دریافت شد و بررسی تحریریه ادامه خواهد یافت.'),'success');
+      await view();
+     }catch(err){message(t('Response not saved: ','پاسخ ذخیره نشد: ')+err.message,'error');}
+     finally{btn.disabled=false;}
+    });card.append(form);
+   }
+   list.append(card);
   }
   }
   const rev=find('[data-jhela-reviewer-state]');if(rev)rev.textContent=d.reviewerApplication?state(d.reviewerApplication.status):t('No academic reviewer application yet.','هنوز درخواست داوری ثبت نشده است.');
