@@ -121,6 +121,7 @@ jobs:
           php -l api/internal/jr-publishing-mailer.php
           php -l api/internal/jr-publishing-mail-worker.php
           php -l api/internal/jr-publishing-provision-cli.php
+          php -l api/internal/jr-publishing-activate-existing-cli.php
           php -l api/internal/jr-publishing-preflight-cli.php
           php -l api/internal/jr-publishing-private-install-cli.php
           php -l api/commerce-stage9.php
