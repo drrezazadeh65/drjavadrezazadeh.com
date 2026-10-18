@@ -5,11 +5,11 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 /**
  * Restricted JHELA maturity planning snapshot.
  * Only reachable from operationsRoute() AFTER verified admin membership and fresh MFA.
- * Deliberately does not fetch OJS manuscripts, reviewer accounts, DB connections or secrets.
+ * Never fetches manuscript bodies, reviewer accounts, DB credentials or secrets.
  */
 function operationsJhelaReadContract(string $filename, string $schema): array {
     $allowed = [
-        'jhela-ojs-activation.json'=>'jhela-ojs-activation-v1',
+        'jhela-native-intake-activation-v1.json'=>'jhela-native-intake-activation-v1',
         'jhela-international-roadmap-v1.json'=>'jhela-international-roadmap-v1',
         'jhela-target-architecture-v1.json'=>'jhela-target-architecture-v1',
         'jhela-gate-evidence-ledger-v1.json'=>'jhela-gate-evidence-ledger-v1',
@@ -34,7 +34,7 @@ function operationsJhelaReadContract(string $filename, string $schema): array {
 
 /** Never convert missing evidence into production passes, invented counts or false index badges. */
 function operationsJhelaSnapshot(): array {
-    $live=operationsJhelaReadContract('jhela-ojs-activation.json','jhela-ojs-activation-v1');
+    $live=operationsJhelaReadContract('jhela-native-intake-activation-v1.json','jhela-native-intake-activation-v1');
     $roadmap=operationsJhelaReadContract('jhela-international-roadmap-v1.json','jhela-international-roadmap-v1');
     $architecture=operationsJhelaReadContract('jhela-target-architecture-v1.json','jhela-target-architecture-v1');
     $ledger=operationsJhelaReadContract('jhela-gate-evidence-ledger-v1.json','jhela-gate-evidence-ledger-v1');
@@ -43,8 +43,9 @@ function operationsJhelaSnapshot(): array {
         ($architecture['status'] ?? '') !== 'OWNER_DIRECTED_FUTURE_TARGET_NOT_DEPLOYED') {
         throw new RuntimeException('journal_contract_mismatch');
     }
-    if (($live['publicSubmissionsEnabled'] ?? true) !== false ||
-        ($live['ojsInstalled'] ?? true) !== false ||
+    if (($live['ownerAuthorizesPreliminaryManuscriptSubmission'] ?? false) !== true ||
+        ($live['independentReviewOrAcceptanceOperational'] ?? true) !== false ||
+        ($live['nativePublishingWorkflowOperational'] ?? true) !== false ||
         ($roadmap['publicationStatus'] ?? '') !== 'PRELAUNCH') {
         throw new RuntimeException('journal_status_requires_independent_evidence');
     }

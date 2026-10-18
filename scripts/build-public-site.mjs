@@ -46,8 +46,12 @@ fs.writeFileSync(inventoryOutput,JSON.stringify(adminToolInventory)+'\n');
 // Create a strict, non-sensitive projection for the MFA-only JHELA administrator endpoint.
 // Original platform contracts, manuscript records, reviewer identities and evidence files are never shipped.
 const journalProjectionDefinitions=[
-  {name:'jhela-ojs-activation.json',map:d=>({
-    schema:d.schema,ojsInstalled:d.ojsInstalled,publicSubmissionsEnabled:d.publicSubmissionsEnabled
+  {name:'jhela-native-intake-activation-v1.json',map:d=>({
+    schema:d.schema,
+    ownerAuthorizesPreliminaryManuscriptSubmission:d.ownerAuthorizesPreliminaryManuscriptSubmission,
+    publicIntakeReady:d.publicIntakeReady,
+    independentReviewOrAcceptanceOperational:d.independentReviewOrAcceptanceOperational,
+    nativePublishingWorkflowOperational:d.nativePublishingWorkflowOperational
   })},
   {name:'jhela-international-roadmap-v1.json',map:d=>({
     schema:d.schema,publicationStatus:d.publicationStatus,

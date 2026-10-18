@@ -4,10 +4,10 @@ import fs from 'node:fs';
 const root='.public-site';
 test('the JHELA admin API receives only protected whitelisted projections in deployable artifact',()=>{
  assert.ok(!fs.existsSync(root+'/platform'));
- const files=['jhela-ojs-activation.json','jhela-international-roadmap-v1.json',
+ const files=['jhela-native-intake-activation-v1.json','jhela-international-roadmap-v1.json',
   'jhela-target-architecture-v1.json','jhela-gate-evidence-ledger-v1.json'];
  const permitted=[
-  ['schema','ojsInstalled','publicSubmissionsEnabled'],
+  ['schema','ownerAuthorizesPreliminaryManuscriptSubmission','publicIntakeReady','independentReviewOrAcceptanceOperational','nativePublishingWorkflowOperational'],
   ['schema','publicationStatus','phases'],
   ['schema','status','scaleStages'],
   ['schema','stageRecords']
