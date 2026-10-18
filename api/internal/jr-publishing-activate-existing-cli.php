@@ -28,7 +28,7 @@ function jrPubActivateReport(array $checks, bool $changed=false): never {
   'missing_checks'=>$missing,
   'checks'=>$checks,
   'changed'=>$changed,
-  'note'=>'Live checkout also requires persistent private JR_PUBLISHING_DIGITAL_ENABLED=true and independently verified payment/email delivery.'
+  'note'=>'Live checkout also requires persistent private publishing_digital_enabled=true or JR_PUBLISHING_DIGITAL_ENABLED=true and independently verified payment/email delivery.'
  ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
  exit($missing?2:0);
 }
@@ -56,12 +56,12 @@ try {
   'independent_platform_budget'=>false,
   'smtp_cron_tested'=>false
  ];
- if(!$pdo instanceof PDO)jrPubActivateReport($checks);
+ if(!($pdo instanceof PDO))jrPubActivateReport($checks);
  $checks['publishing_schema']=jrPublishingSchemaReady($pdo);
  if(!$checks['publishing_schema'])jrPubActivateReport($checks);
  $checks['commerce_gateway']=commerceReady();
  $checks['smtp']=mailReady();
- $checks['persistent_digital_switch']=getenv('JR_PUBLISHING_DIGITAL_ENABLED')==='true';
+ $checks['persistent_digital_switch']=jrPubDigitalSalesSwitchEnabled();
  $checks['owner_approval']=getenv('JR_PUBLISHING_OWNER_APPROVED')==='YES_20261017';
  $checks['independent_platform_budget']=getenv('JR_PUBLISHING_SEPARATE_7PCT_BUDGET')==='YES';
  $checks['smtp_cron_tested']=getenv('JR_PUBLISHING_MAIL_CRON_TESTED')==='YES';
