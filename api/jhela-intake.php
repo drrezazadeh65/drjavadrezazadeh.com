@@ -203,6 +203,29 @@ function jhelaIntakeRoute(string $path,string $verb): never {
     respond(['ok'=>true,'status'=>'PENDING','publiclyListed'=>false,
       'message'=>'Application recorded for verification. Public biography requires a separate approved appointment and explicit consent.'],201);
   }
+  // Existing verified authors can answer a specific editorial information
+  // request, even when new manuscript intake is administratively disabled.
+  if($path==='/journal/manuscripts/respond'){
+    if(!$ready['profile'])fail('journal_profile_unavailable',503);
+    $b=jsonBody();$id=(string)($b['manuscriptId']??'');
+    if(!validUuid($id))fail('invalid_manuscript_id',422);
+    $message=jhelaStr($b['message']??null,20,500,'invalid_author_response');
+    $pdo->beginTransaction();
+    try{
+      $q=$pdo->prepare('SELECT status FROM jhela_intake_manuscripts WHERE id=? AND account_id=? FOR UPDATE');
+      $q->execute([$id,$accountId]);$m=$q->fetch();
+      if(!$m){$pdo->rollBack();fail('manuscript_not_found',404);}
+      if($m['status']!=='NEEDS_INFORMATION'){$pdo->rollBack();fail('response_not_requested',409);}
+      $u=$pdo->prepare("UPDATE jhela_intake_manuscripts SET status='AUTHOR_INFORMATION_RECEIVED'
+        WHERE id=? AND account_id=? AND status='NEEDS_INFORMATION'");
+      $u->execute([$id,$accountId]);
+      if($u->rowCount()!==1)throw new RuntimeException('response_concurrent_update');
+      jhelaEvent($pdo,$id,'AUTHOR_INFORMATION_RECEIVED',$message);
+      $pdo->commit();
+    }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+    respond(['ok'=>true,'id'=>$id,'status'=>'AUTHOR_INFORMATION_RECEIVED',
+      'message'=>'Author response received for preliminary editorial screening.'],201);
+  }
   if($path==='/journal/manuscripts/create'){
     if(!$ready['manuscriptIntake'])fail('manuscript_intake_not_ready',503);
     $b=jsonBody();
