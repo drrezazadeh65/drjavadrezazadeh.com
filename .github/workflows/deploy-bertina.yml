@@ -451,9 +451,12 @@ jobs:
                   throw new RuntimeException('release_policy_invalid');
               }
           } catch (Throwable \$e) {
+              // Only fixed reason codes are returned after deploy-token verification.
+              \$reason=(string)\$e->getMessage();
+              \$reasonCode=preg_match('/^(?:cpanel_|hosting_release_)[a-z0-9_]{1,80}$/D',\$reason) ? \$reason : 'recovery_check_unavailable';
               \$cleanup();
               http_response_code(503);
-              echo json_encode(['ok'=>false,'error'=>'release_policy_preflight_failed']);
+              echo json_encode(['ok'=>false,'error'=>'release_policy_preflight_failed','reason'=>\$reasonCode]);
               exit;
           }
           // Read-only database compatibility check; never backfill or migrate.
@@ -511,9 +514,13 @@ jobs:
                   array_values(\$keys['uq_payment_order']??[])!==['provider','order_id'])
                   throw new RuntimeException('payment_claim_unique_constraints_missing');
           } catch (Throwable \$e) {
+              \$reason=(string)\$e->getMessage();
+              \$known=['private_config_missing','missing_commerce_column',
+                'non_transactional_commerce_table','payment_claim_unique_constraints_missing'];
+              \$reasonCode=in_array(\$reason,\$known,true) ? \$reason : 'schema_or_db_access';
               \$cleanup();
               http_response_code(503);
-              echo json_encode(['ok'=>false,'error'=>'stage09_schema_preflight_required']);
+              echo json_encode(['ok'=>false,'error'=>'stage09_schema_preflight_required','reason'=>\$reasonCode]);
               exit;
           }
           if (!class_exists('ZipArchive')) {
