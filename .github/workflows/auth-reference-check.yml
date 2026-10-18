@@ -8,6 +8,7 @@ on:
       - 'assets/js/customer-auth.js'
       - 'platform/identity-auth-policy*'
       - 'tests/account-commerce-consistency.test.mjs'
+      - 'tests/registration-mobile-contract.test.mjs'
       - '.github/workflows/auth-reference-check.yml'
   pull_request:
     branches: [migration/bertina-linux6]
@@ -16,6 +17,7 @@ on:
       - 'assets/js/customer-auth.js'
       - 'platform/identity-auth-policy*'
       - 'tests/account-commerce-consistency.test.mjs'
+      - 'tests/registration-mobile-contract.test.mjs'
       - '.github/workflows/auth-reference-check.yml'
   workflow_dispatch:
 
@@ -34,4 +36,5 @@ jobs:
         run: |
           php -l api/index.php
           php -l api/config.example.php
-          node --test platform/identity-auth-policy.test.mjs tests/account-commerce-consistency.test.mjs
+          node --check assets/js/customer-auth.js
+          node --test platform/identity-auth-policy.test.mjs tests/account-commerce-consistency.test.mjs tests/registration-mobile-contract.test.mjs
