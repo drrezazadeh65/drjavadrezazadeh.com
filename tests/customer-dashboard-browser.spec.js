@@ -429,3 +429,57 @@ for(const [lang,route] of [['fa','/fa/app/account/orders/'],['en','/en/account/o
   });
  }
 }
+
+for(const [lang,route] of [['fa','/fa/app/account/orders/'],['en','/en/account/orders/']]){
+ test(lang+' paid service brief clears private text on collapse and revalidates on open',async({page})=>{
+  const id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  let reads=0;
+  await page.route('**/api/commerce/history',route=>route.fulfill({json:{ok:true,orders:[{
+   id,state:'paid',paymentVerified:true,currency:'IRT',amountToman:1000000,
+   items:[{sku:'service:academic_consult_60',title:'Academic consultation',quantity:1,subtotalToman:1000000}]
+  }]}}));
+  await page.route('**/api/commerce/fulfilment*',route=>route.fulfill({json:{
+   ok:true,paymentRecord:'provider_verified_not_bank_settlement',
+   serviceCases:[{sku:'service:academic_consult_60',status:'scheduling',
+     bookingStart:null,bookingEnd:null}],privateServiceFilesReady:false,parcel:null
+  }}));
+  await page.route('**/api/commerce/service-intake*',route=>{
+   if(route.request().method()!=='GET')return route.fulfill({status:405,json:{ok:false}});
+   reads++;
+   return route.fulfill({json:{ok:true,schema:'private-service-intake-v1',revision:reads,
+    intake:{subject:'Confidential revision '+reads,
+      background:'Private educational context revision '+reads,
+      objectives:'Practical private objectives revision '+reads,isMinor:false},
+    guardianAcknowledged:false}});
+  });
+  await page.goto(base+route,{waitUntil:'domcontentloaded'});
+  const order=page.locator('[data-resource="orders"] .appointment-card').last();
+  await order.getByRole('button',{name:lang==='fa'?'پیگیری تحویل و نوبت':'Track delivery or booking'}).click();
+  const brief=page.locator('details.service-intake-editor').first();
+  const summary=brief.locator('summary');
+  const subject=brief.locator('input').first();
+  const guardian=brief.locator('input[type="checkbox"]').nth(1);
+  const minor=brief.locator('input[type="checkbox"]').first();
+  const save=brief.locator('button[type="submit"]');
+  await summary.click();
+  await expect(subject).toHaveValue('Confidential revision 1');
+  await expect(guardian).toBeHidden();
+  await minor.check();
+  await expect(guardian).toBeVisible();
+  await summary.click();
+  await expect(subject).toHaveValue('');
+  await expect(guardian).toBeHidden();
+  await expect(save).toBeDisabled();
+  await summary.click();
+  await expect(subject).toHaveValue('Confidential revision 2');
+  expect(reads).toBe(2);
+  await page.evaluate(()=>{
+   Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});
+   document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(brief).not.toHaveAttribute('open','');
+  await expect(subject).toHaveValue('');
+  await expect(save).toBeDisabled();
+  expect(await page.evaluate(()=>localStorage.length)).toBe(0);
+ });
+}
