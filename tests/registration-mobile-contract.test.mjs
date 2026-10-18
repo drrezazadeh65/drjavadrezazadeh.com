@@ -10,9 +10,12 @@ const fa=fs.readFileSync('fa/register/index.html','utf8');
 const en=fs.readFileSync('en/register/index.html','utf8');
 
 const begin=auth.indexOf('function normalizedSignupMobile(raw){');
-const finish=auth.indexOf('\nasync function call(',begin);
-assert.ok(begin>0&&finish>begin,'mobile normalizer must be a dedicated pure function');
-const normalise=vm.runInNewContext('('+auth.slice(begin,finish).trim()+')');
+const validatorStart=auth.indexOf('function validSignupMobile(value){',begin);
+const finish=auth.indexOf('\nasync function call(',validatorStart);
+assert.ok(begin>0&&validatorStart>begin&&finish>validatorStart,
+ 'normalizer and phone validator must remain separate pure functions');
+const normalise=vm.runInNewContext('('+auth.slice(begin,validatorStart).trim()+')');
+const validMobile=vm.runInNewContext('('+auth.slice(validatorStart,finish).trim()+')');
 
 function phpNormalise(value){
  const program='define("BERTINA_MAIL_SMOKE_CONTEXT",true); require "api/index.php"; echo json_encode(normalizedRegistrationMobile($argv[1] ?? null));';
@@ -40,6 +43,20 @@ test('registration normalizes Iranian national, Persian/Arabic digits and intern
   assert.equal(phpNormalise(given),expected||null,'API normalization of '+given);
  }
  assert.equal(phpNormalise(undefined),null);
+});
+
+test('browser E.164 gate accepts valid normalized phones, rejects malformed input and leaves optional blank',()=>{
+ for(const raw of ['09123456789','۰۹۱۲ ۳۴۵ ۶۷۸۹','٠٩١٢-٣٤٥-٦٧٨٩',
+   '00989123456789','+989123456789','+4915112345678','']){
+  assert.equal(validMobile(normalise(raw)),true,
+    'valid international or optional Iranian number must pass signup: '+raw);
+ }
+ for(const raw of ['09123','12345678901','+0','+98912abc456','+9891234567899999']){
+  assert.equal(validMobile(normalise(raw)),false,
+    'malformed mobile must not reach registration API: '+raw);
+ }
+ assert.ok(auth.includes('if(!validSignupMobile(mobile))'),
+  'form must execute tested validator, not an independently escaped regex');
 });
 
 test('server rejects malformed or non-E.164 mobile numbers without inventing a country',()=>{
