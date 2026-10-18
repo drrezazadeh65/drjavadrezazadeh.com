@@ -133,11 +133,11 @@ test('bilingual published-book identity follows the canonical catalogue and thir
  assert.equal(first?.english_reference_title,'Sepidi');
  const fa=source('fa/ketab-ha/index.html'),en=source('en/books/index.html');
  assert.match(fa,/سه کتابی که پیش از پروژه‌های فعلی منتشر شده‌اند/);
- assert.match(fa,/<h3>سپیدی<\/h3>/);
+ assert.match(fa,/<h3 lang="fa" dir="rtl">سپیدی<\/h3>/);
  assert.match(en,/<h3 lang="fa" dir="rtl">سپیدی<\/h3>/);
  assert.match(en,/<em>Sepidi<\/em>/);
  for(const book of books){
-  const faTitle='<h3>'+book.title_fa+'</h3>';
+  const faTitle='<h3 lang="fa" dir="rtl">'+book.title_fa+'</h3>';
   const enTitle='<h3 lang="fa" dir="rtl">'+book.title_fa+'</h3>';
   assert.ok(fa.includes(faTitle),'Persian public books must agree with catalogue: '+book.id);
   assert.ok(en.includes(enTitle),'English public books must agree with catalogue: '+book.id);
