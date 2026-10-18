@@ -20,6 +20,7 @@ const state=s=>({AWAITING_FILE:t('Awaiting a secure PDF upload','در انتظا
  UNDER_SCREENING:t('Initial academic screening','بررسی اولیه علمی'),
  NEEDS_INFORMATION:t('Additional information requested','درخواست تکمیل اطلاعات'),
  AUTHOR_INFORMATION_RECEIVED:t('Author information received; editorial follow-up pending','اطلاعات تکمیلی نویسنده دریافت شد؛ در انتظار بررسی'),
+ WITHDRAWN_BY_AUTHOR:t('Withdrawn by author (audit record retained)','انصراف نویسنده (سوابق محفوظ است)'),
  NOT_INVOICED:t('No invoice issued; no payment is due','فاکتوری صادر نشده و پرداختی لازم نیست'),
  PENDING:t('Academic application under review','درخواست همکاری در حال بررسی'),
  APPROVED:t('Approved','تأییدشده')})[s]||t('Status awaiting editorial verification','وضعیت در انتظار تأیید تحریریه');
@@ -66,6 +67,32 @@ const view=async()=>{
      }catch(err){message(t('Response not saved: ','پاسخ ذخیره نشد: ')+err.message,'error');}
      finally{btn.disabled=false;}
     });card.append(form);
+   }
+   // Author control: withdrawal before formal peer review; no file deletion.
+   if(['AWAITING_FILE','PRELIMINARY_RECEIVED','UNDER_SCREENING',
+       'NEEDS_INFORMATION','AUTHOR_INFORMATION_RECEIVED'].includes(x.status)){
+    const form=el('form');form.className='jhela-intake-retry';
+    const label=el('label',t('Reason for withdrawal (20–500 characters)',
+      'دلیل انصراف از مقاله (۲۰ تا ۵۰۰ نویسه)'));
+    const reason=el('textarea');reason.required=true;reason.minLength=20;reason.maxLength=500;reason.rows=3;
+    label.append(reason);form.append(label);
+    const btn=el('button',t('Withdraw this manuscript','انصراف از این مقاله'));
+    btn.type='submit';form.append(btn);
+    form.addEventListener('submit',async ev=>{
+     ev.preventDefault();
+     if(reason.value.trim().length<20)return;
+     if(!window.confirm(t('Withdraw this preliminary submission? The audit record will be retained.',
+       'از این پرونده انصراف می‌دهید؟ سوابق برای ممیزی حفظ خواهند شد.')))return;
+     btn.disabled=true;
+     try{
+      await call('manuscripts/withdraw',{manuscriptId:x.id,reason:reason.value});
+      message(t('Withdrawal recorded; manuscript is no longer in screening.',
+        'انصراف ثبت شد و مقاله از فرایند بررسی خارج شد.'),'success');
+      await view();
+     }catch(err){message(t('Withdrawal failed: ','انصراف ثبت نشد: ')+err.message,'error')}
+     finally{btn.disabled=false}
+    });
+    card.append(form);
    }
    list.append(card);
   }

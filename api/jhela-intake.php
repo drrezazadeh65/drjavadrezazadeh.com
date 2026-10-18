@@ -227,6 +227,35 @@ function jhelaIntakeRoute(string $path,string $verb): never {
     respond(['ok'=>true,'id'=>$id,'status'=>'AUTHOR_INFORMATION_RECEIVED',
       'message'=>'Author response received for preliminary editorial screening.'],201);
   }
+  // Author-initiated withdrawal is independent of whether new intake is enabled.
+  // Preserve the confidential record and immutable event history; never delete PDFs.
+  // Only pre-review states are eligible: future peer-review states are excluded.
+  if($path==='/journal/manuscripts/withdraw'){
+    if(!$ready['profile'])fail('journal_profile_unavailable',503);
+    $b=jsonBody();$id=(string)($b['manuscriptId']??'');
+    if(!validUuid($id))fail('invalid_manuscript_id',422);
+    $reason=jhelaStr($b['reason']??null,20,500,'withdrawal_reason_required');
+    $pdo->beginTransaction();
+    try{
+      $q=$pdo->prepare('SELECT status FROM jhela_intake_manuscripts WHERE id=? AND account_id=? FOR UPDATE');
+      $q->execute([$id,$accountId]);$m=$q->fetch();
+      if(!$m){$pdo->rollBack();fail('manuscript_not_found',404);}
+      $allowed=['AWAITING_FILE','PRELIMINARY_RECEIVED','UNDER_SCREENING',
+        'NEEDS_INFORMATION','AUTHOR_INFORMATION_RECEIVED'];
+      $previous=(string)$m['status'];
+      if(!in_array($previous,$allowed,true)){
+        $pdo->rollBack();fail('withdrawal_not_available_in_current_stage',409);
+      }
+      $u=$pdo->prepare("UPDATE jhela_intake_manuscripts SET status='WITHDRAWN_BY_AUTHOR'
+        WHERE id=? AND account_id=? AND status=?");
+      $u->execute([$id,$accountId,$previous]);
+      if($u->rowCount()!==1)throw new RuntimeException('withdrawal_concurrent_update');
+      jhelaEvent($pdo,$id,'WITHDRAWN_BY_AUTHOR','Author withdrew the preliminary submission. Reason: '.$reason);
+      $pdo->commit();
+    }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+    respond(['ok'=>true,'id'=>$id,'status'=>'WITHDRAWN_BY_AUTHOR',
+      'filesRetainedForAudit'=>true,'peerReviewStarted'=>false]);
+  }
   if($path==='/journal/manuscripts/create'){
     if(!$ready['manuscriptIntake'])fail('manuscript_intake_not_ready',503);
     $b=jsonBody();

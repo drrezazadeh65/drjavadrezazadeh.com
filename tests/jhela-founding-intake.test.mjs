@@ -135,3 +135,23 @@ test('native manuscript intake is authorised but fails closed without explicit h
  assert.ok(read('journal/submission/index.html').includes('Submission availability is verified in real time'));
  assert.ok(read('journal/fa/submission/index.html').includes('وضعیت دریافت امن مقاله به‌صورت زنده بررسی می‌شود'));
 });
+
+test('author may withdraw only own preliminary manuscript, with reason and retained audit',()=>{
+ const route=php.slice(php.indexOf('function jhelaIntakeRoute('));
+ const i=route.indexOf("if($path==='/journal/manuscripts/withdraw')");
+ const j=route.indexOf("if($path==='/journal/manuscripts/create')");
+ assert.ok(i>0&&j>i,'withdrawal must remain independent of intake activation');
+ const body=route.slice(i,j);
+ assert.ok(body.includes('jhelaMutation()')||route.slice(0,i).includes('jhelaMutation()'));
+ assert.ok(body.includes("jhelaStr($b['reason']??null,20,500"));
+ assert.ok(body.includes("WHERE id=? AND account_id=? FOR UPDATE"));
+ assert.ok(body.includes("WHERE id=? AND account_id=? AND status=?"));
+ assert.ok(body.includes("'WITHDRAWN_BY_AUTHOR'"));
+ assert.ok(body.includes("jhelaEvent($pdo,$id,'WITHDRAWN_BY_AUTHOR'"));
+ assert.ok(body.includes("'filesRetainedForAudit'=>true"));
+ assert.ok(!body.includes('unlink('));
+ assert.ok(!body.includes("'ACCEPTED'"));
+ assert.ok(js.includes("call('manuscripts/withdraw'"));
+ assert.ok(js.includes('window.confirm('));
+ assert.ok(js.includes("WITHDRAWN_BY_AUTHOR:t("));
+});
