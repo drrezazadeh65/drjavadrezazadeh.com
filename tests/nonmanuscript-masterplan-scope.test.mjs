@@ -45,7 +45,7 @@ test('historical nonmanuscript scope is superseded by explicit native JHELA auth
  assert.match(decision,/earlier requirement to await 100% completion[^.]*RETIRED/i);
  assert.ok(decision.includes('LATEST OWNER OVERRIDE — JHELA NATIVE RELEASE'));
  assert.ok(decision.includes('JHELA_NATIVE_RELEASE_OWNER_OVERRIDE_20261018.md'));
- assert.ok(read('docs/governance/JHELA_NATIVE_RELEASE_OWNER_OVERRIDE_20261018.md').includes('Owner has authorized native intake'));
+ assert.ok(read('docs/governance/JHELA_NATIVE_RELEASE_OWNER_OVERRIDE_20261018.md').includes('Owner authorizes preliminary manuscript creation'));
  assert.equal(scope.latestOwnerSupersession.ownerAuthorizedNativePreliminaryManuscriptIntake,true);
  assert.equal(json('platform/jhela-native-intake-activation-v1.json').ownerAuthorizesPreliminaryManuscriptSubmission,true);
  assert.equal(json('platform/jhela-native-intake-activation-v1.json').publicIntakeReady,false);
