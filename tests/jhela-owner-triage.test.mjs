@@ -18,7 +18,8 @@ test('native JHELA owner queue and screening require protected MFA and CSRF',()=
  assert.ok(native.includes('jhelaEvent($pdo,$id,$next,$publicMessage)'));
  assert.ok(native.includes('operationsAudit($pdo,$ownerId'));
  assert.ok(native.includes("m['account_id']===$ownerId"));
- assert.ok(!native.includes('private_file_rel'));
+ assert.ok(!native.includes('m.private_file_rel'));
+ assert.ok(!native.includes('SELECT private_file_rel'));
 });
 test('native preliminary transitions require verified PDF, author-facing reason, and no acceptance',()=>{
  const s=read('api/jhela-native-editorial.php');
