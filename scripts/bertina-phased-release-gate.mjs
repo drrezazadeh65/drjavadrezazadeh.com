@@ -2,7 +2,7 @@
 /**
  * Owner-directed phase-1 Bertina publication, WITHOUT falsifying 100% masterplan evidence.
  * This does not deploy. The existing manual owner workflow still performs CI, TLS,
- * bank schema, backup custody/recovery, exact live SHA and file checksum checks.
+ * bank schema, selected recovery policy, exact live SHA and file checksum checks.
  * PDF custody, private KYC evidence and SQL migrations remain deferred.
  */
 import fs from 'node:fs';
@@ -27,11 +27,14 @@ export function assessPhasedRelease(input={},root=ROOT) {
     &&input.expectedLiveSha!==sha,'Exact previous live SHA must be supplied.');
   check(input.confirmation===PHASED_APPROVAL_PHRASE,
     'Explicit single-release owner confirmation is required.');
-  check(['signed_restore','owner_cpanel_custody'].includes(input.recoveryMode),
-    'Phased release needs signed recovery or witnessed private cPanel backup custody; hosting_managed without inspection is not enough.');
-  if(input.recoveryMode==='owner_cpanel_custody')
+  // Owner explicitly accepts the absence of an independently tested restore.
+  // hosting_managed verifies the exact live SHA but never inspects backups.
+  // owner_cpanel_custody independently checks the private cPanel archive.
+  check(['signed_restore','owner_cpanel_custody','hosting_managed'].includes(input.recoveryMode),
+    'Recovery mode must be signed_restore, owner_cpanel_custody or explicitly owner-accepted hosting_managed.');
+  if(['owner_cpanel_custody','hosting_managed'].includes(input.recoveryMode))
     check(input.ownerAcknowledgement==='ACCEPT_UNTESTED_RESTORE_RISK_V5',
-      'Owner must explicitly accept that cPanel custody is not a restore test.');
+      'Owner must explicitly accept untested restoration and backup responsibility.');
   try {
     const gate=JSON.parse(requireText(root,'docs/governance/MASTERPLAN_100_RELEASE_ACCEPTANCE.json'));
     check(gate.schema==='owner-masterplan-100-acceptance-v1'
