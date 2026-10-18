@@ -31,7 +31,7 @@ for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/'
       if(state==='signed'){
         await expect(page.locator('[data-account-email]')).toHaveText('fixture@example.test');
         await expect(privateLinks.first()).toHaveAttribute('data-access','authenticated');
-        if(lang==='fa')await expect(cards.first().locator('.cd-service-buy')).toHaveAttribute('href',/^\/fa\/services\/checkout\//);
+        if(lang==='fa')await expect(cards.first().locator('.cd-service-buy')).toHaveAttribute('href',/^\/fa\/services\/[a-z0-9_-]+\/$/);
         current='guest';
         await page.evaluate(()=>dispatchEvent(new Event('online')));
         await expect(privateLinks.first()).toHaveAttribute('data-access','signin-required');
@@ -40,7 +40,7 @@ for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/'
       }
       if(current!=='signed'){
         await expect(privateLinks.first()).toHaveAttribute('href','/'+lang+'/login/');
-        if(lang==='fa')await expect(cards.first().locator('.cd-service-buy')).toHaveAttribute('href','/'+lang+'/login/');
+        if(lang==='fa')await expect(cards.first().locator('.cd-service-buy')).toHaveAttribute('href',/^\/fa\/services\/[a-z0-9_-]+\/$/);
       }
       if(lang==='fa'){
         // The dashboard has exclusive panels: open the ecosystem before searching its catalogue.
@@ -260,7 +260,7 @@ for(const [locale,account,intake] of [
 
 
 // English service marketplace mirrors all 21 authoritative SKUs; translations cannot authorise prices or payment.
-for(const status of ['guest','verified-checkout','translations-unavailable']){
+for(const status of ['guest','guest-checkout-ready','verified-checkout','translations-unavailable']){
  test('English service marketplace '+status+' remains bilingual, searchable and payment-honest',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -271,8 +271,8 @@ for(const status of ['guest','verified-checkout','translations-unavailable']){
      ?r.fulfill({json:{ok:true,user:{email:'demo@example.test'}}})
      :r.fulfill({status:401,json:{ok:false}});
    if(path==='/api/commerce/health')return r.fulfill({json:{
-     ok:true,checkout:status==='verified-checkout',
-     capabilities:{services:status==='verified-checkout',books:false,vip:false}
+     ok:true,checkout:['verified-checkout','guest-checkout-ready'].includes(status),
+     capabilities:{services:['verified-checkout','guest-checkout-ready'].includes(status),books:false,vip:false}
    }});
    return r.fulfill({status:404,json:{ok:false}});
   });
@@ -295,7 +295,7 @@ for(const status of ['guest','verified-checkout','translations-unavailable']){
    await expect(cards.first().locator('.cd-service-boundary')).toContainText('Not a substitute');
    await expect(cards.first().locator('.cd-service-more')).toHaveAttribute('href','/en/services/');
    const label=cards.first().locator('.cd-service-buy');
-   if(status==='verified-checkout'){
+   if(status==='verified-checkout'||status==='guest-checkout-ready'){
     await expect(label).toHaveText('Secure service checkout');
     await expect(label).toHaveAttribute('href','/en/services/checkout/?service=academic_consult_60');
     await expect(label).toHaveAttribute('hreflang','en');
