@@ -5,6 +5,16 @@ const data=document.getElementById('author-portal-data');
 if(!status||!data)return;
 const fa=(n)=>new Intl.NumberFormat('fa-IR').format(Number(n)||0);
 function el(tag,cls,text){const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=String(text);return node}
+// Native accessible disclosure panels keep the long multi-author workspace usable
+// without changing server finance, bank settlement or confidential author records.
+function disclosure(label,body,count,expanded=false){
+ const wrapper=el('details','jp-author-disclosure');
+ if(expanded)wrapper.open=true;
+ const summary=el('summary','jp-author-summary',label);
+ if(Number.isInteger(count))summary.append(el('span','jp-author-count',fa(count)));
+ wrapper.append(summary,body);
+ return wrapper;
+}
 function failure(message,login){status.replaceChildren(el('h2','',message),el('p','',login?'برای دیدن داشبورد با حساب ایمیل‌تأییدشده خود وارد شوید.':'اطلاعات محرمانه یا آمار غیرتأییدشده در این وضعیت نمایش داده نمی‌شود.'));
  const link=el('a','jp-button',login?'ورود با ایمیل':'ارتباط با پشتیبانی');
  link.href=login?'/fa/login/':'/fa/tamas/';status.append(link);
@@ -30,7 +40,7 @@ function renderAuthor(author){
  const works=el('ul','jp-work-list');
  for(const work of author.works||[]){const li=el('li','');li.append(el('strong','',work.title),el('small','',''));li.lastChild.textContent='وضعیت انتشار: '+String(work.publicationStatus||'نامشخص')+' · داوری علمی: '+String(work.scientificReview||'نامشخص');works.append(li)}
  if(!works.childElementCount)works.append(el('li','','هنوز اثری در حساب تأییدشده ثبت نشده است.'));
- section.append(el('h3','','آثار و وضعیت داوری'),works);
+ section.append(disclosure('آثار و وضعیت داوری',works,(author.works||[]).length,true));
  const financialNotice=el('p','jp-small','توضیح هزینه‌ها: ذخیره ۷ درصدی از بودجه مستقل مجموعه تأمین می‌شود؛ از سهم مؤلف یا صندوق کم نمی‌شود و نرخ قانونی مالیات نیز محسوب نمی‌گردد. هر عدد صرفاً از ثبت‌های واقعی سمت سرور خوانده می‌شود.');
  section.append(financialNotice);
  const contracts=el('ul','jp-work-list');
@@ -42,7 +52,7 @@ function renderAuthor(author){
   contracts.append(item);
  }
  if(!contracts.childElementCount)contracts.append(el('li','','هیچ قرارداد امضاشده یا فعالی ثبت نشده است. پیش‌نویس زیر فقط برای مطالعه و ارائه پیشنهاد اصلاح است و رضایت به توزیع دیجیتال باید مستقلاً ثبت شود.'));
- section.append(el('h3','','قراردادهای مؤلف و مدارک امضا'),contracts);
+ const contractsPanel=el('div','jp-author-detail-body');contractsPanel.append(contracts);
  const draft=author.draftContract;
  if(draft&&draft.status==='negotiation_draft_not_signed'&&Array.isArray(draft.clauses)){
   const panel=el('section','jp-card');
@@ -67,8 +77,9 @@ function renderAuthor(author){
   const print=el('button','jp-button','چاپ یا ذخیره قرارداد برای بازبینی');
   print.type='button';print.addEventListener('click',()=>window.print());
   panel.append(print,el('p','jp-small','این بخش امکان امضا، پذیرش نهایی یا بارگذاری مدرک ندارد. اصلاحات از مسیر مذاکره با مدیر ثبت می‌شوند.'));
-  section.append(panel);
+  contractsPanel.append(panel);
  }
+ section.append(disclosure('قراردادهای مؤلف و پیش‌نویس قابل مطالعه',contractsPanel,(author.contracts||[]).length));
 
  const history=el('ul','jp-work-list');
  for(const sale of author.recentSales||[]){
@@ -85,8 +96,30 @@ function renderAuthor(author){
   history.append(item);
  }
  if(!history.childElementCount)history.append(el('li','','فروش بانکی تأییدشده‌ای برای نمایش وجود ندارد؛ هیچ ردیف آزمایشی نمایش داده نمی‌شود.'));
- section.append(el('h3','','تاریخچه ۵۰ فروش اخیر و وضعیت اعلان‌ها'),history,
-  el('p','jp-small','شناسه نمایشی فروش محرمانه و غیرقابل بازشناسی است. اطلاعات شخصی خریداران در این داشبورد ارائه نمی‌شود. وضعیت اعلان «ارسال‌شده» نیز با «دریافت/مطالعه قطعی ایمیل» متفاوت است.'));
+ const historyPanel=el('div','jp-author-detail-body');
+ if((author.recentSales||[]).length){
+  const label=el('label','jp-author-search-label','جستجو در حداکثر ۵۰ فروش اخیر (شناسه، تاریخ یا وضعیت)');
+  const search=el('input','jp-author-search');
+  search.type='search';search.autocomplete='off';search.spellcheck=false;
+  search.setAttribute('aria-label','جستجو در سوابق فروش مؤلف');
+  const none=el('p','jp-small','هیچ فروش مطابق جستجوی شما پیدا نشد.');
+  none.hidden=true;
+  search.addEventListener('input',()=>{
+   const query=search.value.trim().toLocaleLowerCase('fa');
+   let visible=0;
+   for(const item of history.children){
+    const show=item.textContent.toLocaleLowerCase('fa').includes(query);
+    item.hidden=!show;if(show)visible++;
+   }
+   none.hidden=visible!==0;
+  });
+  label.append(search);historyPanel.append(label,none);
+ }
+ historyPanel.append(history,el('p','jp-small','فقط ۵۰ تراکنش اخیر این مؤلف نمایش داده می‌شود؛ نتایج جستجو محدود به همین موارد است. شناسه‌ها غیرقابل بازشناسی‌اند و اطلاعات خصوصی خریداران افشا نمی‌شود. «ارسال‌شدن» اعلان به معنی «خوانده‌شدن» ایمیل نیست.'));
+ section.append(disclosure('سوابق فروش و وضعیت اعلان‌ها',historyPanel,(author.recentSales||[]).length));
+ const onboarding=el('a','jp-button jp-author-identity-link','مشاهده و تکمیل پرونده هویتی، رزومه و اطلاعات تسویه');
+ onboarding.href='#jr-author-onboarding';
+ section.append(onboarding,el('p','jp-small','این داشبورد تنها گزارش وضعیت‌های ثبت‌شده است؛ درخواست تسویه، تأیید قرارداد یا واریز بانکی از طریق این پیوند به‌صورت خودکار انجام نمی‌شود.'));
  return section;
 }
 async function load(){

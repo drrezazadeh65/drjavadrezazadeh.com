@@ -5,7 +5,7 @@ const api='/api/publishing/author/onboarding';
 const el=(tag,text,cls='')=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n};
 const state=el('p','برای تکمیل پرونده مؤلف، وارد حساب ایمیل‌تأییدشده شوید.','jp-status');
 host.append(el('h2','پرونده خصوصی مؤلف و تسویه‌حساب'),state);
-let author=null;
+let author=null,selectedAuthorId=null;
 const fa=n=>new Intl.NumberFormat('fa-IR').format(Number(n)||0);
 function info(t){state.textContent=t}
 function field(form,key,title,type='text',value='',required=false){
@@ -32,9 +32,23 @@ async function jsonPost(path,payload,btn){
  }catch(e){info('ثبت تأیید نشد ('+String(e.message||'خطا')+'). وضعیت پرونده را پیش از تلاش مجدد بررسی کنید.');}
  finally{btn.disabled=false;}
 }
-function render(a){
+function render(a,authorChoices){
  author=a;host.querySelectorAll('.jp-kyc-rendered').forEach(x=>x.remove());
  const wrap=el('div','','jp-kyc-rendered');
+ if(authorChoices.length>1){
+  const label=el('label','انتخاب پرونده مؤلف مجاز','jp-kyc-label');
+  const selector=el('select');selector.setAttribute('aria-label','انتخاب پرونده مؤلف');
+  for(const [index,entry] of authorChoices.entries()){
+   const title=entry.profile?.legal_name_fa||entry.profile?.legal_name_en||'مؤلف '+(index+1);
+   const option=el('option',title);option.value=entry.authorId;selector.append(option);
+  }
+  selector.value=a.authorId;
+  selector.addEventListener('change',()=>{
+   const selected=authorChoices.find(entry=>entry.authorId===selector.value);
+   if(selected){selectedAuthorId=selected.authorId;render(selected,authorChoices);}
+  });
+  label.append(selector);wrap.append(label);
+ }
  const profile=a.profile||{},bank=a.bank||{};
  const hint=el('p','وضعیت احراز پروفایل: '+(profile.review_state||'ثبت‌نشده')+
   ' | وضعیت اطلاعات بانکی: '+(bank.review_state||'ثبت‌نشده')+
@@ -108,7 +122,10 @@ async function load(quiet=false){
   const res=await fetch(api,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
   if(!res.ok)throw Error(res.status===503?'schema_not_installed':res.status===403?'author_role_not_verified':'login_required');
   const v=await res.json();if(v.ok!==true||!v.authors?.length)throw Error('no_author_record');
-  render(v.authors[0]);if(!quiet)info('پرونده شما در محیط محرمانه متصل به حساب کاربری نمایش داده می‌شود.');
+  const selected=v.authors.find(entry=>entry.authorId===selectedAuthorId)||v.authors[0];
+  selectedAuthorId=selected.authorId;
+  render(selected,v.authors);
+  if(!quiet)info('پرونده انتخاب‌شده در محیط محرمانه متصل به حساب کاربری نمایش داده می‌شود.');
  }catch(e){info(e.message==='schema_not_installed'?
   'ثبت پرونده تا اجرای مهاجرت امن دیتابیس مادر در مرحله نهایی انتشار غیرفعال است؛ هیچ مدرکی اکنون جمع‌آوری نمی‌شود.':
   'برای دسترسی به پرونده مؤلف، ورود و تأیید نقش مؤلف لازم است.');}

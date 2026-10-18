@@ -135,6 +135,7 @@ jobs:
           node --test tests/jr-publishing-release-policy.test.mjs tests/jr-publishing-digital-payment-guard.test.mjs tests/jr-publishing-private-installer.test.mjs
           node --test tests/merged-master-publishing-release-contract.test.mjs
           node --test tests/jr-publishing-author-onboarding.test.mjs
+          node --test tests/v52-author-dashboard-contract.test.mjs
           echo 'Publishing stage remains prelaunch. This is SOURCE evidence, not permission to take payments or deploy.'
       - name: Preserve existing 41-gate and 21-service evidence pointers (NO approval)
         if: always()
