@@ -71,7 +71,7 @@ test('server rejects malformed or non-E.164 mobile numbers without inventing a c
 test('registration reports errors beside mobile submit and leaves one server-owned email verification process',()=>{
  for(const html of [fa,en]){
   assert.ok(html.includes('data-auth-action-status'),'mobile-visible submit feedback');
-  assert.ok(html.includes('customer-auth.js?v=20261019-mobile-feedback-v52'),'fresh signup behavior');
+  assert.ok(html.includes('customer-auth.js?v=20261019-e164-guard-v52'),'fresh signup behavior');
   assert.ok(html.includes('noindex,follow,noarchive'),'privacy noindex');
  }
  assert.ok(auth.includes('for(const el of [statusEl,actionStatus])'),'dual accessible status');
