@@ -1,0 +1,123 @@
+/* JR Operations Workspace Index v1 — scoped, additive, no role or data changes.
+ * Uses established obsidian / ivory / graphite / muted-gold brand vocabulary.
+ * Compact sticky disclosure: the entire 36-section dashboard is not duplicated.
+ */
+.ops #ops-workspace .ops-workspace-index{
+ --wi-gold:#d4af37;--wi-gold-soft:#f0d8a0;--wi-ink:#f8f5e9;
+ --wi-muted:#d4c9b9;--wi-border:rgba(212,175,55,.34);
+ position:sticky;top:8px;z-index:25;
+ width:100%;max-width:100%;min-width:0;
+ margin:clamp(15px,2.3vw,25px) 0 clamp(20px,3vw,32px);
+ border:1px solid var(--wi-border);border-radius:clamp(15px,2vw,22px);
+ color:var(--wi-ink);background:#101318;
+ box-shadow:0 16px 46px rgba(0,0,0,.28);
+ scroll-margin-top:16px;
+}
+.ops #ops-workspace .ops-workspace-index[open]{
+ background:radial-gradient(ellipse at 95% 0%,rgba(212,175,55,.11),transparent 56%),linear-gradient(160deg,#171b20,#0d1015);
+}
+.ops #ops-workspace .ops-workspace-index > summary{
+ min-height:54px;display:flex;align-items:center;justify-content:space-between;
+ gap:14px;cursor:pointer;list-style:none;padding:12px clamp(16px,2vw,26px);
+ color:var(--wi-ink);font-size:clamp(1.02rem,2vw,1.2rem);
+ line-height:1.5;font-weight:800
+}
+.ops #ops-workspace .ops-workspace-index > summary::-webkit-details-marker{display:none}
+.ops #ops-workspace .ops-workspace-index > summary::after{
+ content:"+";flex:0 0 auto;display:grid;place-items:center;
+ width:33px;height:33px;border-radius:10px;border:1px solid var(--wi-border);
+ background:rgba(212,175,55,.1);color:var(--wi-gold-soft);
+ font-size:1.25rem;line-height:1
+}
+.ops #ops-workspace .ops-workspace-index[open] > summary::after{content:"−"}
+.ops #ops-workspace .ops-workspace-index > summary:focus-visible,
+.ops #ops-workspace .ops-workspace-index button:focus-visible,
+.ops #ops-workspace .ops-workspace-index input:focus-visible{
+ outline:3px solid #f8dfa9;outline-offset:3px
+}
+.ops #ops-workspace .ops-index-inner{
+ max-height:min(72dvh,690px);overflow:auto;overscroll-behavior:contain;
+ padding:clamp(14px,2vw,24px);
+ border-top:1px solid var(--wi-border);scrollbar-color:#947950 #111318;
+}
+.ops #ops-workspace .ops-index-controls{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;
+ gap:10px;align-items:end;margin:0 0 14px
+}
+.ops #ops-workspace .ops-index-controls label{
+ display:grid;gap:7px;min-width:0;color:var(--wi-gold-soft);
+ font-size:.89rem;font-weight:650;line-height:1.6
+}
+.ops #ops-workspace .ops-index-controls input{
+ width:100%;min-height:50px;min-width:0;max-width:100%;
+ padding:10px 14px;border-radius:11px;border:1px solid #a88e62;
+ color:var(--wi-ink);background:#0b0d12;font-size:1rem;font-family:inherit
+}
+.ops #ops-workspace .ops-index-controls button{
+ min-height:50px;min-width:70px;padding:10px 14px;border-radius:11px;
+ border:1px solid #bc9e6d;background:transparent;color:var(--wi-gold-soft);
+ font-size:.91rem;font-weight:700;cursor:pointer
+}
+.ops #ops-workspace .ops-index-controls button:hover{background:rgba(212,175,55,.12)}
+.ops #ops-workspace .ops-index-count{
+ color:var(--wi-muted);margin:0 0 14px;font-size:.85rem;line-height:1.8
+}
+.ops #ops-workspace .ops-index-list{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;
+ min-width:0
+}
+.ops #ops-workspace .ops-index-group{
+ min-width:0;overflow-wrap:anywhere;padding:14px;
+ border:1px solid rgba(212,175,55,.19);border-radius:14px;
+ background:rgba(13,17,23,.56)
+}
+.ops #ops-workspace .ops-index-group h3{
+ color:var(--wi-gold-soft);font-size:.91rem;line-height:1.6;
+ font-weight:800;margin:0 0 10px
+}
+.ops #ops-workspace .ops-index-tiles{display:grid;gap:8px}
+.ops #ops-workspace .ops-index-tile{
+ display:block;width:100%;min-height:48px;margin:0;padding:12px 13px;
+ text-align:start;white-space:normal;overflow-wrap:anywhere;
+ background:#1c242c;color:var(--wi-ink);
+ border:1px solid rgba(212,175,55,.22);border-radius:11px;
+ font-family:inherit;font-size:clamp(.89rem,1.2vw,.98rem);
+ font-weight:650;line-height:1.65;cursor:pointer
+}
+.ops #ops-workspace .ops-index-tile:hover{
+ background:#28313a;border-color:rgba(239,213,158,.65)
+}
+.ops #ops-workspace .ops-index-empty{
+ grid-column:1/-1;padding:15px;border:1px dashed var(--wi-border);
+ border-radius:10px;margin:0;color:var(--wi-muted)
+}
+.ops #ops-workspace .ops-index-footer{
+ display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;
+ align-items:center;margin:16px 0 0;padding-top:13px;
+ border-top:1px solid rgba(212,175,55,.16);
+ color:var(--wi-muted);font-size:.81rem;line-height:1.8
+}
+.ops #ops-workspace .ops-index-status{
+ margin:0;font-size:.86rem;color:var(--wi-muted);line-height:1.6
+}
+.ops #ops-workspace > :is(section,details){scroll-margin-top:78px}
+@media(max-width:750px){
+ .ops #ops-workspace .ops-index-list{grid-template-columns:minmax(0,1fr)}
+ .ops #ops-workspace .ops-workspace-index{top:0}
+ .ops #ops-workspace .ops-index-inner{max-height:min(66dvh,550px)}
+}
+@media(max-width:390px){
+ .ops #ops-workspace .ops-index-controls{grid-template-columns:minmax(0,1fr)}
+ .ops #ops-workspace .ops-index-controls button{width:100%}
+ .ops #ops-workspace .ops-workspace-index > summary{padding:11px 13px}
+ .ops #ops-workspace .ops-index-inner{padding:12px}
+ .ops #ops-workspace .ops-index-group{padding:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ops #ops-workspace .ops-workspace-index *{
+  scroll-behavior:auto!important;transition:none!important;animation:none!important
+ }
+}
+@media print{
+ .ops #ops-workspace .ops-workspace-index{display:none!important}
+}
