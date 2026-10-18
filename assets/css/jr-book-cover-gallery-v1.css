@@ -1,0 +1,67 @@
+/* JR Original-Cover Gallery v1 — author-approved book imagery only.
+   Scoped to existing product cards; no cart, checkout or inventory changes.
+   Editorial obsidian / graphite / muted-gold / ivory, mobile-first.
+ */
+.book-store-shell .book-product-card .jr-book-card-gallery{
+ display:grid;grid-template-rows:auto auto;width:100%;min-width:0;
+ background:linear-gradient(160deg,#0c121b,#151d28);
+ border-bottom:1px solid rgba(215,185,129,.2)
+}
+.book-store-shell .book-product-card .jr-book-card-gallery .book-cover{
+ width:100%;margin:0;border-bottom:0;overflow:hidden
+}
+.book-store-shell .book-product-card .jr-book-gallery-footer{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ flex-wrap:wrap;width:100%;min-width:0;padding:12px clamp(12px,2vw,20px);
+ background:linear-gradient(90deg,rgba(212,175,55,.075),rgba(255,255,255,.015));
+ border-top:1px solid rgba(215,185,129,.18)
+}
+.book-store-shell .book-product-card .jr-book-gallery-caption{
+ display:block;color:#dfd3bd;font-size:.88rem;font-weight:650;line-height:1.65
+}
+.book-store-shell .book-product-card .jr-book-gallery-actions{
+ display:inline-flex;gap:5px;flex-wrap:wrap;align-items:center;min-width:0;
+ padding:3px;border:1px solid rgba(215,185,129,.35);border-radius:13px;
+ background:#0c1119
+}
+.book-store-shell .book-product-card .jr-book-gallery-actions button{
+ appearance:none;min-height:46px;min-width:68px;cursor:pointer;
+ padding:10px 13px;border:1px solid transparent;border-radius:9px;
+ font-family:inherit;font-size:.91rem;font-weight:700;line-height:1.35;
+ color:#e3d7c3;background:transparent;white-space:nowrap;
+ transition:background-color .16s ease,color .16s ease
+}
+.book-store-shell .book-product-card .jr-book-gallery-actions button[aria-pressed="true"]{
+ background:#e2c994;border-color:#e2c994;color:#17130e;
+ box-shadow:0 2px 10px rgba(0,0,0,.23)
+}
+.book-store-shell .book-product-card .jr-book-gallery-actions button[aria-pressed="false"]:hover{
+ background:rgba(226,201,148,.12);color:#f8f5e9
+}
+.book-store-shell .book-product-card .jr-book-gallery-actions button:focus-visible{
+ outline:3px solid #fff0b7;outline-offset:3px;z-index:2
+}
+@media(max-width:400px){
+ .book-store-shell .book-product-card .jr-book-gallery-footer{
+  flex-direction:column;align-items:stretch;gap:6px;padding:10px 12px
+ }
+ .book-store-shell .book-product-card .jr-book-gallery-actions{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  width:100%;min-width:0
+ }
+ .book-store-shell .book-product-card .jr-book-gallery-actions button{
+  min-width:0;min-height:48px
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .book-store-shell .book-product-card .jr-book-gallery-actions button{
+  transition:none!important
+ }
+}
+@media print{
+ .book-store-shell .book-product-card .jr-book-gallery-footer{
+  background:#fff!important;border-color:#777!important;color:#111!important
+ }
+ .book-store-shell .book-product-card .jr-book-gallery-caption{color:#222!important}
+ .book-store-shell .book-product-card .jr-book-gallery-actions{display:none!important}
+}
