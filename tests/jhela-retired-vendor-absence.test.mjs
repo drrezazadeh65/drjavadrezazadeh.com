@@ -31,7 +31,7 @@ test('retired journal stylesheet is blocked from future releases and from public
   const builder=fs.readFileSync('scripts/build-public-site.mjs','utf8');
   const rewrite=fs.readFileSync('.htaccess','utf8');
   assert.ok(builder.includes("'assets/css/jhela-ojs-theme.css'"));
-  assert.ok(rewrite.includes('RewriteRule ^assets/css/jhela-ojs-theme\\\\.css$ - [G,L]'));
+  assert.ok(rewrite.includes('RewriteRule ^assets/css/jhela-ojs-theme\\.css$ - [G,L]'));
 });
 test('journal policies referenced from the bilingual roadmap exist',()=>{
   assert.ok(fs.existsSync('journal/ethics/index.html'));

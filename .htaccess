@@ -24,7 +24,7 @@ RewriteRule ^(.*)$ https://drjavadrezazadeh.com/journal/$1 [R=302,L,NE]
 
 # Retired journal vendor stylesheet: return 410 even if an older deploy left the file on disk.
 # Never allow archived journal code to appear as an active public asset.
-RewriteRule ^assets/css/jhela-ojs-theme\\.css$ - [G,L]
+RewriteRule ^assets/css/jhela-ojs-theme\.css$ - [G,L]
 
 # Resolve verified public legacy paths directly to their HTTPS apex destination.
 # These must precede transport consolidation to avoid HTTP/www redirect chains.
