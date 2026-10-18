@@ -34,3 +34,12 @@ test('public bilingual dashboards do not promise obsolete OJS workflows',()=>{
  assert.ok(!fa.includes('OJS'));
  assert.ok(read('assets/js/jhela-author-workspace.js').includes('Transferred to editorial peer review'));
 });
+
+test('public TLS probe only accepts the exact HTTPS canonical recovery bridge',()=>{
+ const probe=read('scripts/jhela-journal-public-probe.mjs');
+ assert.ok(probe.includes("redir?.scheme==='https'&&redir.hostname==='drjavadrezazadeh.com'&&redir.pathname==='/journal/'"));
+ assert.ok(probe.includes("diagnostics.push('PUBLIC_RECOVERY_BRIDGE_ACTIVE')"));
+ assert.ok(probe.includes("diagnostics.push('CANONICAL_REDIRECTS_TO_OTHER_HOST')"));
+ assert.ok(probe.includes("if(unsafe.transportVerified)throw new Error('cross-origin redirect must fail closed')"));
+ assert.ok(probe.includes("publicLaunchAuthorized:false"));
+});

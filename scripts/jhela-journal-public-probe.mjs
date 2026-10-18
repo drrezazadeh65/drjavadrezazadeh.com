@@ -20,7 +20,7 @@ function cleanRedirect(location,origin){
   if(!location)return null;
   try{
     const u=new URL(location,origin);
-    return {scheme:u.protocol.replace(':',''),hostname:u.hostname};
+    return {scheme:u.protocol.replace(':',''),hostname:u.hostname,pathname:u.pathname};
   }catch{return {scheme:'invalid',hostname:null};}
 }
 async function resolve(host){
@@ -65,7 +65,13 @@ function classify(result){
   if(!canonical.dns.ipv4&&!canonical.dns.ipv6)diagnostics.push('CANONICAL_DNS_NOT_PROVED');
   if(!canonical.http?.trustedTls)diagnostics.push('CANONICAL_CA_TLS_NOT_PROVED');
   if(canonical.http?.redirect?.scheme==='http')diagnostics.push('CANONICAL_DOWNGRADE_REDIRECT');
-  if(canonical.http?.redirect?.hostname&&canonical.http.redirect.hostname!=='journal.drjavadrezazadeh.com')
+  // Public restoration bridge is an intentional temporary HTTPS redirect.
+  // Only the exact apex /journal/ destination is allowed for this root probe.
+  // Any other cross-origin redirect remains a transport failure.
+  const redir=canonical.http?.redirect;
+  const recovery=redir?.scheme==='https'&&redir.hostname==='drjavadrezazadeh.com'&&redir.pathname==='/journal/';
+  if(recovery)diagnostics.push('PUBLIC_RECOVERY_BRIDGE_ACTIVE');
+  if(redir?.hostname&&redir.hostname!=='journal.drjavadrezazadeh.com'&&!recovery)
     diagnostics.push('CANONICAL_REDIRECTS_TO_OTHER_HOST');
   if(canonical.http?.installerVisible)diagnostics.push('UNPROTECTED_PUBLIC_INSTALLER_POSSIBLE');
   if(alias.http?.installerVisible)diagnostics.push('MAIN_DOMAIN_OJS_INSTALLER_EXPOSED_POSSIBLE');
@@ -82,7 +88,16 @@ if(process.argv[2]==='--contract'){
     {role:'legacy_plural',dns:{ipv4:false,ipv6:false},http:null},
     {role:'main_domain_nested_alias',dns:{ipv4:false,ipv6:false},http:null}]);
   if(sample.transportVerified!==false||sample.publicLaunchAuthorized!==false)throw new Error('fail-open contract');
-  console.log('PASS: journal TLS/hostname transport probe is read-only and defaults to NO-GO');
+  const tls={role:'canonical',dns:{ipv4:true,ipv6:false},http:{trustedTls:true,httpStatus:302,
+    redirect:{scheme:'https',hostname:'drjavadrezazadeh.com',pathname:'/journal/'}}};
+  const other={role:'legacy_plural',dns:{ipv4:false,ipv6:false},http:null};
+  const alias={role:'main_domain_nested_alias',dns:{ipv4:false,ipv6:false},http:null};
+  const bridge=classify([tls,other,alias]);
+  if(!bridge.transportVerified||bridge.publicLaunchAuthorized!==false||
+     !bridge.diagnostics.includes('PUBLIC_RECOVERY_BRIDGE_ACTIVE'))throw new Error('recovery bridge contract');
+  const unsafe=classify([{...tls,http:{...tls.http,redirect:{scheme:'https',hostname:'example.com',pathname:'/'}}},other,alias]);
+  if(unsafe.transportVerified)throw new Error('cross-origin redirect must fail closed');
+  console.log('PASS: journal TLS/hostname probe is read-only, supports exact public recovery, and defaults to NO-GO');
 }else if(process.argv[2]==='--probe'){
   const probes=[];
   for(const item of hosts){
