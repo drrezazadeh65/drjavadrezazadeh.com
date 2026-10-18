@@ -293,7 +293,7 @@ for(const status of ['guest','guest-checkout-ready','verified-checkout','transla
    await expect(cards.first().locator('h3')).toHaveText('Specialist academic consultation');
    await expect(cards.first()).toContainText('toman');
    await expect(cards.first().locator('.cd-service-boundary')).toContainText('Not a substitute');
-   await expect(cards.first().locator('.cd-service-more')).toHaveAttribute('href','/en/services/');
+   await expect(cards.first().locator('.cd-service-more')).toHaveAttribute('href','/en/services/academic_consult_60/');
    const label=cards.first().locator('.cd-service-buy');
    if(status==='verified-checkout'||status==='guest-checkout-ready'){
     await expect(label).toHaveText('Secure service checkout');
