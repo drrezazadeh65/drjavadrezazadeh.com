@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const read=p=>fs.readFileSync(p,'utf8');
 const brand=JSON.parse(read('platform/jhela-unified-brand-v3.json'));
 const publicCss=read('assets/css/journal-v2.css');
-const ojs=read('assets/css/jhela-ojs-theme.css');
+const intake=read('assets/css/jhela-intake.css');
 const admin=read('assets/css/operations-jhela-workstream.css');
 const print=read('identity/jhela-document.css');
 
@@ -21,8 +21,8 @@ test('unique v3 sub-brand inherits immutable mother design rather than replacing
  assert.ok(brand.identity.components.length>=15);
  assert.equal(brand.status,'SOURCE_DESIGN_SYSTEM_NOT_PRODUCTION_VISUAL_CERTIFICATION');
 });
-test('public, OJS, admin and print share academic navy/brass without mixing trust and typography',()=>{
- for(const [name,css] of [['public',publicCss],['ojs',ojs],['admin',admin],['print',print]]){
+test('public, native intake, admin and print share academic navy/brass without mixing trust and typography',()=>{
+ for(const [name,css] of [['public',publicCss],['intake',intake],['admin',admin],['print',print]]){
   for(const hex of ['#0b203c','#b48a3f'])assert.ok(css.toLowerCase().includes(hex),'Palette mismatch in '+name);
   assert.ok(css.includes('focus-visible'),'No keyboard focus in '+name);
   assert.ok(css.includes('@media'),'Missing responsive or print design in '+name);
@@ -30,9 +30,9 @@ test('public, OJS, admin and print share academic navy/brass without mixing trus
  assert.ok(publicCss.includes('.journal-page.jhela-fa-page'));
  assert.ok(publicCss.includes('prefers-reduced-motion'));
  assert.ok(admin.includes('#ops-jhela-workstream'));
- assert.ok(ojs.includes('.pkp_structure_main'));
- assert.ok(ojs.includes('No selectors hide system warnings'));
- assert.ok(!ojs.includes('.pkp_notification{display:none'));
+ assert.ok(intake.includes('.jhela-intake-portal'));
+ assert.ok(intake.includes('.jhela-intake-form'));
+ assert.ok(!intake.includes('.jhela-intake-form{display:none'));
  assert.ok(print.includes('@page{size:A4'));
 });
 test('four editable print previews use authentic English JHELA wordmark and make no claims of issue or payment',()=>{
@@ -61,9 +61,9 @@ test('four editable print previews use authentic English JHELA wordmark and make
  assert.ok(read(paths[2]).includes('100% APC waiver'));
 });
 test('public JHELA remains indexable as approved while private manuscript intake remains closed',()=>{
- const manifest=JSON.parse(read('platform/jhela-ojs-activation.json'));
- assert.equal(manifest.publicSubmissionsEnabled,false);
- assert.equal(manifest.ojsInstalled,false);
+ const manifest=JSON.parse(read('platform/jhela-native-intake-activation-v1.json'));
+ assert.equal(manifest.publicIntakeReady,false);
+ assert.equal(manifest.ownerAuthorizesPreliminaryManuscriptSubmission,true);
  for(const path of ['journal/index.html','journal/roadmap/index.html','journal/fees/index.html','journal/fa/peer-review/index.html']){
   assert.ok(read(path).includes('journal-v2.css'),'Missing shared visual layer '+path);
  }

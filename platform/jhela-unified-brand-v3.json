@@ -4,7 +4,7 @@
   "baseline": "foundation/DESIGN-SYSTEM.md",
   "governance": "identity/brand-governance.md",
   "status": "SOURCE_DESIGN_SYSTEM_NOT_PRODUCTION_VISUAL_CERTIFICATION",
-  "asOf": "2026-10-16",
+  "asOf": "2026-10-18",
   "identity": {
     "relationship": "JHELA is a scholarly sub-brand of the approved Persian-first JR ecosystem; it retains its separate English editorial wordmark while respecting parent restraint and gold emphasis",
     "wordmarkLight": "assets/images/jhela/wordmark-en.svg",
@@ -84,15 +84,15 @@
   "applications": {
     "public": "assets/css/journal-v2.css",
     "privateOwnerWorkspace": "assets/css/operations-jhela-workstream.css",
-    "ojs": "assets/css/jhela-ojs-theme.css (standalone OJS journal upload candidate; not installed)",
     "stationery": "identity/jhela-document.css",
-    "allAreSeparateTrustDomains": true
+    "allAreSeparateTrustDomains": true,
+    "nativeIntake": "assets/css/jhela-intake.css (first-party scholarly intake)"
   },
   "launchCriteria": [
     "Visual browser QA English and Persian, 320/375/768/1440 viewport",
     "Real mobile and keyboard review, no sticky blocking elements",
     "Test 200% zoom and contrast focus",
-    "Native OJS stylesheet on confirmed installed OJS without hiding statuses",
+    "First-party manuscript and reviewer intake verified on secure server",
     "Actual print A4 physical/pdf proof and rightsholder review",
     "Actual publisher/logo and payment/document permissions before issue"
   ]
