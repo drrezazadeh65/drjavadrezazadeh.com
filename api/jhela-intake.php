@@ -14,14 +14,15 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 // The intake is independent of retired vendor platforms.
 
 function jhelaConfig(): array {
-  $dir=(string)(getenv('JR_JHELA_PRIVATE_STORAGE')?:'');
-  $av=(string)(getenv('JR_JHELA_AV_BINARY')?:'');
+  // Private config.local.php takes precedence over host environment variables.
+  // Reuse the existing central configuration; never require a second journal config or DB.
+  $site=cfg();
   return [
-    'intake'=>getenv('JR_JHELA_INTAKE_ENABLED')==='true',
-    'reviewers'=>getenv('JR_JHELA_REVIEWER_INTAKE_ENABLED')==='true',
-    'privateDir'=>$dir,
-    'antivirus'=>$av,
-    'trustedTLS'=>(cfg()['public_tls_confirmed']??false)===true,
+    'intake'=>($site['jhela_intake_enabled']??(getenv('JR_JHELA_INTAKE_ENABLED')==='true'))===true,
+    'reviewers'=>($site['jhela_reviewer_intake_enabled']??(getenv('JR_JHELA_REVIEWER_INTAKE_ENABLED')==='true'))===true,
+    'privateDir'=>(string)($site['jhela_private_storage']??(getenv('JR_JHELA_PRIVATE_STORAGE')?:'')),
+    'antivirus'=>(string)($site['jhela_av_binary']??(getenv('JR_JHELA_AV_BINARY')?:'')),
+    'trustedTLS'=>($site['public_tls_confirmed']??false)===true,
   ];
 }
 function jhelaSchemaReady(PDO $pdo): bool {
@@ -144,7 +145,7 @@ function jhelaIntakeRoute(string $path,string $verb): never {
   // Fail closed before any DB access unless the operator enabled native intake.
   // Host readiness and ownership checks are separately enforced below.
   if(in_array($path,['/journal/manuscripts/create','/journal/manuscripts/upload'],true)
-    && getenv('JR_JHELA_INTAKE_ENABLED')!=='true')
+    && !jhelaConfig()['intake'])
     fail('manuscript_intake_disabled',503);
   $pdo=db();
   if($path==='/journal/intake/health'&&$verb==='GET'){

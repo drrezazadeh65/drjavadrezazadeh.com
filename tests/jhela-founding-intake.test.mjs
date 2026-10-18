@@ -122,7 +122,10 @@ test('native manuscript intake is authorised but fails closed without explicit h
  assert.ok(!php.includes('JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED'));
  assert.ok(php.includes("'manuscriptIntake'=>$upload&&$c['intake']"));
  const route=php.slice(php.indexOf('function jhelaIntakeRoute('));
- assert.ok(route.includes("getenv('JR_JHELA_INTAKE_ENABLED')!=='true'"));
+ assert.ok(route.includes("!jhelaConfig()['intake']"));
+ assert.ok(php.includes("$site=cfg();"));
+ assert.ok(php.includes("$site['jhela_intake_enabled']"));
+ assert.ok(php.includes("$site['jhela_private_storage']"));
  assert.ok(route.includes("fail('manuscript_intake_disabled',503);"));
  assert.ok(route.indexOf("fail('manuscript_intake_disabled',503);")<route.indexOf('$pdo=db();'));
  assert.ok(route.includes("if(!$ready['manuscriptIntake'])fail('manuscript_intake_not_ready',503);"));
