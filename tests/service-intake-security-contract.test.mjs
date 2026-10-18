@@ -93,3 +93,29 @@ test('all 21 approved paid service cases have bilingual private-brief guidance w
  assert.match(buyer,/\/api\/commerce\/service-intake/);
  assert.match(buyer,/credentials:'same-origin'/);
 });
+
+test('confidential service brief is scrubbed on collapse, re-authorised on reopen and closed on tab background',()=>{
+ const begin=buyer.indexOf('function serviceIntakeEditor(');
+ const end=buyer.indexOf('function serviceFileWorkspace(',begin);
+ assert.ok(begin>0&&end>begin);
+ const editor=buyer.slice(begin,end);
+ assert.ok(editor.includes('function clearPrivateBrief()'));
+ for(const field of [
+  "subject.input.value=''", "background.input.value=''",
+  "objectives.input.value=''", "form.reset()",
+  "guardian.hidden=true", "guardian.style.display='none'",
+  "save.disabled=true", "revision=0", "loaded=false"
+ ])assert.ok(editor.includes(field),'confidential state must be cleared: '+field);
+ assert.ok(editor.includes("if(!disclosure.open){clearPrivateBrief();return;}"),
+  'closing the form must invalidate the displayed private record');
+ assert.ok(editor.includes('const stamp=++viewRevision'),
+  'each authenticated private read needs a fresh version');
+ assert.ok(editor.includes('if(stamp!==viewRevision||!disclosure.open)return;'),
+  'stale or closed-panel reads must not repopulate plaintext in the DOM');
+ assert.ok(editor.includes("guardian.style.display=minorCheck.checked?'flex':'none'"),
+  'minor-only guardian controls must be truly hidden, including inline CSS');
+ assert.ok(editor.includes("credentials:'same-origin',cache:'no-store'"));
+ assert.ok(buyer.includes("document.addEventListener('visibilitychange'"));
+ assert.ok(buyer.includes("window.addEventListener('pagehide',closePrivateOrderPanels)"));
+ assert.ok(buyer.includes('Unsaved changes are cleared when you close this form or leave the page.'));
+});
