@@ -92,6 +92,8 @@ jobs:
           node --test tests/masterplan-evidence-reuse-audit.test.mjs
           node scripts/masterplan-evidence-reuse-audit.mjs --output .artifacts/masterplan-existing-work-reuse.json
           node --check assets/js/commerce-checkout-en.js
+          node --check assets/js/jr-choice-studio-v1.js
+          node --test tests/choice-studio-contract.test.mjs
           node --check assets/js/operations-commerce.js
           node --check assets/js/account-order-history.js
           node --check assets/js/book-store.js
@@ -246,7 +248,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/customer-dashboard-browser.spec.js tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/rcas-english-browser.spec.js tests/donation-payment-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js --reporter=line
+          npx playwright test tests/customer-dashboard-browser.spec.js tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/choice-studio-browser.spec.js tests/rcas-english-browser.spec.js tests/donation-payment-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js --reporter=line
       - name: Keep failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
