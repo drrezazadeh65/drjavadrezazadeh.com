@@ -17,7 +17,7 @@ require_once __DIR__.'/jr-publishing-digital.php';
 const JR_PUB_ACTIVATE_SLUG = 'tefl-ma-exams-1370-1405';
 const JR_PUB_ACTIVATE_FILES = [
  'question_pdf'=>['tefl_1370_1405_questions.pdf','6245641c453e92ee005c4176575ef315b96ac72fd8535b7e3ff67c2369dda7c8'],
- 'answer_pdf'=>['tefl_1370_1405_answers.pdf','db8070f8a88723c1947a094a461ad2f703192092b09f03255867bbab4']
+ 'answer_pdf'=>['tefl_1370_1405_answers.pdf','db8070f8a88723c1947a094a461ad2f703192092b09f03255867bbab53fa2ab4']
 ];
 function jrPubActivateReport(array $checks, bool $changed=false): never {
  $missing=array_keys(array_filter($checks,static fn(bool $ok):bool=>!$ok));
