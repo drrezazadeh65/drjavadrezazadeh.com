@@ -1,36 +1,50 @@
 name: JHELA Editorial Readiness
-
 on:
   push:
     branches:
       - migration/bertina-linux6
     paths:
-      - 'scripts/journal-ojs-preflight.php'
-      - 'tests/journal-ojs-preflight.php'
+      - 'api/jhela-intake.php'
+      - 'api/jhela-native-editorial.php'
+      - 'api/operations.php'
+      - 'assets/js/jhela-author-workspace.js'
+      - 'assets/js/operations-jhela-host-readiness.js'
+      - 'assets/js/operations-jhela-manuscripts.js'
+      - 'journal/**'
       - 'docs/journal/**'
+      - 'tests/jhela-founding-intake.test.mjs'
+      - 'tests/jhela-host-readiness.test.mjs'
+      - 'tests/jhela-owner-triage.test.mjs'
+      - 'tests/jhela-no-retired-vendor-public.test.mjs'
       - '.github/workflows/jhela-editorial-readiness.yml'
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
   editorial-preflight:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
       - uses: actions/checkout@v4
-      - name: Validate preflight and closed-by-default contract
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, mbstring, fileinfo, openssl
+          coverage: none
+      - name: Validate native PHP handlers and browser scripts
         run: |
-          php -l scripts/journal-ojs-preflight.php
-          php -l tests/journal-ojs-preflight.php
-          php tests/journal-ojs-preflight.php
-      - name: Owner-authorised native intake remains host-gated and fail-closed
+          php -l api/jhela-intake.php
+          php -l api/jhela-native-editorial.php
+          php -l api/operations.php
+          node --check assets/js/jhela-author-workspace.js
+          node --check assets/js/operations-jhela-host-readiness.js
+          node --check assets/js/operations-jhela-manuscripts.js
+      - name: Verify native intake, host safety, editorial and no-retired-platform contracts
         run: |
-          grep -Fq 'Submission availability is verified in real time' journal/submission/index.html
-          grep -Fq 'وضعیت دریافت امن مقاله به‌صورت زنده بررسی می‌شود' journal/fa/submission/index.html
-          grep -Fq "getenv('JR_JHELA_INTAKE_ENABLED')!=='true'" api/jhela-intake.php
-          node --test tests/jhela-founding-intake.test.mjs
-      - name: Record scope
+          node --test tests/jhela-founding-intake.test.mjs tests/jhela-host-readiness.test.mjs tests/jhela-owner-triage.test.mjs tests/jhela-no-retired-vendor-public.test.mjs
+      - name: Record evidence boundary
         run: |
-          echo 'JHELA source-only QA: OJS remains prohibited. Owner-authorised native preliminary intake is guarded by independent Bertina host TLS, private storage, ClamAV, account and database checks; live activation is NOT certified here.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'JHELA native source contracts passed. The live server must separately prove private storage, TLS, antivirus, verified account, real receipt, reviewer workflow, finance and publication. Source CI is not production certification.' >> "$GITHUB_STEP_SUMMARY"
