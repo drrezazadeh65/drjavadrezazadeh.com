@@ -149,8 +149,14 @@ function bindRetry(){
   button.disabled=true;
   setStatus(text.sending,'checking');
   try{
-   await call('/auth/retry-verification',{email:emailField.value,locale:lang});
-   // Use the same result for existing/nonexisting addresses to prevent enumeration.
+   const {r,d}=await call('/auth/retry-verification',{email:emailField.value,locale:lang});
+   if(!r.ok){
+    const reason=d?.error;
+    return setStatus(reason==='verification_email_unavailable'?text.emailTransportUnavailable:
+      reason==='rate_limited'?text.rateLimited:text.generic,'error');
+   }
+   // Same success text for existing and nonexisting addresses prevents enumeration.
+   // An accepted request is not independent evidence of inbox delivery.
    setStatus(text.retryPending,'success');
   }catch{setStatus(text.generic,'error')}
   finally{button.disabled=false}
