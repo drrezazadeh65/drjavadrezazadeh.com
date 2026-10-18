@@ -105,8 +105,18 @@
   const el=document.createElement('article');
   el.className='book-product-card';
   const coverSrc=bookCoverUrl(book);
-  const cover=coverSrc?'<figure class="book-cover"><img src="'+escapeHtml(coverSrc)+'" width="600" height="900" loading="lazy" decoding="async" alt="'+escapeHtml(isFa?'جلد کتاب «'+book.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+book.english_reference_title+' by Javad Rezazadeh Yazdeli')+'"></figure>':'<div class="book-cover-placeholder"><strong lang="fa" dir="rtl">'+escapeHtml(book.title_fa)+'</strong></div>';
-  el.innerHTML=cover+
+  const frontAlt=isFa?'جلد کتاب «'+book.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+book.english_reference_title+' by Javad Rezazadeh Yazdeli';
+  const backSrc=bookBackUrl(book);
+  const cover=coverSrc?'<figure class="book-cover"><img data-book-gallery-image src="'+escapeHtml(coverSrc)+'" width="600" height="900" loading="lazy" decoding="async" alt="'+escapeHtml(frontAlt)+'"></figure>':'<div class="book-cover-placeholder"><strong lang="fa" dir="rtl">'+escapeHtml(book.title_fa)+'</strong></div>';
+  // Owner-approved cover files only. The interaction affects neither cart nor stock.
+  const gallery=(coverSrc&&backSrc)?'<div class="jr-book-card-gallery" data-book-gallery="'+escapeHtml(book.id)+'">'+
+   cover+
+   '<div class="jr-book-gallery-footer"><span class="jr-book-gallery-caption" role="status" aria-live="polite">'+(isFa?'تصویر روی جلد اصلی':'Original front cover')+'</span>'+
+   '<div class="jr-book-gallery-actions" role="group" aria-label="'+escapeHtml(isFa?'تصاویر کتاب «'+book.title_fa+'»':'Cover images of '+book.english_reference_title)+'">'+
+   '<button type="button" data-book-gallery-view="front" data-book-gallery-id="'+escapeHtml(book.id)+'" aria-pressed="true">'+(isFa?'روی جلد':'Front')+'</button>'+
+   '<button type="button" data-book-gallery-view="back" data-book-gallery-id="'+escapeHtml(book.id)+'" aria-pressed="false">'+(isFa?'پشت جلد':'Back')+'</button>'+
+   '</div></div></div>':cover;
+  el.innerHTML=gallery+
    '<div class="book-product-copy"><span class="status-chip">'+(isFa?'منتشرشده':'Published')+'</span>'+
    '<h2 dir="rtl" lang="fa">'+escapeHtml(book.title_fa)+'</h2><p>'+escapeHtml(isFa?book.description_fa:book.description_en)+'</p>'+cardBibliography(book)+
    '<div class="book-price">'+escapeHtml(money(book.commerce?.price,book.commerce?.currency))+'</div>'+
@@ -118,7 +128,33 @@
  function renderCatalog(data){
   const host=document.querySelector('[data-book-catalog]'); if(!host) return;
   host.innerHTML=''; data.books.forEach(b=>host.appendChild(card(b)));
-  host.addEventListener('click',e=>{const btn=e.target.closest('[data-add-book]');if(!btn)return;const b=data.books.find(x=>x.id===btn.dataset.addBook);if(b)add(b);});
+  host.addEventListener('click',e=>{
+   const toggle=e.target.closest('[data-book-gallery-view]');
+   if(toggle&&host.contains(toggle)){
+    const id=toggle.getAttribute('data-book-gallery-id');
+    const book=data.books.find(x=>x.id===id);
+    const view=toggle.getAttribute('data-book-gallery-view');
+    const frame=toggle.closest('[data-book-gallery]');
+    const image=frame?.querySelector('[data-book-gallery-image]');
+    if(!book||!frame||!image||!['front','back'].includes(view))return;
+    const src=view==='back'?bookBackUrl(book):bookCoverUrl(book);
+    if(!src)return;
+    image.src=src;
+    image.alt=view==='back'
+     ?(isFa?'پشت جلد اصلی کتاب «'+book.title_fa+'»':'Authentic back cover of '+book.english_reference_title)
+     :(isFa?'جلد کتاب «'+book.title_fa+'» اثر جواد رضازاده یزدلی':'Cover of '+book.english_reference_title+' by Javad Rezazadeh Yazdeli');
+    const caption=frame.querySelector('.jr-book-gallery-caption');
+    if(caption)caption.textContent=view==='back'?(isFa?'تصویر پشت جلد اصلی':'Original back cover'):(isFa?'تصویر روی جلد اصلی':'Original front cover');
+    frame.querySelectorAll('[data-book-gallery-view]').forEach(button=>{
+     button.setAttribute('aria-pressed',String(button===toggle));
+    });
+    return;
+   }
+   const btn=e.target.closest('[data-add-book]');
+   if(!btn||!host.contains(btn))return;
+   const b=data.books.find(x=>x.id===btn.dataset.addBook);
+   if(b)add(b);
+  });
  }
  function renderDetail(data){
   const host=document.querySelector('[data-book-detail]'); if(!host) return;
