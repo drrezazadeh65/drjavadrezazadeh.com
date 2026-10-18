@@ -99,10 +99,11 @@
   ],
   "latestOwnerSupersession": {
     "directive": "docs/governance/V5.2_EVOLUTION_OWNER_DIRECTIVE_20261018.md",
-    "ownerAuthorizedNativePreliminaryManuscriptIntake": true,
+    "ownerAuthorizedNativePreliminaryManuscriptIntake": false,
     "noOjsInstallationBefore": "2026-10-28",
-    "actualLiveIntakeReady": "UNVERIFIED_REQUIRES_SECURE_HOST_ACCEPTANCE",
-    "supersedesHistoricManuscriptIntakeClosedPolicy": true,
-    "stagedPaymentsAndReleaseInsteadOfFullHundredPercentFreeze": true
+    "actualLiveIntakeReady": "OWNER_SUSPENDED",
+    "supersedesHistoricManuscriptIntakeClosedPolicy": false,
+    "stagedPaymentsAndReleaseInsteadOfFullHundredPercentFreeze": true,
+    "nativeJhelaImplementation": "PLANNING_ONLY"
   }
 }

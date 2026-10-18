@@ -2,10 +2,10 @@
   "schema": "jhela-native-intake-activation-v1",
   "decidedBy": "SITE_OWNER",
   "decisionDate": "2026-10-18",
-  "targetVersion": "5.2.1",
+  "targetVersion": "FUTURE_OWNER_ORDER_REQUIRED",
   "canonicalRepository": "drrezazadeh65/drjavadrezazadeh.com",
   "canonicalBranch": "migration/bertina-linux6",
-  "ownerAuthorizesPreliminaryManuscriptSubmission": true,
+  "ownerAuthorizesPreliminaryManuscriptSubmission": false,
   "independentReviewOrAcceptanceOperational": false,
   "nativePublishingWorkflowOperational": false,
   "ojsInstallationProhibitedThrough": "2026-10-27",
@@ -31,5 +31,6 @@
   "publicIntakeReady": false,
   "readinessProof": "NONE_AT_SOURCE_COMMIT",
   "liveReleaseProof": "NONE_AT_SOURCE_COMMIT",
-  "operatingRule": "Only surface upload when server reports manuscriptIntake=true; never claim formal peer review or accepted publication."
+  "operatingRule": "Fail closed: manuscript create/upload remains suspended until explicit new owner authorization, regardless of all host checks. Reviewer expressions of interest separate.",
+  "ownerHold": "SUBMISSIONS_AND_PDF_UPLOAD_PAUSED"
 }

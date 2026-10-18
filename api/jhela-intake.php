@@ -7,10 +7,10 @@ declare(strict_types=1);
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
-// Owner directive 2026-10-18: preliminary native intake is authorised in principle.
-// Host-level security/AV/DB readiness and the private feature flag remain mandatory.
+// Owner decision 2026-10-18: no manuscript metadata creation or PDF upload until a new explicit order.
+// Regardless of host-readiness flags, fail closed before accessing the database.
 // OJS installation remains separately prohibited through 2026-10-27.
-const JHELA_NATIVE_PRELIMINARY_INTAKE_OWNER_AUTHORIZED = true;
+const JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED = true;
 
 function jhelaConfig(): array {
   $dir=(string)(getenv('JR_JHELA_PRIVATE_STORAGE')?:'');
@@ -52,7 +52,7 @@ function jhelaReadiness(?PDO $pdo): array {
   $upload=$secure&&jhelaPrivateRoot($c['privateDir'])!==null&&jhelaAvReady($c['antivirus']);
   return [
     'profile'=>$secure,
-    'manuscriptIntake'=>$upload&&$c['intake']&&JHELA_NATIVE_PRELIMINARY_INTAKE_OWNER_AUTHORIZED,
+    'manuscriptIntake'=>$upload&&$c['intake']&&!JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED,
     'reviewerIntake'=>$secure&&$c['reviewers'],
     'accountVerificationRequired'=>true,
     'manuscriptFormat'=>'PDF', 'maxFileBytes'=>15728640,
@@ -138,11 +138,10 @@ function jhelaPrivateHome(PDO $pdo,array $a): never {
 }
 function jhelaIntakeRoute(string $path,string $verb): never {
   header('Cache-Control: no-store, private, max-age=0');
-  // The owner has now approved preliminary intake; readiness must still be checked
-  // in each create/upload handler. No OJS or peer-review pathway is enabled here.
-  if(!JHELA_NATIVE_PRELIMINARY_INTAKE_OWNER_AUTHORIZED
+  // Owner pause must be enforced at the API boundary, not merely in the browser.
+  if(JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED
     && in_array($path,['/journal/manuscripts/create','/journal/manuscripts/upload'],true))
-    fail('manuscript_intake_not_owner_authorized',503);
+    fail('manuscript_submissions_paused',503);
   $pdo=db();
   if($path==='/journal/intake/health'&&$verb==='GET'){
     $state=jhelaReadiness($pdo);

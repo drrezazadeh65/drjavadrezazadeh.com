@@ -35,13 +35,16 @@ test('the 21 services remain in the source-scoped execution inventory without ma
   for(const locale of ['fa','en'])assert.ok(fs.existsSync(locale+'/services/'+s.id+'/index.html'),locale+' missing '+s.id);
  }
 });
-test('latest owner permission supersedes temporary manuscript pause but live intake remains readiness-gated',()=>{
+test('staged website releases keep the separate manuscript suspension',()=>{
  const php=read('api/jhela-intake.php');
- assert.ok(php.includes('const JHELA_NATIVE_PRELIMINARY_INTAKE_OWNER_AUTHORIZED = true;'));
- assert.ok(php.includes("if(!$ready['manuscriptIntake'])fail('manuscript_intake_not_ready',503);"));
+ assert.ok(php.includes('const JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED = true;'));
+ assert.ok(php.includes("fail('manuscript_submissions_paused',503);"));
  assert.ok(php.includes("'/journal/reviewer/apply'"));
  const decision=read('docs/governance/V5.2_EVOLUTION_OWNER_DIRECTIVE_20261018.md');
- assert.ok(decision.includes('reopen manuscript submission NOW'));
+ assert.ok(decision.includes('global 100%-before-release'));
+ assert.ok(decision.includes('manuscript create/upload'));
+ assert.equal(scope.latestOwnerSupersession.ownerAuthorizedNativePreliminaryManuscriptIntake,false);
+ assert.equal(json('platform/jhela-native-intake-activation-v1.json').ownerAuthorizesPreliminaryManuscriptSubmission,false);
  for(const p of ['journal/submission/index.html','journal/fa/submission/index.html'])assert.ok(read(p).includes('data-jhela-article-open hidden'));
  assert.ok(fs.existsSync('journal/dashboard/index.html'));
  assert.ok(fs.existsSync('journal/fa/dashboard/index.html'));
