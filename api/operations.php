@@ -374,6 +374,16 @@ function operationsRoute(string $path, string $verb): never {
         if(str_starts_with($path,'/admin/operations/publishing/authors'))
             jrPubKycAdminRoute($pdo,$path,$verb,$accountId,$csrf,$configuration);
 
+        // Sensitive infrastructure diagnostics are visible to a fresh-MFA
+        // SUPER_ADMIN only. Return booleans, never host paths or secrets.
+        if ($path === '/admin/operations/jhela/host-readiness' && $verb === 'GET') {
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('editorial_owner_role_required',403);
+            if(!rateAllowed($pdo,'jhela_owner_host_readiness',$accountId,12,300))
+                fail('rate_limited',429);
+            jhelaOwnerHostReadiness($pdo);
+        }
+
         // First-party JHELA preliminary editorial queue. Fresh admin MFA was
         // verified above; no manuscript bytes, private path or public decision is exposed.
         if ($path === '/admin/operations/jhela/manuscripts' && $verb === 'GET') {

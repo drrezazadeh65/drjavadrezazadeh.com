@@ -45,6 +45,9 @@ jobs:
           node --check assets/js/operations-jhela-maturity.js
           node --check assets/js/jhela-author-workspace.js
           node --check assets/js/operations-jhela-reviewers.js
+          node --check assets/js/operations-jhela-host-readiness.js
+          node --test tests/jhela-host-readiness.test.mjs
+          php -l api/jhela-native-editorial.php
           node --test tests/jhela-founding-intake.test.mjs tests/jhela-no-retired-vendor-public.test.mjs
           node --test tests/jhela-admin-workstream.test.mjs tests/jhela-author-readiness.test.mjs tests/jhela-international-roadmap.test.mjs tests/jhela-target-architecture.test.mjs tests/jhela-evidence-ledger.test.mjs
           node --test tests/jhela-article-metadata.test.mjs

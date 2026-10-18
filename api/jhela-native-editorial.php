@@ -121,3 +121,35 @@ function jhelaOwnerScreen(PDO $pdo,string $ownerId,array $body): never {
     }
     respond(['ok'=>true,'id'=>$id,'status'=>$next,'preliminaryOnly'=>true]);
 }
+
+/**
+ * Read-only, sanitized host readiness checklist. Accessible only to a
+ * fresh-MFA SUPER_ADMIN through the operations router. No absolute paths,
+ * credentials, account data or manuscript contents are returned.
+ */
+function jhelaOwnerHostReadiness(PDO $pdo): never {
+    $c=jhelaConfig();
+    $checks=[
+        'motherDatabase'=>jhelaSchemaReady($pdo),
+        'trustedTls'=>$c['trustedTLS']===true,
+        'privateStorageConfigured'=>$c['privateDir']!=='',
+        'privateStorageWritable'=>jhelaPrivateRoot($c['privateDir'])!==null,
+        'antivirusConfigured'=>$c['antivirus']!=='',
+        'antivirusExecutable'=>jhelaAvReady($c['antivirus']),
+        'manuscriptIntakeEnabled'=>$c['intake']===true,
+        'reviewerIntakeEnabled'=>$c['reviewers']===true,
+    ];
+    $state=jhelaReadiness($pdo);
+    respond([
+        'ok'=>true,
+        'schema'=>'jhela-owner-host-readiness-v1',
+        'checks'=>$checks,
+        'manuscriptIntakeReady'=>$state['manuscriptIntake']===true,
+        'reviewerIntakeReady'=>$state['reviewerIntake']===true,
+        'antivirusCleanSampleVerified'=>false,
+        'endToEndReceiptVerified'=>false,
+        'formalPeerReviewOperational'=>false,
+        'articlePublicationOperational'=>false,
+        'note'=>'Configuration and executable checks are not a substitute for an observed malware scan, confidential PDF receipt, review or publication.',
+    ]);
+}
