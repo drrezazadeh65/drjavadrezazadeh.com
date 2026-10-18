@@ -309,7 +309,7 @@ function normalizedRegistrationMobile(mixed $input): ?string {
         '۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9',
         '٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4','٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9'
     ]);
-    $mobile=preg_replace('/[ \\t().-]+/','',$mobile);
+    $mobile=preg_replace('/[\s().-]+/','',$mobile);
     if (!is_string($mobile)) fail('invalid_registration');
     if ($mobile==='') return null;
     if (preg_match('/^09[0-9]{9}$/D',$mobile)) $mobile='+98'.substr($mobile,1);
