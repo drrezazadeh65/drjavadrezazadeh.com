@@ -83,11 +83,13 @@ function jhelaOwnerScreen(PDO $pdo,string $ownerId,array $body): never {
     if (!jhelaSchemaReady($pdo)) fail('journal_schema_unavailable',503);
     $id=(string)($body['id']??'');
     $next=(string)($body['status']??'');
-    if (!validUuid($id)||!in_array($next,['UNDER_SCREENING','NEEDS_INFORMATION'],true))
+    if (!validUuid($id)||!in_array($next,['UNDER_SCREENING','NEEDS_INFORMATION','DESK_DECLINED'],true))
         fail('invalid_screening_transition',422);
     $publicMessage=$next==='NEEDS_INFORMATION'
         ?jhelaStr($body['message']??null,20,500,'screening_message_required')
-        :'The manuscript has entered preliminary editorial screening. This is not peer review or acceptance.';
+        :($next==='DESK_DECLINED'
+          ?'Pre-review editorial desk decision: '.jhelaStr($body['message']??null,40,1000,'desk_decision_reason_required')
+          :'The manuscript has entered preliminary editorial screening. This is not peer review or acceptance.');
     $pdo->beginTransaction();
     try {
         $q=$pdo->prepare('SELECT account_id,status,uploaded_at,manuscript_sha256,file_bytes
@@ -102,7 +104,7 @@ function jhelaOwnerScreen(PDO $pdo,string $ownerId,array $body): never {
         }
         $allowed=[
             'PRELIMINARY_RECEIVED'=>['UNDER_SCREENING','NEEDS_INFORMATION'],
-            'UNDER_SCREENING'=>['NEEDS_INFORMATION'],
+            'UNDER_SCREENING'=>['NEEDS_INFORMATION','DESK_DECLINED'],
             'AUTHOR_INFORMATION_RECEIVED'=>['UNDER_SCREENING','NEEDS_INFORMATION']
         ];
         $previous=(string)$m['status'];

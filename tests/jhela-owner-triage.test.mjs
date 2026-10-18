@@ -49,3 +49,23 @@ test('exactly one native owner panel and one safe script are present in each adm
 test('isolated operations MySQL fixture includes the native editorial module',()=>{
  assert.ok(read('tests/operations-mysql.php').includes("'jhela-native-editorial.php'"));
 });
+
+test('pre-review desk decline requires reason, owner MFA and immutable author-visible event',()=>{
+ const s=read('api/jhela-native-editorial.php');
+ const start=s.indexOf('function jhelaOwnerScreen(');
+ const end=s.indexOf('function jhelaOwnerHostReadiness(');
+ const body=s.slice(start,end);
+ assert.ok(body.includes("'DESK_DECLINED'"));
+ assert.ok(body.includes('desk_decision_reason_required'));
+ assert.ok(body.includes("jhelaStr($body['message']??null,40,1000"));
+ assert.ok(body.includes("'UNDER_SCREENING'=>['NEEDS_INFORMATION','DESK_DECLINED']"));
+ assert.ok(body.includes('jhelaEvent($pdo,$id,$next,$publicMessage)'));
+ assert.ok(body.includes('operationsAudit($pdo,$ownerId'));
+ assert.ok(!body.includes("'ACCEPTED'"));
+ assert.ok(!body.includes("'PUBLISHED'"));
+ const js=read('assets/js/operations-jhela-manuscripts.js');
+ assert.ok(js.includes("screen(m,'DESK_DECLINED',reason.value)"));
+ assert.ok(js.includes("if(m.status==='UNDER_SCREENING')"));
+ const author=read('assets/js/jhela-author-workspace.js');
+ assert.ok(author.includes('DESK_DECLINED:t('));
+});

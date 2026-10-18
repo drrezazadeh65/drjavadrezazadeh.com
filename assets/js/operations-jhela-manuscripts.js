@@ -75,7 +75,23 @@ function card(m){
   const ask=el('button',t('Request author information','درخواست تکمیل اطلاعات'));
   ask.type='submit';form.append(ask);
   form.addEventListener('submit',e=>{e.preventDefault();if(field.value.trim().length<20)return;screen(m,'NEEDS_INFORMATION',field.value);});
-  actions.append(form);item.append(actions);
+  actions.append(form);
+  // Desk decline is a reasoned, auditable pre-review decision, not peer review.
+  if(m.status==='UNDER_SCREENING'){
+   const decline=el('form');
+   const reasonLabel=el('label',t('Reasoned desk decision (40–1000 characters)',
+    'دلیل مستند تصمیم اولیه سردبیری (۴۰ تا ۱۰۰۰ نویسه)'));
+   const reason=el('textarea');reason.required=true;reason.minLength=40;reason.maxLength=1000;reason.rows=4;
+   reasonLabel.append(reason);decline.append(reasonLabel);
+   const decision=el('button',t('Decline before peer review','عدم پذیرش در بررسی مقدماتی'));
+   decision.type='submit';decline.append(decision);
+   decline.addEventListener('submit',e=>{
+    e.preventDefault();if(reason.value.trim().length<40)return;
+    screen(m,'DESK_DECLINED',reason.value);
+   });
+   actions.append(decline);
+  }
+  item.append(actions);
  }
  return item;
 }

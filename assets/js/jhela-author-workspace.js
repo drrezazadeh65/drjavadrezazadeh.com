@@ -21,6 +21,7 @@ const state=s=>({AWAITING_FILE:t('Awaiting a secure PDF upload','در انتظا
  NEEDS_INFORMATION:t('Additional information requested','درخواست تکمیل اطلاعات'),
  AUTHOR_INFORMATION_RECEIVED:t('Author information received; editorial follow-up pending','اطلاعات تکمیلی نویسنده دریافت شد؛ در انتظار بررسی'),
  WITHDRAWN_BY_AUTHOR:t('Withdrawn by author (audit record retained)','انصراف نویسنده (سوابق محفوظ است)'),
+ DESK_DECLINED:t('Declined at preliminary editorial screening (before peer review)','عدم پذیرش در بررسی مقدماتی سردبیری (پیش از داوری)'),
  NOT_INVOICED:t('No invoice issued; no payment is due','فاکتوری صادر نشده و پرداختی لازم نیست'),
  PENDING:t('Academic application under review','درخواست همکاری در حال بررسی'),
  APPROVED:t('Approved','تأییدشده')})[s]||t('Status awaiting editorial verification','وضعیت در انتظار تأیید تحریریه');
