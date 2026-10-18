@@ -391,6 +391,51 @@ function operationsRoute(string $path, string $verb): never {
             jhelaOwnerScreen($pdo,$accountId,jsonBody());
         }
 
+        // First-party preliminary queue: verified operations admin and fresh MFA only.
+        // No manuscript bodies, file paths or unverified publication decisions.
+        if ($path === '/admin/operations/jhela/manuscripts' && $verb === 'GET') {
+            if(!jhelaSchemaReady($pdo))fail('journal_schema_unavailable',503);
+            if(!rateAllowed($pdo,'jhela_owner_manuscript_queue',$accountId,12,300))fail('rate_limited',429);
+            $q=$pdo->query("SELECT m.id,m.tracking_code,m.title,m.article_type,m.status,
+                 m.created_at,m.uploaded_at,m.original_filename,a.email_normalized AS author_email
+                 FROM jhela_intake_manuscripts m
+                 JOIN customer_accounts a ON a.id=m.account_id
+                 ORDER BY m.created_at DESC,m.id DESC LIMIT 80");
+            respond(['ok'=>true,'schema'=>'jhela-owner-preliminary-queue-v1',
+                'manuscripts'=>$q->fetchAll(),'formalPeerReviewOperational'=>false]);
+        }
+        if ($path === '/admin/operations/jhela/manuscripts/triage' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!jhelaSchemaReady($pdo))fail('journal_schema_unavailable',503);
+            if(!rateAllowed($pdo,'jhela_owner_manuscript_triage',$accountId,12,900))fail('rate_limited',429);
+            $input=jsonBody();$id=(string)($input['id']??'');$next=(string)($input['status']??'');
+            if(!validUuid($id)||!in_array($next,['UNDER_SCREENING','NEEDS_INFORMATION'],true))
+                fail('invalid_preliminary_transition',422);
+            $pdo->beginTransaction();
+            try {
+                $q=$pdo->prepare('SELECT status,uploaded_at FROM jhela_intake_manuscripts WHERE id=? FOR UPDATE');
+                $q->execute([$id]);$record=$q->fetch();
+                $old=is_array($record)?(string)$record['status']:'';
+                $allowed=($next==='UNDER_SCREENING'&&in_array($old,['PRELIMINARY_RECEIVED','NEEDS_INFORMATION'],true))
+                    ||($next==='NEEDS_INFORMATION'&&$old==='UNDER_SCREENING');
+                if(!$allowed||empty($record['uploaded_at'])){
+                    $pdo->rollBack();fail('preliminary_transition_not_allowed',409);
+                }
+                $update=$pdo->prepare('UPDATE jhela_intake_manuscripts SET status=? WHERE id=? AND status=?');
+                $update->execute([$next,$id,$old]);
+                if($update->rowCount()!==1)throw new RuntimeException('preliminary_concurrent_transition');
+                $message=$next==='UNDER_SCREENING'
+                    ?'Preliminary editorial screening is in progress. Formal peer review has not begun.'
+                    :'Additional information is required before preliminary screening can continue.';
+                jhelaEvent($pdo,$id,$next,$message);
+                operationsAudit($pdo,$accountId,'jhela_preliminary_'.strtolower($next),$id);
+                $pdo->commit();
+            }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+            respond(['ok'=>true,'schema'=>'jhela-owner-preliminary-transition-v1','status'=>$next,
+                'formalPeerReviewStarted'=>false]);
+        }
+
         // Owner-approved reviewer screening is a private, real DB workflow, never public automatically.
         if ($path === '/admin/operations/jhela/reviewers' && $verb === 'GET') {
             if(!jhelaSchemaReady($pdo))fail('journal_schema_unavailable',503);

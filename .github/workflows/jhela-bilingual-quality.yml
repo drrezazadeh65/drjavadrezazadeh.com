@@ -7,6 +7,9 @@ on:
       - 'journal/**'
       - '.htaccess'
       - 'tests/jhela-public-host-recovery.test.mjs'
+      - 'tests/jhela-owner-triage.test.mjs'
+      - 'api/operations.php'
+      - 'assets/js/operations-jhela-manuscripts.js'
       - 'assets/js/jhela-*.js'
       - 'assets/css/journal-v2.css'
       - 'scripts/jhela-*.mjs'
@@ -25,6 +28,9 @@ on:
       - 'journal/**'
       - '.htaccess'
       - 'tests/jhela-public-host-recovery.test.mjs'
+      - 'tests/jhela-owner-triage.test.mjs'
+      - 'api/operations.php'
+      - 'assets/js/operations-jhela-manuscripts.js'
       - 'assets/js/jhela-*.js'
       - 'assets/css/journal-v2.css'
       - 'scripts/jhela-*.mjs'
@@ -55,12 +61,14 @@ jobs:
           node --check assets/js/jhela-intake.js
           node --check assets/js/jhela-portal.js
           node --check assets/js/jhela-public-dashboard.js
+          node --check assets/js/operations-jhela-manuscripts.js
           node --check scripts/jhela-discovery-audit.mjs
           node --check scripts/jhela-release-audit.mjs
       - name: Verify JHELA public routing and native intake contracts
         run: |
-          node --test tests/jhela-public-host-recovery.test.mjs tests/jhela-founding-intake.test.mjs tests/nonmanuscript-masterplan-scope.test.mjs
+          node --test tests/jhela-public-host-recovery.test.mjs tests/jhela-founding-intake.test.mjs tests/nonmanuscript-masterplan-scope.test.mjs tests/jhela-owner-triage.test.mjs
           php -l api/jhela-intake.php
+          php -l api/operations.php
       - name: Audit independent JHELA sitemap, hreflang and staged origins
         run: node scripts/jhela-discovery-audit.mjs
       - name: Audit English and Persian policy parity, reviewer safeguards and noindex stage routes
