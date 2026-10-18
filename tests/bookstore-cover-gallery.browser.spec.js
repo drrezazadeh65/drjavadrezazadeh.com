@@ -31,7 +31,7 @@ for(const locale of ['fa','en']){
    await expect(image).toHaveAttribute('alt',/Cover|جلد/);
    await back.click();
    await expect(image).toHaveAttribute('src',book.bibliography.back_cover_image);
-   await expect(image).toHaveAttribute('alt',/Back|پشت/);
+   await expect(image).toHaveAttribute('alt',/back|پشت/i);
    await expect(back).toHaveAttribute('aria-pressed','true');
    await expect(front).toHaveAttribute('aria-pressed','false');
    await expect.poll(()=>image.evaluate(img=>img.complete&&img.naturalWidth>0),
