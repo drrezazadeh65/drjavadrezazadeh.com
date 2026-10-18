@@ -96,5 +96,13 @@
     "Mobile/desktop visual QA, original media, 42 bilingual service URLs and full indexable schema graph",
     "Science safeguards and verified interpretation for Golden Talent, RCAS and BAHAR",
     "Independent current-SHA CI and real Bertina backup, private file storage and safe deploy gate"
-  ]
+  ],
+  "latestOwnerSupersession": {
+    "directive": "docs/governance/V5.2_EVOLUTION_OWNER_DIRECTIVE_20261018.md",
+    "ownerAuthorizedNativePreliminaryManuscriptIntake": true,
+    "noOjsInstallationBefore": "2026-10-28",
+    "actualLiveIntakeReady": "UNVERIFIED_REQUIRES_SECURE_HOST_ACCEPTANCE",
+    "supersedesHistoricManuscriptIntakeClosedPolicy": true,
+    "stagedPaymentsAndReleaseInsteadOfFullHundredPercentFreeze": true
+  }
 }

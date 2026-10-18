@@ -1,14 +1,16 @@
 <?php
 declare(strict_types=1);
-/* JHELA founding-issue pre-OJS submission inbox.
- * Native OJS remains authoritative for peer review and final editorial decisions.
+/* JHELA: owner-authorised preliminary manuscript intake for the planned native
+ * editorial system. Receipt is not scientific acceptance, peer review or publication.
  * Requires verified existing site account, HTTPS, applied migration, private files and antivirus.
+ * No OJS installation, repair or integration is performed by this handler.
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
-// Owner hold: no OJS installation work from 2026-10-18 through 2026-10-27 inclusive.
-// Public manuscript intake remains disabled until an explicit future owner decision.
-const JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED = true;
+// Owner directive 2026-10-18: preliminary native intake is authorised in principle.
+// Host-level security/AV/DB readiness and the private feature flag remain mandatory.
+// OJS installation remains separately prohibited through 2026-10-27.
+const JHELA_NATIVE_PRELIMINARY_INTAKE_OWNER_AUTHORIZED = true;
 
 function jhelaConfig(): array {
   $dir=(string)(getenv('JR_JHELA_PRIVATE_STORAGE')?:'');
@@ -50,7 +52,7 @@ function jhelaReadiness(?PDO $pdo): array {
   $upload=$secure&&jhelaPrivateRoot($c['privateDir'])!==null&&jhelaAvReady($c['antivirus']);
   return [
     'profile'=>$secure,
-    'manuscriptIntake'=>$upload&&$c['intake']&&!JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED,
+    'manuscriptIntake'=>$upload&&$c['intake']&&JHELA_NATIVE_PRELIMINARY_INTAKE_OWNER_AUTHORIZED,
     'reviewerIntake'=>$secure&&$c['reviewers'],
     'accountVerificationRequired'=>true,
     'manuscriptFormat'=>'PDF', 'maxFileBytes'=>15728640,
@@ -136,9 +138,11 @@ function jhelaPrivateHome(PDO $pdo,array $a): never {
 }
 function jhelaIntakeRoute(string $path,string $verb): never {
   header('Cache-Control: no-store, private, max-age=0');
-  // Apply this suspension before database access, independent of deployment environment variables.
-  if(JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED && in_array($path,['/journal/manuscripts/create','/journal/manuscripts/upload'],true))
-    fail('manuscript_submissions_paused',503);
+  // The owner has now approved preliminary intake; readiness must still be checked
+  // in each create/upload handler. No OJS or peer-review pathway is enabled here.
+  if(!JHELA_NATIVE_PRELIMINARY_INTAKE_OWNER_AUTHORIZED
+    && in_array($path,['/journal/manuscripts/create','/journal/manuscripts/upload'],true))
+    fail('manuscript_intake_not_owner_authorized',503);
   $pdo=db();
   if($path==='/journal/intake/health'&&$verb==='GET'){
     $state=jhelaReadiness($pdo);

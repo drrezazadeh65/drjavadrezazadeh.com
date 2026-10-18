@@ -116,19 +116,20 @@ test('academic owner UI remains inside separate protected MFA workspace',()=>{
  assert.ok(!client.includes('innerHTML'));
 });
 
-// Explicit owner suspension: human-facing article intake and secure PHP upload endpoints must remain closed.
-test('owner hold keeps manuscript intake closed server-side without disabling independent reviewer applications',()=>{
- assert.ok(php.includes('const JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED = true;'));
- assert.ok(php.includes("'manuscriptIntake'=>$upload&&$c['intake']&&!JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED"));
+// Newer explicit owner permission supersedes the manuscript pause, but not security readiness.
+test('native preliminary intake is owner-authorized yet fails closed until DB, HTTPS, AV and private files are ready',()=>{
+ assert.ok(php.includes('const JHELA_NATIVE_PRELIMINARY_INTAKE_OWNER_AUTHORIZED = true;'));
+ assert.ok(php.includes("'manuscriptIntake'=>$upload&&$c['intake']&&JHELA_NATIVE_PRELIMINARY_INTAKE_OWNER_AUTHORIZED"));
+ assert.ok(php.includes("'trustedTLS'=>(cfg()['public_tls_confirmed']??false)===true"));
+ assert.ok(php.includes("getenv('JR_JHELA_INTAKE_ENABLED')==='true'"));
  const route=php.slice(php.indexOf('function jhelaIntakeRoute('));
- const guard=route.indexOf("fail('manuscript_submissions_paused',503)");
- const database=route.indexOf('$pdo=db();');
- assert.ok(guard>0&&guard<database,'suspended routes must reject before DB access');
  assert.ok(route.includes("'/journal/manuscripts/create','/journal/manuscripts/upload'"));
- assert.ok(route.includes("if(!$ready['reviewerIntake'])fail('reviewer_intake_not_ready',503);"),'reviewer applications keep separate readiness');
- assert.ok(js.includes('const manuscriptSubmissionsPaused=true;'));
- assert.ok(js.includes('article.hidden=manuscriptSubmissionsPaused||h.manuscriptIntake!==true'));
- assert.ok(js.includes("x.status==='AWAITING_FILE'&&!manuscriptSubmissionsPaused"));
- assert.ok(read('journal/submission/index.html').includes('Manuscript submissions are temporarily closed'));
- assert.ok(read('journal/fa/submission/index.html').includes('دریافت مقاله موقتاً غیرفعال است'));
+ assert.equal((route.match(/if\(!\$ready\['manuscriptIntake'\]\)fail\('manuscript_intake_not_ready',503\);/g)||[]).length,2,'both new metadata and PDF routes must require readiness');
+ assert.ok(route.includes("if(!$ready['reviewerIntake'])fail('reviewer_intake_not_ready',503);"),'reviewer applications keep their distinct controls');
+ assert.ok(js.includes('let manuscriptIntakeReady=false;'));
+ assert.ok(js.includes('manuscriptIntakeReady=h.manuscriptIntake===true;'));
+ assert.ok(js.includes('article.hidden=!manuscriptIntakeReady'));
+ assert.ok(js.includes("x.status==='AWAITING_FILE'&&manuscriptIntakeReady"));
+ assert.ok(read('journal/submission/index.html').includes('Preliminary intake opens only when the secure service is ready'));
+ assert.ok(read('journal/fa/submission/index.html').includes('دریافت مقدماتی فقط در وضعیت آماده‌به‌کارِ امن فعال می‌شود'));
 });

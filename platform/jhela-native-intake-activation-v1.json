@@ -1,0 +1,35 @@
+{
+  "schema": "jhela-native-intake-activation-v1",
+  "decidedBy": "SITE_OWNER",
+  "decisionDate": "2026-10-18",
+  "targetVersion": "5.2.1",
+  "canonicalRepository": "drrezazadeh65/drjavadrezazadeh.com",
+  "canonicalBranch": "migration/bertina-linux6",
+  "ownerAuthorizesPreliminaryManuscriptSubmission": true,
+  "independentReviewOrAcceptanceOperational": false,
+  "nativePublishingWorkflowOperational": false,
+  "ojsInstallationProhibitedThrough": "2026-10-27",
+  "ojsRequiredForPreliminaryReceipt": false,
+  "reusedSourcePaths": [
+    "api/jhela-intake.php",
+    "assets/js/jhela-author-workspace.js",
+    "database/unified/004c_jhela_founding_intake.sql",
+    "journal/submission/index.html",
+    "journal/fa/submission/index.html"
+  ],
+  "requiredHostChecks": [
+    "valid_live_TLS",
+    "configured_private_storage_outside_public_html",
+    "clamav_execution",
+    "reviewed_existing_mother_database_schema",
+    "verified_customer_account",
+    "same_origin_authorization",
+    "real_PDF_receipt",
+    "auditable_tracking_code",
+    "verified_duplicate_and_error_handling"
+  ],
+  "publicIntakeReady": false,
+  "readinessProof": "NONE_AT_SOURCE_COMMIT",
+  "liveReleaseProof": "NONE_AT_SOURCE_COMMIT",
+  "operatingRule": "Only surface upload when server reports manuscriptIntake=true; never claim formal peer review or accepted publication."
+}
