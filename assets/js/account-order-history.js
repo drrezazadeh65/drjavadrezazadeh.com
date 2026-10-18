@@ -8,6 +8,27 @@ const isEn=document.documentElement.lang==='en';
 const tr=(fa,en)=>isEn?en:fa;
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);if(cls)n.className=cls;return n;};
 const format=n=>new Intl.NumberFormat(isEn?'en-US':'fa-IR').format(n);
+/**
+ * Service-case timestamps come from the owner-controlled MySQL UTC columns.
+ * Render both interval ends in the visitor's local time zone; raw UTC strings
+ * are ambiguous for buyers outside Iran and at daylight-saving boundaries.
+ * An incomplete or invalid window must never be shown as a confirmed time.
+ */
+function formatBookingWindow(start,end,timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'){
+ const parse=value=>{
+  if(typeof value!=='string'||!/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/.test(value))return null;
+  const iso=value.replace(' ','T');
+  const d=new Date(iso+'Z');
+  return Number.isFinite(d.getTime())&&d.toISOString().slice(0,19)===iso?d:null;
+ };
+ const from=parse(start),until=parse(end);
+ if(!from||!until||until.getTime()<=from.getTime())return null;
+ try{
+  const formatter=new Intl.DateTimeFormat(isEn?'en-GB':'fa-IR',
+    {dateStyle:'medium',timeStyle:'short',timeZone});
+  return {start:formatter.format(from),end:formatter.format(until),timeZone};
+ }catch{return null;}
+}
 function showInfo(message,login){
   section.replaceChildren();
   const wrapper=el('div');wrapper.append(el('strong',message));
@@ -422,7 +443,18 @@ function render(orders){
               };
               for(const c of data.serviceCases){
                 const line=el('li',c.sku+' — '+(statuses[c.status]||tr('نیازمند بررسی','Review needed')));
-                if(c.bookingStart)line.append(el('small',' · '+tr('زمان ثبت‌شده: ','Recorded slot: ')+c.bookingStart));
+                if(c.bookingStart||c.bookingEnd){
+                   const appointment=formatBookingWindow(c.bookingStart,c.bookingEnd);
+                   if(appointment){
+                     line.append(el('small',' · '+tr('شروع جلسه: ','Session start: ')+
+                       appointment.start+' · '+tr('پایان: ','End: ')+
+                       appointment.end+' · '+tr('منطقه زمانی: ','Time zone: ')+appointment.timeZone));
+                   }else{
+                     line.append(el('small',' · '+tr(
+                       'بازه زمان جلسه نیازمند بررسی مجدد با تیم خدمات است.',
+                       'The recorded time window needs confirmation with the service team.')));
+                   }
+                 }
                 if(typeof c.sku==='string'&&/^(?:service|vip):[a-z0-9_-]{1,60}$/.test(c.sku)
                   &&c.status!=='cancelled'){
                   if(c.status!=='delivered')line.append(serviceIntakeEditor(order,c));
