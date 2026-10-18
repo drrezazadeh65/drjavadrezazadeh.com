@@ -1,0 +1,149 @@
+/* JR Operations Workspace Index v1 — navigation only.
+ * Existing operations access gates, API calls, status and form data are untouched.
+ * No local/session storage, telemetry, credentials, new API, or feature activation.
+ * Index appears only inside #ops-workspace after the existing administrator gate.
+ */
+(()=>{
+ 'use strict';
+ const workspace=document.getElementById('ops-workspace');
+ const nav=document.querySelector('[data-ops-workspace-index]');
+ if(!workspace||!nav||!workspace.contains(nav))return;
+ const en=document.documentElement.lang==='en';
+ const text=en?{
+   placeholder:'Filter existing operations sections…',
+   label:'Filter operational workspaces',
+   clear:'Clear filter',
+   empty:'No matching area. Try a broader term.',
+   count:n=>n+' operational areas',
+   shown:name=>'Opened existing workspace: '+name,
+   closed:'Workspace is locked; access requires verified administrator authentication.',
+   shortcut:'Press / to search',
+   fallback:'Area currently unavailable in this edition.'
+ }:{
+   placeholder:'جستجو در بخش‌های عملیاتی…',
+   label:'جستجوی بخش‌های مرکز مدیریت',
+   clear:'پاک کردن جستجو',
+   empty:'بخشی با این عبارت یافت نشد؛ عبارت کوتاه‌تری امتحان کنید.',
+   count:n=>new Intl.NumberFormat('fa-IR').format(n)+' بخش عملیاتی',
+   shown:name=>'بخش موجود باز شد: '+name,
+   closed:'این بخش خصوصی قفل است و فقط پس از تأیید مدیر نمایش داده می‌شود.',
+   shortcut:'کلید / برای جستجو',
+   fallback:'این بخش در نسخه حاضر موجود نیست.'
+ };
+ const groups=[
+   {id:'jr-intelligence',group:'evidence'},
+   {id:'ops-cards',group:'evidence',label:en?'Evidence and engine register':'فهرست موتورهای عملیاتی'},
+   {id:'ops-stage7-blueprint',group:'planning'},
+   {id:'ops-commerce',group:'commerce'},
+   {id:'ops-publishing-author-review',group:'publishing'},
+   {id:'ops-jhela-workstream',group:'publishing'},
+   {id:'ops-social',group:'social'},
+   {id:'ops-social-composer',group:'social'},
+   {id:'ops-social-review',group:'social'},
+   {id:'ops-social-settings',group:'social'},
+   {id:'ops-organic-growth',group:'planning'},
+   {id:'ops-revenue-planning',group:'planning'},
+   {id:'ops-free-resources',group:'resources'}
+ ];
+ const groupNames=en?{
+   evidence:'Evidence and quality',planning:'Strategy and planning',
+   commerce:'Commerce and orders',publishing:'Scholarly publishing',
+   social:'Publication and media',resources:'Resources and tools'
+ }:{
+   evidence:'شواهد و کیفیت',planning:'راهبرد و برنامه‌ریزی',
+   commerce:'سفارش‌ها و تجارت',publishing:'انتشارات علمی',
+   social:'انتشار و رسانه‌ها',resources:'منابع و ابزارها'
+ };
+ const filter=nav.querySelector('[data-ops-index-filter]');
+ const list=nav.querySelector('[data-ops-index-list]');
+ const counter=nav.querySelector('[data-ops-index-count]');
+ const status=nav.querySelector('[data-ops-index-status]');
+ const clear=nav.querySelector('[data-ops-index-clear]');
+ if(!filter||!list||!counter||!status||!clear)return;
+ const normalize=value=>String(value||'').normalize('NFKC')
+  .toLocaleLowerCase(en?'en':'fa').replace(/[\u064b-\u065f\u0670\u0640]/g,'')
+  .replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[\u200c\u200d]/g,' ')
+  .replace(/\s+/g,' ').trim();
+ const items=groups.map(entry=>{
+   const target=document.getElementById(entry.id);
+   if(!target||!workspace.contains(target))return null;
+   const title=entry.label||target.querySelector(':scope > summary,:scope > h2')?.textContent?.trim()||'';
+   if(!title)return null;
+   return {...entry,target,title};
+ }).filter(Boolean);
+ let built=false;
+ function focusTarget(target){
+   const focus=target.matches('details')?
+     target.querySelector(':scope > summary'):(target.querySelector(':scope > h2')||target);
+   if(!focus)return;
+   // A temporary programme focus target does not alter saved content or permissions.
+   if(!focus.hasAttribute('tabindex'))focus.setAttribute('tabindex','-1');
+   focus.focus({preventScroll:true});
+   target.scrollIntoView({behavior:'auto',block:'start'});
+ }
+ function render(){
+   if(workspace.hidden)return;
+   const q=normalize(filter.value);
+   list.replaceChildren();
+   const matches=items.filter(x=>normalize(groupNames[x.group]+' '+x.title).includes(q));
+   const categories=new Map();
+   for(const x of matches){
+     if(!categories.has(x.group)){
+       const group=document.createElement('section');
+       group.className='ops-index-group';
+       const h=document.createElement('h3');h.textContent=groupNames[x.group];
+       const tiles=document.createElement('div');tiles.className='ops-index-tiles';
+       group.append(h,tiles);list.append(group);
+       categories.set(x.group,tiles);
+     }
+     const action=document.createElement('button');
+     action.type='button';action.className='ops-index-tile';
+     action.textContent=x.title;action.setAttribute('data-ops-target',x.id);
+     action.addEventListener('click',()=>{
+       if(workspace.hidden)return;
+       // Existing disclosure panels are opened, never replaced or automatically acted upon.
+       if(x.target.matches('details'))x.target.open=true;
+       nav.open=false;
+       focusTarget(x.target);
+       status.textContent=text.shown(x.title);
+     });
+     categories.get(x.group).append(action);
+   }
+   counter.textContent=text.count(matches.length);
+   if(!matches.length){
+     const empty=document.createElement('p');
+     empty.className='ops-index-empty';empty.textContent=text.empty;list.append(empty);
+   }
+   clear.hidden=!filter.value;
+ }
+ function unlock(){
+   if(workspace.hidden)return;
+   if(!built){
+     built=true;
+     filter.setAttribute('aria-label',text.label);
+     filter.setAttribute('placeholder',text.placeholder);
+     clear.textContent=text.clear;
+     nav.querySelector('[data-ops-index-hint]').textContent=text.shortcut;
+   }
+   render();
+ }
+ filter.addEventListener('input',render);
+ clear.addEventListener('click',()=>{filter.value='';render();filter.focus()});
+ const observer=new MutationObserver(()=>{
+   if(workspace.hidden){
+     nav.open=false;filter.value='';list.replaceChildren();counter.textContent='';status.textContent=text.closed;
+   }else unlock();
+ });
+ observer.observe(workspace,{attributes:true,attributeFilter:['hidden']});
+ document.addEventListener('keydown',event=>{
+   if(workspace.hidden||event.defaultPrevented||event.altKey||event.ctrlKey||event.metaKey)return;
+   const el=event.target;
+   if(el?.closest?.('input,textarea,select,[contenteditable="true"],[role="textbox"]'))return;
+   if(event.key==='/'&&!nav.open){
+     event.preventDefault();nav.open=true;unlock();filter.focus();
+   }else if(event.key==='/'&&nav.open){
+     event.preventDefault();filter.focus();filter.select();
+   }
+ });
+ if(!workspace.hidden)unlock();
+})();
