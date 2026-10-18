@@ -20,6 +20,8 @@ jobs:
           node-version: '22'
       - name: Verify policy and existing release protections
         run: node --test tests/progressive-release-policy.test.mjs
+      - name: Verify owner non-manuscript masterplan scope without modifying release gates
+        run: node --test tests/nonmanuscript-masterplan-scope.test.mjs
       - name: Verify release eligibility regression tests
         run: node --test tests/bertina-auto-release-policy.test.mjs tests/bertina-release-eligibility.test.mjs
       - name: Verify public build and route inventory
