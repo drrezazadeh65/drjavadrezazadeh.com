@@ -1,0 +1,161 @@
+/* v5.2 · Existing-author-page editorial elevation, NOT a replacement design system.
+ * Scoped to two public approved Mirkarimi routes. Pricing/payment/API remain untouched.
+ * Visual authority: foundation/DESIGN-SYSTEM.md; identity/brand-governance.md.
+ */
+.jp-pub-v52{
+ --jp-ink:#0b0b0b;--jp-ink2:#191918;--jp-paper:#f8f5e9;
+ --jp-gold:#d4af37;--jp-gold-deep:#a88955;--jp-muted:#cfc6b6;
+ --jp-edge:rgba(212,175,55,.27);
+ --jp52-rule:rgba(226,195,124,.22);
+ font-family:Tahoma,Arial,sans-serif;
+ background:radial-gradient(ellipse at 90% 0%,rgba(187,147,65,.10),transparent 30%),#0b0b0b;
+ color:#f8f5e9;
+ overflow-x:clip;
+}
+.jp-pub-v52 .jp-container{width:min(1160px,calc(100% - clamp(32px,6vw,96px)))}
+.jp-pub-v52 .jp-header{background:rgba(11,11,11,.96);border-bottom:1px solid var(--jp52-rule)}
+.jp-pub-v52 .jp-nav{width:min(1160px,calc(100% - clamp(32px,6vw,96px)));min-height:82px}
+.jp-pub-v52 .jp-brand{font-weight:800;letter-spacing:.012em;line-height:1.65;color:#f8f5e9}
+.jp-pub-v52 .jp-brand small{color:#e3bf6c;font-size:.78rem;font-weight:500}
+.jp-pub-v52 .jp-menu a{color:#f1e8d6;text-underline-offset:6px}
+.jp-pub-v52 .jp-menu a:hover{color:#ffe3a1;text-decoration:underline;text-decoration-color:#d4af37}
+.jp-pub-v52 .jp-hero,.jp-pub-v52 .jp-en-hero{
+ position:relative;isolation:isolate;
+ background:radial-gradient(ellipse at 85% 26%,rgba(212,175,55,.17),transparent 40%),linear-gradient(125deg,#0c0c0b 8%,#171715 67%,#0b0b0b)!important;
+ border-bottom:1px solid var(--jp52-rule);
+ padding-block:clamp(54px,7.5vw,110px);
+}
+.jp-pub-v52 .jp-hero:before{inset:clamp(9px,2vw,25px);border-radius:3px;border-color:rgba(212,175,55,.17)}
+.jp-pub-v52 .jp-hero-grid,.jp-pub-v52 .jp-en-hero .jp-container{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);align-items:center;gap:clamp(26px,5vw,78px)}
+.jp-pub-v52 .jp-hero-grid>*,.jp-pub-v52 .jp-en-hero .jp-container>*,.jp-pub-v52 .jp-commercial>*,.jp-pub-v52 .jp-author-card>*{min-width:0}
+.jp-pub-v52 .jp-en-hero .jp-en-main{max-width:64ch;min-width:0}
+.jp-pub-v52 .jp-hero h1,.jp-pub-v52 .jp-en-hero h1{
+ max-width:19ch;font-weight:800;
+ font-size:clamp(2.25rem,4.6vw,4.5rem);
+ line-height:1.34;letter-spacing:-.035em;
+ margin:clamp(12px,2vw,24px) 0 24px;
+ color:#f8f5e9;
+ text-wrap:balance;
+}
+.jp-pub-v52 .jp-en-hero h1{font-family:Georgia,"Times New Roman",serif;letter-spacing:-.035em;line-height:1.16;max-width:16ch;font-weight:700}
+.jp-pub-v52 .jp-hero h1 em,.jp-pub-v52 .jp-en-hero h1 em{color:#e6c77a}
+.jp-pub-v52 .jp-kicker,.jp-pub-v52 .jp-eyebrow{color:#e9c46f;letter-spacing:.09em}
+.jp-pub-v52 .jp-eyebrow{background:#d4af3715;border-color:#d4af3752}
+.jp-pub-v52 .jp-hero .jp-lead,.jp-pub-v52 .jp-en-hero .jp-lead{
+ color:#e1dacf;font-size:clamp(1.02rem,1.5vw,1.14rem);line-height:2.06;
+ max-width:65ch;
+}
+.jp-pub-v52 .jp-breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:7px 12px;
+ font-size:.82rem;line-height:1.5;color:#cab989;margin-block-end:22px}
+.jp-pub-v52 .jp-breadcrumb a{color:#eadab2;text-decoration:none}
+.jp-pub-v52 .jp-breadcrumb a:hover{text-decoration:underline}
+.jp-pub-v52 .jp-breadcrumb [aria-current=page]{color:#f8f5e9}
+.jp-pub-v52 .jp-cover-feature{position:relative;min-width:0;display:grid;align-content:start;
+ border:1px solid rgba(212,175,55,.56);padding:clamp(8px,1.3vw,14px);
+ background:linear-gradient(150deg,#211d14,#080808);box-shadow:0 32px 85px #0009;transform:rotate(1deg);border-radius:2px}
+.jp-pub-v52 .jp-cover-feature__image{min-width:0;aspect-ratio:5/5.3;overflow:hidden}
+.jp-pub-v52 .jp-cover-feature__image img,.jp-pub-v52 .jp-cover-feature--en>img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.jp-pub-v52 .jp-cover-feature--en>img{aspect-ratio:5/5.3;min-width:0}
+.jp-pub-v52 .jp-cover-feature__inscription{
+ position:absolute;inset-inline:clamp(22px,3vw,35px);bottom:clamp(52px,6vw,78px);
+ background:linear-gradient(110deg,rgba(6,6,6,.94),rgba(18,16,12,.84));padding:19px 24px;
+ display:grid;grid-template-columns:auto 1fr;column-gap:20px;align-items:center;border-inline-start:3px solid #d4af37;
+ color:#f8f5e9;box-shadow:0 15px 30px #0009;
+}
+.jp-pub-v52 .jp-cover-feature__inscription strong{grid-row:1/3;font:700 clamp(3.2rem,5.6vw,5.5rem)/1 Georgia,serif;color:#e4c47b}
+.jp-pub-v52 .jp-cover-feature__inscription span{font-size:clamp(.69rem,1.2vw,.88rem);line-height:1.65;letter-spacing:.075em}
+.jp-pub-v52 .jp-cover-feature figcaption{position:static;color:#e1d3b5;padding:12px 6px 4px;text-align:center;font-size:.79rem;line-height:1.55}
+.jp-pub-v52 .jp-button{border-radius:3px;border-color:#d5b66c78;min-height:50px;padding:12px 21px;color:#f6ebd6;background:#ffffff08;text-decoration:none}
+.jp-pub-v52 .jp-button.primary{background:#d4af37;color:#10100f;border-color:#f5d18a;box-shadow:none}
+.jp-pub-v52 .jp-button.primary:hover{background:#f0d18d;color:#111}
+.jp-pub-v52 .jp-button:not(.primary):hover{background:rgba(212,175,55,.15);color:#fff1d2}
+.jp-pub-v52 .jp-hero-actions,.jp-pub-v52 .jp-en-actions{display:flex;flex-wrap:wrap;gap:12px}
+.jp-pub-v52 .jp-hero-pills{gap:9px}
+.jp-pub-v52 .jp-pill{border:1px solid var(--jp52-rule);border-radius:2px;background:#d4af3710;color:#e9dec5}
+.jp-pub-v52 .jp-band{background:#171715;border-block:1px solid var(--jp52-rule)}
+.jp-pub-v52 .jp-metric{border-inline-start:1px solid var(--jp52-rule)}
+.jp-pub-v52 .jp-metric b{font-family:Georgia,serif;color:#e7c673;font-size:clamp(1.8rem,2.65vw,2.7rem)}
+.jp-pub-v52 .jp-metric span{color:#e1d8c9;font-size:.87rem;line-height:1.7}
+.jp-pub-v52 .jp-section-index{margin:0 auto;padding-block:19px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;border-bottom:1px solid var(--jp52-rule)}
+.jp-pub-v52 .jp-section-index span{font-weight:800;color:#e9c77a}
+.jp-pub-v52 .jp-section-index a{color:#f8f5e9;text-decoration:none;font-size:.9rem;padding:7px 0;border-bottom:1px solid transparent}
+.jp-pub-v52 .jp-section-index a:hover{border-bottom-color:#e9c77a}
+.jp-pub-v52 .jp-en-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.jp-pub-v52 .jp-en-stats article{background:#1c1b18;border-color:var(--jp52-rule);border-radius:2px;min-width:0;padding:24px}
+.jp-pub-v52 .jp-en-stats strong{color:#edc979;font-family:Georgia,serif;font-size:clamp(2rem,3.1vw,3.1rem)}
+.jp-pub-v52 .jp-en-stats small{color:#ded5c5}
+.jp-pub-v52 .jp-section,.jp-pub-v52 .jp-en-section{padding-block:clamp(48px,6.3vw,90px)}
+.jp-pub-v52 .jp-section[style],.jp-pub-v52 .jp-faq[style]{background:#151512!important}
+.jp-pub-v52 .jp-section h2,.jp-pub-v52 .jp-en-section h2{color:#f8f5e9;line-height:1.45;max-width:34ch;font-size:clamp(1.7rem,3.05vw,2.8rem);text-wrap:balance}
+.jp-pub-v52 .jp-section p,.jp-pub-v52 .jp-en-section p{color:#e1d9cc;line-height:2}
+.jp-pub-v52 .jp-grid{gap:16px}
+.jp-pub-v52 .jp-card{background:linear-gradient(150deg,#24221e,#171716 85%);border:1px solid var(--jp52-rule);border-radius:4px;box-shadow:none}
+.jp-pub-v52 .jp-card h3{color:#f2d995;font-size:1.1rem;line-height:1.7}
+.jp-pub-v52 .jp-card p{color:#e1d8cb}
+.jp-pub-v52 .jp-index{color:#e6c674}
+.jp-pub-v52 .jp-author-visual{border:1px solid rgba(212,175,55,.4);border-radius:2px}
+.jp-pub-v52 .jp-status{background:#2a2417;border:1px solid #d4af3766;color:#f2deae;line-height:1.9}
+.jp-pub-v52 .jp-commercial{background:#f4eddd;color:#191713;border-radius:5px;box-shadow:0 26px 70px #0008;border-color:#d1b676;gap:clamp(25px,4vw,58px)}
+.jp-pub-v52 .jp-commercial p,.jp-pub-v52 .jp-commercial h2{color:#201d18}
+.jp-pub-v52 .jp-commercial .jp-price{color:#171511}
+.jp-pub-v52 .jp-commercial .jp-kicker{color:#84621d}
+.jp-pub-v52 .jp-commercial .jp-subprice{color:#524b3e}
+.jp-pub-v52 .jp-split-graphic span:first-child{background:#2a2924}
+.jp-pub-v52 .jp-split-graphic span:last-child{background:#ae8435}
+.jp-pub-v52 .jp-split-metrics strong{color:#22201a}
+.jp-pub-v52 .jp-split-metrics small{color:#534c40}
+.jp-pub-v52 .jp-commercial-image{border-radius:3px;border-color:#ac8a43}
+.jp-pub-v52 .jp-commercial .jp-status{color:#ffe1a6}
+.jp-pub-v52 .jp-faq details,.jp-pub-v52 .jp-en-faq details{border:1px solid var(--jp52-rule);padding:19px 21px;background:#1b1b18;border-radius:3px;margin:11px 0}
+.jp-pub-v52 .jp-faq summary,.jp-pub-v52 .jp-en-faq summary{color:#eed69b;cursor:pointer;line-height:1.65}
+.jp-pub-v52 .jp-en-faq summary:focus-visible,.jp-pub-v52 .jp-section-index a:focus-visible{outline:3px solid #edcb7a;outline-offset:4px}
+.jp-pub-v52 .jp-en-hero figure img{border-radius:0}
+.jp-pub-v52 .jp-en-hero figure figcaption{color:#e3d9c8}
+.jp-pub-v52 .jp-footer{background:#0a0a0a;border-top:1px solid var(--jp52-rule);color:#e5dcd0}
+.jp-pub-v52 .jp-app-dock{background:rgba(11,11,11,.96);border-color:#d4af376b}
+.jp-pub-v52 .jp-app-dock .jp-dock-glyph{font-size:22px;line-height:1}
+.jp-pub-v52 .jp-app-dock a[aria-current=page]{background:#d4af372b}
+.jp-pub-v52 a:focus-visible,.jp-pub-v52 button:focus-visible,.jp-pub-v52 summary:focus-visible{outline:3px solid #ffe3a1;outline-offset:4px}
+@media(max-width:1040px){
+ .jp-pub-v52 .jp-hero-grid,.jp-pub-v52 .jp-en-hero .jp-container{gap:clamp(20px,3vw,42px)}
+ .jp-pub-v52 .jp-cover-feature{transform:none}
+ .jp-pub-v52 .jp-nav{align-items:flex-start;flex-wrap:wrap;padding-block:12px}
+}
+@media(max-width:800px){
+ .jp-pub-v52 .jp-hero-grid,.jp-pub-v52 .jp-en-hero .jp-container{grid-template-columns:minmax(0,1fr)}
+ .jp-pub-v52 .jp-cover-feature{width:min(580px,100%);margin-inline:auto}
+ .jp-pub-v52 .jp-cover-feature__image,.jp-pub-v52 .jp-cover-feature--en>img{aspect-ratio:16/10}
+ .jp-pub-v52 .jp-cover-feature__inscription{bottom:55px}
+ .jp-pub-v52 .jp-section-index{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin}
+ .jp-pub-v52 .jp-section-index a,.jp-pub-v52 .jp-section-index span{white-space:nowrap;flex:none}
+}
+@media(max-width:700px){
+ .jp-pub-v52 .jp-app-dock{display:grid}
+ .jp-pub-v52 .jp-nav{min-height:unset}
+ .jp-pub-v52 .jp-menu{gap:9px 15px}
+ .jp-pub-v52 .jp-hero,.jp-pub-v52 .jp-en-hero{padding-block:44px 54px}
+ .jp-pub-v52 .jp-hero h1,.jp-pub-v52 .jp-en-hero h1{font-size:clamp(2rem,8.1vw,3.1rem)}
+ .jp-pub-v52 .jp-cover-feature__inscription strong{font-size:2.9rem}
+ .jp-pub-v52 .jp-cover-feature__inscription{padding:11px 16px;gap:10px;inset-inline:18px;bottom:58px}
+ .jp-pub-v52 .jp-en-stats{grid-template-columns:1fr}
+ .jp-pub-v52 .jp-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .jp-pub-v52 .jp-grid{grid-template-columns:minmax(0,1fr)}
+ .jp-pub-v52 .jp-commercial{grid-template-columns:minmax(0,1fr)}
+ .jp-pub-v52 .jp-en-actions .jp-button{width:100%;text-align:center}
+ .jp-pub-v52 .jp-en-hero .jp-container{grid-template-columns:minmax(0,1fr)}
+ .jp-pub-v52 .jp-section-index{width:calc(100% - 32px)}
+}
+@media(max-width:390px){
+ .jp-pub-v52 .jp-container{width:calc(100% - 28px)}
+ .jp-pub-v52 .jp-nav{width:calc(100% - 28px)}
+ .jp-pub-v52 .jp-hero h1,.jp-pub-v52 .jp-en-hero h1{font-size:clamp(1.9rem,8.3vw,2.35rem)}
+ .jp-pub-v52 .jp-cover-feature__inscription span{font-size:.68rem}
+}
+@media(prefers-reduced-motion:reduce){
+ .jp-pub-v52 *{scroll-behavior:auto!important;animation:none!important;transition:none!important}
+}
+@media print{
+ .jp-pub-v52 .jp-app-dock,.jp-pub-v52 .jp-section-index{display:none!important}
+ .jp-pub-v52 .jp-hero,.jp-pub-v52 .jp-en-hero{background:#fff!important}
+ .jp-pub-v52{background:#fff;color:#111}
+}
