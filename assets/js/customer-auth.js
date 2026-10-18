@@ -15,7 +15,7 @@ const text={
   recoveryOk:'اگر این ایمیل حساب فعالی داشته باشد، لینک بازیابی ارسال شد.',
   resetOk:'رمز جدید ثبت شد. اکنون با رمز جدید وارد شوید.',
   generic:'درخواست کامل نشد. لطفاً کمی بعد دوباره تلاش کنید.',
-  invalidRegistration:'شماره موبایل را با کد کشور مانند +98 وارد کنید و رمز عبور را بررسی کنید.',
+  invalidRegistration:'شماره موبایل را به‌صورت 09… یا +98… وارد کنید و رمز عبور را بررسی کنید.',
   rateLimited:'تعداد تلاش‌ها بیش از حد مجاز است. لطفاً بعداً دوباره تلاش کنید.',
   emailFailed:'حساب ممکن است ثبت شده باشد، اما ایمیل تأیید ارسال نشد. پس از رفع مشکل ارسال، از گزینه «ارسال مجدد ایمیل تأیید» استفاده کنید.',
   retryPending:'اگر حساب تأییدنشده‌ای با این ایمیل وجود داشته باشد، درخواست ارسال مجدد پردازش شد. دریافت پیام را در پوشه‌های ورودی و هرزنامه بررسی کنید.',
@@ -37,7 +37,7 @@ const text={
   recoveryOk:'If this email has an active account, a recovery link has been sent.',
   resetOk:'Your new password has been saved. Sign in with it now.',
   generic:'The request could not be completed. Please try again later.',
-  invalidRegistration:'Check the mobile number in international format (for example +98) and the password.',
+  invalidRegistration:'Use an Iranian 09… mobile number or an international number such as +98…, and check the password.',
   rateLimited:'Too many attempts. Please wait before trying again.',
   emailFailed:'Your account may be pending verification, but email delivery failed. After the mail service is restored, use Retry verification email.',
   retryPending:'If an unverified account exists for this email, the request has been processed. Check your inbox and spam folder.',
@@ -49,7 +49,25 @@ const text={
 }[lang];
 const $=(s,r=document)=>r.querySelector(s);
 const statusEl=$('[data-auth-status]');
-const setStatus=(msg,state='')=>{if(statusEl){statusEl.textContent=msg;statusEl.dataset.state=state;statusEl.setAttribute('role','status');statusEl.setAttribute('aria-live','polite')}};
+const actionStatus=$('[data-auth-action-status]');
+const setStatus=(msg,state='')=>{
+ // Keep both the top-of-form diagnostic and actionable feedback immediately
+ // beside the submit button, so mobile users see why a request was rejected.
+ for(const el of [statusEl,actionStatus]){
+  if(!el)continue;
+  el.textContent=msg;el.dataset.state=state;
+  el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+ }
+};
+function normalizedSignupMobile(raw){
+ let value=String(raw||'').trim()
+  .replace(/[۰-۹]/g,ch=>String(ch.charCodeAt(0)-0x06f0))
+  .replace(/[٠-٩]/g,ch=>String(ch.charCodeAt(0)-0x0660))
+  .replace(/[ \\t().-]+/g,'');
+ if(/^09[0-9]{9}$/.test(value))value='+98'+value.slice(1);
+ else if(/^0098[0-9]{10}$/.test(value))value='+'+value.slice(2);
+ return value;
+}
 async function call(path,body){
  const r=await fetch(API+path,{method:'POST',mode:'cors',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
  let d={};try{d=await r.json()}catch{}
@@ -95,11 +113,14 @@ function bindRegister(){
   if(document.documentElement.dataset.authRegistrationReady!=='true')
    return setStatus(text.emailTransportUnavailable,'unavailable');
   const fd=new FormData(form),password=String(fd.get('password')||'');
+  const mobile=normalizedSignupMobile(fd.get('mobile'));
+  if(mobile&&!/^\\+[1-9][0-9]{7,14}$/.test(mobile))
+   return setStatus(text.invalidRegistration,'error');
   if(password.length<12)return setStatus(text.passwordRule,'error');
   setStatus(text.sending,'checking');
   form.querySelectorAll('input,button').forEach(x=>x.disabled=true);
   try{
-   const {r,d}=await call('/auth/register',{email:fd.get('email'),mobile:fd.get('mobile')||'',password,locale:lang});
+   const {r,d}=await call('/auth/register',{email:fd.get('email'),mobile,password,locale:lang});
    if(!r.ok)throw new Error(d?.error||'failed');
    form.reset();setStatus(text.registerOk,'success');
   }catch(error){
