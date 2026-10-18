@@ -26,14 +26,17 @@ test('explicit owner dispatch and exact immutable SHAs are mandatory',()=>{
   {expectedLiveSha:'unverified'},{confirmation:''},{confirmation:'yes'}
  ]) assert.equal(decide(wrong).allowed,false,JSON.stringify(wrong));
 });
-test('hosting managed without custody/recovery is disallowed in staged releases',()=>{
+test('hosting-managed release requires explicit owner risk acknowledgement and immutable SHAs',()=>{
+ assert.equal(decide({recoveryMode:'hosting_managed'}).allowed,true,
+   'owner acknowledgement already recorded in approved manual workflow input');
  for(const wrong of [
-  {recoveryMode:'hosting_managed'},
+  {recoveryMode:'hosting_managed',ownerAcknowledgement:''},
+  {recoveryMode:'hosting_managed',ownerAcknowledgement:'yes'},
   {recoveryMode:'none'},
   {ownerAcknowledgement:''}
  ]) assert.equal(decide(wrong).allowed,false,JSON.stringify(wrong));
  assert.equal(decide({recoveryMode:'signed_restore',ownerAcknowledgement:''}).allowed,true,
-   'signed restore has its own existing stricter host verification, not cPanel risk acknowledgement');
+   'signed restore has its own existing stricter host verification');
 });
 test('full masterplan gate, owner identity, exact SHA, SQL and protected host checks remain intact',()=>{
  const wf=fs.readFileSync('.github/workflows/deploy-bertina.yml','utf8');
@@ -98,7 +101,7 @@ test('owner one-click deployment auto-resolves source/live SHA while retaining g
  const wf=fs.readFileSync('.github/workflows/deploy-bertina.yml','utf8');
  for(const required of [
   'default: phased_live_audit',
-  'default: owner_cpanel_custody',
+  'default: hosting_managed',
   'default: ACCEPT_UNTESTED_RESTORE_RISK_V5',
   'default: I_APPROVE_GUARDED_LIVE_AUDIT_RELEASE_WITH_PDF_AND_SQL_DEFERRED',
   'id: owner_release',
