@@ -246,7 +246,12 @@
   .public-home-page .home-nav-group[open]>summary,
   .public-home-page .home-nav-group>summary:hover,
   .public-home-page .home-nav-group>summary:focus-visible{
-    border-color:var(--home-border);background:rgba(229,191,115,.07);outline:none
+    border-color:var(--home-border);background:rgba(229,191,115,.07)
+  }
+  /* Keyboard focus must remain unmistakable on the desktop disclosure menu. */
+  .public-home-page .home-nav-group>summary:focus-visible{
+    outline:2px solid var(--home-amber);
+    outline-offset:3px
   }
   .public-home-page .home-nav-menu{
     position:absolute;z-index:120;top:calc(100% + 8px);inset-inline-end:0;
