@@ -25,10 +25,12 @@ jobs:
           php -l scripts/journal-ojs-preflight.php
           php -l tests/journal-ojs-preflight.php
           php tests/journal-ojs-preflight.php
-      - name: Public status must remain closed
+      - name: Owner-authorised native intake remains host-gated and fail-closed
         run: |
-          grep -q 'Formal submissions are not yet open' journal/submission/index.html
-          grep -q 'پذیرش رسمی مقاله در حال حاضر باز نیست' journal/fa/submission/index.html
+          grep -Fq 'Submission availability is verified in real time' journal/submission/index.html
+          grep -Fq 'وضعیت دریافت امن مقاله به‌صورت زنده بررسی می‌شود' journal/fa/submission/index.html
+          grep -Fq "getenv('JR_JHELA_INTAKE_ENABLED')!=='true'" api/jhela-intake.php
+          node --test tests/jhela-founding-intake.test.mjs
       - name: Record scope
         run: |
-          echo 'JHELA editorial checks are source-only. No OJS deployment, production database migration, manuscript intake, or sensitive account activation has occurred.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'JHELA source-only QA: OJS remains prohibited. Owner-authorised native preliminary intake is guarded by independent Bertina host TLS, private storage, ClamAV, account and database checks; live activation is NOT certified here.' >> "$GITHUB_STEP_SUMMARY"
