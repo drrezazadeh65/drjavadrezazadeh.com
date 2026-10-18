@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
 test('unified customer account routes use one same-origin auth client and fail closed before health readiness',()=>{
@@ -67,4 +68,35 @@ test('book delivery policies remain consistent in both languages',()=>{
  }
  assert.match(read('fa/shop/checkout/index.html'),/data-book-delivery-terms/);
  assert.match(read('en/shop/checkout/index.html'),/data-book-delivery-terms/);
+});
+
+test('buyer order history renders complete UTC appointment intervals in local time without false bookings',()=>{
+ const source=read('assets/js/account-order-history.js');
+ const start=source.indexOf('function formatBookingWindow(');
+ const end=source.indexOf('\nfunction showInfo(',start);
+ assert.ok(start>0&&end>start,'timezone formatter must exist in the buyer-order module');
+ const body='('+source.slice(start,end).trim()+')';
+ const en=runInNewContext(body,{Intl,Date,isEn:true});
+ const fa=runInNewContext(body,{Intl,Date,isEn:false});
+ const summer=en('2026-06-01 12:00:00','2026-06-01 13:00:00','Europe/London');
+ assert.equal(summer.timeZone,'Europe/London');
+ assert.match(summer.start,/13:00/,'summer UTC is British Summer Time');
+ assert.match(summer.end,/14:00/);
+ const winter=en('2026-12-01 12:00:00','2026-12-01 13:00:00','Europe/London');
+ assert.match(winter.start,/12:00/,'winter UTC is GMT');
+ const iran=fa('2026-06-01 12:00:00','2026-06-01 13:00:00','Asia/Tehran');
+ assert.equal(iran.timeZone,'Asia/Tehran');
+ assert.ok(iran.start&&iran.end&&iran.start!==iran.end);
+ for(const [a,b] of [
+  [null,'2026-06-01 13:00:00'],
+  ['2026-06-01 12:00:00',null],
+  ['2026-02-30 12:00:00','2026-03-01 12:00:00'],
+  ['2026-06-01 13:00:00','2026-06-01 12:00:00'],
+  ['2026-06-01 12:00:00','2026-06-01 12:00:00'],
+  ['2026-06-01T12:00:00Z','2026-06-01 13:00:00']
+ ])assert.equal(en(a,b,'UTC'),null,'unsafe or partial booking interval must fail closed');
+ assert.match(source,/formatBookingWindow\(c\.bookingStart,c\.bookingEnd\)/);
+ assert.match(source,/Time zone: /);
+ assert.match(source,/بازه زمان جلسه نیازمند بررسی مجدد/);
+ assert.doesNotMatch(source,/Recorded slot: '\)\+c\.bookingStart/);
 });
