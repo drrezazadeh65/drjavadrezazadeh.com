@@ -297,6 +297,26 @@ function normalizedCustomer(mixed $input): array {
 }
 // Service and VIP fulfilment requires a verified-format buyer contact record.
 // A guest checkout never pretends that the email address is account-verified.
+/**
+ * Normalise optional contact mobiles to E.164. Persian registration accepts
+ * Iranian 09xxxxxxxxx national format as well as international +country format.
+ * Do not infer country codes for other local-number formats.
+ */
+function normalizedRegistrationMobile(mixed $input): ?string {
+    if ($input === null || $input === '') return null;
+    if (!is_string($input)) fail('invalid_registration');
+    $mobile=strtr(trim($input),[
+        '۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9',
+        '٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4','٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9'
+    ]);
+    $mobile=preg_replace('/[ \\t().-]+/','',$mobile);
+    if (!is_string($mobile)) fail('invalid_registration');
+    if ($mobile==='') return null;
+    if (preg_match('/^09[0-9]{9}$/D',$mobile)) $mobile='+98'.substr($mobile,1);
+    elseif (preg_match('/^0098[0-9]{10}$/D',$mobile)) $mobile='+'.substr($mobile,2);
+    if (!preg_match('/^\\+[1-9][0-9]{7,14}$/D',$mobile)) fail('invalid_registration');
+    return $mobile;
+}
 function normalizedServiceBuyer(mixed $input): array {
     if(!is_array($input))fail('customer_required');
     $name=trim((string)($input['name']??''));
@@ -505,14 +525,14 @@ if (str_starts_with($path,'/auth/')) {
 
     if($path==='/auth/register'&&$verb==='POST'){
         if(!registrationReady())fail('verification_email_unavailable',503);
-        requirePostOrigin();$b=jsonBody();$email=emailNorm($b['email']??'');$password=$b['password']??null;$mobile=trim((string)($b['mobile']??''));$locale=($b['locale']??'')==='en'?'en':'fa';
-        if(!validEmail($email)||!validPassword($password)||($mobile!==''&&!preg_match('/^\+[1-9][0-9]{7,14}$/',$mobile)))fail('invalid_registration');
+        requirePostOrigin();$b=jsonBody();$email=emailNorm($b['email']??'');$password=$b['password']??null;$mobile=normalizedRegistrationMobile($b['mobile']??null);$locale=($b['locale']??'')==='en'?'en':'fa';
+        if(!validEmail($email)||!validPassword($password))fail('invalid_registration');
         if(!rateAllowed($pdo,'register',$email,5,3600))fail('rate_limited',429);
         $a=accountByEmail($pdo,$email);
         if(!$a){
             $id=uuidv4();$now=nowTs();$hash=passwordDigest($password);
             $pdo->prepare('INSERT INTO customer_accounts(id,email_normalized,password_hash,mobile_e164,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?)')
-                ->execute([$id,$email,$hash,$mobile!==''?$mobile:null,'pending',$now,$now]);
+                ->execute([$id,$email,$hash,$mobile,'pending',$now,$now]);
             $a=accountById($pdo,$id);
         }
         if($a&&empty($a['email_verified_at'])&&($a['status']??'')!=='disabled'){
