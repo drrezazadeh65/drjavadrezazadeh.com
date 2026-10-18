@@ -308,12 +308,55 @@
       "en": "/en/services/specialist_workshop_120/",
       "fa": "/fa/services/specialist_workshop_120/",
       "x_default": "/en/services/specialist_workshop_120/"
+    },
+    {
+      "id": "vip-academic-direction",
+      "en": "/en/vip/academic-direction/",
+      "fa": "/fa/vip/academic-direction/",
+      "x_default": "/en/vip/academic-direction/"
+    },
+    {
+      "id": "vip-university-selection",
+      "en": "/en/vip/university-selection/",
+      "fa": "/fa/vip/university-selection/",
+      "x_default": "/en/vip/university-selection/"
+    },
+    {
+      "id": "vip-golden-talent-signature",
+      "en": "/en/vip/golden-talent-signature/",
+      "fa": "/fa/vip/golden-talent-signature/",
+      "x_default": "/en/vip/golden-talent-signature/"
+    },
+    {
+      "id": "vip-research-publication",
+      "en": "/en/vip/research-publication/",
+      "fa": "/fa/vip/research-publication/",
+      "x_default": "/en/vip/research-publication/"
+    },
+    {
+      "id": "vip-educator-development",
+      "en": "/en/vip/educator-development/",
+      "fa": "/fa/vip/educator-development/",
+      "x_default": "/en/vip/educator-development/"
+    },
+    {
+      "id": "vip-institutional-advisory",
+      "en": "/en/vip/institutional-advisory/",
+      "fa": "/fa/vip/institutional-advisory/",
+      "x_default": "/en/vip/institutional-advisory/"
+    },
+    {
+      "id": "vip",
+      "en": "/en/vip/",
+      "fa": "/fa/vip/",
+      "x_default": "/en/vip/"
     }
   ],
   "unpaired_public_routes_policy": "No hreflang counterpart is invented. Add a pair only after content equivalence is reviewed.",
   "notes": [
     "News/Insights and اخبار remain intentionally unpaired until collection-level content equivalence is reviewed; no hreflang relationship is invented.",
     "2026-10-17 targeted equivalence correction: the 21-item English /en/services/ catalogue is now paired with its true Persian /fa/services/ catalogue. The former /fa/khadamat/ editorial landing page retains its canonical URL but is no longer declared the localized equivalent. No URL was renamed or redirected.",
-    "2026-10-17: 21 owner-approved priced bilingual service detail pairs appended without renaming or redirecting any historical URL. These pairs must remain reciprocal, self-referencing and indexable."
+    "2026-10-17: 21 owner-approved priced bilingual service detail pairs appended without renaming or redirecting any historical URL. These pairs must remain reciprocal, self-referencing and indexable.",
+    "2026-10-18: Six English VIP service pages and their Persian counterparts have equivalent verified-scope summaries, proposed tariffs and safeguarded purchase disclosures; the paired hub remains a separate 6-option VIP collection, not the 21 standard services."
   ]
 }

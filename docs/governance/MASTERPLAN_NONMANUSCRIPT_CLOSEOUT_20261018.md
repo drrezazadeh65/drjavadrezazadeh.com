@@ -33,3 +33,7 @@ The canonical release manifest remains `BLOCKED_PENDING_FULL_ACCEPTANCE`; all 41
 
 ## Direct next acceptance source
 Run `node --test tests/nonmanuscript-masterplan-scope.test.mjs` in nondeploying CI; run the existing browser, privacy, PHP and SEO gates. Only authentic results justify revising the official acceptance manifest.
+
+## English VIP parity — source candidate (18 October 2026)
+
+Added a new English-language VIP collection `/en/vip/` and six distinct English VIP detail routes without changing any Persian URL or inventing a second checkout. Each page uses the six published prices in `assets/data/vip-catalog.json`, derived descriptions of the existing Persian packages, the original repository-owned illustrations, explicit contingent availability, non-guarantee and protected-file disclosures. Language equivalents are reciprocal and listed in the official hreflang registry; seven English URLs are included in `sitemap-en.xml`. English VIP pages direct to the existing guarded Persian VIP checkout while clearly disclosing that constraint. **These are new source pages, not evidence of published EN host routing, real paid readiness, booked appointments or independent 27-offer service fulfilment.** The 21 service and 41-gate release manifest remain unchanged. English VIP parity is additionally tested in `tests/vip-bilingual-2026.test.mjs`.

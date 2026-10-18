@@ -5,6 +5,10 @@ on:
     paths:
       - 'fa/services/**'
       - 'fa/vip/**'
+      - 'en/vip/**'
+      - 'platform/hreflang-pairs.json'
+      - 'sitemap-en.xml'
+      - 'tests/vip-bilingual-2026.test.mjs'
       - 'en/services/**'
       - 'assets/images/vip-*.svg'
       - 'assets/data/vip-catalog.json'
@@ -24,6 +28,10 @@ on:
     paths:
       - 'fa/services/**'
       - 'fa/vip/**'
+      - 'en/vip/**'
+      - 'platform/hreflang-pairs.json'
+      - 'sitemap-en.xml'
+      - 'tests/vip-bilingual-2026.test.mjs'
       - 'en/services/**'
       - 'assets/images/vip-*.svg'
       - 'assets/data/vip-catalog.json'
@@ -50,3 +58,5 @@ jobs:
           node-version: '22'
       - name: Validate 27 standard/VIP service pages, academic credentials, support policy, and SEO
         run: node scripts/seo-services-gate.cjs
+      - name: Verify bilingual six-offer VIP parity, canonical URLs, public trust and guarded checkout
+        run: node --test tests/vip-bilingual-2026.test.mjs
