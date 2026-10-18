@@ -35,3 +35,9 @@ test('owner design palette, genuine mobile breakpoints, reduced motion and acces
  assert.match(en,/approved editorial illustration, not a portrait/i);
  assert.match(en,/aria-label="Mobile publishing navigation"/);
 });
+
+test('scoped public release artifact requires the actual premium stylesheet and bilingual author routes',()=>{
+ const build=read('scripts/build-public-site.mjs');
+ for(const file of ['assets/css/jr-author-premium-v52.css','fa/shop/authors/mehrab-mirkarimi/index.html','en/shop/authors/mehrab-mirkarimi/index.html','assets/images/bookstore-talent-cinematic-approved-original-20261011.png'])
+  assert.ok(build.includes("'"+file+"'"),'build missing '+file);
+});
