@@ -176,18 +176,18 @@ function walk(dir){
 walk(out);
 // Hard fail if any retired vendor asset reappears in the deployed artifact.
 // Historical source documents stay outside the public package for provenance.
-const retiredJournalAsset=/(?:^|[\\/._-])ojs(?:[\\/._-]|$)/i;
+const retiredJournalAsset=/(?:^|[\/._-])ojs(?:[\/._-]|$)/i;
 for(const file of all){
-  const relative=path.relative(out,file).replaceAll('\\\\','/');
+  const relative=path.relative(out,file).replaceAll('\\','/');
   if(retiredJournalAsset.test(relative))
     failures.push('Retired journal platform asset in public package: '+relative);
 }
-const retiredJournalLabel=/\\bOJS\\b|Open Journal Systems/i;
+const retiredJournalLabel=/\bOJS\b|Open Journal Systems/i;
 const journalUi=all.filter(file=>{
-  const rel=path.relative(out,file).replaceAll('\\\\','/');
-  return (/^journal\\/.*\\.html$/.test(rel)||
+  const rel=path.relative(out,file).replaceAll('\\','/');
+  return (/^journal\/.*\.html$/.test(rel)||
     ['fa/app/admin/index.html','en/account/admin/index.html'].includes(rel)||
-    /^assets\\/js\\/(?:jhela-|operations-jhela-).*\\.js$/.test(rel));
+    /^assets\/js\/(?:jhela-|operations-jhela-).*\.js$/.test(rel));
 });
 for(const file of journalUi){
   if(retiredJournalLabel.test(fs.readFileSync(file,'utf8')))
