@@ -6,6 +6,8 @@
 
 
 > Repository-wide coordination instructions for coding agents.
+>
+> **Owner decision, 2026-10-18:** No installation, repair, migration or re-attempt of OJS for ten calendar days (through 2026-10-27). Manuscript creation/upload remains disabled until explicit owner approval even after the ten-day hold. Public journal information and separate reviewer collaboration may remain; all other website master-plan development proceeds normally. Source guard: `api/jhela-intake.php`; bilingual public copy: `journal/{,fa/}submission/index.html`. Do not treat this exception as an independently verified live production change or as evidence for completing the scientific_journal_ojs master-plan gate.
 > **CURRENT STATUS: SHARED DEVELOPMENT OPEN — OWNER AUTHORIZED**
 > Exclusive lock lifted by the owner on 2026-10-12 (Asia/Tehran). Historical lock issue: https://github.com/drrezazadeh65/drjavadrezazadeh.com/issues/28
 

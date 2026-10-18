@@ -6,6 +6,10 @@ declare(strict_types=1);
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
+// Owner hold: no OJS installation work from 2026-10-18 through 2026-10-27 inclusive.
+// Public manuscript intake remains disabled until an explicit future owner decision.
+const JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED = true;
+
 function jhelaConfig(): array {
   $dir=(string)(getenv('JR_JHELA_PRIVATE_STORAGE')?:'');
   $av=(string)(getenv('JR_JHELA_AV_BINARY')?:'');
@@ -46,7 +50,7 @@ function jhelaReadiness(?PDO $pdo): array {
   $upload=$secure&&jhelaPrivateRoot($c['privateDir'])!==null&&jhelaAvReady($c['antivirus']);
   return [
     'profile'=>$secure,
-    'manuscriptIntake'=>$upload&&$c['intake'],
+    'manuscriptIntake'=>$upload&&$c['intake']&&!JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED,
     'reviewerIntake'=>$secure&&$c['reviewers'],
     'accountVerificationRequired'=>true,
     'manuscriptFormat'=>'PDF', 'maxFileBytes'=>15728640,
@@ -132,6 +136,9 @@ function jhelaPrivateHome(PDO $pdo,array $a): never {
 }
 function jhelaIntakeRoute(string $path,string $verb): never {
   header('Cache-Control: no-store, private, max-age=0');
+  // Apply this suspension before database access, independent of deployment environment variables.
+  if(JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED && in_array($path,['/journal/manuscripts/create','/journal/manuscripts/upload'],true))
+    fail('manuscript_submissions_paused',503);
   $pdo=db();
   if($path==='/journal/intake/health'&&$verb==='GET'){
     $state=jhelaReadiness($pdo);

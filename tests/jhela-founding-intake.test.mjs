@@ -115,3 +115,20 @@ test('academic owner UI remains inside separate protected MFA workspace',()=>{
  assert.ok(client.includes("'X-CSRF-Token':csrf"));
  assert.ok(!client.includes('innerHTML'));
 });
+
+// Explicit owner suspension: human-facing article intake and secure PHP upload endpoints must remain closed.
+test('owner hold keeps manuscript intake closed server-side without disabling independent reviewer applications',()=>{
+ assert.ok(php.includes('const JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED = true;'));
+ assert.ok(php.includes("'manuscriptIntake'=>$upload&&$c['intake']&&!JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED"));
+ const route=php.slice(php.indexOf('function jhelaIntakeRoute('));
+ const guard=route.indexOf("fail('manuscript_submissions_paused',503)");
+ const database=route.indexOf('$pdo=db();');
+ assert.ok(guard>0&&guard<database,'suspended routes must reject before DB access');
+ assert.ok(route.includes("'/journal/manuscripts/create','/journal/manuscripts/upload'"));
+ assert.ok(route.includes("if(!$ready['reviewerIntake'])fail('reviewer_intake_not_ready',503);"),'reviewer applications keep separate readiness');
+ assert.ok(js.includes('const manuscriptSubmissionsPaused=true;'));
+ assert.ok(js.includes('article.hidden=manuscriptSubmissionsPaused||h.manuscriptIntake!==true'));
+ assert.ok(js.includes("x.status==='AWAITING_FILE'&&!manuscriptSubmissionsPaused"));
+ assert.ok(read('journal/submission/index.html').includes('Manuscript submissions are temporarily closed'));
+ assert.ok(read('journal/fa/submission/index.html').includes('دریافت مقاله موقتاً غیرفعال است'));
+});
