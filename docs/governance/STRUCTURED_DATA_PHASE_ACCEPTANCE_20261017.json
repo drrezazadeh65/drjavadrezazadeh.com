@@ -58,12 +58,17 @@
     {
       "phase": 4,
       "name": "Page-appropriate schema across all verticals",
-      "status": "PARTIAL",
+      "status": "BOOK_AUTHOR_PAGES_SOURCE_ENRICHED_OTHER_VERTICALS_PENDING",
       "evidence": [
-        "scripts/schema-entity-inventory.mjs"
+        "scripts/schema-entity-inventory.mjs",
+        "fa/ketab-ha/index.html",
+        "en/books/index.html",
+        "assets/css/author-books-bibliography-20261018.css",
+        "tests/author-books-entity-graph.test.mjs"
       ],
       "blockers": [
-        "Page-by-page review of real book product offers, journal status, assessment validation and visible content"
+        "Page-by-page review of real book product offers, journal status, assessment validation and visible content",
+        "Validate six source-grounded Book JSON-LD nodes and original cover render against deployed pages after owner-approved release; current source is not live acceptance"
       ]
     },
     {

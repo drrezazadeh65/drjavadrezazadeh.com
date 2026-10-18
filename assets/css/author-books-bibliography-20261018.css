@@ -1,0 +1,14 @@
+/* Bibliographic enhancements for verified published poetry, 2026-10-18.
+   Scoped to public author-book pages; inherited premium identity and no commerce changes. */
+.book-publications .book-publication{display:flex;flex-direction:column;gap:12px;min-width:0;overflow-wrap:anywhere}
+.book-publications .book-publication-art{margin:0;display:grid;gap:6px;justify-items:center;padding:18px 12px 10px;border-radius:var(--r-md,14px);border:1px solid var(--line,rgba(212,175,55,.2));background:var(--surface,#171717)}
+.book-publications .book-publication-art img{display:block;max-width:100%;max-height:265px;width:auto;height:auto;object-fit:contain;aspect-ratio:12/17}
+.book-publications .book-publication-art figcaption{color:var(--muted,#aaa);font-size:.86rem;line-height:1.6;text-align:center}
+.book-publications .book-publication-bibliography{display:grid;gap:6px;margin:2px 0 10px}
+.book-publications .book-publication-bibliography>div{display:grid;grid-template-columns:minmax(100px,.43fr) minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--line,rgba(212,175,55,.19))}
+.book-publications .book-publication-bibliography dt{color:var(--muted,#b0b0b0);font-size:.91rem}
+.book-publications .book-publication-bibliography dd{margin:0;color:var(--text,#f8f5e9);font-size:.93rem;font-weight:600}
+.book-publications .book-publication .actions{margin-top:auto}
+.book-publications .book-publication a:focus-visible{outline:3px solid var(--gold,#d4af37);outline-offset:4px}
+@media(max-width:390px){.book-publications .book-publication-art img{max-height:235px}.book-publications .book-publication-bibliography>div{grid-template-columns:minmax(82px,.40fr) minmax(0,1fr);gap:8px}}
+@media(prefers-reduced-motion:reduce){.book-publications .book-publication *{scroll-behavior:auto!important;transition:none!important}}
