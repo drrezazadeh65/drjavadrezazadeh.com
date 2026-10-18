@@ -56,3 +56,24 @@ for(const [language,route] of [
   await expect(page.locator('[data-choice-studio] input[type="text"]').first()).toHaveValue('');
  });
 }
+
+for(const [language,home,destination] of [
+ ['fa','/fa/','/fa/entekhab-reshteh/#jr-choice-studio-fa-title'],
+ ['en','/en/','/en/student-guidance/#jr-choice-studio-en-title']
+]){
+ test(language+' homepage uses editorial discovery to open the real studio',async({page})=>{
+  await page.setViewportSize({width:320,height:740});
+  const response=await page.goto(origin+home,{waitUntil:'domcontentloaded'});
+  expect(response.status()).toBe(200);
+  const section=page.locator('.jr-choice-discovery');
+  await expect(section).toBeVisible();
+  const dimensions=await section.evaluate(el=>({client:el.clientWidth,scroll:el.scrollWidth}));
+  expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.client+2);
+  await expect(section.locator('ol>li')).toHaveCount(4);
+  const cta=section.locator('a.jr-cd-action');
+  await expect(cta).toHaveAttribute('href','.'+destination.replace(home,''));
+  await cta.click();
+  await expect(page).toHaveURL(origin+destination);
+  await expect(page.locator('[data-choice-studio] form')).toBeVisible();
+ });
+}
