@@ -21,14 +21,14 @@
     },
     {
       "id": "JH-02",
-      "en": "Secure OJS and manuscript protection",
-      "fa": "OJS و محرمانگی مقاله",
-      "descriptionEn": "Verify OJS 3.5, TLS, isolated database, private files, SMTP, roles, recovery and end-to-end practice assessment.",
-      "descriptionFa": "OJS 3.5، گواهی معتبر، پایگاه داده مستقل، فایل محرمانه، ایمیل، نقش‌ها و آزمون بازیابی.",
+      "en": "Secure native editorial workflow and manuscript protection",
+      "fa": "سامانه اختصاصی تحریریه و محرمانگی مقاله",
+      "descriptionEn": "Verify the independent JHELA editorial system, HTTPS, the shared mother database, private manuscript files, email, roles, recovery and end-to-end editorial safeguards.",
+      "descriptionFa": "سامانه اختصاصی JHELA، گواهی معتبر، اتصال به پایگاه داده مادر، فایل محرمانه، ایمیل، نقش‌ها و آزمون بازیابی.",
       "gateEn": "Two independent reviewers, decision, revision and restore tested",
       "gateFa": "دو داور مستقل، تصمیم، اصلاح و بازیابی آزمایش شده",
       "status": "RUNTIME_UNVERIFIED",
-      "source": "https://pkp.sfu.ca/software/ojs/"
+      "source": "https://doaj.org/apply/guide/"
     },
     {
       "id": "JH-03",
