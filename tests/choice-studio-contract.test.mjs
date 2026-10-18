@@ -23,6 +23,23 @@ test('bilingual choice studio remains a working addition to existing verified pu
  assert.match(read('fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/index.html'),/data-decision-matrix/);
 });
 
+test('homepage discoveries are real accessible links to the existing interactive pages',()=>{
+ const css=read('assets/css/home-experience-v1.css');
+ assert.match(css,/\.jr-choice-discovery/);
+ assert.match(css,/@media\(max-width:580px\)/);
+ for(const [lang,path,href] of [
+  ['fa','fa/index.html','./entekhab-reshteh/#jr-choice-studio-fa-title'],
+  ['en','en/index.html','./student-guidance/#jr-choice-studio-en-title']
+ ]){
+  const html=read(path);
+  assert.match(html,/class="section jr-choice-discovery"/);
+  assert.ok(html.includes('href="'+href+'"'),'home feature must link to the real studio '+lang);
+  assert.match(html,/home-experience-v1\.css\?v=20261013-home-v4/);
+  assert.match(html,/aria-label="(?:مراحل بررسی تعاملی|How the reflection works)"/);
+ }
+ assert.doesNotMatch(read('en/student-guidance/index.html'),/My approach is different/);
+});
+
 test('five real criteria with editable weights and two independent pathway assessments',()=>{
  for(const criterion of ['interest','requirements','finances','location','flexibility'])
   assert.ok(script.includes("id:'"+criterion+"'"),'missing criterion '+criterion);
