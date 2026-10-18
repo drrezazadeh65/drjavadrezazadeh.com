@@ -8,7 +8,6 @@
   "ownerAuthorizesPreliminaryManuscriptSubmission": true,
   "independentReviewOrAcceptanceOperational": false,
   "nativePublishingWorkflowOperational": false,
-  "ojsRequiredForPreliminaryReceipt": false,
   "reusedSourcePaths": [
     "api/jhela-intake.php",
     "assets/js/jhela-author-workspace.js",
@@ -32,5 +31,6 @@
   "liveReleaseProof": "NOT_YET_VERIFIED",
   "operatingRule": "Owner has authorized native intake. Fail closed unless JR_JHELA_INTAKE_ENABLED=true AND all live TLS, mother DB, private storage, antivirus, verified identity and upload checks pass. Native editorial review and payments remain independent unverified gates.",
   "ownerHold": "LIFTED_OWNER_AUTHORIZATION_RUNTIME_GATED",
-  "ojsPolicy": "DO_NOT_REINSTALL_OJS_NATIVE_FIRST_PARTY_ONLY"
+  "thirdPartyVendorRequired": false,
+  "retiredVendorPolicy": "PROHIBIT_REINSTALLATION_FIRST_PARTY_ONLY"
 }
