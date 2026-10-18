@@ -8,9 +8,9 @@ const base='https://drjavadrezazadeh.com/';
 for(const [lang,path] of pages){
  test(lang+' published books have grounded human-visible metadata and entity links',()=>{
   const html=read(path);assert.equal(books.length,3);
-  assert.match(html,/author-books-bibliography-20261018\\.css/);
+  assert.match(html,/author-books-bibliography-20261018\.css/);
   assert.equal((html.match(/class="authority-card book-publication"/g)||[]).length,books.length);
-  const s=html.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/);
+  const s=html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
   assert.ok(s,'schema.org must be valid on the public page');
   const graph=JSON.parse(s[1])['@graph'];
   const list=graph.find(n=>n['@type']==='ItemList');assert.equal(list.numberOfItems,3);
