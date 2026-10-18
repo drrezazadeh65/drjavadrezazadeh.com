@@ -13,10 +13,10 @@ on:
           - full_masterplan
           - phased_live_audit
       recovery_mode:
-        description: "One-click default: owner-controlled cPanel custody (no backup deletion)"
+        description: "One-click default: owner-accepted hosting-managed backups (no archive inspection); cPanel custody optional"
         required: true
         type: choice
-        default: owner_cpanel_custody
+        default: hosting_managed
         options:
           - hosting_managed
           - signed_restore
