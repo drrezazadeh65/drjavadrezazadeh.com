@@ -233,6 +233,19 @@ test('existing publishing offer activation is owner-controlled, idempotent and d
  assert.match(cli,/WHERE id=\? AND retired_at IS NULL/);
  assert.match(cli,/JR_PUBLISHING_SEPARATE_7PCT_BUDGET/);
  assert.match(cli,/JR_PUBLISHING_MAIL_CRON_TESTED/);
+ // Original PDF hashes must agree across the private preflight and activation.
+ const preflight=read('api/internal/jr-publishing-preflight-cli.php');
+ const hashes=[
+  '6245641c453e92ee005c4176575ef315b96ac72fd8535b7e3ff67c2369dda7c8',
+  'db8070f8a88723c1947a094a461ad2f703192092b09f03255867bbab53fa2ab4'
+ ];
+ for(const digest of hashes){
+   assert.equal(digest.length,64);
+   assert.ok(cli.includes(digest),'activation must pin original 64-digit SHA-256 '+digest);
+   assert.ok(preflight.includes(digest),'preflight must pin same original digest');
+ }
+ assert.equal([...cli.matchAll(/['"]([a-f0-9]{55,70})['"]/g)].filter(m=>hashes.includes(m[1])).length,2);
+
  assert.doesNotMatch(cli,/INSERT INTO publishing_rights_licences/);
  assert.doesNotMatch(cli,/INSERT INTO customer_accounts/);
  assert.doesNotMatch(cli,/UPDATE publishing_private_assets SET/);
