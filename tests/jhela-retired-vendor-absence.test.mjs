@@ -27,6 +27,12 @@ test('all published journal pages and owner interfaces use only the independent 
     assert.ok(!retiredName.test(content),'Retired vendor must not appear in '+file);
   }
 });
+test('retired journal stylesheet is blocked from future releases and from public HTTP access',()=>{
+  const builder=fs.readFileSync('scripts/build-public-site.mjs','utf8');
+  const rewrite=fs.readFileSync('.htaccess','utf8');
+  assert.ok(builder.includes("'assets/css/jhela-ojs-theme.css'"));
+  assert.ok(rewrite.includes('RewriteRule ^assets/css/jhela-ojs-theme\\\\.css$ - [G,L]'));
+});
 test('journal policies referenced from the bilingual roadmap exist',()=>{
   assert.ok(fs.existsSync('journal/ethics/index.html'));
   assert.ok(fs.existsSync('journal/fa/ethics/index.html'));
