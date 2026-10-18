@@ -57,8 +57,10 @@ jobs:
           node --check assets/js/jhela-public-dashboard.js
           node --check scripts/jhela-discovery-audit.mjs
           node --check scripts/jhela-release-audit.mjs
-      - name: Verify JHELA subdomain recovery, safe routing and closed intake
-        run: node --test tests/jhela-public-host-recovery.test.mjs
+      - name: Verify JHELA public routing and native intake contracts
+        run: |
+          node --test tests/jhela-public-host-recovery.test.mjs tests/jhela-founding-intake.test.mjs tests/nonmanuscript-masterplan-scope.test.mjs
+          php -l api/jhela-intake.php
       - name: Audit independent JHELA sitemap, hreflang and staged origins
         run: node scripts/jhela-discovery-audit.mjs
       - name: Audit English and Persian policy parity, reviewer safeguards and noindex stage routes
