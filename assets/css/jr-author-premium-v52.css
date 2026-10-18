@@ -54,8 +54,9 @@
  border:1px solid rgba(212,175,55,.56);padding:clamp(8px,1.3vw,14px);
  background:linear-gradient(150deg,#211d14,#080808);box-shadow:0 32px 85px #0009;transform:rotate(1deg);border-radius:2px}
 .jp-pub-v52 .jp-cover-feature__image{min-width:0;aspect-ratio:5/5.3;overflow:hidden}
-.jp-pub-v52 .jp-cover-feature__image img,.jp-pub-v52 .jp-cover-feature--en>img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
-.jp-pub-v52 .jp-cover-feature--en>img{aspect-ratio:5/5.3;min-width:0}
+.jp-pub-v52 .jp-cover-feature__image img,.jp-pub-v52 .jp-cover-feature--en>picture img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.jp-pub-v52 .jp-cover-feature__image picture,.jp-pub-v52 .jp-cover-feature--en>picture{display:block;width:100%;min-width:0}
+.jp-pub-v52 .jp-cover-feature--en>picture img{aspect-ratio:5/5.3;min-width:0}
 .jp-pub-v52 .jp-cover-feature__inscription{
  position:absolute;inset-inline:clamp(22px,3vw,35px);bottom:clamp(52px,6vw,78px);
  background:linear-gradient(110deg,rgba(6,6,6,.94),rgba(18,16,12,.84));padding:19px 24px;
@@ -124,7 +125,7 @@
 @media(max-width:800px){
  .jp-pub-v52 .jp-hero-grid,.jp-pub-v52 .jp-en-hero .jp-container{grid-template-columns:minmax(0,1fr)}
  .jp-pub-v52 .jp-cover-feature{width:min(580px,100%);margin-inline:auto}
- .jp-pub-v52 .jp-cover-feature__image,.jp-pub-v52 .jp-cover-feature--en>img{aspect-ratio:16/10}
+ .jp-pub-v52 .jp-cover-feature__image,.jp-pub-v52 .jp-cover-feature--en>picture img{aspect-ratio:16/10}
  .jp-pub-v52 .jp-cover-feature__inscription{bottom:55px}
  .jp-pub-v52 .jp-section-index{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin}
  .jp-pub-v52 .jp-section-index a,.jp-pub-v52 .jp-section-index span{white-space:nowrap;flex:none}

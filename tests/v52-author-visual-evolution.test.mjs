@@ -41,3 +41,12 @@ test('scoped public release artifact requires the actual premium stylesheet and 
  for(const file of ['assets/css/jr-author-premium-v52.css','fa/shop/authors/mehrab-mirkarimi/index.html','en/shop/authors/mehrab-mirkarimi/index.html','assets/images/bookstore-talent-cinematic-approved-original-20261011.png'])
   assert.ok(build.includes("'"+file+"'"),'build missing '+file);
 });
+
+test('approved original PNG remains fallback while mobile browsers prefer a smaller WebP variant',()=>{
+ for(const path of ['fa/shop/authors/mehrab-mirkarimi/index.html','en/shop/authors/mehrab-mirkarimi/index.html']){
+  const html=read(path);
+  assert.match(html,/<picture><source type="image\/webp" srcset="\/assets\/images\/bookstore-talent-cinematic-approved-20261011.webp">/);
+  assert.match(html,/<img src="\/assets\/images\/bookstore-talent-cinematic-approved-original-20261011.png"/);
+ }
+ assert.match(css,/\.jp-cover-feature--en>picture img/);
+});
