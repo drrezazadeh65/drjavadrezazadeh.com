@@ -350,6 +350,12 @@
       "en": "/en/vip/",
       "fa": "/fa/vip/",
       "x_default": "/en/vip/"
+    },
+    {
+      "id": "author-mehrab-mirkarimi",
+      "en": "/en/shop/authors/mehrab-mirkarimi/",
+      "fa": "/fa/shop/authors/mehrab-mirkarimi/",
+      "x_default": "/en/shop/authors/mehrab-mirkarimi/"
     }
   ],
   "unpaired_public_routes_policy": "No hreflang counterpart is invented. Add a pair only after content equivalence is reviewed.",

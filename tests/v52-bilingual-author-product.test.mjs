@@ -32,4 +32,8 @@ test('English publication stays source-honest, sale-gated and responsive',()=>{
  assert.match(en,/@media\(max-width:800px\)/);
  assert.match(en,/:focus-visible/);
  assert.match(en,/prefers-reduced-motion/);
+ assert.match(en,/fetchpriority="high"/);
+ assert.ok(read('sitemap-en.xml').includes(EN));
+ assert.ok(read('platform/hreflang-pairs.json').includes('author-mehrab-mirkarimi'));
+ assert.ok(read('scripts/build-public-site.mjs').includes("approvedEnglishAuthorPage='en/shop/authors/mehrab-mirkarimi/index.html'"));
 });

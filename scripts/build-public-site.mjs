@@ -159,7 +159,7 @@ function walk(dir){
 walk(out);
 // Never distribute paid PDFs or private staging archives via public_html.
 for(const risky of ['tefl_1370_1405_questions.pdf','tefl_1370_1405_answers.pdf',
-  'JR_Publishing_PDF_Private_Server_Staging.zip']){
+  'JR_Publishing_PDF_Private_Server_Staging.zip','JR_Publishing_PDF_Private_Server_Staging_v2.zip']){
   if(all.some(file=>path.basename(file)===risky))
     failures.push('Private paid scholarly resource must not be in sanitized public release: '+risky);
 }
@@ -202,6 +202,20 @@ if(!fs.existsSync(authorHtml)){
     ||!/<meta name="robots" content="index,follow/.test(content))
     failures.push('Approved author page canonical/indexability differs from frozen route approval');
 }
+// 2026-10-18 owner-approved English counterpart: indexable, localized,
+ // reciprocal to the existing Persian author storefront and registered in the SEO map.
+const approvedEnglishAuthorPage='en/shop/authors/mehrab-mirkarimi/index.html';
+const englishAuthorFile=path.join(out,approvedEnglishAuthorPage);
+if(!fs.existsSync(englishAuthorFile)){
+  failures.push('Approved English author page missing from sanitized artifact: '+approvedEnglishAuthorPage);
+}else{
+  const source=fs.readFileSync(englishAuthorFile,'utf8');
+  if(!source.includes('<link rel="canonical" href="https://drjavadrezazadeh.com/en/shop/authors/mehrab-mirkarimi/">')
+    ||!source.includes('hreflang="fa"')
+    ||!source.includes('hreflang="en"')
+    ||!/<meta name="robots" content="index,follow/.test(source))
+    failures.push('English author canonical/bilingual/indexability contract missing');
+}
 // 2026-10-17 approved private author workspace: noindex is mandatory,
 // and this singular route is counted without weakening the engineering leak guard.
 const approvedPrivateAuthorPage='fa/app/author/index.html';
@@ -234,7 +248,7 @@ for(const route of approvedEnglishVipRoutes){
      !html.includes('public-v2.css'))
     failures.push('Approved English VIP route lacks canonical/indexable/visual contract: '+route);
 }
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length;
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1; // +1 reviewed English author counterpart
 for(const route of ['journal/roadmap/index.html','journal/fa/roadmap/index.html']){
   if(!fs.existsSync(path.join(out,route))) failures.push('Approved JHELA roadmap page missing: '+route);
 }
