@@ -13,12 +13,12 @@ function render(data){
      data.evidenceReview?.progressPercent!==null||data.verifiedIndexClaims?.length!==0)
     throw new Error('unverified_source');
   out.replaceChildren();
-  const note=node('p',tt('این گزارش از قراردادهای مدیریت مجله خوانده شده است؛ هنوز به مقالات و داوری‌های واقعی OJS متصل نیست.','This report reflects the journal’s approved planning records; it is not connected to live OJS manuscripts or reviews.'));
+  const note=node('p',tt('این گزارش از قراردادهای مدیریت مجله خوانده شده است؛ وضعیت عملیاتی پرونده‌ها و داوری تنها با شواهد واقعی سرور قابل تأیید است.','This report reflects governance records; live editorial review requires independent server evidence.'));
   note.className='ops-muted';out.append(note);
   const stats=node('div');stats.className='ops-jhela-live-metrics';
   for(const [label,value] of [
     [tt('پذیرش مقاله','Article submissions'),tt('بسته','Closed')],
-    [tt('وضعیت OJS','OJS status'),tt('هنوز تأیید نشده','Not yet verified')],
+    [tt('وضعیت سامانه اختصاصی تحریریه','Native editorial platform'),tt('هنوز تأیید نشده','Not yet verified')],
     [tt('مراحل دارای گواهی مستقل','Independently verified stages'),String(data.evidenceReview.verifiedStageCount)+' / 10'],
     [tt('فضای اضافه‌شده به هاست','Additional host storage'),tt('۵ گیگابایت برنامه‌ریزی شده؛ نصب تأیید نشده','5 GB planned; not yet confirmed')],
   ]){const card=node('div');const b=node('strong',value);const t=node('span',label);card.append(t,b);stats.append(card);}

@@ -1,5 +1,5 @@
 # Dedicated JHELA document-root recovery (also safe under the apex /journal/).
-# Do not move, copy or enable old OJS assets. This is a host-scoped public bridge.
+# Public journal host routing; legacy vendor software must never be reactivated.
 <IfModule mod_rewrite.c>
 RewriteEngine On
 # JHELA public-site recovery: TEMPORARY host-scoped redirect only.

@@ -1,6 +1,6 @@
 /**
  * JHELA external transport diagnostic, read-only and credential-free.
- * Verifies public DNS + trusted HTTPS without altering DNS/cPanel/OJS.
+ * Verifies public DNS + trusted HTTPS without altering DNS/cPanel or retired journal software.
  * Never bypasses TLS verification and never prints or persists response bodies.
  */
 import dns from 'node:dns/promises';
@@ -120,7 +120,7 @@ if(process.argv[2]==='--contract'){
     fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
       '### JHELA public read-only origin check\n\n'+
       'Public transport certified: **'+(summary.transportVerified?'YES':'NO')+'**. '+
-      '**No OJS installation, confidential-file protection or editorial approval is certified.**\n\n'+
+      '**No confidential-file protection or formal editorial approval is certified.**\n\n'+
       '| Origin | DNS | CA-trusted HTTPS | HTTP | Possible installer |\n|---|---|---|---|---|\n'+
       clean.map(x=>`| ${x.role} | ${x.dns} | ${x.tls} | ${x.status??'—'} | ${x.possibleInstaller?'YES':'NO EVIDENCE'} |`).join('\n')+
       '\n\nSignals: '+(summary.diagnostics.join(', ')||'none from this probe')+'\n');
