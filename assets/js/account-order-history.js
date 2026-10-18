@@ -167,8 +167,8 @@ function serviceIntakeEditor(order,service){
   'I agree to the private use of this brief solely to coordinate the purchased service. I will not enter passwords, personal identity documents or sensitive files here.'
  )));
  const note=el('p',tr(
-  'این فرم فقط متن را به‌صورت رمزنگاری‌شده ثبت می‌کند؛ بارگذاری مدارک از این بخش انجام نمی‌شود. تأیید سرپرستی توسط این گزینه به‌تنهایی احراز هویت مستقل نیست.',
-  'This form stores encrypted text only, not documents. Checking guardian consent is not independent verification of guardianship.'
+  'این فرم فقط متن را به‌صورت رمزنگاری‌شده ثبت می‌کند؛ بارگذاری مدارک از این بخش انجام نمی‌شود. تأیید سرپرستی توسط این گزینه به‌تنهایی احراز هویت مستقل نیست. با بستن فرم یا خروج از صفحه، تغییرات ذخیره‌نشده پاک می‌شوند.',
+  'This form stores encrypted text only, not documents. Checking guardian consent is not independent verification of guardianship. Unsaved changes are cleared when you close this form or leave the page.'
  ),'ops-muted');
  const save=el('button',tr('ذخیره محرمانه شرح خدمت','Save encrypted service brief'),'button');
  save.type='submit';
@@ -572,5 +572,13 @@ async function load(){
   }catch(_){showInfo(tr('تاریخچه واقعی سفارش‌ها در حال حاضر در دسترس نیست؛ اطلاعات فرضی نمایش داده نمی‌شود.','Order history is currently unavailable; no simulated purchases are shown.'),false);}
   finally{section.setAttribute('aria-busy','false');}
 }
+// On shared devices, a backgrounded browser must not leave opened decrypted
+// briefs or file listings visible when the tab becomes active again.
+function closePrivateOrderPanels(){
+ section.querySelectorAll('details.service-intake-editor[open],details.service-private-files[open]')
+  .forEach(panel=>{panel.open=false;});
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)closePrivateOrderPanels();});
+window.addEventListener('pagehide',closePrivateOrderPanels);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
 })();
