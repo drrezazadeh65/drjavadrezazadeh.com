@@ -16,7 +16,7 @@ const format=n=>new Intl.NumberFormat(isEn?'en-US':'fa-IR').format(n);
  */
 function formatBookingWindow(start,end,timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'){
  const parse=value=>{
-  if(typeof value!=='string'||!/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/.test(value))return null;
+  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value))return null;
   const iso=value.replace(' ','T');
   const d=new Date(iso+'Z');
   return Number.isFinite(d.getTime())&&d.toISOString().slice(0,19)===iso?d:null;
