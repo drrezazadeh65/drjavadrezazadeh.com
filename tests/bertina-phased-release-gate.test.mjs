@@ -93,3 +93,21 @@ test('phased production path checks installed operations schema before extractio
  assert.ok(section.includes("SELECT 1 FROM "),
    'phased schema preflight must be read-only');
 });
+
+test('owner one-click deployment auto-resolves source/live SHA while retaining guarded custody',()=>{
+ const wf=fs.readFileSync('.github/workflows/deploy-bertina.yml','utf8');
+ assert.match(wf,/default: phased_live_audit/);
+ assert.match(wf,/default: owner_cpanel_custody/);
+ assert.match(wf,/default: ACCEPT_UNTESTED_RESTORE_RISK_V5/);
+ assert.match(wf,/default: I_APPROVE_GUARDED_LIVE_AUDIT_RELEASE_WITH_PDF_AND_SQL_DEFERRED/);
+ assert.match(wf,/id: owner_release/);
+ assert.match(wf,/current="\\$\\(git ls-remote origin refs\\/heads\\/migration\\/bertina-linux6/);
+ assert.match(wf,/test "\\$current" = "\\$GITHUB_SHA"/);
+ assert.match(wf,/curl --fail --silent --show-error --location --max-time 25/);
+ assert.match(wf,/\\[\\[ "\\$live_sha" =~ \\^\\[a-f0-9\\]\\{40\\}\\$ \\]\\]/);
+ assert.match(wf,/APPROVED_COMMIT_SHA_INPUT: \\$\\{\\{ steps\\.owner_release\\.outputs\\.target_sha \\}\\}/);
+ assert.match(wf,/EXPECTED_LIVE_SHA_INPUT: \\$\\{\\{ steps\\.owner_release\\.outputs\\.live_sha \\}\\}/);
+ assert.match(wf,/drjrCpanelBackupCheck/);
+ assert.match(wf,/Reject a stale production commit before uploading/);
+ assert.doesNotMatch(wf,/on:\\s*\\n\\s*push:/);
+});
