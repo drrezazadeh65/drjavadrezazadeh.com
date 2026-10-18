@@ -41,7 +41,7 @@ test('formative scientific honesty, privacy, keyboard focus and mobile layout re
  assert.doesNotMatch(script,/\bfetch\s*\(/);
  assert.doesNotMatch(script,/\b(?:sendBeacon|WebSocket)\s*\(/);
  assert.match(script,/not a validated psychometric assessment/);
- assert.match(script,/نه آزمون روان‌سنجی/);
+ assert.match(script,/آزمون روان‌سنجی، تشخیص استعداد/);
  assert.match(script,/nothing is sent to the server/i);
  assert.match(script,/setAttribute\('aria-live','polite'\)/);
  assert.match(style,/@media\(max-width:400px\)/);
