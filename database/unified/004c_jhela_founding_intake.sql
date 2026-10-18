@@ -1,6 +1,6 @@
 -- JHELA founding-issue first-party author intake, scholarly profiles and reviewer interest.
 -- DO NOT apply without a database backup and private storage/AV/TLS preflight.
--- This is the pre-OJS submission queue; real editorial decisions stay in native OJS.
+-- First-party native preliminary intake; editorial decisions require a separately verified workflow.
 SET NAMES utf8mb4;
 CREATE TABLE IF NOT EXISTS jhela_author_profiles(
  account_id CHAR(36) NOT NULL PRIMARY KEY,

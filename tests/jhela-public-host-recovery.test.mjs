@@ -36,7 +36,8 @@ test('public bilingual dashboards do not promise obsolete OJS workflows',()=>{
  assert.ok(read('journal/fees/index.html').includes('server-readiness-gated preliminary intake'));
  assert.ok(!en.includes('OJS'));
  assert.ok(!fa.includes('OJS'));
- assert.ok(read('assets/js/jhela-author-workspace.js').includes('Historical editorial review transfer'));
+ assert.ok(!/\bOJS\b/i.test(read('assets/js/jhela-author-workspace.js')));
+ assert.ok(read('assets/js/jhela-author-workspace.js').includes('Status awaiting editorial verification'));
 });
 
 test('public TLS probe only accepts the exact HTTPS canonical recovery bridge',()=>{

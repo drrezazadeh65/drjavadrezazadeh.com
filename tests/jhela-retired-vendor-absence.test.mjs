@@ -18,7 +18,9 @@ test('all published journal pages and owner interfaces use only the independent 
     'fa/akhbar/farakhvan-jhela/index.html',
     'assets/search-index.json',
     'assets/js/operations-jhela-maturity.js',
-    'assets/js/operations-jhela-workstream.js'
+    'assets/js/operations-jhela-workstream.js',
+    'assets/js/jhela-author-workspace.js',
+    'assets/js/operations-jhela-manuscripts.js'
   ];
   for(const file of paths){
     const content=fs.readFileSync(file,'utf8');

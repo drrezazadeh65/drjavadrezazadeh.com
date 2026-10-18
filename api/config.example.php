@@ -35,4 +35,14 @@ return [
     'service_booking_confirmed' => false,
     'vip_booking_confirmed' => false,
     'book_shipping_confirmed' => false,
+
+    // JHELA uses the SAME mother database and verified customer sessions.
+    // Leave both switches false until end-to-end host acceptance is documented.
+    'jhela_intake_enabled' => false,
+    'jhela_reviewer_intake_enabled' => false,
+    // Provision a private, writable directory OUTSIDE public_html; never serve it directly.
+    'jhela_private_storage' => '',
+    // Must be an executable trusted ClamAV binary, confirmed by Bertina.
+    // Only /usr/bin/clamscan or /usr/local/bin/clamscan is supported.
+    'jhela_av_binary' => '',
 ];

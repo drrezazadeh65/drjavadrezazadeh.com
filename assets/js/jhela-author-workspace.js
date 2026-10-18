@@ -19,11 +19,10 @@ const state=s=>({AWAITING_FILE:t('Awaiting a secure PDF upload','در انتظا
  PRELIMINARY_RECEIVED:t('Received for preliminary screening','دریافت‌شده برای بررسی مقدماتی'),
  UNDER_SCREENING:t('Initial academic screening','بررسی اولیه علمی'),
  NEEDS_INFORMATION:t('Additional information requested','درخواست تکمیل اطلاعات'),
- TRANSFERRED_TO_OJS:t('Historical editorial review transfer','سابقه انتقال به سامانه داوری قدیمی'),
  AUTHOR_INFORMATION_RECEIVED:t('Author information received; editorial follow-up pending','اطلاعات تکمیلی نویسنده دریافت شد؛ در انتظار بررسی'),
  NOT_INVOICED:t('No invoice issued; no payment is due','فاکتوری صادر نشده و پرداختی لازم نیست'),
  PENDING:t('Academic application under review','درخواست همکاری در حال بررسی'),
- APPROVED:t('Approved','تأییدشده')})[s]||s||t('Not yet assessed','بررسی نشده');
+ APPROVED:t('Approved','تأییدشده')})[s]||t('Status awaiting editorial verification','وضعیت در انتظار تأیید تحریریه');
 const view=async()=>{
  try{
   const d=await call('workspace');

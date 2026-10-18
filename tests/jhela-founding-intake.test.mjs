@@ -68,7 +68,7 @@ test('all journal applicant data stores have constrained account ownership and w
   assert.ok(sql.includes('CREATE TABLE IF NOT EXISTS '+table));
  assert.ok(sql.includes('FOREIGN KEY(account_id) REFERENCES customer_accounts(id)'));
  assert.ok(sql.includes('manuscript_sha256 CHAR(64)'));
- assert.ok(sql.includes('ojs_external_id VARCHAR(100)'));
+ assert.ok(sql.includes('ojs_external_id VARCHAR(100)'),'legacy DB column remains for backward-compatible historical records');
  assert.ok(php.includes("WHERE account_id=? ORDER BY created_at DESC LIMIT 100"));
  assert.ok(php.includes("SELECT event_kind,public_message,created_at"));
  assert.ok(!js.includes('innerHTML')&&!js.includes('localStorage')&&!js.includes('sessionStorage'));

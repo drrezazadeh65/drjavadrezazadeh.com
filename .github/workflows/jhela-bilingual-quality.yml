@@ -82,4 +82,4 @@ jobs:
       - name: Record exact-source attestation boundary
         run: |
           echo "JHELA static/source QA passed at ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
-          echo "This is not evidence of live Bertina deployment, Search Console indexation, ISSN/DOI, a real OJS submission or completed peer review." >> "$GITHUB_STEP_SUMMARY"
+          echo "This is not evidence of live Bertina deployment, Search Console indexation, ISSN/DOI, a verified native manuscript submission or completed peer review." >> "$GITHUB_STEP_SUMMARY"

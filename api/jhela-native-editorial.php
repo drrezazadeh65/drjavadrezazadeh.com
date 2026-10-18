@@ -54,7 +54,7 @@ function jhelaOwnerDownload(PDO $pdo,string $id): never {
         !preg_match('/^[a-f0-9]{64}$/D',$hash)||
         !preg_match('/^[A-Z0-9-]{12,40}$/D',$tracking)||
         $bytes<1024||$bytes>15728640) fail('manuscript_file_not_ready',503);
-    $root=jhelaPrivateRoot((string)(getenv('JR_JHELA_PRIVATE_STORAGE')?:''));
+    $root=jhelaPrivateRoot(jhelaConfig()['privateDir']);
     if ($root===null) fail('private_storage_unavailable',503);
     $path=$root.'/'.$rel;
     if (is_link($path)||!is_file($path)||!is_readable($path)||

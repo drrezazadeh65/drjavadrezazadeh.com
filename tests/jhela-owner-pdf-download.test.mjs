@@ -13,6 +13,7 @@ test('owner-only confidential PDF is guarded by fresh MFA and super-admin member
  assert.ok(ops.slice(route,route+500).includes('rateAllowed('));
  assert.ok(ops.includes('jhelaOwnerDownload($pdo,'));
  assert.ok(native.includes("jhelaOwnerFilePermission($pdo)"));
+ assert.ok(native.includes("jhelaPrivateRoot(jhelaConfig()['privateDir'])"));
  assert.ok(js.includes("canDownloadFiles=d.canDownloadFiles===true"));
 });
 test('download never trusts author filename or exposes private paths',()=>{
