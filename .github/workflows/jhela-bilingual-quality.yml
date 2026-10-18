@@ -5,6 +5,8 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - 'journal/**'
+      - '.htaccess'
+      - 'tests/jhela-public-host-recovery.test.mjs'
       - 'assets/js/jhela-*.js'
       - 'assets/css/journal-v2.css'
       - 'scripts/jhela-*.mjs'
@@ -21,6 +23,8 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - 'journal/**'
+      - '.htaccess'
+      - 'tests/jhela-public-host-recovery.test.mjs'
       - 'assets/js/jhela-*.js'
       - 'assets/css/journal-v2.css'
       - 'scripts/jhela-*.mjs'
@@ -53,6 +57,8 @@ jobs:
           node --check assets/js/jhela-public-dashboard.js
           node --check scripts/jhela-discovery-audit.mjs
           node --check scripts/jhela-release-audit.mjs
+      - name: Verify JHELA subdomain recovery, safe routing and closed intake
+        run: node --test tests/jhela-public-host-recovery.test.mjs
       - name: Audit independent JHELA sitemap, hreflang and staged origins
         run: node scripts/jhela-discovery-audit.mjs
       - name: Audit English and Persian policy parity, reviewer safeguards and noindex stage routes

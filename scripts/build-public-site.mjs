@@ -80,7 +80,7 @@ const failures=[];
 for(const blocked of ['database','migrations']) if(fs.existsSync(path.join(out,blocked))) failures.push('Database or migration source leaked into public artifact: '+blocked);
 const required=[
   'index.html','404.html','offline.html','robots.txt','llms.txt','site.webmanifest','sw.js',
-  'sitemap.xml','sitemap-core.xml','journal/sitemap.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml',
+  'sitemap.xml','sitemap-core.xml','journal/sitemap.xml','journal/.htaccess','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml',
   'assets/data/book-catalog.json','assets/data/service-catalog.json','assets/data/analytics-config.json',
   // These runtime modules must ship together with api/index.php; publishing
   // routes without their bound PHP source would cause an immediate 500.

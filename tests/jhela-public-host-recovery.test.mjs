@@ -43,3 +43,11 @@ test('public TLS probe only accepts the exact HTTPS canonical recovery bridge',(
  assert.ok(probe.includes("if(unsafe.transportVerified)throw new Error('cross-origin redirect must fail closed')"));
  assert.ok(probe.includes("publicLaunchAuthorized:false"));
 });
+
+test('the exact public recovery bridge is required by the sanitized Bertina release builder',()=>{
+ const builder=read('scripts/build-public-site.mjs');
+ assert.ok(builder.includes("'journal/.htaccess'"));
+ const workflow=read('.github/workflows/jhela-bilingual-quality.yml');
+ assert.ok(workflow.includes('node --test tests/jhela-public-host-recovery.test.mjs'));
+ assert.ok(workflow.includes("      - '.htaccess'"));
+});
