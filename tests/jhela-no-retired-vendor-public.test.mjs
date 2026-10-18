@@ -21,3 +21,11 @@ test('every bilingual public journal page and owner interface is free of retired
    assert.doesNotMatch(html,retiredName,'retired platform label leaked to '+file);
  }
 });
+
+test('sanitized release fails closed on any retired journal platform asset or public UI label',()=>{
+ const builder=fs.readFileSync('scripts/build-public-site.mjs','utf8');
+ assert.ok(builder.includes('Retired journal platform asset in public package:'));
+ assert.ok(builder.includes('Retired journal platform label in public UI:'));
+ assert.ok(builder.includes('const journalUi=all.filter('));
+ assert.ok(builder.includes('retiredJournalLabel.test(fs.readFileSync(file'));
+});
