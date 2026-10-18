@@ -1,0 +1,211 @@
+/* JR Service Navigator v1.0
+ * Curated audience/need -> existing 21 canonical service IDs.
+ * All public tariffs and Persian service descriptions come from the one
+ * approved catalogue, never from client-generated prices or invented offers.
+ * English titles/descriptions come from the existing bilingual service atlas.
+ * Discovery is not advice, a reservation, a checkout, or proof of availability.
+ * No personal data, storage, analytics, third-party requests or cookies.
+ */
+(()=>{
+ 'use strict';
+ const roots=[...document.querySelectorAll('[data-jr-service-navigator]')];
+ if(!roots.length)return;
+ const canonical=[
+ 'academic_consult_60','student_parent_90','konkur_consult_60','konkur_month',
+ 'transcript_analysis','field_selection_standard','field_selection_comprehensive',
+ 'talent_initial','golden_talent_comprehensive','golden_talent_premium',
+ 'teacher_consult_60','teacher_dev_90','manuscript_diagnostic','academic_editing',
+ 'research_consult_60','journal_strategy','reviewer_response','academic_cv',
+ 'academic_interview_90','organization_consult_90','specialist_workshop_120'
+ ];
+ // Curated, transparent lookup: no statistical or personal-data matching.
+ const journeys={
+  student:{
+   planning:['academic_consult_60','student_parent_90','transcript_analysis'],
+   exam:['konkur_consult_60','konkur_month'],
+   major:['field_selection_standard','field_selection_comprehensive'],
+   talent:['talent_initial','golden_talent_comprehensive','golden_talent_premium']
+  },
+  researcher:{
+   manuscript:['manuscript_diagnostic','academic_editing','reviewer_response'],
+   research:['research_consult_60','manuscript_diagnostic'],
+   publishing:['journal_strategy','manuscript_diagnostic','reviewer_response'],
+   career:['academic_cv','academic_interview_90']
+  },
+  teacher:{
+   practice:['teacher_consult_60','teacher_dev_90'],
+   growth:['teacher_dev_90','teacher_consult_60']
+  },
+  institution:{
+   strategy:['organization_consult_90','specialist_workshop_120'],
+   workshop:['specialist_workshop_120','organization_consult_90']
+  }
+ };
+ const L={
+ fa:{
+  heading:'مسیر‌یاب هوشمندانه خدمات',eyebrow:'SERVICE PATHWAYS · راهنمای تعاملی',
+  lead:'ابتدا مخاطب و مسئله را انتخاب کنید. این ابزار فقط خدمات تأییدشده کاتالوگ را نشان می‌دهد تا دامنه، خروجی و محدودیت هر خدمت را پیش از هر درخواست مقایسه کنید.',
+  audience:'برای چه کسی بررسی می‌کنید؟',goal:'در حال حاضر چه مسئله‌ای مهم‌تر است؟',
+  pick:'انتخاب کنید…',audiences:{student:'دانش‌آموز یا خانواده',researcher:'پژوهشگر یا دانشگاهی',teacher:'معلم یا مدرس',institution:'مدرسه یا سازمان'},
+  goals:{
+   student:{planning:'یک تصمیم تحصیلی یا تحلیل کارنامه',exam:'برنامه‌ریزی و تصمیم‌های کنکور',major:'انتخاب رشته و اولویت‌بندی دانشگاه',talent:'شواهد استعداد و مسیر رشد'},
+   researcher:{manuscript:'بازبینی یا ویرایش مقاله',research:'طرح، روش یا تفسیر پژوهش',publishing:'انتخاب مجله و پاسخ به داور',career:'رزومه یا مصاحبه دانشگاهی'},
+   teacher:{practice:'مسئله تدریس، مواد یا سنجش',growth:'توسعه حرفه‌ای مدرس'},
+   institution:{strategy:'مشاوره برای یک مسئله سازمانی',workshop:'کارگاه و آموزش گروهی'}
+  },
+  waiting:'با انتخاب مخاطب و مسئله، خدمات مرتبطِ موجود نمایش داده می‌شوند.',
+  loading:'در حال خواندن کاتالوگ معتبر…',missing:'کاتالوگ خدمات در حال حاضر قابل تأیید نیست. فهرست اصلی خدمات را پایین همین صفحه بررسی کنید.',
+  mismatch:'اطلاعات رسمی برخی خدمات با فهرست صفحه هم‌خوان نیست؛ تا بررسی، پیشنهاد نمایش داده نمی‌شود.',
+  count:'مسیر خدمات مرتبط',price:'تعرفه ثبت‌شده',toman:' تومان',
+  outcome:'خروجی مورد انتظار',boundary:'حدود و محدودیت',fit:'مناسب برای',
+  scope:'مطالعه دامنه واقعی خدمت',reset:'شروع دوباره',clear:'انتخاب‌ها پاک شدند؛ داده‌ای ذخیره نشده است.',
+  status:'این یک راهنمای انتخاب خدمات است، نه توصیه قطعی، رزرو، تأیید ظرفیت، صورتحساب یا پرداخت.',
+  note:'مقایسه بر اساس مسئله انتخابی و دسته‌بندی شفاف خدمات است؛ هیچ امتیاز استعداد یا احتمال موفقیتی محاسبه نمی‌شود.',
+  contact:'آشنایی با همه خدمات',currency:'تومان',
+  failedTitle:'بازیابی اطلاعات ممکن نشد'
+ },
+ en:{
+  heading:'Professional Service Navigator',eyebrow:'SERVICE PATHWAYS · INTERACTIVE GUIDE',
+  lead:'Begin with your audience and the question you are trying to resolve. Explore verified existing services, their published scope and boundaries before entering any purchasing or consultation process.',
+  audience:'Who is this for?',goal:'Which issue matters most right now?',
+  pick:'Choose an option…',audiences:{student:'Student or parent',researcher:'Researcher or academic',teacher:'Teacher or educator',institution:'School or organisation'},
+  goals:{
+   student:{planning:'An educational decision or transcript review',exam:'Entrance examination planning',major:'University major and programme selection',talent:'Developmental evidence and talent exploration'},
+   researcher:{manuscript:'Manuscript review or academic editing',research:'Research design or methods',publishing:'Journal selection and reviewer response',career:'Academic CV or interview preparation'},
+   teacher:{practice:'Teaching, materials or assessment question',growth:'Professional development'},
+   institution:{strategy:'An organisational education challenge',workshop:'Professional workshop or group learning'}
+  },
+  waiting:'Select an audience and an issue to see related existing services.',
+  loading:'Checking the approved service catalogue…',missing:'The current catalogue could not be verified. Please use the existing full service directory below.',
+  mismatch:'Published service information does not match the current directory. Suggestions are withheld until verified.',
+  count:'Matching existing services',price:'Published catalogue tariff',toman:' toman',
+  outcome:'Expected deliverable',boundary:'Professional boundary',fit:'Suitable for',
+  scope:'View actual service scope',reset:'Start again',clear:'Your selections were cleared; nothing was saved.',
+  status:'This is a discovery guide, not a professional assessment, confirmed booking, capacity claim, invoice or payment.',
+  note:'Matching uses transparent service categories only. It does not compute an aptitude score or predict academic outcomes.',
+  contact:'Browse all services',currency:'toman',failedTitle:'Information unavailable'
+ }
+ };
+ const escapeLabel=(value,max)=>String(value||'').trim().slice(0,max);
+ const node=(tag,text,klass)=>{
+   const el=document.createElement(tag);
+   if(text!==undefined&&text!==null)el.textContent=text;
+   if(klass)el.className=klass;
+   return el;
+ };
+ const validItem=s=>s&&canonical.includes(s.id)&&s.sellable===true&&
+  Number.isSafeInteger(s.price)&&s.price>0&&
+  typeof s.title_fa==='string'&&s.title_fa.trim()&&
+  typeof s.fit_fa==='string'&&typeof s.outcome_fa==='string'&&typeof s.boundary_fa==='string';
+ const getAtlas=()=>{
+  const titles=new Map();
+  document.querySelectorAll('.jr-en-services-atlas a[href^="/en/services/"]').forEach(link=>{
+   const match=link.getAttribute('href')?.match(/^\/en\/services\/([a-z0-9_]+)\/$/);
+   const name=link.querySelector('strong')?.textContent?.trim();
+   const fit=link.querySelector('span')?.textContent?.trim();
+   if(match&&canonical.includes(match[1])&&name&&fit)titles.set(match[1],{name,fit});
+  });
+  return titles;
+ };
+ for(const [index,root] of roots.entries()){
+  const isFa=root.dataset.locale==='fa',t=L[isFa?'fa':'en'],ident='jr-sn-'+index+'-';
+  root.classList.add('jr-service-navigator');
+  const head=node('div',null,'jr-sn-head');
+  head.append(node('span',t.eyebrow,'jr-sn-eyebrow'),node('h3',t.heading),node('p',t.lead));
+  const form=node('form',null,'jr-sn-form');form.noValidate=true;
+  const controls=node('div',null,'jr-sn-controls');
+  const first=node('label',null,'jr-sn-field');
+  const firstTitle=node('span',t.audience);const audience=node('select');
+  audience.id=ident+'audience';audience.name='audience';
+  audience.appendChild(new Option(t.pick,''));
+  Object.entries(t.audiences).forEach(([key,label])=>audience.appendChild(new Option(label,key)));
+  first.append(firstTitle,audience);
+  const second=node('label',null,'jr-sn-field');
+  const secondTitle=node('span',t.goal),goal=node('select');
+  goal.id=ident+'goal';goal.name='goal';goal.disabled=true;
+  goal.appendChild(new Option(t.pick,''));
+  second.append(secondTitle,goal);
+  controls.append(first,second);form.append(controls);
+  const results=node('section',null,'jr-sn-results');
+  results.setAttribute('aria-label',t.count);
+  const summary=node('p',t.loading,'jr-sn-status');summary.setAttribute('role','status');summary.setAttribute('aria-live','polite');summary.setAttribute('aria-atomic','true');
+  const cards=node('div',null,'jr-sn-cards');cards.hidden=true;
+  const reset=node('button',t.reset,'jr-sn-reset');reset.type='reset';
+  const notice=node('p',t.status,'jr-sn-notice');
+  const explainer=node('p',t.note,'jr-sn-explainer');
+  results.append(summary,cards);form.append(results,reset,notice,explainer);
+  root.append(head,form);
+  let catalogue=null,englishTitles=null;
+  function refreshGoals(){
+   const objectives=t.goals[audience.value]||{};
+   goal.replaceChildren(new Option(t.pick,''));
+   Object.entries(objectives).forEach(([id,label])=>goal.appendChild(new Option(label,id)));
+   goal.disabled=!audience.value;
+  }
+  function render(message){
+   cards.replaceChildren();cards.hidden=true;
+   if(!catalogue){summary.textContent=t.loading;return}
+   if(!audience.value||!goal.value){summary.textContent=message||t.waiting;return}
+   const ids=journeys[audience.value]?.[goal.value]||[];
+   const active=ids.map(id=>catalogue.get(id)).filter(Boolean);
+   if(active.length!==ids.length||(englishTitles&&active.some(item=>!englishTitles.has(item.id)))){
+    summary.textContent=t.mismatch;return;
+   }
+   for(const item of active){
+    const en=englishTitles?.get(item.id);
+    const card=node('article',null,'jr-sn-card');
+    const header=node('div',null,'jr-sn-card-top');
+    header.append(node('span',item.id.replaceAll('_',' '),'jr-sn-code'));
+    const amount=node('p',null,'jr-sn-price');
+    amount.append(node('span',t.price),node('strong',
+     new Intl.NumberFormat(isFa?'fa-IR':'en-US').format(item.price)+t.toman));
+    header.append(amount);
+    const title=node('h4',isFa?escapeLabel(item.title_fa,145):en.name);
+    const fit=node('p',isFa?escapeLabel(item.fit_fa,500):en.fit,'jr-sn-fit');
+    const details=node('dl',null,'jr-sn-details');
+    if(isFa){
+     for(const [label,value] of [[t.outcome,item.outcome_fa],[t.boundary,item.boundary_fa]]){
+      const row=node('div');row.append(node('dt',label),node('dd',escapeLabel(value,650)));details.append(row);
+     }
+    }else{
+     // English descriptions are supplied by the existing published atlas,
+     // not ad hoc machine-translated from sensitive Persian service text.
+     details.append(node('p','Read the bilingual service page for the full deliverable and professional limits.','jr-sn-english-note'));
+    }
+    const link=node('a',t.scope,'jr-sn-link');
+    link.href=(isFa?'/fa/services/':'/en/services/')+item.id+'/';
+    card.append(header,title,fit,details,link);cards.append(card);
+   }
+   cards.hidden=false;
+   summary.textContent=new Intl.NumberFormat(isFa?'fa-IR':'en-US').format(active.length)+' '+t.count;
+  }
+  audience.addEventListener('change',()=>{refreshGoals();render()});
+  goal.addEventListener('change',()=>render());
+  form.addEventListener('submit',event=>event.preventDefault());
+  form.addEventListener('reset',()=>{window.setTimeout(()=>{refreshGoals();render(t.clear)},0)});
+  async function load(){
+   try{
+    const response=await fetch('/assets/data/service-catalog.json',{
+     method:'GET',credentials:'omit',cache:'no-store',headers:{Accept:'application/json'}
+    });
+    if(!response.ok)throw Error('catalog_unavailable');
+    const data=await response.json();
+    if(data?.currency!=='IRT'||!Array.isArray(data.services))throw Error('catalog_contract');
+    const available=data.services.filter(validItem);
+    const map=new Map(available.map(s=>[s.id,s]));
+    if(map.size!==canonical.length||canonical.some(id=>!map.has(id)))throw Error('catalog_mismatch');
+    const english=isFa?null:getAtlas();
+    if(english&&canonical.some(id=>!english.has(id)))throw Error('atlas_mismatch');
+    catalogue=map;englishTitles=english;
+    render();
+   }catch(_){
+    catalogue=null;
+    cards.replaceChildren();cards.hidden=true;
+    summary.textContent=t.missing;
+    audience.disabled=true;goal.disabled=true;
+   }
+  }
+  refreshGoals();
+  load();
+ }
+})();
