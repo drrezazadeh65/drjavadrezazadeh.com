@@ -2,13 +2,12 @@
   "schema": "jhela-native-intake-activation-v1",
   "decidedBy": "SITE_OWNER",
   "decisionDate": "2026-10-18",
-  "targetVersion": "FUTURE_OWNER_ORDER_REQUIRED",
+  "targetVersion": "NEXT_VERIFIED_NATIVE_JHELA_RELEASE",
   "canonicalRepository": "drrezazadeh65/drjavadrezazadeh.com",
   "canonicalBranch": "migration/bertina-linux6",
-  "ownerAuthorizesPreliminaryManuscriptSubmission": false,
+  "ownerAuthorizesPreliminaryManuscriptSubmission": true,
   "independentReviewOrAcceptanceOperational": false,
   "nativePublishingWorkflowOperational": false,
-  "ojsInstallationProhibitedThrough": "2026-10-27",
   "ojsRequiredForPreliminaryReceipt": false,
   "reusedSourcePaths": [
     "api/jhela-intake.php",
@@ -29,8 +28,9 @@
     "verified_duplicate_and_error_handling"
   ],
   "publicIntakeReady": false,
-  "readinessProof": "NONE_AT_SOURCE_COMMIT",
-  "liveReleaseProof": "NONE_AT_SOURCE_COMMIT",
-  "operatingRule": "Fail closed: manuscript create/upload remains suspended until explicit new owner authorization, regardless of all host checks. Reviewer expressions of interest separate.",
-  "ownerHold": "SUBMISSIONS_AND_PDF_UPLOAD_PAUSED"
+  "readinessProof": "AWAITING_VERIFIED_LIVE_PREFLIGHT",
+  "liveReleaseProof": "NOT_YET_VERIFIED",
+  "operatingRule": "Owner has authorized native intake. Fail closed unless JR_JHELA_INTAKE_ENABLED=true AND all live TLS, mother DB, private storage, antivirus, verified identity and upload checks pass. Native editorial review and payments remain independent unverified gates.",
+  "ownerHold": "LIFTED_OWNER_AUTHORIZATION_RUNTIME_GATED",
+  "ojsPolicy": "DO_NOT_REINSTALL_OJS_NATIVE_FIRST_PARTY_ONLY"
 }

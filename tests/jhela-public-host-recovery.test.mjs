@@ -22,8 +22,8 @@ test('main host routing and commercial authentication remain untouched',()=>{
  assert.ok(root.includes('RewriteCond %{HTTPS} !=on [OR]'));
  assert.ok(root.includes('RewriteRule ^ https://drjavadrezazadeh.com%{REQUEST_URI} [R=301,L,NE]'));
  const php=read('api/jhela-intake.php');
- assert.ok(php.includes('manuscript_submissions_paused'));
- assert.ok(read('journal/submission/index.html').includes('submissions are temporarily closed'));
+ assert.ok(php.includes('manuscript_intake_disabled'));
+ assert.ok(read('journal/submission/index.html').includes('Submission availability is verified in real time'));
  assert.ok(read('journal/index.html').includes('https://drjavadrezazadeh.com/journal/'));
 });
 test('public bilingual dashboards do not promise obsolete OJS workflows',()=>{

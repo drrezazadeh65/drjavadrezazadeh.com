@@ -98,12 +98,13 @@
     "Independent current-SHA CI and real Bertina backup, private file storage and safe deploy gate"
   ],
   "latestOwnerSupersession": {
-    "directive": "docs/governance/V5.2_EVOLUTION_OWNER_DIRECTIVE_20261018.md",
-    "ownerAuthorizedNativePreliminaryManuscriptIntake": false,
-    "noOjsInstallationBefore": "2026-10-28",
-    "actualLiveIntakeReady": "OWNER_SUSPENDED",
-    "supersedesHistoricManuscriptIntakeClosedPolicy": false,
+    "directive": "docs/governance/JHELA_NATIVE_RELEASE_OWNER_OVERRIDE_20261018.md",
+    "ownerAuthorizedNativePreliminaryManuscriptIntake": true,
+    "ojsInstallationPolicy": "NO_OJS_REINSTALLATION",
+    "actualLiveIntakeReady": "AWAITING_HOST_SECURITY_PREFLIGHT",
+    "supersedesHistoricManuscriptIntakeClosedPolicy": true,
     "stagedPaymentsAndReleaseInsteadOfFullHundredPercentFreeze": true,
-    "nativeJhelaImplementation": "PLANNING_ONLY"
+    "nativeJhelaImplementation": "AUTHORIZED_IMPLEMENT_AND_VERIFY",
+    "historicalHoldPreservedForAuditOnly": true
   }
 }

@@ -116,17 +116,18 @@ test('academic owner UI remains inside separate protected MFA workspace',()=>{
  assert.ok(!client.includes('innerHTML'));
 });
 
-// Explicit owner hold remains binding despite incremental v5.2 release policy.
-test('both manuscript endpoints fail closed before DB while reviewer interest is distinct',()=>{
- assert.ok(php.includes('const JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED = true;'));
- assert.ok(php.includes("'manuscriptIntake'=>$upload&&$c['intake']&&!JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED"));
+// Later explicit owner authorization replaces the historical calendar pause.
+test('native manuscript intake is authorised but fails closed without explicit host readiness',()=>{
+ assert.ok(!php.includes('JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED'));
+ assert.ok(php.includes("'manuscriptIntake'=>$upload&&$c['intake']"));
  const route=php.slice(php.indexOf('function jhelaIntakeRoute('));
- assert.ok(route.indexOf("fail('manuscript_submissions_paused',503);")>0);
- assert.ok(route.indexOf("fail('manuscript_submissions_paused',503);")<route.indexOf('$pdo=db();'));
- assert.ok(route.includes("'/journal/manuscripts/create','/journal/manuscripts/upload'"));
+ assert.ok(route.includes("getenv('JR_JHELA_INTAKE_ENABLED')!=='true'"));
+ assert.ok(route.includes("fail('manuscript_intake_disabled',503);"));
+ assert.ok(route.indexOf("fail('manuscript_intake_disabled',503);")<route.indexOf('$pdo=db();'));
+ assert.ok(route.includes("if(!$ready['manuscriptIntake'])fail('manuscript_intake_not_ready',503);"));
  assert.ok(route.includes("if(!$ready['reviewerIntake'])fail('reviewer_intake_not_ready',503);"));
- assert.ok(js.includes('const manuscriptSubmissionsPaused=true;'));
- assert.ok(js.includes('manuscriptIntakeReady=!manuscriptSubmissionsPaused&&h.manuscriptIntake===true;'));
- assert.ok(read('journal/submission/index.html').includes('Manuscript submissions are temporarily closed'));
- assert.ok(read('journal/fa/submission/index.html').includes('پذیرش و بارگذاری مقاله موقتاً متوقف است'));
+ assert.ok(!js.includes('manuscriptSubmissionsPaused=true'));
+ assert.ok(js.includes('manuscriptIntakeReady=h.manuscriptIntake===true;'));
+ assert.ok(read('journal/submission/index.html').includes('Submission availability is verified in real time'));
+ assert.ok(read('journal/fa/submission/index.html').includes('وضعیت دریافت امن مقاله به‌صورت زنده بررسی می‌شود'));
 });

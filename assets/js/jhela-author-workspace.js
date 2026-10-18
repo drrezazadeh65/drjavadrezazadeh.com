@@ -3,8 +3,7 @@
 (()=>{'use strict';
 const root=document.querySelector('[data-jhela-workspace]');if(!root)return;
 const fa=document.documentElement.lang==='fa',t=(en,faText)=>fa?faText:en;
-// False until the authenticated server readiness checks actually pass.
-const manuscriptSubmissionsPaused=true;
+// No static calendar hold: the API's verified, fail-closed readiness is authoritative.
 let manuscriptIntakeReady=false;
 const find=s=>root.querySelector(s),status=find('[data-jhela-status]');
 const message=(s,kind='info')=>{status.textContent=s;status.dataset.state=kind;};
@@ -41,7 +40,7 @@ const view=async()=>{
     el('p',t('Editorial status: ','وضعیت علمی: ')+state(x.status)),
     el('p',t('Finance: ','امور مالی: ')+state(x.finance.state)+(x.finance.amount_chf!==null&&x.finance.amount_chf!==undefined?' · CHF '+x.finance.amount_chf:'')));
    const ol=el('ol');for(const event of x.events||[])ol.append(el('li',event.public_message));card.append(ol);
-   if(x.status==='AWAITING_FILE'&&!manuscriptSubmissionsPaused&&manuscriptIntakeReady){
+   if(x.status==='AWAITING_FILE'&&manuscriptIntakeReady){
     const form=el('form');form.className='jhela-intake-retry';
     const label=el('label',t('Complete submission with PDF (max 15 MB)','تکمیل ارسال با فایل PDF حداکثر ۱۵ مگابایت'));
     const file=el('input');file.type='file';file.accept='.pdf,application/pdf';file.required=true;label.append(file);
@@ -95,7 +94,7 @@ const directory=find('[data-jhela-directory]');
 (async()=>{
  try{
   const h=await call('intake/health');
-  manuscriptIntakeReady=!manuscriptSubmissionsPaused&&h.manuscriptIntake===true;
+  manuscriptIntakeReady=h.manuscriptIntake===true;
   const article=find('[data-jhela-article-open]');if(article)article.hidden=!manuscriptIntakeReady;
   const reviewer=find('[data-jhela-review-open]');if(reviewer)reviewer.hidden=h.reviewerIntake!==true;
   const inactive=find('[data-jhela-not-ready]');

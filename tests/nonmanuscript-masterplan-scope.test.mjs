@@ -35,16 +35,19 @@ test('the 21 services remain in the source-scoped execution inventory without ma
   for(const locale of ['fa','en'])assert.ok(fs.existsSync(locale+'/services/'+s.id+'/index.html'),locale+' missing '+s.id);
  }
 });
-test('staged website releases keep the separate manuscript suspension',()=>{
+test('historical nonmanuscript scope is superseded by explicit native JHELA authorization',()=>{
  const php=read('api/jhela-intake.php');
- assert.ok(php.includes('const JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED = true;'));
- assert.ok(php.includes("fail('manuscript_submissions_paused',503);"));
+ assert.ok(!php.includes('JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED'));
+ assert.ok(php.includes("getenv('JR_JHELA_INTAKE_ENABLED')!=='true'"));
+ assert.ok(php.includes("fail('manuscript_intake_disabled',503);"));
  assert.ok(php.includes("'/journal/reviewer/apply'"));
  const decision=read('docs/governance/V5.2_EVOLUTION_OWNER_DIRECTIVE_20261018.md');
  assert.match(decision,/earlier requirement to await 100% completion[^.]*RETIRED/i);
- assert.match(decision,/manuscript metadata creation, confidential PDF upload and formal submission/);
- assert.equal(scope.latestOwnerSupersession.ownerAuthorizedNativePreliminaryManuscriptIntake,false);
- assert.equal(json('platform/jhela-native-intake-activation-v1.json').ownerAuthorizesPreliminaryManuscriptSubmission,false);
+ assert.ok(decision.includes('LATEST OWNER OVERRIDE — JHELA NATIVE RELEASE'));
+ assert.ok(decision.includes('docs/governance/JHELA_NATIVE_RELEASE_OWNER_OVERRIDE_20261018.md'));
+ assert.equal(scope.latestOwnerSupersession.ownerAuthorizedNativePreliminaryManuscriptIntake,true);
+ assert.equal(json('platform/jhela-native-intake-activation-v1.json').ownerAuthorizesPreliminaryManuscriptSubmission,true);
+ assert.equal(json('platform/jhela-native-intake-activation-v1.json').publicIntakeReady,false);
  for(const p of ['journal/submission/index.html','journal/fa/submission/index.html'])assert.ok(read(p).includes('data-jhela-article-open hidden'));
  assert.ok(fs.existsSync('journal/dashboard/index.html'));
  assert.ok(fs.existsSync('journal/fa/dashboard/index.html'));

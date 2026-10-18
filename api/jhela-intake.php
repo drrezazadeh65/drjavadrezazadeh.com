@@ -7,10 +7,11 @@ declare(strict_types=1);
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
-// Owner decision 2026-10-18: no manuscript metadata creation or PDF upload until a new explicit order.
-// Regardless of host-readiness flags, fail closed before accessing the database.
-// OJS installation remains separately prohibited through 2026-10-27.
-const JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED = true;
+// Newer owner instruction 2026-10-18: lift the calendar/manuscript moratorium
+// for the native platform. No automatic activation: the private intake is
+// disabled unless an operator explicitly sets JR_JHELA_INTAKE_ENABLED=true
+// AND verified TLS, mother schema, private storage and antivirus all pass.
+// No OJS installation or migration is authorized or required.
 
 function jhelaConfig(): array {
   $dir=(string)(getenv('JR_JHELA_PRIVATE_STORAGE')?:'');
@@ -52,11 +53,12 @@ function jhelaReadiness(?PDO $pdo): array {
   $upload=$secure&&jhelaPrivateRoot($c['privateDir'])!==null&&jhelaAvReady($c['antivirus']);
   return [
     'profile'=>$secure,
-    'manuscriptIntake'=>$upload&&$c['intake']&&!JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED,
+    'manuscriptIntake'=>$upload&&$c['intake'],
     'reviewerIntake'=>$secure&&$c['reviewers'],
     'accountVerificationRequired'=>true,
     'manuscriptFormat'=>'PDF', 'maxFileBytes'=>15728640,
-    'ojsFormalPeerReviewConnected'=>false,
+    'nativeEditorialReviewOperational'=>false,
+    'ojsFormalPeerReviewConnected'=>false, // backwards-compatible deprecated field
     'paymentsEnabled'=>false
   ];
 }
@@ -133,15 +135,17 @@ function jhelaPrivateHome(PDO $pdo,array $a): never {
     'profile'=>$profile,'reviewerApplication'=>$reviewer,'manuscripts'=>$entries,
     'financePolicy'=>['submissionFeeCHF'=>0,'firstIssueWaiverPolicy'=>'100% for eligible inaugural-issue articles',
       'apcPayableBeforeAcceptance'=>false,'onlinePaymentsEnabled'=>false],
-    'connection'=>['intakeIsPreOjs'=>true,'peerReviewInOjs'=>false]
+    'connection'=>['intakeIsNative'=>true,'nativeEditorialReviewOperational'=>false,
+      'intakeIsPreOjs'=>false,'peerReviewInOjs'=>false]
   ]);
 }
 function jhelaIntakeRoute(string $path,string $verb): never {
   header('Cache-Control: no-store, private, max-age=0');
-  // Owner pause must be enforced at the API boundary, not merely in the browser.
-  if(JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED
-    && in_array($path,['/journal/manuscripts/create','/journal/manuscripts/upload'],true))
-    fail('manuscript_submissions_paused',503);
+  // Fail closed before any DB access unless the operator enabled native intake.
+  // Host readiness and ownership checks are separately enforced below.
+  if(in_array($path,['/journal/manuscripts/create','/journal/manuscripts/upload'],true)
+    && getenv('JR_JHELA_INTAKE_ENABLED')!=='true')
+    fail('manuscript_intake_disabled',503);
   $pdo=db();
   if($path==='/journal/intake/health'&&$verb==='GET'){
     $state=jhelaReadiness($pdo);
@@ -270,6 +274,7 @@ function jhelaIntakeRoute(string $path,string $verb): never {
       fail('secure_upload_not_completed',503);
     }
     respond(['ok'=>true,'status'=>'PRELIMINARY_RECEIVED','trackingCodeAvailableInDashboard'=>true,
+      'formalNativePeerReviewStarted'=>false,
       'formalOjsPeerReviewStarted'=>false],201);
   }
   fail('not_found',404);
