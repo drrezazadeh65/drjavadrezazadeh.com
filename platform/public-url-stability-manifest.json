@@ -51,6 +51,7 @@
     "/en/services/teacher_dev_90/",
     "/en/services/transcript_analysis/",
     "/en/shop/",
+    "/en/shop/authors/mehrab-mirkarimi/",
     "/en/shop/customer-policy/",
     "/en/shop/purchase-guide/",
     "/en/student-guidance/",
@@ -228,5 +229,13 @@
       "/en/vip/institutional-advisory/"
     ],
     "rule": "Preserve existing Persian URLs, retain reciprocal hreflang and existing secure checkout; explicit addition does not weaken route continuity."
+  },
+  "approved_addition_20261018_english_author": {
+    "approved_by": "website_owner",
+    "scope": "Reciprocal English author/product profile for existing Persian Seyyed Mehrab Mirkarimi collection",
+    "routes": [
+      "/en/shop/authors/mehrab-mirkarimi/"
+    ],
+    "rule": "Add a linked, indexable bilingual author resource without renaming existing public URLs, asserting unverified sales fulfilment or weakening payments/rights safeguards."
   }
 }

@@ -32,3 +32,6 @@ Library artifact: `JR_Publishing_PDF_Private_Server_Staging_v2.zip`.
 
 ## Deployment limitations
 GitHub source connection offers commit/tree/read tools but **no workflow_dispatch** or Bertina FTP/SFTP/cPanel action. A source commit cannot upload confidential ZIP bytes, run MySQL migrations or prove a live bank test. The existing `.github/workflows/deploy-bertina.yml` requires the owner's manual authenticated invocation, exact SHA and live-release fingerprint and all scoped safety gates. Do not force an automatic deploy by adding a parallel workflow or bypassing safeguards.
+
+## v5.2 English author discoverability QA correction (2026-10-18)
+The approved English Mirkarimi author/profile resource was added to the reciprocal sitemap before it was registered in the immutable-route inventory or linked from the English shop. This change registers the new approved URL, provides a genuine accessible route from the established English bookstore, and revises internal engineering language in English visible text and the public search index. Existing Persian route, product rights/payment gating, author dashboard, pricing and JHELA manuscript hold remain unchanged. The four original audit findings and current exact-SHA CI results must be inspected before recommending any scoped production release; this documentation alone does not constitute acceptance.

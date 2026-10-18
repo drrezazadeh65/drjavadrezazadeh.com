@@ -38,3 +38,16 @@ test('English publication stays source-honest, sale-gated and responsive',()=>{
  assert.ok(read('platform/hreflang-pairs.json').includes('author-mehrab-mirkarimi'));
  assert.ok(read('scripts/build-public-site.mjs').includes("approvedEnglishAuthorPage='en/shop/authors/mehrab-mirkarimi/index.html'"));
 });
+
+// The English author profile must be reachable and eligible for the frozen public URL inventory.
+test('v5.2 new English author page has public bookstore entry and approved stable URL',()=>{
+ const shop=read('en/shop/index.html');
+ const search=read('assets/search-index.json');
+ const stable=JSON.parse(read('platform/public-url-stability-manifest.json'));
+ const route='/en/shop/authors/mehrab-mirkarimi/';
+ assert.ok(shop.includes('href="'+route+'"'));
+ assert.ok(stable.frozen_indexable_routes.includes(route));
+ assert.ok(stable.approved_addition_20261018_english_author.routes.includes(route));
+ assert.ok(!en.includes('server-authoritative'));
+ assert.ok(!search.includes('legal sale readiness'));
+});
