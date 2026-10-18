@@ -3,7 +3,7 @@ declare(strict_types=1);
 /* JHELA: owner-authorised preliminary manuscript intake for the planned native
  * editorial system. Receipt is not scientific acceptance, peer review or publication.
  * Requires verified existing site account, HTTPS, applied migration, private files and antivirus.
- * No OJS installation, repair or integration is performed by this handler.
+ * This handler exclusively serves the first-party editorial platform.
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
@@ -11,7 +11,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 // for the native platform. No automatic activation: the private intake is
 // disabled unless an operator explicitly sets JR_JHELA_INTAKE_ENABLED=true
 // AND verified TLS, mother schema, private storage and antivirus all pass.
-// No OJS installation or migration is authorized or required.
+// The intake is independent of retired vendor platforms.
 
 function jhelaConfig(): array {
   $dir=(string)(getenv('JR_JHELA_PRIVATE_STORAGE')?:'');
@@ -297,8 +297,7 @@ function jhelaIntakeRoute(string $path,string $verb): never {
       fail('secure_upload_not_completed',503);
     }
     respond(['ok'=>true,'status'=>'PRELIMINARY_RECEIVED','trackingCodeAvailableInDashboard'=>true,
-      'formalNativePeerReviewStarted'=>false,
-      'formalOjsPeerReviewStarted'=>false],201);
+      'formalNativePeerReviewStarted'=>false],201);
   }
   fail('not_found',404);
 }

@@ -72,6 +72,7 @@ test('all journal applicant data stores have constrained account ownership and w
  assert.ok(php.includes("WHERE account_id=? ORDER BY created_at DESC LIMIT 100"));
  assert.ok(php.includes("SELECT event_kind,public_message,created_at"));
  assert.ok(!js.includes('innerHTML')&&!js.includes('localStorage')&&!js.includes('sessionStorage'));
+ assert.ok(!/ojs|open journal systems/i.test(php),'native API must not expose retired platform terminology');
 });
 test('public bilingual inaugural call and academic reviewer/author workspaces are semantically ready',()=>{
  for(const [p,language] of [['journal/submission/index.html','en'],['journal/fa/submission/index.html','fa'],
