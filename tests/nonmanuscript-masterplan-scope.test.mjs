@@ -38,7 +38,9 @@ test('the 21 services remain in the source-scoped execution inventory without ma
 test('historical nonmanuscript scope is superseded by explicit native JHELA authorization',()=>{
  const php=read('api/jhela-intake.php');
  assert.ok(!php.includes('JHELA_MANUSCRIPT_SUBMISSIONS_SUSPENDED'));
- assert.ok(php.includes("getenv('JR_JHELA_INTAKE_ENABLED')!=='true'"));
+ assert.ok(php.includes("!jhelaConfig()['intake']"));
+ assert.ok(php.includes("'jhela_intake_enabled'"));
+ assert.ok(php.includes("getenv('JR_JHELA_INTAKE_ENABLED')==='true'"));
  assert.ok(php.includes("fail('manuscript_intake_disabled',503);"));
  assert.ok(php.includes("'/journal/reviewer/apply'"));
  const decision=read('docs/governance/V5.2_EVOLUTION_OWNER_DIRECTIVE_20261018.md');
