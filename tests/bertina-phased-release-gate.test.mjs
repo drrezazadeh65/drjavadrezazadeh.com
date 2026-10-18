@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {createHash} from 'node:crypto';
 import {assessPhasedRelease,PHASED_APPROVAL_PHRASE} from '../scripts/bertina-phased-release-gate.mjs';
 
 const approve=Object.freeze({
@@ -114,4 +115,28 @@ test('owner one-click deployment auto-resolves source/live SHA while retaining g
   'Reject a stale production commit before uploading',
  ]) assert.ok(wf.includes(required),'one-click contract missing: '+required);
  assert.ok(!wf.includes('on:\\n  push:'),'manual owner authorization must remain required');
+});
+
+/**
+ * FROZEN OWNER DEPLOYMENT CONTRACT — successful production run #395.
+ * Fail closed before any release if any part of the approved deployment
+ * machinery is modified, even if a change appears harmless.
+ * Never automatically rewrite these fingerprints.
+ */
+const FROZEN_DEPLOYMENT_BLOBS=Object.freeze({
+ '.github/workflows/deploy-bertina.yml':'280c6ac95d534ef6db9b292ddbe7467053f0ba76',
+ 'scripts/bertina-phased-release-gate.mjs':'14a3641a43bf441ff56dcead5154dbc8bdd80237',
+ 'scripts/bertina-hosting-managed-release.php':'0839f9e244da6eead0bac4526919f4b1dd7e4f40',
+ 'scripts/bertina-controlled-cpanel-gate.php':'43f2a4eb28790baa4e657262e4ccb60aca99317e',
+ 'scripts/bertina-private-recovery-gate.php':'23f01c3720c243efa6f56cfa2d196cae6660dee0'
+});
+test('PERMANENT FREEZE: deployment workflow and release gate source match successful run #395',()=>{
+ for(const [path,expected] of Object.entries(FROZEN_DEPLOYMENT_BLOBS)){
+  const contents=fs.readFileSync(path);
+  const gitBlob=createHash('sha1')
+   .update(Buffer.from('blob '+contents.length+'\\0'))
+   .update(contents).digest('hex');
+  assert.equal(gitBlob,expected,
+   'FROZEN DEPLOYMENT CONTRACT VIOLATED: '+path+' differs from successful run #395');
+ }
 });
