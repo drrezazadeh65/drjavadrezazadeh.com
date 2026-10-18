@@ -6,6 +6,7 @@ const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/publishing-onboarding.php';
 require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-jhela.php';
+require_once __DIR__.'/jhela-native-editorial.php';
 require_once __DIR__.'/jhela-intake.php';
 require_once __DIR__.'/operations-commerce.php';
 require_once __DIR__.'/operations-fulfilment.php';
@@ -372,6 +373,23 @@ function operationsRoute(string $path, string $verb): never {
         if (!$fresh) fail('admin_mfa_required',403);
         if(str_starts_with($path,'/admin/operations/publishing/authors'))
             jrPubKycAdminRoute($pdo,$path,$verb,$accountId,$csrf,$configuration);
+
+        // First-party JHELA preliminary editorial queue. Fresh admin MFA was
+        // verified above; no manuscript bytes, private path or public decision is exposed.
+        if ($path === '/admin/operations/jhela/manuscripts' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'jhela_owner_manuscript_read',$accountId,12,300))
+                fail('rate_limited',429);
+            jhelaOwnerManuscripts($pdo);
+        }
+        if ($path === '/admin/operations/jhela/manuscripts/screen' && $verb === 'POST') {
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('editorial_owner_role_required',403);
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'jhela_owner_manuscript_screen',$accountId,10,900))
+                fail('rate_limited',429);
+            jhelaOwnerScreen($pdo,$accountId,jsonBody());
+        }
 
         // Owner-approved reviewer screening is a private, real DB workflow, never public automatically.
         if ($path === '/admin/operations/jhela/reviewers' && $verb === 'GET') {
