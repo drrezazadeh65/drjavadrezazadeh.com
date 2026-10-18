@@ -58,7 +58,7 @@ function jhelaReadiness(?PDO $pdo): array {
     'accountVerificationRequired'=>true,
     'manuscriptFormat'=>'PDF', 'maxFileBytes'=>15728640,
     'nativeEditorialReviewOperational'=>false,
-    'ojsFormalPeerReviewConnected'=>false, // backwards-compatible deprecated field
+    'formalPeerReviewOperational'=>false,
     'paymentsEnabled'=>false
   ];
 }
@@ -119,7 +119,7 @@ function jhelaPrivateHome(PDO $pdo,array $a): never {
   $profile=$s->fetch()?:null;
   $r=$pdo->prepare('SELECT academic_name,academic_rank,institution,country,orcid,expertise,methods,cv_summary,publications,profile_public_consent,status FROM jhela_reviewer_candidates WHERE account_id=?');$r->execute([$id]);
   $reviewer=$r->fetch()?:null;
-  $q=$pdo->prepare('SELECT id,tracking_code,title,article_type,status,original_filename,uploaded_at,created_at,ojs_external_id FROM jhela_intake_manuscripts WHERE account_id=? ORDER BY created_at DESC LIMIT 100');
+  $q=$pdo->prepare('SELECT id,tracking_code,title,article_type,status,original_filename,uploaded_at,created_at FROM jhela_intake_manuscripts WHERE account_id=? ORDER BY created_at DESC LIMIT 100');
   $q->execute([$id]);$rows=$q->fetchAll();$entries=[];
   $history=$pdo->prepare('SELECT event_kind,public_message,created_at FROM jhela_intake_events WHERE manuscript_id=? ORDER BY created_at,id LIMIT 60');
   $finance=$pdo->prepare('SELECT state,amount_chf,waiver_percent,invoice_ref,verified_at FROM jhela_finance_records WHERE manuscript_id=? ORDER BY created_at DESC LIMIT 1');
@@ -136,7 +136,7 @@ function jhelaPrivateHome(PDO $pdo,array $a): never {
     'financePolicy'=>['submissionFeeCHF'=>0,'firstIssueWaiverPolicy'=>'100% for eligible inaugural-issue articles',
       'apcPayableBeforeAcceptance'=>false,'onlinePaymentsEnabled'=>false],
     'connection'=>['intakeIsNative'=>true,'nativeEditorialReviewOperational'=>false,
-      'intakeIsPreOjs'=>false,'peerReviewInOjs'=>false]
+      'editorialWorkflowOperational'=>false]
   ]);
 }
 function jhelaIntakeRoute(string $path,string $verb): never {

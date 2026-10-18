@@ -79,12 +79,12 @@ function operationsJhelaSnapshot(): array {
     return [
         'ok'=>true,
         'schema'=>'jhela-owner-maturity-snapshot-v1',
-        'source'=>'governed_repository_contracts_not_live_ojs',
+        'source'=>'governed_repository_contracts_not_live_editorial_data',
         'checkedAt'=>gmdate('c'),
         'journal'=>'JHELA',
-        'ojs'=>[
-            'installation'=>'not_independently_verified',
-            'submissions'=>'closed',
+        'editorial'=>[
+            'platform'=>'first_party_native',
+            'submissionPolicy'=>'CONDITIONAL_ON_LIVE_HOST',
             'reviewWorkflow'=>'not_independently_verified',
             'realManuscriptCounts'=>null,
             'reviewerIdentitiesIncluded'=>false,
@@ -106,7 +106,7 @@ function operationsJhelaSnapshot(): array {
         ],
         'infrastructureTiers'=>$tiers,
         'limitations'=>[
-            'Source policy status is not a measurement of OJS installation, server health, article counts or index membership.',
+            'Source policy status is not a measurement of editorial server health, article counts or index membership.',
             'Publication and payment must remain closed until independent runtime evidence and owner authorisation.',
         ],
     ];

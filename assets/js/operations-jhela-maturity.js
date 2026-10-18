@@ -9,7 +9,7 @@ const tt=(a,b)=>fa?a:b;
 const node=(tag,txt)=>{const n=document.createElement(tag);if(txt!==undefined)n.textContent=txt;return n;};
 function render(data){
   if(data?.schema!=='jhela-owner-maturity-snapshot-v1'||!Array.isArray(data.scientificMilestones)||data.scientificMilestones.length!==10||
-     !Array.isArray(data.infrastructureTiers)||data.infrastructureTiers.length!==4||data.ojs?.submissions!=='closed'||
+     !Array.isArray(data.infrastructureTiers)||data.infrastructureTiers.length!==4||data.editorial?.submissionPolicy!=='CONDITIONAL_ON_LIVE_HOST'||
      data.evidenceReview?.progressPercent!==null||data.verifiedIndexClaims?.length!==0)
     throw new Error('unverified_source');
   out.replaceChildren();
@@ -17,7 +17,7 @@ function render(data){
   note.className='ops-muted';out.append(note);
   const stats=node('div');stats.className='ops-jhela-live-metrics';
   for(const [label,value] of [
-    [tt('پذیرش مقاله','Article submissions'),tt('بسته','Closed')],
+    [tt('پذیرش مقاله','Article submissions'),tt('مشروط به تأیید سرور','Conditional on host readiness')],
     [tt('وضعیت سامانه اختصاصی تحریریه','Native editorial platform'),tt('هنوز تأیید نشده','Not yet verified')],
     [tt('مراحل دارای گواهی مستقل','Independently verified stages'),String(data.evidenceReview.verifiedStageCount)+' / 10'],
     [tt('فضای اضافه‌شده به هاست','Additional host storage'),tt('۵ گیگابایت برنامه‌ریزی شده؛ نصب تأیید نشده','5 GB planned; not yet confirmed')],

@@ -157,7 +157,7 @@ await observeHostGate('jhela-founding-intake-readiness',async()=>{
     httpStatus:200,authorProfileReady:b.profile===true,
     manuscriptIntakeConfigured:b.manuscriptIntake===true,
     reviewerIntakeConfigured:b.reviewerIntake===true,
-    ojsReviewConnected:b.ojsFormalPeerReviewConnected===true,
+    formalReviewOperational:b.formalPeerReviewOperational===true,
     realSubmissionVerified:false};
 });
 await observeHostGate('jhela-ojs-subdomain-tls',async()=>{
