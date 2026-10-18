@@ -28,9 +28,15 @@ function jrPubAssetPath(string $filename): ?string {
  * acceptance or a signature. A separate author digital_distribution right
  * from a verified account is required before collecting money.
  */
+/** Private, persistent operator switch; never controlled by query strings or public JS. */
+function jrPubDigitalSalesSwitchEnabled(): bool {
+    $private=cfg();
+    return ($private['publishing_digital_enabled']??false)===true
+        ||getenv('JR_PUBLISHING_DIGITAL_ENABLED')==='true';
+}
 function jrPubDigitalOffer(PDO $pdo): ?array {
     try{
-      if((string)(getenv('JR_PUBLISHING_DIGITAL_ENABLED')?:'')!=='true'
+      if(!jrPubDigitalSalesSwitchEnabled()
           ||!mailReady()||!jrPubPrivateDir()||!jrPublishingSchemaReady($pdo))return null;
       $s=$pdo->prepare("SELECT f.id offer_id,f.sku,f.unit_price_toman,
           f.unit_author_toman,f.unit_fund_toman,w.id work_id,w.author_id,
