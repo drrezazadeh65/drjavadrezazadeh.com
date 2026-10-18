@@ -88,7 +88,13 @@ expect(js.includes("addEventListener('offline'"),'JS: offline state handling mis
 expect(js.includes("addEventListener('online'"),'JS: reconnection handling missing');
 expect(js.includes("e.key==='/'"),'JS: keyboard command-search shortcut missing');
 expect(js.includes('[data-private-route]'),'JS: private route authentication gate missing');
-expect(js.includes('authenticated===true'),'JS: purchase CTA must require an authenticated account');
+expect(js.includes('r?.ok&&r.data?.ok===true&&r.data?.checkout===true&&r.data?.capabilities?.services===true'),
+  'JS: checkout readiness must require successful server health and service capability');
+expect(js.includes("purchaseReady?'/fa/services/checkout/?service='+id")
+  &&js.includes("purchaseReady?'/en/services/checkout/?service='+id"),
+  'JS: both languages must link to the existing capability-gated checkout');
+expect(!/purchaseReady=runtime\?\.commerceReady===true&&[\s\S]{0,110}authenticated===true/.test(js),
+  'JS: public guest service purchase must not be blocked by private-account login state');
 expect(js.includes('cd-service-outcome'),'JS: service outcome is not surfaced beside pricing');
 expect(js.includes('cd-service-boundary'),'JS: service boundary is not surfaced beside pricing');
 
@@ -212,4 +218,4 @@ if(failures.length){
   process.exit(1);
 }
 console.log('Customer dashboard audit PASS');
-console.log('FA/EN client OS, ecosystem wiring, authenticated commerce CTA, noindex/noarchive SEO boundaries, privacy caching, trust states, mobile safe areas and JS syntax verified.');
+console.log('FA/EN client OS, ecosystem wiring, capability-gated guest service checkout, noindex/noarchive SEO boundaries, privacy caching, trust states, mobile safe areas and JS syntax verified.');
