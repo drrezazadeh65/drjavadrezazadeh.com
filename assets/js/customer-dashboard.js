@@ -83,7 +83,7 @@ async function operationalStatus(){
  updateSync();
  return {auth,commerce,catalog,services,commerceReady};
 }
-function commercialReady(r){return !!(r?.ok&&r.data?.checkout===true)}
+function commercialReady(r){return !!(r?.ok&&r.data?.ok===true&&r.data?.checkout===true&&r.data?.capabilities?.services===true)}
 
 async function hydrate(preloadedAuth){
  const status=$('[data-account-status]'),email=$('[data-account-email]'),avatar=$('[data-account-avatar]'),dot=$('[data-live-dot]');
@@ -319,10 +319,10 @@ function serviceMarketplace(runtime,authenticated){
     // Payment never claims scheduling, professional delivery or settlement.
     const checkoutHref=isEnglish
       ?(purchaseReady?'/en/services/checkout/?service='+id:'/en/request-consultation/?service='+id)
-      :(authenticated?'/fa/services/checkout/?service='+id:'/fa/login/');
+      :(purchaseReady?'/fa/services/checkout/?service='+id:'/fa/services/'+id+'/');
     const label=isEnglish
       ?(purchaseReady?'Secure service checkout':'Enquire about this service')
-      :(purchaseReady?'خرید و افزودن به داشبورد':authenticated?'مشاهده شرایط خرید':'ورود و ادامه');
+      :(purchaseReady?'خرید امن خدمت':'مشاهده شرایط خدمت');
     const outcome=outcomeText?'<p class="cd-service-outcome"><b>'+
       (isEnglish?'Defined outcome:':'خروجی روشن:')+'</b> '+esc(outcomeText)+'</p>':'';
     const boundary=boundaryText?'<details class="cd-service-boundary"><summary>'+
@@ -362,13 +362,15 @@ function serviceMarketplace(runtime,authenticated){
        }))throw Error('translation_unavailable');
     english=descriptions.services;
   }
+  // Guest purchases are supported by the existing server-verified checkout.
+  // Never infer a completed payment, booking, or account entitlement here.
   purchaseReady=runtime?.commerceReady===true&&
-    runtime?.commerce?.data?.capabilities?.services===true&&authenticated===true;
+    runtime?.commerce?.data?.capabilities?.services===true;
   if(status)status.textContent=purchaseReady
-    ?(isEnglish?'Secure checkout can start in the Persian interface. Appointment confirmation and service delivery require separate verification.':
-      'مسیر پرداخت این خدمت فعال است؛ تخصیص نوبت و تحویل فقط پس از تأیید جداگانه انجام می‌شود.')
+    ?(isEnglish?'Secure checkout is available in English. Appointment confirmation and service delivery require separate verification.':
+      'پرداخت امن خدمت در دسترس است؛ پرداخت به‌تنهایی رزرو قطعی نوبت یا تأیید تحویل نیست.')
     :(isEnglish?'Browse verified catalogue descriptions; use the English enquiry route until secure checkout is confirmed. An enquiry is not a booking.':
-      'همه خدمات قابل مشاهده‌اند؛ خرید امن پس از آماده‌شدن کامل حساب و درگاه از همین مسیر انجام می‌شود.');
+      'خدمات قابل مشاهده‌اند؛ تا تأیید آمادگی درگاه، پرداخت آغاز نمی‌شود. شرایط هر خدمت را در صفحه اختصاصی آن بخوانید.');
   render();
  }).catch(()=>{
   if(stamp!==serviceMarketplaceGeneration)return;
