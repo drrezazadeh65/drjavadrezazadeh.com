@@ -1,4 +1,4 @@
-name: JHELA OJS Operational Readiness
+name: JHELA Native Editorial Readiness
 on:
   push:
     branches: [migration/bertina-linux6]
@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   prelaunch-source-safety:
-    name: Offline OJS PHP and privacy provisioning contract
+    name: Independent JHELA editorial privacy and source contracts
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
@@ -29,16 +29,12 @@ jobs:
           coverage: none
       - name: Syntax and isolated journal source gates
         run: |
-          php -l scripts/jhela-ojs-readiness.php
-          php -l scripts/jhela-ojs-installer-check.php
           php -l api/operations-jhela.php
           php -l api/jhela-intake.php
           php -l api/index.php
           php -l api/operations.php
           php -l tests/jhela-operations-snapshot.php
           php tests/jhela-operations-snapshot.php
-          node --check scripts/jhela-ojs-source-audit.mjs
-          node scripts/jhela-ojs-source-audit.mjs
           node scripts/jhela-discovery-audit.mjs
           node scripts/jhela-editorial-policy-contract-audit.mjs
           node scripts/jhela-evidence-ledger-audit.mjs
@@ -53,25 +49,13 @@ jobs:
           node --test tests/jhela-admin-workstream.test.mjs tests/jhela-author-readiness.test.mjs tests/jhela-international-roadmap.test.mjs tests/jhela-target-architecture.test.mjs tests/jhela-evidence-ledger.test.mjs
           node --test tests/jhela-article-metadata.test.mjs
           node --test tests/jhela-unified-design.test.mjs tests/jhela-brand-route-coverage.test.mjs tests/jhela-role-prototype.test.mjs
-          node --check scripts/jhela-ojs-origin-probe.mjs
-          node scripts/jhela-ojs-origin-probe.mjs --self-test
       - name: Check protected published JHELA admin projection
         run: |
           node scripts/build-public-site.mjs
           node --test tests/jhela-packaged-admin-projection.test.mjs tests/jhela-role-showroom-packaged.test.mjs
           php -l tests/jhela-operations-packaged-snapshot.php
           php tests/jhela-operations-packaged-snapshot.php
-      - name: Test verified OJS package staging and extraction safety
-        run: |
-          python3 -m py_compile scripts/jhela-ojs-stage-package.py tests/jhela-ojs-stage-package.py
-          python3 tests/jhela-ojs-stage-package.py
-      - name: Adversarial installer filesystem guard fixtures
-        run: python3 tests/jhela-ojs-installer-check.py
-      - name: Verify PHP capabilities and trusted TLS fail-closed OJS contract without host changes
-        run: |
-          php scripts/jhela-ojs-readiness.php --contract
-          node --test tests/jhela-ojs-trusted-tls.test.mjs
       - name: Disclose evidence boundary
         run: |
-          echo "OJS PHP/software source check passed for ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
-          echo "No OJS installed, manuscript accepted or production database migrated by this CI workflow. Separate Bertina runtime, backups, reviewer roles and real end-to-end checks remain mandatory." >> "$GITHUB_STEP_SUMMARY"
+          echo "JHELA independent editorial source checks passed for ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          echo "No manuscript receipt, review, payment or production migration is proven by source checks. Independent live server evidence remains mandatory." >> "$GITHUB_STEP_SUMMARY"
