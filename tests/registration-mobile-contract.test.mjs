@@ -61,7 +61,9 @@ test('registration reports errors beside mobile submit and leaves one server-own
  assert.ok(auth.includes('const mobile=normalizedSignupMobile(fd.get(\'mobile\'))'));
  assert.ok(auth.includes('mobile,password,locale:lang'));
  assert.ok(auth.includes("call('/auth/register'"));
- assert.ok(auth.includes("call('/auth/retry-verification'"));
+ assert.ok(auth.includes("const {r,d}=await call('/auth/retry-verification'"));
+ assert.ok(auth.includes("reason==='verification_email_unavailable'?text.emailTransportUnavailable"));
+ assert.ok(auth.includes("if(!r.ok){"),'retry transport failures must not be presented as delivered email');
  assert.ok(api.includes('verification_email_failed'));
  assert.ok(api.includes('function mailReady(): bool'));
 });
