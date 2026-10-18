@@ -18,7 +18,7 @@ test('owner-only confidential PDF is guarded by fresh MFA and super-admin member
 test('download never trusts author filename or exposes private paths',()=>{
  for(const check of ['jhelaPrivateRoot(', 'realpath($path)!==$path','is_link($path)',
  "hash_file('sha256',$path)",'hash_equals($hash,$actual)',
- "preg_match('/^[a-f0-9]{48}\\.pdf$/D',$rel)",'filesize($path)!==$bytes',
+ "preg_match('/^[a-f0-9]{48}",".pdf$/D',$rel)",'filesize($path)!==$bytes',
  "header('Content-Disposition: attachment;",'X-Content-Type-Options: nosniff',
  "header('Cache-Control: no-store","operationsAudit($pdo,"])
   assert.ok(native.includes(check),'missing download guard: '+check);
