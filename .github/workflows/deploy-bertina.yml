@@ -8,35 +8,37 @@ on:
         description: "full_masterplan requires all acceptance; phased_live_audit is owner-approved current snapshot with PDF and SQL deferred"
         required: true
         type: choice
-        default: full_masterplan
+        default: phased_live_audit
         options:
           - full_masterplan
           - phased_live_audit
       recovery_mode:
-        description: "Development: hosting-managed by default; historical recovery modes remain opt-in"
+        description: "One-click default: owner-controlled cPanel custody (no backup deletion)"
         required: true
         type: choice
-        default: hosting_managed
+        default: owner_cpanel_custody
         options:
           - hosting_managed
           - signed_restore
           - owner_cpanel_custody
       approved_commit_sha:
-        description: "Hosting-managed/cPanel: enter exact 40-character target HEAD SHA"
+        description: "Optional: auto-detected GitHub HEAD (leave empty)"
         required: false
         type: string
       expected_live_sha:
-        description: "Hosting-managed/cPanel: enter current live /sw.js 40-character SHA"
+        description: "Optional: auto-detected live /sw.js (leave empty)"
         required: false
         type: string
       owner_acknowledgement:
-        description: "For cPanel custody ONLY: type ACCEPT_UNTESTED_RESTORE_RISK_V5"
+        description: "Owner accepts cPanel custody, not an isolated restore test (one-click preset)"
         required: false
         type: string
+        default: ACCEPT_UNTESTED_RESTORE_RISK_V5
       owner_masterplan_final_confirmation:
-        description: "For full: approved 100% phrase. For phased: I_APPROVE_GUARDED_LIVE_AUDIT_RELEASE_WITH_PDF_AND_SQL_DEFERRED"
+        description: "Owner phased approval preset; full masterplan needs separate approval"
         required: true
         type: string
+        default: I_APPROVE_GUARDED_LIVE_AUDIT_RELEASE_WITH_PDF_AND_SQL_DEFERRED
 
 permissions:
   contents: read
@@ -81,6 +83,30 @@ jobs:
             *) echo "Unrecognized release scope; production remains blocked." >&2; exit 1 ;;
           esac
 
+      # Resolve both SHA values independently. The owner only needs to click Run workflow.
+      # Any optional manual overrides must match the observed immutable values.
+      - name: Resolve exact source and live SHA for owner one-click release
+        if: github.event_name == 'workflow_dispatch'
+        id: owner_release
+        env:
+          REQUESTED_TARGET_SHA: ${{ inputs.approved_commit_sha }}
+          REQUESTED_LIVE_SHA: ${{ inputs.expected_live_sha }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_ACTOR" = drrezazadeh65
+          test "$GITHUB_REF" = refs/heads/migration/bertina-linux6
+          current="$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)"
+          test "$current" = "$GITHUB_SHA" || { echo "Branch advanced; start a fresh run." >&2; exit 1; }
+          curl --fail --silent --show-error --location --max-time 25 --retry 2 --header 'Cache-Control: no-cache' 'https://drjavadrezazadeh.com/sw.js' -o /tmp/owner-live-sw.js
+          live_sha="$(sed -n "s/^const CACHE_VERSION='jr-site-bertina-\\([a-f0-9]\\{40\\}\\)';$/\\1/p" /tmp/owner-live-sw.js)"
+          [[ "$live_sha" =~ ^[a-f0-9]{40}$ ]] || { echo "Live release SHA unavailable; fail closed." >&2; exit 1; }
+          test "$live_sha" != "$GITHUB_SHA" || { echo "Exact commit already live; no new deployment needed." >&2; exit 1; }
+          if [ -n "$REQUESTED_TARGET_SHA" ]; then test "$REQUESTED_TARGET_SHA" = "$GITHUB_SHA"; fi
+          if [ -n "$REQUESTED_LIVE_SHA" ]; then test "$REQUESTED_LIVE_SHA" = "$live_sha"; fi
+          echo "target_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          echo "live_sha=$live_sha" >> "$GITHUB_OUTPUT"
+          echo "Verified target: $GITHUB_SHA; current live: $live_sha" >> "$GITHUB_STEP_SUMMARY"
+
       - name: BLOCK PRODUCTION until full 100 percent masterplan acceptance
         if: inputs.release_scope == 'full_masterplan'
         env:
@@ -95,8 +121,8 @@ jobs:
         if: inputs.release_scope == 'phased_live_audit'
         env:
           RELEASE_SCOPE: ${{ inputs.release_scope }}
-          APPROVED_COMMIT_SHA_INPUT: ${{ inputs.approved_commit_sha }}
-          EXPECTED_LIVE_SHA_INPUT: ${{ inputs.expected_live_sha }}
+          APPROVED_COMMIT_SHA_INPUT: ${{ steps.owner_release.outputs.target_sha }}
+          EXPECTED_LIVE_SHA_INPUT: ${{ steps.owner_release.outputs.live_sha }}
           RECOVERY_MODE_INPUT: ${{ inputs.recovery_mode }}
           OWNER_ACKNOWLEDGEMENT_INPUT: ${{ inputs.owner_acknowledgement }}
           OWNER_PHASED_RELEASE_CONFIRMATION: ${{ inputs.owner_masterplan_final_confirmation }}
@@ -122,8 +148,8 @@ jobs:
         id: release_policy
         env:
           RECOVERY_MODE_INPUT: ${{ inputs.recovery_mode }}
-          APPROVED_COMMIT_SHA_INPUT: ${{ inputs.approved_commit_sha }}
-          EXPECTED_LIVE_SHA_INPUT: ${{ inputs.expected_live_sha }}
+          APPROVED_COMMIT_SHA_INPUT: ${{ steps.owner_release.outputs.target_sha }}
+          EXPECTED_LIVE_SHA_INPUT: ${{ steps.owner_release.outputs.live_sha }}
           OWNER_ACKNOWLEDGEMENT_INPUT: ${{ inputs.owner_acknowledgement }}
           LIVE_RELEASE_SHA: ${{ steps.live_release.outputs.sha }}
         run: |
