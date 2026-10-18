@@ -24,7 +24,7 @@ test('both stable bilingual author pages include an accessible CV and a non-brea
  assert.match(en,/independent verification|verification pending|unverified/i);
 });
 test('image loader does not allow third-party remote pictures, sensitive browser persistence or broken-image replacement',()=>{
- assert.match(js,/const target='\/assets\/images\/authors\/mehrab-mirkarimi-portrait-v52\.webp'/);
+ assert.match(js,/const target='\/assets\/images\/mehrab-mirkarimi-portrait-v52\.webp'/);
  assert.match(js,/new Image\(\)/);
  assert.match(js,/probe\.onload=/);
  assert.match(js,/probe\.onerror=/);
