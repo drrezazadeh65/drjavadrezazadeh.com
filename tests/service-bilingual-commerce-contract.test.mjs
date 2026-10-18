@@ -186,6 +186,7 @@ test('unified dashboards offer verified bilingual service checkout to guest buye
  assert.ok(buyer.includes(":'/fa/services/'+id+'/'"),'when not ready, browse public terms instead of sending buyers to a blocked checkout');
  assert.doesNotMatch(buyer,/purchaseReady=runtime\?\.commerceReady===true&&[\s\S]{0,110}authenticated===true/);
  assert.ok(buyer.includes('Secure checkout is available in English.'));
+ assert.ok(buyer.includes("const infoHref=(isEnglish?'/en/services/':'/fa/services/')+id+'/'"),'every language-specific dashboard card must open its own canonical service description');
  assert.ok(!buyer.includes('Secure checkout can start in the Persian interface.'));
  // Payments and fulfilment remain authoritative in the existing PHP gateway.
  const api=read('api/index.php');
