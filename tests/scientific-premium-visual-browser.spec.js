@@ -91,3 +91,59 @@ test('golden route choices preserve limited/prevalidation copy at 200% browser t
  await expect(region).toContainText('do not');
  await expect(region.locator('li a')).toHaveCount(3);
 });
+
+
+// Cinematic homepage v3: retain the actual two-language document, conversion
+// routes and accessible responsive experience; no image mock or payment events.
+for(const [lang,path] of [['fa','/fa/'],['en','/en/']]){
+ for(const width of [320,390,768,1280]){
+  test(lang+' cinematic homepage v3 '+width+'px: real content, CTA routes and no overflow',async({page})=>{
+   const errors=[];page.on('pageerror',e=>errors.push(e.message));
+   await page.setViewportSize({width,height:844});
+   const response=await page.goto(origin+path,{waitUntil:'domcontentloaded'});
+   expect(response.status()).toBe(200);
+   await expect(page.locator('link[href*="jr-ecosystem-design-v2.css"]')).toHaveAttribute('href',/20261019-home-cinematic-v3/);
+   await expect(page.locator('script[src*="/assets/js/site.js"]')).toHaveAttribute('src',/20261019-home-cinematic-v3/);
+   await expect(page.locator('main .hero h1')).toBeVisible();
+   await expect(page.locator('main .hero .hero-pathway-cta a')).toHaveCount(4);
+   await expect(page.locator('main .hero .hero-pathway-cta a[href="../shop/"]')).toHaveCount(1);
+   await expect(page.locator('.home-focus-strip a')).toHaveCount(4);
+   await expect(page.locator('.audience-gate')).toHaveCount(4);
+   await expect(page.locator('.portrait-shell .hero-portrait')).toBeVisible();
+   const imageOK=await page.locator('.portrait-shell img').evaluate(el=>el.complete&&el.naturalWidth>0);
+   expect(imageOK).toBe(true);
+   const dims=await page.evaluate(()=>({
+    view:document.documentElement.clientWidth,
+    page:document.documentElement.scrollWidth,
+    color:getComputedStyle(document.body).getPropertyValue('--jr-home-gold').trim()
+   }));
+   expect(dims.page-dims.view).toBeLessThanOrEqual(2);
+   expect(dims.color).toBe('#e7c887');
+   expect(errors).toEqual([]);
+  });
+ }
+}
+test('cinematic homepage supports restrained desktop tilt without storing or submitting data',async({page})=>{
+ await page.setViewportSize({width:1280,height:900});
+ await page.goto(origin+'/en/',{waitUntil:'domcontentloaded'});
+ const portrait=page.locator('.hero .portrait-shell');
+ const box=await portrait.boundingBox();
+ expect(box).toBeTruthy();
+ await page.mouse.move(box.x+box.width*.73,box.y+box.height*.64);
+ await expect.poll(()=>portrait.evaluate(el=>el.style.getPropertyValue('--jr-home-rotate-y'))).not.toBe('');
+ const degrees=await portrait.evaluate(el=>Number.parseFloat(el.style.getPropertyValue('--jr-home-rotate-y')));
+ expect(Math.abs(degrees)).toBeLessThanOrEqual(2.8);
+ await page.mouse.move(0,0);
+ await expect.poll(()=>portrait.evaluate(el=>el.style.getPropertyValue('--jr-home-rotate-y'))).toBe('');
+});
+test('cinematic homepage respects reduced motion and keeps the portrait static',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.setViewportSize({width:1280,height:900});
+ await page.goto(origin+'/fa/',{waitUntil:'domcontentloaded'});
+ const portrait=page.locator('.hero .portrait-shell');
+ const box=await portrait.boundingBox();
+ expect(box).toBeTruthy();
+ await page.mouse.move(box.x+box.width*.68,box.y+box.height*.53);
+ expect(await portrait.evaluate(el=>el.style.getPropertyValue('--jr-home-rotate-y'))).toBe('');
+ expect(await portrait.evaluate(el=>getComputedStyle(el).transform)).toBe('none');
+});
