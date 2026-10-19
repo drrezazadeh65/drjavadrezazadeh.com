@@ -15,6 +15,7 @@ function localCatalog():array {
 }
 require __DIR__.'/../api/commerce-stage9.php';
 require __DIR__.'/../api/operations-book-expiration.php';
+require __DIR__.'/../api/operations-donation-recovery.php';
 $GLOBALS['bookExpiryAudits']=[];
 function operationsAudit(PDO $pdo, ?string $actor, string $action, string $reference): void {
     // Synthetic transaction-test recorder; production writes operations_audit.
@@ -324,4 +325,65 @@ checkStage9(stage9BookStockReady($pdo),
  'isolated_stock_restored_without_inventory_reseed');
 $pdo->prepare('DELETE FROM commerce_service_cases WHERE order_id=?')->execute([$legacy]);
 $pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$legacy]);
+// Donation with interrupted callback: simulated gateway result only, never
+// real payment, credential, outgoing BitPay request, or production customer.
+$donationId='11111111-1111-4111-8111-111111111185';
+$donationFactor='777777888888';
+$donationItems=json_encode([['sku'=>'support:students','title'=>'Synthetic student support',
+    'kind'=>'donation','quantity'=>1,'price'=>1000,'subtotal'=>1000]]);
+$insertDonation=$pdo->prepare("INSERT INTO commerce_orders
+ (id,factor_id,amount_toman,provider_amount,currency,items_json,state,provider_id_get)
+ VALUES(?,?,1000,10000,'IRT',?,'pending','987654')");
+$insertDonation->execute([$donationId,$donationFactor,$donationItems]);
+$providerCalls=0;
+$providerCheck=static function(string $transaction,string $idGet)use(&$providerCalls,$donationFactor):array{
+    $providerCalls++;
+    if($transaction!=='606060'||$idGet!=='987654')
+        throw new RuntimeException('unexpected_synthetic_provider_identity');
+    return ['status'=>1,'amount'=>10000,'factorId'=>$donationFactor];
+};
+$wrongGateway=false;
+try{jrRecoverPendingVerifiedDonation($pdo,$donationId,'876543','606060',$providerCheck);}
+catch(DomainException $e){$wrongGateway=$e->getMessage()==='donation_gateway_id_mismatch';}
+checkStage9($wrongGateway && $providerCalls===0,
+ 'donation_recovery_rejects_wrong_gateway_before_network');
+foreach([
+    ['status'=>0,'amount'=>10000,'factorId'=>$donationFactor],
+    ['status'=>1,'amount'=>11000,'factorId'=>$donationFactor],
+    ['status'=>1,'amount'=>10000,'factorId'=>'99999999999'],
+] as $invalid){
+    $badProvider=false;
+    try{jrRecoverPendingVerifiedDonation($pdo,$donationId,'987654','606060',
+        static fn(string $t,string $g):array=>$invalid);}
+    catch(DomainException $e){$badProvider=$e->getMessage()==='donation_provider_verification_failed';}
+    checkStage9($badProvider,'donation_recovery_fails_closed_on_invalid_verified_values');
+}
+checkStage9((string)$pdo->query("SELECT state FROM commerce_orders WHERE id='$donationId'")->fetchColumn()==='pending'
+ &&(int)$pdo->query("SELECT COUNT(*) FROM commerce_payment_claims WHERE order_id='$donationId'")->fetchColumn()===0,
+ 'rejected_donation_verification_never_writes_money');
+$recovered=jrRecoverPendingVerifiedDonation($pdo,$donationId,'987654','606060',$providerCheck);
+checkStage9(($recovered['state']??null)==='paid'
+ &&($recovered['providerClaimRecorded']??false)===true
+ &&($recovered['secondChargeInitiated']??true)===false && $providerCalls===1,
+ 'donation_recovery_only_records_genuine_provider_verified_callback');
+checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_payment_claims WHERE order_id='$donationId'")->fetchColumn()===1
+ &&(int)$pdo->query("SELECT COUNT(*) FROM commerce_outbox WHERE order_id='$donationId'")->fetchColumn()===1,
+ 'recovered_donation_creates_claim_and_outbox_exactly_once');
+$donationReplay=false;
+try{jrRecoverPendingVerifiedDonation($pdo,$donationId,'987654','606060',$providerCheck);}
+catch(DomainException $e){$donationReplay=$e->getMessage()==='donation_order_not_pending';}
+checkStage9($donationReplay && $providerCalls===1,
+ 'recovered_donation_replay_rejected_without_second_gateway_call');
+checkStage9(stage9FinalizePayment($pdo,$donationId,'987654','606060','10000',$donationFactor)===false,
+ 'late_public_callback_after_recovery_is_idempotent');
+$wrongType='11111111-1111-4111-8111-111111111186';
+pendingOrder($pdo,$wrongType,'333333444444','service:academic_consult_60');
+$rejectWrongType=false;
+try{jrRecoverPendingVerifiedDonation($pdo,$wrongType,'111','123456',
+    static fn(string $t,string $g):array=>['status'=>1,'amount'=>20000000,'factorId'=>'333333444444']);}
+catch(DomainException $e){$rejectWrongType=$e->getMessage()==='donation_only_recovery';}
+checkStage9($rejectWrongType,'donation_recovery_cannot_activate_service_orders');
+$pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$wrongType]);
+// Do not delete real financial records; all transactions above use isolated
+// MySQL fixture data and should remain audited within the test output.
 echo "Stage09 MySQL8 multi-process acceptance passed (CI only, no bank/physical inventory evidence).\n";
