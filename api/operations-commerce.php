@@ -63,6 +63,23 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             FROM commerce_orders o
             LEFT JOIN commerce_payment_claims c ON c.order_id=o.id AND c.provider='bitpay'")->fetch(PDO::FETCH_ASSOC);
         if(!is_array($sales)) throw new RuntimeException('commerce_sales_aggregate_unavailable');
+        // Read-only owner-MFA visibility: ageing physical holds can silently
+        // reduce sellable stock. Provider/bank reconciliation is required before
+        // ANY mutation; this query must never release or cancel a reservation.
+        $heldPending=$pdo->query("SELECT
+            COUNT(DISTINCT CASE WHEN o.state='pending'
+              AND o.created_at<DATE_SUB(NOW(),INTERVAL 24 HOUR)
+              THEN o.id ELSE NULL END) AS pending_book_orders_24h,
+            COALESCE(SUM(CASE WHEN o.state='pending'
+              AND o.created_at<DATE_SUB(NOW(),INTERVAL 24 HOUR)
+              THEN r.quantity ELSE 0 END),0) AS pending_book_units_24h,
+            COALESCE(SUM(CASE WHEN o.state<>'paid' THEN r.quantity ELSE 0 END),0)
+              AS unpaid_order_reserved_units
+            FROM commerce_book_reservations r
+            JOIN commerce_orders o ON o.id=r.order_id
+            WHERE r.state='reserved'")->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($heldPending)) throw new RuntimeException('pending_book_hold_aggregate_unavailable');
+
         $refunds=$pdo->query("SELECT status,COUNT(*) AS total
             FROM commerce_refund_requests GROUP BY status")->fetchAll(PDO::FETCH_ASSOC);
         $refundStates=[];
@@ -337,6 +354,10 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'paidStateOrdersLast30Days'=>(int)$sales['recent_paid_30d'],
             'paidStateAmountLast30DaysToman'=>(string)$sales['recent_paid_toman_30d'],
             'pendingOlderThan24Hours'=>(int)$sales['pending_older_24h'],
+            'pendingBookOrdersWithReservationsOlderThan24Hours'=>(int)$heldPending['pending_book_orders_24h'],
+            'pendingBookUnitsReservedOlderThan24Hours'=>(int)$heldPending['pending_book_units_24h'],
+            'unpaidOrderBookUnitsReserved'=>(int)$heldPending['unpaid_order_reserved_units'],
+
             'pendingOlderThan7Days'=>(int)$sales['pending_older_7d'],
             'createdOlderThan24Hours'=>(int)$sales['created_older_24h'],
             'refundRequestStates'=>$refundStates,
@@ -349,6 +370,7 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'limitations'=>[
                 'Gross paid-state amounts and matched provider claims are not bank-settled revenue.',
                 'Ageing pending orders are a review queue, not customer consent for contact.',
+                'An ageing book reservation is not proof of payment failure; release only after independent provider cancellation confirmation.',
                 'Refund request status does not prove that money was returned.',
                 'No attribution, profit, net revenue or conversion rate is inferred.'
             ]
