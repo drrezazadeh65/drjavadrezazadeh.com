@@ -64,6 +64,9 @@ for(const [lang,route,appointmentsPath] of [
    const path=new URL(request.request().url()).pathname;
    if(path==='/api/auth/health')return request.fulfill({json:{ok:true,ready:true}});
    if(path==='/api/auth/me')return request.fulfill({status:401,json:{ok:false}});
+   // The independent sponsorship ledger establishes guest status first.
+   // Its 401 must not trigger a redundant owned-order lookup.
+   if(path==='/api/student-support/my-contributions')return request.fulfill({status:401,json:{ok:false}});
    if(path==='/api/commerce/health')return request.fulfill({json:{ok:true,checkout:false,capabilities:{services:false}}});
    if(path.includes('/commerce/history')||path.includes('/commerce/fulfilment'))commerceRequests.push(path);
    return request.fulfill({status:401,json:{ok:false}});
