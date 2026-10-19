@@ -3,8 +3,10 @@ declare(strict_types=1);
 /**
  * Owner-controlled, existing-row-only publishing activation.
  * --check: READ ONLY. --activate: idempotent transaction after all independent
- * author, rights, malware, asset, bank and mail evidence is present.
- * Never creates a fake author, rights licence, scan, payment or email verification.
+ * verified notification recipient, malware scan, asset custody, bank and
+ * mail evidence is present. Owner policy (2026-10-19): do not gate checkout
+ * on a separate author licence. Never fabricate author consent or stamp
+ * rights_verified_at without evidence; existing rights records are retained.
  * Run only from the authenticated Bertina CLI, never via HTTP.
  */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
@@ -27,7 +29,7 @@ function jrPubActivateReport(array $checks, bool $changed=false): never {
   'missing_checks'=>$missing,
   'checks'=>$checks,
   'changed'=>$changed,
-  'note'=>'Live checkout also requires persistent private publishing_digital_enabled=true or JR_PUBLISHING_DIGITAL_ENABLED=true and independently verified payment/email delivery.'
+  'note'=>'Author licence is no longer a technical activation gate by documented owner instruction. This does not certify distribution rights. Live checkout still requires the private enable switch, private PDFs, gateway and email delivery.'
  ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
  exit($missing?2:0);
 }
@@ -47,8 +49,6 @@ try {
   'owner_approval'=>false,
   'author_account_verified'=>false,
   'author_role_approved'=>false,
-  'author_digital_distribution_rights'=>false,
-  'rights_evidence_recorded'=>false,
   'exact_existing_product_and_price'=>false,
   'two_private_pdfs_scanned_and_approved'=>false,
   'original_pdf_hashes'=>false,
@@ -91,16 +91,6 @@ try {
    !empty($a['email_verified_at'])&&!empty($a['approved_at'])));
  $checks['author_account_verified']=count(array_filter($accounts,static fn($a):bool=>!empty($a['email_verified_at'])))===1;
  $checks['author_role_approved']=count($approved)===1;
- if(count($approved)===1){
-  $q=$pdo->prepare("SELECT l.evidence_sha256 FROM publishing_rights_licences l
-   WHERE l.work_id=? AND l.author_account_id=? AND l.rights_scope='digital_distribution'
-   AND l.revoked_at IS NULL AND l.valid_from<=NOW() FOR UPDATE");
-  $q->execute([$o['work_id'],$approved[0]['id']]);$licences=$q->fetchAll(PDO::FETCH_COLUMN);
-  $checks['author_digital_distribution_rights']=count($licences)===1;
-  $checks['rights_evidence_recorded']=count($licences)===1
-    &&preg_match('/^[a-f0-9]{64}$/D',(string)$licences[0])===1
-    &&getenv('JR_PUBLISHING_DIGITAL_RIGHTS_EVIDENCED')==='YES';
- }
  $q=$pdo->prepare("SELECT v.id, v.version_number FROM publishing_work_versions v
    WHERE v.work_id=? AND v.review_state IN('submitted','under_review','accepted')
    ORDER BY v.version_number DESC LIMIT 1");
@@ -134,13 +124,13 @@ try {
   $pdo->rollBack();jrPubActivateReport($checks);
  }
  if(!$activate){$pdo->rollBack();jrPubActivateReport($checks);}
- // The owner approves commercialization, not another person's copyright.
- // Rights, verified author identity and actual malware evidence were checked above.
+ // Owner authorizes the website's sales policy; this is not an author's
+ // consent or a warranty of rights. The verified author account is retained
+ // for private sale notices. Genuine malware and file checks remain required.
  $pdo->prepare("UPDATE publishing_authors SET status='approved'
    WHERE id=? AND status IN('draft','verification_pending','approved')")
    ->execute([$o['author_id']]);
- $pdo->prepare("UPDATE publishing_works SET publication_status='approved',
-   rights_verified_at=COALESCE(rights_verified_at,NOW())
+ $pdo->prepare("UPDATE publishing_works SET publication_status='approved'
    WHERE id=? AND publication_status IN('draft','prelaunch','approved')")
    ->execute([$o['work_id']]);
  $pdo->prepare("UPDATE publishing_offers SET checkout_enabled=1
