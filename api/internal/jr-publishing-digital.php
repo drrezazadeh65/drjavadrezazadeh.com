@@ -28,11 +28,14 @@ function jrPubAssetPath(string $filename): ?string {
     return $path;
 }
 /**
- * Check both assets, rights, private files, and validated author mailbox
+ * Verify the exact private PDF assets, payment and delivery readiness
  * BEFORE advertising the SKU to the bank-facing commerce catalogue.
- * Pricing and SKU are server-controlled. The draft contract is not an
- * acceptance or a signature. A separate author digital_distribution right
- * from a verified account is required before collecting money.
+ * Owner-directed 2026-10-19: an individual author licence is not a technical
+ * checkout precondition. This policy change does not establish ownership,
+ * lawful distribution or a forged rights approval. Rights records, if any,
+ * remain untouched. Never stamp rights_verified_at automatically.
+ * Pricing and SKU remain server-controlled; author notices and accounting
+ * continue through the existing publishing engine.
  */
 /** Private, persistent operator switch; never controlled by query strings or public JS. */
 function jrPubDigitalSalesSwitchEnabled(): bool {
@@ -46,7 +49,7 @@ function jrPubDigitalOffer(PDO $pdo): ?array {
           ||!mailReady()||!jrPubPrivateDir()||!jrPublishingSchemaReady($pdo))return null;
       $s=$pdo->prepare("SELECT f.id offer_id,f.sku,f.unit_price_toman,
           f.unit_author_toman,f.unit_fund_toman,w.id work_id,w.author_id,
-          w.title_fa,w.rights_verified_at,
+          w.title_fa,
           v.id version_id
         FROM publishing_offers f
         JOIN publishing_works w ON w.id=f.work_id
@@ -54,24 +57,12 @@ function jrPubDigitalOffer(PDO $pdo): ?array {
         JOIN publishing_work_versions v ON v.work_id=w.id
         WHERE f.sku=? AND f.currency='IRT' AND f.checkout_enabled=1 AND f.retired_at IS NULL
           AND f.effective_from<=NOW() AND w.publication_status='approved'
-          AND w.rights_verified_at IS NOT NULL AND a.status='approved'
+          AND a.status='approved'
           AND v.review_state IN('submitted','under_review','accepted')
         ORDER BY v.version_number DESC LIMIT 1");
       $s->execute([JR_PUB_SKU]);$o=$s->fetch(PDO::FETCH_ASSOC);if(!$o)return null;
       $price=(int)$o['unit_price_toman'];$author=(int)$o['unit_author_toman'];$fund=(int)$o['unit_fund_toman'];
       if($price!==1000000||$author!==600000||$fund!==400000||$price!==$author+$fund)return null;
-      $rights=$pdo->prepare("SELECT l.evidence_sha256 FROM publishing_rights_licences l
-         JOIN customer_accounts acc ON acc.id=l.author_account_id
-         JOIN publishing_author_accounts a ON a.account_id=acc.id AND a.author_id=?
-         WHERE l.work_id=? AND l.rights_scope='digital_distribution'
-           AND l.valid_from<=NOW() AND l.revoked_at IS NULL
-           AND a.role='author' AND a.approved_at IS NOT NULL AND a.revoked_at IS NULL
-           AND acc.email_verified_at IS NOT NULL AND acc.status='active'
-         LIMIT 2");
-      $rights->execute([$o['author_id'],$o['work_id']]);
-      $licences=$rights->fetchAll(PDO::FETCH_COLUMN);
-      if(count($licences)!==1 ||
-         preg_match('/^[a-f0-9]{64}$/D',(string)$licences[0])!==1)return null;
       $assets=$pdo->prepare("SELECT logical_kind,private_storage_name,sha256,byte_size,encrypted_at_rest,
            malware_scanned_at,approved_at
         FROM publishing_private_assets
