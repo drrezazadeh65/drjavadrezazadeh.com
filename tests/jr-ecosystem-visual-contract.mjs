@@ -3,7 +3,8 @@ import fs from 'node:fs';
 const css=fs.readFileSync('assets/css/jr-ecosystem-design-v2.css','utf8');
 for(const p of ["fa/index.html","en/index.html","fa/golden-talent/index.html","en/golden-talent/index.html"]){
  const html=fs.readFileSync(p,'utf8');
- assert.ok(html.includes('href="/assets/css/jr-ecosystem-design-v2.css?v=20261015-r1"'),p);
+ const version=p==='fa/index.html'||p==='en/index.html'?'20261019-home-cinematic-v3':'20261015-r1';
+ assert.ok(html.includes('href="/assets/css/jr-ecosystem-design-v2.css?v='+version+'"'),p);
  assert.equal((html.match(/jr-ecosystem-design-v2\.css/g)||[]).length,1,p+' single link');
  assert.match(html,/rel="canonical"/,p+' keeps canonical');
 }
