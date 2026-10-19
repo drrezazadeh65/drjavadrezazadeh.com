@@ -1,0 +1,7 @@
+.jr-bahar-handoff{margin:14px 0 22px;padding:clamp(15px,3vw,24px);background:linear-gradient(130deg,#152c40,#101d30);color:#f5ead6;border:1px solid #c8a568;border-radius:17px;line-height:1.8}
+.jr-bahar-handoff strong{display:block;font-size:1.1rem;margin:0 0 7px}
+.jr-bahar-handoff p{color:#e0e6e8;line-height:1.8;margin:0 0 12px}
+.jr-bahar-handoff button{min-height:44px;background:#e5c485;color:#142537;border:1px solid #cfad6b;padding:10px 17px;border-radius:9px;cursor:pointer;font:inherit}
+.jr-bahar-handoff span[role=status]{display:block;margin-top:7px}
+.jr-bahar-handoff button:focus-visible{outline:3px solid white;outline-offset:3px}
+@media print{.jr-bahar-handoff{display:none!important}}
