@@ -29,7 +29,6 @@ try{
   jrPreflight('gateway',commerceReady(),'Existing bank provider integration: config/schema only, not a verified live payment');
   jrPreflight('smtp',mailReady(),'SMTP config: does NOT verify external recipient inbox delivery');
   jrPreflight('author_account_email',false,'Author must have active email-verified account mapped privately to the work');
-  jrPreflight('author_digital_rights',false,'Digital distribution consent evidence must be independently verified');
   jrPreflight('private_pdfs',false,'Two verified file hashes outside web root, malware scan evidence required');
   jrPreflight('financial_platform_budget',getenv('JR_PUBLISHING_SEPARATE_7PCT_BUDGET')==='YES',
     '70,000-toman separate platform cost source must be authorised and bank-reconciled');
@@ -51,13 +50,6 @@ try{
       $q->execute([$email]);
       jrPreflight('author_account_email',(bool)$q->fetchColumn(),'Email verified and author role approved (recipient address is redacted)');
     }
-    $q=$pdo->prepare("SELECT 1 FROM publishing_rights_licences l
-      JOIN publishing_works w ON w.id=l.work_id
-      WHERE w.public_slug='tefl-ma-exams-1370-1405' AND
-        l.rights_scope='digital_distribution' AND l.revoked_at IS NULL
-        AND l.valid_from<=NOW() AND LENGTH(l.evidence_sha256)=64 LIMIT 1");
-    $q->execute();
-    jrPreflight('author_digital_rights',(bool)$q->fetchColumn(),'Rights record exists; human validation of underlying author evidence still mandatory');
   }
   $dir=jrPubPrivateDir();
   $checksums=[];
@@ -76,7 +68,7 @@ try{
   }
   if($schema){
     $ready=jrPubDigitalOffer($pdo);
-    jrPreflight('product_offer_ready',$ready!==null,'SKU, rights, private files and SMTP preflight; still requires real E2E payment');
+    jrPreflight('product_offer_ready',$ready!==null,'SKU, protected private assets and SMTP preflight; still requires real E2E payment');
   }
   $passed=count(array_filter($checks,fn($x)=>$x['ready']));
   $result=[
@@ -89,10 +81,10 @@ try{
     'technical_flags_present'=>$passed===count($checks),
     'checks'=>$checks,
     'independent_live_purchase_evidence_read_here'=>false,
-    'notice'=>'A positive preflight is not evidence of actual bank payment or legal review. Operator must confirm author rights and an independent test sale.'
+    'notice'=>'The owner removed a separate author-licence TECHNICAL gate. Preflight neither grants copyright nor certifies legal distribution, bank settlement, delivery, or an independent test sale.'
   ];
   echo json_encode($result,JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n";
-  // This CLI checks configuration only, never the independent legal, payment,
+  // This CLI checks configuration only, never legal distribution authority,
   // bank-reconciliation, antivirus or private-email delivery evidence. A true
   // technical flag array must therefore NOT authorize public sales.
   exit(2); // review-required by design; independent approval is not implemented here
