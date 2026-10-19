@@ -29,6 +29,124 @@ function formatBookingWindow(start,end,timeZone=Intl.DateTimeFormat().resolvedOp
   return {start:formatter.format(from),end:formatter.format(until),timeZone};
  }catch{return null;}
 }
+/* Evidence-only order view. All amounts and statuses come from the account's
+ * server-authorised latest-50 history; a provider match is NOT bank settlement. */
+function updateEvidenceOverview(orders){
+ const summary=host.querySelector('.appointment-summary');
+ if(!summary)return;
+ const cards=[...summary.querySelectorAll('article')];
+ if(cards.length!==4)return;
+ const count=orders.length;
+ const matched=orders.filter(o=>o?.state==='paid'&&o.paymentVerified===true).length;
+ const review=orders.filter(o=>o?.paymentVerified!==true&&
+   ['created','pending','paid'].includes(o.state)).length;
+ const values=[
+  [tr('سفارش‌های اخیر','Recent orders'),format(count),
+    tr('فقط حداکثر ۵۰ سفارش اخیر؛ سابقه قدیمی‌تر ممکن است وجود داشته باشد',
+       'Latest 50 at most; older orders may exist')],
+  [tr('سند تأیید درگاه','Provider evidence'),format(matched),
+    tr('سند تطبیق‌یافته؛ نه تسویه بانکی','Matched provider claim; not bank settlement')],
+  [tr('نیازمند بررسی پرداخت','Payment review'),format(review),
+    tr('ثبت یا حالت پرداخت‌شده بدون سند کافی، تأیید نیست',
+       'Recorded or paid state alone is not verification')],
+  [tr('تحویل یا نوبت','Delivery or booking'),'—',
+    tr('جزئیات هر سفارش فقط پس از بررسی مستقل سرور',
+       'Check the separate owner-scoped fulfilment record')]
+ ];
+ for(const [i,card] of cards.entries()){
+  const label=card.querySelector('span'),value=card.querySelector('b'),hint=card.querySelector('small');
+  if(label)label.textContent=values[i][0];
+  if(value)value.textContent=values[i][1];
+  if(hint)hint.textContent=values[i][2];
+ }
+ summary.dataset.evidenceSource='owner-scoped-history';
+ const note=el('p',tr(
+  'این نمای خلاصه محدود به سوابق بازگشتیِ حساب تأییدشده است؛ تسویه بانکی، تأیید نوبت، استرداد و دریافت خروجی هرکدام بررسی جداگانه دارند.',
+  'This summary is limited to the verified account history returned by the server. Bank settlement, appointments, refunds and buyer receipt each need separate evidence.'
+ ),'jr-order-evidence-note');
+ note.setAttribute('role','note');
+ const old=host.querySelector('.jr-order-evidence-note');
+ if(old)old.replaceWith(note);else summary.insertAdjacentElement('afterend',note);
+}
+function createOrderEvidence(order){
+ const box=el('section',undefined,'jr-order-evidence');
+ box.setAttribute('aria-label',tr('زنجیره شواهد این سفارش','Evidence for this order'));
+ box.append(el('h3',tr('مسیر شواهد سفارش','Order evidence journey')));
+ const list=el('ol',undefined,'jr-order-evidence-list');
+ const stage=(title,detail,state)=>{
+  const li=el('li',undefined,'jr-order-evidence-step');
+  li.dataset.evidenceState=state;
+  li.append(el('strong',title),el('span',detail));
+  list.append(li);
+  return (message,stateValue)=>{
+   li.dataset.evidenceState=stateValue;
+   li.querySelector('span').textContent=message;
+  };
+ };
+ stage(tr('ثبت سفارش','Order recorded'),
+  tr('در سوابق خصوصی حساب دارای ایمیل تأییدشده','In the verified-email account’s private history'),
+  'recorded');
+ stage(tr('سند پرداخت درگاه','Gateway evidence'),order.paymentVerified===true&&order.state==='paid'
+  ?tr('تطبیق با سند درگاه؛ تسویه بانکی مستقل است','Provider claim matched; bank settlement is separate')
+  :tr('هنوز سند پرداختِ تطبیق‌یافته اثبات نشده است','A matching provider claim has not been established'),
+  order.paymentVerified===true&&order.state==='paid'?'recorded':'review');
+ const markDelivery=stage(tr('پرونده خدمت یا مرسوله','Service or parcel'),
+  order.paymentVerified===true
+   ?tr('برای مشاهده شواهد، «پیگیری تحویل و نوبت» را باز کنید',
+        'Open “Track delivery or booking” for separate evidence')
+   :tr('بدون سند تأیید درگاه، دسترسی تحویل فرض نمی‌شود',
+        'No fulfilment entitlement is inferred without payment evidence'),
+  'unknown');
+ stage(tr('دریافت مستقل مشتری','Independent buyer receipt'),
+   tr('در این خلاصه تأیید نمی‌شود؛ سند دریافت جداگانه لازم است',
+      'Not confirmed by this overview; separate buyer acknowledgement is required'),
+   'unknown');
+ box.append(list);
+ const safeSku=new Set((Array.isArray(order.items)?order.items:[])
+   .filter(i=>typeof i?.sku==='string'&&/^(?:service|vip):[a-z0-9_-]{1,60}$/.test(i.sku))
+   .map(i=>i.sku));
+ const statuses=['awaiting_contact','scheduling','booked','in_progress','delivered','cancelled'];
+ return {box,update(data){
+  if(data?.paymentRecord!=='provider_verified_not_bank_settlement'){
+   markDelivery(tr('شواهد پرداخت یا وضعیت تحویل نیازمند تطبیق است',
+                   'Payment evidence or fulfilment requires reconciliation'),'review');
+   return;
+  }
+  const cases=(Array.isArray(data.serviceCases)?data.serviceCases:[])
+   .filter(c=>c&&safeSku.has(c.sku)&&statuses.includes(c.status));
+  const parcel=['preparing','dispatched','in_transit','delivered','returned']
+   .includes(data.parcel?.state)?data.parcel:null;
+  if(parcel?.state==='delivered'){
+   markDelivery(tr('تحویل مرسوله در پرونده ثبت شده؛ دریافت مشتری مستقل است',
+                   'Parcel delivery is recorded; buyer receipt remains independent'),'recorded');
+  }else if(cases.some(c=>c.status==='delivered')){
+   markDelivery(tr('تحویل خدمت توسط مدیر ثبت شده؛ دریافت مشتری مستقل است',
+                   'Owner-attested service delivery is recorded; buyer receipt is separate'),'recorded');
+  }else if(parcel){
+   const state=({preparing:tr('در حال آماده‌سازی مرسوله','Parcel preparing'),
+     dispatched:tr('مرسوله ارسال‌شده','Parcel dispatched'),
+     in_transit:tr('مرسوله در مسیر','Parcel in transit'),
+     returned:tr('مرسوله مرجوع‌شده','Parcel returned')})[parcel.state];
+   markDelivery(state||tr('نیازمند بررسی','Review required'),'recorded');
+  }else if(cases.some(c=>c.status==='booked')){
+   markDelivery(tr('نوبت در پرونده خدمت ثبت شده؛ جزئیات زمان را بررسی کنید',
+                   'Appointment recorded in the service case; check exact time'),'recorded');
+  }else if(cases.some(c=>c.status==='in_progress')){
+   markDelivery(tr('وضعیت «در حال ارائه» در پرونده خدمت ثبت شده',
+                   'Service case records “in progress”'),'recorded');
+  }else if(cases.some(c=>['awaiting_contact','scheduling'].includes(c.status))){
+   markDelivery(tr('هماهنگی خدمت در پرونده ثبت شده؛ نوبت قطعی فرض نمی‌شود',
+                   'Service coordination is recorded; booking is not presumed'),'recorded');
+  }else if(cases.some(c=>c.status==='cancelled')){
+   markDelivery(tr('لغو خدمت در پرونده ثبت شده؛ استرداد مستقل است',
+                   'Service cancellation is recorded; refund is separate'),'review');
+  }else{
+   markDelivery(tr('هنوز رویداد تحویل قابل‌تأییدی بازگردانده نشده است',
+                   'No verifiable fulfilment event was returned'),'unknown');
+  }
+ }};
+}
+
 function showInfo(message,login){
   section.replaceChildren();
   const wrapper=el('div');wrapper.append(el('strong',message));
@@ -434,15 +552,23 @@ function render(orders){
     if(order.createdAt)item.append(el('small',tr('ثبت: ','Created: ')+order.createdAt));
     const list=el('ul');list.style.cssText='padding-inline-start:1.25rem;line-height:1.9';
     for(const line of order.items||[])list.append(el('li',(line.title||line.sku)+' × '+format(line.quantity)+' — '+format(line.subtotalToman)+' '+tr('تومان','toman')));
-    item.append(list);
+    const evidence=createOrderEvidence(order);
+    item.append(list,evidence.box);
     item.append(el('small',tr('ارسال، تحویل، استرداد و دسترسی خدمت صرفاً پس از تأیید جداگانه نمایش داده می‌شوند.','Shipping, delivery, refunds and service access require separate verification.')));
     if(order.paymentVerified===true){
       const track=el('button',tr('پیگیری تحویل و نوبت','Track delivery or booking'),'button');
       track.type='button';
-      const detail=el('div');detail.setAttribute('aria-live','polite');
+      const detail=el('div',undefined,'jr-order-detail');detail.setAttribute('aria-live','polite');
+      detail.hidden=true;
+      detail.id='jr-order-'+String(order.id||'').replace(/[^a-z0-9-]/gi,'').slice(0,64);
+      track.dataset.orderTrack='';
+      track.setAttribute('aria-controls',detail.id);
+      track.setAttribute('aria-expanded','false');
       let loaded=false;
       track.addEventListener('click',async()=>{
-        if(loaded){detail.hidden=!detail.hidden;return;}
+        if(loaded){detail.hidden=!detail.hidden;track.setAttribute('aria-expanded',String(!detail.hidden));return;}
+        detail.hidden=false;
+        track.setAttribute('aria-expanded','true');
         track.disabled=true;
         detail.replaceChildren(el('p',tr('در حال بررسی آخرین وضعیت واقعی…','Checking recorded fulfilment status…')));
         try{
@@ -451,6 +577,7 @@ function render(orders){
           if(!res.ok)throw new Error('fulfilment_unavailable');
           const data=await res.json();if(data?.ok!==true)throw new Error('invalid_response');
           detail.replaceChildren();
+          evidence.update(data);
           if(data.paymentRecord!=='provider_verified_not_bank_settlement'){
             detail.append(el('p',tr('پروندهٔ پرداخت برای ارائهٔ وضعیت تحویل هنوز به تطبیق نیاز دارد.','Payment evidence requires reconciliation before displaying fulfilment.')));
           }else{
@@ -569,6 +696,7 @@ async function load(){
     if(!res.ok)throw new Error('history_unavailable');
     const data=await res.json();if(data?.ok!==true||!Array.isArray(data.orders))throw new Error('history_invalid');
     render(data.orders);
+    updateEvidenceOverview(data.orders);
   }catch(_){showInfo(tr('تاریخچه واقعی سفارش‌ها در حال حاضر در دسترس نیست؛ اطلاعات فرضی نمایش داده نمی‌شود.','Order history is currently unavailable; no simulated purchases are shown.'),false);}
   finally{section.setAttribute('aria-busy','false');}
 }
@@ -577,6 +705,8 @@ async function load(){
 function closePrivateOrderPanels(){
  section.querySelectorAll('details.service-intake-editor[open],details.service-private-files[open]')
   .forEach(panel=>{panel.open=false;});
+ section.querySelectorAll('.jr-order-detail').forEach(panel=>{panel.hidden=true;});
+ section.querySelectorAll('button[data-order-track]').forEach(button=>button.setAttribute('aria-expanded','false'));
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden)closePrivateOrderPanels();});
 window.addEventListener('pagehide',closePrivateOrderPanels);
