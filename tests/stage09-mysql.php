@@ -383,6 +383,29 @@ try{jrRecoverPendingVerifiedDonation($pdo,$wrongType,'111','123456',
     static fn(string $t,string $g):array=>['status'=>1,'amount'=>20000000,'factorId'=>'333333444444']);}
 catch(DomainException $e){$rejectWrongType=$e->getMessage()==='donation_only_recovery';}
 checkStage9($rejectWrongType,'donation_recovery_cannot_activate_service_orders');
+
+$otherDonation='11111111-1111-4111-8111-111111111187';
+$otherFactor='222222333333';
+$insertDonation->execute([$otherDonation,$otherFactor,$donationItems]);
+$crossFactorBlocked=false;
+try{jrRecoverPendingVerifiedDonation($pdo,$otherDonation,'987654','606060',
+    static fn(string $t,string $g):array=>['status'=>1,
+        'amount'=>10000,'factorId'=>$donationFactor]);}
+catch(DomainException $e){$crossFactorBlocked=$e->getMessage()==='donation_provider_verification_failed';}
+checkStage9($crossFactorBlocked,'donation_recovery_rejects_another_order_factor');
+$duplicateTransactionBlocked=false;
+try{jrRecoverPendingVerifiedDonation($pdo,$otherDonation,'987654','606060',
+    static fn(string $t,string $g):array=>['status'=>1,
+        'amount'=>10000,'factorId'=>$otherFactor]);}
+catch(PDOException $e){$duplicateTransactionBlocked=true;}
+checkStage9($duplicateTransactionBlocked,
+ 'donation_recovery_cannot_reuse_a_claimed_transaction_id');
+checkStage9((string)$pdo->query("SELECT state FROM commerce_orders WHERE id='$otherDonation'")->fetchColumn()==='pending'
+ &&(int)$pdo->query("SELECT COUNT(*) FROM commerce_payment_claims WHERE order_id='$otherDonation'")->fetchColumn()===0
+ &&(int)$pdo->query("SELECT COUNT(*) FROM commerce_outbox WHERE order_id='$otherDonation'")->fetchColumn()===0,
+ 'replayed_donation_transaction_rolls_back_all_financial_writes');
+$pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$otherDonation]);
+
 $pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$wrongType]);
 // Do not delete real financial records; all transactions above use isolated
 // MySQL fixture data and should remain audited within the test output.
