@@ -65,6 +65,19 @@ function jrPubDigitalOffer(PDO $pdo): ?array {
       $s->execute([JR_PUB_SKU]);$o=$s->fetch(PDO::FETCH_ASSOC);if(!$o)return null;
       $price=(int)$o['unit_price_toman'];$author=(int)$o['unit_author_toman'];$fund=(int)$o['unit_fund_toman'];
       if($price!==1000000||$author!==600000||$fund!==400000||$price!==$author+$fund)return null;
+      // Only delivery/custody identity is checked here, not the author's
+      // consent or a digital_distribution licence. Keep a single verified
+      // account to receive the sale notice and access the author dashboard.
+      $recipient=$pdo->prepare("SELECT acc.id
+          FROM publishing_author_accounts link
+          JOIN customer_accounts acc ON acc.id=link.account_id
+          WHERE link.author_id=? AND link.role='author'
+            AND link.approved_at IS NOT NULL AND link.revoked_at IS NULL
+            AND acc.email_verified_at IS NOT NULL AND acc.status='active'
+          LIMIT 2");
+      $recipient->execute([$o['author_id']]);
+      if(count($recipient->fetchAll(PDO::FETCH_COLUMN))!==1)return null;
+
       $assets=$pdo->prepare("SELECT logical_kind,private_storage_name,sha256,byte_size,encrypted_at_rest,
            malware_scanned_at,approved_at
         FROM publishing_private_assets
