@@ -24,10 +24,12 @@ test('only previously verified accounts can submit, with origin, CSRF and rate l
  assert.match(s,/status.*'pending'|state.*'pending'/);
  assert.match(s,/return \$v;/);
 });
-test('public page selection permits only existing Persian article routes',()=>{
+test('public page selection permits only existing Persian news and academic guide articles',()=>{
  const s=php();
  assert.match(s,/function communityCanonical/);
- assert.match(s,/realpath\(\$root\.'\/'\.\$matches\[1\]\.'\/index\.html'\)/);
+ assert.ok(s.includes("preg_match('#^/fa/(akhbar|rahnamaha)/"),'only two approved public article directories');
+  assert.ok(s.includes("$root=realpath(dirname(__DIR__).'/fa/'.$matches[1]);"),'checked public directory only');
+  assert.ok(s.includes("$article=$root ? realpath($root.'/'.$matches[2].'/index.html') : false;"),'existing canonical article required');
  assert.match(s,/str_starts_with\(\$article,\$root\.DIRECTORY_SEPARATOR\)/);
  assert.doesNotMatch(s,/file_get_contents\(\$v\)/);
 });
