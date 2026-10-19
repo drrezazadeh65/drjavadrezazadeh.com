@@ -54,7 +54,13 @@ export function historicalAuthorityMaps(registry){
 }
 
 export function classifyHistoricalTarget(input, registry){
-  const path=normalizeHistoricalPath(input,registry.production_origin);
+  const identity=identifyHistoricalUrl(input,registry.production_origin);
+  if(identity.queryIdentityReview) return {
+    path:identity.identity,
+    action:'QUERY_IDENTITY_REVIEW',
+    reason:'Content-defining or unclassified query must be verified against historical source evidence.'
+  };
+  const path=identity.path;
   const {redirects,candidates}=historicalAuthorityMaps(registry);
   if(path==='/') return {path,action:'PRESERVE_HOME',target:'/'};
   if(path==='/shop/') return {path,action:'PRESERVE_SHOP',target:'/fa/shop/'};
