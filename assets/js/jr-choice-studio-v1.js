@@ -231,21 +231,47 @@
       });
       // Pointer events work with touch, mouse and pen. Only the dedicated
       // handle starts the gesture; sliders and their keyboard support stay intact.
-      let start=null;
+      let start=null,dropTarget=null;
+      const clearDrop=()=>{
+        if(dropTarget)dropTarget.classList.remove('jr-cs-drop-target');
+        dropTarget=null;w.item.classList.remove('jr-cs-dragging');
+      };
+      const targetAt=(x,y)=>{
+        // Captured pointer events still carry viewport coordinates. Hit-test
+        // the actual stack, excluding the dragged control and its descendants.
+        const stack=typeof document.elementsFromPoint==='function'?
+          document.elementsFromPoint(x,y):[document.elementFromPoint(x,y)];
+        for(const hit of stack){
+          const item=hit&&hit.closest&&hit.closest('.jr-cs-weight');
+          if(item&&item!==w.item&&weightGrid.contains(item))return item;
+        }
+        return null;
+      };
       w.drag.addEventListener('pointerdown',event=>{
         if(event.pointerType==='mouse'&&event.button!==0)return;
-        start={id:event.pointerId};
+        start={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false};
         if(w.drag.setPointerCapture)w.drag.setPointerCapture(event.pointerId);
+      });
+      w.drag.addEventListener('pointermove',event=>{
+        if(!start||start.id!==event.pointerId)return;
+        if(Math.hypot(event.clientX-start.x,event.clientY-start.y)<9&&!start.moved)return;
+        start.moved=true;w.item.classList.add('jr-cs-dragging');
+        const target=targetAt(event.clientX,event.clientY);
+        if(target===dropTarget)return;
+        if(dropTarget)dropTarget.classList.remove('jr-cs-drop-target');
+        dropTarget=target;
+        if(dropTarget)dropTarget.classList.add('jr-cs-drop-target');
       });
       w.drag.addEventListener('pointerup',event=>{
         if(!start||start.id!==event.pointerId)return;
+        const dragged=start.moved;
         start=null;
-        const hit=document.elementFromPoint(event.clientX,event.clientY);
-        const item=hit&&hit.closest('.jr-cs-weight');
-        if(item&&weightGrid.contains(item)&&item.dataset.factorId!==w.factor.id)
-          move(w.factor.id,order.indexOf(item.dataset.factorId));
+        const target=dragged?targetAt(event.clientX,event.clientY):null;
+        clearDrop();
+        if(target)move(w.factor.id,order.indexOf(target.dataset.factorId));
       });
-      w.drag.addEventListener('pointercancel',()=>{start=null;});
+      w.drag.addEventListener('pointercancel',()=>{start=null;clearDrop();});
+      w.drag.addEventListener('lostpointercapture',()=>{start=null;clearDrop();});
       w.input.addEventListener('input',save);
       w.input.addEventListener('change',save);
     });
