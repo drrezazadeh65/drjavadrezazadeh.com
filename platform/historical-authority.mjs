@@ -18,6 +18,29 @@ export function normalizeHistoricalPath(input, origin='https://drjavadrezazadeh.
   return value;
 }
 
+// Preserve URL identity during historical evidence intake. Runtime redirects
+// continue to use path-only normalization; this does not authorize any new route.
+const historicalTrackingKeys=new Set([
+  'gclid','dclid','gbraid','wbraid','fbclid','msclkid','yclid',
+  'mc_cid','mc_eid','igshid','ref_src','utm'
+]);
+export function identifyHistoricalUrl(input,origin='https://drjavadrezazadeh.com'){
+  const u=new URL(input,origin);
+  const path=normalizeHistoricalPath(u.pathname,origin);
+  const meaningful=[...u.searchParams.entries()].filter(([name])=>{
+    const key=name.toLowerCase();
+    return !key.startsWith('utm_')&&!historicalTrackingKeys.has(key);
+  });
+  meaningful.sort((a,b)=>a[0].localeCompare(b[0])||a[1].localeCompare(b[1]));
+  const query=new URLSearchParams(meaningful).toString();
+  return {
+    path,
+    identity:query?path+'?'+query:path,
+    queryIdentityReview:Boolean(query),
+    queryDisposition:query?'QUERY_IDENTITY_REVIEW':'PATH_ONLY'
+  };
+}
+
 export function historicalAuthorityMaps(registry){
   const redirects=new Map((registry.authority_redirects||[]).map(r=>[
     normalizeHistoricalPath(r.source,registry.production_origin),
