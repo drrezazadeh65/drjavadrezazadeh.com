@@ -326,6 +326,29 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
         }
         $snapshot['available']=true;
         $snapshot['reason']=null;
+        // Pending donations can have succeeded at bitpay.ir when callbacks
+        // failed. Owner-MFA review only; never classify them as unpaid from DB.
+        $donationRecoveryRows=$pdo->query("SELECT o.id,o.created_at,o.amount_toman,
+             RIGHT(o.provider_id_get,4) AS gateway_suffix,
+             JSON_UNQUOTE(JSON_EXTRACT(o.items_json,'$[0].sku')) AS donation_sku
+            FROM commerce_orders o
+            WHERE o.state='pending' AND o.paid_at IS NULL
+              AND o.provider_trans_id IS NULL AND o.provider_id_get IS NOT NULL
+              AND JSON_VALID(o.items_json)=1 AND JSON_LENGTH(o.items_json)=1
+              AND JSON_UNQUOTE(JSON_EXTRACT(o.items_json,'$[0].kind'))='donation'
+              AND JSON_UNQUOTE(JSON_EXTRACT(o.items_json,'$[0].sku'))
+                IN ('support:students','support:voluntary')
+              AND NOT EXISTS (SELECT 1 FROM commerce_payment_claims c
+                              WHERE c.order_id=o.id)
+            ORDER BY o.created_at ASC LIMIT 25")->fetchAll(PDO::FETCH_ASSOC);
+        $donationRecoveryQueue=array_map(static fn(array $row):array=>[
+            'orderId'=>(string)$row['id'],
+            'createdAt'=>(string)$row['created_at'],
+            'amountToman'=>(string)$row['amount_toman'],
+            'gatewayReferenceSuffix'=>(string)$row['gateway_suffix'],
+            'donationSku'=>(string)$row['donation_sku'],
+            'requiresServerSideProviderTransactionVerification'=>true
+        ],$donationRecoveryRows);
         // All-time donation totals; do not mix a 1,000-row sample with all-time claim totals.
         // This uses the existing verified commerce order and provider-claim ledgers.
         // EXISTS counts each donation order once, even if the provider has multiple
@@ -350,6 +373,15 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             WHERE JSON_VALID(o.items_json)=1 AND JSON_LENGTH(o.items_json)=1
               AND JSON_UNQUOTE(JSON_EXTRACT(o.items_json,'$[0].sku'))='support:students'")->fetch(PDO::FETCH_ASSOC);
         if(!is_array($givingTotals))throw new RuntimeException('donation_totals_unavailable');
+        $snapshot['donationRecovery']=[
+            'schema'=>'commerce-donation-recovery-review-v1',
+            'pendingReviewQueue'=>$donationRecoveryQueue,
+            'reviewLimit'=>25,
+            'onlyProviderVerifiedPaymentMayBeRecorded'=>true,
+            'browserCannotGrantPaidStatus'=>true,
+            'automaticReconciliationActive'=>false,
+            'reviewOnly'=>true
+        ];
         $snapshot['donations']=[
             'scope'=>'all_time_internal_donation_ledger',
             'totalOrders'=>(int)$givingTotals['total_count'],
