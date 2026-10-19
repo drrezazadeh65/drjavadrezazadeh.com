@@ -4,6 +4,12 @@ if (!defined('BERTINA_API_BOOTSTRAPPED') && PHP_SAPI!=='cli') { http_response_co
 
 /** One digital commerce pathway, integrated with existing BitPay Stage09; no second payment gateway. */
 const JR_PUB_SKU = 'digital:tefl-ma-exams-1370-1405';
+// Pin the two approved ORIGINAL source PDFs for this SKU. Operational checks,
+// checkout eligibility and privileged activation must share one manifest.
+const JR_PUB_ORIGINAL_ASSETS = [
+ 'question_pdf'=>['tefl_1370_1405_questions.pdf','6245641c453e92ee005c4176575ef315b96ac72fd8535b7e3ff67c2369dda7c8'],
+ 'answer_pdf'=>['tefl_1370_1405_answers.pdf','db8070f8a88723c1947a094a461ad2f703192092b09f03255867bbab53fa2ab4']
+];
 
 function jrPubPrivateDir(): ?string {
     $c=cfg();
@@ -46,7 +52,7 @@ function jrPubDigitalOffer(PDO $pdo): ?array {
         JOIN publishing_works w ON w.id=f.work_id
         JOIN publishing_authors a ON a.id=w.author_id
         JOIN publishing_work_versions v ON v.work_id=w.id
-        WHERE f.sku=? AND f.checkout_enabled=1 AND f.retired_at IS NULL
+        WHERE f.sku=? AND f.currency='IRT' AND f.checkout_enabled=1 AND f.retired_at IS NULL
           AND f.effective_from<=NOW() AND w.publication_status='approved'
           AND w.rights_verified_at IS NOT NULL AND a.status='approved'
           AND v.review_state IN('submitted','under_review','accepted')
@@ -54,15 +60,18 @@ function jrPubDigitalOffer(PDO $pdo): ?array {
       $s->execute([JR_PUB_SKU]);$o=$s->fetch(PDO::FETCH_ASSOC);if(!$o)return null;
       $price=(int)$o['unit_price_toman'];$author=(int)$o['unit_author_toman'];$fund=(int)$o['unit_fund_toman'];
       if($price!==1000000||$author!==600000||$fund!==400000||$price!==$author+$fund)return null;
-      $rights=$pdo->prepare("SELECT 1 FROM publishing_rights_licences l
+      $rights=$pdo->prepare("SELECT l.evidence_sha256 FROM publishing_rights_licences l
          JOIN customer_accounts acc ON acc.id=l.author_account_id
          JOIN publishing_author_accounts a ON a.account_id=acc.id AND a.author_id=?
          WHERE l.work_id=? AND l.rights_scope='digital_distribution'
            AND l.valid_from<=NOW() AND l.revoked_at IS NULL
-           AND a.approved_at IS NOT NULL AND a.revoked_at IS NULL
+           AND a.role='author' AND a.approved_at IS NOT NULL AND a.revoked_at IS NULL
            AND acc.email_verified_at IS NOT NULL AND acc.status='active'
-         LIMIT 1");
-      $rights->execute([$o['author_id'],$o['work_id']]);if(!$rights->fetchColumn())return null;
+         LIMIT 2");
+      $rights->execute([$o['author_id'],$o['work_id']]);
+      $licences=$rights->fetchAll(PDO::FETCH_COLUMN);
+      if(count($licences)!==1 ||
+         preg_match('/^[a-f0-9]{64}$/D',(string)$licences[0])!==1)return null;
       $assets=$pdo->prepare("SELECT logical_kind,private_storage_name,sha256,byte_size,encrypted_at_rest,
            malware_scanned_at,approved_at
         FROM publishing_private_assets
@@ -70,12 +79,17 @@ function jrPubDigitalOffer(PDO $pdo): ?array {
       $assets->execute([$o['version_id']]);$rows=$assets->fetchAll(PDO::FETCH_ASSOC);
       if(count($rows)!==2)return null;
       $seen=[];foreach($rows as $a){
-        $kind=(string)$a['logical_kind'];if(isset($seen[$kind]))return null;$seen[$kind]=true;
+        $kind=(string)$a['logical_kind'];
+        if(isset($seen[$kind])||!isset(JR_PUB_ORIGINAL_ASSETS[$kind]))return null;
+        $seen[$kind]=true;
         if(empty($a['approved_at'])||empty($a['malware_scanned_at'])||
            (int)$a['encrypted_at_rest']!==0)return null; // decryption is not implemented: fail closed
-        $file=jrPubAssetPath((string)$a['private_storage_name']);if(!$file||
+        [$originalName,$originalHash]=JR_PUB_ORIGINAL_ASSETS[$kind];
+        if($originalName!==(string)$a['private_storage_name']||
+           !hash_equals($originalHash,strtolower((string)$a['sha256'])))return null;
+        $file=jrPubAssetPath($originalName);if(!$file||
           filesize($file)!==(int)$a['byte_size']||
-          !hash_equals(strtolower((string)$a['sha256']),hash_file('sha256',$file)))return null;
+          !hash_equals($originalHash,hash_file('sha256',$file)))return null;
         $fp=fopen($file,'rb');if(!$fp)return null;
         $magic=fread($fp,5);fclose($fp);if($magic!=='%PDF-')return null;
       }
