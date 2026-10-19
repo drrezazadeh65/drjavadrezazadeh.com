@@ -40,7 +40,7 @@ test('BAHAR weekly diary remains seven-day, descriptive, in-page-only and printa
   const html=read(path);
   for(const hook of ['data-bahar-weekly','data-bahar-week-list','data-bahar-week-count','data-bahar-print'])
    assert.ok(html.includes(hook),path+' lacks '+hook);
-  assert.match(html,/bahar-formative-workspace-v1[.]js[?]v=20261019-7day-continuity-v2/);
+  assert.match(html,/bahar-formative-workspace-v1[.]js[?]v=20261019-7day-continuity-v3/);
   assert.match(html,/noindex,follow,noarchive/);
   assert.match(html,/روز بدون یادداشت|blank day/i);
  }
@@ -88,4 +88,29 @@ test('responsive BAHAR notes use only existing brand tokens and explicit print m
  assert.match(css,/@media print/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
  assert.doesNotMatch(css,/url\(["']?https?:/i);
+});
+
+// Guards the bilingual RCAS print controls: browsers do not load a <script>
+// opening tag nested inside an existing script element.
+test('RCAS printable enhancement scripts load independently in both locales',()=>{
+ const pages=[
+  ['fa/assessments/golden-talent/start/index.html',
+   '../../../../assets/js/rcas-start.js?v=20261019-continuity-v1'],
+  ['en/golden-talent/assessment/index.html',
+   '/assets/js/rcas-start-en.js?v=20261019-continuity-v1']
+ ];
+ for(const [path,engine] of pages){
+  const html=read(path);
+  const tags=html.match(/<\\/?script\\b[^>]*>/gi)||[];
+  let depth=0;
+  for(const tag of tags){
+   if(/^<\\/script\\b/i.test(tag))depth--;
+   else {assert.equal(depth,0,path+' has a nested script element');depth++;}
+   assert.ok(depth>=0,path+' has an unmatched script end tag');
+  }
+  assert.equal(depth,0,path+' has an unclosed script element');
+  assert.ok(html.includes('<script src="'+engine+'" defer></script>'),path+' assessment engine missing');
+  assert.ok(html.includes('<script src="/assets/js/rcas-print-v52.js?v=20261019-v1" defer></script>'),
+    path+' printable report enhancement missing');
+ }
 });
