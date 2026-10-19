@@ -45,7 +45,8 @@ body.language-gateway.public-gateway-page .skip{
   color:#fff;
   text-decoration:none;
   padding:10px 16px;
-  transition:transform .16s ease;
+  /* Keyboard users must see the skip link immediately, without a transition. */
+  transition:none;
 }
 body.language-gateway.public-gateway-page .skip:focus{transform:none}
 body.language-gateway.public-gateway-page .gateway-shell{
