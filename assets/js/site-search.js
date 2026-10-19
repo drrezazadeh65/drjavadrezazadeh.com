@@ -131,7 +131,8 @@ function run(){
     '</div>';
 }
 
-fetch(base+'assets/search-index.json',{cache:'force-cache'})
+// Revalidate the evolving public search index instead of indefinitely reusing a stale browser copy.
+fetch(base+'assets/search-index.json',{cache:'no-cache'})
   .then(r=>r.ok?r.json():Promise.reject(new Error('index')))
   .then(x=>{
     data=Array.isArray(x)?x:[];
