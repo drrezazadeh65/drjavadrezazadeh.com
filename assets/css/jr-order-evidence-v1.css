@@ -2,6 +2,39 @@
  * Uses existing authenticated commerce history and fulfilment. No invented KPI.
  * Frozen academic graphite / muted gold / ivory palette; logical RTL/LTR flow.
  */
+/* Alternate English private route uses its own existing lightweight shell. */
+.en-orders .appointment-summary{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin:12px 0 20px;
+}
+.en-orders .appointment-summary article{
+  min-width:0;
+  padding:17px 15px;
+  border:1px solid rgba(205,173,113,.32);
+  border-radius:15px;
+  background:linear-gradient(145deg,#211f1d,#12151b);
+  overflow-wrap:anywhere;
+}
+.en-orders .appointment-summary span,
+.en-orders .appointment-summary small{
+  display:block;
+  color:#e7dbcb;
+  font-size:.86rem;
+  line-height:1.6;
+}
+.en-orders .appointment-summary b{
+  display:block;
+  margin:8px 0;
+  color:#f5d79f;
+  font-size:1.35rem;
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:720px){
+ .en-orders .appointment-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .en-orders .appointment-summary article{padding:14px 11px}
+}
 [data-resource="orders"] .jr-order-flow-disclosure{
   margin:10px 0 14px;
   padding:10px 14px;
