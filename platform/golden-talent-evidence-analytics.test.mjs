@@ -26,4 +26,12 @@ assert.equal(plan.automatic_module_unlock,false);
 assert.equal(plan.items.find(x=>x.domain==='D1').action,'HUMAN_DISCREPANCY_REVIEW');
 assert.equal(plan.items.find(x=>x.domain==='D2').action,'COLLECT_TRACEABLE_EVIDENCE');
 assert(plan.items.every(x=>x.not_a_talent_rank===true));
+const provenanceReview=analyseEvidence([
+ reviewed('d1','D5','ASSESSMENT'),reviewed('d2','D5','PARENT')
+],{now:new Date('2026-10-19T00:00:00Z')});
+const d5=provenanceReview.domains.find(d=>d.domain==='D5');
+assert.equal(d5.evidence_state,'SINGLE_SOURCE','unverified source labels cannot establish convergence');
+assert.equal(d5.independent_source_count,0);
+assert(d5.flags.includes('INDEPENDENCE_NOT_VERIFIED'));
+assert.equal(nextEvidencePlan(provenanceReview).items.find(x=>x.domain==='D5').action,'VERIFY_SOURCE_INDEPENDENCE');
 console.log('Golden Talent evidence analytics passed');
