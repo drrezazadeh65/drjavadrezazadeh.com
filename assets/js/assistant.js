@@ -57,7 +57,7 @@
       {label:'انتخاب رشته',url:rootPath('fa/entekhab-reshteh/')},
       {label:'Golden Talent',url:rootPath('fa/golden-talent/')},
       {label:'درخواست مشاوره',url:rootPath('fa/darkhast-moshavere/')},
-      {label:'جست‌وجوی سایت',url:rootPath('fa/search/')},
+      {label:'جست‌وجوی سایت',url:rootPath('fa/jostojo/')},
       {label:'جست‌وجوی مجله JHELA',url:rootPath('journal/fa/search/')}
     ];
     return [
