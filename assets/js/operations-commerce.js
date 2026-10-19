@@ -643,6 +643,113 @@
         text('صرفاً شواهد داخلی؛ تسویه بانکی و تخصیص کمک تأیید نشده است.',
           'Internal evidence only; bank settlement and allocation are not verified.'));
     }
+    const expiry=data.bookExpiry||null;
+    if(expiry?.schema==='commerce-book-expiry-review-v1'){
+      const block=node('section',undefined,'ops-card');
+      block.style.cssText='grid-column:1/-1;border:1px solid rgba(212,175,55,.42);border-radius:12px;padding:14px;display:grid;gap:12px';
+      block.append(node('h3',text('رزرو کتاب‌های بدون تأیید پرداخت پس از ۲۴ ساعت',
+        'Book reservations awaiting payment reconciliation after 24 hours')));
+      block.append(node('p',text(
+        'پس از ۲۴ ساعت، رزرو فقط وقتی آزاد می‌شود که لغو قطعی یا عدم موفقیت نهایی همان شناسه در پنل BitPay مستقلاً بررسی شده باشد. سفارش معلق یا نبود رسید داخلی، به‌تنهایی مدرک عدم پرداخت نیست.',
+        'After 24 hours, release a book only when the exact gateway reference has independently been confirmed terminally failed or cancelled. A pending order or missing local claim is not proof of non-payment.'
+      ),'ops-muted'));
+      block.append(node('p',text(
+        'استعلام خودکار منفی درگاه هنوز معتبرسازی نشده است. در صورت نامشخص‌بودن وضعیت، هیچ رزروی آزاد نمی‌شود.',
+        'Automated negative gateway verification is not yet certified. Uncertain payments will not release stock.'
+      ),'ops-muted'));
+      const review=expiry.pendingReviewQueue||[];
+      for(const entry of review){
+        if(!/^[a-f0-9-]{36}$/i.test(String(entry.orderId||''))||
+           !Number.isInteger(entry.reservedUnits)||entry.reservedUnits<1)continue;
+        const item=node('div',undefined,'ops-card');
+        item.style.cssText='border:1px solid rgba(200,172,112,.26);padding:12px;display:grid;gap:9px;min-width:0';
+        item.append(node('p',text('پرونده رزرو','Reservation record')+' · '+
+          String(entry.orderId).slice(0,8)+'…'+
+          text(' | جلد: ',' | units: ')+entry.reservedUnits+
+          text(' | انتهای شناسه درگاه: ',' | gateway suffix: ')+
+          String(entry.gatewayReferenceSuffix||'—'),'ops-muted'));
+        const form=node('form');
+        form.style.cssText='display:grid;gap:10px;max-width:540px';
+        const gatewayLabel=node('label',text('شناسه کامل درگاه، فقط پس از بررسی در BitPay',
+          'Full gateway reference, only after checking BitPay'));
+        const gateway=document.createElement('input');
+        gateway.type='text';gateway.inputMode='numeric';gateway.pattern='[1-9][0-9]*';
+        gateway.autocomplete='off';gateway.required=true;
+        gatewayLabel.append(gateway);form.append(gatewayLabel);
+        const typeLabel=node('label',text('نتیجه نهایی درگاه','Final provider status'));
+        const decision=document.createElement('select');
+        for(const [value,title] of [
+          ['',text('انتخاب کنید','Choose verified status')],
+          ['cancelled',text('لغوشده و غیرقابل پرداخت','Cancelled, no longer payable')],
+          ['failed',text('ناموفق و غیرقابل پرداخت','Failed, no longer payable')]
+        ]){const option=node('option',title);option.value=value;decision.append(option);}
+        decision.required=true;typeLabel.append(decision);form.append(typeLabel);
+        const verification=node('label');
+        const check=document.createElement('input');check.type='checkbox';check.required=true;
+        verification.append(check,node('span',text(
+          'شناسه، مبلغ و وضعیت قطعی درگاه را مستقلاً بررسی کردم.',
+          'I independently verified gateway reference, amount and terminal status.'
+        )));form.append(verification);
+        const risk=node('label');
+        const riskCheck=document.createElement('input');riskCheck.type='checkbox';riskCheck.required=true;
+        risk.append(riskCheck,node('span',text(
+          'می‌دانم پرداخت دیرهنگام احتمالی به بررسی و استرداد جداگانه نیاز دارد.',
+          'I acknowledge that a late payment may require separate investigation and refund.'
+        )));form.append(risk);
+        const submit=node('button',text('آزادسازی کنترل‌شده رزرو','Release verified reservation'));
+        submit.type='submit';form.append(submit);
+        form.addEventListener('submit',async event=>{
+          event.preventDefault();
+          const idGet=gateway.value.trim();
+          if(!/^[1-9][0-9]{0,79}$/.test(idGet)||!idGet.endsWith(String(entry.gatewayReferenceSuffix||''))||
+            !['cancelled','failed'].includes(decision.value)||
+            !check.checked||!riskCheck.checked)return;
+          if(!window.confirm(text(
+            'آیا لغو نهایی درگاه برای همین سفارش با شناسه منطبق را تایید می‌کنید؟ آزادسازی موجودی و لغو سفارش قابل بازگشت خودکار نیست.',
+            'Confirm the exact provider transaction is terminally unpaid. Stock release and order cancellation will not automatically undo themselves.'
+          )))return;
+          const stamp=seq;submit.disabled=true;
+          try{
+            const authResponse=await fetch('/api/admin/operations/session',{
+              method:'GET',credentials:'same-origin',cache:'no-store'
+            });
+            if(!authResponse.ok)throw Error('mfa');
+            const auth=await authResponse.json();
+            if(stamp!==seq||workspace.hidden||!panel.open||document.hidden)return;
+            if(auth?.ok!==true||auth.mfaRequired!==false||
+              !/^[a-f0-9]{64}$/i.test(String(auth.csrfToken||'')))throw Error('mfa');
+            const reply=await fetch('/api/admin/operations/commerce/book-expire',{
+              method:'POST',credentials:'same-origin',cache:'no-store',
+              headers:{'Content-Type':'application/json','Accept':'application/json',
+                'X-CSRF-Token':auth.csrfToken},
+              body:JSON.stringify({orderId:entry.orderId,gatewayId:idGet,
+                providerStatus:decision.value,ownerVerifiedGateway:true,
+                acknowledgeLatePaymentRisk:true})
+            });
+            const changed=await reply.json();
+            if(stamp!==seq||workspace.hidden||!panel.open||document.hidden)return;
+            if(!reply.ok||changed?.ok!==true||
+              changed.schema!=='commerce-book-expiry-owner-v1'||
+              changed.change?.reserveReleased!==true)throw Error('recheck');
+            gateway.value='';check.checked=false;riskCheck.checked=false;
+            await load();
+          }catch{
+            if(stamp===seq&&!workspace.hidden&&panel.open){
+              status.textContent=text(
+                'آزادسازی تأیید نشد. درگاه، احراز هویت دومرحله‌ای یا وضعیت سفارش را دوباره بررسی کنید.',
+                'Release not confirmed; recheck the provider status, MFA and current order.'
+              );
+            }
+          }finally{if(stamp===seq)submit.disabled=false;}
+        });
+        item.append(form);block.append(item);
+      }
+      if(!review.length)block.append(node('p',text(
+        'سفارش کتاب واجد بررسی در این بازه وجود ندارد.',
+        'There are no overdue book holds in this bounded review queue.'
+      ),'ops-muted'));
+      results.append(block);
+    }
     const sales=data.salesPipeline||null;
     if(sales && sales.status==='INTERNAL_ORDER_LEDGER_ONLY'){
       const heading=node('h3',text('مسیر فروش و پیگیری درآمد','Sales pipeline and revenue follow-up'));
