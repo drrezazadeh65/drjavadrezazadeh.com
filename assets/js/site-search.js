@@ -3,7 +3,8 @@ const form=document.querySelector('[data-site-search]');
 if(!form)return;
 // Reuse the public discovery engine for JHELA without creating a parallel index.
 const journalOnly=form.hasAttribute('data-journal-search');
-const eligible=x=>x&&x.lang===(document.documentElement.lang==='fa'?'fa':'en')&&(!journalOnly||String(x.path||'').startsWith('journal/'));
+const safePublicPath=p=>typeof p==='string'&&/^(?:fa|en|journal)\/(?:[a-zA-Z0-9_-]+\/)*$/.test(p)&&!p.includes('..');
+const eligible=x=>x&&safePublicPath(x.path)&&x.lang===(document.documentElement.lang==='fa'?'fa':'en')&&(!journalOnly||x.path.startsWith('journal/'));
 const input=form.querySelector('input[type="search"]');
 const category=form.querySelector('[data-search-category]');
 const clear=form.querySelector('[data-search-clear]');
@@ -130,7 +131,7 @@ function run(){
 
   const count=lang==='fa'?(ranked.length+' نتیجه عمومی'):(ranked.length+' public result'+(ranked.length===1?'':'s'));
   results.innerHTML='<p class="form-note" role="status">'+esc(count)+'</p><div class="related-cluster-grid">'+
-    ranked.map(({x})=>'<a href="'+base+x.path+'"><b>'+esc(x.title)+'</b><span>'+esc(x.category)+' · '+esc(x.summary)+'</span></a>').join('')+
+    ranked.map(({x})=>'<a href="'+esc(base+x.path)+'"><b>'+esc(x.title)+'</b><span>'+esc(x.category)+' · '+esc(x.summary)+'</span></a>').join('')+
     '</div>';
 }
 
