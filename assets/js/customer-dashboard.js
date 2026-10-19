@@ -499,6 +499,48 @@ async function verifiedCustomerNextAction(authenticated){
       isEnglish?'Review payment status':'بررسی وضعیت پرداخت',ordersHref);
   return;
  }
+ // A provider-matched service can have a separate, authoritative appointment
+ // or coordination state. Read just one owned order; never infer a booking
+ // from payment or query-string parameters. Every destination rechecks access.
+ const appointmentOrder=providerMatched.find(o=>
+  o.state==='paid' && typeof o.id==='string' &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(o.id) &&
+  Array.isArray(o.items) && o.items.some(i=>typeof i?.sku==='string' &&
+   /^(service|vip):[a-z0-9_-]+$/.test(i.sku)));
+ if(appointmentOrder){
+  const evidence=await jsonRequest(API+'/commerce/fulfilment?order='+encodeURIComponent(appointmentOrder.id),
+   {method:'GET',credentials:'include',cache:'no-store'});
+  if(stamp!==nextActionRequest || document.hidden ||
+     document.documentElement.dataset.customerAuthenticated!=='true')return;
+  if(evidence.ok && evidence.data?.ok===true &&
+     evidence.data.paymentRecord==='provider_verified_not_bank_settlement' &&
+     Array.isArray(evidence.data.serviceCases) && evidence.data.serviceCases.length<=20){
+   const purchased=new Set(appointmentOrder.items
+    .filter(i=>typeof i?.sku==='string' && /^(service|vip):[a-z0-9_-]+$/.test(i.sku))
+    .map(i=>i.sku));
+   const cases=evidence.data.serviceCases.filter(c=>c&&purchased.has(c.sku));
+   const appointmentsHref=isEnglish?'/en/account/appointments/':'/fa/app/account/appointments/';
+   const choice=cases.find(c=>['awaiting_contact','scheduling'].includes(c.status) &&
+     c.customerChoiceEnabled===true && Array.isArray(c.allowedDeliveryModes) &&
+     c.allowedDeliveryModes.some(mode=>['PHONE','VOICE','VIDEO','IN_PERSON'].includes(mode)));
+   if(choice){
+    set(isEnglish?'Choose a preferred consultation format.':'روش پیشنهادی مشاوره را انتخاب کنید.',
+     isEnglish?
+      'Your purchased service has an authorised coordination option. You may record a format preference; no appointment time or bank settlement is implied.':
+      'برای خدمت خریداری‌شده امکان ثبت روش پیشنهادی جلسه تأیید شده است؛ این انتخاب به معنی رزرو قطعی زمان یا تسویه بانکی نیست.',
+     isEnglish?'Review appointment options':'بررسی گزینه‌های نوبت',appointmentsHref);
+    return;
+   }
+   if(cases.some(c=>c.status==='booked' && c.bookingStart && c.bookingEnd)){
+    set(isEnglish?'Review your recorded appointment.':'نوبت ثبت‌شده را بررسی کنید.',
+     isEnglish?
+      'An authorised service case has a recorded booking window. Verify the exact local time and delivery format in your private appointment details; bank settlement is separate.':
+      'در پرونده مجاز خدمت، بازه زمانی نوبت ثبت شده است. ساعت محلی و روش برگزاری را در جزئیات خصوصی بررسی کنید؛ تسویه بانکی مستقل است.',
+     isEnglish?'View appointment details':'مشاهده جزئیات نوبت',appointmentsHref);
+    return;
+   }
+  }
+ }
  if(providerMatched.length){
   set(isEnglish?'Follow up your provider-verified order.':'پیگیری سفارش دارای تأیید درگاه',
       isEnglish?
