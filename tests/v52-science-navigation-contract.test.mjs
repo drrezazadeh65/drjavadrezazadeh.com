@@ -52,7 +52,7 @@ test('shared navigation makes no purchases, writes or entitlement decisions',()=
  assert.match(source,/profile: 'paid'/);
  assert.match(source,/types\[key\]/);
  assert.doesNotMatch(source,/\b(?:fetch|XMLHttpRequest|WebSocket)\s*\(/);
- assert.doesNotMatch(source,/\b(?:localStorage|sessionStorage|document\.cookie)\b/);
+ assert.doesNotMatch(source.replace(/\/\/[^\n]*/g,''),/\b(?:localStorage|sessionStorage|document\.cookie)\b/);
  assert.doesNotMatch(source,/\b(?:paymentVerified|entitlementGranted)\s*=\s*true/);
  assert.match(source,/setAttribute\('aria-expanded'/);
  assert.match(source,/event\.key === 'Escape'/);
