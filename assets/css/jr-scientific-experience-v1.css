@@ -1697,3 +1697,38 @@ body.jr-science-workspace :is(.kicker,.jr-sci-eyebrow){
  margin:10px 0;color:#d7c8a8;font-size:.86rem;line-height:1.7;
 }
 @media(min-width:701px){.jr-bahar-premium .jr-bahar-swipe-hint{display:none}}
+
+
+/* BAHAR dashboard keeps its Persian identity visible after the sidebar becomes
+ * a mobile bottom navigation bar; no duplicate navigation or new shell. */
+.jr-bahar-premium .jr-bahar-topbar-brand{
+ display:none;align-items:center;gap:9px;min-width:0;
+ color:#f8f5e9;text-decoration:none;font-weight:750;
+}
+.jr-bahar-premium .jr-bahar-topbar-brand img{
+ width:36px;height:36px;flex:none;padding:3px;
+ object-fit:contain;background:#0b0b0b;
+ border:1px solid rgba(212,175,55,.42);border-radius:10px;
+}
+.jr-bahar-premium .jr-bahar-topbar-brand span{
+ font-size:clamp(.82rem,2.8vw,1rem);line-height:1.35;
+ overflow-wrap:anywhere;
+}
+@media(max-width:840px){
+ .jr-bahar-premium .dashboard-topbar{
+  gap:clamp(7px,2.3vw,13px);padding:10px clamp(10px,2.5vw,20px);
+ }
+ .jr-bahar-premium .jr-bahar-topbar-brand{display:inline-flex;flex:0 1 auto}
+ .jr-bahar-premium .dashboard-topbar .dash-title{
+  min-width:0;flex:1 1 auto;
+ }
+ .jr-bahar-premium .dashboard-topbar .dash-actions{flex:0 0 auto}
+}
+@media(max-width:440px){
+ .jr-bahar-premium .jr-bahar-topbar-brand span{display:none}
+ .jr-bahar-premium .dashboard-topbar .dash-title{font-size:.87rem}
+ .jr-bahar-premium .dashboard-topbar .dash-actions .dash-pill:not(.primary){display:none}
+ .jr-bahar-premium .dashboard-topbar .dash-pill.primary{
+  min-height:44px;font-size:.75rem;
+ }
+}
