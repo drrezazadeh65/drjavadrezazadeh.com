@@ -117,7 +117,9 @@ for(const [language,route] of [
   const handle=studio.locator('.jr-cs-weight').nth(1).locator('.jr-cs-drag-handle');
   await handle.focus();await page.keyboard.press('ArrowDown');
   expect(await ids()).toEqual(['requirements','finances','interest','location','flexibility']);
-  await expect(feedback).toBeHidden();
+  // Reordering does not modify preferences; the descriptive report stays valid.
+  await expect(feedback).toBeVisible();
+  await expect(feedback.locator('.jr-cs-report-index b').first()).toBeVisible();
   const overflow=await studio.evaluate(element=>element.scrollWidth-element.clientWidth);
   expect(overflow).toBeLessThanOrEqual(2);
   expect(writes).toEqual([]);expect(errors).toEqual([]);
