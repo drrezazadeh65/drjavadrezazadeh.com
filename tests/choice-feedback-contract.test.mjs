@@ -55,10 +55,10 @@ test('both canonical bilingual guidance pages preserve their base studio and loa
   const path=locale==='fa'?'fa/entekhab-reshteh/index.html':'en/student-guidance/index.html';
   const html=read(path);
   assert.match(html,/data-choice-studio data-locale/);
-  assert.match(html,/jr-choice-studio-v1[.]js[?]v=20261019-choice-studio-v4/);
-  assert.match(html,/jr-choice-studio-v1[.]css[?]v=20261019-choice-studio-v4/);
+  assert.match(html,/jr-choice-studio-v1[.]js[?]v=20261019-choice-stages-v41/);
+  assert.match(html,/jr-choice-studio-v1[.]css[?]v=20261019-choice-design-v41/);
   assert.match(html,/jr-choice-feedback-v1[.]js[?]v=20261019-choice-reorder-v4/);
-  assert.match(html,/jr-choice-feedback-v1[.]css[?]v=20261019-tabs-feedback-v1/);
+  assert.match(html,/jr-choice-feedback-v1[.]css[?]v=20261019-choice-design-v41/);
   assert.equal(html.split('jr-choice-feedback-v1.js?').length,2);
   assert.ok(html.indexOf('jr-choice-studio-v1.js?')<html.indexOf('jr-choice-feedback-v1.js?'));
   assert.match(html,/rel="canonical"/);
