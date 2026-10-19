@@ -70,4 +70,26 @@ for(const [lang,route] of [['fa','/fa/golden-talent/'],['en','/en/golden-talent/
   const source=await page.request.get(base+'/assets/js/golden-talent-evidence-studio-v1.js');
   expect(source.status()).toBe(200);
  });
+ test(lang+' duplicate-source entries do not count as independent evidence',async({page})=>{
+  await page.goto(base+route);
+  const root=page.locator('[data-gt-evidence-studio]');
+  await root.locator('textarea[name="question"]').fill('What can the available observations justify?');
+  await root.locator('textarea[name="alternatives"]').fill('There may be contextual alternatives.');
+  for(let i=0;i<2;i++){
+   await root.locator('[data-gt-evidence-add]').click();
+   const row=root.locator('[data-gt-evidence-item]').nth(i);
+   await row.locator('select').selectOption('TEACHER');
+   await row.locator('textarea[name^="observation-"]').fill('An observed learning activity '+i);
+  }
+  await root.locator('button[type="submit"]').click();
+  const warnings=root.locator('[data-gt-evidence-summary] .jr-gt-summary-warning');
+  const phrase=lang==='fa'?'دو نوع منبع مستقل':'two independent source types';
+  await expect(warnings).toContainText(phrase);
+  // Changing the provenance category is a distinct descriptive source type,
+  // not a psychometric validation or proof of independent human observers.
+  await root.locator('[data-gt-evidence-item]').nth(1).locator('select').selectOption('PARENT');
+  await root.locator('button[type="submit"]').click();
+  await expect(root.locator('[data-gt-evidence-summary]')).not.toContainText(phrase);
+ });
+
 }
