@@ -67,6 +67,12 @@ test('mobile, keyboard, visual contrast fallback and reduced-motion have deliber
  assert.match(html,/aria-label="Select website language"/);
  assert.match(html,/fetchpriority="high"/);
  assert.match(html,/width="320" height="400"/);
+ const brandIcon=html.match(/<img\s+src="\.\/favicon\.svg"[^>]*>/)?.[0]||'';
+ assert.ok(brandIcon,'Owner-approved Persian brand icon missing');
+ assert.match(brandIcon,/width="42" height="42"/);
+ assert.match(brandIcon,/fetchpriority="high"/);
+ assert.match(brandIcon,/alt=""/);
+
  assert.match(css,/@media \(max-width:760px\)/);
  assert.match(css,/@media \(max-width:520px\)/);
  assert.match(css,/grid-template-columns:minmax\(0,1fr\)/);
