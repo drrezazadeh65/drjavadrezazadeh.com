@@ -222,7 +222,8 @@ const approvedEnglishServices=JSON.parse(fs.readFileSync(path.join(root,'assets/
   .services.map(item=>'en/services/'+item.id+'/index.html');
 if(approvedEnglishServices.length!==21||new Set(approvedEnglishServices).size!==21)
   failures.push('Approved English service expansion must contain exactly 21 unique canonical entries');
-const protectedNewRoutes=['en/services/checkout/index.html','en/app/account/orders/index.html'];
+const protectedNewRoutes=['en/services/checkout/index.html','en/app/account/orders/index.html',
+  'journal/search/index.html','journal/fa/search/index.html']; // Public scoped search; both require noindex.
 for(const route of [...approvedEnglishServices,...protectedNewRoutes]){
   if(!fs.existsSync(path.join(out,route))) failures.push('Approved bilingual service route missing: '+route);
 }
