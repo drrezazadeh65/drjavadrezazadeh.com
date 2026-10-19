@@ -123,6 +123,15 @@ const targets=[...groups.values()].map(g=>{
     query_disposition:g.queryDisposition,
     ...metrics,
     referringPages:g.referringPages.size,
+    // Traceable evidence samples for manual reconciliation. Never assume an
+    // inbound link licenses a redirect; exported sources stay review-only.
+    provenance:{
+      export_file:path.basename(input),
+      referring_domains_sample:[...g.referringDomains].sort().slice(0,25),
+      referring_pages_sample:[...g.referringPages].sort().slice(0,25),
+      sampled_page_count:Math.min(g.referringPages.size,25),
+      pages_not_in_sample:Math.max(0,g.referringPages.size-25)
+    },
     score,
     priority:priorityFromScore(score),
     action:classification.action,
