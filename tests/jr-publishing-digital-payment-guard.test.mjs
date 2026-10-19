@@ -27,6 +27,23 @@ test('only verified BitPay callback may create digital entitlements and allocati
  assert.match(digital,/hash_hmac\('sha256','jr-publishing-download-v1\|'/);
  assert.doesNotMatch(digital,/file_get_contents\(\$_GET/);
 });
+test('no author permission can be auto-forged by sales activation',()=>{
+ const offer=read('api/internal/jr-publishing-digital.php');
+ const activation=read('api/internal/jr-publishing-activate-existing-cli.php');
+ const provision=read('api/internal/jr-publishing-provision-cli.php');
+ const preflight=read('api/internal/jr-publishing-preflight-cli.php');
+ assert.match(offer,/jrPubDigitalSalesSwitchEnabled\(\)/);
+ assert.match(offer,/malware_scanned_at/);
+ assert.match(offer,/JR_PUB_ORIGINAL_ASSETS/);
+ assert.match(offer,/unit_author_toman/);
+ assert.match(offer,/unit_fund_toman/);
+ assert.doesNotMatch(offer,/SELECT l\.evidence_sha256|AND w\.rights_verified_at IS NOT NULL/);
+ assert.doesNotMatch(activation,/rights_verified_at=COALESCE|author_digital_distribution_rights|rights_evidence_recorded/);
+ assert.doesNotMatch(provision,/INSERT INTO publishing_rights_licences|RIGHTS_EVIDENCE_SHA256/);
+ assert.doesNotMatch(preflight,/jrPreflight\('author_digital_rights'/);
+ assert.match(preflight,/'ready_for_public_sales'=>false/);
+});
+
 test('buyer product page prevents money movement unless live preflight proves delivery',()=>{
  const s=read('assets/js/jr-publishing-checkout-v1.js');
  const html=read('fa/shop/authors/mehrab-mirkarimi/index.html');
