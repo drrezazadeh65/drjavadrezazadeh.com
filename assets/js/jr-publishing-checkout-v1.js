@@ -60,6 +60,6 @@ form.addEventListener('submit',async e=>{
  }
 });
 recheck?.addEventListener('click',offer);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!busy)offer()});
+document.addEventListener?.('visibilitychange',()=>{if(document.visibilityState==='visible'&&!busy)offer()});
 offer();
 })();
