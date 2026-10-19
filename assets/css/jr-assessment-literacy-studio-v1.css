@@ -1,0 +1,132 @@
+/* Assessment Literacy Studio v1 — premium editorial interface.
+   Scoped to the established black / graphite / ivory / muted-gold identity.
+   No generic SaaS styling, remote fonts, tracking or third-party assets.
+ */
+.jr-assessment-studio{
+ --al-ink:#f7f2e6;--al-muted:#d2c8b7;
+ --al-gold:#d4af37;--al-gold-soft:#f0d69a;
+ --al-line:rgba(212,175,55,.31);
+ display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;
+ margin:clamp(24px,4.5vw,64px) 0;
+ padding:clamp(16px,3vw,36px);
+ color:var(--al-ink);text-align:start;
+ background:radial-gradient(ellipse at 100% 0,rgba(212,175,55,.12),transparent 60%),linear-gradient(135deg,#181b20,#090b0f);
+ border:1px solid var(--al-line);border-radius:clamp(16px,2.6vw,28px);
+ box-shadow:0 16px 44px rgba(0,0,0,.15);
+}
+.jr-assessment-studio *,.jr-assessment-studio *::before,.jr-assessment-studio *::after{box-sizing:border-box;min-width:0}
+.jr-assessment-studio .jr-al-eyebrow{
+ color:var(--al-gold-soft);font:700 .74rem/1.7 system-ui,sans-serif;
+ letter-spacing:.13em;display:block;margin-bottom:.65rem
+}
+.jr-assessment-studio h3{
+ margin:0 0 .65rem;color:var(--al-ink);
+ font-size:clamp(1.45rem,2.8vw,2.2rem);line-height:1.5;max-width:45ch;
+}
+.jr-assessment-studio .jr-al-intro{
+ color:var(--al-muted);font-size:clamp(.98rem,1.4vw,1.12rem);
+ line-height:1.9;max-width:78ch;margin:0 0 clamp(18px,3vw,30px)
+}
+.jr-assessment-studio .jr-al-fields{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr));
+ gap:clamp(10px,1.4vw,17px);margin:0 0 24px
+}
+.jr-assessment-studio .jr-al-field{
+ display:grid;gap:9px;align-content:start;padding:clamp(12px,1.5vw,16px);
+ background:rgba(12,15,20,.75);border:1px solid var(--al-line);
+ border-radius:13px;
+}
+.jr-assessment-studio .jr-al-field>span{
+ display:block;color:var(--al-gold-soft);font-size:clamp(.88rem,1.3vw,1rem);
+ line-height:1.65;font-weight:750
+}
+.jr-assessment-studio select{
+ display:block;width:100%;min-height:52px;padding:11px 13px;
+ font:500 1rem/1.5 inherit;font-family:inherit;
+ background:#11161d;color:var(--al-ink);border:1px solid #b79b69;
+ border-radius:11px;cursor:pointer;
+}
+.jr-assessment-studio select option{background:#11161d;color:#f7f2e6}
+.jr-assessment-studio .jr-al-result-grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:clamp(11px,1.8vw,20px)
+}
+.jr-assessment-studio .jr-al-result-card{
+ padding:clamp(15px,2vw,22px);
+ background:#202329;border:1px solid rgba(212,175,55,.20);
+ border-radius:16px;overflow-wrap:anywhere;
+}
+.jr-assessment-studio .jr-al-result-card h4{
+ color:var(--al-gold-soft);font-size:clamp(1rem,1.8vw,1.17rem);
+ font-weight:800;line-height:1.55;margin:0 0 8px
+}
+.jr-assessment-studio .jr-al-result-card p{
+ color:var(--al-ink);font-size:clamp(.92rem,1.3vw,1rem);line-height:1.92;margin:0
+}
+.jr-assessment-studio .jr-al-result-warning{
+ grid-column:1/-1;background:rgba(212,175,55,.09);
+ border-inline-start:3px solid var(--al-gold-soft)
+}
+.jr-assessment-studio [data-risk="higher-stakes"] .jr-al-result-warning{
+ background:rgba(212,175,55,.15);border-inline-start-width:5px
+}
+.jr-assessment-studio .jr-al-status{
+ font-size:.83rem;color:var(--al-muted);line-height:1.7;margin:14px 0 0
+}
+.jr-assessment-studio .jr-al-footer{
+ display:grid;gap:9px;margin-top:20px;padding-top:17px;
+ border-top:1px solid var(--al-line)
+}
+.jr-assessment-studio .jr-al-reset{
+ display:inline-flex;align-items:center;justify-content:center;
+ width:fit-content;max-width:100%;min-height:48px;padding:11px 20px;
+ font-family:inherit;font-size:.93rem;font-weight:700;
+ border:1px solid var(--al-gold-soft);border-radius:11px;
+ background:transparent;color:var(--al-gold-soft);cursor:pointer
+}
+.jr-assessment-studio .jr-al-reset:hover{background:rgba(212,175,55,.13)}
+.jr-assessment-studio :is(select,button,a):focus-visible{
+ outline:3px solid #fff0bc;outline-offset:3px
+}
+.jr-assessment-studio .jr-al-boundary{
+ font-weight:700;color:var(--al-ink);font-size:.92rem;line-height:1.86;margin:7px 0 0;
+}
+.jr-assessment-studio .jr-al-privacy{
+ color:var(--al-muted);font-size:.84rem;line-height:1.8;margin:0 0 4px
+}
+.jr-assessment-studio .jr-al-footer>strong{
+ color:var(--al-gold-soft);font-size:.93rem;line-height:1.8;margin-top:8px
+}
+.jr-assessment-studio .jr-al-links{
+ display:flex;align-items:stretch;gap:10px;flex-wrap:wrap
+}
+.jr-assessment-studio .jr-al-links a{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:48px;padding:10px 15px;border:1px solid rgba(240,214,154,.6);
+ border-radius:11px;color:var(--al-ink)!important;
+ text-decoration:none!important;background:rgba(240,214,154,.08);
+ font-size:.92rem;font-weight:700;line-height:1.5
+}
+.jr-assessment-studio .jr-al-links a:hover{
+ background:#e8d2a0;color:#15130f!important;
+}
+@media(max-width:700px){
+ .jr-assessment-studio .jr-al-result-grid{grid-template-columns:minmax(0,1fr)}
+ .jr-assessment-studio .jr-al-result-warning{grid-column:auto}
+}
+@media(max-width:430px){
+ .jr-assessment-studio{padding:15px 12px}
+ .jr-assessment-studio .jr-al-fields{grid-template-columns:minmax(0,1fr)}
+ .jr-assessment-studio .jr-al-field{padding:12px}
+ .jr-assessment-studio .jr-al-links{display:grid;grid-template-columns:minmax(0,1fr)}
+ .jr-assessment-studio .jr-al-reset{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .jr-assessment-studio *{transition-duration:0s!important;animation-duration:0s!important;scroll-behavior:auto!important}
+}
+@media print{
+ .jr-assessment-studio{background:white!important;color:#111!important;box-shadow:none!important;border:1px solid #888}
+ .jr-assessment-studio :is(h3,h4,p,strong,.jr-al-result-card p){color:#111!important}
+ .jr-assessment-studio .jr-al-result-card,.jr-assessment-studio .jr-al-field{background:white!important;border:1px solid #999}
+ .jr-assessment-studio :is(.jr-al-fields,.jr-al-reset,.jr-al-links){display:none!important}
+}
