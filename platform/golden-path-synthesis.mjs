@@ -24,7 +24,7 @@ export function synthesizeGoldenPath({route_result,evidence_events=[],review_acc
    throw new Error('Golden Path route evidence/review projection mismatch');
   return {domain,evidence_state:route?.evidence_state||'INSUFFICIENT',strengths:evidence.filter(e=>e.provenance.direction==='SUPPORTS').map(e=>e.id).filter(Boolean),counterevidence:evidence.filter(e=>e.provenance.direction==='CONTRADICTS').map(e=>e.id).filter(Boolean),uncertainty:route?.requires_more_evidence===true,next_evidence_needed:route?.requires_more_evidence===true,evidence_ids:evidence.map(e=>e.id).filter(Boolean)};
  });
- return {synthesis_version:'0.2-prevalidation',engine_version:route_result.engine_version,route_run_id:route_result.id||null,total_score:null,normative_label:null,automatic_career_prescription:null,sections,context_constraints:evidence_events.filter(e=>e.source_type==='CONTEXT'&&e.quality_state!=='WITHDRAWN').map(e=>e.id).filter(Boolean),release_status:'PENDING_PROFESSIONAL_RELEASE',requires_professional_release:true};
+ return {synthesis_version:route_result.engine_version==='1.1.0'?'1.1.0':'0.2-prevalidation',engine_version:route_result.engine_version,route_run_id:route_result.id||null,total_score:null,normative_label:null,automatic_career_prescription:null,sections,context_constraints:evidence_events.filter(e=>e.source_type==='CONTEXT'&&e.quality_state!=='WITHDRAWN').map(e=>e.id).filter(Boolean),release_status:'PENDING_PROFESSIONAL_RELEASE',requires_professional_release:true};
 }
 export function releaseGoldenPath(synthesis,{release_id,reviewer_user_id,released_at,route_run_id}={}){
  if(synthesis?.release_status!=='PENDING_PROFESSIONAL_RELEASE') throw new Error('Pending synthesis required');
@@ -34,5 +34,5 @@ export function releaseGoldenPath(synthesis,{release_id,reviewer_user_id,release
 }
 export function createBaharHandoff(synthesis){
  if(synthesis?.release_status!=='RELEASED'||synthesis?.requires_professional_release!==false||!synthesis?.release?.reviewer_user_id) throw new Error('Explicitly released Golden Path required');
- return {source:'GOLDEN_PATH',source_version:synthesis.synthesis_version,source_release_id:synthesis.release.id,source_route_run_id:synthesis.release.route_run_id,baseline:{sections:synthesis.sections,context_constraints:synthesis.context_constraints},compass_status:'DRAFT',goal_text:null,planned_action:null,requires_human_goal_setting:true};
+ return {source:'GOLDEN_PATH',source_version:synthesis.synthesis_version,source_release_id:synthesis.release.id,source_route_run_id:synthesis.release.route_run_id,baseline:{sections:synthesis.sections,context_constraints:synthesis.context_constraints,scientific_status:'PREVALIDATION',causal_intervention_effect:null,requires_independent_human_review:true},compass_status:'DRAFT',goal_text:null,planned_action:null,requires_human_goal_setting:true};
 }
