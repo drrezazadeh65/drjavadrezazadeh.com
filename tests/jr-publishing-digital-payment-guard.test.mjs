@@ -19,7 +19,9 @@ test('only verified BitPay callback may create digital entitlements and allocati
  assert.match(digital,/private_storage_name/);
  assert.match(digital,/hash_file\('sha256'/);
  assert.match(digital,/malware_scanned_at/);
- assert.match(digital,/digital_distribution/);
+ assert.match(digital,/digital_distribution records are retained/i);
+ assert.doesNotMatch(digital,/SELECT l\.evidence_sha256/);
+ assert.doesNotMatch(digital,/AND w\.rights_verified_at IS NOT NULL/);
  assert.match(digital,/expires_at>NOW\(\)/);
  assert.match(digital,/download_count=download_count\+1/);
  assert.match(digital,/hash_hmac\('sha256','jr-publishing-download-v1\|'/);
@@ -223,8 +225,9 @@ test('existing publishing offer activation is owner-controlled, idempotent and d
  assert.match(cli,/rollBack\(\)/);
  assert.match(cli,/publishing_author_accounts/);
  assert.match(cli,/email_verified_at/);
- assert.match(cli,/publishing_rights_licences/);
- assert.match(cli,/digital_distribution/);
+ assert.doesNotMatch(cli,/publishing_rights_licences|rights_evidence_recorded|author_digital_distribution_rights/);
+ assert.doesNotMatch(cli,/rights_verified_at=COALESCE/);
+ assert.match(cli,/author_account_verified/);
  assert.match(cli,/publishing_private_assets/);
  assert.match(cli,/malware_scanned_at/);
  assert.match(cli,/hash_file\('sha256'/);
