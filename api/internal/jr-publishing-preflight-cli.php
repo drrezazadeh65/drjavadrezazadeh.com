@@ -92,7 +92,10 @@ try{
     'notice'=>'A positive preflight is not evidence of actual bank payment or legal review. Operator must confirm author rights and an independent test sale.'
   ];
   echo json_encode($result,JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n";
-  exit($passed===count($checks)?0:2); // technical status only; independent operational approval remains required
+  // This CLI checks configuration only, never the independent legal, payment,
+  // bank-reconciliation, antivirus or private-email delivery evidence. A true
+  // technical flag array must therefore NOT authorize public sales.
+  exit(2); // review-required by design; independent approval is not implemented here
 }catch(Throwable $e){
   // Keep diagnostic detail in the private server log; print only a correlation ID.
   $incident=bin2hex(random_bytes(8));
