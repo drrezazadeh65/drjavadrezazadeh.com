@@ -236,7 +236,12 @@ function commandCenter(){
  const modes=$$('[data-command-path]'),note=$('[data-command-path-note]');
  if(!input||!cards.length)return;
  let active='all';
- const messages={
+ const messages=lang==='en'?{
+  all:'These shortcuts change the view only; they do not grant account access or prove service availability.',
+  learning:'Learning and development selected. Private activities still require server-authorised access.',
+  shopping:'Orders and services selected. Payment, delivery and appointments require independent server verification.',
+  sponsorship:'Student support selected. Case records, identities and benefits require verified permission and consent.'
+ }:{
   all:'این انتخاب فقط میانبرها را تنظیم می‌کند و به معنی اعطای نقش یا دسترسی نیست.',
   learning:'مسیر دانش‌آموز و یادگیری انتخاب شد؛ پرونده خصوصی همچنان نیازمند مجوز سمت سرور است.',
   shopping:'مسیر خرید و خدمات انتخاب شد؛ سفارش و پرداخت باید مستقل از سمت سرور تأیید شوند.',
