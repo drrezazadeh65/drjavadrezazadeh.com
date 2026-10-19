@@ -28,426 +28,90 @@
 <meta name="color-scheme" content="dark">
 <link rel="stylesheet" href="./assets/css/public-v2.css?v=20261007-luxury-v57">
 <link rel="stylesheet" href="./assets/css/gateway.css?v=20261012-selfhosted-font-v2">
+<link rel="stylesheet" href="./assets/css/gateway-premium-v52.css?v=20261020-v1">
 <meta name="theme-color" content="#070707">
 <link rel="icon" href="./favicon.svg?v=20261007-v42-final" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="192x192" href="./assets/images/pwa-icon-192.png">
 <link rel="apple-touch-icon" href="./assets/images/pwa-icon-192.png">
 <title>Dr. Javad Rezazadeh Yazdeli | Official Website</title>
-<style>
-:root {
-  --gateway-bg: #060606;
-  --gateway-surface: rgba(15, 14, 12, 0.9);
-  --gateway-card: rgba(15, 14, 12, 0.96);
-  --gateway-line: rgba(198, 161, 90, 0.22);
-  --gateway-gold: #d7b66c;
-  --gateway-gold-soft: #f2d58d;
-  --gateway-text: #f7f2ea;
-  --gateway-muted: #b3ab9e;
-  --gateway-soft: rgba(198,161,90,.08);
-}
 
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body.language-gateway {
-  margin: 0;
-  min-height: 100vh;
-  background:
-    radial-gradient(1200px 500px at 82% -10%, rgba(198,161,90,.12), transparent 55%),
-    radial-gradient(900px 440px at 12% 18%, rgba(255,255,255,.04), transparent 60%),
-    var(--gateway-bg);
-  color: var(--gateway-text);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-img { max-width: 100%; display: block; }
-a { color: inherit; }
-
-.skip {
-  position: fixed;
-  left: 18px;
-  top: 12px;
-  z-index: 100;
-  padding: 10px 14px;
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: 12px;
-  background: rgba(6,6,6,.9);
-  color: #fff;
-  text-decoration: none;
-  transform: translateY(-200%);
-  transition: transform .15s ease;
-}
-.skip:focus { transform: translateY(0); }
-
-.gateway-shell {
-  width: min(1180px, calc(100% - 32px));
-  margin: 0 auto;
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 46px 0 26px;
-}
-
-.gateway-card {
-  width: 100%;
-  display: grid;
-  grid-template-columns: minmax(0, 1.22fr) minmax(280px, 0.78fr);
-  gap: 56px;
-  align-items: center;
-  padding: clamp(28px, 4vw, 58px);
-  border: 1px solid var(--gateway-line);
-  border-radius: 34px;
-  background:
-    linear-gradient(145deg, rgba(255,255,255,0.025), rgba(255,255,255,0.008)),
-    rgba(12,12,12,0.96);
-  box-shadow: 0 26px 90px rgba(0,0,0,0.44);
-  position: relative;
-  overflow: hidden;
-}
-
-.gateway-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, transparent 0 52%, rgba(198,161,90,0.04) 52% 54%, transparent 54%);
-  pointer-events: none;
-}
-
-.gateway-copy {
-  position: relative;
-  z-index: 1;
-}
-
-.kicker {
-  margin: 0 0 10px;
-  color: var(--gateway-gold-soft);
-  font-size: 12px;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-}
-
-.gateway-copy h1 {
-  margin: 0 0 18px;
-  color: var(--gateway-text);
-  font-size: clamp(44px, 7vw, 88px);
-  line-height: .94;
-  letter-spacing: -0.06em;
-  font-family: Georgia, "Times New Roman", serif;
-}
-
-.gateway-copy h1 em {
-  color: var(--gateway-gold-soft);
-  font-style: normal;
-  font-weight: 400;
-}
-
-.lead {
-  margin: 0 0 14px;
-  max-width: 650px;
-  font-size: clamp(18px, 2vw, 26px);
-  line-height: 1.7;
-  color: var(--gateway-muted);
-}
-
-.lead strong { color: #efe4d0; }
-
-.gateway-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 52px;
-  padding: 0 22px;
-  border-radius: 14px;
-  text-decoration: none;
-  font-weight: 700;
-  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
-  border: 1px solid rgba(198,161,90,.3);
-  background: rgba(198,161,90,.04);
-  color: var(--gateway-text);
-}
-
-.button:focus-visible {
-  outline: 3px solid var(--gateway-gold-soft);
-  outline-offset: 4px;
-}
-
-.button:hover {
-  transform: translateY(-1px);
-  border-color: rgba(198,161,90,.42);
-  box-shadow: 0 10px 28px rgba(198,161,90,.12);
-}
-
-.button.primary {
-  background: linear-gradient(135deg, #f0d694, #cba159);
-  color: #0c0b08;
-  border-color: transparent;
-  box-shadow: 0 14px 32px rgba(198,161,90,.2);
-}
-
-.gateway-note {
-  margin-top: 18px;
-  max-width: 56ch;
-  color: var(--gateway-muted);
-  font-size: 13px;
-  line-height: 1.8;
-}
-
-.gateway-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 9px;
-  margin-top: 18px;
-}
-
-.gateway-tags span {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border: 1px solid rgba(198,161,90,.24);
-  border-radius: 999px;
-  background: rgba(198,161,90,.05);
-  color: #e8d9b8;
-  font-size: 10px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-
-.gateway-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  gap: 12px;
-  margin-top: 28px;
-}
-
-.gateway-stats article {
-  padding: 18px 16px 14px;
-  border: 1px solid rgba(198,161,90,.16);
-  border-radius: 18px;
-  background: rgba(198,161,90,.03);
-}
-
-.gateway-stats span {
-  display: block;
-  color: var(--gateway-gold-soft);
-  font-size: 10px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.gateway-stats strong {
-  display: block;
-  font-size: clamp(24px, 2vw, 34px);
-  line-height: 1.1;
-  color: var(--gateway-text);
-  font-family: Georgia, "Times New Roman", serif;
-  letter-spacing: -0.04em;
-}
-
-.portrait-shell {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  justify-self: end;
-  width: min(360px, 100%);
-  border-radius: 30px;
-  overflow: hidden;
-  border: 1px solid rgba(226,200,134,0.35);
-  background: linear-gradient(180deg, #19150f, #0d0d0d);
-  box-shadow: 0 28px 90px rgba(0,0,0,0.42), 0 0 0 8px rgba(198,161,90,0.03);
-}
-
-.hero-portrait {
-  display: block;
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  object-position: center 26%;
-  filter: saturate(0.96) contrast(1.02);
-}
-
-.gateway-panels {
-  width: min(1180px, calc(100% - 32px));
-  margin: 18px auto 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  gap: 12px;
-  padding-bottom: 20px;
-}
-
-.gateway-panels article {
-  padding: 22px 20px 18px;
-  border: 1px solid rgba(198,161,90,.16);
-  border-radius: 22px;
-  background: linear-gradient(145deg, rgba(255,255,255,0.022), rgba(255,255,255,0.006));
-}
-
-.gateway-panels .panel-label {
-  display: block;
-  margin-bottom: 10px;
-  color: var(--gateway-gold-soft);
-  font-size: 10px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-
-.gateway-panels h2 {
-  margin: 0 0 10px;
-  color: var(--gateway-text);
-  font-size: clamp(22px, 2vw, 30px);
-  line-height: 1.35;
-  font-family: Georgia, "Times New Roman", serif;
-}
-
-.gateway-panels p {
-  margin: 0;
-  color: var(--gateway-muted);
-  line-height: 1.85;
-}
-
-.gateway-legal {
-  width: min(1180px, calc(100% - 32px));
-  margin: 0 auto 26px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px 18px;
-  color: #b5ad9e;
-  font-size: 12px;
-}
-
-.gateway-legal a {
-  color: #f2e7cb;
-  text-decoration: none;
-}
-
-.gateway-legal a:hover { text-decoration: underline; }
-
-.enamad-footer-row {
-  display: flex;
-  align-items: center;
-}
-
-.enamad-footer-row img {
-  display: block;
-  max-height: 44px;
-  width: auto;
-}
-
-@media (max-width: 860px) {
-  .gateway-card {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-  .portrait-shell {
-    justify-self: center;
-    width: min(100%, 360px);
-  }
-  .gateway-panels {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 600px) {
-  .gateway-shell { width: calc(100% - 20px); padding-top: 18px; }
-  .gateway-card {
-    border-radius: 26px;
-    padding: 22px 18px;
-  }
-  .gateway-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-  .lead { font-size: 17px; }
-  .gateway-stats { grid-template-columns: 1fr; }
-  .gateway-legal {
-    width: calc(100% - 20px);
-    justify-content: center;
-    text-align: center;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .skip, .button { transition: none; }
-  .button:hover { transform: none; }
-}
-</style>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://drjavadrezazadeh.com/#website","url":"https://drjavadrezazadeh.com/","name":"Dr. Javad Rezazadeh Yazdeli","dateCreated":"2022-11-18","inLanguage":["en","fa"]},{"@type":"Person","@id":"https://drjavadrezazadeh.com/#person","name":"Javad Rezazadeh Yazdeli","alternateName":"دکتر جواد رضازاده یزدلی","honorificPrefix":"Dr.","url":"https://drjavadrezazadeh.com/","image":"https://drjavadrezazadeh.com/assets/images/javad-rezazadeh-yazdeli-portrait-2026.webp","jobTitle":["University Lecturer","Education Researcher","Educational Consultant"],"knowsAbout":["Applied Linguistics","English Language Education","Higher Education","Language Assessment","Curriculum and Materials Evaluation","AI in Education","Talent Identification","Academic Guidance"],"sameAs":["https://independent.academia.edu/JavadRezazadeh3","https://www.instagram.com/dr.rezazadeh/","https://www.semanticscholar.org/author/Javad-Rezazadeh-Yazdeli/116313005","https://orcid.org/0009-0008-1198-8866","https://github.com/drrezazadeh65","https://x.com/J_Rezazadeh","https://m.facebook.com/DrJavadRezazadeh/"]}]}</script>
 <link rel="describedby" href="https://drjavadrezazadeh.com/llms.txt">
 </head>
 <body class="language-gateway public-gateway-page">
 <a class="skip" href="#main">Skip to language selection</a>
 <main id="main" class="gateway-shell">
+  <header class="gateway-masthead" aria-label="Website identity and language navigation">
+    <a class="gateway-identity" href="./" aria-label="Dr. Javad Rezazadeh Yazdeli — official website">
+      <span class="gateway-monogram" aria-hidden="true">JR</span>
+      <span class="gateway-id-text">
+        <strong>Dr. Javad Rezazadeh Yazdeli</strong>
+        <small>Research · Education · Academic Guidance</small>
+      </span>
+    </a>
+    <a class="gateway-masthead-link" href="#language-entry">Choose language <span aria-hidden="true">↘</span></a>
+  </header>
+
   <section class="gateway-card" aria-labelledby="brand-title">
     <div class="gateway-copy">
-      <p class="kicker">Official bilingual website</p>
+      <p class="kicker">Scholarship · Teaching · Human Development</p>
       <h1 id="brand-title">Dr. Javad<br>Rezazadeh <em>Yazdeli</em></h1>
-      <p class="lead"><strong>Education</strong>, <strong>applied linguistics</strong>, <strong>research</strong> and context-sensitive innovation shape a clear academic identity grounded in learning, assessment, talent development and professional guidance.</p>
-      <p class="lead">A scholar, educator and consultant building pathways for knowledge, growth and evidence-informed decisions.</p>
-      <p class="gateway-note" lang="fa" dir="rtl">ادراک ندانستن سرآغاز فهمیدن است.</p>
-      <p class="gateway-note" lang="en">Recognizing what we do not know is the beginning of understanding.</p>
+      <p class="gateway-lede">Understanding grows where inquiry meets human possibility.</p>
+      <p class="gateway-intro">Working at the intersection of applied linguistics, educational research and academic guidance, Dr. Rezazadeh explores how evidence, context and reflective judgement can inform more responsible educational decisions.</p>
 
-      <div class="gateway-actions">
-        <a class="button primary" href="./en/" hreflang="en" data-language-choice="en">Enter in English</a>
-        <a class="button" href="./fa/" hreflang="fa" lang="fa" dir="rtl" data-language-choice="fa">ورود به فارسی</a>
+      <div class="gateway-quote" aria-label="Website motto">
+        <p class="gateway-note" lang="fa" dir="rtl">ادراک ندانستن سرآغاز فهمیدن است.</p>
+        <p class="gateway-note" lang="en">Recognizing what we do not know is the beginning of understanding.</p>
       </div>
 
-      <p class="gateway-note">Choose your preferred language to enter the full website and explore research, publications, educational services, Golden Talent, and academic consulting.</p>
+      <div id="language-entry" class="gateway-actions" role="group" aria-label="Select website language">
+        <a class="button primary" href="./en/" hreflang="en" data-language-choice="en">Explore in English <span aria-hidden="true">↗</span></a>
+        <a class="button" href="./fa/" hreflang="fa" lang="fa" dir="rtl" data-language-choice="fa">ورود به نسخه فارسی <span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="gateway-hint">Choose your language to access the complete website, research, publications and services.</p>
 
-      <div class="gateway-tags" aria-label="Key topics">
+      <div class="gateway-credentials" aria-label="Academic focus areas">
         <span>Applied Linguistics</span>
-        <span>Research</span>
-        <span>Golden Talent</span>
-        <span>Academic Guidance</span>
-      </div>
-
-      <div class="gateway-stats" aria-label="Key metrics">
-        <article>
-          <span>Focus</span>
-          <strong>Learning</strong>
-        </article>
-        <article>
-          <span>Method</span>
-          <strong>Evidence</strong>
-        </article>
-        <article>
-          <span>Approach</span>
-          <strong>Human</strong>
-        </article>
+        <span>Educational Research</span>
+        <span>Talent Development</span>
       </div>
     </div>
 
-    <figure class="portrait-shell" aria-label="Portrait of Dr. Javad Rezazadeh Yazdeli">
-      <img class="hero-portrait" src="./assets/images/javad-rezazadeh-yazdeli-portrait-2026.webp" width="320" height="400" alt="Dr. Javad Rezazadeh Yazdeli" fetchpriority="high" decoding="async">
+    <figure class="portrait-shell">
+      <img class="hero-portrait"
+        src="./assets/images/javad-rezazadeh-yazdeli-portrait-2026.webp"
+        width="320" height="400"
+        alt="Portrait of Dr. Javad Rezazadeh Yazdeli"
+        fetchpriority="high" loading="eager" decoding="async">
     </figure>
   </section>
 
-  <section class="gateway-panels" aria-label="Site highlights">
+  <section class="gateway-panels" aria-label="Explore academic work and services">
     <article>
-      <span class="panel-label">Academic authority</span>
+      <span class="panel-label">01 / Academic inquiry</span>
       <h2>Research & learning</h2>
-      <p>Evidence-informed work across language education, assessment, curriculum design, and educational decision-making.</p>
+      <p>Explore research and scholarly interests in language education, assessment, curriculum and evidence-informed educational practice.</p>
+      <a class="gateway-panel-link" href="./en/research/">Explore research <span aria-hidden="true">↗</span></a>
     </article>
-
     <article>
-      <span class="panel-label">Talent & growth</span>
+      <span class="panel-label">02 / Developmental pathways</span>
       <h2>Golden Talent</h2>
-      <p>A developmental framework that supports human-centred talent identification, pathway planning and meaningful growth.</p>
+      <p>Discover a developing framework for reflective talent exploration and revisable pathways—not a diagnostic ranking or validated prediction.</p>
+      <a class="gateway-panel-link" href="./en/golden-talent/">Explore Golden Talent <span aria-hidden="true">↗</span></a>
     </article>
-
     <article>
-      <span class="panel-label">Professional support</span>
-      <h2>Consulting</h2>
-      <p>Academic guidance, mentoring, institutional support and professional development for students, educators and organisations.</p>
+      <span class="panel-label">03 / Professional engagement</span>
+      <h2>Academic guidance</h2>
+      <p>Find educational services, mentoring and academic guidance designed around individual circumstances and informed professional judgement.</p>
+      <a class="gateway-panel-link" href="./en/services/">Explore services <span aria-hidden="true">↗</span></a>
     </article>
   </section>
+
+  <nav class="gateway-secondary-nav" aria-label="Additional academic links">
+    <a href="./en/publications/">Publications</a>
+    <a href="./en/contact/">Contact</a>
+    <a href="#language-entry">Language selection</a>
+  </nav>
 </main>
 
 <footer class="gateway-legal">
