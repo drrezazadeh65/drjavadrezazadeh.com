@@ -24,10 +24,13 @@ async function capture(page,file){
  try{await page.evaluate(()=>document.fonts?.clear?.())}catch{}
  await page.screenshot({path:file,fullPage:true,animations:'disabled',timeout:20000});
 }
-test('all JHELA routes have approved 33-page bilingual navigation inventory',()=>{
- expect(pages.length).toBe(33);
- expect(pages.filter(x=>x.locale==='en').length).toBe(17);
- expect(pages.filter(x=>x.locale==='fa').length).toBe(16);
+test('all 35 JHELA public routes including both language-search pages and eight protected role prototypes exist',()=>{
+ expect(pages.length).toBe(35);
+ expect(pages.filter(x=>x.locale==='en').length).toBe(18);
+ expect(pages.filter(x=>x.locale==='fa').length).toBe(17);
+ expect(pages.some(x=>x.route==='/journal/search/'&&x.locale==='en')).toBe(true);
+ expect(pages.some(x=>x.route==='/journal/fa/search/'&&x.locale==='fa')).toBe(true);
+ expect(new Set(pages.map(x=>x.route)).size).toBe(35);
  expect(roles.length).toBe(8);
 });
 for(const {route,locale} of pages){
