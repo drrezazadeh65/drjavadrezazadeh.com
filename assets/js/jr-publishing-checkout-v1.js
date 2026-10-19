@@ -5,18 +5,38 @@ const state=document.querySelector('#jp-checkout-state');
 const pay=document.querySelector('#jp-pay-now');
 const name=document.querySelector('#jp-buyer-name');
 const email=document.querySelector('#jp-buyer-email');
+const badge=document.querySelector('#jp-offer-badge');
+const readiness=document.querySelector('#jp-purchase-readiness');
+const recheck=document.querySelector('#jp-recheck-offer');
 if(!form||!state||!pay||!name||!email)return;
-let ready=false,busy=false;
+let ready=false,busy=false,checking=false;
 function notice(s){state.textContent=s}
+function setOfferReady(value){
+ ready=value;
+ form.hidden=!ready;
+ if(badge)badge.textContent=ready?'خرید آنلاین فعال؛ تحویل دیجیتال':'فروش در انتظار تأیید آمادگی';
+ if(readiness)readiness.textContent=ready
+  ?'نسخه دیجیتال دو فایل PDF اکنون پس از پرداخت تأییدشده از طریق لینک‌های خصوصی تحویل می‌شود.'
+  :'خرید آنلاین پس از تأیید آمادگی درگاه و تحویل امن دو PDF فعال می‌شود. تا زمان فعال‌سازی هیچ مبلغی دریافت نخواهد شد.';
+}
 async function offer(){
+ if(checking||busy)return;
+ checking=true;
+ if(recheck)recheck.disabled=true;
+ notice('در حال بررسی وضعیت واقعی پرداخت و تحویل در سرور...');
  try{
   const r=await fetch('/api/publishing/offer',{method:'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
   if(!r.ok)throw Error('offer_unavailable');
   const j=await r.json();
-  ready=j.ok===true&&j.checkoutEnabled===true&&j.available===true&&j.sku==='digital:tefl-ma-exams-1370-1405'&&j.priceToman===1000000;
-  form.hidden=!ready;
-  notice(ready?'درگاه پرداخت و سامانه تحویل دیجیتال آماده‌اند. ایمیل خود را با دقت وارد کنید.':'فروش دیجیتال در حال آماده‌سازی امن است؛ تا فعال‌شدن تحویل خودکار هیچ مبلغی دریافت نمی‌شود.');
- }catch(_){ready=false;form.hidden=true;notice('امکان تأیید آمادگی درگاه وجود ندارد؛ برای حفاظت از خریداران پرداخت موقتاً غیرفعال است.')}
+  setOfferReady(j.ok===true&&j.checkoutEnabled===true&&j.available===true&&j.sku==='digital:tefl-ma-exams-1370-1405'&&j.priceToman===1000000);
+  notice(ready?'فروش آنلاین فعال است؛ نام و ایمیل دریافت فایل‌ها را وارد کنید. پرداخت فقط پس از تأیید درگاه معتبر قطعی می‌شود.':'فروش دیجیتال هنوز از سمت سرور آماده اعلام نشده است؛ تا فعال‌شدن تحویل امن هیچ مبلغی دریافت نمی‌شود.');
+ }catch(_){
+  setOfferReady(false);
+  notice('تأیید آمادگی درگاه در دسترس نیست؛ برای جلوگیری از دریافت وجه بدون تحویل، خرید موقتاً غیرفعال است.');
+ }finally{
+  checking=false;
+  if(recheck)recheck.disabled=false;
+ }
 }
 form.addEventListener('submit',async e=>{
  e.preventDefault();if(!ready||busy||!form.reportValidity())return;
@@ -39,5 +59,7 @@ form.addEventListener('submit',async e=>{
   notice('وضعیت سفارش یا درخواست پرداخت نامشخص است. برای جلوگیری از پرداخت تکراری، پیش از تلاش مجدد با پشتیبانی رسمی info@drjavadrezazadeh.com و با اعلام نام و ایمیل سفارش تماس بگیرید.');
  }
 });
+recheck?.addEventListener('click',offer);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!busy)offer()});
 offer();
 })();
