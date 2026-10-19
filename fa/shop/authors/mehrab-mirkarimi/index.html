@@ -142,7 +142,8 @@
 <p class="jp-subprice jp-purchase-readiness" id="jp-purchase-readiness">خرید آنلاین پس از تأیید آمادگی درگاه و تحویل امن دو PDF فعال می‌شود. تا زمان فعال‌سازی، پرداختی از شما دریافت نخواهد شد.</p>
 <div class="jp-status" id="jp-checkout-state" role="status" aria-live="polite">در حال استعلام آمادگی درگاه و تحویل امن نسخه دیجیتال...</div>
 <div class="jp-hero-actions" style="margin-block:14px"><button class="jp-button" id="jp-recheck-offer" type="button">بررسی مجدد وضعیت خرید</button></div>
-<form id="jp-digital-checkout-form" class="jp-card" hidden aria-label="فرم خرید آنلاین نسخه دیجیتال" style="margin-block:18px;background:#fff8ed;color:#162840">
+<noscript><p class="jp-subprice">برای بررسی زنده وضعیت فروش و ثبت سفارش، جاوااسکریپت مرورگر باید فعال باشد. بدون تأیید سامانه، پرداختی دریافت نمی‌شود؛ برای راهنمایی از صفحه تماس استفاده کنید.</p></noscript>
+<form id="jp-digital-checkout-form" class="jp-card" hidden aria-label="فرم خرید آنلاین نسخه دیجیتال" aria-describedby="jp-purchase-readiness" method="post" action="/api/commerce/create" style="margin-block:18px;background:#fff8ed;color:#162840">
  <label for="jp-buyer-name">نام و نام خانوادگی خریدار</label>
  <input id="jp-buyer-name" name="buyer-name" autocomplete="name" minlength="2" maxlength="100" required style="width:100%;min-height:48px;margin-bottom:12px;padding:10px;color:#12283e;background:white;border:1px solid #9b855f;border-radius:9px" />
  <label for="jp-buyer-email">ایمیل برای دریافت دو فایل PDF</label>
