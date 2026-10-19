@@ -664,6 +664,19 @@
         sales.pendingOlderThan24Hours,
         text('برای بررسی فنی؛ مجوز ارسال پیام بازاریابی نیست.',
           'Operational review only; not permission for marketing outreach.'));
+      if(Number.isInteger(sales.pendingBookOrdersWithReservationsOlderThan24Hours) &&
+         Number.isInteger(sales.pendingBookUnitsReservedOlderThan24Hours)){
+        card(text('سفارش کتاب معلق با رزرو بیش از ۲۴ ساعت',
+            'Pending book orders holding stock over 24 hours'),
+          sales.pendingBookOrdersWithReservationsOlderThan24Hours,
+          text('پیش از آزادسازی رزرو، وضعیت لغو پرداخت باید مستقلاً نزد درگاه تأیید شود.',
+            'Never release the hold without independent payment-provider cancellation confirmation.'));
+        card(text('جلد کتاب محبوس در رزرو معلق بیش از ۲۴ ساعت',
+            'Book units held by pending orders over 24 hours'),
+          sales.pendingBookUnitsReservedOlderThan24Hours,
+          text('این عدد گزارش موجودی است، نه مجوز لغو سفارش یا تغییر دستی دیتابیس.',
+            'Inventory observation only; no authorization to cancel or edit the database.'));
+      }
       card(text('پرداخت‌های معلق بیش از ۷ روز','Pending payments older than 7 days'),
         sales.pendingOlderThan7Days);
       card(text('سفارش‌های ایجادشده بیش از ۲۴ ساعت','Unpaid created orders older than 24 hours'),
