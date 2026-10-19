@@ -217,3 +217,65 @@ test('retired-product ErrorDocument cannot trigger a secondary redirect or leak 
   assert.ok(!/^ErrorDocument\s+410\s+https?:/mi.test(ht),'410 must not redirect to another host');
   assert.ok(!/\bErrorDocument\s+410\s+\/404\.html\b/m.test(ht),'retired product must not use the 404 error-page redirect handler');
 });
+
+
+test('historical CSV importer preserves query identity and multiline RFC4180 records',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'historical-csv-identity-'));
+  try{
+    const input=path.join(dir,'backlinks.csv');
+    const rows=[
+      'Target URL,Referring domain,Referring page URL,DR,Dofollow,Backlinks',
+      '"https://drjavadrezazadeh.com/?p=123",one.example,"https://one.example/an article,',
+      'with a newline and ""quoted"" title",60,yes,1',
+      '"https://www.drjavadrezazadeh.com/?utm_source=mail&p=123",two.example,https://two.example/a,40,yes,1',
+      'https://drjavadrezazadeh.com/?p=456,three.example,https://three.example/a,30,no,1',
+      'https://drjavadrezazadeh.com/?page_id=17,four.example,https://four.example/a,30,yes,1',
+      'https://drjavadrezazadeh.com/about/?utm_source=email,five.example,https://five.example/a,30,yes,1',
+      'https://drjavadrezazadeh.com/about/,six.example,https://six.example/a,30,yes,1',
+      'https://drjavadrezazadeh.com/%D9%85%D9%82%D8%A7%D9%84%D9%87/,seven.example,https://seven.example/a,30,yes,1',
+      'https://drjavadrezazadeh.com/?mystery=x,eight.example,https://eight.example/a,30,yes,1'
+    ];
+    fs.writeFileSync(input,rows.join('\r\n'));
+    const data=JSON.parse(execFileSync(process.execPath,['scripts/historical-backlink-import.mjs',input],{encoding:'utf8'}));
+    assert.equal(data.accepted_rows,8);
+    assert.equal(data.target_count,6);
+    assert.equal(data.summary.query_identity_review,4);
+    const p123=data.targets.find(t=>t.path==='/?p=123');
+    const p456=data.targets.find(t=>t.path==='/?p=456');
+    assert.ok(p123&&p456,'Distinct WordPress posts must remain distinct');
+    assert.equal(p123.referringDomains,2);
+    assert.equal(p123.referringPages,2);
+    assert.equal(p123.action,'QUERY_IDENTITY_REVIEW');
+    assert.equal(p123.redirect_allowed,false);
+    assert.equal(p456.action,'QUERY_IDENTITY_REVIEW');
+    assert.equal(data.targets.find(t=>t.path==='/?page_id=17')?.redirect_allowed,false);
+    assert.equal(data.targets.find(t=>t.path==='/?mystery=x')?.action,'QUERY_IDENTITY_REVIEW');
+    const about=data.targets.find(t=>t.path==='/about/');
+    assert.ok(about);
+    assert.equal(about.rows,undefined); // private counters remain private
+    assert.equal(about.referringDomains,2);
+    assert.equal(about.action,'ALREADY_MAPPED');
+    assert.equal(data.targets.find(t=>t.path==='/مقاله/')?.action,'REVIEW');
+  }finally{
+    fs.rmSync(dir,{recursive:true,force:true});
+  }
+});
+
+test('historical CSV importer accepts semicolon-separated quoted cells without path conflation',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'historical-csv-semicolon-'));
+  try{
+    const input=path.join(dir,'backlinks.csv');
+    fs.writeFileSync(input,[
+      'Target URL;Referring domain;Referring page URL;DR',
+      '"https://drjavadrezazadeh.com/?p=11";ref.example;"https://ref.example/a;b";33',
+      '"https://drjavadrezazadeh.com/?p=22";ref.example;"https://ref.example/a;c";33'
+    ].join('\n'));
+    const data=JSON.parse(execFileSync(process.execPath,['scripts/historical-backlink-import.mjs',input],{encoding:'utf8'}));
+    assert.equal(data.accepted_rows,2);
+    assert.equal(data.target_count,2);
+    assert.deepEqual(data.targets.map(x=>x.path).sort(),['/?p=11','/?p=22']);
+    assert.ok(data.targets.every(x=>x.redirect_allowed===false));
+  }finally{
+    fs.rmSync(dir,{recursive:true,force:true});
+  }
+});
