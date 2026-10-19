@@ -42,7 +42,7 @@
 }
 .jr-assessment-studio select{
  display:block;width:100%;min-height:52px;padding:11px 13px;
- font:500 1rem/1.5 inherit;font-family:inherit;
+ font-family:inherit;font-size:1rem;font-weight:500;line-height:1.5;
  background:#11161d;color:var(--al-ink);border:1px solid #b79b69;
  border-radius:11px;cursor:pointer;
 }
