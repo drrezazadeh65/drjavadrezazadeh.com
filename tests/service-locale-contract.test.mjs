@@ -39,7 +39,7 @@ test('English translation file cannot redefine offers, prices, status or entitle
  assert.match(page,/data-dashboard-services/);
  // Cache-busting token changes whenever the shared dashboard changes.
  // Validate its format and FA/EN parity, not a retired release fingerprint.
- const dashboardScript=page.match(/customer-dashboard\\.js\\?v=(20\\d{6}-[a-z0-9-]+)/);
+ const dashboardScript=page.match(/customer-dashboard[.]js[?]v=(20[0-9]{6}-[a-z0-9-]+)/);
  assert.ok(dashboardScript,'English dashboard must load the cache-versioned canonical script');
  const faPage=readFileSync('fa/customer-dashboard/index.html','utf8');
  assert.ok(faPage.includes('customer-dashboard.js?v='+dashboardScript[1]),
