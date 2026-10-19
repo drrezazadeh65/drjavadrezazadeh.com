@@ -155,7 +155,7 @@ try {
  jrPubActivateReport($checks,true);
 } catch(Throwable $e) {
  if(isset($pdo)&&$pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();
- error_log('JR publishing activation refused '.get_class($e));
+ error_log('JR publishing activation refused '.get_class($e).' code='.(string)$e->getCode().' source='.basename($e->getFile()).' line='.$e->getLine());
  fwrite(STDERR,"JR publishing activation refused: check database, rights, private assets and operator evidence; no partial activation committed.\n");
  exit(3);
 }
