@@ -26,7 +26,7 @@ test('English publication stays source-honest, sale-gated and responsive',()=>{
  assert.match(en,/600,000 tomans/);
  assert.match(en,/400,000 tomans/);
  assert.match(en,/independent scholarly review/);
- assert.match(en,/currently being prepared for lawful digital distribution/);
+ assert.match(en,/checks whether lawful digital distribution and payment fulfilment are currently ready/);
  assert.doesNotMatch(en,/<a[^>]+href="[^"]+\.pdf/i);
  assert.doesNotMatch(en,/type="submit"|<form\b/i);
  assert.match(en,/@media\(max-width:800px\)/);
