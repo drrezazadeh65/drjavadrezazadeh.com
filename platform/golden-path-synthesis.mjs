@@ -1,4 +1,5 @@
 // Golden Path synthesis core: evidence-traceable, reviewed, then explicitly released.
+import {verifyResult} from './golden-talent-engine.mjs';
 const DOMAINS=['D1','D2','D3','D4','D5','D6'];
 // Golden Path remains the same mandatory human-release contract: do not
 // project uncited raw RCAS inputs or unreviewed BAHAR records into a claim.
@@ -9,6 +10,12 @@ export function synthesizeGoldenPath({route_result,evidence_events=[],review_acc
    route_result.total_score!==null||route_result.normative_label!==null)
    throw new Error('Valid complete non-normative route result required');
  if(review_accepted!==true) throw new Error('Human review approval required');
+ // Version 1.1.0 demands cryptographic input/output correspondence, not just
+ // matching mutable evidence IDs. This is hash CONSISTENCY, not authentication
+ // of a provider, human reviewer or persisted database record.
+ if(route_result.engine_version==='1.1.0'&&
+   !verifyResult(route_result,evidence_events))
+   throw new Error('Route evidence/snapshot mismatch');
  const unresolved=route_result.routes.filter(r=>r.evidence_state==='DISCREPANT'||r.human_review_required);
  if(unresolved.length) throw new Error('Unresolved evidence requires review');
  const sections=DOMAINS.map(domain=>{
