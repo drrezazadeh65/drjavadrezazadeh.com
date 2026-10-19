@@ -275,10 +275,17 @@ checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_stock_movements WHER
 $callbackLate=stage9FinalizePayment($pdo,$staleBook,'111','888888','20000000','synthetic-stale-book-factor');
 checkStage9($callbackLate===false,'late_callback_cannot_resurrect_cancelled_order');
 // Fixture cleanup only. NEVER write or delete real customer orders.
+// Unexpired pending order remains HELD until its synthetic fixture cleanup;
+// release its hold transactionally before removing fixture rows.
+$pdo->beginTransaction();
+stage9ReleaseBooks($pdo,$under24);
+$pdo->commit();
 $pdo->prepare('DELETE FROM commerce_book_reservations WHERE order_id IN (?,?)')
  ->execute([$staleBook,$under24]);
-$pdo->prepare('DELETE FROM commerce_stock_movements WHERE order_id=?')->execute([$staleBook]);
+$pdo->prepare('DELETE FROM commerce_stock_movements WHERE order_id IN (?,?)')
+ ->execute([$staleBook,$under24]);
 $pdo->prepare('DELETE FROM commerce_orders WHERE id IN (?,?)')->execute([$staleBook,$under24]);
+checkStage9(stage9BookStockReady($pdo),'fixture_cleanup_keeps_existing_stock_ledger_consistent');
 checkStage9(($beforeSnapshot['stock']['ledgerDiscrepancies']??null)===0,
  'owner_commerce_snapshot_stock_consistent');
 checkStage9(($beforeSnapshot['orders']['paidStateRecords']??0)>=4,
