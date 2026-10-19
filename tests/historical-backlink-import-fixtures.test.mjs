@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {execFileSync, spawnSync} from 'node:child_process';
-import {identifyHistoricalUrl, loadHistoricalAuthorityRegistry} from '../platform/historical-authority.mjs';
+import {identifyHistoricalUrl, loadHistoricalAuthorityRegistry, classifyHistoricalTarget} from '../platform/historical-authority.mjs';
 
 const registry=loadHistoricalAuthorityRegistry();
 const origin=registry.production_origin;
@@ -120,4 +120,37 @@ test('historical evidence import does not modify any redirect, registry, sitemap
   assert.equal(existing.length,10);
   assert.equal(registry.historical_candidates.filter(x=>x.decision==='GONE').length,6);
   assert.equal(registry.historical_candidates.filter(x=>x.decision==='REVIEW').length,1);
+});
+
+test('shared classifier refuses to mislabel content-specific WordPress requests as home or existing mappings',()=>{
+  for(const uri of ['/?p=123','/?page_id=456','/shop/?product_id=19','/about/?lang=fa']){
+    const item=classifyHistoricalTarget(uri,registry);
+    assert.equal(item.action,'QUERY_IDENTITY_REVIEW',uri);
+    assert.equal(item.target,undefined,uri);
+    assert.equal(item.path,identifyHistoricalUrl(uri).identity);
+  }
+  assert.equal(classifyHistoricalTarget('/?utm_source=old',registry).action,'PRESERVE_HOME');
+  assert.equal(classifyHistoricalTarget('/shop/?utm_campaign=archived',registry).action,'PRESERVE_SHOP');
+});
+test('the existing Apache 404 analyzer keeps distinct post IDs in the evidence report',()=>{
+ const folder=fs.mkdtempSync(path.join(os.tmpdir(),'jr-historical-404-query-'));
+ try{
+  const file=path.join(folder,'access.log');
+  const log=(request,status,ref)=>'192.0.2.10 - - [19/Oct/2026:12:01:00 +0330] "GET '+request+' HTTP/1.1" '+status+' 156 "'+ref+'" "Mozilla/5.0"';
+  fs.writeFileSync(file,[
+    log('/?p=123',404,'https://old-news.example/story'),
+    log('/?p=123&utm_source=news',404,'https://referral.example/page'),
+    log('/?p=124',404,'https://another.example/story'),
+    log('/?utm_source=old',404,'-')
+  ].join('\n'));
+  const report=JSON.parse(execFileSync(process.execPath,['scripts/historical-404-log-analyzer.mjs',file],{encoding:'utf8'}));
+  assert.equal(report.matched_404_410_lines,4);
+  assert.equal(report.url_count,3);
+  const data=new Map(report.rows.map(x=>[x.path,x]));
+  assert.equal(data.get('/?p=123').hits,2);
+  assert.equal(data.get('/?p=123').action,'QUERY_IDENTITY_REVIEW');
+  assert.equal(data.get('/?p=123').target,null);
+  assert.equal(data.get('/?p=124').action,'QUERY_IDENTITY_REVIEW');
+  assert.equal(data.get('/').action,'PRESERVE_HOME');
+ }finally{fs.rmSync(folder,{recursive:true,force:true})}
 });
