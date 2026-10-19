@@ -12,7 +12,7 @@ test('all seven study tracks and examination groups are examples, not invented a
  for(const label of ['تجربی','ریاضی','انسانی','زبان','هنر','فنی‌وحرفه‌ای','کاردانش'])
   assert.ok(script.includes(label),'missing bilingual discipline tab '+label);
  assert.match(script,/not necessarily a separate school track/);
- assert.match(script,/not necessarily a separate high-school/);
+ assert.match(script,/not necessarily a separate school track/);
  assert.match(script,/qualification|qualifications|entry rules/);
  assert.match(script,/group\.samples\.forEach/);
  assert.match(script,/names\[j\]\.dispatchEvent\(new Event\('input'/);
