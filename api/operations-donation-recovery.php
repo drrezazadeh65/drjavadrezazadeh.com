@@ -22,7 +22,8 @@ function jrRecoverPendingVerifiedDonation(PDO $pdo,string $orderId,string $gatew
         || !function_exists('stage9FinalizePayment'))
         throw new RuntimeException('donation_recovery_schema_unavailable');
     $select=$pdo->prepare('SELECT state,provider_id_get,provider_amount,factor_id,
-        items_json,provider_trans_id,paid_at FROM commerce_orders WHERE id=?');
+        amount_toman,currency,items_json,provider_trans_id,paid_at
+        FROM commerce_orders WHERE id=?');
     $select->execute([$orderId]);
     $row=$select->fetch(PDO::FETCH_ASSOC);
     if (!$row || $row['state']!=='pending' || $row['paid_at']!==null ||
@@ -36,6 +37,14 @@ function jrRecoverPendingVerifiedDonation(PDO $pdo,string $orderId,string $gatew
         !in_array(($items[0]['sku']??null),['support:students','support:voluntary'],true)||
         ($items[0]['quantity']??null)!==1)
         throw new DomainException('donation_only_recovery');
+    // A valid provider claim must not conceal tampered order JSON or currency.
+    // The original amount is server persisted; no owner-entered price is used.
+    if (($row['currency']??null)!=='IRT'
+        || !is_int($items[0]['price']??null) || !is_int($items[0]['subtotal']??null)
+        || $items[0]['price']<1000
+        || $items[0]['subtotal']!==$items[0]['price']
+        || $items[0]['subtotal']!==(int)$row['amount_toman'])
+        throw new DomainException('donation_order_amount_corrupt');
     if (!preg_match('/^[1-9][0-9]*$/D',(string)$row['provider_amount']) ||
         !preg_match('/^[0-9]{1,40}$/D',(string)$row['factor_id']))
         throw new DomainException('invalid_donation_financial_identity');
