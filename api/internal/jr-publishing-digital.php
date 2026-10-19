@@ -185,9 +185,18 @@ function jrPubDownloadRoute(): never {
       if(!$row||(int)$row['download_count']>=(int)$row['max_downloads']){
         $pdo->rollBack();fail('download_expired_or_limit',403);
       }
-      $file=jrPubAssetPath((string)$row['private_storage_name']);
+      // A paid entitlement must never deliver a different file if a mutable
+      // database row or on-disk asset changes after the sale.
+      $kind=(string)$row['logical_kind'];
+      $expected=JR_PUB_ORIGINAL_ASSETS[$kind]??null;
+      if(!is_array($expected) ||
+         $expected[0]!==(string)$row['private_storage_name'] ||
+         !hash_equals($expected[1],strtolower((string)$row['sha256']))){
+        $pdo->rollBack();fail('digital_file_unavailable',503);
+      }
+      $file=jrPubAssetPath($expected[0]);
       if(!$file || filesize($file)!==(int)$row['byte_size']||
-         !hash_equals(strtolower((string)$row['sha256']),hash_file('sha256',$file))){
+         !hash_equals($expected[1],hash_file('sha256',$file))){
         $pdo->rollBack();fail('digital_file_unavailable',503);
       }
       $pdo->prepare('UPDATE publishing_digital_access_grants
