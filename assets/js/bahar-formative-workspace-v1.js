@@ -165,6 +165,22 @@
     }
     const observations=extractEvidence();
     const weekly=weekRecords();
+    // Completion and evidence quality are distinct. Do not turn field counts,
+    // unobserved attempts or blank days into ability scores or progress claims.
+    const reviewGaps=[];
+    if(!values.action)reviewGaps.push(fa?'یک اقدام کوچک و قابل انجام برای این هفته تعیین کنید.':'Specify one small, feasible action for this week.');
+    if(!values.success)reviewGaps.push(fa?'برای این اقدام، یک نشانه مشاهده‌پذیر و قابل بازبینی مشخص کنید.':'Identify an observable sign that could inform a later review.');
+    if(!values.revision)reviewGaps.push(fa?'زمان یا ملاک بازبینی و امکان تغییر برنامه را روشن کنید.':'State when or how you will review and, if needed, revise the plan.');
+    if(!observations.some(item=>item.source&&item.observation)){
+      reviewGaps.push(fa?'برای دست‌کم یک مشاهده، هم منشأ شاهد و هم آنچه واقعاً رخ داده ثبت کنید.':'Record at least one observation with both its source and what happened.');
+    }
+    if(!weekly.length)reviewGaps.push(fa?'دفتر هفت‌روزه هنوز خالی است؛ این موضوع به معنای شکست نیست.':'The seven-day log has no entries yet; this is not a failure.');
+    else if(weekly.some(day=>day.tried&&!day.observed)){
+      reviewGaps.push(fa?'برای اقدام‌های ثبت‌شده بدون مشاهده، نتیجه را پس از اجرای واقعی ثبت کنید.':'For logged actions without observations, note what happened only after trying them.');
+    }
+    if(weekly.some(day=>day.observed&&!day.tried)){
+      reviewGaps.push(fa?'برای مشاهده‌های روزانه، اقدام یا زمینه مربوط را روشن کنید.':'Add the action or context behind daily observations.');
+    }
     const panel=make('div',undefined,'jr-bahar-summary');
     const title=make('h3',fa?'مرور توصیفیِ برنامه اقدام':'Descriptive action-plan review');
     panel.append(title);
@@ -212,6 +228,21 @@
       'Missing days are not failure or lack of ability. Self-reported notes do not establish a validated growth trend, diagnosis or professional report.',
       'jr-bahar-summary-note'));
     panel.append(weeklySection);
+    const review=make('section',undefined,'jr-bahar-summary-gaps');
+    review.dataset.baharReviewGaps='';
+    review.append(make('h4',fa?'شواهدی که هنوز باید بررسی شوند':'Evidence to revisit'));
+    if(reviewGaps.length){
+      const prompts=make('ul');
+      for(const gap of reviewGaps)prompts.append(make('li',gap));
+      review.append(prompts);
+    }else{
+      review.append(make('p',fa?
+        'ورودی‌های پایه برای یک مرور توصیفی حاضرند؛ کیفیت، استقلال و اعتبار شواهد همچنان نیازمند بررسی انسانی است.':
+        'Core descriptive inputs are present. Evidence quality, independence and validity still require human review.'));
+    }
+    panel.append(review);
+    lines.push((fa?'شواهد نیازمند بازبینی: ':'Evidence to revisit: ')+
+      (reviewGaps.length?reviewGaps.join(' | '):(fa?'اعتبار شواهد هنوز تأیید نشده است.':'Evidence validity is not established.')));
     lines.push(fa?'روزهای بدون یادداشت، شواهد ناموجودند؛ نه ضعف یا شکست.':
       'Unlogged days are missing evidence, not failure or a deficit.');
     panel.append(make('p',fa?
