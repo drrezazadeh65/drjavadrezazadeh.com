@@ -347,6 +347,25 @@ try{jrRecoverPendingVerifiedDonation($pdo,$donationId,'876543','606060',$provide
 catch(DomainException $e){$wrongGateway=$e->getMessage()==='donation_gateway_id_mismatch';}
 checkStage9($wrongGateway && $providerCalls===0,
  'donation_recovery_rejects_wrong_gateway_before_network');
+
+$corruptedDonation=json_encode([['sku'=>'support:students','title'=>'Synthetic support',
+    'kind'=>'donation','quantity'=>1,'price'=>1001,'subtotal'=>1001]]);
+$pdo->prepare('UPDATE commerce_orders SET items_json=? WHERE id=?')
+    ->execute([$corruptedDonation,$donationId]);
+$corruptBlocked=false;
+try{jrRecoverPendingVerifiedDonation($pdo,$donationId,'987654','606060',$providerCheck);}
+catch(DomainException $e){$corruptBlocked=$e->getMessage()==='donation_order_amount_corrupt';}
+checkStage9($corruptBlocked && $providerCalls===0,
+ 'donation_recovery_detects_tampered_item_amount_before_provider_request');
+$pdo->prepare('UPDATE commerce_orders SET items_json=?,currency=? WHERE id=?')
+    ->execute([$donationItems,'USD',$donationId]);
+$wrongCurrencyBlocked=false;
+try{jrRecoverPendingVerifiedDonation($pdo,$donationId,'987654','606060',$providerCheck);}
+catch(DomainException $e){$wrongCurrencyBlocked=$e->getMessage()==='donation_order_amount_corrupt';}
+checkStage9($wrongCurrencyBlocked && $providerCalls===0,
+ 'donation_recovery_rejects_non_irt_currency_before_provider_request');
+$pdo->prepare('UPDATE commerce_orders SET currency=? WHERE id=?')
+    ->execute(['IRT',$donationId]);
 foreach([
     ['status'=>0,'amount'=>10000,'factorId'=>$donationFactor],
     ['status'=>1,'amount'=>11000,'factorId'=>$donationFactor],
