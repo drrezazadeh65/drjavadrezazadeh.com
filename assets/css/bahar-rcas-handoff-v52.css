@@ -1,7 +1,55 @@
-.jr-bahar-handoff{margin:14px 0 22px;padding:clamp(15px,3vw,24px);background:linear-gradient(130deg,#152c40,#101d30);color:#f5ead6;border:1px solid #c8a568;border-radius:17px;line-height:1.8}
-.jr-bahar-handoff strong{display:block;font-size:1.1rem;margin:0 0 7px}
-.jr-bahar-handoff p{color:#e0e6e8;line-height:1.8;margin:0 0 12px}
-.jr-bahar-handoff button{min-height:44px;background:#e5c485;color:#142537;border:1px solid #cfad6b;padding:10px 17px;border-radius:9px;cursor:pointer;font:inherit}
-.jr-bahar-handoff span[role=status]{display:block;margin-top:7px}
-.jr-bahar-handoff button:focus-visible{outline:3px solid white;outline-offset:3px}
+/* JR BAHAR ↔ RCAS handoff — same mother luxury science system, no blue subtheme.
+ * The existing DOM hooks and click/consent behaviour are unchanged.
+ * Source: foundation/DESIGN-SYSTEM.md + identity/brand-governance.md.
+ */
+.jr-bahar-handoff{
+  position:relative;isolation:isolate;overflow:hidden;
+  margin:clamp(15px,2.5vw,25px) 0;
+  padding:clamp(17px,3vw,28px);
+  border:1px solid rgba(212,175,55,.52);
+  border-inline-start:3px solid #d4af37;
+  border-radius:18px;
+  background:
+    radial-gradient(ellipse 65% 95% at 95% 5%,rgba(212,175,55,.12),transparent 74%),
+    linear-gradient(135deg,#242019,#131514 76%);
+  box-shadow:0 18px 36px rgba(0,0,0,.13);
+  color:var(--jr-sc-ivory,#f8f5e9);
+  line-height:1.85;overflow-wrap:anywhere;
+}
+.jr-bahar-handoff strong{
+  display:block;max-width:48ch;
+  font-size:clamp(1.06rem,1.6vw,1.25rem);
+  line-height:1.5;margin:0 0 9px;color:#f5dfac;
+}
+.jr-bahar-handoff p{
+  max-width:76ch;
+  color:#e2d9c9;line-height:1.9;margin:0 0 16px;
+  font-size:clamp(.94rem,1vw,1.04rem);
+}
+.jr-bahar-handoff button{
+  display:inline-flex;justify-content:center;align-items:center;
+  min-height:48px;max-width:100%;
+  padding:11px 20px;border-radius:12px;
+  background:linear-gradient(120deg,#f5e4b3,#d4af37);
+  color:#20180b;border:1px solid #e9c681;
+  font:750 1rem/1.5 inherit;cursor:pointer;
+}
+.jr-bahar-handoff button:hover:not(:disabled){background:linear-gradient(120deg,#fff0c4,#e6bc53)}
+.jr-bahar-handoff button:disabled{opacity:.63;cursor:not-allowed}
+.jr-bahar-handoff span[role=status]{
+  display:block;min-height:1.6em;margin-top:11px;
+  color:#f0d99e;line-height:1.7;
+}
+.jr-bahar-handoff button:focus-visible{outline:3px solid #f4dca3;outline-offset:3px}
+@media(max-width:480px){
+ .jr-bahar-handoff{padding:17px 14px;border-radius:14px}
+ .jr-bahar-handoff button{width:100%;font-size:1rem}
+}
+@media(prefers-reduced-motion:reduce){
+ .jr-bahar-handoff *{transition:none!important;animation:none!important}
+}
+@media(forced-colors:active){
+ .jr-bahar-handoff{border:2px solid CanvasText}
+ .jr-bahar-handoff button{border:2px solid ButtonText;forced-color-adjust:auto}
+}
 @media print{.jr-bahar-handoff{display:none!important}}
