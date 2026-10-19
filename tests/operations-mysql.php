@@ -65,6 +65,10 @@ try {
  for($i=0;$i<50;$i++){if(@fsockopen('127.0.0.1',$port,$errno,$err,0.1))break;usleep(100000);}
  request('/api/admin/operations',401,'GET',null,[],false);
  request('/api/admin/operations/commerce',401,'GET',null,[],false);
+ request('/api/admin/operations/commerce/donation-reconcile',401,'POST',
+    ['orderId'=>'11111111-1111-4111-8111-111111111185'],[],false);
+ request('/api/admin/operations/commerce/book-expire',401,'POST',
+    ['orderId'=>'11111111-1111-4111-8111-111111111185'],[],false);
  request('/api/admin/operations/social/settings',401,'GET',null,[],false);
  request('/api/admin/operations/social/account-intents',401,'POST',['provider'=>'telegram','publicHandle'=>'demo'],[],false);
  request('/api/admin/operations/github-audits',401,'GET',null,[],false);
@@ -81,6 +85,19 @@ try {
  $elevatedSession=request('/api/admin/operations/session',200);
  check($elevatedSession['csrfToken']!==$session['csrfToken'],'CSRF token did not rotate');
  $headers['X-CSRF-Token']=$elevatedSession['csrfToken'];
+ // A regular verified ADMIN is never allowed to reconcile provider payments
+ // or cancel book holds; SUPER_ADMIN + fresh MFA/CSRF is required.
+ request('/api/admin/operations/commerce/donation-reconcile',403,'POST',[
+    'orderId'=>'11111111-1111-4111-8111-111111111185',
+    'gatewayId'=>'987654','transactionId'=>'606060',
+    'ownerConfirmedPanelTransaction'=>true
+ ],$headers);
+ request('/api/admin/operations/commerce/book-expire',403,'POST',[
+    'orderId'=>'11111111-1111-4111-8111-111111111185',
+    'gatewayId'=>'987654','providerStatus'=>'failed',
+    'ownerVerifiedGateway'=>true,'acknowledgeLatePaymentRisk'=>true
+ ],$headers);
+
  request('/api/admin/operations/mfa',403,'POST',['code'=>$code],$headers);
  
  $beforeCollections=(int)$pdo->query('SELECT COUNT(*) FROM operations_collection_policies')->fetchColumn();
