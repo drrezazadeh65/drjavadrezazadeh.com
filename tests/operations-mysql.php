@@ -97,6 +97,32 @@ try {
     'gatewayId'=>'987654','providerStatus'=>'failed',
     'ownerVerifiedGateway'=>true,'acknowledgeLatePaymentRisk'=>true
  ],$headers);
+ // Synthetic SUPER_ADMIN fixture tests must fail before any BitPay call.
+ // Upgrade the same isolated account temporarily (private registry + DB must agree).
+ $configuration['operations_admins'][$id]['role']='SUPER_ADMIN';writeConfig();
+ $pdo->prepare("UPDATE operations_admin_memberships SET role='SUPER_ADMIN' WHERE account_id=?")->execute([$id]);
+ $noCsrf=$headers;unset($noCsrf['X-CSRF-Token']);
+ request('/api/admin/operations/commerce/donation-reconcile',403,'POST',[
+    'orderId'=>'11111111-1111-4111-8111-111111111185',
+    'gatewayId'=>'987654','transactionId'=>'606060','ownerConfirmedPanelTransaction'=>true
+ ],$noCsrf);
+ request('/api/admin/operations/commerce/book-expire',403,'POST',[
+    'orderId'=>'11111111-1111-4111-8111-111111111185',
+    'gatewayId'=>'987654','providerStatus'=>'failed',
+    'ownerVerifiedGateway'=>true,'acknowledgeLatePaymentRisk'=>true
+ ],$noCsrf);
+ // Required positive owner attestation is missing: reject without gateway I/O.
+ request('/api/admin/operations/commerce/donation-reconcile',422,'POST',[
+    'orderId'=>'11111111-1111-4111-8111-111111111185',
+    'gatewayId'=>'987654','transactionId'=>'606060'
+ ],$headers);
+ request('/api/admin/operations/commerce/book-expire',422,'POST',[
+    'orderId'=>'11111111-1111-4111-8111-111111111185',
+    'gatewayId'=>'987654','providerStatus'=>'failed',
+    'ownerVerifiedGateway'=>false,'acknowledgeLatePaymentRisk'=>true
+ ],$headers);
+ $configuration['operations_admins'][$id]['role']='ADMIN';writeConfig();
+ $pdo->prepare("UPDATE operations_admin_memberships SET role='ADMIN' WHERE account_id=?")->execute([$id]);
 
  request('/api/admin/operations/mfa',403,'POST',['code'=>$code],$headers);
  
