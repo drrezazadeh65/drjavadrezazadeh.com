@@ -56,8 +56,8 @@ test('both canonical bilingual guidance pages preserve their base studio and loa
   assert.match(html,/data-choice-studio data-locale/);
   assert.match(html,/jr-choice-studio-v1[.]js[?]v=20261019-choice-studio-v1/);
   assert.match(html,/jr-choice-studio-v1[.]css[?]v=20261019-choice-studio-v1/);
-  assert.match(html,/jr-choice-feedback-v1[.]js[?]v=20261019-tabs-feedback-v1/);
-  assert.match(html,/jr-choice-feedback-v1[.]css[?]v=20261019-tabs-feedback-v1/);
+  assert.match(html,/jr-choice-feedback-v1[.]js[?]v=20261019-tabs-feedback-v2/);
+  assert.match(html,/jr-choice-feedback-v1[.]css[?]v=20261019-tabs-feedback-v2/);
   assert.equal(html.split('jr-choice-feedback-v1.js?').length,2);
   assert.ok(html.indexOf('jr-choice-studio-v1.js?')<html.indexOf('jr-choice-feedback-v1.js?'));
   assert.match(html,/rel="canonical"/);
