@@ -79,6 +79,27 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             JOIN commerce_orders o ON o.id=r.order_id
             WHERE r.state='reserved'")->fetch(PDO::FETCH_ASSOC);
         if(!is_array($heldPending)) throw new RuntimeException('pending_book_hold_aggregate_unavailable');
+        // Bounded, private owner-MFA review queue. Never expose buyer PII,
+        // full gateway references, or an actionable payment claim.
+        $bookExpiryRows=$pdo->query("SELECT o.id,o.created_at,
+             RIGHT(o.provider_id_get,4) AS gateway_suffix,
+             SUM(r.quantity) AS held_units
+           FROM commerce_orders o
+           JOIN commerce_book_reservations r ON r.order_id=o.id AND r.state='reserved'
+           WHERE o.state='pending' AND o.paid_at IS NULL
+             AND o.provider_trans_id IS NULL
+             AND o.created_at<=DATE_SUB(NOW(),INTERVAL 24 HOUR)
+             AND NOT EXISTS (SELECT 1 FROM commerce_payment_claims c WHERE c.order_id=o.id)
+           GROUP BY o.id,o.created_at,o.provider_id_get
+           ORDER BY o.created_at ASC LIMIT 25")->fetchAll(PDO::FETCH_ASSOC);
+        $bookExpiryReview=array_map(static fn(array $row):array=>[
+            'orderId'=>(string)$row['id'],
+            'createdAt'=>(string)$row['created_at'],
+            'gatewayReferenceSuffix'=>(string)$row['gateway_suffix'],
+            'reservedUnits'=>(int)$row['held_units'],
+            'requiresIndependentProviderFailureProof'=>true
+        ],$bookExpiryRows);
+
 
         $refunds=$pdo->query("SELECT status,COUNT(*) AS total
             FROM commerce_refund_requests GROUP BY status")->fetchAll(PDO::FETCH_ASSOC);
@@ -345,6 +366,16 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'paidStateRecords'=>$states['paid']??0,
             'failedRecords'=>$states['failed']??0,
             'totalRows'=>array_sum($states)
+        ];
+        $snapshot['bookExpiry']=[
+            'schema'=>'commerce-book-expiry-review-v1',
+            'policyHours'=>24,
+            'pendingReviewQueue'=>$bookExpiryReview,
+            'reviewLimit'=>25,
+            'manualProviderVerificationRequired'=>true,
+            'automaticReleaseActive'=>false,
+            'readOnly'=>true,
+            'note'=>'Pending without claim is not verified failed; do not release automatically.'
         ];
         $snapshot['salesPipeline']=[
             'paidStateAmountToman'=>(string)$sales['paid_state_toman'],
