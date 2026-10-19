@@ -40,6 +40,13 @@ const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/
 const js=document.createElement('script');js.src='/assets/js/pwa-release-notice.js?v=20261019-v1';js.defer=true;document.head.append(js);
 })();
 
+/* Desktop installed PWA: prevent text from collapsing into narrow dashboard columns. */
+(()=>{
+if(!document.querySelector('[data-jr-desktop-pwa-css]')){
+const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/css/pwa-desktop-layout-v52.css?v=20261019-v1';css.dataset.jrDesktopPwaCss='1';document.head.append(css);
+}
+})();
+
 /* Brand emblem lives beside the original merchant trust seal. */
 (()=>{if(document.querySelector('script[data-jr-footer-brand-loader]'))return;const el=document.createElement('script');el.src='/assets/js/footer-brand-seal.js?v=20261016-v1';el.defer=true;el.dataset.jrFooterBrandLoader='1';document.head.append(el);})();
 
