@@ -28,7 +28,26 @@ test('English publication stays source-honest, sale-gated and responsive',()=>{
  assert.match(en,/independent scholarly review/);
  assert.match(en,/checks whether lawful digital distribution and payment fulfilment are currently ready/);
  assert.doesNotMatch(en,/<a[^>]+href="[^"]+\.pdf/i);
- assert.doesNotMatch(en,/type="submit"|<form\b/i);
+ // Both public languages now expose one server-gated form; neither may charge
+ // until the authoritative offer endpoint proves delivery and gateway readiness.
+ for(const page of [en,fa]){
+  assert.match(page,/<form id="jp-digital-checkout-form"[^>]*hidden/);
+  assert.match(page,/id="jp-offer-badge"/);
+  assert.match(page,/id="jp-checkout-state"[^>]*role="status"/);
+  assert.match(page,/id="jp-recheck-offer"/);
+  assert.match(page,/jr-publishing-checkout-v1\.js/);
+ }
+ assert.match(en,/id="jp-pay-now"[^>]*type="submit" disabled/);
+ assert.match(en,/href="\/en\/shop\/customer-policy\/"/);
+ const checkout=read('assets/js/jr-publishing-checkout-v1.js');
+ assert.match(checkout,/\/api\/publishing\/offer/);
+ assert.match(checkout,/\/api\/commerce\/create/);
+ assert.match(checkout,/setOfferReady\(false\)/);
+ assert.match(checkout,/j\.checkoutEnabled===true&&j\.available===true/);
+ assert.match(checkout,/j\.sku==='digital:tefl-ma-exams-1370-1405'/);
+ assert.match(checkout,/j\.priceToman===1000000/);
+ assert.match(checkout,/dest\.origin!==location\.origin/);
+ assert.match(checkout,/busy=true;pay\.disabled=true/);
  assert.match(en,/@media\(max-width:800px\)/);
  assert.match(en,/:focus-visible/);
  assert.match(en,/prefers-reduced-motion/);
