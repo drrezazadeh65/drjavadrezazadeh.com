@@ -195,14 +195,17 @@ function buildRoute(domain,items,rejected){
  // compatibility of the SAME proposition. Matching domain/direction is not enough.
  const convergence=routing.length>=2&&sourceTypes.length>=2&&allVerified&&
    independentSourceCount>=2&&claimsCompatible&&!opposite&&!conflict;
+ // Opposite directions about incomparable propositions are not yet a
+ // material contradiction. Escalate for professional comparison, not diagnosis.
+ const verifiedContradiction=opposite&&claimsCompatible;
  let state='INSUFFICIENT';
  if(routing.length>0)state='SINGLE_SOURCE';
  if(convergence)state='CONVERGENT';
- if(opposite||conflict)state='DISCREPANT';
+ if(verifiedContradiction||conflict)state='DISCREPANT';
  const rationale=[state];
- if(opposite)rationale.push('OPPOSING_DIRECTIONS');
- if(sameClass)rationale.push('INTRA_SOURCE_CONTRADICTION');
- if(opposite&&!sameClass)rationale.push('CROSS_SOURCE_CONTRADICTION');
+ if(verifiedContradiction)rationale.push('OPPOSING_DIRECTIONS');
+ if(verifiedContradiction&&sameClass)rationale.push('INTRA_SOURCE_CONTRADICTION');
+ if(verifiedContradiction&&!sameClass)rationale.push('CROSS_SOURCE_CONTRADICTION');
  if(conflict)rationale.push('EXPLICIT_CONFLICT_FLAG');
  if(routing.length&&!allVerified)rationale.push('INDEPENDENCE_NOT_VERIFIED');
  if(routing.length&&sourceTypes.length>=2&&independentSourceCount<2)
@@ -213,8 +216,8 @@ function buildRoute(domain,items,rejected){
  if(contextual.some(x=>x.raw.quality_state==='UNREVIEWED'))rationale.push('PENDING_REVIEW_PRESENT');
  if(rejected.length)rationale.push('MALFORMED_EVENT_PRESENT');
  const sorted=(a,b)=>compare(a.event_ref,b.event_ref)||compare(a.id||'',b.id||'');
- const reviewRequired=state==='DISCREPANT'||!allVerified&&routing.length>0||
-  routing.length>1&&!claimsCompatible||contextual.length>0||rejected.length>0;
+ const reviewRequired=state==='DISCREPANT'||(!allVerified&&routing.length>0)||
+  (routing.length>1&&!claimsCompatible)||contextual.length>0||rejected.length>0;
  return {
   route_code:domain,evidence_state:state,
   claim_compatibility_verified:Boolean(claimsCompatible),
