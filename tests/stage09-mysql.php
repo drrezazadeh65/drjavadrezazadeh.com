@@ -14,6 +14,13 @@ function localCatalog():array {
     return $out;
 }
 require __DIR__.'/../api/commerce-stage9.php';
+require __DIR__.'/../api/operations-book-expiration.php';
+$GLOBALS['bookExpiryAudits']=[];
+function operationsAudit(PDO $pdo, ?string $actor, string $action, string $reference): void {
+    // Synthetic transaction-test recorder; production writes operations_audit.
+    $GLOBALS['bookExpiryAudits'][]=[$actor,$action,$reference];
+}
+
 function checkStage9(bool $pass,string $name):void {
     if(!$pass)throw new RuntimeException('stage09_mysql_failed_'.$name);
     echo "PASS ".$name."\n";
@@ -221,11 +228,57 @@ checkStage9(($aged['pendingOlderThan24Hours']??0)>=1
  'old_pending_orders_and_refund_backlog_are_private_operational_signals');
 $pdo->prepare('DELETE FROM commerce_refund_requests WHERE id=?')->execute([$refundId]);
 $pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$pendingAge]);
+// A payment callback and an administrative 24h cancellation lock the same
+// order row and cannot both commit. No gateway call is mocked as real evidence.
+$bookOwner='11111111-1111-4111-8111-111111111199';
+$preCancelStock=$pdo->query("SELECT reserved FROM commerce_book_stock WHERE sku='book:tariki'")->fetchColumn();
+checkStage9((int)$preCancelStock===1,'stale_book_held_before_operator_confirmation');
+$wrongReference=false;
+try{jrExpireVerifiedUnpaidBook($pdo,$staleBook,'222',$bookOwner,'cancelled');}
+catch(DomainException $e){$wrongReference=$e->getMessage()==='gateway_reference_mismatch';}
+checkStage9($wrongReference,'stale_book_gateway_reference_must_match');
+checkStage9((int)$pdo->query("SELECT reserved FROM commerce_book_stock WHERE sku='book:tariki'")->fetchColumn()===1,
+ 'wrong_gateway_reference_cannot_release_stock');
+$under24='11111111-1111-4111-8111-111111111184';
+putStock($pdo,'book:bonbast',1);
 $pdo->beginTransaction();
-// Fixture only: simulated independent provider cancellation; not a production action.
-stage9ReleaseBooks($pdo,$staleBook);
+stage9ReserveBooks($pdo,$under24,[['kind'=>'book','sku'=>'book:bonbast','quantity'=>1]]);
+pendingOrder($pdo,$under24,'recent-book-factor','book:bonbast');
 $pdo->commit();
-$pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$staleBook]);
+$tooEarly=false;
+try{jrExpireVerifiedUnpaidBook($pdo,$under24,'111',$bookOwner,'cancelled');}
+catch(DomainException $e){$tooEarly=$e->getMessage()==='payment_window_still_open';}
+checkStage9($tooEarly,'book_cannot_expire_before_24_hours');
+checkStage9((int)$pdo->query("SELECT reserved FROM commerce_book_stock WHERE sku='book:bonbast'")->fetchColumn()===1,
+ 'nonexpired_book_stock_still_held');
+$bookExpired=jrExpireVerifiedUnpaidBook($pdo,$staleBook,'111',$bookOwner,'cancelled');
+checkStage9(($bookExpired['state']??null)==='cancelled'
+ &&($bookExpired['reserveReleased']??false)===true,
+ 'verified_terminally_failed_book_expires_after_24_hours');
+checkStage9((int)$pdo->query("SELECT reserved FROM commerce_book_stock WHERE sku='book:tariki'")->fetchColumn()===0,
+ 'book_expiry_releases_exactly_one_reserved_unit');
+checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_stock_movements WHERE order_id='$staleBook' AND reason='release'")->fetchColumn()===1,
+ 'book_expiry_records_one_release_movement');
+checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_book_reservations WHERE order_id='$staleBook' AND state='released'")->fetchColumn()===1,
+ 'book_expiry_marks_the_reservation_released');
+checkStage9((string)$pdo->query("SELECT state FROM commerce_orders WHERE id='$staleBook'")->fetchColumn()==='cancelled',
+ 'book_expiry_preserves_cancelled_order_history');
+checkStage9(count($GLOBALS['bookExpiryAudits'])===1
+ && $GLOBALS['bookExpiryAudits'][0][1]==='book_expired_provider_cancelled',
+ 'book_expiry_is_owner_audited_once');
+$again=false;
+try{jrExpireVerifiedUnpaidBook($pdo,$staleBook,'111',$bookOwner,'cancelled');}
+catch(DomainException $e){$again=$e->getMessage()==='order_not_pending';}
+checkStage9($again,'book_expiry_replay_rejected');
+checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_stock_movements WHERE order_id='$staleBook' AND reason='release'")->fetchColumn()===1,
+ 'replay_never_releases_stock_twice');
+$callbackLate=stage9FinalizePayment($pdo,$staleBook,'111','888888','20000000','synthetic-stale-book-factor');
+checkStage9($callbackLate===false,'late_callback_cannot_resurrect_cancelled_order');
+// Fixture cleanup only. NEVER write or delete real customer orders.
+$pdo->prepare('DELETE FROM commerce_book_reservations WHERE order_id IN (?,?)')
+ ->execute([$staleBook,$under24]);
+$pdo->prepare('DELETE FROM commerce_stock_movements WHERE order_id=?')->execute([$staleBook]);
+$pdo->prepare('DELETE FROM commerce_orders WHERE id IN (?,?)')->execute([$staleBook,$under24]);
 checkStage9(($beforeSnapshot['stock']['ledgerDiscrepancies']??null)===0,
  'owner_commerce_snapshot_stock_consistent');
 checkStage9(($beforeSnapshot['orders']['paidStateRecords']??0)>=4,
