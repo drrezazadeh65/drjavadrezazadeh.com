@@ -2,7 +2,7 @@
    The server feature flag keeps this surface invisible until operationally certified. */
 (()=>{'use strict';
 const page=location.pathname.replace(/index\.html$/,'');
-if(!/^\/fa\/akhbar\/[a-z0-9-]+\/$/.test(page))return;
+if(!/^\/fa\/(?:akhbar|rahnamaha)\/[a-z0-9-]+\/$/.test(page))return;
 const article=document.querySelector('main article');
 if(!article||article.querySelector('[data-jr-community]'))return;
 const api='/api/community/';
