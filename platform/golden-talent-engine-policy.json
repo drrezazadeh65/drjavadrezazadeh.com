@@ -1,9 +1,9 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "engine_id": "GOLDEN-TALENT-EVIDENCE-ROUTER",
-  "engine_version": "0.2-prevalidation",
+  "engine_version": "1.1.0",
   "status": "PREVALIDATION",
-  "purpose": "Convert versioned multi-source evidence into auditable D1-D6 evidence states and next-evidence recommendations without producing a total talent score or diagnostic label.",
+  "purpose": "Versioned scientific prevalidation of RCAS/BAHAR-compatible evidence events into auditable D1–D6 routing, with controlled provenance independence and no learner score or diagnostic label.",
   "domains": [
     "D1",
     "D2",
@@ -24,9 +24,9 @@
   ],
   "evidence_states": {
     "INSUFFICIENT": "No usable evidence, or evidence does not meet the minimum source rule.",
-    "SINGLE_SOURCE": "Usable evidence exists but comes from only one independent source class.",
-    "CONVERGENT": "At least two independent usable source classes provide materially compatible evidence.",
-    "DISCREPANT": "At least two independent usable source classes provide materially conflicting evidence or context changes interpretation."
+    "SINGLE_SOURCE": "Reviewed routable evidence exists, but independent provenance and/or distinct source class requirements for convergence are not satisfied.",
+    "CONVERGENT": "Two independently verified, non-derivative observation clusters from at least two approved source classes carry a consistent reviewed direction; this is an evidence workflow state, not validation or learner-level certainty.",
+    "DISCREPANT": "Reviewed support and contradictory direction(s), including inside one source class, or explicitly conflicting reviewed evidence; independent professional review required."
   },
   "routing_policy": {
     "total_score": false,
@@ -39,7 +39,12 @@
     "missing_evidence_is_not_negative_evidence": true,
     "context_can_limit_interpretation": true,
     "discrepancy_triggers_review": true,
-    "route_priority_is_next_evidence_priority_not_talent_rank": true
+    "route_priority_is_next_evidence_priority_not_talent_rank": true,
+    "explicit_independence_provenance_required": true,
+    "unreviewed_is_contextual_pending_review": true,
+    "unmapped_contextual_observations_are_retained": true,
+    "convergent_contradicting_evidence_is_not_a_talent_deficit": true,
+    "repeated_observations_do_not_establish_independent_sources": true
   },
   "quality_rules": [
     "WITHDRAWN evidence is excluded from routing.",
@@ -60,7 +65,16 @@
     "module": "platform/golden-talent-engine.mjs",
     "tests": "platform/golden-talent-engine.test.mjs",
     "deterministic": true,
-    "server_intended": true
+    "server_intended": true,
+    "engine_version": "1.1.0",
+    "historic_route_versions_immutable": true,
+    "operations_status": "NODE_CANDIDATE_ONLY_NOT_WIRED_INTO_BERTINA_PHP",
+    "production_php_adapter": "NOT_CERTIFIED",
+    "mysql_schema_alterations_required": false,
+    "existing_engine_entrypoints": [
+      "routeEvidence",
+      "classifyDomain"
+    ]
   },
   "analysis_layer": {
     "module": "platform/golden-talent-evidence-analytics.mjs",
@@ -71,6 +85,39 @@
     "automatic_module_unlock": false,
     "total_score": false,
     "career_fit_score": false,
-    "human_review_queue": true
+    "human_review_queue": true,
+    "conservative_source_independence": "CONSUME_ROUTER_INDEPENDENCE_STATE_NOT_RAW_SOURCE_TYPE_COUNTS",
+    "unreviewed_pending_review_no_deficit": true,
+    "longitudinal_bahar_not_causal_inference": true
+  },
+  "source_independence_policy": {
+    "status": "RESEARCH_STAGE_REQUIRES_PROFESSIONAL_VERIFICATION",
+    "required_provenance": [
+      "independence_verified",
+      "independence_group_id",
+      "respondent_reference_id",
+      "source_reference_id"
+    ],
+    "dependent_when_shared": [
+      "independence_group_id",
+      "respondent_reference_id",
+      "source_reference_id",
+      "observation_reference_id",
+      "instrument_dependency_group_id",
+      "derivative_of_event_id"
+    ],
+    "minimum_distinct_source_classes": 2,
+    "minimum_verified_independent_clusters": 2,
+    "never_infer_from_source_label_alone": true,
+    "never_trust_browser_independence_claims": true
+  },
+  "integrity_contract": {
+    "canonicalization": "NFC JSON sorted properties, explicit error for unsupported object prototypes, accessors, cycles, unsupported scalars, duplicate normalized keys; resource bounded",
+    "hash_algorithm": "SHA-256 via Node.js trusted node:crypto",
+    "hash_scope": "INPUT_SORTED_CANONICAL_JSON_AND_CANONICAL_RESULT",
+    "hash_consistency_is_not_authentication": true,
+    "signature_required_for_authenticated_persistent_outputs": true,
+    "signature_implemented_in_public_client": false,
+    "verify_with_original_events_to_prove_correspondence": true
   }
 }
