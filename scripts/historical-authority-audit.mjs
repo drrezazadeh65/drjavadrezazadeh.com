@@ -7,6 +7,10 @@ const registry=loadHistoricalAuthorityRegistry();
 const failures=[];
 const warnings=[];
 const htaccess=fs.readFileSync(path.join(root,'.htaccess'),'utf8');
+const routeStability=JSON.parse(fs.readFileSync(path.join(root,'platform/public-url-stability-manifest.json'),'utf8'));
+const frozenPublicRoutes=new Set(routeStability.frozen_indexable_routes||[]);
+if(routeStability.production_origin!==registry.production_origin)
+  failures.push('Historical recovery and frozen public URL manifest origins differ');
 const transportPosition=htaccess.indexOf('RewriteRule ^ https://drjavadrezazadeh.com%{REQUEST_URI} [R=301,L,NE]');
 
 function routeToFile(route){
@@ -44,6 +48,8 @@ for(const [source,rec] of redirects){
   if(rec.status!==301) failures.push('Authority redirect must use 301 '+source);
   if(sources.has(rec.target)) failures.push('Redirect chain forbidden '+source+' -> '+rec.target);
   if(privatePrefixes.some(p=>rec.target===p.slice(0,-1)||rec.target.startsWith(p))) failures.push('Private historical destination forbidden '+source+' -> '+rec.target);
+  if(!frozenPublicRoutes.has(rec.target))
+    failures.push('Historical authority target is missing from frozen indexable URL manifest: '+source+' -> '+rec.target);
   const targetFile=routeToFile(rec.target);
   if(!fs.existsSync(targetFile)) failures.push('Historical redirect target missing '+source+' -> '+rec.target);
   const robots=robotsFor(rec.target);
