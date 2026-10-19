@@ -195,16 +195,37 @@ $pendingAge='11111111-1111-4111-8111-111111111181';
 pendingOrder($pdo,$pendingAge,'ageing-test-factor','service:academic_consult_60');
 $pdo->prepare("UPDATE commerce_orders SET created_at=DATE_SUB(NOW(),INTERVAL 8 DAY)
  WHERE id=?")->execute([$pendingAge]);
+// Independent, synthetic stale book hold: never use live gateway credentials.
+$staleBook='11111111-1111-4111-8111-111111111183';
+putStock($pdo,'book:tariki',1);
+$pdo->beginTransaction();
+stage9ReserveBooks($pdo,$staleBook,[['kind'=>'book','sku'=>'book:tariki','quantity'=>1]]);
+pendingOrder($pdo,$staleBook,'synthetic-stale-book-factor','book:tariki');
+$pdo->commit();
+$pdo->prepare("UPDATE commerce_orders SET created_at=DATE_SUB(NOW(),INTERVAL 2 DAY)
+ WHERE id=?")->execute([$staleBook]);
 $refundId='11111111-1111-4111-8111-111111111182';
 $pdo->prepare("INSERT INTO commerce_refund_requests(id,order_id,requester_account_id,status,reason_code)
  VALUES(?,?,?,'requested','fixture_review')")->execute([$refundId,$legacy,$refundId]);
 $aged=operationsCommerceSnapshot($pdo,time())['salesPipeline'];
+checkStage9(($aged['pendingBookOrdersWithReservationsOlderThan24Hours']??null)===1
+ && ($aged['pendingBookUnitsReservedOlderThan24Hours']??null)===1
+ && ($aged['unpaidOrderBookUnitsReserved']??0)>=1,
+ 'stale_pending_book_hold_visible_without_bank_certification');
+checkStage9((int)$pdo->query("SELECT COUNT(*) FROM commerce_book_reservations
+ WHERE order_id='$staleBook' AND state='reserved'")->fetchColumn()===1,
+ 'read_only_audit_must_never_release_stale_book_hold');
 checkStage9(($aged['pendingOlderThan24Hours']??0)>=1
  && ($aged['pendingOlderThan7Days']??0)>=1
  && ($aged['refundRequestsAwaitingAction']??null)===1,
  'old_pending_orders_and_refund_backlog_are_private_operational_signals');
 $pdo->prepare('DELETE FROM commerce_refund_requests WHERE id=?')->execute([$refundId]);
 $pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$pendingAge]);
+$pdo->beginTransaction();
+// Fixture only: simulated independent provider cancellation; not a production action.
+stage9ReleaseBooks($pdo,$staleBook);
+$pdo->commit();
+$pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$staleBook]);
 checkStage9(($beforeSnapshot['stock']['ledgerDiscrepancies']??null)===0,
  'owner_commerce_snapshot_stock_consistent');
 checkStage9(($beforeSnapshot['orders']['paidStateRecords']??0)>=4,
