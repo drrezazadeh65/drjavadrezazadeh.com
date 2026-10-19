@@ -86,7 +86,12 @@ test('English order history is real, authenticated, private and discoverable fro
  assert.match(html,/data-resource="orders"/);
  assert.match(html,/class="case-section"/);
  assert.match(html,/class="appointment-card empty"/);
- assert.match(html,/account-order-history\.js\?v=20261017-secure-upload-readiness-v8/);
+ const version=html.match(/account-order-history[.]js[?]v=(20[0-9]{6}-[a-z0-9-]+)/);
+ assert.ok(version,'existing English account orders must use a versioned private history script');
+ for(const route of ['en/account/orders/index.html','fa/app/account/orders/index.html']){
+  assert.ok(read(route).includes('account-order-history.js?v='+version[1]),
+    'all order views must share the same authenticated history controller: '+route);
+ }
  assert.match(dashboard,/href="\/en\/app\/account\/orders\/"/);
  assert.match(js,/\/api\/commerce\/history/);
  assert.match(js,/\/api\/commerce\/fulfilment\?order=/);
