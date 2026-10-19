@@ -42,12 +42,14 @@ export function analyseEvidence(events=[],{now=new Date(),stale_after_days=365}=
       route.rationale_codes?.includes('INDEPENDENT_SOURCES_INSUFFICIENT'))
       flags.push('INDEPENDENCE_NOT_VERIFIED');
    if(route.rationale_codes?.includes('PENDING_REVIEW_PRESENT'))flags.push('PENDING_REVIEW_PRESENT');
+   if(route.rationale_codes?.includes('CLAIM_COMPATIBILITY_NOT_VERIFIED'))flags.push('CLAIM_COMPATIBILITY_NOT_VERIFIED');
    if(context_event_ids.length) flags.push('CONTEXT_PRESENT');
    return {
      domain,evidence_state:route.evidence_state,reviewed_event_count:domainReviewed.length,unreviewed_event_count:allDomain.length-domainReviewed.length,
      independent_source_count,agreement_direction:route.agreement_direction,
+     claim_compatibility_verified:route.claim_compatibility_verified,
      source_classes,directions,stale_event_ids,undated_event_ids,limited_event_ids,conflicting_event_ids,provenance_gap_event_ids,context_event_ids,
-     requires_more_evidence:route.requires_more_evidence,human_review_required:route.human_review_required||flags.includes('PROVENANCE_GAP')||flags.includes('INDEPENDENCE_NOT_VERIFIED'),flags
+     requires_more_evidence:route.requires_more_evidence,human_review_required:route.human_review_required||flags.includes('PROVENANCE_GAP')||flags.includes('INDEPENDENCE_NOT_VERIFIED')||flags.includes('CLAIM_COMPATIBILITY_NOT_VERIFIED'),flags
    };
  });
  const review_queue=domains.filter(d=>d.human_review_required||d.flags.includes('PROVENANCE_GAP')).sort((a,b)=>{
@@ -67,6 +69,7 @@ export function nextEvidencePlan(analysis={}){
    if(d.flags?.includes('EVIDENCE_DISCREPANCY')){action='HUMAN_DISCREPANCY_REVIEW';priority='REVIEW_FIRST';reasons.push('EVIDENCE_DISCREPANCY');}
    else if(d.flags?.includes('PROVENANCE_GAP')){action='REPAIR_PROVENANCE_BEFORE_INTERPRETATION';priority='REVIEW_FIRST';reasons.push('PROVENANCE_GAP');}
    else if(d.flags?.includes('INDEPENDENCE_NOT_VERIFIED')){action='VERIFY_SOURCE_INDEPENDENCE';priority='REVIEW_FIRST';reasons.push('INDEPENDENCE_NOT_VERIFIED');}
+   else if(d.flags?.includes('CLAIM_COMPATIBILITY_NOT_VERIFIED')){action='REVIEW_MATERIAL_CLAIM_COMPATIBILITY';priority='REVIEW_FIRST';reasons.push('CLAIM_COMPATIBILITY_NOT_VERIFIED');}
    else if(d.evidence_state==='INSUFFICIENT'){action='COLLECT_TRACEABLE_EVIDENCE';priority='EVIDENCE_NEXT';reasons.push('EVIDENCE_GAP');}
    else if(d.evidence_state==='SINGLE_SOURCE'){action='SEEK_INDEPENDENT_SOURCE';priority='EVIDENCE_NEXT';reasons.push('SOURCE_DIVERSITY_GAP');}
    else if(d.stale_event_ids?.length){action='CONSIDER_CURRENT_EVIDENCE_UPDATE';priority='MAINTENANCE';reasons.push('STALE_EVIDENCE_PRESENT');}
