@@ -1,0 +1,127 @@
+/* Order Evidence v1 | additive private-account presentation only.
+ * Uses existing authenticated commerce history and fulfilment. No invented KPI.
+ * Frozen academic graphite / muted gold / ivory palette; logical RTL/LTR flow.
+ */
+[data-resource="orders"] .jr-order-evidence-note{
+  margin:12px 0 22px;
+  padding:12px 16px;
+  border-inline-start:3px solid #b99b63;
+  color:#e6ded0;
+  font-size:clamp(.86rem,1.3vw,.94rem);
+  line-height:1.8;
+  background:linear-gradient(110deg,rgba(176,141,73,.09),rgba(12,14,17,.33));
+  border-radius:0 12px 12px 0;
+  overflow-wrap:anywhere;
+}
+[dir="rtl"] [data-resource="orders"] .jr-order-evidence-note{border-radius:12px 0 0 12px}
+[data-resource="orders"] .jr-order-evidence{
+  margin:16px 0 18px;
+  padding:clamp(14px,2vw,22px);
+  border:1px solid rgba(196,158,89,.32);
+  border-radius:18px;
+  background:linear-gradient(135deg,rgba(187,147,70,.075),rgba(14,17,23,.84) 64%);
+  min-width:0;
+}
+[data-resource="orders"] .jr-order-evidence h3{
+  margin:0 0 16px;
+  color:#f3e9d6;
+  font-size:clamp(1rem,1.55vw,1.14rem);
+  line-height:1.55;
+  letter-spacing:normal;
+}
+[data-resource="orders"] .jr-order-evidence-list{
+  margin:0;
+  padding:0;
+  list-style:none;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  counter-reset:jr-evidence-step;
+}
+[data-resource="orders"] .jr-order-evidence-step{
+  min-width:0;
+  min-height:126px;
+  padding:14px 12px;
+  border:1px solid rgba(210,190,153,.2);
+  border-radius:13px;
+  background:rgba(7,10,14,.6);
+  color:#e4e1db;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:8px;
+  overflow-wrap:anywhere;
+  counter-increment:jr-evidence-step;
+}
+[data-resource="orders"] .jr-order-evidence-step::before{
+  content:counter(jr-evidence-step,decimal-leading-zero);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:30px;
+  height:30px;
+  padding:0 5px;
+  border:1px solid rgba(202,179,134,.45);
+  border-radius:8px;
+  background:rgba(255,255,255,.035);
+  color:#c7b79c;
+  font-size:12px;
+  font-variant-numeric:tabular-nums;
+}
+[data-resource="orders"] .jr-order-evidence-step[data-evidence-state="recorded"]{
+  border-color:rgba(200,163,94,.58);
+  background:linear-gradient(160deg,rgba(174,138,70,.16),rgba(15,18,23,.8));
+}
+[data-resource="orders"] .jr-order-evidence-step[data-evidence-state="recorded"]::before{
+  color:#14100a;
+  background:#d5b573;
+  border-color:#d5b573;
+}
+[data-resource="orders"] .jr-order-evidence-step[data-evidence-state="review"]{
+  border-color:rgba(190,149,92,.48);
+}
+[data-resource="orders"] .jr-order-evidence-step strong{
+  color:#f3ede0;
+  font-size:clamp(.86rem,1.28vw,.96rem);
+  line-height:1.5;
+}
+[data-resource="orders"] .jr-order-evidence-step span{
+  display:block;
+  color:#ded7ca;
+  font-size:clamp(.79rem,1.1vw,.87rem);
+  line-height:1.65;
+}
+[data-resource="orders"] .jr-order-detail{
+  margin-block:12px 16px;
+  padding:14px 16px;
+  background:rgba(19,22,27,.75);
+  border:1px solid rgba(189,158,97,.28);
+  border-radius:14px;
+  overflow-wrap:anywhere;
+}
+[data-resource="orders"] .jr-order-detail[hidden]{display:none!important}
+[data-resource="orders"] button[data-order-track]{
+  min-height:44px;
+  white-space:normal;
+  line-height:1.5;
+  text-align:center;
+}
+[data-resource="orders"] button[data-order-track]:focus-visible{
+  outline:3px solid #e9c985;
+  outline-offset:3px;
+}
+@media(max-width:830px){
+ [data-resource="orders"] .jr-order-evidence-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+ [data-resource="orders"] .jr-order-evidence-step{min-height:112px}
+}
+@media(max-width:360px){
+ [data-resource="orders"] .jr-order-evidence{padding:12px}
+ [data-resource="orders"] .jr-order-evidence-list{gap:8px}
+ [data-resource="orders"] .jr-order-evidence-step{padding:11px 9px}
+ [data-resource="orders"] .jr-order-evidence-step strong{font-size:.84rem}
+ [data-resource="orders"] .jr-order-evidence-step span{font-size:.77rem}
+}
+@media(prefers-reduced-motion:reduce){
+ [data-resource="orders"] .jr-order-evidence *,
+ [data-resource="orders"] .jr-order-evidence *::before{transition:none!important;animation:none!important}
+}
