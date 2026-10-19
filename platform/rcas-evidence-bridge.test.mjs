@@ -19,6 +19,9 @@ test('only descriptive, review-pending records for valid observed answers',()=>{
    assert.equal(e.instrument_version,session.instrument_version);
    assert.equal(e.quality_state,'UNREVIEWED');
    assert.equal(e.provenance.direction,'CONTEXTUALISES');
+   assert.equal(e.provenance.independence_verified,false);
+   assert.equal(e.provenance.independence_group_id,session.session_id);
+   assert.ok(e.provenance.observation_reference_id.endsWith(':'+e.evidence_key));
    assert.equal('total_score' in e,false);
    assert.equal('diagnosis' in e,false);
  }
