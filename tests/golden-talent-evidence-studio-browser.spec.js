@@ -53,7 +53,8 @@ for(const [lang,route] of [['fa','/fa/golden-talent/'],['en','/en/golden-talent/
   await form.locator('button[type="submit"]').click();
   const summary=form.locator('[data-gt-evidence-summary]');
   await expect(summary).toBeVisible();
-  await expect(summary.locator('.jr-gt-summary-warning')).toBeVisible();
+  await expect(summary.locator('.jr-gt-summary-warning').first()).toBeVisible();
+  await expect(summary.locator('.jr-gt-summary-warning').first()).toContainText(lang==='fa'?'منبع مستقل':'independent source');
   for(let i=0;i<6;i++)await form.locator('[data-gt-evidence-add]').click();
   await expect(form.locator('[data-gt-evidence-item]')).toHaveCount(6);
   await expect(form.locator('[data-gt-evidence-add]')).toBeDisabled();
@@ -84,7 +85,7 @@ for(const [lang,route] of [['fa','/fa/golden-talent/'],['en','/en/golden-talent/
   await root.locator('button[type="submit"]').click();
   const warnings=root.locator('[data-gt-evidence-summary] .jr-gt-summary-warning');
   const phrase=lang==='fa'?'دو نوع منبع مستقل':'two independent source types';
-  await expect(warnings).toContainText(phrase);
+  await expect(warnings.first()).toContainText(phrase);
   // Changing the provenance category is a distinct descriptive source type,
   // not a psychometric validation or proof of independent human observers.
   await root.locator('[data-gt-evidence-item]').nth(1).locator('select').selectOption('PARENT');
