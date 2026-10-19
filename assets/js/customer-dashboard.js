@@ -447,10 +447,77 @@ async function supportEnglishHealth(authenticated){
  }
 }
 
+// A verified session alone never certifies an order, payment or booking.
+// This overview consumes the existing owner-scoped history contract only.
+// No private order details are stored in browser persistence or URL parameters.
+let nextActionRequest=0;
+async function verifiedCustomerNextAction(authenticated){
+ const stamp=++nextActionRequest;
+ const heading=$('[data-home-heading]'),description=$('[data-home-copy]'),action=$('[data-home-action]');
+ if(!heading||!description||!action||!authenticated)return;
+ const isEnglish=lang==='en';
+ const ordersHref=isEnglish?'/en/account/orders/':'/fa/app/account/orders/';
+ const set=(title,detail,label,href)=>{
+  if(stamp!==nextActionRequest)return;
+  heading.textContent=title;description.textContent=detail;
+  action.textContent=label;action.setAttribute('href',href);
+ };
+ // A successful authentication request is not proof that commerce history
+ // is available. Keep error, empty and unauthorised states distinct.
+ set(isEnglish?'Checking your next verified action…':'در حال بررسی اقدام بعدی تأییدشده…',
+     isEnglish?'Only your authorised order history can determine a personal action.':'اقدام شخصی فقط با تاریخچه سفارش مجاز سمت سرور مشخص می‌شود.',
+     isEnglish?'Open orders':'مشاهده سفارش‌ها',ordersHref);
+ const response=await jsonRequest(API+'/commerce/history',{method:'GET',credentials:'include',cache:'no-store'});
+ if(stamp!==nextActionRequest)return;
+ if(response.status===401||response.status===403){
+  set(isEnglish?'Order access requires verification.':'دسترسی به سفارش‌ها نیازمند تأیید است.',
+      isEnglish?'Your account session or order access could not be verified. Sign in again to review private orders.':'نشست حساب یا مجوز مشاهده سفارش‌ها تأیید نشد؛ برای بررسی سوابق خصوصی دوباره وارد شوید.',
+      isEnglish?'Sign in':'ورود به حساب',isEnglish?'/en/login/':'/fa/login/');
+  return;
+ }
+ if(!response.ok||response.data?.ok!==true||!Array.isArray(response.data.orders)){
+  set(isEnglish?'Order status is temporarily unavailable.':'وضعیت سفارش‌ها موقتاً در دسترس نیست.',
+      isEnglish?'No payment, booking or service entitlement is assumed. Review the private order page when the connection is restored.':'هیچ پرداخت، رزرو یا دسترسی خدمتی فرض نمی‌شود. پس از برقراری اتصال، سوابق خصوصی را بررسی کنید.',
+      isEnglish?'Review orders':'بررسی سفارش‌ها',ordersHref);
+  return;
+ }
+ const orders=response.data.orders.filter(o=>o&&typeof o==='object');
+ if(!orders.length){
+  set(isEnglish?'Explore your first service.':'خدمت مناسب خود را انتخاب کنید.',
+      isEnglish?'No orders are recorded for this verified account. Compare the available services before deciding.':'در حساب تأییدشده شما سفارشی ثبت نشده است. پیش از تصمیم، خدمات موجود را مقایسه کنید.',
+      isEnglish?'Explore services':'مشاهده خدمات',isEnglish?'/en/services/':'/fa/services/');
+  return;
+ }
+ const needReview=orders.filter(o=>o.paymentVerified!==true&&['created','pending','paid'].includes(o.state));
+ const providerMatched=orders.filter(o=>o.paymentVerified===true);
+ const total=localNumber(orders.length);
+ if(needReview.length){
+  set(isEnglish?'Review an order awaiting payment verification.':'وضعیت تأیید پرداخت سفارش را بررسی کنید.',
+      isEnglish?
+       total+' recorded order(s). '+localNumber(needReview.length)+' require payment-status review. An order or gateway return does not prove payment or fulfilment.':
+       total+' سفارش ثبت‌شده؛ '+localNumber(needReview.length)+' مورد نیازمند بررسی وضعیت پرداخت است. ثبت سفارش یا بازگشت از درگاه، اثبات پرداخت و تحویل نیست.',
+      isEnglish?'Review payment status':'بررسی وضعیت پرداخت',ordersHref);
+  return;
+ }
+ if(providerMatched.length){
+  set(isEnglish?'Follow up your provider-verified order.':'پیگیری سفارش دارای تأیید درگاه',
+      isEnglish?
+       localNumber(providerMatched.length)+' of '+total+' orders have provider-matched payment evidence. Bank settlement, appointment confirmation and fulfilment remain separate checks.':
+       localNumber(providerMatched.length)+' مورد از '+total+' سفارش دارای سند تطبیق‌یافته با درگاه است. تسویه بانکی، تأیید نوبت و تحویل همچنان بررسی‌های مستقل دارند.',
+      isEnglish?'Track service and receipt':'پیگیری خدمت و رسید',ordersHref);
+  return;
+ }
+ set(isEnglish?'Review your recorded orders.':'سوابق سفارش‌های خود را بررسی کنید.',
+     isEnglish?'There are '+total+' recorded order(s), but no current provider-verified payment is established in this summary.':
+       total+' سفارش ثبت شده است؛ با این حال، در این خلاصه هیچ پرداخت تأییدشده‌ای از سوی درگاه احراز نشده است.',
+     isEnglish?'Open order history':'مشاهده تاریخچه سفارش‌ها',ordersHref);
+}
+
 async function refresh(){
  const runtime=await operationalStatus();
  const authenticated=await hydrate(runtime.auth);
  authNavigation(authenticated);
+ void verifiedCustomerNextAction(authenticated);
  serviceMarketplace(runtime,authenticated);
  await supportEnglishHealth(authenticated);
 }
