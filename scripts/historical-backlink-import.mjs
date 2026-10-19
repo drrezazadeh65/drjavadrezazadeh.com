@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import {loadHistoricalAuthorityRegistry, normalizeHistoricalPath, classifyHistoricalTarget, authorityScore, priorityFromScore} from '../platform/historical-authority.mjs';
+import {loadHistoricalAuthorityRegistry, normalizeHistoricalPath, identifyHistoricalUrl, classifyHistoricalTarget, authorityScore, priorityFromScore} from '../platform/historical-authority.mjs';
 
 const input=process.argv[2];
 if(!input){
@@ -9,26 +9,53 @@ if(!input){
 }
 const out=process.argv[3]||'';
 const text=fs.readFileSync(input,'utf8').replace(/^\uFEFF/,'');
-const first=(text.split(/\r?\n/,1)[0]||'');
-const candidates=[',','\t',';'];
-const delimiter=candidates.map(d=>[d,(first.split(d).length-1)]).sort((a,b)=>b[1]-a[1])[0][0];
-
-function parseLine(line,sep){
-  const cells=[];let cur='';let quoted=false;
-  for(let i=0;i<line.length;i++){
-    const ch=line[i];
-    if(ch==='"'){
-      if(quoted&&line[i+1]==='"'){cur+='"';i++;continue}
-      quoted=!quoted;continue;
+// RFC 4180 reader: quoted fields may include separators, escaped quotes,
+// CRLF and embedded newlines. Never split physical lines into logical records.
+function parseCsvRecords(csv,separator){
+  const records=[];let row=[],field='',quoted=false;
+  for(let i=0;i<csv.length;i++){
+    const ch=csv[i];
+    if(quoted){
+      if(ch==='"'){
+        if(csv[i+1]==='"'){field+='"';i++}
+        else quoted=false;
+      }else field+=ch;
+      continue;
     }
-    if(ch===sep&&!quoted){cells.push(cur);cur='';continue}
-    cur+=ch;
+    if(ch==='"'){
+      if(field.trim()!=='')throw new Error('Invalid CSV quote at character '+i);
+      quoted=true;
+    }else if(ch===separator){
+      row.push(field.trim());field='';
+    }else if(ch==='\r'||ch==='\n'){
+      if(ch==='\r'&&csv[i+1]==='\n')i++;
+      row.push(field.trim());field='';
+      if(row.some(value=>value!==''))records.push(row);
+      row=[];
+    }else field+=ch;
   }
-  cells.push(cur);
-  return cells.map(x=>x.trim());
+  if(quoted)throw new Error('Unterminated quoted CSV field');
+  row.push(field.trim());
+  if(row.some(value=>value!==''))records.push(row);
+  return records;
 }
-const lines=text.split(/\r?\n/).filter(Boolean);
-const headers=parseLine(lines.shift()||'',delimiter);
+function detectDelimiter(csv){
+  const counts=new Map([[',',0],['\t',0],[';',0]]);
+  let quoted=false;
+  for(let i=0;i<csv.length;i++){
+    const ch=csv[i];
+    if(ch==='"'){
+      if(quoted&&csv[i+1]==='"'){i++;continue}
+      quoted=!quoted;
+    }else if(!quoted){
+      if(ch==='\r'||ch==='\n')break;
+      if(counts.has(ch))counts.set(ch,counts.get(ch)+1);
+    }
+  }
+  return [...counts.entries()].sort((a,b)=>b[1]-a[1])[0][0];
+}
+const lines=parseCsvRecords(text,detectDelimiter(text));
+const headers=lines.shift()||[];
 const normalized=headers.map(x=>x.toLowerCase().replace(/[^a-z0-9]+/g,''));
 function idx(...names){
   for(const name of names){
@@ -53,14 +80,14 @@ const registry=loadHistoricalAuthorityRegistry();
 const allowedHosts=new Set(['drjavadrezazadeh.com','www.drjavadrezazadeh.com']);
 const groups=new Map();
 let accepted=0,ignored=0;
-for(const raw of lines){
-  const row=parseLine(raw,delimiter);
+for(const row of lines){
   const target=row[targetIdx]||'';
   let u;
   try{u=new URL(target)}catch{ignored++;continue}
   if(!allowedHosts.has(u.hostname.toLowerCase())){ignored++;continue}
-  const key=normalizeHistoricalPath(u.pathname,registry.production_origin);
-  if(!groups.has(key)) groups.set(key,{path:key,rows:0,referringDomains:new Set(),referringPages:new Set(),dofollowDomains:new Set(),maxDomainRating:0,backlinks:0});
+  const identity=identifyHistoricalUrl(u.href,registry.production_origin);
+  const key=identity.identity;
+  if(!groups.has(key)) groups.set(key,{path:identity.path,identity:key,queryIdentityReview:identity.queryIdentityReview,queryDisposition:identity.queryDisposition,rows:0,referringDomains:new Set(),referringPages:new Set(),dofollowDomains:new Set(),maxDomainRating:0,backlinks:0});
   const g=groups.get(key);g.rows++;accepted++;
   const domain=(domainIdx>=0?row[domainIdx]:'').toLowerCase();
   const page=pageIdx>=0?row[pageIdx]:'';
@@ -79,7 +106,9 @@ for(const raw of lines){
 const uniqueDomains=new Set([...groups.values()].flatMap(g=>[...g.referringDomains]));
 const overallBacklinks=[...groups.values()].reduce((sum,g)=>sum+g.backlinks,0);
 const targets=[...groups.values()].map(g=>{
-  const classification=classifyHistoricalTarget(g.path,registry);
+  const classification=g.queryIdentityReview
+    ?{action:'QUERY_IDENTITY_REVIEW',reason:'Meaningful or unclassified query parameters require original-content verification before any mapping.'}
+    :classifyHistoricalTarget(g.path,registry);
   const metrics={
     referringDomains:g.referringDomains.size,
     dofollowDomains:g.dofollowDomains.size,
@@ -88,7 +117,10 @@ const targets=[...groups.values()].map(g=>{
   };
   const score=authorityScore(metrics);
   return {
-    path:g.path,
+    path:g.identity,
+    base_path:g.path,
+    query_identity_review:g.queryIdentityReview,
+    query_disposition:g.queryDisposition,
     ...metrics,
     referringPages:g.referringPages.size,
     score,
@@ -96,7 +128,7 @@ const targets=[...groups.values()].map(g=>{
     action:classification.action,
     // Source authority never grants permission for a semantically unrelated redirect.
     redirect_allowed:classification.action==='ALREADY_MAPPED'||classification.action==='PRESERVE_SHOP',
-    intent_verification_required:classification.action==='REVIEW',
+    intent_verification_required:classification.action==='REVIEW'||classification.action==='QUERY_IDENTITY_REVIEW',
     permanently_retired:classification.action==='QUARANTINE_GONE',
     target:classification.target||null,
     status:classification.status||null,
@@ -119,7 +151,8 @@ const result={
     preserve_shop:targets.filter(x=>x.action==='PRESERVE_SHOP').length,
     already_mapped:targets.filter(x=>x.action==='ALREADY_MAPPED').length,
     quarantine_gone:targets.filter(x=>x.action==='QUARANTINE_GONE').length,
-    review:targets.filter(x=>x.action==='REVIEW').length
+    review:targets.filter(x=>x.action==='REVIEW'||x.action==='QUERY_IDENTITY_REVIEW').length,
+    query_identity_review:targets.filter(x=>x.action==='QUERY_IDENTITY_REVIEW').length
   },
   targets
 };
