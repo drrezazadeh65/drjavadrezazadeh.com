@@ -133,7 +133,11 @@ function classifyEvent(r){
  const source=normalizedSource(e.source_type);
  if(!sources.has(source))reasons.push('SOURCE_TYPE_UNVERIFIED');
  const provenance=plain(e.provenance)?e.provenance:{};
- if(!recordId(provenance.review_id)||e.review_projection?.active!==true)
+ // A submitted direction is not professionally routable until both the
+ // persisted review reference and its currently ACTIVE projection are present.
+ const persistedReviewId=e.provenance?.review_id;
+ const activeReview=e.review_projection?.active===true;
+ if(!recordId(persistedReviewId)||!activeReview)
   reasons.push('NO_ACTIVE_REVIEW_PROJECTION');
  const direction=provenance.direction;
  if(!directions.has(direction))
