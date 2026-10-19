@@ -39,7 +39,7 @@ for(const [locale,route] of [['fa','/fa/entekhab-reshteh/'],['en','/en/student-g
   const action=studio.locator('.jr-cs-show-result');
   await action.click();
   await expect(feedback).toBeHidden();
-  await expect(studio.locator('.jr-cs-live')).toContainText(locale==='fa'?'معیار':'criteria');
+  await expect(studio.locator('.jr-cs-live')).toContainText(locale==='fa'?'معیار':'criterion');
   const cards=studio.locator('.jr-cs-path');
   for(let c=0;c<2;c++)
    for(let n=0;n<5;n++)await cards.nth(c).locator('select').nth(n).selectOption(c===0?'4':'2');
