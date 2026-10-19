@@ -2,7 +2,7 @@
  * Independent, read-only acceptance for PUBLIC deployment surfaces.
  * Unlike the legacy 17-check smoke verdict, this cannot pass if the tested
  * Git SHA is not actually deployed, /home/ is 404, or bilingual routes fail.
- * Does NOT certify payments, privacy RBAC, PKP OJS, SMTP, backups or 41 gates.
+ * Does NOT certify payments, privacy RBAC, JHELA native editorial workflows, SMTP, backups or the full masterplan.
  */
 const find=(gates,id)=>Array.isArray(gates)?gates.find(x=>x&&x.name===id):undefined;
 
@@ -33,8 +33,9 @@ export function assessPublicReleaseEvidence(evidence){
    'publishing_public_offer_not_verified');
  // Checkout remains fail-closed until private commercial evidence exists.
  // Never infer bank delivery or a signed licence from a public offer response.
- const tls=find(evidence?.operationalGates,'jhela-ojs-subdomain-tls');
+ const tls=find(evidence?.operationalGates,'jhela-native-subdomain-tls');
  const journalTlsPublicHandshakeObserved=tls?.trustedTlsHandshake===true;
+ const journalCanonicalBridgeVerified=tls?.canonicalJournalRedirectVerified===true;
  return {
   schema:'jr-public-deployment-acceptance-v1',
   publicP0Acceptance: blockers.length===0?'PUBLIC_SURFACES_VERIFIED':'BLOCKED',
@@ -47,13 +48,14 @@ export function assessPublicReleaseEvidence(evidence){
    bilingualRoutes:typeof bilingual?.publicPagesMatchingContract==='number'?bilingual.publicPagesMatchingContract:null,
    expectedBilingualRoutes:42,
    publishingPageAndOffer:product?.status==='LIVE_VERIFIED',
-   journalTlsPublicHandshakeObserved
+   journalTlsPublicHandshakeObserved,
+   journalCanonicalBridgeVerified
   },
   productionOwnerAccepted:false,
   fullMasterplanCertified:false,
   commercialE2EVerified:false,
   scientificPsychometricsVerified:false,
-  ojsEditorialE2EVerified:false,
+  nativeJournalEditorialE2EVerified:false,
   note:'Public anonymous HTTP checks only, not production services, private-file safety or legal/scientific certification.'
  };
 }
