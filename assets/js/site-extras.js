@@ -75,7 +75,7 @@ area.append(button,note);footer.parentNode.insertBefore(area,footer);
 /* Pilot for individual Persian scholarly articles only; HTTP 503 hides unavailable service. */
 (()=>{
  const path=location.pathname.replace(/index\.html$/,'');
- if(!/^\/fa\/akhbar\/[a-z0-9-]+\/$/.test(path)||document.querySelector('[data-jr-community-loader]'))return;
+ if(!/^\/fa\/(?:akhbar|rahnamaha)\/[a-z0-9-]+\/$/.test(path)||document.querySelector('[data-jr-community-loader]'))return;
  const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/css/community-comments.css?v=20261016-pilot1';css.dataset.jrCommunityLoader='1';document.head.append(css);
  const script=document.createElement('script');script.src='/assets/js/community-comments.js?v=20261016-pilot1';script.defer=true;document.head.append(script);
 })();
