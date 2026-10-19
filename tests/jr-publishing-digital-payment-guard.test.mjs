@@ -35,6 +35,10 @@ test('no author permission can be auto-forged by sales activation',()=>{
  assert.match(offer,/jrPubDigitalSalesSwitchEnabled\(\)/);
  assert.match(offer,/malware_scanned_at/);
  assert.match(offer,/JR_PUB_ORIGINAL_ASSETS/);
+ assert.match(offer,/link\.role='author'/);
+ assert.match(offer,/link\.approved_at IS NOT NULL/);
+ assert.match(offer,/acc\.email_verified_at IS NOT NULL/);
+ assert.match(offer,/count\(\$recipient->fetchAll\(PDO::FETCH_COLUMN\)\)!==1/);
  assert.match(offer,/unit_author_toman/);
  assert.match(offer,/unit_fund_toman/);
  assert.doesNotMatch(offer,/SELECT l\.evidence_sha256|AND w\.rights_verified_at IS NOT NULL/);
