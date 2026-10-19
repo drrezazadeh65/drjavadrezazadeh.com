@@ -34,6 +34,8 @@
       reset:'پاک کردن داده‌های این جلسه',cleared:'همه پاسخ‌ها و وزن‌های ذخیره‌شده در این نشست پاک شدند.',
       scale:'مقیاس ارزیابی: ۱ = بسیار نامتناسب، ۵ = بسیار متناسب',
       compared:'معیار فعال تکمیل‌شده',of:'از',empty:'—',
+      steps:['اهمیت معیارها','بررسی دو مسیر','خوانش نتیجه'],
+      stepGuide:'راهنمای سه‌مرحله‌ای کاربرگ؛ وضعیت ورود اطلاعات، نه نمره استعداد',
       remember:'ذخیره اختیاری فقط وزن‌ها در نشست این زبانه',
       privacyExtra:'فقط در صورت انتخاب شما، پنج وزن و ترتیب نمایش آن‌ها در حافظه نشست این زبانه نگهداری می‌شوند؛ نام رشته‌ها، ارزیابی‌ها و نتیجه هرگز ذخیره نمی‌شوند.',
       up:'انتقال به بالا',down:'انتقال به پایین',drag:'جابجایی با لمس یا ماوس',
@@ -61,6 +63,8 @@
       reset:'Clear this session',cleared:'All answers and any remembered weights were cleared.',
       scale:'Impression scale: 1 = very poor fit, 5 = very good fit',
       compared:'Active criteria completed',of:'of',empty:'—',
+      steps:['Set priorities','Explore two pathways','Read the reflection'],
+      stepGuide:'Three worksheet steps; progress reflects only form entries, never assessed aptitude',
       remember:'Optionally remember weights in this tab session',
       privacyExtra:'Only if you opt in, the five weights and display order remain in this tab session. Pathway names, impressions and results are never stored.',
       up:'Move up',down:'Move down',drag:'Drag to reorder',
@@ -85,6 +89,19 @@
     const header=node('div',null,'jr-cs-intro');
     header.append(node('span',isFa?'INTERACTIVE · REFLECTION':'INTERACTIVE · REFLECTION','jr-cs-eyebrow'),
       node('h3',T.heading),node('p',T.subtitle));
+    // Visual navigation represents form readiness only, not a talent score.
+    // It is informational; keyboard navigation stays in the native controls.
+    const journey=node('ol',null,'jr-cs-journey');
+    journey.setAttribute('aria-label',T.stepGuide);
+    const journeySteps=T.steps.map((title,i)=>{
+      const item=node('li',null,'jr-cs-journey-step');
+      item.dataset.step=String(i+1);
+      const number=node('span',String(i+1).padStart(2,'0'),'jr-cs-journey-index');
+      number.setAttribute('aria-hidden','true');
+      const description=node('span',title,'jr-cs-journey-label');
+      item.append(number,description);
+      journey.append(item);return item;
+    });
     const form=node('form',null,'jr-cs-form');form.noValidate=true;
     const groupWeights=node('fieldset',null,'jr-cs-weights');
     groupWeights.append(node('legend',T.weights),node('p',T.help,'jr-cs-help'));
@@ -152,7 +169,7 @@
     orderAnnounce.setAttribute('role','status');orderAnnounce.setAttribute('aria-live','polite');
     result.append(announce,metrics,contrast,explanatory,advice,limitation);
     form.append(result,reset,persistLabel,orderAnnounce,privacy);
-    root.replaceChildren(header,form);
+    root.replaceChildren(header,journey,form);
 
     // Canonical weight identity is factors[].id, regardless of visual order.
     // Existing feedback/report modules also use this stable factor identity.
@@ -250,6 +267,14 @@
       else if(names.some(n=>!n))error=T.awaiting;
       else if(names[0].toLocaleLowerCase()===names[1].toLocaleLowerCase())error=T.duplicate;
       else if(active.some(w=>entries.some(e=>e.selects[factors.indexOf(w.factor)].value==='')))error=T.incomplete;
+      const completeNames=names.every(Boolean)&&names[0].toLocaleLowerCase()!==names[1].toLocaleLowerCase();
+      const reviewReady=active.length>0&&completeNames&&!error;
+      const currentStep=active.length===0?0:reviewReady?2:1;
+      journeySteps.forEach((step,i)=>{
+        step.dataset.state=i<currentStep?'complete':i===currentStep?'active':'pending';
+        if(i===currentStep)step.setAttribute('aria-current','step');
+        else step.removeAttribute('aria-current');
+      });
       if(error){
         metrics.hidden=true;metrics.replaceChildren();contrast.hidden=true;contrast.textContent='';
         announce.textContent=message||error;return;
