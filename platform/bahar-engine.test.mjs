@@ -101,4 +101,15 @@ const sameEvent=interpretWeeklyCycle(addWeeklyEvidence(
 ),{interpretation:'Explanation',adaptation:'Next',reviewer_user_id:'staff-1'});
 assert.throws(()=>createPeriodReview({review_type:'EIGHT_WEEK',cycles:[weekOne,sameEvent],
  decision:'CHANGE',rationale:'Duplicate event',reviewer_user_id:'staff-1'}));
+const repeatedCycle=interpretWeeklyCycle(addWeeklyEvidence(
+ createWeeklyCycle({week_start:'2026-10-12',goal_text:'Repeat formative observation',planned_action:'Try in new context'}),
+ {id:'sample-3',description:'Source reused at follow-up',source_evidence_event_id:'source-event-2'}
+),{interpretation:'Observation is a repeated source, not an independently verified improvement',
+ adaptation:'Compare conditions before interpretation',reviewer_user_id:'staff-1'});
+const repeatedSummary=summariseBaharEvidence([weekOne,repeatedCycle]);
+assert.equal(repeatedSummary.source_references_repeated_across_weeks,1);
+assert.equal(repeatedSummary.independent_source_corroboration_established,false);
+assert.equal(repeatedSummary.context_and_opportunity_equivalence_established,false);
+assert.equal(repeatedSummary.causal_intervention_effect,null);
+assert.equal(repeatedSummary.longitudinal_trend_ready,false);
 console.log('BAHAR engine: 7-step book fidelity, context, source-aware evidence, human decisions and safety tests passed.');
