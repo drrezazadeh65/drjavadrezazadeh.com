@@ -198,6 +198,41 @@ function enhance(root,n){
    list.append(item);
   });
   evidence.append(list);
+  // Tailored inquiry prompts highlight a self-reported weak-fit area for each
+  // option, weighted by the learner's own priorities. This is neither a score
+  // of personal ability nor an externally assessed deficit.
+  const inquiryPrompts=[
+   ['یک فعالیت کوتاه مرتبط انجام دهید؛ تفاوت علاقه اعلامی و تجربه واقعی را یادداشت کنید.',
+    'Try a related activity and record whether actual experience supports your stated interest.'],
+   ['دفترچه رسمی و پیش‌نیازهای سال جاری را بررسی کنید؛ این فرم امکان ورود را تعیین نمی‌کند.',
+    'Check current official eligibility and prerequisites; this worksheet cannot establish admission.'],
+   ['هزینه‌های واقعی و منابع قابل‌دسترس را با ارقام و مدارک مستقل برآورد کنید.',
+    'Verify real costs and available financial support through independent evidence.'],
+   ['شرایط رفت‌وآمد، محل زندگی و تعهدات خانوادگی را با زمان‌بندی واقعی بسنجید.',
+    'Check commute, location and family commitments against a realistic weekly timetable.'],
+   ['راه‌های تغییر مسیر و انعطاف برنامه را در مقررات و سرفصل‌های رسمی بررسی کنید.',
+    'Review official transfer options, course flexibility and alternative routes.']
+  ];
+  const checks=el('section',null,'jr-cs-report-priorities');
+  checks.append(el('h5',text(fa,'اولویت بررسی برای هر گزینه، بر اساس پاسخ‌های خودتان','Priority check for each option, based on your own ratings')));
+  const checkList=el('ul');
+  data.labels.forEach((label,index)=>{
+   const ranked=data.input.map(item=>({
+    index:item.i,
+    weightedGap:item.weight*(5-item.values[index]),
+    judgement:item.values[index]
+   })).sort((a,b)=>b.weightedGap-a.weightedGap||a.index-b.index);
+   const focus=ranked[0];
+   if(!focus)return;
+   const item=el('li');
+   item.append(el('strong',label+' — '+criteria[focus.index][fa?0:1]));
+   item.append(el('p',text(fa,'در برآورد شخصی شما، این معیار با توجه به اهمیت انتخابی نیازمند وارسی بیشتری است. ',
+     'Given your own weights and impressions, this criterion deserves an independent check. ')+
+     inquiryPrompts[focus.index][fa?0:1]));
+   checkList.append(item);
+  });
+  checks.append(checkList);
+  evidence.append(checks);
   const next=el('section',null,'jr-cs-report-next');
   next.append(el('h5',text(fa,'برای رسیدن به تصمیم قابل دفاع','Steps before a defensible decision')));
   const steps=fa?[
