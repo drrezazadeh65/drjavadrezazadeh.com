@@ -59,7 +59,7 @@ for(const [lang,route,privateOrders,privateReports,query] of [
    await page.goto(origin+route+'#journey',{waitUntil:'domcontentloaded'});
    const journey=page.locator('#journey');
    await expect(journey).toBeVisible();
-   const actions=journey.locator('[data-journey-action]');
+   const actions=journey.locator('[data-journey-step]');
    await expect(actions).toHaveCount(5);
    const order=actions.nth(1),report=actions.nth(3);
    await expect(order).toHaveAttribute('data-private-href',privateOrders);
