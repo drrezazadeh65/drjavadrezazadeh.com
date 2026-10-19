@@ -35,6 +35,7 @@ test('visible interpreted feedback requires explicit click and completed user-su
  assert.match(script,/labels\[0\]\.toLocaleLowerCase\(\)===labels\[1\]\.toLocaleLowerCase\(\)/);
  assert.match(script,/Number\.isInteger\(v\)\|\|v<1\|\|v>5/);
  assert.match(script,/x\.weight\*x\.values\[index\]/);
+ assert.match(script,/dataset\.factorIndex/,'reordering must never permute weights relative to five ratings');
  assert.match(script,/if\(data\.error\)/);
  assert.match(script,/report\.hidden=false;print\.hidden=false/);
  assert.match(script,/form\.addEventListener\('input',hide\)/);
@@ -54,9 +55,9 @@ test('both canonical bilingual guidance pages preserve their base studio and loa
   const path=locale==='fa'?'fa/entekhab-reshteh/index.html':'en/student-guidance/index.html';
   const html=read(path);
   assert.match(html,/data-choice-studio data-locale/);
-  assert.match(html,/jr-choice-studio-v1[.]js[?]v=20261019-choice-studio-v1/);
-  assert.match(html,/jr-choice-studio-v1[.]css[?]v=20261019-choice-studio-v1/);
-  assert.match(html,/jr-choice-feedback-v1[.]js[?]v=20261019-tabs-feedback-v2/);
+  assert.match(html,/jr-choice-studio-v1[.]js[?]v=20261019-choice-studio-v4/);
+  assert.match(html,/jr-choice-studio-v1[.]css[?]v=20261019-choice-studio-v4/);
+  assert.match(html,/jr-choice-feedback-v1[.]js[?]v=20261019-choice-reorder-v4/);
   assert.match(html,/jr-choice-feedback-v1[.]css[?]v=20261019-tabs-feedback-v1/);
   assert.equal(html.split('jr-choice-feedback-v1.js?').length,2);
   assert.ok(html.indexOf('jr-choice-studio-v1.js?')<html.indexOf('jr-choice-feedback-v1.js?'));
