@@ -36,6 +36,9 @@ test('English publication stays source-honest, sale-gated and responsive',()=>{
   assert.match(page,/id="jp-checkout-state"[^>]*role="status"/);
   assert.match(page,/id="jp-recheck-offer"/);
   assert.match(page,/jr-publishing-checkout-v1\.js/);
+  assert.match(page,/method="post" action="\/api\/commerce\/create"/);
+  assert.match(page,/<noscript>/);
+  assert.match(page,/aria-describedby="jp-purchase-readiness"/);
  }
  assert.match(en,/id="jp-pay-now"[^>]*type="submit" disabled/);
  assert.match(en,/href="\/en\/shop\/customer-policy\/"/);
