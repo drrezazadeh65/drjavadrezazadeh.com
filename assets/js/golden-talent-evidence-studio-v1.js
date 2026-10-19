@@ -167,14 +167,22 @@ function build(){
  summaryLine(panel,t.headings.interpreted,input.alternatives);
  summaryLine(panel,t.headings.action,input.action);
  summaryLine(panel,t.fields.review,input.review);
- const risk=records.filter(r=>!r.observation).length;
- if(records.length<2 || risk>0){
-  const caution=make('p',fa?
-    'شواهد هنوز برای هر نوع جمع‌بندی چندمنبعی ناکافی‌اند؛ منابع مستقل و شواهد مخالف باید بیشتر بررسی شوند.':
-    'Evidence is insufficient for a multi-source interpretation; seek independent sources and contrary cases.',
-    'jr-gt-summary-warning');
-  panel.append(caution);
- }
+ // Repeated observations from one provenance are not independent sources.
+ // Missing observation text and unexamined rival explanations remain explicit
+ // evidence limits; neither can be converted into an aptitude claim.
+ const observed=records.filter(r=>r.observation);
+ const distinctSources=new Set(observed.map(r=>r.source)).size;
+ const warnings=[];
+ if(distinctSources<2)warnings.push(fa?
+   'این داده‌ها هنوز شامل مشاهده از دو نوع منبع مستقل نیستند؛ تکرار یک منبع، شاهد چندمنبعی محسوب نمی‌شود.':
+   'Observations do not yet span two independent source types. Repeating one source is not multi-source evidence.');
+ if(records.some(r=>!r.observation))warnings.push(fa?
+   'برخی مدخل‌ها مشاهده واقعی ندارند و برای تفسیر قابل اتکا نیستند.':
+   'Some entries lack an actual observation and cannot support an interpretation.');
+ if(!input.alternatives)warnings.push(fa?
+   'توضیح‌های رقیب یا شواهد مخالف هنوز ثبت نشده‌اند؛ تفسیر فعلی باید باز بماند.':
+   'Alternative explanations or contradictory observations have not been recorded; any interpretation must remain open.');
+ for(const warning of warnings)panel.append(make('p',warning,'jr-gt-summary-warning'));
  panel.append(make('p',t.caution,'jr-gt-summary-note'));
  const lines=[fa?'Golden Talent · نقشه آموزشی شواهد':'Golden Talent · Educational evidence map'];
  for(const name of names){
@@ -182,6 +190,7 @@ function build(){
  }
  lines.push(t.headings.sources+':');
  for(const record of records)lines.push(record.source+': '+record.observation+' | '+record.limit);
+ for(const warning of warnings)lines.push(warning);
  lines.push(t.caution);
  last=lines.join('\n\n');
  summary.replaceChildren(panel);
