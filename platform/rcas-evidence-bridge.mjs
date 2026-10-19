@@ -1,6 +1,8 @@
 // RCAS -> Golden Talent descriptive-evidence bridge. Private server use only.
 // Inputs require server-side identity, consent, session and instrument-version checks.
 // A response is not a validated trait or normative score. Missing/UNKNOWN/NA is not zero.
+// Every response remains UNREVIEWED. A shared session is one dependent evidence
+// origin; only an independent professional review can verify source independence.
 const DOMAIN_MAP=Object.freeze({A:['D5'],B:['D1'],C:['D1'],D:['D1','D6'],E:['D2'],F:['D3'],G:['D4','D5']});
 const ACCESS_VALUES=new Set(['در دسترس','محدود','فعلاً در دسترس نیست','نیاز ندارم']);
 const safeReference=value=>typeof value==='string'&&/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(value);
@@ -31,7 +33,9 @@ export function rcasToEvidence(input){
     instrument_code:'RCAS-CORE',instrument_version:input.instrument_version,
     domain_code:domain,evidence_key:code,evidence_value:{response:Number(r.value)},
     quality_state:'UNREVIEWED',
-    provenance:{respondent_role:'SELF',item_code:code,direction:'CONTEXTUALISES'}
+    provenance:{respondent_role:'SELF',item_code:code,direction:'CONTEXTUALISES',
+     independence_group_id:input.session_id,observation_reference_id:input.session_id+':'+code,
+     independence_verified:false,review_required:true}
    });
    continue;
   }
@@ -45,7 +49,9 @@ export function rcasToEvidence(input){
     instrument_code:'RCAS-P0',instrument_version:input.instrument_version,
     domain_code:'D4',evidence_key:code,evidence_value:{access_state:r.value},
     quality_state:'UNREVIEWED',
-    provenance:{respondent_role:'SELF',item_code:code,direction:'CONTEXTUALISES'}
+    provenance:{respondent_role:'SELF',item_code:code,direction:'CONTEXTUALISES',
+     independence_group_id:input.session_id,observation_reference_id:input.session_id+':'+code,
+     independence_verified:false,review_required:true}
    });
    continue;
   }
