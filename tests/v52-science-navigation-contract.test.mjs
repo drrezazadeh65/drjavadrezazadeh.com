@@ -49,7 +49,7 @@ test('all 22 existing science pages include the same cache-busted shared menu on
 test('shared navigation makes no purchases, writes or entitlement decisions',()=>{
  assert.match(source,/server-side authorization/);
  assert.match(source,/const types = \{/);
- assert.match(source,/paid: 'paid'/);
+ assert.match(source,/profile: 'paid'/);
  assert.match(source,/types\[key\]/);
  assert.doesNotMatch(source,/\b(?:fetch|XMLHttpRequest|WebSocket)\s*\(/);
  assert.doesNotMatch(source,/\b(?:localStorage|sessionStorage|document\.cookie)\b/);
