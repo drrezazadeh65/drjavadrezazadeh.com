@@ -22,7 +22,9 @@ for(const [name,path,anchor,active] of science){
    await expect(css).toHaveCount(1);
    await expect(css).toHaveAttribute('href',/20261019-science-premium-v11/);
    const mark=active===2
-    ? page.locator('.jr-bahar-topbar-brand img[src="/assets/images/persian-brand-symbol.png"]')
+    ? (width<=840
+      ? page.locator('.jr-bahar-topbar-brand img[src="/assets/images/persian-brand-symbol.png"]')
+      : page.locator('.dashboard-sidebar .dash-brand img[src="/assets/images/persian-brand-symbol.png"]'))
     : page.locator('header img[src="/assets/images/persian-brand-symbol.png"]').first();
    await expect(mark).toBeVisible();
    expect(await mark.evaluate(n=>n.complete&&n.naturalWidth>0)).toBe(true);
