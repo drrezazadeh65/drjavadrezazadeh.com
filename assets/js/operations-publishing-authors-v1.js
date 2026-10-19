@@ -64,6 +64,43 @@ function card(a){
  }
  if(!list.childElementCount)list.append(el('li','مدرکی برای این مؤلف ارائه نشده است.'));
  shell.append(el('h4','اسناد قابل بررسی'),list);
+ // Owner-only read-only projection of the existing author records. This is
+ // NOT an author login, role switch or access to the author account.
+ const previewButton=el('button','پیش‌نمایش فضای مؤلف (فقط خواندنی)','jp-button jp-owner-preview-trigger');
+ previewButton.type='button';
+ const preview=el('section','','jp-owner-preview');
+ preview.id='jp-owner-preview-'+String(a.id).replace(/[^a-z0-9-]/gi,'');
+ preview.hidden=true;preview.setAttribute('aria-label','پیش‌نمایش محدود فضای مؤلف');
+ previewButton.setAttribute('aria-controls',preview.id);
+ previewButton.setAttribute('aria-expanded','false');
+ previewButton.addEventListener('click',async()=>{
+  if(!preview.hidden){preview.hidden=true;preview.replaceChildren();previewButton.setAttribute('aria-expanded','false');return;}
+  previewButton.disabled=true;
+  try{
+   const session=await check(await fetch('/api/admin/operations/session',{credentials:'same-origin',cache:'no-store'}));
+   if(session.mfaRequired===true||!session.csrfToken)throw Error('admin_mfa_required');
+   // Re-fetch instead of rendering a stale copy after the MFA session expires.
+   const fresh=await check(await fetch(api,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}}));
+   const author=(fresh.authors||[]).find(item=>item.id===a.id);
+   if(!author)throw Error('author_not_found');
+   const docs=author.documents||[];
+   preview.replaceChildren(
+    el('h4','نمای مؤلف: '+(author.display_name_fa||'مؤلف')),
+    el('p','پیش‌نمایش بر اساس پرونده واقعیِ قابل مشاهده برای مدیر ارشد. بدون تغییر نقش، ورود به حساب مؤلف، پرداخت یا اعمال تصمیم.'),
+    el('p','نام قابل نمایش: '+(author.display_name_fa||'—')),
+    el('p','عنوان علمی و وابستگی: '+[author.academic_title,author.affiliation].filter(Boolean).join(' · ')),
+    el('p','وضعیت تأیید پروفایل: '+(author.profile_state||'ثبت نشده')),
+    el('p','وضعیت بررسی حساب بانکی: '+(author.bank_state||'ثبت نشده')),
+    el('p','تعداد مدارک ثبت‌شده: '+docs.length+' (تعداد، معادل تأیید مدارک نیست)'),
+    el('p','اطلاعات فروش، سهم مؤلف و تسویه فقط از داشبورد واقعیِ صاحب حساب قابل استناد است؛ در این پیش‌نمایش ساخته نمی‌شود.','jp-small')
+   );
+   preview.hidden=false;previewButton.setAttribute('aria-expanded','true');
+   preview.focus();
+  }catch(e){status('پیش‌نمایش مجاز نیست یا داده معتبر در دسترس نیست: '+String(e.message||'خطا'));}
+  finally{previewButton.disabled=false;}
+ });
+ preview.tabIndex=-1;
+ shell.append(previewButton,preview);
  return shell;
 }
 async function load(quiet=false){
