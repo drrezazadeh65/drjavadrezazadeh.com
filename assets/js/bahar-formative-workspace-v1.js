@@ -248,6 +248,7 @@
     form.reset();
     evidenceList.replaceChildren();
     evidenceSerial=0;
+    weekUpdate(); // reset() does not emit input; avoid a stale diary counter.
     updateCount();
     clearResult();
     setStatus(messages.cleared);
