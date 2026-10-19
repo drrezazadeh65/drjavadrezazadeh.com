@@ -160,3 +160,24 @@
  .jp-pub-v52 .jp-hero,.jp-pub-v52 .jp-en-hero{background:#fff!important}
  .jp-pub-v52{background:#fff;color:#111}
 }
+
+/* v5.2 sales activation UX — readable actions on ivory commercial surfaces.
+   Never turn the payment button on unless the verified server offer is available. */
+.jp-pub-v52 .jp-commercial .jp-hero-actions .jp-button,
+.jp-pub-v52 .jp-commercial #jp-recheck-offer{
+ color:#14263b;background:#fffaf1;border:1px solid #9b793b;
+ box-shadow:0 2px 0 rgba(29,36,42,.08);font-weight:700;
+}
+.jp-pub-v52 .jp-commercial .jp-hero-actions .jp-button:hover,
+.jp-pub-v52 .jp-commercial #jp-recheck-offer:hover{
+ background:#ece1c8;color:#132238;border-color:#76571f;
+}
+.jp-pub-v52 .jp-commercial #jp-recheck-offer:disabled{opacity:.65;cursor:progress}
+.jp-pub-v52 .jp-commercial #jp-pay-now{background:#14283e;color:#ffe8b0;border-color:#c49b50;font-weight:800;opacity:1}
+.jp-pub-v52 .jp-commercial #jp-pay-now:disabled{background:#283644;color:#d7dce0;cursor:progress}
+.jp-pub-v52 .jp-commercial :is(button,a,input):focus-visible{outline:3px solid #705018;outline-offset:3px}
+.jp-pub-v52 .jp-commercial #jp-digital-checkout-form[hidden]{display:none!important}
+@media(max-width:600px){
+ .jp-pub-v52 .jp-commercial #jp-recheck-offer{width:100%;text-align:center}
+ .jp-pub-v52 .jp-commercial .jp-hero-actions .jp-button{flex:1 1 100%;text-align:center}
+}
