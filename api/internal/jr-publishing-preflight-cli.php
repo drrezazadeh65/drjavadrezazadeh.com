@@ -92,7 +92,7 @@ try{
     'notice'=>'A positive preflight is not evidence of actual bank payment or legal review. Operator must confirm author rights and an independent test sale.'
   ];
   echo json_encode($result,JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n";
-  exit(2); // report only; always requires independent operational approval
+  exit($passed===count($checks)?0:2); // technical status only; independent operational approval remains required
 }catch(Throwable $e){
   fwrite(STDERR,"JR publishing private preflight encountered an unavailable service; no secrets printed.\n");
   exit(3);
