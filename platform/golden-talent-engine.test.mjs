@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {routeEvidence,classifyDomain} from './golden-talent-engine.mjs';
 import {reviewedEvidence,effectiveEvidenceView,projectEvidenceLedger} from './golden-talent-review.mjs';
 
-const raw=(id,domain,source)=>({id,domain_code:domain,source_type:source,source_reference_id:'origin-'+id,quality_state:'UNREVIEWED',provenance:{direction:'CONTEXTUALISES',independence_verified:true,independence_group_id:'group-'+id,respondent_reference_id:'respondent-'+id}}); // Synthetic independently evidenced provenance for CI only.
+const raw=(id,domain,source)=>({id,domain_code:domain,source_type:source,source_reference_id:'origin-'+id,quality_state:'UNREVIEWED',provenance:{direction:'CONTEXTUALISES',independence_verified:true,independence_group_id:'group-'+id,respondent_reference_id:'respondent-'+id,claim_reference_id:'claim-'+domain,material_compatibility_verified:true}}); // Synthetic independently evidenced provenance for CI only.
 const ev=(id,domain,source,quality='USABLE',direction='SUPPORTS')=>reviewedEvidence(raw(id,domain,source),{
  id:'review-'+id,evidence_event_id:id,reviewer_user_id:'reviewer',quality_decision:quality,direction,rationale:'CI review',review_status:'ACTIVE'
 });
