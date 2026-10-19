@@ -631,6 +631,100 @@
     card(text('سفارش‌های معلق','Pending orders'),orders.pendingRecords);
     card(text('ردیف‌های پرداخت‌شده','Paid-state records'),orders.paidStateRecords,
       text('تسویهٔ بانکی از این تعداد قابل استنتاج نیست.','This does not prove bank settlement.'));
+    // Server-side gateway verification is mandatory. A panel claim,
+    // transaction number or screenshot alone never changes order state.
+    const donationRecovery=data.donationRecovery||null;
+    if(donationRecovery?.schema==='commerce-donation-recovery-review-v1' &&
+       Array.isArray(donationRecovery.pendingReviewQueue)){
+      const section=node('section',undefined,'ops-card');
+      section.style.cssText='grid-column:1/-1;border:1px solid rgba(212,175,55,.38);padding:14px;display:grid;gap:12px';
+      section.append(node('h3',text('بازیابی کمک‌های مالی موفق با بازگشت ناقص درگاه',
+        'Recover donations with interrupted gateway callbacks')));
+      section.append(node('p',text(
+        'نمایش pending به معنای عدم پرداخت نیست. ابتدا در پنل BitPay شناسه تراکنش واقعی (trans_id) و شناسه درخواست را پیدا کنید. سامانه قبل از هر تغییری هر دو را مستقلاً در سرور نزد درگاه تأیید می‌کند.',
+        'Pending is not proof of non-payment. Obtain the real BitPay trans_id and request ID from the merchant dashboard. The server independently verifies the transaction before any change.'
+      ),'ops-muted'));
+      for(const entry of donationRecovery.pendingReviewQueue){
+        if(!/^[a-f0-9-]{36}$/i.test(String(entry.orderId||''))||
+           !/^\d+$/.test(String(entry.amountToman||'')))continue;
+        const item=node('div',undefined,'ops-card');
+        item.style.cssText='display:grid;gap:10px;border:1px solid rgba(212,175,55,.22);padding:12px';
+        item.append(node('p',text('سفارش','Order')+' '+entry.orderId+
+          text(' · مبلغ: ',' · amount: ')+toman(entry.amountToman)+
+          text(' · چهار رقم آخر درگاه: ',' · gateway suffix: ')+
+          String(entry.gatewayReferenceSuffix||'—'),'ops-muted'));
+        const form=node('form');form.style.cssText='display:grid;gap:10px;max-width:540px';
+        const refLabel=node('label',text('شناسه درخواست BitPay (id_get)',
+          'BitPay gateway request ID (id_get)'));
+        const ref=document.createElement('input');ref.type='text';ref.inputMode='numeric';
+        ref.pattern='[1-9][0-9]*';ref.required=true;ref.autocomplete='off';
+        refLabel.append(ref);form.append(refLabel);
+        const transLabel=node('label',text('شناسه تراکنش موفق BitPay (trans_id)',
+          'Verified BitPay transaction ID (trans_id)'));
+        const trans=document.createElement('input');trans.type='text';
+        trans.inputMode='numeric';trans.pattern='[1-9][0-9]*';trans.required=true;
+        trans.autocomplete='off';transLabel.append(trans);form.append(transLabel);
+        const ownerLabel=node('label');
+        const ownerCheck=document.createElement('input');ownerCheck.type='checkbox';ownerCheck.required=true;
+        ownerLabel.append(ownerCheck,node('span',text(
+          'این شناسه‌ها را از پنل واقعی BitPay برای همین سفارش بررسی کرده‌ام.',
+          'I checked these identifiers against this exact order in the real BitPay merchant dashboard.'
+        )));form.append(ownerLabel);
+        const submit=node('button',text('استعلام امن و تطبیق سفارش',
+          'Verify with BitPay and reconcile order'));submit.type='submit';form.append(submit);
+        form.addEventListener('submit',async event=>{
+          event.preventDefault();
+          const gatewayId=ref.value.trim(),transactionId=trans.value.trim();
+          if(!/^[1-9][0-9]{0,79}$/.test(gatewayId)||
+             !/^[1-9][0-9]{0,79}$/.test(transactionId)||
+             !gatewayId.endsWith(String(entry.gatewayReferenceSuffix||''))||
+             !ownerCheck.checked)return;
+          if(!window.confirm(text(
+            'فقط در صورت تأیید مستقل مبلغ، شناسه تراکنش و عامل سفارش از سوی BitPay، پرداخت ثبت می‌شود. ادامه می‌دهید؟',
+            'A payment will be recorded only after BitPay independently verifies amount, transaction and order factor. Continue?'
+          )))return;
+          const stamp=seq;submit.disabled=true;
+          status.textContent=text('در حال استعلام امن از BitPay…',
+            'Requesting independent BitPay verification…');
+          try{
+            const authResponse=await fetch('/api/admin/operations/session',{
+              method:'GET',credentials:'same-origin',cache:'no-store'
+            });
+            if(!authResponse.ok)throw Error('authorization');
+            const auth=await authResponse.json();
+            if(stamp!==seq||workspace.hidden||!panel.open||document.hidden)return;
+            if(auth?.ok!==true||auth.mfaRequired!==false||
+              !/^[a-f0-9]{64}$/i.test(String(auth.csrfToken||'')))throw Error('authorization');
+            const response=await fetch('/api/admin/operations/commerce/donation-reconcile',{
+              method:'POST',credentials:'same-origin',cache:'no-store',
+              headers:{'Content-Type':'application/json','Accept':'application/json',
+                'X-CSRF-Token':auth.csrfToken},
+              body:JSON.stringify({orderId:entry.orderId,gatewayId,transactionId,
+                ownerConfirmedPanelTransaction:true})
+            });
+            const body=await response.json();
+            if(stamp!==seq||workspace.hidden||!panel.open||document.hidden)return;
+            if(!response.ok||body?.ok!==true||
+               body.schema!=='commerce-donation-recovery-v1'||
+               body.change?.providerClaimRecorded!==true||
+               body.change?.state!=='paid')throw Error('verification_failed');
+            trans.value='';ref.value='';ownerCheck.checked=false;
+            await load();
+          }catch{
+            if(stamp===seq&&!workspace.hidden&&panel.open)
+              status.textContent=text(
+                'تأیید درگاه کامل نشد یا اطلاعات منطبق نبود. وضعیت سفارش تغییر نکرده است؛ دوباره بررسی کنید.',
+                'Gateway verification failed or references did not match. Recheck the payment status.'
+              );
+          }finally{if(stamp===seq)submit.disabled=false;}
+        });
+        item.append(form);section.append(item);
+      }
+      if(donationRecovery.pendingReviewQueue.length===0)
+        section.append(node('p',text('کمک مالی معلقِ قابل بررسی وجود ندارد.',
+          'No pending donation recovery cases in the bounded review queue.'),'ops-muted'));
+      results.append(section);
+    }
     const giving=data.donations||null;
     if(giving&&giving.scope==='all_time_internal_donation_ledger'){
       const h=node('h3',text('حمایت مالی تحصیلی — گزارش مستقل','Student support — separate ledger'));
