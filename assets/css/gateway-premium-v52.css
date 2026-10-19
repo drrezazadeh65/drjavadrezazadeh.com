@@ -76,15 +76,18 @@ body.language-gateway.public-gateway-page .gateway-monogram{
   place-items:center;
   flex:0 0 48px;
   height:48px;
-  color:#211607;
-  background:linear-gradient(135deg,#ffe9b5,#bc8e48);
-  border:1px solid #ead19d;
+  color:#f1d398;
+  padding:5px;
+  background:linear-gradient(140deg,#241c11,#0f0e0d);
+  border:1px solid rgba(234,209,157,.66);
   border-radius:15px;
-  font-family:Georgia,serif;
-  font-weight:700;
-  font-size:18px;
-  line-height:1;
   box-shadow:0 6px 30px rgba(190,143,68,.14);
+}
+body.language-gateway.public-gateway-page .gateway-monogram img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
 }
 body.language-gateway.public-gateway-page .gateway-id-text{display:grid;gap:1px;min-width:0}
 body.language-gateway.public-gateway-page .gateway-id-text strong{
