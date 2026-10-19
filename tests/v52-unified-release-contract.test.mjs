@@ -83,5 +83,5 @@ test('bilingual terms no longer describe a permanently inactive payment site',()
  assert.doesNotMatch(fa,/سایت استاتیک فعلی هنوز احراز هویت تولیدی ندارد/);
  assert.doesNotMatch(en,/The current static website does not yet provide secure account access/);
  assert.match(fa,/تأیید معتبر سمت سرور/);
- assert.match(en,/verified server-side provider confirmation/);
+ assert.match(en,/payment provider has confirmed a successful transaction/);
 });
