@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+// Run bilingual digital-offer policy checks through the existing candidate CI suite.
+import './v52-publishing-owner-policy-and-bilingual-surface.test.mjs';
 
 const read=path=>fs.readFileSync(path,'utf8');
 const parse=path=>JSON.parse(read(path));
