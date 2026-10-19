@@ -17,10 +17,7 @@ require_once dirname(__DIR__).'/publishing.php';
 require_once __DIR__.'/jr-publishing-digital.php';
 
 const JR_PUB_ACTIVATE_SLUG = 'tefl-ma-exams-1370-1405';
-const JR_PUB_ACTIVATE_FILES = [
- 'question_pdf'=>['tefl_1370_1405_questions.pdf','6245641c453e92ee005c4176575ef315b96ac72fd8535b7e3ff67c2369dda7c8'],
- 'answer_pdf'=>['tefl_1370_1405_answers.pdf','db8070f8a88723c1947a094a461ad2f703192092b09f03255867bbab53fa2ab4']
-];
+// Asset identities and fingerprints are shared with the bank-facing offer.
 function jrPubActivateReport(array $checks, bool $changed=false): never {
  $missing=array_keys(array_filter($checks,static fn(bool $ok):bool=>!$ok));
  echo json_encode([
@@ -117,9 +114,9 @@ try {
   $seen=[];$scanned=count($assets)===2;$hashes=$scanned;
   foreach($assets as $a){
    $kind=(string)$a['logical_kind'];
-   if(isset($seen[$kind])||!isset(JR_PUB_ACTIVATE_FILES[$kind])){$scanned=false;$hashes=false;break;}
+   if(isset($seen[$kind])||!isset(JR_PUB_ORIGINAL_ASSETS[$kind])){$scanned=false;$hashes=false;break;}
    $seen[$kind]=true;
-   [$name,$sha]=JR_PUB_ACTIVATE_FILES[$kind];
+   [$name,$sha]=JR_PUB_ORIGINAL_ASSETS[$kind];
    if(empty($a['approved_at'])||empty($a['malware_scanned_at'])
      ||(int)$a['encrypted_at_rest']!==0)$scanned=false;
    $file=jrPubAssetPath($name);
