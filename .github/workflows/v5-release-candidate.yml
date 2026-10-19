@@ -5,6 +5,7 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - '.github/workflows/v5-release-candidate.yml'
+      - 'index.html'
       - '.github/workflows/stage14-organic-growth.yml'
       - 'scripts/build-public-site.mjs'
       - 'scripts/build-public-data.mjs'
@@ -153,6 +154,7 @@ jobs:
           node --test tests/jr-publishing-author-onboarding.test.mjs
           node --test tests/v52-author-dashboard-contract.test.mjs
           node --test tests/v52-bilingual-author-product.test.mjs
+          node --test tests/gateway-premium-v52.test.mjs
           node --test tests/v52-publishing-checkout-runtime.test.mjs tests/v52-publishing-asset-integrity.test.mjs
           node --test tests/v52-unified-release-contract.test.mjs
           node --test tests/v52-author-visual-evolution.test.mjs
@@ -263,7 +265,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/customer-dashboard-browser.spec.js tests/customer-journey-actions.browser.spec.js tests/customer-next-action.browser.spec.js tests/customer-appointment-next-action.browser.spec.js tests/order-evidence.browser.spec.js tests/revenue-focus.browser.spec.js tests/scientific-continuity.browser.spec.js tests/v52-science-navigation.browser.spec.js tests/account-journey-rail.browser.spec.js tests/operations-browser.spec.js tests/operations-workspace-index.browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/bookstore-cover-gallery.browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/choice-studio-browser.spec.js tests/choice-feedback.browser.spec.js tests/service-navigator-browser.spec.js tests/rcas-english-browser.spec.js tests/donation-payment-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js --reporter=line
+          npx playwright test tests/gateway-premium-v52.browser.spec.js tests/customer-dashboard-browser.spec.js tests/customer-journey-actions.browser.spec.js tests/customer-next-action.browser.spec.js tests/customer-appointment-next-action.browser.spec.js tests/order-evidence.browser.spec.js tests/revenue-focus.browser.spec.js tests/scientific-continuity.browser.spec.js tests/v52-science-navigation.browser.spec.js tests/account-journey-rail.browser.spec.js tests/operations-browser.spec.js tests/operations-workspace-index.browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/bookstore-cover-gallery.browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/choice-studio-browser.spec.js tests/choice-feedback.browser.spec.js tests/service-navigator-browser.spec.js tests/rcas-english-browser.spec.js tests/donation-payment-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js --reporter=line
       - name: Keep failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -293,6 +295,8 @@ jobs:
           node scripts/public-retired-commerce-audit.mjs
           node scripts/stamp-bertina-release.mjs
           test -f .public-site/.htaccess
+          test -f .public-site/assets/css/gateway-premium-v52.css
+          grep -F 'gateway-premium-v52.css?v=20261020-v1' .public-site/index.html
           test -f .public-site/journal/sitemap.xml
           test ! -e .public-site/.bertina-backup-trigger
           test ! -e .public-site/.bertina-deploy-trigger
