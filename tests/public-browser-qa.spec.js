@@ -1729,3 +1729,25 @@ test('premium shop customer pages retain image, navigation and safe mobile layou
   }
  }
 });
+
+
+
+test('public bilingual search index revalidates on each page load',async({page})=>{
+  await page.addInitScript(()=>{
+    window.__jrSearchFetchCache=[];
+    const original=window.fetch.bind(window);
+    window.fetch=(resource,options)=>{
+      if(String(resource).includes('assets/search-index.json')){
+        window.__jrSearchFetchCache.push(options?.cache??'default');
+      }
+      return original(resource,options);
+    };
+  });
+  for(const route of ['/fa/jostojo/','/en/search/']){
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await expect.poll(()=>page.evaluate(()=>window.__jrSearchFetchCache?.length??0)).toBeGreaterThan(0);
+    const modes=await page.evaluate(()=>window.__jrSearchFetchCache);
+    expect(modes,route+' must not reuse stale search-index.json from an unchecked browser cache').toEqual(['no-cache']);
+    await expect(page.locator('[data-site-search] input[type="search"]')).toBeVisible();
+  }
+});
