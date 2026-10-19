@@ -733,3 +733,192 @@ body.ss-body{
  width:100%;height:100%;object-fit:contain;display:block;border-radius:inherit;
 }
 .customer-dashboard .cd-mobile-logo.jr-sci-client-mark{width:42px;height:42px;border-radius:10px}
+
+
+/* JR Cinematic Home v3 — bilingual, progressive, motion-safe.
+ * Upgrade the existing homepage system, never replace its content, routing,
+ * commerce links, account flows, fonts, or repository identity assets.
+ * No third-party CSS/font request or continuously running JavaScript.
+ */
+.public-home-page{
+ --jr-home-bright:#f9e8bd;
+ --jr-home-gold:#e7c887;
+ --jr-home-rule:rgba(231,200,135,.36);
+ background:
+  radial-gradient(ellipse 56% 31% at 7% 8%,rgba(148,101,35,.13),transparent 74%),
+  radial-gradient(ellipse 47% 30% at 94% 27%,rgba(115,81,29,.13),transparent 78%),
+  #08090a;
+}
+.public-home-page .site-header{
+ border-bottom:1px solid var(--jr-home-rule);
+ background:rgba(8,9,10,.95);
+ box-shadow:0 12px 35px rgba(0,0,0,.2);
+}
+.public-home-page .hero{
+ position:relative;isolation:isolate;overflow:hidden;
+ border:1px solid rgba(231,200,135,.33);
+ border-radius:clamp(22px,2.8vw,34px);
+ background:
+  radial-gradient(ellipse 44% 68% at 77% 45%,rgba(179,127,43,.24),transparent 77%),
+  radial-gradient(ellipse 50% 65% at 0% 0%,rgba(236,192,106,.075),transparent 83%),
+  linear-gradient(135deg,#211e1a 0%,#111316 55%,#0b0d10 100%);
+ box-shadow:0 36px 95px rgba(0,0,0,.32),inset 0 1px 0 rgba(249,232,189,.11);
+}
+.public-home-page .hero::before{
+ content:"";position:absolute;z-index:-1;pointer-events:none;
+ inset:8% -13% auto auto;width:min(65%,580px);height:auto;aspect-ratio:1;
+ border:1px solid rgba(231,200,135,.13);border-radius:50%;
+ background:radial-gradient(circle,rgba(235,181,90,.11),transparent 68%);
+ transform:none;
+}
+.public-home-page .hero::after{
+ content:"";position:absolute;inset:auto 0 0;height:2px;
+ background:linear-gradient(90deg,transparent,rgba(231,200,135,.56),transparent);
+ pointer-events:none;
+}
+.public-home-page .hero .hero-copy{min-width:0;max-width:760px}
+.public-home-page .hero .eyebrow{
+ max-width:100%;white-space:normal;letter-spacing:.055em;line-height:1.6;
+ color:#f0d597;border:1px solid var(--jr-home-rule);
+ background:rgba(15,15,14,.7);
+}
+.public-home-page.rtl .hero .eyebrow{letter-spacing:normal}
+.public-home-page .hero h1{
+ font-family:Georgia,"Times New Roman",serif;
+ font-weight:700;letter-spacing:-.04em;
+ font-size:clamp(3.1rem,5.75vw,6.2rem);
+ line-height:1.14;text-wrap:balance;
+}
+.public-home-page.rtl .hero h1{
+ font-family:"Vazirmatn",Tahoma,system-ui,sans-serif;
+ letter-spacing:normal;font-weight:800;
+ font-size:clamp(2.65rem,5.4vw,5.55rem);
+ line-height:1.43;
+}
+.public-home-page .hero h1 em{
+ font-style:normal;color:var(--jr-home-bright);
+ background:linear-gradient(115deg,#fff1ce 6%,#e3be72 53%,#fff2d0 97%);
+ -webkit-background-clip:text;background-clip:text;
+ -webkit-text-fill-color:transparent;
+}
+.public-home-page .hero-line{color:#f4e3bf;line-height:1.62;text-wrap:pretty}
+.public-home-page .hero .lead{color:#dbd1c0;line-height:1.97;max-width:61ch}
+.public-home-page .hero-pathway-cta{gap:clamp(10px,1.1vw,15px)}
+.public-home-page .hero-pathway-cta .button{
+ min-width:0;min-height:60px;position:relative;isolation:isolate;
+ padding:14px clamp(12px,1.4vw,20px);
+ border:1px solid rgba(231,200,135,.43);border-radius:15px;
+ color:#f7f0e4;background:linear-gradient(140deg,#29241c,#151619);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+ font-weight:650;line-height:1.55;text-wrap:balance;
+ transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease;
+}
+.public-home-page .hero-pathway-cta .button::after{
+ content:"↗";color:#f2d99e;font-size:19px;
+ transition:transform .22s ease;
+}
+.public-home-page.rtl .hero-pathway-cta .button::after{content:"←"}
+.public-home-page .hero-pathway-cta .button.primary{
+ color:#17130b;background:linear-gradient(110deg,#f6dda3,#d7ac5c);
+ border-color:#eac987;
+ box-shadow:0 10px 24px rgba(186,142,51,.16);
+}
+.public-home-page .hero-pathway-cta .button.primary::after{color:#211709}
+.public-home-page .portrait-shell{
+ position:relative;isolation:isolate;overflow:hidden;
+ width:min(100%,430px);aspect-ratio:4/5;padding:9px;
+ border:1px solid rgba(245,210,143,.72);
+ border-radius:38px 38px 144px 38px;
+ background:linear-gradient(138deg,#ba975d,#292319 36%,#0e1114 82%);
+ box-shadow:0 34px 90px rgba(0,0,0,.55),0 0 70px rgba(183,132,48,.1);
+ transform:perspective(1100px) rotateX(var(--jr-home-rotate-x,0deg)) rotateY(var(--jr-home-rotate-y,0deg));
+ transform-style:preserve-3d;
+ transition:transform .35s ease,box-shadow .35s ease,border-color .35s ease;
+ will-change:auto;
+}
+.public-home-page .portrait-shell::before{
+ content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+ width:auto;height:auto;aspect-ratio:auto;border:0;border-radius:inherit;
+ background:radial-gradient(circle at var(--jr-home-light-x,50%) var(--jr-home-light-y,30%),rgba(255,235,188,.28),transparent 49%);
+ transform:none;
+}
+.public-home-page .portrait-shell::after{
+ content:"";position:absolute;z-index:2;pointer-events:none;
+ inset:auto 9px 9px;height:26%;border-radius:0 0 132px 23px;
+ background:linear-gradient(0deg,rgba(9,10,10,.58),transparent);
+}
+.public-home-page .portrait-shell img,
+.public-home-page .hero-portrait{
+ position:relative;z-index:1;display:block;
+ width:100%;height:100%;object-fit:cover;object-position:center 22%;
+ border-radius:30px 30px 135px 30px;
+ transform:none;
+}
+.public-home-page .home-focus-strip>a,
+.public-home-page .audience-gate,
+.public-home-page .service-card{
+ border-color:rgba(231,200,135,.3);
+ transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease;
+}
+.public-home-page :is(.hero-pathway-cta a,.home-focus-strip a,.audience-gate,.site-header a,.home-nav-group summary,.jr-cd-action):focus-visible{
+ outline:3px solid #f3da9b;outline-offset:4px;
+}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .public-home-page .hero-pathway-cta .button:hover{
+  transform:translateY(-3px);
+  border-color:#efd79a;box-shadow:0 16px 34px rgba(0,0,0,.28);
+ }
+ .public-home-page .hero-pathway-cta .button:hover::after{transform:translate(2px,-2px)}
+ .public-home-page .portrait-shell:hover{border-color:#f3d596;box-shadow:0 40px 100px rgba(0,0,0,.56),0 0 62px rgba(203,160,74,.15)}
+ .public-home-page :is(.home-focus-strip>a,.audience-gate,.service-card):hover{
+  transform:translateY(-3px);border-color:rgba(245,210,143,.65);
+  box-shadow:0 20px 40px rgba(0,0,0,.24);
+ }
+}
+@media(max-width:900px){
+ .public-home-page .hero{grid-template-columns:minmax(0,1fr);gap:clamp(20px,4vw,32px)}
+ .public-home-page .hero::before{width:78%;inset:17% -16% auto auto}
+ .public-home-page .portrait-shell{width:min(65%,340px);justify-self:center}
+}
+@media(max-width:680px){
+ .public-home-page .hero{
+  min-height:0;padding:clamp(20px,5vw,30px) clamp(16px,4.5vw,24px);
+  border-radius:22px;gap:20px;
+ }
+ .public-home-page .hero h1,
+ .public-home-page.rtl .hero h1{
+  font-size:clamp(2.15rem,9.5vw,3.45rem);
+  line-height:1.37;
+ }
+ .public-home-page .hero .lead{font-size:clamp(.92rem,3.65vw,1rem);line-height:1.9}
+ .public-home-page .hero .eyebrow{font-size:clamp(.64rem,2.8vw,.8rem)}
+ .public-home-page .hero-pathway-cta{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .public-home-page .hero-pathway-cta .button{
+  min-height:52px;padding:10px;line-height:1.5;
+  font-size:clamp(.78rem,3vw,.94rem);
+ }
+ .public-home-page .portrait-shell{
+  width:min(72%,260px);margin-inline:auto;
+  padding:7px;border-radius:26px 26px 96px 26px;
+  transform:none;transition:none;
+ }
+ .public-home-page .portrait-shell img,
+ .public-home-page .hero-portrait{border-radius:20px 20px 89px 20px}
+ .public-home-page .portrait-shell::after{inset:auto 7px 7px;border-radius:0 0 84px 15px}
+}
+@media(max-width:360px){
+ .public-home-page .hero-pathway-cta .button{padding-inline:8px}
+ .public-home-page .hero h1,
+ .public-home-page.rtl .hero h1{font-size:clamp(2rem,9.3vw,2.25rem)}
+}
+@media(prefers-reduced-motion:reduce){
+ .public-home-page .portrait-shell{transform:none!important;transition:none!important}
+ .public-home-page .hero-pathway-cta .button,
+ .public-home-page .hero-pathway-cta .button::after{transition:none!important}
+ .public-home-page .hero-pathway-cta .button:hover{transform:none!important}
+}
+@media(forced-colors:active){
+ .public-home-page .hero h1 em{-webkit-text-fill-color:currentColor;background:none}
+ .public-home-page .portrait-shell{border:2px solid CanvasText;box-shadow:none}
+ .public-home-page .hero-pathway-cta .button{border:2px solid ButtonText;background:Canvas;color:ButtonText}
+}
