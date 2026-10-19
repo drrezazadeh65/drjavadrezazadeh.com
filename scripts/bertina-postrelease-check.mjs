@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import {inspectPublicServiceRoute,serviceRoutesFromCatalog} from './lib/public-service-route-contract.mjs';
 import {assessPublicReleaseEvidence} from './lib/public-release-acceptance.mjs';
 import {inspectPublishingPublicPage,inspectPublishingPublicOffer} from './lib/publishing-public-surface.mjs';
+import {observeJhelaHostRedirect} from './lib/jhela-native-host-acceptance.mjs';
 const ORIGIN='https://drjavadrezazadeh.com';
 const expected=(process.env.BERTINA_EXPECTED_RELEASE_SHA||'').trim();
 const output=process.env.BERTINA_ACCEPTANCE_EVIDENCE||'bertina-postrelease-evidence.json';
@@ -161,15 +162,20 @@ await observeHostGate('jhela-founding-intake-readiness',async()=>{
     formalReviewOperational:b.formalPeerReviewOperational===true,
     realSubmissionVerified:false};
 });
-await observeHostGate('jhela-ojs-subdomain-tls',async()=>{
-  // Fetch checks CA-trusted TLS. Never follow redirects or expose installer HTML.
+await observeHostGate('jhela-native-subdomain-tls',async()=>{
+  // Successful HTTPS handshake establishes CA-trusted TLS only.
+  // A redirect to the main journal path can prove a temporary bridge, NOT
+  // independent manuscript or reviewer readiness.
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),12000);
   try{
     const response=await fetch('https://journal.drjavadrezazadeh.com/',{
-      method:'GET',redirect:'manual',signal:controller.signal});
-    return {status:'HOST_UNVERIFIED',httpStatus:response.status,
-      trustedTlsHandshake:true,installedOjsOrPrivateUploadsVerified:false};
+      method:'GET',redirect:'manual',cache:'no-store',
+      headers:{Accept:'text/html'},signal:controller.signal});
+    return observeJhelaHostRedirect({
+      httpStatus:response.status,
+      location:response.headers.get('location')
+    });
   }finally{clearTimeout(timer);}
 });
 
