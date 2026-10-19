@@ -7,6 +7,9 @@ test('JHELA bilingual search reuses public index and never exposes private route
  const engine=read('assets/js/site-search.js');
  assert.match(engine,/data-journal-search/);
  assert.match(engine,/startsWith\('journal\/'\)/);
+ assert.match(engine,/safePublicPath\(x\.path\)/);
+ assert.match(engine,/\^\(\?:fa\|en\|journal\)/);
+ assert.match(engine,/esc\(base\+x\.path\)/);
  for(const path of ['journal/search/index.html','journal/fa/search/index.html']){
   const page=read(path);
   assert.match(page,/data-journal-search/);
