@@ -15,6 +15,7 @@ test('premium gateway preserves frozen identity, canonical, bilingual and search
   'rel="canonical" href="https://drjavadrezazadeh.com/"',
   'hreflang="en"','hreflang="fa"','hreflang="x-default"',
   'application/ld+json','href="https://drjavadrezazadeh.com/llms.txt"',
+  'class="gateway-monogram" aria-hidden="true"><img src="./favicon.svg"',
   'name="robots" content="index,follow,max-image-preview:large"',
   'rel="manifest"','enamad-footer-row',
   'trustseal.enamad.ir',
