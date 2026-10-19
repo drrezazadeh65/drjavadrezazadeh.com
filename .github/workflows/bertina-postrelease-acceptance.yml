@@ -13,6 +13,8 @@ on:
     paths:
       - 'scripts/bertina-postrelease-check.mjs'
       - 'scripts/lib/public-release-acceptance.mjs'
+      - 'scripts/lib/jhela-native-host-acceptance.mjs'
+      - 'tests/jhela-native-host-acceptance.test.mjs'
       - 'tests/public-release-acceptance.test.mjs'
       - 'docs/governance/CONTROLLED_DEPLOY_HANDOFF_20261016.md'
       - '.github/workflows/bertina-postrelease-acceptance.yml'
@@ -40,6 +42,8 @@ jobs:
         run: |
           node --check scripts/bertina-postrelease-check.mjs
           node --check scripts/lib/public-release-acceptance.mjs
+          node --check scripts/lib/jhela-native-host-acceptance.mjs
+          node --test tests/jhela-native-host-acceptance.test.mjs
           node --test tests/public-release-acceptance.test.mjs
 
       - name: Check trusted public TLS, exact release, auth, commerce and 13 articles
