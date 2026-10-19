@@ -1,7 +1,8 @@
-/* JR Choice Studio v1.0 | Educational reflection, not an aptitude test.
- * Privacy: transient in-memory inputs, no fetch, localStorage, cookies or
- * analytics events. Never derive admission odds, diagnostic labels or norms.
- * Accessibility: labelled native controls, live feedback, reduced motion.
+/* JR Choice Studio v4.0 | Non-regressive progressive upgrade of the established studio.
+ * Pathway names, impressions and reports are MEMORY-ONLY and never transmitted.
+ * Explicit opt-in stores ONLY five weights + display order in tab sessionStorage.
+ * Never infer admissions, aptitude, diagnosis, talent norms or career prescriptions.
+ * Reorder with keyboard buttons or touch/pen/mouse handle; no node cloning.
  */
 (() => {
   'use strict';
@@ -29,10 +30,16 @@
       formula:'روش محاسبه: مجموع (اهمیت × برآورد هر معیار) تقسیم بر مجموع اهمیت معیارهای فعال. معیارهایی که اهمیت صفر دارند در محاسبه وارد نمی‌شوند.',
       actions:'گام بعدی',next:'پیش از تصمیم، ضوابط رسمی ورود، محتوای دوره و هزینه واقعی هر گزینه را بررسی کنید؛ شواهد مخالف، دیدگاه خانواده و یک تجربه کوتاهِ قابل بازنگری را نیز ثبت کنید.',
       limitation:'این عدد بازتاب ترجیحات و برآوردهای خود شماست؛ آزمون روان‌سنجی، تشخیص استعداد، پیش‌بینی قبولی یا تضمین آینده نیست.',
-      privacy:'این اطلاعات تنها در حافظه همین صفحه پردازش می‌شوند؛ به سرور ارسال یا در مرورگر ذخیره نمی‌شوند.',
+      privacy:'نام مسیرها، ارزیابی‌ها و گزارش‌ها تنها در حافظه صفحه پردازش می‌شوند و به سرور ارسال یا در مرورگر ذخیره نمی‌شوند.',
       reset:'پاک کردن داده‌های این جلسه',cleared:'همه پاسخ‌ها پاک شدند؛ داده‌ای ذخیره نشد.',
       scale:'مقیاس ارزیابی: ۱ = بسیار نامتناسب، ۵ = بسیار متناسب',
-      compared:'معیار فعال تکمیل‌شده',of:'از',empty:'—'
+      compared:'معیار فعال تکمیل‌شده',of:'از',empty:'—',
+      remember:'ذخیره اختیاری فقط وزن‌ها در نشست این زبانه',
+      privacyExtra:'فقط در صورت انتخاب شما، پنج وزن و ترتیب نمایش آن‌ها در حافظه نشست این زبانه نگهداری می‌شوند؛ نام رشته‌ها، ارزیابی‌ها و نتیجه هرگز ذخیره نمی‌شوند.',
+      up:'انتقال به بالا',down:'انتقال به پایین',drag:'جابجایی با لمس یا ماوس',
+      orderChanged:'ترتیب معیارها تغییر کرد.',
+      storageUnavailable:'ذخیره نشست مرورگر در دسترس نیست؛ داده‌ها در حافظه همین صفحه می‌مانند.',
+      saved:'تنظیمات وزن‌ها در همین نشست ذخیره شدند.',forgotten:'ذخیره اختیاری وزن‌ها متوقف و داده‌های آن پاک شد.'
     },
     en:{
       heading:'Interactive Study-Path Studio',subtitle:'Five criteria, two pathways, a more evidence-aware conversation',
@@ -50,10 +57,16 @@
       formula:'Method: sum of (importance × impression) divided by the total importance of active criteria. A criterion with zero importance is excluded.',
       actions:'Constructive next step',next:'Before deciding, verify official entry requirements, course content and actual costs. Record counter-evidence, family perspectives and one small, revisable experience that could inform the choice.',
       limitation:'This number describes your own preferences and judgements. It is not a validated psychometric assessment, diagnosis, admission prediction or guarantee of future success.',
-      privacy:'Inputs are processed in this page’s memory only; nothing is sent to the server or saved in browser storage.',
+      privacy:'Pathway names, ratings and reports remain in this page’s memory only; nothing is sent to the server or saved in browser storage.',
       reset:'Clear this session',cleared:'All answers cleared; no data were stored.',
       scale:'Impression scale: 1 = very poor fit, 5 = very good fit',
-      compared:'Active criteria completed',of:'of',empty:'—'
+      compared:'Active criteria completed',of:'of',empty:'—',
+      remember:'Optionally remember weights in this tab session',
+      privacyExtra:'Only if you opt in, the five weights and display order remain in this tab session. Pathway names, impressions and results are never stored.',
+      up:'Move up',down:'Move down',drag:'Drag to reorder',
+      orderChanged:'Criterion order changed.',
+      storageUnavailable:'Tab session storage is unavailable; data remain in page memory.',
+      saved:'Weights saved for this tab session.',forgotten:'Optional weight storage stopped and prior weights removed.'
     }
   };
 
@@ -66,7 +79,8 @@
   function option(value,text){const n=node('option',text);n.value=String(value);return n;}
   function initialize(root,index){
     const isFa=root.dataset.locale==='fa',T=labels[isFa?'fa':'en'];
-    root.classList.add('jr-choice-studio');
+    root.classList.add('jr-choice-studio','jr-cs-v4');
+    if(isFa)root.dir='rtl';
     const ident='jr-choice-'+index+'-';
     const header=node('div',null,'jr-cs-intro');
     header.append(node('span',isFa?'INTERACTIVE · REFLECTION':'INTERACTIVE · REFLECTION','jr-cs-eyebrow'),
@@ -77,13 +91,25 @@
     const weightGrid=node('div',null,'jr-cs-weight-grid');const weights=[];
     for(const f of factors){
       const item=node('div',null,'jr-cs-weight');
+      item.dataset.factorId=f.id;
+      item.dataset.factorIndex=String(factors.indexOf(f));
       const label=node('label',f[isFa?'fa':'en']);label.htmlFor=ident+'w-'+f.id;
       const line=node('div',null,'jr-cs-weight-line');
+      const orderControls=node('div',null,'jr-cs-order-controls');
+      const up=node('button','↑','jr-cs-move-up');
+      up.type='button';up.setAttribute('aria-label',T.up+' — '+f[isFa?'fa':'en']);up.title=T.up;
+      const down=node('button','↓','jr-cs-move-down');
+      down.type='button';down.setAttribute('aria-label',T.down+' — '+f[isFa?'fa':'en']);down.title=T.down;
+      const drag=node('button','⋮⋮','jr-cs-drag-handle');
+      drag.type='button';drag.setAttribute('aria-label',T.drag+' — '+f[isFa?'fa':'en']);
+      drag.title=T.drag;
+      orderControls.append(up,down,drag);
+      item.append(orderControls);
       const range=node('input');range.type='range';range.id=label.htmlFor;range.min='0';range.max='5';range.step='1';range.value='3';
       range.setAttribute('aria-label',f[isFa?'fa':'en']+' — '+T.importance);
       const number=node('output','3','jr-cs-number');number.htmlFor=range.id;
       line.append(range,number);item.append(label,line);weightGrid.append(item);
-      weights.push({factor:f,input:range,output:number});
+      weights.push({factor:f,item,input:range,output:number,up,down,drag});
     }
     groupWeights.append(weightGrid);form.append(groupWeights);
     const groupOptions=node('fieldset',null,'jr-cs-pathways');groupOptions.append(node('legend',T.impressions),node('p',T.scale,'jr-cs-help'));
@@ -117,10 +143,100 @@
     advice.append(node('strong',T.actions),node('p',T.next));
     const limitation=node('p',T.limitation,'jr-cs-limitation');
     const reset=node('button',T.reset,'jr-cs-reset');reset.type='reset';
-    const privacy=node('p',T.privacy,'jr-cs-privacy');
+    const privacy=node('p',T.privacy+' '+T.privacyExtra,'jr-cs-privacy');
+    const persistLabel=node('label',null,'jr-cs-persist-label');
+    const persistInput=node('input');persistInput.type='checkbox';persistInput.checked=false;
+    persistInput.setAttribute('aria-label',T.remember);
+    persistLabel.append(persistInput,node('span',T.remember));
+    const orderAnnounce=node('p','','jr-cs-order-live');
+    orderAnnounce.setAttribute('role','status');orderAnnounce.setAttribute('aria-live','polite');
     result.append(announce,metrics,contrast,explanatory,advice,limitation);
-    form.append(result,reset,privacy);
+    form.append(result,reset,persistLabel,orderAnnounce,privacy);
     root.replaceChildren(header,form);
+
+    // Canonical weight identity is factors[].id, regardless of visual order.
+    // Existing feedback/report modules also use this stable factor identity.
+    const storageKey='jr-choice-weights-v4-'+(isFa?'fa':'en')+'-'+index;
+    const safeStore=(operation,data)=>{
+      try{
+        if(typeof sessionStorage==='undefined')return null;
+        if(operation==='get')return sessionStorage.getItem(storageKey);
+        if(operation==='remove'){sessionStorage.removeItem(storageKey);return true;}
+        sessionStorage.setItem(storageKey,JSON.stringify(data));return true;
+      }catch{return null;}
+    };
+    let order=factors.map(f=>f.id);
+    const validSnapshot=s=>s&&s.version===4&&Array.isArray(s.order)&&
+      s.order.length===factors.length&&new Set(s.order).size===factors.length&&
+      factors.every(f=>s.order.includes(f.id))&&Array.isArray(s.weights)&&
+      s.weights.length===factors.length&&s.weights.every(v=>Number.isInteger(v)&&v>=0&&v<=5);
+    const load=()=>{
+      const saved=safeStore('get');
+      if(!saved)return;
+      try{
+        const value=JSON.parse(saved);
+        if(!validSnapshot(value)){safeStore('remove');return;}
+        order=[...value.order];
+        weights.forEach((w,i)=>{w.input.value=String(value.weights[i]);});
+        persistInput.checked=true;
+      }catch{safeStore('remove');}
+    };
+    const save=()=>{
+      if(!persistInput.checked)return;
+      const snapshot={version:4,weights:weights.map(w=>Number(w.input.value)),order:[...order]};
+      if(safeStore('set',snapshot)!==true)orderAnnounce.textContent=T.storageUnavailable;
+    };
+    const displayOrder=()=>{
+      const elements=new Map(weights.map(w=>[w.factor.id,w.item]));
+      order.forEach(id=>weightGrid.append(elements.get(id))); // MOVE real controls; never clone.
+      weights.forEach(w=>{
+        const i=order.indexOf(w.factor.id);
+        w.up.disabled=i===0;
+        w.down.disabled=i===order.length-1;
+      });
+    };
+    const move=(id,target)=>{
+      const from=order.indexOf(id);
+      if(from<0||target<0||target>=order.length||from===target)return;
+      order.splice(from,1);order.splice(target,0,id);
+      displayOrder();
+      orderAnnounce.textContent=T.orderChanged;
+      save();
+      redraw();
+    };
+    weights.forEach(w=>{
+      w.up.addEventListener('click',()=>{move(w.factor.id,order.indexOf(w.factor.id)-1);w.up.focus();});
+      w.down.addEventListener('click',()=>{move(w.factor.id,order.indexOf(w.factor.id)+1);w.down.focus();});
+      w.drag.addEventListener('keydown',event=>{
+        if(event.key!=='ArrowUp'&&event.key!=='ArrowDown')return;
+        event.preventDefault();
+        move(w.factor.id,order.indexOf(w.factor.id)+(event.key==='ArrowUp'?-1:1));
+      });
+      // Pointer events work with touch, mouse and pen. Only the dedicated
+      // handle starts the gesture; sliders and their keyboard support stay intact.
+      let start=null;
+      w.drag.addEventListener('pointerdown',event=>{
+        if(event.pointerType==='mouse'&&event.button!==0)return;
+        start={id:event.pointerId};
+        if(w.drag.setPointerCapture)w.drag.setPointerCapture(event.pointerId);
+      });
+      w.drag.addEventListener('pointerup',event=>{
+        if(!start||start.id!==event.pointerId)return;
+        start=null;
+        const hit=document.elementFromPoint(event.clientX,event.clientY);
+        const item=hit&&hit.closest('.jr-cs-weight');
+        if(item&&weightGrid.contains(item)&&item.dataset.factorId!==w.factor.id)
+          move(w.factor.id,order.indexOf(item.dataset.factorId));
+      });
+      w.drag.addEventListener('pointercancel',()=>{start=null;});
+      w.input.addEventListener('input',save);
+      w.input.addEventListener('change',save);
+    });
+    persistInput.addEventListener('change',()=>{
+      if(persistInput.checked){save();orderAnnounce.textContent=T.saved;}
+      else {safeStore('remove');orderAnnounce.textContent=T.forgotten;}
+    });
+    load();displayOrder();
 
     function redraw(message){
       weights.forEach(w=>{
@@ -161,7 +277,15 @@
     form.addEventListener('input',()=>redraw());
     form.addEventListener('change',()=>redraw());
     form.addEventListener('submit',event=>event.preventDefault());
-    form.addEventListener('reset',()=>window.setTimeout(()=>redraw(T.cleared),0));
+    form.addEventListener('reset',()=>{
+      safeStore('remove');
+      persistInput.checked=false;
+      order=factors.map(f=>f.id);
+      window.setTimeout(()=>{
+        displayOrder();orderAnnounce.textContent='';
+        redraw(T.cleared);
+      },0);
+    });
     redraw();
   }
   document.querySelectorAll('[data-choice-studio]').forEach(initialize);
