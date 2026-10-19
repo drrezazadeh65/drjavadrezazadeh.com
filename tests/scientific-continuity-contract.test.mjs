@@ -40,7 +40,7 @@ test('BAHAR weekly diary remains seven-day, descriptive, in-page-only and printa
   const html=read(path);
   for(const hook of ['data-bahar-weekly','data-bahar-week-list','data-bahar-week-count','data-bahar-print'])
    assert.ok(html.includes(hook),path+' lacks '+hook);
-  assert.match(html,/bahar-formative-workspace-v1[.]js[?]v=20261019-7day-continuity-v1/);
+  assert.match(html,/bahar-formative-workspace-v1[.]js[?]v=20261019-7day-continuity-v2/);
   assert.match(html,/noindex,follow,noarchive/);
   assert.match(html,/روز بدون یادداشت|blank day/i);
  }
