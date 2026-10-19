@@ -168,8 +168,12 @@ test('English account service cards use the genuine English checkout, without cr
     'English paid-service cards must not fall back to Persian checkout');
  assert.ok(buyer.includes("purchaseReady?'Secure service checkout'"),
     'English purchase call-to-action must accurately describe the page');
- assert.ok(enAccount.includes('customer-dashboard.js?v=20261017-en-checkout-verified-v52'));
- assert.ok(faAccount.includes('customer-dashboard.js?v=20261017-en-checkout-verified-v52'));
+ // The reviewed dashboard is shared between both locales; version tokens
+ // must advance when JS changes without invalidating commerce parity.
+ const accountAsset=enAccount.match(/customer-dashboard[.]js[?]v=(20[0-9]{6}-[a-z0-9-]+)/);
+ assert.ok(accountAsset,'English account must use cache-versioned canonical JS');
+ assert.ok(faAccount.includes('customer-dashboard.js?v='+accountAsset[1]),
+   'Both locales must use the same JS revision and commerce contract');
  assert.ok(read('assets/js/commerce-checkout-en.js').includes("API+'/commerce/health"), 'English checkout must check the real API status');
  assert.ok(read('assets/js/commerce-checkout-en.js').includes("API+'/commerce/create"), 'English checkout must call the original service checkout API');
  assert.ok(enCheckout.includes('commerce-checkout-en.js'));
