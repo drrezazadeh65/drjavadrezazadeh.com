@@ -15,8 +15,8 @@ test('bilingual choice studio remains a working addition to existing verified pu
   const html=read(path);
   assert.ok(html.includes('rel="canonical" href="'+url+'"'),'freeze canonical '+lang);
   assert.ok(html.includes('data-choice-studio data-locale="'+lang+'"'),'mount localised studio '+lang);
-  assert.ok(html.includes('jr-choice-studio-v1.css?v=20261019-choice-studio-v1'));
-  assert.ok(html.includes('jr-choice-studio-v1.js?v=20261019-choice-studio-v1'));
+  assert.ok(html.includes('jr-choice-studio-v1.css?v=20261019-choice-studio-v4'));
+  assert.ok(html.includes('jr-choice-studio-v1.js?v=20261019-choice-studio-v4'));
   assert.match(html,/<noscript>/,'progressive enhancement for '+lang);
   assert.match(html,/aria-labelledby="jr-choice-studio-(?:fa|en)-title"/);
  }
@@ -54,12 +54,27 @@ test('five real criteria with editable weights and two independent pathway asses
 });
 
 test('formative scientific honesty, privacy, keyboard focus and mobile layout remain binding',()=>{
- assert.doesNotMatch(script,/\b(?:localStorage|sessionStorage|indexedDB|XMLHttpRequest)\s*[.(]/);
+ assert.doesNotMatch(script,/\b(?:localStorage|indexedDB|XMLHttpRequest)\s*[.(]/);
+ assert.match(script,/sessionStorage\.setItem\(storageKey,JSON\.stringify\(data\)\)/);
+ assert.match(script,/persistInput\.checked=false/);
+ assert.match(script,/safeStore\('remove'\)/);
+ assert.match(script,/s\.weights\.every\(v=>Number\.isInteger\(v\)&&v>=0&&v<=5\)/);
+ assert.match(script,/root\.classList\.add\('jr-choice-studio','jr-cs-v4'\)/);
+ assert.match(script,/item\.dataset\.factorIndex=/);
+ assert.match(script,/weightGrid\.append\(elements\.get\(id\)\)/);
+ assert.match(script,/pointerdown/);
+ assert.match(script,/pointerup/);
+ assert.match(script,/\.drag\.addEventListener\('keydown'/);
+ assert.match(script,/\.up\.addEventListener\('click'/);
+ assert.match(script,/\.down\.addEventListener\('click'/);
+ assert.match(style,/\.jr-cs-order-controls button/);
+ assert.match(style,/min-width:44px;min-height:44px/);
  assert.doesNotMatch(script,/\bfetch\s*\(/);
  assert.doesNotMatch(script,/\b(?:sendBeacon|WebSocket)\s*\(/);
  assert.match(script,/not a validated psychometric assessment/);
  assert.match(script,/آزمون روان‌سنجی، تشخیص استعداد/);
  assert.match(script,/nothing is sent to the server/i);
+ assert.match(script,/Pathway names, ratings and reports remain in this page’s memory only/);
  assert.match(script,/setAttribute\('aria-live','polite'\)/);
  assert.match(style,/@media\(max-width:400px\)/);
  assert.match(style,/@media\(max-width:700px\)/);
