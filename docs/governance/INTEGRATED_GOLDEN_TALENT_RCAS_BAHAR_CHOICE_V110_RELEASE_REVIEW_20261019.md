@@ -60,3 +60,20 @@
 ## Owner's acceptance rule
 
 Never self-assign 10/10. Provide the completed build, tests and proof, and specific unresolved external conditions. No parallel engine, no parallel database, no destructive replacement, no forged scientific validation, and no unverified production claim.
+
+
+## Design maturation addendum — 19 October 2026 (owner requirement)
+
+**Design sources actually reviewed:** \`foundation/DESIGN-SYSTEM.md\` (frozen semantic tokens, WCAG 2.2 AA ambition, reduced motion and touch-first navigation); \`identity/brand-governance.md\` (owner-approved Persian mother mark, no Latin JR substitution); \`docs/governance/SUPER_MASTER_ALL_SERVICES_VISUAL_IDENTITY_100_PERCENT_20261016.md\`; the existing scientific stylesheet; both Choice Studio and report stylesheets; existing Bertina dashboard, RCAS and BAHAR interfaces; FA/EN live-route source files. No new design system, logos, subbrand or public paths were created.
+
+**Implemented on EXISTING paths and assets:**
+- \`assets/css/jr-scientific-experience-v1.css\`: premium black/ivory/gold, text hierarchy, response context, native controls and focus, Golden Talent evidence, RCAS work panels and progress, BAHAR seven-day log, 320–1280px/mobile/tablet/desktop, print and forced-colors fallback, reduced motion.
+- \`assets/css/bahar-rcas-handoff-v52.css\`: removed previously inconsistent blue theme; mother-brand gradient, accessible CTA/focus/RTL/LTR and compact-screen layout.
+- \`assets/css/jr-choice-studio-v1.css\` and \`assets/css/jr-choice-feedback-v1.css\`: strengthened native flow, scientific tab hierarchy, five-factor controls, seven existing category tabs, two-path comparison, typographic hierarchy, reports, focus/print, and mobile.
+- \`assets/js/jr-choice-studio-v1.js\`: the same, existing in-page mount now adds non-diagnostic, screen-reader-labelled three-step worksheet progress; progress follows form-readiness only. The maths, optional weight-only session preference, privacy and shared feedback module remain unchanged.
+- Six scientific pages annotate the active stage with \`aria-current="step"\`. Existing nav/links preserve independent privacy boundaries; no learner data pass from one free activity to the next.
+- All relevant existing page HTMLs have fresh asset version pins. Frozen canonical/hreflang, commerce, identity, auth and one-click deployment workflows were not modified.
+
+**Measured local-code quality gates (not production tests):** Seven Choice Studio/reports contract cases passed via repository-supplied V8 static contract runner; five scientific-continuity contract cases passed after correcting a real malformed RCAS script-tag regex in the EXISTING test; four integrated v5.2 science+Choice contract cases passed via V8. These are NOT substitutes for Node CI, Playwright screenshot comparisons, manual 200% text zoom, actual screen-reader acceptance and live Bertina runtime evidence. Newly added \`tests/scientific-premium-visual-browser.spec.js\` covers 320/390/768/1280px, Persian mother-mark load, scientific stage mapping, no-page overflow, Choice Studio stage/readiness, 7 BAHAR days and 200% type; existing \`.github/workflows/public-scientific-experience-qa.yml\` now invokes the visual gate and builds an unchanged sanitized release artifact. No production publish triggered.
+
+**Remaining release blocker:** The current GitHub connector's combined commit-status endpoint returns no individual checks and the workflow-run query only covers PR-triggered runs and reports no matching runs. No **green GitHub Actions or Playwright** result was independently observed. Until verified, **do not state “finished, 10/10, production-ready”**. Owner authorization and the frozen deployment remain separate.
