@@ -55,7 +55,9 @@ test('marketing pages never bypass private asset and financial protections',()=>
  const source=read('api/internal/jr-publishing-digital.php');
  assert.match(checkout,/checkoutEnabled===true/);
  assert.match(checkout,/j\.priceToman===1000000/);
- assert.match(source,/rights_scope='digital_distribution'/);
+ assert.match(source,/legacy digital_distribution records are retained/i);
+ assert.doesNotMatch(source,/rights_scope='digital_distribution'/);
+ assert.doesNotMatch(source,/AND w\.rights_verified_at IS NOT NULL/);
  assert.match(source,/unit_author_toman/);
  assert.match(source,/unit_fund_toman/);
  assert.doesNotMatch(product,/href="[^"]*\.pdf"/i);
