@@ -15,7 +15,7 @@ const good=()=>({
   {name:'mirkarimi-public-author-and-digital-offer',status:'LIVE_VERIFIED',
    pageHttpStatus:200,publicPagePassesSourceDisclosure:true,offerHttpStatus:200,
    actualBankPaymentAndVerifiedPrivatePdfDelivery:false},
-  {name:'jhela-ojs-subdomain-tls',status:'HOST_UNVERIFIED',trustedTlsHandshake:false}
+  {name:'jhela-native-subdomain-tls',status:'HOST_UNVERIFIED',trustedTlsHandshake:false}
  ]
 });
 const by=(e,id)=>e.operationalGates.find(x=>x.name===id);
@@ -27,7 +27,7 @@ test('full immutable deployed public surfaces get a PUBLIC-only PASS, not an own
  assert.deepEqual(r.blockers,[]);
  assert.equal(r.productionOwnerAccepted,false);
  assert.equal(r.commercialE2EVerified,false);
- assert.equal(r.ojsEditorialE2EVerified,false);
+ assert.equal(r.nativeJournalEditorialE2EVerified,false);
  assert.equal(r.fullMasterplanCertified,false);
  assert.equal(r.checks.bilingualRoutes,42);
 });
@@ -77,10 +77,10 @@ test('unavailable or malformed observations fail closed; never claim payment or 
   assert.equal(r.commercialE2EVerified,false);
   assert.equal(r.fullMasterplanCertified,false);
  }
- const page=good();by(page,'jhela-ojs-subdomain-tls').trustedTlsHandshake=true;
+ const page=good();by(page,'jhela-native-subdomain-tls').trustedTlsHandshake=true;
  const r=assessPublicReleaseEvidence(page);
  assert.equal(r.checks.journalTlsPublicHandshakeObserved,true);
- assert.equal(r.ojsEditorialE2EVerified,false);
+ assert.equal(r.nativeJournalEditorialE2EVerified,false);
 });
 
 test('the real observer writes publicReleaseAcceptance beside (not replacing) legacy checks',()=>{
