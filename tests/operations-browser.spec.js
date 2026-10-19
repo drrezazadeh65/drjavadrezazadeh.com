@@ -190,10 +190,13 @@ test('FA/EN account-first dashboard keeps every workspace and shows one at a tim
 test('authenticated accounts receive only a verified personal greeting in both languages',async({page})=>{
  await page.route('**/api/auth/health',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,ready:true})}));
  await page.route('**/api/auth/me',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,user:{email:'member@example.test'}})}));
+ // A signed-in account with no owned purchases offers the genuine catalogue,
+ // never an invented order or a legacy static primary action.
+ await page.route('**/api/commerce/history',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,orders:[]})}));
  for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/']]){
   await page.goto(base+route,{waitUntil:'domcontentloaded'});
   await expect(page.locator('[data-account-email]')).toHaveText('member@example.test');
-  await expect(page.locator('[data-home-action]')).toHaveAttribute('href','#ecosystem');
+  await expect(page.locator('[data-home-action]')).toHaveAttribute('href','/'+lang+'/services/');
   await expect(page.locator('html')).toHaveAttribute('data-customer-authenticated','true');
   await expect(page.locator('#student-support')).toBeHidden();
   await expect(page.locator('[data-home-heading]')).not.toContainText(lang==='en'?'Sign in':'وارد حساب شوید');
