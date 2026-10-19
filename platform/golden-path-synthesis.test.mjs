@@ -22,15 +22,22 @@ const make=(id,source)=>reviewedEvidence({
 const reviewed=[make('a','STUDENT_SELF'),make('b','TEACHER')];
 const pending={id:'pending',domain_code:'D1',source_type:'PARENT',
  quality_state:'UNREVIEWED',provenance:{direction:'CONTEXTUALISES'}};
-const route=routeEvidence([...reviewed,pending]);
+const pendingRoute=routeEvidence([...reviewed,pending]);
+assert.equal(pendingRoute.routes[0].evidence_state,'CONVERGENT');
+assert.equal(pendingRoute.integrity.accounting.contextual,1);
+assert.equal(pendingRoute.routes[0].human_review_required,true);
+assert.throws(()=>synthesizeGoldenPath({
+ route_result:pendingRoute,evidence_events:[...reviewed,pending],review_accepted:true
+}),/Unresolved evidence/,'Pending review must block synthesis even with two independent sources');
+const route=routeEvidence(reviewed);
 assert.equal(ENGINE_VERSION,'1.1.0');
-assert.equal(verifyResult(route,[...reviewed,pending]),true);
+assert.equal(verifyResult(route,reviewed),true);
 assert.equal(route.routes[0].evidence_state,'CONVERGENT');
 assert.equal(route.routes[0].usable_event_count,2);
 assert.throws(()=>synthesizeGoldenPath({route_result:route,
  evidence_events:reviewed,review_accepted:false}),/Human review approval/);
 const synth=synthesizeGoldenPath({route_result:route,
- evidence_events:[...reviewed,pending],review_accepted:true});
+ evidence_events:reviewed,review_accepted:true});
 assert.equal(synth.synthesis_version,'1.1.0');
 assert.equal(synth.total_score,null);
 assert.equal(synth.normative_label,null);
