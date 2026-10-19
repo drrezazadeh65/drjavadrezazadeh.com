@@ -60,10 +60,10 @@ try{
     jrPreflight('author_digital_rights',(bool)$q->fetchColumn(),'Rights record exists; human validation of underlying author evidence still mandatory');
   }
   $dir=jrPubPrivateDir();
-  $checksums=[
-   'tefl_1370_1405_questions.pdf'=>'6245641c453e92ee005c4176575ef315b96ac72fd8535b7e3ff67c2369dda7c8',
-   'tefl_1370_1405_answers.pdf'=>'db8070f8a88723c1947a094a461ad2f703192092b09f03255867bbab53fa2ab4'
-  ];
+  $checksums=[];
+  foreach(JR_PUB_ORIGINAL_ASSETS as [$filename,$expectedSha]) {
+    $checksums[$filename]=$expectedSha;
+  }
   if($dir!==null){
     $ok=true;
     foreach($checksums as $file=>$hash){
