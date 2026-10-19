@@ -47,7 +47,9 @@ for(const [locale,route] of [['fa','/fa/entekhab-reshteh/'],['en','/en/student-g
   await expect(feedback).toBeVisible();
   await expect(action).toHaveAttribute('aria-expanded','true');
   await expect(feedback.locator('.jr-cs-report-index')).toHaveCount(2);
-  await expect(feedback.locator('.jr-cs-report-evidence li')).toHaveCount(5);
+  await expect(feedback.locator('.jr-cs-report-evidence > ul > li')).toHaveCount(5);
+  await expect(feedback.locator('.jr-cs-report-priorities li')).toHaveCount(2);
+  await expect(feedback.locator('.jr-cs-report-priorities')).toContainText(locale==='fa'?'اولویت بررسی':'Priority check');
   await expect(feedback.locator('.jr-cs-report-next li')).toHaveCount(4);
   await expect(feedback).toContainText(locale==='fa'?'محدودیت علمی':'Scientific limitation');
   await expect(feedback.locator('a')).toHaveCount(2);
