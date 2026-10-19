@@ -33,7 +33,9 @@ function jrPubAssetPath(string $filename): ?string {
  * Owner-directed 2026-10-19: an individual author licence is not a technical
  * checkout precondition. This policy change does not establish ownership,
  * lawful distribution or a forged rights approval. Rights records, if any,
- * remain untouched. Never stamp rights_verified_at automatically.
+ * remain untouched. Legacy digital_distribution records are retained for
+ * historical audit only, not queried as a checkout permission.
+ * Never stamp rights_verified_at automatically.
  * Pricing and SKU remain server-controlled; author notices and accounting
  * continue through the existing publishing engine.
  */
