@@ -36,7 +36,7 @@ test('author portrait changes are visual only and preserve payments, disclaimers
  assert.match(fa,/id="jp-digital-checkout-form"[^>]*hidden/);
  assert.match(fa,/jr-publishing-checkout-v1\.js/);
  assert.match(fa,/id="jp-checkout-state"/);
- assert.match(fa,/href="\/fa\/app\/author\/" rel="nofollow"/);
+ assert.doesNotMatch(fa+en,/href="\/fa\/app\/author\/"/);
  assert.match(fa,/۶۰۰٬۰۰۰/);
  assert.match(fa,/۴۰۰٬۰۰۰/);
  assert.match(en,/400,000 tomans/);
