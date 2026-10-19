@@ -10,8 +10,11 @@
   const erase=root.querySelector('[data-bahar-clear]');
   const copyButton=root.querySelector('[data-bahar-copy]');
   const count=root.querySelector('[data-bahar-evidence-count]');
+  const weekList=root.querySelector('[data-bahar-week-list]');
+  const weekCount=root.querySelector('[data-bahar-week-count]');
+  const printButton=root.querySelector('[data-bahar-print]');
   const status=root.querySelector('[data-bahar-status]');
-  if(!form||!result||!addEvidence||!evidenceList||!erase||!copyButton||!count||!status)return;
+  if(!form||!result||!addEvidence||!evidenceList||!erase||!copyButton||!count||!status||!weekList||!weekCount||!printButton)return;
 
   const fa=document.documentElement.lang==='fa';
   const messages=fa?{
@@ -40,6 +43,7 @@
   const fieldNames=['goal','why','action','success','barrier','revision'];
   const maxItems=5;
   const maxValueLength=480;
+  const weekLength=240;
   let lastSummary='';
   let evidenceSerial=0;
   function safeValue(input){
@@ -100,6 +104,7 @@
     result.replaceChildren();
     result.hidden=true;
     copyButton.hidden=true;
+    printButton.hidden=true;
   }
   function extractEvidence(){
     return [...evidenceList.querySelectorAll('[data-bahar-evidence-entry]')]
@@ -108,6 +113,46 @@
          observation:safeValue(field.querySelector('textarea'))
        }))
        .filter(item=>item.source||item.observation);
+  }
+
+  /* Seven-day descriptive observation log. A count of filled notes is not
+   * an outcome, score, growth trend or judgement of ability. */
+  function weekRecords(){
+    return [...weekList.querySelectorAll('[data-bahar-week-day]')].map((entry,index)=>({
+      day:index+1,
+      tried:safeValue(entry.querySelector('[data-bahar-week-tried]')).slice(0,weekLength),
+      observed:safeValue(entry.querySelector('[data-bahar-week-observed]')).slice(0,weekLength),
+      uncertain:safeValue(entry.querySelector('[data-bahar-week-uncertain]')).slice(0,weekLength)
+    })).filter(item=>item.tried||item.observed||item.uncertain);
+  }
+  function weekUpdate(){
+    const recorded=weekRecords().length;
+    weekCount.textContent=fa?
+      recorded.toLocaleString('fa-IR')+' / ۷ روز دارای یادداشت':
+      recorded+' / 7 days with notes';
+  }
+  function renderWeekInputs(){
+    for(let day=1;day<=7;day++){
+      const entry=make('fieldset',undefined,'jr-bahar-week-day');
+      entry.setAttribute('data-bahar-week-day',String(day));
+      entry.append(make('legend',fa?'روز '+day.toLocaleString('fa-IR'):'Day '+day));
+      const grid=make('div',undefined,'jr-bahar-week-fields');
+      for(const [field,label] of [
+        ['tried',fa?'آنچه امتحان کردم':'What I tried'],
+        ['observed',fa?'آنچه واقعاً مشاهده شد':'What actually happened'],
+        ['uncertain',fa?'تردید، مانع یا توضیح رقیب':'Uncertainty, barrier or rival explanation']
+      ]){
+        const wrapper=make('label',undefined,'jr-bahar-field');
+        wrapper.append(make('span',label));
+        const area=document.createElement('textarea');
+        area.name='week-'+day+'-'+field;
+        area.setAttribute('data-bahar-week-'+field,'');
+        area.rows=2;area.maxLength=weekLength;area.autocomplete='off';
+        wrapper.append(area);grid.append(wrapper);
+      }
+      entry.append(grid);weekList.append(entry);
+    }
+    weekUpdate();
   }
   function build(){
     const values={};
@@ -119,6 +164,7 @@
       return;
     }
     const observations=extractEvidence();
+    const weekly=weekRecords();
     const panel=make('div',undefined,'jr-bahar-summary');
     const title=make('h3',fa?'مرور توصیفیِ برنامه اقدام':'Descriptive action-plan review');
     panel.append(title);
@@ -141,6 +187,33 @@
       }
       panel.append(list);
     }else panel.append(make('p',messages.empty));
+
+    const weeklySection=make('section',undefined,'jr-bahar-weekly-review');
+    weeklySection.append(make('h4',fa?'دفتر اقدام هفت‌روزه (بدون نمره)':'Seven-day observation log (unscored)'));
+    if(weekly.length){
+      const dailyList=make('ol');
+      for(const entry of weekly){
+        const row=make('li');
+        row.append(make('strong',fa?'روز '+entry.day.toLocaleString('fa-IR'):'Day '+entry.day));
+        for(const [key,label] of [
+          ['tried',fa?'اقدام':'Action'],['observed',fa?'مشاهده':'Observation'],
+          ['uncertain',fa?'محدودیت':'Uncertainty']
+        ]){
+          if(!entry[key])continue;
+          row.append(make('p',label+': '+entry[key]));
+          lines.push((fa?'روز '+entry.day.toLocaleString('fa-IR'):'Day '+entry.day)+' · '+label+': '+entry[key]);
+        }
+        dailyList.append(row);
+      }
+      weeklySection.append(dailyList);
+    }else weeklySection.append(make('p',fa?'هنوز هیچ روزی ثبت نشده است.':'No daily observations have been entered yet.'));
+    weeklySection.append(make('p',fa?
+      'روزهای خالی به معنی شکست یا نبود توانایی نیستند. یادداشت‌ها صرفاً خودگزارشی‌اند و روند رشد معتبر، تشخیص یا گزارش حرفه‌ای تولید نمی‌کنند.':
+      'Missing days are not failure or lack of ability. Self-reported notes do not establish a validated growth trend, diagnosis or professional report.',
+      'jr-bahar-summary-note'));
+    panel.append(weeklySection);
+    lines.push(fa?'روزهای بدون یادداشت، شواهد ناموجودند؛ نه ضعف یا شکست.':
+      'Unlogged days are missing evidence, not failure or a deficit.');
     panel.append(make('p',fa?
       'پیش‌اعتبارسنجی · بازبینی توصیفی و آموزشی، بدون نمره و بدون ذخیره‌سازی در سرور.':
       'PREVALIDATION · Educational description only; no score or server storage.','jr-bahar-summary-note'));
@@ -149,6 +222,7 @@
     result.replaceChildren(panel);
     result.hidden=false;
     copyButton.hidden=false;
+    printButton.hidden=false;
     setStatus(messages.built);
     result.scrollIntoView({behavior:'auto',block:'nearest'});
   }
@@ -161,6 +235,10 @@
       clearResult();
       setStatus(messages.ready);
     }
+  });
+  weekList.addEventListener('input',()=>{
+    weekUpdate();
+    if(lastSummary){clearResult();setStatus(messages.ready);}
   });
   evidenceList.addEventListener('input',()=>{
     if(lastSummary)clearResult();
@@ -185,6 +263,8 @@
       result.focus();
     }
   });
+  printButton.addEventListener('click',()=>{if(lastSummary&&!result.hidden)window.print();});
+  renderWeekInputs();
   updateCount();
   clearResult();
   setStatus(messages.ready);
