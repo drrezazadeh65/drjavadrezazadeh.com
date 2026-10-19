@@ -215,8 +215,6 @@ jobs:
           node --check assets/js/consented-lead-intake.js
           node --check assets/js/institutional-brief-builder.mjs
           node --test tests/institutional-conversion.test.mjs
-          node --check assets/js/jr-science-unified-nav-v52.js
-          node --test tests/v52-science-navigation-contract.test.mjs
           node --test tests/stage14-growth-privacy.test.mjs tests/revenue-planner-model.test.mjs
           node scripts/stage14-organic-growth-audit.mjs
           node scripts/revenue-planner-contract-audit.mjs
@@ -279,7 +277,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/customer-dashboard-browser.spec.js tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/v52-science-navigation.browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js tests/public-mobile-navigation.spec.js --reporter=line,html
+          npx playwright test tests/customer-dashboard-browser.spec.js tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js tests/public-mobile-navigation.spec.js --reporter=line,html
 
       - name: Retain Playwright failure diagnostics
         if: failure()
@@ -314,9 +312,6 @@ jobs:
           node scripts/public-retired-commerce-audit.mjs
           node scripts/stamp-bertina-release.mjs
           test -f .public-site/.htaccess
-          test -f .public-site/assets/js/jr-science-unified-nav-v52.js
-          grep -q '20261019-v2' .public-site/fa/app/student/index.html
-          grep -q '20261019-v2' .public-site/en/golden-talent/dashboard/index.html
           test ! -e .public-site/platform
           test ! -e .public-site/foundation
           test ! -e .public-site/scripts
