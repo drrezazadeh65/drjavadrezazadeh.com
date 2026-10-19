@@ -44,7 +44,8 @@
     "unreviewed_is_contextual_pending_review": true,
     "unmapped_contextual_observations_are_retained": true,
     "convergent_contradicting_evidence_is_not_a_talent_deficit": true,
-    "repeated_observations_do_not_establish_independent_sources": true
+    "repeated_observations_do_not_establish_independent_sources": true,
+    "material_claim_compatibility_requires_independent_professional_review": true
   },
   "quality_rules": [
     "WITHDRAWN evidence is excluded from routing.",
@@ -88,7 +89,8 @@
     "human_review_queue": true,
     "conservative_source_independence": "CONSUME_ROUTER_INDEPENDENCE_STATE_NOT_RAW_SOURCE_TYPE_COUNTS",
     "unreviewed_pending_review_no_deficit": true,
-    "longitudinal_bahar_not_causal_inference": true
+    "longitudinal_bahar_not_causal_inference": true,
+    "convergence_is_a_reviewed_evidence_workflow_state_not_validity": true
   },
   "source_independence_policy": {
     "status": "RESEARCH_STAGE_REQUIRES_PROFESSIONAL_VERIFICATION",
@@ -109,7 +111,13 @@
     "minimum_distinct_source_classes": 2,
     "minimum_verified_independent_clusters": 2,
     "never_infer_from_source_label_alone": true,
-    "never_trust_browser_independence_claims": true
+    "never_trust_browser_independence_claims": true,
+    "minimum_verified_comparable_claims": 1,
+    "material_compatibility_claim_fields": [
+      "claim_reference_id",
+      "material_compatibility_verified"
+    ],
+    "same_domain_and_same_direction_are_not_sufficient": true
   },
   "integrity_contract": {
     "canonicalization": "NFC JSON sorted properties, explicit error for unsupported object prototypes, accessors, cycles, unsupported scalars, duplicate normalized keys; resource bounded",
