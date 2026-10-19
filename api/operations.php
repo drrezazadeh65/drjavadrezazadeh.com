@@ -9,6 +9,7 @@ require_once __DIR__.'/operations-jhela.php';
 require_once __DIR__.'/jhela-native-editorial.php';
 require_once __DIR__.'/jhela-intake.php';
 require_once __DIR__.'/operations-commerce.php';
+require_once __DIR__.'/operations-book-expiration.php';
 require_once __DIR__.'/operations-fulfilment.php';
 require_once __DIR__.'/operations-service-delivery.php';
 require_once __DIR__.'/consultation-availability.php';
@@ -470,6 +471,35 @@ function operationsRoute(string $path, string $verb): never {
             if(!rateAllowed($pdo,'operations_commerce_read',$accountId,12,300))
                 fail('rate_limited',429);
             respond(operationsCommerceSnapshot($pdo,nowTs()));
+        }
+        // Book holds expire after 24h ONLY when the owner has independently
+        // confirmed terminal failed/cancelled BitPay status for this exact
+        // gateway id_get. A pending row alone is never negative evidence.
+        if ($path === '/admin/operations/commerce/book-expire' && $verb === 'POST') {
+            if (($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('book_expiration_owner_role_required',403);
+            if (!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if (!rateAllowed($pdo,'operations_book_expiration',$accountId,5,600))
+                fail('rate_limited',429);
+            $body=jsonBody();
+            if (($body['ownerVerifiedGateway']??null)!==true
+                || ($body['acknowledgeLatePaymentRisk']??null)!==true
+                || !is_string($body['orderId']??null)
+                || !is_string($body['gatewayId']??null)
+                || !is_string($body['providerStatus']??null))
+                fail('terminal_gateway_evidence_required',422);
+            try {
+                $change=jrExpireVerifiedUnpaidBook($pdo,$body['orderId'],
+                    $body['gatewayId'],$accountId,$body['providerStatus']);
+                respond(['ok'=>true,'schema'=>'commerce-book-expiry-owner-v1',
+                    'change'=>$change,'automaticProviderCheck'=>false]);
+            } catch (InvalidArgumentException $e) { fail('invalid_book_expiration_evidence',422); }
+            catch (DomainException $e) { fail('book_expiration_payment_or_state_conflict',409); }
+            catch(Throwable $e) {
+                error_log('Owner book expiration unavailable: '.get_class($e));
+                fail('book_expiration_unavailable',503);
+            }
         }
         if ($path === '/admin/operations/commerce/service-advance' && $verb === 'POST') {
             if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
