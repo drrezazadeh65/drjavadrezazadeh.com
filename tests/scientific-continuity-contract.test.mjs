@@ -21,7 +21,7 @@ test('all six free scientific pages have the same reviewed three-stage navigatio
   for(const file of files){
    const html=read(file);
    assert.match(html,/data-science-continuity/);
-   assert.match(html,/jr-scientific-experience-v1[.]css[?]v=20261019-continuity-v1/);
+   assert.match(html,/jr-scientific-experience-v1[.]css[?]v=20261019-science-premium-v11/);
    const nav=html.split('<nav class="jr-science-continuity"')[1]?.split('</nav>')[0];
    assert.ok(nav,'missing continuity navigator '+file);
    assert.equal((nav.match(/<li>/g)||[]).length,3,file);
