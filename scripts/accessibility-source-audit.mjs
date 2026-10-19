@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {isOwnershipVerificationArtifact} from './site-ownership-verification.mjs';
 
 const root=process.cwd();
 const ignoreDirs=new Set(['.git','node_modules','.public-site','identity','proposals','work','test-results']);
@@ -10,7 +11,8 @@ function walk(dir){
     if(ignoreDirs.has(ent.name)) continue;
     const p=path.join(dir,ent.name);
     if(ent.isDirectory()) walk(p);
-    else if(ent.isFile() && ent.name.endsWith('.html')) htmlFiles.push(p);
+    else if(ent.isFile() && ent.name.endsWith('.html') &&
+      !isOwnershipVerificationArtifact(path.relative(root,p))) htmlFiles.push(p);
   }
 }
 walk(root);

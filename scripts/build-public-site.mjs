@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {isOwnershipVerificationArtifact,verifyOwnershipArtifact} from './site-ownership-verification.mjs';
 import {checkStylesheetBundles} from './stylesheet-bundles.mjs';
 
 checkStylesheetBundles();
@@ -36,6 +37,9 @@ function copy(rel=''){
   }
 }
 copy();
+// Confirm exact Yandex verification bytes in both source and final public_html bundle.
+verifyOwnershipArtifact(root);
+verifyOwnershipArtifact(out);
 
 // Project the existing private registry for the MFA-protected admin API.
 // No platform paths, secrets, account details or third-party measurements cross this boundary.
@@ -199,7 +203,9 @@ for(const risky of ['tefl_1370_1405_questions.pdf','tefl_1370_1405_answers.pdf',
   if(all.some(file=>path.basename(file)===risky))
     failures.push('Private paid scholarly resource must not be in sanitized public release: '+risky);
 }
-const html=all.filter(p=>p.endsWith('.html'));
+const html=all.filter(p=>p.endsWith('.html') &&
+  !isOwnershipVerificationArtifact(path.relative(out,p)));
+// Ownership files are valid deployable HTML assets, not approved editorial URLs.
 // Route count includes the public engine-status page, the approved noindex customer dashboard, and approved noindex commerce relays.
 // Keep a fixed route count as a guard against accidentally publishing engineering files.
 // Verified against the healthy cb2b26b2 baseline, the successful 1c5d3b74 deployment,
