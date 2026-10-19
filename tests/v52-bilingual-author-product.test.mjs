@@ -51,3 +51,21 @@ test('v5.2 new English author page has public bookstore entry and approved stabl
  assert.ok(!en.includes('server-authoritative'));
  assert.ok(!search.includes('legal sale readiness'));
 });
+
+
+test('owner-directed scoped scientific review is explicit and public author-dashboard entry is removed',()=>{
+ assert.match(fa,/مورد ارزیابی و تأیید علمی دکتر جواد رضازاده یزدلی قرار گرفته است/);
+ assert.match(fa,/بررسی جزئی همه پاسخ‌های مجموعه در جریان است/);
+ assert.match(en,/scientific evaluation and approval by Dr[.] Javad Rezazadeh Yazdeli/);
+ assert.match(en,/Independent answer-by-answer verification remains incomplete/);
+ for(const source of [fa,en]){
+   assert.doesNotMatch(source,/href="\/fa\/app\/author\/"/);
+   assert.doesNotMatch(source,/ورود به داشبورد مؤلف|ورود مؤلفان/);
+   assert.match(source,/name="robots" content="index,follow/);
+ }
+ // Removing public CTAs must never disable or expose the actual author workspace.
+ const privatePage=read('fa/app/author/index.html');
+ assert.match(privatePage,/name="robots" content="noindex,nofollow/);
+ assert.match(privatePage,/jr-author-workspace-v1[.]js/);
+ assert.match(read('api/publishing.php'),/verified author-only/i);
+});
