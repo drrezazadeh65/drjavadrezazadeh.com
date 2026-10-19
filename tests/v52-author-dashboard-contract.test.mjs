@@ -16,7 +16,7 @@ test('owner-approved author profile is accessible but never indexable',()=>{
  assert.match(page,/jr-author-dashboard-v52\.css/);
  assert.match(page,/id="jr-author-onboarding"/);
  assert.match(page,/jr-author-workspace-v1\.js/);
- assert.match(product,/href="\/fa\/app\/author\/" rel="nofollow"/);
+ assert.doesNotMatch(product,/href="\/fa\/app\/author\/"/);
  assert.match(backend,/Cache-Control: no-store, private/);
  assert.match(backend,/l\.approved_at IS NOT NULL/);
  assert.match(backend,/email_verified_at/);
