@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import {loadHistoricalAuthorityRegistry, classifyHistoricalTarget, authorityScore, priorityFromScore, normalizeHistoricalPath} from '../platform/historical-authority.mjs';
+import {loadHistoricalAuthorityRegistry, classifyHistoricalTarget, authorityScore, priorityFromScore, identifyHistoricalUrl} from '../platform/historical-authority.mjs';
 
 const input=process.argv[2];
 if(!input){
@@ -21,9 +21,12 @@ for(const line of lines){
   const status=Number(statusText);
   if(![404,410].includes(status)||!['GET','HEAD'].includes(method)) continue;
   matched++;
-  let rawPath=rawTarget;
-  try{rawPath=new URL(rawTarget,registry.production_origin).pathname}catch{}
-  const p=normalizeHistoricalPath(rawPath,registry.production_origin);
+  // Keep WordPress content-defining query identities distinct from the home
+  // URL; tracking-only variants may aggregate with the underlying path.
+  let identity;
+  try{identity=identifyHistoricalUrl(rawTarget,registry.production_origin)}
+  catch{continue}
+  const p=identity.identity;
   if(!groups.has(p)) groups.set(p,{path:p,hits:0,ips:new Set(),referrers:new Set(),referringDomains:new Set(),bots:0,humanLike:0,statuses:new Set()});
   const g=groups.get(p);
   g.hits++;g.ips.add(remote);g.statuses.add(status);
