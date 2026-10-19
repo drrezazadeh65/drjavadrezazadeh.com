@@ -17,6 +17,8 @@ on:
       - "platform/golden-talent-evidence-analytics.test.mjs"
       - "platform/golden-talent-evidence-analytics.mjs"
       - "platform/golden-talent-engine-v11.test.mjs"
+      - "platform/golden-talent-engine-compatibility.test.mjs"
+      - "docs/reference/golden-talent-engine-0.2-prevalidation-source.md"
       - "platform/golden-path-synthesis.mjs"
       - "platform/golden-path-synthesis.test.mjs"
       - "platform/bahar-engine.mjs"
@@ -55,6 +57,8 @@ on:
       - "platform/golden-talent-evidence-analytics.test.mjs"
       - "platform/golden-talent-evidence-analytics.mjs"
       - "platform/golden-talent-engine-v11.test.mjs"
+      - "platform/golden-talent-engine-compatibility.test.mjs"
+      - "docs/reference/golden-talent-engine-0.2-prevalidation-source.md"
       - "platform/golden-path-synthesis.mjs"
       - "platform/golden-path-synthesis.test.mjs"
       - "platform/bahar-engine.mjs"
@@ -98,6 +102,7 @@ jobs:
           node --check platform/golden-talent-engine.mjs
           node platform/golden-talent-engine.test.mjs
           node platform/golden-talent-engine-v11.test.mjs
+          node --test platform/golden-talent-engine-compatibility.test.mjs
           node platform/golden-path-synthesis.test.mjs
           node platform/rcas-evidence-bridge.test.mjs
           node platform/golden-talent-evidence-analytics.test.mjs
