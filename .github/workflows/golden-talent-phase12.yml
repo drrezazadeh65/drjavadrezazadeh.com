@@ -10,6 +10,13 @@ on:
       - "platform/golden-talent-instruments.json"
       - "platform/golden-talent-engine.mjs"
       - "platform/golden-talent-engine.test.mjs"
+      - "platform/golden-talent-engine-policy.json"
+      - "platform/rcas-observer-evidence-bridge.mjs"
+      - "platform/rcas-evidence-bridge.test.mjs"
+      - "platform/rcas-evidence-bridge.mjs"
+      - "platform/golden-talent-evidence-analytics.test.mjs"
+      - "platform/golden-talent-evidence-analytics.mjs"
+      - "platform/golden-talent-engine-v11.test.mjs"
       - "platform/bahar-engine.mjs"
       - "platform/bahar-engine.test.mjs"
       - "platform/bahar-persistence.mjs"
@@ -39,6 +46,13 @@ on:
       - "platform/golden-talent-instruments.json"
       - "platform/golden-talent-engine.mjs"
       - "platform/golden-talent-engine.test.mjs"
+      - "platform/golden-talent-engine-policy.json"
+      - "platform/rcas-observer-evidence-bridge.mjs"
+      - "platform/rcas-evidence-bridge.test.mjs"
+      - "platform/rcas-evidence-bridge.mjs"
+      - "platform/golden-talent-evidence-analytics.test.mjs"
+      - "platform/golden-talent-evidence-analytics.mjs"
+      - "platform/golden-talent-engine-v11.test.mjs"
       - "platform/bahar-engine.mjs"
       - "platform/bahar-engine.test.mjs"
       - "platform/bahar-persistence.mjs"
@@ -76,7 +90,12 @@ jobs:
       - name: Phase 12 privacy and registry test
         run: node platform/golden-talent-phase12-gates.test.mjs
       - name: Existing non-normative evidence routing regression
-        run: node platform/golden-talent-engine.test.mjs
+        run: |
+          node --check platform/golden-talent-engine.mjs
+          node platform/golden-talent-engine.test.mjs
+          node platform/golden-talent-engine-v11.test.mjs
+          node platform/rcas-evidence-bridge.test.mjs
+          node platform/golden-talent-evidence-analytics.test.mjs
  
   private-bahar:
     name: BAHAR consent and longitudinal safety
