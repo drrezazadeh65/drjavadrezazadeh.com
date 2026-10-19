@@ -94,6 +94,9 @@ try{
   echo json_encode($result,JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n";
   exit($passed===count($checks)?0:2); // technical status only; independent operational approval remains required
 }catch(Throwable $e){
-  fwrite(STDERR,"JR publishing private preflight encountered an unavailable service; no secrets printed.\n");
+  // Keep diagnostic detail in the private server log; print only a correlation ID.
+  $incident=bin2hex(random_bytes(8));
+  error_log("JR publishing preflight refused incident={$incident} exception=".get_class($e)." code=".(string)$e->getCode()." source=".basename($e->getFile())." line=".$e->getLine());
+  fwrite(STDERR,"JR publishing private preflight failed [incident: {$incident}]. Consult the private server error log; no secrets printed.\n");
   exit(3);
 }
