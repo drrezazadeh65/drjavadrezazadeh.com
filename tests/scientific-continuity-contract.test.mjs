@@ -101,10 +101,10 @@ test('RCAS printable enhancement scripts load independently in both locales',()=
  ];
  for(const [path,engine] of pages){
   const html=read(path);
-  const tags=html.match(/<\\/?script\\b[^>]*>/gi)||[];
+  const tags=html.match(/<\/?script\b[^>]*>/gi)||[];
   let depth=0;
   for(const tag of tags){
-   if(/^<\\/script\\b/i.test(tag))depth--;
+   if(/^<\/script\b/i.test(tag))depth--;
    else {assert.equal(depth,0,path+' has a nested script element');depth++;}
    assert.ok(depth>=0,path+' has an unmatched script end tag');
   }
