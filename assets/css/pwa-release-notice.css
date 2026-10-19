@@ -1,0 +1,8 @@
+/* Small, accessible release update prompt. Does not cover primary navigation. */
+.jr-release-update{position:fixed;inset-inline:clamp(12px,5vw,35px);bottom:calc(98px + env(safe-area-inset-bottom,0px));z-index:10500;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:14px 16px;border:1px solid #bb9654;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.5);background:#101c28;color:#f5ecdb;font:500 14px/1.6 system-ui,sans-serif;max-width:960px;margin-inline:auto}
+.jr-release-update span{flex:1 1 320px;min-width:0}
+.jr-release-update button{font:inherit;min-height:44px;padding:8px 15px;border:1px solid #d9b87d;border-radius:10px;background:#d9b87d;color:#121923;cursor:pointer}
+.jr-release-update .jr-release-update-close{min-width:44px;min-height:44px;padding:8px;background:transparent;color:#f5ecdb;border-color:#7e7060;font-size:20px}
+.jr-release-update button:focus-visible{outline:3px solid #fff1c5;outline-offset:3px}
+@media(min-width:900px){.jr-release-update{bottom:24px}}
+@media print{.jr-release-update{display:none}}
