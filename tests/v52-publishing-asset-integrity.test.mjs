@@ -21,6 +21,8 @@ test('original digital PDFs have one canonical checksum manifest shared by activ
  assert.match(activation,/JR_PUB_ORIGINAL_ASSETS\[\$kind\]/);
  assert.match(preflight,/foreach\(JR_PUB_ORIGINAL_ASSETS as \[\$filename,\$expectedSha\]\)/);
  assert.match(runtime,/hash_equals\(\$originalHash,hash_file\('sha256',\$file\)\)/);
+ assert.match(runtime,/\$expected=JR_PUB_ORIGINAL_ASSETS\[\$kind\]\?\?null/);
+ assert.match(runtime,/hash_equals\(\$expected\[1\],hash_file\('sha256',\$file\)\)/);
  assert.match(runtime,/f\.currency='IRT'/);
  assert.match(runtime,/a\.role='author'/);
  assert.match(runtime,/count\(\$licences\)!==1/);
@@ -31,7 +33,7 @@ test('verified bank payment, two grants, durable notifications and separate fund
  assert.match(runtime,/author_share',600000/);
  assert.match(runtime,/talent_fund',400000/);
  assert.match(runtime,/700,70000,'reserve_on_sale'/);
- assert.match(runtime,/publisher_not_a_permitted_event|publishing_notification_outbox/);
+ assert.match(runtime,/publishing_notification_outbox/);
  assert.match(runtime,/buyer_paid','author_sale/);
  assert.match(runtime,/commerce_payment_claims p ON p\.order_id=o\.id/);
  assert.match(runtime,/p\.verified_amount=o\.provider_amount/);
