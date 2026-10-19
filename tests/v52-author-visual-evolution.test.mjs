@@ -8,7 +8,7 @@ for(const [language,page] of [['fa','fa/shop/authors/mehrab-mirkarimi/index.html
  test(language+' author page uses premium 5.2 styling without changing financial or search contracts',()=>{
   const html=read(page);
   assert.match(html,/class="jr-pub jp-pub-v52"/);
-  assert.match(html,/jr-author-premium-v52\.css\?v=20261018-editorial-v1/);
+  assert.match(html,/jr-author-premium-v52\.css\?v=202610(?:18-editorial-v1|19-sales-contrast-v1)/);
   assert.ok(html.indexOf('jr-author-premium-v52.css')>html.indexOf('jr-future-publishing-author-v1.css'));
   assert.match(html,/class="jp-breadcrumb"/);
   assert.match(html,/class="jp-section-index jp-container"/);
