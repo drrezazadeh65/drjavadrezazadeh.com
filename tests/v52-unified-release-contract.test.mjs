@@ -50,7 +50,7 @@ test('Golden Talent, RCAS, BAHAR and Choice Studio retain scientific boundaries'
   const html=read(pagePath);
   assert.match(html,/bahar-formative-workspace-v1\.js\?v=20261019-7day-continuity-v3" defer><\/script>/);
   assert.match(html,/bahar-rcas-handoff-v52\.js\?v=20261019-v2" defer><\/script>/);
-  assert.match(html,/jr-scientific-experience-v1\.css\?v=20261019-continuity-v2/);
+  assert.match(html,/jr-scientific-experience-v1\.css\?v=20261019-science-premium-v11/);
   assert.doesNotMatch(html,/defer><script src="\/assets\/js\/bahar-rcas-handoff/);
  }
 
