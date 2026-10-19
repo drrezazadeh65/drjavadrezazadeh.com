@@ -1,0 +1,122 @@
+/* Choice Evidence v1: accessible discipline tabs + explicit descriptive output.
+   Additive to JR Choice Studio v1, preserves frozen bilingual SEO & mobile.
+ */
+.jr-choice-studio .jr-cs-categories{
+  margin:10px 0 23px;padding:clamp(14px,2vw,23px);
+  border:1px solid rgba(212,175,55,.35);border-radius:18px;
+  background:linear-gradient(150deg,rgba(179,144,77,.085),rgba(6,8,12,.42));
+  color:var(--cs-ink);min-width:0;
+}
+.jr-choice-studio .jr-cs-categories h4{font-size:clamp(1.08rem,2vw,1.32rem);color:#f5deb0;margin:0 0 10px}
+.jr-choice-studio .jr-cs-categories-note,.jr-choice-studio .jr-cs-category-note{
+ color:#e5ddd1;line-height:1.8;font-size:.88rem;overflow-wrap:anywhere;
+}
+.jr-choice-studio .jr-cs-tabs{
+ display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+ border-bottom:1px solid rgba(212,175,55,.36);margin:18px 0 0;padding:0 0 11px;
+}
+.jr-choice-studio .jr-cs-tab{
+ cursor:pointer;flex:0 1 auto;
+ min-height:45px;white-space:normal;line-height:1.4;text-align:center;
+ padding:10px 13px;border-radius:11px;
+ border:1px solid rgba(226,192,120,.35);
+ background:#20201f;color:#e7dfd3;
+ font:650 .91rem/1.5 inherit;
+}
+.jr-choice-studio .jr-cs-tab[aria-selected="true"]{
+ background:#e4c487;color:#13100b;border-color:#e4c487;font-weight:800;
+}
+.jr-choice-studio .jr-cs-tab:hover{border-color:#e7c88e}
+.jr-choice-studio .jr-cs-category-panel{padding:14px 0 0;min-width:0}
+.jr-choice-studio .jr-cs-examples{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+ list-style:none;margin:14px 0 0;padding:0;
+}
+.jr-choice-studio .jr-cs-example{
+ display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+ padding:12px;min-width:0;list-style:none;
+ border:1px solid rgba(212,175,55,.27);border-radius:12px;
+ background:rgba(0,0,0,.25);overflow-wrap:anywhere;
+}
+.jr-choice-studio .jr-cs-example strong{display:block;flex:1 1 100%;color:#f6edda;font-size:.94rem}
+.jr-choice-studio .jr-cs-example-add{
+ cursor:pointer;min-height:44px;min-width:0;
+ flex:1 1 115px;padding:9px 11px;border:1px solid #bfa777;
+ border-radius:10px;background:#2b2925;color:#f0deb8;
+ font:650 .86rem/1.5 inherit;
+}
+.jr-choice-studio .jr-cs-example-add:hover{background:#3a3020}
+.jr-choice-studio .jr-cs-show-result{
+ display:block;width:100%;min-height:52px;margin:14px 0;
+ border-radius:13px;border:1px solid #e6c58c;
+ background:linear-gradient(110deg,#d4b274,#f1d499);color:#16110a;
+ font:800 clamp(1rem,1.8vw,1.15rem)/1.5 inherit;
+ padding:12px 17px;cursor:pointer;
+}
+.jr-choice-studio .jr-cs-show-result:hover{filter:brightness(1.07)}
+.jr-choice-studio .jr-cs-interpreted-result{
+ margin:22px 0 17px;padding:clamp(16px,2.5vw,26px);
+ border-radius:16px;border:1px solid #c5a566;
+ background:linear-gradient(132deg,rgba(211,172,99,.12),rgba(10,12,15,.82));
+ overflow-wrap:anywhere;
+}
+.jr-choice-studio .jr-cs-interpreted-result h4{font-size:clamp(1.18rem,2.4vw,1.5rem);color:#f4dbaa;margin:0 0 14px}
+.jr-choice-studio .jr-cs-interpreted-result h5{font-size:1.03rem;color:#e7c988;margin:18px 0 10px}
+.jr-choice-studio .jr-cs-interpreted-result p,.jr-choice-studio .jr-cs-interpreted-result li{
+ color:#f1eadd;line-height:1.85;font-size:clamp(.9rem,1.3vw,.98rem);
+}
+.jr-choice-studio .jr-cs-report-indices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:17px 0}
+.jr-choice-studio .jr-cs-report-index{display:grid;gap:7px;padding:14px;border:1px solid rgba(228,195,128,.4);border-radius:12px;background:rgba(0,0,0,.3)}
+.jr-choice-studio .jr-cs-report-index strong{color:#f3e6c7}
+.jr-choice-studio .jr-cs-report-index span{color:#e2d9c7;font-size:.82rem}
+.jr-choice-studio .jr-cs-report-index b{font-size:clamp(1.3rem,2.3vw,1.72rem);color:#e6ca8f;font-variant-numeric:tabular-nums}
+.jr-choice-studio .jr-cs-report-evidence ul{margin:7px 0;padding-inline-start:23px}
+.jr-choice-studio .jr-cs-report-evidence li{padding-block:5px}
+.jr-choice-studio .jr-cs-report-evidence li span{display:block;color:#e1d7c8;font-size:.86rem}
+.jr-choice-studio .jr-cs-report-next ol{margin:9px 0;padding-inline-start:24px}
+.jr-choice-studio .jr-cs-report-links{display:flex;gap:11px;flex-wrap:wrap;margin:17px 0}
+.jr-choice-studio .jr-cs-report-links a{
+ display:inline-flex;align-items:center;justify-content:center;
+ flex:1 1 170px;min-height:46px;padding:10px 14px;
+ border:1px solid rgba(216,181,108,.5);border-radius:10px;
+ background:rgba(214,175,92,.13);color:#f3ddaf!important;
+ text-align:center;text-decoration:none!important;font-weight:700;line-height:1.5;
+}
+.jr-choice-studio .jr-cs-report-disclaimer{
+ margin-top:22px;padding:12px 14px;border-inline-start:3px solid #e5bd70;
+ background:rgba(0,0,0,.3);border-radius:8px;font-size:.86rem!important;
+}
+.jr-choice-studio .jr-cs-report-print{
+ display:block;min-height:44px;margin:13px 0 0;padding:10px 15px;
+ border:1px solid #dfbf80;border-radius:10px;background:transparent;
+ color:#f3d699;font:700 .94rem/1.5 inherit;cursor:pointer;
+}
+.jr-choice-studio .jr-cs-tab:focus-visible,
+.jr-choice-studio .jr-cs-example-add:focus-visible,
+.jr-choice-studio .jr-cs-show-result:focus-visible,
+.jr-choice-studio .jr-cs-report-links a:focus-visible,
+.jr-choice-studio .jr-cs-report-print:focus-visible{
+ outline:3px solid #f3d596;outline-offset:3px;
+}
+.jr-choice-studio [hidden]{display:none!important}
+@media(max-width:710px){
+ .jr-choice-studio .jr-cs-examples{grid-template-columns:1fr}
+ .jr-choice-studio .jr-cs-tabs{gap:7px}
+ .jr-choice-studio .jr-cs-tab{flex:1 1 28%;font-size:.87rem}
+}
+@media(max-width:390px){
+ .jr-choice-studio .jr-cs-categories{padding:12px 10px}
+ .jr-choice-studio .jr-cs-tab{flex-basis:29%;padding:9px 6px}
+ .jr-choice-studio .jr-cs-report-indices{grid-template-columns:1fr}
+ .jr-choice-studio .jr-cs-interpreted-result{padding:13px 11px}
+}
+@media(prefers-reduced-motion:reduce){
+ .jr-choice-studio .jr-cs-categories *,
+ .jr-choice-studio .jr-cs-interpreted-result *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+@media print{
+ .jr-choice-studio .jr-cs-tabs,.jr-choice-studio .jr-cs-categories,
+ .jr-choice-studio .jr-cs-show-result,.jr-choice-studio .jr-cs-report-print{display:none!important}
+ .jr-choice-studio .jr-cs-interpreted-result:not([hidden]){display:block!important;color:#111!important;background:#fff!important;border:1px solid #777!important;break-inside:avoid}
+ .jr-choice-studio .jr-cs-interpreted-result *{color:#111!important}
+}
