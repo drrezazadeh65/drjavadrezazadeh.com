@@ -1,0 +1,19 @@
+/* JR v5.2 Windows/desktop installed PWA adaptive width guard.
+   This supplements, never replaces, existing responsive mother styles. */
+@media (display-mode:standalone) and (min-width:700px) and (max-width:1200px){
+ :is(.role-dashboard-page,.account-dashboard-page,.dashboard-shell-page,.student-dashboard-page,.customer-dashboard-page) :is(.app-grid,.account-grid,.account-quick-grid,.dashboard-kpi-row,.dashboard-insight-grid,.role-status-grid,.authority-grid){
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,255px),1fr))!important;
+  gap:clamp(10px,1.6vw,20px);
+ }
+ :is(.role-dashboard-page,.account-dashboard-page,.dashboard-shell-page,.student-dashboard-page,.customer-dashboard-page) :is(.app-card,.account-card,.dashboard-kpi,.role-status-card,.dash-panel,.authority-card){
+  min-width:0;max-width:100%;overflow-wrap:break-word;word-break:normal;
+ }
+ :is(.role-dashboard-page,.account-dashboard-page,.dashboard-shell-page,.student-dashboard-page,.customer-dashboard-page) :is(h1,h2,h3,button,small,strong,span,p){
+  writing-mode:horizontal-tb;word-break:normal;overflow-wrap:break-word;
+ }
+}
+@media (display-mode:standalone) and (max-width:699px){
+ :is(.role-dashboard-page,.account-dashboard-page,.dashboard-shell-page,.student-dashboard-page,.customer-dashboard-page) :is(.app-grid,.account-grid,.dashboard-insight-grid){
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+}
