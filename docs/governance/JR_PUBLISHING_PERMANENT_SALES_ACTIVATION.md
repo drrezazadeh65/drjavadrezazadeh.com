@@ -1,5 +1,5 @@
 # JR Future Publishing — Permanent Digital Sales Operating Standard
-Owner direction: 2026-10-18. Scope: the TEFL MA questions-and-answers two-PDF bundle, SKU `digital:tefl-ma-exams-1370-1405`.
+Owner direction: 2026-10-18; author-licence technical-gate override: 2026-10-20. Scope: the TEFL MA questions-and-answers two-PDF bundle, SKU `digital:tefl-ma-exams-1370-1405`.
 
 ## Commercial decision — permanent, not a temporary pilot
 
@@ -10,20 +10,20 @@ The proven Bertina one-click deployment workflow #395 is FROZEN and SHALL NOT be
 ## Source now supports persistent sales activation
 
 - `api/internal/jr-publishing-digital.php`: the offer uses an operator-only durable switch `publishing_digital_enabled => true` in the private `api/config.local.php`, OR a real server `JR_PUBLISHING_DIGITAL_ENABLED=true` environment variable. Neither is set by GitHub code or a buyer.
-- `api/internal/jr-publishing-activate-existing-cli.php`: `--check` is read-only. `--activate` only promotes the EXISTING author/work/offer in a transaction after verified account, approved author role, separately documented distribution licence, exact private PDFs, approved scan records, bank/SMTP, mail cron and separate 7% platform funding are present. It never invents a signature, inserts rights or scan records, re-seeds an existing author, or migrates schema.
+- `api/internal/jr-publishing-activate-existing-cli.php`: `--check` is read-only. `--activate` only promotes the EXISTING author/work/offer in a transaction after verified author-notification account, approved author-account mapping, exact private PDFs, approved scans, bank/SMTP, mail cron and separate 7% platform funding are ready. **The owner's latest instruction removes the separate author licence as a technical activation check.** The CLI never invents or stamps rights, inserts scan or licence records, re-seeds an existing author, or migrates schema.
 - `/api/publishing/offer`: public checkout becomes available only when the existing BitPay and publishing preflight actually pass. The browser is never the source of truth.
 - Once activated, neither code deployment nor the frozen workflow should reset `publishing_offers.checkout_enabled` or the private config switch. Temporary service outages can still suspend **transactions** through the protective preflight until restored.
 
 ## Bertina operator execution (private, not GitHub)
 
-1. Preserve the already-installed publishing tables and existing author/work/offer rows; do not run the first-time seeder against existing records or create parallel tables. Confirm a verified customer account for the actual author and its approved `publishing_author_accounts` mapping. Verify a real, attributable `digital_distribution` licence and original-content permissions; store only its genuine evidence digest in `publishing_rights_licences`.
+1. Preserve the existing publishing tables and author/work/offer rows; never re-seed them or create parallel records. Verify the genuine author-notification account and its approved `publishing_author_accounts` mapping for financial and email delivery, **not as a consent or licence condition**. An independent author-licence record (`digital_distribution`) is no longer a checkout prerequisite. Do not write or change `rights_verified_at` or fabricate licence evidence. This operational override does **not** make unlawful redistribution lawful or attest to intellectual-property ownership.
 2. Verify both PDFs outside `public_html` against the pinned original SHA-256 values, real malware-scan reports, and set `publishing_private_assets.malware_scanned_at` and `approved_at` only for independently inspected assets. Confirm existing BitPay, TLS, SMTP, delivery cron, refund route and the separately financed 70,000-toman reserve.
 3. In private `/home/drjavad1/public_html/api/config.local.php` (never GitHub), merge `'publishing_digital_enabled' => true` into the array returned by that existing file. Do not overwrite or expose other config entries. Alternatively use a persistently configured server environment variable. Keep `publishing_private_storage` pointed to the actual private PDF directory.
 4. From authenticated cPanel Terminal/SSH with the site's private runtime configuration, provide actual evidence-confirmation variables and run:
    ```sh
    php /home/drjavad1/public_html/api/internal/jr-publishing-activate-existing-cli.php --check
    ```
-   Review `missing_checks`; resolve each against real source evidence. Never set a flag to YES merely to pass a test. The owner approval flag is `JR_PUBLISHING_OWNER_APPROVED=YES_20261017`. Required independent operator flags include `JR_PUBLISHING_DIGITAL_RIGHTS_EVIDENCED=YES`, `JR_PUBLISHING_ANTIVIRUS_COMPLETE=YES`, `JR_PUBLISHING_SEPARATE_7PCT_BUDGET=YES`, and `JR_PUBLISHING_MAIL_CRON_TESTED=YES`.
+   Review `missing_checks`; resolve each against real source evidence. Never set a flag to YES merely to pass a test. The owner approval flag is `JR_PUBLISHING_OWNER_APPROVED=YES_20261017`. Required operator evidence flags remain `JR_PUBLISHING_ANTIVIRUS_COMPLETE=YES`, `JR_PUBLISHING_SEPARATE_7PCT_BUDGET=YES`, and `JR_PUBLISHING_MAIL_CRON_TESTED=YES`. `JR_PUBLISHING_DIGITAL_RIGHTS_EVIDENCED` is **not** required by the owner-approved software workflow; do not submit an invented rights digest.
 5. Only when `--check` returns `all_checks_passed:true`, run:
    ```sh
    php /home/drjavad1/public_html/api/internal/jr-publishing-activate-existing-cli.php --activate
@@ -33,7 +33,7 @@ The proven Bertina one-click deployment workflow #395 is FROZEN and SHALL NOT be
 
 ## Known real-world activation limitations
 
-GitHub repository write access is **not** access to Bertina private config, customer accounts, MySQL, author-rights evidence, file scanning, SMTP or the bank account. Committing this source does not turn on the current production product. The last observed public offer had `checkoutEnabled:false`. A prior operator view showed the author unregistered/unverified, rights/asset approvals pending, and the offer disabled; these facts must be rechecked on Bertina.
+GitHub repository write access is **not** access to Bertina private config, customer accounts, MySQL, genuine private-file evidence, SMTP or the bank account. Committing this source does not turn on live checkout. Prior operator observations showed account/asset approvals pending and the digital offer disabled; these facts must be rechecked on Bertina. The absence of a licence check must never be described as verified copyright permission.
 
 ## No-regression commitments
 
