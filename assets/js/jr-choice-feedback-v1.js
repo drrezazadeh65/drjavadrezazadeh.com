@@ -54,7 +54,11 @@ function enhance(root,n){
  const fa=root.dataset.locale==='fa';
  const form=root.querySelector('.jr-cs-form');
  const slots=[...root.querySelectorAll('.jr-cs-path')];
- const weights=[...root.querySelectorAll('.jr-cs-weight input[type="range"]')];
+ // Visually reordered cards must NEVER change criterion-to-rating mapping.
+ // The existing canonical factor index travels with each real DOM card.
+ const weights=[...root.querySelectorAll('.jr-cs-weight input[type="range"]')]
+  .sort((a,b)=>Number(a.closest('.jr-cs-weight').dataset.factorIndex)-
+                  Number(b.closest('.jr-cs-weight').dataset.factorIndex));
  const options=root.querySelector('.jr-cs-pathways');
  const result=root.querySelector('.jr-cs-result');
  if(!form||slots.length!==2||weights.length!==5||!options||!result)return;
