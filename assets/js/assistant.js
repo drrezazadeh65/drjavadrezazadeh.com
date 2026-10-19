@@ -56,13 +56,17 @@
       {label:'مشاوره تحصیلی',url:rootPath('fa/moshavere-tahsili/')},
       {label:'انتخاب رشته',url:rootPath('fa/entekhab-reshteh/')},
       {label:'Golden Talent',url:rootPath('fa/golden-talent/')},
-      {label:'درخواست مشاوره',url:rootPath('fa/darkhast-moshavere/')}
+      {label:'درخواست مشاوره',url:rootPath('fa/darkhast-moshavere/')},
+      {label:'جست‌وجوی سایت',url:rootPath('fa/search/')},
+      {label:'جست‌وجوی مجله JHELA',url:rootPath('journal/fa/search/')}
     ];
     return [
       {label:'Student Guidance',url:rootPath('en/student-guidance/')},
       {label:'Golden Talent',url:rootPath('en/golden-talent/')},
       {label:'Services',url:rootPath('en/services/')},
-      {label:'Request Consultation',url:rootPath('en/request-consultation/')}
+      {label:'Request Consultation',url:rootPath('en/request-consultation/')},
+      {label:'Search the website',url:rootPath('en/search/')},
+      {label:'Search JHELA journal',url:rootPath('journal/search/')}
     ];
   };
 
@@ -145,8 +149,16 @@
       list.className='jr-assistant-links';
       links.slice(0,4).forEach(link=>{
         if(!link?.url||!link?.label) return;
+        // Reject script/data URLs in both local and remote assistant link payloads.
+        let safeUrl;
+        try{
+          const target=new URL(link.url,location.origin);
+          if(!['http:','https:'].includes(target.protocol))return;
+          if(target.origin===location.origin&&PRIVATE_PREFIXES.some(p=>target.pathname.startsWith(p)))return;
+          safeUrl=target.href;
+        }catch(_){return;}
         const a=document.createElement('a');
-        a.href=link.url;
+        a.href=safeUrl;
         a.textContent=link.label;
         list.appendChild(a);
       });
@@ -160,10 +172,14 @@
     const q=String(query||'').toLowerCase();
     const links=quickLinks();
     if(isFa){
-      if(/انتخاب رشته|رشته|کنکور/.test(q)) return {answer:'برای تصمیم‌گیری درباره رشته، از صفحه «انتخاب رشته» و راهنماهای مرتبط شروع کنید. اگر مسئله شما نیازمند بررسی فردی است، درخواست مشاوره ثبت کنید.',links:[links[1],links[3]]};
+      if(/مجله|ژورنال|داور|داوری|jhela|journal/.test(q)) return {answer:'JHELA در مرحله تأسیس است. می‌توانید سیاست‌های عمومی و فراخوان‌های داوری را در جست‌وجوی اختصاصی مجله بررسی کنید. این پاسخ به معنای فعال‌بودن پذیرش رسمی مقاله یا نمایه‌شدن مجله نیست.',links:[links[5]]};
+       if(/جست.?وجو|جستجو|پیدا کردن|سرچ/.test(q)) return {answer:'برای پیدا کردن صفحات عمومی از جست‌وجوی فارسی سایت استفاده کنید. اطلاعات حساب و پرونده‌های خصوصی در نتایج جست‌وجو نمایش داده نمی‌شوند.',links:[links[4]]};
+       if(/انتخاب رشته|رشته|کنکور/.test(q)) return {answer:'برای تصمیم‌گیری درباره رشته، از صفحه «انتخاب رشته» و راهنماهای مرتبط شروع کنید. اگر مسئله شما نیازمند بررسی فردی است، درخواست مشاوره ثبت کنید.',links:[links[1],links[3]]};
       if(/استعداد|golden|گلدن|توانمندی/.test(q)) return {answer:'Golden Talent چارچوب رشدگرا و چندمنبعی سایت برای شناخت شواهد مرتبط با توانمندی و مسیر رشد است. برای آشنایی عمومی وارد صفحه Golden Talent شوید.',links:[links[2],links[3]]};
       return {answer:labels.error,links};
     }
+    if(/jhela|journal|peer.review|reviewer|manuscript/.test(q)) return {answer:'JHELA is in its founding stage. Its separate public journal search covers published policies and calls, not private manuscript records. Formal intake and indexing must be verified independently.',links:[links[5]]};
+    if(/find|search|look up|lookup/.test(q)) return {answer:'Use the public website search to find services, publications and guidance; personal account records are excluded.',links:[links[4]]};
     if(/major|career|student|guidance/.test(q)) return {answer:'Start with Student Guidance for educational and major-exploration questions. If you need individual review, use the consultation request route.',links:[links[0],links[3]]};
     if(/talent|golden|strength/.test(q)) return {answer:'Golden Talent is the site’s developmental, multi-source framework for exploring student strengths and pathways. The public page explains the method and its limits.',links:[links[1],links[3]]};
     return {answer:labels.error,links};
