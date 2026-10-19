@@ -30,7 +30,7 @@ Historical Google Search Console data recovered eight old URLs from the pre-expi
 
 The owner has also confirmed that the previous shop sold books and carpet/kilim/gabeh products. Unknown product URLs remain unmapped until backlink or archive evidence identifies them.
 
-The active registry now contains nine semantic 301 redirects, six retired 410 product candidates and one unresolved historical PDF for review. The removed archive is no longer indexable or included in the public sitemap.
+The active registry now contains ten semantic 301 redirects, six retired 410 product candidates and one unresolved historical PDF for review. The removed archive is no longer indexable or included in the public sitemap.
 
 The supplied Ahrefs overview shows 359 referring domains for the domain scope and four for the www scope, with DR 0 and zero reported organic traffic/keywords. These are differently scoped summaries, not a target-URL inventory or proof of ranking recovery. The source summaries do not contain a target URL for each backlink. A Backlinks/Best by links export with Target URL, Source URL, source domain, follow/nofollow and DR is required before making additional URL-specific decisions. No new redirect may be generated merely to recover an impressive raw domain count.
 
@@ -54,7 +54,7 @@ Export Backlinks (not only Referring Domains) with Target URL. Then run:
 
     node scripts/historical-backlink-import.mjs backlinks.csv recovery-report.json
 
-The importer groups backlinks by historical target URL, counts referring domains, estimates an evidence score, and assigns a recovery action. No URL is auto-redirected solely because of a high score; semantic verification remains mandatory.
+The importer groups backlinks by historical target URL, counts referring domains, estimates an evidence score, and assigns a recovery action. It now reads multiline quoted CSV records (RFC 4180), keeps content-defining and unclassified query strings as distinct REVIEW identities (for example, `/?p=123` versus `/?p=456`), and may collapse recognised tracking-only query variants for evidence aggregation. This is intake classification only: it does not change live redirects or authorize a rewrite. No URL is auto-redirected solely because of a high score; semantic verification remains mandatory.
 
 ## 404 intelligence workflow
 
@@ -75,7 +75,7 @@ After an authorized deployment, `.github/workflows/deploy-bertina.yml` runs:
 
     node scripts/historical-authority-live-verify.mjs historical-live-report.json
 
-This script uses normal CA/hostname verification without certificate bypass, DNS overrides or redirect following. Its live GET checks cover nine registered semantic 301 mappings, the retired 410 routes over four origins and both slash forms, each unique indexable/self-canonical 200 destination, canonical root behavior, a shop tracking query, and genuine 404 responses for an unknown product and the unresolved PDF. JSON evidence records the checked source SHA and network context; technical indexability is not proof of search-engine indexing.
+This script uses normal CA/hostname verification without certificate bypass, DNS overrides or redirect following. Its live GET checks cover all ten registered semantic 301 mappings, the retired 410 routes over four origins and both slash forms, each unique indexable/self-canonical 200 destination, canonical root behavior, a shop tracking query, and genuine 404 responses for an unknown product and the unresolved PDF. JSON evidence records the checked source SHA and network context; technical indexability is not proof of search-engine indexing.
 
 Verification runs within the deployed release job after checksum/origin checks, avoiding a separate push race. The standalone workflow is read-only and manual with an active-branch guard, but dispatch discovery requires its definition on GitHub's default branch. Since `main` remains the older baseline and untouched, do not rely on `workflow_run` or independent manual discovery for a migration-only file.
 
