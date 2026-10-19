@@ -13,6 +13,7 @@ on:
       - 'journal/**'
       - 'docs/journal/**'
       - 'tests/jhela-founding-intake.test.mjs'
+      - 'tests/jhela-antivirus-timeout.php'
       - 'tests/jhela-host-readiness.test.mjs'
       - 'tests/jhela-owner-triage.test.mjs'
       - 'tests/jhela-no-retired-vendor-public.test.mjs'
@@ -37,6 +38,8 @@ jobs:
       - name: Validate native PHP handlers and browser scripts
         run: |
           php -l api/jhela-intake.php
+          php -l tests/jhela-antivirus-timeout.php
+          php tests/jhela-antivirus-timeout.php
           php -l api/jhela-native-editorial.php
           php -l api/operations.php
           node --check assets/js/jhela-author-workspace.js
