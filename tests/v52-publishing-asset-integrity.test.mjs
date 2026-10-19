@@ -24,8 +24,13 @@ test('original digital PDFs have one canonical checksum manifest shared by activ
  assert.match(runtime,/\$expected=JR_PUB_ORIGINAL_ASSETS\[\$kind\]\?\?null/);
  assert.match(runtime,/hash_equals\(\$expected\[1\],hash_file\('sha256',\$file\)\)/);
  assert.match(runtime,/f\.currency='IRT'/);
- assert.match(runtime,/a\.role='author'/);
- assert.match(runtime,/count\(\$licences\)!==1/);
+ // The operator keeps a verified author-recipient mapping for private
+ // sale notices; a separate author licence is not a checkout precondition.
+ assert.match(activation,/l\.role='author'/);
+ assert.match(activation,/author_account_verified/);
+ assert.doesNotMatch(runtime,/count\(\$licences\)!==1/);
+ assert.doesNotMatch(runtime,/SELECT l\.evidence_sha256/);
+ assert.doesNotMatch(activation,/rights_verified_at=COALESCE/);
  assert.match(runtime,/malware_scanned_at/);
 });
 test('verified bank payment, two grants, durable notifications and separate fund entries stay intact',()=>{
