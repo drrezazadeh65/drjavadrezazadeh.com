@@ -129,7 +129,8 @@
 <p id="jp-purchase-readiness" class="jp-en-checkout-note">Checkout will remain unavailable until secure payment and delivery are confirmed.</p>
 <p id="jp-checkout-state" class="jp-en-state" role="status" aria-live="polite">Checking payment and secure digital fulfilment...</p>
 <button id="jp-recheck-offer" class="jp-button" type="button">Recheck checkout availability</button>
-<form id="jp-digital-checkout-form" hidden autocomplete="on" aria-label="Verified two-PDF digital purchase">
+<noscript><p class="jp-en-checkout-note">JavaScript is required to verify availability and place a secure order. No payment can be collected without server approval. Please contact support if your browser cannot enable it.</p></noscript>
+<form id="jp-digital-checkout-form" hidden autocomplete="on" aria-label="Verified two-PDF digital purchase" aria-describedby="jp-purchase-readiness" method="post" action="/api/commerce/create">
  <label for="jp-buyer-name">Buyer's full name</label>
  <input id="jp-buyer-name" name="buyer-name" type="text" autocomplete="name" minlength="2" maxlength="100" required>
  <label for="jp-buyer-email">Delivery email for both PDF downloads</label>
