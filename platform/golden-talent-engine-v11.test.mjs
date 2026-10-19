@@ -102,6 +102,26 @@ check('distinct source labels alone never establish independent agreement',()=>{
   assert.equal(x.routes[0].independent_source_count,1);
  }
 });
+check('matching reviewer-verified source classes cannot converge on different claims',()=>{
+ const a=reviewed('c1','D2','STUDENT_SELF');
+ const b=reviewed('c2','D2','TEACHER');
+ const wrongClaim={...b,provenance:{...b.provenance,claim_reference_id:'distinct-proposition'}};
+ const r=routeEvidence([a,wrongClaim]);
+ noNorm(r);
+ assert.equal(r.routes[1].evidence_state,'SINGLE_SOURCE');
+ assert.equal(r.routes[1].claim_compatibility_verified,false);
+ assert.ok(r.routes[1].rationale_codes.includes('CLAIM_COMPATIBILITY_NOT_VERIFIED'));
+ const unverifiedClaim={...b,provenance:{...b.provenance,material_compatibility_verified:false}};
+ assert.equal(routeEvidence([a,unverifiedClaim]).routes[1].evidence_state,'SINGLE_SOURCE');
+});
+check('max-sized 500 pending records produce bounded complete-result fingerprints',()=>{
+ const records=Array.from({length:500},(_,i)=>raw('pending-'+i,'D1','STUDENT_SELF'));
+ const result=routeEvidence(records);
+ noNorm(result);
+ assert.equal(result.integrity.accounting.contextual,500);
+ assert.equal(result.integrity.accounting.routing,0);
+ assert.equal(result.integrity.accounting.rejected,0);
+});
 check('reviewed independent agreement has explicit support/contradiction direction',()=>{
  const agree=routeEvidence([reviewed('x','D2','STUDENT_SELF'),
   reviewed('y','D2','TEACHER')]);
