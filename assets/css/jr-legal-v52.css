@@ -1,0 +1,23 @@
+/* v5.2 bilingual legal pages — visual continuity, no changes to purchase terms. */
+.jr-legal-page{background:radial-gradient(ellipse 80% 36% at 78% 0%,rgba(38,65,88,.38),transparent),#090e16;color:#f1eee8;font-family:Tahoma,"Segoe UI",Arial,sans-serif}
+.jr-legal-page .site-header{background:#0b1929;border-bottom:1px solid rgba(207,174,104,.32)}
+.jr-legal-page .site-header .brand{color:#fff2db}
+.jr-legal-page .article-shell{width:min(1050px,calc(100% - 28px));max-width:1050px}
+.jr-legal-page .article-hero{padding:clamp(30px,5vw,65px);border:1px solid rgba(202,164,91,.36);border-radius:26px;background:radial-gradient(ellipse at 87% 2%,rgba(190,143,64,.19),transparent 53%),linear-gradient(145deg,#11253b,#0e1827);margin-bottom:24px}
+.jr-legal-page .article-hero h1{font-size:clamp(27px,4.2vw,45px);line-height:1.55;color:#fff8e9;text-wrap:balance}
+.jr-legal-page .article-hero .lead{font-size:clamp(15px,1.7vw,18px);line-height:2;color:#d9e2e8}
+.jr-legal-page .article-shell>section:not(.role-status-grid){margin:18px 0;padding:clamp(22px,3vw,37px);border:1px solid rgba(214,184,113,.24);border-radius:20px;background:linear-gradient(145deg,#152739,#101b2a)}
+.jr-legal-page .article-shell>section h2{margin-top:0;color:#f0d295;font-size:clamp(20px,2.6vw,25px);line-height:1.6}
+.jr-legal-page .article-shell>section p,.jr-legal-page .article-shell>section li{font-size:16px;line-height:2.08;color:#dce5eb}
+.jr-legal-page .article-shell a{color:#f5d492;text-decoration-thickness:1px;text-underline-offset:5px}
+.jr-legal-page :is(a,button):focus-visible{outline:3px solid #f4d49e;outline-offset:4px}
+.jr-legal-page .role-status-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 26px}
+.jr-legal-page .role-status-card{min-width:0;padding:22px;border:1px solid rgba(214,183,110,.38);border-radius:17px;background:#152538;overflow-wrap:anywhere}
+.jr-legal-page .role-status-card small{color:#ddc294;line-height:1.5}
+.jr-legal-page .role-status-card strong{display:block;margin:9px 0;color:#fff4e6;font-size:17px;line-height:1.55}
+.jr-legal-page .role-status-card span{color:#d5e0e8;font-size:14px;line-height:1.75}
+.jr-legal-page footer{background:#070d16;border-top:1px solid rgba(214,183,110,.2)}
+@media(max-width:900px){.jr-legal-page .role-status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.jr-legal-page .article-shell{width:calc(100% - 20px);padding:20px 0 100px}.jr-legal-page .article-hero{padding:25px 19px;border-radius:19px}.jr-legal-page .article-shell>section:not(.role-status-grid){padding:22px 18px}.jr-legal-page .role-status-grid{grid-template-columns:1fr 1fr;gap:8px}.jr-legal-page .role-status-card{padding:15px}.jr-legal-page .role-status-card strong{font-size:15px}.jr-legal-page .role-status-card span{font-size:13px}}
+@media(max-width:360px){.jr-legal-page .role-status-grid{grid-template-columns:1fr}}
+@media print{.jr-legal-page{background:#fff;color:#152434}.jr-legal-page .article-hero,.jr-legal-page .article-shell>section:not(.role-status-grid),.jr-legal-page .role-status-card{background:#fff;border-color:#aaa;color:#152434;box-shadow:none}.jr-legal-page :is(.article-hero h1,.article-hero .lead,.article-shell p,.article-shell h2,.role-status-card *){color:#152434!important}.jr-legal-page .site-header,.jr-legal-page footer{display:none}}
