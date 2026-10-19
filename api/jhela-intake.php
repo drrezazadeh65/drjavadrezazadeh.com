@@ -48,6 +48,60 @@ function jhelaPrivateRoot(string $raw): ?string {
 function jhelaAvReady(string $binary): bool {
   return in_array($binary,['/usr/bin/clamscan','/usr/local/bin/clamscan'],true)&&is_executable($binary)&&function_exists('proc_open');
 }
+
+/**
+ * Run a direct executable with a strict deadline, continuously draining
+ * non-blocking stdout/stderr. Invocation is server-controlled; no shell,
+ * request string, user-provided argument or network operation is introduced.
+ * This helper also supports harmless PHP CLI timeout fixtures.
+ */
+function jhelaRunBoundedProcess(array $argv,float $seconds=30.0): int {
+  if(!function_exists('proc_open')||!function_exists('proc_get_status')||
+    !function_exists('proc_terminate')||!function_exists('stream_set_blocking')||
+    !function_exists('microtime')||$seconds<0.1||$seconds>60.0||
+    !$argv||!is_string($argv[0])||$argv[0]==='') {
+      throw new RuntimeException('antivirus_runner_unavailable');
+  }
+  foreach($argv as $arg) {
+    if(!is_string($arg)||$arg===''||str_contains($arg,"\0"))
+      throw new RuntimeException('antivirus_invalid_argument');
+  }
+  $pipes=[];$process=proc_open($argv,
+    [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+  if(!is_resource($process))throw new RuntimeException('antivirus_unavailable');
+  $exit=-1;$completed=false;
+  try {
+    if(isset($pipes[0])&&is_resource($pipes[0]))fclose($pipes[0]);
+    foreach([1,2] as $fd)
+      if(isset($pipes[$fd])&&is_resource($pipes[$fd]))stream_set_blocking($pipes[$fd],false);
+    $deadline=microtime(true)+$seconds;
+    do {
+      // Drain available output to avoid child blocking on a full pipe;
+      // do not log contents or expose manuscript paths or scanner output.
+      foreach([1,2] as $fd)
+        if(isset($pipes[$fd])&&is_resource($pipes[$fd]))stream_get_contents($pipes[$fd]);
+      $state=proc_get_status($process);
+      if(!is_array($state))throw new RuntimeException('antivirus_status_unavailable');
+      if($state['running']===false) {
+        $exit=(int)$state['exitcode'];$completed=true;break;
+      }
+      if(microtime(true)>=$deadline)throw new RuntimeException('antivirus_timeout');
+      usleep(50000);
+    }while(true);
+  }finally{
+    if(!$completed){
+      @proc_terminate($process);
+      usleep(70000);
+      $state=@proc_get_status($process);
+      if(is_array($state)&&$state['running']===true)@proc_terminate($process,9);
+    }
+    foreach($pipes as $pipe)if(is_resource($pipe))fclose($pipe);
+    $closed=@proc_close($process);
+    if($completed&&$exit<0&&is_int($closed))$exit=$closed;
+  }
+  if(!$completed||$exit<0)throw new RuntimeException('antivirus_process_unverified');
+  return $exit;
+}
 function jhelaReadiness(?PDO $pdo): array {
   $c=jhelaConfig();$schema=$pdo&&jhelaSchemaReady($pdo);
   $secure=$c['trustedTLS']&&$schema;
@@ -307,10 +361,8 @@ function jhelaIntakeRoute(string $path,string $verb): never {
     if(!move_uploaded_file($tmp,$target))fail('private_storage_failure',503);
     @chmod($target,0600);
     try{
-      $process=proc_open([$c['antivirus'],'--no-summary',$target],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
-      if(!is_resource($process))throw new RuntimeException('antivirus_unavailable');
-      fclose($pipes[0]);stream_get_contents($pipes[1],256);fclose($pipes[1]);stream_get_contents($pipes[2],256);fclose($pipes[2]);
-      if(proc_close($process)!==0)throw new RuntimeException('antivirus_not_clean');
+      if(jhelaRunBoundedProcess([$c['antivirus'],'--no-summary',$target],30.0)!==0)
+        throw new RuntimeException('antivirus_not_clean');
       $hash=hash_file('sha256',$target);
       if(!is_string($hash)||!preg_match('/^[a-f0-9]{64}$/D',$hash))throw new RuntimeException('checksum_failure');
       $pdo->beginTransaction();
