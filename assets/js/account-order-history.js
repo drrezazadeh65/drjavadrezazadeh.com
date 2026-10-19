@@ -29,6 +29,13 @@ function formatBookingWindow(start,end,timeZone=Intl.DateTimeFormat().resolvedOp
   return {start:formatter.format(from),end:formatter.format(until),timeZone};
  }catch{return null;}
 }
+function showInfo(message,login){
+  section.replaceChildren();
+  const wrapper=el('div');wrapper.append(el('strong',message));
+  if(login){const a=el('a',tr('ورود به حساب تأییدشده','Sign in to your verified account'),'button primary');
+    a.href=isEn?'/en/login/':'/fa/login/';wrapper.append(a);}
+  section.append(wrapper);
+}
 /* Evidence-only order view. All amounts and statuses come from the account's
  * server-authorised latest-50 history; a provider match is NOT bank settlement. */
 function updateEvidenceOverview(orders){
@@ -147,13 +154,6 @@ function createOrderEvidence(order){
  }};
 }
 
-function showInfo(message,login){
-  section.replaceChildren();
-  const wrapper=el('div');wrapper.append(el('strong',message));
-  if(login){const a=el('a',tr('ورود به حساب تأییدشده','Sign in to your verified account'),'button primary');
-    a.href=isEn?'/en/login/':'/fa/login/';wrapper.append(a);}
-  section.append(wrapper);
-}
 const SERVICE_BRIEF_PROMPTS={
  "academic_consult_60": [
   "تصمیم دانشگاهی مورد نظر، مهلت آن و گزینه‌هایی که تاکنون بررسی شده‌اند را مشخص کنید.",
