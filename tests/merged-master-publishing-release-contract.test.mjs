@@ -58,7 +58,7 @@ test('real-money checkout is blocked unless author rights, private files and ver
 test('scientific peer review status and author signature must not be counterfeited by deployment',()=>{
  assert.equal(book.compliance.scientific_review_approved,false);
  assert.equal(book.works[0].rights_confirmed,false);
- assert.match(page,/داوری مستقل هنوز تکمیل نشده است/);
+ assert.match(page,/هنوز در مرحله داوری مستقل است/);
  assert.match(draft,/این متن صرفاً برای مطالعه/);
  const contracts=read('docs/migrations/20261017_jr_publishing_contract_and_reserve.sql');
  assert.match(contracts,/publishing_contract_signature_evidence/);
