@@ -26,7 +26,10 @@ test('English publication stays source-honest, sale-gated and responsive',()=>{
  assert.match(en,/600,000 tomans/);
  assert.match(en,/400,000 tomans/);
  assert.match(en,/independent scholarly review/);
- assert.match(en,/checks whether lawful digital distribution and payment fulfilment are currently ready/);
+ assert.match(en,/checks the existing payment service, protected PDFs/);
+ assert.match(en,/A separate author-licence submission is no longer a technical checkout requirement/);
+ assert.match(en,/does not itself establish copyright ownership or certify distribution rights/);
+ assert.doesNotMatch(en,/require a verified contributor licence/);
  assert.doesNotMatch(en,/<a[^>]+href="[^"]+\.pdf/i);
  // Both public languages now expose one server-gated form; neither may charge
  // until the authoritative offer endpoint proves delivery and gateway readiness.
