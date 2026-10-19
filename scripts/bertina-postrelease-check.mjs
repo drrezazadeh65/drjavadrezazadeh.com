@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import {inspectPublicServiceRoute,serviceRoutesFromCatalog} from './lib/public-service-route-contract.mjs';
 import {assessPublicReleaseEvidence} from './lib/public-release-acceptance.mjs';
+import {inspectPublishingPublicPage,inspectPublishingPublicOffer} from './lib/publishing-public-surface.mjs';
 const ORIGIN='https://drjavadrezazadeh.com';
 const expected=(process.env.BERTINA_EXPECTED_RELEASE_SHA||'').trim();
 const output=process.env.BERTINA_ACCEPTANCE_EVIDENCE||'bertina-postrelease-evidence.json';
@@ -221,39 +222,44 @@ await observeHostGate('bilingual-public-service-pages-21x2',async()=>{
 // access is attempted here. This does not grant publication rights or sign a
 // contributor agreement.
 await observeHostGate('mirkarimi-public-author-and-digital-offer',async()=>{
- const pagePath='/fa/shop/authors/mehrab-mirkarimi/';
- const url=ORIGIN+pagePath;
- const controller=new AbortController();
- const timer=setTimeout(()=>controller.abort(),12000);
- let status=null, pageOk=false;
- try{
-   const response=await fetch(url,{method:'GET',redirect:'manual',
-     headers:{Accept:'text/html'},signal:controller.signal});
-   status=response.status;
-   if(status===200){
-     const page=await response.text();
-     pageOk=page.includes('<link rel="canonical" href="'+url+'"')
-       && page.includes('id="jp-digital-checkout-form"')
-       && page.includes('jr-publishing-checkout-v1.js')
-       && page.includes('تأییدیه نهایی هنوز صادر نشده')
-       && !/[a-z0-9._%+-]*mirkarimi[a-z0-9._%+-]*@[a-z0-9.-]+\.[a-z]{2,}/i.test(page);
-   }
- }finally{clearTimeout(timer);}
+ // Public 200/SEO/disclosures are independent of whether checkout is ENABLED:
+ // a safe unavailable offer is not a missing public product page.
+ const pages=[];
+ for(const language of ['fa','en']){
+   const url=ORIGIN+'/'+language+'/shop/authors/mehrab-mirkarimi/';
+   const controller=new AbortController();
+   const timer=setTimeout(()=>controller.abort(),12000);
+   try{
+     const response=await fetch(url,{
+       method:'GET',redirect:'manual',cache:'no-store',
+       headers:{Accept:'text/html'},signal:controller.signal
+     });
+     const observed=response.status===200
+       ?inspectPublishingPublicPage(await response.text(),language)
+       :{valid:false,language,checks:{}};
+     pages.push({language,httpStatus:response.status,
+       valid:observed.valid,checks:observed.checks});
+   }finally{clearTimeout(timer);}
+ }
  const offer=await getPublicJson('/api/publishing/offer');
- const ready=offer.httpStatus===200&&offer.body?.ok===true
-   &&offer.body?.available===true&&offer.body?.checkoutEnabled===true
-   &&offer.body?.sku==='digital:tefl-ma-exams-1370-1405'
-   &&offer.body?.priceToman===1000000;
+ const offerStatus=inspectPublishingPublicOffer(offer);
+ const valid=pages.length===2&&pages.every(p=>p.valid&&p.httpStatus===200)
+   &&offerStatus.valid;
  return {
-   status:status===200&&pageOk&&offer.httpStatus===200
-     ?'LIVE_VERIFIED':'HOST_UNVERIFIED',
-   pageHttpStatus:status,publicPagePassesSourceDisclosure:pageOk,
-   offerHttpStatus:offer.httpStatus,publicCheckoutReadyClaim:ready,
+   status:valid?'LIVE_VERIFIED':'HOST_UNVERIFIED',
+   pageHttpStatus:pages[0]?.httpStatus??null,
+   publicPagePassesSourceDisclosure:pages[0]?.valid===true,
+   englishPageHttpStatus:pages[1]?.httpStatus??null,
+   englishPagePassesSourceDisclosure:pages[1]?.valid===true,
+   bilingualPublicPagesVerified:pages.length===2&&pages.every(p=>p.valid),
+   publicPageChecks:pages,
+   offerHttpStatus:offer.httpStatus,
+   publicCheckoutReadyClaim:offerStatus.checkoutReady,
    actualBankPaymentAndVerifiedPrivatePdfDelivery:false,
    authorDistributionRightsIndependentlyReviewed:false,
    genuineContributorSignatureVerified:false,
    academicPeerReviewComplete:false,
-   note:'Public HTTP read is not evidence of paid file custody, signed author rights, settlement, buyer email or both downloads.'
+   note:'Two public pages and safe API offer observed; unavailable checkout is acceptable. No bank settlement, copyright grant, genuine author signature, buyer email or paid PDF delivery is certified.'
  };
 });
 
