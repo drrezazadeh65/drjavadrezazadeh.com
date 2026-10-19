@@ -30,6 +30,18 @@ test('one authenticated history drives evidence-only overview; bank settlement i
  assert.match(api,/sessionAccount\(\$pdo\)/);
 });
 
+test('alternate English private order route reuses exact evidence and custody controller',()=>{
+ const html=read('en/app/account/orders/index.html');
+ assert.match(html,/data-resource="orders"/);
+ assert.match(html,/name="robots" content="noindex,nofollow,noarchive/);
+ assert.match(html,/name="referrer" content="same-origin"/);
+ assert.match(html,/account-order-history[.]js[?]v=20261019-evidence-v1/);
+ assert.match(html,/jr-order-evidence-v1[.]css[?]v=20261019-evidence-v1/);
+ assert.match(html,/class="appointment-summary"/);
+ assert.match(css,/\.en-orders \.appointment-summary/);
+ assert.match(html,/Verified account order history/);
+});
+
 test('per-order stages never assert delivery or receipt from a gateway return',()=>{
  assert.match(script,/function createOrderEvidence\(order\)/);
  assert.match(script,/aria-label/);
