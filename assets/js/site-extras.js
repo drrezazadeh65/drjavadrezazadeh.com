@@ -42,6 +42,7 @@ const js=document.createElement('script');js.src='/assets/js/pwa-release-notice.
 
 /* Desktop installed PWA: prevent text from collapsing into narrow dashboard columns. */
 (()=>{
+if(!window.matchMedia?.('(display-mode:standalone) and (min-width:700px)').matches)return;
 if(!document.querySelector('[data-jr-desktop-pwa-css]')){
 const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/css/pwa-desktop-layout-v52.css?v=20261019-v1';css.dataset.jrDesktopPwaCss='1';document.head.append(css);
 }
