@@ -151,6 +151,8 @@ jobs:
           node --test tests/jr-publishing-author-onboarding.test.mjs
           node --test tests/v52-author-dashboard-contract.test.mjs
           node --test tests/v52-bilingual-author-product.test.mjs
+          node --test tests/v52-publishing-checkout-runtime.test.mjs tests/v52-publishing-asset-integrity.test.mjs
+          node --test tests/v52-unified-release-contract.test.mjs
           node --test tests/v52-author-visual-evolution.test.mjs
           node --check assets/js/jr-author-portrait-v52.js
           node --test tests/v52-author-resume-portrait.test.mjs
