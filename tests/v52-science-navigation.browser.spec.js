@@ -19,11 +19,12 @@ for(const [lang,urls] of Object.entries({
    await expect(trigger).toHaveAttribute('aria-expanded','true');
    const dialog=page.getByRole('dialog',{name:/Golden Talent|امکانات/});
    await expect(dialog).toBeVisible();
-   await expect(dialog.locator('.jr-sc-nav a')).toHaveCount(12);
-   await expect(dialog.locator('a[href^="'+urls.dashboard+'"]')).toHaveCount(1);
-   await expect(dialog.locator('a[href^="'+urls.rcas+'"]')).toHaveCount(1);
+   await expect(dialog.locator('.jr-sc-nav a')).toHaveCount(11);
+   await expect(dialog.locator('.jr-sc-overview-link')).toHaveCount(1);
+   await expect(dialog.locator('a[href="'+urls.dashboard+'"]')).toHaveCount(1);
+   await expect(dialog.locator('a[href="'+urls.rcas+'"]')).toHaveCount(1);
    await expect(dialog.locator('a[href^="'+urls.bahar+'"]')).toHaveCount(1);
-   await expect(dialog.locator('a[href^="'+urls.plans+'"]')).toHaveCount(1);
+   await expect(dialog.locator('a[href="'+urls.plans+'"]')).toHaveCount(1);
    await expect(dialog.locator('a[data-access="paid"]')).toHaveCount(6);
    const initial=await dialog.locator('button').first().evaluate(el=>el===document.activeElement);
    expect(initial).toBe(true);
