@@ -95,6 +95,7 @@ jobs:
           node --check assets/js/jr-choice-studio-v1.js
           node --test tests/choice-studio-contract.test.mjs
           node --test tests/choice-feedback-contract.test.mjs
+          node --test tests/v52-integrated-science-choice-release-contract.test.mjs
           node --check assets/js/jr-service-navigator-v1.js
           node --test tests/service-navigator-contract.test.mjs
           node --check assets/js/operations-commerce.js
