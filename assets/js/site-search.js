@@ -1,6 +1,9 @@
 (()=>{
 const form=document.querySelector('[data-site-search]');
 if(!form)return;
+// Reuse the public discovery engine for JHELA without creating a parallel index.
+const journalOnly=form.hasAttribute('data-journal-search');
+const eligible=x=>x&&x.lang===(document.documentElement.lang==='fa'?'fa':'en')&&(!journalOnly||String(x.path||'').startsWith('journal/'));
 const input=form.querySelector('input[type="search"]');
 const category=form.querySelector('[data-search-category]');
 const clear=form.querySelector('[data-search-clear]');
@@ -54,7 +57,7 @@ let data=[];
 
 function hydrateCategories(){
   if(!category)return;
-  const categories=[...new Set(data.filter(x=>x.lang===lang).map(x=>x.category).filter(Boolean))]
+  const categories=[...new Set(data.filter(eligible).map(x=>x.category).filter(Boolean))]
     .sort((a,b)=>a.localeCompare(b,locale));
   const current=category.value;
   category.innerHTML='<option value="">'+(lang==='fa'?'همه دسته‌ها':'All categories')+'</option>'+
@@ -111,14 +114,14 @@ function run(){
   }
   const terms=expandedTerms(q);
   const ranked=data
-    .filter(x=>x.lang===lang&&(!selected||x.category===selected))
+    .filter(x=>eligible(x)&&(!selected||x.category===selected))
     .map(x=>({x,score:scoreEntry(x,q,terms)}))
     .filter(y=>y.score>0)
     .sort((a,b)=>b.score-a.score||a.x.title.localeCompare(b.x.title,locale))
     .slice(0,18);
 
   if(!ranked.length){
-    const discovery=lang==='fa'
+    const discovery=journalOnly ? '<div class="actions"><a class="button" href="'+base+(lang==='fa'?'journal/fa/':'journal/')+'">'+(lang==='fa'?'صفحه اصلی مجله':'Journal home')+'</a></div>' : lang==='fa'
       ? '<div class="actions"><a class="button" href="'+base+'fa/rahnamaha/">راهنماها</a><a class="button" href="'+base+'fa/khadamat/">خدمات</a><a class="button" href="'+base+'fa/tamas/">تماس</a></div>'
       : '<div class="actions"><a class="button" href="'+base+'en/news-insights/">News & Insights</a><a class="button" href="'+base+'en/services/">Services</a><a class="button" href="'+base+'en/contact/">Contact</a></div>';
     results.innerHTML='<p class="form-note">'+(lang==='fa'?'نتیجه‌ای در صفحات عمومی پیدا نشد. عبارت کوتاه‌تر یا دسته دیگری را امتحان کنید.':'No matching public page was found. Try a shorter phrase or another category.')+'</p>'+discovery;
