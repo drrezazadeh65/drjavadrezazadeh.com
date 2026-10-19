@@ -76,15 +76,29 @@ export function summariseBaharEvidence(cycles=[]){
  for(const e of observations)types[e.type||'OTHER']=(types[e.type||'OTHER']||0)+1;
  const distinctWeeks=new Set(reviewed.filter(c=>isoDate(c.week_start)).map(c=>c.week_start));
  const missingProvenance=observations.filter(e=>!e.source_evidence_event_id).length;
+ // A linked source can be observed in several weeks. Repetition provides
+ // chronology, NOT independent corroboration, a causal effect or a score.
+ const sourceWeeks=new Map();
+ for(const e of observations){
+  if(typeof e.source_evidence_event_id!=='string'||!e.source_evidence_event_id)continue;
+  if(!sourceWeeks.has(e.source_evidence_event_id))sourceWeeks.set(e.source_evidence_event_id,new Set());
+  if(isoDate(e.week_start))sourceWeeks.get(e.source_evidence_event_id).add(e.week_start);
+ }
+ const repeatedSourceReferences=[...sourceWeeks.values()].filter(weeks=>weeks.size>1).length;
  return {
   cycle_count:cycles.length,reviewed_cycle_count:reviewed.length,
   observed_event_count:observations.length,distinct_reviewed_weeks:distinctWeeks.size,
   evidence_types:types,events_without_source_link:missingProvenance,
+  distinct_linked_source_count:sourceWeeks.size,
+  source_references_repeated_across_weeks:repeatedSourceReferences,
+  independent_source_corroboration_established:false,
+  context_and_opportunity_equivalence_established:false,
+  causal_intervention_effect:null,
   observation_quality:observations.length===0?'INSUFFICIENT':missingProvenance>0?'PROVENANCE_REVIEW_REQUIRED':'SOURCE_LINKED_NOT_INDEPENDENTLY_VERIFIED',
   longitudinal_trend_ready:false, // Comparability, context and independent review are not established by counts.
   normative_score:null,statistical_confidence:null,
   human_interpretation_required:true,
-  limitation:'Descriptive coverage only: no trend, causal claim, percentile or talent label.'
+  limitation:'Descriptive longitudinal coverage only: repeated source references are not independent, and no causal trend, percentile or talent label is inferred.'
  };
 }
 export function interpretWeeklyCycle(cycle,{interpretation,adaptation,reviewer_user_id}={}){
