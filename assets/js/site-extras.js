@@ -96,3 +96,47 @@ area.append(button,note);footer.parentNode.insertBefore(area,footer);
  const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='/assets/css/jr-public-fx-converter.css?v=20261016-v1';stylesheet.dataset.jrFxLoader='1';document.head.append(stylesheet);
  const js=document.createElement('script');js.src='/assets/js/jr-public-fx-converter.js?v=20261016-v1';js.defer=true;document.head.append(js);
 })();
+
+/* Bilingual homepage portrait micro-interaction: pointer-only, no tracking/storage.
+ * RAF throttling; no moving content for touch or reduced-motion visitors.
+ */
+(()=>{
+ const root=document.body;
+ if(!root?.classList.contains('public-home-page'))return;
+ const portrait=root.querySelector('.hero .portrait-shell');
+ if(!portrait||typeof window.matchMedia!=='function')return;
+ const pointer=window.matchMedia('(hover:hover) and (pointer:fine)');
+ const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+ if(!pointer.matches||reduced.matches)return;
+ let pending=null,frame=0;
+ const reset=()=>{
+  pending=null;
+  if(frame)cancelAnimationFrame(frame);
+  frame=0;
+  for(const key of ['--jr-home-rotate-x','--jr-home-rotate-y','--jr-home-light-x','--jr-home-light-y']){
+   portrait.style.removeProperty(key);
+  }
+ };
+ const draw=()=>{
+  frame=0;
+  if(!pending||reduced.matches||!pointer.matches){reset();return}
+  const rect=portrait.getBoundingClientRect();
+  if(!rect.width||!rect.height)return;
+  const nx=Math.max(-1,Math.min(1,2*(pending.x-rect.left)/rect.width-1));
+  const ny=Math.max(-1,Math.min(1,2*(pending.y-rect.top)/rect.height-1));
+  portrait.style.setProperty('--jr-home-rotate-y',(nx*2.8).toFixed(2)+'deg');
+  portrait.style.setProperty('--jr-home-rotate-x',(-ny*2.8).toFixed(2)+'deg');
+  portrait.style.setProperty('--jr-home-light-x',(50+nx*22).toFixed(2)+'%');
+  portrait.style.setProperty('--jr-home-light-y',(35+ny*20).toFixed(2)+'%');
+ };
+ portrait.addEventListener('pointermove',event=>{
+  if(event.pointerType==='touch'||reduced.matches||!pointer.matches)return;
+  pending={x:event.clientX,y:event.clientY};
+  if(!frame)frame=requestAnimationFrame(draw);
+ },{passive:true});
+ portrait.addEventListener('pointerleave',reset);
+ portrait.addEventListener('pointercancel',reset);
+ window.addEventListener('blur',reset);
+ reduced.addEventListener?.('change',reset);
+ pointer.addEventListener?.('change',reset);
+})();
