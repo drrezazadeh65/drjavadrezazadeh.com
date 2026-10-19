@@ -14,9 +14,9 @@ function communityAvailable(PDO $pdo): bool {
 }
 function communityCanonical(mixed $v): ?string {
     if (!is_string($v) || strlen($v)>180) return null;
-    if (preg_match('#^/fa/akhbar/([a-z0-9](?:[a-z0-9-]{1,87}[a-z0-9])?)/$#D', $v, $matches) !== 1) return null;
-    $root=realpath(dirname(__DIR__).'/fa/akhbar');
-    $article=$root ? realpath($root.'/'.$matches[1].'/index.html') : false;
+    if (preg_match('#^/fa/(akhbar|rahnamaha)/([a-z0-9](?:[a-z0-9-]{1,87}[a-z0-9])?)/$#D', $v, $matches) !== 1) return null;
+    $root=realpath(dirname(__DIR__).'/fa/'.$matches[1]);
+    $article=$root ? realpath($root.'/'.$matches[2].'/index.html') : false;
     if (!$root || !$article || !str_starts_with($article,$root.DIRECTORY_SEPARATOR)) return null;
     return $v;
 }
