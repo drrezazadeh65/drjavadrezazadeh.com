@@ -632,3 +632,84 @@ body.customer-dashboard.jr-private-academic{
  .jr-gt-workspace .jr-gt-summary :is(h3,h4,p,li,strong,small){color:#181818!important}
  .jr-gt-workspace [data-gt-evidence-summary][hidden]{display:none!important}
 }
+
+
+/* Free Golden Talent → RCAS → BAHAR stage navigator. Each browser tool
+ * is independent: never infer that a previous reflection was transferred. */
+.jr-science-continuity{
+  width:min(1120px,calc(100% - 24px));
+  margin:26px auto 24px;
+  padding:clamp(16px,2.4vw,27px);
+  background:linear-gradient(135deg,#191714,#0b0c0e 65%);
+  border:1px solid rgba(212,175,55,.42);border-radius:19px;
+  color:#f8f5e9;box-sizing:border-box;
+}
+.jr-science-continuity *{box-sizing:border-box}
+.jr-science-continuity__head strong{font-size:clamp(1.04rem,1.8vw,1.28rem);color:#efd79f}
+.jr-science-continuity__head p,.jr-science-continuity__limit{
+  margin:8px 0 16px;color:#e6ddd0;font-size:.91rem;line-height:1.8;
+}
+.jr-science-continuity ol{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;list-style:none;margin:0;padding:0;
+}
+.jr-science-continuity li{min-width:0;margin:0;padding:0;list-style:none}
+.jr-science-continuity li a{
+  display:flex;flex-direction:column;justify-content:center;gap:5px;
+  min-height:84px;padding:14px;text-decoration:none!important;
+  border:1px solid rgba(213,182,120,.4);border-radius:12px;
+  color:#e8e0cf!important;background:rgba(255,255,255,.03);
+  overflow-wrap:anywhere;
+}
+.jr-science-continuity li a:hover{border-color:#e3c990;background:rgba(212,175,55,.11)}
+.jr-science-continuity li a strong{color:#e5c584;font-size:.97rem;line-height:1.5}
+.jr-science-continuity li a span{font-size:.86rem;color:#e0d9cb;line-height:1.6}
+.jr-science-continuity a:focus-visible{outline:3px solid #f1d69c;outline-offset:3px}
+.jr-science-continuity__limit{margin:15px 0 0;font-size:.83rem}
+/* BAHAR seven-day reflective log: note count is not an outcome measure. */
+.jr-bahar-weekly{
+  margin:27px 0 20px;padding:clamp(15px,2.5vw,23px);
+  border:1px solid rgba(212,175,55,.32);border-radius:16px;
+  background:rgba(9,10,11,.35);min-width:0;
+}
+.jr-bahar-weekly-head{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.jr-bahar-weekly-head h3{margin:0 0 7px;color:#efd89e;font-size:clamp(1.08rem,1.9vw,1.27rem)}
+.jr-bahar-weekly-head p{margin:0 0 12px;color:#e8e2d5;line-height:1.8;font-size:.89rem;max-width:68ch}
+.jr-bahar-weekly-head [data-bahar-week-count]{
+  font-weight:700;color:#e9ce98;font-variant-numeric:tabular-nums;
+  padding:7px 10px;border:1px solid rgba(212,175,55,.3);border-radius:9px;
+}
+.jr-bahar-week-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.jr-bahar-week-day{margin:0;min-width:0;border:1px solid rgba(219,191,136,.28);border-radius:12px;padding:12px;background:#151615}
+.jr-bahar-week-day legend{color:#e7c98d;font-weight:750;padding:0 7px}
+.jr-bahar-week-fields{display:grid;gap:12px;min-width:0}
+.jr-bahar-week-fields label{min-width:0}
+.jr-bahar-week-fields textarea{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+.jr-bahar-weekly-review{margin:17px 0;padding:13px;border:1px solid rgba(212,175,55,.24);border-radius:12px;overflow-wrap:anywhere}
+.jr-bahar-weekly-review h4{color:#efdbac;margin:0 0 12px}
+.jr-bahar-weekly-review li{padding:8px 0;line-height:1.7}
+.jr-bahar-weekly-review li+li{border-top:1px solid rgba(212,175,55,.2)}
+.jr-bahar-weekly-review li p{margin:4px 0}
+@media(max-width:680px){
+  .jr-science-continuity ol{grid-template-columns:1fr}
+  .jr-science-continuity li a{min-height:56px}
+  .jr-bahar-week-list{grid-template-columns:1fr}
+}
+@media(max-width:360px){
+  .jr-science-continuity{width:calc(100% - 18px);padding:13px}
+  .jr-bahar-weekly{padding:12px}
+}
+@media print{
+  .jr-science-continuity,
+  .jr-bahar-workspace [data-bahar-plan-form],
+  .jr-bahar-workspace [data-bahar-status]{display:none!important}
+  .jr-bahar-workspace [data-bahar-plan-result]:not([hidden]){
+    display:block!important;background:white!important;color:black!important;
+    border:0!important;box-shadow:none!important;
+  }
+  .jr-bahar-workspace [data-bahar-plan-result] *{color:black!important}
+  .jr-bahar-weekly-review li{break-inside:avoid}
+}
+@media(prefers-reduced-motion:reduce){
+  .jr-science-continuity a,.jr-bahar-week-day{transition:none!important}
+}
