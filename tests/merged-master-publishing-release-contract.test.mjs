@@ -40,10 +40,12 @@ test('first author preserves exactly the approved 1m/600k/400k split and separat
  assert.match(draft,/'sign'=>false/);
  assert.match(mobile,/draftContract/);
 });
-test('real-money checkout is blocked unless author rights, private files and verified SMTP can fulfil',()=>{
+test('digital checkout remains protected by private files and verified SMTP, with no author-licence gate',()=>{
  const digital=read('api/internal/jr-publishing-digital.php');
  const client=checkout;
- assert.match(digital,/digital_distribution/);
+ assert.match(digital,/digital_distribution records are retained/i);
+ assert.doesNotMatch(digital,/rights_scope='digital_distribution'/);
+ assert.doesNotMatch(digital,/AND w\.rights_verified_at IS NOT NULL/);
  assert.match(digital,/JR_PUBLISHING_DIGITAL_ENABLED/);
  assert.match(digital,/jrPubPrivateDir\(\)/);
  assert.match(digital,/malware_scanned_at/);
