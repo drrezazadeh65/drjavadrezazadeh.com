@@ -36,6 +36,33 @@
 .jr-choice-studio legend{font-size:clamp(1.08rem,2vw,1.32rem);line-height:1.55;font-weight:750;color:var(--cs-gold-soft);margin:0 0 .45rem}
 .jr-choice-studio .jr-cs-help{line-height:1.85;color:var(--cs-muted);margin:0 0 1rem;font-size:.925rem}
 .jr-choice-studio .jr-cs-weight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+/* v4: controls are moved in the existing grid; focus and input state persist. */
+.jr-choice-studio .jr-cs-weight{position:relative}
+.jr-choice-studio .jr-cs-order-controls{
+ display:flex;gap:6px;justify-content:flex-end;align-items:center;
+ margin-block-end:10px;flex-wrap:wrap;
+}
+.jr-choice-studio .jr-cs-order-controls button{
+ display:grid;place-items:center;min-width:44px;min-height:44px;
+ border:1px solid var(--cs-line);border-radius:10px;
+ padding:0 9px;cursor:pointer;background:#121416;color:var(--cs-gold-soft);
+ font:800 1.25rem/1 system-ui,sans-serif;
+}
+.jr-choice-studio .jr-cs-order-controls button:hover:not(:disabled){background:#2a241b;border-color:var(--cs-gold-soft)}
+.jr-choice-studio .jr-cs-order-controls button:disabled{opacity:.4;cursor:not-allowed}
+.jr-choice-studio .jr-cs-drag-handle{touch-action:none;cursor:grab!important;user-select:none}
+.jr-choice-studio .jr-cs-drag-handle:active{cursor:grabbing!important}
+.jr-choice-studio .jr-cs-persist-label{
+ display:flex;align-items:center;gap:12px;max-width:60ch;cursor:pointer;
+ margin-block:16px 0;padding:12px 14px;border:1px solid var(--cs-line);
+ border-radius:12px;background:rgba(212,175,55,.055);
+}
+.jr-choice-studio .jr-cs-persist-label input{
+ width:22px;height:22px;min-width:22px;accent-color:var(--cs-gold-soft);
+}
+.jr-choice-studio .jr-cs-order-live{margin:.5rem 0;color:var(--cs-gold-soft);line-height:1.65;min-height:0}
+.jr-choice-studio .jr-cs-order-live:empty{display:none}
+
 .jr-choice-studio .jr-cs-weight,.jr-choice-studio .jr-cs-path{
  min-width:0;background:var(--cs-raised);border:1px solid var(--cs-line);
  border-radius:15px;padding:clamp(12px,2vw,20px)
