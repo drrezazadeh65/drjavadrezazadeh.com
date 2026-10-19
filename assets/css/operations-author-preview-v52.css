@@ -1,0 +1,10 @@
+/* Owner-facing read-only author perspective. Existing admin guard and MFA apply. */
+#ops-publishing-author-review .jp-owner-preview-trigger{margin:18px 0 10px;min-height:44px;cursor:pointer;border:1px solid #bfa063;background:#182a3c;color:#f5e5c5;border-radius:12px;padding:10px 17px}
+#ops-publishing-author-review .jp-owner-preview-trigger:focus-visible{outline:3px solid #f3d596;outline-offset:3px}
+#ops-publishing-author-review .jp-owner-preview{margin:10px 0 24px;padding:clamp(16px,2.5vw,28px);border:1px solid rgba(210,177,105,.5);border-radius:18px;background:linear-gradient(145deg,#182c40,#0e1825);color:#f4eee0;min-width:0;overflow-wrap:break-word}
+#ops-publishing-author-review .jp-owner-preview[hidden]{display:none!important}
+#ops-publishing-author-review .jp-owner-preview h4{margin:0 0 15px;font-size:clamp(19px,2.2vw,25px);line-height:1.6}
+#ops-publishing-author-review .jp-owner-preview p{margin:8px 0;padding:10px 14px;border-bottom:1px solid rgba(215,182,121,.16);line-height:1.95;font-size:15px}
+#ops-publishing-author-review .jp-owner-preview p:first-of-type{border-inline-start:3px solid #d6bc83;background:rgba(214,188,131,.08)}
+@media(max-width:620px){#ops-publishing-author-review .jp-owner-preview{padding:15px 12px}#ops-publishing-author-review .jp-owner-preview p{font-size:14px;padding:9px}}
+@media print{#ops-publishing-author-review .jp-owner-preview-trigger{display:none}}
