@@ -1732,3 +1732,24 @@ body.jr-science-workspace :is(.kicker,.jr-sci-eyebrow){
   min-height:44px;font-size:.75rem;
  }
 }
+
+
+/* International student gateway: approved symbol stays visible in a truly
+ * compact mobile masthead, rather than wrapping into a two-line header.
+ * This does not affect FA pages, account dashboards or the public homepage. */
+@media(max-width:560px){
+ html[lang="en"] .jr-sci-gateway.student-gateway-page .site-header .brand{
+  display:inline-flex;flex-direction:row;flex-wrap:nowrap;
+  align-items:center;justify-content:flex-start;gap:5px;
+  min-width:0;max-width:100%;line-height:1.15;
+  white-space:nowrap;
+ }
+ html[lang="en"] .jr-sci-gateway.student-gateway-page .site-header .jr-sci-gateway-logo{
+  box-sizing:border-box;display:block;flex:0 0 24px;
+  width:24px;height:24px;padding:2px;border-radius:6px;
+ }
+ html[lang="en"] .jr-sci-gateway.student-gateway-page .site-header .brand small{
+  display:inline;flex:0 0 auto;margin:0 0 0 3px;
+  white-space:nowrap;line-height:1.1;font-size:8px;
+ }
+}
