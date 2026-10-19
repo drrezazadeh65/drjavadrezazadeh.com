@@ -229,10 +229,18 @@ test('buyer upload controls remain closed until a verified private-case API resp
  assert.ok(source.includes('!loaded||form.hidden||!box.open'),'submit must not bypass readiness');
  assert.ok(source.includes('if(box.open)refresh();'),'reopening must revalidate');
  assert.ok(source.includes("else{form.hidden=true;form.style.display='none';loaded=false;files.replaceChildren();}"),'closed view must both hide upload in CSS and clear private file listing');
- for(const page of ['fa/app/account/orders/index.html','en/app/account/orders/index.html']){
-  assert.ok(read(page).includes('account-order-history.js?v=20261017-secure-upload-readiness-v8'),
-   'stale buyer upload control script '+page);
- }
+ const pages=['fa/app/account/orders/index.html','en/account/orders/index.html',
+              'en/app/account/orders/index.html'];
+ const versions=pages.map(page=>{
+  const html=read(page);
+  const match=html.match(/account-order-history[.]js[?]v=(20[0-9]{6}-[a-z0-9-]+)/);
+  assert.ok(match,'private buyer route must use a versioned controller: '+page);
+  assert.ok(html.includes('jr-order-evidence-v1.css?v=20261019-evidence-v1'),
+    'buyer evidence design must remain available: '+page);
+  return match[1];
+ });
+ assert.equal(new Set(versions).size,1,
+   'all canonical and alternate buyer routes must load the same reviewed custody gates');
 });
 
 test('inline grid/flex styles cannot override private file and guardian visibility gates',()=>{
