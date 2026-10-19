@@ -1211,7 +1211,7 @@ test('bilingual intake, service pages and shops disclose real booking and paymen
     ['/fa/darkhast-moshavere/','زمان پیشنهادی، نه رزرو قطعی','این فرم پرداخت دریافت نمی‌کند'],
     ['/en/request-consultation/','Preferred time, not a confirmed appointment','No payment in this form'],
     ['/fa/khadamat/','رزرو و پرداخت آنلاین در این مرحله فعال نیستند','درخواست اولیه، خرید نیست'],
-    ['/en/services/','Live appointment booking is not currently available','Online payments are not yet enabled'],
+    ['/en/services/','Live appointment booking is not currently available','Online payment availability is confirmed by the secure checkout server'],
     ['/fa/shop/','ثبت سفارش فعال','پرداخت آنلاین با کنترل مبلغ و تأیید نتیجهٔ بانک در سرور انجام می‌شود'],
     ['/en/shop/','Order capture active','Payment is initiated through the verified provider and finalized only after server confirmation'],
     ['/fa/shop/checkout/','وضعیت پرداخت مستقیماً از سرور بررسی می‌شود','فقط پرداخت تأییدشده توسط سرور سفارش را قطعی می‌کند']
