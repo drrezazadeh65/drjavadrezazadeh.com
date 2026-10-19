@@ -37,7 +37,13 @@ test('English translation file cannot redefine offers, prices, status or entitle
  assert.match(page,/id="service-market"[^>]+data-dashboard-panel="ecosystem"/);
  assert.match(page,/data-dashboard-service-search/);
  assert.match(page,/data-dashboard-services/);
- assert.match(page,/customer-dashboard\.js\?v=20261017-en-checkout-verified-v52/);
+ // Cache-busting token changes whenever the shared dashboard changes.
+ // Validate its format and FA/EN parity, not a retired release fingerprint.
+ const dashboardScript=page.match(/customer-dashboard\\.js\\?v=(20\\d{6}-[a-z0-9-]+)/);
+ assert.ok(dashboardScript,'English dashboard must load the cache-versioned canonical script');
+ const faPage=readFileSync('fa/customer-dashboard/index.html','utf8');
+ assert.ok(faPage.includes('customer-dashboard.js?v='+dashboardScript[1]),
+   'Both locales must load the same reviewed dashboard script version');
  assert.match(client,/service-descriptions-en\.json/);
  assert.match(client,/Secure service checkout/);
  assert.ok(client.includes("'/en/services/checkout/?service='+id"), 'English service CTA must reach the existing localized checkout');
