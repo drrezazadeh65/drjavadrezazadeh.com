@@ -13,7 +13,8 @@ const raw=(id,domain='D1',source='STUDENT_SELF')=>({
  id,domain_code:domain,source_type:source,source_reference_id:'source-'+id,
  quality_state:'UNREVIEWED',
  provenance:{direction:'CONTEXTUALISES',respondent_reference_id:'respondent-'+id,
-  independence_group_id:'independent-'+id,independence_verified:true}
+  independence_group_id:'independent-'+id,independence_verified:true,
+  claim_reference_id:'claim-'+domain,material_compatibility_verified:true}
 });
 const reviewed=(id,domain='D1',source='STUDENT_SELF',direction='SUPPORTS',
  qualityState='USABLE',overrides={})=>reviewedEvidence({...raw(id,domain,source),...overrides},{
