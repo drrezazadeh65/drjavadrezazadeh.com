@@ -96,7 +96,7 @@ export function canonicalize(value){
   }finally{active.delete(v);}
  }
  const serialized=encode(value,0);
- if(Buffer.byteLength(serialized,'utf8')>32768)throw new EvidenceInputError('Evidence event exceeds 32 KiB');
+ if(Buffer.byteLength(serialized,'utf8')>4194304)throw new EvidenceInputError('Canonical JSON exceeds 4 MiB');
  return serialized;
 }
 const freezeDeep=value=>{
@@ -108,6 +108,7 @@ const freezeDeep=value=>{
 };
 function inspect(raw){
  const serialized=canonicalize(raw);
+ if(Buffer.byteLength(serialized,'utf8')>32768)throw new EvidenceInputError('Evidence event exceeds 32 KiB');
  const event_ref=sha256Hex(serialized).slice(0,24);
  if(!plain(raw))return {raw,serialized,event_ref,id:null,domain:null,reasons:['NOT_AN_OBJECT']};
  const reasons=[];
@@ -216,7 +217,7 @@ function buildRoute(domain,items,rejected){
   routing.length>1&&!claimsCompatible||contextual.length>0||rejected.length>0;
  return {
   route_code:domain,evidence_state:state,
-  claim_compatibility_verified:Boolean(convergence),
+  claim_compatibility_verified:Boolean(claimsCompatible),
   agreement_direction:convergence?
    (supporting.length?'SUPPORTS':'CONTRADICTS'):null,
   source_count:sourceTypes.length,independent_source_count:independentSourceCount,
