@@ -154,3 +154,18 @@ test('the existing Apache 404 analyzer keeps distinct post IDs in the evidence r
   assert.equal(data.get('/').action,'PRESERVE_HOME');
  }finally{fs.rmSync(folder,{recursive:true,force:true})}
 });
+
+test('all approved historical mappings target frozen indexable public URL identities',()=>{
+ const manifest=JSON.parse(fs.readFileSync('platform/public-url-stability-manifest.json','utf8'));
+ const audit=fs.readFileSync('scripts/historical-authority-audit.mjs','utf8');
+ assert.equal(manifest.production_origin,registry.production_origin);
+ assert.equal(manifest.policy.route_identity_is_stable,true);
+ assert.equal(manifest.policy.redirect_chain_allowed,false);
+ const frozen=new Set(manifest.frozen_indexable_routes);
+ for(const mapping of registry.authority_redirects){
+  assert.equal(mapping.status,301);
+  assert.ok(frozen.has(mapping.target),'Unfrozen 301 destination: '+mapping.source+' -> '+mapping.target);
+ }
+ assert.match(audit,/frozenPublicRoutes\.has\(rec\.target\)/);
+ assert.match(audit,/privatePrefixes\.some/);
+});
