@@ -105,7 +105,7 @@
    const r=await fetch('/api/student-support/my-contributions',{credentials:'include',cache:'no-store'});
    if(r.status===401){
      ledgerStatus.textContent='برای مشاهدهٔ پرداخت‌های متعلق به خود، با ایمیل تأییدشده وارد شوید. حمایت مالی بدون ثبت‌نام همچنان آزاد است.';
-     return;
+     return false; // This authenticated endpoint explicitly identified a guest.
    }
    if(!r.ok)throw Error('ledger_unavailable');
    const data=await r.json();
@@ -138,8 +138,11 @@
  }
  async function load(){
   say('در حال بررسی دسترسی امن و مجوزهای حمایت تحصیلی…');
-  await loadContributions();
-  await loadPendingGiving();
+  // Avoid querying private commerce history when the existing donor endpoint
+  // has conclusively returned 401. On unrelated errors, preserve the previous
+  // order-history fallback for signed-in customers (still server-authorised).
+  const authorisedDonorView=await loadContributions();
+  if(authorisedDonorView!==false)await loadPendingGiving();
   try{
     const h=await fetch('/api/student-support/health',{credentials:'include',cache:'no-store'});
     if(!h.ok)throw Error('unavailable');
