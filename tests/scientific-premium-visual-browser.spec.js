@@ -7,7 +7,7 @@ const science=[
  ['FA Golden Talent','/fa/golden-talent/','goldenTalentEvidenceStudio',0],
  ['EN Golden Talent','/en/golden-talent/','goldenTalentEvidenceStudio',0],
  ['FA RCAS','/fa/assessments/golden-talent/start/','rcasApp',1],
- ['EN RCAS','/en/golden-talent/assessment/','rcasApp',1],
+ ['EN RCAS','/en/golden-talent/assessment/','rcasEnForm',1],
  ['FA BAHAR','/fa/app/student/bahar/','baharWorkingPlan',2],
  ['EN BAHAR','/en/golden-talent/dashboard/bahar/','baharWorkingPlan',2]
 ];
@@ -21,7 +21,9 @@ for(const [name,path,anchor,active] of science){
    const css=page.locator('link[href*="jr-scientific-experience-v1.css"]');
    await expect(css).toHaveCount(1);
    await expect(css).toHaveAttribute('href',/20261019-science-premium-v11/);
-   const mark=page.locator('img[src="/assets/images/persian-brand-symbol.png"]').first();
+   const mark=active===2
+    ? page.locator('.jr-bahar-topbar-brand img[src="/assets/images/persian-brand-symbol.png"]')
+    : page.locator('header img[src="/assets/images/persian-brand-symbol.png"]').first();
    await expect(mark).toBeVisible();
    expect(await mark.evaluate(n=>n.complete&&n.naturalWidth>0)).toBe(true);
    const nav=page.locator('[data-science-continuity]');
