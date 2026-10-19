@@ -93,7 +93,7 @@
     plans: 'offer', account: 'accountStatus'
   };
   const keys = [
-    'home', 'dashboard', 'rcas', 'profile', 'records', 'progress',
+    'dashboard', 'rcas', 'profile', 'records', 'progress',
     'context', 'appointments', 'goldenPath', 'bahar', 'plans', 'account'
   ];
   const style = document.createElement('style');
@@ -105,6 +105,7 @@
     '.jr-sc-nav [data-access="paid"] .jr-sc-nav-status{color:#e3c682}',
     '.jr-sc-nav [data-access="free"] .jr-sc-nav-status{color:#b5e3bc}',
     '.jr-sc-nav-intro{color:#d7c5a3;font-size:12px;line-height:1.75;margin:4px 4px 14px}',
+    '.jr-sc-overview-link{display:block;padding:10px;border:1px solid #9b7b43;border-radius:10px;color:#f6e3b4;text-decoration:none;line-height:1.5;font-size:12px;margin-bottom:10px;min-height:44px;box-sizing:border-box}',
     '.jr-sc-nav-trigger{position:fixed;right:12px;top:90px;z-index:110;display:none;gap:8px;align-items:center;background:#171511;color:#f6e8c9;border:1px solid #b08d4b;border-radius:12px;min-height:44px;padding:8px 13px;font:inherit;font-size:12px;cursor:pointer;box-shadow:0 8px 24px #0006}',
     '.jr-sc-nav-trigger:focus-visible,.jr-sc-nav-close:focus-visible{outline:3px solid #e7c887;outline-offset:2px}',
     '.jr-sc-nav-backdrop[hidden]{display:none!important}',
@@ -136,9 +137,17 @@
       container.append(a);
     }
   }
+  function overviewLink() {
+    const a = document.createElement('a');
+    a.className = 'jr-sc-overview-link';
+    a.href = routes.home + '#goldenTalentEvidenceStudio';
+    a.textContent = labels.home;
+    return a;
+  }
   const existing = document.querySelector('.dashboard-sidebar nav');
   if (existing) {
     navIn(existing);
+    existing.parentNode.insertBefore(overviewLink(), existing);
   } else if (!root.classList.contains('public-content-page')) {
     const aside = document.createElement('aside');
     aside.className = 'jr-sc-nav-new-sidebar';
@@ -150,7 +159,7 @@
     intro.textContent = labels.summary;
     const nav = document.createElement('nav');
     navIn(nav);
-    aside.append(title, intro, nav);
+    aside.append(title, intro, overviewLink(), nav);
     root.append(aside);
     root.classList.add('jr-sc-nav-shift');
   }
@@ -179,7 +188,7 @@
   intro.textContent = labels.summary;
   const menu = document.createElement('nav');
   navIn(menu);
-  sheet.append(close, intro, menu);
+  sheet.append(close, intro, overviewLink(), menu);
   backdrop.append(sheet);
   root.append(trigger, backdrop);
   let restoreFocus = trigger;
