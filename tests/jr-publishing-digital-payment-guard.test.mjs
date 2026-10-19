@@ -136,7 +136,7 @@ test('digital buyer checkout fail-closes ambiguous payment creation and untruste
      })};
    };
    vm.runInNewContext(client,{
-     document:{querySelector:selector=>map[selector]||null},
+     document:{documentElement:{lang:'fa'},querySelector:selector=>map[selector]||null,addEventListener(){}},
      fetch,URL,
      location:{origin:'https://drjavadrezazadeh.com'},
      window:{location:{assign:url=>redirects.push(url)}}
@@ -241,10 +241,12 @@ test('existing publishing offer activation is owner-controlled, idempotent and d
  ];
  for(const digest of hashes){
    assert.equal(digest.length,64);
-   assert.ok(cli.includes(digest),'activation must pin original 64-digit SHA-256 '+digest);
-   assert.ok(preflight.includes(digest),'preflight must pin same original digest');
+   assert.ok(offer.includes(digest),'canonical offer must pin approved SHA-256 '+digest);
+   assert.ok(!preflight.includes(digest),'preflight must use canonical manifest, not duplicate hashes');
  }
- assert.equal([...cli.matchAll(/['"]([a-f0-9]{55,70})['"]/g)].filter(m=>hashes.includes(m[1])).length,2);
+ assert.equal(hashes.filter(digest=>cli.includes(digest)).length,0,'activation must use shared asset manifest');
+ assert.match(cli,/JR_PUB_ORIGINAL_ASSETS/);
+ assert.match(preflight,/JR_PUB_ORIGINAL_ASSETS/);
 
  assert.doesNotMatch(cli,/INSERT INTO publishing_rights_licences/);
  assert.doesNotMatch(cli,/INSERT INTO customer_accounts/);
