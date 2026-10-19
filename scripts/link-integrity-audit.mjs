@@ -22,6 +22,20 @@ const htmlCache=new Map(htmlFiles.map(f=>[f,fs.readFileSync(path.join(root,f),'u
 const failures=[];
 const warnings=[];
 const legacyRouteSet=new Set();
+
+/* Verify Bertina's virtual POST handler without exempting arbitrary missing
+ * URLs. Unlike static assets, this path is handled by api/.htaccess -> index.php.
+ * If the route or rewrite is removed, the link audit fails closed. */
+const phpRouterFile=path.join(root,'api','index.php');
+const phpRewriteFile=path.join(root,'api','.htaccess');
+const phpRouter=fs.existsSync(phpRouterFile)?fs.readFileSync(phpRouterFile,'utf8'):'';
+const phpRewrite=fs.existsSync(phpRewriteFile)?fs.readFileSync(phpRewriteFile,'utf8'):'';
+function existingVirtualPostHandler(urlPath,attribute){
+  return attribute==='action' && urlPath==='/api/commerce/create'
+    && /RewriteRule\s+\^\s+index\.php\s+\[QSA,L\]/.test(phpRewrite)
+    && phpRouter.includes("if($path==='/commerce/create'&&$verb==='POST')");
+}
+
 try{
   const reg=JSON.parse(fs.readFileSync(path.join(root,'platform','ecosystem-registry.json'),'utf8'));
   for(const rec of reg.exact_routes||[]) if(String(rec.id||'').startsWith('legacy-')&&rec.route) legacyRouteSet.add(rec.route);
@@ -124,7 +138,7 @@ for(const [from,html] of htmlCache.entries()){
     if(r.file.endsWith('/index.html')&&r.pathname&&!r.pathname.endsWith('/')&&!/\/index\.html$/i.test(r.pathname)){
       failures.push('/'+from+': internal directory link is missing canonical trailing slash '+r.url);
     }
-    if(!fileSet.has(r.file)){
+    if(!fileSet.has(r.file)&&!existingVirtualPostHandler(r.pathname,ref.attr)){
       failures.push('/'+from+': broken internal '+ref.attr+' '+JSON.stringify(ref.raw)+' -> /'+r.file);
       continue;
     }
