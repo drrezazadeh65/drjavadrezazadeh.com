@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import {reviewedEvidence} from './golden-talent-review.mjs';
 import {analyseEvidence,nextEvidencePlan} from './golden-talent-evidence-analytics.mjs';
 
-const raw=(id,domain,source,recorded_at='2026-10-01T00:00:00Z')=>({id,domain_code:domain,source_type:source,source_reference_id:'src-'+id,quality_state:'UNREVIEWED',recorded_at,provenance:{direction:'CONTEXTUALISES'}});
+const raw=(id,domain,source,recorded_at='2026-10-01T00:00:00Z')=>({id,domain_code:domain,source_type:source,source_reference_id:'src-'+id,quality_state:'UNREVIEWED',recorded_at,provenance:{direction:'CONTEXTUALISES',
+ ...(domain==='D1'?{claim_reference_id:'claim-D1',material_compatibility_verified:true}:{})}});
 const reviewed=(id,domain,source,direction='SUPPORTS',quality='USABLE',date='2026-10-01T00:00:00Z')=>reviewedEvidence(raw(id,domain,source,date),{id:'r-'+id,evidence_event_id:id,reviewer_user_id:'u1',quality_decision:quality,direction,rationale:'reviewed',review_status:'ACTIVE',reviewed_at:date});
 
 const events=[
