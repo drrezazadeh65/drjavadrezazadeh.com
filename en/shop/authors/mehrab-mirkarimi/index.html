@@ -45,6 +45,18 @@
 .jp-en-faq summary{cursor:pointer;font-weight:650;color:#efdab2}
 .jp-en-faq summary:focus-visible,.jp-en-actions a:focus-visible{outline:3px solid #ffdd98;outline-offset:4px}
 .jp-en-footer{padding:26px 0}
+.jp-en-checkout{margin-block:28px;padding:clamp(18px,3vw,30px);background:linear-gradient(145deg,#161510,#0b0b0b);border:1px solid #b79754;border-radius:18px;color:#f8f5e9}
+.jp-en-checkout h3{color:#f4dda9;font-size:clamp(1.2rem,2.4vw,1.65rem);margin:5px 0 12px}
+.jp-en-checkout .jp-en-state{color:#f5e7c7;border-inline-start:3px solid #d4af37;padding:12px 14px;background:#292216;margin-block:14px;line-height:1.7;overflow-wrap:anywhere}
+.jp-en-checkout #jp-offer-badge{display:inline-block;padding:5px 12px;border:1px solid #c2a56b;border-radius:99px;color:#f1d59d;font-size:.82rem}
+.jp-en-checkout form{margin-top:18px;padding:18px;border:1px solid #ae915a66;border-radius:13px;background:#1b1914}
+.jp-en-checkout form[hidden]{display:none!important}
+.jp-en-checkout form label{display:block;margin:12px 0 6px;font-weight:650;color:#f8f5e9}
+.jp-en-checkout form input{box-sizing:border-box;width:100%;min-height:48px;border:1px solid #ad925b;border-radius:9px;background:#fff;color:#171511;padding:11px 13px;font:inherit}
+.jp-en-checkout :is(input,button,a):focus-visible{outline:3px solid #ffdb92;outline-offset:3px}
+.jp-en-checkout button:disabled{opacity:.66;cursor:not-allowed}
+.jp-en-checkout .jp-en-checkout-note{font-size:.9rem;color:#e2d7bd;line-height:1.8}
+@media(max-width:420px){.jp-en-checkout button.jp-button{width:100%;white-space:normal}}
 @media(max-width:800px){.jp-en-hero .jp-container{grid-template-columns:1fr}.jp-en-stats{grid-template-columns:1fr}}
 @media(max-width:420px){.jp-en-actions .jp-button{width:100%}}
 @media(prefers-reduced-motion:reduce){.jp-en-hero *,.jp-en-section *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
@@ -109,10 +121,27 @@
 <section class="jp-en-section" id="allocation"><div class="jp-container jp-en-copy"><p class="jp-kicker">Transparent educational-support allocation</p><h2>Author remuneration and support for talented learners</h2>
 <p>The owner's approved domestic gross purchase price is <strong>1,000,000 tomans</strong>. For each successfully verified sale, <strong>600,000 tomans</strong> are assigned to the author's entitlement and <strong>400,000 tomans</strong> are earmarked for supporting talented children and young people facing financial disadvantage. This constitutes <strong>40% of the buyer's price</strong>, not a claim that 40% of an undefined net profit has already been spent.</p>
 <p>A separate 70,000-toman platform-cost reserve, if established and funded, is accounted for independently; it must not be deducted from either allocation. Earmarking support is not the same as a completed disbursement to beneficiaries.</p>
-<div class="jp-en-actions"><a class="jp-button primary" href="https://drjavadrezazadeh.com/fa/shop/authors/mehrab-mirkarimi/#purchase">Current purchase readiness (Persian)</a><a class="jp-button" href="/en/shop/">Browse the bookstore</a></div>
+<section class="jp-en-checkout" id="purchase" aria-labelledby="purchase-title">
+<p class="jp-kicker">Live, server-verified availability</p>
+<h3 id="purchase-title">Buy the two-PDF digital collection</h3>
+<p class="jp-en-checkout-note">The purchase price is 1,000,000 Iranian tomans (IRT). This is the existing domestic BitPay payment route, not an international card or USDT gateway. Payment is enabled here only when the same Bertina server confirms all payment, author-rights and private-file delivery prerequisites.</p>
+<span id="jp-offer-badge">Checking checkout availability</span>
+<p id="jp-purchase-readiness" class="jp-en-checkout-note">Checkout will remain unavailable until secure payment and delivery are confirmed.</p>
+<p id="jp-checkout-state" class="jp-en-state" role="status" aria-live="polite">Checking payment and secure digital fulfilment...</p>
+<button id="jp-recheck-offer" class="jp-button" type="button">Recheck checkout availability</button>
+<form id="jp-digital-checkout-form" hidden autocomplete="on" aria-label="Verified two-PDF digital purchase">
+ <label for="jp-buyer-name">Buyer's full name</label>
+ <input id="jp-buyer-name" name="buyer-name" type="text" autocomplete="name" minlength="2" maxlength="100" required>
+ <label for="jp-buyer-email">Delivery email for both PDF downloads</label>
+ <input id="jp-buyer-email" name="buyer-email" type="email" autocomplete="email" required>
+ <button id="jp-pay-now" class="jp-button primary" type="submit" disabled>Proceed to secure payment · 1,000,000 tomans</button>
+ <p class="jp-en-checkout-note">A verified bank payment produces a private email delivery for two PDFs. No postal address is required. Review the <a href="/en/shop/customer-policy/">customer purchase terms</a> before paying.</p>
+</form>
+</section>
+<div class="jp-en-actions"><a class="jp-button" href="https://drjavadrezazadeh.com/fa/shop/authors/mehrab-mirkarimi/#purchase">Persian purchase page</a><a class="jp-button" href="/en/shop/">Browse the bookstore</a></div>
 </div></section>
 <section class="jp-en-section jp-en-faq" id="questions"><div class="jp-container jp-en-copy"><h2>Frequently asked questions</h2>
-<details><summary>Can I buy and download the two PDFs immediately?</summary><p>Not until the live store verifies legal rights, payment, private storage and secure delivery of both files. The Persian collection page provides the latest information about purchasing. Orders will open only after the necessary permissions and secure delivery arrangements have been confirmed.</p></details>
+<details><summary>Can I buy and download the two PDFs immediately?</summary><p>Only when the checkout-status panel above confirms that the same server has verified distribution rights, payment configuration, secure private files and fulfilment readiness. Until then, the purchase form remains hidden and no payment is accepted.</p></details>
 <details><summary>Does the collection carry a guarantee of academic accuracy?</summary><p>Dr. Javad Rezazadeh Yazdeli has scientifically evaluated and approved the collection’s educational approach and structure. Independent answer-by-answer verification remains incomplete, and admission or examination outcomes are not guaranteed. Candidates should consult current official examination materials and relevant academic sources.</p></details>
 <details><summary>How is educational support recorded?</summary><p>Only verified sales create the corresponding author and talent-fund accounting obligations. Later bank settlements and support disbursements are separate events and should be reported separately.</p></details>
 </div></section>
@@ -126,4 +155,5 @@
 </nav>
 <footer class="jp-footer jp-en-footer"><div class="jp-container"><span>© 2026 · JR Future Publishing · Academic and educational resources</span><span><a href="https://drjavadrezazadeh.com/fa/shop/authors/mehrab-mirkarimi/" lang="fa">نسخه فارسی</a> · <a href="/fa/harim-khosusi/" lang="fa" dir="rtl">سیاست حریم خصوصی (فارسی)</a></span></div></footer>
 <script src="/assets/js/jr-author-portrait-v52.js?v=20261018-portrait-v1" defer></script>
+<script src="/assets/js/jr-publishing-checkout-v1.js?v=20261019-bilingual-live-gate-v2" defer></script>
 </body></html>
