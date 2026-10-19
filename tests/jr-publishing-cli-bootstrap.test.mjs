@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
-test('Both CLI-only publishing diagnostics load Stage09 after the safe API bootstrap',()=>{
+test('Every private publishing CLI loads Stage09 after the safe API bootstrap',()=>{
   for(const file of [
     'api/internal/jr-publishing-preflight-cli.php',
-    'api/internal/jr-publishing-activate-existing-cli.php'
+    'api/internal/jr-publishing-activate-existing-cli.php',
+    'api/internal/jr-publishing-provision-cli.php'
   ]){
     const c=readFileSync(file,'utf8');
     const context=c.indexOf("define('BERTINA_MAIL_SMOKE_CONTEXT'");
