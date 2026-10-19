@@ -18,6 +18,9 @@ test('native JHELA bridge recognises a CA-trusted canonical HTTPS redirect but n
 });
 
 test('native journal observer rejects deceptive redirects and unverified 200 pages',()=>{
+ const withUserInfo=new URL('https://drjavadrezazadeh.com/journal/');
+ withUserInfo.username='untrusted';
+ withUserInfo.password='sample-only';
  const unsafe=[
   [302,'http://drjavadrezazadeh.com/journal/'],
   [302,'https://drjavadrezazadeh.com.evil.invalid/journal/'],
@@ -27,7 +30,7 @@ test('native journal observer rejects deceptive redirects and unverified 200 pag
   [302,'https://journal.drjavadrezazadeh.com/'],
   [301,'https://drjavadrezazadeh.com/journal/articles/'],
   [302,'https://drjavadrezazadeh.com:444/journal/'],
-  [302,'https://guest:pass@drjavadrezazadeh.com/journal/'],
+  [302,withUserInfo.href],
   [302,'//evil.example/journal/'],
   [302,''],
   [200,'https://drjavadrezazadeh.com/journal/'],
