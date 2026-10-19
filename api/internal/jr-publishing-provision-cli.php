@@ -5,6 +5,8 @@ if(PHP_SAPI!=='cli') {http_response_code(404);exit;}
 define('BERTINA_MAIL_SMOKE_CONTEXT',true);
 require_once dirname(__DIR__).'/index.php';
 define('BERTINA_API_BOOTSTRAPPED',true);
+// CLI API bootstrap exits before Stage09; existing commerceReady() relies on it.
+require_once dirname(__DIR__).'/commerce-stage9.php';
 require_once dirname(__DIR__).'/publishing.php';
 require_once __DIR__.'/jr-publishing-digital.php';
 
