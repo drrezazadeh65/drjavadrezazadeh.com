@@ -10,13 +10,14 @@ const order=(id,state,verified)=>({
  items:[{sku,title:'Academic consultation',quantity:1,subtotalToman:2400000}]
 });
 const routes=[
- ['fa','/fa/app/account/orders/'],
- ['en','/en/account/orders/']
+ ['fa','/fa/app/account/orders/','canonical'],
+ ['en','/en/account/orders/','canonical'],
+ ['en','/en/app/account/orders/','alternate']
 ];
 
-for(const [lang,route] of routes){
+for(const [lang,route,variant] of routes){
  for(const scenario of ['booked','owner-attested','parcel-delivered','foreign-case','reconciliation']){
-  test(lang+' private evidence: '+scenario+' stays tied to authenticated provider and owned SKU',async({page})=>{
+  test(lang+' '+variant+' private evidence: '+scenario+' stays tied to authenticated provider and owned SKU',async({page})=>{
    const errors=[],writes=[],requests=[];
    page.on('pageerror',e=>errors.push(e.message));
    page.on('request',r=>{
@@ -84,7 +85,7 @@ for(const [lang,route] of routes){
    expect(errors).toEqual([]);
   });
  }
- test(lang+' guest cannot populate private evidence or show fake counts',async({page})=>{
+ test(lang+' '+variant+' guest cannot populate private evidence or show fake counts',async({page})=>{
   const details=[];
   await page.route('**/api/**',r=>{
    const path=new URL(r.request().url()).pathname;
@@ -100,7 +101,7 @@ for(const [lang,route] of routes){
     lang==='en'?'Sign in':'وارد حساب');
   expect(details).toEqual([]);
  });
- test(lang+' empty authorised history reports zero recent records without inventing payment',async({page})=>{
+ test(lang+' '+variant+' empty authorised history reports zero recent records without inventing payment',async({page})=>{
   await page.route('**/api/**',r=>r.fulfill({json:{ok:true,limit:50,orders:[]}}));
   await page.goto(origin+route,{waitUntil:'domcontentloaded'});
   const local=new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US').format(0);
