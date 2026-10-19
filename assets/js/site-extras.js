@@ -33,6 +33,13 @@ footer.appendChild(holder);
 
 import('/assets/js/mobile-app-v431.js?v=20261016-install-dock-v2');
 
+/* Existing SW lifecycle: notify open installed app sessions after an update. */
+(()=>{
+if(!('serviceWorker' in navigator)||document.querySelector('[data-jr-release-notice-loader]'))return;
+const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/css/pwa-release-notice.css?v=20261019-v1';css.dataset.jrReleaseNoticeLoader='1';document.head.append(css);
+const js=document.createElement('script');js.src='/assets/js/pwa-release-notice.js?v=20261019-v1';js.defer=true;document.head.append(js);
+})();
+
 /* Brand emblem lives beside the original merchant trust seal. */
 (()=>{if(document.querySelector('script[data-jr-footer-brand-loader]'))return;const el=document.createElement('script');el.src='/assets/js/footer-brand-seal.js?v=20261016-v1';el.defer=true;el.dataset.jrFooterBrandLoader='1';document.head.append(el);})();
 
