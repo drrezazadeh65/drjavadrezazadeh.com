@@ -21,7 +21,7 @@
  padding:10px 13px;border-radius:11px;
  border:1px solid rgba(226,192,120,.35);
  background:#20201f;color:#e7dfd3;
- font:650 .91rem/1.5 inherit;
+ font-family:inherit;font-weight:650;font-size:.91rem;line-height:1.5;
 }
 .jr-choice-studio .jr-cs-tab[aria-selected="true"]{
  background:#e4c487;color:#13100b;border-color:#e4c487;font-weight:800;
@@ -43,14 +43,14 @@
  cursor:pointer;min-height:44px;min-width:0;
  flex:1 1 115px;padding:9px 11px;border:1px solid #bfa777;
  border-radius:10px;background:#2b2925;color:#f0deb8;
- font:650 .86rem/1.5 inherit;
+ font-family:inherit;font-weight:650;font-size:.86rem;line-height:1.5;
 }
 .jr-choice-studio .jr-cs-example-add:hover{background:#3a3020}
 .jr-choice-studio .jr-cs-show-result{
  display:block;width:100%;min-height:52px;margin:14px 0;
  border-radius:13px;border:1px solid #e6c58c;
  background:linear-gradient(110deg,#d4b274,#f1d499);color:#16110a;
- font:800 clamp(1rem,1.8vw,1.15rem)/1.5 inherit;
+ font-family:inherit;font-weight:800;font-size:clamp(1rem,1.8vw,1.15rem);line-height:1.5;
  padding:12px 17px;cursor:pointer;
 }
 .jr-choice-studio .jr-cs-show-result:hover{filter:brightness(1.07)}
@@ -89,7 +89,7 @@
 .jr-choice-studio .jr-cs-report-print{
  display:block;min-height:44px;margin:13px 0 0;padding:10px 15px;
  border:1px solid #dfbf80;border-radius:10px;background:transparent;
- color:#f3d699;font:700 .94rem/1.5 inherit;cursor:pointer;
+ color:#f3d699;font-family:inherit;font-weight:700;font-size:.94rem;line-height:1.5;cursor:pointer;
 }
 .jr-choice-studio .jr-cs-tab:focus-visible,
 .jr-choice-studio .jr-cs-example-add:focus-visible,
