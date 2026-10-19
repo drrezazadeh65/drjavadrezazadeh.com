@@ -45,8 +45,8 @@ test('Choice Studio integrates in existing bilingual public URLs with stable fiv
  for(const [locale,path] of [['fa','fa/entekhab-reshteh/index.html'],['en','en/student-guidance/index.html']]){
   const html=read(path);
   assert.ok(html.includes('data-choice-studio data-locale="'+locale+'"'));
-  assert.match(html,/jr-choice-studio-v1\.js\?v=20261019-choice-studio-v4/);
-  assert.match(html,/jr-choice-studio-v1\.css\?v=20261019-choice-studio-v4/);
+  assert.match(html,/jr-choice-studio-v1\.js\?v=20261019-choice-stages-v41/);
+  assert.match(html,/jr-choice-studio-v1\.css\?v=20261019-choice-design-v41/);
   assert.match(html,/jr-choice-feedback-v1\.js\?v=20261019-choice-reorder-v4/);
  }
  assert.match(choice,/persistInput\.checked=false/);
