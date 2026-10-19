@@ -147,10 +147,14 @@ function classifyEvent(r){
  const observation=recordId(provenance.observation_reference_id);
  const instrumentGroup=recordId(provenance.instrument_dependency_group_id);
  const derivative=recordId(provenance.derivative_of_event_id);
+ // Independence and semantic compatibility are separate reviewer decisions.
+ // A shared D1–D6 label is NOT proof of a shared proposition or interpretation.
+ const claim=recordId(provenance.claim_reference_id);
+ const compatible=provenance.material_compatibility_verified===true&&Boolean(claim);
  const independent=provenance.independence_verified===true&&Boolean(group&&respondent&&origin)&&
   !derivative&&!instrumentGroup;
  return {kind:'ROUTING',source,direction,group,respondent,origin,observation,
-  instrumentGroup,derivative,independent};
+  instrumentGroup,derivative,claim,compatible,independent};
 }
 function buildRoute(domain,items,rejected){
  const routing=items.filter(x=>x.disp.kind==='ROUTING');
@@ -183,10 +187,13 @@ function buildRoute(domain,items,rejected){
  const verifiedClusters=[...clusters.values()].filter(c=>c.every(x=>x.disp.independent));
  const allVerified=routing.every(x=>x.disp.independent);
  const independentSourceCount=verifiedClusters.length;
- // Convergence needs at least 2 distinct approved source CLASSES, 2 genuinely
- // independent provenance clusters, AND a consistent reviewed direction.
+ const propositionIds=unique(routing.map(x=>x.disp.claim).filter(Boolean));
+ const claimsCompatible=routing.length>0&&propositionIds.length===1&&
+  routing.every(x=>x.disp.compatible);
+ // Convergence requires separately reviewed independence AND material
+ // compatibility of the SAME proposition. Matching domain/direction is not enough.
  const convergence=routing.length>=2&&sourceTypes.length>=2&&allVerified&&
-   independentSourceCount>=2&&!opposite&&!conflict;
+   independentSourceCount>=2&&claimsCompatible&&!opposite&&!conflict;
  let state='INSUFFICIENT';
  if(routing.length>0)state='SINGLE_SOURCE';
  if(convergence)state='CONVERGENT';
@@ -199,14 +206,18 @@ function buildRoute(domain,items,rejected){
  if(routing.length&&!allVerified)rationale.push('INDEPENDENCE_NOT_VERIFIED');
  if(routing.length&&sourceTypes.length>=2&&independentSourceCount<2)
   rationale.push('INDEPENDENT_SOURCES_INSUFFICIENT');
+ if(routing.length>1&&!claimsCompatible)rationale.push('CLAIM_COMPATIBILITY_NOT_VERIFIED');
+ if(opposite&&!claimsCompatible)rationale.push('OPPOSING_DIRECTIONS_REQUIRE_CLAIM_REVIEW');
  if(items.some(x=>x.raw.quality_state==='LIMITED'))rationale.push('LIMITED_EVIDENCE_PRESENT');
  if(contextual.some(x=>x.raw.quality_state==='UNREVIEWED'))rationale.push('PENDING_REVIEW_PRESENT');
  if(rejected.length)rationale.push('MALFORMED_EVENT_PRESENT');
  const sorted=(a,b)=>compare(a.event_ref,b.event_ref)||compare(a.id||'',b.id||'');
  const reviewRequired=state==='DISCREPANT'||!allVerified&&routing.length>0||
-  contextual.length>0||rejected.length>0;
+  routing.length>1&&!claimsCompatible||contextual.length>0||rejected.length>0;
  return {
-  route_code:domain,evidence_state:state,agreement_direction:convergence?
+  route_code:domain,evidence_state:state,
+  claim_compatibility_verified:Boolean(convergence),
+  agreement_direction:convergence?
    (supporting.length?'SUPPORTS':'CONTRADICTS'):null,
   source_count:sourceTypes.length,independent_source_count:independentSourceCount,
   source_types:sourceTypes,supporting_source_types:supporting,contradicting_source_types:contradicting,
