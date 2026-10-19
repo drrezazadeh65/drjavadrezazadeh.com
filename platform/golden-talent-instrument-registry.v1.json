@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
-  "registry_version": "2026-10-14.1",
+  "registry_version": "2026-10-19.1",
   "framework": "Golden Talent",
-  "engine_version": "0.2-prevalidation",
+  "engine_version": "1.1.0",
   "publication_policy": "NO_TOOL_IS_AUTOMATICALLY_ACTIVATED_BY_ITS_PRESENCE_IN_THIS_REGISTRY",
   "scientific_policy": {
     "validation_status": "PREVALIDATION",
@@ -10,7 +10,8 @@
     "total_talent_score_allowed": false,
     "automatic_career_prescriptions_allowed": false,
     "evidence_based_professional_review_required": true,
-    "note": "Registry existence or software tests must never be described as psychometric validation."
+    "note": "Registry existence or software tests must never be described as psychometric validation.",
+    "engine_upgrade_not_a_validation_claim": true
   },
   "governance": {
     "versioning": "IMMUTABLE_ID_PLUS_VERSION_AND_CONTENT_HASH_ON_PUBLICATION",
@@ -24,7 +25,9 @@
       "private_storage_and_authorization_tests"
     ],
     "withdrawal_requires": "append-only event, immediate access revocation and re-routing of affected evidence",
-    "use_real_student_data": false
+    "use_real_student_data": false,
+    "integrated_evidence_router": "platform/golden-talent-engine.mjs",
+    "engine_1_1_0_state": "NODE_PREVALIDATION_ONLY_BERTINA_PHP_PRODUCTION_ADAPTER_NOT_CERTIFIED"
   },
   "instruments": [
     {
@@ -161,5 +164,6 @@
     "authoritative_text": "author manuscript and decision ledger, not published online",
     "scope": "15 chapters, Core 28, D1-D6 manuscript bank 142, E1-E10, BAHAR and Golden Path",
     "status": "EDITORIAL_ALIGNMENT_ONLY_NOT_PSYCHOMETRIC_VALIDATION"
-  }
+  },
+  "previous_engine_version": "0.2-prevalidation"
 }
