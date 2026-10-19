@@ -26,7 +26,7 @@ test('both existing private dashboards preserve authentic roles, protected links
   assert.match(html,/data-dashboard-sheet/);
   assert.match(html,/data-dashboard-command-search/);
   assert.match(html,/customer-journey-actions-v1\.css\?v=20261019-customer-actions-v1/);
-  assert.equal((html.match(/data-journey-action="\d"/g)||[]).length,5);
+  assert.equal((html.match(/data-journey-step="\d"/g)||[]).length,5);
   for(const href of hrefs){
    assert.ok(html.includes('href="'+href+'"'),locale+' missing authentic action '+href);
    if(href.startsWith('/'))assert.ok(existsSync(href.slice(1)+'index.html'),locale+' action destination missing '+href);
