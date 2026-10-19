@@ -10,6 +10,7 @@ require_once __DIR__.'/jhela-native-editorial.php';
 require_once __DIR__.'/jhela-intake.php';
 require_once __DIR__.'/operations-commerce.php';
 require_once __DIR__.'/operations-book-expiration.php';
+require_once __DIR__.'/operations-donation-recovery.php';
 require_once __DIR__.'/operations-fulfilment.php';
 require_once __DIR__.'/operations-service-delivery.php';
 require_once __DIR__.'/consultation-availability.php';
@@ -475,6 +476,48 @@ function operationsRoute(string $path, string $verb): never {
         // Book holds expire after 24h ONLY when the owner has independently
         // confirmed terminal failed/cancelled BitPay status for this exact
         // gateway id_get. A pending row alone is never negative evidence.
+        // Recover donations whose verified BitPay payment did not reach the
+        // public callback. Existing Stage09 ledger remains the only authority.
+        if ($path === '/admin/operations/commerce/donation-reconcile' && $verb === 'POST') {
+            if (($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('donation_recovery_owner_role_required',403);
+            if (!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if (!rateAllowed($pdo,'operations_donation_recovery',$accountId,3,600))
+                fail('rate_limited',429);
+            $body=jsonBody();
+            if (($body['ownerConfirmedPanelTransaction']??null)!==true ||
+                !is_string($body['orderId']??null) ||
+                !is_string($body['gatewayId']??null) ||
+                !is_string($body['transactionId']??null))
+                fail('verified_donation_transaction_required',422);
+            try {
+                // gatewayPost is the existing server-only BitPay adapter.
+                // Never accept a browser-supplied provider status or amount.
+                $verified=jrRecoverPendingVerifiedDonation($pdo,$body['orderId'],
+                    $body['gatewayId'],$body['transactionId'],
+                    static function(string $transactionId,string $gatewayId): ?array {
+                        $raw=gatewayPost('gateway-result-second',[
+                            'trans_id'=>$transactionId,'id_get'=>$gatewayId,'json'=>'1']);
+                        $decoded=json_decode($raw,true);
+                        return is_array($decoded)?$decoded:null;
+                    });
+                try {
+                    operationsAudit($pdo,$accountId,'donation_gateway_recovered',$body['orderId']);
+                } catch (Throwable $auditError) {
+                    // Payment already committed by Stage09; never report that a
+                    // confirmed recovery was rolled back by an audit failure.
+                    error_log('Recovered donation audit unavailable: '.get_class($auditError));
+                }
+                respond(['ok'=>true,'schema'=>'commerce-donation-recovery-v1',
+                    'change'=>$verified]);
+            } catch (InvalidArgumentException $e) {fail('invalid_donation_recovery_identity',422);}
+            catch (DomainException $e) {fail('donation_verification_or_state_conflict',409);}
+            catch (Throwable $e) {
+                error_log('Owner donation recovery unavailable: '.get_class($e));
+                fail('donation_recovery_unavailable',503);
+            }
+        }
         if ($path === '/admin/operations/commerce/book-expire' && $verb === 'POST') {
             if (($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
                 fail('book_expiration_owner_role_required',403);
