@@ -119,6 +119,8 @@ const required=[
   'api/operations-gsc-direct.php','assets/js/operations-gsc-direct.js',
   'fa/app/admin/index.html','en/account/admin/index.html',
   'api/internal/.htaccess','assets/js/jr-publishing-checkout-v1.js',
+  'assets/js/book-store.js','assets/js/jr-author-workspace-v1.js',
+  'assets/css/jr-author-dashboard-v52.css','assets/css/jr-publishing-store-catalog-v1.css',
   'fa/app/author/index.html','fa/shop/authors/mehrab-mirkarimi/index.html',
   'assets/js/account-order-history.js','assets/js/operations-commerce.js',
   // Approved luxury bilingual commerce help + checkout must be packaged atomically:
