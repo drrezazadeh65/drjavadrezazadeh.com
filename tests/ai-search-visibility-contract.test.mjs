@@ -100,7 +100,7 @@ test('academic source pages answer the two research-integrity gaps without inven
  assert.match(teacher,/learner work and classroom participation/i);
  assert.match(teacher,/href="\/en\/publications\/"/);
  assert.match(research,/id="responsible-ai-academic-authorship"/);
- assert.match(research,/author(s|ship) and source responsibility/i);
+ assert.match(research,/authorship or source responsibility/i);
  assert.match(research,/returning to the original scholarly record/i);
  assert.match(research,/protect confidential data/i);
  assert.match(research,/href="\/en\/academic-profile\/"/);
