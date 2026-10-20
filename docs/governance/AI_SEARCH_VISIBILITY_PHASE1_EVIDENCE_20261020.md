@@ -77,6 +77,23 @@ The older source record mentioning **359 referring domains in Ahrefs** describes
 
 **Still not certified:** live public HTTPS/TLS trust and effective private-path access denial for this release, live payment fulfilment and journal security gates, Search Console indexation, AI citation URLs, current AI-provider remeasurement, and actual deployment of this SHA. The historic full-masterplan tracker remains pending and must not be marked verified on the strength of these source-only checks. Production publication requires the existing owner-controlled guarded release and independent host checks.
 
+## Post-current-release work item — live private evidence boundary verification
+
+**Sequence:** Immediately **after the next owner-controlled publication** and its normal origin/HTTP smoke checks. This is a post-release verification task, not a new pre-publication feature gate or a separate deployment. Do not activate recurring monitoring or run a parallel release workflow.
+
+**Scope:** Use anonymous, strict-TLS GET requests against the *observed deployed SHA* (not simply branch HEAD) for:
+- `/api/internal/operations-registry.json`
+- `/api/internal/operations-gsc-observation.json`
+- `/api/internal/ai-search-visibility-baseline-20261020.json`
+- `/api/operations-ai-visibility.php` (must not reveal module internals)
+- `/api/admin/operations/ai-visibility` (must deny unauthenticated access).
+
+**Expected evidence:** Preserve UTC collection time, actual HTTP statuses, effective Cache-Control and observed `sw.js` SHA in a sanitized owner-only report. Responses must not disclose the contents of protected files, unpublished scholarly submissions, customer details, gateway secrets or authentication tokens. A 404 on the previously deployed revision proves only that data is not accessible at that URL; it does **not** prove the new owner-only API has been deployed. For the current approved revision, test owner access separately with fresh MFA and correct role.
+
+**Incident boundary:** Any verified public exposure of sensitive evidence is a **security defect requiring immediate remediation**, not a permissible deferred enhancement. After deployment, fail closed, restrict access and use the existing owner-approved recovery procedure. Avoid recording response bodies or credentials in CI artifacts.
+
+**Acceptance:** Strict HTTPS and origin routing verified, private resources return authorized denial/absence, owner API denies anonymous access, release SHA matches the intended deployed commit, and authorized `SUPER_ADMIN` retrieves the correct dated evidence with no missing-as-zero claims. Production payments/JHELA intake and indexing still require their own independent evidence.
+
 ## Confidence classification
 | Conclusion | Confidence | Limitation |
 |---|---|---|
