@@ -62,3 +62,22 @@ test('premium, accessible and mobile-first shell is constrained to the private d
  assert.match(css, /min-height:48px/);
  assert.match(css,/--wi-gold:#d4af37/);
 });
+
+
+test('owner MFA lock clears confidential admin DOM and rejects delayed async results',()=>{
+ const control=read('assets/js/operations-control.js');
+ assert.match(control,/dispatchEvent\(new Event\('jr:operations-locked'\)\)/);
+ for(const path of [
+  'assets/js/operations-jhela-reviewers.js',
+  'assets/js/operations-jhela-manuscripts.js',
+  'assets/js/operations-publishing-authors-v1.js'
+ ]){
+  const source=read(path);
+  assert.match(source,/addEventListener\('jr:operations-locked'/,path);
+  assert.match(source,/lockEpoch\+\+/,path);
+  assert.match(source,/panel\.replaceChildren\(\)|box\.replaceChildren\(\)/,path);
+  assert.match(source,/scope\.hidden\|\|epoch!==lockEpoch/,path);
+  const check=spawnSync(process.execPath,['--check',path],{encoding:'utf8'});
+  assert.equal(check.status,0,path+' JS syntax: '+check.stderr);
+ }
+});
