@@ -146,8 +146,18 @@
   }
   const existing = document.querySelector('.dashboard-sidebar nav');
   if (existing) {
-    navIn(existing);
-    existing.parentNode.insertBefore(overviewLink(), existing);
+    // Preserve the customer's existing dashboard navigation. The science
+    // menu is an additional, clearly labelled section, not its replacement.
+    if (!existing.parentNode.querySelector('[data-jr-science-inline-nav]')) {
+      const section = document.createElement('section');
+      section.dataset.jrScienceInlineNav = 'true';
+      section.setAttribute('aria-label', labels.opener);
+      const nav = document.createElement('nav');
+      nav.setAttribute('aria-label', labels.opener);
+      navIn(nav);
+      section.append(overviewLink(), nav);
+      existing.insertAdjacentElement('afterend', section);
+    }
   } else if (!root.classList.contains('public-content-page')) {
     const aside = document.createElement('aside');
     aside.className = 'jr-sc-nav-new-sidebar';
