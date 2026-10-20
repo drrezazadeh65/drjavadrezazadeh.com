@@ -1,0 +1,35 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const f=require('../assets/js/jr-konkur-foundation-v1.js');
+const source={documentId:'verified-fixture',version:'v1',page:4,year:1405,reviewStatus:'VERIFIED'};
+const candidate={year:1405,group:'math'};
+const programme={year:1405,code:'TEST-001',source};
+const rules=[{id:'r1',year:1405,field:'group',operator:'equals',value:'math',source,reviewStatus:'VERIFIED'}];
+test('four-state eligibility is deterministic and fails closed',()=>{
+ assert.equal(f.evaluate(candidate,programme,rules).status,f.STATUSES.ELIGIBLE);
+ assert.equal(f.evaluate({...candidate,group:'arts'},programme,rules).status,f.STATUSES.INELIGIBLE);
+ assert.equal(f.evaluate({year:1405},programme,rules).status,f.STATUSES.INSUFFICIENT);
+ assert.equal(f.evaluate(candidate,programme,[]).status,f.STATUSES.INSUFFICIENT);
+ assert.equal(f.evaluate(candidate,{...programme,source:{...source,reviewStatus:'DRAFT'}},rules).status,f.STATUSES.REVIEW);
+ assert.equal(f.evaluate({...candidate,year:1406},programme,rules).status,f.STATUSES.INSUFFICIENT);
+ assert.equal(f.evaluate(candidate,programme,[{...rules[0],reviewStatus:'DRAFT'}]).status,f.STATUSES.REVIEW);
+});
+test('list validation and preference order',()=>{
+ const list=[programme,{...programme}];
+ const result=f.inspectList(list,{year:1405,maxChoices:1,source});
+ assert.equal(result.valid,false);
+ assert.ok(result.warnings.some(x=>x.code==='DUPLICATE_CODE'));
+ assert.ok(result.warnings.some(x=>x.code==='MAXIMUM_EXCEEDED'));
+ assert.equal(f.inspectList([programme],{year:1405,maxChoices:150,source:{...source,reviewStatus:'DRAFT'}}).maximum,null);
+ assert.deepEqual(f.reorder(['A','B','C'],0,2),['B','C','A']);
+ assert.equal(f.reorder(['A'],0,9),null);
+});
+test('Evidence Passport separates verified facts, preferences and interpretation',()=>{
+ const p=f.evidencePassport([{claim:'Fixture',year:1405,source},{claim:'Unverified',year:1405,source:{...source,reviewStatus:'DRAFT'}}],['Location preference'],['Possible pathway']);
+ assert.equal(p.evidence.length,3);
+ assert.deepEqual(p.evidence.map(x=>x.type),Object.values(f.TYPES));
+ assert.equal(p.evidence[2].humanReview,'NOT_VERIFIED');
+ assert.equal(p.admissionPredictionEnabled,false);
+});
