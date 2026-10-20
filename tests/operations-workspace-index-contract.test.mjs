@@ -21,7 +21,7 @@ test('existing authenticated operational workflows stay private and unchanged',(
   assert.match(html,/id="ops-jhela-workstream"/);
   assert.match(html,/<script src="\/assets\/js\/operations-control\.js\?v=/);
   assert.match(html, /\/assets\/css\/operations-workspace-index-v1\.css\?v=20261019-admin-index-v1/);
-  assert.match(html, /\/assets\/js\/operations-workspace-index-v1\.js\?v=20261019-admin-index-v1/);
+  assert.match(html, /\/assets\/js\/operations-workspace-index-v1\.js\?v=20261020-admin-index-v2/);
   assert.match(html, /<html lang="(?:fa|en)"/);
   assert.doesNotMatch(html,/data-ops-workspace-index/,'navigation is generated under the original protected shell');
  }
