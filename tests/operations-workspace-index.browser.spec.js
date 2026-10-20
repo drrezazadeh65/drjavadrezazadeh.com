@@ -3,8 +3,9 @@ test.use({serviceWorkers:'block'});
 const origin='http://127.0.0.1:4173';
 
 for(const [lang,route,expectedCount,keyword] of [
- ['fa','/fa/app/admin/',14,'سفارش'],
- ['en','/en/account/admin/',13,'Revenue']
+ // One additional MFA-contained evidence panel: the direct GSC/GA4 owner report.
+ ['fa','/fa/app/admin/',15,'سفارش'],
+ ['en','/en/account/admin/',14,'Revenue']
 ]){
  test(lang+' admin index remains locked and opens existing sections only in isolated authorised-layout fixture',async({page})=>{
   // Presentation-only fixture: isolate unrelated privileged runtime scripts,
@@ -24,6 +25,8 @@ for(const [lang,route,expectedCount,keyword] of [
   await expect(workspace).toBeHidden();
   await expect(nav).toBeHidden();
   await expect(page.locator('#ops-auth')).toBeVisible();
+  // The new Search Intelligence section stays behind the same locked workspace.
+  await expect(page.locator('#ops-gsc-direct')).toBeHidden();
 
   // Test only the view lifecycle; the production access check is not bypassed.
   await workspace.evaluate(el=>{el.hidden=false});
