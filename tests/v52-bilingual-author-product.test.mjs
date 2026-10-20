@@ -23,8 +23,8 @@ test('English publication stays source-honest, sale-gated and responsive',()=>{
  assert.match(en,/572 pages/);
  assert.match(en,/997 pages/);
  assert.match(en,/1,000,000 tomans/);
- assert.match(en,/600,000 tomans/);
- assert.match(en,/400,000 tomans/);
+ assert.match(en,/700,000 tomans/);
+ assert.match(en,/300,000 tomans/);
  assert.match(en,/independent scholarly review/);
  assert.match(en,/checks the existing payment service, protected PDFs/);
  assert.match(en,/A separate author-licence submission is no longer a technical checkout requirement/);
