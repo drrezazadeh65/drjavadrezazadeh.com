@@ -8,6 +8,11 @@ on:
       - "docs/migrations/20261020_konkur_catalog_readonly_postflight.sql"
       - "docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql"
       - "tests/konkur-mother-schema-contract.test.mjs"
+      - "api/konkur-admission.php"
+      - "api/index.php"
+      - "tests/konkur-catalogue-api-contract.test.mjs"
+      - "tests/konkur-catalogue-ephemeral.php"
+      - "tests/fixtures/konkur-catalogue-synthetic.sql"
       - ".github/workflows/konkur-mother-database-qa.yml"
   workflow_dispatch:
 
@@ -38,9 +43,11 @@ jobs:
         with:
           node-version: "22"
       - name: Verify schema and no-destructive-operation contracts
-        run: node --test tests/konkur-mother-schema-contract.test.mjs
+        run: |
+          node --test tests/konkur-mother-schema-contract.test.mjs
+          node --test tests/konkur-catalogue-api-contract.test.mjs
       - name: Install client for temporary isolated MariaDB container
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq mariadb-client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq mariadb-client php-cli php-mysql
       - name: Install existing canonical parent schema into disposable fixture only
         shell: bash
         run: |
@@ -82,3 +89,19 @@ jobs:
           test "$offerings" = "0"
           test "$approved" = "0"
           echo "6 draft source documents, 0 verified offerings, 0 approved documents — EPHEMERAL QA ONLY."
+      - name: Verify PHP syntax and synthetic approved-only catalogue end to end
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l api/konkur-admission.php
+          php -l api/index.php
+          php -l tests/konkur-catalogue-ephemeral.php
+          db=(mariadb --protocol=tcp -h127.0.0.1 -P3306 -uroot --database=drjavad1_store)
+          "${db[@]}" < tests/fixtures/konkur-catalogue-synthetic.sql
+          JR_KONKUR_CI_DSN='mysql:host=127.0.0.1;port=3306;dbname=drjavad1_store;charset=utf8mb4' \
+          JR_KONKUR_CI_USER=root \
+          JR_KONKUR_CI_PASSWORD="$MYSQL_PWD" \
+          JR_KONKUR_SYNTHETIC_FIXTURE=true \
+          php tests/konkur-catalogue-ephemeral.php
+          echo 'Synthetic verified-only PHP catalogue assertions passed. No live Bertina access.'
+
