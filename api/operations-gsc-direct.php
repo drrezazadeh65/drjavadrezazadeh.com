@@ -107,3 +107,33 @@ function operationsGscDirectSnapshot(string $configuredPath,int $at): array {
     catch (JsonException $e) {return operationsGscDirectEmpty('invalid_private_json');}
     return operationsGscDirectFromDocument(is_array($document)?$document:null,$at);
 }
+
+/**
+ * One Operations Control Center, two distinct measured systems.
+ * The GA4 API CI smoke test never deposits raw observations on Bertina.
+ * Preserve unknown until a privately authenticated ingest is installed.
+ */
+function operationsSearchIntelligenceSnapshot(string $gscPrivatePath,int $at): array {
+    return [
+        'ok'=>true,
+        'schema'=>'jr-owner-search-intelligence-v1',
+        'checkedAtUtc'=>gmdate('Y-m-d\\TH:i:s\\Z',$at),
+        'gsc'=>operationsGscDirectSnapshot($gscPrivatePath,$at),
+        'ga4'=>[
+            'schema'=>'jr-owner-ga4-observation-v1',
+            'status'=>'not_ingested',
+            'property'=>'properties/559754204',
+            'measurementId'=>'G-C3C7NQQNWX',
+            'activeUsers'=>null,'eventCount'=>null,
+            'startDate'=>null,'endDate'=>null,
+            'apiVerifiedOnServer'=>null,'sourceObservedAtUtc'=>null,
+            'limitation'=>'GA4 Data API workflow verifies access separately. No GA4 report has been authenticated, ingested or attached to this administrative snapshot; missing is not zero.'
+        ],
+        'tagManager'=>[
+            'status'=>'pending_owner_container','containerId'=>null,
+            'productionCollectionVerified'=>false,
+            'limitation'=>'GTM container creation, Preview, GA4 DebugView and explicit owner approval are outstanding.'
+        ],
+        'limitation'=>'Search Console search metrics and GA4 consented on-site events have distinct definitions and are never combined into a synthetic conversion rate.'
+    ];
+}
