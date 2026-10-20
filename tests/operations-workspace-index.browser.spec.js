@@ -66,3 +66,44 @@ for(const [lang,route,expectedCount,keyword] of [
   expect(postRequests).toEqual([]);
  });
 }
+
+
+for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
+ test(lang+' navigation discovers authenticated reports mounted after initial page load and erases their links on lock',async({page})=>{
+  await page.route('**/assets/js/**',route=>{
+   if(route.request().url().includes('/operations-workspace-index-v1.js'))return route.continue();
+   return route.fulfill({status:200,contentType:'application/javascript',body:'/* view only */'});
+  });
+  await page.setViewportSize({width:320,height:850});
+  await page.goto(origin+route,{waitUntil:'domcontentloaded'});
+  const workspace=page.locator('#ops-workspace'),nav=workspace.locator('[data-ops-workspace-index]');
+  await expect(workspace).toBeHidden();
+  await expect(nav).toBeHidden();
+  await workspace.evaluate(el=>{el.hidden=false});
+  // The main reporting renderer mounts this section only after MFA authorizes the snapshot.
+  await workspace.evaluate(el=>{
+   for(const [id,label] of [
+    ['ops-reporting','گزارش‌های ۱۳ موتور'],
+    ['ops-audit-timeline','تاریخچهٔ حسابرسی مدیر']
+   ]){
+    const section=document.createElement(id==='ops-reporting'?'section':'details');
+    section.id=id;
+    const heading=document.createElement(id==='ops-reporting'?'h2':'summary');
+    heading.textContent=label;section.append(heading);el.append(section);
+   }
+  });
+  const filter=nav.locator('[data-ops-index-filter]');
+  await filter.fill(lang==='fa'?'گزارش‌های ۱۳':'13-engine');
+  await expect(nav.locator('[data-ops-target="ops-reporting"]')).toBeVisible();
+  await filter.fill(lang==='fa'?'حسابرسی':'audit');
+  await expect(nav.locator('[data-ops-target="ops-audit-timeline"]')).toBeVisible();
+  await filter.fill('');
+  await nav.locator('[data-ops-target="ops-audit-timeline"]').click();
+  await expect(page.locator('#ops-audit-timeline')).toHaveAttribute('open','');
+  await expect(nav).not.toHaveAttribute('open','');
+  await workspace.evaluate(el=>{el.hidden=true});
+  await expect(nav).toBeHidden();
+  await expect(nav.locator('[data-ops-target]')).toHaveCount(0);
+  await expect(filter).toHaveValue('');
+ });
+}
