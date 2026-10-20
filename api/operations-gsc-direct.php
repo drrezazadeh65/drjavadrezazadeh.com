@@ -93,6 +93,10 @@ function operationsGscDirectSnapshot(string $configuredPath,int $at): array {
         || $real===$public||str_starts_with($real,$public.DIRECTORY_SEPARATOR)
         || !is_file($real)||!is_readable($real))
         return operationsGscDirectEmpty('unsafe_or_missing_private_file');
+    // Private GSC observation must not be readable by group/other accounts.
+    $mode=@fileperms($real);
+    if ($mode===false||($mode & 0077)!==0)
+        return operationsGscDirectEmpty('unsafe_private_permissions');
     $size=filesize($real);
     if ($size===false||$size>65536||$size<2)
         return operationsGscDirectEmpty('invalid_private_size');
