@@ -81,7 +81,9 @@ function selfTest(){
  validate({schema:'free-performance-observation-v1',provider:'Google PageSpeed Insights',records:[record,{target:targets[1],status:'unavailable'}],summary:{attempted:2,observed:1}});
  console.log('PASS zero-key mobile lab source schema and foreign result exclusion');
 }
-if(process.argv.includes('--self-test'))selfTest();
+if(process.argv.includes('--audit-self-test')){const mod=await import('./lib/performance-production.mjs');mod.sourceSelfTest();}
+else if(process.argv.includes('--audit')){const mod=await import('./lib/performance-production.mjs');await mod.runProductionAudit();}
+else if(process.argv.includes('--self-test'))selfTest();
 else if(process.argv.includes('--collect'))await collect();
 else if(process.argv.includes('--check')){let result=validate(JSON.parse(fs.readFileSync(output,'utf8')));console.log('PASS dated mobile observation: '+result.summary.observed+' measured pages / '+result.summary.attempted);}
 else{console.error('Use --self-test, --collect or --check');process.exitCode=2;}
