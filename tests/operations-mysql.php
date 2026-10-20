@@ -111,7 +111,8 @@ try {
  // The same isolated account can now read the owner-only AI evidence.
  $joint=request('/api/admin/operations/search-intelligence',200);
  check(($joint['schema']??'')==='jr-owner-search-intelligence-v1'&&array_key_exists('activeUsers',$joint['ga4'])&&$joint['ga4']['activeUsers']===null
-     &&array_key_exists('containerId',$joint['tagManager'])&&$joint['tagManager']['containerId']===null,'Missing GA4 or GTM incorrectly treated as verified');
+     &&($joint['tagManager']['containerId']??null)==='GTM-P6LWCLKM'
+     &&($joint['tagManager']['productionCollectionVerified']??true)===false,'GTM prematurely certified or missing GA4 improperly treated as verified');
  $gscDirect=request('/api/admin/operations/gsc-direct',200);
  check(($gscDirect['schema']??'')==='jr-owner-gsc-direct-v1'&&($gscDirect['status']??'')==='unavailable'
      &&array_key_exists('clicks',$gscDirect['metrics'])&&$gscDirect['metrics']['clicks']===null&&($gscDirect['apiLiveNow']??true)===false,
