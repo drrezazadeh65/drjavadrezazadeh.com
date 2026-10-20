@@ -161,9 +161,22 @@
    state.textContent=isFa?'وضعیت لحظه‌ای در دسترس نیست؛ از صفحه محصول بررسی کنید':'Live status unavailable; please verify on the product page';
   }
  }
+
+ function applyCatalogFilter(kind){
+  if(!['all','print','digital'].includes(kind))return;
+  const host=document.querySelector('[data-book-catalog]');if(!host)return;
+  for(const product of host.children){
+   if(!product.matches('.book-product-card'))continue;
+   const digital=product.hasAttribute('data-jr-digital-product');
+   product.hidden=(kind==='print'&&digital)||(kind==='digital'&&!digital);
+  }
+  document.querySelectorAll('[data-shop-filter]').forEach(button=>{
+   button.setAttribute('aria-pressed',String(button.dataset.shopFilter===kind));
+  });
+ }
  function renderCatalog(data){
   const host=document.querySelector('[data-book-catalog]'); if(!host) return;
-  host.innerHTML=''; data.books.forEach(b=>host.appendChild(card(b))); host.appendChild(digitalProductCard());
+  host.innerHTML=''; data.books.forEach(b=>host.appendChild(card(b))); host.appendChild(digitalProductCard()); applyCatalogFilter(document.querySelector('[data-shop-filter][aria-pressed="true"]')?.dataset.shopFilter||'all');
   host.addEventListener('click',e=>{
    const toggle=e.target.closest('[data-book-gallery-view]');
    if(toggle&&host.contains(toggle)){
@@ -480,6 +493,6 @@
    x.setAttribute('role','alert');
    x.innerHTML=(isFa?'اطلاعات فروشگاه موقتاً در دسترس نیست. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.':'Store information is temporarily unavailable. Check your connection and try again.')+' <button type="button" class="button" data-store-retry>'+(isFa?'تلاش دوباره':'Try again')+'</button>';
   });});
- document.addEventListener('click',e=>{if(e.target.closest('[data-store-retry]'))location.reload()});
+ document.addEventListener('click',e=>{const filter=e.target.closest('[data-shop-filter]');if(filter){applyCatalogFilter(filter.dataset.shopFilter);return;}if(e.target.closest('[data-store-retry]'))location.reload()});
  updateCartBadge();
 })();
