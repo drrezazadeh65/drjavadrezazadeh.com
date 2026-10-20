@@ -187,3 +187,45 @@ test('genuinely content-fingerprinted media remains cache-first across navigatio
   assert.equal(await (await w.request(path,path.endsWith('.woff2')?'font':'image')).text(),'fingerprinted');
  }
 });
+
+
+test('unavailable CacheStorage never blocks a successful live public document',async()=>{
+ const w=worker();
+ w.context.caches.open=async()=>{throw Error('storage blocked');};
+ w.setNetwork(async()=>response('/fa/',{body:'fresh public document'}));
+ assert.equal(await (await w.request('/fa/')).text(),'fresh public document');
+});
+
+test('quota failures do not turn a successful fetch into stale offline content',async()=>{
+ const w=worker();
+ w.entries.set(origin+'/en/',response('/en/',{body:'previous version'}));
+ const prior=w.context.caches.open;
+ w.context.caches.open=async name=>{
+  const cache=await prior(name);
+  return {...cache,put:async()=>{throw Error('QuotaExceededError');}};
+ };
+ w.setNetwork(async()=>response('/en/',{body:'deployed fresh version'}));
+ assert.equal(await (await w.request('/en/')).text(),'deployed fresh version');
+ assert.equal(w.entries.has(origin+'/en/'),false,'failed update must evict unsafe stale cache');
+});
+
+test('broken cache match cannot prevent a fresh fingerprinted asset',async()=>{
+ const w=worker();
+ const oldOpen=w.context.caches.open;
+ w.context.caches.open=async name=>{
+  const cache=await oldOpen(name);
+  return {...cache,match:async()=>{throw Error('corrupt CacheStorage entry');}};
+ };
+ const path='/assets/images/photo.d41d8cd98f00b204e9800998ecf8427e.webp';
+ w.setNetwork(async()=>response(path,{body:'verified-fresh-fingerprint'}));
+ assert.equal(await (await w.request(path,'image')).text(),'verified-fresh-fingerprint');
+});
+
+test('live HTTP 404 supersedes a previously cached public page',async()=>{
+ const w=worker(),route='/en/';
+ w.entries.set(origin+route,response(route,{body:'outdated live page'}));
+ w.setNetwork(async()=>response(route,{status:404,body:'not found'}));
+ const res=await w.request(route);
+ assert.equal(res.status,404);
+ assert.equal(w.entries.has(origin+route),false);
+});
