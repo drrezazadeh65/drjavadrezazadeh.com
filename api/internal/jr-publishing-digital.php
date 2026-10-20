@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED') && PHP_SAPI!=='cli') { http_response_code(404); exit; }
+require_once __DIR__.'/jr-publishing-allocation-policy.php';
 
 /** One digital commerce pathway, integrated with existing BitPay Stage09; no second payment gateway. */
 const JR_PUB_SKU = 'digital:tefl-ma-exams-1370-1405';
@@ -64,7 +65,8 @@ function jrPubDigitalOffer(PDO $pdo): ?array {
         ORDER BY v.version_number DESC LIMIT 1");
       $s->execute([JR_PUB_SKU]);$o=$s->fetch(PDO::FETCH_ASSOC);if(!$o)return null;
       $price=(int)$o['unit_price_toman'];$author=(int)$o['unit_author_toman'];$fund=(int)$o['unit_fund_toman'];
-      if($price!==1000000||$author!==600000||$fund!==400000||$price!==$author+$fund)return null;
+      if($price!==JR_PUB_PRICE_TOMAN||$author!==JR_PUB_AUTHOR_TOMAN
+         ||$fund!==JR_PUB_TALENT_TOMAN||$price!==$author+$fund)return null;
       // Only delivery/custody identity is checked here, not the author's
       // consent or a digital_distribution licence. Keep a single verified
       // account to receive the sale notice and access the author dashboard.
@@ -103,7 +105,7 @@ function jrPubDigitalOffer(PDO $pdo): ?array {
       return ['sku'=>JR_PUB_SKU,'title'=>(string)$o['title_fa'],
         'price'=>$price,'kind'=>'digital','offerId'=>(string)$o['offer_id'],
         'authorId'=>(string)$o['author_id'],'workVersionId'=>(string)$o['version_id'],
-        'authorShare'=>$author,'fundShare'=>$fund];
+        'authorShare'=>$author,'fundShare'=>$fund,'allocationPolicy'=>JR_PUB_CURRENT_POLICY];
     }catch(Throwable $e){error_log('JR publishing offer preflight: '.get_class($e));return null;}
 }
 /** Create allocations, grant hashes and mail outbox atomically inside the bank verified Stage09 txn. */
@@ -112,10 +114,11 @@ function jrPubCommitVerifiedDigitalOrder(PDO $pdo,string $orderId,array $items):
     if(!$digital)return;
     if(count($digital)!==1 ||count($items)!==1)throw new RuntimeException('mixed_digital_cart_forbidden');
     $x=$digital[0];
-    if(($x['sku']??'')!==JR_PUB_SKU||($x['quantity']??null)!==1||
-       ($x['price']??null)!==1000000||($x['subtotal']??null)!==1000000||
-       ($x['authorShare']??null)!==600000||($x['fundShare']??null)!==400000)
-        throw new RuntimeException('digital_order_snapshot_invalid');
+    // The items are the immutable SERVER-origin order snapshot, locked by
+    // Stage09 only after bank verification. v1 is historical/pending-only;
+    // all newly offered products must use v2.
+    $policy=jrPubVerifiedAllocationSnapshot($x);
+    if($policy===null)throw new RuntimeException('digital_order_snapshot_invalid');
     // Payment has already been charged at this stage. DO NOT re-check online
     // SMTP, filesystem or author visibility gates: a temporary outage after
     // checkout MUST NOT hide a real paid bank transaction. Persist owed
@@ -124,8 +127,7 @@ function jrPubCommitVerifiedDigitalOrder(PDO $pdo,string $orderId,array $items):
       FROM publishing_offers f JOIN publishing_works w ON w.id=f.work_id
       JOIN publishing_work_versions v ON v.work_id=w.id
       WHERE f.id=? AND f.sku=? AND w.author_id=? AND v.id=?
-       AND f.unit_price_toman=1000000 AND f.unit_author_toman=600000
-       AND f.unit_fund_toman=400000 LIMIT 1");
+       AND f.unit_price_toman=1000000 LIMIT 1");
     $check->execute([(string)$x['offerId'],JR_PUB_SKU,(string)$x['authorId'],(string)$x['workVersionId']]);
     if(!$check->fetch(PDO::FETCH_ASSOC))throw new RuntimeException('digital_order_snapshot_no_longer_matches_db');
     $ready=['offerId'=>(string)$x['offerId'],'authorId'=>(string)$x['authorId'],
@@ -133,7 +135,7 @@ function jrPubCommitVerifiedDigitalOrder(PDO $pdo,string $orderId,array $items):
     $entries=$pdo->prepare("INSERT INTO publishing_sale_allocation_entries
       (id,order_id,offer_id,author_id,line_key,entry_kind,amount_toman,currency,source_event_key)
       VALUES(?,?,?,?,?, ?,?,'IRT',?)");
-    foreach([['author_share',600000],['talent_fund',400000]] as [$kind,$amount]){
+    foreach([['author_share',$policy['author']],['talent_fund',$policy['fund']]] as [$kind,$amount]){
       $entries->execute([uuidv4(),$orderId,$ready['offerId'],$ready['authorId'],'bundle-1',
         $kind,$amount,'jr-publishing:'. $orderId.':'.$kind]);
     }
