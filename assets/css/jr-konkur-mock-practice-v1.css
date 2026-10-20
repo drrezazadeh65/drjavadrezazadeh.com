@@ -1,0 +1,23 @@
+/* Konkur mock practice; additive black/gold bilingual mobile layout. */
+.jr-konkur-mock{box-sizing:border-box;margin:2rem 0;padding:clamp(16px,3vw,30px);border:1px solid #9d8255;border-radius:18px;background:linear-gradient(155deg,#11161f,#242832);color:#f7f0e1}
+.jr-konkur-mock *{box-sizing:border-box}
+.jr-konkur-mock h3{color:#e9c48c;font-size:clamp(1.15rem,3vw,1.65rem)}
+.jr-konkur-mock .jr-km-intro,.jr-konkur-mock .jr-km-warning{line-height:1.9;color:#f2dfc1}
+.jr-konkur-mock .jr-km-warning{padding:12px 14px;border-inline-start:4px solid #d1aa70;background:#222631}
+.jr-konkur-mock .jr-km-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,195px),1fr));gap:12px;align-items:end;margin:18px 0}
+.jr-konkur-mock .jr-km-field{display:flex;flex-direction:column;gap:7px;min-width:0;line-height:1.6}
+.jr-konkur-mock input,.jr-konkur-mock select{width:100%;min-height:46px;padding:9px;border:1px solid #a98a5a;border-radius:8px;background:#0f1925;color:#fff;font:inherit}
+.jr-konkur-mock button{min-height:44px;padding:8px 12px;border:1px solid #c19f6a;border-radius:9px;background:#29323e;color:#fff3df;font:inherit;cursor:pointer}
+.jr-konkur-mock .jr-km-add{background:#ddbd86;color:#141921;font-weight:800}
+.jr-konkur-mock :focus-visible{outline:3px solid #ffd68c;outline-offset:3px}
+.jr-konkur-mock .jr-km-feedback{min-height:2rem;color:#ffe3b5}
+.jr-konkur-mock .jr-km-history{padding-inline-start:1.5rem;display:grid;gap:10px}
+.jr-konkur-mock .jr-km-item{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #60543e;border-radius:10px;padding:14px;background:#1a2633;min-width:0}
+.jr-konkur-mock .jr-km-details{min-width:0;overflow-wrap:anywhere}
+.jr-konkur-mock .jr-km-details p{margin:.3rem 0}
+.jr-konkur-mock .jr-km-trend{line-height:1.8;color:#efce95}
+.jr-konkur-mock .jr-km-controls{display:flex;gap:10px;flex-wrap:wrap;margin-block:16px}
+.jr-konkur-mock .jr-km-print{padding:1rem;border:1px solid #bd9c63;border-radius:12px}
+.jr-konkur-mock [hidden]{display:none!important}
+@media(max-width:580px){.jr-konkur-mock .jr-km-item{flex-direction:column;align-items:stretch}.jr-konkur-mock .jr-km-item button{width:100%}}
+@media print{.jr-konkur-mock.jr-km-printing{background:#fff;color:#000}.jr-konkur-mock.jr-km-printing .jr-km-print *{color:#000!important}}
