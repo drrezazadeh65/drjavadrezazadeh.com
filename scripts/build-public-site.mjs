@@ -105,6 +105,14 @@ const required=[
   'api/internal/jr-publishing-contract-draft.php','api/internal/jr-publishing-notifications.php',
   'api/internal/jr-publishing-provision-cli.php','api/internal/jr-publishing-preflight-cli.php',
   'api/internal/jr-publishing-private-install-cli.php',
+  // Dated AI search evidence must deploy atomically with its MFA-only API and
+  // both administrator shells. A missing part would silently break monitoring.
+  // The Ubersuggest snapshot is strictly read-only and never served as public
+  // editorial or real-time indexation evidence.
+  'api/operations-ai-visibility.php',
+  'api/internal/ai-search-visibility-baseline-20261020.json',
+  'assets/js/operations-ai-visibility.js',
+  'fa/app/admin/index.html','en/account/admin/index.html',
   'api/internal/.htaccess','assets/js/jr-publishing-checkout-v1.js',
   'fa/app/author/index.html','fa/shop/authors/mehrab-mirkarimi/index.html',
   'assets/js/account-order-history.js','assets/js/operations-commerce.js',
