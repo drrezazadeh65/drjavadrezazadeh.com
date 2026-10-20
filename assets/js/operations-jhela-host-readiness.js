@@ -8,6 +8,10 @@ const tr=(en,faText)=>fa?faText:en;
 const button=root.querySelector('[data-jhela-host-refresh]');
 const status=root.querySelector('[data-jhela-host-status]');
 const panel=root.querySelector('[data-jhela-host-results]');
+let lockEpoch=0;
+workspace.addEventListener('jr:operations-locked',()=>{
+ lockEpoch++;panel.replaceChildren();status.textContent='';button.disabled=false;
+});
 const labels={
  motherDatabase:['Mother database and journal schema','دیتابیس مادر و ساختار مجله'],
  trustedTls:['Verified HTTPS transport','ارتباط امن تأییدشده'],
@@ -31,14 +35,18 @@ const guidance={
  reviewerIntakeEnabled:['Enable reviewer applications after verified identity, consent and owner approval tests.','درخواست همکاری داوری را پس از آزمون هویت تأییدشده، رضایت و تأیید مدیر فعال کنید.']
 };
 button.addEventListener('click',async()=>{
+ if(workspace.hidden)return;
+ const epoch=lockEpoch;
  button.disabled=true;panel.replaceChildren();
  status.textContent=tr('Checking server evidence…','در حال بررسی شواهد سرور…');
  try{
   const session=await fetch('/api/admin/operations/session',{credentials:'same-origin',cache:'no-store'});
   const s=await session.json();
+  if(workspace.hidden||epoch!==lockEpoch)return;
   if(!session.ok||s.ok!==true||s.mfaRequired)throw Error('admin_mfa_required');
   const r=await fetch('/api/admin/operations/jhela/host-readiness',{credentials:'same-origin',cache:'no-store'});
   const d=await r.json();
+  if(workspace.hidden||epoch!==lockEpoch)return;
   if(!r.ok||d.ok!==true||d.schema!=='jhela-owner-host-readiness-v1')throw Error(d.error||'diagnostics_unavailable');
   for(const [key,label] of Object.entries(labels)){
    const row=node('p',(d.checks?.[key]===true?'✓ ':'× ')+(fa?label[1]:label[0]));
@@ -60,9 +68,10 @@ button.addEventListener('click',async()=>{
    :tr('Manuscript intake remains unavailable until all required host checks pass.',
         'تا تکمیل کنترل‌های ضروری هاست، دریافت مقاله غیرفعال می‌ماند.');
  }catch(e){
+  if(workspace.hidden||epoch!==lockEpoch)return;
   status.textContent=e.message==='admin_mfa_required'
    ?tr('Verify administrator two-factor authentication first.','ابتدا تأیید دومرحله‌ای مدیریت را انجام دهید.')
    :tr('Readiness check unavailable: ','بررسی آمادگی در دسترس نیست: ')+e.message;
- }finally{button.disabled=false;}
+ }finally{if(epoch===lockEpoch)button.disabled=false;}
 });
 })();
