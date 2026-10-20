@@ -72,7 +72,7 @@
    'This is only a period aggregate. Page indexing, sitemap health and daily trends cannot be inferred from it.'
   ),'ops-muted'));
  }
- function showGa4(ga4,gtm){
+ function showGa4(ga4,gtm,clarity){
   const section=make('section',undefined,'ops-panel');
   section.append(make('h3',t('Google Analytics 4 — شاخص‌های مستقل از Search Console','Google Analytics 4 — separate on-site metrics')));
   section.append(make('p',t(
@@ -92,6 +92,10 @@
   section.append(make('p',t(
    'مدیریت برچسب: کانتینر GTM ثبت شده، اما تنظیم تگ‌ها، رضایت و انتشار هنوز تأیید نشده است.',
    'Tag management: GTM container registered, but tag setup, consent QA, Preview and publication remain unverified.'
+  ),'ops-muted'));
+  section.append(make('p',t(
+   'Microsoft Clarity: پروژه ثبت شده، اما ضبط جلسه، تنظیمات ماسک‌سازی و آزمون رضایت هنوز فعال یا تأیید نشده‌اند.',
+   'Microsoft Clarity: project registered; session recording, masking and consent QA are inactive/unverified.'
   ),'ops-muted'));
   results.append(section);
  }
@@ -119,7 +123,7 @@
      ||!['unavailable','locally_validated_unattested','no_rows_unattested'].includes(body.gsc.status))
     throw Error('invalid_private_report');
    show(body.gsc);
-   showGa4(body.ga4,body.tagManager);
+   showGa4(body.ga4,body.tagManager,body.clarity);
    status.textContent=t('گزارش خصوصی بازخوانی شد؛ هیچ درخواست مستقیم به گوگل ارسال نشد.',
      'Private observation loaded; no live Google API request was made.');
   }catch{
