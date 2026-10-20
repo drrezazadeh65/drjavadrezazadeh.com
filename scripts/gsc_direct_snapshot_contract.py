@@ -12,7 +12,8 @@ PROPERTY = "https://drjavadrezazadeh.com/"
 SCHEMA = "jr-gsc-direct-observation-v1"
 MAX_AGE = timedelta(hours=72)
 MAX_BYTES = 65536
-MAX_ROWS = 250
+# Schema v1 has no row dimensions: a second row would be ambiguous, not additive.
+MAX_ROWS = 1
 METRICS = ("clicks", "impressions", "ctr", "position")
 
 
