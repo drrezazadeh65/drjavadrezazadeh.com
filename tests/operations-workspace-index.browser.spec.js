@@ -83,8 +83,8 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
   // The main reporting renderer mounts this section only after MFA authorizes the snapshot.
   await workspace.evaluate(el=>{
    for(const [id,label] of [
-    ['ops-reporting','گزارش‌های ۱۳ موتور'],
-    ['ops-audit-timeline','تاریخچهٔ حسابرسی مدیر']
+    ['ops-reporting',document.documentElement.lang==='en'?'13-engine reports':'گزارش‌های ۱۳ موتور'],
+    ['ops-audit-timeline',document.documentElement.lang==='en'?'Administrator audit history':'تاریخچهٔ حسابرسی مدیر']
    ]){
     const section=document.createElement(id==='ops-reporting'?'section':'details');
     section.id=id;
