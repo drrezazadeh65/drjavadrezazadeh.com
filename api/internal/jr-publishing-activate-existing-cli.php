@@ -3,8 +3,8 @@ declare(strict_types=1);
 /**
  * Owner-controlled, existing-row-only publishing activation.
  * --check: READ ONLY. --activate: idempotent transaction after all independent
- * verified notification recipient, malware scan, asset custody, bank and
- * mail evidence is present. Owner policy (2026-10-19): do not gate checkout
+ * verified notification recipient, owner-approved asset custody, bank and
+ * mail readiness is present. Owner policy (2026-10-19): do not gate checkout
  * on a separate author licence. Never fabricate author consent or stamp
  * rights_verified_at without evidence; existing rights records are retained.
  * Run only from the authenticated Bertina CLI, never via HTTP.
@@ -23,13 +23,13 @@ const JR_PUB_ACTIVATE_SLUG = 'tefl-ma-exams-1370-1405';
 function jrPubActivateReport(array $checks, bool $changed=false): never {
  $missing=array_keys(array_filter($checks,static fn(bool $ok):bool=>!$ok));
  echo json_encode([
-  'schema'=>'jr-publishing-existing-offer-activation-v1',
+  'schema'=>'jr-publishing-existing-offer-activation-v2',
   'operation'=>in_array('--activate',$_SERVER['argv']??[],true)?'activate':'check',
   'all_checks_passed'=>count($missing)===0,
   'missing_checks'=>$missing,
   'checks'=>$checks,
   'changed'=>$changed,
-  'note'=>'Author licence is no longer a technical activation gate by documented owner instruction. This does not certify distribution rights. Live checkout still requires the private enable switch, private PDFs, gateway and email delivery.'
+  'note'=>'Owner approval replaces the optional scanner gate, not actual PDF existence, identity or readable-file verification. Live checkout still requires the private enable switch, approved author account, exact 70/30 price, gateway and mail.'
  ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
  exit($missing?2:0);
 }
@@ -46,14 +46,12 @@ try {
   'commerce_gateway'=>false,
   'smtp'=>false,
   'persistent_digital_switch'=>false,
-  'owner_approval'=>false,
   'author_account_verified'=>false,
   'author_role_approved'=>false,
   'exact_existing_product_and_price'=>false,
-  'two_private_pdfs_scanned_and_approved'=>false,
+  'two_private_pdfs_owner_approved'=>false,
   'original_pdf_hashes'=>false,
-  'independent_platform_budget'=>false,
-  'smtp_cron_tested'=>false
+  'two_private_pdfs_readable'=>false
  ];
  if(!($pdo instanceof PDO))jrPubActivateReport($checks);
  $checks['publishing_schema']=jrPublishingSchemaReady($pdo);
@@ -61,9 +59,6 @@ try {
  $checks['commerce_gateway']=commerceReady();
  $checks['smtp']=mailReady();
  $checks['persistent_digital_switch']=jrPubDigitalSalesSwitchEnabled();
- $checks['owner_approval']=getenv('JR_PUBLISHING_OWNER_APPROVED')==='YES_20261017';
- $checks['independent_platform_budget']=getenv('JR_PUBLISHING_SEPARATE_7PCT_BUDGET')==='YES';
- $checks['smtp_cron_tested']=getenv('JR_PUBLISHING_MAIL_CRON_TESTED')==='YES';
  $pdo->beginTransaction();
  $q=$pdo->prepare("SELECT w.id work_id,w.author_id,w.publication_status,w.rights_verified_at,
    a.status author_status,f.id offer_id,f.checkout_enabled,f.retired_at,f.effective_from,
@@ -103,23 +98,39 @@ try {
     FROM publishing_private_assets WHERE work_version_id=?
     AND logical_kind IN('question_pdf','answer_pdf') FOR UPDATE");
   $q->execute([$v['id']]);$assets=$q->fetchAll(PDO::FETCH_ASSOC);
-  $seen=[];$scanned=count($assets)===2;$hashes=$scanned;
+  $seen=[];$ownerApproved=count($assets)===2;$hashes=$ownerApproved;$readable=$ownerApproved;
   foreach($assets as $a){
    $kind=(string)$a['logical_kind'];
-   if(isset($seen[$kind])||!isset(JR_PUB_ORIGINAL_ASSETS[$kind])){$scanned=false;$hashes=false;break;}
+   if(isset($seen[$kind])||!isset(JR_PUB_ORIGINAL_ASSETS[$kind])){$ownerApproved=false;$hashes=false;$readable=false;break;}
    $seen[$kind]=true;
    [$name,$sha]=JR_PUB_ORIGINAL_ASSETS[$kind];
-   if(empty($a['approved_at'])||empty($a['malware_scanned_at'])
-     ||(int)$a['encrypted_at_rest']!==0)$scanned=false;
+   if(empty($a['approved_at']) || (int)$a['encrypted_at_rest']!==0)$ownerApproved=false;
    $file=jrPubAssetPath($name);
    if($name!==(string)$a['private_storage_name']||!$file
      ||!hash_equals($sha,strtolower((string)$a['sha256']))
      ||!hash_equals($sha,(string)hash_file('sha256',$file))
      ||filesize($file)!==(int)$a['byte_size'])$hashes=false;
+   if(!$file){$readable=false;}else{
+    $fp=fopen($file,'rb');
+    if(!$fp)$readable=false;
+    else{$readable=fread($fp,5)==='%PDF-' && $readable;fclose($fp);}
+   }
   }
-  $checks['two_private_pdfs_scanned_and_approved']=$scanned
-   &&isset($seen['question_pdf'],$seen['answer_pdf'])
-   &&getenv('JR_PUBLISHING_ANTIVIRUS_COMPLETE')==='YES';
+  // The owner explicitly approved these two existing PDFs. When activating,
+  // persist that decision only for the two DB rows whose bytes and identities
+  // exactly match the pinned originals. Never forge a scanner timestamp.
+  if($activate && $hashes && $readable && isset($seen['question_pdf'],$seen['answer_pdf']) && count($assets)===2){
+   $approve=$pdo->prepare("UPDATE publishing_private_assets SET approved_at=COALESCE(approved_at,NOW())
+      WHERE work_version_id=? AND logical_kind IN('question_pdf','answer_pdf')
+        AND encrypted_at_rest=0");
+   $approve->execute([$v['id']]);
+   if($approve->rowCount()>2)throw new RuntimeException('unexpected_asset_approval_count');
+   $ownerApproved=true;
+  }
+  $checks['two_private_pdfs_owner_approved']=$ownerApproved
+   &&isset($seen['question_pdf'],$seen['answer_pdf']);
+  $checks['two_private_pdfs_readable']=$readable
+   &&isset($seen['question_pdf'],$seen['answer_pdf']);
   $checks['original_pdf_hashes']=$hashes&&isset($seen['question_pdf'],$seen['answer_pdf']);
  }
  if(in_array(false,$checks,true)){
@@ -128,7 +139,7 @@ try {
  if(!$activate){$pdo->rollBack();jrPubActivateReport($checks);}
  // Owner authorizes the website's sales policy; this is not an author's
  // consent or a warranty of rights. The verified author account is retained
- // for private sale notices. Genuine malware and file checks remain required.
+ // for private sale notices. Genuine file checks remain required.
  $pdo->prepare("UPDATE publishing_authors SET status='approved'
    WHERE id=? AND status IN('draft','verification_pending','approved')")
    ->execute([$o['author_id']]);
