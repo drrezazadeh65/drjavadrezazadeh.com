@@ -25,6 +25,10 @@ const consentGranted=()=>{
    (state.config?.consent?.granted_value||'granted');}catch(_){return false;}
 };
 const safeRoute=()=>{
+ // Even GTM automatic session events could otherwise include the browser URL.
+ // Do not inject any Google tag when the URL has query or fragment content.
+ if((typeof location.search==='string'&&location.search.length>0)||
+    (typeof location.hash==='string'&&location.hash.length>0))return null;
  const path=location.pathname;
  if(typeof path!=='string'||path.length>540||path.includes('//')||/%(?:2f|5c)/i.test(path))return null;
  let decoded;
