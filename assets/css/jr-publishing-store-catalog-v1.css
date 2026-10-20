@@ -1,0 +1,20 @@
+/* JR Future Publishing / integrated digital catalogue card v1 — visual-only.
+   Digital checkout stays on the server-verified author product page. */
+[data-book-catalog] .jr-digital-product-card{position:relative;min-width:0;overflow:hidden;border:1px solid rgba(209,168,93,.55);background:linear-gradient(160deg,#18283c,#0e1725);box-shadow:0 14px 40px rgba(0,0,0,.22);border-radius:22px;display:flex;flex-direction:column}
+[data-book-catalog] .jr-digital-cover{position:relative;margin:0;overflow:hidden;min-height:180px;background:#142338}
+[data-book-catalog] .jr-digital-cover img{display:block;width:100%;height:230px;object-fit:cover}
+[data-book-catalog] .jr-digital-cover figcaption{position:absolute;inset-inline-end:10px;bottom:10px;border-radius:7px;padding:5px 9px;color:#fff;background:#07111dd9;font-size:.77rem}
+[data-book-catalog] .jr-digital-product-card .book-product-copy{display:flex;flex:1;flex-direction:column;gap:12px;padding:clamp(18px,2.4vw,27px);color:#f7f1e6;text-align:start;min-width:0}
+[data-book-catalog] .jr-digital-product-card .book-product-copy h2{margin:0;font-size:clamp(1.15rem,2.1vw,1.48rem);line-height:1.7;color:#f7d99a;overflow-wrap:anywhere}
+[data-book-catalog] .jr-digital-product-card .book-product-copy p{margin:0;line-height:1.85;color:#e1e5ec}
+[data-book-catalog] .jr-digital-product-card .jr-digital-chip{align-self:flex-start;border:1px solid #b9925788;border-radius:99px;padding:5px 12px;color:#ffe2a5;background:#60451c55}
+[data-book-catalog] .jr-digital-product-card .jr-digital-impact{font-size:.91rem}
+[data-book-catalog] .jr-digital-product-card .book-price{margin-top:auto;font-weight:800;color:#f8d995;font-size:1.4rem;font-variant-numeric:tabular-nums}
+[data-book-catalog] .jr-digital-product-card .jr-digital-readiness{border-inline-start:3px solid #b89b62;padding-inline-start:12px;font-size:.87rem}
+[data-book-catalog] .jr-digital-product-card.jr-digital-ready .jr-digital-readiness{border-color:#77c29a}
+[data-book-catalog] .jr-digital-product-card .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+[data-book-catalog] .jr-digital-product-card .actions .button{min-height:48px;display:inline-flex;align-items:center;justify-content:center;white-space:normal;text-align:center;flex:1;background:#e4bf77;color:#111921;font-weight:750}
+[data-book-catalog] .jr-digital-product-card .actions .button:hover{background:#f5d997}
+[data-book-catalog] .jr-digital-product-card a:focus-visible{outline:3px solid #fff4c6;outline-offset:4px}
+@media(max-width:560px){[data-book-catalog] .jr-digital-cover img{height:200px}[data-book-catalog] .jr-digital-product-card .book-product-copy{padding:17px}}
+@media(prefers-reduced-motion:reduce){[data-book-catalog] .jr-digital-product-card *{scroll-behavior:auto!important;transition:none!important}}
