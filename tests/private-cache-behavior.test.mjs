@@ -8,11 +8,11 @@ const ecosystem=JSON.parse(fs.readFileSync('platform/ecosystem-registry.json','u
 const prefixes=ecosystem.route_families.filter(route=>ecosystem.policies[route.policy]?.cache==='NO_STORE').map(route=>route.prefix);
 const origin='https://example.test';
 const key=request=>typeof request==='string'?request:request.url;
-function response(path,{control='public, no-cache',body='public'}={}){
-  const res=new Response(body,{headers:{'Cache-Control':control}});
+function response(path,{control='public, no-cache',body='public',status=200,headers={}}={}){
+  const res=new Response(body,{status,headers:{'Cache-Control':control,...headers}});
   Object.defineProperty(res,'url',{value:new URL(path,origin).href});
   // Native clones lack the synthetic final URL used by this fixture.
-  res.clone=()=>response(path,{control,body});
+  res.clone=()=>response(path,{control,body,status,headers});
   return res;
 }
 function worker(){
@@ -30,9 +30,12 @@ function worker(){
   });
   vm.runInContext(source,context);
   return {calls,entries,handlers,context,setNetwork:fn=>network=fn,
-    async request(path,destination='document'){
+    async request(path,destination='document',extra={}){
       let result;
-      handlers.fetch({request:{url:new URL(path,origin).href,method:'GET',mode:destination==='document'?'navigate':'cors',destination},respondWith:promise=>result=promise});
+      handlers.fetch({request:{url:new URL(path,origin).href,method:'GET',
+        mode:destination==='document'?'navigate':'cors',destination,
+        headers:new Headers(extra.headers||{}),cache:extra.cache||'default'},
+        respondWith:promise=>result=promise});
       return result&&await result;
     }
   };
@@ -107,3 +110,80 @@ for(const [label,finalPath,control] of [['no-store','/fa/','no-store'],['private
     assert.equal(res.status,0);assert.equal(w.entries.has('/offline.html'),false);
   });
 }
+
+
+test('encoded, repeated-slash and ambiguous private paths never enter CacheStorage',async()=>{
+ for(const path of [
+  '/%61pi/admin/operations',
+  '/%2561pi/admin/operations',
+  '/en/%61ccount/admin/',
+  '/fa/%61pp%2fadmin/',
+  '/en/shop%2fcheckout/',
+  '/fa//shop//checkout/',
+  '/en/%2525account/',
+  '/api/%E0%A4%A',
+  '/fa/app/%2e%2e/%61pi/private'
+ ]){
+  const w=worker();
+  if(path.includes('%2e%2e')){
+   // Browsers may normalise traversal before interception; assert the
+   // interpreted URL does not become an unexpectedly cached private page.
+   const actual=new URL(path,origin);
+   if(!actual.pathname.includes('api'))continue;
+  }
+  w.setNetwork(async(req,options)=>{
+   assert.equal(options.cache,'no-store','encoded private route '+path);
+   return response('/fa/');
+  });
+  assert.equal((await w.request(path)).status,200,path);
+  assert.deepEqual(w.calls,[],path+' entered shared cache');
+ }
+});
+
+for(const [label,options] of [
+ ['Set-Cookie',{headers:{'Set-Cookie':'session=opaque; Secure'}}],
+ ['cookie-vary',{headers:{Vary:'Accept-Encoding, Cookie'}}],
+ ['authorization-vary',{headers:{Vary:'Authorization'}}],
+ ['attachment',{headers:{'Content-Disposition':'attachment; filename="private.pdf"'}}],
+ ['partial-response',{status:206}],
+ ['explicit private',{control:'private, max-age=0'}]
+]){
+ test('public navigation never caches '+label+' responses',async()=>{
+  const w=worker();
+  w.entries.set(origin+'/fa/',response('/fa/',{body:'old'}));
+  w.setNetwork(async()=>response('/fa/',options));
+  assert.equal((await w.request('/fa/')).status,options.status||200);
+  assert.equal(w.calls.filter(([name])=>name==='put').length,0);
+  assert.equal(w.entries.has(origin+'/fa/'),false);
+ });
+}
+
+test('authorization-bearing public requests never populate offline shared cache',async()=>{
+ const w=worker();
+ w.setNetwork(async()=>response('/en/'));
+ await w.request('/en/','document',{headers:{Authorization:'Bearer fake'}}); // synthetic only
+ assert.equal(w.calls.filter(([name])=>name==='put').length,0);
+});
+
+test('query-parameter versioned images and ordinary fonts use fresh-first, not stale cache-first',async()=>{
+ for(const path of ['/assets/images/portrait.webp?v=20261020','/assets/fonts/site.woff2']){
+  const w=worker();
+  w.entries.set(origin+path,response(path,{body:'old'}));
+  w.setNetwork(async()=>response(path,{body:'updated'}));
+  const res=await w.request(path,path.endsWith('.woff2')?'font':'image');
+  assert.equal(await res.text(),'updated',path);
+  assert.equal(await w.entries.get(origin+path).text(),'updated',path);
+ }
+});
+
+test('genuinely content-fingerprinted media remains cache-first across navigations',async()=>{
+ for(const path of [
+   '/assets/img/photo.d41d8cd98f00b204e9800998ecf8427e.webp',
+   '/assets/fonts/site-0123456789abcdef.woff2'
+ ]){
+  const w=worker();
+  w.entries.set(origin+path,response(path,{body:'fingerprinted'}));
+  w.setNetwork(async()=>{throw Error('fingerprinted bytes should not be fetched');});
+  assert.equal(await (await w.request(path,path.endsWith('.woff2')?'font':'image')).text(),'fingerprinted');
+ }
+});
