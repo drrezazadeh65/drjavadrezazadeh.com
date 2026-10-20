@@ -106,7 +106,7 @@ function stage9CommitBooks(PDO $pdo,string $orderId,array $items): void {
     foreach ($items as $line) {
         if (($line['kind']??'')==='book') {
             $sku=(string)($line['sku']??'');$qty=$line['quantity']??null;
-            if (!preg_match('/^book:[a-z0-9-]{1,40}$/D',$sku) || !is_int($qty) || $qty<1 ||
+            if (!preg_match('/^book:[a-z0-9-]{1,40}$/D',$sku) || !is_int($qty) || $qty<1 || $qty>20 ||
                 isset($required[$sku])) throw new RuntimeException('invalid_paid_stock');
             $required[$sku]=$qty;
         }
