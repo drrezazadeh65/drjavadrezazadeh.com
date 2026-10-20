@@ -36,7 +36,7 @@ function disclosure(label,body,count,expanded=false){
  wrapper.append(summary,body);
  return wrapper;
 }
-function failure(message,login){status.replaceChildren(el('h2','',message),el('p','',login?'برای دیدن داشبورد با حساب ایمیل‌تأییدشده خود وارد شوید.':'اطلاعات محرمانه یا آمار غیرتأییدشده در این وضعیت نمایش داده نمی‌شود.'));
+function failure(message,login){data.hidden=true;data.replaceChildren();status.hidden=false;status.replaceChildren(el('h2','',message),el('p','',login?'برای دیدن داشبورد با حساب ایمیل‌تأییدشده خود وارد شوید.':'اطلاعات محرمانه یا آمار غیرتأییدشده در این وضعیت نمایش داده نمی‌شود.'));
  const link=el('a','jp-button',login?'ورود با ایمیل':'ارتباط با پشتیبانی');
  link.href=login?'/fa/login/':'/fa/tamas/';status.append(link);
 }
@@ -206,5 +206,9 @@ async function load(){
  status.hidden=true;data.hidden=false;
  }catch(_){failure('ارتباط امن با سامانه برقرار نشد',false)}
 }
+// Revalidate the authenticated view after returning from another tab or
+// browser back/forward cache; never preserve stale author data on auth failure.
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});
+window.addEventListener('pageshow',event=>{if(event.persisted)load();});
 load();
 })();
