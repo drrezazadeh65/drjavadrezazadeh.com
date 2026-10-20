@@ -38,5 +38,27 @@ test('provider directory includes additional research-labelled options in both l
    await expect(select.locator('option[value="'+code+'"]')).toHaveCount(1);
  await select.selectOption('GOZINE2');
  await expect(select).toHaveValue('GOZINE2');
- await expect(page.locator('[data-konkur-mock-practice] form select').nth(2)).toHaveValue('UNSPECIFIED');
+ await expect(page.locator('[data-konkur-mock-practice] form select').nth(3)).toHaveValue('UNSPECIFIED');
+});
+
+
+test('unknown local issuer cannot generate spurious score trends and grade cohorts remain separate',async({page})=>{
+ await page.goto('http://127.0.0.1:4173/en/student-guidance/',{waitUntil:'domcontentloaded'});
+ const root=page.locator('[data-konkur-mock-practice]'),form=root.locator('form');
+ const provider=form.locator('select').nth(0),group=form.locator('select').nth(1),grade=form.locator('select').nth(2);
+ const inputs=form.locator('input');
+ await provider.selectOption('SCHOOL_LOCAL');await group.selectOption('MATHEMATICS');await grade.selectOption('11');
+ await inputs.nth(0).fill('1405/07/01');await inputs.nth(1).fill('5500');
+ await form.locator('button[type=submit]').click();
+ await inputs.nth(0).fill('1405/07/15');await inputs.nth(1).fill('7300');
+ await form.locator('button[type=submit]').click();
+ await expect(root.locator('.jr-km-item')).toHaveCount(2);
+ await expect(root.locator('.jr-km-trend')).not.toContainText('1800');
+ await provider.selectOption('GOZINE2');await grade.selectOption('10');
+ await inputs.nth(0).fill('1405/08/01');await inputs.nth(1).fill('6300');
+ await form.locator('button[type=submit]').click();
+ await grade.selectOption('11');
+ await inputs.nth(0).fill('1405/08/15');await inputs.nth(1).fill('7200');
+ await form.locator('button[type=submit]').click();
+ await expect(root.locator('.jr-km-trend')).not.toContainText('900');
 });
