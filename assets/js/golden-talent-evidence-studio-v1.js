@@ -173,6 +173,9 @@ function build(){
  const observed=records.filter(r=>r.observation);
  const distinctSources=new Set(observed.map(r=>r.source)).size;
  const warnings=[];
+ if(distinctSources>=2)warnings.push(fa?
+   'وجود دو نوع منبع، استقلال واقعی آنها را ثابت نمی‌کند. منشأ، وابستگی، شرایط مشاهده و شواهد مخالف باید در بازبینی انسانی بررسی شوند.':
+   'Two source categories do not prove independent observations. Provenance, dependence, context and counterevidence require human review.');
  if(distinctSources<2)warnings.push(fa?
    'این داده‌ها هنوز شامل مشاهده از دو نوع منبع مستقل نیستند؛ تکرار یک منبع، شاهد چندمنبعی محسوب نمی‌شود.':
    'Observations do not yet span two independent source types. Repeating one source is not multi-source evidence.');

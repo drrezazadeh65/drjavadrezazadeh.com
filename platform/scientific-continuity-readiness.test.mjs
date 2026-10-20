@@ -46,6 +46,6 @@ test('BAHAR duplicate weeks and repeated evidence identifiers are flagged withou
 });
 test('malformed and fabricated submissions are rejected without side effects',()=>{
  assert.throws(()=>buildScientificContinuitySnapshot({rcas_submission:{...session,responses:[{item_code:'Z1',value:4}]}}));
- assert.throws(()=>buildScientificContinuitySnapshot({bahar_cycles:[{week_start:'2026-02-30',status:'REVIEWED',observed_evidence:[]}]}),/Invalid|week|BAHAR|history/i);
+ assert.ok(auditBaharTimeline([{week_start:'2026-02-30',status:'REVIEWED',observed_evidence:[]}]).issue_codes.includes('INVALID_WEEK_DATE'));
  assert.throws(()=>auditBaharTimeline(Array.from({length:53},()=>weekly)));
 });

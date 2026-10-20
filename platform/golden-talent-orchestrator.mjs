@@ -43,3 +43,6 @@ export function planRouteRunPersistence({profile_id,trigger_session_id=null,engi
   duplicate_policy:'RETURN_EXISTING_ROUTE_RUN'
  };
 }
+
+// Optional pure scientific preflight, never a production authorization or release.
+export {buildScientificContinuitySnapshot,auditBaharTimeline} from './scientific-continuity-readiness.mjs';
