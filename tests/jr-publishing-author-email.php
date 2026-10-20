@@ -25,7 +25,7 @@ catch(DomainException $e){}
 $negative=$input;$negative['operating_reserve_toman']=65000;
 try { jrPublishingAuthorSaleNotice($negative,'مؤلف'); throw new RuntimeException('bad reserve accepted'); }
 catch(InvalidArgumentException $e){}
-$negative=$input;$negative['author_toman']=700000;
+$negative=$input;$negative['author_toman']=600000;
 try { jrPublishingAuthorSaleNotice($negative,'مؤلف'); throw new RuntimeException('bad gross share accepted'); }
 catch(InvalidArgumentException $e){}
 echo "JR author email: privacy and banking-template assertions PASS; SMTP NOT SENT.\n";
