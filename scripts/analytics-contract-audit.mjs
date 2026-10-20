@@ -18,6 +18,19 @@ fail(config.gtm_container_id==='GTM-P6LWCLKM','owner-confirmed GTM container ide
 fail(config.consent?.required===true,'analytics must require explicit local opt-in');
 for(const field of ['schema_version','provider','enabled','measurement_id','tag_transport','gtm_container_id','consent','allowed_client_events','payload_allowlist'])
  fail(JSON.stringify(publicConfig[field])===JSON.stringify(config[field]),'public projection drift: '+field);
+fail(config.clarity?.project_id==='z0mzp0dp74','Clarity project must match owner-verified ID');
+fail(config.clarity?.enabled===false,'Clarity session recording must stay disabled until masking, opt-in, navigation and GTM Preview pass');
+fail(config.clarity?.delivery==='GTM_ONLY','Clarity must only be delivered through the existing GTM container');
+fail(config.clarity?.consent?.required===true&&config.clarity?.consent?.separate_from_ga4===true,'Clarity requires separate explicit consent from GA4');
+fail(config.clarity?.consent?.storage_key!==config.consent?.storage_key,'Clarity cannot reuse GA4 consent state');
+fail(JSON.stringify(config.clarity?.allowlisted_public_routes)===JSON.stringify(['/fa/','/en/']),
+ 'Clarity requires exact public landing allowlist: no assessments, student portfolios, commerce or forms');
+const publicClarity=publicConfig.clarity;
+for(const key of ['project_id','enabled','delivery','consent','allowlisted_public_routes'])
+ fail(JSON.stringify(publicClarity?.[key])===JSON.stringify(config.clarity?.[key]),'Clarity projection drift: '+key);
+fail(!source.includes('https://www.clarity.ms/tag/'),'Clarity must not inject a second direct tracking script');
+fail(source.includes("emit('jr_clarity_allowed'"),'Clarity must only fire a separate explicit opt-in GTM event');
+fail(source.includes("!document.querySelector('form,input,textarea,[contenteditable]')"),'Clarity must refuse landing pages containing interactive form fields');
 fail(!source.includes('/gtag/js'),'standalone gtag.js injection must be removed');
 fail(source.includes('/gtm.js?id='),'single GTM Web Container loader required');
 fail(source.includes("analytics_storage:'denied'")&&source.includes("analytics_storage:'granted'"),'GTM consent must default denied before opt-in');
