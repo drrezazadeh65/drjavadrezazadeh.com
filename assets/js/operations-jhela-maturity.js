@@ -5,6 +5,10 @@ if(!shell||!workspace||!workspace.contains(shell))return;
 const trigger=shell.querySelector('[data-jhela-maturity-refresh]'),status=shell.querySelector('[data-jhela-maturity-status]'),out=shell.querySelector('[data-jhela-maturity-results]');
 if(!trigger||!status||!out)return;
 const fa=document.documentElement.lang==='fa';
+let lockEpoch=0;
+workspace.addEventListener('jr:operations-locked',()=>{
+ lockEpoch++;out.replaceChildren();status.textContent='';trigger.disabled=false;
+});
 const tt=(a,b)=>fa?a:b;
 const node=(tag,txt)=>{const n=document.createElement(tag);if(txt!==undefined)n.textContent=txt;return n;};
 function render(data){
@@ -34,7 +38,8 @@ function render(data){
   out.append(list);
 }
 async function refresh(){
- if(trigger.disabled)return;
+ if(workspace.hidden||trigger.disabled)return;
+ const epoch=lockEpoch;
  trigger.disabled=true;
  out.replaceChildren();
  status.textContent=tt('در حال بررسی اطلاعات مدیریت مجله…','Retrieving journal governance records…');
@@ -43,15 +48,17 @@ async function refresh(){
    if(response.status===401||response.status===403)throw new Error('auth_required');
    if(!response.ok)throw new Error('not_available');
    const body=await response.json();
+   if(workspace.hidden||epoch!==lockEpoch)return;
    if(body?.ok!==true)throw new Error('unverified_source');
    render(body);
    status.textContent=tt('اطلاعات برنامه‌ریزی مجله نمایش داده شد؛ گواهی عملیاتی یا نمایه‌سازی صادر نشده است.','Journal planning records loaded; no operational or indexing certification is implied.');
  }catch(error){
+   if(workspace.hidden||epoch!==lockEpoch)return;
    status.textContent=error.message==='auth_required'
      ?tt('برای مشاهده، ورود مدیر و تأیید هویت دوباره لازم است.','Administrator sign-in and renewed verification are required.')
      :tt('وضعیت فعلی قابل بازیابی نیست؛ هیچ مرحله‌ای تأییدشده فرض نمی‌شود.','Current records could not be retrieved. No milestone is presumed certified.');
    out.replaceChildren();
- }finally{trigger.disabled=false;}
+ }finally{if(epoch===lockEpoch)trigger.disabled=false;}
 }
 trigger.addEventListener('click',refresh);
 })();
