@@ -37,8 +37,8 @@
  }
  async function reload(){
   if(workspace.hidden||!panel.open)return;
-  clear(t('در حال خواندن وضعیت واقعی API و کنترل نشست مدیر…',
-    'Checking actual API readiness and administrator session…'));
+  clear(t('در حال بررسی وضعیت چهار سامانه و نشست مدیر…',
+    'Checking system capabilities and administrator session…'));
   const mark=epoch;const abort=new AbortController();controller=abort;refresh.disabled=true;
   try{
    const options={method:'GET',credentials:'same-origin',cache:'no-store',
