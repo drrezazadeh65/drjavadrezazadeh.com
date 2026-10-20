@@ -75,11 +75,13 @@ try {
  $q->execute([JR_PUB_ACTIVATE_SLUG,JR_PUB_SKU]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);
  $checks['exact_existing_product_and_price']=count($rows)===1
    &&(int)$rows[0]['unit_price_toman']===1000000
-   &&(int)$rows[0]['unit_author_toman']===600000
-   &&(int)$rows[0]['unit_fund_toman']===400000
+   &&(int)$rows[0]['unit_author_toman']===JR_PUB_AUTHOR_TOMAN
+   &&(int)$rows[0]['unit_fund_toman']===JR_PUB_TALENT_TOMAN
    &&$rows[0]['currency']==='IRT'
    &&empty($rows[0]['retired_at'])
    &&strtotime((string)$rows[0]['effective_from'])<=time();
+ // An existing v1 offer must first be updated by the dedicated protected
+ // policy transition CLI; never silently mutate finance during activation.
  if(!$checks['exact_existing_product_and_price']){$pdo->rollBack();jrPubActivateReport($checks);}
  $o=$rows[0];
  $q=$pdo->prepare("SELECT acc.id,acc.email_verified_at,l.approved_at
