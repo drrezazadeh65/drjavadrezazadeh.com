@@ -1,97 +1,68 @@
-
 name: Google Search Console Connection Test
 
+# Existing WIF and service-account integration. Strictly nondeploying and read-only.
+# Scope is a single trusted repository/ref; push runs only for this integration.
 on:
   workflow_dispatch:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - .github/workflows/google-search-console-sync.yml
+      - scripts/gsc_oidc_verify.py
+      - tests/test_gsc_oidc_connection.py
 
 permissions:
   contents: read
 
+concurrency:
+  group: gsc-oidc-verify-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   verify-search-console:
-    name: Verify Google Search Console API
+    name: Verify Google Search Console API (read-only OIDC)
+    if: github.repository == 'drrezazadeh65/drjavadrezazadeh.com' && github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: ubuntu-latest
-
+    timeout-minutes: 8
     permissions:
       contents: read
       id-token: write
 
     steps:
-      - name: Authenticate with Google Cloud
+      - name: Checkout verified repository ref
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run keyless API verifier contract tests
+        run: |
+          python3 -m py_compile scripts/gsc_oidc_verify.py
+          python3 -m unittest discover -s tests -p 'test_gsc_oidc_connection.py' -v
+          echo "GSC test fixture uses synthetic responses; not real Google access."
+
+      - name: Authenticate with Google Cloud via GitHub OIDC
         id: auth
         uses: google-github-actions/auth@v2
         with:
+          project_id: jr-search-intelligence
           workload_identity_provider: projects/301218972490/locations/global/workloadIdentityPools/jr-github-actions/providers/github-actions
           service_account: jr-search-console-reader@jr-search-intelligence.iam.gserviceaccount.com
           token_format: access_token
           access_token_scopes: https://www.googleapis.com/auth/webmasters.readonly
+          access_token_lifetime: 600s
+          create_credentials_file: false
+          export_environment_variables: false
 
-      - name: Verify Search Console access
-        shell: bash
+      - name: Confirm exact URL-prefix property and historical Search Analytics
         env:
-          GCP_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          GSC_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: python3 scripts/gsc_oidc_verify.py
+
+      - name: State remaining external IAM evidence requirement
+        if: always()
         run: |
-          python3 - <<'PY'
-          import json
-          import os
-          import urllib.error
-          import urllib.request
-
-          token = os.environ.get("GCP_ACCESS_TOKEN", "")
-
-          if not token:
-              raise SystemExit("Authentication failed: no access token.")
-
-          url = "https://www.googleapis.com/webmasters/v3/sites"
-
-          request = urllib.request.Request(
-              url,
-              headers={
-                  "Authorization": f"Bearer {token}",
-                  "Accept": "application/json",
-              },
-          )
-
-          try:
-              with urllib.request.urlopen(
-                  request, timeout=30
-              ) as response:
-                  data = json.load(response)
-
-          except urllib.error.HTTPError as error:
-              print(f"Search Console API returned HTTP {error.code}")
-              raise SystemExit(1)
-
-          except urllib.error.URLError as error:
-              print(f"Search Console API connection failed: {error.reason}")
-              raise SystemExit(1)
-
-          sites = data.get("siteEntry", [])
-
-          print(f"Accessible Search Console properties: {len(sites)}")
-
-          allowed_properties = {
-              "https://drjavadrezazadeh.com/",
-              "sc-domain:drjavadrezazadeh.com",
-          }
-
-          matched = [
-              site for site in sites
-              if site.get("siteUrl") in allowed_properties
-          ]
-
-          if not matched:
-              raise SystemExit(
-                  "Target Search Console property is not accessible."
-              )
-
-          for site in matched:
-              print(
-                  "Verified property:",
-                  site.get("siteUrl"),
-                  "| Permission:",
-                  site.get("permissionLevel", "unknown"),
-              )
-
-          print("SUCCESS: Google Search Console API access verified.")
-          PY
+          echo "### OIDC trust-boundary qualification" >> "$GITHUB_STEP_SUMMARY"
+          echo "This job requires the approved GitHub repository and migration/bertina-linux6 ref." >> "$GITHUB_STEP_SUMMARY"
+          echo "A successful Google STS/impersonation/API call validates this run's authorized path, not the complete Google Cloud CEL attribute condition or every IAM binding." >> "$GITHUB_STEP_SUMMARY"
+          echo "Review provider mapping, CEL condition, and service-account get-iam-policy with a Google Cloud owner before certifying exclusion of other identities." >> "$GITHUB_STEP_SUMMARY"
+          echo "No tokens, raw queries, user records, secret key files, production deployments or database mutations are retained." >> "$GITHUB_STEP_SUMMARY"
