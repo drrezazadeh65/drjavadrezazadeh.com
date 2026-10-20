@@ -1,10 +1,10 @@
-name: IndexNow Activation
+name: IndexNow Legacy HTTPS and Key Preview (No Submission)
 
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'dry-run validates locally; live first verifies production HTTPS/key then submits all sitemap URLs'
+        description: 'Legacy live option validates production HTTPS and key, but never submits URL notifications.'
         required: true
         default: dry-run
         type: choice
@@ -38,8 +38,8 @@ jobs:
         run: |
           curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 https://drjavadrezazadeh.com/ >/dev/null
           test "$(curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 "$INDEXNOW_KEY_LOCATION" | tr -d '\r\n')" = "$INDEXNOW_KEY"
-      - name: Submit canonical sitemap URLs to IndexNow
+      - name: Preview canonical Sitemap URLs without submitting
         if: ${{ inputs.mode == 'live' }}
         env:
-          INDEXNOW_ENABLED: '1'
+          INDEXNOW_ENABLED: '0'
         run: node scripts/indexnow-submit.mjs --all
