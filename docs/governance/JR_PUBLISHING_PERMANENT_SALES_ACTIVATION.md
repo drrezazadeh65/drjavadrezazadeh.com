@@ -1,3 +1,5 @@
+> **Historical pricing notice (2026-10-20):** The original 60/40 references below are archived context only. The owner's final technical policy for future Mirkarimi sales is **1,000,000 toman gross / 700,000 author / 300,000 talent support**, version `mehrab-gross-70-30-v2`. See [`JR_PUBLISHING_70_30_ACTIVATION_20261020.md`](JR_PUBLISHING_70_30_ACTIVATION_20261020.md). Do not rewrite completed orders. Private PDF/payment/rights proof still gates live sales.
+
 # JR Future Publishing — Permanent Digital Sales Operating Standard
 Owner direction: 2026-10-18; author-licence technical-gate override: 2026-10-20. Scope: the TEFL MA questions-and-answers two-PDF bundle, SKU `digital:tefl-ma-exams-1370-1405`.
 
@@ -37,4 +39,4 @@ GitHub repository write access is **not** access to Bertina private config, cust
 
 ## No-regression commitments
 
-Price 1,000,000 toman; gross split 600,000 author / 400,000 talent fund; independent platform reserve 70,000; private original PDFs; verified payment only; two unique download links; no duplicate charge or author notification; all private pages noindex/no-store. Never change the frozen deployment process to force a commercial activation.
+Price 1,000,000 toman; gross split 700,000 author / 300,000 talent fund; independent platform reserve 70,000; private original PDFs; verified payment only; two unique download links; no duplicate charge or author notification; all private pages noindex/no-store. Never change the frozen deployment process to force a commercial activation.
