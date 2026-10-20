@@ -35,6 +35,32 @@ References for descriptive **template design only**: [Kanoon app/account feature
 
 No automated account login or scraping of Kanoon/Gaj sites is authorized. Use **voluntary manual entry** first; a scorecard image-upload flow requires explicit owner and privacy approval after safe malware scanning, permission checks, minimization and deletion.
 
+### Extended provider investigation — 20 October 2026
+
+**Regulatory authority must not be confused with a mock-exam issuer.** The National Organization of Educational Testing publishes admissions policies and official results; cooperative/independent **mock-exam services** use their own cohorts and scaled metrics. The proposed mother database `003f` already supports arbitrarily many `eco_exam_providers` + schema revisions, so adding providers is data-driven and does **not** require one table per institute. The bilingual in-memory worksheet uses the source-labelled public [provider directory](../../assets/js/jr-konkur-mock-providers-v1.js).
+
+| Provider code | Provider / investigation result | Evidence and report-format confidence | Current import boundary |
+|---|---|---|---|
+| `GHALAMCHI` | Kanoon / قلم‌چی | Provider announces main, early, project and five-subject reports; a third-party screenshot depicts subject percentage, TAZ, rank and trend. [Kanoon](https://t.me/s/kanoonir/8684), [public specimen](https://moshaver.org/level-7000-ghalamchi/) | Template-only; actual current report revision not certified |
+| `GAJ` | Gaj mock exams | Provider's own channel directs students to private exam scorecards. [Gaj announcement](https://t.me/s/gaj_ir?q=%23%D8%A7%D8%B7%D9%84%D8%A7%D8%B9%DB%8C%D9%87) | A current de-identified sample is required for final field map |
+| `GOZINE2` | گزینه دو | Primary provider reports subject percent/TAZ, school/city/national rank, answer-status and timing analytics. [Gozineh Do official channel](https://t.me/s/gozine2?after=38982) | Documented field families; private report format/version not imported |
+| `MAZ` | ماز | A historical, public mock scorecard specimen includes percent, TAZ, rank and per-subject items. [Public historical specimen](https://www.scribd.com/document/904196526/) | Historical specimen only; contemporary provider-specific normalization not validated |
+| `SANJESH_MOCK` | تعاونی خدمات آموزشی سنجش / mock tests | Published 1405 mock-exam schedules describe staged and comprehensive tests. [Schedule](https://www.heyvagroup.com/shownews/7121/) | **Not** a government national-scorecard import; no grade/rank equivalence |
+| `VALEH` | واله | Named in historical institute lists. [Historical overview](https://www.webmasterfa.com/entrance-exam/) | Active format, issuer, and exam series require independent confirmation |
+| `MOBTAKERAN` | مبتکران | Appears in institute lists; not established that the current product is a comparable nationwide mock exam. [Overview](https://www.webmasterfa.com/entrance-exam/) | Candidate only; do not assert report fields |
+| `AYANDESAZAN` | آینده‌سازان | Historical mention without reliable current scorecard template. [Historical overview](https://www.webmasterfa.com/entrance-exam/) | Candidate only; do not assert report fields |
+| `SCHOOL_LOCAL` | School and local exam operators | User-defined issuer, without any assumption of national participation | Manual self-report only |
+| `OTHER` | Any new provider | Extensible slot for future legitimate issuers, not "approved provider" | Manual self-report only |
+
+**Critical common field contract:** `provider_code`, `scorecard_schema_revision`, `academic_year`, `event_date`, `examination_group`, `grade_level`, `subject_code`, `metric_kind`, `metric_unit`, `norm_population_code` (national / province / city / school / class / unspecified), `value`, `evidence_origin` and `review_state`. Additional provider-specific indices (correct/wrong/unattempted, allotted time, percentile, "چند از ۱۰", score shift) must be **typed metric definitions**, not guessed mandatory fields. No provider-to-provider TAZ conversion and no direct provider rank → Sanjesh rank estimate.
+
+**Source photo caution:** A public example image or de-identified student scorecard can inform a field-template review; do not download, index, republish or retain a learner's personal identifier from it. The two public visual specimens located so far are a Kanoon-style subject table and an older MAZ performance page. Not all ten providers have independently inspected sample scorecards, so none of these source names establishes a complete certified 1406 data importer.
+
+**Official 1405 rule conflict:** A September 1405 amendment is reported to treat **grade 11 as positive** and **grade 12 as definite**, whereas earlier versions described both as definite. Preserve both with issuance date/supersession status and check the authoritative signed instrument and scope before approving a computable percentage; the 60% headline for high-demand pathways cannot simply be applied across every group. [September 1405 amendment announcement](https://www.tasnimnews.ir/fa/news/1405/06/10/3685807/). In particular, inputting raw GPA and a mock TAZ does NOT produce an official educational-record normalized score or national percentile.
+
+**MVP progression:** The existing privacy-preserving worksheet now supports these ten provider categories, optional explicit rank scope and bilingual printing. Permanent saving of learner attempts remains disabled until the existing consent/guardian/authorization and Bertina migration gates pass. Commercial payment does not license selling personal student data.
+
+
 ## 4. Shared database, versioning and privacy
 
 1. Continue the **eight proposed** `003e` public source/catalogue tables and existing authenticated `eco_subjects`, `eco_consent_records`, `eco_advisor_assignments`, `eco_grade_records`, `eco_pathway_options`, `eco_education_decisions`. Do not fork the student-profile database.
