@@ -39,12 +39,15 @@ jobs:
           php -l api/operations-collection.php
           php -l api/internal/operations-collector-cron.php
           php -l api/operations-schema.php
+      - name: Verify AI visibility evidence source contracts
+        run: node --test tests/ai-search-visibility-contract.test.mjs
       - name: Verify private registry and PHP security
         run: |
           node scripts/operations-registry-audit.mjs
           python3 scripts/operations-canonical-registry.py api/internal/operations-registry.json --validate-only --identity-manifest api/internal/operations-action-identities-v1.json
           python3 tests/operations-canonical-registry.py
           php tests/operations-reporting.php
+          php tests/operations-ai-visibility.php
           php tests/operations-github-audits.php
           for file in api/*.php; do php -l "$file"; done
           php tests/operations-security.php
