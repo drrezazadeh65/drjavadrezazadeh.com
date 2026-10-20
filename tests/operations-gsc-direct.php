@@ -78,6 +78,7 @@ expectGsc($joined['ga4']['status']==='not_ingested'
     'GA4 missing report must remain null, not fabricated');
 expectGsc($joined['ga4']['property']==='properties/559754204'
     &&$joined['ga4']['measurementId']==='G-C3C7NQQNWX','GA4 property identity drift');
-expectGsc($joined['tagManager']['status']==='pending_owner_container'
-    &&$joined['tagManager']['containerId']===null,'invented GTM container');
+expectGsc($joined['tagManager']['status']==='container_registered_unpublished'
+    &&$joined['tagManager']['containerId']==='GTM-P6LWCLKM'
+    &&$joined['tagManager']['productionCollectionVerified']===false,'GTM installation state not safely represented');
 echo "Direct GSC owner-only projection: ".$count." assertions passed\n";
