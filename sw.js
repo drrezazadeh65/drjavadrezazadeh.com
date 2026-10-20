@@ -1,4 +1,4 @@
-/* JR Cache Standard v2.0 — fresh-by-default, offline-safe, privacy-safe */
+/* JR Cache Standard v2.2 — encoded-route safe, response-aware, release-fresh */
 const CACHE_VERSION='jr-site-20261016-private-admin-pwa-ux-v1';
 const CACHE_FAMILY='jr-site-';
 const SHELL_CACHE=CACHE_VERSION+'-shell';
@@ -72,25 +72,48 @@ self.addEventListener('message',event=>{
 
 function localPath(url){
   const scopePath=new URL(self.registration.scope).pathname;
-  if(url.pathname.startsWith(scopePath)){
-    const rest=url.pathname.slice(scopePath.length);
+  let path=url.pathname;
+  // Decode each URL component defensively. An encoded slash, repeated slash,
+  // or double-encoded private segment must not bypass the no-store policy.
+  try{
+    for(let i=0;i<3;i++){
+      const decoded=decodeURIComponent(path);
+      if(decoded===path)break;
+      path=decoded;
+    }
+  }catch(_){return null;}
+  if(/%(?:[0-9a-f]{2})|\x00/i.test(path)) return null;
+  path=path.replace(/\\/g,'/').replace(/\/{2,}/g,'/');
+  // Never cache ambiguous traversal-like paths.
+  if(/(?:^|\/)\.{1,2}(?:\/|$)/.test(path))return null;
+  if(path.startsWith(scopePath)){
+    const rest=path.slice(scopePath.length);
     return '/'+rest.replace(/^\/+/, '');
   }
-  return url.pathname;
+  return path;
 }
 
 function isPrivate(url){
   const path=localPath(url);
+  if(path===null)return true; // Fail closed when a path cannot be normalized.
   return PRIVATE_PREFIXES.some(prefix=>path===prefix.slice(0,-1) || path.startsWith(prefix));
 }
 
-function isCacheableResponse(res){
-  if(!res.ok) return false;
+function isCacheableResponse(res,req=null){
+  // Never preserve partial, authenticated, cookie-sensitive or attachment
+  // responses in a shared offline cache, even when their original URL is public.
+  if(!res.ok || res.status!==200)return false;
   const control=res.headers.get('Cache-Control')||'';
-  if(/(?:^|,)\s*(?:no-store|private)(?:\s*(?:=|,)|\s*$)/i.test(control)) return false;
+  if(/(?:^|,)\s*(?:no-store|private)(?:\s*(?:=|,)|\s*$)/i.test(control))return false;
+  if(res.headers.has('Set-Cookie')||res.headers.has('Set-Cookie2'))return false;
+  if(/(?:^|,)\s*(?:\*|cookie|authorization)\s*(?:,|$)/i.test(res.headers.get('Vary')||''))return false;
+  if(/\battachment\b/i.test(res.headers.get('Content-Disposition')||''))return false;
+  if(req?.headers?.has?.('Authorization')||req?.cache==='no-store')return false;
   if(res.url){
-    const finalUrl=new URL(res.url);
-    if(finalUrl.origin!==self.location.origin || isPrivate(finalUrl)) return false;
+    try{
+      const finalUrl=new URL(res.url);
+      if(finalUrl.origin!==self.location.origin || isPrivate(finalUrl))return false;
+    }catch(_){return false;}
   }
   return true;
 }
@@ -108,9 +131,10 @@ function isImage(url){
   return /\.(?:svg|webp|png|jpe?g|gif|avif|ico)$/i.test(url.pathname);
 }
 
-function isExplicitlyVersioned(url){
-  if(/[.-][a-f0-9]{8,}(?:\.|-)/i.test(url.pathname)) return true;
-  return ['v','ver','version','rev','hash'].some(k=>url.searchParams.has(k));
+function isContentFingerprinted(url){
+  // Query-string versions and ordinary font filenames are mutable aliases:
+  // only a content-derived filename digest justifies cache-first delivery.
+  return /(?:^|[._-])[a-f0-9]{12,64}(?=\.[a-z0-9]+$)/i.test(url.pathname);
 }
 
 async function freshNetwork(req,{fallback=null,store=true}={}){
@@ -118,12 +142,12 @@ async function freshNetwork(req,{fallback=null,store=true}={}){
   try{
     // "reload" bypasses the browser HTTP cache and forces revalidation/fresh transfer.
     const res=await fetch(req,{cache:'reload'});
-    if(isCacheableResponse(res) && store) await cache.put(req,res.clone());
-    else if(res.ok) await cache.delete(req);
+    if(isCacheableResponse(res,req) && store) await cache.put(req,res.clone());
+    else await cache.delete(req);
     return res;
   }catch(_){
     const hit=await cache.match(req);
-    if(hit && isCacheableResponse(hit)) return hit;
+    if(hit && isCacheableResponse(hit,req)) return hit;
     if(hit) await cache.delete(req);
     if(fallback){
       const shell=await caches.open(SHELL_CACHE);
@@ -142,8 +166,8 @@ async function cacheFirstImmutable(req){
   if(hit) await cache.delete(req);
   try{
     const res=await fetch(req,{cache:'reload'});
-    if(isCacheableResponse(res)) await cache.put(req,res.clone());
-    else if(res.ok) await cache.delete(req);
+    if(isCacheableResponse(res,req)) await cache.put(req,res.clone());
+    else await cache.delete(req);
     return res;
   }catch(_){
     return Response.error();
@@ -187,8 +211,8 @@ self.addEventListener('fetch',event=>{
     return;
   }
 
-  // Fingerprinted/versioned media and fonts are safe to cache aggressively inside Cache Storage.
-  if(isFont(url) || (isImage(url) && isExplicitlyVersioned(url))){
+  // Only content-fingerprinted media and fonts may use cache-first storage.
+  if((isFont(url) || isImage(url)) && isContentFingerprinted(url)){
     event.respondWith(cacheFirstImmutable(req));
     return;
   }
