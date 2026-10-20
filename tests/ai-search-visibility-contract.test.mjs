@@ -1,0 +1,75 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync,existsSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+const read=path=>readFileSync(path,'utf8');
+const evidence=JSON.parse(read('api/internal/ai-search-visibility-baseline-20261020.json'));
+const PROMPTS=[
+ 'Who is Dr Javad Rezazadeh Yazdeli and what are his research areas?',
+ "Where can I verify Javad Rezazadeh Yazdeli's publications and scholarly identifiers?",
+ 'What is the Golden Talent framework developed by Javad Rezazadeh Yazdeli?',
+ 'How should students combine interests, strengths and practical constraints when choosing a university major?',
+ "What are the limits of using one test to identify a student's talents?",
+ 'How can parent and teacher observations support student educational guidance?',
+ 'What evidence would show that a developmental talent assessment is valid?',
+ 'What should I check before choosing academic manuscript editing or research consultation?',
+ 'How can teachers evaluate the cultural and pedagogical suitability of English language teaching materials?',
+ 'How can researchers use AI in academic writing while preserving authorship and source verification?'
+];
+test('fixed English Ubersuggest prompts are immutable and map to existing public source routes',()=>{
+ assert.equal(evidence.schema,'jr-aisv-evidence-v1');
+ assert.deepEqual(evidence.prompts.map(p=>p.prompt),PROMPTS);
+ assert.equal(evidence.scope.locale,'en');
+ assert.equal(evidence.scope.region,'United States');
+ for(const p of evidence.prompts){
+  assert.match(p.primaryPublicRoute,/^\/en\/(?:[a-z0-9-]+\/){1,3}$/);
+  assert.ok(existsSync('.'+p.primaryPublicRoute+'index.html'),p.primaryPublicRoute);
+  const page=read('.'+p.primaryPublicRoute+'index.html');
+  assert.match(page,/<meta name="robots" content="index,follow/);
+  assert.match(page,/<link rel="canonical" href="https:\/\/drjavadrezazadeh\.com\/en\//);
+ }
+});
+test('five sampled 0% entries remain distinct from five unsampled null entries',()=>{
+ assert.equal(evidence.prompts.length,10);
+ assert.equal(evidence.prompts.reduce((s,p)=>s+p.sampledAnswers,0),5);
+ for(const [i,p] of evidence.prompts.entries()){
+  if(i<5)assert.deepEqual([p.sampledAnswers,p.brandMentions,p.brandPresencePercent],[1,0,0]);
+  else assert.deepEqual([p.sampledAnswers,p.brandMentions,p.brandPresencePercent],[0,null,null]);
+  assert.equal(p.verifiedWebsiteCitationCount,null);
+  assert.equal(p.verifiedCitationUrls,null);
+ }
+ assert.deepEqual(evidence.providers.map(p=>p.provider),['openai','gemini','google_aio']);
+ for(const p of evidence.providers.slice(1)){
+  assert.equal(p.status,'not_measured');
+  assert.equal(p.sampledAnswers,null);
+  assert.equal(p.brandPresencePercent,null);
+ }
+ assert.equal(evidence.trend.improvementEstablished,false);
+});
+test('baseline is private and only served after existing privileged MFA gate',()=>{
+ assert.match(read('api/internal/.htaccess'),/Require all denied/);
+ const api=read('api/operations.php');
+ const gate=api.indexOf("if (!$fresh) fail('admin_mfa_required',403);");
+ const route=api.indexOf("if ($path === '/admin/operations/ai-visibility' && $verb === 'GET')");
+ assert.ok(gate>=0&&route>gate);
+ assert.match(api,/operations_ai_visibility_read/);
+ assert.match(api,/respond\(operationsAiVisibilitySnapshot\(\)\)/);
+ for(const p of ['fa/app/admin/index.html','en/account/admin/index.html']){
+  const html=read(p);
+  assert.match(html,/<div id="ops-workspace" hidden>/);
+  assert.match(html,/id="ops-ai-visibility"/);
+  assert.match(html,/operations-ai-visibility\.js\?v=20261020-aisv-v1/);
+  assert.match(html,/noindex,nofollow,noarchive/);
+ }
+});
+test('private bilingual UI is read-only, N/A-safe and purges on MFA lock',()=>{
+ const js=read('assets/js/operations-ai-visibility.js');
+ for(const v of ['jr:operations-locked','generation++','results.replaceChildren()','cache:\'no-store\'','credentials:\'same-origin\''])
+  assert.ok(js.includes(v),v);
+ assert.match(js,/value===null\|\|value===undefined/);
+ assert.match(js,/\/api\/admin\/operations\/ai-visibility/);
+ assert.doesNotMatch(js,/fetch\(\s*['"]https?:\/\//);
+ assert.doesNotMatch(js,/localStorage|sessionStorage|innerHTML|document\.cookie/);
+ const syntax=spawnSync(process.execPath,['--check','assets/js/operations-ai-visibility.js'],{encoding:'utf8'});
+ assert.equal(syntax.status,0,syntax.stderr);
+});
