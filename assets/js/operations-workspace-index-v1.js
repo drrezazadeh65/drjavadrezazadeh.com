@@ -71,6 +71,7 @@
  const groups=[
    {id:'jr-intelligence',group:'evidence'},
    {id:'ops-reporting',group:'evidence',label:en?'13-engine reports and verified evidence':'گزارش‌های ۱۳ موتور و شواهد معتبر'},
+   {id:'ops-ai-visibility',group:'evidence'},
    {id:'ops-audit-timeline',group:'evidence'},
    {id:'ops-cards',group:'evidence',label:en?'Evidence and engine register':'فهرست موتورهای عملیاتی'},
    {id:'ops-stage7-blueprint',group:'planning'},
