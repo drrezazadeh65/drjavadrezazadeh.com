@@ -12,6 +12,9 @@ const REPO='drrezazadeh65/drjavadrezazadeh.com';
 const TARGET=process.env.PSI_RELEASE_SHA||'';
 const DEPLOY_RUN=process.env.DEPLOY_WORKFLOW_RUN_ID||'';
 const STATE='/tmp/indexnow-changed-eligible.txt';
+// A rerun cannot become a second unattended submission attempt.
+if(String(process.env.GITHUB_RUN_ATTEMPT||'1')!=='1')
+ throw Error('indexnow_replay_attempt_blocked');
 if(!/^[a-f0-9]{40}$/.test(TARGET)||!/^[0-9]{1,18}$/.test(DEPLOY_RUN)
   ||process.env.PSI_RELEASE_VERIFIED!=='1')throw Error('indexnow_requires_verified_owner_deployment');
 fs.writeFileSync(STATE,'');
@@ -39,6 +42,11 @@ if(receipts.artifacts.some(x=>x.name===receiptName&&!x.expired)){
 const records=await githubJson('/actions/workflows/deploy-bertina.yml/runs?branch=migration%2Fbertina-linux6&status=success&per_page=100');
 if(!Array.isArray(records.workflow_runs))throw Error('release_history_shape_invalid');
 const current=records.workflow_runs.find(r=>String(r.id)===DEPLOY_RUN);
+// GitHub artifacts are retained only for 90 days, so old release replays
+// must fail closed rather than assume the original receipt still exists.
+const ageMs=Date.now()-Date.parse(current?.created_at||'');
+if(!Number.isFinite(ageMs)||ageMs<0||ageMs>30*86400*1000)
+ throw Error('indexnow_release_too_old_or_unknown_to_replay');
 if(!current||current.conclusion!=='success'||current.head_sha!==TARGET
  ||current.event!=='workflow_dispatch'||current.actor?.login!=='drrezazadeh65')
  throw Error('release_owner_run_not_confirmed');
