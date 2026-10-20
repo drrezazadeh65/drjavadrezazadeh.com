@@ -1,0 +1,99 @@
+name: Konkur MariaDB Schema QA (No Deployment)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - "database/unified/003e_admission_knowledge_catalog_PROPOSED.sql"
+      - "database/unified/003f_konkur_scorecard_adapters_PROPOSED.sql"
+      - "docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql"
+      - "docs/migrations/20261020_konkur_catalog_readonly_preflight.sql"
+      - "docs/migrations/20261020_konkur_catalog_readonly_postflight.sql"
+      - ".github/workflows/konkur-mariadb-schema-qa.yml"
+  pull_request:
+    paths:
+      - "database/unified/003e_admission_knowledge_catalog_PROPOSED.sql"
+      - "database/unified/003f_konkur_scorecard_adapters_PROPOSED.sql"
+      - "docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql"
+      - ".github/workflows/konkur-mariadb-schema-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-mariadb:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: isolated-test-only
+          MARIADB_DATABASE: drjavad1_store
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install isolated MariaDB client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq mariadb-client
+      - name: Create minimal existing mother DB FK fixture (no user records)
+        env:
+          MYSQL_PWD: isolated-test-only
+        run: |
+          mariadb -h 127.0.0.1 -u root drjavad1_store <<'SQL'
+          CREATE TABLE customer_accounts (
+            id CHAR(36) NOT NULL PRIMARY KEY
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+          CREATE TABLE eco_institutions (
+            id CHAR(36) NOT NULL PRIMARY KEY
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+          CREATE TABLE eco_object_refs (
+            id CHAR(36) NOT NULL PRIMARY KEY
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+          CREATE TABLE eco_schema_migrations (
+            version VARCHAR(80) NOT NULL PRIMARY KEY
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+          SQL
+      - name: Execute 003e and 003f on disposable MariaDB 10.11
+        env:
+          MYSQL_PWD: isolated-test-only
+        run: |
+          mariadb -h 127.0.0.1 -u root drjavad1_store < database/unified/003e_admission_knowledge_catalog_PROPOSED.sql
+          mariadb -h 127.0.0.1 -u root drjavad1_store < database/unified/003f_konkur_scorecard_adapters_PROPOSED.sql
+          mariadb -h 127.0.0.1 -u root drjavad1_store < database/unified/003e_admission_knowledge_catalog_PROPOSED.sql
+          mariadb -h 127.0.0.1 -u root drjavad1_store < database/unified/003f_konkur_scorecard_adapters_PROPOSED.sql
+      - name: Register six sources in DRAFT state and check idempotence
+        env:
+          MYSQL_PWD: isolated-test-only
+        run: |
+          mariadb -h 127.0.0.1 -u root drjavad1_store < docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql
+          mariadb -h 127.0.0.1 -u root drjavad1_store < docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql
+          mariadb -h 127.0.0.1 -u root drjavad1_store -N -B drjavad1_store <<'SQL' > /tmp/konkur-checks.txt
+          SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='drjavad1_store' AND table_name IN (
+          'eco_admission_cycles','eco_admission_documents','eco_admission_document_pages',
+          'eco_admission_import_batches','eco_admission_import_rows','eco_admission_programme_offerings',
+          'eco_admission_offering_conditions','eco_admission_rule_versions');
+          SELECT COUNT(*) FROM eco_admission_documents WHERE document_review_state='OWNER_CONFIRMED';
+          SELECT COUNT(*) FROM eco_admission_cycles WHERE admission_year=1405;
+          SELECT COUNT(*) FROM eco_admission_programme_offerings;
+          SELECT COUNT(*) FROM information_schema.key_column_usage WHERE table_schema='drjavad1_store'
+           AND table_name LIKE 'eco_admission_%' AND referenced_table_name IS NOT NULL;
+          SQL
+          cat /tmp/konkur-checks.txt
+          test "$(sed -n '1p' /tmp/konkur-checks.txt)" = 8
+          test "$(sed -n '2p' /tmp/konkur-checks.txt)" = 6
+          test "$(sed -n '3p' /tmp/konkur-checks.txt)" = 1
+          test "$(sed -n '4p' /tmp/konkur-checks.txt)" = 0
+          test "$(sed -n '5p' /tmp/konkur-checks.txt)" -ge 10
+      - name: Check read-only metadata postflight on isolated schema
+        env:
+          MYSQL_PWD: isolated-test-only
+        run: |
+          mariadb -h 127.0.0.1 -u root drjavad1_store < docs/migrations/20261020_konkur_catalog_readonly_postflight.sql > /tmp/konkur-postflight.txt
+          grep -q 'NAMES_PRESENT_CHECK_SHAPES_ABOVE' /tmp/konkur-postflight.txt
