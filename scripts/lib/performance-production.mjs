@@ -4,6 +4,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
 
 export const ORIGIN='https://drjavadrezazadeh.com';
 export const POST_RELEASE_ROUTES=[
@@ -193,17 +194,35 @@ export async function runProductionAudit(){
   for(const strategy of devices){
    if(quota){records.push({url:target,strategy,status:'unavailable',reason:'provider_quota_limited'});continue;}
    if(calls>=16){records.push({url:target,strategy,status:'unavailable',reason:'call_budget_exhausted'});continue;}
+   const cacheDir='.performanceci/psi-cache';
+   const cacheKey=createHash('sha256').update(target+'|'+strategy).digest('hex');
+   const cacheFile=path.join(cacheDir,cacheKey+'.json');
+   try{
+    if(fs.statSync(cacheFile).size<6000){
+     const cached=JSON.parse(fs.readFileSync(cacheFile,'utf8'));
+     const age=Date.now()-Date.parse(cached?.checkedAt);
+     if(cached?.url===target&&cached.strategy===strategy&&cached.status==='observed'
+       &&age>=0&&age<12*3600000&&cached.productionPage===true){
+       records.push({...cached,reusedLabFromCache:true});continue;
+     }
+    }
+   }catch{}
    calls++;if(calls>1)await new Promise(resolve=>setTimeout(resolve,1800));
    const api=new URL('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
    api.searchParams.set('url',target);api.searchParams.set('strategy',strategy);
-   for(const category of CATEGORY)api.searchParams.append('category',category);
+   for(const category of CATEGORY)api.searchParams.append('category',category==='best-practices'?'BEST_PRACTICES':category.toUpperCase());
    if(process.env.PAGESPEED_API_KEY)api.searchParams.set('key',process.env.PAGESPEED_API_KEY);
    try{
     const response=await fetch(api,{redirect:'error',signal:AbortSignal.timeout(90000),headers:{Accept:'application/json'}});
     if(response.status===429){quota=true;records.push({url:target,strategy,status:'unavailable',reason:'provider_quota_limited'});continue;}
     if(!response.ok){records.push({url:target,strategy,status:'unavailable',reason:'provider_http_'+response.status});continue;}
     const json=JSON.parse(await boundedRead(response));
-    records.push(normalizePsi(json,target,strategy,now));
+    const measured=normalizePsi(json,target,strategy,now);
+    records.push(measured);
+    if(measured.status==='observed'){
+     fs.mkdirSync(cacheDir,{recursive:true});
+     fs.writeFileSync(cacheFile,JSON.stringify(measured));
+    }
    }catch(e){
     records.push({url:target,strategy,status:'unavailable',reason:e?.name==='TimeoutError'?'provider_timeout':'provider_request_failed'});
    }
