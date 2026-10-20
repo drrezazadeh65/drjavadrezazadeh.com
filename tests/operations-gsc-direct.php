@@ -70,4 +70,14 @@ try {
  file_put_contents($file,'{invalid-json');
  expectGsc(operationsGscDirectSnapshot($file,$now)['status']==='unavailable','malformed JSON accepted');
 }finally{unlink($file);}
+$joined=operationsSearchIntelligenceSnapshot('',$now);
+expectGsc($joined['schema']==='jr-owner-search-intelligence-v1','combined schema incorrect');
+expectGsc($joined['gsc']['status']==='unavailable','GSC unavailable must remain unknown');
+expectGsc($joined['ga4']['status']==='not_ingested'
+    &&$joined['ga4']['activeUsers']===null&&$joined['ga4']['eventCount']===null,
+    'GA4 missing report must remain null, not fabricated');
+expectGsc($joined['ga4']['property']==='properties/559754204'
+    &&$joined['ga4']['measurementId']==='G-C3C7NQQNWX','GA4 property identity drift');
+expectGsc($joined['tagManager']['status']==='pending_owner_container'
+    &&$joined['tagManager']['containerId']===null,'invented GTM container');
 echo "Direct GSC owner-only projection: ".$count." assertions passed\n";
