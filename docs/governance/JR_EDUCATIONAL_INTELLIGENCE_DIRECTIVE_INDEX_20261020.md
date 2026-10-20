@@ -12,6 +12,16 @@
 
 V2.2 extends V2.0 and V2.1; it does not replace their scientific, privacy or architectural requirements. The [existing scientific/Choice Studio integration review](INTEGRATED_GOLDEN_TALENT_RCAS_BAHAR_CHOICE_V110_RELEASE_REVIEW_20261019.md) and [mother database master plan](MOTHER_DATABASE_MODULAR_MASTERPLAN_20261017.md) remain authoritative constraints.
 
+## Official 1405 source-of-truth policy — owner confirmation (20 October 2026)
+
+**Primary regulatory authority:** سازمان سنجش آموزش کشور (`sanjesh.org`). The six 1405 guidebooks in the owner's connected Drive folder are treated as official source documents; no non-official source can override their regulations.
+
+**Machine extraction is separately auditable:** Official publisher identity does not verify text/table extraction, source-page matching, programme codes, capacities or transcription. Store document version, original page, verification status and page-level traceability. Do not mark programme rows as verified without checking them against the official PDF.
+
+**Amendment precedence:** Subsequent official notices, corrections and superseding documents from the same competent official authority may change applicable rules. Maintain effective dates and source versions. Missing foreign-languages guide and applicable amendments remain explicit coverage gaps until verified.
+
+**Release boundary:** No fabricated programme records, hard-coded choice limits or admission probabilities; source-reviewed facts only in authoritative eligibility outputs.
+
 ## Source-level non-duplication matrix — initial audit
 
 | V2.2 requirement | Existing verified repository component | Current status | Gap and next action |
