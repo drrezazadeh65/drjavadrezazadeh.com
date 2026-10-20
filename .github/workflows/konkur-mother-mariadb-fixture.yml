@@ -1,0 +1,130 @@
+name: JR Konkur Mother DB - Isolated MariaDB 10.11
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'database/unified/001_core_governance.sql'
+      - 'database/unified/003a_education_longitudinal.sql'
+      - 'database/unified/003e_admission_knowledge_catalog_PROPOSED.sql'
+      - 'docs/BERTINA_MYSQL_SCHEMA.sql'
+      - 'docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql'
+      - 'docs/migrations/20261020_konkur_catalog_readonly_preflight.sql'
+      - 'docs/migrations/20261020_konkur_catalog_readonly_postflight.sql'
+      - 'tests/konkur-mother-schema-contract.test.mjs'
+      - '.github/workflows/konkur-mother-mariadb-fixture.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'database/unified/003e_admission_knowledge_catalog_PROPOSED.sql'
+      - 'docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql'
+      - '.github/workflows/konkur-mother-mariadb-fixture.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: konkur-mariadb-fixture-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-gates:
+    name: SQL source and no-regression contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/konkur-mother-schema-contract.test.mjs
+
+  disposable-mariadb:
+    name: Eight-table MariaDB 10.11 rehearsal (never Bertina)
+    needs: source-gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      fixture:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: disposable-konkur-ci-only
+          MARIADB_DATABASE: drjavad1_store
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=8s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      MYSQL_PWD: disposable-konkur-ci-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install disposable MariaDB client and await fixture
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mariadb-client
+          for trial in $(seq 1 50); do
+            if mariadb --connect-timeout=2 -h127.0.0.1 -P3306 -uroot -Nse 'SELECT VERSION()' drjavad1_store >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          mariadb -h127.0.0.1 -P3306 -uroot -Nse 'SELECT VERSION(); SELECT DATABASE();' drjavad1_store
+
+      - name: Install EXISTING identity and education dependencies inside fixture
+        run: |
+          set -euo pipefail
+          db() { mariadb -h127.0.0.1 -P3306 -uroot drjavad1_store "$@"; }
+          db < docs/BERTINA_MYSQL_SCHEMA.sql
+          db < database/unified/001_core_governance.sql
+          db < database/unified/003a_education_longitudinal.sql
+          test "$(db -Nse 'SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA="drjavad1_store" AND TABLE_NAME IN ("customer_accounts","eco_institutions","eco_object_refs")')" = 3
+
+      - name: Read-only preflight, apply 003e twice, then inspect metadata
+        run: |
+          set -euo pipefail
+          db() { mariadb -h127.0.0.1 -P3306 -uroot drjavad1_store "$@"; }
+          db < docs/migrations/20261020_konkur_catalog_readonly_preflight.sql > /tmp/konkur-preflight.txt
+          for pass in first second; do
+            echo "PROPOSED schema rehearsal: $pass"
+            db < database/unified/003e_admission_knowledge_catalog_PROPOSED.sql
+          done
+          db < docs/migrations/20261020_konkur_catalog_readonly_postflight.sql > /tmp/konkur-postflight.txt
+          count="$(db -Nse "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME LIKE 'eco_admission_%' AND TABLE_TYPE='BASE TABLE'")"
+          test "$count" = 8
+          invalid="$(db -Nse "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME LIKE 'eco_admission_%' AND (ENGINE <> 'InnoDB' OR TABLE_COLLATION <> 'utf8mb4_unicode_ci')")"
+          test "$invalid" = 0
+          pk="$(db -Nse "SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME LIKE 'eco_admission_%' AND CONSTRAINT_TYPE='PRIMARY KEY'")"
+          test "$pk" = 8
+          fk="$(db -Nse "SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME LIKE 'eco_admission_%' AND CONSTRAINT_TYPE='FOREIGN KEY'")"
+          test "$fk" -ge 20
+          echo "PASS: eight InnoDB/utf8mb4 admission tables, eight PKs, $fk FKs, rerun harmless."
+
+      - name: Seed original-PDF source metadata twice; prove no programme rows or student PII
+        run: |
+          set -euo pipefail
+          db() { mariadb -h127.0.0.1 -P3306 -uroot drjavad1_store "$@"; }
+          for pass in first second; do
+            echo "DRAFT-only PDF registration: $pass"
+            db < docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql
+          done
+          test "$(db -Nse 'SELECT COUNT(*) FROM eco_admission_cycles')" = 1
+          test "$(db -Nse 'SELECT COUNT(*) FROM eco_admission_documents')" = 6
+          test "$(db -Nse 'SELECT COUNT(DISTINCT original_pdf_sha256) FROM eco_admission_documents')" = 6
+          test "$(db -Nse 'SELECT COALESCE(SUM(pdf_page_count),0) FROM eco_admission_documents')" = 2412
+          test "$(db -Nse "SELECT COUNT(*) FROM eco_admission_documents WHERE document_review_state <> 'OWNER_CONFIRMED'")" = 0
+          for table in eco_admission_programme_offerings eco_admission_rule_versions eco_admission_offering_conditions eco_admission_document_pages eco_admission_import_rows customer_accounts commerce_orders; do
+            test "$(db -Nse "SELECT COUNT(*) FROM $table")" = 0
+          done
+          echo 'PASS: six source PDF metadata rows only, repeated seed safe, no verified programmes/eligibility, zero users and orders.'
+
+      - name: Summarize strict production boundary
+        if: always()
+        run: |
+          echo '## JR Konkur SQL compatibility — fixture only' >> "$GITHUB_STEP_SUMMARY"
+          echo '- MariaDB container is disposable and uses an invented CI-only root password.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- The drjavad1_store schema name is intentionally recreated INSIDE the fixture for parity.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- No Bertina database connection, live credentials, migration or production deployment was performed.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Official table source-page review and live migrations remain owner-controlled and pending.' >> "$GITHUB_STEP_SUMMARY"
