@@ -1,0 +1,181 @@
+name: Post-Release Performance & IndexNow Observations (No Deployment)
+
+# Frozen Bertina workflow and release fingerprint are NEVER modified.
+on:
+  workflow_dispatch:
+    inputs:
+      audit_url:
+        description: 'Optional exact public domain URL; blank audits the bounded critical pages.'
+        type: string
+        required: false
+        default: ''
+      strategy:
+        description: 'PageSpeed device'
+        required: true
+        default: both
+        type: choice
+        options: [both, mobile, desktop]
+  workflow_run:
+    workflows: ["Deploy to Bertina"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: post-release-observe-${{ github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  developer_request:
+    name: Manual public-only PageSpeed (no production changes)
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'drrezazadeh65/drjavadrezazadeh.com' && github.ref == 'refs/heads/migration/bertina-linux6' && github.actor == 'drrezazadeh65'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate original and extended PSI contracts offline
+        run: |
+          node --check scripts/free-performance-observer.mjs
+          node --check scripts/lib/performance-production.mjs
+          node --test tests/performance-production-contract.test.mjs
+          node scripts/free-performance-observer.mjs --self-test
+          node scripts/free-performance-observer.mjs --audit-self-test
+      - name: Run bounded read-only public PageSpeed audit
+        env:
+          PSI_MODE: manual
+          PSI_TARGET_URL: ${{ inputs.audit_url }}
+          PSI_STRATEGY: ${{ inputs.strategy }}
+          PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+        run: node scripts/free-performance-observer.mjs --audit
+      - name: Keep private JSON and HTML report for owner review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manual-pagespeed-lab-${{ github.run_id }}
+          path: |
+            .performanceci/report.json
+            .performanceci/report.html
+          retention-days: 21
+          if-no-files-found: ignore
+
+  verified_release:
+    name: Production-SHA-gated IndexNow delta + PageSpeed
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.repository == 'drrezazadeh65/drjavadrezazadeh.com' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'workflow_dispatch' &&
+      github.event.workflow_run.actor.login == 'drrezazadeh65' &&
+      github.event.workflow_run.head_repository.full_name == 'drrezazadeh65/drjavadrezazadeh.com' &&
+      github.event.workflow_run.head_branch == 'migration/bertina-linux6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PSI_MODE: post_deploy
+      PSI_RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+      DEPLOY_WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check source commit and offline observations contracts
+        run: |
+          test "$(git rev-parse HEAD)" = "$PSI_RELEASE_SHA"
+          test "$GITHUB_REPOSITORY" = drrezazadeh65/drjavadrezazadeh.com
+          node --check scripts/indexnow-release-delta.mjs
+          node --check scripts/indexnow-submit.mjs
+          node --test tests/performance-production-contract.test.mjs
+          node scripts/free-performance-observer.mjs --audit-self-test
+      - name: Independently verify stamped live SW and both storefronts
+        id: release
+        run: node scripts/performance-release-verify.mjs
+      - name: Resolve previous deployed commit and deduplication receipt
+        id: delta
+        env:
+          PSI_RELEASE_VERIFIED: ${{ steps.release.outputs.verified }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/indexnow-release-delta.mjs
+      - name: Send changed self-canonical PUBLIC URLs to existing IndexNow sender
+        if: steps.delta.outputs.should_send == 'true'
+        env:
+          INDEXNOW_ENABLED: '1'
+          PROD_ORIGIN: https://drjavadrezazadeh.com
+        run: |
+          export INDEXNOW_CHANGED_FILES="$(cat /tmp/indexnow-changed-eligible.txt)"
+          node scripts/indexnow-submit.mjs
+      - name: Create receipt after successful provider response only
+        if: steps.delta.outputs.should_send == 'true'
+        env:
+          INDEXNOW_CHANGED_COUNT: ${{ steps.delta.outputs.changed_count }}
+        run: |
+          mkdir -p .performanceci
+          node -e "require('fs').writeFileSync('.performanceci/indexnow-receipt.json',JSON.stringify({schema:'indexnow-production-receipt-v1',sourceReleaseSha:process.env.PSI_RELEASE_SHA,deployRunId:process.env.DEPLOY_WORKFLOW_RUN_ID,acceptedAt:new Date().toISOString(),count:Number(process.env.INDEXNOW_CHANGED_COUNT)},null,2)+String.fromCharCode(10))"
+      - name: Retain receipt for duplicate-run suppression
+        if: steps.delta.outputs.should_send == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: indexnow-release-${{ github.event.workflow_run.head_sha }}
+          path: .performanceci/indexnow-receipt.json
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Locate last successful private performance observation
+        id: previous
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          previous="$(gh api 'repos/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/post-release-observations.yml/runs?branch=migration%2Fbertina-linux6&status=success&per_page=30' --jq '[.workflow_runs[] | select(.event=="workflow_run" and .head_branch=="migration/bertina-linux6" and .id!=env.GITHUB_RUN_ID)][0].id // empty' || true)"
+          if [[ "$previous" =~ ^[0-9]+$ ]]; then
+            echo "run_id=$previous" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Retrieve prior private lab baseline if available
+        if: steps.previous.outputs.run_id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: performance-production-baseline
+          run-id: ${{ steps.previous.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: /tmp/prior-performance
+      - name: Stage previous reviewed baseline, if present
+        run: |
+          mkdir -p .performanceci
+          if test -f /tmp/prior-performance/latest-baseline.json; then
+            cp /tmp/prior-performance/latest-baseline.json .performanceci/baseline.json
+          fi
+      - name: Measure representative PUBLIC pages with PageSpeed (mobile + desktop)
+        env:
+          PSI_RELEASE_VERIFIED: ${{ steps.release.outputs.verified }}
+          PSI_STRATEGY: both
+          PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+        run: node scripts/free-performance-observer.mjs --audit
+      - name: Keep JSON and readable HTML privately for owner review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postrelease-pagespeed-${{ github.event.workflow_run.head_sha }}
+          path: |
+            .performanceci/report.json
+            .performanceci/report.html
+          retention-days: 30
+          if-no-files-found: ignore
+      - name: Retain actual measured lab baseline for the next comparison
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-production-baseline
+          path: .performanceci/latest-baseline.json
+          retention-days: 90
+          if-no-files-found: ignore
