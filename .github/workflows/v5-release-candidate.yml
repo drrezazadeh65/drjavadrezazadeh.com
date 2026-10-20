@@ -154,6 +154,7 @@ jobs:
           node --check assets/js/operations-publishing-authors-v1.js
           node --check assets/js/jr-publishing-checkout-v1.js
           node --test tests/jr-publishing-release-policy.test.mjs tests/jr-publishing-digital-payment-guard.test.mjs tests/jr-publishing-private-installer.test.mjs
+          node --test tests/jr-publishing-owner-20261020-contract.test.mjs
           node --test tests/merged-master-publishing-release-contract.test.mjs
           node --test tests/jr-publishing-author-onboarding.test.mjs
           node --test tests/v52-author-dashboard-contract.test.mjs
