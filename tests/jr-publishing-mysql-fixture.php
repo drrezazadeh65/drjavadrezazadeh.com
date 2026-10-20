@@ -55,7 +55,7 @@ $pdo->prepare("INSERT INTO publishing_work_versions
  VALUES(?,?,1,?,'under_review')")->execute([$version,$work,str_repeat('a',64)]);
 $pdo->prepare("INSERT INTO publishing_offers
 (id,work_id,sku,unit_price_toman,unit_author_toman,unit_fund_toman,checkout_enabled)
- VALUES(?,?,'digital:tefl-ma-exams-1370-1405',1000000,600000,400000,1)")
+ VALUES(?,?,'digital:tefl-ma-exams-1370-1405',1000000,700000,300000,1)")
  ->execute([$offer,$work]);
 foreach(['question_pdf','answer_pdf'] as $kind){
   $asset=fixtureUuid();
@@ -67,7 +67,7 @@ foreach(['question_pdf','answer_pdf'] as $kind){
 $line=['sku'=>'digital:tefl-ma-exams-1370-1405','title'=>'مجموعه آزمایشی',
  'kind'=>'digital','quantity'=>1,'price'=>1000000,'subtotal'=>1000000,
  'offerId'=>$offer,'authorId'=>$author,'workVersionId'=>$version,
- 'authorShare'=>600000,'fundShare'=>400000];
+ 'authorShare'=>700000,'fundShare'=>300000,'allocationPolicy'=>JR_PUB_CURRENT_POLICY];
 function insertFakePending(PDO $pdo,string $id,string $factor,string $idGet,array $line):void {
  $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,
  customer_email,customer_json,items_json,state,provider_id_get)
@@ -82,8 +82,8 @@ verifyPublishing((int)$pdo->query("SELECT COUNT(*) FROM commerce_payment_claims"
 verifyPublishing((int)$pdo->query("SELECT COUNT(*) FROM publishing_sale_allocation_entries")->fetchColumn()===2,'two_allocation_entries_only');
 $totals=$pdo->query("SELECT entry_kind,SUM(amount_toman) value FROM publishing_sale_allocation_entries GROUP BY entry_kind")
  ->fetchAll(PDO::FETCH_KEY_PAIR);
-verifyPublishing((int)($totals['author_share']??0)===600000,'600k_author_entitlement');
-verifyPublishing((int)($totals['talent_fund']??0)===400000,'400k_talent_fund_earmark');
+verifyPublishing((int)($totals['author_share']??0)===700000,'700k_author_entitlement');
+verifyPublishing((int)($totals['talent_fund']??0)===300000,'300k_talent_fund_earmark');
 verifyPublishing((int)$pdo->query("SELECT SUM(reserve_amount_toman) FROM publishing_platform_cost_entries")->fetchColumn()===70000,'7pct_independent_reserve');
 verifyPublishing((int)$pdo->query("SELECT COUNT(DISTINCT asset_id) FROM publishing_digital_access_grants")->fetchColumn()===2,'two_unique_pdf_assets');
 verifyPublishing((int)$pdo->query("SELECT COUNT(*) FROM publishing_notification_outbox")->fetchColumn()===2,'two_mail_outbox_events');
@@ -96,7 +96,7 @@ verifyPublishing((int)$pdo->query("SELECT COUNT(*) FROM publishing_sale_allocati
   'bank_replay_created_duplicate_share');
 verifyPublishing((int)$pdo->query("SELECT COUNT(*) FROM publishing_notification_outbox")->fetchColumn()===2,
   'bank_replay_created_duplicate_mail');
-$bad=$line;$bad['authorShare']=700000;
+$bad=$line;$bad['fundShare']=400000;
 $badOrder=fixtureUuid();insertFakePending($pdo,$badOrder,'888778','345679',$bad);
 try{
  stage9FinalizePayment($pdo,$badOrder,'345679','998878','10000000','888778');
@@ -106,5 +106,25 @@ verifyPublishing((int)$pdo->query("SELECT COUNT(*) FROM commerce_payment_claims"
   'bad_snapshot_created_provider_claim');
 $s=$pdo->prepare('SELECT state FROM commerce_orders WHERE id=?');$s->execute([$badOrder]);
 verifyPublishing($s->fetchColumn()==='pending','bad_snapshot_order_must_not_be_marked_paid');
+// Preserve bank-verified, previously created orders under the original v1
+// contract snapshot, without changing new v2 offers or historical ledger.
+$legacyLine=$line;
+unset($legacyLine['allocationPolicy']);
+$legacyLine['authorShare']=600000;$legacyLine['fundShare']=400000;
+$legacyOrder=fixtureUuid();
+insertFakePending($pdo,$legacyOrder,'888779','345680',$legacyLine);
+verifyPublishing(stage9FinalizePayment($pdo,$legacyOrder,'345680','998879','10000000','888779'),
+ 'historical_pending_order_v1_must_reconcile');
+$oldStatement=$pdo->prepare("SELECT entry_kind,amount_toman
+ FROM publishing_sale_allocation_entries WHERE order_id=? ORDER BY entry_kind");
+$oldStatement->execute([$legacyOrder]);
+$oldTotals=$oldStatement->fetchAll(PDO::FETCH_KEY_PAIR);
+verifyPublishing((int)($oldTotals['author_share']??0)===600000
+ &&(int)($oldTotals['talent_fund']??0)===400000,
+ 'existing_pending_sale_snapshot_must_not_be_repriced');
+verifyPublishing(stage9FinalizePayment($pdo,$legacyOrder,'345680','998879','10000000','888779')===false,
+ 'legacy_replay_must_not_double_allocate');
+verifyPublishing((int)$pdo->query("SELECT COUNT(*) FROM publishing_sale_allocation_entries")->fetchColumn()===4,
+ 'one_v2_and_one_legacy_pair_only');
 $admin->exec('DROP DATABASE jr_publishing_fixture');
 echo "JR Publishing MySQL 8: schema, paid ledger, 2 files, SMTP outbox, replay and rollback PASS. NO REAL PAYMENT.\n";
