@@ -6,6 +6,10 @@ const fa=document.documentElement.lang==='fa',t=(en,faText)=>fa?faText:en;
 const button=root.querySelector('[data-jhela-owner-review-refresh]');
 const status=root.querySelector('[data-jhela-owner-review-status]');
 const panel=root.querySelector('[data-jhela-owner-review-results]');
+let lockEpoch=0;
+scope.addEventListener('jr:operations-locked',()=>{
+ lockEpoch++;panel.replaceChildren();button.disabled=false;status.textContent='';
+});
 const element=(name,text)=>{const x=document.createElement(name);if(text!==undefined)x.textContent=text;return x;};
 const note=(message)=>{status.textContent=message;};
 async function request(url,opt={}){
@@ -19,15 +23,19 @@ async function session(){
  return x.csrfToken;
 }
 async function decide(item,decision){
+ if(scope.hidden)return;
+ const epoch=lockEpoch;
  if(!window.confirm(t('Confirm '+decision+' for '+item.academic_name+'?','تأیید تصمیم '+decision+' برای '+item.academic_name+'؟')))return;
  note(t('Checking owner MFA and saving the decision…','در حال بررسی تأیید دومرحله‌ای و ثبت تصمیم…'));
  try{
   const csrf=await session();
+  if(scope.hidden||epoch!==lockEpoch)return;
   await request('/api/admin/operations/jhela/reviewers/decision',{method:'POST',
    headers:{Accept:'application/json','Content-Type':'application/json','X-CSRF-Token':csrf},
    body:JSON.stringify({id:item.id,decision})});
+  if(scope.hidden||epoch!==lockEpoch)return;
   await refresh();
- }catch(err){note(err.message==='admin_mfa_required'?t('Use the main admin TOTP verification first.','ابتدا تأیید دومرحله‌ای داشبورد اصلی مدیریت را انجام دهید.'):
+ }catch(err){if(scope.hidden||epoch!==lockEpoch)return;note(err.message==='admin_mfa_required'?t('Use the main admin TOTP verification first.','ابتدا تأیید دومرحله‌ای داشبورد اصلی مدیریت را انجام دهید.'):
  t('Decision was not recorded: ','تصمیم ثبت نشد: ')+err.message);}
 }
 function candidate(x){
@@ -48,17 +56,22 @@ function candidate(x){
  card.append(actions);return card;
 }
 async function refresh(){
+ if(scope.hidden)return;
+ const epoch=lockEpoch;
  button.disabled=true;panel.replaceChildren();note(t('Loading confidential academic candidate records…','در حال دریافت درخواست‌های محرمانه همکاری علمی…'));
  try{
-  await session();const result=await request('/api/admin/operations/jhela/reviewers');
+  await session();if(scope.hidden||epoch!==lockEpoch)return;
+  const result=await request('/api/admin/operations/jhela/reviewers');
+  if(scope.hidden||epoch!==lockEpoch)return;
   if(result.schema!=='jhela-owner-reviewer-queue-v1'||!Array.isArray(result.candidates))throw Error('invalid_source');
   if(!result.candidates.length)panel.append(element('p',t('No applicant profiles received yet.','هنوز درخواست همکاری علمی ثبت نشده است.')));
   else result.candidates.forEach(x=>panel.append(candidate(x)));
   note(t('Reviewer records loaded. Public visibility requires both approval and opt-in consent.','پرونده‌های علمی بارگذاری شد؛ انتشار عمومی نیازمند تأیید و رضایت جداگانه است.'));
  }catch(err){
+  if(scope.hidden||epoch!==lockEpoch)return;
   note(err.message==='admin_mfa_required'?t('Complete administrator two-factor verification before reviewing candidates.','برای بررسی داوران ابتدا تأیید دومرحله‌ای مدیر را انجام دهید.'):
   t('Records unavailable: ','دریافت اطلاعات ممکن نیست: ')+err.message);
- }finally{button.disabled=false;}
+ }finally{if(epoch===lockEpoch)button.disabled=false;}
 }
 button.addEventListener('click',refresh);
 })();
