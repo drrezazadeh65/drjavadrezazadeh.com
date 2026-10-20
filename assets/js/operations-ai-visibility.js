@@ -85,7 +85,7 @@
     /^\/en\/(?:[a-z0-9-]+\/){1,3}$/.test(p.primaryPublicRoute)){
     const route=element('a',t('صفحه عمومی مرتبط','Related public page'));
     route.href=p.primaryPublicRoute;route.rel='noopener noreferrer';
-    item.append(element('p')).lastChild.append(route);
+    const wrap=element('p');wrap.append(route);item.append(wrap);
    }
    list.append(item);
   }
