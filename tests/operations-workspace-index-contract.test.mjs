@@ -29,11 +29,11 @@ test('existing authenticated operational workflows stay private and unchanged',(
 
 test('navigation is a bounded local index, not a parallel administrator or finance API',()=>{
  const count=(script.match(/group:'(?:evidence|planning|commerce|publishing|social|resources)'/g)||[]).length;
- assert.equal(count,16,'bounded existing admin sections, including dated AI search evidence');
+ assert.equal(count,17,'bounded existing admin sections, including private direct GSC');
  for(const id of ['jr-intelligence','ops-stage7-blueprint','ops-social','ops-social-composer',
   'ops-social-review','ops-social-settings','ops-free-resources','ops-jhela-workstream',
   'ops-commerce','ops-publishing-author-review','ops-organic-growth','ops-revenue-planning','ops-cards',
-  'ops-reporting','ops-audit-timeline','ops-ai-visibility']){
+  'ops-reporting','ops-audit-timeline','ops-ai-visibility','ops-gsc-direct']){
   assert.ok(script.includes("id:'"+id+"'"),id);
  }
  assert.match(script,/workspace\.prepend\(nav\)/);
