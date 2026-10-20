@@ -5,6 +5,22 @@
   "measurement_id": "G-C3C7NQQNWX",
   "tag_transport": "GTM_ONLY",
   "gtm_container_id": "GTM-P6LWCLKM",
+  "clarity": {
+    "project_id": "z0mzp0dp74",
+    "enabled": false,
+    "delivery": "GTM_ONLY",
+    "consent": {
+      "required": true,
+      "separate_from_ga4": true,
+      "storage_key": "jr-clarity-recording-consent-v1",
+      "granted_value": "granted",
+      "denied_value": "denied"
+    },
+    "allowlisted_public_routes": [
+      "/fa/",
+      "/en/"
+    ]
+  },
   "consent": {
     "required": true,
     "storage_key": "jr-analytics-consent-v2",
