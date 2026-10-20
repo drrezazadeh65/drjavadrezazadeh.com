@@ -103,33 +103,45 @@ jobs:
         run: node scripts/performance-release-verify.mjs
       - name: Resolve previous deployed commit and deduplication receipt
         id: delta
+        if: vars.INDEXNOW_POSTRELEASE_ENABLED == '1'
+        continue-on-error: true
         env:
           PSI_RELEASE_VERIFIED: ${{ steps.release.outputs.verified }}
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/indexnow-release-delta.mjs
       - name: Send changed self-canonical PUBLIC URLs to existing IndexNow sender
-        if: steps.delta.outputs.should_send == 'true'
+        id: indexnow_submission
+        continue-on-error: true
+        if: steps.delta.outputs.should_send == 'true' && vars.INDEXNOW_POSTRELEASE_ENABLED == '1'
         env:
           INDEXNOW_ENABLED: '1'
+          INDEXNOW_POSTRELEASE_APPROVED: '1'
+          PSI_RELEASE_VERIFIED: ${{ steps.release.outputs.verified }}
           PROD_ORIGIN: https://drjavadrezazadeh.com
         run: |
           export INDEXNOW_CHANGED_FILES="$(cat /tmp/indexnow-changed-eligible.txt)"
           node scripts/indexnow-submit.mjs
       - name: Create receipt after successful provider response only
-        if: steps.delta.outputs.should_send == 'true'
+        if: steps.indexnow_submission.outcome == 'success' && steps.delta.outputs.should_send == 'true' && vars.INDEXNOW_POSTRELEASE_ENABLED == '1'
         env:
           INDEXNOW_CHANGED_COUNT: ${{ steps.delta.outputs.changed_count }}
         run: |
           mkdir -p .performanceci
           node -e "require('fs').writeFileSync('.performanceci/indexnow-receipt.json',JSON.stringify({schema:'indexnow-production-receipt-v1',sourceReleaseSha:process.env.PSI_RELEASE_SHA,deployRunId:process.env.DEPLOY_WORKFLOW_RUN_ID,acceptedAt:new Date().toISOString(),count:Number(process.env.INDEXNOW_CHANGED_COUNT)},null,2)+String.fromCharCode(10))"
       - name: Retain receipt for duplicate-run suppression
-        if: steps.delta.outputs.should_send == 'true'
+        if: steps.indexnow_submission.outcome == 'success' && steps.delta.outputs.should_send == 'true' && vars.INDEXNOW_POSTRELEASE_ENABLED == '1'
         uses: actions/upload-artifact@v4
         with:
           name: indexnow-release-${{ github.event.workflow_run.head_sha }}
           path: .performanceci/indexnow-receipt.json
           retention-days: 90
           if-no-files-found: error
+
+      - name: Explain independent IndexNow failure without suppressing PageSpeed
+        if: steps.delta.outcome == 'failure' || steps.indexnow_submission.outcome == 'failure'
+        run: |
+          echo "::warning title=IndexNow delivery incomplete::The changed-URL submission could not be verified; PageSpeed will continue separately. Do not infer that IndexNow accepted the release."
+          echo "IndexNow submission result: UNVERIFIED/FAILED. No accepted receipt should be issued unless the sender finished successfully." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Locate last successful private performance observation
         id: previous
