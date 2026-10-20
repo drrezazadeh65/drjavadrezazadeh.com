@@ -31,7 +31,7 @@ $fake=$batch;$fake['events'][0]['sectionId']='OP-09';$fake['events'][0]['gateId'
 try{operationsImportRelease($pdo,$fake,$sha,$configuration,$run);throw new RuntimeException('CI certified a real payment');}catch(RuntimeException $e){check($e->getMessage()==='invalid_evidence_event','wrong forged-payment error');}
 $wrong=$batch;$wrong['runId']='654321';try{operationsImportRelease($pdo,$wrong,$sha,$configuration,$run);throw new RuntimeException('wrong run accepted');}catch(RuntimeException $e){check($e->getMessage()==='invalid_release_evidence','wrong run error');}
 $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=$work.'/operations-http-'.bin2hex(random_bytes(5));mkdir($folder,0700);mkdir($folder.'/api',0700);mkdir($folder.'/api/internal',0700);
-foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboarding.php','consultation-delivery.php','consultation-availability.php','operations.php','operations-jhela.php','jhela-native-editorial.php','jhela-intake.php','operations-commerce.php','operations-book-expiration.php','operations-donation-recovery.php','operations-fulfilment.php','operations-schema.php','operations-reporting.php','operations-ai-visibility.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php','operations-collection.php','smtp-body.php','service-intake.php','service-files.php','service-buyer-receipt.php','ramzinex-public-usdt-rate.php','newsletter-preferences.php','community.php','growth-stage14.php','golden-talent.php','student-support.php','operations-service-delivery.php'] as $file){
+foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboarding.php','consultation-delivery.php','consultation-availability.php','operations.php','operations-jhela.php','jhela-native-editorial.php','jhela-intake.php','operations-commerce.php','operations-book-expiration.php','operations-donation-recovery.php','operations-fulfilment.php','operations-schema.php','operations-reporting.php','operations-ai-visibility.php','operations-gsc-direct.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php','operations-collection.php','smtp-body.php','service-intake.php','service-files.php','service-buyer-receipt.php','ramzinex-public-usdt-rate.php','newsletter-preferences.php','community.php','growth-stage14.php','golden-talent.php','student-support.php','operations-service-delivery.php'] as $file){
     if(!copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file))
         throw new RuntimeException('isolated_router_dependency_missing_'.$file);
 }
@@ -67,6 +67,7 @@ try {
  request('/api/admin/operations',401,'GET',null,[],false);
  request('/api/admin/operations/commerce',401,'GET',null,[],false);
  request('/api/admin/operations/ai-visibility',401,'GET',null,[],false);
+ request('/api/admin/operations/gsc-direct',401,'GET',null,[],false);
  request('/api/admin/operations/commerce/donation-reconcile',401,'POST',
     ['orderId'=>'11111111-1111-4111-8111-111111111185'],[],false);
  request('/api/admin/operations/commerce/book-expire',401,'POST',
@@ -78,6 +79,7 @@ try {
  request('/api/admin/operations?role=SUPER_ADMIN',403);
  $session=request('/api/admin/operations/session',200);check($session['mfaRequired']===true,'MFA not required');
  request('/api/admin/operations/ai-visibility',403);
+ request('/api/admin/operations/gsc-direct',403);
  request('/api/admin/operations/mfa',403,'POST',['code'=>'123456']);
  $at=time();$binary=hash_hmac('sha1',pack('N2',0,intdiv($at,30)),'12345678901234567890',true);$offset=ord($binary[19])&15;$number=unpack('N',substr($binary,$offset,4))[1]&0x7fffffff;$code=str_pad((string)($number%1000000),6,'0',STR_PAD_LEFT);
  $headers=['Origin'=>'https://drjavadrezazadeh.com','X-CSRF-Token'=>$session['csrfToken'],'Sec-Fetch-Site'=>'same-origin'];
@@ -105,6 +107,10 @@ try {
  $configuration['operations_admins'][$id]['role']='SUPER_ADMIN';writeConfig();
  $pdo->prepare("UPDATE operations_admin_memberships SET role='SUPER_ADMIN' WHERE account_id=?")->execute([$id]);
  // The same isolated account can now read the owner-only AI evidence.
+ $gscDirect=request('/api/admin/operations/gsc-direct',200);
+ check(($gscDirect['schema']??'')==='jr-owner-gsc-direct-v1'&&($gscDirect['status']??'')==='unavailable'
+     &&($gscDirect['metrics']['clicks']??'missing')===null&&($gscDirect['apiLiveNow']??true)===false,
+     'Direct GSC absent snapshot invented source or traffic');
  $aisv=request('/api/admin/operations/ai-visibility',200);
  check($aisv['status']==='provider_report_snapshot'&&$aisv['sampledAnswers']===5
      &&$aisv['brandMentions']===0&&(float)$aisv['brandPresencePercent']===0.0,
