@@ -138,6 +138,11 @@ $releaseDb->beginTransaction();
 try {stage9ReleaseBooks($releaseDb,'release-pending');throw new RuntimeException('claimed_stock_released');}
 catch(RuntimeException $e){ok($e->getMessage()==='stock_release_payment_claim_exists','claimed_stock_release_blocked');$releaseDb->rollBack();}
 unset($releaseDb->claims['provider-transaction']);
+$releaseDb->orders['release-pending']['provider_trans_id']='confirmed-transaction';
+$releaseDb->beginTransaction();
+try {stage9ReleaseBooks($releaseDb,'release-pending');throw new RuntimeException('provider_transaction_stock_released');}
+catch(RuntimeException $e){ok($e->getMessage()==='stock_release_order_not_safe','provider_transaction_release_blocked');$releaseDb->rollBack();}
+$releaseDb->orders['release-pending']['provider_trans_id']=null;
 $releaseDb->beginTransaction();
 stage9ReleaseBooks($releaseDb,'release-pending');
 $releaseDb->commit();
