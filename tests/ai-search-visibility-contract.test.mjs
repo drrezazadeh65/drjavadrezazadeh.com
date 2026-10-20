@@ -73,3 +73,39 @@ test('private bilingual UI is read-only, N/A-safe and purges on MFA lock',()=>{
  const syntax=spawnSync(process.execPath,['--check','assets/js/operations-ai-visibility.js'],{encoding:'utf8'});
  assert.equal(syntax.status,0,syntax.stderr);
 });
+
+
+test('canonical researcher identity is reused in existing academic and developmental JSON-LD',()=>{
+ const person='https://drjavadrezazadeh.com/#person';
+ const cases=[
+  ['en/academic-profile/index.html',entity=>entity.mainEntity?.['@id']],
+  ['en/golden-talent/index.html',entity=>entity.author?.['@id']],
+  ['en/golden-talent/methodology/index.html',entity=>entity.author?.['@id']],
+  ['en/student-guidance/index.html',entity=>entity.provider?.['@id']]
+ ];
+ for(const [file,get] of cases){
+  const html=read(file);
+  const match=html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/);
+  assert.ok(match,file+' JSON-LD absent');
+  const data=JSON.parse(match[1]);
+  const candidate=(data['@graph']||[data]).find(e=>['WebPage','ProfilePage','Service'].includes(e['@type']));
+  assert.equal(get(candidate),person,file+' Person identity drift');
+ }
+});
+test('academic source pages answer the two research-integrity gaps without invented results',()=>{
+ const teacher=read('en/teacher-education/index.html');
+ const research=read('en/research/index.html');
+ assert.match(teacher,/id="materials-cultural-pedagogical-fit"/);
+ assert.match(teacher,/cultural and pedagogical suitability of English language teaching materials/i);
+ assert.match(teacher,/learner work and classroom participation/i);
+ assert.match(teacher,/href="\/en\/publications\/"/);
+ assert.match(research,/id="responsible-ai-academic-authorship"/);
+ assert.match(research,/author(s|ship) and source responsibility/i);
+ assert.match(research,/returning to the original scholarly record/i);
+ assert.match(research,/protect confidential data/i);
+ assert.match(research,/href="\/en\/academic-profile\/"/);
+ for(const [route,html] of [['/en/teacher-education/',teacher],['/en/research/',research]]){
+  assert.match(html,new RegExp('rel="canonical" href="https://drjavadrezazadeh.com'+route.replace(/\//g,'\\/')+'"'));
+  assert.equal((html.match(/<h1\b/g)||[]).length,1);
+ }
+});
