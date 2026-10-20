@@ -137,3 +137,16 @@ test('release assembly requires all private AI visibility dependencies together'
   assert.match(source,/node --test tests\/ai-search-visibility-contract\.test\.mjs/);
  }
 });
+
+
+test('private owner API freezes each academic public route and cannot relabel account pages as citations',()=>{
+ const api=read('api/operations-ai-visibility.php');
+ const match=api.match(/\$fixedPublicRoutes=\[([\s\S]*?)\];/);
+ assert.ok(match,'server must keep exact approved public route allowlist');
+ const routes=[...match[1].matchAll(/'(\/en\/[^']+)'/g)].map(r=>r[1]);
+ assert.deepEqual(routes,evidence.prompts.map(p=>p.primaryPublicRoute));
+ assert.match(api,/\(\$row\['primaryPublicRoute'\]\?\?null\)!==\$fixedPublicRoutes\[\$i\]/);
+ for(const privateRoute of ['/en/account/admin/','/en/shop/checkout/']){
+  assert.equal(routes.includes(privateRoute),false,privateRoute+' may never appear as an approved answer page');
+ }
+});
