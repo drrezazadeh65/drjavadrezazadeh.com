@@ -123,6 +123,8 @@ const required=[
   'assets/css/jr-author-dashboard-v52.css','assets/css/jr-publishing-store-catalog-v1.css',
   // Owner admin author-workspace preview must ship with both protected admin shells.
   'assets/js/operations-author-dashboard-preview-v1.js',
+  'assets/js/operations-author-real-view-v1.js',
+  'assets/css/operations-author-real-view-v1.css',
   'assets/css/operations-author-dashboard-preview-v1.css',
   'fa/app/author/index.html','fa/shop/authors/mehrab-mirkarimi/index.html',
   'assets/js/account-order-history.js','assets/js/operations-commerce.js',
