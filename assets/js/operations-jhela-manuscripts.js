@@ -7,11 +7,14 @@ const scope=document.getElementById('ops-workspace');
 const root=document.querySelector('[data-jhela-manuscript-owner]');
 if(!scope||!root||!scope.contains(root))return;
 const fa=document.documentElement.lang==='fa';
-let canDownloadFiles=false;
+let canDownloadFiles=false, lockEpoch=0;
 const t=(en,faText)=>fa?faText:en;
 const button=root.querySelector('[data-jhela-owner-ms-refresh]');
 const status=root.querySelector('[data-jhela-owner-ms-status]');
 const panel=root.querySelector('[data-jhela-owner-ms-results]');
+scope.addEventListener('jr:operations-locked',()=>{
+ lockEpoch++;canDownloadFiles=false;panel.replaceChildren();button.disabled=false;status.textContent='';
+});
 const el=(tag,value)=>{const x=document.createElement(tag);if(value!==undefined)x.textContent=value;return x;};
 const note=s=>{status.textContent=s;};
 async function request(url,options={}){
@@ -27,18 +30,22 @@ async function session(){
  return d.csrfToken;
 }
 async function screen(m,next,reason){
+ if(scope.hidden)return;
+ const epoch=lockEpoch;
  const action=t('Confirm preliminary screening action?','تغییر وضعیت بررسی مقدماتی تأیید می‌شود؟');
  if(!window.confirm(action))return;
  try{
   const csrf=await session();
+  if(scope.hidden||epoch!==lockEpoch)return;
   await request('/api/admin/operations/jhela/manuscripts/screen',{
    method:'POST',
    headers:{Accept:'application/json','Content-Type':'application/json','X-CSRF-Token':csrf},
    body:JSON.stringify({id:m.id,status:next,message:reason||''})
   });
+  if(scope.hidden||epoch!==lockEpoch)return;
   note(t('Preliminary screening decision recorded.','تصمیم بررسی مقدماتی ثبت شد.'));
   await refresh();
- }catch(err){note(t('Decision not saved: ','تصمیم ثبت نشد: ')+err.message);}
+ }catch(err){if(epoch===lockEpoch&&!scope.hidden)note(t('Decision not saved: ','تصمیم ثبت نشد: ')+err.message);}
 }
 function details(label,value){
  const section=el('details'),heading=el('summary',label),body=el('p',value||'—');
@@ -96,11 +103,15 @@ function card(m){
  return item;
 }
 async function refresh(){
+ if(scope.hidden)return;
+ const epoch=lockEpoch;
  button.disabled=true;panel.replaceChildren();
  note(t('Reading secure preliminary manuscript queue…','در حال دریافت صف محرمانه بررسی مقدماتی…'));
  try{
   await session();
+  if(scope.hidden||epoch!==lockEpoch)return;
   const d=await request('/api/admin/operations/jhela/manuscripts');
+  if(scope.hidden||epoch!==lockEpoch)return;
   if(d.schema!=='jhela-native-owner-screening-v1'||!Array.isArray(d.manuscripts))throw Error('invalid_queue');
   canDownloadFiles=d.canDownloadFiles===true;
   if(!d.manuscripts.length)panel.append(el('p',t('No manuscripts have been received.','هنوز مقاله‌ای دریافت نشده است.')));
@@ -108,10 +119,11 @@ async function refresh(){
   note(t('Preliminary screening only; this does not constitute peer review or acceptance.',
     'صرفاً بررسی مقدماتی؛ این مرحله به معنای داوری یا پذیرش مقاله نیست.'));
  }catch(err){
+  if(scope.hidden||epoch!==lockEpoch)return;
   note(err.message==='admin_mfa_required'?
    t('Complete administrator two-factor verification first.','ابتدا تأیید دومرحله‌ای مدیریت را تکمیل کنید.'):
    t('Private queue unavailable: ','صف محرمانه در دسترس نیست: ')+err.message);
- }finally{button.disabled=false;}
+ }finally{if(epoch===lockEpoch)button.disabled=false;}
 }
 button.addEventListener('click',refresh);
 })();
