@@ -781,3 +781,55 @@ test('MFA lock purges confidential manuscript, reviewer, and author records from
  await expect(page.locator('#ops-publishing-author-status')).toBeEmpty();
  await expect(page.locator('#ops-workspace')).toBeHidden();
 });
+
+
+test('JHELA owner diagnostics never retain or repaint data after the administrator workspace locks',async({page})=>{
+ await authorized(page);
+ const maturity={
+  ok:true,schema:'jhela-owner-maturity-snapshot-v1',
+  scientificMilestones:Array.from({length:10},(_,i)=>({id:'JH-'+i,fa:'مرحله '+i,en:'Stage '+i})),
+  infrastructureTiers:Array.from({length:4},(_,i)=>({id:'T-'+i})),
+  editorial:{submissionPolicy:'CONDITIONAL_ON_LIVE_HOST'},
+  evidenceReview:{progressPercent:null,verifiedStageCount:0},verifiedIndexClaims:[]
+ };
+ const host={ok:true,schema:'jhela-owner-host-readiness-v1',checks:{},manuscriptIntakeReady:false};
+ let delay=false;
+ const delayed=[];
+ await page.route('**/api/admin/operations/jhela/maturity',async route=>{
+  if(delay)await new Promise(resolve=>delayed.push(resolve));
+  await route.fulfill({json:maturity});
+ });
+ await page.route('**/api/admin/operations/jhela/host-readiness',async route=>{
+  if(delay)await new Promise(resolve=>delayed.push(resolve));
+  await route.fulfill({json:host});
+ });
+ await page.goto(base+'/fa/app/admin/');
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await page.locator('#ops-jhela-workstream > summary').click();
+ await page.locator('#ops-jhela-maturity > summary').click();
+ await page.locator('[data-jhela-host-readiness] > summary').click();
+ await page.locator('[data-jhela-maturity-refresh]').click();
+ await page.locator('[data-jhela-host-refresh]').click();
+ const maturityResult=page.locator('[data-jhela-maturity-results]');
+ const hostResult=page.locator('[data-jhela-host-results]');
+ await expect(maturityResult).not.toBeEmpty();
+ await expect(hostResult).not.toBeEmpty();
+ delay=true;
+ await page.locator('[data-jhela-maturity-refresh]').click();
+ await page.locator('[data-jhela-host-refresh]').click();
+ await expect.poll(()=>delayed.length).toBe(2);
+ await page.evaluate(()=>{
+  const workspace=document.getElementById('ops-workspace');
+  workspace.hidden=true;
+  workspace.dispatchEvent(new Event('jr:operations-locked'));
+ });
+ await expect(maturityResult).toBeEmpty();
+ await expect(hostResult).toBeEmpty();
+ await expect(page.locator('[data-jhela-maturity-status]')).toBeEmpty();
+ await expect(page.locator('[data-jhela-host-status]')).toBeEmpty();
+ delayed.forEach(resolve=>resolve());
+ await page.waitForTimeout(100);
+ await expect(maturityResult).toBeEmpty();
+ await expect(hostResult).toBeEmpty();
+ await expect(page.locator('#ops-workspace')).toBeHidden();
+});
