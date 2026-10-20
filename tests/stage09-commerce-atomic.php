@@ -45,6 +45,11 @@ final class Stage9FixtureStmt extends PDOStatement {
             [$order,$sku,$qty]=$p;$key=$order.'|'.$sku;
             if(isset($d->reservations[$key]))throw new PDOException('duplicate_booking');
             $d->reservations[$key]=['sku'=>$sku,'quantity'=>$qty,'state'=>'reserved'];$this->affected=1;
+        }elseif(str_starts_with($q,'SELECT state,provider_trans_id FROM commerce_orders')){
+            if(isset($d->orders[$p[0]]))$this->rows=[$d->orders[$p[0]]];
+        }elseif(str_starts_with($q,'SELECT COUNT(*) FROM commerce_payment_claims WHERE order_id=')){
+            $count=0;foreach($d->claims as $claim)if($claim['order']===$p[0])$count++;
+            $this->rows=[['count'=>$count]];
         }elseif(str_starts_with($q,'SELECT sku,quantity,state FROM commerce_book_reservations')){
             $order=$p[0];foreach($d->reservations as $key=>$r)if(str_starts_with($key,$order.'|'))$this->rows[]=$r;
         }elseif(str_starts_with($q,'SELECT quantity,state FROM commerce_book_reservations')){
@@ -98,6 +103,7 @@ final class Stage9FixtureStmt extends PDOStatement {
     public function fetch(int $mode=PDO::FETCH_DEFAULT,int $cursorOrientation=PDO::FETCH_ORI_NEXT,int $cursorOffset=0): mixed {
         return array_shift($this->rows)?:false;
     }
+    public function fetchColumn(int $column=0): mixed { $row=array_shift($this->rows);return $row===null?false:array_values($row)[$column]??false; }
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args): array {return $this->rows;}
 }
 function fixtureOrder(Stage9FixtureDb $db,string $id,string $sku='book:one'): void {
@@ -117,6 +123,25 @@ ok($invalidQtyDb->stock['book:one']['physical_on_hand']===2 && $invalidQtyDb->st
  'invalid_paid_quantity_preserves_stock');
 ok($invalidQtyDb->claims===[] && $invalidQtyDb->outbox===[] && $invalidQtyDb->orders['invalid']['state']==='pending',
  'invalid_paid_quantity_rolls_back_financial_claim');
+$releaseDb=new Stage9FixtureDb();
+fixtureOrder($releaseDb,'release-pending');
+$releaseDb->beginTransaction();
+stage9ReserveBooks($releaseDb,'release-pending',[['kind'=>'book','sku'=>'book:one','quantity'=>1]]);
+$releaseDb->commit();
+$releaseDb->orders['release-pending']['state']='paid';
+$releaseDb->beginTransaction();
+try {stage9ReleaseBooks($releaseDb,'release-pending');throw new RuntimeException('paid_stock_released');}
+catch(RuntimeException $e){ok($e->getMessage()==='stock_release_order_not_safe','paid_stock_release_blocked');$releaseDb->rollBack();}
+$releaseDb->orders['release-pending']['state']='pending';
+$releaseDb->claims['provider-transaction']=['order'=>'release-pending','amount'=>20000000];
+$releaseDb->beginTransaction();
+try {stage9ReleaseBooks($releaseDb,'release-pending');throw new RuntimeException('claimed_stock_released');}
+catch(RuntimeException $e){ok($e->getMessage()==='stock_release_payment_claim_exists','claimed_stock_release_blocked');$releaseDb->rollBack();}
+unset($releaseDb->claims['provider-transaction']);
+$releaseDb->beginTransaction();
+stage9ReleaseBooks($releaseDb,'release-pending');
+$releaseDb->commit();
+ok($releaseDb->stock['book:one']['reserved']===0,'verified_cancel_release_path_retains_inventory');
 $db=new Stage9FixtureDb();
 try{stage9ReserveBooks($db,'a',[['kind'=>'book','sku'=>'book:one','quantity'=>1]]);throw new RuntimeException('no_tx_accepted');}
 catch(RuntimeException $e){ok($e->getMessage()==='inventory_transaction_required','transaction_required');}
