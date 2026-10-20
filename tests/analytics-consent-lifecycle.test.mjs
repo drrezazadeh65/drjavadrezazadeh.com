@@ -144,6 +144,47 @@ test('query strings and fragments block GTM entirely even on public URLs',async(
  }
 });
 
+test('Microsoft Clarity requires separate opt-in and never injects a second tag',async()=>{
+ const clarity={
+  project_id:'z0mzp0dp74',enabled:true,delivery:'GTM_ONLY',
+  consent:{required:true,separate_from_ga4:true,storage_key:'jr-clarity-recording-consent-v1',
+   granted_value:'granted',denied_value:'denied'},
+  allowlisted_public_routes:['/fa/','/en/']
+ };
+ const x=await boot({...fixture,clarity},'/fa/');
+ assert.equal(x.scripts.length,0,'neither tag loads before analytics consent');
+ assert.equal(x.objects().filter(v=>v.event==='jr_clarity_allowed').length,0);
+ assert.equal(x.window.JRClarityConsent.grant(),false,'Clarity opt-in cannot bypass GA4 consent');
+ x.window.JRAnalyticsConsent.grant();
+ assert.equal(x.scripts.length,1);
+ assert.equal(x.objects().filter(v=>v.event==='jr_clarity_allowed').length,0);
+ assert.ok(x.nodes.some(n=>n.dataset?.jrClarityRecordingConsent!==undefined));
+ assert.equal(x.window.JRClarityConsent.grant(),true);
+ assert.equal(x.objects().filter(v=>v.event==='jr_clarity_allowed').length,1);
+ assert.equal(x.window.JRClarityConsent.status(),true);
+ assert.equal(x.window.JRClarityConsent.grant(),true);
+ assert.equal(x.objects().filter(v=>v.event==='jr_clarity_allowed').length,1,'recording allowed event deduplicated');
+ assert.equal(x.scripts.length,1,'Clarity must be managed by GTM, not direct Clarity script');
+ assert.ok(!x.scripts.some(v=>String(v.src).includes('clarity.ms')));
+});
+test('Clarity project remains opt-out and blocked from forms, assessments, dashboards and URL params',async()=>{
+ const clarity={project_id:'z0mzp0dp74',enabled:true,delivery:'GTM_ONLY',
+  consent:{required:true,separate_from_ga4:true,storage_key:'jr-clarity-recording-consent-v1',
+   granted_value:'granted',denied_value:'denied'},
+  allowlisted_public_routes:['/fa/','/en/']};
+ for(const route of ['/fa/golden-talent/','/fa/assessments/golden-talent/start/',
+   '/fa/app/student/bahar/','/en/golden-talent/assessment/','/en/account/','/fa/shop/']){
+  const x=await boot({...fixture,clarity},route);
+  x.window.JRAnalyticsConsent.grant();
+  assert.equal(x.window.JRClarityConsent.grant(),false,'Clarity should remain excluded: '+route);
+  assert.equal(x.objects().filter(v=>v.event==='jr_clarity_allowed').length,0);
+ }
+ const x=await boot({...fixture,clarity},'/fa/','?email=private');
+ x.window.JRAnalyticsConsent.grant();
+ assert.equal(x.window.JRClarityConsent.grant(),false);
+ assert.equal(x.objects().filter(v=>v.event==='jr_clarity_allowed').length,0);
+});
+
 test('success events cannot be forged by a browser-side API',async()=>{
  const x=await boot();
  x.window.JRAnalyticsConsent.grant();
