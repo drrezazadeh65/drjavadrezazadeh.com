@@ -1,0 +1,22 @@
+/* JR Konkur manual official-scorecard worksheet — existing premium dark/gold tokens */
+.jr-ks-workspace{box-sizing:border-box;min-width:0;margin:2rem 0;padding:clamp(16px,3vw,28px);border:1px solid rgba(218,177,105,.52);border-radius:20px;background:linear-gradient(138deg,#10141b,#22262f);color:#f9ebd3}
+.jr-ks-workspace *{box-sizing:border-box}
+.jr-ks-workspace h3{color:#f4d6a4;font-size:clamp(1.25rem,2.6vw,1.7rem)}
+.jr-ks-workspace .jr-ks-warning{padding:12px 15px;border-inline-start:4px solid #dcb274;background:rgba(215,167,84,.11);line-height:1.95;color:#f4e0c0}
+.jr-ks-workspace .jr-ks-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px;margin-block:16px}
+.jr-ks-workspace .jr-ks-field{display:flex;flex-direction:column;gap:7px;font-size:.94rem;font-weight:650;color:#f4e0bd}
+.jr-ks-workspace .jr-ks-field select,.jr-ks-workspace .jr-ks-field input{width:100%;min-height:46px;padding:9px 11px;border-radius:9px;border:1px solid #ab8850;background:#111820;color:#fff4dc;font:inherit}
+.jr-ks-workspace .jr-ks-controls{display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end}
+.jr-ks-workspace button{min-height:44px;padding:9px 14px;border:1px solid #c2a06c;border-radius:9px;background:#29323c;color:#f9ebd3;font:inherit;cursor:pointer}
+.jr-ks-workspace button.jr-ks-primary{color:#10151b;background:#e2bf86;font-weight:800}
+.jr-ks-workspace button:disabled{opacity:.5;cursor:not-allowed}
+.jr-ks-workspace :focus-visible{outline:3px solid #ffe19b;outline-offset:3px}
+.jr-ks-workspace .jr-ks-note{line-height:1.95;color:#f1dbb8}
+.jr-ks-workspace .jr-ks-message{min-height:1.6rem;color:#ffe5b5}
+.jr-ks-workspace .jr-ks-result{padding:14px;border:1px solid rgba(225,180,98,.37);border-radius:12px}
+.jr-ks-workspace .jr-ks-values{display:grid;grid-template-columns:minmax(130px,1fr) minmax(100px,1fr);gap:9px;padding:12px 0}
+.jr-ks-workspace .jr-ks-values dt{color:#eacb92}
+.jr-ks-workspace .jr-ks-values dd{margin:0;overflow-wrap:anywhere}
+.jr-ks-workspace [hidden]{display:none!important}
+@media(max-width:530px){.jr-ks-workspace .jr-ks-form{grid-template-columns:1fr}.jr-ks-workspace .jr-ks-values{grid-template-columns:1fr 1fr}.jr-ks-workspace .jr-ks-controls{display:grid;grid-template-columns:1fr 1fr}.jr-ks-workspace .jr-ks-controls button:first-child{grid-column:1/-1}}
+@media print{body *{visibility:hidden!important}.jr-ks-workspace.jr-ks-printing,.jr-ks-workspace.jr-ks-printing .jr-ks-print,.jr-ks-workspace.jr-ks-printing .jr-ks-print *{visibility:visible!important}.jr-ks-workspace.jr-ks-printing{position:absolute;inset:0 auto auto 0;width:100%;background:#fff;color:#000;border:0;margin:0;box-shadow:none}.jr-ks-workspace.jr-ks-printing>*:not(.jr-ks-print){display:none!important}.jr-ks-workspace.jr-ks-printing .jr-ks-print{display:block!important;color:#000}.jr-ks-workspace.jr-ks-printing .jr-ks-print *{color:#000!important}}
