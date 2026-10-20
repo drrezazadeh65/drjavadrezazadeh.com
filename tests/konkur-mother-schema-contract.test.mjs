@@ -11,7 +11,7 @@ const expected=[
  'eco_admission_import_batches','eco_admission_import_rows','eco_admission_programme_offerings',
  'eco_admission_offering_conditions','eco_admission_rule_versions'
 ];
-const uncomment=sql=>sql.replace(/^\s*--[^\n]*$/gm,'');
+const uncomment=sql=>sql.replace(/--[^\n]*/g,'');
 test('003e creates exactly eight bounded modules within the existing mother database',()=>{
  const sql=uncomment(migration);
  const actual=[...sql.matchAll(/CREATE TABLE IF NOT EXISTS\s+([a-z_]+)\s*\(/g)].map(x=>x[1]);
