@@ -1,0 +1,84 @@
+name: Konkur Mother Database SQL QA (Ephemeral Only)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - "database/unified/003e_admission_knowledge_catalog_PROPOSED.sql"
+      - "docs/migrations/20261020_konkur_catalog_readonly_preflight.sql"
+      - "docs/migrations/20261020_konkur_catalog_readonly_postflight.sql"
+      - "docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql"
+      - "tests/konkur-mother-schema-contract.test.mjs"
+      - ".github/workflows/konkur-mother-database-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mariadb-fixture:
+    name: Validate additive 003e against fresh MariaDB 10.11 without real data
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: ci-only-fixture-password
+          MARIADB_DATABASE: drjavad1_store
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=15
+    env:
+      MYSQL_PWD: ci-only-fixture-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify schema and no-destructive-operation contracts
+        run: node --test tests/konkur-mother-schema-contract.test.mjs
+      - name: Install client for temporary isolated MariaDB container
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq mariadb-client
+      - name: Install existing canonical parent schema into disposable fixture only
+        shell: bash
+        run: |
+          set -euo pipefail
+          db=(mariadb --protocol=tcp -h127.0.0.1 -P3306 -uroot --database=drjavad1_store)
+          "${db[@]}" < docs/BERTINA_MYSQL_SCHEMA.sql
+          "${db[@]}" < database/unified/001_core_governance.sql
+          "${db[@]}" < database/unified/003a_education_longitudinal.sql
+          "${db[@]}" < docs/migrations/20261020_konkur_catalog_readonly_preflight.sql > /tmp/konkur-preflight-fixture.txt
+          echo 'Disposable canonical parent fixture and read-only preflight succeeded.'
+      - name: Create eight proposed tables and check foreign keys and idempotence
+        shell: bash
+        run: |
+          set -euo pipefail
+          db=(mariadb --protocol=tcp -h127.0.0.1 -P3306 -uroot --database=drjavad1_store)
+          "${db[@]}" < database/unified/003e_admission_knowledge_catalog_PROPOSED.sql
+          "${db[@]}" < docs/migrations/20261020_konkur_catalog_readonly_postflight.sql > /tmp/konkur-postflight-fixture.txt
+          count=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME LIKE 'eco_admission_%' AND TABLE_TYPE='BASE TABLE'")
+          test "$count" = "8"
+          fks=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(DISTINCT TABLE_NAME,CONSTRAINT_NAME) FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME LIKE 'eco_admission_%' AND REFERENCED_TABLE_NAME IS NOT NULL")
+          test "$fks" -ge 15
+          "${db[@]}" < database/unified/003e_admission_knowledge_catalog_PROPOSED.sql
+          again=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME LIKE 'eco_admission_%' AND TABLE_TYPE='BASE TABLE'")
+          test "$again" = "8"
+          echo "8 tables, $fks foreign keys; repeated DDL caused no additional tables (disposable database)."
+      - name: Verify optional draft seed never enables eligibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          db=(mariadb --protocol=tcp -h127.0.0.1 -P3306 -uroot --database=drjavad1_store)
+          "${db[@]}" < docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql
+          "${db[@]}" < docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql
+          cycles=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(*) FROM eco_admission_cycles WHERE admission_year=1405 AND record_status='DRAFT'")
+          docs=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(*) FROM eco_admission_documents WHERE document_review_state='OWNER_CONFIRMED'")
+          offerings=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(*) FROM eco_admission_programme_offerings")
+          approved=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(*) FROM eco_admission_documents WHERE document_review_state='QA_APPROVED'")
+          test "$cycles" = "1"
+          test "$docs" = "6"
+          test "$offerings" = "0"
+          test "$approved" = "0"
+          echo "6 draft source documents, 0 verified offerings, 0 approved documents — EPHEMERAL QA ONLY."
