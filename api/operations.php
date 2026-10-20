@@ -6,6 +6,7 @@ const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/publishing-onboarding.php';
 require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-ai-visibility.php';
+require_once __DIR__.'/operations-gsc-direct.php';
 require_once __DIR__.'/operations-jhela.php';
 require_once __DIR__.'/jhela-native-editorial.php';
 require_once __DIR__.'/jhela-intake.php';
@@ -471,6 +472,18 @@ function operationsRoute(string $path, string $verb): never {
 
         // Provider-observed AISV snapshot: private, bounded and only after fresh MFA.
         // This does not call Ubersuggest on behalf of the owner or infer new samples.
+        // Private, non-polling direct GSC aggregate projection. A locally
+        // validated snapshot is never represented as authenticated Google data.
+        // No snapshot configured => explicit unavailable, not invented zero.
+        if ($path === '/admin/operations/gsc-direct' && $verb === 'GET') {
+            if (($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('owner_gsc_forbidden',403);
+            if (!rateAllowed($pdo,'operations_gsc_direct_read',$accountId,12,300))
+                fail('rate_limited',429);
+            respond(operationsGscDirectSnapshot(
+                (string)($configuration['gsc_private_snapshot_path']??''),nowTs()));
+        }
+
         if ($path === '/admin/operations/ai-visibility' && $verb === 'GET') {
             if (($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
                 fail('owner_ai_visibility_forbidden',403);
