@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS eco_admission_documents (
   cycle_id CHAR(36) NOT NULL,
   document_code VARCHAR(120) NOT NULL,
   revision_no INT UNSIGNED NOT NULL,
-  document_kind ENUM('GUIDE','APPENDIX','AMENDMENT','NOTICE','SPECIAL_GUIDE','OTHER') NOT NULL,
+  document_kind VARCHAR(50) NOT NULL, -- Versioned controlled vocabulary; new guide categories require NO ALTER TABLE.
   examination_group_code VARCHAR(80) NULL,
   issuer_code VARCHAR(80) NOT NULL DEFAULT 'SANJESH',
   source_external_id VARCHAR(191) NULL,
