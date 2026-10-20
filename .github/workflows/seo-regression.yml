@@ -111,6 +111,14 @@ jobs:
         run: node scripts/commerce-schema-safety-audit.mjs
       - name: Run commerce paid-receipt contract audit
         run: node scripts/commerce-receipt-contract-audit.mjs
+      - name: Verify one-click release freeze and deduplicated post-release observability
+        run: |
+          node --check scripts/lib/performance-production.mjs
+          node --check scripts/indexnow-submit.mjs
+          node --check scripts/indexnow-release-delta.mjs
+          node --check scripts/performance-release-verify.mjs
+          node --test tests/performance-production-contract.test.mjs tests/indexnow-postrelease-safety.test.mjs
+          node scripts/free-performance-observer.mjs --audit-self-test
       - name: Validate IndexNow integration contract
         env:
           PROD_ORIGIN: https://drjavadrezazadeh.com
