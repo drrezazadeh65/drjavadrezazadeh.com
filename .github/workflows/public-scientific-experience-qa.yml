@@ -13,6 +13,9 @@ on:
       - "tests/konkur-studio-browser.spec.js"
       - "tests/konkur-studio-contract.test.mjs"
       - "tests/konkur-1405-intake.test.mjs"
+      - "tests/konkur-mother-schema-contract.test.mjs"
+      - "database/unified/003e_admission_knowledge_catalog_PROPOSED.sql"
+      - "docs/migrations/20261020_konkur_catalog_readonly_preflight.sql"
       - "platform/konkur-1405-intake.mjs"
       - "platform/konkur-1405-sources.json"
       - "assets/js/bahar-formative-workspace-v1.js"
@@ -57,6 +60,7 @@ jobs:
           node --check assets/js/jr-konkur-foundation-v1.js
           node --test tests/jr-konkur-foundation.test.mjs
           node --test tests/konkur-1405-intake.test.mjs
+          node --test tests/konkur-mother-schema-contract.test.mjs
           node --test tests/konkur-studio-contract.test.mjs
           node --check assets/js/golden-talent-evidence-studio-v1.js
           node --check scripts/build-public-site.mjs
