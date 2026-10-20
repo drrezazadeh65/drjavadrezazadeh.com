@@ -71,6 +71,11 @@ class DirectGscSnapshotTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(SnapshotError):
                 validate_snapshot(sample, self.now)
 
+    def test_ambiguous_multiple_aggregate_rows_rejected(self):
+        self.sample['rows'].append(copy.deepcopy(self.sample['rows'][0]))
+        with self.assertRaises(SnapshotError):
+            validate_snapshot(self.sample, self.now)
+
     def test_oversized_rejected(self):
         with self.assertRaises(SnapshotError):
             parse_snapshot(b" " * 65537, self.now)
