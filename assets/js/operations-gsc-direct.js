@@ -72,6 +72,29 @@
    'This is only a period aggregate. Page indexing, sitemap health and daily trends cannot be inferred from it.'
   ),'ops-muted'));
  }
+ function showGa4(ga4,gtm){
+  const section=make('section',undefined,'ops-panel');
+  section.append(make('h3',t('Google Analytics 4 — شاخص‌های مستقل از Search Console','Google Analytics 4 — separate on-site metrics')));
+  section.append(make('p',t(
+    'وضعیت: هنوز هیچ گزارش تأییدشده‌ای از GA4 به سرور مدیریت وارد نشده است. اتصال آزمایشی API مستقل از اندازه‌گیری بازدید سایت است.',
+    'Status: No independently verified GA4 report has been ingested into this owner dashboard. API verification and live site tracking are separate checks.'
+  ),'ops-muted'));
+  const grid=make('div',undefined,'ops-grid');
+  for(const [title,value] of [
+   [t('کاربران فعال','Active users'),ga4?.activeUsers],
+   [t('رویدادها','Events'),ga4?.eventCount]
+  ]){
+   const card=make('article',undefined,'ops-card');
+   card.append(make('small',title),make('div',num(value),'ops-number'));
+   grid.append(card);
+  }
+  section.append(grid);
+  section.append(make('p',t(
+   'مدیریت برچسب: GTM هنوز فعال نشده و شناسه Container باید توسط مالک ارائه و آزمایش شود.',
+   'Tag management: GTM remains inactive pending the owner-supplied container ID, Preview and consent QA.'
+  ),'ops-muted'));
+  results.append(section);
+ }
  async function load(){
   if(workspace.hidden||!panel.open)return;
   const current=++epoch;
@@ -80,20 +103,23 @@
   refresh.disabled=true;results.replaceChildren();
   status.textContent=t('در حال خواندن دادهٔ خصوصی…','Reading private observation…');
   try{
-   const response=await fetch('/api/admin/operations/gsc-direct',{
+   const response=await fetch('/api/admin/operations/search-intelligence',{
     method:'GET',credentials:'same-origin',cache:'no-store',
     headers:{Accept:'application/json'},signal:request.signal
    });
    const body=await response.json();
    if(current!==epoch||workspace.hidden||!panel.open)return;
-   if(response.status===403&&body?.error==='owner_gsc_forbidden'){
+   if(response.status===403&&body?.error==='owner_search_intelligence_forbidden'){
     status.textContent=t('دسترسی فقط برای مدیر ارشد سایت است.','Only the site SUPER_ADMIN may view this report.');
     return;
    }
-   if(!response.ok||body?.ok!==true||body.schema!=='jr-owner-gsc-direct-v1'
-     ||!['unavailable','locally_validated_unattested','no_rows_unattested'].includes(body.status))
+   if(!response.ok||body?.ok!==true||body.schema!=='jr-owner-search-intelligence-v1'
+     ||body.gsc?.schema!=='jr-owner-gsc-direct-v1'
+     ||body.ga4?.schema!=='jr-owner-ga4-observation-v1'
+     ||!['unavailable','locally_validated_unattested','no_rows_unattested'].includes(body.gsc.status))
     throw Error('invalid_private_report');
-   show(body);
+   show(body.gsc);
+   showGa4(body.ga4,body.tagManager);
    status.textContent=t('گزارش خصوصی بازخوانی شد؛ هیچ درخواست مستقیم به گوگل ارسال نشد.',
      'Private observation loaded; no live Google API request was made.');
   }catch{
