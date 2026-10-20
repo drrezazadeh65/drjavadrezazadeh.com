@@ -38,6 +38,19 @@
    field(tr('پایه یا وضعیت تحصیلی هنگام آزمون','Grade or education stage at this exam'),grade),
    field(tr('جامعه آماری رتبه در کارنامه','Rank comparison population'),rankScope),
    field(tr('درس قابل پیگیری','Subject to track'),lesson),field(tr('درصد آن درس','Subject percentage'),percent),add);
+  const extraRows=create('div','jr-km-extra-rows');
+  const addSubject=create('button','jr-km-add-subject',tr('افزودن درصد یک درس دیگر','Add another subject result'));addSubject.type='button';
+  form.insertBefore(extraRows,add);form.insertBefore(addSubject,add);
+  addSubject.addEventListener('click',()=>{
+   if(extraRows.children.length>=11)return;
+   const row=create('div','jr-km-extra-row');
+   const subjectInput=create('input','jr-km-extra-name');subjectInput.type='text';subjectInput.maxLength=70;subjectInput.autocomplete='off';
+   const subjectPercent=create('input','jr-km-extra-percent');subjectPercent.type='text';subjectPercent.inputMode='decimal';subjectPercent.maxLength=8;subjectPercent.autocomplete='off';
+   const rm=create('button','jr-km-extra-remove',tr('حذف درس','Remove subject'));rm.type='button';
+   rm.addEventListener('click',()=>{row.remove();addSubject.disabled=false;});
+   row.append(field(tr('نام درس اضافی','Additional subject name'),subjectInput),field(tr('درصد همان درس','Subject percentage'),subjectPercent),rm);
+   extraRows.append(row);addSubject.disabled=extraRows.children.length>=11;subjectInput.focus();
+  });
   const feedback=create('p','jr-km-feedback','');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
   const summary=create('p','jr-km-summary','');
   const history=create('ol','jr-km-history');
@@ -65,6 +78,7 @@
      create('small','',tr('تراز همان مؤسسه: ','Same-provider TAZ: ')+(row.taz===null?'—':num.format(row.taz))+
      tr(' · رتبه: ',' · rank: ')+(row.rank===null?'—':num.format(row.rank))+(row.rank!==null?' ['+row.rankScope+']':'')));
     if(row.subject&&row.percent!==null)text.append(create('p','',row.subject+': '+num.format(row.percent)+'%'));
+    for(const metric of row.additionalSubjects||[])text.append(create('p','',metric.subject+': '+num.format(metric.percent)+'%'));
     const remove=create('button','',tr('حذف','Remove'));remove.type='button';
     remove.setAttribute('aria-label',tr('حذف نتیجه ','Remove result ')+(i+1));
     remove.addEventListener('click',()=>{exams=exams.filter(v=>v.id!==row.id);draw();announce('نتیجه حذف شد.','Result removed.');});
@@ -88,8 +102,19 @@
    const valueTaz=taz.value.trim()?decimal(taz.value):null;
    const valueRank=rank.value.trim()?decimal(rank.value):null;
    const valuePct=percent.value.trim()?decimal(percent.value):null;
+   const additionalSubjects=[],subjectNames=new Set();
+   if(lesson.value.trim())subjectNames.add(lesson.value.trim().toLocaleLowerCase());
+   for(const row of extraRows.querySelectorAll('.jr-km-extra-row')){
+    const label=row.querySelector('.jr-km-extra-name').value.trim();
+    const raw=row.querySelector('.jr-km-extra-percent').value.trim();
+    const amount=raw?decimal(raw):null;
+    if(!label||amount===null||amount>100){announce('نام و درصد معتبر برای هر درس اضافی لازم است.','Each extra subject needs a name and percentage between 0 and 100.');return;}
+    const key=label.toLocaleLowerCase();
+    if(subjectNames.has(key)){announce('نام درس در همین آزمون تکراری است.','The subject is duplicated within this exam.');return;}
+    subjectNames.add(key);additionalSubjects.push({subject:label.slice(0,70),percent:amount});
+   }
    if((taz.value.trim()&&valueTaz===null)||(rank.value.trim()&&(valueRank===null||!Number.isInteger(valueRank)||valueRank<1))||
-      (percent.value.trim()&&(valuePct===null||valuePct>100))||(!valueTaz&&!valueRank&&!Number.isFinite(valuePct))){
+      (percent.value.trim()&&(valuePct===null||valuePct>100))||(!valueTaz&&!valueRank&&!Number.isFinite(valuePct)&&additionalSubjects.length===0)){
     announce('تراز، رتبه یا درصد معتبر وارد کنید؛ رتبه باید عدد صحیح مثبت و درصد حداکثر ۱۰۰ باشد.',
      'Enter a valid TAZ, rank or percentage. Rank must be a positive integer and percentage at most 100.');return;
    }
@@ -98,9 +123,9 @@
    }
    if(exams.length>=40){announce('سقف موقت این کاربرگ ۴۰ آزمون است.','Temporary worksheet limit is 40 exams.');return;}
    exams.push({id:Date.now()+Math.random(),date:day,provider:provider.value,group:examGroup.value,
-    taz:valueTaz,rank:valueRank,rankScope:rankScope.value,grade:grade.value,subject:lesson.value.trim().slice(0,70),percent:valuePct});
+    taz:valueTaz,rank:valueRank,rankScope:rankScope.value,grade:grade.value,subject:lesson.value.trim().slice(0,70),percent:valuePct,additionalSubjects});
    draw();announce('نتیجه به‌طور موقت ثبت شد؛ هنوز به حساب یا سرور ارسال نشده است.','Result added temporarily; nothing was sent to an account or server.');
-   taz.value='';rank.value='';lesson.value='';percent.value='';
+   taz.value='';rank.value='';lesson.value='';percent.value='';extraRows.replaceChildren();addSubject.disabled=false;
   });
   clear.addEventListener('click',()=>{exams=[];draw();announce('تمام نتایج این صفحه پاک شدند.','All temporary results cleared.');});
   print.addEventListener('click',()=>{
@@ -113,7 +138,8 @@
    const list=create('ol');
    exams.slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(x=>list.append(create('li','',
     x.date+' · '+x.provider+' · '+x.group+' · grade: '+x.grade+' · TAZ: '+(x.taz??'—')+' · rank ['+x.rankScope+']: '+(x.rank??'—')+
-    (x.subject?' · '+x.subject+': '+(x.percent??'—')+'%':''))));
+    (x.subject?' · '+x.subject+': '+(x.percent??'—')+'%':'')+
+    (x.additionalSubjects||[]).map(v=>' · '+v.subject+': '+v.percent+'%').join(''))));
    printable.append(list);
    root.classList.add('jr-km-printing');printable.hidden=false;window.print();
   });

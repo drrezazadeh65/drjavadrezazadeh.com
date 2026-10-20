@@ -21,3 +21,11 @@
 .jr-konkur-mock [hidden]{display:none!important}
 @media(max-width:580px){.jr-konkur-mock .jr-km-item{flex-direction:column;align-items:stretch}.jr-konkur-mock .jr-km-item button{width:100%}}
 @media print{.jr-konkur-mock.jr-km-printing{background:#fff;color:#000}.jr-konkur-mock.jr-km-printing .jr-km-print *{color:#000!important}}
+
+/* Optional extra subjects in the same provider exam event. */
+.jr-konkur-mock .jr-km-extra-rows{grid-column:1/-1;display:grid;gap:10px}
+.jr-konkur-mock .jr-km-extra-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;gap:10px;align-items:end;padding:10px;border:1px solid rgba(205,164,96,.38);border-radius:10px}
+.jr-konkur-mock .jr-km-extra-row .jr-km-field{min-width:0}
+.jr-konkur-mock .jr-km-add-subject{grid-column:1/-1;justify-self:start;min-height:44px}
+.jr-konkur-mock .jr-km-extra-remove{min-height:44px}
+@media(max-width:580px){.jr-konkur-mock .jr-km-extra-row{grid-template-columns:1fr}.jr-konkur-mock .jr-km-add-subject{width:100%}}
