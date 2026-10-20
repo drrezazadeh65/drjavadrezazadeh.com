@@ -119,5 +119,5 @@
   window.addEventListener('pagehide',()=>{
    inspected=null;form.reset();result.replaceChildren();printView.replaceChildren();
   });
- });
+ }
 })();
