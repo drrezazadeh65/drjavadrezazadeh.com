@@ -90,8 +90,8 @@
   }
   section.append(grid);
   section.append(make('p',t(
-   'مدیریت برچسب: GTM هنوز فعال نشده و شناسه Container باید توسط مالک ارائه و آزمایش شود.',
-   'Tag management: GTM remains inactive pending the owner-supplied container ID, Preview and consent QA.'
+   'مدیریت برچسب: کانتینر GTM ثبت شده، اما تنظیم تگ‌ها، رضایت و انتشار هنوز تأیید نشده است.',
+   'Tag management: GTM container registered, but tag setup, consent QA, Preview and publication remain unverified.'
   ),'ops-muted'));
   results.append(section);
  }
