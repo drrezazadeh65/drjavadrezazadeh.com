@@ -130,9 +130,10 @@ function operationsSearchIntelligenceSnapshot(string $gscPrivatePath,int $at): a
             'limitation'=>'GA4 Data API workflow verifies access separately. No GA4 report has been authenticated, ingested or attached to this administrative snapshot; missing is not zero.'
         ],
         'tagManager'=>[
-            'status'=>'pending_owner_container','containerId'=>null,
+            'status'=>'container_registered_unpublished','containerId'=>'GTM-P6LWCLKM',
+            'tagsConfiguredVerified'=>false,'previewVerified'=>false,
             'productionCollectionVerified'=>false,
-            'limitation'=>'GTM container creation, Preview, GA4 DebugView and explicit owner approval are outstanding.'
+            'limitation'=>'Owner-provided GTM Web Container ID confirmed by screenshot. Google tag configuration, GTM Preview, GA4 DebugView, container publication and Bertina deployment remain unverified/unapproved.'
         ],
         'limitation'=>'Search Console search metrics and GA4 consented on-site events have distinct definitions and are never combined into a synthetic conversion rate.'
     ];
