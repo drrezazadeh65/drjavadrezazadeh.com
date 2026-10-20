@@ -596,7 +596,7 @@ for(const route of ['/fa/shop/','/en/shop/']){
     const cards=page.locator('[data-book-catalog] .book-product-card');
     await expect(cards).toHaveCount(4);
     await expect(page.locator('[data-add-book]')).toHaveCount(3);
-    await expect(page.locator('.book-price')).toHaveCount(3);
+    await expect(page.locator('.book-price')).toHaveCount(4);
     await expect(page.locator('.book-pending')).toHaveCount(0);
     const body=(await page.locator('body').innerText()).replace(/\s+/g,' ');
     expect(body).toMatch(/(?:درگاه|gateway|payment)/i);
