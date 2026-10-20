@@ -107,6 +107,16 @@
    });
    const data=await response.json();
    if(epoch!==generation||workspace.hidden||!panel.open)return;
+   // A regular ADMIN may enter the unified workspace, but owner-only
+   // provider observations require SUPER_ADMIN. Do not imply MFA will fix RBAC.
+   if(response.status===403&&data?.error==='owner_ai_visibility_forbidden'){
+    results.replaceChildren();
+    status.textContent=t(
+      'این گزارش فقط برای مالک سایت با نقش مدیر ارشد در دسترس است.',
+      'This evidence report is restricted to the verified site owner (SUPER_ADMIN).'
+    );
+    return;
+   }
    if(!response.ok||data?.ok!==true||data.schema!=='jr-owner-aisv-snapshot-v1'
     ||!['provider_report_snapshot','unavailable'].includes(data.status)
     ||!Array.isArray(data.prompts)||!Array.isArray(data.providers))throw Error('source_invalid');
