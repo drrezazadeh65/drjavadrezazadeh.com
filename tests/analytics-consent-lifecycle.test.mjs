@@ -7,7 +7,7 @@ const source=fs.readFileSync('assets/js/analytics-adapter.js','utf8');
 const fixture={
  schema_version:'1.0',provider:'GA4',enabled:true,
  measurement_id:'G-C3C7NQQNWX',tag_transport:'GTM_ONLY',gtm_container_id:'GTM-TEST1234',
- consent:{required:true,storage_key:'jr-analytics-consent-v1',granted_value:'granted',denied_value:'denied'},
+ consent:{required:true,storage_key:'jr-analytics-consent-v2',granted_value:'granted',denied_value:'denied'},
  allowed_client_events:['consultation_intent'],
  payload_allowlist:['event_key','surface','locale','route','target_kind']
 };
