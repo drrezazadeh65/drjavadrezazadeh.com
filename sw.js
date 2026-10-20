@@ -161,11 +161,11 @@ async function readSafeCache(cache,req){
   }catch(_){}
   return null;
 }
-async function freshNetwork(req,{fallback=null,store=true}={}){
+async function freshNetwork(req,{fallback=null,store=true,httpCache='reload'}={}){
   let res;
   try{
     // Public mutable content stays fresh online, regardless of cache failures.
-    res=await fetch(req,{cache:'reload'});
+    res=await fetch(req,{cache:httpCache});
   }catch(_){
     const cache=await runtimeCache();
     const hit=await readSafeCache(cache,req);
@@ -237,10 +237,11 @@ self.addEventListener('fetch',event=>{
     return;
   }
 
-  // Mutable images and fonts remain fresh-first; a query-string version
-  // does not establish content immutability, and a font may be replaced in place.
+  // Mutable media/fonts use conditional HTTP validation (ETag/Last-Modified).
+  // An unchanged origin can return 304 without retransferring the whole asset;
+  // a replacement at the same URL is still fetched freshly.
   if(isImage(url) || isFont(url)){
-    event.respondWith(freshNetwork(req,{store:true}));
+    event.respondWith(freshNetwork(req,{store:true,httpCache:'no-cache'}));
     return;
   }
 });
