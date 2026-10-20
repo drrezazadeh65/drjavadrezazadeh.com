@@ -31,7 +31,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def request_google(token: str, url: str, payload: dict | None = None) -> tuple[int, dict]:
     """Bounded, nonredirecting HTTPS request with a token only in a header."""
-    if not url.startswith(HOST + "/"):
+    if not (url.startswith(HOST + "/") or url.startswith("https://searchconsole.googleapis.com/v1/urlInspection/index:inspect")):
         raise VerificationError("unapproved_google_endpoint")
     body = None if payload is None else json.dumps(payload, separators=(",", ":")).encode("utf-8")
     req = urllib.request.Request(url, data=body, method="GET" if body is None else "POST",
