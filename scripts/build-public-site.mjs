@@ -112,6 +112,9 @@ const required=[
   'api/operations-ai-visibility.php',
   'api/internal/ai-search-visibility-baseline-20261020.json',
   'assets/js/operations-ai-visibility.js',
+  // GSC owner-only projection must ship with the existing MFA router and both admin shells.
+  // Never bundle a live private GSC snapshot or service-account credentials.
+  'api/operations-gsc-direct.php','assets/js/operations-gsc-direct.js',
   'fa/app/admin/index.html','en/account/admin/index.html',
   'api/internal/.htaccess','assets/js/jr-publishing-checkout-v1.js',
   'fa/app/author/index.html','fa/shop/authors/mehrab-mirkarimi/index.html',
@@ -172,6 +175,7 @@ for(const blocked of [...excludedTop]){
 for(const blocked of excludedRoot){
   if(fs.existsSync(path.join(out,blocked))) failures.push('Internal root file leaked into artifact: '+blocked);
 }
+if(fs.existsSync(path.join(out,'api/internal/operations-gsc-direct-snapshot.json'))) failures.push('Private direct GSC observation must not be packaged in a public artifact');
 if(fs.existsSync(path.join(out,'assets/media-registry.json'))) failures.push('Internal media registry leaked into artifact');
 if(fs.existsSync(path.join(out,'assets/release-v4.4.json'))) failures.push('Internal release manifest leaked into artifact');
 if(!fs.readFileSync(path.join(out,'api/internal/.htaccess'),'utf8').includes('Require all denied'))
