@@ -60,6 +60,7 @@ When the owner confirms the GTM container and test tags, change the one existing
 - Loads GTM **once** and **only after explicit analytics opt-in**, with default Google Consent Mode denied and advertising purposes denied.
 - Offers bilingual allow/decline/reopen controls on safe public routes, never an assessment/private checkout/secure user area.
 - Sends a single manually tagged page-view per normal page load, using a strict allowlisted public path with **no URL query, hash, freeform input or referrer**.
+- **Blocks the entire GTM container on URLs containing any query string or fragment**, even on otherwise public pages. GTM/GA4 automatic session events can capture browser URLs independently of manual pageview parameters. This intentionally sacrifices UTM attribution until an independently tested, privacy-safe route/parameter handling design is approved. Do not silently introduce a fragment/query bypass.
 - Uses the existing conversion-intent bus but whitelists payload and drops unknown event keys, raw routes, PII and private pages.
 - Stops future `dataLayer` analytics events after revocation; the container must also enforce tag consent requirements. Revoking tracking is not a retrospective deletion of previously processed GA4 data.
 
