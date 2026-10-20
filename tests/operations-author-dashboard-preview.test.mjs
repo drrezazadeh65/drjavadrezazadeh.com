@@ -37,7 +37,7 @@ test('visual-only financial cards display placeholders rather than fictitious or
  const js=read('assets/js/operations-author-dashboard-preview-v1.js');
  assert.match(js,/Financial values show dashes/);
  assert.match(js,/Verified purchases/);
- assert.match(js,/Settlement/);
+ assert.match(js,/settlement/i);
  assert.match(js,/no actual financial data loaded/);
  const css=read('assets/css/operations-author-dashboard-preview-v1.css');
  assert.match(css,/\.jr-ap-grid/);
