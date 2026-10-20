@@ -129,3 +129,21 @@ test('live Golden Talent health contract does not misrepresent Node research pre
  assert.match(php,/goldenTalentBaharStorageSchemaReady/);
  assert.match(php,/goldenTalentAssessmentConsentCurrent/);
 });
+
+test('RCAS-to-BAHAR handoff requires local complete P0, all 28 core responses and explicit user route',()=>{
+ const bridge=read('assets/js/bahar-rcas-handoff-v52.js');
+ for(const flag of [
+  "raw.p0Validated!==true",
+  "raw.routingEvidenceCompleted!==true",
+  "raw.meaningfulCoreEvidence!==true",
+  "raw.completedItemCount!==28",
+  "raw.routeBasis!=='SELF_SELECTED_UNVALIDATED'",
+  "raw.rcasRevision"
+ ]) assert.ok(bridge.includes(flag),'missing handoff precondition '+flag);
+ assert.match(bridge,/!\/\^D\[1-6\]\$\//);
+ for(const forbidden of ['fetch(','XMLHttpRequest(','localStorage','rawResponses','student_email'])
+  assert.ok(!bridge.includes(forbidden),'handoff may not persist or transmit '+forbidden);
+ for(const file of ['fa/app/student/bahar/index.html','en/golden-talent/dashboard/bahar/index.html']){
+  assert.match(read(file),/bahar-rcas-handoff-v52\.js\?v=20261020-rcas-handoff-v3/);
+ }
+});

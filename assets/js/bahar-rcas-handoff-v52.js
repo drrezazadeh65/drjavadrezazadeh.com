@@ -13,6 +13,9 @@ if(!goal||!action)return;
 let raw=null;
 try{raw=JSON.parse(sessionStorage.getItem('gt_rcas_state')||'null');}catch(_){return;}
 if(!raw||raw.completed!==true||raw.completedItemCount!==28||
+   raw.p0Validated!==true||raw.routingEvidenceCompleted!==true||
+   raw.meaningfulCoreEvidence!==true||
+   !['start-1.2','start-en-pilot-1'].includes(raw.rcasRevision)||
    raw.routeBasis!=='SELF_SELECTED_UNVALIDATED'||!/^D[1-6]$/.test(raw.routeCode||'')||
    !Number.isFinite(Date.parse(raw.updatedAt))||
    Date.now()-Date.parse(raw.updatedAt)>2*60*60*1000||
