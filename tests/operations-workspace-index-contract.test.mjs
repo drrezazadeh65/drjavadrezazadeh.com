@@ -14,7 +14,9 @@ test('existing authenticated operational workflows stay private and unchanged',(
  ]){
   const html=read(path);
   assert.match(html,/<meta name="robots" content="noindex,nofollow,noarchive"/);
-  assert.match(html,/<div id="ops-workspace" hidden><section id="jr-intelligence"/);
+  assert.match(html,/<div id="ops-workspace" hidden>/);
+  assert.match(html,/<section id="jr-intelligence"/);
+  assert.match(html,/id="ops-author-real-view"/);
   assert.match(html,/id="ops-auth" class="ops-panel ops-auth"/);
   assert.match(html,/id="ops-mfa-form"/);
   assert.match(html,/id="ops-commerce"/);
@@ -29,11 +31,11 @@ test('existing authenticated operational workflows stay private and unchanged',(
 
 test('navigation is a bounded local index, not a parallel administrator or finance API',()=>{
  const count=(script.match(/group:'(?:evidence|planning|commerce|publishing|social|resources)'/g)||[]).length;
- assert.equal(count,17,'bounded existing admin sections, including private direct GSC');
+ assert.equal(count,19,'bounded existing admin sections including owner author views');
  for(const id of ['jr-intelligence','ops-stage7-blueprint','ops-social','ops-social-composer',
   'ops-social-review','ops-social-settings','ops-free-resources','ops-jhela-workstream',
   'ops-commerce','ops-publishing-author-review','ops-organic-growth','ops-revenue-planning','ops-cards',
-  'ops-reporting','ops-audit-timeline','ops-ai-visibility','ops-gsc-direct']){
+  'ops-reporting','ops-audit-timeline','ops-ai-visibility','ops-gsc-direct','ops-author-real-view']){
   assert.ok(script.includes("id:'"+id+"'"),id);
  }
  assert.match(script,/workspace\.prepend\(nav\)/);
