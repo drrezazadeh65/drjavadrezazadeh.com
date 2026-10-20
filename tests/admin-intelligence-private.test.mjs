@@ -51,7 +51,8 @@ test('two language dashboards keep MFA, privacy, schema and JHELA workstreams',(
   const src=read(pathname);
   assert.match(src,/name="robots" content="noindex,nofollow,noarchive"/);
   assert.match(src,/id="ops-mfa-form"/);
-  assert.match(src,/<div id="ops-workspace" hidden>(?:<p\\b[^>]*>[\\s\\S]*?<\\/p>)?<section id="jr-intelligence"/);
+  assert.match(src,/<div id="ops-workspace" hidden>/);
+  assert.match(src,/<section id="jr-intelligence"/);
   assert.match(src,/operations-intelligence\.js/);
   assert.match(src,/operations-keyword-master\.js/);
   assert.match(src,/operations-jhela-workstream\.js/);

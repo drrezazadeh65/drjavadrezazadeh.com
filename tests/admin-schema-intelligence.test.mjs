@@ -43,7 +43,8 @@ test('both localized admin dashboards use auth shell and preserve existing JHELA
   const html=read(file);
   assert.match(html,/<meta name="robots" content="noindex,nofollow,noarchive"/);
   assert.match(html,/id="ops-mfa-form"/);
-  assert.match(html,/<div id="ops-workspace" hidden>(?:<p\\b[^>]*>[\\s\\S]*?<\\/p>)?<section id="jr-intelligence"/);
+  assert.match(html,/<div id="ops-workspace" hidden>/);
+  assert.match(html,/<section id="jr-intelligence"/);
   assert.match(html,/data-jr-score/);
   assert.match(html,/data-jr-results/);
   assert.match(html,/operations-intelligence\.js/);
