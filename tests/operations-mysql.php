@@ -182,7 +182,7 @@ try {
      'admin commerce monitor exposed customer details');
  $aisv=request('/api/admin/operations/ai-visibility',200);
  check($aisv['status']==='provider_report_snapshot'&&$aisv['sampledAnswers']===5
-     &&$aisv['brandMentions']===0&&$aisv['brandPresencePercent']===0.0,
+     &&$aisv['brandMentions']===0&&(float)$aisv['brandPresencePercent']===0.0,
      'Ubersuggest sample must preserve observed zero without fabricated coverage');
  check(count($aisv['prompts'])===10&&$aisv['prompts'][5]['brandPresencePercent']===null
      &&$aisv['providers'][1]['sampledAnswers']===null,
