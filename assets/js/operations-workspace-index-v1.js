@@ -70,6 +70,8 @@
  workspace.prepend(nav);
  const groups=[
    {id:'jr-intelligence',group:'evidence'},
+   {id:'ops-reporting',group:'evidence',label:en?'13-engine reports and verified evidence':'گزارش‌های ۱۳ موتور و شواهد معتبر'},
+   {id:'ops-audit-timeline',group:'evidence'},
    {id:'ops-cards',group:'evidence',label:en?'Evidence and engine register':'فهرست موتورهای عملیاتی'},
    {id:'ops-stage7-blueprint',group:'planning'},
    {id:'ops-commerce',group:'commerce'},
@@ -102,13 +104,15 @@
   .toLocaleLowerCase(en?'en':'fa').replace(/[\u064b-\u065f\u0670\u0640]/g,'')
   .replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[\u200c\u200d]/g,' ')
   .replace(/\s+/g,' ').trim();
- const items=groups.map(entry=>{
+ // The main report is rendered only after successful MFA. Resolve targets on
+ // each unlocked render, rather than freezing their absence at page startup.
+ function indexedItems(){return groups.map(entry=>{
    const target=document.getElementById(entry.id);
    if(!target||!workspace.contains(target))return null;
    const title=entry.label||target.querySelector(':scope > summary,:scope > h2')?.textContent?.trim()||'';
    if(!title)return null;
    return {...entry,target,title};
- }).filter(Boolean);
+ }).filter(Boolean);}
  let built=false;
  function focusTarget(target){
    const focus=target.matches('details')?
@@ -123,6 +127,7 @@
    if(workspace.hidden)return;
    const q=normalize(filter.value);
    list.replaceChildren();
+   const items=indexedItems();
    const matches=items.filter(x=>normalize(groupNames[x.group]+' '+x.title).includes(q));
    const categories=new Map();
    for(const x of matches){
