@@ -70,3 +70,19 @@ test('academic record pages clearly separate contributing author resource from s
  assert.ok(read('fa/entesharat-elmi/index.html').includes('مجموعه دیجیتال سؤالات ارشد آموزش زبان انگلیسی'));
  assert.ok(read('en/publications/index.html').includes('Seyyed Mehrab Mirkarimi'));
 });
+
+test('next deployment preserves the already activated production PDF workflow',()=>{
+ const cli=read('api/internal/jr-publishing-activate-existing-cli.php');
+ const digital=read('api/internal/jr-publishing-digital.php');
+ assert.match(cli,/jr-publishing-existing-offer-activation-v2/);
+ assert.match(cli,/two_private_pdfs_owner_approved/);
+ assert.match(cli,/two_private_pdfs_readable/);
+ assert.match(cli,/original_pdf_hashes/);
+ assert.doesNotMatch(cli,/getenv\('JR_PUBLISHING_ANTIVIRUS_COMPLETE'\)/);
+ assert.match(digital,/JR_PUB_ORIGINAL_ASSETS/);
+ assert.match(digital,/AND approved_at IS NOT NULL/);
+ assert.doesNotMatch(digital,/AND approved_at IS NOT NULL AND malware_scanned_at IS NOT NULL/);
+ assert.match(digital,/hash_file\('sha256',\$file\)/);
+ assert.match(digital,/jrPubCommitVerifiedDigitalOrder/);
+ assert.match(digital,/jrPubDownloadRoute/);
+});
