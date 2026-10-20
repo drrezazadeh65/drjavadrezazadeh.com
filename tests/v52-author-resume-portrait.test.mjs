@@ -37,9 +37,9 @@ test('author portrait changes are visual only and preserve payments, disclaimers
  assert.match(fa,/jr-publishing-checkout-v1\.js/);
  assert.match(fa,/id="jp-checkout-state"/);
  assert.doesNotMatch(fa+en,/href="\/fa\/app\/author\/"/);
- assert.match(fa,/۶۰۰٬۰۰۰/);
- assert.match(fa,/۴۰۰٬۰۰۰/);
- assert.match(en,/400,000 tomans/);
+ assert.match(fa,/۷۰۰٬۰۰۰/);
+ assert.match(fa,/۳۰۰٬۰۰۰/);
+ assert.match(en,/300,000 tomans/);
  assert.doesNotMatch(fa+en+css+js,/JR_PUBLISHING_DIGITAL_ENABLED\s*=\s*true/);
  assert.match(css,/@media\(max-width:760px\)/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
