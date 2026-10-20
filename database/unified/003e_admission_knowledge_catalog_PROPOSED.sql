@@ -141,6 +141,9 @@ CREATE TABLE IF NOT EXISTS eco_admission_programme_offerings (
   tuition_status VARCHAR(60) NULL,
   source_page_id CHAR(36) NOT NULL,
   normalized_row_sha256 CHAR(64) NOT NULL,
+  conditions_review_state ENUM('UNREVIEWED','COMPLETE') NOT NULL DEFAULT 'UNREVIEWED',
+  conditions_reviewed_by_account_id CHAR(36) NULL,
+  conditions_reviewed_at DATETIME(3) NULL,
   supersedes_offering_id CHAR(36) NULL,
   review_state ENUM('DRAFT','SOURCE_CHECKED','APPROVED','SUPERSEDED') NOT NULL DEFAULT 'DRAFT',
   approved_by_account_id CHAR(36) NULL,
@@ -160,6 +163,8 @@ CREATE TABLE IF NOT EXISTS eco_admission_programme_offerings (
   CONSTRAINT fk_eapo_supersedes FOREIGN KEY (supersedes_offering_id)
     REFERENCES eco_admission_programme_offerings(id) ON DELETE RESTRICT,
   CONSTRAINT fk_eapo_approver FOREIGN KEY (approved_by_account_id)
+    REFERENCES customer_accounts(id) ON DELETE SET NULL,
+  CONSTRAINT fk_eapo_conditions_reviewer FOREIGN KEY (conditions_reviewed_by_account_id)
     REFERENCES customer_accounts(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
