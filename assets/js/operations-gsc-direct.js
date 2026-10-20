@@ -35,7 +35,7 @@
  }
  workspace.addEventListener('jr:operations-locked',lock);
  panel.addEventListener('toggle',()=>{
-  if(workspace.hidden||!panel.open){++epoch;if(request)request.abort();results.replaceChildren();status.textContent='';return;}
+  if(workspace.hidden||!panel.open){++epoch;if(request)request.abort();request=null;results.replaceChildren();status.textContent='';refresh.disabled=false;return;}
   void load();
  });
  function show(report){
