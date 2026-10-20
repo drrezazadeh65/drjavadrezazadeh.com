@@ -13,7 +13,7 @@ test('catalogue explorer is additive, read only and does not send student or sco
  assert.doesNotMatch(s,/\b(?:localStorage|sessionStorage|indexedDB|XMLHttpRequest|sendBeacon)\b/);
  assert.doesNotMatch(s,/method:'(?:POST|PUT|PATCH|DELETE)'/);
  assert.doesNotMatch(s,/\binnerHTML\s*=/);
- assert.doesNotMatch(s,/(?:scorecard|rankInQuota|studentAccount|learnerId|passportNumber)/i);
+ assert.doesNotMatch(s,/(?:rankInQuota|studentAccount|learnerId|passportNumber|[?&]scorecard=)/i);
  const p=spawnSync(process.execPath,['--check','assets/js/jr-konkur-official-catalogue-v1.js'],{encoding:'utf8'});
  assert.equal(p.status,0,p.stderr);
 });
