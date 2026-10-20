@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {validatedPublicUrl,classifyPublicResponse} from './lib/performance-production.mjs';
 
 const ORIGIN=(process.env.PROD_ORIGIN||'https://drjavadrezazadeh.com').replace(/\/$/,'');
 const KEY=process.env.INDEXNOW_KEY||'5bea74dc73880cd2b2a1a35a649e62de';
@@ -13,13 +14,14 @@ if(localKey!==KEY) throw new Error('IndexNow local key file does not match confi
 
 
 const canonicalFromHtml=file=>{
-  if(!fs.existsSync(file)) return null;
+  if(!fs.existsSync(file)||!file.endsWith('/index.html')&&file!=='index.html')return null;
+  const expected=ORIGIN+'/'+file.replace(/index\.html$/,'');
+  try{validatedPublicUrl(expected);}catch{return null;}
+  const stat=fs.statSync(file);
+  if(!stat.isFile()||stat.size>400000)return null;
   const html=fs.readFileSync(file,'utf8');
-  if(/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html)) return null;
-  const m=html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i)
-    || html.match(/<link\b[^>]*href=["']([^"']+)["'][^>]*rel=["']canonical["']/i);
-  if(!m) return null;
-  return m[1].startsWith(ORIGIN+'/')||m[1]===ORIGIN+'/'?m[1]:null;
+  if(classifyPublicResponse(html,expected,200)!=='eligible')return null;
+  return expected;
 };
 
 const allSitemapUrls=()=>{
@@ -38,7 +40,17 @@ const allSitemapUrls=()=>{
       if(url.startsWith(ORIGIN+'/')||url===ORIGIN+'/') urls.push(url);
     }
   }
-  return [...new Set(urls)];
+  // Sitemap membership does not establish that each URL is public or self-canonical.
+  // Reuse the single existing eligibility gate, never submit private/noindex aliases.
+  const eligible=[];
+  for(const value of [...new Set(urls)]){
+    let url;
+    try{url=new URL(validatedPublicUrl(value));}catch{continue;}
+    const relative=decodeURIComponent(url.pathname).replace(/^\//,'');
+    const file=relative.endsWith('/')?relative+'index.html':relative;
+    if(canonicalFromHtml(file)===value)eligible.push(value);
+  }
+  return eligible;
 };
 
 let urls=[];
