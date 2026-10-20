@@ -5,7 +5,7 @@ Offline validation only. Never prints or writes submitted observations.
 """
 from __future__ import annotations
 from datetime import datetime, timezone, timedelta
-from urllib.parse import urlsplit
+import math
 import json
 
 PROPERTY = "https://drjavadrezazadeh.com/"
@@ -45,6 +45,8 @@ def validate_snapshot(payload, now=None):
     stamp = _utc(payload["collectedAtUtc"])
     if stamp > now + timedelta(minutes=5) or now - stamp > MAX_AGE:
         raise SnapshotError("stale_or_future")
+    if not isinstance(payload["startDate"], str) or not isinstance(payload["endDate"], str):
+        raise SnapshotError("invalid_date_range")
     try:
         start = datetime.strptime(payload["startDate"], "%Y-%m-%d").date()
         end = datetime.strptime(payload["endDate"], "%Y-%m-%d").date()
@@ -62,7 +64,7 @@ def validate_snapshot(payload, now=None):
             value = row[name]
             if isinstance(value, bool) or not isinstance(value, (int, float)):
                 raise SnapshotError("invalid_metric")
-            if not (0 <= value <= (1 if name == "ctr" else 1000000000)):
+            if not math.isfinite(value) or not (0 <= value <= (1 if name == "ctr" else 1000000000)):
                 raise SnapshotError("invalid_metric")
         if row["position"] < 1:
             raise SnapshotError("invalid_position")
