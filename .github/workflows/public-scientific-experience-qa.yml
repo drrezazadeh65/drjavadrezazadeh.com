@@ -29,6 +29,9 @@ on:
       - "tests/konkur-catalogue-browser.spec.js"
       - "tests/konkur-1405-intake.test.mjs"
       - "tests/konkur-mother-schema-contract.test.mjs"
+      - "tests/konkur-scorecard-adapters-contract.test.mjs"
+      - "database/unified/003f_konkur_scorecard_adapters_PROPOSED.sql"
+      - "docs/governance/JR_KONKUR_SCORECARD_PROVIDERS_READINESS_20261021.md"
       - "database/unified/003e_admission_knowledge_catalog_PROPOSED.sql"
       - "docs/migrations/20261020_konkur_catalog_readonly_preflight.sql"
       - "platform/konkur-1405-intake.mjs"
@@ -78,6 +81,7 @@ jobs:
           node --test tests/konkur-official-scorecard-contract.test.mjs
           node --test tests/konkur-1405-intake.test.mjs
           node --test tests/konkur-mother-schema-contract.test.mjs
+          node --test tests/konkur-scorecard-adapters-contract.test.mjs
           node --test tests/konkur-studio-contract.test.mjs
           node --test tests/konkur-mock-practice-contract.test.mjs
           node --test tests/konkur-mock-provider-registry.test.mjs
