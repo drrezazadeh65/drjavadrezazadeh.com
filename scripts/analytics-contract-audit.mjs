@@ -14,7 +14,7 @@ fail(config.tag_transport==='GTM_ONLY','GTM is the sole planned tag delivery met
 fail(config.enabled===false||/^GTM-[A-Z0-9]{4,15}$/.test(String(config.gtm_container_id||'')),
  'GA4 cannot activate without a valid owner-provided GTM Web Container ID');
 fail(config.enabled===false,'owner has not yet authorised GTM publication or live tag activation');
-fail(config.gtm_container_id===null,'GTM container remains unknown; do not fabricate an ID');
+fail(config.gtm_container_id==='GTM-P6LWCLKM','owner-confirmed GTM container identity mismatch');
 fail(config.consent?.required===true,'analytics must require explicit local opt-in');
 for(const field of ['schema_version','provider','enabled','measurement_id','tag_transport','gtm_container_id','consent','allowed_client_events','payload_allowlist'])
  fail(JSON.stringify(publicConfig[field])===JSON.stringify(config[field]),'public projection drift: '+field);
@@ -36,4 +36,4 @@ for(const key of config.allowed_client_events||[])
 fail(policy.rules?.raw_form_values_in_analytics===false,'raw form values must remain excluded');
 if(failures.length){failures.forEach(x=>console.error('✗ '+x));process.exit(1);}
 execFileSync(process.execPath,['--test','tests/analytics-consent-lifecycle.test.mjs'],{stdio:'inherit'});
-console.log('GTM/GA4 analytics contract verified offline: tag transport disabled pending an owner-approved container; consent and sensitive-route guards tested.');
+console.log('GTM/GA4 analytics contract verified offline: tag transport remains disabled pending owner tag setup, preview and publish approval; consent and sensitive-route guards tested.');
