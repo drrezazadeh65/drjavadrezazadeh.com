@@ -895,3 +895,48 @@ test('owner evidence report never makes untrusted URL schemes clickable',async({
  await expect(details.locator('.ops-gate a[href="https://github.com/example/audits"]')).toHaveCount(1);
  await expect(details).toContainText('Unsafe injected evidence');
 });
+
+
+for(const [locale,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
+ test(locale+' private AI visibility report distinguishes observed zero from provider N/A on mobile',async({page})=>{
+  const source=require('../api/internal/ai-search-visibility-baseline-20261020.json');
+  const projected={
+   ok:true,schema:'jr-owner-aisv-snapshot-v1',status:'provider_report_snapshot',
+   source:'Ubersuggest AI Search Visibility',retrievedOn:'2026-10-20',
+   fixedPromptCount:10,sampledAnswers:5,brandMentions:0,brandPresencePercent:0,
+   verifiedCitationCount:null,
+   providers:source.providers.map(p=>({...p,verifiedCitationCount:null})),
+   prompts:source.prompts.map(p=>({...p,verifiedCitationCount:null}))
+  };
+  let reads=0;const writes=[];
+  page.on('request',r=>{if(r.method()==='POST')writes.push(r.url());});
+  await authorized(page);
+  await page.route('**/api/admin/operations/ai-visibility',r=>{
+   reads++;return r.fulfill({json:projected});
+  });
+  await page.setViewportSize({width:320,height:880});
+  await page.goto(base+route);
+  const workspace=page.locator('#ops-workspace');
+  const aisv=page.locator('#ops-ai-visibility');
+  await expect(workspace).toBeVisible();
+  expect(reads).toBe(0);
+  await aisv.locator(':scope > summary').click();
+  const view=aisv.locator('[data-aisv-results]');
+  await expect(view.locator('details ol li')).toHaveCount(10);
+  await expect(view).toContainText('0%');
+  await expect(view).toContainText(locale==='fa'?'داده موجود نیست':'N/A');
+  await expect(view).toContainText('Ubersuggest');
+  expect(reads).toBe(1);
+  expect(writes).toEqual([]);
+  await page.evaluate(()=>{
+    const root=document.getElementById('ops-workspace');
+    root.hidden=true;
+    root.dispatchEvent(new Event('jr:operations-locked'));
+  });
+  await expect(view).toBeEmpty();
+  await expect(aisv).not.toHaveAttribute('open','');
+  await expect(workspace).toBeHidden();
+  const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+ });
+}
