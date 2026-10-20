@@ -734,3 +734,50 @@ test('administrator audit history filters by event and reference without changin
  expect(reads).toBe(1);
  expect(await page.evaluate(()=>localStorage.length)).toBe(0);
 });
+
+
+test('MFA lock purges confidential manuscript, reviewer, and author records from the owner dashboard',async({page})=>{
+ await page.setViewportSize({width:390,height:850});
+ await authorized(page);
+ await page.route('**/api/admin/operations/jhela/reviewers',r=>r.fulfill({json:{
+  ok:true,schema:'jhela-owner-reviewer-queue-v1',candidates:[{
+   id:'r1',academic_name:'Confidential Reviewer',private_contact_email:'reviewer-private@example.invalid',
+   status:'PENDING',expertise:'Research',methods:'Qualitative'
+  }]
+ }}));
+ await page.route('**/api/admin/operations/jhela/manuscripts',r=>r.fulfill({json:{
+  ok:true,schema:'jhela-native-owner-screening-v1',canDownloadFiles:false,manuscripts:[{
+   id:'m1',tracking_code:'JH-PRIVATE',title:'Confidential Manuscript',
+   author_email:'manuscript-private@example.invalid',status:'PRELIMINARY_RECEIVED',
+   article_type:'research',abstract_text:'Private abstract'
+  }]
+ }}));
+ await page.route('**/api/admin/operations/publishing/authors',r=>r.fulfill({json:{
+  ok:true,authors:[{id:'a1',display_name_fa:'Confidential Author',status:'submitted',
+   bank_name:'Private Bank',card_last4:'1234',iban_last4:'5678',documents:[]}]
+ }}));
+ await page.goto(base+'/fa/app/admin/');
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await page.locator('#ops-jhela-workstream > summary').click();
+ await page.locator('[data-jhela-reviewer-owner] > summary').click();
+ await page.locator('[data-jhela-manuscript-owner] > summary').click();
+ await page.locator('#ops-publishing-author-review > summary').click();
+ await page.locator('[data-jhela-owner-review-refresh]').click();
+ await page.locator('[data-jhela-owner-ms-refresh]').click();
+ await page.locator('#ops-publishing-author-refresh').click();
+ await expect(page.locator('[data-jhela-owner-review-results]')).toContainText('reviewer-private@example.invalid');
+ await expect(page.locator('[data-jhela-owner-ms-results]')).toContainText('manuscript-private@example.invalid');
+ await expect(page.locator('#ops-publishing-author-results')).toContainText('Confidential Author');
+ // This is the internal lock notification issued by operations-control.lock().
+ await page.evaluate(()=>{
+  const root=document.getElementById('ops-workspace');
+  root.hidden=true;root.dispatchEvent(new Event('jr:operations-locked'));
+ });
+ await expect(page.locator('[data-jhela-owner-review-results]')).toBeEmpty();
+ await expect(page.locator('[data-jhela-owner-ms-results]')).toBeEmpty();
+ await expect(page.locator('#ops-publishing-author-results')).toBeEmpty();
+ await expect(page.locator('[data-jhela-owner-review-status]')).toBeEmpty();
+ await expect(page.locator('[data-jhela-owner-ms-status]')).toBeEmpty();
+ await expect(page.locator('#ops-publishing-author-status')).toBeEmpty();
+ await expect(page.locator('#ops-workspace')).toBeHidden();
+});
