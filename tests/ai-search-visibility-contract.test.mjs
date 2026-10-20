@@ -109,3 +109,31 @@ test('academic source pages answer the two research-integrity gaps without inven
   assert.equal((html.match(/<h1\b/g)||[]).length,1);
  }
 });
+
+
+test('release assembly requires all private AI visibility dependencies together',()=>{
+ const build=read('scripts/build-public-site.mjs');
+ const required=build.split('const required=[')[1]?.split('];')[0];
+ assert.ok(required,'sanitized deployment required-files gate absent');
+ for(const filename of [
+  'api/operations-ai-visibility.php',
+  'api/internal/ai-search-visibility-baseline-20261020.json',
+  'assets/js/operations-ai-visibility.js',
+  'fa/app/admin/index.html',
+  'en/account/admin/index.html',
+  'api/internal/.htaccess'
+ ])assert.ok(required.includes("'"+filename+"'"),filename+' excluded from atomic release');
+ assert.match(read('api/internal/.htaccess'),/Require all denied/);
+ const workflows=[
+  '.github/workflows/operations-control-center.yml',
+  '.github/workflows/v5-release-candidate.yml'
+ ];
+ const operations=read(workflows[0]);
+ for(const path of ['assets/js/operations-ai-visibility.js','tests/ai-search-visibility-contract.test.mjs'])
+  assert.ok(operations.includes("'"+path+"'"),path+' changes should trigger dedicated QA');
+ for(const workflow of workflows){
+  const source=read(workflow);
+  assert.match(source,/php tests\/operations-ai-visibility\.php/);
+  assert.match(source,/node --test tests\/ai-search-visibility-contract\.test\.mjs/);
+ }
+});
