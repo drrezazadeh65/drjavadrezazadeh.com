@@ -1,23 +1,32 @@
 /* Bertina owner MFA-protected author verification queue. No payout or signature actions. */
 (()=>{'use strict';
 const root=document.getElementById('ops-publishing-author-review');if(!root)return;
+const scope=document.getElementById('ops-workspace');if(!scope||!scope.contains(root))return;
 const box=document.getElementById('ops-publishing-author-results');
 const state=document.getElementById('ops-publishing-author-status');
 const refresh=document.getElementById('ops-publishing-author-refresh');
+let lockEpoch=0;
+scope.addEventListener('jr:operations-locked',()=>{
+ lockEpoch++;box.replaceChildren();state.textContent='';refresh.disabled=false;
+});
 const el=(tag,text,cls='')=>{const v=document.createElement(tag);if(cls)v.className=cls;v.textContent=String(text??'');return v};
 const api='/api/admin/operations/publishing/authors';
 const status=s=>state.textContent=s;
 async function check(res){const j=await res.json();if(!res.ok||j.ok!==true)throw Error(j.error||'request_failed');return j;}
 async function decision(authorId,kind,value,documentId,note,button){
+ if(scope.hidden)return;
+ const epoch=lockEpoch;
  button.disabled=true;status('در حال ثبت رأی مدیر با تأیید نشست دومرحله‌ای...');
  try{
   const s=await check(await fetch('/api/admin/operations/session',{credentials:'same-origin',cache:'no-store'}));
+  if(scope.hidden||epoch!==lockEpoch)return;
   if(s.mfaRequired===true||!s.csrfToken)throw Error('admin_mfa_required');
   const resp=await fetch(api+'/decision',{method:'POST',credentials:'same-origin',cache:'no-store',
    headers:{'Content-Type':'application/json','X-CSRF-Token':s.csrfToken},
    body:JSON.stringify({authorId,kind,decision:value,documentId,note})});
-  await check(resp);status('تصمیم مدیر ثبت شد؛ نه تسویه‌ای انجام شده و نه قراردادی امضا شده است.');await load(true);
- }catch(e){status('نتیجه بررسی ثبت نشد: '+String(e.message||'خطا'));}
+  await check(resp);if(scope.hidden||epoch!==lockEpoch)return;
+  status('تصمیم مدیر ثبت شد؛ نه تسویه‌ای انجام شده و نه قراردادی امضا شده است.');await load(true);
+ }catch(e){if(!scope.hidden&&epoch===lockEpoch)status('نتیجه بررسی ثبت نشد: '+String(e.message||'خطا'));}
  finally{button.disabled=false;}
 }
 function controls(authorId,kind,id,allowed){
@@ -75,12 +84,16 @@ function card(a){
  previewButton.setAttribute('aria-expanded','false');
  previewButton.addEventListener('click',async()=>{
   if(!preview.hidden){preview.hidden=true;preview.replaceChildren();previewButton.setAttribute('aria-expanded','false');return;}
+  if(scope.hidden)return;
+  const epoch=lockEpoch;
   previewButton.disabled=true;
   try{
    const session=await check(await fetch('/api/admin/operations/session',{credentials:'same-origin',cache:'no-store'}));
+   if(scope.hidden||epoch!==lockEpoch)return;
    if(session.mfaRequired===true||!session.csrfToken)throw Error('admin_mfa_required');
    // Re-fetch instead of rendering a stale copy after the MFA session expires.
    const fresh=await check(await fetch(api,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}}));
+   if(scope.hidden||epoch!==lockEpoch)return;
    const author=(fresh.authors||[]).find(item=>item.id===a.id);
    if(!author)throw Error('author_not_found');
    const docs=author.documents||[];
@@ -96,7 +109,7 @@ function card(a){
    );
    preview.hidden=false;previewButton.setAttribute('aria-expanded','true');
    preview.focus();
-  }catch(e){status('پیش‌نمایش مجاز نیست یا داده معتبر در دسترس نیست: '+String(e.message||'خطا'));}
+  }catch(e){if(!scope.hidden&&epoch===lockEpoch)status('پیش‌نمایش مجاز نیست یا داده معتبر در دسترس نیست: '+String(e.message||'خطا'));}
   finally{previewButton.disabled=false;}
  });
  preview.tabIndex=-1;
@@ -104,16 +117,20 @@ function card(a){
  return shell;
 }
 async function load(quiet=false){
+ if(scope.hidden)return;
+ const epoch=lockEpoch;
  refresh.disabled=true;if(!quiet)status('در حال دریافت پرونده‌ها از بانک اطلاعاتی خصوصی...');
  try{
   const j=await check(await fetch(api,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}}));
+  if(scope.hidden||epoch!==lockEpoch)return;
   box.replaceChildren(...j.authors.map(card));
   if(!j.authors.length)box.append(el('p','هیچ مؤلفی در سامانه ثبت نشده است.'));
   if(!quiet)status('پرونده‌ها فقط برای مدیر ارشد با MFA تازه باز شدند؛ هیچ مدرکی در حافظه عمومی مرورگر ذخیره نمی‌شود.');
- }catch(e){box.replaceChildren();status(e.message==='author_onboarding_not_provisioned'?
+ }catch(e){if(scope.hidden||epoch!==lockEpoch)return;
+  box.replaceChildren();status(e.message==='author_onboarding_not_provisioned'?
   'جداول تکمیلی هویت مؤلف هنوز طبق برنامه مرحله آخر نصب نشده‌اند.':
   'دسترسی نیازمند ورود مدیر ارشد و تأیید دومرحله‌ای است: '+e.message);}
- finally{refresh.disabled=false;}
+ finally{if(epoch===lockEpoch)refresh.disabled=false;}
 }
 refresh.addEventListener('click',()=>load());
 })();
