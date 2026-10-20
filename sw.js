@@ -137,41 +137,61 @@ function isContentFingerprinted(url){
   return /(?:^|[._-])[a-f0-9]{12,64}(?=\.[a-z0-9]+$)/i.test(url.pathname);
 }
 
-async function freshNetwork(req,{fallback=null,store=true}={}){
-  const cache=await caches.open(RUNTIME_CACHE);
+// Cache Storage is best-effort. A full disk, private-browsing restriction,
+// corrupt cache entry or quota error may not turn a successful online fetch
+// into an offline fallback or a failed document request.
+async function runtimeCache(){
+  try{return await caches.open(RUNTIME_CACHE);}catch(_){return null;}
+}
+async function updateCache(cache,req,res,store=true){
+  if(!cache)return;
   try{
-    // "reload" bypasses the browser HTTP cache and forces revalidation/fresh transfer.
-    const res=await fetch(req,{cache:'reload'});
-    if(isCacheableResponse(res,req) && store) await cache.put(req,res.clone());
+    if(store && isCacheableResponse(res,req))await cache.put(req,res.clone());
     else await cache.delete(req);
-    return res;
   }catch(_){
+    try{await cache.delete(req);}catch(_){}
+  }
+}
+async function readSafeCache(cache,req){
+  if(!cache)return null;
+  try{
     const hit=await cache.match(req);
-    if(hit && isCacheableResponse(hit,req)) return hit;
-    if(hit) await cache.delete(req);
+    if(hit && isCacheableResponse(hit,req))return hit;
+    if(hit)await cache.delete(req);
+  }catch(_){}
+  return null;
+}
+async function freshNetwork(req,{fallback=null,store=true}={}){
+  let res;
+  try{
+    // Public mutable content stays fresh online, regardless of cache failures.
+    res=await fetch(req,{cache:'reload'});
+  }catch(_){
+    const cache=await runtimeCache();
+    const hit=await readSafeCache(cache,req);
+    if(hit)return hit;
     if(fallback){
-      const shell=await caches.open(SHELL_CACHE);
-      const fb=await shell.match(fallback);
-      if(fb && isCacheableResponse(fb)) return fb;
-      if(fb) await shell.delete(fallback);
+      try{
+        const shell=await caches.open(SHELL_CACHE);
+        const fb=await readSafeCache(shell,fallback);
+        if(fb)return fb;
+      }catch(_){}
     }
     return Response.error();
   }
+  await updateCache(await runtimeCache(),req,res,store);
+  return res;
 }
 
 async function cacheFirstImmutable(req){
-  const cache=await caches.open(RUNTIME_CACHE);
-  const hit=await cache.match(req);
-  if(hit && isCacheableResponse(hit)) return hit;
-  if(hit) await cache.delete(req);
-  try{
-    const res=await fetch(req,{cache:'reload'});
-    if(isCacheableResponse(res,req)) await cache.put(req,res.clone());
-    else await cache.delete(req);
-    return res;
-  }catch(_){
-    return Response.error();
-  }
+  const cache=await runtimeCache();
+  const hit=await readSafeCache(cache,req);
+  if(hit)return hit;
+  let res;
+  try{res=await fetch(req,{cache:'reload'});}
+  catch(_){return Response.error();}
+  await updateCache(cache,req,res);
+  return res;
 }
 
 self.addEventListener('fetch',event=>{
