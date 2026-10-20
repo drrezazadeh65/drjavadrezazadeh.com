@@ -23,7 +23,7 @@ No GTM Web Container ID (`GTM-...`) or active GTM snippet was found in the branc
 - Search Console URL-prefix property: `https://drjavadrezazadeh.com/`.
 - Google Cloud project: `jr-search-intelligence`; project number `301218972490`.
 - Existing keyless GitHub WIF service account: `jr-search-console-reader@jr-search-intelligence.iam.gserviceaccount.com`.
-- **GTM Web Container ID: owner action required; not yet known.**
+- **GTM Web Container ID: `GTM-P6LWCLKM`, confirmed by owner screenshot on 2026-10-20; tag setup/Preview/Publish remain unverified.**
 
 The service account currently has **GA4 Administrator** granted by the owner. No privilege was changed. For ongoing read-only Data API verification, a **Viewer** role may suffice after a successful scoped test; do not revoke owner-approved Admin access automatically.
 
@@ -52,7 +52,7 @@ Prior GSC owner-observed workflow #5 established real read-only API HTTP 200 for
 
 ## Existing adapter contract
 
-`platform/analytics-config.json` remains `enabled:false` with `tag_transport:GTM_ONLY`, a real GA4 Measurement ID, and `gtm_container_id:null`. Public config is generated from canonical config; it contains no tokens or service account credentials. At this state there is **no tag installation or data transmission from this code**.
+`platform/analytics-config.json` remains `enabled:false` with `tag_transport:GTM_ONLY`, a real GA4 Measurement ID, and `gtm_container_id:GTM-P6LWCLKM`. Public config is generated from canonical config; it contains no tokens or service account credentials. At this state there is **no tag installation or data transmission from this code**.
 
 The optional analytics consent key is now `jr-analytics-consent-v2`. Earlier stored `jr-analytics-consent-v1` choices **do not** authorize the new GTM delivery path; users must opt in again. No new cookie or service-worker tracking state is created.
 
@@ -81,7 +81,7 @@ Existing MFA-backed Operations Control Center has gained `GET /api/admin/operati
 
 - `gsc`: existing bounded private aggregate snapshot, with unknown values where no authenticated private observation has been ingested.
 - `ga4`: property `properties/559754204` and Measurement ID `G-C3C7NQQNWX` as owner-provided identifiers, but **activeUsers=null**, **eventCount=null**, and `status=not_ingested` until a verified read-only private ingestion process is approved.
-- `tagManager`: `status=pending_owner_container`, **containerId=null**. No owner GTM Container ID, Preview, DebugView or production collection is inferred.
+- `tagManager`: `status=container_registered_unpublished`, **containerId=GTM-P6LWCLKM**. Container existence does not certify tag configuration, Preview, DebugView or production collection.
 
 This is a **status/projection integration**, not production data synchronization. The old `/admin/operations/gsc-direct` read-only route remains intact for backward compatibility. No GSC Wizard source is repurposed.
 
