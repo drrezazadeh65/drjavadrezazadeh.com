@@ -54,6 +54,8 @@ Prior GSC owner-observed workflow #5 established real read-only API HTTP 200 for
 
 `platform/analytics-config.json` remains `enabled:false` with `tag_transport:GTM_ONLY`, a real GA4 Measurement ID, and `gtm_container_id:null`. Public config is generated from canonical config; it contains no tokens or service account credentials. At this state there is **no tag installation or data transmission from this code**.
 
+The optional analytics consent key is now `jr-analytics-consent-v2`. Earlier stored `jr-analytics-consent-v1` choices **do not** authorize the new GTM delivery path; users must opt in again. No new cookie or service-worker tracking state is created.
+
 When the owner confirms the GTM container and test tags, change the one existing canonical config, regenerate the public projection, run audits and obtain explicit release approval. A future enabled adapter:
 - Loads GTM **once** and **only after explicit analytics opt-in**, with default Google Consent Mode denied and advertising purposes denied.
 - Offers bilingual allow/decline/reopen controls on safe public routes, never an assessment/private checkout/secure user area.
