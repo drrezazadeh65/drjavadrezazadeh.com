@@ -124,3 +124,15 @@ test('commerce monitor clears separate checkout readiness and cancels pending re
  const check=spawnSync(process.execPath,['--check','assets/js/operations-commerce.js'],{encoding:'utf8'});
  assert.equal(check.status,0,check.stderr);
 });
+
+
+test('both language admin shells use fresh versioned report and commerce scripts',()=>{
+ for(const page of ['fa/app/admin/index.html','en/account/admin/index.html']){
+  const html=read(page);
+  assert.match(html,/operations-control\.js\?v=20261020-admin-workspace-link-v2/);
+  assert.match(html,/operations-commerce\.js\?v=20261020-owner-lock-v1/);
+  assert.doesNotMatch(html,/operations-commerce\.js\?v=20261017-cpanel-remediation-v9/);
+ }
+ const audit=read('scripts/donation-cycle-audit.cjs');
+ assert.match(audit,/operations-commerce\.js\?v=20261020-owner-lock-v1/);
+});
