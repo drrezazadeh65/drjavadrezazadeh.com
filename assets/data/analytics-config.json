@@ -2,7 +2,9 @@
   "schema_version": "1.0",
   "provider": "GA4",
   "enabled": false,
-  "measurement_id": null,
+  "measurement_id": "G-C3C7NQQNWX",
+  "tag_transport": "GTM_ONLY",
+  "gtm_container_id": null,
   "consent": {
     "required": true,
     "storage_key": "jr-analytics-consent-v1",
