@@ -1,9 +1,11 @@
-# CDN / Cache Policy — JR Cache Standard v2.0 Companion
+# Archived CDN / Cache Policy — pre-Bertina JR Cache Standard v2.0 Companion
 
-Status: active production policy companion.  
-Canonical source: `/CACHE_STANDARD.md`.
+Status: historical GitHub Pages migration record, **not an active Bertina cache configuration**.  
+Canonical current source: [`CACHE_STANDARD.md`](../CACHE_STANDARD.md), JR Cache Standard v2.2, and [`BERTINA_IRAN_FIRST_CACHE_IMPLEMENTATION_20261020.md`](../docs/governance/BERTINA_IRAN_FIRST_CACHE_IMPLEMENTATION_20261020.md).
 
-## Current hosting reality
+> **Current production:** Bertina Linux/LiteSpeed-compatible HTTP delivery; reviewed `.htaccess` and SHA-stamped `sw.js` control freshness and privacy. The following GitHub Pages behavior is preserved solely as migration provenance. It must not be used to activate LSCache, Redis/Memcached, or year-long mutable-asset caching.
+
+## Historical hosting reality — superseded by Bertina
 
 The public site currently runs on **GitHub Pages**. GitHub controls origin/edge HTTP cache headers and the repository cannot override those headers per route. Therefore freshness for mutable content is enforced primarily through:
 
