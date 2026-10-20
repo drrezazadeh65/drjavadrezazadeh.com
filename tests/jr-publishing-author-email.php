@@ -5,15 +5,15 @@ require_once __DIR__.'/../api/internal/jr-publishing-notifications.php';
 function a(bool $check,string $why): void { if(!$check) throw new RuntimeException($why); }
 $input=[
   'provider_verified'=>true,'safe_sale_reference'=>'abcdef012345',
-  'gross_toman'=>1000000,'author_toman'=>600000,
-  'talent_fund_toman'=>400000,'operating_reserve_toman'=>70000,
+  'gross_toman'=>1000000,'author_toman'=>700000,
+  'talent_fund_toman'=>300000,'operating_reserve_toman'=>70000,
   'buyer_name'=>'PRIVATE BUYER SHOULD NOT APPEAR',
   'buyer_email'=>'buyer-private-example@example.invalid',
   'raw_gateway_trans_id'=>'SECRET TRANSACTION DO NOT INCLUDE'
 ];
 $t=jrPublishingAuthorSaleNotice($input,'سید محراب میرکریمی');
-a(str_contains($t['body'],'600,000'),'author share missing');
-a(str_contains($t['body'],'400,000'),'talent fund share missing');
+a(str_contains($t['body'],'700,000'),'author share missing');
+a(str_contains($t['body'],'300,000'),'talent fund share missing');
 a(str_contains($t['body'],'70,000'),'independent cost missing');
 a(str_contains($t['body'],'تسویه بانکی انجام‌شده نیست'),'settlement disclaimer missing');
 a(!str_contains($t['body'],$input['buyer_name']),'buyer name leaked');
