@@ -56,6 +56,9 @@ jobs:
           CREATE TABLE eco_object_refs (
             id CHAR(36) NOT NULL PRIMARY KEY
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+          CREATE TABLE eco_consent_records (
+            id CHAR(36) NOT NULL PRIMARY KEY
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
           CREATE TABLE eco_schema_migrations (
             version VARCHAR(80) NOT NULL PRIMARY KEY
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
