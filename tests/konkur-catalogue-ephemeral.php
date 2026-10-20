@@ -71,6 +71,32 @@ must(count(records($pdo,1403))===0,'issuer confirmation alone insufficient for p
 $set->execute(['QA_APPROVED',$document]);
 must(count(records($pdo,1403))===1,'human source review reactivates verified fixture');
 
+
+$set=$pdo->prepare('UPDATE eco_admission_documents SET original_pdf_sha256=? WHERE id=?');
+$set->execute([null,$document]);
+must(count(records($pdo,1403))===0,'missing original PDF fingerprint blocks official facts');
+$set->execute([str_repeat('a',64),$document]);
+must(count(records($pdo,1403))===1,'restored source fingerprint still requires all review gates');
+
+$set=$pdo->prepare('UPDATE eco_admission_documents SET examination_group_code=? WHERE id=?');
+$set->execute(['MATHEMATICS',$document]);
+must(count(records($pdo,1403,'SYNTHETIC'))===0,'mismatched source group blocks cross-group publication');
+$set->execute(['SYNTHETIC',$document]);
+must(count(records($pdo,1403,'SYNTHETIC'))===1,'matching official source scope restored');
+
+$set=$pdo->prepare('UPDATE eco_admission_cycles SET approved_at=? WHERE id=?');
+$set->execute([null,$cycle]);
+must(count(records($pdo,1403))===0,'active admission cycle without recorded approval must not publish');
+$set=$pdo->prepare('UPDATE eco_admission_cycles SET approved_at=NOW(3) WHERE id=?');
+$set->execute([$cycle]);
+must(count(records($pdo,1403))===1,'recorded approved cycle passes this gate');
+
+$set=$pdo->prepare('UPDATE eco_admission_programme_offerings SET approved_by_account_id=? WHERE id=?');
+$set->execute([null,$offering]);
+must(count(records($pdo,1403))===0,'offering without attributable human approval must not publish');
+$set->execute([$reviewer,$offering]);
+must(count(records($pdo,1403))===1,'reinstated offering approval still requires complete provenance');
+
 $successor=bin2hex(random_bytes(16));
 $pdo->prepare("INSERT INTO eco_admission_documents(id,cycle_id,document_code,revision_no,document_kind,issuer_code,
  supersedes_document_id,document_review_state) VALUES (?,?, 'SYNTHETIC_AMENDMENT',1,'AMENDMENT','SANJESH',?,'DRAFT')")
