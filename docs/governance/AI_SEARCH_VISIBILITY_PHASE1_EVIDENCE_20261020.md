@@ -54,6 +54,29 @@ The older source record mentioning **359 referring domains in Ahrefs** describes
 - Request independent HTTPS/robots/sitemap/headers/redirect checks, updated Google Search Console URL Inspection and Bing samples, supported Ubersuggest follow-up observations, verified referral analytics with consent, and real citation URLs before claiming discoverability improvement.
 - Academic team must substantiate any stronger validity, institutional affiliation, research publication or external profile claims independently.
 
+## I. Phase I release-contract closure — 20 October 2026, commit `0a04ceb8cad0011990c10e55ae87303c3392253d`
+
+**Evidence classification: verified GitHub CI for exact source commit; not deployed to Bertina.** The following source and CI changes were added on the sole canonical branch, with no additional application/database, routes, payment activation or automated publication:
+
+1. `scripts/build-public-site.mjs` now requires the dated AI evidence, MFA-only API module, dashboard JavaScript and both existing administrator shells together. This is a packaging completeness assertion, **not** proof that the host's Apache rules enforce the private-directory denial.
+2. `.github/workflows/operations-control-center.yml` now runs the owner dashboard test suite when the AI visibility panel, workspace navigator or exact prompt-contract test changes.
+3. `api/operations-ai-visibility.php` rejects cross-prompt page swaps and arbitrary `/en/` paths, including `/en/account/admin/` and `/en/shop/checkout/`. The approved ten-route crosswalk is exact, while routes remain source-only until checked on production.
+4. `tests/operations-ai-visibility.php` and `tests/ai-search-visibility-contract.test.mjs` add negative assertions for private route substitution, source/route mismatch, missing atomic release assets and CI trigger coverage.
+
+**Independent GitHub Actions results for that exact SHA:**
+
+| Workflow | Result | Evidence |
+|---|---|---|
+| Operations Control Center QA (including PHP/MySQL) | PASS | [run 39384524123](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39384524123) |
+| SEO GEO Regression | PASS | [run 39384524159](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39384524159) |
+| Bertina Master SEO Audit | PASS | [run 39384524110](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39384524110) |
+| Progressive Release Policy Tests (No Deployment) | PASS | [run 39384524192](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39384524192) |
+| Safe public scientific experience release QA | PASS | [run 39384524120](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39384524120) |
+| Bertina-Only Provider Guard | PASS | [run 39384524165](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39384524165) |
+| DrJavad v5.1.0 First Usable Nondeploying Candidate (contracts, browser, public observation, candidate) | PASS | [run 39384524118](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39384524118) |
+
+**Still not certified:** live public HTTPS/TLS trust and effective private-path access denial for this release, live payment fulfilment and journal security gates, Search Console indexation, AI citation URLs, current AI-provider remeasurement, and actual deployment of this SHA. The historic full-masterplan tracker remains pending and must not be marked verified on the strength of these source-only checks. Production publication requires the existing owner-controlled guarded release and independent host checks.
+
 ## Confidence classification
 | Conclusion | Confidence | Limitation |
 |---|---|---|
