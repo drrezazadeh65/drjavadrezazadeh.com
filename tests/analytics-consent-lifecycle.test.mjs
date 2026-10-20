@@ -12,7 +12,7 @@ const fixture={
  payload_allowlist:['event_key','surface','locale','route','target_kind']
 };
 
-async function boot(config=fixture,pathname='/en/services/',search='?email=private%40example.com'){
+async function boot(config=fixture,pathname='/en/services/',search='',hash=''){
  const store=new Map(),listeners=new Map(),scripts=[],nodes=[];
  function makeNode(tag){
   return {
@@ -42,7 +42,7 @@ async function boot(config=fixture,pathname='/en/services/',search='?email=priva
   setItem(key,value){store.set(key,String(value));}
  };
  vm.runInNewContext(source,{window,document,localStorage,
-  location:{pathname,search,href:'https://drjavadrezazadeh.com'+pathname+search},
+  location:{pathname,search,hash,href:'https://drjavadrezazadeh.com'+pathname+search+hash},
   fetch:async()=>({ok:true,json:async()=>config}),encodeURIComponent,Date},{timeout:2000});
  await new Promise(resolve=>setImmediate(resolve));
  const objects=()=>Array.from(window.dataLayer||[]).filter(x=>x&&typeof x==='object'&&!Array.isArray(x)&&x.event);
@@ -121,7 +121,7 @@ test('private account, assessment and checkout paths never inject GTM',async()=>
 
 test('Persian public slug is sanitized and account-like encoded routes are blocked',async()=>{
  const publicRoute='/fa/%DA%A9%D8%AA%D8%A7%D8%A8/';
- const p=await boot(fixture,publicRoute,'?email=private%40example.com');
+ const p=await boot(fixture,publicRoute,'');
  p.window.JRAnalyticsConsent.grant();
  assert.equal(p.scripts.length,1);
  const view=p.objects().find(e=>e.event==='jr_page_view');
@@ -132,6 +132,15 @@ test('Persian public slug is sanitized and account-like encoded routes are block
   const x=await boot(fixture,unsafe);
   x.window.JRAnalyticsConsent.grant();
   assert.equal(x.scripts.length,0,unsafe);
+ }
+});
+
+test('query strings and fragments block GTM entirely even on public URLs',async()=>{
+ for(const [search,hash] of [['?email=private%40example.com',''],['','#access_token=secret'],['?utm_source=public','']]){
+  const x=await boot(fixture,'/fa/',search,hash);
+  x.window.JRAnalyticsConsent.grant();
+  assert.equal(x.scripts.length,0,'query/hash data must not be exposed to GTM');
+  assert.equal(x.objects().length,0,'no automatic page view for query/hash URLs');
  }
 });
 
