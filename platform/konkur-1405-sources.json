@@ -15,14 +15,15 @@
       "category": "HUMANITIES",
       "sizeBytes": 27174845,
       "mimeType": "application/pdf",
-      "pdfPageCount": null,
-      "sha256": null,
+      "pdfPageCount": 582,
+      "sha256": "dc53d8c1f61bfd2f9fcb6d8d1cf97ea134c46aa140e0ed7129c3a9f50b5b2d06",
       "publishedDate": null,
       "issuerVerification": "OWNER_CONFIRMED",
-      "pdfPageAudit": "NOT_COMPLETED",
+      "pdfPageAudit": "ORIGINAL_PDF_PAGE_COUNT_AND_SHA256_VERIFIED",
       "criticalTablesVerification": "NOT_COMPLETED",
       "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
-      "activeForEligibility": false
+      "activeForEligibility": false,
+      "originalPdfDownloaded": true
     },
     {
       "key": "experimental",
@@ -31,14 +32,15 @@
       "category": "EXPERIMENTAL_SCIENCES",
       "sizeBytes": 30045031,
       "mimeType": "application/pdf",
-      "pdfPageCount": null,
-      "sha256": null,
+      "pdfPageCount": 664,
+      "sha256": "4f273944c5770a137f12f32793ec7561c8410901a25ec68f6059535fe92d10a6",
       "publishedDate": null,
       "issuerVerification": "OWNER_CONFIRMED",
-      "pdfPageAudit": "NOT_COMPLETED",
+      "pdfPageAudit": "ORIGINAL_PDF_PAGE_COUNT_AND_SHA256_VERIFIED",
       "criticalTablesVerification": "NOT_COMPLETED",
       "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
-      "activeForEligibility": false
+      "activeForEligibility": false,
+      "originalPdfDownloaded": true
     },
     {
       "key": "mathematics",
@@ -47,14 +49,15 @@
       "category": "MATHEMATICS",
       "sizeBytes": 35533200,
       "mimeType": "application/pdf",
-      "pdfPageCount": null,
-      "sha256": null,
+      "pdfPageCount": 478,
+      "sha256": "515003f7dc758a9c90807c0a2174604604dca93e85985f5831ef35ebc5e1e389",
       "publishedDate": null,
       "issuerVerification": "OWNER_CONFIRMED",
-      "pdfPageAudit": "NOT_COMPLETED",
+      "pdfPageAudit": "ORIGINAL_PDF_PAGE_COUNT_AND_SHA256_VERIFIED",
       "criticalTablesVerification": "NOT_COMPLETED",
       "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
-      "activeForEligibility": false
+      "activeForEligibility": false,
+      "originalPdfDownloaded": true
     },
     {
       "key": "arts",
@@ -63,14 +66,15 @@
       "category": "ARTS",
       "sizeBytes": 19032294,
       "mimeType": "application/pdf",
-      "pdfPageCount": null,
-      "sha256": null,
+      "pdfPageCount": 324,
+      "sha256": "f5f5c86ab32f94e65088643ccac1d0088e55a42ef643d143de93764c59446bf8",
       "publishedDate": null,
       "issuerVerification": "OWNER_CONFIRMED",
-      "pdfPageAudit": "NOT_COMPLETED",
+      "pdfPageAudit": "ORIGINAL_PDF_PAGE_COUNT_AND_SHA256_VERIFIED",
       "criticalTablesVerification": "NOT_COMPLETED",
       "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
-      "activeForEligibility": false
+      "activeForEligibility": false,
+      "originalPdfDownloaded": true
     },
     {
       "key": "appendices",
@@ -79,14 +83,15 @@
       "category": "INSTITUTIONAL_APPENDICES",
       "sizeBytes": 3629144,
       "mimeType": "application/pdf",
-      "pdfPageCount": null,
-      "sha256": null,
+      "pdfPageCount": 86,
+      "sha256": "e50c2ff0cbd715567f8a3be87d375eedc98b57759b467370c0cd9aa2ee974e55",
       "publishedDate": null,
       "issuerVerification": "OWNER_CONFIRMED",
-      "pdfPageAudit": "NOT_COMPLETED",
+      "pdfPageAudit": "ORIGINAL_PDF_PAGE_COUNT_AND_SHA256_VERIFIED",
       "criticalTablesVerification": "NOT_COMPLETED",
       "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
-      "activeForEligibility": false
+      "activeForEligibility": false,
+      "originalPdfDownloaded": true
     },
     {
       "key": "records_based",
@@ -95,14 +100,15 @@
       "category": "RECORDS_BASED_ADMISSION",
       "sizeBytes": 20020169,
       "mimeType": "application/pdf",
-      "pdfPageCount": null,
-      "sha256": null,
+      "pdfPageCount": 278,
+      "sha256": "26642d4ab27b07d8a69819f8efc5f5f4c31a6c13fa5f807005df9a001b39c1c0",
       "publishedDate": null,
       "issuerVerification": "OWNER_CONFIRMED",
-      "pdfPageAudit": "NOT_COMPLETED",
+      "pdfPageAudit": "ORIGINAL_PDF_PAGE_COUNT_AND_SHA256_VERIFIED",
       "criticalTablesVerification": "NOT_COMPLETED",
       "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
-      "activeForEligibility": false
+      "activeForEligibility": false,
+      "originalPdfDownloaded": true
     }
   ],
   "coverageGaps": [
@@ -125,5 +131,13 @@
     "requireIndependentHumanReview": true,
     "automaticVerificationFromText": false,
     "admissionProbabilityEnabled": false
+  },
+  "inventoryAudit": {
+    "rawPdfCount": 6,
+    "totalPdfPages": 2412,
+    "hashMethod": "SHA-256 file bytes",
+    "pdfLibrary": "PyMuPDF",
+    "verifiedOn": "2026-10-20",
+    "programmeRecordsApproved": 0
   }
 }
