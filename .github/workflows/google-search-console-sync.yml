@@ -14,6 +14,16 @@ on:
       - tests/test_gsc_readonly_probes.py
       - scripts/gsc_direct_snapshot_contract.py
       - tests/test_gsc_direct_snapshot_contract.py
+      - api/operations-gsc-direct.php
+      - api/operations.php
+      - tests/operations-gsc-direct.php
+      - tests/operations-mysql.php
+      - assets/js/operations-gsc-direct.js
+      - assets/js/operations-workspace-index-v1.js
+      - tests/gsc-direct-owner-panel-contract.test.mjs
+      - tests/operations-workspace-index-contract.test.mjs
+      - fa/app/admin/index.html
+      - en/account/admin/index.html
 
 permissions:
   contents: read
@@ -45,6 +55,13 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_gsc_readonly_probes.py' -v
           python3 -m unittest discover -s tests -p 'test_gsc_direct_snapshot_contract.py' -v
           echo "GSC test fixture uses synthetic responses; not real Google access."
+
+      - name: Verify GSC private owner panel contracts without external data
+        run: |
+          php -l api/operations-gsc-direct.php
+          php -l api/operations.php
+          php tests/operations-gsc-direct.php
+          node --test tests/gsc-direct-owner-panel-contract.test.mjs tests/operations-workspace-index-contract.test.mjs
 
       - name: Authenticate with Google Cloud via GitHub OIDC
         id: auth
