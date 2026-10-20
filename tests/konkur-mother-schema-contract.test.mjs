@@ -66,3 +66,27 @@ test('known 1405 PDF fingerprints exist but never grant automatic source-page ap
  }
  assert.match(instructions,/no publication should occur yet/);
 });
+
+test('postflight checks eight intended tables using metadata only',()=>{
+ const postflight=uncomment(read('docs/migrations/20261020_konkur_catalog_readonly_postflight.sql'));
+ assert.match(postflight,/information_schema\\.TABLES/);
+ assert.match(postflight,/information_schema\\.TABLE_CONSTRAINTS/);
+ assert.match(postflight,/information_schema\\.COLUMNS/);
+ assert.match(postflight,/drjavad1_store/);
+ assert.doesNotMatch(postflight,/\\b(?:INSERT|UPDATE|DELETE|REPLACE|DROP|ALTER|TRUNCATE|GRANT|REVOKE|CREATE)\\s+(?:TABLE|INTO|FROM|DATABASE|VIEW)\\b/i);
+});
+test('optional 1405 draft seed preserves six original PDF hashes without promoting programmes',()=>{
+ const seed=uncomment(read('docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql'));
+ const manifest=JSON.parse(read('platform/konkur-1405-sources.json'));
+ assert.equal((seed.match(/INSERT INTO eco_admission_documents/g)||[]).length,6);
+ assert.equal((seed.match(/INSERT INTO eco_admission_cycles/g)||[]).length,1);
+ for(const s of manifest.sources){
+  assert.ok(seed.includes(s.sha256),'missing original source sha '+s.key);
+  assert.ok(seed.includes(s.fileId),'missing Drive source record '+s.key);
+  assert.ok(seed.includes(String(s.pdfPageCount)),'missing original page count '+s.key);
+ }
+ assert.equal((seed.match(/'OWNER_CONFIRMED'/g)||[]).length,6);
+ assert.doesNotMatch(seed,/\\b(?:UPDATE|DELETE|REPLACE|DROP|ALTER|TRUNCATE|GRANT|REVOKE)\\s+(?:TABLE|INTO|FROM|DATABASE|VIEW)\\b/i);
+ assert.doesNotMatch(seed,/INSERT INTO eco_admission_(?:programme_offerings|rule_versions|offering_conditions|import_rows)/);
+ assert.ok(instructions.includes('optional')||instructions.includes('Optional'));
+});
