@@ -739,3 +739,7 @@
  .jr-choice-guidance-page .jr-cs-result{background:#fff!important;border:1px solid #888}
  .jr-choice-guidance-page .jr-cs-result :is(h4,p,span,strong,b){color:#171717!important}
 }
+
+/* Choice Studio: accessible descriptive sensitivity, not a validated score. */
+.jr-choice-studio .jr-cs-sensitivity{padding:12px 15px;margin:12px 0;border-inline-start:3px solid var(--cs-gold-soft);border-radius:8px;background:rgba(180,145,71,.09);color:var(--cs-ink);line-height:1.9;font-size:.91rem}
+@media print{.jr-choice-studio .jr-cs-sensitivity{color:#171717!important;background:#fff!important;border-color:#777!important}}

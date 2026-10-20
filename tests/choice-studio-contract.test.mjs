@@ -15,8 +15,8 @@ test('bilingual choice studio remains a working addition to existing verified pu
   const html=read(path);
   assert.ok(html.includes('rel="canonical" href="'+url+'"'),'freeze canonical '+lang);
   assert.ok(html.includes('data-choice-studio data-locale="'+lang+'"'),'mount localised studio '+lang);
-  assert.ok(html.includes('jr-choice-studio-v1.css?v=20261019-choice-design-v41'));
-  assert.ok(html.includes('jr-choice-studio-v1.js?v=20261019-choice-stages-v41'));
+  assert.ok(html.includes('jr-choice-studio-v1.css?v=20261020-choice-sensitive-v5'));
+  assert.ok(html.includes('jr-choice-studio-v1.js?v=20261020-choice-sensitive-v5'));
   assert.match(html,/<noscript>/,'progressive enhancement for '+lang);
   assert.match(html,/aria-labelledby="jr-choice-studio-(?:fa|en)-title"/);
  }
