@@ -104,6 +104,19 @@ function fixtureOrder(Stage9FixtureDb $db,string $id,string $sku='book:one'): vo
     $db->orders[$id]=['state'=>'pending','provider_id_get'=>'111','provider_amount'=>'20000000','factor_id'=>$id,
         'items_json'=>json_encode([['kind'=>str_starts_with($sku,'book:')?'book':'service','sku'=>$sku,'quantity'=>1]])];
 }
+// A malformed persisted order must never consume stock after gateway verification.
+$invalidQtyDb=new Stage9FixtureDb();
+$invalidQtyDb->beginTransaction();
+stage9ReserveBooks($invalidQtyDb,'invalid',[['kind'=>'book','sku'=>'book:one','quantity'=>1]]);
+$invalidQtyDb->commit();
+fixtureOrder($invalidQtyDb,'invalid');
+$invalidQtyDb->orders['invalid']['items_json']=json_encode([['kind'=>'book','sku'=>'book:one','quantity'=>21]]);
+try {stage9FinalizePayment($invalidQtyDb,'invalid','111','888','20000000','invalid');throw new RuntimeException('invalid_paid_quantity_accepted');}
+catch(RuntimeException $e){ok($e->getMessage()==='invalid_paid_stock','paid_quantity_limit_rechecked');}
+ok($invalidQtyDb->stock['book:one']['physical_on_hand']===2 && $invalidQtyDb->stock['book:one']['reserved']===1,
+ 'invalid_paid_quantity_preserves_stock');
+ok($invalidQtyDb->claims===[] && $invalidQtyDb->outbox===[] && $invalidQtyDb->orders['invalid']['state']==='pending',
+ 'invalid_paid_quantity_rolls_back_financial_claim');
 $db=new Stage9FixtureDb();
 try{stage9ReserveBooks($db,'a',[['kind'=>'book','sku'=>'book:one','quantity'=>1]]);throw new RuntimeException('no_tx_accepted');}
 catch(RuntimeException $e){ok($e->getMessage()==='inventory_transaction_required','transaction_required');}
