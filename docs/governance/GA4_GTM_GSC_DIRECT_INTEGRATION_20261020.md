@@ -74,6 +74,16 @@ Until the container is known and owner authorizes Preview, status is **NOT VERIF
 - Validate network payloads, GTM tag sequencing, GA4 Measurement ID, consent storage and the public build/CI. Preview is not publication, and a successful preview is not evidence of production traffic.
 - Only then ask owner for separate explicit approval to Publish the GTM Container **and** deploy the source through the existing one-click Bertina workflow.
 
+## Owner-only unified Search Intelligence surface
+
+Existing MFA-backed Operations Control Center has gained `GET /api/admin/operations/search-intelligence` under the same **SUPER_ADMIN + fresh MFA + rate limit + no-store** gate; no new service, database or public endpoint. Its bilingual panel separates:
+
+- `gsc`: existing bounded private aggregate snapshot, with unknown values where no authenticated private observation has been ingested.
+- `ga4`: property `properties/559754204` and Measurement ID `G-C3C7NQQNWX` as owner-provided identifiers, but **activeUsers=null**, **eventCount=null**, and `status=not_ingested` until a verified read-only private ingestion process is approved.
+- `tagManager`: `status=pending_owner_container`, **containerId=null**. No owner GTM Container ID, Preview, DebugView or production collection is inferred.
+
+This is a **status/projection integration**, not production data synchronization. The old `/admin/operations/gsc-direct` read-only route remains intact for backward compatibility. No GSC Wizard source is repurposed.
+
 ## Reporting and metric boundaries
 
 - GSC: search impressions/clicks/search CTR/average search position; delayed, aggregated, sampled search performance, and URL inspection/sitemap *observations*.
