@@ -51,6 +51,8 @@ test('changed PHP publishing surfaces pass PHP syntax lint when interpreter is a
  assert.equal(version.status,0,version.stderr);
  for(const path of [
   'api/internal/jr-publishing-digital.php',
+  'api/internal/jr-publishing-allocation-policy.php',
+  'api/internal/jr-publishing-policy-70-30-cli.php',
   'api/internal/jr-publishing-preflight-cli.php',
   'api/internal/jr-publishing-activate-existing-cli.php'
  ]){
