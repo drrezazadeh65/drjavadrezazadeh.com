@@ -109,7 +109,7 @@ try {
  // The same isolated account can now read the owner-only AI evidence.
  $gscDirect=request('/api/admin/operations/gsc-direct',200);
  check(($gscDirect['schema']??'')==='jr-owner-gsc-direct-v1'&&($gscDirect['status']??'')==='unavailable'
-     &&($gscDirect['metrics']['clicks']??'missing')===null&&($gscDirect['apiLiveNow']??true)===false,
+     &&array_key_exists('clicks',$gscDirect['metrics'])&&$gscDirect['metrics']['clicks']===null&&($gscDirect['apiLiveNow']??true)===false,
      'Direct GSC absent snapshot invented source or traffic');
  $aisv=request('/api/admin/operations/ai-visibility',200);
  check($aisv['status']==='provider_report_snapshot'&&$aisv['sampledAnswers']===5
