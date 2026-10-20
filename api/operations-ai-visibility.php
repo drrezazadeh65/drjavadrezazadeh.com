@@ -23,12 +23,21 @@ function operationsAiVisibilityFromDocument(?array $data): array {
         || !is_array($data['prompts']??null)||count($data['prompts'])!==10
         || !is_array($data['providers']??null)||count($data['providers'])!==3)
         return $unavailable;
+    // Frozen query-to-public-page crosswalk: refuse arbitrary /en/ routes,
+    // including real private account/checkout/admin directories that otherwise
+    // match the generic locale URL pattern. No URL changes are introduced.
+    $fixedPublicRoutes=[
+        '/en/academic-profile/','/en/publications/','/en/golden-talent/',
+        '/en/student-guidance/','/en/golden-talent/methodology/',
+        '/en/golden-talent/','/en/golden-talent/methodology/',
+        '/en/academic-services/','/en/teacher-education/','/en/research/'
+    ];
     $rows=[];$sum=0;$mentions=0;
     foreach($data['prompts'] as $i=>$row){
         if(!is_array($row)||($row['ordinal']??null)!==$i+1
             || ($row['provider']??null)!=='openai'
             || !is_string($row['prompt']??null)||strlen($row['prompt'])<20||strlen($row['prompt'])>320
-            || !preg_match('~^/en/(?:[a-z0-9-]+/){1,3}$~D',(string)($row['primaryPublicRoute']??''))
+            || ($row['primaryPublicRoute']??null)!==$fixedPublicRoutes[$i]
             || !is_int($row['sampledAnswers']??null)
             || $row['sampledAnswers']<0||$row['sampledAnswers']>10000)
             return $unavailable;
