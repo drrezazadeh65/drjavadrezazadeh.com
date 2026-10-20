@@ -18,3 +18,11 @@
 [data-book-catalog] .jr-digital-product-card a:focus-visible{outline:3px solid #fff4c6;outline-offset:4px}
 @media(max-width:560px){[data-book-catalog] .jr-digital-cover img{height:200px}[data-book-catalog] .jr-digital-product-card .book-product-copy{padding:17px}}
 @media(prefers-reduced-motion:reduce){[data-book-catalog] .jr-digital-product-card *{scroll-behavior:auto!important;transition:none!important}}
+
+/* Small, keyboard-accessible product-format selector; all four remain together by default. */
+.jr-shop-filters{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 22px;justify-content:flex-start}
+.jr-shop-filter{min-height:44px;padding:9px 18px;border:1px solid #b9955f;border-radius:99px;background:#172336;color:#ffedc9;font:inherit;font-weight:700;cursor:pointer}
+.jr-shop-filter[aria-pressed="true"]{background:#e9c78b;color:#182230;border-color:#f0d5a1}
+.jr-shop-filter:focus-visible{outline:3px solid #f2c679;outline-offset:3px}
+[data-book-catalog] .book-product-card[hidden]{display:none!important}
+@media(max-width:560px){.jr-shop-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.jr-shop-filter{font-size:.81rem;min-width:0;padding:8px 4px}}
