@@ -11,6 +11,9 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - .github/workflows/http-compression-diagnostic.yml
+      - .htaccess
+      - sw.js
+      - CACHE_STANDARD.md
 permissions:
   contents: read
 jobs:
