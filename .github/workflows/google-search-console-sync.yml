@@ -1,0 +1,97 @@
+
+name: Google Search Console Connection Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-search-console:
+    name: Verify Google Search Console API
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Authenticate with Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/301218972490/locations/global/workloadIdentityPools/jr-github-actions/providers/github-actions
+          service_account: jr-search-console-reader@jr-search-intelligence.iam.gserviceaccount.com
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/webmasters.readonly
+
+      - name: Verify Search Console access
+        shell: bash
+        env:
+          GCP_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          token = os.environ.get("GCP_ACCESS_TOKEN", "")
+
+          if not token:
+              raise SystemExit("Authentication failed: no access token.")
+
+          url = "https://www.googleapis.com/webmasters/v3/sites"
+
+          request = urllib.request.Request(
+              url,
+              headers={
+                  "Authorization": f"Bearer {token}",
+                  "Accept": "application/json",
+              },
+          )
+
+          try:
+              with urllib.request.urlopen(
+                  request, timeout=30
+              ) as response:
+                  data = json.load(response)
+
+          except urllib.error.HTTPError as error:
+              print(f"Search Console API returned HTTP {error.code}")
+              raise SystemExit(1)
+
+          except urllib.error.URLError as error:
+              print(f"Search Console API connection failed: {error.reason}")
+              raise SystemExit(1)
+
+          sites = data.get("siteEntry", [])
+
+          print(f"Accessible Search Console properties: {len(sites)}")
+
+          allowed_properties = {
+              "https://drjavadrezazadeh.com/",
+              "sc-domain:drjavadrezazadeh.com",
+          }
+
+          matched = [
+              site for site in sites
+              if site.get("siteUrl") in allowed_properties
+          ]
+
+          if not matched:
+              raise SystemExit(
+                  "Target Search Console property is not accessible."
+              )
+
+          for site in matched:
+              print(
+                  "Verified property:",
+                  site.get("siteUrl"),
+                  "| Permission:",
+                  site.get("permissionLevel", "unknown"),
+              )
+
+          print("SUCCESS: Google Search Console API access verified.")
+          PY
