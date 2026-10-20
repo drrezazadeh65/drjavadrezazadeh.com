@@ -54,6 +54,7 @@ const outputs={
     measurement_id:analytics.measurement_id||null,
     tag_transport:analytics.tag_transport||'NONE',
     gtm_container_id:analytics.gtm_container_id||null,
+    clarity:analytics.clarity?{project_id:analytics.clarity.project_id,enabled:analytics.clarity.enabled===true,delivery:analytics.clarity.delivery,consent:analytics.clarity.consent,allowlisted_public_routes:analytics.clarity.allowlisted_public_routes}:null,
     consent:analytics.consent,
     allowed_client_events:analytics.allowed_client_events||[],
     payload_allowlist:analytics.payload_allowlist||[]
