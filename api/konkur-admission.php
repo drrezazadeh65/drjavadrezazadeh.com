@@ -51,7 +51,6 @@ WHERE p.review_state='APPROVED'
   AND NOT EXISTS (
     SELECT 1 FROM eco_admission_documents successor
     WHERE successor.supersedes_document_id=d.id
-      AND successor.document_review_state IN ('OWNER_CONFIRMED','SOURCE_VERIFIED','QA_APPROVED','SUPERSEDED')
   )
   AND NOT EXISTS (
     SELECT 1 FROM eco_admission_programme_offerings revision
@@ -74,7 +73,10 @@ WHERE p.review_state='APPROVED'
         OR cp.reviewed_by_account_id IS NULL OR cp.reviewed_at IS NULL
         OR cd.document_review_state <> 'QA_APPROVED'
         OR cd.cycle_id <> c.id
+        OR (cd.examination_group_code IS NOT NULL AND cd.examination_group_code<>p.examination_group_code)
+        OR cd.original_pdf_sha256 IS NULL
         OR cd.reviewed_by_account_id IS NULL OR cd.reviewed_at IS NULL
+        OR EXISTS (SELECT 1 FROM eco_admission_documents amendment WHERE amendment.supersedes_document_id=cd.id)
       )
   )
 SQL;
@@ -107,7 +109,8 @@ function konkurCatalogueRoute(string $path, string $verb): never {
     $group=trim((string)($_GET['group']??''));
     if ($group!=='' && !preg_match('/^[A-Z0-9_]{2,60}$/D',$group)) fail('invalid_examination_group',422);
     $search=trim((string)($_GET['q']??''));
-    if (mb_strlen($search,'UTF-8')>80 || preg_match('/[\x00-\x1F\x7F]/u',$search))
+    if ((function_exists('mb_strlen') ? mb_strlen($search,'UTF-8')>80 : strlen($search)>240)
+        || preg_match('/[\x00-\x1F\x7F]/u',$search))
         fail('invalid_search',422);
     $limitRaw=(string)($_GET['limit']??'20');
     if (!preg_match('/^[1-9][0-9]?$/D',$limitRaw) || (int)$limitRaw>50) fail('invalid_limit',422);
