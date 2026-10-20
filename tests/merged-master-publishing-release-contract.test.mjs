@@ -26,18 +26,18 @@ test('unified candidate protects the 21 approved services and their shared comme
  assert.match(api,/jrPubDigitalOffer\(\$pdo\)/);
  assert.match(api,/if\(\$hasDigital&&\(\$hasBook\|\|count\(\$counts\)!==1\)\)/);
 });
-test('first author preserves exactly the approved 1m/600k/400k split and separate 7% reserve',()=>{
+test('first author preserves exactly the approved 1m/700k/300k split and separate 7% reserve',()=>{
  const item=book.works.find(w=>w.id==='tefl-ma-exams-1370-1405');
  assert.ok(item);
  const q=item.quote;
  assert.deepEqual([q.gross_unit_price,q.author_unit_share,q.fund_unit_share,
     q.operating_reserve_irt,q.platform_subsidy_required_irt],
-    [1000000,600000,400000,70000,70000]);
+    [1000000,700000,300000,70000,70000]);
  assert.equal(q.author_unit_share+q.fund_unit_share,q.gross_unit_price);
  assert.equal(q.gateway_cost_bearer,'platform_subject_to_owner_approval');
  assert.equal(q.operating_reserve_rate_basis_points,700);
- assert.match(page,/۴۰۰ هزار تومان/);
- assert.match(page,/۶۰۰ هزار تومانی/);
+ assert.match(page,/۳۰۰ هزار تومان/);
+ assert.match(page,/۷۰۰ هزار تومانی/);
  assert.match(draft,/negotiation_draft_not_signed/);
  assert.match(draft,/'sign'=>false/);
  assert.match(mobile,/draftContract/);
