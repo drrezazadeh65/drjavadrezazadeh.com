@@ -114,3 +114,18 @@ test('RCAS printable enhancement scripts load independently in both locales',()=
     path+' printable report enhancement missing');
  }
 });
+
+test('live Golden Talent health contract does not misrepresent Node research preflight as PHP learner service',()=>{
+ const php=read('api/golden-talent.php');
+ for(const text of [
+  "'scientificContinuity'=>[",
+  "'prevalidationContract'=>'scientific-continuity-preflight-v1'",
+  "'productionScientificAdapterActive'=>false",
+  "'backendConsentAndSubjectAuthorisationVerified'=>false",
+  "'psychometricValidationEstablished'=>false",
+  "'automaticTalentScoreEnabled'=>false",
+  "'automaticPurchaseEntitlementEnabled'=>false"
+ ])assert.ok(php.includes(text),'missing fail-closed health field: '+text);
+ assert.match(php,/goldenTalentBaharStorageSchemaReady/);
+ assert.match(php,/goldenTalentAssessmentConsentCurrent/);
+});
