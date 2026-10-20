@@ -35,7 +35,7 @@ foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboardi
     if(!copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file))
         throw new RuntimeException('isolated_router_dependency_missing_'.$file);
 }
-foreach(['jr-publishing-digital.php','jr-publishing-contract-draft.php','jr-publishing-notifications.php','jr-publishing-mailer.php'] as $helper) {
+foreach(['jr-publishing-digital.php','jr-publishing-allocation-policy.php','jr-publishing-contract-draft.php','jr-publishing-notifications.php','jr-publishing-mailer.php'] as $helper) {
     if(!copy(__DIR__.'/../api/internal/'.$helper,$folder.'/api/internal/'.$helper))
       throw new RuntimeException('missing_publishing_private_runtime_'.$helper);
 }
