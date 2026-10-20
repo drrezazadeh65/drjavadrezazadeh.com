@@ -25,6 +25,8 @@
   const date=create('input','');date.type='text';date.inputMode='numeric';date.autocomplete='off';date.maxLength=10;date.placeholder='1405/08/02';date.required=true;
   const taz=create('input','');taz.type='text';taz.inputMode='decimal';taz.autocomplete='off';taz.maxLength=12;taz.placeholder=tr('تراز گزارش‌شده (اختیاری)','Reported TAZ (optional)');
   const rank=create('input','');rank.type='text';rank.inputMode='numeric';rank.autocomplete='off';rank.maxLength=12;rank.placeholder=tr('رتبه گزارش‌شده (اختیاری)','Reported rank (optional)');
+  const grade=create('select','');
+  [['UNSPECIFIED',tr('پایه / مقطع اعلام نشده','Grade not specified')],['10',tr('پایه دهم','Grade 10')],['11',tr('پایه یازدهم','Grade 11')],['12',tr('پایه دوازدهم','Grade 12')],['GRADUATE',tr('فارغ‌التحصیل / پشت کنکوری','Graduate / repeat candidate')]].forEach(([v,label])=>{const n=create('option','',label);n.value=v;grade.append(n);});
   const rankScope=create('select','');
   [['UNSPECIFIED',tr('محدوده رتبه نامشخص است','Rank population not specified')],['NATIONAL',tr('کل شرکت‌کنندگان کشوری','National provider participants')],['PROVINCE',tr('استان','Province')],['CITY',tr('شهر','City')],['SCHOOL',tr('مدرسه','School')],['CLASS',tr('کلاس','Class')],['OTHER_SCOPE',tr('سایر / اعلامی مؤسسه','Other provider-defined scope')]].forEach(([v,label])=>{const n=create('option','',label);n.value=v;rankScope.append(n);});
   const lesson=create('input','');lesson.type='text';lesson.autocomplete='off';lesson.maxLength=70;lesson.placeholder=tr('نام درس (اختیاری)','Subject name (optional)');
@@ -33,6 +35,7 @@
   form.append(field(tr('مؤسسه برگزارکننده','Exam provider'),provider),field(tr('گروه آزمایشی','Examination group'),examGroup),
    field(tr('تاریخ آزمون (شمسی)','Exam date (Solar Hijri)'),date),field(tr('تراز کل در کارنامه همان مؤسسه','Provider-issued overall TAZ'),taz),
    field(tr('رتبه درج‌شده در همان کارنامه','Rank reported by provider'),rank),
+   field(tr('پایه یا وضعیت تحصیلی هنگام آزمون','Grade or education stage at this exam'),grade),
    field(tr('جامعه آماری رتبه در کارنامه','Rank comparison population'),rankScope),
    field(tr('درس قابل پیگیری','Subject to track'),lesson),field(tr('درصد آن درس','Subject percentage'),percent),add);
   const feedback=create('p','jr-km-feedback','');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
@@ -58,7 +61,7 @@
     const n=create('li','jr-km-item');
     const label=providers.find(x=>x[0]===row.provider)?.[1]||row.provider;
     const text=create('div','jr-km-details');
-    text.append(create('strong','',row.date+' — '+label),create('p','',row.group),
+    text.append(create('strong','',row.date+' — '+label),create('p','',row.group+' · '+row.grade),
      create('small','',tr('تراز همان مؤسسه: ','Same-provider TAZ: ')+(row.taz===null?'—':num.format(row.taz))+
      tr(' · رتبه: ',' · rank: ')+(row.rank===null?'—':num.format(row.rank))+(row.rank!==null?' ['+row.rankScope+']':'')));
     if(row.subject&&row.percent!==null)text.append(create('p','',row.subject+': '+num.format(row.percent)+'%'));
@@ -69,13 +72,13 @@
    });
    trend.replaceChildren();
    const latest=ordered.filter(x=>x.taz!==null).at(-1);
-   const comparable=latest&&ordered.filter(x=>x.provider===latest.provider&&x.group===latest.group&&x.taz!==null);
+   const comparable=latest&&!['OTHER','SCHOOL_LOCAL'].includes(latest.provider)&&ordered.filter(x=>x.provider===latest.provider&&x.group===latest.group&&x.grade===latest.grade&&x.taz!==null);
    if(comparable?.length>=2){
     const prior=comparable.at(-2),difference=latest.taz-prior.taz;
-    trend.append(create('p','',tr('تفاوت عدد تراز گزارش‌شده در دو آزمون اخیر همین مؤسسه و گروه: ',
-      'Reported TAZ difference between two latest exams of the same provider and group: ')+(difference>0?'+':'')+num.format(difference)));
-   }else trend.append(create('p','',tr('برای بررسی تغییرات توصیفی، دست‌کم دو نتیجه با تراز در همان مؤسسه و گروه ثبت کنید.',
-     'Enter at least two scaled results from the same provider and group for a descriptive change.')));
+    trend.append(create('p','',tr('تفاوت توصیفی تراز در دو آزمون اخیرِ همان مؤسسه، گروه و پایه (نه پیش‌بینی قبولی): ',
+      'Descriptive TAZ difference for the same provider, group and grade (not an admission forecast): ')+(difference>0?'+':'')+num.format(difference)));
+   }else trend.append(create('p','',tr('برای مقایسه، دو آزمون از همان مؤسسه، گروه و پایه لازم است. برای سایر برگزارکنندگان ناشناس، مقایسه تراز غیرفعال است.',
+     'Comparison needs two events from the same provider, group and grade. Unknown issuers cannot be compared.')));
   }
   form.addEventListener('submit',event=>{
    event.preventDefault();
@@ -95,7 +98,7 @@
    }
    if(exams.length>=40){announce('سقف موقت این کاربرگ ۴۰ آزمون است.','Temporary worksheet limit is 40 exams.');return;}
    exams.push({id:Date.now()+Math.random(),date:day,provider:provider.value,group:examGroup.value,
-    taz:valueTaz,rank:valueRank,rankScope:rankScope.value,subject:lesson.value.trim().slice(0,70),percent:valuePct});
+    taz:valueTaz,rank:valueRank,rankScope:rankScope.value,grade:grade.value,subject:lesson.value.trim().slice(0,70),percent:valuePct});
    draw();announce('نتیجه به‌طور موقت ثبت شد؛ هنوز به حساب یا سرور ارسال نشده است.','Result added temporarily; nothing was sent to an account or server.');
    taz.value='';rank.value='';lesson.value='';percent.value='';
   });
@@ -109,7 +112,7 @@
      'Self-reported; not an official rank, eligibility check or admission forecast.')));
    const list=create('ol');
    exams.slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(x=>list.append(create('li','',
-    x.date+' · '+x.provider+' · '+x.group+' · TAZ: '+(x.taz??'—')+' · rank ['+x.rankScope+']: '+(x.rank??'—')+
+    x.date+' · '+x.provider+' · '+x.group+' · grade: '+x.grade+' · TAZ: '+(x.taz??'—')+' · rank ['+x.rankScope+']: '+(x.rank??'—')+
     (x.subject?' · '+x.subject+': '+(x.percent??'—')+'%':''))));
    printable.append(list);
    root.classList.add('jr-km-printing');printable.hidden=false;window.print();
