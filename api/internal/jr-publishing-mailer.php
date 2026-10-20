@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED') && PHP_SAPI!=='cli') { http_response_code(404); exit; }
+require_once __DIR__.'/jr-publishing-allocation-policy.php';
 /**
  * Transactional mail worker: no email unless bank payment claimed and revalidated.
  * No buyer identity is ever included in author notification body.
@@ -19,7 +20,12 @@ function jrPubProcessOutbox(PDO $pdo, string $orderId): int {
     $items=json_decode((string)$order['items_json'],true);
     if(!is_array($items)||count($items)!==1||($items[0]['sku']??null)!==JR_PUB_SKU||
        (int)$order['amount_toman']!==1000000)return 0;
-    $x=$items[0];$success=0;
+    $x=$items[0];
+    // The notification is derived from the verified order snapshot, never
+    // the currently advertised offer (which may have a different policy).
+    $allocation=jrPubVerifiedAllocationSnapshot($x);
+    if($allocation===null)return 0;
+    $success=0;
     for($i=0;$i<2;$i++){
       unset($notice);
       $smtpAccepted=false;
@@ -82,8 +88,8 @@ function jrPubProcessOutbox(PDO $pdo, string $orderId): int {
           $noticeBody=jrPublishingAuthorSaleNotice([
             'provider_verified'=>true,
             'safe_sale_reference'=>substr(hash('sha256','jr-pub-privacy-v1|'.$orderId),0,12),
-            'gross_toman'=>1000000,'author_toman'=>600000,
-            'talent_fund_toman'=>400000,'operating_reserve_toman'=>70000
+            'gross_toman'=>1000000,'author_toman'=>$allocation['author'],
+            'talent_fund_toman'=>$allocation['fund'],'operating_reserve_toman'=>70000
           ],(string)$person['display_name_fa']);
           $subject=$noticeBody['subject'];$body=$noticeBody['body'];
         }
