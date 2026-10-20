@@ -25,8 +25,16 @@ if($apply&&getenv('JR_PUBLISHING_70_30_OWNER_APPROVED')!=='YES_20261020'){
  fwrite(STDERR,"POLICY=BLOCKED category=operator_context_unconfirmed\n");exit(2);
 }
 try{
+ // The transition must not accidentally make an already-active storefront
+ // eligible for checkout. Require the private digital-sales switch to remain
+ // OFF while an operator changes the existing offer. A separate subsequent
+ // full verification and owner release is required to enable real payments.
+ $private=cfg();
+ if($apply && (($private['publishing_digital_enabled']??false)===true
+       ||getenv('JR_PUBLISHING_DIGITAL_ENABLED')==='true'))
+    throw new RuntimeException('disable_digital_sales_before_policy_transition');
  $pdo=db();
- if(!$pdo instanceof PDO || !jrPublishingSchemaReady($pdo))
+ if(!($pdo instanceof PDO) || !jrPublishingSchemaReady($pdo))
   throw new RuntimeException('existing_publishing_schema_required');
  $pdo->beginTransaction();
  $q=$pdo->prepare("SELECT f.id,f.work_id,w.author_id,f.currency,
