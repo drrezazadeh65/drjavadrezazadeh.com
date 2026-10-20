@@ -58,3 +58,5 @@ test('two language dashboards keep MFA, privacy, schema and JHELA workstreams',(
   assert.match(src,/operations-jhela-workstream\.js/);
  }
 });
+
+import './operations-author-real-view.test.mjs';
