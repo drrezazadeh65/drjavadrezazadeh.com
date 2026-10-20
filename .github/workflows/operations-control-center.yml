@@ -3,10 +3,10 @@ name: Operations Control Center QA
 on:
   push:
     branches: [migration/bertina-linux6]
-    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/js/operations-free-resources.js', 'assets/js/operations-ai-visibility.js', 'assets/js/operations-workspace-index-v1.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'tests/ai-search-visibility-contract.test.mjs', 'tests/stage09-mysql.php', 'docs/migrations/20261012_stage09_commerce.sql', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
+    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/js/operations-free-resources.js', 'assets/js/operations-ai-visibility.js', 'assets/js/operations-gsc-direct.js', 'assets/js/operations-workspace-index-v1.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'tests/ai-search-visibility-contract.test.mjs', 'tests/gsc-direct-owner-panel-contract.test.mjs', 'tests/stage09-mysql.php', 'docs/migrations/20261012_stage09_commerce.sql', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
   pull_request:
     branches: [migration/bertina-linux6]
-    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/js/operations-ai-visibility.js', 'assets/js/operations-workspace-index-v1.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'tests/ai-search-visibility-contract.test.mjs', 'tests/stage09-mysql.php', 'docs/migrations/20261012_stage09_commerce.sql', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
+    paths: ['docs/BERTINA_MYSQL_SCHEMA.sql', 'api/**', 'assets/js/operations-control.js', 'assets/js/operations-ai-visibility.js', 'assets/js/operations-gsc-direct.js', 'assets/js/operations-workspace-index-v1.js', 'assets/css/operations-control.css', 'fa/app/admin/**', 'en/account/admin/**', 'tests/operations*', 'tests/ai-search-visibility-contract.test.mjs', 'tests/gsc-direct-owner-panel-contract.test.mjs', 'tests/stage09-mysql.php', 'docs/migrations/20261012_stage09_commerce.sql', 'scripts/operations*', '.github/workflows/operations-control-center.yml']
 
 permissions:
   contents: read
@@ -48,6 +48,8 @@ jobs:
           python3 tests/operations-canonical-registry.py
           php tests/operations-reporting.php
           php tests/operations-ai-visibility.php
+          php tests/operations-gsc-direct.php
+          node --test tests/gsc-direct-owner-panel-contract.test.mjs tests/operations-workspace-index-contract.test.mjs
           php tests/operations-github-audits.php
           for file in api/*.php; do php -l "$file"; done
           php tests/operations-security.php
