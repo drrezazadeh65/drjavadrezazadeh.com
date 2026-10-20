@@ -78,6 +78,7 @@
    {id:'ops-stage7-blueprint',group:'planning'},
    {id:'ops-commerce',group:'commerce'},
    {id:'ops-publishing-author-review',group:'publishing'},
+   {id:'ops-author-dashboard-preview',group:'publishing',label:en?'Author dashboard — design preview':'پیش‌نمایش طراحی کامل داشبورد مؤلف'},
    {id:'ops-jhela-workstream',group:'publishing'},
    {id:'ops-social',group:'social'},
    {id:'ops-social-composer',group:'social'},
