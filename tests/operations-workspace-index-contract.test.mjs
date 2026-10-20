@@ -96,3 +96,31 @@ test('JHELA maturity and host readiness purge protected data and reject late MFA
   assert.equal(check.status,0,path+': '+check.stderr);
  }
 });
+
+
+test('report links only navigate into existing privileged panels and never submit actions',()=>{
+ const source=read('assets/js/operations-control.js');
+ const start=source.indexOf('const operationalWorkspaceByReport=Object.freeze({');
+ const end=source.indexOf('function show(',start);
+ assert.ok(start>=0&&end>start,'existing operational workspace map');
+ const contract=source.slice(start,end);
+ for(const id of ['OP-07','OP-08','OP-09','OP-10','OP-11','OP-22','OP-23','OP-24'])
+  assert.match(contract,new RegExp("'"+id+"':'ops-commerce'"),id);
+ assert.match(contract,/'OP-31':'ops-social'/);
+ assert.match(contract,/if\(!snapshot\|\|workspace\.hidden\)return/);
+ assert.match(contract,/workspace\.contains\(target\)/);
+ assert.doesNotMatch(contract,/fetch\s*\(|XMLHttpRequest|\.submit\s*\(/);
+ assert.match(source,/jump\.dataset\.opsWorkspaceJump=workspaceId/);
+ assert.match(source,/addEventListener\('click',\(\)=>openExistingOperationalWorkspace\(workspaceId\)\)/);
+ const check=spawnSync(process.execPath,['--check','assets/js/operations-control.js'],{encoding:'utf8'});
+ assert.equal(check.status,0,check.stderr);
+});
+
+test('commerce monitor clears separate checkout readiness and cancels pending reads on MFA lock',()=>{
+ const source=read('assets/js/operations-commerce.js');
+ assert.match(source,/workspace\.addEventListener\('jr:operations-locked'/);
+ assert.match(source,/seq\+\+;panel\.open=false;results\.replaceChildren\(\);readiness\.replaceChildren\(\)/);
+ assert.match(source,/status\.textContent='';refresh\.disabled=false/);
+ const check=spawnSync(process.execPath,['--check','assets/js/operations-commerce.js'],{encoding:'utf8'});
+ assert.equal(check.status,0,check.stderr);
+});
