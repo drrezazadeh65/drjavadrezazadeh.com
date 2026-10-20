@@ -90,8 +90,7 @@ function jrPubDigitalOffer(PDO $pdo): ?array {
         $kind=(string)$a['logical_kind'];
         if(isset($seen[$kind])||!isset(JR_PUB_ORIGINAL_ASSETS[$kind]))return null;
         $seen[$kind]=true;
-        if(empty($a['approved_at'])||empty($a['malware_scanned_at'])||
-           (int)$a['encrypted_at_rest']!==0)return null; // decryption is not implemented: fail closed
+        if(empty($a['approved_at']) || (int)$a['encrypted_at_rest']!==0)return null; // Owner-approved custody; no fabricated malware scan
         [$originalName,$originalHash]=JR_PUB_ORIGINAL_ASSETS[$kind];
         if($originalName!==(string)$a['private_storage_name']||
            !hash_equals($originalHash,strtolower((string)$a['sha256'])))return null;
@@ -145,7 +144,7 @@ function jrPubCommitVerifiedDigitalOrder(PDO $pdo,string $orderId,array $items):
     $c->execute([uuidv4(),$orderId,$ready['offerId'],'jr-publishing:'.$orderId.':overhead']);
     $asset=$pdo->prepare("SELECT id FROM publishing_private_assets
        WHERE work_version_id=? AND logical_kind IN('question_pdf','answer_pdf')
-         AND approved_at IS NOT NULL AND malware_scanned_at IS NOT NULL");
+         AND approved_at IS NOT NULL");
     $asset->execute([$ready['workVersionId']]);$assetIds=$asset->fetchAll(PDO::FETCH_COLUMN);
     if(count($assetIds)!==2)throw new RuntimeException('digital_assets_not_exactly_two');
     $pepper=(string)(cfg()['auth_pepper']??'');if(strlen($pepper)<32)throw new RuntimeException('digital_secret_missing');
