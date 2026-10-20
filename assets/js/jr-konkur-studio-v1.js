@@ -8,7 +8,7 @@
  document.querySelectorAll('[data-konkur-selection]').forEach(root=>{
  const fa=root.dataset.locale==='fa',t=(a,b)=>fa?a:b;
  root.classList.add('jr-konkur-workspace');
- const heading=el('h2','',t('فهرست مقدماتی انتخاب رشته ۱۴۰۵','Preliminary Konkur 1405 selection list'));
+ const heading=el('h3','',t('فهرست مقدماتی انتخاب رشته ۱۴۰۵','Preliminary Konkur 1405 selection list'));
  const guidance=el('p','jr-kc-intro',t(
  'کدرشته‌ها را از دفترچه‌های رسمی سازمان سنجش وارد کنید. فهرست شما صرفاً پیش‌نویس شخصی است؛ صحت کدها، تعداد مجاز انتخاب‌ها و شرایط پذیرش هنوز تطبیق داده نشده‌اند.',
  'Enter codes from the official Sanjesh guides. This is a personal preliminary draft; codes, selection limits and admission eligibility have not been verified.'));
