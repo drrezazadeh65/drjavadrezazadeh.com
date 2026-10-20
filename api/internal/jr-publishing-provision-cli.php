@@ -69,7 +69,7 @@ try{
     ->execute([$version,$work,$contentDigest]);
   $pdo->prepare("INSERT INTO publishing_offers
     (id,work_id,sku,unit_price_toman,unit_author_toman,unit_fund_toman,checkout_enabled)
-    VALUES(?,?,'digital:tefl-ma-exams-1370-1405',1000000,600000,400000,1)")
+    VALUES(?,?,'digital:tefl-ma-exams-1370-1405',1000000,700000,300000,1)")
     ->execute([$offer,$work]);
   foreach($assets as $kind=>$a){
     $pdo->prepare("INSERT INTO publishing_private_assets
