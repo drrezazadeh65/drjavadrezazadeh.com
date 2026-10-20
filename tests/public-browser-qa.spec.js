@@ -642,7 +642,10 @@ test('private student mobile shell uses the frozen five-tab contract',async({pag
   await page.setViewportSize({width:1440,height:900});
   await page.goto(base+'/fa/app/student/',{waitUntil:'domcontentloaded'});
   await expect(page.locator('.dashboard-sidebar')).toBeVisible();
-  await expect(page.locator('.dashboard-sidebar nav a')).toHaveCount(11);
+  // Keep the original eleven dashboard routes intact; the separate
+  // science navigation was appended alongside them in v5.2, not substituted.
+  await expect(page.locator('.dashboard-sidebar > nav a')).toHaveCount(11);
+  await expect(page.locator('.dashboard-sidebar [data-jr-science-inline-nav] nav a')).toHaveCount(11);
   await expect(page.locator('.app-dock')).toBeHidden();
 });
 
