@@ -217,8 +217,9 @@ self.addEventListener('fetch',event=>{
     return;
   }
 
-  // Unversioned images remain fresh-first so replacing an image at the same URL is visible promptly.
-  if(isImage(url)){
+  // Mutable images and fonts remain fresh-first; a query-string version
+  // does not establish content immutability, and a font may be replaced in place.
+  if(isImage(url) || isFont(url)){
     event.respondWith(freshNetwork(req,{store:true}));
     return;
   }
