@@ -116,7 +116,7 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_ga4_oidc_connection.py' -v
           echo "GA4 offline fixtures are synthetic and not evidence of live Google access."
       - name: Authenticate Google service account with OIDC
-        id: ga4-auth
+        id: ga4_auth
         uses: google-github-actions/auth@v2
         with:
           project_id: jr-search-intelligence
@@ -129,7 +129,7 @@ jobs:
           export_environment_variables: false
       - name: Probe real GA4 property metadata and runReport
         env:
-          GA4_ACCESS_TOKEN: ${{ steps.ga4-auth.outputs.access_token }}
+          GA4_ACCESS_TOKEN: ${{ steps.ga4_auth.outputs.access_token }}
         run: python3 scripts/ga4_oidc_verify.py
       - name: GA4 interpretation and privilege caveat
         if: always()
