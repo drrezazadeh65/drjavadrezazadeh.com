@@ -124,6 +124,8 @@ const required=[
   // Owner admin author-workspace preview must ship with both protected admin shells.
   'assets/js/operations-author-dashboard-preview-v1.js',
   'assets/js/operations-author-real-view-v1.js',
+  'assets/js/operations-scientific-readiness-v1.js',
+  'assets/css/operations-scientific-readiness-v1.css',
   'assets/css/operations-author-real-view-v1.css',
   'assets/css/operations-author-dashboard-preview-v1.css',
   'fa/app/author/index.html','fa/shop/authors/mehrab-mirkarimi/index.html',
