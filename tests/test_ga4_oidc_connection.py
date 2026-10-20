@@ -45,6 +45,29 @@ class Ga4Contracts(TestCase):
         self.assertEqual(result["status"], "authenticated_empty_report")
         self.assertEqual(result["rows"], 0)
 
+    def test_real_google_empty_protobuf_report_without_headers_is_valid(self):
+        for empty in ({}, {"rowCount": 0}, {"rows": []}):
+            with self.subTest(empty=empty):
+                with mock.patch.object(ga4, "google_request", side_effect=[
+                        (200, metadata()), (200, empty)]):
+                    actual = ga4.inspect("synthetic-token")
+                self.assertEqual(actual["status"], "authenticated_empty_report")
+                self.assertEqual(actual["rows"], 0)
+
+    def test_omitted_headers_must_not_hide_real_rows_or_unknown_fields(self):
+        for malformed in (
+            {"rowCount": 1},
+            {"rows": [{"metricValues": [{"value": "1"}, {"value": "2"}]}]},
+            {"error": {"code": 403}},
+            {"unexpected": "no"},
+            {"rowCount": True},
+        ):
+            with self.subTest(payload=malformed):
+                with mock.patch.object(ga4, "google_request", side_effect=[
+                        (200, metadata()), (200, malformed)]):
+                    with self.assertRaises(ga4.Ga4VerificationError):
+                        ga4.inspect("synthetic-token")
+
     def test_wrong_metric_headers_are_not_accepted(self):
         with mock.patch.object(ga4, "google_request", side_effect=[
                 (200, metadata()), (200, {"metricHeaders": [{"name": "eventCount"}]})]):
