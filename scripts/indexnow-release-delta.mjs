@@ -56,6 +56,14 @@ const earlier=records.workflow_runs.filter(r=>r.id!==current.id&&r.conclusion===
  &&new Date(r.created_at)<new Date(current.created_at)
  &&/^[a-f0-9]{40}$/.test(r.head_sha||''));
 earlier.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+// Two owner deployments of the same SHA do not represent new URLs;
+// suppress even when the original API receipt could not be retained.
+if(earlier.some(r=>r.head_sha===TARGET)){
+ console.log('INDEXNOW_DELTA=SKIPPED category=previously_deployed_same_sha');
+ if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,'should_send=false\\n'.replace('\\n','\n'));
+ process.exit(0);
+}
+
 if(!earlier.length){
  console.log('INDEXNOW_DELTA=SKIPPED category=unknown_previous_successful_release');
  if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,'should_send=false\n');
