@@ -326,7 +326,7 @@
       "production_state": "FOUNDATION_READY",
       "revenue_priority": "MEDIUM",
       "external_blockers": [
-        "Google Analytics scope/property connection is not granted to the connected GSC Wizard account",
+        "Google Analytics scope/property access requires independent verification through an authorized Google integration",
         "Production uptime/error monitoring provider activation"
       ],
       "artifacts": [
