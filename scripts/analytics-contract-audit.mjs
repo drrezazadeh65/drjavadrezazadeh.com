@@ -1,21 +1,38 @@
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
 const config=JSON.parse(fs.readFileSync('platform/analytics-config.json','utf8'));
+const publicConfig=JSON.parse(fs.readFileSync('assets/data/analytics-config.json','utf8'));
 const policy=JSON.parse(fs.readFileSync('platform/observability-policy.json','utf8'));
 const source=fs.readFileSync('assets/js/analytics-adapter.js','utf8');
 const failures=[];
-if(config.provider!=='GA4') failures.push('analytics provider contract must be GA4');
-if(config.enabled===true && !/^G-[A-Z0-9]{6,20}$/.test(String(config.measurement_id||''))) failures.push('enabled GA4 config requires a verified-looking Measurement ID');
-if(config.enabled===false && config.measurement_id!==null) failures.push('disabled unverified GA4 config must not carry a guessed Measurement ID');
-if(config.consent?.required!==true) failures.push('analytics consent must fail closed');
-if(!source.includes("analytics_storage:'granted'")||!source.includes("ad_storage:'denied'")) failures.push('GA4 consent/ad-storage contract missing');
-if(!source.includes("allow_google_signals:false")||!source.includes("allow_ad_personalization_signals:false")) failures.push('advertising signal suppression missing');
-for(const token of ['email','phone','message','assessment','document','payment']){
-  if(!config.prohibited_payload.join(' ').toLowerCase().includes(token)) failures.push('prohibited analytics payload policy missing '+token);
-}
+const fail=(condition,message)=>{if(!condition)failures.push(message);};
+
+fail(config.provider==='GA4','GA4 must remain the reporting provider');
+fail(config.ga4_property_id==='559754204','GA4 property must be the owner-confirmed property');
+fail(config.measurement_id==='G-C3C7NQQNWX','Measurement ID must match the owner-supplied GA4 stream');
+fail(config.tag_transport==='GTM_ONLY','GTM is the sole planned tag delivery method');
+fail(config.enabled===false||/^GTM-[A-Z0-9]{4,15}$/.test(String(config.gtm_container_id||'')),
+ 'GA4 cannot activate without a valid owner-provided GTM Web Container ID');
+fail(config.enabled===false,'owner has not yet authorised GTM publication or live tag activation');
+fail(config.gtm_container_id===null,'GTM container remains unknown; do not fabricate an ID');
+fail(config.consent?.required===true,'analytics must require explicit local opt-in');
+for(const field of ['schema_version','provider','enabled','measurement_id','tag_transport','gtm_container_id','consent','allowed_client_events','payload_allowlist'])
+ fail(JSON.stringify(publicConfig[field])===JSON.stringify(config[field]),'public projection drift: '+field);
+fail(!source.includes('/gtag/js'),'standalone gtag.js injection must be removed');
+fail(source.includes('/gtm.js?id='),'single GTM Web Container loader required');
+fail(source.includes("analytics_storage:'denied'")&&source.includes("analytics_storage:'granted'"),'GTM consent must default denied before opt-in');
+fail(source.includes("ad_storage:'denied'")&&source.includes("ad_user_data:'denied'")&&source.includes("ad_personalization:'denied'"),'ad storage must be disabled');
+fail(source.includes('page_referrer:\'\''),'manual analytics pageview must suppress potentially sensitive referrer');
+fail(source.includes('page_location:PROPERTY_ORIGIN+path'),'page location must exclude URL query parameters');
+fail(source.includes("JR_CONVERSION_INTENT"),'reuse existing semantic conversion intent bus');
+fail(source.includes('JRAnalyticsConsent'),'existing consent API must be preserved');
+fail(!source.includes("window.JRAnalytics.purchase"),'browser cannot emit unverified purchase events');
+for(const token of ['email','phone','message','assessment','document','payment'])
+ fail(config.prohibited_payload.join(' ').toLowerCase().includes(token),'prohibited analytics payload policy missing '+token);
 const policyEvents=new Set((policy.events||[]).filter(x=>x.client_event===true).map(x=>x.key));
-for(const key of config.allowed_client_events||[]) if(!policyEvents.has(key)) failures.push('GA4 allowlist event absent from observability policy: '+key);
-if(policy.rules?.raw_form_values_in_analytics!==false) failures.push('raw form values must remain prohibited');
+for(const key of config.allowed_client_events||[])
+ fail(policyEvents.has(key),'unregistered browser intent: '+key);
+fail(policy.rules?.raw_form_values_in_analytics===false,'raw form values must remain excluded');
 if(failures.length){failures.forEach(x=>console.error('✗ '+x));process.exit(1);}
-execFileSync(process.execPath,['tests/analytics-consent-lifecycle.test.mjs'],{stdio:'inherit'});
-console.log('Analytics contract audit passed: provider disabled until verified property/Measurement ID + consent; '+config.allowed_client_events.length+' client events allow-listed.');
+execFileSync(process.execPath,['--test','tests/analytics-consent-lifecycle.test.mjs'],{stdio:'inherit'});
+console.log('GTM/GA4 analytics contract verified offline: tag transport disabled pending an owner-approved container; consent and sensitive-route guards tested.');
