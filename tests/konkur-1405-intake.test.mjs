@@ -6,7 +6,9 @@ const proposal={year:1405,code:'۰۱۲۳۴',sourceFileId:'1EtfLzh7YnsjnWqQYTGamL
 test('Sanjesh source registry is six-file intake, not approved publication',()=>{
  assert.equal(manifest.sources.length,6);
  assert.equal(new Set(manifest.sources.map(x=>x.fileId)).size,6);
- assert.ok(manifest.sources.every(x=>x.activeForEligibility===false&&x.sha256===null&&x.pdfPageCount===null));
+ assert.ok(manifest.sources.every(x=>x.activeForEligibility===false&&/^[a-f0-9]{64}$/.test(x.sha256)&&Number.isInteger(x.pdfPageCount)&&x.pdfPageCount>0));
+ assert.equal(manifest.sources.reduce((n,x)=>n+x.pdfPageCount,0),2412);
+ assert.equal(manifest.inventoryAudit.programmeRecordsApproved,0);
  assert.equal(manifest.publicationPolicy.admissionProbabilityEnabled,false);
 });
 test('Persian/Arabic digits retain leading zero and bare five-digit sequences are NOT identified as programmes',()=>{
