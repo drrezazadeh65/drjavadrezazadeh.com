@@ -7,6 +7,9 @@ on:
       - 'database/unified/001_core_governance.sql'
       - 'database/unified/003a_education_longitudinal.sql'
       - 'database/unified/003e_admission_knowledge_catalog_PROPOSED.sql'
+      - 'database/unified/003f_candidate_exam_data_PROPOSED.sql'
+      - 'docs/migrations/20261020_konkur_scorecards_readonly_preflight.sql'
+      - 'tests/konkur-mock-scorecard-schema-contract.test.mjs'
       - 'docs/BERTINA_MYSQL_SCHEMA.sql'
       - 'docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql'
       - 'docs/migrations/20261020_konkur_catalog_readonly_preflight.sql'
@@ -18,6 +21,8 @@ on:
     paths:
       - 'database/unified/003e_admission_knowledge_catalog_PROPOSED.sql'
       - 'docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql'
+      - 'database/unified/003f_candidate_exam_data_PROPOSED.sql'
+      - 'tests/konkur-mock-scorecard-schema-contract.test.mjs'
       - '.github/workflows/konkur-mother-mariadb-fixture.yml'
   workflow_dispatch:
 
@@ -38,10 +43,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/konkur-mother-schema-contract.test.mjs
+      - run: |
+          node --test tests/konkur-mother-schema-contract.test.mjs
+          node --test tests/konkur-mock-scorecard-schema-contract.test.mjs
 
   disposable-mariadb:
-    name: Eight-table MariaDB 10.11 rehearsal (never Bertina)
+    name: Admissions and private scorecard MariaDB 10.11 rehearsal (never Bertina)
     needs: source-gates
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -102,6 +109,26 @@ jobs:
           test "$fk" -ge 20
           echo "PASS: eight InnoDB/utf8mb4 admission tables, eight PKs, $fk FKs, rerun harmless."
 
+      - name: Source-only 003f private scorecard schema rehearsal on disposable MariaDB
+        run: |
+          set -euo pipefail
+          db() { mariadb -h127.0.0.1 -P3306 -uroot drjavad1_store "$@"; }
+          db < docs/migrations/20261020_konkur_scorecards_readonly_preflight.sql > /tmp/konkur-scorecard-preflight.txt
+          for pass in first second; do
+            echo "PROPOSED provider-specific scorecard schema: $pass"
+            db < database/unified/003f_candidate_exam_data_PROPOSED.sql
+          done
+          count="$(db -Nse "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_TYPE='BASE TABLE' AND TABLE_NAME IN ('eco_exam_providers','eco_exam_scorecard_schemas','eco_exam_metric_definitions','eco_exam_events','eco_candidate_exam_attempts','eco_candidate_exam_metric_values','eco_candidate_selection_drafts','eco_candidate_selection_choices','eco_exam_component_policies')")"
+          test "$count" = 9
+          integrity="$(db -Nse "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME IN ('eco_exam_providers','eco_exam_scorecard_schemas','eco_exam_metric_definitions','eco_exam_events','eco_candidate_exam_attempts','eco_candidate_exam_metric_values','eco_candidate_selection_drafts','eco_candidate_selection_choices','eco_exam_component_policies') AND ENGINE='InnoDB' AND TABLE_COLLATION='utf8mb4_unicode_ci'")"
+          test "$integrity" = 9
+          fk="$(db -Nse "SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME IN ('eco_exam_providers','eco_exam_scorecard_schemas','eco_exam_metric_definitions','eco_exam_events','eco_candidate_exam_attempts','eco_candidate_exam_metric_values','eco_candidate_selection_drafts','eco_candidate_selection_choices','eco_exam_component_policies') AND CONSTRAINT_TYPE='FOREIGN KEY'")"
+          test "$fk" -ge 18
+          for table in eco_exam_providers eco_exam_scorecard_schemas eco_exam_metric_definitions eco_exam_events eco_candidate_exam_attempts eco_candidate_exam_metric_values eco_candidate_selection_drafts eco_candidate_selection_choices eco_exam_component_policies; do
+            test "$(db -Nse "SELECT COUNT(*) FROM $table")" = 0
+          done
+          echo "PASS: nine additional scorecard/draft tables and $fk FKs; no personal data in fixture."
+
       - name: Seed original-PDF source metadata twice; prove no programme rows or student PII
         run: |
           set -euo pipefail
@@ -127,4 +154,4 @@ jobs:
           echo '- MariaDB container is disposable and uses an invented CI-only root password.' >> "$GITHUB_STEP_SUMMARY"
           echo '- The drjavad1_store schema name is intentionally recreated INSIDE the fixture for parity.' >> "$GITHUB_STEP_SUMMARY"
           echo '- No Bertina database connection, live credentials, migration or production deployment was performed.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Official table source-page review and live migrations remain owner-controlled and pending.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Both proposed 003e and 003f remain uninstalled on live Bertina.' >> "$GITHUB_STEP_SUMMARY"
