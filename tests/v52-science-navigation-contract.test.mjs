@@ -58,6 +58,13 @@ test('shared navigation makes no purchases, writes or entitlement decisions',()=
  assert.match(source,/event\.key === 'Escape'/);
  assert.match(source,/event\.key !== 'Tab'/);
 });
+test('science navigation preserves the existing customer dashboard menu',()=>{
+ assert.match(source,/const existing = document\.querySelector\('\.dashboard-sidebar nav'\)/);
+ assert.match(source,/existing\.insertAdjacentElement\('afterend', section\)/);
+ assert.match(source,/data-jr-science-inline-nav/);
+ assert.doesNotMatch(source,/navIn\(existing\)/);
+ assert.match(source,/section\.append\(overviewLink\(\), nav\)/);
+});
 test('free scientific worksheets and server-side fail-closed boundary are unchanged',()=>{
  for(const file of [
   'fa/assessments/golden-talent/start/index.html',
