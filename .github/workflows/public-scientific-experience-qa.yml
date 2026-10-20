@@ -37,6 +37,8 @@ on:
       - "platform/konkur-1405-intake.mjs"
       - "platform/educational-intelligence-v3.mjs"
       - "tests/educational-intelligence-v3.test.mjs"
+      - "platform/educational-intelligence-catalogue-adapter-v3.mjs"
+      - "tests/educational-intelligence-catalogue-adapter-v3.test.mjs"
       - "platform/konkur-1405-sources.json"
       - "assets/js/bahar-formative-workspace-v1.js"
       - "fa/app/student/bahar/index.html"
@@ -81,6 +83,8 @@ jobs:
           node --test tests/jr-konkur-foundation.test.mjs
           node --check platform/educational-intelligence-v3.mjs
           node --test tests/educational-intelligence-v3.test.mjs
+          node --check platform/educational-intelligence-catalogue-adapter-v3.mjs
+          node --test tests/educational-intelligence-catalogue-adapter-v3.test.mjs
           node --test tests/konkur-official-scorecard.test.mjs
           node --test tests/konkur-official-scorecard-contract.test.mjs
           node --test tests/konkur-1405-intake.test.mjs
