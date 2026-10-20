@@ -1,0 +1,25 @@
+/* Konkur drafts: scoped Choice Studio extension, premium bilingual responsive interface. */
+.jr-konkur-workspace{box-sizing:border-box;margin:2rem 0;padding:clamp(16px,3vw,30px);border:1px solid rgba(221,177,89,.48);border-radius:18px;background:linear-gradient(145deg,#0e1117,#20232c);color:#f7efe0;min-width:0}
+.jr-konkur-workspace *{box-sizing:border-box}
+.jr-konkur-workspace h2{font-size:clamp(1.25rem,3vw,1.75rem);color:#f1d19c}
+.jr-konkur-workspace .jr-kc-intro,.jr-konkur-workspace .jr-kc-note{line-height:2;color:#f1dfc3}
+.jr-konkur-workspace .jr-kc-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,195px),1fr));gap:12px;align-items:end;margin:1.2rem 0}
+.jr-konkur-workspace .jr-kc-form label{display:flex;flex-direction:column;gap:7px;font-weight:650}
+.jr-konkur-workspace input,.jr-konkur-workspace select{min-height:46px;padding:9px 12px;border:1px solid #ab8a57;border-radius:9px;background:#111821;color:#fff8e9;font:inherit;max-width:100%}
+.jr-konkur-workspace button{min-height:44px;border-radius:9px;border:1px solid #b89b64;background:#292d35;color:#fff6e6;padding:9px 13px;cursor:pointer;font:inherit}
+.jr-konkur-workspace .jr-kc-primary{background:#d6b175;color:#16191d;font-weight:800}
+.jr-konkur-workspace button:disabled{opacity:.45;cursor:not-allowed}
+.jr-konkur-workspace :focus-visible{outline:3px solid #ffda83;outline-offset:3px}
+.jr-konkur-workspace .jr-kc-status{min-height:2rem;color:#fbe3bb}
+.jr-konkur-workspace .jr-kc-list{padding-inline-start:1.5rem;display:grid;gap:10px}
+.jr-konkur-workspace .jr-kc-item{padding:14px;border:1px solid rgba(215,176,103,.28);border-radius:10px;background:#191e27;display:flex;justify-content:space-between;gap:10px;align-items:center;min-width:0}
+.jr-konkur-workspace .jr-kc-item-details{min-width:0;overflow-wrap:anywhere}
+.jr-konkur-workspace .jr-kc-item-details p{margin:4px 0}
+.jr-konkur-workspace .jr-kc-item-details small{color:#f1d5aa}
+.jr-konkur-workspace .jr-kc-controls{display:flex;gap:5px;flex-wrap:wrap}
+.jr-konkur-workspace .jr-kc-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.jr-konkur-workspace .jr-kc-official{display:inline-flex;align-items:center;min-height:44px;color:#ffdfa1;text-decoration:underline}
+.jr-konkur-workspace .jr-kc-report{padding:1rem;border:1px solid #d2b078;border-radius:12px;margin:1rem 0}
+.jr-konkur-workspace [hidden]{display:none!important}
+@media(max-width:620px){.jr-konkur-workspace .jr-kc-item{align-items:stretch;flex-direction:column}.jr-konkur-workspace .jr-kc-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.jr-konkur-workspace .jr-kc-controls button{padding:9px 3px}}
+@media print{body *{visibility:hidden!important}.jr-konkur-workspace.jr-kc-printing,.jr-konkur-workspace.jr-kc-printing .jr-kc-report,.jr-konkur-workspace.jr-kc-printing .jr-kc-report *{visibility:visible!important}.jr-konkur-workspace.jr-kc-printing{position:absolute;top:0;left:0;width:100%;border:0;background:white;color:black;box-shadow:none;margin:0}.jr-konkur-workspace.jr-kc-printing>*:not(.jr-kc-report){display:none!important}.jr-konkur-workspace.jr-kc-printing .jr-kc-report{display:block!important;border:0;color:black}.jr-konkur-workspace.jr-kc-printing .jr-kc-report *{color:black!important}}
