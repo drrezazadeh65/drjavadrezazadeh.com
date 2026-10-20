@@ -63,3 +63,21 @@
 @media(max-width:540px){.jp-author-workspace .jp-workspace-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.jp-author-workspace .jp-workspace-grid>div{padding:13px;min-height:112px}.jp-author-workspace .jp-workspace-grid strong{font-size:clamp(1rem,4.2vw,1.25rem)}.jp-author-workspace .jp-workspace-grid span{font-size:.78rem}.jp-author-workspace .jp-author-summary{gap:8px}.jp-author-workspace .jp-author-count{min-width:1.9rem;min-height:1.9rem}}
 @media(max-width:340px){.jp-author-workspace .jp-workspace-grid{grid-template-columns:1fr}}
 @media print{.jp-author-workspace .jp-author-summary:after{display:none}.jp-author-workspace .jp-author-disclosure{break-inside:auto}}
+
+/* v5.3 advanced private author portal: responsive tabbed navigation, real-data tools. */
+.jp-author-workspace .jp-author-tablist{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0 12px;padding:6px;border:1px solid #a78b5f55;border-radius:16px;background:#0b1a2c}
+.jp-author-workspace .jp-author-tab{flex:1;min-width:140px;min-height:49px;border-radius:12px;border:1px solid transparent;background:transparent;color:#e6e6df;font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .16s,border-color .16s}
+.jp-author-workspace .jp-author-tab[aria-selected="true"]{color:#132135;background:#efd19a;border-color:#f3dcad;box-shadow:0 3px 12px #00000033}
+.jp-author-workspace .jp-author-tab[aria-selected="false"]:hover{background:#ffffff12}
+.jp-author-workspace .jp-author-tab:focus-visible{outline:3px solid #ffebbd;outline-offset:3px}
+.jp-author-workspace .jp-author-disclosure[role="tabpanel"]{margin-top:0}
+.jp-author-workspace .jp-author-disclosure[role="tabpanel"][hidden]{display:none!important}
+.jp-author-workspace .jp-author-tabs-intro{margin-top:28px}
+.jp-author-workspace .jp-author-updated{color:#b6c5d3;font-size:.84rem;margin-top:9px}
+.jp-author-workspace .jp-author-export,.jp-author-workspace .jp-author-refresh{margin-top:15px;white-space:normal;max-width:100%;font-weight:750}
+.jp-author-workspace .jp-author-export{background:#efd19a;color:#19263a}
+.jp-author-workspace .jp-author-export:hover{background:#ffe0a2}
+.jp-author-workspace .jp-author-refresh:disabled{opacity:.65;cursor:progress}
+@media(max-width:540px){.jp-author-workspace .jp-author-tablist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px}.jp-author-workspace .jp-author-tab{min-width:0;min-height:51px;font-size:.8rem;padding:6px}.jp-author-workspace .jp-author-export,.jp-author-workspace .jp-author-refresh{width:100%}}
+@media(max-width:360px){.jp-author-workspace .jp-author-tablist{grid-template-columns:1fr}.jp-author-workspace .jp-author-tab{min-height:41px}}
+@media print{.jp-author-workspace .jp-author-tablist,.jp-author-workspace .jp-author-refresh,.jp-author-workspace .jp-author-export{display:none!important}.jp-author-workspace .jp-author-disclosure[role="tabpanel"][hidden]{display:block!important}}
