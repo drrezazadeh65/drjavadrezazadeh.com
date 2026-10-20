@@ -29,7 +29,38 @@ function cards(){if(!snapshot)return;const search=$('ops-search').value.trim().t
  const toggle=$('ops-section-toggle');if(toggle){toggle.disabled=filterActive;toggle.setAttribute('aria-expanded',String(visible));toggle.textContent=filterActive?t('نتایج فیلتر نمایش داده می‌شوند','Filtered results are shown'):visible?t('بستن فهرست تفصیلی','Collapse detailed sections'):t('نمایش ۳۶ بخش تفصیلی','Show 36 detailed sections');}
 const records=snapshot.reports.filter(r=>(!engine||reportOwner(r)===engine)&&(!priority||r.priority===priority)&&(!search||[r.id,r.title,r.titleFa,r.engine].join(' ').toLocaleLowerCase().includes(search)));
  for(const r of records){const card=el('article',undefined,'ops-card');card.append(el('small',r.id+' · '+reportOwner(r)+' · '+r.priority),el('h3',title(r)),el('span',statuses[r.status],'ops-badge'),el('p',t('اندازه‌گیری‌شده: ','Measured: ')+pct(r.measuredProgress)),progress(r.measuredProgress),el('small',t('برآورد تاریخی: ','Historical estimate: ')+pct(r.estimatedProgress)));const button=el('button',t('صفحهٔ موتور و گزارش','Engine page and report'));button.addEventListener('click',()=>show(r.id));card.append(button);box.append(card);}if(!records.length)box.append(el('p',t('موردی یافت نشد.','No matching sections.')));}
-function show(id,focus=true){if(!snapshot)return;const r=id==='ADM-01'?snapshot.dashboard:snapshot.reports.find(row=>row.id===id);if(!r)return;selected=id;const panel=$('ops-detail');panel.replaceChildren();panel.hidden=false;const header=el('div',undefined,'ops-title-row');header.append(el('h2',r.id+' · '+title(r)));const report=el('button',t('دریافت گزارش مکتوب','Download written report'));report.addEventListener('click',()=>download(r));header.append(report);panel.append(header,el('p',statuses[r.status]+' · '+pct(r.measuredProgress)),progress(r.measuredProgress),el('p',t('معیار پذیرش: ','Acceptance: ')+r.acceptance),el('p',t('شروط باز فعلی: ','Current open gates: ')+(r.openWork?.join('؛ ')||t('ندارد','None'))),el('p',t('مانع فعلی: ','Current blocker: ')+(r.currentBlocker||t('ثبت نشده؛ شروط و وابستگی‌ها را بررسی کنید.','No separate blocker recorded; inspect gates and dependencies.'))),el('p',t('وابستگی‌های باز: ','Open dependencies: ')+(r.openDependencies?.join(', ')||t('ندارد','None'))));
+// Report-to-workspace links are navigation into existing owner-MFA panels,
+// never action execution or a claim that a registered Action is implemented.
+const operationalWorkspaceByReport=Object.freeze({
+ 'OP-07':'ops-commerce','OP-08':'ops-commerce','OP-09':'ops-commerce',
+ 'OP-10':'ops-commerce','OP-11':'ops-commerce','OP-22':'ops-commerce',
+ 'OP-23':'ops-commerce','OP-24':'ops-commerce',
+ 'OP-29':'jr-intelligence','OP-31':'ops-social','OP-33':'ops-organic-growth'
+});
+function openExistingOperationalWorkspace(id){
+ const workspace=$('ops-workspace');
+ if(!snapshot||workspace.hidden)return;
+ const target=$(id);
+ if(!target||!workspace.contains(target))return;
+ let parent=target.parentElement?.closest('details');
+ while(parent&&workspace.contains(parent)){parent.open=true;parent=parent.parentElement?.closest('details');}
+ if(target.matches('details'))target.open=true;
+ const focus=target.matches('details')?target.querySelector(':scope > summary'):
+    target.querySelector(':scope > h2')||target;
+ if(!focus)return;
+ if(!focus.hasAttribute('tabindex'))focus.setAttribute('tabindex','-1');
+ focus.focus({preventScroll:true});
+ target.scrollIntoView({behavior:'auto',block:'start'});
+}
+function show(id,focus=true){if(!snapshot)return;const r=id==='ADM-01'?snapshot.dashboard:snapshot.reports.find(row=>row.id===id);if(!r)return;selected=id;const panel=$('ops-detail');panel.replaceChildren();panel.hidden=false;const header=el('div',undefined,'ops-title-row');header.append(el('h2',r.id+' · '+title(r)));const report=el('button',t('دریافت گزارش مکتوب','Download written report'));report.addEventListener('click',()=>download(r));header.append(report);
+ const workspaceId=operationalWorkspaceByReport[r.id];
+ if(workspaceId&&$(workspaceId)&&$('ops-workspace').contains($(workspaceId))){
+  const jump=el('button',t('بازکردن بخش مدیریتی مرتبط','Open related admin workspace'));
+  jump.type='button';jump.dataset.opsWorkspaceJump=workspaceId;
+  jump.addEventListener('click',()=>openExistingOperationalWorkspace(workspaceId));
+  header.append(jump);
+ }
+ panel.append(header,el('p',statuses[r.status]+' · '+pct(r.measuredProgress)),progress(r.measuredProgress),el('p',t('معیار پذیرش: ','Acceptance: ')+r.acceptance),el('p',t('شروط باز فعلی: ','Current open gates: ')+(r.openWork?.join('؛ ')||t('ندارد','None'))),el('p',t('مانع فعلی: ','Current blocker: ')+(r.currentBlocker||t('ثبت نشده؛ شروط و وابستگی‌ها را بررسی کنید.','No separate blocker recorded; inspect gates and dependencies.'))),el('p',t('وابستگی‌های باز: ','Open dependencies: ')+(r.openDependencies?.join(', ')||t('ندارد','None'))));
  const grid=el('div',undefined,'ops-gates');for(const gate of r.verifiedGates){const item=el('article',undefined,'ops-gate');item.append(el('h3',gate.label),el('p',gates[gate.state],gate.state==='pass'?'ops-pass':gate.state==='fail'?'ops-fail':''));if(gate.evidence){const e=gate.evidence;const link=el('a',e.test_name);link.href=e.source_url;link.target='_blank';link.rel='noopener noreferrer';item.append(link,el('p',e.environment+' · '+date(e.checked_at)),el('small',t('اعتبار تا: ','Valid until: ')+date(e.expires_at)));}grid.append(item);}panel.append(grid);signals(panel,r);panel.append(el('h3',t('روند شواهد این نسخه','Evidence trend for this release')));trend(panel,r);
  panel.append(el('h3',t('تاریخچهٔ آزمون‌ها و خطاها','Test and error history')));const wrap=el('div',undefined,'ops-table-wrap'),table=el('table',undefined,'ops-table'),head=el('tr');for(const label of [t('زمان','Time'),t('شرط','Gate'),t('نتیجه','Result'),t('آزمون و منبع','Test and source')])head.append(el('th',label));table.append(head);const events=snapshot.history.filter(e=>e.section_id===r.id);for(const e of events){const row=el('tr');for(const txt of [date(e.checked_at),e.gate_id,gates[e.result],e.test_name])row.append(el('td',txt));table.append(row);}if(!events.length){const row=el('tr'),cell=el('td',t('هنوز شواهد واقعی ثبت نشده‌اند.','No actual evidence has been recorded.'));cell.colSpan=4;row.append(cell);table.append(row);}wrap.append(table);panel.append(wrap,el('p',t('آخرین بررسی: ','Last checked: ')+date(events.length?Math.max(...events.map(e=>Number(e.checked_at))):null)),el('details',undefined,'ops-muted'));
  const details=panel.lastChild;details.append(el('summary',t('ادعاهای گزارش تاریخی؛ تأیید عملیاتی نیستند','Historical report claims; operational verification pending')),el('p',t('برنامهٔ پایه: ','Baseline plan: ')+r.remaining),el('p',r.historicalClaims));if(focus){panel.tabIndex=-1;panel.focus();panel.scrollIntoView({behavior:'auto',block:'start'});} }
