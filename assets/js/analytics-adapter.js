@@ -26,11 +26,16 @@ const consentGranted=()=>{
 };
 const safeRoute=()=>{
  const path=location.pathname;
- if(typeof path!=='string'||path.length>180||path.includes('%')||path.includes('//'))return null;
- if(path!=='/'&&!/^\/(?:fa|en)\/(?:[a-z0-9-]+\/){0,6}$/i.test(path))return null;
- const parts=path.toLowerCase().split('/').filter(Boolean);
+ if(typeof path!=='string'||path.length>540||path.includes('//')||/%(?:2f|5c)/i.test(path))return null;
+ let decoded;
+ try{decoded=decodeURIComponent(path).normalize('NFC');}catch(_){return null;}
+ if(decoded.length>180||decoded.includes('//'))return null;
+ // Only ordinary public /fa/ or /en/ slugs; private account and form routes
+ // are excluded, including when the path is percent-encoded.
+ if(decoded!=='/'&&!/^\/(?:fa|en)\/(?:[\p{L}0-9-]+\/){0,6}$/u.test(decoded))return null;
+ const parts=decoded.toLowerCase().split('/').filter(Boolean);
  if(parts.some(part=>BLOCKED_SEGMENTS.has(part)||/[0-9]{5,}/.test(part)))return null;
- return path;
+ return decoded.split('/').map(encodeURIComponent).join('/');
 };
 const canTrack=()=>state.ready&&state.loaded&&consentGranted()&&safeRoute()!==null;
 
