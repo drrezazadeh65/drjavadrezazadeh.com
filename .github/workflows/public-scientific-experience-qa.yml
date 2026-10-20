@@ -12,6 +12,9 @@ on:
       - "assets/css/jr-konkur-studio-v1.css"
       - "tests/konkur-studio-browser.spec.js"
       - "tests/konkur-studio-contract.test.mjs"
+      - "assets/js/jr-konkur-official-catalogue-v1.js"
+      - "tests/konkur-catalogue-client-contract.test.mjs"
+      - "tests/konkur-catalogue-browser.spec.js"
       - "tests/konkur-1405-intake.test.mjs"
       - "tests/konkur-mother-schema-contract.test.mjs"
       - "database/unified/003e_admission_knowledge_catalog_PROPOSED.sql"
@@ -62,6 +65,7 @@ jobs:
           node --test tests/konkur-1405-intake.test.mjs
           node --test tests/konkur-mother-schema-contract.test.mjs
           node --test tests/konkur-studio-contract.test.mjs
+          node --test tests/konkur-catalogue-client-contract.test.mjs
           node --check assets/js/golden-talent-evidence-studio-v1.js
           node --check scripts/build-public-site.mjs
           node -e "const fs=require('fs');const s=fs.readFileSync('assets/js/bahar-formative-workspace-v1.js','utf8');for(const x of ['localStorage','sessionStorage','fetch(','XMLHttpRequest(','WebSocket(']){if(s.includes(x))throw Error('BAHAR must not retain/upload: '+x)}"
@@ -76,7 +80,7 @@ jobs:
           curl -fsS --retry-connrefused --retry 15 --retry-delay 1 --max-time 3 http://127.0.0.1:4173/fa/app/student/bahar/ > /dev/null
       - name: Browser acceptance for design, free activities, account and safety
         run: |
-          npx playwright test tests/konkur-studio-browser.spec.js tests/scientific-unified-design-browser.spec.js tests/scientific-premium-visual-browser.spec.js tests/bahar-formative-workspace-browser.spec.js tests/golden-talent-evidence-studio-browser.spec.js tests/rcas-start-browser.spec.js tests/scientific-continuity.browser.spec.js tests/customer-dashboard-browser.spec.js tests/bahar-readiness-browser.spec.js --reporter=line
+          npx playwright test tests/konkur-studio-browser.spec.js tests/konkur-catalogue-browser.spec.js tests/scientific-unified-design-browser.spec.js tests/scientific-premium-visual-browser.spec.js tests/bahar-formative-workspace-browser.spec.js tests/golden-talent-evidence-studio-browser.spec.js tests/rcas-start-browser.spec.js tests/scientific-continuity.browser.spec.js tests/customer-dashboard-browser.spec.js tests/bahar-readiness-browser.spec.js --reporter=line
       - name: Build EXACT sanitized public release artifact without deploying
         run: |
           node scripts/build-public-site.mjs

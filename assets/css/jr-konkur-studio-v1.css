@@ -23,3 +23,18 @@
 .jr-konkur-workspace [hidden]{display:none!important}
 @media(max-width:620px){.jr-konkur-workspace .jr-kc-item{align-items:stretch;flex-direction:column}.jr-konkur-workspace .jr-kc-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.jr-konkur-workspace .jr-kc-controls button{padding:9px 3px}}
 @media print{body *{visibility:hidden!important}.jr-konkur-workspace.jr-kc-printing,.jr-konkur-workspace.jr-kc-printing .jr-kc-report,.jr-konkur-workspace.jr-kc-printing .jr-kc-report *{visibility:visible!important}.jr-konkur-workspace.jr-kc-printing{position:absolute;top:0;left:0;width:100%;border:0;background:white;color:black;box-shadow:none;margin:0}.jr-konkur-workspace.jr-kc-printing>*:not(.jr-kc-report){display:none!important}.jr-konkur-workspace.jr-kc-printing .jr-kc-report{display:block!important;border:0;color:black}.jr-konkur-workspace.jr-kc-printing .jr-kc-report *{color:black!important}}
+
+/* Progressive verified public programme explorer inside the original Konkur Studio. */
+.jr-konkur-workspace .jr-kc-official-explorer{border:1px solid rgba(232,191,113,.43);border-radius:14px;background:rgba(247,215,163,.055);padding:clamp(12px,2.5vw,22px);margin:18px 0 22px}
+.jr-konkur-workspace .jr-kc-official-explorer h3{color:#efd7a5;margin-top:0;font-size:clamp(1.12rem,2.5vw,1.3rem)}
+.jr-konkur-workspace .jr-kc-official-explorer p{line-height:1.9;max-width:80ch}
+.jr-konkur-workspace .jr-kc-catalogue-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,195px),1fr));gap:12px;align-items:end;margin-block:14px}
+.jr-konkur-workspace .jr-kc-catalogue-form label{display:flex;flex-direction:column;gap:6px}
+.jr-konkur-workspace .jr-kc-catalogue-form label input,.jr-konkur-workspace .jr-kc-catalogue-form label select{width:100%}
+.jr-konkur-workspace .jr-kc-catalogue-status{color:#ffe2ac;min-height:1.6rem}
+.jr-konkur-workspace .jr-kc-catalogue-results{display:grid;gap:12px;list-style:none;margin:0;padding:0}
+.jr-konkur-workspace .jr-kc-catalogue-item{min-width:0;overflow-wrap:anywhere;background:#1f2934;border:1px solid rgba(215,177,103,.36);border-radius:10px;padding:13px}
+.jr-konkur-workspace .jr-kc-catalogue-item strong{color:#ffe3b2}
+.jr-konkur-workspace .jr-kc-catalogue-item small{display:block;color:#f3ddbc;margin-block:10px}
+@media(max-width:600px){.jr-konkur-workspace .jr-kc-catalogue-form{grid-template-columns:1fr}.jr-konkur-workspace .jr-kc-catalogue-item button{width:100%}}
+@media print{.jr-konkur-workspace .jr-kc-official-explorer{display:none!important}}
