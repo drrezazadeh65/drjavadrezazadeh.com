@@ -86,11 +86,11 @@
    });
    trend.replaceChildren();
    const latest=ordered.filter(x=>x.taz!==null).at(-1);
-   const comparable=latest&&!['OTHER','SCHOOL_LOCAL'].includes(latest.provider)&&ordered.filter(x=>x.provider===latest.provider&&x.group===latest.group&&x.grade===latest.grade&&x.taz!==null);
+   const comparable=latest&&!['OTHER','SCHOOL_LOCAL'].includes(latest.provider)&&ordered.filter(x=>x.provider===latest.provider&&x.group===latest.group&&x.grade===latest.grade&&x.date.slice(0,4)===latest.date.slice(0,4)&&x.taz!==null);
    if(comparable?.length>=2){
     const prior=comparable.at(-2),difference=latest.taz-prior.taz;
-    trend.append(create('p','',tr('تفاوت توصیفی تراز در دو آزمون اخیرِ همان مؤسسه، گروه و پایه (نه پیش‌بینی قبولی): ',
-      'Descriptive TAZ difference for the same provider, group and grade (not an admission forecast): ')+(difference>0?'+':'')+num.format(difference)));
+    trend.append(create('p','',tr('تفاوت عددی تراز خوداظهاری در دو آزمونِ همان مؤسسه، گروه، پایه و سال (همسانی مقیاس تأیید نشده؛ نه پیش‌بینی قبولی): ',
+      'Self-reported TAZ difference within the same provider, group, grade and year (scale comparability unverified; not an admission forecast): ')+(difference>0?'+':'')+num.format(difference)));
    }else trend.append(create('p','',tr('برای مقایسه، دو آزمون از همان مؤسسه، گروه و پایه لازم است. برای سایر برگزارکنندگان ناشناس، مقایسه تراز غیرفعال است.',
      'Comparison needs two events from the same provider, group and grade. Unknown issuers cannot be compared.')));
   }
