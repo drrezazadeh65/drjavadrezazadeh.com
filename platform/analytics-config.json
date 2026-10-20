@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0",
-  "status": "PENDING_OWNER_GTM_CONTAINER_AND_TAG_VERIFICATION",
+  "status": "GTM_CONTAINER_CREATED_PENDING_TAG_SETUP_PREVIEW_AND_OWNER_PUBLICATION",
   "provider": "GA4",
   "enabled": false,
   "measurement_id": "G-C3C7NQQNWX",
-  "activation_rule": "Owner must provide one verified GTM Web Container ID. Publish its consent-restricted GA4 Google tag after GTM Preview and GA4 DebugView QA. Retain enabled=false until explicit owner release authorization.",
+  "activation_rule": "GTM Web Container GTM-P6LWCLKM confirmed by owner screenshot (2026-10-20). Keep enabled=false until Google tag G-C3C7NQQNWX is configured exactly once inside GTM, consent/dataLayer mapping reviewed, GTM Preview and GA4 DebugView tested, and owner expressly approves GTM Publish and Bertina production deploy.",
   "consent": {
     "required": true,
     "storage_key": "jr-analytics-consent-v2",
@@ -41,7 +41,7 @@
   ],
   "ga4_property_id": "559754204",
   "tag_transport": "GTM_ONLY",
-  "gtm_container_id": null,
+  "gtm_container_id": "GTM-P6LWCLKM",
   "event_delivery": {
     "page_view": "prepared_consent_gated",
     "intent": "prepared_consent_gated",
