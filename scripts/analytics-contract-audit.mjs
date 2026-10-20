@@ -24,6 +24,7 @@ fail(source.includes("analytics_storage:'denied'")&&source.includes("analytics_s
 fail(source.includes("ad_storage:'denied'")&&source.includes("ad_user_data:'denied'")&&source.includes("ad_personalization:'denied'"),'ad storage must be disabled');
 fail(source.includes('page_referrer:\'\''),'manual analytics pageview must suppress potentially sensitive referrer');
 fail(source.includes('page_location:PROPERTY_ORIGIN+path'),'page location must exclude URL query parameters');
+fail(source.includes("location.search==='string'")&&source.includes("location.hash==='string'"),'any query or fragment must prevent loading GTM, including automatic tag events');
 fail(source.includes("JR_CONVERSION_INTENT"),'reuse existing semantic conversion intent bus');
 fail(source.includes('JRAnalyticsConsent'),'existing consent API must be preserved');
 fail(!source.includes("window.JRAnalytics.purchase"),'browser cannot emit unverified purchase events');
