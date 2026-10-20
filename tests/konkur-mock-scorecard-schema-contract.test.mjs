@@ -60,3 +60,18 @@ test('003f live preflight reads metadata only and protects existing identity/com
  assert.match(guide,/\*\*not\*\* a live statistical admission prediction service/i);
  assert.match(guide,/No automated account login or scraping/i);
 });
+
+test('11 draft provider codes include 10 public issuer choices and keep mock vs official Sanjesh separate',()=>{
+ const seed=read('docs/migrations/20261020_konkur_provider_directory_DRAFT_seed_PROPOSED.sql');
+ const codes=['SANJESH_NATIONAL','GHALAMCHI','GAJ','GOZINE2','MAZ','SANJESH_MOCK',
+  'VALEH','MOBTAKERAN','AYANDESAZAN','SCHOOL_LOCAL','OTHER'];
+ assert.equal((seed.match(/INSERT INTO eco_exam_providers/g)||[]).length,11);
+ assert.equal((seed.match(/'DRAFT'/g)||[]).length,11);
+ for(const code of codes){
+  assert.ok(seed.includes("'"+code+"'"),'missing '+code);
+ }
+ assert.match(seed,/'SANJESH_NATIONAL'[^\n]*'OFFICIAL_ADMISSION'/);
+ assert.match(seed,/'SANJESH_MOCK'[^\n]*'PRIVATE_MOCK'/);
+ const executable=seed.replace(/--[^\n]*/g,'');
+ assert.doesNotMatch(executable,/\b(?:CREATE|ALTER|DROP|TRUNCATE|UPDATE|DELETE|REPLACE|GRANT|REVOKE)\s+(?:TABLE|FROM|DATABASE|INTO|ON|VIEW)\b/i);
+});
