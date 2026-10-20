@@ -144,3 +144,30 @@ jobs:
 
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/robots.txt | grep -F 'Sitemap: https://drjavadrezazadeh.com/sitemap.xml'
           curl -kfsS --max-time 30 --resolve drjavadrezazadeh.com:443:$ORIGIN_IP https://drjavadrezazadeh.com/sitemap.xml | grep -F 'sitemap-fa.xml'
+
+          # Read-only, strict TLS anonymous private-evidence exposure audit.
+          # This checks the currently deployed revision, not branch-HEAD parity;
+          # never download confidential response bodies or trigger a new deploy.
+          echo "----- STRICT OWNER EVIDENCE DENIAL -----"
+          for path in \
+            /api/internal/operations-registry.json \
+            /api/internal/operations-gsc-observation.json \
+            /api/internal/ai-search-visibility-baseline-20261020.json \
+            /api/operations-ai-visibility.php; do
+            code="$(curl --noproxy '*' -sS --max-time 20 \
+              --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
+              -o /dev/null -w '%{http_code}' "https://drjavadrezazadeh.com$path")"
+            echo "$path anonymous HTTPS $code"
+            case "$code" in 403|404) ;; *)
+              echo "::error::Private evidence resource exposed or inaccessible: $path HTTP $code"; exit 1;;
+            esac
+          done
+          curl --noproxy '*' -sS --max-time 20 \
+            --resolve drjavadrezazadeh.com:443:$ORIGIN_IP \
+            -D /tmp/aisv-denial-headers -o /dev/null -w '%{http_code}' \
+            https://drjavadrezazadeh.com/api/admin/operations/ai-visibility \
+            > /tmp/aisv-denial-status
+          test "$(cat /tmp/aisv-denial-status)" = 401
+          tr -d '\r' < /tmp/aisv-denial-headers | grep -Eiq '^cache-control:.*no-store'
+          tr -d '\r' < /tmp/aisv-denial-headers | grep -Eiq '^x-robots-tag:.*noindex'
+          echo "PASS: 4 private files denied; owner AISV API HTTP 401, no-store and noindex."
