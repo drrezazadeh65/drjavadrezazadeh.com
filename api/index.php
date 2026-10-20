@@ -1150,6 +1150,11 @@ if(str_starts_with($path,'/golden-talent/')){
     require_once __DIR__.'/golden-talent.php';
     goldenTalentRoute($path,$verb);
 }
+// Public, source-reviewed official programme catalogue; never returns learner data.
+if(str_starts_with($path,'/konkur/')){
+    require_once __DIR__.'/konkur-admission.php';
+    konkurCatalogueRoute($path,$verb);
+}
 if(str_starts_with($path,'/student-support/')){
     require_once __DIR__.'/student-support.php';
     studentSupportRoute($path,$verb);
