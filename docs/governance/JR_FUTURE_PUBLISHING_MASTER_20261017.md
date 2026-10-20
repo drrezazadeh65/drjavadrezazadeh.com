@@ -1,3 +1,5 @@
+> **Historical pricing notice (2026-10-20):** The original 60/40 references below are archived context only. The owner's final technical policy for future Mirkarimi sales is **1,000,000 toman gross / 700,000 author / 300,000 talent support**, version `mehrab-gross-70-30-v2`. See [`JR_PUBLISHING_70_30_ACTIVATION_20261020.md`](JR_PUBLISHING_70_30_ACTIVATION_20261020.md). Do not rewrite completed orders. Private PDF/payment/rights proof still gates live sales.
+
 # JR Future Publishing — Multi-Author and Talent-Support Master Architecture
 Version: 0.1.0 · 2026-10-17 · SOURCE ONLY / NOT DEPLOYED OR APPROVED FOR TAKING PAYMENTS
 
