@@ -21,7 +21,7 @@ const isValid=config=>config?.enabled===true&&config.provider==='GA4'&&
  config.consent?.required===true;
 const locale=()=>document.documentElement.lang==='fa'?'fa':document.documentElement.lang==='en'?'en':'und';
 const consentGranted=()=>{
- try{return localStorage.getItem(state.config?.consent?.storage_key||'jr-analytics-consent-v1')===
+ try{return localStorage.getItem(state.config?.consent?.storage_key||'jr-analytics-consent-v2')===
    (state.config?.consent?.granted_value||'granted');}catch(_){return false;}
 };
 const safeRoute=()=>{
