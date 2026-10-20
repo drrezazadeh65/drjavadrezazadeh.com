@@ -118,6 +118,11 @@ export function createPeriodReview({review_type,cycles=[],decision,rationale,nex
  if(coverage.reviewed_cycle_count===0||coverage.observed_event_count===0)
   throw new Error('No reviewed traceable evidence available; retain draft status');
  const reviewed=cycles.filter(c=>c?.status==='REVIEWED');
+ // A second record for the same calendar week is not an additional week of
+ // longitudinal evidence. Reject it before any professional period decision.
+ const weeks=reviewed.map(c=>c.week_start);
+ if(weeks.some(week=>!isoDate(week))||new Set(weeks).size!==weeks.length)
+  throw new Error('Distinct dated BAHAR weeks required for period review');
  const ids=reviewed.flatMap(c=>evidenceRows(c).map(e=>e.id));
  if(ids.some(id=>!safeText(id,128))||new Set(ids).size!==ids.length)
   throw new Error('Review requires unique, traceable evidence identities');

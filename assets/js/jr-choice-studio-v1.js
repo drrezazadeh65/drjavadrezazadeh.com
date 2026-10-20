@@ -27,6 +27,9 @@
       compare:'مقایسه کنونی',equal:'برآوردهای واردشده دو شاخص یکسان ایجاد کرده‌اند.',
       preferred:'شاخص توصیفیِ بالاتر با ورودی‌های فعلی: ',index:'شاخص ترجیح شخصی',outOf:' از ۵',
       greatest:'بیشترین اختلاف در برآوردهای شما مربوط به «',greatestEnd:'» است.',
+      sensitivityWarning:'هشدار حساسیت: تغییر فقط یک درجه در یک برآورد می‌تواند نتیجه مقایسه را برابر یا معکوس کند. شواهد مستقل بیشتری بررسی کنید.',
+      sensitivityStable:'با تغییر یک‌درجه‌ای مجاز در هر برآورد، جهت این مقایسه تغییر نمی‌کند؛ بااین‌حال این نتیجه اعتبار علمی یا پیش‌بینی آینده نیست.',
+      sensitivityTie:'دو مسیر فعلاً برابرند؛ حتی یک تغییر کوچک در برآوردها می‌تواند ترتیب را تغییر دهد.',
       formula:'روش محاسبه: مجموع (اهمیت × برآورد هر معیار) تقسیم بر مجموع اهمیت معیارهای فعال. معیارهایی که اهمیت صفر دارند در محاسبه وارد نمی‌شوند.',
       actions:'گام بعدی',next:'پیش از تصمیم، ضوابط رسمی ورود، محتوای دوره و هزینه واقعی هر گزینه را بررسی کنید؛ شواهد مخالف، دیدگاه خانواده و یک تجربه کوتاهِ قابل بازنگری را نیز ثبت کنید.',
       limitation:'این عدد بازتاب ترجیحات و برآوردهای خود شماست؛ آزمون روان‌سنجی، تشخیص استعداد، پیش‌بینی قبولی یا تضمین آینده نیست.',
@@ -56,6 +59,9 @@
       compare:'Current comparison',equal:'Your entries produce equal descriptive indices.',
       preferred:'Higher descriptive index given your current entries: ',index:'Personal preference index',outOf:' out of 5',
       greatest:'The largest difference in your entries concerns “',greatestEnd:'”.',
+      sensitivityWarning:'Sensitivity warning: changing one impression by a single scale point can tie or reverse the comparison. Seek additional independent evidence.',
+      sensitivityStable:'Changing any single impression by one valid scale point does not reverse this comparison, but this is not scientific validation or prediction.',
+      sensitivityTie:'The pathways currently tie. A small change in your impressions can change the ordering.',
       formula:'Method: sum of (importance × impression) divided by the total importance of active criteria. A criterion with zero importance is excluded.',
       actions:'Constructive next step',next:'Before deciding, verify official entry requirements, course content and actual costs. Record counter-evidence, family perspectives and one small, revisable experience that could inform the choice.',
       limitation:'This number describes your own preferences and judgements. It is not a validated psychometric assessment, diagnosis, admission prediction or guarantee of future success.',
@@ -156,6 +162,7 @@
     const metrics=node('div',null,'jr-cs-metrics');metrics.hidden=true;
     const explanatory=node('p',T.formula,'jr-cs-formula');
     const contrast=node('p',null,'jr-cs-contrast');contrast.hidden=true;
+    const sensitivity=node('p',null,'jr-cs-sensitivity');sensitivity.hidden=true;
     const advice=node('div',null,'jr-cs-next');
     advice.append(node('strong',T.actions),node('p',T.next));
     const limitation=node('p',T.limitation,'jr-cs-limitation');
@@ -167,7 +174,7 @@
     persistLabel.append(persistInput,node('span',T.remember));
     const orderAnnounce=node('p','','jr-cs-order-live');
     orderAnnounce.setAttribute('role','status');orderAnnounce.setAttribute('aria-live','polite');
-    result.append(announce,metrics,contrast,explanatory,advice,limitation);
+    result.append(announce,metrics,contrast,sensitivity,explanatory,advice,limitation);
     form.append(result,reset,persistLabel,orderAnnounce,privacy);
     root.replaceChildren(header,journey,form);
 
@@ -302,7 +309,7 @@
         else step.removeAttribute('aria-current');
       });
       if(error){
-        metrics.hidden=true;metrics.replaceChildren();contrast.hidden=true;contrast.textContent='';
+        metrics.hidden=true;metrics.replaceChildren();contrast.hidden=true;contrast.textContent='';sensitivity.hidden=true;sensitivity.textContent='';
         announce.textContent=message||error;return;
       }
       const sum=active.reduce((acc,w)=>acc+Number(w.input.value),0);
@@ -324,6 +331,28 @@
       const top=delta.sort((a,b)=>b.d-a.d)[0];
       contrast.hidden=!top||top.d===0;
       contrast.textContent=top&&top.d>0?T.greatest+top.w.factor[isFa?'fa':'en']+T.greatestEnd:'';
+      // Exact local one-point perturbation of an individual subjective rating.
+      // A changing lead is decision fragility, not psychometric uncertainty.
+      const baseline=scores[0]-scores[1];
+      let canChangeOrder=false;
+      for(const w of active){
+        const weight=Number(w.input.value);
+        const k=factors.indexOf(w.factor);
+        for(let optionIndex=0;optionIndex<2;optionIndex++){
+          const rating=Number(entries[optionIndex].selects[k].value);
+          for(const change of [-1,1]){
+            if(rating+change<1||rating+change>5)continue;
+            const shifted=baseline+(optionIndex===0?1:-1)*weight*change/sum;
+            if(Math.sign(shifted)!==Math.sign(baseline)){
+              canChangeOrder=true;
+              break;
+            }
+          }
+        }
+      }
+      sensitivity.hidden=false;
+      sensitivity.textContent=Math.abs(baseline)<1e-10?T.sensitivityTie:
+        canChangeOrder?T.sensitivityWarning:T.sensitivityStable;
     }
     form.addEventListener('input',()=>redraw());
     form.addEventListener('change',()=>redraw());

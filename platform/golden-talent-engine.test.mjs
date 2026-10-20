@@ -34,3 +34,17 @@ assert.equal(result.routes.find(x=>x.route_code==='D2').evidence_state,'DISCREPA
 assert.equal(result.routes.find(x=>x.route_code==='D3').evidence_state,'SINGLE_SOURCE');
 assert.throws(()=>classifyDomain('D7',[]));
 console.log('Golden Talent engine tests passed');
+
+import {buildScientificContinuitySnapshot,auditBaharTimeline} from './scientific-continuity-readiness.mjs';
+const privacyPreflight=buildScientificContinuitySnapshot({rcas_submission:{
+ session_id:'ci-session',instrument_version:'rcas-1',
+ responses:[{item_code:'A1',value:3},{item_code:'access1',value:'محدود'}]
+}});
+assert.equal(privacyPreflight.total_score,null);
+assert.equal(privacyPreflight.release_authorized,false);
+assert.equal(privacyPreflight.rcas.descriptive_event_count,2);
+assert.equal(privacyPreflight.privacy.backend_consent_verification_required,true);
+assert.equal(privacyPreflight.golden_talent.balanced_accounting,true);
+assert.equal(JSON.stringify(privacyPreflight).includes('ci-session'),false);
+assert.ok(auditBaharTimeline([{week_start:'2026-02-30',status:'OPEN',observed_evidence:[]}])
+ .issue_codes.includes('INVALID_WEEK_DATE'));
