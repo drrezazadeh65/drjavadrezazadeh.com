@@ -32,28 +32,11 @@ function jrPublishingSchemaReady(PDO $pdo): bool {
         return false;
     }
 }
-function jrPublishingAuthorRoute(string $path,string $verb): never {
-    header('Cache-Control: no-store, private, max-age=0');
-    header('Pragma: no-cache');
-    header('X-Robots-Tag: noindex, noarchive, nosnippet');
-    if(str_starts_with($path,'/publishing/author/onboarding')) jrPubAuthorOnboardingRoute($path,$verb);
-    if($verb!=='GET'||$path!=='/publishing/author/overview') fail('route_not_found',404);
-    if(!authReady()) fail('author_portal_unavailable',503);
-    $pdo=db();
-    if(!$pdo||!jrPublishingSchemaReady($pdo)) fail('author_portal_unavailable',503);
-    $account=sessionAccount($pdo);
-    if(!$account||($account['status']??'')!=='active'||empty($account['email_verified_at']))
-        fail('unauthorized',401);
-    try {
-        $authors=$pdo->prepare("SELECT a.id,a.slug,a.display_name_fa,a.display_name_en
-            FROM publishing_author_accounts l
-            JOIN publishing_authors a ON a.id=l.author_id
-            WHERE l.account_id=? AND l.role='author' AND l.approved_at IS NOT NULL
-              AND l.revoked_at IS NULL AND a.status IN('verification_pending','approved')
-            ORDER BY a.display_name_fa ASC LIMIT 30");
-        $authors->execute([(string)$account['id']]);
-        $rows=$authors->fetchAll(PDO::FETCH_ASSOC);
-        if(!$rows) fail('author_access_not_approved',403);
+/** Canonical source of author-visible finance/works/contracts. Caller must
+ * enforce either an approved author account or SUPER_ADMIN with fresh TOTP.
+ * SELECT projections only; never supplies buyer, identity or bank credentials.
+ */
+function jrPublishingAuthorDashboardProjection(PDO $pdo,array $rows): array {
         $earnings=$pdo->prepare("SELECT
             COUNT(DISTINCT CASE WHEN e.entry_kind='author_share' THEN e.order_id END) AS verified_paid_orders,
             COALESCE(SUM(CASE WHEN e.entry_kind IN ('author_share','author_reversal') THEN e.amount_toman ELSE 0 END),0) AS author_accrued_toman,
@@ -181,6 +164,31 @@ function jrPublishingAuthorRoute(string $path,string $verb): never {
               },$items)
             ];
         }
+        return $out;
+}
+function jrPublishingAuthorRoute(string $path,string $verb): never {
+    header('Cache-Control: no-store, private, max-age=0');
+    header('Pragma: no-cache');
+    header('X-Robots-Tag: noindex, noarchive, nosnippet');
+    if(str_starts_with($path,'/publishing/author/onboarding')) jrPubAuthorOnboardingRoute($path,$verb);
+    if($verb!=='GET'||$path!=='/publishing/author/overview') fail('route_not_found',404);
+    if(!authReady()) fail('author_portal_unavailable',503);
+    $pdo=db();
+    if(!$pdo||!jrPublishingSchemaReady($pdo)) fail('author_portal_unavailable',503);
+    $account=sessionAccount($pdo);
+    if(!$account||($account['status']??'')!=='active'||empty($account['email_verified_at']))
+        fail('unauthorized',401);
+    try {
+        $authors=$pdo->prepare("SELECT a.id,a.slug,a.display_name_fa,a.display_name_en
+            FROM publishing_author_accounts l
+            JOIN publishing_authors a ON a.id=l.author_id
+            WHERE l.account_id=? AND l.role='author' AND l.approved_at IS NOT NULL
+              AND l.revoked_at IS NULL AND a.status IN('verification_pending','approved')
+            ORDER BY a.display_name_fa ASC LIMIT 30");
+        $authors->execute([(string)$account['id']]);
+        $rows=$authors->fetchAll(PDO::FETCH_ASSOC);
+        if(!$rows) fail('author_access_not_approved',403);
+        $out=jrPublishingAuthorDashboardProjection($pdo,$rows);
         respond(['ok'=>true,'service'=>'jr-future-publishing',
             'currency'=>'IRT','amountUnit'=>'toman','authors'=>$out,
             'note'=>'Earmarked is not disbursed; accrued is not bank settled.']);

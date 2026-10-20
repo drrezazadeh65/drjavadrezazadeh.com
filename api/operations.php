@@ -4,6 +4,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
 const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/publishing-onboarding.php';
+require_once __DIR__.'/publishing.php';
 require_once __DIR__.'/operations-reporting.php';
 require_once __DIR__.'/operations-ai-visibility.php';
 require_once __DIR__.'/operations-gsc-direct.php';
@@ -375,6 +376,53 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        // Owner-only projection of the SAME financial/work/contract records
+        // returned to each approved author. No impersonation or account switch.
+        if ($path === '/admin/operations/author-view' && $verb === 'GET') {
+            if (($configuration['operations_admins'][$accountId]['role']??'') !== 'SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if (!jrPublishingSchemaReady($pdo)) fail('author_portal_unavailable',503);
+            if (!rateAllowed($pdo,'operations_author_real_view',$accountId,30,300))
+                fail('rate_limited',429);
+            $authorId=trim((string)($_GET['authorId']??''));
+            if ($authorId!=='' && !validUuid($authorId)) fail('invalid_author_id',422);
+            // Revoked, unverified and disabled author-account bindings never
+            // contribute to the list and cannot be used for a target preview.
+            $authorSql="SELECT a.id,a.slug,a.display_name_fa,a.display_name_en
+                FROM publishing_authors a
+                WHERE a.status IN ('verification_pending','approved')
+                  AND EXISTS (
+                    SELECT 1 FROM publishing_author_accounts l
+                    JOIN customer_accounts ca ON ca.id=l.account_id
+                    WHERE l.author_id=a.id AND l.role='author'
+                      AND l.approved_at IS NOT NULL AND l.revoked_at IS NULL
+                      AND ca.status='active' AND ca.email_verified_at IS NOT NULL
+                  )";
+            if ($authorId==='') {
+                $q=$pdo->query($authorSql." ORDER BY a.display_name_fa ASC LIMIT 100");
+                $directory=array_map(static fn(array $a):array=>[
+                    'id'=>(string)$a['id'],'slug'=>(string)$a['slug'],
+                    'displayNameFa'=>(string)$a['display_name_fa'],
+                    'displayNameEn'=>(string)$a['display_name_en']
+                ],$q->fetchAll(PDO::FETCH_ASSOC));
+                operationsAudit($pdo,$accountId,'author_view_directory','author_directory');
+                respond(['ok'=>true,'scope'=>'owner_mfa_readonly','authors'=>$directory,
+                    'impersonation'=>false,'roleMutation'=>false,'readOnly'=>true]);
+            }
+            $q=$pdo->prepare($authorSql." AND a.id=? LIMIT 1");
+            $q->execute([$authorId]);
+            $target=$q->fetch(PDO::FETCH_ASSOC);
+            if (!is_array($target)) fail('author_access_not_approved',404);
+            $projected=jrPublishingAuthorDashboardProjection($pdo,[$target]);
+            if(count($projected)!==1)fail('author_projection_unavailable',503);
+            operationsAudit($pdo,$accountId,'author_view_open',hash('sha256',$authorId));
+            respond(['ok'=>true,'scope'=>'owner_mfa_readonly','readOnly'=>true,
+                'impersonation'=>false,'roleMutation'=>false,
+                'currency'=>'IRT','amountUnit'=>'toman',
+                'author'=>$projected[0],
+                'note'=>'Actual author records only. Accrued is not bank settlement. No buyer PII or banking secrets.']);
+        }
+
         if(str_starts_with($path,'/admin/operations/publishing/authors'))
             jrPubKycAdminRoute($pdo,$path,$verb,$accountId,$csrf,$configuration);
 
