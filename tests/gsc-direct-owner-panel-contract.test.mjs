@@ -12,7 +12,7 @@ test('both admin languages expose a GSC panel only in the existing protected wor
   const panel=html.indexOf('id="ops-gsc-direct"');
   assert.ok(start>=0&&panel>start,path);
   assert.match(html, /data-gsc-direct-refresh/);
-  assert.match(html, /operations-gsc-direct\.js\?v=20261020-owner-gsc-v2/);
+  assert.match(html, /operations-gsc-direct\.js\?v=20261020-owner-gsc-v3/);
   assert.match(html, /operations-control\.js\?v=/);
   assert.match(html, /id="ops-ai-visibility"/,'original SEO/GEO/AEO panel preserved');
  }
