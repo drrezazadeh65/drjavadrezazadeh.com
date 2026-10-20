@@ -26,7 +26,7 @@ def probe(token: str) -> dict:
     if not isinstance(entries, list):
         raise VerificationError("invalid_sitemap_list", sitemap_status)
     # URL Inspection is a separate API call and must not be inferred from analytics success.
-    inspection_endpoint = API_ROOT + "/v1/urlInspection/index:inspect"
+    inspection_endpoint = "https://searchconsole.googleapis.com/v1/urlInspection/index:inspect"
     inspection_status, inspection_data = request_google(token, inspection_endpoint, {
         "inspectionUrl": INSPECT_URLS[0],
         "siteUrl": EXPECTED_PROPERTY,
