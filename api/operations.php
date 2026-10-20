@@ -475,6 +475,17 @@ function operationsRoute(string $path, string $verb): never {
         // Private, non-polling direct GSC aggregate projection. A locally
         // validated snapshot is never represented as authenticated Google data.
         // No snapshot configured => explicit unavailable, not invented zero.
+        // Same authenticated Operations Control Center, distinct GSC and GA4 states.
+        // Both unavailable observations stay null; no Google API or vendor I/O.
+        if ($path === '/admin/operations/search-intelligence' && $verb === 'GET') {
+            if (($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('owner_search_intelligence_forbidden',403);
+            if (!rateAllowed($pdo,'operations_search_intelligence_read',$accountId,12,300))
+                fail('rate_limited',429);
+            respond(operationsSearchIntelligenceSnapshot(
+                (string)($configuration['gsc_private_snapshot_path']??''),nowTs()));
+        }
+
         if ($path === '/admin/operations/gsc-direct' && $verb === 'GET') {
             if (($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
                 fail('owner_gsc_forbidden',403);
