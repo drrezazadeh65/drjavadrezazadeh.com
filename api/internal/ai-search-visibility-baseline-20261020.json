@@ -1,0 +1,203 @@
+{
+  "schema": "jr-aisv-evidence-v1",
+  "brand": "Dr Javad Rezazadeh Yazdeli",
+  "scope": {
+    "source": "Ubersuggest AI Search Visibility connector",
+    "platform": "Ubersuggest",
+    "retrievedOn": "2026-10-20",
+    "queryWindow": {
+      "start": "2026-10-01",
+      "end": "2026-10-20"
+    },
+    "locale": "en",
+    "region": "United States",
+    "configuration": "tracked fixed English prompts",
+    "sampledModelVersion": null
+  },
+  "sourceReliability": "connected_project_provider_report_not_raw_answer_or_verified_citation_url",
+  "claimBoundary": "Provider-reported ChatGPT/OpenAI sample only; no independent answer text, citation URLs, site traffic or production index evidence.",
+  "prompts": [
+    {
+      "ordinal": 1,
+      "prompt": "Who is Dr Javad Rezazadeh Yazdeli and what are his research areas?",
+      "primaryPublicRoute": "/en/academic-profile/",
+      "routeVerified": "source_path_only",
+      "contentCoverage": "needs_manual_scholarly_review",
+      "provider": "openai",
+      "sampledAnswers": 1,
+      "brandMentions": 0,
+      "brandPresencePercent": 0,
+      "brandRank": null,
+      "verifiedWebsiteCitationCount": null,
+      "verifiedCitationUrls": null
+    },
+    {
+      "ordinal": 2,
+      "prompt": "Where can I verify Javad Rezazadeh Yazdeli's publications and scholarly identifiers?",
+      "primaryPublicRoute": "/en/publications/",
+      "routeVerified": "source_path_only",
+      "contentCoverage": "needs_manual_scholarly_review",
+      "provider": "openai",
+      "sampledAnswers": 1,
+      "brandMentions": 0,
+      "brandPresencePercent": 0,
+      "brandRank": null,
+      "verifiedWebsiteCitationCount": null,
+      "verifiedCitationUrls": null
+    },
+    {
+      "ordinal": 3,
+      "prompt": "What is the Golden Talent framework developed by Javad Rezazadeh Yazdeli?",
+      "primaryPublicRoute": "/en/golden-talent/",
+      "routeVerified": "source_path_only",
+      "contentCoverage": "needs_manual_scholarly_review",
+      "provider": "openai",
+      "sampledAnswers": 1,
+      "brandMentions": 0,
+      "brandPresencePercent": 0,
+      "brandRank": null,
+      "verifiedWebsiteCitationCount": null,
+      "verifiedCitationUrls": null
+    },
+    {
+      "ordinal": 4,
+      "prompt": "How should students combine interests, strengths and practical constraints when choosing a university major?",
+      "primaryPublicRoute": "/en/student-guidance/",
+      "routeVerified": "source_path_only",
+      "contentCoverage": "needs_manual_scholarly_review",
+      "provider": "openai",
+      "sampledAnswers": 1,
+      "brandMentions": 0,
+      "brandPresencePercent": 0,
+      "brandRank": null,
+      "verifiedWebsiteCitationCount": null,
+      "verifiedCitationUrls": null
+    },
+    {
+      "ordinal": 5,
+      "prompt": "What are the limits of using one test to identify a student's talents?",
+      "primaryPublicRoute": "/en/golden-talent/methodology/",
+      "routeVerified": "source_path_only",
+      "contentCoverage": "needs_manual_scholarly_review",
+      "provider": "openai",
+      "sampledAnswers": 1,
+      "brandMentions": 0,
+      "brandPresencePercent": 0,
+      "brandRank": null,
+      "verifiedWebsiteCitationCount": null,
+      "verifiedCitationUrls": null
+    },
+    {
+      "ordinal": 6,
+      "prompt": "How can parent and teacher observations support student educational guidance?",
+      "primaryPublicRoute": "/en/golden-talent/",
+      "routeVerified": "source_path_only",
+      "contentCoverage": "needs_manual_scholarly_review",
+      "provider": "openai",
+      "sampledAnswers": 0,
+      "brandMentions": null,
+      "brandPresencePercent": null,
+      "brandRank": null,
+      "verifiedWebsiteCitationCount": null,
+      "verifiedCitationUrls": null
+    },
+    {
+      "ordinal": 7,
+      "prompt": "What evidence would show that a developmental talent assessment is valid?",
+      "primaryPublicRoute": "/en/golden-talent/methodology/",
+      "routeVerified": "source_path_only",
+      "contentCoverage": "needs_manual_scholarly_review",
+      "provider": "openai",
+      "sampledAnswers": 0,
+      "brandMentions": null,
+      "brandPresencePercent": null,
+      "brandRank": null,
+      "verifiedWebsiteCitationCount": null,
+      "verifiedCitationUrls": null
+    },
+    {
+      "ordinal": 8,
+      "prompt": "What should I check before choosing academic manuscript editing or research consultation?",
+      "primaryPublicRoute": "/en/academic-services/",
+      "routeVerified": "source_path_only",
+      "contentCoverage": "needs_manual_scholarly_review",
+      "provider": "openai",
+      "sampledAnswers": 0,
+      "brandMentions": null,
+      "brandPresencePercent": null,
+      "brandRank": null,
+      "verifiedWebsiteCitationCount": null,
+      "verifiedCitationUrls": null
+    },
+    {
+      "ordinal": 9,
+      "prompt": "How can teachers evaluate the cultural and pedagogical suitability of English language teaching materials?",
+      "primaryPublicRoute": "/en/teacher-education/",
+      "routeVerified": "source_path_only",
+      "contentCoverage": "needs_manual_scholarly_review",
+      "provider": "openai",
+      "sampledAnswers": 0,
+      "brandMentions": null,
+      "brandPresencePercent": null,
+      "brandRank": null,
+      "verifiedWebsiteCitationCount": null,
+      "verifiedCitationUrls": null
+    },
+    {
+      "ordinal": 10,
+      "prompt": "How can researchers use AI in academic writing while preserving authorship and source verification?",
+      "primaryPublicRoute": "/en/research/",
+      "routeVerified": "source_path_only",
+      "contentCoverage": "needs_manual_scholarly_review",
+      "provider": "openai",
+      "sampledAnswers": 0,
+      "brandMentions": null,
+      "brandPresencePercent": null,
+      "brandRank": null,
+      "verifiedWebsiteCitationCount": null,
+      "verifiedCitationUrls": null
+    }
+  ],
+  "providers": [
+    {
+      "provider": "openai",
+      "status": "sampled",
+      "sampledAnswers": 5,
+      "brandMentions": 0,
+      "brandPresencePercent": 0,
+      "websiteCitationCount": null,
+      "websiteCitationUrls": null
+    },
+    {
+      "provider": "gemini",
+      "status": "not_measured",
+      "sampledAnswers": null,
+      "brandMentions": null,
+      "brandPresencePercent": null,
+      "websiteCitationCount": null,
+      "websiteCitationUrls": null
+    },
+    {
+      "provider": "google_aio",
+      "status": "not_measured",
+      "sampledAnswers": null,
+      "brandMentions": null,
+      "brandPresencePercent": null,
+      "websiteCitationCount": null,
+      "websiteCitationUrls": null
+    }
+  ],
+  "trend": {
+    "previousComparableSample": null,
+    "changePercentagePoints": null,
+    "improvementEstablished": false
+  },
+  "notes": [
+    "A zero user-brand mention count is observed in five OpenAI samples, not in all provider outputs.",
+    "The five unsampled fixed prompts have zero collected answers but unknown mention outcomes; null is not zero.",
+    "Ubersuggest's overview mentions a zero user brand citation field nowhere; citation counts therefore remain null.",
+    "Provider response metadata did not include raw answer text, citations, exact sample times or assistant/model versions.",
+    "Do not claim Google/Bing indexing, AI referral traffic, ORCID or scholarly identifier from this report.",
+    "Future snapshots must retain the same exact fixed prompts and locale/region and use separate observational dates; no invented samples."
+  ]
+}
