@@ -60,6 +60,11 @@ try {
  file_put_contents($file,json_encode($data,JSON_THROW_ON_ERROR));
  $loaded=operationsGscDirectSnapshot($file,$now);
  expectGsc($loaded['status']==='locally_validated_unattested','private fixture not loaded');
+ chmod($file,0644);
+ clearstatcache(true,$file);
+ expectGsc(operationsGscDirectSnapshot($file,$now)['status']==='unavailable','group/world-readable GSC file accepted');
+ chmod($file,0600);
+ clearstatcache(true,$file);
  file_put_contents($file,str_repeat('a',65537));
  expectGsc(operationsGscDirectSnapshot($file,$now)['status']==='unavailable','oversize accepted');
  file_put_contents($file,'{invalid-json');
