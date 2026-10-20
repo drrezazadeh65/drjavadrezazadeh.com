@@ -82,13 +82,31 @@ def inspect(token: str) -> dict:
     })
     if report.get("kind") not in (None, "analyticsData#runReport"):
         raise Ga4VerificationError("invalid_ga4_report_shape", report_status)
-    headers = report.get("metricHeaders")
-    if not isinstance(headers, list) or [h.get("name") if isinstance(h, dict) else None
-                                         for h in headers] != ["activeUsers", "eventCount"]:
-        raise Ga4VerificationError("invalid_ga4_metric_headers", report_status)
+    # GA4's protobuf JSON encoding may omit metricHeaders and rows entirely
+    # when a valid runReport contains no events. Never turn that into a fake
+    # "authentication failed" or a fabricated zero-traffic conclusion.
     rows = report.get("rows", [])
     if not isinstance(rows, list) or len(rows) > 1:
         raise Ga4VerificationError("invalid_ga4_rows", report_status)
+    row_count = report.get("rowCount", len(rows))
+    if (isinstance(row_count, bool) or not isinstance(row_count, int)
+            or row_count < 0 or (row_count > 0 and not rows)):
+        raise Ga4VerificationError("invalid_ga4_row_count", report_status)
+    if "error" in report:
+        raise Ga4VerificationError("ga4_embedded_error", report_status)
+    headers = report.get("metricHeaders")
+    if headers is None:
+        known_fields = {
+            "kind", "dimensionHeaders", "rows", "rowCount",
+            "totals", "maximums", "minimums", "metadata", "propertyQuota",
+            "responseMetaData",
+        }
+        if rows or row_count != 0 or not set(report).issubset(known_fields):
+            raise Ga4VerificationError("invalid_ga4_metric_headers", report_status)
+    elif (not isinstance(headers, list) or
+          [h.get("name") if isinstance(h, dict) else None for h in headers]
+          != ["activeUsers", "eventCount"]):
+        raise Ga4VerificationError("invalid_ga4_metric_headers", report_status)
     if rows:
         row = rows[0]
         if not isinstance(row, dict) or not isinstance(row.get("metricValues"), list) or len(
