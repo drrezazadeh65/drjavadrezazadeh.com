@@ -44,3 +44,22 @@
 @media(max-width:540px){.jp-author-workspace .jp-container{padding-inline:16px}.jp-author-workspace .jp-workspace-grid{grid-template-columns:1fr;gap:11px}.jp-author-workspace .jp-workspace-grid>div{padding:17px}.jp-author-workspace .jp-author-summary{padding:15px;font-size:.98rem}.jp-author-workspace .jp-card{border-radius:17px}}
 @media(prefers-reduced-motion:reduce){.jp-author-workspace .jp-workspace-grid>div{transition:none}.jp-author-workspace .jp-workspace-grid>div:hover{transform:none}}
 @media print{.jp-author-workspace{background:#fff;color:#111}.jp-author-workspace .jp-card,.jp-author-workspace .jp-workspace-grid>div{box-shadow:none;background:#fff;color:#111;border-color:#888}.jp-author-workspace .jp-workspace-grid strong,.jp-author-workspace h1{color:#111}}
+
+/* v5.3 — author dashboard accessibility and premium mobile refinements.
+   Presentation only; no changes to authentication, payment, or private records. */
+.jp-author-workspace{min-width:0}
+.jp-author-workspace .jp-container,.jp-author-workspace .jp-card,.jp-author-workspace .jp-author-detail-body{min-width:0}
+.jp-author-workspace .jp-workspace-grid>div{display:flex;flex-direction:column;justify-content:center;gap:6px}
+.jp-author-workspace .jp-workspace-grid strong{font-variant-numeric:tabular-nums;word-break:break-word}
+.jp-author-workspace .jp-author-disclosure{scroll-margin-top:20px}
+.jp-author-workspace .jp-author-summary{position:relative;list-style:none}
+.jp-author-workspace .jp-author-summary::-webkit-details-marker{display:none}
+.jp-author-workspace .jp-author-summary:after{content:"+";display:inline-grid;place-items:center;width:28px;height:28px;flex:none;border-radius:50%;border:1px solid #d4af6880;color:#f3dba9;font-size:1.3rem;line-height:1}
+.jp-author-workspace .jp-author-disclosure[open]>.jp-author-summary:after{content:"−"}
+.jp-author-workspace .jp-author-summary:hover{background:#ffffff0c}
+.jp-author-workspace .jp-author-summary:focus-visible,.jp-author-workspace a:focus-visible,.jp-author-workspace button:focus-visible{outline:3px solid #f3dba9;outline-offset:3px}
+.jp-author-workspace .jp-work-list li[hidden]{display:none!important}
+.jp-author-workspace .jp-work-list li{overflow-wrap:anywhere}
+@media(max-width:540px){.jp-author-workspace .jp-workspace-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.jp-author-workspace .jp-workspace-grid>div{padding:13px;min-height:112px}.jp-author-workspace .jp-workspace-grid strong{font-size:clamp(1rem,4.2vw,1.25rem)}.jp-author-workspace .jp-workspace-grid span{font-size:.78rem}.jp-author-workspace .jp-author-summary{gap:8px}.jp-author-workspace .jp-author-count{min-width:1.9rem;min-height:1.9rem}}
+@media(max-width:340px){.jp-author-workspace .jp-workspace-grid{grid-template-columns:1fr}}
+@media print{.jp-author-workspace .jp-author-summary:after{display:none}.jp-author-workspace .jp-author-disclosure{break-inside:auto}}
