@@ -45,7 +45,7 @@ final class Stage9FixtureStmt extends PDOStatement {
             [$order,$sku,$qty]=$p;$key=$order.'|'.$sku;
             if(isset($d->reservations[$key]))throw new PDOException('duplicate_booking');
             $d->reservations[$key]=['sku'=>$sku,'quantity'=>$qty,'state'=>'reserved'];$this->affected=1;
-        }elseif(str_starts_with($q,'SELECT state,provider_trans_id FROM commerce_orders')){
+        }elseif(str_starts_with($q,'SELECT state,provider_trans_id,paid_at FROM commerce_orders')){
             if(isset($d->orders[$p[0]]))$this->rows=[$d->orders[$p[0]]];
         }elseif(str_starts_with($q,'SELECT COUNT(*) FROM commerce_payment_claims WHERE order_id=')){
             $count=0;foreach($d->claims as $claim)if($claim['order']===$p[0])$count++;
@@ -143,6 +143,11 @@ $releaseDb->beginTransaction();
 try {stage9ReleaseBooks($releaseDb,'release-pending');throw new RuntimeException('provider_transaction_stock_released');}
 catch(RuntimeException $e){ok($e->getMessage()==='stock_release_order_not_safe','provider_transaction_release_blocked');$releaseDb->rollBack();}
 $releaseDb->orders['release-pending']['provider_trans_id']=null;
+$releaseDb->orders['release-pending']['paid_at']='2026-10-20 12:00:00';
+$releaseDb->beginTransaction();
+try {stage9ReleaseBooks($releaseDb,'release-pending');throw new RuntimeException('paid_timestamp_stock_released');}
+catch(RuntimeException $e){ok($e->getMessage()==='stock_release_order_not_safe','paid_timestamp_release_blocked');$releaseDb->rollBack();}
+$releaseDb->orders['release-pending']['paid_at']=null;
 $releaseDb->beginTransaction();
 stage9ReleaseBooks($releaseDb,'release-pending');
 $releaseDb->commit();
