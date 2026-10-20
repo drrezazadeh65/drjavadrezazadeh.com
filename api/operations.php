@@ -472,6 +472,8 @@ function operationsRoute(string $path, string $verb): never {
         // Provider-observed AISV snapshot: private, bounded and only after fresh MFA.
         // This does not call Ubersuggest on behalf of the owner or infer new samples.
         if ($path === '/admin/operations/ai-visibility' && $verb === 'GET') {
+            if (($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('owner_ai_visibility_forbidden',403);
             if (!rateAllowed($pdo,'operations_ai_visibility_read',$accountId,12,300))
                 fail('rate_limited',429);
             respond(operationsAiVisibilitySnapshot());
