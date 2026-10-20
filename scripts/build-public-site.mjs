@@ -101,6 +101,8 @@ const required=[
   // Every paid digital dependency must be in the deployment artifact together,
   // otherwise the gateway may accept money while PHP fails to deliver PDFs.
   'api/publishing.php','api/internal/jr-publishing-digital.php',
+  'api/internal/jr-publishing-allocation-policy.php',
+  'api/internal/jr-publishing-policy-70-30-cli.php',
   'api/internal/jr-publishing-mailer.php','api/internal/jr-publishing-mail-worker.php',
   'api/internal/jr-publishing-contract-draft.php','api/internal/jr-publishing-notifications.php',
   'api/internal/jr-publishing-provision-cli.php','api/internal/jr-publishing-preflight-cli.php',
