@@ -57,6 +57,20 @@ class DirectGscSnapshotTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(SnapshotError):
                 validate_snapshot(sample, self.now)
 
+    def test_nonfinite_metrics_rejected(self):
+        for value in [float('nan'), float('inf'), float('-inf')]:
+            sample = copy.deepcopy(self.sample)
+            sample['rows'][0]['position'] = value
+            with self.subTest(value=value), self.assertRaises(SnapshotError):
+                validate_snapshot(sample, self.now)
+
+    def test_nonstring_dates_rejected(self):
+        for value in [None, 20261020, [], {}]:
+            sample = copy.deepcopy(self.sample)
+            sample['startDate'] = value
+            with self.subTest(value=value), self.assertRaises(SnapshotError):
+                validate_snapshot(sample, self.now)
+
     def test_oversized_rejected(self):
         with self.assertRaises(SnapshotError):
             parse_snapshot(b" " * 65537, self.now)
