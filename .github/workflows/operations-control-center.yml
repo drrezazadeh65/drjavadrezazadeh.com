@@ -49,7 +49,7 @@ jobs:
           php tests/operations-reporting.php
           php tests/operations-ai-visibility.php
           php tests/operations-gsc-direct.php
-          node --test tests/gsc-direct-owner-panel-contract.test.mjs tests/operations-workspace-index-contract.test.mjs
+          node --test tests/gsc-direct-owner-panel-contract.test.mjs tests/operations-workspace-index-contract.test.mjs tests/operations-author-real-view.test.mjs
           php tests/operations-github-audits.php
           for file in api/*.php; do php -l "$file"; done
           php tests/operations-security.php
@@ -73,7 +73,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/operations-free-resources-browser.spec.js --reporter=line
+          npx playwright test tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/operations-free-resources-browser.spec.js tests/operations-author-view-browser.spec.js --reporter=line
       - name: Retain failure evidence
         if: failure()
         uses: actions/upload-artifact@v4
