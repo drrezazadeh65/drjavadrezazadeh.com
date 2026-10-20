@@ -57,6 +57,6 @@ test('003f live preflight reads metadata only and protects existing identity/com
  assert.doesNotMatch(preflight,/\b(?:CREATE|ALTER|DELETE|UPDATE|INSERT|DROP|TRUNCATE|GRANT|REVOKE|REPLACE)\s+(?:TABLE|INTO|FROM|DATABASE|VIEW)/i);
  assert.doesNotMatch(preflight,/FROM\s+customer_accounts\b|FROM\s+eco_subjects\b/i);
  const guide=read('docs/governance/JR_KONKUR_MOCK_SCORECARDS_1406_LAUNCH_RESEARCH_20261020.md');
- assert.match(guide,/no live statistical admission prediction service/i);
+ assert.match(guide,/\*\*not\*\* a live statistical admission prediction service/i);
  assert.match(guide,/No automated account login or scraping/i);
 });
