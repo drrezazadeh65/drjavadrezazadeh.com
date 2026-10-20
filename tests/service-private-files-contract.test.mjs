@@ -196,7 +196,7 @@ test('owner readiness never advertises private file custody until the required s
  assert.match(read('api/service-files.php'),/function jrServiceFilesActivationChecks/);
  assert.ok(snapshot.includes('jrServiceFilesReady($pdo)'));
  assert.ok(admin.includes('fulfilment.privateServiceFilesReady===true'));
- const version='operations-commerce.js?v=20261017-cpanel-remediation-v9';
+ const version='operations-commerce.js?v=20261020-owner-lock-v1';
  for(const page of ['fa/app/admin/index.html','en/account/admin/index.html']){
   assert.ok(read(page).includes(version),'stale operations script '+page);
  }
