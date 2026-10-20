@@ -71,7 +71,7 @@
     trend.append(create('p','',tr('تفاوت عدد تراز گزارش‌شده در دو آزمون اخیر همین مؤسسه و گروه: ',
       'Reported TAZ difference between two latest exams of the same provider and group: ')+(difference>0?'+':'')+num.format(difference)));
    }else trend.append(create('p','',tr('برای بررسی تغییرات توصیفی، دست‌کم دو نتیجه با تراز در همان مؤسسه و گروه ثبت کنید.',
-     'Enter at least two scaled results from the same provider and group for a descriptive change.'));
+     'Enter at least two scaled results from the same provider and group for a descriptive change.')));
   }
   form.addEventListener('submit',event=>{
    event.preventDefault();
