@@ -104,6 +104,15 @@ try {
  // Upgrade the same isolated account temporarily (private registry + DB must agree).
  $configuration['operations_admins'][$id]['role']='SUPER_ADMIN';writeConfig();
  $pdo->prepare("UPDATE operations_admin_memberships SET role='SUPER_ADMIN' WHERE account_id=?")->execute([$id]);
+ // The same isolated account can now read the owner-only AI evidence.
+ $aisv=request('/api/admin/operations/ai-visibility',200);
+ check($aisv['status']==='provider_report_snapshot'&&$aisv['sampledAnswers']===5
+     &&$aisv['brandMentions']===0&&(float)$aisv['brandPresencePercent']===0.0,
+     'Ubersuggest sample must preserve observed zero without fabricated coverage');
+ check(count($aisv['prompts'])===10&&$aisv['prompts'][5]['brandPresencePercent']===null
+     &&$aisv['providers'][1]['sampledAnswers']===null,
+     'missing provider and unsampled prompts incorrectly counted as zero');
+ check($aisv['verifiedCitationCount']===null,'unverified citation count exposed');
  $noCsrf=$headers;unset($noCsrf['X-CSRF-Token']);
  request('/api/admin/operations/commerce/donation-reconcile',403,'POST',[
     'orderId'=>'11111111-1111-4111-8111-111111111185',
@@ -180,14 +189,8 @@ try {
      'unknown bank/commerce status turned into fictitious zero or success');
  check($commerce['customerDetailsExposed']===false,
      'admin commerce monitor exposed customer details');
- $aisv=request('/api/admin/operations/ai-visibility',200);
- check($aisv['status']==='provider_report_snapshot'&&$aisv['sampledAnswers']===5
-     &&$aisv['brandMentions']===0&&(float)$aisv['brandPresencePercent']===0.0,
-     'Ubersuggest sample must preserve observed zero without fabricated coverage');
- check(count($aisv['prompts'])===10&&$aisv['prompts'][5]['brandPresencePercent']===null
-     &&$aisv['providers'][1]['sampledAnswers']===null,
-     'missing provider and unsampled prompts incorrectly counted as zero');
- check($aisv['verifiedCitationCount']===null,'unverified citation count exposed');
+ // Freshly MFA-verified ADMIN is not the owner: deny provider snapshots.
+ request('/api/admin/operations/ai-visibility',403);
  $data=request('/api/admin/operations',200);check($data['dashboard']['measuredProgress']===75,'unexpected admin score');check($data['dashboard']['closed']===false,'unverified production admin closed');check(count($data['reports'])===36,'report count changed');
  check(count($data['reporting']['engines'])===13,'canonical engine count changed');
  check(count($data['reporting']['actionReports'])===52,'action inventory changed');
