@@ -4,7 +4,7 @@
   "enabled": false,
   "measurement_id": "G-C3C7NQQNWX",
   "tag_transport": "GTM_ONLY",
-  "gtm_container_id": null,
+  "gtm_container_id": "GTM-P6LWCLKM",
   "consent": {
     "required": true,
     "storage_key": "jr-analytics-consent-v2",
