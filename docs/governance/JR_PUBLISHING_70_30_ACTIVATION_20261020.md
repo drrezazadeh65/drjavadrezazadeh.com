@@ -33,7 +33,7 @@ The policy is applied to **new** `jrPubDigitalOffer()` checkout lines, each of w
 1. **No public site/database change during code review.** Before touching the existing product row, independently verify a recent restorable database backup, payment/gateway status, pending orders and the exact existing author/work/offer IDs. The production database and both original PDFs are inaccessible from GitHub alone.
 2. Check the current row using the CLI-only tool:
    `php api/internal/jr-publishing-policy-70-30-cli.php --check`.
-3. If the row is the original 60/40 version and a qualified Bertina operator is ready, apply **only** the existing-offer split inside a locked transaction:
+3. Keep the private digital-sales switch **OFF** throughout the change. The guarded tool rejects `--apply` if `publishing_digital_enabled=true` or `JR_PUBLISHING_DIGITAL_ENABLED=true`; no buyer should be able to create a new order mid-transition. If the row is the original 60/40 version and a qualified Bertina operator is ready, apply **only** the existing-offer split inside a locked transaction:
    `JR_PUBLISHING_70_30_OWNER_APPROVED=YES_20261020 php api/internal/jr-publishing-policy-70-30-cli.php --apply`.
    The switch is operator-context authorization only; it does **not** approve a bank debit, sign the author's rights, set `checkout_enabled`, turn on public commerce, or settle funds. The CLI is idempotent and appends an audit record without rewriting any `commerce_orders` or old allocation ledger.
 4. Recheck the exact SQL offer and compare it to the public `assets/data/jr-publishing-prelaunch.json`: 1m price and 700k/300k split. **Do not** run an unreviewed re-seed of the authors or a draft/incompatible migration.
