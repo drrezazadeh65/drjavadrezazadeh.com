@@ -9,7 +9,7 @@ test('ten provider categories are stable, traceable and extensible',()=>{
  assert.equal(providers.length,10);
  assert.equal(new Set(providers.map(x=>x.code)).size,providers.length);
  for(const row of providers){
-  assert.match(row.code,/^[A-Z_]+$/);
+  assert.match(row.code,/^[A-Z][A-Z0-9_]*$/);
   assert.ok(row.fa&&row.en&&row.evidence);
   if(row.evidence==='RESEARCH_CANDIDATE')assert.match(row.fa,/بررسی نشده/);
   if(row.source)assert.match(row.source,/^https:\/\//);
