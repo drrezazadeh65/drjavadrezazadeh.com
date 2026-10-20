@@ -125,9 +125,45 @@
    '</div></div>';
   return el;
  }
+
+ // Mirkarimi is a separately fulfilled, two-PDF digital product. It must never be
+ // inserted into the physical-book cart or priced client-side for bank payment.
+ function digitalProductCard(){
+  const article=document.createElement('article');
+  article.className='book-product-card jr-digital-product-card';
+  article.setAttribute('data-jr-digital-product','mirkarimi');
+  const href=root((isFa?'fa':'en')+'/shop/authors/mehrab-mirkarimi/#purchase');
+  article.innerHTML=
+   '<figure class="jr-digital-cover"><img src="'+root('assets/images/bookstore-talent-cinematic-approved-20261011.webp')+'" loading="lazy" decoding="async" width="600" height="360" alt="'+(isFa?'تصویر نمادین مطالعه و کتاب؛ این تصویر جلد رسمی محصول نیست':'Illustrative study artwork, not an official book cover')+'"><figcaption>'+(isFa?'تصویر نمادین؛ نه جلد رسمی':'Illustration, not the official cover')+'</figcaption></figure>'+
+   '<div class="book-product-copy"><span class="status-chip jr-digital-chip">'+(isFa?'نسخه دیجیتال · دو فایل PDF':'Digital collection · 2 PDFs')+'</span>'+
+   '<h2>'+(isFa?'مجموعه سؤالات و پاسخنامه تشریحی ارشد آموزش زبان انگلیسی (۱۳۷۰–۱۴۰۵)':'TEFL MA Entrance Exam Questions & Explained Answers (1370–1405)')+'</h2>'+
+   '<p>'+(isFa?'اثر سید محراب میرکریمی؛ ۳۶ سال پرسش و پاسخ تخصصی در ۹۹۷ صفحه. دریافت امن هر دو فایل پس از پرداخت تأییدشده.':'By Seyyed Mehrab Mirkarimi: 36 years of examinations, 997 pages, two securely delivered PDF files after verified payment.')+'</p>'+
+   '<p class="jr-digital-impact">'+(isFa?'۳۰٪ مبلغ هر فروش برای حمایت از استعدادهای کم‌بضاعت اختصاص می‌یابد.':'30% of each purchase is earmarked for talented learners facing financial hardship.')+'</p>'+
+   '<div class="book-price">'+(isFa?'۱٬۰۰۰٬۰۰۰ تومان':'1,000,000 toman')+'</div>'+
+   '<p class="jr-digital-readiness" aria-live="polite">'+(isFa?'در حال بررسی امکان خرید دیجیتال…':'Checking digital checkout status…')+'</p>'+
+   '<div class="actions"><a class="button primary" href="'+href+'">'+(isFa?'جزئیات و خرید دیجیتال':'Details & digital checkout')+'</a></div></div>';
+  verifyDigitalOfferForCard(article);
+  return article;
+ }
+ async function verifyDigitalOfferForCard(article){
+  const state=article.querySelector('.jr-digital-readiness');
+  try{
+   const response=await fetch('/api/publishing/offer',{method:'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+   if(!response.ok)throw Error('unavailable');
+   const offer=await response.json();
+   const available=offer.ok===true&&offer.checkoutEnabled===true&&offer.available===true&&
+     offer.sku==='digital:tefl-ma-exams-1370-1405'&&offer.priceToman===1000000;
+   state.textContent=available
+     ?(isFa?'خرید فعال؛ پرداخت و دریافت از صفحه اختصاصی':'Available: secure checkout on the product page')
+     :(isFa?'برای اطلاع از وضعیت خرید، صفحه محصول را ببینید':'Visit the product page for current availability');
+   article.classList.toggle('jr-digital-ready',available);
+  }catch(_){
+   state.textContent=isFa?'وضعیت لحظه‌ای در دسترس نیست؛ از صفحه محصول بررسی کنید':'Live status unavailable; please verify on the product page';
+  }
+ }
  function renderCatalog(data){
   const host=document.querySelector('[data-book-catalog]'); if(!host) return;
-  host.innerHTML=''; data.books.forEach(b=>host.appendChild(card(b)));
+  host.innerHTML=''; data.books.forEach(b=>host.appendChild(card(b))); host.appendChild(digitalProductCard());
   host.addEventListener('click',e=>{
    const toggle=e.target.closest('[data-book-gallery-view]');
    if(toggle&&host.contains(toggle)){
@@ -439,11 +475,11 @@
   bookStockPending=capability.stockPending===true;
   // Re-render after a fresh explicit readiness check; controls remain disabled on uncertainty.
   renderCart(data);renderCheckout(data);
- }).catch(()=>document.querySelectorAll('[data-store-error]').forEach(x=>{
+ }).catch(()=>{const host=document.querySelector('[data-book-catalog]');if(host){host.replaceChildren(digitalProductCard());}document.querySelectorAll('[data-store-error]').forEach(x=>{
    x.hidden=false;
    x.setAttribute('role','alert');
    x.innerHTML=(isFa?'اطلاعات فروشگاه موقتاً در دسترس نیست. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.':'Store information is temporarily unavailable. Check your connection and try again.')+' <button type="button" class="button" data-store-retry>'+(isFa?'تلاش دوباره':'Try again')+'</button>';
-  }));
+  });});
  document.addEventListener('click',e=>{if(e.target.closest('[data-store-retry]'))location.reload()});
  updateCartBadge();
 })();
