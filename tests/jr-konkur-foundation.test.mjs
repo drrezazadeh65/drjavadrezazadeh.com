@@ -5,11 +5,16 @@ const require=createRequire(import.meta.url);
 const f=require('../assets/js/jr-konkur-foundation-v1.js');
 const source={documentId:'verified-fixture',version:'v1',page:4,year:1405,reviewStatus:'VERIFIED'};
 const candidate={year:1405,group:'math'};
-const programme={year:1405,code:'TEST-001',source};
+const programme={year:1405,code:'01234',source};
+const coverage={status:'VERIFIED_COMPLETE',year:1405,programmeCode:'01234',source,serverReviewed:true};
 const rules=[{id:'r1',year:1405,field:'group',operator:'equals',value:'math',source,reviewStatus:'VERIFIED'}];
 test('four-state eligibility is deterministic and fails closed',()=>{
- assert.equal(f.evaluate(candidate,programme,rules).status,f.STATUSES.ELIGIBLE);
+ assert.equal(f.evaluate(candidate,programme,rules,coverage).status,f.STATUSES.ELIGIBLE);
  assert.equal(f.evaluate({...candidate,group:'arts'},programme,rules).status,f.STATUSES.INELIGIBLE);
+ assert.equal(f.evaluate(candidate,programme,rules).status,f.STATUSES.REVIEW);
+ assert.equal(f.evaluate(candidate,programme,rules,{...coverage,programmeCode:'12345'}).status,f.STATUSES.REVIEW);
+ assert.equal(f.evaluate(candidate,programme,rules,{...coverage,serverReviewed:false}).status,f.STATUSES.REVIEW);
+ assert.equal(f.evaluate(candidate,{...programme,code:'invalid'},rules,coverage).status,f.STATUSES.INSUFFICIENT);
  assert.equal(f.evaluate({year:1405},programme,rules).status,f.STATUSES.INSUFFICIENT);
  assert.equal(f.evaluate(candidate,programme,[]).status,f.STATUSES.INSUFFICIENT);
  assert.equal(f.evaluate(candidate,{...programme,source:{...source,reviewStatus:'DRAFT'}},rules).status,f.STATUSES.REVIEW);

@@ -21,10 +21,10 @@
    Number.isInteger(source.page)&&source.page>0&&source.year===year&&
    source.reviewStatus==='VERIFIED'&&source.superseded!==true;
  }
- function evaluate(candidate,programme,rules){
+ function evaluate(candidate,programme,rules,coverage){
   const year=safeYear(candidate&&candidate.year);
   const code=safeText(programme&&programme.code);
-  if(!year||!code||!programme||programme.year!==year)
+  if(!year||!/^[0-9]{5}$/.test(code)||!programme||programme.year!==year)
    return {status:STATUSES.INSUFFICIENT,reasons:['CYCLE_OR_PROGRAMME_UNVERIFIED'],evidence:[]};
   if(!officialSource(programme.source,year))
    return {status:STATUSES.REVIEW,reasons:['OFFICIAL_PROGRAMME_SOURCE_UNVERIFIED'],evidence:[]};
@@ -52,8 +52,17 @@
    evidence.push({type:TYPES.FACT,ruleId:safeText(rule.id),source:rule.source});
    if(!pass){blocked=true;reasons.push('VERIFIED_RULE_CONFLICT');}
   }
+  // Never infer eligibility from an arbitrary subset of otherwise valid rules.
+  // A trusted backend must establish complete reviewed coverage for the actual
+  // programme, year and effective official amendments before passing this context.
+  const ruleSetComplete=!!coverage&&coverage.status==='VERIFIED_COMPLETE'&&
+    coverage.year===year&&coverage.programmeCode===code&&coverage.serverReviewed===true&&
+    officialSource(coverage.source,year);
+  if(!blocked&&!review&&!unknown&&verified>0&&!ruleSetComplete)
+    reasons.push('COMPLETE_OFFICIAL_RULE_COVERAGE_UNVERIFIED');
   const status=blocked?STATUSES.INELIGIBLE:
-   review?STATUSES.REVIEW:unknown||verified===0?STATUSES.INSUFFICIENT:STATUSES.ELIGIBLE;
+   review?STATUSES.REVIEW:unknown||verified===0?STATUSES.INSUFFICIENT:
+   ruleSetComplete?STATUSES.ELIGIBLE:STATUSES.REVIEW;
   return {status,reasons:[...new Set(reasons)],evidence};
  }
  function inspectList(choices,cycle){
