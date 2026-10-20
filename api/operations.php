@@ -5,6 +5,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 const OPERATIONS_MFA_TTL = 600;
 require_once __DIR__.'/publishing-onboarding.php';
 require_once __DIR__.'/operations-reporting.php';
+require_once __DIR__.'/operations-ai-visibility.php';
 require_once __DIR__.'/operations-jhela.php';
 require_once __DIR__.'/jhela-native-editorial.php';
 require_once __DIR__.'/jhela-intake.php';
@@ -466,6 +467,14 @@ function operationsRoute(string $path, string $verb): never {
                 fail('keyword_map_unavailable',503);
             $map['ok']=true;
             respond($map);
+        }
+
+        // Provider-observed AISV snapshot: private, bounded and only after fresh MFA.
+        // This does not call Ubersuggest on behalf of the owner or infer new samples.
+        if ($path === '/admin/operations/ai-visibility' && $verb === 'GET') {
+            if (!rateAllowed($pdo,'operations_ai_visibility_read',$accountId,12,300))
+                fail('rate_limited',429);
+            respond(operationsAiVisibilitySnapshot());
         }
 
         if ($path === '/admin/operations/commerce' && $verb === 'GET') {
