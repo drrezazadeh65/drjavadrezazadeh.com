@@ -14,7 +14,10 @@ function el(tag,txt,cls){const node=document.createElement(tag);if(txt!==undefin
 // Never treat a registry or database evidence string as a trusted link.
 // Preserve its label as text when the URL has an executable/unsafe scheme.
 function safeEvidenceUrl(value){
- if(typeof value!=='string'||value.length>2048||!(/^(https?:\\/\\/|\\/(?!\\/))/i.test(value)))return null;
+ if(typeof value!=='string'||value.length>2048)return null;
+ const source=value.toLowerCase();
+ if(!(source.startsWith('https://')||source.startsWith('http://')||
+     (value.startsWith('/')&&!value.startsWith('//'))))return null;
  try{
   const url=new URL(value,window.location.origin);
   if(!['http:','https:'].includes(url.protocol)||url.username||url.password)return null;
