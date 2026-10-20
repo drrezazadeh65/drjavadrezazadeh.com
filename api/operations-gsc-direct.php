@@ -129,6 +129,12 @@ function operationsSearchIntelligenceSnapshot(string $gscPrivatePath,int $at): a
             'apiVerifiedOnServer'=>null,'sourceObservedAtUtc'=>null,
             'limitation'=>'GA4 Data API workflow verifies access separately. No GA4 report has been authenticated, ingested or attached to this administrative snapshot; missing is not zero.'
         ],
+        'clarity'=>[
+            'status'=>'project_registered_recording_disabled','projectId'=>'z0mzp0dp74',
+            'delivery'=>'GTM_ONLY','recordingVerified'=>false,'maskingVerified'=>false,
+            'separateConsentRequired'=>true,
+            'limitation'=>'Project ID registered only. No Clarity tag is installed/published; masking, sensitive-route and opt-in QA remain outstanding.'
+        ],
         'tagManager'=>[
             'status'=>'container_registered_unpublished','containerId'=>'GTM-P6LWCLKM',
             'tagsConfiguredVerified'=>false,'previewVerified'=>false,
