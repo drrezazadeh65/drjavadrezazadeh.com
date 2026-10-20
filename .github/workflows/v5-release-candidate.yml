@@ -106,6 +106,7 @@ jobs:
           node --test tests/bookstore-cover-gallery-contract.test.mjs
           node --check assets/js/operations-workspace-index-v1.js
           node --test tests/operations-workspace-index-contract.test.mjs
+          node --test tests/ai-search-visibility-contract.test.mjs
           node --test tests/customer-journey-actions-contract.test.mjs
           node --test tests/customer-next-action-contract.test.mjs tests/customer-appointment-next-action-contract.test.mjs
           node --test tests/account-journey-rail-contract.test.mjs
@@ -188,6 +189,7 @@ jobs:
           python3 scripts/operations-canonical-registry.py api/internal/operations-registry.json --validate-only --identity-manifest api/internal/operations-action-identities-v1.json
           python3 tests/operations-canonical-registry.py
           php tests/operations-reporting.php
+          php tests/operations-ai-visibility.php
           for file in api/*.php; do php -l "$file"; done
           php tests/bertina-smtp-body-contract.php
           php tests/bertina-service-buyer-contact.php
