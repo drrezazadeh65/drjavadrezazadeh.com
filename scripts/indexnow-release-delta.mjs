@@ -60,7 +60,7 @@ earlier.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
 // suppress even when the original API receipt could not be retained.
 if(earlier.some(r=>r.head_sha===TARGET)){
  console.log('INDEXNOW_DELTA=SKIPPED category=previously_deployed_same_sha');
- if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,'should_send=false\\n'.replace('\\n','\n'));
+ if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,'should_send=false\n');
  process.exit(0);
 }
 
