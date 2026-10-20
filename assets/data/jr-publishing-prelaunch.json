@@ -47,11 +47,11 @@
       "quote": {
         "currency": "IRT",
         "gross_unit_price": 1000000,
-        "author_unit_share": 600000,
-        "fund_unit_share": 400000,
+        "author_unit_share": 700000,
+        "fund_unit_share": 300000,
         "unit": "toman",
-        "author_rate_basis_points": 6000,
-        "fund_rate_basis_points": 4000,
+        "author_rate_basis_points": 7000,
+        "fund_rate_basis_points": 3000,
         "split_basis": "gross_per_paid_bundle",
         "gateway_cost_bearer": "platform_subject_to_owner_approval",
         "checkout_enabled": false,
@@ -59,7 +59,9 @@
         "operating_reserve_irt": 70000,
         "platform_subsidy_required_irt": 70000,
         "unit_amounts_bps_total": 10700,
-        "subsidy_approved": false
+        "subsidy_approved": false,
+        "allocation_policy_id": "mehrab-gross-70-30-v2",
+        "allocation_policy_effect": "future_server_created_orders_only"
       },
       "download_file_urls": [],
       "sku": null,
@@ -78,8 +80,8 @@
   "finance_policy": {
     "accounting_status": "prelaunch_not_posted",
     "gross_price_irt": 1000000,
-    "author_share_irt": 600000,
-    "student_support_earmark_irt": 400000,
+    "author_share_irt": 700000,
+    "student_support_earmark_irt": 300000,
     "operating_reserve_irt": 70000,
     "operating_reserve_rate_bps": 700,
     "operating_reserve_label_fa": "ذخیره پیشنهادی هزینه‌های سایت، نگهداری و مالیات",
@@ -93,13 +95,16 @@
     "details_displayed_to_author": true,
     "standard_accounting_principle": "author and talent-fund shares are computed from gross paid amount; reserve is an independent expense borne by platform; record funding source separately; no disbursement without approved funding and reconciliation",
     "invoice_currency": "IRT",
-    "provider_gateway_fee_absorption": "additional_platform_cost_pending_contract"
+    "provider_gateway_fee_absorption": "additional_platform_cost_pending_contract",
+    "current_allocation_policy_id": "mehrab-gross-70-30-v2",
+    "legacy_policy_id": "mehrab-gross-60-40-v1",
+    "historical_transactions_mutable": false
   },
   "owner_commercial_authorization": {
     "recorded": true,
     "source": "explicit_direct_owner_instruction",
-    "date": "2026-10-17",
-    "scope": "Paid digital sale of approved PDF bundle; no false claim of author signature or final scientific endorsement",
+    "date": "2026-10-20",
+    "scope": "Approved future digital sale of the two-PDF bundle at 1,000,000 toman: 700,000 author and 300,000 talent support; historical completed transactions retain original snapshots. Not evidence of bilateral signature, licensing, private file delivery or live payment.",
     "does_not_replace_author_distribution_permission": true,
     "does_not_activate_server_payment_alone": true
   }
