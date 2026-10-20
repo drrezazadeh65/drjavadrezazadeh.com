@@ -1,0 +1,129 @@
+{
+  "schema": "jr-konkur-official-source-inventory-v1",
+  "cycle": 1405,
+  "authority": {
+    "name_fa": "سازمان سنجش آموزش کشور",
+    "website": "https://www.sanjesh.org",
+    "status": "OWNER_CONFIRMED_OFFICIAL_ISSUER"
+  },
+  "folder": "https://drive.google.com/drive/folders/16icqSNpj7rQWh0FayhDp20EyNX4f1TUu",
+  "sources": [
+    {
+      "key": "humanities",
+      "fileId": "1zN9cfFW8tDuYCy8qZAJUikq8NKw5hTjb",
+      "fileName": "رونوشت ensani_v1.pdf",
+      "category": "HUMANITIES",
+      "sizeBytes": 27174845,
+      "mimeType": "application/pdf",
+      "pdfPageCount": null,
+      "sha256": null,
+      "publishedDate": null,
+      "issuerVerification": "OWNER_CONFIRMED",
+      "pdfPageAudit": "NOT_COMPLETED",
+      "criticalTablesVerification": "NOT_COMPLETED",
+      "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
+      "activeForEligibility": false
+    },
+    {
+      "key": "experimental",
+      "fileId": "16Q_b-WE59-pWEteApAJxx0FxT5uLinR7",
+      "fileName": "Tajrobi_v3.pdf",
+      "category": "EXPERIMENTAL_SCIENCES",
+      "sizeBytes": 30045031,
+      "mimeType": "application/pdf",
+      "pdfPageCount": null,
+      "sha256": null,
+      "publishedDate": null,
+      "issuerVerification": "OWNER_CONFIRMED",
+      "pdfPageAudit": "NOT_COMPLETED",
+      "criticalTablesVerification": "NOT_COMPLETED",
+      "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
+      "activeForEligibility": false
+    },
+    {
+      "key": "mathematics",
+      "fileId": "1EtfLzh7YnsjnWqQYTGamLBIAmjkQ8VG2",
+      "fileName": "Riazi_v1.pdf",
+      "category": "MATHEMATICS",
+      "sizeBytes": 35533200,
+      "mimeType": "application/pdf",
+      "pdfPageCount": null,
+      "sha256": null,
+      "publishedDate": null,
+      "issuerVerification": "OWNER_CONFIRMED",
+      "pdfPageAudit": "NOT_COMPLETED",
+      "criticalTablesVerification": "NOT_COMPLETED",
+      "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
+      "activeForEligibility": false
+    },
+    {
+      "key": "arts",
+      "fileId": "1z2u4VKDSNBCjw403o9tqty6ztt5jetFZ",
+      "fileName": "honar_v1.pdf",
+      "category": "ARTS",
+      "sizeBytes": 19032294,
+      "mimeType": "application/pdf",
+      "pdfPageCount": null,
+      "sha256": null,
+      "publishedDate": null,
+      "issuerVerification": "OWNER_CONFIRMED",
+      "pdfPageAudit": "NOT_COMPLETED",
+      "criticalTablesVerification": "NOT_COMPLETED",
+      "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
+      "activeForEligibility": false
+    },
+    {
+      "key": "appendices",
+      "fileId": "1AZkqD801KS0wp3pmT0Kcu-MC_Sr0FHJZ",
+      "fileName": "Peyvast_v1.pdf",
+      "category": "INSTITUTIONAL_APPENDICES",
+      "sizeBytes": 3629144,
+      "mimeType": "application/pdf",
+      "pdfPageCount": null,
+      "sha256": null,
+      "publishedDate": null,
+      "issuerVerification": "OWNER_CONFIRMED",
+      "pdfPageAudit": "NOT_COMPLETED",
+      "criticalTablesVerification": "NOT_COMPLETED",
+      "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
+      "activeForEligibility": false
+    },
+    {
+      "key": "records_based",
+      "fileId": "1a1kdO6WWaOt3GrKFKmxjgeWqsQCddMlC",
+      "fileName": "NoExamCsSar1405_v2.pdf",
+      "category": "RECORDS_BASED_ADMISSION",
+      "sizeBytes": 20020169,
+      "mimeType": "application/pdf",
+      "pdfPageCount": null,
+      "sha256": null,
+      "publishedDate": null,
+      "issuerVerification": "OWNER_CONFIRMED",
+      "pdfPageAudit": "NOT_COMPLETED",
+      "criticalTablesVerification": "NOT_COMPLETED",
+      "extractionStatus": "TEXT_AVAILABLE_UNVERIFIED",
+      "activeForEligibility": false
+    }
+  ],
+  "coverageGaps": [
+    {
+      "kind": "FOREIGN_LANGUAGES",
+      "status": "NOT_CONFIRMED_IN_FOLDER"
+    },
+    {
+      "kind": "OFFICIAL_AMENDMENTS",
+      "status": "NOT_AUDITED"
+    },
+    {
+      "kind": "TEACHER_TRAINING_SUPPLEMENTS",
+      "status": "NOT_AUDITED"
+    }
+  ],
+  "publicationPolicy": {
+    "requireSourcePageMatch": true,
+    "requireOriginalPdfFingerprint": true,
+    "requireIndependentHumanReview": true,
+    "automaticVerificationFromText": false,
+    "admissionProbabilityEnabled": false
+  }
+}
