@@ -35,9 +35,10 @@ test('original digital PDFs have one canonical checksum manifest shared by activ
 });
 test('verified bank payment, two grants, durable notifications and separate fund entries stay intact',()=>{
  assert.match(runtime,/function jrPubCommitVerifiedDigitalOrder/);
- assert.match(runtime,/author_share',600000/);
- assert.match(runtime,/talent_fund',400000/);
+ assert.match(runtime,/author_share',\$policy\['author'\]/);
+ assert.match(runtime,/talent_fund',\$policy\['fund'\]/);
  assert.match(runtime,/700,70000,'reserve_on_sale'/);
+ assert.match(runtime,/JR_PUB_CURRENT_POLICY/);
  assert.match(runtime,/publishing_notification_outbox/);
  assert.match(runtime,/buyer_paid','author_sale/);
  assert.match(runtime,/commerce_payment_claims p ON p\.order_id=o\.id/);
