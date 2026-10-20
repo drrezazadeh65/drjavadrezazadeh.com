@@ -875,3 +875,23 @@ for(const [locale,route,width] of [['fa','/fa/app/admin/',320],['en','/en/accoun
   expect(overflow).toBeLessThanOrEqual(1);
  });
 }
+
+
+test('owner evidence report never makes untrusted URL schemes clickable',async({page})=>{
+ const data=fixture(),record=data.reports.find(r=>r.id==='OP-11');
+ const evidence=(name,url)=>({
+  test_name:name,source_url:url,environment:'isolated_fixture',
+  checked_at:Math.floor(Date.now()/1000),expires_at:Math.floor(Date.now()/1000)+3600
+ });
+ record.verifiedGates[0].evidence=evidence('Unsafe injected evidence','javascript:alert(1)');
+ record.verifiedGates[1].evidence=evidence('Valid audit source','https://github.com/example/audits');
+ await authorized(page,{data});
+ await page.goto(base+'/fa/app/admin/');
+ await page.locator('#ops-search').fill('OP-11');
+ await page.locator('#ops-cards button').click();
+ const details=page.locator('#ops-detail');
+ await expect(details.locator('.ops-gate span').filter({hasText:'Unsafe injected evidence'})).toHaveCount(1);
+ await expect(details.locator('.ops-gate a[href^="javascript:"]')).toHaveCount(0);
+ await expect(details.locator('.ops-gate a[href="https://github.com/example/audits"]')).toHaveCount(1);
+ await expect(details).toContainText('Unsafe injected evidence');
+});
