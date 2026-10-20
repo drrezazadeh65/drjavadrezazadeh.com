@@ -24,6 +24,8 @@ for(const [language,route] of [
    for(let k=0;k<5;k++)await selects.nth(k).selectOption(c===0?'4':'2');
   }
   await expect(studio.locator('.jr-cs-metric')).toHaveCount(2);
+  await expect(studio.locator('.jr-cs-sensitivity')).toBeVisible();
+  await expect(studio.locator('.jr-cs-sensitivity')).not.toBeEmpty();
   const initial=await studio.locator('.jr-cs-metric b').first().innerText();
   await cards.nth(0).locator('select').first().selectOption('5');
   await studio.locator('input[type="range"]').first().evaluate(el=>{
@@ -34,6 +36,7 @@ for(const [language,route] of [
   // Duplicated names must never produce a mathematically misleading ranking.
   await cards.nth(1).locator('input[type="text"]').fill('Path A');
   await expect(studio.locator('.jr-cs-metrics')).toBeHidden();
+  await expect(studio.locator('.jr-cs-sensitivity')).toBeHidden();
   await cards.nth(1).locator('input[type="text"]').fill('Path B');
   await expect(studio.locator('.jr-cs-metrics')).toBeVisible();
   // A required active criterion with unknown fit must suppress comparison.
