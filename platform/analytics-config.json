@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0",
-  "status": "DISABLED_UNTIL_VERIFIED_GA4_PROPERTY",
+  "status": "PENDING_OWNER_GTM_CONTAINER_AND_TAG_VERIFICATION",
   "provider": "GA4",
   "enabled": false,
-  "measurement_id": null,
-  "activation_rule": "Enable only after the real GA4 property is readable from the connected Google account and the exact Measurement ID is verified.",
+  "measurement_id": "G-C3C7NQQNWX",
+  "activation_rule": "Owner must provide one verified GTM Web Container ID. Publish its consent-restricted GA4 Google tag after GTM Preview and GA4 DebugView QA. Retain enabled=false until explicit owner release authorization.",
   "consent": {
     "required": true,
     "storage_key": "jr-analytics-consent-v1",
@@ -38,5 +38,18 @@
     "document names or contents",
     "payment credentials",
     "private account identifiers"
-  ]
+  ],
+  "ga4_property_id": "559754204",
+  "tag_transport": "GTM_ONLY",
+  "gtm_container_id": null,
+  "event_delivery": {
+    "page_view": "prepared_consent_gated",
+    "intent": "prepared_consent_gated",
+    "view_item": "prepared_requires_verified_public_product_hook",
+    "begin_checkout": "prepared_requires_user_action_hook",
+    "purchase": "blocked_until_server_confirmed_payment_and_dedup",
+    "sign_up": "blocked_until_server_confirmed_registration",
+    "generate_lead": "blocked_until_server_confirmed_consultation_request",
+    "newsletter_subscribe": "blocked_until_server_confirmed_opt_in"
+  }
 }
