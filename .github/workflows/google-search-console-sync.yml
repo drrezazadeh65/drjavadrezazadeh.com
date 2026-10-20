@@ -10,6 +10,8 @@ on:
       - .github/workflows/google-search-console-sync.yml
       - scripts/gsc_oidc_verify.py
       - tests/test_gsc_oidc_connection.py
+      - scripts/gsc_readonly_probes.py
+      - tests/test_gsc_readonly_probes.py
 
 permissions:
   contents: read
@@ -36,8 +38,9 @@ jobs:
 
       - name: Run keyless API verifier contract tests
         run: |
-          python3 -m py_compile scripts/gsc_oidc_verify.py
+          python3 -m py_compile scripts/gsc_oidc_verify.py scripts/gsc_readonly_probes.py
           python3 -m unittest discover -s tests -p 'test_gsc_oidc_connection.py' -v
+          python3 -m unittest discover -s tests -p 'test_gsc_readonly_probes.py' -v
           echo "GSC test fixture uses synthetic responses; not real Google access."
 
       - name: Authenticate with Google Cloud via GitHub OIDC
@@ -57,6 +60,11 @@ jobs:
         env:
           GSC_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
         run: python3 scripts/gsc_oidc_verify.py
+
+      - name: Verify direct Sitemap and URL Inspection API access (read-only)
+        env:
+          GSC_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: python3 scripts/gsc_readonly_probes.py
 
       - name: State remaining external IAM evidence requirement
         if: always()
