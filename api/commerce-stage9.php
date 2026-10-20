@@ -87,11 +87,11 @@ function stage9ReleaseBooks(PDO $pdo,string $orderId): void {
     // Lock the parent order first, matching payment finalization lock order.
     // Age alone never proves cancellation; the caller must additionally have
     // independently verified provider cancellation before entering this path.
-    $order=$pdo->prepare('SELECT state,provider_trans_id FROM commerce_orders WHERE id=? FOR UPDATE');
+    $order=$pdo->prepare('SELECT state,provider_trans_id,paid_at FROM commerce_orders WHERE id=? FOR UPDATE');
     $order->execute([$orderId]);
     $current=$order->fetch();
     if (!$current || !in_array((string)$current['state'],['pending','cancelled','failed'],true)
-        || !empty($current['provider_trans_id'])) throw new RuntimeException('stock_release_order_not_safe');
+        || !empty($current['provider_trans_id']) || !empty($current['paid_at'])) throw new RuntimeException('stock_release_order_not_safe');
     $claims=$pdo->prepare('SELECT COUNT(*) FROM commerce_payment_claims WHERE order_id=?');
     $claims->execute([$orderId]);
     if ((int)$claims->fetchColumn()!==0) throw new RuntimeException('stock_release_payment_claim_exists');
