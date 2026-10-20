@@ -28,6 +28,9 @@ test('owner-only server route follows MFA and keeps unknown data explicitly null
  assert.match(snippet,/rateAllowed\(/);
  assert.match(snippet,/gsc_private_snapshot_path/);
  assert.doesNotMatch(snippet,/jsonBody\(|\bPOST\b/);
+ const joint=php.indexOf("if ($path === '/admin/operations/search-intelligence' && $verb === 'GET')");
+ assert.ok(joint>mfa,'unified route must be MFA-protected');
+ assert.match(php.slice(joint,joint+750),/SUPER_ADMIN/);
  const helper=read('api/operations-gsc-direct.php');
  assert.match(helper,/BERTINA_API_BOOTSTRAPPED/);
  assert.match(helper,/provenanceAttested'=>false/);
@@ -44,7 +47,8 @@ test('GSC private UI clears data on logout and never sends credentials or talks 
  assert.match(js,/results\.replaceChildren\(\)/);
  assert.match(js,/credentials:'same-origin'/);
  assert.match(js,/cache:'no-store'/);
- assert.match(js,/\/api\/admin\/operations\/gsc-direct/);
+ assert.match(js,/\/api\/admin\/operations\/search-intelligence/);
+ assert.match(js,/showGa4\(body\.ga4/);
  for(const forbidden of [/innerHTML/,/localStorage/,/sessionStorage/,/window\.open/,/www\.googleapis\.com/,/searchconsole\.googleapis\.com/])
   assert.doesNotMatch(js,forbidden);
  const result=spawnSync(process.execPath,['--check','assets/js/operations-gsc-direct.js'],{encoding:'utf8'});
