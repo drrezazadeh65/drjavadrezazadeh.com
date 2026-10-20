@@ -1,5 +1,5 @@
 /* Deferred, non-critical site enhancements extracted from site.js to retain the 25 KiB navigation performance budget. */
-(()=>{let s=document.createElement('script');s.src='/assets/js/analytics-adapter.js?v=20261020-gtm-consent-v2';document.head.append(s)})();
+(()=>{let s=document.createElement('script');s.src='/assets/js/analytics-adapter.js?v=20261020-gtm-consent-v3';document.head.append(s)})();
 (function(){
 if(document.querySelector('script[data-jr-assistant]')) return;
 const scripts=[...document.scripts];
