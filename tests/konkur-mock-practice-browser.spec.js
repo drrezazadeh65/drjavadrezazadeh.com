@@ -15,11 +15,11 @@ test(lang+' provider-specific self-reported 1406 mock trends stay on page and pr
  await inputs.nth(2).fill('1200');await inputs.nth(3).fill('ادبیات');
  await inputs.nth(4).fill('۶۵');await form.locator('button[type=submit]').click();
  await expect(root.locator('.jr-km-item')).toHaveCount(1);
- await expect(root.locator('.jr-km-item')).toContainText('6000');
+ await expect(root.locator('.jr-km-item')).toContainText(new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US').format(6000));
  await inputs.nth(0).fill('1405/08/15');await inputs.nth(1).fill('6200');
  await inputs.nth(2).fill('1100');await form.locator('button[type=submit]').click();
  await expect(root.locator('.jr-km-item')).toHaveCount(2);
- await expect(root.locator('.jr-km-trend')).toContainText('200');
+ await expect(root.locator('.jr-km-trend')).toContainText(new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US').format(200));
  await provider.selectOption('GAJ');await inputs.nth(0).fill('1405/08/29');
  await inputs.nth(1).fill('7000');await form.locator('button[type=submit]').click();
  await expect(root.locator('.jr-km-item')).toHaveCount(3);
