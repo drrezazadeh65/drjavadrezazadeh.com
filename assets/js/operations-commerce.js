@@ -1239,6 +1239,13 @@
         'MFA access expired or evidence is unavailable. No counts were assumed.');
     }finally{if(stamp===seq)refresh.disabled=false;}
   }
+  // The main MFA controller locks this workspace immediately on expiry or
+  // page hide. Commerce readiness is a sibling of #ops-commerce-results, so
+  // clearing only the result cards would leave previously read state in DOM.
+  workspace.addEventListener('jr:operations-locked',()=>{
+    seq++;panel.open=false;results.replaceChildren();readiness.replaceChildren();
+    status.textContent='';refresh.disabled=false;
+  });
   panel.addEventListener('toggle',()=>{if(panel.open)load();else{seq++;results.replaceChildren();readiness.replaceChildren();}});
   refresh.addEventListener('click',load);
   document.addEventListener('visibilitychange',()=>{if(document.hidden){seq++;results.replaceChildren();readiness.replaceChildren();
