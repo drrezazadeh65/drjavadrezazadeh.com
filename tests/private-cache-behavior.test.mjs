@@ -169,7 +169,10 @@ test('query-parameter versioned images and ordinary fonts use fresh-first, not s
  for(const path of ['/assets/images/portrait.webp?v=20261020','/assets/fonts/site.woff2']){
   const w=worker();
   w.entries.set(origin+path,response(path,{body:'old'}));
-  w.setNetwork(async()=>response(path,{body:'updated'}));
+  w.setNetwork(async(_request,options)=>{
+   assert.equal(options.cache,'no-cache','mutable media/font must conditionally revalidate');
+   return response(path,{body:'updated'});
+  });
   const res=await w.request(path,path.endsWith('.woff2')?'font':'image');
   assert.equal(await res.text(),'updated',path);
   assert.equal(await w.entries.get(origin+path).text(),'updated',path);
@@ -228,4 +231,15 @@ test('live HTTP 404 supersedes a previously cached public page',async()=>{
  const res=await w.request(route);
  assert.equal(res.status,404);
  assert.equal(w.entries.has(origin+route),false);
+});
+
+
+test('public HTML still bypasses stale HTTP cache on every successful navigation',async()=>{
+ const w=worker();
+ w.entries.set(origin+'/fa/',response('/fa/',{body:'stale first load'}));
+ w.setNetwork(async(_request,options)=>{
+  assert.equal(options.cache,'reload');
+  return response('/fa/',{body:'latest approved document'});
+ });
+ assert.equal(await (await w.request('/fa/')).text(),'latest approved document');
 });
