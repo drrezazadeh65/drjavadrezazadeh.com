@@ -70,6 +70,16 @@ New PDFs: insert new `eco_admission_documents` versions plus page/batch/row and 
 
 **No automatic admission-probability feature:** Only after independently validated representative data, calibration and subgroup/out-of-sample review.
 
+## 6b. Separate `003f` scorecards/drafts proposal — not a dependency for official programme search
+
+A later additive design exists at [003f_candidate_exam_data_PROPOSED.sql](../../database/unified/003f_candidate_exam_data_PROPOSED.sql). It proposes **nine** provider/version-aware exam and private candidate-draft tables, reusing `customer_accounts`, `eco_subjects`, `eco_consent_records` and the `003e` official admission cycle/offering tables. It **must not** be installed merely because `003e` has passed public metadata verification.
+
+`003f` is a **separate, higher-risk P2 capability**: it concerns identifiable candidate self-reports, potential minors, scorecards, consent and adviser access. The original free, browser-memory selection worksheet and public official-programme catalogue do **not** depend on its installation. The owner-operated [003f read-only preflight](../migrations/20261020_konkur_scorecards_readonly_preflight.sql) must first confirm the real Bertina schema, along with a tested restore, specific privacy notice, guardian/subject permissions, deletion and expiry procedures, and an authorized PHP record-level API. None of these operational gates is certified by the presence of SQL source alone.
+
+Official national-exam scores, provider mock-exam TAZ, school grades and ranks must be stored with provider, year, comparable population and metric-definition provenance; they are **not** interchangeable by a default mathematical formula. Their database rows must never be used to infer admission probability without independent calibration evidence.
+
+`003f` can be syntax/FK-tested on **disposable MariaDB 10.11 with synthetic data only**, alongside `003e`; it remains blocked from Bertina production unless a separate, explicit owner approval follows the privacy and account-isolation acceptance review. No private candidate records have been created or imported during this source-only work.
+
 ## 7. Acceptance gates
 
 - **Source:** six official PDF fingerprints and page counts already recorded, **programme code/capacity source-page QA still incomplete**; future supplements/corrections require their own versions.
