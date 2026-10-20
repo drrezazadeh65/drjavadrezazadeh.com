@@ -841,3 +841,37 @@ test('JHELA owner diagnostics never retain or repaint data after the administrat
  await expect(hostResult).toBeEmpty();
  await expect(page.locator('#ops-workspace')).toBeHidden();
 });
+
+
+for(const [locale,route,width] of [['fa','/fa/app/admin/',320],['en','/en/account/admin/',390]]){
+ test(locale+' source evidence opens existing commerce and social panels without granting any operational permission',async({page})=>{
+  await authorized(page);
+  const writes=[];
+  page.on('request',request=>{if(request.method()==='POST')writes.push(request.url());});
+  await page.setViewportSize({width,height:870});
+  await page.goto(base+route);
+  await expect(page.locator('#ops-workspace')).toBeVisible();
+  await page.locator('#ops-search').fill('OP-11');
+  await expect(page.locator('#ops-cards article')).toHaveCount(1);
+  await page.locator('#ops-cards button').click();
+  const link=page.locator('#ops-detail [data-ops-workspace-jump="ops-commerce"]');
+  await expect(link).toBeVisible();
+  await expect(page.locator('#ops-commerce')).not.toHaveAttribute('open','');
+  await link.click();
+  await expect(page.locator('#ops-commerce')).toHaveAttribute('open','');
+  await expect(page.locator('#ops-commerce > summary')).toBeFocused();
+  await page.locator('#ops-search').fill('OP-31');
+  await expect(page.locator('#ops-cards article')).toHaveCount(1);
+  await page.locator('#ops-cards button').click();
+  await page.locator('#ops-detail [data-ops-workspace-jump="ops-social"]').click();
+  await expect(page.locator('#ops-social')).toHaveAttribute('open','');
+  await expect(page.locator('#ops-social > summary')).toBeFocused();
+  await page.locator('#ops-search').fill('OP-03');
+  await expect(page.locator('#ops-cards article')).toHaveCount(1);
+  await page.locator('#ops-cards button').click();
+  await expect(page.locator('#ops-detail [data-ops-workspace-jump]')).toHaveCount(0);
+  expect(writes).toEqual([]);
+  const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+ });
+}
