@@ -3,8 +3,8 @@ test.use({serviceWorkers:'block'});
 const origin='http://127.0.0.1:4173';
 
 for(const [lang,route,expectedCount,keyword] of [
- ['fa','/fa/app/admin/',13,'سفارش'],
- ['en','/en/account/admin/',12,'Revenue']
+ ['fa','/fa/app/admin/',14,'سفارش'],
+ ['en','/en/account/admin/',13,'Revenue']
 ]){
  test(lang+' admin index remains locked and opens existing sections only in isolated authorised-layout fixture',async({page})=>{
   // Presentation-only fixture: isolate unrelated privileged runtime scripts,
