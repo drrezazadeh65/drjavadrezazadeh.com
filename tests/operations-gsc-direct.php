@@ -81,4 +81,8 @@ expectGsc($joined['ga4']['property']==='properties/559754204'
 expectGsc($joined['tagManager']['status']==='container_registered_unpublished'
     &&$joined['tagManager']['containerId']==='GTM-P6LWCLKM'
     &&$joined['tagManager']['productionCollectionVerified']===false,'GTM installation state not safely represented');
+expectGsc(($joined['clarity']['projectId']??null)==='z0mzp0dp74'
+    &&($joined['clarity']['recordingVerified']??true)===false
+    &&($joined['clarity']['separateConsentRequired']??false)===true,
+    'Clarity project must remain inactive and separately consented');
 echo "Direct GSC owner-only projection: ".$count." assertions passed\n";
