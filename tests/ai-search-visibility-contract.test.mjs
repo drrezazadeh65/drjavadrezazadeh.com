@@ -139,6 +139,22 @@ test('release assembly requires all private AI visibility dependencies together'
 });
 
 
+test('AI visibility evidence is only available to SUPER_ADMIN with fresh MFA',()=>{
+ const php=read('api/operations.php');
+ const gate=php.indexOf("if (!$fresh) fail('admin_mfa_required',403);");
+ const route=php.indexOf("if ($path === '/admin/operations/ai-visibility' && $verb === 'GET')");
+ const role=php.indexOf("if (($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')",route);
+ const respond=php.indexOf("respond(operationsAiVisibilitySnapshot());",route);
+ assert.ok(gate>=0 && route>gate && role>route && respond>role,'owner role enforcement before evidence');
+ assert.match(php.slice(route,respond),/owner_ai_visibility_forbidden/);
+ const mysql=read('tests/operations-mysql.php');
+ assert.match(mysql,/request\('\/api\/admin\/operations\/ai-visibility',401,'GET',null,\[\],false\)/);
+ assert.match(mysql,/request\('\/api\/admin\/operations\/ai-visibility',403\)/);
+ assert.match(mysql,/\$aisv=request\('\/api\/admin\/operations\/ai-visibility',200\)/);
+ assert.ok(mysql.indexOf("request('/api/admin/operations/ai-visibility',403);") < mysql.indexOf("UPDATE operations_admin_memberships SET role='SUPER_ADMIN'"));
+ assert.ok(mysql.indexOf("UPDATE operations_admin_memberships SET role='SUPER_ADMIN'") < mysql.indexOf("$aisv=request('/api/admin/operations/ai-visibility',200);"));
+});
+
 test('private owner API freezes each academic public route and cannot relabel account pages as citations',()=>{
  const api=read('api/operations-ai-visibility.php');
  const match=api.match(/\$fixedPublicRoutes=\[([\s\S]*?)\];/);
