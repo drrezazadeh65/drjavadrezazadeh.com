@@ -940,3 +940,19 @@ for(const [locale,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']
   expect(overflow).toBeLessThanOrEqual(1);
  });
 }
+
+
+for(const [locale,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
+ test(locale+' AI search report denies regular administrators without displaying saved provider evidence',async({page})=>{
+  await authorized(page);
+  await page.route('**/api/admin/operations/ai-visibility',r=>
+   r.fulfill({status:403,json:{ok:false,error:'owner_ai_visibility_forbidden'}}));
+  await page.goto(base+route);
+  const panel=page.locator('#ops-ai-visibility');
+  await expect(page.locator('#ops-workspace')).toBeVisible();
+  await panel.locator(':scope > summary').click();
+  await expect(panel.locator('[data-aisv-status]')).toContainText(
+   locale==='fa'?'فقط برای مالک سایت':'restricted to the verified site owner');
+  await expect(panel.locator('[data-aisv-results]')).toBeEmpty();
+ });
+}
