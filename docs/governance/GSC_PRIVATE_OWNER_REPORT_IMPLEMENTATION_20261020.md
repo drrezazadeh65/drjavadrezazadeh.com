@@ -23,6 +23,8 @@ Only after an approved, authenticated data transfer has been designed and verifi
 'gsc_private_snapshot_path' => '/absolute/private/path/gsc-direct-snapshot.json',
 ```
 
+The private JSON file must not be a symlink; set owner-only file permissions (`chmod 0600`) and keep its directory outside the public web root.
+
 Do not create that file under `api/internal/` or within any deployed public artifact. Never commit its bytes, tokens, Google API response dumps, or a service-account JSON key. Do not use a `github.com` raw-file URL as a snapshot path. This configuration is **not required now** and must not be enabled until the transport trust boundary is certified.
 
 The v1 snapshot is an object with exactly `schema`, `source`, `property`, `collectedAtUtc`, `startDate`, `endDate`, `rows`. Its source must be `google-search-console-api-direct` and property `https://drjavadrezazadeh.com/`. There may be zero rows (unknown metrics) or one metrics-only aggregate. Multiple rows have no dimensions and cannot be totaled. `ctr` is 0–1; UI renders it as a percentage. Google Search Analytics data has reporting lag, and a valid record is **not cryptographic evidence of source authenticity**.
