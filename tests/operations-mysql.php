@@ -31,7 +31,7 @@ $fake=$batch;$fake['events'][0]['sectionId']='OP-09';$fake['events'][0]['gateId'
 try{operationsImportRelease($pdo,$fake,$sha,$configuration,$run);throw new RuntimeException('CI certified a real payment');}catch(RuntimeException $e){check($e->getMessage()==='invalid_evidence_event','wrong forged-payment error');}
 $wrong=$batch;$wrong['runId']='654321';try{operationsImportRelease($pdo,$wrong,$sha,$configuration,$run);throw new RuntimeException('wrong run accepted');}catch(RuntimeException $e){check($e->getMessage()==='invalid_release_evidence','wrong run error');}
 $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=$work.'/operations-http-'.bin2hex(random_bytes(5));mkdir($folder,0700);mkdir($folder.'/api',0700);mkdir($folder.'/api/internal',0700);
-foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboarding.php','consultation-delivery.php','consultation-availability.php','operations.php','operations-jhela.php','jhela-native-editorial.php','jhela-intake.php','operations-commerce.php','operations-book-expiration.php','operations-donation-recovery.php','operations-fulfilment.php','operations-schema.php','operations-reporting.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php','operations-collection.php','smtp-body.php','service-intake.php','service-files.php','service-buyer-receipt.php','ramzinex-public-usdt-rate.php','newsletter-preferences.php','community.php','growth-stage14.php','golden-talent.php','student-support.php','operations-service-delivery.php'] as $file){
+foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboarding.php','consultation-delivery.php','consultation-availability.php','operations.php','operations-jhela.php','jhela-native-editorial.php','jhela-intake.php','operations-commerce.php','operations-book-expiration.php','operations-donation-recovery.php','operations-fulfilment.php','operations-schema.php','operations-reporting.php','operations-ai-visibility.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php','operations-collection.php','smtp-body.php','service-intake.php','service-files.php','service-buyer-receipt.php','ramzinex-public-usdt-rate.php','newsletter-preferences.php','community.php','growth-stage14.php','golden-talent.php','student-support.php','operations-service-delivery.php'] as $file){
     if(!copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file))
         throw new RuntimeException('isolated_router_dependency_missing_'.$file);
 }
@@ -41,6 +41,7 @@ foreach(['jr-publishing-digital.php','jr-publishing-contract-draft.php','jr-publ
 }
 copy(__DIR__.'/../api/internal/operations-registry.json',$folder.'/api/internal/operations-registry.json');
 copy(__DIR__.'/../api/internal/operations-gsc-observation.json',$folder.'/api/internal/operations-gsc-observation.json');
+copy(__DIR__.'/../api/internal/ai-search-visibility-baseline-20261020.json',$folder.'/api/internal/ai-search-visibility-baseline-20261020.json');
 mkdir($folder.'/assets',0700);mkdir($folder.'/assets/data',0700);
 foreach(['book-catalog.json','service-catalog.json','vip-catalog.json'] as $catalog)copy(__DIR__.'/../assets/data/'.$catalog,$folder.'/assets/data/'.$catalog);
 function writeConfig():void {file_put_contents($GLOBALS['folder'].'/api/config.local.php','<?php return '.var_export($GLOBALS['configuration'],true).';');}
@@ -65,6 +66,7 @@ try {
  for($i=0;$i<50;$i++){if(@fsockopen('127.0.0.1',$port,$errno,$err,0.1))break;usleep(100000);}
  request('/api/admin/operations',401,'GET',null,[],false);
  request('/api/admin/operations/commerce',401,'GET',null,[],false);
+ request('/api/admin/operations/ai-visibility',401,'GET',null,[],false);
  request('/api/admin/operations/commerce/donation-reconcile',401,'POST',
     ['orderId'=>'11111111-1111-4111-8111-111111111185'],[],false);
  request('/api/admin/operations/commerce/book-expire',401,'POST',
@@ -75,6 +77,7 @@ try {
  request('/api/admin/operations/github-audits/dispatch',401,'POST',['actionId'=>'ENG-01.ACT-001','requestKey'=>str_repeat('b',32),'approval'=>'APPROVE_READONLY_AUDIT'],[],false);
  request('/api/admin/operations?role=SUPER_ADMIN',403);
  $session=request('/api/admin/operations/session',200);check($session['mfaRequired']===true,'MFA not required');
+ request('/api/admin/operations/ai-visibility',403);
  request('/api/admin/operations/mfa',403,'POST',['code'=>'123456']);
  $at=time();$binary=hash_hmac('sha1',pack('N2',0,intdiv($at,30)),'12345678901234567890',true);$offset=ord($binary[19])&15;$number=unpack('N',substr($binary,$offset,4))[1]&0x7fffffff;$code=str_pad((string)($number%1000000),6,'0',STR_PAD_LEFT);
  $headers=['Origin'=>'https://drjavadrezazadeh.com','X-CSRF-Token'=>$session['csrfToken'],'Sec-Fetch-Site'=>'same-origin'];
@@ -177,6 +180,14 @@ try {
      'unknown bank/commerce status turned into fictitious zero or success');
  check($commerce['customerDetailsExposed']===false,
      'admin commerce monitor exposed customer details');
+ $aisv=request('/api/admin/operations/ai-visibility',200);
+ check($aisv['status']==='provider_report_snapshot'&&$aisv['sampledAnswers']===5
+     &&$aisv['brandMentions']===0&&$aisv['brandPresencePercent']===0.0,
+     'Ubersuggest sample must preserve observed zero without fabricated coverage');
+ check(count($aisv['prompts'])===10&&$aisv['prompts'][5]['brandPresencePercent']===null
+     &&$aisv['providers'][1]['sampledAnswers']===null,
+     'missing provider and unsampled prompts incorrectly counted as zero');
+ check($aisv['verifiedCitationCount']===null,'unverified citation count exposed');
  $data=request('/api/admin/operations',200);check($data['dashboard']['measuredProgress']===75,'unexpected admin score');check($data['dashboard']['closed']===false,'unverified production admin closed');check(count($data['reports'])===36,'report count changed');
  check(count($data['reporting']['engines'])===13,'canonical engine count changed');
  check(count($data['reporting']['actionReports'])===52,'action inventory changed');
