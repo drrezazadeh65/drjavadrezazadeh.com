@@ -6,6 +6,17 @@ const KEY=process.env.INDEXNOW_KEY||'5bea74dc73880cd2b2a1a35a649e62de';
 const KEY_LOCATION=process.env.INDEXNOW_KEY_LOCATION||`${ORIGIN}/${KEY}.txt`;
 const ENABLED=process.env.INDEXNOW_ENABLED==='1';
 const ALL=process.argv.includes('--all');
+// Preview is allowed. Live notifications are changed-only after verified owner release.
+// The preserved public verification key and official submission endpoint are reused.
+if(ENABLED && (ALL || process.env.PSI_RELEASE_VERIFIED!=='1' ||
+  process.env.INDEXNOW_POSTRELEASE_APPROVED!=='1' ||
+  process.env.GITHUB_EVENT_NAME!=='workflow_run' ||
+  process.env.GITHUB_REPOSITORY!=='drrezazadeh65/drjavadrezazadeh.com' ||
+  !/^[a-f0-9]{40}$/.test(process.env.PSI_RELEASE_SHA||'') ||
+  !(process.env.INDEXNOW_CHANGED_FILES||'').trim())){
+ throw new Error('IndexNow live submission requires approved, SHA-verified changed-only release');
+}
+
 
 const localKeyFile=`${KEY}.txt`;
 if(!fs.existsSync(localKeyFile)) throw new Error('IndexNow local key file missing: '+localKeyFile);
