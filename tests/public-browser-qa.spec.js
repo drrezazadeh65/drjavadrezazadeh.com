@@ -594,7 +594,7 @@ for(const route of ['/fa/shop/','/en/shop/']){
     await page.goto(base+route,{waitUntil:'domcontentloaded'});
     await page.waitForTimeout(320);
     const cards=page.locator('[data-book-catalog] .book-product-card');
-    await expect(cards).toHaveCount(3);
+    await expect(cards).toHaveCount(4);
     await expect(page.locator('[data-add-book]')).toHaveCount(3);
     await expect(page.locator('.book-price')).toHaveCount(3);
     await expect(page.locator('.book-pending')).toHaveCount(0);

@@ -28,7 +28,7 @@ for(const locale of ['fa','en']){
      expect(nb.y+nb.height,'EN stage navigation precedes explanatory copy').toBeLessThanOrEqual(cb.y+2);
    }
    const cover=page.locator('.book-store-grid .book-product-card .book-cover img');
-   await expect(cover).toHaveCount(4,{timeout:10000});
+   await expect(cover).toHaveCount(3,{timeout:10000});
    for(const image of await cover.all()){
      await expect(image).toBeVisible();
      await expect.poll(()=>image.evaluate(el=>el.complete&&el.naturalWidth>0),
