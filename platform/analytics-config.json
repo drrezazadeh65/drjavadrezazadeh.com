@@ -51,5 +51,26 @@
     "sign_up": "blocked_until_server_confirmed_registration",
     "generate_lead": "blocked_until_server_confirmed_consultation_request",
     "newsletter_subscribe": "blocked_until_server_confirmed_opt_in"
+  },
+  "clarity": {
+    "provider": "Microsoft Clarity",
+    "project_id": "z0mzp0dp74",
+    "status": "project_registered_not_active",
+    "enabled": false,
+    "delivery": "GTM_ONLY",
+    "consent": {
+      "required": true,
+      "separate_from_ga4": true,
+      "storage_key": "jr-clarity-recording-consent-v1",
+      "granted_value": "granted",
+      "denied_value": "denied"
+    },
+    "allowlisted_public_routes": [
+      "/fa/",
+      "/en/"
+    ],
+    "blocked_routes": "all_other_routes",
+    "tag_trigger": "jr_clarity_allowed_only_after_explicit_separate_opt_in",
+    "privacy_contract": "Never load Clarity directly, on forms or authentication, accounts, payment, Golden Talent, BAHAR, RCAS, or pages with query or fragment. Require independent GTM mask-all and no-capture QA before enabling."
   }
 }
