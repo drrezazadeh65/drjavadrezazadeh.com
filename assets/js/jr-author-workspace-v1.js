@@ -4,6 +4,27 @@ const status=document.getElementById('author-portal-state');
 const data=document.getElementById('author-portal-data');
 if(!status||!data)return;
 const fa=(n)=>new Intl.NumberFormat('fa-IR').format(Number(n)||0);
+let authorSequence=0;
+// CSV is generated only from the last 50 verified, already authorised sales in
+// the private dashboard. No account identifiers, buyer data or bank details.
+function downloadRecentSalesCsv(author){
+ const sales=Array.isArray(author.recentSales)?author.recentSales.slice(0,50):[];
+ if(!sales.length)return;
+ const safe=(value)=>{
+  let v=String(value??'').replace(/\r|\n/g,' ');
+  if(/^[\s]*[=+@-]/.test(v))v="'"+v; // spreadsheet formula-injection defence
+  return '"'+v.replace(/"/g,'""')+'"';
+ };
+ const header=['Reference','Booked at','Net sale (toman)','Author share (toman)','Talent fund (toman)','Author email notification','Refund settled'];
+ const rows=sales.map(s=>[s.saleRef,s.bookedAt,s.netSaleToman,s.authorShareToman,s.talentFundShareToman,s.authorNotificationState,s.refundSettled?'yes':'no']);
+ const csv='\uFEFF'+[header,...rows].map(line=>line.map(safe).join(',')).join('\r\n');
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');a.href=url;a.download='jr-author-verified-recent-sales.csv';
+ a.style.display='none';document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+
 function el(tag,cls,text){const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=String(text);return node}
 // Native accessible disclosure panels keep the long multi-author workspace usable
 // without changing server finance, bank settlement or confidential author records.
@@ -115,11 +136,64 @@ function renderAuthor(author){
   });
   label.append(search);historyPanel.append(label,none);
  }
+ if((author.recentSales||[]).length){
+  const exportBtn=el('button','jp-button jp-author-export','دریافت CSV فروش‌های قطعی اخیر');
+  exportBtn.type='button';
+  exportBtn.addEventListener('click',()=>downloadRecentSalesCsv(author));
+  historyPanel.append(exportBtn,el('p','jp-small','فایل خروجی صرفاً از حداکثر ۵۰ فروش ثبت‌شده در این صفحه تهیه می‌شود و گزارش حسابداری کامل یا تسویه بانکی نیست. فایل را محرمانه نگهداری کنید.'));
+ }
  historyPanel.append(history,el('p','jp-small','فقط ۵۰ تراکنش اخیر این مؤلف نمایش داده می‌شود؛ نتایج جستجو محدود به همین موارد است. شناسه‌ها غیرقابل بازشناسی‌اند و اطلاعات خصوصی خریداران افشا نمی‌شود. «ارسال‌شدن» اعلان به معنی «خوانده‌شدن» ایمیل نیست.'));
  section.append(disclosure('سوابق فروش و وضعیت اعلان‌ها',historyPanel,(author.recentSales||[]).length));
  const onboarding=el('a','jp-button jp-author-identity-link','مشاهده و تکمیل پرونده هویتی، رزومه و اطلاعات تسویه');
  onboarding.href='#jr-author-onboarding';
  section.append(onboarding,el('p','jp-small','این داشبورد تنها گزارش وضعیت‌های ثبت‌شده است؛ درخواست تسویه، تأیید قرارداد یا واریز بانکی از طریق این پیوند به‌صورت خودکار انجام نمی‌شود.'));
+ // Turn the three existing, real-data disclosure sections into a compact,
+ // keyboard-accessible tabbed workspace. Keep all server author scopes intact.
+ const panels=Array.from(section.querySelectorAll(':scope > .jp-author-disclosure'));
+ if(panels.length===3){
+  const uid='jr-author-tabs-'+(++authorSequence);
+  const bar=el('div','jp-author-tablist');bar.setAttribute('role','tablist');
+  bar.setAttribute('aria-label','بخش‌های داشبورد مؤلف');
+  const descriptors=[['آثار و داوری',0],['قراردادها',1],['فروش و اعلان‌ها',2]];
+  const buttons=[];
+  let active=0;
+  for(const [i,[label]] of descriptors.entries()){
+   const btn=el('button','jp-author-tab',label);btn.type='button';
+   btn.id=uid+'-tab-'+i;btn.setAttribute('role','tab');
+   btn.setAttribute('aria-controls',uid+'-panel-'+i);
+   const panel=panels[i];panel.id=uid+'-panel-'+i;
+   panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',btn.id);
+   panel.open=true; // each panel remains fully inspectable when selected
+   bar.append(btn);buttons.push(btn);
+  }
+  function selectTab(index,focus){
+   active=index;
+   panels.forEach((panel,i)=>{panel.hidden=i!==index;});
+   buttons.forEach((btn,i)=>{btn.setAttribute('aria-selected',String(i===index));btn.tabIndex=i===index?0:-1;});
+   if(focus)buttons[index].focus();
+  }
+  buttons.forEach((button,i)=>{
+   button.addEventListener('click',()=>selectTab(i,false));
+   button.addEventListener('keydown',event=>{
+    const key=event.key;
+    let next;
+    if(key==='ArrowRight')next=(i+1)%buttons.length;
+    else if(key==='ArrowLeft')next=(i+buttons.length-1)%buttons.length;
+    else if(key==='Home')next=0;
+    else if(key==='End')next=buttons.length-1;
+    else return;
+    event.preventDefault();selectTab(next,true);
+   });
+  });
+  const summary=el('p','jp-small jp-author-tabs-intro','جزئیات آثار، قراردادها و فروش را از زبانه‌های زیر ببینید. ارقام از پایگاه داده امن سایت خوانده می‌شوند.');
+  section.insertBefore(summary,panels[0]);section.insertBefore(bar,panels[0]);
+  selectTab(0,false);
+ }
+ const reload=el('button','jp-button jp-author-refresh','به‌روزرسانی اطلاعات');
+ reload.type='button';
+ reload.addEventListener('click',async()=>{reload.disabled=true;reload.textContent='در حال دریافت اطلاعات…';await load();});
+ const updated=el('p','jp-small jp-author-updated','آخرین دریافت از سرور: '+new Intl.DateTimeFormat('fa-IR',{dateStyle:'medium',timeStyle:'short'}).format(new Date()));
+ section.append(reload,updated);
  return section;
 }
 async function load(){
