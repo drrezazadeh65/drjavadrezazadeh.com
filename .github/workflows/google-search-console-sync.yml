@@ -14,6 +14,8 @@ on:
       - tests/test_gsc_readonly_probes.py
       - scripts/gsc_direct_snapshot_contract.py
       - tests/test_gsc_direct_snapshot_contract.py
+      - scripts/ga4_oidc_verify.py
+      - tests/test_ga4_oidc_connection.py
       - api/operations-gsc-direct.php
       - api/operations.php
       - tests/operations-gsc-direct.php
@@ -94,3 +96,45 @@ jobs:
           echo "A successful Google STS/impersonation/API call validates this run's authorized path, not the complete Google Cloud CEL attribute condition or every IAM binding." >> "$GITHUB_STEP_SUMMARY"
           echo "Review provider mapping, CEL condition, and service-account get-iam-policy with a Google Cloud owner before certifying exclusion of other identities." >> "$GITHUB_STEP_SUMMARY"
           echo "No tokens, raw queries, user records, secret key files, production deployments or database mutations are retained." >> "$GITHUB_STEP_SUMMARY"
+
+  verify-ga4:
+    name: Verify GA4 Data API (read-only OIDC; nondeploying)
+    if: github.repository == 'drrezazadeh65/drjavadrezazadeh.com' && github.ref == 'refs/heads/migration/bertina-linux6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout approved repository ref
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify GA4 offline security contracts
+        run: |
+          python3 -m py_compile scripts/ga4_oidc_verify.py
+          python3 -m unittest discover -s tests -p 'test_ga4_oidc_connection.py' -v
+          echo "GA4 offline fixtures are synthetic and not evidence of live Google access."
+      - name: Authenticate Google service account with OIDC
+        id: ga4-auth
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: jr-search-intelligence
+          workload_identity_provider: projects/301218972490/locations/global/workloadIdentityPools/jr-github-actions/providers/github-actions
+          service_account: jr-search-console-reader@jr-search-intelligence.iam.gserviceaccount.com
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/analytics.readonly
+          access_token_lifetime: 600s
+          create_credentials_file: false
+          export_environment_variables: false
+      - name: Probe real GA4 property metadata and runReport
+        env:
+          GA4_ACCESS_TOKEN: ${{ steps.ga4-auth.outputs.access_token }}
+        run: python3 scripts/ga4_oidc_verify.py
+      - name: GA4 interpretation and privilege caveat
+        if: always()
+        run: |
+          echo "### Google Analytics read-only trust boundary" >> "$GITHUB_STEP_SUMMARY"
+          echo "A successful API request establishes read access, not tag installation, traffic collection or container publication." >> "$GITHUB_STEP_SUMMARY"
+          echo "Service-account GA4 Administrator is owner-approved and may later be reduced to Viewer after confirming equivalent reads." >> "$GITHUB_STEP_SUMMARY"
+          echo "No API token, Google response row, user identifier, secret or production deployment is persisted." >> "$GITHUB_STEP_SUMMARY"
