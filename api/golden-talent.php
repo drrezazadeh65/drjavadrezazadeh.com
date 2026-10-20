@@ -301,6 +301,20 @@ function goldenTalentRoute(string $path,string $verb): never {
                 'legacyPostgresqlAdapterCompatible'=>false,
                 'note'=>'Structural readiness only. Live BAHAR persistence, entitlement, consent, review and recovery are not certified.'
             ],
+            'scientificContinuity'=>[
+                'prevalidationContract'=>'scientific-continuity-preflight-v1',
+                'nodeEngineVersion'=>'1.1.0',
+                'rcasEvidenceState'=>'UNREVIEWED_UNSCORED',
+                'baharTimelineState'=>'HUMAN_REVIEW_REQUIRED',
+                'goldenPathReleaseState'=>'PROFESSIONAL_RELEASE_REQUIRED',
+                'studioReflectionState'=>'IN_MEMORY_NON_DIAGNOSTIC',
+                'productionScientificAdapterActive'=>false,
+                'backendConsentAndSubjectAuthorisationVerified'=>false,
+                'psychometricValidationEstablished'=>false,
+                'automaticTalentScoreEnabled'=>false,
+                'automaticPurchaseEntitlementEnabled'=>false,
+                'note'=>'Node scientific preflight is source-integrated only. PHP evidence persistence and reviewer authority remain separately gated.'
+            ],
             'readOnly'=>true,
             'warning'=>'Capability and schema checks do not prove scientific validation, consent, identity, payments, private storage or full production acceptance.'
         ]);
