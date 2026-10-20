@@ -10,6 +10,7 @@ test('mock entry extends rather than replaces both bilingual public Choice Studi
   assert.match(html,new RegExp('data-choice-studio data-locale="'+lang+'"'));
   assert.match(html,new RegExp('data-konkur-selection data-locale="'+lang+'"'));
   assert.match(html,/jr-konkur-mock-practice-v1\.js\?v=20261020-mock-v1/);
+  assert.match(html,/jr-konkur-mock-providers-v1\.js\?v=20261020-mock-directory-v1/);
   assert.match(html,/jr-konkur-mock-practice-v1\.css\?v=20261020-mock-v1/);
   assert.ok(html.indexOf('jr-konkur-studio-v1.js')<html.indexOf('jr-konkur-mock-practice-v1.js'));
  }

@@ -29,3 +29,14 @@ test(lang+' provider-specific self-reported 1406 mock trends stay on page and pr
  expect(writes).toEqual([]);
 });
 }
+
+
+test('provider directory includes additional research-labelled options in both locales',async({page})=>{
+ await page.goto('http://127.0.0.1:4173/fa/entekhab-reshteh/',{waitUntil:'domcontentloaded'});
+ const select=page.locator('[data-konkur-mock-practice] form select').first();
+ for(const code of ['GHALAMCHI','GAJ','GOZINE2','MAZ','SANJESH_MOCK','VALEH','MOBTAKERAN','AYANDESAZAN','SCHOOL_LOCAL','OTHER'])
+   await expect(select.locator('option[value="'+code+'"]')).toHaveCount(1);
+ await select.selectOption('GOZINE2');
+ await expect(select).toHaveValue('GOZINE2');
+ await expect(page.locator('[data-konkur-mock-practice] form select').nth(2)).toHaveValue('UNSPECIFIED');
+});
