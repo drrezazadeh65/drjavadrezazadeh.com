@@ -119,6 +119,22 @@ test('private account, assessment and checkout paths never inject GTM',async()=>
  }
 });
 
+test('Persian public slug is sanitized and account-like encoded routes are blocked',async()=>{
+ const publicRoute='/fa/%DA%A9%D8%AA%D8%A7%D8%A8/';
+ const p=await boot(fixture,publicRoute,'?email=private%40example.com');
+ p.window.JRAnalyticsConsent.grant();
+ assert.equal(p.scripts.length,1);
+ const view=p.objects().find(e=>e.event==='jr_page_view');
+ assert.equal(view.page_path,publicRoute);
+ assert.equal(view.page_location,'https://drjavadrezazadeh.com'+publicRoute);
+ assert.ok(!JSON.stringify(p.objects()).includes('private%40example.com'));
+ for(const unsafe of ['/fa/%40email/','/fa/%2Fapi/','/fa/account/','/fa/book/123456789/']){
+  const x=await boot(fixture,unsafe);
+  x.window.JRAnalyticsConsent.grant();
+  assert.equal(x.scripts.length,0,unsafe);
+ }
+});
+
 test('success events cannot be forged by a browser-side API',async()=>{
  const x=await boot();
  x.window.JRAnalyticsConsent.grant();
