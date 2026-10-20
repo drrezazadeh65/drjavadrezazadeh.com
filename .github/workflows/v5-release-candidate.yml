@@ -132,6 +132,8 @@ jobs:
           php -l api/publishing.php
           php -l api/publishing-onboarding.php
           php -l api/internal/jr-publishing-allocations.php
+          php -l api/internal/jr-publishing-allocation-policy.php
+          php -l api/internal/jr-publishing-policy-70-30-cli.php
           php -l api/internal/jr-publishing-notifications.php
           php -l api/internal/jr-publishing-contract-draft.php
           php -l api/internal/jr-publishing-digital.php
@@ -143,6 +145,7 @@ jobs:
           php -l api/internal/jr-publishing-private-install-cli.php
           php -l api/commerce-stage9.php
           php tests/jr-publishing-allocations.php
+          php tests/jr-publishing-policy-snapshot.php
           php tests/jr-publishing-contract-preview.php
           php tests/jr-publishing-author-email.php
           php -l tests/jr-publishing-mysql-fixture.php
