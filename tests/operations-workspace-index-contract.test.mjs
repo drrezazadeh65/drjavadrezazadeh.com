@@ -81,3 +81,18 @@ test('owner MFA lock clears confidential admin DOM and rejects delayed async res
   assert.equal(check.status,0,path+' JS syntax: '+check.stderr);
  }
 });
+
+
+test('JHELA maturity and host readiness purge protected data and reject late MFA responses',()=>{
+ const control=read('assets/js/operations-control.js');
+ assert.match(control,/dispatchEvent\(new Event\('jr:operations-locked'\)\)/);
+ for(const path of ['assets/js/operations-jhela-maturity.js','assets/js/operations-jhela-host-readiness.js']){
+  const source=read(path);
+  assert.match(source,/addEventListener\('jr:operations-locked'/,path);
+  assert.match(source,/lockEpoch\+\+/,path);
+  assert.match(source,/workspace\.hidden\|\|epoch!==lockEpoch/,path);
+  assert.match(source,/replaceChildren\(\)/,path);
+  const check=spawnSync(process.execPath,['--check',path],{encoding:'utf8'});
+  assert.equal(check.status,0,path+': '+check.stderr);
+ }
+});
