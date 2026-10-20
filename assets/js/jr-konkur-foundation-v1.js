@@ -46,7 +46,7 @@
    let pass;
    if(rule.operator==='equals')pass=actual===rule.value;
    else if(rule.operator==='notEquals')pass=actual!==rule.value;
-   else pass=Array.isArray(rule.values)&&rule.values.includes(actual);
+   else {if(!Array.isArray(rule.values)||rule.values.length===0){review=true;reasons.push('RULE_LOGIC_UNVERIFIED');continue;}pass=rule.values.includes(actual);}
    if(typeof pass!=='boolean'){review=true;reasons.push('RULE_LOGIC_UNVERIFIED');continue;}
    verified++;
    evidence.push({type:TYPES.FACT,ruleId:safeText(rule.id),source:rule.source});
