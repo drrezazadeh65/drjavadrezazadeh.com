@@ -58,7 +58,7 @@ test('baseline is private and only served after existing privileged MFA gate',()
   const html=read(p);
   assert.match(html,/<div id="ops-workspace" hidden>/);
   assert.match(html,/id="ops-ai-visibility"/);
-  assert.match(html,/operations-ai-visibility\.js\?v=20261020-aisv-v1/);
+  assert.match(html,/operations-ai-visibility\.js\?v=20261020-aisv-owner-rbac-v2/);
   assert.match(html,/noindex,nofollow,noarchive/);
  }
 });
