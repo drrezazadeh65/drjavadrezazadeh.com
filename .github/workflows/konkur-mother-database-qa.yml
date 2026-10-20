@@ -4,6 +4,9 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - "database/unified/003e_admission_knowledge_catalog_PROPOSED.sql"
+      - "database/unified/003f_candidate_exam_data_PROPOSED.sql"
+      - "docs/migrations/20261020_konkur_scorecards_readonly_preflight.sql"
+      - "tests/konkur-candidate-data-schema-contract.test.mjs"
       - "docs/migrations/20261020_konkur_catalog_readonly_preflight.sql"
       - "docs/migrations/20261020_konkur_catalog_readonly_postflight.sql"
       - "docs/migrations/20261020_konkur_1405_sources_DRAFT_seed_PROPOSED.sql"
@@ -46,6 +49,7 @@ jobs:
         run: |
           node --test tests/konkur-mother-schema-contract.test.mjs
           node --test tests/konkur-catalogue-api-contract.test.mjs
+          node --test tests/konkur-candidate-data-schema-contract.test.mjs
       - name: Install client for temporary isolated MariaDB container
         run: sudo apt-get update -qq && sudo apt-get install -y -qq mariadb-client php-cli php-mysql
       - name: Install existing canonical parent schema into disposable fixture only
@@ -73,6 +77,24 @@ jobs:
           again=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME LIKE 'eco_admission_%' AND TABLE_TYPE='BASE TABLE'")
           test "$again" = "8"
           echo "8 tables, $fks foreign keys; repeated DDL caused no additional tables (disposable database)."
+      - name: Verify proposed private scorecard schema in isolated MariaDB, no real student data
+        shell: bash
+        run: |
+          set -euo pipefail
+          db=(mariadb --protocol=tcp -h127.0.0.1 -P3306 -uroot --database=drjavad1_store)
+          "${db[@]}" < docs/migrations/20261020_konkur_scorecards_readonly_preflight.sql > /tmp/konkur-scorecard-preflight-fixture.txt
+          "${db[@]}" < database/unified/003f_candidate_exam_data_PROPOSED.sql
+          count=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_TYPE='BASE TABLE' AND (TABLE_NAME LIKE 'eco_exam_%' OR TABLE_NAME LIKE 'eco_candidate_%')")
+          test "$count" = "9"
+          fks=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(DISTINCT TABLE_NAME,CONSTRAINT_NAME) FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA='drjavad1_store' AND (TABLE_NAME LIKE 'eco_exam_%' OR TABLE_NAME LIKE 'eco_candidate_%') AND REFERENCED_TABLE_NAME IS NOT NULL")
+          test "$fks" -ge 18
+          "${db[@]}" < database/unified/003f_candidate_exam_data_PROPOSED.sql
+          attempts=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(*) FROM eco_candidate_exam_attempts")
+          drafts=$("${db[@]}" --batch --skip-column-names -e "SELECT COUNT(*) FROM eco_candidate_selection_drafts")
+          test "$attempts" = "0"
+          test "$drafts" = "0"
+          echo "9 additional proposed private-schema tables and $fks foreign keys accepted in synthetic MariaDB; zero learner records."
+
       - name: Verify optional draft seed never enables eligibility
         shell: bash
         run: |
