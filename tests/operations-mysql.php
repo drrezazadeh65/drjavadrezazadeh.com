@@ -68,6 +68,7 @@ try {
  request('/api/admin/operations/commerce',401,'GET',null,[],false);
  request('/api/admin/operations/ai-visibility',401,'GET',null,[],false);
  request('/api/admin/operations/gsc-direct',401,'GET',null,[],false);
+ request('/api/admin/operations/search-intelligence',401,'GET',null,[],false);
  request('/api/admin/operations/commerce/donation-reconcile',401,'POST',
     ['orderId'=>'11111111-1111-4111-8111-111111111185'],[],false);
  request('/api/admin/operations/commerce/book-expire',401,'POST',
@@ -80,6 +81,7 @@ try {
  $session=request('/api/admin/operations/session',200);check($session['mfaRequired']===true,'MFA not required');
  request('/api/admin/operations/ai-visibility',403);
  request('/api/admin/operations/gsc-direct',403);
+ request('/api/admin/operations/search-intelligence',403);
  request('/api/admin/operations/mfa',403,'POST',['code'=>'123456']);
  $at=time();$binary=hash_hmac('sha1',pack('N2',0,intdiv($at,30)),'12345678901234567890',true);$offset=ord($binary[19])&15;$number=unpack('N',substr($binary,$offset,4))[1]&0x7fffffff;$code=str_pad((string)($number%1000000),6,'0',STR_PAD_LEFT);
  $headers=['Origin'=>'https://drjavadrezazadeh.com','X-CSRF-Token'=>$session['csrfToken'],'Sec-Fetch-Site'=>'same-origin'];
@@ -107,6 +109,9 @@ try {
  $configuration['operations_admins'][$id]['role']='SUPER_ADMIN';writeConfig();
  $pdo->prepare("UPDATE operations_admin_memberships SET role='SUPER_ADMIN' WHERE account_id=?")->execute([$id]);
  // The same isolated account can now read the owner-only AI evidence.
+ $joint=request('/api/admin/operations/search-intelligence',200);
+ check(($joint['schema']??'')==='jr-owner-search-intelligence-v1'&&array_key_exists('activeUsers',$joint['ga4'])&&$joint['ga4']['activeUsers']===null
+     &&array_key_exists('containerId',$joint['tagManager'])&&$joint['tagManager']['containerId']===null,'Missing GA4 or GTM incorrectly treated as verified');
  $gscDirect=request('/api/admin/operations/gsc-direct',200);
  check(($gscDirect['schema']??'')==='jr-owner-gsc-direct-v1'&&($gscDirect['status']??'')==='unavailable'
      &&array_key_exists('clicks',$gscDirect['metrics'])&&$gscDirect['metrics']['clicks']===null&&($gscDirect['apiLiveNow']??true)===false,
