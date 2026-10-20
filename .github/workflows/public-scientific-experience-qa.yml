@@ -46,6 +46,8 @@ jobs:
         run: |
           node --check assets/js/bahar-formative-workspace-v1.js
           node --test tests/scientific-continuity-contract.test.mjs
+          node --check assets/js/jr-konkur-foundation-v1.js
+          node --test tests/jr-konkur-foundation.test.mjs
           node --check assets/js/golden-talent-evidence-studio-v1.js
           node --check scripts/build-public-site.mjs
           node -e "const fs=require('fs');const s=fs.readFileSync('assets/js/bahar-formative-workspace-v1.js','utf8');for(const x of ['localStorage','sessionStorage','fetch(','XMLHttpRequest(','WebSocket(']){if(s.includes(x))throw Error('BAHAR must not retain/upload: '+x)}"
