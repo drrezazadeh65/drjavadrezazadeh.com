@@ -51,7 +51,7 @@ for(const locale of ['fa','en']){
    await page.goto(origin+'/'+locale+'/shop/',{waitUntil:'domcontentloaded'});
    const cards=page.locator('[data-book-catalog] .book-product-card');
    await expect(cards.first()).toBeVisible({timeout:15000});
-   await expect(cards).toHaveCount(3);
+   await expect(cards).toHaveCount(4);
    const img=cards.first().locator('.book-cover img').first();
    await expect(img).toBeVisible();
    await expect.poll(()=>img.evaluate(el=>el.complete&&el.naturalWidth>0)).toBe(true);
