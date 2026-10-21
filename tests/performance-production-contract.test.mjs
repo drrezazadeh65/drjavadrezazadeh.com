@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
  ORIGIN,POST_RELEASE_ROUTES,PRIVATE_FEATURE_GATES,
  validatedPublicUrl,classifyPublicResponse,normalizePsi,renderHtml,sourceSelfTest
@@ -66,3 +67,17 @@ test('HTML report encodes contents and keeps lab/field caveat',()=>{
  assert.match(html,/&lt;script&gt;/);
 });
 test('self test uses only synthetic observations',()=>{sourceSelfTest()});
+
+test('verified owner release proof uses the same strict token across PageSpeed and IndexNow',()=>{
+ const proof=fs.readFileSync('scripts/performance-release-verify.mjs','utf8');
+ const workflow=fs.readFileSync('.github/workflows/post-release-observations.yml','utf8');
+ const production=fs.readFileSync('scripts/lib/performance-production.mjs','utf8');
+ const delta=fs.readFileSync('scripts/indexnow-release-delta.mjs','utf8');
+ const sender=fs.readFileSync('scripts/indexnow-submit.mjs','utf8');
+ assert.match(proof,/verified=1\\nsha=/,'successful live-SHA proof must emit token 1');
+ assert.match(proof,/if\(stamp!==expected\)throw Error\('live_service_worker_sha_does_not_match_successful_release'\)/);
+ assert.match(workflow,/PSI_RELEASE_VERIFIED:\s*\$\{\{\s*steps\.release\.outputs\.verified\s*\}\}/);
+ for(const consumer of [production,delta,sender]){
+  assert.match(consumer,/process\.env\.PSI_RELEASE_VERIFIED!=='1'/,'gated consumers must agree on the proof token');
+ }
+});

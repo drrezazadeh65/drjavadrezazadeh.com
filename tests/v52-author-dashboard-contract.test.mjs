@@ -11,12 +11,15 @@ const product=read('fa/shop/authors/mehrab-mirkarimi/index.html');
 const css=read('assets/css/jr-author-dashboard-v52.css');
 const backend=read('api/publishing.php');
 
-test('owner-approved author profile is accessible but never indexable',()=>{
+test('protected author dashboard is noindex and the public author page remains accessible',()=>{
  assert.match(page,/noindex,nofollow,noarchive/);
  assert.match(page,/jr-author-dashboard-v52\.css/);
  assert.match(page,/id="jr-author-onboarding"/);
  assert.match(page,/jr-author-workspace-v1\.js/);
- assert.doesNotMatch(product,/href="\/fa\/app\/author\/"/);
+ // A public navigation link is not an authorization or indexability leak.
+ // Protect the destination and financial API; preserve the existing author entry point.
+ assert.match(product,/href="\/fa\/app\/author\/"/);
+ assert.doesNotMatch(product,/href="[^"]*\/api\/publishing\/(?:author|ledger)/i);
  assert.match(backend,/Cache-Control: no-store, private/);
  assert.match(backend,/l\.approved_at IS NOT NULL/);
  assert.match(backend,/email_verified_at/);

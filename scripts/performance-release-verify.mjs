@@ -30,5 +30,5 @@ const result={schema:'jr-production-release-proof-v1',expectedSha:expected,
 if(process.env.PERFORMANCE_RELEASE_PROOF_PATH){
  fs.writeFileSync(process.env.PERFORMANCE_RELEASE_PROOF_PATH,JSON.stringify(result,null,2)+'\n');
 }
-if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,'verified=true\nsha='+expected+'\n');
+if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,'verified=1\nsha='+expected+'\n');
 console.log('PRODUCTION_SHA_VERIFIED sha='+expected+' method=stamped_sw_and_bilingual_storefront');
