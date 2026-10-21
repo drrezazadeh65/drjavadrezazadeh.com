@@ -55,7 +55,7 @@ test('the existing 21-offer pricing cards expose selected secure checkout and se
  assert.match(pricing,/href="\/fa\/services\/checkout\/\?service='\+id\+'/,'Every service uses its own selected guarded checkout route');
  assert.match(pricing,/href="\/fa\/services\/'\+id\+'/,'Every service also retains its full details route');
  assert.match(pricing,/encodeURIComponent\(service\.id\)/,'Service keys must be encoded');
- assert.match(pricing,/service\.sellable===true/,'Only approved catalogue services may be displayed');
+ assert.match(pricing,/x\.sellable===true&&Number\.isInteger\(x\.price\)/,'Only approved priced catalogue services may be displayed');
  assert.doesNotMatch(pricing,/\/api\/commerce\/create|gateway-send|paymentVerified\s*=\s*true/,'Editorial catalogue never performs or asserts a payment');
 });
 test('navigator reads source catalogue, validates IRT, and fails closed on incomplete metadata',()=>{
