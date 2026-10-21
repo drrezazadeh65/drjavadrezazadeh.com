@@ -63,6 +63,11 @@ function communityModerator(PDO $pdo): array {
 /* Database-complete, owner-provisioned discussion module.
  * All private responses inherit api/index.php no-store and noindex headers.
  * Never trust browser-facing admin controls for authorization. */
+function communityCanErase(array $account): bool {
+    $id=(string)($account['id']??'');
+    $record=cfg()['operations_admins'][$id]??null;
+    return is_array($record)&&($record['role']??null)==='SUPER_ADMIN';
+}
 function communityReplyText(mixed $value): ?string {
     if (!is_string($value) || strlen($value)>24000) return null;
     $clean=trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u','',$value)??'');
@@ -185,7 +190,8 @@ function communityRoute(string $route,string $verb): never {
         respond(['ok'=>true,'state'=>'pending','moderatedBeforePublication'=>true],202);
     }
     if ($route==='/community/moderation' && $verb==='GET') {
-        communityModerator($pdo);
+        $mod=communityModerator($pdo);
+        $canErase=communityCanErase($mod);
         // Explicit state + keyset cursor enables older records without exposing private text publicly.
         $requested=$_GET['state']??null;
         if ($requested!==null) {
@@ -198,7 +204,7 @@ function communityRoute(string $route,string $verb): never {
                 $cursorTime=(int)$rawTime;$cursorId=$rawId;
             }
             $result=communityArchivePage($pdo,$requested,$cursorTime,$cursorId);
-            respond(['ok'=>true,'schema'=>'community-moderation-v2','state'=>$requested]+$result);
+            respond(['ok'=>true,'schema'=>'community-moderation-v2','state'=>$requested,'canErase'=>$canErase]+$result);
         }
         $q=$pdo->query("SELECT id,page_path,body_text,rating,created_at FROM community_comments WHERE state='pending' ORDER BY created_at ASC,id ASC LIMIT 30");
         $queue=array_map(static fn($x)=>[
@@ -212,7 +218,7 @@ function communityRoute(string $route,string $verb): never {
             'body'=>(string)$x['body_text'],'rating'=>$x['rating']===null?null:(int)$x['rating'],
             'createdAt'=>(int)$x['created_at']
         ],$published);
-        respond(['ok'=>true,'schema'=>'community-moderation-v1','pending'=>$queue,'approved'=>$published]);
+        respond(['ok'=>true,'schema'=>'community-moderation-v1','pending'=>$queue,'approved'=>$published,'canErase'=>$canErase]);
     }
     if ($route==='/community/moderation' && $verb==='POST') {
         $actor=communityMutationGuard($pdo);
@@ -360,6 +366,7 @@ function communityRoute(string $route,string $verb): never {
     if ($route==='/community/admin/erase' && $verb==='POST') {
         $actor=communityMutationGuard($pdo);
         communityModerator($pdo);
+        if (!communityCanErase($actor)) fail('super_admin_required',403);
         $input=jsonBody();
         $kind=$input['targetKind']??null;
         $target=$input['targetId']??null;
