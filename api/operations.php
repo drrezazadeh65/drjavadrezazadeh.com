@@ -19,6 +19,7 @@ require_once __DIR__.'/operations-service-delivery.php';
 require_once __DIR__.'/consultation-availability.php';
 require_once __DIR__.'/operations-action-runs.php';
 require_once __DIR__.'/operations-provider-inventory.php';
+require_once __DIR__.'/operations-source-directory.php';
 require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/social-review.php';
 require_once __DIR__.'/social-admin-settings.php';
@@ -505,6 +506,14 @@ function operationsRoute(string $path, string $verb): never {
         if ($path === '/admin/operations/provider-inventory' && $verb === 'GET') {
             if (!rateAllowed($pdo,'operations_provider_inventory_read',$accountId,20,300)) fail('rate_limited',429);
             respond(operationsProviderInventory());
+        }
+
+        // Existing ENG-13 controller: bounded 54-reference source directory.
+        // Never confirms credentials, traffic or third-party publication.
+        if ($path === '/admin/operations/source-directory' && $verb === 'GET') {
+            if (!rateAllowed($pdo,'operations_source_directory_read',$accountId,12,300))
+                fail('rate_limited',429);
+            respond(operationsSourceDirectory($pdo,nowTs()));
         }
 
         // Owner-only keyword intelligence: no public asset or unauthenticated strategy data.
