@@ -58,6 +58,26 @@ test('the existing 21-offer pricing cards expose selected secure checkout and se
  assert.match(pricing,/x\.sellable===true&&Number\.isInteger\(x\.price\)/,'Only approved priced catalogue services may be displayed');
  assert.doesNotMatch(pricing,/\/api\/commerce\/create|gateway-send|paymentVerified\s*=\s*true/,'Editorial catalogue never performs or asserts a payment');
 });
+test('English 21-offer catalogue is searchable and price-sortable without replacing indexed links',()=>{
+ const englishHub=read('en/services/index.html');
+ const canonicalIds=catalog.services.filter(s=>s.sellable===true).map(s=>s.id);
+ const atlas=englishHub.slice(englishHub.indexOf('class="jr-en-services-atlas"'));
+ assert.ok(atlas.includes('data-jr-en-service-atlas'));
+ for(const id of canonicalIds){
+  assert.ok(atlas.includes('href="/en/services/'+id+'/"'),id+' must retain a server-rendered canonical link');
+ }
+ assert.match(script,/function enhanceEnglishAtlas\(map,english\)/);
+ assert.match(script,/rows\.length!==canonical\.length\|\|rows\.some/);
+ assert.match(script,/new Intl\.NumberFormat\('en-US'\)\.format\(service\.price\)/);
+ assert.match(script,/list\.replaceChildren\(\.\.\.arranged\.map/);
+ assert.match(script,/row\.li\.hidden=!match/);
+ assert.match(script,/search\.addEventListener\('input',apply\)/);
+ assert.match(script,/sort\.addEventListener\('change',apply\)/);
+ assert.match(script,/if\(english\)enhanceEnglishAtlas\(map,english\)/);
+ assert.doesNotMatch(script,/localStorage|sessionStorage|indexedDB|sendBeacon|XMLHttpRequest/);
+ assert.match(css,/\.jr-en-services-atlas \.cards>li\[hidden\]/);
+ assert.match(css,/@media\(max-width:650px\)/);
+});
 test('navigator reads source catalogue, validates IRT, and fails closed on incomplete metadata',()=>{
  assert.match(script,/fetch\('\/assets\/data\/service-catalog\.json'/);
  assert.match(script,/credentials:'omit',cache:'no-store'/);

@@ -107,6 +107,71 @@
   });
   return titles;
  };
+ // Progressive enhancement of the EXISTING crawlable English 21-offer directory.
+ // It never creates extra SKUs, alters prices, requests user data or starts payment.
+ function enhanceEnglishAtlas(map,english){
+  const atlas=document.querySelector('.jr-en-services-atlas');
+  const list=atlas?.querySelector('ul.cards');
+  if(!atlas||!list||atlas.querySelector('[data-jr-atlas-filter]'))return;
+  const rows=[...list.children].map((li,index)=>{
+   const link=li.querySelector('a[href^="/en/services/"]');
+   const id=link?.getAttribute('href')?.match(/^\/en\/services\/([a-z0-9_]+)\/$/)?.[1];
+   const service=id?map.get(id):null;
+   const title=link?.querySelector('strong')?.textContent?.trim();
+   const fit=link?.querySelector('span')?.textContent?.trim();
+   const quoted=link?.querySelector('em')?.textContent||'';
+   if(!service||!english.has(id)||!title||!fit||
+      !quoted.includes(new Intl.NumberFormat('en-US').format(service.price)+' toman'))return null;
+   return {li,index,id,price:service.price,
+    searchable:(title+' '+fit).normalize('NFKC').toLocaleLowerCase('en')};
+  });
+  // On any stale/mismatched data, leave the entire server-rendered directory visible.
+  if(rows.length!==canonical.length||rows.some(row=>!row)||
+     new Set(rows.map(row=>row.id)).size!==canonical.length)return;
+  const controls=node('div',null,'jr-sn-atlas-filter');
+  controls.setAttribute('data-jr-atlas-filter','');
+  const field=node('label',null,'jr-sn-atlas-field');
+  field.append(node('span','Search the 21 published services'));
+  const search=node('input');search.type='search';search.maxLength=90;
+  search.setAttribute('autocomplete','off');
+  search.setAttribute('placeholder','e.g. editing, teacher, university');
+  field.append(search);
+  const sortField=node('label',null,'jr-sn-atlas-field');
+  sortField.append(node('span','Order services by'));
+  const sort=node('select');
+  sort.append(new Option('Original catalogue order','default'),
+   new Option('Price: low to high','asc'),new Option('Price: high to low','desc'));
+  sortField.append(sort);
+  const feedback=node('p','','jr-sn-atlas-feedback');
+  feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
+  const clear=node('button','Clear filters','jr-sn-atlas-clear');clear.type='button';
+  controls.append(field,sortField,clear,feedback);
+  const original=rows.map(row=>row.li);
+  const apply=()=>{
+   const terms=search.value.normalize('NFKC').toLocaleLowerCase('en').trim().split(/\s+/).filter(Boolean);
+   const choice=sort.value;
+   const arranged=[...rows].sort((a,b)=>choice==='asc'
+    ?a.price-b.price||a.index-b.index:choice==='desc'
+    ?b.price-a.price||a.index-b.index:a.index-b.index);
+   list.replaceChildren(...arranged.map(row=>row.li));
+   let visible=0;
+   for(const row of rows){
+    const match=terms.every(term=>row.searchable.includes(term));
+    row.li.hidden=!match;
+    if(match)visible++;
+   }
+   feedback.textContent=visible+' of '+canonical.length+
+    ' published services shown. This is a catalogue filter, not an availability or payment confirmation.';
+   clear.hidden=!terms.length&&choice==='default';
+  };
+  search.addEventListener('input',apply);
+  sort.addEventListener('change',apply);
+  clear.addEventListener('click',()=>{search.value='';sort.value='default';apply();search.focus()});
+  // Keep the canonical 21 links in document order until the user requests sorting.
+  atlas.querySelector('h2')?.insertAdjacentElement('afterend',controls);
+  apply();
+ }
+
  for(const [index,root] of roots.entries()){
   const isFa=root.dataset.locale==='fa',t=L[isFa?'fa':'en'],ident='jr-sn-'+index+'-';
   root.classList.add('jr-service-navigator');
@@ -197,6 +262,7 @@
     const english=isFa?null:getAtlas();
     if(english&&canonical.some(id=>!english.has(id)))throw Error('atlas_mismatch');
     catalogue=map;englishTitles=english;
+    if(english)enhanceEnglishAtlas(map,english);
     render();
    }catch(_){
     catalogue=null;

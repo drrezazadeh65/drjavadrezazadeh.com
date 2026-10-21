@@ -117,3 +117,35 @@
  .jr-service-navigator .jr-sn-card{background:#fff!important;color:#121212!important;border-color:#777!important;break-inside:avoid}
  .jr-service-navigator :is(.jr-sn-controls,.jr-sn-reset,.jr-sn-link){display:none!important}
 }
+
+
+/* Existing English atlas progressive filter: non-visual crawlable links remain. */
+.jr-en-services-atlas .jr-sn-atlas-filter{
+ display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;
+ gap:12px;align-items:end;margin:16px 0 24px;min-width:0
+}
+.jr-en-services-atlas .jr-sn-atlas-field{display:grid;gap:8px;min-width:0;font-weight:650}
+.jr-en-services-atlas .jr-sn-atlas-field input,
+.jr-en-services-atlas .jr-sn-atlas-field select{
+ width:100%;max-width:100%;min-width:0;min-height:48px;padding:10px 12px;
+ background:#13171b;color:#f8f5e9;border:1px solid #9e8552;
+ border-radius:12px;font:inherit
+}
+.jr-en-services-atlas .jr-sn-atlas-clear{
+ min-height:48px;border:1px solid #b7a27e;border-radius:12px;
+ padding:10px 14px;color:#f8f5e9;background:#292722;cursor:pointer;font:inherit
+}
+.jr-en-services-atlas .jr-sn-atlas-feedback{
+ grid-column:1/-1;line-height:1.7;margin:0;color:inherit
+}
+.jr-en-services-atlas .cards>li[hidden]{display:none!important}
+.jr-en-services-atlas .jr-sn-atlas-filter :is(input,select,button):focus-visible{
+ outline:3px solid #f2da9c;outline-offset:3px
+}
+@media(max-width:650px){
+ .jr-en-services-atlas .jr-sn-atlas-filter{grid-template-columns:minmax(0,1fr)}
+ .jr-en-services-atlas .jr-sn-atlas-clear{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .jr-en-services-atlas .jr-sn-atlas-filter *{scroll-behavior:auto}
+}
