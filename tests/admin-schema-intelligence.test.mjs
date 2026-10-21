@@ -21,11 +21,11 @@ test('schema source audit is restricted to public, same-origin HTML and never se
 });
 test('audit samples are explicitly bounded and cannot claim Google/AI measured scores',()=>{
  const js=schema();
- assert.match(js,/urls\.size>=32/);
- assert.match(js,/slice\(0,32\)/);
+ assert.match(js,/for\(let i=0;i<16;i\+\+\)/);
+ assert.match(js,/for\(const lang of \['fa','en'\]\)/);
  assert.match(js,/Promise\.all\(\[worker\(\),worker\(\),worker\(\)\]\)/);
- assert.match(js,/internal sample-only heuristic|صرفاً برای نمونه بررسی‌شده/);
- assert.match(js,/not evidence of Google eligibility or indexing/);
+ assert.match(js,/public HTML sample only|ممیزی نمونه‌ای/);
+ assert.match(js,/not proof of Google indexing or rich-result eligibility/);
  assert.match(js,/ENG-02/);
  assert.match(js,/Three proposed next priorities/);
  assert.match(js,/Future concept only; disabled with no calculations/);
