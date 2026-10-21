@@ -35,7 +35,7 @@ test('portable preliminary drafts extend both bilingual entry pages without new 
   const helper='jr-konkur-choice-portability-v1.js?v=20261022-private-draft-v1';
   assert.ok(html.includes(helper),path);
   assert.ok(html.indexOf(helper)<html.indexOf('jr-konkur-studio-v1.js'),path);
-  assert.match(html,/jr-konkur-studio-v1\.js\?v=20261022-review-draft-v4/);
+  assert.match(html,/jr-konkur-studio-v1\.js\?v=20261022-search-safety-v5/);
   assert.match(html,/jr-konkur-studio-v1\.css\?v=20261022-review-draft-v4/);
  }
  const js=read('assets/js/jr-konkur-studio-v1.js');
