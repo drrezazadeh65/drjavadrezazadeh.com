@@ -76,6 +76,10 @@ jobs:
           node platform/golden-talent-book-crosswalk.test.mjs
           php tests/golden-talent-guardian.php
       - name: Run full release browser regression suite
+        env:
+          # Existing Browser QA policy: Playwright can stall waiting on document.fonts.ready
+          # for full-page captures despite using only system-native fonts.
+          PW_TEST_SCREENSHOT_NO_FONTS_READY: "1"
         run: |
           npm install --no-save @playwright/test@1.56.0
           npx playwright install --with-deps chromium
