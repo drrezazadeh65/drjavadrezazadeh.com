@@ -139,6 +139,16 @@ function communityRoute(string $route,string $verb): never {
         $query=$pdo->prepare("SELECT id,body_text,rating,created_at FROM community_comments WHERE page_path=? AND state='approved' ORDER BY created_at DESC,id DESC LIMIT 20");
         $query->execute([$page]);
         $approved=$query->fetchAll();
+        // Aggregate the entire eligible page, never the 20-row presentation window.
+        // Pending, rejected, removed and unrated opinions cannot affect the mean.
+        $ratingQuery=$pdo->prepare("SELECT COUNT(*) AS n,AVG(rating) AS mean_value
+            FROM community_comments
+            WHERE page_path=? AND state='approved' AND rating BETWEEN 1 AND 5");
+        $ratingQuery->execute([$page]);
+        $ratingRow=$ratingQuery->fetch() ?: [];
+        $ratingCount=(int)($ratingRow['n']??0);
+        $ratingSummary=['count'=>$ratingCount,
+            'mean'=>$ratingCount>0?round((float)$ratingRow['mean_value'],1):null];
         $replies=communityListApprovedReplies($pdo,$approved);
         $data=array_map(static fn($x)=>[
             'id'=>(string)$x['id'],
@@ -149,7 +159,7 @@ function communityRoute(string $route,string $verb): never {
             'replies'=>$replies[(string)$x['id']]??[]
         ],$approved);
         // Submitted ratings do not appear in public data until manually approved.
-        respond(['ok'=>true,'schema'=>'community-comments-v1','page'=>$page,'comments'=>$data,'count'=>count($data)]);
+        respond(['ok'=>true,'schema'=>'community-comments-v1','page'=>$page,'comments'=>$data,'count'=>count($data),'ratingSummary'=>$ratingSummary]);
     }
     if ($route==='/community/csrf' && $verb==='GET') {
         $account=communityAccount($pdo);
