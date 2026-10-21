@@ -173,7 +173,7 @@ function auditRecord(record, manifestIndex, manifestOk) {
 
   const pageOk = Number.isSafeInteger(record.page) && record.page >= 1 && record.page <= MAX_PAGE;
   if (!pageOk) issues.push('MISSING_OR_INVALID_PAGE');
-  else if (source && Number.isSafeInteger(source.pdfPageCount) && record.page > source.pageCount) issues.push('PAGE_OUT_OF_RANGE');
+  else if (source && Number.isSafeInteger(source.pdfPageCount) && record.page > source.pdfPageCount) issues.push('PAGE_OUT_OF_RANGE');
 
   if (record.capacity !== null && record.capacity !== undefined) {
     if (!Number.isSafeInteger(record.capacity) || record.capacity < 0) issues.push('INVALID_CAPACITY');
