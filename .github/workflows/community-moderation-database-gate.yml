@@ -5,6 +5,14 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - 'api/community.php'
+      - 'assets/js/community-comments.js'
+      - 'assets/js/operations-community-moderation.js'
+      - 'assets/css/community-comments.css'
+      - 'assets/css/operations-community-moderation.css'
+      - 'database/bertina/022_community_academic_replies_owner_applied.sql'
+      - 'tests/community-moderation.test.mjs'
+      - 'tests/community-design-consistency.test.mjs'
+      - 'tests/community-academic-replies.test.mjs'
       - 'api/index.php'
       - 'assets/js/site-extras.js'
       - 'fa/app/admin/index.html'
@@ -19,6 +27,8 @@ on:
       - 'api/community.php'
       - 'api/index.php'
       - 'database/bertina/021_community_moderation.sql'
+      - 'database/bertina/022_community_academic_replies_owner_applied.sql'
+      - 'tests/community-academic-replies.test.mjs'
       - 'tests/community-mysql-smoke.php'
       - 'tests/community-moderation.test.mjs'
       - 'tests/community-design-consistency.test.mjs'
@@ -68,13 +78,14 @@ jobs:
         run: |
           php -l api/community.php
           php -l tests/community-mysql-smoke.php
-          node --test tests/community-moderation.test.mjs tests/community-design-consistency.test.mjs
+          node --test tests/community-moderation.test.mjs tests/community-design-consistency.test.mjs tests/community-academic-replies.test.mjs
       - name: Apply customer-account baseline and additive pilot to isolated MySQL
         env:
           MYSQL_PWD: fixture-password-only
         run: |
           mysql -h127.0.0.1 -P3306 -uroot community_fixture < docs/BERTINA_MYSQL_SCHEMA.sql
           mysql -h127.0.0.1 -P3306 -uroot community_fixture < database/bertina/021_community_moderation.sql
+          mysql -h127.0.0.1 -P3306 -uroot community_fixture < database/bertina/022_community_academic_replies_owner_applied.sql
       - name: Assert fail-closed comment, rating, consent, moderation and audit behavior
         env:
           JR_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=community_fixture;charset=utf8mb4
