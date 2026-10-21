@@ -83,6 +83,7 @@ jobs:
           run_audit "Admin schema engine runtime fixtures and MFA boundary" node --test tests/admin-schema-intelligence-runtime.test.mjs
           run_audit "Bilingual in-press book and sitemap contract" node --test tests/hll5-book-bilingual.test.mjs
           run_audit "Global FA/EN typography and bidi contract" node --test tests/bilingual-typography-contract.test.mjs
+          run_audit "Community scholarly moderation and owner reply contract" node --test tests/community-moderation.test.mjs tests/community-design-consistency.test.mjs tests/community-academic-replies.test.mjs
           run_audit "Bilingual brand motto" node --test tests/brand-motto-home.test.mjs
           run_audit "Owner mobile/store/version/editorial regression" node --test tests/owner-mobile-store-version-editorial.test.mjs
           run_audit "One-time PWA offer" node --test tests/pwa-install-once.test.mjs
