@@ -50,9 +50,19 @@ async function inspect(url){
  else if(context && !String(context).includes('schema.org'))warnings.push(t('زمینه ناشناخته','Unknown context'));
  if(!graph.some(x=>x&&x['@type']))warnings.push(t('نوع @type مشخص نیست','Missing @type'));
  }}
- const canonical=doc.querySelector('link[rel="canonical"]')?.href;
- if(!canonical)warnings.push(t('canonical یافت نشد','Canonical missing'));
- else {try{if(normalize(canonical)!==normalize(url))warnings.push(t('canonical متفاوت','Canonical differs'));}catch(e){errors.push('Invalid canonical');}}
+ // Canonical belongs to exactly one local public URL, not merely an equal pathname.
+ // DOMParser has no trusted document base; resolve the raw attribute against the
+ // fetched page URL rather than about:blank.
+ const canonicals=[...doc.querySelectorAll('link[rel~="canonical"]')];
+ if(!canonicals.length)warnings.push(t('canonical یافت نشد','Canonical missing'));
+ else if(canonicals.length!==1)errors.push(t('تعداد canonical نامعتبر','Multiple canonical links'));
+ else {try{
+  const raw=canonicals[0].getAttribute('href');
+  if(!raw)throw Error('empty canonical');
+  const target=new URL(raw,url);
+  if(target.origin!==location.origin||target.protocol!=='https:'||target.search||target.hash||normalize(target.href)!==normalize(url))
+   warnings.push(t('canonical متفاوت یا خارج از دامنه','Canonical differs or leaves the origin'));
+ }catch(e){errors.push(t('canonical نامعتبر','Invalid canonical'));}}
  return {url,errors,warnings,count:scripts.length,skip:false};
 }
 let running=false;
