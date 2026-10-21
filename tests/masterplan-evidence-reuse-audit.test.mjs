@@ -86,6 +86,43 @@ test('revenue v3 extends the existing audit to all 27 service SKUs and four book
  assert.equal(digital.faUrl,'/fa/shop/authors/mehrab-mirkarimi/');
  assert.equal(r.commercialInventory.statusesDoNotImplyLiveAcceptance,true);
 });
+test('27 existing commercial services have a read-only bilingual source QA matrix and no fabricated production evidence',()=>{
+ const r=reconcile(process.cwd(),{sha:'f'.repeat(40)});
+ assert.equal(r.sourceQualitySummary.offersAudited,27);
+ assert.equal(r.sourceQualitySummary.pagePairsAudited,54);
+ assert.equal(r.sourceQualitySummary.records.length,27);
+ assert.equal(r.sourceQualitySummary.sourcePagesPresent,54);
+ assert.equal(r.sourceQualitySummary.sourceCanonicalMatches,54);
+ assert.equal(r.sourceQualitySummary.sourceOrderLinks,54);
+ for(const offer of r.sourceQualitySummary.records){
+   assert.equal(offer.pages.length,2);
+   for(const p of offer.pages){
+     assert.ok(p.sourceExists,p.path);
+     assert.equal(p.correctLanguage,true,p.path);
+     assert.equal(p.canonicalSourceMatches,true,p.path);
+     assert.equal(p.hreflangFa,true,p.path);
+     assert.equal(p.hreflangEn,true,p.path);
+     assert.equal(p.indexableInSource,true,p.path);
+     assert.equal(p.titlePresent,true,p.path);
+     assert.equal(p.metaDescriptionPresent,true,p.path);
+     assert.equal(p.h1Present,true,p.path);
+     assert.equal(p.selectedOrderLinkPresent,true,p.path);
+     assert.equal(p.structuredDataPresent,true,p.path);
+     assert.equal(p.liveHttpStatus,null);
+     assert.equal(p.realPaymentVerified,false);
+   }
+ }
+ assert.equal(r.sourceQualitySummary.sourceChecksAreNotPaymentEvidence,true);
+});
+test('reuse existing evidence files for all 24 v3 deliverables without granting release',()=>{
+ const r=reconcile();
+ assert.equal(r.requiredDeliverables.length,24);
+ assert.deepEqual(r.requiredDeliverables.map(x=>x.id),Array.from({length:24},(_,i)=>i+1));
+ assert.ok(r.requiredDeliverables.every(x=>x.liveEvidenceVerified===false));
+ assert.ok(r.requiredDeliverables.every(x=>x.sourcePointers.length>0));
+ assert.ok(r.requiredDeliverables.every(x=>x.requiresExternalOrIndependentAcceptance));
+ assert.notEqual(r.releaseState,'FULLY_VERIFIED_FOR_SINGLE_OWNER_RELEASE');
+});
 test('payment registry versus market policy mismatch is disclosed without switching production providers',()=>{
  const registryBefore=fs.readFileSync('platform/payment-provider-registry.json','utf8');
  const policyBefore=fs.readFileSync('platform/payment-provider-policy.json','utf8');

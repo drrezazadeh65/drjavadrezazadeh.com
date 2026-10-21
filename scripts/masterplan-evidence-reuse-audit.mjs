@@ -86,6 +86,36 @@ export function reconcile(root=process.cwd(),ctx={}){
  const providerPolicy=load('platform/payment-provider-policy.json');
  if(vip.length!==6||books.length!==3||publishing.works.length!==1)
    throw Error('Revenue v3 inventory expected six VIP, three print books and one digital bundle');
+ // Read-only source quality matrix for 27 approved service/VIP pages.
+ // Never infer production HTTP, real checkout readiness or actual appointment capacity.
+ const pageSourceAudit=(kind,id)=>{
+   const parent=kind==='STANDARD_SERVICE'?'services':'vip';
+   return ['fa','en'].map(locale=>{
+     const rel=locale+'/'+parent+'/'+id+'/index.html';
+     const exists=fs.existsSync(path.join(root,rel));
+     const html=exists?fs.readFileSync(path.join(root,rel),'utf8'):'';
+     const route='/'+locale+'/'+parent+'/'+id+'/';
+     const canonical='https://drjavadrezazadeh.com'+route;
+     const selected=kind==='STANDARD_SERVICE'
+       ?'/'+locale+'/services/checkout/?service='+id
+       :'/fa/vip/?vip='+id+'#vip-checkout-heading';
+     const faPath='/fa/'+parent+'/'+id+'/',enPath='/en/'+parent+'/'+id+'/';
+     return {locale,path:rel,sourceExists:exists,
+       correctLanguage:new RegExp('<html\\b[^>]*lang=["\\x27]'+locale+'["\\x27]','i').test(html),
+       canonicalSourceMatches:html.includes('rel="canonical" href="'+canonical+'"'),
+       hreflangFa:html.includes('hreflang="fa" href="https://drjavadrezazadeh.com'+faPath+'"'),
+       hreflangEn:html.includes('hreflang="en" href="https://drjavadrezazadeh.com'+enPath+'"'),
+       indexableInSource:!/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html),
+       titlePresent:/<title>[^<]{8,}<\/title>/i.test(html),
+       metaDescriptionPresent:/<meta\b[^>]*name=["']description["'][^>]*content=["'][^"']{20,}["']/i.test(html),
+       h1Present:/<h1\b[^>]*>[\s\S]*?<\/h1>/i.test(html),
+       selectedOrderLinkPresent:html.includes('href="'+selected+'"'),
+       structuredDataPresent:html.includes('type="application/ld+json"'),
+       // A source link is NOT proof of successful checkout or fulfilment.
+       liveHttpStatus:null,realPaymentVerified:false};
+   });
+ };
+
  const sourceRow=({kind,id,titleFa,faUrl,enUrl,priceToman,paths,blocker=null})=>{
    const sourcePaths=paths.filter(p=>fs.existsSync(path.join(root,p)));
    return {kind,id,titleFa,faUrl,enUrl,priceToman,currency:'IRT',
@@ -132,6 +162,53 @@ export function reconcile(root=process.cwd(),ctx={}){
      metadataMismatch:policySelectsProvider&&p.enabled!==market.enabled,
      sourceOnly:true,liveCredentialsVerified:false,realSkuPaymentVerified:false};
  });
+ const sourceQuality=[...standard,...premium].map(row=>({
+   kind:row.kind,id:row.id,
+   pages:pageSourceAudit(row.kind,row.id),
+   ownerReviewed:false,liveChecked:false
+ }));
+ const sourceQualitySummary={
+   offersAudited:sourceQuality.length,pagePairsAudited:sourceQuality.length*2,
+   sourcePagesPresent:sourceQuality.flatMap(row=>row.pages).filter(page=>page.sourceExists).length,
+   sourceCanonicalMatches:sourceQuality.flatMap(row=>row.pages).filter(page=>page.canonicalSourceMatches).length,
+   sourceOrderLinks:sourceQuality.flatMap(row=>row.pages).filter(page=>page.selectedOrderLinkPresent).length,
+   records:sourceQuality,sourceChecksAreNotPaymentEvidence:true
+ };
+ const requiredTitles=[
+  'Complete Revenue Inventory','Live-vs-Source Gap Report','27-SKU Commercial Acceptance Matrix',
+  'Payment Provider Status Matrix','Service Desk UX Audit','Homepage-to-Service Navigation Map',
+  'Full Internal Linking Graph','Orphan and Broken Link Report','Bilingual SEO Audit',
+  'Structured Data Audit','Content Completeness Matrix','Bookstore and Publishing Readiness',
+  'Consultation and Booking Readiness','Golden Talent/RCAS/BAHAR Scientific Readiness',
+  'JHELA Commercial Governance Report','Conversion Funnel Audit',
+  'Revenue & Capacity Scenario Report','Security and Privacy Evidence',
+  'Mobile/Desktop/PWA Regression Evidence','Exact-SHA CI Results',
+  'Release Evidence and Production Fingerprint','Outstanding Blockers With Owners',
+  'Prioritised Next Actions','Final Executive Commercial Maturity Dashboard'
+ ];
+ const sourcePointers=[
+  ['scripts/masterplan-evidence-reuse-audit.mjs'],['scripts/bertina-postrelease-check.mjs'],
+  ['scripts/masterplan-evidence-reuse-audit.mjs','tests/catalog-checkout-routing.test.mjs'],
+  ['platform/payment-provider-policy.json','platform/payment-provider-registry.json'],
+  ['tests/service-navigator-contract.test.mjs'],['tests/bilingual-home-experience-regression.mjs'],
+  ['scripts/internal-link-graph-audit.mjs'],['scripts/internal-link-graph-audit.mjs'],
+  ['scripts/seo-regression.mjs'],['scripts/schema-entity-inventory.mjs'],
+  ['scripts/catalog-integrity.mjs'],['scripts/bookstore-release-audit.mjs'],
+  ['tests/consultation-preference-mysql.php'],['tests/golden-talent-guardian.php'],
+  ['scripts/jhela-ojs-source-audit.mjs'],['scripts/conversion-path-audit.mjs'],
+  ['scripts/revenue-planner-contract-audit.mjs'],['scripts/public-secret-audit.mjs'],
+  ['scripts/responsive-resilience-audit.mjs'],['scripts/masterplan-evidence-reuse-audit.mjs'],
+  ['scripts/bertina-postrelease-check.mjs'],['docs/governance/JR_REVENUE_V3_EXECUTION_BASELINE_20261021.md'],
+  ['docs/governance/JR_REVENUE_V3_EXECUTION_BASELINE_20261021.md'],
+  ['docs/governance/MASTERPLAN_100_RELEASE_ACCEPTANCE.json']
+ ];
+ const requiredDeliverables=requiredTitles.map((title,i)=>({
+   id:i+1,title,evidenceStatus:i===20||i===23?'BLOCKED_WITH_REASON':'SOURCE_ONLY',
+   sourcePointers:sourcePointers[i].filter(p=>fs.existsSync(path.join(root,p))),
+   sourcePointersMissing:sourcePointers[i].filter(p=>!fs.existsSync(path.join(root,p))),
+   liveEvidenceVerified:false,requiresExternalOrIndependentAcceptance:true
+ }));
+
  const commercialInventory={counts:{standard:standard.length,vip:premium.length,
    printBooks:print.length,digitalBundles:1,total:standard.length+premium.length+print.length+1},
    records:[...standard,...premium,...print,digital],
@@ -152,6 +229,7 @@ export function reconcile(root=process.cwd(),ctx={}){
   services:{count:21,formallyVerified:verified(acceptance.verifiedServices),
     bilingualSourcePagesExisting:serviceRows.reduce((n,s)=>n+s.existingBilingualPages.length,0),records:serviceRows},
   commercialInventory,paymentProviderReconciliation,
+  sourceQualitySummary,requiredDeliverables,
   officiallyAcceptedDestinations:acceptance.verifiedInternalDestinations.length,
   existingIndependentSnapshots:[
    {name:'source contract and browser candidate',url:'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39031565681',note:'Older SHA, not production'},
