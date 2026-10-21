@@ -348,7 +348,7 @@ function communityRoute(string $route,string $verb): never {
             }
             $nextRevision=$expected+1;
             $sql='UPDATE community_admin_replies SET body_text=?,state=?,revision_no=?,updated_at=?,published_at=?,removed_at=? WHERE id=? AND revision_no=?';
-            $publishedAt=$newState==='published' ? ($now) : ($current['published_at']===null ? null : (int)$current['published_at']);
+            $publishedAt=$action==='publish' ? $now : ($current['published_at']===null ? null : (int)$current['published_at']);
             $removedAt=$newState==='removed' ? $now : null;
             $q=$pdo->prepare($sql);
             $q->execute([$body,$newState,$nextRevision,$now,$publishedAt,$removedAt,$reply,$expected]);
