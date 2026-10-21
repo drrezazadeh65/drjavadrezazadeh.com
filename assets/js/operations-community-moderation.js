@@ -32,14 +32,14 @@ const list=elt('div','jr-community-admin-list');
 const older=elt('button','jr-community-admin-more',t('نمایش دیدگاه‌های قدیمی‌تر','Load older comments'));
 older.type='button';older.hidden=true;
 panel.append(header,note,toolbar,status,list,older);workspace.append(panel);
-let generation=0,csrf=null,loading=false,nextCursor=null;
+let generation=0,csrf=null,loading=false,nextCursor=null,canErase=false;
 async function json(path,opts={}){
  const res=await fetch(path,{credentials:'same-origin',cache:'no-store',...opts});
  let body=null;try{body=await res.json();}catch(_){}
  return {ok:res.ok,status:res.status,body};
 }
 function lock(){
- generation++;csrf=null;nextCursor=null;loading=false;
+ generation++;csrf=null;nextCursor=null;loading=false;canErase=false;
  list.replaceChildren();older.hidden=true;
  status.textContent=t('برای دسترسی به دیدگاه‌ها، احراز هویت مدیر و تأیید دومرحله‌ای لازم است.','Administrator authorization and fresh MFA are required.');
 }
@@ -148,7 +148,7 @@ function replyActions(reply,container,comment,active){
   }catch(_){historyList.append(elt('li','',t('تاریخچه در دسترس نیست.','History unavailable.')));}
  });
  actions.append(history);
- if(reply.state==='removed')actions.append(erasureControl('admin_reply',reply.id,()=>loadReplies(comment,container,active)));
+ if(reply.state==='removed'&&canErase)actions.append(erasureControl('admin_reply',reply.id,()=>loadReplies(comment,container,active)));
  return actions;
 }
 async function loadReplies(comment,container,active){
@@ -225,7 +225,7 @@ function render(c,kind,active){
   replies.addEventListener('toggle',()=>{if(replies.open&&!loaded){loaded=true;loadReplies(c,host,active);}});
   content.append(replies);
  }
- if(kind==='removed'||kind==='rejected')content.append(erasureControl('comment',c.id,load));
+ if(canErase&&(kind==='removed'||kind==='rejected'))content.append(erasureControl('comment',c.id,load));
  row.append(content);list.append(row);
 }
 async function load(cursor=null){
@@ -245,6 +245,7 @@ async function load(cursor=null){
    return;
   }
   const body=result.body||{};
+  canErase=body.canErase===true;
   const legacy=kind==='approved'?(body.approved||[]):(body.pending||[]);
   const items=Array.isArray(body.items)?body.items:legacy;
   nextCursor=body.nextCursor&&typeof body.nextCursor.id==='string'?body.nextCursor:null;
