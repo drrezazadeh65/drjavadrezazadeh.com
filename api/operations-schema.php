@@ -92,7 +92,32 @@ function operationsInstall(PDO $pdo): void {
             attempted_at BIGINT NOT NULL,
             result ENUM('succeeded','failed') NOT NULL,
             failure_code VARCHAR(64) NULL,
-            INDEX idx_ops_collection_attempt(scope_key,attempt_id)
+            INDEX idx_ops_collection_attempt(scope_key,attempt_id),
+            INDEX idx_ops_collection_attempt_time(scope_key,attempted_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_source_controls (
+            source_id VARCHAR(96) PRIMARY KEY,
+            enabled TINYINT NOT NULL DEFAULT 0,
+            cadence ENUM('manual','daily','weekly') NOT NULL DEFAULT 'manual',
+            weekday TINYINT UNSIGNED NOT NULL DEFAULT 1,
+            clock_minutes SMALLINT UNSIGNED NOT NULL DEFAULT 210,
+            retention_days SMALLINT UNSIGNED NOT NULL DEFAULT 90,
+            next_due BIGINT NOT NULL DEFAULT 0,
+            updated_at BIGINT NOT NULL,
+            INDEX idx_source_controls_due(enabled,next_due)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_source_metric_samples (
+            sample_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            source_id VARCHAR(96) NOT NULL,
+            metric_key VARCHAR(48) NOT NULL,
+            metric_value DECIMAL(20,4) NOT NULL,
+            unit VARCHAR(24) NOT NULL,
+            observed_at BIGINT NOT NULL,
+            expires_at BIGINT NOT NULL,
+            evidence_type ENUM('internal_event','provider_observation') NOT NULL,
+            created_at BIGINT NOT NULL,
+            INDEX idx_ops_sample_source_time(source_id,observed_at),
+            INDEX idx_ops_sample_expiration(expires_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     ];
     foreach ($statements as $sql) $pdo->exec($sql);
