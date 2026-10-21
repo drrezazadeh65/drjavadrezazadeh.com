@@ -8,12 +8,32 @@ const enRegister=readFileSync('en/register/index.html','utf8');
 const styles=readFileSync('assets/css/home-experience-v1.css','utf8');
 
 for (const [name,html,label,href] of [
-  ['Persian',fa,'فروشگاه کتاب','../shop/'],
-  ['English',en,'Bookstore','../shop/']
+  ['Persian',fa,'فروشگاه کتاب','./shop/'],
+  ['English',en,'Bookstore','./shop/']
 ]) {
   assert.match(html,/home-experience-v1\.css\?v=20261013-home-v[0-9]+/,name+' homepage must load the responsive experience stylesheet');
   assert.match(html,new RegExp('href="'+href+'"[^>]*>'+label),name+' homepage must expose the bookstore CTA');
   assert.match(html,/class="actions hero-pathway-cta"/,name+' homepage must group the primary pathways');
+}
+// A homepage buyer must reach the canonical locale storefront directly, and every
+// existing standard/VIP detail offer in no more than two static link clicks.
+const standard=JSON.parse(readFileSync('assets/data/service-catalog.json','utf8')).services;
+const vip=JSON.parse(readFileSync('assets/data/vip-catalog.json','utf8')).services;
+assert.equal(standard.length,21);
+assert.equal(vip.length,6);
+for(const [locale,home] of [['fa',fa],['en',en]]){
+  assert.match(home,/href="\.\/shop\/"/,'canonical locale storefront missing from '+locale+' home');
+  assert.doesNotMatch(home,/href="\.\.\/shop\/"/,'legacy noindex storefront must not intercept '+locale+' homepage');
+  assert.match(home,/href="\.\/services\/"/,'priced service catalogue missing from '+locale+' home');
+  assert.match(home,/href="\.\/vip\/"/,'VIP catalogue missing from '+locale+' home');
+  const serviceHub=readFileSync(locale+'/services/index.html','utf8');
+  const vipHub=readFileSync(locale+'/vip/index.html','utf8');
+  for(const s of standard){
+    assert.ok(serviceHub.includes('/'+locale+'/services/'+s.id+'/'),'two-click service detail missing: '+locale+'/'+s.id);
+  }
+  for(const s of vip){
+    assert.ok(vipHub.includes('href="./'+s.id+'/"'),'two-click VIP detail missing: '+locale+'/'+s.id);
+  }
 }
 for (const [name,html] of [['Persian',faRegister],['English',enRegister]]) {
   const mobile=html.match(/<input[^>]*name="mobile"[^>]*>/);
