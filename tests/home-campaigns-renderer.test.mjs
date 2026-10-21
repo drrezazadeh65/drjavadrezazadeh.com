@@ -39,6 +39,11 @@ test('content changes and order propagate to both languages without editing page
   assert.ok(portion.indexOf('data-jr-promo-key="rcas"')<
     portion.indexOf('data-jr-promo-key="major"'));
   assert.ok(updated.includes(lang==='fa'?'عنوان آزمایشی بدون انتشار':'An updated public banner title'));
+  const groupCandidate=structuredClone(candidate);
+  groupCandidate.groups.pathways[lang]=lang==='fa'?'مسیرهای دانش‌آموزی بازنگری‌شده':'Revised student pathways';
+  const relabelled=renderCampaignPage(pages[lang],lang,groupCandidate);
+  assert.ok(relabelled.includes('aria-label="'+groupCandidate.groups.pathways[lang]+'"'));
+  assert.ok(relabelled.includes('id="jr-promo-'+lang+'-pathways">'+groupCandidate.groups.pathways[lang]+'</h3>'));
  }
 });
 
