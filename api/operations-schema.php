@@ -85,6 +85,14 @@ function operationsInstall(PDO $pdo): void {
             expires_at BIGINT NOT NULL,
             body_json MEDIUMTEXT NOT NULL,
             INDEX idx_collector_expires(expires_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_collection_attempts (
+            attempt_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            scope_key VARCHAR(96) NOT NULL,
+            attempted_at BIGINT NOT NULL,
+            result ENUM('succeeded','failed') NOT NULL,
+            failure_code VARCHAR(64) NULL,
+            INDEX idx_ops_collection_attempt(scope_key,attempt_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     ];
     foreach ($statements as $sql) $pdo->exec($sql);
