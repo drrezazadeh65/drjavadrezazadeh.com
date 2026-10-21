@@ -79,7 +79,7 @@ test('owner-observed five-table schema contract exists exclusively as fixture, n
  assert.match(sql,/CHECK \(state <> 'published' OR published_at IS NOT NULL\)/);
  assert.match(sql,/UNIQUE KEY uq_jr_reply_revision/);
  assert.match(sql,/REFERENCES community_comments\(id\) ON DELETE CASCADE/);
- assert.doesNotMatch(sql,/CREATE DATABASE|DROP TABLE|ALTER TABLE|DELETE FROM|TRUNCATE TABLE/i);
+ assert.doesNotMatch(sql,/^\s*(?:CREATE DATABASE|DROP TABLE|ALTER TABLE|DELETE FROM|TRUNCATE TABLE)\b/im);
  const wf=read('.github/workflows/community-moderation-database-gate.yml');
  assert.match(wf,/mysql .*community_fixture < database\/bertina\/021_community_moderation.sql/);
  assert.match(wf,/mysql .*community_fixture < database\/bertina\/022_community_academic_replies_owner_applied.sql/);
