@@ -399,6 +399,22 @@ function githubAuditRender(host){
 let masterConsoleExpanded=false;
 let sourceDirectoryState=null,sourceDirectoryExpanded=false;
 let sourceDirectoryFilter={kind:'',engine:'',query:''};
+async function fetchSourceDirectory(engineId=''){
+ const generation=loadGeneration;
+ if(engineId&&sourceDirectoryState?.schema==='operations-source-directory-v1'){
+   sourceDirectoryFilter.engine=engineId;sourceDirectoryExpanded=true;reportingRender();
+   $('ops-source-directory')?.scrollIntoView({block:'start'});
+   return;
+ }
+ const data=await api('/source-directory');
+ if(generation!==loadGeneration||!snapshot)return;
+ if(data.schema!=='operations-source-directory-v1'||!Array.isArray(data.sources))
+   throw new Error('invalid_directory');
+ sourceDirectoryState=data;
+ if(engineId)sourceDirectoryFilter.engine=engineId;
+ sourceDirectoryExpanded=true;reportingRender();
+ $('ops-source-directory')?.scrollIntoView({block:'start'});
+}
 /**
  * The existing private operations controller owns this read-only source
  * directory. No separate dashboard, credential manager, or provider polling.
@@ -528,11 +544,7 @@ function renderSourceDirectory(parent){
    const generation=loadGeneration;loadButton.disabled=true;
    stats.textContent=t('در حال دریافت داده محافظت‌شده…','Loading protected data…');
    try{
-     const data=await api('/source-directory');
-     if(generation!==loadGeneration||!snapshot)return;
-     if(data.schema!=='operations-source-directory-v1'||!Array.isArray(data.sources))
-       throw new Error('invalid_directory');
-     sourceDirectoryState=data;sourceDirectoryExpanded=true;reportingRender();
+     await fetchSourceDirectory();
    }catch(error){
      if(generation===loadGeneration){
        stats.textContent=t('فهرست منابع در دسترس نیست. وضعیت قبلی تأیید نشده است.',
@@ -619,18 +631,25 @@ function renderMasterEngineConsole(host,model){
      }catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
      finally{if(configure.isConnected)configure.disabled=false;}
    });card.append(configure);
-   if(candidateCount||allRegistered.length){
-     const resources=el('button',t('منابع خارجی این موتور','External references for this engine'));
-     resources.type='button';
-     resources.addEventListener('click',()=>{
-       const panel=$('ops-free-resources');
-       if(!panel)return;
-       panel.open=true;
-       document.dispatchEvent(new CustomEvent('jr:admin-provider-engine',
+   const resources=el('button',t('منابع تجمیعی این موتور','Aggregated sources for this engine'));
+   resources.type='button';
+   resources.addEventListener('click',async()=>{
+     const generation=loadGeneration;resources.disabled=true;
+     try{await fetchSourceDirectory(engine.id);}
+     catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
+     finally{if(resources.isConnected)resources.disabled=false;}
+   });
+   card.append(resources);
+   if(candidateCount){
+     const references=el('button',t('فهرست ابزارهای مرجع','Reference tools directory'));
+     references.type='button';
+     references.addEventListener('click',()=>{
+       const panel=$('ops-free-resources');if(!panel)return;
+       panel.open=true;document.dispatchEvent(new CustomEvent('jr:admin-provider-engine',
          {detail:{engineId:engine.id}}));
        panel.scrollIntoView({block:'start'});
      });
-     card.append(resources);
+     card.append(references);
    }
    if(executable.length){
      const controls=el('div',undefined,'ops-toolbar');
