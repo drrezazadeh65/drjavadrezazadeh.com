@@ -216,6 +216,7 @@ function collectionControlsRender(parent){
   const catalogue=el('div',undefined,'ops-collector-list');
   for(const scope of collectionState.rows){
    const line=el('div',undefined,'ops-collector-item');
+   line.dataset.collectorScope=scope.id;
    const name=el('strong',scope.id+(scope.type==='engine'?' · '+t('موتور','Engine'):' · '+scope.engineId));
    line.append(name);
    const state=scope.type==='source'
@@ -436,6 +437,26 @@ function renderMasterEngineConsole(host,model){
      reportingRender();
      $('ops-reporting')?.scrollIntoView({block:'start'});
    });card.append(open);
+   const policy=collectionState?.rows?.find(r=>r.type==='engine'&&r.id===engine.id);
+   card.append(el('small',policy
+     ?t('گردآوری: ','Collection: ')+(policy.enabled
+        ?t('طبق تنظیمات فعال','Policy enabled'):t('متوقف','Disabled'))
+     :t('وضعیت گردآوری هنوز خوانده نشده است','Collection policy not loaded')));
+   const configure=el('button',t('تنظیم گردآوری این موتور','Manage this engine collection'));
+   configure.type='button';
+   configure.addEventListener('click',async()=>{
+     const generation=loadGeneration;configure.disabled=true;
+     try{
+       collectionState=await api('/collection-settings');
+       if(generation!==loadGeneration||!snapshot)return;
+       collectionExpanded=true;reportingRender();
+       const row=[...document.querySelectorAll('[data-collector-scope]')]
+         .find(element=>element.dataset.collectorScope===engine.id);
+       if(row){row.scrollIntoView({block:'center'});row.querySelector('input')?.focus();}
+       else $('ops-reporting')?.scrollIntoView({block:'start'});
+     }catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
+     finally{if(configure.isConnected)configure.disabled=false;}
+   });card.append(configure);
    if(executable.length){
      const controls=el('div',undefined,'ops-toolbar');
      for(const action of executable){
