@@ -27,6 +27,8 @@ jobs:
         run: node --test tests/bilingual-service-indexability-audit.test.mjs
       - name: Verify dedicated JHELA scholarly sitemap and founding-stage governance
         run: node scripts/jhela-discovery-audit.mjs
+      - name: Verify JHELA search-title, social/schema consistency and founding contact clarity
+        run: node --test tests/jhela-serp-title-readiness.test.mjs
       - name: Verify bilingual JHELA independent release and protected preparation pages
         run: node scripts/jhela-release-audit.mjs
       - name: Verify image ALT semantics and decorative-icon policy
