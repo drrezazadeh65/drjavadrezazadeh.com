@@ -47,6 +47,7 @@ jobs:
             tests/konkur-scorecard-normalizer.test.mjs \
             tests/konkur-analysis-pipeline.test.mjs \
             tests/konkur-ai-lab-contract.test.mjs \
+            tests/konkur-ai-lab-hardening.test.mjs \
             tests/konkur-ai-v2-security.test.mjs
       - name: Build release-shaped sanitized artifact without deploying
         run: node scripts/build-public-site.mjs
