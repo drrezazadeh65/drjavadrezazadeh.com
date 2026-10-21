@@ -4,8 +4,8 @@ const origin='http://127.0.0.1:4173';
 
 for(const [lang,route,expectedCount,keyword] of [
  // One additional MFA-contained evidence panel: the direct GSC/GA4 owner report.
- ['fa','/fa/app/admin/',15,'سفارش'],
- ['en','/en/account/admin/',14,'Revenue']
+ ['fa','/fa/app/admin/',18,'سفارش'],
+ ['en','/en/account/admin/',17,'Revenue']
 ]){
  test(lang+' admin index remains locked and opens existing sections only in isolated authorised-layout fixture',async({page})=>{
   // Presentation-only fixture: isolate unrelated privileged runtime scripts,
