@@ -43,6 +43,9 @@ on:
       - "tests/educational-intelligence-public-tool-v3.test.mjs"
       - "platform/educational-intelligence-public-search-guard-v3.mjs"
       - "tests/educational-intelligence-public-search-guard-v3.test.mjs"
+      - "platform/educational-intelligence-public-exchange-v3.mjs"
+      - "tests/educational-intelligence-public-exchange-v3.test.mjs"
+      - "docs/governance/JR_EDUCATIONAL_INTELLIGENCE_V3_PUBLIC_EXCHANGE_CONTRACT_20261021.md"
       - "docs/governance/JR_EDUCATIONAL_INTELLIGENCE_V3_PUBLIC_TOOL_CONTRACT_20261021.md"
       - "platform/konkur-1405-sources.json"
       - "assets/js/bahar-formative-workspace-v1.js"
@@ -94,6 +97,8 @@ jobs:
           node --test tests/educational-intelligence-public-tool-v3.test.mjs
           node --check platform/educational-intelligence-public-search-guard-v3.mjs
           node --test tests/educational-intelligence-public-search-guard-v3.test.mjs
+          node --check platform/educational-intelligence-public-exchange-v3.mjs
+          node --test tests/educational-intelligence-public-exchange-v3.test.mjs
           node --test tests/konkur-official-scorecard.test.mjs
           node --test tests/konkur-official-scorecard-contract.test.mjs
           node --test tests/konkur-1405-intake.test.mjs
