@@ -76,6 +76,22 @@ def sitemap_inventory(root: Path = ROOT) -> list[str]:
     if manifest.get("production_origin") != EXPECTED_PROPERTY.rstrip("/"):
         raise ValueError("wrong_frozen_url_origin")
     allowed = set(manifest.get("frozen_indexable_routes", ()))
+    # The frozen October 8 baseline deliberately does NOT list all later-added
+    # approved public offers. Extend only from the authoritative 21+6 catalogs;
+    # never add arbitrary account, checkout or assessment routes.
+    for source_file, family in (("service-catalog.json", "services"),
+                                ("vip-catalog.json", "vip")):
+        try:
+            catalogue = json.loads((root / "assets/data" / source_file).read_text("utf-8"))
+            for entry in catalogue["services"]:
+                item_id = entry["id"]
+                if not isinstance(item_id, str) or not item_id or not all(
+                        c.isascii() and (c.isalnum() or c in "_-") for c in item_id):
+                    raise ValueError("invalid_approved_service_id")
+                for lang in ("fa", "en"):
+                    allowed.add("/" + lang + "/" + family + "/" + item_id + "/")
+        except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
+            raise ValueError("approved_catalogue_unavailable") from exc
     candidates = set()
     for source in sources:
         if not isinstance(source, str) or not source.startswith(EXPECTED_PROPERTY):

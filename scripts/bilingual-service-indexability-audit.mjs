@@ -15,9 +15,9 @@ export function normalizeNumber(text){
   });
 }
 export function displayedPrice(html){
-  for(const m of String(html).matchAll(/<p\b[^>]*class=["']([^"']+)["'][^>]*>([\s\S]*?)<\/p>/gi)){
-    if(!m[1].split(/\s+/).includes('price'))continue;
-    const value=normalizeNumber(m[2].replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' '));
+  for(const m of String(html).matchAll(/<(p|div|span)\b[^>]*class=["']([^"']+)["'][^>]*>([\s\S]*?)<\/\1>/gi)){
+    if(!m[2].split(/\s+/).includes('price'))continue;
+    const value=normalizeNumber(m[3].replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' '));
     const amount=(value.match(/[0-9][0-9,٬،\s]{4,}[0-9]/)||[])[0];
     if(amount){
       const num=Number(amount.replace(/[^0-9]/g,''));
@@ -63,6 +63,7 @@ export function audit(root=process.cwd()){
   fail(service.services.length!==21||vip.services.length!==6,'Expected precisely 21 standard + 6 VIP service IDs');
   fail(fixed.production_origin!==ORIGIN,'Frozen public URL origin drift');
   const frozen=new Set(fixed.frozen_indexable_routes||[]);
+  let preFreezeRoutes=0, postFreezePublishedRoutes=0;
   const groups=[['service',service.services],['vip',vip.services]];
   for(const [kind,items] of groups){
     for(const item of items){
@@ -89,7 +90,9 @@ export function audit(root=process.cwd()){
         fail(lang==='fa'&&attr(htmlTag,'dir')!=='rtl','Missing Persian RTL: '+route);
         fail(/noindex/i.test(robots),'Noindex unexpectedly set on public service: '+route);
         fail(!publicUrls.has(canonical),'Public offer omitted from sitemap inventory: '+route);
-        fail(!frozen.has(route),'Public offer omitted from frozen URL manifest: '+route);
+        // Frozen routes are an October 8 historical baseline, not a complete
+        // registry of later legitimately published service/VIP URLs.
+        if(frozen.has(route))preFreezeRoutes++;else postFreezePublishedRoutes++;
         fail(!schema||schema.url!==canonical,'Service JSON-LD URL mismatches self canonical: '+route);
         fail(schema?.provider?.['@id']!==ORIGIN+'/#person','Service provider identity drift: '+route);
         fail(amount!==item.price,'Displayed tariff diverges from central catalogue: '+route);
@@ -125,6 +128,8 @@ export function audit(root=process.cwd()){
     offers:service.services.length+vip.services.length,
     bilingualPagesChecked:pages.length,
     uniquePublicUrlsInSitemaps:publicUrls.size,
+    frozenBaselineOfferRoutes:preFreezeRoutes,
+    postFreezePublishedOfferRoutes:postFreezePublishedRoutes,
     analytics:{ga4Enabled:canonicalAnalytics.enabled===true,
                clarityEnabled:canonicalAnalytics.clarity?.enabled===true,
                gtmRegistered:!!canonicalAnalytics.gtm_container_id},

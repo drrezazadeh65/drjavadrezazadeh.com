@@ -21,7 +21,7 @@ Latest authoritative GitHub branch head and live release fingerprint MUST be ref
 ### 3.1 Bilingual service and VIP release guard
 New scripts/bilingual-service-indexability-audit.mjs + tests/bilingual-service-indexability-audit.test.mjs checks:
 1. Both current official catalogues and stable monetary unit; all 27 offer IDs and **54 actual FA/EN HTML** routes.
-2. Local self canonical; correctly linked Persian/English language alternates; public sitemap membership and frozen route-preservation contracts.
+2. Local self canonical; correctly linked Persian/English language alternates; public sitemap membership, frozen baseline routes AND newer approved public service routes.
 3. Language, RTL on Persian pages, absence of accidental noindex, viewport and H1.
 4. Actual structured-data Service.url and Person provider identity, with a deliberate stable cross-lingual Service @id permitted.
 5. Each published page's price against the approved central catalogue; **no automatic price change**.
@@ -31,7 +31,7 @@ This is SOURCE/INDEXABILITY READINESS, not evidence that Google has crawled or i
 
 ### 3.2 Real bounded Google inspection, using EXISTING keyless connection
 New scripts/gsc_indexation_triage.py + tests/test_gsc_indexation_triage.py. The **existing** GSC workflow gains an optional owner-invoked indexation_triage Boolean and bounded sample-size choice (24, 54 or 90). It:
-- loads only stable source URLs that appear in approved on-disk XML sitemaps and exist as public HTML,
+- loads only indexable source URLs that appear in approved on-disk XML sitemaps, exist as public HTML and belong to the frozen baseline or the current official 21+6 service catalogues,
 - inspects only canonical same-origin frozen indexable routes,
 - uses the already authorised Google URL Inspection API with the exact GSC URL-prefix property,
 - groups inspected URLs conservatively into indexed, crawled/not indexed, discovered/not indexed, noindex, canonicalised, redirect, fetch-error and unknown classes,

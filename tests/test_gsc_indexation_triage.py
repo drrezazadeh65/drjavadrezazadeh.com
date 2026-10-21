@@ -34,6 +34,9 @@ class GscIndexationTriageContracts(TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "platform").mkdir()
+            (root / "assets/data").mkdir(parents=True)
+            for name in ("service-catalog.json", "vip-catalog.json"):
+                (root / "assets/data" / name).write_text(json.dumps({"services": []}), encoding="utf-8")
             (root / "fa").mkdir()
             (root / "fa" / "index.html").write_text("<html></html>", encoding="utf-8")
             (root / "platform/public-url-stability-manifest.json").write_text(json.dumps({
