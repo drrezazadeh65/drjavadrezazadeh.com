@@ -139,3 +139,43 @@ test('admin can page older comments, write an unpublished official draft, and br
  await page.evaluate(()=>{document.getElementById('ops-workspace').hidden=true});
  await expect(page.locator('.jr-community-admin-item')).toHaveCount(0);
 });
+
+
+test('MFA workspace relocks before CSRF returns; stale approval must not POST',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ const comment='11111111-1111-4111-8111-111111111111';
+ let releaseCsrf=null,posts=0,csrfCompleted=false;
+ await page.route('**/api/community/**',async route=>{
+  const url=route.request().url();
+  if(url.endsWith('/csrf')){
+   await new Promise(resolve=>{releaseCsrf=resolve;});
+   csrfCompleted=true;
+   return respond(route,200,{ok:true,csrfToken:'f'.repeat(64)});
+  }
+  if(route.request().method()==='POST'){
+   posts++;
+   return respond(route,200,{ok:true,state:'approved'});
+  }
+  return respond(route,200,{ok:true,schema:'community-moderation-v2',state:'pending',
+   items:[{id:comment,page:article,body:'A safe pending research comment',rating:null,state:'pending',createdAt:1700000000}],
+   nextCursor:null,canErase:false});
+ });
+ await page.goto(base+'/fa/',{waitUntil:'domcontentloaded'});
+ await page.evaluate(()=>{
+  const w=document.createElement('div');w.id='ops-workspace';w.hidden=true;document.body.append(w);
+ });
+ await page.addScriptTag({url:base+'/assets/js/operations-community-moderation.js'});
+ await page.evaluate(()=>{document.getElementById('ops-workspace').hidden=false;});
+ await expect(page.locator('.jr-community-admin-item')).toHaveCount(1);
+ await page.locator('.jr-community-admin-item>summary').click();
+ const csrfRequest=page.waitForRequest(r=>r.url().endsWith('/api/community/csrf'));
+ await page.getByRole('button',{name:'تأیید و انتشار'}).click();
+ await csrfRequest;
+ await page.evaluate(()=>{document.getElementById('ops-workspace').hidden=true;});
+ releaseCsrf();
+ await expect.poll(()=>csrfCompleted).toBe(true);
+ await expect(page.locator('.jr-community-admin-item')).toHaveCount(0);
+ // Flush the request microtasks; any attempted POST would be observable.
+ await page.waitForTimeout(50);
+ expect(posts).toBe(0);
+});
