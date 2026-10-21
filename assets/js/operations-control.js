@@ -221,7 +221,7 @@ function collectionControlsRender(parent){
    line.append(name);
    const state=scope.type==='source'
      ? (scope.cacheState==='fresh'?t('ذخیرهٔ معتبر','Fresh cache'):scope.cacheState==='stale'?t('قدیمی','Stale'):scope.cacheState==='disabled'?t('غیرفعال','Disabled'):t('بدون داده','No cache'))
-     : (scope.connected?t('دارای منابع متصل','Connected sources'):t('گردآورندهٔ مستقلی هنوز ندارد','No collector implemented'));
+     : (scope.connected?t('قرارداد منبع تعریف شده؛ اتصال زنده تأیید نشده','Source contract defined; live connection unverified'):t('گردآورندهٔ مستقلی هنوز ندارد','No collector implemented'));
    line.append(el('small',state));
    const enabled=el('input');enabled.type='checkbox';enabled.checked=scope.enabled;
    const label=el('label',t('فعال','Enabled'));label.prepend(enabled);line.append(label);
