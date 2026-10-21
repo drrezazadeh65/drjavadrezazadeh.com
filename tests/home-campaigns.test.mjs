@@ -44,7 +44,7 @@ for(const locale of ['fa','en']){
   assert.ok(start>0&&end>start,'campaign content must be static inside main');
   const fragment=html.slice(start,end);
   assert.ok(html.indexOf('<main')<start&&html.indexOf('</main>')>end);
-  assert.equal((fragment.match(/data-jr-promo-id="/g)||[]).length,15);
+  assert.equal((fragment.match(/data-jr-promo-key="/g)||[]).length,15);
   assert.equal((fragment.match(/class="jr-campaign-card"/g)||[]).length,14);
   assert.equal((fragment.match(/loading="lazy"/g)||[]).length,15);
   assert.equal((fragment.match(/decoding="async"/g)||[]).length,15);
@@ -54,7 +54,7 @@ for(const locale of ['fa','en']){
   assert.ok(html.includes('home-campaigns-v1.css?v=20261021-banners-v1'));
   assert.ok(html.includes('home-campaigns-v1.js?v=20261021-banners-v1'));
   for(const b of catalog.banners){
-   const offer=b[locale],item='data-jr-promo-id="'+b.id+'"';
+   const offer=b[locale],item='data-jr-promo-key="'+b.id+'"';
    assert.ok(fragment.includes(item),'missing banner '+b.id);
    const at=fragment.indexOf(item);
    const window=fragment.slice(Math.max(0,at-150),at+1100);

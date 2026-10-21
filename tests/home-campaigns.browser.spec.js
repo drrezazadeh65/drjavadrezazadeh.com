@@ -10,7 +10,7 @@ for(const locale of ['fa','en']){
    await page.goto(origin+'/'+locale+'/',{waitUntil:'domcontentloaded'});
    const widget=page.locator('.jr-campaigns');
    await expect(widget).toBeVisible();
-   await expect(widget.locator('[data-jr-promo-id]')).toHaveCount(15);
+   await expect(widget.locator('[data-jr-promo-key]')).toHaveCount(15);
    await expect(widget.locator('img[loading="lazy"]')).toHaveCount(15);
    await expect(widget.locator('[data-jr-promo-group]')).toHaveCount(3);
    await expect(widget.locator('[data-jr-promo-step]')).toHaveCount(6);
