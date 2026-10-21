@@ -30,6 +30,9 @@
  const filterCount=el('p','jr-kc-filter-count','');filterCount.setAttribute('role','status');
  filterCount.setAttribute('aria-live','polite');
  const list=el('ol','jr-kc-list');
+ const review=el('button','jr-kc-secondary jr-kc-review-draft',t('بازبینی پیش‌نویس پیش از ثبت','Review draft before official submission'));review.type='button';
+ const reviewPanel=el('section','jr-kc-review-panel');reviewPanel.setAttribute('aria-live','polite');
+ reviewPanel.setAttribute('aria-label',t('هشدارهای بررسی دستی پیش‌نویس','Manual verification cautions for the draft'));
  const print=el('button','jr-kc-secondary',t('چاپ گزارش مقدماتی','Print preliminary report'));print.type='button';
  const save=el('button','jr-kc-secondary jr-kc-save-draft',t('دریافت پیش‌نویس شخصی','Download private draft'));save.type='button';
  const fileLabel=el('label','jr-kc-import-label',t('انتخاب فایل پیش‌نویس قبلی (JSON)','Select previous draft file (JSON)'));
@@ -38,7 +41,7 @@
  const preview=el('p','jr-kc-import-preview','');preview.setAttribute('role','status');preview.setAttribute('aria-live','polite');
  const apply=el('button','jr-kc-secondary jr-kc-apply-import',t('جایگزینی با فایل بررسی‌شده','Replace with reviewed file'));apply.type='button';apply.disabled=true;
  const clear=el('button','jr-kc-secondary',t('حذف همه انتخاب‌ها','Clear all'));clear.type='button';
- const buttons=el('div','jr-kc-actions');buttons.append(print,save,clear);
+ const buttons=el('div','jr-kc-actions');buttons.append(review,print,save,clear);
  const portable=el('div','jr-kc-portability');
  const portableNote=el('p','jr-kc-portability-note',t(
   'نسخه شخصی فقط با اقدام شما دانلود یا از فایل انتخاب‌شده بازیابی می‌شود. یادداشت‌ها ممکن است اطلاعات خصوصی شما را داشته باشند؛ فایل را محفوظ نگه دارید. پیش‌نمایش واردات چیزی را تغییر نمی‌دهد. محدودیت ۱۵۰ مورد فقط حفاظ فنی است، نه سقف رسمی انتخاب رشته.',
@@ -47,11 +50,12 @@
  const official=el('a','jr-kc-official',t('بررسی اطلاعیه‌های سازمان سنجش','Review official Sanjesh notices'));official.href='https://www.sanjesh.org/';official.rel='noopener noreferrer';official.target='_blank';
  const footer=el('p','jr-kc-note',t('هیچ اطلاعاتی ذخیره یا ارسال نمی‌شود. ورود نهایی به سامانه رسمی فقط توسط داوطلب انجام می‌شود.','No information is stored or sent. Candidates must submit their final lists themselves through the official system.'));
  const report=el('section','jr-kc-report');report.hidden=true;
- root.append(heading,guidance,form,status,count,filterLabel,filterCount,list,buttons,portable,official,footer,report);
+ root.append(heading,guidance,form,status,count,filterLabel,filterCount,list,buttons,reviewPanel,portable,official,footer,report);
  let choices=[],pendingImport=null,importGeneration=0;
  const say=(a,b)=>{status.textContent=t(a,b);};
  const resetImport=()=>{pendingImport=null;apply.disabled=true;preview.textContent='';importFile.value='';importGeneration++;};
  function draw(){
+  reviewPanel.replaceChildren();
   list.replaceChildren();
   count.textContent=t('تعداد انتخاب‌ها: ','Choices: ')+new Intl.NumberFormat(fa?'fa-IR':'en-US').format(choices.length);
   const visible=F.filterDraftChoices(choices,filter.value);
@@ -92,6 +96,22 @@
   report.append(el('p','',t('هشدار: تعداد مجاز انتخاب‌ها هنوز از مقررات رسمی تأیید نشده است.','Warning: maximum permitted choices has not been verified.')),
    el('p','',t('همه کدها باید در دفترچه رسمی و اصلاحیه‌های معتبر ۱۴۰۵ بررسی شوند.','Check all codes against applicable official 1405 guides and amendments.')),
    el('p','',t('تعداد هشدارهای ماشینی: ','Automated cautions: ')+audit.warnings.length));
+  const readiness=F.reviewPreliminaryDraft(choices);
+  report.append(el('h3','',t('چک‌لیست بازبینی رسمی (تکمیل‌نشده)','Official verification checklist (incomplete)')));
+  const auditList=el('ul');
+  const auditNotes=[
+   t('اصالت و وجود همه کدرشته‌ها در آخرین دفترچه بررسی شود.','Check all programme codes against current official guides.'),
+   t('اصلاحیه‌های معتبر و ضوابط خاص دانشگاه‌ها بررسی شود.','Review applicable amendments and institution-specific conditions.'),
+   t('تعداد مجاز انتخاب‌ها در چرخه ۱۴۰۵ تأیید شود.','Verify the permitted selection count for the 1405 cycle.'),
+   t('گروه، سهمیه، شرایط فردی و وضعیت مجازبودن انتخاب رشته با کارنامه رسمی تطبیق داده شود.',
+     'Confirm group, quota, individual conditions and admission eligibility against the official scorecard.'),
+   t('ارسال نهایی فقط در سامانه رسمی توسط داوطلب انجام شود.',
+     'The candidate must submit the final list through the official system.')
+  ];
+  for(const message of auditNotes)auditList.append(el('li','',message));
+  report.append(auditList,el('p','',t('وضعیت: نیازمند بررسی دستی رسمی · تعداد گروه‌های نامشخص: ',
+   'Status: manual official verification required · unspecified exam groups: ')+
+   new Intl.NumberFormat(fa?'fa-IR':'en-US').format(readiness.missingGroupCount)));
   report.hidden=false;root.classList.add('jr-kc-printing');window.print();
  }
  form.addEventListener('submit',event=>{
@@ -144,6 +164,40 @@
   choices=pendingImport.map(c=>({...c}));filter.value='';draw();resetImport();
   say('پیش‌نویس شخصی جایگزین شد. تأیید رسمی کدرشته‌ها همچنان لازم است.',
    'Personal draft replaced. Official programme codes still require verification.');
+ });
+ review.addEventListener('click',()=>{
+  reviewPanel.replaceChildren();
+  const audit=F.reviewPreliminaryDraft(choices);
+  if(!audit.choiceCount){say('برای بازبینی ابتدا انتخابی ثبت کنید.','Add a choice before reviewing.');return;}
+  reviewPanel.append(el('h4','',t('چک‌لیست بازبینی غیررسمی','Unofficial draft review checklist')),
+   el('p','',t('این بررسی، وجود رشته‌محل یا احراز شرایط شما را تأیید نمی‌کند.',
+    'This checklist does not verify programme existence or your eligibility.')));
+  const items=[
+   [audit.invalidCodeCount,audit.invalidCodeCount?
+    t('کدهایی با قالب نادرست باید اصلاح شوند.','Fix codes with invalid formatting.'):
+    t('قالب پنج‌رقمی کدها بررسی شد؛ اصالت کدها تأیید نشده است.',
+      'Five-digit formatting checked; codes are not authenticated.')],
+   [audit.duplicateCodeCount,t('انتخاب‌های تکراری را بررسی کنید.','Review duplicate choices.')],
+   [audit.cycleMismatchCount,t('سال پذیرش انتخاب‌ها را بررسی کنید.','Review the admission cycle.')],
+   [audit.missingGroupCount,t('گروه آزمایشی تعیین‌نشده را تکمیل و با دفترچه تطبیق دهید.',
+    'Specify missing examination groups and check against the guide.')],
+   [null,t('تمام کدرشته‌ها، ظرفیت‌ها، ضوابط و اصلاحیه‌ها باید با منابع رسمی سال جاری بررسی شوند.',
+     'Verify every programme, capacity, condition and amendment in official sources.')],
+   [null,t('سقف مجاز انتخاب‌ها و وضعیت مجازبودن داوطلب هنوز تأیید نشده است.',
+     'Official selection limits and candidate eligibility are not established.')],
+   [null,t('ثبت نهایی تنها توسط داوطلب در سامانه رسمی انجام می‌شود.',
+     'Only the candidate can submit the final application through the official system.')]
+  ];
+  const list=el('ol','jr-kc-review-list');
+  for(const [count,message] of items){
+   if(count===0)continue;
+   list.append(el('li','',count===null?message:
+    new Intl.NumberFormat(fa?'fa-IR':'en-US').format(count)+' — '+message));
+  }
+  reviewPanel.append(list,el('small','',t(
+   'وضعیت: نیازمند بررسی رسمی؛ این گزارش نتیجه پذیرش یا احتمال قبولی نیست.',
+   'Status: official verification required; not an admission result or probability estimate.')));
+  say('چک‌لیست غیررسمی آماده شد.','Unofficial checklist prepared.');
  });
  filter.addEventListener('input',draw);
  print.addEventListener('click',printReport);

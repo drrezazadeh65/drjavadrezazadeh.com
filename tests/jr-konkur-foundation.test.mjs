@@ -57,3 +57,29 @@ test('search filters user choices without changing their original preference ord
  assert.deepEqual(f.filterDraftChoices(draft,'z'.repeat(81)),[]);
  assert.deepEqual(f.filterDraftChoices(null,'Biology'),[]);
 });
+
+test('pre-submission readiness provides actionable warnings without official admission claims',()=>{
+ const entries=[
+  {year:1405,code:'00123',group:'MATHEMATICS'},
+  {year:1405,code:'12345',group:''},
+  {year:1405,code:'12345',group:'HUMANITIES'},
+  {year:1406,code:'notcode',group:''}
+ ];
+ const audit=f.reviewPreliminaryDraft(entries);
+ assert.equal(audit.status,'MANUAL_OFFICIAL_REVIEW_REQUIRED');
+ assert.equal(audit.choiceCount,4);
+ assert.equal(audit.missingGroupCount,2);
+ assert.equal(audit.duplicateCodeCount,1);
+ assert.equal(audit.invalidCodeCount,1);
+ assert.equal(audit.cycleMismatchCount,1);
+ assert.equal(audit.officialSelectionLimit,null);
+ assert.equal(audit.officialEligibilityEstablished,false);
+ assert.equal(audit.admissionProbability,null);
+ assert.equal(audit.officialApplicationSubmitted,false);
+ assert.equal(audit.verifiedProgrammeRows,0);
+ assert.ok(audit.issues.includes('PERMITTED_SELECTION_COUNT_NOT_VERIFIED'));
+ assert.ok(Object.isFrozen(audit.issues));
+ assert.equal(f.reviewPreliminaryDraft([]).status,'MANUAL_OFFICIAL_REVIEW_REQUIRED');
+ assert.ok(f.reviewPreliminaryDraft([]).issues.includes('NO_CHOICES_RECORDED'));
+ assert.ok(f.reviewPreliminaryDraft(Array(151).fill(entries[0])).issues.includes('INVALID_OR_OVERSIZED_LOCAL_DRAFT'));
+});

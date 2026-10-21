@@ -111,3 +111,25 @@ test('filtering preliminary choices does not reorder or truncate the complete ex
  expect(draft.entries.map(x=>x.code)).toEqual(['12345','00123','54321']);
  expect(writes).toEqual([]);
 });
+
+test('pre-submission review checks user-entered fields but refuses to certify official eligibility',async({page})=>{
+ const writes=[];page.on('request',r=>{if(!['GET','HEAD'].includes(r.method()))writes.push(r.method());});
+ await page.goto('http://127.0.0.1:4173/en/student-guidance/',{waitUntil:'domcontentloaded'});
+ const root=page.locator('[data-konkur-selection]'),form=root.locator('.jr-kc-form');
+ await root.locator('.jr-kc-review-draft').click();
+ await expect(root.locator('.jr-kc-review-panel')).toBeEmpty();
+ await form.locator('input').nth(0).fill('00123');
+ await form.locator('input').nth(1).fill('Example programme');
+ await form.locator('button[type=submit]').click();
+ await root.locator('.jr-kc-review-draft').click();
+ await expect(root.locator('.jr-kc-review-panel')).toContainText('examination groups');
+ await expect(root.locator('.jr-kc-review-panel')).toContainText('not an admission result or probability');
+ await expect(root.locator('.jr-kc-review-panel')).toContainText('official sources');
+ await form.locator('select').selectOption('MATHEMATICS');
+ await form.locator('input').nth(0).fill('12345');
+ await form.locator('button[type=submit]').click();
+ await expect(root.locator('.jr-kc-review-panel')).toBeEmpty();
+ await root.locator('.jr-kc-review-draft').click();
+ await expect(root.locator('.jr-kc-review-panel')).toContainText('not authenticated');
+ expect(writes).toEqual([]);
+});

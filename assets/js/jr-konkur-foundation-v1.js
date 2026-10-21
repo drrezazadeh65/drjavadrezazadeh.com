@@ -65,6 +65,42 @@
    ruleSetComplete?STATUSES.ELIGIBLE:STATUSES.REVIEW;
   return {status,reasons:[...new Set(reasons)],evidence};
  }
+ // Records uncertainties only: never establishes official admission eligibility.
+ function reviewPreliminaryDraft(choices){
+  const safeList=Array.isArray(choices)&&choices.length<=150;
+  const rows=safeList?choices:[];
+  const seen=new Set(),issues=[];
+  let missingGroup=0,invalidCode=0,duplicates=0,cycleMismatch=0;
+  for(const row of rows){
+   if(!row||typeof row!=='object'||Array.isArray(row)){invalidCode++;continue;}
+   const code=typeof row.code==='string'?row.code:'';
+   if(!/^[0-9]{5}$/.test(code))invalidCode++;
+   if(seen.has(code))duplicates++;
+   seen.add(code);
+   if(row.year!==1405)cycleMismatch++;
+   if(!['HUMANITIES','EXPERIMENTAL_SCIENCES','MATHEMATICS','ARTS','FOREIGN_LANGUAGES'].includes(row.group))
+    missingGroup++;
+  }
+  if(!safeList)issues.push('INVALID_OR_OVERSIZED_LOCAL_DRAFT');
+  if(rows.length===0)issues.push('NO_CHOICES_RECORDED');
+  if(invalidCode)issues.push('PROGRAMME_CODE_FORMAT_REQUIRES_CORRECTION');
+  if(duplicates)issues.push('DUPLICATE_CODES_REQUIRES_CORRECTION');
+  if(cycleMismatch)issues.push('ADMISSION_CYCLE_REQUIRES_CORRECTION');
+  if(missingGroup)issues.push('EXAMINATION_GROUP_UNSPECIFIED');
+  issues.push('PROGRAMME_CODES_REQUIRE_OFFICIAL_GUIDE_REVIEW');
+  issues.push('CURRENT_AMENDMENTS_AND_SPECIAL_CONDITIONS_NOT_VERIFIED');
+  issues.push('PERMITTED_SELECTION_COUNT_NOT_VERIFIED');
+  issues.push('ELIGIBILITY_AND_OFFICIAL_SUBMISSION_NOT_ESTABLISHED');
+  return Object.freeze({
+   status:'MANUAL_OFFICIAL_REVIEW_REQUIRED',admissionYear:1405,
+   choiceCount:rows.length,missingGroupCount:missingGroup,invalidCodeCount:invalidCode,
+   duplicateCodeCount:duplicates,cycleMismatchCount:cycleMismatch,
+   officialSelectionLimit:null,officialEligibilityEstablished:false,
+   admissionProbability:null,officialApplicationSubmitted:false,
+   verifiedProgrammeRows:0,
+   issues:Object.freeze(issues)
+  });
+ }
  function inspectList(choices,cycle){
   const warnings=[],seen=new Set();
   if(!Array.isArray(choices))return {valid:false,warnings:[{type:'DATA_QUALITY',code:'INVALID_LIST'}]};
@@ -118,5 +154,5 @@
   return {version:'1.0.0',evidence:mapped,admissionPredictionEnabled:false,
    nextVerification:'Check the applicable official admission guide and amendments'};
  }
- return {STATUSES,TYPES,officialSource,evaluate,inspectList,reorder,filterDraftChoices,evidencePassport};
+ return {STATUSES,TYPES,officialSource,evaluate,inspectList,reorder,filterDraftChoices,reviewPreliminaryDraft,evidencePassport};
 });

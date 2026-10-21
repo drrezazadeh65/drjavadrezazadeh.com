@@ -88,3 +88,14 @@ test('new local draft filter assets have unique cache-busted bilingual reference
    assert.ok(html.includes(token),'missing changed-file cache key '+token+' '+path);
  }
 });
+
+test('offline pre-submission review and print both require independent official verification',()=>{
+ const script=read('assets/js/jr-konkur-studio-v1.js');
+ for(const phrase of ['jr-kc-review-draft','jr-kc-review-panel',
+  'F.reviewPreliminaryDraft(choices)','reviewPanel.replaceChildren()',
+  'review.addEventListener(\'click\'','Official verification checklist (incomplete)'])
+  assert.ok(script.includes(phrase),'missing explicit checklist guard '+phrase);
+ const foundation=read('assets/js/jr-konkur-foundation-v1.js');
+ assert.match(foundation,/function reviewPreliminaryDraft\(choices\)/);
+ assert.match(read('assets/css/jr-konkur-studio-v1.css'),/\.jr-kc-review-list/);
+});

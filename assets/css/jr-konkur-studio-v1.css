@@ -60,3 +60,11 @@
 .jr-konkur-workspace .jr-kc-filter-count{color:#f3dcb4;line-height:1.65;margin-block:5px 10px}
 .jr-konkur-workspace .jr-kc-filter-empty{padding:12px 15px;border:1px dashed #b89b64;border-radius:10px;color:#f3dcb4;list-style:none}
 @media(max-width:580px){.jr-konkur-workspace .jr-kc-filter{max-width:100%;min-height:48px}}
+
+/* Annual-source-sensitive pre-submission checklist, never an eligibility badge. */
+.jr-konkur-workspace .jr-kc-review-panel{margin:12px 0 18px;padding:clamp(12px,2vw,20px);border:1px solid rgba(232,191,113,.5);border-radius:12px;background:rgba(246,211,149,.055)}
+.jr-konkur-workspace .jr-kc-review-panel:empty{display:none}
+.jr-konkur-workspace .jr-kc-review-panel h4{color:#f4d49e;margin:0 0 8px}
+.jr-konkur-workspace .jr-kc-review-panel p,.jr-konkur-workspace .jr-kc-review-panel small{color:#f3dfbd;line-height:1.9}
+.jr-konkur-workspace .jr-kc-review-list{line-height:1.85;padding-inline-start:1.4rem;display:grid;gap:7px}
+@media(max-width:580px){.jr-konkur-workspace .jr-kc-review-draft{width:100%}}
