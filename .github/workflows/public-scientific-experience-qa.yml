@@ -14,6 +14,8 @@ on:
       - "tests/konkur-official-scorecard-contract.test.mjs"
       - "tests/konkur-official-scorecard-browser.spec.js"
       - "assets/js/jr-konkur-studio-v1.js"
+      - "assets/js/jr-konkur-choice-portability-v1.js"
+      - "tests/konkur-choice-portability.test.mjs"
       - "assets/js/jr-konkur-foundation-v1.js"
       - "assets/css/jr-konkur-studio-v1.css"
       - "tests/konkur-studio-browser.spec.js"
@@ -122,6 +124,8 @@ jobs:
           node --test tests/konkur-mother-schema-contract.test.mjs
           node --test tests/konkur-scorecard-adapters-contract.test.mjs
           node --test tests/konkur-studio-contract.test.mjs
+          node --check assets/js/jr-konkur-choice-portability-v1.js
+          node --test tests/konkur-choice-portability.test.mjs
           node --test tests/konkur-mock-practice-contract.test.mjs
           node --check assets/js/jr-konkur-mock-export-v1.js
           node --test tests/konkur-mock-export.test.mjs

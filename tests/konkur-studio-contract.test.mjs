@@ -28,3 +28,23 @@ test('preliminary selection worksheet is privacy preserving and does not claim o
  assert.match(read('assets/css/jr-konkur-studio-v1.css'),/@media print/);
  assert.match(read('assets/css/jr-konkur-studio-v1.css'),/:focus-visible/);
 });
+
+test('portable preliminary drafts extend both bilingual entry pages without new routes',()=>{
+ for(const path of ['fa/entekhab-reshteh/index.html','en/student-guidance/index.html']){
+  const html=read(path);
+  const helper='jr-konkur-choice-portability-v1.js?v=20261022-private-draft-v1';
+  assert.ok(html.includes(helper),path);
+  assert.ok(html.indexOf(helper)<html.indexOf('jr-konkur-studio-v1.js'),path);
+  assert.match(html,/jr-konkur-studio-v1\.js\?v=20261022-private-draft-v2/);
+  assert.match(html,/jr-konkur-studio-v1\.css\?v=20261022-private-draft-v2/);
+ }
+ const js=read('assets/js/jr-konkur-studio-v1.js');
+ for(const phrase of ['JRKonkurChoicePortability','jr-kc-save-draft','jr-kc-import-file',
+   'jr-kc-apply-import','pendingImport','file.text()','URL.revokeObjectURL','apply.disabled=true'])
+  assert.ok(js.includes(phrase),phrase);
+ for(const forbidden of ['fetch(','XMLHttpRequest','localStorage','sessionStorage','indexedDB','sendBeacon','innerHTML='])
+  assert.equal(js.includes(forbidden),false,'unexpected private-data channel '+forbidden);
+ const css=read('assets/css/jr-konkur-studio-v1.css');
+ assert.match(css,/jr-kc-portability/);
+ assert.match(css,/@media\(max-width:580px\)/);
+});

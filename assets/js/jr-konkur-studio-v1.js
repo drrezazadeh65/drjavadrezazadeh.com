@@ -25,13 +25,26 @@
  const count=el('p','jr-kc-count','');
  const list=el('ol','jr-kc-list');
  const print=el('button','jr-kc-secondary',t('چاپ گزارش مقدماتی','Print preliminary report'));print.type='button';
+ const save=el('button','jr-kc-secondary jr-kc-save-draft',t('دریافت پیش‌نویس شخصی','Download private draft'));save.type='button';
+ const fileLabel=el('label','jr-kc-import-label',t('انتخاب فایل پیش‌نویس قبلی (JSON)','Select previous draft file (JSON)'));
+ const importFile=el('input','jr-kc-import-file');importFile.type='file';importFile.accept='.json,application/json';
+ fileLabel.append(importFile);
+ const preview=el('p','jr-kc-import-preview','');preview.setAttribute('role','status');preview.setAttribute('aria-live','polite');
+ const apply=el('button','jr-kc-secondary jr-kc-apply-import',t('جایگزینی با فایل بررسی‌شده','Replace with reviewed file'));apply.type='button';apply.disabled=true;
  const clear=el('button','jr-kc-secondary',t('حذف همه انتخاب‌ها','Clear all'));clear.type='button';
- const buttons=el('div','jr-kc-actions');buttons.append(print,clear);
+ const buttons=el('div','jr-kc-actions');buttons.append(print,save,clear);
+ const portable=el('div','jr-kc-portability');
+ const portableNote=el('p','jr-kc-portability-note',t(
+  'نسخه شخصی فقط با اقدام شما دانلود یا از فایل انتخاب‌شده بازیابی می‌شود. یادداشت‌ها ممکن است اطلاعات خصوصی شما را داشته باشند؛ فایل را محفوظ نگه دارید. پیش‌نمایش واردات چیزی را تغییر نمی‌دهد. محدودیت ۱۵۰ مورد فقط حفاظ فنی است، نه سقف رسمی انتخاب رشته.',
+  'A private draft is downloaded or restored only when you act. Notes may contain personal information; protect the file. Previewing an import changes nothing. The 150-entry limit is only a local technical safeguard, NOT an official selection limit.'));
+ portable.append(fileLabel,preview,apply,portableNote);
  const official=el('a','jr-kc-official',t('بررسی اطلاعیه‌های سازمان سنجش','Review official Sanjesh notices'));official.href='https://www.sanjesh.org/';official.rel='noopener noreferrer';official.target='_blank';
  const footer=el('p','jr-kc-note',t('هیچ اطلاعاتی ذخیره یا ارسال نمی‌شود. ورود نهایی به سامانه رسمی فقط توسط داوطلب انجام می‌شود.','No information is stored or sent. Candidates must submit their final lists themselves through the official system.'));
  const report=el('section','jr-kc-report');report.hidden=true;
- root.append(heading,guidance,form,status,count,list,buttons,official,footer,report);
- let choices=[];const say=(a,b)=>{status.textContent=t(a,b);};
+ root.append(heading,guidance,form,status,count,list,buttons,portable,official,footer,report);
+ let choices=[],pendingImport=null,importGeneration=0;
+ const say=(a,b)=>{status.textContent=t(a,b);};
+ const resetImport=()=>{pendingImport=null;apply.disabled=true;preview.textContent='';importFile.value='';importGeneration++;};
  function draw(){
   list.replaceChildren();
   count.textContent=t('تعداد انتخاب‌ها: ','Choices: ')+new Intl.NumberFormat(fa?'fa-IR':'en-US').format(choices.length);
@@ -70,13 +83,57 @@
   event.preventDefault();const value=normalize(code.value);
   if(!/^[0-9]{5}$/.test(value)){say('کد باید دقیقاً پنج رقم باشد.','Code must contain exactly five digits.');code.focus();return;}
   if(choices.some(x=>x.code===value)){say('این کدرشته تکراری است.','Duplicate programme code.');return;}
+  if(choices.length>=150){say('سقف فنی پیش‌نویس موقت ۱۵۰ انتخاب است؛ این سقف رسمی نیست.','The local draft safety cap is 150 entries; this is not an official limit.');return;}
   choices.push({year:1405,code:value,note:note.value.trim().slice(0,140),group:group.value,source:null});
   code.value='';note.value='';draw();say('به پیش‌نویس افزوده شد؛ نیازمند تطبیق رسمی است.','Added to draft; official verification required.');code.focus();
  });
+ save.addEventListener('click',()=>{
+  const portableApi=window.JRKonkurChoicePortability;
+  if(!portableApi){say('امکان دریافت فایل در دسترس نیست.','File export is unavailable.');return;}
+  try{
+   const result=portableApi.exportDraft(choices);
+   const url=URL.createObjectURL(new Blob([result.json],{type:result.mediaType}));
+   const link=el('a');link.href=url;link.download=result.filename;link.hidden=true;
+   root.append(link);link.click();link.remove();
+   window.setTimeout(()=>URL.revokeObjectURL(url),1200);
+   say('فایل موقت در دستگاه دریافت شد؛ هیچ داده‌ای به سرور ارسال نشد.',
+    'Private draft downloaded locally; no data were sent to the server.');
+  }catch{
+   say('ابتدا یک پیش‌نویس معتبر ثبت کنید.','Create a valid draft first.');
+  }
+ });
+ importFile.addEventListener('change',async()=>{
+  const current=++importGeneration;
+  pendingImport=null;apply.disabled=true;preview.textContent='';
+  const file=importFile.files?.[0];if(!file)return;
+  const portableApi=window.JRKonkurChoicePortability;
+  if(!portableApi||file.size>portableApi.maximumFileBytes){
+   preview.textContent=t('فایل نامعتبر یا بیش از حد مجاز است.','Invalid or oversized file.');return;
+  }
+  try{
+   const text=await file.text();
+   if(current!==importGeneration)return;
+   const parsed=portableApi.importDraft(text);
+   pendingImport=parsed.choices;apply.disabled=false;
+   preview.textContent=t('فایل معتبر شناسایی شد. تعداد انتخاب‌ها: ','Valid file preview. Choices: ')+
+    new Intl.NumberFormat(fa?'fa-IR':'en-US').format(parsed.count)+
+    t('؛ جایگزینی فقط با دکمه زیر انجام می‌شود.','; nothing changes until you confirm below.');
+  }catch{
+   if(current!==importGeneration)return;
+   pendingImport=null;apply.disabled=true;
+   preview.textContent=t('فایل با قالب پیش‌نویس ۱۴۰۵ سازگار نیست.','File is not a supported preliminary 1405 draft.');
+  }
+ });
+ apply.addEventListener('click',()=>{
+  if(!pendingImport)return;
+  choices=pendingImport.map(c=>({...c}));draw();resetImport();
+  say('پیش‌نویس شخصی جایگزین شد. تأیید رسمی کدرشته‌ها همچنان لازم است.',
+   'Personal draft replaced. Official programme codes still require verification.');
+ });
  print.addEventListener('click',printReport);
- clear.addEventListener('click',()=>{choices=[];draw();say('پیش‌نویس پاک شد.','Draft cleared.');});
+ clear.addEventListener('click',()=>{choices=[];draw();resetImport();say('پیش‌نویس پاک شد.','Draft cleared.');});
  window.addEventListener('afterprint',()=>{report.hidden=true;root.classList.remove('jr-kc-printing');});
- window.addEventListener('pagehide',()=>{choices=[];report.replaceChildren();});
+ window.addEventListener('pagehide',()=>{choices=[];pendingImport=null;report.replaceChildren();});
  draw();
  });
 })();
