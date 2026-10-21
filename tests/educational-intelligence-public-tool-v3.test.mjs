@@ -70,3 +70,9 @@ test('Persian and Arabic numerals do not evade the public URL identifier screen'
     assert.equal(compile(call({year:1405,q})).reason,'SEARCH_NOT_SUITABLE_FOR_PUBLIC_URL');
   assert.equal(compile(call({year:1405,q:'حقوق'})).status,'READY_FOR_PUBLIC_READ');
 });
+
+test('Unicode-separated personal identifiers are denied without blocking Persian ZWNJ catalogue terms',()=>{
+  for (const q of ['۰۹۱۲‌۳۴۵۶۷۸۹','۰۹۱۲-۳۴۵-۶۷۸۹','０９１２３４５６７８９','حقوق\u202e'])
+    assert.equal(compile(call({year:1405,q})).reason,'SEARCH_NOT_SUITABLE_FOR_PUBLIC_URL');
+  assert.equal(compile(call({year:1405,q:'رشته‌محل'})).status,'READY_FOR_PUBLIC_READ');
+});

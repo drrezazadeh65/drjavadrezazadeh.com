@@ -6,6 +6,7 @@
  * The existing PHP /api/konkur/programmes route remains the authority for
  * source-reviewed rows and enforces its own SQL and approval restrictions.
  */
+import {isUnsafePublicCatalogueSearch} from './educational-intelligence-public-search-guard-v3.mjs';
 export const PUBLIC_CATALOGUE_TOOL = 'SOURCE_REVIEWED_CATALOGUE_QUERY';
 export const PUBLIC_TOOL_CONTRACT_VERSION = '3.0.1-public-read';
 const ROUTE = '/api/konkur/programmes';
@@ -43,20 +44,13 @@ export function compilePublicCatalogueToolCall(call) {
   const page = own(args, 'page') ? args.page : 1;
   if ((page - 1) * limit > 5000) return denied('PAGE_OUT_OF_RANGE');
   let q = '';
-  // Normalize only for detection: Persian/Arabic numerals must not evade the
-  // basic public-URL identifier guard. The original search text is preserved.
-  const asciiDigits = value => value.replace(/[۰-۹٠-٩]/gu, digit => {
-    const n = digit.codePointAt(0);
-    return String.fromCharCode(48 + (n >= 0x6f0 ? n - 0x6f0 : n - 0x660));
-  });
   if (own(args, 'q')) {
     if (typeof args.q !== 'string') return denied('INVALID_SEARCH');
     q = args.q.trim();
     // The PHP endpoint accepts a search term, not a conversation or personal file.
     // This is a limited hygiene check, not a guarantee of PII detection.
-    const screened = asciiDigits(q);
     if ([...q].length > 80 || /[\x00-\x1f\x7f\u2028\u2029]/u.test(q) ||
-        /(?:https?:\/\/|www\.|\S+@\S+|\+?\d[\d\s-]{8,}\d|\d{9,})/iu.test(screened))
+        isUnsafePublicCatalogueSearch(q))
       return denied('SEARCH_NOT_SUITABLE_FOR_PUBLIC_URL');
   }
   const params = new URLSearchParams({year: String(args.year), limit: String(limit), page: String(page)});
