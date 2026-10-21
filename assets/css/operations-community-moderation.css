@@ -37,3 +37,40 @@
 @media(max-width:560px){#jr-community-admin{padding:18px 14px;border-radius:16px}#jr-community-admin .jr-community-admin-header{gap:12px}#jr-community-admin .jr-community-admin-logo{width:43px;height:43px;padding:5px}#jr-community-admin .jr-community-admin-actions button{flex:1 1 100%}}
 @media(prefers-reduced-motion:reduce){#jr-community-admin *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media(forced-colors:active){#jr-community-admin,#jr-community-admin .jr-community-admin-item{border:1px solid CanvasText}}
+
+
+/* Native editor accordions and long-history paged queues inherit ops tokens. */
+#jr-community-admin .jr-community-admin-toolbar{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin:18px 0}
+#jr-community-admin .jr-community-admin-toolbar label{display:grid;gap:6px;min-width:min(240px,100%);font-weight:600;line-height:1.8}
+#jr-community-admin .jr-community-admin-toolbar select{max-width:100%;border-radius:11px;color:var(--jr-op-text);background:var(--jr-op-bg);border:1px solid var(--jr-op-rule);min-height:46px;padding:9px 14px}
+#jr-community-admin .jr-community-admin-toolbar button,#jr-community-admin .jr-community-admin-more{min-height:46px;border:1px solid var(--jr-op-gold);border-radius:11px;padding:10px 18px;background:rgba(237,205,136,.08);color:var(--jr-op-text);cursor:pointer}
+#jr-community-admin .jr-community-admin-item{padding:0;overflow:hidden}
+#jr-community-admin .jr-community-admin-summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;min-height:61px;cursor:pointer;padding:17px 20px;line-height:1.8;list-style:none}
+#jr-community-admin .jr-community-admin-summary::-webkit-details-marker{display:none}
+#jr-community-admin .jr-community-admin-summary::after{content:"+";font-size:1.4rem;font-weight:500;color:var(--jr-op-gold)}
+#jr-community-admin .jr-community-admin-item[open]>.jr-community-admin-summary::after{content:"−"}
+#jr-community-admin .jr-community-admin-summary:focus-visible,#jr-community-admin details>summary:focus-visible{outline:3px solid var(--jr-op-gold);outline-offset:-3px}
+#jr-community-admin .jr-community-admin-meta{color:var(--jr-op-gold);font-size:.84rem;overflow-wrap:anywhere}
+#jr-community-admin .jr-community-admin-summary-state{font-size:.84rem;color:var(--jr-op-muted)}
+#jr-community-admin .jr-community-admin-item-content{padding:18px 20px 22px;border-top:1px solid var(--jr-op-rule)}
+#jr-community-admin .jr-community-admin-item-content>.jr-community-admin-message{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.95}
+#jr-community-admin .jr-community-admin-replies-panel,#jr-community-admin .jr-community-admin-erasure,#jr-community-admin .jr-community-admin-editor,#jr-community-admin .jr-community-admin-history{margin-top:16px;border-radius:12px;border:1px solid var(--jr-op-rule);background:rgba(0,0,0,.07)}
+#jr-community-admin details :is(summary){cursor:pointer;line-height:1.75}
+#jr-community-admin .jr-community-admin-replies-panel>summary,#jr-community-admin .jr-community-admin-editor>summary,#jr-community-admin .jr-community-admin-history>summary,#jr-community-admin .jr-community-admin-erasure>summary{padding:12px 15px;color:var(--jr-op-gold);font-weight:650}
+#jr-community-admin .jr-community-admin-replies-host{display:grid;gap:14px;padding:12px}
+#jr-community-admin .jr-community-admin-reply{padding:15px;border:1px solid rgba(237,205,136,.2);border-radius:12px;background:rgba(255,255,255,.018);min-width:0}
+#jr-community-admin .jr-community-admin-reply-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.95}
+#jr-community-admin .jr-community-admin-reply-form,#jr-community-admin .jr-community-admin-editor form,#jr-community-admin .jr-community-admin-erasure form{display:grid;gap:12px;padding:14px}
+#jr-community-admin .jr-community-admin-reply-form label,#jr-community-admin .jr-community-admin-erasure label{display:grid;gap:7px}
+#jr-community-admin :is(textarea,input,select){font:inherit}
+#jr-community-admin .jr-community-admin-reply-form textarea,#jr-community-admin .jr-community-admin-editor textarea,#jr-community-admin .jr-community-admin-erasure input,#jr-community-admin .jr-community-admin-erasure select{width:100%;min-width:0;max-width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--jr-op-rule);background:var(--jr-op-bg);color:var(--jr-op-text)}
+#jr-community-admin .jr-community-admin-actions>details{flex:1 1 100%;min-width:0}
+#jr-community-admin .jr-community-admin-actions form button,#jr-community-admin .jr-community-admin-reply-form button{min-height:46px;padding:10px 18px;border:1px solid var(--jr-op-gold);border-radius:11px;background:rgba(237,205,136,.1);color:var(--jr-op-text);cursor:pointer}
+#jr-community-admin .jr-community-admin-actions .jr-community-admin-danger,#jr-community-admin .jr-community-admin-erasure .jr-community-admin-danger{border-color:#d7a7a7;color:#ffdad9;background:rgba(167,65,65,.12)}
+#jr-community-admin .jr-community-admin-history ol{margin:0;padding:12px 32px;line-height:1.85}
+#jr-community-admin .jr-community-admin-history li+li{margin-top:12px;border-top:1px solid var(--jr-op-rule)}
+#jr-community-admin :is(button,select,textarea,input,summary):focus-visible{outline:3px solid var(--jr-op-gold);outline-offset:3px}
+#jr-community-admin [hidden]{display:none!important}
+@media(max-width:560px){#jr-community-admin .jr-community-admin-toolbar{display:grid}#jr-community-admin .jr-community-admin-toolbar label{width:100%}#jr-community-admin .jr-community-admin-summary{padding:14px}#jr-community-admin .jr-community-admin-item-content{padding:14px}}
+@media(prefers-reduced-motion:reduce){#jr-community-admin *{animation:none!important;transition:none!important}}
+@media(forced-colors:active){#jr-community-admin .jr-community-admin-reply,#jr-community-admin details{border:1px solid CanvasText}}
