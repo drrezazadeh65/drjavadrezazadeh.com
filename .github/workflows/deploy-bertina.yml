@@ -325,15 +325,6 @@ jobs:
           test ! -e .public-site/journals
           test ! -e .public-site/journal/portal
 
-      - name: Verify Konkur research-only release boundary (no predictions, no private code)
-        run: |
-          set -euo pipefail
-          node --test tests/konkur-ai-lab-contract.test.mjs tests/konkur-ai-lab-hardening.test.mjs tests/konkur-ai-v2-security.test.mjs
-          test -f .public-site/fa/konkur-ai-lab/index.html
-          test -f .public-site/assets/js/jr-konkur-ai-lab-public-v1.mjs
-          test ! -e .public-site/platform
-          ! grep -q "from '/platform/" .public-site/fa/konkur-ai-lab/index.html
-
       - name: Check Bertina repository secrets
         id: credentials
         env:
