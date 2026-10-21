@@ -50,3 +50,23 @@ test('maximum six subjects, privacy, invalid input, reset and re-entry',async({p
   expect(pageErrors).toEqual([]);
   expect(unexpectedWrites).toEqual([]);
 });
+
+test('local percentage calculator respects configured negative marking at 320px',async({page})=>{
+ const {pageErrors,unexpectedWrites}=await visit(page,320);
+ await page.locator('#pc-correct').fill('۲۰');
+ await page.locator('#pc-incorrect').fill('۵');
+ await page.locator('#pc-unanswered').fill('۵');
+ await page.locator('#pc-calculate').click();
+ await expect(page.locator('#pc-result')).toContainText('۶۱٫۱۱');
+ await expect(page.locator('#pc-result')).toContainText('تراز، رتبه یا احتمال قبولی نیست');
+ await page.locator('#pc-negative').fill('۰');
+ await page.locator('#pc-calculate').click();
+ await expect(page.locator('#pc-result')).toContainText('۶۶٫۶۷');
+ await page.locator('#pc-correct').fill('-۱');
+ await page.locator('#pc-calculate').click();
+ await expect(page.locator('#pc-result')).toContainText('اطلاعات قابل محاسبه نیست');
+ const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
+ expect(overflow).toBeLessThanOrEqual(1);
+ expect(pageErrors).toEqual([]);
+ expect(unexpectedWrites).toEqual([]);
+});

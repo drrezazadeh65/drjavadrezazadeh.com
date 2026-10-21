@@ -49,6 +49,20 @@ output{display:block;margin-top:16px}output:focus{outline:none}
 </form><output id="result" role="status" aria-live="polite" tabindex="-1"></output>
 <small>تمام محاسبات در همین مرورگر انجام می‌شود. اطلاعات فرم به سرور ارسال یا در حافظه دائمی ذخیره نمی‌شود. هیچ رتبه آزمایشی به‌عنوان رتبه رسمی تأیید نمی‌شود.</small></section>
 <section aria-labelledby="h-data"><h2 id="h-data">وضعیت داده‌های پذیرش</h2><p>شش دفترچه رسمی و ۲۴۱۲ مرجع صفحه ثبت شده‌اند، اما تأیید مستقل جداول رشته‌محل‌ها هنوز تکمیل نشده است. بنابراین این آزمایشگاه فعلاً هیچ احتمال قبولی یا فهرست پیشنهادی قطعی ارائه نمی‌کند.</p></section>
+<section aria-labelledby="h-percent"><h2 id="h-percent">درصدگیر مستقل آزمون آزمایشی</h2>
+<p class="note">تعداد پاسخ‌های درست، نادرست و بی‌پاسخ را وارد کنید. امتیاز صحیح ۳، جریمه پاسخ نادرست ۱ و جریمه بی‌پاسخ صفر فقط یک <strong>مثال قابل تغییر</strong> هستند؛ پیش از محاسبه، قاعده واقعی آزمون خود را بررسی کنید.</p>
+<form id="pc-form" autocomplete="off" novalidate>
+<label for="pc-correct">پاسخ درست</label><input id="pc-correct" inputmode="numeric" maxlength="6" placeholder="مثلاً ۲۰" required>
+<label for="pc-incorrect">پاسخ نادرست</label><input id="pc-incorrect" inputmode="numeric" maxlength="6" placeholder="مثلاً ۵" required>
+<label for="pc-unanswered">بی‌پاسخ</label><input id="pc-unanswered" inputmode="numeric" maxlength="6" placeholder="مثلاً ۵" required>
+<label for="pc-positive">امتیاز هر پاسخ درست</label><input id="pc-positive" inputmode="numeric" maxlength="3" value="۳" required>
+<label for="pc-negative">جریمه هر پاسخ نادرست</label><input id="pc-negative" inputmode="numeric" maxlength="3" value="۱" required>
+<label for="pc-blank">جریمه هر سؤال بی‌پاسخ</label><input id="pc-blank" inputmode="numeric" maxlength="3" value="۰" required>
+<button type="submit" id="pc-calculate">محاسبه درصد خام</button><button type="reset" class="ghost">پاک‌کردن</button>
+</form>
+<output id="pc-result" aria-live="polite" role="status" tabindex="-1"></output>
+<small>درصد خام = ۱۰۰ × (امتیاز پاسخ‌های درست − جریمه پاسخ‌های نادرست − جریمه بی‌پاسخ‌ها) ÷ حداکثر امتیاز. محاسبه در مرورگر انجام می‌شود؛ هیچ اطلاعاتی ارسال یا ذخیره نمی‌شود.</small>
+</section>
 </main><script type="module">
 const MAX_SUBJECTS=6,MIN_PCT=-33.34,MAX_PCT=100,MAX_RANK=2000000;
 const $=id=>document.getElementById(id);
@@ -132,4 +146,4 @@ form.addEventListener('submit',async event=>{
 form.addEventListener('reset',()=>{clearErrors();result.replaceChildren();box.replaceChildren();n=0;addRow()});
 $('add').addEventListener('click',()=>{addRow();box.lastElementChild.querySelector('input').focus()});
 addRow();
-</script></body></html>
+</script><script type="module" src="/assets/js/jr-konkur-percentage-ui-v1.mjs"></script></body></html>

@@ -29,3 +29,17 @@ test('MAZ is selectable in the public lab without third-party login or vendor ne
  assert.match(html,/<option value="MAZ">ماز<\/option>/);
  assert.doesNotMatch(html,/biomaze\.ir|konkoorone\.ir|heyvagroup\.com/);
 });
+
+test('bounded local percentage calculator is shipped without breaking existing research CSP',()=>{
+ assert.match(html,/id="pc-form"/);
+ assert.match(html,/id="pc-correct"/);
+ assert.match(html,/id="pc-incorrect"/);
+ assert.match(html,/id="pc-unanswered"/);
+ assert.match(html,/jr-konkur-percentage-ui-v1\.mjs/);
+ assert.doesNotMatch(html,/https?:\/\/biomaze\.ir/);
+ const ui=fs.readFileSync('assets/js/jr-konkur-percentage-ui-v1.mjs','utf8');
+ const engine=fs.readFileSync('assets/js/jr-konkur-percentage-v1.mjs','utf8');
+ for(const source of [ui,engine])
+  for(const forbidden of ['fetch(', 'XMLHttpRequest','localStorage','sessionStorage','indexedDB','sendBeacon','document.cookie','innerHTML='])
+   assert.equal(source.includes(forbidden),false,'forbidden percentage calculator API: '+forbidden);
+});

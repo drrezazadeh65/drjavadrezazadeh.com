@@ -9,6 +9,7 @@ on:
       - 'platform/konkur-1405-sources.json'
       - 'fa/konkur-ai-lab/**'
       - 'assets/js/jr-konkur-ai-lab-public-v1.mjs'
+      - 'assets/js/jr-konkur-percentage-*.mjs'
       - 'tests/konkur-*.test.mjs'
       - 'tests/konkur-ai-v2-security.test.mjs'
       - 'scripts/build-public-site.mjs'
@@ -38,6 +39,8 @@ jobs:
           node --check platform/konkur-scorecard-normalizer.mjs
           node --check platform/konkur-analysis-pipeline.mjs
           node --check assets/js/jr-konkur-ai-lab-public-v1.mjs
+          node --check assets/js/jr-konkur-percentage-v1.mjs
+          node --check assets/js/jr-konkur-percentage-ui-v1.mjs
       - name: Exercise exact research contracts and adversarial privacy cases
         run: |
           node --test \
@@ -48,13 +51,16 @@ jobs:
             tests/konkur-analysis-pipeline.test.mjs \
             tests/konkur-ai-lab-contract.test.mjs \
             tests/konkur-ai-lab-hardening.test.mjs \
-            tests/konkur-ai-v2-security.test.mjs
+            tests/konkur-ai-v2-security.test.mjs \
+            tests/konkur-percentage-calculator.test.mjs
       - name: Build release-shaped sanitized artifact without deploying
         run: node scripts/build-public-site.mjs
       - name: Assert published package excludes private research sources
         run: |
           test -f .public-site/fa/konkur-ai-lab/index.html
           test -f .public-site/assets/js/jr-konkur-ai-lab-public-v1.mjs
+          test -f .public-site/assets/js/jr-konkur-percentage-v1.mjs
+          test -f .public-site/assets/js/jr-konkur-percentage-ui-v1.mjs
           test ! -d .public-site/platform
           test ! -f .public-site/platform/konkur-admission-reasoner.mjs
           ! grep -q "from '/platform/" .public-site/fa/konkur-ai-lab/index.html
