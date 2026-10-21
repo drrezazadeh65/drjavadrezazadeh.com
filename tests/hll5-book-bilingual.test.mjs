@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+for(const [lang,path] of [['fa','fa/ketab-ha/how-languages-are-learned/index.html'],['en','en/books/how-languages-are-learned/index.html']]){
+ test(lang+' HLL5 reciprocal language metadata and noncommercial publication status',()=>{
+  const html=read(path);
+  assert.ok(html.includes('lang="'+lang+'"'));
+  assert.ok(html.includes('hll5-book-premium-20261021.css'));
+  for(const route of ['/fa/ketab-ha/how-languages-are-learned/','/en/books/how-languages-are-learned/'])assert.ok(html.includes('href="https://drjavadrezazadeh.com'+route+'"'));
+  assert.ok(html.includes('class="hll5-facts"'));
+  assert.ok(!/add-to-cart|buy-now|preorder-now/.test(html));
+ });
+}
+test('book is discoverable from both directories',()=>{
+ assert.ok(read('fa/ketab-ha/index.html').includes('how-languages-are-learned/'));
+ assert.ok(read('en/books/index.html').includes('href="/en/books/how-languages-are-learned/"'));
+});
