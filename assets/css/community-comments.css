@@ -68,3 +68,25 @@
 /* Privacy-critical: explicit hidden state must beat component display:grid/flex.
    A guest must never see the verified-account submission form. */
 .jr-community [hidden]{display:none!important}
+
+
+/* Native, keyboard-first academic conversation accordion (approved only). */
+.jr-community-comment{padding:0;overflow:hidden}
+.jr-community-comment>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:62px;margin:0;padding:16px clamp(16px,2.6vw,24px);cursor:pointer;list-style:none;line-height:1.9;color:var(--jr-c-gold)}
+.jr-community-comment>summary::-webkit-details-marker{display:none}
+.jr-community-comment>summary::after{content:"+";display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;border:1px solid var(--jr-c-line);border-radius:50%;font-size:1.3rem;font-weight:400}
+.jr-community-comment[open]>summary::after{content:"−"}
+.jr-community-comment>summary:focus-visible{outline:3px solid var(--jr-c-gold);outline-offset:-3px}
+.jr-community-comment .jr-community-body{margin:0;padding:16px clamp(16px,2.6vw,24px) 21px;border-top:1px solid var(--jr-c-line)}
+.jr-community-official-replies{display:grid;gap:12px;padding:0 clamp(16px,2.6vw,24px) clamp(16px,2.6vw,24px)}
+.jr-community-official-reply{margin:0;padding:clamp(14px,2vw,20px);border:1px solid rgba(199,163,91,.28);border-inline-start:3px solid var(--jr-c-gold);border-radius:12px;background:linear-gradient(130deg,rgba(199,163,91,.09),rgba(255,255,255,.012))}
+.jr-community-official-label{font-weight:700;color:var(--jr-c-gold);margin:0 0 8px;line-height:1.8}
+.jr-community-official-body{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--jr-c-ink);margin:0;line-height:2}
+.jr-community-compose{margin-top:clamp(20px,3vw,36px);border-top:1px solid var(--jr-c-line)}
+.jr-community-compose>summary{cursor:pointer;min-height:54px;padding:16px 0;color:var(--jr-c-gold);font-weight:700;line-height:1.8}
+.jr-community-compose>summary:focus-visible{outline:3px solid var(--jr-c-gold);outline-offset:3px}
+.jr-community-compose .jr-community-form{margin-top:0;border-top:0;padding-top:12px}
+.jr-community .jr-community-honeypot{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;pointer-events:none!important}
+@media(max-width:600px){.jr-community-comment>summary{padding:15px 14px;font-size:.9rem}.jr-community-comment .jr-community-body{padding:14px}.jr-community-official-replies{padding:0 14px 14px}}
+@media(prefers-reduced-motion:reduce){.jr-community-comment *,.jr-community-compose *{scroll-behavior:auto!important;transition:none!important}}
+@media(forced-colors:active){.jr-community-official-reply,.jr-community-comment>summary::after{border:1px solid CanvasText}}
