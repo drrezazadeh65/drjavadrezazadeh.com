@@ -74,6 +74,7 @@ on:
       - "en/golden-talent/index.html"
       - "tests/scientific-unified-design-browser.spec.js"
       - "tests/scientific-premium-visual-browser.spec.js"
+      - "tests/bilingual-global-mobile-browser.spec.js"
       - "assets/css/bahar-rcas-handoff-v52.css"
       - ".github/workflows/public-scientific-experience-qa.yml"
 
@@ -135,7 +136,7 @@ jobs:
           curl -fsS --retry-connrefused --retry 15 --retry-delay 1 --max-time 3 http://127.0.0.1:4173/fa/app/student/bahar/ > /dev/null
       - name: Browser acceptance for design, free activities, account and safety
         run: |
-          npx playwright test tests/konkur-official-scorecard-browser.spec.js tests/konkur-mock-practice-browser.spec.js tests/konkur-studio-browser.spec.js tests/konkur-catalogue-browser.spec.js tests/scientific-unified-design-browser.spec.js tests/scientific-premium-visual-browser.spec.js tests/bahar-formative-workspace-browser.spec.js tests/golden-talent-evidence-studio-browser.spec.js tests/rcas-start-browser.spec.js tests/scientific-continuity.browser.spec.js tests/customer-dashboard-browser.spec.js tests/bahar-readiness-browser.spec.js --reporter=line
+          npx playwright test tests/bilingual-global-mobile-browser.spec.js tests/konkur-official-scorecard-browser.spec.js tests/konkur-mock-practice-browser.spec.js tests/konkur-studio-browser.spec.js tests/konkur-catalogue-browser.spec.js tests/scientific-unified-design-browser.spec.js tests/scientific-premium-visual-browser.spec.js tests/bahar-formative-workspace-browser.spec.js tests/golden-talent-evidence-studio-browser.spec.js tests/rcas-start-browser.spec.js tests/scientific-continuity.browser.spec.js tests/customer-dashboard-browser.spec.js tests/bahar-readiness-browser.spec.js --reporter=line
       - name: Build EXACT sanitized public release artifact without deploying
         run: |
           node scripts/build-public-site.mjs
