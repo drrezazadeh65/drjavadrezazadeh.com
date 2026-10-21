@@ -17,6 +17,7 @@
     "/en/academic-profile/",
     "/en/academic-services/",
     "/en/books/",
+    "/en/books/how-languages-are-learned/",
     "/en/collaboration/",
     "/en/contact/",
     "/en/educational-philosophy/",
@@ -237,5 +238,13 @@
       "/en/shop/authors/mehrab-mirkarimi/"
     ],
     "rule": "Add a linked, indexable bilingual author resource without renaming existing public URLs, asserting unverified sales fulfilment or weakening payments/rights safeguards."
+  },
+  "approved_addition_20261021_english_book": {
+    "approved_by": "website_owner",
+    "scope": "Existing in-press Persian book introduction translated to one reciprocal English academic page; no sale, ISBN or licence asserted",
+    "routes": [
+      "/en/books/how-languages-are-learned/"
+    ],
+    "rule": "Keep unchanged canonical and reciprocal hreflang. Do not enable preorders or unverified publication claims."
   }
 }

@@ -314,7 +314,23 @@ for(const route of approvedEnglishVipRoutes){
      !html.includes('public-v2.css'))
     failures.push('Approved English VIP route lacks canonical/indexable/visual contract: '+route);
 }
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1; // reviewed English author + noindex research AI lab
+// Owner-reviewed additional EN academic introduction: explicit route and scientific-status gate.
+const approvedAcademicBook='en/books/how-languages-are-learned/index.html';
+const bookEntry=path.join(out,approvedAcademicBook);
+if(!fs.existsSync(bookEntry))failures.push('Approved English academic book missing: '+approvedAcademicBook);
+else {
+  const book=fs.readFileSync(bookEntry,'utf8');
+  for(const marker of [
+    '<link rel="canonical" href="https://drjavadrezazadeh.com/en/books/how-languages-are-learned/">',
+    '<link rel="alternate" hreflang="fa" href="https://drjavadrezazadeh.com/fa/ketab-ha/how-languages-are-learned/">',
+    '<meta property="og:description"',
+    '<meta name="twitter:card" content="summary">',
+    '<meta name="robots" content="index,follow'
+  ])if(!book.includes(marker))failures.push('Approved English academic book missing metadata: '+marker);
+  if(/add-to-cart|buy-now|preorder-now|data-preorder/.test(book))
+    failures.push('Unpublished book incorrectly offers checkout or preorder');
+}
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1; // English author + noindex AI lab + reviewed English academic book
 const aiLabRoute='fa/konkur-ai-lab/index.html';
 const aiLabPath=path.join(out,aiLabRoute);
 const aiLabJs=path.join(out,'assets/js/jr-konkur-ai-lab-public-v1.mjs');

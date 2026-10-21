@@ -845,3 +845,7 @@ html:lang(en):not([dir]){direction:ltr}
 :where(html:lang(fa),html:lang(en)) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),textarea,select){text-align:start}
 :where(html:lang(fa),html:lang(en)) :is(input[type="email"],input[type="url"],input[type="tel"]){direction:ltr;unicode-bidi:plaintext}
 :where(bdi,:not(html)[dir="auto"]){unicode-bidi:isolate}
+
+/* MFA-UNLOCKED ADMIN OVERLAY: preserve access to approval buttons on 320–430px screens.
+   Hide the unrelated public assistant only while the verified editorial workspace is unlocked. */
+body:has(#ops-workspace:not([hidden])) .jr-assistant{display:none}
