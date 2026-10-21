@@ -64,4 +64,35 @@ $audit->execute(['33333333-3333-4333-8333-333333333333',$comment,$readerTwo,'rem
 $approvedOnly->execute([$article]);$check((int)$approvedOnly->fetchColumn()===0,'Removed content no longer public');
 $check((int)$pdo->query("SELECT COUNT(*) FROM community_moderation_audit WHERE comment_id='$comment'")->fetchColumn()===2,'Approval and removal audit history preserved');
 $check($remove->execute([$now+3,$readerTwo,$comment]) && $remove->rowCount()===0,'Removed content not removable twice');
+// Five-table editorial governance fixtures: no live customers or production credentials.
+$secondComment='44444444-4444-4444-8444-444444444444';
+$insert->execute([$secondComment,$articleTwo,$readerTwo,'Publication-ready scholarly question',null,$now+4,$now+4]);
+$pdo->prepare("UPDATE community_comments SET state='approved',reviewed_at=?,reviewer_account_id=? WHERE id=?")
+    ->execute([$now+5,$reader,$secondComment]);
+$reply='55555555-5555-4555-8555-555555555555';
+$insertReply=$pdo->prepare("INSERT INTO community_admin_replies(id,comment_id,admin_account_id,body_text,created_at,updated_at) VALUES(?,?,?,?,?,?)");
+$insertReply->execute([$reply,$secondComment,$reader,'Formal academic response in draft',$now+6,$now+6]);
+$state=$pdo->query("SELECT state,revision_no,published_at FROM community_admin_replies WHERE id='$reply'")->fetch();
+$check($state['state']==='draft' && (int)$state['revision_no']===1 && $state['published_at']===null,'Official replies default to unpublished drafts');
+$revision='66666666-6666-4666-8666-666666666666';
+$insertRevision=$pdo->prepare("INSERT INTO community_admin_reply_revisions(id,reply_id,revision_no,actor_account_id,event_kind,state_after,body_snapshot,created_at) VALUES(?,?,?,?,?,?,?,?)");
+$insertRevision->execute([$revision,$reply,1,$reader,'created','draft','Formal academic response in draft',$now+6]);
+$integrityFailure(fn()=>$insertRevision->execute(['77777777-7777-4777-8777-777777777777',$reply,1,$reader,'edited','draft','duplicate revision',$now+7]),'Reply revision monotonic uniqueness');
+$integrityFailure(fn()=> $pdo->prepare("INSERT INTO community_admin_replies(id,comment_id,admin_account_id,body_text,state,created_at,updated_at) VALUES(?,?,?,?,'published',?,?)")
+  ->execute(['88888888-8888-4888-8888-888888888888',$secondComment,$reader,'Unsafe auto-publication',$now+7,$now+7]),'Publication timestamp required');
+$visible=$pdo->prepare("SELECT COUNT(*) FROM community_admin_replies r INNER JOIN community_comments c ON c.id=r.comment_id AND c.state='approved' WHERE r.id=? AND r.state='published'");
+$visible->execute([$reply]);$check((int)$visible->fetchColumn()===0,'Unpublished official draft excluded from public join');
+$pdo->prepare("UPDATE community_admin_replies SET state='published',revision_no=2,published_at=?,updated_at=? WHERE id=? AND state='draft'")
+  ->execute([$now+8,$now+8,$reply]);
+$visible->execute([$reply]);$check((int)$visible->fetchColumn()===1,'Explicitly published reply visible only under approved parent');
+$pdo->prepare("UPDATE community_comments SET state='removed' WHERE id=?")->execute([$secondComment]);
+$visible->execute([$reply]);$check((int)$visible->fetchColumn()===0,'Parent removal automatically hides official replies');
+$pdo->prepare("UPDATE community_admin_replies SET state='removed',revision_no=3,removed_at=? WHERE id=?")->execute([$now+9,$reply]);
+$pdo->prepare("INSERT INTO community_erasure_audit(id,target_kind,target_id,actor_account_id,reason_code,affected_reply_count,occurred_at) VALUES(?,?,?,?,?,?,?)")
+  ->execute(['99999999-9999-4999-8999-999999999999','comment',$secondComment,$reader,'retention',1,$now+10]);
+$pdo->prepare('DELETE FROM community_comments WHERE id=?')->execute([$secondComment]);
+$check((int)$pdo->query("SELECT COUNT(*) FROM community_admin_replies WHERE id='$reply'")->fetchColumn()===0,'Parent erasure cascades reply text');
+$check((int)$pdo->query("SELECT COUNT(*) FROM community_admin_reply_revisions WHERE reply_id='$reply'")->fetchColumn()===0,'Parent erasure cascades private revision snapshots');
+$check((int)$pdo->query("SELECT COUNT(*) FROM community_erasure_audit WHERE target_id='$secondComment'")->fetchColumn()===1,'Content-free permanent erasure audit remains');
 echo "Community MySQL schema smoke: all assertions passed.\n";
+
