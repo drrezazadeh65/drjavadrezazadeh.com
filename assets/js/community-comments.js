@@ -16,10 +16,13 @@ const eyebrow=el('p','jr-community-eyebrow','ACADEMIC DIALOGUE · گفت‌وگ�
 const heading=el('h2','', 'دیدگاه خوانندگان و امتیازدهی');heading.id='jr-community-title';
 titleGroup.append(eyebrow,heading);identity.append(mark,titleGroup);
 const explanation=el('p','jr-community-intro','دیدگاه‌ها پس از بررسی مدیر منتشر می‌شوند. پاسخ‌های رسمی مدیریت علمی در زیر هر دیدگاه تأییدشده مشخص هستند؛ امتیاز کاربران به معنای تأیید علمی محتوا نیست.');
+const ratingSummary=el('p','jr-community-rating-summary','');
+ratingSummary.setAttribute('aria-live','polite');
+ratingSummary.hidden=true;
 const listing=el('div','jr-community-list');
 const status=el('p','jr-community-status','در حال دریافت دیدگاه‌های تأییدشده…');
 status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-host.append(identity,explanation,listing,status);
+host.append(identity,explanation,ratingSummary,listing,status);
 const form=el('form','jr-community-form');
 form.innerHTML='<h3>دیدگاه خود را ثبت کنید</h3><fieldset class="jr-community-rating"><legend>امتیاز اختیاری به این مقاله</legend><div class="jr-community-rating-options"><label><input type="radio" name="rating" value="" checked><span>بدون امتیاز</span></label><label><input type="radio" name="rating" value="1"><span aria-label="۱ از ۵ ستاره">★</span></label><label><input type="radio" name="rating" value="2"><span aria-label="۲ از ۵ ستاره">★★</span></label><label><input type="radio" name="rating" value="3"><span aria-label="۳ از ۵ ستاره">★★★</span></label><label><input type="radio" name="rating" value="4"><span aria-label="۴ از ۵ ستاره">★★★★</span></label><label><input type="radio" name="rating" value="5"><span aria-label="۵ از ۵ ستاره">★★★★★</span></label></div></fieldset><label>متن دیدگاه<textarea name="body" required minlength="12" maxlength="2000" rows="5" placeholder="دیدگاه خود را محترمانه و مرتبط با این مقاله بنویسید."></textarea></label><p class="jr-community-privacy">لطفاً اطلاعات خصوصی دانش‌آموزان یا اشخاص دیگر را وارد نکنید. متن دیدگاه و امتیاز، فقط پس از تأیید مدیر، برای عموم قابل مشاهده است. <a href="/fa/harim-khosusi/">سیاست حریم خصوصی</a></p><label class="jr-community-consent"><input type="checkbox" name="consent" required> با بررسی و انتشار عمومی احتمالی دیدگاه و امتیاز خود پس از تأیید مدیر موافقم.</label><button type="submit">ارسال برای بررسی مدیر</button><p class="jr-community-form-status" role="status" aria-live="polite"></p>';
 // A quiet honeypot supplements verified accounts, server CSRF and rate limits.
@@ -45,6 +48,15 @@ async function load(){
  let result;try{result=await request(api+'comments?page='+encodeURIComponent(page));}catch(_){host.remove();return;}
  // Fail closed: do not advertise a feature until the backend + DB + owner flags are actually live.
  if(!result.ok||result.body?.schema!=='community-comments-v1'||!Array.isArray(result.body.comments)){host.remove();return;}
+ const summary=result.body.ratingSummary;
+ const count=summary?.count;
+ const mean=summary?.mean;
+ if(Number.isInteger(count)&&count>0&&count<=100000000 &&
+    typeof mean==='number'&&Number.isFinite(mean)&&mean>=1&&mean<=5){
+  ratingSummary.textContent='میانگین امتیازهای تأییدشده: '+mean.toLocaleString('fa-IR',
+    {minimumFractionDigits:1,maximumFractionDigits:1})+' از ۵ · '+count.toLocaleString('fa-IR')+' رأی';
+  ratingSummary.hidden=false;
+ }else{ratingSummary.hidden=true;ratingSummary.textContent='';}
  listing.replaceChildren();
  if(!result.body.comments.length)listing.append(el('p','jr-community-empty','هنوز دیدگاه تأییدشده‌ای ثبت نشده است.'));
  for(const c of result.body.comments.slice(0,20)){
