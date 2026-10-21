@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive"><title>آزمایشگاه هوش انتخاب رشته | نسخه پژوهشی</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/css/style.css">
+<style>body{margin:0;background:#121212;color:#f5eddb;font:17px/1.9 system-ui,sans-serif}.shell{max-width:800px;margin:auto;padding:24px 16px 80px}h1{color:#d9b75d}section{border:1px solid #8d7748;border-radius:18px;padding:20px;margin:20px 0;background:#202020}label{display:block;margin-top:12px}input,select{box-sizing:border-box;width:100%;padding:12px;border:1px solid #ab915b;border-radius:9px;background:#292929;color:white;font:inherit}button{margin-top:20px;padding:13px 24px;border:0;border-radius:10px;background:#d8b66a;color:#171717;font:inherit;font-weight:700}output{display:block;white-space:pre-wrap;margin-top:15px}small{color:#d4cab4}a{color:#edcf86}</style></head>
+<body><main class="shell"><p><a href="/fa/entekhab-reshteh/">بازگشت به استودیوی انتخاب رشته</a></p>
+<h1>آزمایشگاه هوش اختصاصی انتخاب رشته</h1>
+<p>نسخه پژوهشی و آزمایشی؛ این صفحه انتخاب رشته رسمی یا پیش‌بینی احتمال قبولی نیست.</p>
+<section><h2>بررسی اولیه کارنامه آزمایشی</h2><form id="scorecard" autocomplete="off">
+<label for="provider">مؤسسه آزمون</label><select id="provider" required><option value="KANOON">قلم‌چی</option><option value="GAJ">گاج</option><option value="GOZINEH_DO">گزینه دو</option><option value="SANJESH">سنجش</option><option value="OTHER">سایر</option></select>
+<label for="group">گروه آزمایشی</label><select id="group" required><option value="MATHEMATICS">ریاضی</option><option value="EXPERIMENTAL">تجربی</option><option value="HUMANITIES">انسانی</option><option value="ARTS">هنر</option><option value="LANGUAGES">زبان</option></select>
+<label for="year">سال آزمون</label><input id="year" inputmode="numeric" value="۱۴۰۵" required maxlength="4">
+<label for="rank">رتبه گزارش‌شده (اختیاری)</label><input id="rank" inputmode="numeric" maxlength="9" placeholder="مثلاً ۱۲۳۴">
+<label for="subject">نام درس (اختیاری)</label><input id="subject" maxlength="60" placeholder="مثلاً ریاضی">
+<label for="percent">درصد درس (اختیاری)</label><input id="percent" inputmode="decimal" placeholder="مثلاً ۷۵">
+<button type="submit">بررسی کارنامه</button><button type="reset">پاک‌کردن</button>
+</form><output id="result" role="status" aria-live="polite"></output>
+<small>تمام محاسبات در همین مرورگر انجام می‌شود. اطلاعات فرم به سرور ارسال یا در حافظه دائمی ذخیره نمی‌شود. هیچ رتبه آزمایشی به‌عنوان رتبه رسمی تأیید نمی‌شود.</small></section>
+<section><h2>وضعیت داده‌های پذیرش</h2><p>شش دفترچه رسمی و ۲۴۱۲ مرجع صفحه ثبت شده‌اند، اما تأیید مستقل جداول رشته‌محل‌ها هنوز تکمیل نشده است. بنابراین این آزمایشگاه فعلاً هیچ احتمال قبولی یا فهرست پیشنهادی قطعی ارائه نمی‌کند.</p></section>
+</main><script type="module">
+import {normalizeCandidateScorecard} from '/platform/konkur-scorecard-normalizer.mjs';
+import {analyseKonkurChoices} from '/platform/konkur-analysis-pipeline.mjs';
+const form=document.getElementById('scorecard'),result=document.getElementById('result');
+const digits=s=>String(s).replace(/[۰-۹٠-٩]/g,c=>String(c.codePointAt(0)>=0x6f0?c.codePointAt(0)-0x6f0:c.codePointAt(0)-0x660));
+form.addEventListener('submit',event=>{
+ event.preventDefault();result.textContent='';
+ const rawRank=digits(document.getElementById('rank').value.trim());
+ const rawPercent=digits(document.getElementById('percent').value.trim());
+ const name=document.getElementById('subject').value.trim();
+ const subjects=name&&rawPercent!==''?[{subjectCode:'SELF_REPORTED',percent:Number(rawPercent)}]:[];
+ const scorecard={provider:document.getElementById('provider').value,year:digits(document.getElementById('year').value.trim()),
+ examinationGroup:document.getElementById('group').value,subjects,
+ ...(rawRank!==''?{rank:Number(rawRank)}:{})};
+ const normalized=normalizeCandidateScorecard(scorecard);
+ if(!normalized.valid){result.textContent='اطلاعات نیازمند اصلاح است: '+normalized.issues.join('، ');return;}
+ const analysis=analyseKonkurChoices({scorecard,offerings:[],rules:[]});
+ result.textContent='ساختار کارنامه بررسی شد. مؤسسه: '+normalized.provider+' | سال: '+normalized.year+
+ '\nرتبه واردشده خوداظهاری است و تأیید رسمی ندارد.\n'+
+ (analysis.status==='AWAITING_VERIFIED_CATALOGUE'?'هنوز داده رشته‌محل تأییدشده برای تحلیل قبولی در دسترس نیست.':'تحلیل اولیه انجام شد.')+
+ '\nهیچ درصد قبولی محاسبه نشده است.';
+});
+form.addEventListener('reset',()=>{result.textContent='';});
+</script></body></html>
