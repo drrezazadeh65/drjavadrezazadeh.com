@@ -176,7 +176,7 @@
    el('p','',t('این بررسی، وجود رشته‌محل یا احراز شرایط شما را تأیید نمی‌کند.',
     'This checklist does not verify programme existence or your eligibility.')));
   const items=[
-   [audit.invalidCodeCount,audit.invalidCodeCount?
+   [audit.invalidCodeCount===0?null:audit.invalidCodeCount,audit.invalidCodeCount?
     t('کدهایی با قالب نادرست باید اصلاح شوند.','Fix codes with invalid formatting.'):
     t('قالب پنج‌رقمی کدها بررسی شد؛ اصالت کدها تأیید نشده است.',
       'Five-digit formatting checked; codes are not authenticated.')],

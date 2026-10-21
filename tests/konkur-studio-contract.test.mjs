@@ -35,7 +35,7 @@ test('portable preliminary drafts extend both bilingual entry pages without new 
   const helper='jr-konkur-choice-portability-v1.js?v=20261022-private-draft-v1';
   assert.ok(html.includes(helper),path);
   assert.ok(html.indexOf(helper)<html.indexOf('jr-konkur-studio-v1.js'),path);
-  assert.match(html,/jr-konkur-studio-v1\.js\?v=20261022-search-safety-v5/);
+  assert.match(html,/jr-konkur-studio-v1\.js\?v=20261022-review-message-v6/);
   assert.match(html,/jr-konkur-studio-v1\.css\?v=20261022-review-draft-v4/);
  }
  const js=read('assets/js/jr-konkur-studio-v1.js');
@@ -83,7 +83,7 @@ test('new local draft filter assets have unique cache-busted bilingual reference
  for(const path of ['fa/entekhab-reshteh/index.html','en/student-guidance/index.html']){
   const html=read(path);
   for(const token of ['jr-konkur-foundation-v1.js?v=20261022-search-safety-v4',
-   'jr-konkur-studio-v1.js?v=20261022-search-safety-v5',
+   'jr-konkur-studio-v1.js?v=20261022-review-message-v6',
    'jr-konkur-studio-v1.css?v=20261022-review-draft-v4'])
    assert.ok(html.includes(token),'missing changed-file cache key '+token+' '+path);
  }
@@ -118,4 +118,11 @@ test('bilingual page introductions explain new draft search and manual verificat
  for(const phrase of ['Build and search an ordered personal choice draft','pre-submission verification checklist'])assert.ok(en.includes(phrase));
  assert.ok(fa.includes('هیچ‌یک از این ابزارها رتبه رسمی'));
  assert.ok(en.includes('These tools do not establish official eligibility'));
+});
+
+test('valid draft code formatting still displays an explicit not-authenticated caution',()=>{
+ const script=read('assets/js/jr-konkur-studio-v1.js');
+ assert.ok(script.includes('audit.invalidCodeCount===0?null:audit.invalidCodeCount'));
+ assert.ok(script.includes('Five-digit formatting checked; codes are not authenticated.'));
+ assert.ok(script.includes('قالب پنج‌رقمی کدها بررسی شد؛ اصالت کدها تأیید نشده است.'));
 });

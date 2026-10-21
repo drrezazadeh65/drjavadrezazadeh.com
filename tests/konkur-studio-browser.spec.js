@@ -165,3 +165,14 @@ test('Persian examination-group search remains local and temporarily locks hidde
  await expect(root.locator('.jr-kc-item')).toHaveCount(2);
  expect(writes).toEqual([]);
 });
+
+test('valid five-digit formats in the Persian draft are never presented as authenticated codes',async({page})=>{
+ await page.goto('http://127.0.0.1:4173/fa/entekhab-reshteh/',{waitUntil:'domcontentloaded'});
+ const root=page.locator('[data-konkur-selection]'),form=root.locator('.jr-kc-form');
+ await form.locator('input').nth(0).fill('۰۰۱۲۳');
+ await form.locator('select').selectOption('EXPERIMENTAL_SCIENCES');
+ await form.locator('button[type=submit]').click();
+ await root.locator('.jr-kc-review-draft').click();
+ await expect(root.locator('.jr-kc-review-panel')).toContainText('اصالت کدها تأیید نشده است');
+ await expect(root.locator('.jr-kc-review-panel')).toContainText('نیازمند بررسی رسمی');
+});
