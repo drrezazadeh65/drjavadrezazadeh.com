@@ -66,6 +66,16 @@
   const exportCsv=create('button','jr-km-export-csv',tr('دریافت فایل CSV','Export CSV'));exportCsv.type='button';
   const clear=create('button','',tr('پاک‌کردن همه داده‌های این صفحه','Clear all page entries'));clear.type='button';
   const print=create('button','',tr('چاپ گزارش توصیفی','Print descriptive report'));print.type='button';
+  const review=create('button','jr-km-review-action',tr('ساخت برنامه مرور درس‌ها','Create subject review checklist'));review.type='button';
+  const reviewDuration=create('select','jr-km-review-duration');
+  [[15,tr('۱۵ دقیقه برای هر درس','15 minutes per subject')],[25,tr('۲۵ دقیقه برای هر درس','25 minutes per subject')],[40,tr('۴۰ دقیقه برای هر درس','40 minutes per subject')]].forEach(([duration,label])=>{
+   const option=create('option','',label);option.value=String(duration);reviewDuration.append(option);
+  });
+  reviewDuration.value='25';
+  const reviewDurationLabel=field(tr('زمان پیشنهادی دلخواه برای هر درس','User-selected time per subject'),reviewDuration);
+  const reviewPanel=create('section','jr-km-review-panel');
+  reviewPanel.setAttribute('aria-live','polite');
+  reviewPanel.setAttribute('aria-label',tr('برنامه توصیفی مرور درسی','Descriptive subject review checklist'));
   controls.append(print,exportCsv,clear);
   const exportNotice=create('p','jr-km-export-notice',tr(
    'خروجی فقط با درخواست شما در دستگاهتان ذخیره می‌شود. این فایل داده‌های خوداظهاری و نام درس‌های واردشده را دارد؛ آن را به‌صورت محرمانه نگهداری و پس از پایان نیاز حذف کنید.',
@@ -74,10 +84,12 @@
    'درصد، رتبه و تراز هر برگزارکننده فقط در مقیاس همان آزمون معنا دارند. رتبه مدرسه، شهر و کشور قابل‌جایگزینی با یکدیگر نیستند. تغییر تراز حتی در یک مؤسسه نیز اثبات پیشرفت یا احتمال قبولی نیست.',
    'Every mock scale and rank belongs to its provider and event. National, school and city ranks are not interchangeable. TAZ changes do not prove learning progress or admission chances.'));
   const printable=create('section','jr-km-print');printable.hidden=true;
-  root.append(title,intro,form,feedback,summary,history,trend,controls,exportNotice,foot,printable);
+  root.append(title,intro,form,feedback,summary,history,trend,controls,
+   reviewDurationLabel,review,reviewPanel,exportNotice,foot,printable);
   let exams=[];
   const announce=(a,b)=>{feedback.textContent=tr(a,b);};
   function draw(){
+   reviewPanel.replaceChildren();
    const num=new Intl.NumberFormat(fa?'fa-IR':'en-US');history.replaceChildren();
    summary.textContent=tr('نتایج موقت ثبت‌شده: ','Temporary records: ')+num.format(exams.length);
    const ordered=exams.slice().sort((a,b)=>a.date.localeCompare(b.date));
@@ -176,6 +188,47 @@
    taz.value='';rank.value='';lesson.value='';percent.value='';extraRows.replaceChildren();addSubject.disabled=false;
   });
   clear.addEventListener('click',()=>{exams=[];draw();announce('تمام نتایج این صفحه پاک شدند.','All temporary results cleared.');});
+  review.addEventListener('click',()=>{
+   reviewPanel.replaceChildren();
+   const factory=window.JRKonkurStudyReview;
+   if(!factory||typeof factory.generateStudyReview!=='function'){
+    announce('ابزار مرور در دسترس نیست.','Review checklist tool is unavailable.');return;
+   }
+   const output=factory.generateStudyReview(exams,Number(reviewDuration.value));
+   if(output.status!=='DESCRIPTIVE_REVIEW_READY'){
+    announce('برای ساخت برنامه، درصد حداقل یک درس از آخرین آزمون را ثبت کنید.',
+     'Add a subject percentage to your latest exam to build a checklist.');return;
+   }
+   const title=create('h4','',tr('برنامه مرور شخصی · بدون پیش‌بینی','Personal review checklist · no predictions'));
+   const intro=create('p','',tr(
+    'بر اساس درس‌های درج‌شده در آخرین آزمون، نه تراز مؤسسات یا تخمین قبولی. برای هر درس، زمان انتخاب‌شده فقط یک پیشنهاد قابل تغییر است.',
+    'Based only on subjects in your latest reported exam, not provider TAZ or admission odds. Selected session length is optional and adjustable.'));
+   const items=create('ol','jr-km-review-list');
+   const steps=tr([
+    'موضوع یا نوع اشتباه را در همان آزمون مشخص کنید.',
+    'مفهوم را بدون دیدن جزوه توضیح دهید یا بازیابی کنید.',
+    'سؤال تازه حل کنید، بازخورد را بررسی کنید و ابهام باقی‌مانده را یادداشت کنید.'
+   ].join('|'),[
+    'Identify a topic or mistake pattern in this exam.',
+    'Recall or explain the concept without referring to notes.',
+    'Practise new questions, examine feedback and note uncertainty.'
+   ].join('|')).split('|');
+   for(const subject of output.subjects){
+    const item=create('li','jr-km-review-item');
+    const header=create('strong','',subject.subject+' · '+
+      new Intl.NumberFormat(fa?'fa-IR':'en-US').format(subject.selfReportedPercent)+
+      '% · '+new Intl.NumberFormat(fa?'fa-IR':'en-US').format(subject.reviewMinutes)+
+      tr(' دقیقه پیشنهادی',' suggested minutes'));
+    const tasks=create('ul');
+    for(const step of steps)tasks.append(create('li','',step));
+    item.append(header,tasks);items.append(item);
+   }
+   const note=create('small','',tr(
+    'این فهرست خودراهبر و مبتنی بر خوداظهاری است؛ تفاوت دشواری، پوشش درس و شرایط فردی لحاظ نشده و پیشرفت یادگیری یا شانس قبولی را ثابت نمی‌کند. داده‌ای ذخیره یا ارسال نمی‌شود.',
+    'This optional self-directed checklist uses unverified inputs; it does not establish learning gains or admission chances. Differences in difficulty, topic coverage and individual needs require review. Nothing is stored or transmitted.'));
+   reviewPanel.append(title,intro,items,note);
+   announce('برنامه مرور موقت ساخته شد.','Temporary review checklist created.');
+  });
   exportCsv.addEventListener('click',()=>{
    if(!exams.length){announce('ابتدا دست‌کم یک آزمون ثبت کنید.','Enter at least one mock exam first.');return;}
    const exporter=window.JRKonkurMockExport;

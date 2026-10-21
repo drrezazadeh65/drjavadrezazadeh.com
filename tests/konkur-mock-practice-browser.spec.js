@@ -171,3 +171,34 @@ test('portable CSV is created by user action, exports only local self-reports an
  expect(csv).toContain('"-15"');
  expect(unexpectedWrites).toEqual([]);
 });
+
+test('descriptive study review remains memory-only and never guesses admission outcomes',async({page})=>{
+ const writes=[];page.on('request',r=>{if(!['GET','HEAD'].includes(r.method()))writes.push(r.method());});
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('http://127.0.0.1:4173/en/student-guidance/',{waitUntil:'domcontentloaded'});
+ const root=page.locator('[data-konkur-mock-practice]'),form=root.locator('form'),inputs=form.locator('input');
+ await root.locator('.jr-km-review-action').click();
+ await expect(root.locator('.jr-km-review-panel')).toBeEmpty();
+ await form.locator('select').nth(0).selectOption('MAZ');
+ await form.locator('select').nth(1).selectOption('MATHEMATICS');
+ await inputs.nth(0).fill('1405/10/01');
+ await inputs.nth(3).fill('Physics');await inputs.nth(4).fill('35');
+ await form.locator('.jr-km-add-subject').click();
+ await form.locator('.jr-km-extra-name').fill('Chemistry');
+ await form.locator('.jr-km-extra-percent').fill('−۱۲');
+ await form.locator('button[type=submit]').click();
+ await root.locator('.jr-km-review-duration').selectOption('40');
+ await root.locator('.jr-km-review-action').click();
+ await expect(root.locator('.jr-km-review-item')).toHaveCount(2);
+ await expect(root.locator('.jr-km-review-panel')).toContainText('Physics');
+ await expect(root.locator('.jr-km-review-panel')).toContainText('Chemistry');
+ await expect(root.locator('.jr-km-review-panel')).toContainText('40 suggested minutes');
+ await expect(root.locator('.jr-km-review-panel')).toContainText('does not establish learning gains');
+ await inputs.nth(0).fill('1405/10/15');await inputs.nth(3).fill('Mathematics');await inputs.nth(4).fill('65');
+ await form.locator('button[type=submit]').click();
+ await expect(root.locator('.jr-km-review-panel')).toBeEmpty();
+ await root.locator('.jr-km-review-action').click();
+ await expect(root.locator('.jr-km-review-item')).toHaveCount(1);
+ await expect(root.locator('.jr-km-review-panel')).not.toContainText('Physics');
+ expect(writes).toEqual([]);
+});

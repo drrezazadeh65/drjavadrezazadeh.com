@@ -29,3 +29,16 @@
 .jr-konkur-mock .jr-km-add-subject{grid-column:1/-1;justify-self:start;min-height:44px}
 .jr-konkur-mock .jr-km-extra-remove{min-height:44px}
 @media(max-width:580px){.jr-konkur-mock .jr-km-extra-row{grid-template-columns:1fr}.jr-konkur-mock .jr-km-add-subject{width:100%}}
+
+/* Optional bounded study-review action: private, descriptive, mobile-first. */
+.jr-konkur-mock .jr-km-review-duration{max-width:min(100%,420px);margin-block:8px}
+.jr-konkur-mock .jr-km-review-action{background:#ddbd86;color:#141921;font-weight:750;margin-block:10px}
+.jr-konkur-mock .jr-km-review-panel{margin-block:12px;border-inline-start:3px solid #d6b47d;padding-inline:clamp(10px,2vw,20px)}
+.jr-konkur-mock .jr-km-review-panel:empty{display:none}
+.jr-konkur-mock .jr-km-review-panel h4{color:#efd7a5;font-size:clamp(1.06rem,2vw,1.28rem)}
+.jr-konkur-mock .jr-km-review-list{padding-inline-start:1.3rem;display:grid;gap:10px}
+.jr-konkur-mock .jr-km-review-item{padding:12px;background:#1c2936;border:1px solid rgba(213,175,104,.43);border-radius:12px;overflow-wrap:anywhere}
+.jr-konkur-mock .jr-km-review-item strong{color:#ffe2b3}
+.jr-konkur-mock .jr-km-review-item ul{padding-inline-start:1.25rem;line-height:1.8}
+.jr-konkur-mock .jr-km-review-panel small{line-height:1.8;display:block}
+@media(max-width:580px){.jr-konkur-mock .jr-km-review-action{width:100%}}
