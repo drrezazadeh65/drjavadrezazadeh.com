@@ -16,9 +16,9 @@ test('protected author dashboard is noindex and the public author page remains a
  assert.match(page,/jr-author-dashboard-v52\.css/);
  assert.match(page,/id="jr-author-onboarding"/);
  assert.match(page,/jr-author-workspace-v1\.js/);
- // A public navigation link is not an authorization or indexability leak.
- // Protect the destination and financial API; preserve the existing author entry point.
- assert.match(product,/href="\/fa\/app\/author\/"/);
+ // The private author workspace remains accessible via authenticated account navigation.
+ // Public product menus must not advertise a private dashboard.
+ assert.doesNotMatch(product,/href="\/fa\/app\/author\/"/);
  assert.doesNotMatch(product,/href="[^"]*\/api\/publishing\/(?:author|ledger)/i);
  assert.match(backend,/Cache-Control: no-store, private/);
  assert.match(backend,/l\.approved_at IS NOT NULL/);
