@@ -69,3 +69,35 @@ test('mother database reference preserves one active Bertina backend and defers 
  assert.equal(actual.ownerFinalAuthorization,false);
  assert.notEqual(actual.releaseState,'FULLY_VERIFIED_FOR_SINGLE_OWNER_RELEASE');
 });
+
+test('revenue v3 extends the existing audit to all 27 service SKUs and four book products',()=>{
+ const r=reconcile(process.cwd(),{sha:'93eeb7e15ffd8b582e1ee9b19d25e82f8bb34303'});
+ assert.deepEqual(r.commercialInventory.counts,{standard:21,vip:6,printBooks:3,digitalBundles:1,total:31});
+ assert.equal(r.commercialInventory.records.length,31);
+ assert.equal(r.commercialInventory.records.filter(x=>x.kind==='STANDARD_SERVICE').length,21);
+ assert.equal(r.commercialInventory.records.filter(x=>x.kind==='VIP_SERVICE').length,6);
+ assert.equal(r.commercialInventory.records.filter(x=>x.kind==='PRINT_BOOK').length,3);
+ assert.ok(r.commercialInventory.records.every(x=>x.currency==='IRT'&&Number.isSafeInteger(x.priceToman)&&x.priceToman>0));
+ assert.ok(r.commercialInventory.records.every(x=>x.liveHttpStatus===null&&!x.checkoutVerified&&!x.paymentVerified&&!x.fulfilmentVerified&&!x.settlementReconciled));
+ assert.ok(r.commercialInventory.records.every(x=>['SOURCE_ONLY','NOT_IMPLEMENTED','BLOCKED_WITH_REASON'].includes(x.status)));
+ const digital=r.commercialInventory.records.find(x=>x.kind==='DIGITAL_BUNDLE');
+ assert.equal(digital.priceToman,1000000);
+ assert.equal(digital.status,'BLOCKED_WITH_REASON');
+ assert.equal(digital.faUrl,'/fa/shop/authors/mehrab-mirkarimi/');
+ assert.equal(r.commercialInventory.statusesDoNotImplyLiveAcceptance,true);
+});
+test('payment registry versus market policy mismatch is disclosed without switching production providers',()=>{
+ const registryBefore=fs.readFileSync('platform/payment-provider-registry.json','utf8');
+ const policyBefore=fs.readFileSync('platform/payment-provider-policy.json','utf8');
+ const r=reconcile();
+ const bitpay=r.paymentProviderReconciliation.records.find(x=>x.key==='ir_primary');
+ assert.ok(bitpay);
+ assert.equal(bitpay.registryEnabled,false);
+ assert.equal(bitpay.policyEnabled,true);
+ assert.equal(bitpay.metadataMismatch,true);
+ assert.equal(r.paymentProviderReconciliation.registryPolicyDiscrepancies,1);
+ assert.equal(r.paymentProviderReconciliation.requiresPrivateBertinaVerification,true);
+ assert.ok(r.paymentProviderReconciliation.records.every(x=>!x.liveCredentialsVerified&&!x.realSkuPaymentVerified));
+ assert.equal(fs.readFileSync('platform/payment-provider-registry.json','utf8'),registryBefore);
+ assert.equal(fs.readFileSync('platform/payment-provider-policy.json','utf8'),policyBefore);
+});

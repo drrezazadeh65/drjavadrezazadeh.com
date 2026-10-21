@@ -77,6 +77,72 @@ export function reconcile(root=process.cwd(),ctx={}){
      missingBilingualPages:paths.filter(p=>!fs.existsSync(path.join(root,p))),
      thisAuditVerifiedPaymentOrFulfilment:false};
  });
+ // Add the remaining revenue SKUs to the *existing* 41-gate/21-service source audit.
+ // A public route, sellable flag or price is not proof of an actual payment.
+ const vip=load('assets/data/vip-catalog.json').services;
+ const books=load('platform/book-catalog.json').books;
+ const publishing=load('assets/data/jr-publishing-prelaunch.json');
+ const providerRegistry=load('platform/payment-provider-registry.json');
+ const providerPolicy=load('platform/payment-provider-policy.json');
+ if(vip.length!==6||books.length!==3||publishing.works.length!==1)
+   throw Error('Revenue v3 inventory expected six VIP, three print books and one digital bundle');
+ const sourceRow=({kind,id,titleFa,faUrl,enUrl,priceToman,paths,blocker=null})=>{
+   const sourcePaths=paths.filter(p=>fs.existsSync(path.join(root,p)));
+   return {kind,id,titleFa,faUrl,enUrl,priceToman,currency:'IRT',
+     sourcePaths,missingSourcePaths:paths.filter(p=>!sourcePaths.includes(p)),
+     status:blocker?'BLOCKED_WITH_REASON':sourcePaths.length===paths.length?'SOURCE_ONLY':'NOT_IMPLEMENTED',
+     blocker,liveHttpStatus:null,checkoutVerified:false,paymentVerified:false,
+     fulfilmentVerified:false,settlementReconciled:false,
+     evidenceScope:'source-only; no authenticated live purchase or settlement inspected'};
+ };
+ const standard=services.map(s=>sourceRow({
+   kind:'STANDARD_SERVICE',id:s.id,titleFa:s.title_fa,
+   faUrl:'/fa/services/'+s.id+'/',enUrl:'/en/services/'+s.id+'/',
+   priceToman:s.price,paths:['fa','en'].map(lang=>lang+'/services/'+s.id+'/index.html')
+ }));
+ const premium=vip.map(s=>sourceRow({
+   kind:'VIP_SERVICE',id:s.id,titleFa:s.title_fa,
+   faUrl:'/fa/vip/'+s.id+'/',enUrl:'/en/vip/'+s.id+'/',
+   priceToman:s.price,paths:['fa','en'].map(lang=>lang+'/vip/'+s.id+'/index.html')
+ }));
+ const print=books.map(s=>sourceRow({
+   kind:'PRINT_BOOK',id:s.id,titleFa:s.title_fa,
+   faUrl:'/fa/shop/',enUrl:'/en/shop/',
+   priceToman:s.commerce.price,
+   paths:['fa/shop/index.html','en/shop/index.html','platform/book-catalog.json']
+ }));
+ const work=publishing.works[0],digital=sourceRow({
+   kind:'DIGITAL_BUNDLE',id:work.id,titleFa:work.title_fa,
+   faUrl:'/fa/shop/authors/mehrab-mirkarimi/',
+   enUrl:'/en/shop/authors/mehrab-mirkarimi/',
+   priceToman:work.quote.gross_unit_price,
+   paths:['fa/shop/authors/mehrab-mirkarimi/index.html',
+     'en/shop/authors/mehrab-mirkarimi/index.html',
+     'assets/data/jr-publishing-prelaunch.json'],
+   blocker:!work.rights_confirmed||work.quote.checkout_enabled!==true||
+     Object.values(publishing.compliance).some(v=>v!==true)
+     ?'Private original PDFs, rights, author activation, payment and delivery require independent proof'
+     :null
+ });
+ const providerRows=providerRegistry.providers.map(p=>{
+   const market=providerPolicy.markets[p.market];
+   const policySelectsProvider=market?.provider_key===p.provider_key;
+   return {key:p.key,market:p.market,providerKey:p.provider_key||null,
+     registryEnabled:p.enabled===true,policyEnabled:policySelectsProvider?market.enabled===true:null,
+     metadataMismatch:policySelectsProvider&&p.enabled!==market.enabled,
+     sourceOnly:true,liveCredentialsVerified:false,realSkuPaymentVerified:false};
+ });
+ const commercialInventory={counts:{standard:standard.length,vip:premium.length,
+   printBooks:print.length,digitalBundles:1,total:standard.length+premium.length+print.length+1},
+   records:[...standard,...premium,...print,digital],
+   statusesDoNotImplyLiveAcceptance:true};
+ const paymentProviderReconciliation={
+   ownerReportedDomesticBitPaySuccess:true,
+   gatewaySuccessDoesNotProveEverySku:true,
+   registryPolicyDiscrepancies:providerRows.filter(p=>p.metadataMismatch).length,
+   records:providerRows,requiresPrivateBertinaVerification:true,
+   noProviderConfigurationMutated:true
+ };
  const verified=rows=>rows.filter(x=>x.status==='VERIFIED').length;
  return {schema:'masterplan-source-evidence-reuse-v1',generatedAt:new Date().toISOString(),
   githubSha:/^[a-f0-9]{40}$/.test(ctx.sha||'')?ctx.sha:null,
@@ -85,6 +151,7 @@ export function reconcile(root=process.cwd(),ctx={}){
   gates:{count:41,formallyVerified:verified(acceptance.verifiedGates),records:gates},
   services:{count:21,formallyVerified:verified(acceptance.verifiedServices),
     bilingualSourcePagesExisting:serviceRows.reduce((n,s)=>n+s.existingBilingualPages.length,0),records:serviceRows},
+  commercialInventory,paymentProviderReconciliation,
   officiallyAcceptedDestinations:acceptance.verifiedInternalDestinations.length,
   existingIndependentSnapshots:[
    {name:'source contract and browser candidate',url:'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/39031565681',note:'Older SHA, not production'},
