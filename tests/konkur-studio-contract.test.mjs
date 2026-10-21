@@ -83,8 +83,8 @@ test('new local draft filter assets have unique cache-busted bilingual reference
  for(const path of ['fa/entekhab-reshteh/index.html','en/student-guidance/index.html']){
   const html=read(path);
   for(const token of ['jr-konkur-foundation-v1.js?v=20261022-review-draft-v3',
-   'jr-konkur-studio-v1.js?v=20261022-draft-filter-v3',
-   'jr-konkur-studio-v1.css?v=20261022-draft-filter-v3'])
+   'jr-konkur-studio-v1.js?v=20261022-review-draft-v4',
+   'jr-konkur-studio-v1.css?v=20261022-review-draft-v4'])
    assert.ok(html.includes(token),'missing changed-file cache key '+token+' '+path);
  }
 });
