@@ -134,3 +134,9 @@
 .ops-audit-table th,.ops-audit-table td{padding:10px 12px;text-align:start;border-bottom:1px solid #34485f;overflow-wrap:anywhere}
 .ops-audit-table th{white-space:nowrap}
 @media(max-width:640px){.ops-audit-toolbar{display:grid;grid-template-columns:minmax(0,1fr)}.ops-audit-toolbar input,.ops-audit-toolbar select{width:100%}.ops-audit-table{font-size:12px}.ops-audit-table th,.ops-audit-table td{padding:8px 5px}}
+
+/* JR ADMIN BILINGUAL TEXT ALIGNMENT CONTRACT 20261021.
+   Do not alter centered badges/charts/buttons or authenticated workspace state. */
+:where(html:lang(fa),html:lang(en)) body{text-align:start}
+:where(.ops) :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select){text-align:start}
+:where(.ops) :is(input[type="email"],input[type="url"],input[type="tel"]){direction:ltr;unicode-bidi:plaintext}
