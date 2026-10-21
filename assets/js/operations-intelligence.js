@@ -96,8 +96,12 @@ btn.addEventListener('click',async()=>{
    documentType==='urlset'?['/sitemap.xml']:[];
   if(!indexed.length)throw Error('unknown sitemap document');
   for(const href of indexed.slice(0,12)){
+   // The journal has its own sitemap and access policy; do not count its
+   // intentional exclusion from this FA/EN public sample as an error.
+   let candidate;try{candidate=new URL(href,location.origin);}catch(_){sitemapFailed++;continue;}
+   if(candidate.origin!==location.origin||!approvedSitemap.test(candidate.pathname))continue;
    try{
-    const xml=href==='/sitemap.xml'?rootXml:await readPublicSitemap(href);
+    const xml=candidate.pathname==='/sitemap.xml'?rootXml:await readPublicSitemap(candidate.href);
     if(xml.documentElement?.localName!=='urlset')throw Error('not a URL set');
     sitemapsRead++;
     for(const entry of xml.getElementsByTagName('url')){
