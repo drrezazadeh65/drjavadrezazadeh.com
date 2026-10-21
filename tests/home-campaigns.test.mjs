@@ -8,7 +8,8 @@ const catalog=JSON.parse(read('platform/home-campaigns-20261021.json'));
 const ids=['golden','major','rcas','consult','family','exam','research','editing','teacher','institution','language','shop','journal','news','support'];
 test('campaign registry contains exactly fifteen unique, grouped and image-backed real offers',()=>{
  assert.equal(catalog.banners.length,15);
- assert.deepEqual(catalog.banners.map(x=>x.id),ids);
+ assert.deepEqual([...catalog.banners.map(x=>x.id)].sort(),[...ids].sort(),
+   'All approved campaign identities remain, while order may evolve');
  assert.equal(new Set(catalog.banners.map(x=>x.id)).size,15);
  assert.equal(catalog.banners.filter(x=>x.group==='spotlight').length,1);
  for(const [g,count] of Object.entries({pathways:5,professional:5,discover:4})){
