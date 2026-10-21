@@ -35,8 +35,8 @@ test('portable preliminary drafts extend both bilingual entry pages without new 
   const helper='jr-konkur-choice-portability-v1.js?v=20261022-private-draft-v1';
   assert.ok(html.includes(helper),path);
   assert.ok(html.indexOf(helper)<html.indexOf('jr-konkur-studio-v1.js'),path);
-  assert.match(html,/jr-konkur-studio-v1\.js\?v=20261022-draft-filter-v3/);
-  assert.match(html,/jr-konkur-studio-v1\.css\?v=20261022-draft-filter-v3/);
+  assert.match(html,/jr-konkur-studio-v1\.js\?v=20261022-review-draft-v4/);
+  assert.match(html,/jr-konkur-studio-v1\.css\?v=20261022-review-draft-v4/);
  }
  const js=read('assets/js/jr-konkur-studio-v1.js');
  for(const phrase of ['JRKonkurChoicePortability','jr-kc-save-draft','jr-kc-import-file',
@@ -73,7 +73,7 @@ test('private choice search is local, accessible and independent of preference o
   'filter.value=\'\'','filterCount.setAttribute(\'aria-live\',\'polite\')'])
   assert.ok(script.includes(token),'missing local filter invariant '+token);
  assert.match(foundation,/function filterDraftChoices\(choices,query=''/);
- assert.match(foundation,/reorder,filterDraftChoices,evidencePassport/);
+ assert.match(foundation,/reorder,filterDraftChoices,reviewPreliminaryDraft,evidencePassport/);
  assert.match(read('assets/css/jr-konkur-studio-v1.css'),/jr-kc-filter-empty/);
  for(const forbidden of ['fetch(','XMLHttpRequest','sendBeacon','indexedDB','localStorage','sessionStorage'])
   assert.equal(script.includes(forbidden),false,'search must remain local');
@@ -82,7 +82,7 @@ test('private choice search is local, accessible and independent of preference o
 test('new local draft filter assets have unique cache-busted bilingual references',()=>{
  for(const path of ['fa/entekhab-reshteh/index.html','en/student-guidance/index.html']){
   const html=read(path);
-  for(const token of ['jr-konkur-foundation-v1.js?v=20261022-draft-filter-v2',
+  for(const token of ['jr-konkur-foundation-v1.js?v=20261022-review-draft-v3',
    'jr-konkur-studio-v1.js?v=20261022-draft-filter-v3',
    'jr-konkur-studio-v1.css?v=20261022-draft-filter-v3'])
    assert.ok(html.includes(token),'missing changed-file cache key '+token+' '+path);
