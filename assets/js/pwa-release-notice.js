@@ -40,10 +40,22 @@
   if(hadController)root();
   hadController=true;
  });
- // Existing open desktop/phone apps check again when resumed, not on a
- // background timer. No service-worker registry changes or forced reinstall.
+ // site.js already checks the service worker at every fresh launch.
+ // Reuse this bounded read-only check for a visible, user-triggered action.
+ // No forced reload, private-data storage, new registration or notification spam.
+ let inFlight=null;
+ const checkForUpdates=()=>{
+  if(inFlight)return inFlight;
+  inFlight=navigator.serviceWorker.getRegistration()
+   .then(async reg=>{
+    if(!reg)return 'unavailable';
+    await reg.update();
+    return 'checked';
+   }).catch(()=> 'unavailable').finally(()=>{inFlight=null});
+  return inFlight;
+ };
+ window.jrPwaCheckForUpdates=checkForUpdates;
  document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState!=='visible')return;
-  navigator.serviceWorker.getRegistration().then(reg=>reg?.update()).catch(()=>{});
+  if(document.visibilityState==='visible')void checkForUpdates();
  });
 })();

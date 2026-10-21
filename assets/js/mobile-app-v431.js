@@ -17,6 +17,13 @@ const u=p=>base+p.replace(/^\//,'');
 if(!q('link[data-v431-mobile-shell],link[href*="mobile-app-v431.css"]')){
  const l=document.createElement('link');l.rel='stylesheet';l.href=u('assets/css/mobile-app-v431.css?v=431c');l.dataset.v431MobileShell='1';document.head.appendChild(l);
 }
+/* Keep pre-approved stylesheet bundles byte-for-byte stable; this is an additive
+   brand-token mobile enhancement shared by all existing public shell routes. */
+if(!q('link[data-jr-native-mobile]')){
+ const layer=document.createElement('link');
+ layer.rel='stylesheet';layer.href=u('assets/css/mobile-native-20261021.css?v=1');
+ layer.dataset.jrNativeMobile='1';document.head.appendChild(layer);
+}
 const paths={
 home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M9 20v-6h6v6"/>',
 user:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-4 3-6 7-6s6.3 2 7 6"/>',
@@ -93,8 +100,46 @@ if(installControl){
   document.head.appendChild(style);
 }
 const panel=document.createElement('div');panel.className='mobile-app-sheet';panel.id='mobile-app-menu';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label',isFa?'دسترسی سریع':'Explore');
-panel.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><div><small>'+(isFa?'ناوبری اپ':'APP NAVIGATION')+'</small><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong></div><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-grid">'+sheet.map(([h,l])=>'<a href="'+h+'"><span class="sheet-icon">'+icon(iconFor(h,l))+'</span><b>'+l+'</b><span class="sheet-chevron" aria-hidden="true">›</span></a>').join('')+'</div></div>';
+panel.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><div><small>'+(isFa?'ناوبری اپ':'APP NAVIGATION')+'</small><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong></div><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-search"><label for="jr-mobile-quick-find">'+(isFa?'جست‌وجوی سریع در بخش‌های سایت':'Quickly find a site section')+'</label><input id="jr-mobile-quick-find" data-jr-mobile-quick-find type="search" autocomplete="off" spellcheck="false" placeholder="'+(isFa?'نام خدمت، کتاب یا بخش...':'Service, book or section...')+'" aria-controls="jr-mobile-quick-links"><span data-jr-mobile-search-count role="status" aria-live="polite"></span></div><div class="app-sheet-grid" id="jr-mobile-quick-links">'+sheet.map(([h,l])=>'<a href="'+h+'"><span class="sheet-icon">'+icon(iconFor(h,l))+'</span><b>'+l+'</b><span class="sheet-chevron" aria-hidden="true">›</span></a>').join('')+'</div><p class="app-sheet-empty" data-jr-mobile-empty hidden>'+(isFa?'بخشی با این عبارت پیدا نشد. عبارت دیگری وارد کنید.':'No section matched. Try another term.')+'</p>'+(isInstalled?'<div class="app-sheet-update"><button type="button" data-jr-app-update-check>'+icon('path')+'<span>'+(isFa?'بررسی نسخه جدید اپلیکیشن':'Check for app updates')+'</span></button><p data-jr-app-update-status role="status" aria-live="polite">'+(isFa?'در صورت انتشار نسخه جدید، به‌روزرسانی با تأیید شما انجام می‌شود.':'Updates are announced before you choose to refresh.')+'</p></div>':'')+'</div>';
 document.body.appendChild(panel);
+// Private-safe, client-side discovery: no search query is stored or transmitted.
+const sheetSearch=q('[data-jr-mobile-quick-find]',panel);
+const sheetLinks=qa('.app-sheet-grid a',panel);
+const normalizeSheetTerm=value=>value.normalize('NFKC').toLocaleLowerCase().replace(/[\u064B-\u065F]/g,'').replace(/[يى]/g,'ی').replace(/ك/g,'ک').trim();
+const applySheetSearch=()=>{
+  const query=normalizeSheetTerm(sheetSearch.value);
+  let visible=0;
+  for(const link of sheetLinks){
+    const label=normalizeSheetTerm(link.textContent+' '+new URL(link.href,location.href).pathname);
+    link.hidden=Boolean(query)&&!label.includes(query);
+    if(!link.hidden)visible++;
+  }
+  q('[data-jr-mobile-empty]',panel).hidden=visible!==0;
+  q('[data-jr-mobile-search-count]',panel).textContent=query
+    ?(isFa?'نتیجه: '+visible+' بخش':visible+' matching sections')
+    :'';
+};
+sheetSearch?.addEventListener('input',applySheetSearch);
+const updateButton=q('[data-jr-app-update-check]',panel);
+updateButton?.addEventListener('click',async()=>{
+  const status=q('[data-jr-app-update-status]',panel);
+  updateButton.disabled=true;
+  status.textContent=isFa?'در حال بررسی نسخه جدید...':'Checking for updates...';
+  try{
+    const check=window.jrPwaCheckForUpdates;
+    let outcome;
+    if(typeof check==='function')outcome=await check();
+    else if('serviceWorker' in navigator){
+      const reg=await navigator.serviceWorker.getRegistration();
+      if(reg){await reg.update();outcome='checked'}
+    }
+    status.textContent=outcome==='checked'
+      ?(isFa?'بررسی انجام شد. اگر نسخه جدیدی دریافت شود، پیام به‌روزرسانی نشان داده می‌شود.':'Check completed. An update notice will appear when a new version is ready.')
+      :(isFa?'بررسی نسخه از این مرورگر یا اتصال ممکن نیست.':'Update check is unavailable in this browser or connection.');
+  }catch(_){
+    status.textContent=isFa?'بررسی انجام نشد؛ اتصال اینترنت را بررسی کنید.':'Check unsuccessful; verify your connection.';
+  }finally{updateButton.disabled=false}
+});
 const current=location.pathname.replace(/index\.html$/,'');
 const localeRoot=isFa?'/fa/':'/en/';
 const matches=qa('.app-dock a').map(a=>{try{const p=new URL(a.href,location.href).pathname.replace(/index\.html$/,'');const exact=p===current,nested=!exact&&p!==localeRoot&&current.startsWith(p);return exact||nested?{a,p,exact}:null}catch{return null}}).filter(Boolean).sort((a,b)=>(Number(b.exact)-Number(a.exact))||(b.p.length-a.p.length));

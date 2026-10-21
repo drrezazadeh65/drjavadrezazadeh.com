@@ -1,0 +1,98 @@
+/* 2026-10-21 · Approved brand / mobile native experience, additive only.
+   One existing app dock, searchable sheet, explicit installed PWA update action.
+   Keep 5 primary tabs, the existing optional install action and SW lifecycle. */
+@media(max-width:900px){
+ .app-dock a,.app-dock button{
+   font-size:clamp(9.5px,2.8vw,11px)!important;
+ }
+ .app-sheet-search{
+   display:grid;
+   gap:8px;
+   padding:2px 2px 14px;
+ }
+ .app-sheet-search label{
+   color:#F8F5E9;
+   font-size:13px;
+   font-weight:650;
+   line-height:1.5;
+ }
+ .app-sheet-search input{
+   box-sizing:border-box;
+   display:block;
+   width:100%;
+   min-width:0;
+   min-height:48px;
+   padding:12px 14px;
+   border:1px solid rgba(212,175,55,.42);
+   border-radius:14px;
+   background:#1F1F1F;
+   color:#F8F5E9;
+   font-family:inherit;
+   font-weight:500;
+   line-height:1.5;
+   font-size:16px;
+   outline-offset:3px;
+   -webkit-appearance:none;
+   appearance:none;
+   touch-action:manipulation;
+ }
+ .app-sheet-search input::placeholder{color:#BFB6A3;opacity:1}
+ .app-sheet-search input:focus-visible{
+   outline:2px solid #D4AF37!important;
+   border-color:#D4AF37;
+ }
+ .app-sheet-search [data-jr-mobile-search-count]{
+   min-height:1px;
+   color:#D5CAB4;
+   font-size:12px;
+   line-height:1.4;
+ }
+ .mobile-app-sheet .app-sheet-grid a[hidden],
+ .mobile-app-sheet .app-sheet-empty[hidden]{display:none!important}
+ .app-sheet-empty{
+   margin:12px 3px 16px;
+   color:#F8F5E9;
+   font-size:14px;
+   line-height:1.7;
+ }
+ .app-sheet-update{
+   display:grid;
+   gap:9px;
+   margin-top:15px;
+   padding-top:15px;
+   border-top:1px solid rgba(212,175,55,.24);
+ }
+ .app-sheet-update button{
+   display:flex;
+   align-items:center;
+   justify-content:center;
+   gap:10px;
+   min-height:48px;
+   width:100%;
+   padding:10px 14px;
+   background:rgba(212,175,55,.09);
+   color:#F8F5E9;
+   border:1px solid rgba(212,175,55,.48);
+   border-radius:14px;
+   font-size:14px;
+   font-weight:650;
+   line-height:1.5;
+   touch-action:manipulation;
+ }
+ .app-sheet-update button:focus-visible{outline:2px solid #D4AF37;outline-offset:3px}
+ .app-sheet-update button:disabled{opacity:.65;cursor:progress}
+ .app-sheet-update .app-icon{width:20px;height:20px}
+ .app-sheet-update p{
+   margin:0;
+   font-size:12px;
+   line-height:1.6;
+   color:#D5CAB4;
+ }
+ .mobile-app-sheet .app-sheet-panel{
+   overflow-y:auto;
+   overscroll-behavior:contain;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .app-sheet-search input,.app-sheet-update button{transition:none!important}
+}
