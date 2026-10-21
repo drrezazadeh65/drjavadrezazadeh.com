@@ -127,3 +127,22 @@ test('academic brand, native accessible accordions, revision controls and SUPER_
  assert.match(read('assets/js/site-extras.js'),/community-comments\.js\?v=20261021-academic-v2/);
  assert.match(read('assets/js/site-extras.js'),/community-comments\.css\?v=20261021-academic-v2/);
 });
+
+
+test('public reply result caps preserve approved-only publication and bounded memory',()=>{
+ const php=read('api/community.php');
+ const begin=php.indexOf('function communityListApprovedReplies(');
+ const end=php.indexOf('function communityAdminReplyRow(',begin);
+ const onlyPublic=php.slice(begin,end);
+ assert.match(onlyPublic,/ORDER BY r\.created_at ASC,r\.id ASC LIMIT 300/);
+ assert.match(onlyPublic,/count\(\$out\[\$parent\]\?\?\[\]\)>=15/);
+ assert.match(onlyPublic,/r\.state='published'/);
+ assert.match(onlyPublic,/c\.state='approved'/);
+ assert.doesNotMatch(onlyPublic,/body_snapshot|email_normalized|author_account_id/);
+});
+test('administrator relock guard stops CSRF races before a mutation is sent',()=>{
+ const js=read('assets/js/operations-community-moderation.js');
+ assert.match(js,/const active=generation;\s*const r=await json\('\/api\/community\/csrf'\)/);
+ assert.match(js,/if\(workspace\.hidden\|\|active!==generation\)throw Error\('locked'\)/);
+ assert.match(js,/const key=await token\(\);\s*if\(workspace\.hidden\)throw Error\('locked'\)/);
+});
