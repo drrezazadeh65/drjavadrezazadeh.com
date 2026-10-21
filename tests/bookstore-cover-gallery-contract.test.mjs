@@ -49,7 +49,7 @@ test('both bilingual shop pages use the gallery without URL and metadata regress
   const html=read(file);
   assert.ok(html.includes('href="https://drjavadrezazadeh.com/'+lang+'/shop/"'),'existing self-canonical '+lang);
   assert.ok(html.includes('/assets/css/jr-book-cover-gallery-v1.css?v=20261019-cover-gallery-v1'));
-  assert.ok(html.includes('book-store.js?v=20261019-cover-gallery-v1'));
+  assert.ok(html.includes('book-store.js?v=20261020-digital-v2'));
   assert.ok(html.includes('data-book-catalog'),'existing book catalogue');
   assert.match(html,/id="book-catalog"/);
   assert.match(html,/href="(?:\.\/)?cart\/"/);
