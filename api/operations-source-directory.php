@@ -33,6 +33,26 @@ function operationsSourceDirectory(PDO $pdo,int $at): array {
     }
     $raw=@file_get_contents(__DIR__.'/internal/admin-social-directory.json');
     $social=is_string($raw)&&strlen($raw)<65536?json_decode($raw,true):null;
+    // Reuse the existing bounded, owner-only social readiness reader. Stored
+    // account statuses are not external OAuth verification, and recent records
+    // do not represent all-time reach, impression totals or successful delivery.
+    $socialHistory=null;
+    try { $socialHistory=operationsSocialSnapshot($pdo); }
+    catch(Throwable $e) { $socialHistory=null; }
+    $storedAccounts=is_array($socialHistory['verifiedStatusAccountRows']??null)
+        ?$socialHistory['verifiedStatusAccountRows']:null;
+    $recentSocialDeliveries=[];
+    foreach(($socialHistory['recentDeliveries']??[]) as $delivery) {
+        if(!is_array($delivery))continue;
+        $key=(string)($delivery['provider']??'');
+        if($key==='')continue;
+        if(!isset($recentSocialDeliveries[$key]))
+            $recentSocialDeliveries[$key]=['records'=>0,'lastStoredEventAt'=>null];
+        $recentSocialDeliveries[$key]['records']++;
+        $ts=(int)($delivery['updatedAt']??0);
+        if($ts>0)$recentSocialDeliveries[$key]['lastStoredEventAt']=
+            max($recentSocialDeliveries[$key]['lastStoredEventAt']??0,$ts);
+    }
     $validSocial=is_array($social)&&($social['schema']??null)==='operations-social-directory-v1'
         && count($social['channels']??[])===16;
     if($validSocial)foreach($social['channels'] as $record) {
@@ -44,6 +64,11 @@ function operationsSourceDirectory(PDO $pdo,int $at): array {
             'kind'=>'social_channel','engineId'=>'ENG-03',
             'status'=>'unverified','observedAt'=>null,'url'=>$url,
             'lastError'=>null,
+            'storedVerifiedStatusAccountRows'=>$storedAccounts===null?null:
+                (int)($storedAccounts[$record['id']]??0),
+            'recentStoredDeliveryRecords'=>$recentSocialDeliveries[$record['id']]['records']??null,
+            'lastStoredDeliveryAt'=>$recentSocialDeliveries[$record['id']]['lastStoredEventAt']??null,
+            'socialRecordScope'=>'Stored account flags and the latest 25 delivery records only; not an independently confirmed provider connection or audience measurement.',
             'limitation'=>'Publishing credentials, consent, provider acceptance and engagement measurements unverified.'
         ];
         $result['counts']['socialChannels']++;
@@ -66,6 +91,11 @@ function operationsSourceDirectory(PDO $pdo,int $at): array {
             'status'=>$observation===null?'unavailable':($fresh?'cached_fresh':
                 (($observation['cacheState']??null)==='disabled'?'disabled':'not_fresh')),
             'observedAt'=>$fresh?(int)($observation['lastFetchedAt']??0):null,
+            'lastCollectedAt'=>$observation['lastFetchedAt']??null,
+            'lastAttemptAt'=>$observation['lastAttempt']['attemptedAt']??null,
+            'lastAttemptResult'=>$observation['lastAttempt']['result']??null,
+            'nextDueAt'=>$observation['nextDue']??null,
+            'cadence'=>$observation['cadence']??$entry['cadence'],
             'url'=>'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions',
             'lastError'=>($observation['lastAttempt']['result']??null)==='failed'
                 ?'provider_result_unavailable':null,
