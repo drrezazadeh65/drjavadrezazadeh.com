@@ -278,7 +278,7 @@ test('existing publishing offer activation is owner-controlled, idempotent and d
  assert.doesNotMatch(cli,/INSERT INTO customer_accounts/);
  // Existing owner-approved asset activation is permitted only for the two pinned original PDFs.
  assert.match(cli,/UPDATE publishing_private_assets SET approved_at=COALESCE\(approved_at,NOW\(\)\)/);
- assert.match(cli,/logical_kind IN \('question_pdf','answer_pdf'\)/);
+ assert.match(cli,/logical_kind IN\s*\('question_pdf','answer_pdf'\)/);
  assert.match(cli,/encrypted_at_rest=0/);
  assert.doesNotMatch(cli,/CREATE TABLE|DROP TABLE|DELETE FROM/);
  assert.match(offer,/function jrPubDigitalSalesSwitchEnabled\(\): bool/);
