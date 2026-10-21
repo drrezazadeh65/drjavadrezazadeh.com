@@ -95,8 +95,11 @@ test('filtering preliminary choices does not reorder or truncate the complete ex
  await expect(root.locator('.jr-kc-item')).toHaveCount(1);
  await expect(root.locator('.jr-kc-filter-count')).toContainText('1 of 3');
  await expect(root.locator('.jr-kc-item')).toContainText('12345');
- await root.locator('.jr-kc-item').getByRole('button',{name:/Move choice up/}).click();
- await expect(root.locator('.jr-kc-item')).toHaveCount(1);
+ await expect(root.locator('.jr-kc-item').getByRole('button',{name:/Move choice up/})).toBeDisabled();
+ await expect(root.locator('.jr-kc-filter-count')).toContainText('Clear the search');
+ await search.fill('');
+ await root.locator('.jr-kc-item').nth(1).getByRole('button',{name:/Move choice up/}).click();
+ await expect(root.locator('.jr-kc-item').first()).toContainText('12345');
  await search.fill('۵۴۳۲۱');
  await expect(root.locator('.jr-kc-item')).toHaveCount(1);
  await expect(root.locator('.jr-kc-item')).toContainText('54321');
@@ -131,5 +134,26 @@ test('pre-submission review checks user-entered fields but refuses to certify of
  await expect(root.locator('.jr-kc-review-panel')).toBeEmpty();
  await root.locator('.jr-kc-review-draft').click();
  await expect(root.locator('.jr-kc-review-panel')).toContainText('not authenticated');
+ expect(writes).toEqual([]);
+});
+
+test('Persian examination-group search remains local and temporarily locks hidden preference ordering',async({page})=>{
+ const writes=[];page.on('request',r=>{if(!['GET','HEAD'].includes(r.method()))writes.push(r.method());});
+ await page.goto('http://127.0.0.1:4173/fa/entekhab-reshteh/',{waitUntil:'domcontentloaded'});
+ const root=page.locator('[data-konkur-selection]'),form=root.locator('.jr-kc-form');
+ await form.locator('input').nth(0).fill('00123');
+ await form.locator('select').selectOption('EXPERIMENTAL_SCIENCES');
+ await form.locator('button[type=submit]').click();
+ await form.locator('input').nth(0).fill('12345');
+ await form.locator('select').selectOption('MATHEMATICS');
+ await form.locator('button[type=submit]').click();
+ await root.locator('.jr-kc-filter').fill('تجربی');
+ await expect(root.locator('.jr-kc-item')).toHaveCount(1);
+ await expect(root.locator('.jr-kc-item')).toContainText('00123');
+ await expect(root.locator('.jr-kc-item button')).toHaveCount(3);
+ await expect(root.locator('.jr-kc-item button').first()).toBeDisabled();
+ await expect(root.locator('.jr-kc-item button').nth(1)).toBeDisabled();
+ await root.locator('.jr-kc-filter').fill('');
+ await expect(root.locator('.jr-kc-item')).toHaveCount(2);
  expect(writes).toEqual([]);
 });

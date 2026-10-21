@@ -120,6 +120,13 @@
   return {valid:warnings.length===0,warnings,maximum:max,count:choices.length};
  }
  // Search is a view of the user's *original ordered draft*, never a reordering.
+ const groupSearchLabels=Object.freeze({
+  HUMANITIES:'علوم انسانی انسانی humanities',
+  EXPERIMENTAL_SCIENCES:'علوم تجربی تجربی زیست experimental sciences',
+  MATHEMATICS:'ریاضی ریاضیات فنی mathematics',
+  ARTS:'هنر هنری arts',
+  FOREIGN_LANGUAGES:'زبان زبان‌های خارجی زبانهای خارجی languages foreign'
+ });
  const searchFold=value=>String(value??'').normalize('NFKC')
   .replace(/[۰-۹٠-٩]/g,ch=>{
    const n=ch.codePointAt(0);return String(n>=0x6f0?n-0x6f0:n-0x660);
@@ -131,7 +138,7 @@
   const selected=[];
   choices.forEach((choice,index)=>{
    if(!choice||typeof choice!=='object')return;
-   const haystack=[choice.code,choice.note,choice.group].map(searchFold).join(' ');
+   const haystack=[choice.code,choice.note,choice.group,groupSearchLabels[choice.group]||''].map(searchFold).join(' ');
    if(!needle||haystack.includes(needle))selected.push(Object.freeze({index,choice}));
   });
   return Object.freeze(selected);

@@ -83,3 +83,19 @@ test('pre-submission readiness provides actionable warnings without official adm
  assert.ok(f.reviewPreliminaryDraft([]).issues.includes('NO_CHOICES_RECORDED'));
  assert.ok(f.reviewPreliminaryDraft(Array(151).fill(entries[0])).issues.includes('INVALID_OR_OVERSIZED_LOCAL_DRAFT'));
 });
+
+test('Persian labels of examination groups are searchable without mutating draft order',()=>{
+ const draft=[
+  {code:'00123',note:'',group:'EXPERIMENTAL_SCIENCES'},
+  {code:'12345',note:'',group:'MATHEMATICS'},
+  {code:'54321',note:'',group:'FOREIGN_LANGUAGES'},
+  {code:'99999',note:'',group:'HUMANITIES'},
+  {code:'88888',note:'',group:'ARTS'}
+ ];
+ assert.deepEqual(f.filterDraftChoices(draft,'تجربی').map(x=>x.index),[0]);
+ assert.deepEqual(f.filterDraftChoices(draft,'ریاضیات').map(x=>x.index),[1]);
+ assert.deepEqual(f.filterDraftChoices(draft,'زبان').map(x=>x.index),[2]);
+ assert.deepEqual(f.filterDraftChoices(draft,'انسانی').map(x=>x.index),[3]);
+ assert.deepEqual(f.filterDraftChoices(draft,'هنر').map(x=>x.index),[4]);
+ assert.deepEqual(draft.map(x=>x.code),['00123','12345','54321','99999','88888']);
+});

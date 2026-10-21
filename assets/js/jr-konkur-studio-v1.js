@@ -58,12 +58,15 @@
   reviewPanel.replaceChildren();
   list.replaceChildren();
   count.textContent=t('تعداد انتخاب‌ها: ','Choices: ')+new Intl.NumberFormat(fa?'fa-IR':'en-US').format(choices.length);
+  const filterActive=filter.value.trim().length>0;
   const visible=F.filterDraftChoices(choices,filter.value);
   filterCount.textContent=t('نمایش ','Showing ')+
    new Intl.NumberFormat(fa?'fa-IR':'en-US').format(visible.length)+
    t(' مورد از ',' of ')+
    new Intl.NumberFormat(fa?'fa-IR':'en-US').format(choices.length)+
-   t(' انتخاب، بدون تغییر ترتیب اصلی.',' choices, preserving original order.');
+   t(' انتخاب، بدون تغییر ترتیب اصلی.',' choices, preserving original order.')+
+   (filterActive?t(' برای تغییر اولویت‌ها، جست‌وجو را پاک کنید.',
+    ' Clear the search before changing preference order.'):'');
   if(!visible.length&&choices.length)
    list.append(el('li','jr-kc-filter-empty',t('نتیجه‌ای یافت نشد؛ جست‌وجو را پاک کنید.',
     'No matches; clear the search to see your choices.')));
@@ -73,8 +76,8 @@
    details.append(el('strong','',(i+1)+'. '+c.code),el('p','',c.note||t('عنوان نامشخص','Unverified title')),
     el('small','',t('کد و شرایط پذیرش هنوز تأیید نشده‌اند.','Code and eligibility not yet verified.')));
    const controls=el('div','jr-kc-controls');
-   const up=el('button','',t('↑ بالاتر','↑ Up'));up.type='button';up.disabled=i===0;
-   const down=el('button','',t('↓ پایین‌تر','↓ Down'));down.type='button';down.disabled=i===choices.length-1;
+   const up=el('button','',t('↑ بالاتر','↑ Up'));up.type='button';up.disabled=filterActive||i===0;
+   const down=el('button','',t('↓ پایین‌تر','↓ Down'));down.type='button';down.disabled=filterActive||i===choices.length-1;
    const remove=el('button','',t('حذف','Remove'));remove.type='button';
    up.setAttribute('aria-label',t('بالا بردن انتخاب ','Move choice up ')+(i+1));
    down.setAttribute('aria-label',t('پایین بردن انتخاب ','Move choice down ')+(i+1));

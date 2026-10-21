@@ -82,8 +82,8 @@ test('private choice search is local, accessible and independent of preference o
 test('new local draft filter assets have unique cache-busted bilingual references',()=>{
  for(const path of ['fa/entekhab-reshteh/index.html','en/student-guidance/index.html']){
   const html=read(path);
-  for(const token of ['jr-konkur-foundation-v1.js?v=20261022-review-draft-v3',
-   'jr-konkur-studio-v1.js?v=20261022-review-draft-v4',
+  for(const token of ['jr-konkur-foundation-v1.js?v=20261022-search-safety-v4',
+   'jr-konkur-studio-v1.js?v=20261022-search-safety-v5',
    'jr-konkur-studio-v1.css?v=20261022-review-draft-v4'])
    assert.ok(html.includes(token),'missing changed-file cache key '+token+' '+path);
  }
@@ -98,4 +98,15 @@ test('offline pre-submission review and print both require independent official 
  const foundation=read('assets/js/jr-konkur-foundation-v1.js');
  assert.match(foundation,/function reviewPreliminaryDraft\(choices\)/);
  assert.match(read('assets/css/jr-konkur-studio-v1.css'),/\.jr-kc-review-list/);
+});
+
+test('filter locking ensures hidden choices cannot be reordered without clearing search',()=>{
+ const script=read('assets/js/jr-konkur-studio-v1.js');
+ assert.ok(script.includes('const filterActive=filter.value.trim().length>0'));
+ assert.ok(script.includes('up.disabled=filterActive||i===0'));
+ assert.ok(script.includes('down.disabled=filterActive||i===choices.length-1'));
+ assert.ok(script.includes('Clear the search before changing preference order.'));
+ const foundation=read('assets/js/jr-konkur-foundation-v1.js');
+ assert.ok(foundation.includes('groupSearchLabels[choice.group]'));
+ assert.ok(foundation.includes('علوم تجربی'));
 });
