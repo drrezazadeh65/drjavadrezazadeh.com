@@ -58,11 +58,11 @@ for(const locale of locales){
  });
 }
 
-test('Mirkarimi offer preserves 60/40, status gate and genuine published media',()=>{
+test('Mirkarimi offer preserves current 70/30 allocation, status gate and genuine published media',()=>{
  const html=read('fa/shop/authors/mehrab-mirkarimi/index.html');
  const stylesheet=read('assets/css/jr-future-publishing-author-v1.css');
- assert.match(html,/۴۰۰٬۰۰۰ تومان/);
- assert.match(html,/۶۰۰٬۰۰۰ تومان/);
+ assert.match(html,/۳۰۰٬۰۰۰ تومان/);
+ assert.match(html,/۷۰۰٬۰۰۰ تومان/);
  assert.match(html,/id="jp-digital-checkout-form"/);
  assert.match(html,/id="jp-checkout-state"/);
  assert.match(html,/jp-commercial-image/);
