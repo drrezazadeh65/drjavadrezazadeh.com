@@ -1039,6 +1039,7 @@ function operationsRoute(string $path, string $verb): never {
                 'catalogueDate'=>$catalogue['catalogueDate']??null,
                 'connectionStatus'=>'UNVERIFIED','verifiedExternalConnections'=>0,
                 'automatedDataInUse'=>false,'resources'=>$catalogue['resources'],
+                'providerInventory'=>operationsProviderInventory(),
                 'scholarlyObservation'=>operationsFreeScholarlyObservation(),
                 'performanceObservation'=>operationsFreePerformanceObservation(),
                 'localLighthouseObservation'=>operationsLocalLighthouseObservation(),
