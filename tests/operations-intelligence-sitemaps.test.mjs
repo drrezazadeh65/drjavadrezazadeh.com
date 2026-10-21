@@ -24,7 +24,10 @@ test('sample balances both languages and stays capped at 32 pages',()=>{
  assert.match(js,/sitemapFailed/);
 });
 test('admin loads a distinct cache-busted sampler and retains MFA workspace protection',()=>{
- assert.ok(html.includes('operations-intelligence.js?v=20261021-sitemapindex-v2'));
+ for(const page of ['fa/app/admin/index.html','en/account/admin/index.html']){
+  const dashboard=readFileSync(new URL('../'+page,import.meta.url),'utf8');
+  assert.ok(dashboard.includes('operations-intelligence.js?v=20261021-sitemapindex-v2'));
+ }
  assert.ok(html.includes('id="ops-workspace" hidden'));
  assert.ok(js.includes("document.getElementById('ops-workspace')?.hidden"));
 });
