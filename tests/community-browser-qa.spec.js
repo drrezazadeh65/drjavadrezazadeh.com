@@ -197,3 +197,51 @@ test('only server-approved stars appear in the academic mean and empty/untrusted
  await expect(summary).toContainText('۴٫۳');
  expect(await page.locator('script[type="application/ld+json"]').evaluateAll(nodes=>nodes.every(node=>!node.textContent.includes('aggregateRating')))).toBe(true);
 });
+
+
+for(const [lang,path] of [
+ ['fa','/fa/services/academic_editing/'],
+ ['en','/en/services/academic_editing/']
+]){
+ test(lang+' bilingual public service questions remain unrated, moderated and privacy-safe',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  let sent=null;
+  await page.route('**/api/community/**',route=>{
+   const url=route.request().url();
+   if(url.includes('/csrf'))return respond(route,200,{ok:true,csrfToken:'e'.repeat(64)});
+   if(route.request().method()==='POST'){
+    sent=route.request().postDataJSON();
+    return respond(route,202,{ok:true,state:'pending',moderatedBeforePublication:true});
+   }
+   return respond(route,200,{ok:true,schema:'community-comments-v1',page:path,
+     comments:[],count:0,ratingSummary:{count:0,mean:null}});
+  });
+  await page.goto(base+path,{waitUntil:'domcontentloaded'});
+  // The production bundle adds these assets to the 21 explicitly catalogued
+  // public service descriptions; local static source pages are not mutated.
+  await page.addStyleTag({url:base+'/assets/css/community-comments.css'});
+  await page.addScriptTag({url:base+'/assets/js/community-comments.js'});
+  const host=page.locator('[data-jr-community]');
+  await expect(host).toBeVisible();
+  await expect(host.locator('.jr-community-rating')).toHaveCount(0);
+  await expect(host.locator('.jr-community-rating-summary')).toBeHidden();
+  await host.locator('.jr-community-compose>summary').click();
+  const form=host.locator('form');
+  await expect(form).toBeVisible();
+  if(lang==='en'){
+   await expect(host.locator('h2')).toContainText('Questions about this service');
+   await expect(form.locator('button[type="submit"]')).toHaveText('Submit question for moderation');
+  }else{
+   await expect(host.locator('h2')).toContainText('پرسش درباره این خدمت');
+  }
+  await form.locator('textarea[name="body"]').fill(lang==='fa'?
+   'آیا برای این خدمت، پیش از ثبت سفارش جلسه مشاوره اولیه وجود دارد؟':
+   'Is an initial consultation available before requesting this academic service?');
+  await form.locator('input[name="consent"]').check();
+  await form.locator('button[type="submit"]').click();
+  await expect.poll(()=>sent).not.toBeNull();
+  expect(sent).toMatchObject({page:path,rating:null,website:'',consentToPublication:true});
+  await expect(host.locator('.jr-community-comment')).toHaveCount(0);
+  expect(Math.max(await page.evaluate(()=>document.documentElement.scrollWidth),0)).toBeLessThanOrEqual(392);
+ });
+}
