@@ -35,5 +35,6 @@ test('stages only unreviewed, deduplicated, source-matched page anchors',()=>{
   assert.match(executable,/existing\.document_id = d\.id AND existing\.pdf_page_number = digits\.page_no/);
   assert.doesNotMatch(executable,/INSERT INTO eco_admission_(?:programme_offerings|rule_versions|offering_conditions|import_rows)/);
   assert.doesNotMatch(executable,/\b(?:UPDATE|DELETE|REPLACE|DROP|ALTER|TRUNCATE|GRANT|REVOKE)\b/i);
-  assert.doesNotMatch(executable,/\b(?:QA_APPROVED|SOURCE_MATCHED|APPROVED)\s*['";,)]/);
+  assert.doesNotMatch(executable,/\bpage_review_state\s*=\s*['"](?:REVIEWED|DISCREPANT)['"]/i);
+  assert.doesNotMatch(executable,/\bINSERT INTO\s+eco_admission_documents/i);
 });
