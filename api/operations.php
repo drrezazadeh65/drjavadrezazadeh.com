@@ -20,6 +20,7 @@ require_once __DIR__.'/consultation-availability.php';
 require_once __DIR__.'/operations-action-runs.php';
 require_once __DIR__.'/operations-provider-inventory.php';
 require_once __DIR__.'/operations-source-directory.php';
+require_once __DIR__.'/operations-source-controls.php';
 require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/social-review.php';
 require_once __DIR__.'/social-admin-settings.php';
@@ -514,6 +515,66 @@ function operationsRoute(string $path, string $verb): never {
             if (!rateAllowed($pdo,'operations_source_directory_read',$accountId,12,300))
                 fail('rate_limited',429);
             respond(operationsSourceDirectory($pdo,nowTs()));
+        }
+
+        // Per-source controls in the same MySQL database, after admin RBAC and
+        // fresh MFA. Public provider catalogue links are not API credentials.
+        if ($path === '/admin/operations/source-controls' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_source_controls_read',$accountId,15,300))
+                fail('rate_limited',429);
+            $directory=operationsSourceDirectory($pdo,nowTs());
+            $view=operationsSourceControlView($pdo,$directory,nowTs());
+            $view['canManage']=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
+            respond($view);
+        }
+        if ($path === '/admin/operations/source-controls' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('source_control_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_source_controls_write',$accountId,15,600))
+                fail('rate_limited',429);
+            try {
+                $input=jsonBody();
+                if(!is_array($input))fail('invalid_source_policy',400);
+                $directory=operationsSourceDirectory($pdo,nowTs());
+                $saved=operationsSourceControlSave($pdo,$directory,$input,$accountId,nowTs());
+                $saved['canManage']=true;
+                respond($saved);
+            }catch(InvalidArgumentException $e){fail('invalid_source_policy',400);}
+            catch(Throwable $e){fail('source_control_unavailable',503);}
+        }
+        if ($path === '/admin/operations/source-metrics' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_source_metrics_read',$accountId,15,300))
+                fail('rate_limited',429);
+            $id=(string)($_GET['sourceId']??'');
+            $days=filter_var($_GET['days']??14,FILTER_VALIDATE_INT);
+            $directory=operationsSourceDirectory($pdo,nowTs());
+            if(!in_array($id,array_column($directory['sources'],'id'),true))
+                fail('unknown_source',404);
+            if($days===false||$days<1||$days>365)fail('invalid_range',400);
+            respond(operationsSourceMetrics($pdo,$id,(int)$days,nowTs()));
+        }
+        if ($path === '/admin/operations/source-retention' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('source_retention_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_source_retention_purge',$accountId,5,3600))
+                fail('rate_limited',429);
+            $body=jsonBody();
+            if(!is_array($body)||array_keys($body)!==['sourceId']||!is_string($body['sourceId']))
+                fail('invalid_source',400);
+            $directory=operationsSourceDirectory($pdo,nowTs());
+            if(!in_array($body['sourceId'],array_column($directory['sources'],'id'),true))
+                fail('unknown_source',404);
+            try {
+                $purge=operationsSourceRetentionPurge($pdo,$body['sourceId'],nowTs());
+                operationsAudit($pdo,$accountId,'source_retention_purge',
+                    substr(hash('sha256',$body['sourceId']),0,64));
+                respond($purge);
+            }catch(DomainException $e){fail('source_policy_not_configured',409);}
+            catch(Throwable $e){fail('source_retention_unavailable',503);}
         }
 
         // Owner-only keyword intelligence: no public asset or unauthenticated strategy data.
