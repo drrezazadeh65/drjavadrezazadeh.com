@@ -25,7 +25,8 @@ const bare=source=>source.replace(/^\s*--[^\n]*/gm,'');
 function inventory(source){
  const sql=bare(source);
  const names=[...sql.matchAll(/\bCREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+([a-z][a-z0-9_]*)\s*\(/gi)].map(m=>m[1]);
- const unsafe=/\b(?:CREATE\s+(?:DATABASE|USER)|DROP\s+TABLE|ALTER\s+TABLE|TRUNCATE\s+TABLE|INSERT\s+INTO|UPDATE\s+\w+|DELETE\s+FROM)\b/i.test(sql);
+ const unsafe=/\b(?:CREATE\s+(?:DATABASE|USER)|DROP\s+TABLE|ALTER\s+TABLE|TRUNCATE\s+TABLE|INSERT\s+INTO|DELETE\s+FROM)\b/i.test(sql)
+  || /(?:^|[;\n])\s*UPDATE\s+[a-z][a-z0-9_]*\s+SET\b/im.test(sql);
  return Object.freeze({names:Object.freeze(names),unsafe});
 }
 export function auditProposed003f({full,compact}){
