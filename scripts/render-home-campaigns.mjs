@@ -134,17 +134,17 @@ export function renderCampaignPage(source,lang,registry){
 export function syncCampaignPages({write=false,root=ROOT}={}){
   const registry=validateCampaignRegistry(JSON.parse(
     fs.readFileSync(path.join(root,'platform/home-campaigns-20261021.json'),'utf8')));
-  const drift=[];
+  // Render and validate ALL languages before writing EITHER file.
+  // A damaged English template must never leave the Persian source half updated.
+  const staged=[];
   for(const lang of ['fa','en']){
     const file=path.join(root,lang,'index.html');
     const old=fs.readFileSync(file,'utf8');
     const next=renderCampaignPage(old,lang,registry);
-    if(old!==next){
-      drift.push(lang);
-      if(write)fs.writeFileSync(file,next,'utf8');
-    }
+    if(old!==next)staged.push({lang,file,next});
   }
-  return drift;
+  if(write)for(const item of staged)fs.writeFileSync(item.file,item.next,'utf8');
+  return staged.map(item=>item.lang);
 }
 
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
