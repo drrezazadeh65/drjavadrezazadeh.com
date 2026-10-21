@@ -47,3 +47,9 @@
 .jr-konkur-workspace .jr-kc-import-preview{min-height:1.5rem;color:#f7d5a0;line-height:1.7}
 .jr-konkur-workspace .jr-kc-portability-note{line-height:1.9;color:#efd8b6;max-width:85ch}
 @media(max-width:580px){.jr-konkur-workspace .jr-kc-save-draft,.jr-konkur-workspace .jr-kc-apply-import{width:100%}}
+
+/* Scientifically bounded release affordance, discoverable before both local worksheets. */
+.jr-konkur-local-tools{box-sizing:border-box;margin:1.5rem 0;padding:clamp(14px,3vw,24px);border:1px solid #c2a06b;border-radius:16px;background:#1a222d;color:#f7edda;line-height:1.85}
+.jr-konkur-local-tools strong{color:#ffdda4}
+.jr-konkur-local-tools p{margin:.6rem 0 0;max-width:85ch;overflow-wrap:anywhere}
+@media(max-width:580px){.jr-konkur-local-tools{padding:16px;line-height:1.9}}

@@ -48,3 +48,19 @@ test('portable preliminary drafts extend both bilingual entry pages without new 
  assert.match(css,/jr-kc-portability/);
  assert.match(css,/@media\(max-width:580px\)/);
 });
+
+test('bilingual locally usable tools have a visible, honest scientific boundary for both mobile pages',()=>{
+ for(const [path,phrase] of [
+  ['fa/entekhab-reshteh/index.html','هیچ‌یک از این ابزارها رتبه رسمی'],
+  ['en/student-guidance/index.html','These tools do not establish official eligibility']
+ ]){
+  const html=read(path);
+  assert.match(html,/data-jr-admission-safe-summary/);
+  assert.ok(html.includes(phrase),path);
+  assert.ok(html.indexOf('data-jr-admission-safe-summary')<html.indexOf('data-konkur-selection'),path);
+  assert.ok(html.includes('role="note"'),path);
+ }
+ const css=read('assets/css/jr-konkur-studio-v1.css');
+ assert.match(css,/\.jr-konkur-local-tools/);
+ assert.match(css,/@media\(max-width:580px\)/);
+});
