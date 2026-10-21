@@ -9,6 +9,7 @@ test('admin schema sampler resolves sitemap indexes and URL sets without samplin
  assert.match(js,/getElementsByTagName\('sitemap'\)/);
  assert.match(js,/getElementsByTagName\('url'\)/);
  assert.match(js,/const approvedSitemap=/);
+ assert.match(js,/candidate\.origin!==location\.origin\|\|!approvedSitemap\.test\(candidate\.pathname\)/);
  assert.match(js,/credentials:'omit'/);
  assert.match(js,/destination\.origin!==location\.origin/);
  assert.match(js,/body\.length>500000/);
