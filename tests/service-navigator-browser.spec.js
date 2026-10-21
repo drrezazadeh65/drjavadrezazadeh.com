@@ -78,3 +78,47 @@ for(const [locale,url] of [['fa','/fa/khadamat/'],['en','/en/services/']]){
   if(locale==='en')await expect(page.locator('[data-jr-en-service-atlas] .cards a')).toHaveCount(21);
  });
 }
+
+test('English full-service atlas search and price sorting preserve 21 static canonical routes on mobile',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ const response=await page.goto(base+'/en/services/',{waitUntil:'domcontentloaded'});
+ expect(response.status()).toBe(200);
+ const atlas=page.locator('[data-jr-en-service-atlas]');
+ const links=atlas.locator('ul.cards>li a[href^="/en/services/"]');
+ await expect(links).toHaveCount(21);
+ const filter=atlas.locator('[data-jr-atlas-filter]');
+ await expect(filter).toBeVisible();
+ const search=filter.locator('input[type=search]');
+ const sort=filter.locator('select');
+ await search.fill('manuscript');
+ const matches=atlas.locator('ul.cards>li:not([hidden])');
+ await expect.poll(async()=>matches.count()).toBeGreaterThan(0);
+ expect(await matches.count()).toBeLessThan(21);
+ await expect(filter.locator('[role=status]')).toContainText('published services shown');
+ await search.fill('');
+ await sort.selectOption('asc');
+ await expect(atlas.locator('ul.cards>li:not([hidden])')).toHaveCount(21);
+ const got=await links.evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname));
+ const idToPrice=new Map(catalog.services.map(s=>[s.id,s.price]));
+ const amounts=got.map(url=>idToPrice.get(url.match(/\/en\/services\/([a-z0-9_]+)\/$/)[1]));
+ expect(amounts).toEqual([...amounts].sort((a,b)=>a-b));
+ await filter.locator('button').click();
+ await expect(sort).toHaveValue('default');
+ await expect(search).toHaveValue('');
+ await expect(links).toHaveCount(21);
+ for(const width of [320,390,430,768,1024]){
+  await page.setViewportSize({width,height:844});
+  const dims=await atlas.evaluate(el=>({client:el.clientWidth,scroll:el.scrollWidth}));
+  expect(dims.scroll,'English catalogue '+width+'px').toBeLessThanOrEqual(dims.client+2);
+ }
+});
+test('English catalogue fails open to 21 indexable links when prices contradict the authoritative catalogue',async({page})=>{
+ await page.route('**/assets/data/service-catalog.json',async route=>{
+  const incorrect=structuredClone(catalog);
+  incorrect.services[0].price+=1;
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(incorrect)});
+ });
+ await page.goto(base+'/en/services/',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('[data-jr-en-service-atlas] ul.cards a')).toHaveCount(21);
+ await expect(page.locator('[data-jr-atlas-filter]')).toHaveCount(0);
+});
