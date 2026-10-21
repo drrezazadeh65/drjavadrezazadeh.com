@@ -171,6 +171,7 @@ test('MFA workspace relocks before CSRF returns; stale approval must not POST',a
  const csrfRequest=page.waitForRequest(r=>r.url().endsWith('/api/community/csrf'));
  await page.getByRole('button',{name:'تأیید و انتشار'}).click();
  await csrfRequest;
+ await expect.poll(()=>typeof releaseCsrf).toBe('function');
  await page.evaluate(()=>{document.getElementById('ops-workspace').hidden=true;});
  releaseCsrf();
  await expect.poll(()=>csrfCompleted).toBe(true);
