@@ -100,11 +100,11 @@ test('mobile app icon shells never render oversized on desktop standalone help p
   }
  }
 });
-test('author CV contains accessible approved portrait loader with an editorial fallback',()=>{
+test('author CV presents the approved installed portrait and accessible same-origin loader',()=>{
  const html=read('fa/shop/authors/mehrab-mirkarimi/index.html');
  const loader=read('assets/js/jr-author-portrait-v52.js');
  assert.match(html,/class="jr-resume-portrait"/);
- assert.match(html,/img data-author-photo src="\/assets\/images\/editorial-launch\/academic-research-editing-20261011\.webp"/);
+ assert.match(html,/img data-author-photo src="\/assets\/images\/mehrab-mirkarimi-portrait-v52\.webp"/);
  assert.match(html,/jr-author-portrait-v52\.js/);
  assert.match(loader,/mehrab-mirkarimi-portrait-v52\.webp/);
  assert.ok(!html.includes('>م.م</div>'));
