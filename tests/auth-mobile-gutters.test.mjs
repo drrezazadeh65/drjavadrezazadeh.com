@@ -13,9 +13,9 @@ test('authentication mobile safe gutter survives generic article-section resets'
   assert.match(css,/JR mobile authentication safe-gutter and luxury refinement/);
   assert.match(css.slice(css.indexOf('JR mobile authentication safe-gutter')),/@media\(max-width:700px\)/);
   assert.match(css,/\.auth-page main#main\s*\{[^}]*width:100%!important;[^}]*padding:20px max\(var\(--jr-auth-mobile-gutter\)/s);
-  assert.match(css,/role-status-grid\{[\s\S]*?padding:14px!important/);
+  assert.match(css,/\.auth-page \.article-shell\.auth-shell>section:not\(\.role-status-grid\)\s*\{[^}]*padding:8px clamp\(19px,5\.7vw,27px\) 27px!important;/s);
   assert.match(css,/\.auth-page \.auth-form input,[\s\S]*?font-size:16px;/);
-  assert.match(css,/role-status-grid\\{[\\s\\S]*?padding:14px!important/);
+  assert.match(css,/role-status-grid\{[\s\S]*?padding:14px!important/);
   assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
