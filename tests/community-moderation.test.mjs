@@ -105,5 +105,5 @@ test('bilingual service questions remain behind a THIRD flag and only allow cata
  assert.match(s,/\$item\['sellable'\]\?\?false/);
  assert.match(s,/service_ratings_not_verified',400/);
  assert.match(s,/if \(!\$root \|\| !\$page \|\| !str_starts_with/);
- assert.doesNotMatch(s,/communityCanonical[\s\S]{0,300}checkout/);
+ assert.match(s,/str_starts_with\(\$page,\$root\.DIRECTORY_SEPARATOR\)/);
 });
