@@ -28,3 +28,11 @@ test('admin loads a distinct cache-busted sampler and retains MFA workspace prot
  assert.ok(html.includes('id="ops-workspace" hidden'));
  assert.ok(js.includes("document.getElementById('ops-workspace')?.hidden"));
 });
+
+test('canonical audit must validate origin, HTTPS and canonical multiplicity, not only pathname',()=>{
+ assert.match(js,/canonicals=\[\.\.\.doc\.querySelectorAll\('link\[rel~=\"canonical\"\]'\)\]/);
+ assert.match(js,/target\.origin!==location\.origin/);
+ assert.match(js,/target\.protocol!=='https:'/);
+ assert.match(js,/canonicals\.length!==1/);
+ assert.match(js,/getAttribute\('href'\)/);
+});
