@@ -18,7 +18,7 @@ export function normalizeLabScorecard(input){
    if(!isRecord(s)||typeof s.subjectCode!=='string'||s.subjectCode.length<1||s.subjectCode.length>80||
     !Number.isFinite(s.percent)||s.percent< -33.34||s.percent>100){issues.push('INVALID_SUBJECT_PERCENT');continue}
    const key=s.subjectCode.normalize('NFKC').trim().toLowerCase();
-   if(!key||seen.has(key))issues.push('DUPLICATE_OR_EMPTY_SUBJECT');
+   if(!key||(key!=='self_reported'&&seen.has(key)))issues.push('DUPLICATE_OR_EMPTY_SUBJECT');
    seen.add(key);
   }
  }
