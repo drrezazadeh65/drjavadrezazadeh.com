@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '22'
       - name: Verify policy and existing release protections
-        run: node --test tests/progressive-release-policy.test.mjs tests/auth-mobile-gutters.test.mjs
+        run: node --test tests/progressive-release-policy.test.mjs tests/auth-mobile-gutters.test.mjs tests/home-campaigns.test.mjs
       - name: Verify owner non-manuscript masterplan scope without modifying release gates
         run: node --test tests/nonmanuscript-masterplan-scope.test.mjs
       - name: Verify release eligibility regression tests
@@ -84,7 +84,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          npx playwright test tests/customer-dashboard-browser.spec.js tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js tests/public-mobile-navigation.spec.js tests/mobile-native-search-update.browser.spec.js tests/auth-mobile-premium.spec.js --reporter=line,html
+          npx playwright test tests/customer-dashboard-browser.spec.js tests/operations-browser.spec.js tests/operations-reporting-browser.spec.js tests/bookstore-checkout-browser.spec.js tests/service-request-summary.spec.js tests/institutional-conversion.spec.js tests/rcas-start-browser.spec.js tests/bahar-readiness-browser.spec.js tests/bahar-guardian-browser.spec.js tests/public-mobile-navigation.spec.js tests/mobile-native-search-update.browser.spec.js tests/auth-mobile-premium.spec.js tests/home-campaigns.browser.spec.js --reporter=line,html
       - name: Retain bilingual auth mobile proof screenshots
         if: always()
         uses: actions/upload-artifact@v4

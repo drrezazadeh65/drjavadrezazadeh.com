@@ -1,0 +1,348 @@
+{
+  "schema_version": "1.0",
+  "version": "2026-10-21",
+  "policy": {
+    "requires_real_pages": true,
+    "autoplay": false,
+    "personalization": false,
+    "external_tracking": false,
+    "approved_existing_media_only": true
+  },
+  "groups": {
+    "pathways": {
+      "fa": "استعداد و مسیر تحصیلی",
+      "en": "Talent & student pathways",
+      "summary_fa": "از شناخت بهتر تا انتخاب و مشاوره مسئولانه",
+      "summary_en": "Explore evidence, options and guidance"
+    },
+    "professional": {
+      "fa": "خدمات تخصصی و دانشگاهی",
+      "en": "Academic & professional services",
+      "summary_fa": "مسیرهای روشن برای پژوهشگر، معلم و سازمان",
+      "summary_en": "Routes for researchers, educators and institutions"
+    },
+    "discover": {
+      "fa": "کتاب، مجله و فرصت‌ها",
+      "en": "Books, journal & opportunities",
+      "summary_fa": "از خواندن و پژوهش تا حمایت از استعدادها",
+      "summary_en": "Reading, scholarly publishing and social impact"
+    }
+  },
+  "banners": [
+    {
+      "id": "golden",
+      "group": "spotlight",
+      "image": "/assets/images/editorial-launch/golden-talent-growth-path-20261011.webp",
+      "fa": {
+        "eyebrow": "GOLDEN TALENT",
+        "title": "استعداد فقط یک نمره نیست",
+        "summary": "با چارچوب رشد‌محور Golden Talent آشنا شوید؛ شواهد، زمینه و فرصت‌های یادگیری را در کنار هم ببینید.",
+        "cta": "آشنایی با مسیر طلایی استعداد",
+        "href": "/fa/golden-talent/",
+        "alt": "تصویری مفهومی از مسیر رشد و استعداد"
+      },
+      "en": {
+        "eyebrow": "GOLDEN TALENT",
+        "title": "Talent is more than a score",
+        "summary": "Explore a developmental framework that considers evidence, context and opportunities without definitive labels.",
+        "cta": "Explore Golden Talent",
+        "href": "/en/golden-talent/",
+        "alt": "A conceptual illustration of talent development"
+      }
+    },
+    {
+      "id": "major",
+      "group": "pathways",
+      "image": "/assets/images/editorial-launch/evidence-informed-guidance-20261011.webp",
+      "fa": {
+        "eyebrow": "راهنمای انتخاب رشته",
+        "title": "تصمیم بزرگ، شواهد روشن",
+        "summary": "علاقه، شرایط زندگی و گزینه‌های تحصیلی را پیش از تصمیم مقایسه کنید.",
+        "cta": "بررسی مسیرها",
+        "href": "/fa/entekhab-reshteh/",
+        "alt": "فضایی برای تصمیم‌گیری آموزشی"
+      },
+      "en": {
+        "eyebrow": "Student guidance",
+        "title": "Choose with more clarity",
+        "summary": "Explore study routes through interests, evidence and real-life constraints.",
+        "cta": "Explore guidance",
+        "href": "/en/student-guidance/",
+        "alt": "Evidence-informed educational guidance"
+      }
+    },
+    {
+      "id": "rcas",
+      "group": "pathways",
+      "image": "/assets/images/knowledge/golden-talent-chist-featured.webp",
+      "fa": {
+        "eyebrow": "RCAS · BAHAR",
+        "title": "از شناخت تا بازنگری مسیر",
+        "summary": "با مبانی و محدودیت‌های علمی اجزای اکوسیستم استعداد آشنا شوید.",
+        "cta": "مطالعه روش‌شناسی",
+        "href": "/fa/golden-talent/ravesh-shenasi/",
+        "alt": "تصویر مرتبط با چارچوب علمی استعداد"
+      },
+      "en": {
+        "eyebrow": "RCAS · BAHAR",
+        "title": "From evidence to growth",
+        "summary": "Read how the research-stage components connect, including their scientific boundaries.",
+        "cta": "Read the methodology",
+        "href": "/en/golden-talent/methodology/",
+        "alt": "An illustrated developmental talent framework"
+      }
+    },
+    {
+      "id": "consult",
+      "group": "pathways",
+      "image": "/assets/images/knowledge/che-reshteyi-baraye-man-monaseb-ast-featured.webp",
+      "fa": {
+        "eyebrow": "مشاوره تحصیلی",
+        "title": "از سؤال درست شروع کنید",
+        "summary": "مسئله، هدف‌ها و محدودیت‌های خود را برای یک گفت‌وگوی تخصصی روشن‌تر کنید.",
+        "cta": "مسیر مشاوره",
+        "href": "/fa/moshavere-tahsili/",
+        "alt": "تصویر راهنمای تصمیم درباره تحصیل"
+      },
+      "en": {
+        "eyebrow": "Consultation",
+        "title": "Guidance rooted in context",
+        "summary": "Describe your educational question and explore a responsible next step.",
+        "cta": "Request consultation",
+        "href": "/en/request-consultation/",
+        "alt": "A consultation and decision guidance concept"
+      }
+    },
+    {
+      "id": "family",
+      "group": "pathways",
+      "image": "/assets/images/knowledge/jalase-moshtarak-valed-danesh-amooz-featured.webp",
+      "fa": {
+        "eyebrow": "برای خانواده‌ها",
+        "title": "تصمیم‌های مهم را تنها نگیرید",
+        "summary": "مشاوره مشترک دانش‌آموز و والد با توجه به واقعیت‌های خانواده.",
+        "cta": "مشاهده خدمت",
+        "href": "/fa/services/student_parent_90/",
+        "alt": "تصویر گفت‌وگوی والد و دانش‌آموز"
+      },
+      "en": {
+        "eyebrow": "Family guidance",
+        "title": "A shared conversation",
+        "summary": "Explore the scope of student–parent consultation before requesting a session.",
+        "cta": "View the service",
+        "href": "/en/services/student_parent_90/",
+        "alt": "Student and parent discussing educational decisions"
+      }
+    },
+    {
+      "id": "exam",
+      "group": "pathways",
+      "image": "/assets/images/knowledge/barname-yek-mahe-konkur-featured.webp",
+      "fa": {
+        "eyebrow": "مشاوره کنکور",
+        "title": "برنامه‌ریزی، بدون وعده قطعی",
+        "summary": "وضعیت موجود و برنامه مطالعه را با نگاهی واقع‌بینانه بررسی کنید.",
+        "cta": "مشاوره کنکور",
+        "href": "/fa/moshavere-konkur/",
+        "alt": "تصویر برنامه‌ریزی و مطالعه آزمون"
+      },
+      "en": {
+        "eyebrow": "Exam consultation",
+        "title": "Plan with realistic priorities",
+        "summary": "Review the scope of exam preparation guidance, without guaranteed outcomes.",
+        "cta": "Explore the service",
+        "href": "/en/services/konkur_consult_60/",
+        "alt": "A study planning and examination concept"
+      }
+    },
+    {
+      "id": "research",
+      "group": "professional",
+      "image": "/assets/images/editorial-launch/academic-research-editing-20261011.webp",
+      "fa": {
+        "eyebrow": "خدمات پژوهشی",
+        "title": "از پرسش تا مقاله",
+        "summary": "مشاوره پژوهشی، ارزیابی طرح و تصمیم‌های مربوط به نگارش دانشگاهی.",
+        "cta": "خدمات پژوهشی",
+        "href": "/fa/khadamat-pajouheshi/",
+        "alt": "فضای علمی بازبینی پژوهش"
+      },
+      "en": {
+        "eyebrow": "Academic services",
+        "title": "From question to manuscript",
+        "summary": "Explore research support, manuscript decisions and professional scholarly guidance.",
+        "cta": "Explore services",
+        "href": "/en/academic-services/",
+        "alt": "An academic manuscript review scene"
+      }
+    },
+    {
+      "id": "editing",
+      "group": "professional",
+      "image": "/assets/images/knowledge/academic-editing-vs-grammar-correction-featured.webp",
+      "fa": {
+        "eyebrow": "ویرایش دانشگاهی",
+        "title": "پیش از ارسال، دقیق‌تر ببینید",
+        "summary": "دامنه و تعهدات خدمت ویرایش آکادمیک انگلیسی را بررسی کنید.",
+        "cta": "مشاهده جزئیات",
+        "href": "/fa/services/academic_editing/",
+        "alt": "تصویر مرتبط با ویرایش علمی انگلیسی"
+      },
+      "en": {
+        "eyebrow": "Academic editing",
+        "title": "Beyond surface correction",
+        "summary": "Review academic editing scope, deliverables and order conditions.",
+        "cta": "View editing service",
+        "href": "/en/services/academic_editing/",
+        "alt": "Academic English editing illustration"
+      }
+    },
+    {
+      "id": "teacher",
+      "group": "professional",
+      "image": "/assets/images/editorial-launch/professional-services-decisions-20261011.webp",
+      "fa": {
+        "eyebrow": "توسعه حرفه‌ای معلم",
+        "title": "یادگیری حرفه‌ای با شواهد",
+        "summary": "طراحی، بازنگری و گفت‌وگو درباره تدریس و سنجش.",
+        "cta": "خدمات معلمان",
+        "href": "/fa/services/teacher_dev_90/",
+        "alt": "تصویر تصمیم‌گیری حرفه‌ای در آموزش"
+      },
+      "en": {
+        "eyebrow": "Teacher development",
+        "title": "Professional learning with purpose",
+        "summary": "Consider teaching, assessment and structured professional reflection.",
+        "cta": "Explore the service",
+        "href": "/en/services/teacher_dev_90/",
+        "alt": "Professional educator development illustration"
+      }
+    },
+    {
+      "id": "institution",
+      "group": "professional",
+      "image": "/assets/images/editorial-launch/international-research-collaboration-20261011.webp",
+      "fa": {
+        "eyebrow": "همکاری سازمانی",
+        "title": "راهکارهای متناسب با مدرسه و مؤسسه",
+        "summary": "فرصت‌های مشاوره، پژوهش و آموزش حرفه‌ای برای سازمان‌ها.",
+        "cta": "مسیر همکاری",
+        "href": "/fa/hamkari-sazmani/",
+        "alt": "تصویر همکاری علمی و سازمانی"
+      },
+      "en": {
+        "eyebrow": "Institutional collaboration",
+        "title": "Build a focused partnership",
+        "summary": "Explore educational consulting and project-based academic collaboration.",
+        "cta": "Explore collaboration",
+        "href": "/en/collaboration/",
+        "alt": "An international research collaboration scene"
+      }
+    },
+    {
+      "id": "language",
+      "group": "professional",
+      "image": "/assets/images/knowledge/ai-dar-tadris-featured.webp",
+      "fa": {
+        "eyebrow": "آموزش زبان",
+        "title": "زبان را با فهم عمیق‌تر بیاموزیم",
+        "summary": "آموزش زبان، مواد آموزشی و نقش فناوری در یادگیری را کشف کنید.",
+        "cta": "آموزش زبان",
+        "href": "/fa/amoozesh-zaban/",
+        "alt": "تصویری از کاربرد فناوری در آموزش"
+      },
+      "en": {
+        "eyebrow": "Language education",
+        "title": "Learning informed by research",
+        "summary": "Explore language teaching, materials and responsible educational technology.",
+        "cta": "Explore language education",
+        "href": "/en/language-education/",
+        "alt": "Technology and language learning illustration"
+      }
+    },
+    {
+      "id": "shop",
+      "group": "discover",
+      "image": "/assets/images/editorial-launch/scholarly-bookstore-library-20261011.webp",
+      "fa": {
+        "eyebrow": "فروشگاه کتاب",
+        "title": "کتاب‌هایی برای مطالعه و رشد",
+        "summary": "آثار علمی و ادبی را ببینید؛ شرایط خرید و تحویل را پیش از پرداخت بررسی کنید.",
+        "cta": "ورود به فروشگاه",
+        "href": "/fa/shop/",
+        "alt": "تصویر کتابخانه و فروشگاه کتاب"
+      },
+      "en": {
+        "eyebrow": "Bookstore",
+        "title": "Books for thinking and growth",
+        "summary": "Explore available titles and review purchasing conditions before checkout.",
+        "cta": "Visit the bookstore",
+        "href": "/en/shop/",
+        "alt": "A cinematic scholarly bookstore scene"
+      }
+    },
+    {
+      "id": "journal",
+      "group": "discover",
+      "image": "/assets/images/editorial-launch/academic-ecosystem-network-20261011.webp",
+      "fa": {
+        "eyebrow": "مجله JHELA",
+        "title": "زیست‌بوم نشر علمی مسئولانه",
+        "summary": "با اهداف، دامنه و مسیر توسعه مجله آشنا شوید؛ اطلاعات منتشرشده را بررسی کنید.",
+        "cta": "آشنایی با مجله",
+        "href": "/journal/fa/",
+        "alt": "تصویر شبکه پژوهش و نشر علمی"
+      },
+      "en": {
+        "eyebrow": "JHELA journal",
+        "title": "A responsible scholarly publishing vision",
+        "summary": "Read the journal's scope, editorial information and current publication status.",
+        "cta": "Explore the journal",
+        "href": "/journal/",
+        "alt": "Academic research network and scholarly communication"
+      }
+    },
+    {
+      "id": "news",
+      "group": "discover",
+      "image": "/assets/images/editorial-launch/humanability-educational-assessment-20261011.webp",
+      "fa": {
+        "eyebrow": "اخبار و مقاله‌ها",
+        "title": "تازه‌های پژوهش و آموزش",
+        "summary": "گزارش‌ها، نوشته‌ها و اطلاعیه‌های علمی را در یک مسیر دنبال کنید.",
+        "cta": "مطالعه مطالب",
+        "href": "/fa/akhbar/",
+        "alt": "تصویر پژوهش و سنجش آموزشی"
+      },
+      "en": {
+        "eyebrow": "Insights and news",
+        "title": "Ideas worth examining",
+        "summary": "Follow educational insights, updates and evidence-aware scholarly writing.",
+        "cta": "Read insights",
+        "href": "/en/news-insights/",
+        "alt": "An educational assessment research image"
+      }
+    },
+    {
+      "id": "support",
+      "group": "discover",
+      "image": "/assets/images/editorial-launch/talented-student-support-20261011.webp",
+      "fa": {
+        "eyebrow": "حمایت از استعدادها",
+        "title": "فرصت رشد، نه فقط کمک مالی",
+        "summary": "هدف‌ها و سازوکار حمایت از دانش‌آموزان مستعد کم‌برخوردار را بخوانید.",
+        "cta": "آشنایی با حمایت",
+        "href": "/fa/support-talented-students/",
+        "alt": "تصویر حمایت از فرصت‌های یادگیری"
+      },
+      "en": {
+        "eyebrow": "Support young talent",
+        "title": "Help opportunity meet potential",
+        "summary": "Learn about the initiative supporting talented students with limited resources.",
+        "cta": "Learn about support",
+        "href": "/en/support-talented-students/",
+        "alt": "Support for talented students and equitable opportunity"
+      }
+    }
+  ]
+}
