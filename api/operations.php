@@ -1052,6 +1052,9 @@ function operationsRoute(string $path, string $verb): never {
             // Action execution history is not an acceptance gate and is owner-scoped.
             $ready=operationsActionRunsReady($pdo);
             $runs=$ready?operationsActionHistory($pdo,$accountId,$at):[];
+            // Read-only provider coverage for the existing master controller.
+            // This comes from the deploy-time private projection, not external APIs.
+            $snapshot['reporting']['providerInventory']=operationsProviderInventory();
             $snapshot['reporting']['actionExecution']=[
                 'schema'=>'operations-action-execution-report-v1',
                 'status'=>$ready?'available':'schema_not_provisioned',
