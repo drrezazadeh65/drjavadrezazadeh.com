@@ -46,17 +46,43 @@ for(const [lang,route,category] of routes){
 }
 
 for(const [lang,route] of [['fa','/fa/login/'],['en','/en/login/']]){
- test(lang+' mobile sign-in fields respect safe text margins and keyboard focus',async({page})=>{
+ test(lang+' mobile sign-in fields respect safe text margins and keyboard focus after healthy account check',async({page})=>{
   await page.setViewportSize({width:320,height:760});
+  // Static preview has no live Bertina PHP. Mock only the readiness boundary,
+  // then inspect genuine browser focus and visual margins on enabled fields.
+  await page.route('**/api/auth/health',route=>route.fulfill({
+   status:200,contentType:'application/json; charset=utf-8',
+   body:JSON.stringify({ok:true,ready:true,registrationReady:false})
+  }));
   await page.goto(origin+route,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('html')).toHaveAttribute('data-auth-ready','true');
   const fields=page.locator('main input:visible');
   expect(await fields.count()).toBeGreaterThan(0);
   const first=fields.first();
+  await expect(first).toBeEnabled();
   await first.focus();
   expect(await first.evaluate(el=>document.activeElement===el)).toBe(true);
   const rect=await first.boundingBox();
   expect(rect).not.toBeNull();
   expect(rect.x).toBeGreaterThanOrEqual(6);
   expect(rect.x+rect.width).toBeLessThanOrEqual(314);
+ });
+ test(lang+' login remains intentionally disabled when the authentication service is unavailable',async({page})=>{
+  await page.setViewportSize({width:320,height:760});
+  await page.route('**/api/auth/health',route=>route.fulfill({
+   status:503,contentType:'application/json; charset=utf-8',
+   body:JSON.stringify({ok:false,ready:false})
+  }));
+  await page.goto(origin+route,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('html')).toHaveAttribute('data-auth-ready','false');
+  const first=page.locator('main input').first();
+  await expect(first).toBeDisabled();
+  const rect=await first.boundingBox();
+  expect(rect).not.toBeNull();
+  expect(rect.x).toBeGreaterThanOrEqual(6);
+  expect(rect.x+rect.width).toBeLessThanOrEqual(314);
+  const fallback=page.locator('main a[href*="register/"]').first();
+  await fallback.focus();
+  expect(await fallback.evaluate(el=>document.activeElement===el)).toBe(true);
  });
 }
