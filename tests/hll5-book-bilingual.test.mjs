@@ -37,3 +37,13 @@ test('editorial book experience preserves factual status and accessible side rai
  assert.ok(styles.includes('.hll5-page-grid'));
  assert.ok(styles.includes('@media(max-width:760px)'));
 });
+
+test('both public HLL5 book introductions are findable through the existing multilingual search engine',()=>{
+ const index=JSON.parse(read('assets/search-index.json'));
+ for(const [lang,path] of [['fa','fa/ketab-ha/how-languages-are-learned/'],['en','en/books/how-languages-are-learned/']]){
+  const entry=index.filter(x=>x.path===path && x.lang===lang);
+  assert.equal(entry.length,1,lang+' book search entry must be unique');
+  assert.ok(entry[0].title && entry[0].summary && entry[0].keywords);
+  assert.ok(!/checkout|preorder-now|buy-now/.test(entry[0].path));
+ }
+});
