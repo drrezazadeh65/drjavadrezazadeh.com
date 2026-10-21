@@ -151,12 +151,17 @@ function communityRoute(string $route,string $verb): never {
     if ($route==='/community/comments' && $verb==='POST') {
         $account=communityMutationGuard($pdo);
         $pageBody=jsonBody();
+        // Honeypot is additive: authenticated accounts, same-origin CSRF, and
+        // server-authoritative rate limits remain mandatory regardless of client hints.
+        $trap=$pageBody['website']??'';
+        if (!is_string($trap)||trim($trap)!=='') fail('invalid_comment',400);
         $page=communityCanonical($pageBody['page']??null);
         if ($page===null) fail('invalid_page',400);
         $content=$pageBody['body']??null;
         if (!is_string($content)) fail('invalid_comment',400);
         $content=trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u','',$content)??'');
         if (textLen($content)<12 || textLen($content)>2000 || strlen($content)>6000) fail('invalid_comment',400);
+        if (preg_match_all('~(?:https?://|www\\.)~i',$content)>3) fail('invalid_comment',400);
         $rating=$pageBody['rating']??null;
         if ($rating!==null && (!is_int($rating) || $rating<1 || $rating>5)) fail('invalid_rating',400);
         if (($pageBody['consentToPublication']??false)!==true) fail('consent_required',400);
