@@ -26,11 +26,11 @@ function safeEvidenceUrl(value){
 }
 async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
-function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
+function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;sourceDirectoryState=null;sourceDirectoryExpanded=false;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
 $('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
-async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
+async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}sourceDirectoryState=null;sourceDirectoryFilter={kind:'',engine:'',query:''};snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
 function progress(value){const bar=el('div',undefined,'ops-progress');const fill=el('span');fill.style.width=(value??0)+'%';bar.append(fill);bar.setAttribute('aria-label',t('پیشرفت اندازه‌گیری‌شده: ','Measured progress: ')+pct(value));return bar;}
 function render(){const sum=snapshot.summary;$('ops-total').textContent=String(sum.total);$('ops-verified').textContent=String(sum.verified);$('ops-coverage').textContent=sum.measuredCoverage+'/36';$('ops-admin-score').textContent=pct(snapshot.dashboard.measuredProgress);$('ops-release').textContent=snapshot.releaseSha||t('ثبت نشده','Not recorded');$('ops-checked').textContent=date(snapshot.checkedAt);
  const select=$('ops-engine'),old=select.value;select.replaceChildren(el('option',t('همهٔ موتورها','All engines')));select.firstChild.value='';for(const engine of (snapshot.reporting?.engines||[...new Set(snapshot.reports.map(r=>r.engine))].sort())){const option=el('option',typeof engine==='string'?engine:engine.id+' · '+engineName(engine));option.value=typeof engine==='string'?engine:engine.id;select.append(option);}select.value=old;
@@ -397,6 +397,135 @@ function githubAuditRender(host){
 }
 
 let masterConsoleExpanded=false;
+let sourceDirectoryState=null,sourceDirectoryExpanded=false;
+let sourceDirectoryFilter={kind:'',engine:'',query:''};
+/**
+ * The existing private operations controller owns this read-only source
+ * directory. No separate dashboard, credential manager, or provider polling.
+ */
+function renderSourceDirectory(parent){
+ const section=el('details',undefined,'ops-panel');
+ section.id='ops-source-directory';
+ section.open=sourceDirectoryExpanded;
+ section.addEventListener('toggle',()=>{sourceDirectoryExpanded=section.open;});
+ section.append(el('summary',t('دایرکتوری یکپارچه منابع، شبکه‌های اجتماعی و پایش‌ها',
+   'Unified source directory: providers, social channels and monitors')));
+ section.append(el('p',t(
+   'این فهرست، منابع ثبت‌شده را از داده‌های واقعی جدا می‌کند. صرفاً با تعریف یک وب‌سایت یا حساب، آمار زنده ایجاد نمی‌شود.',
+   'This inventory separates registered references from observed data. Listing a website or account does not create live statistics.')));
+ const loadButton=el('button',t('دریافت وضعیت واقعی منابع از سرور','Load source status from server'));
+ loadButton.type='button';
+ const stats=el('p',undefined,'ops-muted');stats.setAttribute('aria-live','polite');
+ const filters=el('div',undefined,'ops-toolbar');
+ const list=el('div',undefined,'ops-grid');
+ function renderCards(){
+   list.replaceChildren();
+   const data=sourceDirectoryState;
+   if(!data||!Array.isArray(data.sources))return;
+   const q=sourceDirectoryFilter.query.trim().toLocaleLowerCase();
+   const matches=data.sources.filter(item=>
+     (!sourceDirectoryFilter.kind||item.kind===sourceDirectoryFilter.kind)&&
+     (!sourceDirectoryFilter.engine||item.engineId===sourceDirectoryFilter.engine)&&
+     (!q||(item.name+' '+item.id+' '+item.engineId).toLocaleLowerCase().includes(q)));
+   const counts=data.counts||{};
+   stats.textContent=t('منابع ثبت‌شده: ','Registered entries: ')+(counts.total??'—')+
+     ' · '+t('فیدهای GitHub با کش تازه: ','GitHub feeds with fresh cache: ')+
+     (counts.freshGithubFeeds??'—')+' / '+(counts.githubCollectionFeeds??'—')+
+     ' · '+t('اتصالات مستقل تأییدشده: ','Independently verified third-party connections: ')+
+     (counts.verifiedThirdPartyConnections??'—')+
+     ' · '+t('نمایش: ','Shown: ')+matches.length+
+     (data.catalogueStatus!=='complete'
+       ?' · '+t('فهرست ناقص است','Catalogue is incomplete'):'');
+   for(const item of matches){
+     const card=el('article',undefined,'ops-card');
+     const kindLabel=item.kind==='social_channel'?t('شبکه اجتماعی','Social channel'):
+       item.kind==='github_feed'?t('گزارش GitHub','GitHub feed'):
+       t('مرجع خارجی','External reference');
+     card.append(el('h3',item.name),el('small',item.engineId+' · '+kindLabel));
+     const state=item.status==='cached_fresh'
+       ?t('کش تاریخ‌دار موجود است؛ نه تأیید محیط تولید','Dated cache available; not production certification')
+       :item.status==='disabled'?t('گردآوری غیرفعال','Collection disabled')
+       :item.status==='not_fresh'?t('داده تازه موجود نیست','No fresh observation')
+       :item.status==='unverified'?t('اتصال احراز نشده','Unverified integration')
+       :t('داده معتبر موجود نیست','No verified data');
+     card.append(el('p',state),el('small',t('آخرین دریافت: ','Last observation: ')+
+       (item.observedAt?date(item.observedAt):t('ثبت نشده','Not recorded'))));
+     if(item.lastError)card.append(el('small',t('آخرین خطا: ','Last error: ')+item.lastError));
+     if(item.limitation)card.append(el('p',item.limitation));
+     const url=safeEvidenceUrl(item.url);
+     if(url&&url.startsWith('https://')){
+       const link=el('a',t('منبع رسمی','Official source'));link.href=url;
+       link.target='_blank';link.rel='noopener noreferrer';card.append(link);
+     }
+     if(item.kind==='github_feed'){
+       const button=el('button',t('تنظیم و تاریخچه گردآوری','Collection policy and history'));
+       button.type='button';button.addEventListener('click',async()=>{
+         const generation=loadGeneration;button.disabled=true;
+         try{
+           collectionState=await api('/collection-settings');
+           if(generation!==loadGeneration||!snapshot)return;
+           collectionExpanded=true;sourceDirectoryExpanded=true;reportingRender();
+           const scope=item.id.replace(/^collector:/,'');
+           const row=[...document.querySelectorAll('[data-collector-scope]')]
+             .find(element=>element.dataset.collectorScope===scope);
+           if(row)row.scrollIntoView({block:'center'});
+         }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+         finally{if(button.isConnected)button.disabled=false;}
+       });card.append(button);
+     }
+     list.append(card);
+   }
+   if(!matches.length)list.append(el('p',t('منبعی مطابق فیلتر یافت نشد.','No matching sources.')));
+ }
+ if(sourceDirectoryState?.schema==='operations-source-directory-v1'){
+   const kind=el('select');kind.setAttribute('aria-label',t('نوع منبع','Source kind'));
+   for(const [id,fa,enLabel] of [['','همه منابع','All sources'],
+     ['external_reference','ابزارهای خارجی','External references'],
+     ['social_channel','شبکه‌های اجتماعی','Social channels'],
+     ['github_feed','پایش GitHub','GitHub monitoring']]){
+       const option=el('option',t(fa,enLabel));option.value=id;kind.append(option);
+   }
+   kind.value=sourceDirectoryFilter.kind;
+   kind.addEventListener('change',()=>{sourceDirectoryFilter.kind=kind.value;renderCards();});
+   const engines=el('select');engines.setAttribute('aria-label',t('موتور مسئول','Responsible engine'));
+   const all=el('option',t('همه موتورها','All engines'));all.value='';engines.append(all);
+   for(const engineId of [...new Set(sourceDirectoryState.sources.map(item=>item.engineId).filter(Boolean))].sort()){
+     const opt=el('option',engineId);opt.value=engineId;engines.append(opt);
+   }
+   engines.value=sourceDirectoryFilter.engine;
+   engines.addEventListener('change',()=>{sourceDirectoryFilter.engine=engines.value;renderCards();});
+   const search=el('input');search.type='search';
+   search.placeholder=t('جستجو در نام و شناسه منبع','Search source names and IDs');
+   search.setAttribute('aria-label',t('جستجوی منبع','Search sources'));
+   search.value=sourceDirectoryFilter.query;
+   search.addEventListener('input',()=>{sourceDirectoryFilter.query=search.value;renderCards();});
+   filters.append(kind,engines,search);
+   renderCards();
+ }else{
+   stats.textContent=t('برای مشاهده وضعیت هر منبع، دریافت از سرور را انتخاب کنید.',
+     'Load the private directory to view individual source states.');
+ }
+ loadButton.addEventListener('click',async()=>{
+   const generation=loadGeneration;loadButton.disabled=true;
+   stats.textContent=t('در حال دریافت داده محافظت‌شده…','Loading protected data…');
+   try{
+     const data=await api('/source-directory');
+     if(generation!==loadGeneration||!snapshot)return;
+     if(data.schema!=='operations-source-directory-v1'||!Array.isArray(data.sources))
+       throw new Error('invalid_directory');
+     sourceDirectoryState=data;sourceDirectoryExpanded=true;reportingRender();
+   }catch(error){
+     if(generation===loadGeneration){
+       stats.textContent=t('فهرست منابع در دسترس نیست. وضعیت قبلی تأیید نشده است.',
+         'Source inventory unavailable. No previous state is certified.');
+       notice(errorMessage(error),true);
+     }
+   }finally{if(loadButton.isConnected)loadButton.disabled=false;}
+ });
+ section.append(loadButton,stats,filters,list);
+ parent.append(section);
+}
+
 /**
  * Engine command surface inside the EXISTING authenticated ENG-13 controller.
  * An eligible command uses the already-audited action-runs endpoint; every
@@ -521,6 +650,7 @@ function reportingRender(){
  const model=snapshot?.reporting;if(!model)return;
  let host=$('ops-reporting');if(!host){host=el('section',undefined,'ops-panel');host.id='ops-reporting';host.setAttribute('aria-label',t('گزارش‌های سیزده موتور','Thirteen-engine reporting'));$('ops-workspace').insertBefore(host,$('ops-cards'));}
  host.replaceChildren();host.append(el('h2',t('۱۳ موتور؛ یک مرکز مدیریت','13 engines, one administrative center')));
+ renderSourceDirectory(host);
  const enabledActions=model.actionReports.filter(a=>a.supportedExecutor?.type==='readonly_snapshot'&&a.supportedExecutor?.writes===false).length;host.append(el('p',t('اقدام‌های ثبت‌شده: ','Registered actions: ')+model.actionReports.length+' · '+t('قرارداد فقط‌خواندنی فعال: ','Read-only executors: ')+enabledActions+' · '+t('فاقد قرارداد اجرایی: ','Without executor: ')+(model.actionReports.length-enabledActions)));
  renderMasterEngineConsole(host,model);
 
