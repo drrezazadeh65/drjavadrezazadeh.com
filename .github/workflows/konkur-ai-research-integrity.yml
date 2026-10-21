@@ -1,0 +1,59 @@
+name: Konkur AI Research Integrity (No Deployment)
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'platform/konkur-*.mjs'
+      - 'platform/konkur-1405-sources.json'
+      - 'fa/konkur-ai-lab/**'
+      - 'assets/js/jr-konkur-ai-lab-public-v1.mjs'
+      - 'tests/konkur-*.test.mjs'
+      - 'tests/konkur-ai-v2-security.test.mjs'
+      - 'scripts/build-public-site.mjs'
+      - '.github/workflows/konkur-ai-research-integrity.yml'
+  pull_request:
+    branches:
+      - migration/bertina-linux6
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm engine syntax and public adapter isolation
+        run: |
+          node --check platform/konkur-1405-intake.mjs
+          node --check platform/konkur-1405-batch-preflight.mjs
+          node --check platform/konkur-admission-reasoner.mjs
+          node --check platform/konkur-scorecard-normalizer.mjs
+          node --check platform/konkur-analysis-pipeline.mjs
+          node --check assets/js/jr-konkur-ai-lab-public-v1.mjs
+      - name: Exercise exact research contracts and adversarial privacy cases
+        run: |
+          node --test \
+            tests/konkur-1405-intake.test.mjs \
+            tests/konkur-1405-batch-preflight.test.mjs \
+            tests/konkur-admission-reasoner.test.mjs \
+            tests/konkur-scorecard-normalizer.test.mjs \
+            tests/konkur-analysis-pipeline.test.mjs \
+            tests/konkur-ai-lab-contract.test.mjs \
+            tests/konkur-ai-v2-security.test.mjs
+      - name: Build release-shaped sanitized artifact without deploying
+        run: node scripts/build-public-site.mjs
+      - name: Assert published package excludes private research sources
+        run: |
+          test -f .public-site/fa/konkur-ai-lab/index.html
+          test -f .public-site/assets/js/jr-konkur-ai-lab-public-v1.mjs
+          test ! -d .public-site/platform
+          test ! -f .public-site/platform/konkur-admission-reasoner.mjs
+          ! grep -q "from '/platform/" .public-site/fa/konkur-ai-lab/index.html
