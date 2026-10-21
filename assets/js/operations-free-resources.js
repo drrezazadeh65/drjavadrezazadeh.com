@@ -9,12 +9,14 @@ const en=document.documentElement.lang==='en';
 const tr=(fa,enText)=>en?enText:fa;
 const groups={GROWTH:tr('رشد و بازاریابی','Growth and marketing'),TECHNICAL:tr('فنی و دسترس‌پذیری','Technical quality'),SCHOLARLY:tr('علمی و استنادی','Scholarly authority')};
 const access={MANUAL_REFERENCE:tr('بررسی دستی','Manual reference'),READ_API_CANDIDATE:tr('API قابل بررسی؛ نامتصل','API candidate; not connected'),CI_OPEN_SOURCE_CANDIDATE:tr('متن‌باز؛ نیازمند نصب کنترل‌شده','Open-source; approved installation needed'),ACCOUNT_SETUP_REQUIRED:tr('نیازمند حساب و مجوز','Account authorization required'),CONDITIONAL_ELIGIBILITY:tr('وابسته به شرایط ارائه‌دهنده','Provider eligibility required')};
-let providerInventory=null,items=null,scholarlyObservation=null,performanceObservation=null,localLighthouseObservation=null,manualPagespeedObservation=null,request=null,generation=0;
+let providerInventory=null,items=null,scholarlyObservation=null,performanceObservation=null,localLighthouseObservation=null,manualPagespeedObservation=null,request=null,generation=0,pendingEngine='';
 const make=(tag,txt,cls)=>{const node=document.createElement(tag);if(txt!==undefined)node.textContent=txt;if(cls)node.className=cls;return node;};
-function reset(){providerInventory=null;generation++;request?.abort();request=null;items=null;scholarlyObservation=null;performanceObservation=null;localLighthouseObservation=null;manualPagespeedObservation=null;document.getElementById('ops-manual-pagespeed-observation')?.remove();document.getElementById('ops-scholar-observation')?.remove();document.getElementById('ops-local-lighthouse-observation')?.remove();document.getElementById('ops-performance-observation')?.remove();list.replaceChildren();status.textContent='';select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';}
+const engineSelect=make('select');engineSelect.id='ops-resources-engine';engineSelect.setAttribute('aria-label',tr('فیلتر موتور','Engine filter'));
+const engineLabel=make('label',tr('موتور','Engine'));engineLabel.append(engineSelect);select.closest('label')?.after(engineLabel);
+function reset(){providerInventory=null;pendingEngine='';generation++;request?.abort();request=null;items=null;scholarlyObservation=null;performanceObservation=null;localLighthouseObservation=null;manualPagespeedObservation=null;document.getElementById('ops-manual-pagespeed-observation')?.remove();document.getElementById('ops-scholar-observation')?.remove();document.getElementById('ops-local-lighthouse-observation')?.remove();document.getElementById('ops-performance-observation')?.remove();list.replaceChildren();status.textContent='';select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';engineSelect.replaceChildren(make('option',tr('همه موتورها','All engines')));engineSelect.firstChild.value='';}
 function draw(){
  if(!items)return;list.replaceChildren();
- const category=select.value,shown=items.filter(item=>!category||item.category===category);
+ const category=select.value,engineId=engineSelect.value,shown=items.filter(item=>(!category||item.category===category)&&(!engineId||item.ownerEngine===engineId));
  for(const item of shown){
   const card=make('article',undefined,'ops-card');
   card.append(make('small',(groups[item.category]||item.category)+' · '+item.ownerEngine),make('h3',item.name),
@@ -121,6 +123,10 @@ async function load(){
   const categories=[...new Set(items.map(item=>item.category))];
   select.replaceChildren(make('option',tr('همه دسته‌ها','All categories')));select.firstChild.value='';
   for(const category of categories){const option=make('option',groups[category]||category);option.value=category;select.append(option);}
+  const engines=[...new Set(items.map(item=>item.ownerEngine).filter(Boolean))].sort();
+  engineSelect.replaceChildren(make('option',tr('همه موتورها','All engines')));engineSelect.firstChild.value='';
+  for(const engine of engines){const option=make('option',engine);option.value=engine;engineSelect.append(option);}
+  if(pendingEngine&&engines.includes(pendingEngine))engineSelect.value=pendingEngine;
   draw();
  }catch(error){
   if(id!==generation||workspace.hidden||!panel.open||error.name==='AbortError')return;
@@ -128,6 +134,13 @@ async function load(){
  }
 }
 panel.addEventListener('toggle',()=>panel.open?load():reset());
-reload.addEventListener('click',load);select.addEventListener('change',draw);
+reload.addEventListener('click',load);select.addEventListener('change',draw);engineSelect.addEventListener('change',draw);
+document.addEventListener('jr:admin-provider-engine',event=>{
+ const id=event.detail?.engineId;
+ if(typeof id!=='string'||!/^ENG-(0[1-9]|1[0-3])$/.test(id)||workspace.hidden)return;
+ pendingEngine=id;
+ if(!panel.open){panel.open=true;return;}
+ if(items){engineSelect.value=id;draw();}else load();
+});
 new MutationObserver(()=>{if(workspace.hidden){panel.open=false;reset();}}).observe(workspace,{attributes:true,attributeFilter:['hidden']});
 })();
