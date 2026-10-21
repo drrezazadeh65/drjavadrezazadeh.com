@@ -617,18 +617,23 @@ test('10k USD scenario studio remains strictly hypothetical, costed and capacity
   const planner=section.locator('[data-jr-revenue-planner]');
   await expect(planner.locator('.jr-revenue-line')).toHaveCount(3);
   const streams=planner.locator('.jr-revenue-line');
-  await streams.nth(0).locator('input').nth(0).fill('200');
-  await streams.nth(0).locator('input').nth(1).fill('5');
-  await streams.nth(0).locator('input').nth(2).fill('50');
-  await streams.nth(0).locator('input').nth(3).fill('1');
-  await streams.nth(1).locator('input').nth(0).fill('1000');
-  await streams.nth(1).locator('input').nth(1).fill('9');
-  await streams.nth(1).locator('input').nth(2).fill('100');
-  await streams.nth(1).locator('input').nth(3).fill('2');
-  await streams.nth(2).locator('input').nth(0).fill('0');
-  await streams.nth(2).locator('input').nth(1).fill('0');
-  await streams.nth(2).locator('input').nth(2).fill('0');
-  await streams.nth(2).locator('input').nth(3).fill('0');
+  // Use semantic field labels: provider, acquisition, and attributable
+  // cost inputs were inserted before delivery hours in the existing UI.
+  const fillStream=async(index,{price,quantity,direct,gateway,acquisition,other,hours})=>{
+    const row=streams.nth(index);
+    for(const [label,value] of [
+      ['Price per sale',price],
+      ['Assumed sales per month',quantity],
+      ['Direct delivery cost per sale',direct],
+      ['Gateway fee per sale (assumed)',gateway],
+      ['Acquisition cost per sale (assumed)',acquisition],
+      ['Other attributable cost (assumed)',other],
+      ['Delivery hours per sale',hours]
+    ])await row.getByLabel(label,{exact:true}).fill(String(value));
+  };
+  await fillStream(0,{price:200,quantity:5,direct:50,gateway:2,acquisition:3,other:1,hours:1});
+  await fillStream(1,{price:1000,quantity:9,direct:100,gateway:8,acquisition:10,other:2,hours:2});
+  await fillStream(2,{price:0,quantity:0,direct:0,gateway:0,acquisition:0,other:0,hours:0});
   const controls=planner.locator('.jr-revenue-controls').last();
   await controls.locator('input').nth(0).fill('500');
   await controls.locator('input').nth(1).fill('10');
@@ -636,16 +641,21 @@ test('10k USD scenario studio remains strictly hypothetical, costed and capacity
   const results=planner.locator('.jr-revenue-results');
   await expect(results).toContainText('Hypothetical gross sales');
   await expect(results).toContainText('10,000.00 USD');
-  await expect(results).toContainText('7,350.00 USD');
+  await expect(results).toContainText('Contribution after attributable costs');
+  await expect(results).toContainText('7,640.00 USD');
+  await expect(results).toContainText('After-fixed-cost balance (before tax)');
+  await expect(results).toContainText('7,140.00 USD');
+  await expect(results).toContainText('Gateway + acquisition + other attributable costs');
+  await expect(results).toContainText('210.00 USD');
   await expect(results).toContainText('Contribution goal shortfall');
-  await expect(results).toContainText('2,650.00 USD');
+  await expect(results).toContainText('2,360.00 USD');
   const goalKind=planner.locator('.jr-revenue-controls').first().locator('select').nth(1);
   await expect(goalKind).toHaveValue('CONTRIBUTION');
   await goalKind.selectOption('GROSS');
   await expect(results).toContainText('Gross sales goal shortfall');
   await expect(results).toContainText('0.00 USD');
   await goalKind.selectOption('CONTRIBUTION');
-  await expect(results).toContainText('2,650.00 USD');
+  await expect(results).toContainText('2,360.00 USD');
   await expect(results).toContainText('Within stated capacity');
   await expect(results).toContainText('Not observed transactions');
   await expect(results).toContainText('does not connect to live accounting');
