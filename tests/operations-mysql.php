@@ -44,10 +44,27 @@ copy(__DIR__.'/../api/internal/operations-gsc-observation.json',$folder.'/api/in
 copy(__DIR__.'/../api/internal/ai-search-visibility-baseline-20261020.json',$folder.'/api/internal/ai-search-visibility-baseline-20261020.json');
 mkdir($folder.'/assets',0700);mkdir($folder.'/assets/data',0700);
 foreach(['book-catalog.json','service-catalog.json','vip-catalog.json'] as $catalog)copy(__DIR__.'/../assets/data/'.$catalog,$folder.'/assets/data/'.$catalog);
-function writeConfig():void {file_put_contents($GLOBALS['folder'].'/api/config.local.php','<?php return '.var_export($GLOBALS['configuration'],true).';');}
+// Private test fixture only: atomic config rotation avoids incomplete reads
+// while the local PHP router services security assertions.
+function writeConfig():void {
+ $dir=$GLOBALS['folder'].'/api';
+ $target=$dir.'/config.local.php';
+ $temporary=tempnam($dir,'config-fixture-');
+ if($temporary===false)throw new RuntimeException('fixture_config_temp_failed');
+ try{
+  if(file_put_contents($temporary,'<?php return '.var_export($GLOBALS['configuration'],true).';',LOCK_EX)===false)
+   throw new RuntimeException('fixture_config_write_failed');
+  chmod($temporary,0600);
+  if(!rename($temporary,$target))throw new RuntimeException('fixture_config_replace_failed');
+ }finally{if(is_file($temporary))unlink($temporary);}
+}
 writeConfig();file_put_contents($folder.'/router.php','<?php $p=parse_url($_SERVER["REQUEST_URI"],PHP_URL_PATH);if(is_file(__DIR__.$p))return false;require __DIR__."/api/index.php";');
 $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$err);if(!$socket)throw new RuntimeException('test_socket_unavailable');$address=stream_socket_get_name($socket,false);fclose($socket);$port=(int)substr(strrchr($address,':'),1);
-$process=proc_open([PHP_BINARY,'-S','127.0.0.1:'.$port,'-t',$folder,$folder.'/router.php'],[0=>['pipe','r'],1=>['file',$folder.'/server.log','a'],2=>['file',$folder.'/server.log','a']],$pipes,$folder);
+// The test rotates a TOTP credential during one long-running router fixture.
+ // Disable CLI-server OPcache so a cached config.local.php cannot permit a
+ // stale admin session for its revalidation interval (typically two seconds).
+ // Keep the credential-hash revocation assertion; never loosen expected 403.
+$process=proc_open([PHP_BINARY,'-d','opcache.enable=0','-d','opcache.enable_cli=0','-S','127.0.0.1:'.$port,'-t',$folder,$folder.'/router.php'],[0=>['pipe','r'],1=>['file',$folder.'/server.log','a'],2=>['file',$folder.'/server.log','a']],$pipes,$folder);
 if(!is_resource($process))throw new RuntimeException('test_server_failed');
 function request(string $path,int $expected,string $method='GET',?array $body=null,array $extra=[],bool $cookie=true):array {
  global $port,$raw;
