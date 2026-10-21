@@ -133,7 +133,15 @@ test('pre-submission review checks user-entered fields but refuses to certify of
  await form.locator('button[type=submit]').click();
  await expect(root.locator('.jr-kc-review-panel')).toBeEmpty();
  await root.locator('.jr-kc-review-draft').click();
+ // The first choice still lacks its group, so the warning must persist.
+ await expect(root.locator('.jr-kc-review-panel')).toContainText('examination groups');
+ await expect(root.locator('.jr-kc-review-panel')).toContainText('not an admission result or probability');
+ // Remove only the incomplete first choice; the remaining draft now has a group.
+ await root.locator('.jr-kc-item').first().getByRole('button',{name:'Remove choice 1'}).click();
+ await expect(root.locator('.jr-kc-review-panel')).toBeEmpty();
+ await root.locator('.jr-kc-review-draft').click();
  await expect(root.locator('.jr-kc-review-panel')).toContainText('not authenticated');
+ await expect(root.locator('.jr-kc-review-panel')).toContainText('official sources');
  expect(writes).toEqual([]);
 });
 
