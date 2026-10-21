@@ -1,5 +1,5 @@
 /* Konkur 1405 candidate intake preflight. No DB writes, predictions, or approvals. */
-import {auditCandidateRows} from './konkur-1405-intake.mjs';
+import {auditCandidateRows,normalizeProgrammeCode} from './konkur-1405-intake.mjs';
 const MAX_ROWS=20000;
 const REQUIRED=['year','code','sourceFileId','page','university','programme','examinationGroup','admissionMethod'];
 export function prepareKonkurBatch(rows){
@@ -9,7 +9,7 @@ export function prepareKonkurBatch(rows){
  const rejected=[];
  const seen=new Set();
  rows.forEach((row,index)=>{
-  const key=[row.year,row.examinationGroup,row.code].join('/');
+  const key=[row.year,row.examinationGroup,(typeof row.code==='string'?normalizeProgrammeCode(row.code):null)].join('/');
   const problems=[...(audit.invalid.find(x=>x.index===index)?.issues||[])];
   if(seen.has(key))problems.push('DUPLICATE_INPUT_CODE');
   else seen.add(key);
