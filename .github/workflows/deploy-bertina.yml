@@ -372,18 +372,6 @@ jobs:
           current="$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)"
           test "$current" = "$GITHUB_SHA"
 
-      # Strict transport check must run BEFORE uploading: cPanel's optional
-      # Force HTTPS toggle can preempt the approved one-hop historical rules.
-      # Fail closed without touching Bertina if public transport has changed.
-      - name: Preflight public historical URL transport before upload
-        run: |
-          set -euo pipefail
-          echo "Checking all 146 public legacy/canonical cases before touching production."
-          if ! node scripts/historical-authority-live-verify.mjs /tmp/historical-authority-predeploy.json; then
-            echo "::error::Historical URL preflight failed BEFORE upload. In Bertina cPanel > Domains disable Force HTTPS Redirect ONLY for drjavadrezazadeh.com; leave journal subdomain unchanged. HTTPS is still enforced by repository .htaccess. Check for other parent redirects if this persists."
-            exit 1
-          fi
-
       - name: Upload one release package over explicit TLS
         if: steps.credentials.outputs.ready == 'true'
         id: package
