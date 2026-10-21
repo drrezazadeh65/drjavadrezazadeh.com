@@ -29,6 +29,8 @@ test('navigator augments rather than replaces bilingual commercial service hubs'
  assert.match(fa,/<section class="service-hero">[\s\S]*?href="\.\.\/services\/"[^>]*>مشاهده ۲۱ خدمت و تعرفه‌ها<\/a>/,'Persian editorial hub exposes real priced catalogue without JavaScript');
  assert.match(fa,/<section class="service-hero">[\s\S]*?href="\.\.\/vip\/"[^>]*>شش بسته VIP<\/a>/,'Persian editorial hub exposes existing VIP offers');
  assert.match(en,/data-jr-en-service-atlas/,'preserve crawlable English directory');
+ assert.match(en,/href="\.\.\/request-consultation\/#cw-title"/,'English service hub exposes the existing seven-day owner-published request calendar');
+ assert.match(en,/a preferred hour is not a held or confirmed appointment/i,'English calendar link never promises a booking');
 });
 
 test('all and only the 21 approved service IDs have both real language routes',()=>{
