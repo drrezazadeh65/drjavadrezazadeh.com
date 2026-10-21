@@ -65,6 +65,45 @@ class GscIndexationTriageContracts(TestCase):
         self.assertEqual(req.call_args_list[0].args[1], triage.API)
         self.assertEqual(req.call_args_list[0].args[2]["siteUrl"], triage.EXPECTED_PROPERTY)
         self.assertNotIn("inspectionUrl", result)
+        self.assertEqual(result["sections"], {"other": {"discovered_not_indexed": 1, "indexed": 1}})
+        self.assertEqual(result["canonicalSelection"], {"unreported": 2})
+
+    def test_priority_and_balanced_sampling_reaches_guide_and_journal(self):
+        origin = triage.EXPECTED_PROPERTY.rstrip("/")
+        urls = [origin + "/fa/", origin + "/en/", origin + "/"]
+        urls += [origin + "/fa/services/s" + str(i) + "/" for i in range(35)]
+        urls += [origin + "/en/services/s" + str(i) + "/" for i in range(35)]
+        urls += [origin + "/fa/rahnamaha/g" + str(i) + "/" for i in range(30)]
+        urls += [origin + "/fa/akhbar/n" + str(i) + "/" for i in range(10)]
+        urls += [origin + "/journal/j" + str(i) + "/" for i in range(20)]
+        chosen = triage.select_sample(urls, 54)
+        self.assertEqual(len(chosen), 54)
+        self.assertEqual(len(set(chosen)), 54)
+        self.assertEqual(chosen[:3], [origin + "/", origin + "/fa/", origin + "/en/"])
+        kinds = {triage.section_for_url(u) for u in chosen}
+        self.assertEqual(kinds, {"other", "services", "guides", "news", "journal"})
+        self.assertEqual(chosen, triage.select_sample(list(reversed(urls)), 54))
+        self.assertTrue(any("/fa/services/" in u for u in chosen))
+        self.assertTrue(any("/en/services/" in u for u in chosen))
+
+    def test_sample_size_and_invalid_urls_fail_closed(self):
+        with self.assertRaises(ValueError):
+            triage.select_sample([], 1000)
+        with self.assertRaises(ValueError):
+            triage.select_sample(["https://another.example.org/"], 24)
+
+    def test_selected_google_canonical_is_counted_without_leaking_url(self):
+        u = "https://drjavadrezazadeh.com/fa/"
+        with mock.patch.object(triage, "request_google", return_value=(200, {
+            "inspectionResult": {"indexStatusResult": {
+                "verdict": "NEUTRAL", "coverageState": "Duplicate, Google chose different canonical",
+                "googleCanonical": "https://drjavadrezazadeh.com/en/"}}})):
+            result = triage.inspect_sample("synthetic-token", [u])
+        self.assertEqual(result["buckets"], {"canonicalized_or_duplicate": 1})
+        self.assertEqual(result["canonicalSelection"], {"different": 1})
+        self.assertNotIn("googleCanonical", result)
+        self.assertNotIn("https://", str(result))
+
 
     def test_private_routes_rejected_before_google_call(self):
         with mock.patch.object(triage, "request_google") as req:

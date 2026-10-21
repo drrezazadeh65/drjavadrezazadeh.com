@@ -31,6 +31,8 @@ PRIORITY = (
     "/fa/entekhab-reshteh/", "/en/student-guidance/", "/fa/shop/", "/en/shop/",
     "/fa/shop/authors/mehrab-mirkarimi/",
     "/en/shop/authors/mehrab-mirkarimi/", "/journal/",
+    "/fa/akhbar/international-research-collaboration-2026/",
+    "/fa/akhbar/ai-search-and-scientific-content-2026/",
 )
 
 
@@ -119,6 +121,79 @@ def sitemap_inventory(root: Path = ROOT) -> list[str]:
     return sorted(candidates, key=rank)
 
 
+def section_for_url(url: str) -> str:
+    route = _verified_route(url)
+    if route is None:
+        raise ValueError("invalid_sampling_url")
+    if (route.startswith(("/fa/services/", "/en/services/",
+                          "/fa/vip/", "/en/vip/"))):
+        return "services"
+    if route.startswith("/fa/rahnamaha/"):
+        return "guides"
+    if route.startswith(("/fa/akhbar/", "/en/news/")):
+        return "news"
+    if route.startswith("/journal/"):
+        return "journal"
+    return "other"
+
+
+def _balanced_language_order(urls: list[str]) -> list[str]:
+    """Stable, paired FA/EN pages: do not sample only EN when a stratum is cut."""
+    groups = {}
+    for url in sorted(urls):
+        route = _verified_route(url)
+        if route.startswith(("/en/", "/fa/")):
+            key = route[4:]
+            lang = route[1:3]
+        elif route.startswith("/journal/fa/"):
+            key = "/journal/" + route[len("/journal/fa/"):]
+            lang = "fa"
+        else:
+            key = route
+            lang = "en"
+        groups.setdefault(key, {})[lang] = url
+    ordered = []
+    for key in sorted(groups):
+        ordered.extend(groups[key][lang] for lang in ("fa", "en") if lang in groups[key])
+    return ordered
+
+
+def select_sample(inventory: list[str], limit: int) -> list[str]:
+    """Deterministic section-balanced sample; anchored owner-priority pages first.
+
+    Inclusion is not a random or statistical estimate of Google's property-wide
+    coverage. A chosen URL must exist in the approved sitemap inventory.
+    """
+    if limit not in SIZES:
+        raise ValueError("unapproved_sample_size")
+    unique = set(inventory)
+    if len(unique) != len(inventory):
+        raise ValueError("duplicate_sitemap_candidate")
+    if any(_verified_route(url) is None for url in inventory):
+        raise ValueError("invalid_sitemap_candidate")
+    pri = {url: PRIORITY.index(_verified_route(url)) for url in inventory
+           if _verified_route(url) in PRIORITY}
+    anchor = [url for url, _ in sorted(pri.items(), key=lambda p: p[1])]
+    if len(anchor) >= limit:
+        return anchor[:limit]
+    result = anchor[:]
+    pool = {section: _balanced_language_order(
+        [u for u in inventory if u not in pri and section_for_url(u) == section]
+    ) for section in ("services", "guides", "news", "journal", "other")}
+    weights = {"services": 0.30, "guides": 0.25, "news": 0.15,
+               "journal": 0.15, "other": 0.15}
+    selected = {s: 0 for s in pool}
+    while len(result) < limit and any(pool.values()):
+        # Weighted fair queue keeps the guide/news/journal cohorts represented,
+        # instead of exhausting all 54 public service details before any guides.
+        available = [s for s in pool if pool[s]]
+        section = min(available, key=lambda s: (selected[s] / weights[s],
+                                                 list(weights).index(s)))
+        result.append(pool[section].pop(0))
+        selected[section] += 1
+    return result
+
+
 def coverage_group(index: dict) -> str:
     if not isinstance(index, dict):
         return "unknown"
@@ -147,6 +222,9 @@ def coverage_group(index: dict) -> str:
 
 def inspect_sample(token: str, urls: list[str]) -> dict:
     counts = Counter()
+    sections = {}
+    canonical = Counter()
+    crawl_recency = Counter()
     for url in urls:
         if _verified_route(url) is None:
             raise ValueError("nonpublic_or_unapproved_inspection_url")
@@ -156,8 +234,28 @@ def inspect_sample(token: str, urls: list[str]) -> dict:
         index = result.get("inspectionResult", {}).get("indexStatusResult")
         if not isinstance(index, dict):
             raise VerificationError("missing_index_status")
-        counts[coverage_group(index)] += 1
-    return {"sampled": len(urls), "buckets": dict(sorted(counts.items()))}
+        group = coverage_group(index)
+        counts[group] += 1
+        section = section_for_url(url)
+        details = sections.setdefault(section, Counter())
+        details[group] += 1
+        selected_canonical = index.get("googleCanonical")
+        if not selected_canonical:
+            canonical["unreported"] += 1
+        elif selected_canonical == url:
+            canonical["self"] += 1
+        else:
+            canonical["different"] += 1
+        crawl_recency["timestamp_present" if index.get("lastCrawlTime")
+                      else "not_reported"] += 1
+    return {
+        "sampled": len(urls),
+        "buckets": dict(sorted(counts.items())),
+        "sections": {key: dict(sorted(sections[key].items()))
+                     for key in sorted(sections)},
+        "canonicalSelection": dict(sorted(canonical.items())),
+        "lastCrawlTimestamp": dict(sorted(crawl_recency.items())),
+    }
 
 
 def main() -> int:
@@ -175,7 +273,7 @@ def main() -> int:
         if limit not in SIZES:
             raise ValueError("unapproved_sample_size")
         inventory = sitemap_inventory()
-        sample = inventory[:limit]
+        sample = select_sample(inventory, limit)
         result = inspect_sample(token, sample)
         if result["sampled"] != len(sample):
             raise ValueError("incomplete_inspection_sample")
@@ -186,7 +284,9 @@ def main() -> int:
     # Aggregated counts only. NEVER log raw per-URL inspection, query or owner metrics.
     print("GSC_INDEXATION_TRIAGE=OBSERVED sample=" + str(result["sampled"])
           + " sitemap_candidates=" + str(len(inventory))
-          + " coverage=" + json.dumps(result["buckets"], sort_keys=True))
+          + " coverage=" + json.dumps(result["buckets"], sort_keys=True)
+          + " sections=" + json.dumps(result["sections"], sort_keys=True)
+          + " canonicalSelection=" + json.dumps(result["canonicalSelection"], sort_keys=True))
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with open(summary, "a", encoding="utf-8") as file:
@@ -195,6 +295,11 @@ def main() -> int:
             file.write("- Sample inspected: " + str(result["sampled"]) + "\n")
             for bucket, count in result["buckets"].items():
                 file.write("- " + bucket + ": " + str(count) + "\n")
+            file.write("- By section (cohort counts, not a statistically random sample):\n")
+            for section, entries in result["sections"].items():
+                file.write("  - " + section + ": " + json.dumps(entries, sort_keys=True) + "\n")
+            file.write("- Selected canonical: " + json.dumps(result["canonicalSelection"], sort_keys=True) + "\n")
+            file.write("- Last crawl timestamp: " + json.dumps(result["lastCrawlTimestamp"], sort_keys=True) + "\n")
             file.write("- This is NOT the property-wide Page Indexing report, an indexing guarantee, or a live sitemap submission.\n")
             file.write("- No URL-specific inspection data or Google credentials retained.\n")
     return 0

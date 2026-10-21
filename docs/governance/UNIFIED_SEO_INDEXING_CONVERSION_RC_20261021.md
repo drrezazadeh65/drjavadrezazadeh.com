@@ -31,6 +31,7 @@ This is SOURCE/INDEXABILITY READINESS, not evidence that Google has crawled or i
 
 ### 3.2 Real bounded Google inspection, using EXISTING keyless connection
 New scripts/gsc_indexation_triage.py + tests/test_gsc_indexation_triage.py. The **existing** GSC workflow gains an optional owner-invoked indexation_triage Boolean and bounded sample-size choice (24, 54 or 90). It:
+- selects a deterministic **balanced sample** across services, evergreen guides, news, journal and core pages, including both languages where available, and anchors previously unknown-to-Google pages for follow-up; the sample is diagnostic rather than statistically representative,
 - loads only indexable source URLs that appear in approved on-disk XML sitemaps, exist as public HTML and belong to the frozen baseline or the current official 21+6 service catalogues,
 - inspects only canonical same-origin frozen indexable routes,
 - uses the already authorised Google URL Inspection API with the exact GSC URL-prefix property,
