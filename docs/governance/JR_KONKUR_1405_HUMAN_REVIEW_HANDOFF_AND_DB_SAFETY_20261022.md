@@ -70,3 +70,11 @@ is mandatory for full official admission service. No CI test or synthetic
 MariaDB fixture may change it to ready without independent scientific
 and operational acceptance. A safeguarded, owner-operated research-experience
 release may be assessed separately using the existing GitHub/Bertina pathway.
+
+## Local decision-support usability and privacy closure — 2026-10-22
+
+- The existing preliminary choice list supports code, title and bilingual exam-group filtering with Persian/Arabic digit folding. The filter never mutates underlying preference order; reorder buttons are disabled while hidden choices could make reordering ambiguous.
+- A local, explicitly unofficial pre-submission checklist identifies formatting defects, duplicates, unspecified groups and the need to recheck source guides, amendments, choice limits and scorecard eligibility. It never marks a programme or candidate officially eligible.
+- Personal JSON exports remain candidate-controlled, with local-only import preview and explicit replacement. Search filtering never truncates exports or the printable full-choice report.
+- Every feature above operates in memory; no student table, database migration, AI model, account, upload or commercial payment route was added. Official admission models remain blocked pending independent source and scientific validation.
+- The exact GitHub commit and automated source/visual/browser test outcomes, rather than development statements, are the release evidence. Bertina production deployment remains a separate owner-controlled action with SQL/PDF import deferred.

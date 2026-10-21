@@ -110,3 +110,12 @@ test('filter locking ensures hidden choices cannot be reordered without clearing
  assert.ok(foundation.includes('groupSearchLabels[choice.group]'));
  assert.ok(foundation.includes('علوم تجربی'));
 });
+
+test('bilingual page introductions explain new draft search and manual verification checklist without official claims',()=>{
+ const fa=read('fa/entekhab-reshteh/index.html');
+ const en=read('en/student-guidance/index.html');
+ for(const phrase of ['کدرشته‌ها و عنوان‌ها را جست‌وجو کنید','چک‌لیست بازبینی پیش از ثبت رسمی'])assert.ok(fa.includes(phrase));
+ for(const phrase of ['Build and search an ordered personal choice draft','pre-submission verification checklist'])assert.ok(en.includes(phrase));
+ assert.ok(fa.includes('هیچ‌یک از این ابزارها رتبه رسمی'));
+ assert.ok(en.includes('These tools do not establish official eligibility'));
+});
