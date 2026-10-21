@@ -23,6 +23,8 @@ test('navigator augments rather than replaces bilingual commercial service hubs'
  }
  assert.match(fa,/data-service-pricing/,'preserve original Persian catalogue pricing');
  assert.match(fa,/data-service-comparison/,'preserve original Persian comparison');
+ assert.match(fa,/<section class="service-hero">[\s\S]*?href="\.\.\/services\/"[^>]*>مشاهده ۲۱ خدمت و تعرفه‌ها<\/a>/,'Persian editorial hub exposes real priced catalogue without JavaScript');
+ assert.match(fa,/<section class="service-hero">[\s\S]*?href="\.\.\/vip\/"[^>]*>شش بسته VIP<\/a>/,'Persian editorial hub exposes existing VIP offers');
  assert.match(en,/data-jr-en-service-atlas/,'preserve crawlable English directory');
 });
 

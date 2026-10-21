@@ -106,7 +106,8 @@ for(const [lang,path] of [['fa','/fa/'],['en','/en/']]){
    await expect(page.locator('script[src*="/assets/js/site.js"]')).toHaveAttribute('src',/20261019-home-cinematic-v3/);
    await expect(page.locator('main .hero h1')).toBeVisible();
    await expect(page.locator('main .hero .hero-pathway-cta a')).toHaveCount(4);
-   await expect(page.locator('main .hero .hero-pathway-cta a[href="../shop/"]')).toHaveCount(1);
+   await expect(page.locator('main .hero .hero-pathway-cta a[href="./shop/"]')).toHaveCount(1);
+   await expect(page.locator('main .hero .hero-pathway-cta a[href="../shop/"]')).toHaveCount(0);
    await expect(page.locator('.home-focus-strip a')).toHaveCount(4);
    await expect(page.locator('.audience-gate')).toHaveCount(4);
    await expect(page.locator('.portrait-shell .hero-portrait')).toBeVisible();

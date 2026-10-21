@@ -6,6 +6,7 @@ const en=readFileSync('en/index.html','utf8');
 const faRegister=readFileSync('fa/register/index.html','utf8');
 const enRegister=readFileSync('en/register/index.html','utf8');
 const styles=readFileSync('assets/css/home-experience-v1.css','utf8');
+const legacyShop=readFileSync('shop/index.html','utf8');
 
 for (const [name,html,label,href] of [
   ['Persian',fa,'فروشگاه کتاب','./shop/'],
@@ -15,6 +16,12 @@ for (const [name,html,label,href] of [
   assert.match(html,new RegExp('href="'+href+'"[^>]*>'+label),name+' homepage must expose the bookstore CTA');
   assert.match(html,/class="actions hero-pathway-cta"/,name+' homepage must group the primary pathways');
 }
+// Preserve the old bookmarked /shop/ route as a safe discoverable handoff, not a
+// duplicate indexable canonical or a forced redirect into the wrong language.
+assert.match(legacyShop,/<meta name="robots" content="noindex,follow/,'legacy storefront retains noindex');
+assert.match(legacyShop,/rel="canonical" href="https:\/\/drjavadrezazadeh\.com\/shop\/"/,'preserve historical self canonical');
+assert.match(legacyShop,/href="\.\.\/fa\/shop\/"[^>]*>ورود به فروشگاه رسمی فارسی<\/a>/,'legacy shop hands buyers to the current Persian storefront');
+assert.match(legacyShop,/href="\.\.\/en\/shop\/"[^>]*>English Bookstore<\/a>/,'legacy shop supports English buyers');
 // A homepage buyer must reach the canonical locale storefront directly, and every
 // existing standard/VIP detail offer in no more than two static link clicks.
 const standard=JSON.parse(readFileSync('assets/data/service-catalog.json','utf8')).services;
