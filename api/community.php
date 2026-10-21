@@ -17,6 +17,22 @@ function communityAvailable(PDO $pdo): bool {
 }
 function communityCanonical(mixed $v): ?string {
     if (!is_string($v) || strlen($v)>180) return null;
+    // Only separately approved, existing public service detail pages may join
+    // the discussion pilot; checkout, dashboards and manuscripts are excluded.
+    // The general community flags remain independent and mandatory.
+    if (preg_match('#^/(fa|en)/services/([a-z][a-z0-9_]{1,59})/$#D', $v, $service) === 1) {
+        if (getenv('JR_COMMUNITY_SERVICES_ENABLED') !== 'true') return null;
+        $root=realpath(dirname(__DIR__).'/'.$service[1].'/services');
+        $page=$root ? realpath($root.'/'.$service[2].'/index.html') : false;
+        if (!$root || !$page || !str_starts_with($page,$root.DIRECTORY_SEPARATOR)) return null;
+        $catalogFile=dirname(__DIR__).'/assets/data/service-catalog.json';
+        $catalog=is_file($catalogFile)?json_decode((string)file_get_contents($catalogFile),true):null;
+        if (!is_array($catalog)||!is_array($catalog['services']??null)) return null;
+        foreach ($catalog['services'] as $item) {
+            if (($item['id']??null)===$service[2] && ($item['sellable']??false)===true) return $v;
+        }
+        return null;
+    }
     if (preg_match('#^/fa/(akhbar|rahnamaha)/([a-z0-9](?:[a-z0-9-]{1,87}[a-z0-9])?)/$#D', $v, $matches) !== 1) return null;
     $root=realpath(dirname(__DIR__).'/fa/'.$matches[1]);
     $article=$root ? realpath($root.'/'.$matches[2].'/index.html') : false;
@@ -180,6 +196,8 @@ function communityRoute(string $route,string $verb): never {
         if (textLen($content)<12 || textLen($content)>2000 || strlen($content)>6000) fail('invalid_comment',400);
         if (preg_match_all('~(?:https?://|www\\.)~i',$content)>3) fail('invalid_comment',400);
         $rating=$pageBody['rating']??null;
+        if (preg_match('#^/(?:fa|en)/services/#', $page)===1 && $rating!==null)
+            fail('service_ratings_not_verified',400);
         if ($rating!==null && (!is_int($rating) || $rating<1 || $rating>5)) fail('invalid_rating',400);
         if (($pageBody['consentToPublication']??false)!==true) fail('consent_required',400);
         $id=(string)$account['id'];
