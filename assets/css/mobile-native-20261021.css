@@ -96,3 +96,29 @@
 @media(prefers-reduced-motion:reduce){
  .app-sheet-search input,.app-sheet-update button{transition:none!important}
 }
+
+/* Exactly five dock destinations; install is now a separate, reachable sheet
+   action and remains independently available near the homepage footer. */
+@media(max-width:900px){
+ .app-dock{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+ .app-sheet-install{margin-top:14px;padding-top:14px;border-top:1px solid rgba(212,175,55,.22)}
+ .app-sheet-install .jr-dock-install{
+  width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;
+  gap:10px;padding:11px 14px;border:1px solid rgba(212,175,55,.48);
+  border-radius:14px;background:rgba(212,175,55,.09);
+  color:#F8F5E9;font-family:inherit;font-weight:650;font-size:14px;line-height:1.5;
+  touch-action:manipulation;
+ }
+ .app-sheet-install .jr-dock-install .app-icon{width:22px;height:22px}
+ .app-sheet-install .jr-dock-install:focus-visible{outline:2px solid #D4AF37;outline-offset:3px}
+ .jr-dock-install-help{
+  position:fixed;z-index:2147483000;inset-inline:12px;
+  bottom:calc(90px + env(safe-area-inset-bottom));max-width:480px;
+  margin-inline:auto;padding:14px 16px;border:1px solid #A88955;
+  border-radius:16px;background:#1F1F1F;color:#F8F5E9;text-align:center;
+  line-height:1.8;font-size:13px;box-shadow:0 15px 45px rgba(0,0,0,.55);
+ }
+ .jr-dock-install-help[hidden]{display:none!important}
+}
+@media(min-width:901px){.jr-dock-install-help{display:none!important}}
+@media(prefers-reduced-motion:reduce){.jr-dock-install-help{transition:none!important}}

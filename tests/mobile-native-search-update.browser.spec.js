@@ -12,11 +12,13 @@ for(const locale of ['fa','en']){
    const dock=page.locator('.app-dock');
    await expect(dock.locator('a[data-app-tab]')).toHaveCount(5,{timeout:15000});
    // Existing first-party install affordance and all five named destinations remain.
-   await expect(dock.locator('[data-jr-dock-install]')).toHaveCount(1);
+   await expect(dock.locator('[data-jr-dock-install]')).toHaveCount(0);
+   await expect(dock.locator(':scope > *')).toHaveCount(5);
    const trigger=page.locator('.site-header [data-nav-toggle]').first();
    await trigger.click();
    const sheet=page.locator('#mobile-app-menu');
    await expect(sheet).toBeVisible();
+   await expect(sheet.locator('[data-jr-dock-install]')).toBeVisible();
    const input=sheet.locator('[data-jr-mobile-quick-find]');
    await expect(input).toBeVisible();
    await expect(input).toHaveAttribute('type','search');
@@ -48,7 +50,7 @@ for(const locale of ['fa','en']){
   await page.goto(origin+'/'+locale+'/',{waitUntil:'domcontentloaded'});
   const dock=page.locator('.app-dock');
   await expect(dock.locator('a[data-app-tab]')).toHaveCount(5,{timeout:15000});
-  await expect(dock.locator('[data-jr-dock-install]')).toHaveCount(0);
+  await expect(page.locator('[data-jr-dock-install]')).toHaveCount(0);
   await page.locator('.site-header [data-nav-toggle]').first().click();
   const check=page.locator('[data-jr-app-update-check]');
   await expect(check).toBeVisible();

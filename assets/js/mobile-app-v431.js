@@ -76,32 +76,38 @@ const nav=document.createElement('nav');nav.className='app-dock';nav.setAttribut
 const isInstalled=navigator.standalone===true||window.matchMedia?.('(display-mode: standalone)').matches;
 const installControl=isInstalled?'':'<button type="button" class="dock-action jr-dock-install" data-jr-dock-install aria-label="'+(isFa?'نصب اپلیکیشن':'Install website app')+'">'+
   '<svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12m-5-5 5 5 5-5M5 17v4h14v-4"/></svg><span>'+(isFa?'نصب':'Install')+'</span></button>';
-nav.innerHTML=tabs.map(([h,l,i])=>'<a href="'+h+'" data-app-tab="'+i+'">'+icon(i)+'<span>'+l+'</span>'+(i==='bag'?'<b class="app-cart-badge" data-app-cart-count hidden>0</b>':'')+'</a>').join('')+installControl;
+nav.innerHTML=tabs.map(([h,l,i])=>'<a href="'+h+'" data-app-tab="'+i+'">'+icon(i)+'<span>'+l+'</span>'+(i==='bag'?'<b class="app-cart-badge" data-app-cart-count hidden>0</b>':'')+'</a>').join('');
 document.body.appendChild(nav);
-if(installControl){
-  nav.style.setProperty('grid-template-columns','repeat(6,minmax(0,1fr))','important');
-  const installButton=q('[data-jr-dock-install]',nav);
-  installButton?.addEventListener('click',async()=>{
-    if(navigator.standalone===true||window.matchMedia?.('(display-mode: standalone)').matches){
-      installButton.remove();nav.style.removeProperty('grid-template-columns');return;
-    }
-    const requested=typeof window.jrPwaRequest==='function'&&await window.jrPwaRequest();
-    if(requested)return;
-    let note=q('[data-jr-install-help]');
-    if(!note){note=document.createElement('div');note.dataset.jrInstallHelp='1';note.className='jr-dock-install-help';note.setAttribute('role','status');note.setAttribute('aria-live','polite');document.body.appendChild(note);}
-    const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent||'');
-    note.textContent=ios?(isFa?'در Safari، اشتراک‌گذاری و سپس افزودن به صفحه اصلی را انتخاب کنید.':'In Safari, select Share, then Add to Home Screen.'):(isFa?'از منوی مرورگر، گزینه نصب برنامه یا افزودن به صفحه اصلی را انتخاب کنید.':'From your browser menu, choose Install app or Add to Home Screen.');
-    note.hidden=false;
-  });
-  window.addEventListener('appinstalled',()=>{installButton?.remove();nav.style.removeProperty('grid-template-columns');q('[data-jr-install-help]')?.remove()},{once:true});
-  const style=document.createElement('style');
-  style.dataset.jrDockInstallStyle='20261016';
-  style.textContent='@media(max-width:900px){.app-dock:has([data-jr-dock-install]){grid-template-columns:repeat(6,minmax(0,1fr))!important}.app-dock .jr-dock-install{color:#F8F5E9!important;border:1px solid rgba(212,175,55,.24)!important;border-radius:12px!important;background:rgba(212,175,55,.075)!important}.jr-dock-install-help{position:fixed;z-index:2147483000;inset-inline:12px;bottom:calc(90px + env(safe-area-inset-bottom));max-width:480px;margin-inline:auto;padding:14px 16px;border:1px solid #A88955;border-radius:16px;background:#1F1F1F;color:#F8F5E9;text-align:center;line-height:1.8;font-size:13px;box-shadow:0 15px 45px rgba(0,0,0,.55)}.jr-dock-install-help[hidden]{display:none!important}}@media(min-width:901px){.jr-dock-install-help{display:none!important}}@media(prefers-reduced-motion:reduce){.jr-dock-install-help{transition:none!important}}';
-  document.head.appendChild(style);
-}
 const panel=document.createElement('div');panel.className='mobile-app-sheet';panel.id='mobile-app-menu';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label',isFa?'دسترسی سریع':'Explore');
-panel.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><div><small>'+(isFa?'ناوبری اپ':'APP NAVIGATION')+'</small><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong></div><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-search"><label for="jr-mobile-quick-find">'+(isFa?'جست‌وجوی سریع در بخش‌های سایت':'Quickly find a site section')+'</label><input id="jr-mobile-quick-find" data-jr-mobile-quick-find type="search" autocomplete="off" spellcheck="false" placeholder="'+(isFa?'نام خدمت، کتاب یا بخش...':'Service, book or section...')+'" aria-controls="jr-mobile-quick-links"><span data-jr-mobile-search-count role="status" aria-live="polite"></span></div><div class="app-sheet-grid" id="jr-mobile-quick-links">'+sheet.map(([h,l])=>'<a href="'+h+'"><span class="sheet-icon">'+icon(iconFor(h,l))+'</span><b>'+l+'</b><span class="sheet-chevron" aria-hidden="true">›</span></a>').join('')+'</div><p class="app-sheet-empty" data-jr-mobile-empty hidden>'+(isFa?'بخشی با این عبارت پیدا نشد. عبارت دیگری وارد کنید.':'No section matched. Try another term.')+'</p>'+(isInstalled?'<div class="app-sheet-update"><button type="button" data-jr-app-update-check>'+icon('path')+'<span>'+(isFa?'بررسی نسخه جدید اپلیکیشن':'Check for app updates')+'</span></button><p data-jr-app-update-status role="status" aria-live="polite">'+(isFa?'در صورت انتشار نسخه جدید، به‌روزرسانی با تأیید شما انجام می‌شود.':'Updates are announced before you choose to refresh.')+'</p></div>':'')+'</div>';
+panel.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><div><small>'+(isFa?'ناوبری اپ':'APP NAVIGATION')+'</small><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong></div><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-search"><label for="jr-mobile-quick-find">'+(isFa?'جست‌وجوی سریع در بخش‌های سایت':'Quickly find a site section')+'</label><input id="jr-mobile-quick-find" data-jr-mobile-quick-find type="search" autocomplete="off" spellcheck="false" placeholder="'+(isFa?'نام خدمت، کتاب یا بخش...':'Service, book or section...')+'" aria-controls="jr-mobile-quick-links"><span data-jr-mobile-search-count role="status" aria-live="polite"></span></div><div class="app-sheet-grid" id="jr-mobile-quick-links">'+sheet.map(([h,l])=>'<a href="'+h+'"><span class="sheet-icon">'+icon(iconFor(h,l))+'</span><b>'+l+'</b><span class="sheet-chevron" aria-hidden="true">›</span></a>').join('')+'</div><p class="app-sheet-empty" data-jr-mobile-empty hidden>'+(isFa?'بخشی با این عبارت پیدا نشد. عبارت دیگری وارد کنید.':'No section matched. Try another term.')+'</p>'+(installControl?'<div class="app-sheet-install">'+installControl+'</div>':'')+(isInstalled?'<div class="app-sheet-update"><button type="button" data-jr-app-update-check>'+icon('path')+'<span>'+(isFa?'بررسی نسخه جدید اپلیکیشن':'Check for app updates')+'</span></button><p data-jr-app-update-status role="status" aria-live="polite">'+(isFa?'در صورت انتشار نسخه جدید، به‌روزرسانی با تأیید شما انجام می‌شود.':'Updates are announced before you choose to refresh.')+'</p></div>':'')+'</div>';
 document.body.appendChild(panel);
+
+if(installControl){
+ const installButton=q('[data-jr-dock-install]',panel);
+ installButton?.addEventListener('click',async()=>{
+  if(navigator.standalone===true||window.matchMedia?.('(display-mode: standalone)').matches){
+   installButton.closest('.app-sheet-install')?.remove();return;
+  }
+  const requested=typeof window.jrPwaRequest==='function'&&await window.jrPwaRequest();
+  if(requested)return;
+  let note=q('[data-jr-install-help]');
+  if(!note){
+   note=document.createElement('div');
+   note.dataset.jrInstallHelp='1';note.className='jr-dock-install-help';
+   note.setAttribute('role','status');note.setAttribute('aria-live','polite');
+   document.body.appendChild(note);
+  }
+  const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent||'');
+  note.textContent=ios
+    ?(isFa?'در Safari، اشتراک‌گذاری و سپس افزودن به صفحه اصلی را انتخاب کنید.':'In Safari, select Share, then Add to Home Screen.')
+    :(isFa?'از منوی مرورگر، گزینه نصب برنامه یا افزودن به صفحه اصلی را انتخاب کنید.':'From your browser menu, choose Install app or Add to Home Screen.');
+  note.hidden=false;
+ });
+ window.addEventListener('appinstalled',()=>{
+  installButton?.closest('.app-sheet-install')?.remove();
+  q('[data-jr-install-help]')?.remove();
+ },{once:true});
+}
 // Private-safe, client-side discovery: no search query is stored or transmitted.
 const sheetSearch=q('[data-jr-mobile-quick-find]',panel);
 const sheetLinks=qa('.app-sheet-grid a',panel);

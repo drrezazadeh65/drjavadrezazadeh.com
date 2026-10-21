@@ -35,9 +35,11 @@ for(const locale of ['fa','en']){
        {timeout:12000,message:'official cover must load'}).toBe(true);
    }
    const dock=page.locator('.app-dock');
-   const install=dock.locator('[data-jr-dock-install]');
-   await expect(install).toBeVisible({timeout:10000});
    await expect(dock.locator('a')).toHaveCount(5);
+   await expect(dock.locator(':scope > *')).toHaveCount(5);
+   await page.locator('.site-header [data-nav-toggle]').first().click();
+   const install=page.locator('#mobile-app-menu [data-jr-dock-install]');
+   await expect(install).toBeVisible({timeout:10000});
    const targetSize=await install.evaluate(el=>{const b=el.getBoundingClientRect();return {width:b.width,height:b.height}});
    expect(targetSize.width,'mobile install target width').toBeGreaterThanOrEqual(44);
    expect(targetSize.height,'mobile install target height').toBeGreaterThanOrEqual(44);
@@ -64,7 +66,7 @@ test('installed PWA mode removes redundant install control but preserves five do
  const dock=page.locator('.app-dock');
  await expect(dock).toBeVisible();
  await expect(dock.locator('a')).toHaveCount(5);
- await expect(dock.locator('[data-jr-dock-install]')).toHaveCount(0);
+ await expect(page.locator('[data-jr-dock-install]')).toHaveCount(0);
 });
 
 test('product versions are public-friendly and do not leak the service-worker fingerprint',async({page})=>{
@@ -96,7 +98,8 @@ for(const locale of ['fa','en']){
   await expect(meta).toContainText(locale==='fa'?'نشر دارما':'Darma Publishing');
   await expect(meta).toContainText(locale==='fa'?'۱۴۰۴':'1404');
   await expect(meta).not.toContainText(locale==='fa'?'هنوز تأیید نشده':'Not yet verified');
-  await expect(page.locator('.app-dock [data-jr-dock-install]')).toBeVisible({timeout:12000});
+  await expect(page.locator('.app-dock a[data-app-tab]')).toHaveCount(5,{timeout:12000});
+  await expect(page.locator('#mobile-app-menu [data-jr-dock-install]')).toHaveCount(1);
   const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
   expect(overflow,'book detail mobile overflow').toBeLessThanOrEqual(1);
  });

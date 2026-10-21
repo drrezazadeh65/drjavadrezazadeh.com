@@ -13,14 +13,18 @@ test('the public footer exposes the owner-facing 5.1.0 version, never internal c
  assert.doesNotMatch(s,/Technical build ID:/);
 });
 
-test('permanent bottom-dock install control retains five other tabs in each locale',()=>{
+test('exactly five public mobile dock destinations; install and updates remain distinct accessible sheet actions',()=>{
  const s=source('assets/js/mobile-app-v431.js');
  assert.match(s,/data-jr-dock-install/);
  assert.match(s,/jrPwaRequest/);
  assert.match(s,/appinstalled/);
- assert.match(s,/repeat\(6,minmax\(0,1fr\)\)/);
- assert.match(s,/prefers-reduced-motion/);
- assert.match(s,/safe-area-inset-bottom/);
+ const css=source('assets/css/mobile-native-20261021.css');
+ assert.doesNotMatch(s,/repeat\(6,minmax\(0,1fr\)\)/);
+ assert.match(css,/repeat\(5,minmax\(0,1fr\)\)/);
+ assert.match(css,/prefers-reduced-motion/);
+ assert.match(css,/safe-area-inset-bottom/);
+ assert.match(s,/app-sheet-install/);
+ assert.match(s,/data-jr-app-update-check/);
  assert.match(s,/Share, then Add to Home Screen/);
  assert.match(s,/Install app or Add to Home Screen/);
  assert.match(s,/if\(installControl\)/);
