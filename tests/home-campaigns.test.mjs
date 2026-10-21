@@ -48,6 +48,7 @@ for(const locale of ['fa','en']){
   assert.equal((fragment.match(/class="jr-campaign-card"/g)||[]).length,14);
   assert.equal((fragment.match(/loading="lazy"/g)||[]).length,15);
   assert.equal((fragment.match(/decoding="async"/g)||[]).length,15);
+  assert.equal((fragment.match(/width="(?:1600|1672)" height="(?:900|941)" loading="lazy"/g)||[]).length,15);
   assert.equal((fragment.match(/data-jr-promo-group="/g)||[]).length,3);
   assert.equal((fragment.match(/data-jr-promo-rail(?!-)/g)||[]).length,3);
   assert.equal((fragment.match(/data-jr-promo-step="/g)||[]).length,6);
