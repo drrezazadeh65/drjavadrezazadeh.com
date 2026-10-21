@@ -4,6 +4,7 @@ declare(strict_types=1);
 // Existing Bertina API bootstrap only. This module NEVER alters source records,
 // creates tables, accesses accounts or processes private scorecards.
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
+require_once __DIR__.'/konkur-public-search-guard.php';
 
 /**
  * One explicitly verified programme-location record per current revision.
@@ -108,10 +109,13 @@ function konkurCatalogueRoute(string $path, string $verb): never {
 
     $group=trim((string)($_GET['group']??''));
     if ($group!=='' && !preg_match('/^[A-Z0-9_]{2,60}$/D',$group)) fail('invalid_examination_group',422);
-    $search=trim((string)($_GET['q']??''));
+    $rawSearch=$_GET['q']??'';
+    if (!is_string($rawSearch)) fail('invalid_search',422);
+    $search=trim($rawSearch);
     if ((function_exists('mb_strlen') ? mb_strlen($search,'UTF-8')>80 : strlen($search)>240)
         || preg_match('/[\x00-\x1F\x7F]/u',$search))
         fail('invalid_search',422);
+    if (konkurPublicSearchUnsafe($search)) fail('invalid_search',422);
     $limitRaw=(string)($_GET['limit']??'20');
     if (!preg_match('/^[1-9][0-9]?$/D',$limitRaw) || (int)$limitRaw>50) fail('invalid_limit',422);
     $limit=(int)$limitRaw;
