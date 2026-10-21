@@ -1,42 +1,135 @@
 <!doctype html>
-<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="robots" content="noindex,nofollow,noarchive"><title>آزمایشگاه هوش انتخاب رشته | نسخه پژوهشی</title>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-z/7Rm/nj0JIcSYK26JH93H/3A3qve36yRH9/NyZyWeQ='; style-src 'self' 'sha256-TimDOufPA/UMCAnrI2+8hqsg6UFqicrEc91lU7fp1ao='; img-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>آزمایشگاه هوش انتخاب رشته | نسخه پژوهشی</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/css/style.css">
-<style>body{margin:0;background:#121212;color:#f5eddb;font:17px/1.9 system-ui,sans-serif}.shell{max-width:800px;margin:auto;padding:24px 16px 80px}h1{color:#d9b75d}section{border:1px solid #8d7748;border-radius:18px;padding:20px;margin:20px 0;background:#202020}label{display:block;margin-top:12px}input,select{box-sizing:border-box;width:100%;padding:12px;border:1px solid #ab915b;border-radius:9px;background:#292929;color:white;font:inherit}button{margin-top:20px;padding:13px 24px;border:0;border-radius:10px;background:#d8b66a;color:#171717;font:inherit;font-weight:700}output{display:block;white-space:pre-wrap;margin-top:15px}small{color:#d4cab4}a{color:#edcf86}</style></head>
-<body><main class="shell"><p><a href="/fa/entekhab-reshteh/">بازگشت به استودیوی انتخاب رشته</a></p>
+<style>:root{--bg:#121212;--panel:#202020;--field:#292929;--ink:#f5eddb;--muted:#d4cab4;--gold:#d9b75d;--line:#8d7748;--err:#ffb4a8}
+*{box-sizing:border-box}html{scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.9 system-ui,"Vazirmatn",Tahoma,sans-serif;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.shell{max-width:800px;margin:auto;padding:24px 16px 80px}h1{color:var(--gold);line-height:1.5}
+section{border:1px solid var(--line);border-radius:18px;padding:20px;margin:20px 0;background:var(--panel)}
+fieldset{border:1px dashed var(--line);border-radius:12px;margin:18px 0 0;padding:6px 14px 14px}legend{padding:0 8px;color:var(--gold)}
+label{display:block;margin-top:12px}.opt{color:var(--muted);font-size:.85em}
+input,select{width:100%;min-height:48px;padding:10px 12px;border:1px solid #ab915b;border-radius:9px;background:var(--field);color:#fff;font:inherit;font-size:16px}
+input[aria-invalid=true]{border-color:var(--err);box-shadow:0 0 0 2px #ffb4a855}
+.row{display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:end}
+@media(max-width:560px){.row{grid-template-columns:1fr 1fr}.row .rm{grid-column:1/-1}}
+.err[hidden]{display:none}.err{display:block;color:var(--err);font-size:.88em;line-height:1.6;margin-top:4px}
+button{min-height:48px;margin:20px 0 0;padding:12px 24px;border:0;border-radius:10px;background:#d8b66a;color:#171717;font:inherit;font-weight:700;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);margin-inline-start:8px}button.first{margin-inline-start:0}.ln{margin:4px 0}
+button.rm{margin:0;padding:10px 14px}button[disabled]{opacity:.55;cursor:progress}
+a,button,input,select{outline-offset:3px}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,[tabindex="-1"]:focus-visible{outline:3px solid #fff}
+a{color:#edcf86}small,.note{color:var(--muted)}
+.skip{position:absolute;inset-inline-start:8px;top:-60px;background:#fff;color:#000;padding:8px 14px;border-radius:8px;z-index:9}.skip:focus{top:8px}
+.errsum{border:1px solid var(--err);border-radius:12px;padding:12px 18px;margin-top:16px;background:#3a1f1c}.errsum h3{margin:0 0 4px;color:var(--err);font-size:1em}.errsum ul{margin:0;padding-inline-start:20px}
+output{display:block;margin-top:16px}output:focus{outline:none}
+.card{border:1px solid var(--line);border-radius:14px;padding:14px 18px;background:#262626}.card h3{margin:0 0 6px;color:var(--gold);font-size:1.05em}
+.badge{display:inline-block;padding:0 10px;border:1px solid var(--gold);border-radius:99px;font-size:.82em;color:var(--gold);margin-inline-start:6px}
+.card ul{margin:8px 0 0;padding-inline-start:20px}code{direction:ltr;unicode-bidi:isolate;font-size:.9em}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}</style></head>
+<body><a class="skip" href="#main">رفتن به محتوای اصلی</a>
+<main id="main" class="shell"><p><a href="/fa/entekhab-reshteh/">بازگشت به استودیوی انتخاب رشته</a></p>
 <h1>آزمایشگاه هوش اختصاصی انتخاب رشته</h1>
 <p>نسخه پژوهشی و آزمایشی؛ این صفحه انتخاب رشته رسمی یا پیش‌بینی احتمال قبولی نیست.</p>
-<section><h2>بررسی اولیه کارنامه آزمایشی</h2><form id="scorecard" autocomplete="off">
+<section aria-labelledby="h-form"><h2 id="h-form">بررسی اولیه کارنامه آزمایشی</h2>
+<form id="scorecard" autocomplete="off" novalidate>
 <label for="provider">مؤسسه آزمون</label><select id="provider" required><option value="KANOON">قلم‌چی</option><option value="GAJ">گاج</option><option value="GOZINEH_DO">گزینه دو</option><option value="SANJESH">سنجش</option><option value="OTHER">سایر</option></select>
 <label for="group">گروه آزمایشی</label><select id="group" required><option value="MATHEMATICS">ریاضی</option><option value="EXPERIMENTAL">تجربی</option><option value="HUMANITIES">انسانی</option><option value="ARTS">هنر</option><option value="LANGUAGES">زبان</option></select>
-<label for="year">سال آزمون</label><input id="year" inputmode="numeric" value="۱۴۰۵" required maxlength="4">
-<label for="rank">رتبه گزارش‌شده (اختیاری)</label><input id="rank" inputmode="numeric" maxlength="9" placeholder="مثلاً ۱۲۳۴">
-<label for="subject">نام درس (اختیاری)</label><input id="subject" maxlength="60" placeholder="مثلاً ریاضی">
-<label for="percent">درصد درس (اختیاری)</label><input id="percent" inputmode="decimal" placeholder="مثلاً ۷۵">
-<button type="submit">بررسی کارنامه</button><button type="reset">پاک‌کردن</button>
-</form><output id="result" role="status" aria-live="polite"></output>
+<label for="year">سال آزمون (شمسی)</label><input id="year" inputmode="numeric" value="۱۴۰۵" required maxlength="4" aria-describedby="e-year"><span class="err" id="e-year" hidden></span>
+<label for="rank">رتبه گزارش‌شده <span class="opt">(اختیاری)</span></label><input id="rank" inputmode="numeric" maxlength="9" placeholder="مثلاً ۱۲۳۴" aria-describedby="e-rank"><span class="err" id="e-rank" hidden></span>
+<fieldset><legend>درس‌ها <span class="opt">(اختیاری، حداکثر ۶ درس)</span></legend>
+<div id="subjects"></div><span class="err" id="e-subjects" hidden></span>
+<button type="button" class="ghost first" id="add">افزودن درس</button>
+<p class="note"><small>نام درس فقط برای خودتان است و وارد تحلیل نمی‌شود؛ فقط درصد درس بررسی می‌شود. درصد می‌تواند به‌دلیل نمره منفی تا منفی ۳۳٫۳۳ هم باشد.</small></p></fieldset>
+<button type="submit" id="go">بررسی کارنامه</button><button type="reset" class="ghost">پاک‌کردن</button>
+<div id="errsum" class="errsum" tabindex="-1" hidden></div>
+</form><output id="result" role="status" aria-live="polite" tabindex="-1"></output>
 <small>تمام محاسبات در همین مرورگر انجام می‌شود. اطلاعات فرم به سرور ارسال یا در حافظه دائمی ذخیره نمی‌شود. هیچ رتبه آزمایشی به‌عنوان رتبه رسمی تأیید نمی‌شود.</small></section>
-<section><h2>وضعیت داده‌های پذیرش</h2><p>شش دفترچه رسمی و ۲۴۱۲ مرجع صفحه ثبت شده‌اند، اما تأیید مستقل جداول رشته‌محل‌ها هنوز تکمیل نشده است. بنابراین این آزمایشگاه فعلاً هیچ احتمال قبولی یا فهرست پیشنهادی قطعی ارائه نمی‌کند.</p></section>
+<section aria-labelledby="h-data"><h2 id="h-data">وضعیت داده‌های پذیرش</h2><p>شش دفترچه رسمی و ۲۴۱۲ مرجع صفحه ثبت شده‌اند، اما تأیید مستقل جداول رشته‌محل‌ها هنوز تکمیل نشده است. بنابراین این آزمایشگاه فعلاً هیچ احتمال قبولی یا فهرست پیشنهادی قطعی ارائه نمی‌کند.</p></section>
 </main><script type="module">
-import {normalizeLabScorecard,analyseLabScorecard} from '/assets/js/jr-konkur-ai-lab-public-v1.mjs';
-const form=document.getElementById('scorecard'),result=document.getElementById('result');
-const digits=s=>String(s).replace(/[۰-۹٠-٩]/g,c=>String(c.codePointAt(0)>=0x6f0?c.codePointAt(0)-0x6f0:c.codePointAt(0)-0x660));
-form.addEventListener('submit',event=>{
- event.preventDefault();result.textContent='';
- const rawRank=digits(document.getElementById('rank').value.trim());
- const rawPercent=digits(document.getElementById('percent').value.trim());
- const name=document.getElementById('subject').value.trim();
- const subjects=name&&rawPercent!==''?[{subjectCode:'SELF_REPORTED',percent:Number(rawPercent)}]:[];
- const scorecard={provider:document.getElementById('provider').value,year:digits(document.getElementById('year').value.trim()),
- examinationGroup:document.getElementById('group').value,subjects,
- ...(rawRank!==''?{rank:Number(rawRank)}:{})};
- const normalized=normalizeLabScorecard(scorecard);
- if(!normalized.valid){result.textContent='اطلاعات نیازمند اصلاح است: '+normalized.issues.join('، ');return;}
- const analysis=analyseLabScorecard(scorecard);
- result.textContent='ساختار کارنامه بررسی شد. مؤسسه: '+normalized.provider+' | سال: '+normalized.year+
- '\nرتبه واردشده خوداظهاری است و تأیید رسمی ندارد.\n'+
- (analysis.status==='AWAITING_VERIFIED_CATALOGUE'?'هنوز داده رشته‌محل تأییدشده برای تحلیل قبولی در دسترس نیست.':'تحلیل اولیه انجام شد.')+
- '\nهیچ درصد قبولی محاسبه نشده است.';
+const MAX_SUBJECTS=6,MIN_PCT=-33.34,MAX_PCT=100,MAX_RANK=2000000;
+const $=id=>document.getElementById(id);
+const form=$('scorecard'),result=$('result'),box=$('subjects'),sum=$('errsum'),go=$('go');
+const digits=s=>String(s).replace(/[۰-۹٠-٩]/g,c=>{const n=c.codePointAt(0);return String(n>=0x6f0?n-0x6f0:n-0x660)});
+const clean=s=>digits(s).replace(/[\s\u200c\u200e\u200f]/g,'').replace(/[٬,،]/g,'').replace(/٫/g,'.').replace(/[\u2212\u2013]/g,'-');
+const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const el=(t,a={},...k)=>{const e=document.createElement(t);for(const[n,v]of Object.entries(a))e.setAttribute(n,v);e.append(...k);return e};
+const ISSUE_FA={};
+let lab=null,n=0;
+const ready=import('/assets/js/jr-konkur-ai-lab-public-v1.mjs').then(m=>{lab=m}).catch(()=>{lab=null});
+
+function addRow(){
+ if(box.children.length>=MAX_SUBJECTS)return;const i=++n;
+ const row=el('div',{class:'row'},
+  el('div',{},el('label',{for:`sn${i}`},'نام درس'),el('input',{id:`sn${i}`,maxlength:'60',placeholder:'مثلاً ریاضی'})),
+  el('div',{},el('label',{for:`sp${i}`},'درصد'),el('input',{id:`sp${i}`,inputmode:'decimal',placeholder:'مثلاً ۷۵','aria-describedby':`se${i}`}),el('span',{class:'err',id:`se${i}`,hidden:''})),
+  el('button',{type:'button',class:'ghost rm','aria-label':'حذف این درس'},'حذف'));
+ row.querySelector('.rm').addEventListener('click',()=>{row.remove();$('add').disabled=false;$('add').focus()});
+ box.append(row);$('add').disabled=box.children.length>=MAX_SUBJECTS;
+}
+function setErr(id,msg,inputId){const s=$(id),inp=$(inputId||id.replace(/^e-/,''));if(msg){s.textContent=msg;s.hidden=false;inp&&inp.setAttribute('aria-invalid','true')}else{s.textContent='';s.hidden=true;inp&&inp.removeAttribute('aria-invalid')}}
+function clearErrors(){for(const s of form.querySelectorAll('.err'))s.hidden=true,s.textContent='';for(const i of form.querySelectorAll('[aria-invalid]'))i.removeAttribute('aria-invalid');sum.hidden=true;sum.replaceChildren()}
+
+function readForm(){
+ const problems=[];const fail=(inputId,msg,errId)=>{problems.push({inputId,msg});setErr(errId||`e-${inputId}`,msg,inputId)};
+ const year=clean($('year').value);
+ if(!/^\d{4}$/.test(year)||+year<1380||+year>1450)fail('year','سال را چهاررقمی و شمسی وارد کنید؛ مثلاً ۱۴۰۵.');
+ const rawRank=clean($('rank').value);let rank;
+ if(rawRank!==''){if(!/^\d{1,9}$/.test(rawRank)||+rawRank<1)fail('rank','رتبه باید عدد صحیح مثبت باشد.');
+  else if(+rawRank>MAX_RANK)fail('rank','این رتبه بیش از سقف منطقی است؛ لطفاً دوباره بررسی کنید.');else rank=+rawRank}
+ const subjects=[],seen=new Set();
+ for(const row of box.children){
+  const nameI=row.querySelector('input[id^=sn]'),pctI=row.querySelector('input[id^=sp]'),i=pctI.id.slice(2),eid=`se${i}`;
+  const name=nameI.value.trim().replace(/\s+/g,' '),raw=clean(pctI.value);
+  if(!name&&raw==='')continue;
+  if(!name||raw===''){fail(pctI.id,'نام درس و درصد را هر دو وارد کنید یا هر دو را خالی بگذارید.',eid);continue}
+  if(!/^-?\d{1,3}(\.\d{1,2})?$/.test(raw)||+raw<MIN_PCT||+raw>MAX_PCT){fail(pctI.id,'درصد باید عددی بین ‎−۳۳٫۳۳ و ۱۰۰ باشد.',eid);continue}
+  const key=name.normalize('NFKC').toLowerCase();
+  if(seen.has(key)){fail(nameI.id,'این درس قبلاً وارد شده است.',eid);continue}
+  seen.add(key);subjects.push({subjectCode:'SELF_REPORTED_'+(subjects.length+1),percent:+raw});
+ }
+ return{problems,year,rank,subjects};
+}
+function showProblems(problems){
+ sum.replaceChildren(el('h3',{},'لطفاً این موارد را اصلاح کنید:'),el('ul',{},...problems.map(p=>{const a=el('a',{href:`#${p.inputId}`},p.msg);a.addEventListener('click',e=>{e.preventDefault();$(p.inputId).focus()});return el('li',{},a)})));
+ sum.hidden=false;sum.focus();
+}
+function card(title,status,lines,issues){
+ const c=el('div',{class:'card'},el('h3',{},title,...(status?[el('span',{class:'badge'},status)]:[])));
+ for(const l of lines)c.append(el('p',{class:'ln'},l));
+ if(issues&&issues.length)c.append(el('ul',{},...issues.map(i=>el('li',{},ISSUE_FA[i]||'کد: ',...(ISSUE_FA[i]?[]:[el('code',{},String(i))])))));
+ return c;
+}
+function show(node){result.replaceChildren(node);result.focus()}
+
+form.addEventListener('submit',async event=>{
+ event.preventDefault();clearErrors();result.replaceChildren();
+ const{problems,year,rank,subjects}=readForm();
+ if(problems.length){showProblems(problems);return}
+ go.disabled=true;
+ try{
+  await ready;
+  if(!lab||typeof lab.normalizeLabScorecard!=='function'||typeof lab.analyseLabScorecard!=='function'){
+   show(card('ماژول تحلیل در دسترس نیست',null,['بارگذاری هسته تحلیل ناموفق بود. صفحه را دوباره بارگذاری کنید. هیچ داده‌ای ارسال نشده است.']));return}
+  const scorecard={provider:$('provider').value,year,examinationGroup:$('group').value,subjects,...(rank!==undefined?{rank}:{})};
+  const normalized=lab.normalizeLabScorecard(scorecard);
+  if(!normalized||!normalized.valid){show(card('اطلاعات نیازمند اصلاح است',null,[],normalized&&normalized.issues||['UNKNOWN']));return}
+  const analysis=lab.analyseLabScorecard(scorecard);
+  const provText=$('provider').selectedOptions[0].textContent;
+  const lines=[`مؤسسه: ${provText} | سال: ${fa(normalized.year??year)} | درس‌های ثبت‌شده: ${fa(subjects.length)}`];
+  if(rank!==undefined){lines.push('رتبه واردشده خوداظهاری است و تأیید رسمی ندارد.');
+   if($('provider').value!=='SANJESH')lines.push('رتبه آزمون آزمایشی هرگز به‌عنوان رتبه رسمی پذیرفته نمی‌شود.')}
+  lines.push(analysis&&analysis.status==='AWAITING_VERIFIED_CATALOGUE'?'هنوز داده رشته‌محل تأییدشده برای تحلیل قبولی در دسترس نیست.':'تحلیل اولیه انجام شد.');
+  lines.push('هیچ درصد قبولی محاسبه نشده است.');
+  show(card('ساختار کارنامه بررسی شد','خوداظهاری — تأییدنشده',lines));
+ }catch{
+  show(card('خطای غیرمنتظره',null,['بررسی انجام نشد. اطلاعات شما ذخیره یا ارسال نشده است؛ دوباره تلاش کنید.']));
+ }finally{go.disabled=false}
 });
-form.addEventListener('reset',()=>{result.textContent='';});
+form.addEventListener('reset',()=>{clearErrors();result.replaceChildren();box.replaceChildren();n=0;addRow()});
+$('add').addEventListener('click',()=>{addRow();box.lastElementChild.querySelector('input').focus()});
+addRow();
 </script></body></html>

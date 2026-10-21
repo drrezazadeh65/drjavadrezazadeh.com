@@ -25,7 +25,7 @@ test('malformed scores stop before the reasoner',()=>{
 });
 test('verified official scorecard still never generates fabricated odds',()=>{
  const r=analyseKonkurChoices({scorecard:{...scorecard,provider:'SANJESH',rankVerified:true,officialVerificationEvidence:true},offerings:[offering],rules:[rule]});
- assert.equal(r.results[0].status,'REQUIREMENTS_SATISFIED');
+ assert.equal(r.results[0].status,'INSUFFICIENT_EVIDENCE');
  assert.equal(r.results[0].admissionProbability,null);
  assert.equal(r.publicReady,false);
 });

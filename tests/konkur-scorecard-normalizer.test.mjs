@@ -18,6 +18,6 @@ test('rejects fabricated official attestation and out-of-range marks',()=>{
 });
 test('official evidence requires explicit attestation and preserves no personal identifiers',()=>{
  const x=normalizeCandidateScorecard({provider:'SANJESH',year:1405,examinationGroup:'ARTS',subjects:[],rank:17,rankVerified:true,officialVerificationEvidence:true,nationalId:'PRIVATE'});
- assert.equal(x.valid,true);assert.equal(x.rankSourceVerified,true);assert.equal(x.personalIdentifiersStored,false);
+ assert.equal(x.valid,true);assert.equal(x.rankSourceVerified,false);assert.equal(x.personalIdentifiersStored,false);
  assert.equal('nationalId' in x,false);
 });

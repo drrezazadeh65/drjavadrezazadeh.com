@@ -33,9 +33,9 @@ export function normalizeCandidateScorecard(input){
  if(input.rankVerified===true&&input.officialVerificationEvidence!==true)issues.push('MISSING_OFFICIAL_RANK_EVIDENCE');
  return Object.freeze({schema:'jr-scorecard-normalized-v1',version:SCORECARD_ADAPTER_VERSION,
   provider,year,examinationGroup:examGroup,subjects:Object.freeze(subjects),rank:Number.isSafeInteger(rank)&&rank>0?rank:null,
-  rankSourceVerified:provider==='SANJESH'&&input.rankVerified===true&&input.officialVerificationEvidence===true,
+  rankSourceVerified:false,
   issues:Object.freeze([...new Set(issues)].sort()),valid:issues.length===0,
-  officialAdmissionEvidence:provider==='SANJESH'&&input.rankVerified===true&&input.officialVerificationEvidence===true,
+  officialAdmissionEvidence:false,
   personalIdentifiersStored:false,admissionProbability:null});
 }
 export function scorecardToReasonerCandidate(normalized){
