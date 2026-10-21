@@ -16,3 +16,9 @@ test('book is discoverable from both directories',()=>{
  assert.ok(read('fa/ketab-ha/index.html').includes('how-languages-are-learned/'));
  assert.ok(read('en/books/index.html').includes('href="/en/books/how-languages-are-learned/"'));
 });
+
+test('both HLL5 public pages are in language-specific XML sitemaps',()=>{
+ for(const [locale,route] of [['fa','fa/ketab-ha/how-languages-are-learned/'],['en','en/books/how-languages-are-learned/']]){
+  assert.ok(read('sitemap-'+locale+'.xml').includes('https://drjavadrezazadeh.com/'+route));
+ }
+});
