@@ -45,13 +45,16 @@ function lock(){
 }
 async function token(){
  if(csrf)return csrf;
+ const active=generation;
  const r=await json('/api/community/csrf');
+ if(workspace.hidden||active!==generation)throw Error('locked');
  if(!r.ok||!r.body?.csrfToken||!/^[a-f0-9]{64}$/i.test(r.body.csrfToken))throw Error('csrf');
  csrf=r.body.csrfToken;return csrf;
 }
 async function mutate(endpoint,payload){
  if(workspace.hidden)throw Error('locked');
  const key=await token();
+ if(workspace.hidden)throw Error('locked');
  const result=await json(endpoint,{method:'POST',headers:{'Content-Type':'application/json','X-JR-Community-CSRF':key},body:JSON.stringify(payload)});
  if(!result.ok||result.body?.ok!==true)throw Error('server '+result.status);
  return result.body;
