@@ -92,3 +92,26 @@ Record baseline SHA, candidate SHA, job URL/status, changed files, audit output,
 The GitHub repository is accessible for read/write auditing. This review runtime cannot independently perform a logged-in Google Page Indexing export, GTM Preview, Clarity sessions, Bing console read, Bertina database operation or public HTTPS fetch. Those must be collected through the owner-controlled workflows/accounts and recorded as real external evidence, not assumed. No fabricated Page Indexing counts, private credentials, test purchases or server mutations.
 
 **Release status:** SOURCE PACKAGE PREPARED → ONE FINAL QA PENDING → OWNER-GUARDED PRODUCTION ONLY AFTER GO.
+
+## 9. Subsequent source integration — book detail and administrator schema sampler (21 October 2026)
+
+**Authority:** Owner's later ONE-BRANCH, BATCH-FIRST, SINGLE FINAL ACCEPTANCE rule in `PROGRESSIVE_RELEASE_STANDARD_20261015.md`. This section is a **source-work progress record**, not a second release candidate, production certificate, or an instruction to deploy.
+
+### Reused systems and actual source changes
+- Preserved the current `migration/bertina-linux6` branch, existing accounts, payment authority, donation baseline, native journal restrictions, and all established FA/EN public routes.
+- The original Persian `/fa/ketab-ha/how-languages-are-learned/` route retained its scientific description and no-preorder disclosures. Added a localized `/en/books/how-languages-are-learned/` route, reciprocal canonical/hreflang, English books index discovery, FA/EN XML sitemap entries, and a scoped responsive editorial layout with factual status sidebar and thematic overview. **The original conceptual SVG cover remains explicitly non-final**; no publisher-approved high-resolution artwork has been asserted.
+- Reconciled `sitemap.xml` child lastmod dates to the verified latest dates in `sitemap-fa.xml` and `sitemap-en.xml` (2026-10-21), preserving the existing index structure.
+- Extended the existing owner MFA dashboard `assets/js/operations-intelligence.js`: it now traverses **same-origin, allowlisted child sitemaps**, samples up to 16 pages per language, skips the independently managed journal sitemap and disallowed private paths, and rejects mismatching or duplicate canonicals. No alternate admin/API/database/AI-engine stack.
+- Synchronized both existing administrator dashboards' JS asset version; updated pre-existing security/SEO assertions to the new bounded sampling contract without removing credential omission, workspace visibility or noindex safeguards.
+- Added `tests/hll5-book-bilingual.test.mjs`, `tests/operations-intelligence-sitemaps.test.mjs` and `tests/admin-schema-intelligence-runtime.test.mjs`; the existing `bertina-master-seo.yml` source-audit workflow now invokes them. **The frozen production deploy workflow remains unchanged.**
+- Source-level checks during development have validated page canonical and reciprocal hreflang, JSON-LD JSON syntax, sitemap date alignment, semantic HTML tag counts, and simulated admin rendering with FA/EN sitemap-index, external/duplicate canonical and MFA-locked fixtures. These are limited checks, **not** a completed same-SHA integrated CI/Playwright run or an independent Google Rich Results validation.
+
+### Remaining acceptance and operator boundary (do not mark VERIFIED)
+1. At the **final, frozen candidate SHA**, run the full existing Master SEO, mobile/Playwright, source security, structured-data, privacy, checkout, JHELA and protected deployment preflight evidence. Record actual GitHub run IDs; do not borrow green results from earlier SHAs.
+2. Verify the production release SHA independently using the existing owner workflow. This assistant runtime cannot read the current public `/sw.js` reliably; it must not infer what is live from a repository commit.
+3. Before the one-click owner deployment, run the existing **Historical Authority Live Verify** read-only GitHub workflow if cPanel Force HTTPS may introduce redirect chains. Do not change `.htaccess` or turn off HTTPS blindly. Its 146-case strict redirect evidence is distinct from source-only redirect tests.
+4. Native JHELA manuscript intake requires genuine apex/subdomain TLS, host-private storage outside document root, trusted antivirus execution, existing mother-database schema and independent authenticated E2E. Keep `JR_JHELA_INTAKE_ENABLED` off until those pass; do not reinstall the retired vendor.
+5. No MariaDB migration, purchase/refund mutation, provider configuration, publisher identity, confirmed ISBN, preorder, newsletter enrollment or private manuscript receipt was performed for this source delta. If later database changes are necessary, inspect fresh `information_schema` and coordinate a non-destructive host backup plus owner-executed staging check first.
+6. The owner-approved full-resolution standalone cover artwork is **not available as a verified original book-cover asset** from the source repository. The page's existing conceptual rendering is not the final print cover. Do not extract a low-resolution faux official jacket from a screenshot or misstate publication rights.
+
+**Current status:** SOURCE DELTA RECORDED · FINAL SINGLE-SHA INTEGRATED ACCEPTANCE PENDING · PRODUCTION DEPLOYMENT NOT PERFORMED.
