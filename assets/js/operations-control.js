@@ -450,6 +450,25 @@ function renderSourceDirectory(parent){
        :t('داده معتبر موجود نیست','No verified data');
      card.append(el('p',state),el('small',t('آخرین دریافت: ','Last observation: ')+
        (item.observedAt?date(item.observedAt):t('ثبت نشده','Not recorded'))));
+     if(item.kind==='social_channel'){
+       const accounts=item.storedVerifiedStatusAccountRows;
+       const recent=item.recentStoredDeliveryRecords;
+       card.append(el('small',t('حساب‌های دارای پرچم تأیید در دیتابیس: ','Account rows marked verified: ')+
+         (accounts===null||accounts===undefined?t('نامشخص','Unknown'):String(accounts))));
+       card.append(el('small',t('رکورد ارسال از آخرین ۲۵ رکورد سامانه: ','Deliveries among latest 25 stored records: ')+
+         (recent===null||recent===undefined?t('نامشخص','Unknown'):String(recent))));
+       if(item.lastStoredDeliveryAt)card.append(el('small',t('آخرین رکورد داخلی: ','Last local record: ')+date(item.lastStoredDeliveryAt)));
+       card.append(el('small',t(
+         'این اعداد فقط وضعیت ثبت‌شده در دیتابیس‌اند، نه رسید رسمی پلتفرم یا آمار بازدید.',
+         'Stored database counts are not provider receipts, verified access, or audience statistics.')));
+     }
+     if(item.kind==='github_feed'){
+       if(item.lastAttemptAt)card.append(el('small',t('آخرین تلاش: ','Last attempt: ')+date(item.lastAttemptAt)+
+         ' · '+(item.lastAttemptResult||t('نامشخص','Unknown'))));
+       if(item.lastCollectedAt)card.append(el('small',t('آخرین ذخیره: ','Last stored: ')+date(item.lastCollectedAt)));
+       if(item.nextDueAt)card.append(el('small',t('زمان برنامه‌ریزی‌شده: ','Scheduled due: ')+date(item.nextDueAt)));
+       if(item.cadence)card.append(el('small',t('تناوب: ','Cadence: ')+item.cadence));
+     }
      if(item.lastError)card.append(el('small',t('آخرین خطا: ','Last error: ')+item.lastError));
      if(item.limitation)card.append(el('p',item.limitation));
      const url=safeEvidenceUrl(item.url);
