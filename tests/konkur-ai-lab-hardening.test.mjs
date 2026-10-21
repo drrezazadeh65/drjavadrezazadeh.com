@@ -34,3 +34,19 @@ test('MAZ laboratory intake is manual-only and cannot produce admission odds',()
  assert.equal(analysis.officialEligibilityEstablished,false);
  assert.equal(analysis.publicReady,false);
 });
+
+test('public and private intake agree on practice directory aliases without estimating odds',()=>{
+ for(const [provider,canonical] of [['GHALAMCHI','KANOON'],['GOZINE2','GOZINEH_DO'],['SANJESH_MOCK','SANJESH_MOCK'],['SCHOOL_LOCAL','SCHOOL_LOCAL']]){
+  const n=normalizeLabScorecard({...base,provider,examinationGroup:'EXPERIMENTAL_SCIENCES'});
+  assert.equal(n.valid,true,provider);
+  assert.equal(n.provider,canonical);
+  assert.equal(n.examinationGroup,'EXPERIMENTAL');
+  assert.equal(n.rankSourceVerified,false);
+  const analysis=analyseLabScorecard({...base,provider,examinationGroup:'EXPERIMENTAL_SCIENCES'});
+  assert.equal(analysis.admissionProbability,null);
+  assert.equal(analysis.officialEligibilityEstablished,false);
+ }
+ const x=normalizeLabScorecard({...base,provider:'MAZ',examinationGroup:'FOREIGN_LANGUAGES'});
+ assert.equal(x.valid,true);
+ assert.equal(x.examinationGroup,'LANGUAGES');
+});

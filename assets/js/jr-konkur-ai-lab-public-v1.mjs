@@ -1,5 +1,8 @@
 /* JR public Konkur research lab v1.1. Strictly local, no network, no persistence, no admission odds. */
-const PROVIDERS=new Set(['KANOON','GAJ','GOZINEH_DO','MAZ','SANJESH','OTHER']);
+const PROVIDER_ALIASES=Object.freeze({GHALAMCHI:'KANOON',GOZINE2:'GOZINEH_DO'});
+const GROUP_ALIASES=Object.freeze({EXPERIMENTAL_SCIENCES:'EXPERIMENTAL',FOREIGN_LANGUAGES:'LANGUAGES'});
+const PROVIDERS=new Set(['KANOON','GAJ','GOZINEH_DO','MAZ','SANJESH','SANJESH_MOCK',
+ 'VALEH','MOBTAKERAN','AYANDESAZAN','SCHOOL_LOCAL','OTHER']);
 const GROUPS=new Set(['HUMANITIES','EXPERIMENTAL','MATHEMATICS','ARTS','LANGUAGES']);
 const digits=v=>String(v??'').replace(/[۰-۹٠-٩]/g,c=>{const n=c.codePointAt(0);return String(n>=0x6f0?n-0x6f0:n-0x660)});
 const isRecord=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
@@ -7,10 +10,14 @@ const cleanNumber=v=>typeof v==='number'?v:(typeof v==='string'&&/^[-+]?\d+(?:\.
 export function normalizeLabScorecard(input){
  const issues=[];
  if(!isRecord(input))return Object.freeze({valid:false,issues:Object.freeze(['INVALID_SCORECARD']),rankSourceVerified:false,admissionProbability:null});
+ const reportedProvider=typeof input.provider==='string'?input.provider.trim().toUpperCase():null;
+ const provider=PROVIDER_ALIASES[reportedProvider]||reportedProvider;
+ const reportedGroup=typeof input.examinationGroup==='string'?input.examinationGroup.trim().toUpperCase():null;
+ const group=GROUP_ALIASES[reportedGroup]||reportedGroup;
  const year=cleanNumber(input.year);
  if(!Number.isInteger(year)||year<1400||year>1450)issues.push('INVALID_EXAM_YEAR');
- if(!PROVIDERS.has(input.provider))issues.push('UNRECOGNIZED_PROVIDER');
- if(!GROUPS.has(input.examinationGroup))issues.push('INVALID_EXAMINATION_GROUP');
+ if(!PROVIDERS.has(provider))issues.push('UNRECOGNIZED_PROVIDER');
+ if(!GROUPS.has(group))issues.push('INVALID_EXAMINATION_GROUP');
  if(!Array.isArray(input.subjects)||input.subjects.length>6)issues.push('INVALID_SUBJECTS');
  else{
   const seen=new Set();
@@ -23,7 +30,7 @@ export function normalizeLabScorecard(input){
   }
  }
  if(input.rank!==undefined&&(!Number.isSafeInteger(input.rank)||input.rank<1||input.rank>2000000))issues.push('INVALID_RANK');
- return Object.freeze({valid:issues.length===0,issues:Object.freeze([...new Set(issues)]),provider:input.provider,year,examinationGroup:input.examinationGroup,
+ return Object.freeze({valid:issues.length===0,issues:Object.freeze([...new Set(issues)]),provider,year,examinationGroup:group,
   rankSourceVerified:false,admissionProbability:null,officialEligibilityEstablished:false});
 }
 export function analyseLabScorecard(scorecard){

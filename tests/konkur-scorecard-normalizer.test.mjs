@@ -31,3 +31,35 @@ test('MAZ practice scorecards are accepted for descriptive intake, never as offi
  assert.equal(forged.valid,false);
  assert.ok(forged.issues.includes('UNSUPPORTED_OFFICIAL_RANK_ATTESTATION'));
 });
+
+test('practice provider directory aliases are accepted without converting TAZ or rank',()=>{
+ const aliases=[
+  ['GHALAMCHI','KANOON'],['GOZINE2','GOZINEH_DO'],
+  ['GAJ','GAJ'],['MAZ','MAZ'],['SANJESH_MOCK','SANJESH_MOCK'],
+  ['VALEH','VALEH'],['MOBTAKERAN','MOBTAKERAN'],
+  ['AYANDESAZAN','AYANDESAZAN'],['SCHOOL_LOCAL','SCHOOL_LOCAL'],['OTHER','OTHER']
+ ];
+ for(const [inputProvider,canonical] of aliases){
+  const n=normalizeCandidateScorecard({provider:inputProvider,year:1405,
+   examinationGroup:'EXPERIMENTAL_SCIENCES',subjects:[],rank:600,
+   rankVerified:false});
+  assert.equal(n.valid,true,inputProvider);
+  assert.equal(n.provider,canonical);
+  assert.equal(n.examinationGroup,'EXPERIMENTAL');
+  assert.equal(n.rankSourceVerified,false);
+  assert.equal(n.admissionProbability,null);
+  assert.equal(scorecardToReasonerCandidate(n).rankSourceVerified,false);
+ }
+ const language=normalizeCandidateScorecard({provider:'GHALAMCHI',year:1405,
+  examinationGroup:'FOREIGN_LANGUAGES',subjects:[]});
+ assert.equal(language.valid,true);
+ assert.equal(language.examinationGroup,'LANGUAGES');
+});
+test('SANJESH_MOCK can never self-attest a national admission rank',()=>{
+ const n=normalizeCandidateScorecard({provider:'SANJESH_MOCK',year:1405,
+  examinationGroup:'MATHEMATICS',subjects:[],rank:300,rankVerified:true,
+  officialVerificationEvidence:true});
+ assert.equal(n.valid,false);
+ assert.ok(n.issues.includes('UNSUPPORTED_OFFICIAL_RANK_ATTESTATION'));
+ assert.equal(n.rankSourceVerified,false);
+});

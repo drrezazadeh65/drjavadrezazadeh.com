@@ -1,23 +1,28 @@
 /* JR Konkur AI — privacy-preserving, deterministic scorecard adapter.
  * No inferred official scores, no admission probabilities, no persistence.
  */
-export const SCORECARD_ADAPTER_VERSION='0.1.0';
+export const SCORECARD_ADAPTER_VERSION='0.2.0';
 const DIGITS='0123456789';
 export function toAsciiDigits(value){
  if(typeof value!=='string')throw new TypeError('String required');
  return value.replace(/[۰-۹٠-٩]/g,c=>DIGITS[c.codePointAt(0)>0x6ef?c.codePointAt(0)-0x6f0:c.codePointAt(0)-0x660]);
 }
-const providers=new Set(['KANOON','GAJ','GOZINEH_DO','MAZ','SANJESH','OTHER']);
-const numericFields=['rawScore','percent','rank','participants'];
+// Stable cross-worksheet IDs: identity aliases are NOT statistical score conversions.
+const providerAliases=Object.freeze({GHALAMCHI:'KANOON',GOZINE2:'GOZINEH_DO'});
+const examinationGroupAliases=Object.freeze({EXPERIMENTAL_SCIENCES:'EXPERIMENTAL',FOREIGN_LANGUAGES:'LANGUAGES'});
+const providers=new Set(['KANOON','GAJ','GOZINEH_DO','MAZ','SANJESH','SANJESH_MOCK',
+ 'VALEH','MOBTAKERAN','AYANDESAZAN','SCHOOL_LOCAL','OTHER']);
 function finiteInRange(value,min,max){return typeof value==='number'&&Number.isFinite(value)&&value>=min&&value<=max;}
 export function normalizeCandidateScorecard(input){
  if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('Scorecard object required');
  const issues=[];
- const provider=typeof input.provider==='string'?input.provider.trim().toUpperCase():null;
+ const reportedProvider=typeof input.provider==='string'?input.provider.trim().toUpperCase():null;
+ const provider=providerAliases[reportedProvider]||reportedProvider;
  if(!providers.has(provider))issues.push('UNRECOGNIZED_PROVIDER');
  const year=typeof input.year==='number'?input.year:Number(toAsciiDigits(String(input.year??'')));
  if(!Number.isInteger(year)||year<1400||year>1500)issues.push('INVALID_EXAM_YEAR');
- const examGroup=typeof input.examinationGroup==='string'?input.examinationGroup.trim().toUpperCase():null;
+ const reportedGroup=typeof input.examinationGroup==='string'?input.examinationGroup.trim().toUpperCase():null;
+ const examGroup=examinationGroupAliases[reportedGroup]||reportedGroup;
  if(!['HUMANITIES','EXPERIMENTAL','MATHEMATICS','ARTS','LANGUAGES'].includes(examGroup))issues.push('INVALID_EXAMINATION_GROUP');
  if(!Array.isArray(input.subjects)||input.subjects.length>40)issues.push('INVALID_SUBJECTS');
  const subjects=[];

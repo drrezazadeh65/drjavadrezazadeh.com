@@ -57,3 +57,17 @@ parsing, third-party API integration, licensed data access or verified vendor
 scorecard schema is claimed. MAZ practice ranks are never attested as official
 Sanjesh ranks; admission probability remains unavailable. The change does not
 activate the proposed `003e` or `003f` database migrations.
+
+## 7. Non-predictive provider and group identifier reconciliation
+
+The private scorecard adapter and public local research adapter now accept the
+ten mock-practice provider directory identifiers. `GHALAMCHI` is normalized
+to the existing canonical code `KANOON`, while `GOZINE2` maps to
+`GOZINEH_DO`; this is an **identity reconciliation only**, never a conversion
+of provider TAZ, rank distributions, score populations or participant counts.
+The practice groups `EXPERIMENTAL_SCIENCES` and `FOREIGN_LANGUAGES` are
+recognized as `EXPERIMENTAL` and `LANGUAGES` in the existing admission
+reasoner input vocabulary. Original `SANJESH_MOCK` remains distinct from
+official `SANJESH`, and a mock provider cannot attest an official national rank.
+All numeric admission probabilities stay null; no persistence or external
+vendor integration is enabled by this change.
