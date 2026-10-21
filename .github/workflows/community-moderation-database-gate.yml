@@ -19,6 +19,9 @@ on:
       - 'en/account/admin/index.html'
       - 'tests/community-mysql-smoke.php'
       - 'tests/community-browser-qa.spec.js'
+      - 'scripts/community-service-bundle.mjs'
+      - 'scripts/build-public-site.mjs'
+      - 'tests/community-service-projection.test.mjs'
       - '.github/workflows/community-moderation-database-gate.yml'
   pull_request:
     branches:
@@ -32,6 +35,9 @@ on:
       - 'tests/community-mysql-smoke.php'
       - 'tests/community-moderation.test.mjs'
       - 'tests/community-design-consistency.test.mjs'
+      - 'scripts/community-service-bundle.mjs'
+      - 'scripts/build-public-site.mjs'
+      - 'tests/community-service-projection.test.mjs'
       - 'assets/js/community-comments.js'
       - 'assets/js/operations-community-moderation.js'
       - 'assets/css/community-comments.css'
@@ -78,7 +84,7 @@ jobs:
         run: |
           php -l api/community.php
           php -l tests/community-mysql-smoke.php
-          node --test tests/community-moderation.test.mjs tests/community-design-consistency.test.mjs tests/community-academic-replies.test.mjs
+          node --test tests/community-moderation.test.mjs tests/community-design-consistency.test.mjs tests/community-academic-replies.test.mjs tests/community-service-projection.test.mjs
       - name: Apply customer-account baseline and additive pilot to isolated MySQL
         env:
           MYSQL_PWD: fixture-password-only
