@@ -117,9 +117,13 @@ export function renderCampaignPage(source,lang,registry){
       group+' heading');
     const rail=new RegExp('(<ul class="jr-campaign-rail" id="jr-promo-rail-'+lang+'-'+group+
       '"[^>]*>)[\\s\\S]*?(<\\/ul>)','g');
-    output=one(output,rail,(_all,open,close)=>open+
-      registry.banners.filter(x=>x.group===group).map(x=>card(x,lang)).join('')+close,
-      group+' rail');
+    output=one(output,rail,(_all,open,close)=>{
+      assert.ok(/aria-label="[^"]*"/.test(open),'A labelled scroll rail is required');
+      const labelled=open.replace(/aria-label="[^"]*"/,
+        'aria-label="'+escapeHtml(metadata[lang])+'"');
+      return labelled+registry.banners.filter(x=>x.group===group)
+        .map(x=>card(x,lang)).join('')+close;
+    },group+' rail');
   }
   const result=source.slice(0,start)+output+source.slice(end);
   assert.equal((output.match(/data-jr-promo-key="/g)||[]).length,15,'Missing campaign after rendering');
