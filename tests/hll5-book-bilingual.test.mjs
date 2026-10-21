@@ -22,3 +22,18 @@ test('both HLL5 public pages are in language-specific XML sitemaps',()=>{
   assert.ok(read('sitemap-'+locale+'.xml').includes('https://drjavadrezazadeh.com/'+route));
  }
 });
+
+test('editorial book experience preserves factual status and accessible side rail in both languages',()=>{
+ for(const [lang,path] of [['fa','fa/ketab-ha/how-languages-are-learned/index.html'],['en','en/books/how-languages-are-learned/index.html']]){
+  const html=read(path);
+  assert.ok(html.includes('class="hll5-page-grid"'));
+  assert.ok(html.includes('class="hll5-primary" dir="'+(lang==='fa'?'rtl':'ltr')+'"'));
+  assert.ok(html.includes('class="hll5-status-panel"'));
+  assert.ok(html.includes('class="hll5-themes"'));
+  assert.ok(html.includes('aria-labelledby="hll5-sidebar-'+lang+'"'));
+  assert.ok(!/name="price"|checkoutEnabled=true|data-preorder/.test(html));
+ }
+ const styles=read('assets/css/hll5-book-premium-20261021.css');
+ assert.ok(styles.includes('.hll5-page-grid'));
+ assert.ok(styles.includes('@media(max-width:760px)'));
+});
