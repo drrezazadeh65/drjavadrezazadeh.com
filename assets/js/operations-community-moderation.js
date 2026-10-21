@@ -231,7 +231,7 @@ function render(c,kind,active){
 async function load(cursor=null){
  if(workspace.hidden){lock();return;}
  if(loading)return;
- const active=++generation;loading=true;reload.disabled=true;older.disabled=true;
+ const active=cursor?generation:++generation;loading=true;reload.disabled=true;older.disabled=true;
  if(!cursor)list.replaceChildren();
  const kind=stateSelect.value;
  status.textContent=t('در حال دریافت داده‌های محرمانه…','Loading private moderation records…');
@@ -255,8 +255,8 @@ async function load(cursor=null){
  }catch(_){if(active===generation&&!workspace.hidden)status.textContent=t('اتصال به سرور برقرار نشد.','Server connection failed.');}
  finally{if(active===generation&&!workspace.hidden){loading=false;reload.disabled=false;older.disabled=false;}}
 }
-reload.addEventListener('click',()=>load());
-stateSelect.addEventListener('change',()=>{nextCursor=null;load();});
+reload.addEventListener('click',()=>{generation++;loading=false;load();});
+stateSelect.addEventListener('change',()=>{generation++;loading=false;nextCursor=null;load();});
 older.addEventListener('click',()=>{if(nextCursor)load(nextCursor);});
 const observer=new MutationObserver(()=>workspace.hidden?lock():load());
 observer.observe(workspace,{attributes:true,attributeFilter:['hidden']});
