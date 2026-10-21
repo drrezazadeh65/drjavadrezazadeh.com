@@ -11,6 +11,13 @@ test('existing no-storage research experience can be release-candidate while off
  assert.equal(r.admissionProbabilityEnabled,false);
  assert.equal(r.backendAndLiveSqlVerifiedByThisTool,false);
  assert.equal(r.requiredOfficialGates.length,5);
+ assert.equal(r.sourceAcceptanceAudit.status,'HUMAN_SOURCE_ACCEPTANCE_NOT_ESTABLISHED');
+ assert.equal(r.sourceAcceptanceAudit.structurallyConsistentClaims,0);
+ assert.equal(r.sourceAcceptanceAudit.unresolvedGuideCategories.length,3);
+ assert.equal(r.calibrationGate.status,'NO_EVIDENCE');
+ assert.equal(r.calibrationGate.modelDeploymentApproved,false);
+ assert.equal(r.schemaReuseGate.newTablesRecommendedNow,0);
+ assert.equal(r.schemaReuseGate.currentProductionSchemaInspected,false);
 });
 test('empty or missing evidence never produces a research-ready classification',()=>{
  const r=classifyAdmissionReadiness({});

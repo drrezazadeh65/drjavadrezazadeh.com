@@ -78,3 +78,52 @@ release may be assessed separately using the existing GitHub/Bertina pathway.
 - Personal JSON exports remain candidate-controlled, with local-only import preview and explicit replacement. Search filtering never truncates exports or the printable full-choice report.
 - Every feature above operates in memory; no student table, database migration, AI model, account, upload or commercial payment route was added. Official admission models remain blocked pending independent source and scientific validation.
 - The exact GitHub commit and automated source/visual/browser test outcomes, rather than development statements, are the release evidence. Bertina production deployment remains a separate owner-controlled action with SQL/PDF import deferred.
+
+
+## Single-batch evidence completion (source-only; 2026-10-22)
+
+The connected private reference folder was inventoried without publishing a PDF,
+Drive ID, extracted text, student record, or SQL dump. All six PDF files from
+the manifest are present. This is **not** human programme-table validation.
+The listed folder contains no separately identifiable official foreign
+languages guide or complete audited official amendment set. The existing
+FOREIGN_LANGUAGES, OFFICIAL_AMENDMENTS and TEACHER_TRAINING_SUPPLEMENTS
+coverage gaps remain unresolved. Never convert source-file existence,
+automated extraction or review-claim metadata into approved admissions records.
+
+Added deterministic **human-review claim audit**
+(platform/konkur-review-evidence-audit.mjs): verifies PDF source key, exact
+fingerprint and page bounds, duplicate review claims, two distinct structurally
+valid reviewer identifiers and declared amendment/table comparison. It never
+authenticates reviewer identity, PDF content, document status or programme
+records. Zero pages have independently authenticated signoffs here; zero
+official programme records are approved.
+
+Added **historical holdout calibration arithmetic**
+(platform/konkur-aggregate-calibration-audit.mjs): privacy-minimal,
+fixed-probability aggregated bins, Brier score and ECE for hypothetical
+consented outcomes, with small-cell, training-year leakage, provenance and
+PII-field rejection. Actual consented outcome aggregates were NOT provided
+and no real prediction model has passed independent validation; numerical
+model deployment and public probability display remain DISABLED.
+
+Added **source and historical schema reuse audit**
+(scripts/konkur-schema-reuse-readiness.mjs): compares existing versioned
+003e DDL to eight table names found in the historical 2026-10-21 sanitized
+phpMyAdmin snapshot, and identifies three prior provider-related tables.
+Neither competing 003f proposal is executed. Current production schema types,
+indexes, FK constraints and restore viability are UNKNOWN pending authenticated
+read-only observation. **New tables recommended now: zero**; new private
+scorecard persistence still requires a separate reviewed database decision.
+
+These three modules and adversarial tests run together with both nondeploying
+research CI workflows and the existing readiness evaluator. Nothing was
+deployed as part of these source changes; a successful CI does not certify
+official data, independent fairness, real vendor integration, a private
+learner dashboard or actual production schema.
+
+Remaining external acceptance: human original-PDF table review and applicable
+official amendments, independently verified reviewer identities, exact
+live MariaDB metadata/backup restore, vendor permission for direct import,
+lawful consented outcome cohorts, external model evaluation and GDPR-like
+privacy lifecycle including guardian authority where applicable.

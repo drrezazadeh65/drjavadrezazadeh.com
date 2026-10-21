@@ -64,6 +64,12 @@ on:
       - "platform/konkur-1405-sources.json"
       - "scripts/konkur-1405-review-queue.mjs"
       - "scripts/konkur-product-readiness.mjs"
+      - "scripts/konkur-schema-reuse-readiness.mjs"
+      - "platform/konkur-review-evidence-audit.mjs"
+      - "platform/konkur-aggregate-calibration-audit.mjs"
+      - "tests/konkur-review-evidence-audit.test.mjs"
+      - "tests/konkur-aggregate-calibration-audit.test.mjs"
+      - "tests/konkur-schema-reuse-readiness.test.mjs"
       - "tests/konkur-product-readiness.test.mjs"
       - "tests/konkur-1405-review-queue.test.mjs"
       - "assets/js/bahar-formative-workspace-v1.js"
@@ -133,6 +139,11 @@ jobs:
           node --check scripts/konkur-product-readiness.mjs
           node --test tests/konkur-product-readiness.test.mjs
           node scripts/konkur-product-readiness.mjs
+          node --check platform/konkur-review-evidence-audit.mjs
+          node --check platform/konkur-aggregate-calibration-audit.mjs
+          node --check scripts/konkur-schema-reuse-readiness.mjs
+          node --test tests/konkur-review-evidence-audit.test.mjs tests/konkur-aggregate-calibration-audit.test.mjs tests/konkur-schema-reuse-readiness.test.mjs
+          node scripts/konkur-schema-reuse-readiness.mjs
           node --test tests/konkur-mother-schema-contract.test.mjs
           node --test tests/konkur-scorecard-adapters-contract.test.mjs
           node --test tests/konkur-studio-contract.test.mjs

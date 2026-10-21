@@ -6,6 +6,9 @@ import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';
 import {build1405ReviewQueue} from './konkur-1405-review-queue.mjs';
 import {runSourceOnly003fAudit} from './konkur-003f-proposal-audit.mjs';
+import {sourceOnlySchemaReuseAudit} from './konkur-schema-reuse-readiness.mjs';
+import {audit1405HumanReviewClaims} from '../platform/konkur-review-evidence-audit.mjs';
+import {auditAggregatedHoldout} from '../platform/konkur-aggregate-calibration-audit.mjs';
 
 export const RELEASE_READINESS_SCHEMA='jr-admission-research-vs-official-readiness-v1';
 const getOk=(files,path)=>typeof files[path]==='string'&&files[path].length>0;
@@ -21,7 +24,7 @@ const REQUIRED=[
  'assets/js/jr-konkur-percentage-ui-v1.mjs',
  'assets/js/jr-konkur-official-catalogue-v1.js'
 ];
-export function classifyAdmissionReadiness({manifest,files,assistantPolicy,dbProposalAudit,sourceQueue}={}){
+export function classifyAdmissionReadiness({manifest,files,assistantPolicy,dbProposalAudit,sourceQueue,sourceAudit=null,calibrationAudit=null,schemaReuse=null}={}){
  const issues=[];
  if(!files||typeof files!=='object'||Array.isArray(files))
   issues.push('FRONTEND_FILE_INVENTORY_MISSING');
@@ -60,6 +63,20 @@ export function classifyAdmissionReadiness({manifest,files,assistantPolicy,dbPro
   migrationAuthorized:false,admissionProbabilityEnabled:false,
   verifiedProgrammeRecordsCertified:0,
   backendAndLiveSqlVerifiedByThisTool:false,
+  sourceAcceptanceAudit:sourceAudit?Object.freeze({
+   status:sourceAudit.status,
+   structurallyConsistentClaims:sourceAudit.structurallyConsistentClaims,
+   independentlyAuthenticatedReviews:sourceAudit.independentlyAuthenticatedReviews,
+   unresolvedGuideCategories:sourceAudit.unresolvedGuideCategories
+  }):null,
+  calibrationGate:calibrationAudit?Object.freeze({
+   status:calibrationAudit.status,reason:calibrationAudit.reason,
+   modelDeploymentApproved:false
+  }):null,
+  schemaReuseGate:schemaReuse?Object.freeze({
+   status:schemaReuse.status,newTablesRecommendedNow:schemaReuse.newTablesRecommendedNow,
+   currentProductionSchemaInspected:schemaReuse.currentProductionSchemaInspected
+  }):null,
   requiredOfficialGates:Object.freeze([
    'LATEST_AUTHENTICATED_MARIADB_SCHEMA_AND_LEDGER',
    'INDEPENDENT_HUMAN_ORIGINAL_PDF_PAGE_TABLE_CHECK',
@@ -75,7 +92,11 @@ export function sourceOnlyAdmissionReadiness(){
  const assistantPolicy=JSON.parse(fs.readFileSync('platform/assistant-runtime-policy.json','utf8'));
  const dbProposalAudit=runSourceOnly003fAudit();
  const sourceQueue=build1405ReviewQueue(manifest);
- return classifyAdmissionReadiness({manifest,files,assistantPolicy,dbProposalAudit,sourceQueue});
+ const sourceAudit=audit1405HumanReviewClaims(manifest);
+ const calibrationAudit=auditAggregatedHoldout();
+ const schemaReuse=sourceOnlySchemaReuseAudit();
+ return classifyAdmissionReadiness({manifest,files,assistantPolicy,dbProposalAudit,sourceQueue,
+  sourceAudit,calibrationAudit,schemaReuse});
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  const r=sourceOnlyAdmissionReadiness();
