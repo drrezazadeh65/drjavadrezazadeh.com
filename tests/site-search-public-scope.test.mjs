@@ -46,7 +46,7 @@ test('private, offsite, file and tricky paths cannot enter public search',()=>{
 });
 test('public search index exposes no registered sensitive route families',()=>{
  assert.ok(index.length>100,'Public discovery index was unexpectedly emptied');
- const forbidden=/^(?:api\/|fa\/(?:app|customer-dashboard|login|register|bazyabi-hesab|assessments|shop\/(?:checkout|cart|payment-result))\/|en\/(?:account|login|register|recover)\/|journal\/(?:private|submission|manuscripts)\/)/;
+ const forbidden=/^(?:api\/|fa\/(?:app|customer-dashboard|login|register|bazyabi-hesab|assessments|auth|private)\/|en\/(?:app|customer-dashboard|account|login|register|recover|auth|private)\/|(?:fa|en)\/(?:shop|services)\/(?:checkout|cart|payment-result|orders)\/|journal\/(?:fa\/)?(?:private|submission|submissions|manuscripts|reviewer-private|admin|account)\/)/;
  const leaks=index.filter(x=>typeof x.path!=='string'||forbidden.test(x.path));
  assert.deepEqual(leaks,[]);
  assert.equal(new Set(index.map(x=>x.lang+':'+x.path)).size,index.length);
