@@ -3,6 +3,7 @@ import path from 'node:path';
 import {isOwnershipVerificationArtifact,verifyOwnershipArtifact} from './site-ownership-verification.mjs';
 import {checkStylesheetBundles} from './stylesheet-bundles.mjs';
 import {projectCommunityServicePages} from './community-service-bundle.mjs';
+import {CONNECTORS} from '../platform/social-distribution/connections.mjs';
 
 checkStylesheetBundles();
 
@@ -53,6 +54,22 @@ const adminToolInventory={schema:'operations-free-resources-v1',catalogueDate:fr
 const inventoryOutput=path.join(out,'api/internal/free-resources-registry.json');
 if(!/Require all denied/.test(fs.readFileSync(path.join(out,'api/internal/.htaccess'),'utf8')))throw Error('Private admin registry protection missing');
 fs.writeFileSync(inventoryOutput,JSON.stringify(adminToolInventory)+'\n');
+/* Existing Stage-13 channel catalogue projected into the SAME private API
+ * directory, not a new public registry or an assertion of OAuth connectivity.
+ * The platform/ source is intentionally excluded from the Bertina bundle.
+ */
+const adminSocialDirectory=Object.entries(CONNECTORS).map(([id,c])=>({
+  id,name:c.name,official:c.official,kind:c.kind,
+  prerequisites:c.status,connectionState:'UNVERIFIED',
+  providerMetricsAvailable:false
+}));
+if(adminSocialDirectory.length!==16)throw Error('Social provider directory contract drift');
+fs.writeFileSync(path.join(out,'api/internal/admin-social-directory.json'),
+  JSON.stringify({schema:'operations-social-directory-v1',channelCount:16,
+    source:'platform/social-distribution/connections.mjs',
+    disclaimer:'Connection status and provider-side metrics are unverified until independently observed.',
+    channels:adminSocialDirectory})+'\n');
+
 // Create a strict, non-sensitive projection for the MFA-only JHELA administrator endpoint.
 // Original platform contracts, manuscript records, reviewer identities and evidence files are never shipped.
 const journalProjectionDefinitions=[
