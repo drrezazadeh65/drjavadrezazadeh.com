@@ -146,3 +146,16 @@ test('administrator relock guard stops CSRF races before a mutation is sent',()=
  assert.match(js,/if\(workspace\.hidden\|\|active!==generation\)throw Error\('locked'\)/);
  assert.match(js,/const key=await token\(\);\s*if\(workspace\.hidden\)throw Error\('locked'\)/);
 });
+
+test('reader rating summary counts only fully approved valid votes across the complete page, not a display limit',()=>{
+ const php=read('api/community.php');
+ assert.match(php,/COUNT\(\*\) AS n,AVG\(rating\) AS mean_value/);
+ assert.match(php,/page_path=\? AND state='approved' AND rating BETWEEN 1 AND 5/);
+ assert.match(php,/ratingSummary/);
+ assert.doesNotMatch(php,/schema\.org\/Review|aggregateRating|ReviewCount/);
+ const ui=read('assets/js/community-comments.js');
+ assert.match(ui,/Number\.isInteger\(count\)/);
+ assert.match(ui,/ratingSummary\.hidden=false/);
+ assert.match(ui,/ratingSummary\.textContent=/);
+ assert.doesNotMatch(ui,/JSON-LD|aggregateRating|ReviewCount/);
+});
