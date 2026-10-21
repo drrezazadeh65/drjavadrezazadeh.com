@@ -554,6 +554,7 @@ function renderMasterEngineConsole(host,model){
  const engines=Array.isArray(model.engines)?model.engines:[];
  const actions=Array.isArray(model.actionReports)?model.actionReports:[];
  const providers=Array.isArray(model.providerInventory?.providers)?model.providerInventory.providers:[];
+ const directorySources=Array.isArray(sourceDirectoryState?.sources)?sourceDirectoryState.sources:[];
  const readOnly=action=>action?.supportedExecutor?.type==='readonly_snapshot'
    &&action.supportedExecutor.writes===false;
  const supported=actions.filter(readOnly);
@@ -581,6 +582,7 @@ function renderMasterEngineConsole(host,model){
    const owned=actions.filter(a=>a.responsibleEngine===engine.id);
    const executable=owned.filter(readOnly);
    const candidateCount=providers.filter(p=>p.engineId===engine.id).length;
+   const allRegistered=directorySources.filter(source=>source.engineId===engine.id);
    card.append(el('h3',engine.id+' · '+engineName(engine)),
      el('p',t('گزارش تأییدشده: ','Verified reports: ')+
        (engine.completedReportIds?.length??0)+' / '+
@@ -588,7 +590,9 @@ function renderMasterEngineConsole(host,model){
      el('small',t('اقدام‌های دارای مجری: ','Executable observations: ')+
        executable.length+' / '+owned.length),
      el('small',t('منابع مرجع خارجی: ','External references: ')+
-       candidateCount+' · '+t('اتصالات زنده تأییدنشده','No verified live connections')));
+       candidateCount+' · '+t('اتصالات زنده تأییدنشده','No verified live connections')),
+     el('small',t('منابع تجمیعی موتور: ','Aggregated source entries: ')+
+       (sourceDirectoryState?.catalogueStatus==='complete'?String(allRegistered.length):t('برای مشاهده، فهرست را بارگیری کنید','Load source directory'))));
    const open=el('button',t('گزارش این موتور','Open engine report'));open.type='button';
    open.addEventListener('click',()=>{
      reportingView.level='engine';reportingView.engine=engine.id;
@@ -615,7 +619,7 @@ function renderMasterEngineConsole(host,model){
      }catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
      finally{if(configure.isConnected)configure.disabled=false;}
    });card.append(configure);
-   if(candidateCount){
+   if(candidateCount||allRegistered.length){
      const resources=el('button',t('منابع خارجی این موتور','External references for this engine'));
      resources.type='button';
      resources.addEventListener('click',()=>{
@@ -669,9 +673,9 @@ function reportingRender(){
  const model=snapshot?.reporting;if(!model)return;
  let host=$('ops-reporting');if(!host){host=el('section',undefined,'ops-panel');host.id='ops-reporting';host.setAttribute('aria-label',t('گزارش‌های سیزده موتور','Thirteen-engine reporting'));$('ops-workspace').insertBefore(host,$('ops-cards'));}
  host.replaceChildren();host.append(el('h2',t('۱۳ موتور؛ یک مرکز مدیریت','13 engines, one administrative center')));
- renderSourceDirectory(host);
  const enabledActions=model.actionReports.filter(a=>a.supportedExecutor?.type==='readonly_snapshot'&&a.supportedExecutor?.writes===false).length;host.append(el('p',t('اقدام‌های ثبت‌شده: ','Registered actions: ')+model.actionReports.length+' · '+t('قرارداد فقط‌خواندنی فعال: ','Read-only executors: ')+enabledActions+' · '+t('فاقد قرارداد اجرایی: ','Without executor: ')+(model.actionReports.length-enabledActions)));
  renderMasterEngineConsole(host,model);
+ renderSourceDirectory(host);
 
  // Four current-release acceptance gates per report; never conflate absence of evidence with failure.
  const coverage=snapshot.summary?.gateCoverage;
