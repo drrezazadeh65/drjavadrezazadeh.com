@@ -18,6 +18,7 @@ on:
       - "assets/css/jr-konkur-studio-v1.css"
       - "tests/konkur-studio-browser.spec.js"
       - "assets/js/jr-konkur-mock-practice-v1.js"
+      - "assets/js/jr-konkur-mock-export-v1.js"
       - "assets/js/jr-konkur-mock-providers-v1.js"
       - "tests/konkur-mock-provider-registry.test.mjs"
       - "assets/css/jr-konkur-mock-practice-v1.css"
@@ -120,6 +121,8 @@ jobs:
           node --test tests/konkur-scorecard-adapters-contract.test.mjs
           node --test tests/konkur-studio-contract.test.mjs
           node --test tests/konkur-mock-practice-contract.test.mjs
+          node --check assets/js/jr-konkur-mock-export-v1.js
+          node --test tests/konkur-mock-export.test.mjs
           node --test tests/konkur-mock-provider-registry.test.mjs
           node --test tests/konkur-catalogue-client-contract.test.mjs
           node --check assets/js/golden-talent-evidence-studio-v1.js

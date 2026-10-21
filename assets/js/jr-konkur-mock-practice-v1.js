@@ -63,14 +63,18 @@
   const history=create('ol','jr-km-history');
   const trend=create('div','jr-km-trend');trend.setAttribute('role','status');
   const controls=create('div','jr-km-controls');
+  const exportCsv=create('button','jr-km-export-csv',tr('دریافت فایل CSV','Export CSV'));exportCsv.type='button';
   const clear=create('button','',tr('پاک‌کردن همه داده‌های این صفحه','Clear all page entries'));clear.type='button';
   const print=create('button','',tr('چاپ گزارش توصیفی','Print descriptive report'));print.type='button';
-  controls.append(print,clear);
+  controls.append(print,exportCsv,clear);
+  const exportNotice=create('p','jr-km-export-notice',tr(
+   'خروجی فقط با درخواست شما در دستگاهتان ذخیره می‌شود. این فایل داده‌های خوداظهاری و نام درس‌های واردشده را دارد؛ آن را به‌صورت محرمانه نگهداری و پس از پایان نیاز حذف کنید.',
+   'Export requires your action and saves a file on your device. It contains unverified self-reported scores and typed subject labels; keep it private and delete it when no longer needed.'));
   const foot=create('p','jr-km-warning',tr(
    'درصد، رتبه و تراز هر برگزارکننده فقط در مقیاس همان آزمون معنا دارند. رتبه مدرسه، شهر و کشور قابل‌جایگزینی با یکدیگر نیستند. تغییر تراز حتی در یک مؤسسه نیز اثبات پیشرفت یا احتمال قبولی نیست.',
    'Every mock scale and rank belongs to its provider and event. National, school and city ranks are not interchangeable. TAZ changes do not prove learning progress or admission chances.'));
   const printable=create('section','jr-km-print');printable.hidden=true;
-  root.append(title,intro,form,feedback,summary,history,trend,controls,foot,printable);
+  root.append(title,intro,form,feedback,summary,history,trend,controls,exportNotice,foot,printable);
   let exams=[];
   const announce=(a,b)=>{feedback.textContent=tr(a,b);};
   function draw(){
@@ -172,6 +176,27 @@
    taz.value='';rank.value='';lesson.value='';percent.value='';extraRows.replaceChildren();addSubject.disabled=false;
   });
   clear.addEventListener('click',()=>{exams=[];draw();announce('تمام نتایج این صفحه پاک شدند.','All temporary results cleared.');});
+  exportCsv.addEventListener('click',()=>{
+   if(!exams.length){announce('ابتدا دست‌کم یک آزمون ثبت کنید.','Enter at least one mock exam first.');return;}
+   const exporter=window.JRKonkurMockExport;
+   if(!exporter||typeof exporter.buildMockExamCsv!=='function'){
+    announce('ابزار خروجی در دسترس نیست؛ گزارش چاپی همچنان قابل استفاده است.',
+     'CSV exporter unavailable; the printable report remains available.');return;
+   }
+   try{
+    const payload=exporter.buildMockExamCsv(exams);
+    const blob=new Blob([payload.csv],{type:payload.mimeType});
+    const url=URL.createObjectURL(blob);
+    const link=create('a');link.href=url;link.download=payload.filename;link.hidden=true;
+    root.append(link);link.click();link.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+    announce('فایل CSV برای ذخیره روی دستگاه آماده شد. اطلاعات به سرور ارسال نشد.',
+     'Local CSV download prepared. No data were sent to the server.');
+   }catch{
+    announce('خروجی ناموفق بود؛ داده‌های موقت بدون تغییر باقی مانده‌اند.',
+     'CSV export failed; the temporary entries remain unchanged.');
+   }
+  });
   print.addEventListener('click',()=>{
    if(!exams.length){announce('ابتدا نتیجه یک آزمون را وارد کنید.','Enter at least one mock exam result.');return;}
    printable.replaceChildren();

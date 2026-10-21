@@ -142,3 +142,32 @@ test('subject-level descriptive changes require the same mock provider, group, g
  await form.locator('button[type=submit]').click();
  await expect(root.locator('.jr-km-subject-trend')).toHaveCount(0);
 });
+
+test('portable CSV is created by user action, exports only local self-reports and neutralizes spreadsheet formulas',async({page})=>{
+ const fs=require('node:fs');
+ const unexpectedWrites=[];page.on('request',request=>{if(!['GET','HEAD'].includes(request.method()))unexpectedWrites.push(request.method());});
+ await page.goto('http://127.0.0.1:4173/fa/entekhab-reshteh/',{waitUntil:'domcontentloaded'});
+ const root=page.locator('[data-konkur-mock-practice]'),form=root.locator('form');
+ await expect(root.locator('.jr-km-export-csv')).toBeVisible();
+ await root.locator('.jr-km-export-csv').click();
+ await expect(root.locator('.jr-km-feedback')).toContainText('ابتدا');
+ await form.locator('select').nth(0).selectOption('MAZ');
+ await form.locator('select').nth(1).selectOption('MATHEMATICS');
+ const inputs=form.locator('input');
+ await inputs.nth(0).fill('1405/08/01');
+ await inputs.nth(3).fill('=HYPERLINK("https://evil.invalid")');
+ await inputs.nth(4).fill('−۱۵');
+ await form.locator('button[type=submit]').click();
+ await expect(root.locator('.jr-km-item')).toHaveCount(1);
+ const downloadPromise=page.waitForEvent('download');
+ await root.locator('.jr-km-export-csv').click();
+ const download=await downloadPromise;
+ expect(download.suggestedFilename()).toBe('jr-konkur-mock-self-reported.csv');
+ const csv=fs.readFileSync(await download.path(),'utf8');
+ expect(csv.charCodeAt(0)).toBe(0xfeff);
+ expect(csv).toContain('SELF_REPORTED_UNVERIFIED');
+ expect(csv).toContain('MAZ');
+ expect(csv).toContain("'=HYPERLINK");
+ expect(csv).toContain('"-15"');
+ expect(unexpectedWrites).toEqual([]);
+});

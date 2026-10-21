@@ -9,7 +9,7 @@ test('mock entry extends rather than replaces both bilingual public Choice Studi
   assert.match(html,new RegExp('data-konkur-mock-practice data-locale="'+lang+'"'));
   assert.match(html,new RegExp('data-choice-studio data-locale="'+lang+'"'));
   assert.match(html,new RegExp('data-konkur-selection data-locale="'+lang+'"'));
-  assert.match(html,/jr-konkur-mock-practice-v1\.js\?v=20261021-mock-negative-marking-v3/);
+  assert.match(html,/jr-konkur-mock-practice-v1\.js\?v=20261021-mock-export-v4/);
   assert.match(html,/jr-konkur-mock-providers-v1\.js\?v=20261020-mock-directory-v1/);
   assert.match(html,/jr-konkur-mock-practice-v1\.css\?v=20261020-mock-multisubject-v2/);
   assert.ok(html.indexOf('jr-konkur-studio-v1.js')<html.indexOf('jr-konkur-mock-practice-v1.js'));
@@ -55,4 +55,18 @@ test('topic-level comparisons are bounded to same provider, cohort and repeated 
   'row.grade===current.grade','row.date.slice(0,4)===current.date.slice(0,4)',
   'comparableSubjectRows','subjectMeasures','normalizedName','not proof of learning growth'])
   assert.ok(source.includes(phrase),'missing subject comparison guard: '+phrase);
+});
+
+test('bilingual pages load dedicated local CSV exporter before the existing practice worksheet',()=>{
+ for(const path of ['fa/entekhab-reshteh/index.html','en/student-guidance/index.html']){
+  const html=read(path);
+  const exportAsset='jr-konkur-mock-export-v1.js?v=20261021-mock-export-v1';
+  assert.ok(html.includes(exportAsset),path);
+  assert.ok(html.indexOf(exportAsset)<html.indexOf('jr-konkur-mock-practice-v1.js'),path);
+ }
+ const source=read('assets/js/jr-konkur-mock-practice-v1.js');
+ assert.match(source,/JRKonkurMockExport/);
+ assert.match(source,/\.download=payload\.filename/);
+ assert.match(source,/URL\.revokeObjectURL/);
+ assert.match(source,/jr-km-export-notice/);
 });
