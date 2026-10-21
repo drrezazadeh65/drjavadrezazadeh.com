@@ -63,6 +63,8 @@ on:
       - "docs/governance/JR_EDUCATIONAL_INTELLIGENCE_V3_PUBLIC_TOOL_CONTRACT_20261021.md"
       - "platform/konkur-1405-sources.json"
       - "scripts/konkur-1405-review-queue.mjs"
+      - "scripts/konkur-product-readiness.mjs"
+      - "tests/konkur-product-readiness.test.mjs"
       - "tests/konkur-1405-review-queue.test.mjs"
       - "assets/js/bahar-formative-workspace-v1.js"
       - "fa/app/student/bahar/index.html"
@@ -128,6 +130,9 @@ jobs:
           node --check scripts/konkur-1405-review-queue.mjs
           node --test tests/konkur-1405-review-queue.test.mjs
           node scripts/konkur-1405-review-queue.mjs --check
+          node --check scripts/konkur-product-readiness.mjs
+          node --test tests/konkur-product-readiness.test.mjs
+          node scripts/konkur-product-readiness.mjs
           node --test tests/konkur-mother-schema-contract.test.mjs
           node --test tests/konkur-scorecard-adapters-contract.test.mjs
           node --test tests/konkur-studio-contract.test.mjs

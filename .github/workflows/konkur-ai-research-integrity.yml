@@ -8,6 +8,8 @@ on:
       - 'platform/konkur-*.mjs'
       - 'platform/konkur-1405-sources.json'
       - 'scripts/konkur-1405-review-queue.mjs'
+      - 'scripts/konkur-product-readiness.mjs'
+      - 'tests/konkur-product-readiness.test.mjs'
       - 'tests/konkur-1405-review-queue.test.mjs'
       - 'fa/konkur-ai-lab/**'
       - 'assets/js/jr-konkur-ai-lab-public-v1.mjs'
@@ -39,6 +41,9 @@ jobs:
           node --check scripts/konkur-1405-review-queue.mjs
           node --test tests/konkur-1405-review-queue.test.mjs
           node scripts/konkur-1405-review-queue.mjs --check
+          node --check scripts/konkur-product-readiness.mjs
+          node --test tests/konkur-product-readiness.test.mjs
+          node scripts/konkur-product-readiness.mjs
           node --check platform/konkur-1405-batch-preflight.mjs
           node --check platform/konkur-admission-reasoner.mjs
           node --check platform/konkur-scorecard-normalizer.mjs

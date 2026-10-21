@@ -51,3 +51,22 @@ here creates, alters, inserts, deletes or approves records in Bertina.
 
 **Status:** metadata-only preparation, not production import, no published
 source-approved programme records certified by this work, no deployment.
+
+## Release-candidate acceptance classification
+
+`scripts/konkur-product-readiness.mjs` is a **nondeploying, source-only**
+gate. It verifies that the bilingual public worksheets and independent local
+utilities exist, remain wired in both languages, that the research lab is
+explicitly not official/predictive and that neither candidate-score database
+proposal has been authorized. It classifies the no-storage research UX as
+`SOURCE_CONTRACTS_READY_PENDING_CI_AND_OWNER_RELEASE` **only** when these
+code-level checks pass. That classification does **not** certify live security,
+network reachability, SQL state, vendor PDFs, admission-rule completeness,
+statistical admission probability or scientific psychometric validity.
+
+The separate outcome
+`BLOCKED_PENDING_INDEPENDENT_HUMAN_AND_LIVE_DATA_ACCEPTANCE`
+is mandatory for full official admission service. No CI test or synthetic
+MariaDB fixture may change it to ready without independent scientific
+and operational acceptance. A safeguarded, owner-operated research-experience
+release may be assessed separately using the existing GitHub/Bertina pathway.
