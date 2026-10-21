@@ -35,7 +35,8 @@ test('private, offsite, file and tricky paths cannot enter public search',()=>{
   'api/admin/','fa/app/admin/','en/account/','fa/customer-dashboard/',
   'journal/reviewer-private/../../secrets/','../../etc/passwd','javascript:alert(1)',
   'https://evil.example/','fa/safe/?secret=abc','en/checkout/../../account/',
-  'publisher/private/','publisher/../../api/','publisher//'
+  'publisher/private/','publisher/../../api/','publisher//','en/app/account/orders/','fa/services/checkout/',
+  'en/services/checkout/','journal/fa/manuscripts/','journal/fa/submission/'
  ])assert.equal(scope('en').safePublicPath(x),false,x);
  assert.equal(scope('en').safePublicPath('en/books/'),true);
  assert.equal(scope('fa').safePublicPath('fa/rahnamaha/'),true);
