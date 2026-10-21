@@ -24,10 +24,10 @@ test('only previously verified accounts can submit, with origin, CSRF and rate l
  assert.match(s,/status.*'pending'|state.*'pending'/);
  assert.match(s,/return \$v;/);
 });
-test('public page selection permits only existing Persian news and academic guide articles',()=>{
+test('public page selection permits existing Persian articles, plus explicitly flagged catalogued public services',()=>{
  const s=php();
  assert.match(s,/function communityCanonical/);
- assert.ok(s.includes("preg_match('#^/fa/(akhbar|rahnamaha)/"),'only two approved public article directories');
+ assert.ok(s.includes("preg_match('#^/fa/(akhbar|rahnamaha)/"),'existing Persian article directories retained');
   assert.ok(s.includes("$root=realpath(dirname(__DIR__).'/fa/'.$matches[1]);"),'checked public directory only');
   assert.ok(s.includes("$article=$root ? realpath($root.'/'.$matches[2].'/index.html') : false;"),'existing canonical article required');
  assert.match(s,/str_starts_with\(\$article,\$root\.DIRECTORY_SEPARATOR\)/);
@@ -95,4 +95,15 @@ test('both administrator dashboards retain MFA and existing journal features',()
  assert.match(ui,/kind==='approved'/);
  assert.match(ui,/\['removed'/);
  assert.doesNotMatch(ui,/document\.write/);
+});
+
+test('bilingual service questions remain behind a THIRD flag and only allow catalogued public service pages without unverified stars',()=>{
+ const s=php();
+ assert.match(s,/getenv\('JR_COMMUNITY_SERVICES_ENABLED'\) !== 'true'/);
+ assert.match(s,/^.*preg_match\('#\^\/\(fa\|en\)\/services\//m);
+ assert.match(s,/service-catalog\.json/);
+ assert.match(s,/\$item\['sellable'\]\?\?false/);
+ assert.match(s,/service_ratings_not_verified',400/);
+ assert.match(s,/if \(!\$root \|\| !\$page \|\| !str_starts_with/);
+ assert.doesNotMatch(s,/communityCanonical[\s\S]{0,300}checkout/);
 });
