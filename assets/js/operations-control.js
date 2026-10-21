@@ -448,6 +448,27 @@ function renderMasterEngineConsole(host,model){
    }else card.append(el('small',t(
      'اجرای خودکار این موتور هنوز مجری مجاز ندارد؛ گزارش و شواهد آن قابل مشاهده‌اند.',
      'No authorized automatic executor for this engine yet; its reporting remains accessible.')));
+   if(owned.length){
+     const actionList=el('details');
+     actionList.append(el('summary',t('فهرست اقدامات و وضعیت اجرا',
+       'Registered actions and execution availability')));
+     const ul=el('ul',undefined,'ops-queue');
+     for(const action of owned){
+       const li=el('li');
+       const btn=el('button',action.id+' · '+(en?action.canonicalName:action.displayNameFa));
+       btn.type='button';
+       btn.addEventListener('click',()=>{
+         reportingView.level='action';reportingView.action=action.id;
+         reportingRender();
+         $('ops-reporting')?.scrollIntoView({block:'start'});
+       });
+       li.append(btn,el('small',readOnly(action)
+         ?t(' · مشاهده امن قابل اجرا',' · Secure observation available')
+         :t(' · مجری عملیاتی تأییدنشده',' · No verified executor')));
+       ul.append(li);
+     }
+     actionList.append(ul);card.append(actionList);
+   }
    grid.append(card);
  }
  wrap.append(grid);host.append(wrap);
