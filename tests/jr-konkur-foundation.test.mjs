@@ -38,3 +38,22 @@ test('Evidence Passport separates verified facts, preferences and interpretation
  assert.equal(p.evidence[2].humanReview,'NOT_VERIFIED');
  assert.equal(p.admissionPredictionEnabled,false);
 });
+test('search filters user choices without changing their original preference order',()=>{
+ const draft=[
+  {year:1405,code:'00123',note:'زیست شناسی',group:'EXPERIMENTAL_SCIENCES'},
+  {year:1405,code:'54321',note:'رياضیات',group:'MATHEMATICS'},
+  {year:1405,code:'12345',note:'Biology',group:'EXPERIMENTAL_SCIENCES'}
+ ];
+ const byPersian=f.filterDraftChoices(draft,'۰۰۱۲۳');
+ assert.deepEqual(byPersian.map(x=>x.index),[0]);
+ assert.equal(byPersian[0].choice.code,'00123');
+ assert.deepEqual(f.filterDraftChoices(draft,'ریاضیات').map(x=>x.index),[1]);
+ assert.deepEqual(f.filterDraftChoices(draft,'BIOLOGY').map(x=>x.index),[2]);
+ assert.deepEqual(f.filterDraftChoices(draft,'EXPERIMENTAL_SCIENCES').map(x=>x.index),[0,2]);
+ assert.deepEqual(f.filterDraftChoices(draft,'  ').map(x=>x.index),[0,1,2]);
+ assert.deepEqual(draft.map(x=>x.code),['00123','54321','12345']);
+ assert.equal(Object.isFrozen(byPersian),true);
+ assert.deepEqual(f.filterDraftChoices(draft,'unmatched'),[]);
+ assert.deepEqual(f.filterDraftChoices(draft,'z'.repeat(81)),[]);
+ assert.deepEqual(f.filterDraftChoices(null,'Biology'),[]);
+});

@@ -23,6 +23,12 @@
  form.append(codeLabel,noteLabel,groupLabel,add);
  const status=el('p','jr-kc-status','');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const count=el('p','jr-kc-count','');
+ const filterLabel=el('label','jr-kc-filter-label',t('جست‌وجو در انتخاب‌های ثبت‌شده','Search your draft choices'));
+ const filter=el('input','jr-kc-filter');filter.type='search';filter.maxLength=80;
+ filter.autocomplete='off';filter.placeholder=t('کد رشته، عنوان یا گروه','Programme code, title or group');
+ filterLabel.append(filter);
+ const filterCount=el('p','jr-kc-filter-count','');filterCount.setAttribute('role','status');
+ filterCount.setAttribute('aria-live','polite');
  const list=el('ol','jr-kc-list');
  const print=el('button','jr-kc-secondary',t('چاپ گزارش مقدماتی','Print preliminary report'));print.type='button';
  const save=el('button','jr-kc-secondary jr-kc-save-draft',t('دریافت پیش‌نویس شخصی','Download private draft'));save.type='button';
@@ -41,15 +47,24 @@
  const official=el('a','jr-kc-official',t('بررسی اطلاعیه‌های سازمان سنجش','Review official Sanjesh notices'));official.href='https://www.sanjesh.org/';official.rel='noopener noreferrer';official.target='_blank';
  const footer=el('p','jr-kc-note',t('هیچ اطلاعاتی ذخیره یا ارسال نمی‌شود. ورود نهایی به سامانه رسمی فقط توسط داوطلب انجام می‌شود.','No information is stored or sent. Candidates must submit their final lists themselves through the official system.'));
  const report=el('section','jr-kc-report');report.hidden=true;
- root.append(heading,guidance,form,status,count,list,buttons,portable,official,footer,report);
+ root.append(heading,guidance,form,status,count,filterLabel,filterCount,list,buttons,portable,official,footer,report);
  let choices=[],pendingImport=null,importGeneration=0;
  const say=(a,b)=>{status.textContent=t(a,b);};
  const resetImport=()=>{pendingImport=null;apply.disabled=true;preview.textContent='';importFile.value='';importGeneration++;};
  function draw(){
   list.replaceChildren();
   count.textContent=t('تعداد انتخاب‌ها: ','Choices: ')+new Intl.NumberFormat(fa?'fa-IR':'en-US').format(choices.length);
-  choices.forEach((c,i)=>{
-   const row=el('li','jr-kc-item');
+  const visible=F.filterDraftChoices(choices,filter.value);
+  filterCount.textContent=t('نمایش ','Showing ')+
+   new Intl.NumberFormat(fa?'fa-IR':'en-US').format(visible.length)+
+   t(' مورد از ',' of ')+
+   new Intl.NumberFormat(fa?'fa-IR':'en-US').format(choices.length)+
+   t(' انتخاب، بدون تغییر ترتیب اصلی.',' choices, preserving original order.');
+  if(!visible.length&&choices.length)
+   list.append(el('li','jr-kc-filter-empty',t('نتیجه‌ای یافت نشد؛ جست‌وجو را پاک کنید.',
+    'No matches; clear the search to see your choices.')));
+  visible.forEach(({choice:c,index:i})=>{
+   const row=el('li','jr-kc-item');row.dataset.choiceIndex=String(i);
    const details=el('div','jr-kc-item-details');
    details.append(el('strong','',(i+1)+'. '+c.code),el('p','',c.note||t('عنوان نامشخص','Unverified title')),
     el('small','',t('کد و شرایط پذیرش هنوز تأیید نشده‌اند.','Code and eligibility not yet verified.')));
@@ -60,7 +75,7 @@
    up.setAttribute('aria-label',t('بالا بردن انتخاب ','Move choice up ')+(i+1));
    down.setAttribute('aria-label',t('پایین بردن انتخاب ','Move choice down ')+(i+1));
    remove.setAttribute('aria-label',t('حذف انتخاب ','Remove choice ')+(i+1));
-   const move=to=>{const next=F.reorder(choices,i,to);if(!next)return;choices=next;draw();list.querySelectorAll('.jr-kc-item')[to]?.querySelector('button')?.focus();say('ترتیب انتخاب‌ها اصلاح شد.','Selection order updated.');};
+   const move=to=>{const next=F.reorder(choices,i,to);if(!next)return;choices=next;draw();[...list.querySelectorAll('.jr-kc-item')].find(item=>item.dataset.choiceIndex===String(to))?.querySelector('button')?.focus();say('ترتیب انتخاب‌ها اصلاح شد.','Selection order updated.');};
    up.addEventListener('click',()=>move(i-1));down.addEventListener('click',()=>move(i+1));
    remove.addEventListener('click',()=>{choices.splice(i,1);draw();say('انتخاب حذف شد.','Choice removed.');});
    controls.append(up,down,remove);row.append(details,controls);list.append(row);
@@ -126,12 +141,13 @@
  });
  apply.addEventListener('click',()=>{
   if(!pendingImport)return;
-  choices=pendingImport.map(c=>({...c}));draw();resetImport();
+  choices=pendingImport.map(c=>({...c}));filter.value='';draw();resetImport();
   say('پیش‌نویس شخصی جایگزین شد. تأیید رسمی کدرشته‌ها همچنان لازم است.',
    'Personal draft replaced. Official programme codes still require verification.');
  });
+ filter.addEventListener('input',draw);
  print.addEventListener('click',printReport);
- clear.addEventListener('click',()=>{choices=[];draw();resetImport();say('پیش‌نویس پاک شد.','Draft cleared.');});
+ clear.addEventListener('click',()=>{choices=[];filter.value='';draw();resetImport();say('پیش‌نویس پاک شد.','Draft cleared.');});
  window.addEventListener('afterprint',()=>{report.hidden=true;root.classList.remove('jr-kc-printing');});
  window.addEventListener('pagehide',()=>{choices=[];pendingImport=null;report.replaceChildren();});
  draw();

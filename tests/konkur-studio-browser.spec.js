@@ -76,3 +76,38 @@ test('corrupt draft cannot replace the current selection list',async({page})=>{
  await expect(root.locator('.jr-kc-item')).toHaveCount(1);
  await expect(root.locator('.jr-kc-item').first()).toContainText('00123');
 });
+
+test('filtering preliminary choices does not reorder or truncate the complete exported preference list',async({page})=>{
+ const writes=[];page.on('request',r=>{if(!['GET','HEAD'].includes(r.method()))writes.push(r.method());});
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('http://127.0.0.1:4173/en/student-guidance/',{waitUntil:'domcontentloaded'});
+ const root=page.locator('[data-konkur-selection]'),form=root.locator('.jr-kc-form');
+ const add=async(code,note)=>{
+  await form.locator('input').nth(0).fill(code);
+  await form.locator('input').nth(1).fill(note);
+  await form.locator('button[type=submit]').click();
+ };
+ await add('00123','Mathematics');
+ await add('12345','Biology');
+ await add('54321','Physics');
+ const search=root.locator('.jr-kc-filter');
+ await search.fill('Biology');
+ await expect(root.locator('.jr-kc-item')).toHaveCount(1);
+ await expect(root.locator('.jr-kc-filter-count')).toContainText('1 of 3');
+ await expect(root.locator('.jr-kc-item')).toContainText('12345');
+ await root.locator('.jr-kc-item').getByRole('button',{name:/Move choice up/}).click();
+ await expect(root.locator('.jr-kc-item')).toHaveCount(1);
+ await search.fill('۵۴۳۲۱');
+ await expect(root.locator('.jr-kc-item')).toHaveCount(1);
+ await expect(root.locator('.jr-kc-item')).toContainText('54321');
+ await search.fill('');
+ await expect(root.locator('.jr-kc-item')).toHaveCount(3);
+ await expect(root.locator('.jr-kc-item').first()).toContainText('12345');
+ await expect(root.locator('.jr-kc-item').nth(1)).toContainText('00123');
+ const pending=page.waitForEvent('download');
+ await root.locator('.jr-kc-save-draft').click();
+ const file=await pending;
+ const draft=JSON.parse(require('node:fs').readFileSync(await file.path(),'utf8'));
+ expect(draft.entries.map(x=>x.code)).toEqual(['12345','00123','54321']);
+ expect(writes).toEqual([]);
+});

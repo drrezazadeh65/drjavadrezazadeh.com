@@ -64,3 +64,17 @@ test('bilingual locally usable tools have a visible, honest scientific boundary 
  assert.match(css,/\.jr-konkur-local-tools/);
  assert.match(css,/@media\(max-width:580px\)/);
 });
+
+test('private choice search is local, accessible and independent of preference order',()=>{
+ const script=read('assets/js/jr-konkur-studio-v1.js');
+ const foundation=read('assets/js/jr-konkur-foundation-v1.js');
+ for(const token of ['jr-kc-filter-label','jr-kc-filter-count','filter.addEventListener(\'input\',draw)',
+  'F.filterDraftChoices(choices,filter.value)','dataset.choiceIndex=String(i)',
+  'filter.value=\'\'','filterCount.setAttribute(\'aria-live\',\'polite\')'])
+  assert.ok(script.includes(token),'missing local filter invariant '+token);
+ assert.match(foundation,/function filterDraftChoices\(choices,query=''/);
+ assert.match(foundation,/reorder,filterDraftChoices,evidencePassport/);
+ assert.match(read('assets/css/jr-konkur-studio-v1.css'),/jr-kc-filter-empty/);
+ for(const forbidden of ['fetch(','XMLHttpRequest','sendBeacon','indexedDB','localStorage','sessionStorage'])
+  assert.equal(script.includes(forbidden),false,'search must remain local');
+});

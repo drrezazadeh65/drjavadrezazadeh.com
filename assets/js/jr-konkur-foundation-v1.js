@@ -83,6 +83,23 @@
   });
   return {valid:warnings.length===0,warnings,maximum:max,count:choices.length};
  }
+ // Search is a view of the user's *original ordered draft*, never a reordering.
+ const searchFold=value=>String(value??'').normalize('NFKC')
+  .replace(/[۰-۹٠-٩]/g,ch=>{
+   const n=ch.codePointAt(0);return String(n>=0x6f0?n-0x6f0:n-0x660);
+  })
+  .replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/\s+/g,' ').trim().toLocaleLowerCase();
+ function filterDraftChoices(choices,query=''){
+  if(!Array.isArray(choices)||typeof query!=='string'||query.length>80)return [];
+  const needle=searchFold(query);
+  const selected=[];
+  choices.forEach((choice,index)=>{
+   if(!choice||typeof choice!=='object')return;
+   const haystack=[choice.code,choice.note,choice.group].map(searchFold).join(' ');
+   if(!needle||haystack.includes(needle))selected.push(Object.freeze({index,choice}));
+  });
+  return Object.freeze(selected);
+ }
  function reorder(choices,from,to){
   if(!Array.isArray(choices)||!Number.isInteger(from)||!Number.isInteger(to)||
    from<0||to<0||from>=choices.length||to>=choices.length)return null;
@@ -101,5 +118,5 @@
   return {version:'1.0.0',evidence:mapped,admissionPredictionEnabled:false,
    nextVerification:'Check the applicable official admission guide and amendments'};
  }
- return {STATUSES,TYPES,officialSource,evaluate,inspectList,reorder,evidencePassport};
+ return {STATUSES,TYPES,officialSource,evaluate,inspectList,reorder,filterDraftChoices,evidencePassport};
 });

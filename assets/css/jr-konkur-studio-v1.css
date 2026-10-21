@@ -53,3 +53,10 @@
 .jr-konkur-local-tools strong{color:#ffdda4}
 .jr-konkur-local-tools p{margin:.6rem 0 0;max-width:85ch;overflow-wrap:anywhere}
 @media(max-width:580px){.jr-konkur-local-tools{padding:16px;line-height:1.9}}
+
+/* Non-mutating search over personal draft; original preference order is preserved. */
+.jr-konkur-workspace .jr-kc-filter-label{display:flex;flex-direction:column;gap:7px;font-weight:650;margin-block:14px 5px}
+.jr-konkur-workspace .jr-kc-filter{width:100%;max-width:460px}
+.jr-konkur-workspace .jr-kc-filter-count{color:#f3dcb4;line-height:1.65;margin-block:5px 10px}
+.jr-konkur-workspace .jr-kc-filter-empty{padding:12px 15px;border:1px dashed #b89b64;border-radius:10px;color:#f3dcb4;list-style:none}
+@media(max-width:580px){.jr-konkur-workspace .jr-kc-filter{max-width:100%;min-height:48px}}
