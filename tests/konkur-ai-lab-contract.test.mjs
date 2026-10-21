@@ -24,3 +24,8 @@ test('CSP SHA-256 hashes are exact after mobile layout changes',()=>{
  }
  assert.match(html,/@media\(max-width:560px\)/);
 });
+
+test('MAZ is selectable in the public lab without third-party login or vendor network calls',()=>{
+ assert.match(html,/<option value="MAZ">ماز<\/option>/);
+ assert.doesNotMatch(html,/biomaze\.ir|konkoorone\.ir|heyvagroup\.com/);
+});

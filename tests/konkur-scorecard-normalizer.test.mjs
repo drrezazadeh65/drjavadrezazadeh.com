@@ -21,3 +21,13 @@ test('official evidence requires explicit attestation and preserves no personal 
  assert.equal(x.valid,true);assert.equal(x.rankSourceVerified,false);assert.equal(x.personalIdentifiersStored,false);
  assert.equal('nationalId' in x,false);
 });
+
+test('MAZ practice scorecards are accepted for descriptive intake, never as official rank',()=>{
+ const x=normalizeCandidateScorecard({provider:'MAZ',year:'۱۴۰۵',examinationGroup:'EXPERIMENTAL',subjects:[{subjectCode:'BIO',percent:62}],rank:420});
+ assert.equal(x.valid,true);assert.equal(x.provider,'MAZ');
+ assert.equal(x.rankSourceVerified,false);assert.equal(x.admissionProbability,null);
+ assert.equal(scorecardToReasonerCandidate(x).rankSourceVerified,false);
+ const forged=normalizeCandidateScorecard({provider:'MAZ',year:1405,examinationGroup:'EXPERIMENTAL',subjects:[],rank:420,rankVerified:true,officialVerificationEvidence:true});
+ assert.equal(forged.valid,false);
+ assert.ok(forged.issues.includes('UNSUPPORTED_OFFICIAL_RANK_ATTESTATION'));
+});

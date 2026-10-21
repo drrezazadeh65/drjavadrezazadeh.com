@@ -1,5 +1,5 @@
 /* JR public Konkur research lab v1.1. Strictly local, no network, no persistence, no admission odds. */
-const PROVIDERS=new Set(['KANOON','GAJ','GOZINEH_DO','SANJESH','OTHER']);
+const PROVIDERS=new Set(['KANOON','GAJ','GOZINEH_DO','MAZ','SANJESH','OTHER']);
 const GROUPS=new Set(['HUMANITIES','EXPERIMENTAL','MATHEMATICS','ARTS','LANGUAGES']);
 const digits=v=>String(v??'').replace(/[۰-۹٠-٩]/g,c=>{const n=c.codePointAt(0);return String(n>=0x6f0?n-0x6f0:n-0x660)});
 const isRecord=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);

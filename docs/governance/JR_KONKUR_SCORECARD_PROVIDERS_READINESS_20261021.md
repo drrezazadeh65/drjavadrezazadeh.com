@@ -46,3 +46,14 @@ Future exam providers are **new provider and event rows**, not schema forks. Pro
 Paid use of the simulator must not depend on coercive collection or indefinite retention of minors' scores. Separate consent for service delivery from optional longitudinal research, model training and marketing; refuse secondary use without appropriate authorization. Provide access, correction and deletion workflows, clear retention, and opt-out. User-provided scores are not automatically ground truth; verified actual admissions outcomes require a distinct consented evidence collection and governance programme.
 
 **Status:** repository source only. No SQL applied to live Bertina, no real private scorecards stored, no admission model validated and no release claimed.
+
+## 6. MAZ manual intake alignment (2026-10-21 source change)
+
+The existing practice-provider directory already lists `MAZ`. The deterministic
+server-side scorecard normalizer, public no-storage laboratory adapter and
+research-only provider selector now recognize the same provider identifier.
+This is **manual entry only**: no MAZ authentication, proprietary report
+parsing, third-party API integration, licensed data access or verified vendor
+scorecard schema is claimed. MAZ practice ranks are never attested as official
+Sanjesh ranks; admission probability remains unavailable. The change does not
+activate the proposed `003e` or `003f` database migrations.

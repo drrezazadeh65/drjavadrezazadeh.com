@@ -7,7 +7,7 @@ export function toAsciiDigits(value){
  if(typeof value!=='string')throw new TypeError('String required');
  return value.replace(/[۰-۹٠-٩]/g,c=>DIGITS[c.codePointAt(0)>0x6ef?c.codePointAt(0)-0x6f0:c.codePointAt(0)-0x660]);
 }
-const providers=new Set(['KANOON','GAJ','GOZINEH_DO','SANJESH','OTHER']);
+const providers=new Set(['KANOON','GAJ','GOZINEH_DO','MAZ','SANJESH','OTHER']);
 const numericFields=['rawScore','percent','rank','participants'];
 function finiteInRange(value,min,max){return typeof value==='number'&&Number.isFinite(value)&&value>=min&&value<=max;}
 export function normalizeCandidateScorecard(input){

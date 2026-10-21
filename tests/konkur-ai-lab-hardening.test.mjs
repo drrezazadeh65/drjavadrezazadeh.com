@@ -23,3 +23,14 @@ test('provider cannot self-attest official admission',()=>{
  assert.equal(n.rankSourceVerified,false);
  assert.equal(analyseLabScorecard({...base,provider:'SANJESH',rank:42}).officialEligibilityEstablished,false);
 });
+
+test('MAZ laboratory intake is manual-only and cannot produce admission odds',()=>{
+ const s={...base,provider:'MAZ',rank:730};
+ const normalized=normalizeLabScorecard(s),analysis=analyseLabScorecard(s);
+ assert.equal(normalized.valid,true);
+ assert.equal(normalized.rankSourceVerified,false);
+ assert.equal(analysis.status,'AWAITING_VERIFIED_CATALOGUE');
+ assert.equal(analysis.admissionProbability,null);
+ assert.equal(analysis.officialEligibilityEstablished,false);
+ assert.equal(analysis.publicReady,false);
+});
