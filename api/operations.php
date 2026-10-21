@@ -18,6 +18,7 @@ require_once __DIR__.'/operations-fulfilment.php';
 require_once __DIR__.'/operations-service-delivery.php';
 require_once __DIR__.'/consultation-availability.php';
 require_once __DIR__.'/operations-action-runs.php';
+require_once __DIR__.'/operations-provider-inventory.php';
 require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/social-review.php';
 require_once __DIR__.'/social-admin-settings.php';
@@ -498,6 +499,12 @@ function operationsRoute(string $path, string $verb): never {
         if ($path === '/admin/operations/jhela/maturity' && $verb === 'GET') {
             if (!rateAllowed($pdo,'operations_jhela_maturity_read',$accountId,12,300)) fail('rate_limited',429);
             respond(operationsJhelaSnapshot());
+        }
+
+        // Private catalogue: this route is after the existing admin and fresh MFA checks.
+        if ($path === '/admin/operations/provider-inventory' && $verb === 'GET') {
+            if (!rateAllowed($pdo,'operations_provider_inventory_read',$accountId,20,300)) fail('rate_limited',429);
+            respond(operationsProviderInventory());
         }
 
         // Owner-only keyword intelligence: no public asset or unauthenticated strategy data.
