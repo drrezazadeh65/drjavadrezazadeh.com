@@ -48,7 +48,7 @@ form.hidden=true;formPanel.hidden=true;host.append(formPanel);
 const login=el('p','jr-community-login');
 const signIn=el('a','',tr('برای ارسال دیدگاه، وارد حساب تأییدشده خود شوید.','Sign in to your verified account to ask a question.'));
 signIn.href=en?'/en/login/':'/fa/login/';login.append(signIn);login.hidden=true;host.append(login);
-article.append(host);
+// Do not mount a community UI before the server confirms the gated feature.
 async function request(url,options={}){
  const r=await fetch(url,{credentials:'same-origin',cache:'no-store',...options});
  let body=null;try{body=await r.json();}catch(_){}
@@ -58,6 +58,7 @@ async function load(){
  let result;try{result=await request(api+'comments?page='+encodeURIComponent(page));}catch(_){host.remove();return;}
  // Fail closed: do not advertise a feature until the backend + DB + owner flags are actually live.
  if(!result.ok||result.body?.schema!=='community-comments-v1'||!Array.isArray(result.body.comments)){host.remove();return;}
+ article.append(host);
  const summary=result.body.ratingSummary;
  const count=summary?.count;
  const mean=summary?.mean;
