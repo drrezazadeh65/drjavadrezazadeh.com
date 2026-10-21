@@ -140,3 +140,23 @@
 :where(html:lang(fa),html:lang(en)) body{text-align:start}
 :where(.ops) :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select){text-align:start}
 :where(.ops) :is(input[type="email"],input[type="url"],input[type="tel"]){direction:ltr;unicode-bidi:plaintext}
+
+/* Unified source directory — private, mobile-first extension of ENG-13.
+   This is not a public-facing website index. */
+#ops-source-directory{min-width:0}
+#ops-source-directory>summary,#ops-master-engine-control>summary{cursor:pointer;color:var(--ops-gold);font-weight:700}
+#ops-source-directory .ops-grid{grid-template-columns:repeat(auto-fit,minmax(min(270px,100%),1fr));gap:12px}
+#ops-source-directory .ops-card{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}
+#ops-source-directory .ops-card small{display:block}
+#ops-source-directory .ops-card a{display:inline-block;margin-block-start:auto;padding-top:10px;min-height:44px}
+#ops-source-directory .ops-toolbar>*{min-width:0;flex:1 1 175px}
+#ops-source-directory .ops-toolbar input{width:100%}
+.ops-source-pager{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px;margin-block:18px}
+.ops-source-pager button{min-height:44px;min-width:110px}
+.ops-source-pager span{font-variant-numeric:tabular-nums}
+@media(max-width:600px){
+ #ops-source-directory .ops-toolbar{display:grid;grid-template-columns:minmax(0,1fr)}
+ #ops-source-directory .ops-toolbar input,#ops-source-directory .ops-toolbar select{width:100%;min-height:44px}
+ #ops-source-directory .ops-grid{grid-template-columns:minmax(0,1fr)}
+ #ops-source-directory .ops-card{padding:14px}
+}
