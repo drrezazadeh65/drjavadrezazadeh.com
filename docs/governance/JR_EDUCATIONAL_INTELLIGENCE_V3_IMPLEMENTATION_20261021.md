@@ -53,3 +53,30 @@ Test files: `tests/educational-intelligence-v3.test.mjs` and `tests/educational-
 - Use the existing owner-controlled GitHub/Bertina release path; the V3 changes in this phase are **source only**.
 
 **Next safe task:** implement an internal, server-only tool schema and synthetic validation fixtures, then test its adapter against the existing PHP/API boundary without activating public model calls or writing real learner data.
+
+## Addendum — conflicting 003f proposals are MUTUALLY EXCLUSIVE (2026-10-21)
+
+**NO DATABASE MIGRATION, ALTER, CREATE TABLE, SEED OR PRODUCTION SQL WAS EXECUTED.**
+The current repository contains two different proposals with the same 003f
+identifier. They are **alternatives, not sequential migrations**:
+
+- `database/unified/003f_candidate_exam_data_PROPOSED.sql`: nine
+  provider/schema/metric/event, candidate attempt, selection and annual policy tables.
+- `database/unified/003f_konkur_scorecard_adapters_PROPOSED.sql`: four
+  provider/event/private scorecard/subject-measure tables.
+
+They express at least four overlapping conceptual entities: provider directory,
+exam events, private attempt/scorecard and subject metric values. Running both
+would create parallel record families and fragment authority, privacy and consent.
+The new nondeploying `scripts/konkur-003f-proposal-audit.mjs` and its tests
+explicitly reject their simultaneous selection. A passing source audit **does not
+approve either migration or prove what is installed on Bertina**.
+
+Before any future scorecard persistence, require an authenticated read-only
+inventory of the mother database, actual `SHOW CREATE TABLE` definitions,
+migration journal reconciliation, tested restore, guardian/subject permissions,
+versioned consent, revocation/deletion operations and a separately accepted
+canonical migration. If existing tables already serve these functions, reuse
+them; a new SQL object must have a documented unavoidable role and no duplicate
+semantics. The local CSV export, mock notebook and public research laboratory
+require **zero added database tables**.
