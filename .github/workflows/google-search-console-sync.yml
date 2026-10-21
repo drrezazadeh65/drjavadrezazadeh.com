@@ -104,7 +104,7 @@ jobs:
         run: python3 scripts/gsc_readonly_probes.py
 
       - name: Optional owner-run public URL indexation triage (read-only)
-        if: github.event_name == 'workflow_dispatch' && inputs.indexation_triage == true
+        if: github.event_name == 'workflow_dispatch' && github.actor == 'drrezazadeh65' && inputs.indexation_triage == true
         env:
           GSC_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
           GSC_TRIAGE_LIMIT: ${{ inputs.sample_size }}

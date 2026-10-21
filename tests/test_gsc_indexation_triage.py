@@ -111,6 +111,18 @@ class GscIndexationTriageContracts(TestCase):
                 triage.inspect_sample("synthetic-token", ["https://drjavadrezazadeh.com/api/"])
             req.assert_not_called()
 
+    def test_non_owner_cannot_dispatch_indexation_reads(self):
+        with mock.patch.dict(os.environ, {
+            "GITHUB_REPOSITORY": triage.REPO, "GITHUB_REF": triage.REF,
+            "GITHUB_EVENT_NAME": "workflow_dispatch",
+            "GITHUB_ACTOR": "other-developer",
+            "GSC_ACCESS_TOKEN": "synthetic-token",
+        }):
+            with mock.patch.object(triage, "request_google") as req:
+                self.assertEqual(triage.main(), 1)
+                req.assert_not_called()
+
+
     def test_wrong_github_context_fails_before_external_read(self):
         with mock.patch.dict(os.environ, {"GITHUB_REPOSITORY": "other/repo", "GITHUB_REF": triage.REF,
                                           "GITHUB_EVENT_NAME": "workflow_dispatch", "GSC_ACCESS_TOKEN": "fake"}):

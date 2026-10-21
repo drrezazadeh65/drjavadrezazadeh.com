@@ -11,7 +11,7 @@ The official Search Console URL Inspection API offers one-URL-at-a-time status. 
    https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/google-search-console-sync.yml
 2. Select **Run workflow**, branch **migration/bertina-linux6**.
 3. Set **indexation_triage = true** and **sample_size = 90**.
-4. Run once (read-only). Check both Google Search Console OIDC and GA4 verification jobs. The optional inspection runs only on the trusted branch with owner dispatch; push-run defaults to false.
+4. Run once (read-only) from GitHub account `drrezazadeh65`. Both workflow and Python enforce the exact branch and owner actor. Check Google Search Console OIDC and GA4 verification jobs. Push-run defaults to false.
 5. Read the result from the job's **GSC_INDEXATION_TRIAGE=OBSERVED** summary: total sampled, grouped indexing coverage, separate counts for services, guides, news, journal and other pages, Google-selected canonical self/other/unknown and availability of last-crawl timestamps.
 6. Keep the exact Commit SHA and timestamp. Do not treat partial API failures, skipped steps, empty metrics or unauthenticated errors as successful indexing verification.
 

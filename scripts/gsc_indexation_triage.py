@@ -261,7 +261,8 @@ def inspect_sample(token: str, urls: list[str]) -> dict:
 def main() -> int:
     if (os.environ.get("GITHUB_REPOSITORY") != REPO
             or os.environ.get("GITHUB_REF") != REF
-            or os.environ.get("GITHUB_EVENT_NAME") != "workflow_dispatch"):
+            or os.environ.get("GITHUB_EVENT_NAME") != "workflow_dispatch"
+            or os.environ.get("GITHUB_ACTOR") != "drrezazadeh65"):
         print("GSC_INDEXATION_TRIAGE=BLOCKED reason=not_owner_initiated_context")
         return 1
     token = os.environ.get("GSC_ACCESS_TOKEN", "")
