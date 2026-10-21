@@ -3,7 +3,7 @@ const form=document.querySelector('[data-site-search]');
 if(!form)return;
 // Reuse the public discovery engine for JHELA without creating a parallel index.
 const journalOnly=form.hasAttribute('data-journal-search');
-const safePublicPath=p=>typeof p==='string'&&(/^(?:fa|en|journal)\/(?:[a-zA-Z0-9_-]+\/)*$/.test(p)||p==='publisher/')&&!p.includes('..')&&!/^(?:fa\/(?:app|customer-dashboard|login|register|bazyabi-hesab|assessments|checkout|auth|private)\/|en\/(?:account|login|register|recover|checkout|auth|private)\/|(?:fa|en)\/shop\/(?:checkout|cart|payment-result|orders)\/|journal\/(?:private|submission|submissions|manuscripts|reviewer-private|admin|account)\/)/.test(p);
+const safePublicPath=p=>typeof p==='string'&&(/^(?:fa|en|journal)\/(?:[a-zA-Z0-9_-]+\/)*$/.test(p)||p==='publisher/')&&!p.includes('..')&&!/^(?:fa\/(?:app|customer-dashboard|login|register|bazyabi-hesab|assessments|checkout|auth|private)\/|en\/(?:app|customer-dashboard|account|login|register|recover|checkout|auth|private)\/|(?:fa|en)\/(?:shop|services)\/(?:checkout|cart|payment-result|orders)\/|journal\/(?:fa\/)?(?:private|submission|submissions|manuscripts|reviewer-private|admin|account)\/)/.test(p);
 const eligible=x=>x&&safePublicPath(x.path)&&x.lang===(document.documentElement.lang==='fa'?'fa':'en')&&(!journalOnly||x.path.startsWith('journal/'))&&(x.path!=='publisher/'||x.lang==='en');
 const input=form.querySelector('input[type="search"]');
 const category=form.querySelector('[data-search-category]');
