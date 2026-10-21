@@ -314,7 +314,12 @@ for(const route of approvedEnglishVipRoutes){
      !html.includes('public-v2.css'))
     failures.push('Approved English VIP route lacks canonical/indexable/visual contract: '+route);
 }
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1; // +1 reviewed English author counterpart
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1; // reviewed English author + noindex research AI lab
+const aiLabRoute='fa/konkur-ai-lab/index.html';
+const aiLabPath=path.join(out,aiLabRoute);
+const aiLabJs=path.join(out,'assets/js/jr-konkur-ai-lab-public-v1.mjs');
+if(!fs.existsSync(aiLabPath)||!fs.existsSync(aiLabJs))failures.push('Isolated AI lab or its public-only adapter missing from sanitized artifact');
+else if(!/<meta name="robots" content="noindex,nofollow,noarchive">/.test(fs.readFileSync(aiLabPath,'utf8')))failures.push('AI research lab must remain noindex and nonpublic');
 for(const route of ['journal/roadmap/index.html','journal/fa/roadmap/index.html']){
   if(!fs.existsSync(path.join(out,route))) failures.push('Approved JHELA roadmap page missing: '+route);
 }
