@@ -77,8 +77,10 @@ test('each of the 21 paid services has its own substantive SVG infographic and a
 test('priced comparison cards link to verified specific service pages', () => {
   const pricing = read('assets/js/service-pricing.js');
   const page = read('fa/khadamat/index.html');
+  assert.ok(pricing.includes('href="/fa/services/checkout/?service='), 'service-specific guarded checkout route missing');
   assert.ok(pricing.includes('href="/fa/services/'), 'service detail route missing');
-  assert.ok(pricing.includes('شرح علمی و ثبت سفارش این خدمت'));
+  assert.ok(pricing.includes('بررسی سفارش امن این خدمت'), 'clear selected-order CTA missing');
+  assert.ok(pricing.includes('شرح علمی، شرایط و محدودیت‌ها'), 'separate evidence and limitations CTA missing');
   assert.ok(!pricing.includes('/fa/darkhast-moshavere/?service='));
   assert.ok(page.includes('service-pricing.js?v=20261016-verified-service-details-v2'));
 });
