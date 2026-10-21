@@ -144,6 +144,7 @@ function operationsCollectorRefresh(PDO $pdo,string $mode,int $at,string $scope=
         $write=$pdo->prepare('INSERT INTO operations_collection_cache(scope_key,fetched_at,expires_at,body_json) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE fetched_at=VALUES(fetched_at),expires_at=VALUES(expires_at),body_json=VALUES(body_json)');
         $advance=$pdo->prepare('UPDATE operations_collection_policies SET next_due=? WHERE scope_key=?');
         foreach($keys as $key){
+            $receivedThisKey=false;
             $policy=$policies[$key];
             $limit=str_starts_with($key,'audit:')?1048576:256000;
             $value=is_array($data)?operationsGithubBulkJson($data,$key,$limit):null;
@@ -155,10 +156,10 @@ function operationsCollectorRefresh(PDO $pdo,string $mode,int $at,string $scope=
                 $encoded=json_encode($value,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
                 // Source cache is short-lived, private, and contains public provider data only.
                 $ttl=$policy['cadence']==='hourly'?10800:129600;
-                $write->execute([$key,$at,$at+$ttl,$encoded]);$saved++;
+                $write->execute([$key,$at,$at+$ttl,$encoded]);$saved++;$receivedThisKey=true;
             }
             $next=operationsCollectorNextDue($policy['cadence'],$policy['clockMinutes'],$at+60);
-            if($mode==='scheduled'&&$saved===0)$next=$at+900;
+            if($mode==='scheduled'&&!$receivedThisKey)$next=$at+900;
             $advance->execute([$next,$key]);
         }
         return ['status'=>$saved===count($keys)?'updated':($saved?'partial':'provider_unavailable'),
