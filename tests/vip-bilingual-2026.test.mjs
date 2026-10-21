@@ -48,6 +48,12 @@ test('6-offer English VIP hub has distinct list schema, canonical and reciprocal
  const list=nodes(en).find(x=>x['@type']==='ItemList');
  assert.equal(list?.itemListElement?.length,6);
  assert.ok(vip.every(s=>list.itemListElement.some(x=>x.url===base+'/en/vip/'+s.id+'/')));
+ for(const item of vip){
+  const selected='/fa/vip/?vip='+item.id+'#vip-checkout-heading';
+  assert.ok(en.includes('href="'+selected+'"'),item.id+' must have its own existing guarded Persian order handoff');
+ }
+ assert.ok(en.includes('Persian-language checkout'),'Do not misrepresent a Persian-only checkout as an international card gateway');
+ assert.ok(!en.includes('href="/en/services/checkout/?vip='),'Never route VIP to the standard-service payment page');
  assert.equal(enSitemap.split('<loc>'+base+'/en/vip/</loc>').length-1,1);
  assert.ok(index.includes('href="/en/vip/"'));
  assert.deepEqual([pairs.find(x=>x.id==='vip').en,pairs.find(x=>x.id==='vip').fa],['/en/vip/','/fa/vip/']);
