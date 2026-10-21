@@ -201,6 +201,7 @@ function collectionControlsRender(parent){
  });box.append(fetch);
  if(collectionState?.schema==='operations-collection-controls-v1'){
   box.append(el('p',t('منطقهٔ زمانی اجرا: تهران. فعال بودن تنظیم بدون نصب Cron در برتینا، به معنی اجرای خودکار نیست.','Schedule timezone: Tehran. Enabled settings do not run unattended until the Bertina cron job is installed.')));
+  if(collectionState.attemptJournalStatus==='schema_not_provisioned')box.append(el('p',t('جدول تاریخچه تلاش‌های گردآوری هنوز در دیتابیس سرور مستقر نشده است.','Collector attempt history requires the next unified-database migration.')));
   const manual=el('button',t('تازه‌سازی فوری همهٔ منابع فعال','Refresh all enabled sources now'));manual.type='button';
   manual.addEventListener('click',async()=>{
    manual.disabled=true;try{
@@ -245,7 +246,16 @@ function collectionControlsRender(parent){
     }catch(error){notice(errorMessage(error),true);}finally{save.disabled=false;}
    });
    line.append(save);
-   if(scope.lastFetchedAt)line.append(el('small',t('آخرین واکشی: ','Last collected: ')+date(scope.lastFetchedAt)));
+   if(scope.lastFetchedAt)line.append(el('small',t('آخرین واکشی موفق: ','Last successful collection: ')+date(scope.lastFetchedAt)));
+   if(scope.type==='source'&&scope.lastAttempt){
+     const attempt=scope.lastAttempt;
+     const outcome=attempt.result==='succeeded'
+       ?t('داده پذیرفته و ذخیره شد','Result accepted and stored')
+       :attempt.result==='failed'
+         ?t('منبع داده معتبر نداد؛ نتیجه قبلی حفظ شد','Provider yielded no valid result; prior snapshot retained')
+         :t('وضعیت نامشخص','Unknown result');
+     line.append(el('small',t('آخرین تلاش: ','Last attempt: ')+date(attempt.attemptedAt)+' · '+outcome));
+   }
    catalogue.append(line);
   }box.append(catalogue);
  }
