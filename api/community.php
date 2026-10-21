@@ -82,11 +82,13 @@ function communityListApprovedReplies(PDO $pdo,array $comments): array {
        FROM community_admin_replies r
        INNER JOIN community_comments c ON c.id=r.comment_id AND c.state='approved'
        WHERE r.state='published' AND r.comment_id IN ($marks)
-       ORDER BY r.created_at ASC,r.id ASC");
+       ORDER BY r.created_at ASC,r.id ASC LIMIT 300");
     $q->execute($ids);
     $out=[];
     foreach ($q->fetchAll() as $r) {
-        $out[(string)$r['comment_id']][]=[
+        $parent=(string)$r['comment_id'];
+        if (count($out[$parent]??[])>=15) continue;
+        $out[$parent][]=[
             'id'=>(string)$r['id'],
             'body'=>(string)$r['body_text'],
             'createdAt'=>(int)$r['created_at'],
