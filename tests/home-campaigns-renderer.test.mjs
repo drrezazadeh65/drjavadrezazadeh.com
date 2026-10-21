@@ -74,7 +74,9 @@ test('check-only renderer never mutates HTML or imports accounts, payments or se
  const script=fs.readFileSync(path.join(root,'scripts/render-home-campaigns.mjs'),'utf8');
  assert.match(script,/--check/);
  assert.match(script,/--write/);
- assert.match(script,/if\(write\)fs\.writeFileSync/);
+ assert.match(script,/if\(write\)for\(const item of staged\)fs\.writeFileSync/);
+ assert.match(script,/const staged=\[\]/);
+ assert.match(script,/staged\.push\(\{lang,file,next\}\)/);
  assert.doesNotMatch(script,/\/api\/admin|INSERT INTO|DROP TABLE|COMMERCE_ENABLED|JR_COMMUNITY_ENABLED/);
  assert.equal((script.match(/fs\.writeFileSync\(/g)||[]).length,1);
 });
