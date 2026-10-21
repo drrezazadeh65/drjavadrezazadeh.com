@@ -62,7 +62,10 @@ for(const locale of ['fa','en']){
   await page.setViewportSize({width:390,height:844});
   await page.goto('http://127.0.0.1:4173/'+locale+'/',{waitUntil:'domcontentloaded'});
   await page.locator('.site-header [data-nav-toggle]:visible').click();
-  const link=page.locator('#mobile-app-menu a[href]').first();
+  const sheet=page.locator('#mobile-app-menu');
+  await expect(sheet).toBeVisible();
+  const link=sheet.locator('a[href]:visible').first();
+  await expect(link).toBeVisible();
   const destination=await link.evaluate(a=>new URL(a.href,location.href).pathname);
   await link.click();
   await expect.poll(()=>new URL(page.url()).pathname).toBe(destination);
