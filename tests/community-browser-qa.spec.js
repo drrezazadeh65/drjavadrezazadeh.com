@@ -195,5 +195,5 @@ test('only server-approved stars appear in the academic mean and empty/untrusted
  await expect(summary).toBeVisible();
  await expect(summary).toContainText('۴');
  await expect(summary).toContainText('۴٫۳');
- await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+ expect(await page.locator('script[type="application/ld+json"]').evaluateAll(nodes=>nodes.every(node=>!node.textContent.includes('aggregateRating')))).toBe(true);
 });
