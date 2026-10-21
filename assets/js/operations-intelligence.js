@@ -59,13 +59,63 @@ let running=false;
 btn.addEventListener('click',async()=>{
  if(running || document.getElementById('ops-workspace')?.hidden)return;
  running=true;btn.disabled=true;score.textContent='—';gauge.style.setProperty('--jr-progress','0');detail.replaceChildren();summary.textContent=t('در حال نمونه‌برداری از صفحات عمومی…','Sampling public pages…');
- const urls=new Set([new URL('/fa/',location.origin).href,new URL('/en/',location.origin).href]);
- try{const res=await fetch('/sitemap.xml',{credentials:'omit',cache:'no-store'});if(!res.ok)throw Error('sitemap HTTP '+res.status);
- const xml=new DOMParser().parseFromString(await res.text(),'application/xml');
- if(xml.querySelector('parsererror'))throw Error('Invalid sitemap XML');
- for(const loc of xml.getElementsByTagName('loc')){try{const u=new URL(loc.textContent.trim());if(u.origin===location.origin&&allowed(u.pathname))urls.add(u.href);}catch(e){} if(urls.size>=32)break;}
- }catch(e){summary.textContent=t('نقشه سایت خوانده نشد؛ نمونه پایه بررسی می‌شود.','Sitemap unavailable; checking basic samples.');}
- let done=0,passed=0,skipped=0,totalErrors=0,totalWarnings=0,withSchema=0;const list=[...urls].slice(0,32);count.textContent='0 / '+list.length;
+
+ // The root sitemap is an index: sample the indexed URL sets rather than
+ // treating the child sitemap XML endpoints as HTML pages.
+ // Browser-only, same-origin, public-only sampling; this is not a full CI crawl.
+ const perLanguage={fa:[],en:[]},unique=new Set();
+ function addPublicPage(raw){
+  try{
+   const u=new URL(raw,location.origin);
+   if(u.origin!==location.origin||!allowed(u.pathname)||unique.has(u.href))return;
+   const locale=u.pathname.startsWith('/fa/')?'fa':'en';
+   if(perLanguage[locale].length>=120)return;
+   unique.add(u.href);perLanguage[locale].push(u.href);
+  }catch(_){}
+ }
+ addPublicPage('/fa/');addPublicPage('/en/');
+ const approvedSitemap=/^\/sitemap(?:-(?:fa|en|core|news|services))?\.xml$/;
+ async function readPublicSitemap(path){
+  const u=new URL(path,location.origin);
+  if(u.origin!==location.origin||!approvedSitemap.test(u.pathname)||u.search||u.hash)throw Error('unapproved sitemap URL');
+  const res=await fetch(u.href,{credentials:'omit',cache:'no-store',redirect:'follow',headers:{Accept:'application/xml,text/xml'}});
+  const destination=new URL(res.url);
+  if(!res.ok||destination.origin!==location.origin||!approvedSitemap.test(destination.pathname))throw Error('sitemap HTTP '+res.status);
+  const body=await res.text();
+  if(body.length>500000)throw Error('sitemap exceeds 500 kB');
+  const xml=new DOMParser().parseFromString(body,'application/xml');
+  if(xml.querySelector('parsererror'))throw Error('invalid sitemap XML');
+  return xml;
+ }
+ let sitemapFailed=0,sitemapsRead=0;
+ try{
+  const rootXml=await readPublicSitemap('/sitemap.xml');
+  const documentType=rootXml.documentElement?.localName;
+  const indexed=documentType==='sitemapindex'?
+   [...rootXml.getElementsByTagName('sitemap')].map(n=>n.getElementsByTagName('loc')[0]?.textContent?.trim()).filter(Boolean):
+   documentType==='urlset'?['/sitemap.xml']:[];
+  if(!indexed.length)throw Error('unknown sitemap document');
+  for(const href of indexed.slice(0,12)){
+   try{
+    const xml=href==='/sitemap.xml'?rootXml:await readPublicSitemap(href);
+    if(xml.documentElement?.localName!=='urlset')throw Error('not a URL set');
+    sitemapsRead++;
+    for(const entry of xml.getElementsByTagName('url')){
+     const loc=entry.getElementsByTagName('loc')[0]?.textContent?.trim();
+     if(loc)addPublicPage(loc);
+    }
+   }catch(_){sitemapFailed++;}
+  }
+ }catch(_){sitemapFailed++;}
+ // A deterministic balanced sample prevents a large Persian sitemap from
+ // hiding the English site. Preserve known homepages even when XML fails.
+ const list=[];
+ for(let i=0;i<16;i++){
+  for(const lang of ['fa','en']){
+   if(perLanguage[lang][i])list.push(perLanguage[lang][i]);
+  }
+ }
+ let done=0,passed=0,skipped=0,totalErrors=0,totalWarnings=0,withSchema=0;count.textContent='0 / '+list.length;
  let cursor=0;
  async function worker(){while(cursor<list.length){const url=list[cursor++];try{const r=await inspect(url);if(r.skip){skipped++;continue;}passed++;totalErrors+=r.errors.length;totalWarnings+=r.warnings.length;if(r.count)withSchema++;
  const notes=[...r.errors,...r.warnings];detail.append(finding(url,r.errors.length?t('خطا','Error'):r.warnings.length?t('نیازمند بازبینی','Review'):t('بدون ایراد ساختاری آشکار','No obvious structural issue'),notes.length?notes:[t('JSON-LD قابل خواندن','JSON-LD parsed')]));}
@@ -76,7 +126,7 @@ btn.addEventListener('click',async()=>{
  const measured=passed?Math.max(0,10-Math.min(10,(totalErrors*2+totalWarnings*.3)/passed)):null;
  score.textContent=measured===null?'—':measured.toFixed(1)+' / 10';
  gauge.style.setProperty('--jr-progress',measured===null?'0':String(measured*10));
- summary.textContent=t('بررسی منبع HTML '+passed+' صفحه؛ '+withSchema+' صفحه دارای JSON-LD؛ '+totalErrors+' خطا و '+totalWarnings+' هشدار؛ '+skipped+' صفحه noindex کنار گذاشته شد. این نمره داخلی و صرفاً برای نمونه بررسی‌شده است؛ اعتبار نتایج غنی گوگل یا وضعیت ایندکس را اثبات نمی‌کند.','HTML source checked: '+passed+' pages; '+withSchema+' with JSON-LD; '+totalErrors+' errors and '+totalWarnings+' warnings; '+skipped+' noindex pages skipped. This is an internal sample-only heuristic, not evidence of Google eligibility or indexing.');
+ summary.textContent=t('نمونه دوزبانه: '+passed+' صفحه HTML؛ '+withSchema+' صفحه دارای JSON-LD؛ '+totalErrors+' خطا و '+totalWarnings+' هشدار؛ '+skipped+' صفحه noindex؛ '+sitemapsRead+' سایت‌مپ خوانده‌شده و '+sitemapFailed+' خطای سایت‌مپ. این ممیزی نمونه‌ای و صرفاً بر مبنای HTML عمومی است؛ ایندکس گوگل یا صلاحیت Rich Results را تأیید نمی‌کند.','Balanced bilingual sample: '+passed+' HTML pages; '+withSchema+' with JSON-LD; '+totalErrors+' errors and '+totalWarnings+' warnings; '+skipped+' noindex; '+sitemapsRead+' sitemaps read and '+sitemapFailed+' sitemap errors. This is a public HTML sample only, not proof of Google indexing or rich-result eligibility.');
  btn.disabled=false;running=false;
 });
 })();
