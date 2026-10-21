@@ -13,7 +13,7 @@ const codes = Object.freeze({
 test('reuses exactly the six fingerprinted 1405 PDFs and 2,412 existing page counts',()=>{
   assert.equal(sources.length,6);
   assert.equal(sources.reduce((n,s)=>n+s.pdfPageCount,0),2412);
-  assert.equal((executable.match(/AS document_code/g)||[]).length,1);
+  assert.equal((executable.match(/AS document_code/g)||[]).length,6);
   assert.equal((executable.match(/UNION ALL SELECT 'SANJESH_1405_/g)||[]).length,5);
   for(const source of sources){
     assert.ok(executable.includes("'SANJESH_1405_"+codes[source.key]+"'"),source.key);
