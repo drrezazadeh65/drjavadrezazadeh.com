@@ -48,3 +48,11 @@ test('subject percentages accept bounded negative marking independently of TAZ a
  for(const item of ['const signedPercent=v=>','n>=-33.34&&n<=100','const valuePct=percent.value.trim()?signedPercent(percent.value)','const amount=raw?signedPercent(raw)','const valueTaz=taz.value.trim()?decimal(taz.value)','const valueRank=rank.value.trim()?decimal(rank.value)'])
   assert.ok(s.includes(item),'missing scoring boundary: '+item);
 });
+
+test('topic-level comparisons are bounded to same provider, cohort and repeated subject labels',()=>{
+ const source=read('assets/js/jr-konkur-mock-practice-v1.js');
+ for(const phrase of ['jr-km-subject-trend','row.provider===current.provider','row.group===current.group',
+  'row.grade===current.grade','row.date.slice(0,4)===current.date.slice(0,4)',
+  'comparableSubjectRows','subjectMeasures','normalizedName','not proof of learning growth'])
+  assert.ok(source.includes(phrase),'missing subject comparison guard: '+phrase);
+});

@@ -123,3 +123,22 @@ test('bounded negative-marking percentages remain local to the mock notebook',as
  await expect(root.locator('.jr-km-item')).toHaveCount(1);
  expect(writes).toEqual([]);
 });
+
+test('subject-level descriptive changes require the same mock provider, group, grade and year',async({page})=>{
+ await page.goto('http://127.0.0.1:4173/en/student-guidance/',{waitUntil:'domcontentloaded'});
+ const root=page.locator('[data-konkur-mock-practice]'),form=root.locator('form');
+ const provider=form.locator('select').nth(0),group=form.locator('select').nth(1),grade=form.locator('select').nth(2);
+ const inputs=form.locator('input');
+ await provider.selectOption('MAZ');await group.selectOption('HUMANITIES');await grade.selectOption('12');
+ await inputs.nth(0).fill('1405/07/01');await inputs.nth(3).fill('Literature');await inputs.nth(4).fill('50');
+ await form.locator('button[type=submit]').click();
+ await inputs.nth(0).fill('1405/07/15');await inputs.nth(3).fill('Literature');await inputs.nth(4).fill('70');
+ await form.locator('button[type=submit]').click();
+ await expect(root.locator('.jr-km-subject-trend')).toContainText('Literature');
+ await expect(root.locator('.jr-km-subject-trend')).toContainText('+20');
+ await expect(root.locator('.jr-km-trend')).toContainText('not proof of learning growth');
+ await provider.selectOption('GAJ');
+ await inputs.nth(0).fill('1405/08/01');await inputs.nth(3).fill('Literature');await inputs.nth(4).fill('90');
+ await form.locator('button[type=submit]').click();
+ await expect(root.locator('.jr-km-subject-trend')).toHaveCount(0);
+});

@@ -100,6 +100,43 @@
       'Self-reported TAZ difference within the same provider, group, grade and year (scale comparability unverified; not an admission forecast): ')+(difference>0?'+':'')+num.format(difference)));
    }else trend.append(create('p','',tr('برای مقایسه، دو آزمون از همان مؤسسه، گروه و پایه لازم است. برای سایر برگزارکنندگان ناشناس، مقایسه تراز غیرفعال است.',
      'Comparison needs two events from the same provider, group and grade. Unknown issuers cannot be compared.')));
+   // Repeated self-reported subject percentages: descriptive differences only.
+   // Never compare providers, education stages, examination years or anonymous issuers.
+   const current=ordered.at(-1);
+   const comparableSubjectRows=current&&!['OTHER','SCHOOL_LOCAL'].includes(current.provider)
+    ?ordered.slice(0,-1).filter(row=>row.provider===current.provider&&row.group===current.group&&
+      row.grade===current.grade&&row.date.slice(0,4)===current.date.slice(0,4)).reverse():[];
+   const subjectMeasures=row=>[
+    ...(row.subject&&Number.isFinite(row.percent)?[{subject:row.subject,percent:row.percent}]:[]),
+    ...(row.additionalSubjects||[]).filter(item=>item.subject&&Number.isFinite(item.percent)),
+   ];
+   const normalizedName=value=>String(value).normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase();
+   const differences=[];
+   if(current&&comparableSubjectRows.length){
+    for(const metric of subjectMeasures(current)){
+     const key=normalizedName(metric.subject);
+     for(const previous of comparableSubjectRows){
+      const match=subjectMeasures(previous).find(item=>normalizedName(item.subject)===key);
+      if(match){
+       differences.push({subject:metric.subject,current:metric.percent,previous:match.percent,
+        difference:Math.round((metric.percent-match.percent)*100)/100});
+       break;
+      }
+     }
+    }
+   }
+   if(differences.length){
+    const title=create('strong','',tr('تغییر درصد خوداظهاری در درس‌های تکرارشده','Self-reported percentage changes in repeated subjects'));
+    const list=create('ul','jr-km-subject-trend');
+    for(const metric of differences){
+     const signed=metric.difference>0?'+':'';
+     list.append(create('li','',metric.subject+': '+num.format(metric.previous)+'% → '+
+      num.format(metric.current)+'% ('+signed+num.format(metric.difference)+')'));
+    }
+    trend.append(title,list,create('small','',tr(
+     'این اعداد فقط تفاوت درصدهای ثبت‌شده‌اند؛ دشواری و پوشش مبحثی آزمون‌ها ممکن است متفاوت باشد و رشد یادگیری یا شانس قبولی را اثبات نمی‌کنند.',
+     'Differences between self-reported percentages only; exam difficulty and topic coverage may differ. These are not proof of learning growth or admission chances.')));
+   }
   }
   form.addEventListener('submit',event=>{
    event.preventDefault();
