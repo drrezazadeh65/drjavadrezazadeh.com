@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {renderCampaignPage,validateCampaignRegistry,syncCampaignPages} from '../scripts/render-home-campaigns.mjs';
@@ -76,4 +77,29 @@ test('check-only renderer never mutates HTML or imports accounts, payments or se
  assert.match(script,/if\(write\)fs\.writeFileSync/);
  assert.doesNotMatch(script,/\/api\/admin|INSERT INTO|DROP TABLE|COMMERCE_ENABLED|JR_COMMUNITY_ENABLED/);
  assert.equal((script.match(/fs\.writeFileSync\(/g)||[]).length,1);
+});
+
+
+test('a broken second-language template blocks both writes even in --write mode',()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'jr-campaign-atomic-'));
+ try {
+  fs.mkdirSync(path.join(root,'platform'),{recursive:true});
+  for(const lang of ['fa','en']){
+   fs.mkdirSync(path.join(root,lang),{recursive:true});
+   fs.writeFileSync(path.join(root,lang,'index.html'),pages[lang],'utf8');
+  }
+  fs.writeFileSync(path.join(root,'platform/home-campaigns-20261021.json'),
+    JSON.stringify(registry),'utf8');
+  const faPath=path.join(root,'fa/index.html');
+  const enPath=path.join(root,'en/index.html');
+  // If a legitimate FA edit comes first, a corrupt EN file must abort
+  // without modifying the valid FA page on disk.
+  const edited=JSON.parse(JSON.stringify(registry));
+  edited.banners.find(x=>x.id==='major').fa.title='عنوان جدید آزمون';
+  fs.writeFileSync(path.join(root,'platform/home-campaigns-20261021.json'),
+    JSON.stringify(edited),'utf8');
+  fs.writeFileSync(enPath,pages.en.replace('<!-- JR_HOME_CAMPAIGN_END','<!-- BROKEN_CLOSING_MARKER'),'utf8');
+  assert.throws(()=>syncCampaignPages({root,write:true}));
+  assert.equal(fs.readFileSync(faPath,'utf8'),pages.fa,'Partial write must be impossible');
+ } finally {fs.rmSync(root,{recursive:true,force:true});}
 });
