@@ -255,8 +255,10 @@ test('existing publishing offer activation is owner-controlled, idempotent and d
  assert.match(cli,/jrPubDigitalOffer\(\$pdo\)/);
  assert.match(cli,/UPDATE publishing_offers SET checkout_enabled=1/);
  assert.match(cli,/WHERE id=\? AND retired_at IS NULL/);
- assert.match(cli,/JR_PUBLISHING_SEPARATE_7PCT_BUDGET/);
- assert.match(cli,/JR_PUBLISHING_MAIL_CRON_TESTED/);
+ assert.match(cli,/unit_author_toman/);
+ assert.match(cli,/unit_fund_toman/);
+ assert.match(cli,/mailReady\(\)/);
+ assert.match(cli,/commerceReady\(\)/);
  // Original PDF hashes must agree across the private preflight and activation.
  const preflight=read('api/internal/jr-publishing-preflight-cli.php');
  const hashes=[
@@ -274,7 +276,10 @@ test('existing publishing offer activation is owner-controlled, idempotent and d
 
  assert.doesNotMatch(cli,/INSERT INTO publishing_rights_licences/);
  assert.doesNotMatch(cli,/INSERT INTO customer_accounts/);
- assert.doesNotMatch(cli,/UPDATE publishing_private_assets SET/);
+ // Existing owner-approved asset activation is permitted only for the two pinned original PDFs.
+ assert.match(cli,/UPDATE publishing_private_assets SET approved_at=COALESCE\(approved_at,NOW\(\)\)/);
+ assert.match(cli,/logical_kind IN \('question_pdf','answer_pdf'\)/);
+ assert.match(cli,/encrypted_at_rest=0/);
  assert.doesNotMatch(cli,/CREATE TABLE|DROP TABLE|DELETE FROM/);
  assert.match(offer,/function jrPubDigitalSalesSwitchEnabled\(\): bool/);
  assert.match(offer,/\['publishing_digital_enabled'\]/);
