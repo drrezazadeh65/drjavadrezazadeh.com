@@ -7,6 +7,7 @@ const read=path=>readFileSync(path,'utf8');
 const catalog=JSON.parse(read('assets/data/service-catalog.json'));
 const script=read('assets/js/jr-service-navigator-v1.js');
 const css=read('assets/css/jr-service-navigator-v1.css');
+const pricing=read('assets/js/service-pricing.js');
 const fa=read('fa/khadamat/index.html');
 const en=read('en/services/index.html');
 
@@ -23,6 +24,8 @@ test('navigator augments rather than replaces bilingual commercial service hubs'
  }
  assert.match(fa,/data-service-pricing/,'preserve original Persian catalogue pricing');
  assert.match(fa,/data-service-comparison/,'preserve original Persian comparison');
+ assert.doesNotMatch(fa,/پرداخت آنلاین فعلاً غیرفعال است|رزرو و پرداخت آنلاین در این مرحله فعال نیستند|نمایش زمان‌های آزاد وجود ندارد/,'Persian services must not display retired launch-blocker messaging');
+ assert.match(fa,/href="\.\.\/darkhast-moshavere\/#cw-title"/,'Existing owner-published consultation calendar is discoverable');
  assert.match(fa,/<section class="service-hero">[\s\S]*?href="\.\.\/services\/"[^>]*>مشاهده ۲۱ خدمت و تعرفه‌ها<\/a>/,'Persian editorial hub exposes real priced catalogue without JavaScript');
  assert.match(fa,/<section class="service-hero">[\s\S]*?href="\.\.\/vip\/"[^>]*>شش بسته VIP<\/a>/,'Persian editorial hub exposes existing VIP offers');
  assert.match(en,/data-jr-en-service-atlas/,'preserve crawlable English directory');
@@ -48,6 +51,13 @@ test('all and only the 21 approved service IDs have both real language routes',(
  }
 });
 
+test('the existing 21-offer pricing cards expose selected secure checkout and separate scope review',()=>{
+ assert.match(pricing,/href="\/fa\/services\/checkout\/\?service='\+id\+'/,'Every service uses its own selected guarded checkout route');
+ assert.match(pricing,/href="\/fa\/services\/'\+id\+'/,'Every service also retains its full details route');
+ assert.match(pricing,/encodeURIComponent\(service\.id\)/,'Service keys must be encoded');
+ assert.match(pricing,/service\.sellable===true/,'Only approved catalogue services may be displayed');
+ assert.doesNotMatch(pricing,/\/api\/commerce\/create|gateway-send|paymentVerified\s*=\s*true/,'Editorial catalogue never performs or asserts a payment');
+});
 test('navigator reads source catalogue, validates IRT, and fails closed on incomplete metadata',()=>{
  assert.match(script,/fetch\('\/assets\/data\/service-catalog\.json'/);
  assert.match(script,/credentials:'omit',cache:'no-store'/);
