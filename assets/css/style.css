@@ -835,3 +835,13 @@ body:not(.rtl) :where(h1,h2,h3,.brand,.hero-line){font-family:var(--jr-font-disp
 .public-home-page .tablet-menu-trigger:focus-visible,.public-content-page .tablet-menu-trigger:focus-visible{outline:3px solid #f0d694;outline-offset:3px}
 .public-home-page footer,.public-content-page footer{padding-bottom:28px}
 }
+
+/* JR BILINGUAL TEXT ALIGNMENT CONTRACT 20261021 — progressive, low specificity.
+   Preserve intentionally centered hero/CTA/campaign components and nested overrides.
+   The HTML lang/dir attributes remain authoritative for explicitly directed spans. */
+html:lang(fa):not([dir]){direction:rtl}
+html:lang(en):not([dir]){direction:ltr}
+:where(html:lang(fa),html:lang(en)) body{text-align:start}
+:where(html:lang(fa),html:lang(en)) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),textarea,select){text-align:start}
+:where(html:lang(fa),html:lang(en)) :is(input[type="email"],input[type="url"],input[type="tel"]){direction:ltr;unicode-bidi:plaintext}
+:where(bdi,:not(html)[dir="auto"]){unicode-bidi:isolate}
