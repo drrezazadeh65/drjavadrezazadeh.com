@@ -109,17 +109,51 @@ function operationsCollectorCache(PDO $pdo,array $policies,int $at): array {
     }
     return ['sources'=>$sources,'states'=>$state];
 }
+/**
+ * Optional unified-DB collection attempt journal. An uninstalled migration
+ * must never interrupt the existing collector or dashboard.
+ */
+function operationsCollectorAttemptHistory(PDO $pdo): array {
+    try {
+        $rows=$pdo->query('SELECT scope_key,attempted_at,result,failure_code FROM operations_collection_attempts ORDER BY attempt_id DESC LIMIT 100')->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        return ['status'=>'schema_not_provisioned','byScope'=>[]];
+    }
+    $byScope=[];
+    foreach ($rows as $record) {
+        $key=(string)$record['scope_key'];
+        if(isset($byScope[$key]))continue;
+        $byScope[$key]=[
+            'attemptedAt'=>(int)$record['attempted_at'],
+            'result'=>in_array($record['result'],['succeeded','failed'],true)?$record['result']:'unknown',
+            'failureCode'=>$record['failure_code']===null?null:(string)$record['failure_code']
+        ];
+    }
+    return ['status'=>'available','byScope'=>$byScope];
+}
+function operationsCollectorRecordAttempt(PDO $pdo,string $scope,int $at,bool $succeeded): void {
+    try {
+        $record=$pdo->prepare('INSERT INTO operations_collection_attempts(scope_key,attempted_at,result,failure_code) VALUES(?,?,?,?)');
+        $record->execute([$scope,$at,$succeeded?'succeeded':'failed',$succeeded?null:'provider_result_unavailable']);
+    } catch (Throwable $e) {
+        // Backward-compatible while Bertina migration is pending.
+        // Do not interrupt a valid result or expose SQL details.
+    }
+}
 function operationsCollectorStatus(PDO $pdo,int $at): array {
     $policies=operationsCollectorPolicies($pdo);
     $cache=operationsCollectorCache($pdo,$policies,$at);
+    $attempts=operationsCollectorAttemptHistory($pdo);
     $rows=[];
     foreach($policies as $key=>$policy){
         $policy['cacheState']=$cache['states'][$key]['status']??($policy['connected']?'not_connected':'not_implemented');
         $policy['lastFetchedAt']=$cache['states'][$key]['fetchedAt']??null;
+        $policy['lastAttempt']=$policy['type']==='source'?($attempts['byScope'][$key]??null):null;
         $rows[]=$policy;
     }
     return ['ok'=>true,'schema'=>'operations-collection-controls-v1',
         'timezone'=>'Asia/Tehran','scheduler'=>'external_bertina_cron_required',
+        'attemptJournalStatus'=>$attempts['status'],
         'rows'=>$rows,'sourceStates'=>$cache['states'],
         'limitation'=>'Settings cannot activate an unimplemented collector; real-time commerce, auth and user events never depend on GitHub polling.'];
 }
@@ -158,6 +192,7 @@ function operationsCollectorRefresh(PDO $pdo,string $mode,int $at,string $scope=
                 $ttl=$policy['cadence']==='hourly'?10800:129600;
                 $write->execute([$key,$at,$at+$ttl,$encoded]);$saved++;$receivedThisKey=true;
             }
+            operationsCollectorRecordAttempt($pdo,$key,$at,$receivedThisKey);
             $next=operationsCollectorNextDue($policy['cadence'],$policy['clockMinutes'],$at+60);
             if($mode==='scheduled'&&!$receivedThisKey)$next=$at+900;
             $advance->execute([$next,$key]);
