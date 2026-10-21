@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {isOwnershipVerificationArtifact,verifyOwnershipArtifact} from './site-ownership-verification.mjs';
 import {checkStylesheetBundles} from './stylesheet-bundles.mjs';
+import {projectCommunityServicePages} from './community-service-bundle.mjs';
 
 checkStylesheetBundles();
 
@@ -37,6 +38,9 @@ function copy(rel=''){
   }
 }
 copy();
+// Insert an opt-in public Q&A surface only on catalogued public service detail pages.
+// Server deployment flags remain OFF unless separately approved after real QA.
+projectCommunityServicePages(root,out);
 // Confirm exact Yandex verification bytes in both source and final public_html bundle.
 verifyOwnershipArtifact(root);
 verifyOwnershipArtifact(out);
