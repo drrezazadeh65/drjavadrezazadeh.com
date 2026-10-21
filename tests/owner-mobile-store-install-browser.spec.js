@@ -37,7 +37,7 @@ for(const locale of ['fa','en']){
    const dock=page.locator('.app-dock');
    await expect(dock.locator('a')).toHaveCount(5);
    await expect(dock.locator(':scope > *')).toHaveCount(5);
-   await page.locator('.site-header [data-nav-toggle]').first().click();
+   await page.locator('.site-header [data-nav-toggle]:visible').first().click();
    const install=page.locator('#mobile-app-menu [data-jr-dock-install]');
    await expect(install).toBeVisible({timeout:10000});
    const targetSize=await install.evaluate(el=>{const b=el.getBoundingClientRect();return {width:b.width,height:b.height}});

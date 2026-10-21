@@ -13,8 +13,8 @@ for(const locale of ['fa','en']){
    const dock=page.locator('.app-dock');
    await expect(dock.locator('a[data-app-tab]')).toHaveCount(5,{timeout:12000});
    await expect(dock.locator(':scope > *')).toHaveCount(5);
-   await expect(page.locator('[data-jr-dock-install]')).toHaveCount(0);
-   await page.locator('.site-header [data-nav-toggle]').first().click();
+   await expect(dock.locator('[data-jr-dock-install]')).toHaveCount(0);
+   await page.locator('.site-header [data-nav-toggle]:visible').first().click();
    const install=page.locator('#mobile-app-menu [data-jr-dock-install]');
    await expect(install).toBeVisible();
    await expect(install).toHaveAttribute('aria-label',locale==='fa'?'نصب اپلیکیشن':'Install website app');
