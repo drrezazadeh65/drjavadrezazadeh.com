@@ -5,6 +5,13 @@
  const create=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
  const faDigits=text=>String(text||'').replace(/[۰-۹٠-٩]/g,c=>{const d=c.codePointAt(0);return String(d>=0x6f0?d-0x6f0:d-0x660);}).trim();
  const decimal=v=>{const s=faDigits(v).replace('٫','.');if(!/^\d+(?:\.\d{1,4})?$/.test(s))return null;const n=Number(s);return Number.isFinite(n)&&n<=100000?n:null;};
+ // Negative-marked subject percentages have a distinct range from TAZ and rank.
+ const signedPercent=v=>{
+  const s=faDigits(v).replace('٫','.').replace(/[−–]/g,'-');
+  if(!/^-?\d+(?:\.\d{1,4})?$/.test(s))return null;
+  const n=Number(s);
+  return Number.isFinite(n)&&n>=-33.34&&n<=100?n:null;
+ };
  const dateOk=v=>{const m=/^(14\d{2})\/(0?[1-9]|1[0-2])\/(0?[1-9]|[12]\d|3[01])$/.exec(faDigits(v));return m?m[1]+'/'+m[2].padStart(2,'0')+'/'+m[3].padStart(2,'0'):null;};
  for(const root of document.querySelectorAll('[data-konkur-mock-practice]')){
   const fa=root.dataset.locale!=='en',tr=(a,b)=>fa?a:b;
@@ -101,13 +108,13 @@
    if(!day){announce('تاریخ شمسی معتبر با قالب ۱۴۰۵/۰۸/۰۲ وارد کنید.','Use a valid Solar Hijri date such as 1405/08/02.');date.focus();return;}
    const valueTaz=taz.value.trim()?decimal(taz.value):null;
    const valueRank=rank.value.trim()?decimal(rank.value):null;
-   const valuePct=percent.value.trim()?decimal(percent.value):null;
+   const valuePct=percent.value.trim()?signedPercent(percent.value):null;
    const additionalSubjects=[],subjectNames=new Set();
    if(lesson.value.trim())subjectNames.add(lesson.value.trim().toLocaleLowerCase());
    for(const row of extraRows.querySelectorAll('.jr-km-extra-row')){
     const label=row.querySelector('.jr-km-extra-name').value.trim();
     const raw=row.querySelector('.jr-km-extra-percent').value.trim();
-    const amount=raw?decimal(raw):null;
+    const amount=raw?signedPercent(raw):null;
     if(!label||amount===null||amount>100){announce('نام و درصد معتبر برای هر درس اضافی لازم است.','Each extra subject needs a name and percentage between 0 and 100.');return;}
     const key=label.toLocaleLowerCase();
     if(subjectNames.has(key)){announce('نام درس در همین آزمون تکراری است.','The subject is duplicated within this exam.');return;}
@@ -115,8 +122,8 @@
    }
    if((taz.value.trim()&&valueTaz===null)||(rank.value.trim()&&(valueRank===null||!Number.isInteger(valueRank)||valueRank<1))||
       (percent.value.trim()&&(valuePct===null||valuePct>100))||(!valueTaz&&!valueRank&&!Number.isFinite(valuePct)&&additionalSubjects.length===0)){
-    announce('تراز، رتبه یا درصد معتبر وارد کنید؛ رتبه باید عدد صحیح مثبت و درصد حداکثر ۱۰۰ باشد.',
-     'Enter a valid TAZ, rank or percentage. Rank must be a positive integer and percentage at most 100.');return;
+    announce('تراز، رتبه یا درصد معتبر وارد کنید؛ رتبه باید صحیح مثبت و درصد بین ۳۳٫۳۴- تا ۱۰۰ باشد.',
+     'Enter a valid TAZ, rank or percentage. Rank must be positive; percentage must be from -33.34 to 100.');return;
    }
    if(percent.value.trim()&&!lesson.value.trim()){
     announce('برای درصد درس، نام درس را وارد کنید.','A subject name is required for a subject percentage.');lesson.focus();return;

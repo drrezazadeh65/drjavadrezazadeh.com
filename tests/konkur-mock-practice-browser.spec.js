@@ -98,3 +98,28 @@ test('multiple subject percentages belong to a single mock exam and reject dupli
  await expect(root.locator('.jr-km-item')).toHaveCount(1);
  expect(writes).toEqual([]);
 });
+
+test('bounded negative-marking percentages remain local to the mock notebook',async({page})=>{
+ const writes=[];page.on('request',request=>{if(!['GET','HEAD'].includes(request.method()))writes.push(request.method());});
+ await page.goto('http://127.0.0.1:4173/en/student-guidance/',{waitUntil:'domcontentloaded'});
+ const root=page.locator('[data-konkur-mock-practice]'),form=root.locator('form'),inputs=form.locator('input');
+ await form.locator('select').nth(0).selectOption('MAZ');
+ await form.locator('select').nth(1).selectOption('MATHEMATICS');
+ await inputs.nth(0).fill('1405/09/01');
+ await inputs.nth(3).fill('Mathematics');
+ await inputs.nth(4).fill('-12.5');
+ await form.locator('.jr-km-add-subject').click();
+ await form.locator('.jr-km-extra-name').fill('Physics');
+ await form.locator('.jr-km-extra-percent').fill('−۳۳٫۳۴');
+ await form.locator('button[type=submit]').click();
+ await expect(root.locator('.jr-km-item')).toHaveCount(1);
+ await expect(root.locator('.jr-km-item')).toContainText('Mathematics');
+ await expect(root.locator('.jr-km-item')).toContainText('Physics');
+ await expect(root.locator('.jr-km-item')).toContainText('-12.5%');
+ await inputs.nth(0).fill('1405/09/15');
+ await inputs.nth(3).fill('Mathematics');
+ await inputs.nth(4).fill('-33.35');
+ await form.locator('button[type=submit]').click();
+ await expect(root.locator('.jr-km-item')).toHaveCount(1);
+ expect(writes).toEqual([]);
+});

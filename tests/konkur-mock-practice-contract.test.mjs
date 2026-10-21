@@ -9,7 +9,7 @@ test('mock entry extends rather than replaces both bilingual public Choice Studi
   assert.match(html,new RegExp('data-konkur-mock-practice data-locale="'+lang+'"'));
   assert.match(html,new RegExp('data-choice-studio data-locale="'+lang+'"'));
   assert.match(html,new RegExp('data-konkur-selection data-locale="'+lang+'"'));
-  assert.match(html,/jr-konkur-mock-practice-v1\.js\?v=20261020-mock-multisubject-v2/);
+  assert.match(html,/jr-konkur-mock-practice-v1\.js\?v=20261021-mock-negative-marking-v3/);
   assert.match(html,/jr-konkur-mock-providers-v1\.js\?v=20261020-mock-directory-v1/);
   assert.match(html,/jr-konkur-mock-practice-v1\.css\?v=20261020-mock-multisubject-v2/);
   assert.ok(html.indexOf('jr-konkur-studio-v1.js')<html.indexOf('jr-konkur-mock-practice-v1.js'));
@@ -41,4 +41,10 @@ test('multiple subjects per exam are additive, bounded and remain in-memory self
  const css=read('assets/css/jr-konkur-mock-practice-v1.css');
  assert.match(css,/.jr-km-extra-row/);
  assert.match(css,/@media\(max-width:580px\)/);
+});
+
+test('subject percentages accept bounded negative marking independently of TAZ and rank',()=>{
+ const s=read('assets/js/jr-konkur-mock-practice-v1.js');
+ for(const item of ['const signedPercent=v=>','n>=-33.34&&n<=100','const valuePct=percent.value.trim()?signedPercent(percent.value)','const amount=raw?signedPercent(raw)','const valueTaz=taz.value.trim()?decimal(taz.value)','const valueRank=rank.value.trim()?decimal(rank.value)'])
+  assert.ok(s.includes(item),'missing scoring boundary: '+item);
 });
