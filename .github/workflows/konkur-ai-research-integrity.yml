@@ -7,6 +7,8 @@ on:
     paths:
       - 'platform/konkur-*.mjs'
       - 'platform/konkur-1405-sources.json'
+      - 'scripts/konkur-1405-review-queue.mjs'
+      - 'tests/konkur-1405-review-queue.test.mjs'
       - 'fa/konkur-ai-lab/**'
       - 'assets/js/jr-konkur-ai-lab-public-v1.mjs'
       - 'assets/js/jr-konkur-percentage-*.mjs'
@@ -34,6 +36,9 @@ jobs:
       - name: Confirm engine syntax and public adapter isolation
         run: |
           node --check platform/konkur-1405-intake.mjs
+          node --check scripts/konkur-1405-review-queue.mjs
+          node --test tests/konkur-1405-review-queue.test.mjs
+          node scripts/konkur-1405-review-queue.mjs --check
           node --check platform/konkur-1405-batch-preflight.mjs
           node --check platform/konkur-admission-reasoner.mjs
           node --check platform/konkur-scorecard-normalizer.mjs
