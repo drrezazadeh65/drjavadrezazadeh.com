@@ -83,3 +83,31 @@ These are **deliverable progress descriptions**, not a substitution for the dire
 For actual live commercial acceptance, the authorised Bertina operator should supply **redacted results only** from existing read-only private checks: current exact deployed SHA; `/api/commerce/health` capabilities; `/api/publishing/offer` readiness; `jr-publishing-preflight-cli.php`; private PDF hash manifest; account/author role status; source-to-live SQL schema metadata; stock/capacity summaries; and one explicitly authorised controlled end-to-end purchase if no prior matching SKU purchase exists. Never share credentials, personal records, full SQL dumps, bank details, private PDF files or signed download URLs.
 
 **Definition of done:** 27 services and four book products can be found, understood, bought/reserved, paid with server verification, fulfilled, receipted, displayed privately and reconciled; source and production match; scientific, security and SEO gates pass; owner approves controlled release. Until then, report each specific capability truthfully rather than claiming 100% completion.
+
+---
+
+## Owner scope resolution & continuing execution — 21 October 2026
+
+This section supplements the original historical checkpoint above; it does **not** rewrite historical audits or the frozen owner-controlled release policy.
+
+**Do not reopen these two workstreams without a new owner request:**
+
+- **Domestic BitPay:** owner expressly reports the gateway finalised and operational. Do not refactor, reconfigure, re-test with real money, or overwrite the provider registry/policy on a speculative theory. Owner report is an operational direction, not independently collected transaction/settlement evidence in this source-only session.
+- **Mirkarimi two-PDF delivery:** owner expressly reports both PDF delivery and its setup finalised. Do not rebuild private file custody, re-upload PDFs, alter their hashes, or rewrite the established financial snapshots. Protect existing working fulfilment. Source prelaunch flags recorded in the earlier audit are an older repository snapshot and are **not a mandate to reverse owner-confirmed live completion**.
+
+**Forward-only source changes since the original baseline (not production deployments):**
+
+- `c3223cb`: direct bilingual homepage paths to the canonical bookshops and 21+6 service directories.
+- `b874267`: corrected old cinematic tests, Persian service-hub discovery, and the historical noindex shop handoff.
+- `71d8918`: isolated PHP/MySQL admin credential-rotation test stability without weakening MFA or 403.
+- `2e2afe1` / `f9b5fc9` / `b0323ea`: Persian 21-offer selected-checkout links, existing published consultation-calendar entry, honest availability copy, and refreshed regression assertions.
+- `5422e4c`: six English VIP listings link to the existing selected Persian-language guarded checkout; no fabricated international cards.
+- `e5a9a04`: protected source tests for distinct purchase and scholarly-description CTAs.
+- `85aff106`: price sorting and client-only search for the existing crawlable 21-service English catalogue, with central-price consistency gate and fail-open unchanged links.
+- `9e08b41`: existing masterplan source audit extended with a 27-offer / 54-page source-quality matrix and 24 deliverable evidence pointers. All source observations explicitly remain separate from live purchase evidence.
+
+**Next release-critical work excluding the two owner-closed scopes:** confirm the latest complete exact-SHA nondeploying CI suite; record verified current live SHA independently; inspect existing owner-published consultation hours and customer/order follow-up without assuming a slot is reserved; run editorial 27-offer, SEO/link and mobile regression; reconcile human-reviewed scientific and JHELA readiness; then perform owner-review and the existing one-path Bertina release followed by the independent production smoke checks.
+
+**Known acceptance boundary:** the existing read-only weekly consultation calendar displays owner-published requestable hours, **not** self-service booking confirmation (`customerReservationEnabled=false`). The current GitHub UI links and mock MySQL tests do not by themselves establish live booking, fulfilment SLAs, independent server backup/restore, or monthly settled contribution. Accordingly, **do not mark every service `FULLY_OPERATIONAL` merely because source tests pass**.
+
+**No approval implied:** this section does not grant release authorization, change the mother database, alter payment or digital-delivery code, or publish to Bertina. The immutable source SHA and full CI/prod evidence must be updated at the controlled release decision.
