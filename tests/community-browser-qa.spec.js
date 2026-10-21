@@ -33,6 +33,7 @@ test('approved reader commentary renders as text, not executable markup, on mobi
  const dims=await page.evaluate(()=>({body:document.body.scrollWidth,html:document.documentElement.scrollWidth,viewport:innerWidth}));
  expect(Math.max(dims.body,dims.html)).toBeLessThanOrEqual(dims.viewport+1);
  await expect(host.locator('.jr-community-mark')).toHaveAttribute('src','/favicon.svg');
+ await expect(host.locator('.jr-community-rating-summary')).toBeHidden();
 });
 
 test('verified reader chooses accessible stars and consents; server keeps the result pending',async({page})=>{
@@ -179,4 +180,20 @@ test('MFA workspace relocks before CSRF returns; stale approval must not POST',a
  // Flush the request microtasks; any attempted POST would be observable.
  await page.waitForTimeout(50);
  expect(posts).toBe(0);
+});
+
+
+test('only server-approved stars appear in the academic mean and empty/untrusted aggregate is hidden',async({page})=>{
+ await page.route('**/api/community/**',route=>{
+  if(route.request().url().includes('/csrf'))return respond(route,401,{ok:false,error:'unauthorized'});
+  return respond(route,200,{ok:true,schema:'community-comments-v1',page:article,
+   comments:[{id:'approved-1',body:'A moderated comment',rating:5,createdAt:1700000000}],
+   count:1,ratingSummary:{count:4,mean:4.3}});
+ });
+ await page.goto(base+article,{waitUntil:'domcontentloaded'});
+ const summary=page.locator('.jr-community-rating-summary');
+ await expect(summary).toBeVisible();
+ await expect(summary).toContainText('۴');
+ await expect(summary).toContainText('۴٫۳');
+ await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
 });
