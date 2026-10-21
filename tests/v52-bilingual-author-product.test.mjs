@@ -64,6 +64,16 @@ test('English publication stays source-honest, sale-gated and responsive',()=>{
  assert.ok(read('scripts/build-public-site.mjs').includes("approvedEnglishAuthorPage='en/shop/authors/mehrab-mirkarimi/index.html'"));
 });
 
+test('author portrait and first rank are contextualized in bilingual public metadata and hero',()=>{
+ assert.match(fa,/<title>[^<]*رتبه نخست کنکور ارشد/);
+ assert.match(en,/<title>[^<]*First-Place 2026 ELT MA Rank/);
+ assert.match(fa,/مطابق رزومه اعلام‌شده مؤلف/);
+ assert.match(en,/As stated in the author's CV/);
+ assert.match(fa,/class="jr-author-spotlight"/);
+ assert.match(en,/class="jr-author-spotlight"/);
+ assert.match(fa,/هیچ ادعایی مبنی بر تأیید سازمان سنجش یا تضمین قبولی در آزمون ندارد/);
+ assert.match(en,/do not guarantee admission|do not guarantee acceptance|does not guarantee admission/i);
+});
 // The English author profile must be reachable and eligible for the frozen public URL inventory.
 test('v5.2 new English author page has public bookstore entry and approved stable URL',()=>{
  const shop=read('en/shop/index.html');

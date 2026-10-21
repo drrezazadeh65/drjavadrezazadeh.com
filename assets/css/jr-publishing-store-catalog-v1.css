@@ -26,3 +26,8 @@
 .jr-shop-filter:focus-visible{outline:3px solid #f2c679;outline-offset:3px}
 [data-book-catalog] .book-product-card[hidden]{display:none!important}
 @media(max-width:560px){.jr-shop-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.jr-shop-filter{font-size:.81rem;min-width:0;padding:8px 4px}}
+
+/* Author-reported examination distinction on the actual sellable digital catalogue card. */
+[data-book-catalog] .jr-digital-product-card .jr-digital-rank{display:grid;gap:5px;padding:12px 14px;border:1px solid #d8b671;border-radius:12px;background:linear-gradient(125deg,#46351e,#172535);color:#fff3db}
+[data-book-catalog] .jr-digital-product-card .jr-digital-rank strong{color:#ffdda0;font-size:clamp(1.06rem,1.7vw,1.21rem);line-height:1.55}
+[data-book-catalog] .jr-digital-product-card .jr-digital-rank small{color:#f2e8d3;font-size:.82rem;line-height:1.6}

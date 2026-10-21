@@ -136,6 +136,7 @@
   article.innerHTML=
    '<figure class="jr-digital-cover"><img src="'+root('assets/images/bookstore-talent-cinematic-approved-20261011.webp')+'" loading="lazy" decoding="async" width="600" height="360" alt="'+(isFa?'تصویر نمادین مطالعه و کتاب؛ این تصویر جلد رسمی محصول نیست':'Illustrative study artwork, not an official book cover')+'"><figcaption>'+(isFa?'تصویر نمادین؛ نه جلد رسمی':'Illustration, not the official cover')+'</figcaption></figure>'+
    '<div class="book-product-copy"><span class="status-chip jr-digital-chip">'+(isFa?'نسخه دیجیتال · دو فایل PDF':'Digital collection · 2 PDFs')+'</span>'+
+   '<div class="jr-digital-rank" role="note"><strong>'+(isFa?'رتبه ۱ کنکور کارشناسی ارشد آموزش زبان انگلیسی ۱۴۰۵':'First place in the 2026 ELT MA entrance exam')+'</strong><small>'+(isFa?'سید محراب میرکریمی · مطابق رزومه مؤلف':'Seyyed Mehrab Mirkarimi · reported in the author\'s CV')+'</small></div>'+
    '<h2>'+(isFa?'مجموعه سؤالات و پاسخنامه تشریحی ارشد آموزش زبان انگلیسی (۱۳۷۰–۱۴۰۵)':'TEFL MA Entrance Exam Questions & Explained Answers (1370–1405)')+'</h2>'+
    '<p>'+(isFa?'اثر سید محراب میرکریمی؛ ۳۶ سال پرسش و پاسخ تخصصی در ۹۹۷ صفحه. دریافت امن هر دو فایل پس از پرداخت تأییدشده.':'By Seyyed Mehrab Mirkarimi: 36 years of examinations, 997 pages, two securely delivered PDF files after verified payment.')+'</p>'+
    '<p class="jr-digital-impact">'+(isFa?'۳۰٪ مبلغ هر فروش برای حمایت از استعدادهای کم‌بضاعت اختصاص می‌یابد.':'30% of each purchase is earmarked for talented learners facing financial hardship.')+'</p>'+

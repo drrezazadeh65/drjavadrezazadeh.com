@@ -44,6 +44,16 @@ test('gallery augments original book cards, and does not replace checkout or pay
  assert.equal(check.status,0,check.stderr);
 });
 
+test('Mirkarimi first-place CV claim is prominent on existing bilingual digital product, without touching checkout',()=>{
+ assert.match(source,/class="jr-digital-rank"/);
+ assert.match(source,/رتبه ۱ کنکور کارشناسی ارشد آموزش زبان انگلیسی ۱۴۰۵/);
+ assert.match(source,/First place in the 2026 ELT MA entrance exam/);
+ assert.match(source,/function verifyDigitalOfferForCard\(article\)/);
+ const fa=read('fa/shop/index.html'),en=read('en/shop/index.html');
+ assert.match(fa,/صاحب رتبه نخست کنکور کارشناسی ارشد آموزش زبان انگلیسی ۱۴۰۵/);
+ assert.match(en,/first-place rank in the 2026 ELT MA entrance exam/);
+ assert.match(read('assets/css/jr-publishing-store-catalog-v1.css'),/\.jr-digital-rank/);
+});
 test('both bilingual shop pages use the gallery without URL and metadata regressions',()=>{
  for(const [lang,file] of [['fa','fa/shop/index.html'],['en','en/shop/index.html']]){
   const html=read(file);

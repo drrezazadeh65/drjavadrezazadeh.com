@@ -12,7 +12,7 @@ test('both stable bilingual author pages include an accessible CV and a non-brea
   assert.match(html,/jr-author-portrait-v52\.js/);
   assert.match(html,/class="jr-resume-portrait"/);
   assert.match(html,/data-author-photo/);
-  assert.match(html,/editorial-launch\/academic-research-editing-20261011\.webp/);
+  assert.match(html,/assets\/images\/mehrab-mirkarimi-portrait-v52\.webp/);
   assert.match(html,/jr-resume-columns/);
   assert.match(html,/jr-resume-education|jr-en-resume-education/);
   assert.match(html,/jr-resume-mini/);
@@ -24,6 +24,21 @@ test('both stable bilingual author pages include an accessible CV and a non-brea
  assert.match(en,/publisher's approval/);
  assert.doesNotMatch(fa,/نیازمند احراز مستند|در انتظار راستی‌آزمایی/);
  assert.doesNotMatch(en,/documentary verification pending|unverified/);
+});
+test('real portrait, first-place CV distinction and biography precede long editorial content',()=>{
+ for(const [locale,html] of [['fa',fa],['en',en]]){
+  const hero=html.indexOf(locale==='fa'?'<section class="jp-hero">':'<section class="jp-en-hero"');
+  const intro=html.indexOf('class="jr-author-spotlight"',hero);
+  const resume=html.indexOf('jr-author-resume-section',hero);
+  const next=html.indexOf(locale==='fa'?'<section class="jp-band"':'<section class="jp-en-section">',resume+20);
+  assert.ok(hero>=0&&intro>hero&&resume>intro&&next>resume,locale+' author CV appears after hero and before collection');
+  assert.match(html,/loading="eager" fetchpriority="high"/);
+  assert.match(html,/src="\/assets\/images\/mehrab-mirkarimi-portrait-v52\.webp"/);
+  assert.match(html,/jr-author-spotlight-rank/);
+ }
+ assert.match(fa,/رتبه ۱ کنکور کارشناسی ارشد آموزش زبان انگلیسی ۱۴۰۵/);
+ assert.match(en,/First-place rank · 2026 ELT MA entrance examination/);
+ assert.match(css,/\.jr-author-spotlight/);
 });
 test('image loader does not allow third-party remote pictures, sensitive browser persistence or broken-image replacement',()=>{
  assert.match(js,/const target='\/assets\/images\/mehrab-mirkarimi-portrait-v52\.webp'/);

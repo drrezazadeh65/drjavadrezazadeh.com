@@ -40,3 +40,16 @@
 @media(max-width:420px){.jp-pub-v52 .jr-resume-mini{grid-template-columns:1fr}.jp-pub-v52 .jr-resume-heading{font-size:1.7rem!important}.jp-pub-v52 .jr-author-resume{padding:14px!important;border-radius:17px!important}.jp-pub-v52 .jr-resume-portrait{max-width:270px}}
 @media(prefers-reduced-motion:reduce){.jp-pub-v52 .jr-author-resume *{animation:none!important;transition:none!important}}
 @media print{.jp-pub-v52 .jr-author-resume{background:white!important;color:black!important;box-shadow:none!important}.jp-pub-v52 .jr-resume-columns section{background:#fff;border:1px solid #666}.jp-pub-v52 .jr-resume-links{display:none}}
+
+/* Author portrait and verified-in-repo biography lead the editorial hero. Rank is CV-attributed. */
+.jp-pub-v52 .jr-author-spotlight{display:flex;gap:clamp(12px,2vw,24px);align-items:center;min-width:0;max-width:810px;padding:clamp(12px,2vw,19px);margin:12px 0 22px;border-radius:20px;border:1px solid #d1a96eaa;background:linear-gradient(125deg,#2b2419,#101d2a);box-shadow:0 12px 25px #0004;color:#f9f4e8}
+.jp-pub-v52 .jr-author-spotlight-photo{flex:none;line-height:0;overflow:hidden;border:2px solid #ecc588;border-radius:13px}
+.jp-pub-v52 .jr-author-spotlight-photo img{display:block;object-fit:cover;width:clamp(76px,10vw,118px);height:auto;aspect-ratio:906/1184}
+.jp-pub-v52 .jr-author-spotlight-info{min-width:0;display:grid;gap:7px;line-height:1.5}
+.jp-pub-v52 .jr-author-spotlight-rank{font-size:clamp(1.02rem,1.85vw,1.36rem);font-weight:800;color:#ffe0a7}
+.jp-pub-v52 .jr-author-spotlight-name{font-size:clamp(.9rem,1.5vw,1.02rem);color:#fff4dc}
+.jp-pub-v52 .jr-author-spotlight-info small{color:#e4dac5}
+.jp-pub-v52 .jr-author-spotlight-info a{color:#ffe5ab;text-underline-offset:3px}
+.jp-pub-v52 .jr-author-spotlight a:focus-visible{outline:3px solid #ffdb91;outline-offset:4px}
+@media(max-width:420px){.jp-pub-v52 .jr-author-spotlight{padding:10px;gap:10px}.jp-pub-v52 .jr-author-spotlight-photo img{width:78px}.jp-pub-v52 .jr-author-spotlight-rank{font-size:1rem}}
+@media(prefers-reduced-motion:reduce){.jp-pub-v52 .jr-author-spotlight *{transition:none!important;animation:none!important}}
