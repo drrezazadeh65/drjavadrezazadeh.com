@@ -9,6 +9,9 @@ function communityAvailable(PDO $pdo): bool {
     try {
         $pdo->query('SELECT id FROM community_comments LIMIT 0');
         $pdo->query('SELECT id FROM community_moderation_audit LIMIT 0');
+        $pdo->query('SELECT id FROM community_admin_replies LIMIT 0');
+        $pdo->query('SELECT id FROM community_admin_reply_revisions LIMIT 0');
+        $pdo->query('SELECT id FROM community_erasure_audit LIMIT 0');
         return true;
     } catch (Throwable $e) { return false; }
 }
@@ -56,6 +59,70 @@ function communityModerator(PDO $pdo): array {
     if (!operationsMfaFresh($pdo,$session,$accountId,nowTs(),$credentialHash)) fail('admin_mfa_required',403);
     return $account;
 }
+
+/* Database-complete, owner-provisioned discussion module.
+ * All private responses inherit api/index.php no-store and noindex headers.
+ * Never trust browser-facing admin controls for authorization. */
+function communityReplyText(mixed $value): ?string {
+    if (!is_string($value) || strlen($value)>24000) return null;
+    $clean=trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u','',$value)??'');
+    if (textLen($clean)<1 || textLen($clean)>6000) return null;
+    return $clean;
+}
+function communityListApprovedReplies(PDO $pdo,array $comments): array {
+    if (!$comments) return [];
+    $ids=array_column($comments,'id');
+    $marks=implode(',',array_fill(0,count($ids),'?'));
+    $q=$pdo->prepare("SELECT r.id,r.comment_id,r.body_text,r.created_at,r.updated_at
+       FROM community_admin_replies r
+       INNER JOIN community_comments c ON c.id=r.comment_id AND c.state='approved'
+       WHERE r.state='published' AND r.comment_id IN ($marks)
+       ORDER BY r.created_at ASC,r.id ASC");
+    $q->execute($ids);
+    $out=[];
+    foreach ($q->fetchAll() as $r) {
+        $out[(string)$r['comment_id']][]=[
+            'id'=>(string)$r['id'],
+            'body'=>(string)$r['body_text'],
+            'createdAt'=>(int)$r['created_at'],
+            'updatedAt'=>(int)$r['updated_at'],
+            'label'=>'Official site management reply'
+        ];
+    }
+    return $out;
+}
+function communityAdminReplyRow(PDO $pdo,string $id): ?array {
+    $q=$pdo->prepare('SELECT id,comment_id,body_text,state,revision_no,created_at,updated_at,published_at FROM community_admin_replies WHERE id=? FOR UPDATE');
+    $q->execute([$id]);return $q->fetch() ?: null;
+}
+function communityAdminReplyRevision(PDO $pdo,string $replyId,int $revision,string $actor,string $event,string $state,?string $body,int $now): void {
+    $q=$pdo->prepare('INSERT INTO community_admin_reply_revisions(id,reply_id,revision_no,actor_account_id,event_kind,state_after,body_snapshot,created_at) VALUES(?,?,?,?,?,?,?,?)');
+    $q->execute([uuidv4(),$replyId,$revision,$actor,$event,$state,$body,$now]);
+}
+function communityArchivePage(PDO $pdo,string $state,?int $beforeTime,?string $beforeId): array {
+    $sql='SELECT id,page_path,body_text,rating,state,created_at,reviewed_at FROM community_comments WHERE state=?';
+    $values=[$state];
+    if ($beforeTime!==null && $beforeId!==null) {
+        $sql.=' AND (created_at < ? OR (created_at = ? AND id < ?))';
+        array_push($values,$beforeTime,$beforeTime,$beforeId);
+    }
+    $sql.=' ORDER BY created_at DESC,id DESC LIMIT 21';
+    $q=$pdo->prepare($sql);$q->execute($values);
+    $all=$q->fetchAll();
+    $hasMore=count($all)>20;
+    $all=array_slice($all,0,20);
+    $items=array_map(static fn($c)=>[
+        'id'=>(string)$c['id'],'page'=>(string)$c['page_path'],
+        'body'=>(string)$c['body_text'],'rating'=>$c['rating']===null?null:(int)$c['rating'],
+        'state'=>(string)$c['state'],'createdAt'=>(int)$c['created_at'],
+        'reviewedAt'=>$c['reviewed_at']===null?null:(int)$c['reviewed_at']
+    ],$all);
+    $last=$hasMore ? end($all) : null;
+    return ['items'=>$items,'nextCursor'=>$last?[
+        'createdAt'=>(int)$last['created_at'],'id'=>(string)$last['id']
+    ]:null];
+}
+
 function communityRoute(string $route,string $verb): never {
     $pdo=db();
     if (!$pdo || !communityAvailable($pdo)) fail('community_unavailable',503);
@@ -64,13 +131,16 @@ function communityRoute(string $route,string $verb): never {
         if ($page===null) fail('invalid_page',400);
         $query=$pdo->prepare("SELECT id,body_text,rating,created_at FROM community_comments WHERE page_path=? AND state='approved' ORDER BY created_at DESC,id DESC LIMIT 20");
         $query->execute([$page]);
+        $approved=$query->fetchAll();
+        $replies=communityListApprovedReplies($pdo,$approved);
         $data=array_map(static fn($x)=>[
             'id'=>(string)$x['id'],
             'body'=>(string)$x['body_text'],
             'rating'=>$x['rating']===null?null:(int)$x['rating'],
             'createdAt'=>(int)$x['created_at'],
-            'authorLabel'=>'Verified reader'
-        ],$query->fetchAll());
+            'authorLabel'=>'Verified reader',
+            'replies'=>$replies[(string)$x['id']]??[]
+        ],$approved);
         // Submitted ratings do not appear in public data until manually approved.
         respond(['ok'=>true,'schema'=>'community-comments-v1','page'=>$page,'comments'=>$data,'count'=>count($data)]);
     }
@@ -111,6 +181,20 @@ function communityRoute(string $route,string $verb): never {
     }
     if ($route==='/community/moderation' && $verb==='GET') {
         communityModerator($pdo);
+        // Explicit state + keyset cursor enables older records without exposing private text publicly.
+        $requested=$_GET['state']??null;
+        if ($requested!==null) {
+            if (!is_string($requested)||!in_array($requested,['pending','approved','rejected','removed'],true)) fail('invalid_state',400);
+            $cursorTime=null;$cursorId=null;
+            if (isset($_GET['beforeCreatedAt'])||isset($_GET['beforeId'])) {
+                $rawTime=$_GET['beforeCreatedAt']??null;
+                $rawId=$_GET['beforeId']??null;
+                if (!is_string($rawTime)||!ctype_digit($rawTime)||strlen($rawTime)>12||!is_string($rawId)||!validUuid($rawId)) fail('invalid_cursor',400);
+                $cursorTime=(int)$rawTime;$cursorId=$rawId;
+            }
+            $result=communityArchivePage($pdo,$requested,$cursorTime,$cursorId);
+            respond(['ok'=>true,'schema'=>'community-moderation-v2','state'=>$requested]+$result);
+        }
         $q=$pdo->query("SELECT id,page_path,body_text,rating,created_at FROM community_comments WHERE state='pending' ORDER BY created_at ASC,id ASC LIMIT 30");
         $queue=array_map(static fn($x)=>[
             'id'=>(string)$x['id'],'page'=>(string)$x['page_path'],
@@ -146,6 +230,170 @@ function communityRoute(string $route,string $verb): never {
             fail('community_unavailable',503);
         }
         respond(['ok'=>true,'state'=>$decision]);
+    }
+    if ($route==='/community/admin/replies' && $verb==='GET') {
+        communityModerator($pdo);
+        $comment=$_GET['comment']??null;
+        if (!is_string($comment)||!validUuid($comment)) fail('invalid_comment_id',400);
+        $q=$pdo->prepare("SELECT id,comment_id,body_text,state,revision_no,created_at,updated_at,published_at
+          FROM community_admin_replies WHERE comment_id=? ORDER BY created_at DESC,id DESC LIMIT 30");
+        $q->execute([$comment]);
+        $items=array_map(static fn($r)=>[
+            'id'=>(string)$r['id'],'commentId'=>(string)$r['comment_id'],
+            'body'=>(string)$r['body_text'],'state'=>(string)$r['state'],
+            'revision'=>(int)$r['revision_no'],'createdAt'=>(int)$r['created_at'],
+            'updatedAt'=>(int)$r['updated_at'],
+            'publishedAt'=>$r['published_at']===null?null:(int)$r['published_at']
+        ],$q->fetchAll());
+        respond(['ok'=>true,'schema'=>'community-admin-replies-v1','items'=>$items]);
+    }
+    if ($route==='/community/admin/revisions' && $verb==='GET') {
+        communityModerator($pdo);
+        $reply=$_GET['reply']??null;
+        if (!is_string($reply)||!validUuid($reply)) fail('invalid_reply',400);
+        $q=$pdo->prepare("SELECT revision_no,event_kind,state_after,body_snapshot,reason_code,created_at
+          FROM community_admin_reply_revisions WHERE reply_id=? ORDER BY revision_no DESC LIMIT 60");
+        $q->execute([$reply]);
+        $items=array_map(static fn($x)=>[
+            'revision'=>(int)$x['revision_no'],'event'=>(string)$x['event_kind'],
+            'state'=>(string)$x['state_after'],'body'=>$x['body_snapshot'],
+            'reason'=>$x['reason_code'],'createdAt'=>(int)$x['created_at']
+        ],$q->fetchAll());
+        respond(['ok'=>true,'schema'=>'community-reply-revisions-v1','items'=>$items]);
+    }
+    if ($route==='/community/admin/replies' && $verb==='POST') {
+        $actor=communityMutationGuard($pdo);
+        communityModerator($pdo);
+        $input=jsonBody();
+        $action=$input['action']??null;
+        if (!is_string($action)||!in_array($action,['create','edit','publish','hide','restore','remove'],true)) fail('invalid_reply_action',400);
+        $actorId=(string)$actor['id'];
+        if (!rateAllowed($pdo,'community_admin_reply',$actorId,60,3600)) fail('rate_limited',429);
+        $now=nowTs();
+        if ($action==='create') {
+            $comment=$input['commentId']??null;
+            $body=communityReplyText($input['body']??null);
+            if (!is_string($comment)||!validUuid($comment)||$body===null) fail('invalid_reply',400);
+            try {
+                $pdo->beginTransaction();
+                $q=$pdo->prepare('SELECT state FROM community_comments WHERE id=? FOR UPDATE');
+                $q->execute([$comment]);$parent=$q->fetch();
+                if (!$parent||$parent['state']!=='approved') {
+                    $pdo->rollBack();fail('comment_not_approved',409);
+                }
+                $id=uuidv4();
+                $pdo->prepare("INSERT INTO community_admin_replies(id,comment_id,admin_account_id,body_text,state,revision_no,created_at,updated_at) VALUES(?,?,?,?,'draft',1,?,?)")
+                    ->execute([$id,$comment,$actorId,$body,$now,$now]);
+                communityAdminReplyRevision($pdo,$id,1,$actorId,'created','draft',$body,$now);
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction())$pdo->rollBack();
+                fail('community_unavailable',503);
+            }
+            respond(['ok'=>true,'id'=>$id,'state'=>'draft','revision'=>1],201);
+        }
+        $reply=$input['replyId']??null;
+        $expected=$input['expectedRevision']??null;
+        if (!is_string($reply)||!validUuid($reply)||!is_int($expected)||$expected<1) fail('invalid_reply',400);
+        $edited=$action==='edit' ? communityReplyText($input['body']??null) : null;
+        if ($action==='edit'&&$edited===null) fail('invalid_reply',400);
+        try {
+            $pdo->beginTransaction();
+            $current=communityAdminReplyRow($pdo,$reply);
+            if (!$current||$expected!==(int)$current['revision_no']) {
+                $pdo->rollBack();fail('reply_version_conflict',409);
+            }
+            $state=(string)$current['state'];
+            $newState=$state;
+            $body=$edited??(string)$current['body_text'];
+            if ($action==='edit') {
+                if ($state==='removed'){$pdo->rollBack();fail('reply_state_conflict',409);}
+                $event='edited';
+            } else {
+                $allowed=[
+                    'publish'=>['draft','hidden'],
+                    'hide'=>['published'],
+                    'restore'=>['removed','hidden'],
+                    'remove'=>['draft','hidden','published']
+                ];
+                if (!in_array($state,$allowed[$action]??[],true)) {
+                    $pdo->rollBack();fail('reply_state_conflict',409);
+                }
+                $newState=match($action) {
+                    'publish'=>'published','hide'=>'hidden','restore'=>'draft',
+                    'remove'=>'removed',default=>$state
+                };
+                if ($action==='publish') {
+                    $q=$pdo->prepare('SELECT state FROM community_comments WHERE id=? FOR UPDATE');
+                    $q->execute([(string)$current['comment_id']]);$parent=$q->fetch();
+                    if (!$parent||$parent['state']!=='approved') {
+                        $pdo->rollBack();fail('comment_not_approved',409);
+                    }
+                }
+                $event=match($action) {
+                    'publish'=>'published','hide'=>'hidden',
+                    'restore'=>'restored','remove'=>'removed',default=>'edited'
+                };
+            }
+            $nextRevision=$expected+1;
+            $sql='UPDATE community_admin_replies SET body_text=?,state=?,revision_no=?,updated_at=?,published_at=?,removed_at=? WHERE id=? AND revision_no=?';
+            $publishedAt=$newState==='published' ? ($now) : ($current['published_at']===null ? null : (int)$current['published_at']);
+            $removedAt=$newState==='removed' ? $now : null;
+            $q=$pdo->prepare($sql);
+            $q->execute([$body,$newState,$nextRevision,$now,$publishedAt,$removedAt,$reply,$expected]);
+            if ($q->rowCount()!==1) {
+                $pdo->rollBack();fail('reply_version_conflict',409);
+            }
+            communityAdminReplyRevision($pdo,$reply,$nextRevision,$actorId,$event,$newState,$body,$now);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction())$pdo->rollBack();
+            fail('community_unavailable',503);
+        }
+        respond(['ok'=>true,'id'=>$reply,'state'=>$newState,'revision'=>$nextRevision]);
+    }
+    if ($route==='/community/admin/erase' && $verb==='POST') {
+        $actor=communityMutationGuard($pdo);
+        communityModerator($pdo);
+        $input=jsonBody();
+        $kind=$input['targetKind']??null;
+        $target=$input['targetId']??null;
+        $reason=$input['reasonCode']??null;
+        // Deliberate two-step permanent deletion; never infer consent from ordinary "remove".
+        if (!is_string($kind)||!in_array($kind,['comment','admin_reply'],true)||
+            !is_string($target)||!validUuid($target)||
+            !is_string($reason)||!in_array($reason,['owner_request','spam','abuse','privacy','retention','other'],true)||
+            ($input['confirmation']??null)!=='ERASE') fail('invalid_erasure',400);
+        $actorId=(string)$actor['id'];
+        if (!rateAllowed($pdo,'community_admin_erase',$actorId,10,3600)) fail('rate_limited',429);
+        try {
+            $pdo->beginTransaction();
+            $table=$kind==='comment' ? 'community_comments' : 'community_admin_replies';
+            $q=$pdo->prepare("SELECT state FROM $table WHERE id=? FOR UPDATE");
+            $q->execute([$target]);$record=$q->fetch();
+            $allowed=$kind==='comment' ? ['removed','rejected'] : ['removed'];
+            if (!$record||!in_array((string)$record['state'],$allowed,true)) {
+                $pdo->rollBack();fail('erasure_requires_removal',409);
+            }
+            $affected=0;
+            if ($kind==='comment') {
+                $q=$pdo->prepare('SELECT COUNT(*) FROM community_admin_replies WHERE comment_id=?');
+                $q->execute([$target]);$affected=(int)$q->fetchColumn();
+            }
+            $q=$pdo->prepare("INSERT INTO community_erasure_audit(id,target_kind,target_id,actor_account_id,reason_code,affected_reply_count,occurred_at) VALUES(?,?,?,?,?,?,?)");
+            $q->execute([uuidv4(),$kind,$target,$actorId,$reason,$affected,nowTs()]);
+            $q=$pdo->prepare("DELETE FROM $table WHERE id=?");
+            $q->execute([$target]);
+            if ($q->rowCount()!==1) {
+                $pdo->rollBack();fail('erasure_conflict',409);
+            }
+            // The comment/reply foreign keys cascade related text and private revision snapshots.
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction())$pdo->rollBack();
+            fail('community_unavailable',503);
+        }
+        respond(['ok'=>true,'erased'=>true,'targetKind'=>$kind]);
     }
     fail('not_found',404);
 }
