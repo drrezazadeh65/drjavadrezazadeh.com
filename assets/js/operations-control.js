@@ -385,11 +385,79 @@ function githubAuditRender(host){
  host.append(section);
 }
 
+let masterConsoleExpanded=false;
+/**
+ * Engine command surface inside the EXISTING authenticated ENG-13 controller.
+ * An eligible command uses the already-audited action-runs endpoint; every
+ * unsupported command remains explicitly unavailable, never simulated.
+ */
+function renderMasterEngineConsole(host,model){
+ const engines=Array.isArray(model.engines)?model.engines:[];
+ const actions=Array.isArray(model.actionReports)?model.actionReports:[];
+ const providers=Array.isArray(model.providerInventory?.providers)?model.providerInventory.providers:[];
+ const readOnly=action=>action?.supportedExecutor?.type==='readonly_snapshot'
+   &&action.supportedExecutor.writes===false;
+ const supported=actions.filter(readOnly);
+ const wrap=el('details',undefined,'ops-panel');
+ wrap.id='ops-master-engine-control';
+ wrap.open=masterConsoleExpanded;
+ wrap.addEventListener('toggle',()=>{masterConsoleExpanded=wrap.open;});
+ wrap.append(el('summary',t('فرماندهی ۱۳ موتور و پوشش واقعی اقدام‌ها',
+   'Master control: 13 engines and verified action coverage')));
+ const summary=el('p',t('موتورها: ','Engines: ')+engines.length+
+   ' · '+t('اقدام‌های تعریف‌شده: ','Defined actions: ')+actions.length+
+   ' · '+t('مشاهده‌های قابل اجرا: ','Runnable observations: ')+supported.length+
+   ' · '+t('اقدام‌های بدون مجری عملیاتی: ','Without operational executor: ')+(actions.length-supported.length));
+ wrap.append(summary);
+ const references=el('p',t('منابع ثبت‌شده: ','Catalogued providers: ')+
+   (model.providerInventory?.status==='catalogue_only'?providers.length:t('نامشخص','Unknown'))+
+   ' · '+t('اتصال خارجی تأییدشده: ','Verified provider connections: ')+
+   (model.providerInventory?.status==='catalogue_only'?'0':t('نامشخص','Unknown')));
+ wrap.append(references,el('p',t(
+   'این وضعیت از شواهد خصوصی سرور محاسبه شده است؛ وجود کارت، اسکریپت یا منبع خارجی به معنای اجرای موفق یا اتصال زنده نیست.',
+   'This view uses private server records. A card, script or provider listing does not prove a live connection or successful execution.')));
+ const grid=el('div',undefined,'ops-grid');
+ for(const engine of engines){
+   const card=el('article',undefined,'ops-card');
+   const owned=actions.filter(a=>a.responsibleEngine===engine.id);
+   const executable=owned.filter(readOnly);
+   const candidateCount=providers.filter(p=>p.engineId===engine.id).length;
+   card.append(el('h3',engine.id+' · '+engineName(engine)),
+     el('p',t('گزارش تأییدشده: ','Verified reports: ')+
+       (engine.completedReportIds?.length??0)+' / '+
+       ((engine.completedReportIds?.length??0)+(engine.pendingReportIds?.length??0))),
+     el('small',t('اقدام‌های دارای مجری: ','Executable observations: ')+
+       executable.length+' / '+owned.length),
+     el('small',t('منابع مرجع خارجی: ','External references: ')+
+       candidateCount+' · '+t('اتصالات زنده تأییدنشده','No verified live connections')));
+   const open=el('button',t('گزارش این موتور','Open engine report'));open.type='button';
+   open.addEventListener('click',()=>{
+     reportingView.level='engine';reportingView.engine=engine.id;
+     reportingRender();
+     $('ops-reporting')?.scrollIntoView({block:'start'});
+   });card.append(open);
+   if(executable.length){
+     const controls=el('div',undefined,'ops-toolbar');
+     for(const action of executable){
+       const button=el('button',t('مشاهده: ','Observe: ')+action.id);button.type='button';
+       button.setAttribute('title',en?action.canonicalName:action.displayNameFa);
+       button.addEventListener('click',()=>runReadonlyAction(action.id,button));
+       controls.append(button);
+     }
+     card.append(controls);
+   }else card.append(el('small',t(
+     'اجرای خودکار این موتور هنوز مجری مجاز ندارد؛ گزارش و شواهد آن قابل مشاهده‌اند.',
+     'No authorized automatic executor for this engine yet; its reporting remains accessible.')));
+   grid.append(card);
+ }
+ wrap.append(grid);host.append(wrap);
+}
 function reportingRender(){
  const model=snapshot?.reporting;if(!model)return;
  let host=$('ops-reporting');if(!host){host=el('section',undefined,'ops-panel');host.id='ops-reporting';host.setAttribute('aria-label',t('گزارش‌های سیزده موتور','Thirteen-engine reporting'));$('ops-workspace').insertBefore(host,$('ops-cards'));}
  host.replaceChildren();host.append(el('h2',t('۱۳ موتور؛ یک مرکز مدیریت','13 engines, one administrative center')));
  const enabledActions=model.actionReports.filter(a=>a.supportedExecutor?.type==='readonly_snapshot'&&a.supportedExecutor?.writes===false).length;host.append(el('p',t('اقدام‌های ثبت‌شده: ','Registered actions: ')+model.actionReports.length+' · '+t('قرارداد فقط‌خواندنی فعال: ','Read-only executors: ')+enabledActions+' · '+t('فاقد قرارداد اجرایی: ','Without executor: ')+(model.actionReports.length-enabledActions)));
+ renderMasterEngineConsole(host,model);
 
  // Four current-release acceptance gates per report; never conflate absence of evidence with failure.
  const coverage=snapshot.summary?.gateCoverage;
