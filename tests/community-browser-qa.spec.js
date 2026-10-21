@@ -18,13 +18,16 @@ test('approved reader commentary renders as text, not executable markup, on mobi
  const body='<img src=x onerror=alert(1)> پژوهش مستند و خواندنی است.';
  await page.route('**/api/community/**',route=>{
   if(route.request().url().includes('/csrf'))return respond(route,401,{ok:false,error:'unauthorized'});
-  return respond(route,200,{ok:true,schema:'community-comments-v1',page:article,comments:[{id:'sample-1',body,rating:4,createdAt:1700000000}],count:1});
+  return respond(route,200,{ok:true,schema:'community-comments-v1',page:article,comments:[{id:'sample-1',body,rating:4,createdAt:1700000000,replies:[{id:'reply-1',body:'<script>alert(2)</script> پاسخ علمی',createdAt:1700000001}]}],count:1});
  });
  await page.goto(base+article,{waitUntil:'domcontentloaded'});
  const host=page.locator('[data-jr-community]');
  await expect(host).toBeVisible();
  await expect(host.locator('.jr-community-body')).toHaveText(body);
  await expect(host.locator('.jr-community-body img')).toHaveCount(0);
+ await host.locator('.jr-community-comment>summary').click();
+ await expect(host.locator('.jr-community-official-body')).toHaveText('<script>alert(2)</script> پاسخ علمی');
+ await expect(host.locator('.jr-community-official-reply script')).toHaveCount(0);
  await expect(host.locator('a[href="/fa/login/"]')).toBeVisible();
  await expect(host.locator('form')).toBeHidden();
  const dims=await page.evaluate(()=>({body:document.body.scrollWidth,html:document.documentElement.scrollWidth,viewport:innerWidth}));
@@ -46,13 +49,14 @@ test('verified reader chooses accessible stars and consents; server keeps the re
  });
  await page.goto(base+article,{waitUntil:'domcontentloaded'});
  const form=page.locator('[data-jr-community] form');
+ await page.locator('.jr-community-compose>summary').click();
  await expect(form).toBeVisible();
  await form.locator('input[name="rating"][value="5"]').check();
  await form.locator('textarea[name="body"]').fill('نظر پژوهشی خود را با بررسی انتقادی و احترام ثبت می‌کنم.');
  await form.locator('input[name="consent"]').check();
  await form.locator('button[type="submit"]').click();
  await expect(form.locator('.jr-community-form-status')).toContainText('برای بررسی مدیر ثبت شد');
- expect(submitted).toMatchObject({page:article,rating:5,consentToPublication:true});
+ expect(submitted).toMatchObject({page:article,rating:5,consentToPublication:true,website:''});
  expect(submitted.body.length).toBeGreaterThanOrEqual(12);
  await expect(page.locator('.jr-community-comment')).toHaveCount(0);
 });
@@ -78,9 +82,60 @@ test('moderator view remains hidden until workspace unlock; approval is confirme
  await page.evaluate(()=>{document.getElementById('ops-workspace').hidden=false;});
  await expect(page.locator('.jr-community-admin-item')).toHaveCount(1);
  await expect(page.locator('.jr-community-admin-logo')).toHaveAttribute('src','/favicon.svg');
+ await page.locator('.jr-community-admin-item>summary').click();
  await page.getByRole('button',{name:'تأیید و انتشار'}).click();
  await expect.poll(()=>approved?.decision).toBe('approved');
  expect(approved.id).toBe('11111111-1111-4111-8111-111111111111');
  await page.evaluate(()=>{document.getElementById('ops-workspace').hidden=true;});
+ await expect(page.locator('.jr-community-admin-item')).toHaveCount(0);
+});
+
+test('admin can page older comments, write an unpublished official draft, and browse revision controls',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ const comment='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ const reply='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+ let calls=[],created=false,published=false;
+ await page.route('**/api/community/**',route=>{
+  const url=route.request().url(),method=route.request().method();
+  if(url.endsWith('/csrf'))return respond(route,200,{ok:true,csrfToken:'d'.repeat(64)});
+  if(method==='POST'){
+   const data=route.request().postDataJSON();calls.push(data);
+   if(data.action==='create'){created=true;return respond(route,201,{ok:true,id:reply,state:'draft',revision:1});}
+   if(data.action==='publish'){published=true;return respond(route,200,{ok:true,id:reply,state:'published',revision:2});}
+   return respond(route,200,{ok:true,state:data.decision||'draft'});
+  }
+  if(url.includes('/admin/replies')){
+   return respond(route,200,{ok:true,schema:'community-admin-replies-v1',items:created?[{
+    id:reply,commentId:comment,body:'A documented scholarly response',state:published?'published':'draft',revision:published?2:1,createdAt:1700000001,updatedAt:1700000001
+   }]:[]});
+  }
+  if(url.includes('/admin/revisions'))return respond(route,200,{ok:true,items:[{revision:1,event:'created',state:'draft',body:'A documented scholarly response',createdAt:1700000001}]});
+  if(url.includes('state=approved')){
+   const older=url.includes('beforeCreatedAt=');
+   return respond(route,200,{ok:true,schema:'community-moderation-v2',state:'approved',
+    items:older?[]:[{id:comment,page:article,body:'A reader question',state:'approved',rating:null,createdAt:1700000000}],
+    nextCursor:older?null:{createdAt:1700000000,id:comment}});
+  }
+  return respond(route,200,{ok:true,schema:'community-moderation-v2',state:'pending',items:[],nextCursor:null});
+ });
+ await page.goto(base+'/fa/',{waitUntil:'domcontentloaded'});
+ await page.evaluate(()=>{const w=document.createElement('div');w.id='ops-workspace';w.hidden=true;document.body.append(w)});
+ await page.addStyleTag({url:base+'/assets/css/operations-community-moderation.css'});
+ await page.addScriptTag({url:base+'/assets/js/operations-community-moderation.js'});
+ await page.evaluate(()=>{document.getElementById('ops-workspace').hidden=false});
+ await page.locator('.jr-community-admin-state').selectOption('approved');
+ await expect(page.locator('.jr-community-admin-item')).toHaveCount(1);
+ await page.locator('.jr-community-admin-item>summary').click();
+ await page.locator('.jr-community-admin-replies-panel>summary').click();
+ await page.locator('textarea[name="officialReply"]').fill('A documented scholarly response');
+ await page.getByRole('button',{name:'ذخیره پیش‌نویس پاسخ'}).click();
+ await expect.poll(()=>created).toBe(true);
+ await expect(page.locator('.jr-community-admin-reply')).toHaveCount(1);
+ await expect(page.locator('.jr-community-admin-reply')).toContainText('draft');
+ await page.getByRole('button',{name:'انتشار پاسخ رسمی'}).click();
+ await expect.poll(()=>published).toBe(true);
+ await page.locator('.jr-community-admin-more').click();
+ await expect.poll(()=>calls.some(item=>item.action==='create')).toBe(true);
+ await page.evaluate(()=>{document.getElementById('ops-workspace').hidden=true});
  await expect(page.locator('.jr-community-admin-item')).toHaveCount(0);
 });
