@@ -39,7 +39,7 @@ test('maximum six subjects, privacy, invalid input, reset and re-entry',async({p
   await page.locator('#go').click();
   await expect(page.locator('#errsum')).toBeVisible();
   await expect(page.locator('#rank')).toHaveAttribute('aria-invalid','true');
-  await page.locator('button[type="reset"]').click();
+  await page.locator('#scorecard button[type="reset"]').click();
   await expect(page.locator('#subjects .row')).toHaveCount(1);
   await expect(page.locator('#result')).toBeEmpty();
   await expect(add).toBeEnabled();
@@ -67,6 +67,21 @@ test('local percentage calculator respects configured negative marking at 320px'
  await expect(page.locator('#pc-result')).toContainText('اطلاعات قابل محاسبه نیست');
  const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
  expect(overflow).toBeLessThanOrEqual(1);
+ expect(pageErrors).toEqual([]);
+ expect(unexpectedWrites).toEqual([]);
+});
+
+test('percentage calculator resets independently without clearing scorecard fields',async({page})=>{
+ const {pageErrors,unexpectedWrites}=await visit(page,390);
+ await page.locator('#year').fill('۱۴۰۶');
+ await page.locator('#pc-correct').fill('۱۰');
+ await page.locator('#pc-incorrect').fill('۰');
+ await page.locator('#pc-unanswered').fill('۰');
+ await page.locator('#pc-calculate').click();
+ await expect(page.locator('#pc-result')).toContainText('درصد خام');
+ await page.locator('#pc-form button[type="reset"]').click();
+ await expect(page.locator('#pc-result')).toBeEmpty();
+ await expect(page.locator('#year')).toHaveValue('۱۴۰۶');
  expect(pageErrors).toEqual([]);
  expect(unexpectedWrites).toEqual([]);
 });
