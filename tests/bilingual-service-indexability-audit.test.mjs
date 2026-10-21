@@ -6,6 +6,7 @@ test('money parser handles both Persian and English publication units',()=>{
   assert.equal(displayedPrice('<p class="price">۱۵٬۰۰۰٬۰۰۰ تومان</p>'),15000000);
   assert.equal(displayedPrice('<p class="price">15,000,000 toman — proposed fee</p>'),15000000);
   assert.equal(displayedPrice('<div class="price">۷٬۵۰۰٬۰۰۰ تومان</div>'),7500000);
+  assert.equal(displayedPrice('<div class="hero"><div class="inner"><p>Plan</p><div class="price">۱۲٬۰۰۰٬۰۰۰ تومان</div></div></div>'),12000000);
   assert.equal(displayedPrice('<p class="other-price">15,000,000 toman</p>'),null);
 });
 test('language metadata parsing is order-independent',()=>{

@@ -15,9 +15,10 @@ export function normalizeNumber(text){
   });
 }
 export function displayedPrice(html){
-  for(const m of String(html).matchAll(/<(p|div|span)\b[^>]*class=["']([^"']+)["'][^>]*>([\s\S]*?)<\/\1>/gi)){
-    if(!m[2].split(/\s+/).includes('price'))continue;
-    const value=normalizeNumber(m[3].replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' '));
+  for(const m of String(html).matchAll(/<(p|div|span)\b[^>]*class=["'](?:[^"']*\s)?price(?:\s[^"']*)?["'][^>]*>([\s\S]*?)<\/\1>/gi)){
+    // Match the price element itself, never an outer container that would
+    // consume nested price markup before the global regex can visit it.
+    const value=normalizeNumber(m[2].replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' '));
     const amount=(value.match(/[0-9][0-9,٬،\s]{4,}[0-9]/)||[])[0];
     if(amount){
       const num=Number(amount.replace(/[^0-9]/g,''));
