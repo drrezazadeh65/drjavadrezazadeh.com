@@ -121,7 +121,16 @@ if(host && workspace){
       const qty=numeric(line.quantity);qty.addEventListener('input',()=>{line.quantity=qty.value;update()});
       fields.append(field(t('فروش فرضی در ماه','Assumed sales per month'),qty));
       const cost=numeric(line.unitCost,{step:currency==='USD'?'0.01':'1'});cost.addEventListener('input',()=>{line.unitCost=cost.value;update()});
-      fields.append(field(t('هزینه متغیر هر فروش','Delivery cost per sale'),cost));
+      fields.append(field(t('هزینه مستقیم ارائه هر فروش','Direct delivery cost per sale'),cost));
+      const fee=numeric(line.gatewayFee??'',{step:currency==='USD'?'0.01':'1'});
+      fee.addEventListener('input',()=>{line.gatewayFee=fee.value;update()});
+      fields.append(field(t('کارمزد درگاه برای هر فروش (فرضی)','Gateway fee per sale (assumed)'),fee));
+      const marketing=numeric(line.marketing??'',{step:currency==='USD'?'0.01':'1'});
+      marketing.addEventListener('input',()=>{line.marketing=marketing.value;update()});
+      fields.append(field(t('هزینه جذب مشتری برای هر فروش (فرضی)','Acquisition cost per sale (assumed)'),marketing));
+      const other=numeric(line.otherCost??'',{step:currency==='USD'?'0.01':'1'});
+      other.addEventListener('input',()=>{line.otherCost=other.value;update()});
+      fields.append(field(t('دیگر هزینه‌های قابل انتساب (فرضی)','Other attributable cost (assumed)'),other));
       const hours=numeric(line.minutes===''?'':Number(line.minutes)/60,{step:'0.25'});
       if(currency==='IRT'&&selected?.duration!=null&&line.minutes==='')hours.placeholder=String(selected.duration/60);
       hours.addEventListener('input',()=>{line.minutes=hours.value===''?'':String(Math.round(Number(hours.value)*60));update()});
@@ -148,7 +157,11 @@ if(host && workspace){
         const entry=currency==='IRT'?catalog.find(x=>x.key===line.product):null;
         if(currency==='IRT'&&!entry)throw new RangeError('missing catalog entry');
         return {quantity:whole(line.quantity),unitPriceMinor:currency==='IRT'?entry.price:minor(line.price,currency),
-          unitCostMinor:minor(line.unitCost,currency),minutesPerUnit:line.minutes===''?null:whole(line.minutes)};
+          unitCostMinor:minor(line.unitCost,currency),
+          unitGatewayFeeMinor:minor(line.gatewayFee,currency),
+          unitMarketingCostMinor:minor(line.marketing,currency),
+          unitOtherAttributableCostMinor:minor(line.otherCost,currency),
+          minutesPerUnit:line.minutes===''?null:whole(line.minutes)};
       });
       const refundPct=s.reserve===''?0:Number(s.reserve);
       if(!Number.isFinite(refundPct)||refundPct<0||refundPct>100)throw new RangeError('invalid reserve');
@@ -163,7 +176,14 @@ if(host && workspace){
       };
       card(t('فروش ناخالصِ فرضی','Hypothetical gross sales'),money(forecast.grossMinor),t('نه گردش مالی واقعی','Not observed transactions'));
       card(t('ذخیره استرداد','Refund reserve'),money(forecast.reserveMinor),t('فرض انتخابی شما','Your own assumption'));
-      card(t('سهم پس از هزینه‌های واردشده','Contribution after entered costs'),money(forecast.contributionMinor),t('بدون هزینه‌های ثبت‌نشده یا مالیات','Excludes unentered costs and taxes'));
+      card(t('مانده مشارکت پس از هزینه‌های قابل انتساب','Contribution after attributable costs'),money(forecast.contributionMinor),t('بدون هزینه‌های ثابت و مالیات؛ صرفاً فرضی','Excludes fixed overhead and tax; assumptions only'));
+      card(t('کارمزد درگاه + هزینه جذب + سایر مستقیم','Gateway + acquisition + other attributable costs'),
+        money(forecast.gatewayFeeMinor+forecast.marketingCostMinor+forecast.otherAttributableCostMinor),
+        t('فرض‌های جداگانه، نه گزارش بانک','Entered assumptions, not bank statements'));
+      card(t('هزینه ثابت ماهانه','Monthly fixed overhead'),money(forecast.fixedCostMinor),
+        t('خارج از تعریف مانده مشارکت','Not deducted from contribution'));
+      card(t('مانده پس از هزینه ثابت (پیش از مالیات)','After-fixed-cost balance (before tax)'),
+        money(forecast.afterFixedCostMinor),t('سود خالص حسابرسی‌شده نیست','Not audited net profit'));
       card(s.goalMetric==='CONTRIBUTION'
         ?t('فاصله تا هدف مانده عملیاتی','Contribution goal shortfall')
         :t('فاصله تا هدف فروش ناخالص','Gross sales goal shortfall'),
@@ -175,12 +195,14 @@ if(host && workspace){
       result.append(grid);
       const gaps=[];
       if(s.lines.some(x=>x.unitCost===''))gaps.push(t('هزینهٔ تحویل برای بعضی مسیرها وارد نشده است.','Some unit delivery costs are missing.'));
+      if(s.lines.some(x=>x.gatewayFee===undefined||x.gatewayFee===''))gaps.push(t('فرض کارمزد درگاه برای بعضی مسیرها وارد نشده است.','Some gateway fee assumptions are missing.'));
+      if(s.lines.some(x=>x.marketing===undefined||x.marketing===''))gaps.push(t('فرض هزینه جذب برای بعضی مسیرها وارد نشده است.','Some acquisition-cost assumptions are missing.'));
       if(s.fixed==='')gaps.push(t('هزینه‌های ثابت هنوز برآورد نشده‌اند.','Fixed costs have not been estimated.'));
       if(s.reserve==='')gaps.push(t('ذخیرهٔ استرداد هنوز تعیین نشده است.','A refund reserve has not been selected.'));
       if(forecast.capacityStatus==='UNKNOWN')gaps.push(t('ظرفیت عملیاتی تأیید نشده است.','Delivery capacity is not established.'));
       if(forecast.capacityStatus==='OVER_CAPACITY')gaps.push(t('این ترکیب فروش با ساعات عرضه‌شده قابل تحویل نیست.','This sales mix exceeds entered delivery capacity.'));
       if(s.goal!==''&&forecast.selectedGoalMet){
-        const caution=s.fixed===''||s.reserve===''||s.lines.some(x=>x.unitCost===''||x.minutes==='')||
+        const caution=s.fixed===''||s.reserve===''||s.lines.some(x=>x.unitCost===''||x.gatewayFee===undefined||x.gatewayFee===''||x.marketing===undefined||x.marketing===''||x.minutes==='')||
           forecast.capacityStatus!=='WITHIN_CAPACITY';
         gaps.push(caution
           ?t('هدف صرفاً روی کاغذ پوشش داده می‌شود؛ هزینه یا ظرفیت کامل معلوم نیست.','The scenario meets its numerical target, but cost or capacity assumptions remain incomplete.')

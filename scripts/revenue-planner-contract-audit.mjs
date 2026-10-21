@@ -19,6 +19,11 @@ assert.match(script,/credentials:'omit'/,'only anonymous public catalog fetches 
 assert.match(script,/data-jr-revenue-planner/);
 assert.match(model,/HYPOTHETICAL_NOT_VERIFIED_REVENUE/);
 assert.match(model,/isOperationalEvidence:false/);
+assert.match(model,/afterFixedCostMinor/,'fixed overhead must be reported separately from contribution');
+assert.match(model,/gatewayFeeMinor/,'gateway fee assumptions must be itemised');
+assert.match(model,/marketingCostMinor/,'acquisition assumptions must be itemised');
+assert.match(script,/forecast.afterFixedCostMinor/,'admin must distinguish after-fixed estimate from contribution');
+assert.match(script,/forecast.gatewayFeeMinor/,'admin must show attributed gateway assumptions');
 assert.match(stylesheet,/@media\(max-width:430px\)/);
 const services=JSON.parse(read('assets/data/service-catalog.json'));
 const vips=JSON.parse(read('assets/data/vip-catalog.json'));
