@@ -23,13 +23,13 @@ function operationsProviderInventory(): array {
     }
     if (!is_array($data)||!in_array(($data['schema']??null),
         ['operations-free-resources-v1','free-resource-inventory-v1'],true)) {
-        return ['status'=>'unavailable','source'=>'none','total'=>0,
+        return ['ok'=>true,'status'=>'unavailable','source'=>'none','total'=>0,
             'connected'=>0,'providers'=>[],
             'limitation'=>'Private inventory is unavailable; provider connections cannot be inferred.'];
     }
     $inventory=adminResourceInventoryNormalize($data);
     if ($inventory['total']!==30) {
-        return ['status'=>'unavailable','source'=>$origin,'total'=>0,
+        return ['ok'=>true,'status'=>'unavailable','source'=>$origin,'total'=>0,
             'connected'=>0,'providers'=>[],
             'limitation'=>'Resource catalogue is incomplete or malformed; no connection claims made.'];
     }
@@ -45,7 +45,7 @@ function operationsProviderInventory(): array {
             'nextStep'=>'Confirm provider account, authorization, consent and evidence-producing API before marking connected.'
         ];
     }
-    return ['status'=>'catalogue_only','source'=>$origin,
+    return ['ok'=>true,'status'=>'catalogue_only','source'=>$origin,
         'total'=>count($rows),'connected'=>0,'providers'=>$rows,
         'limitation'=>'Inventory entries are references, not connected accounts or live third-party metrics.'];
 }
