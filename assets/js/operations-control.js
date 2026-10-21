@@ -457,6 +457,19 @@ function renderMasterEngineConsole(host,model){
      }catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
      finally{if(configure.isConnected)configure.disabled=false;}
    });card.append(configure);
+   if(candidateCount){
+     const resources=el('button',t('منابع خارجی این موتور','External references for this engine'));
+     resources.type='button';
+     resources.addEventListener('click',()=>{
+       const panel=$('ops-free-resources');
+       if(!panel)return;
+       panel.open=true;
+       document.dispatchEvent(new CustomEvent('jr:admin-provider-engine',
+         {detail:{engineId:engine.id}}));
+       panel.scrollIntoView({block:'start'});
+     });
+     card.append(resources);
+   }
    if(executable.length){
      const controls=el('div',undefined,'ops-toolbar');
      for(const action of executable){
