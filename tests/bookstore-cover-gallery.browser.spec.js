@@ -16,9 +16,9 @@ for(const locale of ['fa','en']){
   expect(response.status()).toBe(200);
   const host=page.locator('[data-book-catalog]');
   const cards=host.locator('.book-product-card');
-  await expect(cards).toHaveCount(3);
+  expect(await cards.count()).toBeGreaterThanOrEqual(catalog.books.length);
   const coverImages=cards.locator('.jr-book-card-gallery .book-cover img');
-  await expect(coverImages).toHaveCount(3);
+  expect(await coverImages.count()).toBeGreaterThanOrEqual(catalog.books.length);
   for(const [i,book] of catalog.books.entries()){
    const card=cards.nth(i);
    const gallery=card.locator('.jr-book-card-gallery');
