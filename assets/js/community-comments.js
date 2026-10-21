@@ -31,7 +31,7 @@ honeypot.append(honeypotInput);form.append(honeypot);
 const formPanel=el('details','jr-community-compose');
 formPanel.append(el('summary','', 'ثبت دیدگاه یا پرسش علمی'));
 formPanel.append(form);
-form.hidden=true;host.append(formPanel);
+form.hidden=true;formPanel.hidden=true;host.append(formPanel);
 const login=el('p','jr-community-login');
 const signIn=el('a','','برای ارسال دیدگاه، وارد حساب تأییدشده خود شوید.');
 signIn.href='/fa/login/';login.append(signIn);login.hidden=true;host.append(login);
@@ -74,7 +74,7 @@ async function load(){
  status.textContent='فقط دیدگاه‌های تأییدشده مدیر نمایش داده می‌شوند.';
  const token=await request(api+'csrf').catch(()=>({ok:false}));
  if(token.ok&&typeof token.body?.csrfToken==='string'&&/^[a-f0-9]{64}$/i.test(token.body.csrfToken)){
-  login.hidden=true;form.hidden=false;
+  login.hidden=true;form.hidden=false;formPanel.hidden=false;
   form.addEventListener('submit',async e=>{
    e.preventDefault();
    if(!form.reportValidity())return;
@@ -90,7 +90,7 @@ async function load(){
     else {feedback.textContent=r.status===409?'برای این مقاله قبلاً دیدگاه ثبت کرده‌اید.':r.status===429?'لطفاً بعداً دوباره تلاش کنید.':'ثبت دیدگاه ممکن نشد. لطفاً دوباره تلاش کنید.';button.disabled=false;}
    }catch(_){feedback.textContent='ارتباط برقرار نشد. دوباره تلاش کنید.';button.disabled=false;}
   });
- }else {form.hidden=true;login.hidden=false;}
+ }else {form.hidden=true;formPanel.hidden=true;login.hidden=false;}
 }
 load();
 })();
