@@ -199,7 +199,8 @@ function assessCompetitiveness({ metric, value, history, offeringYear, opts }) {
 function evaluate(candidate, offering, rule, opts, preFindings = []) {
   const L = createLedger();
   const base = { candidate, offering, rule };
-  const inputDigest = digest(base);
+  // Never expose a fingerprint of personally identifiable input, even as a weak audit hash.
+  let inputDigest = null;
 
   const finish = (status, extra = {}) => {
     const blocking = sortedFindings(L.blocking);
@@ -246,6 +247,7 @@ function evaluate(candidate, offering, rule, opts, preFindings = []) {
     return finish(STATUS.INSUFFICIENT_EVIDENCE, { explanation: 'Inputs must be de-identified. Remove personal identifiers and resubmit.' });
   }
   L.step('PRIVACY', 'PASS');
+  inputDigest = digest(base);
 
   /* 3. independent verification of the sources */
   if (!TRACKS.has(offering.admissionTrack)) L.block('UNSUPPORTED_ADMISSION_TRACK', 'offering.admissionTrack');
@@ -415,7 +417,7 @@ export function evaluateAdmissionChoices({ candidate, offerings, rules, options 
       advisories: portfolioAdvisories,
       note: 'Advisory summary only. Tiers describe position against verified history; they do not rank or recommend choices.',
     },
-    batchDigest: digest({ candidate, offerings, rules }),
+    batchDigest: results.some(r => r.issues.some(issue => issue.startsWith('PERSONAL_IDENTIFIER_PRESENT') || issue.startsWith('INPUT_TOO_LARGE_TO_SCREEN'))) ? null : digest({ candidate, offerings, rules }),
     probabilityModelTrained: false,
     automatedAdmission: false,
     personalDataPersisted: false,
