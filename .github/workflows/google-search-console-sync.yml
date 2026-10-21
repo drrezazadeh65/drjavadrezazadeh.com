@@ -4,6 +4,18 @@ name: Google Search Console Connection Test
 # Scope is a single trusted repository/ref; push runs only for this integration.
 on:
   workflow_dispatch:
+    inputs:
+      indexation_triage:
+        description: 'Optional bounded Google URL Inspection sample (no URL-level logs)'
+        type: boolean
+        required: false
+        default: false
+      sample_size:
+        description: 'Maximum number of source-verified public URLs to inspect'
+        type: choice
+        required: false
+        default: '54'
+        options: ['24', '54', '90']
   push:
     branches: [migration/bertina-linux6]
     paths:
@@ -11,6 +23,8 @@ on:
       - scripts/gsc_oidc_verify.py
       - tests/test_gsc_oidc_connection.py
       - scripts/gsc_readonly_probes.py
+      - scripts/gsc_indexation_triage.py
+      - tests/test_gsc_indexation_triage.py
       - tests/test_gsc_readonly_probes.py
       - scripts/gsc_direct_snapshot_contract.py
       - tests/test_gsc_direct_snapshot_contract.py
@@ -39,7 +53,7 @@ jobs:
     name: Verify Google Search Console API (read-only OIDC)
     if: github.repository == 'drrezazadeh65/drjavadrezazadeh.com' && github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 18
     permissions:
       contents: read
       id-token: write
@@ -52,9 +66,10 @@ jobs:
 
       - name: Run keyless API verifier contract tests
         run: |
-          python3 -m py_compile scripts/gsc_oidc_verify.py scripts/gsc_readonly_probes.py scripts/gsc_direct_snapshot_contract.py
+          python3 -m py_compile scripts/gsc_oidc_verify.py scripts/gsc_readonly_probes.py scripts/gsc_indexation_triage.py scripts/gsc_direct_snapshot_contract.py
           python3 -m unittest discover -s tests -p 'test_gsc_oidc_connection.py' -v
           python3 -m unittest discover -s tests -p 'test_gsc_readonly_probes.py' -v
+          python3 -m unittest discover -s tests -p 'test_gsc_indexation_triage.py' -v
           python3 -m unittest discover -s tests -p 'test_gsc_direct_snapshot_contract.py' -v
           echo "GSC test fixture uses synthetic responses; not real Google access."
 
@@ -88,6 +103,12 @@ jobs:
           GSC_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
         run: python3 scripts/gsc_readonly_probes.py
 
+      - name: Optional owner-run public URL indexation triage (read-only)
+        if: github.event_name == 'workflow_dispatch' && inputs.indexation_triage == true
+        env:
+          GSC_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          GSC_TRIAGE_LIMIT: ${{ inputs.sample_size }}
+        run: python3 scripts/gsc_indexation_triage.py
       - name: State remaining external IAM evidence requirement
         if: always()
         run: |
