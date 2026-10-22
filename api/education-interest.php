@@ -317,8 +317,36 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
         // The existing site SMTP transport is used. Never log the recipient
         // or verification secrets, and never claim an email was delivered
         // merely because a record was written.
-        if(!smtpSend($email,$subject,$mail))
+        if(!smtpSend($email,$subject,$mail)){
+            // A transport rejection is NOT confirmation of a delivered link.
+            // Release ONLY this newly created invitation's resend cooldown,
+            // conditional on its current token; a concurrent newer request
+            // or a previously VERIFIED consent must remain untouched.
+            // Retain this token for ambiguous SMTP acceptance (it might
+            // eventually reach the mailbox), but permit a fresh explicit
+            // request instead of falsely claiming another email was sent.
+            try {
+                $pdo->beginTransaction();
+                if($renewal){
+                    $reset=$pdo->prepare('UPDATE eco_education_interest_renewals
+                      SET requested_at=0
+                      WHERE lead_id=? AND token_hash=? AND requested_at=?');
+                    $reset->execute([$id,$verificationHash,$now]);
+                }else{
+                    $reset=$pdo->prepare("UPDATE eco_education_interest_leads
+                      SET last_invitation_at=NULL
+                      WHERE id=? AND status='PENDING'
+                        AND verification_token_hash=? AND last_invitation_at=?");
+                    $reset->execute([$id,$verificationHash,$now]);
+                }
+                $pdo->commit();
+            }catch(Throwable $ignored){
+                if($pdo->inTransaction())$pdo->rollBack();
+                // A broken cooldown repair is an internal unknown, not a
+                // reason to expose email existence, address or SMTP detail.
+            }
             fail('confirmation_email_not_sent',503);
+        }
     }
     respond(['ok'=>true,'schema'=>'jr.education-interest-submission.v1',
       'state'=>'EMAIL_VERIFICATION_IF_REQUIRED',
