@@ -19,7 +19,9 @@ function operationsAlertDefinitions(): array {
         'bahar_private_storage_failure'=>['severity'=>'critical','threshold'=>1,'cooldown'=>60,
           'name'=>'Unexpected encrypted BAHAR private storage failure','sensor'=>'on_error_after_owner_opt_in'],
         'bahar_eligibility_queue_failure'=>['severity'=>'warning','threshold'=>1,'cooldown'=>120,
-          'name'=>'Verified adult review queue failed unexpectedly','sensor'=>'on_admin_error_after_owner_opt_in']
+          'name'=>'Verified adult review queue failed unexpectedly','sensor'=>'on_admin_error_after_owner_opt_in'],
+        'bahar_private_erasure_requested'=>['severity'=>'warning','threshold'=>1,'cooldown'=>60,
+          'name'=>'A BAHAR privacy erasure request was recorded','sensor'=>'user_requested_privacy_queue']
     ];
 }
 /**
@@ -36,7 +38,8 @@ function operationsAlertIncidentScopes(string $code,string $component): array {
         'http_5xx_surge'=>['ENG-11','site-runtime-health'],
         'payment_runtime_unavailable'=>['ENG-05','commerce-settlement'],
         'bahar_private_storage_failure'=>['ENG-04','bahar-private-storage-alerts'],
-        'bahar_eligibility_queue_failure'=>['ENG-04','bahar-adult-review-alerts']
+        'bahar_eligibility_queue_failure'=>['ENG-04','bahar-adult-review-alerts'],
+        'bahar_private_erasure_requested'=>['ENG-04','bahar-privacy-erasure-alerts']
     ];
     if($code==='collector_unavailable'){
         $catalogue=function_exists('operationsCollectorCatalogue')
@@ -85,6 +88,9 @@ function operationsAlertScopesAllowed(PDO $pdo,int $at): array {
       ],
       'bahar-adult-review-alerts'=>[
         'fa'=>'خطاهای صف تأیید بزرگسالی','en'=>'BAHAR adult verification queue failures'
+      ],
+      'bahar-privacy-erasure-alerts'=>[
+        'fa'=>'درخواست‌های حذف خصوصی BAHAR','en'=>'New BAHAR privacy erasure requests'
       ]
     ] as $key=>$title){
         $id='feature:'.$key;
@@ -119,7 +125,8 @@ function operationsAlertScopeSnapshot(PDO $pdo,int $at): array {
         // exact effective status that the dispatch gate actually enforces.
         $baharOptIn= in_array($id,[
           'feature:bahar-private-storage-alerts',
-          'feature:bahar-adult-review-alerts'
+          'feature:bahar-adult-review-alerts',
+          'feature:bahar-privacy-erasure-alerts'
         ],true);
         $rows[]=$value+[
             'emailEnabled'=>$explicit===null?!$baharOptIn:$explicit['enabled'],
@@ -138,7 +145,8 @@ function operationsAlertScopeEnabled(PDO $pdo,string $code,string $component): b
     // educational/age-verification alert classes require explicit enablement.
     $educationAlerts=[
       'bahar_private_storage_failure'=>'feature:bahar-private-storage-alerts',
-      'bahar_eligibility_queue_failure'=>'feature:bahar-adult-review-alerts'
+      'bahar_eligibility_queue_failure'=>'feature:bahar-adult-review-alerts',
+      'bahar_private_erasure_requested'=>'feature:bahar-privacy-erasure-alerts'
     ];
     if(isset($educationAlerts[$code])&&
       ($settings[$educationAlerts[$code]]['enabled']??false)!==true)
