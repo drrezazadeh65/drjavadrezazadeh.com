@@ -296,6 +296,17 @@ function baharAccountDecrypt(array $row,string $accountId,array $secret): array 
     if($clean===null)throw new RuntimeException('stored_workbook_invalid');
     return $clean;
 }
+/**
+ * Serialize all sensitive BAHAR reads, writes and consent transitions with
+ * the existing erasure-request transaction using one mother-DB owner row.
+ * This stops a stale concurrent PUT resurrecting private data after erasure.
+ */
+function baharAccountLockOwner(PDO $pdo,string $accountId): void {
+    if(!$pdo->inTransaction())throw new RuntimeException('account_lock_requires_transaction');
+    $lock=$pdo->prepare('SELECT id FROM customer_accounts WHERE id=? FOR UPDATE');
+    $lock->execute([$accountId]);
+    if($lock->fetchColumn()===false)throw new RuntimeException('owner_account_missing');
+}
 function baharAccountLegalHoldClear(PDO $pdo,string $accountId): bool {
     $q=$pdo->prepare("SELECT 1 FROM eco_legal_holds
        WHERE (account_id=? OR subject_id IN
@@ -550,12 +561,7 @@ function baharAccountRoute(string $path,string $verb): never {
             try{
                 // Lock owner account to serialize new writes against a
                 // simultaneous requested-erasure transaction.
-                $ownerLock=$pdo->prepare(
-                  'SELECT id FROM customer_accounts WHERE id=? FOR UPDATE'
-                );
-                $ownerLock->execute([$accountId]);
-                if($ownerLock->fetchColumn()===false)
-                    throw new RuntimeException('owner_account_missing');
+                baharAccountLockOwner($pdo,$accountId);
                 if(baharAccountPendingErasure($pdo,$accountId))
                     throw new DomainException('pending_erasure_blocks_write');
                 if(!baharAccountVerifiedAdult($pdo,$accountId)||
@@ -587,6 +593,7 @@ function baharAccountRoute(string $path,string $verb): never {
                 fail('confirmation_required',422);
             $pdo->beginTransaction();
             try{
+                baharAccountLockOwner($pdo,$accountId);
                 $q=$pdo->prepare("UPDATE eco_consent_records c
                   INNER JOIN eco_consent_notices n ON n.id=c.notice_id
                   SET c.withdrawn_at=UTC_TIMESTAMP(3)
@@ -611,6 +618,13 @@ function baharAccountRoute(string $path,string $verb): never {
                 fail('private_access_not_authorized',403);
             $pdo->beginTransaction();
             try{
+                baharAccountLockOwner($pdo,$accountId);
+                if(!baharAccountFeatureAllowed()||
+                    !baharAccountPolicy($pdo)['enabled']||
+                    !baharAccountVerifiedAdult($pdo,$accountId)||
+                    !baharAccountHasConsent($pdo,$accountId)||
+                    baharAccountPendingErasure($pdo,$accountId))
+                    throw new RuntimeException('private_read_permission_changed');
                 $q=$pdo->prepare('SELECT schema_version,key_reference,cipher_name,
                   encryption_nonce,ciphertext,encryption_tag,row_revision
                   FROM eco_bahar_account_workbooks WHERE owner_account_id=? LIMIT 1');
@@ -642,7 +656,10 @@ function baharAccountRoute(string $path,string $verb): never {
             $cipher=baharAccountEncrypt($workbook,$accountId,$key);
             $pdo->beginTransaction();
             try{
-                if(!baharAccountVerifiedAdult($pdo,$accountId)||
+                baharAccountLockOwner($pdo,$accountId);
+                if(!baharAccountFeatureAllowed()||
+                  baharAccountPendingErasure($pdo,$accountId)||
+                  !baharAccountVerifiedAdult($pdo,$accountId)||
                   !baharAccountPolicy($pdo)['enabled']||
                   !baharAccountHasConsent($pdo,$accountId))
                   throw new RuntimeException('permission_changed');
@@ -705,13 +722,17 @@ function baharAccountRoute(string $path,string $verb): never {
                 fail('deletion_confirmation_required',422);
             $pdo->beginTransaction();
             try{
+                baharAccountLockOwner($pdo,$accountId);
                 if(!baharAccountLegalHoldClear($pdo,$accountId))
                     throw new DomainException('active_legal_hold');
-                $pdo->prepare('DELETE FROM eco_bahar_account_workbooks
-                  WHERE owner_account_id=?')->execute([$accountId]);
+                $delete=$pdo->prepare('DELETE FROM eco_bahar_account_workbooks
+                  WHERE owner_account_id=?');
+                $delete->execute([$accountId]);
+                $deleted=$delete->rowCount()===1;
                 baharAccountAudit($pdo,$accountId,'BAHAR_ACCOUNT_WORKBOOK_DELETED');
                 $pdo->commit();
-                respond(['ok'=>true,'databaseRowDeleted'=>true,
+                respond(['ok'=>true,'databaseRowDeleted'=>$deleted,
+                  'currentRecordAbsent'=>!$deleted,
                   'auditRetained'=>true,'backupErasureNotCertified'=>true,
                   'legalRetentionRightsUnaffected'=>true]);
             }catch(DomainException $e){
