@@ -1754,6 +1754,23 @@ function renderSourceDirectory(parent){
  * unsupported command remains explicitly unavailable, never simulated.
  */
 function renderMasterEngineConsole(host,model){
+ const sourceGrade=(dimension,fa,enLabel)=>{
+   const score=quality?.status==='source_only'?quality.averages?.[dimension]:null;
+   const coverage=quality?.measuredPagesByDimension?.[dimension];
+   if(typeof score!=='number'||!Number.isFinite(score))
+     return absent(t('امتیاز منبعی معتبر موجود نیست','No sourced grade available'));
+   return state(score<6?'attention':'recorded',
+     t(fa,enLabel)+': '+score.toFixed(1)+'/10'+
+       ' · '+t('صفحات دارای امتیاز: ','Scored pages: ')+(coverage??'—'),
+     t('برآورد HTML مخزن؛ داده واقعی کاربران یا رتبه گوگل نیست',
+       'Repository HTML heuristic; not measured user experience or Google ranking'));
+ };
+ const schemaOverview=sourceGrade('schema','اسکیما','Schema');
+ const imageOverview=sourceGrade('image','تصویر و Alt','Images & alt text');
+ const speedOverview=sourceGrade('speed','سرعت','Speed');
+ const uxOverview=sourceGrade('ux','تجربه کاربری','UX');
+ const mobileOverview=sourceGrade('mobile','نسخه موبایل','Mobile');
+ const contentOverview=sourceGrade('content','محتوا','Content');
  const engines=Array.isArray(model.engines)?model.engines:[];
  const actions=Array.isArray(model.actionReports)?model.actionReports:[];
  const providers=Array.isArray(model.providerInventory?.providers)?model.providerInventory.providers:[];
@@ -2216,9 +2233,29 @@ function renderOwnerCommandCenter(){
    descFa:'۱۳ معیار مستقل سئو، محتوا، تصویر، AI، GEO، امنیت و تجربه کاربری',
    descEn:'13 independent SEO, content, media, AI, GEO, security and UX dimensions'},
   {id:'schema',group:'seo',fa:'اسکیما و داده‌های ساختاریافته',eng:'Schema intelligence',
-   target:'jr-intelligence',data:unknown,
-   descFa:'تحلیل نمونه‌ای JSON-LD و canonical؛ دکمه ممیزی مستقل در همین بخش',
-   descEn:'On-demand JSON-LD and canonical inspection in the existing module'},
+   target:'ops-page-quality',data:schemaOverview,load:'schema',
+   descFa:'بررسی کد JSON-LD و داده‌های ساختاریافته صفحات؛ بدون ادعای تأیید ریچ‌ریزلت گوگل',
+   descEn:'Repository structured-data checks, not verified Google rich-result eligibility'},
+  {id:'images',group:'seo',fa:'کیفیت تصاویر و متن جایگزین',eng:'Images & alternative text',
+   target:'ops-page-quality',data:imageOverview,load:'image',
+   descFa:'شناخت صفحات دارای خلأ تصویر و alt؛ مرتب‌سازی بر اساس ضعف منبع',
+   descEn:'Review source-markup image and alt-text gaps page by page'},
+  {id:'speed',group:'seo',fa:'سرعت و عملکرد سایت',eng:'Speed & performance',
+   target:'ops-page-quality',data:speedOverview,load:'speed',
+   descFa:'امتیاز تنها در صورت داشتن شاهد معتبر PageSpeed؛ داده میدانی نامشخص می‌ماند',
+   descEn:'Only evidenced PageSpeed lab data; unknown field performance remains unknown'},
+  {id:'ux',group:'seo',fa:'رابط و تجربه کاربری',eng:'UI & UX quality',
+   target:'ops-page-quality',data:uxOverview,load:'ux',
+   descFa:'مرتب‌سازی مشکلات ساختاری UX؛ نه ادعای انجام آزمون کاربری واقعی',
+   descEn:'Structural UX triage, not measured human usability testing'},
+  {id:'mobile',group:'seo',fa:'کیفیت نسخه موبایل',eng:'Mobile quality',
+   target:'ops-page-quality',data:mobileOverview,load:'mobile',
+   descFa:'امتیاز شاخص‌های استاتیک موبایل و اولویت‌بندی صفحات نیازمند بررسی',
+   descEn:'Source-level mobile checks and pages needing further verification'},
+  {id:'content',group:'seo',fa:'کیفیت محتوای صفحات',eng:'Page content quality',
+   target:'ops-page-quality',data:contentOverview,load:'content',
+   descFa:'تحلیل کیفیت ساختاری محتوا؛ جدا از اعتبار علمی و اصالت متن',
+   descEn:'Source-structure content analysis; not academic validity or authorship proof'},
   {id:'keyword',group:'seo',fa:'کلیدواژه‌ها و نقشه محتوایی',eng:'Keyword & content map',
    target:'jr-intelligence',data:keywordOverview,load:'keyword',
    descFa:'توزیع کلیدواژه و برنامه محتوایی مبتنی بر منبع، مجزا از رتبه واقعی',
@@ -2735,6 +2772,11 @@ function renderOwnerCommandCenter(){
     sourceControlState=await api('/source-controls');
     sourceDirectoryExpanded=true;}
    else if(item.load==='quality'){await loadQualityIndex();}
+   else if(['schema','image','speed','ux','mobile','content'].includes(item.load)){
+     qualityFilters.dimension=item.load==='schema'?'schema':item.load;
+     qualityFilters.page=1;qualityResult=null;qualityDetail=null;qualityExpanded=true;
+     await loadQualityIndex();
+   }
    else if(['commerce','social','gsc','ai','audit','journal','growth','keyword','free'].includes(item.load)){
      const routes={commerce:'/commerce',social:'/social',gsc:'/gsc-direct',
        ai:'/ai-visibility',audit:'/audit-timeline',journal:'/jhela/maturity',
