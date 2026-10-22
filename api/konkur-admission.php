@@ -42,10 +42,11 @@ INNER JOIN eco_admission_documents d
   ON d.id=dp.document_id AND d.cycle_id=c.id
   AND d.document_review_state='QA_APPROVED'
   AND d.reviewed_by_account_id IS NOT NULL AND d.reviewed_at IS NOT NULL
-  AND d.original_pdf_sha256 IS NOT NULL
+  AND d.original_pdf_sha256 REGEXP '^[a-f0-9]{64}$'
+  AND d.revision_no>0 AND dp.pdf_page_number>0
 WHERE p.review_state='APPROVED'
   AND p.approved_by_account_id IS NOT NULL AND p.approved_at IS NOT NULL
-  AND p.normalized_row_sha256 IS NOT NULL
+  AND p.normalized_row_sha256 REGEXP '^[a-f0-9]{64}$'
   AND p.conditions_review_state='COMPLETE'
   AND p.conditions_reviewed_by_account_id IS NOT NULL
   AND p.conditions_reviewed_at IS NOT NULL
@@ -71,12 +72,16 @@ WHERE p.review_state='APPROVED'
         condition_record.review_state <> 'APPROVED'
         OR condition_record.approved_by_account_id IS NULL
         OR condition_record.approved_at IS NULL
+        -- LEFT JOIN absence returns UNKNOWN for cp.review_state <> 'REVIEWED';
+        -- explicitly refuse orphaned conditions rather than publishing them.
+        OR cp.id IS NULL OR cd.id IS NULL
         OR cp.page_review_state <> 'REVIEWED'
         OR cp.reviewed_by_account_id IS NULL OR cp.reviewed_at IS NULL
         OR cd.document_review_state <> 'QA_APPROVED'
         OR cd.cycle_id <> c.id
         OR (cd.examination_group_code IS NOT NULL AND cd.examination_group_code<>p.examination_group_code)
-        OR cd.original_pdf_sha256 IS NULL
+        OR cd.original_pdf_sha256 NOT REGEXP '^[a-f0-9]{64}$'
+        OR cd.revision_no<1 OR cp.pdf_page_number<1
         OR cd.reviewed_by_account_id IS NULL OR cd.reviewed_at IS NULL
         OR EXISTS (SELECT 1 FROM eco_admission_documents amendment WHERE amendment.supersedes_document_id=cd.id)
       )
@@ -110,7 +115,8 @@ INNER JOIN eco_admission_documents cd
   ON cd.id=cp.document_id AND cd.cycle_id=p.cycle_id
   AND cd.document_review_state='QA_APPROVED'
   AND cd.reviewed_by_account_id IS NOT NULL AND cd.reviewed_at IS NOT NULL
-  AND cd.original_pdf_sha256 IS NOT NULL
+  AND cd.original_pdf_sha256 REGEXP '^[a-f0-9]{64}$'
+  AND cd.revision_no>0 AND cp.pdf_page_number>0
 WHERE oc.offering_id=?
   AND oc.review_state='APPROVED'
   AND oc.approved_by_account_id IS NOT NULL AND oc.approved_at IS NOT NULL
