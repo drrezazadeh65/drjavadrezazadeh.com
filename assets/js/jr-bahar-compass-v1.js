@@ -175,7 +175,7 @@
     const a=document.createElement('a');
     a.href=url;a.download='bahar-private-workbook.json';a.hidden=true;
     document.body.append(a);a.click();a.remove();
-    URL.revokeObjectURL(url);
+    window.setTimeout(()=>URL.revokeObjectURL(url),10000);
     notify(messages.exported);
   });
   fileInput.addEventListener('change',async()=>{
@@ -196,6 +196,7 @@
         &&(!(dateOK(weekly.weekStart))||!bounded(weekly.goal)
           ||!bounded(weekly.action)||!bounded(weekly.evidence)))throw new Error('invalid-weekly');
       // Validation completes before mutating the displayed workbook.
+      $('clear-plan')?.click();
       compass=raw.compass?{
         goal:raw.compass.goal,successEvidence:raw.compass.successEvidence,
         context:raw.compass.context
@@ -217,6 +218,7 @@
   });
   $('bahar-clear-workbook').addEventListener('click',()=>{
     compass=null;entries.splice(0,entries.length);
+    $('clear-plan')?.click();
     form.reset();reflectionForm.reset();
     render();notify(messages.removed);
     $(fields.goal).focus();
