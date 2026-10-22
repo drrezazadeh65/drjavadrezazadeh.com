@@ -26,8 +26,15 @@ export function normalizeCandidateScorecard(input){
  if(!['HUMANITIES','EXPERIMENTAL','MATHEMATICS','ARTS','LANGUAGES'].includes(examGroup))issues.push('INVALID_EXAMINATION_GROUP');
  if(!Array.isArray(input.subjects)||input.subjects.length>40)issues.push('INVALID_SUBJECTS');
  const subjects=[];
+ const seenSubjectCodes=new Set();
  if(Array.isArray(input.subjects)&&input.subjects.length<=40)for(const s of input.subjects){
   if(!s||typeof s!=='object'||typeof s.subjectCode!=='string'||!/^[A-Z0-9_-]{1,40}$/.test(s.subjectCode)) {issues.push('INVALID_SUBJECT_CODE');continue;}
+  // Repeating the same named subject is not extra independent evidence.
+  // Do not silently count it twice when forming downstream descriptions.
+  if(seenSubjectCodes.has(s.subjectCode)){
+   issues.push('DUPLICATE_SUBJECT_CODE');continue;
+  }
+  seenSubjectCodes.add(s.subjectCode);
   const percent=s.percent;
   if(percent!==null&&percent!==undefined&&!finiteInRange(percent,-33.34,100))issues.push('INVALID_SUBJECT_PERCENT');
   subjects.push(Object.freeze({subjectCode:s.subjectCode,percent:finiteInRange(percent,-33.34,100)?percent:null}));
