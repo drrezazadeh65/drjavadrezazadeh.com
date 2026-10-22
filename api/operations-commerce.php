@@ -8,6 +8,57 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
  * physical inventory or actual fulfilment, and never reveals customer PII.
  * The caller must enforce verified admin role and fresh TOTP MFA.
  */
+/**
+ * Claim-matched offer popularity from the EXISTING orders+claims, not sales
+ * conversion, audience analytics, fulfilment or bank settlement. Read-only.
+ * JSON_TABLE is available in MySQL 8 / MariaDB 10.11; older hosts fail
+ * closed for this OPTIONAL projection, never for checkout or other KPIs.
+ */
+function operationsCommercePopularOffers(PDO $pdo): array {
+    try {
+        $sql="SELECT jt.sku,jt.kind,
+              COUNT(DISTINCT o.id) AS orders_count,
+              COALESCE(SUM(jt.quantity),0) AS units_count
+              FROM commerce_orders o
+              JOIN JSON_TABLE(
+                  CASE WHEN JSON_VALID(o.items_json)=1 THEN o.items_json ELSE '[]' END,
+                  '$[*]' COLUMNS (
+                      sku VARCHAR(80) PATH '$.sku',
+                      kind VARCHAR(32) PATH '$.kind',
+                      quantity INT PATH '$.quantity'
+                  )
+              ) AS jt
+              WHERE o.state='paid' AND jt.sku IS NOT NULL
+                AND jt.quantity BETWEEN 1 AND 20
+                AND EXISTS (
+                    SELECT 1 FROM commerce_payment_claims pc
+                    WHERE pc.order_id=o.id AND pc.provider='bitpay'
+                      AND pc.transaction_id=o.provider_trans_id
+                      AND pc.verified_amount=o.provider_amount
+                )
+              GROUP BY jt.sku,jt.kind
+              ORDER BY units_count DESC,orders_count DESC,jt.sku ASC LIMIT 15";
+        $rows=$pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $offers=[];
+        foreach($rows as $row){
+            $sku=(string)($row['sku']??'');
+            if($sku===''||strlen($sku)>80||preg_match('/[\x00-\x1F\x7F]/',$sku))continue;
+            $offers[]=['sku'=>$sku,
+                'kind'=>substr((string)($row['kind']??'unknown'),0,32),
+                'matchedOrders'=>(int)$row['orders_count'],
+                'units'=>(int)$row['units_count']];
+        }
+        return ['status'=>'internal_provider_claim_matches_only',
+            'offers'=>$offers,'limit'=>15,
+            'settlementVerified'=>false,
+            'scope'=>'all_time_ledger_without_buyer_identity'];
+    }catch(Throwable $e){
+        return ['status'=>'query_unavailable','offers'=>null,
+            'settlementVerified'=>false,
+            'note'=>'No popularity data inferred from absent/unavailable SQL JSON adapter.'];
+    }
+}
+
 function operationsCommerceSnapshot(PDO $pdo, int $at): array {
     $snapshot=[
         'ok'=>true,
@@ -413,6 +464,10 @@ function operationsCommerceSnapshot(PDO $pdo, int $at): array {
             'paidStateAmountToman'=>(string)$sales['paid_state_toman'],
             'providerClaimMatchedAmountToman'=>(string)$sales['claim_matched_toman'],
             'providerClaimMatchedOrderCount'=>(int)$sales['claim_matched_count'],
+            'popularOffers'=>operationsCommercePopularOffers($pdo),
+            'recordedOrderPaidStateSharePercent'=>array_sum($states)>0
+                ?round(100*(int)($states['paid']??0)/array_sum($states),1):null,
+            'recordedOrderShareIsNotVisitorConversion'=>true,
             'paidStateOrdersLast7Days'=>(int)$sales['recent_paid_7d'],
             'paidStateOrdersLast30Days'=>(int)$sales['recent_paid_30d'],
             'paidStateAmountLast30DaysToman'=>(string)$sales['recent_paid_toman_30d'],
