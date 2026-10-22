@@ -25,7 +25,7 @@ Every row is an indivisible acceptance concern from the original 2026-10-22 v4.0
 | UX-05/15 | Prominent official-university-options entry, separate from unvalidated estimates | **GATED** | 1405 approved official records before trustworthy public options |
 | UX-06/15 | Prominent “compare university choices” and Choice Studio decision entry | **PARTIAL** | Existing Choice Studio; revisit public need cards and safe actions |
 | UX-07/15 | Prominent “build my development pathway” and Golden Path entry | **PARTIAL** | Existing research-stage Golden Talent/Golden Path, not paid results |
-| UX-08/15,26 | Conversational/help/search entry; does not invent AI responses or official data | **PARTIAL** | Public assistant currently fallback; real AI orchestration GATED |
+| UX-08/15,26 | Conversational/help/search entry; does not invent AI responses or official data | **PARTIAL** | New FA/EN mobile home AI Assistant entry opens existing site concierge if already mounted and otherwise links to the existing need-search field; public assistant currently offline guidance/static fallback, real AI orchestration GATED |
 | UX-09/15,63 | >=90% representative first-user task discovery in five seconds; <=2 taps to first action | **GATED** | Measured user-study protocol and final observations; NOT RUN |
 | GT-01/17 | Keep Golden Talent construct IDs, scoring version and evidence/provenance distinct from labels | **PARTIAL** | Existing Golden Talent science files; independent scientific review required |
 | GT-02/17 | Golden Talent free meaningful first step accessible without purchase | **SOURCE** | fa/en Golden Talent free worksheet; source-only |
@@ -80,7 +80,7 @@ Every row is an indivisible acceptance concern from the original 2026-10-22 v4.0
 | MOB-02/25 | Gold/ivory/charcoal/black, Persian logo, readable contrast, responsive media | **PARTIAL** | Shared premium CSS and icons; visual checks deferred |
 | MOB-03/25 | 44px targets, safe areas, keyboard focus, screen reader, reduced motion and accessible controls | **PARTIAL** | Mobile CSS and semantic source; WCAG audits NOT RUN |
 | MOB-04/25 | Honest loading/errors/empty states, no overflow, too-deep navigation or intrusive popup | **PARTIAL** | Existing dashboard mobile tabs and BAHAR bridge; UX audit NOT RUN |
-| MOB-05/26 | Bottom mobile navigation Home/Explore/AI Assistant/My Account | **PARTIAL** | Current application navigation; confirm this exact four-action global requirement |
+| MOB-05/26 | Bottom mobile navigation Home/Explore/AI Assistant/My Account | **SOURCE** | Both existing FA/EN homepages now have exactly four primary links (Home, need-first Explore, existing assistant launcher with native offline help fallback, existing customer Account); src assets/css/jr-home-primary-dock-v4.css and assets/js/jr-home-primary-dock-v4.js. Header More + existing shop/consultation links preserved; device/installed-PWA acceptance NOT RUN, secondary public-page nav scope still needs separate reconciliation |
 | MOB-06/26 | Compare four versus six need cards in actual usability study | **GATED** | Representative user study NOT RUN |
 | MOB-07/27 | Assessment shows purpose/time/privacy/progress/resume/feedback/next action | **PARTIAL** | Free RCAS assessment; first-run accessibility audit pending |
 | MOB-08/29 | Desktop major services visible and navigable; optional premium mega-menu | **PARTIAL** | Desktop nav and homepage; final browser acceptance NOT RUN |
