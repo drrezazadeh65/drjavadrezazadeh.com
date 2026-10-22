@@ -553,6 +553,27 @@ function renderAlertCenter(host,model){
      ' · '+t('فقط بررسی نام جدول','table names only; not a migration check')));
    if(Array.isArray(tables.missing)&&tables.missing.length)
      preflight.append(el('p',t('جداول غایب: ','Missing tables: ')+tables.missing.join(', ')));
+   const structure=tables.structure||{};
+   preflight.append(el('p',t('بررسی ستون‌ها و ایندکس‌ها: ','Column/index preflight: ')+
+     (structure.state||t('نامشخص','unknown'))+
+     ' · '+t('ستون‌های بررسی‌شده: ','Columns inspected: ')+(structure.checkedColumns??'—')));
+   for(const [key,titleFa,titleEn] of [
+     ['missingColumns','ستون‌های غایب','Missing columns'],
+     ['typeMismatches','مغایرت نوع ستون','Column type discrepancies'],
+     ['missingIndexes','ایندکس‌های غایب','Missing indexes']
+   ]){
+     const problems=structure[key];
+     if(Array.isArray(problems)&&problems.length){
+       const group=el('details');
+       group.append(el('summary',t(titleFa,titleEn)+' ('+problems.length+')'));
+       const items=el('ul');
+       for(const issue of problems.slice(0,80))items.append(el('li',issue));
+       group.append(items);preflight.append(group);
+     }
+   }
+   preflight.append(el('small',t(
+     'این بررسی فقط حضور ستون، نوع پایه و نام ایندکس است؛ سازگاری کلید خارجی و داده‌ها به آزمون نهایی نیاز دارد.',
+     'Read-only column base-type and named-index check; foreign keys and runtime data remain unverified.')));
    const workerList=el('ul');
    for(const worker of activation.workers||[]){
      const last=worker.lastObservedAt===null?t('بدون شاهد','No evidence'):date(worker.lastObservedAt);
