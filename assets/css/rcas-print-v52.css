@@ -22,3 +22,34 @@
   .rcas-insight-card{break-inside:avoid;box-shadow:none!important;border:1px solid #ccc!important}
   .rcas-print-privacy{position:absolute;inset-inline:0;top:auto;line-height:1.7;font-size:11pt}
 }
+
+
+/* User-controlled privacy erasure remains visible from every RCAS step.
+   The action resets ONLY this browser's unanswered/research-stage form. */
+.rcas-privacy-reset{
+ margin-block:clamp(18px,3vw,34px);
+ padding:clamp(14px,2.3vw,21px);
+ border:1px solid rgba(209,174,99,.48);
+ border-radius:14px;background:rgba(28,29,31,.76);
+ display:grid;grid-template-columns:minmax(0,1fr);gap:10px;
+}
+.rcas-privacy-reset .button{
+ min-height:48px;max-width:max-content;padding:10px 17px;
+ font:inherit;font-weight:700;line-height:1.7;
+ border:1px solid #e3c386;border-radius:11px;
+ background:#25282b;color:#f9e2af;cursor:pointer;
+}
+.rcas-privacy-reset .button:focus-visible{
+ outline:3px solid #f3d9a6;outline-offset:3px;
+}
+.rcas-privacy-reset p{
+ margin:0;line-height:1.85;max-width:80ch;
+ color:#eee1c7;overflow-wrap:anywhere;
+}
+@media(max-width:430px){
+ .rcas-privacy-reset{padding:14px 11px}
+ .rcas-privacy-reset .button{
+  width:100%;max-width:none;min-height:48px
+ }
+}
+@media print{.rcas-privacy-reset{display:none!important}}
