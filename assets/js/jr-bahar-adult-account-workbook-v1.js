@@ -20,6 +20,37 @@
   let identity=null,localDraft=null,readEpoch=0,busy=false,controller=null;
   const active=()=>root.open&&!document.hidden;
   const setState=value=>{state.textContent=value;};
+  const erasureNote=document.createElement('p');
+  erasureNote.className='jr-adult-bahar-account__privacy-request';
+  erasureNote.setAttribute('aria-live','polite');
+  erasureNote.hidden=true;
+  state.insertAdjacentElement('afterend',erasureNote);
+  function showErasureProgress(request,available){
+    erasureNote.hidden=true;erasureNote.textContent='';
+    if(available!==true){
+      erasureNote.textContent=T(
+        'وضعیت پیگیری درخواست‌های حریم خصوصی فعلاً قابل دریافت نیست.',
+        'Your privacy-request history is temporarily unavailable.'
+      );
+      erasureNote.hidden=false;return;
+    }
+    if(!request)return;
+    if(!/^[0-9a-f-]{36}$/i.test(request.id||'')||
+      !['RECEIVED','PENDING','IN_REVIEW','BLOCKED','COMPLETED'].includes(request.state))
+      return;
+    const stateLabel=request.state==='COMPLETED'
+      ?T('درخواست قبلی تکمیل شده است؛ پشتیبان و سوابق قانونی جداگانه مدیریت می‌شوند.',
+          'Your latest request is complete. Backup and legal retention remain separate.')
+      :request.state==='BLOCKED'
+        ?T('درخواست شما در صف رسیدگی است و تا رفع محدودیت قانونی بررسی می‌شود.',
+            'Your request is awaiting owner review while a legal hold remains.')
+        :T('درخواست شما ثبت شده و در دست پیگیری است.',
+            'Your privacy request is recorded and being reviewed.');
+    erasureNote.textContent=stateLabel+
+      T(' · کد پیگیری: ',' · Reference: ')+request.id;
+    erasureNote.hidden=false;
+  }
+
   const short=value=>String(value||'').slice(0,145);
   function restrict(){
     const eligible=identity?.ok===true &&
@@ -62,6 +93,7 @@
     requestAdult.disabled=true;
     cancelAdult.hidden=true;cancelAdult.disabled=true;
     notice.replaceChildren();preview.replaceChildren();
+    showErasureProgress(null,true);
     setState(note||T('تا زمانی که خودتان درخواست نکنید، هیچ داده حسابی خوانده نمی‌شود.',
       'No account data is requested until you explicitly choose to inspect it.'));
     restrict();
@@ -97,12 +129,18 @@
         typeof result.eligibilityRequestState!=='string'||
         typeof result.canRequestIndependentAdultReview!=='boolean'||
         typeof result.canCancelPendingAdultReview!=='boolean'||
+        typeof result.privacyRequestLedgerAvailable!=='boolean'||
+        (result.latestErasureRequest!==null &&
+           (typeof result.latestErasureRequest!=='object'||
+             typeof result.latestErasureRequest.id!=='string'))||
         result.contentReturned!==false||
         (result.workbookRevision!==null &&
           (!Number.isSafeInteger(result.workbookRevision)||
             result.workbookRevision<0)))
         throw Error('INCOMPATIBLE');
       identity=result;
+      showErasureProgress(result.latestErasureRequest,
+        result.privacyRequestLedgerAvailable);
       notice.replaceChildren();
       const n=result.privacyNotice;
       if(n&&typeof n.text==='string'&&typeof n.sha256==='string'&&
@@ -569,6 +607,11 @@
            result.backupErasureCertified!==false||
            result.noUnrelatedAccountDataDeleted!==true)
            throw Error('ERASURE_REQUEST_UNCONFIRMED');
+        identity.latestErasureRequest={
+          id:result.requestId,state:result.requestStatus
+        };
+        identity.privacyRequestLedgerAvailable=true;
+        showErasureProgress(identity.latestErasureRequest,true);
         if(result.requestStatus==='COMPLETED'){
           localDraft=null;identity.workbookRevision=0;
           preview.replaceChildren();restrict();
