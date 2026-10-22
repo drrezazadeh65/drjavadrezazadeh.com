@@ -582,3 +582,22 @@ body .ops-top h1{letter-spacing:-.018em;line-height:1.45}
     background:#fff;color:#111;box-shadow:none
   }
 }
+
+/* Focused policy comes from the manager's stored evidence ledger.
+   The focus ring is applied only to the chosen editable source row. */
+#ops-collection-settings .ops-collector-item.ops-policy-focused{
+  outline:3px solid #f0d18d;outline-offset:4px;
+  border-radius:10px;scroll-margin-block:100px;
+  background:rgba(240,209,141,.08)
+}
+#ops-collection-settings .ops-collector-item.ops-policy-focused:focus-visible{
+  outline-width:4px
+}
+/* Keep the complete index discoverable without overwhelming the first screen. */
+#ops-command-center .oc-department .oc-control-scope{
+  font-size:.75rem;line-height:1.6;
+  color:#c7d4e1;border-top:1px solid rgba(211,224,238,.15);
+  padding-top:9px
+}
+#ops-command-center .oc-department .oc-open{min-width:126px}
+#ops-command-center .oc-triage-row button{min-height:44px}
