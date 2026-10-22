@@ -120,3 +120,43 @@
 .jr-edu-evidence-review :is(summary,button,input):focus-visible{outline:3px solid #fff;outline-offset:3px}
 @media(max-width:670px){.jr-edu-evidence-review__files,.jr-edu-evidence-review__digests{grid-template-columns:1fr}}
 @media print{.jr-edu-evidence-review{display:none!important}}
+
+/* Stage 6: owner-only per-offer educational release preparation.
+ * "Ready for review" is not scientific approval or commerce activation. */
+.jr-edu-release-gates{margin-top:24px;padding-top:20px;border-top:1px solid #9b8257}
+.jr-edu-release-gates>h3{font-size:clamp(1.12rem,3.5vw,1.5rem);color:#efd49c;margin:0 0 10px}
+.jr-edu-release-gates>p{line-height:1.8}
+.jr-edu-release-gates [data-edu-release-refresh],
+.jr-edu-release-gates [data-edu-release-save]{
+ min-height:48px;padding:11px 16px;font:inherit;font-weight:750;
+ border-radius:12px;border:1px solid #e4c886;background:#e4c886;
+ color:#231e14;cursor:pointer;touch-action:manipulation}
+.jr-edu-release-gates button:disabled{opacity:.52;cursor:not-allowed}
+.jr-edu-release__cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0 24px}
+.jr-edu-release__card{display:flex;flex-direction:column;min-width:0;gap:7px;
+ background:#232a33;color:#f9f1df;border:1px solid #887654;border-radius:15px;padding:16px}
+.jr-edu-release__title{font-size:1.02rem;color:#ffe0a1;line-height:1.55}
+.jr-edu-release__code{font-size:.79rem;opacity:.8;overflow-wrap:anywhere}
+.jr-edu-release__progress{font-weight:750;margin:4px 0;color:#f4d49a}
+.jr-edu-release__attention{margin:4px 0;color:#f4d7b1}
+.jr-edu-release__notice{font-size:.86rem;color:#ded2bc}
+.jr-edu-release__jump{margin-top:auto;align-self:flex-start;border:1px solid #c5ab75!important;
+ padding:9px 13px;background:transparent!important;color:#ffe6b0!important;border-radius:10px;
+ min-height:44px;font:inherit;font-weight:700;cursor:pointer}
+.jr-edu-release-gates [data-edu-release-form]{display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:10px 0}
+.jr-edu-release-gates [data-edu-release-form]>label{min-width:0;display:flex;flex-direction:column;gap:8px;
+ color:#f1dfbd;font-weight:720}
+.jr-edu-release-gates :is(select,input[type=text],textarea){
+ min-height:48px;padding:10px 12px;border:1px solid #b29b69;border-radius:11px;
+ background:#1b2028;color:#fffaf0;font:inherit;font-size:16px;max-width:100%;width:100%}
+.jr-edu-release-gates textarea{min-height:100px;resize:vertical;line-height:1.8}
+.jr-edu-release-gates [data-edu-release-form] .jr-edu-offers__toolbar{grid-column:1/-1}
+.jr-edu-release-gates [data-edu-release-status]{padding:13px 15px;
+ border-inline-start:4px solid #dbc18a;background:#332d23;border-radius:9px;line-height:1.8}
+.jr-edu-release-gates :is(button,select,input,textarea):focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media(max-width:880px){.jr-edu-release__cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.jr-edu-release__cards{grid-template-columns:1fr}
+ .jr-edu-release-gates [data-edu-release-form]{grid-template-columns:1fr}
+ .jr-edu-release__jump,.jr-edu-release-gates [data-edu-release-save]{align-self:stretch;width:100%}}
+@media print{.jr-edu-release-gates{display:none!important}}
