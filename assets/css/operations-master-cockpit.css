@@ -672,3 +672,39 @@ body .ops-top h1{letter-spacing:-.018em;line-height:1.45}
  #ops-command-center .oc-source-list{grid-template-columns:minmax(0,1fr)}
  #ops-command-center .oc-source-actions button{flex:1 1 100%}
 }
+
+/* Alert policy evidence: independent central OFF / per-rule / sensor states. */
+#ops-command-center .oc-alert-matrix{
+ margin-block:15px;padding:12px;min-width:0;
+ border:1px solid var(--oc-edge);border-radius:15px;
+ background:rgba(7,17,30,.62)
+}
+#ops-command-center .oc-alert-matrix>summary{
+ cursor:pointer;color:var(--oc-ink);font-weight:750;padding:5px 2px;
+ line-height:1.65;overflow-wrap:anywhere
+}
+#ops-command-center .oc-alert-matrix>p{color:var(--oc-muted);font-size:.84rem;line-height:1.7}
+#ops-command-center .oc-alert-master{
+ border-inline-start:4px solid var(--oc-gold);
+ background:rgba(240,209,141,.06);padding:11px;border-radius:10px
+}
+#ops-command-center .oc-alert-master[data-mail-enabled="on"]{
+ border-inline-start-color:#9ee0cb
+}
+#ops-command-center .oc-alert-master :is(strong,small){display:block;line-height:1.6}
+#ops-command-center .oc-alert-rules{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px
+}
+#ops-command-center .oc-alert-rule{
+ border:1px solid rgba(210,220,236,.15);border-radius:12px;
+ background:var(--oc-surface);padding:12px;min-width:0
+}
+#ops-command-center .oc-alert-rule :is(strong,p,small){
+ display:block;overflow-wrap:anywhere;line-height:1.6
+}
+#ops-command-center .oc-alert-rule strong{color:var(--oc-gold)}
+#ops-command-center .oc-alert-rule :is(p,small){color:var(--oc-muted);font-size:.79rem;margin-block:8px}
+#ops-command-center .oc-alert-rule button{width:100%;font-size:.8rem}
+@media(max-width:740px){
+ #ops-command-center .oc-alert-rules{grid-template-columns:minmax(0,1fr)}
+}
