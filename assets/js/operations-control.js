@@ -26,7 +26,7 @@ function safeEvidenceUrl(value){
 }
 async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
-function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
+function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
 $('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
@@ -397,6 +397,7 @@ function githubAuditRender(host){
 }
 
 let alertCenterExpanded=true,alertCenterCurrent=null,httpHealthCurrent=null;
+let alertScopeKind='engine',alertScopeQuery='',alertScopesExpanded=false;
 async function refreshAlertCenter(){
  const generation=loadGeneration;
  const next=await api('/alerts');
@@ -557,6 +558,90 @@ function renderAlertCenter(host,model){
      }
      ul.append(li);
    }rules.append(ul);section.append(rules);
+   const scopeData=data.scopeControls;
+   const scopePanel=el('details',undefined,'ops-alert-scope-panel');
+   scopePanel.id='ops-alert-email-controls';
+   scopePanel.open=alertScopesExpanded;
+   scopePanel.addEventListener('toggle',()=>{alertScopesExpanded=scopePanel.open;});
+   scopePanel.append(el('summary',t('تنظیم مستقل ایمیل هر موتور، قابلیت و منبع',
+     'Independent email controls for each engine, capability and source')));
+   scopePanel.append(el('p',t(
+     'خاموش‌کردن ایمیل، موتور یا ثبت رخداد را خاموش نمی‌کند. ایمیل هر بخش علاوه بر کلید عمومی و نوع خطا بررسی می‌شود. منابع بدون حسگر فعال ایمیل واقعی ارسال نمی‌کنند.',
+     'Disabling email does not stop the engine or its incident ledger. A scope switch, global switch and event policy all gate delivery. Sources without an active sensor cannot generate an alert.')));
+   if(scopeData?.status==='available'&&Array.isArray(scopeData.rows)){
+     const items=scopeData.rows,controls=el('div',undefined,'ops-toolbar');
+     const kind=el('select');kind.setAttribute('aria-label',t('گروه قابلیت','Scope group'));
+     for(const [value,label] of [
+       ['engine',t('۱۳ موتور اصلی','13 main engines')],
+       ['feature',t('قابلیت‌های داخلی','Existing capabilities')],
+       ['source',t('ابزارهای خارجی و منابع','External tools and feeds')]]){
+       const opt=el('option',label);opt.value=value;kind.append(opt);
+     }
+     kind.value=alertScopeKind;
+     const query=el('input');query.type='search';
+     query.setAttribute('aria-label',t('جستجوی قابلیت','Search capability'));
+     query.placeholder=t('نام قابلیت یا شناسه','Name or identifier');
+     query.value=alertScopeQuery;
+     controls.append(kind,query);scopePanel.append(controls);
+     const list=el('div',undefined,'ops-alert-scope-list');
+     const status=el('p',undefined,'ops-muted');scopePanel.append(status,list);
+     const renderRows=()=>{
+       list.replaceChildren();
+       const q=alertScopeQuery.trim().toLocaleLowerCase();
+       const filtered=items.filter(scope=>
+         scope.kind===alertScopeKind &&
+         (!q||(scope.id+' '+scope.nameFa+' '+scope.nameEn).toLocaleLowerCase().includes(q)));
+       status.textContent=t('نتیجه: ','Showing: ')+filtered.length+'/'+
+         items.filter(scope=>scope.kind===alertScopeKind).length+
+         ' · '+t('خاموش/روشن‌کردن صرفاً مربوط به ارسال ایمیل است',
+                'Toggle applies to email delivery only');
+       for(const scope of filtered){
+         const row=el('div',undefined,'ops-alert-scope-row');
+         const label=el('div');
+         label.append(el('strong',en?scope.nameEn:scope.nameFa),
+           el('small',scope.id+' · '+(scope.parent||'ENG master')));
+         label.append(el('small',scope.available
+           ?t('قابلیت در کد تعریف شده؛ ایمیل وابسته به شواهد است',
+              'Capability registered; emails still require incident evidence')
+           :t('پایش زنده این بخش هنوز تأیید نشده',
+              'No independently verified incident sensor for this component')));
+         const indicator=el('span',scope.emailEnabled?
+           t('ایمیل مجاز','Email allowed'):t('ایمیل خاموش','Email disabled'),
+           'ops-alert-state');
+         row.append(label,indicator);
+         if(data.canManage===true){
+           const toggle=el('button',scope.emailEnabled?
+             t('خاموش کردن ایمیل','Turn off email'):t('روشن کردن ایمیل','Turn on email'));
+           toggle.type='button';
+           toggle.setAttribute('aria-label',(scope.emailEnabled?
+             t('غیرفعال‌سازی اعلان ','Disable emails for '):
+             t('فعال‌سازی اعلان ','Enable emails for '))+(en?scope.nameEn:scope.nameFa));
+           toggle.addEventListener('click',async()=>{
+             toggle.disabled=true;const generation=loadGeneration;
+             try{
+               const updated=await api('/alert-scopes',{method:'POST',
+                 headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+                 body:JSON.stringify({scopeId:scope.id,enabled:!scope.emailEnabled})});
+               if(generation!==loadGeneration||!snapshot)return;
+               alertCenterCurrent={...data,scopeControls:updated};
+               alertScopesExpanded=true;reportingRender();
+               $('ops-alert-email-controls')?.scrollIntoView({block:'nearest'});
+             }catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
+             finally{if(toggle.isConnected)toggle.disabled=false;}
+           });
+           row.append(toggle);
+         }
+         list.append(row);
+       }
+       if(!filtered.length)list.append(el('p',t('موردی یافت نشد','No matching scope')));
+     };
+     kind.addEventListener('change',()=>{alertScopeKind=kind.value;renderRows();});
+     query.addEventListener('input',()=>{alertScopeQuery=query.value;renderRows();});
+     renderRows();
+   }else scopePanel.append(el('p',t(
+     'کنترل‌های ایمیل اختصاصی به نصب جدول مربوط در دیتابیس مادر نیاز دارند.',
+     'Scope-level email controls require provisioning the unified database table.')));
+   section.append(scopePanel);
    const history=el('details');history.append(el('summary',t('تاریخچه خطا و وضعیت ارسال','Incident and email delivery history')));
    const list=el('ul',undefined,'ops-queue');
    for(const incident of incidents.slice(0,30)){
