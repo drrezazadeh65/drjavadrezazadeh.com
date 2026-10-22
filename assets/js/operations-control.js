@@ -2113,15 +2113,17 @@ function renderOwnerCommandCenter(){
    state('recorded',
      t('کلیک ثبت‌شده: ','Recorded clicks: ')+(gsc.metrics?.clicks??'—')+
        ' · '+t('نمایش: ','Impressions: ')+(gsc.metrics?.impressions??'—'),
-     t('فایل خصوصی محلی؛ منشأ گوگل به‌طور مستقل تأیید نشده',
-       'Privately supplied aggregate; Google provenance is not independently attested')):
+     t('فایل خصوصی محلی؛ منشأ گوگل مستقلاً تأیید نشده · زمان: ',
+       'Privately supplied, Google provenance unattested · As of: ')+
+       (gsc.collectedAtUtc||'—')):
    absent(t('گزارش مستقیم معتبر GSC موجود نیست','Verified direct GSC observations unavailable'));
  const ai=ownerCockpitPrivateEvidence.ai;
  const aiOverview=ai?.status==='provider_report_snapshot'?
    state('recorded',t('پاسخ‌های نمونه: ','Sampled answers: ')+(ai.sampledAnswers??'—')+
      ' · '+t('ذکر برند: ','Brand mentions: ')+(ai.brandMentions??'—'),
-     t('نمونه محدود و تاریخ‌دار؛ استناد و همه موتورهای AI اندازه‌گیری نشده',
-       'Limited dated sample; citations and other AI providers remain unmeasured')):
+     t('نمونه محدود؛ استناد و سایر موتورهای AI اندازه‌گیری نشده · تاریخ: ',
+       'Limited sample, citations and other AI tools unmeasured · Date: ')+
+       (ai.retrievedOn||'—')):
    absent(t('نمونه معتبر حضور برند موجود نیست','AI visibility sample unavailable'));
  const journal=ownerCockpitPrivateEvidence.journal;
  const journalOverview=journal?.schema==='jhela-owner-maturity-snapshot-v1'
