@@ -39,13 +39,19 @@
       input.disabled=!allowed;
     save.disabled=!allowed;
   }
-  function reset(){
-    ++serial;controller?.abort();controller=null;
-    observed=null;rows=new Map();busy=false;refresh.disabled=false;
-    exportCsv.disabled=true;
+  function forgetUnverifiedOverview(){
+    // Do not leave old preparation statuses or old revision tokens visible
+    // after MFA expiration, a failed authoritative read or an uncertain save.
+    observed=null;rows=new Map();exportCsv.disabled=true;
     editable(false);
     cards.replaceChildren();offerSelect.replaceChildren();gateSelect.replaceChildren();
     summary.textContent='';
+    save.removeAttribute('data-revision');
+    note.value='';digest.value='';
+  }
+  function reset(){
+    ++serial;controller?.abort();controller=null;busy=false;
+    forgetUnverifiedOverview();refresh.disabled=false;
     status.textContent=T('هنوز گزارش آماده‌سازی خدمات دریافت نشده است.',
       'No preparation data has been requested.');
   }
@@ -194,6 +200,9 @@
     if(!active()||busy)return false;
     const generation=++serial;controller?.abort();
     controller=new AbortController();busy=true;refresh.disabled=true;
+    const activeController=controller;
+    let timedOut=false;
+    const timeout=setTimeout(()=>{timedOut=true;activeController.abort();},15000);
     editable(false);
     status.textContent=T('در حال دریافت پیشرفت واقعی از دیتابیس مادر…',
       'Reading real owner preparation from the mother database…');
@@ -202,16 +211,20 @@
       if(generation!==serial||!active())return false;
       busy=false;draw(value);return true;
     }catch(error){
-      if(generation!==serial||error?.name==='AbortError')return false;
-      observed=null;rows.clear();editable(false);exportCsv.disabled=true;
-      cards.replaceChildren();summary.textContent='';
-      status.textContent=error?.message==='MFA'
-        ?T('برای مشاهده و تغییر وضعیت، کد دومرحله‌ای معتبر مدیر لازم است.',
-          'Recent administrator MFA is required.')
-        :T('اطلاعات منبع قابل تأیید نیست. هیچ بخشی آماده یا فعال فرض نمی‌شود.',
-          'Source unavailable. No preparation or activation is assumed.');
+      if(generation!==serial||!active())return false;
+      if(error?.name==='AbortError'&&!timedOut)return false;
+      forgetUnverifiedOverview();
+      status.textContent=timedOut
+        ?T('مهلت ۱۵ثانیه‌ای دریافت دفتر آماده‌سازی پایان یافت. داده‌های قبلی پاک شدند؛ مجدداً تازه‌سازی کنید.',
+          'The 15-second ledger read expired. Stale preparation details were cleared; refresh to retry.')
+        :error?.message==='MFA'
+          ?T('مجوز دومرحله‌ای مدیر برای این گزارش لازم است؛ داده‌های قبلی پاک شدند.',
+            'Recent owner MFA is required; earlier preparation data was cleared.')
+          :T('اطلاعات دیتابیس مادر قابل تأیید نیست. هیچ بخشی آماده یا فعال فرض نمی‌شود.',
+            'Mother-database evidence is unavailable. No preparation or activation is assumed.');
       return false;
     }finally{
+      clearTimeout(timeout);
       if(generation===serial){
         busy=false;controller=null;refresh.disabled=false;
         if(observed)renderEditor(true);
@@ -293,6 +306,9 @@
     }
     const generation=++serial;controller?.abort();
     controller=new AbortController();busy=true;refresh.disabled=true;editable(false);
+    const activeController=controller;
+    let timedOut=false;
+    const timeout=setTimeout(()=>{timedOut=true;activeController.abort();},20000);
     status.textContent=T('در حال ذخیره پیشرفت مدیر پس از بررسی احراز دومرحله‌ای…',
       'Saving preparation after fresh MFA verification…');
     try{
@@ -330,18 +346,23 @@
       offerSelect.value=id;renderGates();gateSelect.value=gate;
       renderEditor(true);
       status.textContent=T(
-        'پیشرفت از دیتابیس مادر دوباره خوانده و تأیید شد؛ فروش و انتشار همچنان غیرفعال هستند.',
-        'Owner preparation was independently reread from the mother database. Sales and publication remain OFF.'
+        'ثبت مدیر با خواندن تازه از دیتابیس مادر تطبیق داده شد؛ این تأیید مستقل علمی یا مجوز فروش نیست.',
+        'The owner draft matched a fresh mother-database read. This is not independent scientific approval or permission to sell.'
       );
     }catch(error){
-      if(generation!==serial||error?.name==='AbortError')return;
-      status.textContent=error?.message==='CONFLICT'
-        ?T('این بخش هم‌زمان تغییر کرده است؛ اطلاعات را بازخوانی و سپس ذخیره کنید.',
-          'This gate changed concurrently. Refresh before saving again.')
-        :T('ذخیره یا بازخوانی مستقل تأیید نشد. موفقیت فرض نمی‌شود؛ پیش از ادامه وضعیت را بازخوانی کنید.',
-          'Save or independent reread was not confirmed. Refresh before proceeding.');
-      observed=null;editable(false);
+      if(generation!==serial||!active())return;
+      if(error?.name==='AbortError'&&!timedOut)return;
+      forgetUnverifiedOverview();
+      status.textContent=timedOut
+        ?T('مهلت عملیات پایان یافت؛ ممکن است سرور تغییر را ثبت کرده باشد. پیش از تکرار، وضعیت واقعی را تازه‌سازی کنید.',
+          'The operation timed out and may have committed. Refresh the authoritative record before another write.')
+        :error?.message==='CONFLICT'
+          ?T('این بخش هم‌زمان تغییر کرده است؛ ابتدا وضعیت تازه را بخوانید.',
+            'This preparation row changed concurrently. Refresh before editing.')
+          :T('ذخیره یا بازخوانی تازه تأیید نشد؛ داده‌های قبلی پاک شدند و موفقیت فرض نمی‌شود.',
+            'Save or fresh readback was not confirmed. Previous data was cleared; success is not assumed.');
     }finally{
+      clearTimeout(timeout);
       if(generation===serial){
         busy=false;controller=null;refresh.disabled=false;
         if(observed)renderEditor(true);
