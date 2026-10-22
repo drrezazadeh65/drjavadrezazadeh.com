@@ -372,3 +372,57 @@ test('Audit-only dispatch requires owner confirmation and reports accepted reque
  await expect(page.locator('details.ops-github-audits a').last()).toHaveAttribute('href','https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/12345');
  expect(reconcileCalls).toBe(1);
 });
+
+
+for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
+ test(language+' source-observation labels never certify Cron from due dates alone',async({page})=>{
+  const now=Math.floor(Date.now()/1000);
+  const data=fixture();await authorized(page,{data});
+  const ids=['audit:bertina-master-seo.yml','audit:external-link-monitor.yml',
+    'audit:http-compression-diagnostic.yml','audit:full-route-responsive-certification.yml',
+    'governance:repository','governance:branches','governance:restore_ci','governance:release_runs'];
+  const rows=[...Array.from({length:13},(_,i)=>({
+    id:'ENG-'+String(i+1).padStart(2,'0'),type:'engine',engineId:'ENG-'+String(i+1).padStart(2,'0'),
+    enabled:true,connected:false,cadence:'manual',clockMinutes:210,
+    executionEvidence:'not_applicable',scheduleEvidence:'engine_switch_only'
+  })),...ids.map(id=>({
+    id,type:'source',engineId:'ENG-11',enabled:true,connected:true,
+    cadence:'daily',clockMinutes:210,nextDue:now+3600,
+    cacheState:'missing',executionEvidence:'never_observed',scheduleEvidence:'scheduled_unverified'
+  }))];
+  const first=rows[13];first.cacheState='stale';first.scheduleEvidence='due_unverified';first.nextDue=now-3600;
+  const successful=rows[17];successful.cacheState='fresh';
+  successful.executionEvidence='attempt_recorded';
+  successful.lastAttempt={result:'succeeded',attemptedAt:now-180};
+  const failed=rows[18];failed.cacheState='stale';
+  failed.executionEvidence='last_attempt_failed';failed.scheduleEvidence='due_unverified';
+  failed.nextDue=now-1500;failed.lastAttempt={result:'failed',attemptedAt:now-120};
+  const unknown=rows[19];unknown.executionEvidence='journal_unavailable';
+  const schedule={ok:true,schema:'operations-collection-controls-v1',
+    scheduler:'external_bertina_cron_required',timezone:'Asia/Tehran',
+    attemptJournalStatus:'available',canManage:false,rows,sourceStates:{}};
+  await page.route('**/api/admin/operations/collection-settings',r=>r.fulfill({json:schedule}));
+  await page.setViewportSize({width:360,height:900});
+  await page.goto(base+route);
+  await page.locator('details.ops-github-audits summary').click();
+  await page.locator('details.ops-collection-settings summary').click();
+  await page.locator('details.ops-collection-settings').getByRole('button',{
+    name:language==='fa'?'نمایش تنظیمات و آخرین وضعیت':'Load controls and current status'
+  }).click();
+  const summary=page.locator('[data-ops-collector-summary]');
+  await expect(summary).toContainText(language==='fa'?'کش منقضی: 2':'Expired cache: 2');
+  await expect(summary).toContainText(language==='fa'
+    ?'موعد گذشته، اجرای Cron تأییدنشده: 2':'Due, host Cron unverified: 2');
+  const source=page.locator('[data-collector-scope="audit:bertina-master-seo.yml"]');
+  await expect(source.locator('[data-execution-evidence="never_observed"]')).toBeVisible();
+  await expect(source.locator('[data-schedule-evidence="due_unverified"]')).toBeVisible();
+  const recorded=page.locator('[data-collector-scope="governance:repository"]');
+  await expect(recorded.locator('[data-execution-evidence="attempt_recorded"]')).toBeVisible();
+  const bad=page.locator('[data-collector-scope="governance:branches"]');
+  await expect(bad.locator('[data-execution-evidence="last_attempt_failed"]')).toBeVisible();
+  const noJournal=page.locator('[data-collector-scope="governance:restore_ci"]');
+  await expect(noJournal.locator('[data-execution-evidence="journal_unavailable"]')).toBeVisible();
+  await expect(page.locator('.ops-collector-item')).toHaveCount(21);
+  await noOverflow(page);
+ });
+}
