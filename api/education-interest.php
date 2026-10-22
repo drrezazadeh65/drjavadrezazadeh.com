@@ -179,18 +179,27 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
                         (int)$pending['expires_at']>$now) {
                         $send=false;
                     } else {
-                        $stage=$pdo->prepare('INSERT INTO eco_education_interest_renewals
-                          (lead_id,token_hash,educational_need,preferred_locale,
-                           consent_version,consent_notice_sha256,requested_at,expires_at)
-                          VALUES (?,?,?,?,?,?,?,?)
-                          ON DUPLICATE KEY UPDATE token_hash=VALUES(token_hash),
-                            educational_need=VALUES(educational_need),
-                            preferred_locale=VALUES(preferred_locale),
-                            consent_version=VALUES(consent_version),
-                            consent_notice_sha256=VALUES(consent_notice_sha256),
-                            requested_at=VALUES(requested_at),expires_at=VALUES(expires_at)');
-                        $stage->execute([$id,$verificationHash,$need,$locale,
-                          JR_EDU_INTEREST_NOTICE_VERSION,$noticeHash,$now,$now+48*3600]);
+                        // Do not use an unscoped ON DUPLICATE KEY: the only
+                        // permitted replacement is this locked lead's draft.
+                        if(is_array($pending)) {
+                            $stage=$pdo->prepare('UPDATE eco_education_interest_renewals
+                              SET token_hash=?,educational_need=?,preferred_locale=?,
+                                  consent_version=?,consent_notice_sha256=?,
+                                  requested_at=?,expires_at=? WHERE lead_id=?');
+                            $stage->execute([$verificationHash,$need,$locale,
+                              JR_EDU_INTEREST_NOTICE_VERSION,$noticeHash,
+                              $now,$now+48*3600,$id]);
+                            if($stage->rowCount()!==1)
+                                throw new DomainException('renewal_revision_conflict');
+                        } else {
+                            $stage=$pdo->prepare('INSERT INTO eco_education_interest_renewals
+                              (lead_id,token_hash,educational_need,preferred_locale,
+                               consent_version,consent_notice_sha256,requested_at,expires_at)
+                              VALUES (?,?,?,?,?,?,?,?)');
+                            $stage->execute([$id,$verificationHash,$need,$locale,
+                              JR_EDU_INTEREST_NOTICE_VERSION,$noticeHash,
+                              $now,$now+48*3600]);
+                        }
                         jrInterestConsentEvent($pdo,$id,'SUBMITTED',$noticeHash,$now);
                         $renewal=true;
                     }
