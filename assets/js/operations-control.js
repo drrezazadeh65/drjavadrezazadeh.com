@@ -2031,6 +2031,36 @@ function renderOwnerCommandCenter(){
       t('نتیجه اجرای واقعی را از تاریخچه نمونه‌ها بررسی کنید',
         'Use dated samples, not the policy alone, to verify observations'))
    :absent(t('سیاست حسگر نامشخص','Sensor policy unknown'));
+ const readiness=model.activationReadiness;
+ const workerRows=Array.isArray(readiness?.workers)?readiness.workers:[];
+ const workersRecent=workerRows.filter(x=>x.state==='recent_observation').length;
+ const workersStale=workerRows.filter(x=>x.state==='observation_stale').length;
+ const workersMissing=workerRows.filter(x=>
+   x.state==='schema_not_provisioned'||x.state==='timestamp_invalid').length;
+ const schemaChecks=readiness?.schemaInventory;
+ const smtp=readiness?.smtp;
+ const infrastructureOverview=readiness
+   ?state(workersMissing>0?'attention':'paused',
+     t('ثبت فعالیت اخیر: ','Recently recorded workers: ')+workersRecent+
+     ' / '+workerRows.length+' · '+t('Cron تأییدشده: ','Verified Cron: ')+'—',
+     t('نمونه اخیر یا تنظیم SMTP به‌معنی نصب Cron یا تحویل ایمیل نیست. نمونه منقضی: ',
+       'A recent row or SMTP settings do not prove Cron or inbox delivery. Stale observations: ')+workersStale)
+   :absent(t('اطلاعات آماده‌سازی سرور موجود نیست','Host readiness unavailable'));
+ const infrastructureTables=schemaChecks?.state==='table_names_observed'?
+   state(Array.isArray(schemaChecks.missing)&&schemaChecks.missing.length?'attention':'recorded',
+     t('جداول موردنیاز: ','Required tables: ')+(schemaChecks.presentCount??'—')+
+       ' / '+(schemaChecks.requiredCount??'—'),
+     t('تنها موجودیِ ساختاری، نه آزمون عملکرد دیتابیس یا پشتیبان قابل‌بازیابی',
+       'Structural inventory only, not database functional or recovery validation'))
+   :absent(t('قرارداد دیتابیس بررسی نشده','Database schema contract unverified'));
+ const mailOverview=smtp
+   ?state('paused',
+     t('SMTP پیکربندی: ','SMTP transport configured: ')+
+       (smtp.transportConfigurationReady?t('بله','Yes'):t('خیر یا نامشخص','No or unknown'))+
+       ' · '+t('دریافت واقعی: ','Inbox receipt: ')+'—',
+     t('گزینه هشدارها خاموش می‌ماند؛ نصب و ارسال فقط با اختیار مدیر و سرور',
+       'Notifications remain opt-in. Delivery requires owner approval and server-side proof'))
+   :absent(t('وضعیت SMTP موجود نیست','SMTP state unavailable'));
  const http=httpHealthCurrent||model.httpHealth;
  const httpOverview=http&&['observed','stale'].includes(http.state)
    ?state(http.state==='stale'?'attention':'recorded',
@@ -2201,6 +2231,18 @@ function renderOwnerCommandCenter(){
    target:'ops-ai-visibility',data:aiOverview,load:'ai',
    descFa:'تفکیک آمادگی کد از حضور واقعی برند در پاسخ موتورهای هوش مصنوعی',
    descEn:'Separates source readiness from measured AI answer mentions'},
+  {id:'hosting',group:'platform',fa:'زیرساخت برتینا و Cron',eng:'Bertina hosting & Cron',
+   target:'ops-alert-center',data:infrastructureOverview,
+   descFa:'شواهد ثبت‌شده چهار Worker؛ Cron سرور، مالک مجوزها و اجرای واقعی جداگانه',
+   descEn:'Four worker histories; distinct from verified host Cron installation'},
+  {id:'dbschema',group:'health',fa:'آمادگی ساختار دیتابیس',eng:'Database schema readiness',
+   target:'ops-alert-center',data:infrastructureTables,
+   descFa:'مقایسه جداول الزامی با موجودی نصب‌شده؛ بدون اجرای خودکار مهاجرت',
+   descEn:'Required table inventory; no automatic database migration'},
+  {id:'mail',group:'platform',fa:'آمادگی SMTP و دریافت ایمیل',eng:'SMTP & email delivery readiness',
+   target:'ops-alert-center',data:mailOverview,
+   descFa:'تفکیک تنظیمات و مسیر ارسال از دریافت واقعی پیام؛ مالک کنترل هر هشدار',
+   descEn:'SMTP configuration is distinct from observed delivery; every alert is owner-governed'},
   {id:'collectors',group:'platform',fa:'گردآوری داده و زمان‌بندی',eng:'Data collection & schedules',
    target:'ops-collection-settings',data:collectorOverview,load:'collection',
    descFa:'کلید اصلی خاموش، زمان تهران، واکشی دستی هر منبع، حذف تشخیصی',
@@ -2422,6 +2464,16 @@ function renderOwnerCommandCenter(){
    action('incidents',1,'هشدارهای نیازمند رسیدگی','Warnings to review',
      alertWarning+' '+t('هشدار ثبت شده','recorded warning(s)'),
      alertWarning+' recorded warning(s)');
+ if(workersMissing>0)
+   action('hosting',1,'موتورهای بدون زیرساخت تأییدشده','Workers needing host review',
+     workersMissing+' '+t('مورد ساختاری یا زمانی نامشخص؛ راه‌اندازی خودکار مجاز نیست',
+       'worker schema/timestamp gap(s); no automatic installation authorized'),
+     workersMissing+' worker schema/timestamp gap(s); auto-install is not authorized');
+ if(Array.isArray(schemaChecks?.missing)&&schemaChecks.missing.length)
+   action('dbschema',1,'جداول عملیاتی ثبت‌نشده','Missing operations tables',
+     schemaChecks.missing.length+' '+t('جدول الزامی در موجودی مشاهده نشد؛ مهاجرت تنها با مجوز',
+       'required table(s) missing; any migration requires explicit approval'),
+     schemaChecks.missing.length+' required table(s) missing; migration requires approval');
  if(typeof dbAttention==='number'&&dbAttention>0)
    action('db',0,'مغایرت‌های دیتابیس','Database discrepancies',
      dbAttention+' '+t('بررسی نیازمند توجه در آخرین اسکن دستی','manual scan checks require attention'),
