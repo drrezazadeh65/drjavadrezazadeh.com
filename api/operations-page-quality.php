@@ -56,6 +56,33 @@ function operationsQualityWithLab(array $row): array {
 function operationsQualityDimensions(): array {
     return ['content','image','seo','ui','ux','ai','geo','speed','security'];
 }
+/** Source-only summary shown immediately to a verified administrator. */
+function operationsQualitySummary(): array {
+    $inventory=operationsQualityInventory();
+    if($inventory===null)return ['status'=>'unavailable','pages'=>null,
+        'weakSeoPages'=>null,'generatedAt'=>null,
+        'limitation'=>'No source-derived page inventory is deployed.'];
+    $count=0;$weak=0;$totals=[];$numbers=[];
+    foreach(operationsQualityDimensions() as $dimension){$totals[$dimension]=0.0;$numbers[$dimension]=0;}
+    foreach($inventory['pages'] as $row){
+        if(!is_array($row))continue;$count++;
+        foreach(operationsQualityDimensions() as $dimension) {
+            $value=$row['grades'][$dimension]['score']??null;
+            if(!is_numeric($value))continue;
+            $totals[$dimension]+=(float)$value;$numbers[$dimension]++;
+        }
+        $seo=$row['grades']['seo']['score']??null;
+        if(is_numeric($seo)&&(float)$seo<6)$weak++;
+    }
+    $averages=[];
+    foreach(operationsQualityDimensions() as $dimension)
+        $averages[$dimension]=$numbers[$dimension]>0
+            ?round($totals[$dimension]/$numbers[$dimension],1):null;
+    return ['status'=>'source_only','pages'=>$count,'weakSeoPages'=>$weak,
+        'generatedAt'=>$inventory['generatedAt']??null,
+        'averages'=>$averages,'measuredPagesByDimension'=>$numbers,
+        'limitation'=>'Scores reflect static committed HTML heuristics; not deployed-page indexing, actual UX or lab/field speed.'];
+}
 function operationsQualityList(array $input): array {
     $source=operationsQualityInventory();
     if($source===null)return ['ok'=>true,'schema'=>'operations-page-quality-results-v1',
