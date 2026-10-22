@@ -81,6 +81,9 @@ function enhance(root,n){
  tabs.setAttribute('aria-label',text(fa,'گروه‌های تحصیلی','Study categories'));
  const panel=el('div',null,'jr-cs-category-panel');
  panel.setAttribute('role','tabpanel');panel.id=prefix+'-options';panel.tabIndex=0;
+ const exampleStatus=el('p',null,'jr-cs-example-status');
+ exampleStatus.setAttribute('role','status');
+ exampleStatus.setAttribute('aria-live','polite');
  const buttons=[];
  function selectTab(index,focus=false){
   const group=groups[index];
@@ -101,8 +104,21 @@ function enhance(root,n){
     add.type='button';
     add.setAttribute('aria-label',name+' — '+text(fa,'قرار دادن در گزینه '+(j===0?'اول':'دوم'),'Add to option '+(j+1)));
     add.addEventListener('click',()=>{
-     names[j].value=name;
-     names[j].dispatchEvent(new Event('input',{bubbles:true}));
+     const existing=names[j].value.trim();
+     if(existing&&existing!==name){
+      exampleStatus.textContent=text(fa,
+       'این گزینه قبلاً با نام دیگری پر شده است. برای حفظ تصمیم قبلی، ابتدا آن را خودتان ذخیره یا پاک کنید.',
+       'This pathway already has another name. Save or clear your previous choice yourself before replacing it.');
+      names[j].focus();
+      return;
+     }
+     if(existing!==name){
+      names[j].value=name;
+      names[j].dispatchEvent(new Event('input',{bubbles:true}));
+     }
+     exampleStatus.textContent=text(fa,
+       'فقط نام نمونه وارد شد؛ هیچ ارزیابی یا وضعیت قبولی تعیین نشده است.',
+       'Only the sample name was entered; no fit rating or admission status was assigned.');
      names[j].focus();
     });
     row.append(add);
@@ -133,7 +149,7 @@ function enhance(root,n){
   event.preventDefault();
   selectTab(next,true);
  });
- categories.append(tabs,panel);
+ categories.append(tabs,panel,exampleStatus);
  form.insertBefore(categories,options);
  selectTab(0);
  const trigger=el('button',text(fa,'مشاهده نتیجه و پیشنهادهای بعدی','Show your result and next steps'),'jr-cs-show-result');
