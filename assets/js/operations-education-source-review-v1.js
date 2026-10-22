@@ -13,8 +13,9 @@
   const guides=panel.querySelector('[data-source-review-guides]');
   const gaps=panel.querySelector('[data-source-review-gaps]');
   const reload=panel.querySelector('[data-source-review-refresh]');
+  const exportCsv=panel.querySelector('[data-source-review-export]');
   const numeral=new Intl.NumberFormat(fa?'fa-IR':'en-US');
-  let controller=null,serial=0,busy=false,loaded=false;
+  let controller=null,serial=0,busy=false,loaded=false,snapshot=null;
   const node=(name,className,content)=>{
     const el=document.createElement(name);
     if(className)el.className=className;
@@ -39,7 +40,8 @@
   const clear=()=>{
     serial++;
     controller?.abort();controller=null;loaded=false;busy=false;
-    reload.disabled=false;guides.replaceChildren();gaps.replaceChildren();
+    reload.disabled=false;if(exportCsv)exportCsv.disabled=true;
+    snapshot=null;guides.replaceChildren();gaps.replaceChildren();
     summary.textContent='';
     status.textContent=T('هنوز اطلاعاتی درخواست نشده است.','No source inventory has been requested.');
   };
@@ -94,16 +96,60 @@
         ||data.summary?.officialAdmissionsActive!==false
         ||data.summary?.admissionProbabilitiesAvailable!==false
         ||data.summary?.approvedProgrammeRows!==0)throw Error('untrusted-data');
-      loaded=true;render(data);
+      loaded=true;snapshot=data;
+      if(exportCsv)exportCsv.disabled=false;
+      render(data);
     }catch(e){
       if(id!==serial||e?.name==='AbortError')return;
-      loaded=false;guides.replaceChildren();gaps.replaceChildren();summary.textContent='';
+      loaded=false;snapshot=null;if(exportCsv)exportCsv.disabled=true;
+      guides.replaceChildren();gaps.replaceChildren();summary.textContent='';
       status.textContent=T('گزارش منابع در دسترس نیست؛ همه نتایج رسمی همچنان تأییدنشده تلقی می‌شوند.',
         'Source report is unavailable; official admission evidence remains unverified.');
     }finally{
       if(id===serial){busy=false;reload.disabled=false;controller=null;}
     }
   }
+  if(exportCsv)exportCsv.addEventListener('click',()=>{
+    if(!snapshot||!loaded||workspace.hidden||!panel.open)return;
+    const count=snapshot.guides.reduce((n,row)=>n+row.pdfPageCount,0);
+    if(count<1||count>20000||
+       snapshot.guides.some(row=>!Number.isSafeInteger(row.pdfPageCount)||
+         row.pdfPageCount<1||row.pdfPageCount>5000||
+         typeof row.key!=='string'||!/^[a-z_]{2,80}$/.test(row.key)||
+         typeof row.originalPdfSha256!=='string'||
+         !/^[a-f0-9]{64}$/.test(row.originalPdfSha256))){
+      status.textContent=T(
+        'اطلاعات اثرانگشت و صفحات برای تهیه کاربرگ معتبر نیست؛ فایلی ساخته نشد.',
+        'Guide page counts or fingerprints could not be verified; no worksheet was created.'
+      );
+      return;
+    }
+    const header=['cycle','guide_key','guide_category','original_pdf_sha256',
+      'pdf_page_ordinal','human_review_status','human_reviewer_id',
+      'human_reviewed_on','actual_table_pages_checked','amendment_checked',
+      'programme_code_rows_verified','source_notes'];
+    const esc=value=>'"'+String(value??'').replaceAll('"','""')+'"';
+    const lines=[header.map(esc).join(',')];
+    for(const row of snapshot.guides){
+      for(let page=1;page<=row.pdfPageCount;page++){
+        lines.push([1405,row.key,row.category,row.originalPdfSha256,
+          page,'UNREVIEWED','','','','','',''].map(esc).join(','));
+      }
+    }
+    // No PDF text, learner data, Drive IDs, authoritative approvals or
+    // invented row values. Reviewing this CSV never activates admissions.
+    const blob=new Blob(['\uFEFF',lines.join('\r\n'),'\r\n'],
+      {type:'text/csv;charset=utf-8'});
+    const uri=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=uri;a.download='jr-1405-official-guide-page-review-UNREVIEWED.csv';
+    a.hidden=true;document.body.append(a);a.click();a.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(uri),10000);
+    status.textContent=T(
+      'کاربرگ بازبینیِ تک‌تک صفحات به‌صورت پیش‌نویس دریافت شد؛ تمام ردیف‌ها بررسی‌نشده‌اند.',
+      'Per-page source-review worksheet downloaded. Every row is unreviewed.'
+    );
+  });
   panel.addEventListener('toggle',()=>{
     if(panel.open){if(!loaded)load();}
     else {controller?.abort();}
