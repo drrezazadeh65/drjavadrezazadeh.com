@@ -3055,6 +3055,17 @@ function renderOwnerCommandCenter(){
      manage.type='button';manage.addEventListener('click',()=>{
        collectionExpanded=true;reportingRender();
        openExistingOperationalWorkspace('ops-collection-settings');
+       // Jump to the exact existing policy card without constructing an
+       // untrusted CSS selector from source identifiers.
+       const row=[...document.querySelectorAll(
+         '#ops-collection-settings [data-collector-scope]')].find(node=>
+           node.dataset.collectorScope===item.id);
+       if(row){
+         row.classList.add('ops-policy-focused');
+         row.setAttribute('tabindex','-1');
+         row.focus({preventScroll:true});
+         row.scrollIntoView({block:'center',behavior:'auto'});
+       }
      });
      actions.append(manage);tr.append(actions);body.append(tr);
    }
