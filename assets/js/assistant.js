@@ -15,6 +15,18 @@
 
   const isFa=document.documentElement.lang==='fa';
   const endpoint=document.querySelector('meta[name="jr-assistant-endpoint"]')?.content?.trim()||'';
+  // Public assistant requests may go only through this site's approved
+  // same-origin API. An arbitrary metadata URL must never receive visitor
+  // messages, contact details or a browser-generated correlation token.
+  const trustedEndpoint=(()=>{
+    try{
+      if(!endpoint)return '';
+      const target=new URL(endpoint,location.origin);
+      return target.origin===location.origin &&
+        target.pathname==='/api/assistant/v1/chat' &&
+        target.search==='' && target.hash==='' ? target.href:'';
+    }catch{return '';}
+  })();
   const labels=isFa?{
     open:'دستیار هوشمند',title:'دستیار دکتر رضازاده',subtitle:'راهنمای هوشمند سایت',
     greeting:'سلام. من دستیار هوشمند سایت دکتر رضازاده هستم. درباره خدمات، Golden Talent، انتخاب رشته، پژوهش‌ها و مسیرهای سایت می‌توانم راهنمایی‌تان کنم.',
@@ -101,7 +113,7 @@
   const chips=wrap.querySelector('.jr-assistant-chips');
   const form=wrap.querySelector('.jr-assistant-form');
   const input=wrap.querySelector('textarea');
-  const leadEndpoint=endpoint?endpoint.replace(/\/v1\/chat(?:\?.*)?$/,'/v1/leads'):'';
+  const leadEndpoint=trustedEndpoint?trustedEndpoint.replace(/\/v1\/chat$/,'/v1/leads'):'';
   const leadBox=document.createElement('div');
   leadBox.className='jr-assistant-lead';
   leadBox.innerHTML='<button class="jr-assistant-lead-toggle" type="button">'+labels.leadOpen+'</button>'+
@@ -117,6 +129,7 @@
     '</form>';
   form.before(leadBox);
   if(!endpoint) leadBox.hidden=true;
+  if(!leadEndpoint) leadBox.hidden=true;
   const leadToggle=leadBox.querySelector('.jr-assistant-lead-toggle');
   const leadForm=leadBox.querySelector('.jr-assistant-lead-form');
   const leadType=leadForm.elements.contact_type;
@@ -199,6 +212,12 @@
       addMessage('assistant',local.answer,local.links);
       return;
     }
+    if(!trustedEndpoint){
+      addMessage('user',message.trim());
+      const local=fallback(message.trim());
+      addMessage('assistant',local.answer,local.links);
+      return;
+    }
     busy=true;lastQuery=message.trim();
     const requestToken=++requestGeneration;
     let controller=null,timer=null;
@@ -214,7 +233,7 @@
       controller=new AbortController();
       activeRequest=controller;
       timer=setTimeout(()=>controller.abort(),30000);
-      const res=await fetch(endpoint,{
+      const res=await fetch(trustedEndpoint,{
         method:'POST',
         mode:'cors',
         credentials:'omit',
