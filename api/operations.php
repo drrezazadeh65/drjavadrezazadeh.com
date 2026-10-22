@@ -575,6 +575,8 @@ function operationsRoute(string $path, string $verb): never {
         // Educational privacy controls are a read-only evidence preview.
         // No legal hold, learner records or database rows are deleted here.
         if ($path === '/admin/operations/education-privacy' && $verb === 'GET') {
+            if (($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
             if (!rateAllowed($pdo,'operations_education_privacy_read',$accountId,10,300))
                 fail('rate_limited',429);
             respond(operationsEducationPrivacyPreview($pdo));
