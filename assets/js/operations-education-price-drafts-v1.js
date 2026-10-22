@@ -30,17 +30,24 @@
       method:'GET',credentials:'same-origin',cache:'no-store',
       headers:{Accept:'application/json'},signal,...extra
     });
-    if(!response.ok)throw Error(response.status===403?'MFA_REQUIRED':'API_UNAVAILABLE');
+    if(!response.ok)throw Error(response.status===403?'MFA_REQUIRED':
+      response.status===409?'REVISION_CONFLICT':'API_UNAVAILABLE');
     return response.json();
   };
   const lock=disabled=>{
     select.disabled=disabled;price.disabled=disabled;review.disabled=disabled;
     rationale.disabled=disabled;save.disabled=disabled;
   };
-  const reset=()=>{
-    requestId++;controller?.abort();controller=null;inventory=null;
-    proposalMap=new Map();busy=false;lock(true);refresh.disabled=false;
+  const forgetDraftEvidence=()=>{
+    // A failed MFA/write/readback cannot authorize edits with an old row
+    // revision or leave a private owner rationale on a hidden stale form.
+    inventory=null;proposalMap=new Map();lock(true);
     select.replaceChildren();rationale.value='';price.value='';
+    review.value='DRAFT';save.removeAttribute('data-current-revision');
+  };
+  const reset=()=>{
+    requestId++;controller?.abort();controller=null;busy=false;
+    forgetDraftEvidence();refresh.disabled=false;
     setStatus(T('وضعیت قیمت‌ها به‌صورت خصوصی هنوز دریافت نشده است.',
       'Draft state has not been retrieved.'));
   };
@@ -70,6 +77,9 @@
     const serial=++requestId;
     controller?.abort();controller=new AbortController();
     const signal=controller.signal;busy=true;lock(true);refresh.disabled=true;
+    const activeController=controller;
+    let timedOut=false;
+    const timeout=setTimeout(()=>{timedOut=true;activeController.abort();},15000);
     setStatus(T('در حال دریافت قیمت‌های پیشنهادی با مجوز مدیر…',
       'Retrieving authorized draft price inventory…'));
     try {
@@ -114,15 +124,20 @@
       ));
       return true;
     }catch(error){
-      if(serial!==requestId||error?.name==='AbortError')return false;
-      inventory=null;lock(true);select.replaceChildren();
-      setStatus(error?.message==='MFA_REQUIRED'
-        ?T('احراز هویت دومرحله‌ای مدیر لازم است.',
-          'Recent administrator MFA is required.')
-        :T('منبع خصوصی آماده نیست. وضعیت فروش و قیمت‌های فعلی تغییر نکرده است.',
-          'Private source unavailable. Existing prices and sales are unchanged.'));
+      if(serial!==requestId||!canRead())return false;
+      if(error?.name==='AbortError'&&!timedOut)return false;
+      forgetDraftEvidence();
+      setStatus(timedOut
+        ?T('مهلت ۱۵ثانیه‌ای دریافت پیش‌نویس‌ها پایان یافت؛ اطلاعات قبلی پاک شدند و وضعیت واقعی نامشخص است.',
+          'The 15-second draft read expired. Old values were cleared and current state is unknown.')
+        :error?.message==='MFA_REQUIRED'
+          ?T('برای دریافت وضعیت تازه، احراز هویت دومرحله‌ای مدیر لازم است.',
+            'Recent administrator MFA is required to read current draft records.')
+          :T('منبع خصوصی تأیید نشد؛ فرم قبلی پاک شد. قیمت‌های فعلی و فروش تغییری نکرده‌اند.',
+            'Private source could not be verified; the old form was cleared. Existing prices and sales were not changed.'));
       return false;
     }finally{
+      clearTimeout(timeout);
       if(serial===requestId){busy=false;refresh.disabled=false;controller=null;}
     }
   }
@@ -147,6 +162,9 @@
     const serial=++requestId;
     const previous=select.value;controller?.abort();
     controller=new AbortController();busy=true;lock(true);refresh.disabled=true;
+    const activeController=controller;
+    let timedOut=false;
+    const timeout=setTimeout(()=>{timedOut=true;activeController.abort();},20000);
     setStatus(T('در حال ذخیره پیش‌نویس در حساب مدیر…',
       'Saving owner-only draft after fresh MFA verification…'));
     try{
@@ -196,13 +214,22 @@
         detail:{offerId:id,publiclyPurchasable:false}
       }));
     }catch(error){
-      if(serial!==requestId||error?.name==='AbortError')return;
-      setStatus(error?.message==='MFA_REQUIRED'
-        ?T('اعتبار تأیید دومرحله‌ای منقضی شده است.',
-          'Administrator MFA has expired.')
-        :T('ثبت پیش‌نویس تأیید نشد؛ برای جلوگیری از تعارض، فهرست را دوباره بارگذاری کنید.',
-          'Draft change not confirmed. Reload to resolve a possible revision conflict.'));
+      if(serial!==requestId||!canRead())return;
+      if(error?.name==='AbortError'&&!timedOut)return;
+      forgetDraftEvidence();
+      setStatus(timedOut
+        ?T('مهلت ثبت تمام شد و ممکن است سرور پیش‌نویس را ذخیره کرده باشد. پیش از اقدام جدید وضعیت را تازه‌سازی کنید.',
+          'The draft write timed out and may have committed. Refresh the authoritative record before another change.')
+        :error?.message==='MFA_REQUIRED'
+          ?T('اعتبار دومرحله‌ای مدیر تأیید نشد؛ داده قبلی پاک شد. مجدداً وارد شوید و وضعیت را بخوانید.',
+            'Owner MFA was not confirmed and prior drafts were cleared. Reauthenticate and refresh.')
+          :error?.message==='REVISION_CONFLICT'
+            ?T('نسخه پیش‌نویس هم‌زمان تغییر کرده است؛ فرم قدیمی پاک شد. ابتدا بازخوانی کنید.',
+              'The draft revision changed concurrently. Old form values were cleared; reread before editing.')
+            :T('ثبت پیش‌نویس تأیید نشد؛ فرم قدیمی پاک شد. پیش از تکرار، وضعیت جدید سرور را دریافت کنید.',
+              'Draft write was not confirmed. The stale form was cleared; reread server state before retrying.'));
     }finally{
+      clearTimeout(timeout);
       if(serial===requestId){busy=false;refresh.disabled=false;inspect(true);}
     }
   });
