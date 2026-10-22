@@ -230,6 +230,46 @@ function operationsActivationReport(PDO $pdo,array $configuration,int $at): arra
                 'SELECT MAX(attempted_at) FROM operations_alert_outbox'):null,
             604800,$at,$mailSchema)
     ];
+    // One trusted owner-facing dependency map, derived strictly from the
+    // information_schema inventory. A complete table set proves neither a
+    // live adapter nor a successfully executed admin workflow.
+    $moduleCatalog=[
+        ['owner_mfa','هویت و ورود مدیر','Owner identity and MFA','ops-command-center',
+            ['operations_admin_memberships','operations_session_mfa','operations_mfa_counters']],
+        ['audit','شواهد و حسابرسی','Release evidence and audit','ops-audit-timeline',
+            ['operations_evidence','operations_audit','operations_release','operations_action_runs']],
+        ['collectors','گردآوری و کش منابع','Source collection and cache','ops-collection-settings',
+            ['operations_collection_policies','operations_collection_cache','operations_collection_attempts']],
+        ['source_policies','تنظیمات مستقل منابع','Per-source policies','ops-source-directory',
+            ['operations_source_controls','operations_source_metric_samples']],
+        ['alerts','هشدارها و کنترل ایمیل','Incident alerts and email controls','ops-alert-center',
+            ['operations_alert_settings','operations_alert_rules','operations_alert_scope_policies',
+             'operations_alert_incidents','operations_alert_outbox']],
+        ['http_errors','ثبت خطاهای HTTP و ۴۰۴','HTTP error intake','ops-http-health',
+            ['operations_http_log_cursor','operations_http_error_routes','operations_http_observation_batches']],
+        ['response','هدر، HTTPS و ریدایرکت','HTTPS and response integrity','ops-response-monitor',
+            ['operations_response_probe_settings','operations_response_probe_samples']],
+        ['content_editor','میز محتوای مدیر','Private content revision desk','ops-editor-workbench',
+            ['operations_content_drafts','operations_content_revisions']],
+        ['db_health','سلامت دیتابیس مادر','Mother database health','ops-database-health',
+            ['operations_database_health_settings','operations_database_health_runs',
+             'operations_database_error_events']]
+    ];
+    $moduleContracts=[];
+    foreach($moduleCatalog as [$id,$nameFa,$nameEn,$target,$tables]){
+        $absent=$inventory==='unavailable'?null:
+            array_values(array_filter($tables,static fn(string $name):bool=>!isset($present[$name])));
+        $moduleContracts[]=[
+            'id'=>$id,'nameFa'=>$nameFa,'nameEn'=>$nameEn,'uiTarget'=>$target,
+            'tableCount'=>count($tables),
+            'presentCount'=>$absent===null?null:count($tables)-count($absent),
+            'missingTables'=>$absent,
+            'schemaState'=>$absent===null?'unknown':($absent?'missing_tables':'table_names_observed'),
+            'runtimeVerified'=>null,
+            'sourceRouteDeclared'=>true,
+            'hostCronVerified'=>null
+        ];
+    }
     $recipient=(string)($configuration['operations_alert_recipient']??'');
     $structure=$inventory==='unavailable'?[
         'state'=>'table_inventory_unavailable',
@@ -257,5 +297,6 @@ function operationsActivationReport(PDO $pdo,array $configuration,int $at): arra
             'mailboxReceiptConfirmed'=>null
         ],
         'workers'=>$workers,
+        'moduleContracts'=>$moduleContracts,
         'note'=>'Read-only observations and table names are not live E2E proof. Cron, SMTP, schema contracts and approved additive migrations await final acceptance.'];
 }
