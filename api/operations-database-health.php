@@ -63,6 +63,7 @@ function operationsDbHealthReport(PDO $pdo,int $at): array {
         'inventoryStatus'=>'unavailable','inventory'=>null,
         'checks'=>[],'errors'=>['status'=>'unavailable','rows'=>[]],
         'correctionPolicy'=>'owner_review_only_no_auto_repair',
+        'limitations'=>'Information_schema estimates and source shape cannot certify physical integrity, data consistency, backups, transaction throughput or cron installation.',
         'automaticRepairEnabled'=>false,'automaticCleanupEnabled'=>false];
     try {
         if((int)$pdo->query('SELECT 1')->fetchColumn()!==1)
@@ -113,6 +114,29 @@ function operationsDbHealthReport(PDO $pdo,int $at): array {
             'state'=>$nonInno?'attention':'observed','count'=>count($nonInno)];
         $result['checks'][]=['id'=>'operations_collation',
             'state'=>$wrongCollation?'attention':'observed','count'=>count($wrongCollation)];
+        // Reuse the existing source-contract signature audit; no DDL,
+        // table locks, data probes, physical CHECK TABLE or repairs.
+        if(function_exists('operationsActivationStructure')){
+            $signature=operationsActivationStructure($pdo,$found);
+            $result['schemaSignature']=$signature;
+            $issues=0;
+            foreach(['missingColumns','typeMismatches','missingIndexes',
+                'storageDiscrepancies','missingForeignKeys'] as $field)
+                if(is_array($signature[$field]??null))$issues+=count($signature[$field]);
+            $result['checks'][]=['id'=>'source_schema_signature',
+                'state'=>$signature['state']==='source_structural_signature_matches'
+                    ?'observed':($signature['state']==='source_structural_signature_discrepancy'
+                        ?'attention':'unavailable'),
+                'count'=>$signature['state']==='metadata_unavailable'?null:$issues];
+        }
+        $result['suggestedActions']=[];
+        if($missing)$result['suggestedActions'][]='review_missing_tables_and_approved_additive_migration';
+        if($nonInno)$result['suggestedActions'][]='review_engine_compatibility_no_automatic_conversion';
+        if($wrongCollation)$result['suggestedActions'][]='review_collation_before_authorized_migration';
+        if(($result['checks'][count($result['checks'])-1]['id']??'')==='source_schema_signature'
+            && ($result['checks'][count($result['checks'])-1]['state']??'')==='attention')
+            $result['suggestedActions'][]='review_column_index_and_foreign_key_drift';
+
     }catch(Throwable $e){
         $result['checks'][]=['id'=>'metadata_inventory','state'=>'unavailable'];
         operationsDbHealthRecordError($pdo,'metadata_inventory',$e,$at);
