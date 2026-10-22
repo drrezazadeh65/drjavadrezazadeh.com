@@ -204,3 +204,29 @@
   background:#83dec3
 }
 #ops-command-center [data-oc-fetch-sources]:disabled{opacity:.52;cursor:not-allowed}
+
+/* On-demand and collapsed: avoid giant vertical scrolling on phones. */
+#ops-command-center .oc-policy-ledger{
+  border:1px solid var(--oc-edge);border-radius:13px;
+  background:rgba(255,255,255,.03);padding:12px 14px;margin-block:16px
+}
+#ops-command-center .oc-policy-ledger>summary{
+  cursor:pointer;font-weight:700;color:var(--oc-ink);font-size:.98rem;
+  padding:6px 0;list-style-position:inside
+}
+#ops-command-center .oc-policy-ledger>p{
+  color:var(--oc-muted);font-size:.82rem;margin:9px 0 13px
+}
+#ops-command-center .oc-ledger-scroller{width:100%;max-width:100%;
+  overflow-x:auto;overscroll-behavior-x:contain;scrollbar-gutter:stable}
+#ops-command-center .oc-ledger-table{width:100%;border-collapse:separate;
+  border-spacing:0;font-size:.78rem;min-width:880px}
+#ops-command-center .oc-ledger-table th,#ops-command-center .oc-ledger-table td{
+  padding:9px 10px;text-align:start;vertical-align:middle;
+  border-bottom:1px solid rgba(224,230,244,.12);overflow-wrap:anywhere
+}
+#ops-command-center .oc-ledger-table th{
+  position:sticky;top:0;z-index:1;background:#1d2b3a;color:var(--oc-gold)}
+#ops-command-center .oc-ledger-table tr:hover td{background:rgba(240,209,141,.055)}
+#ops-command-center .oc-ledger-table td:last-child button{font-size:.78rem;
+  min-height:40px;white-space:nowrap}
