@@ -12,6 +12,10 @@ return [
     'mail_enabled' => false,
     'mail_from' => 'admin@drjavadrezazadeh.com',
     'mail_reply_to' => 'admin@drjavadrezazadeh.com',
+    // Alerts use the existing authenticated SMTP transport and the private
+    // incident outbox. Configure an administrator-controlled mailbox explicitly.
+    // Never store credentials or sensitive incident payloads in source control.
+    'operations_alert_recipient' => '',
 
     // Confirmed by Bertina support ticket t833905 on 2026-10-11:
     // drjavadrezazadeh.com:465 SSL/TLS, alternatively :587 STARTTLS.
