@@ -21,3 +21,13 @@
 .jr-edu-offers__empty{grid-column:1/-1}
 @media(max-width:640px){.jr-edu-offers__list{grid-template-columns:1fr}.jr-edu-offers__toolbar label,.jr-edu-offers__toolbar button{flex:1 1 100%;width:100%}}
 @media(prefers-reduced-motion:reduce){.jr-edu-offers *{transition:none!important}}
+
+/* Owner-only draft price editor; never implies public checkout activation. */
+.jr-edu-offers__drafts{margin-top:20px;border-top:1px solid #7b6949;padding:18px 0 6px}
+.jr-edu-offers__drafts h3{font-size:clamp(1.08rem,3vw,1.4rem);margin:0 0 9px;color:#eed6a0}
+.jr-edu-offers__drafts p{color:#eadfcd}
+.jr-edu-offers__drafts .jr-edu-offers__toolbar label{min-width:min(100%,230px)}
+.jr-edu-offers__drafts textarea{width:100%;min-height:90px;border:1px solid #ad9869;border-radius:12px;background:#242a34;color:#fff;padding:10px;font:inherit;resize:vertical;font-size:16px}
+.jr-edu-offers__drafts [data-edu-price-state]{background:#302b22;padding:12px 14px;border-inline-start:4px solid #dabc79;border-radius:9px}
+.jr-edu-offers__drafts [data-edu-price-save]:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:640px){.jr-edu-offers__drafts .jr-edu-offers__toolbar label{width:100%}}
