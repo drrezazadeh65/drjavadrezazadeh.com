@@ -242,8 +242,22 @@
     else controller?.abort();
   });
   refresh.addEventListener('click',load);
+  let workspaceFirstOpen=false;
   const observer=new MutationObserver(()=>{
-    if(workspace.hidden)reset();
+    if(workspace.hidden){
+      reset();
+      workspaceFirstOpen=false;
+      root.open=false;
+      return;
+    }
+    // First MFA-authorized display opens ONE meaningful owner command view.
+    // This performs one normal read-only application API GET at user login;
+    // it does not perform a test, collection cycle or publication.
+    if(!workspaceFirstOpen){
+      workspaceFirstOpen=true;
+      if(!root.open)root.open=true;
+      else if(!loaded)load();
+    }
   });
   observer.observe(workspace,{attributes:true,attributeFilter:['hidden']});
   window.addEventListener('pagehide',()=>{reset();observer.disconnect();},{once:true});
