@@ -11,10 +11,10 @@
   const en=document.documentElement.lang==='en';
   const T=(fa,eng)=>en?eng:fa;
   const $=part=>root.querySelector('[data-edu-release-'+part+']');
-  const refresh=$('refresh'),summary=$('summary'),cards=$('cards'),form=$('form');
+  const refresh=$('refresh'),exportCsv=$('export'),summary=$('summary'),cards=$('cards'),form=$('form');
   const offerSelect=$('offer'),gateSelect=$('gate'),review=$('state');
   const note=$('note'),digest=$('digest'),save=$('save'),status=$('status');
-  if(!refresh||!summary||!cards||!form||!offerSelect||!gateSelect||
+  if(!refresh||!exportCsv||!summary||!cards||!form||!offerSelect||!gateSelect||
     !review||!note||!digest||!save||!status)return;
   const number=new Intl.NumberFormat(en?'en-US':'fa-IR');
   const STATES=['NOT_STARTED','IN_PROGRESS','NEEDS_REVISION','READY_FOR_REVIEW'];
@@ -42,6 +42,7 @@
   function reset(){
     ++serial;controller?.abort();controller=null;
     observed=null;rows=new Map();busy=false;refresh.disabled=false;
+    exportCsv.disabled=true;
     editable(false);
     cards.replaceChildren();offerSelect.replaceChildren();gateSelect.replaceChildren();
     summary.textContent='';
@@ -152,6 +153,7 @@
   }
   function draw(data){
     observed=data;
+    exportCsv.disabled=false;
     rows=new Map(data.drafts.map(entry=>[
       entryKey(entry.offerId,entry.gateCode),entry
     ]));
@@ -193,7 +195,7 @@
       busy=false;draw(value);return true;
     }catch(error){
       if(generation!==serial||error?.name==='AbortError')return false;
-      observed=null;rows.clear();editable(false);
+      observed=null;rows.clear();editable(false);exportCsv.disabled=true;
       cards.replaceChildren();summary.textContent='';
       status.textContent=error?.message==='MFA'
         ?T('برای مشاهده و تغییر وضعیت، کد دومرحله‌ای معتبر مدیر لازم است.',
@@ -220,6 +222,47 @@
       throw Error('MFA');
     return data.csrfToken;
   }
+  exportCsv.addEventListener('click',()=>{
+    if(!active()||!observed||busy||!Array.isArray(observed.drafts))return;
+    const columns=[
+      'offer_id','offer_name','preparation_gate','preparation_name',
+      'requirement','owner_work_state','evidence_reference_recorded',
+      'revision','independently_approved','publicly_purchasable'
+    ];
+    // Every field derives from allowlisted, MFA-authorized proposal metadata.
+    // Do not export owner notes, PII, financial records or source documents.
+    const safeCell=value=>{
+      let v=String(value??'');
+      // Prevent Excel/LibreOffice formula injection from untrusted metadata.
+      if(/^\s*[=+\-@]/.test(v))v="'"+v;
+      return '"'+v.replaceAll('"','""')+'"';
+    };
+    const rowsForFile=[columns.map(safeCell).join(',')];
+    for(const item of observed.drafts){
+      rowsForFile.push([
+        item.offerId,
+        en?item.offerNameEn:item.offerNameFa,
+        item.gateCode,
+        en?item.gateNameEn:item.gateNameFa,
+        en?item.requirementEn:item.requirementFa,
+        item.state,
+        item.evidenceReferenceRecorded===true?'YES':'NO',
+        item.revision,
+        'NOT_VERIFIED','NOT_PURCHASABLE'
+      ].map(safeCell).join(','));
+    }
+    const content='\uFEFF'+rowsForFile.join('\r\n')+'\r\n';
+    const blob=new Blob([content],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='jr-education-12-offer-owner-worklist-NOT-APPROVED.csv';
+    a.hidden=true;document.body.append(a);a.click();a.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(url),10000);
+    status.textContent=T(
+      'کاربرگ مرحله‌بندی ۱۲ خدمت آماده دریافت است؛ هیچ وضعیت آن به معنی تأیید علمی یا اجازه فروش نیست.',
+      'The owner worklist is ready. No entry grants scientific approval or permission to sell.'
+    );
+  });
   refresh.addEventListener('click',load);
   offerSelect.addEventListener('change',renderGates);
   gateSelect.addEventListener('change',()=>renderEditor());
