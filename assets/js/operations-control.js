@@ -412,15 +412,15 @@ function renderAlertCenter(host,model){
    ?httpOverview.batches[0]:null;
  const weakPages=model.pageQualityOverview?.status==='source_only'
    ?model.pageQualityOverview.weakSeoPages:null;
- const critical=incidents.filter(x=>x.severity==='critical'&&x.state==='open').length;
- const warning=incidents.filter(x=>x.severity==='warning'&&x.state==='open').length;
+ const critical=data?.openCounts?.critical??null;
+ const warning=data?.openCounts?.warning??null;
  const section=el('details',undefined,'ops-panel');section.id='ops-alert-center';
  section.open=alertCenterExpanded;section.addEventListener('toggle',()=>{alertCenterExpanded=section.open;});
  section.append(el('summary',t('سلامت و اعلان‌های بحرانی سایت','Site health and critical incident alerts')));
  const first=el('div',undefined,'ops-alert-overview');
  const counts=[
-   [t('رخداد بحرانی باز','Open critical incidents'),data?.status==='available'?String(critical):'—','critical'],
-   [t('هشدار باز','Open warnings'),data?.status==='available'?String(warning):'—','warning'],
+   [t('رخداد بحرانی باز','Open critical incidents'),critical===null?'—':String(critical),'critical'],
+   [t('هشدار باز','Open warnings'),warning===null?'—':String(warning),'warning'],
    [t('ایمیل و SMTP','Mail transport'),data?.mailReady?t('پیکربندی شده','Configured'):t('تأیید نشده','Unverified'),'neutral'],
    [t('مقصد ایمیل مدیر','Admin recipient'),data?.recipientConfigured?t('پیکربندی شده','Configured'):t('ثبت نشده','Not configured'),'neutral'],
    [t('صفحات سئوی ضعیف در کد','Weak source-SEO pages'),weakPages===null?'—':String(weakPages),'warning'],
