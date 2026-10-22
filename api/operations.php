@@ -18,6 +18,7 @@ require_once __DIR__.'/operations-education-source-review.php';
 require_once __DIR__.'/operations-education-readiness.php';
 require_once __DIR__.'/operations-education-privacy.php';
 require_once __DIR__.'/operations-education-workbook-policy.php';
+require_once __DIR__.'/operations-education-interests.php';
 require_once __DIR__.'/operations-book-expiration.php';
 require_once __DIR__.'/operations-donation-recovery.php';
 require_once __DIR__.'/operations-fulfilment.php';
@@ -613,6 +614,59 @@ function operationsRoute(string $path, string $verb): never {
                 ));
             }catch(DomainException $e){fail('bahar_science_privacy_gate_blocked',409);}
             catch(Throwable $e){fail('bahar_workbook_policy_unavailable',503);}
+        }
+
+        // EDUCATION: verified, purpose-specific first-party interest intake.
+        // Counts or contacts are real observed mother-DB records, NEVER
+        // anonymous inferred audience or proof of a sent email.
+        if ($path === '/admin/operations/education-interests' && $verb === 'GET') {
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_education_interest_read',$accountId,12,300))
+                fail('rate_limited',429);
+            $show=($_GET['includeContacts']??'')==='1';
+            if($show){
+                if(!rateAllowed($pdo,'operations_education_interest_contact_reveal',$accountId,4,600))
+                    fail('rate_limited',429);
+                operationsAudit($pdo,$accountId,'education_interest_contact_list_viewed','mfa_owner_only');
+            }
+            respond(operationsEducationInterestSnapshot($pdo,$show));
+        }
+        if ($path === '/admin/operations/education-interests' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,
+              (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_education_interest_write',$accountId,6,600))
+                fail('rate_limited',429);
+            $body=jsonBody();
+            if(($body['action']??null)==='setEnabled'){
+                if(!is_bool($body['enabled']??null) ||
+                   ($body['confirmation']??null)!==($body['enabled']
+                     ?'ENABLE EDUCATIONAL EMAIL INTEREST'
+                     :'DISABLE EDUCATIONAL EMAIL INTEREST'))
+                    fail('explicit_owner_confirmation_required',422);
+                try{
+                    respond(operationsEducationInterestOwnerSwitch(
+                      $pdo,$body['enabled'],$accountId
+                    ));
+                }catch(DomainException $e){fail('email_interest_release_blocked',409);}
+                catch(Throwable $e){fail('email_interest_policy_unavailable',503);}
+            }
+            if(($body['action']??null)==='suppressContact'){
+                if(!is_string($body['leadId']??null)||
+                   ($body['confirmation']??null)!=='SUPPRESS EDUCATIONAL CONTACT')
+                    fail('explicit_contact_suppression_required',422);
+                try{
+                    respond(operationsEducationInterestOwnerSuppress(
+                      $pdo,$body['leadId'],$accountId
+                    ));
+                }catch(InvalidArgumentException $e){fail('invalid_interest_id',422);}
+                catch(DomainException $e){fail('education_interest_not_active',409);}
+                catch(Throwable $e){fail('email_interest_suppression_unavailable',503);}
+            }
+            fail('unknown_educational_interest_action',422);
         }
 
         // Existing ENG-13 controller: bounded 54-reference source directory.
