@@ -28,7 +28,7 @@ function operationsEducationalOffersRead(): array {
         || !is_array($catalogue['offers']??null)
         || count($catalogue['offers'])<1 || count($catalogue['offers'])>30)
         throw new RuntimeException('educational_offer_source_invalid');
-    $rows=[];$seen=[];$free=0;
+    $rows=[];$seen=[];$free=0;$permanentFree=0;
     foreach($catalogue['offers'] as $record){
         if (!is_array($record)
             || !preg_match('/^[a-z0-9][a-z0-9-]{1,59}$/D',(string)($record['id']??''))
@@ -53,7 +53,8 @@ function operationsEducationalOffersRead(): array {
         // an introductory product with a waived payment-acceptance gate.
         if($freeIntro&&$record['proposedPriceToman']!==0)
             throw new RuntimeException('free_educational_intro_cannot_be_priced');
-        if($freeIntro)$free++;
+        if($record['proposedPriceToman']===0)$free++;
+        if($freeIntro)$permanentFree++;
         $rows[]=[
             'id'=>$id,'titleEn'=>$record['titleEn'],'titleFa'=>$record['titleFa'],
             'engine'=>$record['engine'],
@@ -81,6 +82,7 @@ function operationsEducationalOffersRead(): array {
         'version'=>(string)($catalogue['version']??'unknown'),
         'status'=>'PROPOSALS_NOT_FOR_SALE',
         'summary'=>['proposals'=>count($rows),'zeroPriceDrafts'=>$free,
+                    'permanentlyFreeIntroStages'=>$permanentFree,
                     'pricedDrafts'=>count($rows)-$free,'activatedByThisModule'=>0],
         'offers'=>$rows,
         'limitation'=>'Prices are proposals only. This endpoint does not prove an approved product, paid content, gateway reconciliation, scientific validation or service availability.'
