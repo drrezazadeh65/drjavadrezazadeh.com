@@ -43,6 +43,16 @@ function exportOperationsCsv(filename,headers,rows){
  document.body.append(link);link.click();link.remove();
  window.setTimeout(()=>URL.revokeObjectURL(url),0);
 }
+// These panels exist only after the authenticated reporting model mounts.
+// Keep source-HTML fragment links valid, then upgrade on actual interaction.
+$('ops-workspace')?.addEventListener('click',event=>{
+ const anchor=event.target?.closest?.('nav.ops-jump a[data-ops-target]');
+ if(!anchor||!$('ops-workspace').contains(anchor))return;
+ const target=anchor.getAttribute('data-ops-target');
+ if(!['ops-alert-center','ops-page-quality'].includes(target))return;
+ anchor.setAttribute('href',document.getElementById(target)
+   ?'#'+target:'#ops-executive-stats');
+});
 async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
 function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
