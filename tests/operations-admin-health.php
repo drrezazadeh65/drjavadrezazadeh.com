@@ -22,6 +22,24 @@ $pass=operationsResponseEvaluate(['kind'=>'headers','expected'=>200],[
 expectOps($pass['result']==='pass','mandatory header baseline should pass');
 expectOps($pass['details']['advisory']['content_security_policy']===false,
     'absent CSP must remain an explicitly missing advisory');
+$cspPass=operationsResponseEvaluate(['kind'=>'headers','expected'=>200],[
+    'code'=>200,'headers'=>[
+        'content-security-policy'=>"default-src 'self'; frame-ancestors 'none'",
+        'x-content-type-options'=>'nosniff',
+        'referrer-policy'=>'strict-origin-when-cross-origin',
+        'permissions-policy'=>'geolocation=()'
+    ]]);
+expectOps($cspPass['result']==='pass',
+    'restrictive CSP frame-ancestors must count as X-Frame-Options alternative');
+$cspFail=operationsResponseEvaluate(['kind'=>'headers','expected'=>200],[
+    'code'=>200,'headers'=>[
+        'content-security-policy'=>"default-src 'self'; frame-ancestors https://example.invalid",
+        'x-content-type-options'=>'nosniff',
+        'referrer-policy'=>'strict-origin-when-cross-origin',
+        'permissions-policy'=>'geolocation=()'
+    ]]);
+expectOps($cspFail['result']==='fail',
+    'untrusted frame-ancestors must not pass mandatory protection');
 $failed=operationsResponseEvaluate(['kind'=>'redirect','expected'=>301,
     'location'=>'https://drjavadrezazadeh.com/'],[
         'code'=>301,'headers'=>['location'=>'https://attacker.example/']]);
