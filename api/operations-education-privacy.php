@@ -28,7 +28,7 @@ function operationsEducationPrivacyPreview(PDO $pdo): array {
             'ok'=>true,'schema'=>'jr.educational-privacy-admin-snapshot.v1',
             'state'=>'DATABASE_METADATA_UNAVAILABLE',
             'readOnly'=>true,'canDelete'=>false,'retentionValidated'=>false,
-            'dependencyTables'=>[], 'openRequestCounts'=>[],
+            'dependencyTables'=>[], 'openRequestCounts'=>null, 'openRequestsState'=>'UNAVAILABLE',
             'activeLegalHolds'=>null,'pendingPrivacyActions'=>null,
             'safeDeletionAuthorized'=>false,
             'limitation'=>'Privacy lifecycle source and existing database metadata have not been reconciled.'
@@ -37,7 +37,8 @@ function operationsEducationPrivacyPreview(PDO $pdo): array {
     $missing=array_values(array_filter($tables,
         static fn(string $table):bool=>!isset($present[$table])
     ));
-    $summary=[];
+    $summary=null;
+    $openRequestsState='UNAVAILABLE';
     if(isset($present['eco_privacy_requests'])){
         try{
             $q=$pdo->query("SELECT request_type,status,COUNT(*) AS requests_count
@@ -45,6 +46,7 @@ function operationsEducationPrivacyPreview(PDO $pdo): array {
                  WHERE status IN ('RECEIVED','IN_REVIEW','PENDING','BLOCKED')
                  GROUP BY request_type,status
                  ORDER BY request_type,status LIMIT 40");
+            $summary=[];
             foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
                 $code=(string)$row['request_type'];
                 $state=(string)$row['status'];
@@ -53,7 +55,8 @@ function operationsEducationPrivacyPreview(PDO $pdo): array {
                 $summary[]=['type'=>$code,'state'=>$state,
                     'count'=>max(0,(int)$row['requests_count'])];
             }
-        }catch(Throwable $e){$summary=[];}
+            $openRequestsState='OBSERVED';
+        }catch(Throwable $e){$summary=null;}
     }
     $holds=null;
     if(isset($present['eco_legal_holds'])){
@@ -78,6 +81,7 @@ function operationsEducationPrivacyPreview(PDO $pdo): array {
             ],$tables),
         'missingTables'=>$missing,
         'openRequestCounts'=>$summary,
+        'openRequestsState'=>$openRequestsState,
         'activeLegalHolds'=>$holds,
         'pendingPrivacyActions'=>null,
         'privacyRequestExecutionVerified'=>false,
