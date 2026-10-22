@@ -2628,7 +2628,13 @@ function renderOwnerCommandCenter(){
      track.append(fill);
      const value=el('strong',typeof average==='number'&&Number.isFinite(average)
        ?average.toFixed(1)+'/10':'—');
-     line.append(go,track,value);bars.append(line);
+     const measured=quality.measuredPagesByDimension?.[dimension];
+     const sample=el('small',
+       Number.isInteger(measured)&&measured>=0
+         ?t('نمونه: ','Pages: ')+measured+'/'+(quality.pages??'—')
+         :t('پوشش اندازه‌گیری نامشخص','Coverage unavailable'));
+     sample.className='oc-quality-sample';
+     line.append(go,track,value,sample);bars.append(line);
    }
    qualityPanel.append(bars);
    qualityPanel.append(el('small',t(
