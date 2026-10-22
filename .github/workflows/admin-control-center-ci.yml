@@ -1,0 +1,81 @@
+name: Admin Control Center CI
+
+# SOURCE-ONLY verification. Never deploy, contact the site or send emails.
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'api/operations*.php'
+      - 'api/admin-resource-inventory-normalizer.php'
+      - 'api/internal/operations-*-worker.php'
+      - 'api/internal/operations-collector-cron.php'
+      - 'assets/js/operations-control.js'
+      - 'assets/js/operations-free-resources.js'
+      - 'assets/css/operations-control.css'
+      - 'scripts/operations-*.mjs'
+      - 'scripts/build-public-site.mjs'
+      - 'scripts/schema-entity-inventory.mjs'
+      - 'tests/operations-admin-*'
+      - '.github/workflows/admin-control-center-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ops-admin-source-check-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript parsers
+        run: |
+          set -euo pipefail
+          node --check assets/js/operations-control.js
+          node --check assets/js/operations-free-resources.js
+          node --check scripts/operations-page-quality.mjs
+          node --check scripts/operations-hidden-features.mjs
+          node --check scripts/build-public-site.mjs
+      - name: Validate PHP parsers
+        run: |
+          set -euo pipefail
+          for f in api/*.php api/internal/operations-*-worker.php api/internal/operations-collector-cron.php tests/operations-admin-health.php; do
+            php -l "$f"
+          done
+      - name: Verify isolated source contracts
+        run: |
+          set -euo pipefail
+          node --test tests/operations-admin-control-center.test.mjs
+          php tests/operations-admin-health.php
+      - name: Verify sanitized Bertina packaging and private projections
+        run: |
+          set -euo pipefail
+          node scripts/build-public-site.mjs
+          test -f .public-site/api/internal/operations-page-quality.json
+          test -f .public-site/api/internal/operations-existing-features.json
+          test -f .public-site/api/internal/free-resources-registry.json
+          test -f .public-site/api/internal/admin-social-directory.json
+          grep -q 'Require all denied' .public-site/api/internal/.htaccess
+          php -l .public-site/api/operations.php
+          node --input-type=module -e "
+            import fs from 'node:fs';
+            const root='.public-site/api/internal/';
+            const quality=JSON.parse(fs.readFileSync(root+'operations-page-quality.json','utf8'));
+            const features=JSON.parse(fs.readFileSync(root+'operations-existing-features.json','utf8'));
+            const social=JSON.parse(fs.readFileSync(root+'admin-social-directory.json','utf8'));
+            const references=JSON.parse(fs.readFileSync(root+'free-resources-registry.json','utf8'));
+            if(quality.total<1||quality.pages.length!==quality.total)throw Error('Page inventory missing');
+            if(!features.features.length||features.features.length!==features.total)throw Error('Capability directory missing');
+            if(social.channels.length!==16||references.resources.length!==30)throw Error('Resource-count drift');
+            if(quality.pages.some(p=>p.grades?.security?.score!==null&&p.grades?.security?.score!==undefined))
+              throw Error('Runtime security cannot have invented source score');
+            console.log('Source quality, legacy features and private catalogue projections are present.');
+          "
