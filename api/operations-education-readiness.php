@@ -190,6 +190,13 @@ function operationsEducationReadiness(PDO $pdo): array {
         if(function_exists('operationsBaharPrivatePolicy'))
             $privatePolicy=operationsBaharPrivatePolicy($pdo);
     }catch(Throwable $e){$privatePolicy=null;}
+    // Reuse the existing single private source-only quality matrix; never
+    // imply rankings, CrUX field data, live user experience or production tests.
+    $sourceQuality=null;
+    try{
+        if(function_exists('operationsQualitySummary'))
+            $sourceQuality=operationsQualitySummary();
+    }catch(Throwable $error){$sourceQuality=null;}
     $baharColumns=operationsEducationBaharColumnPresence($pdo);
     return [
         'ok'=>true,
@@ -214,6 +221,17 @@ function operationsEducationReadiness(PDO $pdo): array {
             'offerDraftInventoryAvailable'=>$offer!==null,
             'unapprovedOfferDrafts'=>$offer['summary']['proposals']??null,
             'baharMotherDatabaseColumnsPresent'=>$baharColumns,
+            'pageQualitySourceInventoryAvailable'=>
+                ($sourceQuality['status']??null)==='source_only',
+            'pageQualityScoredHtmlPages'=>
+                ($sourceQuality['status']??null)==='source_only'
+                  ?($sourceQuality['pages']??null):null,
+            'pageQualityWeakOnPageSeoPages'=>
+                ($sourceQuality['status']??null)==='source_only'
+                  ?($sourceQuality['weakSeoPages']??null):null,
+            'pageQualitySourceGeneratedAt'=>
+                ($sourceQuality['status']??null)==='source_only'
+                  ?($sourceQuality['generatedAt']??null):null,
             'pendingIndependentAdultReviewRequests'=>$adultPending,
             'adultReviewQueueVisible'=>$adultPending!==null,
             'privateAdultWorkbookEffectiveEnabled'=>$privatePolicy['effectiveEnabled']??null,
