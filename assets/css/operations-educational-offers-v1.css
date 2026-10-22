@@ -203,3 +203,36 @@
 @media(max-width:920px){.jr-edu-business-week{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.jr-edu-business-week{grid-template-columns:1fr}}
 @media print{.jr-edu-business-week{break-inside:avoid}}
+
+/* Page through verified-adult reviews and lawful erasure queues without
+ * loading every confidential account into browser memory at once. */
+.jr-edu-adult-review__pager,.jr-edu-erasure-queue__pager{
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:14px 0;
+  padding:12px;border:1px solid #8d7754;border-radius:14px;
+  background:#222a32;color:#f6e2bd
+}
+.jr-edu-adult-review__pager label{
+  display:flex;flex:1 1 190px;flex-direction:column;gap:7px;
+  font-weight:750;color:#efdaa9
+}
+.jr-edu-adult-review__pager select{
+  display:block;min-height:48px;min-width:150px;max-width:100%;
+  border:1px solid #ae9462;background:#252e37;border-radius:10px;
+  padding:10px;color:#ffefcf;font:inherit;font-size:16px
+}
+.jr-edu-adult-review__pager button,.jr-edu-erasure-queue__pager button{
+  min-height:48px;padding:10px 14px;border-radius:11px;
+  border:1px solid #d8bc81;background:#dbbf86;color:#211c17;
+  font:inherit;font-weight:740;cursor:pointer
+}
+.jr-edu-adult-review__pager button:disabled,
+.jr-edu-erasure-queue__pager button:disabled{opacity:.48;cursor:not-allowed}
+.jr-edu-adult-review__pager output,.jr-edu-erasure-queue__pager output{
+  min-width:95px;text-align:center;font-weight:750;white-space:nowrap}
+.jr-edu-adult-review__pager :is(button,select):focus-visible,
+.jr-edu-erasure-queue__pager button:focus-visible{
+  outline:3px solid white;outline-offset:3px}
+@media(max-width:510px){
+  .jr-edu-adult-review__pager label{flex-basis:100%}
+  .jr-edu-adult-review__pager button,.jr-edu-erasure-queue__pager button{flex:1 1 105px}
+}
