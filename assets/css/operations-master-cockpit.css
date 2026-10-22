@@ -601,3 +601,27 @@ body .ops-top h1{letter-spacing:-.018em;line-height:1.45}
 }
 #ops-command-center .oc-department .oc-open{min-width:126px}
 #ops-command-center .oc-triage-row button{min-height:44px}
+
+/* Evidence counts are filters, not universal health scores or an "all green"
+   badge. A zero here means zero items in that *observed classification*. */
+#ops-command-center .oc-evidence-distribution{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:9px;margin:12px 0 18px
+}
+#ops-command-center .oc-evidence-count{
+ display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+ gap:8px;width:100%;border:1px solid var(--oc-edge);
+ background:rgba(255,255,255,.035);border-radius:12px;
+ font-size:.82rem;line-height:1.55
+}
+#ops-command-center .oc-evidence-count strong{
+ color:#f4f2ec;font-size:1.2rem;font-variant-numeric:tabular-nums
+}
+#ops-command-center .oc-evidence-count[data-oc-status="attention"] strong{color:#ffbea0}
+#ops-command-center .oc-evidence-count[data-oc-status="unknown"] strong{color:#d1dbeb}
+#ops-command-center .oc-evidence-count[data-oc-status="paused"] strong{color:#f0d18d}
+#ops-command-center .oc-evidence-count[data-oc-status="recorded"] strong{color:#a8e2ce}
+@media(max-width:680px){
+ #ops-command-center .oc-evidence-distribution{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #ops-command-center .oc-evidence-count{font-size:.73rem;min-height:54px;padding:6px}
+}
