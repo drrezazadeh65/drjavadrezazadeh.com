@@ -59,7 +59,9 @@ fs.writeFileSync(inventoryOutput,JSON.stringify(adminToolInventory)+'\n');
 // Versioned PRIVATE source-derived page quality inventory for the existing
 // administrator dashboard. Server refuses non-admin/MFA reads. It never fetches
 // live URLs, scores real search rankings or includes HTML/customer content.
-const qualityInventory=generateQualityInventory(root);
+// Score only files that actually enter the sanitized public_html bundle;
+// never count repository docs, private fixtures, proposal/test HTML as pages.
+const qualityInventory=generateQualityInventory(out);
 if(qualityInventory.schema!=='operations-page-quality-inventory-v1'
    ||qualityInventory.total<1||qualityInventory.total>15000)
   throw Error('Page quality source inventory contract drift');
