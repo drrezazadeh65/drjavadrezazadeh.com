@@ -127,3 +127,12 @@ official amendments, independently verified reviewer identities, exact
 live MariaDB metadata/backup restore, vendor permission for direct import,
 lawful consented outcome cohorts, external model evaluation and GDPR-like
 privacy lifecycle including guardian authority where applicable.
+
+
+## 2026-10-22 additional source-only scientific review workflow
+
+The existing administrator panel now has an authenticated, MFA-protected, read-only `educational-source-review` view, supplied by `api/operations-education-source-review.php` and a private sanitized build manifest. This is separate from the existing admissions and payment engines. After the administrator explicitly opens it, the UI can prepare a UTF-8 CSV **human-review worksheet for each original PDF page**, referencing source-category key, ordinal page and original SHA-256 fingerprint. All review statuses start `UNREVIEWED`. CSV export does not approve or publish anything; no PDF text, private Drive identifier or candidate information is included.
+
+The source-only admission gate in `platform/jr-admission-source-governance.mjs` was strengthened to reject untrusted "humanReviewed" and "adminApproved" flags. Future source authorization requires distinct cryptographic reviewer and administrator attestations bound to exact issuer, guide edition, original PDF SHA-256, page ordinal, review reference, date and scope. The relevant keys and signed evidence are **not** present in the source repository. Without these external trust credentials, source intake remains disabled.
+
+**Unmet prerequisites:** original PDF visual comparison by qualified humans, amendments, row-level provenance and signed two-person approval, truthful mother-database reconciliation and the owner's final integrated acceptance. Running the new workflow, certifying these records or altering live acceptance states has **not occurred** here.
