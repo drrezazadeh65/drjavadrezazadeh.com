@@ -135,6 +135,10 @@ try {
  check(($masterOff['automaticCollection']['enabled']??true)===false
      && ($masterOff['automaticCollection']['installedCronVerified']??true)===null,
      'collector master switch falsely reported on or Cron verified');
+ $noMasterCsrf=$headers;unset($noMasterCsrf['X-CSRF-Token']);
+ request('/api/admin/operations/collection-automatic',403,'POST',[
+     'enabled'=>true,'confirmation'=>'ENABLE SCHEDULED COLLECTION'
+ ],$noMasterCsrf);
  $paused=operationsCollectorRefresh($pdo,'scheduled',$now);
  check(($paused['status']??null)==='paused_by_owner'
      && ($paused['attempted']??-1)===0,
