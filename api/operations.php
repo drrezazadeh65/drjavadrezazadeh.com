@@ -608,7 +608,13 @@ function operationsRoute(string $path, string $verb): never {
                 fail('super_admin_required',403);
             if(!rateAllowed($pdo,'ops_bahar_erasure_queue_read',$accountId,12,300))
                 fail('rate_limited',429);
-            respond(operationsEducationBaharErasureQueue($pdo));
+            try{
+                respond(operationsEducationBaharErasureQueue(
+                    $pdo,['page'=>$_GET['page']??1]
+                ));
+            }catch(InvalidArgumentException $e){
+                fail('invalid_erasure_request_page',422);
+            }
         }
         if($path==='/admin/operations/education-erasure-requests'&&$verb==='POST'){
             if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
