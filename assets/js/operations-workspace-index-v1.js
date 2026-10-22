@@ -40,7 +40,7 @@
  const nav=make('details','ops-workspace-index');
  nav.id='ops-navigator';
  nav.dataset.opsWorkspaceIndex='';
- nav.open=true;
+ nav.open=false;
  const summary=make('summary');
  summary.append(make('span',null,en?'Explore operations workspaces':'دسترسی سریع به بخش‌های مدیریت'));
  const body=make('div','ops-index-inner');
@@ -67,7 +67,11 @@
  feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
  footer.append(hint,feedback);body.append(footer);
  nav.append(summary,body);
- workspace.prepend(nav);
+ // Place the legacy directory after the primary cockpit instead of above it.
+ // The catalogue is collapsed by default and remains available on demand.
+ const anchor=workspace.querySelector('.ops-jump');
+ if(anchor)anchor.after(nav);
+ else workspace.append(nav);
  const groups=[
    {id:'jr-intelligence',group:'evidence'},
    {id:'ops-reporting',group:'evidence',label:en?'13-engine reports and verified evidence':'گزارش‌های ۱۳ موتور و شواهد معتبر'},
