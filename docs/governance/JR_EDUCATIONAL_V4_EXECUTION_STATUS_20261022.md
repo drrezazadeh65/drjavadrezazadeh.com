@@ -138,3 +138,16 @@ The scoped privacy request path reuses the existing `database/unified/001_core_g
 ### Future owner migration sequence — DO NOT EXECUTE YET
 
 At the end of source completion, coordinate with the owner and their Bertina cPanel operator: (1) identify and safely back up the existing single production database; (2) review this additive SQL and its foreign key to existing `customer_accounts(id)`, confirm current MariaDB/MySQL version and table metadata; (3) perform the final **owner-approved** migration to the existing mother database only; (4) run the one comprehensive integrated system, privacy, payment and SEO acceptance; (5) verify real owner-MFA browser reads, optimistic writes, safe failure modes and all existing checkout operations; (6) authorize the release only if the independent scientific and commerce evidence gates are actually satisfied. No parallel DB, destructive migration, unverified bank claim or automatic price activation is permitted.
+
+
+## Continued code-only integration — privacy transaction consistency, first-screen discovery and consented audience
+
+This source-only continuation implements the following on `migration/bertina-linux6` without running tests, migrations or releases:
+
+- The BAHAR private account endpoint uses a single mother-database account lock to serialize current consent withdrawal, private workbook reads/writes and account erasure. It prevents a concurrent, previously authorized upload from resurrecting information during a deletion request. Permission and erasure status are rechecked after locking. Direct DELETE now reports whether a row was actually deleted, rather than always claiming success.
+- Reviewed-adult BAHAR access can be **requested again**, not automatically granted, when a prior human authorization has expired. Declined or revoked requests can be resubmitted after a seven-day cooling period for an independent owner review; existing verified permissions are never converted into approval by the request API.
+- Both permanent bilingual home URLs now place the existing `/fa/masir-man/` or `/en/my-path/` need-first education navigator into the primary visible hero actions. No pre-existing homepage, storefront, assessment or sitemap URL has been renamed.
+- The existing mother-database educational-interest email workflow is reused in the owner dashboard. The one-glance education readiness view exposes only the actual number of verified opt-in contacts, waiting mailbox verifications and owner-authorized availability. Reading individual verified email addresses still requires a separate explicit MFA-authorized admin action; automatic bulk messages or implicit consent remain disabled.
+- The new consented-audience overview links directly to the already-existing bilingual owner panel, with stable in-page IDs; no parallel email database was introduced.
+
+**Continuing blockers, NOT PASS:** signed independent original 1405 PDF and full amendment review, scientific/psychometric validation, live mother-DB migration/keys, actual entitlement and payment fulfilment, host-specific runtime confirmation, real user consent privacy acceptance, and the single final integrated test and owner-controlled deployment. All source changes are saved in GitHub; nothing in this entry proves their execution in production.
