@@ -83,7 +83,9 @@ function operationsQualityList(array $input): array {
         if($language!=='all'&&($language==='other'?!in_array($lang,['fa','en'],true):$lang!==$language))return false;
         if($index==='public'&&$private)return false;
         if($index==='private'&&!$private)return false;
-        return $query===''||mb_stripos($row['route'],$query,0,'UTF-8')!==false;
+        return $query===''||(function_exists('mb_stripos')
+            ?mb_stripos($row['route'],$query,0,'UTF-8')!==false
+            :stripos($row['route'],$query)!==false);
     }));
     usort($rows,static function($a,$b)use($dimension,$sort) {
         if($sort==='route')return strcmp((string)$a['route'],(string)$b['route']);
