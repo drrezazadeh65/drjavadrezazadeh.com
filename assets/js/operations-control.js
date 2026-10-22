@@ -2941,6 +2941,20 @@ function renderOwnerCommandCenter(){
        'Source policy and due date are not proof that host Cron ran.')));
    sourceMatrix.append(overview);
    const list=el('div',undefined,'oc-source-list');
+   const openScope=(scopeId,cleanup=false)=>{
+     collectionExpanded=true;reportingRender();
+     openExistingOperationalWorkspace('ops-collection-settings');
+     const editor=$('ops-collection-settings');
+     if(!editor)return;
+     const row=Array.from(editor.querySelectorAll('[data-collector-scope]'))
+       .find(node=>node.dataset.collectorScope===scopeId);
+     if(!row)return;
+     row.scrollIntoView({block:'center',behavior:'auto'});
+     const focusTarget=cleanup?
+       row.querySelector('[data-ops-delete-preview]'):
+       row.querySelector('input,select,[data-ops-fetch-scope]');
+     if(focusTarget)focusTarget.focus({preventScroll:true});
+   };
    for(const scope of sources){
      const line=el('article',undefined,'oc-source-item');
      const name=el('strong',scope.id);
@@ -2960,11 +2974,13 @@ function renderOwnerCommandCenter(){
        ' · '+t('وضعیت موعد: ','Due evidence: ')+(scope.scheduleEvidence||'—'));
      const actions=el('div',undefined,'oc-source-actions');
      const configure=el('button',t('ساعت، نگهداری و مجوز','Cadence, retention & policy'));
-     configure.type='button';configure.addEventListener('click',()=>{
-       collectionExpanded=true;reportingRender();
-       openExistingOperationalWorkspace('ops-collection-settings');
-     });
+     configure.type='button';
+     configure.addEventListener('click',()=>openScope(scope.id));
      actions.append(configure);
+     const cleanup=el('button',t('نمایش حذف کنترل‌شده','Review scoped data deletion'));
+     cleanup.type='button';
+     cleanup.addEventListener('click',()=>openScope(scope.id,true));
+     actions.append(cleanup);
      const manual=el('button',t('واکشی فوری این منبع','Fetch this source now'));
      manual.type='button';
      manual.disabled=collectionState.canManage!==true;
