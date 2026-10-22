@@ -24,6 +24,25 @@ function safeEvidenceUrl(value){
   return url.href;
  }catch{return null;}
 }
+/**
+ * Export explicitly loaded, bounded admin rows only. Never fetches hidden
+ * rows or stores export data on the server. Neutralise spreadsheet formulas.
+ */
+const workspaceVisibleForExport=()=>!!snapshot&&!$('ops-workspace')?.hidden;
+function exportOperationsCsv(filename,headers,rows){
+ if(!Array.isArray(rows)||rows.length>50)return;
+ const escape=value=>{
+   let v=String(value===null||value===undefined?'':value)
+     .replace(/[\u0000-\u001F\u007F]/g,' ');
+   if(/^\s*[=+\-@]/u.test(v))v="'"+v;
+   return '"'+v.replace(/"/g,'""')+'"';
+ };
+ const csv=[headers,...rows].map(values=>values.map(escape).join(',')).join('\r\n');
+ const url=URL.createObjectURL(new Blob(['\uFEFF',csv],{type:'text/csv;charset=utf-8'}));
+ const link=document.createElement('a');link.href=url;link.download=filename;
+ document.body.append(link);link.click();link.remove();
+ window.setTimeout(()=>URL.revokeObjectURL(url),0);
+}
 async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
 function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
@@ -861,6 +880,19 @@ function renderAlertCenter(host,model){
        results.replaceChildren();
        results.append(el('p',t('تعداد رخدادهای ثبت‌شده: ','Recorded incidents: ')+
          (data.total??'—')));
+       const exportButton=el('button',t('خروجی CSV همین صفحه (حداکثر ۵۰ رخداد)',
+           'Download this history page as CSV (max 50 incidents)'));
+       exportButton.type='button';
+       exportButton.addEventListener('click',()=>{
+         if(workspaceVisibleForExport()){
+           exportOperationsCsv('site-incidents-page-'+page+'.csv',
+             ['event_code','scope','severity','state','occurrences','first_seen_at','last_seen_at'],
+             (data.records||[]).map(item=>[
+               item.eventCode,item.scope,item.severity,item.state,item.occurrences,
+               item.firstSeenAt,item.lastSeenAt]));
+         }
+       });
+       results.append(exportButton);
        const list=el('ul');
        for(const item of data.records||[]){
          list.append(el('li',item.eventCode+' · '+item.severity+' · '+item.state+
@@ -955,6 +987,20 @@ function renderPageQuality(host){
      ' · '+t('کل صفحات HTML بررسی‌شده در مخزن: ','Source HTML pages: ')+data.pagesScanned+
      ' · '+t('صفحات عمومی با سئوی منبعی ضعیف (کمتر از ۶): ','Weak public source-SEO pages (<6): ')+data.weakSeoSourcePages);
    section.append(count);
+   const exportButton=el('button',t('خروجی CSV همین صفحه از جدول کیفیت','Download this quality-table page as CSV'));
+   exportButton.type='button';
+   exportButton.addEventListener('click',()=>{
+     if(!workspaceVisibleForExport())return;
+     exportOperationsCsv('site-page-quality-'+data.page+'.csv',
+       ['route','language','indexability',...data.dimensions],
+       data.records.map(record=>[
+         record.route,record.language,record.indexability,
+         ...data.dimensions.map(key=>record.grades?.[key]??'')
+       ]));
+   });
+   section.append(exportButton,el('small',t(
+     'تنها ردیف‌های صفحه فعلی (حداکثر ۵۰ مورد) خروجی گرفته می‌شوند؛ مقادیر ناشناخته خالی می‌مانند.',
+     'Exports currently loaded rows only (up to 50); unavailable grades remain blank.')));
    const wrap=el('div',undefined,'ops-table-wrap ops-page-quality-scroll');
    const table=el('table',undefined,'ops-table ops-quality-table');
    const heading=el('thead'),hr=el('tr');
