@@ -336,3 +336,52 @@ function operationsAlertSendBatch(PDO $pdo,array $configuration,callable $transp
     }
     return ['status'=>'processed','attempted'=>$attempted,'accepted'=>$accepted];
 }
+
+/**
+ * Searchable, bounded MFA-only incident history in the EXISTING incident log.
+ * No IP, visitor query string, email address or unbounded raw log is exposed.
+ * GET does not trigger mail, sensors or collection.
+ */
+function operationsAlertHistory(PDO $pdo,array $input,int $at): array {
+    $severity=(string)($input['severity']??'all');
+    $state=(string)($input['state']??'all');
+    $event=(string)($input['eventCode']??'all');
+    $days=filter_var($input['days']??30,FILTER_VALIDATE_INT);
+    $page=filter_var($input['page']??1,FILTER_VALIDATE_INT);
+    if(!in_array($severity,['all','critical','warning'],true)
+        ||!in_array($state,['all','open','acknowledged','resolved'],true)
+        ||($event!=='all'&&!isset(operationsAlertDefinitions()[$event]))
+        ||$days===false||!in_array($days,[1,7,30,90,180,365],true)
+        ||$page===false||$page<1||$page>100)
+        throw new InvalidArgumentException('invalid_incident_history_filters');
+    if(!operationsAlertAvailable($pdo))
+        return ['ok'=>true,'schema'=>'operations-incident-history-v1',
+            'status'=>'schema_not_provisioned','records'=>[],'total'=>null];
+    $where=['last_seen_at >= ?','last_seen_at <= ?'];
+    $args=[$at-$days*86400,$at+60];
+    if($severity!=='all'){$where[]='severity = ?';$args[]=$severity;}
+    if($state!=='all'){$where[]='state = ?';$args[]=$state;}
+    if($event!=='all'){$where[]='event_code = ?';$args[]=$event;}
+    $predicate=implode(' AND ',$where);
+    $q=$pdo->prepare('SELECT COUNT(*) FROM operations_alert_incidents WHERE '.$predicate);
+    $q->execute($args);$total=(int)$q->fetchColumn();
+    $limit=50;$offset=($page-1)*$limit;
+    $q=$pdo->prepare('SELECT event_code,scope_key,severity,first_seen_at,last_seen_at,
+        occurrence_count,state,last_queued_at
+        FROM operations_alert_incidents WHERE '.$predicate.'
+        ORDER BY last_seen_at DESC,fingerprint ASC LIMIT '.$limit.' OFFSET '.$offset);
+    $q->execute($args);$items=[];
+    foreach($q as $row)$items[]=[
+        'eventCode'=>(string)$row['event_code'],'scope'=>(string)$row['scope_key'],
+        'severity'=>(string)$row['severity'],'state'=>(string)$row['state'],
+        'occurrences'=>(int)$row['occurrence_count'],
+        'firstSeenAt'=>(int)$row['first_seen_at'],
+        'lastSeenAt'=>(int)$row['last_seen_at'],
+        'lastQueuedAt'=>(int)$row['last_queued_at']?:null
+    ];
+    return ['ok'=>true,'schema'=>'operations-incident-history-v1',
+        'status'=>'stored_incidents_only','days'=>$days,'page'=>$page,
+        'pageCount'=>max(1,(int)ceil($total/$limit)),'perPage'=>$limit,
+        'total'=>$total,'records'=>$items,
+        'note'=>'Historical server-recorded incidents, not current health or an exhaustive PHP/security/payment log.'];
+}
