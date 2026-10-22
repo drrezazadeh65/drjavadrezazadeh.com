@@ -129,6 +129,23 @@
    message.textContent=t('ورودی‌ها فقط از نظر قالب بررسی شدند؛ صحت اطلاعات و شرایط پذیرش تأیید نشده‌اند.',
     'Inputs were checked for basic format only; official values and eligibility remain unverified.');
   });
+  // A reviewed snapshot is only valid for the exact inputs at the time of
+  // clicking Review. Prevent an old printout or next-step status remaining
+  // visible after a learner edits any form value.
+  const invalidate=()=>{
+   if(!inspected)return;
+   inspected=null;
+   result.replaceChildren();result.hidden=true;
+   next.hidden=true;print.disabled=true;
+   printView.replaceChildren();printView.hidden=true;
+   root.classList.remove('jr-ks-printing');
+   message.textContent=t(
+    'ورودی‌ها تغییر کردند. برای ایجاد گزارش تازه، دوباره بررسی کنید.',
+    'Inputs have changed. Review the new values before printing or continuing.'
+   );
+  };
+  form.addEventListener('input',invalidate);
+  form.addEventListener('change',invalidate);
   form.addEventListener('reset',()=>{
    inspected=null;result.replaceChildren();result.hidden=true;next.hidden=true;print.disabled=true;
    printView.replaceChildren();printView.hidden=true;message.textContent=t('فرم و نتیجه پاک شدند.','Form and result cleared.');
