@@ -62,7 +62,24 @@ $('ops-workspace')?.addEventListener('click',event=>{
  event.preventDefault();
  openExistingOperationalWorkspace(wanted);
 });
-async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
+async function api(path,options={}){
+ const response=await fetch('/api/admin/operations'+path,{
+   credentials:'same-origin',cache:'no-store',
+   headers:{Accept:'application/json',...(options.headers||{})},...options
+ });
+ // A 502/maintenance page or an expired login may be HTML; never surface
+ // its body as an administrator error or label it a successful JSON response.
+ const body=await response.json().catch(()=>null);
+ if(!response.ok||!body||body.ok!==true){
+   const code=typeof body?.error==='string'&&body.error.length<=100
+     ?body.error:response.status===401?'unauthorized'
+       :response.status===403?'admin_forbidden'
+       :response.status===429?'rate_limited'
+       :'operations_unavailable';
+   throw new Error(code);
+ }
+ return body;
+}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
 function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;dbHealthCurrent=null;dbHealthExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
