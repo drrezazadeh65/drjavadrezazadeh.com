@@ -14,7 +14,7 @@ link.dataset.jrAssistantStyle='1';
 document.head.appendChild(link);
 }
 const script=document.createElement('script');
-script.src=new URL('assistant.js?v=1',siteScript.src).href;
+script.src=new URL('assistant.js?v=20261022-privacy-guide-v2',siteScript.src).href;
 script.defer=true;
 script.dataset.jrAssistant='1';
 document.head.appendChild(script);
