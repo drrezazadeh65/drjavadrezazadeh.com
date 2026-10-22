@@ -1541,9 +1541,14 @@ const sourceQualityRemedies={
  author_or_entity_information:['هویت علمی نویسنده و منابع معتبر در صفحه شفاف شود.','Clarify attributable authorship and source evidence.'],
  public_page_has_no_source_noindex:['meta robots با عمومی‌بودن واقعی و سیاست حریم خصوصی صفحه تطبیق داده شود.','Review robots policy against genuine indexability and privacy.']
 };
-const sourceQualityRemedy=code=>t(...(sourceQualityRemedies[code]||
- [ 'این نقص کد منبع نیازمند بررسی دستی پیش از اصلاح است: '+code,
-   'Review this source-check finding manually before editing: '+code ]));
+const sourceQualityRemedy=code=>{
+ const text=Object.prototype.hasOwnProperty.call(sourceQualityRemedies,code)
+   ?sourceQualityRemedies[code]:null;
+ return t(...(Array.isArray(text)?text:[
+   'این نقص کد منبع نیازمند بررسی دستی پیش از اصلاح است: '+code,
+   'Review this source-check finding manually before editing: '+code
+ ]));
+};
 async function loadQualityIndex(){
  const generation=loadGeneration;
  const qs=new URLSearchParams(Object.entries(qualityFilters).map(([key,value])=>[key,String(value)]));
@@ -1678,7 +1683,10 @@ function renderPageQuality(host){
    // Developer handoff is owner-initiated and source-only; never represents
    // a saved fix, a live scan or permission to change a frozen public URL.
    const gaps=[];
-   for(const [dimension,grade] of Object.entries(qualityDetail.grades||{})){
+   // Only displayed first-class dimensions; legacy 'seo'/'ai' aliases would
+   // otherwise duplicate owner remediation lines in the clipboard export.
+   for(const dimension of Object.keys(qualityNames)){
+     const grade=qualityDetail.grades?.[dimension];
      if(!Array.isArray(grade?.findings)||grade.findings.length===0)continue;
      for(const finding of grade.findings.slice(0,30)){
        if(typeof finding!=='string'||finding.length>100)continue;
