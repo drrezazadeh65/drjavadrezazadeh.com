@@ -22,9 +22,9 @@ function jsonBody(): array { return $GLOBALS['body']??[]; }
 // The response adapter throws for assertions; production respond() exits.
 // Preserve the route body and let only the test response escape its error boundary.
 $routeSource=file_get_contents(__DIR__.'/../api/operations.php');
-$boundary="} catch (Throwable \$e) { fail('operations_unavailable',503); }";
+$boundary="    } catch (Throwable \$e) {\n        // Best-effort structured codes only.";
 if(substr_count($routeSource,$boundary)!==1)throw new RuntimeException('response adapter boundary changed');
-$routeSource=str_replace($boundary,"} catch (Throwable \$e) { if (\$e instanceof OperationsResponse) throw \$e; fail('operations_unavailable',503); }",$routeSource);
+$routeSource=str_replace($boundary,"    } catch (Throwable \$e) {\n        if (\$e instanceof OperationsResponse) throw \$e;\n        // Best-effort structured codes only.",$routeSource);
 $routeSource=str_replace('__DIR__',var_export(realpath(__DIR__.'/../api'),true),$routeSource);
 eval(substr($routeSource,5));
 require __DIR__.'/../api/operations-schema.php';
