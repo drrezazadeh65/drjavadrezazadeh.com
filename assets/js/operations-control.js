@@ -2755,6 +2755,21 @@ function renderOwnerCommandCenter(){
        :t('دسترسی به فراداده نامشخص','Schema metadata unavailable')));
    if(Array.isArray(module.missingTables)&&module.missingTables.length)
      unit.append(el('small',module.missingTables.join(' · ')));
+   if(Number.isInteger(module.lastRecordedAt)&&module.lastRecordedAt>0){
+     const evidenceLabel={
+       collector_attempt:t('آخرین تلاش گردآورنده','Last collector attempt'),
+       private_log_cursor:t('آخرین ثبت نشانگر HTTP','Last HTTP cursor update'),
+       response_probe_sample:t('آخرین نمونه پاسخ','Last response sample'),
+       outbox_attempt:t('آخرین تلاش صف ایمیل','Last outbox attempt'),
+       database_health_journal:t('آخرین سابقه سلامت دیتابیس','Last DB health record')
+     };
+     unit.append(el('small',
+       (evidenceLabel[module.recordKind]||t('آخرین رکورد','Last stored record'))+
+       ': '+date(module.lastRecordedAt)));
+     unit.append(el('small',t('وجود سابقه، موفقیت اتصال یا Cron را اثبات نمی‌کند.',
+       'A recorded event does not certify integration success or host Cron.')));
+   }else unit.append(el('small',t('سابقهٔ اجرایی تاریخ‌دار در این نمای خلاصه موجود نیست.',
+     'No dated execution record available in this summary.')));
    if(typeof module.uiTarget==='string'&&$(module.uiTarget)){
      const open=el('button',t('رفتن به کنترل','Open controls'));
      open.type='button';
