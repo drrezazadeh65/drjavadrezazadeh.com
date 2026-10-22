@@ -18,3 +18,19 @@ footer{color:var(--jr-muted);font-size:.85rem;padding:12px 0 30px}
 @media(min-width:720px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.field.full{grid-column:1/-1}.week-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bottom{position:static;justify-content:flex-start;gap:18px;background:transparent;border:0;padding:10px 0}.bottom a{border:1px solid #6f6041;border-radius:11px}.wrap{padding-bottom:30px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 @media print{body{background:white;color:#111;font:12pt/1.6 sans-serif}.hero,.pane,.week,.disclaimer{background:white;color:#111;border:1px solid #999;break-inside:avoid}.hero h1,.pane h2,.week b{color:#111}.wrap{max-width:none;padding:0}.bottom,.site-top,.actions,.task button,.form-grid,.skip,.locale{display:none!important}.summary{background:white;color:#111;border:1px solid #555}.pane{margin:12px 0}}
+
+/* Eight-week BAHAR compass: responsive, keyboard accessible, private workbook. */
+.field select{display:block;width:100%;min-height:50px;border:1px solid #aa986e;border-radius:12px;background:#111519;color:var(--jr-ink);padding:11px 13px;font:inherit;font-size:16px}
+.file-picker{position:relative;cursor:pointer;overflow:hidden}
+.file-picker input[type=file]{position:absolute;inline-size:1px;block-size:1px;opacity:0;inset-block-end:0;inset-inline-end:0}
+.file-picker:focus-within{outline:3px solid var(--jr-focus);outline-offset:3px}
+.compass-entries{padding-inline-start:24px;margin:18px 0}
+.compass-entries li{margin:12px 0;padding:12px;border:1px solid #776846;border-radius:12px;overflow-wrap:anywhere;background:#22262c}
+.compass-entries button{min-height:44px;margin-block:7px}
+.compass-preview{white-space:normal}
+.compass-preview p{margin:0 0 10px;overflow-wrap:anywhere}
+.compass-preview h3{color:var(--jr-gold)}
+#bahar-compass .actions{align-items:center}
+#bahar-compass button{max-width:100%;white-space:normal}
+@media(max-width:410px){#bahar-compass .actions>*{width:100%}.file-picker{justify-content:center}}
+@media print{.compass-entries button,.file-picker,#bahar-compass form,#bahar-compass .actions,#bahar-compass-status{display:none!important}#bahar-compass .compass-preview{display:block!important;white-space:normal}}
