@@ -23,6 +23,7 @@ require_once __DIR__.'/operations-source-directory.php';
 require_once __DIR__.'/operations-source-controls.php';
 require_once __DIR__.'/operations-page-quality.php';
 require_once __DIR__.'/operations-activation.php';
+require_once __DIR__.'/operations-database-health.php';
 require_once __DIR__.'/operations-alerts.php';
 require_once __DIR__.'/operations-http-log.php';
 require_once __DIR__.'/operations-response-monitor.php';
@@ -1040,6 +1041,44 @@ function operationsRoute(string $path, string $verb): never {
             catch (Throwable $e) {fail('action_execution_unavailable',503);}
         }
 
+        // The owner initiates the DB health scan; neither opening the
+        // dashboard nor creating a configuration starts a background scan.
+        if ($path === '/admin/operations/database-health' && $verb === 'GET') {
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('database_health_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_db_health_read',$accountId,12,3600))
+                fail('rate_limited',429);
+            respond(operationsDbHealthReport($pdo,nowTs()));
+        }
+        if ($path === '/admin/operations/database-health/settings' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('database_health_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_db_health_settings',$accountId,6,3600))
+                fail('rate_limited',429);
+            try{
+                $settings=operationsDbHealthConfigure($pdo,jsonBody(),$accountId,nowTs());
+                respond(['ok'=>true,'schema'=>'operations-database-health-settings-v1',
+                    'settings'=>$settings,'hostCronVerified'=>null]);
+            }catch(InvalidArgumentException $e){fail('invalid_database_health_policy',400);}
+            catch(Throwable $e){fail('database_health_schema_unavailable',503);}
+        }
+        if ($path === '/admin/operations/database-health/purge-expired' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('database_health_super_admin_required',403);
+            $body=jsonBody();
+            if(!is_array($body)||array_keys($body)!==['confirmation']||
+                $body['confirmation']!=='DELETE EXPIRED DATABASE LOGS')
+                fail('database_health_purge_confirmation_required',400);
+            if(!rateAllowed($pdo,'operations_db_health_purge',$accountId,3,3600))
+                fail('rate_limited',429);
+            try{respond(operationsDbHealthPurgeExpired($pdo,$accountId,nowTs()));}
+            catch(Throwable $e){fail('database_health_schema_unavailable',503);}
+        }
+
         if ($path === '/admin/operations/collection-settings' && $verb === 'GET') {
             $controls=operationsCollectorStatus($pdo,nowTs());
             $controls['canManage']=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
@@ -1315,5 +1354,11 @@ function operationsRoute(string $path, string $verb): never {
             respond($snapshot);
         }
         fail('not_found',404);
-    } catch (Throwable $e) { fail('operations_unavailable',503); }
+    } catch (Throwable $e) {
+        // Best-effort structured codes only. The observer is opt-in and never
+        // emits exception messages, queries, DSNs or customer identifiers.
+        if(isset($pdo)&&$pdo instanceof PDO)
+            operationsDbHealthRecordError($pdo,'operations_route',$e,time());
+        fail('operations_unavailable',503);
+    }
 }
