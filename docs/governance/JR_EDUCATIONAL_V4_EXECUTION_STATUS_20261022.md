@@ -296,3 +296,8 @@ The existing bilingual five-criterion comparison now renders an explicitly versi
 ## 2026-10-22 — AID-01 bilingual manual scorecard continuation (SOURCE ONLY)
 
 The existing FA/EN manually entered Sanjesh scorecard worksheet now offers a clear, optional next step to the already present five-criterion Choice Studio after a **format-valid self-report**; no rank, quota, group, score, name, or entry is transferred or appended to a URL. When any form input changes after review, the old result, print permission and next-step control immediately become stale and are hidden until re-reviewed. Neither the output nor the navigation asserts an official scorecard, qualification, probability or authoritative catalogue. Source: assets/js/jr-konkur-official-scorecard-workspace-v1.js and cache-version references in the two original bilingual Choice Studio pages. Official programme knowledge, scientific authentication, optional account save and actual browser/mobile acceptance remain GATED/NOT RUN. No tests, builds, DB migrations, live requests, emails, payments or deployments ran.
+
+
+## 2026-10-22 — AID-09 official-source precision in the public lab (SOURCE ONLY)
+
+Updated the existing Persian /fa/konkur-ai-lab/ source copy to identify the roughly 2,412 historical extraction anchors only as **unreviewed prior research**, never as a certified number of official university programmes, validated scorecards or approved source rows. Explicitly notes that original guides, amendments, dates and row-by-row verification are outstanding. No official admission likelihood or recommended programme catalogue is claimed. Existing public URL, canonical, inputs and privacy boundary unchanged; tests and live source checks NOT RUN.
