@@ -579,6 +579,7 @@ function operationsRoute(string $path, string $verb): never {
             if(!rateAllowed($pdo,'ops_educational_release_gates_write',$accountId,8,600))
                 fail('rate_limited',429);
             $input=jsonBody();
+            if(!is_array($input))fail('invalid_education_release_note',400);
             try{respond(operationsEducationReleaseSave($pdo,$input,$accountId,nowTs()));}
             catch(InvalidArgumentException $e){fail('invalid_education_release_note',422);}
             catch(DomainException $e){fail('education_release_revision_conflict',409);}
