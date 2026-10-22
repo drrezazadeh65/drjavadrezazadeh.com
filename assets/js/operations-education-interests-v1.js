@@ -209,6 +209,13 @@
       if(!r.ok)throw Error('NOT_AUTHORIZED');
       const result=await r.json();
       if(serial!==epoch||!permitted())return null;
+      // A transport 2xx is insufficient evidence of a saved owner decision.
+      // Require the documented typed response from the existing MFA route;
+      // otherwise clear any previously revealed contact list and refresh.
+      if(result?.ok!==true||![
+        'jr.education-interest-owner-snapshot.v1',
+        'jr.education-interest-owner-suppression.v1'
+      ].includes(result.schema))throw Error('UNCONFIRMED_OWNER_WRITE');
       return result;
     }catch(error){
       if(serial===epoch&&permitted()&&
