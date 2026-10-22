@@ -34,7 +34,7 @@ $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=
 foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboarding.php','consultation-delivery.php','consultation-availability.php','operations.php','operations-jhela.php','jhela-native-editorial.php','jhela-intake.php','operations-commerce.php','operations-book-expiration.php','operations-donation-recovery.php','operations-fulfilment.php','operations-schema.php','operations-reporting.php','operations-ai-visibility.php','operations-gsc-direct.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php','operations-collection.php',
 'operations-provider-inventory.php','admin-resource-inventory-normalizer.php','operations-source-directory.php',
 'operations-source-controls.php','operations-page-quality.php','operations-alerts.php','operations-activation.php',
-'operations-http-log.php','operations-response-monitor.php','operations-existing-features.php','operations-editor.php',
+'operations-http-log.php','operations-response-monitor.php','operations-database-health.php','operations-existing-features.php','operations-editor.php',
 'smtp-body.php','service-intake.php','service-files.php','service-buyer-receipt.php','ramzinex-public-usdt-rate.php','newsletter-preferences.php','community.php','growth-stage14.php','golden-talent.php','student-support.php','operations-service-delivery.php'] as $file){
     if(!copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file))
         throw new RuntimeException('isolated_router_dependency_missing_'.$file);
