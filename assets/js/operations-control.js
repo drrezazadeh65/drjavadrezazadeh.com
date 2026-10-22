@@ -89,6 +89,18 @@ ownerSessionChannel?.addEventListener('message',event=>{
  if(event.data?.kind==='signed_out')lock(t(
    'این نشست مدیر در تب دیگری پایان یافت.','This owner session was signed out in another tab.'));
 });
+// Only bounded known error categories are retained in the administrative UI.
+// Raw proxy text, exception traces or provider messages are never displayed.
+function safeAdminFailureCode(error){
+ const allowed=new Set([
+  'rate_limited','admin_mfa_required','unauthorized','admin_forbidden',
+  'operations_schema_unavailable','source_control_schema_unavailable',
+  'database_health_schema_unavailable','database_health_super_admin_required',
+  'invalid_source_directory','invalid_source_controls','invalid_quality_inventory'
+ ]);
+ const code=String(error?.message||'');
+ return allowed.has(code)?code:'operations_unavailable';
+}
 function errorMessage(error){return ({source_control_schema_unavailable:t(
  'جدول تنظیمات منابع در دیتابیس مادر نصب نشده است.',
  'The source-policy table is not provisioned in the mother database.'),
@@ -2568,7 +2580,7 @@ function renderOwnerCommandCenter(){
          break;
        }
        unavailable++;
-       ownerCockpitReadErrors[id]='unavailable';
+       ownerCockpitReadErrors[id]=safeAdminFailureCode(error);
      }
      processed++;
    }
@@ -3132,7 +3144,7 @@ function renderOwnerCommandCenter(){
        lock(t('برای مشاهده داده‌ها دوباره دسترسی مدیر را تأیید کنید.',
          'Verify administrator access again before reading private data.'));
      }else{
-       ownerCockpitReadErrors[item.load]='unavailable';
+       ownerCockpitReadErrors[item.load]=safeAdminFailureCode(error);
        reportingRender();
        notice(errorMessage(error),true);
      }
@@ -3179,9 +3191,11 @@ function renderOwnerCommandCenter(){
    const error=ownerCockpitReadErrors[item.load];
    const display=error?state('unknown',
      error==='admin_mfa_required'?t('تأیید دومرحله‌ای لازم است','Fresh MFA required'):
+       error==='rate_limited'?t('محدودیت تعداد درخواست سرور','Server request limit reached'):
+       error==='admin_forbidden'?t('مجوز مدیریتی ناکافی','Administrator permission unavailable'):
+       error==='source_control_schema_unavailable'?t('ساختار تنظیمات منابع ناقص','Missing source-policy storage'):
        t('این داده از سرور دریافت نشد','Server observation unavailable'),
-     t('درخواست خوانش نتیجه نداد؛ تنظیمات و داده‌های موجود تغییر نکردند',
-       'Read failed; no stored settings or records were changed')):item.data;
+     errorMessage(new Error(error))):item.data;
    const card=el('article',undefined,'oc-department');
    card.dataset.ocDepartment=item.id;
    const head=el('div',undefined,'oc-department-head');
