@@ -86,7 +86,11 @@ function jrMasterClaim(PDO $pdo,string $id,int $at): ?array {
             $pdo->commit();return null;
         }
         $seconds=(int)$r['cadence_seconds'];
-        if($seconds<60||$seconds>86400||$seconds%60!==0){
+        $minimum=(int)(operationsCronRegistry()[$id]['minimumCadence']??0);
+        // Enforce the source-owned minimum even if a private SQL edit has
+        // bypassed the MFA API. DB rows cannot accelerate risky workers.
+        if($minimum<60||$seconds<$minimum||
+           $seconds>86400||$seconds%60!==0){
             $pdo->prepare("UPDATE operations_cron_jobs
               SET enabled=0,needs_owner_review=1,last_state='blocked'
               WHERE job_id=?")->execute([$id]);
