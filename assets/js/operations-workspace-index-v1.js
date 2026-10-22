@@ -169,10 +169,20 @@
      action.textContent=x.title;action.setAttribute('data-ops-target',x.id);
      action.addEventListener('click',()=>{
        if(workspace.hidden)return;
-       // Existing disclosure panels are opened, never replaced or automatically acted upon.
-       if(x.target.matches('details'))x.target.open=true;
+       // The evidence workspace is rebuilt after owner reads and preference saves.
+       // Resolve the CURRENT server-gated DOM node, not the stale element captured
+       // by an earlier search-index render.
+       const target=document.getElementById(x.id);
+       if(!target||!workspace.contains(target)){
+         status.textContent=text.fallback;
+         render();
+         return;
+       }
+       for(let parent=target.parentElement?.closest('details');parent&&workspace.contains(parent);
+           parent=parent.parentElement?.closest('details'))parent.open=true;
+       if(target.matches('details'))target.open=true;
        nav.open=false;
-       focusTarget(x.target);
+       focusTarget(target);
        status.textContent=text.shown(x.title);
      });
      categories.get(x.group).append(action);
@@ -195,6 +205,9 @@
    }
    render();
  }
+ // A collapsed index does not need continuous DOM observation. Rebuild it on
+ // demand so all targets and accessible titles reflect the newest owner view.
+ nav.addEventListener('toggle',()=>{if(nav.open&&!workspace.hidden)render();});
  filter.addEventListener('input',render);
  clear.addEventListener('click',()=>{filter.value='';render();filter.focus()});
  const observer=new MutationObserver(()=>{
