@@ -861,6 +861,35 @@
           'Based on recorded paid date, not bank statements.'));
       card(text('سفارش‌های دارای وضعیت پرداخت‌شده در ۳۰ روز','Paid-state orders in 30 days'),
         sales.paidStateOrdersLast30Days);
+      if(typeof sales.recordedOrderPaidStateSharePercent==='number' &&
+         Number.isFinite(sales.recordedOrderPaidStateSharePercent)){
+        card(text('سهم وضعیت پرداخت‌شده از سفارش‌های ثبت‌شده',
+            'Paid-state share among recorded orders'),
+          sales.recordedOrderPaidStateSharePercent.toFixed(1)+'%',
+          text('این نرخ تبدیل بازدیدکننده به خریدار نیست؛ فقط سهم وضعیت سفارش‌های ثبت‌شده است.',
+            'Not visitor-to-buyer conversion; only the recorded order-state share.'));
+      }
+      const popularity=sales.popularOffers;
+      if(popularity?.status==='internal_provider_claim_matches_only'){
+        const block=node('section',undefined,'ops-panel');
+        block.append(node('h4',text('محصولات پرتقاضا بر اساس دفتر داخلی',
+          'Popular offers by internal matched claims')));
+        block.append(node('p',text(
+          'مبنای رتبه‌بندی تعداد واحد در سفارش‌های دارای تطبیق ادعای درگاه است؛ نه تحویل یا تسویه قطعی.',
+          'Ranked by units in orders with provider-claim matches, not fulfilment or bank settlement.'),'ops-muted'));
+        const list=node('ol');
+        for(const offer of popularity.offers||[]){
+          const li=node('li');
+          li.append(node('strong',offer.sku),
+            node('span',' · '+text('واحد: ','Units: ')+offer.units+
+              ' · '+text('سفارش‌ها: ','Orders: ')+offer.matchedOrders));
+          list.append(li);
+        }
+        if(!list.children.length)list.append(node('li',text(
+          'رکورد واجد شرایطی در دفتر موجود گزارش نشده است.',
+          'No eligible ledger records were returned.')));
+        block.append(list);results.append(block);
+      }
       card(text('پرداخت‌های معلق بیش از ۲۴ ساعت','Pending payments older than 24 hours'),
         sales.pendingOlderThan24Hours,
         text('برای بررسی فنی؛ مجوز ارسال پیام بازاریابی نیست.',
