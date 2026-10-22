@@ -138,7 +138,16 @@ form.addEventListener('submit',async event=>{
    if($('provider').value!=='SANJESH')lines.push('رتبه آزمون آزمایشی هرگز به‌عنوان رتبه رسمی پذیرفته نمی‌شود.')}
   lines.push(analysis&&analysis.status==='AWAITING_VERIFIED_CATALOGUE'?'هنوز داده رشته‌محل تأییدشده برای تحلیل قبولی در دسترس نیست.':'تحلیل اولیه انجام شد.');
   lines.push('هیچ درصد قبولی محاسبه نشده است.');
-  show(card('ساختار کارنامه بررسی شد','خوداظهاری — تأییدنشده',lines));
+  const reviewed=card('ساختار کارنامه بررسی شد','خوداظهاری — تأییدنشده',lines);
+  // A real next step, not a predictor or automatic account handoff. The
+  // existing Choice Studio begins with an independent five-criterion
+  // reflection; all self-reported scorecard fields stay on this page.
+  const onward=el('div',{class:'actions'},
+   el('a',{href:'/fa/entekhab-reshteh/'},'گام بعد: مقایسه آگاهانه دو مسیر'),
+   el('a',{href:'/fa/bahar/'},'ادامه با برنامه مطالعه رایگان'));
+  reviewed.append(el('p',{class:'ln'},
+   'این پیوندها هیچ رتبه، تراز، درصد یا اطلاعات کارنامه را منتقل نمی‌کنند. پیش از انتخاب رشته، اطلاعات رسمی و شرایط فردی باید مستقل بررسی شوند.'),onward);
+  show(reviewed);
  }catch{
   show(card('خطای غیرمنتظره',null,['بررسی انجام نشد. اطلاعات شما ذخیره یا ارسال نشده است؛ دوباره تلاش کنید.']));
  }finally{go.disabled=false}
