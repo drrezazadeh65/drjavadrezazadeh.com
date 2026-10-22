@@ -46,6 +46,18 @@ function exportOperationsCsv(filename,headers,rows){
 // These panels exist only after the authenticated reporting model mounts.
 // Keep source-HTML fragment links valid, then upgrade on actual interaction.
 $('ops-workspace')?.addEventListener('click',event=>{
+ // Four mobile shortcuts reuse existing MFA-protected module navigation.
+ // Dynamic panels have a static link fallback for source-level fragment checks.
+ const mobile=event.target?.closest?.('nav.ops-mobile-dock a');
+ if(mobile&&$('ops-workspace').contains(mobile)){
+   const selected=mobile.dataset.opsTarget||mobile.hash?.slice(1);
+   const target=selected&&document.getElementById(selected);
+   if(target&&target!=$('ops-command-center')){
+     event.preventDefault();
+     openExistingOperationalWorkspace(selected);
+   }
+   return;
+ }
  const anchor=event.target?.closest?.('nav.ops-jump a[data-ops-target]');
  if(!anchor||!$('ops-workspace').contains(anchor))return;
  const target=anchor.getAttribute('data-ops-target');
