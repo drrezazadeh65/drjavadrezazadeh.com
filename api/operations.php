@@ -1062,9 +1062,30 @@ function operationsRoute(string $path, string $verb): never {
                 respond($controls);
             }catch(InvalidArgumentException $e){fail('invalid_collector_policy',400);}
         }
+        // Independent master switch: an installed cron entry alone never
+        // activates scheduling; only fresh-MFA SUPER_ADMIN can change it.
+        if ($path === '/admin/operations/collection-automatic' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('collector_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_collector_master',$accountId,6,3600))
+                fail('rate_limited',429);
+            $body=jsonBody();
+            if(!is_array($body)||array_keys($body)!==['enabled']||
+                !is_bool($body['enabled']))fail('invalid_collector_master',400);
+            try {
+                operationsCollectorAutomaticConfigure($pdo,$body['enabled'],$accountId,nowTs());
+                $view=operationsCollectorStatus($pdo,nowTs());
+                $view['canManage']=true;
+                respond($view);
+            }catch(Throwable $e){fail('collector_master_unavailable',503);}
+        }
         if ($path === '/admin/operations/github-audits/refresh' && $verb === 'POST') {
             if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
                 fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('collector_super_admin_required',403);
             if(!rateAllowed($pdo,'operations_collector_manual',$accountId,3,3600))
                 fail('rate_limited',429);
             $body=jsonBody();
