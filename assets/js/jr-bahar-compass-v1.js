@@ -22,7 +22,9 @@
     week:'Reflection',date:'Date',decision:'Next step',note:'Observed evidence',
     draft:'Eight-week compass',goal:'Learning goal',success:'Observable evidence',
     context:'Context and constraints',weekly:'Weekly study plan',none:'Not yet prepared',
-    disclosure:'Self-authored educational reflection. No diagnosis or prediction.'
+    disclosure:'Self-authored educational reflection. No diagnosis or prediction.',
+    edited:'The compass was edited. Prepare the new version before printing it.',
+    incompleteExport:'Complete or clear a partially edited form before exporting your workbook.'
   }:{
     required:'هدف یادگیری و شواهد قابل مشاهده را تکمیل کنید.',
     invalid:'ورودی‌ها باید در اندازه مجاز باشند و تاریخ معتبر وارد شود.',
@@ -37,7 +39,9 @@
     week:'بازنگری',date:'تاریخ',decision:'گام بعدی',note:'شواهد مشاهده‌شده',
     draft:'قطب‌نمای هشت‌هفته‌ای',goal:'هدف یادگیری',success:'نشانه موفقیت قابل مشاهده',
     context:'شرایط و محدودیت‌ها',weekly:'برنامه هفتگی',none:'هنوز آماده نشده است',
-    disclosure:'بازنگری آموزشی خودنوشته؛ بدون تشخیص یا پیش‌بینی.'
+    disclosure:'بازنگری آموزشی خودنوشته؛ بدون تشخیص یا پیش‌بینی.',
+    edited:'قطب‌نما تغییر کرده است. پیش از چاپ، نسخه جدید را آماده کنید.',
+    incompleteExport:'پیش از دریافت فایل، فرم نیمه‌تمام را تکمیل یا پاک کنید.'
   };
   const $=id=>document.getElementById(id);
   const form=$('bahar-compass-form'),reflectionForm=$('bahar-reflection-form');
@@ -46,6 +50,7 @@
   const fileInput=$('bahar-workbook-file');
   const entries=[];
   let compass=null;
+  let compassDirty=false;
   let importGeneration=0;
   const text=(node,value)=>{node.textContent=value;};
   const bounded=(s,max=500)=>typeof s==='string'&&s.trim().length>0&&s.trim().length<=max;
@@ -101,11 +106,12 @@
   }
   function render(){
     preview.replaceChildren();
-    if(compass){
+    const preparedCompass=compass&&!compassDirty?compass:null;
+    if(preparedCompass){
       const heading=document.createElement('h3');text(heading,messages.draft);preview.append(heading);
-      appendLine(preview,messages.goal,compass.goal);
-      appendLine(preview,messages.success,compass.successEvidence);
-      if(compass.context)appendLine(preview,messages.context,compass.context);
+      appendLine(preview,messages.goal,preparedCompass.goal);
+      appendLine(preview,messages.success,preparedCompass.successEvidence);
+      if(preparedCompass.context)appendLine(preview,messages.context,preparedCompass.context);
     }
     if(entries.length){
       const heading=document.createElement('h3');
@@ -116,7 +122,7 @@
           entry.note+' · '+messages.decision+': '+entry.decision);
       }
     }
-    if(compass||entries.length){
+    if(preparedCompass||entries.length){
       const note=document.createElement('p');note.className='hint';text(note,messages.disclosure);
       preview.append(note);preview.hidden=false;
     }else preview.hidden=true;
@@ -139,12 +145,24 @@
       item.append(remove);evidenceList.append(item);
     });
   }
+  const compassEdited=()=>{
+    if(!compass)return;
+    const draft=readCompass();
+    const dirty=draft.goal!==compass.goal||
+      draft.successEvidence!==compass.successEvidence||
+      draft.context!==compass.context;
+    if(dirty===compassDirty)return;
+    compassDirty=dirty;render();
+    if(dirty)notify(messages.edited);
+  };
+  form.addEventListener('input',compassEdited);
+  form.addEventListener('change',compassEdited);
   form.addEventListener('submit',event=>{
     event.preventDefault();
     const value=readCompass();
     if(!value.goal||!value.successEvidence){notify(messages.required,true);return;}
     if(!compassValid(value)){notify(messages.invalid,true);return;}
-    compass=value;render();notify(messages.prepared);
+    compass=value;compassDirty=false;render();notify(messages.prepared);
     preview.focus();
   });
   reflectionForm.addEventListener('submit',event=>{
@@ -164,8 +182,15 @@
     // When the learner has completed a valid form, saving should not require
     // an extra 'prepare' click. A partial draft is still rejected clearly.
     const draft=readCompass();
-    const selectedCompass=compassValid(draft)?draft:compass;
+    const hasPartialCompass=Object.values(draft).some(value=>value!=='');
+    if(hasPartialCompass&&!compassValid(draft))return null;
+    const selectedCompass=compassValid(draft)?draft:(compassDirty?null:compass);
+    // A partially filled weekly plan must not be silently omitted from an
+    // optional exported private workbook or same-tab continuation.
+    const weeklyFields=['week-start','learning-goal','learning-action','learning-evidence']
+      .map(id=>String($(id)?.value??'').trim());
     const weekly=weeklySnapshot(true);
+    if(weeklyFields.some(Boolean)&&!weekly)return null;
     if(!selectedCompass&&entries.length===0&&!weekly)return null;
     return {
       schema:'jr.bahar.private-workbook.v1',
@@ -179,7 +204,7 @@
   }
   $('bahar-export-workbook').addEventListener('click',()=>{
     const workbook=workbookSnapshot();
-    if(!workbook){notify(messages.empty,true);return;}
+    if(!workbook){notify(messages.incompleteExport,true);return;}
     const blob=new Blob([JSON.stringify(workbook,null,2)],{type:'application/json;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
@@ -191,8 +216,7 @@
   $('bahar-continue-in-account')?.addEventListener('click',()=>{
     const workbook=workbookSnapshot();
     if(!workbook){
-      notify(en?'Complete at least one plan or reflection before continuing.':
-        'ابتدا دست‌کم یک برنامه یا بازنگری تکمیل کنید.',true);
+      notify(messages.incompleteExport,true);
       $(fields.goal)?.focus();return;
     }
     // Consent to this *ephemeral same-tab transfer* follows from the
@@ -319,6 +343,7 @@
     // The only destructive operation occurs AFTER the explicit Apply click.
     $('clear-plan')?.click();
     compass=incoming.compass;
+    compassDirty=false;
     for(const id of Object.values(fields))$(id).value='';
     if(compass)for(const [key,id] of Object.entries(fields))
       $(id).value=compass[key]??'';
@@ -336,6 +361,7 @@
   });
   $('bahar-print-workbook')?.addEventListener('click',()=>{
     const hasWeekly=$('plan-summary')&&!$('plan-summary').hidden;
+    if(compassDirty){notify(messages.edited,true);return;}
     if(!compass&&entries.length===0&&!hasWeekly){
       notify(messages.empty,true);
       return;
@@ -347,7 +373,7 @@
   $('bahar-clear-workbook').addEventListener('click',()=>{
     discardPendingImport();
     importGeneration++;
-    compass=null;entries.splice(0,entries.length);
+    compass=null;compassDirty=false;entries.splice(0,entries.length);
     $('clear-plan')?.click();
     form.reset();reflectionForm.reset();
     render();notify(messages.removed);
