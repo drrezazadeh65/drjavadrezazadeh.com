@@ -12,7 +12,20 @@
   const n=Number(s);
   return Number.isFinite(n)&&n>=-33.34&&n<=100?n:null;
  };
- const dateOk=v=>{const m=/^(14\d{2})\/(0?[1-9]|1[0-2])\/(0?[1-9]|[12]\d|3[01])$/.exec(faDigits(v));return m?m[1]+'/'+m[2].padStart(2,'0')+'/'+m[3].padStart(2,'0'):null;};
+ const dateOk=v=>{
+  const m=/^(14\d{2})\/(0?[1-9]|1[0-2])\/(0?[1-9]|[12]\d|3[01])$/.exec(faDigits(v));
+  if(!m)return null;
+  const month=Number(m[2]),day=Number(m[3]);
+  // Months 1–6 have 31 days, months 7–11 have 30.
+  // The variable leap-year status of Esfand 30 must not be invented from
+  // browser arithmetic; mark it for independent official-calendar review.
+  if(month>6&&day>30)return null;
+  if(month===12&&day===30)return null;
+  return m[1]+'/'+m[2].padStart(2,'0')+'/'+m[3].padStart(2,'0');
+ };
+ const normalizedSubjectName=value=>String(value).normalize('NFKC')
+  .replace(/[يى]/gu,'ی').replace(/ك/gu,'ک')
+  .trim().replace(/\s+/gu,' ').toLocaleLowerCase();
  for(const root of document.querySelectorAll('[data-konkur-mock-practice]')){
   const fa=root.dataset.locale!=='en',tr=(a,b)=>fa?a:b;
   root.classList.add('jr-konkur-mock');
@@ -109,9 +122,13 @@
    });
    trend.replaceChildren();
    const latest=ordered.filter(x=>x.taz!==null).at(-1);
-   const comparable=latest&&!['OTHER','SCHOOL_LOCAL'].includes(latest.provider)&&ordered.filter(x=>x.provider===latest.provider&&x.group===latest.group&&x.grade===latest.grade&&x.date.slice(0,4)===latest.date.slice(0,4)&&x.taz!==null);
-   if(comparable?.length>=2){
-    const prior=comparable.at(-2),difference=latest.taz-prior.taz;
+   const comparable=latest&&!['OTHER','SCHOOL_LOCAL'].includes(latest.provider)&&ordered.filter(x=>
+    x.provider===latest.provider&&x.group===latest.group&&x.grade===latest.grade&&
+    x.date.slice(0,4)===latest.date.slice(0,4)&&x.date<latest.date&&x.taz!==null);
+   // Two entries on the SAME calendar date are not longitudinal evidence;
+   // only compare a genuinely earlier event, in the same provider cohort.
+   if(comparable?.length){
+    const prior=comparable.at(-1),difference=latest.taz-prior.taz;
     trend.append(create('p','',tr('تفاوت عددی تراز خوداظهاری در دو آزمونِ همان مؤسسه، گروه، پایه و سال (همسانی مقیاس تأیید نشده؛ نه پیش‌بینی قبولی): ',
       'Self-reported TAZ difference within the same provider, group, grade and year (scale comparability unverified; not an admission forecast): ')+(difference>0?'+':'')+num.format(difference)));
    }else trend.append(create('p','',tr('برای مقایسه، دو آزمون از همان مؤسسه، گروه و پایه لازم است. برای سایر برگزارکنندگان ناشناس، مقایسه تراز غیرفعال است.',
@@ -121,18 +138,18 @@
    const current=ordered.at(-1);
    const comparableSubjectRows=current&&!['OTHER','SCHOOL_LOCAL'].includes(current.provider)
     ?ordered.slice(0,-1).filter(row=>row.provider===current.provider&&row.group===current.group&&
-      row.grade===current.grade&&row.date.slice(0,4)===current.date.slice(0,4)).reverse():[];
+      row.grade===current.grade&&row.date.slice(0,4)===current.date.slice(0,4)&&
+      row.date<current.date).reverse():[];
    const subjectMeasures=row=>[
     ...(row.subject&&Number.isFinite(row.percent)?[{subject:row.subject,percent:row.percent}]:[]),
     ...(row.additionalSubjects||[]).filter(item=>item.subject&&Number.isFinite(item.percent)),
    ];
-   const normalizedName=value=>String(value).normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase();
    const differences=[];
    if(current&&comparableSubjectRows.length){
     for(const metric of subjectMeasures(current)){
-     const key=normalizedName(metric.subject);
+     const key=normalizedSubjectName(metric.subject);
      for(const previous of comparableSubjectRows){
-      const match=subjectMeasures(previous).find(item=>normalizedName(item.subject)===key);
+      const match=subjectMeasures(previous).find(item=>normalizedSubjectName(item.subject)===key);
       if(match){
        differences.push({subject:metric.subject,current:metric.percent,previous:match.percent,
         difference:Math.round((metric.percent-match.percent)*100)/100});
@@ -163,13 +180,15 @@
    const valueRank=rank.value.trim()?decimal(rank.value):null;
    const valuePct=percent.value.trim()?signedPercent(percent.value):null;
    const additionalSubjects=[],subjectNames=new Set();
-   if(lesson.value.trim())subjectNames.add(lesson.value.trim().toLocaleLowerCase());
+   if(lesson.value.trim())subjectNames.add(normalizedSubjectName(lesson.value));
    for(const row of extraRows.querySelectorAll('.jr-km-extra-row')){
     const label=row.querySelector('.jr-km-extra-name').value.trim();
     const raw=row.querySelector('.jr-km-extra-percent').value.trim();
     const amount=raw?signedPercent(raw):null;
-    if(!label||amount===null||amount>100){announce('نام و درصد معتبر برای هر درس اضافی لازم است.','Each extra subject needs a name and percentage between 0 and 100.');return;}
-    const key=label.toLocaleLowerCase();
+    if(!label||amount===null||amount>100){announce(
+      'نام و درصد معتبر بین ۳۳٫۳۴- تا ۱۰۰ برای هر درس اضافی لازم است.',
+      'Each additional subject requires a name and a percentage from -33.34 to 100.');return;}
+    const key=normalizedSubjectName(label);
     if(subjectNames.has(key)){announce('نام درس در همین آزمون تکراری است.','The subject is duplicated within this exam.');return;}
     subjectNames.add(key);additionalSubjects.push({subject:label.slice(0,70),percent:amount});
    }
