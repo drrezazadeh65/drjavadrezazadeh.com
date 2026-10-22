@@ -2747,7 +2747,7 @@ function renderOwnerCommandCenter(){
    button.append(el('strong',String(statusTotals[key])),
      el('span',label));
    button.addEventListener('click',()=>{
-     ownerCockpitFilter=key;ownerCockpitShowAll=true;renderOwnerCommandCenter();
+     ownerCockpitFilter=key;ownerCockpitShowAll=true;renderOwnerCockpitSafely();
    });
    distribution.append(button);
  }
@@ -3359,6 +3359,37 @@ function renderOwnerCommandCenter(){
   'دسترسی‌های این مرکز همان مجوزهای قبلی سرور هستند. اگر اتصال، جدول، کلید سرویس یا اجراکننده‌ای وجود ندارد، کنترل مربوط آن به‌صورت واقعی «نامشخص» می‌ماند؛ این پنل شبیه‌ساز عملیات نیست.',
   'Existing server MFA/RBAC permissions still apply. If a connector, table, credential or worker is missing, its state remains UNKNOWN; this dashboard does not simulate operational readiness.'),'oc-guide'));
 }
+/**
+ * The new overview is an enhancement. A rendering defect must never log the
+ * owner out of the already working MFA-protected 36-report dashboard.
+ * We surface a bounded error state without exposing API response contents.
+ */
+function renderOwnerCockpitSafely(){
+ try{
+   renderOwnerCommandCenter();
+ }catch(error){
+   const workspace=$('ops-workspace');
+   if(!snapshot||!workspace||workspace.hidden)return;
+   let root=$('ops-command-center');
+   if(!root){
+     root=el('section',undefined,'ops-master-cockpit');
+     root.id='ops-command-center';workspace.prepend(root);
+   }
+   root.replaceChildren();
+   root.classList.add('oc-render-unavailable');
+   const heading=el('h2',t('مرکز فرماندهی فعلاً در دسترس نیست',
+     'Command overview temporarily unavailable'));
+   const detail=el('p',t(
+     'نمای خلاصه به‌درستی آماده نشد. گزارش‌ها و کنترل‌های اصلی مدیریت همچنان در همین صفحه قابل استفاده‌اند؛ هیچ موتور یا تنظیمی تغییر نکرده است.',
+     'The overview could not be assembled. The existing private reports and controls remain available below; no worker or setting was modified.'));
+   const fallback=el('button',t('رفتن به گزارش‌ها و کنترل‌های اصلی',
+     'Open existing management reports'));
+   fallback.type='button';fallback.addEventListener('click',()=>{
+     openExistingOperationalWorkspace('ops-reporting');
+   });
+   root.append(heading,detail,fallback);
+ }
+}
 function reportingRender(){
  const model=snapshot?.reporting;if(!model)return;
  let healthHost=$('ops-health-summary');
@@ -3505,7 +3536,7 @@ function reportingRender(){
  }
  const records=reportingRecords(),list=el('ul',undefined,'ops-queue');list.id='ops-report-records';
  for(const r of records){const item=el('li'),button=el('button',r.id+' · '+title(r));button.type='button';button.addEventListener('click',()=>show(r.id));item.append(button,el('small',' '+reportOwner(r)+' · '+statuses[r.status]+' · '+pct(r.measuredProgress)));list.append(item);}host.append(list);
- renderOwnerCommandCenter();
+ renderOwnerCockpitSafely();
 }
 function reportingExport(){
  const model=snapshot.reporting;
