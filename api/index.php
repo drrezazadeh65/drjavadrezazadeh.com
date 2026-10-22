@@ -59,6 +59,8 @@ function cfg(): array {
         'service_antivirus_binary' => (string)(getenv('JR_SERVICE_AV_BINARY') ?: ''),
         // Account UUID => ['role'=>'ADMIN', 'totp_secret'=>'...']; private provisioning only.
         'operations_admins' => [],
+        // Private mailbox for operational incidents (never returned to browsers).
+        'operations_alert_recipient' => (string)(getenv('JR_OPERATIONS_ALERT_RECIPIENT') ?: ''),
     ];
     $local = __DIR__ . '/config.local.php';
     if (is_file($local)) {
