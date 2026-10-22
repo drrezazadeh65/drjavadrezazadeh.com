@@ -133,15 +133,18 @@ SQL;
         $excerpt=trim((string)($row['excerpt']??''));
         $kind=trim((string)($row['kind']??''));
         $document=trim((string)($row['documentCode']??''));
+        $revision=(int)($row['documentRevision']??0);
+        $pageNo=(int)($row['pageNo']??0);
         if($excerpt===''||$document===''||strlen($excerpt)>6000
+           ||$revision<1||$pageNo<1
            ||preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/',$excerpt))
             return ['status'=>'UNAVAILABLE','items'=>[],'moreNotDisplayed'=>null];
         $items[]=[
            'kind'=>substr($kind,0,60),
            'excerpt'=>function_exists('mb_substr')?mb_substr($excerpt,0,360,'UTF-8'):substr($excerpt,0,360),
            'sourceDocument'=>$document,
-           'sourceRevision'=>(int)$row['documentRevision'],
-           'sourcePdfPage'=>(int)$row['pageNo']
+           'sourceRevision'=>$revision,
+           'sourcePdfPage'=>$pageNo
         ];
     }
     return ['status'=>'REVIEWED_SOURCE_EXCERPTS','items'=>$items,
