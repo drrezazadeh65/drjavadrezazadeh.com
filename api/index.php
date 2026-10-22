@@ -64,6 +64,9 @@ function cfg(): array {
         // Optional, private Bertina access-log reader (never on web requests).
         'operations_access_log_path' => (string)(getenv('JR_OPERATIONS_ACCESS_LOG_PATH') ?: ''),
         'operations_http_retention_days' => (int)(getenv('JR_OPERATIONS_HTTP_RETENTION_DAYS') ?: 90),
+        // One private CLI scheduler is independently owner-gated. Setting
+        // this flag alone never enables an individual disabled DB job.
+        'operations_cron_master_enabled' => getenv('JR_OPERATIONS_CRON_MASTER_ENABLED') === 'true',
         // Strictly optional BAHAR adult private storage; disabled until owner,
         // scientific/legal review and secret provisioning independently agree.
         'bahar_private_workbooks_enabled' => getenv('JR_BAHAR_PRIVATE_WORKBOOKS_ENABLED') === 'true',
