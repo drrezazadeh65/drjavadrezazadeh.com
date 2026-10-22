@@ -729,7 +729,16 @@ function operationsRoute(string $path, string $verb): never {
             try{respond(operationsBaharAdultReviewDecide($pdo,$request,$accountId));}
             catch(InvalidArgumentException $e){fail('invalid_independent_age_review',422);}
             catch(DomainException $e){fail('eligibility_state_conflict',409);}
-            catch(Throwable $e){fail('eligibility_review_write_unavailable',503);}
+            catch(Throwable $e){
+                // Existing incident outbox may enqueue an owner email only
+                // when the dedicated BAHAR scope and rule were enabled.
+                if(function_exists('operationsAlertRecord'))
+                    operationsAlertRecord(
+                        $pdo,'bahar_eligibility_queue_failure',
+                        'owner_review_queue',nowTs()
+                    );
+                fail('eligibility_review_write_unavailable',503);
+            }
         }
 
         // Existing ENG-13 controller: bounded 54-reference source directory.
