@@ -13,7 +13,8 @@ function operationsAlertDefinitions(): array {
         'collector_unavailable'=>['severity'=>'warning','threshold'=>2,'cooldown'=>120,'name'=>'GitHub collector could not obtain valid evidence','sensor'=>'collector_refresh'],
         'security_headers_regressed'=>['severity'=>'critical','threshold'=>1,'cooldown'=>60,'name'=>'Public security header regression','sensor'=>'not_yet_connected'],
         'redirects_regressed'=>['severity'=>'critical','threshold'=>1,'cooldown'=>60,'name'=>'Canonical or historical redirect regression','sensor'=>'not_yet_connected'],
-        'http_404_surge'=>['severity'=>'warning','threshold'=>10,'cooldown'=>120,'name'=>'High volume of missing URLs','sensor'=>'not_yet_connected'],
+        'http_404_surge'=>['severity'=>'warning','threshold'=>1,'cooldown'=>120,'name'=>'High volume of missing URLs','sensor'=>'private_access_log_observer_requires_configuration'],
+        'http_5xx_surge'=>['severity'=>'critical','threshold'=>1,'cooldown'=>30,'name'=>'Server 5xx errors seen in the access log','sensor'=>'private_access_log_observer_requires_configuration'],
         'payment_runtime_unavailable'=>['severity'=>'critical','threshold'=>1,'cooldown'=>60,'name'=>'Checkout or payment runtime failure','sensor'=>'not_yet_connected']
     ];
 }
