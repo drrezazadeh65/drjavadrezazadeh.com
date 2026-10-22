@@ -224,6 +224,12 @@ function operationsActivationReport(PDO $pdo,array $configuration,int $at): arra
             604800,$at,$mailSchema)
     ];
     $recipient=(string)($configuration['operations_alert_recipient']??'');
+    $structure=$inventory==='unavailable'?[
+        'state'=>'table_inventory_unavailable',
+        'missingColumns'=>null,'typeMismatches'=>null,
+        'missingIndexes'=>null,'storageDiscrepancies'=>null,
+        'missingForeignKeys'=>null,'foreignKeysChecked'=>false
+    ]:operationsActivationStructure($pdo,$present);
     return ['schema'=>'operations-activation-readiness-v1',
         'status'=>'source_and_server_inventory_only','observedAt'=>$at,
         'schemaInventory'=>[
@@ -231,13 +237,11 @@ function operationsActivationReport(PDO $pdo,array $configuration,int $at): arra
             'presentCount'=>$inventory==='unavailable'?null:
                 count(array_filter($needed,static fn($table)=>isset($present[$table]))),
             'missing'=>$missing,
-            'structure'=>$inventory==='unavailable'?[
-                'state'=>'table_inventory_unavailable',
-                'missingColumns'=>null,'typeMismatches'=>null,
-                'missingIndexes'=>null,'storageDiscrepancies'=>null,
-                'missingForeignKeys'=>null,'foreignKeysChecked'=>false
-            ]:operationsActivationStructure($pdo,$present),
-            'foreignKeysChecked'=>null,'columnContractsChecked'=>null,
+            'structure'=>$structure,
+            'foreignKeysChecked'=>$structure['foreignKeysChecked'],
+            'columnContractsChecked'=>in_array($structure['state'],[
+                'source_structural_signature_matches',
+                'source_structural_signature_discrepancy'],true),
             'migrationExecuted'=>false,'migrationsVersioned'=>false
         ],
         'smtp'=>[
