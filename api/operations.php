@@ -644,6 +644,12 @@ function operationsRoute(string $path, string $verb): never {
             $view['canManage']=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
             respond($view);
         }
+        if ($path === '/admin/operations/alert-history' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_alert_history_read',$accountId,15,300))
+                fail('rate_limited',429);
+            try{respond(operationsAlertHistory($pdo,$_GET,nowTs()));}
+            catch(InvalidArgumentException $e){fail('invalid_incident_history_filters',400);}
+        }
         if ($path === '/admin/operations/alert-scopes' && $verb === 'GET') {
             if (!rateAllowed($pdo,'operations_alert_scope_list',$accountId,12,300))
                 fail('rate_limited',429);
