@@ -83,6 +83,23 @@ function operationsQualitySummary(): array {
         'averages'=>$averages,'measuredPagesByDimension'=>$numbers,
         'limitation'=>'Scores reflect static committed HTML heuristics; not deployed-page indexing, actual UX or lab/field speed.'];
 }
+/**
+ * Editorial triage only: route intent + source markup deficits.
+ * This is NOT predicted revenue, visitor traffic, rankings or conversions.
+ */
+function operationsQualityEditorialPriority(array $row,string $dimension): ?array {
+    $score=$row['grades'][$dimension]['score']??null;
+    if(!is_numeric($score))return null;
+    $route=(string)($row['route']??'');
+    $commercial=(bool)preg_match('#/(?:shop|store|services?|consultation|vip|digital-products)(?:/|$)#i',$route);
+    $scientific=(bool)preg_match('#/(?:golden-talent|assessments|journal|jhela|rcas|bahar)(?:/|$)#i',$route);
+    $weight=$commercial?3:($scientific?2:1);
+    return ['routeTheme'=>$commercial?'commerce':($scientific?'scientific':'general'),
+        'attentionWeight'=>$weight,
+        'sourceGap'=>round(max(0,10-(float)$score),1),
+        'reviewOrderValue'=>round($weight*max(0,10-(float)$score),1),
+        'source'=>'editorial_route_theme_and_static_grade_only'];
+}
 function operationsQualityList(array $input): array {
     $source=operationsQualityInventory();
     if($source===null)return ['ok'=>true,'schema'=>'operations-page-quality-results-v1',
@@ -99,7 +116,7 @@ function operationsQualityList(array $input): array {
     if(!in_array($dimension,operationsQualityDimensions(),true)
        ||!in_array($language,['all','fa','en','other'],true)
        ||!in_array($index,['all','public','private'],true)
-       ||!in_array($sort,['weakest','strongest','route'],true)
+       ||!in_array($sort,['weakest','strongest','route','editorial_priority'],true)
        ||$page===false||$page<1||$page>500||strlen($query)>120
        ||preg_match('/[\x00-\x1F\x7F]/',$query))
        throw new InvalidArgumentException('invalid_quality_filters');
@@ -118,6 +135,17 @@ function operationsQualityList(array $input): array {
     }));
     usort($rows,static function($a,$b)use($dimension,$sort) {
         if($sort==='route')return strcmp((string)$a['route'],(string)$b['route']);
+        if($sort==='editorial_priority'){
+            $left=operationsQualityEditorialPriority($a,$dimension);
+            $right=operationsQualityEditorialPriority($b,$dimension);
+            if($left===null&&$right!==null)return 1;
+            if($right===null&&$left!==null)return -1;
+            if($left!==null&&$right!==null){
+                $cmp=$right['reviewOrderValue']<=>$left['reviewOrderValue'];
+                if($cmp!==0)return $cmp;
+            }
+            return strcmp((string)$a['route'],(string)$b['route']);
+        }
         $x=$a['grades'][$dimension]['score']??null;
         $y=$b['grades'][$dimension]['score']??null;
         if(!is_numeric($x))$x=null;
@@ -141,6 +169,7 @@ function operationsQualityList(array $input): array {
             'indexability'=>$row['indexability']??null,
             'overallSourceReadiness'=>$row['overallSourceReadiness']??null,
             'grades'=>$grades,
+            'editorialPriority'=>operationsQualityEditorialPriority($row,$dimension),
             'speedSourceReadiness'=>$row['performanceReadiness']['score']??null,
             'findingsCount'=>array_sum(array_map(static fn($v)=>is_array($v)?count($v['findings']??[]):0,$row['grades']??[]))
         ];
@@ -154,6 +183,7 @@ function operationsQualityList(array $input): array {
         'weakSeoSourcePages'=>$weak,'page'=>$page,'perPage'=>$perPage,
         'pageCount'=>max(1,(int)ceil($count/$perPage)),
         'dimension'=>$dimension,'dimensions'=>operationsQualityDimensions(),
+        'priorityMethod'=>'editorial_route_theme_times_static_source_gap_not_traffic_or_revenue',
         'records'=>$records,
         'limitation'=>'Static-source grades are heuristics, NOT Google rankings or user experience testing. Only the two explicitly observed URLs can show a fresh Google PSI MOBILE LAB speed score; no field Core Web Vitals are inferred. Security response headers, real user speed, AI citations and ranking remain unmeasured. Null is not zero.'
     ];
