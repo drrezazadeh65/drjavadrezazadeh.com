@@ -56,8 +56,10 @@ function jrEiV3OnlyKeys(object $value, array $allowed): bool {
 }
 
 function jrEiV3NonEmptyText(mixed $value, int $max): bool {
-    return is_string($value) && trim($value) !== '' &&
-        strlen($value) <= $max && preg_match('//u', $value) === 1 &&
+    if (!is_string($value) || trim($value) === '' || strlen($value) > $max * 4 ||
+        preg_match('//u', $value) !== 1) return false;
+    $length = preg_match_all('/./us', $value);
+    return $length !== false && $length <= $max &&
         preg_match('/[\x00-\x1F\x7F\x{061C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u', $value) !== 1;
 }
 
@@ -172,7 +174,9 @@ function jrEiV3ReviewCatalogueEnvelope(array $compiled, mixed $payload): array {
             !jrEiV3NonEmptyText($row->programme, 220) ||
             !jrEiV3NonEmptyText($row->university, 220) ||
             !jrEiV3NonEmptyText($row->sourceDocument, 160) ||
-            !jrEiV3NonEmptyText($row->examinationGroup, 60) ||
+            !is_string($row->examinationGroup) ||
+            preg_match('/^[A-Z0-9_]{2,60}$/D', $row->examinationGroup) !== 1 ||
+            (isset($row->city) && !jrEiV3NonEmptyText($row->city, 140)) ||
             $row->year !== $compiled['validatedArguments']['year'] ||
             !is_int($row->sourceRevision) || $row->sourceRevision < 1 ||
             !is_int($row->sourcePdfPage) || $row->sourcePdfPage < 1 ||
