@@ -44,6 +44,7 @@ require_once __DIR__.'/social-admin-settings.php';
 require_once __DIR__.'/operations-github-audits.php';
 require_once __DIR__.'/operations-collection.php';
 require_once __DIR__.'/operations-github-dispatch.php';
+require_once __DIR__.'/operations-cron-dispatcher.php';
 
 function operationsRegistry(): array {
     $raw = file_get_contents(__DIR__.'/internal/operations-registry.json');
@@ -396,6 +397,34 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        // Central CLI scheduler: the original SUPER_ADMIN/MFA session and
+        // exact-origin CSRF govern source-only policy changes. This route
+        // never executes a worker, installs a host Cron or sends an email.
+        if ($path==='/admin/operations/cron-master' &&
+            ($verb==='GET'||$verb==='POST')) {
+            if(($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_cron_owner_policy',$accountId,20,300))
+                fail('rate_limited',429);
+            if($verb==='GET')respond(operationsCronOwnerSnapshot($pdo,$configuration));
+            if(!operationsMutationAllowed($_SERVER,
+               (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            try{
+                $result=operationsCronOwnerChange($pdo,$configuration,
+                    $accountId,jsonBody());
+            }catch(InvalidArgumentException $e){
+                fail('invalid_cron_policy',422);
+            }catch(DomainException $e){
+                $code=$e->getMessage();
+                if($code==='operations_cron_migration_required'||
+                   $code==='cron_source_unavailable')
+                    fail('cron_source_unavailable',503);
+                fail($code==='cron_schedule_conflict'?'cron_schedule_conflict':
+                    'cron_owner_confirmation_required',409);
+            }
+            respond($result);
+        }
         // Owner-only projection of the SAME financial/work/contract records
         // returned to each approved author. No impersonation or account switch.
         if ($path === '/admin/operations/author-view' && $verb === 'GET') {
