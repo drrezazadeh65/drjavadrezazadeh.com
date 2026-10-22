@@ -1034,6 +1034,7 @@ function renderMasterEngineConsole(host,model){
  const actions=Array.isArray(model.actionReports)?model.actionReports:[];
  const providers=Array.isArray(model.providerInventory?.providers)?model.providerInventory.providers:[];
  const directorySources=Array.isArray(sourceDirectoryState?.sources)?sourceDirectoryState.sources:[];
+ const discovered=Array.isArray(model.existingFeatureInventory?.features)?model.existingFeatureInventory.features:[];
  const readOnly=action=>action?.supportedExecutor?.type==='readonly_snapshot'
    &&action.supportedExecutor.writes===false;
  const supported=actions.filter(readOnly);
@@ -1048,6 +1049,12 @@ function renderMasterEngineConsole(host,model){
    ' · '+t('مشاهده‌های قابل اجرا: ','Runnable observations: ')+supported.length+
    ' · '+t('اقدام‌های بدون مجری عملیاتی: ','Without operational executor: ')+(actions.length-supported.length));
  wrap.append(summary);
+ wrap.append(el('p',t('قابلیت‌های پراکنده کشف‌شده از کد: ',
+   'Existing features discovered in source: ')+
+   (model.existingFeatureInventory?.status==='source_inventory'
+     ?discovered.length:t('هنوز فهرست نشده','Not indexed'))+
+   ' · '+t('این‌ها موتور جدید نیستند و حضور در کد به معنای سلامت عملیاتی نیست.',
+   'These are not new engines and source presence does not certify runtime health.')));
  const references=el('p',t('منابع ثبت‌شده: ','Catalogued providers: ')+
    (model.providerInventory?.status==='catalogue_only'?providers.length:t('نامشخص','Unknown'))+
    ' · '+t('اتصال خارجی تأییدشده: ','Verified provider connections: ')+
@@ -1062,6 +1069,7 @@ function renderMasterEngineConsole(host,model){
    const executable=owned.filter(readOnly);
    const candidateCount=providers.filter(p=>p.engineId===engine.id).length;
    const allRegistered=directorySources.filter(source=>source.engineId===engine.id);
+   const ownedFeatures=discovered.filter(feature=>feature.engineId===engine.id);
    card.append(el('h3',engine.id+' · '+engineName(engine)),
      el('p',t('گزارش تأییدشده: ','Verified reports: ')+
        (engine.completedReportIds?.length??0)+' / '+
@@ -1078,6 +1086,30 @@ function renderMasterEngineConsole(host,model){
      reportingRender();
      $('ops-reporting')?.scrollIntoView({block:'start'});
    });card.append(open);
+   if(ownedFeatures.length){
+     const hidden=el('details');hidden.className='ops-existing-features';
+     hidden.append(el('summary',t('قابلیت‌های دیگر این موتور: ',
+       'Other capabilities of this engine: ')+ownedFeatures.length));
+     const features=el('ul',undefined,'ops-queue');
+     for(const feature of ownedFeatures){
+       const li=el('li');
+       const jump=el('button',en?feature.nameEn:feature.nameFa);
+       jump.type='button';
+       jump.addEventListener('click',()=>{
+         const target=$(feature.adminTarget);if(!target)return;
+         for(let parent=target;parent;parent=parent.parentElement)
+           if(parent.tagName==='DETAILS')parent.open=true;
+         target.scrollIntoView({block:'start'});
+       });
+       li.append(jump,el('small',
+         (feature.sourceState==='source_present'
+           ?t('در کد شناسایی شده','Present in source'):t('منبع ناقص','Incomplete source'))+
+         ' · '+t('اجرای زنده تأیید نشده','Runtime not verified')+
+         ' · '+t('سیاست: ','Policy: ')+feature.controlPolicy));
+       features.append(li);
+     }
+     hidden.append(features);card.append(hidden);
+   }
    if(engine.id==='ENG-08'||engine.id==='ENG-09'){
      const editor=el('button',t('استودیوی ویرایش محتوا و رسانه','Content and media workbench'));
      editor.type='button';
