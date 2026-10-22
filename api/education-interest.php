@@ -78,7 +78,7 @@ function jrInterestUnseal(array $row,array $secret): ?string {
 }
 function jrInterestConsentEvent(PDO $pdo,string $leadId,string $event,
     string $noticeHash,int $at): void {
-    if(!in_array($event,['SUBMITTED','EMAIL_VERIFIED','WITHDRAWN'],true))
+    if(!in_array($event,['SUBMITTED','EMAIL_VERIFIED','WITHDRAWN','EXPIRED'],true))
        throw new InvalidArgumentException('invalid_interest_consent_event');
     $q=$pdo->prepare('INSERT INTO eco_education_interest_consent_events
       (lead_id,event_code,consent_version,notice_sha256,occurred_at)
