@@ -185,6 +185,29 @@ function operationsInstall(PDO $pdo): void {
             errors_5xx INT UNSIGNED NOT NULL,
             INDEX idx_ops_http_batch_time(observed_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_response_probe_settings (
+            singleton_id TINYINT UNSIGNED PRIMARY KEY,
+            enabled TINYINT NOT NULL DEFAULT 0,
+            cadence ENUM('manual','daily','weekly') NOT NULL DEFAULT 'manual',
+            weekday TINYINT UNSIGNED NOT NULL DEFAULT 1,
+            clock_minutes SMALLINT UNSIGNED NOT NULL DEFAULT 210,
+            retention_days SMALLINT UNSIGNED NOT NULL DEFAULT 90,
+            next_due BIGINT NOT NULL DEFAULT 0,
+            requested_at BIGINT NOT NULL DEFAULT 0,
+            updated_at BIGINT NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_response_probe_samples (
+            sample_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            probe_id VARCHAR(48) NOT NULL,
+            kind ENUM('headers','redirect') NOT NULL,
+            observed_at BIGINT NOT NULL,
+            response_code SMALLINT UNSIGNED NULL,
+            result ENUM('pass','fail','unavailable') NOT NULL,
+            details_json TEXT NOT NULL,
+            expires_at BIGINT NOT NULL,
+            INDEX idx_ops_probe_key_time(probe_id,observed_at),
+            INDEX idx_ops_probe_expires(expires_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
         "CREATE TABLE IF NOT EXISTS operations_content_drafts (
             id CHAR(32) PRIMARY KEY,
             language ENUM('fa','en') NOT NULL,
@@ -221,6 +244,9 @@ function operationsInstall(PDO $pdo): void {
     ];
     foreach ($statements as $sql) $pdo->exec($sql);
     operationsCollectorSeed($pdo,time());
+    $pdo->prepare('INSERT IGNORE INTO operations_response_probe_settings
+        (singleton_id,enabled,cadence,weekday,clock_minutes,retention_days,next_due,requested_at,updated_at)
+        VALUES(1,0,\'manual\',1,210,90,0,0,?)')->execute([time()]);
     // Idempotent baseline; never overwrite preferences set by an administrator.
     $pdo->prepare('INSERT IGNORE INTO operations_alert_settings(singleton_id,enabled,updated_at) VALUES(1,1,?)')
         ->execute([time()]);
