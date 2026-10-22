@@ -128,6 +128,60 @@
       if(stamp===readEpoch){busy=false;controller=null;refresh.disabled=false;restrict();}
     }
   }
+  const PENDING_TRANSFER_KEY='jr.bahar.pending-account-transfer.v1';
+  function pendingHandoff(){
+    let raw=null;
+    try { raw=sessionStorage.getItem(PENDING_TRANSFER_KEY); }catch(_) {}
+    if(!raw)return null;
+    try{
+      if(raw.length>32000)throw Error('size');
+      const transfer=JSON.parse(raw);
+      if(!transfer||transfer.schema!=='jr.bahar.same-tab-continuation.v1'||
+        typeof transfer.issuedAt!=='number'||
+        typeof transfer.expiresAt!=='number'||
+        transfer.expiresAt<Date.now()||
+        transfer.issuedAt>Date.now()+30000||
+        transfer.expiresAt-transfer.issuedAt>5*60*1000)
+        throw Error('expired');
+      // The same whitelist as manual JSON file selection applies.
+      return parseOwnWorkbook(transfer.workbook);
+    }catch(_){
+      try{sessionStorage.removeItem(PENDING_TRANSFER_KEY);}catch(_) {}
+      return null;
+    }
+  }
+  async function continuePendingHandoff(){
+    if(!active()||!identity)return;
+    const prepared=pendingHandoff();
+    if(!prepared)return;
+    localDraft=prepared;
+    preview.replaceChildren();
+    const p=document.createElement('p');
+    p.textContent=T('برنامه‌ای که ساختی آماده است: ','Your study plan is ready: ')+
+      short(prepared.compass?.goal||prepared.weeklyPlan?.goal||'—');
+    preview.append(p);
+    restrict();
+    if(!identity.storageEnabled||!identity.independentlyVerifiedAdult||
+      !identity.currentNoticeConfigured){
+      setState(T('برنامه محفوظ است، اما ذخیره در حساب فعلاً فعال نیست. می‌توانی از صفحه رایگان، نسخه فایل خودت را دریافت کنی.',
+        'Your plan is ready in this tab, but account saving is not available yet. You can keep your own private file from the free BAHAR page.'));
+      return;
+    }
+    if(!identity.currentConsent){
+      // Only the person's earlier deliberate "save in my account" action
+      // may open one purpose-limited confirmation popup here.
+      requestConsentInOnePopup();
+      return;
+    }
+    if(identity.workbookRevision===0){
+      // The user previously clicked "continue and save" on the public page
+      // and already granted this exact purpose; no duplicate prompt.
+      await storeSelectedDraft(true);
+      return;
+    }
+    setState(T('در حسابت قبلاً کاربرگ ذخیره شده است. برای حفظ نسخه قبلی، جایگزینی فقط با انتخاب «ذخیره امن برنامه من» انجام می‌شود.',
+      'A workbook already exists in this account. To avoid overwriting it, choose Save explicitly if you want to replace that version.'));
+  }
   function validDay(value){
     if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
     const parts=value.split('-').map(Number);
@@ -260,7 +314,8 @@
         });
       // No second popup or separate status-refresh click.
       if(result===true){
-        await updateStatus({quiet:true});
+        const refreshed=await updateStatus({quiet:true});
+        if(refreshed)await continuePendingHandoff();
       }
     });
     document.body.append(dialog);
@@ -391,10 +446,18 @@
           'The server confirmed deletion of the current database row. Audit and backup obligations remain separate.'));
       });
   });
-  root.addEventListener('toggle',()=>{
-    if(root.open)updateStatus();
-    else clear();
+  root.addEventListener('toggle',async()=>{
+    if(!root.open){clear();return;}
+    const ready=await updateStatus();
+    if(ready)await continuePendingHandoff();
   });
+  // A same-tab transfer was initiated by the user on the PUBLIC learning
+  // page. Only an ephemeral fragment selects the already published route.
+  if(location.hash==='#jr-bahar-account'&&pendingHandoff()){
+    root.id='jr-bahar-account';
+    root.open=true;
+    root.scrollIntoView({block:'start',behavior:'instant'});
+  }
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
   window.addEventListener('pagehide',()=>clear(),{once:true});
   clear();
