@@ -3234,7 +3234,20 @@ function renderOwnerCommandCenter(){
      .join(' ').toLocaleLowerCase().includes(q));
   });
   const limited=ownerCockpitFilter==='all'&&!q&&!ownerCockpitShowAll;
-  const displayRows=limited?selected.slice(0,9):selected;
+  // The first screen must cover site safety, SEO, collection AND commerce.
+  // Critical stored findings are promoted before the cross-domain shortcuts.
+  const primaryIds=['incidents','db','http','quality','collectors',
+    'sources','commerce','social','engines'];
+  const urgent=selected.filter(item=>
+    (ownerCockpitReadErrors[item.load]?'unknown':item.data.kind)==='attention');
+  const highlighted=[...urgent,
+    ...primaryIds.map(id=>selected.find(item=>item.id===id)).filter(Boolean)];
+  const seen=new Set();
+  const primary=highlighted.filter(item=>{
+    if(seen.has(item.id))return false;
+    seen.add(item.id);return true;
+  }).slice(0,9);
+  const displayRows=limited?primary:selected;
   expandList.hidden=ownerCockpitFilter!=='all'||!!q||selected.length<=9;
   expandList.textContent=ownerCockpitShowAll?
     t('نمایش فقط بخش‌های اصلی','Show primary departments only'):
