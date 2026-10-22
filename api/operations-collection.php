@@ -243,6 +243,68 @@ function operationsCollectorStatus(PDO $pdo,int $at): array {
         'rows'=>$rows,'sourceStates'=>$cache['states'],
         'limitation'=>'Settings cannot activate an unimplemented collector; real-time commerce, auth and user events never depend on GitHub polling.'];
 }
+/** Only owner-selected existing source snapshots may be deleted, never
+ * original evidence, immutable audit records or business/customer data.
+ */
+function operationsCollectorDataScopes(string $scope): array {
+    $catalogue=operationsCollectorCatalogue();
+    if(!isset($catalogue[$scope]))throw new InvalidArgumentException('invalid_collector_data_scope');
+    if($catalogue[$scope]['type']==='source')return [$scope];
+    $sourceIds=[];
+    foreach($catalogue as $key=>$value){
+        if($value['type']==='source'&&$value['engineId']===$scope)$sourceIds[]=$key;
+    }
+    if(!$sourceIds)throw new InvalidArgumentException('collector_scope_not_implemented');
+    return $sourceIds;
+}
+function operationsCollectorDataPreview(PDO $pdo,string $scope): array {
+    $sources=operationsCollectorDataScopes($scope);
+    $totals=['cacheRows'=>0,'attemptRows'=>0,'metricRows'=>0];
+    $more=false;
+    foreach($sources as $key){
+        $cache=$pdo->prepare('SELECT scope_key FROM operations_collection_cache WHERE scope_key=? LIMIT 1');
+        $cache->execute([$key]);$totals['cacheRows']+=count($cache->fetchAll(PDO::FETCH_COLUMN));
+        $attempts=$pdo->prepare('SELECT attempt_id FROM operations_collection_attempts WHERE scope_key=? LIMIT 101');
+        $attempts->execute([$key]);$found=count($attempts->fetchAll(PDO::FETCH_COLUMN));
+        $totals['attemptRows']+=min(100,$found);$more=$more||$found>100;
+        $metrics=$pdo->prepare('SELECT sample_id FROM operations_source_metric_samples WHERE source_id=? LIMIT 101');
+        $metrics->execute(['collector:'.$key]);$found=count($metrics->fetchAll(PDO::FETCH_COLUMN));
+        $totals['metricRows']+=min(100,$found);$more=$more||$found>100;
+    }
+    return ['ok'=>true,'schema'=>'operations-collector-delete-preview-v1',
+        'scope'=>$scope,'affectedSources'=>$sources,'countsBounded'=>$totals,
+        'moreMayRemain'=>$more,'previewOnly'=>true,
+        'preserved'=>'commerce_customer_accounts_immutable_audit_scientific_and_release_evidence'];
+}
+function operationsCollectorDataPurge(PDO $pdo,string $scope,string $actor,int $at): array {
+    $sources=operationsCollectorDataScopes($scope);
+    $locked=(int)$pdo->query("SELECT GET_LOCK('drjr_ops_collection_v1',0)")->fetchColumn();
+    if($locked!==1)throw new DomainException('collector_busy');
+    try {
+        $pdo->beginTransaction();
+        $deleted=['cacheRows'=>0,'attemptRows'=>0,'metricRows'=>0];
+        try {
+            $cache=$pdo->prepare('DELETE FROM operations_collection_cache WHERE scope_key=?');
+            $attempts=$pdo->prepare('DELETE FROM operations_collection_attempts WHERE scope_key=? LIMIT 100');
+            $metrics=$pdo->prepare('DELETE FROM operations_source_metric_samples WHERE source_id=? LIMIT 100');
+            foreach($sources as $key){
+                $cache->execute([$key]);$deleted['cacheRows']+=$cache->rowCount();
+                $attempts->execute([$key]);$deleted['attemptRows']+=$attempts->rowCount();
+                $metrics->execute(['collector:'.$key]);$deleted['metricRows']+=$metrics->rowCount();
+            }
+            $pdo->prepare('INSERT INTO operations_audit(actor_id,action,reference_id,occurred_at) VALUES(?,?,?,?)')
+                ->execute([$actor,'collector_data_purged',substr(hash('sha256',$scope),0,64),$at]);
+            $pdo->commit();
+        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+        return ['ok'=>true,'scope'=>$scope,'deleted'=>$deleted,
+            'boundedPerSource'=>100,
+            'moreMayRemain'=>$deleted['attemptRows']>=100||$deleted['metricRows']>=100,
+            'protectedTablesUntouched'=>true];
+    }finally{
+        $pdo->query("SELECT RELEASE_LOCK('drjr_ops_collection_v1')");
+    }
+}
+
 function operationsCollectorRefresh(PDO $pdo,string $mode,int $at,string $scope='all'): array {
     if(!in_array($mode,['manual','scheduled'],true))throw new InvalidArgumentException('collector_mode_invalid');
     if($mode==='scheduled'&&!operationsCollectorAutomaticEnabled($pdo))
