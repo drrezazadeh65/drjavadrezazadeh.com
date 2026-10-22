@@ -179,6 +179,17 @@ function operationsEducationReadiness(PDO $pdo): array {
         if(function_exists('operationsEducationalDraftPricesRead'))
             $draftState=operationsEducationalDraftPricesRead($pdo);
     } catch(Throwable $error){$draftState=null;}
+    $adultPending=null;
+    try{
+        $q=$pdo->query("SELECT COUNT(*) FROM eco_bahar_verified_adult_accounts
+          WHERE review_state='PENDING'");
+        $adultPending=(int)$q->fetchColumn();
+    }catch(Throwable $e){$adultPending=null;}
+    $privatePolicy=null;
+    try{
+        if(function_exists('operationsBaharPrivatePolicy'))
+            $privatePolicy=operationsBaharPrivatePolicy($pdo);
+    }catch(Throwable $e){$privatePolicy=null;}
     $baharColumns=operationsEducationBaharColumnPresence($pdo);
     return [
         'ok'=>true,
@@ -203,6 +214,18 @@ function operationsEducationReadiness(PDO $pdo): array {
             'offerDraftInventoryAvailable'=>$offer!==null,
             'unapprovedOfferDrafts'=>$offer['summary']['proposals']??null,
             'baharMotherDatabaseColumnsPresent'=>$baharColumns,
+            'pendingIndependentAdultReviewRequests'=>$adultPending,
+            'adultReviewQueueVisible'=>$adultPending!==null,
+            'privateAdultWorkbookEffectiveEnabled'=>$privatePolicy['effectiveEnabled']??null,
+            'privateAdultWorkbookPolicyProvisioned'=>
+                $privatePolicy['administrativeSwitchAvailable']??null,
+            'privateAdultWorkbookEvidenceRecorded'=>
+                $privatePolicy['independentScientificAndPrivacyApprovalsRecorded']??null,
+            'privateAdultWorkbookBilingualNoticesReady'=>
+                isset($privatePolicy['approvedConsentNoticeFa'],
+                      $privatePolicy['approvedConsentNoticeEn'])
+                    ?($privatePolicy['approvedConsentNoticeFa']===true
+                       && $privatePolicy['approvedConsentNoticeEn']===true):null,
             'educationalDraftPricingStorageReady'=>$draftState!==null &&
                 ($draftState['requiresAdditiveMigration']??true)===false,
             'educationalDraftOverrides'=>is_array($draftState['drafts']??null)
