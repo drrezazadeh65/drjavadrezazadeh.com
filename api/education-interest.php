@@ -123,18 +123,27 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
     try{
         $pdo->beginTransaction();
         $q=$pdo->prepare('SELECT id,status,educational_need,preferred_locale,
-          consent_version,consent_notice_sha256,encryption_key_id
+          consent_version,consent_notice_sha256,encryption_key_id,
+          expires_at,last_invitation_at,verification_expires_at
           FROM eco_education_interest_leads WHERE email_hmac=? FOR UPDATE');
         $q->execute([$digest]);$existing=$q->fetch(PDO::FETCH_ASSOC);
         if(is_array($existing)){
             $id=(string)$existing['id'];
             // Do not leak whether an email already exists, and never send
             // another verification for an unchanged active subscription.
-            if(($existing['status']??'')==='VERIFIED' &&
-               ($existing['educational_need']??'')===$need &&
+            $sameScope=($existing['educational_need']??'')===$need &&
                ($existing['preferred_locale']??'')===$locale &&
                ($existing['consent_version']??'')===JR_EDU_INTEREST_NOTICE_VERSION &&
-               hash_equals($noticeHash,(string)$existing['consent_notice_sha256'])){
+               hash_equals($noticeHash,(string)$existing['consent_notice_sha256']);
+            if($sameScope && (
+              (($existing['status']??'')==='VERIFIED' &&
+               (int)($existing['expires_at']??0)>$now) ||
+              (($existing['status']??'')==='PENDING' &&
+               (int)($existing['last_invitation_at']??0)>$now-600 &&
+               (int)($existing['verification_expires_at']??0)>$now)
+            )){
+                // No duplicate email for a confirmed or freshly pending
+                // request; a deliberately changed need is separately scoped.
                 $send=false;
             }else{
                 $sealed=jrInterestSeal($email,$id,$secret);
