@@ -15,7 +15,11 @@ function operationsAlertDefinitions(): array {
         'redirects_regressed'=>['severity'=>'critical','threshold'=>1,'cooldown'=>60,'name'=>'Canonical or historical redirect regression','sensor'=>'not_yet_connected'],
         'http_404_surge'=>['severity'=>'warning','threshold'=>1,'cooldown'=>120,'name'=>'High volume of missing URLs','sensor'=>'private_access_log_observer_requires_configuration'],
         'http_5xx_surge'=>['severity'=>'critical','threshold'=>1,'cooldown'=>30,'name'=>'Server 5xx errors seen in the access log','sensor'=>'private_access_log_observer_requires_configuration'],
-        'payment_runtime_unavailable'=>['severity'=>'critical','threshold'=>1,'cooldown'=>60,'name'=>'Checkout or payment runtime failure','sensor'=>'not_yet_connected']
+        'payment_runtime_unavailable'=>['severity'=>'critical','threshold'=>1,'cooldown'=>60,'name'=>'Checkout or payment runtime failure','sensor'=>'not_yet_connected'],
+        'bahar_private_storage_failure'=>['severity'=>'critical','threshold'=>1,'cooldown'=>60,
+          'name'=>'Unexpected encrypted BAHAR private storage failure','sensor'=>'on_error_after_owner_opt_in'],
+        'bahar_eligibility_queue_failure'=>['severity'=>'warning','threshold'=>1,'cooldown'=>120,
+          'name'=>'Verified adult review queue failed unexpectedly','sensor'=>'on_admin_error_after_owner_opt_in']
     ];
 }
 /**
@@ -30,7 +34,9 @@ function operationsAlertIncidentScopes(string $code,string $component): array {
         'redirects_regressed'=>['ENG-01','redirect-301-410'],
         'http_404_surge'=>['ENG-01','incoming-404'],
         'http_5xx_surge'=>['ENG-11','site-runtime-health'],
-        'payment_runtime_unavailable'=>['ENG-05','commerce-settlement']
+        'payment_runtime_unavailable'=>['ENG-05','commerce-settlement'],
+        'bahar_private_storage_failure'=>['ENG-04','bahar-private-storage-alerts'],
+        'bahar_eligibility_queue_failure'=>['ENG-04','bahar-adult-review-alerts']
     ];
     if($code==='collector_unavailable'){
         $catalogue=function_exists('operationsCollectorCatalogue')
@@ -71,6 +77,23 @@ function operationsAlertScopesAllowed(PDO $pdo,int $at): array {
                 'available'=>($feature['sourceState']??'')==='source_present'];
         }
     }
+    // New BAHAR alerts are individually disabled until a super admin
+    // explicitly opts in through the EXISTING mail-notification matrix.
+    foreach([
+      'bahar-private-storage-alerts'=>[
+        'fa'=>'خرابی ذخیره امن BAHAR','en'=>'BAHAR encrypted storage failures'
+      ],
+      'bahar-adult-review-alerts'=>[
+        'fa'=>'خطاهای صف تأیید بزرگسالی','en'=>'BAHAR adult verification queue failures'
+      ]
+    ] as $key=>$title){
+        $id='feature:'.$key;
+        $scopes[$id]=[
+          'id'=>$id,'kind'=>'feature','parent'=>'engine:ENG-04',
+          'nameFa'=>$title['fa'],'nameEn'=>$title['en'],
+          'available'=>function_exists('operationsBaharPrivatePolicy')
+        ];
+    }
     if(function_exists('operationsSourceDirectory')){
         $directory=operationsSourceDirectory($pdo,$at);
         foreach($directory['sources']??[] as $source){
@@ -104,6 +127,15 @@ function operationsAlertScopeSnapshot(PDO $pdo,int $at): array {
 function operationsAlertScopeEnabled(PDO $pdo,string $code,string $component): bool {
     $settings=operationsAlertScopeSettings($pdo);
     if($settings===null)return false; // Fail closed until unified schema is installed.
+    // Existing incident preferences are preserved. Only the two new
+    // educational/age-verification alert classes require explicit enablement.
+    $educationAlerts=[
+      'bahar_private_storage_failure'=>'feature:bahar-private-storage-alerts',
+      'bahar_eligibility_queue_failure'=>'feature:bahar-adult-review-alerts'
+    ];
+    if(isset($educationAlerts[$code])&&
+      ($settings[$educationAlerts[$code]]['enabled']??false)!==true)
+        return false;
     foreach(operationsAlertIncidentScopes($code,$component) as $id)
         if(isset($settings[$id])&&$settings[$id]['enabled']===false)return false;
     return true;
