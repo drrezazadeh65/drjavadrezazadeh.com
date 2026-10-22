@@ -8,18 +8,32 @@ if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
  * Only an independently conducted, out-of-band review can result in a
  * SUPER_ADMIN decision. No identity documents are accepted by this endpoint.
  */
-function operationsBaharAdultReviewQueue(PDO $pdo): array {
+function operationsBaharAdultReviewQueue(PDO $pdo,array $options=[]): array {
+    $filter=$options['state']??'ALL';
+    $page=filter_var($options['page']??1,FILTER_VALIDATE_INT);
+    if(!is_string($filter)||
+       !in_array($filter,['ALL','PENDING','VERIFIED_ADULT','DECLINED','REVOKED'],true)||
+       $page===false||$page<1||$page>200)
+        throw new InvalidArgumentException('invalid_adult_review_filters');
+    $perPage=50;
+    $offset=($page-1)*$perPage;
     try {
-        $q=$pdo->query("SELECT v.account_id,v.review_state,v.created_at,
+        $where="v.review_state IN ('PENDING','VERIFIED_ADULT','DECLINED','REVOKED')";
+        if($filter!=='ALL')$where.=" AND v.review_state=?";
+        $sql="SELECT v.account_id,v.review_state,v.created_at,
+
           v.verified_at,v.expires_at,v.revoked_at,v.verifier_evidence_sha256,
           a.email_normalized,a.status AS account_status,
           a.email_verified_at
           FROM eco_bahar_verified_adult_accounts v
           JOIN customer_accounts a ON a.id=v.account_id
-          WHERE v.review_state IN ('PENDING','VERIFIED_ADULT','DECLINED','REVOKED')
+          WHERE ".$where."
           ORDER BY CASE v.review_state WHEN 'PENDING' THEN 0
-              WHEN 'VERIFIED_ADULT' THEN 1 ELSE 2 END,v.updated_at DESC
-          LIMIT 100");
+              WHEN 'VERIFIED_ADULT' THEN 1 ELSE 2 END,
+              v.updated_at DESC,v.account_id ASC
+          LIMIT ".$perPage." OFFSET ".$offset;
+        $q=$pdo->prepare($sql);
+        $q->execute($filter==='ALL'?[]:[$filter]);
         $items=$q->fetchAll(PDO::FETCH_ASSOC);
         $rollup=$pdo->query("SELECT review_state,COUNT(*) AS amount
            FROM eco_bahar_verified_adult_accounts GROUP BY review_state
@@ -29,7 +43,8 @@ function operationsBaharAdultReviewQueue(PDO $pdo): array {
           'ok'=>true,'schema'=>'jr.bahar-adult-review-queue.v1',
           'state'=>'SCHEMA_NOT_PROVISIONED','readOnly'=>true,
           'canRecordDecision'=>false,'noDocumentsCollected'=>true,
-          'records'=>[],'counts'=>[],
+          'records'=>[],'counts'=>[],'page'=>$page,
+          'pageSize'=>$perPage,'totalMatching'=>null,'pages'=>null,
           'limitation'=>'Source-only module: the additive mother database tables are not ready.'
         ];
     }
@@ -63,7 +78,13 @@ function operationsBaharAdultReviewQueue(PDO $pdo): array {
       'state'=>'MANUAL_OUT_OF_BAND_REVIEW_ONLY',
       'readOnly'=>false,'canRecordDecision'=>true,
       'noDocumentsCollected'=>true,'records'=>$rows,'counts'=>$counts,
-      'resultLimit'=>100,'limitedResults'=>array_sum($counts)>count($rows),
+      'page'=>$page,'pageSize'=>$perPage,'filterState'=>$filter,
+      'totalMatching'=>$filter==='ALL'?array_sum($counts):($counts[$filter]??0),
+      'pages'=>$filter==='ALL'
+          ?(int)ceil(array_sum($counts)/$perPage)
+          :(int)ceil(($counts[$filter]??0)/$perPage),
+      'resultLimit'=>$perPage,'limitedResults'=>
+          ($filter==='ALL'?array_sum($counts):($counts[$filter]??0))>$offset+count($rows),
       'automaticApproval'=>false,'ageInferredFromEmail'=>false,
       'privateStorageAutoEnabled'=>false,
       'limitation'=>'PENDING is an unverified claim. Approvals require independently inspected lawful evidence; SHA-256 records provenance but does not prove the evidence is true.'
