@@ -123,7 +123,7 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
             $offset=($cursor['log_inode']===$inode&&(int)$cursor['byte_offset']<=$size)
                 ?(int)$cursor['byte_offset']:0;
             if(fseek($fh,$offset)!==0)return ['status'=>'read_unavailable','lines'=>0,'errors404'=>0,'errors5xx'=>0];
-            $read=0;$bytes=0;$errors404=0;$errors5xx=0;$recentPublic404=0;$recent5xx=0;$recentSeen=0;$routes=[];
+            $read=0;$bytes=0;$errors404=0;$errors5xx=0;$recentPublic404=0;$recentPublicSeen=0;$recent5xx=0;$recentSeen=0;$routes=[];
             while(!feof($fh)&&$read<5000&&$bytes<1048576){
                 $lineStart=ftell($fh);
                 if($lineStart===false)throw new RuntimeException('log_position_unavailable');
@@ -147,6 +147,7 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
                 // timestamps in the last five minutes may raise urgent alerts.
                 $current=$parsed['at']>=$at-300 && $parsed['at']<=$at+60;
                 if($current)$recentSeen++;
+                if($current&&($parsed['route']['classification']??null)==='seo_review_candidate')$recentPublicSeen++;
                 if($parsed['status']===404){
                     $errors404++;
                     if($current&&($parsed['route']['classification']??null)==='seo_review_candidate')$recentPublic404++;
@@ -195,7 +196,7 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
                 if($recent5xx>0)operationsAlertRecord($pdo,'http_5xx_surge','site_http_5xx',$at);
                 else operationsAlertResolve($pdo,'http_5xx_surge','site_http_5xx',$at);
                 if($recentPublic404>=10)operationsAlertRecord($pdo,'http_404_surge','site_http_404',$at);
-                else operationsAlertResolve($pdo,'http_404_surge','site_http_404',$at);
+                elseif($recentPublicSeen>0)operationsAlertResolve($pdo,'http_404_surge','site_http_404',$at);
             }
             return ['status'=>'observed','lines'=>$read,'errors404'=>$errors404,'errors5xx'=>$errors5xx];
         }finally{fclose($fh);}
