@@ -97,6 +97,47 @@ function rowApproved(row,review){
     macMatches(review.administratorKey,payload,review.approval.administratorSignature);
 }
 /**
+ * Coverage review includes all relevant 1405 examination groups AND the
+ * competent issuer's amendments index. Bare booleans from an import are not
+ * enough: two independent trusted scientific attestations are required.
+ */
+const REQUIRED_GROUPS=Object.freeze([
+  'ARTS','EXPERIMENTAL_SCIENCES','FOREIGN_LANGUAGES','HUMANITIES','MATHEMATICS'
+]);
+function verifiedCoverage(coverage,cycle){
+  if(!coverage||typeof coverage!=='object'||Array.isArray(coverage)||
+    coverage.actualCycle!==cycle||coverage.amendmentsReviewed!==true||
+    coverage.languagesGuideReviewed!==true||
+    coverage.teacherTrainingChangesReviewed!==true||
+    !identifier(coverage.signedAuditReference)||
+    !day(coverage.checkedOn)||
+    !sha(coverage.officialNoticeIndexSha256)||
+    !Array.isArray(coverage.coveredGroups)||
+    coverage.coveredGroups.length!==REQUIRED_GROUPS.length||
+    coverage.coveredGroups.some(v=>!REQUIRED_GROUPS.includes(v))||
+    new Set(coverage.coveredGroups).size!==REQUIRED_GROUPS.length)
+    return false;
+  const auth=coverage.authorization;
+  if(!auth||!identifier(auth.reviewerId)||
+    !identifier(auth.administratorId)||
+    auth.reviewerId===auth.administratorId||
+    auth.scope!=='COMPLETE_ANNUAL_OFFICIAL_SOURCE_COVERAGE'||
+    auth.decision!=='APPROVED')return false;
+  const payload=JSON.stringify([
+    'jr.official-annual-coverage-v1',cycle,
+    [...coverage.coveredGroups].sort(),
+    coverage.officialNoticeIndexSha256,coverage.signedAuditReference,
+    coverage.checkedOn,auth.reviewerId,auth.administratorId,auth.scope,
+    auth.decision
+  ]);
+  // Keys must be provided by an independently authorized private server,
+  // never stored in the uploaded annual-coverage record or repository.
+  const ctx=coverage.trustedServerContext;
+  return macMatches(ctx?.reviewerKey,payload,auth.reviewerSignature)&&
+    macMatches(ctx?.administratorKey,payload,auth.administratorSignature);
+}
+
+/**
  * Pure source compilation. Call only after server-side identity, reviewer-role,
  * signing-key custody, PDF-origin and current-cycle policy verification.
  *
@@ -125,14 +166,7 @@ export function compileOfficialAdmissionsCatalogue({
     issues.push('INVALID_SOURCE_COLLECTION');
   if(!Array.isArray(programmeRows)||programmeRows.length>5000)
     issues.push('INVALID_PROGRAMME_COLLECTION');
-  if(!coverage||typeof coverage!=='object'||
-    coverage.amendmentsReviewed!==true||
-    coverage.languagesGuideReviewed!==true||
-    coverage.teacherTrainingChangesReviewed!==true||
-    coverage.actualCycle!==cycle||
-    !identifier(coverage.signedAuditReference)){
-    issues.push('UNRESOLVED_OFFICIAL_SOURCE_COVERAGE');
-  }
+  if(!verifiedCoverage(coverage,cycle))issues.push('UNRESOLVED_OFFICIAL_SOURCE_COVERAGE');
   const trustedSources=new Map();
   if(Array.isArray(sources)&&sources.length<=80)for(const s of sources){
     if(!s||!identifier(s.key)||trustedSources.has(s.key)||
