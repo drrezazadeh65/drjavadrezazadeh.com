@@ -12,11 +12,11 @@
   const locale=en?'en':'fa';
   const $=key=>root.querySelector('[data-jr-account-bahar-'+key+']');
   const notice=$('notice'),state=$('state'),refresh=$('refresh');
-  const consentCheckbox=$('consent-check'),consent=$('consent');
-  const file=$('file'),preview=$('preview'),confirmOwn=$('own');
+  const consent=$('consent');
+  const file=$('file'),preview=$('preview');
   const save=$('save'),download=$('download'),withdraw=$('withdraw'),erase=$('erase');
-  if(!notice||!state||!refresh||!consentCheckbox||!consent||!file||
-    !preview||!confirmOwn||!save||!download||!withdraw||!erase)return;
+  if(!notice||!state||!refresh||!consent||!file||
+    !preview||!save||!download||!withdraw||!erase)return;
   let identity=null,localDraft=null,readEpoch=0,busy=false,controller=null;
   const active=()=>root.open&&!document.hidden;
   const setState=value=>{state.textContent=value;};
@@ -31,7 +31,6 @@
     const allowed=eligible&&identity.currentConsent===true&&
       identity.canStore===true;
     const csrf=/^[a-f0-9]{64}$/i.test(identity?.csrfToken||'');
-    consentCheckbox.disabled=true;
     consent.disabled=!eligible||allowed||busy||!csrf;
     file.disabled=!allowed||busy;
     save.disabled=!allowed||!localDraft||busy||!csrf||
@@ -47,7 +46,7 @@
   function clear(note){
     readEpoch++;controller?.abort();controller=null;
     busy=false;identity=null;localDraft=null;
-    file.value='';confirmOwn.checked=false;consentCheckbox.checked=false;
+    file.value='';
     notice.replaceChildren();preview.replaceChildren();
     setState(note||T('تا زمانی که خودتان درخواست نکنید، هیچ داده حسابی خوانده نمی‌شود.',
       'No account data is requested until you explicitly choose to inspect it.'));
@@ -316,7 +315,7 @@
           result.encryptedAtRest!==true||result.revision!==expected+1)
           throw Error('UNCONFIRMED');
         identity.workbookRevision=result.revision;
-        localDraft=null;confirmOwn.checked=false;preview.replaceChildren();
+        localDraft=null;preview.replaceChildren();
         restrict();
         setState(T('نسخهٔ رمزگذاری‌شده با شماره بازنگری جدید ثبت شد. برای اطمینان، وضعیت حساب را بازخوانی کنید.',
           'Server confirmed the encrypted revision. Refresh account status to independently reconcile it.'));
