@@ -1,5 +1,29 @@
 # Bertina P0 — Operations Cron Activation (owner-gated runbook)
 
+> **2026-10-23 FORWARD-ONLY UPDATE — CENTRAL DISPATCHER IS THE PREFERRED PLAN (SOURCE ONLY).** The older four-entry schedule templates preserved below are historical fallbacks, **not** instructions to install four competing jobs after the new master is approved. The owner has sent Bertina support ticket `t975913` asking about a single private PHP CLI Cron entry every minute. **Bertina has confirmed only that the prior four CLI Cron entries could be configured**, not that the new central dispatcher, `proc_open`, one-minute budget or command paths are authorized. Do not install the four legacy entries or the new master without a final owner/host sign-off, and do not allow them to run simultaneously.
+
+## One-Cron proposal: staged source architecture, not host activation
+
+- **One fixed CLI entrypoint (not yet deployed or installed):** `api/internal/operations-master-dispatcher.php`. Its directory is already HTTP-denied by `api/internal/.htaccess`.
+- **One shared policy/registry:** `api/operations-cron-dispatcher.php`; six allowlisted static worker paths, source-defined minimum cadence and no database-defined executables. Future source-registered jobs are added to the existing registry and **owner-registered disabled in the existing table**; they do not require a new cPanel Cron or a separate database.
+- **One additive mother-DB schema, staged and NOT EXECUTED:** `docs/migrations/20261023_operations_cron_master_mysql.sql`, with `operations_cron_jobs`, all initially disabled, no implicit worker execution. This is a sixth-job-capable control policy, not a new payment, mail or customer queue.
+- **One private global enable flag:** `JR_OPERATIONS_CRON_MASTER_ENABLED=true` in confirmed PHP CLI environment, or `operations_cron_master_enabled => true` in private `api/config.local.php`, **only with explicit owner approval after final acceptance**. The default in source is false, and every individual DB job also defaults OFF.
+- **One existing MFA owner workspace:** `/fa/app/admin/` and `/en/account/admin/`, section `#ops-cron-master`. GET/POST `/api/admin/operations/cron-master` reuse original SUPER_ADMIN role, recent TOTP, rate limits, origin+CSRF, and `operations_audit`. Per-job toggles, cadence and last execution state are informational until host execution evidence exists.
+- **Bounded processing:** exactly one database advisory-lock holder; at most four due jobs per 43-second tick, each executed via PHP command-array `proc_open` (no shell, no user-provided path) for up to 12 seconds. A crash, timeout, uncertain result, nonzero exit or stale RUNNING record stops further dispatch for that worker and requires an explicit owner review; no automatic repetition of uncertain SMTP side effects. Worker output is discarded and only low-sensitivity job IDs/states can appear in private, rotated logs.
+- **Existing six worker IDs:** `github_collector` (600 seconds), `response_monitor` (60), `private_http_log` (60; optional and privacy-gated), `operations_alert_mail` (60; opt-in recipient/SMTP gates), `newsletter_outbox` (300; separate verified opt-in and editorial env gates), `publishing_outbox` (300; existing author/customer publishing queue). Even though the last two workers already exist in source, this dispatcher does **not** approve new marketing, grant financial entitlements, alter payment callbacks or send emails by default.
+
+### Proposed single Cron **template only** — paths MUST be verified by Bertina
+
+```text
+* * * * * <VERIFIED_PHP83_CLI_ABSOLUTE_PATH> <VERIFIED_DEPLOY_ROOT>/api/internal/operations-master-dispatcher.php >> <VERIFIED_NONPUBLIC_ROTATED_LOG> 2>&1
+```
+
+This is not a copy/paste-ready command. Ask Bertina to confirm exact PHP 8.3 CLI binary, absolute application root, allowed 1-minute cadence, `proc_open`/`proc_get_status`/`proc_terminate` permissions, subprocess CPU/memory quotas, MySQL advisory lock support, worker exit behavior, private file permissions and nonpublic log rotation. A shared-host restriction against child processes is a genuine blocker to this design; do not replace it with public HTTP pings or claim it works. If unsupported, request Bertina's approved alternative or in-place upgrade and preserve the entire existing site/data.
+
+**Activation order after FULL source completion and single final E2E acceptance:** (1) exact owner-approved additive SQL + secure backup and restore proof; (2) PHP and child-process capability plus exact host-path confirmation; (3) deploy approved immutable release without replacing any working public URL or checkout; (4) obtain Bertina's approval for this **one** host entry and confirm no legacy four entries are simultaneously enabled; (5) explicitly set global flag and individually enable only audited and genuinely configured source jobs from the MFA owner panel; (6) observe real date-stamped DB attempt and dispatch states, current operational dashboards and real permitted SMTP receipts before marking any runtime PASS. No test, migration, host schedule, email, publication or payment action is authorized by writing this section.
+
+---
+
 Status: **SOURCE-READY / HOST CRON UNVERIFIED / NOT ACTIVATED**  
 Source branch: `migration/bertina-linux6`  
 Production: Bertina Linux, cPanel, LiteSpeed, PHP 8.3  
