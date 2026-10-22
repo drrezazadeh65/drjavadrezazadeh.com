@@ -177,6 +177,41 @@ try {
  $initial=request('/api/admin/operations/collection-settings',200);
  check(count($initial['rows'])===21 && $initial['timezone']==='Asia/Tehran',
      'Collector policy inventory missing');
+ // A policy due date is intent, not proof of a cPanel cron installation.
+ $collectionById=array_column($initial['rows'],null,'id');
+ check($collectionById['ENG-01']['scheduleEvidence']==='engine_switch_only'
+     && $collectionById['ENG-01']['executionEvidence']==='not_applicable',
+     'engine switch was falsely treated as an independent scheduled worker');
+ check($initial['attemptJournalStatus']==='available'
+     && $collectionById['governance:repository']['executionEvidence']==='never_observed',
+     'empty journal was mistaken for confirmed collector activity');
+ check($collectionById['governance:repository']['scheduleEvidence']==='scheduled_unverified',
+     'future due time was mistakenly treated as installed cron');
+ $pdo->prepare('UPDATE operations_collection_policies SET next_due=? WHERE scope_key=?')
+     ->execute([$now-120,'governance:repository']);
+ $dueStatus=operationsCollectorStatus($pdo,$now);
+ $dueById=array_column($dueStatus['rows'],null,'id');
+ check($dueById['governance:repository']['scheduleEvidence']==='due_unverified',
+     'overdue source policy falsely certified a worker execution');
+ $pdo->prepare("INSERT INTO operations_collection_attempts
+     (scope_key,attempted_at,result,failure_code) VALUES (?,?,'failed',?)")
+     ->execute(['governance:repository',$now-90,'provider_result_unavailable']);
+ $failedStatus=operationsCollectorStatus($pdo,$now);
+ $failedById=array_column($failedStatus['rows'],null,'id');
+ check($failedById['governance:repository']['executionEvidence']==='last_attempt_failed'
+     && $failedById['governance:repository']['lastAttempt']['result']==='failed',
+     'real recorded attempt failure was hidden or misclassified');
+ $pdo->prepare("INSERT INTO operations_collection_attempts
+     (scope_key,attempted_at,result,failure_code) VALUES (?,?,'succeeded',NULL)")
+     ->execute(['governance:repository',$now-60]);
+ $recordedStatus=operationsCollectorStatus($pdo,$now);
+ $recordedById=array_column($recordedStatus['rows'],null,'id');
+ check($recordedById['governance:repository']['executionEvidence']==='attempt_recorded'
+     && $recordedById['governance:repository']['scheduleEvidence']==='due_unverified',
+     'successful manual observation falsely proved cron installation');
+ // Restore the seeded due time so later fixtures retain their initial assumptions.
+ $pdo->prepare('UPDATE operations_collection_policies SET next_due=? WHERE scope_key=?')
+     ->execute([operationsCollectorNextDue('hourly',20,$now),'governance:repository']);
  $cached=request('/api/admin/operations/github-audits',200);
  check(($cached['collection']['sourceStates']['governance:repository']['status']??null)==='missing',
      'Unfetched GitHub source was falsely presented as fresh');
