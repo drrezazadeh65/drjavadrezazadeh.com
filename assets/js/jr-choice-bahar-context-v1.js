@@ -48,11 +48,13 @@
     const status=text('p',T('هیچ فایلی انتخاب نشده است.','No workbook imported.'),'jr-bahar-context__status');
     status.setAttribute('role','status');status.setAttribute('aria-live','polite');
     const view=document.createElement('div');view.hidden=true;view.className='jr-bahar-context__view';
+    let importGeneration=0;
     const actions=document.createElement('div');actions.className='jr-bahar-context__actions';
     actions.append(pick,clear);
     wrapper.append(heading,expl,go,consent,actions,status,view);
     root.after(wrapper);
     const clearView=()=>{
+      importGeneration++;
       view.replaceChildren();view.hidden=true;clear.disabled=true;
     };
     check.addEventListener('change',()=>{
@@ -65,10 +67,12 @@
     });
     file.addEventListener('change',async()=>{
       const selected=file.files?.[0];file.value='';
+      const thisImport=++importGeneration;
       if(!selected||!check.checked)return;
       if(selected.size===0||selected.size>30000){clearView();status.textContent=T('فایل معتبر نیست یا بیش از ۳۰ کیلوبایت است.','Invalid file or size above 30 KB.');return;}
       try{
         const data=JSON.parse(await selected.text());
+        if(thisImport!==importGeneration||!check.checked)return;
         if(!data||typeof data!=='object'||Array.isArray(data)
           ||data.schema!=='jr.bahar.private-workbook.v1'
           ||data.version!=='1.0.0'||!Array.isArray(data.reflections)
@@ -100,6 +104,7 @@
         view.replaceChildren(fragment);view.hidden=false;clear.disabled=false;
         status.textContent=T('اطلاعات انتخاب‌شده فقط در این صفحه نمایش داده شدند.','Selected reflections are shown in this page only.');
       }catch{
+        if(thisImport!==importGeneration||!check.checked)return;
         clearView();status.textContent=T('این فایل BAHAR معتبر نیست و خوانده نشد.','The file was not recognized as a compatible BAHAR workbook.');
       }
     });
