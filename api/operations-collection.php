@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
+require_once __DIR__.'/operations-alerts.php';
 require_once __DIR__.'/operations-source-controls.php';
 
 /**
@@ -209,6 +210,7 @@ function operationsCollectorRefresh(PDO $pdo,string $mode,int $at,string $scope=
                 $write->execute([$key,$at,$at+$ttl,$encoded]);$saved++;$receivedThisKey=true;
             }
             operationsCollectorRecordAttempt($pdo,$key,$at,$receivedThisKey);
+            if(!$receivedThisKey)operationsAlertRecord($pdo,'collector_unavailable',$key,$at);
             operationsSourceRecordMetric($pdo,'collector:'.$key,'fetch_success',
                 $receivedThisKey?1.0:0.0,'boolean',$at);
             if($receivedThisKey)operationsSourceRecordMetric($pdo,'collector:'.$key,
