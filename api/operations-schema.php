@@ -155,6 +155,30 @@ function operationsInstall(PDO $pdo): void {
             INDEX idx_ops_alert_incident(fingerprint),
             FOREIGN KEY(fingerprint) REFERENCES operations_alert_incidents(fingerprint) ON DELETE RESTRICT
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_http_log_cursor (
+            singleton_id TINYINT UNSIGNED PRIMARY KEY,
+            log_inode VARCHAR(40) NOT NULL,
+            byte_offset BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            updated_at BIGINT NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_http_error_routes (
+            route_hash CHAR(64) PRIMARY KEY,
+            route_path VARCHAR(240) NOT NULL,
+            classification ENUM('scanner_probe','seo_review_candidate') NOT NULL,
+            http_status SMALLINT UNSIGNED NOT NULL,
+            total_hits BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            first_seen_at BIGINT NOT NULL,
+            last_seen_at BIGINT NOT NULL,
+            INDEX idx_ops_http_404_priority(http_status,last_seen_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_http_observation_batches (
+            batch_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            observed_at BIGINT NOT NULL,
+            records_read INT UNSIGNED NOT NULL,
+            errors_404 INT UNSIGNED NOT NULL,
+            errors_5xx INT UNSIGNED NOT NULL,
+            INDEX idx_ops_http_batch_time(observed_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
         "CREATE TABLE IF NOT EXISTS operations_content_drafts (
             id CHAR(32) PRIMARY KEY,
             language ENUM('fa','en') NOT NULL,
