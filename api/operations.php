@@ -14,6 +14,7 @@ require_once __DIR__.'/jhela-intake.php';
 require_once __DIR__.'/operations-commerce.php';
 require_once __DIR__.'/operations-educational-offers.php';
 require_once __DIR__.'/operations-education-price-drafts.php';
+require_once __DIR__.'/operations-education-release-gates.php';
 require_once __DIR__.'/operations-education-source-review.php';
 require_once __DIR__.'/operations-education-readiness.php';
 require_once __DIR__.'/operations-education-privacy.php';
@@ -558,6 +559,30 @@ function operationsRoute(string $path, string $verb): never {
             }catch(InvalidArgumentException $e){fail('invalid_price_draft',422);}
             catch(DomainException $e){fail('price_draft_conflict',409);}
             catch(Throwable $e){fail('education_draft_store_unavailable',503);}
+        }
+
+        // One owner-edited preparation ledger for 12 educational proposals.
+        // A prepared draft is NOT a scientific/financial/legal release pass.
+        if($path==='/admin/operations/educational-release-gates' && $verb==='GET'){
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'ops_educational_release_gates_read',$accountId,14,300))
+                fail('rate_limited',429);
+            respond(operationsEducationReleaseStatus($pdo));
+        }
+        if($path==='/admin/operations/educational-release-gates' && $verb==='POST'){
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'ops_educational_release_gates_write',$accountId,8,600))
+                fail('rate_limited',429);
+            $input=jsonBody();
+            try{respond(operationsEducationReleaseSave($pdo,$input,$accountId,nowTs()));}
+            catch(InvalidArgumentException $e){fail('invalid_education_release_note',422);}
+            catch(DomainException $e){fail('education_release_revision_conflict',409);}
+            catch(Throwable $e){fail('education_release_storage_unavailable',503);}
         }
 
         // 1405 source inventory is review metadata, never published admissions.
