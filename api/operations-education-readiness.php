@@ -216,6 +216,13 @@ function operationsEducationReadiness(PDO $pdo): array {
         if(function_exists('operationsQualitySummary'))
             $sourceQuality=operationsQualitySummary();
     }catch(Throwable $error){$sourceQuality=null;}
+    // First-party educational interest: summarize only verified opt-ins.
+    // No email addresses, pending identities, or unsolicited sender activation.
+    $interestSnapshot=null;
+    try{
+        if(function_exists('operationsEducationInterestSnapshot'))
+            $interestSnapshot=operationsEducationInterestSnapshot($pdo,false);
+    }catch(Throwable $error){$interestSnapshot=null;}
     $releasePreparation=null;
     try{
         if(function_exists('operationsEducationReleaseStatus'))
@@ -239,6 +246,17 @@ function operationsEducationReadiness(PDO $pdo): array {
             'endToEndReleaseCertified'=>false
         ],
         'sourceDependencies'=>[
+            'eduInterestCaptureAvailable'=>
+                ($interestSnapshot['effectiveCaptureEnabled']??null),
+            'eduInterestObserved'=>
+                ($interestSnapshot['countsState']??null)==='OBSERVED_MOTHER_DATABASE',
+            'eduInterestVerifiedContacts'=>
+                ($interestSnapshot['countsState']??null)==='OBSERVED_MOTHER_DATABASE'
+                  ?($interestSnapshot['verifiedCount']??null):null,
+            'eduInterestPendingVerification'=>
+                ($interestSnapshot['countsState']??null)==='OBSERVED_MOTHER_DATABASE'
+                  ?($interestSnapshot['pendingCount']??null):null,
+            'eduInterestAnyAutomaticCampaign'=>false,
             'guideManifestReadAvailable'=>$guide!==null,
             'sourceGuidesIdentified'=>$guide['summary']['guideCount']??null,
             'sourceGuidePagesInventoried'=>$guide['summary']['sourcePdfPages']??null,
