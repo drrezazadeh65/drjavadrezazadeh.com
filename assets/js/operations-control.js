@@ -2137,7 +2137,7 @@ function renderOwnerCommandCenter(){
    descFa:'تحلیل نمونه‌ای JSON-LD و canonical؛ دکمه ممیزی مستقل در همین بخش',
    descEn:'On-demand JSON-LD and canonical inspection in the existing module'},
   {id:'keyword',group:'seo',fa:'کلیدواژه‌ها و نقشه محتوایی',eng:'Keyword & content map',
-   target:'ops-keyword-master',data:keywordOverview,load:'keyword',
+   target:'jr-intelligence',data:keywordOverview,load:'keyword',
    descFa:'توزیع کلیدواژه و برنامه محتوایی مبتنی بر منبع، مجزا از رتبه واقعی',
    descEn:'Source-defined keyword planning, separately from measured search ranking'},
   {id:'gsc',group:'seo',fa:'سرچ کنسول و نمایه‌سازی',eng:'Search Console & indexing',
