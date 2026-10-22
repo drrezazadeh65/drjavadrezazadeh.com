@@ -2079,6 +2079,31 @@ function renderOwnerCommandCenter(){
      t('نمونه محدود و تاریخ‌دار؛ استناد و همه موتورهای AI اندازه‌گیری نشده',
        'Limited dated sample; citations and other AI providers remain unmeasured')):
    absent(t('نمونه معتبر حضور برند موجود نیست','AI visibility sample unavailable'));
+ const journal=ownerCockpitPrivateEvidence.journal;
+ const journalOverview=journal?.schema==='jhela-owner-maturity-snapshot-v1'
+   ?state('paused',t('مرحله: پیش از انتشار','Status: prelaunch')+
+       ' · '+t('مراحل مستقلِ تأییدنشده: ','Unverified milestones: ')+
+       (journal.evidenceReview?.unverifiedStageCount??'—'),
+     t('قرارداد منبع وجود دارد؛ آمار واقعی داوری و پذیرش تأیید نشده است',
+       'Repository contract exists; live editorial operations are not independently proven'))
+   :absent(t('وضعیت اجرایی نشریه هنوز خوانده نشده','Journal status not loaded'));
+ const growth=ownerCockpitPrivateEvidence.growth;
+ const growthCounts=growth?.leadMetrics?.counts;
+ const growthPipeline=growth?.serviceSalesPipeline;
+ const growthOverview=growthCounts&&growthPipeline
+   ?state(growthPipeline.awaitingOver24Hours>0?'attention':'recorded',
+       t('درخواست‌های دارای رضایت: ','Consented enquiries: ')+(growthCounts.total??'—')+
+       ' · '+t('نیازمند رسیدگی: ','Awaiting action: ')+(growthPipeline.awaitingAction??'—'),
+       t('درخواست خدمات نه فروش تأییدشده و نه اجازه بازاریابی است',
+         'Service enquiries are neither verified sales nor marketing consent'))
+   :absent(t('قیف خدمات هنوز مشاهده نشده','Services pipeline not observed'));
+ const keyword=ownerCockpitPrivateEvidence.keyword;
+ const keywordOverview=keyword?.schema==='jr-keyword-master-map-v1'
+   ?state('recorded',t('کلیدواژه‌های تدوین‌شده: ','Mapped keywords: ')+
+       (keyword.keywords?.length??'—'),
+     t('استراتژی مخزن؛ این عدد رتبه، کلیک یا ورودی گوگل نیست',
+       'Repository keyword strategy, not ranking, traffic or GSC clicks'))
+   :absent(t('نقشه کلیدواژه‌ها بارگیری نشده','Keyword strategy map not loaded'));
  const history=ownerCockpitPrivateEvidence.audit;
  const auditOverview=history?.schema==='operations-audit-timeline-v1'?
    state('recorded',t('رویدادهای اخیر: ','Recent audit events: ')+
@@ -2111,6 +2136,10 @@ function renderOwnerCommandCenter(){
    target:'jr-intelligence',data:unknown,
    descFa:'تحلیل نمونه‌ای JSON-LD و canonical؛ دکمه ممیزی مستقل در همین بخش',
    descEn:'On-demand JSON-LD and canonical inspection in the existing module'},
+  {id:'keyword',group:'seo',fa:'کلیدواژه‌ها و نقشه محتوایی',eng:'Keyword & content map',
+   target:'ops-keyword-master',data:keywordOverview,load:'keyword',
+   descFa:'توزیع کلیدواژه و برنامه محتوایی مبتنی بر منبع، مجزا از رتبه واقعی',
+   descEn:'Source-defined keyword planning, separately from measured search ranking'},
   {id:'gsc',group:'seo',fa:'سرچ کنسول و نمایه‌سازی',eng:'Search Console & indexing',
    target:'ops-gsc-direct',data:gscOverview,load:'gsc',
    descFa:'مشاهده دسترسی‌ها و شاخص‌های دارای منبع معتبر؛ بدون جعل داده گوگل',
@@ -2136,11 +2165,11 @@ function renderOwnerCommandCenter(){
    descFa:'پیش‌نویس‌ها، کانال‌ها، تأیید مدیر و تنظیمات انتشار',
    descEn:'Drafts, connected-channel evidence, owner approval and publish policies'},
   {id:'journal',group:'business',fa:'مدیریت نشریه JHELA',eng:'JHELA journal operations',
-   target:'ops-jhela-maturity',data:unknown,
+   target:'ops-jhela-maturity',data:journalOverview,load:'journal',
    descFa:'گردش کار نشریه، پذیرش مقاله و وضعیت واقعی عملیات تحریریه',
    descEn:'Editorial workflows, manuscript intake and independently evidenced status'},
   {id:'growth',group:'business',fa:'رشد، محتوا و درآمد',eng:'Growth, content & revenue',
-   target:'ops-organic-growth',data:unknown,
+   target:'ops-organic-growth',data:growthOverview,load:'growth',
    descFa:'تولید محتوا، استراتژی رشد و تفکیک فرصت درآمد از درآمد وصول‌شده',
    descEn:'Growth planning with clear separation of opportunity and collected revenue'},
   {id:'engines',group:'platform',fa:'مدیریت ۱۳ موتور عملیاتی',eng:'13-engine control',
@@ -2186,7 +2215,8 @@ function renderOwnerCommandCenter(){
      ['quality','/page-quality?'+new URLSearchParams(
        Object.entries(qualityFilters).map(([key,value])=>[key,String(value)]))],
      ['commerce','/commerce'],['social','/social'],
-     ['gsc','/gsc-direct'],['ai','/ai-visibility'],['audit','/audit-timeline']
+     ['gsc','/gsc-direct'],['ai','/ai-visibility'],['audit','/audit-timeline'],
+     ['journal','/jhela/maturity'],['growth','/growth'],['keyword','/keyword-map']
    ];
    let loaded=0,unavailable=0;
    // Sequential, bounded owner-initiated reads reduce load on shared hosting.
@@ -2298,9 +2328,10 @@ function renderOwnerCommandCenter(){
        throw new Error('invalid_source_directory');
     sourceDirectoryState=response;sourceDirectoryExpanded=true;}
    else if(item.load==='quality'){await loadQualityIndex();}
-   else if(['commerce','social','gsc','ai','audit'].includes(item.load)){
+   else if(['commerce','social','gsc','ai','audit','journal','growth','keyword'].includes(item.load)){
      const routes={commerce:'/commerce',social:'/social',gsc:'/gsc-direct',
-       ai:'/ai-visibility',audit:'/audit-timeline'};
+       ai:'/ai-visibility',audit:'/audit-timeline',journal:'/jhela/maturity',
+       growth:'/growth',keyword:'/keyword-map'};
      const response=await api(routes[item.load]);
      if(generation!==loadGeneration||!snapshot)return;
      ownerCockpitPrivateEvidence[item.load]=response;
