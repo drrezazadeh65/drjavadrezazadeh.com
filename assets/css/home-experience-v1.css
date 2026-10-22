@@ -329,3 +329,67 @@
 @media(prefers-reduced-motion:reduce){
  .public-home-page .jr-choice-discovery *{animation:none!important;transition:none!important}
 }
+
+
+/* One-click research-stage educational actions directly beneath the hero.
+   Existing 15 banners and primary need-first entry remain untouched. */
+.public-home-page .jr-home-direct-needs{
+ margin-block:clamp(14px,2vw,22px);max-width:100%;min-width:0;
+}
+.public-home-page .jr-home-direct-needs>p{
+ color:#d9c9aa;font-size:.9rem;line-height:1.7;margin:0 0 9px;
+}
+.public-home-page .jr-home-direct-needs__links{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:clamp(7px,1.3vw,12px);min-width:0;
+}
+.public-home-page .jr-home-direct-needs__links>a{
+ display:flex;flex-direction:column;gap:6px;align-items:flex-start;
+ padding:clamp(10px,1.5vw,15px);
+ border:1px solid rgba(214,178,108,.43);border-radius:13px;
+ background:linear-gradient(150deg,rgba(220,181,101,.13),rgba(9,12,17,.63));
+ color:#f8e9c8;text-decoration:none;min-height:118px;
+ min-width:0;overflow-wrap:anywhere;
+ transition:border-color .16s,transform .16s,background .16s;
+}
+.public-home-page .jr-home-direct-needs__links>a>span{
+ font-size:1.2rem;line-height:1.2;color:#f1cc82;
+}
+.public-home-page .jr-home-direct-needs__links strong{
+ font-size:.91rem;font-weight:760;line-height:1.6;color:#fff1d1;
+}
+.public-home-page .jr-home-direct-needs__links small{
+ font-size:.77rem;line-height:1.6;color:#dacbb2;
+}
+.public-home-page .jr-home-direct-needs__links>a:hover{
+ border-color:#eecb83;background:rgba(226,182,95,.13);
+ transform:translateY(-2px);
+}
+.public-home-page .jr-home-direct-needs__links>a:focus-visible{
+ outline:3px solid #f8d99a;outline-offset:3px;
+}
+@media(max-width:700px){
+ .public-home-page .jr-home-direct-needs__links{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+ }
+ .public-home-page .jr-home-direct-needs__links>a:last-child{
+  grid-column:1/-1;min-height:86px;
+ }
+}
+@media(max-width:430px){
+ .public-home-page .jr-home-direct-needs__links{
+  grid-template-columns:minmax(0,1fr);gap:8px;
+ }
+ .public-home-page .jr-home-direct-needs__links>a{
+  min-height:74px;padding:11px 13px;gap:3px;
+ }
+ .public-home-page .jr-home-direct-needs__links>a:last-child{
+  grid-column:auto;min-height:74px;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .public-home-page .jr-home-direct-needs__links>a{
+  transition:none;transform:none!important;
+ }
+}
+@media print{.public-home-page .jr-home-direct-needs{display:none!important}}
