@@ -1,0 +1,33 @@
+/* Existing customer dashboard: opt-in read-only BAHAR account permission view. */
+.jr-bahar-privacy-bridge{min-width:0;margin-block:22px 12px;
+  padding:clamp(14px,3vw,24px);border:1px solid var(--cd-line-strong);
+  border-radius:20px;background:var(--cd-panel2);color:var(--cd-ink);
+  overflow-wrap:anywhere}
+.jr-bahar-privacy-bridge h3{font-size:clamp(1.1rem,2vw,1.4rem);
+  margin:0 0 9px;line-height:1.5}
+.jr-bahar-privacy-bridge>p{color:var(--cd-soft);line-height:1.8;margin:0 0 15px}
+.jr-bahar-privacy-bridge__actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.jr-bahar-privacy-bridge__actions :is(button,a){display:inline-flex;align-items:center;
+  justify-content:center;min-height:48px;padding:10px 17px;
+  border:1px solid var(--cd-gold-2);border-radius:12px;font:inherit;
+  text-decoration:none;line-height:1.6;font-weight:700}
+.jr-bahar-privacy-bridge__actions button{background:var(--cd-gold);
+  color:#171717;cursor:pointer}
+.jr-bahar-privacy-bridge__actions a{background:transparent;color:var(--cd-gold)}
+.jr-bahar-privacy-bridge__actions button:disabled{opacity:.55;cursor:wait}
+.jr-bahar-privacy-bridge :is(button,a):focus-visible{
+  outline:3px solid var(--cd-gold);outline-offset:4px}
+.jr-bahar-privacy-bridge [data-jr-bahar-bridge-status]{
+  color:var(--cd-soft);line-height:1.8;margin:16px 0 0}
+.jr-bahar-privacy-bridge__facts{display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:15px 0}
+.jr-bahar-privacy-bridge__fact{min-width:0;padding:13px;
+  border-radius:12px;background:var(--cd-panel);border:1px solid var(--cd-line)}
+.jr-bahar-privacy-bridge__fact dt{color:var(--cd-muted);font-size:.9rem}
+.jr-bahar-privacy-bridge__fact dd{margin:6px 0 0;font-weight:650;line-height:1.7}
+.jr-bahar-privacy-bridge__note{font-size:.92rem;line-height:1.8;color:var(--cd-muted)}
+@media(max-width:650px){.jr-bahar-privacy-bridge__facts{
+  grid-template-columns:minmax(0,1fr)}
+  .jr-bahar-privacy-bridge__actions{flex-direction:column;align-items:stretch}
+  .jr-bahar-privacy-bridge__actions :is(button,a){width:100%}}
+@media print{.jr-bahar-privacy-bridge__actions{display:none}}
