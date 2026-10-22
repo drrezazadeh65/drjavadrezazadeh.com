@@ -31,10 +31,10 @@
     const allowed=eligible&&identity.currentConsent===true&&
       identity.canStore===true;
     const csrf=/^[a-f0-9]{64}$/i.test(identity?.csrfToken||'');
-    consentCheckbox.disabled=!eligible||allowed||busy;
-    consent.disabled=!eligible||allowed||!consentCheckbox.checked||busy||!csrf;
+    consentCheckbox.disabled=true;
+    consent.disabled=!eligible||allowed||busy||!csrf;
     file.disabled=!allowed||busy;
-    save.disabled=!allowed||!localDraft||!confirmOwn.checked||busy||!csrf||
+    save.disabled=!allowed||!localDraft||busy||!csrf||
       !Number.isSafeInteger(identity?.workbookRevision);
     download.disabled=!allowed||busy||!csrf||
       !Number.isSafeInteger(identity?.workbookRevision)||
@@ -204,21 +204,72 @@
     }
   }
   refresh.addEventListener('click',()=>updateStatus());
-  consentCheckbox.addEventListener('change',restrict);
-  confirmOwn.addEventListener('change',restrict);
-  consent.addEventListener('click',async()=>{
-    if(!consentCheckbox.checked||!identity?.privacyNotice)return;
-    await command(T('در حال ثبت رضایت صریح…','Recording explicit consent…'),
-      async()=>{
-        const result=await userMutation('consent',{
-          confirmation:'I CONSENT TO PRIVATE BAHAR STORAGE',
-          noticeSha256:identity.privacyNotice.sha256
+  // Single just-in-time consent dialog. This is only for PRIVATE WORKBOOK
+  // STORAGE, never for advertising, admissions or unspecified reuse.
+  // The complete approved purpose notice remains available on this page.
+  function requestConsentInOnePopup(){
+    if(!identity?.privacyNotice||!identity.storageEnabled||
+       identity.currentConsent||busy)return;
+    const dialog=document.createElement('dialog');
+    dialog.className='jr-bahar-consent-dialog';
+    dialog.setAttribute('aria-labelledby','jr-bahar-consent-dialog-title');
+    dialog.setAttribute('aria-describedby','jr-bahar-consent-dialog-purpose');
+    const title=document.createElement('h3');
+    title.id='jr-bahar-consent-dialog-title';
+    title.textContent=T('برنامه‌ات را برای دفعه بعد نگه دار ✨',
+      'Keep your study plan for next time ✨');
+    const content=document.createElement('p');
+    content.id='jr-bahar-consent-dialog-purpose';
+    content.textContent=T(
+      'با موافقت تو، فقط کاربرگ و یادداشت‌هایی را که خودت برای ذخیره انتخاب می‌کنی، به‌صورت رمزگذاری‌شده در حسابت نگه می‌داریم تا بعداً بتوانی ادامه بدهی. از این اطلاعات برای تبلیغات، فروش داده، نمره‌گذاری استعداد یا پیش‌بینی قبولی استفاده نمی‌کنیم. هر زمان بخواهی می‌توانی رضایتت را مدیریت کنی.',
+      'With your permission, we will encrypt and keep only the study workbook you choose to save, so you can continue later. We will not use it for advertising, selling data, aptitude scores or admission predictions. You can manage your permission later.'
+    );
+    const details=document.createElement('details');
+    const detailsLabel=document.createElement('summary');
+    detailsLabel.textContent=T('مشاهده متن کامل حریم خصوصی','Read the full privacy notice');
+    const terms=document.createElement('p');
+    terms.textContent=identity.privacyNotice.text;
+    terms.lang=identity.privacyNotice.locale==='en'?'en':'fa';
+    terms.dir=terms.lang==='fa'?'rtl':'ltr';
+    details.append(detailsLabel,terms);
+    const controls=document.createElement('div');
+    controls.className='jr-bahar-consent-dialog__actions';
+    const agree=document.createElement('button');
+    agree.type='button';
+    agree.textContent=T('موافقم، ادامه بده','I agree — continue');
+    const skip=document.createElement('button');
+    skip.type='button';skip.className='secondary';
+    skip.textContent=T('فعلاً بدون ذخیره ادامه می‌دهم','Continue without saving');
+    controls.append(agree,skip);
+    dialog.append(title,content,details,controls);
+    const dismiss=()=>dialog.close();
+    skip.addEventListener('click',dismiss);
+    dialog.addEventListener('close',()=>dialog.remove(),{once:true});
+    agree.addEventListener('click',async()=>{
+      agree.disabled=true;skip.disabled=true;
+      dialog.close();
+      // Consent is recorded only after this explicit affirmative click.
+      const result=await command(T('در حال ثبت رضایت…','Recording your choice…'),
+        async()=>{
+          const response=await userMutation('consent',{
+            confirmation:'I CONSENT TO PRIVATE BAHAR STORAGE',
+            noticeSha256:identity.privacyNotice.sha256
+          });
+          if(response?.ok!==true||response.consentRecorded!==true)
+            throw Error('CONSENT_NOT_CONFIRMED');
+          return true;
         });
-        if(result?.ok!==true||result.consentRecorded!==true)throw Error('UNCONFIRMED');
-        setState(T('رضایت ثبت شد. دوباره وضعیت حساب را دریافت کنید.',
-          'Consent recorded. Refresh account status before uploading.'));
-      });
-  });
+      // No second popup or separate status-refresh click.
+      if(result===true){
+        await updateStatus({quiet:true});
+      }
+    });
+    document.body.append(dialog);
+    if(typeof dialog.showModal==='function')dialog.showModal();
+    else{dialog.setAttribute('open','');dialog.setAttribute('role','dialog');}
+    agree.focus();
+  }
+  consent.addEventListener('click',requestConsentInOnePopup);
   file.addEventListener('change',async()=>{
     const selected=file.files?.[0];file.value='';
     const stamp=++readEpoch;localDraft=null;
@@ -251,12 +302,8 @@
     }
   });
   save.addEventListener('click',async()=>{
-    if(!identity?.canStore||!localDraft||!confirmOwn.checked||
+    if(!identity?.canStore||!localDraft||
       !Number.isSafeInteger(identity.workbookRevision))return;
-    if(!window.confirm(T(
-      'آیا تأیید می‌کنید فقط یادداشت‌های شخصی و غیرشناسه‌دار بزرگسال خودتان ذخیره شود؟',
-      'Confirm that this file contains only your own adult, nonidentifying study notes?'
-    )))return;
     const expected=identity.workbookRevision;
     const draft=localDraft;
     await command(T('در حال ذخیره نسخهٔ رمزگذاری‌شده…','Saving encrypted workbook…'),
