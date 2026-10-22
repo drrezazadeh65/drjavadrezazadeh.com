@@ -3032,12 +3032,27 @@ function renderOwnerCommandCenter(){
    else if(item.load==='http'){httpHealthCurrent=await api('/http-health');alertCenterExpanded=true;}
    else if(item.load==='response'){responseMonitorCurrent=await api('/response-health');responseMonitorExpanded=true;}
    else if(item.load==='collection'){collectionState=await api('/collection-settings');collectionExpanded=true;}
-   else if(item.load==='sources'){const response=await api('/source-directory');
+   else if(item.load==='sources'){
+    const response=await api('/source-directory');
     if(response.schema!=='operations-source-directory-v1'||!Array.isArray(response.sources))
        throw new Error('invalid_source_directory');
-    sourceDirectoryState=response;
-    sourceControlState=await api('/source-controls');
-    sourceDirectoryExpanded=true;}
+    if(generation!==loadGeneration||!snapshot)return;
+    // The source catalogue is independently readable even when its
+    // owner-policy tables are missing or restricted. Keep that evidence.
+    sourceDirectoryState=response;sourceDirectoryExpanded=true;
+    try{
+      const policies=await api('/source-controls');
+      if(generation!==loadGeneration||!snapshot)return;
+      if(policies.schema!=='operations-source-controls-v1'||!Array.isArray(policies.rows))
+        throw new Error('invalid_source_controls');
+      sourceControlState=policies;
+      delete ownerCockpitReadErrors.sourceControls;
+    }catch(err){
+      if(generation!==loadGeneration||!snapshot)return;
+      sourceControlState=null;
+      ownerCockpitReadErrors.sourceControls='unavailable';
+    }
+   }
    else if(item.load==='quality'){await loadQualityIndex();}
    else if(['schema','image','speed','ux','mobile','content'].includes(item.load)){
      qualityFilters.dimension=item.load==='schema'?'schema':item.load;
@@ -3052,8 +3067,19 @@ function renderOwnerCommandCenter(){
      if(generation!==loadGeneration||!snapshot)return;
      ownerCockpitPrivateEvidence[item.load]=ownerCockpitProject(item.load,response);
      if(item.load==='social'){
-       ownerCockpitPrivateEvidence.socialSettings=ownerCockpitProject(
-         'socialSettings',await api('/social/settings'));
+       try{
+         const settings=await api('/social/settings');
+         if(generation!==loadGeneration||!snapshot)return;
+         if(settings.schema!=='social-channel-settings-v1')
+           throw new Error('invalid_social_settings');
+         ownerCockpitPrivateEvidence.socialSettings=ownerCockpitProject(
+           'socialSettings',settings);
+         delete ownerCockpitReadErrors.socialSettings;
+       }catch(err){
+         if(generation!==loadGeneration||!snapshot)return;
+         delete ownerCockpitPrivateEvidence.socialSettings;
+         ownerCockpitReadErrors.socialSettings='unavailable';
+       }
      }
      delete ownerCockpitReadErrors[item.load];
      ownerCockpitLastReadAt=Math.floor(Date.now()/1000);
