@@ -185,6 +185,7 @@ function operationsEducationInterestOwnerSuppress(PDO $pdo,string $leadId,
         jrInterestConsentEvent($pdo,$leadId,'WITHDRAWN',
           (string)$row['consent_notice_sha256'],$now,
           (string)$row['consent_version']);
+        jrInterestDiscardRenewal($pdo,$leadId);
         $audit=$pdo->prepare('INSERT INTO operations_audit
             (actor_id,action,reference_id,occurred_at) VALUES(?,?,?,?)');
         $audit->execute([$owner,'education_interest_owner_suppressed',
