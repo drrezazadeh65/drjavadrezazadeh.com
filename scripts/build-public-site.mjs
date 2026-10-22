@@ -4,6 +4,7 @@ import {isOwnershipVerificationArtifact,verifyOwnershipArtifact} from './site-ow
 import {checkStylesheetBundles} from './stylesheet-bundles.mjs';
 import {projectCommunityServicePages} from './community-service-bundle.mjs';
 import {CONNECTORS} from '../platform/social-distribution/connections.mjs';
+import {generateQualityInventory} from './operations-page-quality.mjs';
 
 checkStylesheetBundles();
 
@@ -54,6 +55,16 @@ const adminToolInventory={schema:'operations-free-resources-v1',catalogueDate:fr
 const inventoryOutput=path.join(out,'api/internal/free-resources-registry.json');
 if(!/Require all denied/.test(fs.readFileSync(path.join(out,'api/internal/.htaccess'),'utf8')))throw Error('Private admin registry protection missing');
 fs.writeFileSync(inventoryOutput,JSON.stringify(adminToolInventory)+'\n');
+// Versioned PRIVATE source-derived page quality inventory for the existing
+// administrator dashboard. Server refuses non-admin/MFA reads. It never fetches
+// live URLs, scores real search rankings or includes HTML/customer content.
+const qualityInventory=generateQualityInventory(root);
+if(qualityInventory.schema!=='operations-page-quality-inventory-v1'
+   ||qualityInventory.total<1||qualityInventory.total>15000)
+  throw Error('Page quality source inventory contract drift');
+fs.writeFileSync(path.join(out,'api/internal/operations-page-quality.json'),
+    JSON.stringify(qualityInventory)+'\n');
+
 /* Existing Stage-13 channel catalogue projected into the SAME private API
  * directory, not a new public registry or an assertion of OAuth connectivity.
  * The platform/ source is intentionally excluded from the Bertina bundle.
