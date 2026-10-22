@@ -5,6 +5,7 @@ import {checkStylesheetBundles} from './stylesheet-bundles.mjs';
 import {projectCommunityServicePages} from './community-service-bundle.mjs';
 import {CONNECTORS} from '../platform/social-distribution/connections.mjs';
 import {generateQualityInventory} from './operations-page-quality.mjs';
+import {hiddenFeatureSourceInventory} from './operations-hidden-features.mjs';
 
 checkStylesheetBundles();
 
@@ -64,6 +65,11 @@ if(qualityInventory.schema!=='operations-page-quality-inventory-v1'
   throw Error('Page quality source inventory contract drift');
 fs.writeFileSync(path.join(out,'api/internal/operations-page-quality.json'),
     JSON.stringify(qualityInventory)+'\n');
+// Dispersed legacy capabilities remain grouped by their EXISTING ENG IDs;
+// source presence must never be called an independently verified deployment.
+const existingFeatures=hiddenFeatureSourceInventory(root);
+fs.writeFileSync(path.join(out,'api/internal/operations-existing-features.json'),
+    JSON.stringify(existingFeatures)+'\n');
 
 /* Existing Stage-13 channel catalogue projected into the SAME private API
  * directory, not a new public registry or an assertion of OAuth connectivity.
