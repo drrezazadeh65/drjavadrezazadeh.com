@@ -992,7 +992,11 @@ function operationsRoute(string $path, string $verb): never {
                 $view['canManage']=true;
                 respond($view);
             }catch(InvalidArgumentException $e){fail('invalid_monitor_policy',400);}
-            catch(DomainException $e){fail('monitor_disabled',409);}
+            catch(DomainException $e){
+                if($e->getMessage()==='response_monitor_schema_missing')
+                    fail('monitor_schema_unavailable',503);
+                fail('monitor_disabled',409);
+            }
             catch(Throwable $e){fail('monitor_schema_unavailable',503);}
         }
 
