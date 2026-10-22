@@ -58,7 +58,10 @@ function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice
 function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;dbHealthCurrent=null;dbHealthExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
 $('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
-function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
+function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.'),
+alert_rule_not_provisioned:t('ردیف این هشدار هنوز در دیتابیس مادر نصب نشده است؛ در پایان توسعه، Migration افزایشی مربوط باید با تأیید مالک اجرا شود.','This incident rule is not provisioned in the mother database. Its additive migration requires owner approval after development.'),
+alert_rule_update_unavailable:t('ثبت تنظیمات هشدار و لاگ حسابرسی تکمیل نشد؛ تغییری را موفق فرض نکنید.','The alert setting and audit could not be committed. Do not assume the change was saved.'),
+alert_scope_update_unavailable:t('ثبت تنظیم ایمیل اختصاصی همراه با لاگ حسابرسی تکمیل نشد.','Scoped email preference and audit could not be committed.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
 async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;httpHealthCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
 function progress(value){const bar=el('div',undefined,'ops-progress');const fill=el('span');fill.style.width=(value??0)+'%';bar.append(fill);bar.setAttribute('aria-label',t('پیشرفت اندازه‌گیری‌شده: ','Measured progress: ')+pct(value));return bar;}
 function render(){const sum=snapshot.summary;$('ops-total').textContent=String(sum.total);$('ops-verified').textContent=String(sum.verified);$('ops-coverage').textContent=sum.measuredCoverage+'/36';$('ops-admin-score').textContent=pct(snapshot.dashboard.measuredProgress);$('ops-release').textContent=snapshot.releaseSha||t('ثبت نشده','Not recorded');$('ops-checked').textContent=date(snapshot.checkedAt);
@@ -1043,6 +1046,13 @@ function renderAlertCenter(host,model){
    }
    const rules=el('details');
    rules.append(el('summary',t('نوع خطا، پوشش حسگر و تنظیم هر هشدار','Event types, sensor coverage and notification rules')));
+   const rulesPresent=(data.rules||[]).filter(rule=>rule.ruleProvisioned===true).length;
+   const rulesTotal=(data.rules||[]).length;
+   rules.append(el('p',
+     t('ردیف‌های تنظیم هشدار در دیتابیس مادر: ','Incident rules provisioned in mother DB: ')+
+     rulesPresent+' / '+rulesTotal+
+     ' · '+t('وجود کد حسگر، به‌تنهایی گواه اجرای Cron یا تحویل ایمیل نیست.',
+       'A sensor in source code does not prove cron execution or email delivery.')));
    const ul=el('ul',undefined,'ops-queue');
    for(const rule of data.rules||[]){
      const li=el('li');
@@ -1050,8 +1060,21 @@ function renderAlertCenter(host,model){
        ' · '+rule.severity+' · '+t('حسگر: ','Sensor: ')+rule.sensorState));
      li.append(el('small',t('آستانه: ','Threshold: ')+rule.threshold+
        ' · '+t('فاصله ایمیل: ','Email cooldown: ')+rule.cooldownMinutes+
-       t(' دقیقه',' minutes')+' · '+(rule.enabled?t('فعال','Enabled'):t('غیرفعال','Disabled'))));
-     if(data.canManage===true){
+       t(' دقیقه',' minutes')+' · '+
+       (rule.ruleProvisioned===false
+         ?t('جدول/ردیف تنظیم نصب نشده','Rule row not provisioned')
+         :rule.enabled?t('فعال','Enabled'):t('غیرفعال','Disabled'))));
+     if(rule.ruleProvisioned===false){
+       li.append(el('p',t(
+         'این نوع هشدار در سورس تعریف شده، اما ردیف فعال‌سازی آن هنوز در دیتابیس موجود نیست. بدون Migration مصوب و حسگر واقعی، ایمیلی ارسال نمی‌شود.',
+         'This event exists in source, but its configuration row is absent. No email is possible until the authorized migration and genuine event producer are ready.')));
+     }
+     if(rule.sensorState==='not_yet_connected'){
+       li.append(el('p',t(
+         'حسگر این رخداد هنوز متصل نیست؛ روشن‌کردن اعلان به معنای پایش زنده نیست.',
+         'This event producer is not connected. Enabling its email rule does not create monitoring.')));
+     }
+     if(data.canManage===true&&rule.ruleProvisioned===true){
        const controls=el('div',undefined,'ops-toolbar');
        const toggle=el('input');toggle.type='checkbox';toggle.checked=rule.enabled;
        const label=el('label',t('فعال','Enabled'));label.prepend(toggle);
