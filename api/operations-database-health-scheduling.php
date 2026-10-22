@@ -25,6 +25,8 @@ function operationsDbHealthNextDue(string $cadence,int $clock,int $after): ?int 
 function operationsDbHealthHistory(PDO $pdo,array $settings,int $at): array {
     $lastScheduled=null;$rows=[];
     try {
+        $observed=$pdo->query("SELECT MAX(observed_at) FROM operations_database_health_runs WHERE origin='scheduled'")->fetchColumn();
+        $lastScheduled=$observed===false||$observed===null?null:(int)$observed;
         $q=$pdo->query('SELECT origin,slot_due_at,observed_at,result,checks_observed,
              checks_attention,checks_unavailable,tables_observed
              FROM operations_database_health_runs
@@ -40,8 +42,6 @@ function operationsDbHealthHistory(PDO $pdo,array $settings,int $at): array {
                 'checksUnavailable'=>(int)$r['checks_unavailable'],
                 'tablesObserved'=>$r['tables_observed']===null?null:(int)$r['tables_observed']
             ];
-            if($record['origin']==='scheduled'&&$lastScheduled===null)
-                $lastScheduled=$record['observedAt'];
             $rows[]=$record;
         }
         $state='available';
