@@ -151,8 +151,10 @@ function operationsEducationReleaseStatus(PDO $pdo): array {
       'entitlementsLive'=>false,
       'sourceOfferCount'=>count($catalogue),
       'applicablePreparationGates'=>$work,
-      'ownerMarkedReadyForReview'=>$prepared,
-      'actualApprovedGates'=>0,
+      // Unknown when the mother-DB table is absent; never mislabel a SQL
+      // failure as zero pending owner work or zero external approvals.
+      'ownerMarkedReadyForReview'=>$databaseReady?$prepared:null,
+      'actualApprovedGates'=>null,
       'sourceDataOnly'=>true,
       'drafts'=>$rows,
       'limitation'=>'Owner-managed preparation is not third-party verification, external scientific evidence, legal signoff or release authority. No sale can be activated from this endpoint.'
