@@ -20,6 +20,7 @@ function operationsEducationInterestSnapshot(PDO $pdo,bool $withContacts=false):
       'countsState'=>'UNKNOWN','countByNeed'=>[],
       'pendingCount'=>null,'verifiedCount'=>null,'withdrawnCount'=>null,
       'legacyVerifiedCount'=>null,'stalePendingCount'=>null,
+      'renewalSchemaProvisioned'=>jrInterestRenewalSchemaReady($pdo),
       'contacts'=>null,'contactsTruncated'=>false,
       'containsUnverifiedAddresses'=>false,
       'automaticEmailCampaignEnabled'=>false,
@@ -169,7 +170,7 @@ function operationsEducationInterestOwnerSuppress(PDO $pdo,string $leadId,
     $now=nowTs();
     $pdo->beginTransaction();
     try{
-        $q=$pdo->prepare('SELECT id,status,consent_notice_sha256
+        $q=$pdo->prepare('SELECT id,status,consent_version,consent_notice_sha256
           FROM eco_education_interest_leads WHERE id=? FOR UPDATE');
         $q->execute([$leadId]);$row=$q->fetch(PDO::FETCH_ASSOC);
         if(!is_array($row)||($row['status']??'')!=='VERIFIED')
@@ -182,7 +183,8 @@ function operationsEducationInterestOwnerSuppress(PDO $pdo,string $leadId,
         $update->execute([$now,hash('sha256',bin2hex(random_bytes(32))),
           $now+30*86400,$now,$leadId]);
         jrInterestConsentEvent($pdo,$leadId,'WITHDRAWN',
-          (string)$row['consent_notice_sha256'],$now);
+          (string)$row['consent_notice_sha256'],$now,
+          (string)$row['consent_version']);
         $audit=$pdo->prepare('INSERT INTO operations_audit
             (actor_id,action,reference_id,occurred_at) VALUES(?,?,?,?)');
         $audit->execute([$owner,'education_interest_owner_suppressed',
