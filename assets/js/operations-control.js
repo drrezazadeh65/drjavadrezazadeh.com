@@ -2397,11 +2397,12 @@ function renderOwnerCommandCenter(){
   grid.replaceChildren();
   const q=ownerCockpitQuery.trim().toLocaleLowerCase();
   const selected=departments.filter(item=>{
+   const actual=ownerCockpitReadErrors[item.load]?'unknown':item.data.kind;
    const matching=ownerCockpitFilter==='all'||
-     (ownerCockpitFilter==='attention'&&item.data.kind==='attention')||
-     (ownerCockpitFilter==='unknown'&&item.data.kind==='unknown')||
-     (ownerCockpitFilter==='paused'&&item.data.kind==='paused')||
-     (ownerCockpitFilter==='recorded'&&item.data.kind==='recorded')||
+     (ownerCockpitFilter==='attention'&&actual==='attention')||
+     (ownerCockpitFilter==='unknown'&&actual==='unknown')||
+     (ownerCockpitFilter==='paused'&&actual==='paused')||
+     (ownerCockpitFilter==='recorded'&&actual==='recorded')||
      ownerCockpitFilter===item.group;
    return matching&&(!q||[item.fa,item.eng,item.id,item.descFa,item.descEn,item.data.metric]
      .join(' ').toLocaleLowerCase().includes(q));
