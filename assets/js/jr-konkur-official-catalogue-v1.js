@@ -151,7 +151,38 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
      status.textContent=t('کد برای افزودن به پیش‌نویس آماده شد؛ بررسی فردی همچنان لازم است.',
        'Code copied for your draft; personal eligibility still requires separate review.');
     });
-    item.append(copy);results.append(item);
+    // This is an explicit visitor action on PUBLIC verified-source text.
+    // It never copies scores, identities, eligibility, private drafts or
+    // supposed admission chances into the separate Choice Studio.
+    const compare=node('button','jr-kc-secondary',t(
+      'افزودن نام به مقایسه شخصی',
+      'Add name to personal comparison'));
+    compare.type='button';
+    compare.addEventListener('click',()=>{
+      const studio=document.querySelector('[data-choice-studio]');
+      if(!studio){
+        status.textContent=t('استودیوی انتخاب در این صفحه بارگذاری نشده است.',
+          'Choice Studio is not available on this page.');
+        return;
+      }
+      const nameFields=[...studio.querySelectorAll('.jr-cs-path input[type="text"]')];
+      const input=nameFields.find(field=>!field.value.trim());
+      if(!input){
+        status.textContent=t(
+          'هر دو نام در مقایسه شخصی پر شده‌اند. برای جلوگیری از حذف انتخاب قبلی، نام موردنظر را خودتان تغییر دهید.',
+          'Both personal comparison names are filled. Change a name manually to preserve previous choices.');
+        nameFields[0]?.focus();
+        return;
+      }
+      input.value=(String(r.programme||'')+' — '+String(r.university||'')).slice(0,90);
+      input.dispatchEvent(new Event('input',{bubbles:true}));
+      studio.scrollIntoView({behavior:'auto',block:'start'});
+      input.focus({preventScroll:true});
+      status.textContent=t(
+        'فقط نام رشته و دانشگاه منتقل شد. وزن‌ها، مجازبودن و برآورد شما باید جداگانه تعیین شوند.',
+        'Only the public programme and university name was copied. Priorities, eligibility and ratings remain separately assessed.');
+    });
+    item.append(copy,compare);results.append(item);
    }
    currentPage=page;
    pager.hidden=false;
