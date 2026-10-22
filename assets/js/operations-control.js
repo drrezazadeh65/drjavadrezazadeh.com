@@ -1,7 +1,7 @@
 /* Privileged operations: server-authorized data only; no browser persistence or closure writes. */
 (()=>{'use strict';
 const root=document.getElementById('operations-control');if(!root)return;
-const en=document.documentElement.lang==='en';let snapshot=null,csrf='',selected=null,expiryTimer=null,loadGeneration=0,actionRuns=[],sectionsExpanded=false,githubAuditState=null,githubAuditExpanded=false,collectionState=null,collectionExpanded=false;
+const en=document.documentElement.lang==='en';let snapshot=null,csrf='',selected=null,expiryTimer=null,loadGeneration=0,actionRuns=[],sectionsExpanded=false,githubAuditState=null,githubAuditExpanded=false,collectionState=null,collectionExpanded=false,dbHealthCurrent=null,dbHealthExpanded=false;
 const t=(fa,eng)=>en?eng:fa,$=id=>document.getElementById(id);
 const statuses={not_started:t('شواهد ثبت نشده','No evidence'),in_progress:t('در حال انجام','In progress'),blocked:t('وابستگی باز','Blocked'),ready_for_verification:t('نیازمند آزمون مجدد','Recheck required'),verified_complete:t('تکمیل تأییدشده','Verified complete'),regressed:t('خطای جدید','Regressed')};
 const gates={unknown:t('نامشخص','Unknown'),stale:t('قدیمی؛ نیازمند بررسی','Stale'),pass:t('موفق','Pass'),fail:t('ناموفق','Fail'),blocked:t('مسدود','Blocked')};
@@ -55,7 +55,7 @@ $('ops-workspace')?.addEventListener('click',event=>{
 });
 async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
-function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
+function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;dbHealthCurrent=null;dbHealthExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
 $('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
@@ -216,6 +216,185 @@ async function githubAuditReconcile(button){
   if(generation!==loadGeneration)return;
   notice(errorMessage(e),true);
  }finally{if(generation===loadGeneration&&button.isConnected)button.disabled=false;}
+}
+
+/**
+ * Mother database health is manually loaded by the MFA-protected owner.
+ * It never queries the database during public requests or a dashboard render.
+ */
+function renderDatabaseHealth(host){
+ const section=el('details',undefined,'ops-panel ops-database-health');
+ section.id='ops-database-health';section.open=dbHealthExpanded;
+ section.addEventListener('toggle',()=>{dbHealthExpanded=section.open;});
+ section.append(el('summary',t('سلامت دیتابیس مادر و دفتر اختصاصی خطاها',
+   'Mother database health and private error journal')));
+ section.append(el('p',t(
+   'بررسی سلامت تنها با فشردن دکمه مدیر انجام می‌شود. ثبت خطا و پایش خودکار به‌طور پیش‌فرض خاموش‌اند؛ هیچ تعمیر، حذف یا Cron به‌صورت خودکار اجرا نمی‌شود.',
+   'Health is checked only on owner request. Error recording and scheduled checks default to off; no automatic repair, deletion or Cron runs.')));
+ const scan=el('button',t('بررسی فوری و فقط‌خواندنی دیتابیس','Run on-demand read-only database check'));
+ scan.type='button';scan.setAttribute('data-db-health-scan','');
+ scan.addEventListener('click',async()=>{
+   const generation=loadGeneration;scan.disabled=true;
+   try{
+     const data=await api('/database-health');
+     if(generation!==loadGeneration||!snapshot)return;
+     dbHealthCurrent=data;dbHealthExpanded=true;reportingRender();
+   }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+   finally{if(scan.isConnected)scan.disabled=false;}
+ });
+ section.append(scan);
+ const data=dbHealthCurrent;
+ if(!data){section.append(el('small',t(
+   'تا درخواست صریح مدیر، اطلاعات دیتابیس واکشی نمی‌شود.',
+   'No database metadata is fetched until the owner requests it.')));host.append(section);return;}
+ const settings=data.settings||{};
+ const overall=el('div',undefined,'ops-db-health-summary');
+ overall.setAttribute('data-db-health-summary','');
+ const checks=Array.isArray(data.checks)?data.checks:[];
+ const needsAttention=checks.filter(x=>x.state==='attention').length;
+ const unavailable=checks.filter(x=>x.state==='unavailable').length;
+ const inv=data.inventory;
+ overall.append(el('p',t('اتصال: ','Connection: ')+(data.connection==='available'
+   ?t('در بررسی اخیر پاسخ داده','Responded to the last check')
+   :t('تأییدنشده','Not verified'))));
+ overall.append(el('p',
+   t('جدول‌های بررسی‌شده: ','Tables inventoried: ')+(inv?.tableCount??t('نامشخص','Unknown'))+
+   ' · '+t('جدول‌های عملیاتی: ','Operations tables: ')+(inv?.operationsTableCount??t('نامشخص','Unknown'))+
+   ' · '+t('موارد نیازمند بررسی: ','Attention checks: ')+needsAttention+
+   ' · '+t('بررسی ناموفق/نامشخص: ','Unavailable checks: ')+unavailable));
+ overall.append(el('small',t('آخرین درخواست بررسی: ','Last manual scan: ')+date(data.asOf)));
+ section.append(overall);
+ const healthStates={observed:t('مشاهده شد','Observed'),attention:t('نیازمند بررسی','Attention'),
+   unavailable:t('نامشخص / در دسترس نیست','Unknown / unavailable')};
+ for(const check of checks){
+   const line=el('p');
+   line.setAttribute('data-db-health-check',check.id);
+   line.append(el('strong',check.id+' · '));
+   line.append(el('span',healthStates[check.state]||t('نامشخص','Unknown')));
+   if(Number.isInteger(check.count))line.append(el('small',' · '+check.count));
+   section.append(line);
+ }
+ if(inv){
+   if(Array.isArray(inv.missingOperationsTables)&&inv.missingOperationsTables.length){
+     section.append(el('p',t('جدول‌های غایب: ','Missing required tables: ')+inv.missingOperationsTables.join('، ')));
+   }
+   const storage=el('details',undefined,'ops-db-health-storage');
+   storage.append(el('summary',t('ابعاد و رشد قابل‌بررسی جداول عملیاتی',
+     'Operational table sizes and capacity evidence')));
+   storage.append(el('p',t(
+     'تعداد ردیف‌ها و اندازه فایل‌ها از فراداده MySQL برآورد شده‌اند، نه شمارش دقیق یا ارزیابی سلامت فیزیکی صفحات.',
+     'Row counts and storage sizes are information_schema estimates, not exact counts or physical page-integrity checks.')));
+   const tbl=el('table',undefined,'ops-db-health-table');
+   const head=el('tr');
+   for(const textValue of [t('جدول','Table'),t('ردیف تخمینی','Estimated rows'),
+     t('داده (KB)','Data (KB)'),t('ایندکس (KB)','Index (KB)')])head.append(el('th',textValue));
+   const thead=el('thead');thead.append(head);tbl.append(thead);
+   const tbody=el('tbody');
+   for(const item of inv.largestOperationsTables||[]){
+     const tr=el('tr');
+     for(const value of [item.table,item.estimatedRows===null?'—':String(item.estimatedRows),
+       String(Math.round(Number(item.dataBytes||0)/1024)),
+       String(Math.round(Number(item.indexBytes||0)/1024))])
+       tr.append(el('td',value));
+     tbody.append(tr);
+   }
+   tbl.append(tbody);storage.append(tbl);section.append(storage);
+ }
+ const errors=el('details',undefined,'ops-db-health-errors');
+ errors.setAttribute('data-db-health-errors','');
+ const incidents=Array.isArray(data.errors?.rows)?data.errors.rows:[];
+ errors.append(el('summary',t('دفتر خطاهای ناشناس‌سازی‌شده: ','Redacted error journal: ')+
+   (data.errors?.status==='available'?String(incidents.length):t('در دسترس نیست','Unavailable'))));
+ errors.append(el('p',t(
+   'فقط نوع، کد غیرحساس، محل، تعداد و زمان وقوع ذخیره می‌شود. نبود خطا، اثبات سلامت کامل دیتابیس نیست.',
+   'Only error class, safe code, component, count and timestamps are recorded. An empty journal is not proof of full database health.')));
+ for(const incident of incidents.slice(0,60)){
+   const item=el('p',incident.category+' / '+incident.component+
+     ' · '+t('تکرار: ','Count: ')+incident.occurrences+
+     ' · SQLSTATE '+(incident.sqlstateClass||'—')+
+     ' · '+t('آخرین مشاهده: ','Last observed: ')+date(incident.lastAt));
+   errors.append(item);
+ }
+ section.append(errors);
+ if(settings.available!==true){
+   section.append(el('p',t('جدول تنظیمات سلامت دیتابیس هنوز نصب یا قابل‌خواندن نیست؛ هیچ کنترلی فعال نخواهد شد.',
+     'Database health settings table is absent or unreadable; no controls can be enabled.')));
+   host.append(section);return;
+ }
+ const control=el('details',undefined,'ops-db-health-controls');
+ control.append(el('summary',t('کنترل مدیر: زمان‌بندی، لاگ خطا و نگهداری',
+   'Owner controls: schedule, error journal and retention')));
+ control.append(el('p',t(
+   'ذخیره یک ترجیح به‌تنهایی Cron ایجاد نمی‌کند. برای مانیتورینگ خودکار باید Worker اختصاصی نصب و توسط مدیر فعال شود.',
+   'Saving a preference never installs Cron. Scheduled scans still require a separate owner-approved CLI worker.')));
+ const monitor=el('input');monitor.type='checkbox';monitor.checked=settings.monitoringEnabled===true;
+ const monitorLabel=el('label',t('اجازه پایش زمان‌بندی‌شده (فعلاً بدون Worker)',
+   'Allow scheduled monitoring (no worker installed)'));monitorLabel.prepend(monitor);
+ const logging=el('input');logging.type='checkbox';logging.checked=settings.errorLoggingEnabled===true;
+ const loggingLabel=el('label',t('فعال‌سازی لاگ کدهای خطای دیتابیس',
+   'Enable redacted database error logging'));loggingLabel.prepend(logging);
+ const cadence=el('select');
+ for(const [id,fa,enLabel] of [['manual','دستی','Manual'],['hourly','ساعتی','Hourly'],['daily','روزانه','Daily']]){
+   const option=el('option',t(fa,enLabel));option.value=id;option.selected=settings.cadence===id;cadence.append(option);
+ }
+ const clock=el('input');clock.type='time';
+ clock.value=String(Math.floor((settings.clockMinutes||0)/60)).padStart(2,'0')+':'+String((settings.clockMinutes||0)%60).padStart(2,'0');
+ const retention=el('select');
+ for(const d of [7,30,90,180,365]){
+   const o=el('option',t('نگهداری ','Retain ')+d+t(' روز',' days'));
+   o.value=String(d);o.selected=settings.retentionDays===d;retention.append(o);
+ }
+ const labels=[[t('تناوب','Cadence'),cadence],[t('ساعت تهران','Tehran time'),clock],
+   [t('نگهداری لاگ','Error retention'),retention]];
+ control.append(monitorLabel,loggingLabel);
+ for(const [txt,input] of labels){const label=el('label',txt);label.append(input);control.append(label);}
+ const save=el('button',t('ذخیره تنظیمات بدون اجرای خودکار','Save preferences without running jobs'));
+ save.type='button';save.setAttribute('data-db-health-save','');
+ save.addEventListener('click',async()=>{
+   const parts=clock.value.split(':').map(Number);
+   if(parts.length!==2||parts.some(x=>!Number.isInteger(x))||parts[0]>23||parts[1]>59){
+     notice(t('ساعت معتبر وارد کنید.','Enter a valid time.'),true);return;
+   }
+   save.disabled=true;const generation=loadGeneration;
+   try {
+     await api('/database-health/settings',{method:'POST',
+       headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+       body:JSON.stringify({monitoringEnabled:monitor.checked,errorLoggingEnabled:logging.checked,
+         cadence:cadence.value,clockMinutes:parts[0]*60+parts[1],retentionDays:Number(retention.value)})});
+     if(generation!==loadGeneration||!snapshot)return;
+     dbHealthCurrent=await api('/database-health');dbHealthExpanded=true;reportingRender();
+     notice(t('تنظیمات ثبت شد؛ اجرای خودکار فعال یا نصب نشده است.',
+       'Preferences saved; no automatic worker was installed or started.'));
+   }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+   finally{if(save.isConnected)save.disabled=false;}
+ });
+ control.append(save);
+ const preview=el('button',t('پیش‌نمایش حذف فقط خطاهای منقضی','Preview expired diagnostic log deletion'));
+ preview.type='button';preview.setAttribute('data-db-health-purge-preview','');
+ preview.addEventListener('click',async()=>{
+   preview.disabled=true;const generation=loadGeneration;
+   try {
+     const result=await api('/database-health/purge-preview');
+     if(generation!==loadGeneration||!snapshot)return;
+     const count=result.eligibleCount;
+     if(!Number.isInteger(count)||count===0){
+       notice(t('خطای منقضی قابل حذف وجود ندارد.','No expired diagnostic error records are eligible.'));
+       return;
+     }
+     if(!window.confirm(t('فقط '+count+' رکورد خطای منقضی واجد حذف شناسایی شده است. حداکثر ۱۰۰ مورد حذف شود؟ داده‌های تجاری و لاگ حسابرسی باقی می‌مانند.',
+       'Up to '+Math.min(count,100)+' expired error groups can be deleted. Confirm deletion of at most 100? Commerce and audit records remain intact.')))return;
+     const done=await api('/database-health/purge-expired',{method:'POST',
+       headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+       body:JSON.stringify({confirmation:'DELETE EXPIRED DATABASE LOGS'})});
+     if(generation!==loadGeneration||!snapshot)return;
+     dbHealthCurrent=await api('/database-health');dbHealthExpanded=true;reportingRender();
+     notice(t('رکوردهای خطای منقضی حذف‌شده: ','Expired diagnostic error groups deleted: ')+done.deleted);
+   }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+   finally{if(preview.isConnected)preview.disabled=false;}
+ });
+ control.append(preview);
+ section.append(control);
+ host.append(section);
 }
 
 function collectionControlsRender(parent){
@@ -1677,6 +1856,7 @@ function reportingRender(){
  }
  healthHost.replaceChildren();
  renderAlertCenter(healthHost,model);
+ renderDatabaseHealth(healthHost);
  renderResponseMonitor(healthHost,model);
  let host=$('ops-reporting');if(!host){host=el('section',undefined,'ops-panel');host.id='ops-reporting';host.setAttribute('aria-label',t('گزارش‌های سیزده موتور','Thirteen-engine reporting'));$('ops-workspace').insertBefore(host,$('ops-cards'));}
  host.replaceChildren();host.append(el('h2',t('۱۳ موتور؛ یک مرکز مدیریت','13 engines, one administrative center')));
