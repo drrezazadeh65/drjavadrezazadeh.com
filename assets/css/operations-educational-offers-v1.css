@@ -31,3 +31,24 @@
 .jr-edu-offers__drafts [data-edu-price-state]{background:#302b22;padding:12px 14px;border-inline-start:4px solid #dabc79;border-radius:9px}
 .jr-edu-offers__drafts [data-edu-price-save]:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:640px){.jr-edu-offers__drafts .jr-edu-offers__toolbar label{width:100%}}
+
+/* One-glance owner education command: observed readiness, no fake health score. */
+.jr-edu-owner-command{margin:18px 0 24px}
+.jr-edu-owner-command__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.jr-edu-owner-command__card{min-width:0;display:flex;flex-direction:column;gap:8px;
+  border:1px solid #98825b;background:linear-gradient(145deg,#292b31,#1c222a);
+  border-radius:18px;padding:clamp(14px,3.2vw,22px);box-shadow:0 6px 22px #0002;
+  color:#fcf7ec;line-height:1.65;overflow-wrap:anywhere}
+.jr-edu-owner-command__title{font-size:clamp(1rem,2.8vw,1.2rem);font-weight:780;
+  color:#f6d998;line-height:1.5;margin:0}
+.jr-edu-owner-command__number{font-size:clamp(1.5rem,4vw,2.2rem);
+  line-height:1.2;font-variant-numeric:tabular-nums;color:#fff9e9}
+.jr-edu-owner-command__state{margin:0;color:#ebd49c;font-weight:700;font-size:.93rem}
+.jr-edu-owner-command__description{margin:0 0 8px;color:#eee6db;font-size:.95rem}
+.jr-edu-owner-command__action{margin-top:auto;align-self:flex-start;
+  min-height:46px;padding:10px 16px;border:1px solid #e8cc92;border-radius:12px;
+  background:#e6c985;color:#231f16;font:inherit;font-weight:720;cursor:pointer}
+.jr-edu-owner-command__action:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media(max-width:670px){.jr-edu-owner-command__grid{grid-template-columns:1fr}
+  .jr-edu-owner-command__action{align-self:stretch}}
+@media(prefers-reduced-motion:reduce){.jr-edu-owner-command__action{transition:none!important}}
