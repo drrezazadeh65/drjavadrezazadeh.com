@@ -177,6 +177,20 @@ try {
  $initial=request('/api/admin/operations/collection-settings',200);
  check(count($initial['rows'])===21 && $initial['timezone']==='Asia/Tehran',
      'Collector policy inventory missing');
+ check(($initial['unmappedPolicies']['count']??null)===0,
+     'canonical fixture unexpectedly contains unconsumed collector settings');
+ // A manually inserted log name is not a registered GitHub collector or cron job.
+ $pdo->prepare("INSERT INTO operations_collection_policies
+     (scope_key,enabled,cadence,clock_minutes,next_due,updated_at)
+     VALUES (?,0,'manual',210,0,?)")->execute(['http_access_log',$now]);
+ $withUnmapped=operationsCollectorStatus($pdo,$now);
+ check(($withUnmapped['unmappedPolicies']['ids']??[])===['http_access_log']
+     && ($withUnmapped['unmappedPolicies']['count']??null)===1
+     && count($withUnmapped['rows'])===21,
+     'orphan log policy was concealed or incorrectly activated as a GitHub collector');
+ $pdo->prepare('DELETE FROM operations_collection_policies WHERE scope_key=?')
+     ->execute(['http_access_log']); // Isolated CI fixture only.
+
  // A policy due date is intent, not proof of a cPanel cron installation.
  $collectionById=array_column($initial['rows'],null,'id');
  check($collectionById['ENG-01']['scheduleEvidence']==='engine_switch_only'
