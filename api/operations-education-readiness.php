@@ -133,6 +133,18 @@ function operationsEducationReadiness(PDO $pdo): array {
             'scienceStatus'=>'REQUIRES_PRIVATE_PROFESSIONAL_ATTESTATION',
         ],
         [
+            'id'=>'one-popup-education-interest',
+            'path'=>'api/education-interest.php',
+            'role'=>'first_party_verified_email_topic_opt_in',
+            'scienceStatus'=>'GUEST_LEADS_REQUIRE_MAIL_VERIFICATION_AND_OWNER_OPT_IN',
+        ],
+        [
+            'id'=>'interest-consent-privacy',
+            'path'=>'api/operations-education-interests.php',
+            'role'=>'mfa_owner_consent_metrics_and_suppression',
+            'scienceStatus'=>'CONTACT_USAGE_RESTRICTED_TO_CHOSEN_EDUCATIONAL_TOPIC',
+        ],
+        [
             'id'=>'owner-price-drafts',
             'path'=>'api/operations-education-price-drafts.php',
             'role'=>'owner_draft_prices_without_customer_checkout',
