@@ -34,3 +34,14 @@ footer{color:var(--jr-muted);font-size:.85rem;padding:12px 0 30px}
 #bahar-compass button{max-width:100%;white-space:normal}
 @media(max-width:410px){#bahar-compass .actions>*{width:100%}.file-picker{justify-content:center}}
 @media print{.compass-entries button,.file-picker,#bahar-compass form,#bahar-compass .actions,#bahar-compass-status{display:none!important}#bahar-compass .compass-preview{display:block!important;white-space:normal}}
+
+/* In-depth free BAHAR lessons: native disclosure, readable on narrow phones. */
+.bahar-depth{display:grid;gap:11px;margin:18px 0}
+.bahar-depth details{border:1px solid #887347;border-radius:14px;background:#262b30;padding:0 15px}
+.bahar-depth summary{cursor:pointer;color:#f4dba2;font-weight:700;min-height:48px;display:list-item;align-content:center;padding:10px 2px;line-height:1.6}
+.bahar-depth details[open] summary{border-bottom:1px solid #77694b;margin-bottom:11px}
+.bahar-depth details p,.bahar-depth details li{color:#ede7d9;line-height:1.85}
+.bahar-depth details ol{padding-inline-start:22px}
+.bahar-depth details li{margin:7px 0}
+.bahar-depth summary:focus-visible{outline:3px solid white;outline-offset:3px}
+@media print{.bahar-depth details{break-inside:avoid}.bahar-depth summary{color:#111}.bahar-depth details p,.bahar-depth details li{color:#111}}
