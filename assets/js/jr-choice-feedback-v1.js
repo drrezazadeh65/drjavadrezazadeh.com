@@ -53,6 +53,9 @@ const text=(fa,a,b)=>fa?a:b;
 // Version identifies the output FORMAT and transparent self-report method,
 // not empirical validation, national registration, or reviewer approval.
 const REPORT_FORMAT='JR-CHOICE-REFLECTION/1.0.0';
+const pathwayIdentity=value=>String(value).normalize('NFKC')
+ .replace(/[يى]/gu,'ی').replace(/ك/gu,'ک')
+ .replace(/\s+/gu,' ').trim().toLocaleLowerCase();
 function enhance(root,n){
  const fa=root.dataset.locale==='fa';
  const form=root.querySelector('.jr-cs-form');
@@ -174,7 +177,7 @@ function enhance(root,n){
   const labels=names.map(v=>v.value.trim());
   if(!active.length)return {error:text(fa,'حداقل یک معیار فعال لازم است.','At least one criterion must be active.')};
   if(labels.some(v=>!v))return {error:text(fa,'نام دو مسیر را وارد کنید.','Enter names for both pathways.')};
-  if(labels[0].toLocaleLowerCase()===labels[1].toLocaleLowerCase())
+  if(pathwayIdentity(labels[0])===pathwayIdentity(labels[1]))
    return {error:text(fa,'دو مسیر باید نام متفاوت داشته باشند.','Pathway names must be distinct.')};
   const input=active.map(({i,weight})=>({
    i,weight,values:ratings.map(selects=>Number(selects[i].value))
