@@ -157,6 +157,55 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
     item.append(facts,node('small','',t(
       'این اطلاعات متعلق به ویرایش بازبینی‌شده سال درج‌شده است، نه ظرفیت یا شهریه زنده. شرایط فردی، اصلاحیه‌ها و احتمال قبولی نیازمند بررسی جداگانه‌اند.',
       'Facts come from the reviewed edition and year shown, not live seat or tuition availability. Individual eligibility, amendments and admission chance require separate review.')));
+    // Reviewed condition excerpts are factual citations, not a rules
+    // evaluator. On missing or unavailable source data, explicitly say
+    // UNKNOWN rather than implying the programme has no restrictions.
+    const conditions=r.sourceConditions;
+    const verified=conditions?.status==='REVIEWED_SOURCE_EXCERPTS'&&
+      Array.isArray(conditions.items)&&conditions.items.length<=3;
+    const restrictions=node('details','jr-kc-source-conditions');
+    const summary=node('summary','',t(
+      'شرایط خاص و تعهدات مستند به منبع',
+      'Source-documented conditions and commitments'));
+    restrictions.append(summary);
+    const list=node('ul','jr-kc-conditions-list');
+    if(verified&&conditions.items.length){
+      for(const condition of conditions.items){
+        if(typeof condition?.excerpt!=='string'||!condition.excerpt.trim()||
+           typeof condition?.sourceDocument!=='string'||
+           !Number.isInteger(condition.sourcePdfPage)||
+           !Number.isInteger(condition.sourceRevision)){
+          list.replaceChildren();
+          break;
+        }
+        const line=node('li');
+        line.append(
+          node('strong','',String(condition.kind||t('شرط منبع','Source condition'))),
+          node('p','',condition.excerpt),
+          node('small','',t('مدرک: ','Document: ')+condition.sourceDocument+
+            t(' · ویرایش ',' · Revision ')+condition.sourceRevision+
+            t(' · صفحه PDF ',' · PDF page ')+condition.sourcePdfPage)
+        );
+        list.append(line);
+      }
+    }
+    if(list.childElementCount){
+      restrictions.append(node('p','',t(
+        'این متن‌ها صرفاً گزیده‌های بازبینی‌شده دفترچه‌اند، نه نتیجه احراز شرایط داوطلب.',
+        'These are excerpts from reviewed guide pages, not individual eligibility findings.')));
+      restrictions.append(list);
+      if(conditions.moreNotDisplayed===true)restrictions.append(
+        node('p','',t(
+          'شرایط دیگری نیز ثبت شده‌اند؛ همه موارد را در اصل دفترچه و اصلاحیه‌ها بخوانید.',
+          'Additional conditions exist; read the complete guide and amendments.')));
+    }else{
+      restrictions.append(node('p','',verified?
+        t('هیچ گزیده مستقلی در پایگاه منبع ثبت نشده است؛ این موضوع به معنی نبود شرط خاص نیست.',
+          'No separately reviewed excerpt is recorded; this does not establish that no special conditions apply.'):
+        t('شواهد بازبینی‌شده شرایط خاص در دسترس نیست؛ دفترچه رسمی را مستقل بررسی کنید.',
+          'Reviewed special-condition evidence is unavailable; independently consult the official guide.')));
+    }
+    item.append(restrictions);
     const copy=node('button','jr-kc-secondary',t('انتقال کد به پیش‌نویس','Copy code to draft'));
     copy.type='button';
     copy.addEventListener('click',()=>{
