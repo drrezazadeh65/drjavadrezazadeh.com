@@ -53,6 +53,13 @@ function jrInterestRenewalSchemaReady(PDO $pdo): bool {
         )!==false;
     } catch(Throwable $e) { return false; }
 }
+function jrInterestDiscardRenewal(PDO $pdo,string $leadId): void {
+    // Optional additive table: older mother databases still accept an
+    // ordinary withdrawal; new staging can never survive revocation.
+    if(!jrInterestRenewalSchemaReady($pdo))return;
+    $q=$pdo->prepare('DELETE FROM eco_education_interest_renewals WHERE lead_id=?');
+    $q->execute([$leadId]);
+}
 function jrInterestOwnerEnabled(PDO $pdo): bool {
     $q=$pdo->query('SELECT enabled FROM eco_education_interest_policy WHERE singleton_id=1 LIMIT 1');
     return (int)$q->fetchColumn()===1;
@@ -193,6 +200,8 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
                (int)($existing['verification_expires_at']??0)>$now){
                 $send=false;
             }else{
+                // Any fresh direct opt-in invalidates a prior staging token.
+                jrInterestDiscardRenewal($pdo,$id);
                 $sealed=jrInterestSeal($email,$id,$secret);
                 $update=$pdo->prepare("UPDATE eco_education_interest_leads SET
                   encryption_key_id=?,email_cipher=?,email_nonce=?,email_tag=?,
@@ -376,6 +385,7 @@ function jrInterestProcessEmailToken(PDO $pdo,array $body,string $action): never
             if($q->rowCount()!==1)throw new RuntimeException('confirmation_conflict');
             jrInterestConsentEvent($pdo,(string)$row['id'],
                 'EMAIL_VERIFIED',(string)$row['consent_notice_sha256'],$now);
+            jrInterestDiscardRenewal($pdo,(string)$row['id']);
         }else{
             $q=$pdo->prepare("UPDATE eco_education_interest_leads SET
               status='WITHDRAWN',withdrawn_at=?,
@@ -391,6 +401,7 @@ function jrInterestProcessEmailToken(PDO $pdo,array $body,string $action): never
             jrInterestConsentEvent($pdo,(string)$row['id'],
                 'WITHDRAWN',(string)$row['consent_notice_sha256'],$now,
                 (string)$row['consent_version']);
+            jrInterestDiscardRenewal($pdo,(string)$row['id']);
         }
         $pdo->commit();
         respond(['ok'=>true,'schema'=>'jr.education-interest-email-action.v1',
