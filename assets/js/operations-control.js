@@ -560,7 +560,9 @@ function renderAlertCenter(host,model){
    for(const [key,titleFa,titleEn] of [
      ['missingColumns','ستون‌های غایب','Missing columns'],
      ['typeMismatches','مغایرت نوع ستون','Column type discrepancies'],
-     ['missingIndexes','ایندکس‌های غایب','Missing indexes']
+     ['missingIndexes','ایندکس‌های غایب','Missing indexes'],
+     ['missingForeignKeys','کلیدهای خارجی غایب','Missing foreign keys'],
+     ['storageDiscrepancies','مغایرت موتور ذخیره‌سازی یا Collation','Storage engine or collation discrepancies']
    ]){
      const problems=structure[key];
      if(Array.isArray(problems)&&problems.length){
@@ -572,8 +574,8 @@ function renderAlertCenter(host,model){
      }
    }
    preflight.append(el('small',t(
-     'این بررسی فقط حضور ستون، نوع پایه و نام ایندکس است؛ سازگاری کلید خارجی و داده‌ها به آزمون نهایی نیاز دارد.',
-     'Read-only column base-type and named-index check; foreign keys and runtime data remain unverified.')));
+     'این بررسی فقط تطبیق ساختاری است؛ سلامت داده‌ها، عملکرد برنامه و مهاجرت‌ها به آزمون نهایی نیاز دارند.',
+     'Read-only source-schema shape comparison. Metadata matching does not prove data integrity, application behavior or successful migrations.')));
    const workerList=el('ul');
    for(const worker of activation.workers||[]){
      const last=worker.lastObservedAt===null?t('بدون شاهد','No evidence'):date(worker.lastObservedAt);
