@@ -187,21 +187,43 @@
       const action=make('button','jr-edu-owner-command__action',item.button);
       action.type='button';
       action.addEventListener('click',()=>{
-        const panel=item.target==='jr-bahar-owner-policy'
-          ?root.querySelector('[data-jr-bahar-owner-policy]')
+        // Controls live in sibling panels of the SAME authenticated owner
+        // workspace, not inside the readiness subtree. An old local lookup
+        // caused the BAHAR private-storage button to silently do nothing.
+        let panel=item.target==='jr-bahar-owner-policy'
+          ?workspace.querySelector('[data-jr-bahar-owner-policy]')
           :item.target==='education-engines'
             ?listing:document.getElementById(item.target);
-        if(!panel)return;
-        if(panel.tagName==='DETAILS')panel.open=true;
-        if(!panel.closest('details')?.open&&panel.closest('details')){
-          panel.closest('details').open=true;
+        if(!panel && item.target==='ops-page-quality'){
+          // Page quality is a source-only reporting section mounted after
+          // the authorised overview is read. Never fabricate a score panel.
+          panel=document.getElementById('ops-executive-stats');
+          status.textContent=T(
+            'جدول کیفیت صفحات هنوز در نمای مدیریتی ساخته نشده است. نمای مدیریتی را باز کرده و بخش کیفیت صفحات را از همان‌جا درخواست کنید.',
+            'Per-page scores are not mounted yet. Open the executive report and request Page Quality there.'
+          );
+        }
+        if(!panel){
+          status.textContent=T(
+            'بخش موردنظر در این نسخه از داشبورد وجود ندارد؛ هیچ عملیات یا مجوزی اجرا نشده است.',
+            'The requested control is unavailable in this dashboard; no operation or permission was applied.'
+          );
+          return;
+        }
+        // Nested DETAILS must all be opened before scrolling/focusing a
+        // control: opening only the nearest ancestor may leave it invisible.
+        for(let parent=panel;parent;parent=parent.parentElement){
+          if(parent.tagName==='DETAILS')parent.open=true;
         }
         panel.scrollIntoView({block:'start',behavior:'auto'});
-        if(panel.tagName==='DETAILS'){
-          panel.querySelector('summary')?.focus({preventScroll:true});
-        }else{
-          const first=panel.querySelector('button,a,summary,[tabindex]');
-          if(first)first.focus({preventScroll:true});
+        const target=panel.tagName==='DETAILS'
+          ?panel.querySelector(':scope > summary')
+          :panel.querySelector('button:not([disabled]),a[href],summary,[tabindex]')||
+            panel.querySelector('h3,h4,h2');
+        if(target){
+          if(!target.matches('button,a[href],summary,input,select,textarea,[tabindex]'))
+            target.setAttribute('tabindex','-1');
+          target.focus({preventScroll:true});
         }
       });
       card.append(action);commander.append(card);
