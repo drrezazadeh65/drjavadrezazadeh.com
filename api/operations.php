@@ -1268,10 +1268,12 @@ function operationsRoute(string $path, string $verb): never {
             // This comes from the deploy-time private projection, not external APIs.
             $snapshot['reporting']['providerInventory']=operationsProviderInventory();
             $snapshot['reporting']['alertCenter']=operationsAlertSnapshot($pdo,$configuration);
+            $snapshot['reporting']['alertCenter']['canManage']=(($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN');
             $snapshot['reporting']['pageQualityOverview']=operationsQualitySummary();
             $snapshot['reporting']['existingFeatureInventory']=operationsExistingFeatures();
             $snapshot['reporting']['httpHealth']=operationsHttpObserverStatus($pdo,$configuration);
             $snapshot['reporting']['responseHealth']=operationsResponseMonitorStatus($pdo,nowTs());
+            $snapshot['reporting']['responseHealth']['canManage']=(($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN');
             $snapshot['reporting']['actionExecution']=[
                 'schema'=>'operations-action-execution-report-v1',
                 'status'=>$ready?'available':'schema_not_provisioned',
