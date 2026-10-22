@@ -80,6 +80,13 @@
     }
   };
 
+  // The identity check prevents comparing the SAME option twice by using
+  // Persian/Arabic spelling variants, Unicode compatibility forms or
+  // multiple whitespace characters. Display labels remain user-authored.
+  const pathwayIdentity=value=>String(value).normalize('NFKC')
+    .replace(/[يى]/gu,'ی').replace(/ك/gu,'ک')
+    .replace(/\s+/gu,' ').trim().toLocaleLowerCase();
+
   function node(tag,text,className){
     const n=document.createElement(tag);
     if(text!==undefined&&text!==null)n.textContent=text;
@@ -298,9 +305,9 @@
       let error='';
       if(active.length===0)error=T.zero;
       else if(names.some(n=>!n))error=T.awaiting;
-      else if(names[0].toLocaleLowerCase()===names[1].toLocaleLowerCase())error=T.duplicate;
+      else if(pathwayIdentity(names[0])===pathwayIdentity(names[1]))error=T.duplicate;
       else if(active.some(w=>entries.some(e=>e.selects[factors.indexOf(w.factor)].value==='')))error=T.incomplete;
-      const completeNames=names.every(Boolean)&&names[0].toLocaleLowerCase()!==names[1].toLocaleLowerCase();
+      const completeNames=names.every(Boolean)&&pathwayIdentity(names[0])!==pathwayIdentity(names[1]);
       const reviewReady=active.length>0&&completeNames&&!error;
       const currentStep=active.length===0?0:reviewReady?2:1;
       journeySteps.forEach((step,i)=>{
