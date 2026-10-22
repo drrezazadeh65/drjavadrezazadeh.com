@@ -556,17 +556,33 @@
       'درخواست حذف نسخه جاری BAHAR از دیتابیس را تأیید می‌کنید؟ حذف نسخه‌های پشتیبان و سوابق قانونی جداگانه بررسی می‌شود.',
       'Request deletion of your current BAHAR database record? Legal retention, backups and audit history are handled separately.'
     )))return;
-    await command(T('در حال بررسی محدودیت قانونی و حذف رکورد…',
-      'Checking legal holds and deleting the current database record…'),async()=>{
-        const result=await userMutation('workbook',{
-          confirmation:'DELETE MY BAHAR WORKBOOK'
-        },'DELETE');
-        if(result?.ok!==true||result.databaseRowDeleted!==true||
-          result.backupErasureNotCertified!==true)throw Error('UNCONFIRMED');
-        localDraft=null;identity.workbookRevision=0;
-        preview.replaceChildren();restrict();
-        setState(T('سرور حذف رکورد جاری را تأیید کرد؛ سوابق ممیزی و وضعیت نسخه‌های پشتیبان جداگانه باقی می‌مانند.',
-          'The server confirmed deletion of the current database row. Audit and backup obligations remain separate.'));
+    await command(T('در حال ثبت درخواست حریم خصوصی و بررسی محدودیت قانونی…',
+      'Recording your privacy request and checking lawful retention…'),async()=>{
+        const result=await userMutation('erasure-request',{
+          confirmation:'REQUEST MY BAHAR WORKBOOK ERASURE'
+        });
+        if(result?.ok!==true||
+           result.schema!=='jr.bahar-private-erasure-request.v1'||
+           !/^[a-f0-9-]{36}$/i.test(result.requestId||'')||
+           !['COMPLETED','BLOCKED','RECEIVED','IN_REVIEW','PENDING']
+              .includes(result.requestStatus)||
+           result.backupErasureCertified!==false||
+           result.noUnrelatedAccountDataDeleted!==true)
+           throw Error('ERASURE_REQUEST_UNCONFIRMED');
+        if(result.requestStatus==='COMPLETED'){
+          localDraft=null;identity.workbookRevision=0;
+          preview.replaceChildren();restrict();
+          setState(T(
+            'درخواست حذف ثبت و بررسی شد؛ نسخه جاری دیتابیس حذف شده یا از قبل خالی بوده است. نگهداری نسخه‌های پشتیبان و سوابق قانونی جداگانه بررسی می‌شود.',
+            'Your request was recorded. The current database copy was deleted or was already absent; lawful retention and backups are handled separately.'
+          ));
+        }else{
+          setState(T(
+            'درخواستت ثبت شد و برای بررسی به مدیر رسید. تا رفع محدودیت قانونی، اطلاعات موجود به‌صورت حفاظت‌شده نگهداری می‌شود. کد پیگیری: ',
+            'Your privacy request is recorded for owner review. Existing data remains protected while a legal restriction is resolved. Reference: '
+          )+result.requestId);
+        }
+        return true;
       });
   });
   root.addEventListener('toggle',async()=>{
