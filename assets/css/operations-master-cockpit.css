@@ -130,3 +130,12 @@
  #ops-workspace .ops-mobile-dock a:active{background:rgba(240,209,141,.16)}
 }
 @media print{#ops-workspace .ops-mobile-dock{display:none!important}}
+
+#ops-command-center .oc-list-toggle{
+ display:block;margin:16px auto 0;min-width:220px;
+ border:1px solid rgba(240,209,141,.6);
+ color:var(--oc-gold);background:rgba(240,209,141,.07);
+ padding:12px 18px;font-size:.9rem
+}
+#ops-command-center .oc-list-toggle[hidden]{display:none}
+@media(max-width:680px){#ops-command-center .oc-list-toggle{width:100%}}
