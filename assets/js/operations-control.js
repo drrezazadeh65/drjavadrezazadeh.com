@@ -1443,7 +1443,7 @@ function renderPageQuality(host){
    const exportButton=el('button',t('خروجی CSV همین صفحه از جدول کیفیت','Download this quality-table page as CSV'));
    exportButton.type='button';
    exportButton.addEventListener('click',()=>{
-     if(!workspaceVisibleForExport())return;
+     if(!snapshot||$('ops-workspace')?.hidden||!csrf)return;
      exportOperationsCsv('site-page-quality-'+data.page+'.csv',
        ['route','language','indexability',...data.dimensions],
        data.records.map(record=>[
