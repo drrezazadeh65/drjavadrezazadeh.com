@@ -14,6 +14,7 @@
       invalid:'تاریخ باید معتبر باشد و متن هر فیلد از ۵۰۰ نویسه بیشتر نباشد.',
       saved:'طرح شما فقط در همین صفحه و حافظه موقت مرورگر آماده شد؛ در حساب کاربری ذخیره نشده است.',
       reset:'تمام داده‌های این فرم از صفحه پاک شدند.',
+      changed:'برنامه قبلی دیگر با ورودی‌های جدید یکسان نیست. برای مشاهده یا چاپ نسخه جدید، دوباره «آماده‌کردن برنامه» را انتخاب کنید.',
       privacy:'این برنامه یک طرح اولیه شخصی و قابل بازنگری است، نه تشخیص یا پیش‌بینی موفقیت.',
       date:'هفته آغازین',goal:'هدف من',action:'اقدام قابل مشاهده',evidence:'شواهد برای بازنگری',
       progress:n=>`${n} از ۲ فعالیت مقدماتی انجام شده است.`
@@ -23,6 +24,7 @@
       invalid:'Use a valid date and keep each field below 500 characters.',
       saved:'Your plan is ready in this page only. It has not been saved to your account.',
       reset:'All form data was cleared from this page.',
+      changed:'The previously prepared plan is now outdated. Prepare it again before viewing or printing a new version.',
       privacy:'This is a provisional, revisable personal plan—not a diagnosis or prediction of success.',
       date:'Week starts',goal:'My goal',action:'Observable action',evidence:'Evidence to review',
       progress:n=>`${n} of 2 introductory activities completed.`
@@ -49,6 +51,16 @@
   }
   document.querySelectorAll('[data-bahar-task]').forEach(box=>box.addEventListener('change',updateProgress));
   updateProgress();
+  // The printable snapshot is generated from one exact set of in-memory
+  // entries. Any later change invalidates it; never print an older plan as
+  // though it describes the learner's currently edited worksheet.
+  const invalidatePreparedPlan=()=>{
+    if(summary.hidden)return;
+    summary.textContent='';summary.hidden=true;
+    showStatus(strings.changed);
+  };
+  form.addEventListener('input',invalidatePreparedPlan);
+  form.addEventListener('change',invalidatePreparedPlan);
   form.addEventListener('submit',event=>{
     event.preventDefault();
     const values=required.map(id=>$(id).value.trim());
