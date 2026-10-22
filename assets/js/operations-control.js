@@ -2509,6 +2509,24 @@ function renderOwnerCommandCenter(){
      try{
        const response=await api(path);
        if(generation!==loadGeneration||!snapshot)break;
+       // A 200 response can still have an outdated or incompatible schema.
+       // Never count such a response as a successful module hydration.
+       const schemas={
+         alerts:'operations-alert-center-v1',
+         database:'operations-database-health-v1',
+         sources:'operations-source-directory-v1',
+         sourceControls:'operations-source-controls-v1',
+         socialSettings:'social-channel-settings-v1',
+         quality:'operations-page-quality-results-v1'
+       };
+       if(schemas[id] && response.schema!==schemas[id])
+         throw new Error('invalid_'+id+'_schema');
+       if(id==='sources'&&!Array.isArray(response.sources))
+         throw new Error('invalid_source_directory');
+       if(id==='sourceControls'&&!Array.isArray(response.rows))
+         throw new Error('invalid_source_controls');
+       if(id==='quality'&&!Array.isArray(response.records))
+         throw new Error('invalid_quality_inventory');
        if(id==='alerts')alertCenterCurrent=response;
        else if(id==='database')dbHealthCurrent=response;
        else if(id==='http')httpHealthCurrent=response;
