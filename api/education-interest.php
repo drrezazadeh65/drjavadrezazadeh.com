@@ -86,13 +86,17 @@ function jrInterestUnseal(array $row,array $secret): ?string {
     return is_string($email)&&validEmail($email)?$email:null;
 }
 function jrInterestConsentEvent(PDO $pdo,string $leadId,string $event,
-    string $noticeHash,int $at): void {
+    string $noticeHash,int $at,?string $historicalVersion=null): void {
     if(!in_array($event,['SUBMITTED','EMAIL_VERIFIED','WITHDRAWN','EXPIRED'],true))
        throw new InvalidArgumentException('invalid_interest_consent_event');
+    $version=$historicalVersion??JR_EDU_INTEREST_NOTICE_VERSION;
+    if(!preg_match('/^[A-Za-z0-9._-]{1,32}$/D',$version)||
+       preg_match('/^[a-f0-9]{64}$/D',$noticeHash)!==1)
+       throw new InvalidArgumentException('invalid_interest_notice_provenance');
     $q=$pdo->prepare('INSERT INTO eco_education_interest_consent_events
       (lead_id,event_code,consent_version,notice_sha256,occurred_at)
       VALUES (?,?,?,?,?)');
-    $q->execute([$leadId,$event,JR_EDU_INTEREST_NOTICE_VERSION,$noticeHash,$at]);
+    $q->execute([$leadId,$event,$version,$noticeHash,$at]);
 }
 function jrInterestSafeEmailLink(string $locale,string $action,string $token): string {
     // Token belongs ONLY in URL fragment (not a server request path/query).
@@ -385,7 +389,8 @@ function jrInterestProcessEmailToken(PDO $pdo,array $body,string $action): never
             $q->execute([$now,hash('sha256',bin2hex(random_bytes(32))),
               $now+30*86400,$now,$row['id']]);
             jrInterestConsentEvent($pdo,(string)$row['id'],
-                'WITHDRAWN',(string)$row['consent_notice_sha256'],$now);
+                'WITHDRAWN',(string)$row['consent_notice_sha256'],$now,
+                (string)$row['consent_version']);
         }
         $pdo->commit();
         respond(['ok'=>true,'schema'=>'jr.education-interest-email-action.v1',
