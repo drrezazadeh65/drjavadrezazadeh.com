@@ -163,11 +163,21 @@ function operationsAlertScopeUpdate(PDO $pdo,array $input,string $actor,int $at)
     $allowed=operationsAlertScopesAllowed($pdo,$at);
     if(!isset($allowed[$scope])||strlen($scope)>120)
         throw new InvalidArgumentException('unknown_alert_scope');
-    $pdo->prepare('INSERT INTO operations_alert_scope_policies
-        (scope_id,enabled,updated_at) VALUES (?,?,?)
-        ON DUPLICATE KEY UPDATE enabled=VALUES(enabled),updated_at=VALUES(updated_at)')
-        ->execute([$scope,$input['enabled']?1:0,$at]);
-    operationsAudit($pdo,$actor,'alert_scope_changed',substr(hash('sha256',$scope),0,64));
+    // Preference and audit must commit together. An unavailable audit table
+    // must never leave behind an unaudited owner setting change.
+    if($pdo->inTransaction())throw new RuntimeException('alert_scope_nested_transaction');
+    $pdo->beginTransaction();
+    try{
+        $pdo->prepare('INSERT INTO operations_alert_scope_policies
+            (scope_id,enabled,updated_at) VALUES (?,?,?)
+            ON DUPLICATE KEY UPDATE enabled=VALUES(enabled),updated_at=VALUES(updated_at)')
+            ->execute([$scope,$input['enabled']?1:0,$at]);
+        operationsAudit($pdo,$actor,'alert_scope_changed',substr(hash('sha256',$scope),0,64));
+        $pdo->commit();
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
     return operationsAlertScopeSnapshot($pdo,$at);
 }
 function operationsAlertAvailable(PDO $pdo): bool {
@@ -254,9 +264,18 @@ function operationsAlertSnapshot(PDO $pdo,array $configuration): array {
     // installation and freshness separately; source code alone is not coverage.
     $responseStatus=function_exists('operationsResponseMonitorStatus')
         ?operationsResponseMonitorStatus($pdo,time()):null;
-    foreach($pdo->query('SELECT event_code,enabled,threshold_count,cooldown_minutes FROM operations_alert_rules') as $r){
-        $code=(string)$r['event_code'];if(!isset($definitions[$code]))continue;
-        $sensor=(string)$definitions[$code]['sensor'];
+    // Enumerate every supported event, including rules whose *additive*
+    // MariaDB seed has not yet been installed. A missing row must be visible
+    // as NOT PROVISIONED; it cannot be enabled by a no-op UPDATE.
+    $savedRules=[];
+    foreach($pdo->query('SELECT event_code,enabled,threshold_count,cooldown_minutes FROM operations_alert_rules') as $stored){
+        $key=(string)$stored['event_code'];
+        if(isset($definitions[$key]))$savedRules[$key]=$stored;
+    }
+    foreach($definitions as $code=>$definition){
+        $r=$savedRules[$code]??null;
+        $ruleProvisioned=is_array($r);
+        $sensor=(string)$definition['sensor'];
         if(in_array($code,['http_404_surge','http_5xx_surge'],true)){
             $sensor='private_http_log_'.$httpSensor;
         }elseif(in_array($code,['security_headers_regressed','redirects_regressed'],true)){
@@ -273,11 +292,14 @@ function operationsAlertSnapshot(PDO $pdo,array $configuration): array {
             elseif(!($newest['fresh']??false))$sensor='response_monitor_stale';
             else $sensor='response_monitor_recent_sample_cron_unverified';
         }
-        $rules[]=['code'=>$code,'name'=>$definitions[$code]['name'],
-            'severity'=>$definitions[$code]['severity'],
+        $rules[]=['code'=>$code,'name'=>$definition['name'],
+            'severity'=>$definition['severity'],
             'sensorState'=>$sensor,
-            'enabled'=>(bool)$r['enabled'],'threshold'=>(int)$r['threshold_count'],
-            'cooldownMinutes'=>(int)$r['cooldown_minutes']];
+            'ruleProvisioned'=>$ruleProvisioned,
+            'enabled'=>$ruleProvisioned?(bool)$r['enabled']:false,
+            'threshold'=>$ruleProvisioned?(int)$r['threshold_count']:(int)$definition['threshold'],
+            'cooldownMinutes'=>$ruleProvisioned?(int)$r['cooldown_minutes']:(int)$definition['cooldown'],
+            'emailDeliveryVerified'=>false];
     }
     // Accurate totals are queried separately from the 50-row incident timeline.
     $totals=['critical'=>0,'warning'=>0,'resolved'=>0];
@@ -326,17 +348,41 @@ function operationsAlertUpdate(PDO $pdo,array $input,string $actor): void {
     if($code==='all'){
         if($input['threshold']!==1||$input['cooldownMinutes']!==60)
             throw new InvalidArgumentException('invalid_alert_rule');
-        $pdo->prepare('UPDATE operations_alert_settings SET enabled=?,updated_at=? WHERE singleton_id=1')
-            ->execute([$input['enabled']?1:0,time()]);
-    }else{
-        if(!isset(operationsAlertDefinitions()[$code])
-            ||$input['threshold']<1||$input['threshold']>100
-            ||$input['cooldownMinutes']<15||$input['cooldownMinutes']>1440)
-            throw new InvalidArgumentException('invalid_alert_rule');
-        $q=$pdo->prepare('UPDATE operations_alert_rules SET enabled=?,threshold_count=?,cooldown_minutes=?,updated_at=? WHERE event_code=?');
-        $q->execute([$input['enabled']?1:0,$input['threshold'],$input['cooldownMinutes'],time(),$code]);
+    }elseif(!isset(operationsAlertDefinitions()[$code])
+        ||$input['threshold']<1||$input['threshold']>100
+        ||$input['cooldownMinutes']<15||$input['cooldownMinutes']>1440){
+        throw new InvalidArgumentException('invalid_alert_rule');
     }
-    operationsAudit($pdo,$actor,'alert_rule_updated',substr(hash('sha256',$code),0,64));
+    if($pdo->inTransaction())throw new RuntimeException('alert_rule_nested_transaction');
+    $pdo->beginTransaction();
+    try{
+        if($code==='all'){
+            $q=$pdo->query('SELECT singleton_id FROM operations_alert_settings
+                WHERE singleton_id=1 FOR UPDATE');
+            if($q->fetchColumn()===false)
+                throw new DomainException('alert_master_setting_not_provisioned');
+            $pdo->prepare('UPDATE operations_alert_settings SET enabled=?,updated_at=?
+                WHERE singleton_id=1')
+                ->execute([$input['enabled']?1:0,time()]);
+        }else{
+            $q=$pdo->prepare('SELECT event_code FROM operations_alert_rules
+                WHERE event_code=? FOR UPDATE');
+            $q->execute([$code]);
+            if($q->fetchColumn()===false)
+                throw new DomainException('alert_rule_not_provisioned');
+            $pdo->prepare('UPDATE operations_alert_rules
+                SET enabled=?,threshold_count=?,cooldown_minutes=?,updated_at=?
+                WHERE event_code=?')
+                ->execute([$input['enabled']?1:0,$input['threshold'],
+                    $input['cooldownMinutes'],time(),$code]);
+        }
+        operationsAudit($pdo,$actor,'alert_rule_updated',
+            substr(hash('sha256',$code),0,64));
+        $pdo->commit();
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
 }
 /**
  * One mail worker pass, invoked only from a CLI-only task. Reserve BEFORE SMTP;
