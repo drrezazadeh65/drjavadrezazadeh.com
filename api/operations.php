@@ -27,6 +27,7 @@ require_once __DIR__.'/operations-source-controls.php';
 require_once __DIR__.'/operations-page-quality.php';
 require_once __DIR__.'/operations-activation.php';
 require_once __DIR__.'/operations-database-health.php';
+require_once __DIR__.'/operations-database-health-scheduling.php';
 require_once __DIR__.'/operations-alerts.php';
 require_once __DIR__.'/operations-http-log.php';
 require_once __DIR__.'/operations-response-monitor.php';
@@ -1075,6 +1076,18 @@ function operationsRoute(string $path, string $verb): never {
             if(!rateAllowed($pdo,'operations_db_health_read',$accountId,12,3600))
                 fail('rate_limited',429);
             respond(operationsDbHealthReport($pdo,nowTs()));
+        }
+        // A separate explicit owner POST records an on-demand scan. The
+        // existing GET above stays read-only and safe for overview hydration.
+        if ($path === '/admin/operations/database-health/run' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('database_health_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_db_health_manual_run',$accountId,6,3600))
+                fail('rate_limited',429);
+            try {respond(operationsDbHealthManualRun($pdo,$accountId,nowTs()));}
+            catch(Throwable $e){fail('database_health_run_unavailable',503);}
         }
         if ($path === '/admin/operations/database-health/settings' && $verb === 'POST') {
             if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
