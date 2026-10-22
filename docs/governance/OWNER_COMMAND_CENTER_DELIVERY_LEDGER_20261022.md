@@ -330,3 +330,20 @@ The current isolated branch also contains the following additive UX/security wor
 - This documentation is a handoff ledger, **not evidence of operational activation or production success**.
 
 **Testing status remains: NONE. Merge/deploy status remains: NONE.**
+
+
+## Continued control-panel development — visual and authorization updates
+
+The isolated branch further contains:
+
+1. A stable `#ops-collection-settings` disclosure anchor, so the first-screen controls and the exact collector policies open the correct existing MFA-protected editor instead of linking to a nonexistent element.
+2. A source-specific management matrix showing each implemented source’s opt-in setting, Tehran cadence and clock, cached-evidence state, due status and recorded execution outcome. The owner can explicitly request one manual fetch or open the existing scope-specific deletion-preview control; the cockpit never deletes by merely navigating.
+3. A separate incident-email rules matrix showing the central master OFF/owner-permitted setting, each recorded rule preference, threshold, cooldown and sensor state; it does not claim SMTP delivery, activated host Cron or source coverage.
+4. A corrected module-level permission boundary: a missing permission for one owner-only read is an unavailable module, **not** grounds for automatically signing out a valid MFA session. Actual expired authentication still invalidates access.
+5. Single-flight owner bulk status reads; exact private API read timestamp on each module (not to be confused with source observation freshness); at-a-glance permission summaries for both scheduled collection and incident mail.
+6. Database health in the executive view shows an observed count of grouped redacted errors only when the diagnostic journal is available. The HTTP indicator shows the **most recent stored batch**, with dated 404/5xx counts; it is not a count of all live visitors or a claim of 24/7 surveillance.
+7. Mobile-first visual layouts for source and incident controls and six executive state cards. All control clicks defer to existing MFA, role checks and backend authorization; no alternate master database or new privileged API endpoints were introduced.
+
+### Verification and activation remain separate
+
+**No tests were executed as part of this continuation.** Existing production hosting, the developer branch, educational engines, recipient settings, provider connections, scheduled jobs and the live MySQL database are unchanged. The feature branch is **not ready for release** until source development is finished, conflicts with the current developer branch are reconciled, and the owner authorizes the deferred end-to-end testing phase. Displaying an unavailable integration, schema or source state honestly remains required; the interface does not manufacture data to satisfy the appearance of completeness.
