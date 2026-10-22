@@ -93,9 +93,9 @@ function operationsBaharPrivatePolicySave(
         throw new DomainException('independent_release_evidence_missing');
     $pdo->beginTransaction();
     try{
-        $q=$pdo->prepare('SELECT enabled,scientific_review_sha256,
-           privacy_review_sha256,release_gate_approved_by_account_id,
-           release_gate_approved_at,
+        $q=$pdo->prepare('SELECT p.enabled,p.scientific_review_sha256,
+           p.privacy_review_sha256,p.release_gate_approved_by_account_id,
+           p.release_gate_approved_at,
            a.role AS approver_role,a.enabled AS approver_enabled
            FROM eco_bahar_account_workbook_policy p
            LEFT JOIN operations_admin_memberships a
