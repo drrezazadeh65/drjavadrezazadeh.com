@@ -211,6 +211,7 @@ function operationsCollectorRefresh(PDO $pdo,string $mode,int $at,string $scope=
             }
             operationsCollectorRecordAttempt($pdo,$key,$at,$receivedThisKey);
             if(!$receivedThisKey)operationsAlertRecord($pdo,'collector_unavailable',$key,$at);
+            else operationsAlertResolve($pdo,'collector_unavailable',$key,$at);
             operationsSourceRecordMetric($pdo,'collector:'.$key,'fetch_success',
                 $receivedThisKey?1.0:0.0,'boolean',$at);
             if($receivedThisKey)operationsSourceRecordMetric($pdo,'collector:'.$key,
