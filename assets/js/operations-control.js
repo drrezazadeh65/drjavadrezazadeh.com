@@ -556,7 +556,12 @@ function collectionControlsRender(parent){
     'Fetch all registered sources now'));manual.type='button';
   manual.setAttribute('data-ops-fetch-all','');
   manual.disabled=collectionState.canManage!==true;
-  manual.addEventListener('click',()=>collectionManualRefresh('all',manual));
+  manual.addEventListener('click',()=>{
+    if(!window.confirm(t(
+      'همه منابع دارای گردآورنده GitHub اکنون واکشی شوند؟ این درخواست شبکه‌ای مستقل است و هیچ زمان‌بندی ایجاد نمی‌کند.',
+      'Fetch all implemented GitHub sources now? This is an explicit network action; no scheduler is enabled.')))return;
+    collectionManualRefresh('all',manual);
+   });
   box.append(manual);
   const catalogue=el('div',undefined,'ops-collector-list');
   for(const scope of collectionState.rows){
@@ -598,7 +603,7 @@ function collectionControlsRender(parent){
      }
    }
    const enabled=el('input');enabled.type='checkbox';enabled.checked=scope.enabled;
-   const label=el('label',t('فعال','Enabled'));label.prepend(enabled);line.append(label);
+   const label=el('label',t('اجازه این منبع','Source permission'));label.prepend(enabled);line.append(label);
    const cadence=el('select');
    for(const [value,fa,enLabel] of [['manual','فقط دستی','Manual'],['hourly','ساعتی','Hourly'],['daily','روزانه','Daily'],['live','رویداد لحظه‌ای داخلی','Local event-driven']]){
     if(scope.type==='source'&&value==='live')continue;
@@ -2432,6 +2437,10 @@ function renderOwnerCommandCenter(){
    el('h2',t('همه وضعیت‌ها و کنترل‌ها، در یک نگاه','Every status and control, in one view')),
    el('p',t('این نما بر اساس داده‌های موجود در نشست تأییدشده مدیر ساخته می‌شود. بازکردن بخش‌ها، موتور یا زمان‌بند را روشن نمی‌کند.',
      'This view uses stored evidence from your authenticated session. Opening a module does not enable its worker or schedule.')));
+ intro.append(el('p',t(
+   'تأیید دومرحله‌ای این مرورگر تا پایان نشست معتبر حساب (حداکثر ۷ روز) باقی می‌ماند. خروج امن آن را باطل می‌کند؛ هر مرورگر جدید نیازمند تأیید مستقل است.',
+   'MFA lasts for the authenticated session in this browser (up to seven days). Secure sign-out revokes it; each new browser requires its own verification.'
+ ),'oc-session-policy'));
  const headingActions=el('div',undefined,'oc-heading-actions');
  const refresh=el('button',t('بازخوانی شواهد ثبت‌شده','Refresh stored server evidence'),'oc-button-primary');
  refresh.type='button';refresh.addEventListener('click',load);
