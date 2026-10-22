@@ -397,6 +397,24 @@ function renderDatabaseHealth(host){
  host.append(section);
 }
 
+async function collectionManualRefresh(scopeId,button){
+ if(!snapshot||!csrf||collectionState?.canManage!==true||button.disabled)return;
+ button.disabled=true;const generation=loadGeneration;
+ try {
+   const response=await api('/github-audits/refresh',{method:'POST',
+     headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+     body:JSON.stringify({scope:scopeId})});
+   if(generation!==loadGeneration||!snapshot)return;
+   githubAuditState=response.auditSnapshot;
+   collectionState=githubAuditState.collection;
+   collectionExpanded=true;githubAuditExpanded=true;
+   reportingRender();
+   notice(t('درخواست واکشی: ','Fetch attempts: ')+response.refresh.attempted+
+     ' · '+t('ذخیره‌شده: ','Saved: ')+response.refresh.saved);
+ }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+ finally{if(button.isConnected)button.disabled=false;}
+}
+
 function collectionControlsRender(parent){
  const box=el('details',undefined,'ops-collection-settings');box.open=collectionExpanded;
  box.addEventListener('toggle',()=>{collectionExpanded=box.open;});
@@ -409,6 +427,41 @@ function collectionControlsRender(parent){
  });box.append(fetch);
  if(collectionState?.schema==='operations-collection-controls-v1'){
   box.append(el('p',t('منطقهٔ زمانی اجرا: تهران. فعال بودن تنظیم بدون نصب Cron در برتینا، به معنی اجرای خودکار نیست.','Schedule timezone: Tehran. Enabled settings do not run unattended until the Bertina cron job is installed.')));
+  const automatic=collectionState.automaticCollection;
+  const masterEnabled=automatic?.enabled===true;
+  const master=el('p',t('کلید اصلی گردآوری خودکار: ','Automatic collector master switch: ')+
+    (masterEnabled?t('روشن به تصمیم مدیر؛ Cron سرور همچنان تأییدنشده است',
+      'Owner enabled; host Cron still unverified')
+      :t('خاموش؛ Cron حتی با وجود تنظیمات قبلی نباید واکشی کند',
+        'OFF; scheduled fetching remains blocked despite prior settings')));
+  master.setAttribute('data-ops-collector-master-status',masterEnabled?'on':'off');
+  box.append(master);
+  const masterButton=el('button',masterEnabled?
+    t('خاموش‌کردن گردآوری خودکار','Disable scheduled collection'):
+    t('اجازه گردآوری خودکار (با تأیید مدیر)','Permit scheduled collection (owner confirmation)'));
+  masterButton.type='button';masterButton.setAttribute('data-ops-collector-master-toggle','');
+  masterButton.disabled=collectionState.canManage!==true;
+  masterButton.addEventListener('click',async()=>{
+    const enabled=!masterEnabled;
+    if(!window.confirm(enabled?t(
+      'برای فعال‌سازی نیاز به تصمیم صریح مدیر و Cron تأییدشده است. آیا اجازهٔ گردآوری زمان‌بندی‌شده را ثبت می‌کنید؟',
+      'This enables the schedule policy only; host Cron still requires separate verification. Confirm owner permission?'):
+      t('آیا کل گردآوری خودکار خاموش شود؟ واکشی دستی مستقل باقی می‌ماند.',
+        'Disable all scheduled collection? Manual owner fetch remains available.')))return;
+    masterButton.disabled=true;const generation=loadGeneration;
+    try{
+      collectionState=await api('/collection-automatic',{method:'POST',
+        headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+        body:JSON.stringify({enabled,confirmation:enabled?
+          'ENABLE SCHEDULED COLLECTION':'DISABLE SCHEDULED COLLECTION'})});
+      if(generation!==loadGeneration||!snapshot)return;
+      collectionExpanded=true;reportingRender();
+      notice(t('کلید اصلی ذخیره شد؛ نصب Cron همچنان جداگانه است.',
+        'Owner master switch saved. Host Cron installation remains separate.'));
+    }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+    finally{if(masterButton.isConnected)masterButton.disabled=false;}
+  });
+  box.append(masterButton);
   if(collectionState.attemptJournalStatus==='schema_not_provisioned')box.append(el('p',t('جدول ثبت تلاش‌های جمع‌آوری در این اتصال در دسترس نیست؛ نبود سابقه را نباید معادل اجرا نشدن دانست.','Collector attempt journal is unavailable on this connection; absence of history cannot prove a worker never ran.')));
   const collectors=Array.isArray(collectionState.rows)?collectionState.rows.filter(x=>x.type==='source'):[];
   const countState=(key,value)=>collectors.filter(x=>x[key]===value).length;
@@ -437,18 +490,12 @@ function collectionControlsRender(parent){
   }
 
 
-  const manual=el('button',t('تازه‌سازی فوری همهٔ منابع فعال','Refresh all enabled sources now'));manual.type='button';
-  manual.addEventListener('click',async()=>{
-   manual.disabled=true;try{
-    const response=await api('/github-audits/refresh',{method:'POST',
-     headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
-     body:JSON.stringify({scope:'all'})});
-    githubAuditState=response.auditSnapshot;
-    collectionState=githubAuditState.collection;
-    collectionExpanded=true;githubAuditExpanded=true;
-    reportingRender();notice(t('تعداد منابع واکشی‌شده: ','Sources requested: ')+response.refresh.attempted+' · '+t('ذخیره‌شده: ','Saved: ')+response.refresh.saved);
-   }catch(error){notice(errorMessage(error),true);}finally{manual.disabled=false;}
-  });box.append(manual);
+  const manual=el('button',t('تازه‌سازی فوری همهٔ منابع موجود',
+    'Fetch all registered sources now'));manual.type='button';
+  manual.setAttribute('data-ops-fetch-all','');
+  manual.disabled=collectionState.canManage!==true;
+  manual.addEventListener('click',()=>collectionManualRefresh('all',manual));
+  box.append(manual);
   const catalogue=el('div',undefined,'ops-collector-list');
   for(const scope of collectionState.rows){
    const line=el('div',undefined,'ops-collector-item');
@@ -510,6 +557,15 @@ function collectionControlsRender(parent){
     }catch(error){notice(errorMessage(error),true);}finally{save.disabled=false;}
    });
    line.append(save);
+   if(scope.type==='source'||(scope.type==='engine'&&scope.connected)){
+     const single=el('button',scope.type==='engine'
+       ?t('واکشی فوری فقط منابع این موتور','Fetch this engine’s sources now')
+       :t('واکشی فوری فقط این منبع','Fetch only this source now'));
+     single.type='button';single.setAttribute('data-ops-fetch-scope',scope.id);
+     single.disabled=collectionState.canManage!==true;
+     single.addEventListener('click',()=>collectionManualRefresh(scope.id,single));
+     line.append(single);
+   }
    if(scope.lastFetchedAt)line.append(el('small',t('آخرین واکشی موفق: ','Last successful collection: ')+date(scope.lastFetchedAt)));
    if(scope.type==='source'&&scope.lastAttempt){
      const attempt=scope.lastAttempt;
