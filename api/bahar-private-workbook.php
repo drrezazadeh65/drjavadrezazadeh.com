@@ -546,9 +546,21 @@ function baharAccountRoute(string $path,string $verb): never {
         }
         fail('method_not_allowed',405);
     }catch(Throwable $e){
-        // Errors are deliberately nonidentifying: never dump private
-        // JSON, hashes, encryption keys, consent data or SQL to clients.
+        // Never include personal JSON, learner IDs, evidence, email,
+        // encryption keys or stack traces in notification payloads.
         error_log('BAHAR private account unavailable: '.get_class($e));
+        if(isset($pdo)&&$pdo instanceof PDO&&
+          function_exists('baharAccountFeatureAllowed')&&
+          baharAccountFeatureAllowed()){
+            try{
+              require_once __DIR__.'/operations-alerts.php';
+              if(function_exists('operationsAlertRecord'))
+                operationsAlertRecord(
+                    $pdo,'bahar_private_storage_failure',
+                    'bahar_private_account',nowTs()
+                );
+            }catch(Throwable $ignored){}
+        }
         fail('bahar_private_unavailable',503);
     }
 }
