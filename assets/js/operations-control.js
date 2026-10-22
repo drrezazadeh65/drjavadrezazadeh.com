@@ -270,7 +270,24 @@ function renderDatabaseHealth(host){
    }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
    finally{if(scan.isConnected)scan.disabled=false;}
  });
- section.append(scan);
+ // A GET snapshot is intentionally separate from the POST that records a new
+ // diagnostic run. Reading current metadata does not change owner policies,
+ // insert history rows, configure Cron or run a test suite.
+ const inspect=el('button',t('مشاهده وضعیت فعلی دیتابیس (فقط خواندنی)',
+   'View current database metadata (read-only)'));
+ inspect.type='button';inspect.setAttribute('data-db-health-read','');
+ inspect.addEventListener('click',async()=>{
+   const generation=loadGeneration;inspect.disabled=true;
+   try{
+     const report=await api('/database-health');
+     if(generation!==loadGeneration||!snapshot)return;
+     dbHealthCurrent=report;dbHealthExpanded=true;reportingRender();
+     notice(t('فراداده موجود دیتابیس نمایش داده شد؛ هیچ اجرای جدیدی ثبت نشد.',
+       'Stored database metadata loaded; no new diagnostic run was recorded.'));
+   }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+   finally{if(inspect.isConnected)inspect.disabled=false;}
+ });
+ section.append(inspect,scan);
  const data=dbHealthCurrent;
  if(!data){section.append(el('small',t(
    'تا درخواست صریح مدیر، اطلاعات دیتابیس واکشی نمی‌شود.',
