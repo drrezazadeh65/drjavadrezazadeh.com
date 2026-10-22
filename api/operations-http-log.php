@@ -10,16 +10,21 @@ require_once __DIR__.'/operations-alerts.php';
  * automatically approved redirects. Does not change .htaccess.
  */
 function operationsHttpRoute(string $value): ?array {
-    if(strlen($value)>1024||str_contains($value,'\\'))return null;
+    if(strlen($value)>1024||!str_starts_with($value,'/')||str_contains($value,'\\'))return null;
     $path=parse_url($value,PHP_URL_PATH);
-    if(!is_string($path)||!str_starts_with($path,'/')||strlen($path)>230
-        ||str_contains($path,'..')||preg_match('/[\x00-\x1F\x7F]/',$path))
-        return null;
-    $normalized=preg_replace('#/{2,}#','/',$path);
+    if(!is_string($path)||!str_starts_with($path,'/'))return null;
+    // Preserve valid historical Persian slugs, but exclude tokens, user identifiers,
+    // unsafe escapes and excessively long or private routes.
+    $decoded=rawurldecode($path);
+    if(strlen($decoded)>230||!preg_match('//u',$decoded)
+        ||str_contains($decoded,'..')||str_contains($decoded,'@')
+        ||str_contains($decoded,'?')||str_contains($decoded,'#')
+        ||preg_match('/[\x00-\x1F\x7F]/',$decoded))return null;
+    $normalized=preg_replace('#/{2,}#','/',$decoded);
     if(!is_string($normalized))return null;
     if(preg_match('#^/(?:api|fa/app|en/account|fa/customer-dashboard|fa/login|en/login|fa/register|en/register|checkout|payment|fa/shop/(?:cart|checkout|payment)|en/shop/(?:cart|checkout|payment))(/|$)#i',$normalized))
         return null;
-    if(preg_match('#(?:[A-Za-z0-9_-]{35,}|%[0-9a-fA-F]{2})#',$normalized))return null;
+    if(preg_match('#[A-Za-z0-9_-]{35,}#',$normalized))return null;
     $probe=(bool)preg_match('#(?:^|/)(?:wp-admin|wp-login\.php|\.git|\.env|phpmyadmin|cgi-bin|vendor|xmlrpc\.php)(?:/|$)#i',$normalized);
     return ['path'=>$normalized,'classification'=>$probe?'scanner_probe':'seo_review_candidate'];
 }
