@@ -2997,6 +2997,68 @@ function renderOwnerCommandCenter(){
    sourceMatrix.append(list);
  }
  root.append(sourceMatrix);
+ // Email controls remain owner-off unless the central switch AND an
+ // individually authorised rule AND its sensor/SMTP/worker all have evidence.
+ const mailMatrix=el('details',undefined,'oc-alert-matrix');
+ mailMatrix.setAttribute('data-oc-alert-matrix','');
+ const savedRules=Array.isArray(alertData?.rules)?alertData.rules:null;
+ mailMatrix.append(el('summary',t('قوانین هشدار و کنترل ایمیل هر بخش',
+   'Per-module alerts and owner email controls')+' · '+
+   (savedRules?savedRules.length:t('هنوز خوانده نشده','Not loaded'))));
+ mailMatrix.append(el('p',t(
+   'سیاست ایمیل و حسگر خطا دو کنترل متفاوت‌اند. روشن‌بودن یک قانون، دریافت ایمیل یا وجود حسگر فعال را تضمین نمی‌کند. این جدول فقط تنظیمات ذخیره‌شده را نشان می‌دهد.',
+   'An email preference is not a running sensor. An enabled rule does not prove inbox delivery. This view reports only recorded settings.')));
+ if(!savedRules){
+   const read=el('button',t('دریافت وضعیت قوانین و هشدارها','Read recorded alert policies'));
+   read.type='button';read.addEventListener('click',async()=>{
+     if(read.disabled||!snapshot)return;
+     const generation=loadGeneration;read.disabled=true;
+     try{
+       const updated=await api('/alerts');
+       if(generation!==loadGeneration||!snapshot)return;
+       if(updated.schema!=='operations-alert-center-v1')
+         throw new Error('invalid_alert_center');
+       alertCenterCurrent=updated;ownerCockpitReadAt.alerts=Math.floor(Date.now()/1000);
+       delete ownerCockpitReadErrors.alerts;
+       reportingRender();
+       $('ops-command-center')?.querySelector('[data-oc-alert-matrix]')?.setAttribute('open','');
+     }catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
+     finally{if(read.isConnected)read.disabled=false;}
+   });
+   mailMatrix.append(read);
+ }else{
+   const mailMaster=el('p',undefined,'oc-alert-master');
+   mailMaster.dataset.mailEnabled=alertData.enabled===true?'on':'off';
+   mailMaster.append(el('strong',t('اجازه اصلی ارسال هشدار: ','Central alert permission: ')+
+     (alertData.enabled===true?t('با تصمیم مدیر مجاز','Owner permitted'):
+       t('خاموش','OFF'))),
+     el('small',t('برای هر رویداد باید حسگر، سیاست بخش و ارسال SMTP به‌طور مستقل بررسی شوند.',
+       'Sensor, scoped policy and SMTP worker evidence must be checked independently.')));
+   mailMatrix.append(mailMaster);
+   const rules=el('div',undefined,'oc-alert-rules');
+   for(const rule of savedRules){
+     const row=el('article',undefined,'oc-alert-rule');
+     row.dataset.ruleCode=rule.code;
+     row.append(el('strong',rule.name||rule.code));
+     row.append(el('p',
+       t('اجازه این قانون: ','Rule preference: ')+
+       (rule.enabled===true?t('مجاز','Allowed'):t('خاموش','OFF'))+
+       ' · '+t('شدت: ','Severity: ')+(rule.severity||'—')));
+     row.append(el('small',
+       t('منبع شواهد: ','Sensor: ')+(rule.sensorState||'—')+
+       ' · '+t('آستانه: ','Threshold: ')+(rule.threshold??'—')+
+       ' · '+t('فاصله بین هشدارها: ','Cooldown: ')+(rule.cooldownMinutes??'—')+
+       t(' دقیقه',' min')));
+     const open=el('button',t('تنظیم مجوز و اعلان این قانون','Review rule and scope settings'));
+     open.type='button';open.addEventListener('click',()=>{
+       alertCenterExpanded=true;reportingRender();
+       openExistingOperationalWorkspace('ops-alert-center');
+     });
+     row.append(open);rules.append(row);
+   }
+   mailMatrix.append(rules);
+ }
+ root.append(mailMatrix);
  // Evidence-backed triage queue: does not fabricate unrecorded incidents.
  const queueItems=[];
  const action=(id,priority,fa,en,detailFa,detailEn)=>queueItems.push(
