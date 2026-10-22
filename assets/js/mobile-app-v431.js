@@ -62,8 +62,10 @@ const tabs=isFa?[
  [u('en/'),'Home','home'],[u('en/golden-talent/'),'Talent','spark'],[u('en/shop/'),'Shop','bag'],[u('en/request-consultation/'),'Consult','chat'],[u('en/login/'),'Account','user']
 ];
 const sheet=isFa?[
+ [u('fa/masir-man/'),'مسیر من؛ از نیاز شروع کن'],[u('fa/bahar/'),'BAHAR؛ برنامه مطالعه رایگان'],
  [u('fa/darbare-man/'),'درباره دکتر رضازاده'],[u('fa/rezome/'),'رزومه علمی'],[u('fa/khadamat/'),'خدمات آموزشی'],[u('fa/tadris/'),'تدریس دانشگاهی'],[u('fa/ketab-ha/'),'کتاب‌ها'],[u('fa/shop/'),'فروشگاه کتاب'],[u('fa/amoozesh-zaban/'),'آموزش زبان انگلیسی'],[u('fa/pajouhesh/'),'پژوهش'],[u('fa/entesharat-elmi/'),'انتشارات علمی'],[u('fa/faaliat-haye-elmi/'),'فعالیت‌های علمی'],[u('fa/entekhab-reshteh/'),'انتخاب رشته'],[u('fa/estedaadyabi/'),'استعدادیابی'],[u('fa/moshavere-konkur/'),'مشاوره کنکور'],[u('fa/danesh-amoozan/'),'دانش‌آموزان'],[u('fa/rahnamaha/'),'راهنماها'],[u('fa/tamas/'),'تماس'],[u('fa/harim-khosusi/'),'حریم خصوصی'],[u('fa/jostojo/'),'جست‌وجو'],[u('publisher/'),'Rezazadeh Foundation Press'],[u('journal/'),'JHELA']
 ]:[
+ [u('en/my-path/'),'My Learning Path'],[u('en/bahar/'),'BAHAR Free Study Planner'],
  [u('en/about/'),'About'],[u('en/cv/'),'Public CV'],[u('en/services/'),'Services'],[u('en/academic-profile/'),'Academic Profile'],[u('en/language-education/'),'Language Education'],[u('en/student-guidance/'),'Student Guidance'],[u('en/teacher-education/'),'Teacher Education'],[u('en/teaching/'),'University Teaching'],[u('en/books/'),'Books'],[u('en/shop/'),'Bookstore'],[u('en/publications/'),'Publications'],[u('en/academic-engagements/'),'Academic Engagements'],[u('en/research/'),'Research'],[u('en/projects/'),'Public Projects'],[u('en/collaboration/'),'International Collaboration'],[u('en/news-insights/'),'News & Insights'],[u('en/contact/'),'Contact'],[u('en/search/'),'Search'],[u('en/golden-talent/'),'Golden Talent'],[u('publisher/'),'Rezazadeh Foundation Press'],[u('journal/'),'JHELA'],[u('fa/'),'فارسی']
 ];
 q('.app-dock')?.remove();
