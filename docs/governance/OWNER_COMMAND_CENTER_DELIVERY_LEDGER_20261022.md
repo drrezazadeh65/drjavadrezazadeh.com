@@ -213,3 +213,40 @@ visual activation.
   Every source commit uses `[skip ci]`.
 - QA, independent security audit, integrated branch reconciliation and owner
   release approval remain the last coordinated stages after development freeze.
+
+### Final source additions in this increment
+
+- Existing engine-feature jumps are now routed through the current secure
+  workspace opener and explicitly report when a referenced UI is absent
+  rather than silently doing nothing.
+- The dedicated owner stylesheet now unifies the broader dashboard visual
+  system across all existing panels (dark graphite, restrained gold,
+  typographic hierarchy, compact mobile/tablet layout, scroll-safe source
+  tables, responsive focus and disabled treatments). No additional brand
+  font file or remote browser script has been added.
+- Corrected a misleading inferred `0 verified external connections` in
+  the master engine summary: a catalogue-only inventory is NOT independent
+  connection verification, so the value is `unknown` until supported.
+  Similarly, a `canManage` flag now shows **server permission observed**,
+  never that the control itself has passed end-to-end testing.
+- Preserved each existing Persian and English public route, private session
+  gating, disabled automatic-worker defaults, read-only observations and
+  all frozen educational functionality.
+
+### Further work remaining before any release
+
+1. Reconcile this feature branch with concurrently moving
+   `migration/bertina-linux6` without deleting existing code or altering
+   URLs, after the owner ends source development.
+2. Provide exact host-side Cron/SMTP and independent external provider
+   authentication only when the owner authorizes their activation, and
+   distinguish optional reference entries from integrated APIs.
+3. Run end-stage PHP syntax, JavaScript/module/browser, database contract,
+   authentication, author/editor/commerce and mobile RTL/LTR acceptance
+   checks only after the explicit development-complete signal.
+4. Review independent security and accessibility, fix observed issues,
+   prepare owner-controlled deployment and reconcile after actual host
+   verification. Do not mark any stage PASS because source files exist.
+
+**Current state: SOURCE PUSH COMMITTED, ALL INTEGRATION/QA TESTING STILL DEFERRED.
+NO DEPLOYMENT, NO MERGE, NO AUTOMATIC ACTIVATION.**
