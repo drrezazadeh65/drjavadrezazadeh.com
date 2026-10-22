@@ -1,0 +1,188 @@
+<?php
+declare(strict_types=1);
+/**
+ * JR Master Scheduler v1 — the ONE planned host Cron entrypoint.
+ * CLI only, allowlisted workers, mother-DB opt-in, PHP subprocess without a
+ * shell, bounded single instance and no default activation. Never expose as
+ * HTTP, invoke on a visitor request, or use an untrusted DB command as PHP.
+ *
+ * HOST PRECONDITIONS: a verified PHP 8.3 CLI binary, proc_open permission,
+ * private bounded log retention, deployed source, migrations and an
+ * explicitly owner-authorized master flag AND per-worker settings.
+ * No host schedule, email permission or database mutation is implied here.
+ */
+if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
+define('BERTINA_MAIL_SMOKE_CONTEXT',true);
+require_once dirname(__DIR__).'/index.php';
+define('BERTINA_API_BOOTSTRAPPED',true);
+require_once dirname(__DIR__).'/operations-cron-dispatcher.php';
+
+function jrMasterWorker(string $script,int $limitSeconds): array {
+    if(!function_exists('proc_open'))
+        return ['state'=>'blocked','exit'=>null];
+    $command=[PHP_BINARY,$script]; // array => no shell interpolation
+    $descriptors=[['pipe','r'],['pipe','w'],['pipe','w']];
+    $pipes=[];
+    try{
+        $proc=@proc_open($command,$descriptors,$pipes,dirname(__DIR__),null,
+            ['bypass_shell'=>true]);
+    }catch(Throwable $e){return ['state'=>'blocked','exit'=>null];}
+    if(!is_resource($proc))return ['state'=>'blocked','exit'=>null];
+    if(isset($pipes[0]))fclose($pipes[0]);
+    foreach([1,2] as $fd)if(isset($pipes[$fd]))
+        stream_set_blocking($pipes[$fd],false);
+    $deadline=microtime(true)+max(1,min(20,$limitSeconds));
+    $exit=null;$timedOut=false;
+    while(true){
+        foreach([1,2] as $fd)if(isset($pipes[$fd]))
+            @fread($pipes[$fd],8192); // drain/discard; no PII in logs
+        $status=proc_get_status($proc);
+        if(!$status['running']){
+            $code=(int)$status['exitcode'];
+            if($code>=0)$exit=$code;
+            break;
+        }
+        if(microtime(true)>=$deadline){$timedOut=true;break;}
+        usleep(100000);
+    }
+    if($timedOut){
+        @proc_terminate($proc);
+        usleep(200000);
+        $status=proc_get_status($proc);
+        if($status['running'])@proc_terminate($proc,9);
+    }
+    foreach([1,2] as $fd)if(isset($pipes[$fd])){
+        @stream_get_contents($pipes[$fd]);
+        fclose($pipes[$fd]);
+    }
+    $closed=@proc_close($proc);
+    if($timedOut)return ['state'=>'unknown','exit'=>null];
+    if($exit===null&&is_int($closed)&&$closed>=0)$exit=$closed;
+    return $exit===0?['state'=>'completed','exit'=>0]:
+        ($exit===null?['state'=>'unknown','exit'=>null]:
+            ['state'=>'failed','exit'=>$exit]);
+}
+function jrMasterClaim(PDO $pdo,string $id,int $at): ?array {
+    $pdo->beginTransaction();
+    try{
+        $q=$pdo->prepare('SELECT enabled,cadence_seconds,next_due_at,
+            needs_owner_review,last_state,last_started_at
+            FROM operations_cron_jobs WHERE job_id=? FOR UPDATE');
+        $q->execute([$id]);$r=$q->fetch(PDO::FETCH_ASSOC);
+        if(!$r||(int)$r['enabled']!==1||
+           (int)$r['needs_owner_review']!==0||(int)$r['next_due_at']>$at){
+            $pdo->commit();return null;
+        }
+        // A scheduler crash while a child might be delivering email is an
+        // UNKNOWN, never a licence to start it again automatically.
+        if($r['last_state']==='running'){
+            if((int)$r['last_started_at']<$at-120){
+                $pdo->prepare("UPDATE operations_cron_jobs
+                  SET enabled=0,needs_owner_review=1,last_state='unknown',
+                      last_finished_at=?,last_exit_code=NULL
+                  WHERE job_id=?")->execute([$at,$id]);
+                $pdo->commit();return null;
+            }
+            $pdo->commit();return null;
+        }
+        $seconds=(int)$r['cadence_seconds'];
+        if($seconds<60||$seconds>86400||$seconds%60!==0){
+            $pdo->prepare("UPDATE operations_cron_jobs
+              SET enabled=0,needs_owner_review=1,last_state='blocked'
+              WHERE job_id=?")->execute([$id]);
+            $pdo->commit();return null;
+        }
+        // Persist claim before a potential side effect. A crash after this
+        // line leaves RUNNING, which is reconciled to owner review above.
+        $q=$pdo->prepare("UPDATE operations_cron_jobs
+          SET last_state='running',last_started_at=?,
+              last_finished_at=NULL,last_exit_code=NULL,next_due_at=?
+          WHERE job_id=? AND enabled=1 AND needs_owner_review=0");
+        $q->execute([$at,$at+$seconds,$id]);
+        if($q->rowCount()!==1)
+            throw new RuntimeException('cron_claim_conflict');
+        $pdo->commit();
+        return ['jobId'=>$id,'startedAt'=>$at];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
+function jrMasterFinish(PDO $pdo,array $claim,array $result): void {
+    $state=(string)$result['state'];
+    $review=$state!=='completed';
+    $q=$pdo->prepare('UPDATE operations_cron_jobs
+       SET last_state=?,last_finished_at=?,last_exit_code=?,
+           needs_owner_review=?,enabled=IF(?,0,enabled)
+       WHERE job_id=? AND last_state=? AND last_started_at=?');
+    $q->execute([$state,time(),$result['exit'],$review?1:0,$review?1:0,
+        $claim['jobId'],'running',$claim['startedAt']]);
+    if($q->rowCount()!==1)
+        throw new RuntimeException('cron_result_conflict');
+}
+function jrMasterDispatch(): int {
+    $config=cfg();
+    // Both the master private flag and each mother-DB row default OFF.
+    if(!operationsCronMasterEnabled($config)){
+        fwrite(STDOUT,"JR master scheduler disabled by private owner policy.\n");
+        return 0;
+    }
+    if(PHP_VERSION_ID<80300||!function_exists('proc_open')){
+        fwrite(STDERR,"JR master scheduler host PHP CLI subprocess capability unavailable.\n");
+        return 2;
+    }
+    $pdo=db();
+    if(!$pdo||!operationsCronSchemaReady($pdo)){
+        fwrite(STDERR,"JR master scheduler mother-database policy unavailable.\n");
+        return 2;
+    }
+    $lockName='jr-ops-master-scheduler-v1';
+    $q=$pdo->prepare('SELECT GET_LOCK(?,0)');
+    $q->execute([$lockName]);
+    if((int)$q->fetchColumn()!==1){
+        fwrite(STDOUT,"JR master scheduler already running; no overlap.\n");
+        return 0;
+    }
+    $started=microtime(true);$attempts=0;$issues=0;
+    try{
+        $registry=operationsCronRegistry();
+        $q=$pdo->query('SELECT job_id FROM operations_cron_jobs
+            WHERE enabled=1 AND needs_owner_review=0
+              AND next_due_at<='.time().'
+            ORDER BY next_due_at ASC,job_id ASC LIMIT 30');
+        foreach($q->fetchAll(PDO::FETCH_COLUMN) as $id){
+            if($attempts>=4||microtime(true)-$started>35)break;
+            if(!isset($registry[$id]))continue;
+            $script=operationsCronSourcePath((string)$id);
+            if($script===null){
+                // No approved source code => never execute arbitrary DB data.
+                $pdo->prepare("UPDATE operations_cron_jobs SET enabled=0,
+                  needs_owner_review=1,last_state='blocked' WHERE job_id=?")
+                  ->execute([$id]);
+                $issues++;continue;
+            }
+            $claim=jrMasterClaim($pdo,(string)$id,time());
+            if($claim===null)continue;
+            $attempts++;
+            $available=max(1,(int)floor(43-(microtime(true)-$started)));
+            $result=jrMasterWorker($script,min(12,$available));
+            jrMasterFinish($pdo,$claim,$result);
+            if($result['state']!=='completed')$issues++;
+            // Only bounded, nonpersonal facts. Child output/SMTP credentials
+            // are deliberately neither printed nor kept in the policy table.
+            fwrite(STDOUT,'JR scheduled job '.$id.': '.$result['state']."\n");
+        }
+    }finally{
+        $release=$pdo->prepare('SELECT RELEASE_LOCK(?)');
+        $release->execute([$lockName]);
+    }
+    fwrite(STDOUT,"JR master tick completed; attempts=".$attempts.
+        "; unresolved=".$issues."; host schedule not certified by source.\n");
+    return $issues>0?1:0;
+}
+try{exit(jrMasterDispatch());}
+catch(Throwable $e){
+    // Never reveal DSN, private worker paths, account identities or secrets.
+    fwrite(STDERR,"JR master dispatcher unavailable; owner review required.\n");
+    exit(1);
+}
