@@ -48,6 +48,11 @@
   }
   const count=value=>Number.isSafeInteger(value)&&value>=0?n.format(value):
     T('نامشخص','Unknown');
+  const money=value=>{
+    if(typeof value!=='string'||!/^[0-9]{1,24}$/.test(value))
+      return T('نامشخص','Unknown');
+    try{return n.format(BigInt(value));}catch(_){return T('نامشخص','Unknown');}
+  };
   function render(data,interest=null){
     const sales=data.salesPipeline,fulfil=data.fulfilment;
     const claims=data.claims,orders=data.orders,notice=data.notifications;
@@ -70,6 +75,11 @@
       count(sales.providerClaimMatchedOrderCount),
       T('تطبیق سوابق درگاهی با دفتر سفارش؛ نه سود و نه تسویه.',
         'Provider-claim matches, not verified bank settlement or profit.'));
+    card(T('مجموع مبلغ سفارش‌های دارای تطبیق درگاه (تومان)',
+        'Provider-claim-matched internal order amount (toman)'),
+      money(sales.providerClaimMatchedAmountToman),
+      T('تومان؛ جمع مبالغ دفتر داخلی است، نه دریافت قطعی بانکی، سود یا درآمد خالص.',
+        'Toman, internal claim-matched ledger amount only; not bank-settled cash, profit or net revenue.'));
     card(T('سفارش‌های پرداخت‌شده طی ۳۰ روز','Paid-state orders in last 30 days'),
       count(sales.paidStateOrdersLast30Days),
       T('شمار رکوردها؛ نرخ تبدیل بازدیدکننده نیست.',
