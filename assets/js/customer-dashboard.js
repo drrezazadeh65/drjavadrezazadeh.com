@@ -544,7 +544,26 @@ async function verifiedCustomerNextAction(authenticated){
       isEnglish?'Review orders':'بررسی سفارش‌ها',ordersHref);
   return;
  }
- const orders=response.data.orders.filter(o=>o&&typeof o==='object');
+ // An incompatible/corrupted private-history payload must not be
+ // filtered down to an invented "no orders" state. The authoritative API
+ // returns at most 50 typed, owned order summaries with bounded safe items.
+ const reported=response.data.orders;
+ if(reported.length>50||reported.some(order=>
+   !order||typeof order!=='object'||
+   typeof order.id!=='string'||
+   !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order.id)||
+   typeof order.state!=='string'||
+   typeof order.paymentVerified!=='boolean'||
+   !Array.isArray(order.items)||order.items.length>20||
+   order.items.some(item=>!item||typeof item.sku!=='string')
+ )){
+  set(isEnglish?'Order records could not be verified.':'سوابق سفارش‌ها قابل تأیید نیست.',
+      isEnglish?'The private history format is incomplete or incompatible. An empty account, payment or delivery state is not assumed.':
+        'ساختار تاریخچه خصوصی ناقص یا ناسازگار است. خالی‌بودن حساب، پرداخت یا تحویل فرض نمی‌شود.',
+      isEnglish?'Review orders':'بررسی سفارش‌ها',ordersHref);
+  return;
+ }
+ const orders=reported;
  if(!orders.length){
   set(isEnglish?'Explore your first service.':'خدمت مناسب خود را انتخاب کنید.',
       isEnglish?'No orders are recorded for this verified account. Compare the available services before deciding.':'در حساب تأییدشده شما سفارشی ثبت نشده است. پیش از تصمیم، خدمات موجود را مقایسه کنید.',
