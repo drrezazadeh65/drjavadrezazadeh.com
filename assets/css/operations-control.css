@@ -300,3 +300,31 @@
 .ops-collector-item [data-schedule-evidence="due_unverified"]{border-inline-start-color:var(--ops-gold);color:var(--ops-gold)}
 .ops-collection-settings [data-ops-collector-summary],
 .ops-collection-settings [data-ops-unmapped-policies]{overflow-wrap:anywhere;word-break:break-word}
+
+/* Owner-only database health: readable at 320px and full-width on desktop. */
+#ops-database-health{overflow-wrap:anywhere;min-width:0}
+#ops-database-health>summary{cursor:pointer;font-weight:700}
+#ops-database-health button{min-height:44px;white-space:normal;text-wrap:wrap}
+#ops-database-health .ops-db-health-summary{border-inline-start:3px solid var(--ops-gold);
+  background:var(--ops-panel);padding:10px;margin-block:12px;border-radius:8px}
+#ops-database-health :is(.ops-db-health-storage,.ops-db-health-errors,.ops-db-health-controls){
+  margin-block:12px;min-width:0;padding:10px;border:1px solid var(--ops-border);
+  border-radius:10px;overflow-wrap:anywhere}
+#ops-database-health :is(.ops-db-health-storage,.ops-db-health-errors,.ops-db-health-controls)>summary{
+  cursor:pointer;padding-block:5px;font-weight:600}
+#ops-database-health .ops-db-health-table{
+  display:block;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;
+  border-collapse:collapse;white-space:normal}
+#ops-database-health .ops-db-health-table th,
+#ops-database-health .ops-db-health-table td{
+  text-align:start;padding:8px;border-block-end:1px solid var(--ops-border);
+  font-size:.85rem;word-break:normal;white-space:nowrap}
+#ops-database-health .ops-db-health-controls label{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-block:8px}
+#ops-database-health .ops-db-health-controls input[type=checkbox]{width:20px;height:20px}
+#ops-database-health .ops-db-health-controls :is(select,input[type=time]){
+  min-height:44px;max-width:100%;flex:1 1 140px}
+@media(max-width:600px){
+  #ops-database-health .ops-db-health-table{font-size:.8rem}
+  #ops-database-health .ops-db-health-controls>button{width:100%}
+}
