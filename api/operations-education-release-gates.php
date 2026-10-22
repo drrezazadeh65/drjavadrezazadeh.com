@@ -100,7 +100,7 @@ function operationsEducationReleaseStatus(PDO $pdo): array {
                 if(in_array($candidate,[
                     'NOT_STARTED','IN_PROGRESS','NEEDS_REVISION','READY_FOR_REVIEW'
                 ],true))$state=$candidate;
-                $note=mb_substr((string)$row['owner_note'],0,350,'UTF-8');
+                $note=(string)$row['owner_note'];
                 $digestPresent=preg_match('/^[a-f0-9]{64}$/D',
                     (string)($row['evidence_reference_sha256']??''))===1;
                 $revision=(int)$row['row_revision'];
@@ -171,6 +171,8 @@ function operationsEducationReleaseSave(
     $digest=$input['evidenceReferenceSha256'];
     $catalogue=operationsEducationOfferReleaseCatalogue();
     $definitions=operationsEducationReleaseGateDefinitions();
+    $characters=is_string($note)
+      ?preg_match_all('/[\s\S]/u',$note):false;
     if(!is_string($offerId)||!isset($catalogue[$offerId])||
        !is_string($gateCode)||!isset($definitions[$gateCode])||
        ($gateCode==='PAYMENT'&&$catalogue[$offerId]['freeIntro'])||
@@ -179,7 +181,7 @@ function operationsEducationReleaseSave(
        ],true)||
        !is_int($revision)||$revision<0||$revision>1000000||
        !is_string($note)||strlen($note)>1400||
-       mb_strlen($note,'UTF-8')>350||
+       $characters===false||$characters>350||
        preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/',$note)||
        (!is_null($digest)&&(!is_string($digest)||
             preg_match('/^[a-f0-9]{64}$/D',$digest)!==1))||
