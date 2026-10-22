@@ -266,15 +266,25 @@ function baharAccountRoute(string $path,string $verb): never {
         $enabled=$schemaReady&&baharAccountFeatureAllowed()&&
             $policy['enabled']&&$key!==null;
         if($path==='/bahar/account/status'&&$verb==='GET'){
+            $currentConsent=$schemaReady&&$adult&&
+                baharAccountHasConsent($pdo,$accountId);
+            $revision=null;
+            if($enabled&&$adult&&$currentConsent&&$notice!==null){
+                $q=$pdo->prepare('SELECT row_revision
+                  FROM eco_bahar_account_workbooks WHERE owner_account_id=?');
+                $q->execute([$accountId]);
+                $saved=$q->fetchColumn();
+                $revision=$saved===false?0:(int)$saved;
+            }
             respond(['ok'=>true,'schema'=>'jr.bahar-adult-account-status.v1',
               'storageEnabled'=>$enabled,'schemaProvisioned'=>$schemaReady,
               'state'=>$schemaReady?'GATED_PRIVATE_SERVICE':'ADDITIVE_SCHEMA_PENDING',
               'independentlyVerifiedAdult'=>$adult,
               'currentNoticeConfigured'=>$notice!==null,
-              'currentConsent'=>$adult&&baharAccountHasConsent($pdo,$accountId),
+              'currentConsent'=>$currentConsent,
               'privacyNotice'=>$notice===null?null:baharAccountNotice($locale),
-              'canStore'=>$enabled&&$adult&&$notice!==null&&
-                baharAccountHasConsent($pdo,$accountId),
+              'canStore'=>$enabled&&$adult&&$notice!==null&&$currentConsent,
+              'workbookRevision'=>$revision,
               'csrfToken'=>baharAccountCsrf($accountId),
               'contentReturned'=>false,
               'scientificallyValidated'=>false,
