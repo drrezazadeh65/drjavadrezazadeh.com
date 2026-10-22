@@ -31,7 +31,7 @@ holder.innerHTML="<a referrerpolicy='origin' target='_blank' href='https://trust
 footer.appendChild(holder);
 })();
 
-import('/assets/js/mobile-app-v431.js?v=20261016-install-dock-v2');
+import('/assets/js/mobile-app-v431.js?v=20261022-need-primary-nav-v1');
 
 /* Existing SW lifecycle: notify open installed app sessions after an update. */
 (()=>{
