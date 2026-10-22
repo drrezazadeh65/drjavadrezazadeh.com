@@ -33,6 +33,11 @@ function operationsHttpRoute(string $value): ?array {
     if(preg_match('#^/(?:api|app|assessments|checkout|payment|account|login|register|recover|dashboard|customer-dashboard|fa/(?:app|assessments|customer-dashboard|login|register|bazyabi-hesab|darkhast-moshavere)|en/(?:account|login|register|recover|request-consultation)|(?:fa|en)/(?:shop|services)/(?:cart|checkout|payment|orders|order|download|receipt|payment-start|payment-return|payment-result)|en/golden-talent/(?:assessment|dashboard|observer|roles|student|checkout|plans)|fa/golden-talent/(?:assessment|dashboard|observer|roles|student|checkout|plans)|journal/(?:api|editor|author|reviewer|submission/upload|dashboard|account))(/|$)#i',$normalized))
         return null;
     if(preg_match('#[A-Za-z0-9_-]{35,}#',$normalized))return null;
+    // This synthetic nonpersonal route is the collector's own redacted
+    // scanner bucket; preserve that classification when reading older or
+    // newly written aggregates through the same public-route sanitizer.
+    if($normalized==='/__scanner_probe__/')
+        return ['path'=>$normalized,'classification'=>'scanner_probe'];
     $probe=(bool)preg_match('#(?:^|/)(?:wp-admin|wp-login\.php|\.git|\.env|phpmyadmin|cgi-bin|vendor|xmlrpc\.php)(?:/|$)#i',$normalized);
     // The arbitrary tail of a scanner request is not SEO content. Bucket its
     // count by classification, avoiding storage of attacker-supplied payloads.
