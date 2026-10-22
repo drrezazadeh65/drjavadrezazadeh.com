@@ -624,6 +624,10 @@
         // Never automatically recreate a workbook after a deletion request:
         // clear the public-page same-tab handoff on BOTH hold and completion.
         try{sessionStorage.removeItem(PENDING_TRANSFER_KEY);}catch(_){}
+        // A deletion request revokes the previous private storage grant
+        // atomically on the server. Never leave the page showing permission
+        // to re-save under that prior consent.
+        identity.currentConsent=false;
         identity.canStore=false;
         identity.latestErasureRequest={
           id:result.requestId,state:result.requestStatus
