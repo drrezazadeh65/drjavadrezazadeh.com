@@ -92,11 +92,17 @@ function operationsAlertSnapshot(PDO $pdo,array $configuration): array {
         'limitation'=>'Apply the existing unified Bertina operations schema before enabling alerts.'];
     $setting=$pdo->query('SELECT enabled FROM operations_alert_settings WHERE singleton_id=1')->fetch(PDO::FETCH_ASSOC);
     $definitions=operationsAlertDefinitions();$rules=[];
+    $httpSensor='not_configured';
+    if(function_exists('operationsHttpObserverStatus')){
+        $httpStatus=operationsHttpObserverStatus($pdo,$configuration);
+        $httpSensor=(string)($httpStatus['state']??'not_configured');
+    }
     foreach($pdo->query('SELECT event_code,enabled,threshold_count,cooldown_minutes FROM operations_alert_rules') as $r){
         $code=(string)$r['event_code'];if(!isset($definitions[$code]))continue;
         $rules[]=['code'=>$code,'name'=>$definitions[$code]['name'],
             'severity'=>$definitions[$code]['severity'],
-            'sensorState'=>$definitions[$code]['sensor'],
+            'sensorState'=>in_array($code,['http_404_surge','http_5xx_surge'],true)
+                ?'private_http_log_'.$httpSensor:$definitions[$code]['sensor'],
             'enabled'=>(bool)$r['enabled'],'threshold'=>(int)$r['threshold_count'],
             'cooldownMinutes'=>(int)$r['cooldown_minutes']];
     }
