@@ -16,10 +16,12 @@
   const summary=$('summary'),cards=$('accounts'),account=$('account');
   const decision=$('decision'),method=$('method'),file=$('file');
   const sha=$('sha'),confirm=$('confirm'),save=$('save');
+  const filter=$('filter'),previous=$('previous'),next=$('next'),pageLabel=$('page');
   if(!btn||!form||!status||!summary||!cards||!account||!decision||
-    !method||!file||!sha||!confirm||!save)return;
+    !method||!file||!sha||!confirm||!save||!filter||!previous||!next||!pageLabel)return;
   const numeral=new Intl.NumberFormat(fa?'fa-IR':'en-US');
-  let controller=null,serial=0,busy=false,rows=[],queued=false;
+  let controller=null,serial=0,busy=false,rows=[];
+  let currentPage=1,totalPages=0;
   const visible=()=>!workspace.hidden&&container.open&&!document.hidden;
   const make=(tag,value,cls)=>{
     const el=document.createElement(tag);
@@ -46,21 +48,31 @@
         'CONTRACTED_AGE_ASSURANCE',
         'AUTHORIZED_INDEPENDENT_RECORD_REVIEW'].includes(method.value);
   }
+  function updatePager(){
+    previous.disabled=busy||!visible()||currentPage<=1;
+    next.disabled=busy||!visible()||totalPages===0||currentPage>=totalPages||currentPage>=200;
+    filter.disabled=busy;
+    pageLabel.textContent=totalPages>0
+      ?T('صفحه ','Page ')+numeral.format(currentPage)+T(' از ',' of ')+numeral.format(totalPages)
+      :T('هنوز صفحه‌ای دریافت نشده است','No page loaded');
+  }
   function reset(){
     ++serial;controller?.abort();controller=null;rows=[];busy=false;
+    currentPage=1;totalPages=0;filter.value='PENDING';
     account.replaceChildren();cards.replaceChildren();sha.value='';
     file.value='';confirm.checked=false;btn.disabled=false;save.disabled=true;
-    summary.textContent='';
+    summary.textContent='';updatePager();
     message(T('اطلاعات محرمانه فقط پس از ورود مدیر خوانده می‌شود.',
       'Private queue loads only after administrator authentication.'));
   }
   function render(data){
-    rows=data.records;cards.replaceChildren();account.replaceChildren();
+    rows=data.records;totalPages=Math.min(200,data.pages);
+    cards.replaceChildren();account.replaceChildren();
     const pending=data.counts?.PENDING;
     summary.textContent=T('درخواست‌های در انتظار بررسی: ','Requests pending independent review: ')+
       (Number.isSafeInteger(pending)?numeral.format(pending):T('نامشخص','Unknown'))+
-      T(' · فهرست حداکثر ۱۰۰ حساب آخر را نمایش می‌دهد.',
-        ' · Only the latest 100 accounts can appear.');
+      T(' · در هر صفحه حداکثر ۵۰ حساب نمایش داده می‌شود.',
+        ' · Up to 50 accounts are displayed per page.');
     if(rows.length===0){
       cards.append(make('p',T('درخواست ثبت‌شده‌ای در فهرست فعلی وجود ندارد.',
         'No records are listed in this current owner snapshot.')));
@@ -89,17 +101,18 @@
     if(data.limitedResults===true)cards.append(make('p',
       T('درخواست‌های دیگری نیز وجود دارند؛ فهرست عمداً محدود شده است.',
         'Additional accounts exist; the private list is intentionally bounded.')));
-    sha.value='';file.value='';confirm.checked=false;updateForm();
+    sha.value='';file.value='';confirm.checked=false;updateForm();updatePager();
   }
   async function load(){
     if(!visible()||busy)return false;
     const id=++serial;
     controller?.abort();controller=new AbortController();
-    busy=true;btn.disabled=true;save.disabled=true;
+    busy=true;btn.disabled=true;save.disabled=true;updatePager();
     message(T('در حال دریافت صف درخواست‌های واقعی…',
       'Loading the real private eligibility request queue…'));
     try {
-      const response=await fetch('/api/admin/operations/education-adult-review',{
+      const params=new URLSearchParams({state:filter.value,page:String(currentPage)});
+      const response=await fetch('/api/admin/operations/education-adult-review?'+params.toString(),{
         method:'GET',credentials:'same-origin',cache:'no-store',
         headers:{Accept:'application/json'},signal:controller.signal
       });
@@ -108,12 +121,18 @@
       if(id!==serial||!visible())return false;
       if(data?.ok!==true||data.schema!=='jr.bahar-adult-review-queue.v1'||
         data.noDocumentsCollected!==true||
-        !Array.isArray(data.records)||data.records.length>100||
+        !Array.isArray(data.records)||data.records.length>50||
         typeof data.counts!=='object'||data.counts===null||
-        data.automaticApproval!==false&&data.state!=='SCHEMA_NOT_PROVISIONED')
+        (data.automaticApproval!==false&&data.state!=='SCHEMA_NOT_PROVISIONED')||
+        data.page!==currentPage||data.pageSize!==50||
+        (data.state!=='SCHEMA_NOT_PROVISIONED'&&(
+          data.filterState!==filter.value||!Number.isSafeInteger(data.pages)||
+          data.pages<0||!Number.isSafeInteger(data.totalMatching)||
+          data.totalMatching<0)))
         throw Error('INCOMPATIBLE_QUEUE');
       if(data.state==='SCHEMA_NOT_PROVISIONED'){
-        rows=[];cards.replaceChildren();account.replaceChildren();
+        rows=[];totalPages=0;cards.replaceChildren();account.replaceChildren();
+        updatePager();
         message(T('جداول افزایشی احراز بزرگسالی هنوز نصب نشده‌اند؛ هیچ حسابی تأیید نشده است.',
           'The additive independent adult-review tables are not provisioned. No user was approved.'));
         return false;
@@ -126,16 +145,28 @@
       return true;
     }catch(e){
       if(id!==serial||e?.name==='AbortError')return false;
-      rows=[];account.replaceChildren();cards.replaceChildren();
-      summary.textContent='';
+      rows=[];totalPages=0;account.replaceChildren();cards.replaceChildren();
+      summary.textContent='';updatePager();
       message(T('صف درخواست‌ها قابل خواندن نیست؛ وضعیت تأیید هیچ حسابی فرض نمی‌شود.',
         'Unable to read private queue; no account eligibility is presumed.'));
       return false;
     }finally{
-      if(id===serial){controller=null;busy=false;btn.disabled=false;updateForm();}
+      if(id===serial){controller=null;busy=false;btn.disabled=false;updateForm();updatePager();}
     }
   }
   btn.addEventListener('click',load);
+  filter.addEventListener('change',()=>{
+    if(busy)return;
+    currentPage=1;totalPages=0;load();
+  });
+  previous.addEventListener('click',()=>{
+    if(busy||currentPage<=1)return;
+    currentPage--;load();
+  });
+  next.addEventListener('click',()=>{
+    if(busy||totalPages<=currentPage||currentPage>=200)return;
+    currentPage++;load();
+  });
   for(const item of [account,decision,method,confirm])
     item.addEventListener('change',updateForm);
   file.addEventListener('change',async()=>{
