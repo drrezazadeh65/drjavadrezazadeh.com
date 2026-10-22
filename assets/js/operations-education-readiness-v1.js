@@ -78,6 +78,19 @@
         target:'ops-education-offers'
       },
       {
+        title:T('آماده‌سازی خدمات برای عرضه','Educational offer release preparation'),
+        count:deps.educationalPreparationReadyForReview,
+        state:deps.educationalPreparationLedgerReady===true
+          ?T('دفتر پیشرفت مدیر موجود است · انتشار غیرفعال',
+              'Owner preparation available · publication OFF')
+          :T('دفتر پیشرفت هنوز در دیتابیس آماده نیست',
+              'Preparation ledger not yet provisioned'),
+        detail:T('برای هر بسته آموزشی شش بخش محتوا، علم، تحویل، حریم خصوصی، پرداخت و کیفیت موبایل را جداگانه مدیریت کنید؛ علامت‌گذاری، تأیید نهایی نیست.',
+          'Track six preparation areas per offer: science, content, delivery, privacy, payment and UX. Owner progress is not independent approval.'),
+        button:T('مدیریت آمادگی ۱۲ خدمت','Manage all 12 offers'),
+        target:'ops-education-release-gates'
+      },
+      {
         title:T('کیفیت صفحات و سئوی قابل اصلاح','Page quality & SEO priorities'),
         count:deps.pageQualityWeakOnPageSeoPages,
         state:deps.pageQualitySourceInventoryAvailable===true
@@ -196,6 +209,13 @@
         labelBool(deps.baharMotherDatabaseColumnsPresent)],
       [T('پایگاه داده پیش‌نویس قیمت آموزشی','Educational draft-pricing schema'),
         labelBool(deps.educationalDraftPricingStorageReady)],
+      [T('آمادگی دفتر پیشرفت خدمات آموزشی','Educational offer preparation ledger ready'),
+        labelBool(deps.educationalPreparationLedgerReady)],
+      [T('بخش‌های تهیه‌شده برای بازبینی مستقل','Offer steps ready for independent review'),
+        Number.isSafeInteger(deps.educationalPreparationReadyForReview)
+          ?number.format(deps.educationalPreparationReadyForReview)+' / '+
+            number.format(deps.educationalPreparationGateCount??0)
+          :T('نامشخص','Unknown')],
       [T('پیشنهادهای ذخیره‌شده توسط مالک','Saved owner draft overrides'),
         deps.educationalDraftOverrides===null?T('نامشخص','Unknown'):
           number.format(deps.educationalDraftOverrides)],
