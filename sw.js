@@ -1,5 +1,5 @@
 /* JR Cache Standard v2.2 — encoded-route safe, response-aware, release-fresh */
-const CACHE_VERSION='jr-site-20261016-private-admin-pwa-ux-v1';
+const CACHE_VERSION='jr-site-20261022-education-mobile-journey-v1';
 const CACHE_FAMILY='jr-site-';
 const SHELL_CACHE=CACHE_VERSION+'-shell';
 const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
@@ -12,8 +12,19 @@ const CORE=[
   '/favicon.svg',
   '/assets/images/pwa-icon-192.png',
   '/assets/images/pwa-icon-512.png',
-  '/assets/images/pwa-icon-maskable-512.png'
+  '/assets/images/pwa-icon-maskable-512.png',
+  // New PUBLIC, non-personal educational shell only. Private dashboards,
+  // passwords, uploaded workbooks and admin API responses are NEVER precached.
+  '/fa/masir-man/','/en/my-path/','/fa/bahar/','/en/bahar/',
+  '/assets/css/jr-bahar-public-v1.css',
+  '/assets/js/jr-bahar-public-v1.js',
+  '/assets/js/jr-bahar-compass-v1.js',
+  '/assets/js/jr-need-router-v1.js',
+  '/assets/js/jr-journey-pwa-v1.js'
 ];
+
+const PUBLIC_LEARNING_SHELL=new Set(CORE.filter(url=>
+  url.startsWith('/fa/')||url.startsWith('/en/')||url.startsWith('/assets/')));
 
 const PRIVATE_PREFIXES=[
   '/api/','/fa/services/checkout/','/fa/shop/golden-talent/checkout/',
@@ -216,7 +227,12 @@ self.addEventListener('fetch',event=>{
   // exists it may be used only after a real network failure; never substitute
   // the generic offline page for a production URL.
   if(req.mode==='navigate'){
-    event.respondWith(freshNetwork(req,{store:true}));
+    event.respondWith(freshNetwork(req,{
+      store:true,
+      // Offline fallback is ONLY the exact already precached public URL.
+      // Never mask a real 404 or substitute an unrelated app document.
+      fallback:PUBLIC_LEARNING_SHELL.has(url.pathname)?url.pathname:null
+    }));
     return;
   }
   if(req.destination==='document'){
@@ -227,7 +243,10 @@ self.addEventListener('fetch',event=>{
   // CSS/JS: network-first so a successful deploy is never hidden behind stale app-shell assets.
   // JSON/manifests follow the same mutable-code policy.
   if(isAsset && isMutableCode(url)){
-    event.respondWith(freshNetwork(req,{store:true}));
+    event.respondWith(freshNetwork(req,{
+      store:true,
+      fallback:PUBLIC_LEARNING_SHELL.has(url.pathname)?url.pathname:null
+    }));
     return;
   }
 
