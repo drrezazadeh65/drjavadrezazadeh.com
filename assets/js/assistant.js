@@ -36,16 +36,20 @@
   let history=[];
   let busy=false;
   let lastQuery='';
-  const visitorKey='jr-assistant-visitor-v1';
+  // Never create a persistent cross-visit pseudonymous identifier merely
+  // for opening public guidance or voluntarily asking a question. The legacy
+  // request header remains available for rate-limiting/deduplication, but is
+  // now an ephemeral per-page token, erased on navigation or unload.
+  let ephemeralVisitorId=null;
   function visitorId(){
+    if(ephemeralVisitorId!==null)return ephemeralVisitorId;
     try{
-      let id=localStorage.getItem(visitorKey);
-      if(!id){
-        id=(crypto?.randomUUID?.()||('v-'+Date.now()+'-'+Math.random().toString(36).slice(2))).slice(0,80);
-        localStorage.setItem(visitorKey,id);
-      }
-      return id;
-    }catch(e){return 'session-'+Date.now();}
+      ephemeralVisitorId=window.crypto?.randomUUID?.()||
+        ('v-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+    }catch(e){
+      ephemeralVisitorId='v-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+    }
+    return ephemeralVisitorId.slice(0,80);
   }
   const rootPath=p=>{
     const clean=String(p||'').replace(/^\/+/, '');
