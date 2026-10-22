@@ -1888,7 +1888,7 @@ function renderMasterEngineConsole(host,model){
  const references=el('p',t('منابع ثبت‌شده: ','Catalogued providers: ')+
    (model.providerInventory?.status==='catalogue_only'?providers.length:t('نامشخص','Unknown'))+
    ' · '+t('اتصال خارجی تأییدشده: ','Verified provider connections: ')+
-   (model.providerInventory?.status==='catalogue_only'?'0':t('نامشخص','Unknown')));
+   t('نامشخص؛ نیازمند احراز اتصال','Unknown; provider verification required'));
  wrap.append(references,el('p',t(
    'این وضعیت از شواهد خصوصی سرور محاسبه شده است؛ وجود کارت، اسکریپت یا منبع خارجی به معنای اجرای موفق یا اتصال زنده نیست.',
    'This view uses private server records. A card, script or provider listing does not prove a live connection or successful execution.')));
@@ -3090,9 +3090,9 @@ function renderOwnerCommandCenter(){
    const controlsVerified=rights[item.id]===true;
    const pendingRights=Object.prototype.hasOwnProperty.call(rights,item.id)&&!controlsVerified;
    const controlCaption=controlsVerified
-     ?t('کنترل‌های مدیر ارشد تأیید شده','Owner management controls verified')
+     ?t('مجوز سرور دریافت شد؛ عملکرد هنوز آزموده نشده','Server permission observed; execution unverified')
      :pendingRights
-       ?t('دسترسی مدیریتی هنوز احراز نشده','Management privileges not yet verified')
+       ?t('دسترسی مدیریتی هنوز از پاسخ سرور تأیید نشده','Management permission not yet confirmed by API')
        :t('قابلیت‌های این بخش در صفحه اختصاصی','Module-specific controls in its workspace');
    const error=ownerCockpitReadErrors[item.load];
    const display=error?state('unknown',
