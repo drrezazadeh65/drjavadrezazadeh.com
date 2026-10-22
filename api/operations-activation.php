@@ -23,6 +23,105 @@ function operationsActivationRequiredTables(): array {
         'operations_content_drafts','operations_content_revisions'
     ];
 }
+/**
+ * Frozen source-derived column and named-index signature for operationsInstall.
+ * A matching signature still does not prove FK/ENUM/collation compatibility.
+ * This is a private read-only DDL *preflight*, never an auto migrator.
+ */
+function operationsActivationExpectedColumns(): array {
+    return [
+        'operations_admin_memberships'=>['account_id'=>'char','role'=>'enum','enabled'=>'tinyint','created_at'=>'bigint'],
+        'operations_session_mfa'=>['session_hash'=>'char','account_id'=>'char','verified_at'=>'bigint','expires_at'=>'bigint','last_counter'=>'bigint','credential_hash'=>'char'],
+        'operations_mfa_counters'=>['account_id'=>'char','last_counter'=>'bigint'],
+        'operations_evidence'=>['sequence_id'=>'bigint','evidence_id'=>'char','section_id'=>'varchar','gate_id'=>'varchar','result'=>'enum','release_sha'=>'char','source'=>'varchar','source_url'=>'varchar','test_name'=>'varchar','environment'=>'enum','checked_at'=>'bigint','expires_at'=>'bigint','details_json'=>'text'],
+        'operations_audit'=>['sequence_id'=>'bigint','actor_id'=>'char','action'=>'varchar','reference_id'=>'varchar','occurred_at'=>'bigint'],
+        'operations_release'=>['singleton_id'=>'tinyint','release_sha'=>'char','published_at'=>'bigint'],
+        'operations_action_runs'=>['run_id'=>'char','account_id'=>'char','action_id'=>'varchar','request_key'=>'char','release_sha'=>'char','status'=>'enum','created_at'=>'bigint','finished_at'=>'bigint','result_json'=>'text'],
+        'operations_collection_policies'=>['scope_key'=>'varchar','enabled'=>'tinyint','cadence'=>'enum','clock_minutes'=>'smallint','next_due'=>'bigint','updated_at'=>'bigint'],
+        'operations_collection_cache'=>['scope_key'=>'varchar','fetched_at'=>'bigint','expires_at'=>'bigint','body_json'=>'mediumtext'],
+        'operations_collection_attempts'=>['attempt_id'=>'bigint','scope_key'=>'varchar','attempted_at'=>'bigint','result'=>'enum','failure_code'=>'varchar'],
+        'operations_source_controls'=>['source_id'=>'varchar','enabled'=>'tinyint','cadence'=>'enum','weekday'=>'tinyint','clock_minutes'=>'smallint','retention_days'=>'smallint','next_due'=>'bigint','updated_at'=>'bigint'],
+        'operations_source_metric_samples'=>['sample_id'=>'bigint','source_id'=>'varchar','metric_key'=>'varchar','metric_value'=>'decimal','unit'=>'varchar','observed_at'=>'bigint','expires_at'=>'bigint','evidence_type'=>'enum','created_at'=>'bigint'],
+        'operations_alert_settings'=>['singleton_id'=>'tinyint','enabled'=>'tinyint','updated_at'=>'bigint'],
+        'operations_alert_rules'=>['event_code'=>'varchar','enabled'=>'tinyint','threshold_count'=>'smallint','cooldown_minutes'=>'smallint','updated_at'=>'bigint'],
+        'operations_alert_scope_policies'=>['scope_id'=>'varchar','enabled'=>'tinyint','updated_at'=>'bigint'],
+        'operations_alert_incidents'=>['fingerprint'=>'char','event_code'=>'varchar','scope_key'=>'varchar','severity'=>'enum','first_seen_at'=>'bigint','last_seen_at'=>'bigint','occurrence_count'=>'bigint','state'=>'enum','last_queued_at'=>'bigint'],
+        'operations_alert_outbox'=>['message_id'=>'char','fingerprint'=>'char','status'=>'enum','created_at'=>'bigint','attempted_at'=>'bigint','sent_at'=>'bigint'],
+        'operations_http_log_cursor'=>['singleton_id'=>'tinyint','log_inode'=>'varchar','byte_offset'=>'bigint','updated_at'=>'bigint'],
+        'operations_http_error_routes'=>['route_hash'=>'char','route_path'=>'varchar','classification'=>'enum','http_status'=>'smallint','total_hits'=>'bigint','first_seen_at'=>'bigint','last_seen_at'=>'bigint'],
+        'operations_http_observation_batches'=>['batch_id'=>'bigint','observed_at'=>'bigint','records_read'=>'int','errors_404'=>'int','errors_5xx'=>'int'],
+        'operations_response_probe_settings'=>['singleton_id'=>'tinyint','enabled'=>'tinyint','cadence'=>'enum','weekday'=>'tinyint','clock_minutes'=>'smallint','retention_days'=>'smallint','next_due'=>'bigint','requested_at'=>'bigint','updated_at'=>'bigint'],
+        'operations_response_probe_samples'=>['sample_id'=>'bigint','probe_id'=>'varchar','kind'=>'enum','observed_at'=>'bigint','response_code'=>'smallint','result'=>'enum','details_json'=>'text','expires_at'=>'bigint'],
+        'operations_content_drafts'=>['id'=>'char','language'=>'enum','content_type'=>'enum','title'=>'varchar','body_markdown'=>'mediumtext','seo_title'=>'varchar','seo_description'=>'varchar','media_path'=>'varchar','status'=>'enum','version'=>'int','created_at'=>'bigint','updated_at'=>'bigint','updated_by'=>'char'],
+        'operations_content_revisions'=>['revision_id'=>'bigint','draft_id'=>'char','version'=>'int','title'=>'varchar','body_markdown'=>'mediumtext','seo_title'=>'varchar','seo_description'=>'varchar','media_path'=>'varchar','status'=>'enum','created_at'=>'bigint','actor_id'=>'char'],
+    ];
+}
+function operationsActivationExpectedIndexes(): array {
+    return [
+        'operations_evidence'=>['idx_operations_release'],
+        'operations_action_runs'=>['uq_ops_actor_request','idx_ops_actor_history','idx_ops_action_status'],
+        'operations_collection_policies'=>['idx_collector_due'],
+        'operations_collection_cache'=>['idx_collector_expires'],
+        'operations_collection_attempts'=>['idx_ops_collection_attempt','idx_ops_collection_attempt_time'],
+        'operations_source_controls'=>['idx_source_controls_due'],
+        'operations_source_metric_samples'=>['idx_ops_sample_source_time','idx_ops_sample_expiration'],
+        'operations_alert_scope_policies'=>['idx_ops_alert_scope_enabled'],
+        'operations_alert_incidents'=>['idx_ops_incident_time','idx_ops_incident_code'],
+        'operations_alert_outbox'=>['idx_ops_alert_due','idx_ops_alert_incident'],
+        'operations_http_error_routes'=>['idx_ops_http_404_priority'],
+        'operations_http_observation_batches'=>['idx_ops_http_batch_time'],
+        'operations_response_probe_samples'=>['idx_ops_probe_key_time','idx_ops_probe_expires'],
+        'operations_content_drafts'=>['idx_editor_draft_status','idx_editor_draft_lang'],
+        'operations_content_revisions'=>['uq_editor_version','idx_editor_revisions'],
+    ];
+}
+/**
+ * information_schema diagnosis is observational, never a repair operation.
+ * Missing metadata privileges, absent table or failed reads yield unknown.
+ */
+function operationsActivationStructure(PDO $pdo,array $present): array {
+    $types=operationsActivationExpectedColumns();
+    $indexes=operationsActivationExpectedIndexes();
+    $observed=[];$seenIndexes=[];
+    try {
+        $q=$pdo->query("SELECT TABLE_NAME,COLUMN_NAME,DATA_TYPE
+            FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE()
+              AND TABLE_NAME LIKE 'operations\\_%'");
+        foreach($q as $row)$observed[(string)$row['TABLE_NAME']][(string)$row['COLUMN_NAME']]
+            =strtolower((string)$row['DATA_TYPE']);
+        $q=$pdo->query("SELECT TABLE_NAME,INDEX_NAME
+            FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE()
+              AND TABLE_NAME LIKE 'operations\\_%'");
+        foreach($q as $row)$seenIndexes[(string)$row['TABLE_NAME']][(string)$row['INDEX_NAME']]=true;
+    }catch(Throwable $e) {
+        return ['state'=>'metadata_unavailable','checkedColumns'=>null,
+            'missingColumns'=>null,'typeMismatches'=>null,
+            'missingIndexes'=>null,'foreignKeysChecked'=>false];
+    }
+    $missing=[];$mismatch=[];$absentIndexes=[];$checked=0;
+    foreach($types as $table=>$expected) {
+        if(!isset($present[$table]))continue; // table absence is reported separately.
+        foreach($expected as $column=>$type){
+            $checked++;
+            $actual=$observed[$table][$column]??null;
+            if($actual===null)$missing[]=$table.'.'.$column;
+            elseif($actual!==$type)$mismatch[]=$table.'.'.$column.' ('.$type.' vs '.$actual.')';
+        }
+    }
+    foreach($indexes as $table=>$names){
+        if(!isset($present[$table]))continue;
+        foreach($names as $name)if(!isset($seenIndexes[$table][$name]))
+            $absentIndexes[]=$table.'.'.$name;
+    }
+    $ok=!$missing&&!$mismatch&&!$absentIndexes;
+    return ['state'=>$ok?'source_column_and_index_names_match':
+        'source_column_or_index_discrepancy',
+        'checkedColumns'=>$checked,'missingColumns'=>$missing,
+        'typeMismatches'=>$mismatch,'missingIndexes'=>$absentIndexes,
+        'foreignKeysChecked'=>false,
+        'limitations'=>'Column base types and explicitly named indexes only; FK, unique inline constraints, precision, collation, nullability and ENUM values not certified.'];
+}
+
 function operationsActivationLast(PDO $pdo,string $sql): ?int {
     try {
         $value=$pdo->query($sql)->fetchColumn();
@@ -86,7 +185,12 @@ function operationsActivationReport(PDO $pdo,array $configuration,int $at): arra
             'presentCount'=>$inventory==='unavailable'?null:
                 count(array_filter($needed,static fn($table)=>isset($present[$table]))),
             'missing'=>$missing,
-            'foreignKeysChecked'=>false,'columnContractsChecked'=>false,
+            'structure'=>$inventory==='unavailable'?[
+                'state'=>'table_inventory_unavailable',
+                'missingColumns'=>null,'typeMismatches'=>null,
+                'missingIndexes'=>null,'foreignKeysChecked'=>false
+            ]:operationsActivationStructure($pdo,$present),
+            'foreignKeysChecked'=>false,'columnContractsChecked'=>$inventory!=='unavailable',
             'migrationExecuted'=>false,'migrationsVersioned'=>false
         ],
         'smtp'=>[
