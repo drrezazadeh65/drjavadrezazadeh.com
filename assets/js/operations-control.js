@@ -531,7 +531,8 @@ async function collectionManualRefresh(scopeId,button){
 }
 
 function collectionControlsRender(parent){
- const box=el('details',undefined,'ops-collection-settings');box.open=collectionExpanded;
+ const box=el('details',undefined,'ops-collection-settings');
+ box.id='ops-collection-settings';box.open=collectionExpanded;
  box.addEventListener('toggle',()=>{collectionExpanded=box.open;});
  box.append(el('summary',t('زمان‌بندی و کنترل منابع ۱۳ موتور','Schedule and control 13-engine data collection')));
  box.append(el('p',t('نمایش داشبورد فقط از دیتابیس مادر می‌خواند؛ منابع بیرونی فقط طبق زمان‌بندی یا درخواست صریح مدیر واکشی می‌شوند.','The dashboard reads only private database snapshots; external providers run only on a schedule or on explicit administrator request.')));
