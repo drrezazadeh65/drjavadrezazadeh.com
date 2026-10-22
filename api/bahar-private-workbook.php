@@ -405,6 +405,22 @@ function baharAccountErasureRequest(PDO $pdo,string $actor): array {
         ]);
         baharAccountAudit($pdo,$actor,'BAHAR_ACCOUNT_WORKBOOK_DELETE_REQUESTED');
         $pdo->commit();
+        // The privacy decision commits BEFORE the existing incident recorder
+        // opens its own transaction. Only a fixed, non-identifying scope is
+        // emitted: never send account IDs, request IDs or workbook content.
+        // The consent/erasure response must not depend on alert availability,
+        // recipient setup or an administrator opting into email.
+        try {
+            require_once __DIR__.'/operations-alerts.php';
+            if (function_exists('operationsAlertRecord')) {
+                operationsAlertRecord(
+                    $pdo,'bahar_private_erasure_requested',
+                    'bahar-workbook-erasure',nowTs()
+                );
+            }
+        } catch (Throwable $ignored) {
+            // Email is optional; a completed privacy transaction is final.
+        }
         return [
             'ok'=>true,'schema'=>'jr.bahar-private-erasure-request.v1',
             'requestId'=>$requestId,'requestStatus'=>$status,
