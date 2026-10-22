@@ -485,6 +485,7 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
   await expect(controls.locator('input[type=checkbox]').nth(1)).not.toBeChecked();
   await controls.locator('[data-db-health-save]').click();
   await expect.poll(()=>configured).toBe(1);
+  await controls.locator('summary').click();
   await page.evaluate(()=>{window.confirm=()=>true;});
   await controls.locator('[data-db-health-purge-preview]').click();
   await expect.poll(()=>purges).toBe(1);
