@@ -238,11 +238,16 @@ function jrInterestProcessEmailToken(PDO $pdo,array $body,string $action): never
            (int)($row['expires_at']??0)<=$now)
             throw new DomainException('invalid_or_expired');
         $locale=(string)$row['preferred_locale'];
-        if(!in_array($locale,['fa','en'],true)||
+        // A current notice is mandatory for NEW authorization, but it must
+        // never become a barrier to an existing subscriber withdrawing.
+        // Retired notice versions and hashes may still be revoked using the
+        // holder's original withdrawal token; no new consent is granted.
+        if($action==='confirm'&&(
+           !in_array($locale,['fa','en'],true)||
            $row['consent_version']!==JR_EDU_INTEREST_NOTICE_VERSION||
            !hash_equals(hash('sha256',jrInterestNotice($locale)),
-              (string)$row['consent_notice_sha256']))
-            throw new DomainException('notice_not_current');
+              (string)$row['consent_notice_sha256'])
+        ))throw new DomainException('notice_not_current');
         if($action==='confirm'){
             if(($row['status']??'')!=='PENDING'||
                (int)($row['verification_expires_at']??0)<=$now)
