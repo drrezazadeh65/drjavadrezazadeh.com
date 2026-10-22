@@ -167,6 +167,29 @@ function bindRetry(){
   finally{button.disabled=false}
  });
 }
+function postLoginDestination(){
+ // A learner may have explicitly selected "continue in my account" from
+ // the FREE BAHAR page. Resume only that exact known local route, never
+ // an arbitrary redirect URL or an unsanitized query-string destination.
+ const fallback=lang==='en'?'/en/account/':'/fa/customer-dashboard/';
+ try{
+  const key='jr.bahar.pending-account-transfer.v1';
+  const raw=sessionStorage.getItem(key);
+  if(!raw||raw.length>32000)return fallback;
+  const item=JSON.parse(raw),now=Date.now();
+  if(item?.schema!=='jr.bahar.same-tab-continuation.v1'||
+     !Number.isFinite(item.issuedAt)||!Number.isFinite(item.expiresAt)||
+     item.expiresAt<now||item.issuedAt>now+30000||
+     item.expiresAt-item.issuedAt>5*60*1000||
+     item.workbook?.schema!=='jr.bahar.private-workbook.v1'||
+     item.workbook?.version!=='1.0.0'){
+   sessionStorage.removeItem(key);return fallback;
+  }
+  return lang==='en'
+   ?'/en/golden-talent/dashboard/bahar/#jr-bahar-account'
+   :'/fa/app/student/bahar/#jr-bahar-account';
+ }catch(_){return fallback;}
+}
 function bindLogin(){
  const form=$('[data-auth-form="login"]');if(!form)return;
  form.addEventListener('submit',async e=>{
@@ -177,7 +200,7 @@ function bindLogin(){
    const {r}=await call('/auth/login',{email:fd.get('email'),password:fd.get('password')});
    if(!r.ok)throw new Error();
    setStatus(text.loginOk,'success');
-   location.assign(lang==='en'?'/en/account/':'/fa/customer-dashboard/');
+   location.assign(postLoginDestination());
   }catch{setStatus(text.badLogin,'error');form.querySelectorAll('[data-auth-live-control]').forEach(x=>x.disabled=false)}
  });
 }
