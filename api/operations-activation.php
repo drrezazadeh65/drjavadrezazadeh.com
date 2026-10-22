@@ -51,8 +51,11 @@ function operationsActivationReport(PDO $pdo,array $configuration,int $at): arra
     }catch(Throwable $e){$present=[];}
     $missing=$inventory==='unavailable'?null:
         array_values(array_filter($needed,static fn(string $table):bool=>!isset($present[$table])));
-    $has=static fn(array $tables):bool=>$inventory!=='unavailable'
-        &&count(array_filter($tables,static fn($table)=>!isset($present[$table])))===0;
+    $has=static function(array $tables) use ($inventory,$present): bool {
+        if($inventory==='unavailable')return false;
+        foreach($tables as $table)if(!isset($present[$table]))return false;
+        return true;
+    };
     $collectionSchema=$has(['operations_collection_attempts']);
     $httpSchema=$has(['operations_http_log_cursor']);
     $responseSchema=$has(['operations_response_probe_samples']);
