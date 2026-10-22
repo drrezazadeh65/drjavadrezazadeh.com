@@ -18,6 +18,7 @@ require_once __DIR__.'/operations-education-source-review.php';
 require_once __DIR__.'/operations-education-readiness.php';
 require_once __DIR__.'/operations-education-privacy.php';
 require_once __DIR__.'/operations-education-workbook-policy.php';
+require_once __DIR__.'/operations-education-adult-review.php';
 require_once __DIR__.'/operations-education-interests.php';
 require_once __DIR__.'/operations-book-expiration.php';
 require_once __DIR__.'/operations-donation-recovery.php';
@@ -667,6 +668,30 @@ function operationsRoute(string $path, string $verb): never {
                 catch(Throwable $e){fail('email_interest_suppression_unavailable',503);}
             }
             fail('unknown_educational_interest_action',422);
+        }
+
+        // Verified-adult BAHAR requests: MFA super-admin human review queue.
+        // No scanned documents, minor records, automated eligibility or storage.
+        if($path==='/admin/operations/education-adult-review' && $verb==='GET'){
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'ops_adult_eligibility_queue',$accountId,12,300))
+                fail('rate_limited',429);
+            respond(operationsBaharAdultReviewQueue($pdo));
+        }
+        if($path==='/admin/operations/education-adult-review' && $verb==='POST'){
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'ops_adult_eligibility_decision',$accountId,6,600))
+                fail('rate_limited',429);
+            $request=jsonBody();
+            try{respond(operationsBaharAdultReviewDecide($pdo,$request,$accountId));}
+            catch(InvalidArgumentException $e){fail('invalid_independent_age_review',422);}
+            catch(DomainException $e){fail('eligibility_state_conflict',409);}
+            catch(Throwable $e){fail('eligibility_review_write_unavailable',503);}
         }
 
         // Existing ENG-13 controller: bounded 54-reference source directory.
