@@ -12,10 +12,10 @@
   const locale=en?'en':'fa';
   const $=key=>root.querySelector('[data-jr-account-bahar-'+key+']');
   const notice=$('notice'),state=$('state'),refresh=$('refresh');
-  const consent=$('consent'),requestAdult=$('request-adult');
+  const consent=$('consent'),requestAdult=$('request-adult'),cancelAdult=$('cancel-adult');
   const file=$('file'),preview=$('preview'),localExport=$('local-export');
   const save=$('save'),download=$('download'),withdraw=$('withdraw'),erase=$('erase');
-  if(!notice||!state||!refresh||!consent||!requestAdult||!file||
+  if(!notice||!state||!refresh||!consent||!requestAdult||!cancelAdult||!file||
     !preview||!localExport||!save||!download||!withdraw||!erase)return;
   let identity=null,localDraft=null,readEpoch=0,busy=false,controller=null;
   const active=()=>root.open&&!document.hidden;
@@ -37,6 +37,10 @@
       identity?.independentlyVerifiedAdult===false && csrf;
     requestAdult.hidden=!canRequest;
     requestAdult.disabled=!canRequest||busy;
+    const canCancel=identity?.schemaProvisioned===true&&
+      identity?.canCancelPendingAdultReview===true&&csrf;
+    cancelAdult.hidden=!canCancel;
+    cancelAdult.disabled=!canCancel||busy;
     file.disabled=!allowed||busy;
     // Local backup never requires a login, verified age, payment or
     // permission to transmit notes. It does require a draft in this tab.
@@ -56,6 +60,7 @@
     busy=false;identity=null;localDraft=null;
     file.value='';localExport.disabled=true;requestAdult.hidden=true;
     requestAdult.disabled=true;
+    cancelAdult.hidden=true;cancelAdult.disabled=true;
     notice.replaceChildren();preview.replaceChildren();
     setState(note||T('تا زمانی که خودتان درخواست نکنید، هیچ داده حسابی خوانده نمی‌شود.',
       'No account data is requested until you explicitly choose to inspect it.'));
@@ -91,6 +96,7 @@
         typeof result.currentConsent!=='boolean'||
         typeof result.eligibilityRequestState!=='string'||
         typeof result.canRequestIndependentAdultReview!=='boolean'||
+        typeof result.canCancelPendingAdultReview!=='boolean'||
         result.contentReturned!==false||
         (result.workbookRevision!==null &&
           (!Number.isSafeInteger(result.workbookRevision)||
@@ -305,11 +311,43 @@
     if(result?.eligibilityRequestState){
       identity.eligibilityRequestState=result.eligibilityRequestState;
       identity.canRequestIndependentAdultReview=false;
+      identity.canCancelPendingAdultReview=
+        result.eligibilityRequestState==='PENDING';
       restrict();
       setState(T(
         'درخواستت ثبت شد. نیازی به بارگذاری کارت شناسایی در سایت نیست؛ پس از بررسی مستقل، ذخیرهٔ اختیاری برای حسابت قابل پیگیری خواهد بود.',
         'Your request is recorded. No identity document needs uploading here. Optional encrypted saving can be considered after independent review.'
       ));
+    }
+  });
+  cancelAdult.addEventListener('click',async()=>{
+    if(!identity?.canCancelPendingAdultReview||busy||!active())return;
+    if(!window.confirm(T(
+      'درخواست در انتظار بررسی حساب را لغو می‌کنی؟ برنامه آموزشی روی دستگاهت باقی می‌ماند.',
+      'Cancel your pending eligibility request? Your local study plan will remain available.'
+    )))return;
+    const result=await command(T('در حال لغو درخواست…',
+      'Canceling your pending application…'),async()=>{
+      const response=await userMutation('eligibility-cancel',{
+        confirmation:'CANCEL MY PENDING REVIEW'
+      });
+      if(response?.ok!==true||
+         response.schema!=='jr.bahar-adult-review-cancellation.v1'||
+         response.verifiedAdultStateUntouched!==true||
+         response.workbookDeleted!==false)
+        throw Error('CANCEL_NOT_CONFIRMED');
+      return response;
+    });
+    if(result?.pendingRequestCancelled===true){
+      identity.eligibilityRequestState='NOT_REQUESTED';
+      identity.canRequestIndependentAdultReview=true;
+      identity.canCancelPendingAdultReview=false;
+      restrict();
+      setState(T('درخواستت لغو شد. هر زمان خواستی می‌توانی دوباره درخواست بررسی بدهی؛ یادگیری رایگان ادامه دارد.',
+        'Your pending request was canceled. You can request review again later and continue learning free.'));
+    }else if(result?.ok===true){
+      setState(T('درخواستی برای لغو پیدا نشد؛ دوباره وضعیت حساب را دریافت کن.',
+        'No pending request was canceled. Refresh your account status.'));
     }
   });
   refresh.addEventListener('click',()=>updateStatus());
