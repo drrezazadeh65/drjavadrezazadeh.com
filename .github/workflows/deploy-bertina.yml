@@ -67,9 +67,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # SEO safety: existing route paths, hyperlinks, canonicals, sitemap URLs
-      # and redirect rules are immutable. New additive URLs remain permitted.
-      # Fail before any live release or hosting action if the frozen contract changes.
+      # GOV-004 / SEO-URL-001: established PUBLIC URL identities, historical
+      # sitemap page URLs, canonical targets and permanent redirects are frozen.
+      # Internal navigation hyperlinks and page content remain editable; new
+      # URLs may be added. Fail closed before any live release for URL violations.
       - name: Enforce immutable existing public URL contract
         run: |
           node scripts/jr-immutable-url-guard.mjs
