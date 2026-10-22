@@ -417,6 +417,29 @@ function operationsAlertUpdate(PDO $pdo,array $input,string $actor): void {
     }
 }
 /**
+ * Send-time sensor revocation check for independently controlled collectors.
+ * Mail preferences alone do not control whether an observer is permitted to
+ * collect. Turning a sensor OFF also prevents its ALREADY QUEUED notices from
+ * leaving the worker, even when global/rule/feature switches remain ON.
+ * Fail closed if the governed private config or mother-DB policy is absent.
+ */
+function operationsAlertSensorPermitted(PDO $pdo,array $configuration,string $code): bool {
+    if(in_array($code,['security_headers_regressed','redirects_regressed'],true)){
+        try{
+            $enabled=$pdo->query('SELECT enabled FROM operations_response_probe_settings
+                WHERE singleton_id=1')->fetchColumn();
+            return $enabled!==false&&(int)$enabled===1;
+        }catch(Throwable $e){return false;}
+    }
+    if(in_array($code,['http_404_surge','http_5xx_surge'],true)){
+        $path=$configuration['operations_access_log_path']??null;
+        // Only the owner-configured private absolute path may authorize a
+        // log-based notice. This is not proof that logs are recent or readable.
+        return is_string($path)&&strlen($path)>1&&str_starts_with($path,'/');
+    }
+    return true;
+}
+/**
  * One mail worker pass, invoked only from a CLI-only task. Reserve BEFORE SMTP;
  * ambiguous acceptance is terminal 'uncertain', never blindly retried.
  */
@@ -445,7 +468,8 @@ function operationsAlertSendBatch(PDO $pdo,array $configuration,callable $transp
             // Send-time check is required: the owner may disable a motor,
             // feature, source or event AFTER an incident was queued.
             if(!(bool)$row['rule_enabled'] ||
-                !operationsAlertScopeEnabled($pdo,(string)$row['event_code'],(string)$row['scope_key'])){
+                !operationsAlertScopeEnabled($pdo,(string)$row['event_code'],(string)$row['scope_key']) ||
+                !operationsAlertSensorPermitted($pdo,$configuration,(string)$row['event_code'])){
                 $pdo->prepare("UPDATE operations_alert_outbox SET status='suppressed'
                     WHERE message_id=? AND status='pending'")
                     ->execute([$row['message_id']]);
