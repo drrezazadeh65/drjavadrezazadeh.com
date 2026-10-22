@@ -11,10 +11,19 @@
   // The fallback is a pre-existing need-led public search page, not a new API.
   const fallback=typeof home==='string'&&/^\/(?:fa\/masir-man|en\/my-path)\/#need$/.test(home)
     ?home:(document.documentElement.lang==='fa'?'/fa/masir-man/#need':'/en/my-path/#need');
+  entry.href=fallback;
 
   function sync(){
     const assistant=document.querySelector('.jr-assistant-panel');
+    const launcher=document.querySelector('.jr-assistant-launcher');
     entry.setAttribute('aria-expanded',String(!!assistant&&!assistant.hidden));
+    // The redundant floating launcher is visually hidden on the homepage
+    // mobile shell. Restore focus to the visible dock proxy on close/Escape.
+    if(assistant?.hidden&&window.matchMedia('(max-width:900px)').matches&&
+      (document.activeElement===launcher||
+       assistant.contains(document.activeElement))){
+      entry.focus({preventScroll:true});
+    }
   }
   entry.addEventListener('click',event=>{
     // A normal link works if this enhancement fails or JS is disabled.
