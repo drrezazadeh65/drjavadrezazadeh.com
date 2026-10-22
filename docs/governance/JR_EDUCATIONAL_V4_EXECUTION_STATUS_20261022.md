@@ -151,3 +151,26 @@ This source-only continuation implements the following on `migration/bertina-lin
 - The new consented-audience overview links directly to the already-existing bilingual owner panel, with stable in-page IDs; no parallel email database was introduced.
 
 **Continuing blockers, NOT PASS:** signed independent original 1405 PDF and full amendment review, scientific/psychometric validation, live mother-DB migration/keys, actual entitlement and payment fulfilment, host-specific runtime confirmation, real user consent privacy acceptance, and the single final integrated test and owner-controlled deployment. All source changes are saved in GitHub; nothing in this entry proves their execution in production.
+
+
+## 2026-10-22 — Stage 6 source continuation: private erasure incident and RCAS public discovery
+
+**Source branch:** `migration/bertina-linux6`. **Status:** COMMITTED SOURCE ONLY; NO TESTS, NO DB MIGRATION, NO HOST DEPLOYMENT, NO PAYMENT ACTIVATION. Existing protected public URLs and the established RCAS Start routes are unchanged.
+
+### A. Connect the previously declared erasure alert to the real event producer
+
+- `api/bahar-private-workbook.php` now invokes the **existing** `operationsAlertRecord()` only after a **new** `eco_privacy_requests` erasure record, the scoped privacy action, any legally permitted workbook deletion and audit have been committed atomically. It does not emit again when the existing unresolved request is reused. The recorder begins its own short operations DB transaction only *after* the learner request transaction commits.
+- The emitter uses only the allowlisted incident `bahar_private_erasure_requested` and a **fixed non-identifying scope** (`bahar-workbook-erasure`). It does not pass workbook content, customer name, account identifier, request identifier, contact data or HTTP input into the incident/email outbox.
+- Incident recording is best-effort and cannot invalidate a completed privacy erasure: missing operations tables, disabled rules, missing SMTP/recipients or recorder faults do not turn a successful privacy transaction into an error. Email still requires the existing global switch, matching incident rule, explicit feature-scope opt-in, actual configured transport and scheduled outbox dispatch. The source-only `docs/migrations/20261022_bahar_private_alert_rules.sql` is **NOT EXECUTED** and all new BAHAR incident rules remain default OFF. No email delivery is claimed.
+- The existing operations alert definitions and scope policies were reused; no duplicate notification engine, mailbox or database was added.
+
+### B. Public bilingual RCAS service entry without altering free assessment URLs
+
+- Created `fa/rcas/index.html`, `en/rcas/index.html`, and mobile-first `assets/css/jr-rcas-public-landing-v1.css`. These are **new** public, indexable information pages, with self canonicals, reciprocal `fa/en` hreflang and a conservative `x-default`. No published URL is redirected, removed or renamed.
+- Each page explains the existing RCAS constructs, research/validation limits, free 28-prompt starter, privacy choices, optional separate BAHAR follow-up and unapproved paid-service status. Both existing `/fa/assessments/golden-talent/start/` and `/en/golden-talent/assessment/` remain the free action destinations; their noindex/private-sensitive treatment was not modified.
+- Added only the two **new** RCAS URL records to `sitemap-fa.xml` and `sitemap-en.xml`, with truthful source modification date 2026-10-22, updating those two child sitemap dates in the sitemap index without touching other URL entries. Existing bilingual Golden Talent pages now offer contextual internal links to the new explanatory pages while retaining direct free-start links.
+- `api/operations-education-readiness.php` now inventories both public RCAS landing files and the two pre-existing assessment files; the engine's independent science, runtime, commercial and release flags still correctly remain `false`.
+
+### Remaining end-stage verification and external gates
+
+**All acceptance checks NOT RUN.** Confirm final-stage route availability, canonical/hreflang, sitemap immutability, English/Persian mobile accessibility, real RCAS start navigation, private PWA/cache boundaries, operations event generation and no-repeat behavior, actual rule/scope opt-in, recipient and email worker configuration, audit/idempotence and erasure legal-hold concurrency on a production-representative database. Actual MariaDB provisioning, independent privacy/scientific review, official 1405 approvals, bank settlement, and owner-controlled release remain BLOCKED or UNVERIFIED. Do not infer live availability or delivered notifications from these commits.
