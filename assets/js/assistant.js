@@ -36,6 +36,8 @@
   let history=[];
   let busy=false;
   let lastQuery='';
+  let activeRequest=null;
+  let requestGeneration=0;
   // Never create a persistent cross-visit pseudonymous identifier merely
   // for opening public guidance or voluntarily asking a question. The legacy
   // request header remains available for rate-limiting/deduplication, but is
@@ -198,6 +200,8 @@
       return;
     }
     busy=true;lastQuery=message.trim();
+    const requestToken=++requestGeneration;
+    let controller=null,timer=null;
     input.disabled=true;
     form.querySelector('button').disabled=true;
     addMessage('user',lastQuery);
@@ -207,8 +211,9 @@
     thread.appendChild(pending);
     thread.scrollTop=thread.scrollHeight;
     try{
-      const controller=new AbortController();
-      const timer=setTimeout(()=>controller.abort(),30000);
+      controller=new AbortController();
+      activeRequest=controller;
+      timer=setTimeout(()=>controller.abort(),30000);
       const res=await fetch(endpoint,{
         method:'POST',
         mode:'cors',
@@ -221,9 +226,9 @@
         }),
         signal:controller.signal
       });
-      clearTimeout(timer);
       if(!res.ok) throw new Error('assistant '+res.status);
       const data=await res.json();
+      if(requestToken!==requestGeneration||document.hidden)return;
       if(!data?.answer) throw new Error('assistant empty');
       pending.remove();
       addMessage('assistant',data.answer,data.links||[]);
@@ -231,10 +236,17 @@
       history=history.slice(-8);
     }catch(e){
       pending.remove();
-      const f=fallback(lastQuery);
-      addMessage('assistant',f.answer,f.links);
+      if(requestToken===requestGeneration&&!document.hidden){
+        const f=fallback(lastQuery);
+        addMessage('assistant',f.answer,f.links);
+      }
     }finally{
-      busy=false;input.disabled=false;form.querySelector('button').disabled=false;input.focus();
+      if(timer!==null)clearTimeout(timer);
+      if(activeRequest===controller)activeRequest=null;
+      if(requestToken===requestGeneration){
+        busy=false;input.disabled=false;form.querySelector('button').disabled=false;
+        if(!panel.hidden&&!document.hidden)input.focus();
+      }
     }
   }
 
@@ -251,6 +263,20 @@
     }
   });
   close.addEventListener('click',()=>{panel.hidden=true;launcher.setAttribute('aria-expanded','false');launcher.focus();});
+  const clearEphemeralAssistant=()=>{
+    // Backgrounded mobile PWAs must not keep private text visible in a
+    // resumable tab or accept late async responses after a user leaves.
+    requestGeneration++;
+    activeRequest?.abort();activeRequest=null;
+    history=[];lastQuery='';busy=false;ephemeralVisitorId=null;
+    thread.replaceChildren();input.value='';input.disabled=false;
+    form.querySelector('button').disabled=false;
+    panel.hidden=true;launcher.setAttribute('aria-expanded','false');
+  };
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden)clearEphemeralAssistant();
+  });
+  window.addEventListener('pagehide',clearEphemeralAssistant);
   form.addEventListener('submit',e=>{e.preventDefault();const q=input.value.trim();if(!q)return;input.value='';ask(q);});
   input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();form.requestSubmit();}});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){panel.hidden=true;launcher.setAttribute('aria-expanded','false');launcher.focus();}});
