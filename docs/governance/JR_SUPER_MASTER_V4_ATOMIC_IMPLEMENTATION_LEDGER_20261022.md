@@ -1,0 +1,141 @@
+# JR Super Master v4.0 — Atomic Requirement Traceability Ledger
+**Governing document:** [JR Integrated Educational Intelligence — SUPER MASTER DEVELOPMENT PROMPT v4.0, 2026-10-22](https://docs.google.com/document/d/1A_PPQFWjNxL0VQ9FUOGBKDCoXinbrLdBp6Tsrv_bGWc/edit), including owner override and appended stage-6 work through paragraph 105.
+**Canonical repository and branch:** `drrezazadeh65/drjavadrezazadeh.com` · `migration/bertina-linux6`.
+**Frozen URL policy:** `docs/governance/FROZEN_PUBLIC_URL_PERMANENCE_POLICY_20261022.md`. **Required final tests:** `docs/governance/JR_EDUCATIONAL_V4_SINGLE_FINAL_ACCEPTANCE_MATRIX_20261022.md`. **Worklog:** `docs/governance/JR_EDUCATIONAL_V4_EXECUTION_STATUS_20261022.md`.
+
+## Interpretation — source changes are not acceptance
+Statuses: **SOURCE** = source files/code found or additive source changes committed, never live-certified; **PARTIAL** = some components exist but a named implementation/operational dependency remains; **GATED** = impossible to call ready without real third-party, legal, scientific, financial, private host or qualified-person evidence; **OPEN** = source work must be reconciled/implemented. **NOT RUN** applies to *all* browser, API, database, privacy, mobile, SEO, performance and payment acceptance tests, even when a source candidate is marked SOURCE. Nothing here authorizes migration, cron, owner e-mail, sale, journal intake, access to child records or deployment.
+
+Every row is an indivisible acceptance concern from the original 2026-10-22 v4.0 text and binding addenda. “Primary trace” is a review location, not proof that all requirements in that row work. No status means PASS. Additional constraints in `AGENTS.md` and frozen bilingual SEO standards remain binding.
+
+## Atomic requirement map
+
+| ID / master ¶ | Exact requirement to preserve or implement | Source state | Primary trace / next evidence |
+|---|---|---|---|
+| GOV-01/5-13 | One repository, one existing Bertina PHP 8.3/LiteSpeed/MariaDB host, one existing mother DB and no parallel identity, commerce, engine or admin stack | **SOURCE** | AGENTS.md; database mother plan; reconcile actual branch HEAD |
+| GOV-02/12 | Historical SHA is not current HEAD or live release proof | **GATED** | Actual GitHub HEAD, immutable release candidate and host proof |
+| GOV-03/13,78 | No deletion/renaming/repointing of previously published URLs, historical sitemap URLs or established canonical identities | **SOURCE** | Frozen public-URL registry and guard; final source/production comparison |
+| GOV-04/78 | Content, links, truthful lastmod, new public URLs and correct bilingual hreflang may be added without rewriting old routes | **SOURCE** | New fa/en RCAS entries, both sitemaps; SEO gate NOT RUN |
+| GOV-05/79 | NO iterative tests or builds in the owner-directed source-development phase; one final integrated acceptance afterwards | **SOURCE** | AGENTS.md; final acceptance matrix, all gates NOT RUN |
+| GOV-06/80 | Source commit does not prove scientific validity, bank payment, enrolment, deployment, operational email or service live state | **SOURCE** | Status ledger; explicit false/not-verified contracts |
+| UX-01/14-15 | Need-led information architecture; users never need to know an engine acronym before choosing | **PARTIAL** | Bilingual need-first home cards and personal path; first-user audit deferred |
+| UX-02/15 | Prominent “what am I good at?” entry | **SOURCE** | Existing public Golden Talent discovery route; live/browser inspection deferred |
+| UX-03/15 | Prominent “how should I study?” and BAHAR entry | **SOURCE** | fa/en BAHAR public free routes; direct check deferred |
+| UX-04/15 | Prominent “analyze my scorecard” entry with no early mandatory signup | **PARTIAL** | Admission Intelligence homepage/lab flow; end-to-end mapping deferred |
+| UX-05/15 | Prominent official-university-options entry, separate from unvalidated estimates | **GATED** | 1405 approved official records before trustworthy public options |
+| UX-06/15 | Prominent “compare university choices” and Choice Studio decision entry | **PARTIAL** | Existing Choice Studio; revisit public need cards and safe actions |
+| UX-07/15 | Prominent “build my development pathway” and Golden Path entry | **PARTIAL** | Existing research-stage Golden Talent/Golden Path, not paid results |
+| UX-08/15,26 | Conversational/help/search entry; does not invent AI responses or official data | **PARTIAL** | Public assistant currently fallback; real AI orchestration GATED |
+| UX-09/15,63 | >=90% representative first-user task discovery in five seconds; <=2 taps to first action | **GATED** | Measured user-study protocol and final observations; NOT RUN |
+| GT-01/17 | Keep Golden Talent construct IDs, scoring version and evidence/provenance distinct from labels | **PARTIAL** | Existing Golden Talent science files; independent scientific review required |
+| GT-02/17 | Golden Talent free meaningful first step accessible without purchase | **SOURCE** | fa/en Golden Talent free worksheet; source-only |
+| GT-03/17 | Extended Golden Talent report strictly requires valid scientific evidence, delivery and entitlement | **GATED** | Report acceptance, approved product, user entitlement and human review |
+| RCAS-01/18 | Do not silently expand/redefine RCAS acronym, population or psychometric properties | **SOURCE** | fa/en RCAS explanatory pages neutral research-stage name |
+| RCAS-02/18 | Free RCAS introductory 28-prompt activity and clear non-diagnostic limits | **SOURCE** | Existing FA/EN assessment start routes and new fa/en/rcas pages |
+| RCAS-03/18 | RCAS-to-other-engine transfer versioned, documented, permission scoped and non-automatic | **PARTIAL** | Consent-based formative handoff; validate in final engine contracts |
+| BAH-01/19 | Introduce BAHAR methodology, foundations, population, objectives and limitations | **PARTIAL** | Bilingual BAHAR page; independently editorially assess sections |
+| BAH-02/19,33 | Publish first TWO complete BAHAR sections free, not a teaser or entire paid book | **SOURCE** | fa/en BAHAR free learning; source reviewed, content acceptance NOT RUN |
+| BAH-03/19 | No invented author chapters or unapproved substantive content; manuscript inventory and editorial permission | **GATED** | Author-reviewed source manuscripts and scientific editorial approval |
+| BAH-04/19,47 | Editable goal, weekly plan, revisions, checkpoints, personal export/import and continuation | **PARTIAL** | BAHAR free formative workspace + local workbook, final behavior NOT RUN |
+| BAH-05/19,88-90 | Exactly one optional warm, purpose-specific save popup with explicit yes and continue-without-saving | **SOURCE** | Bilingual BAHAR workbook handoff, privacy UX standard; NOT RUN |
+| BAH-06/88-90 | Full notice can expand in place; no extra checkboxes, forced login, marketing or repetitive popups | **SOURCE** | Single-popup account JS; browser/accessibility verification deferred |
+| BAH-07/89-90 | Free study and local private file available if account storage refused/unavailable | **SOURCE** | BAHAR local JSON export and same-tab continuation; NOT RUN |
+| BAH-08/90 | Short-lived <=5-minute same-tab workbook handoff never puts notes in URL | **SOURCE** | Bilingual private handoff code; final cache/storage audit deferred |
+| BAH-09/90 | Do not overwrite an existing encrypted workbook automatically | **SOURCE** | Saved-revision gate and manual save; concurrency tests deferred |
+| BAH-10/101 | Adult-only private notes require independent identity verification, current scope consent, server feature key and encryption | **PARTIAL** | api/bahar-private-workbook.php; host key/migration/independent approval GATED |
+| BAH-11/101 | Independent adult-review request is PENDING only; no uploaded identity document and no automatic approval | **SOURCE** | Adult review API and existing learner controls; final tests NOT RUN |
+| BAH-12/101 | Owner age approval/revocation, user cancellation and workbook GET/PUT serialized on same owner account lock | **SOURCE** | Adult review and BAHAR private PHP lock order; concurrent acceptance NOT RUN |
+| BAH-13/101 | Latest grant and withdrawals, retired notice checks and exact versioned consent remain authoritative | **SOURCE** | BAHAR private PHP grants/withdrawals; race/notice test NOT RUN |
+| BAH-14/101 | Erasure request records existing privacy tables and audit; blocks lawful-hold deletion | **SOURCE** | eco_privacy_* integration; owner review; tests NOT RUN |
+| BAH-15/101 | Erasure withdrawal of former storage consent is atomic across user request, direct DELETE, owner completion | **SOURCE** | BAHAR private and owner privacy PHP; tests NOT RUN |
+| BAH-16/101 | No silent re-save while erasure unresolved; free device copy still available | **SOURCE** | BAHAR private account client JS; bilingual shells, NOT RUN |
+| BAH-17/101 | No claim of backup erasure or deletion of retention/finance/other account data | **SOURCE** | Privacy API response flags; independent retention evidence GATED |
+| BAH-18/101 | BAHAR owner status available with purpose-specific consent but without raw notes/auto-fetch | **SOURCE** | Bilingual customer-dashboard bridge JS/CSS and account pages; NOT RUN |
+| AID-01/20,28 | Scorecard flow: exam -> provider -> manual input -> normalization review -> analysis -> program discovery -> Choice Studio -> save/export | **PARTIAL** | Existing admissions lab, manual entry, transfer; integrated navigation acceptance required |
+| AID-02/20 | Official vs mock-provider results, historical observation and estimates separated in schema and labels | **PARTIAL** | Admission source policy and scorecard adapters; official provenance GATED |
+| AID-03/20 | Never treat MAZ/Kanun/other providers' TAZ scales as comparable without evidence | **PARTIAL** | Provider-specific normalization contracts and final evaluator review |
+| AID-04/28 | OCR only after quality/privacy gate, never prerequisite for manual entry | **SOURCE** | User-authorized manual-first flow; OCR not enabled by this ledger |
+| AID-05/37-41 | Original 1405 official guides and all amendments across named streams verified page-by-page | **GATED** | Original Drive PDFs, per-page external human attestation and amendments |
+| AID-06/39 | Crawlers lawful/rate-limited/terms-compliant; no CAPTCHA or access-control bypass | **PARTIAL** | Source intake governance; provider permissions and robots verification |
+| AID-07/40 | Every published program has issuer, original file/year/version/date/page/table/row, unchanged code zeros, campus, capacity, quotas, restrictions, extraction and approvers | **GATED** | Official programme-row signed source compiler; publicReady=false |
+| AID-08/40 | Preserve raw extracted and approved versions separately; immutable history and amendments | **PARTIAL** | 1405 versioned source registry and approvals; host persistence GATED |
+| AID-09/41 | ~2412 extracted anchors remain historically UNREVIEWED; don't treat as certified count | **SOURCE** | Admission source review inventory and owner worksheets; actual count recheck deferred |
+| AID-10/42 | Historical cutoff ranks/TAZ provenance separate from official current capacity; no fake last-rank figures | **GATED** | Legitimate year/quota-specific historical evidence; no public claims |
+| AID-11/43 | Offer pre-prediction descriptive eligibility/catalog/filter and historical comparisons without numeric odds | **PARTIAL** | Existing admissions/Choice Studio read-only workflows; official records GATED |
+| PRED-01/44-45 | Label descriptive history, deterministic eligibility, scenarios, estimates and calibrated probability separately | **PARTIAL** | Model governance contracts; external validation remains blocked |
+| PRED-02/45 | Probability only with held-out-year authorized outcomes, calibration, Brier/ECE/log-loss/fairness/coverage/drift | **GATED** | Independent validation evidence and model governance before production |
+| PRED-03/45 | Show 'insufficient evidence' and abstain instead of invented odds; keep research predictors private | **SOURCE** | Scientific source gates; final behavior NOT RUN |
+| PATH-01/21 | Golden Path synthesizes approved evidence without duplicating Golden Talent, RCAS or BAHAR | **PARTIAL** | Existing source contracts and professional review evidence |
+| PATH-02/21,49 | User revises pathway; version, uncertainty and human override preserved | **PARTIAL** | Golden Path and Choice Studio integration; privacy/UX tests |
+| CHO-01/22 | Choice Studio is central decision workspace, not another psychometric test | **SOURCE** | Existing Choice Studio descriptive contract; test NOT RUN |
+| CHO-02/22,49 | Preserve existing five criterion logic with adjustable weights and explainable tradeoffs | **SOURCE** | Existing Choice Studio; final regression NOT RUN |
+| CHO-03/22,49 | Mobile option cards: program/campus/city/route/restrictions/verified tuition/evidence freshness | **PARTIAL** | Choice Studio presentation; authoritative data GATED |
+| CHO-04/22,49 | Accessible preference reorder beyond drag/drop and saved alternatives | **PARTIAL** | Choice Studio existing UI; device/screen-reader acceptance NOT RUN |
+| CHO-05/22,49 | Versioned printable comparison/report with optional human review | **PARTIAL** | Export and review controls; real evidence acceptance required |
+| CHO-06/22,49 | Never auto-submit official admissions applications | **SOURCE** | Decision support only; no automated official submission authorized |
+| AI-01/23 | AI assistant orchestrates reviewed facts, deterministic rules and validated models | **PARTIAL** | Current static fallback; live reviewed model backend GATED |
+| AI-02/23 | No invented official capacity/codes/quotas/cutoffs/probabilities; cite date and uncertainty | **GATED** | Authoritative corpus and prompt-injection/RAG defenses acceptance |
+| AI-03/23 | Abstain when evidence is insufficient and surface source freshness | **PARTIAL** | Source-only fallback; actual live assistant contract verification required |
+| MOB-01/24-25 | All FA/EN phones 320/360/375/390/414/430, tablet and desktop, RTL/LTR | **GATED** | Single final real-device/browser matrix NOT RUN |
+| MOB-02/25 | Gold/ivory/charcoal/black, Persian logo, readable contrast, responsive media | **PARTIAL** | Shared premium CSS and icons; visual checks deferred |
+| MOB-03/25 | 44px targets, safe areas, keyboard focus, screen reader, reduced motion and accessible controls | **PARTIAL** | Mobile CSS and semantic source; WCAG audits NOT RUN |
+| MOB-04/25 | Honest loading/errors/empty states, no overflow, too-deep navigation or intrusive popup | **PARTIAL** | Existing dashboard mobile tabs and BAHAR bridge; UX audit NOT RUN |
+| MOB-05/26 | Bottom mobile navigation Home/Explore/AI Assistant/My Account | **PARTIAL** | Current application navigation; confirm this exact four-action global requirement |
+| MOB-06/26 | Compare four versus six need cards in actual usability study | **GATED** | Representative user study NOT RUN |
+| MOB-07/27 | Assessment shows purpose/time/privacy/progress/resume/feedback/next action | **PARTIAL** | Free RCAS assessment; first-run accessibility audit pending |
+| MOB-08/29 | Desktop major services visible and navigable; optional premium mega-menu | **PARTIAL** | Desktop nav and homepage; final browser acceptance NOT RUN |
+| COM-01/30-33 | Every major service has indexable landing/limits/free preview; paid scope transparent | **PARTIAL** | RCAS new fa/en intro, Golden Talent/BAHAR and other service pages |
+| COM-02/31 | Show proposed vs approved price, refund/privacy/delivery process honestly; no premature buy CTA | **PARTIAL** | Draft price admin API and public service limitations; real product gating |
+| COM-03/31 | No paid content hidden in public HTML by CSS; use verified server-side entitlements | **GATED** | Entitlement/payment fulfillment and secure delivery proof |
+| COM-04/32-34 | 12 proposed prices from master are NOT live approvals; four introductory offers permanently free | **SOURCE** | Owner 12-offer catalogue, immutable free-intro ID contract |
+| COM-05/34 | Preserve existing Mirkarimi 1m-toman product and existing contractual allocations/book prices | **SOURCE** | Existing publishing and commerce ledger; actual finance reconciliation |
+| COM-06/35 | Owner controls pricing/promo/validity/coupons/entitlement/report count/activation/capacity/refunds | **PARTIAL** | Existing commerce/consultation controls plus educational owner drafts |
+| COM-07/35 | Reuse authentic BitPay and approved USDT BEP-20 callbacks/claims/manual approval, audit and receipts | **GATED** | Existing payment modules; settlement/credential/refund E2E NOT RUN |
+| COM-08/36 | Recheck MAZ/Ozhanco/Heyva/AKO/Sunjob offerings with official dated scope and real prices | **GATED** | Fresh provider-source research and price comparison before publication |
+| COM-09/59-60 | Consent-respecting conversion/success/delivery/retention/consultation metrics; no fabricated revenue | **PARTIAL** | Admin commerce evidence bridge; actual provider observations GATED |
+| COM-10/60 | No dark patterns, artificial scarcity, guarantee of university admission | **SOURCE** | User-first standard and science claims; content/legal audit NOT RUN |
+| DASH-01/50-51 | One verified user account across consent, BAHAR, academic scores, Choice Studio, reports, sales and bookings | **PARTIAL** | Existing customer dashboard and same-origin account APIs |
+| DASH-02/51 | Mobile contextual tabs/next step, no endless single-screen dashboard scroll | **PARTIAL** | Existing customer dashboard sections; mobile usability NOT RUN |
+| DASH-03/52-53 | One existing MFA admin console; no duplicated administrative stack | **SOURCE** | api/operations.php and FA/EN existing admin routes |
+| DASH-04/53 | Owner controls service/previews/scientific versions/official sources/models and quality | **PARTIAL** | Six-engine readiness + proposed-release gates and source review |
+| DASH-05/53 | Owner sees revenue/conversion/backlog/payment claims and separate settled finance evidence | **PARTIAL** | Existing admin commerce bridge; real settlement remains external |
+| DASH-06/53 | Owner sees 404, 5xx, headers, site health, page-by-page SEO/content/images/UI/UX/GEO/speed | **PARTIAL** | Operations evidence strip, page-quality source inventory; live metrics GATED |
+| DASH-07/53 | Granular owner-disabled-by-default email alert toggles, real sensors and audit-safe writes | **PARTIAL** | Existing operations alerts/scope policies; missing rules shown; SMTP/Cron proof GATED |
+| DASH-08/53 | RBAC/recent 2FA/CSRF/audit, backup, incident escalation; no cross-browser 2FA bypass | **GATED** | Existing owner MFA/operations routes; security & UX tests NOT RUN |
+| DB-01/54-55 | One existing MySQL/MariaDB mother DB with governed schema and role boundaries | **SOURCE** | Mother plan; phpMyAdmin schema and migration reconciliation deferred |
+| DB-02/55 | Isolated ownership for source/scorecards/model decisions/entitlements/payment/audit, existing IDs and FK | **PARTIAL** | database/unified + canonical existing platform modules |
+| DB-03/55 | Additive migration only after backup/restore proof, type/FK compatibility and rollback rehearsal | **GATED** | Migration handoff; actual production DB access owner controlled |
+| DB-04/55 | No national ID for exploratory learning; private upload safety, malware scan and retention | **PARTIAL** | Consent/PII protection policies; real upload scan host evidence GATED |
+| DB-05/55 | CSRF, rate limiting, safe encoding, session controls, RAG prompt-injection boundaries | **PARTIAL** | Existing PHP router and security module; security test NOT RUN |
+| SEO-01/56-57 | Frozen bilingual international SEO standard; canonical/hreflang, schema accuracy, internal links | **PARTIAL** | Bilingual source plus sitemap changes; live search QA NOT RUN |
+| SEO-02/57 | Private results and account/commerce routes noindex/no-store, uncacheable under LiteSpeed/PWA | **GATED** | API header contracts and service worker; live cache verification NOT RUN |
+| SEO-03/57 | No fabricated ratings, Person claims, validation badges, rankings or AI citations | **SOURCE** | Public research-stage copy and conservative schema; full audit deferred |
+| SEO-04/57 | Consistent mobile PWA and desktop app updates, one install prompt, safe public offline pages | **PARTIAL** | Existing service worker/manifest; desktop app and final update cycle GATED |
+| PERF-01/58 | LCP<=2.5s, INP<=200ms, CLS<=0.1 only under defined measured conditions | **GATED** | Real-world and lab performance audit NOT RUN |
+| PERF-02/58 | WCAG 2.2 AA; no horizontal scroll on smallest mobile | **GATED** | Automated + manual keyboard/screen reader/small-device audit NOT RUN |
+| QA-01/61-63 | End-stage unit/integration/contract/security/privacy/browser/accessibility/regression matrix | **GATED** | Final acceptance matrix: ALL TESTS NOT RUN |
+| QA-02/62 | Anonymous/new/returning/free/paid, guardians, incomplete assessment, negative scores, no guide, failed payment | **GATED** | Edge-case personas and transactions in final single acceptance |
+| QA-03/62 | Interrupted mobile sessions, deletion/backups, MFA and renewal, consent revocation, PWA update | **GATED** | Mobile/practical security matrix NOT RUN |
+| QA-04/63 | Zero critical unresolved security defects; release candidate with immutable SHA and proof | **GATED** | Single final QA, dependency proof and owner release authorization |
+| QA-05/63 | Real first-action/two-tap discoverability and >=90% measured success study | **GATED** | Representative task studies NOT RUN |
+| S6-01/96-99 | Private super-admin read-only actual commerce + opt-in interest aggregates; not profit or conversion | **SOURCE** | operations-education-business-bridge JS and MFA endpoints; live data NOT RUN |
+| S6-02/91-95 | Four-card first-screen owner education priority strip and direct drilldowns | **SOURCE** | Educational readiness panel/owner command; live/UX NOT RUN |
+| S6-03/91-93 | Owner-only official 1405 per-page worksheet; SHA checks not scientific approval | **SOURCE** | Official-source private review and compiler; human signatures GATED |
+| S6-04/100-103 | Scoping, audited BAHAR erasure requests with legal hold, owner queue and optional email | **PARTIAL** | Privacy APIs and emitted opt-in incident; SMTP worker and host proof GATED |
+| S6-05/104-105 | All 12 offers have six separately tracked owner preparation criteria; READY_FOR_REVIEW not approval | **SOURCE** | operations-education-release-gates API + private admin editor |
+| S6-06/104-105 | Only applicable nonfree offer needs payment criterion; no free intro monetization drift | **SOURCE** | Canonical permanent-free IDs and draft price guards |
+| S6-07/104-105 | Price proposal revision conflict, privacy-safe worklist export and DB readback | **SOURCE** | Existing price draft, release gate endpoints; final migration/QA NOT RUN |
+| S6-08/104-105 | No release from internal admin drafts; real content, scientific, financial and data rights remain separate | **GATED** | Owner-approved final eligibility/delivery proof and release gate |
+| REL-01/64-74 | Stages 0–6 source reconciliation with no regression; Stage 7 only after source completion | **PARTIAL** | Status ledger and this map; final QA owner timing override |
+| REL-02/73 | Stage 8 real release SHA, production-compatible migrations, backup/rollback and owner approval | **GATED** | Owner-controlled release procedure; NOT STARTED |
+| REL-03/74 | Stage 9 release via existing authorized Bertina workflow, post-publication live smoke evidence | **GATED** | NO DEPLOYMENT AUTHORIZED |
+## Atomic closure protocol, enforced for every continuation
+
+1. **Before editing:** read `AGENTS.md`, relevant source, the latest master Google Doc, this register, the execution ledger, and the single final acceptance matrix. Re-check the **active** branch, and reconcile concurrent author edits; never develop on archived branches.
+2. **For every code change:** identify its atomic ID above. Record the **actual file and commit** plus preserved URLs/FA-EN/mobile/private constraints. A new general feature may be added as a new row instead of silently omitted.
+3. **For every missing capability:** keep the ID in PARTIAL, OPEN or GATED with its exact dependency (e.g. scientific reviewer, legitimate source PDF, credential, bank statement, host cPanel, physical device study). Do not infer progress from number of files, proposed prices, synthetic dashboards, zero logs or passed assertions not run.
+4. **No early tests:** the owner explicitly deferred intentional QA suites, builds, runtime probes, deployment and DB migrations until source implementation is complete. The future single acceptance must test every row; its actual report may then mark PASS, FAIL, BLOCKED or NOT APPLICABLE with dated evidence.
+5. **Release:** freeze actual branch HEAD only after resolving all implementable rows and documenting nonimplementable external dependencies. Preserve current published URLs and commerce. Obtain authentic scientific/privacy/legal/financial/security acceptance. Then use only owner-approved Bertina deploy and observe real host responses separately. Never claim 100% ahead of that.
+6. **Audit output:** the current register is a source-level inventory, NOT a passing score or a permission slip to write to real student data. It must be updated on each meaningful integration; a one-line “done” does not close an atomic requirement.
+
+**Snapshot when created:** 117 separately articulated concerns, with intentionally conservative SOURCE/PARTIAL/GATED statuses. ALL acceptance checks still NOT RUN; NO actual database migrations or production deployment.
