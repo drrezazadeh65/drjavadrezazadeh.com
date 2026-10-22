@@ -935,7 +935,9 @@ function renderPageQuality(host){
    value=>{qualityFilters.index=value;qualityFilters.page=1;});
  const sort=select([['weakest',t('ضعیف‌ترین نخست','Weakest first')],
    ['strongest',t('قوی‌ترین نخست','Strongest first')],
-   ['route',t('ترتیب آدرس','Route order')]],qualityFilters.sort,t('ترتیب','Sort'),
+   ['route',t('ترتیب آدرس','Route order')],
+   ['editorial_priority',t('اولویت موضوعی و نقص منبع','Route theme and source gap priority')]],
+   qualityFilters.sort,t('ترتیب','Sort'),
    value=>{qualityFilters.sort=value;qualityFilters.page=1;});
  const search=el('input');search.type='search';search.value=qualityFilters.query;
  search.placeholder=t('جستجوی آدرس صفحه','Filter page URLs');
@@ -976,7 +978,13 @@ function renderPageQuality(host){
        }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
        finally{if(open.isConnected)open.disabled=false;}
      });
-     urlCell.append(open,el('small',record.language+' · '+(record.indexability||'')));row.append(urlCell);
+     urlCell.append(open,el('small',record.language+' · '+(record.indexability||'')));
+     if(record.editorialPriority){
+       urlCell.append(el('small',t('اولویت بررسی منبع: ','Source review priority: ')+
+         record.editorialPriority.reviewOrderValue+
+         ' · '+record.editorialPriority.routeTheme));
+     }
+     row.append(urlCell);
      for(const dimension of data.dimensions){
        const score=record.grades?.[dimension];
        const cell=el('td');
