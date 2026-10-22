@@ -189,3 +189,18 @@
  #ops-command-center .oc-triage-row button{width:100%}
  #ops-command-center .oc-quality-item{grid-template-columns:minmax(90px,1fr) 1fr auto;gap:5px}
 }
+
+/* Privilege proof belongs to the server, never inferred from card presence. */
+#ops-command-center .oc-department .oc-control-scope{
+  font-size:.73rem;color:var(--oc-muted);
+  border-top:1px solid rgba(230,237,247,.10);
+  padding-top:8px;margin-top:3px;display:flex;align-items:center;gap:7px
+}
+#ops-command-center .oc-control-scope::before{
+  content:"";display:inline-block;flex:0 0 7px;width:7px;height:7px;
+  border-radius:50%;background:#a2aebe
+}
+#ops-command-center .oc-control-scope[data-owner-controls="verified"]::before{
+  background:#83dec3
+}
+#ops-command-center [data-oc-fetch-sources]:disabled{opacity:.52;cursor:not-allowed}
