@@ -981,8 +981,11 @@ for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/
   await expect(links).toHaveCount(9);
   for(const target of ['ops-executive-stats','ops-queue','ops-commerce',
     'ops-social','ops-scientific-readiness','ops-jhela-maturity']){
-    await expect(nav.locator('a[href="#'+target+'"]')).toHaveCount(1);
+    await expect(nav.locator('a[href="#'+target+'"]:not([data-ops-target])')).toHaveCount(1);
     await expect(page.locator('#'+target)).toHaveCount(1);
+  }
+  for(const target of ['ops-alert-center','ops-page-quality']){
+    await expect(nav.locator('a[data-ops-target="'+target+'"][href="#ops-executive-stats"]')).toHaveCount(1);
   }
   const width=await page.evaluate(()=>
     Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-window.innerWidth);
