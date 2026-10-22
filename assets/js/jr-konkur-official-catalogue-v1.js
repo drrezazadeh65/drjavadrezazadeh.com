@@ -41,6 +41,20 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
  if(existingForm)root.insertBefore(block,existingForm);else root.append(block);
  let request=null,epoch=0,currentPage=1,lastFilter=null;
  const PAGE_SIZE=20,MAX_PAGE=250;
+ // Search is a PUBLIC GET route and can appear in origin request logs.
+ // Reject obvious contact details before constructing its URL. This is
+ // defensive hygiene, not a general-purpose personal-data classifier.
+ function unsafePublicSearch(input){
+  const value=String(input||'').normalize('NFKC');
+  if(/[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(value)||
+     /(?:https?:\/\/|www\.|\S+@\S+)/iu.test(value))return true;
+  const ascii=value.replace(/[۰-۹٠-٩]/gu,ch=>{
+    const cp=ch.codePointAt(0);
+    return String(cp>=0x6f0?cp-0x6f0:cp-0x660);
+  });
+  const joined=ascii.replace(/[^\p{L}\p{N}]/gu,'');
+  return /[0-9]{9,}/u.test(joined);
+ }
  function reset(){
   epoch++;if(request)request.abort();request=null;
   submit.disabled=false;previous.disabled=true;next.disabled=true;
@@ -69,11 +83,14 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
   const thisRequest=++epoch,controller=new AbortController();
   request=controller;submit.disabled=true;
   previous.disabled=true;next.disabled=true;
+  results.setAttribute('aria-busy','true');
+  const timeout=setTimeout(()=>controller.abort(),15000);
   status.textContent=t('در حال بررسی داده‌های بازبینی‌شده…','Checking reviewed official records…');
   try{
    const params=new URLSearchParams({year:'1405',limit:String(PAGE_SIZE),page:String(page)});
    const needle=lastFilter.query,groupCode=lastFilter.group;
-   if(needle.length>80)throw new Error('invalid_search');
+   if([...needle].length>80||unsafePublicSearch(needle))
+     throw new Error('unsafe_public_search');
    if(needle)params.set('q',needle);
    if(groupCode)params.set('group',groupCode);
    const response=await fetch('/api/konkur/programmes?'+params.toString(),{
@@ -200,12 +217,24 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
     t('پاسخ فاقد ردیف قابل نمایش با استناد کامل بود.',
       'No fully sourced record could be displayed.');
   }catch(error){
-   if(thisRequest===epoch&&error?.name!=='AbortError'){
+   if(thisRequest===epoch){
     results.replaceChildren();
-    status.textContent=t('داده تأییدشده در دسترس نیست؛ از پیش‌نویس شخصی استفاده کنید.',
-      'Verified catalogue unavailable; the personal draft remains available.');
+    status.textContent=error?.message==='unsafe_public_search'?
+      t('جست‌وجو فقط برای نام عمومی رشته یا دانشگاه است. اطلاعات شخصی، شماره تماس یا لینک وارد نکنید.',
+        'Search public programmes and universities only; do not enter contact details, personal IDs or links.'):
+      error?.name==='AbortError'?
+      t('درخواست متوقف شد یا پاسخ دیر رسید. می‌توانید دوباره جست‌وجو کنید.',
+        'The request was interrupted or timed out. You may search again.'):
+      t('کاتالوگ بازبینی‌شده در دسترس نیست؛ پیش‌نویس شخصی همچنان قابل استفاده است.',
+        'The source-reviewed catalogue is unavailable; the personal draft remains usable.');
    }
-  }finally{if(thisRequest===epoch){request=null;submit.disabled=false;}}
+  }finally{
+   clearTimeout(timeout);
+   if(thisRequest===epoch){
+    request=null;submit.disabled=false;
+    results.removeAttribute('aria-busy');
+   }
+  }
  }
  window.addEventListener('pagehide',()=>{lastFilter=null;reset();});
 }
