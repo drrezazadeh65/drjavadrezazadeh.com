@@ -106,3 +106,18 @@ Owner confirmed one short persuasive, optional and purpose-specific consent popu
 4. Source coding cannot establish live functionality. No tests, CI, build, database write to Bertina, production deploy, physical document review or URL migration has been executed in this session.
 
 **Owner constraint:** Continue source-only development until implementable changes are complete; then run **one comprehensive integrated test**, not intermediate tests, and preserve every previously published URL forever.
+
+
+## 2026-10-22 — Scoped privacy erasure and mother-database operational reconciliation (SOURCE ONLY)
+
+- Added a *user-requested* account-scoped BAHAR workbook deletion lifecycle to the existing mother DB `eco_privacy_requests`, `eco_privacy_actions` and `eco_audit_events`, reusing existing verified identity and CSRF/session gates. A live legal hold prevents an unauthorized deletion and makes an auditable `BLOCKED` request; without a hold only the current encrypted BAHAR account workbook may be deleted.
+- Privacy requests have stable references, idempotent pending handling and on-account status tracking (pending, held, or completed). A confirmed deletion does **not** claim backup erasure, journal/account/payment erasure or independent legal compliance.
+- Added a bilingual SUPER_ADMIN-only request review queue and explicit completion route. The owner must perform a fresh MFA/CSRF-authorized action and the backend independently reconfirms that all legal holds have cleared. The action is audited and cannot release a hold, delete unrelated account data, or retrieve private study notes.
+- Exposed actual aggregate request and legal-hold counts to the existing one-glance educational dashboard. Unknown database state stays UNKNOWN.
+- A separate **OFF-by-default** privacy-erasure email-alert rule/scope is defined and seeded in a **source-only, unapplied** additive SQL file. Its producer integration has **NOT** been completed or verified, so email notification of this event is **NOT OPERATIVE** and must not be claimed as active.
+- New file paths: `assets/js/operations-education-erasure-queue-v1.js`; existing bilingual admin HTML and education styles updated. Existing canonical public URLs, SEO preservation policies, user accounts, products and paid entitlements were not renamed.
+- All source-only changes remain **NOT TESTED, NOT DEPLOYED, and NOT MIGRATED**. The prior consolidated release gate, official 1405 human evidence audit, payment delivery approvals, age/guardian workflow review, field security and one final integrated acceptance are still outstanding.
+
+### Mother-database prerequisite
+
+The scoped privacy request path reuses the existing `database/unified/001_core_governance.sql` tables. The previously drafted `docs/migrations/20261022_bahar_verified_adult_encrypted_workbooks.sql` and `docs/migrations/20261022_education_offer_drafts_mysql.sql` remain **design files only**. No schema was applied to Bertina. The user requested stepwise guided production DB upgrades when needed; use a backup-first, staging-reviewed, owner-authorized change process only after the source development phase ends.
