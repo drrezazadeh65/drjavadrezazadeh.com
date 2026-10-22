@@ -432,3 +432,15 @@
   #ops-command-center .oc-module-grid{grid-template-columns:minmax(0,1fr)}
   #ops-command-center .oc-module-unit{padding:13px}
 }
+
+/* Never rely on a third-party display rule to uphold private-shell hiding. */
+#ops-workspace[hidden],#ops-auth[hidden],#ops-mobile-dock[hidden]{
+  display:none!important
+}
+#ops-workspace:target{scroll-margin-top:14px}
+#ops-workspace .ops-panel,#ops-workspace details[id]{
+  scroll-margin-top:clamp(12px,4vh,48px)
+}
+@media(prefers-reduced-motion:reduce){
+  #ops-workspace,#ops-workspace *{scroll-behavior:auto!important}
+}
