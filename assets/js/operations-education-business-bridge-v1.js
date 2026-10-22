@@ -16,11 +16,12 @@
   const T=(a,b)=>fa?a:b;
   const reload=panel.querySelector('[data-jr-business-reload]');
   const mainButton=panel.querySelector('[data-jr-business-open-main]');
+  const exportButton=panel.querySelector('[data-jr-business-export]');
   const status=panel.querySelector('[data-jr-business-status]');
   const cards=panel.querySelector('[data-jr-business-cards]');
-  if(!reload||!mainButton||!status||!cards)return;
+  if(!reload||!mainButton||!exportButton||!status||!cards)return;
   const n=new Intl.NumberFormat(fa?'fa-IR':'en-US');
-  let controller=null,request=0,busy=false;
+  let controller=null,request=0,busy=false,exportRows=[];
   const visible=()=>!workspace.hidden&&host.open&&!document.hidden;
   const text=(tag,value,cls)=>{
     const element=document.createElement(tag);
@@ -30,11 +31,13 @@
   };
   function reset(){
     request++;controller?.abort();controller=null;busy=false;
-    reload.disabled=false;cards.replaceChildren();
+    reload.disabled=false;exportButton.disabled=true;exportRows=[];
+    cards.replaceChildren();
     status.textContent=T('برای مشاهده شواهد تجاری، دریافت اطلاعات را خودتان آغاز کنید.',
       'Request the private business evidence when needed.');
   }
   function card(title,value,explanation){
+    exportRows.push([title,String(value),explanation]);
     const entry=document.createElement('article');
     entry.className='jr-edu-owner-command__card';
     entry.append(text('h4',title,'jr-edu-owner-command__title'));
@@ -57,7 +60,7 @@
        data.customerDetailsExposed!==false){
       throw Error('UNVERIFIED_OR_UNAVAILABLE_LEDGER');
     }
-    cards.replaceChildren();
+    cards.replaceChildren();exportRows=[];
     card(T('سفارش‌های پرداخت‌شده در دیتابیس','Paid-state order records'),
       count(orders.paidStateRecords),
       T('ثبت داخلی پرداخت؛ تسویه بانکی از این عدد قابل استنتاج نیست.',
@@ -106,6 +109,7 @@
       T('نبود زمان ارسال رسید، تأیید عدم دریافت یا نیازمند ارسال مجدد نیست.',
         'Missing receipt timestamp does not establish failed inbox delivery.'));
     const ready=fulfil.internalAvailability?.schemaReady===true;
+    exportButton.disabled=false;
     status.textContent=T(
       'این اعداد فقط از دفتر عملیاتی سایت استخراج شده‌اند. پیشنهادهای جدید آموزشی همچنان غیرقابل خرید هستند. ظرفیت مشاوره: ',
       'Figures are internal ledger observations. Educational proposals remain unpurchasable. Consultation capacity: ')+
@@ -116,7 +120,8 @@
     if(!visible()||busy)return;
     const generation=++request;
     controller?.abort();controller=new AbortController();busy=true;
-    reload.disabled=true;cards.replaceChildren();
+    reload.disabled=true;exportButton.disabled=true;exportRows=[];
+    cards.replaceChildren();
     status.textContent=T('در حال دریافت دفتر موجود سفارش‌ها و خدمات…',
       'Reading the established orders and service ledger…');
     try{
@@ -142,7 +147,7 @@
       render(commerce.value,interests.status==='fulfilled'?interests.value:null);
     }catch(error){
       if(generation!==request||error?.name==='AbortError')return;
-      cards.replaceChildren();
+      cards.replaceChildren();exportRows=[];exportButton.disabled=true;
       status.textContent=T(
         'وضعیت سفارش‌ها از پایگاه داده مادر قابل تأیید نیست. هیچ عدد صفر یا موفقیت ساختگی نمایش نمی‌دهیم.',
         'Commerce ledger is unavailable or not verified; unknown values will not be displayed as zero or success.');
@@ -150,6 +155,34 @@
       if(generation===request){controller=null;busy=false;reload.disabled=false;}
     }
   }
+  exportButton.addEventListener('click',()=>{
+    if(busy||!visible()||!exportRows.length)return;
+    // This intentionally exports only the already-visible aggregate cards.
+    // The source endpoints' private claim/order/customer data are excluded.
+    const safeCell=value=>{
+      const str=String(value).replace(/[\u0000-\u001f\u007f]/g,' ').slice(0,520);
+      // Prevent spreadsheet formula interpretation even after opening in Excel.
+      const safe=/^[=+\-@\t\r]/.test(str)?'\''+str:str;
+      return '"'+safe.replace(/"/g,'""')+'"';
+    };
+    const headers=[
+      T('شاخص','Metric'),T('مقدار مشاهده‌شده','Observed value'),
+      T('محدودیت تفسیر','Interpretation limitation')
+    ];
+    const lines=[headers,...exportRows].map(row=>row.map(safeCell).join(','));
+    lines.push([T('منبع','Source'),'existing_admin_commerce_and_education_interest',
+      'INTERNAL_ONLY_NOT_A_BANK_SETTLEMENT_OR_VISITOR_CONVERSION'].map(safeCell).join(','));
+    const blob=new Blob(['\uFEFF'+lines.join('\r\n')+'\r\n'],{
+      type:'text/csv;charset=utf-8'
+    });
+    const objectUrl=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=objectUrl;link.hidden=true;
+    link.download='jr-owner-education-commerce-aggregates-'+
+      new Date().toISOString().slice(0,10)+'.csv';
+    document.body.append(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(objectUrl),10000);
+  });
   reload.addEventListener('click',load);
   mainButton.addEventListener('click',()=>{
     const commerce=document.getElementById('ops-commerce');
