@@ -272,3 +272,17 @@
  }
  .jr-choice-studio .jr-cs-report-provenance *{color:#111!important}
 }
+
+
+/* Accessible, non-destructive study-path name suggestions. A suggested
+   school/degree example never overwrites an existing provisional choice. */
+.jr-choice-studio .jr-cs-example-status{
+ min-height:1.6em;margin-block:11px 7px;
+ font-size:.93rem;line-height:1.8;color:#f3dfba;
+ overflow-wrap:anywhere;
+}
+.jr-choice-studio .jr-cs-example-status:empty{min-height:0;margin:0}
+@media(max-width:430px){
+ .jr-choice-studio .jr-cs-example-status{padding-inline:5px}
+}
+@media print{.jr-choice-studio .jr-cs-example-status{display:none!important}}
