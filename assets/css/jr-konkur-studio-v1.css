@@ -68,3 +68,52 @@
 .jr-konkur-workspace .jr-kc-review-panel p,.jr-konkur-workspace .jr-kc-review-panel small{color:#f3dfbd;line-height:1.9}
 .jr-konkur-workspace .jr-kc-review-list{line-height:1.85;padding-inline-start:1.4rem;display:grid;gap:7px}
 @media(max-width:580px){.jr-konkur-workspace .jr-kc-review-draft{width:100%}}
+
+
+/* AID-11 / CHO-03: source-verified programme facts and bounded paging.
+   No inferred seat availability, calculated tuition, or admission indicator. */
+.jr-konkur-workspace .jr-kc-source-facts{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);
+ column-gap:14px;row-gap:9px;
+ margin:12px 0;padding:12px;border:1px solid rgba(230,194,125,.28);
+ border-radius:11px;background:rgba(9,12,17,.18);overflow-wrap:anywhere;
+}
+.jr-konkur-workspace .jr-kc-source-facts dt{
+ font-size:.88rem;line-height:1.65;color:#ecd3a6;font-weight:650;
+}
+.jr-konkur-workspace .jr-kc-source-facts dd{
+ margin:0;color:#f9eee0;line-height:1.65;min-width:0;
+}
+.jr-konkur-workspace .jr-kc-catalogue-pager{
+ display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:11px;margin-block:17px 5px;
+}
+.jr-konkur-workspace .jr-kc-catalogue-pager button{
+ min-height:46px;min-width:115px;padding:10px 15px;
+ background:#272b33;border:1px solid #dcc28d;color:#f5e0b9;
+ border-radius:11px;font:inherit;line-height:1.55;cursor:pointer;
+}
+.jr-konkur-workspace .jr-kc-catalogue-pager button:disabled{
+ cursor:not-allowed;opacity:.46;
+}
+.jr-konkur-workspace .jr-kc-page-status{
+ color:#f5e6c6;font-size:.93rem;line-height:1.6;
+}
+.jr-konkur-workspace .jr-kc-catalogue-pager button:focus-visible{
+ outline:3px solid #f8da9a;outline-offset:3px;
+}
+.jr-konkur-workspace .jr-kc-catalogue-pager[hidden]{display:none!important}
+@media(max-width:480px){
+ .jr-konkur-workspace .jr-kc-source-facts{grid-template-columns:1fr;gap:4px}
+ .jr-konkur-workspace .jr-kc-source-facts dd{
+  margin-block-end:8px;padding-block-end:8px;
+  border-block-end:1px solid rgba(226,184,113,.18)
+ }
+ .jr-konkur-workspace .jr-kc-catalogue-pager button{flex:1 1 42%}
+ .jr-konkur-workspace .jr-kc-page-status{
+  order:-1;flex:1 1 100%;text-align:center
+ }
+}
+@media print{
+ .jr-konkur-workspace .jr-kc-catalogue-pager{display:none!important}
+}
