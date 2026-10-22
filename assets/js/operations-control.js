@@ -2664,7 +2664,12 @@ function renderOwnerCommandCenter(){
    const metric=el('p',display.metric,'oc-measure');
    const note=el('p',display.note);
    const foot=el('footer');
-   const open=el('button',t('بازکردن و کنترل','Open controls'),'oc-open');
+   const controlled=new Set(['incidents','db','response','collectors',
+     'sources','commerce','social','growth','engines','content-editor',
+     'community','journal-work','author']);
+   const open=el('button',controlled.has(item.id)
+     ?t('ورود به تنظیمات و کنترل','Open management controls')
+     :t('مشاهده گزارش و جزئیات','Open report and details'),'oc-open');
    open.type='button';open.addEventListener('click',()=>{
     if(!$(item.target)){notice(t('این ابزار در نسخه جاری سایت بارگذاری نشده است.',
       'This workspace is unavailable in the current release.'),true);return;}
