@@ -28,3 +28,42 @@
 @media(max-width:520px){.jr-adult-bahar-account__controls>*{width:100%;justify-content:center}.jr-adult-bahar-account__controls button{width:100%}}
 @media(prefers-reduced-motion:reduce){.jr-adult-bahar-account *{transition:none!important}}
 @media print{.jr-adult-bahar-account{display:none!important}}
+
+/* One concise, purpose-specific opt-in dialog. Native modal protects focus. */
+.jr-bahar-consent-dialog{
+  box-sizing:border-box;inline-size:min(94vw,520px);max-block-size:min(88dvh,730px);
+  overflow:auto;padding:clamp(20px,5vw,32px);
+  border:1px solid #d9b970;border-radius:24px;
+  background:linear-gradient(155deg,#282c31,#14191f 74%);
+  color:#fcf6e8;box-shadow:0 24px 80px #000a;
+  font-family:inherit;line-height:1.85;text-align:start;
+}
+.jr-bahar-consent-dialog::backdrop{background:rgb(6 8 11 / .74);backdrop-filter:blur(6px)}
+.jr-bahar-consent-dialog h3{font-size:clamp(1.35rem,4.6vw,1.8rem);
+  color:#efd19a;line-height:1.35;margin:0 0 14px}
+.jr-bahar-consent-dialog p{color:#f0e7d6;margin:0 0 18px;font-size:1rem}
+.jr-bahar-consent-dialog details{margin:18px 0;padding:10px 13px;
+  border:1px solid #8c7750;border-radius:12px;background:#242a32}
+.jr-bahar-consent-dialog summary{cursor:pointer;min-height:44px;
+  color:#ffdd97;font-weight:700;align-content:center}
+.jr-bahar-consent-dialog details p{font-size:.9rem;line-height:1.9;margin:9px 0 0}
+.jr-bahar-consent-dialog__actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.jr-bahar-consent-dialog__actions button{
+  flex:1 1 175px;min-height:48px;padding:11px 17px;
+  border-radius:13px;background:#e4c583;color:#221d13;
+  font:inherit;font-size:1rem;font-weight:750;border:1px solid #e4c583;
+  cursor:pointer;touch-action:manipulation
+}
+.jr-bahar-consent-dialog__actions button.secondary{
+  background:transparent;color:#f4e9d4;border-color:#a7946c
+}
+.jr-bahar-consent-dialog :is(button,summary):focus-visible{
+  outline:3px solid #fff;outline-offset:3px
+}
+@media(max-width:430px){
+  .jr-bahar-consent-dialog{padding:20px 16px;border-radius:20px}
+  .jr-bahar-consent-dialog__actions button{flex-basis:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  .jr-bahar-consent-dialog,.jr-bahar-consent-dialog *{transition:none!important}
+}
