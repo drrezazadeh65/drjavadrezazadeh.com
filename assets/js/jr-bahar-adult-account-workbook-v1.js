@@ -607,11 +607,16 @@
            result.backupErasureCertified!==false||
            result.noUnrelatedAccountDataDeleted!==true)
            throw Error('ERASURE_REQUEST_UNCONFIRMED');
+        // Never automatically recreate a workbook after a deletion request:
+        // clear the public-page same-tab handoff on BOTH hold and completion.
+        try{sessionStorage.removeItem(PENDING_TRANSFER_KEY);}catch(_){}
+        identity.canStore=false;
         identity.latestErasureRequest={
           id:result.requestId,state:result.requestStatus
         };
         identity.privacyRequestLedgerAvailable=true;
         showErasureProgress(identity.latestErasureRequest,true);
+        restrict();
         if(result.requestStatus==='COMPLETED'){
           localDraft=null;identity.workbookRevision=0;
           preview.replaceChildren();restrict();
