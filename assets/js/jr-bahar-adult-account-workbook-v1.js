@@ -300,9 +300,10 @@
       }
     }
   });
-  save.addEventListener('click',async()=>{
+  async function storeSelectedDraft(autoFromUserHandoff=false){
     if(!identity?.canStore||!localDraft||
-      !Number.isSafeInteger(identity.workbookRevision))return;
+      !Number.isSafeInteger(identity.workbookRevision))return false;
+    if(autoFromUserHandoff && identity.workbookRevision!==0)return false;
     const expected=identity.workbookRevision;
     const draft=localDraft;
     await command(T('در حال ذخیره نسخهٔ رمزگذاری‌شده…','Saving encrypted workbook…'),
@@ -317,10 +318,13 @@
         identity.workbookRevision=result.revision;
         localDraft=null;preview.replaceChildren();
         restrict();
-        setState(T('نسخهٔ رمزگذاری‌شده با شماره بازنگری جدید ثبت شد. برای اطمینان، وضعیت حساب را بازخوانی کنید.',
-          'Server confirmed the encrypted revision. Refresh account status to independently reconcile it.'));
+        try {sessionStorage.removeItem('jr.bahar.pending-account-transfer.v1');}catch(_){}
+        setState(T('برنامه‌ات با رمزگذاری در حسابت ذخیره شد و دفعه بعد آماده است.',
+          'Your workbook was encrypted and saved in your account for next time.'));
+        return true;
       });
-  });
+  }
+  save.addEventListener('click',()=>storeSelectedDraft(false));
   download.addEventListener('click',async()=>{
     if(!identity?.canStore)return;
     await command(T('در حال دریافت فایل خصوصی…','Retrieving your private workbook…'),
