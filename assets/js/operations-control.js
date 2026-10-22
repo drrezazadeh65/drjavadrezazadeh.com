@@ -565,6 +565,38 @@ function collectionControlsRender(parent){
      single.disabled=collectionState.canManage!==true;
      single.addEventListener('click',()=>collectionManualRefresh(scope.id,single));
      line.append(single);
+     const purge=el('button',t('پیش‌نمایش حذف داده‌های تشخیصی این بخش',
+       'Preview diagnostic data deletion for this scope'));
+     purge.type='button';purge.disabled=collectionState.canManage!==true;
+     purge.setAttribute('data-ops-delete-preview',scope.id);
+     purge.addEventListener('click',async()=>{
+       purge.disabled=true;const generation=loadGeneration;
+       try{
+         const preview=await api('/collection-data-preview?scope='+encodeURIComponent(scope.id));
+         if(generation!==loadGeneration||!snapshot)return;
+         const counts=preview.countsBounded||{};
+         const total=(counts.cacheRows||0)+(counts.attemptRows||0)+(counts.metricRows||0);
+         if(total===0){
+           notice(t('دادهٔ تشخیصی برای حذف در این بخش موجود نیست.',
+             'No disposable diagnostic records exist in this scope.'));
+           return;
+         }
+         const message=t('فقط کش و سوابق تشخیصی '+scope.id+' حذف می‌شود. داده‌های تجاری، هویتی و لاگ حسابرسی محفوظ‌اند. تعداد قابل حذف (حداکثر): ',
+           'Delete only caches and diagnostic history for '+scope.id+'. Business records, identities and audit logs are preserved. Eligible entries (bounded): ')+total+
+           (preview.moreMayRemain?t(' یا بیشتر',' or more'):'');
+         if(!window.confirm(message))return;
+         const result=await api('/collection-data-delete',{method:'POST',
+           headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+           body:JSON.stringify({scope:scope.id,confirmation:'DELETE SOURCE DIAGNOSTICS:'+scope.id})});
+         if(generation!==loadGeneration||!snapshot)return;
+         collectionState=await api('/collection-settings');
+         collectionExpanded=true;reportingRender();
+         notice(t('حذف تشخیصی ثبت شد. مجموع ردیف‌ها: ','Scoped diagnostic cleanup complete. Rows: ')+
+           Object.values(result.deleted||{}).reduce((sum,x)=>sum+Number(x||0),0));
+       }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+       finally{if(purge.isConnected)purge.disabled=false;}
+     });
+     line.append(purge);
    }
    if(scope.lastFetchedAt)line.append(el('small',t('آخرین واکشی موفق: ','Last successful collection: ')+date(scope.lastFetchedAt)));
    if(scope.type==='source'&&scope.lastAttempt){
