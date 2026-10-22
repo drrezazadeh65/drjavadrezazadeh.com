@@ -153,6 +153,34 @@ export function generateQualityInventory(root){
    const schema=inspectHtml(route,html);
    rows.push(inspectQuality(route,html,schema));
  }
+ // Sitemap-only URLs may be served dynamically by PHP/OJS. Include them
+ // in the complete route list but do NOT invent page HTML or numeric grades.
+ // This is a bounded local read; no network access or URL crawling occurs.
+ for(const name of fs.readdirSync(root).filter(n=>/^sitemap(?:-[a-z0-9-]+)?\.xml$/i.test(n)).slice(0,30)){
+   const filename=path.join(root,name);
+   if(!fs.statSync(filename).isFile()||fs.statSync(filename).size>1_000_000)continue;
+   const xml=fs.readFileSync(filename,'utf8');
+   for(const match of xml.matchAll(/<loc\s*>([^<]+)<\/loc\s*>/gi)){
+     const sourceUrl=match[1].replace(/&amp;/gi,'&').trim();
+     let parsed;try{parsed=new URL(sourceUrl);}catch{continue;}
+     if(parsed.origin!==BASE||parsed.search||parsed.hash
+       ||/\.xml$/i.test(parsed.pathname))continue;
+     const route=parsed.pathname;
+     if(!route.startsWith('/')||seen.has(route)||route.length>500)continue;
+     seen.add(route);
+     const grades=Object.fromEntries(
+       ['content','image','seo','ui','ux','ai','geo','speedReadiness','speed','security']
+         .map(key=>[key,{score:null,passed:0,applicable:0,
+           source:'dynamic_sitemap_route_not_inspected',findings:[]}]));
+     rows.push({route,url:BASE+route,language:route.startsWith('/fa/')?'fa':
+       route.startsWith('/en/')?'en':'other',
+       indexability:'sitemap_declared_unverified',
+       contentIntent:'dynamic_or_unmatched',source:'sitemap_only_not_html_inspected',
+       summary:null,grades,performanceReadiness:null,overallSourceReadiness:null,
+       noindexExpected:false,
+       limitations:'Declared in a local sitemap, but no deployable static HTML was available for source scoring. No live measurements or grade inferred.'});
+   }
+ }
  rows.sort((a,b)=>a.route.localeCompare(b.route,'en'));
  return {schema:'operations-page-quality-inventory-v1',source:'committed_html_not_production',
    generatedAt:new Date().toISOString(),total:rows.length,
