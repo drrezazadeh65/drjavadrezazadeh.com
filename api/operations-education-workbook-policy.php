@@ -254,3 +254,27 @@ function operationsBaharRegisterConsentNotices(
       'ownerPolicy'=>$state
     ];
 }
+
+/** Canonical legal text preview, owner MFA only; never changes consent. */
+function operationsBaharConsentNoticePreview(PDO $pdo): array {
+    $records=[];
+    foreach(['fa','en'] as $locale){
+        $notice=baharAccountNotice($locale);
+        $current=null;
+        try{$current=baharAccountCurrentNotice($pdo,$locale);}catch(Throwable $e){}
+        $records[$locale]=[
+            'text'=>$notice['text'],
+            'version'=>$notice['version'],
+            'sha256'=>$notice['sha256'],
+            'publishedAsCurrent'=>$current!==null
+        ];
+    }
+    return [
+        'ok'=>true,'schema'=>'jr.bahar-consent-notice-preview.v1',
+        'readOnly'=>true,'canApprove'=>false,
+        'consentNotGranted'=>true,'notices'=>$records,
+        'scope'=>'BAHAR_PRIVATE_WORKBOOK_ONLY',
+        'humanLegalReviewRequired'=>true,
+        'limitation'=>'This preview shows exact source-controlled consent text; its presence is not legal sign-off or user consent.'
+    ];
+}
