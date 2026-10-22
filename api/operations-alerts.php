@@ -281,16 +281,24 @@ function operationsAlertSnapshot(PDO $pdo,array $configuration): array {
         }elseif(in_array($code,['security_headers_regressed','redirects_regressed'],true)){
             $kind=$code==='security_headers_regressed'?'headers':'redirect';
             $policy=$responseStatus['settings']??null;
-            $samples=array_values(array_filter($responseStatus['latest']??[],
-                static fn($entry)=>($entry['kind']??'')===$kind));
-            $newest=null;
-            foreach($samples as $sample)if($newest===null
-                ||(int)($sample['observedAt']??0)>(int)($newest['observedAt']??0))$newest=$sample;
+            $family=$responseStatus['latestTimestampCoverage']['byKind'][$kind]??null;
+            // Do not call a sensor operational just because one of its
+            // fixed routes returned a recent HEAD response. All family
+            // targets must be from the same stored private collection.
             if(!is_array($policy))$sensor='response_monitor_schema_missing';
             elseif(!($policy['enabled']??false))$sensor='response_monitor_disabled';
-            elseif($newest===null)$sensor='response_monitor_no_observation';
-            elseif(!($newest['fresh']??false))$sensor='response_monitor_stale';
-            else $sensor='response_monitor_recent_sample_cron_unverified';
+            elseif(($responseStatus['status']??'')==='read_unavailable')
+                $sensor='response_monitor_samples_read_unavailable';
+            elseif(!is_array($family)||($family['observedTargets']??0)===0)
+                $sensor='response_monitor_no_observation';
+            elseif(!($family['complete']??false))
+                $sensor='response_monitor_incomplete_collection';
+            elseif(!($family['fresh']??false))$sensor='response_monitor_stale';
+            elseif(($family['unavailableTargets']??0)>0)
+                $sensor='response_monitor_unavailable_targets';
+            elseif(($family['failedTargets']??0)>0)
+                $sensor='response_monitor_observed_failure';
+            else $sensor='response_monitor_recent_complete_source_cron_unverified';
         }
         $rules[]=['code'=>$code,'name'=>$definition['name'],
             'severity'=>$definition['severity'],
