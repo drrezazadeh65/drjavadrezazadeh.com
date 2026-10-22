@@ -96,6 +96,12 @@
       const card=element('article','jr-edu-release__card');
       card.append(element('strong','jr-edu-release__title',item.label));
       card.append(element('small','jr-edu-release__code',id));
+      card.append(element('small','jr-edu-release__notice',
+        item.freeIntro
+          ?T('مرحله مقدماتی دائماً رایگان؛ کنترل پرداخت اعمال نمی‌شود.',
+             'Permanently free introductory step; no payment acceptance gate.')
+          :T('پیشنهاد آموزشی در حال آماده‌سازی؛ خرید هنوز مجاز نیست.',
+             'Educational proposal under preparation; checkout is not authorized.')));
       const chip=element('p','jr-edu-release__progress',
         T('برای بازبینی آماده: ','Prepared for review: ')+
         number.format(ready)+' / '+number.format(applicable.length));
