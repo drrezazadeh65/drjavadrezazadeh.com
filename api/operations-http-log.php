@@ -53,7 +53,7 @@ function operationsHttpObserverStatus(PDO $pdo,array $config): array {
         foreach($q as $r)$routes[]=[
             'route'=>$r['route_path'],'type'=>$r['classification'],
             'occurrences'=>(int)$r['total_hits'],'lastSeenAt'=>(int)$r['last_seen_at']];
-        $view['state']=$cursor?'observed':($configured?'ready_for_first_read':'not_configured');
+        $view['state']=$cursor?(((int)$cursor['updated_at']>=time()-900)?'observed':'stale'):($configured?'ready_for_first_read':'not_configured');
         $view['lastObservedAt']=$cursor?(int)$cursor['updated_at']:null;
         $view['batches']=array_map(static fn($r)=>[
             'at'=>(int)$r['observed_at'],'scanned'=>(int)$r['records_read'],
