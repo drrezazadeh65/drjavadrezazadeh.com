@@ -1,0 +1,59 @@
+/* Voluntary first-party learning updates, not a forced marketing wall. */
+[data-jr-interest-open][hidden],[data-jr-interest-status][hidden]{display:none!important}
+.jr-interest-cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;
+  max-width:850px;margin:18px 0;padding:16px 18px;
+  border:1px solid rgba(217,185,112,.5);border-radius:17px;
+  background:linear-gradient(128deg,rgba(224,184,104,.11),rgba(41,47,56,.58));
+  color:#f9eee0}
+.jr-interest-cta__text{flex:1 1 250px;margin:0;
+  font-size:clamp(.95rem,2.8vw,1.05rem);line-height:1.8}
+.jr-interest-open{font:inherit;font-weight:800;font-size:1rem;min-height:48px;
+  padding:11px 19px;border:1px solid #e1c589;
+  border-radius:13px;color:#1c1a15;background:#ebcf94;cursor:pointer;
+  touch-action:manipulation}
+.jr-interest-open:focus-visible{outline:3px solid white;outline-offset:3px}
+.jr-interest-open:disabled{opacity:.65;cursor:progress}
+.jr-interest-status{padding:13px 15px;color:#f5e1b4;
+  border-inline-start:4px solid #e3c47a;
+  margin:14px 0 20px;max-width:850px;
+  background:rgba(25,32,38,.92);border-radius:8px;line-height:1.8}
+.jr-interest-dialog{box-sizing:border-box;width:min(94vw,550px);
+  max-height:min(88dvh,740px);overflow:auto;padding:clamp(18px,4vw,32px);
+  background:linear-gradient(155deg,#292d32,#161c22 83%);
+  color:#fbf3df;border:1px solid #d3b472;border-radius:23px;
+  box-shadow:0 25px 85px rgba(0,0,0,.7);line-height:1.8;
+  text-align:start;font-family:inherit}
+.jr-interest-dialog::backdrop{background:rgba(5,7,10,.75);backdrop-filter:blur(5px)}
+.jr-interest-dialog h2{margin:0 0 12px;font-size:clamp(1.25rem,4.6vw,1.75rem);
+  line-height:1.35;color:#ffe0a8}
+.jr-interest-dialog p{font-size:.98rem;margin:0 0 17px;color:#f1e7d8}
+.jr-interest-dialog form{display:grid;gap:13px}
+.jr-interest-dialog label{display:grid;gap:5px;font-weight:700}
+.jr-interest-dialog select,.jr-interest-dialog input{font:inherit;font-size:16px;
+  width:100%;box-sizing:border-box;min-height:49px;
+  color:#f9f4e8;background:#303743;border:1px solid #99835f;
+  padding:10px 13px;border-radius:12px}
+.jr-interest-dialog option{background:#303743;color:#fff}
+.jr-interest-dialog details{padding:8px 13px;
+  background:#252d35;border:1px solid #81704f;border-radius:12px}
+.jr-interest-dialog summary{cursor:pointer;min-height:44px;
+  align-content:center;color:#ffe0a8}
+.jr-interest-dialog details p{font-weight:400;font-size:.9rem;margin:8px 0}
+.jr-interest-dialog__actions{display:flex;flex-wrap:wrap;gap:10px}
+.jr-interest-dialog__actions button{flex:1 1 200px;min-height:48px;
+  padding:10px 13px;border-radius:12px;border:1px solid #e1c589;
+  color:#231d13;background:#e1c589;font:inherit;font-size:1rem;
+  font-weight:780;cursor:pointer;touch-action:manipulation}
+.jr-interest-dialog__actions button.secondary{
+  background:transparent;color:#fff2d3;border-color:#958162}
+.jr-interest-dialog__actions button:disabled{opacity:.55}
+.jr-interest-dialog :is(input,select,button,summary):focus-visible{
+  outline:3px solid #fff;outline-offset:2px}
+.jr-interest-dialog__error{margin:0!important;color:#ffd1b9!important}
+@media(max-width:500px){.jr-interest-cta__text{flex-basis:100%}
+  .jr-interest-open{width:100%}
+  .jr-interest-dialog{padding:20px 16px;border-radius:18px}
+  .jr-interest-dialog__actions button{flex-basis:100%}}
+@media(prefers-reduced-motion:reduce){
+  .jr-interest-dialog *{scroll-behavior:auto!important;transition:none!important}}
+@media print{.jr-interest-cta,.jr-interest-status,.jr-interest-dialog{display:none!important}}
