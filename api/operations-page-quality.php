@@ -54,7 +54,7 @@ function operationsQualityWithLab(array $row): array {
     return $row;
 }
 function operationsQualityDimensions(): array {
-    return ['content','image','seo','ui','ux','ai','geo','speedReadiness','speed','security'];
+    return ['content','image','onPageSeo','technicalSeo','ui','ux','accessibility','aiReadiness','geo','schema','speed','mobile','security'];
 }
 /** Source-only summary shown immediately to a verified administrator. */
 function operationsQualitySummary(): array {
@@ -71,7 +71,7 @@ function operationsQualitySummary(): array {
             if(!is_numeric($value))continue;
             $totals[$dimension]+=(float)$value;$numbers[$dimension]++;
         }
-        $seo=$row['grades']['seo']['score']??null;
+        $seo=$row['grades']['onPageSeo']['score']??$row['grades']['seo']['score']??null;
         if(is_numeric($seo)&&(float)$seo<6)$weak++;
     }
     $averages=[];
@@ -88,7 +88,9 @@ function operationsQualityList(array $input): array {
     if($source===null)return ['ok'=>true,'schema'=>'operations-page-quality-results-v1',
         'status'=>'unavailable','records'=>[],'total'=>null,
         'limitation'=>'Source score inventory not generated or private projection missing.'];
-    $dimension=(string)($input['dimension']??'seo');
+    $dimension=(string)($input['dimension']??'onPageSeo');
+    // Preserve earlier bookmarked admin filters without silently expanding dimensions.
+    $dimension=['seo'=>'onPageSeo','ai'=>'aiReadiness','speedReadiness'=>'mobile'][$dimension]??$dimension;
     $language=(string)($input['language']??'all');
     $index=(string)($input['index']??'all');
     $sort=(string)($input['sort']??'weakest');
@@ -143,8 +145,8 @@ function operationsQualityList(array $input): array {
             'findingsCount'=>array_sum(array_map(static fn($v)=>is_array($v)?count($v['findings']??[]):0,$row['grades']??[]))
         ];
     }
-    $scored=array_values(array_filter($source['pages'],static fn($r)=>is_numeric($r['grades']['seo']['score']??null)));
-    $weak=count(array_filter($scored,static fn($r)=>(float)$r['grades']['seo']['score']<6));
+    $scored=array_values(array_filter($source['pages'],static fn($r)=>is_numeric($r['grades']['onPageSeo']['score']??$r['grades']['seo']['score']??null)));
+    $weak=count(array_filter($scored,static fn($r)=>(float)($r['grades']['onPageSeo']['score']??$r['grades']['seo']['score'])<6));
     return [
         'ok'=>true,'schema'=>'operations-page-quality-results-v1','status'=>'source_only',
         'source'=>$source['source'],'generatedAt'=>$source['generatedAt'],
