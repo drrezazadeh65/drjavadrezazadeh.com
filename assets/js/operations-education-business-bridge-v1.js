@@ -44,7 +44,7 @@
   }
   const count=value=>Number.isSafeInteger(value)&&value>=0?n.format(value):
     T('نامشخص','Unknown');
-  function render(data){
+  function render(data,interest=null){
     const sales=data.salesPipeline,fulfil=data.fulfilment;
     const claims=data.claims,orders=data.orders,notice=data.notifications;
     if(data.ok!==true||data.schema!=='operations-commerce-evidence-v1'||
@@ -82,6 +82,20 @@
       count(claims.paidRowsRequiringIndependentProviderReconciliation),
       T('پیش از هر تحویل یا نتیجه‌گیری مالی، بررسی مستقل لازم است.',
         'Reconcile independently before fulfilment or financial conclusions.'));
+    const consentObserved=interest?.ok===true &&
+      interest.schema==='jr.education-interest-owner-snapshot.v1'&&
+      interest.countsState==='OBSERVED_MOTHER_DATABASE'&&
+      interest.contacts===null&&interest.containsUnverifiedAddresses===false;
+    card(T('علاقه‌مندان آموزش با ایمیل تأییدشده',
+        'Opt-in educational interests with verified email'),
+      consentObserved?count(interest.verifiedCount):T('نامشخص','Unknown'),
+      T('فقط عضویت داوطلبانه در موضوع آموزشی؛ این افراد خریدار تأییدشده نیستند.',
+        'Separate opt-in, verified educational interest. Not a count of paying customers.'));
+    card(T('درخواست‌های تأیید ایمیل در انتظار',
+        'Pending educational email confirmations'),
+      consentObserved?count(interest.pendingCount):T('نامشخص','Unknown'),
+      T('این افراد تا تأیید ایمیل، مخاطب قابل ارسال نیستند.',
+        'Pending email verification is not permission to send marketing.'));
     card(T('نوبت‌های آیندهٔ ثبت‌شده داخلی','Upcoming internal consultation bookings'),
       count(fulfil.internalCalendar?.totalUpcoming),
       T('فقط تقویم داخلی یک مشاور؛ تقویم خارجی تأیید نشده است.',
@@ -106,15 +120,26 @@
     status.textContent=T('در حال دریافت دفتر موجود سفارش‌ها و خدمات…',
       'Reading the established orders and service ledger…');
     try{
-      const response=await fetch('/api/admin/operations/commerce',{
-        method:'GET',credentials:'same-origin',cache:'no-store',
-        headers:{Accept:'application/json'},
-        signal:controller.signal
-      });
-      if(!response.ok)throw Error('OWNER_ACCESS_OR_SCHEMA_UNAVAILABLE');
-      const data=await response.json();
+      // Independently read the already-existing OPTIONAL interest service.
+      // No includeContacts flag is ever sent; the endpoint returns aggregates
+      // only. A failed interest read never masks the commerce ledger.
+      const [commerce,interests]=await Promise.allSettled([
+        fetch('/api/admin/operations/commerce',{
+          method:'GET',credentials:'same-origin',cache:'no-store',
+          headers:{Accept:'application/json'},signal:controller.signal
+        }).then(async response=>{
+          if(!response.ok)throw Error('COMMERCE_ACCESS_OR_SCHEMA_UNAVAILABLE');
+          return response.json();
+        }),
+        fetch('/api/admin/operations/education-interests',{
+          method:'GET',credentials:'same-origin',cache:'no-store',
+          headers:{Accept:'application/json'},signal:controller.signal
+        }).then(async response=>response.ok?response.json():null)
+      ]);
       if(generation!==request||!visible())return;
-      render(data);
+      if(commerce.status!=='fulfilled')
+        throw Error('COMMERCE_ACCESS_OR_SCHEMA_UNAVAILABLE');
+      render(commerce.value,interests.status==='fulfilled'?interests.value:null);
     }catch(error){
       if(generation!==request||error?.name==='AbortError')return;
       cards.replaceChildren();
