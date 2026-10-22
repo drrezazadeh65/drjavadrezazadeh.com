@@ -219,12 +219,45 @@
       '/en/golden-talent/dashboard/bahar/#jr-bahar-account':
       '/fa/app/student/bahar/#jr-bahar-account');
   });
+  // A selected JSON workbook is PREVIEWED, never silently allowed to
+  // overwrite an in-progress local plan. The only apply action is a clearly
+  // labeled user click; there is no consent popup or external file transfer.
+  const importPanel=document.createElement('div');
+  importPanel.className='bahar-workbook-import-preview';
+  importPanel.hidden=true;
+  const importSummary=document.createElement('p');
+  importSummary.setAttribute('role','status');
+  importSummary.setAttribute('aria-live','polite');
+  const importApply=document.createElement('button');
+  importApply.type='button';importApply.className='secondary';
+  importApply.textContent=en?'Replace my current workbook with previewed file':
+    'جایگزینی کاربرگ فعلی با پرونده بررسی‌شده';
+  const importCancel=document.createElement('button');
+  importCancel.type='button';importCancel.className='secondary';
+  importCancel.textContent=en?'Keep my current workbook':'حفظ کاربرگ فعلی';
+  importPanel.append(importSummary,importApply,importCancel);
+  fileInput.closest('label')?.insertAdjacentElement('afterend',importPanel);
+  let pendingImport=null;
+  function discardPendingImport(){
+    pendingImport=null;
+    importPanel.hidden=true;
+    importSummary.textContent='';
+  }
+  importCancel.addEventListener('click',()=>{
+    importGeneration++;discardPendingImport();
+    notify(en?'Current workbook kept; no import applied.':
+      'کاربرگ فعلی بدون هیچ تغییری حفظ شد.');
+    fileInput.focus();
+  });
   fileInput.addEventListener('change',async()=>{
     const thisImport=++importGeneration;
+    discardPendingImport();
     const file=fileInput.files?.[0];
     fileInput.value='';
     if(!file)return;
-    if(file.size>30000||file.size===0){notify(messages.badFile,true);return;}
+    if(file.size>30000||file.size===0){
+      notify(messages.badFile,true);return;
+    }
     try{
       const raw=JSON.parse(await file.text());
       if(thisImport!==importGeneration)return;
@@ -233,31 +266,73 @@
         ||raw.version!=='1.0.0'
         ||(raw.compass!==null&&raw.compass!==undefined&&!compassValid(raw.compass))
         ||!Array.isArray(raw.reflections)||raw.reflections.length>8
-        ||!raw.reflections.every(entryValid))throw new Error('invalid-workbook');
+        ||!raw.reflections.every(entryValid))
+        throw new Error('invalid-workbook');
       const weekly=raw.weeklyPlan;
-      if(weekly!==null&&weekly!==undefined
-        &&(!(dateOK(weekly.weekStart))||!bounded(weekly.goal)
-          ||!bounded(weekly.action)||!bounded(weekly.evidence)))throw new Error('invalid-weekly');
-      // Validation completes before mutating the displayed workbook.
-      $('clear-plan')?.click();
-      compass=raw.compass?{
-        goal:raw.compass.goal,successEvidence:raw.compass.successEvidence,
-        context:raw.compass.context
-      }:null;
-      for(const id of Object.values(fields))$(id).value='';
-      if(compass)for(const [key,id] of Object.entries(fields))$(id).value=compass[key]??'';
-      entries.splice(0,entries.length,...raw.reflections.map(entry=>({
-        date:entry.date,note:entry.note,decision:entry.decision
-      })));
-      if(weekly){
-        $('week-start').value=weekly.weekStart;
-        $('learning-goal').value=weekly.goal;
-        $('learning-action').value=weekly.action;
-        $('learning-evidence').value=weekly.evidence;
-        $('bahar-plan').dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
+      if(weekly!==null&&weekly!==undefined&&
+         (!weekly||typeof weekly!=='object'||Array.isArray(weekly)||
+          !dateOK(weekly.weekStart)||!bounded(weekly.goal)||
+          !bounded(weekly.action)||!bounded(weekly.evidence)))
+        throw new Error('invalid-weekly');
+      // Reject syntactically plausible EMPTY files; applying one would
+      // otherwise erase an actual local workbook without importing content.
+      if(!raw.compass&&!weekly&&raw.reflections.length===0)
+        throw new Error('empty-workbook');
+      // Keep only allowlisted validated fields in memory; imported JSON is
+      // not merged with private, scientific, account or marketing records.
+      pendingImport={
+        compass:raw.compass?{
+          goal:raw.compass.goal,successEvidence:raw.compass.successEvidence,
+          context:raw.compass.context
+        }:null,
+        weekly:weekly?{
+          weekStart:weekly.weekStart,goal:weekly.goal,
+          action:weekly.action,evidence:weekly.evidence
+        }:null,
+        reflections:raw.reflections.map(entry=>({
+          date:entry.date,note:entry.note,decision:entry.decision
+        }))
+      };
+      importSummary.textContent=(en?
+        'This private file is valid. It contains: ':
+        'قالب پرونده بررسی شد. محتوای آن: ')+
+        (pendingImport.compass?(en?'a compass; ':'یک قطب‌نما؛ '):'')+
+        (pendingImport.weekly?(en?'a weekly plan; ':'یک برنامه هفتگی؛ '):'')+
+        (en?'reflections: ':'بازنگری‌ها: ')+
+        pendingImport.reflections.length+
+        (en?'. Apply will replace all unsaved work on this page; nothing is uploaded.':
+          '؛ دکمه جایگزینی تمام داده‌های ذخیره‌نشده فعلی این صفحه را جایگزین می‌کند؛ چیزی بارگذاری نمی‌شود.');
+      importPanel.hidden=false;
+      notify(en?'File reviewed. Choose whether to apply it.':
+        'پرونده بررسی شد؛ جایگزینی یا حفظ کاربرگ فعلی با انتخاب شماست.');
+      importApply.focus();
+    }catch{
+      if(thisImport===importGeneration){
+        discardPendingImport();notify(messages.badFile,true);
       }
-      render();notify(messages.imported);preview.focus();
-    }catch{if(thisImport===importGeneration)notify(messages.badFile,true);}
+    }
+  });
+  importApply.addEventListener('click',()=>{
+    if(!pendingImport)return;
+    const incoming=pendingImport;
+    importGeneration++;discardPendingImport();
+    // The only destructive operation occurs AFTER the explicit Apply click.
+    $('clear-plan')?.click();
+    compass=incoming.compass;
+    for(const id of Object.values(fields))$(id).value='';
+    if(compass)for(const [key,id] of Object.entries(fields))
+      $(id).value=compass[key]??'';
+    entries.splice(0,entries.length,...incoming.reflections);
+    if(incoming.weekly){
+      $('week-start').value=incoming.weekly.weekStart;
+      $('learning-goal').value=incoming.weekly.goal;
+      $('learning-action').value=incoming.weekly.action;
+      $('learning-evidence').value=incoming.weekly.evidence;
+      $('bahar-plan').dispatchEvent(new Event('submit',{
+        cancelable:true,bubbles:true
+      }));
+    }
+    render();notify(messages.imported);preview.focus();
   });
   $('bahar-print-workbook')?.addEventListener('click',()=>{
     const hasWeekly=$('plan-summary')&&!$('plan-summary').hidden;
@@ -270,6 +345,7 @@
     window.print();
   });
   $('bahar-clear-workbook').addEventListener('click',()=>{
+    discardPendingImport();
     importGeneration++;
     compass=null;entries.splice(0,entries.length);
     $('clear-plan')?.click();
@@ -277,6 +353,8 @@
     render();notify(messages.removed);
     $(fields.goal).focus();
   });
-  window.addEventListener('pagehide',()=>{importGeneration++;},{once:true});
+  window.addEventListener('pagehide',()=>{
+    importGeneration++;discardPendingImport();
+  },{once:true});
   render();
 })();
