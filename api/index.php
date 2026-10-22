@@ -64,6 +64,11 @@ function cfg(): array {
         // Optional, private Bertina access-log reader (never on web requests).
         'operations_access_log_path' => (string)(getenv('JR_OPERATIONS_ACCESS_LOG_PATH') ?: ''),
         'operations_http_retention_days' => (int)(getenv('JR_OPERATIONS_HTTP_RETENTION_DAYS') ?: 90),
+        // Strictly optional BAHAR adult private storage; disabled until owner,
+        // scientific/legal review and secret provisioning independently agree.
+        'bahar_private_workbooks_enabled' => getenv('JR_BAHAR_PRIVATE_WORKBOOKS_ENABLED') === 'true',
+        'bahar_workbook_key_b64' => (string)(getenv('JR_BAHAR_WORKBOOK_KEY_B64') ?: ''),
+        'bahar_workbook_key_id' => (string)(getenv('JR_BAHAR_WORKBOOK_KEY_ID') ?: ''),
     ];
     $local = __DIR__ . '/config.local.php';
     if (is_file($local)) {
@@ -1150,6 +1155,12 @@ if(str_starts_with($path,'/donations/'))fail('not_found',404);
 if(str_starts_with($path,'/growth/')){
     require_once __DIR__.'/growth-stage14.php';
     stage14LeadRoute($path,$verb);
+}
+// Private account workbooks share the existing login and mother database.
+// No published public route is altered; default-off legal/scientific gates apply.
+if(str_starts_with($path,'/bahar/account/')){
+    require_once __DIR__.'/bahar-private-workbook.php';
+    baharAccountRoute($path,$verb);
 }
 if(str_starts_with($path,'/golden-talent/')){
     require_once __DIR__.'/golden-talent.php';
