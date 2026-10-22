@@ -3240,10 +3240,12 @@ function renderOwnerCommandCenter(){
    notice(t('داده‌های ذخیره‌شده دریافت شدند؛ این کار هیچ وظیفه خودکاری را فعال نکرد.',
      'Stored data loaded. No automatic task was enabled.'));
   }catch(error){if(generation===loadGeneration&&snapshot){
-     if(['admin_mfa_required','unauthorized','admin_forbidden'].includes(error.message)){
+     if(['admin_mfa_required','unauthorized'].includes(error.message)){
        lock(t('برای مشاهده داده‌ها دوباره دسترسی مدیر را تأیید کنید.',
          'Verify administrator access again before reading private data.'));
      }else{
+       // A module-specific 403 is not an expired login. Preserve the session
+       // and show unavailable privileges rather than signing out a valid admin.
        ownerCockpitReadErrors[item.load]=safeAdminFailureCode(error);
        reportingRender();
        notice(errorMessage(error),true);
@@ -3320,6 +3322,12 @@ function renderOwnerCommandCenter(){
    const note=el('p',display.note);
    const controls=el('p',controlCaption,'oc-control-scope');
    controls.dataset.ownerControls=controlsVerified?'verified':'not_verified';
+   const lastRead=el('small',item.load&&ownerCockpitReadAt[item.load]?
+     t('آخرین خوانش دستی از API: ','Last manual API read: ')+date(ownerCockpitReadAt[item.load]):
+     t('زمان خوانش اختصاصی: هنوز ثبت نشده','Specific API read: not recorded'));
+   lastRead.className='oc-last-api-read';
+   // Source-observation dates are separately reported within modules. A recent
+   // API GET may serve old stored evidence and must not appear as fresh telemetry.
    const foot=el('footer');
    const controlled=new Set(['incidents','db','response','collectors',
      'sources','commerce','social','growth','engines','content-editor',
@@ -3338,7 +3346,7 @@ function renderOwnerCommandCenter(){
     reload.type='button';reload.addEventListener('click',()=>loadModule(item,reload));
     foot.append(reload);
    }
-   card.append(head,description,metric,note,controls,foot);grid.append(card);
+   card.append(head,description,metric,note,controls,lastRead,foot);grid.append(card);
   }
   if(!selected.length)grid.append(el('p',t('بخشی با این فیلتر و جست‌وجو پیدا نشد.',
     'No departments match this search and filter.'),'oc-empty'));
