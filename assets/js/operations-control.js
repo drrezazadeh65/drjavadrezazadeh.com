@@ -26,7 +26,7 @@ function safeEvidenceUrl(value){
 }
 async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
-function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
+function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
 $('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
@@ -531,6 +531,7 @@ function renderResponseMonitor(host,model){
 }
 function renderAlertCenter(host,model){
  const data=alertCenterCurrent||model.alertCenter||null;
+ const activation=model.activationReadiness||null;
  const incidents=Array.isArray(data?.rows)?data.rows:[];
  const httpOverview=httpHealthCurrent||model.httpHealth||null;
  const newestHttpBatch=httpOverview?.state==='observed'&&httpOverview.batches?.length
@@ -542,6 +543,27 @@ function renderAlertCenter(host,model){
  const section=el('details',undefined,'ops-panel');section.id='ops-alert-center';
  section.open=alertCenterExpanded;section.addEventListener('toggle',()=>{alertCenterExpanded=section.open;});
  section.append(el('summary',t('سلامت و اعلان‌های بحرانی سایت','Site health and critical incident alerts')));
+ // Evidence-first P0 preflight (no implicit collection, DDL or host mutation).
+ if(activation){
+   const preflight=el('details',undefined,'ops-panel');
+   preflight.append(el('summary',t('آمادگی دیتابیس مادر و Cron','Mother database and cron readiness')));
+   const tables=activation.schemaInventory||{};
+   preflight.append(el('p',t('جدول‌های موجود عملیات: ','Operations tables observed: ')+
+     (tables.presentCount??'—')+' / '+(tables.requiredCount??'—')+
+     ' · '+t('فقط بررسی نام جدول','table names only; not a migration check')));
+   if(Array.isArray(tables.missing)&&tables.missing.length)
+     preflight.append(el('p',t('جداول غایب: ','Missing tables: ')+tables.missing.join(', ')));
+   const workerList=el('ul');
+   for(const worker of activation.workers||[]){
+     const last=worker.lastObservedAt===null?t('بدون شاهد','No evidence'):date(worker.lastObservedAt);
+     workerList.append(el('li',worker.label+' — '+worker.state+' · '+
+       t('آخرین شاهد: ','Latest observation: ')+last));
+   }
+   preflight.append(workerList,el('p',t(
+     'شواهد موجود به معنی نصب Cron، تحویل ایمیل یا سلامت تأییدشده سرور نیست.',
+     'Observations do not certify cron installation, inbox delivery or verified server health.')));
+   section.append(preflight);
+ }
  const first=el('div',undefined,'ops-alert-overview');
  const counts=[
    [t('رخداد بحرانی باز','Open critical incidents'),critical===null?'—':String(critical),'critical'],
@@ -788,11 +810,15 @@ function renderAlertCenter(host,model){
  host.append(section);
 }
 let qualityExpanded=false,qualityResult=null,qualityDetail=null;
-let qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',query:'',page:1};
+let qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};
 const qualityNames={
- content:['محتوا','Content'],image:['تصاویر','Images'],seo:['سئو','SEO'],
- ui:['رابط کاربری','UI'],ux:['تجربه کاربری','UX'],ai:['آمادگی AI','AI readiness'],
- geo:['GEO','GEO'],speedReadiness:['آمادگی سرعت در کد','Speed code readiness'],speed:['سرعت آزمایشگاهی معتبر','Dated lab speed'],security:['هدرهای امنیتی','Security headers']
+ content:['محتوا','Content'],image:['تصاویر','Images'],
+ onPageSeo:['سئوی درون‌صفحه','On-page SEO'],technicalSeo:['سئوی فنی منبع','Source technical SEO'],
+ ui:['رابط کاربری','UI'],ux:['تجربه کاربری','UX'],
+ accessibility:['دسترس‌پذیری ساختاری','Source accessibility'],aiReadiness:['آمادگی AI','AI readiness'],
+ geo:['GEO','GEO'],schema:['داده‌های ساخت‌یافته','Schema.org'],
+ speed:['سرعت آزمایشگاهی معتبر','Observed lab speed'],
+ mobile:['آمادگی موبایل','Mobile source readiness'],security:['هدرهای امنیتی','Security headers']
 };
 const qualityName=key=>t(...(qualityNames[key]||[key,key]));
 const qualityScore=value=>typeof value==='number'&&Number.isFinite(value)?value.toFixed(1):'—';
@@ -906,7 +932,8 @@ function renderPageQuality(host){
    detail.append(el('p',t('امتیاز کلی آمادگی منبعی: ','Overall source readiness: ')+
      qualityScore(qualityDetail.overallSourceReadiness)+' / 10'));
    const dims=el('div',undefined,'ops-grid');
-   for(const [key,grade] of Object.entries(qualityDetail.grades||{})){
+   for(const key of Object.keys(qualityNames)){
+      const grade=qualityDetail.grades?.[key];if(!grade)continue;
      const card=el('section',undefined,'ops-card');
      card.append(el('h3',qualityName(key)+' · '+qualityScore(grade.score)+' / 10'),
        el('small',t('نوع شاهد: ','Evidence: ')+(grade.source||'unavailable')));
