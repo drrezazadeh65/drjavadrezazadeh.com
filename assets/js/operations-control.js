@@ -101,7 +101,20 @@ function safeAdminFailureCode(error){
  const code=String(error?.message||'');
  return allowed.has(code)?code:'operations_unavailable';
 }
-function errorMessage(error){return ({source_control_schema_unavailable:t(
+function errorMessage(error){return ({
+ database_health_schema_unavailable:t(
+  'ساختار سلامت دیتابیس هنوز از API قابل خواندن نیست؛ سه جدول جدید و سطح دسترسی را بررسی کنید.',
+  'Database health storage is not available to the API; inspect the new tables and database permissions.'),
+ database_health_super_admin_required:t(
+  'نمای سلامت دیتابیس فقط با نقش مدیر ارشد و نشست دومرحله‌ای معتبر باز می‌شود.',
+  'Database health requires a verified super-administrator session.'),
+ invalid_source_directory:t('نسخه فهرست منابع با قرارداد API سازگار نیست.',
+  'Source directory schema is incompatible with this dashboard.'),
+ invalid_source_controls:t('ساختار تنظیمات منابع با قرارداد API سازگار نیست.',
+  'Source policy response is incompatible with this dashboard.'),
+ invalid_quality_inventory:t('فهرست کیفیت صفحات با قرارداد API سازگار نیست.',
+  'Page-quality response is incompatible with this dashboard.'),
+ source_control_schema_unavailable:t(
  'جدول تنظیمات منابع در دیتابیس مادر نصب نشده است.',
  'The source-policy table is not provisioned in the mother database.'),
  collector_super_admin_required:t('فقط مدیر ارشد با تأیید دومرحله‌ای معتبر می‌تواند واکشی کند.',
