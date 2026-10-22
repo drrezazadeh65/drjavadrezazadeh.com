@@ -2170,13 +2170,16 @@ function renderOwnerCommandCenter(){
  const db=dbHealthCurrent;
  const dbAttention=Array.isArray(db?.checks)
    ?db.checks.filter(x=>x.state==='attention').length:null;
+ const loggedDbErrors=db?.errors?.status==='available'&&
+   Array.isArray(db.errors.rows)?db.errors.rows.length:null;
  const dbOverview=db
    ?state(dbAttention>0?'attention':db?.connection==='available'?'recorded':'unknown',
      t('اتصال: ','Connection: ')+(db.connection==='available'
        ?t('پاسخ داده','Responded'):t('نامشخص','Unknown'))+
-       ' · '+t('موارد قابل بررسی: ','Checks to review: ')+(dbAttention??'—'),
-     t('نتیجه آخرین بررسی دستی؛ نه تأیید سلامت فیزیکی MySQL',
-       'Last owner-requested metadata scan; not physical MySQL integrity proof'))
+       ' · '+t('موارد قابل بررسی: ','Checks to review: ')+(dbAttention??'—')+
+       ' · '+t('گروه خطای ثبت‌شده: ','Recorded error groups: ')+(loggedDbErrors??'—'),
+     t('فقط فراداده آخرین بررسی دستی؛ ثبت صفر خطا اثبات سلامت فیزیکی MySQL نیست',
+       'Last manual metadata scan only; an empty error log cannot prove physical MySQL integrity'))
    :absent(t('هنوز بررسی دستی نشده','Not manually checked'));
  const response=responseMonitorCurrent||model.responseHealth;
  const responseLatest=Array.isArray(response?.latest)?response.latest:[];
@@ -2248,13 +2251,19 @@ function renderOwnerCommandCenter(){
        'Notifications remain opt-in. Delivery requires owner approval and server-side proof'))
    :absent(t('وضعیت SMTP موجود نیست','SMTP state unavailable'));
  const http=httpHealthCurrent||model.httpHealth;
- const httpOverview=http&&['observed','stale'].includes(http.state)
-   ?state(http.state==='stale'?'attention':'recorded',
-      http.state==='stale'?t('گزارش منقضی','Stale observations'):
-      t('داده HTTP ثبت‌شده','HTTP observations recorded'),
-      t('ثبت ۴۰۴ و خطاها وابسته به شواهد واقعی سرور است',
-        '404 and error counts depend on real server evidence'))
-   :absent(t('شاهد HTTP موجود نیست','HTTP evidence unavailable'));
+ const httpLatest=Array.isArray(http?.batches)&&http.batches.length?
+   http.batches[0]:null;
+ const httpOverview=http&&['observed','stale'].includes(http.state)&&httpLatest
+   ?state(http.state==='stale'||Number(httpLatest.serverErrors)>0?'attention':'recorded',
+      t('۴۰۴ آخرین بسته: ','Latest batch 404s: ')+(httpLatest.notFound??'—')+
+      ' · '+t('خطاهای ۵xx: ','5xx: ')+(httpLatest.serverErrors??'—'),
+      (http.state==='stale'?t('داده منقضی؛ ','Stale observation; '):'')+
+        t('زمان بسته ثبت‌شده: ','Recorded batch time: ')+
+        (Number.isInteger(httpLatest.at)?date(httpLatest.at):'—')+
+        t('؛ نه همه درخواست‌های زنده سایت','; not all live site traffic'))
+   :absent(http?.state==='not_configured'?
+       t('مسیر لاگ خصوصی سرور هنوز پیکربندی نشده','Private host access-log path not configured'):
+       t('نمونه HTTP قابل استناد در دسترس نیست','No usable HTTP batch evidence'));
  const collector=collectionState?.automaticCollection;
  const sources=Array.isArray(collectionState?.rows)
    ?collectionState.rows.filter(x=>x.type==='source'):[];
