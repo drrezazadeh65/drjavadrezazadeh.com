@@ -2,6 +2,8 @@
 
 Authoritative standard: FINAL MASTER SEO STANDARD — 2026 (frozen 5 October 2026).
 
+**2026-10-22 binding supplement — SEO-URL-001 / GOV-004:** [Frozen Public URL Permanence Policy](../docs/governance/FROZEN_PUBLIC_URL_PERMANENCE_POLICY_20261022.md). Published sitemap page URLs and public canonicals remain permanent by default; new URLs and content/internal-link updates are allowed. The release workflow invokes scripts/jr-immutable-url-guard.mjs before deploying. **Status: POLICY COMMITTED; guard execution, full validation and production behavior NOT YET VERIFIED** (owner deferred integrated testing).
+
 Status: PASS / PARTIAL / READY-FOR-ACTIVATION / LIVE-VERIFIED / POST-LAUNCH / ONGOING.
 
 | Gate | Area | Status | Current implementation / next condition |
