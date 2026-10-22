@@ -68,3 +68,29 @@
 .jr-edu-source-local-review [data-source-review-local-summary]{font-weight:700;
   padding:12px 14px;border-inline-start:4px solid #e9c784;background:#322d22;border-radius:8px}
 .jr-edu-source-local-review input[type=file]:focus-visible{outline:3px solid #fff;outline-offset:3px}
+
+/* BAHAR independent adult identity review; private documents never leave device. */
+.jr-edu-adult-review{border-color:#9c865c}
+.jr-edu-adult-review [data-jr-adult-review-refresh],
+.jr-edu-adult-review [data-jr-adult-review-save]{display:inline-flex;align-items:center;
+  min-height:48px;padding:11px 16px;border:1px solid #e4c582;
+  border-radius:12px;background:#e4c582;color:#211c13;
+  font:inherit;font-weight:750;cursor:pointer}
+.jr-edu-adult-review button:disabled{opacity:.5;cursor:not-allowed}
+.jr-edu-adult-review form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;margin:20px 0}
+.jr-edu-adult-review form label{display:flex;flex-direction:column;
+  gap:8px;min-width:0;font-weight:700;line-height:1.65;color:#f3e4c5}
+.jr-edu-adult-review :is(select,input[type=file],input[type=text]){
+  min-height:48px;width:100%;padding:10px 12px;border-radius:12px;
+  background:#202630;color:#fff6e7;border:1px solid #aa926a;font:inherit;font-size:16px}
+.jr-edu-adult-review input[readonly]{color:#f4dbab;direction:ltr;text-align:start;overflow:auto}
+.jr-edu-adult-review__confirm{grid-column:1/-1;display:flex!important;
+  flex-direction:row!important;align-items:start;gap:12px!important}
+.jr-edu-adult-review__confirm input{flex:none;min-width:22px;width:22px;height:22px;margin:4px 0;accent-color:#e4c582}
+.jr-edu-adult-review :is(button,select,input):focus-visible{outline:3px solid #fff;outline-offset:3px}
+.jr-edu-adult-review [data-jr-adult-review-status]{padding:12px 14px;
+  border-inline-start:4px solid #e3c584;background:#302d27;border-radius:8px}
+@media(max-width:670px){.jr-edu-adult-review form{grid-template-columns:1fr}
+  .jr-edu-adult-review [data-jr-adult-review-save]{width:100%;justify-content:center}}
+@media print{.jr-edu-adult-review{display:none!important}}
