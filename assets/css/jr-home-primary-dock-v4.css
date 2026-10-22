@@ -25,7 +25,10 @@
     border-radius:16px;
     background:transparent;
     color:var(--v431-tab-text,#c6c2bb);
-    font:650 clamp(.72rem,2.8vw,.88rem)/1.2 inherit;
+    font-family:inherit!important;
+    font-size:clamp(.72rem,2.8vw,.88rem)!important;
+    font-weight:700!important;
+    line-height:1.2!important;
     cursor:pointer;
     text-align:center;
     -webkit-tap-highlight-color:transparent;
@@ -34,6 +37,9 @@
     background:var(--v431-tab-active,rgba(215,184,109,.1))!important;
     color:var(--v431-tab-active-text,#f0d694)!important;
   }
+  /* One launcher, not a second floating AI button above the dock.
+   * The existing assistant panel itself remains visible and keyboard-usable. */
+  .public-home-page .jr-assistant-launcher{display:none!important}
   .public-home-page .app-dock[data-jr-home-primary-dock] :is(a,[data-jr-open-assistant]):focus-visible{
     outline:3px solid #ffe3a2;
     outline-offset:2px;
