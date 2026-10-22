@@ -357,7 +357,10 @@
     const incoming=pendingImport;
     importGeneration++;discardPendingImport();
     // The only destructive operation occurs AFTER the explicit Apply click.
+    // A pending typed reflection belongs to the OLD workbook. Explicit
+    // Replace must not mix that scratchpad into the newly imported cycle.
     $('clear-plan')?.click();
+    reflectionForm.reset();
     compass=incoming.compass;
     compassDirty=false;
     for(const id of Object.values(fields))$(id).value='';
