@@ -2701,6 +2701,48 @@ function renderOwnerCommandCenter(){
    dependencyBox.append(line);
  }
  root.append(dependencyBox);
+ // Server-side schema status is the shared contract for all nine operational
+ // domains. No row is labelled live on table existence alone; controls open
+ // the existing MFA-gated module, not a parallel dashboard.
+ const modules=Array.isArray(readiness?.moduleContracts)?readiness.moduleContracts:[];
+ const modulePanel=el('details',undefined,'oc-module-contracts');
+ modulePanel.append(el('summary',t('نقشه اتصال واقعی واحدهای مدیریت','Administrative integration map')+
+   ' · '+(modules.length||t('شواهد موجود نیست','No evidence'))));
+ modulePanel.append(el('p',t(
+   'فقط موجودی جداول از سرور خوانده می‌شود؛ اجرای موفق API، نصب Cron و اتصال سرویس خارجی هنوز نیازمند شاهد جداگانه است.',
+   'Table presence is observed on the server; successful API execution, Cron and external provider connectivity require separate evidence.')));
+ if(!modules.length)modulePanel.append(el('p',t(
+   'اطلاعات ساختاری این نسخه هنوز خوانده نشده یا قابل دسترس نیست.',
+   'This release has no readable operational schema inventory.')));
+ const moduleGrid=el('div',undefined,'oc-module-grid');
+ for(const module of modules){
+   const unit=el('article',undefined,'oc-module-unit');
+   const schemaState=module.schemaState==='table_names_observed'?'recorded':
+     module.schemaState==='missing_tables'?'attention':'unknown';
+   unit.dataset.schemaState=schemaState;
+   unit.append(el('h4',en?module.nameEn:module.nameFa));
+   unit.append(el('strong',t('جداول: ','Tables: ')+
+     (module.presentCount===null?'—':module.presentCount)+
+     ' / '+module.tableCount));
+   unit.append(el('small',module.schemaState==='table_names_observed'
+     ?t('ساختار اولیه موجود؛ عملکرد مستقل هنوز تأیید نشده',
+       'Tables observed; independent runtime not certified')
+     :module.schemaState==='missing_tables'
+       ?t('نیازمند مهاجرت دیتابیس با اجازه مالک',
+         'Owner-approved additive schema update required')
+       :t('دسترسی به فراداده نامشخص','Schema metadata unavailable')));
+   if(Array.isArray(module.missingTables)&&module.missingTables.length)
+     unit.append(el('small',module.missingTables.join(' · ')));
+   if(typeof module.uiTarget==='string'&&$(module.uiTarget)){
+     const open=el('button',t('رفتن به کنترل','Open controls'));
+     open.type='button';
+     open.addEventListener('click',()=>openExistingOperationalWorkspace(module.uiTarget));
+     unit.append(open);
+   }
+   moduleGrid.append(unit);
+ }
+ modulePanel.append(moduleGrid);
+ root.append(modulePanel);
  // Evidence-backed triage queue: does not fabricate unrecorded incidents.
  const queueItems=[];
  const action=(id,priority,fa,en,detailFa,detailEn)=>queueItems.push(
