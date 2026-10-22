@@ -243,12 +243,13 @@ function renderDatabaseHealth(host){
  section.append(el('p',t(
    'بررسی سلامت تنها با فشردن دکمه مدیر انجام می‌شود. ثبت خطا و پایش خودکار به‌طور پیش‌فرض خاموش‌اند؛ هیچ تعمیر، حذف یا Cron به‌صورت خودکار اجرا نمی‌شود.',
    'Health is checked only on owner request. Error recording and scheduled checks default to off; no automatic repair, deletion or Cron runs.')));
- const scan=el('button',t('بررسی فوری و فقط‌خواندنی دیتابیس','Run on-demand read-only database check'));
+ const scan=el('button',t('بررسی فوری و ثبت امن نتیجه دیتابیس','Run and record a private database health scan'));
  scan.type='button';scan.setAttribute('data-db-health-scan','');
  scan.addEventListener('click',async()=>{
    const generation=loadGeneration;scan.disabled=true;
    try{
-     const data=await api('/database-health');
+     const data=await api('/database-health/run',{method:'POST',
+       headers:{'Content-Type':'application/json','X-CSRF-Token':csrf}});
      if(generation!==loadGeneration||!snapshot)return;
      dbHealthCurrent=data;dbHealthExpanded=true;reportingRender();
    }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
@@ -274,7 +275,7 @@ function renderDatabaseHealth(host){
    ' · '+t('جدول‌های عملیاتی: ','Operations tables: ')+(inv?.operationsTableCount??t('نامشخص','Unknown'))+
    ' · '+t('موارد نیازمند بررسی: ','Attention checks: ')+needsAttention+
    ' · '+t('بررسی ناموفق/نامشخص: ','Unavailable checks: ')+unavailable));
- overall.append(el('small',t('آخرین درخواست بررسی: ','Last manual scan: ')+date(data.asOf)));
+ overall.append(el('small',t('زمان آخرین خوانش: ','Last read at: ')+date(data.asOf)));
  section.append(overall);
  const healthStates={observed:t('مشاهده شد','Observed'),attention:t('نیازمند بررسی','Attention'),
    unavailable:t('نامشخص / در دسترس نیست','Unknown / unavailable')};
@@ -328,6 +329,36 @@ function renderDatabaseHealth(host){
    errors.append(item);
  }
  section.append(errors);
+ const observation=data.observationHistory;
+ const scanHistory=el('details',undefined,'ops-db-health-history');
+ scanHistory.setAttribute('data-db-health-history','');
+ scanHistory.append(el('summary',t('تاریخچه اجرای دستی و زمان‌بندی‌شده دیتابیس',
+   'Database health run history')));
+ if(observation?.status==='available'){
+   scanHistory.append(el('p',t(
+     'وضعیت Cron سرور مستقل از این گزارش نامشخص است. موعد بعدی به وقت تهران فقط بر اساس مجوز و ساعت مدیر محاسبه می‌شود.',
+     'Host Cron remains independently unverified. The next due time reflects only owner permission and Tehran schedule preferences.')));
+   scanHistory.append(el('p',t('مجوز زمان‌بندی: ','Scheduled policy: ')+
+     (observation.ownerPolicyEnabled?t('مجاز توسط مدیر، نه اثبات اجرا','Owner permitted, execution unverified'):
+        t('خاموش','Off'))+' · '+t('موعد بعدی: ','Next due: ')+
+     (observation.nextDueAt?date(observation.nextDueAt):'—')));
+   const recent=Array.isArray(observation.rows)?observation.rows:[];
+   if(!recent.length)scanHistory.append(el('small',t(
+      'هنوز اجرای معتبری در تاریخچه اختصاصی ثبت نشده است.',
+      'No health scan has been recorded in the dedicated history yet.')));
+   for(const item of recent.slice(0,25)){
+     const line=el('p',
+       (item.origin==='scheduled'?t('زمان‌بندی‌شده','Scheduled'):t('دستی','Manual'))+
+       ' · '+date(item.observedAt)+' · '+
+       t('نتیجه: ','Result: ')+(item.result||t('نامشخص','Unknown'))+
+       ' · '+t('مغایرت: ','Attention: ')+(item.checksAttention??'—')+
+       ' · '+t('نامشخص: ','Unavailable: ')+(item.checksUnavailable??'—'));
+     scanHistory.append(line);
+   }
+ }else scanHistory.append(el('p',t(
+     'جدول تاریخچه هنوز نصب یا قابل‌خواندن نیست؛ اجرای ثبت‌شده را نمی‌توان تأیید کرد.',
+     'Health-run history is not provisioned or readable; completed scans cannot be verified.')));
+ section.append(scanHistory);
  if(settings.available!==true){
    section.append(el('p',t('جدول تنظیمات سلامت دیتابیس هنوز نصب یا قابل‌خواندن نیست؛ هیچ کنترلی فعال نخواهد شد.',
      'Database health settings table is absent or unreadable; no controls can be enabled.')));
@@ -340,8 +371,8 @@ function renderDatabaseHealth(host){
    'ذخیره یک ترجیح به‌تنهایی Cron ایجاد نمی‌کند. برای مانیتورینگ خودکار باید Worker اختصاصی نصب و توسط مدیر فعال شود.',
    'Saving a preference never installs Cron. Scheduled scans still require a separate owner-approved CLI worker.')));
  const monitor=el('input');monitor.type='checkbox';monitor.checked=settings.monitoringEnabled===true;
- const monitorLabel=el('label',t('اجازه پایش زمان‌بندی‌شده (فعلاً بدون Worker)',
-   'Allow scheduled monitoring (no worker installed)'));monitorLabel.prepend(monitor);
+ const monitorLabel=el('label',t('مجوز مدیر برای پایش زمان‌بندی‌شده (Cron سرور تأییدنشده)',
+   'Owner permission for scheduled checks (host Cron unverified)'));monitorLabel.prepend(monitor);
  const logging=el('input');logging.type='checkbox';logging.checked=settings.errorLoggingEnabled===true;
  const loggingLabel=el('label',t('فعال‌سازی لاگ کدهای خطای دیتابیس',
    'Enable redacted database error logging'));loggingLabel.prepend(logging);
@@ -375,8 +406,8 @@ function renderDatabaseHealth(host){
          cadence:cadence.value,clockMinutes:parts[0]*60+parts[1],retentionDays:Number(retention.value)})});
      if(generation!==loadGeneration||!snapshot)return;
      dbHealthCurrent=await api('/database-health');dbHealthExpanded=true;reportingRender();
-     notice(t('تنظیمات ثبت شد؛ اجرای خودکار فعال یا نصب نشده است.',
-       'Preferences saved; no automatic worker was installed or started.'));
+     notice(t('ترجیحات مدیر ذخیره شد؛ نصب یا اجرای Cron سرور تأیید نشده است.',
+       'Owner preferences saved. Host Cron installation and execution remain unverified.'));
    }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
    finally{if(save.isConnected)save.disabled=false;}
  });
