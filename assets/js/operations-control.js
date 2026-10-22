@@ -26,11 +26,11 @@ function safeEvidenceUrl(value){
 }
 async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
-function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
+function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=false;alertCenterCurrent=null;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
 $('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
-async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
+async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
 function progress(value){const bar=el('div',undefined,'ops-progress');const fill=el('span');fill.style.width=(value??0)+'%';bar.append(fill);bar.setAttribute('aria-label',t('پیشرفت اندازه‌گیری‌شده: ','Measured progress: ')+pct(value));return bar;}
 function render(){const sum=snapshot.summary;$('ops-total').textContent=String(sum.total);$('ops-verified').textContent=String(sum.verified);$('ops-coverage').textContent=sum.measuredCoverage+'/36';$('ops-admin-score').textContent=pct(snapshot.dashboard.measuredProgress);$('ops-release').textContent=snapshot.releaseSha||t('ثبت نشده','Not recorded');$('ops-checked').textContent=date(snapshot.checkedAt);
  const select=$('ops-engine'),old=select.value;select.replaceChildren(el('option',t('همهٔ موتورها','All engines')));select.firstChild.value='';for(const engine of (snapshot.reporting?.engines||[...new Set(snapshot.reports.map(r=>r.engine))].sort())){const option=el('option',typeof engine==='string'?engine:engine.id+' · '+engineName(engine));option.value=typeof engine==='string'?engine:engine.id;select.append(option);}select.value=old;
@@ -396,6 +396,123 @@ function githubAuditRender(host){
  host.append(section);
 }
 
+let alertCenterExpanded=false,alertCenterCurrent=null;
+async function refreshAlertCenter(){
+ const generation=loadGeneration;
+ const next=await api('/alerts');
+ if(generation!==loadGeneration||!snapshot)return;
+ if(next.schema!=='operations-alert-center-v1')throw new Error('invalid_alert_center');
+ alertCenterCurrent=next;alertCenterExpanded=true;reportingRender();
+}
+function renderAlertCenter(host,model){
+ const data=alertCenterCurrent||model.alertCenter||null;
+ const incidents=Array.isArray(data?.rows)?data.rows:[];
+ const critical=incidents.filter(x=>x.severity==='critical'&&x.state==='open').length;
+ const warning=incidents.filter(x=>x.severity==='warning'&&x.state==='open').length;
+ const section=el('details',undefined,'ops-panel');section.id='ops-alert-center';
+ section.open=alertCenterExpanded;section.addEventListener('toggle',()=>{alertCenterExpanded=section.open;});
+ section.append(el('summary',t('سلامت و اعلان‌های بحرانی سایت','Site health and critical incident alerts')));
+ const first=el('div',undefined,'ops-alert-overview');
+ const counts=[
+   [t('رخداد بحرانی باز','Open critical incidents'),data?.status==='available'?String(critical):'—','critical'],
+   [t('هشدار باز','Open warnings'),data?.status==='available'?String(warning):'—','warning'],
+   [t('ایمیل و SMTP','Mail transport'),data?.mailReady?t('پیکربندی شده','Configured'):t('تأیید نشده','Unverified'),'neutral'],
+   [t('مقصد ایمیل مدیر','Admin recipient'),data?.recipientConfigured?t('پیکربندی شده','Configured'):t('ثبت نشده','Not configured'),'neutral']
+ ];
+ for(const [label,value,style] of counts){
+   const box=el('div',undefined,'ops-alert-tile ops-alert-'+style);
+   box.append(el('small',label),el('strong',value));first.append(box);
+ }
+ section.append(first);
+ section.append(el('p',t(
+   'رخدادها از جدول خصوصی ثبت می‌شوند و با نرخ محدود از طریق SMTP موجود اطلاع‌رسانی می‌شوند. وضعیت سلامت حقیقی تا تأیید پوشش هر حسگر معلوم نیست.',
+   'Incidents are recorded in the private operations DB and sent through the existing SMTP transport with cooldown. Overall production health remains unknown until each sensor is verified.')));
+ const button=el('button',t('تازه‌سازی خطاها و تاریخچه ایمیل','Refresh incidents and email history'));
+ button.type='button';button.addEventListener('click',async()=>{
+   button.disabled=true;try{await refreshAlertCenter();}
+   catch(e){notice(errorMessage(e),true);}finally{if(button.isConnected)button.disabled=false;}
+ });
+ section.append(button);
+ if(data?.status==='schema_not_provisioned'){
+   section.append(el('p',t(
+     'جداول اعلان در دیتابیس عملیاتی نصب نشده‌اند؛ هیچ هشدار فعالی فرض نمی‌شود.',
+     'Alert tables are not provisioned. No operational email alert is claimed.')));
+ }else if(data?.status==='available'){
+   section.append(el('p',t('فعال‌سازی اعلان‌ها: ','Alert setting: ')+
+     (data.enabled?t('مجاز؛ مشروط به حسگر و ارسال‌کننده','Enabled, subject to active sensors and worker'):t('خاموش','Disabled'))+
+     ' · '+t('پردازش ایمیل: ','Mail worker: ')+(data.worker||'unknown')));
+   if(data.canManage===true){
+     const master=el('button',data.enabled?t('غیرفعال‌سازی ایمیل هشدار','Disable alert emails'):
+       t('فعال‌سازی ایمیل هشدار','Enable alert emails'));
+     master.type='button';master.addEventListener('click',async()=>{
+       master.disabled=true;
+       try{
+         const next=await api('/alert-rules',{method:'POST',
+           headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+           body:JSON.stringify({eventCode:'all',enabled:!data.enabled,threshold:1,cooldownMinutes:60})});
+         alertCenterCurrent=next;alertCenterExpanded=true;reportingRender();
+       }catch(e){notice(errorMessage(e),true);}finally{if(master.isConnected)master.disabled=false;}
+     });section.append(master);
+   }
+   const rules=el('details');
+   rules.append(el('summary',t('نوع خطا، پوشش حسگر و تنظیم هر هشدار','Event types, sensor coverage and notification rules')));
+   const ul=el('ul',undefined,'ops-queue');
+   for(const rule of data.rules||[]){
+     const li=el('li');
+     li.append(el('strong',rule.name),el('small',
+       ' · '+rule.severity+' · '+t('حسگر: ','Sensor: ')+rule.sensorState));
+     li.append(el('small',t('آستانه: ','Threshold: ')+rule.threshold+
+       ' · '+t('فاصله ایمیل: ','Email cooldown: ')+rule.cooldownMinutes+
+       t(' دقیقه',' minutes')+' · '+(rule.enabled?t('فعال','Enabled'):t('غیرفعال','Disabled'))));
+     if(data.canManage===true){
+       const controls=el('div',undefined,'ops-toolbar');
+       const toggle=el('input');toggle.type='checkbox';toggle.checked=rule.enabled;
+       const label=el('label',t('فعال','Enabled'));label.prepend(toggle);
+       const threshold=el('input');threshold.type='number';threshold.min='1';threshold.max='100';
+       threshold.value=String(rule.threshold);
+       threshold.setAttribute('aria-label',t('حداقل رخداد','Minimum events'));
+       const cooldown=el('input');cooldown.type='number';cooldown.min='15';cooldown.max='1440';
+       cooldown.value=String(rule.cooldownMinutes);
+       cooldown.setAttribute('aria-label',t('فاصله ارسال به دقیقه','Cooldown minutes'));
+       const save=el('button',t('ذخیره تنظیم هشدار','Save alert rule'));save.type='button';
+       save.addEventListener('click',async()=>{
+         const n=Number(threshold.value),m=Number(cooldown.value);
+         if(!Number.isInteger(n)||n<1||n>100||!Number.isInteger(m)||m<15||m>1440){
+           notice(t('حد آستانه یا فاصله ایمیل نامعتبر است.','Invalid threshold or cooldown.'),true);return;
+         }
+         save.disabled=true;try{
+           alertCenterCurrent=await api('/alert-rules',{method:'POST',
+             headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+             body:JSON.stringify({eventCode:rule.code,enabled:toggle.checked,threshold:n,cooldownMinutes:m})});
+           alertCenterExpanded=true;reportingRender();
+         }catch(e){notice(errorMessage(e),true);}
+         finally{if(save.isConnected)save.disabled=false;}
+       });
+       controls.append(label,threshold,cooldown,save);li.append(controls);
+     }
+     ul.append(li);
+   }rules.append(ul);section.append(rules);
+   const history=el('details');history.append(el('summary',t('تاریخچه خطا و وضعیت ارسال','Incident and email delivery history')));
+   const list=el('ul',undefined,'ops-queue');
+   for(const incident of incidents.slice(0,30)){
+     const li=el('li');
+     li.append(el('strong',incident.eventCode+' · '+incident.severity),
+       el('small',t('مؤلفه: ','Component: ')+incident.scope+
+         ' · '+t('آخرین مشاهده: ','Last seen: ')+date(incident.lastSeenAt)+
+         ' · '+t('تکرار: ','Occurrences: ')+incident.occurrences+
+         ' · '+incident.state));list.append(li);
+   }
+   history.append(list);
+   const emails=el('ul',undefined,'ops-queue');
+   for(const mail of data.recentEmails||[]){
+     const li=el('li',mail.eventCode+' · '+mail.state+' · '+
+       date(mail.acceptedAt||mail.attemptedAt||mail.createdAt));emails.append(li);
+   }
+   history.append(el('h4',t('خروجی SMTP (نه تحویل قطعی صندوق)','SMTP outcomes, not inbox-delivery proof')),emails);
+   section.append(history);
+ }
+ host.append(section);
+}
 let qualityExpanded=false,qualityResult=null,qualityDetail=null;
 let qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',query:'',page:1};
 const qualityNames={
@@ -861,6 +978,7 @@ function reportingRender(){
  let host=$('ops-reporting');if(!host){host=el('section',undefined,'ops-panel');host.id='ops-reporting';host.setAttribute('aria-label',t('گزارش‌های سیزده موتور','Thirteen-engine reporting'));$('ops-workspace').insertBefore(host,$('ops-cards'));}
  host.replaceChildren();host.append(el('h2',t('۱۳ موتور؛ یک مرکز مدیریت','13 engines, one administrative center')));
  const enabledActions=model.actionReports.filter(a=>a.supportedExecutor?.type==='readonly_snapshot'&&a.supportedExecutor?.writes===false).length;host.append(el('p',t('اقدام‌های ثبت‌شده: ','Registered actions: ')+model.actionReports.length+' · '+t('قرارداد فقط‌خواندنی فعال: ','Read-only executors: ')+enabledActions+' · '+t('فاقد قرارداد اجرایی: ','Without executor: ')+(model.actionReports.length-enabledActions)));
+ renderAlertCenter(host,model);
  renderMasterEngineConsole(host,model);
  renderPageQuality(host);
  renderSourceDirectory(host);
