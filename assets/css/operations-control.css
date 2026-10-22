@@ -328,3 +328,17 @@
   #ops-database-health .ops-db-health-table{font-size:.8rem}
   #ops-database-health .ops-db-health-controls>button{width:100%}
 }
+
+/* Owner-audited DB health run history; collapsed to preserve mobile clarity. */
+#ops-database-health .ops-db-health-history{
+  margin:12px 0;padding:12px;min-width:0;overflow-wrap:anywhere;
+  border:1px solid var(--ops-border);border-radius:10px;
+  background:rgba(255,255,255,.025)
+}
+#ops-database-health .ops-db-health-history>summary{
+  cursor:pointer;min-height:44px;font-weight:650;padding:8px 0;
+  color:var(--ops-gold)}
+#ops-database-health .ops-db-health-history>p{
+  font-size:.87rem;padding:9px 0;margin:0;
+  border-bottom:1px solid rgba(175,196,220,.13)}
+#ops-database-health .ops-db-health-history>small{font-size:.82rem}
