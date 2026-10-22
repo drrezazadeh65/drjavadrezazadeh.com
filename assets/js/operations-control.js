@@ -964,8 +964,14 @@ function renderAlertCenter(host,model){
  const activation=model.activationReadiness||null;
  const incidents=Array.isArray(data?.rows)?data.rows:[];
  const httpOverview=httpHealthCurrent||model.httpHealth||null;
- const newestHttpBatch=httpOverview?.state==='observed'&&httpOverview.batches?.length
+ const candidateHttpBatch=Array.isArray(httpOverview?.batches)
    ?httpOverview.batches[0]:null;
+ const httpNow=Number(snapshot?.checkedAt)||Math.floor(Date.now()/1000);
+ const newestHttpBatch=httpOverview?.state==='observed'&&
+   Number.isInteger(candidateHttpBatch?.at)&&
+   candidateHttpBatch.at>=httpNow-900&&candidateHttpBatch.at<=httpNow+60&&
+   Number.isInteger(candidateHttpBatch?.scanned)&&candidateHttpBatch.scanned>0
+   ?candidateHttpBatch:null;
  const weakPages=model.pageQualityOverview?.status==='source_only'
    ?model.pageQualityOverview.weakSeoPages:null;
  const critical=data?.openCounts?.critical??null;
@@ -2096,9 +2102,15 @@ function renderImmediateSiteHealth(host,model){
  const observed=alerts?.status==='available';
  const counts=observed?alerts.openCounts||{}:{};
  const currentHttp=httpHealthCurrent||model.httpHealth||null;
- const httpRecorded=currentHttp?.state==='observed' &&
-   Array.isArray(currentHttp.batches)&&currentHttp.batches.length>0;
- const batch=httpRecorded?currentHttp.batches[0]:null;
+ const latestHttp=Array.isArray(currentHttp?.batches)?currentHttp.batches[0]:null;
+ const observerAt=Number(snapshot?.checkedAt)||Math.floor(Date.now()/1000);
+ // Do not portray an empty cursor pass, or an old access-log batch, as a
+ // measured zero at the current site. The read was source-only evidence.
+ const httpRecorded=currentHttp?.state==='observed'&&latestHttp&&
+   Number.isInteger(latestHttp.at)&&latestHttp.at>=observerAt-900&&
+   latestHttp.at<=observerAt+60&&
+   Number.isInteger(latestHttp.scanned)&&latestHttp.scanned>0;
+ const batch=httpRecorded?latestHttp:null;
  const response=responseMonitorCurrent||model.responseHealth||null;
  const responseCoverage=response?.latestTimestampCoverage||null;
  const responseCovered=Number.isInteger(responseCoverage?.observedTargets)&&
