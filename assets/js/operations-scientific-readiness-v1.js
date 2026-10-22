@@ -37,8 +37,8 @@
  }
  async function reload(){
   if(workspace.hidden||!panel.open)return;
-  clear(t('در حال بررسی وضعیت چهار سامانه و نشست مدیر…',
-    'Checking system capabilities and administrator session…'));
+  clear(t('در حال بررسی وضعیت پنج سامانه و نشست مدیر…',
+    'Checking five systems and administrator session…'));
   const mark=epoch;const abort=new AbortController();controller=abort;refresh.disabled=true;
   try{
    const options={method:'GET',credentials:'same-origin',cache:'no-store',
@@ -51,6 +51,18 @@
    const data=await response.json();
    if(!response.ok||data.ok!==true||data.service!=='golden-talent'||data.readOnly!==true)
     throw Error('scientific_health_unavailable');
+   if(mark!==epoch||workspace.hidden||!panel.open)return;
+   // Existing owner MFA JHELA endpoint: policy evidence, not operational proof.
+   let jhela=null;
+   try{
+     const journal=await fetch('/api/admin/operations/jhela/maturity',options);
+     if(journal.ok){
+       const document=await journal.json();
+       if(document?.ok===true &&
+          document.schema==='jhela-owner-maturity-snapshot-v1' &&
+          document.editorial?.platform==='first_party_native')jhela=document;
+     }
+   }catch(_ignored){/* unavailable journal evidence is not inferred */}
    if(mark!==epoch||workspace.hidden||!panel.open)return;
    const science=data.scientificContinuity||{};
    const rcas=data.rcasStart||{},bahar=data.baharReadiness||{};
@@ -82,7 +94,19 @@
       [t('وضعیت داده‌ها','Data state'),science.studioReflectionState||t('تأیید نشده','Not verified')],
       [t('صدور خودکار مسیر','Automatic Golden Path release'),state(science.automaticTalentScoreEnabled,t('نیازمند توقف و بررسی','Investigate unsafe state'),t('غیرفعال / تأیید نشده','Disabled / not verified'))],
       [t('مجوز خرید خودکار','Automatic purchase entitlement'),state(science.automaticPurchaseEntitlementEnabled,t('نیازمند توقف و بررسی','Investigate unsafe state'),t('غیرفعال / تأیید نشده','Disabled / not verified'))]
-     ],en?'/en/student-guidance/':'/fa/entekhab-reshteh/')
+     ],en?'/en/student-guidance/':'/fa/entekhab-reshteh/'),
+     item('JHELA',t('سامانه تحریریه بومی؛ پذیرش، داوری و نمایه‌سازی فقط با شواهد مستقل',
+       'Native editorial system; intake, review and indexing require independent evidence'),[
+       [t('معماری','Architecture'),jhela?.editorial?.platform||t('تأیید نشده','Unverified')],
+       [t('سیاست دریافت مقاله','Intake policy'),jhela?.editorial?.submissionPolicy||t('نامعلوم','Unknown')],
+       [t('داوری علمی مستقل','Independent peer review'),jhela?.editorial?.reviewWorkflow||t('تأیید نشده','Unverified')],
+       [t('مراحل دارای گواهی مستقل','Independently evidenced milestones'),
+         Number.isInteger(jhela?.evidenceReview?.verifiedStageCount)
+           ?String(jhela.evidenceReview.verifiedStageCount)+' / 10':t('بدون شاهد','No evidence')],
+       [t('نمایه‌سازی مستند','Verified indexing'),
+         Array.isArray(jhela?.verifiedIndexClaims)&&jhela.verifiedIndexClaims.length
+           ?t('نیازمند بررسی مستقل','Independent review required'):t('تأیید نشده','Unverified')]
+     ],'/journal/')
    ];
    results.append(...items);
    results.hidden=false;
