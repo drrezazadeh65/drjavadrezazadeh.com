@@ -583,7 +583,7 @@ let qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',qu
 const qualityNames={
  content:['محتوا','Content'],image:['تصاویر','Images'],seo:['سئو','SEO'],
  ui:['رابط کاربری','UI'],ux:['تجربه کاربری','UX'],ai:['آمادگی AI','AI readiness'],
- geo:['GEO','GEO'],speed:['سرعت واقعی','Measured speed'],security:['هدرهای امنیتی','Security headers']
+ geo:['GEO','GEO'],speed:['سرعت آزمایشگاهی معتبر','Dated lab speed'],security:['هدرهای امنیتی','Security headers']
 };
 const qualityName=key=>t(...(qualityNames[key]||[key,key]));
 const qualityScore=value=>typeof value==='number'&&Number.isFinite(value)?value.toFixed(1):'—';
@@ -602,8 +602,8 @@ function renderPageQuality(host){
  section.append(el('summary',t('امتیاز مستقل هر صفحه؛ محتوای فارسی و انگلیسی، سئو و تجربه کاربری',
    'Per-page quality: independent content, SEO, UX, AI and technical dimensions')));
  section.append(el('p',t(
-   'تمام نمره‌های موجود، شاخص اولیهٔ تحلیل HTML مخزن هستند، نه آزمون زنده یا نمره گوگل. سرعت حقیقی، هدرهای HTTP و حضور در پاسخ‌های AI تا اندازه‌گیری معتبر با «—» نمایش داده می‌شوند.',
-   'Available scores are static-source heuristics, not Google scores or live tests. Real speed, HTTP security headers and AI appearances remain unavailable until measured.')));
+   'امتیازها به‌جز سرعت آزمایشگاهی معتبر، برآورد ساختاری HTML مخزن هستند. نمره سرعت فقط برای صفحه‌ای نشان داده می‌شود که مشاهده تازه PageSpeed داشته باشد؛ داده واقعی کاربران، هدر HTTP و حضور در پاسخ AI بدون شاهد معتبر «—» است.',
+   'Scores are static-source heuristics except valid dated PageSpeed mobile lab observations for explicitly measured pages. Real-user speed, HTTP security headers and AI appearances remain unavailable without evidence.')));
  const form=el('div',undefined,'ops-toolbar');
  function select(options,current,label,onChange){
    const element=el('select');element.setAttribute('aria-label',label);
