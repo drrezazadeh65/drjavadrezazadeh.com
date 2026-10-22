@@ -109,12 +109,12 @@
           :item.target==='education-engines'
             ?listing:document.getElementById(item.target);
         if(!panel)return;
-        if(panel instanceof HTMLDetailsElement)panel.open=true;
+        if(panel.tagName==='DETAILS')panel.open=true;
         if(!panel.closest('details')?.open&&panel.closest('details')){
           panel.closest('details').open=true;
         }
-        panel.scrollIntoView({block:'start',behavior:'instant'});
-        if(panel instanceof HTMLDetailsElement){
+        panel.scrollIntoView({block:'start',behavior:'auto'});
+        if(panel.tagName==='DETAILS'){
           panel.querySelector('summary')?.focus({preventScroll:true});
         }else{
           const first=panel.querySelector('button,a,summary,[tabindex]');
