@@ -133,7 +133,8 @@ try {
  // all activity and deletion below uses the isolated operations_fixture DB.
  $masterOff=request('/api/admin/operations/collection-settings',200);
  check(($masterOff['automaticCollection']['enabled']??true)===false
-     && ($masterOff['automaticCollection']['installedCronVerified']??true)===null,
+     && array_key_exists('installedCronVerified',$masterOff['automaticCollection']??[])
+     && $masterOff['automaticCollection']['installedCronVerified']===null,
      'collector master switch falsely reported on or Cron verified');
  $noMasterCsrf=$headers;unset($noMasterCsrf['X-CSRF-Token']);
  request('/api/admin/operations/collection-automatic',403,'POST',[
