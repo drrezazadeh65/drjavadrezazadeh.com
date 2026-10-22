@@ -42,6 +42,9 @@ on:
       - "database/unified/003e_admission_knowledge_catalog_PROPOSED.sql"
       - "docs/migrations/20261020_konkur_catalog_readonly_preflight.sql"
       - "platform/konkur-1405-intake.mjs"
+      - "api/internal/educational-tool-contract-v3.php"
+      - "tests/educational-tool-contract-v3.php"
+      - "tests/fixtures/educational-tool-contract-v3.synthetic.json"
       - "platform/educational-intelligence-v3.mjs"
       - "tests/educational-intelligence-v3.test.mjs"
       - "platform/educational-intelligence-catalogue-adapter-v3.mjs"
@@ -130,6 +133,9 @@ jobs:
           php -l api/konkur-admission.php
           php -l tests/konkur-public-search-guard.php
           php tests/konkur-public-search-guard.php
+          php -l api/internal/educational-tool-contract-v3.php
+          php -l tests/educational-tool-contract-v3.php
+          php tests/educational-tool-contract-v3.php
           node --test tests/konkur-official-scorecard.test.mjs
           node --test tests/konkur-official-scorecard-contract.test.mjs
           node --test tests/konkur-1405-intake.test.mjs
