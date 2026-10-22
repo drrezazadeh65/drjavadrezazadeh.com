@@ -2104,6 +2104,13 @@ function renderOwnerCommandCenter(){
      t('استراتژی مخزن؛ این عدد رتبه، کلیک یا ورودی گوگل نیست',
        'Repository keyword strategy, not ranking, traffic or GSC clicks'))
    :absent(t('نقشه کلیدواژه‌ها بارگیری نشده','Keyword strategy map not loaded'));
+ const freeSources=ownerCockpitPrivateEvidence.free;
+ const freeOverview=freeSources?.schema==='operations-free-resources-v1'?
+   state('recorded',t('مراجع رایگان فهرست‌شده: ','Catalogued free references: ')+
+       (freeSources.resources?.length??'—'),
+     t('فهرست مخزن؛ اتصال و بازیابی زنده منابع خارجی تأیید نشده',
+       'Repository catalogue; live external connections and retrieval unverified')):
+   absent(t('فهرست منابع رایگان بارگیری نشده','Free-source catalogue not loaded'));
  const history=ownerCockpitPrivateEvidence.audit;
  const auditOverview=history?.schema==='operations-audit-timeline-v1'?
    state('recorded',t('رویدادهای اخیر: ','Recent audit events: ')+
@@ -2172,6 +2179,30 @@ function renderOwnerCommandCenter(){
    target:'ops-organic-growth',data:growthOverview,load:'growth',
    descFa:'تولید محتوا، استراتژی رشد و تفکیک فرصت درآمد از درآمد وصول‌شده',
    descEn:'Growth planning with clear separation of opportunity and collected revenue'},
+  {id:'free',group:'platform',fa:'منابع رایگان و پایگاه‌های مرجع',eng:'Free research & source references',
+   target:'ops-free-resources',data:freeOverview,load:'free',
+   descFa:'فهرست منابع معتبر و وضعیت گردآوری واقعی، بدون جعل اتصال',
+   descEn:'Reference catalogue and verified collection evidence, with no invented connections'},
+  {id:'content-editor',group:'business',fa:'میز تحریریه و ویرایش سایت',eng:'Website editorial workbench',
+   target:'ops-editor-workbench',data:unknown,
+   descFa:'پیش‌نویس، نسخه‌های قبلی و کنترل انتشار با اختیار مدیر',
+   descEn:'Drafts, revisions and explicitly approved content publishing'},
+  {id:'author',group:'business',fa:'مدیریت مؤلفان و نشر',eng:'Authors & publishing operations',
+   target:'ops-author-real-view',data:unknown,
+   descFa:'نمای مستقل مؤلف، مدارک، امور نشر و دسترسی‌های تأییدشده',
+   descEn:'Owner-governed author views, documentation and permissions'},
+  {id:'finance',group:'business',fa:'برنامه‌ریزی مالی و درآمد',eng:'Financial and revenue planning',
+   target:'ops-revenue-planning',data:unknown,
+   descFa:'سناریوهای درآمدی و بودجه؛ تفکیک پیش‌بینی از تراکنش تسویه‌شده',
+   descEn:'Budget scenarios separated from independently bank-settled amounts'},
+  {id:'community',group:'business',fa:'مدیریت دیدگاه‌ها و بازبینی محتوا',eng:'Comments & editorial moderation',
+   target:'jr-community-admin',data:unknown,
+   descFa:'صف بررسی محتوا و تأیید مدیر؛ بدون انتشار یا حذف خودکار',
+   descEn:'Moderation queues and owner approval; no unattended deletion or publishing'},
+  {id:'journal-work',group:'business',fa:'گردش کار تحریریه نشریه',eng:'Journal editorial workflow',
+   target:'ops-jhela-workstream',data:unknown,
+   descFa:'داشبورد نقش‌ها و مرحله‌ها؛ اعتبارسنجی فعالیت واقعی جدا از برنامه',
+   descEn:'Role and stage workspaces; recorded intentions separate from live execution'},
   {id:'engines',group:'platform',fa:'مدیریت ۱۳ موتور عملیاتی',eng:'13-engine control',
    target:'ops-master-engine-control',data:engineOverview,
    descFa:'نمای مجری‌های واقعی، وابستگی‌ها، محدودیت مجوز و وضعیت هر موتور',
@@ -2216,7 +2247,8 @@ function renderOwnerCommandCenter(){
        Object.entries(qualityFilters).map(([key,value])=>[key,String(value)]))],
      ['commerce','/commerce'],['social','/social'],
      ['gsc','/gsc-direct'],['ai','/ai-visibility'],['audit','/audit-timeline'],
-     ['journal','/jhela/maturity'],['growth','/growth'],['keyword','/keyword-map']
+     ['journal','/jhela/maturity'],['growth','/growth'],['keyword','/keyword-map'],
+     ['free','/free-resources']
    ];
    let loaded=0,unavailable=0;
    // Sequential, bounded owner-initiated reads reduce load on shared hosting.
@@ -2336,10 +2368,10 @@ function renderOwnerCommandCenter(){
        throw new Error('invalid_source_directory');
     sourceDirectoryState=response;sourceDirectoryExpanded=true;}
    else if(item.load==='quality'){await loadQualityIndex();}
-   else if(['commerce','social','gsc','ai','audit','journal','growth','keyword'].includes(item.load)){
+   else if(['commerce','social','gsc','ai','audit','journal','growth','keyword','free'].includes(item.load)){
      const routes={commerce:'/commerce',social:'/social',gsc:'/gsc-direct',
        ai:'/ai-visibility',audit:'/audit-timeline',journal:'/jhela/maturity',
-       growth:'/growth',keyword:'/keyword-map'};
+       growth:'/growth',keyword:'/keyword-map',free:'/free-resources'};
      const response=await api(routes[item.load]);
      if(generation!==loadGeneration||!snapshot)return;
      ownerCockpitPrivateEvidence[item.load]=response;
