@@ -90,6 +90,39 @@ function operationsCollectorPolicies(PDO $pdo): array {
  * catalogue are not consumed by the scheduled GitHub worker. Report the
  * discrepancy to MFA administrators, without enabling or deleting anything.
  */
+/**
+ * A fail-closed, independent owner master switch: even if a host cron job
+ * exists and older per-source rows are enabled, no scheduled network fetch
+ * is permitted unless SUPER_ADMIN explicitly saves this reserved policy.
+ * An absent row means OFF (including Bertina's current live DB).
+ */
+function operationsCollectorAutomaticEnabled(PDO $pdo): bool {
+    try {
+        $q=$pdo->prepare('SELECT enabled FROM operations_collection_policies WHERE scope_key=? LIMIT 1');
+        $q->execute(['system:scheduled_collection']);
+        $value=$q->fetchColumn();
+        return $value!==false && (int)$value===1;
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+function operationsCollectorAutomaticConfigure(PDO $pdo,bool $enabled,string $actor,int $at): void {
+    $pdo->beginTransaction();
+    try {
+        $pdo->prepare("INSERT INTO operations_collection_policies
+            (scope_key,enabled,cadence,clock_minutes,next_due,updated_at)
+            VALUES ('system:scheduled_collection',?,'manual',0,0,?)
+            ON DUPLICATE KEY UPDATE enabled=VALUES(enabled),updated_at=VALUES(updated_at)")
+            ->execute([$enabled?1:0,$at]);
+        $pdo->prepare('INSERT INTO operations_audit(actor_id,action,reference_id,occurred_at) VALUES(?,?,?,?)')
+            ->execute([$actor,$enabled?'collector_master_enabled':'collector_master_disabled',
+                'system:scheduled_collection',$at]);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
 function operationsCollectorUnmappedPolicies(PDO $pdo): array {
     try {
         $known=operationsCollectorCatalogue();
@@ -97,7 +130,7 @@ function operationsCollectorUnmappedPolicies(PDO $pdo): array {
         $unknown=[];
         foreach ($query as $row) {
             $id=(string)$row['scope_key'];
-            if(!isset($known[$id]))$unknown[]=$id;
+            if($id!=='system:scheduled_collection'&&!isset($known[$id]))$unknown[]=$id;
         }
         return ['status'=>'available','count'=>count($unknown),
             'ids'=>array_slice($unknown,0,25)];
@@ -203,6 +236,8 @@ function operationsCollectorStatus(PDO $pdo,int $at): array {
     }
     return ['ok'=>true,'schema'=>'operations-collection-controls-v1',
         'timezone'=>'Asia/Tehran','scheduler'=>'external_bertina_cron_required',
+        'automaticCollection'=>['enabled'=>operationsCollectorAutomaticEnabled($pdo),
+            'installedCronVerified'=>null,'policy'=>'owner_opt_in_fail_closed'],
         'attemptJournalStatus'=>$attempts['status'],
         'unmappedPolicies'=>operationsCollectorUnmappedPolicies($pdo),
         'rows'=>$rows,'sourceStates'=>$cache['states'],
@@ -210,6 +245,8 @@ function operationsCollectorStatus(PDO $pdo,int $at): array {
 }
 function operationsCollectorRefresh(PDO $pdo,string $mode,int $at,string $scope='all'): array {
     if(!in_array($mode,['manual','scheduled'],true))throw new InvalidArgumentException('collector_mode_invalid');
+    if($mode==='scheduled'&&!operationsCollectorAutomaticEnabled($pdo))
+        return ['status'=>'paused_by_owner','attempted'=>0,'saved'=>0];
     $catalogue=operationsCollectorCatalogue();
     if($scope!=='all'&&!isset($catalogue[$scope]))throw new InvalidArgumentException('collector_scope_invalid');
     $lock=(int)$pdo->query("SELECT GET_LOCK('drjr_ops_collection_v1',0)")->fetchColumn();
@@ -218,7 +255,10 @@ function operationsCollectorRefresh(PDO $pdo,string $mode,int $at,string $scope=
         $policies=operationsCollectorPolicies($pdo);
         $keys=[];
         foreach($policies as $key=>$p){
-            if($p['type']!=='source'||!$p['enabled']||!($policies[$p['engineId']]['enabled']??false))continue;
+            if($p['type']!=='source')continue;
+            // Explicit owner manual refresh is independent from the automatic
+            // schedule switch. Never silently toggle any stored policy.
+            if($mode==='scheduled'&&(!$p['enabled']||!($policies[$p['engineId']]['enabled']??false)))continue;
             if($scope!=='all'&&$scope!==$key&&$scope!==$p['engineId'])continue;
             if($mode==='scheduled'&&($p['cadence']==='manual'||$p['cadence']==='live'||($p['nextDue']??PHP_INT_MAX)>$at))continue;
             $keys[]=$key;
