@@ -2020,10 +2020,10 @@ function renderOwnerCommandCenter(){
  const directoryOverview=directory
    ?state('recorded',t('منابع فهرست‌شده: ','Catalogued sources: ')+
       (directory.counts?.total??directory.sources?.length??'—')+
-      ' · '+t('مجوزهای ثبت‌شده: ','Saved source policies: ')+
+      ' · '+t('منابع با گزینهٔ مجاز: ','Sources with allowed setting: ')+
       (policyEnabled===null?'—':policyEnabled),
-     t('سیاست ذخیره‌شده، اثبات اتصال یا اجرای زمان‌بند نیست',
-       'A stored enable preference does not verify a provider or a scheduled worker'))
+     t('این تعداد ممکن است شامل مقدار پیش‌فرض باشد؛ بدون کلید اصلی و Cron تأییدشده هیچ واکشی خودکاری نتیجه نمی‌شود',
+       'Counts may include default preferences; without owner master enable and verified Cron no automatic fetching is proven'))
    :absent(t('فهرست منابع بارگیری نشده','Source directory not loaded'));
  const quality=model.pageQualityOverview;
  const qualityOverview=quality?.status==='source_only'
