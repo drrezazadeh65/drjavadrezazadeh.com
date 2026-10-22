@@ -56,6 +56,44 @@ const adminToolInventory={schema:'operations-free-resources-v1',catalogueDate:fr
 const inventoryOutput=path.join(out,'api/internal/free-resources-registry.json');
 if(!/Require all denied/.test(fs.readFileSync(path.join(out,'api/internal/.htaccess'),'utf8')))throw Error('Private admin registry protection missing');
 fs.writeFileSync(inventoryOutput,JSON.stringify(adminToolInventory)+'\n');
+// Project ONLY source-level, nonpersonal 1405 guide-review metadata to the
+// private operations API. No PDF, Drive file ID, filename or extracted text is
+// bundled or exposed. Manifest figures are historical inventory, not approval.
+const admissionManifest=JSON.parse(
+  fs.readFileSync(path.join(root,'platform/konkur-1405-sources.json'),'utf8')
+);
+if(admissionManifest.schema!=='jr-konkur-official-source-inventory-v1'
+  ||admissionManifest.cycle!==1405
+  ||!Array.isArray(admissionManifest.sources)
+  ||!Array.isArray(admissionManifest.coverageGaps))
+  throw Error('1405 source manifest contract drift');
+const sourceReviewPrivate={
+  schema:'jr-1405-source-review-admin-v1',
+  sourceState:'HISTORICAL_MANIFEST_UNREVIEWED',
+  cycle:1405,
+  auditedOn:admissionManifest.inventoryAudit?.verifiedOn||null,
+  reviewComplete:false,
+  officialProgrammeRecordsApproved:0,
+  predictionAuthorized:false,
+  canActivateOfficialCatalogue:false,
+  sourceCount:admissionManifest.sources.length,
+  totalPdfPages:admissionManifest.sources.reduce((sum,r)=>sum+(
+    Number.isSafeInteger(r.pdfPageCount)&&r.pdfPageCount>0?r.pdfPageCount:0),0),
+  guides:admissionManifest.sources.map(r=>({
+    key:r.key,category:r.category,
+    pdfPageCount:r.pdfPageCount,
+    pageAudit:r.pdfPageAudit,
+    tableReview:r.criticalTablesVerification,
+    extraction:r.extractionStatus,
+    approvedForEligibility:false
+  })),
+  missingCoverage:admissionManifest.coverageGaps.map(r=>({
+    kind:r.kind,status:r.status
+  })),
+  disclaimer:'Manifest counts alone do not validate PDF programme rows, amendments, official cutoffs, eligibility or admission probabilities.'
+};
+fs.writeFileSync(path.join(out,'api/internal/jr-1405-source-review-admin.json'),
+  JSON.stringify(sourceReviewPrivate)+'\n');
 // Versioned PRIVATE source-derived page quality inventory for the existing
 // administrator dashboard. Server refuses non-admin/MFA reads. It never fetches
 // live URLs, scores real search rankings or includes HTML/customer content.
