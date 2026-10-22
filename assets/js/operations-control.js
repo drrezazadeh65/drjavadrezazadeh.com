@@ -244,6 +244,19 @@ function collectionControlsRender(parent){
   box.append(overview);
   box.append(el('small',t('این ارقام فقط وضعیت رکوردهای ذخیره‌شده و زمان‌بندی منبع را نشان می‌دهند؛ نصب Cron، موفقیت اتصال خارجی یا دریافت ایمیل را تأیید نمی‌کنند.',
     'These counts describe stored records and source due dates only. They do not verify host Cron, provider connectivity or inbox delivery.')));
+  const unmapped=collectionState.unmappedPolicies;
+  if(unmapped?.status==='available'&&unmapped.count>0){
+    const unknown=el('p',t('سیاست‌های ثبت‌شده بدون گردآورنده در این فهرست: ','Stored policies not consumed by these collectors: ')+
+      unmapped.count+' · '+unmapped.ids.join('، '));
+    unknown.className='ops-note';
+    unknown.setAttribute('data-ops-unmapped-policies','');
+    box.append(unknown);
+    box.append(el('small',t('برای نمونه، http_access_log وظیفهٔ GitHub collector نیست. اجرای پایش لاگ به مسیر مجاز لاگ و Cron اختصاصی وابسته است؛ تنظیم ثبت‌شده آن را فعال نمی‌کند.',
+      'For example, http_access_log is not a GitHub collector. Log monitoring requires a configured private log path and a separate CLI job; storing a policy does not activate it.')));
+  }else if(unmapped?.status==='unavailable'){
+    box.append(el('small',t('وجود سیاست‌های ناشناخته قابل بررسی نبود.','Unmapped policy inventory could not be checked.')));
+  }
+
 
   const manual=el('button',t('تازه‌سازی فوری همهٔ منابع فعال','Refresh all enabled sources now'));manual.type='button';
   manual.addEventListener('click',async()=>{
