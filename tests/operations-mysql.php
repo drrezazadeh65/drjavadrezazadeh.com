@@ -129,6 +129,58 @@ try {
  // Upgrade the same isolated account temporarily (private registry + DB must agree).
  $configuration['operations_admins'][$id]['role']='SUPER_ADMIN';writeConfig();
  $pdo->prepare("UPDATE operations_admin_memberships SET role='SUPER_ADMIN' WHERE account_id=?")->execute([$id]);
+ // Database-health capability is owner-only, off-by-default and read-only until requested.
+ $initialDbHealth=request('/api/admin/operations/database-health',200);
+ check(($initialDbHealth['schema']??null)==='operations-database-health-v1'
+     && ($initialDbHealth['mode']??null)==='manual_readonly'
+     && ($initialDbHealth['settings']['monitoringEnabled']??true)===false
+     && ($initialDbHealth['settings']['errorLoggingEnabled']??true)===false
+     && ($initialDbHealth['automaticRepairEnabled']??true)===false,
+     'database health was automatically activated or lacked initial safeguards');
+ check(($initialDbHealth['inventory']['operationsTableCount']??0)>=24
+     && ($initialDbHealth['connection']??'')==='available',
+     'isolated database inventory was not observed');
+ request('/api/admin/operations/database-health/settings',403,'POST',[
+     'monitoringEnabled'=>true,'errorLoggingEnabled'=>true,
+     'cadence'=>'daily','clockMinutes'=>210,'retentionDays'=>90
+ ],$noCsrf);
+ operationsDbHealthRecordError($pdo,'database_test',new PDOException('sensitive DSN in error'),$now);
+ check((int)$pdo->query('SELECT COUNT(*) FROM operations_database_error_events')->fetchColumn()===0,
+     'disabled database error logger wrote a record');
+ $savedDbHealth=request('/api/admin/operations/database-health/settings',200,'POST',[
+     'monitoringEnabled'=>false,'errorLoggingEnabled'=>true,
+     'cadence'=>'manual','clockMinutes'=>210,'retentionDays'=>90
+ ],$headers);
+ check(($savedDbHealth['settings']['monitoringEnabled']??true)===false
+     && ($savedDbHealth['settings']['errorLoggingEnabled']??false)===true,
+     'owner-only database logging preference not saved correctly');
+ $databaseException=new PDOException('secret password SQL query should never persist');
+ $databaseException->errorInfo=['42000',1064,'Secret user data from driver'];
+ operationsDbHealthRecordError($pdo,'database_test',$databaseException,$now-95*86400);
+ check((int)$pdo->query('SELECT COUNT(*) FROM operations_database_error_events')->fetchColumn()===1,
+     'explicit opt-in database error logging failed');
+ $dbReport=request('/api/admin/operations/database-health',200);
+ check(($dbReport['errors']['status']??null)==='available'
+     && count($dbReport['errors']['rows']??[])===1
+     && !str_contains(json_encode($dbReport['errors'],JSON_THROW_ON_ERROR),'secret'),
+     'redacted error journal not available or exposed database exception text');
+ $purgePreview=request('/api/admin/operations/database-health/purge-preview',200);
+ check(($purgePreview['eligibleCount']??0)===1 && $purgePreview['previewOnly']===true,
+     'old diagnostic row did not appear in bounded dry-run preview');
+ request('/api/admin/operations/database-health/purge-expired',400,'POST',[
+     'confirmation'=>'wrong value'
+ ],$headers);
+ $purgeResult=request('/api/admin/operations/database-health/purge-expired',200,'POST',[
+     'confirmation'=>'DELETE EXPIRED DATABASE LOGS'
+ ],$headers);
+ check(($purgeResult['deleted']??null)===1
+     && (int)$pdo->query('SELECT COUNT(*) FROM operations_database_error_events')->fetchColumn()===0,
+     'owner-confirmed expired diagnostic purge did not respect its scope');
+ // Tests are isolated; disable the logger again before further route fixtures.
+ request('/api/admin/operations/database-health/settings',200,'POST',[
+     'monitoringEnabled'=>false,'errorLoggingEnabled'=>false,
+     'cadence'=>'manual','clockMinutes'=>210,'retentionDays'=>90
+ ],$headers);
  // The same isolated account can now read the owner-only AI evidence.
  $joint=request('/api/admin/operations/search-intelligence',200);
  check(($joint['schema']??'')==='jr-owner-search-intelligence-v1'&&array_key_exists('activeUsers',$joint['ga4'])&&$joint['ga4']['activeUsers']===null
@@ -173,7 +225,7 @@ try {
  request('/api/admin/operations/mfa',403,'POST',['code'=>$code],$headers);
  
  $beforeCollections=(int)$pdo->query('SELECT COUNT(*) FROM operations_collection_policies')->fetchColumn();
- check($beforeCollections===21,'Thirteen engines and eight source policies were not seeded');
+ check($beforeCollections===22,'Thirteen engines, eight sources and disabled owner master switch were not seeded');
  $initial=request('/api/admin/operations/collection-settings',200);
  check(count($initial['rows'])===21 && $initial['timezone']==='Asia/Tehran',
      'Collector policy inventory missing');
