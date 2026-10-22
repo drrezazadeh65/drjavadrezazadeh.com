@@ -169,7 +169,9 @@
       // Re-read source of truth before reflecting the new draft state.
       inventory=null;busy=false;refresh.disabled=false;
       const reloaded=await load();
-      if(serial>requestId||!reloaded||!inventory?.drafts){
+      // The intentional independent GET increments requestId by one.
+      // Compare to that successor, not the preceding POST request serial.
+      if(requestId!==serial+1||!reloaded||!inventory?.drafts){
         setStatus(T('پاسخ ثبت دریافت شد، اما بازخوانی مستقل از پایگاه داده تأیید نشد. دوباره وضعیت را دریافت کنید.',
           'Save response received, but independent database reread was not confirmed. Refresh the draft inventory.'));
         return;
