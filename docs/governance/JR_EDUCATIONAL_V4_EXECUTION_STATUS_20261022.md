@@ -187,3 +187,36 @@ This source-only continuation implements the following on `migration/bertina-lin
 - Existing new RCAS sitemap records and the prior code-level erasure alert producer are retained, not rewritten. The new links expose public content only; they never place learner notes or tokens into navigation.
 
 **End-stage verification still NOT RUN:** actually browse 320/360/375/390/414/430px, tablet and desktop; verify published route status, sitemap/canonical/hreflang, logo and images, source-only dashboard badges/FA-EN links, PWA update and offline fallback, and zero private assessment caches. Verify source inventory generation after final build: newly authored pages are not presumed to have a scored static-quality row until the existing inventory producer runs. Scientific, commerce, data and real-host gates remain **NOT VERIFIED / BLOCKED**, and production launch remains **NOT AUTHORIZED**.
+
+
+## 2026-10-22 — Stage 6 master health & educational offer contract reconciliation (SOURCE ONLY)
+
+**Source-only edits committed on `migration/bertina-linux6`. No tests, builds, migrations, cron probes, live publication, price activation or new bank transactions were executed.** Existing public URLs, immutable sitemap locations, commerce orders and authenticated private user routes were not renamed.
+
+### 1. Real control contract for owner email alerts
+
+- `api/operations-alerts.php` now lists **all 10 code-defined incident classes** in the owner MFA alert snapshot, even if an additive MariaDB rule row has not yet been installed. Unprovisioned events are explicitly `ruleProvisioned=false`, `enabled=false`, with conservative default threshold/cooldown and `emailDeliveryVerified=false`; the admin must not confuse a missing event rule with an intentionally disabled installed one.
+- Updating a nonexistent event now fails with `alert_rule_not_provisioned`, surfaced as HTTP 409 in the canonical operations router. The previous SQL `UPDATE` could otherwise succeed syntactically while writing zero rows and misleadingly reporting a saved setting. The global switch is likewise checked for its actual singleton row.
+- Owner edits to global/rule alert preferences and independently selectable engine/feature/source email scopes now run in **short atomic transactions with audit writes**. A missing audit or failed SQL rolls back the preference; no unaudited success is declared. Only existing admin membership, recent MFA, CSRF, rate controls, database and SMTP architecture are reused. No new notification backend or arbitrary recipient list was introduced.
+- `assets/js/operations-control.js` shows missing rule rows and unattached sensors, suppresses nonfunctional edit controls for missing rows, and provides bilingual actionable messages. The existing alert-centre controls remain usable for provisioned rules.
+
+### 2. Evidence-first master admin initial viewport
+
+- The **existing**, not duplicated, operations dashboard now adds a first-screen evidence strip sourced exclusively from already-authorized stored snapshots. It displays recorded open critical/warning incidents, missing event-rule rows, the last actually observed 404/5xx batch, weak static-source SEO pages and existing operations table inventory. `UNKNOWN`/no observation remains an em dash rather than a fabricated zero or verified health score.
+- Each indicator opens the real existing alerts, private HTTP triage or page-quality section; when HTTP observer setup is missing, the control opens the parent alert panel explaining unavailable schema rather than doing nothing. Responsive 320px-safe styles, RTL/LTR labels, focusable 48px actions and shared CSS/JS cache-version references are present in **both** previously established admin pages.
+- This is not a continuous active incident-monitor claim, a new background scan, real CWV score, proof of working Cron, independent TLS evidence or inbox-delivery validation.
+
+### 3. Four genuinely free stages separated from owner price proposals
+
+- Central `operationsEducationFreeIntroIds()` in `api/operations-educational-offers.php` defines precisely `talent-intro`, `rcas-intro`, `bahar-intro`, `scorecard-intro`. The source-proposal reader fails closed if any entry is missing or assigned a nonzero base price. Each resulting proposal now carries `permanentlyFreeIntro` independently of draft price.
+- `api/operations-education-release-gates.php` uses this flag, **not a mutable draft 0-toman price**, to determine whether the payment acceptance gate is `NOT_APPLICABLE`. Other products must still meet all applicable approval gates even if a later promotion were proposed. `api/operations-education-price-drafts.php` uses the same canonical free-ID function to forbid free-stage repricing.
+- Admin price editing and 12-offer preparation cards have bilingual permanent-free versus unapproved-offer labels. The price editor checks that the server catalogue's free-intro flags agree with the immutable ID list, with source-only JS version refreshes in both canonical admin HTML pages.
+- Existing separately approved book, Mirkarimi author, consultation and transaction prices remain untouched; no public checkout, entitlement, scientific validation, activated merchant service or purchase CTA was created by these edits.
+
+### Unresolved evidence gates
+
+- **Stage 7 NOT RUN**: integrated PHP/MariaDB contractual checks, concurrent audited email-setting update, missing-rule 409 and read-after-write, absent/disabled rule, stale sensor, missing SMTP/Cron, mobile/desktop/RTL/LTR focus and actual UI behavior, exact static inventory build and real 404/5xx ingestion must all be verified in the single final acceptance window.
+- Production mother database observations and proposed additive DDL remain owner-authorized post-source activities. No operational email notification or payment activation is asserted.
+- Official 1405 source signatures, verified scientific measures, outcomes-based probability evaluation, legal guardian policy, real fulfilment and finance approvals remain separate BLOCKED/UNVERIFIED external gates.
+
+**Owner instruction unchanged:** finish all independently implementable source first, then one comprehensive acceptance programme; deploy only through the owner-controlled Bertina release workflow.
