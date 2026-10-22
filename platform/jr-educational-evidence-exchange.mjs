@@ -89,6 +89,11 @@ export function normalizeEducationalEvidence(raw,trustedServerContext=null){
      raw.evidence.length>MAX_EVIDENCE)
     errors.push('Evidence list must contain 1 to '+MAX_EVIDENCE+' items');
   const evidence=[];
+  // The same source/title/limitation repeated in slightly different
+  // Unicode/casing is ONE observation, not multiple independent reasons
+  // for an aptitude claim, pathway proposal or professional inference.
+  const seenEvidence=new Set();
+  const evidenceKey=v=>v.normalize('NFKC').replace(/\s+/gu,' ').toLocaleLowerCase('en-US');
   if(Array.isArray(raw.evidence)&&raw.evidence.length<=MAX_EVIDENCE){
     for(const item of raw.evidence){
       if(!plain(item)){errors.push('Invalid evidence item');continue;}
@@ -105,6 +110,14 @@ export function normalizeEducationalEvidence(raw,trustedServerContext=null){
       if(!title||!source||!limitation){
         errors.push('Evidence requires title, source and limitation');continue;
       }
+      const identity=JSON.stringify([
+        evidenceKey(title),evidenceKey(source),evidenceKey(limitation)
+      ]);
+      if(seenEvidence.has(identity)){
+        errors.push('Duplicate source evidence is not independent evidence');
+        continue;
+      }
+      seenEvidence.add(identity);
       evidence.push({title,source,limitation});
     }
   }
