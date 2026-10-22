@@ -471,7 +471,7 @@ function renderAlertCenter(host,model){
      }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
      finally{if(refreshHttp.isConnected)refreshHttp.disabled=false;}
    });httpPanel.append(refreshHttp);
-   if(http?.state==='observed'&&Array.isArray(http.batches)){
+   if(['observed','stale'].includes(http?.state)&&Array.isArray(http.batches)){
      const chart=el('div',undefined,'ops-http-bars');
      chart.setAttribute('role','group');chart.setAttribute('aria-label',
        t('نمودار شمارش خطای ۴۰۴ و ۵۰۰','404 and 5xx error count chart'));
