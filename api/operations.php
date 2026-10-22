@@ -16,6 +16,7 @@ require_once __DIR__.'/operations-educational-offers.php';
 require_once __DIR__.'/operations-education-price-drafts.php';
 require_once __DIR__.'/operations-education-source-review.php';
 require_once __DIR__.'/operations-education-readiness.php';
+require_once __DIR__.'/operations-education-privacy.php';
 require_once __DIR__.'/operations-book-expiration.php';
 require_once __DIR__.'/operations-donation-recovery.php';
 require_once __DIR__.'/operations-fulfilment.php';
@@ -569,6 +570,14 @@ function operationsRoute(string $path, string $verb): never {
             if (!rateAllowed($pdo,'operations_education_readiness_read',$accountId,10,300))
                 fail('rate_limited',429);
             respond(operationsEducationReadiness($pdo));
+        }
+
+        // Educational privacy controls are a read-only evidence preview.
+        // No legal hold, learner records or database rows are deleted here.
+        if ($path === '/admin/operations/education-privacy' && $verb === 'GET') {
+            if (!rateAllowed($pdo,'operations_education_privacy_read',$accountId,10,300))
+                fail('rate_limited',429);
+            respond(operationsEducationPrivacyPreview($pdo));
         }
 
         // Existing ENG-13 controller: bounded 54-reference source directory.
