@@ -230,7 +230,21 @@ function collectionControlsRender(parent){
  });box.append(fetch);
  if(collectionState?.schema==='operations-collection-controls-v1'){
   box.append(el('p',t('منطقهٔ زمانی اجرا: تهران. فعال بودن تنظیم بدون نصب Cron در برتینا، به معنی اجرای خودکار نیست.','Schedule timezone: Tehran. Enabled settings do not run unattended until the Bertina cron job is installed.')));
-  if(collectionState.attemptJournalStatus==='schema_not_provisioned')box.append(el('p',t('جدول تاریخچه تلاش‌های گردآوری هنوز در دیتابیس سرور مستقر نشده است.','Collector attempt history requires the next unified-database migration.')));
+  if(collectionState.attemptJournalStatus==='schema_not_provisioned')box.append(el('p',t('جدول ثبت تلاش‌های جمع‌آوری در این اتصال در دسترس نیست؛ نبود سابقه را نباید معادل اجرا نشدن دانست.','Collector attempt journal is unavailable on this connection; absence of history cannot prove a worker never ran.')));
+  const collectors=Array.isArray(collectionState.rows)?collectionState.rows.filter(x=>x.type==='source'):[];
+  const countState=(key,value)=>collectors.filter(x=>x[key]===value).length;
+  const overview=el('p',t('منابع دارای گردآورنده: ','Registered collector sources: ')+collectors.length+
+    ' · '+t('کش معتبر: ','Fresh cache: ')+countState('cacheState','fresh')+
+    ' · '+t('کش منقضی: ','Expired cache: ')+countState('cacheState','stale')+
+    ' · '+t('بدون تلاش ثبت‌شده: ','No recorded attempt: ')+countState('executionEvidence','never_observed')+
+    ' · '+t('آخرین تلاش ناموفق: ','Last attempt failed: ')+countState('executionEvidence','last_attempt_failed')+
+    ' · '+t('موعد گذشته، اجرای Cron تأییدنشده: ','Due, host Cron unverified: ')+countState('scheduleEvidence','due_unverified'));
+  overview.className='ops-note';
+  overview.setAttribute('data-ops-collector-summary','');
+  box.append(overview);
+  box.append(el('small',t('این ارقام فقط وضعیت رکوردهای ذخیره‌شده و زمان‌بندی منبع را نشان می‌دهند؛ نصب Cron، موفقیت اتصال خارجی یا دریافت ایمیل را تأیید نمی‌کنند.',
+    'These counts describe stored records and source due dates only. They do not verify host Cron, provider connectivity or inbox delivery.')));
+
   const manual=el('button',t('تازه‌سازی فوری همهٔ منابع فعال','Refresh all enabled sources now'));manual.type='button';
   manual.addEventListener('click',async()=>{
    manual.disabled=true;try{
@@ -253,6 +267,35 @@ function collectionControlsRender(parent){
      ? (scope.cacheState==='fresh'?t('ذخیرهٔ معتبر','Fresh cache'):scope.cacheState==='stale'?t('قدیمی','Stale'):scope.cacheState==='disabled'?t('غیرفعال','Disabled'):t('بدون داده','No cache'))
      : (scope.connected?t('قرارداد منبع تعریف شده؛ اتصال زنده تأیید نشده','Source contract defined; live connection unverified'):t('گردآورندهٔ مستقلی هنوز ندارد','No collector implemented'));
    line.append(el('small',state));
+   if(scope.type==='source'){
+     const executionLabels={
+       never_observed:[ 'هنوز تلاش ثبت‌شده‌ای ندارد', 'No attempt recorded yet' ],
+       journal_unavailable:[ 'دفتر ثبت تلاش‌ها در دسترس نیست', 'Attempt journal unavailable' ],
+       last_attempt_failed:[ 'آخرین تلاش ثبت‌شده ناموفق بود', 'Last recorded attempt failed' ],
+       attempt_recorded:[ 'تلاش ثبت‌شده دارد؛ اجرای Cron ثابت نشده', 'Attempt recorded; Cron unverified' ],
+       attempt_unknown:[ 'نتیجه تلاش ثبت‌شده نامشخص است', 'Recorded attempt outcome unknown' ]
+     };
+     const scheduleLabels={
+       disabled:[ 'پایش این منبع غیرفعال است', 'This source is disabled' ],
+       not_scheduled:[ 'برای این منبع موعد خودکار ثبت نشده', 'No automatic due time for this source' ],
+       due_unverified:[ 'موعد گذشته؛ اجرای Cron تأیید نشده', 'Overdue; Cron execution unverified' ],
+       scheduled_unverified:[ 'موعد آینده ثبت شده؛ Cron تأیید نشده', 'Future due time recorded; Cron unverified' ]
+     };
+     if(executionLabels[scope.executionEvidence]){
+       const item=el('small',t(...executionLabels[scope.executionEvidence]));
+       item.dataset.executionEvidence=scope.executionEvidence;line.append(item);
+     }else{
+       line.append(el('small',t('شاهد معتبر از اجرا در این پاسخ موجود نیست','Execution evidence not provided in this response')));
+     }
+     if(scheduleLabels[scope.scheduleEvidence]){
+       const item=el('small',t(...scheduleLabels[scope.scheduleEvidence]));
+       item.dataset.scheduleEvidence=scope.scheduleEvidence;line.append(item);
+     }
+     if(Number.isFinite(Number(scope.nextDue))&&Number(scope.nextDue)>0 &&
+        scope.scheduleEvidence!=='disabled'){
+       line.append(el('small',t('موعد ثبت‌شده: ','Recorded due: ')+date(scope.nextDue)));
+     }
+   }
    const enabled=el('input');enabled.type='checkbox';enabled.checked=scope.enabled;
    const label=el('label',t('فعال','Enabled'));label.prepend(enabled);line.append(label);
    const cadence=el('select');
