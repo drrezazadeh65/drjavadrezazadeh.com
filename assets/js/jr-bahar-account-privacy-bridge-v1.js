@@ -15,8 +15,11 @@
   const en=document.documentElement.lang==='en';
   const T=(fa,enText)=>en?enText:fa;
   const locale=en?'en':'fa';
-  let controller=null,epoch=0;
+  let controller=null,epoch=0,timeoutId=null,timedOut=false;
   const active=()=>!panel.hidden&&!document.hidden;
+  const stopTimeout=()=>{
+    if(timeoutId!==null){clearTimeout(timeoutId);timeoutId=null;}
+  };
   const make=(tag,text)=>{const item=document.createElement(tag);item.textContent=text;return item;};
   const eraseStates={
     RECEIVED:T('دریافت شده؛ در انتظار بررسی','Received; pending review'),
@@ -28,7 +31,8 @@
   };
   const clear=()=>{
     epoch++;
-    controller?.abort();controller=null;
+    stopTimeout();
+    controller?.abort();controller=null;timedOut=false;
     button.disabled=false;output.replaceChildren();
     status.textContent=T('اطلاعات حساب فقط با درخواست خودتان دریافت می‌شود.',
       'Account status is retrieved only when you request it.');
@@ -82,6 +86,13 @@
     if(!active()||controller)return;
     const token=++epoch;
     controller=new AbortController();button.disabled=true;output.replaceChildren();
+    timedOut=false;
+    const activeController=controller;
+    timeoutId=setTimeout(()=>{
+      if(token===epoch&&controller===activeController){
+        timedOut=true;activeController.abort();
+      }
+    },15000);
     status.textContent=T('در حال بررسی مجوز همین حساب…',
       'Checking your account-specific permissions…');
     try{
@@ -108,15 +119,20 @@
         )))throw Error('INCOMPATIBLE');
       render(data);
     }catch(error){
-      if(token!==epoch||error?.name==='AbortError')return;
+      if(token!==epoch||(!active()&&!timedOut))return;
       output.replaceChildren();
-      status.textContent=error?.message==='LOGIN'
+      status.textContent=timedOut
+        ?T('پاسخ سرور خصوصی دیر رسید؛ درخواست متوقف شد. می‌توانید مجدداً تلاش کنید.',
+           'The private server timed out. The request was cancelled; you can try again.')
+        :error?.message==='LOGIN'
         ?T('برای مشاهده وضعیت خصوصی، ابتدا وارد همین حساب شوید.',
            'Sign in to this account before viewing its private status.')
         :T('وضعیت خصوصی اکنون در دسترس نیست؛ هیچ ذخیره یا تأییدی فرض نمی‌شود.',
            'Private status is unavailable. No saving or approval is assumed.');
     }finally{
-      if(token===epoch){controller=null;button.disabled=false;}
+      if(token===epoch){
+        stopTimeout();controller=null;button.disabled=false;timedOut=false;
+      }
     }
   });
   const observer=new MutationObserver(()=>{
@@ -126,6 +142,10 @@
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden)clear();
   });
+  // An owner-side session change must not leave permission state visible
+  // from the former principal even while the account panel remains open.
+  window.addEventListener('jr:account-logout',clear);
+  window.addEventListener('offline',clear);
   window.addEventListener('pagehide',()=>{
     clear();observer.disconnect();
   },{once:true});
