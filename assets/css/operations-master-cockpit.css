@@ -230,3 +230,12 @@
 #ops-command-center .oc-ledger-table tr:hover td{background:rgba(240,209,141,.055)}
 #ops-command-center .oc-ledger-table td:last-child button{font-size:.78rem;
   min-height:40px;white-space:nowrap}
+
+#ops-command-center .oc-quality-item{grid-template-columns:minmax(95px,1fr) minmax(60px,1.4fr) auto minmax(65px,auto)}
+#ops-command-center .oc-quality-item .oc-quality-sample{
+  font-size:.69rem;color:var(--oc-muted);text-align:end;white-space:nowrap}
+@media(max-width:530px){
+ #ops-command-center .oc-quality-item{grid-template-columns:minmax(100px,1.2fr) 1fr auto;gap:7px}
+ #ops-command-center .oc-quality-item .oc-quality-sample{
+  grid-column:1/-1;text-align:start;margin-top:-4px}
+}
