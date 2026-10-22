@@ -65,6 +65,7 @@
 | OPS-10 | Final-only: 404 collector redaction, private route suppression, scanner bucketing, incomplete log line handling, genuine public-page event readiness, and no automatic redirect. |
 | AI-04 | Final-only: bilingual static guidance must disclose no verified live model, route six research-stage education needs, reject external assistant endpoints, discard hidden-page chat and avoid durable visitor IDs. |
 | AID-14 | Final-only: descriptive scorecard normalization rejects duplicate subject identities and never treats provider scales as official national scores or admission probabilities. |
+| AID-15 | Final-only: verify FA/EN 1405 catalogue navigation across multiple database-backed pages with exact source edition/page, factual campus/city/route/fee category/capacity, unknown placeholders, fresh local filters, accessible 320–430px cards, and next-page button that never asserts an unmeasured total. A source-reviewed record may only enter an EMPTY personal comparison name by direct user action; no grades, ranks or private identifiers transfer and nothing is overwritten. Confirm invalid/slow/empty source responses and public-GET PII hygiene without running interim probes. |
 | OPS-02 | GitHub workflow, immutable URL guard, exact artifact source, build inventory, host SSH/cPanel/permissions, rollback and post-release live checks all evidenced |
 | LEGAL-01 | Privacy notice, minors/guardian verification, research consent, advertising claims, sales terms, refund rules, payment/crypto handling and journal compliance reviewed for relevant jurisdictions |
 
