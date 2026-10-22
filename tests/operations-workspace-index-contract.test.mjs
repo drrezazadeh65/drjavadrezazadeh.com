@@ -131,7 +131,7 @@ test('commerce monitor clears separate checkout readiness and cancels pending re
 test('both language admin shells use fresh versioned report and commerce scripts',()=>{
  for(const page of ['fa/app/admin/index.html','en/account/admin/index.html']){
   const html=read(page);
-  assert.match(html,/operations-control\.js\?v=20261020-admin-evidence-link-v3/);
+  assert.match(html,/operations-control\.js\?v=20261022-[a-z0-9-]+/);
   assert.match(html,/operations-commerce\.js\?v=20261020-owner-lock-v1/);
   assert.doesNotMatch(html,/operations-commerce\.js\?v=20261017-cpanel-remediation-v9/);
  }
