@@ -366,3 +366,35 @@
   .ops-immediate-triage__grid{grid-template-columns:minmax(0,1fr)}
 }
 @media print{.ops-immediate-triage__tile button{display:none}}
+
+
+/* Source-only owner QA: actionable HTML repair explanations.
+   No automatic page mutation, live grade or unauthorized remediation. */
+#ops-quality-detail .ops-card li{
+ margin-block:9px 12px;padding-block-end:9px;
+ border-block-end:1px solid var(--ops-border);line-height:1.75;
+}
+#ops-quality-detail .ops-card li strong{
+ display:block;font-size:.92rem;color:var(--ops-text);
+ font-weight:650;overflow-wrap:anywhere;
+}
+#ops-quality-detail .ops-card li small{
+ display:block;margin-top:5px;opacity:.74;
+ font-size:.8rem;overflow-wrap:anywhere;
+}
+#ops-quality-detail .ops-quality-copy-brief{
+ margin-block:12px 8px;padding:11px 15px;
+ min-height:48px;min-width:0;max-width:100%;
+ border:1px solid var(--ops-gold);
+ background:var(--ops-bg,#182331);color:var(--ops-text);
+ border-radius:11px;cursor:pointer;font:inherit;font-weight:700;
+ line-height:1.6;white-space:normal;text-align:start;
+}
+#ops-quality-detail .ops-quality-copy-brief:focus-visible{
+ outline:3px solid var(--ops-gold);outline-offset:3px;
+}
+@media(max-width:480px){
+ #ops-quality-detail .ops-quality-copy-brief{width:100%}
+ #ops-quality-detail .ops-card{padding:12px}
+}
+@media print{#ops-quality-detail .ops-quality-copy-brief{display:none!important}}
