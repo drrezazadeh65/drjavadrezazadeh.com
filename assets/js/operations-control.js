@@ -2284,7 +2284,23 @@ function renderOwnerCommandCenter(){
    }
    if(readAll.isConnected)readAll.disabled=false;
  });
- headingActions.append(refresh,readAll,all);heading.append(intro,headingActions);
+ const exportOverview=el('button',t('خروجی خلاصه CSV','Export summary CSV'));
+ exportOverview.type='button';exportOverview.dataset.ocExport='';
+ exportOverview.addEventListener('click',()=>{
+   if(!workspaceVisibleForExport())return;
+   const checked=ownerCockpitLastReadAt||snapshot.checkedAt||null;
+   exportOperationsCsv('owner-command-center.csv',
+     ['section','state','observation','limitation','evidence_timestamp','release_sha'],
+     departments.map(item=>[
+       item.id,
+       ownerCockpitReadErrors[item.load]?'unavailable':item.data.kind,
+       ownerCockpitReadErrors[item.load]?'Read unavailable':item.data.metric,
+       item.data.note,
+       checked?new Date(checked*1000).toISOString():'',
+       snapshot.releaseSha||''
+     ]));
+ });
+ headingActions.append(refresh,readAll,all,exportOverview);heading.append(intro,headingActions);
  root.append(heading);
  const note=el('p',undefined,'oc-provenance');
  note.append(el('strong',t('اصل کنترل مدیر: ','Owner control: ')),
