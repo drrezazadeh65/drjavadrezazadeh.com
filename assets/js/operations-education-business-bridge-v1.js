@@ -100,16 +100,16 @@
       interest.schema==='jr.education-interest-owner-snapshot.v1'&&
       interest.countsState==='OBSERVED_MOTHER_DATABASE'&&
       interest.contacts===null&&interest.containsUnverifiedAddresses===false;
-    card(T('علاقه‌مندان آموزش با ایمیل تأییدشده',
-        'Opt-in educational interests with verified email'),
+    card(T('ایمیل‌های تأییدشده با رضایت‌نامه فعلی',
+        'Verified educational email opt-ins under the current notice'),
       consentObserved?count(interest.verifiedCount):T('نامشخص','Unknown'),
-      T('فقط عضویت داوطلبانه در موضوع آموزشی؛ این افراد خریدار تأییدشده نیستند.',
-        'Separate opt-in, verified educational interest. Not a count of paying customers.'));
-    card(T('درخواست‌های تأیید ایمیل در انتظار',
-        'Pending educational email confirmations'),
+      T('فقط رضایت داوطلبانه با نسخه فعلی متن و ایمیل تأییدشده؛ نه خریدار، فروش یا تبدیل بازدیدکننده.',
+        'Only email-verified, current-notice scoped opt-ins; not purchasers, sales or visitor conversions.'));
+    card(T('درخواست‌های ایمیل در انتظار تأیید متن فعلی',
+        'Pending verification under the current notice'),
       consentObserved?count(interest.pendingCount):T('نامشخص','Unknown'),
-      T('این افراد تا تأیید ایمیل، مخاطب قابل ارسال نیستند.',
-        'Pending email verification is not permission to send marketing.'));
+      T('درخواست ثبت‌شده با نسخه فعلی هنوز مجوز تماس نیست؛ رضایت قدیمی در این عدد لحاظ نمی‌شود.',
+        'Current-notice pending verification is not contact permission; retired notices are excluded.'));
     card(T('نوبت‌های آیندهٔ ثبت‌شده داخلی','Upcoming internal consultation bookings'),
       count(fulfil.internalCalendar?.totalUpcoming),
       T('فقط تقویم داخلی یک مشاور؛ تقویم خارجی تأیید نشده است.',
