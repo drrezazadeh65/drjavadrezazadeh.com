@@ -2216,6 +2216,16 @@ function renderImmediateSiteHealth(host,model){
   {label:t('صفحات ضعیف بر اساس کد، نه وب زنده','Weak pages in static source only'),
    value:quality?.status==='source_only'?quality.weakSeoPages:null,
    target:'ops-page-quality',kind:'source'},
+  {label:t('میانگین سرعت آزمایشگاهی صفحات واقعاً اندازه‌گیری‌شده',
+           'Average mobile lab speed of actually measured pages'),
+   value:quality?.status==='source_only'&&
+     Number.isInteger(quality?.measuredPagesByDimension?.speed)&&
+     quality.measuredPagesByDimension.speed>0&&
+     Number.isFinite(quality?.averages?.speed)
+     ?String(quality.averages.speed)+' / 10 · '+
+       String(quality.measuredPagesByDimension.speed)+
+       t(' صفحه',' pages'):null,
+   target:'ops-page-quality',kind:'source'},
   {label:t('جداول عملیات مشاهده‌شده','Observed operations tables'),
    value:actualDb,target:'ops-alert-center',kind:'source'}
  ];
