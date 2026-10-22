@@ -22,6 +22,7 @@ require_once __DIR__.'/operations-provider-inventory.php';
 require_once __DIR__.'/operations-source-directory.php';
 require_once __DIR__.'/operations-source-controls.php';
 require_once __DIR__.'/operations-page-quality.php';
+require_once __DIR__.'/operations-activation.php';
 require_once __DIR__.'/operations-alerts.php';
 require_once __DIR__.'/operations-http-log.php';
 require_once __DIR__.'/operations-response-monitor.php';
@@ -1270,6 +1271,7 @@ function operationsRoute(string $path, string $verb): never {
             $snapshot['reporting']['alertCenter']=operationsAlertSnapshot($pdo,$configuration);
             $snapshot['reporting']['alertCenter']['canManage']=(($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN');
             $snapshot['reporting']['pageQualityOverview']=operationsQualitySummary();
+            $snapshot['reporting']['activationReadiness']=operationsActivationReport($pdo,$configuration,$at);
             $snapshot['reporting']['existingFeatureInventory']=operationsExistingFeatures();
             $snapshot['reporting']['httpHealth']=operationsHttpObserverStatus($pdo,$configuration);
             $snapshot['reporting']['responseHealth']=operationsResponseMonitorStatus($pdo,nowTs());
