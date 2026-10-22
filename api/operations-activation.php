@@ -82,8 +82,22 @@ function operationsActivationExpectedIndexes(): array {
 function operationsActivationStructure(PDO $pdo,array $present): array {
     $types=operationsActivationExpectedColumns();
     $indexes=operationsActivationExpectedIndexes();
-    $observed=[];$seenIndexes=[];
+    $observed=[];$seenIndexes=[];$storage=[];$foreignKeys=[];
     try {
+        $q=$pdo->query("SELECT TABLE_NAME,ENGINE,TABLE_COLLATION
+            FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()
+              AND TABLE_NAME LIKE 'operations\\_%'");
+        foreach($q as $row)$storage[(string)$row['TABLE_NAME']]=[
+            'engine'=>strtolower((string)($row['ENGINE']??'')),
+            'collation'=>strtolower((string)($row['TABLE_COLLATION']??''))];
+        $q=$pdo->query("SELECT TABLE_NAME,COLUMN_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME
+            FROM information_schema.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME LIKE 'operations\\_%'
+              AND REFERENCED_TABLE_NAME IS NOT NULL");
+        foreach($q as $row)$foreignKeys[(string)$row['TABLE_NAME']][]=[
+            (string)$row['COLUMN_NAME'],
+            (string)$row['REFERENCED_TABLE_NAME'],
+            (string)$row['REFERENCED_COLUMN_NAME']];
         $q=$pdo->query("SELECT TABLE_NAME,COLUMN_NAME,DATA_TYPE
             FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE()
               AND TABLE_NAME LIKE 'operations\\_%'");
@@ -96,7 +110,8 @@ function operationsActivationStructure(PDO $pdo,array $present): array {
     }catch(Throwable $e) {
         return ['state'=>'metadata_unavailable','checkedColumns'=>null,
             'missingColumns'=>null,'typeMismatches'=>null,
-            'missingIndexes'=>null,'foreignKeysChecked'=>false];
+            'missingIndexes'=>null,'storageDiscrepancies'=>null,
+            'missingForeignKeys'=>null,'foreignKeysChecked'=>false];
     }
     $missing=[];$mismatch=[];$absentIndexes=[];$checked=0;
     foreach($types as $table=>$expected) {
@@ -113,13 +128,44 @@ function operationsActivationStructure(PDO $pdo,array $present): array {
         foreach($names as $name)if(!isset($seenIndexes[$table][$name]))
             $absentIndexes[]=$table.'.'.$name;
     }
-    $ok=!$missing&&!$mismatch&&!$absentIndexes;
-    return ['state'=>$ok?'source_column_and_index_names_match':
-        'source_column_or_index_discrepancy',
+    $storageIssues=[];$fkIssues=[];
+    foreach($types as $table=>$_columns){
+        if(!isset($present[$table]))continue;
+        $engine=$storage[$table]['engine']??'';
+        $collation=$storage[$table]['collation']??'';
+        if($engine!=='innodb')$storageIssues[]=$table.': engine not InnoDB';
+        if($collation!=='utf8mb4_unicode_ci')$storageIssues[]=$table.': table collation differs from source contract';
+    }
+    foreach(operationsActivationExpectedForeignKeys() as $table=>$references){
+        if(!isset($present[$table]))continue;
+        foreach($references as $reference){
+            $found=false;
+            foreach($foreignKeys[$table]??[] as $observedRef){
+                if($observedRef===$reference){$found=true;break;}
+            }
+            if(!$found)$fkIssues[]=$table.'.'.$reference[0].
+                ' -> '.$reference[1].'.'.$reference[2];
+        }
+    }
+    $ok=!$missing&&!$mismatch&&!$absentIndexes&&!$storageIssues&&!$fkIssues;
+    return ['state'=>$ok?'source_structural_signature_matches':
+        'source_structural_signature_discrepancy',
         'checkedColumns'=>$checked,'missingColumns'=>$missing,
         'typeMismatches'=>$mismatch,'missingIndexes'=>$absentIndexes,
-        'foreignKeysChecked'=>false,
-        'limitations'=>'Column base types and explicitly named indexes only; FK, unique inline constraints, precision, collation, nullability and ENUM values not certified.'];
+        'storageDiscrepancies'=>$storageIssues,'missingForeignKeys'=>$fkIssues,
+        'foreignKeysChecked'=>true,
+        'limitations'=>'Read-only shape comparison only; unique inline constraints, column precision, nullability, data integrity and ENUM members not certified.'];
+}
+
+function operationsActivationExpectedForeignKeys(): array {
+    return [
+        'operations_admin_memberships'=>[['account_id','customer_accounts','id']],
+        'operations_session_mfa'=>[['account_id','customer_accounts','id']],
+        'operations_mfa_counters'=>[['account_id','customer_accounts','id']],
+        'operations_action_runs'=>[['account_id','customer_accounts','id']],
+        'operations_alert_outbox'=>[['fingerprint','operations_alert_incidents','fingerprint']],
+        'operations_content_revisions'=>[['draft_id','operations_content_drafts','id']],
+    ];
 }
 
 function operationsActivationLast(PDO $pdo,string $sql): ?int {
@@ -188,9 +234,10 @@ function operationsActivationReport(PDO $pdo,array $configuration,int $at): arra
             'structure'=>$inventory==='unavailable'?[
                 'state'=>'table_inventory_unavailable',
                 'missingColumns'=>null,'typeMismatches'=>null,
-                'missingIndexes'=>null,'foreignKeysChecked'=>false
+                'missingIndexes'=>null,'storageDiscrepancies'=>null,
+                'missingForeignKeys'=>null,'foreignKeysChecked'=>false
             ]:operationsActivationStructure($pdo,$present),
-            'foreignKeysChecked'=>false,'columnContractsChecked'=>$inventory!=='unavailable',
+            'foreignKeysChecked'=>null,'columnContractsChecked'=>null,
             'migrationExecuted'=>false,'migrationsVersioned'=>false
         ],
         'smtp'=>[
