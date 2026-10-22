@@ -82,6 +82,40 @@
       ]
     },
     {
+      "name": "My Learning Path",
+      "short_name": "My Path",
+      "url": "./en/my-path/",
+      "icons": [
+        {
+          "src": "./favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        },
+        {
+          "src": "./assets/images/pwa-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "BAHAR Free Learning",
+      "short_name": "BAHAR EN",
+      "url": "./en/bahar/",
+      "icons": [
+        {
+          "src": "./favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        },
+        {
+          "src": "./assets/images/pwa-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
       "name": "خانه فارسی",
       "short_name": "خانه",
       "url": "./fa/",
