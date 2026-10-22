@@ -271,6 +271,18 @@ document.getElementById("showRoute").addEventListener("click",()=>{
   appendFreeInsight(res,d);
   res.append(links);
 });
+// Explicitly clear ALL local answers, not just the derived route preview.
+// This is independent of signing in, a paid upgrade or consent acquisition.
+document.getElementById("rcasClearAll")?.addEventListener("click",()=>{
+ form.reset();
+ invalidateSummary();
+ if(p0Status)p0Status.textContent="همه پاسخ‌های این فرم از همین صفحه پاک شدند؛ هیچ نسخه پشتیبان یا گزارش شخصی نزد سایت نگهداری نمی‌شود.";
+ if(routeStatus)routeStatus.textContent="";
+ if(clearSummary)clearSummary.textContent="پاک‌کردن خلاصه مسیر این نشست";
+ show(1);
+ updateCoreProgress();
+ form.elements.namedItem("edu")?.focus({preventScroll:true});
+});
 bar.style.width="0%";
 updateCoreProgress();
 })();
