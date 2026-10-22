@@ -625,3 +625,50 @@ body .ops-top h1{letter-spacing:-.018em;line-height:1.45}
  #ops-command-center .oc-evidence-distribution{grid-template-columns:repeat(2,minmax(0,1fr))}
  #ops-command-center .oc-evidence-count{font-size:.73rem;min-height:54px;padding:6px}
 }
+
+/* Owner's actual source-policy control matrix. Collapsed until requested. */
+#ops-command-center .oc-source-matrix{
+ margin-block:15px;border:1px solid var(--oc-edge);border-radius:15px;
+ background:rgba(7,17,30,.62);padding:12px;min-width:0
+}
+#ops-command-center .oc-source-matrix>summary{
+ cursor:pointer;font-weight:750;color:var(--oc-ink);
+ padding:5px 2px;line-height:1.65;overflow-wrap:anywhere
+}
+#ops-command-center .oc-source-matrix>p{
+ color:var(--oc-muted);font-size:.84rem;line-height:1.7;margin-block:9px
+}
+#ops-command-center .oc-source-master-status{
+ padding:10px 12px;border-radius:10px;
+ border-inline-start:4px solid var(--oc-gold);
+ background:rgba(240,209,141,.06)
+}
+#ops-command-center .oc-source-master-status[data-master-state="permitted"]{
+ border-inline-start-color:#9ee0cb
+}
+#ops-command-center .oc-source-master-status strong,
+#ops-command-center .oc-source-master-status small{display:block;line-height:1.65}
+#ops-command-center .oc-source-master-status small{color:var(--oc-muted)}
+#ops-command-center .oc-source-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#ops-command-center .oc-source-item{
+ border-radius:12px;border:1px solid rgba(210,220,236,.15);
+ background:var(--oc-surface);padding:12px;min-width:0
+}
+#ops-command-center .oc-source-item strong{
+ display:block;color:var(--oc-gold);overflow-wrap:anywhere;font-size:.88rem
+}
+#ops-command-center .oc-source-item p,
+#ops-command-center .oc-source-item small{
+ display:block;font-size:.78rem;line-height:1.6;
+ color:var(--oc-muted);margin-block:8px;overflow-wrap:anywhere
+}
+#ops-command-center .oc-source-actions{display:flex;flex-wrap:wrap;gap:8px}
+#ops-command-center .oc-source-actions button{flex:1 1 160px;font-size:.78rem}
+#ops-command-center button:disabled{opacity:.55;cursor:not-allowed}
+#ops-command-center .oc-last-api-read{
+ display:block;color:var(--oc-muted);font-size:.72rem;line-height:1.5
+}
+@media(max-width:740px){
+ #ops-command-center .oc-source-list{grid-template-columns:minmax(0,1fr)}
+ #ops-command-center .oc-source-actions button{flex:1 1 100%}
+}
