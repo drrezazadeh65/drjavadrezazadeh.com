@@ -95,9 +95,9 @@ test('responsive BAHAR notes use only existing brand tokens and explicit print m
 test('RCAS printable enhancement scripts load independently in both locales',()=>{
  const pages=[
   ['fa/assessments/golden-talent/start/index.html',
-   '../../../../assets/js/rcas-start.js?v=20261019-continuity-v1'],
+   '../../../../assets/js/rcas-start.js?v=20261022-full-local-erase-v2'],
   ['en/golden-talent/assessment/index.html',
-   '/assets/js/rcas-start-en.js?v=20261019-continuity-v1']
+   '/assets/js/rcas-start-en.js?v=20261022-full-local-erase-v2']
  ];
  for(const [path,engine] of pages){
   const html=read(path);
@@ -110,6 +110,10 @@ test('RCAS printable enhancement scripts load independently in both locales',()=
   }
   assert.equal(depth,0,path+' has an unclosed script element');
   assert.ok(html.includes('<script src="'+engine+'" defer></script>'),path+' assessment engine missing');
+  // Optional whole-form erasure must be reachable without another popup;
+  // it differs from the existing derived-summary-only clear button.
+  const clearId=path.startsWith('fa/')?'rcasClearAll':'rcasEnClearAll';
+  assert.ok(html.includes('id="'+clearId+'"'),path+' full privacy erasure control missing');
   assert.ok(html.includes('<script src="/assets/js/rcas-print-v52.js?v=20261019-v1" defer></script>'),
     path+' printable report enhancement missing');
  }
