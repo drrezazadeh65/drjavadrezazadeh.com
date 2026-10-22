@@ -21,7 +21,7 @@ function operationsAlertDefinitions(): array {
         'bahar_eligibility_queue_failure'=>['severity'=>'warning','threshold'=>1,'cooldown'=>120,
           'name'=>'Verified adult review queue failed unexpectedly','sensor'=>'on_admin_error_after_owner_opt_in'],
         'bahar_private_erasure_requested'=>['severity'=>'warning','threshold'=>1,'cooldown'=>60,
-          'name'=>'A BAHAR privacy erasure request was recorded','sensor'=>'user_requested_privacy_queue']
+          'name'=>'A BAHAR privacy erasure request was recorded','sensor'=>'new_request_post_commit_source_unverified']
     ];
 }
 /**
