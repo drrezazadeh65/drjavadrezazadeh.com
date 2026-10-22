@@ -66,6 +66,11 @@ function operationsQualitySummary(): array {
     foreach(operationsQualityDimensions() as $dimension){$totals[$dimension]=0.0;$numbers[$dimension]=0;}
     foreach($inventory['pages'] as $row){
         if(!is_array($row))continue;$count++;
+        // Keep the first-screen summary consistent with per-page readback.
+        // Only URLs with a dated, positively observed and fresh mobile PSI
+        // record may contribute an actual lab speed number. The static
+        // inventory alone never supplies a performance measurement.
+        $row=operationsQualityWithLab($row);
         foreach(operationsQualityDimensions() as $dimension) {
             $value=$row['grades'][$dimension]['score']??null;
             if(!is_numeric($value))continue;
