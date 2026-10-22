@@ -180,6 +180,10 @@ try {
      'source cleanup failed to stay bounded to disposable diagnostic records');
  $auditDeleted=(int)$pdo->query("SELECT COUNT(*) FROM operations_audit WHERE action='collector_data_purged'")->fetchColumn();
  check($auditDeleted===1,'diagnostic data deletion was not recorded in immutable audit log');
+ // A fresh-MFA SUPER_ADMIN must also be restricted to the audited source catalogue.
+ request('/api/admin/operations/github-audits/refresh',400,'POST',[
+     'scope'=>'malicious:provider'
+ ],$headers);
  // Database-health capability is owner-only, off-by-default and read-only until requested.
  $initialDbHealth=request('/api/admin/operations/database-health',200);
  check(($initialDbHealth['schema']??null)==='operations-database-health-v1'
