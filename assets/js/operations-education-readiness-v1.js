@@ -67,7 +67,12 @@
         deps.unapprovedOfferDrafts===null?T('نامشخص','Unknown'):
           number.format(deps.unapprovedOfferDrafts)],
       [T('ستون‌های مورد انتظار BAHAR در پایگاه داده مادر','Expected BAHAR mother-DB columns'),
-        labelBool(deps.baharMotherDatabaseColumnsPresent)]
+        labelBool(deps.baharMotherDatabaseColumnsPresent)],
+      [T('پایگاه داده پیش‌نویس قیمت آموزشی','Educational draft-pricing schema'),
+        labelBool(deps.educationalDraftPricingStorageReady)],
+      [T('پیشنهادهای ذخیره‌شده توسط مالک','Saved owner draft overrides'),
+        deps.educationalDraftOverrides===null?T('نامشخص','Unknown'):
+          number.format(deps.educationalDraftOverrides)]
     ];
     dependencies.replaceChildren();
     for(const [heading,value] of things){
