@@ -65,3 +65,18 @@ The following additions extend the SAME codebase without any production DB chang
 **Safety note:** These are untested source-level changes. Do not run migrations, email workers, payment callbacks or production deployment to infer readiness before the one approved final testing window.
 
 - **P5 native scientific evidence in the existing dashboard** — The existing five-system readiness view now includes JHELA alongside RCAS, Golden Talent, BAHAR and Studio. JHELA is read exclusively through the pre-existing administrator/MFA-governed `/api/admin/operations/jhela/maturity` endpoint, and inaccessible source evidence falls back to unknown, not success. The pre-existing native-only journal directive remains authoritative. Both admin languages have corresponding descriptions.
+
+
+## 22 October 2026 — Owner authorised transition to isolated P8 tests
+
+The owner subsequently authorised commencing tests once source changes reach a reviewable checkpoint. The earlier **NO TESTS** heading documents the initial development-only mandate; it is superseded **only for testing**, not as authority to claim production readiness or bypass the guarded owner release.
+
+The first QA-triggering source commit was \`354fab8b2e0fd6a534b3400c13bc4efb40bcae31\`. GitHub Actions started isolated QA. Initial observations:
+
+- Operations Control Center QA: **success** for the triggering SHA, including the added isolated P0–P6 MySQL/header/incident/source-quality and commerce contracts and the mobile bilingual navigation check.
+- SEO GEO Regression and Bertina Master SEO Audit: **failed** the source link-integrity gate because the newly added administrator nav linked to two dynamically generated fragment IDs absent from the committed HTML source.
+- Root cause was confirmed in the CI logs: \`#ops-alert-center\` and \`#ops-page-quality\` links on both administrator-language pages were not static fragments.
+- Source-level correction committed on the same branch: a valid static \`#ops-executive-stats\` fallback, a fixed allowlist of deferred dynamic section targets, and click-time enhancement after the MFA dashboard renders. No new public URL or private auth route was created.
+- The two source failures remain **unresolved by independent CI** until the corrected SHA receives a fresh run. Never reuse success of an earlier SHA as acceptance for later commits.
+
+The Bertina deployment workflow is manual \`workflow_dispatch\`, with an owner actor and release scope; source QA does **not** deploy. Full P0 host migration, private Cron/SMTP, external service grants, banking and journal scientific gates remain pending.
