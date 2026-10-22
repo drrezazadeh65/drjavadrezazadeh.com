@@ -197,6 +197,11 @@ function operationsEducationReadiness(PDO $pdo): array {
         if(function_exists('operationsQualitySummary'))
             $sourceQuality=operationsQualitySummary();
     }catch(Throwable $error){$sourceQuality=null;}
+    $releasePreparation=null;
+    try{
+        if(function_exists('operationsEducationReleaseStatus'))
+            $releasePreparation=operationsEducationReleaseStatus($pdo);
+    }catch(Throwable $error){$releasePreparation=null;}
     $baharColumns=operationsEducationBaharColumnPresence($pdo);
     return [
         'ok'=>true,
@@ -221,6 +226,15 @@ function operationsEducationReadiness(PDO $pdo): array {
             'offerDraftInventoryAvailable'=>$offer!==null,
             'unapprovedOfferDrafts'=>$offer['summary']['proposals']??null,
             'baharMotherDatabaseColumnsPresent'=>$baharColumns,
+            'educationalPreparationLedgerReady'=>
+                $releasePreparation['storageAvailable']??null,
+            'educationalPreparationOfferCount'=>
+                $releasePreparation['sourceOfferCount']??null,
+            'educationalPreparationGateCount'=>
+                $releasePreparation['applicablePreparationGates']??null,
+            'educationalPreparationReadyForReview'=>
+                $releasePreparation['ownerMarkedReadyForReview']??null,
+            'educationalPreparationProductionApproved'=>false,
             'pageQualitySourceInventoryAvailable'=>
                 ($sourceQuality['status']??null)==='source_only',
             'pageQualityScoredHtmlPages'=>
