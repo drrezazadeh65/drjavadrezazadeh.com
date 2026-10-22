@@ -767,8 +767,9 @@ function renderSourceDirectory(parent){
  const list=el('div',undefined,'ops-grid');
  const pager=el('nav',undefined,'ops-source-pager');
  pager.setAttribute('aria-label',t('صفحه‌بندی منابع','Source pagination'));
+ const metricDetail=el('div',undefined,'ops-source-metric-detail-wrap');
  function renderCards(){
-   list.replaceChildren();
+   list.replaceChildren();metricDetail.replaceChildren();
    const data=sourceDirectoryState;
    if(!data||!Array.isArray(data.sources))return;
    const q=sourceDirectoryFilter.query.trim().toLocaleLowerCase();
@@ -954,7 +955,7 @@ function renderSourceDirectory(parent){
      }else detail.append(el('p',t('نمونه‌ای ثبت نشده است؛ داده ناموجود صفر نیست.',
        'No observations recorded; missing data is not zero.')));
      detail.append(el('small',sourceMetricState.limitation||''));
-     section.append(detail);
+     metricDetail.append(detail);
    }
 
    pager.replaceChildren();
@@ -1011,7 +1012,7 @@ function renderSourceDirectory(parent){
      }
    }finally{if(loadButton.isConnected)loadButton.disabled=false;}
  });
- section.append(loadButton,loadControls,stats,filters,list,pager);
+ section.append(loadButton,loadControls,stats,filters,list,pager,metricDetail);
  parent.append(section);
 }
 
