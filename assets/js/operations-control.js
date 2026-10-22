@@ -61,7 +61,9 @@ $('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditH
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.'),
 alert_rule_not_provisioned:t('ردیف این هشدار هنوز در دیتابیس مادر نصب نشده است؛ در پایان توسعه، Migration افزایشی مربوط باید با تأیید مالک اجرا شود.','This incident rule is not provisioned in the mother database. Its additive migration requires owner approval after development.'),
 alert_rule_update_unavailable:t('ثبت تنظیمات هشدار و لاگ حسابرسی تکمیل نشد؛ تغییری را موفق فرض نکنید.','The alert setting and audit could not be committed. Do not assume the change was saved.'),
-alert_scope_update_unavailable:t('ثبت تنظیم ایمیل اختصاصی همراه با لاگ حسابرسی تکمیل نشد.','Scoped email preference and audit could not be committed.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
+alert_scope_update_unavailable:t('ثبت تنظیم ایمیل اختصاصی همراه با لاگ حسابرسی تکمیل نشد.','Scoped email preference and audit could not be committed.'),
+monitor_schema_unavailable:t('سیاست پایش و لاگ حسابرسی قابل ثبت نبود یا ردیف تنظیمات دیتابیس نصب نشده است.','Observer policy and audit are unavailable or the mother-DB singleton is not provisioned.'),
+monitor_disabled:t('حسگر خاموش است. برای ثبت درخواست دستی، نخست سیاست پایش را با مجوز مدیر فعال کنید.','The observer is disabled. Enable it through the owner policy before requesting a manual run.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
 async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;httpHealthCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
 function progress(value){const bar=el('div',undefined,'ops-progress');const fill=el('span');fill.style.width=(value??0)+'%';bar.append(fill);bar.setAttribute('aria-label',t('پیشرفت اندازه‌گیری‌شده: ','Measured progress: ')+pct(value));return bar;}
 function render(){const sum=snapshot.summary;$('ops-total').textContent=String(sum.total);$('ops-verified').textContent=String(sum.verified);$('ops-coverage').textContent=sum.measuredCoverage+'/36';$('ops-admin-score').textContent=pct(snapshot.dashboard.measuredProgress);$('ops-release').textContent=snapshot.releaseSha||t('ثبت نشده','Not recorded');$('ops-checked').textContent=date(snapshot.checkedAt);
@@ -781,9 +783,57 @@ function renderResponseMonitor(host,model){
  const policy=data?.settings;
  status.append(el('strong',t('وضعیت: ','State: ')+(data?.status||'not_available')),
    el('span',policy
-     ?(policy.enabled?t('حسگر مجاز','Sensor enabled'):t('حسگر خاموش','Sensor disabled'))
+     ?(policy.enabled?t('حسگر مجاز؛ کارکرد Cron هنوز احراز نشده',
+        'Sensor enabled; Cron execution not verified')
+       :t('حسگر خاموش','Sensor disabled'))
      :t('جدول پایش نصب نشده','Monitor schema unavailable')));
+ if(policy){
+   status.append(el('small',policy.enabled&&policy.requestedAt>0
+     ?t('درخواست دستی در صف مانده است؛ هنوز مشاهده جدیدی ثبت نشده.',
+        'A manual observation was queued; no new probe is yet evidenced.')
+     :t('درخواستی برای اجرای دستی در صف نیست.',
+        'No manually queued observation is recorded.')));
+ }
  section.append(status);
+ const coverage=data?.latestTimestampCoverage;
+ if(coverage&&Number.isInteger(coverage.expectedTargets)&&
+   Number.isInteger(coverage.observedTargets)){
+   const panel=el('div',undefined,'ops-response-status');
+   panel.append(el('strong',
+     t('پوشش مشاهده‌های هم‌زمان: ','Same-timestamp observation coverage: ')+
+     coverage.observedTargets+'/'+coverage.expectedTargets));
+   panel.append(el('small',t('آخرین زمان ثبت‌شده: ','Last recorded time: ')+
+     (coverage.observedAt?date(coverage.observedAt):'—')));
+   panel.append(el('small',
+     t('خطادار: ','Failed: ')+String(coverage.failedTargets??'—')+' · '+
+     t('ناموجود: ','Unavailable: ')+String(coverage.unavailableTargets??'—')+
+     ' · '+t('بدون رکورد: ','No record: ')+
+     String(Array.isArray(coverage.missingTargets)?coverage.missingTargets.length:'—')));
+   let conclusion;
+   if(!coverage.complete)
+     conclusion=t('پوشش ناقص است؛ نتیجه کلی سایت نامشخص است.',
+       'Target coverage is incomplete; overall site status is unknown.');
+   else if(!coverage.fresh)
+     conclusion=t('این شواهد قدیمی‌اند و وضعیت کنونی سایت را مشخص نمی‌کنند.',
+       'These observations are stale and cannot establish current site health.');
+   else if(coverage.failedTargets>0)
+     conclusion=t('در زمان ثبت این گروه شواهد، دست‌کم یک کنترل ناموفق بود.',
+       'At least one check failed at this recorded observation time.');
+   else if(coverage.unavailableTargets>0)
+     conclusion=t('دست‌کم یک مسیر در زمان ثبت قابل مشاهده نبود.',
+       'At least one target was unavailable when observations were recorded.');
+   else
+     conclusion=t('در آخرین زمان ثبت، کنترل‌های منبع با پاسخ موافق بودند؛ سلامت زنده و تحویل ایمیل هنوز تأیید نشده است.',
+       'At the last recorded timestamp, source checks passed; current site health and email delivery are still unverified.');
+   panel.append(el('p',conclusion));
+   if(Array.isArray(coverage.missingTargets)&&coverage.missingTargets.length)
+     panel.append(el('small',t('مسیرهای بی‌رکورد: ','Targets without a record: ')+
+       coverage.missingTargets.join(' · ')));
+   panel.append(el('small',t(
+     'گروه‌بندی صرفاً بر اساس ثانیه ثبت در دیتابیس است؛ گواه اجرای واحد Cron یا وضعیت زنده نیست.',
+     'Samples are grouped by stored second only, not by an independently verified CLI run ID or real-time status.')));
+   section.append(panel);
+ }
  const reload=el('button',t('بارگیری شواهد ذخیره‌شده','Reload recorded observations'));
  reload.type='button';
  reload.addEventListener('click',async()=>{
@@ -879,7 +929,8 @@ function renderResponseMonitor(host,model){
      }
      list.append(item);
    }
-   section.append(el('h4',t('نتیجه هفت بررسی از آخرین اجرای برنامه','Seven fixed probe observations from the last run')),list);
+   section.append(el('h4',t('آخرین مشاهده ثبت‌شده برای هر مسیر (ممکن است زمان‌ها متفاوت باشند)',
+     'Most recent saved sample per target (timestamps can differ)')),list);
  }else section.append(el('p',t('هیچ مشاهده ثبت‌شده‌ای وجود ندارد؛ نتیجه نامعلوم است.',
    'No recorded observations. Actual runtime integrity is unknown.')));
  host.append(section);
