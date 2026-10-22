@@ -30,7 +30,7 @@
   background:rgba(240,209,141,.07);border-radius:9px;color:var(--oc-muted);
   font-size:.82rem;margin:0 0 14px}
 #ops-command-center .oc-provenance strong{color:var(--oc-ink)}
-#ops-command-center .oc-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+#ops-command-center .oc-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
   gap:10px;margin:16px 0}
 #ops-command-center .oc-stat{border:1px solid rgba(222,228,242,.13);
   border-radius:13px;background:rgba(255,255,255,.035);padding:14px}
