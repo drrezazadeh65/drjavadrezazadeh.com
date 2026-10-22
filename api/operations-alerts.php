@@ -18,9 +18,114 @@ function operationsAlertDefinitions(): array {
         'payment_runtime_unavailable'=>['severity'=>'critical','threshold'=>1,'cooldown'=>60,'name'=>'Checkout or payment runtime failure','sensor'=>'not_yet_connected']
     ];
 }
+/**
+ * Mail delivery controls are independent of collectors, indexing, checkout
+ * and security. All scopes belong to the existing ENG-01..ENG-13 hierarchy.
+ * Missing source/feature discovery is shown as unavailable, never "active".
+ */
+function operationsAlertIncidentScopes(string $code,string $component): array {
+    $map=[
+        'api_runtime_unavailable'=>['ENG-13','admin-audit-and-2fa'],
+        'security_headers_regressed'=>['ENG-11','response-security-headers'],
+        'redirects_regressed'=>['ENG-01','redirect-301-410'],
+        'http_404_surge'=>['ENG-01','incoming-404'],
+        'http_5xx_surge'=>['ENG-11','site-runtime-health'],
+        'payment_runtime_unavailable'=>['ENG-05','commerce-settlement']
+    ];
+    if($code==='collector_unavailable'){
+        $catalogue=function_exists('operationsCollectorCatalogue')
+            ?operationsCollectorCatalogue():[];
+        $engine=(string)($catalogue[$component]['engineId']??'ENG-13');
+        return ['engine:'.$engine,'feature:source-scheduler-and-retention',
+            'source:collector:'.$component];
+    }
+    $mapping=$map[$code]??['ENG-13','incident-mail-alerts'];
+    return ['engine:'.$mapping[0],'feature:'.$mapping[1]];
+}
+function operationsAlertScopeSettings(PDO $pdo): ?array {
+    try{
+        $q=$pdo->query('SELECT scope_id,enabled,updated_at FROM operations_alert_scope_policies');
+        $rows=[];
+        foreach($q as $record)$rows[(string)$record['scope_id']]=[
+            'enabled'=>(bool)$record['enabled'],'updatedAt'=>(int)$record['updated_at']];
+        return $rows;
+    }catch(Throwable $e){return null;}
+}
+function operationsAlertScopesAllowed(PDO $pdo,int $at): array {
+    $scopes=[];
+    for($i=1;$i<=13;$i++){
+        $engine='ENG-'.str_pad((string)$i,2,'0',STR_PAD_LEFT);
+        $id='engine:'.$engine;
+        $scopes[$id]=['id'=>$id,'kind'=>'engine','parent'=>null,
+            'nameFa'=>'ایمیل موتور '.$engine,'nameEn'=>'Engine '.$engine.' email',
+            'available'=>true];
+    }
+    if(function_exists('operationsExistingFeatures')){
+        $features=operationsExistingFeatures();
+        foreach($features['features']??[] as $feature) {
+            $id='feature:'.(string)$feature['id'];
+            if(strlen($id)>120)continue;
+            $scopes[$id]=['id'=>$id,'kind'=>'feature',
+                'parent'=>'engine:'.(string)$feature['engineId'],
+                'nameFa'=>(string)$feature['nameFa'],'nameEn'=>(string)$feature['nameEn'],
+                'available'=>($feature['sourceState']??'')==='source_present'];
+        }
+    }
+    if(function_exists('operationsSourceDirectory')){
+        $directory=operationsSourceDirectory($pdo,$at);
+        foreach($directory['sources']??[] as $source){
+            $id='source:'.(string)($source['id']??'');
+            if(strlen($id)>120)continue;
+            $scopes[$id]=['id'=>$id,'kind'=>'source',
+                'parent'=>'engine:'.(string)($source['engineId']??'ENG-13'),
+                'nameFa'=>(string)$source['name'],'nameEn'=>(string)$source['name'],
+                'available'=>in_array(($source['status']??''),['cached_fresh','not_fresh','disabled'],true)
+                    && ($source['kind']??'')==='github_feed'];
+        }
+    }
+    return $scopes;
+}
+function operationsAlertScopeSnapshot(PDO $pdo,int $at): array {
+    $settings=operationsAlertScopeSettings($pdo);
+    if($settings===null)return ['status'=>'schema_not_provisioned','rows'=>[]];
+    $allowed=operationsAlertScopesAllowed($pdo,$at);
+    $rows=[];
+    foreach($allowed as $id=>$value) {
+        $explicit=$settings[$id]??null;
+        $rows[]=$value+[
+            'emailEnabled'=>$explicit===null?true:$explicit['enabled'],
+            'inheritsDefault'=>$explicit===null,
+            'updatedAt'=>$explicit['updatedAt']??null
+        ];
+    }
+    return ['status'=>'available','rows'=>$rows,
+        'limitation'=>'Email switches control notifications, not site features or data collection. Source-only features do not become active through email settings.'];
+}
+function operationsAlertScopeEnabled(PDO $pdo,string $code,string $component): bool {
+    $settings=operationsAlertScopeSettings($pdo);
+    if($settings===null)return false; // Fail closed until unified schema is installed.
+    foreach(operationsAlertIncidentScopes($code,$component) as $id)
+        if(isset($settings[$id])&&$settings[$id]['enabled']===false)return false;
+    return true;
+}
+function operationsAlertScopeUpdate(PDO $pdo,array $input,string $actor,int $at): array {
+    if(array_keys($input)!==['scopeId','enabled']
+       ||!is_string($input['scopeId'])||!is_bool($input['enabled']))
+        throw new InvalidArgumentException('invalid_alert_scope');
+    $scope=$input['scopeId'];
+    $allowed=operationsAlertScopesAllowed($pdo,$at);
+    if(!isset($allowed[$scope])||strlen($scope)>120)
+        throw new InvalidArgumentException('unknown_alert_scope');
+    $pdo->prepare('INSERT INTO operations_alert_scope_policies
+        (scope_id,enabled,updated_at) VALUES (?,?,?)
+        ON DUPLICATE KEY UPDATE enabled=VALUES(enabled),updated_at=VALUES(updated_at)')
+        ->execute([$scope,$input['enabled']?1:0,$at]);
+    operationsAudit($pdo,$actor,'alert_scope_changed',substr(hash('sha256',$scope),0,64));
+    return operationsAlertScopeSnapshot($pdo,$at);
+}
 function operationsAlertAvailable(PDO $pdo): bool {
     try{
-        foreach(['operations_alert_settings','operations_alert_rules','operations_alert_incidents','operations_alert_outbox'] as $t)
+        foreach(['operations_alert_settings','operations_alert_rules','operations_alert_incidents','operations_alert_outbox','operations_alert_scope_policies'] as $t)
             $pdo->query('SELECT 1 FROM '.$t.' LIMIT 0');
         return true;
     }catch(Throwable $e){return false;}
@@ -51,6 +156,7 @@ function operationsAlertRecord(PDO $pdo,string $code,string $scope,int $at): boo
         $minutes=max(15,(int)$rule['cooldown_minutes']);
         $last=$previous?(int)$previous['last_queued_at']:0;
         if((bool)$setting['enabled']&&(bool)$rule['enabled']
+            &&operationsAlertScopeEnabled($pdo,$code,$scope)
             &&$count>=(int)$rule['threshold_count']
             &&($last===0||$at-$last>=$minutes*60)){
             // Serialize by incident row lock; one outbox item per approved window.
@@ -139,6 +245,7 @@ function operationsAlertSnapshot(PDO $pdo,array $configuration): array {
         'mailReady'=>function_exists('mailReady')&&mailReady(),
         'worker'=>'dedicated_private_cron_required',
         'rules'=>$rules,'rows'=>$rows,'recentEmails'=>$mail,'openCounts'=>$totals,'incidentHistoryLimit'=>50,
+        'scopeControls'=>operationsAlertScopeSnapshot($pdo,time()),
         'lastObservedAt'=>$rows[0]['lastSeenAt']??null,
         'limitation'=>'SMTP acceptance is not inbox delivery. Alerts arrive only when a trusted sensor records an incident and the private CLI mail worker runs. Disabled or unimplemented sensors do not monitor the named risk.'];
 }
@@ -181,14 +288,24 @@ function operationsAlertSendBatch(PDO $pdo,array $configuration,callable $transp
     for($i=0;$i<5;$i++){
         $pdo->beginTransaction();
         try{
-            $q=$pdo->query("SELECT o.message_id,o.created_at,i.event_code,i.scope_key,i.severity,i.last_seen_at,i.occurrence_count
+            $q=$pdo->query("SELECT o.message_id,o.created_at,i.event_code,i.scope_key,i.severity,i.last_seen_at,i.occurrence_count,
+                  r.enabled AS rule_enabled
                 FROM operations_alert_outbox o JOIN operations_alert_incidents i ON i.fingerprint=o.fingerprint
                 JOIN operations_alert_rules r ON r.event_code=i.event_code
                 JOIN operations_alert_settings a ON a.singleton_id=1
-                WHERE o.status='pending' AND r.enabled=1 AND a.enabled=1
+                WHERE o.status='pending' AND a.enabled=1
                 ORDER BY o.created_at ASC LIMIT 1 FOR UPDATE");
             $row=$q->fetch(PDO::FETCH_ASSOC);
             if(!$row){$pdo->commit();break;}
+            // Send-time check is required: the owner may disable a motor,
+            // feature, source or event AFTER an incident was queued.
+            if(!(bool)$row['rule_enabled'] ||
+                !operationsAlertScopeEnabled($pdo,(string)$row['event_code'],(string)$row['scope_key'])){
+                $pdo->prepare("UPDATE operations_alert_outbox SET status='suppressed'
+                    WHERE message_id=? AND status='pending'")
+                    ->execute([$row['message_id']]);
+                $pdo->commit();continue;
+            }
             // Prevent delayed notice floods if a worker was not installed.
             if($at-(int)$row['created_at']>86400){
                 $pdo->prepare("UPDATE operations_alert_outbox SET status='expired' WHERE message_id=?")
