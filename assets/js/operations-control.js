@@ -2017,6 +2017,18 @@ function renderImmediateSiteHealth(host,model){
  const httpRecorded=currentHttp?.state==='observed' &&
    Array.isArray(currentHttp.batches)&&currentHttp.batches.length>0;
  const batch=httpRecorded?currentHttp.batches[0]:null;
+ const response=responseMonitorCurrent||model.responseHealth||null;
+ const responseCoverage=response?.latestTimestampCoverage||null;
+ const responseCovered=Number.isInteger(responseCoverage?.observedTargets)&&
+   Number.isInteger(responseCoverage?.expectedTargets)&&
+   responseCoverage.expectedTargets>0
+   ?responseCoverage.observedTargets+' / '+responseCoverage.expectedTargets:null;
+ // Partial/old response samples cannot establish a site-wide failure count,
+ // even if the samples that happened to exist all passed.
+ const responseFailures=responseCoverage?.complete===true&&
+   responseCoverage?.fresh===true&&
+   Number.isInteger(responseCoverage?.failedTargets)
+   ?responseCoverage.failedTargets:null;
  const rules=observed&&Array.isArray(alerts.rules)?alerts.rules:null;
  const missing=rules?rules.filter(rule=>rule.ruleProvisioned===false).length:null;
  const quality=model.pageQualityOverview||null;
@@ -2047,6 +2059,10 @@ function renderImmediateSiteHealth(host,model){
    value:batch?batch.notFound:null,target:'ops-http-health',kind:'warning'},
   {label:t('خطاهای ۵۰۰ آخرین خوانش','5xx errors in last recorded batch'),
    value:batch?batch.serverErrors:null,target:'ops-http-health',kind:'critical'},
+  {label:t('پوشش ثبت‌شده HTTPS و ریدایرکت','Recorded HTTPS and redirect probe coverage'),
+   value:responseCovered,target:'ops-response-monitor',kind:'source'},
+  {label:t('شکست‌های ثبت‌شده در گروه تازه و کامل','Failures in latest complete fresh probe cohort'),
+   value:responseFailures,target:'ops-response-monitor',kind:'critical'},
   {label:t('صفحات ضعیف بر اساس کد، نه وب زنده','Weak pages in static source only'),
    value:quality?.status==='source_only'?quality.weakSeoPages:null,
    target:'ops-page-quality',kind:'source'},
@@ -2071,7 +2087,7 @@ function renderImmediateSiteHealth(host,model){
      if(panel.tagName==='DETAILS')panel.open=true;
      const inner=panel.closest('details');
      if(inner)inner.open=true;
-     if(item.target==='ops-http-health'){
+     if(['ops-http-health','ops-response-monitor'].includes(item.target)){
        const parent=document.getElementById('ops-alert-center');
        if(parent)parent.open=true;
      }
