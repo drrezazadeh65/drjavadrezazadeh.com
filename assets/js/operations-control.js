@@ -2154,6 +2154,7 @@ function renderOwnerCommandCenter(){
   root.setAttribute('aria-label',t('فرماندهی یکپارچه مدیر سایت','Unified owner command center'));
   workspace.insertBefore(root,workspace.querySelector('.ops-jump')||workspace.firstChild);
  }
+ root.classList.remove('oc-render-unavailable');
  root.replaceChildren();
  const state=(kind,metric,note)=>({kind,metric,note});
  const absent=(message=t('نیازمند بارگیری داده','Load recorded data'))=>
