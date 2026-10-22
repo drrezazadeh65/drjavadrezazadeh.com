@@ -18,6 +18,7 @@
     if(!check||!file||!output||!state||!apply||!clear||!form)return;
     let summary=null;
     const insertedFields=new Map();
+    let importGeneration=0;
     const finiteString=(value,max=500)=>typeof value==='string'&&
       value.trim().length>0&&value.length<=max;
     const optionalString=(value,max=500)=>value===undefined||
@@ -32,6 +33,7 @@
     const decisions=new Set(['CONTINUE','CHANGE','PAUSE','STOP','INVESTIGATE']);
     function message(value){state.textContent=value;}
     function reset(clearConsent=false) {
+      importGeneration++;
       // Revoke only unchanged imported values, never learner edits.
       for(const [name,imported] of insertedFields){
         const control=form.elements.namedItem(name);
@@ -62,6 +64,7 @@
     file.addEventListener('change',async()=>{
       const chosen=file.files?.[0];
       reset();
+      const thisImport=importGeneration;
       if(!check.checked)return;
       if(!chosen)return;
       if(chosen.size===0||chosen.size>30000){
@@ -70,6 +73,7 @@
       }
       try{
         const data=JSON.parse(await chosen.text());
+        if(thisImport!==importGeneration||!check.checked)return;
         if(!data||typeof data!=='object'||Array.isArray(data)||
           data.schema!=='jr.bahar.private-workbook.v1'||data.version!=='1.0.0'||
           (data.compass!==null&&data.compass!==undefined&&
@@ -108,6 +112,7 @@
           'Your self-authored reflection is displayed in this tab only; the existing form has not changed.'
         ));
       }catch{
+        if(thisImport!==importGeneration||!check.checked)return;
         reset();
         message(translate('فایل BAHAR معتبر نیست و داده‌ای وارد نشد.',
           'The file is not a compatible BAHAR workbook. No information was imported.'));
