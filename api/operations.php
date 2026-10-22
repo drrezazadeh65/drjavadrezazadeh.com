@@ -670,6 +670,14 @@ function operationsRoute(string $path, string $verb): never {
             fail('unknown_educational_interest_action',422);
         }
 
+        if($path==='/admin/operations/education-workbook-notices' && $verb==='GET'){
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'ops_bahar_consent_notice_preview',$accountId,10,300))
+                fail('rate_limited',429);
+            respond(operationsBaharConsentNoticePreview($pdo));
+        }
+
         // Evidence registration only: source-controlled notices and
         // reviewed external files. Neither endpoint enables private storage.
         if($path==='/admin/operations/education-workbook-evidence' && $verb==='POST'){
