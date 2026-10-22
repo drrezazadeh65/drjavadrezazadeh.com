@@ -78,6 +78,18 @@
         target:'ops-education-offers'
       },
       {
+        title:T('درخواست‌های تأیید بزرگسالی','Adult eligibility review queue'),
+        count:deps.pendingIndependentAdultReviewRequests,
+        state:deps.adultReviewQueueVisible===true
+          ?T('تعداد درخواست‌ها از دیتابیس مادر دریافت شد',
+              'Pending request count loaded from the mother database')
+          :T('موجودی صف درخواست‌ها نامشخص','Request queue count unknown'),
+        detail:T('بررسی مدارک فقط توسط مدیر احراز‌شده؛ هیچ مدرکی روی سرور دریافت نمی‌شود.',
+          'Owner reviews age eligibility independently. No identity files are uploaded.'),
+        button:T('رسیدگی به درخواست‌ها','Review applications'),
+        target:'jr-bahar-adult-review'
+      },
+      {
         title:T('اعتبار علمی شش موتور','Six-engine scientific readiness'),
         count:data.summary?.scienceValidatedEngines,
         state:T('اعتبارسنجی مستقل ثبت نشده','No independent validation registered'),
@@ -164,7 +176,16 @@
         labelBool(deps.educationalDraftPricingStorageReady)],
       [T('پیشنهادهای ذخیره‌شده توسط مالک','Saved owner draft overrides'),
         deps.educationalDraftOverrides===null?T('نامشخص','Unknown'):
-          number.format(deps.educationalDraftOverrides)]
+          number.format(deps.educationalDraftOverrides)],
+      [T('درخواست‌های بزرگسال در انتظار بررسی','Adult review applications pending'),
+        deps.pendingIndependentAdultReviewRequests===null?T('نامشخص','Unknown'):
+          number.format(deps.pendingIndependentAdultReviewRequests)],
+      [T('وضعیت واقعی ذخیره رمزگذاری‌شده BAHAR','BAHAR private workbook currently enabled'),
+        labelBool(deps.privateAdultWorkbookEffectiveEnabled)],
+      [T('شواهد بررسی مستقل توسط مالک','Recorded independent review evidence'),
+        labelBool(deps.privateAdultWorkbookEvidenceRecorded)],
+      [T('متن‌های رضایت جاری فارسی/انگلیسی','Current bilingual consent notices'),
+        labelBool(deps.privateAdultWorkbookBilingualNoticesReady)]
     ];
     dependencies.replaceChildren();
     for(const [heading,value] of things){
