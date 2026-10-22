@@ -2012,7 +2012,10 @@ function renderImmediateSiteHealth(host,model){
    action.type='button';
    action.setAttribute('aria-label',item.label+' · '+action.textContent);
    action.addEventListener('click',()=>{
-     const panel=document.getElementById(item.target);
+     // HTTP subpanel is only rendered after alert tables are provisioned;
+     // the parent has the relevant missing-schema explanation otherwise.
+     const panel=document.getElementById(item.target)||
+       document.getElementById('ops-alert-center');
      if(!panel)return;
      if(panel.tagName==='DETAILS')panel.open=true;
      const inner=panel.closest('details');
