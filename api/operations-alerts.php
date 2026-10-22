@@ -100,6 +100,14 @@ function operationsAlertSnapshot(PDO $pdo,array $configuration): array {
             'enabled'=>(bool)$r['enabled'],'threshold'=>(int)$r['threshold_count'],
             'cooldownMinutes'=>(int)$r['cooldown_minutes']];
     }
+    // Accurate totals are queried separately from the 50-row incident timeline.
+    $totals=['critical'=>0,'warning'=>0,'resolved'=>0];
+    $counts=$pdo->query("SELECT severity,state,COUNT(*) AS n FROM operations_alert_incidents GROUP BY severity,state");
+    foreach($counts as $row){
+        if($row['state']==='open'&&isset($totals[$row['severity']]))
+            $totals[$row['severity']]+=(int)$row['n'];
+        if($row['state']==='resolved')$totals['resolved']+=(int)$row['n'];
+    }
     $rows=[];
     $q=$pdo->query('SELECT event_code,scope_key,severity,first_seen_at,last_seen_at,occurrence_count,state,last_queued_at
         FROM operations_alert_incidents ORDER BY last_seen_at DESC LIMIT 50');
@@ -124,7 +132,7 @@ function operationsAlertSnapshot(PDO $pdo,array $configuration): array {
         'enabled'=>(bool)($setting['enabled']??false),'recipientConfigured'=>$configured,
         'mailReady'=>function_exists('mailReady')&&mailReady(),
         'worker'=>'dedicated_private_cron_required',
-        'rules'=>$rules,'rows'=>$rows,'recentEmails'=>$mail,
+        'rules'=>$rules,'rows'=>$rows,'recentEmails'=>$mail,'openCounts'=>$totals,'incidentHistoryLimit'=>50,
         'lastObservedAt'=>$rows[0]['lastSeenAt']??null,
         'limitation'=>'SMTP acceptance is not inbox delivery. Alerts arrive only when a trusted sensor records an incident and the private CLI mail worker runs. Disabled or unimplemented sensors do not monitor the named risk.'];
 }
