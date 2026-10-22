@@ -80,31 +80,58 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
 }
 function operationsResponseMonitorConfigure(PDO $pdo,array $input,string $actor,int $at): array {
     $keys=array_keys($input);
-    if($keys===['requestNow']){
-        if($input['requestNow']!==true)throw new InvalidArgumentException('invalid_monitor_request');
-        $existing=operationsResponseMonitorPolicy($pdo);
-        if(!$existing||!$existing['enabled'])throw new DomainException('response_monitor_disabled');
-        $pdo->prepare('UPDATE operations_response_probe_settings SET requested_at=?,updated_at=? WHERE singleton_id=1')
-            ->execute([$at,$at]);
-        operationsAudit($pdo,$actor,'response_probe_requested',substr(hash('sha256','manual_response_probe'),0,64));
-        return operationsResponseMonitorStatus($pdo,$at);
-    }
-    if($keys!==['enabled','cadence','weekday','clockMinutes','retentionDays']
+    $requestNow=$keys===['requestNow'];
+    if($requestNow){
+        if($input['requestNow']!==true)
+            throw new InvalidArgumentException('invalid_monitor_request');
+    }elseif($keys!==['enabled','cadence','weekday','clockMinutes','retentionDays']
         ||!is_bool($input['enabled'])||!is_string($input['cadence'])
         ||!is_int($input['weekday'])||!is_int($input['clockMinutes'])
         ||!is_int($input['retentionDays'])
         ||!in_array($input['cadence'],['manual','daily','weekly'],true)
         ||$input['weekday']<1||$input['weekday']>7
         ||$input['clockMinutes']<0||$input['clockMinutes']>1439
-        ||!in_array($input['retentionDays'],[7,30,90,180,365],true))
+        ||!in_array($input['retentionDays'],[7,30,90,180,365],true)){
         throw new InvalidArgumentException('invalid_monitor_policy');
-    $due=$input['enabled']?operationsSourceNextDue($input['cadence'],
-        $input['weekday'],$input['clockMinutes'],$at):0;
-    $q=$pdo->prepare('UPDATE operations_response_probe_settings
-       SET enabled=?,cadence=?,weekday=?,clock_minutes=?,retention_days=?,next_due=?,updated_at=? WHERE singleton_id=1');
-    $q->execute([$input['enabled']?1:0,$input['cadence'],$input['weekday'],
-        $input['clockMinutes'],$input['retentionDays'],$due,$at]);
-    operationsAudit($pdo,$actor,'response_probe_policy_changed',substr(hash('sha256','response_probe_policy'),0,64));
+    }
+    if($pdo->inTransaction())
+        throw new RuntimeException('response_monitor_nested_transaction');
+    // A policy change or one-off manual request and its audit entry are ONE
+    // operation. The singleton is locked first, as in other owner controls.
+    $pdo->beginTransaction();
+    try{
+        $q=$pdo->query('SELECT enabled FROM operations_response_probe_settings
+            WHERE singleton_id=1 FOR UPDATE');
+        $current=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($current))
+            throw new DomainException('response_monitor_schema_missing');
+        if($requestNow){
+            if(!(bool)$current['enabled'])
+                throw new DomainException('response_monitor_disabled');
+            $pdo->prepare('UPDATE operations_response_probe_settings
+                SET requested_at=?,updated_at=? WHERE singleton_id=1')
+                ->execute([$at,$at]);
+            operationsAudit($pdo,$actor,'response_probe_requested',
+                substr(hash('sha256','manual_response_probe'),0,64));
+        }else{
+            $due=$input['enabled']?operationsSourceNextDue(
+                $input['cadence'],$input['weekday'],$input['clockMinutes'],$at):0;
+            // Any policy edit invalidates a previously queued manual request.
+            // Disabling the observer MUST clear requested_at; no stale opt-in.
+            $pdo->prepare('UPDATE operations_response_probe_settings SET
+                enabled=?,cadence=?,weekday=?,clock_minutes=?,retention_days=?,
+                next_due=?,requested_at=0,updated_at=? WHERE singleton_id=1')
+                ->execute([$input['enabled']?1:0,$input['cadence'],
+                    $input['weekday'],$input['clockMinutes'],
+                    $input['retentionDays'],$due,$at]);
+            operationsAudit($pdo,$actor,'response_probe_policy_changed',
+                substr(hash('sha256','response_probe_policy'),0,64));
+        }
+        $pdo->commit();
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
     return operationsResponseMonitorStatus($pdo,$at);
 }
 function operationsResponseCurl(string $route): array {
@@ -182,7 +209,10 @@ function operationsResponseMonitorCollect(PDO $pdo,int $at): array {
     try{
         $policy=operationsResponseMonitorPolicy($pdo);
         if($policy===null)return ['status'=>'schema_unavailable','checked'=>0];
-        $manual=$policy['requestedAt']>0 && $policy['requestedAt']>$policy['updatedAt']-1;
+        // A disabled master policy must NEVER honor a historical manual
+        // request, including one created before a concurrent policy change.
+        // The owner setting writer also clears requested_at on every edit.
+        $manual=$policy['enabled'] && $policy['requestedAt']>0;
         $due=$policy['enabled'] && $policy['cadence']!=='manual'
             &&$policy['nextDue']>0&&$policy['nextDue']<=$at;
         if(!$manual&&!$due)return ['status'=>'nothing_due','checked'=>0];
