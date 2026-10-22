@@ -1,4 +1,4 @@
-/* Homepage native-feel AI entry. Reuses the existing public assistant;
+/* Public informational mobile native-feel AI entry. Reuses the existing public assistant;
  * never claims a live LLM backend, stores or transmits personal information,
  * injects a second dialog, or alters any public URL/canonical identity.
  */
@@ -49,21 +49,43 @@
     launcher.click();
     sync();
   });
+  let panelObserver=null,loaderObserver=null;
+  const closeFocus=()=>window.matchMedia('(max-width:900px)').matches&&
+    document.contains(entry);
   const observeAssistant=()=>{
     const panel=document.querySelector('.jr-assistant-panel');
     if(!panel)return false;
-    new MutationObserver(sync).observe(panel,{attributes:true,attributeFilter:['hidden']});
+    // Return focus to the VISIBLE dock proxy, not the launcher hidden by the
+    // responsive shell. Preserve both close-button and Escape semantics.
+    panel.addEventListener('click',event=>{
+      if(event.target.closest('.jr-assistant-close')&&closeFocus())
+        requestAnimationFrame(()=>entry.focus({preventScroll:true}));
+    },true);
+    document.addEventListener('keydown',event=>{
+      if(event.key==='Escape'&&!panel.hidden&&closeFocus())
+        requestAnimationFrame(()=>entry.focus({preventScroll:true}));
+    },true);
+    panelObserver=new MutationObserver(sync);
+    panelObserver.observe(panel,{attributes:true,attributeFilter:['hidden']});
     sync();
     return true;
   };
   if(!observeAssistant()){
-    // The public concierge arrives from the site's existing deferred loader.
-    // A bounded observer does not poll, network, or keep itself alive forever.
-    const observer=new MutationObserver(()=>{
-      if(observeAssistant())observer.disconnect();
+    // The public concierge arrives from the existing deferred loader; stop
+    // looking once the document is fully loaded or the user leaves.
+    loaderObserver=new MutationObserver(()=>{
+      if(observeAssistant()){
+        loaderObserver?.disconnect();loaderObserver=null;
+      }
     });
-    observer.observe(document.body,{childList:true});
-    window.addEventListener('pagehide',()=>observer.disconnect(),{once:true});
+    loaderObserver.observe(document.body,{childList:true,subtree:false});
+    window.addEventListener('load',()=>{
+      if(!panelObserver){loaderObserver?.disconnect();loaderObserver=null;}
+    },{once:true});
   }
-  window.addEventListener('pagehide',()=>entry.setAttribute('aria-expanded','false'),{once:true});
+  window.addEventListener('pagehide',()=>{
+    panelObserver?.disconnect();loaderObserver?.disconnect();
+    entry.removeAttribute('aria-controls');
+    entry.removeAttribute('aria-expanded');
+  },{once:true});
 })();
