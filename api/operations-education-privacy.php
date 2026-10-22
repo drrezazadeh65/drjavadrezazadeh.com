@@ -209,6 +209,17 @@ function operationsEducationCompleteBaharErasure(
           WHERE owner_account_id=?');
         $remove->execute([$account]);
         $removed=$remove->rowCount()===1;
+        // Legacy requests created before consent withdrawal was bound to
+        // erasure must not close while leaving an old storage grant active.
+        // This never modifies consent for any other account or purpose.
+        $revoke=$pdo->prepare("UPDATE eco_consent_records c
+          INNER JOIN eco_consent_notices n ON n.id=c.notice_id
+          SET c.withdrawn_at=UTC_TIMESTAMP(3)
+          WHERE c.account_id=? AND c.subject_id IS NULL
+            AND c.source_code='BAHAR_ACCOUNT_WORKBOOK'
+            AND n.purpose_code=? AND c.decision='GRANTED'
+            AND c.withdrawn_at IS NULL");
+        $revoke->execute([$account,JR_BAHAR_ACCOUNT_PURPOSE]);
         $close=$pdo->prepare("UPDATE eco_privacy_requests
            SET status='COMPLETED',closed_at=UTC_TIMESTAMP(3),
                updated_at=UTC_TIMESTAMP(3)
@@ -236,6 +247,7 @@ function operationsEducationCompleteBaharErasure(
           'ok'=>true,'schema'=>'jr.bahar-owner-erasure-decision.v1',
           'requestId'=>$requestId,'state'=>'COMPLETED',
           'currentDatabaseRowDeleted'=>$removed,
+          'previousPrivateConsentRevoked'=>true,
           'backupErasureCertified'=>false,
           'legalHoldOverridePerformed'=>false,
           'otherAccountsAffected'=>false
