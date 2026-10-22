@@ -44,7 +44,7 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
  await expect(triage.locator('section.ops-backlog-group').nth(2).locator('li')).toHaveCount(35);
  await triage.getByRole('button',{name:/ENG-01\.ACT-001/}).click();
  await expect(page.locator('#ops-report-level')).toHaveValue('action');
- await expect(page.locator('#ops-reporting select').nth(1)).toHaveValue('ENG-01.ACT-001');
+ await expect(page.locator('#ops-report-action-picker')).toHaveValue('ENG-01.ACT-001');
  await expect(page.locator('#ops-reporting')).toContainText(lang==='fa'?'اجرا هنوز فعال نشده است':'Execution is not enabled');
  await noOverflow(page);
 });
@@ -69,14 +69,14 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
  for(const width of [320,390,430]){
   await page.setViewportSize({width,height:900});await page.goto(base+route);await expect(page.locator('#ops-reporting nav button')).toHaveCount(13);await expect(page.locator('#ops-engine option')).toHaveCount(14);
   await expect(page.locator('#ops-report-level')).toHaveValue('executive');await expect(page.locator('#ops-reporting .ops-engine-aggregate article')).toHaveCount(13);await noOverflow(page);
-  const engine=data.reporting.engines.find(e=>e.id==='ENG-05');await page.locator('#ops-reporting nav button').filter({hasText:engine.id+' · '}).click();await expect(page.locator('#ops-report-level')).toHaveValue('engine');await expect(page.locator('#ops-reporting .ops-queue li')).toHaveCount(engine.reportIds.length);
-  await page.locator('#ops-report-level').selectOption('action');await expect(page.locator('#ops-reporting select').nth(1).locator('option')).toHaveCount(registry.actions.length);
+  const engine=data.reporting.engines.find(e=>e.id==='ENG-05');await page.locator('#ops-reporting nav button').filter({hasText:engine.id+' · '}).click();await expect(page.locator('#ops-report-level')).toHaveValue('engine');await expect(page.locator('#ops-report-records li')).toHaveCount(engine.reportIds.length);
+  await page.locator('#ops-report-level').selectOption('action');await expect(page.locator('#ops-report-action-picker').locator('option')).toHaveCount(registry.actions.length);
   await expect(page.locator('details.ops-action-contract')).toHaveCount(1);
   await expect(page.locator('details.ops-action-contract')).not.toHaveAttribute('open');
   await page.locator('details.ops-action-contract summary').click();
   await expect(page.locator('details.ops-action-contract')).toContainText(lang==='en'?'Required inputs':'ورودی‌های مجاز');
   await noOverflow(page);
-  await page.locator('#ops-report-level').selectOption('master');await expect(page.locator('#ops-reporting .ops-queue li')).toHaveCount(36);await noOverflow(page);
+  await page.locator('#ops-report-level').selectOption('master');await expect(page.locator('#ops-report-records li')).toHaveCount(36);await noOverflow(page);
   await page.locator('#ops-engine').selectOption('ENG-05');await expect(page.locator('#ops-cards article')).toHaveCount(engine.reportIds.filter(id=>id!=='ADM-01').length);
  }
  expect(errors).toEqual([]);
@@ -94,14 +94,14 @@ test('Engine and action JSON preserve exact scope and granular actions remain un
  const action=data.reporting.actionReports.find(a=>a.scoringScope==='unverified_acceptance'&&a.legacyReportIds.includes(record.id));expect(action).toBeTruthy();
  await authorized(page,{data});await page.goto(base+'/en/account/admin/');await page.locator('#ops-reporting nav button').filter({hasText:'ENG-12 · '}).click();let output=JSON.parse((await exported(page,'json')).body);
  expect(output.reports.map(r=>r.reportId).sort()).toEqual(data.reporting.engines.find(e=>e.id==='ENG-12').reportIds.slice().sort());expect(output.reports.some(r=>r.reportId==='ADM-01')).toBe(true);
- await page.locator('#ops-report-level').selectOption('action');await page.locator('#ops-reporting select').nth(1).selectOption(action.id);await expect(page.locator('#ops-reporting')).toContainText('Action completion: Unknown');
+ await page.locator('#ops-report-level').selectOption('action');await page.locator('#ops-report-action-picker').selectOption(action.id);await expect(page.locator('#ops-reporting')).toContainText('Action completion: Unknown');
  output=JSON.parse((await exported(page,'json')).body);expect(output.selectedAction.id).toBe(action.id);expect(output.metrics.actionCompletion).toBeNull();expect(output.reports.map(r=>r.reportId).sort()).toEqual(action.legacyReportIds.slice().sort());expect(output.reports[0].measuredCompletion).toBe(99);
 });
 test('CSV neutralizes spreadsheet formulas, escapes quotes/newlines and action exports retain the permanent identity',async({page})=>{
  const data=fixture(),name=' =HYPERLINK("https://example.invalid","x")\nsecond line';data.reports[0].title=name;
  await authorized(page,{data});await page.goto(base+'/en/account/admin/');await page.locator('#ops-report-level').selectOption('master');const csv=(await exported(page,'csv')).body,rows=parseCsv(csv.replace(/^\ufeff/,'')),nameIndex=rows[0].indexOf('name');
  expect(rows).toHaveLength(37);expect(rows[1][nameIndex]).toBe("'"+name);
- const action=data.reporting.actionReports.find(a=>a.scoringScope==='unverified_acceptance'&&a.legacyReportIds.includes('OP-01'));await page.locator('#ops-report-level').selectOption('action');await page.locator('#ops-reporting select').nth(1).selectOption(action.id);
+ const action=data.reporting.actionReports.find(a=>a.scoringScope==='unverified_acceptance'&&a.legacyReportIds.includes('OP-01'));await page.locator('#ops-report-level').selectOption('action');await page.locator('#ops-report-action-picker').selectOption(action.id);
  expect((await exported(page,'txt')).body).toContain(action.id);expect((await exported(page,'csv')).body).toContain(action.id);
 });
 test('MFA expiry clears every copied privileged report, queue and status value',async({page})=>{
@@ -157,7 +157,7 @@ test('Existing 7 collectors execute as MFA-scoped observations with server histo
  await page.goto(base+'/en/account/admin/');
  await expect(page.locator('#ops-workspace')).toBeVisible();
  await page.locator('#ops-report-level').selectOption('action');
- await page.locator('#ops-reporting select').nth(1).selectOption('ENG-11.ACT-009');
+ await page.locator('#ops-report-action-picker').selectOption('ENG-11.ACT-009');
  await expect(page.locator('#ops-reporting').getByRole('button',{name:'Run observation and record result'})).toBeVisible();
  await expect(page.locator('#ops-reporting')).toContainText('Existing collector: read-only');
  await page.locator('#ops-reporting').getByRole('button',{name:'Run observation and record result'}).click();
@@ -170,7 +170,7 @@ test('Existing 7 collectors execute as MFA-scoped observations with server histo
  expect(output.selectedAction.id).toBe('ENG-11.ACT-009');
  expect(output.recentActionRuns).toHaveLength(1);
  expect(output.recentActionRuns[0].status).toBe('succeeded');
- await page.locator('#ops-reporting select').nth(1).selectOption('ENG-05.ACT-002');
+ await page.locator('#ops-report-action-picker').selectOption('ENG-05.ACT-002');
  await expect(page.locator('#ops-reporting').getByRole('button',{name:'Run observation and record result'})).toHaveCount(0);
  await expect(page.locator('#ops-reporting')).toContainText('This Action has no authorized executor yet');
  expect(requests).toHaveLength(1);
