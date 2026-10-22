@@ -7,7 +7,8 @@
   'use strict';
   const launch=document.querySelector('[data-jr-interest-open]');
   const status=document.querySelector('[data-jr-interest-status]');
-  if(!launch||!status)return;
+  const container=document.querySelector('[data-jr-interest-cta]');
+  if(!launch||!status||!container)return;
   const en=document.documentElement.lang==='en';
   const T=(fa,english)=>en?english:fa;
   const endpoint='/api/education-interest/';
@@ -24,7 +25,7 @@
   let dialogOpen=false,processing=false,controller=null,capabilitiesState=null;
   // An unready optional campaign must not show a dead-end button. This
   // read-only capability request transmits no email, identity or student data.
-  launch.hidden=true;
+  launch.hidden=true;container.hidden=true;
   const noticeHash=async value=>{
     if(!crypto?.subtle||typeof TextEncoder==='undefined')return null;
     const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));
@@ -182,7 +183,7 @@
         !['fa','en'].every(code=>typeof config.notices?.[code]==='string'))
         return;
       capabilitiesState=config;
-      launch.hidden=false;
+      container.hidden=false;launch.hidden=false;
     }catch(_){
       // Free first steps remain uninterrupted when optional email service
       // or mother DB is unavailable. No error popup is ever forced.
