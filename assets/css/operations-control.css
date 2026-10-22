@@ -286,3 +286,17 @@
 #ops-workspace .ops-jump a:hover,#ops-workspace .ops-jump a:focus-visible{border-color:var(--ops-gold);color:var(--ops-gold)}
 #ops-workspace :is(section,details,article)[id]{scroll-margin-block-start:18px}
 @media(prefers-reduced-motion:reduce){#ops-workspace .ops-jump{scroll-behavior:auto}}
+
+/* P0 collector evidence: status is separated from editable cadence controls.
+   Gold = due but unverified, red = recorded failed attempt, green = recorded attempt.
+   None of these colours certify cPanel cron installation. */
+.ops-collector-item [data-execution-evidence],
+.ops-collector-item [data-schedule-evidence]{
+  display:block;padding:5px 9px;border-inline-start:3px solid var(--ops-border);
+  border-radius:5px;background:#1b2a40;overflow-wrap:anywhere;
+}
+.ops-collector-item [data-execution-evidence="last_attempt_failed"]{border-inline-start-color:#ffb0a9;color:#ffcfca}
+.ops-collector-item [data-execution-evidence="attempt_recorded"]{border-inline-start-color:var(--ops-green)}
+.ops-collector-item [data-schedule-evidence="due_unverified"]{border-inline-start-color:var(--ops-gold);color:var(--ops-gold)}
+.ops-collection-settings [data-ops-collector-summary],
+.ops-collection-settings [data-ops-unmapped-policies]{overflow-wrap:anywhere;word-break:break-word}
