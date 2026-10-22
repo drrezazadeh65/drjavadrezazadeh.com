@@ -169,7 +169,13 @@
       const item=document.createElement('article');
       item.className='jr-edu-business-week__day';
       const stamp=new Date(day.date+'T12:00:00Z');
-      if(Number.isNaN(stamp.valueOf()))continue;
+      if(Number.isNaN(stamp.valueOf())||
+         stamp.toISOString().slice(0,10)!==day.date){
+        week.replaceChildren();
+        week.append(text('p',T('تاریخ تقویم داخلی نامعتبر است.',
+          'The internal calendar date is invalid.')));
+        return;
+      }
       item.append(text('h5',dateFormatter.format(stamp)));
       item.append(text('p',
         T('ساعت قابل درخواست: ','Internally available slots: ')+
@@ -192,7 +198,13 @@
         }
         seenSlots.add(slot.startUtc);
         const time=new Date(slot.startUtc.replace(' ','T')+'Z');
-        if(Number.isNaN(time.valueOf()))continue;
+        if(Number.isNaN(time.valueOf())||
+           time.toISOString().slice(0,19).replace('T',' ')!==slot.startUtc){
+          week.replaceChildren();
+          week.append(text('p',T('زمان بازه تقویم داخلی نامعتبر است.',
+            'An internal calendar slot timestamp is invalid.')));
+          return;
+        }
         const chip=text('span',
           timeFormatter.format(time)+' · '+
             (slot.status==='FULL'?T('پر','Full'):T('قابل درخواست','Requestable')),
@@ -211,6 +223,11 @@
     if(!visible()||busy)return;
     const generation=++request;
     controller?.abort();controller=new AbortController();busy=true;
+    // A slow commerce or consultation source cannot immobilise the owner
+    // panel indefinitely. Aborts belong to this request, not a later refresh.
+    const activeController=controller;
+    let timedOut=false;
+    const timeout=setTimeout(()=>{timedOut=true;activeController.abort();},15000);
     reload.disabled=true;exportButton.disabled=true;exportRows=[];
     cards.replaceChildren();week.replaceChildren();
     status.textContent=T('در حال دریافت دفتر موجود سفارش‌ها و خدمات…',
@@ -245,10 +262,13 @@
       if(generation!==request||error?.name==='AbortError')return;
       cards.replaceChildren();week.replaceChildren();
       exportRows=[];exportButton.disabled=true;
-      status.textContent=T(
-        'وضعیت سفارش‌ها از پایگاه داده مادر قابل تأیید نیست. هیچ عدد صفر یا موفقیت ساختگی نمایش نمی‌دهیم.',
-        'Commerce ledger is unavailable or not verified; unknown values will not be displayed as zero or success.');
+      status.textContent=timedOut
+        ?T('درخواست گزارش پس از ۱۵ ثانیه متوقف شد؛ همه مقادیر قبلی پاک شدند و وضعیت فعلی نامشخص است. دوباره دریافت کنید.',
+          'The 15-second report limit expired. Previous figures were erased and current values are unknown. Retry explicitly.')
+        :T('وضعیت سفارش‌ها از پایگاه داده مادر قابل تأیید نیست. هیچ عدد صفر یا موفقیت ساختگی نمایش نمی‌دهیم.',
+          'Commerce ledger is unavailable or not verified; unknown values will not be displayed as zero or success.');
     }finally{
+      clearTimeout(timeout);
       if(generation===request){controller=null;busy=false;reload.disabled=false;}
     }
   }
