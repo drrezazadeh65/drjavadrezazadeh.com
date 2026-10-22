@@ -62,6 +62,9 @@
 | OPS-07 | In the single approved final acceptance only: verify same-second owner policy revisions, policy changes during collection, audited transaction rollback, cancellation of obsolete queued manual requests, and mail suppression after sensor revocation. Observe independently handled header/redirect incident families when one is unavailable. Admin GET must not initiate monitoring. |
 | OPS-08 | In final acceptance only: verify that each completed seven-path CLI collection shares its own nonpersonal stored run token, legacy rows without token never certify a completed run, and missing/stale/unavailable samples stay distinguished. Recorded responses alone must not assert real-time host or Cron readiness. |
 | OPS-09 | In final acceptance only: verify missing optional alert schema behavior using a non-destructive isolated mock of schema unavailability. All rule names should appear as disabled/unprovisioned, unknown counts should not become zeros, owner 404/5xx drilldown remains navigable, and empty/stale access-log records must not imply current healthy traffic. |
+| OPS-10 | Final-only: 404 collector redaction, private route suppression, scanner bucketing, incomplete log line handling, genuine public-page event readiness, and no automatic redirect. |
+| AI-04 | Final-only: bilingual static guidance must disclose no verified live model, route six research-stage education needs, reject external assistant endpoints, discard hidden-page chat and avoid durable visitor IDs. |
+| AID-14 | Final-only: descriptive scorecard normalization rejects duplicate subject identities and never treats provider scales as official national scores or admission probabilities. |
 | OPS-02 | GitHub workflow, immutable URL guard, exact artifact source, build inventory, host SSH/cPanel/permissions, rollback and post-release live checks all evidenced |
 | LEGAL-01 | Privacy notice, minors/guardian verification, research consent, advertising claims, sales terms, refund rules, payment/crypto handling and journal compliance reviewed for relevant jurisdictions |
 
@@ -85,6 +88,3 @@
 
 A source commit is evidence that text/code was saved in the GitHub branch, not evidence of full system functionality, acceptance or production deployment.
 
-| OPS-10 | Final-only: 404 collector redaction, private route suppression, scanner bucketing, incomplete log line handling, genuine public-page event readiness, and no automatic redirect. |
-| AI-04 | Final-only: bilingual static guidance must disclose no verified live model, route six research-stage education needs, reject external assistant endpoints, discard hidden-page chat and avoid durable visitor IDs. |
-| AID-14 | Final-only: descriptive scorecard normalization rejects duplicate subject identities and never treats provider scales as official national scores or admission probabilities. |
