@@ -162,6 +162,11 @@ function operationsEducationReadiness(PDO $pdo): array {
             'productionVerified'=>false,'releaseAuthorized'=>false
         ];
     }
+    $draftState=null;
+    try {
+        if(function_exists('operationsEducationalDraftPricesRead'))
+            $draftState=operationsEducationalDraftPricesRead($pdo);
+    } catch(Throwable $error){$draftState=null;}
     $baharColumns=operationsEducationBaharColumnPresence($pdo);
     return [
         'ok'=>true,
@@ -186,6 +191,10 @@ function operationsEducationReadiness(PDO $pdo): array {
             'offerDraftInventoryAvailable'=>$offer!==null,
             'unapprovedOfferDrafts'=>$offer['summary']['proposals']??null,
             'baharMotherDatabaseColumnsPresent'=>$baharColumns,
+            'educationalDraftPricingStorageReady'=>$draftState!==null &&
+                ($draftState['requiresAdditiveMigration']??true)===false,
+            'educationalDraftOverrides'=>is_array($draftState['drafts']??null)
+                ?count($draftState['drafts']):null,
             'motherDatabaseContentAudited'=>false
         ],
         'readOnly'=>true,'canActivate'=>false,'canRelease'=>false,
