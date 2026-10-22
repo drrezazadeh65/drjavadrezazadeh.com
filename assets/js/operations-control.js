@@ -2015,11 +2015,15 @@ function renderOwnerCommandCenter(){
       sources.filter(x=>x.cacheState==='fresh').length)
    :absent(t('کلید اصلی هنوز خوانده نشده','Master switch not loaded'));
  const directory=sourceDirectoryState;
+ const sourcePolicies=Array.isArray(sourceControlState?.rows)?sourceControlState.rows:null;
+ const policyEnabled=sourcePolicies?sourcePolicies.filter(x=>x.enabled===true).length:null;
  const directoryOverview=directory
    ?state('recorded',t('منابع فهرست‌شده: ','Catalogued sources: ')+
-      (directory.counts?.total??directory.sources?.length??'—'),
-     t('فهرست منابع، اثبات اتصال API یا آمار زنده نیست',
-       'Source inventory does not prove connected APIs or live metrics'))
+      (directory.counts?.total??directory.sources?.length??'—')+
+      ' · '+t('مجوزهای ثبت‌شده: ','Saved source policies: ')+
+      (policyEnabled===null?'—':policyEnabled),
+     t('سیاست ذخیره‌شده، اثبات اتصال یا اجرای زمان‌بند نیست',
+       'A stored enable preference does not verify a provider or a scheduled worker'))
    :absent(t('فهرست منابع بارگیری نشده','Source directory not loaded'));
  const quality=model.pageQualityOverview;
  const qualityOverview=quality?.status==='source_only'
@@ -2056,13 +2060,20 @@ function renderOwnerCommandCenter(){
        'Order ledger is not independently verified bank settlement')):
    absent(t('گزارش داخلی فروش موجود نیست','Commerce ledger not available'));
  const social=ownerCockpitPrivateEvidence.social;
+ const socialSettings=ownerCockpitPrivateEvidence.socialSettings;
+ const savedSocialPolicies=socialSettings?.settings&&typeof socialSettings.settings==='object'?
+   Object.values(socialSettings.settings):null;
+ const optedDraftChannels=savedSocialPolicies?
+   savedSocialPolicies.filter(x=>x?.draftEnabled===true).length:null;
  const socialOverview=social?.deliveryDataStatus==='stored_records_only'&&social.deliveryRows?
    state(social.deliveryRows.uncertain>0||social.deliveryRows.manualPending>0?'attention':'recorded',
      t('سوابق انتشار: ','Stored deliveries: ')+(social.deliveryRows.total??'—')+
        ' · '+t('نیازمند رسیدگی: ','Need review: ')+
-       ((social.deliveryRows.uncertain??0)+(social.deliveryRows.manualPending??0)),
-     t('وضعیت ردیف‌ها به معنی تأیید مستقل انتشار شبکه اجتماعی نیست',
-       'Stored delivery states do not prove provider-side publication')):
+       ((social.deliveryRows.uncertain??0)+(social.deliveryRows.manualPending??0))+
+       ' · '+t('کانال‌های پیش‌نویس مجاز: ','Draft-permitted channels: ')+
+       (optedDraftChannels===null?'—':optedDraftChannels),
+     t('تنظیم پیش‌نویس، انتشار خودکار یا اتصال زنده را فعال نمی‌کند',
+       'Draft preferences do not enable automatic publishing or live accounts')):
    absent(t('داده قابل‌اتکای انتشار موجود نیست','Social delivery evidence unavailable'));
  const gsc=ownerCockpitPrivateEvidence.gsc;
  const gscOverview=gsc?.status==='locally_validated_unattested'?
@@ -2250,6 +2261,7 @@ function renderOwnerCommandCenter(){
      ['alerts','/alerts'],['database','/database-health'],
      ['http','/http-health'],['response','/response-health'],
      ['collection','/collection-settings'],['sources','/source-directory'],
+     ['sourceControls','/source-controls'],['socialSettings','/social/settings'],
      ['quality','/page-quality?'+new URLSearchParams(
        Object.entries(qualityFilters).map(([key,value])=>[key,String(value)]))],
      ['commerce','/commerce'],['social','/social'],
@@ -2271,6 +2283,10 @@ function renderOwnerCommandCenter(){
        else if(id==='collection')collectionState=response;
        else if(id==='sources'&&response.schema==='operations-source-directory-v1'
          &&Array.isArray(response.sources))sourceDirectoryState=response;
+       else if(id==='sourceControls'&&response.schema==='operations-source-controls-v1')
+         sourceControlState=response;
+       else if(id==='socialSettings'&&response.schema==='social-channel-settings-v1')
+         ownerCockpitPrivateEvidence.socialSettings=response;
        else if(id==='quality'&&response.schema==='operations-page-quality-results-v1')
          qualityResult=response;
        else ownerCockpitPrivateEvidence[id]=response;
@@ -2395,7 +2411,9 @@ function renderOwnerCommandCenter(){
    else if(item.load==='sources'){const response=await api('/source-directory');
     if(response.schema!=='operations-source-directory-v1'||!Array.isArray(response.sources))
        throw new Error('invalid_source_directory');
-    sourceDirectoryState=response;sourceDirectoryExpanded=true;}
+    sourceDirectoryState=response;
+    sourceControlState=await api('/source-controls');
+    sourceDirectoryExpanded=true;}
    else if(item.load==='quality'){await loadQualityIndex();}
    else if(['commerce','social','gsc','ai','audit','journal','growth','keyword','free'].includes(item.load)){
      const routes={commerce:'/commerce',social:'/social',gsc:'/gsc-direct',
@@ -2404,6 +2422,9 @@ function renderOwnerCommandCenter(){
      const response=await api(routes[item.load]);
      if(generation!==loadGeneration||!snapshot)return;
      ownerCockpitPrivateEvidence[item.load]=response;
+     if(item.load==='social'){
+       ownerCockpitPrivateEvidence.socialSettings=await api('/social/settings');
+     }
      delete ownerCockpitReadErrors[item.load];
      ownerCockpitLastReadAt=Math.floor(Date.now()/1000);
    }
