@@ -250,3 +250,62 @@ visual activation.
 
 **Current state: SOURCE PUSH COMMITTED, ALL INTEGRATION/QA TESTING STILL DEFERRED.
 NO DEPLOYMENT, NO MERGE, NO AUTOMATIC ACTIVATION.**
+
+## Continued source integration — evidence coherence and dependency integrity
+
+Owner instruction: continue rapidly while retaining the **no-tests-until-development-complete**
+freeze. Independent branch only, no deployment or merge.
+
+The following source-level corrections were added:
+
+1. **Card recovery after read failures.** A successfully repeated owner-initiated
+   module read now clears any previous stored failure flag across every supported
+   module and updates the most recent read timestamp. Previous behavior cleared
+   the flag for only a subset of modules.
+2. **Bulk hydration schema validation.** Owner-confirmed multi-module read
+   validates known alerts, database-health, source-directory, source-control,
+   social-setting and page-quality response envelopes before counting them as
+   received. It refuses incompatible/empty directory records rather than
+   reporting a false successful read.
+3. **Independent data and policy loading.** The source directory still displays
+   its actual readable evidence if the optional policy read is denied or fails,
+   and social readiness remains readable if channel-settings loading fails.
+   Per-policy errors are separately retained and shown in the remediation
+   area. No permission bypass or policy write is implied.
+4. **Bounded module observation labels.** The server's nine dependency contracts
+   now expose nullable timestamps and explicit provenance kinds for dated
+   collector attempts, HTTP log cursor, response samples, SMTP outbox attempts,
+   and database-health journal rows. Missing history remains null. The
+   dashboard describes these as recorded events, never proof of successful
+   provider access, host Cron, mailbox receipt or full physical DB integrity.
+5. **Safer private API error handling.** HTML maintenance responses, invalid JSON,
+   401/403 and throttling cannot be confused with successful JSON. The
+   dashboard holds only bounded predefined error categories and surfaces
+   actionable, bilingual role, schema and read errors with no raw proxy,
+   stack-trace, SQL or provider response body.
+6. **Correct HTTPS status semantics.** An enabled sensor with no fresh sample
+   now remains UNKNOWN, not evidence-positive. Dated `pass`, `fail` and
+   `unavailable` samples are differentiated; a recent failure is ATTENTION
+   while inconclusive samples remain UNKNOWN. Source policy is never confused
+   with scheduled worker installation.
+7. **Database signature awareness.** Dashboard schema readiness now includes
+   source contract column/index/FK/type/collation discrepancies, not just
+   the count of present tables. Full functional/integrity/restore certification
+   remains deferred until QA.
+8. **Worker status coherence.** Fresh observation histories can show the
+   presence of dated records, stale/malformed evidence signals attention,
+   and no dated data remains unknown. Worker activity is never Cron proof.
+9. Both FA/EN admin pages received synchronized cache-busting references to
+   the improved operations controller.
+
+### Integration boundary and owner follow-up
+
+The owner already showed SQL success for the three health tables. No new
+database schema or SQL installation is necessary for these changes.
+The host-side Cron, SMTP and third-party OAuth work remains separately
+consent-controlled and unverified. The separate
+`migration/bertina-linux6` branch was not changed.
+
+**No lint, PHP syntax, JS execution, browser, CI, DB probe, test, Cron, mail,
+social publishing, branch merge or production deployment was performed.**
+The committed code remains pending final integrated QA.
