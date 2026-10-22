@@ -21,7 +21,10 @@
   ];
   const defaultNeed=NEEDS.some(x=>x[0]===launch.dataset.jrInterestDefault)
     ?launch.dataset.jrInterestDefault:'STUDY';
-  let dialogOpen=false,processing=false,controller=null;
+  let dialogOpen=false,processing=false,controller=null,capabilitiesState=null;
+  // An unready optional campaign must not show a dead-end button. This
+  // read-only capability request transmits no email, identity or student data.
+  launch.hidden=true;
   const noticeHash=async value=>{
     if(!crypto?.subtle||typeof TextEncoder==='undefined')return null;
     const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));
@@ -164,25 +167,32 @@
     else{dialog.open=true;dialog.setAttribute('role','dialog');}
     email.focus();
   }
-  launch.addEventListener('click',async()=>{
-    if(processing||dialogOpen)return;
-    processing=true;launch.disabled=true;
+  async function discoverInterestAvailability(){
     try{
       const response=await fetch(endpoint+'capabilities',{
         method:'GET',credentials:'same-origin',cache:'no-store',
         headers:{Accept:'application/json'}
       });
-      if(!response.ok)throw Error('UNAVAILABLE');
+      if(!response.ok)return;
       const config=await response.json();
-      if(config?.available!==true)throw Error('NOT_ACTIVE');
-      processing=false;
-      popup(config);
-    }catch{
-      setStatus(T(
-        'راهنمای ایمیلی هنوز فعال نشده است؛ می‌توانی از همه بخش‌های رایگان سایت استفاده کنی.',
-        'Educational email updates are not yet active. You can continue with all free resources.'));
-    }finally{processing=false;launch.disabled=false;}
+      if(config?.ok!==true||
+        config.schema!=='jr.education-interest-capabilities.v1'||
+        config.available!==true||config.marketingWithoutConsentEnabled!==false||
+        config.subscriptionRequiresMailVerification!==true||
+        !['fa','en'].every(code=>typeof config.notices?.[code]==='string'))
+        return;
+      capabilitiesState=config;
+      launch.hidden=false;
+    }catch(_){
+      // Free first steps remain uninterrupted when optional email service
+      // or mother DB is unavailable. No error popup is ever forced.
+    }
+  }
+  launch.addEventListener('click',()=>{
+    if(processing||dialogOpen||!capabilitiesState)return;
+    popup(capabilitiesState);
   });
+  discoverInterestAvailability();
   // Verification links store secrets only in a same-origin fragment. Never
   // place them in HTTP query strings, logs, external script parameters or UI.
   const currentHash=location.hash;
