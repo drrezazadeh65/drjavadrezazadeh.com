@@ -84,3 +84,5 @@
 **Previously published URLs renamed:** NO REQUEST OR AUTHORIZATION.
 
 A source commit is evidence that text/code was saved in the GitHub branch, not evidence of full system functionality, acceptance or production deployment.
+
+| OPS-10 | Final-only: 404 collector redaction, private route suppression, scanner bucketing, incomplete log line handling, genuine public-page event readiness, and no automatic redirect. |
