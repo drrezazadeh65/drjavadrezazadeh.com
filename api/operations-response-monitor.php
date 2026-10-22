@@ -69,14 +69,50 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
         return ['ok'=>true,'schema'=>'operations-response-monitor-v1',
             'status'=>'read_unavailable','settings'=>$settings,'latest'=>[],'history'=>[]];
     }
+    // Previous UI claimed that the per-path latest rows were "the last
+    // run". In reality those rows may come from different dates. Without a
+    // worker run_id, only samples at the newest recorded *second* can be
+    // treated as one timestamp cohort (not certified as one CLI execution).
+    $probeIds=array_column(operationsResponseProbes(),'id');
+    $newestAt=0;
+    foreach($rows as $row)
+        $newestAt=max($newestAt,(int)$row['observedAt']);
+    $cohort=[];
+    if($newestAt>0){
+        foreach($rows as $row){
+            if((int)$row['observedAt']!==$newestAt
+               ||!in_array($row['id'],$probeIds,true))continue;
+            $cohort[$row['id']]=$row;
+        }
+    }
+    $missingIds=array_values(array_diff($probeIds,array_keys($cohort)));
+    $failed=0;$unavailable=0;$passed=0;
+    foreach($cohort as $row){
+        if($row['result']==='fail')$failed++;
+        elseif($row['result']==='pass')$passed++;
+        else $unavailable++;
+    }
+    $coverage=[
+        'evidence'=>'same_timestamp_stored_samples_not_unique_run_id',
+        'expectedTargets'=>count($probeIds),
+        'observedTargets'=>count($cohort),
+        'missingTargets'=>$missingIds,
+        'failedTargets'=>$failed,'unavailableTargets'=>$unavailable,
+        'passedTargets'=>$passed,'observedAt'=>$newestAt?:null,
+        'fresh'=>$newestAt>0&&$newestAt>=$at-172800,
+        'complete'=>count($missingIds)===0,
+        'allPassedAtObservedTime'=>count($missingIds)===0&&
+            $failed===0&&$unavailable===0
+    ];
     return ['ok'=>true,'schema'=>'operations-response-monitor-v1',
         'status'=>'stored_observations','settings'=>$settings,
         'latest'=>$rows,'history'=>array_slice($history,0,80),
+        'latestTimestampCoverage'=>$coverage,
         'checks'=>[
             'mandatory'=>['http_status','x_frame_options_or_csp_frame_ancestors','x_content_type_options','referrer_policy','permissions_policy'],
             'advisory'=>['strict_transport_security','content_security_policy']
         ],
-        'limitation'=>'The newest observation is historical, not a continuous live monitor. HSTS and CSP absence is reported as advisory until an independently approved non-breaking policy is installed. HEAD is not a visual test or a security penetration test.'];
+        'limitation'=>'Per-path latest observations may come from different CLI runs. Latest-timestamp coverage groups records by second only, because no durable worker run ID is stored. Even complete and recently recorded HTTP HEAD samples are not real-time site integrity or a security penetration test. Missing HSTS/CSP remain advisory until separately approved.'];
 }
 function operationsResponseMonitorConfigure(PDO $pdo,array $input,string $actor,int $at): array {
     $keys=array_keys($input);
