@@ -1850,23 +1850,6 @@ function renderSourceDirectory(parent){
  * unsupported command remains explicitly unavailable, never simulated.
  */
 function renderMasterEngineConsole(host,model){
- const sourceGrade=(dimension,fa,enLabel)=>{
-   const score=quality?.status==='source_only'?quality.averages?.[dimension]:null;
-   const coverage=quality?.measuredPagesByDimension?.[dimension];
-   if(typeof score!=='number'||!Number.isFinite(score))
-     return absent(t('امتیاز منبعی معتبر موجود نیست','No sourced grade available'));
-   return state(score<6?'attention':'recorded',
-     t(fa,enLabel)+': '+score.toFixed(1)+'/10'+
-       ' · '+t('صفحات دارای امتیاز: ','Scored pages: ')+(coverage??'—'),
-     t('برآورد HTML مخزن؛ داده واقعی کاربران یا رتبه گوگل نیست',
-       'Repository HTML heuristic; not measured user experience or Google ranking'));
- };
- const schemaOverview=sourceGrade('schema','اسکیما','Schema');
- const imageOverview=sourceGrade('image','تصویر و Alt','Images & alt text');
- const speedOverview=sourceGrade('speed','سرعت','Speed');
- const uxOverview=sourceGrade('ux','تجربه کاربری','UX');
- const mobileOverview=sourceGrade('mobile','نسخه موبایل','Mobile');
- const contentOverview=sourceGrade('content','محتوا','Content');
  const engines=Array.isArray(model.engines)?model.engines:[];
  const actions=Array.isArray(model.actionReports)?model.actionReports:[];
  const providers=Array.isArray(model.providerInventory?.providers)?model.providerInventory.providers:[];
@@ -2205,6 +2188,24 @@ function renderOwnerCommandCenter(){
        'Counts may include default preferences; without owner master enable and verified Cron no automatic fetching is proven'))
    :absent(t('فهرست منابع بارگیری نشده','Source directory not loaded'));
  const quality=model.pageQualityOverview;
+ const sourceGrade=(dimension,fa,enLabel)=>{
+   const score=quality?.status==='source_only'?quality.averages?.[dimension]:null;
+   const coverage=quality?.measuredPagesByDimension?.[dimension];
+   if(typeof score!=='number'||!Number.isFinite(score))
+     return absent(t('امتیاز منبعی معتبر موجود نیست','No sourced grade available'));
+   return state(score<6?'attention':'recorded',
+     t(fa,enLabel)+': '+score.toFixed(1)+'/10'+
+       ' · '+t('صفحات دارای امتیاز: ','Scored pages: ')+(coverage??'—'),
+     t('برآورد HTML مخزن؛ داده واقعی کاربران یا رتبه گوگل نیست',
+       'Repository HTML heuristic; not measured user experience or Google ranking'));
+ };
+ const schemaOverview=sourceGrade('schema','اسکیما','Schema');
+ const imageOverview=sourceGrade('image','تصویر و Alt','Images & alt text');
+ const speedOverview=sourceGrade('speed','سرعت','Speed');
+ const uxOverview=sourceGrade('ux','تجربه کاربری','UX');
+ const mobileOverview=sourceGrade('mobile','نسخه موبایل','Mobile');
+ const contentOverview=sourceGrade('content','محتوا','Content');
+
  const qualityOverview=quality?.status==='source_only'
    ?state((quality.weakSeoPages??0)>0?'attention':'recorded',
       t('صفحات: ','Pages: ')+(quality.pages??'—')+
