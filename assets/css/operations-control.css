@@ -248,3 +248,10 @@
  .ops-source-config .ops-toolbar select,.ops-source-config .ops-toolbar input[type="time"]{width:100%}
  .ops-source-metric-row{grid-template-columns:minmax(0,1fr)}
 }
+
+/* Discovered legacy capabilities remain nested under their canonical engine. */
+.ops-existing-features{margin-block:12px;padding:10px;border:1px solid var(--ops-border);border-radius:10px;min-width:0}
+.ops-existing-features>summary{cursor:pointer;color:var(--ops-gold);font-weight:700}
+.ops-existing-features .ops-queue{max-height:400px;overflow:auto}
+.ops-existing-features .ops-queue li{display:grid;gap:4px}
+.ops-existing-features .ops-queue button{width:100%;white-space:normal;text-align:start;overflow-wrap:anywhere;min-height:44px}
