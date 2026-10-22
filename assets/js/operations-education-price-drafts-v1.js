@@ -88,7 +88,10 @@
       for(const offer of catalogue.offers){
         if(!offer||typeof offer.id!=='string'||
           !Number.isSafeInteger(offer.proposedPriceToman)||
-          offer.proposedPriceToman<0||offer.publiclyPurchasable!==false)
+          offer.proposedPriceToman<0||offer.publiclyPurchasable!==false||
+          typeof offer.permanentlyFreeIntro!=='boolean'||
+          offer.permanentlyFreeIntro!==permanentlyFree.has(offer.id)||
+          (offer.permanentlyFreeIntro&&offer.proposedPriceToman!==0))
           throw Error('INVALID_CATALOGUE');
         map.set(offer.id,offer);
       }
@@ -97,7 +100,10 @@
         const option=document.createElement('option');
         option.value=offer.id;
         option.textContent=(en?offer.titleEn:offer.titleFa)+' · '+
-          number.format(offer.proposedPriceToman)+T(' تومان (پیشنهاد)',' toman (draft)');
+          (offer.permanentlyFreeIntro
+            ?T('مرحله آغازین دائماً رایگان','Permanently free introductory step')
+            :number.format(offer.proposedPriceToman)+
+              T(' تومان (پیشنهاد)',' toman (draft)'));
         select.append(option);
       }
       select.disabled=!inventory.canEdit;
