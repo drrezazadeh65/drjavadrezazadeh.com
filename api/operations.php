@@ -13,6 +13,7 @@ require_once __DIR__.'/jhela-native-editorial.php';
 require_once __DIR__.'/jhela-intake.php';
 require_once __DIR__.'/operations-commerce.php';
 require_once __DIR__.'/operations-educational-offers.php';
+require_once __DIR__.'/operations-education-price-drafts.php';
 require_once __DIR__.'/operations-education-source-review.php';
 require_once __DIR__.'/operations-education-readiness.php';
 require_once __DIR__.'/operations-book-expiration.php';
@@ -526,6 +527,33 @@ function operationsRoute(string $path, string $verb): never {
             if(!rateAllowed($pdo,'operations_educational_offers_read',$accountId,15,300))
                 fail('rate_limited',429);
             respond(operationsEducationalOffersRead());
+        }
+
+        // Price-draft planning in the owner-only mother DB. Neither GET
+        // nor POST connects to checkout or customer entitlements.
+        if ($path === '/admin/operations/educational-price-drafts' && $verb === 'GET') {
+            if (!rateAllowed($pdo,'operations_education_draft_prices_read',$accountId,16,300))
+                fail('rate_limited',429);
+            $view=operationsEducationalDraftPricesRead($pdo);
+            $view['canEdit']=$view['canEdit'] &&
+                ($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
+            respond($view);
+        }
+        if ($path === '/admin/operations/educational-price-drafts' && $verb === 'POST') {
+            if (!operationsMutationAllowed($_SERVER,
+              (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if (($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if (!rateAllowed($pdo,'operations_education_draft_prices_write',$accountId,8,600))
+                fail('rate_limited',429);
+            try{
+                $data=jsonBody();
+                if(!is_array($data))fail('invalid_price_draft',400);
+                respond(operationsEducationalDraftPriceSave($pdo,$data,$accountId,nowTs()));
+            }catch(InvalidArgumentException $e){fail('invalid_price_draft',422);}
+            catch(DomainException $e){fail('price_draft_conflict',409);}
+            catch(Throwable $e){fail('education_draft_store_unavailable',503);}
         }
 
         // 1405 source inventory is review metadata, never published admissions.
