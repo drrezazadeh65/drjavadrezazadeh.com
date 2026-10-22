@@ -2177,12 +2177,26 @@ function renderOwnerCommandCenter(){
        'Last owner-requested metadata scan; not physical MySQL integrity proof'))
    :absent(t('هنوز بررسی دستی نشده','Not manually checked'));
  const response=responseMonitorCurrent||model.responseHealth;
+ const responseLatest=Array.isArray(response?.latest)?response.latest:[];
+ const freshResponse=responseLatest.filter(x=>x.fresh===true);
+ const failingResponse=freshResponse.filter(x=>x.result==='fail');
  const responseOverview=response?.settings
-   ?state(response.settings.enabled?'recorded':'paused',
-      response.settings.enabled?t('سیاست حسگر مجاز؛ Cron تأییدنشده','Sensor policy allowed; Cron unverified'):
-        t('حسگر غیرفعال','Sensor disabled'),
-      t('نتیجه اجرای واقعی را از تاریخچه نمونه‌ها بررسی کنید',
-        'Use dated samples, not the policy alone, to verify observations'))
+   ?state(failingResponse.length?'attention':
+      freshResponse.length?'recorded':
+        response.settings.enabled?'unknown':'paused',
+      failingResponse.length
+        ?t('نتایج ناموفق تازه: ','Fresh failed probes: ')+failingResponse.length+
+          ' / '+freshResponse.length
+        :freshResponse.length
+          ?t('نمونه تازه ثبت‌شده: ','Fresh dated probes: ')+freshResponse.length+
+            ' / '+responseLatest.length
+          :response.settings.enabled
+            ?t('پایش مجاز است؛ هنوز نمونه تازه‌ای ثبت نشده',
+              'Monitoring permitted; no fresh sample recorded')
+            :t('پایش خاموش؛ سابقه اجرای اخیر تأیید نشده',
+              'Monitoring disabled; no fresh execution proven'),
+      t('نمونه‌ها شواهد تاریخ‌دارند؛ تنظیمات، نصب Cron یا امنیت کامل را اثبات نمی‌کنند.',
+        'Samples are dated observations; settings do not prove Cron or complete security.'))
    :absent(t('سیاست حسگر نامشخص','Sensor policy unknown'));
  const readiness=model.activationReadiness;
  const workerRows=Array.isArray(readiness?.workers)?readiness.workers:[];
