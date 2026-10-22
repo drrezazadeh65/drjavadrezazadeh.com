@@ -73,6 +73,20 @@
  if(anchor)anchor.after(nav);
  else workspace.append(nav);
  const groups=[
+   {id:'ops-command-center',group:'health',label:en?'Owner command center':'مرکز فرماندهی مدیر'},
+   {id:'ops-alert-center',group:'health',label:en?'Incident and email alert control':'هشدارها و کنترل ایمیل'},
+   {id:'ops-database-health',group:'health',label:en?'Mother database health':'سلامت دیتابیس مادر'},
+   {id:'ops-http-health',group:'health',label:en?'HTTP, 404 and error intake':'خطاهای HTTP و ورودی‌های ۴۰۴'},
+   {id:'ops-response-monitor',group:'health',label:en?'HTTPS, response headers and redirects':'هدرهای امنیتی و ریدایرکت'},
+   {id:'ops-page-quality',group:'evidence',label:en?'SEO, GEO and 13 page quality scores':'نمرات کیفیت، سئو و GEO تمام صفحات'},
+   {id:'ops-master-engine-control',group:'integrations',label:en?'13-engine operational coverage':'پوشش عملیاتی ۱۳ موتور'},
+   {id:'ops-source-directory',group:'integrations',label:en?'Source and provider connections':'منابع داده و اتصال‌ها'},
+   {id:'ops-collection-settings',group:'integrations',label:en?'Collection policies and manual fetch':'تنظیمات منابع و واکشی دستی'},
+   {id:'ops-github-audits',group:'integrations',label:en?'GitHub collection and audit history':'گردآوری و حسابرسی GitHub'},
+   {id:'ops-editor-workbench',group:'publishing',label:en?'Website content workbench':'میز ویرایش و محتوای سایت'},
+   {id:'jr-community-admin',group:'publishing',label:en?'Content and comment moderation':'مدیریت و تأیید دیدگاه‌ها'},
+   {id:'ops-jhela-maturity',group:'publishing',label:en?'JHELA evidence and maturity':'شواهد و آمادگی نشریه'},
+   {id:'ops-keyword-master',group:'evidence',label:en?'Keyword strategy':'راهبرد کلیدواژه'},
    {id:'jr-intelligence',group:'evidence'},
    {id:'ops-reporting',group:'evidence',label:en?'13-engine reports and verified evidence':'گزارش‌های ۱۳ موتور و شواهد معتبر'},
    {id:'ops-ai-visibility',group:'evidence'},
@@ -95,10 +109,12 @@
    {id:'ops-free-resources',group:'resources'}
  ];
  const groupNames=en?{
+   health:'Site health and alerts',integrations:'Engines and sources',
    evidence:'Evidence and quality',planning:'Strategy and planning',
    commerce:'Commerce and orders',publishing:'Scholarly publishing',
    social:'Publication and media',resources:'Resources and tools'
  }:{
+   health:'سلامت و هشدارهای سایت',integrations:'موتورها و منابع',
    evidence:'شواهد و کیفیت',planning:'راهبرد و برنامه‌ریزی',
    commerce:'سفارش‌ها و تجارت',publishing:'انتشارات علمی',
    social:'انتشار و رسانه‌ها',resources:'منابع و ابزارها'
