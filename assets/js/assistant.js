@@ -45,6 +45,9 @@
     chips:['Which service fits my needs?','What is Golden Talent?','How do I request consultation?']
   };
 
+  const staticGreeting=isFa
+    ?'سلام. فعلاً راهنمای محلی سایت در دسترس است. بر اساس مسیرهای عمومی منتشرشده به شما کمک می‌کنم موضوعتان را پیدا کنید؛ مدل گفت‌وگوی زنده و پاسخ مبتنی بر پرونده شخصی در این بخش فعال یا تأیید نشده است.'
+    :'Hello. The public site guide is available. It can point you to published educational routes and their limitations; a live conversational model and private-record answers are not activated or verified here.';
   let history=[];
   let busy=false;
   let lastQuery='';
@@ -291,7 +294,8 @@
     const opening=panel.hidden;
     panel.hidden=!opening;launcher.setAttribute('aria-expanded',opening?'true':'false');
     if(opening){
-      if(!thread.childElementCount) addMessage('assistant',labels.greeting);
+      if(!thread.childElementCount)
+        addMessage('assistant',trustedEndpoint?labels.greeting:staticGreeting);
       setTimeout(()=>input.focus(),30);
     }
   });
