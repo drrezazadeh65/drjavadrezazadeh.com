@@ -2897,6 +2897,89 @@ function renderOwnerCommandCenter(){
  }
  modulePanel.append(moduleGrid);
  root.append(modulePanel);
+ // Compact owner control matrix for the implemented GitHub source adapters.
+ // No button changes a stored policy by implication. The per-source editor
+ // in the existing workspace remains the sole cadence/retention authority.
+ const sourceMatrix=el('details',undefined,'oc-source-matrix');
+ sourceMatrix.setAttribute('data-oc-source-matrix','');
+ sourceMatrix.append(el('summary',t('کنترل سریع منابع و تاریخچه جمع‌آوری',
+   'Source controls & recorded collection history')+' · '+
+   (sources.length||t('هنوز بارگیری نشده','Not loaded'))));
+ sourceMatrix.append(el('p',t(
+   'این فهرست فقط گردآورنده‌های واقعاً پیاده‌سازی‌شده را پوشش می‌دهد؛ تمام داده‌های سایت یا سرویس‌های خارجی با این فرمان واکشی نمی‌شوند. کلید اصلی و Cron سرور مستقل باقی می‌مانند.',
+   'Only implemented source collectors appear here; this does not retrieve every site record or external provider. The owner master switch and host Cron remain independent.')));
+ if(collectionState?.schema!=='operations-collection-controls-v1'){
+   const loadControls=el('button',t('دریافت تنظیمات و شواهد گردآورنده',
+     'Read collector settings and recorded evidence'));
+   loadControls.type='button';
+   loadControls.addEventListener('click',async()=>{
+     if(loadControls.disabled||!snapshot)return;
+     const generation=loadGeneration;loadControls.disabled=true;
+     try{
+       const response=await api('/collection-settings');
+       if(generation!==loadGeneration||!snapshot)return;
+       if(response.schema!=='operations-collection-controls-v1')
+         throw new Error('invalid_collection_schema');
+       collectionState=response;
+       ownerCockpitReadAt.collection=Math.floor(Date.now()/1000);
+       delete ownerCockpitReadErrors.collection;
+       ownerCockpitLastReadAt=ownerCockpitReadAt.collection;
+       reportingRender();
+       $('ops-command-center')?.querySelector('[data-oc-source-matrix]')?.setAttribute('open','');
+     }catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
+     finally{if(loadControls.isConnected)loadControls.disabled=false;}
+   });
+   sourceMatrix.append(loadControls);
+ }else{
+   const overview=el('p',undefined,'oc-source-master-status');
+   overview.dataset.masterState=collector?.enabled===true?'permitted':'off';
+   overview.append(el('strong',t('مجوز اصلی زمان‌بندی: ','Master scheduling permission: ')+
+     (collector?.enabled===true?t('روشن با تصمیم مدیر','Owner permitted'):
+       t('خاموش','OFF'))),
+     el('small',t('فعال بودن سیاست هر منبع و رسیدن موعد، اثبات اجرای Cron نیست.',
+       'Source policy and due date are not proof that host Cron ran.')));
+   sourceMatrix.append(overview);
+   const list=el('div',undefined,'oc-source-list');
+   for(const scope of sources){
+     const line=el('article',undefined,'oc-source-item');
+     const name=el('strong',scope.id);
+     const allowed=scope.enabled===true?
+       t('گزینه منبع مجاز','Source preference allowed'):
+       t('منبع خاموش','Source disabled');
+     const clockMinutes=Number.isInteger(scope.clockMinutes)?scope.clockMinutes:null;
+     const hour=clockMinutes===null?'—':
+       String(Math.floor(clockMinutes/60)).padStart(2,'0')+':'+
+       String(clockMinutes%60).padStart(2,'0');
+     const status=el('p',
+       allowed+' · '+t('تناوب: ','Cadence: ')+(scope.cadence||'—')+
+       ' · '+t('ساعت تهران: ','Tehran clock: ')+hour);
+     const last=el('small',t('آخرین تلاش: ','Last attempt: ')+
+       (scope.executionEvidence||t('نامشخص','Unknown'))+
+       ' · '+t('کش: ','Cache: ')+(scope.cacheState||'—')+
+       ' · '+t('وضعیت موعد: ','Due evidence: ')+(scope.scheduleEvidence||'—'));
+     const actions=el('div',undefined,'oc-source-actions');
+     const configure=el('button',t('ساعت، نگهداری و مجوز','Cadence, retention & policy'));
+     configure.type='button';configure.addEventListener('click',()=>{
+       collectionExpanded=true;reportingRender();
+       openExistingOperationalWorkspace('ops-collection-settings');
+     });
+     actions.append(configure);
+     const manual=el('button',t('واکشی فوری این منبع','Fetch this source now'));
+     manual.type='button';
+     manual.disabled=collectionState.canManage!==true;
+     manual.addEventListener('click',()=>{
+       if(!window.confirm(t(
+         'فقط منبع '+scope.id+' اکنون، به دستور مدیر واکشی شود؟ داده کش تغییر می‌کند، اما هیچ زمان‌بند یا ایمیلی روشن نمی‌شود.',
+         'Fetch '+scope.id+' now by explicit owner request? Cache data may change; no scheduled worker or email is enabled.')))return;
+       collectionManualRefresh(scope.id,manual);
+     });
+     actions.append(manual);line.append(name,status,last,actions);list.append(line);
+   }
+   if(!sources.length)list.append(el('p',
+     t('هیچ منبع اجرایی در پاسخ سرور یافت نشد.','No executable source registered in this response.')));
+   sourceMatrix.append(list);
+ }
+ root.append(sourceMatrix);
  // Evidence-backed triage queue: does not fabricate unrecorded incidents.
  const queueItems=[];
  const action=(id,priority,fa,en,detailFa,detailEn)=>queueItems.push(
