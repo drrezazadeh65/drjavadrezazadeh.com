@@ -104,35 +104,41 @@ function baharAccountCurrentNotice(PDO $pdo,string $locale): ?array {
       'locale'=>$notice['locale'],'text'=>$notice['text']];
 }
 function baharAccountHasConsent(PDO $pdo,string $accountId): bool {
+    // Fail closed on any withdrawal at or after the newest grant.
+    // Checking only the last N grants or UUID sort order could incorrectly
+    // resurrect consent when withdrawal and regrant share a millisecond.
     $q=$pdo->prepare("SELECT c.decision,c.withdrawn_at,c.granted_at,
-      n.id AS notice_id,n.version_label,n.locale,n.notice_sha256,
-      n.effective_at,n.retired_at
+      n.id AS notice_id,n.version_label,n.locale,n.notice_sha256
       FROM eco_consent_records c
       INNER JOIN eco_consent_notices n ON n.id=c.notice_id
       WHERE c.account_id=? AND c.subject_id IS NULL
         AND n.purpose_code=? AND c.source_code='BAHAR_ACCOUNT_WORKBOOK'
-      ORDER BY c.granted_at DESC,c.id DESC LIMIT 20");
+      ORDER BY c.granted_at DESC,c.id DESC LIMIT 1");
     $q->execute([$accountId,JR_BAHAR_ACCOUNT_PURPOSE]);
-    $rows=$q->fetchAll(PDO::FETCH_ASSOC);
-    if(!is_array($rows)||count($rows)===0)return false;
-    // A subsequent withdrawal dominates every prior grant, irrespective
-    // of tie-breaking between same-millisecond timestamps.
-    foreach($rows as $row){
-        if(($row['decision']??'')==='WITHDRAWN')return false;
-        if(($row['decision']??'')==='GRANTED'){
-            if($row['withdrawn_at']!==null)return false;
-            $locale=(string)$row['locale'];
-            $notice=baharAccountNotice($locale);
-            if((string)$row['version_label']!==$notice['version']||
-               !hash_equals($notice['sha256'],(string)$row['notice_sha256']))
-               return false;
-            $current=baharAccountCurrentNotice($pdo,$locale);
-            return $current!==null &&
-              hash_equals($current['id'],(string)$row['notice_id']);
-        }
+    $row=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($row)||($row['decision']??'')!=='GRANTED'
+        ||$row['withdrawn_at']!==null)return false;
+
+    $withdrawals=$pdo->prepare("SELECT MAX(c.withdrawn_at)
+      FROM eco_consent_records c
+      INNER JOIN eco_consent_notices n ON n.id=c.notice_id
+      WHERE c.account_id=? AND c.subject_id IS NULL
+        AND n.purpose_code=? AND c.source_code='BAHAR_ACCOUNT_WORKBOOK'");
+    $withdrawals->execute([$accountId,JR_BAHAR_ACCOUNT_PURPOSE]);
+    $lastWithdrawal=$withdrawals->fetchColumn();
+    if(is_string($lastWithdrawal)&&$lastWithdrawal!==''&&
+        strcmp((string)$row['granted_at'],$lastWithdrawal)<=0)
         return false;
-    }
-    return false;
+
+    $locale=(string)$row['locale'];
+    if(!in_array($locale,['fa','en'],true))return false;
+    $notice=baharAccountNotice($locale);
+    if((string)$row['version_label']!==$notice['version']||
+       !hash_equals($notice['sha256'],(string)$row['notice_sha256']))
+        return false;
+    $current=baharAccountCurrentNotice($pdo,$locale);
+    return $current!==null &&
+      hash_equals($current['id'],(string)$row['notice_id']);
 }
 function baharAccountEligibilityState(PDO $pdo,string $accountId): string {
     $q=$pdo->prepare('SELECT review_state FROM eco_bahar_verified_adult_accounts
