@@ -158,19 +158,24 @@
     if(!entryValid(value)){notify(messages.invalid,true);return;}
     entries.push(value);reflectionForm.reset();render();notify(messages.evidence);
   });
-  $('bahar-export-workbook').addEventListener('click',()=>{
+  // Only user-authored, validated fields enter the optional export or
+  // in-tab continuation. No background collection or account upload.
+  function workbookSnapshot(){
     const weekly=weeklySnapshot();
-    if(!compass&&entries.length===0&&!weekly){notify(messages.empty,true);return;}
-    const workbook={
+    if(!compass&&entries.length===0&&!weekly)return null;
+    return {
       schema:'jr.bahar.private-workbook.v1',
       version:'1.0.0',
       exportedAt:new Date().toISOString(),
       compass:compass?{...compass}:null,
       weeklyPlan:weekly,
       reflections:entries.map(item=>({...item})),
-      status:'SELF_REPORTED_RESEARCH_STAGE',
-      privacy:'User-controlled file; never uploaded by this webpage'
+      status:'SELF_REPORTED_RESEARCH_STAGE'
     };
+  }
+  $('bahar-export-workbook').addEventListener('click',()=>{
+    const workbook=workbookSnapshot();
+    if(!workbook){notify(messages.empty,true);return;}
     const blob=new Blob([JSON.stringify(workbook,null,2)],{type:'application/json;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
@@ -178,6 +183,37 @@
     document.body.append(a);a.click();a.remove();
     window.setTimeout(()=>URL.revokeObjectURL(url),10000);
     notify(messages.exported);
+  });
+  $('bahar-continue-in-account')?.addEventListener('click',()=>{
+    const workbook=workbookSnapshot();
+    if(!workbook){
+      notify(en?'Complete at least one plan or reflection before continuing.':
+        'ابتدا دست‌کم یک برنامه یا بازنگری تکمیل کنید.',true);
+      $(fields.goal)?.focus();return;
+    }
+    // Consent to this *ephemeral same-tab transfer* follows from the
+    // explicit button click. Consent to SEND or STORE on the server is
+    // separately requested by one optional popup after login.
+    const pending={
+      schema:'jr.bahar.same-tab-continuation.v1',
+      issuedAt:Date.now(),
+      expiresAt:Date.now()+5*60*1000,
+      workbook
+    };
+    const key='jr.bahar.pending-account-transfer.v1';
+    try{
+      sessionStorage.setItem(key,JSON.stringify(pending));
+    }catch(_){
+      notify(en?
+        'Private tab storage is unavailable; please save your workbook file instead.':
+        'انتقال موقت در این مرورگر در دسترس نیست؛ لطفاً فایل خصوصی کاربرگ را ذخیره کنید.',true);
+      return;
+    }
+    // The route already exists; the fragment does not rename, redirect,
+    // canonicalize or change any previously published page URL.
+    location.assign(en?
+      '/en/golden-talent/dashboard/bahar/#jr-bahar-account':
+      '/fa/app/student/bahar/#jr-bahar-account');
   });
   fileInput.addEventListener('change',async()=>{
     const thisImport=++importGeneration;
