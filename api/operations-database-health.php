@@ -169,7 +169,26 @@ function operationsDbHealthConfigure(PDO $pdo,array $request,string $actor,int $
     return operationsDbHealthSettings($pdo);
 }
 
-/** Preview-free deletion is deliberately forbidden. Bounded per-owner action
+/**
+ * Deletion preview only: an indexed, bounded scan, no change to stored rows.
+ * The count is capped at 100, with a separate moreMayRemain hint.
+ */
+function operationsDbHealthPurgePreview(PDO $pdo,int $at): array {
+    $settings=operationsDbHealthSettings($pdo);
+    if(!$settings['available'])throw new RuntimeException('database_health_schema_unavailable');
+    $cutoff=$at-$settings['retentionDays']*86400;
+    $q=$pdo->prepare('SELECT fingerprint FROM operations_database_error_events
+      WHERE last_observed_at<? ORDER BY last_observed_at ASC LIMIT 101');
+    $q->execute([$cutoff]);
+    $rows=$q->fetchAll(PDO::FETCH_COLUMN);
+    return ['ok'=>true,'schema'=>'operations-db-error-purge-preview-v1',
+        'eligibleCount'=>min(100,count($rows)),
+        'moreMayRemain'=>count($rows)>100,'maximumDeletion'=>100,
+        'retentionDays'=>$settings['retentionDays'],'previewOnly'=>true,
+        'protectedData'=>'commerce_customers_journal_evidence_and_operations_audit_untouched'];
+}
+
+/** Unconfirmed deletion is deliberately forbidden. Bounded per-owner action
  * removes only already-expired redacted diagnostic error groups.
  */
 function operationsDbHealthPurgeExpired(PDO $pdo,string $actor,int $at): array {
