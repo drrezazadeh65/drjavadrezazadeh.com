@@ -21,6 +21,8 @@ require_once __DIR__.'/operations-action-runs.php';
 require_once __DIR__.'/operations-provider-inventory.php';
 require_once __DIR__.'/operations-source-directory.php';
 require_once __DIR__.'/operations-source-controls.php';
+require_once __DIR__.'/operations-page-quality.php';
+require_once __DIR__.'/operations-alerts.php';
 require_once __DIR__.'/operations-editor.php';
 require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/social-review.php';
@@ -611,6 +613,46 @@ function operationsRoute(string $path, string $verb): never {
             catch(Throwable $e){fail('editor_save_unavailable',503);}
         }
 
+        // Individual source-derived page quality, never fabricated live metrics.
+        if ($path === '/admin/operations/page-quality' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_page_quality_list',$accountId,15,300))
+                fail('rate_limited',429);
+            try { respond(operationsQualityList($_GET)); }
+            catch(InvalidArgumentException $e){fail('invalid_quality_filters',400);}
+        }
+        if ($path === '/admin/operations/page-quality/detail' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_page_quality_detail',$accountId,15,300))
+                fail('rate_limited',429);
+            try { respond(operationsQualityDetail((string)($_GET['route']??''))); }
+            catch(InvalidArgumentException $e){fail('invalid_route',400);}
+        }
+        // Mail alert controls and incident history share the existing
+        // operations membership/MFA boundary and transaction audit log.
+        if ($path === '/admin/operations/alerts' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_alerts_read',$accountId,15,300))
+                fail('rate_limited',429);
+            $view=operationsAlertSnapshot($pdo,$configuration);
+            $view['canManage']=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
+            respond($view);
+        }
+        if ($path === '/admin/operations/alert-rules' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('alert_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_alerts_change',$accountId,12,600))
+                fail('rate_limited',429);
+            if(!operationsAlertAvailable($pdo))fail('alert_schema_unavailable',503);
+            try {
+                $body=jsonBody();
+                if(!is_array($body))fail('invalid_alert_rule',400);
+                operationsAlertUpdate($pdo,$body,$accountId);
+                $view=operationsAlertSnapshot($pdo,$configuration);
+                $view['canManage']=true;
+                respond($view);
+            }catch(InvalidArgumentException $e){fail('invalid_alert_rule',400);}
+        }
+
         // Owner-only keyword intelligence: no public asset or unauthenticated strategy data.
         // This branch is reached only after verified account, server admin membership
         // and fresh TOTP session, and inherits private no-store API headers.
@@ -1159,6 +1201,7 @@ function operationsRoute(string $path, string $verb): never {
             // Read-only provider coverage for the existing master controller.
             // This comes from the deploy-time private projection, not external APIs.
             $snapshot['reporting']['providerInventory']=operationsProviderInventory();
+            $snapshot['reporting']['alertCenter']=operationsAlertSnapshot($pdo,$configuration);
             $snapshot['reporting']['actionExecution']=[
                 'schema'=>'operations-action-execution-report-v1',
                 'status'=>$ready?'available':'schema_not_provisioned',
@@ -1171,5 +1214,10 @@ function operationsRoute(string $path, string $verb): never {
             respond($snapshot);
         }
         fail('not_found',404);
-    } catch (Throwable $e) { fail('operations_unavailable',503); }
+    } catch (Throwable $e) {
+        // Best-effort non-blocking incident recording, never email on a request.
+        if(isset($pdo)&&$pdo instanceof PDO)
+            operationsAlertRecord($pdo,'api_runtime_unavailable','operations_api',time());
+        fail('operations_unavailable',503);
+    }
 }
