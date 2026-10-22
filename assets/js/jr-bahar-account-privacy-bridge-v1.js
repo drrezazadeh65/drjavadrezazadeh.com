@@ -62,7 +62,7 @@
     add(T('درخواست حذف کاربرگ','Workbook erasure request'),
       data.privacyRequestLedgerAvailable!==true
         ?T('تاریخچه درخواست قابل دریافت نیست','Request history unavailable')
-        :pending&&Object.hasOwn(eraseStates,pending.state)
+        :pending&&Object.prototype.hasOwnProperty.call(eraseStates,pending.state)
           ?eraseStates[pending.state]
           :T('درخواست فعالی در تاریخچه اخیر نیست','No request shown in recent history'));
     add(T('امکان ذخیره جدید','New account saving'),
