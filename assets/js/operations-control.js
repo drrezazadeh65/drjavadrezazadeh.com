@@ -629,6 +629,13 @@ function renderMasterEngineConsole(host,model){
      reportingRender();
      $('ops-reporting')?.scrollIntoView({block:'start'});
    });card.append(open);
+   if(engine.id==='ENG-08'||engine.id==='ENG-09'){
+     const editor=el('button',t('استودیوی ویرایش محتوا و رسانه','Content and media workbench'));
+     editor.type='button';
+     editor.addEventListener('click',()=>document.dispatchEvent(
+       new Event('jr:open-editor-workbench')));
+     card.append(editor);
+   }
    const policy=collectionState?.rows?.find(r=>r.type==='engine'&&r.id===engine.id);
    card.append(el('small',policy
      ?t('گردآوری: ','Collection: ')+(policy.enabled
