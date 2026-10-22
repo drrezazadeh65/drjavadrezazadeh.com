@@ -19,6 +19,7 @@ function operationsEducationInterestSnapshot(PDO $pdo,bool $withContacts=false):
       'effectiveCaptureEnabled'=>false,'canEnable'=>false,
       'countsState'=>'UNKNOWN','countByNeed'=>[],
       'pendingCount'=>null,'verifiedCount'=>null,'withdrawnCount'=>null,
+      'legacyVerifiedCount'=>null,'stalePendingCount'=>null,
       'contacts'=>null,'contactsTruncated'=>false,
       'containsUnverifiedAddresses'=>false,
       'automaticEmailCampaignEnabled'=>false,
@@ -36,20 +37,39 @@ function operationsEducationInterestSnapshot(PDO $pdo,bool $withContacts=false):
         $base['state']=$base['effectiveCaptureEnabled']
           ?'CONFIRMATION_SUBJECT_TO_USER_PERMISSION'
           :'OWNER_CONTROLLED_OFF';
-        $q=$pdo->prepare("SELECT status,educational_need,COUNT(*) AS total
+        // Count only contacts whose *current* notice and locale actually
+        // match the scope the owner is permitted to use. Historical verified
+        // subscriptions remain revocable, but never enter a new contact list.
+        $currentFa=hash('sha256',jrInterestNotice('fa'));
+        $currentEn=hash('sha256',jrInterestNotice('en'));
+        $q=$pdo->prepare("SELECT status,educational_need,COUNT(*) AS total,
+           SUM(CASE WHEN consent_version=?
+             AND ((preferred_locale='fa' AND consent_notice_sha256=?)
+               OR (preferred_locale='en' AND consent_notice_sha256=?))
+             THEN 1 ELSE 0 END) AS current_notice_total
            FROM eco_education_interest_leads
            WHERE expires_at>? AND status IN ('PENDING','VERIFIED','WITHDRAWN')
            GROUP BY status,educational_need LIMIT 30");
-        $q->execute([nowTs()]);
-        $totals=['PENDING'=>0,'VERIFIED'=>0,'WITHDRAWN'=>0];$needs=[];
+        $q->execute([JR_EDU_INTEREST_NOTICE_VERSION,$currentFa,$currentEn,nowTs()]);
+        $totals=['PENDING'=>0,'VERIFIED'=>0,'WITHDRAWN'=>0];
+        $legacyVerified=0;$stalePending=0;$needs=[];
         foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
             $state=(string)($row['status']??'');
             $need=(string)($row['educational_need']??'');
             if(!isset($totals[$state])||
                !in_array($need,jrInterestNeeds(),true))continue;
             $count=max(0,(int)$row['total']);
-            $totals[$state]+=$count;
-            if($state==='VERIFIED')$needs[$need]=($needs[$need]??0)+$count;
+            $current=max(0,min($count,(int)($row['current_notice_total']??0)));
+            if($state==='VERIFIED'){
+                $totals[$state]+=$current;
+                $legacyVerified+=$count-$current;
+                $needs[$need]=($needs[$need]??0)+$current;
+            }elseif($state==='PENDING'){
+                $totals[$state]+=$current;
+                $stalePending+=$count-$current;
+            }else{
+                $totals[$state]+=$count;
+            }
         }
         $base['countsState']='OBSERVED_MOTHER_DATABASE';
         $base['countByNeed']=array_map(
@@ -59,6 +79,8 @@ function operationsEducationInterestSnapshot(PDO $pdo,bool $withContacts=false):
         $base['pendingCount']=$totals['PENDING'];
         $base['verifiedCount']=$totals['VERIFIED'];
         $base['withdrawnCount']=$totals['WITHDRAWN'];
+        $base['legacyVerifiedCount']=$legacyVerified;
+        $base['stalePendingCount']=$stalePending;
         if(!$withContacts)return $base;
         if(!$base['encryptionKeyConfigured']){
             $base['contacts']=null;$base['state']='CONTACT_DECRYPTION_KEY_UNAVAILABLE';
@@ -71,9 +93,12 @@ function operationsEducationInterestSnapshot(PDO $pdo,bool $withContacts=false):
           verified_at,expires_at
           FROM eco_education_interest_leads
           WHERE status='VERIFIED' AND verified_at IS NOT NULL
+            AND consent_version=?
+            AND ((preferred_locale='fa' AND consent_notice_sha256=?)
+              OR (preferred_locale='en' AND consent_notice_sha256=?))
             AND expires_at>?
           ORDER BY verified_at DESC,id DESC LIMIT 51");
-        $query->execute([nowTs()]);
+        $query->execute([JR_EDU_INTEREST_NOTICE_VERSION,$currentFa,$currentEn,nowTs()]);
         $items=$query->fetchAll(PDO::FETCH_ASSOC);
         if(!is_array($items))throw new RuntimeException('interest_rows_unavailable');
         $base['contactsTruncated']=count($items)>50;
@@ -98,6 +123,7 @@ function operationsEducationInterestSnapshot(PDO $pdo,bool $withContacts=false):
         $base['countsState']='UNKNOWN';$base['countByNeed']=[];
         $base['pendingCount']=null;$base['verifiedCount']=null;
         $base['withdrawnCount']=null;$base['contacts']=null;
+        $base['legacyVerifiedCount']=null;$base['stalePendingCount']=null;
         $base['effectiveCaptureEnabled']=false;$base['canEnable']=false;
         return $base;
     }
