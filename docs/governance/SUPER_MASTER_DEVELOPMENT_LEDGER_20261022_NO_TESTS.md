@@ -44,3 +44,18 @@
 11. Deploy **only through existing owner-controlled** GitHub/Bertina flow after approval, then independently verify live SHA, endpoints, HTTPS, cache, email and payment state.
 
 **Development ledger status**: source-level changes have been submitted. No tests, migrations, cPanel changes, outgoing alerts, external connector authorizations, production payments or production publication are claimed.
+
+
+## Continued source development — same owner instruction, NO TESTS (22 Oct 2026)
+
+The following additions extend the SAME codebase without any production DB changes, SMTP sends, external API grants or payments:
+
+- **P0 structural schema preflight** — A versioned static source contract for 24 existing `operations_*` tables: 157 base-typed column declarations, 24 named index declarations, six declared foreign-key references, InnoDB and table collation comparisons through read-only `information_schema`. Each class of discrepancy is visible in the existing private MFA dashboard. It does NOT certify row consistency, enumerated values, inline constraints, successful migrations, a restored backup or worker health.
+- **P1 sensing fidelity** — Response-header and historical redirect alerts now report actual response-monitor configuration and the freshness of stored response samples rather than categorically claiming an absent implementation. A sample cannot prove cPanel cron installation, independent uptime monitoring or inbox delivery.
+- **P2 source triage** — Added optional `editorial_priority` sorting to the existing 13-dimension page quality list. It uses public route themes and static-source deficits ONLY; ranking, impressions, audience, conversions and future revenue are unknown and never inferred.
+- **P3 commerce evidence** — Added an optional, private, read-only `JSON_TABLE` projection for the 15 leading item SKUs by units within paid-state orders with matching existing BitPay claim records, with an unavailable fallback if SQL JSON support is absent. It deliberately does not claim real bank settlement or entitlement/fulfilment. Added paid-state share among recorded orders, labelled **NOT website visitor conversion**. No checkout, callbacks, order rows, refunds or amounts are modified.
+- **P4 connector transparency** — Added separately labelled adapter readiness, permission evidence, access path, quota and cost status to the SAME 54-item directory and bilingual administrator list. Missing cost/quota and ungranted external access remain null/unverified; no external adapter or token is invented.
+
+**Current verification:** all additions are source commits only; zero manually executed PHP lint, Node test, browser test, SQL migration, payment trial, Cron installation, SMTP check or deployment within this continuation. Automatic workflow runs were not intentionally triggered; no green CI or live acceptance is claimed. The final integrated test/deploy gate remains intentionally deferred under owner instruction.
+
+**Remaining priorities:** P0 staged activation (owner-authorized host/schema/cron/SMTP), verified payment reconciliation and web-funnel measurement, authenticated external API grants and quotas, independent scientific validation/privacy acceptance, mobile/PWA/RTL cross-device QA, actual security headers and Core Web Vitals, and one joint owner-controlled P8 acceptance + release. The latest JHELA governance selects the **native** architecture, not the retired vendor.
