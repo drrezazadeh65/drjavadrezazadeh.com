@@ -185,3 +185,20 @@
   .jr-edu-erasure-queue form label{width:100%;min-width:0;flex:none}
   .jr-edu-erasure-queue form button{width:100%}}
 @media print{.jr-edu-erasure-queue{display:none!important}}
+
+/* Seven-day real internal consultation availability in the education bridge. */
+.jr-edu-business-week__heading{color:#efdaa7;font-size:clamp(1.03rem,3vw,1.3rem);margin:24px 0 8px}
+.jr-edu-business-week{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:stretch}
+.jr-edu-business-week__day{min-width:0;padding:15px 13px;
+  border-radius:14px;border:1px solid #9d875e;background:#232a31;color:#f5edde}
+.jr-edu-business-week__day h5{font-size:1rem;font-weight:770;color:#f1d9a4;margin:0 0 7px;line-height:1.6}
+.jr-edu-business-week__count{font-weight:700;font-variant-numeric:tabular-nums;margin:0 0 10px}
+.jr-edu-business-week__slot{display:block;width:100%;margin:6px 0;padding:7px 10px;
+  border:1px solid #8b956c;border-inline-start:4px solid #8b956c;
+  border-radius:10px;font-size:.92rem;background:#2a3530;color:#f4f6de;line-height:1.7}
+.jr-edu-business-week__slot[data-status="FULL"]{border-color:#a08176;
+  background:#342b2b;color:#f7dfd7}
+.jr-edu-business-week__empty{font-size:.9rem;color:#dfd4c5}
+@media(max-width:920px){.jr-edu-business-week{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.jr-edu-business-week{grid-template-columns:1fr}}
+@media print{.jr-edu-business-week{break-inside:avoid}}
