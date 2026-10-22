@@ -3,6 +3,10 @@
 const root=document.getElementById('operations-control');if(!root)return;
 const en=document.documentElement.lang==='en';let snapshot=null,csrf='',selected=null,expiryTimer=null,loadGeneration=0,actionRuns=[],sectionsExpanded=false,githubAuditState=null,githubAuditExpanded=false,collectionState=null,collectionExpanded=false,dbHealthCurrent=null,dbHealthExpanded=false;
 const t=(fa,eng)=>en?eng:fa,$=id=>document.getElementById(id);
+// No persistent storage or shared authentication tokens. A logout event
+// clears all open owner workspaces in other tabs of this browser profile.
+const ownerSessionChannel=typeof BroadcastChannel==='function'
+ ?new BroadcastChannel('drjr-owner-session-v1'):null;
 const statuses={not_started:t('شواهد ثبت نشده','No evidence'),in_progress:t('در حال انجام','In progress'),blocked:t('وابستگی باز','Blocked'),ready_for_verification:t('نیازمند آزمون مجدد','Recheck required'),verified_complete:t('تکمیل تأییدشده','Verified complete'),regressed:t('خطای جدید','Regressed')};
 const gates={unknown:t('نامشخص','Unknown'),stale:t('قدیمی؛ نیازمند بررسی','Stale'),pass:t('موفق','Pass'),fail:t('ناموفق','Fail'),blocked:t('مسدود','Blocked')};
 const date=epoch=>epoch?new Date(epoch*1000).toLocaleString(en?'en-GB':'fa-IR'):t('ثبت نشده','Not recorded');
@@ -70,7 +74,18 @@ function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice
 function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;dbHealthCurrent=null;dbHealthExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
 $('ops-command-center')?.remove();ownerCockpitFilter='all';ownerCockpitQuery='';ownerCockpitShowAll=false;ownerCockpitStopRequested=true;ownerCockpitPrivateEvidence=Object.create(null);ownerCockpitLastReadAt=null;ownerCockpitReadErrors=Object.create(null);$('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
-function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
+ownerSessionChannel?.addEventListener('message',event=>{
+ if(event.data?.kind==='signed_out')lock(t(
+   'این نشست مدیر در تب دیگری پایان یافت.','This owner session was signed out in another tab.'));
+});
+function errorMessage(error){return ({source_control_schema_unavailable:t(
+ 'جدول تنظیمات منابع در دیتابیس مادر نصب نشده است.',
+ 'The source-policy table is not provisioned in the mother database.'),
+ collector_super_admin_required:t('فقط مدیر ارشد با تأیید دومرحله‌ای معتبر می‌تواند واکشی کند.',
+ 'Only a verified super administrator may fetch sources.'),
+ source_control_super_admin_required:t('برای تغییر تنظیمات منبع، مجوز مدیر ارشد لازم است.',
+ 'Super administrator access is required to change source policies.'),
+ unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
 async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;httpHealthCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};ownerCockpitPrivateEvidence=Object.create(null);ownerCockpitLastReadAt=null;ownerCockpitReadErrors=Object.create(null);snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
 function progress(value){const bar=el('div',undefined,'ops-progress');const fill=el('span');fill.style.width=(value??0)+'%';bar.append(fill);bar.setAttribute('aria-label',t('پیشرفت اندازه‌گیری‌شده: ','Measured progress: ')+pct(value));return bar;}
 function render(){const sum=snapshot.summary;$('ops-total').textContent=String(sum.total);$('ops-verified').textContent=String(sum.verified);$('ops-coverage').textContent=sum.measuredCoverage+'/36';$('ops-admin-score').textContent=pct(snapshot.dashboard.measuredProgress);$('ops-release').textContent=snapshot.releaseSha||t('ثبت نشده','Not recorded');$('ops-checked').textContent=date(snapshot.checkedAt);
@@ -2540,7 +2555,28 @@ function renderOwnerCommandCenter(){
      'Run an explicit manual fetch of implemented GitHub sources? It reads external source data and updates diagnostic cache. Cron, email, and educational engines remain off.')))return;
    collectionManualRefresh('all',fetchEligible);
  });
- headingActions.append(refresh,readAll,fetchEligible,all,exportOverview,cancelBulk);
+ const signout=el('button',t('خروج امن از مدیریت','Sign out securely'));
+ signout.type='button';signout.className='oc-signout';
+ signout.addEventListener('click',async()=>{
+   if(signout.disabled||!snapshot)return;
+   if(!window.confirm(t(
+     'از حساب مدیر در این مرورگر خارج شوید؟ همه داده‌های خصوصی پنل بسته می‌شود.',
+     'Sign out of the administrator account in this browser? Private panels will be cleared.')))return;
+   signout.disabled=true;
+   try{
+     const response=await fetch('/api/auth/logout',{
+       method:'POST',credentials:'same-origin',cache:'no-store'});
+     const data=await response.json();
+     if(!response.ok||data.ok!==true)throw new Error('logout_unavailable');
+     ownerSessionChannel?.postMessage({kind:'signed_out'});
+     lock(t('با موفقیت از مدیریت خارج شدید.','You have signed out of the owner dashboard.'));
+   }catch(error){
+     if(signout.isConnected)signout.disabled=false;
+     notice(t('خروج از سرور تأیید نشد؛ دوباره تلاش کنید.',
+       'Server sign-out could not be confirmed. Please retry.'),true);
+   }
+ });
+ headingActions.append(refresh,readAll,fetchEligible,all,exportOverview,cancelBulk,signout);
  heading.append(intro,headingActions);
  root.append(heading,bulkProgress);
  const note=el('p',undefined,'oc-provenance');
