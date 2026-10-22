@@ -362,6 +362,89 @@
         "idempotent-next-action-plans",
         "cross-domain-reconciliation"
       ]
+    },
+    {
+      "id": "education-journey-hub",
+      "kind": "PUBLIC_SURFACE",
+      "state": "ACTIVE_STATIC",
+      "authority": "BROWSER",
+      "data_class": "PUBLIC",
+      "depends_on": [
+        "public-web"
+      ],
+      "exposes": [
+        "need-first-routing",
+        "bilingual-hub",
+        "privacy-first-pwa-navigation"
+      ]
+    },
+    {
+      "id": "choice-studio",
+      "kind": "PUBLIC_SURFACE",
+      "state": "ACTIVE_STATIC",
+      "authority": "BROWSER",
+      "data_class": "PUBLIC",
+      "depends_on": [
+        "public-web"
+      ],
+      "exposes": [
+        "five-criterion-comparison",
+        "private-memory-drafts",
+        "user-controlled-reflection-import"
+      ]
+    },
+    {
+      "id": "admission-intelligence",
+      "kind": "DOMAIN",
+      "state": "PREVALIDATION",
+      "authority": "SERVER_VERIFIED_REFERENCE",
+      "data_class": "SENSITIVE_EDUCATIONAL",
+      "depends_on": [
+        "identity",
+        "consent",
+        "longitudinal-development",
+        "audit-observability"
+      ],
+      "exposes": [
+        "official-source-review-gate",
+        "nonpredictive-eligibility-hypotheses",
+        "versioned-choice-reviews"
+      ]
+    },
+    {
+      "id": "admission-forecast-research",
+      "kind": "RESEARCH",
+      "state": "PLANNED_OFF",
+      "authority": "APPROVED_DEIDENTIFIED_EXPORT",
+      "data_class": "RESEARCH_CONTROLLED",
+      "depends_on": [
+        "admission-intelligence",
+        "research-export",
+        "audit-observability"
+      ],
+      "exposes": [
+        "temporal-holdout-validation",
+        "calibration-audit",
+        "brier-skill",
+        "independent-research-approval"
+      ]
+    },
+    {
+      "id": "educational-offer-governance",
+      "kind": "ADMIN",
+      "state": "PLANNED_OFF",
+      "authority": "MFA_SERVER_AUTHORIZED",
+      "data_class": "PRIVATE_TRANSACTIONAL",
+      "depends_on": [
+        "identity",
+        "commerce",
+        "admin-console",
+        "audit-observability"
+      ],
+      "exposes": [
+        "proposed-offer-inventory",
+        "separate-scientific-and-commerce-release-gates"
+      ]
     }
   ],
   "invariants": {
