@@ -54,8 +54,10 @@
         data.retentionValidated!==false||
         !Array.isArray(data.dependencyTables)||
         data.dependencyTables.length>25||
-        !Array.isArray(data.openRequestCounts)||
-        data.openRequestCounts.length>40)
+        !['UNAVAILABLE','OBSERVED'].includes(data.openRequestsState)||
+        (data.openRequestsState==='OBSERVED' &&
+           (!Array.isArray(data.openRequestCounts)||data.openRequestCounts.length>40))||
+        (data.openRequestsState==='UNAVAILABLE' && data.openRequestCounts!==null))
         throw Error('UNTRUSTED');
       summary.textContent=T('قفل حذف داده‌ها: فعال · مجوز اجرای حذف: صادر نشده',
         'Deletion lock: enabled · Erasure authorization: not granted');
@@ -71,7 +73,14 @@
           :T('جدول در پایگاه داده تأیید نشد.','Table not found in the mother database.')));
         tables.append(card);
       }
-      for(const row of data.openRequestCounts){
+      if(data.openRequestsState==='UNAVAILABLE'){
+        requests.append(el('p',T('تعداد درخواست‌های باز نامشخص است؛ گزارش پایگاه داده در دسترس نیست.',
+          'Open privacy-request counts are UNKNOWN because the database report is unavailable.')));
+      } else if(data.openRequestCounts.length===0){
+        requests.append(el('p',T('هیچ درخواست بازی در جدول موجود ثبت نشده است؛ این فقط مشاهده همان جدول است.',
+          'No open requests observed in the available table; this does not certify privacy compliance.')));
+      }
+      for(const row of data.openRequestCounts||[]){
         if(!row||typeof row.type!=='string'||typeof row.state!=='string'||
           !Number.isSafeInteger(row.count)||row.count<0)continue;
         const entry=el('article','jr-edu-offers__card');
