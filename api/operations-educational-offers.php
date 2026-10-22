@@ -7,6 +7,11 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
  * No database schema, checkout, entitlement, paid activation or customer PII.
  * The source is denied over HTTP by api/internal/.htaccess.
  */
+/** Free entry stages are an immutable product contract, not a consequence
+ * of a draft 0-toman price or an administrator's future promotional edit. */
+function operationsEducationFreeIntroIds(): array {
+    return ['talent-intro','rcas-intro','bahar-intro','scorecard-intro'];
+}
 function operationsEducationalOffersRead(): array {
     $path=__DIR__.'/internal/educational-offer-proposals.json';
     if (!is_file($path) || filesize($path)===false || filesize($path)>32000)
@@ -42,12 +47,19 @@ function operationsEducationalOffersRead(): array {
         $id=$record['id'];
         if(isset($seen[$id]))throw new RuntimeException('educational_offer_duplicate_id');
         $seen[$id]=true;
-        if($record['proposedPriceToman']===0)$free++;
+        $freeIntro=in_array($id,operationsEducationFreeIntroIds(),true);
+        // Free entry remains free even if an internal catalogue is edited.
+        // A zero-priced optional professional service is NOT automatically
+        // an introductory product with a waived payment-acceptance gate.
+        if($freeIntro&&$record['proposedPriceToman']!==0)
+            throw new RuntimeException('free_educational_intro_cannot_be_priced');
+        if($freeIntro)$free++;
         $rows[]=[
             'id'=>$id,'titleEn'=>$record['titleEn'],'titleFa'=>$record['titleFa'],
             'engine'=>$record['engine'],
             'proposedPriceToman'=>$record['proposedPriceToman'],
             'status'=>'PROPOSAL_ONLY',
+            'permanentlyFreeIntro'=>$freeIntro,
             'publiclyPurchasable'=>false,
             'scientificReviewComplete'=>false,
             'deliveryVerified'=>false,
@@ -56,6 +68,11 @@ function operationsEducationalOffersRead(): array {
             'administratorApproved'=>false
         ];
     }
+    // All four promised public introductions must remain explicitly
+    // represented; no accidental removal can silently shrink the free path.
+    foreach(operationsEducationFreeIntroIds() as $freeId)
+        if(!isset($seen[$freeId]))
+            throw new RuntimeException('missing_permanently_free_intro');
     return [
         'ok'=>true,
         'schema'=>'jr.educational-offers.admin-readonly.v1',
