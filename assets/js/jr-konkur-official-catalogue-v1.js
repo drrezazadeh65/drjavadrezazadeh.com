@@ -24,19 +24,55 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
  form.append(label,groupLabel,submit);
  const status=node('p','jr-kc-catalogue-status',t('برای جست‌وجو، گروه یا عنوان مورد نظر را تعیین کنید.','Choose a group or title and search.'));status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const results=node('ul','jr-kc-catalogue-results');
- block.append(heading,explanation,form,status,results);
+ // Bounded progressive pagination: each request only reads a public,
+ // approved, non-personal catalogue page. There is no fake total count.
+ const pager=node('nav','jr-kc-catalogue-pager');
+ pager.setAttribute('aria-label',t('صفحات کاتالوگ','Catalogue pages'));
+ const previous=node('button','jr-kc-secondary',t('صفحه پیشین','Previous page'));
+ previous.type='button';previous.disabled=true;
+ const pageStatus=node('span','jr-kc-page-status','');
+ pageStatus.setAttribute('aria-live','polite');
+ const next=node('button','jr-kc-secondary',t('بررسی صفحه بعد','Check next page'));
+ next.type='button';next.disabled=true;
+ pager.append(previous,pageStatus,next);
+ pager.hidden=true;
+ block.append(heading,explanation,form,status,results,pager);
  const existingForm=root.querySelector('.jr-kc-form');
  if(existingForm)root.insertBefore(block,existingForm);else root.append(block);
- let request=null,epoch=0;
+ let request=null,epoch=0,currentPage=1,lastFilter=null;
+ const PAGE_SIZE=20,MAX_PAGE=250;
  function reset(){
-  epoch++;if(request)request.abort();request=null;submit.disabled=false;results.replaceChildren();
+  epoch++;if(request)request.abort();request=null;
+  submit.disabled=false;previous.disabled=true;next.disabled=true;
+  results.replaceChildren();pager.hidden=true;
  }
- form.addEventListener('submit',async event=>{
-  event.preventDefault();reset();const thisRequest=++epoch,controller=new AbortController();request=controller;submit.disabled=true;
+ // Changing a filter invalidates all earlier results, pagination and
+ // evidence labels. Nothing is persisted in account, URL or browser storage.
+ const changeFilter=()=>{
+  if(!lastFilter)return;
+  lastFilter=null;currentPage=1;reset();
+  status.textContent=t('جست‌وجو تغییر کرد. دوباره جست‌وجو کنید.',
+    'Search filters changed; submit a new search.');
+ };
+ query.addEventListener('input',changeFilter);
+ group.addEventListener('change',changeFilter);
+ form.addEventListener('submit',event=>{
+  event.preventDefault();
+  lastFilter={query:query.value.trim(),group:group.value};
+  loadPage(1);
+ });
+ previous.addEventListener('click',()=>{if(currentPage>1&&lastFilter)loadPage(currentPage-1);});
+ next.addEventListener('click',()=>{if(currentPage<MAX_PAGE&&lastFilter)loadPage(currentPage+1);});
+ async function loadPage(page){
+  if(!lastFilter||!Number.isInteger(page)||page<1||page>MAX_PAGE)return;
+  reset();
+  const thisRequest=++epoch,controller=new AbortController();
+  request=controller;submit.disabled=true;
+  previous.disabled=true;next.disabled=true;
   status.textContent=t('در حال بررسی داده‌های بازبینی‌شده…','Checking reviewed official records…');
   try{
-   const params=new URLSearchParams({year:'1405',limit:'20',page:'1'});
-   const needle=query.value.trim(),groupCode=group.value;
+   const params=new URLSearchParams({year:'1405',limit:String(PAGE_SIZE),page:String(page)});
+   const needle=lastFilter.query,groupCode=lastFilter.group;
    if(needle.length>80)throw new Error('invalid_search');
    if(needle)params.set('q',needle);
    if(groupCode)params.set('group',groupCode);
@@ -52,13 +88,23 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
      throw new Error('invalid_official_data_contract');
    const ready=data.status==='SOURCE_REVIEWED_CATALOGUE'&&data.sourceVerification==='HUMAN_REVIEWED';
    if(!ready){
-    status.textContent=data.status==='OFFICIAL_CATALOGUE_NOT_READY'?
-      t('کاتالوگ تأییدشده هنوز روی پایگاه داده آماده نشده است. فعلاً فقط پیش‌نویس شخصی قابل استفاده است.',
-        'Approved catalogue is not yet available in the database. The personal draft remains usable.'):
-      t('در این جست‌وجو هیچ رشته‌محل دارای تأیید منبع پیدا نشد.','No source-reviewed programme records matched this search.');
+    currentPage=page;
+    const pending=data.status==='OFFICIAL_CATALOGUE_NOT_READY';
+    status.textContent=pending?
+      t('کاتالوگ بازبینی‌شده هنوز آماده نشده است. پیش‌نویس شخصی همچنان در دسترس است.',
+        'Source-reviewed catalogue is unavailable. The personal draft remains available.'):
+      t('در این صفحه هیچ رشته‌محل بازبینی‌شده‌ای یافت نشد.',
+        'No source-reviewed programme records on this page.');
+    pager.hidden=pending||page===1;
+    previous.disabled=pending||page===1;
+    next.disabled=true;
+    pageStatus.textContent=t('صفحه ','Page ')+String(page)+
+      t(' · تعداد کل نامشخص است',' · total unknown');
     return;
    }
-   if(!Array.isArray(data.records)||data.records.length>50)throw new Error('invalid_official_record_set');
+   if(!Array.isArray(data.records)||data.records.length>PAGE_SIZE
+      ||data.page!==page||data.limit!==PAGE_SIZE)
+     throw new Error('invalid_official_record_set');
    let shown=0;
    for(const r of data.records){
     if(r.year!==1405||typeof r.programmeCode!=='string'||!/^[0-9]{5}$/.test(r.programmeCode)||
@@ -69,12 +115,30 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
     shown++;
     const item=node('li','jr-kc-catalogue-item');
     item.append(node('strong','',r.programmeCode+' — '+String(r.programme||'')),
-      node('p','',String(r.university||'')+(r.city?' · '+String(r.city):'')),
-      node('p','',t('منبع: ','Source: ')+r.sourceDocument+
-        t(' | ویرایش ',' | Revision ')+r.sourceRevision+
-        t(' | صفحه PDF ',' | PDF page ')+r.sourcePdfPage),
-      node('small','',t('کدرشته در کاتالوگ تأییدشده است؛ شرایط فردی و قبولی بررسی نشده‌اند.',
-          'Catalogue record source-reviewed; individual eligibility and admission are not assessed.')));
+      node('p','',String(r.university||'')+
+        (r.campus?' · '+String(r.campus):'')+
+        (r.city?' · '+String(r.city):'')),
+      node('p','',t('سال منبع: ','Source cycle: ')+String(r.year)+
+        t(' · منبع: ',' · Source: ')+r.sourceDocument+
+        t(' · ویرایش ',' · Revision ')+r.sourceRevision+
+        t(' · صفحه PDF ',' · PDF page ')+r.sourcePdfPage));
+    const facts=node('dl','jr-kc-source-facts');
+    // Missing source fields stay unknown; a proposed fee or capacity must
+    // never be invented from current-year expectations or another provider.
+    for(const [name,value] of [
+      [t('نوع پذیرش ثبت‌شده','Recorded admission route'),r.admissionTrack],
+      [t('مقطع ثبت‌شده','Recorded degree'),r.degree],
+      [t('وضعیت شهریه در منبع','Source tuition category'),r.tuitionStatus],
+      [t('ظرفیت مندرج در دفترچه','Guide-listed capacity'),r.capacity]
+    ]){
+      const term=node('dt','',name),val=node('dd','',
+        value===null||value===undefined||value===''?
+          t('نامشخص','Unknown'):String(value));
+      facts.append(term,val);
+    }
+    item.append(facts,node('small','',t(
+      'این اطلاعات متعلق به ویرایش بازبینی‌شده سال درج‌شده است، نه ظرفیت یا شهریه زنده. شرایط فردی، اصلاحیه‌ها و احتمال قبولی نیازمند بررسی جداگانه‌اند.',
+      'Facts come from the reviewed edition and year shown, not live seat or tuition availability. Individual eligibility, amendments and admission chance require separate review.')));
     const copy=node('button','jr-kc-secondary',t('انتقال کد به پیش‌نویس','Copy code to draft'));
     copy.type='button';
     copy.addEventListener('click',()=>{
@@ -89,10 +153,21 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
     });
     item.append(copy);results.append(item);
    }
+   currentPage=page;
+   pager.hidden=false;
+   pageStatus.textContent=t('صفحه ','Page ')+String(page)+
+     t(' · تعداد کل تأییدشده مشخص نیست',' · reviewed total unknown');
+   previous.disabled=page===1;
+   // Exactly PAGE_SIZE rows indicates that another page MAY exist, not
+   // that it actually does. The button is intentionally "Check next page".
+   next.disabled=data.records.length<PAGE_SIZE||page>=MAX_PAGE;
    status.textContent=shown?
-    t('نمایش '+shown+' رکورد دارای بازبینی منبع؛ بدون ارزیابی مجازبودن شخصی.',
-      shown+' source-reviewed records shown; no personal eligibility determination.'):
-    t('پاسخ کاتالوگ فاقد ردیف قابل نمایش با استناد کامل بود.','No fully sourced record could be displayed.');
+    t('نمایش '+shown+' رکورد بازبینی‌شده از صفحه '+page+
+      '؛ جمع کل نامشخص و مجازبودن فردی بررسی نشده است.',
+      shown+' source-reviewed records from page '+page+
+      '; total unknown and individual eligibility unassessed.'):
+    t('پاسخ فاقد ردیف قابل نمایش با استناد کامل بود.',
+      'No fully sourced record could be displayed.');
   }catch(error){
    if(thisRequest===epoch&&error?.name!=='AbortError'){
     results.replaceChildren();
@@ -100,7 +175,7 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
       'Verified catalogue unavailable; the personal draft remains available.');
    }
   }finally{if(thisRequest===epoch){request=null;submit.disabled=false;}}
- });
- window.addEventListener('pagehide',()=>reset());
+ }
+ window.addEventListener('pagehide',()=>{lastFilter=null;reset();});
 }
 })();
