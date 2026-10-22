@@ -267,6 +267,87 @@ function baharAccountLegalHoldClear(PDO $pdo,string $accountId): bool {
     $q->execute([$accountId,$accountId]);
     return $q->fetchColumn()===false;
 }
+/**
+ * One-step, account-scoped erasure request in the existing eco_privacy_*
+ * mother tables. Never stores a workbook or the person's private notes.
+ *
+ * If an active legal hold exists, retain data as required and create a
+ * reviewable BLOCKED request. Otherwise delete only this account's BAHAR
+ * encrypted workbook, register the privacy action, and audit atomically.
+ * Backups and independent contractual retention remain outside this scope.
+ */
+function baharAccountErasureRequest(PDO $pdo,string $actor): array {
+    $pdo->beginTransaction();
+    try{
+        // Account-row lock serializes rapid repeated clicks by this owner,
+        // unlike a nonunique ad hoc privacy request count.
+        $guard=$pdo->prepare('SELECT id FROM customer_accounts WHERE id=? FOR UPDATE');
+        $guard->execute([$actor]);
+        if($guard->fetchColumn()===false)
+            throw new RuntimeException('account_not_found');
+        $latest=$pdo->prepare("SELECT id,status FROM eco_privacy_requests
+          WHERE requester_account_id=? AND subject_id IS NULL
+            AND request_type='BAHAR_PRIVATE_WORKBOOK_DELETE'
+            AND status IN ('RECEIVED','IN_REVIEW','PENDING','BLOCKED')
+          ORDER BY created_at DESC,id DESC LIMIT 1 FOR UPDATE");
+        $latest->execute([$actor]);
+        $prior=$latest->fetch(PDO::FETCH_ASSOC);
+        if(is_array($prior)){
+            $pdo->commit();
+            return [
+              'ok'=>true,'schema'=>'jr.bahar-private-erasure-request.v1',
+              'requestId'=>(string)$prior['id'],
+              'requestStatus'=>(string)$prior['status'],
+              'databaseRowDeleted'=>false,'existingRequestReused'=>true,
+              'backupErasureCertified'=>false,'noUnrelatedAccountDataDeleted'=>true
+            ];
+        }
+        $requestId=uuidv4();
+        // A missing legal-hold table or query failure must roll back rather
+        // than assume no legal restriction.
+        $holdClear=baharAccountLegalHoldClear($pdo,$actor);
+        $status=$holdClear?'COMPLETED':'BLOCKED';
+        $request=$pdo->prepare("INSERT INTO eco_privacy_requests
+          (id,requester_account_id,subject_id,request_type,status,
+           due_at,closed_at)
+          VALUES (?, ?,NULL,'BAHAR_PRIVATE_WORKBOOK_DELETE',?,
+              DATE_ADD(UTC_TIMESTAMP(3),INTERVAL 30 DAY),
+              CASE WHEN ?='COMPLETED' THEN UTC_TIMESTAMP(3) ELSE NULL END)");
+        $request->execute([$requestId,$actor,$status,$status]);
+        $erased=false;
+        if($holdClear){
+            $deletion=$pdo->prepare('DELETE FROM eco_bahar_account_workbooks
+              WHERE owner_account_id=?');
+            $deletion->execute([$actor]);
+            $erased=$deletion->rowCount()===1;
+        }
+        $action=$pdo->prepare('INSERT INTO eco_privacy_actions
+          (id,request_id,action_code,operator_account_id,result_code,
+           evidence_sha256)
+           VALUES (?,? ,?, ?, ?, ?)');
+        $action->execute([
+            uuidv4(),$requestId,
+            $holdClear?'BAHAR_WORKBOOK_ERASURE':'BAHAR_ERASURE_HOLD_CHECK',
+            $actor,$holdClear?'CURRENT_ROW_REMOVED':'ACTIVE_LEGAL_HOLD',
+            hash('sha256','bahar_erase|'.$requestId.'|'.
+                ($erased?'record_removed':'no_stored_record_or_held'))
+        ]);
+        baharAccountAudit($pdo,$actor,'BAHAR_ACCOUNT_WORKBOOK_DELETE_REQUESTED');
+        $pdo->commit();
+        return [
+            'ok'=>true,'schema'=>'jr.bahar-private-erasure-request.v1',
+            'requestId'=>$requestId,'requestStatus'=>$status,
+            'databaseRowDeleted'=>$holdClear,
+            'existingRequestReused'=>false,
+            'legalHoldRequiresHumanReview'=>!$holdClear,
+            'backupErasureCertified'=>false,
+            'noUnrelatedAccountDataDeleted'=>true
+        ];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
 function baharAccountRoute(string $path,string $verb): never {
     header('Vary: Cookie');
     header('Cache-Control: private, no-store, no-cache, max-age=0');
@@ -282,7 +363,7 @@ function baharAccountRoute(string $path,string $verb): never {
         if(!in_array($path,[
           '/bahar/account/status','/bahar/account/consent',
           '/bahar/account/workbook','/bahar/account/withdraw-consent',
-          '/bahar/account/eligibility-request',
+          '/bahar/account/eligibility-request','/bahar/account/erasure-request',
           '/bahar/account/eligibility-cancel'
         ],true))fail('not_found',404);
         if(!rateAllowed($pdo,'bahar_private_account',$accountId,25,300))
@@ -550,6 +631,15 @@ function baharAccountRoute(string $path,string $verb): never {
                 if($pdo->inTransaction())$pdo->rollBack();
                 throw $e;
             }
+        }
+        if($path==='/bahar/account/erasure-request'&&$verb==='POST'){
+            baharAccountVerifyMutationCsrf($accountId);
+            $body=jsonBody();
+            if(($body['confirmation']??null)!=='REQUEST MY BAHAR WORKBOOK ERASURE')
+                fail('explicit_erasure_request_required',422);
+            if(!rateAllowed($pdo,'bahar_private_erasure_request',$accountId,4,86400))
+                fail('rate_limited',429);
+            respond(baharAccountErasureRequest($pdo,$accountId));
         }
         if($path==='/bahar/account/workbook'&&$verb==='DELETE'){
             baharAccountVerifyMutationCsrf($accountId);
