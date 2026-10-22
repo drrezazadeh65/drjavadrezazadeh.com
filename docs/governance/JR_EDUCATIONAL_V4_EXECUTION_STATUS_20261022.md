@@ -301,3 +301,8 @@ The existing FA/EN manually entered Sanjesh scorecard worksheet now offers a cle
 ## 2026-10-22 — AID-09 official-source precision in the public lab (SOURCE ONLY)
 
 Updated the existing Persian /fa/konkur-ai-lab/ source copy to identify the roughly 2,412 historical extraction anchors only as **unreviewed prior research**, never as a certified number of official university programmes, validated scorecards or approved source rows. Explicitly notes that original guides, amendments, dates and row-by-row verification are outstanding. No official admission likelihood or recommended programme catalogue is claimed. Existing public URL, canonical, inputs and privacy boundary unchanged; tests and live source checks NOT RUN.
+
+
+## 2026-10-22 — Public admissions next step and nonempty research evidence (SOURCE ONLY)
+
+The pre-existing Persian Konkur AI Lab now offers two explicit local-data-free next steps after format-valid scorecard analysis: Choice Studio comparison and BAHAR's free study guidance. Neither link carries the self-reported rank/TAZ/percent values. The lab's previous circa-2,412 figure is now identified as historical unreviewed extraction anchors, not verified programme-row coverage. The separately versioned scientific interchange in platform/jr-educational-evidence-exchange.mjs also rejects an empty research evidence list before producing any authorized descriptive handoff. Existing human consent, scientific attestation, official-source and privacy gates remain necessary. No unit/browser/security/integration tests, migrations, live probes, email, checkout or production deployment performed.
