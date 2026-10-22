@@ -111,6 +111,15 @@ function operationsBaharAdultReviewDecide(
         throw new InvalidArgumentException('invalid_eligibility_review');
     $pdo->beginTransaction();
     try {
+        // Use the SAME account-row lock as private workbook reads, consent
+        // changes, erasure requests and pending-review cancellation. This
+        // serializes revocation/approval against in-flight encrypted saves.
+        // Always lock customer_accounts BEFORE the eligibility row.
+        $ownerLock=$pdo->prepare('SELECT id FROM customer_accounts
+            WHERE id=? FOR UPDATE');
+        $ownerLock->execute([$target]);
+        if($ownerLock->fetchColumn()===false)
+            throw new DomainException('review_account_absent');
         $lock=$pdo->prepare("SELECT v.review_state, a.status,
             a.email_verified_at
            FROM eco_bahar_verified_adult_accounts v
