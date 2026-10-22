@@ -26,7 +26,7 @@ function safeEvidenceUrl(value){
 }
 async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
-function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
+function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
 $('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
@@ -398,12 +398,136 @@ function githubAuditRender(host){
 
 let alertCenterExpanded=true,alertCenterCurrent=null,httpHealthCurrent=null;
 let alertScopeKind='engine',alertScopeQuery='',alertScopesExpanded=false;
+let responseMonitorCurrent=null,responseMonitorExpanded=false;
 async function refreshAlertCenter(){
  const generation=loadGeneration;
  const next=await api('/alerts');
  if(generation!==loadGeneration||!snapshot)return;
  if(next.schema!=='operations-alert-center-v1')throw new Error('invalid_alert_center');
  alertCenterCurrent=next;alertCenterExpanded=true;reportingRender();
+}
+/**
+ * Fixed-origin probes run from optional private Bertina Cron, never in page views.
+ * The administrator can configure cadence, disable the sensor and request an
+ * on-demand observation; historical data remains labeled as such.
+ */
+function renderResponseMonitor(host,model){
+ const data=responseMonitorCurrent||model.responseHealth||null;
+ const section=el('details',undefined,'ops-panel ops-response-monitor');
+ section.id='ops-response-monitor';
+ section.open=responseMonitorExpanded;
+ section.addEventListener('toggle',()=>{responseMonitorExpanded=section.open;});
+ section.append(el('summary',t('پایش امنیت HTTPS و ریدایرکت‌های تاریخی',
+   'HTTPS security and historical redirect monitoring')));
+ section.append(el('p',t(
+   'این کنترل هدرها یا ریدایرکت‌های سایت را تغییر نمی‌دهد. تنها پاسخ آدرس‌های ازپیش‌تأییدشده را با زمان‌بندی خصوصی بررسی می‌کند.',
+   'This control never changes live headers or redirects. It observes fixed approved URLs only through a private scheduled worker.')));
+ const status=el('div',undefined,'ops-response-status');
+ const policy=data?.settings;
+ status.append(el('strong',t('وضعیت: ','State: ')+(data?.status||'not_available')),
+   el('span',policy
+     ?(policy.enabled?t('حسگر مجاز','Sensor enabled'):t('حسگر خاموش','Sensor disabled'))
+     :t('جدول پایش نصب نشده','Monitor schema unavailable')));
+ section.append(status);
+ const reload=el('button',t('بارگیری شواهد ذخیره‌شده','Reload recorded observations'));
+ reload.type='button';
+ reload.addEventListener('click',async()=>{
+   reload.disabled=true;const generation=loadGeneration;
+   try{
+     const result=await api('/response-health');
+     if(generation!==loadGeneration||!snapshot)return;
+     responseMonitorCurrent=result;responseMonitorExpanded=true;reportingRender();
+   }catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
+   finally{if(reload.isConnected)reload.disabled=false;}
+ });section.append(reload);
+ if(policy&&data?.canManage===true){
+   const settings=el('details',undefined,'ops-response-settings');
+   settings.append(el('summary',t('تنظیم اختصاصی حسگر و زمان‌بندی','Configure this sensor and schedule')));
+   const options=el('div',undefined,'ops-response-controls');
+   const enabled=el('input');enabled.type='checkbox';enabled.checked=policy.enabled;
+   const label=el('label',t('فعال بودن پایش','Enable observer'));label.prepend(enabled);
+   const cadence=el('select');cadence.setAttribute('aria-label',t('تناوب','Cadence'));
+   for(const [key,fa,enLabel] of [
+     ['manual','فقط دستی','Manual only'],['daily','هر ۲۴ ساعت','Daily'],['weekly','هفتگی','Weekly']]){
+     const item=el('option',t(fa,enLabel));item.value=key;cadence.append(item);
+   }cadence.value=policy.cadence;
+   const weekday=el('select');weekday.setAttribute('aria-label',t('روز هفته','Weekday'));
+   for(let i=1;i<=7;i++){const option=el('option',t('روز ','Day ')+i);option.value=String(i);weekday.append(option);}
+   weekday.value=String(policy.weekday);
+   const clock=el('input');clock.type='time';
+   clock.setAttribute('aria-label',t('زمان تهران','Tehran time'));
+   clock.value=String(Math.floor(policy.clockMinutes/60)).padStart(2,'0')+':'+
+     String(policy.clockMinutes%60).padStart(2,'0');
+   const retention=el('select');retention.setAttribute('aria-label',t('روزهای نگهداری گزارش','Retention days'));
+   for(const n of [7,30,90,180,365]){
+     const item=el('option',t('نگهداری ','Keep ')+n+t(' روز',' days'));item.value=String(n);retention.append(item);
+   }retention.value=String(policy.retentionDays);
+   const save=el('button',t('ذخیره سیاست پایش','Save monitoring policy'));save.type='button';
+   const request=el('button',t('درخواست بررسی در اجرای بعدی','Queue a new observation'));
+   request.type='button';request.disabled=!policy.enabled;
+   save.addEventListener('click',async()=>{
+     const time=clock.value.split(':').map(Number);
+     if(time.length!==2||time.some(n=>!Number.isInteger(n))||
+        time[0]<0||time[0]>23||time[1]<0||time[1]>59){
+       notice(t('ساعت انتخاب‌شده نامعتبر است','Invalid schedule time'),true);return;
+     }
+     const generation=loadGeneration;save.disabled=true;
+     try{
+       const result=await api('/response-health',{method:'POST',
+         headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+         body:JSON.stringify({enabled:enabled.checked,cadence:cadence.value,
+           weekday:Number(weekday.value),clockMinutes:time[0]*60+time[1],
+           retentionDays:Number(retention.value)})});
+       if(generation!==loadGeneration||!snapshot)return;
+       responseMonitorCurrent=result;responseMonitorExpanded=true;reportingRender();
+       notice(t('سیاست حسگر ذخیره شد؛ اجرای CLI همچنان به تنظیم Cron نیاز دارد.',
+         'Policy saved. Actual collection still requires the private Cron.'));
+     }catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
+     finally{if(save.isConnected)save.disabled=false;}
+   });
+   request.addEventListener('click',async()=>{
+     const generation=loadGeneration;request.disabled=true;
+     try{
+       const result=await api('/response-health',{method:'POST',
+         headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+         body:JSON.stringify({requestNow:true})});
+       if(generation!==loadGeneration||!snapshot)return;
+       responseMonitorCurrent=result;responseMonitorExpanded=true;reportingRender();
+       notice(t('درخواست در صف ثبت شد؛ اجرای زنده هنوز رخ نداده است.',
+         'Request queued. A live probe has not yet run.'));
+     }catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
+     finally{if(request.isConnected)request.disabled=false;}
+   });
+   options.append(label,cadence,weekday,clock,retention,save,request);
+   settings.append(options,el('small',t('ساعت بر اساس تهران است؛ داده قدیمی به‌معنای سلامت کنونی نیست.',
+     'Schedule uses Tehran time. Historical observations are not current health.')));
+   section.append(settings);
+ }
+ const recent=Array.isArray(data?.latest)?data.latest:[];
+ if(recent.length){
+   const list=el('ul',undefined,'ops-response-observations');
+   for(const row of recent){
+     const item=el('li');
+     item.append(el('strong',row.id+' · '+(row.result||'unavailable')),
+       el('small',t('آخرین بررسی: ','Last checked: ')+date(row.observedAt)+' · HTTP '+
+         (row.responseCode??'—')+' · '+
+         (row.fresh?t('داده تازه','Recent observation'):t('داده قدیمی','Stale observation'))));
+     if(row.checks?.mandatory){
+       const details=el('small',Object.entries(row.checks.mandatory)
+         .map(([key,value])=>key+': '+(value?'pass':'missing')).join(' · '));
+       item.append(details);
+     }
+     if(row.checks?.advisory){
+       item.append(el('small',t('توصیه امنیتی: ','Security advisories: ')+
+         Object.entries(row.checks.advisory)
+           .map(([key,value])=>key+': '+(value?'present':'not observed')).join(' · ')));
+     }
+     list.append(item);
+   }
+   section.append(el('h4',t('نتیجه هفت بررسی از آخرین اجرای برنامه','Seven fixed probe observations from the last run')),list);
+ }else section.append(el('p',t('هیچ مشاهده ثبت‌شده‌ای وجود ندارد؛ نتیجه نامعلوم است.',
+   'No recorded observations. Actual runtime integrity is unknown.')));
+ host.append(section);
 }
 function renderAlertCenter(host,model){
  const data=alertCenterCurrent||model.alertCenter||null;
@@ -1317,6 +1441,7 @@ function reportingRender(){
  }
  healthHost.replaceChildren();
  renderAlertCenter(healthHost,model);
+ renderResponseMonitor(healthHost,model);
  let host=$('ops-reporting');if(!host){host=el('section',undefined,'ops-panel');host.id='ops-reporting';host.setAttribute('aria-label',t('گزارش‌های سیزده موتور','Thirteen-engine reporting'));$('ops-workspace').insertBefore(host,$('ops-cards'));}
  host.replaceChildren();host.append(el('h2',t('۱۳ موتور؛ یک مرکز مدیریت','13 engines, one administrative center')));
  const enabledActions=model.actionReports.filter(a=>a.supportedExecutor?.type==='readonly_snapshot'&&a.supportedExecutor?.writes===false).length;host.append(el('p',t('اقدام‌های ثبت‌شده: ','Registered actions: ')+model.actionReports.length+' · '+t('قرارداد فقط‌خواندنی فعال: ','Read-only executors: ')+enabledActions+' · '+t('فاقد قرارداد اجرایی: ','Without executor: ')+(model.actionReports.length-enabledActions)));
