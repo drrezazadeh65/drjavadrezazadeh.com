@@ -2,7 +2,13 @@
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
-const OPERATIONS_MFA_TTL = 600;
+// A successful TOTP verification elevates only the currently authenticated
+// browser session. Keep it valid for the lifetime of the existing 7-day
+// customer session (whichever expires first); explicit sign-out/revocation,
+// TOTP secret rotation and disabled admin membership always revoke access.
+// A different browser must independently authenticate: never share cookies
+// or MFA elevation across devices.
+const OPERATIONS_MFA_TTL = 604800;
 require_once __DIR__.'/publishing-onboarding.php';
 require_once __DIR__.'/publishing.php';
 require_once __DIR__.'/operations-reporting.php';
