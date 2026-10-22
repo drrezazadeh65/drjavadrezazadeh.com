@@ -966,7 +966,7 @@ function renderAlertCenter(host,model){
  const httpOverview=httpHealthCurrent||model.httpHealth||null;
  const candidateHttpBatch=Array.isArray(httpOverview?.batches)
    ?httpOverview.batches[0]:null;
- const httpNow=Number(snapshot?.checkedAt)||Math.floor(Date.now()/1000);
+ const httpNow=Number(httpOverview?.checkedAt)||Number(snapshot?.checkedAt)||Math.floor(Date.now()/1000);
  const newestHttpBatch=httpOverview?.state==='observed'&&
    Number.isInteger(candidateHttpBatch?.at)&&
    candidateHttpBatch.at>=httpNow-900&&candidateHttpBatch.at<=httpNow+60&&
@@ -2103,7 +2103,7 @@ function renderImmediateSiteHealth(host,model){
  const counts=observed?alerts.openCounts||{}:{};
  const currentHttp=httpHealthCurrent||model.httpHealth||null;
  const latestHttp=Array.isArray(currentHttp?.batches)?currentHttp.batches[0]:null;
- const observerAt=Number(snapshot?.checkedAt)||Math.floor(Date.now()/1000);
+ const observerAt=Number(currentHttp?.checkedAt)||Number(snapshot?.checkedAt)||Math.floor(Date.now()/1000);
  // Do not portray an empty cursor pass, or an old access-log batch, as a
  // measured zero at the current site. The read was source-only evidence.
  const httpRecorded=currentHttp?.state==='observed'&&latestHttp&&
