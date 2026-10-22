@@ -203,12 +203,32 @@ function operationsAlertSnapshot(PDO $pdo,array $configuration): array {
         $httpStatus=operationsHttpObserverStatus($pdo,$configuration);
         $httpSensor=(string)($httpStatus['state']??'not_configured');
     }
+    // The fixed response worker emits real security/redirect incidents. Treat
+    // installation and freshness separately; source code alone is not coverage.
+    $responseStatus=function_exists('operationsResponseMonitorStatus')
+        ?operationsResponseMonitorStatus($pdo,time()):null;
     foreach($pdo->query('SELECT event_code,enabled,threshold_count,cooldown_minutes FROM operations_alert_rules') as $r){
         $code=(string)$r['event_code'];if(!isset($definitions[$code]))continue;
+        $sensor=(string)$definitions[$code]['sensor'];
+        if(in_array($code,['http_404_surge','http_5xx_surge'],true)){
+            $sensor='private_http_log_'.$httpSensor;
+        }elseif(in_array($code,['security_headers_regressed','redirects_regressed'],true)){
+            $kind=$code==='security_headers_regressed'?'headers':'redirect';
+            $policy=$responseStatus['settings']??null;
+            $samples=array_values(array_filter($responseStatus['latest']??[],
+                static fn($entry)=>($entry['kind']??'')===$kind));
+            $newest=null;
+            foreach($samples as $sample)if($newest===null
+                ||(int)($sample['observedAt']??0)>(int)($newest['observedAt']??0))$newest=$sample;
+            if(!is_array($policy))$sensor='response_monitor_schema_missing';
+            elseif(!($policy['enabled']??false))$sensor='response_monitor_disabled';
+            elseif($newest===null)$sensor='response_monitor_no_observation';
+            elseif(!($newest['fresh']??false))$sensor='response_monitor_stale';
+            else $sensor='response_monitor_recent_sample_cron_unverified';
+        }
         $rules[]=['code'=>$code,'name'=>$definitions[$code]['name'],
             'severity'=>$definitions[$code]['severity'],
-            'sensorState'=>in_array($code,['http_404_surge','http_5xx_surge'],true)
-                ?'private_http_log_'.$httpSensor:$definitions[$code]['sensor'],
+            'sensorState'=>$sensor,
             'enabled'=>(bool)$r['enabled'],'threshold'=>(int)$r['threshold_count'],
             'cooldownMinutes'=>(int)$r['cooldown_minutes']];
     }
