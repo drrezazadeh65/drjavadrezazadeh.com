@@ -12,6 +12,7 @@ require_once __DIR__.'/operations-jhela.php';
 require_once __DIR__.'/jhela-native-editorial.php';
 require_once __DIR__.'/jhela-intake.php';
 require_once __DIR__.'/operations-commerce.php';
+require_once __DIR__.'/operations-educational-offers.php';
 require_once __DIR__.'/operations-book-expiration.php';
 require_once __DIR__.'/operations-donation-recovery.php';
 require_once __DIR__.'/operations-fulfilment.php';
@@ -515,6 +516,14 @@ function operationsRoute(string $path, string $verb): never {
         if ($path === '/admin/operations/provider-inventory' && $verb === 'GET') {
             if (!rateAllowed($pdo,'operations_provider_inventory_read',$accountId,20,300)) fail('rate_limited',429);
             respond(operationsProviderInventory());
+        }
+
+        // Research-stage educational offer proposals. Existing MFA gate
+        // applies; this read-only endpoint CANNOT publish prices or accept funds.
+        if ($path === '/admin/operations/educational-offers' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_educational_offers_read',$accountId,15,300))
+                fail('rate_limited',429);
+            respond(operationsEducationalOffersRead());
         }
 
         // Existing ENG-13 controller: bounded 54-reference source directory.
