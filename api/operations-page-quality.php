@@ -17,6 +17,42 @@ function operationsQualityInventory(): ?array {
        ||!is_array($data['pages']??null)||count($data['pages'])>15000)return null;
     return $data;
 }
+/**
+ * Retain real dated provider evidence when it exists. The existing bounded
+ * PageSpeed reader covers only two explicit public URLs and validates its
+ * provenance; do not extrapolate to other pages or real-user CrUX data.
+ */
+function operationsQualityWithLab(array $row): array {
+    static $observations=null;
+    if($observations===null){
+        $observations=[];
+        if(function_exists('operationsFreePerformanceObservation')){
+            $data=operationsFreePerformanceObservation();
+            if(($data['status']??'')==='observed'){
+                foreach($data['results']??[] as $result) {
+                    $url=(string)($result['url']??'');
+                    $score=$result['labPerformanceScore']??null;
+                    if(($result['status']??'')==='observed'&&is_int($score)
+                       &&$score>=0&&$score<=100)
+                        $observations[$url]=['score'=>$score,'observedAt'=>$data['observedAt']];
+                }
+            }
+        }
+    }
+    $result=$observations[$row['url']??'']??null;
+    if($result!==null){
+        $row['grades']['speed']=[
+            'score'=>round($result['score']/10,1),
+            'passed'=>0,'applicable'=>0,
+            'source'=>'dated_mobile_lighthouse_lab_not_field_cwv',
+            'observedAt'=>$result['observedAt'],'findings'=>[]
+        ];
+        $row['labSpeed']=['score100'=>$result['score'],
+            'source'=>'Google PageSpeed Insights mobile Lighthouse lab',
+            'observedAt'=>$result['observedAt'],'notRealUserFieldData'=>true];
+    }
+    return $row;
+}
 function operationsQualityDimensions(): array {
     return ['content','image','seo','ui','ux','ai','geo','speed','security'];
 }
@@ -38,7 +74,8 @@ function operationsQualityList(array $input): array {
        ||$page===false||$page<1||$page>500||strlen($query)>120
        ||preg_match('/[\x00-\x1F\x7F]/',$query))
        throw new InvalidArgumentException('invalid_quality_filters');
-    $rows=array_values(array_filter($source['pages'],static function($row)use($language,$index,$query) {
+    $pages=array_map('operationsQualityWithLab',$source['pages']);
+    $rows=array_values(array_filter($pages,static function($row)use($language,$index,$query) {
         if(!is_array($row)||!is_string($row['route']??null))return false;
         $lang=(string)($row['language']??'other');
         $private=($row['noindexExpected']??false)===true
@@ -87,7 +124,7 @@ function operationsQualityList(array $input): array {
         'pageCount'=>max(1,(int)ceil($count/$perPage)),
         'dimension'=>$dimension,'dimensions'=>operationsQualityDimensions(),
         'records'=>$records,
-        'limitation'=>'Each grade is an independent source-only heuristic on committed HTML. Live Speed, security headers, Google indexing, visual UI/UX quality, traffic, AI citations and search ranking are NOT measured. A null grade is unavailable/not applicable, not zero.'
+        'limitation'=>'Static-source grades are heuristics, NOT Google rankings or user experience testing. Only the two explicitly observed URLs can show a fresh Google PSI MOBILE LAB speed score; no field Core Web Vitals are inferred. Security response headers, real user speed, AI citations and ranking remain unmeasured. Null is not zero.'
     ];
 }
 function operationsQualityDetail(string $route): array {
@@ -101,7 +138,7 @@ function operationsQualityDetail(string $route): array {
     foreach($source['pages'] as $row)
         if(is_array($row)&&($row['route']??null)===$route)
             return ['ok'=>true,'schema'=>'operations-page-quality-detail-v1',
-                'generatedAt'=>$source['generatedAt'],'record'=>$row,
+                'generatedAt'=>$source['generatedAt'],'record'=>operationsQualityWithLab($row),
                 'limitation'=>'Static HTML source checks only; not a live website or search-engine measurement.'];
     return ['ok'=>true,'schema'=>'operations-page-quality-detail-v1',
         'record'=>null,'status'=>'not_in_source_inventory'];
