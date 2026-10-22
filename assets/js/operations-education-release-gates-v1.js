@@ -171,7 +171,9 @@
     summary.textContent=T('پیشنهادهای واقعی در فهرست: ','Listed proposals: ')+
       number.format(data.sourceOfferCount)+' · '+
       T('بخش‌های آماده برای بازبینی مستقل: ','Prepared for independent review: ')+
-      number.format(data.ownerMarkedReadyForReview)+' / '+
+      (Number.isSafeInteger(data.ownerMarkedReadyForReview)
+        ?number.format(data.ownerMarkedReadyForReview):
+         T('نامشخص','Unknown'))+' / '+
       number.format(data.applicablePreparationGates)+' · '+
       T('مجوز انتشار: صادر نشده','Publication authority: NOT GRANTED');
     drawOfferCards();renderGates();
