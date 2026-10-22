@@ -67,6 +67,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # SEO safety: existing route paths, hyperlinks, canonicals, sitemap URLs
+      # and redirect rules are immutable. New additive URLs remain permitted.
+      # Fail before any live release or hosting action if the frozen contract changes.
+      - name: Enforce immutable existing public URL contract
+        run: |
+          node scripts/jr-immutable-url-guard.mjs
+
       # Full-acceptance and guarded-phase paths are mutually exclusive.
       # Both require the owner actor, exact SHA, and existing production safety checks.
       # The phased path does not certify any of the 41/21 acceptance records.
