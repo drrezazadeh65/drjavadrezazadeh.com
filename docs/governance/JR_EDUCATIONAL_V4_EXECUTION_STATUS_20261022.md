@@ -327,3 +327,14 @@ These are additive source changes to DASH-06, DASH-07, AI-03, DB-04/05, AID-02 a
 - After a voluntary click, the visitor can copy ONLY the public programme/university name into the first EMPTY five-criterion Choice Studio alternative; existing names and independent preference/rating values are NEVER overwritten or populated from candidate data. The existing add-code-to-private-local-draft action remains.
 - Added responsive high-contrast provenance facts and accessible page controls to the original `assets/css/jr-konkur-studio-v1.css`; both FA and EN established Choice Studio pages now carry cache-busted asset references, with no public URL rename, SEO canonical replacement, new storage, fee, checkout or account entitlement.
 - Final acceptance gate `AID-15` now requires real browser/mobile, authentic signed guide rows/amendment recency, no-PII handoff, pagination and error state validation. **No automated/manual tests, builds, DB migrations, production HTTP requests, payments, email or deployment were performed in this source phase.**
+
+
+## 2026-10-22 — BAHAR free workbook safe replacement and stale-summary guard (SOURCE ONLY)
+
+**Atomic scope:** `BAH-04/19,47` remains **PARTIAL**, preserving the original free BAHAR routes and scientific/research disclaimers.
+
+- In the existing `assets/js/jr-bahar-public-v1.js`, after a learner edits any input following a prepared weekly plan, the old print-ready snapshot becomes invalid and is hidden. Re-preparing is required before its next print. This does not persist any personal text or block free access.
+- In `assets/js/jr-bahar-compass-v1.js`, choosing a local JSON workbook now **stages a bounded, contract-validated import** and shows the exact high-level number of existing sections/reflections before replacement. Nothing is changed until the visitor presses the visible **Replace** action; **Keep** preserves their existing unsaved plan. Malformed, empty and overlarge files are rejected; unallowlisted JSON keys are not rehydrated into the workbook. The pending import is cleared on cancellation, full-workbook clear and navigation. No server upload or new modal/consent burden is introduced.
+- `assets/css/jr-bahar-public-v1.css` now makes the inline Replace/Keep actions legible, touch-sized and screen-reader navigable on small phones; original FA/EN educational pages reference the revised script/CSS assets without renaming any public URL, changing account authorization, switching on adult data storage or touching paid curriculum.
+
+**Deferred:** mobile/browser import and print verification, real account/genuine encrypted storage status, guardian/adult enforcement, expert scientific acceptance and final integrated QA. No tests, build, migration, production request, finance transaction, owner SMTP or deployment executed in this stage.
