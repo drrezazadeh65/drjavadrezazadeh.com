@@ -389,3 +389,46 @@
   #ops-command-center .oc-dependency-row{align-items:stretch;flex-direction:column}
   #ops-command-center .oc-dependency-row button{width:100%}
 }
+
+/* Runtime dependency grid: source contract, not a pretend live status board. */
+#ops-command-center .oc-module-contracts{
+  margin:15px 0 20px;padding:15px;border:1px solid var(--oc-edge);
+  border-radius:15px;background:rgba(10,23,36,.48)
+}
+#ops-command-center .oc-module-contracts>summary{
+  font-weight:750;font-size:1rem;line-height:1.5;cursor:pointer;
+  color:var(--oc-gold);padding:2px 0
+}
+#ops-command-center .oc-module-contracts>p{
+  font-size:.85rem;line-height:1.7;color:var(--oc-muted);margin:10px 0 15px
+}
+#ops-command-center .oc-module-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;
+  margin:10px 0 4px
+}
+#ops-command-center .oc-module-unit{
+  background:var(--oc-surface-soft);border:1px solid var(--oc-edge);
+  border-radius:13px;padding:14px;display:flex;flex-direction:column;
+  align-items:flex-start;gap:8px;min-width:0;
+}
+#ops-command-center .oc-module-unit[data-schema-state="attention"]{
+  border-color:rgba(238,147,123,.75)
+}
+#ops-command-center .oc-module-unit h4{
+  color:var(--oc-ink);font-size:.93rem;line-height:1.6;margin:0
+}
+#ops-command-center .oc-module-unit strong{
+  color:var(--oc-gold);font-variant-numeric:tabular-nums;font-size:.95rem
+}
+#ops-command-center .oc-module-unit small{
+  font-size:.77rem;line-height:1.7;color:var(--oc-muted);
+  overflow-wrap:anywhere
+}
+#ops-command-center .oc-module-unit button{margin-top:auto;width:100%}
+@media(max-width:880px){
+  #ops-command-center .oc-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  #ops-command-center .oc-module-grid{grid-template-columns:minmax(0,1fr)}
+  #ops-command-center .oc-module-unit{padding:13px}
+}
