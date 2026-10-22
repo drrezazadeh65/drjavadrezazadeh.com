@@ -400,7 +400,8 @@ for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/
   const unknown=rows[19];unknown.executionEvidence='journal_unavailable';
   const schedule={ok:true,schema:'operations-collection-controls-v1',
     scheduler:'external_bertina_cron_required',timezone:'Asia/Tehran',
-    attemptJournalStatus:'available',canManage:false,rows,sourceStates:{}};
+    attemptJournalStatus:'available',canManage:false,rows,sourceStates:{},
+    unmappedPolicies:{status:'available',count:1,ids:['http_access_log']}};
   await page.route('**/api/admin/operations/collection-settings',r=>r.fulfill({json:schedule}));
   await page.setViewportSize({width:360,height:900});
   await page.goto(base+route);
@@ -411,6 +412,7 @@ for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/
   }).click();
   const summary=page.locator('[data-ops-collector-summary]');
   await expect(summary).toContainText(language==='fa'?'کش منقضی: 2':'Expired cache: 2');
+  await expect(page.locator('[data-ops-unmapped-policies]')).toContainText('http_access_log');
   await expect(summary).toContainText(language==='fa'
     ?'موعد گذشته، اجرای Cron تأییدنشده: 2':'Due, host Cron unverified: 2');
   const source=page.locator('[data-collector-scope="audit:bertina-master-seo.yml"]');
