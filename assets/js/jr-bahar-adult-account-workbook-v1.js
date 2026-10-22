@@ -12,10 +12,10 @@
   const locale=en?'en':'fa';
   const $=key=>root.querySelector('[data-jr-account-bahar-'+key+']');
   const notice=$('notice'),state=$('state'),refresh=$('refresh');
-  const consent=$('consent');
+  const consent=$('consent'),requestAdult=$('request-adult');
   const file=$('file'),preview=$('preview'),localExport=$('local-export');
   const save=$('save'),download=$('download'),withdraw=$('withdraw'),erase=$('erase');
-  if(!notice||!state||!refresh||!consent||!file||
+  if(!notice||!state||!refresh||!consent||!requestAdult||!file||
     !preview||!localExport||!save||!download||!withdraw||!erase)return;
   let identity=null,localDraft=null,readEpoch=0,busy=false,controller=null;
   const active=()=>root.open&&!document.hidden;
@@ -32,6 +32,11 @@
       identity.canStore===true;
     const csrf=/^[a-f0-9]{64}$/i.test(identity?.csrfToken||'');
     consent.disabled=!eligible||allowed||busy||!csrf;
+    const canRequest=identity?.schemaProvisioned===true &&
+      identity?.canRequestIndependentAdultReview===true &&
+      identity?.independentlyVerifiedAdult===false && csrf;
+    requestAdult.hidden=!canRequest;
+    requestAdult.disabled=!canRequest||busy;
     file.disabled=!allowed||busy;
     // Local backup never requires a login, verified age, payment or
     // permission to transmit notes. It does require a draft in this tab.
@@ -49,7 +54,8 @@
   function clear(note){
     readEpoch++;controller?.abort();controller=null;
     busy=false;identity=null;localDraft=null;
-    file.value='';localExport.disabled=true;
+    file.value='';localExport.disabled=true;requestAdult.hidden=true;
+    requestAdult.disabled=true;
     notice.replaceChildren();preview.replaceChildren();
     setState(note||T('تا زمانی که خودتان درخواست نکنید، هیچ داده حسابی خوانده نمی‌شود.',
       'No account data is requested until you explicitly choose to inspect it.'));
@@ -83,6 +89,8 @@
         typeof result.storageEnabled!=='boolean'||
         typeof result.independentlyVerifiedAdult!=='boolean'||
         typeof result.currentConsent!=='boolean'||
+        typeof result.eligibilityRequestState!=='string'||
+        typeof result.canRequestIndependentAdultReview!=='boolean'||
         result.contentReturned!==false||
         (result.workbookRevision!==null &&
           (!Number.isSafeInteger(result.workbookRevision)||
@@ -102,12 +110,16 @@
       if(!result.schemaProvisioned){
         setState(T('جداول تکمیلی پایگاه داده هنوز نصب نشده‌اند؛ ذخیره‌سازی خصوصی خاموش است.',
           'The additive mother-database schema is not provisioned; private storage remains off.'));
-      }else if(!result.storageEnabled){
-        setState(T('کلید اصلی مدیر یا رمزگذاری و بررسی علمی هنوز آماده نیست. امکان ذخیره خصوصی فعال نشده است.',
-          'Owner activation, encryption or independent review is pending. Private account storage is not enabled.'));
+      }else if(result.eligibilityRequestState==='PENDING'){
+        setState(T('درخواست بررسی حساب ثبت شده است. در این فاصله می‌توانی آزادانه یادگیری را ادامه بدهی و فایل برنامه‌ات را نگه داری.',
+          'Your account review is pending. You can continue learning freely and keep your private study plan.'));
+      }else if(result.eligibilityRequestState==='DECLINED'||
+        result.eligibilityRequestState==='REVOKED'){
+        setState(T('درخواست قبلی تأیید نشده یا تأیید لغو شده است. نسخه شخصی برنامه همچنان در اختیار توست.',
+          'Your eligibility is not currently approved. Your personal offline plan remains available.'));
       }else if(!result.independentlyVerifiedAdult){
-        setState(T('تأیید مستقل بزرگسالی حساب ثبت نشده است. اطلاعات کودک را اینجا وارد نکنید.',
-          'Independent adult verification is absent. Do not submit child information.'));
+        setState(T('اگر بزرگسال هستی، با یک کلیک درخواست بررسی حساب بده؛ تا آن زمان می‌توانی بدون ثبت‌نام آموزش ببینی.',
+          'If you are an adult, request account review with one click. Free learning remains available without account storage.'));
       }else if(!result.currentNoticeConfigured){
         setState(T('متن حقوقیِ نسخه‌دار هنوز تصویب نشده است. رضایت یا داده‌ای دریافت نمی‌شود.',
           'A current approved versioned privacy notice is unavailable; no content is accepted.'));
@@ -174,8 +186,12 @@
     restrict();
     if(!identity.storageEnabled||!identity.independentlyVerifiedAdult||
       !identity.currentNoticeConfigured){
-      setState(T('برنامه‌ات موقتاً در همین تب آماده است. ذخیره در حساب فعلاً فعال نیست؛ برای نگهداری بلندمدت، نسخه خصوصی را روی دستگاه ذخیره کن.',
-        'Your plan is temporarily available in this tab. Account saving is not enabled yet; keep a private local file for later.'));
+      const waiting=identity.eligibilityRequestState==='PENDING';
+      setState(waiting
+        ?T('درخواست بررسی حسابت ثبت شده است. برای حفظ برنامه در این فاصله، نسخه شخصی را روی دستگاه ذخیره کن.',
+          'Your account review is pending. Keep a private device copy of the plan while you wait.')
+        :T('برنامه‌ات آماده است. اگر ۱۸ سال یا بیشتر داری، می‌توانی بررسی حساب را درخواست کنی یا همین‌جا یک نسخه خصوصی روی دستگاه نگه داری.',
+          'Your plan is ready. Adults can request account eligibility or keep a private copy on this device.'));
       return;
     }
     if(!identity.currentConsent){
@@ -267,6 +283,35 @@
       if(stamp===readEpoch){busy=false;refresh.disabled=false;restrict();}
     }
   }
+  requestAdult.addEventListener('click',async()=>{
+    if(!identity?.canRequestIndependentAdultReview||
+       !identity.schemaProvisioned||busy||!active())return;
+    // One affirmative tap makes a PENDING request only. Never upload an ID
+    // document, workbook, birth date, parent record or marketing profile.
+    const result=await command(T('در حال ثبت درخواست بررسی حساب…',
+      'Sending your optional account review request…'),async()=>{
+      const response=await userMutation('eligibility-request',{
+        adultAffirmation:true,
+        confirmation:'I REQUEST INDEPENDENT ADULT REVIEW'
+      });
+      if(response?.ok!==true||
+        response.schema!=='jr.bahar-adult-eligibility-request.v1'||
+        response.documentsUploaded!==false||
+        response.workbookUploaded!==false||
+        response.automaticEligibilityApproval!==false)
+        throw Error('UNCONFIRMED_REQUEST');
+      return response;
+    });
+    if(result?.eligibilityRequestState){
+      identity.eligibilityRequestState=result.eligibilityRequestState;
+      identity.canRequestIndependentAdultReview=false;
+      restrict();
+      setState(T(
+        'درخواستت ثبت شد. نیازی به بارگذاری کارت شناسایی در سایت نیست؛ پس از بررسی مستقل، ذخیرهٔ اختیاری برای حسابت قابل پیگیری خواهد بود.',
+        'Your request is recorded. No identity document needs uploading here. Optional encrypted saving can be considered after independent review.'
+      ));
+    }
+  });
   refresh.addEventListener('click',()=>updateStatus());
   // Single just-in-time consent dialog. This is only for PRIVATE WORKBOOK
   // STORAGE, never for advertising, admissions or unspecified reuse.
