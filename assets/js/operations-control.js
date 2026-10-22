@@ -2316,6 +2316,8 @@ function renderOwnerCommandCenter(){
    ['all',t('همه بخش‌ها','All departments')],
    ['attention',t('نیازمند رسیدگی','Needs attention')],
    ['unknown',t('بدون داده کافی','Missing evidence')],
+   ['paused',t('خاموش و در اختیار مدیر','Off / owner-controlled')],
+   ['recorded',t('دارای شواهد ثبت‌شده','With stored evidence')],
    ['health',t('سلامت و امنیت','Health & security')],
    ['seo',t('سئو و دیده‌شدن','SEO & discoverability')],
    ['business',t('کسب‌وکار و محتوا','Business & content')],
@@ -2398,6 +2400,8 @@ function renderOwnerCommandCenter(){
    const matching=ownerCockpitFilter==='all'||
      (ownerCockpitFilter==='attention'&&item.data.kind==='attention')||
      (ownerCockpitFilter==='unknown'&&item.data.kind==='unknown')||
+     (ownerCockpitFilter==='paused'&&item.data.kind==='paused')||
+     (ownerCockpitFilter==='recorded'&&item.data.kind==='recorded')||
      ownerCockpitFilter===item.group;
    return matching&&(!q||[item.fa,item.eng,item.id,item.descFa,item.descEn,item.data.metric]
      .join(' ').toLocaleLowerCase().includes(q));
