@@ -173,6 +173,15 @@ function baharAccountLatestErasureState(PDO $pdo,string $accountId): array {
         return ['available'=>false,'request'=>null];
     }
 }
+function baharAccountPendingErasure(PDO $pdo,string $accountId): bool {
+    $q=$pdo->prepare("SELECT 1 FROM eco_privacy_requests
+      WHERE requester_account_id=? AND subject_id IS NULL
+        AND request_type='BAHAR_PRIVATE_WORKBOOK_DELETE'
+        AND status IN ('RECEIVED','PENDING','IN_REVIEW','BLOCKED')
+      LIMIT 1");
+    $q->execute([$accountId]);
+    return $q->fetchColumn()!==false;
+}
 function baharAccountCsrf(string $accountId): string {
     $pepper=cfg()['auth_pepper']??'';
     if(!is_string($pepper)||strlen($pepper)<32)
@@ -453,7 +462,8 @@ function baharAccountRoute(string $path,string $verb): never {
               'privacyNotice'=>$notice===null?null:baharAccountNotice($locale),
               'privacyRequestLedgerAvailable'=>$erasure['available'],
               'latestErasureRequest'=>$erasure['request'],
-              'canStore'=>$enabled&&$adult&&$notice!==null&&$currentConsent,
+              'canStore'=>$enabled&&$adult&&$notice!==null&&
+                  $currentConsent&&!baharAccountPendingErasure($pdo,$accountId),
               'workbookRevision'=>$revision,
               'csrfToken'=>baharAccountCsrf($accountId),
               'contentReturned'=>false,
@@ -529,13 +539,25 @@ function baharAccountRoute(string $path,string $verb): never {
         }
         if($path==='/bahar/account/consent'&&$verb==='POST'){
             baharAccountVerifyMutationCsrf($accountId);
-            if(!$enabled||!$adult||$notice===null)fail('bahar_consent_not_available',403);
+            if(!$enabled||!$adult||$notice===null||
+               baharAccountPendingErasure($pdo,$accountId))
+                fail('bahar_consent_not_available',403);
             $body=jsonBody();
             if(($body['confirmation']??null)!=='I CONSENT TO PRIVATE BAHAR STORAGE'||
               ($body['noticeSha256']??null)!==$notice['sha256'])
               fail('consent_not_explicit',422);
             $pdo->beginTransaction();
             try{
+                // Lock owner account to serialize new writes against a
+                // simultaneous requested-erasure transaction.
+                $ownerLock=$pdo->prepare(
+                  'SELECT id FROM customer_accounts WHERE id=? FOR UPDATE'
+                );
+                $ownerLock->execute([$accountId]);
+                if($ownerLock->fetchColumn()===false)
+                    throw new RuntimeException('owner_account_missing');
+                if(baharAccountPendingErasure($pdo,$accountId))
+                    throw new DomainException('pending_erasure_blocks_write');
                 if(!baharAccountVerifiedAdult($pdo,$accountId)||
                    !baharAccountPolicy($pdo)['enabled'])
                    throw new RuntimeException('permission_changed');
@@ -608,7 +630,8 @@ function baharAccountRoute(string $path,string $verb): never {
         if($path==='/bahar/account/workbook'&&$verb==='PUT'){
             baharAccountVerifyMutationCsrf($accountId);
             if(!$enabled||!$adult||$notice===null||
-              !baharAccountHasConsent($pdo,$accountId))
+              !baharAccountHasConsent($pdo,$accountId)||
+              baharAccountPendingErasure($pdo,$accountId))
                 fail('private_access_not_authorized',403);
             $input=jsonBody();
             $rev=$input['expectedRevision']??null;
