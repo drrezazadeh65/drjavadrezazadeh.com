@@ -21,6 +21,7 @@ require_once __DIR__.'/operations-action-runs.php';
 require_once __DIR__.'/operations-provider-inventory.php';
 require_once __DIR__.'/operations-source-directory.php';
 require_once __DIR__.'/operations-source-controls.php';
+require_once __DIR__.'/operations-editor.php';
 require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/social-review.php';
 require_once __DIR__.'/social-admin-settings.php';
@@ -575,6 +576,39 @@ function operationsRoute(string $path, string $verb): never {
                 respond($purge);
             }catch(DomainException $e){fail('source_policy_not_configured',409);}
             catch(Throwable $e){fail('source_retention_unavailable',503);}
+        }
+
+        // Bilingual private editorial workbench; draft storage only.
+        if ($path === '/admin/operations/editor' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_editor_list',$accountId,24,300))fail('rate_limited',429);
+            if(!operationsEditorReady($pdo))fail('editor_schema_not_provisioned',503);
+            respond(operationsEditorList($pdo));
+        }
+        if ($path === '/admin/operations/editor/draft' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_editor_draft_read',$accountId,36,300))fail('rate_limited',429);
+            if(!operationsEditorReady($pdo))fail('editor_schema_not_provisioned',503);
+            try{respond(operationsEditorOpen($pdo,(string)($_GET['id']??'')));}
+            catch(InvalidArgumentException $e){fail('invalid_draft_id',400);}
+            catch(DomainException $e){fail('draft_not_found',404);}
+        }
+        if ($path === '/admin/operations/editor/media' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_editor_media_read',$accountId,20,300))fail('rate_limited',429);
+            respond(operationsEditorMedia());
+        }
+        if ($path === '/admin/operations/editor/save' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('editor_super_admin_required',403);
+            if(!operationsEditorReady($pdo))fail('editor_schema_not_provisioned',503);
+            if(!rateAllowed($pdo,'operations_editor_save',$accountId,20,300))fail('rate_limited',429);
+            try{
+                $request=jsonBody();
+                if(!is_array($request))fail('invalid_editor_payload',400);
+                respond(operationsEditorSave($pdo,$request,$accountId,nowTs()));
+            }catch(InvalidArgumentException $e){fail('invalid_editor_payload',400);}
+            catch(DomainException $e){fail('draft_version_conflict',409);}
+            catch(Throwable $e){fail('editor_save_unavailable',503);}
         }
 
         // Owner-only keyword intelligence: no public asset or unauthenticated strategy data.
