@@ -40,7 +40,7 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
         'ok'=>true,'schema'=>'operations-response-monitor-v1','status'=>'schema_not_provisioned',
         'settings'=>null,'latest'=>[],'history'=>[],
         'limitation'=>'Read-only observation not yet installed in unified MySQL.'];
-    $rows=[];$history=[];
+    $rows=[];$history=[];$observations=[];
     try{
         $q=$pdo->query('SELECT probe_id,kind,observed_at,response_code,result,details_json
             FROM operations_response_probe_samples
@@ -51,6 +51,12 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
             $observedAt=(int)$item['observed_at'];
             $details=json_decode((string)$item['details_json'],true);
             if(!is_array($details))$details=[];
+            $runId=(string)($details['observerRunId']??'');
+            if(!preg_match('/^[a-f0-9]{32}$/D',$runId))$runId='';
+            $observations[]=[
+                'id'=>$id,'observedAt'=>$observedAt,'runId'=>$runId,
+                'result'=>(string)$item['result']
+            ];
             if(!isset($seen[$id])){
                 $rows[]=[
                     'id'=>$id,'kind'=>(string)$item['kind'],
@@ -69,20 +75,26 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
         return ['ok'=>true,'schema'=>'operations-response-monitor-v1',
             'status'=>'read_unavailable','settings'=>$settings,'latest'=>[],'history'=>[]];
     }
-    // Previous UI claimed that the per-path latest rows were "the last
-    // run". In reality those rows may come from different dates. Without a
-    // worker run_id, only samples at the newest recorded *second* can be
-    // treated as one timestamp cohort (not certified as one CLI execution).
+    // A unique non-personal CLI collection token is stored *inside* the
+    // existing per-probe details_json TEXT field, so no schema upgrade is
+    // required. Mixed historical rows remain readable. Only legacy rows
+    // without a token are conservatively grouped by timestamp, never called
+    // an independently verified worker run.
     $probeIds=array_column(operationsResponseProbes(),'id');
-    $newestAt=0;
-    foreach($rows as $row)
-        $newestAt=max($newestAt,(int)$row['observedAt']);
+    $newest=$observations[0]??null;
+    $newestAt=(int)($newest['observedAt']??0);
+    $newestRunId=(string)($newest['runId']??'');
     $cohort=[];
     if($newestAt>0){
-        foreach($rows as $row){
-            if((int)$row['observedAt']!==$newestAt
-               ||!in_array($row['id'],$probeIds,true))continue;
-            $cohort[$row['id']]=$row;
+        foreach($observations as $observation){
+            if(!in_array($observation['id'],$probeIds,true))continue;
+            if($newestRunId!==''){
+                if($observation['runId']!==$newestRunId)continue;
+            }elseif($observation['runId']!=='' ||
+                   $observation['observedAt']!==$newestAt)continue;
+            // Latest sample wins for duplicate paths from a single run.
+            if(!isset($cohort[$observation['id']]))
+                $cohort[$observation['id']]=$observation;
         }
     }
     $missingIds=array_values(array_diff($probeIds,array_keys($cohort)));
@@ -93,7 +105,9 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
         else $unavailable++;
     }
     $coverage=[
-        'evidence'=>'same_timestamp_stored_samples_not_unique_run_id',
+        'evidence'=>$newestRunId!==''?'stored_cli_collection_token'
+            :'legacy_same_timestamp_not_unique_run_id',
+        'runId'=>$newestRunId!==''?$newestRunId:null,
         'expectedTargets'=>count($probeIds),
         'observedTargets'=>count($cohort),
         'missingTargets'=>$missingIds,
@@ -112,7 +126,7 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
             'mandatory'=>['http_status','x_frame_options_or_csp_frame_ancestors','x_content_type_options','referrer_policy','permissions_policy'],
             'advisory'=>['strict_transport_security','content_security_policy']
         ],
-        'limitation'=>'Per-path latest observations may come from different CLI runs. Latest-timestamp coverage groups records by second only, because no durable worker run ID is stored. Even complete and recently recorded HTTP HEAD samples are not real-time site integrity or a security penetration test. Missing HSTS/CSP remain advisory until separately approved.'];
+        'limitation'=>'Newest observations are grouped by an opaque private CLI collection token; historical rows without one use a labeled same-second fallback. A stored collection token proves source correlation, not Cron operation, current live site integrity, mobile rendering, or independent security validation. Missing HSTS/CSP remain advisory until separately approved.'];
 }
 function operationsResponseMonitorConfigure(PDO $pdo,array $input,string $actor,int $at): array {
     $keys=array_keys($input);
@@ -252,20 +266,45 @@ function operationsResponseMonitorCollect(PDO $pdo,int $at): array {
         $due=$policy['enabled'] && $policy['cadence']!=='manual'
             &&$policy['nextDue']>0&&$policy['nextDue']<=$at;
         if(!$manual&&!$due)return ['status'=>'nothing_due','checked'=>0];
-        $rows=[];$failed=[];$unavailable=false;
+        // One fresh identifier per attempted private collector pass; stored
+        // only with non-personal bounded observations, never in a public log.
+        $runId=bin2hex(random_bytes(16));
+        $rows=[];$failed=[];$unavailableByKind=[];$unavailableTargets=0;
+        $failedTargets=0;
         foreach(operationsResponseProbes() as $definition){
             $result=operationsResponseEvaluate($definition,
                 operationsResponseCurl($definition['path']));
             $rows[]=['id'=>$definition['id'],'kind'=>$definition['kind'],
                 'result'=>$result['result'],'code'=>$result['code'],
-                'details'=>$result['details']];
-            if($result['result']==='fail')$failed[$definition['kind']]=true;
-            if($result['result']==='unavailable')$unavailable=true;
+                'details'=>$result['details']+['observerRunId'=>$runId]];
+            if($result['result']==='fail'){
+                $failed[$definition['kind']]=true;$failedTargets++;
+            }
+            if($result['result']==='unavailable'){
+                $unavailableByKind[$definition['kind']]=true;
+                $unavailableTargets++;
+            }
         }
         $next=$policy['enabled']?operationsSourceNextDue(
             $policy['cadence'],$policy['weekday'],$policy['clockMinutes'],$at+60):0;
         $pdo->beginTransaction();
         try{
+            // The operator can disable or reconfigure the observer *while*
+            // its 7 HTTPS requests are in flight. Lock and compare the
+            // singleton just before storing/alerting. A canceled/changed
+            // policy must never be overwritten by stale collector output.
+            $lockRow=$pdo->query('SELECT singleton_id FROM operations_response_probe_settings
+                WHERE singleton_id=1 FOR UPDATE');
+            if($lockRow->fetchColumn()===false){
+                $pdo->rollBack();
+                return ['status'=>'schema_unavailable','checked'=>0];
+            }
+            $currentPolicy=operationsResponseMonitorPolicy($pdo);
+            if($currentPolicy===null||$currentPolicy!==$policy){
+                $pdo->rollBack();
+                return ['status'=>'policy_changed','checked'=>0,
+                    'limitation'=>'Owner changed or revoked the observer during the in-flight requests. Samples and alerts were discarded.'];
+            }
             $q=$pdo->prepare('INSERT INTO operations_response_probe_samples
                 (probe_id,kind,observed_at,response_code,result,details_json,expires_at)
                 VALUES(?,?,?,?,?,?,?)');
@@ -283,13 +322,19 @@ function operationsResponseMonitorCollect(PDO $pdo,int $at): array {
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
         if(isset($failed['headers']))
             operationsAlertRecord($pdo,'security_headers_regressed','public_response_headers',$at);
-        elseif(!$unavailable)
+        elseif(!isset($unavailableByKind['headers']))
             operationsAlertResolve($pdo,'security_headers_regressed','public_response_headers',$at);
         if(isset($failed['redirect']))
             operationsAlertRecord($pdo,'redirects_regressed','historical_redirects',$at);
-        elseif(!$unavailable)
+        elseif(!isset($unavailableByKind['redirect']))
             operationsAlertResolve($pdo,'redirects_regressed','historical_redirects',$at);
-        return ['status'=>$unavailable?'partial':(count($failed)?'regression':'observed'),
-            'checked'=>count($rows),'failed'=>count($failed)];
+        return [
+            'status'=>count($failed)?'regression':
+                ($unavailableTargets>0?'partial':'observed'),
+            'checked'=>count($rows),'failed'=>count($failed),
+            'failedTargets'=>$failedTargets,
+            'unavailableTargets'=>$unavailableTargets,
+            'collectionId'=>$runId
+        ];
     }finally{$pdo->query("SELECT RELEASE_LOCK('drjr_response_monitor_v1')");}
 }
