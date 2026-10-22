@@ -1119,8 +1119,11 @@ function operationsRoute(string $path, string $verb): never {
             if(!rateAllowed($pdo,'operations_collector_master',$accountId,6,3600))
                 fail('rate_limited',429);
             $body=jsonBody();
-            if(!is_array($body)||array_keys($body)!==['enabled']||
-                !is_bool($body['enabled']))fail('invalid_collector_master',400);
+            if(!is_array($body)||array_keys($body)!==['enabled','confirmation']||
+                !is_bool($body['enabled'])||
+                ($body['confirmation']??null)!==($body['enabled']
+                    ?'ENABLE SCHEDULED COLLECTION':'DISABLE SCHEDULED COLLECTION'))
+                fail('invalid_collector_master',400);
             try {
                 operationsCollectorAutomaticConfigure($pdo,$body['enabled'],$accountId,nowTs());
                 $view=operationsCollectorStatus($pdo,nowTs());
