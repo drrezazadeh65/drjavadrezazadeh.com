@@ -73,7 +73,7 @@ function operationsEducationalDraftPriceSave(PDO $pdo,array $input,string $owner
     if(!isset($known[$id]))throw new InvalidArgumentException('unknown_proposal');
     // The owner's introductory entitlement contract is permanently free.
     // Proposed prices for other offerings cannot silently monetize it.
-    if(in_array($id,['talent-intro','rcas-intro','bahar-intro','scorecard-intro'],true)
+    if(in_array($id,operationsEducationFreeIntroIds(),true)
         && $price!==0)throw new InvalidArgumentException('intro_must_remain_free');
     $pdo->beginTransaction();
     try{
