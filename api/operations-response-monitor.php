@@ -154,9 +154,15 @@ function operationsResponseEvaluate(array $definition,array $response): array {
                 'locationObserved'=>$location!==null]];
     }
     $h=$response['headers'];
+    $csp=(string)($h['content-security-policy']??'');
+    // Modern frame-ancestors CSP is an accepted clickjacking protection
+    // equivalent; do not raise a false incident solely because XFO is absent.
+    $xFrame=strtoupper(trim((string)($h['x-frame-options']??'')));
+    $cspFrames=(bool)preg_match('/(?:^|;)\\s*frame-ancestors\\s+(?:\\x27none\\x27|\\x27self\\x27)\\s*(?:;|$)/i',$csp);
+    $clickjackProtected=in_array($xFrame,['DENY','SAMEORIGIN'],true)||$cspFrames;
     $checks=[
         'http_status'=>$status===(int)$definition['expected'],
-        'x_frame_options'=>strtoupper((string)($h['x-frame-options']??''))==='DENY',
+        'x_frame_options_or_csp_frame_ancestors'=>$clickjackProtected,
         'x_content_type_options'=>strtolower((string)($h['x-content-type-options']??''))==='nosniff',
         'referrer_policy'=>in_array(strtolower((string)($h['referrer-policy']??'')),
             ['strict-origin-when-cross-origin','no-referrer','same-origin'],true),
