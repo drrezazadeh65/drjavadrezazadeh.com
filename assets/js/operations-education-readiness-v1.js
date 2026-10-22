@@ -113,6 +113,21 @@
         target:'jr-education-business-report'
       },
       {
+        title:T('درخواست‌های حذف خصوصی BAHAR','BAHAR privacy erasure requests'),
+        count:deps.pendingBaharPrivacyErasureRequests,
+        state:deps.pendingBaharPrivacyErasureRequests===null
+          ?T('وضعیت صف حریم خصوصی نامشخص','Privacy request ledger unavailable')
+          :T('درخواست‌های واقعی ثبت‌شده در دیتابیس مادر',
+              'Observed mother-database privacy requests'),
+        detail:deps.baharPrivacyErasureLegalHolds>0
+          ?T('برخی درخواست‌ها محدودیت قانونی دارند. تکمیل فقط پس از رفع محدودیت مجاز است.',
+              'Some requests are held for lawful retention; no override is allowed.')
+          :T('درخواست‌ها فقط به کاربرگ رمزگذاری‌شده همان حساب مربوط‌اند.',
+              'Each request concerns only its owner’s encrypted workbook.'),
+        button:T('رسیدگی به درخواست‌های حذف','Review privacy erasures'),
+        target:'jr-bahar-erasure-queue'
+      },
+      {
         title:T('درخواست‌های تأیید بزرگسالی','Adult eligibility review queue'),
         count:deps.pendingIndependentAdultReviewRequests,
         state:deps.adultReviewQueueVisible===true
@@ -225,6 +240,12 @@
       [T('تعداد صفحات HTML در ممیزی کد','HTML pages in static quality inventory'),
         deps.pageQualityScoredHtmlPages===null?T('نامشخص','Unknown'):
           number.format(deps.pageQualityScoredHtmlPages)],
+      [T('درخواست‌های حذف BAHAR در انتظار پیگیری','Pending BAHAR erasure requests'),
+        deps.pendingBaharPrivacyErasureRequests===null?T('نامشخص','Unknown'):
+          number.format(deps.pendingBaharPrivacyErasureRequests)],
+      [T('درخواست‌های دارای محدودیت نگهداری قانونی','Privacy requests under legal holds'),
+        deps.baharPrivacyErasureLegalHolds===null?T('نامشخص','Unknown'):
+          number.format(deps.baharPrivacyErasureLegalHolds)],
       [T('درخواست‌های بزرگسال در انتظار بررسی','Adult review applications pending'),
         deps.pendingIndependentAdultReviewRequests===null?T('نامشخص','Unknown'):
           number.format(deps.pendingIndependentAdultReviewRequests)],
