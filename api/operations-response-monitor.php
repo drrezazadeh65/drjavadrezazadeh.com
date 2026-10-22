@@ -98,6 +98,34 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
         }
     }
     $missingIds=array_values(array_diff($probeIds,array_keys($cohort)));
+    // Split trusted source observations by their *actual* sensor family.
+    // A complete header sample says nothing about the redirect sample, and
+    // vice versa. Missing, stale and unavailable must remain distinguishable.
+    $byKind=[];
+    foreach(operationsResponseProbes() as $definition){
+        $kind=$definition['kind'];$id=$definition['id'];
+        if(!isset($byKind[$kind]))$byKind[$kind]=[
+            'expectedTargets'=>0,'observedTargets'=>0,
+            'passedTargets'=>0,'failedTargets'=>0,
+            'unavailableTargets'=>0,'missingTargets'=>[]
+        ];
+        $byKind[$kind]['expectedTargets']++;
+        if(!isset($cohort[$id])){
+            $byKind[$kind]['missingTargets'][]=$id;
+            continue;
+        }
+        $byKind[$kind]['observedTargets']++;
+        $state=$cohort[$id]['result'];
+        if($state==='pass')$byKind[$kind]['passedTargets']++;
+        elseif($state==='fail')$byKind[$kind]['failedTargets']++;
+        else $byKind[$kind]['unavailableTargets']++;
+    }
+    foreach($byKind as &$group){
+        $group['complete']=$group['observedTargets']===$group['expectedTargets'];
+        $group['fresh']=$newestAt>0&&$newestAt>=$at-172800
+            &&$newestAt<=$at+60;
+    }
+    unset($group);
     $failed=0;$unavailable=0;$passed=0;
     foreach($cohort as $row){
         if($row['result']==='fail')$failed++;
@@ -108,12 +136,14 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
         'evidence'=>$newestRunId!==''?'stored_cli_collection_token'
             :'legacy_same_timestamp_not_unique_run_id',
         'runId'=>$newestRunId!==''?$newestRunId:null,
+        'byKind'=>$byKind,
         'expectedTargets'=>count($probeIds),
         'observedTargets'=>count($cohort),
         'missingTargets'=>$missingIds,
         'failedTargets'=>$failed,'unavailableTargets'=>$unavailable,
         'passedTargets'=>$passed,'observedAt'=>$newestAt?:null,
-        'fresh'=>$newestAt>0&&$newestAt>=$at-172800,
+        'fresh'=>$newestAt>0&&$newestAt>=$at-172800
+            &&$newestAt<=$at+60,
         'complete'=>count($missingIds)===0,
         'allPassedAtObservedTime'=>count($missingIds)===0&&
             $failed===0&&$unavailable===0
