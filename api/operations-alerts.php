@@ -249,10 +249,34 @@ function operationsAlertResolve(PDO $pdo,string $code,string $scope,int $at): bo
     }catch(Throwable $e){return false;}
 }
 function operationsAlertSnapshot(PDO $pdo,array $configuration): array {
-    if(!operationsAlertAvailable($pdo))return [
-        'ok'=>true,'schema'=>'operations-alert-center-v1','status'=>'schema_not_provisioned',
-        'mailReady'=>false,'recipientConfigured'=>false,'rows'=>[],'rules'=>[],'recentEmails'=>[],
-        'limitation'=>'Apply the existing unified Bertina operations schema before enabling alerts.'];
+    // Even with missing mother-DB tables, show ALL allowlisted incident
+    // definitions as source-only, NOT as absent or remotely monitored. A
+    // disabled owner console must remain informative without fabricating
+    // zero incidents, a mail queue, a verified recipient, or active rules.
+    if(!operationsAlertAvailable($pdo)){
+        $unprovisioned=[];
+        foreach(operationsAlertDefinitions() as $code=>$def){
+            $unprovisioned[]=[
+                'code'=>$code,'name'=>$def['name'],'severity'=>$def['severity'],
+                'sensorState'=>'schema_unavailable_source_only_'.(string)$def['sensor'],
+                'ruleProvisioned'=>false,'enabled'=>false,
+                'threshold'=>(int)$def['threshold'],
+                'cooldownMinutes'=>(int)$def['cooldown'],
+                'emailDeliveryVerified'=>false
+            ];
+        }
+        return [
+            'ok'=>true,'schema'=>'operations-alert-center-v1',
+            'status'=>'schema_not_provisioned','enabled'=>null,
+            'mailReady'=>false,'recipientConfigured'=>false,
+            'worker'=>'unverified','rows'=>[],
+            'rules'=>$unprovisioned,'recentEmails'=>[],
+            'openCounts'=>['critical'=>null,'warning'=>null,'resolved'=>null],
+            'scopeControls'=>['status'=>'schema_not_provisioned','rows'=>[]],
+            'lastObservedAt'=>null,
+            'limitation'=>'The source defines incident types, but the existing mother database lacks required alert tables. Incident counts and mail readiness are UNKNOWN, not zero. No rule, sensor or delivery is active based on source code alone.'
+        ];
+    }
     $setting=$pdo->query('SELECT enabled FROM operations_alert_settings WHERE singleton_id=1')->fetch(PDO::FETCH_ASSOC);
     $definitions=operationsAlertDefinitions();$rules=[];
     $httpSensor='not_configured';
