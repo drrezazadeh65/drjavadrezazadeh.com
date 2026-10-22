@@ -346,3 +346,46 @@
     scroll-behavior:auto!important;transition:none!important;
   }
 }
+
+/* The owner sees real prerequisites rather than decorative enabled states. */
+#ops-command-center .oc-dependency-list{
+  margin:13px 0 20px;border:1px solid rgba(240,209,141,.31);
+  border-radius:14px;background:rgba(7,19,31,.35);
+  padding:12px 15px;overflow-wrap:anywhere;
+}
+#ops-command-center .oc-dependency-list>summary{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:8px;cursor:pointer;font-size:.98rem;font-weight:720;
+  color:var(--oc-ink);list-style-position:inside;
+}
+#ops-command-center .oc-dependency-list>summary span{
+  font-size:.74rem;color:var(--oc-gold);text-align:end
+}
+#ops-command-center .oc-dependency-list>p{color:var(--oc-muted);line-height:1.7}
+#ops-command-center .oc-dependency-row{
+  display:flex;gap:12px;align-items:center;justify-content:space-between;
+  padding:11px 0;border-top:1px solid rgba(235,228,206,.13)
+}
+#ops-command-center .oc-dependency-row:first-of-type{margin-top:12px}
+#ops-command-center .oc-dependency-row>div{flex:1;min-width:0}
+#ops-command-center .oc-dependency-row strong{
+  display:block;font-size:.85rem;color:var(--oc-ink);
+}
+#ops-command-center .oc-dependency-row small{
+  display:block;font-size:.78rem;color:var(--oc-muted);
+  line-height:1.6;margin-top:3px;overflow-wrap:anywhere
+}
+#ops-command-center .oc-dependency-row[data-severity="attention"]{
+  border-inline-start:3px solid #eb9a7f;padding-inline-start:11px
+}
+#ops-command-center .oc-dependency-row button{flex:0 0 auto;font-size:.75rem}
+@media(max-width:650px){
+  #ops-command-center .oc-dependency-list>summary{
+    display:block;line-height:1.7
+  }
+  #ops-command-center .oc-dependency-list>summary span{
+    display:block;text-align:start
+  }
+  #ops-command-center .oc-dependency-row{align-items:stretch;flex-direction:column}
+  #ops-command-center .oc-dependency-row button{width:100%}
+}
