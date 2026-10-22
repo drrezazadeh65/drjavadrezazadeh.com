@@ -53,7 +53,8 @@ function operationsHttpObserverStatus(PDO $pdo,array $config): array {
         foreach($q as $r)$routes[]=[
             'route'=>$r['route_path'],'type'=>$r['classification'],
             'occurrences'=>(int)$r['total_hits'],'lastSeenAt'=>(int)$r['last_seen_at']];
-        $view['state']=$cursor?(((int)$cursor['updated_at']>=time()-900)?'observed':'stale'):($configured?'ready_for_first_read':'not_configured');
+        $view['state']=!$configured?'not_configured':
+            ($cursor?(((int)$cursor['updated_at']>=time()-900)?'observed':'stale'):'ready_for_first_read');
         $view['lastObservedAt']=$cursor?(int)$cursor['updated_at']:null;
         $view['batches']=array_map(static fn($r)=>[
             'at'=>(int)$r['observed_at'],'scanned'=>(int)$r['records_read'],
@@ -90,16 +91,18 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
             $offset=($cursor['log_inode']===$inode&&(int)$cursor['byte_offset']<=$size)
                 ?(int)$cursor['byte_offset']:0;
             if(fseek($fh,$offset)!==0)return ['status'=>'read_unavailable','lines'=>0,'errors404'=>0,'errors5xx'=>0];
-            $read=0;$bytes=0;$errors404=0;$errors5xx=0;$routes=[];
+            $read=0;$bytes=0;$errors404=0;$errors5xx=0;$recent404=0;$recent5xx=0;$routes=[];
             while(!feof($fh)&&$read<5000&&$bytes<1048576){
                 $line=fgets($fh,8192);if($line===false)break;
                 $bytes+=strlen($line);$read++;
                 if(!str_ends_with($line,"\n")&&!feof($fh))continue;
                 $parsed=operationsHttpParse($line);if(!$parsed)continue;
-                // Exclude very old backlogs or implausible future timestamps from
-                // urgent alerts, while keeping the bounded operational counts.
+                // Count older records for history, but only records with genuine
+                // timestamps in the last five minutes may raise urgent alerts.
+                $current=$parsed['at']>=$at-300 && $parsed['at']<=$at+60;
                 if($parsed['status']===404){
                     $errors404++;
+                    if($current)$recent404++;
                     if($parsed['route']){
                         $key=$parsed['route']['path'].'|404';
                         if(!isset($routes[$key]))$routes[$key]=[
@@ -109,7 +112,7 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
                         $routes[$key]['count']++;
                         $routes[$key]['lastSeenAt']=max($routes[$key]['lastSeenAt'],$parsed['at']);
                     }
-                }else $errors5xx++;
+                }else{$errors5xx++;if($current)$recent5xx++;}
             }
             $end=ftell($fh);if($end===false)throw new RuntimeException('log_cursor_unavailable');
             $pdo->beginTransaction();
@@ -137,11 +140,14 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
             }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
             // Only current batches can produce urgent alerts. No raw route,
             // visitor identity or logs ever enter an email.
-            if($read>0&&$at-($cursor['updated_at']??$at)<=900){
-                if($errors5xx>0)operationsAlertRecord($pdo,'http_5xx_surge','site_http_5xx',$at);
-                else operationsAlertResolve($pdo,'http_5xx_surge','site_http_5xx',$at);
-                if($errors404>=10)operationsAlertRecord($pdo,'http_404_surge','site_http_404',$at);
-                else operationsAlertResolve($pdo,'http_404_surge','site_http_404',$at);
+            // Never generate an urgent email from historical logfile backlog.
+            // A clean recent batch can resolve an incident, but a batch
+            // consisting only of old records cannot establish recovery.
+            if($read>0&&$at-(int)$cursor['updated_at']<=900){
+                if($recent5xx>0)operationsAlertRecord($pdo,'http_5xx_surge','site_http_5xx',$at);
+                else if($recent404>0)operationsAlertResolve($pdo,'http_5xx_surge','site_http_5xx',$at);
+                if($recent404>=10)operationsAlertRecord($pdo,'http_404_surge','site_http_404',$at);
+                else if($recent404>0)operationsAlertResolve($pdo,'http_404_surge','site_http_404',$at);
             }
             return ['status'=>'observed','lines'=>$read,'errors404'=>$errors404,'errors5xx'=>$errors5xx];
         }finally{fclose($fh);}
