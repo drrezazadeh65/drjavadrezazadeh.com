@@ -830,11 +830,25 @@ function baharAccountRoute(string $path,string $verb): never {
                   WHERE owner_account_id=?');
                 $delete->execute([$accountId]);
                 $deleted=$delete->rowCount()===1;
+                // The older direct DELETE contract must also revoke the
+                // preceding private-storage grant, otherwise an old account
+                // handoff could recreate a workbook after explicit deletion.
+                $withdraw=$pdo->prepare("UPDATE eco_consent_records c
+                    INNER JOIN eco_consent_notices n ON n.id=c.notice_id
+                    SET c.withdrawn_at=UTC_TIMESTAMP(3)
+                    WHERE c.account_id=? AND c.subject_id IS NULL
+                      AND c.source_code='BAHAR_ACCOUNT_WORKBOOK'
+                      AND n.purpose_code=? AND c.decision='GRANTED'
+                      AND c.withdrawn_at IS NULL");
+                $withdraw->execute([$accountId,JR_BAHAR_ACCOUNT_PURPOSE]);
+                if($withdraw->rowCount()>0)
+                    baharAccountAudit($pdo,$accountId,'BAHAR_ACCOUNT_CONSENT_WITHDRAWN');
                 baharAccountAudit($pdo,$accountId,'BAHAR_ACCOUNT_WORKBOOK_DELETED');
                 $pdo->commit();
                 respond(['ok'=>true,'databaseRowDeleted'=>$deleted,
                   'currentRecordAbsent'=>!$deleted,
                   'auditRetained'=>true,'backupErasureNotCertified'=>true,
+                  'previousPrivateConsentRevoked'=>true,
                   'legalRetentionRightsUnaffected'=>true]);
             }catch(DomainException $e){
                 if($pdo->inTransaction())$pdo->rollBack();
