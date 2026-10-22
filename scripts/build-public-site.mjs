@@ -82,6 +82,8 @@ const sourceReviewPrivate={
   guides:admissionManifest.sources.map(r=>({
     key:r.key,category:r.category,
     pdfPageCount:r.pdfPageCount,
+    // Original-PDF SHA256 is integrity metadata, not a Drive credential.
+    pdfSha256:r.sha256,
     pageAudit:r.pdfPageAudit,
     tableReview:r.criticalTablesVerification,
     extraction:r.extractionStatus,
