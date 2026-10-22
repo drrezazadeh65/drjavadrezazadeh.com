@@ -966,3 +966,27 @@ for(const [locale,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']
   await expect(panel.locator('[data-aisv-results]')).toBeEmpty();
  });
 }
+
+
+/* P6 navigation lives inside the existing authenticated workspace; no
+ * additional route or engine, and mobile document width must remain stable. */
+for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
+ test(language+' owner wayfinding stays in the MFA workspace at mobile width',async({page})=>{
+  await page.setViewportSize({width:360,height:800});
+  await authorized(page);
+  await page.goto(base+route);
+  const nav=page.locator('#ops-workspace nav.ops-jump');
+  await expect(nav).toBeVisible();
+  const links=nav.locator('a');
+  await expect(links).toHaveCount(9);
+  for(const target of ['ops-executive-stats','ops-queue','ops-commerce',
+    'ops-social','ops-scientific-readiness','ops-jhela-maturity']){
+    await expect(nav.locator('a[href="#'+target+'"]')).toHaveCount(1);
+    await expect(page.locator('#'+target)).toHaveCount(1);
+  }
+  const width=await page.evaluate(()=>
+    Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-window.innerWidth);
+  expect(width).toBeLessThanOrEqual(1);
+  expect(await page.evaluate(()=>localStorage.length)).toBe(0);
+ });
+}
