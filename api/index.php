@@ -61,6 +61,9 @@ function cfg(): array {
         'operations_admins' => [],
         // Private mailbox for operational incidents (never returned to browsers).
         'operations_alert_recipient' => (string)(getenv('JR_OPERATIONS_ALERT_RECIPIENT') ?: ''),
+        // Optional, private Bertina access-log reader (never on web requests).
+        'operations_access_log_path' => (string)(getenv('JR_OPERATIONS_ACCESS_LOG_PATH') ?: ''),
+        'operations_http_retention_days' => (int)(getenv('JR_OPERATIONS_HTTP_RETENTION_DAYS') ?: 90),
     ];
     $local = __DIR__ . '/config.local.php';
     if (is_file($local)) {
