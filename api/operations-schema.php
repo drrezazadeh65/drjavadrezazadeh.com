@@ -240,21 +240,50 @@ function operationsInstall(PDO $pdo): void {
             UNIQUE KEY uq_editor_version(draft_id,version),
             INDEX idx_editor_revisions(draft_id,created_at),
             FOREIGN KEY (draft_id) REFERENCES operations_content_drafts(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_database_health_settings (
+            singleton_id TINYINT UNSIGNED PRIMARY KEY,
+            monitoring_enabled TINYINT NOT NULL DEFAULT 0,
+            error_logging_enabled TINYINT NOT NULL DEFAULT 0,
+            cadence ENUM('manual','hourly','daily') NOT NULL DEFAULT 'manual',
+            clock_minutes SMALLINT UNSIGNED NOT NULL DEFAULT 210,
+            retention_days SMALLINT UNSIGNED NOT NULL DEFAULT 90,
+            updated_at BIGINT NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_database_error_events (
+            fingerprint CHAR(64) PRIMARY KEY,
+            category VARCHAR(48) NOT NULL,
+            component VARCHAR(48) NOT NULL,
+            sqlstate_class CHAR(2) NULL,
+            driver_code VARCHAR(12) NULL,
+            first_observed_at BIGINT NOT NULL,
+            last_observed_at BIGINT NOT NULL,
+            occurrence_count INT UNSIGNED NOT NULL DEFAULT 1,
+            INDEX idx_ops_db_error_last(last_observed_at),
+            INDEX idx_ops_db_error_category(category,last_observed_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     ];
     foreach ($statements as $sql) $pdo->exec($sql);
     operationsCollectorSeed($pdo,time());
+    // Scheduling is ALWAYS off until explicitly authorised by the owner.
+    // A missing master row also fails closed in the CLI worker.
+    $pdo->prepare("INSERT IGNORE INTO operations_collection_policies
+      (scope_key,enabled,cadence,clock_minutes,next_due,updated_at)
+      VALUES ('system:scheduled_collection',0,'manual',0,0,?)")->execute([time()]);
+    $pdo->prepare("INSERT IGNORE INTO operations_database_health_settings
+      (singleton_id,monitoring_enabled,error_logging_enabled,cadence,clock_minutes,retention_days,updated_at)
+      VALUES (1,0,0,'manual',210,90,?)")->execute([time()]);
     $pdo->prepare('INSERT IGNORE INTO operations_response_probe_settings
         (singleton_id,enabled,cadence,weekday,clock_minutes,retention_days,next_due,requested_at,updated_at)
         VALUES(1,0,\'manual\',1,210,90,0,0,?)')->execute([time()]);
     // Idempotent baseline; never overwrite preferences set by an administrator.
-    $pdo->prepare('INSERT IGNORE INTO operations_alert_settings(singleton_id,enabled,updated_at) VALUES(1,1,?)')
+    $pdo->prepare('INSERT IGNORE INTO operations_alert_settings(singleton_id,enabled,updated_at) VALUES(1,0,?)')
         ->execute([time()]);
     require_once __DIR__.'/operations-alerts.php';
     $seed=$pdo->prepare('INSERT IGNORE INTO operations_alert_rules
         (event_code,enabled,threshold_count,cooldown_minutes,updated_at) VALUES (?,?,?,?,?)');
     foreach(operationsAlertDefinitions() as $code=>$rule)
-        $seed->execute([$code,1,$rule['threshold'],$rule['cooldown'],time()]);
+        $seed->execute([$code,0,$rule['threshold'],$rule['cooldown'],time()]);
 
 }
 
