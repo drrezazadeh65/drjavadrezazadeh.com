@@ -124,8 +124,43 @@ function inspectQuality(route,html,schema){
    speed:{score:null,passed:0,applicable:0,source:'field_and_lab_data_unavailable',findings:[]},
    security:{score:null,passed:0,applicable:0,source:'runtime_headers_not_observed',findings:[]}
  };
+ // Source-only dimensions. These do not certify deployed HTTP, mobile
+ // usability, accessibility compliance, rich results or AI citations.
+ // Legacy fields remain for consumers of the earlier inventory.
+ grades.onPageSeo=grades.seo;
+ grades.technicalSeo=eligible?score([
+   c('canonical_identity_in_source',canonical),
+   c('html_language',lang),
+   c('language_alternates',reciprocal),
+   c('robots_meta_present',!!getMeta('robots')),
+   c('valid_schema_syntax',!schema.errors.some(e=>e.code==='malformed_json_ld'))
+ ],'static_technical_seo_not_live_http'):{score:null,passed:0,applicable:0,
+   source:'not_applicable_private_or_noindex',findings:[]};
+ grades.accessibility=score([
+   c('document_language',lang),
+   c('main_landmark',main),
+   c('skip_navigation',has(html,/(?:skip-link|skip-to-content|پرش به محتوا)/i)),
+   c('image_text_alternatives',alt,imgs.length>0),
+   c('form_label_structure',formsNamed,forms.length>0),
+   c('button_accessible_names_source',controlsNamed,buttons.length>0)
+ ],'static_accessibility_markup_not_manual_wcag_audit');
+ grades.aiReadiness=grades.ai;
+ grades.schema=eligible?score([
+   c('json_ld_present',schema.structuredDataBlocks>0),
+   c('no_malformed_json_ld',!schema.errors.some(e=>e.code==='malformed_json_ld')),
+   c('entity_type_declared',schema.schemaTypes.length>0),
+   c('entity_identifier_in_source',schema.entityIds.length>0)
+ ],'static_schema_markup_not_google_rich_results'):{score:null,passed:0,applicable:0,
+   source:'not_applicable_private_or_noindex',findings:[]};
+ grades.mobile=score([
+   c('responsive_viewport',viewport),
+   c('document_direction',schema.language!=='fa'||has(html,/<html\b[^>]*dir=["']rtl["']/i)),
+   c('intrinsic_image_dimensions',sized,imgs.length>0),
+   c('noncritical_image_loading_hints',hints,imgs.length>1),
+   c('navigation_markup',has(html,/<nav\b/i))
+ ],'static_mobile_structure_not_device_experience');
  const measured=Object.entries(grades).filter(([k,v])=>
-   ['content','image','seo','ui','ux','ai','geo','speedReadiness'].includes(k)&&v.score!==null);
+   ['content','image','onPageSeo','technicalSeo','ui','ux','accessibility','aiReadiness','geo','schema','mobile'].includes(k)&&v.score!==null);
  const overall=measured.length?Number((measured.reduce((sum,[,v])=>sum+v.score,0)/measured.length).toFixed(1)):null;
  return {route,url:BASE+route,language:schema.language,
     indexability:privateRoute?'private_noindex_required':schema.indexability,
@@ -170,7 +205,8 @@ export function generateQualityInventory(root){
      if(!route.startsWith('/')||seen.has(route)||route.length>500)continue;
      seen.add(route);
      const grades=Object.fromEntries(
-       ['content','image','seo','ui','ux','ai','geo','speedReadiness','speed','security']
+       ['content','image','seo','ui','ux','ai','geo','speedReadiness','speed','security',
+         'onPageSeo','technicalSeo','accessibility','aiReadiness','schema','mobile']
          .map(key=>[key,{score:null,passed:0,applicable:0,
            source:'dynamic_sitemap_route_not_inspected',findings:[]}]));
      rows.push({route,url:BASE+route,language:route.startsWith('/fa/')?'fa':
@@ -186,6 +222,6 @@ export function generateQualityInventory(root){
  return {schema:'operations-page-quality-inventory-v1',source:'committed_html_not_production',
    generatedAt:new Date().toISOString(),total:rows.length,
    scoringContract:'0..10 source-only structural readiness. Missing field speed, security headers and AI citations are null, not zero. Categories are independent.',
-   categories:['content','image','seo','ui','ux','ai','geo','speedReadiness','speed','security'],
+   categories:['content','image','onPageSeo','technicalSeo','ui','ux','accessibility','aiReadiness','geo','schema','speed','mobile','security'],
    pages:rows};
 }
