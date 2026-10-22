@@ -119,6 +119,42 @@ function operationsInstall(PDO $pdo): void {
             INDEX idx_ops_sample_source_time(source_id,observed_at),
             INDEX idx_ops_sample_expiration(expires_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_alert_settings (
+            singleton_id TINYINT UNSIGNED PRIMARY KEY,
+            enabled TINYINT NOT NULL DEFAULT 1,
+            updated_at BIGINT NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_alert_rules (
+            event_code VARCHAR(48) PRIMARY KEY,
+            enabled TINYINT NOT NULL DEFAULT 1,
+            threshold_count SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+            cooldown_minutes SMALLINT UNSIGNED NOT NULL DEFAULT 60,
+            updated_at BIGINT NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_alert_incidents (
+            fingerprint CHAR(64) PRIMARY KEY,
+            event_code VARCHAR(48) NOT NULL,
+            scope_key VARCHAR(96) NOT NULL,
+            severity ENUM('critical','warning') NOT NULL,
+            first_seen_at BIGINT NOT NULL,
+            last_seen_at BIGINT NOT NULL,
+            occurrence_count BIGINT UNSIGNED NOT NULL DEFAULT 1,
+            state ENUM('open','acknowledged','resolved') NOT NULL DEFAULT 'open',
+            last_queued_at BIGINT NOT NULL DEFAULT 0,
+            INDEX idx_ops_incident_time(last_seen_at),
+            INDEX idx_ops_incident_code(event_code,state)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_alert_outbox (
+            message_id CHAR(64) PRIMARY KEY,
+            fingerprint CHAR(64) NOT NULL,
+            status ENUM('pending','reserved','accepted','uncertain','expired') NOT NULL DEFAULT 'pending',
+            created_at BIGINT NOT NULL,
+            attempted_at BIGINT NULL,
+            sent_at BIGINT NULL,
+            INDEX idx_ops_alert_due(status,created_at),
+            INDEX idx_ops_alert_incident(fingerprint),
+            FOREIGN KEY(fingerprint) REFERENCES operations_alert_incidents(fingerprint) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
         "CREATE TABLE IF NOT EXISTS operations_content_drafts (
             id CHAR(32) PRIMARY KEY,
             language ENUM('fa','en') NOT NULL,
@@ -155,6 +191,15 @@ function operationsInstall(PDO $pdo): void {
     ];
     foreach ($statements as $sql) $pdo->exec($sql);
     operationsCollectorSeed($pdo,time());
+    // Idempotent baseline; never overwrite preferences set by an administrator.
+    $pdo->prepare('INSERT IGNORE INTO operations_alert_settings(singleton_id,enabled,updated_at) VALUES(1,1,?)')
+        ->execute([time()]);
+    require_once __DIR__.'/operations-alerts.php';
+    $seed=$pdo->prepare('INSERT IGNORE INTO operations_alert_rules
+        (event_code,enabled,threshold_count,cooldown_minutes,updated_at) VALUES (?,?,?,?,?)');
+    foreach(operationsAlertDefinitions() as $code=>$rule)
+        $seed->execute([$code,1,$rule['threshold'],$rule['cooldown'],time()]);
+
 }
 
 /** Exact-release evidence is accepted only by the one-time authenticated deployment helper. */
