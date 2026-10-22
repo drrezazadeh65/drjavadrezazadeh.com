@@ -158,6 +158,10 @@ function operationsDbHealthReport(PDO $pdo,int $at): array {
         // Additive log table not installed, missing privilege or DB outage:
         // cannot distinguish causes without independent host evidence.
     }
+    $result['observationHistory']=function_exists('operationsDbHealthHistory')
+        ?operationsDbHealthHistory($pdo,$settings,$at)
+        :['status'=>'unavailable','rows'=>[],'ownerPolicyEnabled'=>false,
+            'nextDueAt'=>null,'hostCronVerified'=>null];
     return $result;
 }
 
