@@ -1171,6 +1171,33 @@ function renderMasterEngineConsole(host,model){
      reportingRender();
      $('ops-reporting')?.scrollIntoView({block:'start'});
    });card.append(open);
+   const engineMailPolicy=(alertCenterCurrent?.scopeControls?.rows||
+     model.alertCenter?.scopeControls?.rows||[])
+       .find(scope=>scope.id==='engine:'+engine.id);
+   if(engineMailPolicy){
+     card.append(el('small',t('ایمیل رخداد این موتور: ','Incident email for this engine: ')+
+       (engineMailPolicy.emailEnabled?t('مجاز','Allowed'):t('خاموش','Off'))));
+     if((alertCenterCurrent||model.alertCenter)?.canManage===true){
+       const mail=el('button',engineMailPolicy.emailEnabled?
+         t('خاموش کردن ایمیل این موتور','Disable this engine’s emails'):
+         t('فعال‌کردن ایمیل این موتور','Enable this engine’s emails'));
+       mail.type='button';
+       mail.addEventListener('click',async()=>{
+         const generation=loadGeneration;mail.disabled=true;
+         try{
+           const updated=await api('/alert-scopes',{method:'POST',
+             headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+             body:JSON.stringify({scopeId:'engine:'+engine.id,
+               enabled:!engineMailPolicy.emailEnabled})});
+           if(generation!==loadGeneration||!snapshot)return;
+           const current=alertCenterCurrent||model.alertCenter;
+           alertCenterCurrent={...current,scopeControls:updated};
+           reportingRender();
+         }catch(error){if(generation===loadGeneration)notice(errorMessage(error),true);}
+         finally{if(mail.isConnected)mail.disabled=false;}
+       });card.append(mail);
+     }
+   }
    if(ownedFeatures.length){
      const hidden=el('details');hidden.className='ops-existing-features';
      hidden.append(el('summary',t('قابلیت‌های دیگر این موتور: ',
