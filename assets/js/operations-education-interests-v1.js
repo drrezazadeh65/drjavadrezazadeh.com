@@ -54,8 +54,10 @@
     stats.replaceChildren();
     const box=el('div',undefined,'jr-edu-interests__stats');
     const pairs=[
-      [T('ایمیل‌های تأییدشده','Verified emails'),number(snapshot.verifiedCount)],
-      [T('در انتظار تأیید','Pending mailbox verification'),number(snapshot.pendingCount)],
+      [T('تأییدشده با رضایت‌نامه فعلی','Verified under current notice'),number(snapshot.verifiedCount)],
+      [T('تأییدهای نسخه قدیمی؛ غیرمجاز برای تماس جدید','Retired-notice opt-ins; not contactable'),number(snapshot.legacyVerifiedCount)],
+      [T('در انتظار تأیید با متن فعلی','Pending current-notice verification'),number(snapshot.pendingCount)],
+      [T('درخواست‌های متن قدیمی؛ نیازمند درخواست جدید','Outdated pending requests; require fresh opt-in'),number(snapshot.stalePendingCount)],
       [T('وضعیت واقعی جمع‌آوری','Capture state'),
         snapshot.effectiveCaptureEnabled===true?T('با اجازه مدیر فعال','Owner enabled'):
           T('خاموش یا آماده نشده','Disabled or not provisioned')],
@@ -124,8 +126,8 @@
         )));
       }
     }
-    status.textContent=T('فقط اشتراک‌های تأییدشده برای تماس آموزشی مجازند. ارسال ایمیل خودکار از این پنل انجام نمی‌شود.',
-      'Only verified topic-specific opt-ins are contactable. This panel does not send any email.');
+    status.textContent=T('فقط اشتراک‌های دارای تأیید ایمیل و نسخه فعلی رضایت‌نامه برای تماس آموزشی مجازند. سوابق قدیمی از فهرست تماس حذف می‌شوند و این پنل ایمیل خودکار نمی‌فرستد.',
+      'Only email-verified, current-notice topic opt-ins are eligible for educational contact. Retired consent is excluded from the contact list; this panel sends no automatic email.');
   }
   async function getSnapshot(includeContacts=false){
     if(!permitted()||busy)return false;
