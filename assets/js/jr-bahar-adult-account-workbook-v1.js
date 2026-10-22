@@ -123,9 +123,17 @@
       if(stamp!==readEpoch||error?.name==='AbortError')return false;
       identity=null;notice.replaceChildren();
       setState(error.message==='LOGIN'
-        ?T('ابتدا وارد حساب تأییدشده خود شوید.','Sign in to your verified account first.')
-        :T('وضعیت امن قابل تأیید نیست؛ هیچ محتوایی ارسال یا بازیابی نشد.',
-          'Private storage status could not be verified. No workbook content was transmitted or retrieved.'));
+        ?T('برای ادامه و ذخیره برنامه، وارد حساب کاربری شوید.',
+          'Sign in to your account to continue and save your plan.')
+        :T('ذخیره امن در حساب هنوز آماده نیست؛ می‌توانید نسخه شخصی برنامه را روی دستگاه نگه دارید.',
+          'Account saving is not available yet; you can keep a private copy on your device.'));
+      if(error.message==='LOGIN'){
+        const link=document.createElement('a');
+        link.href=en?'/en/login/':'/fa/login/';
+        link.textContent=T('ورود یا ثبت‌نام','Sign in or register');
+        link.style.cssText='display:inline-flex;min-height:44px;align-items:center;margin-inline-start:12px;color:#f4d99e;font-weight:750';
+        state.append(document.createTextNode(' '),link);
+      }
       return false;
     }finally{
       if(stamp===readEpoch){busy=false;controller=null;refresh.disabled=false;restrict();}
