@@ -419,6 +419,11 @@ if(!fs.existsSync(relayPath)) {
 
 const textExt=/\.(?:html|js|css|json|xml|txt|webmanifest)$/i;
 for(const file of all.filter(p=>textExt.test(p))){
+  // The private API directory is denied by Apache (verified above). Those
+  // read models intentionally reference canonical source file names for
+  // provenance. They are not public assets or client-side imports.
+  const relative=path.relative(out,file).replaceAll(path.sep,'/');
+  if(relative.startsWith('api/internal/'))continue;
   const content=fs.readFileSync(file,'utf8');
   if(/(?:["'(=]|url\()\s*\/?(?:platform|foundation|scripts|tests|edge|payment-api|docs)\//i.test(content)){
     const rel=path.relative(out,file).replaceAll(path.sep,'/');
