@@ -166,9 +166,19 @@ function operationsCollectorStatus(PDO $pdo,int $at): array {
         $policy['cacheState']=$cache['states'][$key]['status']??($policy['connected']?'not_connected':'not_implemented');
         $policy['lastFetchedAt']=$cache['states'][$key]['fetchedAt']??null;
         $policy['lastAttempt']=$policy['type']==='source'?($attempts['byScope'][$key]??null):null;
-        $policy['executionEvidence']=$policy['type']!=='source'?'not_applicable':($policy['lastAttempt']===null?'never_observed':(($policy['lastAttempt']['result']??'')==='failed'?'last_attempt_failed':'attempt_recorded'));
+        // Recorded attempts prove only application-level activity; neither a
+        // due timestamp nor a manual refresh can certify cPanel Cron.
+        $policy['executionEvidence']=$policy['type']!=='source'?'not_applicable':
+            ($attempts['status']!=='available'?'journal_unavailable':
+                ($policy['lastAttempt']===null?'never_observed':
+                    (($policy['lastAttempt']['result']??'')==='failed'?'last_attempt_failed':
+                        (($policy['lastAttempt']['result']??'')==='succeeded'?'attempt_recorded':'attempt_unknown'))));
         $due=(int)($policy['nextDue']??0);
-        $policy['scheduleEvidence']=!$policy['enabled']?'disabled':(in_array($policy['cadence'],['manual','live'],true)?'not_scheduled':($due<=0?'not_scheduled':($due<=$at?'due_unverified':'scheduled_unverified')));
+        $policy['scheduleEvidence']=$policy['type']!=='source'?'engine_switch_only':
+            (!$policy['enabled']?'disabled':
+                (in_array($policy['cadence'],['manual','live'],true)?'not_scheduled':
+                    ($due<=0?'not_scheduled':
+                        ($due<=$at?'due_unverified':'scheduled_unverified'))));
         $rows[]=$policy;
     }
     return ['ok'=>true,'schema'=>'operations-collection-controls-v1',
