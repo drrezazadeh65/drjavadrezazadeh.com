@@ -118,6 +118,39 @@ function operationsInstall(PDO $pdo): void {
             created_at BIGINT NOT NULL,
             INDEX idx_ops_sample_source_time(source_id,observed_at),
             INDEX idx_ops_sample_expiration(expires_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_content_drafts (
+            id CHAR(32) PRIMARY KEY,
+            language ENUM('fa','en') NOT NULL,
+            content_type ENUM('article','news','page','newsletter','book-description') NOT NULL,
+            title VARCHAR(180) NOT NULL,
+            body_markdown MEDIUMTEXT NOT NULL,
+            seo_title VARCHAR(180) NOT NULL,
+            seo_description VARCHAR(360) NOT NULL,
+            media_path VARCHAR(240) NULL,
+            status ENUM('draft','archived') NOT NULL DEFAULT 'draft',
+            version INT UNSIGNED NOT NULL DEFAULT 1,
+            created_at BIGINT NOT NULL,
+            updated_at BIGINT NOT NULL,
+            updated_by CHAR(36) NOT NULL,
+            INDEX idx_editor_draft_status(status,updated_at),
+            INDEX idx_editor_draft_lang(language,content_type)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_content_revisions (
+            revision_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            draft_id CHAR(32) NOT NULL,
+            version INT UNSIGNED NOT NULL,
+            title VARCHAR(180) NOT NULL,
+            body_markdown MEDIUMTEXT NOT NULL,
+            seo_title VARCHAR(180) NOT NULL,
+            seo_description VARCHAR(360) NOT NULL,
+            media_path VARCHAR(240) NULL,
+            status ENUM('draft','archived') NOT NULL,
+            created_at BIGINT NOT NULL,
+            actor_id CHAR(36) NOT NULL,
+            UNIQUE KEY uq_editor_version(draft_id,version),
+            INDEX idx_editor_revisions(draft_id,created_at),
+            FOREIGN KEY (draft_id) REFERENCES operations_content_drafts(id) ON DELETE RESTRICT
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     ];
     foreach ($statements as $sql) $pdo->exec($sql);
