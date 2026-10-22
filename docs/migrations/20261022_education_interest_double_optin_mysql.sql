@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS eco_education_interest_leads (
 CREATE TABLE IF NOT EXISTS eco_education_interest_consent_events (
   event_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   lead_id CHAR(36) NOT NULL,
-  event_code ENUM('SUBMITTED','EMAIL_VERIFIED','WITHDRAWN') NOT NULL,
+  event_code ENUM('SUBMITTED','EMAIL_VERIFIED','WITHDRAWN','EXPIRED') NOT NULL,
   consent_version VARCHAR(32) NOT NULL,
   notice_sha256 CHAR(64) NOT NULL,
   occurred_at BIGINT UNSIGNED NOT NULL,
