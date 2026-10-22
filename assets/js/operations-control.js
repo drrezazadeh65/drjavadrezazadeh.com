@@ -2212,7 +2212,8 @@ function renderOwnerCommandCenter(){
  const schemaChecks=readiness?.schemaInventory;
  const smtp=readiness?.smtp;
  const infrastructureOverview=readiness
-   ?state(workersMissing>0?'attention':'paused',
+   ?state(workersMissing>0||workersStale>0?'attention':
+      workersRecent>0?'recorded':'unknown',
      t('ثبت فعالیت اخیر: ','Recently recorded workers: ')+workersRecent+
      ' / '+workerRows.length+' · '+t('Cron تأییدشده: ','Verified Cron: ')+'—',
      t('نمونه اخیر یا تنظیم SMTP به‌معنی نصب Cron یا تحویل ایمیل نیست. نمونه منقضی: ',
