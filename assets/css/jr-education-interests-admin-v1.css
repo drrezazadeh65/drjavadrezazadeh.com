@@ -1,0 +1,37 @@
+/* First-party, separately consented education interest admin views. */
+.jr-edu-interests{border-top:1px solid #ad9562}
+.jr-edu-interests__stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;margin:12px 0}
+.jr-edu-interests__metric{display:grid;gap:7px;min-height:88px;
+  border:1px solid #907a55;border-radius:14px;
+  background:#232c36;padding:14px;color:#f8e6c3}
+.jr-edu-interests__metric strong{font-weight:700;font-size:.93rem;
+  color:#f6e9d5;line-height:1.5}
+.jr-edu-interests__metric span{font-size:clamp(1.08rem,3vw,1.35rem);
+  font-weight:800;color:#ecd299;line-height:1.35}
+.jr-edu-interests__needs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px 14px;margin:16px 0;padding:0;list-style:none}
+.jr-edu-interests__needs li{padding:8px 12px;background:#2a313a;border-radius:10px;
+  border:1px solid #706044;color:#f7ebd9}
+.jr-edu-interests__toggle{display:flex;align-items:center;gap:13px;
+  min-height:50px;margin:16px 0}
+.jr-edu-interests__toggle input{width:23px;height:23px;accent-color:#dabc7b;flex:none}
+.jr-edu-interests__toggle strong{font-weight:700}
+.jr-edu-interests :is(button,input):focus-visible{outline:3px solid #fff;outline-offset:3px}
+.jr-edu-interests__contacts{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.jr-edu-interests__contact{background:#262e39;border:1px solid #9f895b;
+  border-radius:13px;padding:16px;overflow-wrap:anywhere;
+  display:flex;flex-direction:column;gap:10px}
+.jr-edu-interests__contact strong{color:#f5da9c;font-size:1.04rem}
+.jr-edu-interests__contact p{margin:0;color:#f5ead7}
+.jr-edu-interests__contact button{min-height:44px;border:1px solid #d4b779;
+  border-radius:10px;padding:10px 12px;font:inherit;
+  font-weight:750;color:#1f1c17;background:#e0c386;cursor:pointer}
+.jr-edu-interests__contact button.secondary{background:transparent;color:#f6e9d0}
+[data-jr-edu-interest-status]{padding:12px 14px;
+  border-inline-start:4px solid #dcbf7e;border-radius:9px;background:#2b2c2a;
+  color:#f9eedf;line-height:1.85}
+@media(max-width:680px){.jr-edu-interests__stats,
+  .jr-edu-interests__needs,.jr-edu-interests__contacts{grid-template-columns:1fr}
+  .jr-edu-interests__contact button{width:100%}}
+@media print{.jr-edu-interests__contacts{display:none!important}}
