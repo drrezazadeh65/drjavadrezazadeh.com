@@ -337,7 +337,8 @@ function baharAccountErasureRequest(PDO $pdo,string $actor): array {
         return [
             'ok'=>true,'schema'=>'jr.bahar-private-erasure-request.v1',
             'requestId'=>$requestId,'requestStatus'=>$status,
-            'databaseRowDeleted'=>$holdClear,
+            'databaseRowDeleted'=>$erased,
+            'currentRecordAbsent'=>$holdClear&&!$erased,
             'existingRequestReused'=>false,
             'legalHoldRequiresHumanReview'=>!$holdClear,
             'backupErasureCertified'=>false,
