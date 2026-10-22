@@ -24,6 +24,7 @@ require_once __DIR__.'/operations-source-controls.php';
 require_once __DIR__.'/operations-page-quality.php';
 require_once __DIR__.'/operations-alerts.php';
 require_once __DIR__.'/operations-http-log.php';
+require_once __DIR__.'/operations-response-monitor.php';
 require_once __DIR__.'/operations-existing-features.php';
 require_once __DIR__.'/operations-editor.php';
 require_once __DIR__.'/operations-social.php';
@@ -642,6 +643,58 @@ function operationsRoute(string $path, string $verb): never {
             $view['canManage']=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
             respond($view);
         }
+        if ($path === '/admin/operations/alert-scopes' && $verb === 'GET') {
+            if (!rateAllowed($pdo,'operations_alert_scope_list',$accountId,12,300))
+                fail('rate_limited',429);
+            $view=operationsAlertScopeSnapshot($pdo,nowTs());
+            $view['ok']=true;
+            $view['canManage']=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
+            respond($view);
+        }
+        if ($path === '/admin/operations/alert-scopes' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('alert_scope_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_alert_scope_write',$accountId,20,600))
+                fail('rate_limited',429);
+            if(!operationsAlertAvailable($pdo))fail('alert_scope_schema_unavailable',503);
+            try{
+                $body=jsonBody();
+                if(!is_array($body))fail('invalid_alert_scope',400);
+                $view=operationsAlertScopeUpdate($pdo,$body,$accountId,nowTs());
+                $view['ok']=true;$view['canManage']=true;
+                respond($view);
+            }catch(InvalidArgumentException $e){fail('invalid_alert_scope',400);}
+        }
+
+        // Response monitor: fixed canonical HTTPS targets only. A manual
+        // request queues a CLI probe; no external HTTP is fetched by browsers.
+        if ($path === '/admin/operations/response-health' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_response_health_read',$accountId,12,300))
+                fail('rate_limited',429);
+            $view=operationsResponseMonitorStatus($pdo,nowTs());
+            $view['canManage']=($configuration['operations_admins'][$accountId]['role']??null)==='SUPER_ADMIN';
+            respond($view);
+        }
+        if ($path === '/admin/operations/response-health' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('response_health_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_response_health_write',$accountId,10,900))
+                fail('rate_limited',429);
+            try{
+                $body=jsonBody();
+                if(!is_array($body))fail('invalid_monitor_policy',400);
+                $view=operationsResponseMonitorConfigure($pdo,$body,$accountId,nowTs());
+                $view['canManage']=true;
+                respond($view);
+            }catch(InvalidArgumentException $e){fail('invalid_monitor_policy',400);}
+            catch(DomainException $e){fail('monitor_disabled',409);}
+            catch(Throwable $e){fail('monitor_schema_unavailable',503);}
+        }
+
         if ($path === '/admin/operations/alert-rules' && $verb === 'POST') {
             if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
                 fail('csrf_forbidden',403);
@@ -1218,6 +1271,7 @@ function operationsRoute(string $path, string $verb): never {
             $snapshot['reporting']['pageQualityOverview']=operationsQualitySummary();
             $snapshot['reporting']['existingFeatureInventory']=operationsExistingFeatures();
             $snapshot['reporting']['httpHealth']=operationsHttpObserverStatus($pdo,$configuration);
+            $snapshot['reporting']['responseHealth']=operationsResponseMonitorStatus($pdo,nowTs());
             $snapshot['reporting']['actionExecution']=[
                 'schema'=>'operations-action-execution-report-v1',
                 'status'=>$ready?'available':'schema_not_provisioned',
