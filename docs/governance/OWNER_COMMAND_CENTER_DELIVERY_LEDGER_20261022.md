@@ -66,3 +66,26 @@ Additional pre-existing native workspaces remain accessible via links from comma
 After coding is completed, obtain the owner's permission to lift the test freeze and THEN perform isolated syntax, browser accessibility/RTL/mobile, endpoint permissions, CSRF, privacy-lock, database-migration, source-compatibility, SEO/noindex, CSV sanitization and production smoke tests. A green source test never substitutes for private owner MFA verification or actual host deployment evidence.
 
 **Current release claim: NONE.** This branch is source development only. No owner-approved deployment, test results or newly activated production services are asserted.
+
+
+## Continuation: independent owner controls and MFA usability (22 October 2026)
+
+**Implementation status:** source-only commits on `feature/owner-command-center-20261022`. **NO TESTS, CI REQUESTS, MERGES, CRON REGISTRATIONS, LIVE FETCHES, E-MAIL SENDS OR DEPLOYMENTS** have been initiated by this continuation.
+
+### Changes made in source
+- Source policy readings now distinguish an explicit saved owner policy from a legacy default, and mark missing source-control tables as unavailable rather than implying an operational switch. Automatic master gate and host-Cron verification are separate server fields; **Cron remains unverified**.
+- The independent GitHub source cards now expose an actual MFA-protected, SUPER_ADMIN-authorized manual fetch action backed by the existing `/github-audits/refresh` endpoint. External reference and social-provider cards do not offer fictitious fetch buttons. Manual bulk network fetch requires a confirmation prompt and is never executed when the dashboard is opened.
+- Missing metric and collector-attempt tables are identified explicitly. Zero observations is only shown where a genuine stored table was accessible; otherwise counts are **unknown**.
+- The source catalogue and settings interface has an additive responsive dark/gold design for mobile, tablet and desktop; existing departmental workspaces and routes remain in place.
+- Current `OPERATIONS_MFA_TTL` source value is aligned with the existing 604800-second customer authentication lifetime. MFA remains bound to that browser's rotated authenticated session, not shared across browsers, and expires on session expiry, TOTP secret rotation, disabled account/role or explicit sign-out.
+- The owner cockpit now provides a real `POST /api/auth/logout` action with server-confirmed sign-out, private DOM clear, and same-browser-profile cross-tab logout notification. It discloses the seven-day maximum and the independent authentication requirement for a new browser.
+- Both existing FA/EN private admin routes use incremented source-asset revision identifiers; public URLs and educational logic remain unchanged.
+
+### Explicitly deferred until the owner-authorized integrated QA phase
+1. PHP/runtime/browser validation and FA/EN keyboard/RTL/mobile visual accessibility checks.
+2. Bertina mother-database migrations, server permission checks and real API/SUPER_ADMIN/MFA access verification.
+3. Confirmation of source cache, request throttling, consent and CSRF behavior against a real authenticated host session.
+4. External provider grants, Cron proof, message-delivery receipts, data freshness and production-security assessment.
+5. Branch reconciliation, integration, deployments and any runtime collector activation.
+
+**Do not treat these commits or this ledger as evidence of passing tests or successful live activation.** Additional implementation work may proceed in this branch; full completion has not been certified.
