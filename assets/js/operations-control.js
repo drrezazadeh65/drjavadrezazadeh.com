@@ -1956,6 +1956,84 @@ function renderMasterEngineConsole(host,model){
  }
  wrap.append(grid);host.append(wrap);
 }
+/** One-glance evidence triage, using only the already-authorized dashboard
+ * snapshot. No new polling, secret reads, uptime tests or inferred success. */
+function renderImmediateSiteHealth(host,model){
+ const alerts=alertCenterCurrent||model.alertCenter||null;
+ const observed=alerts?.status==='available';
+ const counts=observed?alerts.openCounts||{}:{};
+ const currentHttp=httpHealthCurrent||model.httpHealth||null;
+ const httpRecorded=currentHttp?.state==='observed' &&
+   Array.isArray(currentHttp.batches)&&currentHttp.batches.length>0;
+ const batch=httpRecorded?currentHttp.batches[0]:null;
+ const rules=observed&&Array.isArray(alerts.rules)?alerts.rules:null;
+ const missing=rules?rules.filter(rule=>rule.ruleProvisioned===false).length:null;
+ const quality=model.pageQualityOverview||null;
+ const activation=model.activationReadiness||null;
+ const schema=activation?.schemaInventory||null;
+ const actualDb=(Number.isInteger(schema?.presentCount)&&
+   Number.isInteger(schema?.requiredCount))
+   ?schema.presentCount+' / '+schema.requiredCount:null;
+ const banner=el('section',undefined,'ops-immediate-triage');
+ banner.setAttribute('aria-label',t('وضعیت ثبت‌شده در یک نگاه',
+   'Recorded site status at a glance'));
+ banner.append(el('h2',t('سلامت سایت؛ یک نگاه، با تفکیک شواهد',
+   'Site health at a glance — evidence separated')));
+ banner.append(el('p',t(
+   'عدد صفر فقط یعنی در محدوده حسگرهای وصل‌شده رخدادی ثبت نشده؛ گواه سلامت کل سایت نیست. خط تیره یعنی داده معتبر در دسترس نیست.',
+   'Zero means no incident was recorded by the connected sensors; it does not certify the whole site. A dash means evidence is unavailable.')));
+ const tiles=el('div',undefined,'ops-immediate-triage__grid');
+ const items=[
+  {label:t('رخدادهای بحرانی باز ثبت‌شده','Recorded open critical incidents'),
+   value:Number.isInteger(counts.critical)?counts.critical:null,
+   target:'ops-alert-center',kind:'critical'},
+  {label:t('هشدارهای باز ثبت‌شده','Recorded open warning incidents'),
+   value:Number.isInteger(counts.warning)?counts.warning:null,
+   target:'ops-alert-center',kind:'warning'},
+  {label:t('تنظیمات هشدار نصب‌نشده','Unprovisioned alert rules'),
+   value:missing,target:'ops-alert-center',kind:'warning'},
+  {label:t('خطاهای ۴۰۴ آخرین خوانش','404 errors in last recorded batch'),
+   value:batch?batch.notFound:null,target:'ops-http-health',kind:'warning'},
+  {label:t('خطاهای ۵۰۰ آخرین خوانش','5xx errors in last recorded batch'),
+   value:batch?batch.serverErrors:null,target:'ops-http-health',kind:'critical'},
+  {label:t('صفحات ضعیف بر اساس کد، نه وب زنده','Weak pages in static source only'),
+   value:quality?.status==='source_only'?quality.weakSeoPages:null,
+   target:'ops-page-quality',kind:'source'},
+  {label:t('جداول عملیات مشاهده‌شده','Observed operations tables'),
+   value:actualDb,target:'ops-alert-center',kind:'source'}
+ ];
+ for(const item of items){
+   const tile=el('article',undefined,'ops-immediate-triage__tile');
+   const heading=el('h3',item.label);
+   const count=el('strong',item.value===null||item.value===undefined?'—':
+     String(item.value));
+   count.className='ops-immediate-triage__value';
+   const action=el('button',t('جزئیات و اقدام','Details and action'));
+   action.type='button';
+   action.setAttribute('aria-label',item.label+' · '+action.textContent);
+   action.addEventListener('click',()=>{
+     const panel=document.getElementById(item.target);
+     if(!panel)return;
+     if(panel.tagName==='DETAILS')panel.open=true;
+     const inner=panel.closest('details');
+     if(inner)inner.open=true;
+     if(item.target==='ops-http-health'){
+       const parent=document.getElementById('ops-alert-center');
+       if(parent)parent.open=true;
+     }
+     panel.scrollIntoView({behavior:'auto',block:'start'});
+     const focus=panel.querySelector(':scope > summary')||
+       panel.querySelector('button,summary,[tabindex]');
+     if(focus)focus.focus({preventScroll:true});
+   });
+   tile.dataset.evidenceKind=item.kind;
+   tile.append(heading,count,action);tiles.append(tile);
+ }
+ banner.append(tiles,el('small',t(
+   'این نما فقط داده‌های قبلاً ثبت‌شده و آمادگی ساختاری را نشان می‌دهد. آزمون نهایی، عملکرد زنده پرداخت و تحویل ایمیل هنوز تأیید نشده‌اند.',
+   'This panel summarizes existing records and source readiness only. Final acceptance, live payment fulfilment and inbox delivery remain unverified.')));
+ host.append(banner);
+}
 function reportingRender(){
  const model=snapshot?.reporting;if(!model)return;
  let healthHost=$('ops-health-summary');
@@ -1966,6 +2044,7 @@ function reportingRender(){
    $('ops-workspace').insertBefore(healthHost,$('jr-intelligence')||$('ops-cards'));
  }
  healthHost.replaceChildren();
+ renderImmediateSiteHealth(healthHost,model);
  renderAlertCenter(healthHost,model);
  renderDatabaseHealth(healthHost);
  renderResponseMonitor(healthHost,model);
