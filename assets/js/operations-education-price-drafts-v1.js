@@ -66,7 +66,7 @@
         'Draft storage is not installed or your role cannot edit.');
   }
   async function load(){
-    if(!canRead()||busy)return;
+    if(!canRead()||busy)return false;
     const serial=++requestId;
     controller?.abort();controller=new AbortController();
     const signal=controller.signal;busy=true;lock(true);refresh.disabled=true;
@@ -76,7 +76,7 @@
       const [catalogue,drafts]=await Promise.all([
         api('educational-offers',signal),api('educational-price-drafts',signal)
       ]);
-      if(serial!==requestId||!canRead())return;
+      if(serial!==requestId||!canRead())return false;
       if(catalogue?.ok!==true||catalogue.schema!=='jr.educational-offers.admin-readonly.v1'||
         catalogue.canActivate!==false||
         !Array.isArray(catalogue.offers)||catalogue.offers.length>30||
@@ -106,14 +106,16 @@
         'مدیریت پیش‌نویس‌ها تا نصب مهاجرت افزایشی دیتابیس یا تأیید نقش مدیر در حالت فقط‌خواندنی است.',
         'Draft editing remains read-only until the additive DB migration and verified owner role.'
       ));
+      return true;
     }catch(error){
-      if(serial!==requestId||error?.name==='AbortError')return;
+      if(serial!==requestId||error?.name==='AbortError')return false;
       inventory=null;lock(true);select.replaceChildren();
       setStatus(error?.message==='MFA_REQUIRED'
         ?T('احراز هویت دومرحله‌ای مدیر لازم است.',
           'Recent administrator MFA is required.')
         :T('منبع خصوصی آماده نیست. وضعیت فروش و قیمت‌های فعلی تغییر نکرده است.',
           'Private source unavailable. Existing prices and sales are unchanged.'));
+      return false;
     }finally{
       if(serial===requestId){busy=false;refresh.disabled=false;controller=null;}
     }
@@ -166,10 +168,22 @@
         throw Error('UNCONFIRMED');
       // Re-read source of truth before reflecting the new draft state.
       inventory=null;busy=false;refresh.disabled=false;
-      await load();
-      if(proposalMap.has(previous)){select.value=previous;inspect();}
-      setStatus(T('پیشنهاد در پایگاه داده مادر ثبت شد؛ همچنان غیرفعال و غیرقابل خرید است.',
-        'The owner draft was saved. The service remains inactive and not purchasable.'));
+      const reloaded=await load();
+      if(serial>requestId||!reloaded||!inventory?.drafts){
+        setStatus(T('پاسخ ثبت دریافت شد، اما بازخوانی مستقل از پایگاه داده تأیید نشد. دوباره وضعیت را دریافت کنید.',
+          'Save response received, but independent database reread was not confirmed. Refresh the draft inventory.'));
+        return;
+      }
+      const found=inventory.drafts.find(entry=>entry.id===id);
+      if(!found||found.rowRevision!==response.rowRevision||
+        found.proposedPriceToman!==amount){
+        setStatus(T('وضعیت نهایی ذخیره‌سازی با پاسخ سرور تطبیق نکرد. قبل از ادامه بازخوانی کنید.',
+          'Saved revision could not be reconciled with the server snapshot. Refresh before proceeding.'));
+        return;
+      }
+      if(proposalMap.has(previous)){select.value=previous;inspect(true);}
+      setStatus(T('پیش‌نویس در پایگاه داده مادر تأیید شد؛ فروش و مجوز دسترسی فعال نشده‌اند.',
+        'Owner draft reread and confirmed. Sale and entitlements remain inactive.'));
     }catch(error){
       if(serial!==requestId||error?.name==='AbortError')return;
       setStatus(error?.message==='MFA_REQUIRED'
