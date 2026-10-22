@@ -4,6 +4,8 @@
  * Build NO records unless independent humans have reviewed the ORIGINAL PDF
  * AND each extracted programme row, with two separate trusted attestations.
  * Guide authority and PDF page fingerprint do not validate OCR/extraction.
+ * Page-level reviewer attestations are required: a single 1405 PDF may
+ * contain hundreds of distinct page proofs under one document source key.
  * Never use self-asserted approved/sourcePageReviewed flags as proof.
  * No file/network/DB access, no automatic publication, no admission odds.
  */
@@ -164,17 +166,17 @@ export function compileOfficialAdmissionsCatalogue({
     issues.push('INDEPENDENT_ROW_REVIEW_POLICY_REQUIRED');
   if(policy?.allowPrediction===true)
     issues.push('PREDICTION_CANNOT_BE_AUTHORIZED_BY_CATALOGUE');
-  if(!Array.isArray(sources)||sources.length===0||sources.length>80)
+  if(!Array.isArray(sources)||sources.length===0||sources.length>6000)
     issues.push('INVALID_SOURCE_COLLECTION');
-  if(!Array.isArray(programmeRows)||programmeRows.length>5000)
+  if(!Array.isArray(programmeRows)||programmeRows.length>50000)
     issues.push('INVALID_PROGRAMME_COLLECTION');
   if(!verifiedCoverage(coverage,cycle,trustedCoverageContext))
     issues.push('UNRESOLVED_OFFICIAL_SOURCE_COVERAGE');
   const trustedSources=new Map();
-  if(Array.isArray(sources)&&sources.length<=80)for(const s of sources){
-    if(!s||!identifier(s.key)||trustedSources.has(s.key)||
+  if(Array.isArray(sources)&&sources.length<=6000)for(const s of sources){
+    if(!s||!identifier(s.key)||
       !s.reviewCandidate||!s.context){
-      issues.push('INVALID_OR_DUPLICATE_SOURCE');
+      issues.push('INVALID_SOURCE_REVIEW_ENTRY');
       continue;
     }
     const check=evaluateAdmissionSource(s.reviewCandidate,policy,s.context);
@@ -183,15 +185,19 @@ export function compileOfficialAdmissionsCatalogue({
       issues.push('UNVERIFIED_OFFICIAL_SOURCE');
       continue;
     }
-    trustedSources.set(s.key,check.provenance);
+    const pageKey=s.key+'|'+check.provenance.page;
+    if(trustedSources.has(pageKey)){
+      issues.push('DUPLICATE_SOURCE_PAGE_REVIEW');continue;
+    }
+    trustedSources.set(pageKey,check.provenance);
   }
   const accepted=[];
   const identity=new Set(),readRevision=new Map();
-  if(Array.isArray(programmeRows)&&programmeRows.length<=5000){
+  if(Array.isArray(programmeRows)&&programmeRows.length<=50000){
     for(const item of programmeRows){
       const row=normalizedRow(item?.data,cycle);
       if(!row){issues.push('INVALID_OR_UNREVIEWED_PROGRAMME_ROW');continue;}
-      const src=trustedSources.get(row.sourceKey);
+      const src=trustedSources.get(row.sourceKey+'|'+row.pdfPage);
       if(!src||src.pdfSha256!==row.sourceDocumentSha256||
         !Number.isSafeInteger(src.page)||src.page!==row.pdfPage){
         issues.push('SOURCE_PAGE_AND_ROW_DIGEST_MISMATCH');continue;
@@ -221,7 +227,8 @@ export function compileOfficialAdmissionsCatalogue({
   const permissible=issues.length===0;
   return Object.freeze({
     schema:'jr.official-programme-catalogue-gate.v1',
-    cycle,sourceCount:trustedSources.size,
+    cycle,reviewedSourcePageCount:trustedSources.size,
+    reviewedGuideCount:new Set([...trustedSources.keys()].map(key=>key.split('|')[0])).size,
     receivedRows:Array.isArray(programmeRows)?programmeRows.length:null,
     authorised:permissible,
     canPublish:permissible&&policy?.allowAutomaticPublication===true,
