@@ -445,6 +445,78 @@
         "proposed-offer-inventory",
         "separate-scientific-and-commerce-release-gates"
       ]
+    },
+    {
+      "id": "golden-path-professional-trust",
+      "kind": "DOMAIN",
+      "state": "PREVALIDATION",
+      "authority": "INDEPENDENT_SIGNED_PROFESSIONAL",
+      "data_class": "SENSITIVE_EDUCATIONAL",
+      "depends_on": [
+        "identity",
+        "consent",
+        "longitudinal-development",
+        "audit-observability"
+      ],
+      "exposes": [
+        "signed-human-release-verification",
+        "bahar-draft-handoff",
+        "nonpredictive-evidence"
+      ]
+    },
+    {
+      "id": "bahar-guardian-overview",
+      "kind": "PRIVATE_SURFACE",
+      "state": "PREVALIDATION",
+      "authority": "VERIFIED_GUARDIAN_WITH_TWO_CURRENT_CONSENTS",
+      "data_class": "SENSITIVE_EDUCATIONAL",
+      "depends_on": [
+        "identity",
+        "consent",
+        "admin-console",
+        "longitudinal-development"
+      ],
+      "exposes": [
+        "logged-guardian-activity-counts-only",
+        "consent-withdrawal-clearing",
+        "never-raw-learner-records"
+      ]
+    },
+    {
+      "id": "education-privacy-readiness",
+      "kind": "ADMIN",
+      "state": "PLANNED_OFF",
+      "authority": "MFA_SUPER_ADMIN_ONLY",
+      "data_class": "PRIVATE_METADATA",
+      "depends_on": [
+        "identity",
+        "consent",
+        "admin-console",
+        "audit-observability"
+      ],
+      "exposes": [
+        "retention-request-groups",
+        "legal-hold-metadata-only",
+        "deletion-locked"
+      ]
+    },
+    {
+      "id": "education-owner-price-drafts",
+      "kind": "ADMIN",
+      "state": "PLANNED_OFF",
+      "authority": "MFA_SUPER_ADMIN_ONLY",
+      "data_class": "PRIVATE_TRANSACTIONAL",
+      "depends_on": [
+        "identity",
+        "commerce",
+        "admin-console",
+        "audit-observability"
+      ],
+      "exposes": [
+        "optimistic-owner-proposed-price-edit",
+        "immutable-free-first-steps",
+        "no-checkout-entitlement-activation"
+      ]
     }
   ],
   "invariants": {
