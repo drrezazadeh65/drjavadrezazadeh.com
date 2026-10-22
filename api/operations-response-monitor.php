@@ -121,7 +121,9 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
         else $byKind[$kind]['unavailableTargets']++;
     }
     foreach($byKind as &$group){
-        $group['complete']=$group['observedTargets']===$group['expectedTargets'];
+        // Legacy same-second rows are not proof of one complete CLI run.
+        $group['complete']=$newestRunId!==''
+            &&$group['observedTargets']===$group['expectedTargets'];
         $group['fresh']=$newestAt>0&&$newestAt>=$at-172800
             &&$newestAt<=$at+60;
     }
@@ -144,8 +146,8 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
         'passedTargets'=>$passed,'observedAt'=>$newestAt?:null,
         'fresh'=>$newestAt>0&&$newestAt>=$at-172800
             &&$newestAt<=$at+60,
-        'complete'=>count($missingIds)===0,
-        'allPassedAtObservedTime'=>count($missingIds)===0&&
+        'complete'=>$newestRunId!==''&&count($missingIds)===0,
+        'allPassedAtObservedTime'=>$newestRunId!==''&&count($missingIds)===0&&
             $failed===0&&$unavailable===0
     ];
     return ['ok'=>true,'schema'=>'operations-response-monitor-v1',
@@ -189,7 +191,7 @@ function operationsResponseMonitorConfigure(PDO $pdo,array $input,string $actor,
             if(!(bool)$current['enabled'])
                 throw new DomainException('response_monitor_disabled');
             $pdo->prepare('UPDATE operations_response_probe_settings
-                SET requested_at=?,updated_at=? WHERE singleton_id=1')
+                SET requested_at=?,updated_at=GREATEST(updated_at+1,?) WHERE singleton_id=1')
                 ->execute([$at,$at]);
             operationsAudit($pdo,$actor,'response_probe_requested',
                 substr(hash('sha256','manual_response_probe'),0,64));
@@ -197,10 +199,14 @@ function operationsResponseMonitorConfigure(PDO $pdo,array $input,string $actor,
             $due=$input['enabled']?operationsSourceNextDue(
                 $input['cadence'],$input['weekday'],$input['clockMinutes'],$at):0;
             // Any policy edit invalidates a previously queued manual request.
+            // Every edit advances a monotone revision timestamp even if two
+            // owner actions occur within the SAME second. The CLI collector
+            // compares the complete policy after a locked re-read and cannot
+            // mistake a same-second disable/re-enable as the old authorization.
             // Disabling the observer MUST clear requested_at; no stale opt-in.
             $pdo->prepare('UPDATE operations_response_probe_settings SET
                 enabled=?,cadence=?,weekday=?,clock_minutes=?,retention_days=?,
-                next_due=?,requested_at=0,updated_at=? WHERE singleton_id=1')
+                next_due=?,requested_at=0,updated_at=GREATEST(updated_at+1,?) WHERE singleton_id=1')
                 ->execute([$input['enabled']?1:0,$input['cadence'],
                     $input['weekday'],$input['clockMinutes'],
                     $input['retentionDays'],$due,$at]);
@@ -344,7 +350,7 @@ function operationsResponseMonitorCollect(PDO $pdo,int $at): array {
                 $at+$policy['retentionDays']*86400
             ]);
             $pdo->prepare('UPDATE operations_response_probe_settings
-                SET requested_at=0,next_due=?,updated_at=? WHERE singleton_id=1')
+                SET requested_at=0,next_due=?,updated_at=GREATEST(updated_at+1,?) WHERE singleton_id=1')
                 ->execute([$next,$at]);
             $pdo->prepare('DELETE FROM operations_response_probe_samples
                 WHERE expires_at<? LIMIT 150')->execute([$at]);
