@@ -2425,7 +2425,22 @@ function renderOwnerCommandCenter(){
  bulkProgress.hidden=true;bulkProgress.setAttribute('role','status');
  bulkProgress.setAttribute('aria-live','polite');
  bulkProgress.setAttribute('data-oc-progress','');
- headingActions.append(refresh,readAll,all,exportOverview,cancelBulk);
+ const fetchEligible=el('button',t('واکشی فوری منابع پشتیبانی‌شده','Fetch supported sources now'));
+ fetchEligible.type='button';fetchEligible.dataset.ocFetchSources='';
+ fetchEligible.disabled=collectionState?.canManage!==true;
+ fetchEligible.title=fetchEligible.disabled
+   ?t('ابتدا تنظیمات و مجوز مدیر برای جمع‌آوری را بارگیری کنید',
+       'Load the collector owner permissions and settings first')
+   :t('فقط گردآورنده‌های پیاده‌سازی‌شده، نه تمام APIهای خارجی',
+       'Implemented collectors only, not every external provider');
+ fetchEligible.addEventListener('click',()=>{
+   if(collectionState?.canManage!==true)return;
+   if(!window.confirm(t(
+     'گردآوری دستیِ منابع GitHub دارای گردآورنده آغاز شود؟ فقط این درخواست مشخص، اطلاعات خارجی را می‌خواند و کش را به‌روزرسانی می‌کند. Cron، ایمیل و موتورهای آموزشی فعال نمی‌شوند.',
+     'Run an explicit manual fetch of implemented GitHub sources? It reads external source data and updates diagnostic cache. Cron, email, and educational engines remain off.')))return;
+   collectionManualRefresh('all',fetchEligible);
+ });
+ headingActions.append(refresh,readAll,fetchEligible,all,exportOverview,cancelBulk);
  heading.append(intro,headingActions);
  root.append(heading,bulkProgress);
  const note=el('p',undefined,'oc-provenance');
@@ -2700,6 +2715,20 @@ function renderOwnerCommandCenter(){
       'Show all '+selected.length+' departments');
   expandList.setAttribute('aria-expanded',String(!limited));
   for(const item of displayRows){
+   const rights={
+     incidents:alertData?.canManage===true,
+     db:db?.settings?.available===true,
+     response:response?.canManage===true,
+     collectors:collectionState?.canManage===true,
+     sources:sourceControlState?.canManage===true
+   };
+   const controlsVerified=rights[item.id]===true;
+   const pendingRights=Object.prototype.hasOwnProperty.call(rights,item.id)&&!controlsVerified;
+   const controlCaption=controlsVerified
+     ?t('کنترل‌های مدیر ارشد تأیید شده','Owner management controls verified')
+     :pendingRights
+       ?t('دسترسی مدیریتی هنوز احراز نشده','Management privileges not yet verified')
+       :t('قابلیت‌های این بخش در صفحه اختصاصی','Module-specific controls in its workspace');
    const error=ownerCockpitReadErrors[item.load];
    const display=error?state('unknown',
      error==='admin_mfa_required'?t('تأیید دومرحله‌ای لازم است','Fresh MFA required'):
@@ -2715,6 +2744,8 @@ function renderOwnerCommandCenter(){
    const description=el('p',t(item.descFa,item.descEn));
    const metric=el('p',display.metric,'oc-measure');
    const note=el('p',display.note);
+   const controls=el('p',controlCaption,'oc-control-scope');
+   controls.dataset.ownerControls=controlsVerified?'verified':'not_verified';
    const foot=el('footer');
    const controlled=new Set(['incidents','db','response','collectors',
      'sources','commerce','social','growth','engines','content-editor',
@@ -2733,7 +2764,7 @@ function renderOwnerCommandCenter(){
     reload.type='button';reload.addEventListener('click',()=>loadModule(item,reload));
     foot.append(reload);
    }
-   card.append(head,description,metric,note,foot);grid.append(card);
+   card.append(head,description,metric,note,controls,foot);grid.append(card);
   }
   if(!selected.length)grid.append(el('p',t('بخشی با این فیلتر و جست‌وجو پیدا نشد.',
     'No departments match this search and filter.'),'oc-empty'));
