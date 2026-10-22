@@ -172,13 +172,21 @@ function operationsAlertSendBatch(PDO $pdo,array $configuration,callable $transp
     $recipient=(string)($configuration['operations_alert_recipient']??'');
     if(!filter_var($recipient,FILTER_VALIDATE_EMAIL)||!operationsAlertAvailable($pdo))
         return ['status'=>'not_configured','attempted'=>0,'accepted'=>0];
+    // Revocation is authoritative even for messages queued BEFORE the owner
+    // disabled emails. Pending items remain visible for audit but are not sent.
+    $switch=$pdo->query('SELECT enabled FROM operations_alert_settings WHERE singleton_id=1')->fetch(PDO::FETCH_ASSOC);
+    if(!$switch||!(bool)$switch['enabled'])
+        return ['status'=>'disabled','attempted'=>0,'accepted'=>0];
     $definitions=operationsAlertDefinitions();$attempted=0;$accepted=0;
     for($i=0;$i<5;$i++){
         $pdo->beginTransaction();
         try{
             $q=$pdo->query("SELECT o.message_id,o.created_at,i.event_code,i.scope_key,i.severity,i.last_seen_at,i.occurrence_count
                 FROM operations_alert_outbox o JOIN operations_alert_incidents i ON i.fingerprint=o.fingerprint
-                WHERE o.status='pending' ORDER BY o.created_at ASC LIMIT 1 FOR UPDATE");
+                JOIN operations_alert_rules r ON r.event_code=i.event_code
+                JOIN operations_alert_settings a ON a.singleton_id=1
+                WHERE o.status='pending' AND r.enabled=1 AND a.enabled=1
+                ORDER BY o.created_at ASC LIMIT 1 FOR UPDATE");
             $row=$q->fetch(PDO::FETCH_ASSOC);
             if(!$row){$pdo->commit();break;}
             // Prevent delayed notice floods if a worker was not installed.
