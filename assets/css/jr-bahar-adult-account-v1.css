@@ -67,3 +67,9 @@
 @media(prefers-reduced-motion:reduce){
   .jr-bahar-consent-dialog,.jr-bahar-consent-dialog *{transition:none!important}
 }
+
+/* Only account-owned privacy request status; no public request lookup. */
+.jr-adult-bahar-account__privacy-request{padding:12px 15px;margin:10px 0;
+  background:#2b2d2b;color:#f3dbac;border-inline-start:4px solid #e3c782;
+  border-radius:9px;line-height:1.85;overflow-wrap:anywhere;font-size:.95rem}
+.jr-adult-bahar-account__privacy-request[hidden]{display:none!important}
