@@ -1,5 +1,5 @@
 /* JR Cache Standard v2.2 — encoded-route safe, response-aware, release-fresh */
-const CACHE_VERSION='jr-site-20261022-education-mobile-rcas-v2';
+const CACHE_VERSION='jr-site-20261022-source-admin-assistant-v3';
 const CACHE_FAMILY='jr-site-';
 const SHELL_CACHE=CACHE_VERSION+'-shell';
 const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
