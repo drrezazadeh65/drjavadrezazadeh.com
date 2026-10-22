@@ -22,6 +22,9 @@
   };
   new MutationObserver(()=>{if(workspace.hidden)destroy();})
     .observe(workspace,{attributes:true,attributeFilter:['hidden']});
+  workspace.addEventListener('jr:operations-locked',()=>{
+    panel.open=false;destroy();
+  });
   async function request(path,options={}){
     const response=await fetch('/api/admin/operations/'+path,{
       method:'GET',credentials:'same-origin',cache:'no-store',
@@ -38,9 +41,11 @@
         'Approve this exact version for scheduling? This is not an immediate publication.')
       :t('این پیش‌نویس از صف خارج شود؟','Remove this draft from the queue?')))return;
     working=true;reload.disabled=true;
+    const attempt=++generation;
     status.textContent=t('در حال ثبت تصمیم امن…','Submitting protected review decision…');
     try{
       const session=await request('session');
+      if(workspace.hidden||attempt!==generation)return;
       if(session.mfaRequired||typeof session.csrfToken!=='string')throw Error('admin_mfa_required');
       const result=await request('social/'+kind,{
         method:'POST',
@@ -48,12 +53,14 @@
           'X-CSRF-Token':session.csrfToken},
         body:JSON.stringify({deliveryId:item.deliveryId,digest:item.digest})
       });
+      if(workspace.hidden||attempt!==generation)return;
       status.textContent=result.status==='scheduled'
         ?t('در صف ثبت شد؛ هنوز هیچ پستی منتشر نشده است.',
           'Scheduled in the database. No post was published.')
         :t('پیش‌نویس با ثبت ممیزی رد شد.','Draft rejected with an audit record.');
     }catch(error){
-      status.textContent=t('ثبت تصمیم انجام نشد: ','Review failed: ')+String(error.message||'unknown');
+      if(!workspace.hidden&&attempt===generation)
+        status.textContent=t('ثبت تصمیم انجام نشد: ','Review failed: ')+String(error.message||'unknown');
     }finally{
       working=false;reload.disabled=false;
       // Re-read authoritative database; stale previews must not remain actionable.
