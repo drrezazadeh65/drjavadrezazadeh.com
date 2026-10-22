@@ -14,6 +14,7 @@ import {getFreeBaharStarter,createLocalBaharCycle,createLocalBaharCompass} from 
 import {prepareChoiceStudioEvidence} from './jr-educational-evidence-exchange.mjs';
 import {compileOfficialAdmissionsCatalogue,JR_CATALOGUE_DEFAULT_POLICY} from './jr-admission-catalogue-trust-gate.mjs';
 import {assessAdmissionForecastValidation} from './jr-admission-outcome-validation.mjs';
+import {prepareAttestedGoldenPathBaharHandoff} from './jr-golden-path-release-trust.mjs';
 
 export const EDUCATIONAL_MASTER_VERSION='1.0.0';
 export const EDUCATIONAL_MASTER_SCHEMA='jr.educational-master-coordination.v1';
@@ -177,5 +178,33 @@ export function inspectPredictionResearch({
     scientificallyApproved:false,
     predictionsEnabled:false,admissionProbability:null,
     productionModelId:null
+  });
+}
+
+/**
+ * Server-only Golden Path -> BAHAR exchange. A source route and reviewer
+ * ID without a bound scientific attestation is INSUFFICIENT. Never call
+ * this with untrusted client-controlled signing keys or HTTP JSON context.
+ */
+export function coordinateHumanReleasedGoldenPath({
+  synthesis=null,professional=null,trustedServerContext=null,
+  explicitLearnerOrGuardianConsent=false
+}={}){
+  if(explicitLearnerOrGuardianConsent!==true)return done('GOLDEN_PATH_CONSENT_REQUIRED',{
+    ok:false,handoff:null,releaseGranted:false,
+    reason:'Current scoped learner or guardian consent required'
+  });
+  const prepared=prepareAttestedGoldenPathBaharHandoff({
+    synthesis,professional,serverContext:trustedServerContext
+  });
+  return done(prepared.ok?'GOLDEN_PATH_HANDOFF_DRAFT':
+    'GOLDEN_PATH_RELEASE_UNAUTHORIZED',{
+    ok:prepared.ok,releaseGranted:prepared.releaseGranted,
+    handoff:prepared.ok?prepared.handoff:null,
+    reviewedSnapshotSha256:prepared.ok?prepared.reviewedSnapshotSha256:null,
+    errors:prepared.ok?[]:prepared.errors,
+    automaticAccountWrite:false,automaticPurchaseEntitlement:false,
+    admissionProbability:null,
+    requiresHumanGoalSetting:true
   });
 }
