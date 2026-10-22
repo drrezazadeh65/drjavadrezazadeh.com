@@ -44,7 +44,7 @@
     setStatus(T('وضعیت قیمت‌ها به‌صورت خصوصی هنوز دریافت نشده است.',
       'Draft state has not been retrieved.'));
   };
-  function inspect(){
+  function inspect(preserveStatus=false){
     const id=select.value;
     const offer=proposalMap.get(id);
     if(!offer){lock(true);return;}
@@ -59,7 +59,7 @@
     rationale.disabled=!inventory?.canEdit;
     save.disabled=!inventory?.canEdit;
     save.dataset.currentRevision=String(saved?.rowRevision??0);
-    status.textContent=inventory?.canEdit
+    if(!preserveStatus)status.textContent=inventory?.canEdit
       ?T('این تغییر صرفاً پیش‌نویس داخلی است؛ هیچ خدمت یا پرداختی فعال نمی‌شود.',
         'This edits an internal proposal only; no service or checkout is activated.')
       :T('پایگاه داده پیش‌نویس هنوز آماده نیست یا مجوز ویرایش ندارید.',
@@ -178,7 +178,7 @@
         :T('ثبت پیش‌نویس تأیید نشد؛ برای جلوگیری از تعارض، فهرست را دوباره بارگذاری کنید.',
           'Draft change not confirmed. Reload to resolve a possible revision conflict.'));
     }finally{
-      if(serial===requestId){busy=false;refresh.disabled=false;inspect();}
+      if(serial===requestId){busy=false;refresh.disabled=false;inspect(true);}
     }
   });
   host.addEventListener('toggle',()=>{
