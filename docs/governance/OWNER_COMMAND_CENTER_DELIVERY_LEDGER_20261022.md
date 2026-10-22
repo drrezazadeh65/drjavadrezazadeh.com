@@ -309,3 +309,24 @@ consent-controlled and unverified. The separate
 **No lint, PHP syntax, JS execution, browser, CI, DB probe, test, Cron, mail,
 social publishing, branch merge or production deployment was performed.**
 The committed code remains pending final integrated QA.
+
+
+## Continuation: precise owner controls (source-only; still no testing)
+
+The current isolated branch also contains the following additive UX/security work:
+
+- A **per-source quick-control matrix**, generated only from source rows actually returned by the existing `/collection-settings` owner API. It exposes the individual source preference, cadence, Tehran clock, recorded attempt classification, cached observation state and due-time evidence. Each source has a manual-fetch action that requires a new explicit owner confirmation. It never assumes an existing host Cron.
+- **Exact source-editor navigation**: the existing collector disclosure now has a stable DOM ID, `ops-collection-settings`. Each quick action expands the same owner editor and focuses the selected source; the diagnostic-deletion shortcut only opens the existing preview/confirmation mechanism. No new unrestricted deletion endpoint or automatic cleanup is introduced.
+- A **per-rule alert evidence matrix** that distinguishes the central notification master switch, seven source-defined alert rules, their individually stored enabled preferences, sensor evidence, thresholds and cooldowns. It links to the current rule and scope editor, where the existing owner MFA/CSRF policy remains authoritative. SMTP configuration and real inbox receipt remain separately unverified.
+- An owner-requested bulk-reading **single-flight gate** to prevent a second simultaneous all-status read, with a clear stop-after-current-request control and progress message; error handling distinguishes expired MFA from a valid session encountering a module-specific access denial.
+- Each department shows the **time the private API was last read**, explicitly different from the underlying provider-observation date. The cockpit avoids treating newly read old records as newly measured observations.
+- Responsive, high-contrast support for source and email matrices at small mobile widths.
+
+### Readiness and truthful limitations
+
+- No part of this change activates a disabled subsystem, host Cron, collector, social publishing or alert outbox. Individual source reads may be requested by the owner after deployment, and only a deliberate **manual fetch** mutates the diagnostic cache.
+- A saved policy does not establish that its adapter/worker exists. A recent API read does not establish that its underlying evidence is fresh; a synthetic summary is never substituted for real provider observations.
+- The developer's `migration/bertina-linux6` branch is moving independently. These changes require a conflict-aware merge and a complete owner-authorised test pass **only after coding is finished**, not during this source-development phase.
+- This documentation is a handoff ledger, **not evidence of operational activation or production success**.
+
+**Testing status remains: NONE. Merge/deploy status remains: NONE.**
