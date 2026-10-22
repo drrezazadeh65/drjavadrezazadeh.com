@@ -338,7 +338,8 @@ try {
  request('/api/admin/operations/collection-settings',403,'POST',[
   'key'=>'ENG-01','enabled'=>false,'cadence'=>'manual','clockMinutes'=>240
  ],$headers);
- request('/api/admin/operations/github-audits/refresh',400,'POST',[
+ // A regular ADMIN is rejected before parsing a source scope.
+ request('/api/admin/operations/github-audits/refresh',403,'POST',[
   'scope'=>'malicious:provider'
  ],$headers);
  // Toggle logic in the same isolated mother database: never network fetch.
