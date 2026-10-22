@@ -58,6 +58,10 @@
       [T('تأییدهای نسخه قدیمی؛ غیرمجاز برای تماس جدید','Retired-notice opt-ins; not contactable'),number(snapshot.legacyVerifiedCount)],
       [T('در انتظار تأیید با متن فعلی','Pending current-notice verification'),number(snapshot.pendingCount)],
       [T('درخواست‌های متن قدیمی؛ نیازمند درخواست جدید','Outdated pending requests; require fresh opt-in'),number(snapshot.stalePendingCount)],
+      [T('وضعیت تمدید امن رضایت ایمیلی','Safe email re-consent readiness'),
+        snapshot.renewalSchemaProvisioned===true
+          ?T('اسکیمای تکمیلی موجود؛ تأیید کاربر همچنان لازم است','Additive storage present; mailbox confirmation still required')
+          :T('Migration تکمیلی اجرا نشده یا قابل تأیید نیست','Additional migration missing or unverified')],
       [T('وضعیت واقعی جمع‌آوری','Capture state'),
         snapshot.effectiveCaptureEnabled===true?T('با اجازه مدیر فعال','Owner enabled'):
           T('خاموش یا آماده نشده','Disabled or not provisioned')],
