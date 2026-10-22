@@ -116,10 +116,12 @@ function inspectQuality(route,html,schema){
       c('author_or_entity_information',schema.entityIds.length>0),
       c('meaningful_headings',h1===1&&h2>=1)
    ],'entity_and_answer_readiness_not_search_visibility'): {score:null,passed:0,applicable:0,source:'not_applicable_private_or_noindex',findings:[]},
+   speedReadiness:sourceSpeed,
    speed:{score:null,passed:0,applicable:0,source:'field_and_lab_data_unavailable',findings:[]},
    security:{score:null,passed:0,applicable:0,source:'runtime_headers_not_observed',findings:[]}
  };
- const measured=Object.entries(grades).filter(([k,v])=>['content','image','seo','ui','ux','ai','geo'].includes(k)&&v.score!==null);
+ const measured=Object.entries(grades).filter(([k,v])=>
+   ['content','image','seo','ui','ux','ai','geo','speedReadiness'].includes(k)&&v.score!==null);
  const overall=measured.length?Number((measured.reduce((sum,[,v])=>sum+v.score,0)/measured.length).toFixed(1)):null;
  return {route,url:BASE+route,language:schema.language,
     indexability:privateRoute?'private_noindex_required':schema.indexability,
@@ -151,6 +153,6 @@ export function generateQualityInventory(root){
  return {schema:'operations-page-quality-inventory-v1',source:'committed_html_not_production',
    generatedAt:new Date().toISOString(),total:rows.length,
    scoringContract:'0..10 source-only structural readiness. Missing field speed, security headers and AI citations are null, not zero. Categories are independent.',
-   categories:['content','image','seo','ui','ux','ai','geo','speed','security'],
+   categories:['content','image','seo','ui','ux','ai','geo','speedReadiness','speed','security'],
    pages:rows};
 }
