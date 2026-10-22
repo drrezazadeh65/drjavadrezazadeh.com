@@ -26,11 +26,11 @@ function safeEvidenceUrl(value){
 }
 async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
-function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=false;alertCenterCurrent=null;httpHealthCurrent=null;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
+function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;alertCenterExpanded=false;alertCenterCurrent=null;httpHealthCurrent=null;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
 $('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
-async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;httpHealthCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
+async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;httpHealthCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
 function progress(value){const bar=el('div',undefined,'ops-progress');const fill=el('span');fill.style.width=(value??0)+'%';bar.append(fill);bar.setAttribute('aria-label',t('پیشرفت اندازه‌گیری‌شده: ','Measured progress: ')+pct(value));return bar;}
 function render(){const sum=snapshot.summary;$('ops-total').textContent=String(sum.total);$('ops-verified').textContent=String(sum.verified);$('ops-coverage').textContent=sum.measuredCoverage+'/36';$('ops-admin-score').textContent=pct(snapshot.dashboard.measuredProgress);$('ops-release').textContent=snapshot.releaseSha||t('ثبت نشده','Not recorded');$('ops-checked').textContent=date(snapshot.checkedAt);
  const select=$('ops-engine'),old=select.value;select.replaceChildren(el('option',t('همهٔ موتورها','All engines')));select.firstChild.value='';for(const engine of (snapshot.reporting?.engines||[...new Set(snapshot.reports.map(r=>r.engine))].sort())){const option=el('option',typeof engine==='string'?engine:engine.id+' · '+engineName(engine));option.value=typeof engine==='string'?engine:engine.id;select.append(option);}select.value=old;
@@ -714,7 +714,7 @@ function renderPageQuality(host){
 }
 
 let masterConsoleExpanded=false;
-let sourceDirectoryState=null,sourceDirectoryExpanded=false,sourceDirectoryPage=0;
+let sourceDirectoryState=null,sourceDirectoryExpanded=false,sourceDirectoryPage=0,sourceControlState=null,sourceMetricState=null;
 let sourceDirectoryFilter={kind:'',engine:'',query:''};
 async function fetchSourceDirectory(engineId=''){
  const generation=loadGeneration;
@@ -747,6 +747,20 @@ function renderSourceDirectory(parent){
    'این فهرست، منابع ثبت‌شده را از داده‌های واقعی جدا می‌کند. صرفاً با تعریف یک وب‌سایت یا حساب، آمار زنده ایجاد نمی‌شود.',
    'This inventory separates registered references from observed data. Listing a website or account does not create live statistics.')));
  const loadButton=el('button',t('دریافت وضعیت واقعی منابع از سرور','Load source status from server'));
+ const loadControls=el('button',t('بارگیری تنظیمات فعال/غیرفعال و نگهداری منابع',
+   'Load enable/disable and retention settings'));
+ loadControls.type='button';
+ loadControls.addEventListener('click',async()=>{
+   loadControls.disabled=true;const generation=loadGeneration;
+   try{
+     const settings=await api('/source-controls');
+     if(generation!==loadGeneration||!snapshot)return;
+     sourceControlState=settings;sourceDirectoryExpanded=true;
+     if(!sourceDirectoryState)await fetchSourceDirectory();
+     else reportingRender();
+   }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+   finally{if(loadControls.isConnected)loadControls.disabled=false;}
+ });
  loadButton.type='button';
  const stats=el('p',undefined,'ops-muted');stats.setAttribute('aria-live','polite');
  const filters=el('div',undefined,'ops-toolbar');
@@ -815,6 +829,91 @@ function renderSourceDirectory(parent){
        const link=el('a',t('منبع رسمی','Official source'));link.href=url;
        link.target='_blank';link.rel='noopener noreferrer';card.append(link);
      }
+     const control=sourceControlState?.rows?.find(row=>row.id===item.id);
+     if(control){
+       const editor=el('details',undefined,'ops-source-config');
+       editor.append(el('summary',t('تنظیمات مستقل گردآوری، زمان‌بندی و نگهداری',
+         'Independent collection, scheduling and retention controls')));
+       editor.append(el('p',control.adapterAvailable
+         ?t('گردآورنده GitHub تعریف شده است؛ اجرا به مجوز و Cron موجود وابسته است.',
+            'GitHub collector exists; actual execution still requires permissions and the existing Cron.')
+         :t('گردآورنده/API تأیید نشده است؛ روشن کردن فقط قصد پایش را ثبت می‌کند.',
+            'No verified collector/API. Enabling records monitoring intent only.')));
+       const enabled=el('input');enabled.type='checkbox';enabled.checked=control.enabled;
+       enabled.disabled=sourceControlState.canManage!==true;
+       const label=el('label',t('فعال','Enabled'));label.prepend(enabled);
+       const cadence=el('select');cadence.setAttribute('aria-label',t('تناوب جمع‌آوری','Collection cadence'));
+       for(const [id,fa,enLabel] of [['manual','دستی','Manual'],['daily','هر ۲۴ ساعت','Daily'],
+         ['weekly','هفتگی','Weekly']]){
+         const opt=el('option',t(fa,enLabel));opt.value=id;cadence.append(opt);
+       }cadence.value=control.cadence;
+       const weekday=el('select');weekday.setAttribute('aria-label',t('روز هفته','Day of week'));
+       for(let n=1;n<=7;n++){const opt=el('option',t('روز ','Day ')+n);opt.value=String(n);weekday.append(opt);}
+       weekday.value=String(control.weekday);
+       const time=el('input');time.type='time';
+       const min=Number(control.clockMinutes)||0;
+       time.value=String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0');
+       time.setAttribute('aria-label',t('زمان تهران','Tehran schedule time'));
+       const retention=el('select');retention.setAttribute('aria-label',t('روزهای نگهداری داده','Retention days'));
+       for(const days of [7,30,90,180,365]){
+         const opt=el('option',t('نگهداری ','Keep ')+days+t(' روز',' days'));opt.value=String(days);retention.append(opt);
+       }retention.value=String(control.retentionDays);
+       const save=el('button',t('ذخیره تنظیم این منبع','Save source policy'));save.type='button';
+       save.disabled=sourceControlState.canManage!==true;
+       save.addEventListener('click',async()=>{
+         const parts=time.value.split(':').map(Number);
+         if(parts.length!==2||parts.some(n=>!Number.isInteger(n))
+            ||parts[0]<0||parts[0]>23||parts[1]<0||parts[1]>59){
+           notice(t('ساعت انتخاب‌شده معتبر نیست','Invalid schedule time'),true);return;
+         }
+         const generation=loadGeneration;save.disabled=true;
+         try{
+           sourceControlState=await api('/source-controls',{method:'POST',
+             headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+             body:JSON.stringify({sourceId:item.id,enabled:enabled.checked,cadence:cadence.value,
+               weekday:Number(weekday.value),clockMinutes:parts[0]*60+parts[1],
+               retentionDays:Number(retention.value)})});
+           if(generation!==loadGeneration||!snapshot)return;
+           sourceDirectoryExpanded=true;reportingRender();
+           notice(t('تنظیم منبع در دیتابیس مادر ذخیره شد.','Source setting saved in the primary database.'));
+         }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+         finally{if(save.isConnected)save.disabled=false;}
+       });
+       const toolbar=el('div',undefined,'ops-toolbar');
+       toolbar.append(label,cadence,weekday,time,retention,save);editor.append(toolbar);
+       if(control.nextDueAt)editor.append(el('small',t('زمان بعدی: ','Next due: ')+date(control.nextDueAt)));
+       editor.append(el('small',t('وضعیت اجرا: ','Runtime state: ')+control.runtimeState));
+       if(sourceControlState.canManage===true){
+         const purge=el('button',t('حذف فقط داده‌های تشخیصی منقضی‌شده','Purge eligible diagnostic data'));
+         purge.type='button';
+         purge.addEventListener('click',async()=>{
+           if(!window.confirm(t('فقط داده‌های تشخیصی قدیمی و قابل حذف این منبع پاک شوند؟',
+             'Purge only retention-eligible diagnostic data for this source?')))return;
+           purge.disabled=true;
+           try{
+             const result=await api('/source-retention',{method:'POST',
+               headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
+               body:JSON.stringify({sourceId:item.id})});
+             notice(t('نمونه‌های پاک‌شده: ','Metric rows purged: ')+result.deletedMetrics+
+               ' · '+t('تلاش‌های قدیمی: ','Old attempts: ')+result.deletedAttempts);
+           }catch(e){notice(errorMessage(e),true);}
+           finally{if(purge.isConnected)purge.disabled=false;}
+         });editor.append(purge);
+       }
+       card.append(editor);
+     }
+     const metrics=el('button',t('آمار مستند و نمودار این منبع','Recorded metrics and chart'));
+     metrics.type='button';
+     metrics.addEventListener('click',async()=>{
+       metrics.disabled=true;const generation=loadGeneration;
+       try{
+         const report=await api('/source-metrics?sourceId='+encodeURIComponent(item.id)+'&days=30');
+         if(generation!==loadGeneration||!snapshot)return;
+         sourceMetricState=report;sourceDirectoryExpanded=true;reportingRender();
+         $('ops-source-metric-detail')?.scrollIntoView({block:'nearest'});
+       }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+       finally{if(metrics.isConnected)metrics.disabled=false;}
+     });card.append(metrics);
      if(item.kind==='github_feed'){
        const button=el('button',t('تنظیم و تاریخچه گردآوری','Collection policy and history'));
        button.type='button';button.addEventListener('click',async()=>{
@@ -834,6 +933,30 @@ function renderSourceDirectory(parent){
      list.append(card);
    }
    if(!matches.length)list.append(el('p',t('منبعی مطابق فیلتر یافت نشد.','No matching sources.')));
+   if(sourceMetricState&&sourceMetricState.sourceId&&visible.some(row=>row.id===sourceMetricState.sourceId)){
+     const detail=el('article',undefined,'ops-panel');detail.id='ops-source-metric-detail';
+     detail.append(el('h3',t('آمار ثبت‌شده: ','Recorded source metrics: ')+sourceMetricState.sourceId));
+     detail.append(el('p',t('دوره: ','Period: ')+sourceMetricState.days+
+       t(' روز؛ تعداد نمونه: ',' days; samples: ')+(sourceMetricState.samples?.length??0)));
+     if(sourceMetricState.samples?.length){
+       const samples=sourceMetricState.samples.slice(0,20).reverse();
+       const chart=el('div',undefined,'ops-source-metric-chart');
+       for(const sample of samples){
+         const row=el('div',undefined,'ops-source-metric-row');
+         const amount=Number(sample.metric_value);
+         row.append(el('small',date(sample.observed_at)+' · '+sample.metric_key+' = '+amount+' '+sample.unit));
+         if(sample.metric_key==='fetch_success'){
+           const track=el('div',undefined,'ops-http-track');
+           const fill=el('span',undefined,'ops-http-fill ops-http-not-found');
+           fill.style.width=(amount>0?'100':'0')+'%';track.append(fill);row.append(track);
+         }chart.append(row);
+       }detail.append(chart);
+     }else detail.append(el('p',t('نمونه‌ای ثبت نشده است؛ داده ناموجود صفر نیست.',
+       'No observations recorded; missing data is not zero.')));
+     detail.append(el('small',sourceMetricState.limitation||''));
+     section.append(detail);
+   }
+
    pager.replaceChildren();
    if(pageCount>1){
      const prev=el('button',t('صفحه قبل','Previous page'));prev.type='button';
@@ -888,7 +1011,7 @@ function renderSourceDirectory(parent){
      }
    }finally{if(loadButton.isConnected)loadButton.disabled=false;}
  });
- section.append(loadButton,stats,filters,list,pager);
+ section.append(loadButton,loadControls,stats,filters,list,pager);
  parent.append(section);
 }
 
