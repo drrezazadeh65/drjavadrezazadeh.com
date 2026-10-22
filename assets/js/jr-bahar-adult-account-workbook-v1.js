@@ -13,10 +13,10 @@
   const $=key=>root.querySelector('[data-jr-account-bahar-'+key+']');
   const notice=$('notice'),state=$('state'),refresh=$('refresh');
   const consent=$('consent');
-  const file=$('file'),preview=$('preview');
+  const file=$('file'),preview=$('preview'),localExport=$('local-export');
   const save=$('save'),download=$('download'),withdraw=$('withdraw'),erase=$('erase');
   if(!notice||!state||!refresh||!consent||!file||
-    !preview||!save||!download||!withdraw||!erase)return;
+    !preview||!localExport||!save||!download||!withdraw||!erase)return;
   let identity=null,localDraft=null,readEpoch=0,busy=false,controller=null;
   const active=()=>root.open&&!document.hidden;
   const setState=value=>{state.textContent=value;};
@@ -33,6 +33,9 @@
     const csrf=/^[a-f0-9]{64}$/i.test(identity?.csrfToken||'');
     consent.disabled=!eligible||allowed||busy||!csrf;
     file.disabled=!allowed||busy;
+    // Local backup never requires a login, verified age, payment or
+    // permission to transmit notes. It does require a draft in this tab.
+    localExport.disabled=!localDraft||busy;
     save.disabled=!allowed||!localDraft||busy||!csrf||
       !Number.isSafeInteger(identity?.workbookRevision);
     download.disabled=!allowed||busy||!csrf||
@@ -46,7 +49,7 @@
   function clear(note){
     readEpoch++;controller?.abort();controller=null;
     busy=false;identity=null;localDraft=null;
-    file.value='';
+    file.value='';localExport.disabled=true;
     notice.replaceChildren();preview.replaceChildren();
     setState(note||T('تا زمانی که خودتان درخواست نکنید، هیچ داده حسابی خوانده نمی‌شود.',
       'No account data is requested until you explicitly choose to inspect it.'));
@@ -379,6 +382,19 @@
         return true;
       });
   }
+  localExport.addEventListener('click',()=>{
+    if(!localDraft)return;
+    const blob=new Blob([JSON.stringify(localDraft,null,2)],{
+      type:'application/json;charset=utf-8'
+    });
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.hidden=true;a.href=url;a.download='bahar-personal-private-workbook.json';
+    document.body.append(a);a.click();a.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(url),10000);
+    setState(T('نسخه خصوصی کاربرگ در اختیار شما قرار گرفت؛ هیچ آپلودی انجام نشد.',
+      'Your private workbook file was prepared locally. Nothing was uploaded.'));
+  });
   save.addEventListener('click',()=>storeSelectedDraft(false));
   download.addEventListener('click',async()=>{
     if(!identity?.canStore)return;
@@ -448,8 +464,23 @@
   });
   root.addEventListener('toggle',async()=>{
     if(!root.open){clear();return;}
+    // Display a recoverable local draft first, even when account services
+    // are unavailable. Only the affirmative popup can permit server storage.
+    const pending=pendingHandoff();
+    if(pending){
+      localDraft=pending;
+      preview.replaceChildren();
+      const p=document.createElement('p');
+      p.textContent=T('برنامهٔ انتخاب‌شده: ','Selected plan: ')+
+        short(pending.compass?.goal||pending.weeklyPlan?.goal||'—');
+      preview.append(p);restrict();
+    }
     const ready=await updateStatus();
     if(ready)await continuePendingHandoff();
+    else if(localDraft){
+      setState(T('ذخیره در حساب اکنون آماده نیست؛ نسخه خصوصی برنامه‌ات را می‌توانی همین‌جا روی دستگاه نگه داری.',
+        'Account saving is currently unavailable. You can still keep a private copy on your device.'));
+    }
   });
   // A same-tab transfer was initiated by the user on the PUBLIC learning
   // page. Only an ephemeral fragment selects the already published route.
