@@ -20,6 +20,7 @@
   const usable=()=>!workspace.hidden&&parent.open&&section.open&&!document.hidden;
   let requestId=0,controller=null,busy=false,previewLoaded=false,reviewRecorded=false;
   const hashes={science:'',privacy:''};
+  const fileEpoch={science:0,privacy:0};
   const setStatus=value=>{status.textContent=value;};
   function buttons(){
     const both=/^[a-f0-9]{64}$/.test(hashes.science)&&
@@ -35,6 +36,7 @@
     requestId++;controller?.abort();controller=null;busy=false;
     previewLoaded=false;reviewRecorded=false;
     hashes.science='';hashes.privacy='';
+    fileEpoch.science++;fileEpoch.privacy++;
     scientificHash.textContent='';privacyHash.textContent='';
     affirmation.checked=false;
     scientificFile.value='';privacyFile.value='';
@@ -113,7 +115,9 @@
     hashes[key]='';destination.textContent='';
     reviewRecorded=false;buttons();
     if(!file)return;
-    const generation=++requestId;
+    // Independent file-digest generations must not invalidate the live
+    // privacy notice GET or the other selected file's hash calculation.
+    const generation=++fileEpoch[key];
     if(file.size<1||file.size>10485760||!crypto?.subtle){
       fileInput.value='';
       setStatus(T('هر مدرک محلی باید حداکثر ۱۰ مگابایت باشد و مرورگر از SHA-256 پشتیبانی کند.',
@@ -125,14 +129,14 @@
     try{
       const buffer=await file.arrayBuffer();
       const digest=await crypto.subtle.digest('SHA-256',buffer);
-      if(generation!==requestId||!usable())return;
+      if(generation!==fileEpoch[key]||!usable())return;
       hashes[key]=Array.from(new Uint8Array(digest))
         .map(b=>b.toString(16).padStart(2,'0')).join('');
       destination.textContent=hashes[key];
       setStatus(T('اثر انگشت سند در مرورگر محاسبه شد؛ فایل آپلود نشد.',
         'Document digest was calculated on-device; no file was uploaded.'));
     }catch(_){
-      if(generation!==requestId)return;
+      if(generation!==fileEpoch[key])return;
       hashes[key]='';destination.textContent='';
       setStatus(T('محاسبه اثر انگشت انجام نشد؛ ثبت مدرک غیرفعال است.',
         'Unable to hash the document; evidence registration remains disabled.'));
