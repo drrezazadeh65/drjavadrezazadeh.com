@@ -1131,6 +1131,36 @@ function operationsRoute(string $path, string $verb): never {
                 respond($view);
             }catch(Throwable $e){fail('collector_master_unavailable',503);}
         }
+        // Selective owner-controlled deletion of disposable diagnostic
+        // telemetry. Immutable evidence, payments and users are never targets.
+        if ($path === '/admin/operations/collection-data-preview' && $verb === 'GET') {
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('collector_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_collector_data_preview',$accountId,15,3600))
+                fail('rate_limited',429);
+            $scope=$_GET['scope']??null;
+            if(!is_string($scope)||strlen($scope)>96)fail('invalid_collector_data_scope',400);
+            try{respond(operationsCollectorDataPreview($pdo,$scope));}
+            catch(InvalidArgumentException $e){fail('invalid_collector_data_scope',400);}
+            catch(Throwable $e){fail('collector_data_preview_unavailable',503);}
+        }
+        if ($path === '/admin/operations/collection-data-delete' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('collector_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_collector_data_delete',$accountId,5,3600))
+                fail('rate_limited',429);
+            $body=jsonBody();
+            if(!is_array($body)||array_keys($body)!==['scope','confirmation']
+                ||!is_string($body['scope'])||strlen($body['scope'])>96
+                ||($body['confirmation']??null)!=='DELETE SOURCE DIAGNOSTICS:'.$body['scope'])
+                fail('collector_data_confirmation_required',400);
+            try{respond(operationsCollectorDataPurge($pdo,$body['scope'],$accountId,nowTs()));}
+            catch(InvalidArgumentException $e){fail('invalid_collector_data_scope',400);}
+            catch(DomainException $e){fail('collector_busy',409);}
+            catch(Throwable $e){fail('collector_data_delete_unavailable',503);}
+        }
         if ($path === '/admin/operations/github-audits/refresh' && $verb === 'POST') {
             if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
                 fail('csrf_forbidden',403);
