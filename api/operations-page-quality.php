@@ -54,7 +54,7 @@ function operationsQualityWithLab(array $row): array {
     return $row;
 }
 function operationsQualityDimensions(): array {
-    return ['content','image','seo','ui','ux','ai','geo','speed','security'];
+    return ['content','image','seo','ui','ux','ai','geo','speedReadiness','speed','security'];
 }
 /** Source-only summary shown immediately to a verified administrator. */
 function operationsQualitySummary(): array {
