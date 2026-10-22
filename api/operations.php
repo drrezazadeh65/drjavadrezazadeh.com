@@ -670,6 +670,36 @@ function operationsRoute(string $path, string $verb): never {
             fail('unknown_educational_interest_action',422);
         }
 
+        // Evidence registration only: source-controlled notices and
+        // reviewed external files. Neither endpoint enables private storage.
+        if($path==='/admin/operations/education-workbook-evidence' && $verb==='POST'){
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'ops_bahar_external_review',$accountId,3,600))
+                fail('rate_limited',429);
+            $body=jsonBody();
+            try{respond(operationsBaharRecordReviewEvidence($pdo,$body,$accountId));}
+            catch(InvalidArgumentException $e){fail('invalid_scientific_privacy_evidence',422);}
+            catch(Throwable $e){fail('bahar_external_review_unavailable',503);}
+        }
+        if($path==='/admin/operations/education-workbook-notices' && $verb==='POST'){
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'ops_bahar_consent_notice_review',$accountId,3,600))
+                fail('rate_limited',429);
+            $body=jsonBody();
+            try{respond(operationsBaharRegisterConsentNotices($pdo,$body,$accountId));}
+            catch(InvalidArgumentException $e){fail('invalid_versioned_notice_review',422);}
+            catch(DomainException $e){fail('versioned_notice_review_conflict',409);}
+            catch(Throwable $e){fail('bahar_notice_registration_unavailable',503);}
+        }
+
         // Verified-adult BAHAR requests: MFA super-admin human review queue.
         // No scanned documents, minor records, automated eligibility or storage.
         if($path==='/admin/operations/education-adult-review' && $verb==='GET'){
