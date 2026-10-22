@@ -16,17 +16,28 @@ function operationsHttpRoute(string $value): ?array {
     // Preserve valid historical Persian slugs, but exclude tokens, user identifiers,
     // unsafe escapes and excessively long or private routes.
     $decoded=rawurldecode($path);
+    // Do not persist malformed, doubly-encoded or parameter-bearing paths:
+    // further URL decoding by downstream systems could reveal a private
+    // assessment token, account reference or other personal information.
     if(strlen($decoded)>230||!preg_match('//u',$decoded)
         ||str_contains($decoded,'..')||str_contains($decoded,'@')
         ||str_contains($decoded,'?')||str_contains($decoded,'#')
+        ||str_contains($decoded,'%')||str_contains($decoded,';')
+        ||str_contains($decoded,'=')||str_contains($decoded,':')
         ||preg_match('/[\x00-\x1F\x7F]/',$decoded))return null;
     $normalized=preg_replace('#/{2,}#','/',$decoded);
     if(!is_string($normalized))return null;
-    if(preg_match('#^/(?:api|fa/app|en/account|fa/customer-dashboard|fa/login|en/login|fa/register|en/register|checkout|payment|fa/shop/(?:cart|checkout|payment)|en/shop/(?:cart|checkout|payment))(/|$)#i',$normalized))
+    // This is a PUBLIC 404 discovery index, never a private route inventory.
+    // Explicitly exclude every governed account, assessment, form, payment,
+    // journal-intake or learner-result prefix, including older locale routes.
+    if(preg_match('#^/(?:api|app|assessments|checkout|payment|account|login|register|recover|dashboard|customer-dashboard|fa/(?:app|assessments|customer-dashboard|login|register|bazyabi-hesab|darkhast-moshavere)|en/(?:account|login|register|recover|request-consultation)|(?:fa|en)/(?:shop|services)/(?:cart|checkout|payment|orders|order|download|receipt|payment-start|payment-return|payment-result)|en/golden-talent/(?:assessment|dashboard|observer|roles|student|checkout|plans)|fa/golden-talent/(?:assessment|dashboard|observer|roles|student|checkout|plans)|journal/(?:api|editor|author|reviewer|submission/upload|dashboard|account))(/|$)#i',$normalized))
         return null;
     if(preg_match('#[A-Za-z0-9_-]{35,}#',$normalized))return null;
     $probe=(bool)preg_match('#(?:^|/)(?:wp-admin|wp-login\.php|\.git|\.env|phpmyadmin|cgi-bin|vendor|xmlrpc\.php)(?:/|$)#i',$normalized);
-    return ['path'=>$normalized,'classification'=>$probe?'scanner_probe':'seo_review_candidate'];
+    // The arbitrary tail of a scanner request is not SEO content. Bucket its
+    // count by classification, avoiding storage of attacker-supplied payloads.
+    return $probe?['path'=>'/__scanner_probe__/','classification'=>'scanner_probe']:
+        ['path'=>$normalized,'classification'=>'seo_review_candidate'];
 }
 function operationsHttpParse(string $line): ?array {
     if(strlen($line)>8192||!preg_match('/\[([^\]]+)\]\s+"(?:GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS)\s+([^\s"]+)\s+HTTP\/[0-9.]+"\s+(\d{3})\b/',$line,$m))
@@ -97,9 +108,23 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
             if(fseek($fh,$offset)!==0)return ['status'=>'read_unavailable','lines'=>0,'errors404'=>0,'errors5xx'=>0];
             $read=0;$bytes=0;$errors404=0;$errors5xx=0;$recent404=0;$recent5xx=0;$recentSeen=0;$routes=[];
             while(!feof($fh)&&$read<5000&&$bytes<1048576){
+                $lineStart=ftell($fh);
+                if($lineStart===false)throw new RuntimeException('log_position_unavailable');
                 $line=fgets($fh,8192);if($line===false)break;
+                // A truncated last line is still being written by LiteSpeed.
+                // Leave its full bytes unread until a newline arrives on a
+                // later run; otherwise the saved cursor can silently discard
+                // a genuine 404/5xx observation.
+                if(!str_ends_with($line,"\n")&&feof($fh)&&strlen($line)<8191){
+                    if(fseek($fh,$lineStart)!==0)
+                        throw new RuntimeException('log_partial_rewind_unavailable');
+                    break;
+                }
                 $bytes+=strlen($line);$read++;
-                if(!str_ends_with($line,"\n")&&!feof($fh))continue;
+                // An oversized or broken access-log line is never parsed or
+                // persisted; subsequent chunks cannot be confused with a
+                // complete Apache/LiteSpeed request line.
+                if(!str_ends_with($line,"\n"))continue;
                 $parsed=operationsHttpParse($line);if(!$parsed)continue;
                 // Count older records for history, but only records with genuine
                 // timestamps in the last five minutes may raise urgent alerts.
