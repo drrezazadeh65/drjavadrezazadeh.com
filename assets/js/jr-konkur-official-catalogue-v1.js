@@ -58,7 +58,8 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
  function reset(){
   epoch++;if(request)request.abort();request=null;
   submit.disabled=false;previous.disabled=true;next.disabled=true;
-  results.replaceChildren();pager.hidden=true;
+  results.replaceChildren();results.removeAttribute('aria-busy');
+  pager.hidden=true;
  }
  // Changing a filter invalidates all earlier results, pagination and
  // evidence labels. Nothing is persisted in account, URL or browser storage.
