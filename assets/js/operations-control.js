@@ -1951,6 +1951,41 @@ function renderMasterEngineConsole(host,model){
  * No visitors, Cron activation, background fetches, educational logic or
  * third-party integrations are started by rendering this overview.
  */
+/**
+ * Keep ONLY aggregate non-identifying fields in the extra command center.
+ * Full MFA-only API results belong to their existing specialty workspaces.
+ */
+function ownerCockpitProject(id,raw){
+ const r=raw&&typeof raw==='object'?raw:{};
+ switch(id){
+  case 'commerce':return {available:r.available===true,
+    orders:{totalRows:r.orders?.totalRows??null},
+    salesPipeline:{pendingOlderThan24Hours:r.salesPipeline?.pendingOlderThan24Hours??null}};
+  case 'social':return {deliveryDataStatus:r.deliveryDataStatus,
+    deliveryRows:{total:r.deliveryRows?.total??null,
+      uncertain:r.deliveryRows?.uncertain??null,
+      manualPending:r.deliveryRows?.manualPending??null}};
+  case 'socialSettings':return {draftAllowedCount:r.settings&&typeof r.settings==='object'
+    ?Object.values(r.settings).filter(x=>x?.draftEnabled===true).length:null};
+  case 'gsc':return {status:r.status,metrics:{clicks:r.metrics?.clicks??null,
+    impressions:r.metrics?.impressions??null},collectedAtUtc:r.collectedAtUtc??null,
+    provenanceAttested:r.provenanceAttested===true};
+  case 'ai':return {status:r.status,sampledAnswers:r.sampledAnswers??null,
+    brandMentions:r.brandMentions??null,retrievedOn:r.retrievedOn??null};
+  case 'audit':return {schema:r.schema,eventCount:Array.isArray(r.events)?r.events.length:null};
+  case 'journal':return {schema:r.schema,
+    evidenceReview:{unverifiedStageCount:r.evidenceReview?.unverifiedStageCount??null}};
+  case 'growth':return {leadMetrics:{counts:{total:r.leadMetrics?.counts?.total??null}},
+    serviceSalesPipeline:r.serviceSalesPipeline?{
+      awaitingAction:r.serviceSalesPipeline.awaitingAction??null,
+      awaitingOver24Hours:r.serviceSalesPipeline.awaitingOver24Hours??null}:null};
+  case 'keyword':return {schema:r.schema,
+    keywordCount:Array.isArray(r.keywords)?r.keywords.length:null};
+  case 'free':return {schema:r.schema,
+    referenceCount:Array.isArray(r.resources)?r.resources.length:null};
+  default:return {schema:r.schema??null,status:'not_projected'};
+ }
+}
 let ownerCockpitFilter='all',ownerCockpitQuery='',ownerCockpitShowAll=false;
 let ownerCockpitPrivateEvidence=Object.create(null);
 let ownerCockpitLastReadAt=null,ownerCockpitReadErrors=Object.create(null),
@@ -2062,10 +2097,7 @@ function renderOwnerCommandCenter(){
    absent(t('گزارش داخلی فروش موجود نیست','Commerce ledger not available'));
  const social=ownerCockpitPrivateEvidence.social;
  const socialSettings=ownerCockpitPrivateEvidence.socialSettings;
- const savedSocialPolicies=socialSettings?.settings&&typeof socialSettings.settings==='object'?
-   Object.values(socialSettings.settings):null;
- const optedDraftChannels=savedSocialPolicies?
-   savedSocialPolicies.filter(x=>x?.draftEnabled===true).length:null;
+ const optedDraftChannels=socialSettings?.draftAllowedCount??null;
  const socialOverview=social?.deliveryDataStatus==='stored_records_only'&&social.deliveryRows?
    state(social.deliveryRows.uncertain>0||social.deliveryRows.manualPending>0?'attention':'recorded',
      t('سوابق انتشار: ','Stored deliveries: ')+(social.deliveryRows.total??'—')+
@@ -2112,21 +2144,21 @@ function renderOwnerCommandCenter(){
  const keyword=ownerCockpitPrivateEvidence.keyword;
  const keywordOverview=keyword?.schema==='jr-keyword-master-map-v1'
    ?state('recorded',t('کلیدواژه‌های تدوین‌شده: ','Mapped keywords: ')+
-       (keyword.keywords?.length??'—'),
+       (keyword.keywordCount??'—'),
      t('استراتژی مخزن؛ این عدد رتبه، کلیک یا ورودی گوگل نیست',
        'Repository keyword strategy, not ranking, traffic or GSC clicks'))
    :absent(t('نقشه کلیدواژه‌ها بارگیری نشده','Keyword strategy map not loaded'));
  const freeSources=ownerCockpitPrivateEvidence.free;
  const freeOverview=freeSources?.schema==='operations-free-resources-v1'?
    state('recorded',t('مراجع رایگان فهرست‌شده: ','Catalogued free references: ')+
-       (freeSources.resources?.length??'—'),
+       (freeSources.referenceCount??'—'),
      t('فهرست مخزن؛ اتصال و بازیابی زنده منابع خارجی تأیید نشده',
        'Repository catalogue; live external connections and retrieval unverified')):
    absent(t('فهرست منابع رایگان بارگیری نشده','Free-source catalogue not loaded'));
  const history=ownerCockpitPrivateEvidence.audit;
  const auditOverview=history?.schema==='operations-audit-timeline-v1'?
    state('recorded',t('رویدادهای اخیر: ','Recent audit events: ')+
-     (history.events?.length??'—'),
+     (history.eventCount??'—'),
      t('حداکثر ۵۰ رویداد ذخیره‌شده؛ نه پایش لحظه‌ای',
        'Up to 50 recorded events, not a live feed')):
    absent(t('تاریخچه هنوز دریافت نشده','Audit history not loaded'));
@@ -2291,10 +2323,10 @@ function renderOwnerCommandCenter(){
        else if(id==='sourceControls'&&response.schema==='operations-source-controls-v1')
          sourceControlState=response;
        else if(id==='socialSettings'&&response.schema==='social-channel-settings-v1')
-         ownerCockpitPrivateEvidence.socialSettings=response;
+         ownerCockpitPrivateEvidence.socialSettings=ownerCockpitProject('socialSettings',response);
        else if(id==='quality'&&response.schema==='operations-page-quality-results-v1')
          qualityResult=response;
-       else ownerCockpitPrivateEvidence[id]=response;
+       else ownerCockpitPrivateEvidence[id]=ownerCockpitProject(id,response);
        delete ownerCockpitReadErrors[id];loaded++;
      }catch(error){
        if(generation!==loadGeneration||!snapshot)break;
@@ -2566,9 +2598,10 @@ function renderOwnerCommandCenter(){
        growth:'/growth',keyword:'/keyword-map',free:'/free-resources'};
      const response=await api(routes[item.load]);
      if(generation!==loadGeneration||!snapshot)return;
-     ownerCockpitPrivateEvidence[item.load]=response;
+     ownerCockpitPrivateEvidence[item.load]=ownerCockpitProject(item.load,response);
      if(item.load==='social'){
-       ownerCockpitPrivateEvidence.socialSettings=await api('/social/settings');
+       ownerCockpitPrivateEvidence.socialSettings=ownerCockpitProject(
+         'socialSettings',await api('/social/settings'));
      }
      delete ownerCockpitReadErrors[item.load];
      ownerCockpitLastReadAt=Math.floor(Date.now()/1000);
