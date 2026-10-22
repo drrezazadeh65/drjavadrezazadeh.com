@@ -76,6 +76,27 @@
       row.append(make('p','jr-edu-offers__warning',value));
       dependencies.append(row);
     }
+    if(Array.isArray(data.researchContracts) && data.researchContracts.length<=16){
+      const heading=make('h3','jr-edu-offers__heading',
+        T('قراردادهای علمی و داده‌ای موتورهای یکپارچه',
+          'Scientific and data contracts of integrated engines'));
+      dependencies.append(heading);
+      for(const item of data.researchContracts){
+        if(!item || typeof item.id!=='string'||typeof item.role!=='string')continue;
+        const card=make('article','jr-edu-offers__card');
+        card.append(make('strong','jr-edu-offers__title',item.id));
+        card.append(make('p','jr-edu-offers__warning',
+          T('قابلیت طراحی‌شده: ','Source contract: ')+item.role));
+        card.append(make('p','jr-edu-offers__warning',
+          T('فایل منبع در سرور: ','Source file on server: ')+
+          labelBool(item.sourceFilePresent)));
+        card.append(make('p','jr-edu-offers__warning',
+          T('وضعیت علمی: ','Scientific state: ')+item.scienceStatus));
+        card.append(make('p','jr-edu-offers__warning',
+          T('انتشار و صحت عملکرد: تأیید نشده','Release and runtime: not verified')));
+        dependencies.append(card);
+      }
+    }
     status.textContent=T(
       'این نما تنها گزارش آمادگی منبع و شِمای داده است؛ هیچ موتور، بسته پولی یا پیش‌بینی قبولی را تأیید نمی‌کند.',
       'This is a source and schema readiness snapshot. It does not certify any engine, paid offer or admission prediction.'
@@ -100,7 +121,10 @@
         data.canActivate!==false||data.canRelease!==false||
         !Array.isArray(data.engines)||data.engines.length!==6||
         data.summary?.endToEndReleaseCertified!==false||
-        !data.sourceDependencies||
+        !data.sourceDependencies||!Array.isArray(data.researchContracts)||
+        data.researchContracts.length>16||
+        data.researchContracts.some(c=>!c||typeof c.id!=='string'||
+          c.productionVerified!==false||c.releaseAuthorized!==false)||
         data.engines.some(e=>typeof e.labelFa!=='string'||typeof e.labelEn!=='string'||
           e.scientificallyValidated!==false||e.releaseApproved!==false))
         throw Error('invalid');
