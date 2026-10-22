@@ -85,8 +85,10 @@ function rowPayload(row,approval){
     approval.reviewedOn,approval.scope
   ]);
 }
-function rowApproved(row,review){
+function rowApproved(row,review,trustedReviewContext){
   if(!review||typeof review!=='object'||!review.approval||
+    Object.hasOwn(review,'reviewerKey')||
+    Object.hasOwn(review,'administratorKey')||
     !identifier(review.approval.reviewerId)||
     !identifier(review.approval.administratorId)||
     review.approval.reviewerId===review.approval.administratorId||
@@ -95,8 +97,8 @@ function rowApproved(row,review){
     review.approval.scope!=='PROGRAMME_ROW_SOURCE_REVIEW')
     return false;
   const payload=rowPayload(row,review.approval);
-  return macMatches(review.reviewerKey,payload,review.approval.reviewerSignature)&&
-    macMatches(review.administratorKey,payload,review.approval.administratorSignature);
+  return macMatches(trustedReviewContext?.rowReviewerKey,payload,review.approval.reviewerSignature)&&
+    macMatches(trustedReviewContext?.rowAdministratorKey,payload,review.approval.administratorSignature);
 }
 /**
  * Coverage review includes all relevant 1405 examination groups AND the
@@ -108,6 +110,7 @@ const REQUIRED_GROUPS=Object.freeze([
 ]);
 function verifiedCoverage(coverage,cycle,trustedCoverageContext){
   if(!coverage||typeof coverage!=='object'||Array.isArray(coverage)||
+    Object.hasOwn(coverage,'trustedServerContext')||
     coverage.actualCycle!==cycle||coverage.amendmentsReviewed!==true||
     coverage.languagesGuideReviewed!==true||
     coverage.teacherTrainingChangesReviewed!==true||
@@ -144,9 +147,12 @@ function verifiedCoverage(coverage,cycle,trustedCoverageContext){
  * signing-key custody, PDF-origin and current-cycle policy verification.
  *
  * Every item in sources:
- *  {key,reviewCandidate,context} where context contains PRIVATE signing keys.
+ *  {key,reviewCandidate,attestation} with metadata and signed approvals ONLY.
  * Every item in programmeRows:
- *  {data,review} where review contains separate PRIVATE signing keys.
+ *  {data,review} with metadata and signed approvals ONLY.
+ * trustedReviewContext: FOUR independently provisioned, server-owned Buffer
+ * keys for source reviewer, source administrator, row reviewer and row admin.
+ * Never embed these keys in the source arrays, CSV files or API JSON.
  * trustedCoverageContext: independently held server-owned keys for whole-year
  * amendments and guide coverage, never embedded in imported coverage JSON.
  *
@@ -155,7 +161,8 @@ function verifiedCoverage(coverage,cycle,trustedCoverageContext){
  */
 export function compileOfficialAdmissionsCatalogue({
   cycle=1405,sources=[],programmeRows=[],coverage=null,
-  trustedCoverageContext=null,policy=JR_CATALOGUE_DEFAULT_POLICY
+  trustedReviewContext=null,trustedCoverageContext=null,
+  policy=JR_CATALOGUE_DEFAULT_POLICY
 }={}){
   const issues=[];
   if(!Number.isInteger(cycle)||cycle<1400||cycle>1500)
@@ -172,16 +179,34 @@ export function compileOfficialAdmissionsCatalogue({
     issues.push('INVALID_PROGRAMME_COLLECTION');
   if(!verifiedCoverage(coverage,cycle,trustedCoverageContext))
     issues.push('UNRESOLVED_OFFICIAL_SOURCE_COVERAGE');
+  const keySet=trustedReviewContext?[
+    trustedReviewContext.sourceReviewerKey,
+    trustedReviewContext.sourceAdministratorKey,
+    trustedReviewContext.rowReviewerKey,
+    trustedReviewContext.rowAdministratorKey
+  ]:[];
+  if(keySet.length!==4||keySet.some(key=>!validKey(key))||
+     keySet.some((key,index)=>keySet.some((other,otherIndex)=>
+       otherIndex>index&&key.equals(other))))
+    issues.push('INDEPENDENT_TRUSTED_REVIEW_KEYS_MISSING');
   const trustedSources=new Map();
   if(Array.isArray(sources)&&sources.length<=6000)for(const s of sources){
     if(!s||!identifier(s.key)||
-      !s.reviewCandidate||!s.context){
+      !s.reviewCandidate||!s.attestation||
+      Object.hasOwn(s,'context')||
+      Object.hasOwn(s,'reviewerKey')||
+      Object.hasOwn(s,'administratorKey')){
       issues.push('INVALID_SOURCE_REVIEW_ENTRY');
       continue;
     }
-    const check=evaluateAdmissionSource(s.reviewCandidate,policy,s.context);
+    const context={
+      reviewerKey:trustedReviewContext?.sourceReviewerKey,
+      administratorKey:trustedReviewContext?.sourceAdministratorKey,
+      attestation:s.attestation
+    };
+    const check=evaluateAdmissionSource(s.reviewCandidate,policy,context);
     if(!check.accepted||check.provenance===null||
-      s.context?.attestation?.scope!=='SOURCE_PUBLICATION'){
+      s.attestation?.scope!=='SOURCE_PUBLICATION'){
       issues.push('UNVERIFIED_OFFICIAL_SOURCE');
       continue;
     }
@@ -202,7 +227,7 @@ export function compileOfficialAdmissionsCatalogue({
         !Number.isSafeInteger(src.page)||src.page!==row.pdfPage){
         issues.push('SOURCE_PAGE_AND_ROW_DIGEST_MISMATCH');continue;
       }
-      if(!rowApproved(row,item?.review)){
+      if(!rowApproved(row,item?.review,trustedReviewContext)){
         issues.push('INDEPENDENT_ROW_ATTESTATION_MISSING');continue;
       }
       const id=keyOf(row);
@@ -231,7 +256,9 @@ export function compileOfficialAdmissionsCatalogue({
     reviewedGuideCount:new Set([...trustedSources.keys()].map(key=>key.split('|')[0])).size,
     receivedRows:Array.isArray(programmeRows)?programmeRows.length:null,
     authorised:permissible,
-    canPublish:permissible&&policy?.allowAutomaticPublication===true,
+    // Compilation never publishes. Publication remains a separate owner
+    // approval and delivery event after final end-to-end acceptance.
+    canPublish:false,
     canPredictAdmission:false,
     admissionProbability:null,
     status:permissible?'SOURCE_AND_ROW_ATTESTED':'INCOMPLETE_OFFICIAL_SOURCE_EVIDENCE',
