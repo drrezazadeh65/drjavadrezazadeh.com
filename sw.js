@@ -1,5 +1,5 @@
 /* JR Cache Standard v2.2 — encoded-route safe, response-aware, release-fresh */
-const CACHE_VERSION='jr-site-20261022-education-mobile-journey-v1';
+const CACHE_VERSION='jr-site-20261022-education-mobile-rcas-v2';
 const CACHE_FAMILY='jr-site-';
 const SHELL_CACHE=CACHE_VERSION+'-shell';
 const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
@@ -16,6 +16,8 @@ const CORE=[
   // New PUBLIC, non-personal educational shell only. Private dashboards,
   // passwords, uploaded workbooks and admin API responses are NEVER precached.
   '/fa/masir-man/','/en/my-path/','/fa/bahar/','/en/bahar/',
+  // Static public RCAS introductions only. Never precache either assessment form.
+  '/fa/rcas/','/en/rcas/','/assets/css/jr-rcas-public-landing-v1.css',
   '/assets/css/jr-bahar-public-v1.css',
   '/assets/js/jr-bahar-public-v1.js',
   '/assets/js/jr-bahar-compass-v1.js',
