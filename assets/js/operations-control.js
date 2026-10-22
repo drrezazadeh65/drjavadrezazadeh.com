@@ -826,12 +826,36 @@ function renderResponseMonitor(host,model){
      conclusion=t('در آخرین زمان ثبت، کنترل‌های منبع با پاسخ موافق بودند؛ سلامت زنده و تحویل ایمیل هنوز تأیید نشده است.',
        'At the last recorded timestamp, source checks passed; current site health and email delivery are still unverified.');
    panel.append(el('p',conclusion));
+   if(coverage.byKind&&typeof coverage.byKind==='object'){
+     for(const [kind,group] of [
+       ['headers',coverage.byKind.headers],
+       ['redirect',coverage.byKind.redirect]
+     ]){
+       if(!group||!Number.isInteger(group.expectedTargets))continue;
+       panel.append(el('small',
+         (kind==='headers'?t('هدرهای امنیتی: ','Security headers: '):
+           t('ریدایرکت‌های تاریخی: ','Historical redirects: '))+
+         String(group.observedTargets)+'/'+String(group.expectedTargets)+' · '+
+         t('شکست: ','Failed: ')+String(group.failedTargets)+' · '+
+         t('ناموجود: ','Unavailable: ')+String(group.unavailableTargets)+
+         (!group.complete?' · '+t('ناقص','Incomplete'):
+           !group.fresh?' · '+t('قدیمی','Stale'):'')
+       ));
+     }
+   }
+   if(coverage.runId&&/^[a-f0-9]{32}$/.test(coverage.runId)){
+     panel.append(el('small',t('شناسه گروه ثبت‌شده: ','Recorded collection ID: ')+
+       coverage.runId.slice(0,12)+'…'));
+   }
    if(Array.isArray(coverage.missingTargets)&&coverage.missingTargets.length)
      panel.append(el('small',t('مسیرهای بی‌رکورد: ','Targets without a record: ')+
        coverage.missingTargets.join(' · ')));
-   panel.append(el('small',t(
-     'گروه‌بندی صرفاً بر اساس ثانیه ثبت در دیتابیس است؛ گواه اجرای واحد Cron یا وضعیت زنده نیست.',
-     'Samples are grouped by stored second only, not by an independently verified CLI run ID or real-time status.')));
+   panel.append(el('small',
+     coverage.evidence==='stored_cli_collection_token'
+       ?t('رکوردها با شناسه تولیدشده در اجرای خصوصی CLI گروه‌بندی شده‌اند. اجرای Cron و سلامت زنده هنوز مستقلاً تأیید نشده‌اند.',
+          'Records share a private CLI-generated collection token. Cron operation and live health remain independently unverified.')
+       :t('این رکوردهای قدیمی فاقد شناسه اجرا هستند و فقط بر اساس ثانیه ثبت گروه‌بندی شده‌اند؛ پوشش کامل قابل اثبات نیست.',
+          'Older records have no run identifier and are grouped only by recorded second; a complete CLI run cannot be established.')));
    section.append(panel);
  }
  const reload=el('button',t('بارگیری شواهد ذخیره‌شده','Reload recorded observations'));
