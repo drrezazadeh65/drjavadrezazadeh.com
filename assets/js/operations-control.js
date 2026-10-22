@@ -1484,6 +1484,66 @@ const qualityNames={
 };
 const qualityName=key=>t(...(qualityNames[key]||[key,key]));
 const qualityScore=value=>typeof value==='number'&&Number.isFinite(value)?value.toFixed(1):'—';
+// Editorial repair guidance is inferred ONLY from inspectable HTML source
+// checks. It never implies confirmed live UX, Google rank, provider indexing
+// or that an unreviewed change can be published without acceptance.
+const sourceQualityRemedies={
+ visible_main_text_100_words:['متن اصلیِ مفید و قابل‌خواندن اضافه شود؛ متن تکراری برای پرکردن حجم تولید نشود.','Expand useful, readable main content without filler.'],
+ substantive_main_text_250_words:['پاسخ دقیق‌تر به نیاز مخاطب، حدود خدمت و شواهد معتبر افزوده شود.','Strengthen the substantive answer, service limitations and attributable evidence.'],
+ single_primary_heading:['برای صفحه دقیقاً یک عنوان اصلی H1 معنی‌دار در نظر گرفته شود.','Keep exactly one meaningful primary H1.'],
+ single_h1:['ساختار صفحه باید دقیقاً یک H1 اصلی داشته باشد.','Use exactly one primary H1.'],
+ extractable_headline:['موضوع صفحه در یک عنوان H1 قابل استخراج روشن باشد.','Add one clear, extractable H1.'],
+ subheadings:['بخش‌ها با عنوان‌های H2 مرتبط و مفید تفکیک شوند.','Organize substantive sections with relevant H2 headings.'],
+ meaningful_headings:['عنوان اصلی و بخش‌های H2 متناسب با قصد صفحه بازبینی شوند.','Review H1/H2 hierarchy against the page purpose.'],
+ semantic_content_container:['محتوای اصلی با عناصر معنایی main/section/article ارائه شود.','Use semantic main, section or article landmarks.'],
+ meaningful_title:['عنوان سئو مشخص، منحصربه‌صفحه و مطابق هدف جست‌وجو بازنویسی شود.','Write a distinct, useful search title for this page.'],
+ descriptive_meta:['متای توضیحات دقیق و غیرگمراه‌کننده درباره محتوای واقعی صفحه نوشته شود.','Write an accurate descriptive meta summary without unsupported promises.'],
+ descriptive_metadata:['عنوان و شرح قابل استناد برای بازیابی ماشینی متن تکمیل شود.','Supply accurate metadata for machine-readable discovery.'],
+ canonical_self_reference:['canonical مطابق URL دائمی همین صفحه بررسی شود؛ آدرس منتشرشده تغییر نکند.','Review the self-canonical against the frozen published URL; do not rename it.'],
+ canonical_identity_in_source:['URL کانونیکال منبع و نشانی منتشرشده بدون تغییر مسیر بازبینی شوند.','Align source canonical and immutable public identity.'],
+ canonical_stable:['canonical دائم و با صفحه موجود سازگار باشد.','Keep the canonical stable and consistent with the existing public page.'],
+ hreflang_fa_en:['ارتباط دوسویه نسخه‌های واقعی فارسی و انگلیسی با hreflang اصلاح شود.','Verify reciprocal hreflang on actual equivalent FA/EN pages.'],
+ language_alternates:['برچسب‌های زبان فقط به صفحات معادل واقعی اشاره کنند.','Point language alternates only to real equivalent pages.'],
+ language_tag:['زبان درست سند در HTML مشخص شود.','Declare the accurate document language.'],
+ html_language:['ویژگی lang با زبان واقعی متن تنظیم شود.','Set HTML lang to the actual language.'],
+ document_language:['زبان اصلی سند در HTML بدون تناقض درج شود.','Declare the primary language consistently.'],
+ language_declared:['زبان HTML و در صورت نیاز جهت نوشتار تنظیم شود.','Declare HTML language and writing direction as appropriate.'],
+ direction_declared:['در نسخه فارسی جهت RTL به‌درستی تعیین شود.','Ensure right-to-left document direction for Persian.'],
+ document_direction:['جهت نوشتار فارسی و انگلیسی با رابط سازگار باشد.','Match directionality to the actual locale.'],
+ image_alt_coverage:['برای هر تصویر غیرتزئینی متن جایگزین توصیفی و دقیق درج شود.','Give each informative image meaningful alternative text.'],
+ image_text_alternatives:['تصاویر معنادار متن جایگزین داشته باشند؛ تصاویر تزئینی alt خالی بگیرند.','Supply informative alt text and empty alt for decorative images.'],
+ image_dimensions_coverage:['عرض و ارتفاع واقعی تصویر برای جلوگیری از جابه‌جایی چیدمان مشخص شوند.','Declare actual image dimensions to help prevent layout shifts.'],
+ intrinsic_image_dimensions:['ابعاد ذاتی تصاویر در کد اعلام شود.','Record intrinsic image dimensions.'],
+ noncritical_image_loading:['بارگذاری تنبل برای تصاویر غیراصلی و مناسب‌بودن تصویر اصلی بررسی شود.','Review lazy loading for noncritical images and the primary hero.'],
+ noncritical_image_loading_hints:['اولویت و الگوی بارگذاری تصویر اصلی و فرعی بازبینی شود.','Review loading priority of hero and secondary images.'],
+ main_landmark:['یک بخش main معتبر برای محتوای اصلی صفحه اضافه شود.','Provide a usable main landmark.'],
+ skip_navigation:['پیوند پرش به محتوای اصلیِ واقعی و قابل فوکوس فراهم شود.','Provide a keyboard skip link to the real main landmark.'],
+ accessible_skip_link:['پیوند پرش به محتوای اصلی در ابتدای صفحه قابل دسترس باشد.','Offer an accessible skip-to-main link.'],
+ form_label_structure:['برچسب‌های قابل تشخیص برای ورودی‌های فرم در HTML تعریف شود.','Associate form controls with clear accessible labels.'],
+ button_accessible_names_source:['دکمه‌ها نام قابل دسترس و کنش واضح داشته باشند.','Give buttons accurate accessible names and purposes.'],
+ buttons_named_static:['دکمه‌های بدون متن، برچسب قابل دسترس داشته باشند.','Label icon-only and textless buttons accessibly.'],
+ visible_navigation:['ناوبری معنایی و قابل‌استفاده صفحه آشکار باشد.','Provide semantic, navigable links.'],
+ navigation_markup:['ناوبری mobile/desktop به صورت ساختاری قابل استفاده باشد.','Expose real navigable mobile/desktop landmarks.'],
+ external_new_tabs_hardened:['پیوندهای بازشونده در تب جدید از rel امن استفاده کنند.','Add safe rel attributes on new-tab external links.'],
+ responsive_viewport:['viewport صحیح و طراحی سازگار با صفحه کوچک فراهم شود.','Declare the correct viewport and responsive layout.'],
+ viewport_mobile:['نمایش در موبایل از متای viewport و CSS پاسخ‌گو پشتیبانی کند.','Include viewport metadata and responsive CSS.'],
+ stylesheet_included:['فایل CSS لازم به سند متصل شود.','Include the page stylesheet.'],
+ stylesheet_present:['شیوه‌نامه واقعی و قابل دسترس متصل شود.','Connect the actual page stylesheet.'],
+ script_loading_hints:['اسکریپت‌های غیربحرانی بدون مسدودکردن نمایش اولیه بار شوند.','Avoid render-blocking noncritical scripts where safe.'],
+ json_ld_present:['داده ساخت‌یافته تنها برای محتوای واقعی و قابل مشاهده افزوده شود.','Add structured data only when supported by visible factual content.'],
+ valid_schema:['JSON-LD معتبر و مبتنی بر شواهد واقعی منتشر شود.','Use valid evidence-grounded JSON-LD.'],
+ valid_structured_data:['خطاهای ساختار JSON-LD و ادعاهای غیرواقعی رفع شوند.','Fix structured-data errors and unsupported claims.'],
+ no_schema_errors:['خطاهای منبع Schema.org بدون ساختن رتبه یا بررسی جعلی اصلاح شوند.','Fix schema syntax issues without inventing reviews or rankings.'],
+ no_malformed_json_ld:['قالب JSON-LD بررسی و خطاهای نحوی اصلاح شود.','Correct malformed JSON-LD syntax.'],
+ valid_schema_syntax:['ساختار JSON-LD معتبر با محتوای واقعی سازگار باشد.','Keep valid JSON-LD grounded in actual content.'],
+ entity_type_declared:['نوع Schema.org دقیقاً با ماهیت صفحه همخوان باشد.','Use appropriate schema types for the actual page.'],
+ entity_identifier_in_source:['شناسه رسمی شخص یا سازمان فقط در صورت وجود منبع معتبر درج شود.','Include verifiable entity identifiers only when genuinely supported.'],
+ author_or_entity_information:['هویت علمی نویسنده و منابع معتبر در صفحه شفاف شود.','Clarify attributable authorship and source evidence.'],
+ public_page_has_no_source_noindex:['meta robots با عمومی‌بودن واقعی و سیاست حریم خصوصی صفحه تطبیق داده شود.','Review robots policy against genuine indexability and privacy.']
+};
+const sourceQualityRemedy=code=>t(...(sourceQualityRemedies[code]||
+ [ 'این نقص کد منبع نیازمند بررسی دستی پیش از اصلاح است: '+code,
+   'Review this source-check finding manually before editing: '+code ]));
 async function loadQualityIndex(){
  const generation=loadGeneration;
  const qs=new URLSearchParams(Object.entries(qualityFilters).map(([key,value])=>[key,String(value)]));
@@ -1623,7 +1683,12 @@ function renderPageQuality(host){
        el('small',t('نوع شاهد: ','Evidence: ')+(grade.source||'unavailable')));
      if(grade.findings?.length){
        const list=el('ul');
-       for(const finding of grade.findings)list.append(el('li',finding));
+       for(const finding of grade.findings){
+         const item=el('li');
+         item.append(el('strong',sourceQualityRemedy(finding)),
+           el('small',String(finding)));
+         list.append(item);
+       }
        card.append(list);
      }else card.append(el('small',grade.score===null?t('داده موجود نیست','Not measured'):
        t('ایرادی در معیارهای بررسی‌شده ثبت نشده','No failed source check in this dimension')));
