@@ -72,6 +72,50 @@ function jrInterestFeatureReady(PDO $pdo): bool {
 function jrInterestEmailDigest(string $email,array $secret): string {
     return hash_hmac('sha256',$email,$secret['hmacKey']);
 }
+/**
+ * Mailbox-specific, privacy-preserving throttle on the EXISTING mother-DB
+ * auth rate-limit table. Unlike rateAllowed(), the bucket intentionally has
+ * NO client IP component: changing networks must not multiply the allowed
+ * unsolicited verification requests to one mailbox. The bucket is derived
+ * only from a keyed email HMAC and purpose, never plaintext email.
+ *
+ * The concurrent first-insert race fails closed; no SMTP message is sent.
+ */
+function jrInterestMailboxRateAllowed(
+    PDO $pdo,string $emailHmac,int $maximum=3,int $window=86400
+): bool {
+    if(preg_match('/^[a-f0-9]{64}$/D',$emailHmac)!==1||
+       $maximum<1||$window<60)return false;
+    $bucket=hash('sha256','jr.edu-interest-mailbox-v1|'.$emailHmac);
+    $now=nowTs();
+    try {
+        $pdo->beginTransaction();
+        $q=$pdo->prepare('SELECT count,reset_at FROM customer_auth_rate_limits
+          WHERE bucket=? FOR UPDATE');
+        $q->execute([$bucket]);
+        $row=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($row)) {
+            $pdo->prepare('INSERT INTO customer_auth_rate_limits
+              (bucket,count,reset_at) VALUES (?,?,?)')
+              ->execute([$bucket,1,$now+$window]);
+            $count=1;
+        }elseif((int)$row['reset_at']<=$now) {
+            $pdo->prepare('UPDATE customer_auth_rate_limits
+              SET count=1,reset_at=? WHERE bucket=?')
+              ->execute([$now+$window,$bucket]);
+            $count=1;
+        }else{
+            $count=(int)$row['count']+1;
+            $pdo->prepare('UPDATE customer_auth_rate_limits
+              SET count=? WHERE bucket=?')->execute([$count,$bucket]);
+        }
+        $pdo->commit();
+        return $count<=$maximum;
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        return false;
+    }
+}
 function jrInterestSeal(string $email,string $id,array $secret): array {
     $nonce=random_bytes(12);$tag='';
     $cipher=openssl_encrypt($email,'aes-256-gcm',$secret['key'],
@@ -128,11 +172,12 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
     $email=emailNorm($email);$secret=jrInterestPrivateKey();
     if($secret===null)fail('education_updates_not_enabled',503);
     // Both independent limits matter: varying addresses cannot evade the
-    // per-IP global budget, and one mailbox is bounded across IP addresses.
+    // per-IP budget, and changing networks must not bypass one mailbox's
+    // separate, keyed-HMAC-only 24-hour submission limit.
     if(!rateAllowed($pdo,'edu_interest_ip','single_popup',5,3600))
         fail('rate_limited',429);
     $digest=jrInterestEmailDigest($email,$secret);
-    if(!rateAllowed($pdo,'edu_interest_email',$digest,3,86400))
+    if(!jrInterestMailboxRateAllowed($pdo,$digest,3,86400))
         fail('rate_limited',429);
     $now=nowTs();$noticeHash=hash('sha256',jrInterestNotice($locale));
     $token=bin2hex(random_bytes(32));
