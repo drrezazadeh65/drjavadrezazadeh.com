@@ -1,0 +1,22 @@
+/* Adult verified guardian view; no personal record shown until user opens it. */
+.jr-guardian-overview{display:block;max-width:1140px;margin:20px auto;padding:0;background:#20252d;color:#f9f2e6;border:1px solid #a58b60;border-radius:20px;overflow:hidden;line-height:1.7}
+.jr-guardian-overview>summary{display:list-item;cursor:pointer;padding:18px 20px;font-weight:750;color:#e9cd98;font-size:clamp(1rem,3.2vw,1.3rem);min-height:54px}
+.jr-guardian-overview>summary:focus-visible{outline:3px solid #fff;outline-offset:-5px}
+.jr-guardian-overview[open]>summary{border-bottom:1px solid #a58b60}
+.jr-guardian-overview__body{padding:clamp(16px,4vw,25px)}
+.jr-guardian-overview__body p{margin:0 0 12px;line-height:1.85}
+.jr-guardian-overview__refresh{min-height:48px;border-radius:12px;border:1px solid #e3cb90;background:#e3cb90;color:#1e1b16;padding:10px 17px;font:inherit;font-weight:700;cursor:pointer;margin:8px 0 18px}
+.jr-guardian-overview__refresh:disabled{opacity:.6}
+.jr-guardian-overview__refresh:focus-visible{outline:3px solid white;outline-offset:3px}
+.jr-guardian-overview__state{background:#303023;border-inline-start:4px solid #e3cb90;padding:12px 14px;border-radius:8px}
+.jr-guardian-overview__summary{color:#f8dda5;font-weight:750}
+.jr-guardian-overview__rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.jr-guardian-overview__card{background:#2a2f38;border:1px solid #82704d;padding:16px;border-radius:14px;overflow-wrap:anywhere}
+.jr-guardian-overview__card h3{font-size:1rem;line-height:1.5;color:#ffdda0}
+.jr-guardian-overview__card dl{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);column-gap:10px;row-gap:8px;margin:10px 0 0}
+.jr-guardian-overview__card dd{margin:0;text-align:end;font-variant-numeric:tabular-nums}
+.jr-guardian-overview__card dt{font-size:.92rem}
+.jr-guardian-overview a{color:#f4d99e}
+@media(max-width:580px){.jr-guardian-overview__rows{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.jr-guardian-overview *{transition:none!important}}
+@media print{.jr-guardian-overview{display:none!important}}
