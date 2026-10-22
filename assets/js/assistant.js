@@ -76,7 +76,10 @@
       {label:'Golden Talent',url:rootPath('fa/golden-talent/')},
       {label:'درخواست مشاوره',url:rootPath('fa/darkhast-moshavere/')},
       {label:'جست‌وجوی سایت',url:rootPath('fa/jostojo/')},
-      {label:'جست‌وجوی مجله JHELA',url:rootPath('journal/fa/search/')}
+      {label:'جست‌وجوی مجله JHELA',url:rootPath('journal/fa/search/')},
+      {label:'BAHAR؛ برنامه‌ریزی مطالعه رایگان',url:rootPath('fa/bahar/')},
+      {label:'بررسی مقدماتی کارنامه',url:rootPath('fa/konkur-ai-lab/')},
+      {label:'مسیر رشد و Golden Path',url:rootPath('fa/golden-talent/')}
     ];
     return [
       {label:'Student Guidance',url:rootPath('en/student-guidance/')},
@@ -84,7 +87,10 @@
       {label:'Services',url:rootPath('en/services/')},
       {label:'Request Consultation',url:rootPath('en/request-consultation/')},
       {label:'Search the website',url:rootPath('en/search/')},
-      {label:'Search JHELA journal',url:rootPath('journal/search/')}
+      {label:'Search JHELA journal',url:rootPath('journal/search/')},
+      {label:'BAHAR: free study planner',url:rootPath('en/bahar/')},
+      {label:'Self-reported scorecard review',url:rootPath('en/student-guidance/')},
+      {label:'Explore a developmental pathway',url:rootPath('en/golden-talent/')}
     ];
   };
 
@@ -193,12 +199,20 @@
     if(isFa){
       if(/مجله|ژورنال|داور|داوری|jhela|journal/.test(q)) return {answer:'JHELA در مرحله تأسیس است. می‌توانید سیاست‌های عمومی و فراخوان‌های داوری را در جست‌وجوی اختصاصی مجله بررسی کنید. این پاسخ به معنای فعال‌بودن پذیرش رسمی مقاله یا نمایه‌شدن مجله نیست.',links:[links[5]]};
        if(/جست.?وجو|جستجو|پیدا کردن|سرچ/.test(q)) return {answer:'برای پیدا کردن صفحات عمومی از جست‌وجوی فارسی سایت استفاده کنید. اطلاعات حساب و پرونده‌های خصوصی در نتایج جست‌وجو نمایش داده نمی‌شوند.',links:[links[4]]};
+       if(/کارنامه|تراز|درصد|رتبه|قلم.?چی|گاج|آزمون آزمایشی/.test(q)) return {answer:'برای شروع، از بررسی مقدماتی کارنامه استفاده کنید. رتبه و تراز خوداظهاری یا آزمون آزمایشی به احتمال قبولی و رتبه رسمی تبدیل نمی‌شود؛ داده رسمی و مجازبودن باید جداگانه بررسی شود.',links:[links[7],links[1]]};
+       if(/مطالعه|درس.?خواندن|برنامه.?ریزی|یادگیری|باهار|bahar/.test(q)) return {answer:'برنامه رایگان BAHAR برای هدف‌گذاری، مرور و بازنگری در برنامه مطالعه در دسترس است. محتوای شخصی فقط با انتخاب جداگانه شما برای ذخیره بررسی می‌شود.',links:[links[6]]};
+       if(/مقایسه|دو مسیر|دو رشته|ماتریس تصمیم/.test(q)) return {answer:'برای مقایسه توصیفی دو مسیر، استودیوی پنج‌معیاری انتخاب را باز کنید. شاخص‌ها صرفاً بازتاب اهمیت‌ها و ارزیابی‌های خود شما هستند و قبولی یا استعداد را پیش‌بینی نمی‌کنند.',links:[links[1],links[3]]};
+       if(/مسیر رشد|مسیر طلایی|golden path|توسعه فردی/.test(q)) return {answer:'برای مسیر رشد از راهنمای Golden Talent شروع کنید. نتیجه معتبر شخصی و انتشار حرفه‌ای به شواهد و بررسی انسانی مستقل نیاز دارد.',links:[links[8]]};
        if(/انتخاب رشته|رشته|کنکور/.test(q)) return {answer:'برای تصمیم‌گیری درباره رشته، از صفحه «انتخاب رشته» و راهنماهای مرتبط شروع کنید. اگر مسئله شما نیازمند بررسی فردی است، درخواست مشاوره ثبت کنید.',links:[links[1],links[3]]};
       if(/استعداد|golden|گلدن|توانمندی/.test(q)) return {answer:'Golden Talent چارچوب رشدگرا و چندمنبعی سایت برای شناخت شواهد مرتبط با توانمندی و مسیر رشد است. برای آشنایی عمومی وارد صفحه Golden Talent شوید.',links:[links[2],links[3]]};
       return {answer:labels.error,links};
     }
     if(/jhela|journal|peer.review|reviewer|manuscript/.test(q)) return {answer:'JHELA is in its founding stage. Its separate public journal search covers published policies and calls, not private manuscript records. Formal intake and indexing must be verified independently.',links:[links[5]]};
     if(/find|search|look up|lookup/.test(q)) return {answer:'Use the public website search to find services, publications and guidance; personal account records are excluded.',links:[links[4]]};
+    if(/scorecard|mock.exam|taz|exam.rank|quota|result|exam.score/.test(q)) return {answer:'Use the manual scorecard worksheet as a preliminary, self-reported review. Provider TAZ and mock ranks are not official admissions probabilities or verified national ranks.',links:[links[7],links[0]]};
+    if(/study|learning|revision|weekly plan|practice|bahar/.test(q)) return {answer:'BAHAR provides a free study-planning starting point. Saving a private plan is an independent, optional consent-based step, not a prerequisite for free guidance.',links:[links[6]]};
+    if(/compare|two pathways|two majors|decision matrix/.test(q)) return {answer:'Compare two pathways in the existing five-criterion Choice Studio. Its figures reflect only your own priorities and ratings; they do not predict admissions or assess aptitude.',links:[links[0],links[3]]};
+    if(/golden path|growth pathway|development pathway/.test(q)) return {answer:'Start with the Golden Talent public framework for a developmental pathway. Validated individual conclusions or professional release require independently reviewed evidence.',links:[links[8]]};
     if(/major|career|student|guidance/.test(q)) return {answer:'Start with Student Guidance for educational and major-exploration questions. If you need individual review, use the consultation request route.',links:[links[0],links[3]]};
     if(/talent|golden|strength/.test(q)) return {answer:'Golden Talent is the site’s developmental, multi-source framework for exploring student strengths and pathways. The public page explains the method and its limits.',links:[links[1],links[3]]};
     return {answer:labels.error,links};
