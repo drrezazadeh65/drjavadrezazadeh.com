@@ -2719,6 +2719,31 @@ function renderOwnerCommandCenter(){
      t('هنوز انجام نشده','Not requested yet')));
  latest.dataset.ocLastRead='';
  root.append(latest);
+ const statusTotals={attention:0,unknown:0,paused:0,recorded:0};
+ for(const department of departments){
+   const key=ownerCockpitReadErrors[department.load]?'unknown':department.data.kind;
+   if(Object.prototype.hasOwnProperty.call(statusTotals,key))statusTotals[key]++;
+ }
+ const distribution=el('div',undefined,'oc-evidence-distribution');
+ distribution.setAttribute('aria-label',
+   t('خلاصه شواهد و وضعیت واحدهای مدیریتی','Management evidence coverage summary'));
+ const captions=[
+   ['attention',t('نیازمند بررسی','Needs review')],
+   ['unknown',t('فاقد شاهد کافی','Evidence missing')],
+   ['paused',t('خاموش یا غیرفعال','Disabled / paused')],
+   ['recorded',t('شواهد ثبت‌شده','Evidence loaded')]
+ ];
+ for(const [key,label] of captions){
+   const button=el('button',undefined,'oc-evidence-count');
+   button.type='button';button.dataset.ocStatus=key;
+   button.append(el('strong',String(statusTotals[key])),
+     el('span',label));
+   button.addEventListener('click',()=>{
+     ownerCockpitFilter=key;ownerCockpitShowAll=true;renderOwnerCommandCenter();
+   });
+   distribution.append(button);
+ }
+ root.append(distribution);
  const stats=el('div',undefined,'oc-stats');
  for(const [fa,label,value,caption] of [
   ['نسخه خوانده‌شده','Release evidence',snapshot.releaseSha?.slice(0,8)||'—',
