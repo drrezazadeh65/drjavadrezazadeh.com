@@ -60,7 +60,7 @@ function operationsEducationOfferReleaseCatalogue(): array {
           'titleFa'=>$offer['titleFa'],
           'titleEn'=>$offer['titleEn'],
           'engine'=>$offer['engine'],
-          'freeIntro'=>$offer['proposedPriceToman']===0,
+          'freeIntro'=>$offer['permanentlyFreeIntro']===true,
           'proposedPriceToman'=>$offer['proposedPriceToman']
         ];
     }
