@@ -89,3 +89,48 @@ After coding is completed, obtain the owner's permission to lift the test freeze
 5. Branch reconciliation, integration, deployments and any runtime collector activation.
 
 **Do not treat these commits or this ledger as evidence of passing tests or successful live activation.** Additional implementation work may proceed in this branch; full completion has not been certified.
+
+## New directive: all management functions must be connected (source phase)
+
+Owner asks for a fully integrated management dashboard, with no cosmetically
+enabled but nonfunctional operations. The implementation must distinguish:
+
+- **Operational:** an existing MFA-protected API, actual RBAC permissions and
+  recorded storage/provenance are available.
+- **Configuration required:** owner-only credentials, schema, host worker or
+  OAuth/proprietary provider agreement remains missing; the interface must
+  give a specific remediation path, not an inert button.
+- **Not applicable / protected:** educational scoring engines, irreversible
+  data operations and unconsented third-party publishing must not be forcibly
+  activated in violation of separate frozen constraints.
+
+Implemented in the independent branch:
+
+1. Fixed an actual JavaScript scope error that had placed static page-quality
+   grade derivation inside the unrelated engine console, leaving dashboard
+   department status variables undefined. The grades now belong to the owner
+   cockpit function where the evidence snapshot and state helpers exist.
+2. Added missing `api/internal/operations-existing-features.json`, derived from
+   the repository's **18 existing feature source definitions** and its actual
+   source-tree files. Source presence is explicitly NOT live activation.
+3. Moved the secondary workspace index below the primary command center and
+   collapsed it by default; added real registered health, collection, editing,
+   journal and source-control workspaces to bilingual search navigation.
+4. Exposed evidence-backed integration prerequisites with direct navigation to
+   existing protected panels, including missing database tables and unsupported
+   executors; no fake verification, no auto-enablement.
+5. Extended the canonical source schema-readiness contract to 27 operations
+   tables, including DB health settings, run history and redacted DB errors.
+6. Prepared a standalone **manual**, additive, owner-only SQL file
+   `platform/db/operations-database-health-additive.mysql.sql` and a
+   corresponding step-by-step operator procedure at
+   `docs/governance/OWNER_GUIDED_BERTINA_DB_HEALTH_20261022.md`.
+   Their existence does not imply that the three tables are missing or have
+   been installed live. Owner's previously documented 24-table inventory
+   requires reconciliation in phpMyAdmin after private backup.
+
+**Freeze remains binding:** no tests, automatic CI, merge to
+`migration/bertina-linux6`, Cron registration, external scheduled collection,
+SMTP sending, data deletion or deployment were initiated. The dashboard is
+still under source development, and universal live functionality is
+**NOT VERIFIED**.
