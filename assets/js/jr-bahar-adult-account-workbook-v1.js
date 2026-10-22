@@ -512,7 +512,7 @@
   if(location.hash==='#jr-bahar-account'&&pendingHandoff()){
     root.id='jr-bahar-account';
     root.open=true;
-    root.scrollIntoView({block:'start',behavior:'instant'});
+    root.scrollIntoView({block:'start',behavior:'auto'});
   }
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
   window.addEventListener('pagehide',()=>clear(),{once:true});
