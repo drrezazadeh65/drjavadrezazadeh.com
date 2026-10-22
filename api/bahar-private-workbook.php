@@ -391,6 +391,19 @@ function baharAccountErasureRequest(PDO $pdo,string $actor): array {
               DATE_ADD(UTC_TIMESTAMP(3),INTERVAL 30 DAY),
               CASE WHEN ?='COMPLETED' THEN UTC_TIMESTAMP(3) ELSE NULL END)");
         $request->execute([$requestId,$actor,$status,$status]);
+        // Deleting one's workbook is also a withdrawal of permission to
+        // KEEP that workbook. This must commit together with the request:
+        // a completed erasure must not be silently undone by a stale grant.
+        $withdraw=$pdo->prepare("UPDATE eco_consent_records c
+          INNER JOIN eco_consent_notices n ON n.id=c.notice_id
+          SET c.withdrawn_at=UTC_TIMESTAMP(3)
+          WHERE c.account_id=? AND c.subject_id IS NULL
+            AND c.source_code='BAHAR_ACCOUNT_WORKBOOK'
+            AND n.purpose_code=? AND c.decision='GRANTED'
+            AND c.withdrawn_at IS NULL");
+        $withdraw->execute([$actor,JR_BAHAR_ACCOUNT_PURPOSE]);
+        if($withdraw->rowCount()>0)
+            baharAccountAudit($pdo,$actor,'BAHAR_ACCOUNT_CONSENT_WITHDRAWN');
         $erased=false;
         if($holdClear){
             $deletion=$pdo->prepare('DELETE FROM eco_bahar_account_workbooks
@@ -433,6 +446,7 @@ function baharAccountErasureRequest(PDO $pdo,string $actor): array {
             'databaseRowDeleted'=>$erased,
             'currentRecordAbsent'=>$holdClear&&!$erased,
             'existingRequestReused'=>false,
+            'previousPrivateConsentRevoked'=>true,
             'legalHoldRequiresHumanReview'=>!$holdClear,
             'backupErasureCertified'=>false,
             'noUnrelatedAccountDataDeleted'=>true
