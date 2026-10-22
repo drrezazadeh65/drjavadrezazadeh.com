@@ -13,6 +13,7 @@ require_once __DIR__.'/jhela-native-editorial.php';
 require_once __DIR__.'/jhela-intake.php';
 require_once __DIR__.'/operations-commerce.php';
 require_once __DIR__.'/operations-educational-offers.php';
+require_once __DIR__.'/operations-education-source-review.php';
 require_once __DIR__.'/operations-book-expiration.php';
 require_once __DIR__.'/operations-donation-recovery.php';
 require_once __DIR__.'/operations-fulfilment.php';
@@ -524,6 +525,13 @@ function operationsRoute(string $path, string $verb): never {
             if(!rateAllowed($pdo,'operations_educational_offers_read',$accountId,15,300))
                 fail('rate_limited',429);
             respond(operationsEducationalOffersRead());
+        }
+
+        // 1405 source inventory is review metadata, never published admissions.
+        if ($path === '/admin/operations/educational-source-review' && $verb === 'GET') {
+            if (!rateAllowed($pdo,'operations_education_source_review_read',$accountId,12,300))
+                fail('rate_limited',429);
+            respond(operationsEducational1405ReviewSnapshot());
         }
 
         // Existing ENG-13 controller: bounded 54-reference source directory.
