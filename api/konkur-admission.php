@@ -13,7 +13,8 @@ require_once __DIR__.'/konkur-public-search-guard.php';
  */
 function konkurApprovedCatalogueSql(): string {
     return <<<'SQL'
-SELECT p.programme_location_code AS programmeCode,
+SELECT p.id AS _internalOfferingId,
+       p.programme_location_code AS programmeCode,
        p.examination_group_code AS examinationGroup,
        p.admission_track_code AS admissionTrack,
        p.official_institution_name AS university,
@@ -81,6 +82,70 @@ WHERE p.review_state='APPROVED'
       )
   )
 SQL;
+}
+
+/**
+ * Only an explicitly APPROVED condition and its independently approved
+ * source page/document may be displayed. This is a descriptive official
+ * guide excerpt, NOT a personalized eligibility decision or live quota.
+ *
+ * Bounded to 4 rows per approved offering; the fourth is evidence that the
+ * public three-item preview is incomplete. Never silently assert there are
+ * no special requirements based on a missing/inaccessible optional table.
+ */
+function konkurReviewedConditionPreview(PDO $pdo,string $offeringId): array {
+    $sql=<<<'SQL'
+SELECT oc.condition_kind AS kind,
+       oc.official_text_excerpt AS excerpt,
+       cp.pdf_page_number AS pageNo,
+       cd.document_code AS documentCode,
+       cd.revision_no AS documentRevision
+FROM eco_admission_offering_conditions oc
+INNER JOIN eco_admission_programme_offerings p
+  ON p.id=oc.offering_id
+INNER JOIN eco_admission_document_pages cp
+  ON cp.id=oc.source_page_id AND cp.page_review_state='REVIEWED'
+  AND cp.reviewed_by_account_id IS NOT NULL AND cp.reviewed_at IS NOT NULL
+INNER JOIN eco_admission_documents cd
+  ON cd.id=cp.document_id AND cd.cycle_id=p.cycle_id
+  AND cd.document_review_state='QA_APPROVED'
+  AND cd.reviewed_by_account_id IS NOT NULL AND cd.reviewed_at IS NOT NULL
+  AND cd.original_pdf_sha256 IS NOT NULL
+WHERE oc.offering_id=?
+  AND oc.review_state='APPROVED'
+  AND oc.approved_by_account_id IS NOT NULL AND oc.approved_at IS NOT NULL
+  AND (cd.examination_group_code IS NULL OR cd.examination_group_code=p.examination_group_code)
+  AND NOT EXISTS(
+    SELECT 1 FROM eco_admission_documents newer
+    WHERE newer.supersedes_document_id=cd.id
+  )
+ORDER BY oc.condition_code ASC LIMIT 4
+SQL;
+    try {
+        $query=$pdo->prepare($sql);
+        $query->execute([$offeringId]);
+        $rows=$query->fetchAll(PDO::FETCH_ASSOC);
+    }catch(Throwable $e){
+        return ['status'=>'UNAVAILABLE','items'=>[],'moreNotDisplayed'=>null];
+    }
+    $items=[];
+    foreach(array_slice($rows,0,3) as $row) {
+        $excerpt=trim((string)($row['excerpt']??''));
+        $kind=trim((string)($row['kind']??''));
+        $document=trim((string)($row['documentCode']??''));
+        if($excerpt===''||$document===''||strlen($excerpt)>6000
+           ||preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/',$excerpt))
+            return ['status'=>'UNAVAILABLE','items'=>[],'moreNotDisplayed'=>null];
+        $items[]=[
+           'kind'=>substr($kind,0,60),
+           'excerpt'=>function_exists('mb_substr')?mb_substr($excerpt,0,360,'UTF-8'):substr($excerpt,0,360),
+           'sourceDocument'=>$document,
+           'sourceRevision'=>(int)$row['documentRevision'],
+           'sourcePdfPage'=>(int)$row['pageNo']
+        ];
+    }
+    return ['status'=>'REVIEWED_SOURCE_EXCERPTS','items'=>$items,
+       'moreNotDisplayed'=>count($rows)>3];
 }
 
 /** Validates table/column presence without selecting real learner or admissions rows. */
@@ -154,6 +219,11 @@ function konkurCatalogueRoute(string $path, string $verb): never {
         $query->execute();
         $records=[];
         foreach ($query->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            // Internal primary key is used only to fetch independently
+            // reviewed source conditions. Never expose the DB row ID.
+            $offeringId=(string)$row['_internalOfferingId'];
+            unset($row['_internalOfferingId']);
+            $row['sourceConditions']=konkurReviewedConditionPreview($pdo,$offeringId);
             $row['year']=(int)$row['year'];
             $row['sourceRevision']=(int)$row['sourceRevision'];
             $row['sourcePdfPage']=(int)$row['sourcePdfPage'];
