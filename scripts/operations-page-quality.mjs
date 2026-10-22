@@ -59,8 +59,12 @@ function inspectQuality(route,html,schema){
    &&schema.hreflang.some(x=>x.lang==='en');
  const validSchema=schema.structuredDataBlocks>0&&!schema.errors.some(e=>e.code==='malformed_json_ld');
  const alt=imgs.every(x=>/\balt\s*=/.test(x));
- const sized=imgs.every(x=>!!attr(x,'width')&&!!attr(x,'height'));
- const hints=imgs.every((x,i)=>i===0||['lazy','eager'].includes(attr(x,'loading'))||attr(x,'fetchpriority')==='high');
+ // Official eNamad trust seal markup is vendor-controlled: do not lower
+ // image/speed grades for forbidden modifications to its required snippet.
+ const officialSeal=tag=>/^https:\/\/trustseal\.enamad\.ir\/logo\.aspx\?/i.test(attr(tag,'src'));
+ const sized=imgs.every(x=>officialSeal(x)||(!!attr(x,'width')&&!!attr(x,'height')));
+ const hints=imgs.every((x,i)=>officialSeal(x)||i===0||
+   ['lazy','eager'].includes(attr(x,'loading'))||attr(x,'fetchpriority')==='high');
  const description=getMeta('description');
  const formsNamed=forms.length===0||forms.every(x=>!!attr(x,'aria-label')||!!attr(x,'id')||has(html,/<label\b/i));
  const controlsNamed=buttons.length===0||buttons.every(x=>!/^<button\b[^>]*>$/i.test(x)
