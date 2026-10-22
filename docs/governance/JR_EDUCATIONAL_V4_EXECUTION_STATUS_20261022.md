@@ -220,3 +220,26 @@ This source-only continuation implements the following on `migration/bertina-lin
 - Official 1405 source signatures, verified scientific measures, outcomes-based probability evaluation, legal guardian policy, real fulfilment and finance approvals remain separate BLOCKED/UNVERIFIED external gates.
 
 **Owner instruction unchanged:** finish all independently implementable source first, then one comprehensive acceptance programme; deploy only through the owner-controlled Bertina release workflow.
+
+
+## 2026-10-22 — Stage 6 private BAHAR account/manager contract hardening (SOURCE ONLY)
+
+**Git branch:** `migration/bertina-linux6`. **Execution:** source changes COMMITTED; *no tests or build, no mother-DB migration, no private key provisioning, no Cron probe, no service activation, no production publication*. No established public URL was renamed/removed.
+
+### Cross-role concurrency and explicit eligibility state
+
+- The previously existing `operationsBaharAdultReviewDecide()` in `api/operations-education-adult-review.php` now acquires the same `customer_accounts` owner-row `FOR UPDATE` lock **before** the eligibility row as the account-based consent, encrypted workbook and erasure mutations. This is essential to serialize independent adult approval/revocation against an in-flight sensitive account save; merely locking the eligibility row did not share the complete transaction boundary.
+- `/bahar/account/eligibility-cancel` likewise locks its own account row before deleting a PENDING record. When a declined/revoked/expired application is re-opened as PENDING, prior `verified_by_account_id` and `verifier_evidence_sha256` are cleared along with timestamps, preventing older review evidence from appearing to approve the new application. Historical source/audit records are not destroyed.
+- Purpose-specific consent acceptance re-reads the currently approved version and matching notice ID/SHA **inside** the account-locked transaction before recording consent. `baharAccountHasConsent()` now checks the latest grant against the most recent withdrawal and fails closed if withdrawal is simultaneous or more recent rather than relying on non-chronological UUID tie-breaking.
+
+### Erasure and re-consent lifecycle
+
+- On a newly recorded BAHAR erasure request, consent for `BAHAR_ACCOUNT_WORKBOOK` is withdrawn in **the same InnoDB transaction** as the account-scoped request, lawful-hold decision, optional encrypted row deletion and audit. Both a COMPLETED deletion and a legal-hold BLOCKED request thereby immediately stop prior account saving and retrieval. Other consent purposes, other products, other accounts, finance and journal data are untouched.
+- The still-supported `DELETE /api/bahar/account/workbook` action also withdraws previous private-workbook consent atomically while preserving its legacy URL, confirmation, legal-hold checks and existing response fields. Owner completion of older retained deletion requests withdraws any remaining private storage consent before marking the request COMPLETED. None of these changes implies backup erasure or legal-hold override.
+- `assets/js/jr-bahar-adult-account-workbook-v1.js` now prevents the one-purpose consent popup, consent enablement and same-tab automatic re-save while an erasure request is still `RECEIVED`, `PENDING`, `IN_REVIEW` or `BLOCKED`. On successful erasure request it resets its local consent flag and server-save permission; local work, optional export and free learning remain independent. Both already published `fa/app/student/bahar/index.html` and `en/golden-talent/dashboard/bahar/index.html` now reference the versioned updated JS, with their original URLs and metadata otherwise preserved.
+- The existing owner storage-policy reader now requires the complete parent privacy capability, including `eco_subjects`, `eco_privacy_requests` and `eco_privacy_actions`, before reporting `canEnable`. The learner account schema preflight likewise includes both request/action tables, so an inaccessible erasure facility cannot be mistaken for a complete secure-storage setup.
+
+### Operations and remaining gates
+
+- Updated the single mother-DB migration handoff and final acceptance matrix. Existing 2026-10-22 BAHAR SQL remains **unexecuted**. All affected concurrent-transaction, owner MFA/CSRF, privacy legal-hold, restoration, consent, local export and mobile popup acceptance gates remain **NOT RUN**. Actual 1405 guide evidence, scientific validation, privacy/legal approval, backup/key rotation and separate product/payment proof remain **BLOCKED OR UNVERIFIED**.
+- The source change is not a live claim; do not approve private-workbook storage from SHA digests alone or assume any of these security invariants are validated on Bertina until integrated Stage 7 checks pass.
