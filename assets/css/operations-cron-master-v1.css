@@ -1,0 +1,46 @@
+/* Scoped bilingual, mobile-first master Cron owner control. No global overrides. */
+#ops-cron-master{scroll-margin-top:5rem}
+#ops-cron-master>summary{cursor:pointer;font-weight:750;line-height:1.6;
+  min-height:48px;padding:.65rem .4rem;outline-offset:4px}
+#ops-cron-master>summary:focus-visible,
+#ops-cron-master button:focus-visible,
+#ops-cron-master select:focus-visible,
+#ops-cron-master input:focus-visible{outline:3px solid #d8b66b;outline-offset:3px}
+#ops-cron-master .jr-cron-copy{max-width:72ch;line-height:1.8;opacity:.92}
+#ops-cron-master .jr-cron-facts,
+#ops-cron-master .jr-cron-jobs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:.75rem;margin-block:1rem}
+#ops-cron-master .jr-cron-fact,
+#ops-cron-master .jr-cron-job{border:1px solid rgba(181,152,90,.35);
+  border-radius:14px;padding:1rem;min-width:0;background:rgba(128,108,62,.055);
+  overflow-wrap:anywhere}
+#ops-cron-master .jr-cron-fact{display:flex;flex-direction:column;gap:.5rem}
+#ops-cron-master .jr-cron-fact strong{font-size:.94em}
+#ops-cron-master .jr-cron-fact span{font-size:.9em;line-height:1.65}
+#ops-cron-master .jr-cron-head{display:flex;flex-wrap:wrap;align-items:baseline;
+  justify-content:space-between;gap:.5rem}
+#ops-cron-master .jr-cron-head h3{margin:0;font-size:1.02rem}
+#ops-cron-master .jr-cron-id{direction:ltr;unicode-bidi:isolate;font:600 .8rem ui-monospace,monospace;opacity:.7}
+#ops-cron-master .jr-cron-state,
+#ops-cron-master .jr-cron-warning{font-size:.88rem;line-height:1.8}
+#ops-cron-master .jr-cron-warning{border-inline-start:3px solid #ae8040;padding-inline-start:.65rem}
+#ops-cron-master .jr-cron-controls{display:grid;gap:.75rem;margin-top:.85rem}
+#ops-cron-master .jr-cron-switch,
+#ops-cron-master .jr-cron-interval-label{display:flex;gap:.65rem;align-items:center;flex-wrap:wrap;line-height:1.6}
+#ops-cron-master input[type=checkbox]{width:20px;height:20px;accent-color:#b89b60}
+#ops-cron-master select{min-height:44px;padding:.4rem .65rem;max-width:100%;
+  border:1px solid rgba(169,139,72,.5);border-radius:9px;background:inherit;color:inherit}
+#ops-cron-master button{min-height:44px;min-width:44px;max-width:100%;padding:.5rem .9rem;
+  border:1px solid #b89b60;border-radius:9px;background:transparent;color:inherit;
+  cursor:pointer;font-weight:650}
+#ops-cron-master button:disabled,
+#ops-cron-master select:disabled{opacity:.55;cursor:not-allowed}
+#ops-cron-master [role=status]{line-height:1.8;min-height:1.8em}
+@media(max-width:540px){
+ #ops-cron-master .jr-cron-facts,
+ #ops-cron-master .jr-cron-jobs{grid-template-columns:minmax(0,1fr)}
+ #ops-cron-master .jr-cron-job{padding:.85rem}
+ #ops-cron-master .jr-cron-controls button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ #ops-cron-master *{scroll-behavior:auto!important;transition:none!important}
+}
