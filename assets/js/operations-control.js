@@ -806,6 +806,62 @@ function renderAlertCenter(host,model){
    }
    history.append(el('h4',t('خروجی SMTP (نه تحویل قطعی صندوق)','SMTP outcomes, not inbox-delivery proof')),emails);
    section.append(history);
+   const finder=el('details',undefined,'ops-panel');
+   finder.append(el('summary',t('جستجو و فیلتر تاریخچه رخدادها','Search and filter incident history')));
+   const toolbar=el('div',undefined,'ops-toolbar');
+   const choices=(label,options)=>{
+     const field=el('select');field.setAttribute('aria-label',label);
+     for(const [value,title] of options){const item=el('option',title);item.value=value;field.append(item);}
+     return field;
+   };
+   const severity=choices(t('شدت','Severity'),[
+     ['all',t('همه شدت‌ها','All severities')],['critical','Critical'],['warning','Warning']]);
+   const state=choices(t('وضعیت','State'),[
+     ['all',t('همه وضعیت‌ها','All states')],['open','Open'],
+     ['acknowledged','Acknowledged'],['resolved','Resolved']]);
+   const days=choices(t('بازه زمانی','Time window'),[
+     ['1',t('۲۴ ساعت','24 hours')],['7',t('۷ روز','7 days')],
+     ['30',t('۳۰ روز','30 days')],['90',t('۹۰ روز','90 days')],
+     ['180',t('۱۸۰ روز','180 days')],['365',t('یک سال','One year')]]);
+   days.value='30';
+   const search=el('button',t('نمایش رخدادها','Load incidents'));search.type='button';
+   const results=el('div');results.setAttribute('aria-live','polite');
+   let page=1;
+   const searchHistory=async()=>{
+     search.disabled=true;const generation=loadGeneration;
+     const params=new URLSearchParams({severity:severity.value,state:state.value,
+       days:days.value,page:String(page)});
+     try{
+       const data=await api('/alert-history?'+params);
+       if(generation!==loadGeneration||!snapshot)return;
+       if(data.schema!=='operations-incident-history-v1')throw Error('invalid_incident_history');
+       results.replaceChildren();
+       results.append(el('p',t('تعداد رخدادهای ثبت‌شده: ','Recorded incidents: ')+
+         (data.total??'—')));
+       const list=el('ul');
+       for(const item of data.records||[]){
+         list.append(el('li',item.eventCode+' · '+item.severity+' · '+item.state+
+           ' · '+item.scope+' · '+date(item.lastSeenAt)+
+           ' · '+t('دفعات: ','Count: ')+item.occurrences));
+       }
+       results.append(list);
+       if(data.pageCount>1){
+         const pager=el('nav',undefined,'ops-source-pager');
+         const previous=el('button',t('قبلی','Previous'));previous.disabled=page<=1;
+         previous.addEventListener('click',()=>{page--;searchHistory();});
+         const next=el('button',t('بعدی','Next'));next.disabled=page>=data.pageCount;
+         next.addEventListener('click',()=>{page++;searchHistory();});
+         pager.append(previous,el('span',page+' / '+data.pageCount),next);results.append(pager);
+       }
+     }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+     finally{if(search.isConnected)search.disabled=false;}
+   };
+   search.addEventListener('click',()=>{page=1;searchHistory();});
+   toolbar.append(severity,state,days,search);
+   finder.append(toolbar,results,el('small',t(
+     'این جستجو فقط رخدادهای ثبت‌شده در دیتابیس را نشان می‌دهد؛ لاگ خام یا شواهد مستقل سرور نیست.',
+     'Search covers stored incident events only, not raw access logs or independent host evidence.')));
+   section.append(finder);
  }
  host.append(section);
 }
