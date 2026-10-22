@@ -139,7 +139,9 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
             // visitor identity or logs ever enter an email.
             if($read>0&&$at-($cursor['updated_at']??$at)<=900){
                 if($errors5xx>0)operationsAlertRecord($pdo,'http_5xx_surge','site_http_5xx',$at);
+                else operationsAlertResolve($pdo,'http_5xx_surge','site_http_5xx',$at);
                 if($errors404>=10)operationsAlertRecord($pdo,'http_404_surge','site_http_404',$at);
+                else operationsAlertResolve($pdo,'http_404_surge','site_http_404',$at);
             }
             return ['status'=>'observed','lines'=>$read,'errors404'=>$errors404,'errors5xx'=>$errors5xx];
         }finally{fclose($fh);}
