@@ -132,7 +132,7 @@ function inspectQuality(route,html,schema){
    c('canonical_identity_in_source',canonical),
    c('html_language',lang),
    c('language_alternates',reciprocal),
-   c('robots_meta_present',!!getMeta('robots')),
+   c('public_page_has_no_source_noindex',!/\bnoindex\b/i.test(getMeta('robots'))),
    c('valid_schema_syntax',!schema.errors.some(e=>e.code==='malformed_json_ld'))
  ],'static_technical_seo_not_live_http'):{score:null,passed:0,applicable:0,
    source:'not_applicable_private_or_noindex',findings:[]};
