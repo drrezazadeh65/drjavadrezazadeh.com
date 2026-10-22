@@ -34,11 +34,18 @@
     return node;
   };
   const number=n=>Number.isSafeInteger(n)&&n>=0?formatter.format(n):T('نامشخص','Unknown');
-  function clear(){
-    epoch++;controller?.abort();controller=null;busy=false;policy=null;
-    contactsVisible=false;contacts.replaceChildren();stats.replaceChildren();
+  function forgetPrivateView(){
+    // Drop both previously revealed email addresses and the old aggregate
+    // decision state when authority or fresh storage evidence is lost.
+    policy=null;contactsVisible=false;
+    contacts.replaceChildren();stats.replaceChildren();
     toggle.checked=false;toggle.disabled=true;save.disabled=true;
-    refresh.disabled=false;reveal.disabled=true;
+    reveal.disabled=true;
+  }
+  function clear(){
+    epoch++;controller?.abort();controller=null;busy=false;
+    forgetPrivateView();
+    refresh.disabled=false;
     status.textContent=T('ابتدا این بخش را باز کنید تا فقط آمار واقعی دریافت شود.',
       'Open this panel to request the real aggregate counts.');
   }
@@ -91,7 +98,9 @@
     save.disabled=toggle.disabled;
     reveal.disabled=snapshot.verifiedCount===null||
       snapshot.verifiedCount<1||busy;
-    if(!withContacts)contacts.replaceChildren();
+    // Even a successful owner snapshot can omit contacts when decryption or
+    // permission is unavailable. Never leave an older reveal in the DOM.
+    contactsVisible=false;contacts.replaceChildren();
     if(withContacts && Array.isArray(snapshot.contacts)){
       contactsVisible=true;
       contacts.replaceChildren();
@@ -137,6 +146,9 @@
     if(!permitted()||busy)return false;
     const serial=++epoch;
     controller?.abort();controller=new AbortController();busy=true;
+    const activeController=controller;
+    let timedOut=false;
+    const timeout=setTimeout(()=>{timedOut=true;activeController.abort();},15000);
     refresh.disabled=true;save.disabled=true;toggle.disabled=true;
     reveal.disabled=true;
     status.textContent=T('در حال دریافت اطلاعات واقعی با مجوز مدیر…',
@@ -153,12 +165,17 @@
       render(payload,includeContacts);
       return true;
     }catch(error){
-      if(serial!==epoch||error?.name==='AbortError')return false;
-      contacts.replaceChildren();contactsVisible=false;
-      status.textContent=T('مجوز یا گزارش پایگاه داده تأیید نشد؛ اطلاعات مخاطب نمایش داده نمی‌شود.',
-        'Owner permission or database evidence was unavailable. No contact details are displayed.');
+      if(serial!==epoch||!permitted())return false;
+      if(error?.name==='AbortError'&&!timedOut)return false;
+      forgetPrivateView();
+      status.textContent=timedOut
+        ?T('مهلت ۱۵ ثانیه‌ای دریافت داده پایان یافت. آمار و مخاطبان قبلی پاک شدند؛ تازه‌سازی کنید.',
+          'The 15-second request expired. Earlier counts and contacts were erased; refresh to retry.')
+        :T('مجوز یا گزارش پایگاه داده تأیید نشد؛ آمار و مخاطبان قبلی پاک شدند.',
+          'Owner permission or database evidence was unavailable. Earlier counts and contacts were erased.');
       return false;
     }finally{
+      clearTimeout(timeout);
       if(serial===epoch){controller=null;busy=false;refresh.disabled=false;}
     }
   }
@@ -166,6 +183,9 @@
     if(!permitted()||busy)return null;
     const serial=++epoch;controller?.abort();
     controller=new AbortController();busy=true;
+    const activeController=controller;
+    let timedOut=false;
+    const timeout=setTimeout(()=>{timedOut=true;activeController.abort();},15000);
     toggle.disabled=true;save.disabled=true;reveal.disabled=true;
     status.textContent=T('در حال دریافت مجوز دومرحله‌ای و ثبت تصمیم…',
       'Verifying recent owner MFA and recording the decision…');
@@ -191,11 +211,18 @@
       if(serial!==epoch||!permitted())return null;
       return result;
     }catch(error){
-      if(serial===epoch&&error?.name!=='AbortError')
-        status.textContent=T('این تغییر هنوز تأیید نشده است؛ مجوز مدیر یا شواهد معتبر کافی نیست.',
-          'The change could not be confirmed. Owner privileges or prerequisites may be unavailable.');
+      if(serial===epoch&&permitted()&&
+         (error?.name!=='AbortError'||timedOut)){
+        forgetPrivateView();
+        status.textContent=timedOut
+          ?T('مهلت عملیات پایان یافت؛ ذخیره‌شدن آن نامشخص است. پیش از اقدام مجدد، وضعیت سرور را تازه‌سازی کنید.',
+            'The operation timed out; its saved state is unknown. Refresh the server record before trying again.')
+          :T('تأیید عملیات مدیر ممکن نشد. داده خصوصی و تنظیمات قبلی پاک شدند؛ ابتدا وضعیت را تازه‌سازی کنید.',
+            'The owner operation was not confirmed. Stale private data and controls were cleared; refresh server state.');
+      }
       return null;
     }finally{
+      clearTimeout(timeout);
       if(serial===epoch){
         busy=false;controller=null;
         if(policy){toggle.disabled=!policy.canEnable&&!policy.ownerSwitchEnabled;
