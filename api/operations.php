@@ -17,6 +17,7 @@ require_once __DIR__.'/operations-education-price-drafts.php';
 require_once __DIR__.'/operations-education-source-review.php';
 require_once __DIR__.'/operations-education-readiness.php';
 require_once __DIR__.'/operations-education-privacy.php';
+require_once __DIR__.'/operations-education-workbook-policy.php';
 require_once __DIR__.'/operations-book-expiration.php';
 require_once __DIR__.'/operations-donation-recovery.php';
 require_once __DIR__.'/operations-fulfilment.php';
@@ -580,6 +581,38 @@ function operationsRoute(string $path, string $verb): never {
             if (!rateAllowed($pdo,'operations_education_privacy_read',$accountId,10,300))
                 fail('rate_limited',429);
             respond(operationsEducationPrivacyPreview($pdo));
+        }
+
+        // Private BAHAR adult workbook storage: default OFF. Owner policy is
+        // distinct from existing educational services and all paid entitlements.
+        if ($path === '/admin/operations/education-workbook-policy' && $verb === 'GET') {
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_education_workbook_policy_read',$accountId,12,300))
+                fail('rate_limited',429);
+            respond(operationsBaharPrivatePolicy($pdo));
+        }
+        if ($path === '/admin/operations/education-workbook-policy' && $verb === 'POST') {
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_education_workbook_policy_write',$accountId,6,600))
+                fail('rate_limited',429);
+            $settings=jsonBody();
+            if(!is_bool($settings['enabled']??null)||
+              ($settings['confirmation']??null)!==
+                ($settings['enabled']
+                  ?'ENABLE VERIFIED ADULT BAHAR STORAGE'
+                  :'DISABLE VERIFIED ADULT BAHAR STORAGE'))
+                fail('explicit_owner_confirmation_required',422);
+            try{
+                respond(operationsBaharPrivatePolicySave(
+                    $pdo,$settings['enabled'],$accountId,nowTs()
+                ));
+            }catch(DomainException $e){fail('bahar_science_privacy_gate_blocked',409);}
+            catch(Throwable $e){fail('bahar_workbook_policy_unavailable',503);}
         }
 
         // Existing ENG-13 controller: bounded 54-reference source directory.
