@@ -57,9 +57,9 @@ async function api(path,options={}){const response=await fetch('/api/admin/opera
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
 function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;dbHealthCurrent=null;dbHealthExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
-$('ops-command-center')?.remove();ownerCockpitFilter='all';ownerCockpitQuery='';$('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
+$('ops-command-center')?.remove();ownerCockpitFilter='all';ownerCockpitQuery='';ownerCockpitPrivateEvidence=Object.create(null);ownerCockpitLastReadAt=null;$('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
-async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;httpHealthCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
+async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;httpHealthCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};ownerCockpitPrivateEvidence=Object.create(null);ownerCockpitLastReadAt=null;snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
 function progress(value){const bar=el('div',undefined,'ops-progress');const fill=el('span');fill.style.width=(value??0)+'%';bar.append(fill);bar.setAttribute('aria-label',t('پیشرفت اندازه‌گیری‌شده: ','Measured progress: ')+pct(value));return bar;}
 function render(){const sum=snapshot.summary;$('ops-total').textContent=String(sum.total);$('ops-verified').textContent=String(sum.verified);$('ops-coverage').textContent=sum.measuredCoverage+'/36';$('ops-admin-score').textContent=pct(snapshot.dashboard.measuredProgress);$('ops-release').textContent=snapshot.releaseSha||t('ثبت نشده','Not recorded');$('ops-checked').textContent=date(snapshot.checkedAt);
  const select=$('ops-engine'),old=select.value;select.replaceChildren(el('option',t('همهٔ موتورها','All engines')));select.firstChild.value='';for(const engine of (snapshot.reporting?.engines||[...new Set(snapshot.reports.map(r=>r.engine))].sort())){const option=el('option',typeof engine==='string'?engine:engine.id+' · '+engineName(engine));option.value=typeof engine==='string'?engine:engine.id;select.append(option);}select.value=old;
@@ -1940,6 +1940,8 @@ function renderMasterEngineConsole(host,model){
  * third-party integrations are started by rendering this overview.
  */
 let ownerCockpitFilter='all',ownerCockpitQuery='';
+let ownerCockpitPrivateEvidence=Object.create(null);
+let ownerCockpitLastReadAt=null;
 function renderOwnerCommandCenter(){
  const workspace=$('ops-workspace'),model=snapshot?.reporting;
  if(!workspace||workspace.hidden||!model)return;
@@ -2033,6 +2035,45 @@ function renderOwnerCommandCenter(){
    t('مطابق شواهد نسخه و زمان گزارش؛ بدون حدس از وضعیت زنده',
      'From release-scoped recorded evidence, not inferred live completion'));
  const unknown=absent(t('داده عملیاتی بارگیری نشده','Operational data not loaded'));
+ const commerce=ownerCockpitPrivateEvidence.commerce;
+ const commerceOverview=commerce?.available===true&&commerce.orders?
+   state((commerce.salesPipeline?.pendingOlderThan24Hours??0)>0?'attention':'recorded',
+     t('سفارش‌های ثبت‌شده: ','Stored orders: ')+(commerce.orders.totalRows??'—')+
+       ' · '+t('در انتظار قدیمی: ','Aged pending: ')+(commerce.salesPipeline?.pendingOlderThan24Hours??'—'),
+     t('دفتر سفارش، گواه وصول قطعی بانکی نیست',
+       'Order ledger is not independently verified bank settlement')):
+   absent(t('گزارش داخلی فروش موجود نیست','Commerce ledger not available'));
+ const social=ownerCockpitPrivateEvidence.social;
+ const socialOverview=social?.deliveryDataStatus==='stored_records_only'&&social.deliveryRows?
+   state(social.deliveryRows.uncertain>0||social.deliveryRows.manualPending>0?'attention':'recorded',
+     t('سوابق انتشار: ','Stored deliveries: ')+(social.deliveryRows.total??'—')+
+       ' · '+t('نیازمند رسیدگی: ','Need review: ')+
+       ((social.deliveryRows.uncertain??0)+(social.deliveryRows.manualPending??0)),
+     t('وضعیت ردیف‌ها به معنی تأیید مستقل انتشار شبکه اجتماعی نیست',
+       'Stored delivery states do not prove provider-side publication')):
+   absent(t('داده قابل‌اتکای انتشار موجود نیست','Social delivery evidence unavailable'));
+ const gsc=ownerCockpitPrivateEvidence.gsc;
+ const gscOverview=gsc?.status==='locally_validated_unattested'?
+   state('recorded',
+     t('کلیک ثبت‌شده: ','Recorded clicks: ')+(gsc.metrics?.clicks??'—')+
+       ' · '+t('نمایش: ','Impressions: ')+(gsc.metrics?.impressions??'—'),
+     t('فایل خصوصی محلی؛ منشأ گوگل به‌طور مستقل تأیید نشده',
+       'Privately supplied aggregate; Google provenance is not independently attested')):
+   absent(t('گزارش مستقیم معتبر GSC موجود نیست','Verified direct GSC observations unavailable'));
+ const ai=ownerCockpitPrivateEvidence.ai;
+ const aiOverview=ai?.status==='provider_report_snapshot'?
+   state('recorded',t('پاسخ‌های نمونه: ','Sampled answers: ')+(ai.sampledAnswers??'—')+
+     ' · '+t('ذکر برند: ','Brand mentions: ')+(ai.brandMentions??'—'),
+     t('نمونه محدود و تاریخ‌دار؛ استناد و همه موتورهای AI اندازه‌گیری نشده',
+       'Limited dated sample; citations and other AI providers remain unmeasured')):
+   absent(t('نمونه معتبر حضور برند موجود نیست','AI visibility sample unavailable'));
+ const history=ownerCockpitPrivateEvidence.audit;
+ const auditOverview=history?.schema==='operations-audit-timeline-v1'?
+   state('recorded',t('رویدادهای اخیر: ','Recent audit events: ')+
+     (history.events?.length??'—'),
+     t('حداکثر ۵۰ رویداد ذخیره‌شده؛ نه پایش لحظه‌ای',
+       'Up to 50 recorded events, not a live feed')):
+   absent(t('تاریخچه هنوز دریافت نشده','Audit history not loaded'));
  const departments=[
   {id:'incidents',group:'health',fa:'هشدارها و خطاهای سایت',eng:'Incidents & alerts',
    target:'ops-alert-center',data:incident,load:'alerts',
@@ -2059,11 +2100,11 @@ function renderOwnerCommandCenter(){
    descFa:'تحلیل نمونه‌ای JSON-LD و canonical؛ دکمه ممیزی مستقل در همین بخش',
    descEn:'On-demand JSON-LD and canonical inspection in the existing module'},
   {id:'gsc',group:'seo',fa:'سرچ کنسول و نمایه‌سازی',eng:'Search Console & indexing',
-   target:'ops-gsc-direct',data:unknown,
+   target:'ops-gsc-direct',data:gscOverview,load:'gsc',
    descFa:'مشاهده دسترسی‌ها و شاخص‌های دارای منبع معتبر؛ بدون جعل داده گوگل',
    descEn:'Only verified provider observations; no fabricated Search Console data'},
   {id:'ai',group:'seo',fa:'حضور برند در AI و GEO',eng:'AI discovery & GEO',
-   target:'ops-ai-visibility',data:unknown,
+   target:'ops-ai-visibility',data:aiOverview,load:'ai',
    descFa:'تفکیک آمادگی کد از حضور واقعی برند در پاسخ موتورهای هوش مصنوعی',
    descEn:'Separates source readiness from measured AI answer mentions'},
   {id:'collectors',group:'platform',fa:'گردآوری داده و زمان‌بندی',eng:'Data collection & schedules',
@@ -2075,11 +2116,11 @@ function renderOwnerCommandCenter(){
    descFa:'تنظیم منابع، اتصال تأییدشده، نگهداری داده و سوابق هر منبع',
    descEn:'Source controls, evidence of connectivity, retention and histories'},
   {id:'commerce',group:'business',fa:'سفارش‌ها و پرداخت‌ها',eng:'Commerce & payments',
-   target:'ops-commerce',data:unknown,
+   target:'ops-commerce',data:commerceOverview,load:'commerce',
    descFa:'سوابق سفارش، وضعیت تراکنش و اختلاف میان ادعای پرداخت و تسویه واقعی',
    descEn:'Orders, claims and the distinction between gateway reports and settlement'},
   {id:'social',group:'business',fa:'شبکه‌های اجتماعی و انتشار',eng:'Social distribution',
-   target:'ops-social',data:unknown,
+   target:'ops-social',data:socialOverview,load:'social',
    descFa:'پیش‌نویس‌ها، کانال‌ها، تأیید مدیر و تنظیمات انتشار',
    descEn:'Drafts, connected-channel evidence, owner approval and publish policies'},
   {id:'journal',group:'business',fa:'مدیریت نشریه JHELA',eng:'JHELA journal operations',
@@ -2095,7 +2136,7 @@ function renderOwnerCommandCenter(){
    descFa:'نمای مجری‌های واقعی، وابستگی‌ها، محدودیت مجوز و وضعیت هر موتور',
    descEn:'Registered executors, dependencies, permissions and evidence by engine'},
   {id:'audit',group:'platform',fa:'ثبت تغییرات و حسابرسی مدیر',eng:'Owner audit history',
-   target:'ops-audit-timeline',data:unknown,
+   target:'ops-audit-timeline',data:auditOverview,load:'audit',
    descFa:'تاریخچه قابل جست‌وجوی تغییرات؛ بدون حذف لاگ غیرقابل‌تغییر',
    descEn:'Searchable change history; immutable audit records remain protected'},
   {id:'reports',group:'platform',fa:'۳۶ گزارش و کنترل کیفیت',eng:'36 reports & quality gates',
@@ -2187,6 +2228,14 @@ function renderOwnerCommandCenter(){
        throw new Error('invalid_source_directory');
     sourceDirectoryState=response;sourceDirectoryExpanded=true;}
    else if(item.load==='quality'){await loadQualityIndex();}
+   else if(['commerce','social','gsc','ai','audit'].includes(item.load)){
+     const routes={commerce:'/commerce',social:'/social',gsc:'/gsc-direct',
+       ai:'/ai-visibility',audit:'/audit-timeline'};
+     const response=await api(routes[item.load]);
+     if(generation!==loadGeneration||!snapshot)return;
+     ownerCockpitPrivateEvidence[item.load]=response;
+     ownerCockpitLastReadAt=Math.floor(Date.now()/1000);
+   }
    if(generation!==loadGeneration||!snapshot)return;
    reportingRender();
    openExistingOperationalWorkspace(item.target);
