@@ -966,6 +966,7 @@ function operationsRoute(string $path, string $verb): never {
                 $view['ok']=true;$view['canManage']=true;
                 respond($view);
             }catch(InvalidArgumentException $e){fail('invalid_alert_scope',400);}
+            catch(Throwable $e){fail('alert_scope_update_unavailable',503);}
         }
 
         // Response monitor: fixed canonical HTTPS targets only. A manual
@@ -1011,6 +1012,8 @@ function operationsRoute(string $path, string $verb): never {
                 $view['canManage']=true;
                 respond($view);
             }catch(InvalidArgumentException $e){fail('invalid_alert_rule',400);}
+            catch(DomainException $e){fail('alert_rule_not_provisioned',409);}
+            catch(Throwable $e){fail('alert_rule_update_unavailable',503);}
         }
 
         if ($path === '/admin/operations/existing-features' && $verb === 'GET') {
