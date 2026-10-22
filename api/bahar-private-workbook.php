@@ -471,7 +471,9 @@ function baharAccountRoute(string $path,string $verb): never {
               'SELECT id,purpose_code,notice_sha256 FROM eco_consent_notices LIMIT 0',
               'SELECT event_key,action_code FROM eco_audit_events LIMIT 0',
               'SELECT id,owner_account_id FROM eco_subjects LIMIT 0',
-              'SELECT id,account_id,subject_id,released_at FROM eco_legal_holds LIMIT 0'
+              'SELECT id,account_id,subject_id,released_at FROM eco_legal_holds LIMIT 0',
+              'SELECT id,requester_account_id,request_type,status FROM eco_privacy_requests LIMIT 0',
+              'SELECT id,request_id,action_code FROM eco_privacy_actions LIMIT 0'
             ] as $schemaQuery){
                 if($pdo->query($schemaQuery)===false)
                     throw new RuntimeException('required_private_storage_schema_incomplete');
@@ -555,8 +557,13 @@ function baharAccountRoute(string $path,string $verb): never {
                         ($state==='VERIFIED_ADULT'&&
                          (int)$prior['expired']===1);
                     if($appeal){
+                        // A renewed application must not inherit the
+                        // preceding reviewer's approval/evidence digest.
+                        // Historical audit evidence is retained separately.
                         $q=$pdo->prepare("UPDATE eco_bahar_verified_adult_accounts
                           SET review_state='PENDING',
+                            verified_by_account_id=NULL,
+                            verifier_evidence_sha256=NULL,
                             verified_at=NULL,expires_at=NULL,
                             revoked_at=NULL,updated_at=UTC_TIMESTAMP(3)
                           WHERE account_id=?");
@@ -594,6 +601,9 @@ function baharAccountRoute(string $path,string $verb): never {
                 fail('explicit_request_required',422);
             $pdo->beginTransaction();
             try{
+                // Serialize cancellation with independent owner age review,
+                // encrypted workbook access and privacy erasure.
+                baharAccountLockOwner($pdo,$accountId);
                 $q=$pdo->prepare("DELETE FROM eco_bahar_verified_adult_accounts
                   WHERE account_id=? AND review_state='PENDING'");
                 $q->execute([$accountId]);
@@ -631,6 +641,13 @@ function baharAccountRoute(string $path,string $verb): never {
                 if(!baharAccountVerifiedAdult($pdo,$accountId)||
                    !baharAccountPolicy($pdo)['enabled'])
                    throw new RuntimeException('permission_changed');
+                // A notice seen before the account lock may have been
+                // retired/replaced; never record consent to an old version.
+                $currentNotice=baharAccountCurrentNotice($pdo,$locale);
+                if($currentNotice===null||
+                   !hash_equals($notice['id'],$currentNotice['id'])||
+                   !hash_equals($notice['sha256'],$currentNotice['sha256']))
+                    throw new DomainException('consent_notice_changed');
                 if(!baharAccountHasConsent($pdo,$accountId)){
                     $q=$pdo->prepare("INSERT INTO eco_consent_records
                       (id,account_id,subject_id,notice_id,decision,lawful_basis,
