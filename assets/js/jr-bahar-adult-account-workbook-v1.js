@@ -308,10 +308,24 @@
     skip.textContent=T('فعلاً بدون ذخیره ادامه می‌دهم','Continue without saving');
     controls.append(agree,skip);
     dialog.append(title,content,details,controls);
-    const dismiss=()=>dialog.close();
+    let consentAccepted=false;
+    const dismiss=()=>{
+      // Respect the alternative; do not reopen this unsolicited popup if
+      // the learner later revisits the section in the same browser tab.
+      try{sessionStorage.removeItem(PENDING_TRANSFER_KEY);}catch(_){}
+      dialog.close();
+      setState(T('می‌توانی بدون ارسال اطلاعات، یادگیری را ادامه بدهی و نسخه خصوصی برنامه را دریافت کنی.',
+        'Continue without uploading your notes. You can keep a private local copy.'));
+    };
     skip.addEventListener('click',dismiss);
-    dialog.addEventListener('close',()=>dialog.remove(),{once:true});
+    dialog.addEventListener('close',()=>{
+      if(!consentAccepted){
+        try{sessionStorage.removeItem(PENDING_TRANSFER_KEY);}catch(_){}
+      }
+      dialog.remove();
+    },{once:true});
     agree.addEventListener('click',async()=>{
+      consentAccepted=true;
       agree.disabled=true;skip.disabled=true;
       dialog.close();
       // Consent is recorded only after this explicit affirmative click.
