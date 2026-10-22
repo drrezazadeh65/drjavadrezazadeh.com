@@ -239,3 +239,110 @@
  #ops-command-center .oc-quality-item .oc-quality-sample{
   grid-column:1/-1;text-align:start;margin-top:-4px}
 }
+
+
+/* Owner session control and legible, compact source-management workspace.
+   Controls stay inside the authenticated (hidden-by-default) admin surface. */
+#ops-command-center .oc-heading-actions .oc-signout{
+  border-color:rgba(247,174,148,.5);color:#ffe6db;
+  background:rgba(113,32,23,.20);
+}
+#ops-command-center .oc-heading-actions .oc-signout:hover{
+  border-color:#ffcfbd;background:rgba(133,52,39,.36);
+}
+#ops-command-center .oc-heading-actions .oc-signout:disabled{opacity:.55}
+#ops-workspace #ops-source-directory{
+  border:1px solid rgba(240,209,141,.28);
+  border-radius:18px;
+  padding:clamp(13px,2.2vw,24px);
+  background:linear-gradient(160deg,#1a2938,#111d2d);
+  color:#f5f0e5;
+}
+#ops-workspace #ops-source-directory>summary{
+  cursor:pointer;font-weight:750;line-height:1.6;
+  font-size:clamp(1.02rem,1.6vw,1.23rem);
+  color:#f0d18d;
+}
+#ops-workspace #ops-source-directory .ops-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;align-items:start;margin-block:15px;
+}
+#ops-workspace #ops-source-directory .ops-card{
+  min-width:0;border:1px solid rgba(240,209,141,.22);
+  border-radius:13px;background:rgba(9,19,32,.48);
+  padding:16px;display:flex;flex-direction:column;gap:8px;
+  overflow-wrap:anywhere;
+}
+#ops-workspace #ops-source-directory .ops-card h3{
+  margin:0;font-size:1rem;line-height:1.5;color:#f8df9e;
+}
+#ops-workspace #ops-source-directory .ops-card>small{
+  display:block;font-size:.78rem;color:#becbdb;line-height:1.55;
+}
+#ops-workspace #ops-source-directory .ops-card>p{
+  margin:0;color:#e0e7f1;line-height:1.6;font-size:.84rem;
+}
+#ops-workspace #ops-source-directory button,
+#ops-workspace #ops-source-directory select,
+#ops-workspace #ops-source-directory input{
+  min-height:42px;max-width:100%;font-size:.88rem;
+}
+#ops-workspace #ops-source-directory button{
+  cursor:pointer;border:1px solid rgba(240,209,141,.45);
+  background:#253749;color:#f9f2df;border-radius:9px;
+  padding:8px 11px;white-space:normal;
+}
+#ops-workspace #ops-source-directory button:disabled{
+  cursor:not-allowed;opacity:.48;
+}
+#ops-workspace #ops-source-directory a{
+  color:#f0d18d;text-decoration-thickness:1px;
+  text-underline-offset:4px;
+}
+#ops-workspace #ops-source-directory .ops-source-config{
+  border:1px solid rgba(230,211,163,.21);
+  border-radius:10px;padding:11px;
+  background:rgba(255,255,255,.045);
+}
+#ops-workspace #ops-source-directory .ops-source-config>summary{
+  cursor:pointer;color:#f3d997;font-weight:650;
+  line-height:1.5;padding-block:4px;
+}
+#ops-workspace #ops-source-directory .ops-source-config .ops-toolbar{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;margin-block:11px;
+}
+#ops-workspace #ops-source-directory .ops-source-config label,
+#ops-workspace #ops-source-directory .ops-source-config small{
+  line-height:1.6;color:#e0e6ef;
+}
+#ops-workspace #ops-source-directory .ops-source-config small{
+  display:block;font-size:.76rem;margin-top:5px;
+}
+#ops-workspace #ops-source-directory :is(button,input,select,summary,a):focus-visible{
+  outline:3px solid #ffe3a8;outline-offset:3px;
+}
+#ops-workspace #ops-source-directory .ops-source-pager{
+  display:flex;justify-content:center;align-items:center;
+  gap:12px;flex-wrap:wrap;margin-block:15px;
+}
+@media(max-width:1130px){
+  #ops-workspace #ops-source-directory .ops-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:720px){
+  #ops-workspace #ops-source-directory .ops-grid{
+    grid-template-columns:minmax(0,1fr);
+  }
+  #ops-workspace #ops-source-directory .ops-source-config .ops-toolbar{
+    grid-template-columns:minmax(0,1fr);
+  }
+  #ops-workspace #ops-source-directory .ops-card{padding:14px}
+  #ops-command-center .oc-heading-actions .oc-signout{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  #ops-workspace #ops-source-directory *{
+    scroll-behavior:auto!important;transition:none!important;
+  }
+}
