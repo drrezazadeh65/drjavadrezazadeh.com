@@ -179,6 +179,8 @@ try {
      'Collector policy inventory missing');
  check(($initial['unmappedPolicies']['count']??null)===0,
      'canonical fixture unexpectedly contains unconsumed collector settings');
+ check(($initial['scheduler']??null)==='external_bertina_cron_required',
+     'private operations API falsely claimed Cron was installed');
  // A manually inserted log name is not a registered GitHub collector or cron job.
  $pdo->prepare("INSERT INTO operations_collection_policies
      (scope_key,enabled,cadence,clock_minutes,next_due,updated_at)
