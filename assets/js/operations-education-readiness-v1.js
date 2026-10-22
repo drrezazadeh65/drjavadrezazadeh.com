@@ -78,6 +78,19 @@
         target:'ops-education-offers'
       },
       {
+        title:T('کیفیت صفحات و سئوی قابل اصلاح','Page quality & SEO priorities'),
+        count:deps.pageQualityWeakOnPageSeoPages,
+        state:deps.pageQualitySourceInventoryAvailable===true
+          ?T('برآورد از کد صفحات؛ نه رتبه واقعی گوگل',
+              'Committed HTML heuristics, not live Google rankings')
+          :T('گزارش امتیاز ساختاری موجود نیست',
+              'Static quality inventory unavailable'),
+        detail:T('مشاهده امتیاز مجزای محتوا، تصویر، سئو، UI/UX، AI/GEO، دسترس‌پذیری و سرعت در پنل اصلی.',
+          'Review per-page content, image, SEO, UI/UX, AI/GEO, accessibility and speed signals in the canonical dashboard.'),
+        button:T('بازکردن جدول امتیاز صفحات','Open per-page quality scores'),
+        target:'ops-page-quality'
+      },
+      {
         title:T('درخواست‌های تأیید بزرگسالی','Adult eligibility review queue'),
         count:deps.pendingIndependentAdultReviewRequests,
         state:deps.adultReviewQueueVisible===true
@@ -177,6 +190,12 @@
       [T('پیشنهادهای ذخیره‌شده توسط مالک','Saved owner draft overrides'),
         deps.educationalDraftOverrides===null?T('نامشخص','Unknown'):
           number.format(deps.educationalDraftOverrides)],
+      [T('صفحات دارای سئوی ضعیف در ممیزی کد','Weak SEO pages in source review'),
+        deps.pageQualityWeakOnPageSeoPages===null?T('نامشخص','Unknown'):
+          number.format(deps.pageQualityWeakOnPageSeoPages)],
+      [T('تعداد صفحات HTML در ممیزی کد','HTML pages in static quality inventory'),
+        deps.pageQualityScoredHtmlPages===null?T('نامشخص','Unknown'):
+          number.format(deps.pageQualityScoredHtmlPages)],
       [T('درخواست‌های بزرگسال در انتظار بررسی','Adult review applications pending'),
         deps.pendingIndependentAdultReviewRequests===null?T('نامشخص','Unknown'):
           number.format(deps.pendingIndependentAdultReviewRequests)],
