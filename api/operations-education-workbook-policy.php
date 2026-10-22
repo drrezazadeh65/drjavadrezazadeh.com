@@ -14,7 +14,10 @@ function operationsBaharPrivatePolicy(PDO $pdo): array {
       'eco_bahar_verified_adult_accounts',
       'eco_bahar_account_workbooks',
       'eco_consent_notices','eco_consent_records','eco_audit_events',
-      'eco_legal_holds'
+      // Erasure and lawful-retention flows are mandatory for private
+      // storage readiness, not optional endpoints enabled later.
+      'eco_legal_holds','eco_subjects',
+      'eco_privacy_requests','eco_privacy_actions'
     ];
     $present=[];
     try{
