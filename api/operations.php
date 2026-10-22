@@ -1064,6 +1064,14 @@ function operationsRoute(string $path, string $verb): never {
             }catch(InvalidArgumentException $e){fail('invalid_database_health_policy',400);}
             catch(Throwable $e){fail('database_health_schema_unavailable',503);}
         }
+        if ($path === '/admin/operations/database-health/purge-preview' && $verb === 'GET') {
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('database_health_super_admin_required',403);
+            if(!rateAllowed($pdo,'operations_db_health_purge_preview',$accountId,10,3600))
+                fail('rate_limited',429);
+            try{respond(operationsDbHealthPurgePreview($pdo,nowTs()));}
+            catch(Throwable $e){fail('database_health_schema_unavailable',503);}
+        }
         if ($path === '/admin/operations/database-health/purge-expired' && $verb === 'POST') {
             if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
                 fail('csrf_forbidden',403);
