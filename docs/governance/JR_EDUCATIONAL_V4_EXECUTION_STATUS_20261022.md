@@ -39,3 +39,19 @@
 - The binding October 22 source-first/no-intermediate-test instruction has been added to `AGENTS.md` and the master prompt addendum in Google Drive.
 
 **Remaining dependencies still block completion:** full evidence-backed admissions review; approved eligibility and prediction research; secure learner account persistence; verified content delivery and payment entitlements; exhaustive whole-site UX/security/scientific/payment release audit. Nothing listed here has been intentionally tested or deployed during this development-only phase.
+
+
+## Source continuation — educational routes, official-source science and controlled monetization
+
+- A stable 1405 **multi-page** guide trust contract now requires signed original-PDF page review and per-programme-row attestation. The source-review model supports multiple independently reviewed pages per PDF rather than mistakenly assuming one reviewed page authorizes the whole guide. Official amendments and whole-year language/teacher-training coverage are separately gated.
+- A **research-only temporal holdout** evaluation framework records prevalence, Brier skill, calibration/ECE and per-group observations, but cannot publish admission probabilities. No admissions dataset was generated, and no metric or approval has been claimed.
+- The six-engine source coordinator can expose free BAHAR teaching modules and request safe preliminary informational paths; signed professional Golden Path handoff remains draft-only and requires separate verified consent.
+- The unified bilingual customer dashboard now contains a voluntary **guardian BAHAR** snapshot of activity counts, protected by existing verified guardian identity and two current consent scopes, with on-demand access, audit trail, no raw responses or scores, and deletion of private results from the DOM when leaving the progress tab.
+- Owner dashboard has a source-only **pricing draft editor**, backed by a separately provisioned MariaDB migration, using existing SUPER_ADMIN role, recent MFA, CSRF, rate limiting, revision conflict checks and append-only operations audit. This cannot create checkout charges or entitlements, even when a proposed price is saved. Golden Talent, RCAS, BAHAR, and preliminary scorecard introductory offers are strictly price-locked at zero.
+- Golden Talent / RCAS free-activity navigation and dynamic RCAS result links now lead to the new free public BAHAR teaching pages. Existing canonical page URLs, old published routes, and SEO permanence law are preserved.
+- New public learning pages integrate with the installed mobile/desktop web-app, reusing the existing service worker and supporting a safe public page-specific offline fallback. API, accounts, payments, guardian reports and private app pages remain explicitly non-cacheable.
+- The unified owner readiness screen now distinguishes source presence, scientific attestation, BAHAR mother-database columns and additive owner price-draft schema; **none are presented as passed production acceptance**.
+
+### Unfinished and externally dependent
+
+The source-first phase is **not complete** while trusted private age/guardian permissions, adult or guardian account workbook storage, verified source-PDF reviews, actual original-guide amendments, the independent trained model / calibration dataset, complete advanced BAHAR deliverables, verified paid entitlement delivery, synchronized production schema, and owner final acceptance remain unresolved. This record contains **no intentional executed test, deployed URL change, passed CI or live release claim**. All price proposals are nonbinding and not customer purchasable. The owner requested a single final end-to-end test only after all implementable source work is finished.
