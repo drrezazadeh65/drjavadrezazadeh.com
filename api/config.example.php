@@ -16,6 +16,10 @@ return [
     // incident outbox. Configure an administrator-controlled mailbox explicitly.
     // Never store credentials or sensitive incident payloads in source control.
     'operations_alert_recipient' => '',
+    // Only the optional CLI observer reads the owner-authorized cPanel access log.
+    // Use an absolute path outside public access; never commit real private paths.
+    'operations_access_log_path' => '',
+    'operations_http_retention_days' => 90, // accepted: 7,30,90,180,365
 
     // Confirmed by Bertina support ticket t833905 on 2026-10-11:
     // drjavadrezazadeh.com:465 SSL/TLS, alternatively :587 STARTTLS.
