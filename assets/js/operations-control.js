@@ -63,9 +63,10 @@ $('ops-workspace')?.addEventListener('click',event=>{
  openExistingOperationalWorkspace(wanted);
 });
 async function api(path,options={}){
+ const {headers:extraHeaders,...requestOptions}=options;
  const response=await fetch('/api/admin/operations'+path,{
-   credentials:'same-origin',cache:'no-store',
-   headers:{Accept:'application/json',...(options.headers||{})},...options
+   ...requestOptions,credentials:'same-origin',cache:'no-store',
+   headers:{Accept:'application/json',...(extraHeaders||{})}
  });
  // A 502/maintenance page or an expired login may be HTML; never surface
  // its body as an administrator error or label it a successful JSON response.
