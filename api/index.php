@@ -69,6 +69,11 @@ function cfg(): array {
         'bahar_private_workbooks_enabled' => getenv('JR_BAHAR_PRIVATE_WORKBOOKS_ENABLED') === 'true',
         'bahar_workbook_key_b64' => (string)(getenv('JR_BAHAR_WORKBOOK_KEY_B64') ?: ''),
         'bahar_workbook_key_id' => (string)(getenv('JR_BAHAR_WORKBOOK_KEY_ID') ?: ''),
+        // Optional double-opt-in interest gateway: no collection until
+        // independently enabled by env + MFA owner switch + mail + crypto.
+        'edu_interest_enabled' => getenv('JR_EDU_INTEREST_ENABLED') === 'true',
+        'edu_interest_key_b64' => (string)(getenv('JR_EDU_INTEREST_KEY_B64') ?: ''),
+        'edu_interest_key_id' => (string)(getenv('JR_EDU_INTEREST_KEY_ID') ?: ''),
     ];
     $local = __DIR__ . '/config.local.php';
     if (is_file($local)) {
@@ -1158,6 +1163,11 @@ if(str_starts_with($path,'/growth/')){
 }
 // Private account workbooks share the existing login and mother database.
 // No published public route is altered; default-off legal/scientific gates apply.
+// One optional educational-interest popup, separate from learner scores.
+if(str_starts_with($path,'/education-interest/')){
+    require_once __DIR__.'/education-interest.php';
+    jrEducationInterestRoute($path,$verb);
+}
 if(str_starts_with($path,'/bahar/account/')){
     require_once __DIR__.'/bahar-private-workbook.php';
     baharAccountRoute($path,$verb);
