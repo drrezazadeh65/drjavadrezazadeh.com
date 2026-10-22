@@ -182,6 +182,27 @@ function baharAccountPendingErasure(PDO $pdo,string $accountId): bool {
     $q->execute([$accountId]);
     return $q->fetchColumn()!==false;
 }
+/**
+ * A review is not a lifetime dead end. A verified adult whose approval
+ * expired may ask for renewed human review. Declined/revoked applicants may
+ * request a fresh independent review only after a seven-day cooling period.
+ * Neither pathway automatically grants adulthood or private data access.
+ */
+function baharAccountCanRequestReview(PDO $pdo,string $accountId): bool {
+    $q=$pdo->prepare("SELECT review_state,
+      (updated_at<=DATE_SUB(UTC_TIMESTAMP(3),INTERVAL 7 DAY)) AS appeal_ready,
+      (expires_at IS NOT NULL AND expires_at<=UTC_TIMESTAMP(3)) AS expired
+      FROM eco_bahar_verified_adult_accounts WHERE account_id=? LIMIT 1");
+    $q->execute([$accountId]);
+    $row=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($row))return true;
+    $state=(string)$row['review_state'];
+    if($state==='DECLINED'||$state==='REVOKED')
+        return (int)$row['appeal_ready']===1;
+    if($state==='VERIFIED_ADULT')
+        return (int)$row['expired']===1;
+    return false;
+}
 function baharAccountCsrf(string $accountId): string {
     $pepper=cfg()['auth_pepper']??'';
     if(!is_string($pepper)||strlen($pepper)<32)
@@ -465,7 +486,7 @@ function baharAccountRoute(string $path,string $verb): never {
               'independentlyVerifiedAdult'=>$adult,
               'eligibilityRequestState'=>$eligibilityState,
               'canRequestIndependentAdultReview'=>$schemaReady &&
-                  $eligibilityState==='NOT_REQUESTED',
+                  baharAccountCanRequestReview($pdo,$accountId),
               'canCancelPendingAdultReview'=>$schemaReady &&
                   $eligibilityState==='PENDING',
               'currentNoticeConfigured'=>$notice!==null,
@@ -495,11 +516,38 @@ function baharAccountRoute(string $path,string $verb): never {
               fail('explicit_adult_review_request_required',422);
             $pdo->beginTransaction();
             try{
-                $q=$pdo->prepare("INSERT IGNORE INTO eco_bahar_verified_adult_accounts
-                  (account_id,review_state)
-                  VALUES (?,'PENDING')");
-                $q->execute([$accountId]);
-                $created=$q->rowCount()===1;
+                baharAccountLockOwner($pdo,$accountId);
+                $lookup=$pdo->prepare("SELECT review_state,
+                  updated_at<=DATE_SUB(UTC_TIMESTAMP(3),INTERVAL 7 DAY)
+                    AS appeal_ready,
+                  expires_at IS NOT NULL AND expires_at<=UTC_TIMESTAMP(3)
+                    AS expired
+                  FROM eco_bahar_verified_adult_accounts
+                  WHERE account_id=? FOR UPDATE");
+                $lookup->execute([$accountId]);
+                $prior=$lookup->fetch(PDO::FETCH_ASSOC);
+                $created=false;
+                if(!is_array($prior)){
+                    $q=$pdo->prepare("INSERT INTO eco_bahar_verified_adult_accounts
+                      (account_id,review_state) VALUES (?,'PENDING')");
+                    $q->execute([$accountId]);
+                    $created=$q->rowCount()===1;
+                }else{
+                    $state=(string)$prior['review_state'];
+                    $appeal=(($state==='DECLINED'||$state==='REVOKED')&&
+                        (int)$prior['appeal_ready']===1)||
+                        ($state==='VERIFIED_ADULT'&&
+                         (int)$prior['expired']===1);
+                    if($appeal){
+                        $q=$pdo->prepare("UPDATE eco_bahar_verified_adult_accounts
+                          SET review_state='PENDING',
+                            verified_at=NULL,expires_at=NULL,
+                            revoked_at=NULL,updated_at=UTC_TIMESTAMP(3)
+                          WHERE account_id=?");
+                        $q->execute([$accountId]);
+                        $created=$q->rowCount()===1;
+                    }
+                }
                 if($created)baharAccountAudit(
                   $pdo,$accountId,'BAHAR_ACCOUNT_ELIGIBILITY_REQUESTED'
                 );
