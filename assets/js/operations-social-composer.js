@@ -111,6 +111,9 @@
  details.addEventListener('toggle',()=>{if(details.open&&!workspace.hidden)loadSources();});
  produce.addEventListener('click',async()=>{
   if(workspace.hidden)return;
+  // Previews may await a permission read and canonical fetch. Invalidate
+  // their pending outcome as soon as the owner signs out or changes source.
+  const operation=++loadNonce;
   generated=null;copy.disabled=true;preview.value='';
   const item=feed[Number(source.value)],ch=network.value;
   if(!item||!policies[ch])return;
@@ -130,16 +133,21 @@
    if(options?.draftLocale && options.draftLocale!=='both' && options.draftLocale!==locale)
      throw Error('article_language_not_in_channel_preferences');
    if(!await verifyArticle(item))throw Error('Article 200/indexability/self-canonical validation failed');
+   if(workspace.hidden||operation!==loadNonce)return;
    generated=draft(item,ch,options?.utmCampaign||'editorial');
    preview.value=generated.body;
    copy.disabled=false;
    note(generated.warning+' '+t('این متن فقط پیش‌نویس است؛ هیچ پیامی ارسال نشده است.',
      'This is a draft; no message has been sent.'));
-  }catch(e){note(t('تأیید مقاله ناموفق بود: ','Source verification failed: ')+e.message);}
-  finally{produce.disabled=false;}
+  }catch(e){
+   if(!workspace.hidden&&operation===loadNonce)
+     note(t('تأیید مقاله ناموفق بود: ','Source verification failed: ')+e.message);
+  }finally{
+   if(!workspace.hidden&&operation===loadNonce)produce.disabled=false;
+  }
  });
  const invalidate=()=>{
-  generated=null;copy.disabled=true;preview.value='';
+  loadNonce++;generated=null;copy.disabled=true;preview.value='';
   note(t('برای محتوای جدید، دوباره پیش‌نمایش بسازید.','Generate a new preview for changed inputs.'));
  };
  source.addEventListener('change',invalidate);network.addEventListener('change',invalidate);
@@ -152,11 +160,13 @@
   }catch(e){note(t('کپی خودکار ممکن نشد؛ متن را انتخاب و کپی کنید.',
     'Clipboard unavailable. Select and copy the preview manually.'));}
  });
- const observer=new MutationObserver(()=>{
-  if(workspace.hidden){
-   loadNonce++;feed=[];generated=null;source.replaceChildren();
-   preview.value='';copy.disabled=true;produce.disabled=true;note('');
-  }
- });
+ const clearPrivateDraft=()=>{
+  loadNonce++;feed=[];generated=null;source.replaceChildren();
+  preview.value='';copy.disabled=true;produce.disabled=true;note('');
+ };
+ const observer=new MutationObserver(()=>{if(workspace.hidden)clearPrivateDraft();});
  observer.observe(workspace,{attributes:true,attributeFilter:['hidden']});
+ workspace.addEventListener('jr:operations-locked',()=>{
+  details.open=false;clearPrivateDraft();
+ });
 })();
