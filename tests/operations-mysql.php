@@ -129,6 +129,12 @@ try {
  // Upgrade the same isolated account temporarily (private registry + DB must agree).
  $configuration['operations_admins'][$id]['role']='SUPER_ADMIN';writeConfig();
  $pdo->prepare("UPDATE operations_admin_memberships SET role='SUPER_ADMIN' WHERE account_id=?")->execute([$id]);
+ // Installing the unified schema must not switch on alert emails or
+ // the response probe; defaults are explicit owner-off policies.
+ check((int)$pdo->query('SELECT enabled FROM operations_alert_settings WHERE singleton_id=1')->fetchColumn()===0
+     && (int)$pdo->query('SELECT COALESCE(MAX(enabled),0) FROM operations_alert_rules')->fetchColumn()===0
+     && (int)$pdo->query('SELECT enabled FROM operations_response_probe_settings WHERE singleton_id=1')->fetchColumn()===0,
+     'schema installation unexpectedly enabled alert emails or response probes');
  // Scheduled work must remain OFF even with per-source rows enabled;
  // all activity and deletion below uses the isolated operations_fixture DB.
  $masterOff=request('/api/admin/operations/collection-settings',200);
