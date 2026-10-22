@@ -129,6 +129,46 @@ try {
  // Upgrade the same isolated account temporarily (private registry + DB must agree).
  $configuration['operations_admins'][$id]['role']='SUPER_ADMIN';writeConfig();
  $pdo->prepare("UPDATE operations_admin_memberships SET role='SUPER_ADMIN' WHERE account_id=?")->execute([$id]);
+ // Scheduled work must remain OFF even with per-source rows enabled;
+ // all activity and deletion below uses the isolated operations_fixture DB.
+ $masterOff=request('/api/admin/operations/collection-settings',200);
+ check(($masterOff['automaticCollection']['enabled']??true)===false
+     && ($masterOff['automaticCollection']['installedCronVerified']??true)===null,
+     'collector master switch falsely reported on or Cron verified');
+ $paused=operationsCollectorRefresh($pdo,'scheduled',$now);
+ check(($paused['status']??null)==='paused_by_owner'
+     && ($paused['attempted']??-1)===0,
+     'scheduled collector ran despite owner-disabled master switch');
+ request('/api/admin/operations/collection-automatic',400,'POST',[
+     'enabled'=>true,'confirmation'=>'not-owner-approval'
+ ],$headers);
+ $pdo->prepare('INSERT INTO operations_collection_cache
+     (scope_key,fetched_at,expires_at,body_json) VALUES (?,?,?,?)')
+     ->execute(['governance:repository',$now-120,$now-30,'{}']);
+ $pdo->prepare("INSERT INTO operations_collection_attempts
+     (scope_key,attempted_at,result,failure_code) VALUES (?,?,'failed',NULL)")
+     ->execute(['governance:repository',$now-90]);
+ $pdo->prepare("INSERT INTO operations_source_metric_samples
+     (source_id,metric_key,metric_value,unit,observed_at,expires_at,evidence_type,created_at)
+     VALUES (?,?,0,'boolean',?,?,'internal_event',?)")
+     ->execute(['collector:governance:repository','fetch_success',$now-90,$now-30,$now-90]);
+ $preview=request('/api/admin/operations/collection-data-preview?scope=governance%3Arepository',200);
+ check(($preview['countsBounded']['cacheRows']??null)===1
+     && ($preview['countsBounded']['attemptRows']??null)===1
+     && ($preview['countsBounded']['metricRows']??null)===1,
+     'owner-scoped diagnostic deletion preview was inaccurate');
+ request('/api/admin/operations/collection-data-delete',400,'POST',[
+     'scope'=>'governance:repository','confirmation'=>'incorrect'
+ ],$headers);
+ $deleted=request('/api/admin/operations/collection-data-delete',200,'POST',[
+     'scope'=>'governance:repository',
+     'confirmation'=>'DELETE SOURCE DIAGNOSTICS:governance:repository'
+ ],$headers);
+ check(($deleted['deleted']??null)===['cacheRows'=>1,'attemptRows'=>1,'metricRows'=>1]
+     && (int)$pdo->query("SELECT COUNT(*) FROM operations_collection_cache WHERE scope_key='governance:repository'")->fetchColumn()===0,
+     'source cleanup failed to stay bounded to disposable diagnostic records');
+ $auditDeleted=(int)$pdo->query("SELECT COUNT(*) FROM operations_audit WHERE action='collector_data_purged'")->fetchColumn();
+ check($auditDeleted===1,'diagnostic data deletion was not recorded in immutable audit log');
  // Database-health capability is owner-only, off-by-default and read-only until requested.
  $initialDbHealth=request('/api/admin/operations/database-health',200);
  check(($initialDbHealth['schema']??null)==='operations-database-health-v1'
