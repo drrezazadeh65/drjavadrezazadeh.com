@@ -26,6 +26,10 @@
     if(workspace.hidden)clear();
   });
   observer.observe(workspace,{attributes:true,attributeFilter:['hidden']});
+  // Explicit owner sign-out clears sensitive social observations immediately.
+  workspace.addEventListener('jr:operations-locked',()=>{
+    panel.open=false;clear();
+  });
   function card(title,lines) {
     const e=node('section',undefined,'ops-card');
     e.append(node('h3',title));
