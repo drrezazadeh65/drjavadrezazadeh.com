@@ -1675,6 +1675,50 @@ function renderPageQuality(host){
    detail.append(el('h3',t('بررسی مستقل: ','Page breakdown: ')+qualityDetail.route));
    detail.append(el('p',t('امتیاز کلی آمادگی منبعی: ','Overall source readiness: ')+
      qualityScore(qualityDetail.overallSourceReadiness)+' / 10'));
+   // Developer handoff is owner-initiated and source-only; never represents
+   // a saved fix, a live scan or permission to change a frozen public URL.
+   const gaps=[];
+   for(const [dimension,grade] of Object.entries(qualityDetail.grades||{})){
+     if(!Array.isArray(grade?.findings)||grade.findings.length===0)continue;
+     for(const finding of grade.findings.slice(0,30)){
+       if(typeof finding!=='string'||finding.length>100)continue;
+       gaps.push(qualityName(dimension)+' · '+finding+' — '+sourceQualityRemedy(finding));
+     }
+   }
+   if(gaps.length){
+     const copyBrief=el('button',t('کپی دستور اصلاح منبع برای توسعه‌دهنده',
+       'Copy source remediation brief for developer'),'ops-quality-copy-brief');
+     copyBrief.type='button';
+     copyBrief.addEventListener('click',async()=>{
+       if(!workspaceVisibleForExport())return;
+       if(!navigator.clipboard?.writeText){
+         notice(t('دسترسی کپی امن مرورگر فراهم نیست؛ موارد را دستی بردارید.',
+           'Secure browser clipboard unavailable; copy the visible findings manually.'),true);
+         return;
+       }
+       const text=[
+         'SOURCE-ONLY EDITORIAL PAGE QUALITY — NOT LIVE USER DATA',
+         'Page: '+qualityDetail.route,
+         'Source readiness: '+qualityScore(qualityDetail.overallSourceReadiness)+' / 10',
+         'Keep immutable public URLs, canonical/hreflang, user privacy and payment routes unchanged.',
+         'Review each finding in the original source, apply only evidence-supported fixes; final QA NOT RUN.',
+         ...gaps.slice(0,75)
+       ].join('\n');
+       try{
+         await navigator.clipboard.writeText(text);
+         if(workspaceVisibleForExport())
+           notice(t('دستور اصلاح منبع در کلیپ‌بورد کپی شد؛ هیچ تغییری روی سایت اجرا نشد.',
+             'Source remediation brief copied; no website changes were executed.'));
+       }catch{
+         if(workspaceVisibleForExport())
+           notice(t('کپی توسط مرورگر مجاز نشد؛ می‌توانید موارد را دستی بردارید.',
+             'Clipboard permission was denied; use the visible source findings.'),true);
+       }
+     });
+     detail.append(copyBrief,el('small',t(
+       'فقط نواقص قابل استناد به HTML مخزن کپی می‌شوند؛ رفع خودکار، رتبه گوگل یا تغییر روی سایت زنده ادعا نمی‌شود.',
+       'Copies source-HTML review needs only; no automatic repair, Google rank or live-site update is asserted.')));
+   }
    const dims=el('div',undefined,'ops-grid');
    for(const key of Object.keys(qualityNames)){
       const grade=qualityDetail.grades?.[key];if(!grade)continue;
