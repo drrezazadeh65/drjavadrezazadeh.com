@@ -63,3 +63,31 @@ It is not wired to deploy, CI or web requests.
   inferred from a due timestamp, nor SMTP delivery from an outbox row.
 - Changes stay on `feature/owner-command-center-20261022` and are not merged
   to the developer branch or deployed by this guide.
+
+## Owner-provided installation evidence — 2026-10-22
+
+The owner supplied consecutive screenshots from phpMyAdmin with database
+`drjavad1_store` selected:
+
+- A preceding read-only `information_schema.TABLES` query for the three target
+  names returned **zero rows**.
+- The subsequent screenshot shows **three separate successful `CREATE TABLE
+  IF NOT EXISTS` statements** for `operations_database_health_settings`,
+  `operations_database_health_runs` and
+  `operations_database_error_events`, each with a green success banner
+  and no visible SQL error.
+- An `INSERT IGNORE` of the singleton settings row reports **1 row
+  inserted**, with `monitoring_enabled=0`, `error_logging_enabled=0`
+  and `cadence='manual'`.
+
+Evidence classification: **OWNER_SCREENSHOT_SQL_SUCCESS**. It supports
+successful owner-initiated creation of the three absent health tables and
+initialization of the disabled preference; it is **NOT** an independent
+authenticated schema signature audit, tested backup restore, verification
+of all 27 operations tables, deployed admin API, live worker, Cron
+registration, actual SMTP delivery or confirmed runtime behavior.
+
+**Next owner action:** do **not** rerun these DDL statements. No further
+database modification is presently requested for this specific feature.
+Source work may continue on the independent branch without tests, service
+activation, merges or deployment.
