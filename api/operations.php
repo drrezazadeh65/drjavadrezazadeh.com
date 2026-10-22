@@ -24,6 +24,7 @@ require_once __DIR__.'/operations-source-controls.php';
 require_once __DIR__.'/operations-page-quality.php';
 require_once __DIR__.'/operations-alerts.php';
 require_once __DIR__.'/operations-http-log.php';
+require_once __DIR__.'/operations-existing-features.php';
 require_once __DIR__.'/operations-editor.php';
 require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/social-review.php';
@@ -659,6 +660,12 @@ function operationsRoute(string $path, string $verb): never {
             }catch(InvalidArgumentException $e){fail('invalid_alert_rule',400);}
         }
 
+        if ($path === '/admin/operations/existing-features' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_existing_features_read',$accountId,12,300))
+                fail('rate_limited',429);
+            respond(operationsExistingFeatures());
+        }
+
         // Owner-only keyword intelligence: no public asset or unauthenticated strategy data.
         // This branch is reached only after verified account, server admin membership
         // and fresh TOTP session, and inherits private no-store API headers.
@@ -1209,6 +1216,7 @@ function operationsRoute(string $path, string $verb): never {
             $snapshot['reporting']['providerInventory']=operationsProviderInventory();
             $snapshot['reporting']['alertCenter']=operationsAlertSnapshot($pdo,$configuration);
             $snapshot['reporting']['pageQualityOverview']=operationsQualitySummary();
+            $snapshot['reporting']['existingFeatureInventory']=operationsExistingFeatures();
             $snapshot['reporting']['httpHealth']=operationsHttpObserverStatus($pdo,$configuration);
             $snapshot['reporting']['actionExecution']=[
                 'schema'=>'operations-action-execution-report-v1',
