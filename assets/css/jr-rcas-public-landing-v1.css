@@ -1,0 +1,38 @@
+/* RCAS public orientation pages. Additive: no assessment form or private data. */
+:root{color-scheme:dark;--bg:#101214;--surface:#1b1d1e;--line:#746548;--gold:#e9cd87;--ivory:#faf4e6;--muted:#d3cbb8}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ivory);font:400 1.03rem/1.85 system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif}
+a{color:var(--gold);text-underline-offset:.2em}
+a:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:4px;border-radius:4px}
+.skip{position:absolute;top:-5rem;inset-inline-start:1rem;background:var(--ivory);color:#111;padding:.5rem 1rem;z-index:20}
+.skip:focus{top:1rem}
+.shell{width:min(1100px,calc(100% - 2.2rem));margin-inline:auto}
+.masthead{border-bottom:1px solid #544935;background:#17191a}
+.masthead .shell{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-block:1.1rem;flex-wrap:wrap}
+.brand{font-weight:750;letter-spacing:.03em;text-decoration:none;color:var(--ivory)}
+.lang{border:1px solid var(--line);border-radius:100px;padding:.2rem .85rem;text-decoration:none}
+.hero{padding-block:clamp(2.5rem,8vw,6rem) 2rem}
+.kicker{color:var(--gold);font-size:.86rem;font-weight:700;letter-spacing:.05em}
+h1,h2,h3{line-height:1.4;letter-spacing:-.01em}
+h1{font-size:clamp(2rem,5vw,3.7rem);max-width:20ch;margin:.6rem 0 1.2rem}
+h2{font-size:clamp(1.3rem,2.5vw,1.8rem)}
+.intro{color:var(--muted);max-width:78ch;font-size:1.13rem}
+.actions{display:flex;flex-wrap:wrap;gap:.85rem;margin-block:1.8rem}
+.action{min-height:48px;display:inline-flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;padding:.55rem 1.35rem;border-radius:12px;border:1px solid var(--gold);font-weight:700}
+.action.primary{background:var(--gold);color:#141414}
+.action.secondary{color:var(--gold)}
+.action:hover{filter:brightness(1.07)}
+.panels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.1rem}
+.panel{background:var(--surface);border:1px solid #4a4438;border-radius:19px;padding:1.25rem;min-width:0}
+.panel p{color:var(--muted)}
+section{padding-block:1.2rem}
+.guide{border-inline-start:3px solid var(--gold);padding-inline-start:1.15rem;max-width:82ch}
+.faq details{padding:1rem 0;border-bottom:1px solid #4a4438}
+.faq summary{font-weight:700;cursor:pointer;min-height:44px}
+.faq p{color:var(--muted)}
+.limit{background:#26221a;border:1px solid var(--line);border-radius:14px;padding:1rem 1.3rem}
+footer{border-top:1px solid #4a4438;color:var(--muted);margin-top:2.5rem}
+footer .shell{padding-block:1.5rem}
+@media(max-width:720px){.panels{grid-template-columns:1fr}h1{max-width:none}.shell{width:min(100% - 1.5rem,1100px)}.action{width:100%}body{font-size:1.075rem}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
