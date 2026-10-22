@@ -220,9 +220,10 @@ function sheet(){
  // Keep private workspace shortcuts out of the tab order when the mobile
  // sheet is closed. "aria-modal" describes only an ACTUALLY open dialog.
  sheet.inert=true;sheet.setAttribute('aria-hidden','true');
+ sheet.removeAttribute('aria-modal');
  const shut=(restoreFocus=true)=>{
   sheet.classList.remove('is-open');sheet.inert=true;
-  sheet.setAttribute('aria-hidden','true');
+  sheet.setAttribute('aria-hidden','true');sheet.removeAttribute('aria-modal');
   open.setAttribute('aria-expanded','false');
   document.documentElement.style.overflow='';
   if(restoreFocus)previous?.focus?.({preventScroll:true});
@@ -230,6 +231,7 @@ function sheet(){
  const show=()=>{
   previous=document.activeElement;
   sheet.inert=false;sheet.removeAttribute('aria-hidden');
+  sheet.setAttribute('aria-modal','true');
   sheet.classList.add('is-open');
   open.setAttribute('aria-expanded','true');
   document.documentElement.style.overflow='hidden';
@@ -238,7 +240,12 @@ function sheet(){
  open.setAttribute('aria-haspopup','dialog');
  open.addEventListener('click',show);
  close.addEventListener('click',()=>shut());
- sheet.addEventListener('click',e=>{if(e.target===sheet)shut();else if(e.target.closest('a[href]'))shut(false)});
+ sheet.addEventListener('click',e=>{
+  if(e.target===sheet){shut();return}
+  // Leave keyboard focus on a visible control when following a shortcut:
+  // making a focused link inert without restoring it loses tab position.
+  if(e.target.closest('a[href]'))shut(true);
+ });
  sheet.addEventListener('keydown',e=>{
   if(e.key==='Escape'){e.preventDefault();shut();return}
   if(e.key!=='Tab')return;
