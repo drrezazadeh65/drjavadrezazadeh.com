@@ -140,10 +140,11 @@ try {
  check(($initialDbHealth['inventory']['operationsTableCount']??0)>=24
      && ($initialDbHealth['connection']??'')==='available',
      'isolated database inventory was not observed');
+ $noDbCsrf=$headers;unset($noDbCsrf['X-CSRF-Token']);
  request('/api/admin/operations/database-health/settings',403,'POST',[
      'monitoringEnabled'=>true,'errorLoggingEnabled'=>true,
      'cadence'=>'daily','clockMinutes'=>210,'retentionDays'=>90
- ],$noCsrf);
+ ],$noDbCsrf);
  operationsDbHealthRecordError($pdo,'database_test',new PDOException('sensitive DSN in error'),$now);
  check((int)$pdo->query('SELECT COUNT(*) FROM operations_database_error_events')->fetchColumn()===0,
      'disabled database error logger wrote a record');
