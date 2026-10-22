@@ -108,14 +108,16 @@ function enhance(root,n){
     add.setAttribute('aria-label',name+' — '+text(fa,'قرار دادن در گزینه '+(j===0?'اول':'دوم'),'Add to option '+(j+1)));
     add.addEventListener('click',()=>{
      const existing=names[j].value.trim();
-     if(existing&&existing!==name){
+     if(existing&&pathwayIdentity(existing)!==pathwayIdentity(name)){
       exampleStatus.textContent=text(fa,
        'این گزینه قبلاً با نام دیگری پر شده است. برای حفظ تصمیم قبلی، ابتدا آن را خودتان ذخیره یا پاک کنید.',
        'This pathway already has another name. Save or clear your previous choice yourself before replacing it.');
       names[j].focus();
       return;
      }
-     if(existing!==name){
+     // Equivalent spelling/spacing is not permission to overwrite the
+     // learner's chosen label. Only an empty field receives the example.
+     if(!existing){
       names[j].value=name;
       names[j].dispatchEvent(new Event('input',{bubbles:true}));
      }
@@ -144,8 +146,10 @@ function enhance(root,n){
   const index=buttons.indexOf(document.activeElement);
   if(index<0)return;
   let next;
-  if(event.key==='ArrowRight')next=(index+1)%buttons.length;
-  else if(event.key==='ArrowLeft')next=(index+buttons.length-1)%buttons.length;
+  // In RTL Persian navigation, Right moves visually backwards through
+  // the tab sequence; English LTR keeps the ordinary forward direction.
+  if(event.key==='ArrowRight')next=(index+(fa?buttons.length-1:1))%buttons.length;
+  else if(event.key==='ArrowLeft')next=(index+(fa?1:buttons.length-1))%buttons.length;
   else if(event.key==='Home')next=0;
   else if(event.key==='End')next=buttons.length-1;
   else return;
