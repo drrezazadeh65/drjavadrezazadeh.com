@@ -421,8 +421,12 @@ function authNavigation(authenticated){
 }
 
 function logout(){
- $$('[data-dashboard-logout]').forEach(b=>b.addEventListener('click',async()=>{
+ $('[data-dashboard-logout]').forEach(b=>b.addEventListener('click',async()=>{
   b.disabled=true;
+  // Clear on-screen private BAHAR and guardian observations immediately on
+  // the user's sign-out intent; the API still independently proves whether
+  // the server session was actually terminated.
+  window.dispatchEvent(new Event('jr:account-logout'));
   const result=await jsonRequest(API+'/auth/logout',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:'{}'});
   if(result.ok){location.assign(lang==='en'?'/en/login/':'/fa/login/');return}
   b.disabled=false;
