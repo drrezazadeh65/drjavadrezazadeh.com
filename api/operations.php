@@ -1286,10 +1286,5 @@ function operationsRoute(string $path, string $verb): never {
             respond($snapshot);
         }
         fail('not_found',404);
-    } catch (Throwable $e) {
-        // Best-effort non-blocking incident recording, never email on a request.
-        if(isset($pdo)&&$pdo instanceof PDO)
-            operationsAlertRecord($pdo,'api_runtime_unavailable','operations_api',time());
-        fail('operations_unavailable',503);
-    }
+    } catch (Throwable $e) { fail('operations_unavailable',503); }
 }
