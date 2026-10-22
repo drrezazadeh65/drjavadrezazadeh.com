@@ -217,6 +217,33 @@
         T('فایل‌های منبع حاضر: ','Source files present: ')+
         number.format(engine.sourceFilesPresent)+' / '+
         number.format(engine.expectedSourceFiles)));
+      // Public source entry points are an allowlisted backend contract.
+      // Do not imply that a committed file proves a live HTTP 200.
+      if(engine.publicEntries && typeof engine.publicEntries==='object'){
+        const destinations=make('div','jr-edu-engine-entries');
+        for(const [lang,label] of [
+          ['fa',T('صفحه فارسی','Persian page')],
+          ['en',T('صفحه انگلیسی','English page')]
+        ]){
+          const entry=engine.publicEntries[lang];
+          if(!entry || typeof entry.path!=='string')continue;
+          if(!/^\/(?:fa|en)\/[a-z0-9-]+\/$/.test(entry.path)||
+             !entry.path.startsWith('/'+lang+'/'))continue;
+          if(entry.sourceFilePresent!==true){
+            destinations.append(make('span','jr-edu-engine-entries__missing',
+              label+T(' · فایل موجود نیست',' · file missing')));
+            continue;
+          }
+          const link=make('a','jr-edu-engine-entries__link',
+            label+T(' · فقط سورس',' · source only'));
+          link.href=entry.path;link.target='_blank';
+          link.rel='noopener noreferrer';
+          link.title=T('برای بررسی مستقیم باز می‌شود؛ عملکرد زنده هنوز تأیید نشده است',
+            'Open public route; live deployment is not yet verified');
+          destinations.append(link);
+        }
+        if(destinations.childElementCount)card.append(destinations);
+      }
       card.append(make('p','jr-edu-offers__warning',
         T('وضعیت علمی: نیازمند تأیید مستقل','Scientific status: independent approval required')));
       card.append(make('p','jr-edu-offers__warning',
