@@ -2650,16 +2650,19 @@ function renderOwnerCommandCenter(){
  const exportOverview=el('button',t('خروجی خلاصه CSV','Export summary CSV'));
  exportOverview.type='button';exportOverview.dataset.ocExport='';
  exportOverview.addEventListener('click',()=>{
-   if(!workspaceVisibleForExport())return;
-   const checked=ownerCockpitLastReadAt||snapshot.checkedAt||null;
+   // The overview is private: no export after session expiry or before MFA.
+   if(!snapshot||$('ops-workspace')?.hidden||!csrf)return;
    exportOperationsCsv('owner-command-center.csv',
-     ['section','state','observation','limitation','evidence_timestamp','release_sha'],
+     ['section','state','observation','limitation','dashboard_read_at','release_sha'],
      departments.map(item=>[
        item.id,
        ownerCockpitReadErrors[item.load]?'unavailable':item.data.kind,
        ownerCockpitReadErrors[item.load]?'Read unavailable':item.data.metric,
        item.data.note,
-       checked?new Date(checked*1000).toISOString():'',
+       ownerCockpitReadAt[item.load]
+         ?new Date(ownerCockpitReadAt[item.load]*1000).toISOString()
+         :(!item.load&&snapshot.checkedAt
+           ?new Date(snapshot.checkedAt*1000).toISOString():''),
        snapshot.releaseSha||''
      ]));
  });
