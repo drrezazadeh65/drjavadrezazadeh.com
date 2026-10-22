@@ -200,26 +200,49 @@
   const m=/^#edu-interest-(confirm|withdraw)=([a-f0-9]{64})$/.exec(currentHash);
   if(m){
     const action=m[1],token=m[2];
+    // Keep the token ONLY in this tab's JS closure, not in logs, URLs,
+    // status text, DOM attributes or browser history after first load.
     history.replaceState(null,'',location.pathname+location.search);
-    // Email click is already the explicit confirmation/withdrawal action.
-    // This is NOT a blanket marketing opt-in: only this one verified topic.
-    setStatus(action==='confirm'?T('در حال تأیید ایمیل…','Confirming your email…'):
-      T('در حال لغو عضویت…','Withdrawing your subscription…'));
-    post(action==='confirm'?'verify':'withdraw',{token})
-      .then(result=>{
+    setStatus(action==='confirm'
+      ?T('برای تأیید ایمیل و شروع دریافت راهنما، دکمه زیر را بزن.',
+        'Confirm that you wish to receive educational guidance using the button below.')
+      :T('برای لغو عضویت و حذف ایمیل ذخیره‌شده، دکمه زیر را بزن.',
+        'Use the button below to unsubscribe and remove the stored contact address.'));
+    const button=document.createElement('button');
+    button.type='button';button.className='jr-interest-open';
+    button.textContent=action==='confirm'
+      ?T('تأیید ایمیل و دریافت راهنما','Confirm my email and interest')
+      :T('لغو عضویت من','Withdraw my subscription');
+    button.style.margin='8px 0 20px';
+    status.after(button);
+    button.addEventListener('click',async()=>{
+      // This user gesture is needed because mail-security scanners often
+      // preview links and could otherwise confirm or cancel a subscription.
+      button.disabled=true;
+      setStatus(action==='confirm'?T('در حال تأیید ایمیل…','Confirming your email…'):
+        T('در حال لغو عضویت…','Withdrawing your subscription…'));
+      try{
+        const result=await post(
+          action==='confirm'?'verify':'withdraw',{token}
+        );
         if(result?.ok!==true||
           result.schema!=='jr.education-interest-email-action.v1'||
-          result.action!==(action==='confirm'?'VERIFIED':'WITHDRAWN'))throw Error('UNVERIFIED');
+          result.action!==(action==='confirm'?'VERIFIED':'WITHDRAWN'))
+          throw Error('UNCONFIRMED');
+        button.remove();
         setStatus(action==='confirm'
-          ?T('ایمیل شما تأیید شد؛ از این پس فقط راهنماهای موضوع انتخابی‌تان قابل ارسال هستند.',
-            'Email verified. You may now receive guidance about your selected topic only.')
-          :T('عضویت شما لغو و اطلاعات تماس ذخیره‌شده از رکورد حذف شد.',
-            'Your subscription was withdrawn and the stored contact address was erased.'));
-      })
-      .catch(error=>setStatus(error?.message==='EXPIRED'
-        ?T('این پیوند منقضی شده است؛ در صورت تمایل دوباره درخواست بده.',
-          'This link expired. Request a fresh one if you still want updates.')
-        :T('تأیید این اقدام در دسترس نیست؛ بعداً دوباره امتحان کنید.',
-          'The requested email action could not be confirmed. Please try again later.'),true));
+          ?T('ایمیل تأیید شد. راهنماها فقط درباره موضوع انتخابی‌ات خواهند بود.',
+            'Email confirmed. Updates may now relate to your chosen learning topic only.')
+          :T('عضویت لغو شد و آدرس ایمیلِ ذخیره‌شده پاک شد.',
+            'Your subscription was withdrawn and the stored email address erased.'));
+      }catch(error){
+        button.disabled=false;
+        setStatus(error?.message==='EXPIRED'
+          ?T('این پیوند منقضی شده است. در صورت تمایل درخواست جدید بفرست.',
+            'This link has expired. You may request a fresh one.')
+          :T('اقدام تأیید نشد؛ دوباره تلاش کن.',
+            'This action was not confirmed. Please try again.'),true);
+      }
+    });
   }
 })();
