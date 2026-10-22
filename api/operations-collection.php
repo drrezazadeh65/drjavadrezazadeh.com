@@ -85,6 +85,26 @@ function operationsCollectorPolicies(PDO $pdo): array {
     }unset($policy);
     return $items;
 }
+/**
+ * Policies created outside the canonical 13-engine/eight-GitHub-source
+ * catalogue are not consumed by the scheduled GitHub worker. Report the
+ * discrepancy to MFA administrators, without enabling or deleting anything.
+ */
+function operationsCollectorUnmappedPolicies(PDO $pdo): array {
+    try {
+        $known=operationsCollectorCatalogue();
+        $query=$pdo->query('SELECT scope_key FROM operations_collection_policies ORDER BY scope_key');
+        $unknown=[];
+        foreach ($query as $row) {
+            $id=(string)$row['scope_key'];
+            if(!isset($known[$id]))$unknown[]=$id;
+        }
+        return ['status'=>'available','count'=>count($unknown),
+            'ids'=>array_slice($unknown,0,25)];
+    } catch (Throwable $e) {
+        return ['status'=>'unavailable','count'=>null,'ids'=>[]];
+    }
+}
 function operationsCollectorConfigure(PDO $pdo,string $key,bool $enabled,string $cadence,int $clock,string $actor,int $at): array {
     $catalogue=operationsCollectorCatalogue();
     if(!isset($catalogue[$key])||!in_array($cadence,['manual','hourly','daily','live'],true)
@@ -184,6 +204,7 @@ function operationsCollectorStatus(PDO $pdo,int $at): array {
     return ['ok'=>true,'schema'=>'operations-collection-controls-v1',
         'timezone'=>'Asia/Tehran','scheduler'=>'external_bertina_cron_required',
         'attemptJournalStatus'=>$attempts['status'],
+        'unmappedPolicies'=>operationsCollectorUnmappedPolicies($pdo),
         'rows'=>$rows,'sourceStates'=>$cache['states'],
         'limitation'=>'Settings cannot activate an unimplemented collector; real-time commerce, auth and user events never depend on GitHub polling.'];
 }
