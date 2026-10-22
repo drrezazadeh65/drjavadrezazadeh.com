@@ -1,5 +1,5 @@
 /* Voluntary first-party learning updates, not a forced marketing wall. */
-[data-jr-interest-open][hidden],[data-jr-interest-status][hidden]{display:none!important}
+[data-jr-interest-cta][hidden],[data-jr-interest-open][hidden],[data-jr-interest-status][hidden]{display:none!important}
 .jr-interest-cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;
   max-width:850px;margin:18px 0;padding:16px 18px;
   border:1px solid rgba(217,185,112,.5);border-radius:17px;
