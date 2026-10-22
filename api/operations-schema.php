@@ -131,6 +131,12 @@ function operationsInstall(PDO $pdo): void {
             cooldown_minutes SMALLINT UNSIGNED NOT NULL DEFAULT 60,
             updated_at BIGINT NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_alert_scope_policies (
+            scope_id VARCHAR(120) PRIMARY KEY,
+            enabled TINYINT NOT NULL DEFAULT 1,
+            updated_at BIGINT NOT NULL,
+            INDEX idx_ops_alert_scope_enabled(enabled)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
         "CREATE TABLE IF NOT EXISTS operations_alert_incidents (
             fingerprint CHAR(64) PRIMARY KEY,
             event_code VARCHAR(48) NOT NULL,
@@ -147,7 +153,7 @@ function operationsInstall(PDO $pdo): void {
         "CREATE TABLE IF NOT EXISTS operations_alert_outbox (
             message_id CHAR(64) PRIMARY KEY,
             fingerprint CHAR(64) NOT NULL,
-            status ENUM('pending','reserved','accepted','uncertain','expired') NOT NULL DEFAULT 'pending',
+            status ENUM('pending','reserved','accepted','uncertain','expired','suppressed') NOT NULL DEFAULT 'pending',
             created_at BIGINT NOT NULL,
             attempted_at BIGINT NULL,
             sent_at BIGINT NULL,
