@@ -25,3 +25,12 @@ The view displays distinct counts for: actual order rows marked paid, provider-c
 6. Source commit or internal UI appearance does not certify actual payment, scientifically validated scores, legal compliance, saved learner data, operational emails or deployment. Never claim tests passed before independently collecting evidence.
 
 **Binding law:** Existing published addresses, prior XML sitemap `<loc>` URLs and canonical identities remain unchanged. New page content, additively created new addresses and correctly linked internal navigation are permitted.
+
+
+## Further Phase 6 source integration: Tehran consultation week and downloadable summary
+
+The owner report also obtains the site's **already-existing public non-personal** `/api/commerce/consultation-week` snapshot on demand. Its seven days (Tehran timezone) show only owner-published one-hour windows and internal BOOKED/FULL state. Unavailable or malformed data remain UNKNOWN rather than generating fictional times. This is not a reservation system, a promise of time availability, an external calendar check or a payment/appointment confirmation.
+
+The private dashboard includes an explicit **download of the visible aggregate-only CSV**, with spreadsheet formula injection protection and no personally identifiable fields. It includes, as a clearly identified internal source value, the exact matched-claim-order amount in *toman* without treating it as bank settlement, profit, net receipts or USD. All monetary estimates, marketing conversion rate and external booked consultations remain outside this source-only panel unless independently verified.
+
+New source additions: `assets/js/operations-education-business-bridge-v1.js`, `assets/css/operations-educational-offers-v1.css`, and the existing two bilingual administrator HTML files. Previously published page addresses and XML sitemap URLs are unchanged. No tests, staged migrations, bank inquiries or live deployment were performed during this source-only development phase.
