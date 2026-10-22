@@ -600,6 +600,36 @@ function operationsRoute(string $path, string $verb): never {
             respond(operationsEducationReadiness($pdo));
         }
 
+        // A super-admin may inspect and complete only the specifically
+        // requested BAHAR workbook deletion, never lift a legal hold.
+        if($path==='/admin/operations/education-erasure-requests'&&$verb==='GET'){
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'ops_bahar_erasure_queue_read',$accountId,12,300))
+                fail('rate_limited',429);
+            respond(operationsEducationBaharErasureQueue($pdo));
+        }
+        if($path==='/admin/operations/education-erasure-requests'&&$verb==='POST'){
+            if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'ops_bahar_erasure_owner_decision',$accountId,6,600))
+                fail('rate_limited',429);
+            $input=jsonBody();
+            try{
+                respond(operationsEducationCompleteBaharErasure(
+                  $pdo,$input,$accountId,nowTs()));
+            }catch(InvalidArgumentException $error){
+                fail('invalid_erasure_decision',422);
+            }catch(DomainException $error){
+                fail('privacy_request_conflict_or_active_hold',409);
+            }catch(Throwable $error){
+                fail('education_erasure_unavailable',503);
+            }
+        }
+
         // Educational privacy controls are a read-only evidence preview.
         // No legal hold, learner records or database rows are deleted here.
         if ($path === '/admin/operations/education-privacy' && $verb === 'GET') {
