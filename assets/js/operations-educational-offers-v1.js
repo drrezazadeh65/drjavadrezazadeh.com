@@ -16,6 +16,7 @@
   const refresh=panel.querySelector('[data-edu-offers-refresh]');
   const money=new Intl.NumberFormat(fa?'fa-IR':'en-US');
   let last=null;
+  let ownerDrafts=null;
   let busy=false;
   let controller=null;
   let requestSerial=0;
@@ -29,15 +30,16 @@
     requestSerial++;
     if(controller)controller.abort();
     controller=null;busy=false;refresh.disabled=false;
-    last=null;cards.replaceChildren();summary.textContent='';
+    last=null;ownerDrafts=null;cards.replaceChildren();summary.textContent='';
     status.textContent=T('گزارش خصوصی برای مشاهده درخواست نشده است.','Private proposal snapshot has not been requested.');
   }
   function render(){
     if(!last)return;
     const text=search.value.trim().toLocaleLowerCase(fa?'fa':'en');
     const condition=filter.value;
+    const effectiveDraftPrice=o=>ownerDrafts?.get(o.id)?.proposedPriceToman??o.proposedPriceToman;
     const selected=last.offers.filter(o=>{
-      const amount=o.proposedPriceToman;
+      const amount=effectiveDraftPrice(o);
       if(condition==='free'&&amount!==0)return false;
       if(condition==='priced'&&amount===0)return false;
       return !text||[
@@ -49,9 +51,13 @@
       const card=make('article','jr-edu-offers__card');
       card.append(make('strong','jr-edu-offers__title',fa?offer.titleFa:offer.titleEn));
       card.append(make('small','jr-edu-offers__id',offer.id+' · '+offer.engine));
-      const proposed=offer.proposedPriceToman===0
+      const draftPrice=effectiveDraftPrice(offer);
+      const isOwnerDraft=ownerDrafts?.has(offer.id)===true;
+      const proposed=draftPrice===0
         ?T('مرحله مقدماتی بدون هزینه','Free introductory stage')
-        :T('قیمت پیشنهادی: ','Proposed price: ')+money.format(offer.proposedPriceToman)+T(' تومان',' toman');
+        :T(isOwnerDraft?'پیش‌نویس ثبت‌شده مالک: ':'قیمت اولیه پیشنهادی: ',
+            isOwnerDraft?'Owner saved draft: ':'Initial proposed price: ')+
+          money.format(draftPrice)+T(' تومان',' toman');
       card.append(make('p','jr-edu-offers__price',proposed));
       card.append(make('p','jr-edu-offers__warning',
         T('پیشنهاد تأییدنشده؛ این بخش پرداخت یا فعال‌سازی انجام نمی‌دهد.',
@@ -75,12 +81,19 @@
     controller=new AbortController();busy=true;refresh.disabled=true;
     status.textContent=T('در حال دریافت فهرست پیشنهادی از API امن مدیر…','Reading proposal inventory from the authenticated administration API…');
     try{
-      const response=await fetch('/api/admin/operations/educational-offers',{
-        method:'GET',credentials:'same-origin',cache:'no-store',
-        headers:{Accept:'application/json'},signal:controller.signal
-      });
-      if(!response.ok)throw new Error('unavailable');
-      const data=await response.json();
+      const responses=await Promise.all([
+        fetch('/api/admin/operations/educational-offers',{
+          method:'GET',credentials:'same-origin',cache:'no-store',
+          headers:{Accept:'application/json'},signal:controller.signal
+        }),
+        fetch('/api/admin/operations/educational-price-drafts',{
+          method:'GET',credentials:'same-origin',cache:'no-store',
+          headers:{Accept:'application/json'},signal:controller.signal
+        }).catch(()=>null)
+      ]);
+      if(!responses[0].ok)throw new Error('unavailable');
+      const data=await responses[0].json();
+      const drafts=responses[1]?.ok===true?await responses[1].json():null;
       if(serial!==requestSerial||workspace.hidden||!panel.open)return;
       if(data?.ok!==true||data.schema!=='jr.educational-offers.admin-readonly.v1'
         ||data.status!=='PROPOSALS_NOT_FOR_SALE'||data.readOnly!==true
@@ -91,12 +104,25 @@
            ||!Number.isSafeInteger(o.proposedPriceToman)
            ||o.proposedPriceToman<0||o.publiclyPurchasable!==false))
         throw new Error('invalid-response');
+      if(drafts?.ok===true&&
+        drafts.schema==='jr.education-price-drafts.owner-v1'&&
+        drafts.canActivate===false&&
+        drafts.publiclyPurchasable===false&&
+        Array.isArray(drafts.drafts)&&drafts.drafts.length<=30&&
+        drafts.drafts.every(d=>d&&typeof d.id==='string'&&
+          Number.isSafeInteger(d.proposedPriceToman)&&
+          d.proposedPriceToman>=0&&d.proposedPriceToman<=100000000)){
+        ownerDrafts=new Map(drafts.drafts.map(d=>[d.id,d]));
+      }else ownerDrafts=null;
       last=data;render();
-      status.textContent=T('فهرست دریافت شد؛ هیچ‌یک با این گزارش قابل فروش یا فعال‌سازی نیستند.',
-        'Proposals loaded. Nothing can be sold or activated using this view.');
+      status.textContent=ownerDrafts===null
+        ?T('قیمت‌های اولیه فقط پیشنهاد هستند؛ وضعیت پیش‌نویس‌های ذخیره‌شده مالک نامشخص است و فروش فعال نیست.',
+          'Initial proposals shown; saved owner drafts cannot be verified. Nothing is for sale.')
+        :T('فهرست با پیش‌نویس‌های ذخیره‌شده مالک هماهنگ شد؛ هیچ محصولی برای فروش فعال نشده است.',
+          'Proposal list reconciled with owner-saved drafts. No product was activated for sale.');
     }catch(e){
       if(serial!==requestSerial||e?.name==='AbortError')return;
-      last=null;cards.replaceChildren();summary.textContent='';
+      last=null;ownerDrafts=null;cards.replaceChildren();summary.textContent='';
       status.textContent=T('درگاه مدیریت یا مجوز دسترسی در دسترس نیست. هیچ قیمتی به‌عنوان فعال نمایش داده نمی‌شود.',
         'Administration endpoint or access is unavailable. No offers are marked live.');
     }finally{
@@ -107,6 +133,11 @@
     if(panel.open)load();else if(controller)controller.abort();
   });
   refresh.addEventListener('click',load);
+  // Emitted only after a separate editor independently rereads the committed
+  // mother-DB revision. Never implies public price activation.
+  window.addEventListener('jr:education-offer-draft-saved',()=>{
+    if(panel.open&&!workspace.hidden&&!busy)load();
+  });
   search.addEventListener('input',render);
   filter.addEventListener('change',render);
   const observer=new MutationObserver(()=>{
