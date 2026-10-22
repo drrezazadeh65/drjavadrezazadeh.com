@@ -2745,6 +2745,19 @@ function renderOwnerCommandCenter(){
        'Additive owner-reviewed SQL provisioning is required.'),
      target:'ops-source-directory',severity:'attention'
    });
+ else if(ownerCockpitReadErrors.sourceControls)
+   blockers.push({
+     label:t('تنظیمات مستقل منابع از API دریافت نشد','Source control API unavailable'),
+     detail:errorMessage(new Error(ownerCockpitReadErrors.sourceControls)),
+     target:'ops-source-directory',severity:'unknown'
+   });
+ if(ownerCockpitReadErrors.socialSettings)
+   blockers.push({
+     label:t('تنظیمات اختصاصی شبکه‌های اجتماعی در دسترس نیست',
+       'Social channel policy API unavailable'),
+     detail:errorMessage(new Error(ownerCockpitReadErrors.socialSettings)),
+     target:'ops-social-settings',severity:'unknown'
+   });
  const noExecutor=actions.filter(a=>a.supportedExecutor?.type!=='readonly_snapshot'
    ||a.supportedExecutor?.writes!==false).length;
  if(noExecutor>0)
