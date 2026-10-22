@@ -2376,6 +2376,128 @@ function renderOwnerCommandCenter(){
  ]){const tile=el('div',undefined,'oc-stat');tile.append(el('small',t(fa,label)),
    el('strong',String(value)),el('span',caption));stats.append(tile);}
  root.append(stats);
+ // Evidence-backed triage queue: does not fabricate unrecorded incidents.
+ const queueItems=[];
+ const action=(id,priority,fa,en,detailFa,detailEn)=>queueItems.push(
+   {id,priority,title:t(fa,en),detail:t(detailFa,detailEn)});
+ if(typeof alertCritical==='number'&&alertCritical>0)
+   action('incidents',0,'رخداد بحرانی باز','Open critical incidents',
+     alertCritical+' '+t('رخداد بحرانی ثبت شده','recorded critical incident(s)'),
+     alertCritical+' recorded critical incident(s)');
+ if(typeof alertWarning==='number'&&alertWarning>0)
+   action('incidents',1,'هشدارهای نیازمند رسیدگی','Warnings to review',
+     alertWarning+' '+t('هشدار ثبت شده','recorded warning(s)'),
+     alertWarning+' recorded warning(s)');
+ if(typeof dbAttention==='number'&&dbAttention>0)
+   action('db',0,'مغایرت‌های دیتابیس','Database discrepancies',
+     dbAttention+' '+t('بررسی نیازمند توجه در آخرین اسکن دستی','manual scan checks require attention'),
+     dbAttention+' manual scan checks require attention');
+ if(quality?.status==='source_only'&&typeof quality.weakSeoPages==='number'&&quality.weakSeoPages>0)
+   action('quality',2,'صفحات دارای سئوی منبعی ضعیف','Pages with weak source SEO',
+     quality.weakSeoPages+' '+t('صفحه از موجودی کد، نه داده رتبه‌بندی گوگل',
+       'source HTML page(s), not measured Google ranking'),
+     quality.weakSeoPages+' source HTML page(s), not measured Google ranking');
+ if(Array.isArray(collectionState?.rows)){
+   const overdue=collectionState.rows.filter(row=>
+     row.type==='source'&&row.scheduleEvidence==='due_unverified').length;
+   const failed=collectionState.rows.filter(row=>
+     row.type==='source'&&row.executionEvidence==='last_attempt_failed').length;
+   if(failed>0)action('collectors',1,'تلاش‌های ناموفق جمع‌آوری','Failed collector attempts',
+     failed+' '+t('منبع با شکست ثبت‌شده در آخرین تلاش','source(s) with last attempt failed'),
+     failed+' source(s) with last attempt failed');
+   if(overdue>0)action('collectors',2,'موعدهای واکشی تأییدنشده','Unverified source schedules',
+     overdue+' '+t('موعد گذشته؛ موفقیت یا نصب Cron تأیید نشده',
+       'overdue source(s); Cron and execution unverified'),
+     overdue+' overdue source(s); Cron and execution unverified');
+ }
+ if(http?.state==='stale')
+   action('http',2,'نمونه‌های HTTP منقضی','Expired HTTP observations',
+     'آخرین داده ثبت‌شده تازه نیست','Latest stored observation is no longer fresh');
+ if(commerce?.available===true&&
+     Number(commerce.salesPipeline?.pendingOlderThan24Hours||0)>0)
+   action('commerce',1,'سفارش‌های معوق برای بازبینی','Aged pending orders',
+     commerce.salesPipeline.pendingOlderThan24Hours+
+      t(' سفارش معوق؛ به‌معنی تراکنش ناموفق قطعی نیست',
+        ' pending order(s); not proof of failed payment'),
+     commerce.salesPipeline.pendingOlderThan24Hours+
+      ' pending order(s); not proof of failed payment');
+ if(growthPipeline&&Number(growthPipeline.awaitingOver24Hours||0)>0)
+   action('growth',1,'درخواست‌های خدمات معوق','Aged consented enquiries',
+     growthPipeline.awaitingOver24Hours+
+       t(' درخواست نیازمند بررسی انسانی',' enquiry/enquiries need human review'),
+     growthPipeline.awaitingOver24Hours+' enquiries need human review');
+ if(social?.deliveryRows&&
+     Number(social.deliveryRows.uncertain||0)+Number(social.deliveryRows.manualPending||0)>0)
+   action('social',1,'ارسال‌های اجتماعی نامشخص','Unconfirmed social deliveries',
+     t('وضعیت انتشار تعدادی از رکوردها نیازمند تأیید است',
+       'Some delivery records require independent provider verification'),
+     'Some delivery records require independent provider verification');
+ const triage=el('section',undefined,'oc-triage');
+ triage.setAttribute('aria-label',t('اقدام‌های اولویت‌دار بر اساس شواهد','Evidence-based priorities'));
+ const triageTop=el('div',undefined,'oc-triage-head');
+ triageTop.append(el('h3',t('اولویت‌های قابل اقدام','Priorities backed by evidence')),
+   el('span',t('موارد قابل بررسی: ','Review items: ')+queueItems.length));
+ triage.append(triageTop);
+ const triageList=el('div',undefined,'oc-triage-list');
+ for(const item of queueItems.sort((a,b)=>a.priority-b.priority).slice(0,6)){
+   const line=el('div',undefined,'oc-triage-row');
+   const content=el('div');content.append(el('strong',item.title),el('small',item.detail));
+   const open=el('button',t('بررسی بخش','Open section'));
+   open.type='button';
+   open.addEventListener('click',()=>{
+     const target=departments.find(x=>x.id===item.id)?.target;
+     if(target&&$(target))openExistingOperationalWorkspace(target);
+     else notice(t('بخش مرتبط هنوز بارگذاری نشده','Related workspace is unavailable'),true);
+   });
+   line.append(content,open);triageList.append(line);
+ }
+ if(!queueItems.length)triageList.append(el('p',t(
+   'از داده‌هایی که تاکنون بارگیری شده‌اند، مورد قابل‌اقدام مشخصی استخراج نشد. این به معنی سلامت کامل سایت نیست؛ برای پوشش بیشتر، «دریافت یکجای وضعیت» را انتخاب کنید.',
+   'No actionable item can be derived from currently loaded evidence. This does not certify site health. Use “Load all stored statuses” to inspect additional modules.'),'oc-triage-empty'));
+ triage.append(triageList);root.append(triage);
+ // 13 distinct HTML-source quality dimensions. Null remains unmeasured.
+ if(quality?.status==='source_only'&&quality.averages){
+   const qualityPanel=el('section',undefined,'oc-quality-overview');
+   qualityPanel.setAttribute('aria-label',t('وضعیت ۱۳ معیار مستقل صفحات','13 source-quality dimensions'));
+   qualityPanel.append(el('h3',t('نقشه کیفیت ۱۳ معیار سایت','13-dimension quality map')),
+     el('p',t('میانگین‌های فایل‌های HTML مخزن، از ۱۰؛ نه Core Web Vitals واقعی، رتبه گوگل یا رؤیت برند در AI.',
+       'Average source HTML scores out of 10. Not field Core Web Vitals, Google rankings or verified AI appearances.')));
+   const measures=Object.entries(quality.averages)
+     .filter(([key])=>Object.prototype.hasOwnProperty.call(qualityNames,key))
+     .sort((a,b)=>{
+       if(a[1]===null)return 1;
+       if(b[1]===null)return -1;
+       return Number(a[1])-Number(b[1]);
+     });
+   const bars=el('div',undefined,'oc-quality-bars');
+   for(const [dimension,average] of measures){
+     const line=el('div',undefined,'oc-quality-item');
+     const go=el('button',qualityName(dimension));
+     go.type='button';go.setAttribute('aria-label',t('بررسی معیار ','Inspect dimension ')+qualityName(dimension));
+     go.addEventListener('click',()=>{
+       qualityFilters.dimension=dimension;qualityFilters.page=1;
+       qualityResult=null;qualityDetail=null;qualityExpanded=true;
+       reportingRender();openExistingOperationalWorkspace('ops-page-quality');
+     });
+     const track=el('div',undefined,'oc-quality-track');
+     const fill=el('span');fill.setAttribute('aria-hidden','true');
+     if(typeof average==='number'&&Number.isFinite(average)){
+       fill.style.width=Math.max(0,Math.min(100,average*10))+'%';
+       fill.dataset.band=average<6?'low':average<8?'medium':'high';
+     }else{
+       track.dataset.unmeasured='true';
+     }
+     track.append(fill);
+     const value=el('strong',typeof average==='number'&&Number.isFinite(average)
+       ?average.toFixed(1)+'/10':'—');
+     line.append(go,track,value);bars.append(line);
+   }
+   qualityPanel.append(bars);
+   qualityPanel.append(el('small',t(
+     'انتخاب هر معیار، جدول صفحه‌به‌صفحه را برای بررسی دستی باز می‌کند؛ واکشی جدید تنها با دکمه همان جدول انجام می‌شود.',
+     'Selecting a dimension opens its per-page controls. New data loads only when you request it in that section.')));
+   root.append(qualityPanel);
+ }
  const toolbar=el('div',undefined,'oc-toolbar');
  const filters=el('div',undefined,'oc-filter');
  const options=[
