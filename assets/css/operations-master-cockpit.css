@@ -444,3 +444,141 @@
 @media(prefers-reduced-motion:reduce){
   #ops-workspace,#ops-workspace *{scroll-behavior:auto!important}
 }
+
+/* Unified 2026 owner experience: restrained graphite/ivory/gold refinement.
+ * This stylesheet is loaded only by the already-MFA-gated admin HTML routes.
+ * Do not convert evidence status into cosmetic positive assertions.
+ */
+body{
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",
+    "Vazirmatn",Tahoma,Arial,sans-serif;
+  background:
+    radial-gradient(ellipse 80% 34% at 60% -6%,rgba(196,155,77,.095),transparent 75%),
+    #0b0c11;
+  color:#f2eee7;
+}
+body .ops{
+  max-width:1510px;
+  padding-inline:clamp(12px,2.35vw,38px);
+}
+body .ops-top{
+  gap:16px;
+  border-bottom:1px solid rgba(225,190,112,.24);
+  padding-block:12px 24px;
+}
+body .ops-brand{
+  color:#e4be75;font-size:.8rem;font-weight:750;letter-spacing:.075em
+}
+body .ops-top h1{letter-spacing:-.018em;line-height:1.45}
+#ops-workspace{--ops-panel:#171b24;--ops-border:#414047;--ops-gold:#f0d18d;
+  --ops-muted:#b9bcc5;--ops-text:#f2eee7;
+  --ops-green:#8ed3b7}
+#ops-workspace :is(.ops-panel,.ops-card){
+  background:linear-gradient(150deg,rgba(30,34,42,.97),rgba(19,23,31,.98));
+  border-color:rgba(214,191,138,.20);
+  border-radius:clamp(12px,1.5vw,19px);
+  box-shadow:0 8px 28px rgba(0,0,0,.12);
+}
+#ops-workspace :is(.ops-panel,.ops-card) :is(h2,h3){
+  color:#f2eee7;line-height:1.5
+}
+#ops-workspace .ops-panel>summary{
+  cursor:pointer;font-weight:750;line-height:1.75;
+  color:#f3d89f;padding-block:3px;
+}
+#ops-workspace details>summary::marker{color:#d8b46e}
+#ops-workspace button:not([disabled]),#ops-workspace a{
+  transition:border-color .16s ease,background-color .16s ease,color .16s ease;
+}
+#ops-workspace button,#ops-workspace select,#ops-workspace input{
+  min-height:44px;
+}
+#ops-workspace button{
+  background:linear-gradient(180deg,#272b36,#1d222e);
+  border-color:rgba(214,191,138,.35);color:#f1e8d4;
+  border-radius:11px;font-weight:650;
+}
+#ops-workspace button:disabled{
+  cursor:not-allowed;opacity:.63;
+}
+#ops-workspace button:not([disabled]):hover{
+  background:#37343a;border-color:#f0d18d;color:#fff6e5;
+}
+#ops-workspace :is(input,select,textarea){
+  border:1px solid rgba(211,186,129,.28);
+  border-radius:10px;background:#101822;color:#f2eee7;
+  accent-color:#dbb56f;
+}
+#ops-workspace :is(input,select,textarea):focus-visible{
+  outline:2px solid #f0d18d;outline-offset:2px
+}
+#ops-workspace .ops-stats{
+  gap:clamp(10px,1.7vw,18px);
+}
+#ops-workspace .ops-number{
+  color:#f0d18d;font-size:clamp(1.45rem,2vw,2rem);
+  font-variant-numeric:tabular-nums
+}
+#ops-workspace .ops-jump{
+  background:rgba(21,23,29,.96);
+  border-color:rgba(215,189,125,.32);
+  box-shadow:0 9px 26px rgba(0,0,0,.16);
+  position:sticky;top:8px;z-index:8;
+  backdrop-filter:blur(14px);
+}
+#ops-workspace .ops-jump a{
+  background:#21232a;border-color:rgba(213,187,126,.3);
+  border-radius:11px;white-space:nowrap;
+}
+#ops-workspace .ops-jump a:hover{
+  background:#343036;color:#f7deab
+}
+#ops-workspace .ops-table{
+  border-collapse:separate;border-spacing:0;font-size:.87rem
+}
+#ops-workspace .ops-table thead th{
+  background:#28262c;color:#f0d18d;position:sticky;top:0;z-index:1;
+}
+#ops-workspace .ops-table tbody tr:nth-child(even){
+  background:rgba(255,255,255,.024)
+}
+#ops-workspace .ops-table tbody tr:hover{
+  background:rgba(222,183,106,.055)
+}
+#ops-workspace .ops-table th,#ops-workspace .ops-table td{
+  border-bottom-color:rgba(220,199,148,.15);
+}
+#ops-workspace :is(.ops-table-wrap,.ops-page-quality-scroll){
+  border-radius:11px;overscroll-behavior-inline:contain;
+}
+#ops-workspace .ops-progress{background:#302e34}
+#ops-workspace .ops-progress span{
+  background:linear-gradient(90deg,#bd9655,#eed49b)
+}
+#ops-workspace .ops-mobile-dock{
+  border-color:rgba(240,209,141,.4);
+  background:rgba(17,19,25,.97);
+}
+@media(max-width:760px){
+  body .ops{padding-inline:12px}
+  #ops-workspace .ops-panel{margin-block:15px}
+  #ops-workspace :is(.ops-panel,.ops-card){padding:clamp(12px,3vw,17px)}
+  #ops-workspace .ops-jump{top:3px;margin-block:12px}
+  #ops-workspace .ops-jump a{min-height:44px;font-size:.83rem;padding-inline:12px}
+  #ops-workspace :is(.ops-toolbar,.ops-jump){scrollbar-width:thin}
+  #ops-workspace .ops-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:380px){
+  #ops-workspace .ops-stats{grid-template-columns:minmax(0,1fr)}
+  #ops-workspace .ops-jump a{font-size:.8rem}
+}
+@media(prefers-reduced-motion:reduce){
+  #ops-workspace button:not([disabled]),#ops-workspace a{transition:none}
+}
+@media print{
+  body{background:#fff;color:#111}
+  #ops-workspace .ops-jump{position:static}
+  #ops-workspace :is(.ops-panel,.ops-card){
+    background:#fff;color:#111;box-shadow:none
+  }
+}
