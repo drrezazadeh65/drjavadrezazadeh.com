@@ -583,7 +583,7 @@ let qualityFilters={dimension:'seo',language:'all',index:'all',sort:'weakest',qu
 const qualityNames={
  content:['محتوا','Content'],image:['تصاویر','Images'],seo:['سئو','SEO'],
  ui:['رابط کاربری','UI'],ux:['تجربه کاربری','UX'],ai:['آمادگی AI','AI readiness'],
- geo:['GEO','GEO'],speed:['سرعت آزمایشگاهی معتبر','Dated lab speed'],security:['هدرهای امنیتی','Security headers']
+ geo:['GEO','GEO'],speedReadiness:['آمادگی سرعت در کد','Speed code readiness'],speed:['سرعت آزمایشگاهی معتبر','Dated lab speed'],security:['هدرهای امنیتی','Security headers']
 };
 const qualityName=key=>t(...(qualityNames[key]||[key,key]));
 const qualityScore=value=>typeof value==='number'&&Number.isFinite(value)?value.toFixed(1):'—';
