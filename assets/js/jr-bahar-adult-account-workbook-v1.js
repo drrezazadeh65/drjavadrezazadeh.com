@@ -174,8 +174,8 @@
     restrict();
     if(!identity.storageEnabled||!identity.independentlyVerifiedAdult||
       !identity.currentNoticeConfigured){
-      setState(T('برنامه محفوظ است، اما ذخیره در حساب فعلاً فعال نیست. می‌توانی از صفحه رایگان، نسخه فایل خودت را دریافت کنی.',
-        'Your plan is ready in this tab, but account saving is not available yet. You can keep your own private file from the free BAHAR page.'));
+      setState(T('برنامه‌ات موقتاً در همین تب آماده است. ذخیره در حساب فعلاً فعال نیست؛ برای نگهداری بلندمدت، نسخه خصوصی را روی دستگاه ذخیره کن.',
+        'Your plan is temporarily available in this tab. Account saving is not enabled yet; keep a private local file for later.'));
       return;
     }
     if(!identity.currentConsent){
@@ -273,8 +273,10 @@
   // The complete approved purpose notice remains available on this page.
   function requestConsentInOnePopup(){
     if(!identity?.privacyNotice||!identity.storageEnabled||
-       identity.currentConsent||busy)return;
+       identity.currentConsent||busy||
+       document.getElementById('jr-bahar-single-purpose-popup'))return;
     const dialog=document.createElement('dialog');
+    dialog.id='jr-bahar-single-purpose-popup';
     dialog.className='jr-bahar-consent-dialog';
     dialog.setAttribute('aria-labelledby','jr-bahar-consent-dialog-title');
     dialog.setAttribute('aria-describedby','jr-bahar-consent-dialog-purpose');
