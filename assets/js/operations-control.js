@@ -1769,6 +1769,19 @@ function renderSourceDirectory(parent){
        }detail.append(chart);
      }else detail.append(el('p',t('نمونه‌ای ثبت نشده است؛ داده ناموجود صفر نیست.',
        'No observations recorded; missing data is not zero.')));
+     if(sourceMetricState.attemptsStatus==='schema_not_provisioned')
+       detail.append(el('p',t('جدول سابقه تلاش‌های این گردآورنده نصب نشده؛ تعداد تلاش‌ها نامشخص است.',
+         'Collection-attempt journal is not provisioned; attempt counts are unknown.')));
+     else if(sourceMetricState.attemptsStatus==='available'){
+       const attempts=sourceMetricState.recentAttempts;
+       detail.append(el('small',t('تلاش‌های ثبت‌شده: ','Recorded attempts: ')+
+         (Array.isArray(attempts)?attempts.length:t('نامشخص','Unknown'))));
+       if(Array.isArray(attempts)&&attempts.length){
+         const latest=attempts[0];
+         detail.append(el('small',t('آخرین تلاش: ','Latest attempt: ')+date(latest.at)+
+           ' · '+(latest.succeeded===true?t('موفق','Succeeded'):t('ناموفق','Failed'))));
+       }
+     }
      detail.append(el('small',sourceMetricState.limitation||''));
      metricDetail.append(detail);
    }
