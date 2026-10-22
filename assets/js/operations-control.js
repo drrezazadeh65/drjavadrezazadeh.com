@@ -2599,6 +2599,80 @@ function renderOwnerCommandCenter(){
      'Selecting a dimension opens its per-page controls. New data loads only when you request it in that section.')));
    root.append(qualityPanel);
  }
+ // A compact source-policy inventory. Policy state is not evidence that Cron ran.
+ const policyLedger=el('details',undefined,'oc-policy-ledger');
+ policyLedger.id='ops-owner-policy-ledger';
+ policyLedger.append(el('summary',t('دفتر مدیریت واکشی و سوابق هر منبع',
+   'Source schedules, controls and evidence ledger')));
+ policyLedger.append(el('p',t(
+   'این جدول از قراردادهای موجود سرور خوانده می‌شود. «مجاز» صرفاً یک انتخاب مدیر است، نه اثبات نصب Cron، اجرای موفق یا اتصال واقعی سرویس.',
+   'Settings describe administrator intent only. Allowed does not prove installed Cron, successful execution or a connected provider.')));
+ const sourceRows=Array.isArray(collectionState?.rows)
+   ?collectionState.rows.filter(x=>x.type==='source'):[];
+ const cacheLabel={
+   fresh:t('کش تازه','Fresh cache'),stale:t('کش منقضی','Stale cache'),
+   missing:t('کش موجود نیست','No cache'),not_connected:t('متصل نیست','Not connected'),
+   not_implemented:t('مجری ندارد','Not implemented')
+ };
+ const evidenceLabel={
+   never_observed:t('تلاش ثبت نشده','No recorded attempt'),
+   attempt_recorded:t('تلاش ثبت شده','Attempt recorded'),
+   last_attempt_failed:t('آخرین تلاش ناموفق','Last attempt failed'),
+   journal_unavailable:t('دفتر سوابق ناموجود','Journal unavailable'),
+   attempt_unknown:t('نتیجه نامشخص','Outcome unknown')
+ };
+ if(sourceRows.length){
+   const tableBox=el('div',undefined,'oc-ledger-scroller');
+   const table=el('table',undefined,'oc-ledger-table');
+   const head=el('thead'),header=el('tr');
+   for(const caption of [
+     t('منبع ثبت‌شده','Registered source'),
+     t('اجازه','Policy'),
+     t('تناوب','Cadence'),
+     t('موعد واکشی','Due date'),
+     t('آخرین مشاهده','Last observed'),
+     t('کش','Cache'),
+     t('شاهد اجرا','Execution evidence'),
+     t('کنترل','Manage')
+   ])header.append(el('th',caption));
+   head.append(header);table.append(head);
+   const body=el('tbody');
+   for(const item of sourceRows){
+     const tr=el('tr');
+     const td=text=>el('td',String(text??'—'));
+     tr.append(td(item.id),td(item.enabled===true?t('مجاز','Allowed'):t('خاموش','Disabled')),
+       td(item.cadence||'—'),td(item.nextDue>0?date(item.nextDue):'—'),
+       td(item.lastFetchedAt>0?date(item.lastFetchedAt):'—'),
+       td(cacheLabel[item.cacheState]||t('نامشخص','Unknown')),
+       td(evidenceLabel[item.executionEvidence]||t('نامشخص','Unknown')));
+     const actions=el('td'),manage=el('button',t('مدیریت','Manage'));
+     manage.type='button';manage.addEventListener('click',()=>{
+       collectionExpanded=true;reportingRender();
+       openExistingOperationalWorkspace('ops-collection-settings');
+     });
+     actions.append(manage);tr.append(actions);body.append(tr);
+   }
+   table.append(body);tableBox.append(table);policyLedger.append(tableBox);
+ }else{
+   const loadButton=el('button',t('خواندن فهرست سیاست‌های جمع‌آوری','Read collector policy inventory'));
+   loadButton.type='button';
+   loadButton.addEventListener('click',async()=>{
+     if(!snapshot)return;
+     loadButton.disabled=true;const generation=loadGeneration;
+     try{
+       const data=await api('/collection-settings');
+       if(generation!==loadGeneration||!snapshot)return;
+       collectionState=data;reportingRender();
+       notice(t('سیاست‌ها از دیتابیس مادر خوانده شدند؛ واکشی انجام نشد.',
+         'Policies read from the mother database. No collection was initiated.'));
+     }catch(error){
+       if(generation===loadGeneration)notice(errorMessage(error),true);
+     }finally{if(loadButton.isConnected)loadButton.disabled=false;}
+   });
+   policyLedger.append(el('p',t('این داده هنوز از سرور بارگیری نشده است.',
+     'This private policy inventory has not been loaded.')),loadButton);
+ }
+ root.append(policyLedger);
  const toolbar=el('div',undefined,'oc-toolbar');
  const filters=el('div',undefined,'oc-filter');
  const options=[
