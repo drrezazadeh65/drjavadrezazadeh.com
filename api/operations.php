@@ -23,6 +23,7 @@ require_once __DIR__.'/operations-source-directory.php';
 require_once __DIR__.'/operations-source-controls.php';
 require_once __DIR__.'/operations-page-quality.php';
 require_once __DIR__.'/operations-alerts.php';
+require_once __DIR__.'/operations-http-log.php';
 require_once __DIR__.'/operations-editor.php';
 require_once __DIR__.'/operations-social.php';
 require_once __DIR__.'/social-review.php';
@@ -628,6 +629,11 @@ function operationsRoute(string $path, string $verb): never {
         }
         // Mail alert controls and incident history share the existing
         // operations membership/MFA boundary and transaction audit log.
+        if ($path === '/admin/operations/http-health' && $verb === 'GET') {
+            if(!rateAllowed($pdo,'operations_http_health_read',$accountId,12,300))
+                fail('rate_limited',429);
+            respond(operationsHttpObserverStatus($pdo,$configuration));
+        }
         if ($path === '/admin/operations/alerts' && $verb === 'GET') {
             if(!rateAllowed($pdo,'operations_alerts_read',$accountId,15,300))
                 fail('rate_limited',429);
@@ -1202,6 +1208,7 @@ function operationsRoute(string $path, string $verb): never {
             // This comes from the deploy-time private projection, not external APIs.
             $snapshot['reporting']['providerInventory']=operationsProviderInventory();
             $snapshot['reporting']['alertCenter']=operationsAlertSnapshot($pdo,$configuration);
+            $snapshot['reporting']['httpHealth']=operationsHttpObserverStatus($pdo,$configuration);
             $snapshot['reporting']['actionExecution']=[
                 'schema'=>'operations-action-execution-report-v1',
                 'status'=>$ready?'available':'schema_not_provisioned',
