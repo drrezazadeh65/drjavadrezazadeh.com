@@ -1045,6 +1045,64 @@ function renderAlertCenter(host,model){
    section.append(el('p',t(
      'جداول اعلان در دیتابیس عملیاتی نصب نشده‌اند؛ هیچ هشدار فعالی فرض نمی‌شود.',
      'Alert tables are not provisioned. No operational email alert is claimed.')));
+   const catalogue=el('details',undefined,'ops-panel');
+   catalogue.append(el('summary',t(
+     'انواع هشدار تعریف‌شده در کد (همگی غیرفعال)',
+     'Source-defined incident types (all unprovisioned)')));
+   const records=Array.isArray(data.rules)?data.rules:[];
+   catalogue.append(el('p',t('تعداد تعریف در کد: ','Defined in source: ')+
+     records.length+' · '+t(
+       'تعداد رویداد واقعی و پیام‌های ارسالی نامشخص است؛ ردیف‌ها در دیتابیس نصب نشده‌اند.',
+       'Actual incident and delivery counts are unknown; no database rule is installed.')));
+   const list=el('ul',undefined,'ops-queue');
+   for(const rule of records){
+     const item=el('li');
+     item.append(el('strong',String(rule.name||rule.code||'unknown')),
+       el('small',String(rule.code||'')+' · '+String(rule.severity||'')+
+         ' · '+t('وضعیت: غیرفعال، فاقد جدول تنظیم',
+           'State: disabled, rule not provisioned')),
+       el('small',t('حسگر: ','Producer: ')+String(rule.sensorState||'unknown')));
+     list.append(item);
+   }
+   catalogue.append(list);section.append(catalogue);
+   // The private HTTP log observer has independent tables. Keep its
+   // drilldown reachable even when the alert outbox has not been installed.
+   const httpFallback=el('details',undefined,'ops-panel');
+   httpFallback.id='ops-http-health';
+   httpFallback.append(el('summary',t(
+     'ورودی‌های ۴۰۴ و خطاهای ۵۰۰ — وضعیت منبع',
+     '404 and 5xx — recorded source status')));
+   const httpState=httpOverview?.state||'unavailable';
+   httpFallback.append(el('p',t('وضعیت حسگر: ','Observer state: ')+httpState));
+   const batches=Array.isArray(httpOverview?.batches)?httpOverview.batches:[];
+   if(batches.length){
+     const last=batches[0];
+     httpFallback.append(el('p',t('آخرین رکورد: ','Last saved batch: ')+
+       date(last.at)+' · 404: '+String(last.notFound??'—')+
+       ' · 5xx: '+String(last.serverErrors??'—')));
+   }else{
+     httpFallback.append(el('p',t(
+       'هنوز شواهد قابل‌نمایشی از مشاهدهٔ خطا ثبت نشده است.',
+       'No stored, displayable HTTP error observations are available.')));
+   }
+   const reloadHttp=el('button',t('بارگیری دادهٔ ذخیره‌شده HTTP',
+     'Reload saved HTTP data'));
+   reloadHttp.type='button';
+   reloadHttp.addEventListener('click',async()=>{
+     reloadHttp.disabled=true;const generation=loadGeneration;
+     try{
+       const result=await api('/http-health');
+       if(generation!==loadGeneration||!snapshot)return;
+       httpHealthCurrent=result;alertCenterExpanded=true;reportingRender();
+       const panel=document.getElementById('ops-http-health');
+       if(panel)panel.open=true;
+     }catch(e){if(generation===loadGeneration)notice(errorMessage(e),true);}
+     finally{if(reloadHttp.isConnected)reloadHttp.disabled=false;}
+   });
+   httpFallback.append(reloadHttp,el('small',t(
+     'این پنل فقط سوابق پایش خصوصی را می‌خواند؛ فعال‌سازی Cron، Migration یا ایمیل انجام نمی‌دهد.',
+     'This panel only reads private stored observations; no Cron, migration or email activation is performed.')));
+   section.append(httpFallback);
  }else if(data?.status==='available'){
    section.append(el('p',t('فعال‌سازی اعلان‌ها: ','Alert setting: ')+
      (data.enabled?t('مجاز؛ مشروط به حسگر و ارسال‌کننده','Enabled, subject to active sensors and worker'):t('خاموش','Disabled'))+
