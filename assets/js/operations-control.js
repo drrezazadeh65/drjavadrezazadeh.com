@@ -1091,6 +1091,52 @@ function renderAlertCenter(host,model){
        'هنوز شواهد قابل‌نمایشی از مشاهدهٔ خطا ثبت نشده است.',
        'No stored, displayable HTTP error observations are available.')));
    }
+   // Access-log observation and alert-outbox provisioning are independent.
+   // A missing mail schema must not hide actual read-only HTTP evidence.
+   const recent=Array.isArray(httpOverview?.batches)
+     ?httpOverview.batches.slice(0,12):[];
+   if(recent.length){
+     const group=el('details');
+     group.append(el('summary',t('۱۲ خوانش ثبت‌شده اخیر',
+       'Last 12 stored observation batches')));
+     const rows=el('ul',undefined,'ops-queue');
+     for(const batch of recent){
+       rows.append(el('li',date(batch.at)+
+         ' · '+t('سطرهای خوانده‌شده: ','Lines read: ')+String(batch.scanned)+
+         ' · 404: '+String(batch.notFound)+
+         ' · 5xx: '+String(batch.serverErrors)));
+     }
+     group.append(rows);httpFallback.append(group);
+   }
+   const candidates=Array.isArray(httpOverview?.top404Routes)
+     ?httpOverview.top404Routes:[];
+   if(candidates.length){
+     const group=el('details');
+     group.append(el('summary',t(
+       'مسیرهای عمومی ۴۰۴ نیازمند بررسی دستی (بدون تغییر ریدایرکت)',
+       'Public 404 candidates for manual review (no redirect changes)')));
+     const rows=el('ul',undefined,'ops-queue');
+     for(const candidate of candidates){
+       const scanner=candidate.type==='scanner_probe';
+       rows.append(el('li',
+         scanner?t('اسکن خودکار (مسیر پنهان)','Automated scanner (path hidden)'):
+           String(candidate.route),
+         undefined));
+       const current=rows.lastElementChild;
+       current?.append(el('small',t('تعداد ذخیره‌شده: ','Stored occurrences: ')+
+         String(candidate.occurrences)+' · '+
+         t('آخرین مشاهده: ','Last seen: ')+date(candidate.lastSeenAt)));
+     }
+     group.append(rows);httpFallback.append(group);
+   }
+   if(Number(httpOverview?.suppressedLegacyRouteRows)>0){
+     httpFallback.append(el('small',
+       t('مسیرهای خصوصی قدیمی پنهان شدند: ',
+         'Legacy private routes hidden: ')+
+       String(httpOverview.suppressedLegacyRouteRows)+
+       t(' (از حداکثر ۳۵ ردیف اخیر؛ پاک‌سازی نیازمند تصمیم جداگانه است)',
+         ' (within the last 35 stored rows; cleanup needs separate approval)')));
+   }
    const reloadHttp=el('button',t('بارگیری دادهٔ ذخیره‌شده HTTP',
      'Reload saved HTTP data'));
    reloadHttp.type='button';
@@ -1159,7 +1205,9 @@ function renderAlertCenter(host,model){
      const list=el('ul',undefined,'ops-queue');
      for(const item of http.top404Routes||[]){
        const li=el('li');
-       li.append(el('strong',item.route),el('small',
+       li.append(el('strong',item.type==='scanner_probe'?
+           t('اسکن خودکار (مسیر پنهان)','Automated scanner (path hidden)'):
+           item.route),el('small',
          t('تعداد: ','Count: ')+item.occurrences+' · '+
          t('آخرین رخداد: ','Last occurrence: ')+date(item.lastSeenAt)+' · '+
          (item.type==='scanner_probe'?t('اسکن مشکوک','Likely scanning probe'):
@@ -1168,6 +1216,14 @@ function renderAlertCenter(host,model){
      }
      httpPanel.append(el('h4',t('مسیرهای ۴۰۴ برای بررسی؛ بدون ریدایرکت خودکار',
        '404 routes to triage; no automatic redirects')),list);
+   }
+   if(Number(http?.suppressedLegacyRouteRows)>0){
+     httpPanel.append(el('small',
+       t('مسیرهای خصوصی قدیمی حذف‌شده از نمایش: ',
+         'Legacy private routes suppressed on read: ')+
+       String(http.suppressedLegacyRouteRows)+
+       t(' (فقط حداکثر ۳۵ ردیف اخیر بررسی شدند)',
+         ' (only up to the latest 35 stored rows inspected)')));
    }
    section.append(httpPanel);
    if(data.canManage===true){
