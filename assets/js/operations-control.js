@@ -69,7 +69,7 @@ async function api(path,options={}){const response=await fetch('/api/admin/opera
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
 function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;dbHealthCurrent=null;dbHealthExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
-$('ops-command-center')?.remove();ownerCockpitFilter='all';ownerCockpitQuery='';ownerCockpitShowAll=false;ownerCockpitPrivateEvidence=Object.create(null);ownerCockpitLastReadAt=null;ownerCockpitReadErrors=Object.create(null);$('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
+$('ops-command-center')?.remove();ownerCockpitFilter='all';ownerCockpitQuery='';ownerCockpitShowAll=false;ownerCockpitStopRequested=true;ownerCockpitPrivateEvidence=Object.create(null);ownerCockpitLastReadAt=null;ownerCockpitReadErrors=Object.create(null);$('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
 async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;httpHealthCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};ownerCockpitPrivateEvidence=Object.create(null);ownerCockpitLastReadAt=null;ownerCockpitReadErrors=Object.create(null);snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
 function progress(value){const bar=el('div',undefined,'ops-progress');const fill=el('span');fill.style.width=(value??0)+'%';bar.append(fill);bar.setAttribute('aria-label',t('پیشرفت اندازه‌گیری‌شده: ','Measured progress: ')+pct(value));return bar;}
@@ -1953,7 +1953,8 @@ function renderMasterEngineConsole(host,model){
  */
 let ownerCockpitFilter='all',ownerCockpitQuery='',ownerCockpitShowAll=false;
 let ownerCockpitPrivateEvidence=Object.create(null);
-let ownerCockpitLastReadAt=null,ownerCockpitReadErrors=Object.create(null);
+let ownerCockpitLastReadAt=null,ownerCockpitReadErrors=Object.create(null),
+    ownerCockpitStopRequested=false;
 function renderOwnerCommandCenter(){
  const workspace=$('ops-workspace'),model=snapshot?.reporting;
  if(!workspace||workspace.hidden||!model)return;
@@ -2256,7 +2257,9 @@ function renderOwnerCommandCenter(){
      'فقط با درخواست شما، شواهد محرمانه ذخیره‌شده و فراداده سلامت دیتابیس خوانده شوند؟ این عملیات هیچ واکشی خارجی، Cron، ارسال پیام، پاک‌سازی یا تغییری در داده‌ها انجام نمی‌دهد.',
      'Read private stored observations and on-demand database metadata now? This action does not fetch external providers, run Cron, send mail, purge or modify data.'));
    if(!confirmed)return;
-   readAll.disabled=true;const generation=loadGeneration;
+   ownerCockpitStopRequested=false;
+   readAll.disabled=true;cancelBulk.hidden=false;bulkProgress.hidden=false;
+   const generation=loadGeneration;
    const tasks=[
      ['alerts','/alerts'],['database','/database-health'],
      ['http','/http-health'],['response','/response-health'],
@@ -2269,10 +2272,12 @@ function renderOwnerCommandCenter(){
      ['journal','/jhela/maturity'],['growth','/growth'],['keyword','/keyword-map'],
      ['free','/free-resources']
    ];
-   let loaded=0,unavailable=0;
+   let loaded=0,unavailable=0,processed=0;
    // Sequential, bounded owner-initiated reads reduce load on shared hosting.
    for(const [id,path] of tasks){
-     if(generation!==loadGeneration||!snapshot)break;
+     if(generation!==loadGeneration||!snapshot||ownerCockpitStopRequested)break;
+     bulkProgress.textContent=t('در حال خواندن مورد ','Reading item ')+
+       (processed+1)+' / '+tasks.length+' · '+id;
      try{
        const response=await api(path);
        if(generation!==loadGeneration||!snapshot)break;
@@ -2301,8 +2306,15 @@ function renderOwnerCommandCenter(){
        unavailable++;
        ownerCockpitReadErrors[id]='unavailable';
      }
+     processed++;
    }
    if(generation===loadGeneration&&snapshot){
+     bulkProgress.textContent=(ownerCockpitStopRequested
+       ?t('دریافت داده با درخواست مدیر متوقف شد. ','Stopped at owner request. ')
+       :t('بازخوانی تکمیل شد. ','Stored read finished. '))+
+       loaded+' / '+tasks.length+
+       t(' بخش دارای پاسخ',' responses');
+     cancelBulk.hidden=true;
      ownerCockpitLastReadAt=Math.floor(Date.now()/1000);
      reportingRender();
      notice(t('وضعیت‌های خوانده‌شده: ','Stored statuses read: ')+loaded+
@@ -2327,8 +2339,19 @@ function renderOwnerCommandCenter(){
        snapshot.releaseSha||''
      ]));
  });
- headingActions.append(refresh,readAll,all,exportOverview);heading.append(intro,headingActions);
- root.append(heading);
+ const cancelBulk=el('button',t('توقف پس از درخواست جاری','Stop after current request'));
+ cancelBulk.type='button';cancelBulk.hidden=true;
+ cancelBulk.setAttribute('data-oc-cancel','');
+ cancelBulk.addEventListener('click',()=>{
+   ownerCockpitStopRequested=true;cancelBulk.disabled=true;
+ });
+ const bulkProgress=el('p',undefined,'oc-provenance');
+ bulkProgress.hidden=true;bulkProgress.setAttribute('role','status');
+ bulkProgress.setAttribute('aria-live','polite');
+ bulkProgress.setAttribute('data-oc-progress','');
+ headingActions.append(refresh,readAll,all,exportOverview,cancelBulk);
+ heading.append(intro,headingActions);
+ root.append(heading,bulkProgress);
  const note=el('p',undefined,'oc-provenance');
  note.append(el('strong',t('اصل کنترل مدیر: ','Owner control: ')),
    document.createTextNode(t('این نما فقط داده‌های ذخیره‌شده را نمایش می‌دهد؛ نبود شاهد، «نامشخص» است نه «موفق». گردآوری خودکار، ایمیل و Cron فقط با مجوز مستقل فعال می‌شوند.',
