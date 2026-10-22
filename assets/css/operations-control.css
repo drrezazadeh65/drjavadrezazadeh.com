@@ -230,3 +230,21 @@
  .ops-http-barrow{grid-template-columns:minmax(0,1fr);gap:2px;border-bottom:1px solid var(--ops-border);padding-block:8px}
  .ops-http-barrow>small{font-weight:700}
 }
+
+/* Per-source policy and verified metric detail */
+.ops-source-config{padding:10px;border:1px solid var(--ops-border);border-radius:10px;margin-block:10px}
+.ops-source-config>summary{cursor:pointer;font-weight:600;color:var(--ops-gold)}
+.ops-source-config .ops-toolbar{gap:8px;align-items:center}
+.ops-source-config .ops-toolbar>*{flex:1 1 125px;min-height:44px}
+.ops-source-config .ops-toolbar label{flex:0 0 auto}
+.ops-source-config .ops-toolbar select,.ops-source-config .ops-toolbar input[type="time"]{width:auto}
+.ops-source-metric-detail-wrap{min-width:0}
+.ops-source-metric-chart{display:grid;gap:7px;padding-block:10px}
+.ops-source-metric-row{display:grid;grid-template-columns:minmax(190px,2fr) minmax(70px,1fr);align-items:center;gap:12px}
+.ops-source-metric-row small{min-width:0;overflow-wrap:anywhere}
+@media(max-width:600px){
+ .ops-source-config .ops-toolbar{display:grid;grid-template-columns:minmax(0,1fr)}
+ .ops-source-config .ops-toolbar label{justify-content:flex-start}
+ .ops-source-config .ops-toolbar select,.ops-source-config .ops-toolbar input[type="time"]{width:100%}
+ .ops-source-metric-row{grid-template-columns:minmax(0,1fr)}
+}
