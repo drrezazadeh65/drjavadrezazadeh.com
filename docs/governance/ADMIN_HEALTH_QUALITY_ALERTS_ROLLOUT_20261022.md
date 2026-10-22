@@ -17,10 +17,11 @@
 
 ## Bertina activation prerequisites
 
-1. Use the existing approved database schema installation/migration mechanism to provision additive `operations_*` tables. No fresh database and no destructive SQL reset. This has **not** been carried out on the production host.
+1. Read the later [Bertina owner-gated Cron runbook](BERTINA_OPERATIONS_CRON_ENABLEMENT_RUNBOOK_20261022.md): the owner reported installing 24 existing `operations_*` tables in `drjavad1_store` on 22 October, but the live column/index/foreign-key shape, backup/restore readiness and operating environment remain independently **UNVERIFIED**. Reconcile in read-only mode before proposing any additive migration. Never install a parallel database or reset data.
 2. In Bertina's **private**, uncommitted `api/config.local.php` or private environment, set `operations_alert_recipient` to the administrator-confirmed mailbox; retain the existing authenticated, TLS-verified SMTP transport and `mail_enabled`/`smtp_enabled` settings. Never put SMTP passwords, recipient lists or private log paths in Git.
 3. Configure Bertina **CLI-only Cron Jobs**, after controlled end-to-end mail verification, using the actual deployment's absolute PHP paths (these are examples of entrypoint names, not runnable assumed host paths):
    - `.../api/internal/operations-alert-mail-worker.php` — every **one minute**, to process queued incidents.
+   - `.../api/internal/operations-response-monitor-worker.php` — every **one minute**, subject to the private disabled-by-default observer policy; fixed site-origin HEAD probes only.
    - `.../api/internal/operations-http-log-worker.php` — every **one minute**, only after a readable authorized LiteSpeed/Apache access-log path is configured in private config.
    - Existing `.../api/internal/operations-collector-cron.php` — existing scheduled feed collection, recommended at no more than its documented normal interval (e.g., 10 minutes); the per-source weekly/daily/manual policy gates actual collection.
 4. Configure `operations_access_log_path` in the private config only after the host supplies the exact owner-authorized **local absolute path**. `operations_http_retention_days` accepts 7, 30, 90, 180 or 365. The collector's first pass starts at EOF to avoid emailing for old log events.
@@ -29,7 +30,7 @@
 ## Required safety distinctions
 
 - A server event may be recorded promptly; outgoing SMTP is processed at the next cron execution **if the host is reachable**, its private configuration is valid, and the transport accepts mail. **Instant delivery and actual inbox receipt cannot be guaranteed.** An external, independent uptime monitor is needed to detect total hosting outages.
-- `security_headers_regressed`, `redirects_regressed` and `payment_runtime_unavailable` are rule definitions, **not currently connected independent sensors**. They cannot be presented as monitored/live until separately integrated and proven.
+- `security_headers_regressed` and `redirects_regressed` now have a **source-wired**, opt-in, fixed-target CLI HEAD observer (`operations-response-monitor.php`) that correlates bounded observations with a per-collection token; they are **not proved operational** until the real host policy, Cron, DB rows, TLS, provenance, and mail delivery gates are independently checked. `payment_runtime_unavailable` remains an unconnected rule definition; do not imply payment monitoring exists.
 - A raw 404 hit does **not** authorize an automatic 301 to the homepage. Approve recovery/410/301 only with historical semantic evidence; protect canonical, hreflang and revenue-critical routes.
 - Never display missing external search, SEO ranking, social-media impressions, AI citations, checkout success, conversion or Core Web Vitals data as zero or a made-up score.
 - Retention cleanup affects eligible diagnostic records only; do not erase financial transactions, legal/security audit trails, customer agreements, editorial records, source snapshots required for provenance or recent unresolved incidents.
@@ -38,7 +39,7 @@
 ## Remaining engineering gates (not yet completed)
 
 - Real provider API credentials/grants and adapters for unconnected sources, backed by permissions, consent, retries, quotas and documented metrics.
-- Independent coverage for payment errors, validated response security headers, redirects, all-page mobile lab speed, and hosting-unreachable incidents.
+- Independently verified running coverage for payment errors, response headers, redirects, all-page mobile lab speed, and hosting-unreachable incidents. The header/redirect observer is implemented in source only, not proven active on Bertina.
 - Administrator-approved controlled migration and host-side cron/SMTP/log configuration.
 - Complete PHP/JS/build/DB integration checks, threat model, accessibility/browser coverage, release audit, human approval and then owner deployment.
 
