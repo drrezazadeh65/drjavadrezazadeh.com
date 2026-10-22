@@ -487,7 +487,8 @@
     }
     const ready=await updateStatus();
     if(ready)await continuePendingHandoff();
-    else if(localDraft){
+    else if(localDraft &&
+      !state.querySelector('a[href="/fa/login/"],a[href="/en/login/"]')){
       setState(T('ذخیره در حساب اکنون آماده نیست؛ نسخه خصوصی برنامه‌ات را می‌توانی همین‌جا روی دستگاه نگه داری.',
         'Account saving is currently unavailable. You can still keep a private copy on your device.'));
     }
