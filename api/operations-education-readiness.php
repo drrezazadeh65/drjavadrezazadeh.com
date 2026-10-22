@@ -40,7 +40,11 @@ function operationsEducationReadiness(PDO $pdo): array {
         [
             'id'=>'rcas',
             'labelFa'=>'RCAS','labelEn'=>'RCAS',
-            'sources'=>['fa/assessments/golden-talent/start/index.html','en/golden-talent/assessment/index.html'],
+            'sources'=>[
+                'fa/rcas/index.html','en/rcas/index.html',
+                'fa/assessments/golden-talent/start/index.html',
+                'en/golden-talent/assessment/index.html'
+            ],
             'next'=>'Verify scoring version, independent scientific review and safe learner/guardian authorization.',
             'stage'=>'RESEARCH_STAGE',
         ],
