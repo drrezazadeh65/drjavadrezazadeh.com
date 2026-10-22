@@ -212,8 +212,21 @@ for(const root of document.querySelectorAll('[data-konkur-selection]')){
      const personalCode=root.querySelector('.jr-kc-form input');
      const personalNote=root.querySelectorAll('.jr-kc-form input')[1];
      if(!personalCode||!personalNote)return;
+     const title=(String(r.programme||'')+' — '+String(r.university||'')).slice(0,140);
+     // A second "Copy" click must not silently erase a different code,
+     // narrative or an unfinished personal draft. Replacing those is
+     // deliberately an independent manual action by the visitor.
+     if((personalCode.value.trim()&&personalCode.value.trim()!==r.programmeCode)||
+        (personalNote.value.trim()&&personalNote.value.trim()!==title)){
+       status.textContent=t(
+         'کادر پیش‌نویس قبلاً حاوی اطلاعات دیگری است. ابتدا آن را ذخیره یا به انتخاب خود پاک کنید تا چیزی ناخواسته جایگزین نشود.',
+         'Your draft fields already contain other work. Save or clear them yourself before copying a different programme.');
+       personalCode.focus();return;
+     }
      personalCode.value=r.programmeCode;
-     personalNote.value=(String(r.programme||'')+' — '+String(r.university||'')).slice(0,140);
+     personalNote.value=title;
+     personalCode.dispatchEvent(new Event('input',{bubbles:true}));
+     personalNote.dispatchEvent(new Event('input',{bubbles:true}));
      personalCode.focus();
      status.textContent=t('کد برای افزودن به پیش‌نویس آماده شد؛ بررسی فردی همچنان لازم است.',
        'Code copied for your draft; personal eligibility still requires separate review.');
