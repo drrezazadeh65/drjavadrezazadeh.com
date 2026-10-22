@@ -4,13 +4,18 @@
  */
 (() => {
   'use strict';
-  const dock=document.querySelector('.public-home-page .app-dock[data-jr-home-primary-dock]');
+  const dock=document.querySelector('.app-dock[data-jr-home-primary-dock],.app-dock[data-jr-need-primary-dock]');
   const entry=dock?.querySelector('[data-jr-open-assistant]');
   if(!entry)return;
   const home=entry.getAttribute('data-jr-assistant-fallback');
-  // The fallback is a pre-existing need-led public search page, not a new API.
-  const fallback=typeof home==='string'&&/^\/(?:fa\/masir-man|en\/my-path)\/#need$/.test(home)
-    ?home:(document.documentElement.lang==='fa'?'/fa/masir-man/#need':'/en/my-path/#need');
+  // Accept only the previously published same-origin local need-search route,
+  // including its GitHub Pages preview prefix. Never trust arbitrary hrefs.
+  const match=/^(?:\/drjavadrezazadeh\.com)?\/(?:fa\/masir-man|en\/my-path)\/#need$/;
+  const locale=document.documentElement.lang==='fa'?'fa/masir-man':'en/my-path';
+  const base=location.pathname.startsWith('/drjavadrezazadeh.com/')?
+    '/drjavadrezazadeh.com':'';
+  const fallback=typeof home==='string'&&match.test(home)
+    ?home:base+'/'+locale+'/#need';
   entry.href=fallback;
 
   function sync(){
