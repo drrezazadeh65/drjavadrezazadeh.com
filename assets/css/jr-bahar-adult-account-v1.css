@@ -1,0 +1,30 @@
+/* JR private adult-only BAHAR account workspace; locked by default. */
+.jr-adult-bahar-account{max-width:1140px;margin:18px auto;background:#1e252e;border:1px solid #b49b65;border-radius:20px;color:#f6f0e4;line-height:1.8;overflow:hidden}
+.jr-adult-bahar-account>summary{padding:20px 22px;min-height:56px;font-size:clamp(1.05rem,3.3vw,1.38rem);font-weight:750;cursor:pointer;color:#efd7a4}
+.jr-adult-bahar-account>summary:focus-visible{outline:3px solid #fff;outline-offset:-5px}
+.jr-adult-bahar-account[open]>summary{border-bottom:1px solid #786e55}
+.jr-adult-bahar-account__body{padding:clamp(14px,4vw,26px)}
+.jr-adult-bahar-account__body>p{margin:0 0 12px}
+.jr-adult-bahar-account__notice{padding:14px 16px;border:1px solid #857452;border-radius:14px;background:#292f37;max-height:240px;overflow-y:auto;margin:14px 0}
+.jr-adult-bahar-account__notice:empty{display:none}
+.jr-adult-bahar-account__notice p{margin:0;font-size:.96rem;line-height:1.9}
+.jr-adult-bahar-account__controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;margin:16px 0}
+.jr-adult-bahar-account__controls button{min-height:48px;min-width:148px;padding:10px 15px;border-radius:12px;border:1px solid #e8cc8f;background:#ddbf7b;color:#211d17;font:inherit;font-weight:700;cursor:pointer}
+.jr-adult-bahar-account__controls button.secondary{background:transparent;color:#ffebc2}
+.jr-adult-bahar-account__controls button:disabled{opacity:.5;cursor:not-allowed}
+.jr-adult-bahar-account__controls button:focus-visible,
+.jr-adult-bahar-account__file:focus-within,
+.jr-adult-bahar-account input:focus-visible,
+.jr-adult-bahar-account summary:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.jr-adult-bahar-account__checkbox{display:flex;gap:12px;align-items:flex-start;line-height:1.8;margin:14px 0}
+.jr-adult-bahar-account__checkbox input{width:22px;height:22px;flex:none;accent-color:#dabc80;margin-top:4px}
+.jr-adult-bahar-account__file{display:inline-flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border:1px solid #e1c385;background:#dabc80;border-radius:12px;min-height:48px;padding:10px 15px;color:#191712;font-weight:740;cursor:pointer}
+.jr-adult-bahar-account__file:has(input:disabled){opacity:.5;cursor:not-allowed}
+.jr-adult-bahar-account__file input{position:absolute;width:1px;height:1px;opacity:0;inset-inline-end:0;bottom:0}
+.jr-adult-bahar-account__status{padding:12px 15px;background:#322e25;border-inline-start:4px solid #e1c385;border-radius:8px;margin:16px 0}
+.jr-adult-bahar-account__preview{padding:10px 14px;border:1px solid #847456;border-radius:10px;overflow-wrap:anywhere}
+.jr-adult-bahar-account__preview:empty{display:none}
+.jr-adult-bahar-account__warn{color:#e9d3ac;font-size:.95rem}
+@media(max-width:520px){.jr-adult-bahar-account__controls>*{width:100%;justify-content:center}.jr-adult-bahar-account__controls button{width:100%}}
+@media(prefers-reduced-motion:reduce){.jr-adult-bahar-account *{transition:none!important}}
+@media print{.jr-adult-bahar-account{display:none!important}}
