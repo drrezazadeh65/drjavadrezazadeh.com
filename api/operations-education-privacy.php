@@ -97,7 +97,12 @@ function operationsEducationPrivacyPreview(PDO $pdo): array {
  * Scoped unresolved BAHAR erasure queue. No educational notes, child records
  * or identity documents are projected into administrator tables.
  */
-function operationsEducationBaharErasureQueue(PDO $pdo): array {
+function operationsEducationBaharErasureQueue(PDO $pdo,array $options=[]): array {
+    $page=filter_var($options['page']??1,FILTER_VALIDATE_INT);
+    if($page===false||$page<1||$page>5000)
+        throw new InvalidArgumentException('invalid_privacy_queue_page');
+    $pageSize=100;
+    $offset=($page-1)*$pageSize;
     try{
         $countsQ=$pdo->query("SELECT status,COUNT(*) AS n
           FROM eco_privacy_requests
@@ -114,7 +119,7 @@ function operationsEducationBaharErasureQueue(PDO $pdo): array {
            FROM eco_privacy_requests
            WHERE request_type='BAHAR_PRIVATE_WORKBOOK_DELETE'
              AND status IN ('RECEIVED','PENDING','IN_REVIEW','BLOCKED')
-           ORDER BY created_at ASC,id ASC LIMIT 101");
+           ORDER BY created_at ASC,id ASC LIMIT ".$pageSize." OFFSET ".$offset);
         $items=$q->fetchAll(PDO::FETCH_ASSOC);
         if(!is_array($items))throw new RuntimeException('erasure_queue_unavailable');
     }catch(Throwable $e){
@@ -122,12 +127,18 @@ function operationsEducationBaharErasureQueue(PDO $pdo): array {
           'ok'=>true,'schema'=>'jr.bahar-owner-erasure-queue.v1',
           'state'=>'MOTHER_DATABASE_UNAVAILABLE','readOnly'=>true,
           'legalHoldOverrideAvailable'=>false,'requests'=>[],
-          'totalCounts'=>null,'truncated'=>false
+          'totalCounts'=>null,'truncated'=>false,
+          'page'=>$page,'pageSize'=>$pageSize,'pages'=>null,
+          'totalOpen'=>null,'hasNextPage'=>false
         ];
     }
-    $truncated=count($items)>100;
+    $openCount=0;
+    foreach(['RECEIVED','PENDING','IN_REVIEW','BLOCKED'] as $state)
+        $openCount+=($counts[$state]??0);
+    $pages=(int)ceil($openCount/$pageSize);
+    $truncated=$page<$pages;
     $pending=[];
-    foreach(array_slice($items,0,100) as $row){
+    foreach($items as $row){
         if(!preg_match('/^[0-9a-f-]{36}$/i',(string)$row['id'])||
           !preg_match('/^[0-9a-f-]{36}$/i',(string)$row['requester_account_id']))
           continue;
@@ -146,6 +157,10 @@ function operationsEducationBaharErasureQueue(PDO $pdo): array {
       'readOnly'=>false,'legalHoldOverrideAvailable'=>false,
       'requests'=>$pending,'totalCounts'=>$counts,
       'truncated'=>$truncated,
+      'page'=>$page,'pageSize'=>$pageSize,'pages'=>$pages,
+      'totalOpen'=>$openCount,
+      'hasNextPage'=>$page<$pages&&$page<5000,
+      'resultsBeyondPageLimit'=>$pages>5000,
       'privacyLedgerSource'=>'eco_privacy_requests',
       'canCompleteOnlyAfterLegalHoldClear'=>true,
       'noAutomaticBackupsDeletion'=>true
