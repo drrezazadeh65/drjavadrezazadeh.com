@@ -494,3 +494,58 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
   await noOverflow(page);
  });
 }
+
+
+test('owner-controlled collection master toggle never triggers a fetch until separately requested',async({page})=>{
+ const data=fixture();await authorized(page,{data});
+ const source='governance:repository',engine='ENG-11';
+ let masterWrites=0,manualFetches=0;
+ const rows=[
+  {id:engine,type:'engine',engineId:engine,connected:true,enabled:true,
+   cadence:'daily',clockMinutes:210,scheduleEvidence:'engine_switch_only'},
+  {id:source,type:'source',engineId:engine,connected:true,enabled:true,
+   cadence:'daily',clockMinutes:210,cacheState:'missing',lastAttempt:null,
+   executionEvidence:'never_observed',scheduleEvidence:'due_unverified'}
+ ];
+ let enabled=false;
+ const settings=()=>({ok:true,schema:'operations-collection-controls-v1',canManage:true,
+  timezone:'Asia/Tehran',scheduler:'external_bertina_cron_required',
+  automaticCollection:{enabled,installedCronVerified:null,policy:'owner_opt_in_fail_closed'},
+  attemptJournalStatus:'available',rows,sourceStates:{},
+  unmappedPolicies:{status:'available',count:0,ids:[]}});
+ await page.route('**/api/admin/operations/collection-settings',r=>r.fulfill({json:settings()}));
+ await page.route('**/api/admin/operations/collection-automatic',r=>{
+  masterWrites++;
+  expect(r.request().method()).toBe('POST');
+  expect(r.request().headers()['x-csrf-token']).toBe('c'.repeat(64));
+  expect(r.request().postDataJSON()).toEqual({
+   enabled:true,confirmation:'ENABLE SCHEDULED COLLECTION'
+  });
+  enabled=true;return r.fulfill({json:settings()});
+ });
+ await page.route('**/api/admin/operations/github-audits/refresh',r=>{
+  manualFetches++;
+  expect(r.request().postDataJSON()).toEqual({scope:source});
+  return r.fulfill({json:{
+   ok:true,refresh:{status:'updated',attempted:1,saved:1},
+   auditSnapshot:{ok:true,schema:'operations-github-audits-v1',
+    summary:{observableWorkflows:0,registeredAllowlistedWorkflows:4},audits:[],
+    collection:settings()}
+  }});
+ });
+ await page.setViewportSize({width:360,height:900});
+ await page.goto(base+'/fa/app/admin/');
+ await page.locator('details.ops-github-audits summary').click();
+ await page.locator('details.ops-collection-settings summary').click();
+ await page.getByRole('button',{name:'نمایش تنظیمات و آخرین وضعیت'}).click();
+ const panel=page.locator('details.ops-collection-settings');
+ await expect(panel.locator('[data-ops-collector-master-status="off"]')).toBeVisible();
+ await page.evaluate(()=>{window.confirm=()=>true;});
+ await panel.locator('[data-ops-collector-master-toggle]').click();
+ await expect(panel.locator('[data-ops-collector-master-status="on"]')).toBeVisible();
+ expect(masterWrites).toBe(1);
+ expect(manualFetches).toBe(0);
+ await panel.locator('[data-ops-fetch-scope="governance:repository"]').click();
+ await expect.poll(()=>manualFetches).toBe(1);
+ await noOverflow(page);
+});
