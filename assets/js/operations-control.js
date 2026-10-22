@@ -2722,6 +2722,28 @@ function renderOwnerCommandCenter(){
    document.createTextNode(t('این نما فقط داده‌های ذخیره‌شده را نمایش می‌دهد؛ نبود شاهد، «نامشخص» است نه «موفق». گردآوری خودکار، ایمیل و Cron فقط با مجوز مستقل فعال می‌شوند.',
      'Stored observations only; missing evidence is UNKNOWN, never PASS. Collection, email delivery and Cron require separate explicit authorization.')));
  root.append(note);
+ const quickNav=el('nav',undefined,'oc-quick-nav');
+ quickNav.setAttribute('aria-label',
+   t('دسترسی سریع به کنترل‌های مهم مدیر','Owner quick access to essential controls'));
+ const shortcuts=[
+   ['ops-alert-center',t('خطاها و هشدارها','Incidents & alerts')],
+   ['ops-database-health',t('سلامت دیتابیس','Database health')],
+   ['ops-collection-settings',t('واکشی و زمان‌بندی','Collection & schedules')],
+   ['ops-page-quality',t('سئوی صفحه‌ها','Page quality & SEO')],
+   ['ops-audit-timeline',t('حسابرسی مدیر','Audit history')],
+   ['ops-commerce',t('سفارش‌ها','Orders & payments')]
+ ];
+ for(const [target,label] of shortcuts){
+   if(!$(target))continue;
+   const jump=el('button',label);
+   jump.type='button';jump.dataset.ocQuickTarget=target;
+   jump.addEventListener('click',()=>{
+     if(!snapshot||$('ops-workspace')?.hidden)return;
+     openExistingOperationalWorkspace(target);
+   });
+   quickNav.append(jump);
+ }
+ root.append(quickNav);
  const latest=el('p',undefined,'oc-provenance');
  latest.append(el('strong',t('آخرین بازخوانی دستی: ','Last owner-requested read: ')),
    document.createTextNode(ownerCockpitLastReadAt?date(ownerCockpitLastReadAt):
