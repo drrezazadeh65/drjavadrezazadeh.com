@@ -21,7 +21,7 @@
     !method||!file||!sha||!confirm||!save||!filter||!previous||!next||!pageLabel)return;
   const numeral=new Intl.NumberFormat(fa?'fa-IR':'en-US');
   let controller=null,serial=0,busy=false,rows=[];
-  let currentPage=1,totalPages=0;
+  let fileGeneration=0,currentPage=1,totalPages=0;
   const visible=()=>!workspace.hidden&&container.open&&!document.hidden;
   const make=(tag,value,cls)=>{
     const el=document.createElement(tag);
@@ -57,7 +57,7 @@
       :T('هنوز صفحه‌ای دریافت نشده است','No page loaded');
   }
   function reset(){
-    ++serial;controller?.abort();controller=null;rows=[];busy=false;
+    ++serial;++fileGeneration;controller?.abort();controller=null;rows=[];busy=false;
     currentPage=1;totalPages=0;filter.value='PENDING';
     account.replaceChildren();cards.replaceChildren();sha.value='';
     file.value='';confirm.checked=false;btn.disabled=false;save.disabled=true;
@@ -106,6 +106,8 @@
   async function load(){
     if(!visible()||busy)return false;
     const id=++serial;
+    ++fileGeneration; // Cancel a previous local evidence read on page change.
+    sha.value='';file.value='';confirm.checked=false;
     controller?.abort();controller=new AbortController();
     busy=true;btn.disabled=true;save.disabled=true;updatePager();
     message(T('در حال دریافت صف درخواست‌های واقعی…',
@@ -173,7 +175,7 @@
     const chosen=file.files?.[0];
     sha.value='';confirm.checked=false;updateForm();
     if(!chosen)return;
-    const id=++serial;
+    const id=++fileGeneration;
     if(chosen.size<1||chosen.size>10485760||
       !globalThis.crypto?.subtle){
       file.value='';
@@ -187,14 +189,14 @@
     try{
       const bytes=await chosen.arrayBuffer();
       const digest=await crypto.subtle.digest('SHA-256',bytes);
-      if(id!==serial||!visible())return;
+      if(id!==fileGeneration||!visible()||busy)return;
       sha.value=Array.from(new Uint8Array(digest))
         .map(b=>b.toString(16).padStart(2,'0')).join('');
       message(T('فقط اثرانگشت محاسبه شد؛ فایل محرمانه از مرورگر ارسال نشده است.',
         'Evidence SHA-256 calculated locally. The confidential document was not uploaded.'));
       updateForm();
     }catch{
-      if(id!==serial)return;
+      if(id!==fileGeneration)return;
       sha.value='';
       message(T('اثر انگشت محلی محاسبه نشد؛ هیچ تصمیمی مجاز نیست.',
         'Unable to calculate local document fingerprint; review decision is blocked.'));
