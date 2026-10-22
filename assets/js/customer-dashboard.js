@@ -462,7 +462,7 @@ function logout(){
   // the user's sign-out intent; the API still independently proves whether
   // the server session was actually terminated.
   window.dispatchEvent(new Event('jr:account-logout'));
-  forgetPrivateNextAction();
+  forgetPrivateNextAction('logout');
   const result=await jsonRequest(API+'/auth/logout',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:'{}'});
   if(result.ok){location.assign(lang==='en'?'/en/login/':'/fa/login/');return}
   b.disabled=false;
@@ -492,10 +492,15 @@ async function supportEnglishHealth(authenticated){
 // No private order details are stored in browser persistence or URL parameters.
 let nextActionRequest=0;
 let nextActionController=null;
-function forgetPrivateNextAction(){
+function forgetPrivateNextAction(reason='pause'){
+ const hadAuthenticatedSummary=
+   document.documentElement.dataset.customerAuthenticated==='true';
  ++nextActionRequest;
  nextActionController?.abort();
  nextActionController=null;
+ // Guests never had a private next action: keep their first-step homepage
+ // content instead of replacing it with a misleading sign-out notice.
+ if(!hadAuthenticatedSummary)return;
  const heading=$('[data-home-heading]'),description=$('[data-home-copy]'),
        action=$('[data-home-action]');
  if(heading&&description&&action){
@@ -503,8 +508,13 @@ function forgetPrivateNextAction(){
   description.textContent=lang==='en'
    ?'Account-specific order details are no longer displayed. Verify your account to retrieve current records.'
    :'جزئیات سفارش اختصاصی دیگر نمایش داده نمی‌شود. برای دریافت اطلاعات تازه، وضعیت حساب را تأیید کنید.';
-  action.textContent=lang==='en'?'Account sign-in':'ورود به حساب';
-  action.href=lang==='en'?'/en/login/':'/fa/login/';
+  const signingOut=reason==='logout';
+  action.textContent=signingOut
+   ?(lang==='en'?'Account sign-in':'ورود به حساب')
+   :(lang==='en'?'Review private orders':'بررسی سفارش‌ها');
+  action.href=signingOut
+   ?(lang==='en'?'/en/login/':'/fa/login/')
+   :(lang==='en'?'/en/account/orders/':'/fa/app/account/orders/');
  }
 }
 async function verifiedCustomerNextAction(authenticated){
