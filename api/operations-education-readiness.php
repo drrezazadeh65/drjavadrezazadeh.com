@@ -34,6 +34,7 @@ function operationsEducationReadiness(PDO $pdo): array {
             'id'=>'golden-talent',
             'labelFa'=>'استعداد طلایی','labelEn'=>'Golden Talent',
             'sources'=>['fa/golden-talent/index.html','en/golden-talent/index.html'],
+            'publicPages'=>['fa'=>'/fa/golden-talent/','en'=>'/en/golden-talent/'],
             'next'=>'Approve research-to-validation claims, consent lifecycle, identity and report delivery.',
             'stage'=>'FORMATIVE_EVIDENCE',
         ],
@@ -45,6 +46,7 @@ function operationsEducationReadiness(PDO $pdo): array {
                 'fa/assessments/golden-talent/start/index.html',
                 'en/golden-talent/assessment/index.html'
             ],
+            'publicPages'=>['fa'=>'/fa/rcas/','en'=>'/en/rcas/'],
             'next'=>'Verify scoring version, independent scientific review and safe learner/guardian authorization.',
             'stage'=>'RESEARCH_STAGE',
         ],
@@ -52,6 +54,7 @@ function operationsEducationReadiness(PDO $pdo): array {
             'id'=>'bahar',
             'labelFa'=>'BAHAR','labelEn'=>'BAHAR',
             'sources'=>['fa/bahar/index.html','en/bahar/index.html'],
+            'publicPages'=>['fa'=>'/fa/bahar/','en'=>'/en/bahar/'],
             'next'=>'Approve complete advanced content, adult/guardian consent, persistence semantics and professional review.',
             'stage'=>'FREE_INTRO_AVAILABLE_IN_SOURCE',
         ],
@@ -66,6 +69,7 @@ function operationsEducationReadiness(PDO $pdo): array {
             'id'=>'admission-intelligence',
             'labelFa'=>'پذیرش و تحلیل کارنامه','labelEn'=>'Admission Intelligence',
             'sources'=>['fa/konkur-ai-lab/index.html','fa/entekhab-reshteh/index.html'],
+            'publicPages'=>['fa'=>'/fa/konkur-ai-lab/'],
             'next'=>'Independently verify 1405 guide pages, amendments, programme rows, eligibility rules and source versions.',
             'stage'=>'OFFICIAL_DATA_UNREVIEWED',
         ],
@@ -73,6 +77,7 @@ function operationsEducationReadiness(PDO $pdo): array {
             'id'=>'choice-studio',
             'labelFa'=>'استودیوی انتخاب','labelEn'=>'Choice Studio',
             'sources'=>['fa/entekhab-reshteh/index.html','en/student-guidance/index.html'],
+            'publicPages'=>['fa'=>'/fa/entekhab-reshteh/','en'=>'/en/student-guidance/'],
             'next'=>'Verify accessible five-criterion decision tools; maintain non-predictive scope and human override.',
             'stage'=>'DESCRIPTIVE_DECISION_SUPPORT',
         ]
@@ -94,6 +99,15 @@ function operationsEducationReadiness(PDO $pdo): array {
             'expectedSourceFiles'=>count($gate['sources']),
             'sourceFilesPresent'=>$present,
             'sourceFilesPresentTogether'=>$allPresent,
+            // Fixed, application-owned public entry points: never infer a published
+            // URL from a database label or a private assessment route.
+            'publicEntries'=>array_map(static function (string $path) use ($root): array {
+                return [
+                    'path'=>$path,
+                    'sourceFilePresent'=>is_file($root.$path.'index.html'),
+                    'liveResponseVerified'=>false
+                ];
+            },$gate['publicPages']??[]),
             'scientificallyValidated'=>false,
             'liveEngineVerified'=>false,
             'customerEntitlementVerified'=>false,
