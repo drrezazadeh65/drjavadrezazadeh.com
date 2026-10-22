@@ -132,6 +132,12 @@ const required=[
   'index.html','404.html','offline.html','robots.txt','llms.txt','site.webmanifest','sw.js',
   'sitemap.xml','sitemap-core.xml','journal/sitemap.xml','journal/.htaccess','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml',
   'assets/data/book-catalog.json','assets/data/service-catalog.json','assets/data/analytics-config.json',
+  // Owner operations dashboard relies on this exact source/runtime bundle.
+  // Guard against a syntactically valid release missing its require_once target.
+  'api/operations-activation.php','api/operations-page-quality.php',
+  'api/operations-alerts.php','api/operations-response-monitor.php',
+  'api/internal/operations-page-quality.json',
+  'assets/js/operations-control.js','assets/css/operations-control.css',
   // These runtime modules must ship together with api/index.php; publishing
   // routes without their bound PHP source would cause an immediate 500.
   'api/service-files.php','api/service-buyer-receipt.php','api/operations-service-delivery.php',
