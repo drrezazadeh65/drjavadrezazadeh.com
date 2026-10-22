@@ -135,15 +135,17 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
                ($existing['preferred_locale']??'')===$locale &&
                ($existing['consent_version']??'')===JR_EDU_INTEREST_NOTICE_VERSION &&
                hash_equals($noticeHash,(string)$existing['consent_notice_sha256']);
-            if($sameScope && (
+            if(
               (($existing['status']??'')==='VERIFIED' &&
                (int)($existing['expires_at']??0)>$now) ||
-              (($existing['status']??'')==='PENDING' &&
+              ($sameScope && ($existing['status']??'')==='PENDING' &&
                (int)($existing['last_invitation_at']??0)>$now-600 &&
                (int)($existing['verification_expires_at']??0)>$now)
-            )){
-                // No duplicate email for a confirmed or freshly pending
-                // request; a deliberately changed need is separately scoped.
+            ){
+                // IMPORTANT: An unverified stranger who knows someone else's
+                // email must never be able to revoke, retarget or reset
+                // an existing verified topic subscription. Only a holder of
+                // the signed withdrawal link can cancel it before reopt-in.
                 $send=false;
             }else{
                 $sealed=jrInterestSeal($email,$id,$secret);
