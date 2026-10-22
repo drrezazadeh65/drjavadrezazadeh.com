@@ -1953,10 +1953,14 @@ function renderMasterEngineConsole(host,model){
        const jump=el('button',en?feature.nameEn:feature.nameFa);
        jump.type='button';
        jump.addEventListener('click',()=>{
-         const target=$(feature.adminTarget);if(!target)return;
-         for(let parent=target;parent;parent=parent.parentElement)
-           if(parent.tagName==='DETAILS')parent.open=true;
-         target.scrollIntoView({block:'start'});
+         const target=$(feature.adminTarget);
+         if(target&&$('ops-workspace').contains(target)){
+           openExistingOperationalWorkspace(feature.adminTarget);
+           return;
+         }
+         // A source file is not proof that its owner control has been deployed.
+         notice(t('کنترل این قابلیت در نسخهٔ فعلی پنل موجود نیست؛ وضعیت منبع جداگانه ثبت شده است.',
+           'The capability is catalogued but its owner control is not present in this release.'),true);
        });
        li.append(jump,el('small',
          (feature.sourceState==='source_present'
