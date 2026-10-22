@@ -328,3 +328,41 @@
   #ops-database-health .ops-db-health-table{font-size:.8rem}
   #ops-database-health .ops-db-health-controls>button{width:100%}
 }
+
+
+/* Stage 6 — MFA owner first screen: evidence-aware, not a live health score.
+ * Reuses the existing shell; no third-party API, new dashboard or brand palette. */
+.ops-immediate-triage{margin:0 0 16px;padding:clamp(12px,2vw,20px);
+  border:1px solid var(--ops-border);border-radius:16px;
+  background:var(--ops-panel);min-width:0}
+.ops-immediate-triage h2{font-size:clamp(1.08rem,3vw,1.45rem);line-height:1.5;margin:0 0 8px}
+.ops-immediate-triage>p,.ops-immediate-triage>small{
+  color:var(--ops-muted);line-height:1.7;overflow-wrap:anywhere}
+.ops-immediate-triage__grid{display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));
+  gap:11px;margin:16px 0}
+.ops-immediate-triage__tile{min-width:0;display:flex;flex-direction:column;gap:9px;
+  padding:14px;border-radius:13px;background:var(--ops-bg, #17202b);
+  border:1px solid var(--ops-border);overflow-wrap:anywhere}
+.ops-immediate-triage__tile h3{font-size:.97rem;line-height:1.6;margin:0;font-weight:680}
+.ops-immediate-triage__value{font-variant-numeric:tabular-nums;
+  font-size:clamp(1.3rem,3vw,1.85rem);line-height:1.3;
+  color:var(--ops-gold);overflow-wrap:anywhere}
+.ops-immediate-triage__tile button{min-height:48px;width:100%;margin-top:auto;
+  padding:9px 12px;border:1px solid var(--ops-border);border-radius:10px;
+  background:transparent;color:var(--ops-text);font:inherit;font-weight:700;
+  white-space:normal;cursor:pointer}
+.ops-immediate-triage__tile button:hover{border-color:var(--ops-gold)}
+.ops-immediate-triage__tile button:focus-visible{
+  outline:3px solid var(--ops-gold);outline-offset:3px}
+@media(max-width:520px){
+  .ops-immediate-triage{padding:12px}
+  .ops-immediate-triage__grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .ops-immediate-triage__tile{padding:11px}
+  .ops-immediate-triage__tile h3{font-size:.86rem}
+  .ops-immediate-triage__tile button{font-size:.82rem}
+}
+@media(max-width:340px){
+  .ops-immediate-triage__grid{grid-template-columns:minmax(0,1fr)}
+}
+@media print{.ops-immediate-triage__tile button{display:none}}
