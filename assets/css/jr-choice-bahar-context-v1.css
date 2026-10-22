@@ -1,0 +1,21 @@
+/* BAHAR ⇄ Choice Studio reflective context, visually isolated and responsive. */
+.jr-bahar-context{margin:22px 0;padding:clamp(16px,4vw,26px);border:1px solid #bda46e;background:#20252b;color:#f8f1e4;border-radius:20px;line-height:1.8}
+.jr-bahar-context h3{color:#ecd39a;font-size:clamp(1.12rem,3.8vw,1.45rem);margin:0 0 10px;line-height:1.45}
+.jr-bahar-context a{color:#f5d99e;display:inline-block;padding:7px 0}
+.jr-bahar-context p,.jr-bahar-context small{color:#e9e1d3}
+.jr-bahar-context__consent{display:flex;align-items:flex-start;gap:11px;padding:13px 0;margin-top:12px;font-size:.95rem}
+.jr-bahar-context__consent input{flex:none;width:22px;height:22px;margin:5px 0 0;accent-color:#dabc77}
+.jr-bahar-context__actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:13px 0}
+.jr-bahar-context__picker{position:relative;display:inline-flex;justify-content:center;align-items:center;min-height:48px;padding:12px 18px;border:1px solid #dcbf80;background:#dcbf80;color:#1d1b15;font-weight:700;border-radius:12px;cursor:pointer;overflow:hidden}
+.jr-bahar-context__picker:has(input:disabled){opacity:.55;cursor:not-allowed}
+.jr-bahar-context__picker input[type=file]{position:absolute;width:1px;height:1px;opacity:0;inset-inline-end:0;inset-block-end:0}
+.jr-bahar-context__picker:focus-within{outline:3px solid white;outline-offset:3px}
+.jr-bahar-context__clear{min-height:48px;border:1px solid #bda46e;border-radius:12px;background:transparent;color:#fff;padding:12px 18px;font:inherit;cursor:pointer}
+.jr-bahar-context__clear:disabled{opacity:.55;cursor:not-allowed}
+.jr-bahar-context__status{border-inline-start:4px solid #dabc77;padding:10px 12px;background:#292921;margin-top:12px;border-radius:8px}
+.jr-bahar-context__view{border:1px solid #89704a;border-radius:14px;padding:16px;background:#282c31;overflow-wrap:anywhere}
+.jr-bahar-context__view[hidden]{display:none}
+.jr-bahar-context__view strong{color:#eed6a1}
+@media(max-width:430px){.jr-bahar-context__actions>*{width:100%}.jr-bahar-context__picker,.jr-bahar-context__clear{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.jr-bahar-context *{transition:none!important}}
+@media print{.jr-bahar-context{display:none}}
