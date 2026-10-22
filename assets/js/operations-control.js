@@ -2330,8 +2330,8 @@ function renderOwnerCommandCenter(){
  readAll.addEventListener('click',async()=>{
    if(!snapshot||readAll.disabled)return;
    const confirmed=window.confirm(t(
-     'فقط با درخواست شما، شواهد محرمانه ذخیره‌شده و فراداده سلامت دیتابیس خوانده شوند؟ این عملیات هیچ واکشی خارجی، Cron، ارسال پیام، پاک‌سازی یا تغییری در داده‌ها انجام نمی‌دهد.',
-     'Read private stored observations and on-demand database metadata now? This action does not fetch external providers, run Cron, send mail, purge or modify data.'));
+     'فقط با درخواست شما، شواهد محرمانه ذخیره‌شده و فراداده سلامت دیتابیس خوانده شوند؟ این کار واکشی خارجی، Cron، ارسال پیام، پاک‌سازی یا تغییر داده‌های تجاری انجام نمی‌دهد؛ لاگ حسابرسی و خطای فعال‌شده قبلی ممکن است طبق سیاست مدیر ثبت شود.',
+     'Read private stored observations and on-demand database metadata now? This does not poll external providers, run Cron, send mail, purge or alter commerce records. Existing opt-in error/audit logging may record an event.'));
    if(!confirmed)return;
    ownerCockpitStopRequested=false;
    readAll.disabled=true;cancelBulk.hidden=false;bulkProgress.hidden=false;
