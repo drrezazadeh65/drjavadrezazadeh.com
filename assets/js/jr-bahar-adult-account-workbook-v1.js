@@ -388,7 +388,10 @@
           'The server confirmed deletion of the current database row. Audit and backup obligations remain separate.'));
       });
   });
-  root.addEventListener('toggle',()=>{if(!root.open)clear();});
+  root.addEventListener('toggle',()=>{
+    if(root.open)updateStatus();
+    else clear();
+  });
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
   window.addEventListener('pagehide',()=>clear(),{once:true});
   clear();
