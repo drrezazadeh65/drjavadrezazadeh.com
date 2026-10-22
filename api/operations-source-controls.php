@@ -36,17 +36,29 @@ function operationsSourceNextDue(string $cadence,int $weekday,int $clock,int $at
 function operationsSourceControlView(PDO $pdo,array $directory,int $at): array {
     $stored=operationsSourceControlRows($pdo);
     $rows=[];
+    $policyStorageAvailable=$stored!==null;
+    // Scheduling requires a separate, explicitly owner-enabled master gate.
+    // A provider catalogue entry or due timestamp is not execution evidence.
+    $masterEnabled=function_exists('operationsCollectorAutomaticEnabled')
+        ?operationsCollectorAutomaticEnabled($pdo):false;
     foreach($directory['sources']??[] as $source){
         $id=(string)($source['id']??'');
         $configured=$stored[$id]??null;
         $isCollector=($source['kind']??'')==='github_feed';
-        $enabled=$configured!==null?(bool)$configured['enabled']:$isCollector;
+        $hasOwnerPolicy=is_array($configured);
+        // Fail closed when the preferences table is missing. For historical
+        // collector defaults, report the origin rather than owner consent.
+        $enabled=$hasOwnerPolicy?(bool)$configured['enabled']:($policyStorageAvailable&&$isCollector);
         $cadence=$configured!==null?(string)$configured['cadence']:($isCollector?'daily':'manual');
         $clock=$configured!==null?(int)$configured['clock_minutes']:210;
         $weekday=$configured!==null?(int)$configured['weekday']:1;
         $rows[$id]=[
             'id'=>$id,
             'enabled'=>$enabled,
+            'policyConfigured'=>$hasOwnerPolicy,
+            'policyStorageAvailable'=>$policyStorageAvailable,
+            'policyOrigin'=>!$policyStorageAvailable?'schema_unavailable':
+                ($hasOwnerPolicy?'owner_saved':'legacy_default_unattested'),
             'cadence'=>$cadence,
             'weekday'=>$weekday,
             'clockMinutes'=>$clock,
@@ -54,14 +66,18 @@ function operationsSourceControlView(PDO $pdo,array $directory,int $at): array {
             'nextDueAt'=>$configured!==null&&$enabled?(int)$configured['next_due']:null,
             'updatedAt'=>$configured!==null?(int)$configured['updated_at']:null,
             'adapterAvailable'=>$isCollector,
-            'runtimeState'=>!$enabled?'disabled':($isCollector?'collector_available':'adapter_unavailable'),
+            'runtimeState'=>!$policyStorageAvailable?'schema_unavailable':
+                (!$enabled?'disabled':($isCollector?'adapter_present':'adapter_unavailable')),
             'automaticCollectionAvailable'=>$isCollector,
+            'automaticMasterEnabled'=>$masterEnabled,
+            'hostCronVerified'=>null,
             'effectivePolling'=>'never_on_dashboard_view',
         ];
     }
     return ['ok'=>true,'schema'=>'operations-source-controls-v1',
-        'status'=>$stored===null?'schema_not_provisioned':'available',
-        'timezone'=>'Asia/Tehran','rows'=>array_values($rows),
+        'status'=>$policyStorageAvailable?'available':'schema_not_provisioned',
+        'timezone'=>'Asia/Tehran','automaticMasterEnabled'=>$masterEnabled,
+        'hostCronVerified'=>null,'rows'=>array_values($rows),
         'limitation'=>'Only existing audited GitHub collection adapters may fetch. Enabled status for other providers records monitoring intent, not a verified account, connected API, scheduler, impressions or revenue.'];
 }
 function operationsSourceControlSave(PDO $pdo,array $directory,array $request,string $actor,int $at): array {
@@ -71,6 +87,10 @@ function operationsSourceControlSave(PDO $pdo,array $directory,array $request,st
         ||!is_int($request['clockMinutes'])||!is_int($request['retentionDays']))
         throw new InvalidArgumentException('invalid_source_policy');
     $id=$request['sourceId'];
+    // Do not silently create a policy or claim a successful save on a host
+    // whose mother-database migration has not been provisioned.
+    if(operationsSourceControlRows($pdo)===null)
+        throw new RuntimeException('source_control_schema_unavailable');
     $allowed=array_column($directory['sources']??[],null,'id');
     if(!isset($allowed[$id])||strlen($id)>96
         ||!in_array($request['cadence'],['manual','daily','weekly'],true)
