@@ -38,6 +38,7 @@ function operationsEducational1405ReviewSnapshot(): array {
           || !preg_match('/^[A-Z_]{2,80}$/D',(string)($row['category']??''))
           || !is_int($row['pdfPageCount']??null)
           || $row['pdfPageCount']<1 || $row['pdfPageCount']>5000
+          || !preg_match('/^[a-f0-9]{64}$/D',(string)($row['pdfSha256']??''))
           || ($row['approvedForEligibility']??null)!==false) 
           throw new RuntimeException('review_inventory_invalid');
         if(isset($ids[$row['key']])) throw new RuntimeException('review_inventory_duplicates');
@@ -46,6 +47,7 @@ function operationsEducational1405ReviewSnapshot(): array {
         $guides[]=[
             'key'=>$row['key'],'category'=>$row['category'],
             'pdfPageCount'=>$row['pdfPageCount'],
+            'originalPdfSha256'=>$row['pdfSha256'],
             'pdfFingerprintAndPageCountStatus'=>(string)($row['pageAudit']??'UNKNOWN'),
             'criticalTablesReview'=>(string)($row['tableReview']??'NOT_COMPLETED'),
             'eligibilityApproved'=>false,
