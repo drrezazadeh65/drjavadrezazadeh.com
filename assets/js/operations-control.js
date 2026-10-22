@@ -3041,6 +3041,11 @@ function renderOwnerCommandCenter(){
      ownerCockpitLastReadAt=Math.floor(Date.now()/1000);
    }
    if(generation!==loadGeneration||!snapshot)return;
+   // Clear an earlier failed-read indicator for EVERY supported module, not
+   // only the subset stored in ownerCockpitPrivateEvidence. Without this,
+   // refreshed cards could incorrectly remain UNKNOWN after a successful read.
+   delete ownerCockpitReadErrors[item.load];
+   ownerCockpitLastReadAt=Math.floor(Date.now()/1000);
    reportingRender();
    openExistingOperationalWorkspace(item.target);
    notice(t('داده‌های ذخیره‌شده دریافت شدند؛ این کار هیچ وظیفه خودکاری را فعال نکرد.',
