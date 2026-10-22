@@ -250,3 +250,25 @@
    color:#171717!important;background:white!important;box-shadow:none!important;border:1px solid #777!important;
  }
 }
+
+/* CHO-05 / Super Master v4: printed reflective report provenance (not a credential). */
+.jr-choice-studio .jr-cs-report-provenance{
+ margin-block-end:18px;padding:13px 16px;
+ border:1px solid rgba(216,181,108,.44);
+ border-radius:12px;background:rgba(212,175,55,.065);
+}
+.jr-choice-studio .jr-cs-report-provenance h4{
+ margin:0 0 8px;color:#f2dfaf;
+ font-size:1rem;line-height:1.5;
+}
+.jr-choice-studio .jr-cs-report-provenance p{
+ margin:5px 0;line-height:1.8;color:#e6ddce;
+ overflow-wrap:anywhere;
+}
+@media print{
+ .jr-choice-studio .jr-cs-report-provenance{
+  background:white!important;border-color:#888!important;
+  color:#111!important;break-inside:avoid;
+ }
+ .jr-choice-studio .jr-cs-report-provenance *{color:#111!important}
+}
