@@ -17,6 +17,10 @@
   const refresh=root.querySelector('[data-education-readiness-refresh]');
   if(!status||!aggregate||!listing||!dependencies||!refresh)return;
   let controller=null, serial=0, busy=false,loaded=false;
+  let requestTimeout=null,wasTimedOut=false;
+  const clearDeadline=()=>{
+    if(requestTimeout!==null){clearTimeout(requestTimeout);requestTimeout=null;}
+  };
   const number=new Intl.NumberFormat(fa?'fa-IR':'en-US');
   const make=(tag,cls,textValue)=>{
     const el=document.createElement(tag);
@@ -27,7 +31,8 @@
   const labelBool=(value)=>value===true?T('بله، صرفاً در محدوده گزارش','Yes, within reported scope'):
     value===false?T('خیر / تأییدنشده','No / not confirmed'):T('نامشخص','Unknown');
   function reset(){
-    serial++;controller?.abort();controller=null;busy=false;loaded=false;
+    serial++;clearDeadline();controller?.abort();controller=null;
+    busy=false;loaded=false;wasTimedOut=false;
     refresh.disabled=false;
     aggregate.textContent='';
     listing.replaceChildren();dependencies.replaceChildren();
@@ -343,7 +348,14 @@
   async function load(){
     if(busy||workspace.hidden||!root.open)return;
     const id=++serial;
-    controller?.abort();controller=new AbortController();
+    clearDeadline();controller?.abort();controller=new AbortController();
+    const activeController=controller;
+    wasTimedOut=false;
+    requestTimeout=setTimeout(()=>{
+      if(id===serial&&controller===activeController){
+        wasTimedOut=true;activeController.abort();
+      }
+    },15000);
     busy=true;refresh.disabled=true;
     status.textContent=T('در حال خواندن وضعیت خصوصی…','Reading private readiness state…');
     try{
@@ -368,19 +380,27 @@
         throw Error('invalid');
       render(data);loaded=true;
     }catch(error){
-      if(id!==serial||error?.name==='AbortError')return;
+      if(id!==serial||(!wasTimedOut&&error?.name==='AbortError'))return;
       loaded=false;listing.replaceChildren();dependencies.replaceChildren();
       if(commander)commander.replaceChildren();
       aggregate.textContent='';
-      status.textContent=T('اطلاعات در دسترس نیست؛ مجوز علمی یا انتشار فرض نمی‌شود.',
-        'Readiness status unavailable; no scientific or release approval is inferred.');
+      status.textContent=wasTimedOut
+        ?T('دریافت گزارش پس از ۱۵ ثانیه متوقف شد؛ شواهد نامشخص‌اند. برای تلاش دوباره دکمه بارگیری را انتخاب کنید.',
+          'Readiness request timed out after 15 seconds; evidence remains unknown. Select Refresh to try again.')
+        :T('اطلاعات در دسترس نیست؛ مجوز علمی یا انتشار فرض نمی‌شود.',
+          'Readiness status unavailable; no scientific or release approval is inferred.');
     }finally{
-      if(id===serial){busy=false;refresh.disabled=false;controller=null;}
+      if(id===serial){
+        clearDeadline();busy=false;refresh.disabled=false;
+        controller=null;wasTimedOut=false;
+      }
     }
   }
   root.addEventListener('toggle',()=>{
     if(root.open){if(!loaded)load();}
-    else controller?.abort();
+    // Cached owner-private scientific, privacy and commerce counts are not
+    // retained in the DOM after the user closes this evidence panel.
+    else reset();
   });
   refresh.addEventListener('click',load);
   let workspaceFirstOpen=false;
@@ -401,5 +421,9 @@
     }
   });
   observer.observe(workspace,{attributes:true,attributeFilter:['hidden']});
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden)reset();
+  });
+  window.addEventListener('jr:admin-logout',reset);
   window.addEventListener('pagehide',()=>{reset();observer.disconnect();},{once:true});
 })();
