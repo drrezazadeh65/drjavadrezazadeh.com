@@ -62,10 +62,27 @@ function operationsHttpObserverStatus(PDO $pdo,array $config): array {
         $cursor=$pdo->query('SELECT updated_at FROM operations_http_log_cursor WHERE singleton_id=1')->fetch(PDO::FETCH_ASSOC);
         $rows=$pdo->query('SELECT observed_at,records_read,errors_404,errors_5xx FROM operations_http_observation_batches ORDER BY batch_id DESC LIMIT 24')->fetchAll(PDO::FETCH_ASSOC);
         $q=$pdo->query('SELECT route_path,classification,total_hits,last_seen_at FROM operations_http_error_routes WHERE http_status=404 ORDER BY last_seen_at DESC,total_hits DESC LIMIT 35');
-        $routes=[];
-        foreach($q as $r)$routes[]=[
-            'route'=>$r['route_path'],'type'=>$r['classification'],
-            'occurrences'=>(int)$r['total_hits'],'lastSeenAt'=>(int)$r['last_seen_at']];
+        $routes=[];$suppressedRows=0;
+        foreach($q as $r){
+            // Historical DB records may predate the stricter private-path
+            // exclusion. Apply the CURRENT safe route policy again on reads;
+            // do not leak an old account/checkout URL through the admin API.
+            $safe=operationsHttpRoute((string)$r['route_path']);
+            if($safe===null){$suppressedRows++;continue;}
+            $key=$safe['classification']==='scanner_probe'
+                ?'/__scanner_probe__/':$safe['path'];
+            if(isset($routes[$key])){
+                $routes[$key]['occurrences']+=(int)$r['total_hits'];
+                $routes[$key]['lastSeenAt']=max(
+                    $routes[$key]['lastSeenAt'],(int)$r['last_seen_at']);
+            }else{
+                $routes[$key]=[
+                    'route'=>$key,'type'=>$safe['classification'],
+                    'occurrences'=>(int)$r['total_hits'],
+                    'lastSeenAt'=>(int)$r['last_seen_at']];
+            }
+        }
+        $view['suppressedLegacyRouteRows']=$suppressedRows;
         $view['state']=!$configured?'not_configured':
             ($cursor?(((int)$cursor['updated_at']>=$now-900
                 &&(int)$cursor['updated_at']<=$now+60)?'observed':'stale')
@@ -74,7 +91,7 @@ function operationsHttpObserverStatus(PDO $pdo,array $config): array {
         $view['batches']=array_map(static fn($r)=>[
             'at'=>(int)$r['observed_at'],'scanned'=>(int)$r['records_read'],
             'notFound'=>(int)$r['errors_404'],'serverErrors'=>(int)$r['errors_5xx']],$rows);
-        $view['top404Routes']=$routes;
+        $view['top404Routes']=array_values($routes);
     }catch(Throwable $e){}
     return $view;
 }
