@@ -127,3 +127,35 @@ function operationsDbHealthScheduleTick(PDO $pdo,int $at): array {
         $pdo->query("SELECT RELEASE_LOCK('drjr_ops_db_health_v1')");
     }
 }
+
+/** A bounded, auditable owner-only cleanup. NEVER triggered by Cron. */
+function operationsDbHealthRunPurgePreview(PDO $pdo,int $at): array {
+    $settings=operationsDbHealthSettings($pdo);
+    if(!$settings['available'])throw new RuntimeException('db_health_settings_unavailable');
+    $cutoff=$at-(int)$settings['retentionDays']*86400;
+    $query=$pdo->prepare('SELECT sequence_id FROM operations_database_health_runs
+        WHERE observed_at<? ORDER BY observed_at ASC LIMIT 101');
+    $query->execute([$cutoff]);
+    $n=count($query->fetchAll(PDO::FETCH_COLUMN));
+    return ['ok'=>true,'schema'=>'operations-db-health-history-purge-preview-v1',
+        'eligibleCount'=>min($n,100),'moreMayRemain'=>$n>100,
+        'maximumDeletion'=>100,'retentionDays'=>$settings['retentionDays'],
+        'previewOnly'=>true,'protectedData'=>'commerce_customers_revisions_evidence_and_audit_untouched'];
+}
+function operationsDbHealthRunPurge(PDO $pdo,string $actor,int $at): array {
+    $settings=operationsDbHealthSettings($pdo);
+    if(!$settings['available'])throw new RuntimeException('db_health_settings_unavailable');
+    $cutoff=$at-(int)$settings['retentionDays']*86400;
+    $pdo->beginTransaction();
+    try {
+        $q=$pdo->prepare('DELETE FROM operations_database_health_runs
+            WHERE observed_at<? LIMIT 100');
+        $q->execute([$cutoff]);$n=$q->rowCount();
+        $pdo->prepare('INSERT INTO operations_audit(actor_id,action,reference_id,occurred_at)
+              VALUES(?,?,?,?)')
+            ->execute([$actor,'database_health_history_purge','expired_runs_only',$at]);
+        $pdo->commit();
+    }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+    return ['ok'=>true,'deleted'=>$n,'boundedPerRequest'=>100,'moreMayRemain'=>$n===100,
+        'scope'=>'expired_database_health_runs_only','protectedAudit'=>true];
+}
