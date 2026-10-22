@@ -42,7 +42,15 @@
     if(!/^https?:$/.test(location.protocol))return;
     seenController=navigator.serviceWorker.controller;
     try{
-      const registration=await navigator.serviceWorker.register(base+'sw.js',{updateViaCache:'none'});
+      // Preserve the existing site's scope and script URL; competing URLs
+      // for one SW scope can trigger repeated PWA reinstallation cycles.
+      const scope=base;
+      let registration=await navigator.serviceWorker.getRegistration(scope);
+      if(!registration){
+        registration=await navigator.serviceWorker.register(
+          base+'sw.js?v=20261010-bertina-cache-v4',{updateViaCache:'none'}
+        );
+      }
       await registration.update();
     }catch(_){/* Offline registration failures must not interrupt study tools. */}
   },{once:true});
