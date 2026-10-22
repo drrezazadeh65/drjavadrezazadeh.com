@@ -253,14 +253,22 @@ function baharAccountRoute(string $path,string $verb): never {
         if(!rateAllowed($pdo,'bahar_private_account',$accountId,25,300))
             fail('rate_limited',429);
         $locale=($_GET['locale']??'fa')==='en'?'en':'fa';
-        $adult=baharAccountVerifiedAdult($pdo,$accountId);
-        $notice=baharAccountCurrentNotice($pdo,$locale);
         $key=baharAccountKey();
-        $policy=baharAccountPolicy($pdo);
-        $enabled=baharAccountFeatureAllowed()&&$policy['enabled']&&$key!==null;
+        $policy=['enabled'=>false];
+        $adult=false;
+        $notice=null;
+        $schemaReady=true;
+        try{
+            $policy=baharAccountPolicy($pdo);
+            $adult=baharAccountVerifiedAdult($pdo,$accountId);
+            $notice=baharAccountCurrentNotice($pdo,$locale);
+        }catch(Throwable $e){$schemaReady=false;}
+        $enabled=$schemaReady&&baharAccountFeatureAllowed()&&
+            $policy['enabled']&&$key!==null;
         if($path==='/bahar/account/status'&&$verb==='GET'){
             respond(['ok'=>true,'schema'=>'jr.bahar-adult-account-status.v1',
-              'storageEnabled'=>$enabled,
+              'storageEnabled'=>$enabled,'schemaProvisioned'=>$schemaReady,
+              'state'=>$schemaReady?'GATED_PRIVATE_SERVICE':'ADDITIVE_SCHEMA_PENDING',
               'independentlyVerifiedAdult'=>$adult,
               'currentNoticeConfigured'=>$notice!==null,
               'currentConsent'=>$adult&&baharAccountHasConsent($pdo,$accountId),
@@ -331,7 +339,8 @@ function baharAccountRoute(string $path,string $verb): never {
             }
         }
         if($path==='/bahar/account/workbook'&&$verb==='GET'){
-            if(!$enabled||!$adult||!baharAccountHasConsent($pdo,$accountId))
+            if(!$enabled||!$adult||$notice===null||
+              !baharAccountHasConsent($pdo,$accountId))
                 fail('private_access_not_authorized',403);
             $pdo->beginTransaction();
             try{
@@ -353,7 +362,8 @@ function baharAccountRoute(string $path,string $verb): never {
         }
         if($path==='/bahar/account/workbook'&&$verb==='PUT'){
             baharAccountVerifyMutationCsrf($accountId);
-            if(!$enabled||!$adult||!baharAccountHasConsent($pdo,$accountId))
+            if(!$enabled||!$adult||$notice===null||
+              !baharAccountHasConsent($pdo,$accountId))
                 fail('private_access_not_authorized',403);
             $input=jsonBody();
             $rev=$input['expectedRevision']??null;
