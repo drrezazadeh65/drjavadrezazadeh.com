@@ -45,3 +45,32 @@ footer{color:var(--jr-muted);font-size:.85rem;padding:12px 0 30px}
 .bahar-depth details li{margin:7px 0}
 .bahar-depth summary:focus-visible{outline:3px solid white;outline-offset:3px}
 @media print{.bahar-depth details{break-inside:avoid}.bahar-depth summary{color:#111}.bahar-depth details p,.bahar-depth details li{color:#111}}
+
+
+/* BAH-04: one human-controlled, local-only workbook import preview.
+   Choosing a file never silently replaces an unfinished study plan. */
+.bahar-workbook-import-preview{
+ box-sizing:border-box;flex:1 1 100%;min-width:0;
+ padding:clamp(12px,2vw,19px);
+ border:1px solid #d0ac6b;border-radius:13px;
+ background:linear-gradient(135deg,#302a20,#191d23);
+ color:#f8e9c9;display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+}
+.bahar-workbook-import-preview[hidden]{display:none!important}
+.bahar-workbook-import-preview p{
+ flex:1 1 100%;margin:0;line-height:1.85;overflow-wrap:anywhere;
+}
+.bahar-workbook-import-preview button{
+ min-height:48px;padding:10px 15px;flex:1 1 180px;
+ border-radius:10px;border:1px solid #e1be83;
+ background:#282b30;color:#f8e4bb;line-height:1.6;
+ font:inherit;font-weight:650;cursor:pointer;
+}
+.bahar-workbook-import-preview button:focus-visible{
+ outline:3px solid #fff0c7;outline-offset:3px;
+}
+@media(max-width:430px){
+ .bahar-workbook-import-preview{padding:13px 11px}
+ .bahar-workbook-import-preview button{flex:1 1 100%;width:100%}
+}
+@media print{.bahar-workbook-import-preview{display:none!important}}
