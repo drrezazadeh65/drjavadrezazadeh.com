@@ -17,6 +17,7 @@
     const form=document.querySelector('[data-bahar-formative] [data-bahar-plan-form]');
     if(!check||!file||!output||!state||!apply||!clear||!form)return;
     let summary=null;
+    const insertedFields=new Map();
     const finiteString=(value,max=500)=>typeof value==='string'&&
       value.trim().length>0&&value.length<=max;
     const optionalString=(value,max=500)=>value===undefined||
@@ -31,6 +32,14 @@
     const decisions=new Set(['CONTINUE','CHANGE','PAUSE','STOP','INVESTIGATE']);
     function message(value){state.textContent=value;}
     function reset(clearConsent=false) {
+      // Revoke only unchanged imported values, never learner edits.
+      for(const [name,imported] of insertedFields){
+        const control=form.elements.namedItem(name);
+        if(control&&control.value===imported){
+          control.value='';control.dispatchEvent(new Event('input',{bubbles:true}));
+        }
+      }
+      insertedFields.clear();
       summary=null;file.value='';output.replaceChildren();output.hidden=true;
       apply.disabled=true;clear.disabled=true;
       if(clearConsent){check.checked=false;file.disabled=true;}
@@ -51,9 +60,9 @@
         'File permission withdrawn and imported information cleared.'));
     });
     file.addEventListener('change',async()=>{
+      const chosen=file.files?.[0];
       reset();
       if(!check.checked)return;
-      const chosen=file.files?.[0];
       if(!chosen)return;
       if(chosen.size===0||chosen.size>30000){
         message(translate('حجم یا قالب پرونده مجاز نیست.','Unsupported file size or type.'));
@@ -117,6 +126,7 @@
         }
         if(control.value.trim()){kept++;continue;}
         control.value=value.slice(0,Math.min(control.maxLength>0?control.maxLength:480,480));
+        insertedFields.set(name,control.value);
         control.dispatchEvent(new Event('input',{bubbles:true}));
         copied++;
       }
@@ -127,8 +137,8 @@
     });
     clear.addEventListener('click',()=>{
       reset(true);
-      message(translate('یادداشت واردشده از حافظه این صفحه پاک شد.',
-        'Imported reflections were cleared from this page.'));
+      message(translate('یادداشت‌ها و فیلدهای واردشدهٔ بدون ویرایش پاک شدند؛ نوشته‌های قبلی شما حفظ شده‌اند.',
+        'Imported notes and unedited imported fields were cleared; your prior writing remains.'));
     });
     window.addEventListener('pagehide',()=>reset(true),{once:true});
     reset(true);
