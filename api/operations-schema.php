@@ -250,6 +250,19 @@ function operationsInstall(PDO $pdo): void {
             retention_days SMALLINT UNSIGNED NOT NULL DEFAULT 90,
             updated_at BIGINT NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        "CREATE TABLE IF NOT EXISTS operations_database_health_runs (
+            sequence_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            origin ENUM('manual','scheduled') NOT NULL,
+            slot_due_at BIGINT NULL,
+            observed_at BIGINT NOT NULL,
+            result ENUM('observed','attention','unavailable') NOT NULL,
+            checks_observed SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+            checks_attention SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+            checks_unavailable SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+            tables_observed INT UNSIGNED NULL,
+            UNIQUE KEY uniq_db_health_slot(origin,slot_due_at),
+            INDEX idx_db_health_at(observed_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
         "CREATE TABLE IF NOT EXISTS operations_database_error_events (
             fingerprint CHAR(64) PRIMARY KEY,
             category VARCHAR(48) NOT NULL,
