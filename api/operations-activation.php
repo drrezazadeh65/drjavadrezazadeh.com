@@ -20,7 +20,9 @@ function operationsActivationRequiredTables(): array {
         'operations_alert_outbox','operations_http_log_cursor',
         'operations_http_error_routes','operations_http_observation_batches',
         'operations_response_probe_settings','operations_response_probe_samples',
-        'operations_content_drafts','operations_content_revisions'
+        'operations_content_drafts','operations_content_revisions',
+        'operations_database_health_settings','operations_database_health_runs',
+        'operations_database_error_events'
     ];
 }
 /**
@@ -54,6 +56,9 @@ function operationsActivationExpectedColumns(): array {
         'operations_response_probe_samples'=>['sample_id'=>'bigint','probe_id'=>'varchar','kind'=>'enum','observed_at'=>'bigint','response_code'=>'smallint','result'=>'enum','details_json'=>'text','expires_at'=>'bigint'],
         'operations_content_drafts'=>['id'=>'char','language'=>'enum','content_type'=>'enum','title'=>'varchar','body_markdown'=>'mediumtext','seo_title'=>'varchar','seo_description'=>'varchar','media_path'=>'varchar','status'=>'enum','version'=>'int','created_at'=>'bigint','updated_at'=>'bigint','updated_by'=>'char'],
         'operations_content_revisions'=>['revision_id'=>'bigint','draft_id'=>'char','version'=>'int','title'=>'varchar','body_markdown'=>'mediumtext','seo_title'=>'varchar','seo_description'=>'varchar','media_path'=>'varchar','status'=>'enum','created_at'=>'bigint','actor_id'=>'char'],
+        'operations_database_health_settings'=>['singleton_id'=>'tinyint','monitoring_enabled'=>'tinyint','error_logging_enabled'=>'tinyint','cadence'=>'enum','clock_minutes'=>'smallint','retention_days'=>'smallint','updated_at'=>'bigint'],
+        'operations_database_health_runs'=>['sequence_id'=>'bigint','origin'=>'enum','slot_due_at'=>'bigint','observed_at'=>'bigint','result'=>'enum','checks_observed'=>'smallint','checks_attention'=>'smallint','checks_unavailable'=>'smallint','tables_observed'=>'int'],
+        'operations_database_error_events'=>['fingerprint'=>'char','category'=>'varchar','component'=>'varchar','sqlstate_class'=>'char','driver_code'=>'varchar','first_observed_at'=>'bigint','last_observed_at'=>'bigint','occurrence_count'=>'int'],
     ];
 }
 function operationsActivationExpectedIndexes(): array {
@@ -73,6 +78,8 @@ function operationsActivationExpectedIndexes(): array {
         'operations_response_probe_samples'=>['idx_ops_probe_key_time','idx_ops_probe_expires'],
         'operations_content_drafts'=>['idx_editor_draft_status','idx_editor_draft_lang'],
         'operations_content_revisions'=>['uq_editor_version','idx_editor_revisions'],
+        'operations_database_health_runs'=>['uniq_db_health_slot','idx_db_health_at'],
+        'operations_database_error_events'=>['idx_ops_db_error_last','idx_ops_db_error_category'],
     ];
 }
 /**
