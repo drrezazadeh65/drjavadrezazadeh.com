@@ -2180,13 +2180,18 @@ function renderOwnerCommandCenter(){
  const responseLatest=Array.isArray(response?.latest)?response.latest:[];
  const freshResponse=responseLatest.filter(x=>x.fresh===true);
  const failingResponse=freshResponse.filter(x=>x.result==='fail');
+ const unavailableResponse=freshResponse.filter(x=>x.result!=='pass'&&x.result!=='fail');
  const responseOverview=response?.settings
    ?state(failingResponse.length?'attention':
-      freshResponse.length?'recorded':
-        response.settings.enabled?'unknown':'paused',
+      unavailableResponse.length?'unknown':
+        freshResponse.length?'recorded':
+          response.settings.enabled?'unknown':'paused',
       failingResponse.length
         ?t('نتایج ناموفق تازه: ','Fresh failed probes: ')+failingResponse.length+
           ' / '+freshResponse.length
+        :unavailableResponse.length
+          ?t('نمونه تازه با نتیجه نامشخص: ','Inconclusive fresh probes: ')+
+            unavailableResponse.length+' / '+freshResponse.length
         :freshResponse.length
           ?t('نمونه تازه ثبت‌شده: ','Fresh dated probes: ')+freshResponse.length+
             ' / '+responseLatest.length
