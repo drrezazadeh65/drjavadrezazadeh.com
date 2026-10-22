@@ -53,6 +53,7 @@ jobs:
           php tests/operations-github-audits.php
           for file in api/*.php; do php -l "$file"; done
           php tests/operations-security.php
+          php tests/operations-admin-health.php
           php tests/bertina-receipt-contract.php
       - name: Verify real MySQL evidence and administrator boundaries
         env:
@@ -62,6 +63,7 @@ jobs:
         run: |
           php tests/operations-mysql.php
           php tests/stage09-mysql.php
+          php tests/operations-supermaster.php
       - name: Install pinned browser runtime
         run: |
           npm install --no-save @playwright/test@1.56.0
