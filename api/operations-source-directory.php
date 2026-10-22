@@ -27,6 +27,11 @@ function operationsSourceDirectory(PDO $pdo,int $at): array {
             'kind'=>'external_reference','engineId'=>$record['engineId'],
             'status'=>'unverified','observedAt'=>null,
             'url'=>$record['officialUrl'],'lastError'=>null,
+            'category'=>(string)($record['category']??'unknown'),
+            'accessPath'=>(string)($record['accessPath']??'unverified'),
+            'adapterState'=>'not_implemented_or_not_attested',
+            'permissionState'=>'unverified',
+            'apiQuota'=>null,'verifiedCost'=>null,'liveMetricsAvailable'=>false,
             'limitation'=>'Account credentials, consent, provider API and live measurements not verified.'
         ];
         $result['counts']['externalReferences']++;
@@ -64,6 +69,9 @@ function operationsSourceDirectory(PDO $pdo,int $at): array {
             'kind'=>'social_channel','engineId'=>'ENG-03',
             'status'=>'unverified','observedAt'=>null,'url'=>$url,
             'lastError'=>null,
+            'adapterState'=>'provider_specific_approval_required',
+            'permissionState'=>'unverified',
+            'apiQuota'=>null,'verifiedCost'=>null,'liveMetricsAvailable'=>false,
             'storedVerifiedStatusAccountRows'=>$storedAccounts===null?null:
                 (int)($storedAccounts[$record['id']]??0),
             'recentStoredDeliveryRecords'=>$recentSocialDeliveries[$record['id']]['records']??null,
@@ -96,6 +104,10 @@ function operationsSourceDirectory(PDO $pdo,int $at): array {
             'lastAttemptResult'=>$observation['lastAttempt']['result']??null,
             'nextDueAt'=>$observation['nextDue']??null,
             'cadence'=>$observation['cadence']??$entry['cadence'],
+            'adapterState'=>'existing_github_feed_adapter',
+            'permissionState'=>'source_permission_not_independently_attested',
+            'apiQuota'=>null,'verifiedCost'=>null,
+            'liveMetricsAvailable'=>$fresh,
             'url'=>'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions',
             'lastError'=>($observation['lastAttempt']['result']??null)==='failed'
                 ?'provider_result_unavailable':null,
