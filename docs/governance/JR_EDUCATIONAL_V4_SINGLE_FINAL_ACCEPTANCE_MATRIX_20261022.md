@@ -86,3 +86,5 @@
 A source commit is evidence that text/code was saved in the GitHub branch, not evidence of full system functionality, acceptance or production deployment.
 
 | OPS-10 | Final-only: 404 collector redaction, private route suppression, scanner bucketing, incomplete log line handling, genuine public-page event readiness, and no automatic redirect. |
+| AI-04 | Final-only: bilingual static guidance must disclose no verified live model, route six research-stage education needs, reject external assistant endpoints, discard hidden-page chat and avoid durable visitor IDs. |
+| AID-14 | Final-only: descriptive scorecard normalization rejects duplicate subject identities and never treats provider scales as official national scores or admission probabilities. |
