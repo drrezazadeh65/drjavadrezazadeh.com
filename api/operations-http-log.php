@@ -41,8 +41,10 @@ function operationsHttpParse(string $line): ?array {
 function operationsHttpObserverStatus(PDO $pdo,array $config): array {
     $configured=is_string($config['operations_access_log_path']??null)
         &&($config['operations_access_log_path']??'')!=='';
+    $now=time();
     $view=['ok'=>true,'schema'=>'operations-http-observer-v1',
-        'configured'=>$configured,'state'=>$configured?'schema_unavailable':'not_configured',
+        'checkedAt'=>$now,'configured'=>$configured,
+        'state'=>$configured?'schema_unavailable':'not_configured',
         'lastObservedAt'=>null,'batches'=>[],'top404Routes'=>[],
         'limits'=>'Read-only, opt-in private access logs. No IP, user agent or query stored; automatic redirects forbidden.'];
     try{
@@ -54,7 +56,9 @@ function operationsHttpObserverStatus(PDO $pdo,array $config): array {
             'route'=>$r['route_path'],'type'=>$r['classification'],
             'occurrences'=>(int)$r['total_hits'],'lastSeenAt'=>(int)$r['last_seen_at']];
         $view['state']=!$configured?'not_configured':
-            ($cursor?(((int)$cursor['updated_at']>=time()-900)?'observed':'stale'):'ready_for_first_read');
+            ($cursor?(((int)$cursor['updated_at']>=$now-900
+                &&(int)$cursor['updated_at']<=$now+60)?'observed':'stale')
+                :'ready_for_first_read');
         $view['lastObservedAt']=$cursor?(int)$cursor['updated_at']:null;
         $view['batches']=array_map(static fn($r)=>[
             'at'=>(int)$r['observed_at'],'scanned'=>(int)$r['records_read'],
