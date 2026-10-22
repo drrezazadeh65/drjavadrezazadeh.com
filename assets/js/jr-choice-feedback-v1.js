@@ -50,6 +50,9 @@ function el(tag,txt,cls){
  return n;
 }
 const text=(fa,a,b)=>fa?a:b;
+// Version identifies the output FORMAT and transparent self-report method,
+// not empirical validation, national registration, or reviewer approval.
+const REPORT_FORMAT='JR-CHOICE-REFLECTION/1.0.0';
 function enhance(root,n){
  const fa=root.dataset.locale==='fa';
  const form=root.querySelector('.jr-cs-form');
@@ -172,6 +175,18 @@ function enhance(root,n){
   return {labels,scores,input,top:gaps[0]};
  }
  function makeReport(data){
+  const createdAt=new Date();
+  const provenance=el('section',null,'jr-cs-report-provenance');
+  provenance.dataset.reportFormat=REPORT_FORMAT;
+  provenance.append(
+   el('h4',text(fa,'شناسنامه گزارش شخصی','Personal report provenance')),
+   el('p',text(fa,'نسخه قالب: ','Format version: ')+REPORT_FORMAT),
+   el('p',text(fa,'تهیه‌شده در این دستگاه: ','Generated on this device: ')+
+     createdAt.toLocaleString(fa?'fa-IR':'en-US')),
+   el('p',text(fa,
+     'منبع اعداد: فقط وزن‌ها و ارزیابی‌های واردشده در همین نشست؛ بدون اطلاعات رسمی دانشگاه، نمره روان‌سنجی یا تأیید یک متخصص.',
+     'Source of figures: only the weights and ratings entered in this session; no official university record, psychometric score or professional verification.'))
+  );
   const outcome=el('div',null,'jr-cs-outcome');
   outcome.append(el('h4',text(fa,'جمع‌بندی توصیفی شما','Your descriptive outcome')));
   const difference=Math.abs(data.scores[0]-data.scores[1]);
@@ -256,12 +271,21 @@ function enhance(root,n){
   guide.href=fa?'/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/':'/en/student-guidance/';
   const bahar=el('a',text(fa,'ادامه یادداشت تجربه در BAHAR','Continue activity notes in BAHAR'));
   bahar.href=fa?'/fa/app/student/bahar/#baharWorkingPlan':'/en/golden-talent/dashboard/bahar/#baharWorkingPlan';
-  links.append(guide,bahar);next.append(links);
+  // Optional human support is a separate, owner-published consultation
+  // workflow. No pathway name, rating or report is sent to that route.
+  const consult=el('a',text(fa,
+    'درخواست اختیاری بررسی با مشاور',
+    'Optional review with an adviser'));
+  consult.href=fa?'/fa/darkhast-moshavere/':'/en/request-consultation/';
+  links.append(guide,bahar,consult);next.append(links);
+  next.append(el('p',text(fa,
+    'بازکردن صفحه مشاوره هیچ‌یک از پاسخ‌ها، وزن‌ها یا گزارش فعلی را منتقل نمی‌کند. بررسی انسانی تنها در صورت درخواست جداگانه و پذیرش شرایط همان خدمت انجام می‌شود.',
+    'Opening the consultation page does not transfer any pathway, weight, rating or report. Human review is a separate, optional service with its own conditions.')));
   const disclaimer=el('p',text(fa,
    'محدودیت علمی: این گزارش فقط تحلیل ورودی‌های همین نشست است؛ هیچ استعداد، نمره استاندارد، امکان قبولی، صلاحیت ورود یا آینده‌ای را اندازه‌گیری یا پیش‌بینی نمی‌کند. داده‌ها ذخیره یا ارسال نمی‌شوند.',
    'Scientific limitation: this report interprets your inputs during this session only. It does not measure aptitude, standardised ability, admission, eligibility or future success. Nothing is stored or transmitted.'
   ),'jr-cs-report-disclaimer');
-  report.replaceChildren(outcome,evidence,next,disclaimer);
+  report.replaceChildren(provenance,outcome,evidence,next,disclaimer);
  }
  trigger.addEventListener('click',()=>{
   const data=snapshot();
