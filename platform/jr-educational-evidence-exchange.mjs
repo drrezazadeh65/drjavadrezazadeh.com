@@ -83,8 +83,11 @@ export function normalizeEducationalEvidence(raw,trustedServerContext=null){
     errors.push('Invalid version');
   if(raw.consent!==true)errors.push('Explicit consent required');
   if(raw.approvedForExchange!==true)errors.push('No exchange authorisation');
-  if(!Array.isArray(raw.evidence)||raw.evidence.length>MAX_EVIDENCE)
-    errors.push('Invalid evidence list');
+  // Zero-item transfers must not masquerade as meaningful RCAS/BAHAR
+  // evidence. An empty personal note is not a reviewed finding.
+  if(!Array.isArray(raw.evidence)||raw.evidence.length<1||
+     raw.evidence.length>MAX_EVIDENCE)
+    errors.push('Evidence list must contain 1 to '+MAX_EVIDENCE+' items');
   const evidence=[];
   if(Array.isArray(raw.evidence)&&raw.evidence.length<=MAX_EVIDENCE){
     for(const item of raw.evidence){
