@@ -32,11 +32,35 @@ function baharAccountFeatureAllowed(): bool {
     return (cfg()['bahar_private_workbooks_enabled']??false)===true;
 }
 function baharAccountPolicy(PDO $pdo): array {
-    $q=$pdo->query('SELECT enabled,updated_at FROM eco_bahar_account_workbook_policy WHERE singleton_id=1 LIMIT 1');
+    // A toggle by itself is NOT sufficient authority to store sensitive
+    // educational notes. Enforce the owner's separate evidence record on
+    // every account request, not merely when the toggle was enabled.
+    $q=$pdo->query("SELECT p.enabled,p.updated_at,
+      p.scientific_review_sha256,p.privacy_review_sha256,
+      p.release_gate_approved_by_account_id,p.release_gate_approved_at,
+      a.role AS approver_role,a.enabled AS approver_enabled
+      FROM eco_bahar_account_workbook_policy p
+      LEFT JOIN operations_admin_memberships a
+        ON a.account_id=p.release_gate_approved_by_account_id
+      WHERE p.singleton_id=1 LIMIT 1");
     $row=$q->fetch(PDO::FETCH_ASSOC);
     if(!is_array($row))throw new RuntimeException('workbook_policy_missing');
-    return ['enabled'=>(int)$row['enabled']===1,
-      'changedAt'=>(string)$row['updated_at']];
+    $science=(string)($row['scientific_review_sha256']??'');
+    $privacy=(string)($row['privacy_review_sha256']??'');
+    $independentReviews=
+       preg_match('/^[a-f0-9]{64}$/D',$science)===1 &&
+       preg_match('/^[a-f0-9]{64}$/D',$privacy)===1 &&
+       !hash_equals($science,$privacy) &&
+       !empty($row['release_gate_approved_by_account_id']) &&
+       !empty($row['release_gate_approved_at']) &&
+       ($row['approver_role']??'')==='SUPER_ADMIN' &&
+       (int)($row['approver_enabled']??0)===1;
+    return [
+      'enabled'=>(int)$row['enabled']===1&&$independentReviews,
+      'ownerSwitchEnabled'=>(int)$row['enabled']===1,
+      'independentReleaseEvidenceRecorded'=>$independentReviews,
+      'changedAt'=>(string)$row['updated_at']
+    ];
 }
 function baharAccountKey(): ?array {
     $settings=cfg();
