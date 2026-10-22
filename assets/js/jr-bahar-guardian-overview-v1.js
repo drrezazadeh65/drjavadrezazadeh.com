@@ -112,7 +112,18 @@
     if(document.hidden)erase(T('نمای خصوصی پس از خروج از این تب پاک شد.',
       'Private view cleared after leaving this tab.'));
   });
-  window.addEventListener('pagehide',erase,{once:true});
+  // Switching the unified dashboard away from progress removes guardian
+  // aliases and counts from the DOM. Reopening requires a fresh explicit read.
+  const parent=panel.closest('[data-dashboard-panel]');
+  const observer=parent?new MutationObserver(()=>{
+    if(parent.hidden){panel.open=false;erase();}
+  }):null;
+  if(observer&&parent)observer.observe(parent,{
+    attributes:true,attributeFilter:['hidden']
+  });
+  window.addEventListener('pagehide',()=>{
+    erase();observer?.disconnect();
+  },{once:true});
   // Event may be emitted by the existing dashboard auth controller;
   // security never depends on this event because the API checks every read.
   window.addEventListener('jr:account-logout',erase);
