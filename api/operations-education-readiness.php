@@ -107,6 +107,43 @@ function operationsEducationReadiness(PDO $pdo): array {
         if (function_exists('operationsEducationalOffersRead'))
             $offer=operationsEducationalOffersRead();
     } catch (Throwable $error) { $offer=null; }
+    // Contract availability is a source-file inventory, NOT scientific proof.
+    // It may be requested on demand only after owner session + recent MFA.
+    $researchContracts=[
+        [
+            'id'=>'master-orchestrator','path'=>'platform/jr-educational-master-orchestrator.mjs',
+            'role'=>'deterministic_six_engine_coordination','scienceStatus'=>'PREVALIDATION',
+        ],
+        [
+            'id'=>'evidence-exchange','path'=>'platform/jr-educational-evidence-exchange.mjs',
+            'role'=>'signed_reviewed_evidence_boundary','scienceStatus'=>'INDEPENDENT_ATTESTATIONS_REQUIRED',
+        ],
+        [
+            'id'=>'official-catalogue','path'=>'platform/jr-admission-catalogue-trust-gate.mjs',
+            'role'=>'official_programme_row_attestation','scienceStatus'=>'SIGNED_SOURCE_AND_PAGE_REVIEW_REQUIRED',
+        ],
+        [
+            'id'=>'admission-validation','path'=>'platform/jr-admission-outcome-validation.mjs',
+            'role'=>'offline_temporal_outcome_validation','scienceStatus'=>'INDEPENDENT_HOLDOUT_DATA_REQUIRED',
+        ],
+        [
+            'id'=>'bahar-bridge','path'=>'platform/jr-bahar-study-bridge.mjs',
+            'role'=>'private_memory_weekly_workbook','scienceStatus'=>'RESEARCH_STAGE',
+        ],
+        [
+            'id'=>'source-governance','path'=>'platform/jr-admission-source-governance.mjs',
+            'role'=>'default_off_1405_source_intake','scienceStatus'=>'SOURCE_APPROVAL_NOT_GRANTED',
+        ]
+    ];
+    $contractSnapshot=[];
+    foreach($researchContracts as $entry){
+        $contractSnapshot[]=[
+            'id'=>$entry['id'],'role'=>$entry['role'],
+            'sourceFilePresent'=>is_file($root.'/'.$entry['path']),
+            'scienceStatus'=>$entry['scienceStatus'],
+            'productionVerified'=>false,'releaseAuthorized'=>false
+        ];
+    }
     $baharColumns=operationsEducationBaharColumnPresence($pdo);
     return [
         'ok'=>true,
@@ -115,6 +152,7 @@ function operationsEducationReadiness(PDO $pdo): array {
         'scope'=>'owner_mfa_readonly_source_and_column_probe',
         'state'=>'UNVERIFIED_FOR_RELEASE',
         'engines'=>$engineRows,
+        'researchContracts'=>$contractSnapshot,
         'summary'=>[
             'engines'=>count($engineRows),
             'sourceSetsNotFullyPresent'=>$missingCount,
