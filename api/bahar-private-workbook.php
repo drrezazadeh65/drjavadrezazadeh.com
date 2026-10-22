@@ -282,7 +282,8 @@ function baharAccountRoute(string $path,string $verb): never {
         if(!in_array($path,[
           '/bahar/account/status','/bahar/account/consent',
           '/bahar/account/workbook','/bahar/account/withdraw-consent',
-          '/bahar/account/eligibility-request'
+          '/bahar/account/eligibility-request',
+          '/bahar/account/eligibility-cancel'
         ],true))fail('not_found',404);
         if(!rateAllowed($pdo,'bahar_private_account',$accountId,25,300))
             fail('rate_limited',429);
@@ -332,6 +333,8 @@ function baharAccountRoute(string $path,string $verb): never {
               'eligibilityRequestState'=>$eligibilityState,
               'canRequestIndependentAdultReview'=>$schemaReady &&
                   $eligibilityState==='NOT_REQUESTED',
+              'canCancelPendingAdultReview'=>$schemaReady &&
+                  $eligibilityState==='PENDING',
               'currentNoticeConfigured'=>$notice!==null,
               'currentConsent'=>$currentConsent,
               'privacyNotice'=>$notice===null?null:baharAccountNotice($locale),
@@ -375,6 +378,34 @@ function baharAccountRoute(string $path,string $verb): never {
                   'documentsUploaded'=>false,'workbookUploaded'=>false,
                   'privacyConsentGranted'=>false,
                   'next'=>'An authorized human must verify age outside the app before private account saving can be offered.'
+                ]);
+            }catch(Throwable $e){
+                if($pdo->inTransaction())$pdo->rollBack();
+                throw $e;
+            }
+        }
+        // Reversible, self-service withdrawal of a PENDING age-review
+        // application. Never touch approved adult state or private workbooks.
+        if($path==='/bahar/account/eligibility-cancel'&&$verb==='POST'){
+            baharAccountVerifyMutationCsrf($accountId);
+            if(!$schemaReady)fail('adult_review_queue_unavailable',503);
+            $body=jsonBody();
+            if(($body['confirmation']??null)!=='CANCEL MY PENDING REVIEW')
+                fail('explicit_request_required',422);
+            $pdo->beginTransaction();
+            try{
+                $q=$pdo->prepare("DELETE FROM eco_bahar_verified_adult_accounts
+                  WHERE account_id=? AND review_state='PENDING'");
+                $q->execute([$accountId]);
+                $deleted=$q->rowCount()===1;
+                if($deleted)baharAccountAudit($pdo,$accountId,
+                  'BAHAR_ACCOUNT_ELIGIBILITY_WITHDRAWN');
+                $pdo->commit();
+                respond([
+                    'ok'=>true,'schema'=>'jr.bahar-adult-review-cancellation.v1',
+                    'pendingRequestCancelled'=>$deleted,
+                    'verifiedAdultStateUntouched'=>true,
+                    'workbookDeleted'=>false,'marketingConsentAffected'=>false
                 ]);
             }catch(Throwable $e){
                 if($pdo->inTransaction())$pdo->rollBack();
