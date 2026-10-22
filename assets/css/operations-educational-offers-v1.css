@@ -52,3 +52,19 @@
 @media(max-width:670px){.jr-edu-owner-command__grid{grid-template-columns:1fr}
   .jr-edu-owner-command__action{align-self:stretch}}
 @media(prefers-reduced-motion:reduce){.jr-edu-owner-command__action{transition:none!important}}
+
+/* Private 1405 reviewer worksheet preview — no uploads or approvals. */
+.jr-edu-source-local-review{margin:18px 0 22px;padding:clamp(14px,3vw,22px);
+  border:1px solid #8e794e;border-radius:16px;background:#222832;color:#f7efdf}
+.jr-edu-source-local-review__label{display:flex;flex-direction:column;gap:10px;
+  font-weight:750;color:#ecd29a;line-height:1.65}
+.jr-edu-source-local-review__label input[type=file]{display:block;width:100%;min-height:48px;
+  border:1px solid #b4a17e;border-radius:12px;background:#15191e;
+  color:#f8f0e2;padding:12px;font:inherit;font-size:1rem}
+.jr-edu-source-local-review__label input:disabled{opacity:.5}
+.jr-edu-source-local-review h3{font-size:clamp(1rem,2.8vw,1.2rem);
+  color:#f2d9a1;margin:16px 0 8px}
+.jr-edu-source-local-review p{line-height:1.85;margin:7px 0 12px}
+.jr-edu-source-local-review [data-source-review-local-summary]{font-weight:700;
+  padding:12px 14px;border-inline-start:4px solid #e9c784;background:#322d22;border-radius:8px}
+.jr-edu-source-local-review input[type=file]:focus-visible{outline:3px solid #fff;outline-offset:3px}
