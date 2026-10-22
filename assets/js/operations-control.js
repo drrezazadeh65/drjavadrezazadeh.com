@@ -2277,9 +2277,13 @@ function renderOwnerCommandCenter(){
        delete ownerCockpitReadErrors[id];loaded++;
      }catch(error){
        if(generation!==loadGeneration||!snapshot)break;
+       if(['admin_mfa_required','unauthorized','admin_forbidden'].includes(error.message)){
+         lock(t('دسترسی ایمن مدیر منقضی یا رد شده است؛ دوباره تأیید کنید.',
+                'Your private administrator access expired or was denied. Verify again.'));
+         break;
+       }
        unavailable++;
-       ownerCockpitReadErrors[id]=error.message==='admin_mfa_required'?
-         'admin_mfa_required':'unavailable';
+       ownerCockpitReadErrors[id]='unavailable';
      }
    }
    if(generation===loadGeneration&&snapshot){
@@ -2409,10 +2413,14 @@ function renderOwnerCommandCenter(){
    notice(t('داده‌های ذخیره‌شده دریافت شدند؛ این کار هیچ وظیفه خودکاری را فعال نکرد.',
      'Stored data loaded. No automatic task was enabled.'));
   }catch(error){if(generation===loadGeneration&&snapshot){
-     ownerCockpitReadErrors[item.load]=error.message==='admin_mfa_required'?
-       'admin_mfa_required':'unavailable';
-     reportingRender();
-     notice(errorMessage(error),true);
+     if(['admin_mfa_required','unauthorized','admin_forbidden'].includes(error.message)){
+       lock(t('برای مشاهده داده‌ها دوباره دسترسی مدیر را تأیید کنید.',
+         'Verify administrator access again before reading private data.'));
+     }else{
+       ownerCockpitReadErrors[item.load]='unavailable';
+       reportingRender();
+       notice(errorMessage(error),true);
+     }
    }}
    finally{if(button.isConnected)button.disabled=false;}
  }
