@@ -17,6 +17,10 @@
   if(!trigger||!status||!summary||!rows||!refresh)return;
   const number=new Intl.NumberFormat(en?'en-US':'fa-IR');
   let controller=null,epoch=0,loaded=false,busy=false;
+  let timeoutId=null,timedOut=false;
+  const stopTimeout=()=>{
+    if(timeoutId!==null){clearTimeout(timeoutId);timeoutId=null;}
+  };
   const elem=(tag,textValue,className)=>{
     const el=document.createElement(tag);
     if(className)el.className=className;
@@ -24,7 +28,7 @@
     return el;
   };
   function erase(message=''){
-    epoch++;
+    epoch++;stopTimeout();timedOut=false;
     if(controller)controller.abort();
     controller=null;busy=false;loaded=false;refresh.disabled=false;
     rows.replaceChildren();summary.textContent='';
@@ -35,7 +39,13 @@
     if(!panel.open||busy)return;
     const request=++epoch;
     controller?.abort();controller=new AbortController();busy=true;
-    refresh.disabled=true;
+    refresh.disabled=true;timedOut=false;
+    const activeController=controller;
+    timeoutId=setTimeout(()=>{
+      if(request===epoch&&controller===activeController){
+        timedOut=true;activeController.abort();
+      }
+    },15000);
     status.textContent=T('در حال بررسی مجوز و رضایت‌های ثبت‌شده…',
       'Verifying permissions and recorded consents…');
     try {
@@ -92,15 +102,21 @@
       );
       loaded=true;
     }catch(error){
-      if(request!==epoch||error?.name==='AbortError')return;
+      if(request!==epoch||error?.name==='AbortError'&&!timedOut)return;
       loaded=false;rows.replaceChildren();summary.textContent='';
-      status.textContent=error?.message==='UNAUTHENTICATED'
+      status.textContent=timedOut
+        ?T('پاسخ گزارش محرمانه دیر رسید و درخواست متوقف شد؛ دوباره تلاش کنید.',
+          'The private overview timed out and was cancelled; please retry.')
+        :error?.message==='UNAUTHENTICATED'
         ?T('برای مشاهده اطلاعات محرمانه ابتدا به حساب تأییدشده خود وارد شوید.',
           'Sign in to your verified account before requesting private information.')
         :T('مجوز معتبر یا گزارش قابل نمایش تأیید نشد. هیچ داده‌ای ارائه نمی‌شود.',
           'Permission or report availability could not be confirmed. No data is shown.');
     }finally{
-      if(request===epoch){controller=null;busy=false;refresh.disabled=false;}
+      if(request===epoch){
+        stopTimeout();controller=null;busy=false;refresh.disabled=false;
+        timedOut=false;
+      }
     }
   }
   panel.addEventListener('toggle',()=>{
@@ -126,5 +142,9 @@
   },{once:true});
   // Event may be emitted by the existing dashboard auth controller;
   // security never depends on this event because the API checks every read.
-  window.addEventListener('jr:account-logout',erase);
+  window.addEventListener('jr:account-logout',()=>erase());
+  window.addEventListener('offline',()=>erase(T(
+    'ارتباط قطع است؛ وضعیت خصوصی پاک شد. برای دریافت مجدد اتصال را برقرار کنید.',
+    'Connection lost; private status was cleared. Reconnect to request it again.'
+  )));
 })();
