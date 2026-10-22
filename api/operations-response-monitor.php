@@ -82,6 +82,8 @@ function operationsResponseMonitorConfigure(PDO $pdo,array $input,string $actor,
     $keys=array_keys($input);
     if($keys===['requestNow']){
         if($input['requestNow']!==true)throw new InvalidArgumentException('invalid_monitor_request');
+        $existing=operationsResponseMonitorPolicy($pdo);
+        if(!$existing||!$existing['enabled'])throw new DomainException('response_monitor_disabled');
         $pdo->prepare('UPDATE operations_response_probe_settings SET requested_at=?,updated_at=? WHERE singleton_id=1')
             ->execute([$at,$at]);
         operationsAudit($pdo,$actor,'response_probe_requested',substr(hash('sha256','manual_response_probe'),0,64));
