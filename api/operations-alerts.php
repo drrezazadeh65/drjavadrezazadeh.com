@@ -69,6 +69,22 @@ function operationsAlertRecord(PDO $pdo,string $code,string $scope,int $at): boo
         return false; // Diagnostics must not break production requests.
     }
 }
+/**
+ * Close an incident only on a fresh, affirmative successful sensor observation.
+ * A stale/unavailable source must never be interpreted as healthy.
+ */
+function operationsAlertResolve(PDO $pdo,string $code,string $scope,int $at): bool {
+    if(!isset(operationsAlertDefinitions()[$code])
+       ||!preg_match('/^[a-zA-Z0-9:._-]{1,96}$/D',$scope)
+       ||!operationsAlertAvailable($pdo))return false;
+    try{
+        $fingerprint=hash('sha256','ops-incident-v1|'.$code.'|'.$scope);
+        $q=$pdo->prepare("UPDATE operations_alert_incidents SET state='resolved'
+            WHERE fingerprint=? AND state='open' AND last_seen_at<=?");
+        $q->execute([$fingerprint,$at-300]);
+        return $q->rowCount()>0;
+    }catch(Throwable $e){return false;}
+}
 function operationsAlertSnapshot(PDO $pdo,array $configuration): array {
     if(!operationsAlertAvailable($pdo))return [
         'ok'=>true,'schema'=>'operations-alert-center-v1','status'=>'schema_not_provisioned',
