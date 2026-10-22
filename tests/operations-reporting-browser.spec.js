@@ -428,3 +428,68 @@ for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/
   await noOverflow(page);
  });
 }
+
+
+for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
+ test(lang+' mother database health is manually loaded and diagnostic cleanup owner-confirmed',async({page})=>{
+  const data=fixture();let scans=0,configured=0,previews=0,purges=0;
+  await authorized(page,{data});
+  const sample={ok:true,schema:'operations-database-health-v1',asOf:Math.floor(Date.now()/1000),
+   mode:'manual_readonly',connection:'available',hostCronVerified:null,
+   automaticRepairEnabled:false,automaticCleanupEnabled:false,
+   settings:{available:true,monitoringEnabled:false,errorLoggingEnabled:false,
+     cadence:'manual',clockMinutes:210,retentionDays:90},
+   checks:[{id:'connection',state:'observed'},{id:'required_tables',state:'observed',count:0},
+     {id:'storage_engine',state:'attention',count:1}],
+   inventory:{tableCount:40,operationsTableCount:26,missingOperationsTables:[],
+     largestOperationsTables:[{table:'operations_evidence',estimatedRows:235,
+       dataBytes:65536,indexBytes:32768}]},
+   errors:{status:'available',rows:[{category:'schema',component:'operations_route',
+     sqlstateClass:'42',driverCode:'1064',firstAt:1700000000,
+     lastAt:1700000020,occurrences:2}]}};
+  await page.route('**/api/admin/operations/database-health',route=>{
+    scans++;return route.fulfill({json:sample});
+  });
+  await page.route('**/api/admin/operations/database-health/settings',route=>{
+    configured++;
+    expect(route.request().method()).toBe('POST');
+    expect(route.request().headers()['x-csrf-token']).toBe('c'.repeat(64));
+    const body=route.request().postDataJSON();
+    expect(body.monitoringEnabled).toBe(false);
+    expect(body.cadence).toBe('manual');
+    return route.fulfill({json:{ok:true,settings:sample.settings}});
+  });
+  await page.route('**/api/admin/operations/database-health/purge-preview',route=>{
+    previews++;return route.fulfill({json:{ok:true,eligibleCount:1,previewOnly:true,
+      maximumDeletion:100,moreMayRemain:false}});
+  });
+  await page.route('**/api/admin/operations/database-health/purge-expired',route=>{
+    purges++;
+    expect(route.request().postDataJSON().confirmation).toBe('DELETE EXPIRED DATABASE LOGS');
+    return route.fulfill({json:{ok:true,deleted:1,moreMayRemain:false}});
+  });
+  await page.setViewportSize({width:360,height:900});
+  await page.goto(base+route);
+  const panel=page.locator('#ops-database-health');
+  await panel.locator('summary').first().click();
+  await expect(panel).toContainText(lang==='fa'?'بررسی سلامت تنها':'Health is checked only');
+  expect(scans).toBe(0);
+  await panel.locator('[data-db-health-scan]').click();
+  await expect(panel.locator('[data-db-health-summary]')).toContainText(
+    lang==='fa'?'جدول‌های عملیاتی: 26':'Operations tables: 26');
+  await expect(panel.locator('[data-db-health-errors]')).toContainText('Redacted error journal: 1'.replace(
+    'Redacted error journal: ',lang==='fa'?'دفتر خطاهای ناشناس‌سازی‌شده: ':'Redacted error journal: '));
+  const controls=panel.locator('details.ops-db-health-controls');
+  await controls.locator('summary').click();
+  await expect(controls.locator('input[type=checkbox]').first()).not.toBeChecked();
+  await expect(controls.locator('input[type=checkbox]').nth(1)).not.toBeChecked();
+  await controls.locator('[data-db-health-save]').click();
+  await expect.poll(()=>configured).toBe(1);
+  await page.evaluate(()=>{window.confirm=()=>true;});
+  await controls.locator('[data-db-health-purge-preview]').click();
+  await expect.poll(()=>purges).toBe(1);
+  expect(previews).toBe(1);
+  expect(scans).toBe(3);
+  await noOverflow(page);
+ });
+}
