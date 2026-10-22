@@ -407,6 +407,11 @@ async function refreshAlertCenter(){
 function renderAlertCenter(host,model){
  const data=alertCenterCurrent||model.alertCenter||null;
  const incidents=Array.isArray(data?.rows)?data.rows:[];
+ const httpOverview=httpHealthCurrent||model.httpHealth||null;
+ const newestHttpBatch=httpOverview?.state==='observed'&&httpOverview.batches?.length
+   ?httpOverview.batches[0]:null;
+ const weakPages=model.pageQualityOverview?.status==='source_only'
+   ?model.pageQualityOverview.weakSeoPages:null;
  const critical=incidents.filter(x=>x.severity==='critical'&&x.state==='open').length;
  const warning=incidents.filter(x=>x.severity==='warning'&&x.state==='open').length;
  const section=el('details',undefined,'ops-panel');section.id='ops-alert-center';
@@ -417,7 +422,10 @@ function renderAlertCenter(host,model){
    [t('رخداد بحرانی باز','Open critical incidents'),data?.status==='available'?String(critical):'—','critical'],
    [t('هشدار باز','Open warnings'),data?.status==='available'?String(warning):'—','warning'],
    [t('ایمیل و SMTP','Mail transport'),data?.mailReady?t('پیکربندی شده','Configured'):t('تأیید نشده','Unverified'),'neutral'],
-   [t('مقصد ایمیل مدیر','Admin recipient'),data?.recipientConfigured?t('پیکربندی شده','Configured'):t('ثبت نشده','Not configured'),'neutral']
+   [t('مقصد ایمیل مدیر','Admin recipient'),data?.recipientConfigured?t('پیکربندی شده','Configured'):t('ثبت نشده','Not configured'),'neutral'],
+   [t('صفحات سئوی ضعیف در کد','Weak source-SEO pages'),weakPages===null?'—':String(weakPages),'warning'],
+   [t('خطاهای ۴۰۴ در آخرین خوانش','404 in last log batch'),newestHttpBatch?String(newestHttpBatch.notFound):'—','warning'],
+   [t('خطاهای ۵۰۰ در آخرین خوانش','5xx in last log batch'),newestHttpBatch?String(newestHttpBatch.serverErrors):'—','critical']
  ];
  for(const [label,value,style] of counts){
    const box=el('div',undefined,'ops-alert-tile ops-alert-'+style);
@@ -441,7 +449,7 @@ function renderAlertCenter(host,model){
    section.append(el('p',t('فعال‌سازی اعلان‌ها: ','Alert setting: ')+
      (data.enabled?t('مجاز؛ مشروط به حسگر و ارسال‌کننده','Enabled, subject to active sensors and worker'):t('خاموش','Disabled'))+
      ' · '+t('پردازش ایمیل: ','Mail worker: ')+(data.worker||'unknown')));
-   const http=httpHealthCurrent||model.httpHealth||null;
+   const http=httpOverview;
    const httpPanel=el('details');httpPanel.id='ops-http-health';
    httpPanel.append(el('summary',t('خطاهای واقعی HTTP: ورودی‌های ۴۰۴ و خطاهای ۵۰۰',
      'Recorded HTTP errors: 404 entry routes and server 5xx')));
