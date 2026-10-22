@@ -202,9 +202,15 @@
       status:'SELF_REPORTED_RESEARCH_STAGE'
     };
   }
+  function missingWorkbookMessage(){
+    const entered=Object.values(readCompass()).some(Boolean)||
+      ['week-start','learning-goal','learning-action','learning-evidence']
+        .some(id=>String($(id)?.value??'').trim()!=='');
+    return entered?messages.incompleteExport:messages.empty;
+  }
   $('bahar-export-workbook').addEventListener('click',()=>{
     const workbook=workbookSnapshot();
-    if(!workbook){notify(messages.incompleteExport,true);return;}
+    if(!workbook){notify(missingWorkbookMessage(),true);return;}
     const blob=new Blob([JSON.stringify(workbook,null,2)],{type:'application/json;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
@@ -216,7 +222,7 @@
   $('bahar-continue-in-account')?.addEventListener('click',()=>{
     const workbook=workbookSnapshot();
     if(!workbook){
-      notify(messages.incompleteExport,true);
+      notify(missingWorkbookMessage(),true);
       $(fields.goal)?.focus();return;
     }
     // Consent to this *ephemeral same-tab transfer* follows from the
