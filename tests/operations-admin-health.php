@@ -61,4 +61,17 @@ expectOps($scopes===['engine:ENG-01','feature:redirect-301-410'],
     'redirect incident should inherit from ENG-01 and the redirect feature');
 $next=operationsSourceNextDue('daily',1,210,strtotime('2026-10-22T00:00:00Z'));
 expectOps($next>strtotime('2026-10-22T00:00:00Z'),'daily scheduling must be in future');
+// Dynamic panels are attached after owner MFA; source HTML navigation must
+// retain a valid static fragment before the browser-side enhancement runs.
+foreach(['fa/app/admin/index.html','en/account/admin/index.html'] as $relative){
+    $html=file_get_contents(__DIR__.'/../'.$relative);
+    expectOps(is_string($html)&&str_contains($html,'id="ops-executive-stats"'),
+        'missing static admin navigation fallback: '.$relative);
+    foreach(['ops-alert-center','ops-page-quality'] as $dynamic){
+        expectOps(str_contains($html,'href="#ops-executive-stats" data-ops-target="'.$dynamic.'"'),
+            'dynamic navigation must have safe static fragment fallback: '.$dynamic);
+        expectOps(!str_contains($html,'href="#'.$dynamic.'"'),
+            'source file must not reference a JavaScript-only fragment target: '.$dynamic);
+    }
+}
 echo "Administrative health, response evaluation, incident inheritance and retention policy contracts passed.\n";
