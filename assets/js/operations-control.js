@@ -69,7 +69,7 @@ async function api(path,options={}){const response=await fetch('/api/admin/opera
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
 function lock(message){clearTimeout(expiryTimer);loadGeneration++;snapshot=null;selected=null;csrf='';actionRuns=[];sectionsExpanded=false;githubAuditState=null;githubAuditExpanded=false;collectionState=null;collectionExpanded=false;dbHealthCurrent=null;dbHealthExpanded=false;alertCenterExpanded=true;alertCenterCurrent=null;httpHealthCurrent=null;responseMonitorCurrent=null;responseMonitorExpanded=false;alertScopeKind='engine';alertScopeQuery='';alertScopesExpanded=false;qualityExpanded=false;qualityResult=null;qualityDetail=null;qualityFilters={dimension:'onPageSeo',language:'all',index:'all',sort:'weakest',query:'',page:1};sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryExpanded=false;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};$('ops-workspace').hidden=true;$('ops-auth').hidden=false;
 // Notify private child workspaces immediately; hiding alone retains confidential DOM.
-$('ops-command-center')?.remove();ownerCockpitFilter='all';ownerCockpitQuery='';ownerCockpitPrivateEvidence=Object.create(null);ownerCockpitLastReadAt=null;ownerCockpitReadErrors=Object.create(null);$('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
+$('ops-command-center')?.remove();ownerCockpitFilter='all';ownerCockpitQuery='';ownerCockpitShowAll=false;ownerCockpitPrivateEvidence=Object.create(null);ownerCockpitLastReadAt=null;ownerCockpitReadErrors=Object.create(null);$('ops-workspace').dispatchEvent(new Event('jr:operations-locked'));const auditHistory=$('ops-audit-timeline');if(auditHistory){auditHistory.open=false;auditHistory.querySelector('[aria-live]')?.replaceChildren();}const commerce=$('ops-commerce');if(commerce)commerce.open=false;$('ops-commerce-results')?.replaceChildren();for(const id of ['ops-cards','ops-detail','ops-sources','ops-reporting','ops-queue'])$(id)?.replaceChildren();$('ops-health-summary')?.remove();for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])$(id).textContent=t('نامشخص','Unknown');$('ops-engine').replaceChildren();$('ops-mfa-code').value='';reportingView={level:'executive',engine:'ENG-01',action:'',facet:'A'};notice(message,true);}
 function errorMessage(error){return ({unauthorized:t('ابتدا با حساب تأییدشدهٔ مدیر وارد شوید.','Sign in with your verified administrator account.'),admin_forbidden:t('این حساب دسترسی مدیر ندارد؛ نقش باید در تنظیمات خصوصی سرور ثبت شود.','This account has no administrator permission. Provision its role privately on the server.'),operations_schema_unavailable:t('جداول مدیریتی هنوز در سرور آماده نیستند.','Operations database tables are not ready.'),admin_mfa_required:t('تأیید دومرحله‌ای منقضی شده است؛ دوباره تأیید کنید.','Your second-factor verification expired. Verify again.'),invalid_mfa:t('کد تأیید معتبر نیست.','Invalid verification code.'),mfa_replayed:t('این کد قبلاً استفاده شده؛ کد جدید را وارد کنید.','This code was already used. Enter the next code.'),rate_limited:t('درخواست‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید.','Too many attempts. Try again in a few minutes.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
 async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;httpHealthCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};ownerCockpitPrivateEvidence=Object.create(null);ownerCockpitLastReadAt=null;ownerCockpitReadErrors=Object.create(null);snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){if(generation===loadGeneration)lock(errorMessage(error));}}
 function progress(value){const bar=el('div',undefined,'ops-progress');const fill=el('span');fill.style.width=(value??0)+'%';bar.append(fill);bar.setAttribute('aria-label',t('پیشرفت اندازه‌گیری‌شده: ','Measured progress: ')+pct(value));return bar;}
@@ -1951,7 +1951,7 @@ function renderMasterEngineConsole(host,model){
  * No visitors, Cron activation, background fetches, educational logic or
  * third-party integrations are started by rendering this overview.
  */
-let ownerCockpitFilter='all',ownerCockpitQuery='';
+let ownerCockpitFilter='all',ownerCockpitQuery='',ownerCockpitShowAll=false;
 let ownerCockpitPrivateEvidence=Object.create(null);
 let ownerCockpitLastReadAt=null,ownerCockpitReadErrors=Object.create(null);
 function renderOwnerCommandCenter(){
@@ -2309,6 +2309,14 @@ function renderOwnerCommandCenter(){
  toolbar.append(filters,search);root.append(toolbar);
  const grid=el('div',undefined,'oc-departments');
  grid.setAttribute('aria-live','polite');root.append(grid);
+ const expandList=el('button',t('نمایش تمام بخش‌های مدیریت','Show all management departments'));
+ expandList.type='button';expandList.className='oc-list-toggle';
+ expandList.setAttribute('aria-expanded',String(ownerCockpitShowAll));
+ expandList.addEventListener('click',()=>{
+   ownerCockpitShowAll=!ownerCockpitShowAll;
+   paintCards();
+ });
+ root.append(expandList);
  function labelFor(kind){
   return kind==='attention'?t('نیازمند بررسی','Review'):
     kind==='recorded'?t('دارای داده','Evidence loaded'):
@@ -2362,7 +2370,15 @@ function renderOwnerCommandCenter(){
    return matching&&(!q||[item.fa,item.eng,item.id,item.descFa,item.descEn,item.data.metric]
      .join(' ').toLocaleLowerCase().includes(q));
   });
-  for(const item of selected){
+  const limited=ownerCockpitFilter==='all'&&!q&&!ownerCockpitShowAll;
+  const displayRows=limited?selected.slice(0,9):selected;
+  expandList.hidden=ownerCockpitFilter!=='all'||!!q||selected.length<=9;
+  expandList.textContent=ownerCockpitShowAll?
+    t('نمایش فقط بخش‌های اصلی','Show primary departments only'):
+    t('نمایش همه '+selected.length+' بخش مدیریت',
+      'Show all '+selected.length+' departments');
+  expandList.setAttribute('aria-expanded',String(!limited));
+  for(const item of displayRows){
    const error=ownerCockpitReadErrors[item.load];
    const display=error?state('unknown',
      error==='admin_mfa_required'?t('تأیید دومرحله‌ای لازم است','Fresh MFA required'):
