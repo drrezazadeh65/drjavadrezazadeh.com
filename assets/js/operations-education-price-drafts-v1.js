@@ -186,6 +186,9 @@
       if(proposalMap.has(previous)){select.value=previous;inspect(true);}
       setStatus(T('پیش‌نویس در پایگاه داده مادر تأیید شد؛ فروش و مجوز دسترسی فعال نشده‌اند.',
         'Owner draft reread and confirmed. Sale and entitlements remain inactive.'));
+      window.dispatchEvent(new CustomEvent('jr:education-offer-draft-saved',{
+        detail:{offerId:id,publiclyPurchasable:false}
+      }));
     }catch(error){
       if(serial!==requestId||error?.name==='AbortError')return;
       setStatus(error?.message==='MFA_REQUIRED'
