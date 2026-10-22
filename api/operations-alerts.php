@@ -330,7 +330,7 @@ function operationsAlertSendBatch(PDO $pdo,array $configuration,callable $transp
             $q->execute([$ok?'accepted':'uncertain',$ok?$at:null,$row['message_id']]);
             if($ok&&$q->rowCount()===1)$accepted++;
         }catch(Throwable $e){
-            // The SMTP server might have accepted the message. Never resend an
+            // SMTP acceptance could have occurred. Do not retry an
             // uncorrelated reserved item automatically.
         }
     }
