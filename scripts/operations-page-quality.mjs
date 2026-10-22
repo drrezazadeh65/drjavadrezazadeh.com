@@ -165,7 +165,8 @@ export function generateQualityInventory(root){
      let parsed;try{parsed=new URL(sourceUrl);}catch{continue;}
      if(parsed.origin!==BASE||parsed.search||parsed.hash
        ||/\.xml$/i.test(parsed.pathname))continue;
-     const route=parsed.pathname;
+     let route=parsed.pathname;
+     try{route=decodeURI(route);}catch{}
      if(!route.startsWith('/')||seen.has(route)||route.length>500)continue;
      seen.add(route);
      const grades=Object.fromEntries(
