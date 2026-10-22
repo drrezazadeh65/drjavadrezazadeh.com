@@ -500,7 +500,7 @@ function renderAlertCenter(host,model){
          t('تعداد: ','Count: ')+item.occurrences+' · '+
          t('آخرین رخداد: ','Last occurrence: ')+date(item.lastSeenAt)+' · '+
          (item.type==='scanner_probe'?t('اسکن مشکوک','Likely scanning probe'):
-           t('نیازمند بررسی مقصد و ارزش بک‌لینک','Review for redirect or recovery')));
+           t('نیازمند بررسی مقصد و ارزش بک‌لینک','Review for redirect or recovery'))));
        list.append(li);
      }
      httpPanel.append(el('h4',t('مسیرهای ۴۰۴ برای بررسی؛ بدون ریدایرکت خودکار',
