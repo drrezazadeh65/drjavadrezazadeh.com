@@ -6,10 +6,11 @@ INSERT IGNORE INTO operations_alert_rules
   (event_code,enabled,threshold_count,cooldown_minutes,updated_at)
 VALUES
   ('bahar_private_storage_failure',0,1,60,UNIX_TIMESTAMP()),
-  ('bahar_eligibility_queue_failure',0,1,120,UNIX_TIMESTAMP());
+  ('bahar_eligibility_queue_failure',0,1,120,UNIX_TIMESTAMP()),
+  ('bahar_private_erasure_requested',0,1,60,UNIX_TIMESTAMP());
 
 -- The dedicated per-feature email scopes are also DEFAULT OFF (no policy
--- row implies disabled for these two particular new incident codes).
+-- row implies disabled for these three new BAHAR-only incident codes).
 -- Review privacy of admin recipient and encrypted SMTP transport before
 -- activation. Never send student names, email addresses, scorecards or
 -- workbook content in incident payloads.
