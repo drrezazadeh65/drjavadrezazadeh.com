@@ -104,7 +104,7 @@ function rowApproved(row,review){
 const REQUIRED_GROUPS=Object.freeze([
   'ARTS','EXPERIMENTAL_SCIENCES','FOREIGN_LANGUAGES','HUMANITIES','MATHEMATICS'
 ]);
-function verifiedCoverage(coverage,cycle){
+function verifiedCoverage(coverage,cycle,trustedCoverageContext){
   if(!coverage||typeof coverage!=='object'||Array.isArray(coverage)||
     coverage.actualCycle!==cycle||coverage.amendmentsReviewed!==true||
     coverage.languagesGuideReviewed!==true||
@@ -132,7 +132,7 @@ function verifiedCoverage(coverage,cycle){
   ]);
   // Keys must be provided by an independently authorized private server,
   // never stored in the uploaded annual-coverage record or repository.
-  const ctx=coverage.trustedServerContext;
+  const ctx=trustedCoverageContext;
   return macMatches(ctx?.reviewerKey,payload,auth.reviewerSignature)&&
     macMatches(ctx?.administratorKey,payload,auth.administratorSignature);
 }
@@ -145,13 +145,15 @@ function verifiedCoverage(coverage,cycle){
  *  {key,reviewCandidate,context} where context contains PRIVATE signing keys.
  * Every item in programmeRows:
  *  {data,review} where review contains separate PRIVATE signing keys.
+ * trustedCoverageContext: independently held server-owned keys for whole-year
+ * amendments and guide coverage, never embedded in imported coverage JSON.
  *
  * This interface is never a request-body shape. Never serialize key buffers
  * or return input review objects to clients.
  */
 export function compileOfficialAdmissionsCatalogue({
   cycle=1405,sources=[],programmeRows=[],coverage=null,
-  policy=JR_CATALOGUE_DEFAULT_POLICY
+  trustedCoverageContext=null,policy=JR_CATALOGUE_DEFAULT_POLICY
 }={}){
   const issues=[];
   if(!Number.isInteger(cycle)||cycle<1400||cycle>1500)
@@ -166,7 +168,8 @@ export function compileOfficialAdmissionsCatalogue({
     issues.push('INVALID_SOURCE_COLLECTION');
   if(!Array.isArray(programmeRows)||programmeRows.length>5000)
     issues.push('INVALID_PROGRAMME_COLLECTION');
-  if(!verifiedCoverage(coverage,cycle))issues.push('UNRESOLVED_OFFICIAL_SOURCE_COVERAGE');
+  if(!verifiedCoverage(coverage,cycle,trustedCoverageContext))
+    issues.push('UNRESOLVED_OFFICIAL_SOURCE_COVERAGE');
   const trustedSources=new Map();
   if(Array.isArray(sources)&&sources.length<=80)for(const s of sources){
     if(!s||!identifier(s.key)||trustedSources.has(s.key)||
