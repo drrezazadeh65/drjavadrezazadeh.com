@@ -715,7 +715,13 @@ function operationsRoute(string $path, string $verb): never {
                 fail('super_admin_required',403);
             if(!rateAllowed($pdo,'ops_adult_eligibility_queue',$accountId,12,300))
                 fail('rate_limited',429);
-            respond(operationsBaharAdultReviewQueue($pdo));
+            try{
+                respond(operationsBaharAdultReviewQueue($pdo,[
+                    'state'=>$_GET['state']??'ALL','page'=>$_GET['page']??1
+                ]));
+            }catch(InvalidArgumentException $e){
+                fail('invalid_adult_review_page_filters',422);
+            }
         }
         if($path==='/admin/operations/education-adult-review' && $verb==='POST'){
             if(($configuration['operations_admins'][$accountId]['role']??null)!=='SUPER_ADMIN')
