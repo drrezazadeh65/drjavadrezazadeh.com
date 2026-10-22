@@ -127,6 +127,24 @@ function operationsEducationReadiness(PDO $pdo): array {
             'role'=>'offline_temporal_outcome_validation','scienceStatus'=>'INDEPENDENT_HOLDOUT_DATA_REQUIRED',
         ],
         [
+            'id'=>'professional-golden-path-release',
+            'path'=>'platform/jr-golden-path-release-trust.mjs',
+            'role'=>'signed_professional_approval_to_bahar_draft',
+            'scienceStatus'=>'REQUIRES_PRIVATE_PROFESSIONAL_ATTESTATION',
+        ],
+        [
+            'id'=>'owner-price-drafts',
+            'path'=>'api/operations-education-price-drafts.php',
+            'role'=>'owner_draft_prices_without_customer_checkout',
+            'scienceStatus'=>'SCIENTIFIC_FINANCIAL_AND_ENTITLEMENT_RELEASE_NOT_APPROVED',
+        ],
+        [
+            'id'=>'guardian-bahar-view',
+            'path'=>'assets/js/jr-bahar-guardian-overview-v1.js',
+            'role'=>'private_guardian_overview_under_existing_dual_consent',
+            'scienceStatus'=>'COUNTS_NOT_PROGRESS_SCORES',
+        ],
+        [
             'id'=>'bahar-bridge','path'=>'platform/jr-bahar-study-bridge.mjs',
             'role'=>'private_memory_weekly_workbook','scienceStatus'=>'RESEARCH_STAGE',
         ],
