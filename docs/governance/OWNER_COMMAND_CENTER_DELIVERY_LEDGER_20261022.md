@@ -157,3 +157,59 @@ It is separate from the previous owner-authorized POST manual scan that
 adds a history row and audit event. Both FA/EN asset query revisions were
 bumped; no public URL, scientific engine, customer records, server job,
 or production database was changed by these source commits.
+
+## 22 October — command dashboard integration and UX source push (no QA)
+
+The owner requested rapid forward-only completion with **all testing deferred to the
+end of development**, explicitly requiring meaningful integration rather than
+visual activation.
+
+### Source changes committed to `feature/owner-command-center-20261022`
+
+- Repaired the section index after dynamic re-rendering: index clicks resolve
+  the **current** protected DOM node and open disclosure ancestors. Opening
+  the navigator rebuilds the list of available sections rather than keeping
+  stale elements.
+- Unified the existing executive and mobile hash shortcuts so clicks open
+  actual existing MFA-gated panels and disclosures. A missing module no
+  longer silently appears to have opened: source-catalogue action buttons
+  show explicit unavailable evidence feedback.
+- Added nine private `moduleContracts` from
+  `operationsActivationReport()`, grouped by existing mother database
+  tables: MFA, audit/evidence, collection/cache, per-source control, alerts,
+  HTTP errors, HTTPS response integrity, editorial revision history and DB
+  health. Each contract distinguishes `table_names_observed`,
+  `missing_tables` and `unknown`; `runtimeVerified=null` and
+  `hostCronVerified=null` remain explicit. No new table or SQL needed.
+- Wired a bilingual, mobile-responsive integration matrix in the existing
+  master owner cockpit. Action buttons navigate to the applicable
+  server-authorized existing workspace, not to fake standalone modules.
+- Social confidentiality strengthened: on owner lock, clear stored social
+  observations, review drafts and composer content, and invalidate
+  asynchronous preview/approval UI from stale in-flight requests. Existing
+  API permissions and server-side session checks remain authoritative;
+  browser invalidation is additional protection, not a substitute.
+- Reworked visual presentation with a unified graphite/ivory/gold identity,
+  system-font fallback for Persian and English, accessible focus, responsive
+  action and module grids, sticky horizontal navigation, polished data
+  tables, explicit disabled states and reduced-motion/print rules. Reused
+  existing page routes, components and APIs.
+- Bumped only the cache-busting query strings for the actually updated
+  bilingual admin assets; original URL paths preserved.
+
+### Installation and release boundaries
+
+- Previous owner screenshot shows all three missing DB-health tables created
+  and disabled settings row initialized. **No new SQL migrations identified
+  as necessary for the integration-matrix changes**.
+- The screenshot is owner evidence, not independent runtime certification.
+- OAuth/provider adapters for the reference-only sources, paid API entitlements,
+  private SMTP recipient/worker, Cron installation, test evidence and
+  production session/runtime availability **remain unverified**. No positive
+  live status is claimed.
+- No PHP/JS lint, unit/integration/e2e test, browser run, visual regression,
+  production probe, workflow dispatch, Cron registration, emails, auto fetch,
+  merge, force push or deploy were initiated in this development increment.
+  Every source commit uses `[skip ci]`.
+- QA, independent security audit, integrated branch reconciliation and owner
+  release approval remain the last coordinated stages after development freeze.
