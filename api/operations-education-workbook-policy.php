@@ -95,9 +95,12 @@ function operationsBaharPrivatePolicySave(
     try{
         $q=$pdo->prepare('SELECT enabled,scientific_review_sha256,
            privacy_review_sha256,release_gate_approved_by_account_id,
-           release_gate_approved_at
-           FROM eco_bahar_account_workbook_policy
-           WHERE singleton_id=1 FOR UPDATE');
+           release_gate_approved_at,
+           a.role AS approver_role,a.enabled AS approver_enabled
+           FROM eco_bahar_account_workbook_policy p
+           LEFT JOIN operations_admin_memberships a
+             ON a.account_id=p.release_gate_approved_by_account_id
+           WHERE p.singleton_id=1 FOR UPDATE');
         $q->execute();
         $row=$q->fetch(PDO::FETCH_ASSOC);
         if(!is_array($row))throw new RuntimeException('policy_row_missing');
@@ -110,6 +113,8 @@ function operationsBaharPrivatePolicySave(
               && $row['scientific_review_sha256']!==$row['privacy_review_sha256']
               && !empty($row['release_gate_approved_by_account_id'])
               && !empty($row['release_gate_approved_at'])
+              && ($row['approver_role']??'')==='SUPER_ADMIN'
+              && (int)($row['approver_enabled']??0)===1
               && baharAccountKey()!==null
               && baharAccountFeatureAllowed()
               && baharAccountCurrentNotice($pdo,'fa')!==null
@@ -131,4 +136,121 @@ function operationsBaharPrivatePolicySave(
         if($pdo->inTransaction())$pdo->rollBack();
         throw $e;
     }
+}
+
+/**
+ * SUPER_ADMIN source-evidence registration, never live activation.
+ * Hashes are generated from independently reviewed documents held offsite
+ * and stored without those documents. No fake research approval is inferred.
+ */
+function operationsBaharRecordReviewEvidence(
+  PDO $pdo,array $input,string $owner
+): array {
+    $science=$input['scientificReviewSha256']??null;
+    $privacy=$input['privacyReviewSha256']??null;
+    if(!is_string($science)||preg_match('/^[a-f0-9]{64}$/D',$science)!==1||
+      !is_string($privacy)||preg_match('/^[a-f0-9]{64}$/D',$privacy)!==1||
+      hash_equals($science,$privacy)||
+      ($input['confirmation']??null)!=='I REVIEWED TWO INDEPENDENT BAHAR RELEASE DOCUMENTS')
+      throw new InvalidArgumentException('invalid_scientific_privacy_review_evidence');
+    $pdo->beginTransaction();
+    try{
+      $q=$pdo->query('SELECT singleton_id FROM eco_bahar_account_workbook_policy
+        WHERE singleton_id=1 FOR UPDATE');
+      if(!$q->fetchColumn())throw new RuntimeException('owner_policy_schema_unavailable');
+      $update=$pdo->prepare('UPDATE eco_bahar_account_workbook_policy
+        SET scientific_review_sha256=?,privacy_review_sha256=?,
+        release_gate_approved_by_account_id=?,
+        release_gate_approved_at=UTC_TIMESTAMP(3),
+        enabled=0,changed_by_account_id=?,updated_at=UTC_TIMESTAMP(3)
+        WHERE singleton_id=1');
+      $update->execute([$science,$privacy,$owner,$owner]);
+      $audit=$pdo->prepare('INSERT INTO operations_audit
+        (actor_id,action,reference_id,occurred_at) VALUES(?,?,?,?)');
+      $audit->execute([$owner,'bahar_review_evidence_recorded',
+        hash('sha256',$science.'|'.$privacy),nowTs()]);
+      $pdo->commit();
+    }catch(Throwable $error){
+      if($pdo->inTransaction())$pdo->rollBack();
+      throw $error;
+    }
+    $current=operationsBaharPrivatePolicy($pdo);
+    return [
+      'ok'=>true,'schema'=>'jr.bahar-owner-review-evidence.v1',
+      'ownerEvidenceRecorded'=>true,
+      'privatelyStoredRawDocuments'=>false,
+      'privateStorageStillOff'=>$current['ownerSwitchEnabled']===false,
+      'scientificValidationCertified'=>false,
+      'ownerPolicy'=>$current
+    ];
+}
+/**
+ * Explicit super-admin approval of the two CURRENT source-controlled
+ * purpose-specific texts, after reviewing externally available legal advice.
+ * Idempotent matching notices are preserved and NEVER rewritten in place.
+ */
+function operationsBaharRegisterConsentNotices(
+  PDO $pdo,array $input,string $owner
+): array {
+    $privacy=$input['privacyReviewSha256']??null;
+    if(!is_string($privacy)||preg_match('/^[a-f0-9]{64}$/D',$privacy)!==1||
+       ($input['confirmation']??null)!==
+         'I APPROVE THE CURRENT BILINGUAL BAHAR PRIVACY NOTICES')
+      throw new InvalidArgumentException('unreviewed_privacy_notice');
+    $pdo->beginTransaction();
+    try{
+      $lock=$pdo->query("SELECT privacy_review_sha256,
+         release_gate_approved_by_account_id
+         FROM eco_bahar_account_workbook_policy
+         WHERE singleton_id=1 FOR UPDATE");
+      $record=$lock->fetch(PDO::FETCH_ASSOC);
+      if(!is_array($record)||!hash_equals(
+        (string)$record['privacy_review_sha256'],$privacy)||
+        (string)$record['release_gate_approved_by_account_id']!==$owner)
+        throw new DomainException('independent_owner_privacy_review_required');
+      foreach(['fa','en'] as $locale){
+        $notice=baharAccountNotice($locale);
+        $q=$pdo->prepare('SELECT notice_sha256,effective_at,retired_at
+          FROM eco_consent_notices
+          WHERE purpose_code=? AND version_label=? AND locale=?
+          FOR UPDATE');
+        $q->execute([
+          JR_BAHAR_ACCOUNT_PURPOSE,$notice['version'],$locale
+        ]);
+        $prior=$q->fetch(PDO::FETCH_ASSOC);
+        if(is_array($prior)){
+          // Never resurrect a retired or altered consent notice.
+          if(!hash_equals($notice['sha256'],(string)$prior['notice_sha256'])||
+             $prior['retired_at']!==null)
+             throw new DomainException('versioned_notice_conflict');
+        }else{
+          $insert=$pdo->prepare('INSERT INTO eco_consent_notices
+            (id,purpose_code,version_label,locale,notice_sha256,effective_at)
+            VALUES(?,?,?,?,?,UTC_TIMESTAMP(3))');
+          $insert->execute([
+            uuidv4(),JR_BAHAR_ACCOUNT_PURPOSE,
+            $notice['version'],$locale,$notice['sha256']
+          ]);
+        }
+      }
+      $audit=$pdo->prepare('INSERT INTO operations_audit
+        (actor_id,action,reference_id,occurred_at) VALUES(?,?,?,?)');
+      $audit->execute([
+        $owner,'bahar_versioned_notices_recorded',
+        substr($privacy,0,64),nowTs()
+      ]);
+      $pdo->commit();
+    }catch(Throwable $e){
+      if($pdo->inTransaction())$pdo->rollBack();
+      throw $e;
+    }
+    $state=operationsBaharPrivatePolicy($pdo);
+    return [
+      'ok'=>true,'schema'=>'jr.bahar-reviewed-notices.v1',
+      'fa'=>$state['approvedConsentNoticeFa'],
+      'en'=>$state['approvedConsentNoticeEn'],
+      'newConsentGranted'=>false,'paidProductActivated'=>false,
+      'adultEligibilityGranted'=>false,'workbookStorageAutoEnabled'=>false,
+      'ownerPolicy'=>$state
+    ];
 }
