@@ -134,6 +134,15 @@ function baharAccountHasConsent(PDO $pdo,string $accountId): bool {
     }
     return false;
 }
+function baharAccountEligibilityState(PDO $pdo,string $accountId): string {
+    $q=$pdo->prepare('SELECT review_state FROM eco_bahar_verified_adult_accounts
+      WHERE account_id=? LIMIT 1');
+    $q->execute([$accountId]);
+    $state=$q->fetchColumn();
+    return is_string($state)&&in_array($state,[
+      'PENDING','VERIFIED_ADULT','DECLINED','REVOKED'
+    ],true)?$state:'NOT_REQUESTED';
+}
 function baharAccountCsrf(string $accountId): string {
     $pepper=cfg()['auth_pepper']??'';
     if(!is_string($pepper)||strlen($pepper)<32)
@@ -272,7 +281,8 @@ function baharAccountRoute(string $path,string $verb): never {
         if(!validUuid($accountId))fail('unauthorized',401);
         if(!in_array($path,[
           '/bahar/account/status','/bahar/account/consent',
-          '/bahar/account/workbook','/bahar/account/withdraw-consent'
+          '/bahar/account/workbook','/bahar/account/withdraw-consent',
+          '/bahar/account/eligibility-request'
         ],true))fail('not_found',404);
         if(!rateAllowed($pdo,'bahar_private_account',$accountId,25,300))
             fail('rate_limited',429);
@@ -290,6 +300,8 @@ function baharAccountRoute(string $path,string $verb): never {
         $enabled=$schemaReady&&baharAccountFeatureAllowed()&&
             $policy['enabled']&&$key!==null;
         if($path==='/bahar/account/status'&&$verb==='GET'){
+            $eligibilityState=$schemaReady
+                ?baharAccountEligibilityState($pdo,$accountId):'UNAVAILABLE';
             $currentConsent=$schemaReady&&$adult&&
                 baharAccountHasConsent($pdo,$accountId);
             $revision=null;
@@ -304,6 +316,9 @@ function baharAccountRoute(string $path,string $verb): never {
               'storageEnabled'=>$enabled,'schemaProvisioned'=>$schemaReady,
               'state'=>$schemaReady?'GATED_PRIVATE_SERVICE':'ADDITIVE_SCHEMA_PENDING',
               'independentlyVerifiedAdult'=>$adult,
+              'eligibilityRequestState'=>$eligibilityState,
+              'canRequestIndependentAdultReview'=>$schemaReady &&
+                  $eligibilityState==='NOT_REQUESTED',
               'currentNoticeConfigured'=>$notice!==null,
               'currentConsent'=>$currentConsent,
               'privacyNotice'=>$notice===null?null:baharAccountNotice($locale),
@@ -316,6 +331,43 @@ function baharAccountRoute(string $path,string $verb): never {
               'limitations'=>'Secure storage requires explicit owner activation, verified adult eligibility and current versioned consent. No minor or guardian records are accepted.']);
         }
         if(!in_array($verb,['GET','POST','PUT','DELETE'],true))fail('method_not_allowed',405);
+        // Zero-document, explicit account owner's eligibility review request.
+        // A self-affirmation may create a PENDING queue entry only and never
+        // constitute independent adult identity verification.
+        if($path==='/bahar/account/eligibility-request'&&$verb==='POST'){
+            baharAccountVerifyMutationCsrf($accountId);
+            if(!$schemaReady)fail('adult_review_queue_unavailable',503);
+            $input=jsonBody();
+            if(($input['adultAffirmation']??null)!==true||
+              ($input['confirmation']??null)!=='I REQUEST INDEPENDENT ADULT REVIEW')
+              fail('explicit_adult_review_request_required',422);
+            $pdo->beginTransaction();
+            try{
+                $q=$pdo->prepare("INSERT IGNORE INTO eco_bahar_verified_adult_accounts
+                  (account_id,review_state)
+                  VALUES (?,'PENDING')");
+                $q->execute([$accountId]);
+                $created=$q->rowCount()===1;
+                if($created)baharAccountAudit(
+                  $pdo,$accountId,'BAHAR_ACCOUNT_ELIGIBILITY_REQUESTED'
+                );
+                $state=baharAccountEligibilityState($pdo,$accountId);
+                $pdo->commit();
+                respond([
+                  'ok'=>true,'schema'=>'jr.bahar-adult-eligibility-request.v1',
+                  'eligibilityRequestState'=>$state,
+                  'newRequestRecorded'=>$created,
+                  'independentlyVerifiedAdult'=>false,
+                  'automaticEligibilityApproval'=>false,
+                  'documentsUploaded'=>false,'workbookUploaded'=>false,
+                  'privacyConsentGranted'=>false,
+                  'next'=>'An authorized human must verify age outside the app before private account saving can be offered.'
+                ]);
+            }catch(Throwable $e){
+                if($pdo->inTransaction())$pdo->rollBack();
+                throw $e;
+            }
+        }
         if($path==='/bahar/account/consent'&&$verb==='POST'){
             baharAccountVerifyMutationCsrf($accountId);
             if(!$enabled||!$adult||$notice===null)fail('bahar_consent_not_available',403);
