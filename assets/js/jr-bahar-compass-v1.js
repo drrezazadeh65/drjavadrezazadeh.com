@@ -216,6 +216,16 @@
       render();notify(messages.imported);preview.focus();
     }catch{notify(messages.badFile,true);}
   });
+  $('bahar-print-workbook')?.addEventListener('click',()=>{
+    const hasWeekly=$('plan-summary')&&!$('plan-summary').hidden;
+    if(!compass&&entries.length===0&&!hasWeekly){
+      notify(messages.empty,true);
+      return;
+    }
+    // User-initiated print is a browser operation; the application never
+    // uploads, stores or converts learning evidence on the server.
+    window.print();
+  });
   $('bahar-clear-workbook').addEventListener('click',()=>{
     compass=null;entries.splice(0,entries.length);
     $('clear-plan')?.click();
