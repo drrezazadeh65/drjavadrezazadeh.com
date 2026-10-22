@@ -216,13 +216,31 @@ function sheet(){
  const sheet=$('[data-dashboard-sheet]'),open=$('[data-dashboard-more]'),close=$('[data-dashboard-close]');
  if(!sheet||!open||!close)return;
  let previous=null;
- const focusables=()=>$$('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled])',sheet).filter(x=>!x.hidden);
- const shut=(restoreFocus=true)=>{sheet.classList.remove('is-open');open.setAttribute('aria-expanded','false');document.documentElement.style.overflow='';if(restoreFocus)previous?.focus?.()};
- const show=()=>{previous=document.activeElement;sheet.classList.add('is-open');open.setAttribute('aria-expanded','true');document.documentElement.style.overflow='hidden';close.focus()};
- open.addEventListener('click',show);close.addEventListener('click',shut);
+ const focusables=()=>$('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled])',sheet).filter(x=>!x.hidden);
+ // Keep private workspace shortcuts out of the tab order when the mobile
+ // sheet is closed. "aria-modal" describes only an ACTUALLY open dialog.
+ sheet.inert=true;sheet.setAttribute('aria-hidden','true');
+ const shut=(restoreFocus=true)=>{
+  sheet.classList.remove('is-open');sheet.inert=true;
+  sheet.setAttribute('aria-hidden','true');
+  open.setAttribute('aria-expanded','false');
+  document.documentElement.style.overflow='';
+  if(restoreFocus)previous?.focus?.({preventScroll:true});
+ };
+ const show=()=>{
+  previous=document.activeElement;
+  sheet.inert=false;sheet.removeAttribute('aria-hidden');
+  sheet.classList.add('is-open');
+  open.setAttribute('aria-expanded','true');
+  document.documentElement.style.overflow='hidden';
+  close.focus({preventScroll:true});
+ };
+ open.setAttribute('aria-haspopup','dialog');
+ open.addEventListener('click',show);
+ close.addEventListener('click',()=>shut());
  sheet.addEventListener('click',e=>{if(e.target===sheet)shut();else if(e.target.closest('a[href]'))shut(false)});
  sheet.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){shut();return}
+  if(e.key==='Escape'){e.preventDefault();shut();return}
   if(e.key!=='Tab')return;
   const nodes=focusables();if(!nodes.length)return;
   const first=nodes[0],last=nodes[nodes.length-1];
