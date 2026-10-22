@@ -56,11 +56,33 @@ const iconFor=(href,label='')=>{
  if(/international|english|فارسی|language|زبان/.test(s))return'globe';
  return'path';
 };
-const tabs=isFa?[
+// The shared installed-mobile shell used to REPLACE the fixed four-action
+// homepage dock after initial paint. Reconcile one source of truth here:
+ // preserve the already-rendered homepage dock; create equivalent 4-way
+// tabs only for ordinary FA/EN public informational pages.
+// Authenticated spaces, journal, commerce/cart/checkout and consultant intake
+// keep their specialist navigators and pre-existing cart control.
+const isHomepage=path==='/fa/'||path==='/en/';
+const commerceOrPrivate= /^\/(?:fa|en)\/(?:shop|checkout|cart|payment|order|orders|login|register|recover|bazyabi-hesab|account|app|assessments|request-consultation|darkhast-moshavere)(?:\/|$)/.test(path)||
+  /^\/en\/golden-talent\/(?:assessment|dashboard|checkout|plans|roles|observer|student)(?:\/|$)/.test(path)||
+  /^\/(?:fa|en)\/services\/(?:checkout|cart|payment)(?:\/|$)/.test(path);
+const needDockEligible=/^\/(?:fa|en)\//.test(path) &&
+  !commerceOrPrivate && Boolean(q('.site-header'));
+const standardTabs=isFa?[
  [u('fa/'),'خانه','home'],[u('fa/golden-talent/'),'استعداد','spark'],[u('fa/shop/'),'فروشگاه','bag'],[u('fa/darkhast-moshavere/'),'مشاوره','chat'],[u('fa/login/'),'حساب','user']
 ]:[
  [u('en/'),'Home','home'],[u('en/golden-talent/'),'Talent','spark'],[u('en/shop/'),'Shop','bag'],[u('en/request-consultation/'),'Consult','chat'],[u('en/login/'),'Account','user']
 ];
+const needTabs=isFa?[
+ [u('fa/'),'خانه','home'],[u('fa/masir-man/'),'کاوش','search'],
+ [u('fa/masir-man/#need'),'دستیار','spark'],
+ [u('fa/customer-dashboard/'),'حساب من','user']
+]:[
+ [u('en/'),'Home','home'],[u('en/my-path/'),'Explore','search'],
+ [u('en/my-path/#need'),'AI Assistant','spark'],
+ [u('en/account/'),'My Account','user']
+];
+const tabs=needDockEligible?needTabs:standardTabs;
 const sheet=isFa?[
  [u('fa/masir-man/'),'مسیر من؛ از نیاز شروع کن'],[u('fa/bahar/'),'BAHAR؛ برنامه مطالعه رایگان'],
  [u('fa/darbare-man/'),'درباره دکتر رضازاده'],[u('fa/rezome/'),'رزومه علمی'],[u('fa/khadamat/'),'خدمات آموزشی'],[u('fa/tadris/'),'تدریس دانشگاهی'],[u('fa/ketab-ha/'),'کتاب‌ها'],[u('fa/shop/'),'فروشگاه کتاب'],[u('fa/amoozesh-zaban/'),'آموزش زبان انگلیسی'],[u('fa/pajouhesh/'),'پژوهش'],[u('fa/entesharat-elmi/'),'انتشارات علمی'],[u('fa/faaliat-haye-elmi/'),'فعالیت‌های علمی'],[u('fa/entekhab-reshteh/'),'انتخاب رشته'],[u('fa/estedaadyabi/'),'استعدادیابی'],[u('fa/moshavere-konkur/'),'مشاوره کنکور'],[u('fa/danesh-amoozan/'),'دانش‌آموزان'],[u('fa/rahnamaha/'),'راهنماها'],[u('fa/tamas/'),'تماس'],[u('fa/harim-khosusi/'),'حریم خصوصی'],[u('fa/jostojo/'),'جست‌وجو'],[u('publisher/'),'Rezazadeh Foundation Press'],[u('journal/'),'JHELA']
@@ -68,18 +90,51 @@ const sheet=isFa?[
  [u('en/my-path/'),'My Learning Path'],[u('en/bahar/'),'BAHAR Free Study Planner'],
  [u('en/about/'),'About'],[u('en/cv/'),'Public CV'],[u('en/services/'),'Services'],[u('en/academic-profile/'),'Academic Profile'],[u('en/language-education/'),'Language Education'],[u('en/student-guidance/'),'Student Guidance'],[u('en/teacher-education/'),'Teacher Education'],[u('en/teaching/'),'University Teaching'],[u('en/books/'),'Books'],[u('en/shop/'),'Bookstore'],[u('en/publications/'),'Publications'],[u('en/academic-engagements/'),'Academic Engagements'],[u('en/research/'),'Research'],[u('en/projects/'),'Public Projects'],[u('en/collaboration/'),'International Collaboration'],[u('en/news-insights/'),'News & Insights'],[u('en/contact/'),'Contact'],[u('en/search/'),'Search'],[u('en/golden-talent/'),'Golden Talent'],[u('publisher/'),'Rezazadeh Foundation Press'],[u('journal/'),'JHELA'],[u('fa/'),'فارسی']
 ];
-q('.app-dock')?.remove();
+// Never remove the native 4-tab homepage dock: its accessibility proxy and
+// single existing concierge are already wired there by the page-level JS.
+const originalHomeDock=needDockEligible&&isHomepage?
+  q('.app-dock[data-jr-home-primary-dock]'):null;
+if(!originalHomeDock)q('.app-dock')?.remove();
 q('#mobile-app-menu')?.remove();
 const header=q('.site-header');
 if(header&&!q('.mobile-menu-trigger',header)){
  const trigger=document.createElement('button');trigger.type='button';trigger.className='mobile-menu-trigger';trigger.setAttribute('data-nav-toggle','');trigger.setAttribute('aria-controls','mobile-app-menu');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-label',isFa?'بازکردن منو':'Open menu');trigger.innerHTML=icon('menu');header.appendChild(trigger);
 }
-const nav=document.createElement('nav');nav.className='app-dock';nav.setAttribute('aria-label',isFa?'منوی اصلی اپ':'App navigation');
+const nav=originalHomeDock||document.createElement('nav');
+if(!originalHomeDock){
+ nav.className='app-dock';
+ nav.setAttribute('aria-label',isFa?'منوی اصلی اپ':'App navigation');
+}
+if(needDockEligible){
+ nav.dataset.jrNeedPrimaryDock='1';
+ document.body.classList.add('jr-need-primary-dock-active');
+}
 const isInstalled=navigator.standalone===true||window.matchMedia?.('(display-mode: standalone)').matches;
 const installControl=isInstalled?'':'<button type="button" class="dock-action jr-dock-install" data-jr-dock-install aria-label="'+(isFa?'نصب اپلیکیشن':'Install website app')+'">'+
   '<svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12m-5-5 5 5 5-5M5 17v4h14v-4"/></svg><span>'+(isFa?'نصب':'Install')+'</span></button>';
-nav.innerHTML=tabs.map(([h,l,i])=>'<a href="'+h+'" data-app-tab="'+i+'">'+icon(i)+'<span>'+l+'</span>'+(i==='bag'?'<b class="app-cart-badge" data-app-cart-count hidden>0</b>':'')+'</a>').join('');
-document.body.appendChild(nav);
+if(!originalHomeDock){
+ nav.innerHTML=tabs.map(([h,l,i],index)=>
+   '<a href="'+h+'" data-app-tab="'+i+'"'+
+   (needDockEligible&&index===2?' data-jr-open-assistant data-jr-assistant-fallback="'+h+'"':'')+
+   '>'+icon(i)+'<span>'+l+'</span>'+
+   (i==='bag'?'<b class="app-cart-badge" data-app-cart-count hidden>0</b>':'')+
+   '</a>').join('');
+ document.body.appendChild(nav);
+}
+if(needDockEligible){
+ // Lazy additive assets use the current approved mobile shell. No extra
+ // database, second AI backend, new dialog or competing service worker.
+ if(!q('link[href*="jr-home-primary-dock-v4.css"]')){
+  const style=document.createElement('link');style.rel='stylesheet';
+  style.href=u('assets/css/jr-home-primary-dock-v4.css?v=20261022-need-dock-2');
+  document.head.appendChild(style);
+ }
+ if(!q('script[src*="jr-home-primary-dock-v4.js"]')){
+  const script=document.createElement('script');
+  script.src=u('assets/js/jr-home-primary-dock-v4.js?v=20261022-need-dock-2');
+  script.defer=true;document.head.appendChild(script);
+ }
+}
 const panel=document.createElement('div');panel.className='mobile-app-sheet';panel.id='mobile-app-menu';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label',isFa?'دسترسی سریع':'Explore');
 panel.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><div><small>'+(isFa?'ناوبری اپ':'APP NAVIGATION')+'</small><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong></div><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-search"><label for="jr-mobile-quick-find">'+(isFa?'جست‌وجوی سریع در بخش‌های سایت':'Quickly find a site section')+'</label><input id="jr-mobile-quick-find" data-jr-mobile-quick-find type="search" autocomplete="off" spellcheck="false" placeholder="'+(isFa?'نام خدمت، کتاب یا بخش...':'Service, book or section...')+'" aria-controls="jr-mobile-quick-links"><span data-jr-mobile-search-count role="status" aria-live="polite"></span></div><div class="app-sheet-grid" id="jr-mobile-quick-links">'+sheet.map(([h,l])=>'<a href="'+h+'"><span class="sheet-icon">'+icon(iconFor(h,l))+'</span><b>'+l+'</b><span class="sheet-chevron" aria-hidden="true">›</span></a>').join('')+'</div><p class="app-sheet-empty" data-jr-mobile-empty hidden>'+(isFa?'بخشی با این عبارت پیدا نشد. عبارت دیگری وارد کنید.':'No section matched. Try another term.')+'</p>'+(installControl?'<div class="app-sheet-install">'+installControl+'</div>':'')+(isInstalled?'<div class="app-sheet-update"><button type="button" data-jr-app-update-check>'+icon('path')+'<span>'+(isFa?'بررسی نسخه جدید اپلیکیشن':'Check for app updates')+'</span></button><p data-jr-app-update-status role="status" aria-live="polite">'+(isFa?'در صورت انتشار نسخه جدید، به‌روزرسانی با تأیید شما انجام می‌شود.':'Updates are announced before you choose to refresh.')+'</p></div>':'')+'</div>';
 document.body.appendChild(panel);
@@ -158,7 +213,17 @@ if(!active){
   :(/\/en\/(?:login|register|recover)\//.test(current)?'/en/login/':/\/en\/(?:request-consultation|student-guidance)\//.test(current)?'/en/request-consultation/':'/en/');
  active=qa('.app-dock a').find(a=>new URL(a.href,location.href).pathname.replace(/index\.html$/,'')===cluster)||null;
 }
-if(active){active.classList.add('is-active');active.setAttribute('aria-current','page')}
+if(needDockEligible){
+ // A deep public information page is not the /my-path/ page merely because
+ // Explore is the nearest tab; only mark aria-current="page" for exact URLs.
+ const realPage=qa('.app-dock a').find(a=>new URL(a.href,location.href).pathname.replace(/index\.html$/,'')===current);
+ qa('.app-dock a').forEach(a=>{a.classList.remove('is-active');a.removeAttribute('aria-current')});
+ if(realPage){realPage.classList.add('is-active');realPage.setAttribute('aria-current','page')}
+ else{
+  const explorer=qa('.app-dock a')[1];
+  explorer?.classList.add('is-active');
+ }
+}else if(active){active.classList.add('is-active');active.setAttribute('aria-current','page')}
 const syncCartBadge=()=>{
  let n=0;
  try{
