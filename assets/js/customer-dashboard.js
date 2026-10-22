@@ -36,14 +36,23 @@ function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&
 
 async function jsonRequest(url,options={},timeout=9000){
  const controller=new AbortController();
- const timer=setTimeout(()=>controller.abort(),timeout);
+ // Private callers can abort reads on sign-out/pagehide; keep the
+ // established per-request timeout as a separate upper bound.
+ const upstream=options.signal;
+ const cancel=()=>controller.abort();
+ if(upstream?.aborted)cancel();
+ else upstream?.addEventListener?.('abort',cancel,{once:true});
+ const timer=setTimeout(cancel,timeout);
  try{
   const r=await fetch(url,{cache:'no-store',...options,signal:controller.signal});
   let data=null;try{data=await r.json()}catch{}
   return {ok:r.ok,status:r.status,data};
  }catch(error){
   return {ok:false,status:0,data:null,error};
- }finally{clearTimeout(timer)}
+ }finally{
+  clearTimeout(timer);
+  upstream?.removeEventListener?.('abort',cancel);
+ }
 }
 
 function runtimeRow(key,state,value,detail){
@@ -404,7 +413,8 @@ function serviceMarketplace(runtime,authenticated){
   render();
  }).catch(()=>{
   if(stamp!==serviceMarketplaceGeneration)return;
-  if(count)count.textContent=localNumber(0);
+  // Unavailable source means UNKNOWN, not evidence of zero products.
+  if(count)count.textContent='—';
   if(status)status.textContent=isEnglish
     ?'The service catalogue or its English descriptions cannot be verified at the moment.'
     :'فهرست خدمات موقتاً در دسترس نیست.';
@@ -452,6 +462,7 @@ function logout(){
   // the user's sign-out intent; the API still independently proves whether
   // the server session was actually terminated.
   window.dispatchEvent(new Event('jr:account-logout'));
+  forgetPrivateNextAction();
   const result=await jsonRequest(API+'/auth/logout',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:'{}'});
   if(result.ok){location.assign(lang==='en'?'/en/login/':'/fa/login/');return}
   b.disabled=false;
@@ -480,14 +491,34 @@ async function supportEnglishHealth(authenticated){
 // This overview consumes the existing owner-scoped history contract only.
 // No private order details are stored in browser persistence or URL parameters.
 let nextActionRequest=0;
+let nextActionController=null;
+function forgetPrivateNextAction(){
+ ++nextActionRequest;
+ nextActionController?.abort();
+ nextActionController=null;
+ const heading=$('[data-home-heading]'),description=$('[data-home-copy]'),
+       action=$('[data-home-action]');
+ if(heading&&description&&action){
+  heading.textContent=lang==='en'?'Private overview cleared.':'نمای خصوصی پاک شد.';
+  description.textContent=lang==='en'
+   ?'Account-specific order details are no longer displayed. Verify your account to retrieve current records.'
+   :'جزئیات سفارش اختصاصی دیگر نمایش داده نمی‌شود. برای دریافت اطلاعات تازه، وضعیت حساب را تأیید کنید.';
+  action.textContent=lang==='en'?'Account sign-in':'ورود به حساب';
+  action.href=lang==='en'?'/en/login/':'/fa/login/';
+ }
+}
 async function verifiedCustomerNextAction(authenticated){
  const stamp=++nextActionRequest;
+ nextActionController?.abort();
+ nextActionController=new AbortController();
+ const activeController=nextActionController;
  const heading=$('[data-home-heading]'),description=$('[data-home-copy]'),action=$('[data-home-action]');
  if(!heading||!description||!action||!authenticated)return;
  const isEnglish=lang==='en';
  const ordersHref=isEnglish?'/en/account/orders/':'/fa/app/account/orders/';
  const set=(title,detail,label,href)=>{
-  if(stamp!==nextActionRequest)return;
+  if(stamp!==nextActionRequest||document.hidden||
+     document.documentElement.dataset.customerAuthenticated!=='true')return;
   heading.textContent=title;description.textContent=detail;
   action.textContent=label;action.setAttribute('href',href);
  };
@@ -496,8 +527,11 @@ async function verifiedCustomerNextAction(authenticated){
  set(isEnglish?'Checking your next verified action…':'در حال بررسی اقدام بعدی تأییدشده…',
      isEnglish?'Only your authorised order history can determine a personal action.':'اقدام شخصی فقط با تاریخچه سفارش مجاز سمت سرور مشخص می‌شود.',
      isEnglish?'Open orders':'مشاهده سفارش‌ها',ordersHref);
- const response=await jsonRequest(API+'/commerce/history',{method:'GET',credentials:'include',cache:'no-store'});
- if(stamp!==nextActionRequest)return;
+ const response=await jsonRequest(API+'/commerce/history',{
+  method:'GET',credentials:'include',cache:'no-store',signal:activeController.signal
+ });
+ if(stamp!==nextActionRequest||document.hidden||
+    document.documentElement.dataset.customerAuthenticated!=='true')return;
  if(response.status===401||response.status===403){
   set(isEnglish?'Order access requires verification.':'دسترسی به سفارش‌ها نیازمند تأیید است.',
       isEnglish?'Your account session or order access could not be verified. Sign in again to review private orders.':'نشست حساب یا مجوز مشاهده سفارش‌ها تأیید نشد؛ برای بررسی سوابق خصوصی دوباره وارد شوید.',
@@ -538,7 +572,7 @@ async function verifiedCustomerNextAction(authenticated){
    /^(service|vip):[a-z0-9_-]+$/.test(i.sku)));
  if(appointmentOrder){
   const evidence=await jsonRequest(API+'/commerce/fulfilment?order='+encodeURIComponent(appointmentOrder.id),
-   {method:'GET',credentials:'include',cache:'no-store'});
+   {method:'GET',credentials:'include',cache:'no-store',signal:activeController.signal});
   if(stamp!==nextActionRequest || document.hidden ||
      document.documentElement.dataset.customerAuthenticated!=='true')return;
   if(evidence.ok && evidence.data?.ok===true &&
@@ -597,4 +631,10 @@ document.addEventListener('DOMContentLoaded',async()=>{
  network();nav();sheet();commandCenter();logout();
  await refresh();
 });
+// Owned commerce details cannot reappear after the tab becomes private-inactive.
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden)forgetPrivateNextAction();
+});
+window.addEventListener('offline',forgetPrivateNextAction);
+window.addEventListener('pagehide',forgetPrivateNextAction);
 })();
