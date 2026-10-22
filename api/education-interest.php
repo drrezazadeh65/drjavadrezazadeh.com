@@ -44,6 +44,15 @@ function jrInterestSchemaReady(PDO $pdo): bool {
         return true;
     }catch(Throwable $e){return false;}
 }
+function jrInterestRenewalSchemaReady(PDO $pdo): bool {
+    try {
+        return $pdo->query(
+          'SELECT lead_id,token_hash,educational_need,preferred_locale,
+           consent_version,consent_notice_sha256,requested_at,expires_at
+           FROM eco_education_interest_renewals LIMIT 0'
+        )!==false;
+    } catch(Throwable $e) { return false; }
+}
 function jrInterestOwnerEnabled(PDO $pdo): bool {
     $q=$pdo->query('SELECT enabled FROM eco_education_interest_policy WHERE singleton_id=1 LIMIT 1');
     return (int)$q->fetchColumn()===1;
@@ -119,7 +128,7 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
     $withdraw=bin2hex(random_bytes(32));
     $verificationHash=hash('sha256',$token);
     $withdrawHash=hash('sha256',$withdraw);
-    $id=uuidv4();$send=true;
+    $id=uuidv4();$send=true;$renewal=false;
     try{
         $pdo->beginTransaction();
         $q=$pdo->prepare('SELECT id,status,educational_need,preferred_locale,
@@ -135,17 +144,49 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
                ($existing['preferred_locale']??'')===$locale &&
                ($existing['consent_version']??'')===JR_EDU_INTEREST_NOTICE_VERSION &&
                hash_equals($noticeHash,(string)$existing['consent_notice_sha256']);
-            if(
-              (($existing['status']??'')==='VERIFIED' &&
-               (int)($existing['expires_at']??0)>$now) ||
-              ($sameScope && ($existing['status']??'')==='PENDING' &&
+            $activeVerified=($existing['status']??'')==='VERIFIED' &&
+                (int)($existing['expires_at']??0)>$now;
+            if($activeVerified) {
+                // Never allow an unauthenticated email submission to replace,
+                // reset, revoke or change an existing VERIFIED subscription.
+                // Only a SECOND mailbox-controlled token can authorize a
+                // changed need, language or new version of the privacy notice.
+                if($sameScope || !jrInterestRenewalSchemaReady($pdo)) {
+                    $send=false;
+                } else {
+                    $previous=$pdo->prepare('SELECT educational_need,preferred_locale,
+                        consent_version,consent_notice_sha256,requested_at,expires_at
+                        FROM eco_education_interest_renewals WHERE lead_id=? FOR UPDATE');
+                    $previous->execute([$id]);
+                    $pending=$previous->fetch(PDO::FETCH_ASSOC);
+                    $samePending=is_array($pending) &&
+                        $pending['educational_need']===$need &&
+                        $pending['preferred_locale']===$locale &&
+                        $pending['consent_version']===JR_EDU_INTEREST_NOTICE_VERSION &&
+                        hash_equals($noticeHash,(string)$pending['consent_notice_sha256']);
+                    if($samePending&&(int)$pending['requested_at']>$now-600 &&
+                        (int)$pending['expires_at']>$now) {
+                        $send=false;
+                    } else {
+                        $stage=$pdo->prepare('INSERT INTO eco_education_interest_renewals
+                          (lead_id,token_hash,educational_need,preferred_locale,
+                           consent_version,consent_notice_sha256,requested_at,expires_at)
+                          VALUES (?,?,?,?,?,?,?,?)
+                          ON DUPLICATE KEY UPDATE token_hash=VALUES(token_hash),
+                            educational_need=VALUES(educational_need),
+                            preferred_locale=VALUES(preferred_locale),
+                            consent_version=VALUES(consent_version),
+                            consent_notice_sha256=VALUES(consent_notice_sha256),
+                            requested_at=VALUES(requested_at),expires_at=VALUES(expires_at)');
+                        $stage->execute([$id,$verificationHash,$need,$locale,
+                          JR_EDU_INTEREST_NOTICE_VERSION,$noticeHash,$now,$now+48*3600]);
+                        jrInterestConsentEvent($pdo,$id,'SUBMITTED',$noticeHash,$now);
+                        $renewal=true;
+                    }
+                }
+            }elseif($sameScope && ($existing['status']??'')==='PENDING' &&
                (int)($existing['last_invitation_at']??0)>$now-600 &&
-               (int)($existing['verification_expires_at']??0)>$now)
-            ){
-                // IMPORTANT: An unverified stranger who knows someone else's
-                // email must never be able to revoke, retarget or reset
-                // an existing verified topic subscription. Only a holder of
-                // the signed withdrawal link can cancel it before reopt-in.
+               (int)($existing['verification_expires_at']??0)>$now){
                 $send=false;
             }else{
                 $sealed=jrInterestSeal($email,$id,$secret);
@@ -189,7 +230,15 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
         $withdrawLink=jrInterestSafeEmailLink($locale,'withdraw',$withdraw);
         $subject=$locale==='en'?'Confirm educational updates from Dr. Rezazadeh':
             'تأیید دریافت راهنمای آموزشی دکتر رضازاده';
-        $mail=$locale==='en'
+        $mail=$renewal
+          ?($locale==='en'
+            ?"You requested a change to your existing educational email interest or consent notice.\n".
+              "Your previous verified subscription is unchanged until you personally confirm this request:\n".$verifyLink."\n\n".
+              "If you did not request this change, ignore this message. Your existing withdrawal link still works."
+            :"شما درخواست تغییر موضوع یا نسخه رضایت‌نامه راهنمای آموزشی خود را داده‌اید.\n".
+              "عضویت تأییدشده قبلی شما تا زمان تأیید ایمیل تغییر نمی‌کند. برای تأیید تغییر، پیوند زیر را باز کنید:\n".$verifyLink."\n\n".
+              "اگر این درخواست متعلق به شما نیست، نامه را نادیده بگیرید. پیوند انصراف قبلی شما همچنان معتبر است.")
+          :($locale==='en'
             ?"You requested first-party guidance related to your selected learning interest.\n".
              "Confirm this email address to subscribe:\n".$verifyLink."\n\n".
              "Decline or withdraw any time:\n".$withdrawLink."\n\n".
@@ -197,7 +246,7 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
             :"شما دریافت اختیاری راهنماهای آموزشی مرتبط با موضوع انتخابی را درخواست کردید.\n".
              "برای تأیید ایمیل و شروع عضویت، این پیوند را باز کنید:\n".$verifyLink."\n\n".
              "برای انصراف می‌توانید از این پیوند استفاده کنید:\n".$withdrawLink."\n\n".
-             "اگر این درخواست متعلق به شما نیست، نامه را نادیده بگیرید. پیش از تأیید، خبرنامه‌ای ارسال نمی‌شود.";
+             "اگر این درخواست متعلق به شما نیست، نامه را نادیده بگیرید. پیش از تأیید، خبرنامه‌ای ارسال نمی‌شود.");
         // The existing site SMTP transport is used. Never log the recipient
         // or verification secrets, and never claim an email was delivered
         // merely because a record was written.
@@ -211,6 +260,61 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
       'message'=>$locale==='en'?
          'Check your inbox for a verification link if this is a new request.':
          'اگر درخواست شما جدید باشد، پیوند تأیید به ایمیل ارسال شده است.'],202);
+}
+/**
+ * Called only inside the caller's existing transaction. A source-stage
+ * renewal does not alter the current VERIFIED lead before the mailbox holder
+ * confirms its one-time 256-bit token. Both decisions serialize on that lead.
+ */
+function jrInterestCompleteRenewal(PDO $pdo,string $tokenHash,int $at): bool {
+    if(!jrInterestRenewalSchemaReady($pdo))return false;
+    // Locate the owner row without locking the child first: every writer
+    // locks the parent lead before its staged renewal to avoid lock inversion.
+    $find=$pdo->prepare('SELECT lead_id FROM eco_education_interest_renewals
+      WHERE token_hash=? LIMIT 1');
+    $find->execute([$tokenHash]);
+    $leadId=$find->fetchColumn();
+    if(!is_string($leadId))return false;
+    $parent=$pdo->prepare('SELECT id,status,expires_at
+      FROM eco_education_interest_leads WHERE id=? FOR UPDATE');
+    $parent->execute([$leadId]);
+    $lead=$parent->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($lead)||$lead['status']!=='VERIFIED'||
+      (int)$lead['expires_at']<=$at)
+      throw new DomainException('renewal_parent_inactive');
+    $lock=$pdo->prepare('SELECT educational_need,preferred_locale,
+      consent_version,consent_notice_sha256,expires_at
+      FROM eco_education_interest_renewals
+      WHERE lead_id=? AND token_hash=? FOR UPDATE');
+    $lock->execute([$leadId,$tokenHash]);
+    $renewal=$lock->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($renewal)||(int)$renewal['expires_at']<=$at)
+      throw new DomainException('renewal_expired_or_replaced');
+    $locale=(string)$renewal['preferred_locale'];
+    if(!in_array($locale,['fa','en'],true)||
+       !in_array((string)$renewal['educational_need'],jrInterestNeeds(),true)||
+       $renewal['consent_version']!==JR_EDU_INTEREST_NOTICE_VERSION||
+       !hash_equals(hash('sha256',jrInterestNotice($locale)),
+         (string)$renewal['consent_notice_sha256']))
+      throw new DomainException('renewal_notice_outdated');
+    $update=$pdo->prepare("UPDATE eco_education_interest_leads SET
+      educational_need=?,preferred_locale=?,consent_version=?,
+      consent_notice_sha256=?,consent_given_at=?,verified_at=?,
+      expires_at=?,updated_at=?
+      WHERE id=? AND status='VERIFIED' AND expires_at>?");
+    $update->execute([$renewal['educational_need'],$locale,
+      JR_EDU_INTEREST_NOTICE_VERSION,$renewal['consent_notice_sha256'],
+      $at,$at,$at+365*86400,$at,$leadId,$at]);
+    if($update->rowCount()!==1)
+      throw new DomainException('renewal_parent_conflict');
+    jrInterestConsentEvent($pdo,$leadId,'EMAIL_VERIFIED',
+      (string)$renewal['consent_notice_sha256'],$at);
+    $del=$pdo->prepare('DELETE FROM eco_education_interest_renewals
+      WHERE lead_id=? AND token_hash=?');
+    $del->execute([$leadId,$tokenHash]);
+    if($del->rowCount()!==1)
+      throw new DomainException('renewal_consumption_conflict');
+    return true;
 }
 function jrInterestProcessEmailToken(PDO $pdo,array $body,string $action): never {
     $token=$body['token']??null;
@@ -234,6 +338,14 @@ function jrInterestProcessEmailToken(PDO $pdo,array $body,string $action): never
               WHERE withdrawal_token_hash=? FOR UPDATE");
         }
         $q->execute([$hash]);$row=$q->fetch(PDO::FETCH_ASSOC);
+        if($action==='confirm'&&!is_array($row)&&
+           jrInterestCompleteRenewal($pdo,$hash,$now)) {
+            $pdo->commit();
+            respond(['ok'=>true,'schema'=>'jr.education-interest-email-action.v1',
+              'action'=>'VERIFIED','noPaymentOrLearningScore'=>true,
+              'emailAddressReturned'=>false,
+              'automaticMarketingForOtherPurposes'=>false]);
+        }
         if(!is_array($row)||($row['status']??'')==='WITHDRAWN'||
            (int)($row['expires_at']??0)<=$now)
             throw new DomainException('invalid_or_expired');
