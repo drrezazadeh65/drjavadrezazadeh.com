@@ -2626,6 +2626,71 @@ function renderOwnerCommandCenter(){
  ]){const tile=el('div',undefined,'oc-stat');tile.append(el('small',t(fa,label)),
    el('strong',String(value)),el('span',caption));stats.append(tile);}
  root.append(stats);
+ // Show actual prerequisites, with safe links to EXISTING protected workspaces.
+ // This explains why a capability cannot work without pretending a connector
+ // or host-side worker has been activated by a browser button.
+ const blockers=[];
+ const missingTables=readiness?.schemaInventory?.missing;
+ if(Array.isArray(missingTables)&&missingTables.length)
+   blockers.push({
+     label:t('جداول مادرِ نصب‌نشده','Missing mother-database tables'),
+     detail:missingTables.slice(0,10).join(' · ')+
+       (missingTables.length>10?t(' و موارد دیگر',' and more'):''),
+     target:'ops-database-health',severity:'attention'
+   });
+ if(sourceControlState?.status==='schema_not_provisioned')
+   blockers.push({
+     label:t('جدول تنظیمات منابع وجود ندارد','Source policy storage is unavailable'),
+     detail:t('این مورد نیازمند نصب SQL بدون تغییر جدول‌های قبلی است.',
+       'Additive owner-reviewed SQL provisioning is required.'),
+     target:'ops-source-directory',severity:'attention'
+   });
+ const noExecutor=actions.filter(a=>a.supportedExecutor?.type!=='readonly_snapshot'
+   ||a.supportedExecutor?.writes!==false).length;
+ if(noExecutor>0)
+   blockers.push({
+     label:t('اقدام‌های فاقد اجراکننده واقعی','Actions without a real executor'),
+     detail:t('اقدام‌های فقط ثبت‌شده: ','Catalogued but not executable: ')+noExecutor,
+     target:'ops-master-engine-control',severity:'unknown'
+   });
+ if(sourceDirectoryState?.counts?.externalReferences>0)
+   blockers.push({
+     label:t('اتصالات خارجی نیازمند احراز مستقل','External integrations require verification'),
+     detail:t('فهرست مرجع به معنی اعطای OAuth یا وجود سنجه زنده نیست.',
+       'A registered reference is not an OAuth grant or a live metric adapter.'),
+     target:'ops-source-directory',severity:'unknown'
+   });
+ if(readiness?.smtp?.recipientConfigured===false)
+   blockers.push({
+     label:t('گیرنده خصوصی هشدار پیکربندی نشده','Private incident recipient not configured'),
+     detail:t('تنها از تنظیمات خصوصی سرور؛ بدون ارسال خودکار.',
+       'Configure through private server settings only; no automatic email.'),
+     target:'ops-alert-center',severity:'unknown'
+   });
+ const dependencyBox=el('details',undefined,'oc-dependency-list');
+ dependencyBox.open=Array.isArray(missingTables)&&missingTables.length>0;
+ const dependencyHead=el('summary',t('نیازمندی‌های اتصال و رفع مانع','Integration dependencies and remediation'));
+ dependencyHead.append(el('span',String(blockers.length)+' · '+
+   t('مورد نیازمند اقدام یا تأیید','requiring action or verification')));
+ dependencyBox.append(dependencyHead);
+ if(!blockers.length)dependencyBox.append(el('p',t(
+   'مانع شناخته‌شده‌ای در شواهد فعلی ثبت نشده؛ این نتیجه به معنی تأیید تمام اتصال‌ها نیست.',
+   'No documented blocker in the loaded evidence; this is not a certification of all integrations.')));
+ for(const item of blockers){
+   const line=el('div',undefined,'oc-dependency-row');
+   line.dataset.severity=item.severity;
+   const body=el('div');
+   body.append(el('strong',item.label),el('small',item.detail));
+   line.append(body);
+   if($(item.target)){
+     const button=el('button',t('بازکردن کنترل مرتبط','Open related controls'));
+     button.type='button';
+     button.addEventListener('click',()=>openExistingOperationalWorkspace(item.target));
+     line.append(button);
+   }
+   dependencyBox.append(line);
+ }
+ root.append(dependencyBox);
  // Evidence-backed triage queue: does not fabricate unrecorded incidents.
  const queueItems=[];
  const action=(id,priority,fa,en,detailFa,detailEn)=>queueItems.push(
