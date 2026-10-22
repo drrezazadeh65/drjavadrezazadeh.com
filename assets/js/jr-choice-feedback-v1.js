@@ -90,6 +90,10 @@ function enhance(root,n){
  const buttons=[];
  function selectTab(index,focus=false){
   const group=groups[index];
+  // An earlier sample-insertion warning belongs to the previous category.
+  // Clear it before replacing that category's controls, so assistive
+  // technology does not announce a stale action against new examples.
+  exampleStatus.textContent='';
   buttons.forEach((button,i)=>{
    const selected=index===i;
    button.setAttribute('aria-selected',String(selected));
