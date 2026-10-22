@@ -255,6 +255,20 @@ function operationsActivationReport(PDO $pdo,array $configuration,int $at): arra
             ['operations_database_health_settings','operations_database_health_runs',
              'operations_database_error_events']]
     ];
+    // These timestamps are observed journal rows, not successful external
+    // fetches, installed host jobs or operational green lights.
+    $moduleObservation=[
+        'collectors'=>[$workers[0]['lastObservedAt']??null,'collector_attempt'],
+        'http_errors'=>[$workers[1]['lastObservedAt']??null,'private_log_cursor'],
+        'response'=>[$workers[2]['lastObservedAt']??null,'response_probe_sample'],
+        'alerts'=>[$workers[3]['lastObservedAt']??null,'outbox_attempt'],
+        'db_health'=>[
+            $has(['operations_database_health_runs'])
+                ?operationsActivationLast($pdo,
+                    'SELECT MAX(observed_at) FROM operations_database_health_runs'):null,
+            'database_health_journal'
+        ]
+    ];
     $moduleContracts=[];
     foreach($moduleCatalog as [$id,$nameFa,$nameEn,$target,$tables]){
         $absent=$inventory==='unavailable'?null:
@@ -266,6 +280,8 @@ function operationsActivationReport(PDO $pdo,array $configuration,int $at): arra
             'missingTables'=>$absent,
             'schemaState'=>$absent===null?'unknown':($absent?'missing_tables':'table_names_observed'),
             'runtimeVerified'=>null,
+            'lastRecordedAt'=>$moduleObservation[$id][0]??null,
+            'recordKind'=>$moduleObservation[$id][1]??null,
             'sourceRouteDeclared'=>true,
             'hostCronVerified'=>null
         ];
