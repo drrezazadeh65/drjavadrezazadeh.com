@@ -179,6 +179,25 @@ function operationsEducationReadiness(PDO $pdo): array {
         if(function_exists('operationsEducationalDraftPricesRead'))
             $draftState=operationsEducationalDraftPricesRead($pdo);
     } catch(Throwable $error){$draftState=null;}
+    $baharPrivacyPending=null;
+    $baharPrivacyHeld=null;
+    try{
+      $q=$pdo->query("SELECT status,COUNT(*) AS amount FROM eco_privacy_requests
+         WHERE request_type='BAHAR_PRIVATE_WORKBOOK_DELETE'
+         GROUP BY status LIMIT 12");
+      $baharPrivacyPending=0;
+      $baharPrivacyHeld=0;
+      foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+        $amount=max(0,(int)($row['amount']??0));
+        if(in_array((string)$row['status'],
+          ['RECEIVED','IN_REVIEW','PENDING','BLOCKED'],true))
+          $baharPrivacyPending+=$amount;
+        if(($row['status']??'')==='BLOCKED')
+          $baharPrivacyHeld+=$amount;
+      }
+    }catch(Throwable $error){
+      $baharPrivacyPending=null;$baharPrivacyHeld=null;
+    }
     $adultPending=null;
     try{
         $q=$pdo->query("SELECT COUNT(*) FROM eco_bahar_verified_adult_accounts
@@ -247,6 +266,8 @@ function operationsEducationReadiness(PDO $pdo): array {
                 ($sourceQuality['status']??null)==='source_only'
                   ?($sourceQuality['generatedAt']??null):null,
             'pendingIndependentAdultReviewRequests'=>$adultPending,
+            'pendingBaharPrivacyErasureRequests'=>$baharPrivacyPending,
+            'baharPrivacyErasureLegalHolds'=>$baharPrivacyHeld,
             'adultReviewQueueVisible'=>$adultPending!==null,
             'privateAdultWorkbookEffectiveEnabled'=>$privatePolicy['effectiveEnabled']??null,
             'privateAdultWorkbookPolicyProvisioned'=>
