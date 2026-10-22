@@ -91,6 +91,15 @@
         target:'ops-page-quality'
       },
       {
+        title:T('درآمد و تحویل؛ فقط شواهد واقعی','Commerce and delivery evidence'),
+        count:null,
+        state:T('فروش بسته‌های پیشنهادی غیرفعال','Proposed offers are NOT live for sale'),
+        detail:T('مقایسه سفارش‌های واقعی، تطبیق ادعای درگاه، خدمات باز و تقاضای ایمیلی داوطلبانه؛ بدون ادعای سود یا تسویه.',
+          'Inspect existing orders, payment-claim matches, service backlog and consented interest; no invented profit or settlement.'),
+        button:T('مشاهده وضعیت تجارت','Open actual commerce evidence'),
+        target:'jr-education-business-report'
+      },
+      {
         title:T('درخواست‌های تأیید بزرگسالی','Adult eligibility review queue'),
         count:deps.pendingIndependentAdultReviewRequests,
         state:deps.adultReviewQueueVisible===true
