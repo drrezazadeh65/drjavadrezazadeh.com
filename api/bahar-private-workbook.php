@@ -143,6 +143,36 @@ function baharAccountEligibilityState(PDO $pdo,string $accountId): string {
       'PENDING','VERIFIED_ADULT','DECLINED','REVOKED'
     ],true)?$state:'NOT_REQUESTED';
 }
+/** One account's most recent official erasure-request lifecycle. */
+function baharAccountLatestErasureState(PDO $pdo,string $accountId): array {
+    try{
+        $q=$pdo->prepare("SELECT id,status,created_at,closed_at
+          FROM eco_privacy_requests
+          WHERE requester_account_id=? AND subject_id IS NULL
+            AND request_type='BAHAR_PRIVATE_WORKBOOK_DELETE'
+          ORDER BY created_at DESC,id DESC LIMIT 1");
+        $q->execute([$accountId]);
+        $row=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($row))return [
+          'available'=>true,'request'=>null
+        ];
+        if(!validUuid((string)$row['id'])||
+          !in_array((string)$row['status'],
+            ['RECEIVED','PENDING','IN_REVIEW','BLOCKED','COMPLETED'],true))
+            return ['available'=>false,'request'=>null];
+        return [
+          'available'=>true,'request'=>[
+            'id'=>(string)$row['id'],
+            'state'=>(string)$row['status'],
+            'createdAt'=>(string)$row['created_at'],
+            'completedAt'=>$row['closed_at']===null
+                ?null:(string)$row['closed_at']
+          ]
+        ];
+    }catch(Throwable $error){
+        return ['available'=>false,'request'=>null];
+    }
+}
 function baharAccountCsrf(string $accountId): string {
     $pepper=cfg()['auth_pepper']??'';
     if(!is_string($pepper)||strlen($pepper)<32)
@@ -396,6 +426,7 @@ function baharAccountRoute(string $path,string $verb): never {
         $enabled=$schemaReady&&baharAccountFeatureAllowed()&&
             $policy['enabled']&&$key!==null;
         if($path==='/bahar/account/status'&&$verb==='GET'){
+            $erasure=baharAccountLatestErasureState($pdo,$accountId);
             $eligibilityState=$schemaReady
                 ?baharAccountEligibilityState($pdo,$accountId):'UNAVAILABLE';
             $currentConsent=$schemaReady&&$adult&&
@@ -420,6 +451,8 @@ function baharAccountRoute(string $path,string $verb): never {
               'currentNoticeConfigured'=>$notice!==null,
               'currentConsent'=>$currentConsent,
               'privacyNotice'=>$notice===null?null:baharAccountNotice($locale),
+              'privacyRequestLedgerAvailable'=>$erasure['available'],
+              'latestErasureRequest'=>$erasure['request'],
               'canStore'=>$enabled&&$adult&&$notice!==null&&$currentConsent,
               'workbookRevision'=>$revision,
               'csrfToken'=>baharAccountCsrf($accountId),
