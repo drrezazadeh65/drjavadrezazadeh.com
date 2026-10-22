@@ -1,0 +1,299 @@
+{
+  "schema": "operations-existing-feature-catalogue-v1",
+  "generatedAt": "2026-10-22",
+  "source": "repository_file_presence_only",
+  "total": 18,
+  "limitations": "Source file existence does not prove deployed services, permissions, live connections, customer data, scheduled work, quality checks or revenues.",
+  "features": [
+    {
+      "id": "redirect-301-410",
+      "engineId": "ENG-01",
+      "nameEn": "Redirect and historical authority",
+      "nameFa": "ریدایرکت و اعتبار تاریخی دامنه",
+      "sources": [
+        ".htaccess",
+        "platform/historical-authority-registry.json",
+        "scripts/historical-authority-audit.mjs"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "protected_seo_rule",
+      "adminTarget": "ops-http-health",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "incoming-404",
+      "engineId": "ENG-01",
+      "nameEn": "Incoming 404 recovery",
+      "nameFa": "ورودی‌های ۴۰۴ و بازیابی بک‌لینک",
+      "sources": [
+        "scripts/historical-404-log-analyzer.mjs",
+        "api/operations-http-log.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "private_log_collector_opt_in",
+      "adminTarget": "ops-http-health",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "robots-sitemaps",
+      "engineId": "ENG-01",
+      "nameEn": "Robots and bilingual sitemaps",
+      "nameFa": "ربات‌ها و سایت‌مپ‌های دوزبانه",
+      "sources": [
+        "robots.txt",
+        "sitemap.xml",
+        "sitemap-fa.xml",
+        "sitemap-en.xml"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "protected_indexing_baseline",
+      "adminTarget": "ops-page-quality",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "schema-entities",
+      "engineId": "ENG-01",
+      "nameEn": "Structured data and entity graphs",
+      "nameFa": "اسکیما و موجودیت‌های علمی",
+      "sources": [
+        "scripts/schema-entity-inventory.mjs",
+        "scripts/seo-regression.mjs"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "approved_source_review",
+      "adminTarget": "ops-page-quality",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "page-quality-scores",
+      "engineId": "ENG-01",
+      "nameEn": "Per-page multidimensional scoring",
+      "nameFa": "امتیازهای مستقل تمام صفحات",
+      "sources": [
+        "scripts/operations-page-quality.mjs",
+        "api/operations-page-quality.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "read_only_manual_inspection",
+      "adminTarget": "ops-page-quality",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "geo-ai-discovery",
+      "engineId": "ENG-02",
+      "nameEn": "GEO and machine-readable discovery",
+      "nameFa": "کشف محتوا و GEO",
+      "sources": [
+        "llms.txt",
+        "robots.txt",
+        "api/operations-ai-visibility.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "source_and_provider_evidence_separate",
+      "adminTarget": "ops-page-quality",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "social-network-integrations",
+      "engineId": "ENG-03",
+      "nameEn": "Social publication and provider stats",
+      "nameFa": "انتشار و آمار شبکه‌های اجتماعی",
+      "sources": [
+        "platform/social-distribution/connections.mjs",
+        "api/operations-social.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "provider_approval_required",
+      "adminTarget": "ops-source-directory",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "talent-assessment",
+      "engineId": "ENG-04",
+      "nameEn": "Golden Talent scientific assessment",
+      "nameFa": "ارزیابی علمی استعداد",
+      "sources": [
+        "api/golden-talent.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "protected_scientific_workflow",
+      "adminTarget": "ops-master-engine-control",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "commerce-settlement",
+      "engineId": "ENG-05",
+      "nameEn": "Commerce and payment reconciliation",
+      "nameFa": "تجارت و تطبیق پرداخت",
+      "sources": [
+        "api/operations-commerce.php",
+        "api/index.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "protected_commercial_workflow",
+      "adminTarget": "ops-master-engine-control",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "journal-native-editorial",
+      "engineId": "ENG-06",
+      "nameEn": "JHELA editorial workflow",
+      "nameFa": "فرایند سردبیری نشریه",
+      "sources": [
+        "api/jhela-native-editorial.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "protected_scholarly_workflow",
+      "adminTarget": "ops-master-engine-control",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "newsletter-consent",
+      "engineId": "ENG-07",
+      "nameEn": "Newsletter and consent delivery",
+      "nameFa": "خبرنامه و رضایت کاربران",
+      "sources": [
+        "api/newsletter-worker.php",
+        "api/newsletter-delivery.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "private_consent_critical",
+      "adminTarget": "ops-master-engine-control",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "pwa-update-engine",
+      "engineId": "ENG-10",
+      "nameEn": "PWA and service worker updates",
+      "nameFa": "اپلیکیشن و سرویس‌ورکر",
+      "sources": [
+        "site.webmanifest",
+        "sw.js"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "protected_pwa_baseline",
+      "adminTarget": "ops-master-engine-control",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "response-security-headers",
+      "engineId": "ENG-11",
+      "nameEn": "Response security headers",
+      "nameFa": "هدرهای امنیتی و حریم خصوصی",
+      "sources": [
+        ".htaccess",
+        "api/index.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "protected_security_baseline",
+      "adminTarget": "ops-alert-center",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "caching-and-compression",
+      "engineId": "ENG-11",
+      "nameEn": "LiteSpeed cache and HTTP compression",
+      "nameFa": "کش و فشرده‌سازی HTTP",
+      "sources": [
+        ".htaccess",
+        "scripts/bertina-postrelease-check.mjs"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "protected_performance_baseline",
+      "adminTarget": "ops-alert-center",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "site-runtime-health",
+      "engineId": "ENG-11",
+      "nameEn": "Server responses and runtime error health",
+      "nameFa": "سلامت پاسخ سرور و خطاهای HTTP",
+      "sources": [
+        "api/operations-http-log.php",
+        "api/operations-response-monitor.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "read_only_opt_in_cli_sensor",
+      "adminTarget": "ops-alert-center",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "admin-audit-and-2fa",
+      "engineId": "ENG-12",
+      "nameEn": "MFA, access control and audit log",
+      "nameFa": "احراز هویت دومرحله‌ای و لاگ مدیر",
+      "sources": [
+        "api/operations.php",
+        "api/operations-schema.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "protected_authentication",
+      "adminTarget": "ops-alert-center",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "source-scheduler-and-retention",
+      "engineId": "ENG-13",
+      "nameEn": "Collection schedule and retention",
+      "nameFa": "زمان‌بندی گردآوری و نگهداری اطلاعات",
+      "sources": [
+        "api/operations-collection.php",
+        "api/operations-source-controls.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "manual_daily_weekly_controls",
+      "adminTarget": "ops-source-directory",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    },
+    {
+      "id": "incident-mail-alerts",
+      "engineId": "ENG-13",
+      "nameEn": "Critical incident email outbox",
+      "nameFa": "هشدار فوری ایمیلی رخدادها",
+      "sources": [
+        "api/operations-alerts.php",
+        "api/internal/operations-alert-mail-worker.php"
+      ],
+      "sourceState": "source_present",
+      "missingSources": [],
+      "controlPolicy": "smtp_cron_configuration_required",
+      "adminTarget": "ops-alert-center",
+      "productionState": "not_independently_verified",
+      "canDisableWithoutApproval": false
+    }
+  ]
+}
