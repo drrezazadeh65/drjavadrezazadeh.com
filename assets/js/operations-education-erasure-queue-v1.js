@@ -15,12 +15,17 @@
   const list=root.querySelector('[data-erasure-queue-list]');
   const select=root.querySelector('[data-erasure-queue-selection]');
   const button=root.querySelector('[data-erasure-queue-complete]');
+  const previous=root.querySelector('[data-erasure-queue-previous]');
+  const next=root.querySelector('[data-erasure-queue-next]');
+  const pageLabel=root.querySelector('[data-erasure-queue-page]');
   const form=root.querySelector('[data-erasure-queue-form]');
-  if(!refresh||!status||!list||!select||!button||!form)return;
+  if(!refresh||!status||!list||!select||!button||!form||
+    !previous||!next||!pageLabel)return;
   const formatter=new Intl.NumberFormat(fa?'fa-IR':'en-US');
   const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const allowed=new Set(['RECEIVED','PENDING','IN_REVIEW','BLOCKED']);
   let controller=null,generation=0,busy=false,items=[];
+  let currentPage=1,totalPages=0;
   const visible=()=>!workspace.hidden&&parent.open&&!document.hidden;
   const note=s=>{status.textContent=s;};
   const element=(tag,textValue,cls)=>{
@@ -30,6 +35,12 @@
     return el;
   };
   function buttons(){
+    previous.disabled=busy||!visible()||currentPage<=1;
+    next.disabled=busy||!visible()||currentPage>=totalPages||currentPage>=5000;
+    pageLabel.textContent=totalPages>0
+      ?T('صفحه ','Page ')+formatter.format(currentPage)+
+         T(' از ',' of ')+formatter.format(totalPages)
+      :T('صفحه‌ای دریافت نشده','No page retrieved');
     const chosen=items.find(item=>item.id===select.value);
     button.disabled=busy||!visible()||!chosen;
     select.disabled=busy||!visible()||items.length===0;
@@ -37,20 +48,22 @@
   function clear(){
     generation++;controller?.abort();controller=null;
     items=[];busy=false;refresh.disabled=false;
+    currentPage=1;totalPages=0;
     list.replaceChildren();select.replaceChildren();buttons();
     note(T('درخواست‌های خصوصی فقط با اقدام مدیر خوانده می‌شوند.',
       'Private requests load only when the owner asks.'));
   }
   function present(data){
-    items=data.requests;list.replaceChildren();select.replaceChildren();
+    items=data.requests;totalPages=data.pages;
+    list.replaceChildren();select.replaceChildren();
     const totals=data.totalCounts||{};
     const blocked=Number.isSafeInteger(totals.BLOCKED)?totals.BLOCKED:0;
     const count=Object.values(totals).reduce((n,v)=>
       n+(Number.isSafeInteger(v)&&v>=0?v:0),0);
     note(T('درخواست‌های ثبت‌شده: ','Recorded requests: ')+
       formatter.format(count)+T(' · در انتظار رفع محدودیت: ',' · on legal hold: ')+
-      formatter.format(blocked)+(data.truncated
-        ?T(' · فهرست خلاصه‌شده است.',' · list is limited.'):''));
+      formatter.format(blocked)+(data.hasNextPage
+        ?T(' · صفحه‌های بعدی موجودند.',' · more pages available.'):''));
     if(!items.length){
       list.append(element('p',T('درخواستی در صف بررسی وجود ندارد.',
         'No outstanding requests are visible in this owner queue.')));
@@ -84,7 +97,8 @@
     note(T('در حال خواندن صف درخواست‌های ثبت‌شده…',
       'Reading the actual mother-database privacy queue…'));
     try{
-      const response=await fetch('/api/admin/operations/education-erasure-requests',{
+      const response=await fetch(
+        '/api/admin/operations/education-erasure-requests?page='+String(currentPage),{
         method:'GET',credentials:'same-origin',cache:'no-store',
         headers:{Accept:'application/json'},signal:controller.signal
       });
@@ -95,11 +109,17 @@
         data.schema!=='jr.bahar-owner-erasure-queue.v1'||
         data.legalHoldOverrideAvailable!==false||
         !Array.isArray(data.requests)||data.requests.length>100||
+        data.page!==currentPage||data.pageSize!==100||
+        (data.state!=='MOTHER_DATABASE_UNAVAILABLE'&&
+          (!Number.isSafeInteger(data.pages)||data.pages<0||
+           !Number.isSafeInteger(data.totalOpen)||data.totalOpen<0||
+           typeof data.hasNextPage!=='boolean'))||
         (data.totalCounts!==null &&
           (typeof data.totalCounts!=='object'||Array.isArray(data.totalCounts)))||
         typeof data.truncated!=='boolean')throw Error('BAD_QUEUE');
       if(data.state==='MOTHER_DATABASE_UNAVAILABLE'){
-        items=[];list.replaceChildren();select.replaceChildren();
+        items=[];totalPages=0;list.replaceChildren();select.replaceChildren();
+        buttons();
         note(T('جدول درخواست‌های حریم خصوصی در دیتابیس مادر آماده نیست. هیچ نتیجه‌ای فرض نمی‌شود.',
           'The mother-database request ledger is unavailable; no privacy action can be assumed.'));
         return false;
@@ -110,7 +130,8 @@
       present(data);return true;
     }catch(error){
       if(token!==generation||error?.name==='AbortError')return false;
-      items=[];select.replaceChildren();list.replaceChildren();
+      items=[];totalPages=0;select.replaceChildren();list.replaceChildren();
+      buttons();
       note(T('وضعیت درخواست‌ها قابل دریافت نیست. حذف یا رفع محدودیت انجام نشده است.',
         'Cannot retrieve this owner queue. No deletion or hold release occurred.'));
       return false;
@@ -120,6 +141,14 @@
     }
   }
   refresh.addEventListener('click',read);
+  previous.addEventListener('click',()=>{
+    if(busy||currentPage<=1)return;
+    currentPage--;read();
+  });
+  next.addEventListener('click',()=>{
+    if(busy||currentPage>=totalPages||currentPage>=5000)return;
+    currentPage++;read();
+  });
   select.addEventListener('change',buttons);
   form.addEventListener('submit',async event=>{
     event.preventDefault();
