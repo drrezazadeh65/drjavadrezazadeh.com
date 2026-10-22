@@ -293,6 +293,19 @@ function baharAccountRoute(string $path,string $verb): never {
         $notice=null;
         $schemaReady=true;
         try{
+            // Fixed, zero-row schema contract. Do not inspect learner content.
+            foreach([
+              'SELECT account_id,review_state,updated_at FROM eco_bahar_verified_adult_accounts LIMIT 0',
+              'SELECT owner_account_id,row_revision,ciphertext FROM eco_bahar_account_workbooks LIMIT 0',
+              'SELECT id,account_id,subject_id FROM eco_consent_records LIMIT 0',
+              'SELECT id,purpose_code,notice_sha256 FROM eco_consent_notices LIMIT 0',
+              'SELECT event_key,action_code FROM eco_audit_events LIMIT 0',
+              'SELECT id,owner_account_id FROM eco_subjects LIMIT 0',
+              'SELECT id,account_id,subject_id,released_at FROM eco_legal_holds LIMIT 0'
+            ] as $schemaQuery){
+                if($pdo->query($schemaQuery)===false)
+                    throw new RuntimeException('required_private_storage_schema_incomplete');
+            }
             $policy=baharAccountPolicy($pdo);
             $adult=baharAccountVerifiedAdult($pdo,$accountId);
             $notice=baharAccountCurrentNotice($pdo,$locale);
