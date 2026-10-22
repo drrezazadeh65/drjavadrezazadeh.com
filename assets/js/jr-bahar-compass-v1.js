@@ -82,9 +82,9 @@
       && bounded(record.goal,500)&&bounded(record.successEvidence,500)
       && optional(record.context,500);
   }
-  function weeklySnapshot(){
+  function weeklySnapshot(includeCompleteDraft=false){
     const form=$('bahar-plan'),summary=$('plan-summary');
-    if(!form||!summary||summary.hidden)return null;
+    if(!form||!summary||(!includeCompleteDraft&&summary.hidden))return null;
     const date=$('week-start')?.value??'';
     const goal=$('learning-goal')?.value?.trim()??'';
     const action=$('learning-action')?.value?.trim()??'';
@@ -161,13 +161,17 @@
   // Only user-authored, validated fields enter the optional export or
   // in-tab continuation. No background collection or account upload.
   function workbookSnapshot(){
-    const weekly=weeklySnapshot();
-    if(!compass&&entries.length===0&&!weekly)return null;
+    // When the learner has completed a valid form, saving should not require
+    // an extra 'prepare' click. A partial draft is still rejected clearly.
+    const draft=readCompass();
+    const selectedCompass=compassValid(draft)?draft:compass;
+    const weekly=weeklySnapshot(true);
+    if(!selectedCompass&&entries.length===0&&!weekly)return null;
     return {
       schema:'jr.bahar.private-workbook.v1',
       version:'1.0.0',
       exportedAt:new Date().toISOString(),
-      compass:compass?{...compass}:null,
+      compass:selectedCompass?{...selectedCompass}:null,
       weeklyPlan:weekly,
       reflections:entries.map(item=>({...item})),
       status:'SELF_REPORTED_RESEARCH_STAGE'
