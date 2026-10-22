@@ -104,6 +104,22 @@
         target:'ops-page-quality'
       },
       {
+        title:T('مخاطبان تأییدشده مسیرهای آموزشی','Verified education-interest audience'),
+        count:deps.eduInterestVerifiedContacts,
+        state:deps.eduInterestObserved===true
+          ?(deps.eduInterestCaptureAvailable===true
+              ?T('ثبت اختیاری با تأیید ایمیل فعال است',
+                  'Optional double opt-in is enabled')
+              :T('فهرست واقعی ثبت‌شده · دعوت جدید غیرفعال',
+                  'Existing verified contacts · new capture OFF'))
+          :T('آمار واقعی مخاطبان در دسترس نیست',
+              'Actual consented-audience figures unavailable'),
+        detail:T('فقط ایمیل‌های تأییدشده و موضوع انتخابی کاربر؛ آدرس‌های خصوصی تنها با درخواست مستقیم مدیر دیده می‌شوند.',
+          'Mailbox-verified, purpose-limited educational interests only. Private email details require a separate owner action.'),
+        button:T('مدیریت مخاطبان داوطلب','Manage opt-in audience'),
+        target:'jr-education-interests'
+      },
+      {
         title:T('درآمد و تحویل؛ فقط شواهد واقعی','Commerce and delivery evidence'),
         count:null,
         state:T('فروش بسته‌های پیشنهادی غیرفعال','Proposed offers are NOT live for sale'),
@@ -234,6 +250,14 @@
       [T('پیشنهادهای ذخیره‌شده توسط مالک','Saved owner draft overrides'),
         deps.educationalDraftOverrides===null?T('نامشخص','Unknown'):
           number.format(deps.educationalDraftOverrides)],
+      [T('مخاطبان ایمیلی آموزشی تأییدشده','Verified education email subscribers'),
+        deps.eduInterestVerifiedContacts===null?T('نامشخص','Unknown'):
+          number.format(deps.eduInterestVerifiedContacts)],
+      [T('ایمیل‌های آموزشی در انتظار تأیید','Educational email verifications pending'),
+        deps.eduInterestPendingVerification===null?T('نامشخص','Unknown'):
+          number.format(deps.eduInterestPendingVerification)],
+      [T('فعال بودن دعوت اختیاری','Optional learning-interest opt-in enabled'),
+        labelBool(deps.eduInterestCaptureAvailable)],
       [T('صفحات دارای سئوی ضعیف در ممیزی کد','Weak SEO pages in source review'),
         deps.pageQualityWeakOnPageSeoPages===null?T('نامشخص','Unknown'):
           number.format(deps.pageQualityWeakOnPageSeoPages)],
