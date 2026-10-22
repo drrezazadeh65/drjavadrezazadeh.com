@@ -119,7 +119,7 @@ function operationsSourceMetrics(PDO $pdo,string $sourceId,int $days,int $at): a
     if($days<1||$days>365)throw new InvalidArgumentException('invalid_range');
     $from=$at-$days*86400;
     $samples=[];$history=[];
-    $ready=true;
+    $ready=true;$attemptsStatus='not_applicable';
     try{
         $q=$pdo->prepare('SELECT metric_key,metric_value,unit,observed_at,evidence_type FROM operations_source_metric_samples WHERE source_id=? AND observed_at>=? AND observed_at<=? ORDER BY observed_at DESC,sample_id DESC LIMIT 365');
         $q->execute([$sourceId,$from,$at]);$samples=$q->fetchAll(PDO::FETCH_ASSOC);
@@ -129,16 +129,19 @@ function operationsSourceMetrics(PDO $pdo,string $sourceId,int $days,int $at): a
         }unset($sample);
     }catch(Throwable $e){$ready=false;}
     if(str_starts_with($sourceId,'collector:')){
+        $attemptsStatus='unavailable';
         try{
             $q=$pdo->prepare('SELECT attempted_at,result FROM operations_collection_attempts WHERE scope_key=? AND attempted_at>=? AND attempted_at<=? ORDER BY attempted_at DESC,attempt_id DESC LIMIT 500');
             $q->execute([substr($sourceId,10),$from,$at]);
             foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row)
                 $history[]=['at'=>(int)$row['attempted_at'],'succeeded'=>$row['result']==='succeeded'];
-        }catch(Throwable $e){/* older schema: no attempt history */ }
+            $attemptsStatus='available';
+        }catch(Throwable $e){$attemptsStatus='schema_not_provisioned';}
     }
     return ['ok'=>true,'schema'=>'operations-source-metrics-v1',
         'sourceId'=>$sourceId,'asOf'=>$at,'days'=>$days,
         'samplesStatus'=>$ready?'available':'schema_not_provisioned',
+        'attemptsStatus'=>$attemptsStatus,
         'samples'=>$samples,'recentAttempts'=>$history,
         'maxReturnedSamples'=>365,'maxReturnedAttempts'=>500,
         'limitation'=>'Source-scoped retained observations only; absence of observations is unknown, not zero. GitHub attempt histories are operational counts, not website traffic or provider audience statistics.'];
