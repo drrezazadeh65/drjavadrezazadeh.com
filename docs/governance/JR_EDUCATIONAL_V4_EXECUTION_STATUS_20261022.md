@@ -55,3 +55,19 @@
 ### Unfinished and externally dependent
 
 The source-first phase is **not complete** while trusted private age/guardian permissions, adult or guardian account workbook storage, verified source-PDF reviews, actual original-guide amendments, the independent trained model / calibration dataset, complete advanced BAHAR deliverables, verified paid entitlement delivery, synchronized production schema, and owner final acceptance remain unresolved. This record contains **no intentional executed test, deployed URL change, passed CI or live release claim**. All price proposals are nonbinding and not customer purchasable. The owner requested a single final end-to-end test only after all implementable source work is finished.
+
+
+## 2026-10-22 User-first consent & continuation optimization — source only
+
+Owner confirmed one short persuasive, optional and purpose-specific consent popup, instead of repeated boxes. This is now a binding all-engine UX contract under `docs/governance/JR_SINGLE_CONSENT_POPUP_UX_STANDARD_20261022.md` and `AGENTS.md`.
+
+- Removed redundant `consent-check` and `own` checkboxes from the established bilingual private BAHAR dashboards; the corresponding controller was updated so those missing controls do not prevent initialization.
+- A native, mobile-readable Persian/English dialog shows the specific encrypted-storage benefit, a genuine decline option, and an expandable full notice. Only the affirmative action may record the actual versioned purpose-specific account consent; no consent is inferred from visiting the page or reading text. Prevents duplicate simultaneous consent dialogs.
+- Public `/fa/bahar/` and `/en/bahar/` now provide an explicit “continue and optionally save in my account” button. A deliberately chosen, bounded and versioned workbook is staged temporarily in same-tab browser session memory (five-minute validity) without putting notes in URL query strings, analytics, caches or HTTP requests.
+- The existing bilingual private account paths receive this temporary workbook. When account eligibility and consent are genuinely available, one popup can permit saving a new encrypted account draft; existing stored workbooks are **not overwritten automatically**. A person may always decline without losing free courses.
+- If the account service, migration, login or approval is not available, the private page offers a local JSON backup of the unsent draft and a direct existing-language sign-in link when appropriate.
+- Save/export can recognize valid, complete form drafts without an extra "Prepare" action. The existing optional on-device JSON export remains available without registration or backend dependency.
+- Backend `baharAccountPolicy` now rechecks the separately recorded scientific and privacy approvals, approved super-admin reviewer and owner switch whenever the account service is invoked, rather than trusting an old enabled bit alone.
+- Revised master development prompt in the same Google Drive document to register the one-popup rule and source-only handoff.
+
+**Release-status clarification:** Source commits are not proof of functioning encrypted storage, account compatibility, mobile accessibility or consent compliance. The owner-requested integrated testing, schema migrations, signed scientific/privacy evidence, and any live deployment are still **NOT RUN** and remain separate final work. Existing published page paths were not renamed.
