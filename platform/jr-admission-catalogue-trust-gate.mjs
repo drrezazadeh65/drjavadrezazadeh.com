@@ -138,8 +138,11 @@ function verifiedCoverage(coverage,cycle,trustedCoverageContext){
   // Keys must be provided by an independently authorized private server,
   // never stored in the uploaded annual-coverage record or repository.
   const ctx=trustedCoverageContext;
-  return macMatches(ctx?.reviewerKey,payload,auth.reviewerSignature)&&
-    macMatches(ctx?.administratorKey,payload,auth.administratorSignature);
+  // Approval identities AND their independently controlled keys must differ.
+  if(!validKey(ctx?.reviewerKey)||!validKey(ctx?.administratorKey)||
+    ctx.reviewerKey.equals(ctx.administratorKey))return false;
+  return macMatches(ctx.reviewerKey,payload,auth.reviewerSignature)&&
+    macMatches(ctx.administratorKey,payload,auth.administratorSignature);
 }
 
 /**
