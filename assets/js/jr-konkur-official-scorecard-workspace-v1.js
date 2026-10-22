@@ -59,11 +59,33 @@
   controls.append(review,reset,print);form.append(controls);
   const message=node('p','jr-ks-message','');message.setAttribute('role','status');message.setAttribute('aria-live','polite');
   const result=node('section','jr-ks-result');result.hidden=true;
+  const next=node('section','jr-ks-next');next.hidden=true;
+  next.setAttribute('aria-label',t('گام بعدی بعد از بررسی قالب کارنامه',
+    'Next step after scorecard format review'));
+  const compare=node('button','jr-ks-primary',t(
+    'ادامه با مقایسه پنج‌معیاری مسیرها',
+    'Continue to the five-criterion comparison'));
+  compare.type='button';
+  next.append(compare,node('p','jr-ks-note',t(
+    'این گام فقط کاربرگ ترجیحات شخصی را باز می‌کند. هیچ رتبه، تراز، گروه، نام یا داده‌ای از کارنامه به استودیوی انتخاب منتقل نمی‌شود و قبولی یا مجازبودن نیز تأیید نمی‌شود.',
+    'This step only opens a personal preference worksheet. No rank, score, group, name or scorecard input is transferred to Choice Studio, and official eligibility or admission remains unverified.')));
   const printView=node('section','jr-ks-print');printView.hidden=true;
   const disclosure=node('p','jr-ks-note',t(
    'رتبه، تراز، نمره کل آزمون و نمره سابقه تحصیلی شاخص‌های متفاوت‌اند. معدل خام پایه‌ها را نمی‌توان با ضرب در یک ضریب به نمره کل رسمی یا رتبه کنکور تبدیل کرد. این ابزار هیچ وضعیت پذیرش یا قبولی را تأیید نمی‌کند.',
    'Ranks, normalized scores and raw school averages are distinct constructs. Raw grades cannot be converted to official scores or ranks with a simple multiplier. This form verifies no eligibility or admission outcome.'));
-  root.append(title,intro,form,message,result,disclosure,printView);
+  root.append(title,intro,form,message,result,next,disclosure,printView);
+  compare.addEventListener('click',()=>{
+   const studio=document.querySelector('[data-choice-studio]');
+   if(studio){
+    studio.scrollIntoView({block:'start',behavior:'auto'});
+    const input=studio.querySelector('.jr-cs-path input[type="text"]');
+    if(input)input.focus({preventScroll:true});
+    else if(studio.tabIndex>=0)studio.focus({preventScroll:true});
+    return;
+   }
+   // Preserve existing published routes; never encode the scorecard in URL.
+   window.location.assign(fa?'/fa/entekhab-reshteh/':'/en/student-guidance/');
+  });
   let inspected=null;
   const descriptors={
    rankQuota:t('رتبه در سهمیه','Quota rank'),rankCountry:t('رتبه کشوری','Country rank'),
@@ -99,16 +121,16 @@
    for(const [key,input] of Object.entries(inputs))data[key]=input.value;
    inspected=V.inspect(data);
    if(!inspected.valid){
-    result.replaceChildren();result.hidden=true;print.disabled=true;
+    result.replaceChildren();result.hidden=true;next.hidden=true;print.disabled=true;
     message.textContent=t('ورودی‌ها نیازمند بررسی هستند: ','Please check entered values: ')+inspected.issues.join('، ');
     return;
    }
-   render(result);result.hidden=false;print.disabled=false;
+   render(result);result.hidden=false;next.hidden=false;print.disabled=false;
    message.textContent=t('ورودی‌ها فقط از نظر قالب بررسی شدند؛ صحت اطلاعات و شرایط پذیرش تأیید نشده‌اند.',
     'Inputs were checked for basic format only; official values and eligibility remain unverified.');
   });
   form.addEventListener('reset',()=>{
-   inspected=null;result.replaceChildren();result.hidden=true;print.disabled=true;
+   inspected=null;result.replaceChildren();result.hidden=true;next.hidden=true;print.disabled=true;
    printView.replaceChildren();printView.hidden=true;message.textContent=t('فرم و نتیجه پاک شدند.','Form and result cleared.');
   });
   print.addEventListener('click',()=>{
