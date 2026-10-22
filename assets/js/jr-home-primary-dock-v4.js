@@ -16,7 +16,13 @@
   function sync(){
     const assistant=document.querySelector('.jr-assistant-panel');
     const launcher=document.querySelector('.jr-assistant-launcher');
-    entry.setAttribute('aria-expanded',String(!!assistant&&!assistant.hidden));
+    if(assistant){
+      entry.setAttribute('aria-controls',assistant.id);
+      entry.setAttribute('aria-expanded',String(!assistant.hidden));
+    }else{
+      entry.removeAttribute('aria-controls');
+      entry.removeAttribute('aria-expanded');
+    }
     // The redundant floating launcher is visually hidden on the homepage
     // mobile shell. Restore focus to the visible dock proxy on close/Escape.
     if(assistant?.hidden&&window.matchMedia('(max-width:900px)').matches&&
