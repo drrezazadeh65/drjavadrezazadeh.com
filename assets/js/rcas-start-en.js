@@ -185,5 +185,14 @@ form.querySelector('[data-show-route]').addEventListener('click',()=>{
  }));}catch(_){}
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden){/* raw answers remain browser memory only; no automatic transmission */}});
+// Clear the actual P0/C1/R1 user entries, not merely the route-summary view.
+// No marketing consent or account enrollment is required for this action.
+document.getElementById('rcasEnClearAll')?.addEventListener('click',()=>{
+ form.reset();
+ erase();
+ advance(1);
+ status.textContent='All answers and the session route summary were cleared from this page. There is no saved copy to restore.';
+ form.elements.namedItem('edu')?.focus({preventScroll:true});
+});
 advance(1);
 })();
