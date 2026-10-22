@@ -134,3 +134,26 @@ Implemented in the independent branch:
 SMTP sending, data deletion or deployment were initiated. The dashboard is
 still under source development, and universal live functionality is
 **NOT VERIFIED**.
+
+## Bertina owner database milestone — 2026-10-22
+
+The owner posted phpMyAdmin screenshots showing that an initial read-only
+schema lookup returned zero rows for the three health tables and the later
+`CREATE TABLE IF NOT EXISTS` statements for all three completed with green
+success indicators. The disabled singleton initialization reported one row
+inserted (`monitoring_enabled=0`, `error_logging_enabled=0`,
+`cadence='manual'`). This milestone is recorded as
+**OWNER_SCREENSHOT_SQL_SUCCESS** only, not as independent schema/restore,
+MFA, backend API, Cron, SMTP, release or integrated QA verification.
+
+**Do not ask the owner to repeat the three health CREATE statements.**
+The next step is source-level integration and final coordinated QA once
+the owner ends the development freeze. No other database alterations
+are authorized or necessary solely on the basis of these screenshots.
+
+A newly committed browser control offers an explicit authenticated
+`GET /api/admin/operations/database-health` metadata-only view.
+It is separate from the previous owner-authorized POST manual scan that
+adds a history row and audit event. Both FA/EN asset query revisions were
+bumped; no public URL, scientific engine, customer records, server job,
+or production database was changed by these source commits.
