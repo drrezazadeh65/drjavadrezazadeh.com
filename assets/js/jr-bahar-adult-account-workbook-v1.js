@@ -19,6 +19,8 @@
     !preview||!localExport||!save||!download||!withdraw||!erase)return;
   let identity=null,localDraft=null,readEpoch=0,busy=false,controller=null;
   const active=()=>root.open&&!document.hidden;
+  const hasOpenErasure=()=>['RECEIVED','PENDING','IN_REVIEW','BLOCKED']
+    .includes(identity?.latestErasureRequest?.state);
   const setState=value=>{state.textContent=value;};
   const erasureNote=document.createElement('p');
   erasureNote.className='jr-adult-bahar-account__privacy-request';
@@ -62,7 +64,9 @@
     const allowed=eligible&&identity.currentConsent===true&&
       identity.canStore===true;
     const csrf=/^[a-f0-9]{64}$/i.test(identity?.csrfToken||'');
-    consent.disabled=!eligible||allowed||busy||!csrf;
+    // Never invite a new storage grant while the person's deletion request
+    // is still unresolved, even if the server correctly rejects the POST.
+    consent.disabled=!eligible||allowed||busy||!csrf||hasOpenErasure();
     const canRequest=identity?.schemaProvisioned===true &&
       identity?.canRequestIndependentAdultReview===true &&
       identity?.independentlyVerifiedAdult===false && csrf;
@@ -167,6 +171,9 @@
       }else if(!result.currentNoticeConfigured){
         setState(T('متن حقوقیِ نسخه‌دار هنوز تصویب نشده است. رضایت یا داده‌ای دریافت نمی‌شود.',
           'A current approved versioned privacy notice is unavailable; no content is accepted.'));
+      }else if(hasOpenErasure()){
+        setState(T('درخواست حذف قبلی هنوز باز است. برای احترام به انتخاب شما، ذخیره جدید و درخواست رضایت تا پایان رسیدگی غیرفعال‌اند؛ نسخه محلی همچنان در اختیار شماست.',
+          'Your earlier erasure request remains open. New saving and consent are paused while it is reviewed; your local copy remains available.'));
       }else if(!result.currentConsent){
         setState(T('متن رضایت را مطالعه کنید؛ دریافت رضایت صرفاً با اقدام صریح شما انجام می‌شود.',
           'Read the notice. Consent is recorded only when you explicitly approve it.'));
@@ -236,6 +243,11 @@
           'Your account review is pending. Keep a private device copy of the plan while you wait.')
         :T('برنامه‌ات آماده است. اگر ۱۸ سال یا بیشتر داری، می‌توانی بررسی حساب را درخواست کنی یا همین‌جا یک نسخه خصوصی روی دستگاه نگه داری.',
           'Your plan is ready. Adults can request account eligibility or keep a private copy on this device.'));
+      return;
+    }
+    if(hasOpenErasure()){
+      setState(T('درخواست حذف کاربرگ شما هنوز در حال پیگیری است. می‌توانید یادگیری را ادامه دهید و نسخه شخصی را در دستگاه خود نگه دارید؛ ذخیره سروری متوقف می‌ماند.',
+        'Your workbook erasure request is still being reviewed. Continue learning and keep a private copy on your device; server saving remains paused.'));
       return;
     }
     if(!identity.currentConsent){
@@ -394,6 +406,8 @@
   // The complete approved purpose notice remains available on this page.
   function requestConsentInOnePopup(){
     if(!identity?.privacyNotice||!identity.storageEnabled||
+       !identity.independentlyVerifiedAdult||!identity.schemaProvisioned||
+       !identity.currentNoticeConfigured||hasOpenErasure()||
        identity.currentConsent||busy||
        document.getElementById('jr-bahar-single-purpose-popup'))return;
     const dialog=document.createElement('dialog');
