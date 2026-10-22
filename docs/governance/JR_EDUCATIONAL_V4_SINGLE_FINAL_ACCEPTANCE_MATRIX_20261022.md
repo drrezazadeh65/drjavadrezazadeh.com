@@ -27,7 +27,7 @@
 | FUN-05 | Customer dashboard access, private BAHAR evidence, profile reports, signed document delivery and lawful deletion/retention lifecycle verified on the real mother DB |
 | FUN-07 | Learner-initiated BAHAR erasure request is account-scoped, idempotent, persisted to eco_privacy_requests/eco_privacy_actions/eco_audit_events, tracked in private account, and conservatively held under a verified legal restriction |
 | FUN-08 | SUPER_ADMIN can read only bounded erasure request metadata, may complete only the requested account's workbook erasure after fresh MFA/CSRF and server-side hold recheck, and receives accurate request statuses; no unrelated customer/order, guardian or journal records are touched |
-| FUN-06 | SUPER_ADMIN MFA, CSRF, origin policy, SQL least privilege, rate limiting, optimistic owner draft-price edits, audit log and expiry work as documented; read-only admin views do not authorize releases |
+| FUN-09 | Both new indexable RCAS introduction routes preserve the existing noindex free assessment destinations, link correctly into the bilingual user journey, and display non-diagnostic and unapproved-commerce limitations without claiming independent validity |\n| FUN-06 | SUPER_ADMIN MFA, CSRF, origin policy, SQL least privilege, rate limiting, optimistic owner draft-price edits, audit log and expiry work as documented; read-only admin views do not authorize releases |
 | DATA-01 | MariaDB additive source migrations reconciled with observed production schema; backup, restore, rollback, foreign keys, indexes and retention policies independently reviewed before migration |
 | DATA-02 | Admin control of individual/all data collectors, schedules, disabled-by-default master switch, per-source diagnostics and safe retention previews preserved; no unexpected Cron/provider calls |
 | SEC-01 | Headers, TLS/HTTPS, CSP, session management, CSRF, XSS, upload handling, encrypted storage and secret handling checked end-to-end; no identifiable learner data in logs or caches |
@@ -42,7 +42,7 @@
 | PERF-01 | Post-build real-user and lab observations for LCP/INP/CLS, Core Web Vitals, transfer size, assets and LiteSpeed/PHP 8.3.35 compatibility; no fictional performance grade |
 | OPS-01 | Alerts, DB errors, 404, page quality, SEO/GEO and admin controls show observed data with explicit unknown states; email only on enabled owner preferences |
 | OPS-03 | Any newly proposed BAHAR privacy-erasure email scope stays OFF and must show its actual emitter readiness; do not enable or claim user-request mail delivery without a wired and approved incident producer and real owner SMTP evidence |
-| OPS-02 | GitHub workflow, immutable URL guard, exact artifact source, build inventory, host SSH/cPanel/permissions, rollback and post-release live checks all evidenced |
+| OPS-04 | A new committed BAHAR erasure request emits one non-identifying existing-operations incident after the privacy transaction, while reuse does not emit again; configured global/rule/feature scope/recipient/worker gates control actual email, and recorder unavailability cannot undo erasure or expose personal data |\n| OPS-02 | GitHub workflow, immutable URL guard, exact artifact source, build inventory, host SSH/cPanel/permissions, rollback and post-release live checks all evidenced |
 | LEGAL-01 | Privacy notice, minors/guardian verification, research consent, advertising claims, sales terms, refund rules, payment/crypto handling and journal compliance reviewed for relevant jurisdictions |
 
 ## Single-integrated-test execution discipline (future only)
