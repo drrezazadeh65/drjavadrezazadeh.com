@@ -19,7 +19,8 @@
   const exportButton=panel.querySelector('[data-jr-business-export]');
   const status=panel.querySelector('[data-jr-business-status]');
   const cards=panel.querySelector('[data-jr-business-cards]');
-  if(!reload||!mainButton||!exportButton||!status||!cards)return;
+  const week=panel.querySelector('[data-jr-business-week]');
+  if(!reload||!mainButton||!exportButton||!status||!cards||!week)return;
   const n=new Intl.NumberFormat(fa?'fa-IR':'en-US');
   let controller=null,request=0,busy=false,exportRows=[];
   const visible=()=>!workspace.hidden&&host.open&&!document.hidden;
@@ -32,7 +33,7 @@
   function reset(){
     request++;controller?.abort();controller=null;busy=false;
     reload.disabled=false;exportButton.disabled=true;exportRows=[];
-    cards.replaceChildren();
+    cards.replaceChildren();week.replaceChildren();
     status.textContent=T('برای مشاهده شواهد تجاری، دریافت اطلاعات را خودتان آغاز کنید.',
       'Request the private business evidence when needed.');
   }
@@ -116,19 +117,99 @@
       (ready?T('پنجره‌های داخلی موجود','internal windows configured'):
         T('داده معتبر در دسترس نیست','not available'))+'.';
   }
+
+  function renderWeek(payload){
+    week.replaceChildren();
+    if(!payload||payload.ok!==true||
+      payload.schema!=='consultation-week-v1'||
+      payload.timezone!=='Asia/Tehran'||payload.slotMinutes!==60||
+      payload.maxPublishedDailyHours!==4||
+      payload.externalCalendarConfirmed!==false||
+      payload.customerReservationEnabled!==false||
+      !Array.isArray(payload.days)||payload.days.length!==7){
+      week.append(text('p',T(
+        'جدول هفتگی تأیید نشده است؛ برای تنظیم ظرفیت از مدیریت اصلی مشاوره استفاده کنید.',
+        'Weekly capacity is not available. Use the established consultation manager to set owner hours.')));
+      return;
+    }
+    const dateFormatter=new Intl.DateTimeFormat(
+      fa?'fa-IR-u-ca-persian':'en-US',{
+        timeZone:'Asia/Tehran',weekday:'short',month:'short',day:'numeric'
+      });
+    const timeFormatter=new Intl.DateTimeFormat(
+      fa?'fa-IR':'en-US',{
+        timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',hour12:false
+      });
+    const used=new Set();
+    for(const day of payload.days){
+      if(!day||typeof day.date!=='string'||
+        !/^\d{4}-\d{2}-\d{2}$/.test(day.date)||
+        used.has(day.date)||
+        !Number.isSafeInteger(day.totalSlots)||day.totalSlots<0||
+        day.totalSlots>4||
+        !Number.isSafeInteger(day.remainingSlots)||day.remainingSlots<0||
+        day.remainingSlots>day.totalSlots||
+        !Array.isArray(day.slots)||day.slots.length!==day.totalSlots){
+        week.replaceChildren();
+        week.append(text('p',T('دادهٔ زمان‌بندی معتبر نیست.',
+          'Consultation-week data is not valid.')));
+        return;
+      }
+      used.add(day.date);
+      const item=document.createElement('article');
+      item.className='jr-edu-business-week__day';
+      const stamp=new Date(day.date+'T12:00:00Z');
+      if(Number.isNaN(stamp.valueOf()))continue;
+      item.append(text('h5',dateFormatter.format(stamp)));
+      item.append(text('p',
+        T('ساعت قابل درخواست: ','Internally available slots: ')+
+        n.format(day.remainingSlots)+' / '+n.format(day.totalSlots),
+        'jr-edu-business-week__count'));
+      if(day.totalSlots===0){
+        item.append(text('p',T('زمانی اعلام نشده','No owner-published hours'),
+          'jr-edu-business-week__empty'));
+      }
+      const seenSlots=new Set();
+      for(const slot of day.slots){
+        if(!slot||typeof slot.startUtc!=='string'||
+          !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(slot.startUtc)||
+          seenSlots.has(slot.startUtc)||
+          !['FULL','AVAILABLE'].includes(slot.status)){
+          week.replaceChildren();
+          week.append(text('p',T('بازه‌های ثبت‌شده قابل تأیید نیستند.',
+            'Recorded weekly slots could not be verified.')));
+          return;
+        }
+        seenSlots.add(slot.startUtc);
+        const time=new Date(slot.startUtc.replace(' ','T')+'Z');
+        if(Number.isNaN(time.valueOf()))continue;
+        const chip=text('span',
+          timeFormatter.format(time)+' · '+
+            (slot.status==='FULL'?T('پر','Full'):T('قابل درخواست','Requestable')),
+          'jr-edu-business-week__slot');
+        chip.dataset.status=slot.status;
+        chip.title=T(
+          'این وضعیت صرفاً از زمان‌بندی داخلی سایت است؛ رزرو یا موجودی قطعی نیست.',
+          'Owner-published internal availability only, not a confirmed reservation.');
+        item.append(chip);
+      }
+      week.append(item);
+    }
+  }
+
   async function load(){
     if(!visible()||busy)return;
     const generation=++request;
     controller?.abort();controller=new AbortController();busy=true;
     reload.disabled=true;exportButton.disabled=true;exportRows=[];
-    cards.replaceChildren();
+    cards.replaceChildren();week.replaceChildren();
     status.textContent=T('در حال دریافت دفتر موجود سفارش‌ها و خدمات…',
       'Reading the established orders and service ledger…');
     try{
       // Independently read the already-existing OPTIONAL interest service.
       // No includeContacts flag is ever sent; the endpoint returns aggregates
       // only. A failed interest read never masks the commerce ledger.
-      const [commerce,interests]=await Promise.allSettled([
+      const [commerce,interests,consultation]=await Promise.allSettled([
         fetch('/api/admin/operations/commerce',{
           method:'GET',credentials:'same-origin',cache:'no-store',
           headers:{Accept:'application/json'},signal:controller.signal
@@ -139,15 +220,21 @@
         fetch('/api/admin/operations/education-interests',{
           method:'GET',credentials:'same-origin',cache:'no-store',
           headers:{Accept:'application/json'},signal:controller.signal
+        }).then(async response=>response.ok?response.json():null),
+        fetch('/api/commerce/consultation-week',{
+          method:'GET',credentials:'same-origin',cache:'no-store',
+          headers:{Accept:'application/json'},signal:controller.signal
         }).then(async response=>response.ok?response.json():null)
       ]);
       if(generation!==request||!visible())return;
       if(commerce.status!=='fulfilled')
         throw Error('COMMERCE_ACCESS_OR_SCHEMA_UNAVAILABLE');
       render(commerce.value,interests.status==='fulfilled'?interests.value:null);
+      renderWeek(consultation.status==='fulfilled'?consultation.value:null);
     }catch(error){
       if(generation!==request||error?.name==='AbortError')return;
-      cards.replaceChildren();exportRows=[];exportButton.disabled=true;
+      cards.replaceChildren();week.replaceChildren();
+      exportRows=[];exportButton.disabled=true;
       status.textContent=T(
         'وضعیت سفارش‌ها از پایگاه داده مادر قابل تأیید نیست. هیچ عدد صفر یا موفقیت ساختگی نمایش نمی‌دهیم.',
         'Commerce ledger is unavailable or not verified; unknown values will not be displayed as zero or success.');
