@@ -47,27 +47,20 @@ function exportOperationsCsv(filename,headers,rows){
  document.body.append(link);link.click();link.remove();
  window.setTimeout(()=>URL.revokeObjectURL(url),0);
 }
-// These panels exist only after the authenticated reporting model mounts.
-// Keep source-HTML fragment links valid, then upgrade on actual interaction.
+// Use the existing gate and the current DOM for all executive and mobile
+// anchors. Most targets are disclosures generated after MFA and may be
+// replaced during a refresh. Hash navigation alone cannot open a closed panel.
 $('ops-workspace')?.addEventListener('click',event=>{
- // Four mobile shortcuts reuse existing MFA-protected module navigation.
- // Dynamic panels have a static link fallback for source-level fragment checks.
- const mobile=event.target?.closest?.('nav.ops-mobile-dock a');
- if(mobile&&$('ops-workspace').contains(mobile)){
-   const selected=mobile.dataset.opsTarget||mobile.hash?.slice(1);
-   const target=selected&&document.getElementById(selected);
-   if(target&&target!=$('ops-command-center')){
-     event.preventDefault();
-     openExistingOperationalWorkspace(selected);
-   }
-   return;
- }
- const anchor=event.target?.closest?.('nav.ops-jump a[data-ops-target]');
- if(!anchor||!$('ops-workspace').contains(anchor))return;
- const target=anchor.getAttribute('data-ops-target');
- if(!['ops-alert-center','ops-page-quality'].includes(target))return;
- anchor.setAttribute('href',document.getElementById(target)
-   ?'#'+target:'#ops-executive-stats');
+ const anchor=event.target?.closest?.('nav.ops-mobile-dock a,nav.ops-jump a');
+ if(!anchor||!$('ops-workspace').contains(anchor)||!snapshot)return;
+ if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||
+    event.shiftKey||event.altKey)return;
+ const wanted=anchor.dataset.opsTarget||anchor.hash?.slice(1);
+ if(!wanted||!(/^[a-zA-Z][a-zA-Z0-9_-]{1,90}$/u.test(wanted)))return;
+ const target=$(wanted);
+ if(!target||!$('ops-workspace').contains(target))return;
+ event.preventDefault();
+ openExistingOperationalWorkspace(wanted);
 });
 async function api(path,options={}){const response=await fetch('/api/admin/operations'+path,{credentials:'same-origin',cache:'no-store',...options});const body=await response.json();if(!response.ok||body.ok!==true)throw new Error(body.error||'network_error');return body;}
 function notice(text,error=false){$('ops-notice').textContent=text;$('ops-notice').classList.toggle('ops-error',error);}
