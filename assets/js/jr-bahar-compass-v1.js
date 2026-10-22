@@ -181,6 +181,14 @@
   function workbookSnapshot(){
     // When the learner has completed a valid form, saving should not require
     // an extra 'prepare' click. A partial draft is still rejected clearly.
+    // Any edited formerly prepared compass must be explicitly re-prepared,
+    // even if the new values are blank: never silently omit prior work.
+    if(compassDirty)return null;
+    // The reflection form is a separate uncommitted scratchpad until the
+    // learner clicks Add reflection. Do not export while it holds a draft
+    // that would otherwise disappear without a warning.
+    if($('bahar-reflection-date').value.trim()||
+       $('bahar-reflection-note').value.trim())return null;
     const draft=readCompass();
     const hasPartialCompass=Object.values(draft).some(value=>value!=='');
     if(hasPartialCompass&&!compassValid(draft))return null;
@@ -203,8 +211,10 @@
     };
   }
   function missingWorkbookMessage(){
-    const entered=Object.values(readCompass()).some(Boolean)||
-      ['week-start','learning-goal','learning-action','learning-evidence']
+    const entered=Boolean(compassDirty)||
+      Object.values(readCompass()).some(Boolean)||
+      ['week-start','learning-goal','learning-action','learning-evidence',
+       'bahar-reflection-date','bahar-reflection-note']
         .some(id=>String($(id)?.value??'').trim()!=='');
     return entered?messages.incompleteExport:messages.empty;
   }
@@ -366,10 +376,17 @@
     render();notify(messages.imported);preview.focus();
   });
   $('bahar-print-workbook')?.addEventListener('click',()=>{
-    const hasWeekly=$('plan-summary')&&!$('plan-summary').hidden;
+    const hasWeekly=Boolean($('plan-summary')&&!$('plan-summary').hidden);
     if(compassDirty){notify(messages.edited,true);return;}
-    if(!compass&&entries.length===0&&!hasWeekly){
-      notify(messages.empty,true);
+    // A completed but unprepared new section cannot be represented by an
+    // older on-screen print preview, even when export would be otherwise
+    // possible. Ask for the explicit local Prepare action first.
+    const hasCompassDraft=Object.values(readCompass()).some(Boolean);
+    const hasWeeklyDraft=['week-start','learning-goal','learning-action',
+      'learning-evidence'].some(id=>String($(id)?.value??'').trim()!=='');
+    if((hasCompassDraft&&!compass)||(hasWeeklyDraft&&!hasWeekly)||
+       !workbookSnapshot()){
+      notify(missingWorkbookMessage(),true);
       return;
     }
     // User-initiated print is a browser operation; the application never
