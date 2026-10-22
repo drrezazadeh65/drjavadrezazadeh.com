@@ -1127,6 +1127,16 @@ function renderSourceDirectory(parent){
        :t('داده معتبر موجود نیست','No verified data');
      card.append(el('p',state),el('small',t('آخرین دریافت: ','Last observation: ')+
        (item.observedAt?date(item.observedAt):t('ثبت نشده','Not recorded'))));
+     if(item.adapterState)card.append(el('small',
+       t('وضعیت اتصال فنی: ','Adapter: ')+item.adapterState));
+     if(item.permissionState)card.append(el('small',
+       t('مجوز اتصال: ','Provider permission: ')+item.permissionState));
+     card.append(el('small',t('سهمیه API: ','API quota: ')+
+       (item.apiQuota??t('تأیید نشده','Not verified'))));
+     card.append(el('small',t('هزینه تأییدشده: ','Verified cost: ')+
+       (item.verifiedCost??t('تأیید نشده','Not verified'))));
+     if(item.accessPath)card.append(el('small',
+       t('مسیر دسترسی موردنیاز: ','Required access path: ')+item.accessPath));
      if(item.kind==='social_channel'){
        const accounts=item.storedVerifiedStatusAccountRows;
        const recent=item.recentStoredDeliveryRecords;
