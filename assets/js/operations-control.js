@@ -441,9 +441,13 @@ function renderDatabaseHealth(host){
 }
 
 async function collectionManualRefresh(scopeId,button){
- if(!snapshot||!csrf||collectionState?.canManage!==true||button.disabled)return;
+ if(!snapshot||!csrf||button.disabled)return;
  button.disabled=true;const generation=loadGeneration;
  try {
+   // A direct source action must first retrieve real server-side owner rights.
+   if(!collectionState)collectionState=await api('/collection-settings');
+   if(generation!==loadGeneration||!snapshot)return;
+   if(collectionState.canManage!==true)throw new Error('collector_super_admin_required');
    const response=await api('/github-audits/refresh',{method:'POST',
      headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
      body:JSON.stringify({scope:scopeId})});
@@ -1598,13 +1602,19 @@ function renderSourceDirectory(parent){
        const editor=el('details',undefined,'ops-source-config');
        editor.append(el('summary',t('تنظیمات مستقل گردآوری، زمان‌بندی و نگهداری',
          'Independent collection, scheduling and retention controls')));
-       editor.append(el('p',control.adapterAvailable
-         ?t('گردآورنده GitHub تعریف شده است؛ اجرا به مجوز و Cron موجود وابسته است.',
-            'GitHub collector exists; actual execution still requires permissions and the existing Cron.')
-         :t('گردآورنده/API تأیید نشده است؛ روشن کردن فقط قصد پایش را ثبت می‌کند.',
-            'No verified collector/API. Enabling records monitoring intent only.')));
+       editor.append(el('p',sourceControlState.status!=='available'
+         ?t('جدول سیاست منابع در دیتابیس مادر نصب نشده؛ ذخیره ممکن نیست.',
+           'Source policy table is not provisioned in the mother database; saving is unavailable.')
+         :control.policyOrigin==='legacy_default_unattested'
+           ?t('پیش‌فرض تاریخی؛ سیاست اختصاصی هنوز توسط مالک ثبت نشده است.',
+             'Historical default; no explicit owner policy saved for this source.')
+           :control.adapterAvailable
+             ?t('گردآورنده GitHub موجود است؛ مجوز خودکار و Cron مستقل‌اند.',
+               'GitHub adapter exists; automatic permission and host Cron are separate.')
+             :t('اتصال/API تأیید نشده؛ این گزینه فقط قصد پایش را ثبت می‌کند.',
+               'No verified provider API; this setting records monitoring intent only.')));
        const enabled=el('input');enabled.type='checkbox';enabled.checked=control.enabled;
-       enabled.disabled=sourceControlState.canManage!==true;
+       enabled.disabled=sourceControlState.canManage!==true||sourceControlState.status!=='available';
        const label=el('label',t('فعال','Enabled'));label.prepend(enabled);
        const cadence=el('select');cadence.setAttribute('aria-label',t('تناوب جمع‌آوری','Collection cadence'));
        for(const [id,fa,enLabel] of [['manual','دستی','Manual'],['daily','هر ۲۴ ساعت','Daily'],
@@ -1623,7 +1633,7 @@ function renderSourceDirectory(parent){
          const opt=el('option',t('نگهداری ','Keep ')+days+t(' روز',' days'));opt.value=String(days);retention.append(opt);
        }retention.value=String(control.retentionDays);
        const save=el('button',t('ذخیره تنظیم این منبع','Save source policy'));save.type='button';
-       save.disabled=sourceControlState.canManage!==true;
+       save.disabled=sourceControlState.canManage!==true||sourceControlState.status!=='available';
        save.addEventListener('click',async()=>{
          const parts=time.value.split(':').map(Number);
          if(parts.length!==2||parts.some(n=>!Number.isInteger(n))
@@ -1647,7 +1657,12 @@ function renderSourceDirectory(parent){
        toolbar.append(label,cadence,weekday,time,retention,save);editor.append(toolbar);
        if(control.nextDueAt)editor.append(el('small',t('زمان بعدی: ','Next due: ')+date(control.nextDueAt)));
        editor.append(el('small',t('وضعیت اجرا: ','Runtime state: ')+control.runtimeState));
-       if(sourceControlState.canManage===true){
+       editor.append(el('small',t('تنظیم اختصاصی مالک: ','Explicit owner policy: ')+
+         (control.policyConfigured===true?t('ثبت شده','Saved'):t('ثبت نشده','Not saved'))));
+       editor.append(el('small',t('کلید اصلی خودکار: ','Automatic master gate: ')+
+         (control.automaticMasterEnabled===true?t('مجاز','Permitted'):t('خاموش','Off'))+
+         ' · '+t('Cron هاست: نامشخص','Host Cron: unknown'));
+       if(sourceControlState.canManage===true&&sourceControlState.status==='available'){
          const purge=el('button',t('حذف فقط داده‌های تشخیصی منقضی‌شده','Purge eligible diagnostic data'));
          purge.type='button';
          purge.addEventListener('click',async()=>{
@@ -1665,6 +1680,18 @@ function renderSourceDirectory(parent){
          });editor.append(purge);
        }
        card.append(editor);
+     }
+     // No provider-fetch button for reference links or social accounts.
+     if(item.kind==='github_feed'&&sourceControlState?.canManage===true){
+       const run=el('button',t('واکشی دستی همین منبع GitHub','Fetch this GitHub source now'));
+       run.type='button';
+       run.addEventListener('click',()=>{
+         if(!window.confirm(t(
+           'واکشی همین منبع GitHub انجام شود؟ هیچ کار خودکاری فعال نمی‌شود.',
+           'Fetch only this GitHub source? No automatic task will be enabled.')))return;
+         collectionManualRefresh(item.id.slice('collector:'.length),run);
+       });
+       card.append(run);
      }
      const metrics=el('button',t('آمار مستند و نمودار این منبع','Recorded metrics and chart'));
      metrics.type='button';
@@ -1701,8 +1728,13 @@ function renderSourceDirectory(parent){
      const detail=el('article',undefined,'ops-panel');detail.id='ops-source-metric-detail';
      detail.append(el('h3',t('آمار ثبت‌شده: ','Recorded source metrics: ')+sourceMetricState.sourceId));
      detail.append(el('p',t('دوره: ','Period: ')+sourceMetricState.days+
-       t(' روز؛ تعداد نمونه: ',' days; samples: ')+(sourceMetricState.samples?.length??0)));
-     if(sourceMetricState.samples?.length){
+       t(' روز؛ تعداد نمونه: ',' days; samples: ')+
+       (sourceMetricState.samplesStatus==='available'
+         ?(sourceMetricState.samples?.length??0):t('نامشخص؛ جدول موجود نیست','Unknown; table unavailable'))));
+     if(sourceMetricState.samplesStatus!=='available'){
+       detail.append(el('p',t('جدول سنجه‌های این منبع در دیتابیس مادر در دسترس نیست.',
+         'The source-metrics table is unavailable in the mother database.')));
+     }else if(sourceMetricState.samples?.length){
        const samples=sourceMetricState.samples.slice(0,20).reverse();
        const chart=el('div',undefined,'ops-source-metric-chart');
        for(const sample of samples){
