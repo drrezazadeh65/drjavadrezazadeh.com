@@ -219,6 +219,27 @@ jobs:
           node scripts/stage14-organic-growth-audit.mjs
           node scripts/revenue-planner-contract-audit.mjs
 
+      - name: Require central admin syntax and privacy contracts before any Bertina upload
+        run: |
+          set -euo pipefail
+          node --check assets/js/operations-control.js
+          node --check assets/js/operations-free-resources.js
+          node --check scripts/operations-page-quality.mjs
+          node --check scripts/operations-hidden-features.mjs
+          php -l api/operations-alerts.php
+          php -l api/operations-response-monitor.php
+          php -l api/operations-http-log.php
+          php -l api/operations-source-controls.php
+          php -l api/operations-page-quality.php
+          php -l api/operations-source-directory.php
+          php -l api/operations-existing-features.php
+          php -l api/operations-schema.php
+          php -l api/internal/operations-alert-mail-worker.php
+          php -l api/internal/operations-http-log-worker.php
+          php -l api/internal/operations-response-monitor-worker.php
+          node --test tests/operations-admin-control-center.test.mjs
+          php tests/operations-admin-health.php
+
       - name: Verify operations registry, security and real MySQL
         env:
           OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
