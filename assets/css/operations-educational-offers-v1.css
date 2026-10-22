@@ -236,3 +236,19 @@
   .jr-edu-adult-review__pager label{flex-basis:100%}
   .jr-edu-adult-review__pager button,.jr-edu-erasure-queue__pager button{flex:1 1 105px}
 }
+
+
+/* Owner-MFA engine quick links: public routes only, no implied live assurance. */
+.jr-edu-engine-entries{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 14px}
+.jr-edu-engine-entries__link,.jr-edu-engine-entries__missing{
+  min-height:46px;display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid #d4ba83;border-radius:12px;padding:10px 13px;
+  font-size:.9rem;line-height:1.5;text-align:center
+}
+.jr-edu-engine-entries__link{color:#211c13;background:#e7c989;
+  text-decoration:none;font-weight:750}
+.jr-edu-engine-entries__link:hover{background:#f4ddac}
+.jr-edu-engine-entries__link:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.jr-edu-engine-entries__missing{color:#f1d8ad;background:#322d27;border-style:dashed}
+@media(max-width:520px){.jr-edu-engine-entries{flex-direction:column}
+  .jr-edu-engine-entries__link,.jr-edu-engine-entries__missing{width:100%}}
