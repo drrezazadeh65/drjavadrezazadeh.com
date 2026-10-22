@@ -2213,12 +2213,23 @@ function renderOwnerCommandCenter(){
      t('نمونه اخیر یا تنظیم SMTP به‌معنی نصب Cron یا تحویل ایمیل نیست. نمونه منقضی: ',
        'A recent row or SMTP settings do not prove Cron or inbox delivery. Stale observations: ')+workersStale)
    :absent(t('اطلاعات آماده‌سازی سرور موجود نیست','Host readiness unavailable'));
+ const structuralStatus=schemaChecks?.structure?.state;
+ const structuralIssues=['missingColumns','typeMismatches','missingIndexes',
+   'storageDiscrepancies','missingForeignKeys'].reduce((sum,key)=>{
+     const entries=schemaChecks?.structure?.[key];
+     return sum+(Array.isArray(entries)?entries.length:0);
+   },0);
  const infrastructureTables=schemaChecks?.state==='table_names_observed'?
-   state(Array.isArray(schemaChecks.missing)&&schemaChecks.missing.length?'attention':'recorded',
+   state((schemaChecks.missing?.length||structuralStatus==='source_structural_signature_discrepancy')
+       ?'attention':structuralStatus==='source_structural_signature_matches'
+         ?'recorded':'unknown',
      t('جداول موردنیاز: ','Required tables: ')+(schemaChecks.presentCount??'—')+
-       ' / '+(schemaChecks.requiredCount??'—'),
-     t('تنها موجودیِ ساختاری، نه آزمون عملکرد دیتابیس یا پشتیبان قابل‌بازیابی',
-       'Structural inventory only, not database functional or recovery validation'))
+       ' / '+(schemaChecks.requiredCount??'—')+
+       ' · '+t('مغایرت ساختاری: ','Schema discrepancies: ')+
+       (structuralStatus==='source_structural_signature_matches'||structuralStatus==='source_structural_signature_discrepancy'
+         ?structuralIssues:'—'),
+     t('این فقط تطبیق فراداده ستون، ایندکس و روابط است؛ نه آزمون عملکرد یا بازیابی نسخه پشتیبان.',
+       'Metadata-only comparison of columns, indexes and references; not a functional or backup-restore test.'))
    :absent(t('قرارداد دیتابیس بررسی نشده','Database schema contract unverified'));
  const mailOverview=smtp
    ?state('paused',
