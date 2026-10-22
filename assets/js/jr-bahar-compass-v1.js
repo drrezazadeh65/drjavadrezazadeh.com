@@ -46,6 +46,7 @@
   const fileInput=$('bahar-workbook-file');
   const entries=[];
   let compass=null;
+  let importGeneration=0;
   const text=(node,value)=>{node.textContent=value;};
   const bounded=(s,max=500)=>typeof s==='string'&&s.trim().length>0&&s.trim().length<=max;
   const optional=(s,max=500)=>typeof s==='string'&&s.length<=max;
@@ -179,12 +180,14 @@
     notify(messages.exported);
   });
   fileInput.addEventListener('change',async()=>{
+    const thisImport=++importGeneration;
     const file=fileInput.files?.[0];
     fileInput.value='';
     if(!file)return;
     if(file.size>30000||file.size===0){notify(messages.badFile,true);return;}
     try{
       const raw=JSON.parse(await file.text());
+      if(thisImport!==importGeneration)return;
       if(!raw||typeof raw!=='object'||Array.isArray(raw)
         ||raw.schema!=='jr.bahar.private-workbook.v1'
         ||raw.version!=='1.0.0'
@@ -214,7 +217,7 @@
         $('bahar-plan').dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
       }
       render();notify(messages.imported);preview.focus();
-    }catch{notify(messages.badFile,true);}
+    }catch{if(thisImport===importGeneration)notify(messages.badFile,true);}
   });
   $('bahar-print-workbook')?.addEventListener('click',()=>{
     const hasWeekly=$('plan-summary')&&!$('plan-summary').hidden;
@@ -227,11 +230,13 @@
     window.print();
   });
   $('bahar-clear-workbook').addEventListener('click',()=>{
+    importGeneration++;
     compass=null;entries.splice(0,entries.length);
     $('clear-plan')?.click();
     form.reset();reflectionForm.reset();
     render();notify(messages.removed);
     $(fields.goal).focus();
   });
+  window.addEventListener('pagehide',()=>{importGeneration++;},{once:true});
   render();
 })();
