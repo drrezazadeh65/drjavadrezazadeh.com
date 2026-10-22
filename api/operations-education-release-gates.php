@@ -125,6 +125,10 @@ function operationsEducationReleaseStatus(PDO $pdo): array {
               'state'=>$applicable?$state:'NOT_APPLICABLE',
               'ownerNote'=>$note,
               'evidenceReferenceRecorded'=>$digestPresent,
+              // This is a source-document fingerprint, never document bytes,
+              // account identifiers or evidence uploads. Owner MFA only.
+              'evidenceReferenceSha256'=>$digestPresent
+                  ?(string)$row['evidence_reference_sha256']:null,
               'revision'=>$revision,
               'updatedAt'=>$updatedAt,
               'independentlyValidated'=>false,
