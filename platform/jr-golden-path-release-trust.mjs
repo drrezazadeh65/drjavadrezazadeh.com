@@ -70,7 +70,8 @@ export function prepareAttestedGoldenPathBaharHandoff({
     professional.releaseId,professional.reviewerId,
     professional.routeRunId,professional.auditReference,
     professional.releasedAt,professional.synthesisSha256,
-    professional.decision,professional.scope
+    professional.decision,professional.scope,
+    professional.consentVerified,professional.roleVerified
   ]);
   if(!approvedSignature(serverContext?.reviewerSecret,payload,professional.signature))
     errors.push('INDEPENDENT_PRIVATE_PROFESSIONAL_SIGNATURE_REQUIRED');
