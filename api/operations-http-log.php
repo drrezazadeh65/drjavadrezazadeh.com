@@ -32,7 +32,7 @@ function operationsHttpParse(string $line): ?array {
     if(strlen($line)>8192||!preg_match('/\[([^\]]+)\]\s+"(?:GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS)\s+([^\s"]+)\s+HTTP\/[0-9.]+"\s+(\d{3})\b/',$line,$m))
         return null;
     $status=(int)$m[3];
-    if($status!==404 && ($status<500||$status>599))return null;
+    if($status<200||$status>599)return null;
     try{$ts=DateTimeImmutable::createFromFormat('d/M/Y:H:i:s O',$m[1]);}
     catch(Throwable $e){return null;}
     if($ts===false)return null;
@@ -91,7 +91,7 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
             $offset=($cursor['log_inode']===$inode&&(int)$cursor['byte_offset']<=$size)
                 ?(int)$cursor['byte_offset']:0;
             if(fseek($fh,$offset)!==0)return ['status'=>'read_unavailable','lines'=>0,'errors404'=>0,'errors5xx'=>0];
-            $read=0;$bytes=0;$errors404=0;$errors5xx=0;$recent404=0;$recent5xx=0;$routes=[];
+            $read=0;$bytes=0;$errors404=0;$errors5xx=0;$recent404=0;$recent5xx=0;$recentSeen=0;$routes=[];
             while(!feof($fh)&&$read<5000&&$bytes<1048576){
                 $line=fgets($fh,8192);if($line===false)break;
                 $bytes+=strlen($line);$read++;
@@ -100,6 +100,7 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
                 // Count older records for history, but only records with genuine
                 // timestamps in the last five minutes may raise urgent alerts.
                 $current=$parsed['at']>=$at-300 && $parsed['at']<=$at+60;
+                if($current)$recentSeen++;
                 if($parsed['status']===404){
                     $errors404++;
                     if($current)$recent404++;
@@ -112,7 +113,7 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
                         $routes[$key]['count']++;
                         $routes[$key]['lastSeenAt']=max($routes[$key]['lastSeenAt'],$parsed['at']);
                     }
-                }else{$errors5xx++;if($current)$recent5xx++;}
+                }elseif($parsed['status']>=500){$errors5xx++;if($current)$recent5xx++;}
             }
             $end=ftell($fh);if($end===false)throw new RuntimeException('log_cursor_unavailable');
             $pdo->beginTransaction();
@@ -143,11 +144,11 @@ function operationsHttpObserve(PDO $pdo,string $file,int $at,int $retentionDays=
             // Never generate an urgent email from historical logfile backlog.
             // A clean recent batch can resolve an incident, but a batch
             // consisting only of old records cannot establish recovery.
-            if($read>0&&$at-(int)$cursor['updated_at']<=900){
+            if($recentSeen>0&&$at-(int)$cursor['updated_at']<=900){
                 if($recent5xx>0)operationsAlertRecord($pdo,'http_5xx_surge','site_http_5xx',$at);
-                else if($recent404>0)operationsAlertResolve($pdo,'http_5xx_surge','site_http_5xx',$at);
+                else operationsAlertResolve($pdo,'http_5xx_surge','site_http_5xx',$at);
                 if($recent404>=10)operationsAlertRecord($pdo,'http_404_surge','site_http_404',$at);
-                else if($recent404>0)operationsAlertResolve($pdo,'http_404_surge','site_http_404',$at);
+                else operationsAlertResolve($pdo,'http_404_surge','site_http_404',$at);
             }
             return ['status'=>'observed','lines'=>$read,'errors404'=>$errors404,'errors5xx'=>$errors5xx];
         }finally{fclose($fh);}
