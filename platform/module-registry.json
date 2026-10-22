@@ -517,6 +517,25 @@
         "immutable-free-first-steps",
         "no-checkout-entitlement-activation"
       ]
+    },
+    {
+      "id": "education-owner-release-preparation",
+      "kind": "ADMIN",
+      "state": "PLANNED_OFF",
+      "authority": "MFA_SUPER_ADMIN_ONLY",
+      "data_class": "PRIVATE_OPERATIONAL_METADATA",
+      "depends_on": [
+        "identity",
+        "commerce",
+        "admin-console",
+        "audit-observability"
+      ],
+      "exposes": [
+        "twelve-offer-six-gate-preparation",
+        "owner-optimistic-draft-update",
+        "independent-read-after-write",
+        "explicit-nonactivation-boundary"
+      ]
     }
   ],
   "invariants": {
