@@ -1026,3 +1026,31 @@ body.customer-dashboard:not(.rtl) :is(button,input,select,textarea){font-family:
  }
  .cd-rail .cd-nav a:focus-visible{outline-offset:-2px}
 }
+
+
+/* Mobile-first private workspace: one visible panel; modal nav only while
+   opened by the learner. Minimum tactile sizes, readable navigation and
+   keyboard focus even on 320px phones; no additional dashboard backend. */
+@media(max-width:920px){
+ .cd-mobile-dock a,.cd-mobile-dock button{
+  min-height:56px;font-size:clamp(10px,1.8vw,12px);
+  line-height:1.45;overflow-wrap:anywhere;
+ }
+ .cd-mobile-dock a:focus-visible,
+ .cd-mobile-dock button:focus-visible,
+ .cd-sheet button:focus-visible,
+ .cd-sheet a:focus-visible{
+  outline:3px solid #edce8f;outline-offset:2px;
+ }
+ .cd-sheet-close{min-width:48px;min-height:48px}
+ .cd-sheet-grid a{min-height:54px;gap:5px}
+ .cd-sheet-grid b{font-size:clamp(12px,2vw,14px);line-height:1.5}
+ .cd-sheet-grid span{font-size:clamp(11px,1.8vw,12px);line-height:1.6}
+ .cd-page-title span{font-size:clamp(10px,1.5vw,12px)}
+ .cd-sheet-grid a{overflow-wrap:anywhere;min-width:0}
+}
+@media(max-width:390px){
+ .cd-mobile-dock{gap:1px;padding:5px}
+ .cd-mobile-dock a,.cd-mobile-dock button{font-size:10px}
+ .cd-sheet-card{padding:10px 12px calc(20px + env(safe-area-inset-bottom))}
+}
