@@ -117,3 +117,43 @@
 @media print{
  .jr-konkur-workspace .jr-kc-catalogue-pager{display:none!important}
 }
+
+
+/* 1405 reviewed-source programme conditions: an optional source excerpt,
+   never a computed eligibility decision or an indicator of live availability. */
+.jr-konkur-workspace .jr-kc-source-conditions{
+ margin:12px 0 17px;padding:8px 14px;
+ border:1px solid rgba(220,187,126,.52);border-radius:12px;
+ background:rgba(11,16,23,.27);min-width:0;
+}
+.jr-konkur-workspace .jr-kc-source-conditions summary{
+ cursor:pointer;min-height:44px;padding:9px 4px;
+ color:#f8dda4;font-weight:700;line-height:1.65;
+}
+.jr-konkur-workspace .jr-kc-source-conditions summary:focus-visible{
+ outline:3px solid #f4ddaa;outline-offset:3px;
+}
+.jr-konkur-workspace .jr-kc-source-conditions p{
+ color:#f4e9d8;line-height:1.85;overflow-wrap:anywhere;
+}
+.jr-konkur-workspace .jr-kc-conditions-list{
+ list-style:disc;display:grid;gap:12px;
+ margin:9px 0 14px;padding-inline-start:20px;
+}
+.jr-konkur-workspace .jr-kc-conditions-list li{
+ border-block-end:1px solid rgba(208,172,111,.22);
+ padding-block:8px 12px;overflow-wrap:anywhere;
+}
+.jr-konkur-workspace .jr-kc-conditions-list strong{
+ display:block;line-height:1.6;color:#f4dfb1;
+}
+.jr-konkur-workspace .jr-kc-conditions-list small{
+ line-height:1.7;color:#e6cfad;
+}
+@media(max-width:430px){
+ .jr-konkur-workspace .jr-kc-source-conditions{padding:7px 10px}
+ .jr-konkur-workspace .jr-kc-conditions-list{padding-inline-start:17px}
+}
+@media print{
+ .jr-konkur-workspace .jr-kc-source-conditions{break-inside:avoid}
+}
