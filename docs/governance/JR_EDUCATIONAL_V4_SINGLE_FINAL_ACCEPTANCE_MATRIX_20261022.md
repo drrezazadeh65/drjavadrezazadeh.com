@@ -1,0 +1,62 @@
+# JR Integrated Education v4.0 — SINGLE FINAL ACCEPTANCE MATRIX
+
+**Status:** WRITTEN PLAN ONLY — ALL TESTS NOT RUN.  
+**Date:** 2026-10-22.  
+**Source:** `migration/bertina-linux6` on `drrezazadeh65/drjavadrezazadeh.com`.  
+**Binding instructions:** owner has prohibited interim testing; collect full source changes first and execute one end-stage integrated verification only after work is complete. GOV-004 / SEO-URL-001 permanently protects established public URLs. This file performs **no tests, deployment, migration, activation or financial transaction**.
+
+## Science and reliability gates — owner cannot waive external factual evidence
+
+| Gate | Required end-stage proof | Why the gate matters |
+|---|---|---|
+| SCI-01 | Original official 1405 PDF fingerprints, pages, amendments, applicable languages and teacher-training coverage independently reviewed by qualified persons | A PDF inventory is not an authoritative programme catalogue |
+| SCI-02 | Every official programme row has exact source edition, page, row ordinal, current amendment status, independently signed reviewer and administrator attestation | Prevents invented capacity, fee, course, eligibility or admission claims |
+| SCI-03 | Golden Talent and RCAS scoring instruments versioned and reviewed against reliability, validity, Humanability and fairness; unsupported claims remain labeled research-stage | Prevents psychometric overclaiming |
+| SCI-04 | BAHAR free introduction and two full sections independently editorial/scientifically reviewed; advanced paid sections verified as delivered products before offering purchase | Prevents premature monetization and misleading courses |
+| SCI-05 | Golden Path releases require verified personal/guardian consent, independently attested professional review and unambiguous provenance of all six domains | Prevents automated talent labeling or career prescriptions |
+| SCI-06 | Any prediction must have independent year-held-out real outcomes, no train/holdout leakage, baseline comparison, Brier score, log loss, global/subgroup calibration, uncertainty and scope checks, signed scientific review, operational monitoring and separate production authorization | No fabricated prediction or fake probability of admission |
+
+## Product, privacy, security and integration gates
+
+| Gate | Required end-stage proof |
+|---|---|
+| FUN-01 | All bilingual need-first choices navigate to their correct live Golden Talent, RCAS, BAHAR, scorecard, Choice Studio and growth pages without dead links, path renames or cross-locale errors |
+| FUN-02 | Two BAHAR introductory modules, weekly planner, eight-week compass, print, export, import and reset work without unauthorized server persistence; consent withdrawal cancels pending reads |
+| FUN-03 | Private learner, parent and practitioner access matches verified identity and current purpose-specific consent; cross-account, child/adult and role boundaries deny untrusted requests |
+| FUN-04 | Existing five-criterion Choice Studio scores are unchanged by imported BAHAR narratives; Golden Path professional release remains independently gated |
+| FUN-05 | Customer dashboard access, private BAHAR evidence, profile reports, signed document delivery and lawful deletion/retention lifecycle verified on the real mother DB |
+| FUN-06 | SUPER_ADMIN MFA, CSRF, origin policy, SQL least privilege, rate limiting, optimistic owner draft-price edits, audit log and expiry work as documented; read-only admin views do not authorize releases |
+| DATA-01 | MariaDB additive source migrations reconciled with observed production schema; backup, restore, rollback, foreign keys, indexes and retention policies independently reviewed before migration |
+| DATA-02 | Admin control of individual/all data collectors, schedules, disabled-by-default master switch, per-source diagnostics and safe retention previews preserved; no unexpected Cron/provider calls |
+| SEC-01 | Headers, TLS/HTTPS, CSP, session management, CSRF, XSS, upload handling, encrypted storage and secret handling checked end-to-end; no identifiable learner data in logs or caches |
+| SEC-02 | All private URLs, account APIs, commerce pages, administration, guardian reports and uploaded workbooks remain uncached/noindex; public PWA offline fallback uses exactly matching public paths |
+| COM-01 | Existing BitPay and manual USDT order/claim/sponsor flows do not regress; real fulfilment only after verified payment and, where required, human approval; no fabricated transaction evidence |
+| COM-02 | All proposed educational offers remain unlisted/unpurchasable until owner-approved content, price, entitlement, verified actual provider checkout, refund/receipt, and legal/economic policy gates are satisfied |
+| SEO-01 | Frozen historical sitemap <loc> URLs, established public routes, canonicals, live 200 responses, permanent redirects and backlink destinations preserved; new routes have accurate XML additions |
+| SEO-02 | Canonical/hreflang reciprocal bilingual routes, structured data without invented reviews/claims, internal linking and content quality reviewed by page; no private sitemap entries |
+| UX-01 | Actual 320/360/375/390/430px mobile, tablet and desktop portrait/landscape browsing: RTL/LTR, usable forms, keyboard navigation, focus, contrast, 44px targets, screen-reader and reduced-motion behavior |
+| PWA-01 | Existing site/PWA installation remains compatible on mobile and desktop; one controlled update flow; CSS/JS refresh; no stale home banner, broken navigation or unsafe offline cache |
+| PERF-01 | Post-build real-user and lab observations for LCP/INP/CLS, Core Web Vitals, transfer size, assets and LiteSpeed/PHP 8.3.35 compatibility; no fictional performance grade |
+| OPS-01 | Alerts, DB errors, 404, page quality, SEO/GEO and admin controls show observed data with explicit unknown states; email only on enabled owner preferences |
+| OPS-02 | GitHub workflow, immutable URL guard, exact artifact source, build inventory, host SSH/cPanel/permissions, rollback and post-release live checks all evidenced |
+| LEGAL-01 | Privacy notice, minors/guardian verification, research consent, advertising claims, sales terms, refund rules, payment/crypto handling and journal compliance reviewed for relevant jurisdictions |
+
+## Single-integrated-test execution discipline (future only)
+
+1. **Do not run this matrix before all independently implementable source work is finished.** External credential, official guide, institutional, legal and scientific blockers must be declared as blockers, not silently passed.
+2. Freeze a release candidate commit on the canonical branch and a published-URL registry; make an immutable backup of the production database and static files.
+3. Execute the complete integrated matrix on a safe, production-representative staging environment, then reconcile any findings; repeated corrective tests inside final acceptance do not waive the user's prohibition on earlier iterative testing.
+4. Re-check protected canonical URLs, redirect behavior, HTTPS, cookie boundaries, private PWA caches and all authenticated workflows.
+5. Verify each financial action with live provider/bank evidence only if the owner authorizes an actual settlement or a safe documented provider sandbox; do not fabricate payments.
+6. Publish only through the authorized Bertina owner-controlled workflow when every mandatory condition is met. Verify actual live state separately and restore promptly on regression.
+7. A signed and dated gate report must distinguish PASS, FAIL, NOT RUN, BLOCKED and NOT APPLICABLE. An empty status is **never** PASS.
+
+## Explicit status at creation
+
+**All gates:** NOT RUN / NOT VERIFIED.  
+**Production launch approved:** NO.  
+**New paid educational offers enabled:** NO.  
+**Official predictions enabled:** NO.  
+**Previously published URLs renamed:** NO REQUEST OR AUTHORIZATION.
+
+A source commit is evidence that text/code was saved in the GitHub branch, not evidence of full system functionality, acceptance or production deployment.
