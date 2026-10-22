@@ -73,7 +73,7 @@ function operationsResponseMonitorStatus(PDO $pdo,int $at): array {
         'status'=>'stored_observations','settings'=>$settings,
         'latest'=>$rows,'history'=>array_slice($history,0,80),
         'checks'=>[
-            'mandatory'=>['http_status','x_frame_options','x_content_type_options','referrer_policy','permissions_policy'],
+            'mandatory'=>['http_status','x_frame_options_or_csp_frame_ancestors','x_content_type_options','referrer_policy','permissions_policy'],
             'advisory'=>['strict_transport_security','content_security_policy']
         ],
         'limitation'=>'The newest observation is historical, not a continuous live monitor. HSTS and CSP absence is reported as advisory until an independently approved non-breaking policy is installed. HEAD is not a visual test or a security penetration test.'];
