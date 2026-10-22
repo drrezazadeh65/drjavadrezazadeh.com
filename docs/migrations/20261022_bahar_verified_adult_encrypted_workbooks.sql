@@ -10,8 +10,15 @@ CREATE TABLE IF NOT EXISTS eco_bahar_account_workbook_policy (
   singleton_id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
   enabled TINYINT(1) NOT NULL DEFAULT 0,
   owner_note VARCHAR(240) NOT NULL DEFAULT '',
+  scientific_review_sha256 CHAR(64) NULL,
+  privacy_review_sha256 CHAR(64) NULL,
+  release_gate_approved_by_account_id CHAR(36) NULL,
+  release_gate_approved_at DATETIME(3) NULL,
   changed_by_account_id CHAR(36) NULL,
   updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CONSTRAINT fk_eco_bahar_workbook_release_approver
+    FOREIGN KEY(release_gate_approved_by_account_id)
+    REFERENCES customer_accounts(id) ON DELETE SET NULL,
   CONSTRAINT fk_eco_bahar_workbook_policy_admin
     FOREIGN KEY(changed_by_account_id) REFERENCES customer_accounts(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -60,6 +67,9 @@ CREATE TABLE IF NOT EXISTS eco_bahar_account_workbooks (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Operational contract:
+-- - Owner activation requires separate source-evidence SHA256 approvals
+--   for scientific and privacy review, plus an independent named approver;
+--   all remain NULL until reviewed. Admin UI may not fabricate them.
 -- - BOTH the private JR_BAHAR_WORKBOOK_KEY_B64 (32-byte key) and
 --   JR_BAHAR_WORKBOOK_KEY_ID must be supplied separately, never Git-tracked.
 -- - Source does not rotate or export plaintext automatically.
