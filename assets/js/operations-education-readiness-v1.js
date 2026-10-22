@@ -13,6 +13,7 @@
   const aggregate=root.querySelector('[data-education-readiness-summary]');
   const listing=root.querySelector('[data-education-readiness-engines]');
   const dependencies=root.querySelector('[data-education-readiness-dependencies]');
+  const commander=root.querySelector('[data-education-command-overview]');
   const refresh=root.querySelector('[data-education-readiness-refresh]');
   if(!status||!aggregate||!listing||!dependencies||!refresh)return;
   let controller=null, serial=0, busy=false,loaded=false;
@@ -30,10 +31,101 @@
     refresh.disabled=false;
     aggregate.textContent='';
     listing.replaceChildren();dependencies.replaceChildren();
+    if(commander)commander.replaceChildren();
     status.textContent=T('برای دریافت وضعیت، این بخش را باز کنید.',
       'Expand to request the private readiness snapshot.');
   }
+  // Build an actionable overview from the existing *observed* API fields.
+  // This is NOT a second audit, health check, source approval or launch score.
+  function renderOwnerCommand(data){
+    if(!commander)return;
+    commander.replaceChildren();
+    const deps=data.sourceDependencies||{};
+    const items=[
+      {
+        title:T('منابع رسمی ۱۴۰۵','Official 1405 guides'),
+        count:deps.sourceGuidePagesInventoried,
+        state:deps.guideManifestReadAvailable===true
+          ?T('فهرست موجود · تأیید نشده','Inventory present · unreviewed')
+          :T('منبع قابل دریافت نیست','Source inventory unavailable'),
+        detail:T('نخست بررسی صفحه‌های اصلی و اصلاحیه‌ها؛ هیچ احتمال قبولی منتشر نشود.',
+          'Review original pages and amendments before publishing any programme claims.'),
+        button:T('مشاهده دفترچه‌ها','Review guide inventory'),
+        target:'ops-education-source-review'
+      },
+      {
+        title:T('زیرساخت داده BAHAR','BAHAR mother database'),
+        count:null,
+        state:deps.baharMotherDatabaseColumnsPresent===true
+          ?T('ستون‌های پایه حاضر · اجرا آزموده نشده','Core columns present · runtime unverified')
+          :deps.baharMotherDatabaseColumnsPresent===false
+            ?T('نیازمند تکمیل ستون‌های پایه','Base schema needs work')
+            :T('وضعیت جدول‌ها نامشخص','Table availability unknown'),
+        detail:T('برای ذخیره امن، فعال‌سازی مدیر، رضایت و تأیید مستقل لازم است.',
+          'Encrypted saving requires owner opt-in, consent and separate approval.'),
+        button:T('کنترل ذخیره خصوصی','Private storage controls'),
+        target:'jr-bahar-owner-policy'
+      },
+      {
+        title:T('قیمت‌های پیشنهادی','Proposed educational prices'),
+        count:deps.unapprovedOfferDrafts,
+        state:deps.educationalDraftPricingStorageReady===true
+          ?T('پیش‌نویس‌ها قابل مدیریت‌اند · فروش غیرفعال','Owner drafts manageable · sale OFF')
+          :T('آمادگی ثبت پیش‌نویس تأیید نشده','Draft storage not verified'),
+        detail:T('همه قیمت‌ها پیشنهادی‌اند؛ مراحل مقدماتی رایگان باقی می‌مانند.',
+          'All prices are proposals. Introductory stages stay free.'),
+        button:T('مدیریت پیشنهادها','Manage draft proposals'),
+        target:'ops-education-offers'
+      },
+      {
+        title:T('اعتبار علمی شش موتور','Six-engine scientific readiness'),
+        count:data.summary?.scienceValidatedEngines,
+        state:T('اعتبارسنجی مستقل ثبت نشده','No independent validation registered'),
+        detail:T('وجود فایل یا موتور، گواه اعتبار علمی، عملکرد زنده یا انتشار نیست.',
+          'Source presence does not certify scientific validity or live readiness.'),
+        button:T('مشاهده شش موتور','Inspect six engines'),
+        target:'education-engines'
+      }
+    ];
+    for(const item of items){
+      const card=make('article','jr-edu-owner-command__card');
+      const heading=make('h4','jr-edu-owner-command__title',item.title);
+      const state=make('p','jr-edu-owner-command__state',item.state);
+      const detail=make('p','jr-edu-owner-command__description',item.detail);
+      card.append(heading);
+      if(Number.isSafeInteger(item.count)&&item.count>=0){
+        const quantity=make('strong','jr-edu-owner-command__number',
+          number.format(item.count));
+        quantity.title=T('تعداد ثبت‌شده در محدوده همین گزارش؛ تأیید علمی نیست',
+          'Reported count only; not a scientific or release approval');
+        card.append(quantity);
+      }
+      card.append(state,detail);
+      const action=make('button','jr-edu-owner-command__action',item.button);
+      action.type='button';
+      action.addEventListener('click',()=>{
+        const panel=item.target==='jr-bahar-owner-policy'
+          ?root.querySelector('[data-jr-bahar-owner-policy]')
+          :item.target==='education-engines'
+            ?listing:document.getElementById(item.target);
+        if(!panel)return;
+        if(panel instanceof HTMLDetailsElement)panel.open=true;
+        if(!panel.closest('details')?.open&&panel.closest('details')){
+          panel.closest('details').open=true;
+        }
+        panel.scrollIntoView({block:'start',behavior:'instant'});
+        if(panel instanceof HTMLDetailsElement){
+          panel.querySelector('summary')?.focus({preventScroll:true});
+        }else{
+          const first=panel.querySelector('button,a,summary,[tabindex]');
+          if(first)first.focus({preventScroll:true});
+        }
+      });
+      card.append(action);commander.append(card);
+    }
+  }
   function render(data){
+    renderOwnerCommand(data);
     aggregate.textContent=T('موتورها: ','Engines: ')+number.format(data.summary.engines)+
       T(' · موتورها با اعتبارسنجی علمی ثبت‌شده: ',' · scientifically validated engines: ')+
       number.format(data.summary.scienceValidatedEngines)+
@@ -137,6 +229,7 @@
     }catch(error){
       if(id!==serial||error?.name==='AbortError')return;
       loaded=false;listing.replaceChildren();dependencies.replaceChildren();
+      if(commander)commander.replaceChildren();
       aggregate.textContent='';
       status.textContent=T('اطلاعات در دسترس نیست؛ مجوز علمی یا انتشار فرض نمی‌شود.',
         'Readiness status unavailable; no scientific or release approval is inferred.');
