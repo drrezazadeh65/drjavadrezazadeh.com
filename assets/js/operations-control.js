@@ -2767,6 +2767,14 @@ function renderOwnerCommandCenter(){
    t('بر اساس داده موجود','From loaded records')],
   ['کیفیت سئوی منبع','Weak source SEO',quality?.status==='source_only'?quality.weakSeoPages??'—':'—',
    t('معیار HTML، نه رتبه','HTML checks, not ranking')],
+  ['گردآوری خودکار','Scheduled collection',collector?.enabled===true?
+     t('با مجوز مدیر','Owner permitted'):collector?.enabled===false?
+       t('خاموش','OFF'):'—',
+   t('Cron واقعی جداگانه نیازمند تأیید','Host Cron independently unverified')],
+  ['ایمیل هشدار','Incident mail',alertData?.enabled===true?
+     t('با مجوز مدیر','Owner permitted'):alertData?.enabled===false?
+       t('خاموش','OFF'):'—',
+   t('تحویل واقعی به صندوق ورودی تأیید نشده','Inbox delivery unverified')],
   ['زمان مشاهده','Evidence checked',snapshot.checkedAt?date(snapshot.checkedAt):'—',
    t('زمان گزارش سرور','Recorded server timestamp')]
  ]){const tile=el('div',undefined,'oc-stat');tile.append(el('small',t(fa,label)),
