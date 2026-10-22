@@ -115,9 +115,16 @@ function operationsAlertScopeSnapshot(PDO $pdo,int $at): array {
     $rows=[];
     foreach($allowed as $id=>$value) {
         $explicit=$settings[$id]??null;
+        // Only the new BAHAR-sensitive scopes default OFF. Display the
+        // exact effective status that the dispatch gate actually enforces.
+        $baharOptIn= in_array($id,[
+          'feature:bahar-private-storage-alerts',
+          'feature:bahar-adult-review-alerts'
+        ],true);
         $rows[]=$value+[
-            'emailEnabled'=>$explicit===null?true:$explicit['enabled'],
+            'emailEnabled'=>$explicit===null?!$baharOptIn:$explicit['enabled'],
             'inheritsDefault'=>$explicit===null,
+            'requiresExplicitOptIn'=>$baharOptIn,
             'updatedAt'=>$explicit['updatedAt']??null
         ];
     }
