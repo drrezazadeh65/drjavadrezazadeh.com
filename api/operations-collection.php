@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
+require_once __DIR__.'/operations-source-controls.php';
 
 /**
  * Stage-7 collection control: one existing MySQL database, 13 engine switches,
@@ -66,6 +67,21 @@ function operationsCollectorPolicies(PDO $pdo): array {
         $items[$id]['nextDue']=(int)$row['next_due'];
         $items[$id]['updatedAt']=(int)$row['updated_at'];
     }
+    // A specific collector's policy takes precedence over legacy switches.
+    // Other 46 references never gain a collector just by enabling the toggle.
+    $overrides=operationsSourceControlRows($pdo)??[];
+    foreach($items as $key=>&$policy){
+        if($policy['type']!=='source')continue;
+        $custom=$overrides['collector:'.$key]??null;
+        if(!is_array($custom))continue;
+        $policy['enabled']=(bool)$custom['enabled'];
+        $policy['cadence']=(string)$custom['cadence'];
+        $policy['clockMinutes']=(int)$custom['clock_minutes'];
+        $policy['weekday']=(int)$custom['weekday'];
+        $policy['nextDue']=(int)$custom['next_due'];
+        $policy['updatedAt']=(int)$custom['updated_at'];
+        $policy['sourceControlOverride']=true;
+    }unset($policy);
     return $items;
 }
 function operationsCollectorConfigure(PDO $pdo,string $key,bool $enabled,string $cadence,int $clock,string $actor,int $at): array {
@@ -193,9 +209,20 @@ function operationsCollectorRefresh(PDO $pdo,string $mode,int $at,string $scope=
                 $write->execute([$key,$at,$at+$ttl,$encoded]);$saved++;$receivedThisKey=true;
             }
             operationsCollectorRecordAttempt($pdo,$key,$at,$receivedThisKey);
-            $next=operationsCollectorNextDue($policy['cadence'],$policy['clockMinutes'],$at+60);
+            operationsSourceRecordMetric($pdo,'collector:'.$key,'fetch_success',
+                $receivedThisKey?1.0:0.0,'boolean',$at);
+            if($receivedThisKey)operationsSourceRecordMetric($pdo,'collector:'.$key,
+                'payload_bytes',(float)strlen($encoded),'bytes',$at);
+            $next=$policy['cadence']==='weekly'
+                ?operationsSourceNextDue('weekly',(int)($policy['weekday']??1),
+                    (int)$policy['clockMinutes'],$at+60)
+                :operationsCollectorNextDue($policy['cadence'],$policy['clockMinutes'],$at+60);
             if($mode==='scheduled'&&!$receivedThisKey)$next=$at+900;
             $advance->execute([$next,$key]);
+            if(!empty($policy['sourceControlOverride'])){
+                $updateControl=$pdo->prepare('UPDATE operations_source_controls SET next_due=? WHERE source_id=?');
+                $updateControl->execute([$next,'collector:'.$key]);
+            }
         }
         return ['status'=>$saved===count($keys)?'updated':($saved?'partial':'provider_unavailable'),
             'attempted'=>count($keys),'saved'=>$saved];
