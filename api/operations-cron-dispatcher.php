@@ -53,7 +53,12 @@ function operationsCronRegistry(): array {
         'fa'=>'رسیدگی ایمن به اجاره‌های منقضی‌شدهٔ JREI',
         'en'=>'JREI expired job lease reconciliation',
         'relative'=>'internal/jrei-hybrid-lease-reconciler.php',
-        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true]
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true],
+      'jrei_ka_schedule'=>[
+        'fa'=>'زمان‌بندی منابع مجاز آموزشی JREI',
+        'en'=>'JREI-KA authorised educational source scheduler',
+        'relative'=>'internal/jrei-ka-schedule-worker.php',
+        'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true]
     ];
 }
 function operationsCronSourcePath(string $jobId): ?string {
