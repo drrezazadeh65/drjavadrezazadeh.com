@@ -14,6 +14,7 @@ function jrKaOwnerCoverageGapQueue(PDO $pdo): array {
         'available'=>false,'approvedScopeCount'=>null,
         'eligibleMetadataLinkCount'=>null,'unresolvedScopeCount'=>null,
         'items'=>[],'truncated'=>false,
+        'independentGradeCurriculumReviewRequired'=>true,
         'gradeAndCurriculumIdentityVerified'=>false,
         'officialSourceContentVerified'=>false,
         'answerKeyCorrectnessVerified'=>false,
@@ -36,9 +37,22 @@ function jrKaOwnerCoverageGapQueue(PDO $pdo): array {
        AND s.is_revoked=0 AND s.is_superseded=0
        AND s.verified_at IS NOT NULL
        AND s.reviewer_account_id IS NOT NULL
-       AND s.reviewer_account_id<>r.approved_by_account_id";
+       AND s.reviewer_account_id<>r.approved_by_account_id
+       AND a.source_id=s.source_id
+       AND a.review_state='ATTESTED_SCOPE_ALIGNMENT'
+       AND a.source_version=s.source_version
+       AND a.source_updated_at=s.updated_at
+       AND a.source_locator_digest<=>s.source_locator_digest
+       AND a.curriculum_id=r.curriculum_id
+       AND a.grade=r.grade
+       AND a.evidence_sha256 IS NOT NULL
+       AND a.reviewed_by_account_id IS NOT NULL
+       AND a.reviewed_by_account_id<>r.approved_by_account_id
+       AND a.reviewed_by_account_id<>s.reviewer_account_id";
     $from="FROM jrei_exam_coverage_requirements r
       LEFT JOIN jrei_exam_sources s ON s.source_id=r.source_id
+      LEFT JOIN jrei_ka_scope_alignment_current a
+        ON a.requirement_id=r.requirement_id
       WHERE r.approved_by_account_id IS NOT NULL
         AND r.requirement_state<>'WITHDRAWN_SCOPE_ERROR'";
     try {
@@ -65,6 +79,21 @@ function jrKaOwnerCoverageGapQueue(PDO $pdo): array {
             s.review_state AS live_review_state,
             s.rights_state AS live_rights_state,
             s.is_revoked,s.is_superseded,s.verified_at,
+            s.updated_at AS live_source_updated_at,
+            s.source_version AS live_source_version,
+            s.source_locator_digest AS live_locator_digest,
+            a.source_id AS aligned_source_id,
+            a.review_state AS alignment_state,
+            a.source_version AS alignment_version,
+            a.source_updated_at AS alignment_source_updated_at,
+            a.source_locator_digest AS alignment_locator_digest,
+            a.curriculum_id AS alignment_curriculum_id,
+            a.grade AS alignment_grade,
+            a.evidence_sha256 AS alignment_evidence,
+            CASE WHEN a.reviewed_by_account_id IS NULL THEN 0
+              WHEN a.reviewed_by_account_id=r.approved_by_account_id
+                OR a.reviewed_by_account_id=s.reviewer_account_id THEN 1
+              ELSE 0 END AS alignment_reviewer_conflict,
             CASE WHEN s.reviewer_account_id IS NULL THEN 0
               WHEN s.reviewer_account_id=r.approved_by_account_id THEN 1
               ELSE 0 END AS same_reviewer
@@ -99,6 +128,17 @@ function jrKaOwnerCoverageGapQueue(PDO $pdo): array {
             } elseif ($r['live_review_state']!=='AUTHORITATIVE_REVIEWED' ||
                 $r['verified_at']===null) {
                 $reason='SOURCE_AUTHORITY_REVIEW_INCOMPLETE';
+            } elseif ($r['aligned_source_id']!==$r['registered_source_id'] ||
+                $r['alignment_state']!=='ATTESTED_SCOPE_ALIGNMENT' ||
+                $r['alignment_version']!==$r['live_source_version'] ||
+                (int)$r['alignment_source_updated_at']!==
+                    (int)$r['live_source_updated_at'] ||
+                $r['alignment_locator_digest']!==$r['live_locator_digest'] ||
+                $r['alignment_curriculum_id']!==$r['curriculum_id'] ||
+                (int)$r['alignment_grade']!==(int)$r['grade'] ||
+                $r['alignment_evidence']===null ||
+                (int)$r['alignment_reviewer_conflict']===1) {
+                $reason='CURRICULUM_GRADE_ALIGNMENT_EVIDENCE_REQUIRED';
             }
             $out['items'][]=[
                 'requirementId'=>(string)$r['requirement_id'],
