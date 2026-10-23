@@ -84,6 +84,9 @@ function cfg(): array {
         // Separate OFF-by-default bounded cleanup of expired crypto nonce
         // and stale dataset-advertisement rows. Never purge job/audit records.
         'jrei_hybrid_retention_enabled' => getenv('JR_JREI_HYBRID_RETENTION_ENABLED') === 'true',
+        // Independent OFF-by-default safety-only lease reconciliation.
+        // No repeat of interrupted or possibly completed worker jobs.
+        'jrei_hybrid_reconciliation_enabled' => getenv('JR_JREI_HYBRID_RECONCILIATION_ENABLED') === 'true',
         // Operator-owned mapping of independently source-reviewed PUBLIC
         // evaluation corpora only. No student content or arbitrary paths.
         'jrei_hybrid_approved_datasets' => [],
