@@ -202,7 +202,7 @@ function jrHybridEligibleDatasets(mixed $raw,array $cfg,PDO $pdo): ?array {
     }
     return $approved;
 }
-function jrHybridLease(PDO $pdo,string $node,int $at,array $datasets): ?array {
+function jrHybridLease(PDO $pdo,string $node,int $at,array $datasets,array $cfg): ?array {
     $pdo->beginTransaction();
     try {
         // Serialize all polls claiming work as this node, including concurrent
@@ -215,6 +215,13 @@ function jrHybridLease(PDO $pdo,string $node,int $at,array $datasets): ?array {
         $q->execute([$node]);
         if($q->fetchColumn()===false)
             throw new DomainException('worker_no_longer_enabled');
+        // Recheck and lock approval rows BEFORE locking job rows. Suspension
+        // uses the same catalogue-then-job ordering and prevents fresh leases.
+        $stillApproved=[];
+        foreach($datasets as $offer)
+            if(jrHybridLockApprovedCorpus($pdo,$cfg,$offer))
+                $stillApproved[]=$offer;
+        $datasets=$stillApproved;
         jrHybridRecoverOrphans($pdo,$at);
         // One active assignment per registered node; a retrying poll cannot
         // request two concurrent jobs and cannot cause duplicate inference.
@@ -395,7 +402,7 @@ function jrHybridWorkerRoute(string $path,string $verb): never {
                 $body['datasets'],$now);
             if(!in_array($meta['status'],['ONLINE','DEGRADED'],true))
                 respond(['ok'=>true,'job'=>null,'retryAfterSeconds'=>20]);
-            $job=jrHybridLease($pdo,(string)$node['node_id'],$now,$datasets);
+            $job=jrHybridLease($pdo,(string)$node['node_id'],$now,$datasets,$config);
             respond(['ok'=>true,'job'=>$job,'retryAfterSeconds'=>$job?0:20]);
         }
         if($path==='/jrei/v1/worker/heartbeat')
