@@ -45,6 +45,7 @@ require_once __DIR__.'/operations-github-audits.php';
 require_once __DIR__.'/operations-collection.php';
 require_once __DIR__.'/operations-github-dispatch.php';
 require_once __DIR__.'/operations-cron-dispatcher.php';
+require_once __DIR__.'/jrei-learning-operations.php';
 
 function operationsRegistry(): array {
     $raw = file_get_contents(__DIR__.'/internal/operations-registry.json');
@@ -397,6 +398,31 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        // Adaptive JREI evaluation metadata is owner-visible only, with
+        // the existing SUPER_ADMIN / fresh TOTP / same-origin CSRF guard.
+        // This API cannot initiate local Windows inference or self-publish.
+        if($path==='/admin/operations/jrei-learning' &&
+           ($verb==='GET'||$verb==='POST')) {
+            if(($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'jrei_learning_owner',$accountId,18,300))
+                fail('rate_limited',429);
+            if($verb==='GET')respond(jrJreiLearningSnapshot($pdo,$configuration));
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            try {
+                $state=jrJreiLearningOwnerChange($pdo,$configuration,
+                    $accountId,jsonBody());
+            }catch(InvalidArgumentException $e){
+                fail('invalid_jrei_learning_policy',422);
+            }catch(DomainException $e){
+                fail($e->getMessage()==='jrei_learning_policy_conflict'
+                    ?'jrei_learning_policy_conflict':
+                      'jrei_learning_authorization_required',409);
+            }
+            respond($state);
+        }
         // Central CLI scheduler: the original SUPER_ADMIN/MFA session and
         // exact-origin CSRF govern source-only policy changes. This route
         // never executes a worker, installs a host Cron or sends an email.
