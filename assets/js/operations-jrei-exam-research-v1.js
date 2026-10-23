@@ -968,6 +968,10 @@
    fact(T('فایل‌های PDF یا تصویر نیازمند OCR',
      'Documents awaiting a proper OCR pass'),
      extraction?.schemaReady?fmt(extraction.ocrRequired):T('نامعلوم','Unknown'));
+   fact(T('متون دارای نشانهٔ فرمول یا MathML نیازمند داوری تخصصی',
+     'Detected mathematical notation awaiting specialist review'),
+     extraction?.schemaReady?fmt(extraction.mathLayoutReviewRequired):
+       T('نامعلوم','Unknown'));
    root.append(elt('p','',
      T('سوئیچ خصوصی استخراج متن: ','Private text extraction switch: ')+
      (ka.privateTextExtractionOptIn?
@@ -983,6 +987,8 @@
        ['در صف','Queued',extraction.totalQueued],
        ['در حال پردازش','Claimed',extraction.activeClaimed],
        ['نیازمند OCR','Requires OCR',extraction.ocrRequired],
+       ['بازبینی فرمول و چینش ریاضی','Mathematical layout review',
+          extraction.mathLayoutReviewRequired],
        ['نیازمند بررسی ساختار JSON','Structured review',extraction.structuredReviewRequired],
        ['ناموفق یا وضعیت نامعلوم','Failed/unknown',extraction.failedReviewRequired],
        ['بایت متن خصوصی','Private text bytes',extraction.extractedPrivateBytes]
