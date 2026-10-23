@@ -483,6 +483,36 @@
        fmt.format(n.reportedGpuPercent)+'%':T('نامعلوم؛ RX 580 آزموده نشده','Unknown; RX 580 untested'));
      cell(box,T('مدل','Model'),n.modelId||T('بارگذاری نشده یا تأیید نشده','No verified loaded model'));
      cell(box,T('شناسه برتینا','Node ID'),n.nodeId||'—');
+      // Eligibility comes from the signed offers and actual Bertina queue.
+      const report=(Array.isArray(d.dispatchDiagnostics)?
+        d.dispatchDiagnostics:[]).find(item=>item.nodeId===n.nodeId);
+      const message={
+        BACKEND_DISABLED:T('موتور خصوصی سرور خاموش است','Private backend is disabled'),
+        NODE_REVOKED:T('کلید لغو شده','Node key revoked'),
+        OWNER_DISABLED:T('مدیر نود را غیرفعال کرده','Node disabled by owner'),
+        NODE_OFFLINE:T('ضربان امضاشدهٔ اخیر وجود ندارد','No recent signed heartbeat'),
+        NODE_REPORTS_BUSY:T('نود مشغول است یا فشار منابع دارد',
+          'Worker reports busy or resource pressure'),
+        NODE_NOT_ELIGIBLE:T('وضعیت نود برای دریافت کار مناسب نیست',
+          'Node state does not permit new work'),
+        CATALOGUE_NOT_MIGRATED:T('جدول داده‌های تأییدشده نصب نشده',
+          'Approved dataset schema unavailable'),
+        OFFER_RECORDS_NOT_AVAILABLE:T('ثبت موجودی محلی نصب نشده',
+          'Signed local-offer registry unavailable'),
+        WORKER_HAS_ACTIVE_LEASE:T('کار دیگری به این رایانه واگذار شده',
+          'This worker already holds a job lease'),
+        NO_APPROVED_LOCAL_CORPUS:T('هیچ نسخه محلی مطابق تأیید مدیر ثبت نشده',
+          'No locally offered dataset matches an approved version'),
+        NO_QUEUED_JOB_FOR_LOCAL_CORPUS:T('داده مجاز حاضر است ولی کار منطبق در صف نیست',
+          'Approved local corpus available, but no matching queued job'),
+        APPROVED_JOB_WAITING_FOR_POLL:T('کار منطبق در صف است؛ انتظار برای درخواست نود',
+          'Eligible job queued; awaiting the next worker poll')
+      }[report?.reasonCode]||T('آمادگی تخصیص هنوز معلوم نیست',
+        'Dispatch eligibility has not yet been established');
+      cell(box,T('علت وضعیت تخصیص کار','Job dispatch status'),message);
+      if(report?.reasonCode==='APPROVED_JOB_WAITING_FOR_POLL')
+        cell(box,T('تعداد کارهای منطبق','Eligible queued jobs'),
+          number(report.matchingQueuedJobCount));
       if(d.nodeOffersAvailable){
         const offers=(Array.isArray(d.nodeOffers)?d.nodeOffers:[])
           .filter(o=>o.nodeId===n.nodeId);
