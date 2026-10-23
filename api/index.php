@@ -93,6 +93,14 @@ function cfg(): array {
         // Separate OFF-by-default licence-gated JREI-KA scheduler consent.
         // Cron registers tasks only; no network fetching or model execution.
         'jrei_ka_schedule_enabled' => getenv('JR_JREI_KA_SCHEDULE_ENABLED') === 'true',
+        // Real AI inference: independent paid-provider credentials and
+        // source-owned budget approval; entirely OFF until final acceptance.
+        'jrei_live_ai_enabled' => getenv('JR_JREI_LIVE_AI_ENABLED') === 'true',
+        'jrei_ai_openai_key' => (string)(getenv('JR_JREI_OPENAI_API_KEY') ?: ''),
+        'jrei_ai_openai_model' => (string)(getenv('JR_JREI_OPENAI_MODEL') ?: ''),
+        'jrei_ai_daily_call_limit' => (int)(getenv('JR_JREI_AI_DAILY_CALL_LIMIT') ?: 12),
+        'jrei_ai_daily_input_limit' => (int)(getenv('JR_JREI_AI_DAILY_INPUT_TOKEN_LIMIT') ?: 50000),
+        'jrei_ai_daily_output_limit' => (int)(getenv('JR_JREI_AI_DAILY_OUTPUT_TOKEN_LIMIT') ?: 5000),
         // Outbound Windows worker API: independently OFF, even if owner
         // registers a public key or compiles a local model adapter.
         'jrei_hybrid_enabled' => getenv('JR_JREI_HYBRID_ENABLED') === 'true',
@@ -1330,7 +1338,42 @@ if(str_starts_with($path,'/student-support/')){
     require_once __DIR__.'/student-support.php';
     studentSupportRoute($path,$verb);
 }
-if($path==='/assistant/v1/chat'&&$verb==='POST')fail('assistant_local_fallback',503);
+if(($path==='/assistant/v1/chat' && $verb==='POST')||
+   ($path==='/assistant/v1/capabilities' && $verb==='GET')){
+    require_once __DIR__.'/jrei-ai-assistant-runtime.php';
+    header('Cache-Control: private, no-store, max-age=0');
+    header('X-Robots-Tag: noindex, nofollow, noarchive');
+    $aiCfg=cfg();$aiDb=db();
+    if($path==='/assistant/v1/capabilities'){
+        respond(['ok'=>true,'schema'=>'jr.jrei.assistant-capability.v1',
+          'live'=>($aiDb instanceof PDO)&&jrAiPublicCanAnswer($aiDb,$aiCfg),
+          'providerConsentRequired'=>true,
+          'sourceScope'=>'PUBLIC_SITE_SUMMARY_ONLY',
+          'privateLearnerRecordsAccessible'=>false,
+          'scientificValidationEstablished'=>false]);
+    }
+    if(!($aiDb instanceof PDO)||!jrAiPublicCanAnswer($aiDb,$aiCfg))
+        fail('assistant_local_fallback',503);
+    // Explicit per-chat voluntary provider transfer. Stronger than legacy
+    // Origin validation, which admits absent Origin on unrelated routes.
+    if(($_SERVER['HTTP_ORIGIN']??null)!==SITE_ORIGIN ||
+       !in_array(($_SERVER['HTTP_SEC_FETCH_SITE']??'same-origin'),
+         ['same-origin','none'],true))
+        fail('assistant_origin_forbidden',403);
+    if(!rateAllowed($aiDb,'jrei_ai_public','public',6,600))
+        fail('assistant_rate_limited',429);
+    try{
+        $result=jrAiPublicChat($aiDb,$aiCfg,jsonBody());
+        respond($result);
+    }catch(InvalidArgumentException $e){
+        fail('assistant_message_or_consent_invalid',422);
+    }catch(DomainException $e){
+        fail('assistant_evidence_or_budget_unavailable',503);
+    }catch(Throwable $e){
+        // Provider/transport/DB details are never returned to the browser.
+        fail('assistant_live_ai_temporarily_unavailable',503);
+    }
+}
 if($path==='/assistant/v1/leads'&&$verb==='POST')fail('lead_capture_not_configured',503);
 if($path==='/register-request'&&$verb==='POST')fail('registration_intake_not_configured',503);
 if($path==='/callback')fail('legacy_payment_route_disabled',503);
