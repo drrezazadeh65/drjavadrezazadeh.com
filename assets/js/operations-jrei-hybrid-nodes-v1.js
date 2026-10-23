@@ -40,6 +40,8 @@
    PENDING:T('در انتظار تأیید','Pending review'),
    APPROVED:T('مجاز برای ارزیابی','Approved for evaluation'),
    SUSPENDED:T('تعلیق‌شده','Suspended'),
+   PENDING_REVIEW:T('در انتظار بررسی نسخه','Version pending review'),
+   METADATA_REVIEWED:T('فراداده بازبینی شد','Metadata reviewed'),
    REVIEWED:T('بازبینی مدیریتی ثبت شد','Owner-reviewed'),
    REJECTED:T('نتیجه رد شد','Rejected'),
    CLOSED_UNKNOWN:T('نتیجه نامعلوم بسته شد','Unknown outcome closed'),
@@ -48,6 +50,150 @@
    CANCELLED:T('لغو شده','Cancelled'),EXPIRED:T('منقضی','Expired')
  })[s]||String(s||'UNKNOWN').slice(0,80);
  const confirmAction=(fa,e)=>window.confirm(T(fa,e));
+
+
+ function renderSources(d){
+   if(!d.sourceRegistryReady){
+     tasks.append(el('p',T('دفتر منابع آموزشی نیز منتظر مهاجرت افزایشی مرحلهٔ انتشار است.',
+       'The educational source registry requires the staged additive mother-DB migration.')));
+     return;
+   }
+   const sources=Array.isArray(d.sources)?d.sources:[];
+   const versions=Array.isArray(d.sourceVersions)?d.sourceVersions:[];
+   const approved=sources.filter(x=>x.status==='APPROVED');
+   const panel=el('details',undefined,'jr-hybrid-jobs');
+   panel.append(el('summary',T('منابع شواهد آموزشی و نسخه‌های پیشنهادی','Educational evidence sources and proposed versions')+
+     ' · '+number(sources.length)));
+   panel.append(el('p',T('ثبت منبع یا هش به معنای دریافت خودکار، صحت‌سنجی مستقل یا انتشار محتوای آن نیست.',
+     'Registering a source or digest does not download, independently validate or publish it.')));
+   for(const s of sources){
+     const item=el('article',undefined,'jr-hybrid-node');
+     item.append(el('h4',String(s.issuer||s.sourceId).slice(0,160)));
+     cell(item,'Source ID',s.sourceId);
+     cell(item,T('وضعیت','Status'),statusLabel(s.status));
+     cell(item,T('نوع و زبان','Type / language'),s.contentType+' / '+s.language);
+     cell(item,T('حقوق استفاده','Usage rights'),s.usageRights);
+     cell(item,T('روش گردآوری مجاز','Acquisition method'),s.acquisitionMethod);
+     cell(item,T('مجوز','Licence'),s.licenceCode);
+     cell(item,T('آخرین دریافت تأییدشده','Last verified fetch'),date(s.lastSuccessfulFetchAt));
+     const link=el('a',T('نشانی ثبت‌شده','Registered canonical URL'));
+     link.href=s.url;link.rel='noopener noreferrer';link.target='_blank';
+     item.append(link);
+     if(s.status==='PENDING')item.append(btn(
+       T('تأیید منبع پس از بررسی حقوق و ناشر','Approve issuer and reuse rights'),()=>{
+         if(!confirmAction('آیا اعتبار ناشر و حقوق دسترسی را خارج از سامانه تأیید کرده‌اید؟',
+           'Did you independently check the issuer, permissions and source terms?'))return;
+         mutate({action:'approve_public_source',sourceId:s.sourceId,revision:s.revision,
+           confirmation:'APPROVE_LICENSED_SOURCE'});
+       }));
+     if(s.status==='PENDING'||s.status==='APPROVED')
+       item.append(btn(T('تعلیق منبع','Suspend source'),()=>{
+         if(!confirmAction('دسترسی به نسخه‌های بعدی این منبع متوقف شود؟',
+           'Suspend new versions and pending proposals from this source?'))return;
+         mutate({action:'suspend_public_source',sourceId:s.sourceId,revision:s.revision,
+           confirmation:'SUSPEND_SOURCE_AND_PROPOSALS'});
+       }));
+     panel.append(item);
+   }
+   for(const v of versions){
+     const item=el('article',undefined,'jr-hybrid-job');
+     item.append(el('span',v.sourceId+' · '+v.observedChange+' · '+v.status));
+     item.append(el('small',v.documentSha256));
+     item.append(el('small',T('زمان گردآوری اعلام‌شده: ','Declared retrieval: ')+date(v.declaredRetrievedAt)));
+     if(v.status==='PENDING_REVIEW'){
+       for(const [decision,title] of [
+         ['ACCEPT_METADATA',T('ثبت تأیید صرفاً فراداده','Accept metadata only')],
+         ['REJECT',T('رد نسخه','Reject version')]
+       ])item.append(btn(title,()=>{
+         if(!confirmAction('این تصمیم فقط فرادادهٔ نسخه را ثبت می‌کند، نه اعتبار علمی یا انتشار محتوای آن را.',
+           'This records provenance metadata only; no scientific certification or content publication.'))return;
+         mutate({action:'review_source_version',proposalId:v.proposalId,
+           revision:v.revision,decision,confirmation:'REVIEW_SOURCE_PROVENANCE_ONLY'});
+       }));
+     }
+     panel.append(item);
+   }
+   tasks.append(panel);
+   const field=(form,title,type='text',placeholder='')=>{
+     const label=el('label',title),input=document.createElement('input');
+     input.type=type;input.required=true;input.placeholder=placeholder;
+     label.append(input);form.append(label);return input;
+   };
+   const choice=(form,title,entries)=>{
+     const wrap=el('label',title),select=document.createElement('select');
+     for(const [value,name] of entries){
+       const option=el('option',name);option.value=value;select.append(option);
+     }
+     wrap.append(select);form.append(wrap);return select;
+   };
+   const proposal=el('form',undefined,'jr-hybrid-form');
+   proposal.append(el('h4',T('پیشنهاد منبع آموزشی مجاز','Propose an educational source')));
+   const id=field(proposal,'Source ID','text','official-education-source-v1');id.maxLength=64;
+   const issuer=field(proposal,T('ناشر/مرجع','Publisher / issuer'));issuer.maxLength=160;
+   const address=field(proposal,T('نشانی HTTPS رسمی','Canonical HTTPS URL'),'url','https://...');
+   address.maxLength=600;
+   const licence=field(proposal,T('مجوز قابل استناد','Recorded reuse licence'),
+     'text','PUBLIC-DOCUMENTATION');licence.maxLength=80;
+   const kind=choice(proposal,T('نوع فایل','Format'),
+     ['HTML','TEXT','PDF','JSON'].map(x=>[x,x]));
+   const language=choice(proposal,T('زبان','Language'),
+     [['fa','فارسی'],['en','English'],['mixed',T('دوزبانه','Mixed')]]);
+   const trust=choice(proposal,T('نوع مرجع','Issuing authority'),
+     [['OFFICIAL',T('رسمی','Official')],['INSTITUTIONAL',T('دانشگاهی','Institutional')],
+      ['PEER_REVIEWED',T('پژوهش داوری‌شده','Peer-reviewed')]]);
+   const rights=choice(proposal,T('حدود اجازهٔ استفاده','Use permission'),
+     [['METADATA_ONLY',T('فقط فراداده','Metadata only')],
+      ['PUBLIC_REUSE_APPROVED',T('استفاده از متن مجاز است','Public reuse approved')]]);
+   const method=choice(proposal,T('روش مجاز','Acquisition method'),
+     [['OWNER_MANUAL_INTAKE',T('دستی با بازبینی','Owner manual intake')],
+      ['PUBLIC_HTTPS',T('HTTPS عمومی با کنترل محدودیت‌ها','Governed public HTTPS')]]);
+   const interval=field(proposal,T('تناوب بررسی، ساعت','Review interval, hours'),'number','24');
+   interval.min='12';interval.max='2160';interval.step='1';interval.value='168';
+   const save=document.createElement('button');save.type='submit';
+   save.textContent=T('پیشنهاد منبع (تأیید نشده)','Propose source (unapproved)');
+   proposal.append(save);
+   proposal.addEventListener('submit',event=>{
+     event.preventDefault();if(!visible()||busy||!proposal.reportValidity())return;
+     if(!confirmAction('منبع فقط برای بررسی انسانی ثبت می‌شود. ادامه؟',
+       'This source stays pending human review. Continue?'))return;
+     mutate({action:'propose_public_source',sourceId:id.value.trim(),
+       issuer:issuer.value.trim(),canonicalUrl:address.value.trim(),
+       licenceCode:licence.value.trim(),contentType:kind.value,
+       language:language.value,trustClass:trust.value,usageRights:rights.value,
+       acquisitionMethod:method.value,
+       updateIntervalHours:Number(interval.value),
+       confirmation:'REGISTER_SOURCE_PENDING_REVIEW'});
+   });
+   actions.append(proposal);
+   if(approved.length){
+     const sourceVersion=el('form',undefined,'jr-hybrid-form');
+     sourceVersion.append(el('h4',T('ثبت فرادادهٔ نسخهٔ تازه برای بازبینی','Stage version metadata for review')));
+     const sourcePick=choice(sourceVersion,T('منبع مجاز','Approved source'),
+       approved.map((s,i)=>[String(i),s.sourceId+' · '+s.issuer]));
+     const digest=field(sourceVersion,'Document SHA-256','text','64 lowercase hex');
+     digest.pattern='[a-f0-9]{64}';digest.minLength=64;digest.maxLength=64;
+     digest.dir='ltr';digest.spellcheck=false;
+     const byteCount=field(sourceVersion,T('حجم فایل، بایت','Retrieved document bytes'),'number','2048');
+     byteCount.min='1';byteCount.max=String(8*1024*1024);byteCount.step='1';
+     const submit=document.createElement('button');submit.type='submit';
+     submit.textContent=T('ثبت نسخه در صف بررسی','Stage version for human review');
+     sourceVersion.append(submit);
+     sourceVersion.addEventListener('submit',event=>{
+       event.preventDefault();if(!visible()||busy||!sourceVersion.reportValidity())return;
+       const source=approved[Number(sourcePick.value)];
+       if(!source)return;
+       const mime={HTML:'text/html',TEXT:'text/plain',PDF:'application/pdf',
+         JSON:'application/json'}[source.contentType];
+       if(!confirmAction('هش و حجم نسخه را مستقل از سامانه بررسی کرده‌اید؟ این ثبت اثبات دانلود نیست.',
+         'Have you independently verified the version hash and size? This does not prove a fetch.'))return;
+       mutate({action:'propose_source_version',sourceId:source.sourceId,
+         documentSha256:digest.value.trim(),byteCount:Number(byteCount.value),
+         retrievedAt:Math.floor(Date.now()/1000),publicationAt:null,
+         declaredMime:mime,confirmation:'STAGE_SOURCE_DIGEST_FOR_REVIEW'});
+     });
+     actions.append(sourceVersion);
+   }
+ }
 
  function renderCorpus(d){
    if(!d.catalogueReady){
@@ -321,6 +467,7 @@
    }
    tasks.append(detail);
    renderCorpus(d);
+   renderSources(d);
    const form=document.createElement('form');form.className='jr-hybrid-form';
    form.append(el('h4',T('ثبت کلید عمومی مستقل','Register separate public key')));
    const field=(title,widget)=>{const wrap=el('label',title);wrap.append(widget);
