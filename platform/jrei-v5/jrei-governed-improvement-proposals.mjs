@@ -62,7 +62,7 @@ export function draftGovernedImprovement(spec){
      !spec.changedPaths.every(proposalPathAllowed))
     return fail('SENSITIVE_OR_UNBOUNDED_PATHS');
   if(!s(spec.currentCommit,64)||
-     !/^[a-f0-9]{40}$/D.test(spec.currentCommit)||
+     !/^[a-f0-9]{40}$/.test(spec.currentCommit)||
      !HASH.test(spec.evaluationEvidenceSha256)|| 
      !HASH.test(spec.baselineArtifactSha256)||
      !HASH.test(spec.candidateArtifactSha256))
