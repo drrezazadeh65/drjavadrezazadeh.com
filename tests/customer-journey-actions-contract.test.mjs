@@ -36,7 +36,14 @@ test('both existing private dashboards preserve authentic roles, protected links
   }
   const cards=[...html.matchAll(/<a class="cd-quick-card"([^>]+)>/g)].map(m=>m[1]);
   assert.equal(cards.length,13,locale+' complete 13 route-shortcut parity');
-  for(const card of cards)assert.match(card,/data-command-group="(?:learning|shopping|sponsorship)(?: (?:learning|shopping|sponsorship))*"/);
+  for(const card of cards){
+    // "guidance" and "bahar" refine learning cards for discovery without
+    // creating another permission role or a fourth primary command mode.
+    assert.match(card,/data-command-group="(?:learning|shopping|sponsorship|guidance|bahar)(?: (?:learning|shopping|sponsorship|guidance|bahar))*"/);
+    const groups=(card.match(/data-command-group="([^"]+)"/)||[])[1]?.split(' ')||[];
+    assert.ok(groups.some(x=>['learning','shopping','sponsorship'].includes(x)),
+      locale+' every shortcut retains a primary navigation class');
+  }
   for(const segment of ['orders/','reports/']){
    const step=html.match(new RegExp('<a class="cd-journey-action"[^>]+href="[^"]*'+segment+'".*?<\\/a>'));
    assert.ok(step,locale+' private journey link '+segment);
