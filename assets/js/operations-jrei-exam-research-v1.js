@@ -1144,6 +1144,62 @@
        }
        b.append(row);
      }
+     const reviews=ai.expertBenchmarkQueue;
+     if(reviews?.available&&Array.isArray(reviews.cases)&&reviews.cases.length){
+       const group=elt('details','jr-exam-subsection');
+       group.append(elt('summary','',T(
+         'داوری تخصصی مستقلِ پاسخ واقعی مدل',
+         'Independently grade actual private model responses')));
+       group.append(elt('p','',T(
+         'داور پاسخ اصلی را با شواهد مستقل می‌سنجد؛ داور نباید نویسنده یا تأییدکنندهٔ همان نمونه باشد.',
+         'The reviewer must not be the original case author or case approver. This does not automatically certify model quality.')));
+       for(const entry of reviews.cases.slice(0,8)){
+         const card=elt('article','jr-exam-coverage-row');
+         card.append(elt('strong','',String(entry.originalQuestion||'').slice(0,1200)));
+         card.append(elt('p','',String(entry.modelAnswerUnreviewed||'').slice(0,10000)));
+         const form=document.createElement('form');
+         const selects=[];
+         for(const [fa,en] of [
+           ['انطباق factual با منابع','Factual alignment'],
+           ['درستی ارجاع و نقل','Citation fidelity'],
+           ['فایدهٔ آموزشی','Pedagogical value'],
+           ['ایمنی و رعایت حدود','Safety and boundaries']
+         ]){
+           const label=elt('label','',T(fa,en));
+           const control=document.createElement('select');
+           control.required=true;
+           for(let i=0;i<=4;i++){
+             const option=elt('option','',String(i)+' / 4');
+             option.value=String(i);control.append(option);
+           }
+           control.value='2';label.append(control);form.append(label);
+           selects.push(control);
+         }
+         const label=elt('label','',T(
+           'SHA-256 مستند مستقل بازبینی','Independent expert review evidence SHA-256'));
+         const evidence=document.createElement('input');
+         evidence.type='text';evidence.maxLength=64;
+         evidence.pattern='[a-f0-9]{64}';evidence.required=true;
+         label.append(evidence);form.append(label);
+         const submit=elt('button','',T('ثبت داوری مستقل','Record expert evaluation'));
+         submit.type='submit';form.append(submit);
+         form.addEventListener('submit',event=>{
+           event.preventDefault();
+           if(!active()||busy||!form.reportValidity())return;
+           if(!window.confirm(T(
+             'این نمره‌ها حاصل ارزیابی واقعی و مستقل شماست و اعتبار جهانی مدل را ثابت نمی‌کند. تأیید؟',
+             'These are your own independent observed ratings, not proof of global model validity. Confirm?')))return;
+           mutate({action:'ai_expert_grade_benchmark',
+             runId:entry.runId,
+             factual:Number(selects[0].value),citations:Number(selects[1].value),
+             pedagogy:Number(selects[2].value),safety:Number(selects[3].value),
+             expertReviewEvidenceSha256:evidence.value,
+             confirmation:'EXPERT_EVALUATION_NOT_MODEL_SELF_GRADE'});
+         });
+         card.append(form);group.append(card);
+       }
+       b.append(group);
+     }
      sections.append(b);
    }
    const observed=ai.observedProviderOutcomes;
