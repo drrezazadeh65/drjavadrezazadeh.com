@@ -443,7 +443,35 @@ for(const [fa,en] of approvedBilingualEducationalRoutes){
       failures.push('Approved educational canonical/hreflang/indexability mismatch: '+route);
   }
 }
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2; // exact explicit bilingual educational scope
+// Eight public examination information routes and two PRIVATE noindex exam
+// candidate pages have been owner-authorized for this stage only. All
+// published exam products/checkout remain under independent release gates.
+const approvedPublicExamPages=[
+  'fa/exams/index.html','fa/exams/konkur/index.html',
+  'fa/exams/masters/index.html','fa/exams/phd/index.html',
+  'en/exams/index.html','en/exams/konkur/index.html',
+  'en/exams/masters/index.html','en/exams/phd/index.html'
+];
+const approvedPrivateExamPages=['fa/exams/my/index.html','en/exams/my/index.html'];
+for(const route of approvedPublicExamPages){
+  const file=path.join(out,route);
+  if(!fs.existsSync(file)) {failures.push('Approved exam information missing: '+route);continue;}
+  const html=fs.readFileSync(file,'utf8');
+  const url='https://drjavadrezazadeh.com/'+route.replace(/index\.html$/,'');
+  if(!html.includes('<link rel="canonical" href="'+url+'"')||
+     !/<meta name="robots" content="index,follow/.test(html)||
+     !html.includes('public-v2.css')||
+     !html.includes('<meta property="og:url" content="'+url+'">'))
+    failures.push('Exam information release contract incomplete: '+route);
+}
+for(const route of approvedPrivateExamPages){
+  const file=path.join(out,route);
+  if(!fs.existsSync(file)) {failures.push('Private candidate examination route missing: '+route);continue;}
+  const html=fs.readFileSync(file,'utf8');
+  if(!/<meta name="robots" content="[^"]*noindex/i.test(html))
+    failures.push('Private candidate exam must be noindex: '+route);
+}
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length;
 
 const aiLabRoute='fa/konkur-ai-lab/index.html';
 const aiLabPath=path.join(out,aiLabRoute);
