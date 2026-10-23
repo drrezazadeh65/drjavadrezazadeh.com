@@ -16,6 +16,7 @@ require_once __DIR__.'/jrei-ka-paper-key-proposals.php';
 require_once __DIR__.'/jrei-ka-paper-key-owner-review.php';
 require_once __DIR__.'/jrei-ka-public-quote-owner.php';
 require_once __DIR__.'/jrei-exam-commercial-owner-actions.php';
+require_once __DIR__.'/jrei-exam-localization-owner.php';
 require_once __DIR__.'/jrei-exam-deadline-owner.php';
 require_once __DIR__.'/jrei-exam-entitlement-owner.php';
 require_once __DIR__.'/jrei-ai-owner-readiness.php';
@@ -244,6 +245,9 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
         return jrExamOwnerGrantVerifiedOrder($pdo,$cfg,$actor,$body);
     if($action==='exam_close_expired_review')
         return jrExamDeadlineOwnerClose($pdo,$actor,$body);
+    if(in_array($action,['exam_localized_prompt_draft',
+        'exam_localized_prompt_review'],true))
+        return jrExamOwnerLocalizedPromptAction($pdo,$actor,$body);
     if(in_array($action,['exam_product_draft','exam_offering_draft',
         'exam_suspend_product','exam_suspend_offering'],true))
         return jrExamCommercialOwnerAction($pdo,$actor,$body);
