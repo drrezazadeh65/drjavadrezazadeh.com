@@ -121,6 +121,12 @@
         'Recorded learning hazards awaiting explicit human decision'),
         hazard.available&&Number.isSafeInteger(hazard.totalRecordedHazardProposals)?
           fmt.format(hazard.totalRecordedHazardProposals):T('نامعلوم','Unknown'));
+      fact(T('سوابق معتبر مداخله انسانی','Recorded owner interventions'),
+        hazard.available&&Number.isSafeInteger(hazard.recordedVetoDecisions)?
+          fmt.format(hazard.recordedVetoDecisions):T('نامعلوم','Unknown'));
+      fact(T('ناسازگاری وضعیت پرونده‌های ردشده','Discrepancies in recorded review outcomes'),
+        hazard.available&&Number.isSafeInteger(hazard.vetoStateConflicts)?
+          fmt.format(hazard.vetoStateConflicts):T('نامعلوم','Unknown'));
       const panel=text('details','jr-jrei-learning-hazard-panel');
       panel.append(text('summary','',T(
         'تعلیق علمی پیشنهادهای پرخطر؛ بدون تغییر مدل یا کد',
