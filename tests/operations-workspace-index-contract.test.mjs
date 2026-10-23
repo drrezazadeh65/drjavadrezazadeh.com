@@ -31,7 +31,7 @@ test('existing authenticated operational workflows stay private and unchanged',(
 
 test('navigation is a bounded local index, not a parallel administrator or finance API',()=>{
  const count=(script.match(/group:'(?:evidence|planning|commerce|publishing|social|resources)'/g)||[]).length;
- assert.equal(count,20,'bounded existing admin sections including author and scientific readiness');
+ assert.equal(count,21,'bounded existing administrator navigation including independent source review');
  for(const id of ['jr-intelligence','ops-stage7-blueprint','ops-social','ops-social-composer',
   'ops-social-review','ops-social-settings','ops-free-resources','ops-jhela-workstream',
   'ops-commerce','ops-publishing-author-review','ops-organic-growth','ops-revenue-planning','ops-cards',
@@ -131,7 +131,7 @@ test('commerce monitor clears separate checkout readiness and cancels pending re
 test('both language admin shells use fresh versioned report and commerce scripts',()=>{
  for(const page of ['fa/app/admin/index.html','en/account/admin/index.html']){
   const html=read(page);
-  assert.match(html,/operations-control\.js\?v=20261022-[a-z0-9-]+/);
+  assert.match(html,/operations-control\.js\?v=2026102[2-4]-[a-z0-9-]+/);
   assert.match(html,/operations-commerce\.js\?v=20261020-owner-lock-v1/);
   assert.doesNotMatch(html,/operations-commerce\.js\?v=20261017-cpanel-remediation-v9/);
  }
