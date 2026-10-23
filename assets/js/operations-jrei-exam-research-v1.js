@@ -782,6 +782,49 @@
    sections.append(panel);
  }
 
+ function renderCoverageCorrectionHistory(snapshot){
+   const ledger=snapshot.coverageCorrectionHistory;
+   if(!ledger||ledger.schema!=='jr.jrei.coverage-link-history.v1')return;
+   fact(T('اصلاحات ثبت‌شدهٔ پیوند منبع آزمون',
+     'Recorded examination source-link corrections'),
+     ledger.available?safeCount(ledger.recordedCorrectionCount):
+       T('نامعلوم؛ دیتابیس سابقهٔ اصلاح آماده نیست',
+         'Unknown; correction-history table unavailable'));
+   const details=elt('details','jr-exam-subsection');
+   details.append(elt('summary','',T(
+     'سابقهٔ واقعی اصلاح منابع بدون حذف داده‌ها',
+     'Real examination source-link correction history')));
+   details.append(elt('p','',T(
+     'تمام اصلاحات از پایگاه دادهٔ مادر خوانده می‌شوند. سابقهٔ قبلی حذف نشده و هیچ پیوند تازه‌ای بدون بررسی مستقل، حق تکثیر یا صحت پاسخ را تأیید نمی‌کند.',
+     'All corrections are read from the mother DB. The original source lineage remains intact; new links do not grant reproduction or certify an answer key.')));
+   if(!ledger.available){
+     details.append(elt('p','',T('وضعیت نامعلوم','Unknown')));
+     sections.append(details);return;
+   }
+   const rows=Array.isArray(ledger.corrections)?
+     ledger.corrections.slice(0,30):[];
+   if(!rows.length)details.append(elt('p','',T(
+     'هنوز اصلاحی ثبت نشده است؛ وضعیت کامل علمی از این شمارش نتیجه نمی‌شود.',
+     'No correction recorded; this does not establish complete scientific coverage.')));
+   for(const x of rows){
+     const row=elt('article','jr-exam-coverage-row');
+     row.append(elt('strong','',String(x.reasonCode||'').slice(0,55)));
+     row.append(elt('span','',
+       T('دامنه: ','Scope: ')+String(x.requirementId||'').slice(0,36)));
+     row.append(elt('span','',
+       T('از: ','From: ')+(x.previousSourceId||T('بدون منبع','None'))+
+       ' · '+T('به: ','To: ')+(x.nextSourceId||T('بدون پیوند','Unlinked'))));
+     if(Number.isSafeInteger(x.correctedAt)&&x.correctedAt>0)
+       row.append(elt('span','',new Date(x.correctedAt*1000).toLocaleString(
+         document.documentElement.lang==='en'?'en-GB':'fa-IR')));
+     details.append(row);
+   }
+   if(ledger.truncated)details.append(elt('p','',T(
+     'فقط ۳۰ رویداد اخیر نمایش داده شده‌اند؛ شمارش از کل تاریخچه است.',
+     'Only the newest 30 events are shown; the count includes all history.')));
+   sections.append(details);
+ }
+
  function renderPrivateOfflineOcrEvidence(snapshot){
    const evidence=snapshot.privateLocalOcrIntakeEvidence;
    if(!evidence||evidence.schema!=='jr.jrei.local-ocr-owner-intake.v1')return;
@@ -1848,6 +1891,7 @@
    renderCountryExamCoverageMatrix(snapshot);
    renderCountryExamGapWorklist(snapshot);
    renderRegisteredSourceReuse(snapshot);
+   renderCoverageCorrectionHistory(snapshot);
    renderIndependentSourceReviewEvidence(snapshot);
    renderPrivateOfflineOcrEvidence(snapshot);
    renderCoverageScopeOwnerActions(snapshot);
