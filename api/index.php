@@ -541,6 +541,13 @@ if($path==='/exams/attempt' && in_array($verb,['GET','POST'],true)){
     $pdo=db();
     if(!$pdo||!jrExamAttemptRuntimeReady($pdo))
         fail('exam_runtime_schema_unavailable',503);
+    // Defence in depth: even two accidentally enabled environment switches
+    // cannot start a real examination until a separately reviewed, source
+    // integrated prompt/diagram delivery bridge exists and accepts the host.
+    // The bridge is intentionally not implemented by metadata-only pages.
+    if(!function_exists('jrExamPublishedItemDeliveryReady')||
+       !jrExamPublishedItemDeliveryReady($pdo))
+        fail('exam_immutable_content_delivery_not_accepted',503);
     $account=sessionAccount($pdo);
     if(!is_array($account)||
        ($account['status']??null)!=='active'||
