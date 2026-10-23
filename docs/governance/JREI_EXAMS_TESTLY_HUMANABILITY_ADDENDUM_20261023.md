@@ -1,5 +1,7 @@
 # 2026-10-23 Owner Addendum — JREI Examinations, TESTLY, Humanability & Scientific Maturation
 
+**Google Drive mirror (owner's 10x better folder):** https://docs.google.com/document/d/1EYrvwDz-zvpYVacybN01LhSpXbL3NcmAHR667w-dDEM/edit — implementation register, not a publication of the confidential original proposals.
+
 **Status:** Binding additive implementation brief on the sole development branch `migration/bertina-linux6`, not a replacement for `JREI_HYBRID_AI_SUPER_MASTER_IMPLEMENTATION_PROMPT_20261023.md` or the established 117-atomic ledger. **All tests and deployment are deferred.**
 
 ## Owner-specified additions retained
