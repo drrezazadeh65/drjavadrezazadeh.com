@@ -182,7 +182,7 @@ function jrKaStorePrivateText(string $root,string $value): array {
     $name=$hash.'.txt';
     $path=$root.DIRECTORY_SEPARATOR.$name;
     $bytes=strlen($value);
-    if(file_exists($path)){
+    if(file_exists($path)||is_link($path)){
         if(!is_file($path)||is_link($path)||filesize($path)!==$bytes||
            !hash_equals($hash,(string)hash_file('sha256',$path)))
             throw new DomainException('ka_private_text_digest_conflict');
@@ -200,7 +200,12 @@ function jrKaStorePrivateText(string $root,string $value): array {
             $wrote+=$n;
         }
         if(!fflush($fp))throw new DomainException('ka_private_text_flush_error');
-    }finally{fclose($fp);}
+    }catch(Throwable $e){
+        fclose($fp);
+        @unlink($tmp);
+        throw $e;
+    }
+    fclose($fp);
     if(!link($tmp,$path)){
         @unlink($tmp);
         if(!is_file($path)||is_link($path)||filesize($path)!==$bytes||
@@ -232,7 +237,10 @@ function jrKaExtractOnePrivateObservation(PDO $pdo,array $cfg): array {
            $ob['private_object_key']!==$digest.'.bin'||
            (int)$ob['bytes_total']<1||(int)$ob['bytes_total']>8388608)
             throw new DomainException('ka_observation_integrity_invalid');
-        $path=realpath($root.DIRECTORY_SEPARATOR.$digest.'.bin');
+        $rawPath=$root.DIRECTORY_SEPARATOR.$digest.'.bin';
+        if(is_link($rawPath))
+            throw new DomainException('ka_observation_symlink_not_allowed');
+        $path=realpath($rawPath);
         if($path===false||dirname($path)!==$root||
            is_link($root.DIRECTORY_SEPARATOR.$digest.'.bin')||
            !is_file($path)||
