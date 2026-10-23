@@ -77,6 +77,7 @@
    {id:'ops-cards',group:'evidence',label:en?'Evidence and engine register':'فهرست موتورهای عملیاتی'},
    {id:'ops-stage7-blueprint',group:'planning'},
    {id:'ops-scientific-readiness',group:'evidence',label:en?'Scientific systems — verified readiness':'آمادگی سامانه‌های علمی — وضعیت واقعی'},
+   {id:'ops-jrei-independent-source-review',group:'evidence',label:en?'Independent examination source evidence review':'داوری مستقل اصالت منابع آزمون'},
    {id:'ops-commerce',group:'commerce'},
    {id:'ops-publishing-author-review',group:'publishing'},
    {id:'ops-author-dashboard-preview',group:'publishing',label:en?'Author dashboard — design preview':'پیش‌نمایش طراحی کامل داشبورد مؤلف'},
