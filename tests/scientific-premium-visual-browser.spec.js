@@ -107,7 +107,8 @@ for(const [lang,path] of [['fa','/fa/'],['en','/en/']]){
    // its cinematic layout/tilt and public UX contracts are checked below.
    await expect(page.locator('script[src*="/assets/js/site.js"]')).toHaveAttribute('src',/20261022-privacy-guide-v2/);
    await expect(page.locator('main .hero h1')).toBeVisible();
-   await expect(page.locator('main .hero .hero-pathway-cta a')).toHaveCount(4);
+   await expect(page.locator('main .hero .hero-pathway-cta a')).toHaveCount(5);
+   await expect(page.locator('main .hero .hero-pathway-cta a').first()).toHaveAttribute('href',lang==='fa'?'/fa/masir-man/':'/en/my-path/');
    await expect(page.locator('main .hero .hero-pathway-cta a[href="./shop/"]')).toHaveCount(1);
    await expect(page.locator('main .hero .hero-pathway-cta a[href="../shop/"]')).toHaveCount(0);
    await expect(page.locator('.home-focus-strip a')).toHaveCount(4);

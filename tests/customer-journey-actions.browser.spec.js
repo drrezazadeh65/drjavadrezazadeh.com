@@ -29,7 +29,7 @@ for(const [lang,route,privateOrders,privateReports,query] of [
    const command=page.locator('#command-center');
    await expect(command).toBeVisible();
    const cards=command.locator('[data-command-item]');
-   await expect(cards).toHaveCount(12);
+   await expect(cards).toHaveCount(13);
    await expect(command.locator('[data-command-path]')).toHaveCount(4);
    const search=command.locator('[data-dashboard-command-search]');
    for(const group of ['learning','shopping','sponsorship']){
@@ -53,7 +53,7 @@ for(const [lang,route,privateOrders,privateReports,query] of [
    await expect(command.locator('[data-command-empty]')).toBeVisible();
    await search.fill('');
    await command.locator('[data-command-path="all"]').click();
-   expect(await cards.evaluateAll(elements=>elements.filter(el=>!el.hidden).length)).toBe(12);
+   expect(await cards.evaluateAll(elements=>elements.filter(el=>!el.hidden).length)).toBe(13);
 
    // Open the user-visible service journey. The existing tab navigation is authoritative.
    await page.goto(origin+route+'#journey',{waitUntil:'domcontentloaded'});

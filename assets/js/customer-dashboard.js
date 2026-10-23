@@ -225,7 +225,7 @@ function sheet(){
  const sheet=$('[data-dashboard-sheet]'),open=$('[data-dashboard-more]'),close=$('[data-dashboard-close]');
  if(!sheet||!open||!close)return;
  let previous=null;
- const focusables=()=>$('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled])',sheet).filter(x=>!x.hidden);
+ const focusables=()=>$$('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled])',sheet).filter(x=>!x.hidden);
  // Keep private workspace shortcuts out of the tab order when the mobile
  // sheet is closed. "aria-modal" describes only an ACTUALLY open dialog.
  sheet.inert=true;sheet.setAttribute('aria-hidden','true');

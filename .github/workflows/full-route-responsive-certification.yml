@@ -45,7 +45,7 @@ jobs:
           set -e
           for attempt in 1 2; do
             echo "Chromium install attempt $attempt"
-            if timeout 420s npx playwright install --with-deps chromium; then
+            if timeout 420s npx playwright install chromium; then
               exit 0
             fi
             if [ "$attempt" = "2" ]; then

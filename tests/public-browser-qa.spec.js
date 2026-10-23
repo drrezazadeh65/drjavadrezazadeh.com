@@ -83,7 +83,7 @@ test('Persian public search v2 works without private leakage',async({page})=>{
   await expect(input).toHaveValue('');
 });
 
-test('keyboard focus reaches primary public navigation',async({page})=>{
+test('keyboard focus reaches the first public learning action',async({page})=>{
   await page.setViewportSize({width:1440,height:900});
   await page.goto(base+'/en/',{waitUntil:'domcontentloaded'});
   await page.waitForTimeout(120);
@@ -94,7 +94,7 @@ test('keyboard focus reaches primary public navigation',async({page})=>{
     text:(document.activeElement?.textContent||'').trim().slice(0,80)
   }));
   expect(focused.tag).toBe('A');
-  expect(focused.href).toMatch(/^#/);
+  expect(focused.href).toBe('/en/my-path/');
 });
 
 for(const [route,name] of [['/fa/','fa-home'],['/en/','en-home'],['/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/','fa-guide']]){
@@ -181,7 +181,7 @@ for(const route of ['/fa/','/en/']){
     const dock=page.locator('.app-dock');
     await expect(dock).toBeVisible();
     const items=dock.locator('a');
-    await expect(items).toHaveCount(5);
+    await expect(items).toHaveCount(4);
     const boxes=await items.evaluateAll(nodes=>nodes.map(n=>{
       const r=n.getBoundingClientRect();
       return {w:r.width,h:r.height};
@@ -232,7 +232,12 @@ for(const route of ['/fa/','/en/']){
     const [hb,db]=await Promise.all([h1.boundingBox(),dock.boundingBox()]);
     expect(hb).not.toBeNull();
     expect(db).not.toBeNull();
-    expect(hb.y+hb.height,'hero identity should finish before the fixed dock').toBeLessThan(db.y-20);
+    // The prominent need-first entry now precedes the longer editorial hero.
+    const firstStep=page.locator('.jr-need-entry');
+    await expect(firstStep).toBeVisible();
+    const firstBox=await firstStep.boundingBox();
+    expect(firstBox.y+firstBox.height,'need-first entry is above the dock').toBeLessThan(db.y-12);
+    expect(hb.height,'hero identity is retained').toBeGreaterThan(40);
   });
 }
 
@@ -249,7 +254,11 @@ for(const route of ['/fa/','/en/']){
     const [cb,db]=await Promise.all([cta.boundingBox(),dock.boundingBox()]);
     expect(cb).not.toBeNull();
     expect(db).not.toBeNull();
-    expect(cb.y+cb.height,'primary hero CTA should finish before the fixed dock').toBeLessThan(db.y-12);
+    const firstStep=page.locator('.jr-need-entry');
+    const firstBox=await firstStep.boundingBox();
+    expect(firstBox.y+firstBox.height,'first-screen need-first action').toBeLessThan(db.y-12);
+    await expect(cta).toHaveAttribute('href',route.startsWith('/fa/')?'/fa/masir-man/':'/en/my-path/');
+    expect(cb.height,'hero CTA remains usable further down the page').toBeGreaterThanOrEqual(44);
   });
 }
 
@@ -320,25 +329,26 @@ test('mobile product heroes expose decision controls before the app dock',async(
   }
 });
 
-test('mobile concierge remains accessible without colliding with the app dock',async({page})=>{
+test('mobile concierge uses one accessible native-dock proxy instead of a duplicate launcher',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await page.goto(base+'/en/services/',{waitUntil:'domcontentloaded'});
+  const dock=page.locator('.app-dock[data-jr-need-primary-dock]');
+  const proxy=dock.locator('[data-jr-open-assistant]');
   const launcher=page.locator('.jr-assistant-launcher');
-  const dock=page.locator('.app-dock').first();
-  await expect(launcher).toBeVisible();
   await expect(dock).toBeVisible();
-  const [lb,db]=await Promise.all([launcher.boundingBox(),dock.boundingBox()]);
-  expect(lb).not.toBeNull();expect(db).not.toBeNull();
-  expect(lb.width).toBeGreaterThanOrEqual(44);
-  expect(lb.height).toBeGreaterThanOrEqual(44);
-  expect(lb.width).toBeLessThanOrEqual(48);
-  expect(lb.y+lb.height,'assistant launcher should clear the app dock').toBeLessThanOrEqual(db.y-4);
-  await launcher.click();
-  await expect(launcher).toHaveAttribute('aria-expanded','true');
+  await expect(proxy).toBeVisible();
+  await expect(page.locator('#jr-assistant-panel')).toBeAttached();
+  await expect(launcher).toBeHidden();
+  const [pb,db]=await Promise.all([proxy.boundingBox(),dock.boundingBox()]);
+  expect(pb).not.toBeNull();expect(db).not.toBeNull();
+  expect(pb.width).toBeGreaterThanOrEqual(44);
+  expect(pb.height).toBeGreaterThanOrEqual(44);
+  await proxy.click();
+  await expect(proxy).toHaveAttribute('aria-expanded','true');
   await expect(page.locator('#jr-assistant-panel')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('#jr-assistant-panel')).toBeHidden();
-  await expect(launcher).toHaveAttribute('aria-expanded','false');
+  await expect(proxy).toHaveAttribute('aria-expanded','false');
 });
 
 test('root gateway first-screen visual evidence',async({page})=>{
@@ -475,20 +485,22 @@ test('private dashboard muted labels maintain AA contrast',async({page})=>{
   }
 });
 
-test('PWA install affordance temporarily yields the bottom layer',async({page})=>{
+test('native dock keeps one accessible assistant entry beside the install affordance',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await page.goto(base+'/en/',{waitUntil:'domcontentloaded'});
-  const launcher=page.locator('.jr-assistant-launcher');
-  await expect(launcher).toBeVisible();
+  const proxy=page.locator('.app-dock[data-jr-home-primary-dock] [data-jr-open-assistant]');
+  await expect(proxy).toBeVisible();
+  await expect(page.locator('.jr-assistant-launcher')).toBeHidden();
   await page.evaluate(()=>{
     const wrap=document.createElement('div');
     wrap.className='pwa-install';
     wrap.innerHTML='<button class="pwa-install-btn">Install</button><button class="pwa-install-close">×</button>';
     document.body.appendChild(wrap);
   });
-  await expect(launcher).toBeHidden();
+  await expect(page.locator('.pwa-install .pwa-install-btn')).toBeVisible();
+  await expect(page.locator('.jr-assistant-launcher')).toBeHidden();
   await page.locator('.pwa-install').evaluate(el=>el.remove());
-  await expect(launcher).toBeVisible();
+  await expect(proxy).toBeVisible();
 });
 
 test('auth entry visual evidence',async({page})=>{

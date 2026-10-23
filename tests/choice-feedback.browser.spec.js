@@ -52,7 +52,8 @@ for(const [locale,route] of [['fa','/fa/entekhab-reshteh/'],['en','/en/student-g
   await expect(feedback.locator('.jr-cs-report-priorities')).toContainText(locale==='fa'?'اولویت بررسی':'Priority check');
   await expect(feedback.locator('.jr-cs-report-next li')).toHaveCount(4);
   await expect(feedback).toContainText(locale==='fa'?'محدودیت علمی':'Scientific limitation');
-  await expect(feedback.locator('a')).toHaveCount(2);
+  await expect(feedback.locator('.jr-cs-report-links a')).toHaveCount(3);
+  await expect(feedback.locator('.jr-cs-report-links a').last()).toHaveAttribute('href',locale==='fa'?'/fa/darkhast-moshavere/':'/en/request-consultation/');
   const print=studio.locator('.jr-cs-report-print');
   await expect(print).toBeVisible();
   await page.evaluate(()=>{window.__printTimes=0;window.print=()=>{window.__printTimes++}});

@@ -8,9 +8,9 @@ for(const [lang,route,ordersPath] of [
 ]){
  for(const [scenario,historyCode,orders,expected] of [
   ['empty',200,[],/first service|خدمت مناسب/],
-  ['pending',200,[{id:'case-1',state:'pending',paymentVerified:false}],/awaiting payment verification|تأیید پرداخت سفارش/],
-  ['provider-matched',200,[{id:'case-2',state:'paid',paymentVerified:true}],/provider-verified order|تأیید درگاه/],
-  ['paid-without-proof',200,[{id:'case-3',state:'paid',paymentVerified:false}],/awaiting payment verification|تأیید پرداخت سفارش/],
+  ['pending',200,[{id:'00000000-0000-4000-8000-000000000001',state:'pending',paymentVerified:false,items:[]}],/awaiting payment verification|تأیید پرداخت سفارش/],
+  ['provider-matched',200,[{id:'00000000-0000-4000-8000-000000000002',state:'paid',paymentVerified:true,items:[]}],/provider-verified order|تأیید درگاه/],
+  ['paid-without-proof',200,[{id:'00000000-0000-4000-8000-000000000003',state:'paid',paymentVerified:false,items:[]}],/awaiting payment verification|تأیید پرداخت سفارش/],
   ['forbidden',403,[],/requires verification|نیازمند تأیید/],
   ['unavailable',503,[],/temporarily unavailable|موقتاً در دسترس نیست/]
  ]){

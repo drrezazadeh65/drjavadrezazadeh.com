@@ -10,10 +10,10 @@ for(const locale of ['fa','en']){
    page.on('pageerror',e=>errors.push(e.message));
    await page.goto(origin+'/'+locale+'/',{waitUntil:'domcontentloaded'});
    const dock=page.locator('.app-dock');
-   await expect(dock.locator('a[data-app-tab]')).toHaveCount(5,{timeout:15000});
-   // Existing first-party install affordance and all five named destinations remain.
+   await expect(dock.locator('a')).toHaveCount(4,{timeout:15000});
+   // The reviewed homepage deliberately keeps four named, first-party native actions.
    await expect(dock.locator('[data-jr-dock-install]')).toHaveCount(0);
-   await expect(dock.locator(':scope > *')).toHaveCount(5);
+   await expect(dock.locator(':scope > *')).toHaveCount(4);
    const trigger=page.locator('.site-header [data-nav-toggle]:visible').first();
    await trigger.click();
    const sheet=page.locator('#mobile-app-menu');
@@ -44,12 +44,12 @@ for(const locale of ['fa','en']){
    expect(errors).toEqual([]);
   });
  }
- test(locale+' installed app retains five tabs and offers explicit update check without forced refresh',async({page})=>{
+ test(locale+' installed app retains four native tabs and offers explicit update check without forced refresh',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await page.addInitScript(()=>Object.defineProperty(navigator,'standalone',{configurable:true,value:true}));
   await page.goto(origin+'/'+locale+'/',{waitUntil:'domcontentloaded'});
   const dock=page.locator('.app-dock');
-  await expect(dock.locator('a[data-app-tab]')).toHaveCount(5,{timeout:15000});
+  await expect(dock.locator('a')).toHaveCount(4,{timeout:15000});
   await expect(page.locator('[data-jr-dock-install]')).toHaveCount(0);
   await page.locator('.site-header [data-nav-toggle]:visible').first().click();
   const check=page.locator('[data-jr-app-update-check]');
@@ -61,7 +61,7 @@ for(const locale of ['fa','en']){
   const status=page.locator('[data-jr-app-update-status]');
   await expect(status).not.toContainText(locale==='fa'?'در حال بررسی نسخه جدید':'Checking for updates');
   expect(navigations,'update check must never force a reload').toBe(0);
-  await expect(dock.locator('a[data-app-tab]')).toHaveCount(5);
+  await expect(dock.locator('a')).toHaveCount(5);
  });
 }
 

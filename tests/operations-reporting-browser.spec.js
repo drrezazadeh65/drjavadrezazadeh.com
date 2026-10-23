@@ -490,7 +490,7 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
   await controls.locator('[data-db-health-purge-preview]').click();
   await expect.poll(()=>purges).toBe(1);
   expect(previews).toBe(1);
-  expect(scans).toBe(3);
+  await expect.poll(()=>scans).toBe(3);
   await noOverflow(page);
  });
 }
