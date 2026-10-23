@@ -58,6 +58,9 @@ function jrExamOwnerAtRiskBuyerObligations(PDO $pdo): array {
       NOT (m.source_id<=>k.source_id) OR
       s.source_id IS NULL OR
       s.review_state<>'AUTHORITATIVE_REVIEWED' OR
+      s.reviewer_account_id IS NULL OR
+      s.verified_at IS NULL OR
+      s.reviewer_account_id=m.authored_by_account_id OR
       s.rights_state<>'PERMITTED_REPRODUCTION' OR
       s.is_revoked<>0 OR s.is_superseded<>0";
     $sourceRisk="p.product_state='PUBLISHED' AND (
