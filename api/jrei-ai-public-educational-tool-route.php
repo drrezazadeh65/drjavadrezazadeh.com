@@ -89,3 +89,32 @@ function jrAiPublicEducationalLandingEvidence(
     }
     return $evidence;
 }
+
+/** Live file/index presence hints, NOT a model, a student score or QA PASS. */
+function jrAiOwnerEducationalToolReadiness(): array {
+    $root=dirname(__DIR__);
+    $pages=[
+      'GOLDEN_TALENT_INFO'=>['fa/golden-talent/','en/golden-talent/'],
+      'BAHAR_STUDY_INFO'=>['fa/bahar/','en/bahar/'],
+      'RCAS_REFLECTION_INFO'=>['fa/rcas/','en/rcas/'],
+      'ACADEMIC_PATHWAY_INFO'=>[
+          'fa/masir-man/','en/services/field_selection_standard/']
+    ];
+    $out=['schema'=>'jr.jrei.educational-tool-routing-readiness.v1',
+      'mode'=>'PUBLIC_INFORMATION_NAVIGATION_ONLY',
+      'indexPresent'=>is_file($root.'/assets/search-index.json'),
+      'routes'=>[],
+      'privateLearnerDataAccessEnabled'=>false,
+      'assessmentExecutionEnabled'=>false,
+      'researchScaleValidationEstablished'=>false,
+      'liveModelToolInvocationDemonstrated'=>false];
+    foreach($pages as $code=>$pair){
+        $out['routes'][]=[
+          'code'=>$code,
+          'persianPagePresent'=>is_file($root.'/'.$pair[0].'index.html'),
+          'englishPagePresent'=>is_file($root.'/'.$pair[1].'index.html'),
+          'automatedScoringOrAdviceAuthorized'=>false
+        ];
+    }
+    return $out;
+}
