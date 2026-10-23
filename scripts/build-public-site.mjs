@@ -425,8 +425,8 @@ const approvedBilingualEducationalRoutes=[
   ['fa/rcas/index.html','en/rcas/index.html']
 ];
 for(const [fa,en] of approvedBilingualEducationalRoutes){
-  const faUrl='https://drjavadrezazadeh.com/'+fa.replace(/index\\.html$/,'');
-  const enUrl='https://drjavadrezazadeh.com/'+en.replace(/index\\.html$/,'');
+  const faUrl='https://drjavadrezazadeh.com/'+fa.replace(/index\.html$/,'');
+  const enUrl='https://drjavadrezazadeh.com/'+en.replace(/index\.html$/,'');
   for(const [route,canonical,twin,lang] of [
     [fa,faUrl,enUrl,'fa'],[en,enUrl,faUrl,'en']
   ]){
