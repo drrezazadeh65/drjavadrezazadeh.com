@@ -397,4 +397,4 @@
  #ops-quality-detail .ops-quality-copy-brief{width:100%}
  #ops-quality-detail .ops-card{padding:12px}
 }
-@media print{#ops-quality-detail .ops-quality-copy-brief{display:none!important}}
+@media print{#ops-quality-detail .ops-quality-copy-brief{display:none}}
