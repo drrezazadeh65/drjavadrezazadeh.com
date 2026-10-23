@@ -38,6 +38,10 @@ function jrExamOwnerAtRiskBuyerObligations(PDO $pdo): array {
       orig.object_reference<>CONCAT(orig.content_sha256,'.json') OR
       orig.content_sha256<>m.item_content_digest OR
       m.id IS NULL OR
+      m.provenance_digest IS NULL OR
+      m.item_content_digest IS NULL OR
+      m.answer_key_digest IS NULL OR
+      k.key_digest IS NULL OR
       m.item_state<>'APPROVED' OR
       m.reviewed_by_account_id IS NULL OR
       m.authored_by_account_id IS NULL OR
