@@ -86,7 +86,7 @@ function jrKaPinnedGet(string $url,int $maximumBytes,
         if(stripos($text,'content-length:')===0)
             $declared=trim(substr($text,15));
         if(stripos($text,'content-encoding:')===0)
-            $encoding=strtolower(trim(substr($text,17));
+            $encoding=strtolower(trim(substr($text,17)));
         return strlen($line);
     };
     curl_setopt_array($handle,[
