@@ -5,6 +5,7 @@ require_once __DIR__.'/jrei-ai-cloud-provider.php';
 require_once __DIR__.'/jrei-ai-model-routing.php';
 require_once __DIR__.'/jrei-ai-provider-telemetry.php';
 require_once __DIR__.'/jrei-ai-reviewed-passages.php';
+require_once __DIR__.'/jrei-ai-public-educational-tool-route.php';
 require_once __DIR__.'/jrei-ai-governed-benchmarks.php';
 require_once __DIR__.'/jrei-ai-benchmark-expert-review.php';
 require_once __DIR__.'/jrei-ai-improvement-owner.php';
@@ -42,6 +43,7 @@ function jrAiOwnerReadiness(PDO $pdo,array $cfg): array {
       ],
       'modelRoutingActive'=>false,
       'providerRouting'=>jrAiProviderNeutralRoutingReadiness($pdo,$cfg),
+      'publicEducationToolRouting'=>jrAiOwnerEducationalToolReadiness(),
       'sourceGroundedScientificAnswersVerified'=>false,
       'quotas'=>[
         'maxCallsPerDay'=>(int)($cfg['jrei_ai_daily_call_limit']??0),
