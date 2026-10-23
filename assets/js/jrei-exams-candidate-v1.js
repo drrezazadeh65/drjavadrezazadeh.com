@@ -62,7 +62,13 @@
    if(busy)return;
    busy=true;setStatus(T('در حال دریافت سوابق معتبر آزمون…',
      'Loading your actual examination records…'));
+   // A list refresh closes any previous attempt view and clears
+   // private answers from live JS memory. Resumption must refetch both
+   // the original question-version manifest and saved server responses.
+   active=null;expireAt=0;revision=0;cursor=0;
+   items=[];selected={};recoveryRequired=false;
    list.replaceChildren();paper.replaceChildren();actions.replaceChildren();
+   refreshClock();
    try{
      const data=await request('/api/exams/my');
      if(data.schema!=='jr.jrei.candidate-exams.v1'||!Array.isArray(data.attempts))
