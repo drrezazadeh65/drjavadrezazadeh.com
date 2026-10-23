@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
+require_once __DIR__.'/jrei-exam-deterministic-scoring.php';
 
 /**
  * Original MFA SUPER_ADMIN entitlement governance, not a payment provider.
