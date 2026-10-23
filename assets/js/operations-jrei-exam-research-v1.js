@@ -281,6 +281,135 @@
    sections.append(panel);
  }
 
+
+ function renderKnowledgeAcquisition(snapshot){
+   const ka=snapshot.knowledgeAcquisition;
+   if(!ka||ka.schema!=='jr.jrei.ka-owner.v1'){
+     fact('JREI-KA',T('ثبت وضعیت معتبر انجام نشده','No authoritative state'));
+     return;
+   }
+   fact(T('دفتر صف گردآوری مجاز','Governed acquisition queue'),
+     ka.schemaReady?T('موجود در دیتابیس؛ اجرا هنوز نیازمند پذیرش',
+       'Database tables present; execution not accepted'):
+       T('نیازمند مهاجرت مصوب','Requires approved additive migration'));
+   fact(T('منابع با برنامهٔ بازبینی مصوب','Approved refresh policies'),
+     ka.schemaReady?safeCount(ka.approvedSources):T('نامعلوم','Unknown'));
+   const root=elt('details','jr-exam-subsection');
+   root.append(elt('summary','',T(
+     'JREI-KA؛ زمان‌بندی، منابع و کنترل‌های مجاز',
+     'JREI-KA authorised sources, schedule and controls')));
+   root.append(elt('p','',T(
+     'زمان‌بندی تنها فرادادهٔ کار تولید می‌کند؛ دریافت PDF، پردازش OCR، تأیید علمی و انتشار سؤال هنوز از این بخش انجام نمی‌شود.',
+     'Scheduling creates metadata jobs only; it does not fetch PDFs, perform OCR, certify answers or publish examinations.')));
+   if(!ka.schemaReady){
+     root.append(elt('p','',T('جدول‌های افزایشی هنوز برای استفاده آماده نیستند.',
+       'Additive mother-DB tables are not yet available.')));
+     sections.append(root);return;
+   }
+   const ctrl=ka.controls;
+   const fmt=(n)=>Number.isSafeInteger(n)?safeCount(n):T('نامعلوم','Unknown');
+   root.append(elt('p','',T('اجازهٔ خصوصی Cron: ','Private Cron opt-in: ')+
+     (ka.privateScheduleOptIn?T('در پیکربندی مجاز','Permitted in configuration'):
+       T('خاموش','OFF'))));
+   root.append(elt('p','',T('سیاست زمان‌بندی: ','Scheduling policy: ')+
+     (ctrl?.schedulingEnabled?T('روشن','Enabled'):T('خاموش','OFF'))+
+     ' · '+T('سیاست گردآوری: ','Acquisition policy: ')+
+     (ctrl?.acquisitionEnabled?T('روشن','Enabled'):T('خاموش','OFF'))));
+   if(ctrl){
+     root.append(elt('p','',
+       T('حد صف: ','Max queue: ')+fmt(ctrl.maxQueueDepth)+
+       ' · '+T('حد کار در هر چرخه: ','Per cycle: ')+fmt(ctrl.maxNewTasksPerCycle)));
+     root.append(elt('p','',
+       T('سهمیهٔ اعلامی روزانه، بایت: ','Configured daily byte budget: ')+
+         fmt(ctrl.maxDailyBytes)));
+   }
+   const states=Array.isArray(ka.jobStates)?ka.jobStates:[];
+   const snapshotBox=elt('div','jr-exam-coverage-row');
+   snapshotBox.append(elt('strong','',T('وضعیت واقعی کارهای ثبت‌شده',
+     'Recorded queue states')));
+   if(!states.length)snapshotBox.append(elt('span','',
+     T('کاری در جدول موجود نیست','No recorded jobs')));
+   else for(const r of states)
+     snapshotBox.append(elt('span','',String(r.state).slice(0,30)+
+       ' · '+fmt(r.count)));
+   root.append(snapshotBox);
+   const policies=Array.isArray(ka.sourcePolicies)?ka.sourcePolicies:[];
+   for(const p of policies.slice(0,40)){
+     const item=elt('article','jr-exam-coverage-row');
+     item.append(elt('strong','',String(p.sourceTitle||p.sourceId).slice(0,130)));
+     item.append(elt('span','',String(p.sourceId)+
+       ' · '+String(p.priorityTier)+' · '+String(p.state)));
+     item.append(elt('span','',T('دورهٔ بازبینی، ثانیه: ','Refresh interval seconds: ')+
+       fmt(p.refreshIntervalSeconds)));
+     item.append(elt('span','',T('حقوق استفاده/robots/transport: ',
+       'Rights/robots/transport: ')+
+       [p.rightsReviewed,p.robotsTermsReviewed,p.transportReviewed].map(x=>x?'✓':'—').join(' / ')));
+     if(p.state==='PENDING_REVIEW'){
+       const proposal=elt('details','jr-exam-subsection');
+       proposal.append(elt('summary','',T(
+         'ثبت شواهد سه‌گانه و تأیید منبع',
+         'Approve source only after three documented reviews')));
+       const form=document.createElement('form');
+       const reviews=[
+         ['rightsEvidenceSha256',T('هش سند بررسی حقوق استفاده','Reuse-rights review SHA-256')],
+         ['robotsEvidenceSha256',T('هش بررسی robots و شرایط سایت','Robots/terms review SHA-256')],
+         ['transportEvidenceSha256',T('هش بررسی ایمنی دریافت','Transport security review SHA-256')]
+       ];
+       const inputs={};
+       for(const [name,label] of reviews){
+         const row=elt('label','',label),input=document.createElement('input');
+         input.required=true;input.pattern='[a-f0-9]{64}';
+         input.maxLength=64;input.minLength=64;input.dir='ltr';
+         input.autocomplete='off';input.spellcheck=false;
+         row.append(input);form.append(row);inputs[name]=input;
+       }
+       const submit=elt('button','',
+         T('تأیید فقط بعد از بررسی واقعی','Approve after independent review'));
+       submit.type='submit';form.append(submit);
+       form.addEventListener('submit',event=>{
+         event.preventDefault();if(!active()||busy||!form.reportValidity())return;
+         if(!window.confirm(T(
+           'آیا ناشر، مجوز، robots و ایمنی HTTPS واقعاً جداگانه بررسی و مستند شده‌اند؟',
+           'Have issuer, rights, robots and HTTPS safety actually been independently reviewed and documented?')))return;
+         mutate({action:'ka_approve_source',sourceId:p.sourceId,revision:p.revision,
+           rightsEvidenceSha256:inputs.rightsEvidenceSha256.value.trim(),
+           robotsEvidenceSha256:inputs.robotsEvidenceSha256.value.trim(),
+           transportEvidenceSha256:inputs.transportEvidenceSha256.value.trim(),
+           confirmation:'APPROVE_VERIFIED_PUBLIC_KA_SOURCE'});
+       });
+       proposal.append(form);item.append(proposal);
+     }
+     if(p.state==='APPROVED'||p.state==='PENDING_REVIEW'){
+       const stop=elt('button','jr-exam-emergency',
+         T('تعلیق این منبع','Suspend source'));
+       stop.type='button';
+       stop.addEventListener('click',()=>{
+         if(!window.confirm(T('صف آیندهٔ این منبع متوقف شود؟',
+           'Cancel pending future tasks for this source?')))return;
+         mutate({action:'ka_suspend_source',sourceId:p.sourceId,
+           revision:p.revision,confirmation:'SUSPEND_KA_SOURCE'});
+       });
+       item.append(stop);
+     }
+     root.append(item);
+   }
+   if(ctrl){
+     const stop=elt('button','jr-exam-emergency',
+       T('توقف زمان‌بندی و دریافت آینده','Disable future scheduling and acquisition'));
+     stop.type='button';
+     stop.disabled=!ctrl.schedulingEnabled&&!ctrl.acquisitionEnabled;
+     stop.addEventListener('click',()=>{
+       if(!window.confirm(T('همهٔ کارهای در صف لغو شوند؟ اجرای نامعلوم تکرار نخواهد شد.',
+         'Cancel queued tasks? Unknown in-flight work is never automatically replayed.')))return;
+       mutate({action:'ka_set_controls',policyRevision:ctrl.policyRevision,
+         schedulingEnabled:false,acquisitionEnabled:false,
+         confirmation:'SET_KA_OWNER_POLICY'});
+     });
+     root.append(stop);
+   }
+   sections.append(root);
+ }
+
  function render(snapshot,hybrid=null){
    clearNodes();
    const ready=snapshot.motherDbSchemaReady===true;
@@ -305,6 +434,7 @@
        'Disabled until ethics and guardian authorization'));
    renderCoverageReadiness(snapshot);
    renderCommercialCentre(snapshot);
+   renderKnowledgeAcquisition(snapshot);
    for(const def of columns)viewGroup(def,snapshot[def.key],ready);
    renderWorker(hybrid);
    if(ready&&c){
