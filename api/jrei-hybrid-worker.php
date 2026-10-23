@@ -253,6 +253,13 @@ function jrHybridLease(PDO $pdo,string $node,int $at,array $datasets,array $cfg)
         if(!is_array($job)){$pdo->commit();return null;}
         if($job['task_type']!==JR_HYBRID_TASK)
             throw new RuntimeException('unsupported_task_queued');
+        // Validate the stored policies BEFORE the lease transaction commits.
+        // A malformed row must never become a reserved job whose response
+        // fails after commit and is later mistaken for completed processing.
+        $current=json_decode((string)$job['policy_current_json'],true);
+        $candidate=json_decode((string)$job['policy_candidate_json'],true);
+        if(!jrHybridPolicy($current)||!jrHybridPolicy($candidate))
+            throw new RuntimeException('stored_policy_corrupted');
         $lease=jrHybridNewUuid();
         $q=$pdo->prepare("UPDATE jrei_hybrid_jobs SET
           status='LEASED',leased_to_node=?,lease_id=?,
@@ -261,10 +268,6 @@ function jrHybridLease(PDO $pdo,string $node,int $at,array $datasets,array $cfg)
         $q->execute([$node,$lease,$at,$at+JR_HYBRID_LEASE_SECONDS,$job['job_id']]);
         if($q->rowCount()!==1)throw new RuntimeException('lease_conflict');
         $pdo->commit();
-        $current=json_decode((string)$job['policy_current_json'],true);
-        $candidate=json_decode((string)$job['policy_candidate_json'],true);
-        if(!jrHybridPolicy($current)||!jrHybridPolicy($candidate))
-            throw new RuntimeException('stored_policy_corrupted');
         return [
           'jobId'=>$job['job_id'],'leaseId'=>$lease,
           'taskType'=>JR_HYBRID_TASK,
