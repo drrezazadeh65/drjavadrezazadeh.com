@@ -1356,6 +1356,38 @@
    fact(T('رزرو درخواست مدل در روز جاری','Cloud-model calls reserved today'),
      ai.reservedToday?safeCount(ai.reservedToday.calls):
        T('نامعلوم؛ مهاجرت مصوب لازم است','Unknown; approved migration pending'));
+   const routing=ai.providerRouting;
+   if(routing?.schema==='jr.jrei.public-model-route.v1'){
+     fact(T('مسیر مجاز گفت‌وگوی عمومی در کد',
+       'Source-enabled public model route'),
+       routing.route==='OPENAI_RESPONSES'?
+         T('مدل ابری مصوب در کد؛ اجرای موفق هنوز اثبات نشده',
+           'Cloud route authorised in source; successful inference not proven'):
+         T('هیچ مدل عمومی مجاز نیست؛ بازگشت ایمن به حالت ثابت',
+           'No public model authorised; safe static fallback'));
+     fact(T('مدل محلی با شواهد حقوقی ثبت‌شده',
+       'Registered locally licensed model metadata'),
+       routing.localRegistrySchemaReady?
+         safeCount(routing.humanRightsReviewedLocalModels):
+         T('نامعلوم؛ دیتابیس مدل آماده نیست','Unknown; model registry unavailable'));
+     fact(T('نودهای دارای قلب‌تپش اخیر، صرفاً ارزیابی',
+       'Recent signed evaluation-only worker heartbeats'),
+       routing.signedNodeSchemaReady?
+         safeCount(routing.recentSignedWorkerHeartbeatCount):
+         T('نامعلوم؛ جداول Worker آماده نیست','Unknown; worker schema unavailable'));
+     const box=elt('details','jr-exam-subsection');
+     box.append(elt('summary','',T(
+       'قرارداد مسیریابی مدل ابری و محلی؛ تفکیک شواهد واقعی',
+       'Cloud/local model routing contract and truthful capability limits')));
+     box.append(elt('p','',T(
+       'Worker ویندوز فعلی فقط مجاز به ارزیابی بازیابی منابع عمومی است، نه دریافت پیام کاربران یا استنتاج زبانی. نبود یا خاموشی رایانه نباید سایت را از کار بیندازد. اشتراک ChatGPT نیز معادل کلید تجاری API نیست.',
+       'The current signed Windows task is restricted to public retrieval evaluation; it is NOT a chat model and must not receive user prompts. An offline PC must not interrupt the public site. A ChatGPT subscription is not a billable API key.')));
+     box.append(elt('p','',
+       T('مدل محلی آمادهٔ پاسخ‌گویی عمومی: ','Local public chat model ready: ')+
+       T('خیر؛ اثبات و اجازه مستقل موجود نیست',
+         'No; independently verified generative permission and execution are absent')));
+     sections.append(box);
+   }
    const approvedQuotes=ai.independentlyAttestedQuoteCounts;
    fact(T('نقل‌قول‌های دارای مجوز مستقل و منبع معتبر',
      'Independently attested current licensed source excerpts'),
