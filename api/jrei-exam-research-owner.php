@@ -3,6 +3,7 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-exam-coverage-readiness.php';
 require_once __DIR__.'/jrei-ka-scheduler.php';
+require_once __DIR__.'/jrei-ka-owner-controls.php';
 
 /**
  * Owner-only read/write metadata for the existing JREI ecosystem.
@@ -185,6 +186,9 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
     if(!jrExamResearchSchemaReady($pdo))
         throw new DomainException('jrei_exam_research_migration_required');
     $action=$body['action']??null;
+    if(in_array($action,['ka_set_controls','ka_propose_source',
+       'ka_approve_source','ka_suspend_source'],true))
+        return jrKaOwnerControlChange($pdo,$cfg,$actor,$body);
     if($action==='pause_all'){
         $revision=$body['policyRevision']??null;
         if(!is_int($revision)||$revision<1||
