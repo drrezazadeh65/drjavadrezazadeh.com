@@ -178,6 +178,8 @@ function jrHybridOwnerReviewJob(PDO $pdo,string $actor,array $body): array {
     $job=$body['jobId']??null;
     $revision=$body['revision']??null;
     $decision=$body['decision']??null;
+    $rationale=jrHybridReviewCode($decision,$body['rationaleCode']??null);
+    if($rationale===null)throw new InvalidArgumentException('invalid_review_reason');
     if(!jrHybridUuid($job)||!is_int($revision)||$revision<1||
        !in_array($decision,['ACKNOWLEDGE','REJECT','CLOSE_UNKNOWN'],true)||
        ($body['confirmation']??null)!=='REVIEW_AGGREGATE_WITHOUT_PUBLICATION')
@@ -185,7 +187,7 @@ function jrHybridOwnerReviewJob(PDO $pdo,string $actor,array $body): array {
     $now=time();
     $pdo->beginTransaction();
     try{
-        $q=$pdo->prepare('SELECT status,revision FROM jrei_hybrid_jobs
+        $q=$pdo->prepare('SELECT status,revision,result_digest FROM jrei_hybrid_jobs
             WHERE job_id=? FOR UPDATE');
         $q->execute([$job]);$r=$q->fetch(PDO::FETCH_ASSOC);
         if(!is_array($r)||(int)$r['revision']!==$revision)
@@ -204,9 +206,13 @@ function jrHybridOwnerReviewJob(PDO $pdo,string $actor,array $body): array {
             WHERE job_id=? AND revision=?');
         $q->execute([$status,$job,$revision]);
         if($q->rowCount()!==1)throw new DomainException('job_version_conflict');
+        $recorded=jrHybridRecordReviewLedger($pdo,$job,$actor,
+            $status,$rationale,$revision,
+            is_string($r['result_digest'])?$r['result_digest']:null,$now);
         operationsAudit($pdo,$actor,'jrei_job_owner_'.$status,$job);
         $pdo->commit();
     }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
     return ['ok'=>true,'jobId'=>$job,'status'=>$status,
+        'rationaleCode'=>$rationale,'codedLedgerRecorded'=>$recorded,
         'published'=>false,'independentlyValidated'=>false];
 }
