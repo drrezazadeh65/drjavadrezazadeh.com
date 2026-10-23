@@ -449,6 +449,48 @@
          article.append(elt('span','',row.humanReviewed?
            T('سابقهٔ تصمیم مستقل ثبت شده','Human reviewer decision recorded'):
            T('در انتظار داوری مستقل','Awaiting independent review')));
+         // Separate proof that the specific TRANSLATION is licensed,
+         // and proof of linguistic/option-equivalence review. A licence to
+         // reproduce original exam text does not automatically grant
+         // permission to translate it.
+         const localeEvidence={};
+         if(row.state==='DRAFT'){
+           for(const [key,fa,en] of [
+             ['rights','SHA-256 سند مجوز ترجمه و بازنشرِ ترجمه',
+               'SHA-256 of translation/reproduction rights document'],
+             ['linguistic','SHA-256 سند بازبینی مستقل هم‌ارزی سؤال و گزینه‌ها',
+               'SHA-256 of independent linguistic/option review evidence']
+           ]){
+             const label=elt('label','',T(fa,en));
+             const input=elt('input');input.type='text';
+             input.maxLength=64;input.minLength=64;input.autocomplete='off';
+             input.spellcheck=false;input.setAttribute('dir','ltr');
+             input.pattern='[a-fA-F0-9]{64}';
+             localeEvidence[key]=input;
+             label.append(input);
+             const fileLabel=elt('label','',T(
+               'محاسبهٔ اختیاری هش فایل محلی؛ فایل آپلود نمی‌شود',
+               'Optional local-file digest; evidence is never uploaded'));
+             const file=elt('input');file.type='file';
+             file.accept='.pdf,.txt,.html,.png,.jpg,.jpeg';
+             file.addEventListener('change',async()=>{
+               const evidence=file.files?.[0];
+               if(!evidence)return;
+               try{
+                 if(evidence.size<1||evidence.size>8*1024*1024||
+                    !globalThis.crypto?.subtle)throw Error('NO_HASH');
+                 const digest=await crypto.subtle.digest(
+                   'SHA-256',await evidence.arrayBuffer());
+                 if(active())input.value=Array.from(new Uint8Array(digest))
+                   .map(b=>b.toString(16).padStart(2,'0')).join('');
+               }catch{
+                 input.value='';
+               }finally{file.value='';}
+             });
+             fileLabel.append(file);
+             article.append(label,fileLabel);
+           }
+         }
          const possible=row.state==='DRAFT'?['APPROVE','WITHDRAW']:
            row.state==='APPROVED'?['WITHDRAW']:[];
          for(const decision of possible){
@@ -465,9 +507,21 @@
                'Did you personally compare original and translated wording/options? This is NOT final scientific/legal acceptance.'):T(
                'گواهی ترجمه لغو شود؟ سابقهٔ اصلی باقی می‌ماند.',
                'Withdraw this translation? Original source history remains.')))return;
+             let proofs={};
+             if(decision==='APPROVE'){
+               const rights=localeEvidence.rights?.value.trim().toLowerCase();
+               const linguistic=localeEvidence.linguistic?.value.trim().toLowerCase();
+               if(!safeSha.test(rights||'')||!safeSha.test(linguistic||'')||
+                  rights===linguistic)return;
+               proofs={
+                 translationRightsEvidenceSha256:rights,
+                 linguisticEvidenceSha256:linguistic
+               };
+             }
              mutate({action:'exam_localized_prompt_review',
                itemId:row.itemId,locale:row.locale,
                decision,expectedRevision:row.revision,
+               ...proofs,
                confirmation:'INDEPENDENT_HUMAN_LOCALE_REVIEW_WITHOUT_PUBLIC_RELEASE'});
            });article.append(button);
          }
