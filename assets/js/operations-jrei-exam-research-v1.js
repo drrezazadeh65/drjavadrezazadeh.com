@@ -480,6 +480,22 @@
        record.append(elt('strong','',String(entry.productCode||'').slice(0,70)));
        record.append(elt('span','',String(entry.entitlementId||'').slice(0,36)));
        record.append(elt('span','',String(entry.grantReason||'').slice(0,40)));
+       if(entry.entitlementState==='ACTIVE'){
+         const stop=elt('button','jr-exam-emergency',
+           T('تعلیق دسترسی؛ بدون بازپرداخت خودکار',
+             'Revoke access, without automatic refund'));
+         stop.type='button';
+         stop.addEventListener('click',()=>{
+           if(!active()||busy||!window.confirm(T(
+             'دسترسی قطع شود؟ پاسخ‌ها حفظ می‌شوند؛ تعهدات مالی باید جدا رسیدگی شوند.',
+             'Revoke access? Answers remain and buyer obligations require separate review.')))return;
+           mutate({action:'exam_revoke_entitlement',
+             entitlementId:entry.entitlementId,revision:entry.revision,
+             reasonCode:'ASSESSMENT_ACCESS_SUSPENDED',
+             confirmation:'REVOKE_EXAM_ACCESS_KEEP_BUYER_RIGHTS'});
+         });
+         record.append(stop);
+       }
        monitor.append(record);
      }
      panel.append(monitor);
