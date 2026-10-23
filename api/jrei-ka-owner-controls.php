@@ -89,6 +89,14 @@ function jrKaOwnerControlChange(PDO $pdo,array $cfg,string $actor,array $body): 
     if(in_array($action,['ka_approve_source','ka_suspend_source'],true)){
         $source=$body['sourceId']??null;$rev=$body['revision']??null;
         $approve=$action==='ka_approve_source';
+        $evidenceFields=[
+          $body['rightsEvidenceSha256']??null,
+          $body['robotsEvidenceSha256']??null,
+          $body['transportEvidenceSha256']??null
+        ];
+        if($approve&&array_filter($evidenceFields,static fn($h)=>
+          !is_string($h)||!preg_match('/^[a-f0-9]{64}$/D',$h)))
+            throw new InvalidArgumentException('ka_independent_review_provenance_required');
         if(!is_string($source)||!validUuid($source)||
           !is_int($rev)||$rev<1||
           ($body['confirmation']??null)!==($approve?
@@ -138,10 +146,14 @@ function jrKaOwnerControlChange(PDO $pdo,array $cfg,string $actor,array $body): 
             $status=$approve?'APPROVED':'SUSPENDED';
             $q=$pdo->prepare('UPDATE jrei_ka_source_policies SET
               scheduling_state=?,rights_reviewed=?,robots_terms_reviewed=?,
-              transport_reviewed=?,approved_by_account_id=?,
-              updated_at=?,revision=revision+1
+              transport_reviewed=?,rights_evidence_sha256=?,
+              robots_terms_evidence_sha256=?,transport_evidence_sha256=?,
+              approved_by_account_id=?,updated_at=?,revision=revision+1
               WHERE source_id=? AND revision=?');
             $q->execute([$status,$approve?1:0,$approve?1:0,$approve?1:0,
+                $approve?$evidenceFields[0]:null,
+                $approve?$evidenceFields[1]:null,
+                $approve?$evidenceFields[2]:null,
                 $approve?$actor:null,$now,$source,$rev]);
             if($q->rowCount()!==1)throw new DomainException('ka_source_revision_conflict');
             if(!$approve){
