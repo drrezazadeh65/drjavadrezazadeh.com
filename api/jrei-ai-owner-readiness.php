@@ -28,6 +28,9 @@ function jrAiOwnerReadiness(PDO $pdo,array $cfg): array {
       'actualUsdSpend'=>null,'modelResponseP95LatencyMs'=>null,
       'localWindowsModelRunningVerified'=>false,
       'publicSourceIndexPresent'=>is_file(dirname(__DIR__).'/assets/search-index.json'),
+      'approvedPassageRetrievalOptIn'=>($cfg['jrei_ai_approved_passage_retrieval_enabled']??false)===true,
+      'approvedPassageSchemaReadable'=>function_exists('jrAiApprovedPassageSchemaReady')?
+         jrAiApprovedPassageSchemaReady($pdo):false,
       'modelRoutingActive'=>false,
       'sourceGroundedScientificAnswersVerified'=>false,
       'quotas'=>[
