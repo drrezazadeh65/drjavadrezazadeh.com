@@ -5,6 +5,7 @@ require_once __DIR__.'/jrei-ai-cloud-provider.php';
 require_once __DIR__.'/jrei-ai-provider-telemetry.php';
 require_once __DIR__.'/jrei-ai-reviewed-passages.php';
 require_once __DIR__.'/jrei-ai-governed-benchmarks.php';
+require_once __DIR__.'/jrei-ai-benchmark-expert-review.php';
 
 /**
  * Real-source model readiness for original MFA owner command centre.
