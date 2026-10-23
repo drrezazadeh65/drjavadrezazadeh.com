@@ -39,13 +39,19 @@ async function getPinned(url,ip,maxBytes) {
   const target=new URL(url);
   return await new Promise((resolve,reject)=>{
     let done=false;
+    let request;
+    // Absolute deadline prevents a slow server from trickling bytes forever
+    // while resetting Node's ordinary idle socket timeout.
+    const deadline=setTimeout(()=>finish(Error('SOURCE_ABSOLUTE_TIMEOUT')),20000);
+    deadline.unref?.();
     const finish=(error,value)=>{
       if(done)return;
       done=true;
-      if(error)request.destroy();
+      clearTimeout(deadline);
+      if(error&&request)request.destroy();
       if(error)reject(error);else resolve(value);
     };
-    const request=https.request({
+    request=https.request({
       protocol:'https:',hostname:target.hostname,
       port:443,path:target.pathname+target.search,method:'GET',
       rejectUnauthorized:true,servername:target.hostname,
@@ -73,6 +79,7 @@ async function getPinned(url,ip,maxBytes) {
         chunks.push(chunk);
       });
       response.on('error',err=>finish(err));
+      response.on('aborted',()=>finish(Error('SOURCE_TRANSFER_ABORTED')));
       response.on('end',()=>{
         if(!size||length&&length!==size)
           return finish(Error('SOURCE_BODY_LENGTH_INVALID'));
