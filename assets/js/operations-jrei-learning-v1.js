@@ -77,6 +77,7 @@
       facts.append(heading);
       const metrics=[
         [T('مجموع پیشنهادهای ثبت‌شده','Recorded proposed changes'),evaluation.recordedProposals],
+        [T('تصمیم‌های ثبت‌شدهٔ مداخلهٔ انسانی','Recorded human intervention decisions'),evaluation.humanVetoCount],
         [T('نمونه کمتر از حداقل سیاست','Below minimum required sample count'),evaluation.sampleBelowPolicyMinimum],
         [T('گزارش‌های دارای رخداد حریم خصوصی','Proposals reporting privacy incidents'),evaluation.privacyIncidentsReported],
         [T('بدترشدن استناد یا شواهد','More unsupported evidence claims'),evaluation.unsupportedEvidenceRegressions],
