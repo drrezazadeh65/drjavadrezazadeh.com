@@ -759,7 +759,7 @@
      if(release.truncated)details.append(elt('p','',
        T('فقط ۳۰ محصول اخیر فهرست شده‌اند.','Only the latest 30 products are shown.')));
      details.append(elt('p','',T(
-       'حتی صفرشدن موانع فراداده، اثبات کیفیت آزمون یا مجوز دریافت وجه نیست.',
+       'نبود مانع در اطلاعات ثبت‌شده به معنای تأیید کیفیت آزمون یا مجوز دریافت وجه نیست.',
        'No metadata-only check establishes scientific quality or payment authorization.')));
      panel.append(details);
    }
