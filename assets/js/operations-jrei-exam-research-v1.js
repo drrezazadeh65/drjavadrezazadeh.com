@@ -365,6 +365,120 @@
        T('خاموش','OFF'));
    fact(T('آمادگی فروش واقعی آزمون','Verified exam checkout readiness'),
      T('تأیید نشده؛ فروش باز نیست','Unverified; checkout disabled'));
+   const locales=centre.localizedPromptReview;
+   if(locales?.schema==='jr.jrei.exam-prompt-locales-owner.v1'){
+     const safeUuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
+     const safeSha=/^[a-f0-9]{64}$/i;
+     fact(T('وضعیت بازبینی ترجمهٔ مستقل سؤال‌ها',
+       'Independent bilingual item translation reviews'),
+       locales.available?
+         (Array.isArray(locales.counts)?
+           locales.counts.map(x=>String(x.locale||'')+' '+
+             String(x.reviewState||'')+' '+safeCount(x.count)).join(' · '):
+           T('ثبت نشده','No recorded status')):
+         T('نامعلوم؛ مهاجرت ترجمهٔ سؤال نصب نشده',
+           'Unknown; reviewed translation migration absent'));
+     const lpanel=elt('details','jr-exam-subsection');
+     lpanel.append(elt('summary','',T(
+       'تطبیق مستقل متن سؤال دو زبانه با شناسه‌های اصلی',
+       'Independent bilingual question manifest review')));
+     lpanel.append(elt('p','',T(
+       'متن ترجمه‌شده باید به‌صورت فایل JSON تغییرناپذیر و با همان شناسهٔ سؤال و گزینه‌ها، پیشاپیش در انبار خصوصی و ثبت اصلی اشیا وجود داشته باشد. این فرم فایلی بارگذاری نمی‌کند، کلید پاسخ را تغییر نمی‌دهد و کیفیت علمی یا حقوق انتشار را خودکار تأیید نمی‌کند.',
+       'A reviewed translation must already exist as an immutable private JSON object with the SAME original item and option IDs. This interface uploads no files, changes no keys and does not automatically establish scientific quality or publication rights.')));
+     if(!locales.available){
+       lpanel.append(elt('p','',T('تا نصب جدول معتبر، این کنترل‌ها غیرفعال‌اند.',
+         'Controls unavailable until the reviewed additive schema is present.')));
+     }else{
+       const form=elt('form','jr-exam-coverage-form');
+       const field=(fa,en,max)=>{
+         const label=elt('label','',T(fa,en));
+         const input=elt('input');input.type='text';
+         input.required=true;input.maxLength=max;input.autocomplete='off';
+         input.spellcheck=false;label.append(input);form.append(label);
+         return input;
+       };
+       const item=field('شناسهٔ اصلی سؤال (UUID)','Original question UUID',36);
+       const object=field('شناسهٔ شیء JSON خصوصی (UUID)',
+         'Previously registered private JSON object UUID',36);
+       const original=field('SHA-256 متن اصلی معتبر',
+         'SHA-256 of original item manifest',64);
+       const translation=field('SHA-256 فایل ترجمهٔ ثبت‌شده',
+         'SHA-256 of registered translated JSON',64);
+       const localeLabel=elt('label','',T('زبان ترجمه','Translated language'));
+       const choice=elt('select');
+       for(const [value,label] of [['en','English'],['fa','فارسی']]){
+         const option=elt('option','',label);option.value=value;choice.append(option);
+       }
+       localeLabel.append(choice);form.append(localeLabel);
+       const acknowledge=elt('label','',T(
+         'ثبت این مورد صرفاً پیش‌نویس است و مستلزم داوری مستقل انسانی خواهد بود.',
+         'This registers an unreviewed draft only; independent human review remains required.'));
+       const ok=elt('input');ok.type='checkbox';ok.required=true;
+       acknowledge.prepend(ok);form.append(acknowledge);
+       const save=elt('button','',T('ثبت پیش‌نویس ترجمهٔ مستند',
+         'Register unreviewed translation metadata'));
+       save.type='submit';form.append(save);
+       form.addEventListener('submit',ev=>{
+         ev.preventDefault();
+         if(!active()||busy||!form.reportValidity())return;
+         const itemId=item.value.trim().toLowerCase();
+         const objectRefId=object.value.trim().toLowerCase();
+         const originalItemSha256=original.value.trim().toLowerCase();
+         const localizedManifestSha256=translation.value.trim().toLowerCase();
+         if(!safeUuid.test(itemId)||!safeUuid.test(objectRefId)||
+            !safeSha.test(originalItemSha256)||
+            !safeSha.test(localizedManifestSha256))return;
+         if(!window.confirm(T(
+           'این فقط پیوند فرادادهٔ ترجمهٔ هنوز تأییدنشده است؛ ادامه می‌دهید؟',
+           'Record an unreviewed translation metadata link only?')))return;
+         mutate({action:'exam_localized_prompt_draft',
+           itemId,objectRefId,locale:choice.value,
+           originalItemSha256,localizedManifestSha256,
+           confirmation:'REGISTER_UNREVIEWED_LOCALIZED_EXAM_MANIFEST'});
+       });
+       lpanel.append(form);
+       const records=Array.isArray(locales.items)?locales.items.slice(0,30):[];
+       for(const row of records){
+         if(!safeUuid.test(row.itemId||'')||
+            !['fa','en'].includes(row.locale)||
+            !Number.isSafeInteger(row.revision))continue;
+         const article=elt('article','jr-exam-coverage-row');
+         article.append(elt('strong','',
+           String(row.itemId)+' · '+row.locale+' · '+
+             String(row.state||'UNKNOWN')));
+         article.append(elt('span','',row.humanReviewed?
+           T('سابقهٔ تصمیم مستقل ثبت شده','Human reviewer decision recorded'):
+           T('در انتظار داوری مستقل','Awaiting independent review')));
+         const possible=row.state==='DRAFT'?['APPROVE','WITHDRAW']:
+           row.state==='APPROVED'?['WITHDRAW']:[];
+         for(const decision of possible){
+           const label=decision==='APPROVE'?T(
+             'گواهی بررسی مستقل ترجمه (پس از مطالعهٔ اصل سند)',
+             'Record independent translation attestation after source inspection'):
+             T('ابطال مجوز این ترجمه','Withdraw this translation');
+           const button=elt('button',decision==='WITHDRAW'?
+             'jr-exam-emergency':'',label);
+           button.type='button';button.addEventListener('click',()=>{
+             if(!active()||busy)return;
+             if(!window.confirm(decision==='APPROVE'?T(
+               'آیا واقعاً متن ترجمه را با اصل و گزینه‌ها بررسی کرده‌اید؟ این ثبت جایگزین پذیرش علمی و حقوق نشر نیست.',
+               'Did you personally compare original and translated wording/options? This is NOT final scientific/legal acceptance.'):T(
+               'گواهی ترجمه لغو شود؟ سابقهٔ اصلی باقی می‌ماند.',
+               'Withdraw this translation? Original source history remains.')))return;
+             mutate({action:'exam_localized_prompt_review',
+               itemId:row.itemId,locale:row.locale,
+               decision,expectedRevision:row.revision,
+               confirmation:'INDEPENDENT_HUMAN_LOCALE_REVIEW_WITHOUT_PUBLIC_RELEASE'});
+           });article.append(button);
+         }
+         lpanel.append(article);
+       }
+       if(locales.truncated)lpanel.append(elt('p','',T(
+         'صف داوری فقط ۳۰ رکورد اخیر را نشان می‌دهد.',
+         'The review window shows only the latest 30 records.')));
+     }
+     actions.append(lpanel);
+   }
    const sourceImpact=centre.sourceReleaseImpact;
    if(sourceImpact?.schema==='jr.jrei.exam-source-release-impact.v1'){
      const unknown=T('نامعلوم؛ جداول منابع و مجوزها کامل نیستند',
