@@ -114,6 +114,80 @@
         :T('تا نصب مجاز Migration، وضعیت چرخه‌های روزانه نامعلوم است.',
           'Cycle status remains unknown until the approved additive migration.')));
     }
+    const hazard=data.humanHazardReviewQueue;
+    if(hazard?.schema==='jr.jrei.learning-owner-hazard-queue.v1'){
+      fact(T('پیشنهادهای نیازمند توقف انسانی بر اساس خطر ثبت‌شده',
+        'Recorded learning hazards awaiting explicit human decision'),
+        hazard.available&&Number.isSafeInteger(hazard.totalRecordedHazardProposals)?
+          fmt.format(hazard.totalRecordedHazardProposals):T('نامعلوم','Unknown'));
+      const panel=text('details','jr-jrei-learning-hazard-panel');
+      panel.append(text('summary','',T(
+        'تعلیق علمی پیشنهادهای پرخطر؛ بدون تغییر مدل یا کد',
+        'Independent owner veto of risky learning proposals — no model/code changes')));
+      panel.append(text('p','jr-jrei-learning-note',T(
+        'در هر پرونده فقط داده‌های آماری ثبت‌شده دیده می‌شود؛ صحت تجربی داده‌ها باید جداگانه بررسی شود. رد یک پیشنهاد، نتیجهٔ اصلی آزمایش را حذف یا مدل منتشرشده را به‌روز نمی‌کند.',
+        'These are recorded aggregate metrics, not independently authenticated benchmark results. Rejecting a proposal preserves all original metrics; it neither changes model weights nor releases research output.')));
+      if(!hazard.available){
+        panel.append(text('p','',T(
+          'جدول شواهد تصمیم‌های انسانی هنوز نصب یا تأیید نشده است.',
+          'Human intervention ledger unavailable; status UNKNOWN.')));
+      }else{
+        const queue=Array.isArray(hazard.items)?hazard.items.slice(0,20):[];
+        if(!queue.length)panel.append(text('p','',T(
+          'پروندهٔ پرخطر ثبت‌شده‌ای برای این بازه دیده نشد؛ این به معنای اعتبار تجربی مدل نیست.',
+          'No recorded risky proposal in the bounded view; empirical validity is not proven.')));
+        const uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
+        for(const entry of queue){
+          if(!uuid.test(entry.id||'')||
+             !['PENDING','REVIEWED','APPROVED'].includes(entry.reviewState))continue;
+          const box=text('div','jr-jrei-learning-fact');
+          box.append(text('strong','',
+            String(entry.changeType||'').slice(0,48)+
+            ' · '+String(entry.reviewState).slice(0,24)));
+          const choices=[
+            ['INSUFFICIENT_EVALUATION_SAMPLE',entry.insufficientSample,
+              T('نمونهٔ ناکافی','Insufficient evaluated cases')],
+            ['REPORTED_PRIVACY_INCIDENT',entry.reportedPrivacyIncident,
+              T('رخداد حریم خصوصی','Recorded privacy incident')],
+            ['UNSUPPORTED_SOURCE_REGRESSION',entry.unsupportedCitationsIncreased,
+              T('استناد نامعتبر بیشتر','Increased unsupported citations')],
+            ['FAIRNESS_GAP_REGRESSION',entry.fairnessGapIncreased,
+              T('بدتر شدن شکاف انصاف','Reported fairness regression')],
+            ['LATENCY_REGRESSION',entry.p95LatencyIncreased,
+              T('افزایش تأخیر','Recorded latency regression')],
+            ['NO_ACCURACY_IMPROVEMENT',entry.correctAnswersNotImproved,
+              T('دقت پاسخ بهبود نیافته','No measured accuracy improvement')]
+          ].filter(a=>a[1]===true);
+          if(!choices.length)continue;
+          const reason=text('select','');
+          for(const [value,_,description] of choices){
+            const opt=text('option','',description);opt.value=value;
+            reason.append(opt);
+          }
+          const reasonLabel=text('label','',T(
+            'دلیل مستند رد پیشنهاد','Documented reason for human rejection'));
+          reasonLabel.append(reason);
+          const stop=text('button','jr-jrei-learning-danger',T(
+            'رد پیشنهاد خطرناک با تأیید دومرحله‌ای',
+            'Reject risky proposal using owner MFA'));
+          stop.type='button';
+          stop.addEventListener('click',()=>{
+            if(!open()||busy)return;
+            if(!window.confirm(T(
+              'پیشنهاد ثبت‌شده رد و تصمیم در دفتر شواهد دائمی ثبت شود؟ داده‌های اصلی حذف نمی‌شوند و هیچ مدل یا وجهی تغییر نمی‌کند.',
+              'Reject this proposal and append a permanent human decision? Original evidence, model weights and money remain unchanged.')))return;
+            change({action:'reject_hazard_proposal',proposalId:entry.id,
+              expectedReviewState:entry.reviewState,reasonCode:reason.value,
+              confirmation:'REJECT_RISKY_LEARNING_PROPOSAL_WITH_ORIGINAL_EVIDENCE'});
+          });
+          box.append(reasonLabel,stop);panel.append(box);
+        }
+        if(hazard.truncated)panel.append(text('p','jr-jrei-learning-note',T(
+          'این فهرست حداکثر ۲۰ پرونده را نشان می‌دهد و کل خطرها جداگانه شمرده می‌شوند.',
+          'Only 20 cases are shown; the total comes from the full mother-DB relation.')));
+      }
+      controls.append(panel);
+    }
     if(!c){
       controls.append(text('p','',T('کنترل فعال‌سازی تا وجود جدول معتبر در دسترس نیست.',
         'Enablement is unavailable until the verified policy row exists.')));
