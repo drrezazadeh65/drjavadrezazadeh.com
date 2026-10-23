@@ -242,6 +242,8 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
         return jrKaOwnerTriagePaperKey($pdo,$actor,$body);
     if($action==='exam_revoke_entitlement')
         return jrExamOwnerRevokeEntitlement($pdo,$actor,$body);
+    if(in_array($action,['exam_record_buyer_followup'],true))
+        return jrExamOwnerBuyerServiceLog($pdo,$actor,$body);
     if($action==='exam_grant_verified_order')
         return jrExamOwnerGrantVerifiedOrder($pdo,$cfg,$actor,$body);
     if($action==='exam_close_expired_review')
