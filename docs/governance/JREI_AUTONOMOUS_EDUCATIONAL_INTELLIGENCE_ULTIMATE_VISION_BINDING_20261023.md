@@ -40,3 +40,8 @@
 This directive is authoritative for what is required at **final completion**, not evidence that any component is already operational. Its acceptance requirements must be joined to `JR_EDUCATIONAL_V4_SINGLE_FINAL_ACCEPTANCE_MATRIX_20261022.md` and the 23-deliverable JREI Ultimate Master ledger. All source changes remain forward-only.
 
 **Owner's acceptance phrase:** «من یک هوش مصنوعی واقعی می‌خواهم، واقعی.» — require demonstrated, actual model inference and educational workflow rather than a static chatbot or simulated AI.
+
+
+## 23 October source-development continuation
+
+See [real-model and lawful acquisition source ledger](JREI_REAL_AI_KNOWLEDGE_ACQUISITION_SOURCE_CONTINUATION_20261023.md). A real HTTPS cloud API client with private key and reserved daily budgets, explicit public-use consent, structural citation/privacy gating and actual-use aggregate telemetry is committed **but not run or released**. An independently owner-opted-in, authenticated/licensed Bertina HTTPS source acquisition runner now exists alongside the original JREI-KA metadata scheduler, including DNS pinning, robots, bounded source lease, quota reservations, nonpublic content-addressed archive, staged candidate same-domain PDF discovery, review quarantine and pending human approval. Neither code nor migrations prove a completed OCR/scientific review/autonomous educational ecosystem. All eleven sections and original 117 concerns remain binding, with tests and production activation postponed until owner-approved final QA.
