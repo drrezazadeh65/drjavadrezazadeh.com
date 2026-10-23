@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS jrei_exam_sources (
 CREATE TABLE IF NOT EXISTS jrei_exam_coverage_requirements (
   requirement_id CHAR(36) NOT NULL PRIMARY KEY,
   educational_level VARCHAR(40) NOT NULL,
-  grade SMALLINT UNSIGNED NULL,
+  grade SMALLINT UNSIGNED NOT NULL DEFAULT 0,
   country_code CHAR(2) NOT NULL DEFAULT 'IR',
   curriculum_id VARCHAR(100) NOT NULL,
   curriculum_version VARCHAR(100) NOT NULL,
@@ -73,8 +73,9 @@ CREATE TABLE IF NOT EXISTS jrei_exam_coverage_requirements (
   requirement_state VARCHAR(40) NOT NULL DEFAULT 'REQUIRES_SOURCE_REVIEW',
   approved_by_account_id CHAR(36) NULL,
   created_at BIGINT UNSIGNED NOT NULL,
-  UNIQUE KEY uq_jrei_exam_expected(curriculum_id,curriculum_version,
-    exam_category,examination_year,subject_id,expected_kind),
+  UNIQUE KEY uq_jrei_exam_expected(country_code,educational_level,grade,
+    curriculum_id,curriculum_version,exam_category,
+    examination_year,subject_id,expected_kind),
   KEY idx_jrei_exam_missing(requirement_state,educational_level,examination_year),
   CONSTRAINT fk_jrei_coverage_source FOREIGN KEY (source_id)
     REFERENCES jrei_exam_sources(source_id) ON DELETE SET NULL,
@@ -179,6 +180,8 @@ CREATE TABLE IF NOT EXISTS jrei_exam_preparation_programmes (
     REFERENCES jrei_exam_blueprints(blueprint_id) ON DELETE RESTRICT,
   CONSTRAINT fk_jrei_prep_date_source FOREIGN KEY(official_exam_date_source_id)
     REFERENCES jrei_exam_sources(source_id) ON DELETE SET NULL,
+  CONSTRAINT fk_jrei_prep_scoring FOREIGN KEY(scoring_version_id)
+    REFERENCES eco_scoring_models(id) ON DELETE RESTRICT,
   CONSTRAINT fk_jrei_prep_owner FOREIGN KEY(created_by_account_id)
     REFERENCES customer_accounts(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
