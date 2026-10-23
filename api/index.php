@@ -76,6 +76,10 @@ function cfg(): array {
         // Separate, default-OFF switch for reviewed exam catalogue metadata.
         // It NEVER opens checkout or public response/answer delivery by itself.
         'jrei_exam_commercial_enabled' => getenv('JR_JREI_EXAM_COMMERCIAL_ENABLED') === 'true',
+        // Independent OFF switches. An owner must approve real immutable
+        // question delivery and final security/payment acceptance as well.
+        'jrei_exam_runtime_enabled' => getenv('JR_JREI_EXAM_RUNTIME_ENABLED') === 'true',
+        'jrei_exam_item_delivery_accepted' => getenv('JR_JREI_EXAM_ITEM_DELIVERY_ACCEPTED') === 'true',
         // Separate OFF-by-default licence-gated JREI-KA scheduler consent.
         // Cron registers tasks only; no network fetching or model execution.
         'jrei_ka_schedule_enabled' => getenv('JR_JREI_KA_SCHEDULE_ENABLED') === 'true',
@@ -524,7 +528,58 @@ require_once __DIR__.'/service-buyer-receipt.php';
 require_once __DIR__.'/consultation-delivery.php';
 require_once __DIR__.'/jrei-exam-commercial-catalogue.php';
 require_once __DIR__.'/jrei-exam-candidate-snapshot.php';
+require_once __DIR__.'/jrei-exam-attempt-runtime.php';
 $path=route();$verb=method();
+if($path==='/exams/attempt' && in_array($verb,['GET','POST'],true)){
+    header('Cache-Control: private, no-store, max-age=0');
+    header('X-Robots-Tag: noindex, nofollow, noarchive');
+    $conf=cfg();
+    if(($conf['jrei_exam_commercial_enabled']??false)!==true||
+       ($conf['jrei_exam_runtime_enabled']??false)!==true||
+       ($conf['jrei_exam_item_delivery_accepted']??false)!==true)
+        fail('exam_runtime_not_released',503);
+    $pdo=db();
+    if(!$pdo||!jrExamAttemptRuntimeReady($pdo))
+        fail('exam_runtime_schema_unavailable',503);
+    $account=sessionAccount($pdo);
+    if(!is_array($account)||
+       ($account['status']??null)!=='active'||
+       empty($account['email_verified_at'])||
+       !validUuid((string)($account['id']??'')))
+        fail('unauthorized',401);
+    $accountId=(string)$account['id'];
+    if($verb==='GET'){
+        if(!rateAllowed($pdo,'exam_progress_read',$accountId,45,300))
+            fail('rate_limited',429);
+        try{respond(jrExamAttemptProgress($pdo,$accountId,
+                (string)($_GET['attemptId']??'')));}
+        catch(InvalidArgumentException $e){fail('invalid_exam_reference',422);}
+        catch(DomainException $e){fail('exam_progress_not_accessible',403);}
+        catch(Throwable $e){fail('exam_progress_unavailable',503);}
+    }
+    // Mutating methods require an explicit same-origin browser XHR; do
+    // not reuse older APIs that permit Origin to be absent. Browser-sent
+    // payment callbacks cannot enter this route.
+    if(($_SERVER['HTTP_ORIGIN']??null)!==SITE_ORIGIN||
+       !in_array(($_SERVER['HTTP_SEC_FETCH_SITE']??'same-origin'),
+            ['same-origin','none'],true)||
+       ($_SERVER['HTTP_X_JR_EXAM_ACTION']??null)!=='v1')
+        fail('exam_mutation_origin_forbidden',403);
+    $body=jsonBody();
+    $action=$body['action']??null;
+    if(!in_array($action,['start','save','submit'],true))
+        fail('invalid_exam_action',422);
+    if(!rateAllowed($pdo,'exam_attempt_'.$action,$accountId,
+            $action==='save'?120:15,300))
+        fail('rate_limited',429);
+    try{
+        if($action==='start')respond(jrExamAttemptStart($pdo,$accountId,$body,time()));
+        if($action==='save')respond(jrExamAttemptSave($pdo,$accountId,$body,time()));
+        respond(jrExamAttemptSubmit($pdo,$accountId,$body,time()));
+    }catch(InvalidArgumentException $e){fail('invalid_exam_mutation',422);}
+    catch(DomainException $e){fail($e->getMessage(),409);}
+    catch(Throwable $e){fail('exam_attempt_transaction_unavailable',503);}
+}
 if($path==='/exams/my' && $verb==='GET'){
     header('Cache-Control: private, no-store, max-age=0');
     header('X-Robots-Tag: noindex, nofollow, noarchive');
