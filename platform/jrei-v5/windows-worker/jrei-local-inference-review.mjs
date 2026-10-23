@@ -9,15 +9,16 @@
  */
 import {createLocalLlamaAdapter} from './jrei-loopback-model-adapter.mjs';
 import {reviewModelDraft} from '../jrei-claim-publication-gate.mjs';
+import {hasDirectIdentifier} from '../jrei-public-identifier-guard.mjs';
 
 const ID=/^[A-Za-z0-9._:-]{1,100}$/;
 const HASH=/^[a-f0-9]{64}$/;
 const safe=x=>typeof x==='string'&&x.length>0&&x.length<=8000&&
   !/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(x);
-const PII=/[\w.+-]+@[\w.-]+\.[a-z]{2,}|(?<!\d)(?:\+98|0098|0)9\d{9}(?!\d)|(?<!\d)\d{16}(?!\d)/i;
+
 
 function sourcePrompt(question,evidence,locale){
-  if(!safe(question)||question.length>1200||PII.test(question)||
+  if(!safe(question)||question.length>1200||hasDirectIdentifier(question)||
      !Array.isArray(evidence)||evidence.length<1||
      evidence.length>12||!['fa','en'].includes(locale))
     throw Error('PUBLIC_INFERENCE_INPUT_NOT_APPROVED');
@@ -25,7 +26,7 @@ function sourcePrompt(question,evidence,locale){
   for(const source of evidence){
     if(!source||!ID.test(source.id??'')||
        !safe(source.excerpt)||source.excerpt.length>3000||
-       PII.test(source.excerpt))
+       hasDirectIdentifier(source.excerpt))
       throw Error('PUBLIC_INFERENCE_EVIDENCE_INVALID');
     combined+='\n<source id="'+source.id+'">\n'+
       source.excerpt.replaceAll('<','&lt;').replaceAll('>','&gt;')+
