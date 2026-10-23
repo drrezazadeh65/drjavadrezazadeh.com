@@ -1,0 +1,20 @@
+/* JREI candidate experience; only client-local rendered choices, no answer-key UI. */
+.jr-candidate-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:16px;margin-top:20px}
+.jr-candidate-paper{margin-top:20px}
+.jr-candidate-paper h2{font-size:clamp(1.18rem,2.4vw,1.6rem);line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.jr-candidate-paper fieldset{border:1px solid var(--jr-border);border-radius:16px;margin:18px 0;padding:12px}
+.jr-candidate-paper legend{padding-inline:8px;color:var(--jr-gold)}
+.jr-candidate-choice{display:flex;align-items:flex-start;gap:14px;min-height:56px;
+  margin:8px 0;padding:13px 16px;border:1px solid var(--jr-border);border-radius:12px;
+  background:var(--jr-glass);line-height:1.7;cursor:pointer;overflow-wrap:anywhere}
+.jr-candidate-choice:has(input:checked){border-color:var(--jr-gold);background:#302d25}
+.jr-candidate-choice input{flex:none;inline-size:21px;block-size:21px;margin:4px 0 0;accent-color:var(--jr-gold)}
+.jr-candidate-choice:focus-within{outline:3px solid var(--jr-focus);outline-offset:2px}
+.jr-candidate-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px}
+.jr-candidate-actions button{cursor:pointer}.jr-candidate-actions button:disabled{opacity:.52;cursor:not-allowed}
+.jr-candidate-clock{padding:12px 16px;border:1px solid var(--jr-border);border-radius:12px;
+  color:var(--jr-gold);font-variant-numeric:tabular-nums;min-height:52px}
+.jr-candidate-note{color:var(--jr-muted);font-size:.94rem}
+@media(max-width:580px){.jr-candidate-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .jr-candidate-actions button{width:100%;padding:12px 8px}.jr-candidate-actions button:last-child{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
