@@ -14,14 +14,15 @@ CREATE TABLE IF NOT EXISTS jrei_ai_governed_benchmark_cases (
  forbidden_claims_json TEXT NULL,
  reference_notes TEXT NULL,
  case_state VARCHAR(34) NOT NULL DEFAULT 'DRAFT',
- author_account_id CHAR(36) NOT NULL,
+ author_account_id CHAR(36) NULL,
+ generation_kind VARCHAR(34) NOT NULL DEFAULT 'OWNER_AUTHORED',
  independent_reviewer_account_id CHAR(36) NULL,
  reviewed_at BIGINT UNSIGNED NULL,
  created_at BIGINT UNSIGNED NOT NULL,
  updated_at BIGINT UNSIGNED NOT NULL,
  KEY idx_jrei_bench_case_ready(case_state,domain_code,locale),
  CONSTRAINT fk_jrei_bench_case_author FOREIGN KEY(author_account_id)
-   REFERENCES customer_accounts(id) ON DELETE RESTRICT,
+   REFERENCES customer_accounts(id) ON DELETE SET NULL,
  CONSTRAINT fk_jrei_bench_case_reviewer FOREIGN KEY(independent_reviewer_account_id)
    REFERENCES customer_accounts(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -47,6 +48,11 @@ CREATE TABLE IF NOT EXISTS jrei_ai_governed_benchmark_runs (
  structural_citations_passed TINYINT(1) NULL,
  independently_graded TINYINT(1) NOT NULL DEFAULT 0,
  expert_quality_score TINYINT UNSIGNED NULL,
+ factual_alignment_grade TINYINT UNSIGNED NULL,
+ citation_fidelity_grade TINYINT UNSIGNED NULL,
+ pedagogical_utility_grade TINYINT UNSIGNED NULL,
+ safety_grade TINYINT UNSIGNED NULL,
+ expert_review_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
  expert_reviewer_account_id CHAR(36) NULL,
  expert_reviewed_at BIGINT UNSIGNED NULL,
  KEY idx_jrei_benchmark_run_review(run_state,completed_at),
