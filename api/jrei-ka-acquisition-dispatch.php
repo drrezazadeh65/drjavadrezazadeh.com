@@ -3,6 +3,7 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ka-scheduler.php';
 require_once __DIR__.'/jrei-ka-private-https.php';
+require_once __DIR__.'/jrei-ka-safe-discovery.php';
 
 /**
  * Optional PRIVATE scheduled JREI-KA acquisition worker.
@@ -22,7 +23,8 @@ function jrKaAcquisitionReady(PDO $pdo,array $cfg): bool {
     try{
         foreach([
           'SELECT observation_id,job_id,private_object_key,state FROM jrei_ka_private_observations LIMIT 0',
-          'SELECT reservation_day,source_id,reserved_requests,reserved_bytes FROM jrei_ka_daily_transfer_reservations LIMIT 0'
+          'SELECT reservation_day,source_id,reserved_requests,reserved_bytes FROM jrei_ka_daily_transfer_reservations LIMIT 0',
+          'SELECT candidate_id,seed_source_id,state FROM jrei_ka_discovery_candidates LIMIT 0'
         ] as $sql)$pdo->query($sql);
         return jrKaPrivateArchiveRoot($cfg)!==null;
     }catch(Throwable $e){return false;}
@@ -250,6 +252,10 @@ function jrKaPrivateAcquireOne(PDO $pdo,array $cfg): array {
                 throw new DomainException('ka_atomic_private_archive_failed');
             $fileCreated=true;
         }
+        // Keep retrieved HTML only in bounded process memory until the
+        // reviewed observation and discovery proposals commit together.
+        $publicHtml=$mime==='text/html'&&$size<=2097152?
+           $obtained['bytes']:null;
         $obtained['bytes']='';
         $pdo->beginTransaction();
         try{
@@ -287,6 +293,11 @@ function jrKaPrivateAcquireOne(PDO $pdo,array $cfg): array {
             $q->execute([$observation,$job['jobId'],$job['sourceId'],
               $job['policyRevision'],$at,$sha,$key,$mime,$size,
               $job['rightsState'],hash('sha256',$job['url'])]);
+            $newDiscovered=0;
+            if($publicHtml!==null)
+                $newDiscovered=jrKaStageHtmlDiscovery($pdo,$job['sourceId'],
+                    $observation,$job['url'],$publicHtml,$at);
+            $publicHtml=null;
             $q=$pdo->prepare("UPDATE jrei_ka_jobs SET job_state='ACQUIRED_REVIEW',
                 observed_digest=?,bytes_observed=?,lease_id=NULL,
                 lease_expires_at=NULL,updated_at=?,revision=revision+1
@@ -301,6 +312,7 @@ function jrKaPrivateAcquireOne(PDO $pdo,array $cfg): array {
             $pdo->commit();
             return [...$result,'status'=>'SOURCE_ACQUIRED_PENDING_REVIEW',
                 'documentsAwaitingScienceReview'=>1,
+                'newDocumentLinksAwaitingRightsReview'=>$newDiscovered,
                 'downloadedBytes'=>$size,
                 'contentSha256'=>$sha,'sourceId'=>$job['sourceId']];
         }catch(Throwable $e){
