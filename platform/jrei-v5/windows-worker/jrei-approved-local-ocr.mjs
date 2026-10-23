@@ -14,6 +14,7 @@
  * and observation digest have been independently verified.
  */
 import {createHash,randomUUID} from 'node:crypto';
+import {createReadStream} from 'node:fs';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {
@@ -40,6 +41,18 @@ async function existing(path,max,kind){
   return absolute;
 }
 function digest(bytes){return createHash('sha256').update(bytes).digest('hex');}
+async function fileDigest(file){
+  const sha=createHash('sha256');
+  const stream=createReadStream(file,{highWaterMark:262144});
+  for await(const part of stream)sha.update(part);
+  return sha.digest('hex');
+}
+async function ownerPinnedBinary(file,shaExpected){
+  if(!HASH.test(shaExpected??''))throw Error('OCR_BINARY_DIGEST_NOT_APPROVED');
+  if(await fileDigest(file)!==shaExpected)
+    throw Error('OCR_BINARY_DIGEST_CONFLICT');
+  return file;
+}
 async function approvedConfig(){
   const rootString=process.env.JR_KA_OCR_PRIVATE_WORK_ROOT;
   if(!safe(rootString)||!isAbsolute(rootString))
@@ -52,8 +65,12 @@ async function approvedConfig(){
   if(!st.isDirectory()||st.isSymbolicLink()||
      root===resolve(tmpdir())||root.length<8)
     throw Error('PRIVATE_OCR_ROOT_UNSAFE');
-  const tess=await existing(process.env.JR_KA_OCR_TESSERACT_EXE,180*1024*1024,'exe');
-  const poppler=await existing(process.env.JR_KA_OCR_PDFTOPPM_EXE,180*1024*1024,'exe');
+  const tess=await ownerPinnedBinary(
+    await existing(process.env.JR_KA_OCR_TESSERACT_EXE,180*1024*1024,'exe'),
+    process.env.JR_KA_OCR_TESSERACT_SHA256);
+  const poppler=await ownerPinnedBinary(
+    await existing(process.env.JR_KA_OCR_PDFTOPPM_EXE,180*1024*1024,'exe'),
+    process.env.JR_KA_OCR_PDFTOPPM_SHA256);
   return {root,tess,poppler};
 }
 async function command(file,args,seconds,maxBuffer=1048576){
@@ -146,6 +163,8 @@ async function localOcr(manifestPath){
       originalPdfSha256:spec.documentSha256,
       originalPdfBytes:pdf.length,
       method:'POPPLER_RENDER_AND_TESSERACT_FAS_ENG',
+      executableFingerprintsOwnerPinned:true,
+      executableHashesReturned:false,
       renderedPageCount:imageFiles.length,
       wholeDocumentPageCountVerified:false,
       mayHaveOmittedPages:true,
