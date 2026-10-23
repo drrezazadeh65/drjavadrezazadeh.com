@@ -79,15 +79,16 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
        'updatedAt'=>(int)$c['updated_at']
     ];
     $base['sourceCoverage']=jrExamResearchSummaryRows($pdo,
-      'SELECT educational_level,exam_category,examination_year,subject_id,
-          COUNT(*) AS source_count,
+      'SELECT country_code,curriculum_version,educational_level,
+          exam_category,examination_year,subject_id,COUNT(*) AS source_count,
           SUM(CASE WHEN review_state=\'AUTHORITATIVE_REVIEWED\'
              AND rights_state IN (\'PERMITTED_PRIVATE_ANALYSIS\',
              \'PERMITTED_PUBLIC_DISPLAY\',\'PERMITTED_REPRODUCTION\')
              AND is_revoked=0 AND is_superseded=0
              THEN 1 ELSE 0 END) AS rights_reviewed_count
-        FROM jrei_exam_sources GROUP BY educational_level,exam_category,
-          examination_year,subject_id ORDER BY examination_year DESC,
+        FROM jrei_exam_sources GROUP BY country_code,curriculum_version,
+          educational_level,exam_category,examination_year,subject_id
+          ORDER BY examination_year DESC,
           educational_level ASC LIMIT 70');
     $base['sourceReview']=jrExamResearchSummaryRows($pdo,
       'SELECT review_state,rights_state,COUNT(*) AS count
@@ -104,10 +105,12 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
         GROUP BY result_state,rights_review_state,robots_review_state
         ORDER BY count DESC LIMIT 40');
     $base['coverageObligations']=jrExamResearchSummaryRows($pdo,
-      'SELECT educational_level,examination_year,exam_category,subject_id,
+      'SELECT country_code,curriculum_id,curriculum_version,
+        educational_level,grade,examination_year,exam_category,subject_id,
         expected_kind,requirement_state,COUNT(*) AS count
         FROM jrei_exam_coverage_requirements
-        GROUP BY educational_level,examination_year,exam_category,
+        GROUP BY country_code,curriculum_id,curriculum_version,
+          educational_level,grade,examination_year,exam_category,
           subject_id,expected_kind,requirement_state
         ORDER BY examination_year DESC LIMIT 70');
     $base['itemReviews']=jrExamResearchSummaryRows($pdo,
