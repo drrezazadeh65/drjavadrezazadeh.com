@@ -18,7 +18,9 @@ function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
         throw new InvalidArgumentException('invalid_scoring_reference');
     $q=$pdo->prepare("SELECT p.correct_millipoints,p.incorrect_penalty_millipoints,
         p.unanswered_millipoints,p.policy_sha256,
-        p.policy_state,p.reviewer_account_id,m.instrument_version_id
+        p.policy_state,p.reviewer_account_id,m.instrument_version_id,
+        m.approved_by_account_id AS original_model_reviewer,
+        m.algorithm_sha256
       FROM jrei_exam_scoring_policies p
       JOIN eco_scoring_models m ON m.id=p.scoring_model_id
       WHERE p.scoring_model_id=? LIMIT 1");
@@ -26,6 +28,8 @@ function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
     if(!is_array($rule)||$rule['instrument_version_id']!==$instrumentId||
        $rule['policy_state']!=='APPROVED'||
        $rule['reviewer_account_id']===null||
+       $rule['original_model_reviewer']===null||
+       !preg_match('/^[a-f0-9]{64}$/D',(string)$rule['algorithm_sha256'])||
        !preg_match('/^[a-f0-9]{64}$/D',(string)$rule['policy_sha256']))
         throw new DomainException('scoring_policy_review_required');
     $correct=(int)$rule['correct_millipoints'];
