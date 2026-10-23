@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ai-cloud-provider.php';
+require_once __DIR__.'/jrei-ai-provider-telemetry.php';
 
 /**
  * Real-source model readiness for original MFA owner command centre.
@@ -35,7 +36,10 @@ function jrAiOwnerReadiness(PDO $pdo,array $cfg): array {
         'outputTokenReservationCap'=>(int)($cfg['jrei_ai_daily_output_limit']??0)
       ],
       'reservedToday'=>null,
-      'readyForOwnerAcceptance'=>$configured&&$schema,
+      'observedProviderOutcomes'=>jrAiOwnerObservedTelemetry($pdo,
+        (string)($cfg['jrei_ai_openai_model']??'')),
+      'realInferenceEvidenceAwaitingFinalQA'=>true,
+      'readyForOwnerAcceptance'=>$configured&&$schema&&jrAiTelemetrySchemaReady($pdo),
       'publicApiRouteGateOpen'=>$configured&&$schema&&
           ($cfg['jrei_public_ai_release_accepted']??false)===true,
       'productionModelAccepted'=>false
