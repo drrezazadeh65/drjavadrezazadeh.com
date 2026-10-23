@@ -227,6 +227,126 @@
  }
 
 
+
+ function renderExamCommercialControls(centre,panel){
+   const block=elt('details','jr-exam-subsection');
+   block.append(elt('summary','',T(
+     'محصولات پیش‌نویس و تعلیق اضطراری','Draft products and emergency suspension')));
+   block.append(elt('p','',T(
+     'ثبت پیش‌نویس، هیچ مجوز خرید یا انتشار صادر نمی‌کند.',
+     'Draft creation never enables checkout or publication.')));
+   const form=document.createElement('form');
+   const input=(parent,label,max=180,type='text')=>{
+     const holder=elt('label','',label);
+     const ctrl=document.createElement('input');
+     ctrl.type=type;ctrl.required=true;ctrl.maxLength=max;
+     ctrl.autocomplete='off';holder.append(ctrl);parent.append(holder);
+     return ctrl;
+   };
+   const code=input(form,T('کد محصول (حروف کوچک لاتین)','Lowercase product code'),70);
+   code.pattern='[a-z0-9][a-z0-9._-]{2,69}';
+   const select=(parent,label,choices)=>{
+     const holder=elt('label','',label),control=document.createElement('select');
+     for(const [value,title] of choices){
+       const option=elt('option','',title);option.value=value;control.append(option);
+     }
+     holder.append(control);parent.append(holder);return control;
+   };
+   const division=select(form,T('مقطع','Division'),[
+     ['KONKUR',T('کنکور','Undergraduate')],
+     ['MASTERS',T('کارشناسی ارشد','Master’s')],
+     ['DOCTORAL',T('دکتری','Doctoral')],['SCHOOL',T('مدرسه','School')]]);
+   const titleFa=input(form,T('عنوان فارسی','Persian title'));
+   const titleEn=input(form,T('عنوان انگلیسی','English title'));
+   const blueprint=input(form,T('شناسهٔ طرح آزمون','Blueprint UUID'),36);
+   const instrument=input(form,T('شناسهٔ نسخهٔ سنجش','Instrument version UUID'),36);
+   const model=input(form,T('شناسهٔ مدل نمره‌دهی','Scoring model UUID'),36);
+   const uuid=/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+   const create=elt('button','',T('ثبت پیش‌نویس','Create draft product'));
+   create.type='submit';form.append(create);
+   form.addEventListener('submit',event=>{
+     event.preventDefault();if(!active()||busy||!form.reportValidity())return;
+     if(![blueprint.value,instrument.value,model.value].every(x=>uuid.test(x)))return;
+     if(!window.confirm(T('محصول فقط پیش‌نویس بماند؟',
+       'Keep this product DRAFT and not purchasable?')))return;
+     mutate({action:'exam_product_draft',code:code.value.trim(),
+       division:division.value,titleFa:titleFa.value.trim(),
+       titleEn:titleEn.value.trim(),blueprintId:blueprint.value.trim(),
+       instrumentVersionId:instrument.value.trim(),
+       scoringModelId:model.value.trim(),
+       confirmation:'CREATE_UNPUBLISHED_EXAM_DRAFT'});
+   });
+   const createBox=elt('details','jr-exam-subsection');
+   createBox.append(elt('summary','',T('پیش‌نویس جدید','New draft')));
+   createBox.append(form);block.append(createBox);
+   const products=Array.isArray(centre.productRegistry)?centre.productRegistry:[];
+   const drafts=products.filter(p=>p.state==='DRAFT');
+   if(drafts.length){
+     const offerBox=elt('details','jr-exam-subsection');
+     offerBox.append(elt('summary','',T('ایجاد نوبت پیش‌نویس','New draft offering')));
+     const of=document.createElement('form');
+     const product=select(of,T('محصول پیش‌نویس','Draft parent product'),
+       drafts.map(p=>[p.productId,String(p.code).slice(0,70)]));
+     const stage=select(of,T('مرحله','Stage'),[
+       ['DIAGNOSTIC',T('تشخیصی','Diagnostic')],['PROGRESS',T('پیشرفت','Progress')],
+       ['FINAL_MOCK',T('نهایی','Final mock')]]);
+     const start=input(of,T('شروع به وقت محلی دستگاه','Start in local device time'),24,'datetime-local');
+     const end=input(of,T('پایان به وقت محلی دستگاه','End in local device time'),24,'datetime-local');
+     const registration=input(of,T('پایان ثبت‌نام به وقت محلی','Registration close in local time'),24,'datetime-local');
+     const duration=input(of,T('مدت به ثانیه','Duration in seconds'),8,'number');
+     const max=input(of,T('تعداد تلاش','Attempt limit'),2,'number');
+     duration.min='60';duration.max='28800';max.min='1';max.max='10';max.value='1';
+     const button=elt('button','',T('ثبت نوبت پیش‌نویس','Create draft offering'));
+     button.type='submit';of.append(button);
+     of.addEventListener('submit',event=>{
+       event.preventDefault();if(!active()||busy||!of.reportValidity())return;
+       const convert=x=>Math.floor(Date.parse(x.value)/1000);
+       const opensAt=convert(start),closesAt=convert(end),registrationClosesAt=convert(registration);
+       if(![opensAt,closesAt,registrationClosesAt].every(Number.isSafeInteger))return;
+       if(!window.confirm(T('نوبت فقط پیش‌نویس و بدون فروش باشد؟',
+         'Create an unpublished, unpurchasable offering?')))return;
+       mutate({action:'exam_offering_draft',productId:product.value,
+         stageCode:stage.value,opensAt,closesAt,registrationClosesAt,
+         durationSeconds:Number(duration.value),maxAttempts:Number(max.value),
+         confirmation:'CREATE_UNPUBLISHED_EXAM_OFFERING'});
+     });
+     offerBox.append(of);block.append(offerBox);
+   }
+   for(const p of products){
+     const article=elt('article','jr-exam-coverage-row');
+     article.append(elt('strong','',String(p.code)+' · '+String(p.state)));
+     article.append(elt('span','',String(p.division)+' · '+String(p.titleFa||'')));
+     if(p.state!=='SUSPENDED'){
+       const stop=elt('button','jr-exam-emergency',T('تعلیق محصول','Suspend product'));
+       stop.type='button';stop.addEventListener('click',()=>{
+         if(!active()||busy||!window.confirm(T(
+           'تعلیق فوری انجام شود؟ حقوق خریداران و بازپرداخت باید جدا بررسی شود.',
+           'Suspend now? Buyer obligations and refunds require separate review.')))return;
+         mutate({action:'exam_suspend_product',id:p.productId,revision:p.revision,
+           confirmation:'SUSPEND_EXAM_WITHOUT_REFUND'});
+       });article.append(stop);
+     }
+     block.append(article);
+   }
+   const offerings=Array.isArray(centre.offeringRegistry)?centre.offeringRegistry:[];
+   for(const o of offerings){
+     const row=elt('article','jr-exam-coverage-row');
+     row.append(elt('span','',String(o.stageCode)+' · '+String(o.state)+' · '+String(o.offeringId)));
+     if(o.state!=='SUSPENDED'){
+       const stop=elt('button','jr-exam-emergency',T('تعلیق نوبت','Suspend offering'));
+       stop.type='button';stop.addEventListener('click',()=>{
+         if(!active()||busy||!window.confirm(T(
+           'نوبت متوقف شود؟ تعهدات مالی جداگانه بررسی شوند.',
+           'Suspend offering? Resolve financial obligations separately.')))return;
+         mutate({action:'exam_suspend_offering',id:o.offeringId,revision:o.revision,
+           confirmation:'SUSPEND_EXAM_WITHOUT_REFUND'});
+       });row.append(stop);
+     }
+     block.append(row);
+   }
+   panel.append(block);
+ }
+
  function renderCommercialCentre(snapshot){
    const centre=snapshot.commercialCentre;
    if(!centre||centre.schema!=='jr.jrei.exam-commercial-owner.v1'){
@@ -280,6 +400,7 @@
      'این شمارش فقط بر اساس فرادادهٔ ثبت‌شده است؛ صحت پاسخ، مجوز نشر و روایی آزمون هنوز نیازمند تأیید نهایی‌اند.',
      'Counts reflect registry metadata only, not confirmed answer correctness, publication rights or scientific validity.')));
    panel.append(coverage);
+   renderExamCommercialControls(centre,panel);
    for(const [key,label] of [
      ['productStates',T('محصولات','Products')],
      ['offeringStates',T('نوبت‌های برگزاری','Scheduled offerings')],
