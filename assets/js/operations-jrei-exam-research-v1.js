@@ -418,6 +418,48 @@
      'این شمارش فقط بر اساس فرادادهٔ ثبت‌شده است؛ صحت پاسخ، مجوز نشر و روایی آزمون هنوز نیازمند تأیید نهایی‌اند.',
      'Counts reflect registry metadata only, not confirmed answer correctness, publication rights or scientific validity.')));
    panel.append(coverage);
+   const release=centre.productReleaseGates;
+   if(release&&release.schema==='jr.jrei.product-release-gates.v1'){
+     const details=elt('details','jr-exam-subsection');
+     details.append(elt('summary','',T(
+       'موانع اختصاصی عرضهٔ هر آزمون',
+       'Per-product examination release blockers')));
+     if(!release.available)details.append(elt('p','',T(
+       'اطلاعات علمی محصول در دیتابیس قابل بررسی نیست.',
+       'Source-governed product readiness is not observable.')));
+     const translation={
+       PRODUCT_NOT_PUBLISHED:T('محصول هنوز منتشر نشده','Product not published'),
+       COMMERCIAL_REUSE_RIGHTS_NOT_APPROVED:T('مجوز تکثیر تجاری تأیید نشده','Commercial reproduction rights not approved'),
+       ANSWER_KEY_REVIEW_NOT_APPROVED:T('بازبینی کلید پاسخ ناقص','Answer-key review incomplete'),
+       IMMUTABLE_CONTENT_DELIVERY_NOT_APPROVED:T('تحویل محتوای نسخه‌دار تأیید نشده','Immutable content delivery unaccepted'),
+       PRODUCT_REVIEWER_MISSING:T('تأییدکنندهٔ محصول ثبت نشده','Product reviewer missing'),
+       INDEPENDENT_BLUEPRINT_REVIEW_MISSING:T('بررسی مستقل طرح آزمون ناقص','Blueprint lacks independent approval'),
+       ORIGINAL_INSTRUMENT_VERSION_NOT_APPROVED:T('نسخهٔ اصلی آزمون تأیید نشده','Original instrument version unapproved'),
+       QUESTION_COUNT_NOT_ACCEPTED:T('تعداد سؤالات کافی یا مجاز نیست','Question count outside controlled bounds'),
+       INCOMPLETE_INDEPENDENT_ITEM_AND_KEY_REVIEW:T('داوری مستقل سؤال و پاسخ‌نامه ناقص','Item and key scientific review incomplete'),
+       ORIGINAL_EXAM_DELIVERY_NOT_RELEASED:T('موتور تحویل آزمون هنوز فعال نشده','Original exam delivery not released'),
+       LIVE_PURCHASE_AND_END_TO_END_ACCEPTANCE_REQUIRED:T('پذیرش عملی پرداخت و آزمون باقی است','Payment and end-to-end acceptance outstanding')
+     };
+     const records=Array.isArray(release.items)?release.items:[];
+     for(const item of records.slice(0,30)){
+       const box=elt('article','jr-exam-coverage-row');
+       box.append(elt('strong','',String(item.code||'—').slice(0,70)));
+       box.append(elt('span','',
+         T('تعداد سؤالات / بررسی‌شده: ','Items / reviewed metadata: ')+
+         safeCount(item.recordedItemCount)+' / '+safeCount(item.reviewedItemMetadataCount)));
+       const list=elt('ul','jr-exam-rows');
+       for(const code of Array.isArray(item.blockers)?item.blockers:[]){
+         list.append(elt('li','',translation[code]||String(code).slice(0,90)));
+       }
+       box.append(list);details.append(box);
+     }
+     if(release.truncated)details.append(elt('p','',
+       T('فقط ۳۰ محصول اخیر فهرست شده‌اند.','Only the latest 30 products are shown.')));
+     details.append(elt('p','',T(
+       'حتی صفرشدن موانع فراداده، اثبات کیفیت آزمون یا مجوز دریافت وجه نیست.',
+       'No metadata-only check establishes scientific quality or payment authorization.')));
+     panel.append(details);
+   }
    renderExamCommercialControls(centre,panel);
    for(const [key,label] of [
      ['productStates',T('محصولات','Products')],
