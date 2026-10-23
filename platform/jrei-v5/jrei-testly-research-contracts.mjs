@@ -49,6 +49,10 @@ const allow=(rest={})=>Object.freeze({
  ok:true,canPublish:false,validated:false,...rest
 });
 const KNOWN_FRAMEWORKS=new Set(['TESTLY','HUMANABILITY']);
+const AUTHOR_PROPOSAL_DIGESTS=Object.freeze({
+ 'testly-author-book-proposal':'7be9d7e369cc314b6c054b5f4cae37c8391ec6c10256ff867ee2fc582aad74a3',
+ 'humanability-author-research-proposal':'6e01e8f2f3e05a387dcb3f3fd4ace8fbacc5560834638de182d1ea5645916ac5'
+});
 const DIMENSIONS={
  TESTLY:new Set([
   'RELIABILITY','VALIDITY','FAIRABILITY_FAIRNESS','HUMANABILITY',
@@ -89,7 +93,8 @@ export function registerConstructProposal({
  const permitted=framework==='TESTLY'
    ?sourceId==='testly-author-book-proposal'
    :sourceId==='humanability-author-research-proposal';
- if(!permitted)return deny('WRONG_AUTHOR_PROPOSAL');
+ if(!permitted||AUTHOR_PROPOSAL_DIGESTS[sourceId]!==sourceSha256)
+   return deny('WRONG_AUTHOR_PROPOSAL_OR_DIGEST');
  if(evidenceLevel!=='THEORETICAL_PROPOSITION'&&
     evidenceLevel!=='PROPOSED_OPERATIONAL_INDICATOR')
    return deny('HIGHER_VALIDATION_REQUIRES_EXTERNAL_EVIDENCE');
@@ -127,7 +132,8 @@ export function validateResearchProtocol({
  if(studyIncludesMinors&&!guardianProtocolReviewed)
    return deny('MINOR_GUARDIAN_PROTOCOL_REQUIRED');
  return allow({canRecruit:true,
-   protocolId,protocolVersion,approvedMethods:Object.freeze([...new Set(plannedMethods)]),
+   protocolId,protocolVersion,consentNoticeVersion,
+   approvedMethods:Object.freeze([...new Set(plannedMethods)]),
    studyIncludesMinors,canAnalyze:false,protocolStatus:'APPROVED_FOR_RECRUITMENT'});
 }
 /**
