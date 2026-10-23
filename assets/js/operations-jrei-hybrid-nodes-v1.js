@@ -190,7 +190,7 @@
          'Have you independently verified the version hash and size? This does not prove a fetch.'))return;
        mutate({action:'propose_source_version',sourceId:source.sourceId,
          documentSha256:digest.value.trim(),byteCount:Number(byteCount.value),
-         retrievedAt:Math.floor(Date.now()/1000),publicationAt:null,
+         retrievedAt:Math.floor(reportedAt/1000),publicationAt:null,
          declaredMime:mime,confirmation:'STAGE_SOURCE_DIGEST_FOR_REVIEW'});
      });
      actions.append(sourceVersion);
