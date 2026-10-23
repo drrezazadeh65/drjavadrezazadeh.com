@@ -41,7 +41,7 @@ function jrExamOwnerCoverageReadiness(PDO $pdo): array {
             $rights=(string)$r['rights_state'];
             $validForInternal= $authority==='AUTHORITATIVE_REVIEWED'&&
               in_array($rights,['PERMITTED_PRIVATE_ANALYSIS',
-                'PERMITTED_PUBLIC_DISPLAY','PERMITTED_REPRODUCTION'],true)&&
+                'PERMITTED_REPRODUCTION'],true)&&
               (int)$r['is_revoked']===0&&(int)$r['is_superseded']===0;
             $n=(int)$r['total_count'];
             $groups[]=[
