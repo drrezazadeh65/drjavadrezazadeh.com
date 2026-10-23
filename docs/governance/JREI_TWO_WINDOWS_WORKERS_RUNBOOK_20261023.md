@@ -2,8 +2,8 @@
 
 **Owner hardware verified from screenshots, 23 October 2026.**  
 **Canonical branch:** `migration/bertina-linux6`.  
-**Activation state:** SOURCE ONLY / NOT INSTALLED / NOT TESTED / NOT CONNECTED.  
-**Hard rule:** original Bertina hosting remains the single public site, shop, owner dashboard, payment engine and mother database `drjavad1_store`. Do not deploy, migrate, register Windows startup, install models, or start a local network service before the owner's final release authorization.
+**Live observed state, 23 October 2026:** Nodes A and B were independently registered and displayed ONLINE in the owner dashboard with signed HTTPS heartbeats and CPU/RAM telemetry after the approved one-file signature hotfix. This is a historical observation, NOT proof they remain connected now, have a corpus or can perform model inference.  
+**Hard rule:** Bertina remains the single public site, shop, owner dashboard, payment engine and mother database `drjavad1_store`. The original node registration and initial private server activation were already completed; do NOT repeat key generation, node registration or the signature hotfix. The NEW code and additive governed-corpus migration remain staged until the owner's final release authorization.
 
 ## Two separately managed machines
 
@@ -32,9 +32,9 @@
 - `api/jrei-hybrid-owner.php`, `docs/migrations/20261023_jrei_hybrid_worker_mother_mysql.sql`: original private owner registration, disable/revoke, queue and signed metrics. Staged migration now forbids duplicate Ed25519 public-key registration.
 - `assets/js/operations-jrei-hybrid-nodes-v1.js`, scoped CSS and original `/fa/app/admin/` + `/en/account/admin/`: separately manage node A and B with MFA-protected disabled-by-default registration, status, queue and emergency stop/revocation. Missing DB => **unknown**, not connected.
 
-## Future owner-controlled installation — after final acceptance ONLY
+## Historical initial installation instructions — ALREADY COMPLETED on both PCs
 
-Complete every step **independently on each PC**. The commands are operational instructions, not evidence of a completed setup.
+The following section records the original setup procedure for traceability. **Do not execute these initialisation or public-key registration instructions again on either already-connected computer.** Only the new dataset-provisioning and release steps below remain future actions.
 
 1. Obtain an approved Node.js 20+ x64 build from its authoritative source and verify license/distribution. Confirm PowerShell 5.1 (or tested compatible), 64-bit Windows, disk space, current-user DPAPI availability, CPU/RAM temperature limits and synchronized Windows clock. Do not authorize paid services, GPU upgrades or substantial model downloads.
 2. Copy/checkout the **approved tagged repository release** to a trusted private local path. Do not launch any unreviewed scripts from email, GitHub PR content or a model draft. Make a private Windows-user-only directory such as `%LOCALAPPDATA%\JREI\`. Do not share files between the two computers.
@@ -61,17 +61,17 @@ Expected measured acceptance inputs (all **UNKNOWN** today): actual CPU tokens/s
 ## Hard acceptance and rollback requirements
 
 - Complete a *single final* owner-approved test campaign: Windows key creation, DPAPI restricted access and backup/replacement, Node runtime dependency audit, localhost-only model binding, TLS with correct origin/path and no redirects, PHP Sodium support on Bertina, exact signed body contract, 90s clock skew, nonce replay refusal, two-node simultaneous poll arbitration, job expiration/review, queue limits and launch/stop behavior.
-- Confirm the staged additive mother-DB migration's foreign keys and charset/collation against actual existing mother DB tables before authorizing installation. **No migration executed.**
+- The ORIGINAL hybrid worker tables are already live sufficiently for two nodes to register and authenticate; do not rerun that migration. The NEW governed-corpus and node-offer migration is additive and remains **staged, not executed**. Inspect its fields and mother DB compatibility at final QA.
 - Confirm no child/student private corpus, personal conversation, copyright-restricted scanned exam or fabricated answer-key claim crosses the PC boundary. Scientific results remain source-reviewed and administratively gated.
 - If compromised: owner revokes only the affected node's public key in original MFA dashboard. In-flight jobs become `NEEDS_REVIEW`; surviving independent node continues eligible tasks. Never silently replay an unknown side effect.
 - Roll back by disabling/revoking node keys, disabling `JR_JREI_HYBRID_ENABLED`, closing optional local loopback model server and unregistering the owner opt-in startup task. Preserve existing site payments, profiles, JREI static fallback and mother DB.
 
-**Final reporting:** Both personal PCs are shown powered on in screenshots and the source foundation now supports two independently authenticated outgoing Windows workers. **The worker software has not been installed, executed, benchmarked or connected on either machine**, and no LLM inference has been accepted or published.
+**Reconciled final reporting (23 October 2026):** Signed heartbeat evidence and owner screenshots confirm that **both independent Windows Workers connected to Bertina** after the signature hotfix. The outbound authentication/telemetry milestone is complete; no reviewed holdout was yet provisioned on either node (`datasets: []`), no completed retrieval evaluation has been accepted, and no downloaded/running local LLM or model training was verified.
 
 ## 23 October dispatch revision — prevent wrong-computer jobs
 
 The signed worker polling contract is now `{ "metrics": ..., "datasets": [...] }`, where each `datasets` entry contains only the **local** approved dataset identifier, evidence digest, held-out-case digest and evaluation version. Both node signatures are distinct. `api/jrei-hybrid-worker.php` independently checks each declaration against the **private Bertina `jrei_hybrid_approved_datasets` register**, restricts each `SELECT ... FOR UPDATE` candidate to a matching approved tuple, and serializes simultaneous polls by locking the authenticated node row. If a Windows PC has `datasets: []`, or Bertina has not provisioned matching permitted reviewed-public datasets, its poll returns **no job**. No arbitrary source URL, personal record, copy of a document, external-model command or unreviewed dataset can be transferred to acquire work.
 
-**Release gate:** Since Bertina's private approved-corpus catalogue currently defaults to an empty array and final owner-reviewed holdouts have not been supplied, neither computer can currently perform a real website job. This is the intended safe default, not a connection failure. A future documented and auditable owner approval workflow for adding/removing public corpus versions is still required before task execution. No hardware power-on photo constitutes that approval.
+**Development update:** The NEW governed-corpus workflow is now implemented in branch source: an additive mother-DB table, owner proposal/approval/suspension actions, version-and-policy digest constraints, signed node dataset advertisements, dashboard corpus/queue controls and auditable result review. Its deployment, migration and genuine holdout acceptance are NOT yet complete. With both private worker configs still reporting `datasets: []`, neither node is eligible for the first approved real evaluation; this is not a connectivity fault. No hardware power-on photo constitutes that approval.
 
 The staged loopback GGUF adapter is *separate from the signed job handler*; its existence does not authorize a new `task_type` or let public learners reach the owner's PC. All generation remains unverified JREI drafts behind existing evidence gates. Do not load model weights or start a localhost HTTP server until an independently accepted benchmark/release.
