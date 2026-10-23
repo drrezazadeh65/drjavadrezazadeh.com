@@ -3,6 +3,7 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ai-cloud-provider.php';
 require_once __DIR__.'/jrei-ai-answer-guard.php';
+require_once __DIR__.'/jrei-ai-provider-telemetry.php';
 
 /**
  * Real public bilingual assistant coordinator (first narrow approved tool).
@@ -84,6 +85,7 @@ function jrAiPublicCanAnswer(PDO $pdo,array $cfg): bool {
     return ($cfg['jrei_public_ai_release_accepted']??false)===true&&
         jrAiCloudConfigured($cfg)&&
         jrAiBudgetSourceReady($pdo)&&
+        jrAiTelemetrySchemaReady($pdo)&&
         is_file(jrAiPublicIndexPath())&&
         is_readable(jrAiPublicIndexPath());
 }
@@ -145,7 +147,23 @@ function jrAiPublicChat(PDO $pdo,array $cfg,array $body): array {
         throw new DomainException('public_ai_input_exceeds_budget');
     if(!jrAiReserveOpenAiBudget($pdo,$cfg,$inputReservation,240))
         throw new DomainException('public_ai_daily_budget_exhausted');
-    $response=jrAiOpenAiResponses($cfg,$messages,$instruction,240);
+    $started=microtime(true);
+    try{
+        $response=jrAiOpenAiResponses($cfg,$messages,$instruction,240);
+        $duration=(int)round((microtime(true)-$started)*1000);
+        jrAiRecordProviderOutcome($pdo,(string)$cfg['jrei_ai_openai_model'],
+            true,min(300000,max(0,$duration)),
+            $response['inputTokens'],$response['outputTokens']);
+    }catch(Throwable $providerError){
+        $duration=(int)round((microtime(true)-$started)*1000);
+        // The client sees a generic unavailable state; do not expose the
+        // provider's raw error, secrets, model payload or personal text.
+        try{
+            jrAiRecordProviderOutcome($pdo,(string)$cfg['jrei_ai_openai_model'],
+                false,min(300000,max(0,$duration)),null,null);
+        }catch(Throwable $metricsUnavailable){}
+        throw $providerError;
+    }
     $text=$response['text'];
     $gate=jrAiPublicAnswerGate($text,$evidence,$lang);
     if(($gate['publiclyRenderable']??false)!==true)
