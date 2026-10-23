@@ -46,6 +46,7 @@ require_once __DIR__.'/operations-collection.php';
 require_once __DIR__.'/operations-github-dispatch.php';
 require_once __DIR__.'/operations-cron-dispatcher.php';
 require_once __DIR__.'/jrei-learning-operations.php';
+require_once __DIR__.'/jrei-hybrid-owner.php';
 
 function operationsRegistry(): array {
     $raw = file_get_contents(__DIR__.'/internal/operations-registry.json');
@@ -398,6 +399,32 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        // Approved Windows CPU worker gateway: owner registry and queue
+        // control only, never an inbound public model port or arbitrary code.
+        // SUPER_ADMIN, current TOTP, exact-origin CSRF and audit still apply.
+        if($path==='/admin/operations/jrei-hybrid' &&
+           ($verb==='GET'||$verb==='POST')){
+            if(($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'jrei_hybrid_owner',$accountId,18,300))
+                fail('rate_limited',429);
+            if($verb==='GET')respond(jrHybridOwnerSnapshot($pdo,$configuration));
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            try {
+                respond(jrHybridOwnerChange($pdo,$configuration,
+                    $accountId,jsonBody()));
+            }catch(InvalidArgumentException $e){
+                fail('invalid_jrei_hybrid_policy',422);
+            }catch(DomainException $e){
+                fail(in_array($e->getMessage(),[
+                    'job_version_conflict','node_version_conflict',
+                    'hybrid_queue_at_capacity','cannot_cancel_terminal_job'
+                ],true)?'hybrid_state_conflict':
+                    'hybrid_owner_approval_required',409);
+            }
+        }
         // Adaptive JREI evaluation metadata is owner-visible only, with
         // the existing SUPER_ADMIN / fresh TOTP / same-origin CSRF guard.
         // This API cannot initiate local Windows inference or self-publish.
