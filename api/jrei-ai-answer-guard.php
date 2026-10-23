@@ -50,7 +50,9 @@ function jrAiPublicAnswerGate(string $answer,array $sources,string $lang): array
     if(!$ids)return $deny('UNSOURCED_MODEL_ANSWER');
     // New numerical assertions cannot be justified by attaching a random
     // citation. Use only numeric strings already in the selected summaries.
-    preg_match_all('/[0-9۰-۹٠-٩]+(?:[.,٫٬][0-9۰-۹٠-٩]+)*/u',$answer,$nums);
+    // The numeric suffix in [S1] is a source ID, never a numeric claim.
+    $numericText=preg_replace('/\[S[1-4]\]/','',$answer);
+    preg_match_all('/[0-9۰-۹٠-٩]+(?:[.,٫٬][0-9۰-۹٠-٩]+)*/u',$numericText,$nums);
     foreach($nums[0]??[] as $num){
         if(!isset($eligibleNums[jrAiNormalNumber($num)]))
             return $deny('UNSUPPORTED_NUMERIC_ASSERTION');
@@ -60,7 +62,7 @@ function jrAiPublicAnswerGate(string $answer,array $sources,string $lang): array
     $blocks=preg_split('/\R{2,}/u',trim($answer));
     if(count($blocks)>5)return $deny('TOO_MANY_UNREVIEWED_PARAGRAPHS');
     foreach($blocks as $block){
-        if(mb_strlen($block,'UTF-8')>1100)
+        if((function_exists('mb_strlen')?mb_strlen($block,'UTF-8'):strlen($block))>1100)
             return $deny('UNBOUNDED_UNCITED_EXPLANATION');
         if(!preg_match('/\[S[1-4]\]/',$block))
             return $deny('PARAGRAPH_WITHOUT_CITATION');
