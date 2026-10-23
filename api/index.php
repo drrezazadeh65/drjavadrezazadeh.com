@@ -100,6 +100,9 @@ function cfg(): array {
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
         'jrei_live_ai_enabled' => getenv('JR_JREI_LIVE_AI_ENABLED') === 'true',
+        // Credentials/policy alone cannot expose source-only AI to the public.
+        // Release approval is independently OFF until the final acceptance.
+        'jrei_public_ai_release_accepted' => getenv('JR_JREI_PUBLIC_AI_RELEASE_ACCEPTED') === 'true',
         'jrei_ai_openai_key' => (string)(getenv('JR_JREI_OPENAI_API_KEY') ?: ''),
         'jrei_ai_openai_model' => (string)(getenv('JR_JREI_OPENAI_MODEL') ?: ''),
         'jrei_ai_daily_call_limit' => (int)(getenv('JR_JREI_AI_DAILY_CALL_LIMIT') ?: 12),
