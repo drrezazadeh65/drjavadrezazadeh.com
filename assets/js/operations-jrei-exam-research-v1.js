@@ -1122,6 +1122,28 @@
      b.append(elt('p','',T(
        'آزمون واقعی مدل مستلزم API مجاز و دارای اعتبار مستقل و تأیید نهایی مالک است؛ این بخش به‌تنهایی مدل را فعال نمی‌کند.',
        'Executing actual benchmark calls requires separately funded API credentials and final owner authorisation; the panel does not enable the model.')));
+     for(const candidate of Array.isArray(benchmark.draftCases)?
+       benchmark.draftCases.slice(0,20):[]){
+       const row=elt('div','jr-exam-coverage-row');
+       row.append(elt('strong','',String(candidate.question||'').slice(0,900)));
+       row.append(elt('span','',String(candidate.origin||'')));
+       for(const decision of ['APPROVE_CASE','REJECT_CASE']){
+         const btn=elt('button','jr-btn secondary',
+           decision==='APPROVE_CASE'?
+           T('تأیید مستقل پیش‌نویس','Approve draft only'):
+           T('رد پیش‌نویس','Reject draft'));
+         btn.type='button';btn.addEventListener('click',()=>{
+           if(!active()||busy||!window.confirm(T(
+             'فقط متن پرسش و منبع بررسی شوند؛ هیچ استنتاج پولی اجرا نمی‌شود.',
+             'Review question and public evidence only, without model use.')))return;
+           mutate({action:'ai_review_benchmark_case',
+             caseId:candidate.caseId,specSha256:candidate.specSha256,
+             decision,confirmation:'REVIEW_BENCHMARK_WITHOUT_RUNNING_MODEL'});
+         });
+         row.append(btn);
+       }
+       b.append(row);
+     }
      sections.append(b);
    }
    const observed=ai.observedProviderOutcomes;
