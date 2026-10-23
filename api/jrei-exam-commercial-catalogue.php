@@ -92,6 +92,7 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'privateEnabled'=>($cfg['jrei_exam_commercial_enabled']??false)===true,
       'productStates'=>null,'offeringStates'=>null,
       'entitlementStates'=>null,'attemptStates'=>null,
+      'itemReviewCoverage'=>null,'itemReviewCoverageAvailable'=>false,
       'verifiedPaymentIntegration'=>false,
       'secureAttemptDeliveryVerified'=>false,
       'officiallyReviewedItemsVerified'=>false,
@@ -114,6 +115,40 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
                 if(is_string($field))$row[$field]=$field==='n'?(int)$value:$value;
             $base[$key][]=$row;
         }
+    }
+    // Display only aggregated scientific-review METADATA. An approved
+    // source/key row is NOT a pass certificate without scientific QA.
+    try{
+        $q=$pdo->query("SELECT p.division,
+          COUNT(DISTINCT i.id) AS item_count,
+          COUNT(DISTINCT CASE WHEN meta.item_state='APPROVED'
+             AND meta.reviewed_by_account_id IS NOT NULL
+             AND meta.authored_by_account_id IS NOT NULL
+             AND meta.reviewed_by_account_id<>meta.authored_by_account_id
+             THEN i.id END) AS independently_reviewed_item_count,
+          COUNT(DISTINCT CASE WHEN k.key_state='APPROVED'
+             AND k.rights_review_state='APPROVED'
+             AND k.reviewer_account_id IS NOT NULL
+             THEN i.id END) AS key_reviewed_item_count
+          FROM jrei_exam_commercial_products p
+          LEFT JOIN eco_assessment_items i
+            ON i.instrument_version_id=p.instrument_version_id
+          LEFT JOIN jrei_exam_item_metadata meta
+            ON meta.canonical_assessment_item_id=i.id
+          LEFT JOIN jrei_exam_reviewed_answer_keys k ON k.item_id=i.id
+          GROUP BY p.division ORDER BY p.division LIMIT 10");
+        $base['itemReviewCoverage']=[];
+        foreach($q as $r)$base['itemReviewCoverage'][]=[
+          'division'=>(string)$r['division'],
+          'recordedItemCount'=>(int)$r['item_count'],
+          'independentlyReviewedItemCount'=>(int)$r['independently_reviewed_item_count'],
+          'reviewedKeyCount'=>(int)$r['key_reviewed_item_count'],
+          'contentVerifiedByActualFileRead'=>false,
+          'subjectExpertValidationEstablished'=>false
+        ];
+        $base['itemReviewCoverageAvailable']=true;
+    }catch(Throwable $e){
+        $base['itemReviewCoverage']=null;
     }
     return $base;
 }
