@@ -72,10 +72,6 @@ function jrExamAttemptStart(PDO $pdo,string $account,array $request,int $at): ar
         $opens=(int)$o['opens_at'];$closes=(int)$o['closes_at'];
         $duration=(int)$o['duration_seconds'];
         $limit=(int)$o['max_attempts'];
-        if($opens>$at||$closes<=$at||
-           $duration<60||$duration>28800||
-           $limit<1||$limit>10)
-            throw new DomainException('exam_time_or_attempt_limit_unavailable');
         // The same client retry ID returns exactly the prior attempt.
         // It cannot be reused for another learner subject or language.
         $q=$pdo->prepare("SELECT a.attempt_id,a.attempt_state,
@@ -98,6 +94,10 @@ function jrExamAttemptStart(PDO $pdo,string $account,array $request,int $at): ar
               'liveItemDeliveryVerified'=>false
             ];
         }
+        $at=time(); // Re-evaluate after the offering row lock and any wait.
+        if($opens>$at||$closes<=$at||
+           $duration<60||$duration>28800||$limit<1||$limit>10)
+            throw new DomainException('exam_time_or_attempt_limit_unavailable');
         $entitlement=jrExamTrustedEntitlement($pdo,$account,$offering,$at);
         $consentId=jrExamAdultSubjectConsent($pdo,$account,$subject);
         $q=$pdo->prepare("SELECT attempt_number FROM jrei_exam_commercial_attempts
@@ -120,6 +120,11 @@ function jrExamAttemptStart(PDO $pdo,string $account,array $request,int $at): ar
           (string)$o['instrument_version_id'],$lang);
         if(count($published)!==count($score['items']))
             throw new DomainException('reviewed_key_and_prompt_count_conflict');
+        // A publisher can withdraw approval before the expensive original
+        // item checks. Do not start using a stale earlier timestamp.
+        $at=time();
+        if($at<$opens||$at>=$closes)
+            throw new DomainException('exam_window_elapsed');
         $sessionId=uuidv4();$attemptId=uuidv4();
         $deadline=min($closes,$at+$duration,
           (int)$entitlement['expires_at']);
@@ -191,9 +196,9 @@ function jrExamAttemptSave(PDO $pdo,string $account,array $request,int $at): arr
            $attempt['session_state']!=='IN_PROGRESS'||
            $attempt['offering_state']!=='PUBLISHED'||
            $attempt['product_state']!=='PUBLISHED'||
-           $at>(int)$attempt['deadline_at'])
+           time()>=(int)$attempt['deadline_at'])
             throw new DomainException('exam_not_accepting_responses');
-        jrExamTrustedEntitlement($pdo,$account,$attempt['offering_id'],$at);
+        jrExamTrustedEntitlement($pdo,$account,$attempt['offering_id'],time());
         $latestConsent=jrExamAdultSubjectConsent($pdo,$account,$attempt['subject_id']);
         if($attempt['consent_id']!==$latestConsent)
             throw new DomainException('original_exam_consent_superseded');
@@ -270,10 +275,15 @@ function jrExamAttemptSubmit(PDO $pdo,string $account,array $request,int $at): a
             throw new DomainException('exam_submission_state_conflict');
         if((int)$a['response_revision']!==$revision)
             throw new DomainException('exam_response_revision_conflict');
-        // A session that timeouts must still be signed off deterministically,
-        // but a revoked paid entitlement or withdrawn consent cannot be used
-        // to generate a fresh official score.
-        $effectiveAt=min($at,max(1,(int)$a['deadline_at']-1));
+        // Offline clients may FINALIZE answers already saved before the
+        // deadline during a small bounded grace, but may not save new answers.
+        // Never accept a stale request timestamp after transaction lock waits
+        // or treat a months-late submit as a valid timed-out submission.
+        $at=time();
+        $deadline=(int)$a['deadline_at'];
+        if($deadline<1||$at>$deadline+120)
+            throw new DomainException('exam_finalization_window_closed');
+        $effectiveAt=min($at,max(1,$deadline-1));
         jrExamTrustedEntitlement($pdo,$account,$a['offering_id'],$effectiveAt);
         $latestConsent=jrExamAdultSubjectConsent($pdo,$account,$a['subject_id']);
         if($a['consent_id']!==$latestConsent)
