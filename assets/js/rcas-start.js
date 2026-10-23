@@ -264,7 +264,7 @@ document.getElementById("showRoute").addEventListener("click",()=>{
   for(const [href,label,kind] of [
     ["/fa/assessments/golden-talent/","نقشه مراحل Golden Talent","button primary"],
     ["/fa/app/student/","پیش‌نمایش داشبورد دانش‌آموز","button"],
-    ["/fa/bahar/","ادامه رایگان در BAHAR: دو درس و برنامه هفتگی (ورود دستی)","button"]
+    ["/fa/app/student/bahar/#baharWorkingPlan","ادامه رایگان در BAHAR: دو درس و برنامه هفتگی (ورود دستی)","button"]
   ]){
     const link=document.createElement("a");link.href=href;link.className=kind;link.textContent=label;links.append(link);
   }
