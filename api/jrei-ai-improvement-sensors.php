@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
+require_once __DIR__.'/jrei-exam-source-release-impact.php';
+require_once __DIR__.'/jrei-exam-preliminary-grade-owner-audit.php';
 
 /**
  * Evidence-only self-improvement detection from ACTUAL measured events.
@@ -88,6 +90,40 @@ function jrAiDetectImprovementOpportunities(PDO $pdo,array $cfg): array {
           'count'=>$count,'severity'=>'REVIEW',
           'summary'=>'PRIVATE_SOURCE_LEASE_OUTCOMES_NEED_RECONCILIATION'
         ];
+    }catch(Throwable $e){}
+
+    // Genuine recorded commercial exam source/key retraction risks must be
+    // surfaced before new questions or sales are advertised. Observations
+    // only: never automatically suspend a paid product or reimburse a buyer.
+    try{
+        $impact=jrExamOwnerSourceReleaseImpact($pdo);
+        $count=$impact['available']===true?
+           (int)$impact['publishedProductsWithBlockers']:0;
+        if($impact['available']===true&&$count>0){
+            $candidates[]=[
+              'rule'=>'PUBLISHED_EXAM_SOURCE_RELEASE_BLOCKERS',
+              'sourceKey'=>'EXAM|PUBLISHED_SOURCE_AND_KEY_METADATA',
+              'count'=>$count,'severity'=>'HIGH',
+              'summary'=>'PUBLISHED_EXAM_SOURCE_RISK_REQUIRES_OWNER_REVIEW'
+            ];
+        }
+    }catch(Throwable $e){}
+
+    // Read only the existence and aggregate counts of canonical score-run
+    // mismatches; never submit learner answers or source-free model guesses.
+    try{
+        $evidence=jrExamOwnerPreliminaryGradeEvidence($pdo);
+        if($evidence['available']===true){
+            $count=(int)$evidence['orphanedOrMismatchedRun']+
+                (int)$evidence['missingSnapshotAfterSubmission']+
+                (int)$evidence['unexpectedSnapshotStates'];
+            if($count>0)$candidates[]=[
+              'rule'=>'PRELIMINARY_EXAM_GRADE_INTEGRITY_GAP',
+              'sourceKey'=>'EXAM|CANONICAL_SCORE_SNAPSHOT_RECONCILIATION',
+              'count'=>$count,'severity'=>'HIGH',
+              'summary'=>'CANONICAL_SCORE_INTEGRITY_REQUIRES_HUMAN_REVIEW'
+            ];
+        }
     }catch(Throwable $e){}
 
     $out['realSourceSignalsScanned']=count($candidates);
