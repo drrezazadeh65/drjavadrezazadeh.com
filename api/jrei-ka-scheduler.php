@@ -135,7 +135,8 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
       'extractionObservability'=>[
         'schemaReady'=>false,'totalQueued'=>null,'activeClaimed'=>null,
         'textPendingReview'=>null,'ocrRequired'=>null,
-        'structuredReviewRequired'=>null,'failedReviewRequired'=>null,
+        'structuredReviewRequired'=>null,'mathLayoutReviewRequired'=>null,
+        'failedReviewRequired'=>null,
         'extractedPrivateBytes'=>null,'languages'=>null,
         'actualOcrQualityVerified'=>false,'scientificPublicationVerified'=>false
       ],
@@ -270,6 +271,7 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
         $extract['ocrRequired']=($counts['OCR_REQUIRED']??0)+
            ($counts['OCR_OR_MANUAL_REVIEW_REQUIRED']??0);
         $extract['structuredReviewRequired']=$counts['STRUCTURED_REVIEW_REQUIRED']??0;
+        $extract['mathLayoutReviewRequired']=$counts['MATH_LAYOUT_REVIEW_REQUIRED']??0;
         $extract['failedReviewRequired']=($counts['EXTRACTION_FAILED_REVIEW']??0)+
            ($counts['UNKNOWN_EXTRACTION_REVIEW']??0);
         $extract['extractedPrivateBytes']=$bytes;
