@@ -55,8 +55,9 @@ function jrHybridOwnerReadiness(array $snapshot): array {
             (int)($c['unknownOutcomeAwaitingOwner']??0);
         if($unresolved>0)$problems[]='UNKNOWN_JOB_OUTCOME_NEEDS_MANUAL_REVIEW';
     }
+    if($unresolved===null)$problems[]='QUEUE_HEALTH_NOT_OBSERVABLE';
     $possible=$schema&&$enabled&&$approvedVersions>0&&
-        count($matchingNodeIds)>0;
+        count($matchingNodeIds)>0&&$unresolved===0;
     $modelVerified=($snapshot['modelInferenceVerified']??false)===true;
     return [
       'schema'=>'jr.jrei.owner-readiness.v1',
