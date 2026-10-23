@@ -21,6 +21,8 @@ function jrAiApprovedPassageSchemaReady(PDO $pdo): bool {
         $pdo->query("SELECT observation_id,processing_state,
            text_private_object_key,extracted_bytes
            FROM jrei_ka_text_extraction_jobs LIMIT 0");
+        $pdo->query("SELECT review_id,passage_id,decision
+           FROM jrei_ka_public_quote_attestations LIMIT 0");
         return true;
     }catch(Throwable $e){return false;}
 }
@@ -54,10 +56,20 @@ function jrAiApprovedPublicPassages(PDO $pdo,array $cfg,
          s.country_code,s.subject_id
        FROM jrei_ka_private_passages p
        JOIN jrei_exam_sources s ON s.source_id=p.source_id
+       JOIN jrei_ka_source_policies policy ON policy.source_id=s.source_id
+       JOIN jrei_ka_public_quote_attestations att ON att.passage_id=p.passage_id
        JOIN jrei_ka_private_observations o ON o.observation_id=p.observation_id
        JOIN jrei_ka_text_extraction_jobs t ON t.observation_id=p.observation_id
        WHERE p.passage_state='APPROVED_PUBLIC_AI_EVIDENCE'
          AND p.review_rights_state='PERMITTED_PUBLIC_QUOTE'
+         AND att.decision='APPROVE_PUBLIC_QUOTE'
+         AND att.reviewer_account_id=p.reviewer_account_id
+         AND att.source_id=p.source_id
+         AND att.quoted_passage_sha256=p.passage_sha256
+         AND att.reviewed_source_rights_sha256=policy.rights_evidence_sha256
+         AND att.reviewer_acknowledges_claim_not_validated=1
+         AND policy.scheduling_state='APPROVED'
+         AND policy.rights_reviewed=1
          AND p.reviewer_account_id IS NOT NULL
          AND s.reviewer_account_id IS NOT NULL
          AND p.reviewer_account_id<>s.reviewer_account_id
