@@ -68,3 +68,12 @@ Sections 1–2 cover cumulative architecture and traceability, not a programme r
 6. The one complete final QA/release campaign for all 117 original requirements plus all Ultimate Master sections.
 
 **This entire batch is SOURCE DEVELOPMENT ONLY: no tests, migrations, downloads, local model runs, production deployments or bank/payment operations were executed.**
+
+
+## Development continuation: authenticated candidate session source (23 Oct 2026)
+
+New source: api/jrei-exam-runtime-gates.php (adult self-owned subject and scoped original consent; original provider-verified order claim for paid access), api/jrei-exam-attempt-runtime.php (idempotent server-timed start, compare-and-swap response revision, final canonical eco_score_runs write, private server-authorized resume), and api/jrei-exam-published-item-delivery.php (SHA-verified private prompt manifest with original item/option IDs and no answer key). Existing /api/exams/attempt and /api/exams/items are independently OFF by default, and require the private immutable-file source bridge. No live student answer content, real exam attempt or payment was processed.
+
+Added existing-dashboard-linked fa/en/exams/my candidate pages, the shared private mobile MCQ client and responsive CSS. UI displays only server-confirmed autosaves and refuses to invent offline responses. All future rich-media items remain gated; they are NOT silently stripped. No new customer login, payment or assessment engine.
+
+IMPORTANT UNFINISHED: an additive private materialized raw-grade report table and owner-reviewed report retrieval were not committed because the GitHub write was rejected by tool safety checks in this continuation. The source-only existing eco_score_runs digest persistence must not be represented as a fully recoverable candidate report. The accepted end-stage QA and release remain NOT RUN. End-to-end item delivery, written-response marking, under-18 guardian workflow, authentic assessment material, validated payment, live schema migrations and real release all remain outstanding.
