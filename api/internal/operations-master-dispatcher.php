@@ -188,10 +188,16 @@ function jrMasterDispatch(): int {
     try{
         $issues+=jrMasterReconcileStale($pdo,time());
         $registry=operationsCronRegistry();
-        $q=$pdo->query('SELECT job_id FROM operations_cron_jobs
-            WHERE enabled=1 AND needs_owner_review=0
-              AND next_due_at<='.time().'
+        $ids=array_keys($registry);
+        if(!$ids)throw new RuntimeException('cron_allowlist_empty');
+        $marks=implode(',',array_fill(0,count($ids),'?'));
+        // An unrecognised enabled DB row must never execute OR starve the
+        // known due jobs by occupying a bounded LIMIT before allowlist checks.
+        $q=$pdo->prepare('SELECT job_id FROM operations_cron_jobs
+            WHERE job_id IN ('.$marks.') AND enabled=1
+              AND needs_owner_review=0 AND next_due_at<=?
             ORDER BY next_due_at ASC,job_id ASC LIMIT 30');
+        $q->execute([...$ids,time()]);
         foreach($q->fetchAll(PDO::FETCH_COLUMN) as $id){
             if($attempts>=4||microtime(true)-$started>35)break;
             if(!isset($registry[$id]))continue;
