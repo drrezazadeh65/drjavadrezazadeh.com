@@ -91,8 +91,11 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
       'unverifiedAggregate'=>$r['result_json']===null?null:
         json_decode((string)$r['result_json'],true)
     ];
-    return array_merge($base,jrHybridOwnerCorpusSnapshot($pdo),
+    $projection=array_merge($base,jrHybridOwnerCorpusSnapshot($pdo),
         jrHybridSourceSnapshot($pdo),jrHybridModelSnapshot($pdo));
+    $projection['dispatchDiagnostics']=jrHybridDispatchDiagnostics(
+        $pdo,$projection);
+    return $projection;
 }
 function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
     array $body): array {
