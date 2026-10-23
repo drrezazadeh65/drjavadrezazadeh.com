@@ -19,23 +19,27 @@ function operationsCronRegistry(): array {
       'response_monitor'=>[
         'fa'=>'پایش پاسخ و هدرها','en'=>'Response and header monitor',
         'relative'=>'internal/operations-response-monitor-worker.php',
-        'defaultCadence'=>60,'minimumCadence'=>60,'sensitive'=>false],
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>false],
       'private_http_log'=>[
         'fa'=>'مشاهده‌گر لاگ خصوصی','en'=>'Private HTTP log observer',
         'relative'=>'internal/operations-http-log-worker.php',
-        'defaultCadence'=>60,'minimumCadence'=>60,'sensitive'=>true],
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true],
       'operations_alert_mail'=>[
         'fa'=>'صف هشدارهای مدیر','en'=>'Operations alert outbox',
         'relative'=>'internal/operations-alert-mail-worker.php',
-        'defaultCadence'=>60,'minimumCadence'=>60,'sensitive'=>true],
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true],
       'newsletter_outbox'=>[
         'fa'=>'صف خبرنامه با رضایت معتبر','en'=>'Consented newsletter outbox',
         'relative'=>'newsletter-worker.php',
-        'defaultCadence'=>300,'minimumCadence'=>60,'sensitive'=>true],
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true],
       'publishing_outbox'=>[
         'fa'=>'صف اعلان‌های انتشارات','en'=>'Publishing notification outbox',
         'relative'=>'internal/jr-publishing-mail-worker.php',
-        'defaultCadence'=>300,'minimumCadence'=>60,'sensitive'=>true]
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true],
+      'jrei_daily_learning'=>[
+        'fa'=>'ارزیابی یادگیری روزانه JREI','en'=>'JREI daily learning evaluator',
+        'relative'=>'internal/jrei-daily-learning-worker.php',
+        'defaultCadence'=>86400,'minimumCadence'=>86400,'sensitive'=>true]
     ];
 }
 function operationsCronSourcePath(string $jobId): ?string {
@@ -112,7 +116,8 @@ function operationsCronOwnerSnapshot(PDO $pdo,array $config): array {
         'phpCli83SourceCompatible'=>null, 'subprocessAvailable'=>null,
         'serverCronVerified'=>false,
         'hostExecutionVerified'=>false,'emailDeliveryVerified'=>false,
-        'schemaReady'=>$schema,'unknownRegisteredRows'=>$unrecognized,
+        'schemaReady'=>$schema,'hostMinimumCadenceSeconds'=>300,
+        'unknownRegisteredRows'=>$unrecognized,
         'checkedAt'=>time(),'jobs'=>$rows,
         'limitations'=>'Source presence and policy are not proof of host installation, real execution, SMTP receipt or safe access-log configuration.'];
 }
@@ -219,7 +224,7 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
     $revision=$body['rowRevision']??null;
     if(!is_bool($enabled)||!is_int($cadence)||!is_int($revision)||
        $revision<1||$cadence<$job['minimumCadence']||
-       $cadence>86400||$cadence%60!==0)
+       $cadence>86400||$cadence%300!==0)
         throw new InvalidArgumentException('invalid_cron_schedule');
     if($enabled&&operationsCronSourcePath($jobId)===null)
         throw new DomainException('cron_source_unavailable');
