@@ -584,8 +584,26 @@
            T('کلید ناقص: ','Key-review issues: ')+
            safeCount(item.keyItemCount)));
          row.append(elt('p','',T(
-           'تصمیم درباره تعلیق از کنترل‌های اصلی محصول و با تأیید مالک اتخاذ می‌شود؛ این هشدار نمره یا بازپرداخت ایجاد نمی‌کند.',
-           'Use the existing owner product controls for suspension decisions; this warning does not change grades or refund payments.')));
+           'تعلیق محصول جلوی دسترسی‌های آتی را می‌گیرد؛ بررسی حقوق خریدار، بازپرداخت یا تغییر زمان آزمون همچنان وظیفهٔ مدیر است.',
+           'Suspension blocks future examination access; financial obligations, buyer remedies and rescheduling still require owner review.')));
+         if(typeof item.productId==='string'&&
+            /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(item.productId)&&
+            Number.isSafeInteger(item.revision)&&item.revision>=1){
+           const emergency=elt('button','jr-exam-emergency',T(
+             'تعلیق فوری محصول آسیب‌دیده با تأیید مدیر',
+             'Owner-authorised emergency suspension of affected product'));
+           emergency.type='button';
+           emergency.addEventListener('click',()=>{
+             if(!active()||busy)return;
+             if(!window.confirm(T(
+               'این محصول به‌دلیل خطر فعلی اصالت یا حقوق منابع تعلیق شود؟ خریداران و بازپرداخت جداگانه بررسی می‌شوند.',
+               'Suspend this product because of current source/key/rights risk? Buyer remedies and refunds need separate review.')))return;
+             mutate({action:'exam_suspend_product',
+               id:item.productId,revision:item.revision,
+               confirmation:'SUSPEND_EXAM_WITHOUT_REFUND'});
+           });
+           row.append(emergency);
+         }
          impactPanel.append(row);
        }
        if(sourceImpact.truncated)impactPanel.append(elt('p','',T(
