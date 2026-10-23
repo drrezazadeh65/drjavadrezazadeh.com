@@ -46,8 +46,14 @@ test('unreviewed or unmatched holdout never learns',()=>{
   assert.equal(ask({challenger:{...challenger,sourceApproved:false}}).decision,DECISIONS.BLOCKED);
   assert.equal(ask({challenger:{...challenger,datasetSha256:'c'.repeat(64)}}).reason,
     'NONCOMPARABLE_EVIDENCE');
-  assert.equal(ask({baseline:{...baseline,sampleCount:20},
-    challenger:{...challenger,sampleCount:20}}).reason,'INSUFFICIENT_HELD_OUT_CASES');
+  // Valid 20-case aggregates must be rejected for inadequate sampling.
+  // Incorrect 450/452 successes in a 20-case cohort fail earlier, rightly,
+  // as malformed research evidence rather than as a low-sample comparison.
+  assert.equal(ask({baseline:{...baseline,sampleCount:20,
+    correctCount:18,abstentionCount:2},
+    challenger:{...challenger,sampleCount:20,
+      correctCount:19,abstentionCount:1}}).reason,
+    'INSUFFICIENT_HELD_OUT_CASES');
 });
 test('rejects unsafe evidence gains, fairness and privacy regressions',()=>{
   assert.equal(ask({challenger:{...challenger,privacyIncidentCount:1}}).reason,'PRIVACY_REGRESSION');
